@@ -1,12 +1,15 @@
 #pragma once
 #include <QObject>
-
+#include <memory>
 #include <iscore_lib_base_export.h>
 namespace iscore {
 class SettingsDelegateFactory;
+class SettingsDelegateModel;
 class SettingsModel;
 class SettingsPresenter;
 class SettingsView;
+
+class ApplicationContext;
 }  // namespace iscore
 
 namespace iscore
@@ -26,25 +29,27 @@ namespace iscore
      * An exemple is given in the network plugin.
      *
      */
-    class ISCORE_LIB_BASE_EXPORT Settings final : public QObject
+    class ISCORE_LIB_BASE_EXPORT Settings final
     {
         public:
-            Settings(QObject* parent);
+            Settings();
             ~Settings();
 
-            void setupSettingsPlugin(SettingsDelegateFactory& plugin);
+            void setupSettingsPlugin(
+                    const iscore::ApplicationContext& ctx,
+                    SettingsDelegateFactory& plugin);
             SettingsView& view() const
             {
                 return *m_settingsView;
             }
-            SettingsModel& model() const
-            {
-                return *m_settingsModel;
-            }
 
+            auto& settings() const
+            { return m_settings; }
         private:
-            SettingsModel* m_settingsModel{};
+
             SettingsView* m_settingsView{};
             SettingsPresenter* m_settingsPresenter{};
+
+            std::vector<std::unique_ptr<SettingsDelegateModel>> m_settings;
     } ;
 }

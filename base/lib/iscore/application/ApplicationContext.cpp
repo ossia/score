@@ -8,7 +8,7 @@ iscore::ApplicationContext::ApplicationContext(
         iscore::MenuManager& m,
         iscore::ToolbarManager& t,
         iscore::ActionManager& a,
-        const std::vector<iscore::SettingsDelegateModelInterface*>& set):
+        const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>& set):
     applicationSettings{app},
     components{c},
     documents{d},

@@ -9,7 +9,7 @@ class QObject;
 namespace PluginSettings
 {
 PluginSettingsView::PluginSettingsView(QObject* parent) :
-    iscore::SettingsDelegateViewInterface {parent}
+    iscore::SettingsDelegateView {parent}
 {
     auto layout = new QGridLayout(m_widget);
     m_widget->setLayout(layout);

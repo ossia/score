@@ -12,28 +12,26 @@
 #include "PluginSettings/commands/BlacklistCommand.hpp"
 
 namespace iscore {
-class SettingsDelegateModelInterface;
-class SettingsDelegateViewInterface;
+class SettingsDelegateModel;
+class SettingsDelegateView;
 class SettingsPresenter;
 }  // namespace iscore
 
 namespace PluginSettings
 {
 PluginSettingsPresenter::PluginSettingsPresenter(
-        iscore::SettingsDelegateModelInterface& model,
-        iscore::SettingsDelegateViewInterface& view,
+        iscore::SettingsDelegateModel& model,
+        iscore::SettingsDelegateView& view,
         QObject* parent) :
-    SettingsDelegatePresenterInterface {model, view, parent}
+    SettingsDelegatePresenter {model, view, parent}
 {
-    /*
     auto& ps_model = static_cast<PluginSettingsModel&>(model);
     auto& ps_view  = static_cast<PluginSettingsView&>(view);
 
     ps_view.view()->setModel(ps_model.model());
-
+/*
     con(ps_model,	&PluginSettingsModel::blacklistCommand,
-    this,		&PluginSettingsPresenter::setBlacklistCommand);
-    */
+    this,		&PluginSettingsPresenter::setBlacklistCommand);*/
 }
 
 

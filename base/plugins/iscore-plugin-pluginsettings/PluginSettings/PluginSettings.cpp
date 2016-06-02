@@ -13,20 +13,20 @@ PluginSettingsFactory::PluginSettingsFactory()
 {
 }
 
-iscore::SettingsDelegateViewInterface* PluginSettingsFactory::makeView()
+iscore::SettingsDelegateView* PluginSettingsFactory::makeView()
 {
     return new PluginSettingsView(nullptr);
 }
 
-iscore::SettingsDelegatePresenterInterface* PluginSettingsFactory::makePresenter_impl(
-        iscore::SettingsDelegateModelInterface& m,
-        iscore::SettingsDelegateViewInterface& v,
+iscore::SettingsDelegatePresenter* PluginSettingsFactory::makePresenter_impl(
+        iscore::SettingsDelegateModel& m,
+        iscore::SettingsDelegateView& v,
         QObject* parent)
 {
     return new PluginSettingsPresenter(m, v, parent);
 }
 
-iscore::SettingsDelegateModelInterface* PluginSettingsFactory::makeModel()
+iscore::SettingsDelegateModel* PluginSettingsFactory::makeModel()
 {
     return new PluginSettingsModel();
 }

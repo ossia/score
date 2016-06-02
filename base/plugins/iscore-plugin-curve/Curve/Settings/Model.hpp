@@ -21,7 +21,7 @@ struct Keys
 };
 
 class ISCORE_PLUGIN_CURVE_EXPORT Model :
-        public iscore::SettingsDelegateModelInterface
+        public iscore::SettingsDelegateModel
 {
         Q_OBJECT
         Q_PROPERTY(int simplificationRatio READ getSimplificationRatio WRITE setSimplificationRatio NOTIFY SimplificationRatioChanged)

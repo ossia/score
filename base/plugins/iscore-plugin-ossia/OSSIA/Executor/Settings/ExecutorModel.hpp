@@ -13,7 +13,7 @@ struct Keys
 };
 
 class Model :
-        public iscore::SettingsDelegateModelInterface
+        public iscore::SettingsDelegateModel
 {
         Q_OBJECT
         Q_PROPERTY(int rate READ getRate WRITE setRate NOTIFY RateChanged)

@@ -12,7 +12,7 @@ namespace PluginSettings
 {
 class BlacklistCommand;
 
-class PluginSettingsModel : public iscore::SettingsDelegateModelInterface
+class PluginSettingsModel : public iscore::SettingsDelegateModel
 {
         Q_OBJECT
     public:

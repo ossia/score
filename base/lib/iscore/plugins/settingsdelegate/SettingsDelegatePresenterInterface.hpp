@@ -6,24 +6,24 @@
 
 namespace iscore
 {
-    class SettingsDelegateModelInterface;
-    class SettingsDelegateViewInterface;
+    class SettingsDelegateModel;
+    class SettingsDelegateView;
     class SettingsPresenter;
 
-    class ISCORE_LIB_BASE_EXPORT SettingsDelegatePresenterInterface :
+    class ISCORE_LIB_BASE_EXPORT SettingsDelegatePresenter :
             public QObject
     {
         public:
-            SettingsDelegatePresenterInterface(
-                    SettingsDelegateModelInterface& model,
-                    SettingsDelegateViewInterface& view,
+            SettingsDelegatePresenter(
+                    SettingsDelegateModel& model,
+                    SettingsDelegateView& view,
                     QObject* parent) :
                 QObject {parent},
                     m_model {model},
                     m_view {view}
             {}
 
-            virtual ~SettingsDelegatePresenterInterface();
+            virtual ~SettingsDelegatePresenter();
             void on_accept()
             {
                 m_disp.commit();
@@ -50,8 +50,8 @@ namespace iscore
             }
 
         protected:
-            SettingsDelegateModelInterface& m_model;
-            SettingsDelegateViewInterface& m_view;
+            SettingsDelegateModel& m_model;
+            SettingsDelegateView& m_view;
 
             iscore::SettingsCommandDispatcher m_disp;
     };

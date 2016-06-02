@@ -14,7 +14,7 @@
 namespace PluginSettings
 {
 PluginSettingsModel::PluginSettingsModel() :
-    iscore::SettingsDelegateModelInterface {}
+    iscore::SettingsDelegateModel {}
 {
     this->setObjectName("PluginSettingsModel");
 
@@ -22,12 +22,7 @@ PluginSettingsModel::PluginSettingsModel() :
     auto blacklist = s.value("PluginSettings/Blacklist", QStringList{}).toStringList();
     blacklist.sort();
 
-    ISCORE_TODO;
-    return;
-
-
 /*
- * // TODO use ApplicationContext
     auto systemlist = qApp->findChild<PluginLoader*> ("PluginManager")->pluginsOnSystem();
     systemlist.sort();
 
@@ -54,8 +49,7 @@ PluginSettingsModel::PluginSettingsModel() :
     }
 
     connect(m_plugins,  &QStandardItemModel::itemChanged,
-    this,		&PluginSettingsModel::on_itemChanged);
-    */
+    this,		&PluginSettingsModel::on_itemChanged);*/
 }
 
 
