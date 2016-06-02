@@ -17,7 +17,6 @@ TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent) :
     LayerView {parent}
 {
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
-    this->setCursor(Qt::ArrowCursor);
     setAcceptDrops(true);
 
     this->setZValue(1);

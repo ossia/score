@@ -22,7 +22,6 @@ FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& pres
 {
     this->setParentItem(parent);
     this->setFlag(ItemIsSelectable);
-    this->setCursor(Qt::CrossCursor);
 
     this->setZValue(1);
     this->setY(2*constraintAndRackHeight());
