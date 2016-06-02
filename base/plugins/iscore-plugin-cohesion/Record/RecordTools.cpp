@@ -35,8 +35,7 @@ static QList<Device::Node*> GetParametersRecursive(QList<Device::Node*> parents)
         res.append(GetParametersRecursive(node));
     }
 
-    auto end = res.end();
-    for(auto it = res.begin(); it != end; )
+    for(auto it = res.begin(); it != res.end(); )
     {
         bool ok = true;
         Device::Node* n = *it;
