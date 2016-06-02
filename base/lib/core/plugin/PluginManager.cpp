@@ -38,7 +38,8 @@ static QStringList pluginsDir()
     return {QCoreApplication::applicationDirPath() + "/plugins"};
 #elif defined(__linux__)
     return {QCoreApplication::applicationDirPath() + "/plugins",
-            "/usr/lib/i-score/plugins"};
+            "/usr/lib/i-score/plugins",
+            "lib/i-score/plugins"};
 #elif defined(__APPLE__) && defined(__MACH__)
     return {QCoreApplication::applicationDirPath() + "/plugins",
             QCoreApplication::applicationDirPath() + "../Frameworks/i-score/plugins"};
