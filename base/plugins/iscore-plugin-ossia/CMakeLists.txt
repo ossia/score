@@ -167,10 +167,15 @@ else()
               APIJamoma
   )
 
-  if (APPLE AND DEPLOYMENT_BUILD AND NOT ISCORE_STATIC_PLUGINS)
-      # TODO investigate why this is necessary
-    find_package(Jamoma 0.6)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Jamoma::Foundation Jamoma::Modular)
+  # Necesarry to override plug-in loading path
+  if(DEPLOYMENT_BUILD AND NOT ISCORE_STATIC_PLUGINS)
+    if (APPLE)
+      find_package(Jamoma 0.6)
+      target_link_libraries(${PROJECT_NAME} PRIVATE Jamoma::Foundation Jamoma::Modular)
+    elseif(UNIX AND NOT WIN32)
+      find_package(Jamoma 0.6)
+      target_link_libraries(${PROJECT_NAME} PRIVATE Jamoma::Foundation Jamoma::Modular)
+    endif()
   endif()
 endif()
 
