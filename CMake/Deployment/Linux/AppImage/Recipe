@@ -39,7 +39,7 @@ mkdir -p $APP.AppDir/usr
     mkdir -p build
     
     cd build
-    cmake ../i-score -DISCORE_CONFIGURATION=release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH=$(dirname $(find /usr/local -name 'Qt5Config.cmake')) -DBOOST_ROOT=$BOOST_ROOT
+    cmake ../i-score -DISCORE_CONFIGURATION=release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH=$(dirname $(find /usr/local -name 'Qt5Config.cmake')) -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON
     
     cmake --build . --target all_unity -- -j8
     cmake --build . --target install -- -j8

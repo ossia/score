@@ -17,6 +17,7 @@ git_pull_rebase_helper()
 # Install required libs
 wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/1.0/i-score-sdk.txz
 tar -xaf i-score-sdk.txz --directory /
+cp -rf /usr/local/lib64/* /usr/lib64/
 wget -nv http://downloads.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.bz2
 tar -xaf boost_1_61_0.tar.bz2
 mv boost_1_61_0 boost
