@@ -64,7 +64,8 @@ EventInspectorWidget::EventInspectorWidget(
     ISCORE_ASSERT(scenar);
 
     con(m_model,  &EventModel::statesChanged,
-            this, &EventInspectorWidget::updateDisplayedValues);
+        this, &EventInspectorWidget::updateDisplayedValues,
+        Qt::QueuedConnection);
 
     ////// HEADER
     // metadata
