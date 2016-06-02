@@ -4,7 +4,7 @@ set -o pipefail
 # Set-up paths
 export BOOST_ROOT=$PWD/boost
 export CMAKE_PATH=$(find $PWD/cmake-*/ -type d | head -n 1)bin
-export LD_LIBRARY_PATH=/usr/local/lib64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/lib64
 export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
 
 
