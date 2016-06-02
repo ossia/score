@@ -34,12 +34,15 @@ namespace iscore
  */
 static QStringList pluginsDir()
 {
+    qDebug() << QCoreApplication::applicationDirPath();
 #if defined(_WIN32)
     return {QCoreApplication::applicationDirPath() + "/plugins"};
 #elif defined(__linux__)
     return {QCoreApplication::applicationDirPath() + "/plugins",
-            "/usr/lib/i-score/plugins",
-            "lib/i-score/plugins"};
+            QCoreApplication::applicationDirPath() + "/../lib/i-score",
+            "/usr/lib/i-score",
+            "lib/i-score",
+            "../lib/i-score"};
 #elif defined(__APPLE__) && defined(__MACH__)
     return {QCoreApplication::applicationDirPath() + "/plugins",
             QCoreApplication::applicationDirPath() + "../Frameworks/i-score/plugins"};
