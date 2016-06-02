@@ -13,7 +13,7 @@ struct GUIApplicationContext : public iscore::ApplicationContext
                 iscore::MenuManager& d,
                 iscore::ToolbarManager& e,
                 iscore::ActionManager& f,
-                const std::vector<iscore::SettingsDelegateModelInterface*>& g,
+                const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>& g,
                 QMainWindow& mw):
             iscore::ApplicationContext{a, b, c, d, e, f, g},
             mainWindow{mw}

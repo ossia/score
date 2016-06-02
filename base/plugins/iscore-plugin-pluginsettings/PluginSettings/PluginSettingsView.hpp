@@ -8,7 +8,7 @@ class QObject;
 namespace PluginSettings
 {
 class PluginSettingsPresenter;
-class PluginSettingsView : public iscore::SettingsDelegateViewInterface
+class PluginSettingsView : public iscore::SettingsDelegateView
 {
         Q_OBJECT
     public:

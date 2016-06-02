@@ -8,7 +8,7 @@ namespace Settings
 {
 
 class View :
-        public iscore::SettingsDelegateViewInterface
+        public iscore::SettingsDelegateView
 {
         Q_OBJECT
     public:

@@ -6,11 +6,9 @@
 namespace iscore
 {
 SettingsPresenter::SettingsPresenter(
-        SettingsModel* model,
         SettingsView* view,
         QObject* parent) :
     QObject {parent},
-        m_model {model},
         m_view {view}
 {
     connect(m_view, &SettingsView::accepted,
@@ -19,7 +17,7 @@ SettingsPresenter::SettingsPresenter(
     this,   &SettingsPresenter::on_reject);
 }
 
-void SettingsPresenter::addSettingsPresenter(SettingsDelegatePresenterInterface* presenter)
+void SettingsPresenter::addSettingsPresenter(SettingsDelegatePresenter* presenter)
 {
     m_pluginPresenters.insert(presenter);
 }

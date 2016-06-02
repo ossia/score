@@ -7,9 +7,9 @@ namespace iscore
 {
 SettingsDelegateFactory::~SettingsDelegateFactory() = default;
 
-SettingsDelegatePresenterInterface*SettingsDelegateFactory::makePresenter(
-        SettingsDelegateModelInterface& m,
-        SettingsDelegateViewInterface& v,
+SettingsDelegatePresenter*SettingsDelegateFactory::makePresenter(
+        SettingsDelegateModel& m,
+        SettingsDelegateView& v,
         QObject* parent)
 {
     auto p = makePresenter_impl(m, v, parent);

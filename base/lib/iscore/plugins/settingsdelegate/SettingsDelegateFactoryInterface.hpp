@@ -4,9 +4,9 @@
 namespace iscore
 {
     class SettingsPresenter;
-    class SettingsDelegatePresenterInterface;
-    class SettingsDelegateModelInterface;
-    class SettingsDelegateViewInterface;
+    class SettingsDelegatePresenter;
+    class SettingsDelegateModel;
+    class SettingsDelegateView;
 
     /**
      * @brief The SettingsDelegateFactory class
@@ -22,17 +22,20 @@ namespace iscore
 
         public:
             virtual ~SettingsDelegateFactory();
-            SettingsDelegatePresenterInterface* makePresenter(
-                    iscore::SettingsDelegateModelInterface& m,
-                    iscore::SettingsDelegateViewInterface& v,
+            SettingsDelegatePresenter* makePresenter(
+                    iscore::SettingsDelegateModel& m,
+                    iscore::SettingsDelegateView& v,
                     QObject* parent);
-            virtual SettingsDelegateViewInterface* makeView() = 0;
-            virtual SettingsDelegateModelInterface* makeModel() = 0;
+
+            virtual SettingsDelegateView* makeView() = 0;
+
+            virtual std::unique_ptr<SettingsDelegateModel> makeModel(
+                        const iscore::ApplicationContext& ctx) = 0;
 
         protected:
-            virtual SettingsDelegatePresenterInterface* makePresenter_impl(
-                    iscore::SettingsDelegateModelInterface& m,
-                    iscore::SettingsDelegateViewInterface& v,
+            virtual SettingsDelegatePresenter* makePresenter_impl(
+                    iscore::SettingsDelegateModel& m,
+                    iscore::SettingsDelegateView& v,
                     QObject* parent) = 0;
     };
 
@@ -43,4 +46,37 @@ namespace iscore
         using object_type = SettingsDelegateFactory;
     };
 
+
+    template<typename Model_T, typename Presenter_T, typename View_T>
+    class SettingsDelegateFactory_T : public SettingsDelegateFactory
+    {
+            std::unique_ptr<SettingsDelegateModel> makeModel(
+                    const iscore::ApplicationContext& ctx) override
+            {
+                return std::make_unique<Model_T>(ctx);
+            }
+
+            iscore::SettingsDelegateView *makeView() override
+            {
+                return new View_T;
+            }
+
+            iscore::SettingsDelegatePresenter* makePresenter_impl(
+                    iscore::SettingsDelegateModel& m,
+                    iscore::SettingsDelegateView& v,
+                    QObject* parent) override
+            {
+                return new Presenter_T{
+                            safe_cast<Model_T&>(m),
+                            safe_cast<View_T&>(v),
+                            parent};
+            }
+    };
+
+#define ISCORE_DECLARE_SETTINGS_FACTORY(Factory, Model, Presenter, View, Uuid) \
+    class Factory final : \
+        public iscore::SettingsDelegateFactory_T<Model, Presenter, View> \
+    { \
+            ISCORE_CONCRETE_FACTORY_DECL(Uuid) \
+    };
 }

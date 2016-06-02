@@ -9,7 +9,7 @@
 
 class QWidget;
 namespace iscore {
-class SettingsDelegateViewInterface;
+class SettingsDelegateView;
 }  // namespace iscore
 
 namespace iscore
@@ -19,10 +19,10 @@ namespace iscore
             Q_OBJECT
         public:
             SettingsView(QWidget* parent);
-            void addSettingsView(SettingsDelegateViewInterface* view);
+            void addSettingsView(SettingsDelegateView* view);
 
         private:
-            std::set<SettingsDelegateViewInterface*> m_pluginViews;
+            std::set<SettingsDelegateView*> m_pluginViews;
 
             QVBoxLayout* m_vertLayout {new QVBoxLayout{}};
             QHBoxLayout* m_hboxLayout {new QHBoxLayout{}};

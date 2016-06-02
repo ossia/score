@@ -6,11 +6,11 @@
 
 namespace iscore
 {
-    class ISCORE_LIB_BASE_EXPORT SettingsDelegateModelInterface : public QObject
+    class ISCORE_LIB_BASE_EXPORT SettingsDelegateModel : public QObject
     {
         public:
             using QObject::QObject;
-            virtual ~SettingsDelegateModelInterface();
+            virtual ~SettingsDelegateModel();
 
         virtual void setFirstTimeSettings() = 0;
     };

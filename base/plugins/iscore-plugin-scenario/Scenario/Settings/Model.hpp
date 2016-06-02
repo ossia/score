@@ -15,7 +15,7 @@ struct Keys
 };
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT Model final :
-        public iscore::SettingsDelegateModelInterface
+        public iscore::SettingsDelegateModel
 {
         Q_OBJECT
         Q_PROPERTY(QString m_skin READ getSkin WRITE setSkin NOTIFY SkinChanged)

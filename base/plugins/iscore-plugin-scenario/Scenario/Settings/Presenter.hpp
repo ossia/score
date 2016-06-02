@@ -8,7 +8,7 @@ namespace Settings
 class Model;
 class View;
 class Presenter :
-        public iscore::SettingsDelegatePresenterInterface
+        public iscore::SettingsDelegatePresenter
 {
     public:
         using model_type = Model;

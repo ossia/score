@@ -5,7 +5,7 @@ namespace iscore
 {
 class ApplicationComponents;
 struct ApplicationSettings;
-class SettingsDelegateModelInterface;
+class SettingsDelegateModel;
 class DocumentManager;
 class MenuManager;
 class ToolbarManager;
@@ -20,7 +20,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
                 iscore::MenuManager&,
                 iscore::ToolbarManager&,
                 iscore::ActionManager&,
-                const std::vector<iscore::SettingsDelegateModelInterface*>&);
+                const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>&);
         ApplicationContext(const ApplicationContext&) = delete;
         ApplicationContext(ApplicationContext&&) = delete;
         ApplicationContext& operator=(const ApplicationContext&) = delete;
@@ -51,7 +51,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
         ActionManager& actions;
 
     private:
-        const std::vector<iscore::SettingsDelegateModelInterface*>& m_settings;
+        const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>& m_settings;
 };
 
 // By default this is defined in iscore::Application

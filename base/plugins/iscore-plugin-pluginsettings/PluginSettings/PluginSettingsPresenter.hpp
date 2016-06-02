@@ -6,8 +6,8 @@
 
 namespace iscore {
 class Command;
-class SettingsDelegateModelInterface;
-class SettingsDelegateViewInterface;
+class SettingsDelegateModel;
+class SettingsDelegateView;
 class SettingsPresenter;
 }  // namespace iscore
 
@@ -16,13 +16,13 @@ namespace PluginSettings
 class BlacklistCommand;
 class PluginSettingsModel;
 class PluginSettingsView;
-class PluginSettingsPresenter : public iscore::SettingsDelegatePresenterInterface
+class PluginSettingsPresenter : public iscore::SettingsDelegatePresenter
 {
         Q_OBJECT
     public:
         PluginSettingsPresenter(
-                iscore::SettingsDelegateModelInterface& model,
-                iscore::SettingsDelegateViewInterface& view,
+                iscore::SettingsDelegateModel& model,
+                iscore::SettingsDelegateView& view,
                 QObject* parent);
 
     private:

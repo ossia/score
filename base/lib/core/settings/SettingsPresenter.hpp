@@ -3,30 +3,29 @@
 #include <set>
 
 namespace iscore {
-class SettingsDelegatePresenterInterface;
+class SettingsDelegatePresenter;
 }  // namespace iscore
 
 namespace iscore
 {
-    class SettingsModel;
+    class Settings;
     class SettingsView;
 
     class SettingsPresenter final : public QObject
     {
             Q_OBJECT
         public:
-            SettingsPresenter(SettingsModel* model, SettingsView* view, QObject* parent);
+            SettingsPresenter(SettingsView* view, QObject* parent);
 
-            void addSettingsPresenter(SettingsDelegatePresenterInterface* presenter);
+            void addSettingsPresenter(SettingsDelegatePresenter* presenter);
 
         private slots:
             void on_accept();
             void on_reject();
 
         private:
-            SettingsModel* m_model;
             SettingsView* m_view;
 
-            std::set<SettingsDelegatePresenterInterface*> m_pluginPresenters;
+            std::set<SettingsDelegatePresenter*> m_pluginPresenters;
     };
 }

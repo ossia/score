@@ -17,7 +17,7 @@ Presenter::Presenter(
         Model& m,
         View& v,
         QObject *parent):
-    iscore::SettingsDelegatePresenterInterface{m, v, parent}
+    iscore::SettingsDelegatePresenter{m, v, parent}
 {
     con(v, &View::localTreeChanged,
         this, [&] (auto val) {
