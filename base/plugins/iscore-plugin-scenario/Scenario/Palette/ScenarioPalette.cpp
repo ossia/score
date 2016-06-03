@@ -102,6 +102,9 @@ void ToolPalette::on_released(QPointF point)
             es.setTool(Scenario::Tool::Select);
             break;
         case Scenario::Tool::Playing:
+            m_selectTool.on_released(point, scenarioPoint);
+            es.setTool(Scenario::Tool::Select);
+            break;
         case Scenario::Tool::Select:
             m_selectTool.on_released(point, scenarioPoint);
             break;
