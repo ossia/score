@@ -14,7 +14,7 @@ const QString Keys::graphicZoom = QStringLiteral("Skin/Zoom");
 const QString Keys::slotHeight = QStringLiteral("Skin/slotHeight");
 
 
-Model::Model()
+Model::Model(const iscore::ApplicationContext& ctx)
 {
     QSettings s;
 

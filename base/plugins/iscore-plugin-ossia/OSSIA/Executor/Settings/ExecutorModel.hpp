@@ -19,7 +19,7 @@ class Model :
         Q_PROPERTY(int rate READ getRate WRITE setRate NOTIFY RateChanged)
 
     public:
-        Model();
+        Model(const iscore::ApplicationContext& ctx);
 
         int getRate() const;
         void setRate(int getRate);

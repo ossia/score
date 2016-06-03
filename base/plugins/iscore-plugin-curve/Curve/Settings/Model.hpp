@@ -30,7 +30,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT Model :
         Q_PROPERTY(bool playWhileRecording READ getPlayWhileRecording WRITE setPlayWhileRecording NOTIFY PlayWhileRecordingChanged)
 
     public:
-        Model();
+        Model(const iscore::ApplicationContext& ctx);
 
         int getSimplificationRatio() const;
         void setSimplificationRatio(int getSimplificationRatio);

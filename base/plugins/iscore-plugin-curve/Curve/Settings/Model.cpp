@@ -12,7 +12,7 @@ const QString Keys::mode = QStringLiteral("iscore_plugin_curve/Mode");
 const QString Keys::playWhileRecording = QStringLiteral("iscore_plugin_curve/PlayWhileRecording");
 
 
-Model::Model()
+Model::Model(const iscore::ApplicationContext& ctx)
 {
     QSettings s;
 

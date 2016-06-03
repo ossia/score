@@ -1,18 +1,19 @@
 #pragma once
 #include <QApplication>
 #include <QMessageBox>
+#include <cstdio>
 
 class TTException {
-    const char*	reason;
-public:
-    TTException(const char* aReason)
-    : reason(aReason)
-    {}
+        const char*	reason;
+    public:
+        TTException(const char* aReason)
+            : reason(aReason)
+        {}
 
-    const char* getReason()
-    {
-        return reason;
-    }
+        const char* getReason()
+        {
+            return reason;
+        }
 };
 
 /**
@@ -25,9 +26,47 @@ public:
 class SafeQApplication : public QApplication
 {
     public:
-        using QApplication::QApplication;
-#if !defined(ISCORE_DEBUG)
+        SafeQApplication(int& argc, char** argv):
+            QApplication{argc, argv}
+        {
+#if defined(ISCORE_DEBUG)
+            qInstallMessageHandler(DebugOutput);
+#endif
+        }
 
+#if defined(ISCORE_DEBUG)
+        static void DebugOutput(
+                QtMsgType type,
+                const QMessageLogContext &context,
+                const QString &msg)
+        {
+            auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
+            auto basename = basename_arr.constData();
+
+            QByteArray localMsg = msg.toLocal8Bit();
+            switch (type) {
+                case QtDebugMsg:
+                    fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
+                    break;
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
+                case QtInfoMsg:
+                    fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
+                    break;
+#endif
+                case QtWarningMsg:
+                    fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
+                    break;
+                case QtCriticalMsg:
+                    fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
+                    break;
+                case QtFatalMsg:
+                    fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
+                    ISCORE_BREAKPOINT;
+                    std::terminate();
+            }
+        }
+#else
         void inform(const QString& str)
         {
             QMessageBox::information(

@@ -51,6 +51,7 @@ set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, comp
 set(ISCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
 
 add_subdirectory(base)
+set(ISCORE_TESTBED OFF)
 if(ISCORE_TESTBED)
 add_subdirectory(Tests/testbed)
 endif()

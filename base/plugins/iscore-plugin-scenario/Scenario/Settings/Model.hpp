@@ -23,7 +23,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT Model final :
         Q_PROPERTY(qreal m_slotHeight READ getSlotHeight WRITE setSlotHeight NOTIFY SlotHeightChanged)
 
     public:
-        Model();
+        Model(const iscore::ApplicationContext& ctx);
 
         QString getSkin() const;
         void setSkin(const QString&);
