@@ -1,6 +1,6 @@
 #include <core/settings/SettingsView.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateViewInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateView.hpp>
 #include <QSize>
 #include <QWidget>
 

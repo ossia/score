@@ -1,4 +1,4 @@
-#include "SettingsDelegatePresenterInterface.hpp"
+#include "SettingsDelegatePresenter.hpp"
 
 namespace iscore
 {

@@ -1,6 +1,6 @@
 #include <core/settings/SettingsPresenter.hpp>
 #include <core/settings/SettingsView.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
 
 namespace iscore

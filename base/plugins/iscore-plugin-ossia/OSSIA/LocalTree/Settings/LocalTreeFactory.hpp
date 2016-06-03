@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 #include <OSSIA/LocalTree/Settings/LocalTreeModel.hpp>
 #include <OSSIA/LocalTree/Settings/LocalTreePresenter.hpp>

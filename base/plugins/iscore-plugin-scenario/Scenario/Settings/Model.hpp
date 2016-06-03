@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <iscore_plugin_scenario_export.h>
 
 namespace Scenario

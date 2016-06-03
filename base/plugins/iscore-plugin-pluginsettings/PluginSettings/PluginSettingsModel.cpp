@@ -9,7 +9,7 @@
 
 #include "PluginSettingsModel.hpp"
 #include "commands/BlacklistCommand.hpp"
-#include <iscore/plugins/settingsdelegate/SettingsDelegateModelInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
 namespace PluginSettings
 {

@@ -36,7 +36,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>

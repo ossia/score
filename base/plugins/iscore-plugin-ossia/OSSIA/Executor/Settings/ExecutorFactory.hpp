@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 #include <OSSIA/Executor/Settings/ExecutorModel.hpp>
 #include <OSSIA/Executor/Settings/ExecutorPresenter.hpp>

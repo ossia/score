@@ -1,4 +1,4 @@
-#include "SettingsDelegateViewInterface.hpp"
+#include "SettingsDelegateView.hpp"
 
 namespace iscore
 {

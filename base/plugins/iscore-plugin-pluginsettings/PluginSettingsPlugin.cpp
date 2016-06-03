@@ -13,7 +13,7 @@ iscore_plugin_pluginsettings::~iscore_plugin_pluginsettings()
 //////////////////////////
 
 /*
-iscore::SettingsDelegateFactoryInterface* iscore_plugin_pluginsettings::settings_make()
+iscore::SettingsDelegateFactory* iscore_plugin_pluginsettings::settings_make()
 {
     return new PluginSettings::PluginSettingsFactory;
 }

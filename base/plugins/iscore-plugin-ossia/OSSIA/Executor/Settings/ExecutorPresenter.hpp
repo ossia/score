@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
 namespace RecreateOnPlay
 {
