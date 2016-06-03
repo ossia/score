@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 #include <Scenario/Settings/Model.hpp>
 #include <Scenario/Settings/Presenter.hpp>

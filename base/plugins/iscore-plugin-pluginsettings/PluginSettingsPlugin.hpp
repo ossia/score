@@ -2,7 +2,7 @@
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <QObject>
 
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 // TODO rename file
 class iscore_plugin_pluginsettings :

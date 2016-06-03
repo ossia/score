@@ -1,4 +1,4 @@
-#include "SettingsDelegateModelInterface.hpp"
+#include "SettingsDelegateModel.hpp"
 
 namespace iscore
 {

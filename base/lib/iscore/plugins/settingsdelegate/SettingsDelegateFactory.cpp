@@ -1,7 +1,7 @@
-#include "SettingsDelegateFactoryInterface.hpp"
-#include "SettingsDelegatePresenterInterface.hpp"
-#include "SettingsDelegateViewInterface.hpp"
-#include "SettingsDelegateModelInterface.hpp"
+#include "SettingsDelegateFactory.hpp"
+#include "SettingsDelegatePresenter.hpp"
+#include "SettingsDelegateView.hpp"
+#include "SettingsDelegateModel.hpp"
 
 namespace iscore
 {

@@ -8,7 +8,7 @@
 #include "PluginSettingsPresenter.hpp"
 #include "PluginSettingsView.hpp"
 #include <iscore/command/Command.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include "PluginSettings/commands/BlacklistCommand.hpp"
 
 namespace iscore {
