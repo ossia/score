@@ -11,8 +11,7 @@ fi
 
 cd build
 if [[ "$TRAVIS_OS_NAME" = "linux" ]]; then
-    RES=$(ls *.deb)
-    mv "$RES" "i-score-$TRAVIS_TAG-Ubuntu-14.04-amd64.deb"
+    mv "i-score.AppImage" "i-score-$TRAVIS_TAG-amd64.AppImage"
 else
     zip -r -9 "i-score-$TRAVIS_TAG-OSX.zip" bundle/i-score.app
 fi

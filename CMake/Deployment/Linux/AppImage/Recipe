@@ -14,6 +14,7 @@ git_pull_rebase_helper()
     git submodule update --init --recursive
 }
 
+export NPROC=$(nproc)
 
 export BUILD_DIR=i-score-build
 export APP=i-score
@@ -41,8 +42,8 @@ mkdir -p $APP.AppDir/usr
     cd build
     cmake ../i-score -DISCORE_CONFIGURATION=release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="/usr/local/jamoma/share/cmake/Jamoma;$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON
     
-    cmake --build . --target all_unity -- -j8
-    cmake --build . --target install -- -j8
+    cmake --build . --target all_unity -- -j$NPROC
+    cmake --build . --target install -- -j$NPROC
 )
 
 # Copy pixmaps
@@ -129,13 +130,7 @@ cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
 cp i-score/CMake/Deployment/Linux/AppImage/qt.conf $APP.AppDir/usr/bin/
 mkdir -p i-score.AppDir/usr/bin/lib/
 
-export VMAJ=$(grep 'set(ISCORE_VERSION_MAJOR' ./i-score/CMakeLists.txt | cut -f2 -d' ' | cut -f1 -d')')
-export VMIN=$(grep 'set(ISCORE_VERSION_MINOR' ./i-score/CMakeLists.txt | cut -f2 -d' ' | cut -f1 -d')')
-export VPATCH=$(grep 'set(ISCORE_VERSION_PATCH' ./i-score/CMakeLists.txt | cut -f2 -d' ' | cut -f1 -d')')
-export VEXTRA=$(grep 'set(ISCORE_VERSION_EXTRA' ./i-score/CMakeLists.txt | cut -f2 -d' ' | cut -f1 -d')')
- 
-export VERSION=$VMAJ.$VMIN.$VPATCH-$VEXTRA
-export APPIMAGE=$APP"-"$VERSION"-x86_64.AppImage"
+export APPIMAGE=i-score.AppImage
 
 rm -rf out || true
 mkdir -p out
@@ -143,7 +138,7 @@ mkdir -p out
 # Convert the AppDir into an AppImage
 ../AppImageKit/AppImageAssistant.AppDir/package ./$APP.AppDir/ ./out/$APPIMAGE
 
-chmod a+rwx out/$APPIMAGE # So that we can edit the AppImage outside of the Docker container
+chmod a+rwx out/$APPIMAGE
 ls -lh out/$APPIMAGE
-curl --upload-file out/$APPIMAGE https://transfer.sh/iscore.appimage
+mv ./out/$APPIMAGE /$APPIMAGE
 
