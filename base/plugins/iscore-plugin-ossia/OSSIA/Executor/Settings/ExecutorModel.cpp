@@ -9,7 +9,7 @@ namespace Settings
 const QString Keys::rate = QStringLiteral("iscore_plugin_ossia/ExecutionRate");
 
 
-Model::Model()
+Model::Model(const iscore::ApplicationContext& ctx)
 {
     QSettings s;
 

@@ -16,7 +16,7 @@ class PluginSettingsModel : public iscore::SettingsDelegateModel
 {
         Q_OBJECT
     public:
-        PluginSettingsModel();
+        PluginSettingsModel(const iscore::ApplicationContext& ctx);
         QStandardItemModel* model()
         {
             return m_plugins;

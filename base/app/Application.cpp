@@ -32,7 +32,6 @@
 #include <core/application/ApplicationSettings.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <core/settings/Settings.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectIdentifier.hpp>
@@ -77,51 +76,10 @@ static void setQApplicationSettings(QApplication &m_app)
 
 }  // namespace iscore
 
-#ifdef ISCORE_DEBUG
-
-static void myMessageOutput(
-        QtMsgType type,
-        const QMessageLogContext &context,
-        const QString &msg)
-{
-    auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
-    auto basename = basename_arr.constData();
-
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
-        break;
-
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
-    case QtInfoMsg:
-        fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
-        break;
-#endif
-    case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
-        ISCORE_BREAKPOINT;
-        std::terminate();
-    }
-}
-
-#endif
-
 Application::Application(int& argc, char** argv) :
-    NamedObject {"Application", nullptr}
+    NamedObject {"Application", nullptr},
+    m_app{new SafeQApplication{argc, argv}}
 {
-#ifdef ISCORE_DEBUG
-    qInstallMessageHandler(myMessageOutput);
-#endif
-    // Application
-    // Crashes if put in member initialization list... :(
-    m_app = new SafeQApplication{argc, argv};
     m_instance = this;
 
 #if !defined(__native_client__)
@@ -134,14 +92,9 @@ Application::Application(
         int& argc,
         char** argv) :
     NamedObject {"Application", nullptr},
+    m_app{new SafeQApplication{argc, argv}},
     m_applicationSettings(appSettings)
 {
-#ifdef ISCORE_DEBUG
-    qInstallMessageHandler(myMessageOutput);
-#endif
-    // Application
-    // Crashes if put in member initialization list... :(
-    m_app = new SafeQApplication{argc, argv};
     m_instance = this;
 }
 
@@ -174,12 +127,9 @@ void Application::init()
     this->setParent(qApp);
     iscore::setQApplicationSettings(*qApp);
 
-    // Settings
-    m_settings = std::make_unique<iscore::Settings> (this);
-
     // MVP
     m_view = new iscore::View{this};
-    m_presenter = new iscore::Presenter{m_applicationSettings, *m_settings, m_view, this};
+    m_presenter = new iscore::Presenter{m_applicationSettings, m_settings, m_view, this};
 
     // Plugins
     loadPluginData();
@@ -255,7 +205,7 @@ void Application::loadPluginData()
     // Load the settings
     for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
     {
-        m_settings->setupSettingsPlugin(elt);
+        m_settings.setupSettingsPlugin(ctx, elt);
     }
 
     m_presenter->setupGUI();

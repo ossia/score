@@ -68,15 +68,15 @@ cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
     cp -v /usr/local/jamoma/lib/libJamomaModular.so.6 usr/lib/
     cp -v /usr/lib64/libxml2.so.2 usr/lib/
     mkdir usr/lib/jamoma
-    for name in Minuit OSC AnalysisLib DataspaceLib FunctionLib System NetworkLib; 
+    for name in Minuit OSC AnalysisLib DataspaceLib FunctionLib System NetworkLib
     do
         cp -v /usr/local/jamoma/lib/jamoma/$name.ttso usr/lib/jamoma
     done
-    cp -v 
     
     # Dependencies of qt
     ldd usr/lib/qt5/plugins/platforms/libqxcb.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     cp -v /usr/local/Qt-5.6.2/lib/libQt5XcbQpa.so.5 ./usr/lib || true
+    ldd ./usr/lib/libQt5XcbQpa.so.5 | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     cp -v /usr/local/Qt-5.6.2/lib/libQt5DBus.so.5 ./usr/lib || true
     
     # Taken from Subsurface appimage
@@ -128,17 +128,17 @@ cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
     strip usr/bin/i-score usr/lib/*.* usr/lib/qt5/plugins/*/*.* usr/lib/i-score/*.* || true
 
         
-    cp $(ldconfig -p | grep libsasl2.so.2 | cut -d ">" -f 2 | xargs) ./usr/lib/
-    cp $(ldconfig -p | grep libpng12.so.0 | cut -d ">" -f 2 | xargs) ./usr/lib/
+    # cp $(ldconfig -p | grep libsasl2.so.2 | cut -d ">" -f 2 | xargs) ./usr/lib/
+    # cp $(ldconfig -p | grep libpng12.so.0 | cut -d ">" -f 2 | xargs) ./usr/lib/
     # cp $(ldconfig -p | grep libGL.so.1 | cut -d ">" -f 2 | xargs) ./usr/lib/ # otherwise segfaults!?
-    cp $(ldconfig -p | grep libGLU.so.1 | cut -d ">" -f 2 | xargs) ./usr/lib/ # otherwise segfaults!?
+    # cp $(ldconfig -p | grep libGLU.so.1 | cut -d ">" -f 2 | xargs) ./usr/lib/ # otherwise segfaults!?
     # Fedora 23 seemed to be missing SOMETHING from the Centos 6.7. The only message was:
     # This application failed to start because it could not find or load the Qt platform plugin "xcb".
     # Setting export QT_DEBUG_PLUGINS=1 revealed the cause.
     # QLibraryPrivate::loadPlugin failed on "/usr/lib64/qt5/plugins/platforms/libqxcb.so" : 
     # "Cannot load library /usr/lib64/qt5/plugins/platforms/libqxcb.so: (/lib64/libEGL.so.1: undefined symbol: drmGetNodeTypeFromFd)"
     # Which means that we have to copy libEGL.so.1 in too
-    cp $(ldconfig -p | grep libEGL.so.1 | cut -d ">" -f 2 | xargs) ./usr/lib/ # Otherwise F23 cannot load the Qt platform plugin "xcb"
+    # cp $(ldconfig -p | grep libEGL.so.1 | cut -d ">" -f 2 | xargs) ./usr/lib/ # Otherwise F23 cannot load the Qt platform plugin "xcb"
     # cp $(ldconfig -p | grep libxcb.so.1 | cut -d ">" -f 2 | xargs) ./usr/lib/ 
     
     
@@ -149,7 +149,7 @@ cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
     cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
     cd usr/ ; find . -type f -exec sed -i -e 's|/usr/local/Qt-5.6.2/lib|././/lib|g' {} \; ; cd ..
     
-    cp $(ldconfig -p | grep libfreetype.so.6 | cut -d ">" -f 2 | xargs) ./usr/lib/ # For Fedora 20
+    # cp $(ldconfig -p | grep libfreetype.so.6 | cut -d ">" -f 2 | xargs) ./usr/lib/ # For Fedora 20
     
 )
 

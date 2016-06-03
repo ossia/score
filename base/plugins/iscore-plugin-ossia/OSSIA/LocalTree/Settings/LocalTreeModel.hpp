@@ -21,7 +21,7 @@ class Model :
         Q_PROPERTY(bool localTree READ getLocalTree WRITE setLocalTree NOTIFY LocalTreeChanged)
 
     public:
-        Model();
+        Model(const iscore::ApplicationContext& ctx);
 
         bool getLocalTree() const;
         void setLocalTree(bool);

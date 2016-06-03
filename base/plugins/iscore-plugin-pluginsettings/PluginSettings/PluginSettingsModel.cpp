@@ -13,7 +13,7 @@
 
 namespace PluginSettings
 {
-PluginSettingsModel::PluginSettingsModel() :
+PluginSettingsModel::PluginSettingsModel(const iscore::ApplicationContext& ctx) :
     iscore::SettingsDelegateModel {}
 {
     this->setObjectName("PluginSettingsModel");

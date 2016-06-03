@@ -5,7 +5,8 @@ set -o pipefail
 # Minimal stuff
 yum -y install epel-release
 yum -y update
-yum -y install libmpc gcc  wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 
+yum -y install libmpc gcc  wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 libXrender fontconfig freetype xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm libXi
+
 
 git_pull_rebase_helper()
 {

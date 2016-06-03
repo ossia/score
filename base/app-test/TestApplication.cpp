@@ -51,7 +51,7 @@ TestApplication::TestApplication(int &argc, char **argv):
     // Load the settings
     for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
     {
-        m_settings->setupSettingsPlugin(elt);
+        m_settings->setupSettingsPlugin(ctx, elt);
     }
 
     for(iscore::GUIApplicationContextPlugin* app_plug : ctx.components.applicationPlugins())

@@ -11,7 +11,7 @@ namespace Settings
 const QString Keys::localTree = QStringLiteral("iscore_plugin_ossia/LocalTree");
 
 
-Model::Model()
+Model::Model(const iscore::ApplicationContext& ctx)
 {
     QSettings s;
 

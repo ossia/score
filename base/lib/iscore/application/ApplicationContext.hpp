@@ -32,7 +32,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
         {
             for(auto& elt : this->m_settings)
             {
-                if(auto c = dynamic_cast<T*>(elt))
+                if(auto c = dynamic_cast<T*>(elt.get()))
                 {
                     return *c;
                 }
