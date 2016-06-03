@@ -228,10 +228,12 @@ void updateOSSIAAddress(
     auto val = iscore::convert::toOSSIAValue(settings.value);
     addr->setValue(val.get());
 
-    addr->setDomain(
-                OSSIA::Domain::create(
-                    toOSSIAValue(settings.domain.min).release(),
-                    toOSSIAValue(settings.domain.max).release()));
+    auto min = toOSSIAValue(settings.domain.min).release();
+    auto max = toOSSIAValue(settings.domain.max).release();
+    if(min && max)
+    {
+        addr->setDomain(OSSIA::Domain::create(min, max));
+    }
 }
 
 void createOSSIAAddress(
@@ -334,7 +336,7 @@ static std::unique_ptr<OSSIA::Value> toOSSIAValue(const State::ValueImpl& val)
     struct {
         public:
             using return_type = OSSIA::Value*;
-            return_type operator()(const State::no_value_t&) const { ISCORE_ABORT; return nullptr; }
+            return_type operator()(const State::no_value_t&) const { return nullptr; }
             return_type operator()(const State::impulse_t&) const { return new OSSIA::Impulse; }
             return_type operator()(int v) const { return new OSSIA::Int{v}; }
             return_type operator()(float v) const { return new OSSIA::Float{v}; }
