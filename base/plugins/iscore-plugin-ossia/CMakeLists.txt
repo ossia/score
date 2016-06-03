@@ -122,7 +122,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandler.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandlerFactory.cpp"
@@ -142,7 +141,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreeModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreeView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreeFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.cpp"
 

@@ -25,7 +25,6 @@
 
 #include <core/presenter/Presenter.hpp>
 #include <core/settings/Settings.hpp>
-#include <core/settings/SettingsModel.hpp>
 #include <core/settings/SettingsView.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/menu/MenuInterface.hpp>

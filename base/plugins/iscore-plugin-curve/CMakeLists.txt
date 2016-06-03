@@ -50,7 +50,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CurvePalette.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CurveEditionSettings.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/Factory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/Model.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/Presenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/View.cpp"

@@ -270,7 +270,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/Model.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/View.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/Presenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/Factory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 

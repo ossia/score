@@ -69,7 +69,12 @@ TestApplication::TestApplication(int &argc, char **argv):
 
 TestApplication::~TestApplication()
 {
+    this->setParent(nullptr);
+    delete m_view;
+    delete m_presenter;
 
+    QApplication::processEvents();
+    delete m_app;
 }
 
 const iscore::ApplicationContext &TestApplication::context() const
