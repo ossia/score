@@ -162,9 +162,9 @@ ISCORE_DECLARE_ACTION(Record, Scenario, QKeySequence::UnknownKey)
 
 // Edit
 ISCORE_DECLARE_ACTION(SelectTool, Scenario, Qt::Key_S)
-ISCORE_DECLARE_ACTION(CreateTool, Scenario, Qt::Key_C)
+ISCORE_DECLARE_ACTION_2S(CreateTool, Scenario, QKeySequence{QObject::tr("C")}, QKeySequence{QObject::tr("Shift+C")})
 ISCORE_DECLARE_ACTION(PlayTool, Scenario, Qt::Key_P)
-ISCORE_DECLARE_ACTION(SequenceMode, Scenario, Qt::Key_Shift)
+ISCORE_DECLARE_ACTION(SequenceMode, Scenario, QKeySequence::UnknownKey)
 
 ISCORE_DECLARE_ACTION(Scale, Scenario, Qt::ALT + Qt::Key_S)
 ISCORE_DECLARE_ACTION(Grow, Scenario, Qt::ALT + Qt::Key_D)

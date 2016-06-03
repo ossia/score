@@ -100,7 +100,15 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control)
     {
         emit keyReleased(event->key());
+    }/*
+    else if( !event->isAutoRepeat())
+    {
+        if(event->key() == Qt::Key_C)
+        {
+            emit keyReleased(event->key());
+        }
     }
+    */
 
     event->accept();
 }

@@ -189,6 +189,20 @@ Action::Action(QAction *act, ActionKey key, ActionGroupKey k, const QKeySequence
 {
     m_impl->setShortcut(m_current);
 }
+Action::Action(
+        QAction *act,
+        ActionKey key,
+        ActionGroupKey k,
+        const QKeySequence &defaultShortcut,
+        const QKeySequence &defaultShortcut2):
+    m_impl{act},
+    m_key{std::move(key)},
+    m_groupKey{std::move(k)},
+    m_default{defaultShortcut},
+    m_current{defaultShortcut}
+{
+    m_impl->setShortcuts({m_current, defaultShortcut2});
+}
 
 Action::Action(QAction *act, const char *key, const char *group_key, const QKeySequence &defaultShortcut):
     m_impl{act},

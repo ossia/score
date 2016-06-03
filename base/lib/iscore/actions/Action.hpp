@@ -38,6 +38,11 @@ class ISCORE_LIB_BASE_EXPORT Action
                ActionKey key,
                ActionGroupKey k,
                const QKeySequence& defaultShortcut);
+        Action(QAction* act,
+               ActionKey key,
+               ActionGroupKey k,
+               const QKeySequence& defaultShortcut,
+               const QKeySequence& defaultShortcut2);
 
         Action(QAction* act,
                const char* key,
@@ -465,3 +470,22 @@ struct MetaAction<Actions::ActionName> \
     return iscore::ActionKey{#ActionName} ; \
   } \
 }; }
+
+
+#define ISCORE_DECLARE_ACTION_2S(ActionName, Group, Shortcut1, Shortcut2) \
+namespace Actions { struct ActionName; }\
+namespace iscore { \
+template<> \
+struct MetaAction<Actions::ActionName> \
+{ \
+  static iscore::Action make(QAction* ptr)  \
+  { \
+    return iscore::Action{ptr, key(), iscore::ActionGroupKey{#Group}, Shortcut1, Shortcut2}; \
+  } \
+\
+  static iscore::ActionKey key() \
+  { \
+    return iscore::ActionKey{#ActionName} ; \
+  } \
+}; }
+

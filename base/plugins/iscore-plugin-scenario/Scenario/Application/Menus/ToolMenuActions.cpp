@@ -64,7 +64,7 @@ ToolMenuActions::ToolMenuActions(
     setIcons(m_selecttool, QString(":/icons/select_and_move_on.png"), QString(":/icons/select_and_move_off.png"));
 
     connect(m_selecttool, &QAction::toggled, this, [=](bool b) {
-        if (b)
+        if (b && m_parent->editionSettings().tool() != Scenario::Tool::Select)
             m_parent->editionSettings().setTool(Scenario::Tool::Select);
     });
 
@@ -73,12 +73,12 @@ ToolMenuActions::ToolMenuActions(
                           tr("Create"),
                           m_scenarioToolActionGroup,
                           Scenario::Tool::Create,
-                          tr("C"));
+                          tr(""));
 
     setIcons(m_createtool, QString(":/icons/create_on.png"), QString(":/icons/create_off.png"));
 
     connect(m_createtool, &QAction::triggered, this, [=](bool b) {
-        if(b)
+        if(b && m_parent->editionSettings().tool() != Scenario::Tool::Create)
             m_parent->editionSettings().setTool(Scenario::Tool::Create);
     });
 
@@ -91,7 +91,7 @@ ToolMenuActions::ToolMenuActions(
     setIcons(m_playtool, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
 
     connect(m_playtool, &QAction::triggered, this, [=] (bool b) {
-        if(b)
+        if(b && m_parent->editionSettings().tool() != Scenario::Tool::Play)
             m_parent->editionSettings().setTool(Scenario::Tool::Play);
     });
 
@@ -111,7 +111,7 @@ ToolMenuActions::ToolMenuActions(
                             tr("Sequence"),
                             this,
                             ExpandMode::Fixed,
-                            tr("Shift"));
+                            tr(""));
     setIcons(m_shiftAction, QString(":/icons/sequence_on.png"), QString(":/icons/sequence_off.png"));
 
     connect(m_shiftAction, &QAction::toggled, this, [=] (bool val)
@@ -307,6 +307,7 @@ void ToolMenuActions::keyReleased(int key)
     {
         m_shiftAction->setChecked(false);
     }
+    m_selecttool->trigger();
 }
 
 }
