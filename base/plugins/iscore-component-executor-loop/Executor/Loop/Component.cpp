@@ -7,7 +7,7 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <algorithm>
 #include <vector>
-
+#include <Scenario/Document/Event/EventModel.hpp>
 #include "Editor/Loop.h"
 #include "Editor/TimeValue.h"
 #include "Editor/State.h"
@@ -47,8 +47,9 @@ RecreateOnPlay::Loop::Component::Component(
               const OSSIA::TimeValue&,
               std::shared_ptr<OSSIA::StateElement>) {
     },
-          [this] (OSSIA::TimeEvent::Status newStatus) {
+          [this,&element] (OSSIA::TimeEvent::Status newStatus) {
 
+            element.startEvent().setStatus(static_cast<Scenario::ExecutionStatus>(newStatus));
             switch(newStatus)
             {
                 case OSSIA::TimeEvent::Status::NONE:
@@ -65,7 +66,9 @@ RecreateOnPlay::Loop::Component::Component(
                     break;
             }
     },
-          [this] (OSSIA::TimeEvent::Status newStatus) {
+          [this,&element] (OSSIA::TimeEvent::Status newStatus) {
+
+        element.endEvent().setStatus(static_cast<Scenario::ExecutionStatus>(newStatus));
         switch(newStatus)
         {
             case OSSIA::TimeEvent::Status::NONE:
