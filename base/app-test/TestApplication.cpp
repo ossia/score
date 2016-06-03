@@ -9,7 +9,7 @@
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
