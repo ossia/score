@@ -4,6 +4,7 @@
 #include <core/command/CommandStack.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <QApplication>
 #include <QDir>
 #include <QDirIterator>
@@ -71,7 +72,25 @@ class TestObject : public QObject
                 QApplication::processEvents();
             }
 
-            qApp->exit(0);
+
+            {
+                auto doc = m_context.documents.loadFile(m_context, "testdata/execution.scorejson");
+                m_context.actions.action<Actions::Play>().action()->trigger();
+                QTimer* t = new QTimer;
+                t->setInterval(15000);
+                t->setSingleShot(true);
+
+                t->start();
+                QObject::connect(t, &QTimer::timeout, this, [=] () {
+                    m_context.actions.action<Actions::Stop>().action()->trigger();
+                    QApplication::processEvents();
+
+                    m_context.documents.forceCloseDocument(m_context, *doc);
+                    QApplication::processEvents();
+
+                    qApp->exit(0);
+                });
+            }
         }
 
 };

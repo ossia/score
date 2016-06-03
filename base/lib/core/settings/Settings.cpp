@@ -1,5 +1,4 @@
 #include <core/settings/Settings.hpp>
-#include <core/settings/SettingsModel.hpp>
 #include <core/settings/SettingsPresenter.hpp>
 #include <core/settings/SettingsView.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>

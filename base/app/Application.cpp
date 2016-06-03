@@ -106,6 +106,7 @@ Application::~Application()
     delete m_presenter;
 
     iscore::DocumentBackups::clear();
+    QApplication::processEvents();
     delete m_app;
 }
 

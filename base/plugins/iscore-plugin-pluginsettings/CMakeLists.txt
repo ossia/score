@@ -17,7 +17,6 @@ set(HEADER_FILES
 set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/commands/BlacklistCommand.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettingsPlugin.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettings.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsPresenter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsView.cpp"
