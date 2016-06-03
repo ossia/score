@@ -21,7 +21,7 @@ TestApplication::TestApplication(int &argc, char **argv):
     this->setParent(m_app);
 
     // Settings
-    m_settings = std::make_unique<iscore::Settings> (this);
+    m_settings = std::make_unique<iscore::Settings> ();
 
     // MVP
     m_view = new iscore::View{nullptr};
