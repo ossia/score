@@ -31,5 +31,5 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 * Windows : install and run.
 * OS X : extract and run i-score.app.
 * Linux : make executable (right click -> permissions or `chmod +x`) and run the AppImage.
-* 
-* For more info, see [here](https://github.com/OSSIA/i-score/wiki/Build-and-install).
+ 
+For more info, see [here](https://github.com/OSSIA/i-score/wiki/Build-and-install).
