@@ -8,6 +8,7 @@
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
+#include <iscore/selection/Selection.hpp>
 
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
@@ -20,6 +21,7 @@ TestApplication::TestApplication(int &argc, char **argv):
     m_instance = this;
     this->setParent(m_app);
 
+    qRegisterMetaType<Selection>("Selection");
     // Settings
     m_settings = std::make_unique<iscore::Settings> ();
 
