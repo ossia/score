@@ -1,6 +1,7 @@
 #pragma once
 #include <QApplication>
 #include <QMessageBox>
+#include <QFileInfo>
 #include <cstdio>
 
 class TTException {

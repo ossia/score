@@ -5,6 +5,13 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <QApplication>
 #include <QDir>
 #include <QDirIterator>
@@ -88,9 +95,46 @@ class TestObject : public QObject
                     m_context.documents.forceCloseDocument(m_context, *doc);
                     QApplication::processEvents();
 
-                    qApp->exit(0);
+                    selectionTest();
                 });
             }
+        }
+
+
+        void selectionTest()
+        {
+            auto doc = m_context.documents.loadFile(m_context, "testdata/execution.scorejson");
+            qApp->processEvents();
+            auto& doc_pm = doc->model().modelDelegate();
+            auto& scenario_dm = static_cast<Scenario::ScenarioDocumentModel&>(doc_pm);
+
+            auto& scenar = static_cast<Scenario::ScenarioModel&>(*scenario_dm.baseConstraint().processes.begin());
+            for(auto& elt : scenar.constraints)
+            {
+                doc->context().selectionStack.pushNewSelection({&elt});
+                qApp->processEvents();
+            }
+            for(auto& elt : scenar.events)
+            {
+                doc->context().selectionStack.pushNewSelection({&elt});
+                qApp->processEvents();
+            }
+            for(auto& elt : scenar.states)
+            {
+                doc->context().selectionStack.pushNewSelection({&elt});
+                qApp->processEvents();
+            }
+            for(auto& elt : scenar.timeNodes)
+            {
+                doc->context().selectionStack.pushNewSelection({&elt});
+                qApp->processEvents();
+            }
+
+
+            m_context.documents.forceCloseDocument(m_context, *doc);
+            QApplication::processEvents();
+
+            qApp->exit(0);
         }
 
 };
