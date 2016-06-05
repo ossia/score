@@ -22,7 +22,12 @@ PluginSettingsModel::PluginSettingsModel(const iscore::ApplicationContext& ctx) 
     auto blacklist = s.value("PluginSettings/Blacklist", QStringList{}).toStringList();
     blacklist.sort();
 
-    auto systemlist = ctx.components.pluginFiles();
+    QStringList systemlist;
+    for(auto& add : ctx.components.addons())
+    {
+        if(!add.path.isEmpty() && !add.corePlugin)
+            systemlist.push_back(add.path);
+    }
     systemlist.sort();
 
     m_plugins = new QStandardItemModel(1, 1, this);
