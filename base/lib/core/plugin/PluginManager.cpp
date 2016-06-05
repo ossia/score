@@ -24,29 +24,39 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
-
+#include <QStandardPaths>
 
 namespace iscore
 {
+
 /**
  * @brief pluginsDir
  * @return The folder where i-score should look for plug-ins, static for now.
  */
 static QStringList pluginsDir()
 {
-    qDebug() << QCoreApplication::applicationDirPath();
+    QStringList l;
 #if defined(_WIN32)
-    return {QCoreApplication::applicationDirPath() + "/plugins"};
+    l << (QCoreApplication::applicationDirPath() + "/plugins");
 #elif defined(__linux__)
-    return {QCoreApplication::applicationDirPath() + "/plugins",
-            QCoreApplication::applicationDirPath() + "/../lib/i-score",
-            "/usr/lib/i-score"};
+    l << QCoreApplication::applicationDirPath() + "/plugins"
+      << QCoreApplication::applicationDirPath() + "/../lib/i-score"
+      << "/usr/lib/i-score";
 #elif defined(__APPLE__) && defined(__MACH__)
-    return {QCoreApplication::applicationDirPath() + "/plugins",
-            QCoreApplication::applicationDirPath() + "../Frameworks/i-score/plugins"};
-#else
-    return {};
+    l << QCoreApplication::applicationDirPath() + "/plugins"
+      << QCoreApplication::applicationDirPath() + "../Frameworks/i-score/plugins";
 #endif
+
+    qDebug() << l;
+    return l;
+}
+
+static QStringList addonsDir()
+{
+    QStringList l;
+    l << QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first() + "/i-score/addons";
+    qDebug() << l;
+    return l;
 }
 
 ISCORE_LIB_BASE_EXPORT
@@ -106,23 +116,12 @@ std::pair<QString, iscore::Plugin_QtInterface*> PluginLoader::loadPlugin(
     return {};
 }
 
-void PluginLoader::loadPlugins(
-        iscore::ApplicationRegistrar& registrar,
-        const iscore::ApplicationContext& context)
+static QStringList loadPluginsInAllFolders(std::vector<iscore::Plugin_QtInterface*>& availablePlugins)
 {
+    using namespace iscore::PluginLoader;
+    QSet<QString> pluginFiles;
     auto folders = pluginsDir();
 
-    // Here, the plug-ins that are effectively loaded.
-    std::vector<iscore::Plugin_QtInterface*> availablePlugins;
-
-    // Load static plug-ins
-    for(QObject* plugin : QPluginLoader::staticInstances())
-    {
-        if(auto iscore_plug = dynamic_cast<iscore::Plugin_QtInterface*>(plugin))
-            availablePlugins.push_back(iscore_plug);
-    }
-
-    QSet<QString> pluginFiles;
 #if !defined(ISCORE_STATIC_QT)
     // Load dynamic plug-ins
     for(const QString& pluginsFolder : folders)
@@ -144,10 +143,28 @@ void PluginLoader::loadPlugins(
         }
     }
 #endif
+    return pluginFiles.toList();
+}
+
+void PluginLoader::loadPlugins(
+        iscore::ApplicationRegistrar& registrar,
+        const iscore::ApplicationContext& context)
+{
+    // Here, the plug-ins that are effectively loaded.
+    std::vector<iscore::Addon> availablePlugins;
+
+    // Load static plug-ins
+    for(QObject* plugin : QPluginLoader::staticInstances())
+    {
+        if(auto iscore_plug = dynamic_cast<iscore::Plugin_QtInterface*>(plugin))
+            availablePlugins.push_back(iscore_plug);
+    }
+
+    auto pluginFiles = loadPluginsInAllFolders(availablePlugins);
 
     // First bring in the plugin objects
     registrar.registerPlugins(
-                pluginFiles.toList(),
+                pluginFiles,
                 availablePlugins);
 
 
@@ -155,7 +172,7 @@ void PluginLoader::loadPlugins(
     // because for instance a ApplicationPlugin from plugin B might require the factory
     // from plugin A to be loaded prior.
     // Load all the factories.
-    for(iscore::Plugin_QtInterface* plugin : availablePlugins)
+    for(auto plugin : availablePlugins)
     {
         auto facfam_interface = dynamic_cast<FactoryList_QtInterface*> (plugin);
 

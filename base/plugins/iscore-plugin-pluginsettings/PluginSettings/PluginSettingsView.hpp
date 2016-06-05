@@ -12,7 +12,7 @@ class PluginSettingsView : public iscore::SettingsDelegateView
 {
         Q_OBJECT
     public:
-        PluginSettingsView(QObject* parent);
+        PluginSettingsView();
 
         QListView* view()
         {

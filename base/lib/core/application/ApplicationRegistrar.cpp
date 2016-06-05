@@ -40,10 +40,15 @@ void ApplicationRegistrar::registerPlugins(
         const QStringList& pluginFiles,
         const std::vector<iscore::Plugin_QtInterface*>& vec)
 {
-    // We need a list for all the plug-ins present on the system even if we do not load them.
-    // Else we can't blacklist / unblacklist plug-ins.
     m_components.pluginFiles = pluginFiles;
     m_components.plugins = vec;
+}
+
+ISCORE_LIB_BASE_EXPORT
+void ApplicationRegistrar::registerAddons(
+        std::vector<iscore::Addon> vec)
+{
+    m_components.addons = std::move(vec);
 }
 
 ISCORE_LIB_BASE_EXPORT

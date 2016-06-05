@@ -22,8 +22,7 @@ PluginSettingsModel::PluginSettingsModel(const iscore::ApplicationContext& ctx) 
     auto blacklist = s.value("PluginSettings/Blacklist", QStringList{}).toStringList();
     blacklist.sort();
 
-/*
-    auto systemlist = qApp->findChild<PluginLoader*> ("PluginManager")->pluginsOnSystem();
+    auto systemlist = ctx.components.pluginFiles();
     systemlist.sort();
 
     m_plugins = new QStandardItemModel(1, 1, this);
@@ -34,7 +33,7 @@ PluginSettingsModel::PluginSettingsModel(const iscore::ApplicationContext& ctx) 
     {
         QStandardItem* item = new QStandardItem(plugin_name);
         item->setCheckable(true);
-        item->setCheckState(blacklist.contains(plugin_name) ? Qt::Checked : Qt::Unchecked);
+        item->setCheckState(blacklist.contains(plugin_name) ? Qt::Unchecked : Qt::Checked);
 
         m_plugins->setItem(i++, 0, item);
     }
@@ -49,7 +48,7 @@ PluginSettingsModel::PluginSettingsModel(const iscore::ApplicationContext& ctx) 
     }
 
     connect(m_plugins,  &QStandardItemModel::itemChanged,
-    this,		&PluginSettingsModel::on_itemChanged);*/
+            this,		&PluginSettingsModel::on_itemChanged);
 }
 
 
