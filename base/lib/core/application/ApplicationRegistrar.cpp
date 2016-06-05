@@ -36,15 +36,6 @@ ApplicationRegistrar::ApplicationRegistrar(
 }
 
 ISCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerPlugins(
-        const QStringList& pluginFiles,
-        const std::vector<iscore::Plugin_QtInterface*>& vec)
-{
-    m_components.pluginFiles = pluginFiles;
-    m_components.plugins = vec;
-}
-
-ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerAddons(
         std::vector<iscore::Addon> vec)
 {

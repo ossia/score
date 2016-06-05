@@ -10,6 +10,7 @@ namespace iscore
 struct ApplicationContext;
 class ApplicationRegistrar;
 class Plugin_QtInterface;
+class Addon;
 
 namespace PluginLoader
 {
@@ -26,7 +27,7 @@ ISCORE_LIB_BASE_EXPORT void loadPlugins(iscore::ApplicationRegistrar&,
 // QObject* is set if the plug-in could be loaded
 std::pair<QString, iscore::Plugin_QtInterface*> loadPlugin(
         const QString& filename,
-        const std::vector<iscore::Plugin_QtInterface*>& availablePlugins);
+        const std::vector<iscore::Addon>& availablePlugins);
 
 QStringList pluginsBlacklist();
 }

@@ -495,9 +495,9 @@ bool DocumentManager::checkAndUpdateJson(
         loaded_version = Version{(*it).toInt()};
 
     LocalPluginVersionsMap local_plugins;
-    for(auto plug : ctx.components.plugins())
+    for(const auto& plug : ctx.components.addons())
     {
-        local_plugins.insert(plug);
+        local_plugins.insert(plug.plugin);
     }
 
     std::vector<LoadedPluginVersions> loading_plugins;
