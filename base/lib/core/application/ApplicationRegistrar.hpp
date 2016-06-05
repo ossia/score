@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/plugins/Addon.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <QObject>
 #include <unordered_map>
@@ -35,6 +36,7 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
 
         // Register data from plugins
         void registerPlugins(const QStringList&, const std::vector<iscore::Plugin_QtInterface*>& vec);
+        void registerAddons(std::vector<iscore::Addon> vec);
         void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
         void registerPanel(PanelDelegateFactory&);
         void registerCommands(std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);

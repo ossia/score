@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/plugins/Addon.hpp>
 #include <iscore/command/CommandData.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/tools/Todo.hpp>
@@ -36,6 +37,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
 
         QStringList pluginFiles;
         std::vector<iscore::Plugin_QtInterface*> plugins;
+        std::vector<iscore::Addon> addons;
         std::vector<GUIApplicationContextPlugin*> appPlugins;
 
         std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>> factories;
@@ -58,6 +60,10 @@ class ISCORE_LIB_BASE_EXPORT ApplicationComponents
         { return m_data.appPlugins; }
         const auto& plugins() const
         { return m_data.plugins; }
+        const auto& pluginFiles() const
+        { return m_data.pluginFiles; }
+        const auto& addons() const
+        { return m_data.addons; }
 
         template<typename T>
         T& applicationPlugin() const
