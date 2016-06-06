@@ -10,10 +10,32 @@
 
 #include <QJsonDocument>
 #include <QNetworkReply>
+#include <QStandardPaths>
+#include <QBuffer>
+#include <QFile>
+#include <quazip/quazipfile.h>
 class QObject;
 
 namespace PluginSettings
 {
+static void extractAll( QuaZip& archive, const QString& dirname )
+{
+    // Taken from http://www.qtcentre.org/threads/55561-Using-quazip-for-extracting-multiple-files
+    for( bool f = archive.goToFirstFile(); f; f = archive.goToNextFile() )
+    {
+        QString filePath = archive.getCurrentFileName();
+        QuaZipFile zFile( archive.getZipName(), filePath );
+
+        zFile.open( QIODevice::ReadOnly );
+        QByteArray ba = zFile.readAll();
+        zFile.close();
+
+        QFile dstFile( dirname + "/" + filePath );
+        dstFile.open( QIODevice::WriteOnly | QIODevice::Text );
+        dstFile.write( ba.data() );
+        dstFile.close();
+    }
+}
 PluginSettingsView::PluginSettingsView()
 {
     {
@@ -54,6 +76,7 @@ PluginSettingsView::PluginSettingsView()
 
     connect(&mgr, &QNetworkAccessManager::finished,
             this, [this] (QNetworkReply* rep) {
+        qDebug() << rep->errorString();
        auto res = rep->readAll();
        auto json = QJsonDocument::fromJson(res).object();
 
@@ -78,6 +101,34 @@ PluginSettingsView::PluginSettingsView()
     connect(m_install, &QPushButton::pressed,
             this, [this] () {
 
+        RemotePluginItemModel& remotePlugins = *static_cast<RemotePluginItemModel*>(m_remoteAddons->model());
+
+        auto num = m_remoteAddons->selectionModel()->selectedRows(0).first().row();
+        RemoteAddon& addon = remotePlugins.addons().at(num);
+
+        auto it = addon.architectures.find(iscore::addonArchitecture());
+        if(it != addon.architectures.end())
+        {
+            auto dl = new iscore::FileDownloader{it->second};
+            connect(dl, &iscore::FileDownloader::downloaded,
+                    this, [&,dl,addon] (QByteArray arr) {
+
+                QBuffer b{&arr};
+                QuaZip z{&b};
+
+#if defined(ISCORE_DEPLOYMENT_BUILD)
+                auto docs = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first();
+                auto dirname = docs + "/i-score/plugins/";
+#else
+                auto dirname = "addons";
+#endif
+
+                extractAll(z, dirname);
+
+                dl->deleteLater();
+            });
+
+        }
     });
 
 }
