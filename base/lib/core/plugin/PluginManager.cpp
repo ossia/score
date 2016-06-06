@@ -13,6 +13,7 @@
 #include <QDebug>
 #include <QDir>
 
+#include <QJsonDocument>
 #include <QPluginLoader>
 #include <QSettings>
 #include <QVariant>
@@ -145,6 +146,56 @@ static void loadPluginsInAllFolders(std::vector<iscore::Addon>& availablePlugins
 #endif
 }
 
+static optional<iscore::Addon> makeAddon(const QJsonObject& json_addon)
+{
+    iscore::Addon add;
+
+    using Funmap = std::map<QString, std::function<void(QJsonValue)>> ;
+    Funmap funmap
+    {
+        { "Name",             [&] (QJsonValue v) { add.name = v.toString(); } },
+        { "ShortDescription", [&] (QJsonValue v) { add.shortDescription = v.toString(); } },
+        { "LongDescription",  [&] (QJsonValue v) { add.longDescription = v.toString(); } },
+        { "Key",              [&] (QJsonValue v) { add.key = UuidKey<Addon>(v.toString().toLatin1().constData()); } },
+        { "SmallImage",       [&] (QJsonValue v) { add.smallImage = QImage{v.toString()}; } },
+        { "LargeImage",       [&] (QJsonValue v) { add.largeImage = QImage{v.toString()}; } }
+    };
+
+    for(auto k : json_addon.keys())
+    {
+        auto fun = funmap.find(k);
+        if(fun != funmap.end())
+        {
+            fun->second(json_addon[k]);
+        }
+    }
+    return add;
+}
+
+static void loadAddonsInAllFolders(std::vector<iscore::Addon>& availablePlugins)
+{
+    using namespace iscore::PluginLoader;
+
+    auto folders = addonsDir();
+
+    // Load dynamic plug-ins
+    for(const QString& pluginsFolder : folders)
+    {
+        QDir pluginsDir{pluginsFolder};
+        for(const QString& dirName : pluginsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
+        {
+            // First look for a addon.json file
+            QFile addonFile{dirName + "/addon.json"};
+            if(!addonFile.exists())
+                continue;
+            auto addon = makeAddon(QJsonDocument::fromJson(addonFile.readAll()).object());
+
+            if(addon)
+                availablePlugins.push_back(std::move(*addon));
+        }
+    }
+}
+
 void PluginLoader::loadPlugins(
         iscore::ApplicationRegistrar& registrar,
         const iscore::ApplicationContext& context)
@@ -166,10 +217,11 @@ void PluginLoader::loadPlugins(
 
     loadPluginsInAllFolders(availablePlugins);
 
+    loadAddonsInAllFolders(availablePlugins);
+
     // First bring in the plugin objects
     registrar.registerAddons(
                 availablePlugins);
-
 
     // Here, it is important not to collapse all the for-loops
     // because for instance a ApplicationPlugin from plugin B might require the factory
