@@ -35,7 +35,6 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
                 ActionManager&);
 
         // Register data from plugins
-        void registerPlugins(const QStringList&, const std::vector<iscore::Plugin_QtInterface*>& vec);
         void registerAddons(std::vector<iscore::Addon> vec);
         void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
         void registerPanel(PanelDelegateFactory&);
