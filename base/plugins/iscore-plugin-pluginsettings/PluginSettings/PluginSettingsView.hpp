@@ -1,8 +1,12 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateView.hpp>
-#include <QListView>
+#include <QTableView>
+#include <QTabWidget>
+#include <QGridLayout>
+#include <QPushButton>
 #include <QWidget>
 
+#include <QNetworkAccessManager>
 class QObject;
 
 namespace PluginSettings
@@ -14,15 +18,23 @@ class PluginSettingsView : public iscore::SettingsDelegateView
     public:
         PluginSettingsView();
 
-        QListView* view()
+        QTableView* view()
         {
-            return m_listView;
+            return m_addonsOnSystem;
         }
 
         QWidget* getWidget() override;
 
+
     private:
-        QWidget* m_widget {new QWidget};
-        QListView* m_listView {new QListView{m_widget}};
+        QTabWidget* m_widget = new QTabWidget;
+
+        QTableView* m_addonsOnSystem{new QTableView};
+
+        QTableView* m_remoteAddons{new QTableView};
+        QPushButton* m_refresh{new QPushButton{tr("Refresh")}};
+        QPushButton* m_install{new QPushButton{tr("Install")}};
+
+        QNetworkAccessManager mgr;
 };
 }

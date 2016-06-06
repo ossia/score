@@ -1,12 +1,7 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
-class QStandardItem;
-class QStandardItemModel;
-
-namespace iscore
-{
-}
+class QAbstractItemModel;
 
 namespace PluginSettings
 {
@@ -17,7 +12,7 @@ class PluginSettingsModel : public iscore::SettingsDelegateModel
         Q_OBJECT
     public:
         PluginSettingsModel(const iscore::ApplicationContext& ctx);
-        QStandardItemModel* model()
+        QAbstractItemModel* model()
         {
             return m_plugins;
         }
@@ -26,10 +21,9 @@ class PluginSettingsModel : public iscore::SettingsDelegateModel
 
     signals:
         void blacklistCommand(BlacklistCommand*);
-    public slots:
-        void on_itemChanged(QStandardItem*);
+
 
     private:
-        QStandardItemModel* m_plugins {};
+        QAbstractItemModel* m_plugins {};
 };
 }

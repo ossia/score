@@ -63,6 +63,12 @@ auto remove_if(Vector&& v, Fun fun)
     return std::remove_if(std::begin(v), std::end(v), fun);
 }
 
+template<typename Vector, typename Fun>
+auto count_if(Vector&& v, Fun fun)
+{
+    return std::count_if(std::begin(v), std::end(v), fun);
+}
+
 template<typename Vector, typename OutputIterator, typename Fun>
 auto transform(Vector&& v, OutputIterator it, Fun f)
 {
