@@ -17,6 +17,8 @@ struct Addon
         QString path; // Path to the addon folder
 
         QString name;
+        QString version;
+        QString latestVersionAddress; // URL to a file containing the current version.
 
         QString shortDescription;
         QString longDescription;
@@ -27,3 +29,19 @@ struct Addon
 };
 
 }
+
+/**
+ * Addons are located on-disk in $DOCUMENTS/i-score/plugins
+ * We have multiple files for the addon system.
+ *
+ * A local file that describes the on-disk, installed addon : localaddon.json.
+ * It roughly maps to the Addon struct.
+ * File paths are given relatively to localaddon.json's folder.
+ *
+ * A remote file that describes the metadata for the add-on browser.
+ * Both have the same keys, however the remote file has URLs instead of local paths,
+ * and instead of pointing to dynamic libraries directly, points to compressed add-on packages
+ * which can be downloaded.
+ *
+ *
+ */

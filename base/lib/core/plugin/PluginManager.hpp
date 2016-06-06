@@ -23,12 +23,6 @@ namespace PluginLoader
 ISCORE_LIB_BASE_EXPORT void loadPlugins(iscore::ApplicationRegistrar&,
                  const iscore::ApplicationContext& context);
 
-// QString is set if it's a valid plug-in file,
-// QObject* is set if the plug-in could be loaded
-std::pair<QString, iscore::Plugin_QtInterface*> loadPlugin(
-        const QString& filename,
-        const std::vector<iscore::Addon>& availablePlugins);
-
 QStringList pluginsBlacklist();
 }
 }
