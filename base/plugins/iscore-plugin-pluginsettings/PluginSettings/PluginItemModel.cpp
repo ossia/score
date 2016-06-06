@@ -1,5 +1,5 @@
 #include "PluginItemModel.hpp"
-
+#include <QPixmap>
 namespace PluginSettings
 {
 LocalPluginItemModel::LocalPluginItemModel(const std::vector<iscore::Addon>& vec):
@@ -204,7 +204,7 @@ QVariant RemotePluginItemModel::data(const QModelIndex& index, int role) const
                 {
                     if(!addon.smallImage.isNull())
                     {
-                        return QPixmap::fromImage(addon.smallImage);
+                        return QPixmap::fromImage(addon.smallImage).scaled(50, 50);
                     }
                     return {};
                 }
