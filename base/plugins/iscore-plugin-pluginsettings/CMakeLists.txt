@@ -11,6 +11,8 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsPresenter.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsView.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginItemModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/FileDownloader.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_pluginsettings.hpp"
 )
 
@@ -19,12 +21,15 @@ set(SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsPresenter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsView.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginItemModel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/FileDownloader.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_pluginsettings.cpp"
 )
 
 add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} PUBLIC
                         Qt5::Core Qt5::Widgets
-                        iscore_lib_base)
+                        iscore_lib_base
+                        quazip)
 
 setup_iscore_plugin(${PROJECT_NAME})

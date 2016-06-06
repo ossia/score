@@ -52,16 +52,6 @@ static QStringList pluginsDir()
     return l;
 }
 
-static QString pluginArchitecture()
-{
-#if defined(_WIN32)
-    return "windows-x86";
-#elif defined(__linux__)
-    return "linux-amd64";
-#elif defined(__APPLE__) && defined(__MACH__)
-    return "darwin-amd64";
-#endif
-}
 
 static QStringList addonsDir()
 {
@@ -181,7 +171,7 @@ static optional<iscore::Addon> makeAddon(
 
     const Funmap funmap
     {
-        { pluginArchitecture(), [&] (QJsonValue v) {
+        { addonArchitecture(), [&] (QJsonValue v) {
                 QString path = addon_path + "/" + v.toString();
                 auto plug = loadPlugin(path, availablePlugins);
 

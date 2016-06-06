@@ -1,5 +1,7 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+#include <QItemSelectionModel>
+#include <PluginSettings/PluginItemModel.hpp>
 
 class QAbstractItemModel;
 
@@ -12,18 +14,13 @@ class PluginSettingsModel : public iscore::SettingsDelegateModel
         Q_OBJECT
     public:
         PluginSettingsModel(const iscore::ApplicationContext& ctx);
-        QAbstractItemModel* model()
-        {
-            return m_plugins;
-        }
+
+        LocalPluginItemModel localPlugins;
+        RemotePluginItemModel remotePlugins;
+        QItemSelectionModel remoteSelection;
 
         void setFirstTimeSettings() override;
 
-    signals:
-        void blacklistCommand(BlacklistCommand*);
-
-
     private:
-        QAbstractItemModel* m_plugins {};
 };
 }

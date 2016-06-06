@@ -64,6 +64,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/ProjectSettings/ProjectSettingsPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/ProjectSettings/ProjectSettingsView.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/Addon.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.cpp"
