@@ -4,7 +4,6 @@ project(iscore_base LANGUAGES CXX)
 enable_testing()
 add_subdirectory(lib)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins/)
 add_subdirectory(plugins)
 if(NOT ISCORE_DISABLE_ADDONS)
 add_subdirectory(addons)

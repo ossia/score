@@ -32,6 +32,17 @@ option(ISCORE_COVERAGE "Enable coverage" OFF)
 
 include("${ISCORE_CONFIGURATION}")
 
+if(APPLE)
+    set(ISCORE_ADDON_PLATFORM "darwin-amd64")
+    set(ISCORE_ADDON_SUFFIX "amd64.dylib")
+elseif(WIN32)
+    set(ISCORE_ADDON_PLATFORM "windows-x86")
+    set(ISCORE_ADDON_SUFFIX "x86.dll")
+elseif(UNIX)
+    set(ISCORE_ADDON_PLATFORM "linux-amd64")
+    set(ISCORE_ADDON_SUFFIX "amd64.so")
+endif()
+
 if(ISCORE_STATIC_EVERYTHING)
   set(ISCORE_STATIC_QT True)
   if(UNIX AND NOT APPLE)

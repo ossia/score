@@ -52,23 +52,49 @@ static QStringList pluginsDir()
     return l;
 }
 
+static QString pluginArchitecture()
+{
+#if defined(_WIN32)
+    return "windows-x86";
+#elif defined(__linux__)
+    return "linux-amd64";
+#elif defined(__APPLE__) && defined(__MACH__)
+    return "darwin-amd64";
+#endif
+}
+
 static QStringList addonsDir()
 {
     QStringList l;
+
+#if !defined(ISCORE_DEPLOYMENT_BUILD)
+    l << "addons";
+#endif
     l << QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first() + "/i-score/addons";
     qDebug() << l;
     return l;
 }
+enum class PluginLoadingError
+{
+    NoError, Blacklisted, NotAPlugin, AlreadyLoaded, UnknownError
+};
 
-ISCORE_LIB_BASE_EXPORT
-std::pair<QString, iscore::Plugin_QtInterface*> PluginLoader::loadPlugin(
+static
+std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
         const QString &fileName,
         const std::vector<iscore::Addon>& availablePlugins)
 {
+    using namespace iscore::PluginLoader;
 #if !defined(ISCORE_STATIC_QT)
     auto blacklist = pluginsBlacklist();
-    QPluginLoader loader {fileName};
 
+    // Check if it is blacklisted
+    if(blacklist.contains(fileName))
+    {
+        return std::make_pair(nullptr, PluginLoadingError::Blacklisted);
+    }
+
+    QPluginLoader loader {fileName};
     if(QObject* plugin = loader.instance())
     {
         auto iscore_plugin = dynamic_cast<iscore::Plugin_QtInterface*>(plugin);
@@ -77,7 +103,7 @@ std::pair<QString, iscore::Plugin_QtInterface*> PluginLoader::loadPlugin(
             qDebug() << "Warning: plugin"
                      << plugin->metaObject()->className()
                      << "is not an i-score plug-in.";
-            return {};
+            return std::make_pair(nullptr, PluginLoadingError::NotAPlugin);
         }
 
         // Check if the plugin is not already loaded
@@ -92,73 +118,100 @@ std::pair<QString, iscore::Plugin_QtInterface*> PluginLoader::loadPlugin(
                      << plugin->metaObject()->className()
                      << "was already loaded. Not reloading.";
 
-            return std::make_pair(fileName, nullptr);
-        }
-
-        // Check if it is blacklisted
-        if(blacklist.contains(fileName))
-        {
-            plugin->deleteLater();
-            return std::make_pair(fileName, nullptr);
+            return std::make_pair(nullptr, PluginLoadingError::AlreadyLoaded);
         }
 
         // We can load the plug-in
-        return std::make_pair(fileName, iscore_plugin);
+        return std::make_pair(iscore_plugin, PluginLoadingError::NoError);
     }
     else
     {
         QString s = loader.errorString();
         if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
             qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
-        return {};
+        return std::make_pair(nullptr, PluginLoadingError::UnknownError);
     }
 #endif
 
-    return {};
+    return std::make_pair(nullptr, PluginLoadingError::UnknownError);
 }
 
 static void loadPluginsInAllFolders(std::vector<iscore::Addon>& availablePlugins)
 {
     using namespace iscore::PluginLoader;
 
-    auto folders = pluginsDir();
-
 #if !defined(ISCORE_STATIC_QT)
     // Load dynamic plug-ins
-    for(const QString& pluginsFolder : folders)
+    for(const QString& pluginsFolder : pluginsDir())
     {
         QDir pluginsDir(pluginsFolder);
         for(const QString& fileName : pluginsDir.entryList(QDir::Files))
         {
-            auto plug = loadPlugin(pluginsDir.absoluteFilePath(fileName), availablePlugins);
+            auto path = pluginsDir.absoluteFilePath(fileName);
+            auto plug = loadPlugin(path, availablePlugins);
 
-            iscore::Addon addon;
-            if(!plug.first.isEmpty())
+            switch(plug.second)
             {
-                addon.path = plug.first;
+                case PluginLoadingError::NoError:
+                {
+                    iscore::Addon addon;
+                    addon.path = path;
+                    addon.plugin = plug.first;
+                    addon.corePlugin = true;
+                    availablePlugins.push_back(std::move(addon));
+                    break;
+                }
+                default:
+                    break;
             }
-
-            addon.plugin = plug.second;
-            addon.corePlugin = true;
-            availablePlugins.push_back(std::move(addon));
         }
     }
 #endif
 }
 
-static optional<iscore::Addon> makeAddon(const QJsonObject& json_addon)
+static optional<iscore::Addon> makeAddon(
+        const QString& addon_path,
+        const QJsonObject& json_addon,
+        const std::vector<iscore::Addon>& availablePlugins)
 {
+    using namespace iscore::PluginLoader;
+    using Funmap = std::map<QString, std::function<void(QJsonValue)>>;
+
     iscore::Addon add;
 
-    using Funmap = std::map<QString, std::function<void(QJsonValue)>> ;
-    Funmap funmap
+    const Funmap funmap
     {
-        { "Name",             [&] (QJsonValue v) { add.name = v.toString(); } },
-        { "ShortDescription", [&] (QJsonValue v) { add.shortDescription = v.toString(); } },
-        { "LongDescription",  [&] (QJsonValue v) { add.longDescription = v.toString(); } },
-        { "Key",              [&] (QJsonValue v) { add.key = UuidKey<Addon>(v.toString().toLatin1().constData()); } },
-        { "SmallImage",       [&] (QJsonValue v) { add.smallImage = QImage{v.toString()}; } },
-        { "LargeImage",       [&] (QJsonValue v) { add.largeImage = QImage{v.toString()}; } }
+        { pluginArchitecture(), [&] (QJsonValue v) {
+                QString path = addon_path + "/" + v.toString();
+                auto plug = loadPlugin(path, availablePlugins);
+
+                switch(plug.second)
+                {
+                    case PluginLoadingError::NoError:
+                    {
+                        add.path = path;
+                        add.plugin = plug.first;
+                        break;
+                    }
+                    case PluginLoadingError::Blacklisted:
+                    {
+                        add.path = path;
+                        add.enabled = false;
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+        },
+        { "name",    [&] (QJsonValue v) { add.name = v.toString(); } },
+        { "version", [&] (QJsonValue v) { add.version = v.toString(); } },
+        { "url",     [&] (QJsonValue v) { add.latestVersionAddress = v.toString(); } },
+        { "short",   [&] (QJsonValue v) { add.shortDescription = v.toString(); } },
+        { "long",    [&] (QJsonValue v) { add.longDescription = v.toString(); } },
+        { "key",     [&] (QJsonValue v) { add.key = UuidKey<Addon>(v.toString().toLatin1().constData()); } },
+        { "small",   [&] (QJsonValue v) { add.smallImage = QImage{v.toString()}; } },
+        { "large",   [&] (QJsonValue v) { add.largeImage = QImage{v.toString()}; } }
     };
 
     for(auto k : json_addon.keys())
@@ -169,6 +222,10 @@ static optional<iscore::Addon> makeAddon(const QJsonObject& json_addon)
             fun->second(json_addon[k]);
         }
     }
+
+    if(add.name.isEmpty() || add.path.isEmpty() || add.key.impl().is_nil())
+        return iscore::none;
+
     return add;
 }
 
@@ -176,19 +233,24 @@ static void loadAddonsInAllFolders(std::vector<iscore::Addon>& availablePlugins)
 {
     using namespace iscore::PluginLoader;
 
-    auto folders = addonsDir();
-
     // Load dynamic plug-ins
-    for(const QString& pluginsFolder : folders)
+    for(const QString& pluginsFolder : addonsDir())
     {
         QDir pluginsDir{pluginsFolder};
         for(const QString& dirName : pluginsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
         {
+            auto folder = pluginsFolder + "/" + dirName;
+            QFile addonFile{folder + "/localaddon.json"};
+
             // First look for a addon.json file
-            QFile addonFile{dirName + "/addon.json"};
             if(!addonFile.exists())
                 continue;
-            auto addon = makeAddon(QJsonDocument::fromJson(addonFile.readAll()).object());
+            addonFile.open(QFile::ReadOnly);
+
+            auto addon = makeAddon(
+                        folder,
+                        QJsonDocument::fromJson(addonFile.readAll()).object(),
+                        availablePlugins);
 
             if(addon)
                 availablePlugins.push_back(std::move(*addon));
@@ -216,7 +278,6 @@ void PluginLoader::loadPlugins(
     }
 
     loadPluginsInAllFolders(availablePlugins);
-
     loadAddonsInAllFolders(availablePlugins);
 
     // First bring in the plugin objects
