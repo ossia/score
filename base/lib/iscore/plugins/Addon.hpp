@@ -10,7 +10,8 @@ class Plugin_QtInterface;
  *
  * Metadata for i-score addons
  */
-struct Addon
+
+struct ISCORE_LIB_BASE_EXPORT Addon
 {
         iscore::Plugin_QtInterface* plugin{};
         UuidKey<Addon> key; // Can be the same as plug-in's
@@ -28,6 +29,12 @@ struct Addon
         bool corePlugin = false; // For plug-ins shipped with i-score
 };
 
+/**
+ * @brief addonArchitecture
+ * @return Architecture for the system i-score is compiled for.
+ */
+ISCORE_LIB_BASE_EXPORT
+QString addonArchitecture();
 }
 
 /**

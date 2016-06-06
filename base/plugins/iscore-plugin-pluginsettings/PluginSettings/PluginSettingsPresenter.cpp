@@ -8,6 +8,7 @@
 #include "PluginSettingsPresenter.hpp"
 #include "PluginSettingsView.hpp"
 #include <iscore/command/Command.hpp>
+#include <PluginSettings/FileDownloader.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include "PluginSettings/commands/BlacklistCommand.hpp"
 
@@ -28,10 +29,41 @@ PluginSettingsPresenter::PluginSettingsPresenter(
     auto& ps_model = static_cast<PluginSettingsModel&>(model);
     auto& ps_view  = static_cast<PluginSettingsView&>(view);
 
-    ps_view.view()->setModel(ps_model.model());
-    ps_view.view()->setColumnWidth(0, 150);
-    ps_view.view()->setColumnWidth(1, 400);
-    ps_view.view()->setColumnWidth(2, 400);
+    ps_view.localView()->setModel(&ps_model.localPlugins);
+    ps_view.localView()->setColumnWidth(0, 200);
+    ps_view.localView()->setColumnWidth(1, 400);
+    ps_view.localView()->setColumnWidth(2, 400);
+
+    ps_view.remoteView()->setModel(&ps_model.remotePlugins);
+    ps_view.remoteView()->setColumnWidth(0, 200);
+    ps_view.remoteView()->setColumnWidth(1, 400);
+
+    connect(&ps_model.remoteSelection, &QItemSelectionModel::selectionChanged,
+            this, [&] (const QItemSelection &selected,
+                      const QItemSelection &deselected) {
+
+        auto b = !selected.empty();
+        if(b)
+        {
+            auto num = selected.indexes().first().row();
+            RemoteAddon& addon = ps_model.remotePlugins.addons().at(num);
+
+            auto it = addon.architectures.find(iscore::addonArchitecture());
+            if(it != addon.architectures.end())
+            {
+                auto dl = new iscore::FileDownloader{it->second};
+                connect(dl, &iscore::FileDownloader::downloaded,
+                        this, [&,dl] (QByteArray arr) {
+
+                    dl->deleteLater();
+                });
+
+            }
+        }
+        ps_view.installButton().setEnabled(b);
+    });
+
+
 /*
     con(ps_model,	&PluginSettingsModel::blacklistCommand,
     this,		&PluginSettingsPresenter::setBlacklistCommand);*/
