@@ -29,6 +29,9 @@ PluginSettingsPresenter::PluginSettingsPresenter(
     auto& ps_view  = static_cast<PluginSettingsView&>(view);
 
     ps_view.view()->setModel(ps_model.model());
+    ps_view.view()->setColumnWidth(0, 150);
+    ps_view.view()->setColumnWidth(1, 400);
+    ps_view.view()->setColumnWidth(2, 400);
 /*
     con(ps_model,	&PluginSettingsModel::blacklistCommand,
     this,		&PluginSettingsPresenter::setBlacklistCommand);*/
