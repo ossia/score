@@ -4,12 +4,14 @@
 
 #include <QRadioButton>
 #include <QString>
+#include <QLineEdit>
 #include <QVariant>
-
+#include <QFormLayout>
+#include <QGroupBox>
+#include <QCheckBox>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include "MIDIProtocolSettingsWidget.hpp"
 #include "MIDISpecificSettings.hpp"
-
 class QWidget;
 
 namespace Ossia
@@ -23,26 +25,42 @@ MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
 void
 MIDIProtocolSettingsWidget::buildGUI()
 {
-    QLabel* ioTypeLabel = new QLabel(tr("Device I/O type"), this);
-    m_inButton = new QRadioButton(tr("Input"), this);
-    m_outButton = new QRadioButton(tr("Output"), this);
-    //radioButtons with same parent are auto-exclusive per default, i.e., behave as belonging to the same group.
-
-    QLabel* midiDeviceLabel = new QLabel(tr("MIDI device"), this);
+    m_name = new QLineEdit;
+    m_inButton = new QCheckBox(tr("Input"), this);
+    m_inButton->setAutoExclusive(true);
+    m_outButton = new QCheckBox(tr("Output"), this);
+    m_outButton->setAutoExclusive(true);
     m_deviceCBox = new QComboBox(this);
 
-    QGridLayout* gLayout = new QGridLayout;
-    gLayout->addWidget(ioTypeLabel, 0, 0, 1, 1);
-    gLayout->addWidget(m_inButton, 0, 1, 1, 1);
-    gLayout->addWidget(m_outButton, 0, 2, 1, 1);
+    auto gb = new QWidget;
+    gb->setContentsMargins(0, 0, 0, 0);
+    auto gb_lay = new QHBoxLayout;
+    gb_lay->setContentsMargins(0, 0, 0, 0);
+    gb_lay->addWidget(m_inButton);
+    gb_lay->addWidget(m_outButton);
+    gb->setLayout(gb_lay);
 
-    gLayout->addWidget(midiDeviceLabel, 1, 0, 1, 1);
-    gLayout->addWidget(m_deviceCBox, 1, 1, 1, 2);
+    auto lay = new QFormLayout;
+    lay->addRow(tr("Name"), m_name);
+    lay->addRow(tr("Type"), gb);
+    lay->addRow(tr("Device"), m_deviceCBox);
 
-    setLayout(gLayout);
+    setLayout(lay);
 
-    connect(m_inButton, &QAbstractButton::clicked, this, &MIDIProtocolSettingsWidget::updateInputDevices);
-    connect(m_outButton, &QAbstractButton::clicked, this, &MIDIProtocolSettingsWidget::updateOutputDevices);
+    connect(m_inButton, &QAbstractButton::toggled,
+            this, [this] (bool b) {
+        if(b)
+        {
+            updateDevices(OSSIA::MidiInfo::Type::Input);
+        }
+    });
+    connect(m_outButton, &QAbstractButton::toggled,
+            this, [this] (bool b) {
+        if(b)
+        {
+            updateDevices(OSSIA::MidiInfo::Type::Output);
+        }
+    });
 
 
     m_inButton->setChecked(true);  //TODO: QSettings
@@ -57,11 +75,14 @@ Device::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
     // TODO *** Initialize with ProtocolFactory.defaultSettings().
     Device::DeviceSettings s;
     MIDISpecificSettings midi;
-    s.name = m_deviceCBox->currentText();
+    s.name = m_name->text();
 
     midi.io = m_inButton->isChecked()
               ? MIDISpecificSettings::IO::In
               : MIDISpecificSettings::IO::Out;
+    midi.endpoint = m_deviceCBox->currentText();
+    midi.port = m_deviceCBox->currentData().toInt();
+
     s.deviceSpecificSettings = QVariant::fromValue(midi);
 
     return s;
@@ -103,15 +124,32 @@ MIDIProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
     }
 }
 
+void MIDIProtocolSettingsWidget::updateDevices(OSSIA::MidiInfo::Type t)
+{
+    auto prot = OSSIA::MIDI::create();
+    auto vec = prot->scan();
+
+    m_deviceCBox->clear();
+    for(auto& elt : vec)
+    {
+        if(elt.type == t)
+        {
+            m_deviceCBox->addItem(QString::fromStdString(elt.device), QVariant::fromValue(elt.port));
+        }
+    }
+    m_deviceCBox->setCurrentIndex(0);
+    qDebug() << m_deviceCBox->count();
+}
+
 void
 MIDIProtocolSettingsWidget::updateInputDevices()
 {
-    m_deviceCBox->clear();
+    updateDevices(OSSIA::MidiInfo::Type::Input);
 }
 
 void
 MIDIProtocolSettingsWidget::updateOutputDevices()
 {
-    m_deviceCBox->clear();
+    updateDevices(OSSIA::MidiInfo::Type::Output);
 }
 }
