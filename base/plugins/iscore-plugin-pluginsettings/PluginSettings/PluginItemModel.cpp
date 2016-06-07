@@ -86,7 +86,7 @@ QVariant LocalPluginItemModel::data(const QModelIndex& index, int role) const
                 {
                     if(!addon.smallImage.isNull())
                     {
-                        return QPixmap::fromImage(addon.smallImage);
+                        return QIcon{QPixmap::fromImage(addon.smallImage)};
                     }
                     return {};
                 }
@@ -204,7 +204,7 @@ QVariant RemotePluginItemModel::data(const QModelIndex& index, int role) const
                 {
                     if(!addon.smallImage.isNull())
                     {
-                        return QPixmap::fromImage(addon.smallImage).scaled(50, 50);
+                        return QIcon{QPixmap::fromImage(addon.smallImage)};
                     }
                     return {};
                 }
