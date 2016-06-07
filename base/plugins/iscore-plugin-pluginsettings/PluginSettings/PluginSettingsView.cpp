@@ -7,24 +7,27 @@
 #include <QHeaderView>
 
 #include <QNetworkRequest>
+#include <QTemporaryFile>
 
 #include <QJsonDocument>
 #include <QNetworkReply>
 #include <QStandardPaths>
 #include <QBuffer>
 #include <QFile>
-#include <quazip/quazipfile.h>
+#include <quazip/JlCompress.h>
+#include <QMessageBox>
 class QObject;
 
 namespace PluginSettings
 {
-static void extractAll( QuaZip& archive, const QString& dirname )
+/*tatic void extractAll( QuaZip& archive, const QString& dirname )
 {
     // Taken from http://www.qtcentre.org/threads/55561-Using-quazip-for-extracting-multiple-files
     for( bool f = archive.goToFirstFile(); f; f = archive.goToNextFile() )
     {
         QString filePath = archive.getCurrentFileName();
-        QuaZipFile zFile( archive.getZipName(), filePath );
+        QuaZipFile zFile(&archive);
+        zFile.setFileName(filePath);
 
         zFile.open( QIODevice::ReadOnly );
         QByteArray ba = zFile.readAll();
@@ -35,9 +38,13 @@ static void extractAll( QuaZip& archive, const QString& dirname )
         dstFile.write( ba.data() );
         dstFile.close();
     }
-}
+}*/
+
 PluginSettingsView::PluginSettingsView()
 {
+    m_progress->setMinimum(0);
+    m_progress->setMaximum(0);
+    m_progress->setHidden(true);
     {
         auto local_widget = new QWidget;
         auto local_layout = new QGridLayout{local_widget};
@@ -56,8 +63,10 @@ PluginSettingsView::PluginSettingsView()
         auto vlay = new QVBoxLayout;
         vlay->addWidget(m_refresh);
         vlay->addWidget(m_install);
+        vlay->addWidget(m_progress);
         vlay->addStretch();
         remote_layout->addLayout(vlay, 0, 1, 1, 1);
+
 
         m_widget->addTab(remote_widget, tr("Browse"));
     }
@@ -76,26 +85,32 @@ PluginSettingsView::PluginSettingsView()
 
     connect(&mgr, &QNetworkAccessManager::finished,
             this, [this] (QNetworkReply* rep) {
-        qDebug() << rep->errorString();
-       auto res = rep->readAll();
-       auto json = QJsonDocument::fromJson(res).object();
+        auto res = rep->readAll();
+        auto json = QJsonDocument::fromJson(res).object();
 
-       if(json.contains("addons"))
-       {
-           handleAddonList(json);
-       }
-       else if(json.contains("name"))
-       {
+        if(json.contains("addons"))
+        {
+            handleAddonList(json);
+        }
+        else if(json.contains("name"))
+        {
             handleAddon(json);
-       }
+        }
 
-       rep->deleteLater();
+        rep->deleteLater();
     });
 
     connect(m_refresh, &QPushButton::pressed,
             this, [this] () {
-       QNetworkRequest rqst{QUrl("https://raw.githubusercontent.com/OSSIA/iscore-addons/master/addons.json")};
-       mgr.get(rqst);
+
+        RemotePluginItemModel* model = static_cast<RemotePluginItemModel*>(m_remoteAddons->model());
+        model->clear();
+
+        m_progress->setVisible(true);
+
+        QNetworkRequest rqst{QUrl("https://raw.githubusercontent.com/OSSIA/iscore-addons/master/addons.json")};
+        mgr.get(rqst);
+
     });
 
     connect(m_install, &QPushButton::pressed,
@@ -107,28 +122,42 @@ PluginSettingsView::PluginSettingsView()
         RemoteAddon& addon = remotePlugins.addons().at(num);
 
         auto it = addon.architectures.find(iscore::addonArchitecture());
-        if(it != addon.architectures.end())
-        {
-            auto dl = new iscore::FileDownloader{it->second};
-            connect(dl, &iscore::FileDownloader::downloaded,
-                    this, [&,dl,addon] (QByteArray arr) {
+        if(it == addon.architectures.end())
+            return;
+        if(it->second == QUrl{})
+            return;
 
-                QBuffer b{&arr};
-                QuaZip z{&b};
+        m_progress->setVisible(true);
+        auto dl = new iscore::FileDownloader{it->second};
+        connect(dl, &iscore::FileDownloader::downloaded,
+                this, [&,dl,addon] (QByteArray arr) {
+
+            QTemporaryFile f;
+            f.open();
+            f.setAutoRemove(true);
+            f.write(arr);
+
+            QFileInfo fi{f};
 
 #if defined(ISCORE_DEPLOYMENT_BUILD)
-                auto docs = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first();
-                auto dirname = docs + "/i-score/plugins/";
+            auto docs = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first();
+            auto dirname = docs + "/i-score/plugins/";
 #else
-                auto dirname = "addons";
+            auto dirname = "addons";
 #endif
 
-                extractAll(z, dirname);
+            auto res = JlCompress::extractDir(fi.absoluteFilePath(), dirname);
 
-                dl->deleteLater();
-            });
-
-        }
+            dl->deleteLater();
+            m_progress->setHidden(true);
+            if(res.size() > 0)
+                QMessageBox::information(m_widget,
+                                         tr("Addon downloaded"),
+                                         tr("The addon %1 has been succesfully installed in :\n"
+                                            "%2\n\n"
+                                            "Please restart i-score to enable it.").arg(addon.name).arg(QFileInfo("addons").absolutePath())
+                                         );
+        });
     });
 
 }
@@ -140,7 +169,9 @@ QWidget* PluginSettingsView::getWidget()
 
 void PluginSettingsView::handleAddonList(const QJsonObject& obj)
 {
+    m_progress->setVisible(true);
     auto arr = obj["addons"].toArray();
+    m_addonsToRetrieve = arr.size();
     for(QJsonValue elt : arr)
     {
         QNetworkRequest rqst{QUrl(elt.toString())};
@@ -150,6 +181,11 @@ void PluginSettingsView::handleAddonList(const QJsonObject& obj)
 
 void PluginSettingsView::handleAddon(const QJsonObject& obj)
 {
+    m_addonsToRetrieve--;
+    if(m_addonsToRetrieve == 0)
+    {
+        m_progress->setHidden(true);
+    }
     using Funmap = std::map<QString, std::function<void(QJsonValue)>>;
 
     RemoteAddon add;
@@ -166,6 +202,7 @@ void PluginSettingsView::handleAddon(const QJsonObject& obj)
         { "key",     [&] (QJsonValue v) { add.key = UuidKey<iscore::Addon>(v.toString().toLatin1().constData()); } }
     };
 
+    // Add metadata keys
     for(const auto& k : obj.keys())
     {
         auto it = funmap.find(k);
@@ -180,8 +217,20 @@ void PluginSettingsView::handleAddon(const QJsonObject& obj)
         return;
     }
 
-    RemotePluginItemModel* model = static_cast<RemotePluginItemModel*>(m_remoteAddons->model());
+    // Add architecture keys
+    add.architectures = addonArchitectures();
+    for(auto& k : add.architectures)
+    {
+        auto it = obj.constFind(k.first);
+        if(it != obj.constEnd())
+        {
+            k.second = (*it).toString();
+        }
+    }
 
+
+    // Load images
+    RemotePluginItemModel* model = static_cast<RemotePluginItemModel*>(m_remoteAddons->model());
     if(!small.isEmpty())
     {
         // c.f. https://wiki.qt.io/Download_Data_from_URL

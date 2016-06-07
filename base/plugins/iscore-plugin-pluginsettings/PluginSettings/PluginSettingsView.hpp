@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QWidget>
 #include <QNetworkAccessManager>
+#include <QProgressBar>
 class QObject;
 
 namespace PluginSettings
@@ -44,6 +45,9 @@ class PluginSettingsView : public iscore::SettingsDelegateView
         QPushButton* m_refresh{new QPushButton{tr("Refresh")}};
         QPushButton* m_install{new QPushButton{tr("Install")}};
 
+        QProgressBar* m_progress{new QProgressBar};
         QNetworkAccessManager mgr;
+
+        int m_addonsToRetrieve = 0;
 };
 }
