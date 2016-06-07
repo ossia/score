@@ -1,5 +1,6 @@
 set(ISCORE_PLUGINS_TO_BUILD
 
+iscore-plugin-pluginsettings
 iscore-lib-state
 iscore-lib-process
 iscore-lib-device
