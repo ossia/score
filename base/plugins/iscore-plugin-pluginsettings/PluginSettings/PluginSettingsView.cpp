@@ -20,26 +20,6 @@ class QObject;
 
 namespace PluginSettings
 {
-/*tatic void extractAll( QuaZip& archive, const QString& dirname )
-{
-    // Taken from http://www.qtcentre.org/threads/55561-Using-quazip-for-extracting-multiple-files
-    for( bool f = archive.goToFirstFile(); f; f = archive.goToNextFile() )
-    {
-        QString filePath = archive.getCurrentFileName();
-        QuaZipFile zFile(&archive);
-        zFile.setFileName(filePath);
-
-        zFile.open( QIODevice::ReadOnly );
-        QByteArray ba = zFile.readAll();
-        zFile.close();
-
-        QFile dstFile( dirname + "/" + filePath );
-        dstFile.open( QIODevice::WriteOnly | QIODevice::Text );
-        dstFile.write( ba.data() );
-        dstFile.close();
-    }
-}*/
-
 PluginSettingsView::PluginSettingsView()
 {
     m_progress->setMinimum(0);
@@ -75,6 +55,8 @@ PluginSettingsView::PluginSettingsView()
     {
         v->horizontalHeader()->hide();
         v->verticalHeader()->hide();
+        v->verticalHeader()->sectionResizeMode(QHeaderView::Fixed);
+        v->verticalHeader()->setDefaultSectionSize(40);
         v->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
         v->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
         v->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -151,12 +133,21 @@ PluginSettingsView::PluginSettingsView()
             dl->deleteLater();
             m_progress->setHidden(true);
             if(res.size() > 0)
+            {
                 QMessageBox::information(m_widget,
                                          tr("Addon downloaded"),
                                          tr("The addon %1 has been succesfully installed in :\n"
                                             "%2\n\n"
-                                            "Please restart i-score to enable it.").arg(addon.name).arg(QFileInfo("addons").absolutePath())
+                                            "Please restart i-score to enable it.").arg(addon.name).arg(QFileInfo(dirname).absoluteFilePath())
                                          );
+            }
+            else
+            {
+                QMessageBox::warning(m_widget,
+                                     tr("Download failed"),
+                                     tr("The addon %1 could not be downloaded."));
+
+            }
         });
     });
 
