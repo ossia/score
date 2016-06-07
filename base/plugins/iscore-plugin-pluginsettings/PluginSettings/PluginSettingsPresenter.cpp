@@ -46,8 +46,9 @@ PluginSettingsPresenter::PluginSettingsPresenter(
         RemoteAddon& addon = ps_model.remotePlugins.addons().at(current.row());
 
         auto it = addon.architectures.find(iscore::addonArchitecture());
+        bool b = (it != addon.architectures.end()) && (it->second != QUrl{});
 
-        ps_view.installButton().setEnabled(it != addon.architectures.end());
+        ps_view.installButton().setEnabled(b);
     });
 
     ps_view.installButton().setEnabled(false);
