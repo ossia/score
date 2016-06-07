@@ -183,7 +183,6 @@ QVariant RemotePluginItemModel::data(const QModelIndex& index, int role) const
             }
 
             return {};
-            break;
         }
 
         case Qt::FontRole:
@@ -212,20 +211,10 @@ QVariant RemotePluginItemModel::data(const QModelIndex& index, int role) const
                     return {};
             }
 
-            break;
+            return {};
         }
-        case Qt::CheckStateRole:
-        {
-            if(column == Column::Name)
-            {
-                return addon.enabled ? Qt::Checked : Qt::Unchecked;
-            }
-            else
-            {
-                return QVariant{};
-            }
-            break;
-        }
+        default:
+            return {};
     }
 
     return {};

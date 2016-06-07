@@ -25,3 +25,6 @@
 [submodule "3rdparty/quazip"]
 	path = 3rdparty/quazip
 	url = https://github.com/jcelerier/quazip
+[submodule "3rdparty/zlib"]
+	path = 3rdparty/zlib
+	url = https://github.com/madler/zlib
