@@ -38,26 +38,18 @@ PluginSettingsPresenter::PluginSettingsPresenter(
     ps_view.remoteView()->setModel(&ps_model.remotePlugins);
     ps_view.remoteView()->setColumnWidth(0, 150);
     ps_view.remoteView()->setColumnWidth(1, 400);
+    ps_view.remoteView()->setSelectionModel(&ps_model.remoteSelection);
 
-    connect(&ps_model.remoteSelection, &QItemSelectionModel::selectionChanged,
-            this, [&] (const QItemSelection &selected,
-                      const QItemSelection &deselected) {
+    connect(&ps_model.remoteSelection, &QItemSelectionModel::currentRowChanged,
+            this, [&] (const QModelIndex &current, const QModelIndex &previous) {
 
-        auto b = !selected.empty();
-        qDebug() << b;
-        if(b)
-        {
-            auto num = selected.indexes().first().row();
-            RemoteAddon& addon = ps_model.remotePlugins.addons().at(num);
+        RemoteAddon& addon = ps_model.remotePlugins.addons().at(current.row());
 
-            auto it = addon.architectures.find(iscore::addonArchitecture());
-            if(it == addon.architectures.end())
-            {
-                b = false;
-            }
-        }
-        ps_view.installButton().setEnabled(b);
+        auto it = addon.architectures.find(iscore::addonArchitecture());
+
+        ps_view.installButton().setEnabled(it != addon.architectures.end());
     });
+
     ps_view.installButton().setEnabled(false);
 
 
