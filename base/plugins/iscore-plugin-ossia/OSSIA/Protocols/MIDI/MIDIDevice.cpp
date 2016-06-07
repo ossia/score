@@ -12,6 +12,7 @@ MIDIDevice::MIDIDevice(const Device::DeviceSettings &settings):
     OSSIADevice{settings}
 {
     using namespace OSSIA;
+    m_capas.canRefreshTree = true;
 
     reconnect();
 }
@@ -22,10 +23,13 @@ bool MIDIDevice::reconnect()
     m_dev.reset();
 
     try {
-        m_dev = OSSIA::Device::create(OSSIA::MIDI::create(), settings().name.toStdString());
+        auto proto = OSSIA::MIDI::create();
+        m_dev = OSSIA::createMIDIDevice(proto);
+        m_dev->setName(settings().name.toStdString());
     }
-    catch(...)
+    catch(std::exception& e)
     {
+        qDebug() << e.what();
     }
 
     return connected();

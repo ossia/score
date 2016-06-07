@@ -1,10 +1,14 @@
 #pragma once
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Network/Protocol/MIDI.h>
+
 
 class QComboBox;
+class QCheckBox;
 class QRadioButton;
 class QWidget;
+class QLineEdit;
 
 namespace Ossia
 {
@@ -16,20 +20,21 @@ class MIDIProtocolSettingsWidget :
     public:
         MIDIProtocolSettingsWidget(QWidget* parent = nullptr);
 
+
+    private:
         Device::DeviceSettings getSettings() const override;
 
         void setSettings(const Device::DeviceSettings& settings) override;
 
-    protected slots:
+        void updateDevices(OSSIA::MidiInfo::Type);
         void updateInputDevices();
         void updateOutputDevices();
 
-    protected:
         void buildGUI();
 
-    protected:
-        QRadioButton* m_inButton;
-        QRadioButton* m_outButton;
+        QLineEdit* m_name;
+        QCheckBox* m_inButton;
+        QCheckBox* m_outButton;
         QComboBox* m_deviceCBox;
 
 };

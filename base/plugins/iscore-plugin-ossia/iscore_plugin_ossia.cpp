@@ -1,5 +1,6 @@
 #include <OSSIA/Protocols/Minuit/MinuitProtocolFactory.hpp>
 #include <OSSIA/Protocols/OSC/OSCProtocolFactory.hpp>
+#include <OSSIA/Protocols/MIDI/MIDIProtocolFactory.hpp>
 #include <OSSIA/Protocols/Local/LocalProtocolFactory.hpp>
 #include <QString>
 
@@ -63,7 +64,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
             FW<Device::ProtocolFactory,
                  LocalProtocolFactory,
                  OSCProtocolFactory,
-                 MinuitProtocolFactory>,
+                 MinuitProtocolFactory,
+                 MIDIProtocolFactory>,
             FW<RecreateOnPlay::ProcessComponentFactory,
                  RecreateOnPlay::ScenarioComponentFactory>,
             FW<Explorer::ListeningHandlerFactory,
