@@ -78,7 +78,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
             >
         > m_callbacks;
 
-    private:
         void removeListening_impl(OSSIA::Node &node, State::Address addr);
 };
 }
