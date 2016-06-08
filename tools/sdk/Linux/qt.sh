@@ -4,7 +4,7 @@ cd /image
 
 NPROC=$(nproc)
 
-yum install perl-version libxcb libxcb-devel xcb-util xcb-util-devel fontconfig-devel libX11-devel libXrender-devel libXi-devel git openssl-devel
+yum -y install perl-version libxcb libxcb-devel xcb-util xcb-util-devel fontconfig-devel libX11-devel libXrender-devel libXi-devel git openssl-devel
 
 git clone https://code.qt.io/qt/qt5.git
 
