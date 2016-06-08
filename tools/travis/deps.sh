@@ -34,7 +34,7 @@ case "$TRAVIS_OS_NAME" in
       sudo apt-get install -qq qt56-meta-full libboost1.55-dev
     fi
 
-    wget https://github.com/OSSIA/iscore-sdk/releases/download/1.0/cmake-linux.tgz
+    wget https://cmake.org/files/v3.6/cmake-3.6.0-rc1-Linux-x86_64.tar.gz -O cmake-linux.tgz
     tar xaf cmake-linux.tgz
     mv cmake-3.5.2-Linux-x86_64 cmake
 
