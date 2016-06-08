@@ -51,14 +51,14 @@ MIDIProtocolSettingsWidget::buildGUI()
             this, [this] (bool b) {
         if(b)
         {
-            updateDevices(OSSIA::MidiInfo::Type::Input);
+            updateDevices(OSSIA::MidiInfo::Type::RemoteInput);
         }
     });
     connect(m_outButton, &QAbstractButton::toggled,
             this, [this] (bool b) {
         if(b)
         {
-            updateDevices(OSSIA::MidiInfo::Type::Output);
+            updateDevices(OSSIA::MidiInfo::Type::RemoteOutput);
         }
     });
 
@@ -144,12 +144,12 @@ void MIDIProtocolSettingsWidget::updateDevices(OSSIA::MidiInfo::Type t)
 void
 MIDIProtocolSettingsWidget::updateInputDevices()
 {
-    updateDevices(OSSIA::MidiInfo::Type::Input);
+    updateDevices(OSSIA::MidiInfo::Type::RemoteInput);
 }
 
 void
 MIDIProtocolSettingsWidget::updateOutputDevices()
 {
-    updateDevices(OSSIA::MidiInfo::Type::Output);
+    updateDevices(OSSIA::MidiInfo::Type::RemoteOutput);
 }
 }
