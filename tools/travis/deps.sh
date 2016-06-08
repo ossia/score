@@ -34,8 +34,9 @@ case "$TRAVIS_OS_NAME" in
       sudo apt-get install -qq qt56-meta-full libboost1.55-dev
     fi
 
-    wget https://www.dropbox.com/s/ysnozd2sqre7x2d/cmake-3.4.1-Linux-x86_64.deb?dl=1 -O cmake.deb
-    sudo dpkg --force-overwrite -i cmake.deb
+    wget https://github.com/OSSIA/iscore-sdk/releases/download/1.0/cmake-linux.tgz
+    tar xaf cmake-linux.tgz
+    mv cmake-3.5.2-Linux-x86_64 cmake
 
     wget https://www.dropbox.com/s/0pmy14zlpqpyaq6/JamomaCore-0.6-dev-Linux.deb?dl=1 -O jamoma.deb
     sudo dpkg -i jamoma.deb
