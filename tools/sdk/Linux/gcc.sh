@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd /image
-yum install flex bison
+yum -y install flex bison
 NPROC=$(nproc)
 
 mkdir gcc-build
