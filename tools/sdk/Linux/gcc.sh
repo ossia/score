@@ -11,13 +11,14 @@ GCC=gcc-6.1.0
 ISL=isl-0.16.1
 CLOOG=cloog-0.18.4
 
-wget "http://isl.gforge.inria.fr/$ISL.tar.bz2"
-wget "https://ftp.gnu.org/gnu/gcc/$GCC/$GCC.tar.bz2"
-wget "http://ftp.gnu.org/gnu/gmp/$GMP.tar.bz2"
-wget "ftp://ftp.gnu.org/gnu/mpc/$MPC.tar.gz"
-wget "http://www.mpfr.org/mpfr-current/$MPFR.tar.bz2"
-wget "http://ftp.gnu.org/gnu/binutils/$BINUTILS.tar.bz2"
-wget "http://www.bastoul.net/cloog/pages/download/count.php3?url=./$CLOOG.tar.gz"
+wget -nv "http://isl.gforge.inria.fr/$ISL.tar.bz2"
+wget -nv "https://ftp.gnu.org/gnu/gcc/$GCC/$GCC.tar.bz2"
+wget -nv "http://ftp.gnu.org/gnu/gmp/$GMP.tar.bz2"
+wget -nv "ftp://ftp.gnu.org/gnu/mpc/$MPC.tar.gz"
+wget -nv "http://www.mpfr.org/mpfr-current/$MPFR.tar.bz2"
+wget -nv "http://ftp.gnu.org/gnu/binutils/$BINUTILS.tar.bz2"
+wget -nv "http://www.bastoul.net/cloog/pages/download/count.php3?url=./$CLOOG.tar.gz" -O $CLOOG.tar.gz
+
 tar xaf "$GMP.tar.bz2"
 tar xaf "$MPC.tar.gz"
 tar xaf "$MPFR.tar.bz2"
