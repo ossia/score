@@ -40,4 +40,16 @@ bool MIDIDevice::reconnect()
 
     return connected();
 }
+
+void MIDIDevice::disconnect()
+{
+    if(connected())
+    {
+        removeListening_impl(*m_dev.get(), State::Address{m_settings.name, {}});
+    }
+
+    m_callbacks.clear();
+    m_dev.reset();
+}
+
 }
