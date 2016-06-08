@@ -21,7 +21,7 @@ case "$TRAVIS_OS_NAME" in
     fi
 
     sudo apt-get update -qq
-    sudo apt-get install -qq g++-5 libavahi-compat-libdnssd-dev libportmidi-dev ninja-build gcovr lcov
+    sudo apt-get install -qq g++-5 libavahi-compat-libdnssd-dev libportmidi-dev libasound2-dev ninja-build gcovr lcov
 
     if [[ "$CONF" == "linux-package" ]];
     then
