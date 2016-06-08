@@ -1,7 +1,7 @@
 FROM centos:6
 
 RUN yum -y update 
-RUN yum -y install epel-release gcc gcc-c++ wget lzip
+RUN yum -y install epel-release gcc gcc-c++ wget
 
 ADD gcc.sh /image/gcc.sh
 RUN /image/gcc.sh
