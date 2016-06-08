@@ -42,5 +42,6 @@ mkdir gcc-build
   cd gcc-build
   ../$GCC/configure --enable-languages=c,c++,lto --enable-gold --enable-plugin --disable-multilib --disable-nls
   make -j$NPROC
-  sudo make -j$NPROC install
+  exec bash
+  make -j$NPROC install
 )
