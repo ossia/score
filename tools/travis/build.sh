@@ -7,7 +7,7 @@ export PS4='+ ${FUNCNAME[0]:+${FUNCNAME[0]}():}line ${LINENO}: '
 
 case "$TRAVIS_OS_NAME" in
   linux)
-  export CMAKE_BIN="$(find cmake/bin -name cmake -type f )"
+  export CMAKE_BIN=$(realpath "$(find cmake/bin -name cmake -type f )")
   ;;
   osx)
   export CMAKE_BIN=$(which cmake)
