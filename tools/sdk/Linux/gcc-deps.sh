@@ -25,12 +25,16 @@ tar xaf "$CLOOG.tar.gz"
 tar xaf "$BINUTILS.tar.bz2"
 tar xaf "$GCC.tar.bz2"
 
+mkdir combined
 (
-  cd $GCC
+  cd combined
+  ln -s ../$GCC/* .
+  ln -s ../$BINUTILS/* .
   ln -s ../$GMP gmp
   ln -s ../$MPC mpc
   ln -s ../$MPFR mpfr
   ln -s ../$ISL isl
   ln -s ../$CLOOG cloog
-  for file in ../$BINUTILS/* ; do ln -s "${file}" ; done
 )
+
+exit 0
