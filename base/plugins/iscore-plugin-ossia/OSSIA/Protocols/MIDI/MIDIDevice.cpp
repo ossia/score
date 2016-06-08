@@ -2,6 +2,7 @@
 #include <Network/Protocol/MIDI.h>
 #include <QString>
 #include <memory>
+#include <OSSIA/Protocols/MIDI/MIDISpecificSettings.hpp>
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "MIDIDevice.hpp"
@@ -22,10 +23,15 @@ bool MIDIDevice::reconnect()
     OSSIADevice::disconnect();
     m_dev.reset();
 
+    MIDISpecificSettings set = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
     try {
         auto proto = OSSIA::MIDI::create();
         m_dev = OSSIA::createMIDIDevice(proto);
         m_dev->setName(settings().name.toStdString());
+        proto->setInfo(OSSIA::MidiInfo(
+                           static_cast<OSSIA::MidiInfo::Type>(set.io),
+                           set.endpoint.toStdString(),
+                           set.port));
     }
     catch(std::exception& e)
     {
