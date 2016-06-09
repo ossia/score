@@ -76,20 +76,10 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(
 
 
     auto& play_action = ctx.actions.action<Actions::Play>();
-    connect(play_action.action(), &QAction::toggled,
-            this, [&,act=play_action.action()] (bool b)
+    connect(play_action.action(), &QAction::triggered,
+            this, [&] (bool b)
     {
-        qDebug() << act->data().typeName();
-        qDebug() << act << act->data().canConvert<::TimeValue>();
-        if(act->data().canConvert<::TimeValue>())
-        {qDebug("1");
-            on_play(b, act->data().value<::TimeValue>());
-        }
-        else
-        {qDebug("2");
-            on_play(b);
-        }
-        act->setData(QVariant{});
+        on_play(b);
     });
 
     auto& stop_action = ctx.actions.action<Actions::Stop>();
@@ -101,12 +91,10 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(
             this, &OSSIAApplicationPlugin::on_init);
 
     auto& ctrl = ctx.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>();
-    // TODO put it as a value
-
     con(ctrl.execution(), &Scenario::ScenarioExecution::playAtDate,
         this, [=,act=play_action.action()] (const TimeValue& t)
     {
-        act->setData(QVariant::fromValue(t));
+        on_play(true, t);
         act->trigger();
     });
 
@@ -212,8 +200,11 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
                 if(auto bs = plugmodel->baseScenario())
                 {
                     auto& cstr = *bs->baseConstraint();
-                    emit requestResume();
-                    cstr.OSSIAConstraint()->resume();
+                    if(cstr.OSSIAConstraint()->paused())
+                    {
+                        emit requestResume();
+                        cstr.OSSIAConstraint()->resume();
+                    }
                 }
             }
             else

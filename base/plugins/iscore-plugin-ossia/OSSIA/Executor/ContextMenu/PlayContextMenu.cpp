@@ -156,17 +156,12 @@ PlayContextMenu::PlayContextMenu(
         m_recordAutomations->setData({});
     });
 
-    auto play_qaction = ctx.actions.action<Actions::Play>().action();
+    auto& exec_ctx = m_ctx.components.applicationPlugin<ScenarioApplicationPlugin>().execution();
     m_playFromHere = new QAction{tr("Play from here"), this};
     connect(m_playFromHere, &QAction::triggered,
-        this, [&,play_qaction] ()
+        this, [&] ()
     {
-        auto t = m_playFromHere->data().value<::TimeValue>();
-
-        play_qaction->setData(QVariant::fromValue(t));
-        qDebug() << play_qaction << play_qaction->data().canConvert<::TimeValue>();
-        qDebug()<< play_qaction->data().typeName(); ;
-        play_qaction->toggle();
+        exec_ctx.playAtDate(m_playFromHere->data().value<::TimeValue>());
     });
 }
 
@@ -192,8 +187,6 @@ void PlayContextMenu::fillContextMenu(
         m_recordMessages->setData(data);
     }
 }
-
-// TODO use me
 
 void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
 {
@@ -238,8 +231,6 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
         m_recordMessages->setData(data);
 
     });
-
-
 }
 
 }
