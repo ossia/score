@@ -156,12 +156,17 @@ PlayContextMenu::PlayContextMenu(
         m_recordAutomations->setData({});
     });
 
+    auto play_qaction = ctx.actions.action<Actions::Play>().action();
     m_playFromHere = new QAction{tr("Play from here"), this};
     connect(m_playFromHere, &QAction::triggered,
-        this, [&] ()
+        this, [&,play_qaction] ()
     {
         auto t = m_playFromHere->data().value<::TimeValue>();
-        plug.on_play(true, t);
+
+        play_qaction->setData(QVariant::fromValue(t));
+        qDebug() << play_qaction << play_qaction->data().canConvert<::TimeValue>();
+        qDebug()<< play_qaction->data().typeName(); ;
+        play_qaction->toggle();
     });
 }
 
