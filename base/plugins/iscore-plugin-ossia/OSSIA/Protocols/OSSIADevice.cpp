@@ -280,6 +280,11 @@ void OSSIADevice::setListening(
     // and the address wasn't already listening
     if(b)
     {
+        ossia_addr->pullValue();
+        std::unique_ptr<OSSIA::Value> v;
+        v.reset(ossia_addr->cloneValue());
+        emit valueUpdated(addr, Ossia::convert::ToValue(v.get()));
+
         if(cb_it == m_callbacks.end())
         {
             m_callbacks.insert(
