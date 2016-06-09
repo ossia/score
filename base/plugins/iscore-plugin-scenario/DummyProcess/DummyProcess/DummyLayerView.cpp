@@ -71,6 +71,10 @@ DummyLayerView::DummyLayerView(QGraphicsItem* parent):
     m_text{new DummyTextItem{this}}
 {
     m_text->setFont(Skin::instance().SansFont);
+    connect(this, &DummyLayerView::heightChanged,
+            this, &DummyLayerView::updateText);
+    connect(this, &DummyLayerView::widthChanged,
+            this, &DummyLayerView::updateText);
     /*
     m_view = new QQuickView();
     m_view->setSource(QUrl("qrc:/DummyProcess.qml"));
@@ -99,7 +103,7 @@ void DummyLayerView::setText(const QString& text)
     update();
 }
 
-void DummyLayerView::paint_impl(QPainter* painter) const
+void DummyLayerView::updateText()
 {
     auto w = width();
     auto h = height();
@@ -121,7 +125,10 @@ void DummyLayerView::paint_impl(QPainter* painter) const
     }
 
     m_text->setPos(w / 2., h / 2.);
+}
 
+void DummyLayerView::paint_impl(QPainter* painter) const
+{
     /*
     painter->drawImage(0, 0, m_view->grabWindow());
     */
