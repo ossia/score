@@ -188,6 +188,12 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                         this->rollback();
                         return;
                     }
+
+                    if(this->currentPoint.date <= this->m_clickedPoint.date)
+                    {
+                        this->currentPoint.date = this->m_clickedPoint.date + TimeValue::fromMsecs(10);;
+                    }
+
                     // Move the timenode
                     this->m_dispatcher.template submitCommand<MoveNewEvent>(
                                 Path<Scenario_T>{this->m_scenarioPath},
@@ -203,6 +209,11 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                     if(this->createdEvents.empty())
                     {
                         this->rollback();
+                        return;
+                    }
+
+                    if(this->currentPoint.date <= this->m_clickedPoint.date)
+                    {
                         return;
                     }
 
