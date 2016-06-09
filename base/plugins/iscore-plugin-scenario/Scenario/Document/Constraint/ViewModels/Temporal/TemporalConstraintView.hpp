@@ -3,6 +3,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <Scenario/Document/Constraint/ExecutionState.hpp>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <Process/TimeValue.hpp>
 #include <QColor>
 #include <QtGlobal>
 #include <QPoint>
@@ -65,6 +66,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
 
         void setHeightScale(double);
         void setExecutionState(ConstraintExecutionState);
+        void setExecutionDuration(TimeValue progress);
 
     signals:
         void constraintHoverEnter();
