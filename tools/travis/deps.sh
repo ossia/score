@@ -8,7 +8,7 @@ if [[ "$CONF" == "linux-package-appimage" ]];
 then
     exit 0
 fi
-    
+
 # Install the deps
 case "$TRAVIS_OS_NAME" in
   linux)
@@ -36,7 +36,7 @@ case "$TRAVIS_OS_NAME" in
 
     wget https://cmake.org/files/v3.6/cmake-3.6.0-rc1-Linux-x86_64.tar.gz -O cmake-linux.tgz
     tar xaf cmake-linux.tgz
-    mv cmake-3.5.2-Linux-x86_64 cmake
+    mv cmake-*-x86_64 cmake
 
     wget https://www.dropbox.com/s/0pmy14zlpqpyaq6/JamomaCore-0.6-dev-Linux.deb?dl=1 -O jamoma.deb
     sudo dpkg -i jamoma.deb
