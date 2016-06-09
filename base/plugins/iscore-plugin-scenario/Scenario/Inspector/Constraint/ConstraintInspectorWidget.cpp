@@ -132,6 +132,8 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     auto& ctrl = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
     m_durationSection = new DurationSectionWidget {ctrl.editionSettings(), *m_delegate, this};
     m_properties.push_back(m_durationSection);
+
+    /*
     auto loop = new QCheckBox{tr("Loop content"), this};
     loop->setChecked(m_model.looping());
     connect(loop, &QCheckBox::clicked,
@@ -140,7 +142,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         commandDispatcher()->submitCommand(cmd);
     });
     m_properties.push_back(loop);
-
+    */
     // Separator
     m_properties.push_back(new Inspector::HSeparator {this});
 
