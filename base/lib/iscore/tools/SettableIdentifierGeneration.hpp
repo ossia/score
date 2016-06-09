@@ -145,7 +145,8 @@ auto getStrongIdRange(std::size_t s, const Vector& existing)
 {
     auto existing_size = existing.size();
     auto total_size = existing_size + s;
-    auto vec = make_dynvector(Id<T>, total_size);
+    std::vector<Id<T>> vec;
+    vec.reserve(total_size);
 
     // Copy the existing ids
     std::transform(existing.begin(), existing.end(), std::back_inserter(vec),
@@ -154,7 +155,6 @@ auto getStrongIdRange(std::size_t s, const Vector& existing)
     // Then generate the new ones
     for(; s --> 0 ;)
     {
-        Id<T> res = getStrongId(vec);
         vec.push_back(getStrongId(vec));
     }
 
