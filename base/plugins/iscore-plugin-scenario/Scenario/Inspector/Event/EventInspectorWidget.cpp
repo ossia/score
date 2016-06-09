@@ -192,6 +192,9 @@ void EventInspectorWidget::updateDisplayedValues()
     m_statesSections.clear();
     m_states.clear();
 
+    if(!m_model.parent())
+        return;
+
     auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
     ISCORE_ASSERT(scenar);
     for(const auto& state : m_model.states())
