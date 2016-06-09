@@ -232,6 +232,11 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
 
             QObject::connect(mergingOnTimeNode, &QState::entered, [&] ()
             {
+                if(this->currentPoint.date <= this->m_clickedPoint.date)
+                {
+                    return;
+                }
+
                 auto& scenar = stateMachine.model();
                 // If we came here through a state.
                 Id<EventModel> evId{this->clickedEvent};
@@ -260,6 +265,11 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
 
             QObject::connect(mergingOnEvent, &QState::entered, [&] ()
             {
+                if(this->currentPoint.date <= this->m_clickedPoint.date)
+                {
+                    return;
+                }
+
                 auto& scenar = stateMachine.model();
                 // If we came here through a state.
                 Id<EventModel> clickedEvId{this->clickedEvent};
@@ -315,6 +325,8 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
 
             QObject::connect(pressed, &QState::entered, [&] ()
             {
+                this->m_clickedPoint = this->currentPoint;
+
                 auto& scenar = stateMachine.model();
                 Id<EventModel> evId{this->clickedEvent};
                 if(!bool(evId) && bool(this->clickedState))
@@ -372,6 +384,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
     SingleOngoingCommandDispatcher<Command::MergeEvents<Scenario::ScenarioModel>> m_mergingEventDispatcher;
 
     optional<TimeValue> m_pressedPrevious;
+    Scenario::Point m_clickedPoint;
 };
 
 }
