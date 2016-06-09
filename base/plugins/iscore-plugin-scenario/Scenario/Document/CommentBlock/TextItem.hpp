@@ -30,12 +30,7 @@ class SimpleTextItem final : public QGraphicsSimpleTextItem
         void paint(
                 QPainter *painter,
                 const QStyleOptionGraphicsItem *option,
-                QWidget *widget) override
-        {
-            setPen(m_color.getColor());
-            setBrush(m_color.getBrush());
-            QGraphicsSimpleTextItem::paint(painter, option, widget);
-        }
+                QWidget *widget) override;
 
         void setColor(ColorRef c)
         {

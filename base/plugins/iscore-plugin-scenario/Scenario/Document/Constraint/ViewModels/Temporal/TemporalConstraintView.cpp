@@ -52,6 +52,7 @@ TemporalConstraintView::TemporalConstraintView(
     m_labelItem->setAcceptHoverEvents(false);
     f.setPointSize(7);
     f.setStyleStrategy(QFont::NoAntialias);
+    f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
     m_counterItem->setFont(f);
     m_counterItem->setColor(ColorRef(&Skin::Light));
     m_counterItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
@@ -196,17 +197,6 @@ void TemporalConstraintView::paint(
     if(!playedPath.isEmpty())
         painter->drawPath(playedPath);
 
-    {
-        auto& dur = presenter().model().duration;
-        auto progress = dur.defaultDuration() * dur.playPercentage();
-        if(!progress.isZero())
-        {
-            QString percent = progress.toString();
-            m_counterItem->setText(percent);
-        }
-    }
-
-
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setPen(Qt::darkRed);
     painter->setBrush(Qt::NoBrush);
@@ -240,6 +230,21 @@ void TemporalConstraintView::setExecutionState(ConstraintExecutionState s)
 {
     m_state = s;
     update();
+}
+
+void TemporalConstraintView::setExecutionDuration(TimeValue progress)
+{
+    if(!progress.isZero())
+    {
+        QString percent = progress.toString();
+        m_counterItem->setVisible(true);
+        m_counterItem->setText(percent);
+    }
+    else
+    {
+        m_counterItem->setVisible(false);
+    }
+
 }
 
 void TemporalConstraintView::setLabelColor(ColorRef labelColor)
