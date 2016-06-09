@@ -151,6 +151,11 @@ class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
                         return;
                     }
 
+                    if(this->currentPoint.date <= this->m_clickedPoint.date)
+                    {
+                        this->currentPoint.date = this->m_clickedPoint.date + TimeValue::fromMsecs(10);;
+                    }
+
                     this->m_dispatcher.template submitCommand<MoveNewEvent>(
                                 Path<Scenario_T>{this->m_scenarioPath},
                                 this->createdConstraints.last(),
@@ -168,6 +173,11 @@ class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
                         return;
                     }
 
+                    if(this->currentPoint.date <= this->m_clickedPoint.date)
+                    {
+                        return;
+                    }
+
                     this->m_dispatcher.template submitCommand<MoveNewState>(
                                 Path<Scenario_T>{this->m_scenarioPath},
                                 this->createdStates.last(),
@@ -179,6 +189,11 @@ class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
                     if(this->createdStates.empty())
                     {
                         this->rollback();
+                        return;
+                    }
+
+                    if(this->currentPoint.date <= this->m_clickedPoint.date)
+                    {
                         return;
                     }
 
