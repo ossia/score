@@ -39,7 +39,7 @@ ToolPalette::ToolPalette(
 {
 }
 
-const Scenario::EditionSettings& ToolPalette::editionSettings() const
+Scenario::EditionSettings& ToolPalette::editionSettings() const
 {
     return m_presenter.editionSettings();
 }
