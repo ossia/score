@@ -67,7 +67,7 @@ TransportActions::TransportActions(
 
     connect(m_play, &QAction::toggled,
             this, [&] (bool b) {
-        m_play->setText(b? QString("Pause") : QString("Play"));
+        m_play->setText(b? tr("Pause") : tr("Play"));
         setIcons(m_play,
                  b ? QString(":/icons/pause_on.png") : QString(":/icons/play_on.png"),
                  b ? QString(":/icons/pause_off.png") : QString(":/icons/play_off.png"));
@@ -77,7 +77,8 @@ TransportActions::TransportActions(
         m_record->blockSignals(true);
 
         m_play->setChecked(false);
-        m_play->setText(QString("Play"));
+        m_play->setText(tr("Play"));
+        setIcons(m_play, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
         m_record->setChecked(false);
 
         m_play->blockSignals(false);
