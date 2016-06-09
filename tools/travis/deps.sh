@@ -8,7 +8,7 @@ if [[ "$CONF" == "linux-package-appimage" ]];
 then
     exit 0
 fi
-    
+
 # Install the deps
 case "$TRAVIS_OS_NAME" in
   linux)
@@ -21,7 +21,7 @@ case "$TRAVIS_OS_NAME" in
     fi
 
     sudo apt-get update -qq
-    sudo apt-get install -qq g++-5 libavahi-compat-libdnssd-dev libportmidi-dev ninja-build gcovr lcov
+    sudo apt-get install -qq g++-5 libavahi-compat-libdnssd-dev libportmidi-dev libasound2-dev ninja-build gcovr lcov
 
     if [[ "$CONF" == "linux-package" ]];
     then
@@ -34,8 +34,9 @@ case "$TRAVIS_OS_NAME" in
       sudo apt-get install -qq qt56-meta-full libboost1.55-dev
     fi
 
-    wget https://www.dropbox.com/s/ysnozd2sqre7x2d/cmake-3.4.1-Linux-x86_64.deb?dl=1 -O cmake.deb
-    sudo dpkg --force-overwrite -i cmake.deb
+    wget https://cmake.org/files/v3.6/cmake-3.6.0-rc1-Linux-x86_64.tar.gz -O cmake-linux.tgz
+    tar xaf cmake-linux.tgz
+    mv cmake-*-x86_64 cmake
 
     wget https://www.dropbox.com/s/0pmy14zlpqpyaq6/JamomaCore-0.6-dev-Linux.deb?dl=1 -O jamoma.deb
     sudo dpkg -i jamoma.deb
