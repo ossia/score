@@ -76,8 +76,21 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(
 
 
     auto& play_action = ctx.actions.action<Actions::Play>();
-    connect(play_action.action(), &QAction::triggered,
-            this, [&] (bool b) { on_play(b); });
+    connect(play_action.action(), &QAction::toggled,
+            this, [&,act=play_action.action()] (bool b)
+    {
+        qDebug() << act->data().typeName();
+        qDebug() << act << act->data().canConvert<::TimeValue>();
+        if(act->data().canConvert<::TimeValue>())
+        {qDebug("1");
+            on_play(b, act->data().value<::TimeValue>());
+        }
+        else
+        {qDebug("2");
+            on_play(b);
+        }
+        act->setData(QVariant{});
+    });
 
     auto& stop_action = ctx.actions.action<Actions::Stop>();
     connect(stop_action.action(), &QAction::triggered,
@@ -91,9 +104,10 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(
     // TODO put it as a value
 
     con(ctrl.execution(), &Scenario::ScenarioExecution::playAtDate,
-        this, [=] (const TimeValue& t)
+        this, [=,act=play_action.action()] (const TimeValue& t)
     {
-        on_play(true, t);
+        act->setData(QVariant::fromValue(t));
+        act->trigger();
     });
 
     m_playActions.setupContextMenu(ctrl.layerContextMenuRegistrar());

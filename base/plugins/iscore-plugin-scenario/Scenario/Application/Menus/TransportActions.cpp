@@ -32,6 +32,7 @@ TransportActions::TransportActions(
     m_play->setObjectName("Play");
     m_play->setShortcut(Qt::Key_Space);
     m_play->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_play->setData(false);
     setIcons(m_play, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
     obj.addAction(m_play);
 
@@ -68,6 +69,7 @@ TransportActions::TransportActions(
     connect(m_play, &QAction::toggled,
             this, [&] (bool b) {
         m_play->setText(b? tr("Pause") : tr("Play"));
+        m_play->setData(b); // True for "pause" state (i.e. currently playing), false for "play" state (i.e. currently paused)
         setIcons(m_play,
                  b ? QString(":/icons/pause_on.png") : QString(":/icons/play_on.png"),
                  b ? QString(":/icons/pause_off.png") : QString(":/icons/play_off.png"));
@@ -79,6 +81,7 @@ TransportActions::TransportActions(
         m_play->setChecked(false);
         m_play->setText(tr("Play"));
         setIcons(m_play, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
+        m_play->setData(false);
         m_record->setChecked(false);
 
         m_play->blockSignals(false);
