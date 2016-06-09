@@ -10,3 +10,4 @@ ADD gcc.sh /image/gcc.sh
 RUN /image/gcc.sh
 
 ADD qt.sh /image/qt.sh
+RUN /image/qt.sh
