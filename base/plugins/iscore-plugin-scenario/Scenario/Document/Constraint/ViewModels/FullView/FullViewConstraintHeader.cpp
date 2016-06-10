@@ -40,6 +40,7 @@ void FullViewConstraintHeader::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
+    painter->setRenderHint(QPainter::Antialiasing, false);
     double textWidth = m_bar->width();
 
     // If the centered text is hidden, we put it at the left so that it's on the view.

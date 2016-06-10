@@ -76,6 +76,7 @@ void EventView::paint(QPainter* painter,
                       const QStyleOptionGraphicsItem* option,
                       QWidget* widget)
 {
+    painter->setRenderHint(QPainter::Antialiasing, false);
     QPen eventPen;
     if(m_status.get() == ExecutionStatus::Editing)
         eventPen = QPen(m_color.getColor());

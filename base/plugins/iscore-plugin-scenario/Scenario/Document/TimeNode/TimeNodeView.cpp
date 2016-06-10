@@ -35,6 +35,7 @@ void TimeNodeView::paint(QPainter* painter,
                          const QStyleOptionGraphicsItem* option,
                          QWidget* widget)
 {
+    painter->setRenderHint(QPainter::Antialiasing, false);
     QColor pen_color;
     if(isSelected())
     {
