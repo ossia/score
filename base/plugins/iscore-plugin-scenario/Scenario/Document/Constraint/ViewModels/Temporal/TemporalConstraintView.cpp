@@ -67,6 +67,7 @@ void TemporalConstraintView::paint(
         const QStyleOptionGraphicsItem*,
         QWidget*)
 {
+    painter->setRenderHint(QPainter::Antialiasing, false);
     auto& skin = ScenarioStyle::instance();
 
     qreal min_w = minWidth();

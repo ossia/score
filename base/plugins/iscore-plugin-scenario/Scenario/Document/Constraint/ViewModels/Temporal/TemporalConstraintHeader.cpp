@@ -32,6 +32,7 @@ void TemporalConstraintHeader::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
+    painter->setRenderHint(QPainter::Antialiasing, false);
     if(m_state == State::RackHidden)
     {
         auto rect = boundingRect();

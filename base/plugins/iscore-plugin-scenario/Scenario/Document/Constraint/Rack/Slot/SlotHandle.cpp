@@ -34,6 +34,7 @@ void SlotHandle::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
+    painter->setRenderHint(QPainter::Antialiasing, false);
     painter->setPen(m_pen);
     painter->drawLine(QPointF{0., 0.}, QPointF{m_width, 0.});
 }

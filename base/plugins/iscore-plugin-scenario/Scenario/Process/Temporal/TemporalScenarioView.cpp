@@ -26,6 +26,7 @@ TemporalScenarioView::~TemporalScenarioView() = default;
 
 void TemporalScenarioView::paint_impl(QPainter* painter) const
 {
+    painter->setRenderHint(QPainter::Antialiasing, false);
     if(m_lock)
     {
         painter->setBrush({Qt::red, Qt::DiagCrossPattern});
