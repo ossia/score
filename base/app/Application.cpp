@@ -179,6 +179,12 @@ void Application::initDocuments()
                         Id<iscore::DocumentModel>{iscore::random_id_generator::getRandomId()},
                         *m_presenter->applicationComponents().factory<iscore::DocumentDelegateList>().begin());
     }
+
+    connect(m_app, &SafeQApplication::fileOpened,
+            this, [&] (const QString& file) {
+        m_presenter->documentManager().loadFile(ctx, file);
+    });
+
 }
 
 void Application::loadPluginData()
@@ -221,3 +227,8 @@ void Application::loadPluginData()
         registrar.registerPanel(panel_fac);
     }
 }
+
+
+int Application::exec()
+{ return m_app->exec(); }
+
