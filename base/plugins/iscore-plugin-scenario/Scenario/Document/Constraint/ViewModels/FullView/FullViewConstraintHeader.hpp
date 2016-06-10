@@ -17,6 +17,11 @@ class FullViewConstraintHeader final : public ConstraintHeader
 
         AddressBarItem* bar() const;
 
+        void setState(State s) override
+        {
+
+        }
+
         QRectF boundingRect() const override;
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
