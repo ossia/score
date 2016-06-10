@@ -22,6 +22,7 @@
 #include <set>
 
 #include <iscore/widgets/QmlContainerPanel.hpp>
+#include <iscore_git_info.hpp>
 
 class QObject;
 
@@ -32,6 +33,16 @@ View::View(QObject* parent) :
     m_tabWidget{new QTabWidget}
 {
     setObjectName("View");
+    this->setWindowIcon(QIcon("://i-score.png"));
+
+    QString version = QString{"%1.%2.%3-%4"}
+            .arg(ISCORE_VERSION_MAJOR)
+            .arg(ISCORE_VERSION_MINOR)
+            .arg(ISCORE_VERSION_PATCH)
+            .arg(ISCORE_VERSION_EXTRA);
+    auto title = tr("i-score - %1").arg(version);
+    this->setWindowIconText(title);
+    this->setWindowTitle(title);
     m_tabWidget->setObjectName("Documents");
     //setUnifiedTitleAndToolBarOnMac(true);
 

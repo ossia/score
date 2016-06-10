@@ -4,6 +4,7 @@
 #include <QFileInfo>
 #include <cstdio>
 
+#include <iscore_lib_base_export.h>
 class TTException {
         const char*	reason;
     public:
@@ -24,8 +25,9 @@ class TTException {
  * Disabled for debugging, because it makes getting the stack
  * trace harder.
  */
-class SafeQApplication : public QApplication
+class ISCORE_LIB_BASE_EXPORT SafeQApplication final : public QApplication
 {
+        Q_OBJECT
     public:
         SafeQApplication(int& argc, char** argv):
             QApplication{argc, argv}
@@ -35,6 +37,7 @@ class SafeQApplication : public QApplication
 #endif
         }
 
+        ~SafeQApplication();
 #if defined(ISCORE_DEBUG)
         static void DebugOutput(
                 QtMsgType type,
@@ -95,4 +98,26 @@ class SafeQApplication : public QApplication
             return false;
         }
 #endif
+
+        bool event(QEvent *ev) override
+        {
+            bool eaten;
+            switch (ev->type())
+            {
+
+#ifdef __APPLE__
+                case QEvent::FileOpen:
+                    loadString = static_cast<QFileOpenEvent *>(ev)->file();
+                    emit fileOpened(loadString);
+                    eaten = true;
+                    break;
+#endif
+                default:
+                    return QApplication::event(ev);
+            }
+            return eaten;
+        }
+
+    signals:
+        void fileOpened(const QString&);
 };

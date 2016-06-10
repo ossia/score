@@ -12,6 +12,7 @@ namespace iscore {
 class Settings;
 }  // namespace iscore
 
+class SafeQApplication;
 namespace iscore
 {
     class Presenter;
@@ -45,8 +46,7 @@ class Application final :
         Application& operator= (const Application&) = delete;
         ~Application();
 
-        int exec()
-        { return m_app->exec(); }
+        int exec();
 
         const iscore::Settings& settings() const
         { return m_settings; }
@@ -59,7 +59,7 @@ class Application final :
         void loadPluginData();
 
         // Base stuff.
-        QApplication* m_app;
+        SafeQApplication* m_app;
         iscore::Settings m_settings; // Global settings
 
         // MVP
@@ -68,6 +68,4 @@ class Application final :
 
         iscore::ApplicationSettings m_applicationSettings;
 };
-
-
 
