@@ -3,6 +3,10 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <cstdio>
+
+#ifdef __APPLE__
+#include <QFileOpenEvent>
+#endif
 #include <iscore/tools/Todo.hpp>
 #include <iscore_lib_base_export.h>
 class TTException {
