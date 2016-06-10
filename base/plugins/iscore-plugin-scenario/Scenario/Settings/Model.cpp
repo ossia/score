@@ -2,18 +2,24 @@
 #include <QSettings>
 #include <QFile>
 #include <QJsonDocument>
-
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <Process/Style/Skin.hpp>
 namespace Scenario
 {
 namespace Settings
 {
 
-const QString Keys::skin = QStringLiteral("Skin/Skin");
-const QString Keys::graphicZoom = QStringLiteral("Skin/Zoom");
-const QString Keys::slotHeight = QStringLiteral("Skin/slotHeight");
-const QString Keys::defaultDuration = QStringLiteral("Skin/defaultDuration");
+namespace Keys
+{
+        const sp<QString> skin{QStringLiteral("Skin/Skin"), "Default"};
+        const sp<double> graphicZoom{QStringLiteral("Skin/Zoom"), 1};
+        const sp<qreal> slotHeight{QStringLiteral("Skin/slotHeight"), 400};
+        const sp<TimeValue> defaultDuration{QStringLiteral("Skin/defaultDuration"), TimeValue::fromMsecs(15000)};
 
+        auto settings() {
+            return std::tie(skin, graphicZoom, slotHeight, defaultDuration);
+        }
+}
 
 Model::Model(const iscore::ApplicationContext& ctx)
 {

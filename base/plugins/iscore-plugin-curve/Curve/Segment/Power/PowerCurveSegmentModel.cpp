@@ -103,6 +103,10 @@ void PowerSegment::setVerticalParameter(double p)
 
 optional<double> PowerSegment::verticalParameter() const
 {
-    return gamma / 6. - 1;
+
+    if(start().y() < end().y())
+        return gamma / 6. - 1;
+    else
+        return -(gamma / 6. - 1);
 }
 }

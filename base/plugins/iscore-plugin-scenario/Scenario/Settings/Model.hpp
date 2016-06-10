@@ -7,14 +7,18 @@ namespace Scenario
 {
 namespace Settings
 {
-
-struct Keys
+template<typename T>
+struct SettingsParameter
 {
-        static const QString skin;
-        static const QString graphicZoom;
-        static const QString slotHeight;
-        static const QString defaultDuration;
+    public:
+        using type = T;
+        using parameter_type = typename boost::call_traits<type>::param_type;
+        QString key;
+        T def;
 };
+
+template<typename T>
+using sp = SettingsParameter<T>;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT Model final :
         public iscore::SettingsDelegateModel

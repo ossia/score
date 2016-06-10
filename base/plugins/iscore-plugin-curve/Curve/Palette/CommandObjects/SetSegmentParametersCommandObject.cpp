@@ -52,6 +52,7 @@ void SetSegmentParametersCommandObject::move()
       ? clamp(*m_horizontalOrig + (m_state->currentPoint.x() - m_originalPress.x()) , -1., 1.)
       : 0;
 
+    qDebug() << *m_verticalOrig << newVertical;
     // OPTIMIZEME
     m_dispatcher.submitCommand(
         Path<Model>{},
