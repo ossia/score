@@ -29,21 +29,21 @@ Presenter::Presenter(
     v.setSkin(m.getSkin());
 
     con(v, &View::zoomChanged,
-        this, [&] (const auto val) {
+        this, [&] (auto val) {
         if(val != m.getGraphicZoom())
         {
             m_disp.submitCommand<SetModelGraphicZoom>(this->model(this), 0.01*double(val));
         }
     });
     con(m, &Model::GraphicZoomChanged,
-        this, [&] (const double z) {
+        this, [&] (double z) {
         v.setZoom((100 * z));
     });
     v.setZoom(m.getGraphicZoom() * 100);
 
 
     con(v, &View::slotHeightChanged,
-        this, [&] (const int& h) {
+        this, [&] (int h) {
         if(h != m.getSlotHeight())
         {
             m_disp.submitCommand<SetModelSlotHeight>(this->model(this), qreal(h));
@@ -54,6 +54,20 @@ Presenter::Presenter(
         v.setSlotHeight(h);
     });
     v.setSlotHeight(qreal(m.getSlotHeight()));
+
+
+    con(v, &View::defaultDurationChanged,
+        this, [&] (const TimeValue& t) {
+        if(t != m.getDefaultScoreDuration())
+        {
+            m_disp.submitCommand<SetModelDefaultScoreDuration>(this->model(this), t);
+        }
+    });
+    con(m, &Model::DefaultScoreDurationChanged,
+        this, [&] (const TimeValue& t) {
+        v.setDefaultDuration(t);
+    });
+    v.setDefaultDuration(m.getDefaultScoreDuration());
 }
 
 QString Presenter::settingsName()

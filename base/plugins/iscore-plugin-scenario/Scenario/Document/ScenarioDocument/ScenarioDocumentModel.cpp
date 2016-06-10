@@ -45,6 +45,7 @@
 #include <QFileInfo>
 #include <algorithm>
 #include <chrono>
+#include <Scenario/Settings/Model.hpp>
 
 namespace Process { class LayerPresenter; }
 namespace Scenario
@@ -59,10 +60,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
     m_focusManager{ctx.document.focusManager()},
     m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
-    TimeValue dur{std::chrono::minutes{3}};
-#ifdef ISCORE_DEBUG
-    dur = std::chrono::seconds{30};
-#endif
+    auto dur = ctx.app.settings<Scenario::Settings::Model>().getDefaultScoreDuration();
 
     m_baseScenario->constraint().duration.setRigid(false);
     ConstraintDurations::Algorithms::changeAllDurations(m_baseScenario->constraint(), dur);
