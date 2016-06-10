@@ -70,6 +70,8 @@ ScenarioDocumentView::ScenarioDocumentView(
     m_timeRulersView->setViewport(vp2);
 #endif
 
+    m_view->setAttribute(Qt::WA_PaintOnScreen, true);
+    m_timeRulersView->setAttribute(Qt::WA_PaintOnScreen, true);
     m_widget->addAction(new SnapshotAction{*m_scene, m_widget});
 
     // Transport

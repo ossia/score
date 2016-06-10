@@ -170,14 +170,14 @@ void DocumentModel::loadDocumentAsByteArray(
     }
 
     // Set the id
+
+    DataStream::Deserializer doc_writer{doc};
     {
         Id<DocumentModel> doc_id;
-
-        DataStream::Deserializer doc_writer{doc};
         doc_writer.writeTo(doc_id);
 
         if(any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
-            throw std::runtime_error(tr("The document is already loaded"));
+            throw std::runtime_error(tr("The document is already loaded").toStdString());
 
         this->setId(std::move(doc_id));
     }
@@ -216,7 +216,7 @@ void DocumentModel::loadDocumentAsJson(
     auto doc_id = fromJsonValue<Id<DocumentModel>>(doc["DocumentId"]);
 
     if(any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
-        throw std::runtime_error(tr("The document is already loaded"));
+        throw std::runtime_error(tr("The document is already loaded").toStdString());
 
     this->setId(doc_id);
 
