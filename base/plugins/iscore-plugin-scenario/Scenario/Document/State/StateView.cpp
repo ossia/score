@@ -127,6 +127,7 @@ void StateView::dropEvent(QGraphicsSceneDragDropEvent *event)
 
 void StateView::setDilatation(double val)
 {
+    prepareGeometryChange();
     m_dilatationFactor = val;
 //    this->setScale(m_dilatationFactor);
 //    emit m_presenter.askUpdate();
