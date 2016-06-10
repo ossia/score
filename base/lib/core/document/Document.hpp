@@ -80,6 +80,9 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
 
         void setBackupMgr(DocumentBackupManager* backupMgr);
 
+        bool virgin() const
+        { return m_virgin && !m_commandStack.canUndo() && !m_commandStack.canRedo(); }
+
     signals:
         void aboutToClose();
 
@@ -113,6 +116,9 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
         DocumentBackupManager* m_backupMgr{};
 
         DocumentContext m_context;
+
+        bool m_virgin{false}; // Used to check if we can safely close it
+        // if we want to load a document instead upon opening i-score.
 };
 
 

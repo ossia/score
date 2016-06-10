@@ -34,7 +34,7 @@ class EventInspectorWidget final : public QWidget
                 QWidget* parent = nullptr);
 
         void addState(const StateModel& state);
-        void removeState(const StateModel& state);
+        //void removeState(const Id<StateModel>& state);
         void focusState(const StateModel* state);
 
         CommandDispatcher<>* commandDispatcher() const

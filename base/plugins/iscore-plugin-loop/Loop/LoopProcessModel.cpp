@@ -76,6 +76,9 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
+    for(auto comp : components.map().get())
+        delete comp;
+
     delete pluginModelList;
 }
 

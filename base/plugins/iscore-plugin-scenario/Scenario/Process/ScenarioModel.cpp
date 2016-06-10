@@ -108,6 +108,9 @@ Scenario::ScenarioModel* ScenarioModel::clone(
 
 ScenarioModel::~ScenarioModel()
 {
+    for(auto elt : this->components.map().get())
+        delete elt;
+
     apply([&] (const auto& m) {
         for(auto elt : (this->*m).map().get())
             delete elt;

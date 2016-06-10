@@ -66,6 +66,7 @@ bool TimeNodeModel::removeEvent(const Id<EventModel>& eventId)
     if(m_events.indexOf(eventId) >= 0)
     {
         m_events.remove(m_events.indexOf(eventId));
+        emit eventRemoved(eventId);
         return true;
     }
 

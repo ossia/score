@@ -63,7 +63,7 @@ EventInspectorWidget::EventInspectorWidget(
     auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
     ISCORE_ASSERT(scenar);
 
-    con(m_model,  &EventModel::statesChanged,
+    con(m_model, &EventModel::statesChanged,
         this, &EventInspectorWidget::updateDisplayedValues,
         Qt::QueuedConnection);
 
@@ -169,12 +169,13 @@ void EventInspectorWidget::addState(const StateModel& state)
             }
     });
 }
-
-void EventInspectorWidget::removeState(const StateModel& state)
+/*
+void EventInspectorWidget::removeState(const Id<StateModel>& state)
 {
-    // this is not connected
-    ISCORE_TODO;
+    // OPTIMIZEME
+    updateDisplayedValues();
 }
+*/
 
 void EventInspectorWidget::focusState(const StateModel* state)
 {
@@ -199,7 +200,9 @@ void EventInspectorWidget::updateDisplayedValues()
     ISCORE_ASSERT(scenar);
     for(const auto& state : m_model.states())
     {
-        addState(scenar->state(state));
+        auto st = scenar->findState(state);
+        if(st)
+            addState(*st);
     }
 
     m_exprEditor->setExpression(m_model.condition());

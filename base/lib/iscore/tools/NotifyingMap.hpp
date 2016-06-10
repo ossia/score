@@ -56,8 +56,7 @@ class NotifyingMap
             removing(elt);
             m_map.remove(elt.id());
             removed(elt);
-            elt.setParent(nullptr);
-            elt.deleteLater();
+            delete &elt;
         }
 
         void remove(T* elt)
@@ -72,8 +71,7 @@ class NotifyingMap
             removing(elt);
             m_map.remove(it);
             removed(elt);
-            elt.setParent(nullptr);
-            elt.deleteLater();
+            delete &elt;
         }
 
         void clear()
