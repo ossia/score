@@ -199,11 +199,11 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
             {
                 if(auto bs = plugmodel->baseScenario())
                 {
-                    auto& cstr = *bs->baseConstraint();
-                    if(cstr.OSSIAConstraint()->paused())
+                    auto& cstr = *bs->baseConstraint()->OSSIAConstraint();
+                    if(cstr.paused())
                     {
                         emit requestResume();
-                        cstr.OSSIAConstraint()->resume();
+                        cstr.resume();
                     }
                 }
             }
