@@ -46,6 +46,14 @@ View::View():
             this, &View::slotHeightChanged);
 
     lay->addRow(tr("Default Slot Height"), m_slotHeightBox);
+
+    // Default duration
+    m_defaultDur = new iscore::TimeSpinBox;
+    connect(m_defaultDur, &iscore::TimeSpinBox::timeChanged,
+            this, [=] (const QTime& t) {
+        emit defaultDurationChanged(TimeValue{t});
+    });
+    lay->addRow(tr("New score duration"), m_defaultDur);
 }
 
 void View::setSkin(const QString& val)
@@ -64,6 +72,13 @@ void View::setZoom(const int val)
 {
     if(val != m_zoomSpinBox->value())
         m_zoomSpinBox->setValue(val);
+}
+
+void View::setDefaultDuration(const TimeValue& t)
+{
+    auto qtime = t.toQTime();
+    if(qtime != m_defaultDur->time())
+        m_defaultDur->setTime(qtime);
 }
 
 void View::setSlotHeight(const double val)

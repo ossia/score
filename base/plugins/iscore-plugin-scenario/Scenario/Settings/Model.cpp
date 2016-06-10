@@ -12,6 +12,7 @@ namespace Settings
 const QString Keys::skin = QStringLiteral("Skin/Skin");
 const QString Keys::graphicZoom = QStringLiteral("Skin/Zoom");
 const QString Keys::slotHeight = QStringLiteral("Skin/slotHeight");
+const QString Keys::defaultDuration = QStringLiteral("Skin/defaultDuration");
 
 
 Model::Model(const iscore::ApplicationContext& ctx)
@@ -28,6 +29,7 @@ Model::Model(const iscore::ApplicationContext& ctx)
         setSkin(s.value(Keys::skin).toString());
         setGraphicZoom(s.value(Keys::graphicZoom).toDouble());
         setSlotHeight(s.value(Keys::slotHeight).toReal());
+        setDefaultScoreDuration(s.value(Keys::defaultDuration).value<TimeValue>());
     }
 }
 
@@ -96,10 +98,12 @@ void Model::setFirstTimeSettings()
     setSkin("Default");
     m_graphicZoom = 1.;
     m_slotHeight = 400;
+    m_defaultDuration = TimeValue::fromMsecs(15000);
     QSettings s;
     s.setValue(Keys::graphicZoom, m_graphicZoom);
     s.setValue(Keys::skin, m_skin);
     s.setValue(Keys::slotHeight, m_slotHeight);
+    s.setValue(Keys::defaultDuration, QVariant::fromValue(m_defaultDuration));
 }
 
 qreal Model::getSlotHeight() const
@@ -107,7 +111,7 @@ qreal Model::getSlotHeight() const
     return m_slotHeight;
 }
 
-void Model::setSlotHeight(const qreal& slotHeight)
+void Model::setSlotHeight(qreal slotHeight)
 {
     if(slotHeight == m_slotHeight)
         return;
@@ -117,6 +121,23 @@ void Model::setSlotHeight(const qreal& slotHeight)
     QSettings s;
     s.setValue(Keys::slotHeight, m_slotHeight);
     emit SlotHeightChanged(m_slotHeight);
+}
+
+TimeValue Model::getDefaultScoreDuration()
+{
+    return m_defaultDuration;
+}
+
+void Model::setDefaultScoreDuration(const TimeValue& dur)
+{
+    if(dur == m_defaultDuration)
+        return;
+
+    m_defaultDuration = dur;
+
+    QSettings s;
+    s.setValue(Keys::defaultDuration, QVariant::fromValue(m_defaultDuration));
+    emit DefaultScoreDurationChanged(m_defaultDuration);
 }
 
 }
