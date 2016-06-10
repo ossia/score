@@ -36,6 +36,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <core/presenter/DocumentManager.hpp>
 
 class QObject;
 class QWidget;
@@ -168,6 +169,19 @@ void DocumentModel::loadDocumentAsByteArray(
         throw std::runtime_error("Invalid file.");
     }
 
+    // Set the id
+    {
+        Id<DocumentModel> doc_id;
+
+        DataStream::Deserializer doc_writer{doc};
+        doc_writer.writeTo(doc_id);
+
+        if(any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
+            throw std::runtime_error(tr("The document is already loaded"));
+
+        this->setId(std::move(doc_id));
+    }
+
     // Note : this *has* to be in this order, because
     // the plugin models might put some data in the
     // document that requires the plugin models to be loaded
@@ -190,12 +204,6 @@ void DocumentModel::loadDocumentAsByteArray(
     });
 
     // Load the document model
-    Id<DocumentModel> docid;
-
-    DataStream::Deserializer doc_writer{doc};
-    doc_writer.writeTo(docid);
-    this->setId(std::move(docid));
-
     m_model = fact.loadModel(doc_writer.toVariant(), ctx, this);
 }
 
@@ -205,7 +213,12 @@ void DocumentModel::loadDocumentAsJson(
         DocumentDelegateFactory& fact)
 {
     const auto& doc = json["Document"].toObject();
-    this->setId(fromJsonValue<Id<DocumentModel>>(doc["DocumentId"]));
+    auto doc_id = fromJsonValue<Id<DocumentModel>>(doc["DocumentId"]);
+
+    if(any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
+        throw std::runtime_error(tr("The document is already loaded"));
+
+    this->setId(doc_id);
 
     // Load the plug-in models
     auto json_plugins = json["Plugins"].toObject();
