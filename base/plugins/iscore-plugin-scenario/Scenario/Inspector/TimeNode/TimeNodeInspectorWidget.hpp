@@ -34,7 +34,7 @@ class TimeNodeInspectorWidget final : public Inspector::InspectorWidgetBase
                 QWidget* parent);
 
         void addEvent(const EventModel& event);
-        void removeEvent(const EventModel& event);
+        void removeEvent(const Id<EventModel>& event);
 
     private:
         QString tabName() override;

@@ -99,24 +99,25 @@ class ISCORE_LIB_BASE_EXPORT SafeQApplication final : public QApplication
         }
 #endif
 
+#ifdef __APPLE__
         bool event(QEvent *ev) override
         {
             bool eaten;
             switch (ev->type())
             {
-
-#ifdef __APPLE__
                 case QEvent::FileOpen:
-                    loadString = static_cast<QFileOpenEvent *>(ev)->file();
+                {
+                    auto loadString = static_cast<QFileOpenEvent *>(ev)->file();
                     emit fileOpened(loadString);
                     eaten = true;
                     break;
-#endif
+                }
                 default:
                     return QApplication::event(ev);
             }
             return eaten;
         }
+#endif
 
     signals:
         void fileOpened(const QString&);

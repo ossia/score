@@ -79,7 +79,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObjec
         void dateChanged(const TimeValue&);
 
         void newEvent(const Id<EventModel>& eventId);
-        // TODO no eventRemoved ? eventsChanged ?
+        void eventRemoved(const Id<EventModel>& eventId);
 
     private:
         VerticalExtent m_extent;

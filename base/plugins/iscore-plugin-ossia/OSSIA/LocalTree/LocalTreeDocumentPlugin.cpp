@@ -101,12 +101,17 @@ void Ossia::LocalTree::DocumentPlugin::cleanup()
     }
 
     // Delete
+    m_root = nullptr;
+    /*
     auto& doc = m_context.document.model().modelDelegate();
     auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
                       &doc);
     ISCORE_ASSERT(scenar);
     auto& cstr = scenar->baseScenario().constraint();
-
-    cstr.components.remove(m_root);
     m_root = nullptr;
+    auto cit = cstr.components.find(m_root->id());
+    if(cit != cstr.components.end())
+        cstr.components.remove(m_root);
+    m_root = nullptr;
+    */
 }

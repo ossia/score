@@ -50,7 +50,8 @@ Document::Document(
     NamedObject {"Document", parent},
     m_objectLocker{this},
     m_backupMgr{new DocumentBackupManager{*this}},
-    m_context{DocumentContext::fromDocument(*this)}
+    m_context{DocumentContext::fromDocument(*this)},
+    m_virgin{true}
 {
     metadata.setFileName(name);
     /// Construction of the document model

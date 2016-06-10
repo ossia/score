@@ -96,6 +96,8 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     con(m_model, &TimeNodeModel::newEvent,
         this, [&] (const Id<EventModel>&) {this->updateDisplayedValues();});
+    con(m_model, &TimeNodeModel::eventRemoved,
+        this, [&] (const Id<EventModel>& id) { this->removeEvent(id);});
 
 }
 
@@ -154,9 +156,10 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
     });
 }
 
-void TimeNodeInspectorWidget::removeEvent(const EventModel& event)
+void TimeNodeInspectorWidget::removeEvent(const Id<EventModel>& event)
 {
-    ISCORE_TODO;
+    // OPTIMIZEME
+    updateDisplayedValues();
 }
 
 QString TimeNodeInspectorWidget::tabName()

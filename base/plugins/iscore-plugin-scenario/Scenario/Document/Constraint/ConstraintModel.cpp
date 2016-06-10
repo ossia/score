@@ -39,6 +39,8 @@ ConstraintModel::ConstraintModel(
 
 ConstraintModel::~ConstraintModel()
 {
+    for(auto elt : components.map().get())
+        delete elt;
     for(auto elt : racks.map().get())
         delete elt;
     for(auto elt : processes.map().get())
