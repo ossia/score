@@ -4,27 +4,48 @@
 #include <QJsonDocument>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <Process/Style/Skin.hpp>
+
 namespace Scenario
 {
 namespace Settings
 {
-
 namespace Keys
 {
-        const sp<QString> skin{QStringLiteral("Skin/Skin"), "Default"};
-        const sp<double> graphicZoom{QStringLiteral("Skin/Zoom"), 1};
-        const sp<qreal> slotHeight{QStringLiteral("Skin/slotHeight"), 400};
-        const sp<TimeValue> defaultDuration{QStringLiteral("Skin/defaultDuration"), TimeValue::fromMsecs(15000)};
+        const sp<ModelSkinParameter> skin{QStringLiteral("Skin/Skin"), "Default"};
+        const sp<ModelGraphicZoomParameter> graphicZoom{QStringLiteral("Skin/Zoom"), 1};
+        const sp<ModelSlotHeightParameter> slotHeight{QStringLiteral("Skin/slotHeight"), 400};
+        const sp<ModelDefaultScoreDurationParameter> defaultDuration{QStringLiteral("Skin/defaultDuration"), TimeValue::fromMsecs(15000)};
 
         auto settings() {
             return std::tie(skin, graphicZoom, slotHeight, defaultDuration);
+        }
+
+        template<typename T, typename Model>
+        void checkDefaultSettings(QSettings& set, const T& tuple, Model& model)
+        {
+            for_each_in_tuple(tuple, [&] (auto& e) {
+                using type = std::remove_reference_t<decltype(e)>;
+                using data_type = typename type::data_type;
+                using param_type = typename type::parameter_type;
+                if(!set.contains(e.key))
+                {
+                    set.setValue(e.key, QVariant::fromValue(e.def));
+                    (model.*param_type::set())(e.def);
+                }
+                else
+                {
+                    auto val = set.value(e.key).template value<data_type>();
+                    (model.*param_type::set())(val);
+                }
+            });
         }
 }
 
 Model::Model(const iscore::ApplicationContext& ctx)
 {
-    QSettings s;
-
+    QSettings set;
+    Keys::checkDefaultSettings(set, Keys::settings(), *this);
+/*
     if(!s.contains(Keys::skin) ||
        !s.contains(Keys::graphicZoom))
     {
@@ -37,6 +58,7 @@ Model::Model(const iscore::ApplicationContext& ctx)
         setSlotHeight(s.value(Keys::slotHeight).toReal());
         setDefaultScoreDuration(s.value(Keys::defaultDuration).value<TimeValue>());
     }
+*/
 }
 
 QString Model::getSkin() const
@@ -78,7 +100,7 @@ void Model::setSkin(const QString& skin)
     m_skin = skin;
 
     QSettings s;
-    s.setValue(Keys::skin, m_skin);
+    s.setValue(Keys::skin.key, m_skin);
     emit SkinChanged(skin);
 }
 
@@ -95,7 +117,7 @@ void Model::setGraphicZoom(double graphicZoom)
     m_graphicZoom = graphicZoom;
 
     QSettings s;
-    s.setValue(Keys::graphicZoom, m_graphicZoom);
+    s.setValue(Keys::graphicZoom.key, m_graphicZoom);
     emit GraphicZoomChanged(m_graphicZoom);
 }
 
@@ -106,10 +128,10 @@ void Model::setFirstTimeSettings()
     m_slotHeight = 400;
     m_defaultDuration = TimeValue::fromMsecs(15000);
     QSettings s;
-    s.setValue(Keys::graphicZoom, m_graphicZoom);
-    s.setValue(Keys::skin, m_skin);
-    s.setValue(Keys::slotHeight, m_slotHeight);
-    s.setValue(Keys::defaultDuration, QVariant::fromValue(m_defaultDuration));
+    s.setValue(Keys::graphicZoom.key, m_graphicZoom);
+    s.setValue(Keys::skin.key, m_skin);
+    s.setValue(Keys::slotHeight.key, m_slotHeight);
+    s.setValue(Keys::defaultDuration.key, QVariant::fromValue(m_defaultDuration));
 }
 
 qreal Model::getSlotHeight() const
@@ -125,7 +147,7 @@ void Model::setSlotHeight(qreal slotHeight)
     m_slotHeight = slotHeight;
 
     QSettings s;
-    s.setValue(Keys::slotHeight, m_slotHeight);
+    s.setValue(Keys::slotHeight.key, m_slotHeight);
     emit SlotHeightChanged(m_slotHeight);
 }
 
@@ -142,7 +164,7 @@ void Model::setDefaultScoreDuration(const TimeValue& dur)
     m_defaultDuration = dur;
 
     QSettings s;
-    s.setValue(Keys::defaultDuration, QVariant::fromValue(m_defaultDuration));
+    s.setValue(Keys::defaultDuration.key, QVariant::fromValue(m_defaultDuration));
     emit DefaultScoreDurationChanged(m_defaultDuration);
 }
 

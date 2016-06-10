@@ -7,18 +7,20 @@ namespace Scenario
 {
 namespace Settings
 {
-template<typename T>
-struct SettingsParameter
+template<typename Parameter>
+struct SettingsParameterMetadata
 {
     public:
-        using type = T;
-        using parameter_type = typename boost::call_traits<type>::param_type;
+        using parameter_type = Parameter;
+        using model_type = typename Parameter::model_type;
+        using data_type = typename Parameter::param_type;
+        using argument_type = typename boost::call_traits<data_type>::param_type;
         QString key;
-        T def;
+        data_type def;
 };
 
 template<typename T>
-using sp = SettingsParameter<T>;
+using sp = SettingsParameterMetadata<T>;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT Model final :
         public iscore::SettingsDelegateModel
