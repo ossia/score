@@ -34,7 +34,7 @@ class ConstraintHeader : public QGraphicsObject
         void setWidth(double width);
         void setText(const QString &text);
 
-        void setState(State s)
+        virtual void setState(State s)
         {
             if(s == m_state)
                 return;

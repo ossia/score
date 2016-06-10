@@ -36,6 +36,7 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
     con(metadata, &ModelMetadata::nameChanged,
         m_header, &ConstraintHeader::setText);
     m_header->setText(metadata.name());
+    m_header->show();
 }
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()

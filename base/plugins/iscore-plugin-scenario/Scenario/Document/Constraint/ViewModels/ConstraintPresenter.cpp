@@ -43,6 +43,7 @@ ConstraintPresenter::ConstraintPresenter(
 {
     m_header->setParentItem(m_view);
     m_header->setConstraintView(m_view);
+    m_header->hide();
 
     con(m_viewModel.model().selection, &Selectable::changed,
             m_view, &ConstraintView::setSelected);
@@ -244,7 +245,7 @@ void ConstraintPresenter::on_rackHidden()
 
 void ConstraintPresenter::on_noRacks()
 {
-    m_header->hide();
+    //m_header->hide();
     clearRackPresenter();
 
     m_header->setState(ConstraintHeader::State::Hidden);
