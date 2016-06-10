@@ -3,7 +3,7 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <cstdio>
-
+#include <iscore/tools/Todo.hpp>
 #include <iscore_lib_base_export.h>
 class TTException {
         const char*	reason;
