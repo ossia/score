@@ -69,6 +69,18 @@ auto count_if(Vector&& v, Fun fun)
     return std::count_if(std::begin(v), std::end(v), fun);
 }
 
+template<typename Vector, typename Fun>
+auto max_element(Vector&& v, Fun fun)
+{
+    return std::max_element(std::begin(v), std::end(v), fun);
+}
+
+template<typename Vector, typename Fun>
+auto sort(Vector&& v, Fun fun)
+{
+    return std::sort(std::begin(v), std::end(v), fun);
+}
+
 template<typename Vector, typename OutputIterator, typename Fun>
 auto transform(Vector&& v, OutputIterator it, Fun f)
 {

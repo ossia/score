@@ -20,14 +20,25 @@
 #include <algorithm>
 #include <iterator>
 #include <set>
-
+#include <iscore/tools/std/Algorithms.hpp>
 #include <iscore/widgets/QmlContainerPanel.hpp>
 #include <iscore_git_info.hpp>
 
 class QObject;
 
+
 namespace iscore
 {
+struct PanelComparator
+{
+        bool operator()(
+                const QPair<iscore::PanelDelegate*, QDockWidget*>& lhs,
+                const QPair<iscore::PanelDelegate*, QDockWidget*>& rhs) const
+        {
+            return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority;
+        }
+};
+
 View::View(QObject* parent) :
     QMainWindow {},
     m_tabWidget{new QTabWidget}
@@ -106,10 +117,7 @@ void View::setupPanel(PanelDelegate* v)
         if(m_leftPanels.size() > 1)
         {
             // Find the one with the biggest priority
-            auto it = max_element(begin(m_leftPanels),
-                                  end(m_leftPanels),
-                                  [] (const auto& lhs, const auto& rhs)
-            { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
+            auto it = max_element(m_leftPanels, PanelComparator{});
 
             it->second->raise();
             if(dial != it->second)
@@ -135,10 +143,7 @@ void View::setupPanel(PanelDelegate* v)
         if(m_rightPanels.size() > 1)
         {
             // Find the one with the biggest priority
-            auto it = max_element(begin(m_rightPanels),
-                                  end(m_rightPanels),
-                                  [] (const auto& lhs, const auto& rhs)
-            { return lhs.first->defaultPanelStatus().priority < rhs.first->defaultPanelStatus().priority; });
+            auto it = max_element(m_rightPanels, PanelComparator{});
 
             it->second->raise();
             if(dial != it->second)
@@ -172,7 +177,24 @@ void View::closeDocument(DocumentView *doc)
     }
 }
 
-void iscore::View::closeEvent(QCloseEvent* ev)
+void View::restoreLayout()
+{
+    for(auto panels : {m_leftPanels, m_rightPanels})
+    {
+        sort(panels, PanelComparator{});
+
+        for(auto& panel : panels)
+        {
+            auto dock = panel.second;
+            if(dock->isFloating())
+            {
+                dock->setFloating(false);
+            }
+        }
+    }
+}
+
+void View::closeEvent(QCloseEvent* ev)
 {
     if(m_presenter->exit())
     {
