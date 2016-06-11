@@ -84,27 +84,54 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
     addHeader(m_metadata);
 
-    auto speedWidg = new QWidget{this};
-    auto speedLay = new iscore::MarginLess<QVBoxLayout>{speedWidg};
+    {
+        auto speedWidg = new QWidget{this};
+        auto lay = new iscore::MarginLess<QVBoxLayout>{speedWidg};
 
-    auto speedSlider = new QSlider{Qt::Horizontal};
-    speedSlider->setTickInterval(100);
-    speedSlider->setMinimum(-100);
-    speedSlider->setMaximum(500);
-    speedSlider->setValue(m_model.duration.executionSpeed() * 100);
-    auto speedLab = new QLabel{"Speed x" + QString::number(double(speedSlider->value())/100.0)};
+        // Label
+        auto speedLab = new QLabel{"Speed x" + QString::number(m_model.duration.executionSpeed())};
+        lay->addWidget(speedLab);
 
-    speedLay->addWidget(speedLab);
-    speedLay->addWidget(speedSlider);
+        auto speedLay = new iscore::MarginLess<QGridLayout>;
+        lay->addLayout(speedLay);
+        speedLay->setHorizontalSpacing(0);
+        speedLay->setVerticalSpacing(0);
 
-    connect(speedSlider, &QSlider::valueChanged,
-            this, [=] (int val) {
-        // TODO command
-        ((ConstraintModel&)(m_model)).duration.setExecutionSpeed(double(val) / 100.0);
-        speedLab->setText("Speed x" + QString::number(double(val)/100.0));
-    });
+        auto setSpeedFun = [=] (int val) {
+            ((ConstraintModel&)(m_model)).duration.setExecutionSpeed(double(val) / 100.0);
+            speedLab->setText("Speed x" + QString::number(double(val)/100.0));
+        };
+        // Buttons
+        int btn_col = 0;
+        for(int factor : { 0, 50, 100, 200, 500})
+        {
+            auto pb = new QPushButton{"x " + QString::number(factor / 100.0), speedWidg};
+            pb->setMinimumWidth(35);
+            pb->setMaximumWidth(35);
+            pb->setContentsMargins(0, 0, 0, 0);
+            pb->setStyleSheet(" QPushButton { margin: 0px; padding: 0px; }");
 
-    m_properties.push_back(speedWidg);
+            connect(pb, &QPushButton::clicked, this, [=] { setSpeedFun(factor); });
+            speedLay->addWidget(pb, 1, btn_col++, 1, 1);
+        }
+
+        // Slider
+        auto speedSlider = new QSlider{Qt::Horizontal};
+        speedSlider->setTickInterval(100);
+        speedSlider->setMinimum(-100);
+        speedSlider->setMaximum(500);
+        speedSlider->setValue(m_model.duration.executionSpeed() * 100);
+
+        speedLay->addWidget(speedSlider, 1, btn_col, 1, 1);
+
+        for(int i = 0; i < 5; i ++)
+            speedLay->setColumnStretch(i, 0);
+        speedLay->setColumnStretch(5, 10);
+        connect(speedSlider, &QSlider::valueChanged,
+                this, setSpeedFun);
+
+        m_properties.push_back(speedWidg);
+    }
 
     m_delegate->addWidgets_pre(m_properties, this);
 
