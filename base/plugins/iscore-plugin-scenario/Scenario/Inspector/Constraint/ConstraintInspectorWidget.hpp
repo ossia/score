@@ -38,6 +38,7 @@ class ConstraintModel;
 class ConstraintViewModel;
 class RackModel;
 class ScenarioModel;
+class ScenarioInterface;
 class ProcessTabWidget;
 class ProcessViewTabWidget;
 
@@ -84,14 +85,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final :
         void on_constraintViewModelCreated(const ConstraintViewModel&);
         void on_constraintViewModelRemoved(const QObject*);
 
-        QWidget* makeStatesWidget(Scenario::ScenarioModel*);
+        QWidget* makeStatesWidget(Scenario::ScenarioInterface*);
 
         const Inspector::InspectorWidgetList& m_widgetList;
         const Process::ProcessList& m_processList;
         const ConstraintModel& m_model;
 
         //InspectorSectionWidget* m_eventsSection {};
-        Inspector::InspectorSectionWidget* m_durationSection {};
+        QWidget* m_durationSection {};
 
         Scenario::ProcessTabWidget* m_processesTabPage {};
         Scenario::ProcessViewTabWidget* m_viewTabPage{};

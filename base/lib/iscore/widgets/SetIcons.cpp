@@ -10,8 +10,8 @@ void setIcons(QAction *action, const QString &iconOn, const QString &iconOff) {
     action->setIcon(icon);
 }
 
-void makeIcons(QIcon* icon, const QString &iconOn, const QString &iconOff) {
-    *icon = genIconFromPixmaps(iconOn, iconOff);
+QIcon makeIcons(const QString &iconOn, const QString &iconOff) {
+    return genIconFromPixmaps(iconOn, iconOff);
 }
 
 QIcon genIconFromPixmaps(const QString &iconOn, const QString &iconOff) {

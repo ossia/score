@@ -14,31 +14,24 @@ SelectionButton::SelectionButton(
         Selection target,
         iscore::SelectionDispatcher &disp,
         QWidget *parent):
-    QWidget{parent},
+    QPushButton{text, parent},
     m_dispatcher{disp}
 {
-    auto lay = new iscore::MarginLess<QHBoxLayout>{this};
+    auto icon = makeIcons(":/icons/next_on.png", ":/icons/next_off.png");
 
-    QIcon icon;
-    makeIcons(&icon, QString(":/icons/next_on.png"), QString(":/icons/next_off.png"));
-
-    m_button = new QPushButton{tr("None")};
-    m_button->setObjectName(QString("SelectionButton"));
-    m_button->setIcon(icon);
-    m_button->setStyleSheet (
+    setObjectName("SelectionButton");
+    setIcon(icon);
+    setStyleSheet (
                 "margin: 5px;"
                 "margin-left: 10px;"
                 "text-align: left;"
                 "text-decoration: underline;"
                 "border: none;"
     );
-    m_button->setFlat(true);
+    setFlat(true);
 
-    m_button->setText(text);
-    connect(m_button,  &QPushButton::clicked,
+    connect(this,  &QPushButton::clicked,
             this, [=] () {
         m_dispatcher.setAndCommit(target);
     });
-
-    lay->addWidget(m_button);
 }

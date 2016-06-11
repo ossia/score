@@ -7,9 +7,9 @@ ISCORE_LIB_BASE_EXPORT void setIcons(QAction* action,
               const QString& iconOn,
               const QString& iconOff);
 
-ISCORE_LIB_BASE_EXPORT void makeIcons(QIcon* icon,
-                                      const QString &iconOn,
-                                      const QString &iconOff);
+ISCORE_LIB_BASE_EXPORT QIcon makeIcons(
+        const QString &iconOn,
+        const QString &iconOff);
 
 ISCORE_LIB_BASE_EXPORT QIcon genIconFromPixmaps(const QString &iconOn,
                                       const QString &iconOff);

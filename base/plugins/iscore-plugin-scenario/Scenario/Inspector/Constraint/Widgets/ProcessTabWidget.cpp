@@ -54,8 +54,7 @@ ProcessTabWidget::ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, 
 
     auto addProcButton = new QToolButton;
     addProcButton->setText("+");
-    QIcon addIcon;
-    makeIcons(&addIcon, QString(":/icons/condition_add_on.png"), QString(":/icons/condition_add_off.png"));
+    QIcon addIcon = makeIcons(":/icons/condition_add_on.png", ":/icons/condition_add_off.png");
     addProcButton->setIcon(addIcon);
     addProcButton->setObjectName("addAProcess");
     addProcButton->setAutoRaise(true);
