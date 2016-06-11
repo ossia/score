@@ -23,8 +23,9 @@
 #include <Curve/Settings/Model.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <QApplication>
-ISCORE_DECLARE_ACTION(Snapshot, Scenario, QKeySequence(QObject::tr("Ctrl+L")))
-ISCORE_DECLARE_ACTION(CreateCurves, Scenario, QKeySequence(QObject::tr("Ctrl+J")))
+#include <QMainWindow>
+ISCORE_DECLARE_ACTION(Snapshot,"Snapshot in Event", Scenario, QKeySequence(QObject::tr("Ctrl+L")))
+ISCORE_DECLARE_ACTION(CreateCurves, "Create Curves", Scenario, QKeySequence(QObject::tr("Ctrl+J")))
 
 IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(
         const iscore::GUIApplicationContext& ctx) :
@@ -49,10 +50,9 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(
     connect(m_stopAction, &QAction::triggered,
             this, [&] { stopRecord(); });
 
-    m_snapshot = new QAction {tr("Snapshot in Event"), this};
-    m_snapshot->setShortcutContext(Qt::ApplicationShortcut);
-    m_snapshot->setShortcut(tr("Ctrl+J"));
-    m_snapshot->setToolTip(tr("Snapshot in Event (Ctrl+J)"));
+    m_snapshot = new QAction {this};
+    m_snapshot->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    ctx.mainWindow.addAction(m_snapshot);
 
     setIcons(m_snapshot, QString(":/icons/snapshot_on.png"), QString(":/icons/snapshot_off.png"));
 
@@ -63,10 +63,9 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(
     });
     m_snapshot->setEnabled(false);
 
-    m_curves = new QAction {tr("Create Curves"), this};
-    m_curves->setShortcutContext(Qt::ApplicationShortcut);
-    m_curves->setShortcut(tr("Ctrl+L"));
-    m_curves->setToolTip(tr("Create Curves (Ctrl+L)"));
+    m_curves = new QAction{this};
+    m_curves->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    ctx.mainWindow.addAction(m_curves);
 
     setIcons(m_curves, QString(":/icons/create_curve_on.png"), QString(":/icons/create_curve_off.png"));
 

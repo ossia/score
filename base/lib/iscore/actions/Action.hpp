@@ -35,16 +35,19 @@ class ISCORE_LIB_BASE_EXPORT Action
 {
     public:
         Action(QAction* act,
+               QString text,
                ActionKey key,
                ActionGroupKey k,
                const QKeySequence& defaultShortcut);
         Action(QAction* act,
+               QString text,
                ActionKey key,
                ActionGroupKey k,
                const QKeySequence& defaultShortcut,
                const QKeySequence& defaultShortcut2);
 
         Action(QAction* act,
+               QString text,
                const char* key,
                const char* group_key,
                const QKeySequence& defaultShortcut);
@@ -59,7 +62,10 @@ class ISCORE_LIB_BASE_EXPORT Action
         QKeySequence defaultShortcut();
 
     private:
+        void updateTexts();
+
         QAction* m_impl{};
+        QString m_text;
         ActionKey m_key;
         ActionGroupKey m_groupKey;
         QKeySequence m_default;
@@ -454,7 +460,7 @@ struct GUIElements
 
 }
 
-#define ISCORE_DECLARE_ACTION(ActionName, Group, Shortcut) \
+#define ISCORE_DECLARE_ACTION(ActionName, Text, Group, Shortcut) \
 namespace Actions { struct ActionName; }\
 namespace iscore { \
 template<> \
@@ -462,7 +468,7 @@ struct MetaAction<Actions::ActionName> \
 { \
   static iscore::Action make(QAction* ptr)  \
   { \
-    return iscore::Action{ptr, key(), iscore::ActionGroupKey{#Group}, Shortcut}; \
+    return iscore::Action{ptr, QObject::tr(Text), key(), iscore::ActionGroupKey{#Group}, Shortcut}; \
   } \
 \
   static iscore::ActionKey key() \
@@ -472,7 +478,7 @@ struct MetaAction<Actions::ActionName> \
 }; }
 
 
-#define ISCORE_DECLARE_ACTION_2S(ActionName, Group, Shortcut1, Shortcut2) \
+#define ISCORE_DECLARE_ACTION_2S(ActionName, Text, Group, Shortcut1, Shortcut2) \
 namespace Actions { struct ActionName; }\
 namespace iscore { \
 template<> \
@@ -480,7 +486,7 @@ struct MetaAction<Actions::ActionName> \
 { \
   static iscore::Action make(QAction* ptr)  \
   { \
-    return iscore::Action{ptr, key(), iscore::ActionGroupKey{#Group}, Shortcut1, Shortcut2}; \
+    return iscore::Action{ptr, QObject::tr(Text), key(), iscore::ActionGroupKey{#Group}, Shortcut1, Shortcut2}; \
   } \
 \
   static iscore::ActionKey key() \

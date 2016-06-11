@@ -140,7 +140,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     // Quit
 
     {
-        auto new_doc = new QAction(tr("&New"), m_presenter.view());
+        auto new_doc = new QAction(m_presenter.view());
         connect(new_doc, &QAction::triggered, this, &CoreApplicationPlugin::newDocument);
         file->addAction(new_doc);
         e.actions.add<Actions::New>(new_doc);
@@ -150,7 +150,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
 
     {
-        auto load_doc = new QAction(tr("&Load"), m_presenter.view());
+        auto load_doc = new QAction(m_presenter.view());
         connect(load_doc, &QAction::triggered, this, &CoreApplicationPlugin::load);
         e.actions.add<Actions::Load>(load_doc);
         file->addAction(load_doc);
@@ -160,7 +160,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     auto& cond = context.actions.condition<EnableActionIfDocument>();
     {
-        auto save_doc = new QAction(tr("&Save"), m_presenter.view());
+        auto save_doc = new QAction(m_presenter.view());
         connect(save_doc, &QAction::triggered, this, &CoreApplicationPlugin::save);
         e.actions.add<Actions::Save>(save_doc);
         cond.add<Actions::Save>();
@@ -168,7 +168,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     }
 
     {
-        auto saveas_doc = new QAction(tr("Save &As..."), m_presenter.view());
+        auto saveas_doc = new QAction(m_presenter.view());
         connect(saveas_doc, &QAction::triggered, this, &CoreApplicationPlugin::saveAs);
         e.actions.add<Actions::SaveAs>(saveas_doc);
         cond.add<Actions::SaveAs>();
@@ -181,16 +181,16 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 #ifdef ISCORE_DEBUG
     // Add command stack import / export
     {
-        auto loadStack_act = new QAction(tr("&Load a stack"), m_presenter.view());
+        auto loadStack_act = new QAction(m_presenter.view());
         connect(loadStack_act, &QAction::triggered, this, &CoreApplicationPlugin::loadStack);
-        actions.emplace_back(loadStack_act, "LoadStack", "Common", QKeySequence::UnknownKey);
+        actions.emplace_back(loadStack_act, tr("&Load a stack"), "LoadStack", "Common", QKeySequence::UnknownKey);
         export_menu->addAction(loadStack_act);
     }
 
     {
-        auto saveStack_act = new QAction(tr("&Save a stack"), m_presenter.view());
+        auto saveStack_act = new QAction(m_presenter.view());
         connect(saveStack_act, &QAction::triggered, this, &CoreApplicationPlugin::saveStack);
-        actions.emplace_back(saveStack_act, "SaveStack", "Common", QKeySequence::UnknownKey);
+        actions.emplace_back(saveStack_act, tr("&Save a stack"), "SaveStack", "Common", QKeySequence::UnknownKey);
         export_menu->addAction(saveStack_act);
     }
 #endif
@@ -198,14 +198,14 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     file->addSeparator();
 
     {
-        auto close_act = new QAction(tr("&Close"), m_presenter.view());
+        auto close_act = new QAction(m_presenter.view());
         connect(close_act, &QAction::triggered, this, &CoreApplicationPlugin::close);
         e.actions.add<Actions::Close>(close_act);
         file->addAction(close_act);
     }
 
     {
-        auto quit_act = new QAction(tr("&Quit"), m_presenter.view());
+        auto quit_act = new QAction(m_presenter.view());
         connect(quit_act, &QAction::triggered, this, &CoreApplicationPlugin::quit);
         e.actions.add<Actions::Quit>(quit_act);
         file->addAction(quit_act);
@@ -217,7 +217,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     ////// Settings //////
     {
-        auto settings_act = new QAction(tr("&Settings"), m_presenter.view());
+        auto settings_act = new QAction(m_presenter.view());
         connect(settings_act, &QAction::triggered, this, &CoreApplicationPlugin::openSettings);
         e.actions.add<Actions::OpenSettings>(settings_act);
         settings->addAction(settings_act);
@@ -225,7 +225,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     ////// About /////
     {
-        auto about_act = new QAction(tr("&About"), m_presenter.view());
+        auto about_act = new QAction(m_presenter.view());
         connect(about_act, &QAction::triggered, this, &CoreApplicationPlugin::about);
         e.actions.add<Actions::About>(about_act);
         about->addAction(about_act);
