@@ -160,15 +160,15 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         auto transportWid = new QWidget{this};
         auto transportLay = new iscore::MarginLess<QHBoxLayout>{transportWid};
 
-        auto& scenar = *safe_cast<Scenario::ScenarioInterface*>(m_model.parent());
-
+        auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(m_model.parent());
+        ISCORE_ASSERT(scenar);
         transportLay->addStretch(1);
 
         if(auto sst = m_model.startState())
         {
             auto btn = SelectionButton::make(
                         tr("Start State"),
-                        &scenar.state(sst),
+                        &scenar->state(sst),
                         selectionDispatcher(),
                         this);
             transportLay->addWidget(btn);
@@ -180,7 +180,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         {
             auto btn = SelectionButton::make(
                         tr("End State"),
-                        &scenar.state(est),
+                        &scenar->state(est),
                         selectionDispatcher(),
                         this);
             transportLay->addWidget(btn);
