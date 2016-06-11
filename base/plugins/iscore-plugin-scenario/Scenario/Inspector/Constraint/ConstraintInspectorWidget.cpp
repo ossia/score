@@ -103,7 +103,6 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
             if(dur.executionSpeed() != s)
             {
                 dur.setExecutionSpeed(s);
-                speedLab->setText("Speed x" + QString::number(double(val)/100.0));
             }
         };
         // Buttons
@@ -129,6 +128,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         con(m_model.duration, &ConstraintDurations::executionSpeedChanged,
             this, [=] (double s) {
             double r = s * 100;
+            speedLab->setText("Speed x" + QString::number(s));
             if(r != speedSlider->value())
                 speedSlider->setValue(r);
         });
