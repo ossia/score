@@ -3,7 +3,6 @@
 #include <QBoxLayout>
 #include <QIcon>
 
-#include <QPushButton>
 
 #include "SelectionButton.hpp"
 #include <iscore/selection/Selection.hpp>

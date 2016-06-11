@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/selection/Selection.hpp>
+#include <QPushButton>
 #include <QString>
 #include <QWidget>
 
