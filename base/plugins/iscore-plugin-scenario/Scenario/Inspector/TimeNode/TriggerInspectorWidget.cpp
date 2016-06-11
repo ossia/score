@@ -33,12 +33,13 @@ TriggerInspectorWidget::TriggerInspectorWidget(
     connect(m_model.trigger(), &TriggerModel::triggerChanged,
             m_exprEditor, &ExpressionEditorWidget::setExpression);
 
-    m_addTrigBtn = new QPushButton{"Add Trigger"};
+    m_addTrigBtn = new QPushButton{tr("Add Trigger")};
     m_menuButton = new QPushButton{"#"};
     m_menu = new QMenu;
     m_menuButton->setMenu(m_menu);
-    auto delete_act = m_menu->addAction("Delete");
-    auto edit_act = m_menu->addAction("Edit");
+    auto delete_act = m_menu->addAction(tr("Delete"));
+    auto edit_act = m_menu->addAction(tr("Edit"));
+    auto add_sub_act = m_menu->addAction(tr("Add sub-expression"));
 
     triglay->addWidget(m_exprEditor);
     triglay->addWidget(m_menuButton);
@@ -49,6 +50,8 @@ TriggerInspectorWidget::TriggerInspectorWidget(
     connect(m_addTrigBtn, &QPushButton::released,
             this, &TriggerInspectorWidget::createTrigger );
 
+    connect(add_sub_act, &QAction::triggered,
+            m_exprEditor, &ExpressionEditorWidget::addNewTerm);
     connect(delete_act, &QAction::triggered,
             this, &TriggerInspectorWidget::removeTrigger);
     connect(edit_act, &QAction::triggered,

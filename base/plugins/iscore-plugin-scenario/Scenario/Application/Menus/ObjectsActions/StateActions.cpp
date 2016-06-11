@@ -28,7 +28,6 @@ StateActions::StateActions(ScenarioApplicationPlugin* parent) :
             this, [&] () {
         Command::RefreshStates(m_parent->currentDocument()->context());
     });
-
 }
 
 
