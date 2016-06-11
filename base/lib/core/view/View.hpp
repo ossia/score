@@ -40,7 +40,7 @@ namespace iscore
             void setupPanel(PanelDelegate* v);
 
             void closeDocument(iscore::DocumentView* doc);
-
+            void restoreLayout();
             void closeEvent(QCloseEvent*) override;
 
         signals:

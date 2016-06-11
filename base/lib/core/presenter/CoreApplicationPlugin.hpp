@@ -25,6 +25,8 @@ class ISCORE_LIB_BASE_EXPORT CoreApplicationPlugin final :
         void close();
         void quit();
 
+        void restoreLayout();
+
         void openSettings();
         void about();
 

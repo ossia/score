@@ -57,6 +57,11 @@ void CoreApplicationPlugin::quit()
     m_presenter.m_view->close();
 }
 
+void CoreApplicationPlugin::restoreLayout()
+{
+    m_presenter.m_view->restoreLayout();
+}
+
 void CoreApplicationPlugin::openSettings()
 {
     m_presenter.m_settings.view().exec();
@@ -214,6 +219,12 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     ////// View //////
     view->addMenu(windows_menu);
+    {
+        auto act = new QAction(m_presenter.view());
+        connect(act, &QAction::triggered, this, &CoreApplicationPlugin::restoreLayout);
+        e.actions.add<Actions::RestoreLayout>(act);
+        windows_menu->addAction(act);
+    }
 
     ////// Settings //////
     {
