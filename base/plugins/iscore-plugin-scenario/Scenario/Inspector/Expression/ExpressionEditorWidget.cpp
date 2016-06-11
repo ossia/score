@@ -19,42 +19,6 @@ ExpressionEditorWidget::ExpressionEditorWidget(const iscore::DocumentContext& do
 {
     this->setObjectName("ExpressionEditorWidget");
     m_mainLayout = new iscore::MarginLess<QVBoxLayout>{this};
-
-    auto btnWidg = new QWidget{this};
-    auto btnLay = new iscore::MarginLess<QHBoxLayout>{btnWidg};
-
-    auto validBtn = new QPushButton{tr("Ok"), btnWidg};
-    auto cancelBtn = new QPushButton{tr("Cancel"),btnWidg};
-    btnLay->addWidget(validBtn);
-    btnLay->addWidget(cancelBtn);
-
-    m_mainLayout->addWidget(btnWidg);
-
-    auto addButton = new QToolButton{this};
-
-    auto ic = makeIcons(":/icons/condition_add_on.png", ":/icons/condition_add_off.png");
-    addButton->setIcon(ic);
-
-    m_mainLayout->addWidget(addButton);
-
-    connect(validBtn, &QPushButton::clicked,
-            this, &ExpressionEditorWidget::on_editFinished);
-    connect(cancelBtn, &QPushButton::clicked,
-            this, [&] ()
-    {
-        if(m_expression.isEmpty()) {
-            for(auto& elt : m_relations)
-            {
-                delete elt;
-            }
-            m_relations.clear();
-            addNewTerm();
-        }
-        else
-            setExpression(*State::parseExpression(m_expression));
-    });
-    connect(addButton, &QPushButton::clicked,
-            this, &ExpressionEditorWidget::addNewTerm);
 }
 
 State::Expression ExpressionEditorWidget::expression()
@@ -217,15 +181,14 @@ void ExpressionEditorWidget::addNewTerm()
     m_relations.push_back(relationEditor);
 
     m_mainLayout->addWidget(relationEditor);
-/*
- * TODO : this allow to remove the OK button but it crashes ...
-    connect(relationEditor, &SimpleExpressionEditorWidget::editingFinished,
-        this, &ExpressionEditorWidget::on_editFinished);
-*/
+
     connect(relationEditor, &SimpleExpressionEditorWidget::addTerm,
             this, &ExpressionEditorWidget::addNewTerm);
     connect(relationEditor, &SimpleExpressionEditorWidget::removeTerm,
             this, &ExpressionEditorWidget::removeTerm);
+    connect(relationEditor, &SimpleExpressionEditorWidget::editingFinished,
+            this, &ExpressionEditorWidget::on_editFinished,
+            Qt::QueuedConnection);
 }
 
 void ExpressionEditorWidget::removeTerm(int index)

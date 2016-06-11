@@ -31,6 +31,7 @@ class ExpressionEditorWidget : public QWidget
         State::Expression expression();
         void setExpression(State::Expression e);
 
+        void addNewTerm();
     signals:
         void editingFinished();
 
@@ -43,7 +44,6 @@ class ExpressionEditorWidget : public QWidget
         void exploreExpression(State::Expression e);
 
         QString currentExpr();
-        void addNewTerm();
         void removeTerm(int index);
 
         const iscore::DocumentContext& m_context;
