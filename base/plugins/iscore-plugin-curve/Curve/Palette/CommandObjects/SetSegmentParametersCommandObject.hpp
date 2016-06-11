@@ -11,12 +11,15 @@ class CommandStackFacade;
 
 namespace Curve
 {
+class Model;
 class Presenter;
 class StateBase;
 class SetSegmentParametersCommandObject
 {
     public:
-        SetSegmentParametersCommandObject(Presenter* pres, const iscore::CommandStackFacade&);
+        SetSegmentParametersCommandObject(
+                const Model&,
+                const iscore::CommandStackFacade&);
 
         void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
 
@@ -29,7 +32,7 @@ class SetSegmentParametersCommandObject
         void cancel();
 
     private:
-        Presenter* m_presenter{};
+        const Model& m_model;
         SingleOngoingCommandDispatcher<SetSegmentParameters> m_dispatcher;
 
         Curve::StateBase* m_state{};

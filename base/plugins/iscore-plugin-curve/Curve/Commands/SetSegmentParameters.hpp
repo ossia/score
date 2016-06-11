@@ -21,12 +21,15 @@ class ISCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final : public iscore::Ser
 {
         ISCORE_COMMAND_DECL(CommandFactoryName(), SetSegmentParameters, "Set segment parameters")
     public:
-        SetSegmentParameters(Path<Model>&& model, SegmentParameterMap&& parameters);
+        SetSegmentParameters(const Model& model, SegmentParameterMap&& parameters);
 
         void undo() const override;
         void redo() const override;
 
-        void update(Path<Model>&& model, SegmentParameterMap&&  segments);
+        void update(unused_t, SegmentParameterMap&& segments)
+        {
+            m_new = std::move(segments);
+        }
 
     protected:
         void serializeImpl(DataStreamInput & s) const override;
