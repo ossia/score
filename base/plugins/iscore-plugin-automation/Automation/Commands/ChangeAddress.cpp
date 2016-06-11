@@ -11,6 +11,7 @@
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
@@ -29,6 +30,13 @@ ChangeAddress::ChangeAddress(
     m_old.address = autom.address();
     m_old.domain.min.val = autom.min();
     m_old.domain.max.val = autom.max();
+
+    // First and last point may change to keep the start / end state happy.
+    auto& pts = autom.curve().points();
+    auto first_it = find_if(pts, [] (Curve::PointModel* pt) { return pt->pos().x() == 0; } );
+    auto last_it = find_if(pts, [] (Curve::PointModel* pt) { return pt->pos().x() == 1; } );
+    m_oldFirst = first_it != pts.end() ? (*first_it)->pos() : Curve::Point{0, 0};
+    m_oldLast = last_it != pts.end() ? (*last_it)->pos() : Curve::Point{1, 1};
 
 
     if(auto deviceexplorer = Explorer::try_deviceExplorerFromObject(autom))
@@ -60,29 +68,37 @@ void ChangeAddress::undo() const
 {
     auto& autom = m_path.find();
 
-    autom.setMin(::State::convert::value<double>(m_old.domain.min));
-    autom.setMax(::State::convert::value<double>(m_old.domain.max));
+    {
+        QSignalBlocker blck{autom.curve()};
+        autom.setMin(::State::convert::value<double>(m_old.domain.min));
+        autom.setMax(::State::convert::value<double>(m_old.domain.max));
 
-    autom.setAddress(m_old.address);
+        autom.setAddress(m_old.address);
+    }
+    autom.curve().changed();
 }
 
 void ChangeAddress::redo() const
 {
     auto& autom = m_path.find();
 
-    autom.setMin(::State::convert::value<double>(m_new.domain.min));
-    autom.setMax(::State::convert::value<double>(m_new.domain.max));
+    {
+        QSignalBlocker blck{autom.curve()};
+        autom.setMin(::State::convert::value<double>(m_new.domain.min));
+        autom.setMax(::State::convert::value<double>(m_new.domain.max));
 
-    autom.setAddress(m_new.address);
+        autom.setAddress(m_new.address);
+    }
+    autom.curve().changed();
 }
 
 void ChangeAddress::serializeImpl(DataStreamInput & s) const
 {
-    s << m_path << m_old << m_new;
+    s << m_path << m_old << m_new << m_oldFirst << m_oldLast << m_newFirst << m_newLast;
 }
 
 void ChangeAddress::deserializeImpl(DataStreamOutput & s)
 {
-    s >> m_path >> m_old >> m_new;
+    s >> m_path >> m_old >> m_new >> m_oldFirst >> m_oldLast >> m_newFirst >> m_newLast;
 }
 }
