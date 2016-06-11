@@ -56,6 +56,8 @@
         <file>icons/sequence_on.png</file>
         <file>icons/snapshot_off.png</file>
         <file>icons/snapshot_on.png</file>
+        <file>icons/refresh_off.png</file>
+        <file>icons/refresh_on.png</file>
         <file>icons/stop_off.png</file>
         <file>icons/stop_on.png</file>
         <file>icons/reinitialize_off.png</file>

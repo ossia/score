@@ -182,7 +182,7 @@ ISCORE_DECLARE_ACTION(AddTrigger, "&Add Trigger", Scenario, QKeySequence::Unknow
 ISCORE_DECLARE_ACTION(RemoveTrigger, "&Remove Trigger", Scenario, QKeySequence::UnknownKey)
 
 // State
-ISCORE_DECLARE_ACTION(RefreshStates, "Refresh St&ate", Scenario, Qt::CTRL + Qt::Key_U)
+ISCORE_DECLARE_ACTION(RefreshStates, "Refresh St&ates", Scenario, Qt::CTRL + Qt::Key_U)
 
 // Constraint
 ISCORE_DECLARE_ACTION(AddProcess, "&Add a process", Scenario, QKeySequence::UnknownKey)
