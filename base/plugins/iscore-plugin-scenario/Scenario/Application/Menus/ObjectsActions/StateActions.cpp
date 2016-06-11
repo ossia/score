@@ -12,18 +12,19 @@
 #include <Process/Layer/LayerContextMenu.hpp>
 #include <QAction>
 #include <QMenu>
-
+#include <iscore/widgets/SetIcons.hpp>
 namespace Scenario
 {
 StateActions::StateActions(ScenarioApplicationPlugin* parent) :
     m_parent{parent}
 {
-    m_updateStates = new QAction {tr("Refresh states"), this};
-    m_updateStates->setShortcutContext(Qt::ApplicationShortcut);
-    m_updateStates->setShortcut(tr("Ctrl+U"));
-    m_updateStates->setToolTip(tr("Ctrl+U"));
+    m_refreshStates = new QAction {tr("Refresh states"), this};
+    m_refreshStates->setShortcutContext(Qt::ApplicationShortcut);
+    m_refreshStates->setShortcut(tr("Ctrl+U"));
+    m_refreshStates->setToolTip(tr("Ctrl+U"));
+    setIcons(m_refreshStates, QString(":/icons/refresh_on.png"), QString(":/icons/refresh_off.png"));
 
-    connect(m_updateStates, &QAction::triggered,
+    connect(m_refreshStates, &QAction::triggered,
             this, [&] () {
         Command::RefreshStates(m_parent->currentDocument()->context());
     });
@@ -36,9 +37,14 @@ void StateActions::makeGUIElements(iscore::GUIElements& ref)
     using namespace iscore;
 
     Menu& object = m_parent->context.menus.get().at(Menus::Object());
-    object.menu()->addAction(m_updateStates);
+    object.menu()->addAction(m_refreshStates);
 
-    ref.actions.add<Actions::RefreshStates>(m_updateStates);
+    Toolbar& tb = *find_if(ref.toolbars, [] (auto& tb) {
+        return tb.key() == StringKey<iscore::Toolbar>("Constraint");
+    });
+    tb.toolbar()->addAction(m_refreshStates);
+
+    ref.actions.add<Actions::RefreshStates>(m_refreshStates);
     auto& cond = m_parent->context.actions.condition<iscore::EnableWhenSelectionContains<Scenario::StateModel>>();
     cond.add<Actions::RefreshStates>();
 }
@@ -60,7 +66,7 @@ void StateActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
         {
             auto stateSubmenu = menu.addMenu(tr("State"));
             stateSubmenu->setObjectName("State");
-            stateSubmenu->addAction(m_updateStates);
+            stateSubmenu->addAction(m_refreshStates);
         }
     });
 
