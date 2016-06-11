@@ -303,7 +303,7 @@ void RecordManager::recordInNewBox(
     const auto& devicelist = m_explorer->deviceModel().list();
     //// Setup listening on the curves ////
     auto callback_to_use =
-            m_settings.getMode() == Curve::Settings::Mode::Parameter
+            m_settings.getCurveMode() == Curve::Settings::Mode::Parameter
             ? &RecordManager::parameterCallback
             : &RecordManager::messageCallback;
 

@@ -13,15 +13,10 @@
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 namespace PluginSettings
 {
-PluginSettingsModel::PluginSettingsModel(const iscore::ApplicationContext& ctx) :
+PluginSettingsModel::PluginSettingsModel(QSettings& set, const iscore::ApplicationContext& ctx) :
     iscore::SettingsDelegateModel {},
     localPlugins{ctx.components.addons()},
     remoteSelection{&remotePlugins}
-{
-}
-
-
-void PluginSettingsModel::setFirstTimeSettings()
 {
 }
 }

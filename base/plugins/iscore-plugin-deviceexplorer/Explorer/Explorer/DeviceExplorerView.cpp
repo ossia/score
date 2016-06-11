@@ -182,7 +182,7 @@ DeviceExplorerView::model() const
     else
     {
         auto model = static_cast<const QAbstractProxyModel*>(m);
-        return safe_cast<const DeviceExplorerModel*>(model->sourceModel());
+        return dynamic_cast<const DeviceExplorerModel*>(model->sourceModel());
     }
 }
 

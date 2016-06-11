@@ -1,6 +1,8 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore_lib_base_export.h>
+
+class QSettings;
 namespace iscore
 {
     class SettingsPresenter;
@@ -30,6 +32,7 @@ namespace iscore
             virtual SettingsDelegateView* makeView() = 0;
 
             virtual std::unique_ptr<SettingsDelegateModel> makeModel(
+                        QSettings& settings,
                         const iscore::ApplicationContext& ctx) = 0;
 
         protected:
@@ -51,9 +54,10 @@ namespace iscore
     class SettingsDelegateFactory_T : public SettingsDelegateFactory
     {
             std::unique_ptr<SettingsDelegateModel> makeModel(
+                    QSettings& settings,
                     const iscore::ApplicationContext& ctx) override
             {
-                return std::make_unique<Model_T>(ctx);
+                return std::make_unique<Model_T>(settings, ctx);
             }
 
             iscore::SettingsDelegateView *makeView() override

@@ -58,14 +58,15 @@ View::View(QObject* parent) :
     setCentralWidget(m_tabWidget);
     m_tabWidget->tabBar()->setDocumentMode(true);
     connect(m_tabWidget, &QTabWidget::currentChanged,
-            [&] (int index) {
+            this, [&] (int index) {
            auto view = dynamic_cast<DocumentView*>(m_tabWidget->widget(index));
            if(!view)
                return;
            emit activeDocumentChanged(view->document().model().id());
-    });
+    }, Qt::QueuedConnection);
 
-    connect(m_tabWidget, &QTabWidget::tabCloseRequested, [&] (int index)
+    connect(m_tabWidget, &QTabWidget::tabCloseRequested,
+            this, [&] (int index)
     {
         emit closeRequested(safe_cast<DocumentView*>(m_tabWidget->widget(index))->document().model().id());
     });

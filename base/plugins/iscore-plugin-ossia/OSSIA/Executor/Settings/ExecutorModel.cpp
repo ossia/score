@@ -1,50 +1,26 @@
 #include "ExecutorModel.hpp"
-#include <QSettings>
 
 namespace RecreateOnPlay
 {
 namespace Settings
 {
 
-const QString Keys::rate = QStringLiteral("iscore_plugin_ossia/ExecutionRate");
-
-
-Model::Model(const iscore::ApplicationContext& ctx)
+namespace Parameters
 {
-    QSettings s;
+        const iscore::sp<ModelRateParameter> Rate{
+            QStringLiteral("iscore_plugin_ossia/ExecutionRate"),
+                    50};
 
-    if(!s.contains(Keys::rate))
-    {
-        setFirstTimeSettings();
-    }
-
-    m_rate = s.value(Keys::rate).toInt();
+        auto list() {
+            return std::tie(Rate);
+        }
 }
 
-int Model::getRate() const
+Model::Model(QSettings& set, const iscore::ApplicationContext& ctx)
 {
-    return m_rate;
+    iscore::setupDefaultSettings(set, Parameters::list(), *this);
 }
 
-void Model::setRate(int rate)
-{
-    if (m_rate == rate)
-        return;
-
-    m_rate = rate;
-
-    QSettings s;
-    s.setValue(Keys::rate, m_rate);
-    emit RateChanged(rate);
-}
-
-void Model::setFirstTimeSettings()
-{
-    m_rate = 50;
-
-    QSettings s;
-    s.setValue(Keys::rate, m_rate);
-}
-
+ISCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
 }
 }

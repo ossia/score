@@ -8,46 +8,23 @@ namespace LocalTree
 namespace Settings
 {
 
-const QString Keys::localTree = QStringLiteral("iscore_plugin_ossia/LocalTree");
-
-
-Model::Model(const iscore::ApplicationContext& ctx)
+namespace Parameters
 {
-    QSettings s;
+        const iscore::sp<ModelLocalTreeParameter> LocalTree{
+            QStringLiteral("iscore_plugin_ossia/LocalTree"),
+                    false};
 
-    if(!s.contains(Keys::localTree))
-    {
-        setFirstTimeSettings();
-    }
-
-    m_tree = s.value(Keys::localTree).toBool();
+        auto list() {
+            return std::tie(LocalTree);
+        }
 }
 
-bool Model::getLocalTree() const
+Model::Model(QSettings& set, const iscore::ApplicationContext& ctx)
 {
-    return m_tree;
+    iscore::setupDefaultSettings(set, Parameters::list(), *this);
 }
 
-void Model::setLocalTree(bool val)
-{
-    if (m_tree == val)
-        return;
-
-    m_tree = val;
-
-    QSettings s;
-    s.setValue(Keys::localTree, m_tree);
-    emit LocalTreeChanged(val);
-}
-
-void Model::setFirstTimeSettings()
-{
-    m_tree = false;
-
-    QSettings s;
-    s.setValue(Keys::localTree, m_tree);
-}
-
+ISCORE_SETTINGS_PARAMETER_CPP(bool, Model, LocalTree)
 }
 }
 }

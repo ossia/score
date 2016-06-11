@@ -4,7 +4,6 @@
 #include <QFormLayout>
 #include <iscore/widgets/SignalUtils.hpp>
 
-Q_DECLARE_METATYPE(Curve::Settings::Mode)
 namespace Curve
 {
 namespace Settings

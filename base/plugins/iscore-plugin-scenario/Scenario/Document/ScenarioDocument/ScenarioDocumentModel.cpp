@@ -60,7 +60,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
     m_focusManager{ctx.document.focusManager()},
     m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
-    auto dur = ctx.app.settings<Scenario::Settings::Model>().getDefaultScoreDuration();
+    auto dur = ctx.app.settings<Scenario::Settings::Model>().getDefaultDuration();
 
     m_baseScenario->constraint().duration.setRigid(false);
     ConstraintDurations::Algorithms::changeAllDurations(m_baseScenario->constraint(), dur);

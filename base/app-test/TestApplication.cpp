@@ -14,6 +14,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
+#include <core/document/DocumentModel.hpp>
 TestApplication::TestApplication(int &argc, char **argv):
     NamedObject{"toto", nullptr}
 {
@@ -21,7 +22,9 @@ TestApplication::TestApplication(int &argc, char **argv):
     m_instance = this;
     this->setParent(m_app);
 
+    qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
     qRegisterMetaType<Selection>("Selection");
+    qRegisterMetaType<Id<iscore::DocumentModel>>("Id<DocumentModel>");
     // Settings
     m_settings = std::make_unique<iscore::Settings> ();
 

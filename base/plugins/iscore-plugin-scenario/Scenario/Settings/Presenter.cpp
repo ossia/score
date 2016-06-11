@@ -58,16 +58,16 @@ Presenter::Presenter(
 
     con(v, &View::defaultDurationChanged,
         this, [&] (const TimeValue& t) {
-        if(t != m.getDefaultScoreDuration())
+        if(t != m.getDefaultDuration())
         {
-            m_disp.submitCommand<SetModelDefaultScoreDuration>(this->model(this), t);
+            m_disp.submitCommand<SetModelDefaultDuration>(this->model(this), t);
         }
     });
-    con(m, &Model::DefaultScoreDurationChanged,
+    con(m, &Model::DefaultDurationChanged,
         this, [&] (const TimeValue& t) {
         v.setDefaultDuration(t);
     });
-    v.setDefaultDuration(m.getDefaultScoreDuration());
+    v.setDefaultDuration(m.getDefaultDuration());
 }
 
 QString Presenter::settingsName()
