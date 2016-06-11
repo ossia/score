@@ -55,17 +55,17 @@ Presenter::Presenter(
         // view -> model
         con(v, &View::modeChanged,
             this, [&] (auto val) {
-            if(val != m.getMode())
+            if(val != m.getCurveMode())
             {
-                m_disp.submitCommand<SetModelMode>(this->model(this), val);
+                m_disp.submitCommand<SetModelCurveMode>(this->model(this), val);
             }
         });
 
         // model -> view
-        con(m, &Model::ModeChanged, &v, &View::setMode);
+        con(m, &Model::CurveModeChanged, &v, &View::setMode);
 
         // initial value
-        v.setMode(m.getMode());
+        v.setMode(m.getCurveMode());
     }
 
     {
@@ -82,7 +82,7 @@ Presenter::Presenter(
         con(m, &Model::PlayWhileRecordingChanged, &v, &View::setPlayWhileRecording);
 
         // initial value
-        v.setMode(m.getMode());
+        v.setMode(m.getCurveMode());
     }
 }
 

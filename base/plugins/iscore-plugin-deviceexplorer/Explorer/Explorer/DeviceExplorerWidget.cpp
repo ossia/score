@@ -94,7 +94,7 @@ DeviceExplorerWidget::buildGUI()
     m_ntView = new DeviceExplorerView(this);
 
     connect(m_ntView, static_cast<void (DeviceExplorerView::*)()>(&DeviceExplorerView::selectionChanged),
-            this, &DeviceExplorerWidget::updateActions);
+            this, &DeviceExplorerWidget::updateActions, Qt::QueuedConnection);
 
     m_editAction = new QAction(tr("Edit"), this);
     m_editAction->setShortcut(QKeySequence(Qt::Key_Return));

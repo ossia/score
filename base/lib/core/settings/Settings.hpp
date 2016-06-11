@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <memory>
+#include <QSettings>
 #include <iscore_lib_base_export.h>
 namespace iscore {
 class SettingsDelegateFactory;
@@ -46,10 +47,12 @@ namespace iscore
             auto& settings() const
             { return m_settings; }
         private:
+            QSettings m_qtSettings;
 
             SettingsView* m_settingsView{};
             SettingsPresenter* m_settingsPresenter{};
 
             std::vector<std::unique_ptr<SettingsDelegateModel>> m_settings;
+
     } ;
 }

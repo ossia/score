@@ -102,7 +102,7 @@ void DocumentManager::init(const ApplicationContext& ctx)
         prepareNewDocument(ctx);
         auto it = find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
         setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
-    });
+    }, Qt::QueuedConnection);
 
 
     con(m_view, &View::closeRequested,

@@ -11,16 +11,11 @@ class BlacklistCommand;
 
 class PluginSettingsModel : public iscore::SettingsDelegateModel
 {
-        Q_OBJECT
     public:
-        PluginSettingsModel(const iscore::ApplicationContext& ctx);
+        PluginSettingsModel(QSettings& set, const iscore::ApplicationContext& ctx);
 
         LocalPluginItemModel localPlugins;
         RemotePluginItemModel remotePlugins;
         QItemSelectionModel remoteSelection;
-
-        void setFirstTimeSettings() override;
-
-    private:
 };
 }

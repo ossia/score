@@ -41,6 +41,7 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include "iscore_git_info.hpp"
 
@@ -65,6 +66,7 @@ static void setQApplicationSettings(QApplication &m_app)
 
     qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
     qRegisterMetaType<Selection>("Selection");
+    qRegisterMetaType<Id<iscore::DocumentModel>>("Id<DocumentModel>");
 
     QFile stylesheet_file{":/qdarkstyle/qdarkstyle.qss"};
     stylesheet_file.open(QFile::ReadOnly);

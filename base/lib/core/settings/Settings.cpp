@@ -23,7 +23,7 @@ void Settings::setupSettingsPlugin(
         const iscore::ApplicationContext& ctx,
         SettingsDelegateFactory& plugin)
 {
-    auto model = plugin.makeModel(ctx);
+    auto model = plugin.makeModel(m_qtSettings, ctx);
     if(!model)
         return;
 
