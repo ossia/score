@@ -98,8 +98,13 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         speedLay->setVerticalSpacing(0);
 
         auto setSpeedFun = [=] (int val) {
-            ((ConstraintModel&)(m_model)).duration.setExecutionSpeed(double(val) / 100.0);
-            speedLab->setText("Speed x" + QString::number(double(val)/100.0));
+            auto& dur = ((ConstraintModel&)(m_model)).duration;
+            auto s = double(val) / 100.0;
+            if(dur.executionSpeed() != s)
+            {
+                dur.setExecutionSpeed(s);
+                speedLab->setText("Speed x" + QString::number(double(val)/100.0));
+            }
         };
         // Buttons
         int btn_col = 0;
@@ -120,7 +125,13 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         speedSlider->setTickInterval(100);
         speedSlider->setMinimum(-100);
         speedSlider->setMaximum(500);
-        speedSlider->setValue(m_model.duration.executionSpeed() * 100);
+        speedSlider->setValue(m_model.duration.executionSpeed() * 100.);
+        con(m_model.duration, &ConstraintDurations::executionSpeedChanged,
+            this, [=] (double s) {
+            double r = s * 100;
+            if(r != speedSlider->value())
+                speedSlider->setValue(r);
+        });
 
         speedLay->addWidget(speedSlider, 1, btn_col, 1, 1);
 
