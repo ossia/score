@@ -31,8 +31,8 @@ ExpressionEditorWidget::ExpressionEditorWidget(const iscore::DocumentContext& do
     m_mainLayout->addWidget(btnWidg);
 
     auto addButton = new QToolButton{this};
-    QIcon ic;
-    makeIcons(&ic, QString(":/icons/condition_add_on.png"), QString(":/icons/condition_add_off.png"));
+
+    auto ic = makeIcons(":/icons/condition_add_on.png", ":/icons/condition_add_off.png");
     addButton->setIcon(ic);
 
     m_mainLayout->addWidget(addButton);

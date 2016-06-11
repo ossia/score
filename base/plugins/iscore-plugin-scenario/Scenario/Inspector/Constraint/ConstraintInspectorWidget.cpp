@@ -117,12 +117,39 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         base.setDisplayedConstraint(model());
     });
 
-    m_properties.push_back(setAsDisplayedConstraint);
-
-    // Events
-    if(auto scenario = qobject_cast<Scenario::ScenarioModel*>(m_model.parent()))
+    // Transport
     {
-        m_properties.push_back(makeStatesWidget(scenario));
+        auto transportWid = new QWidget{this};
+        auto transportLay = new iscore::MarginLess<QHBoxLayout>{transportWid};
+
+        auto& scenar = *safe_cast<Scenario::ScenarioInterface*>(m_model.parent());
+
+        transportLay->addStretch(1);
+
+        if(auto sst = m_model.startState())
+        {
+            auto btn = SelectionButton::make(
+                        tr("Start State"),
+                        &scenar.state(sst),
+                        selectionDispatcher(),
+                        this);
+            transportLay->addWidget(btn);
+        }
+
+        transportLay->addWidget(setAsDisplayedConstraint);
+
+        if(auto est = m_model.endState())
+        {
+            auto btn = SelectionButton::make(
+                        tr("End State"),
+                        &scenar.state(est),
+                        selectionDispatcher(),
+                        this);
+            transportLay->addWidget(btn);
+        }
+        transportLay->addStretch(1);
+
+        m_properties.push_back(transportWid);
     }
 
     // Separator
@@ -130,7 +157,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
     // Durations
     auto& ctrl = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
-    m_durationSection = new DurationSectionWidget {ctrl.editionSettings(), *m_delegate, this};
+    m_durationSection = new DurationWidget {ctrl.editionSettings(), *m_delegate, this};
     m_properties.push_back(m_durationSection);
 
     /*
@@ -210,36 +237,6 @@ void ConstraintInspectorWidget::updateDisplayedValues()
     m_viewTabPage->updateDisplayedValues();
 
     m_delegate->updateElements();
-}
-
-QWidget* ConstraintInspectorWidget::makeStatesWidget(Scenario::ScenarioModel* scenar)
-{
-    auto eventWid = new QWidget{this};
-    auto eventLay = new iscore::MarginLess<QHBoxLayout>{eventWid};
-
-    eventLay->addStretch(1);
-    if(auto sst = m_model.startState())
-    {
-        auto btn = SelectionButton::make(
-                       tr("Start State"),
-                       &scenar->state(sst),
-                       selectionDispatcher(),
-                       this);
-        eventLay->addWidget(btn);
-    }
-
-    if(auto est = m_model.endState())
-    {
-        auto btn = SelectionButton::make(
-                    tr("End State"),
-                       &scenar->state(est),
-                       selectionDispatcher(),
-                       this);
-        eventLay->addWidget(btn);
-    }
-    eventLay->addStretch(1);
-
-    return eventWid;
 }
 
 void ConstraintInspectorWidget::on_processCreated(

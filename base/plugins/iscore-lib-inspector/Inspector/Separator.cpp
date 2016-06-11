@@ -1,7 +1,7 @@
 #include <QBoxLayout>
 #include <QFrame>
 #include <QLayout>
-
+#include <iscore/widgets/MarginLess.hpp>
 #include "Separator.hpp"
 
 namespace Inspector
@@ -9,7 +9,7 @@ namespace Inspector
 HSeparator::HSeparator(QWidget *parent) :
     QWidget {parent}
 {
-    this->setLayout(new QVBoxLayout);
+    this->setLayout(new iscore::MarginLess<QVBoxLayout>);
     auto f = new QFrame;
     this->layout()->addWidget(f);
 
@@ -25,7 +25,7 @@ HSeparator::~HSeparator() = default;
 VSeparator::VSeparator(QWidget *parent) :
     QWidget {parent}
 {
-    this->setLayout(new QHBoxLayout);
+    this->setLayout(new iscore::MarginLess<QHBoxLayout>);
     auto f = new QFrame;
     this->layout()->addWidget(f);
 

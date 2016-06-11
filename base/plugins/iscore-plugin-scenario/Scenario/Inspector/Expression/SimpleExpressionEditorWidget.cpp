@@ -49,10 +49,9 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     rmBtn->setText("-");
     rmBtn->setMaximumSize(30, 30);
 
-    QIcon remIcon;
-    makeIcons(&remIcon,
-              QString(":/icons/condition_remove_on.png"),
-              QString(":/icons/condition_remove_off.png"));
+    auto remIcon = makeIcons(
+              ":/icons/condition_remove_on.png",
+              ":/icons/condition_remove_off.png");
 
     rmBtn->setIcon(remIcon);
 

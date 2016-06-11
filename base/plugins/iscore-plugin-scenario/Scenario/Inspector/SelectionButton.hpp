@@ -8,7 +8,7 @@ class QPushButton;
 namespace iscore {
 class SelectionDispatcher;
 }
-class SelectionButton final : public QWidget
+class SelectionButton final : public QPushButton
 {
     public:
         SelectionButton(const QString& text,
@@ -48,5 +48,4 @@ class SelectionButton final : public QWidget
 
     private:
         iscore::SelectionDispatcher& m_dispatcher;
-        QPushButton* m_button{};
 };

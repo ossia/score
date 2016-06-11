@@ -34,8 +34,7 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
     // Button
     auto addButton = new QToolButton;
     addButton->setText("+");
-    QIcon addIcon;
-    makeIcons(&addIcon, QString(":/icons/condition_add_on.png"), QString(":/icons/condition_add_off.png"));
+    auto addIcon = makeIcons(":/icons/condition_add_on.png", ":/icons/condition_add_off.png");
     addButton->setIcon(addIcon);
 
     // Text

@@ -1,5 +1,7 @@
 #include "PluginItemModel.hpp"
 #include <QPixmap>
+#include <QFont>
+#include <QIcon>
 namespace PluginSettings
 {
 LocalPluginItemModel::LocalPluginItemModel(const std::vector<iscore::Addon>& vec):
