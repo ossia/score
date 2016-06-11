@@ -29,7 +29,7 @@ const iscore::PanelStatus&PanelDelegate::defaultPanelStatus() const
         Qt::BottomDockWidgetArea,
                 10,
                 QObject::tr("Process"),
-                QObject::tr("Ctrl+P")};
+                QObject::tr("Ctrl+Shift+P")};
 
     return status;
 }

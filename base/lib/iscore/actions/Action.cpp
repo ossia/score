@@ -180,38 +180,53 @@ QString ActionGroup::prettyName() const
 ActionGroupKey ActionGroup::key() const
 { return m_key; }
 
-Action::Action(QAction *act, ActionKey key, ActionGroupKey k, const QKeySequence &defaultShortcut):
+Action::Action(QAction *act,
+               QString text,
+               ActionKey key,
+               ActionGroupKey k,
+               const QKeySequence &defaultShortcut):
     m_impl{act},
+    m_text{text},
     m_key{std::move(key)},
     m_groupKey{std::move(k)},
     m_default{defaultShortcut},
     m_current{defaultShortcut}
 {
     m_impl->setShortcut(m_current);
+    updateTexts();
 }
 Action::Action(
         QAction *act,
+        QString text,
         ActionKey key,
         ActionGroupKey k,
         const QKeySequence &defaultShortcut,
         const QKeySequence &defaultShortcut2):
     m_impl{act},
+    m_text{text},
     m_key{std::move(key)},
     m_groupKey{std::move(k)},
     m_default{defaultShortcut},
     m_current{defaultShortcut}
 {
     m_impl->setShortcuts({m_current, defaultShortcut2});
+    updateTexts();
 }
 
-Action::Action(QAction *act, const char *key, const char *group_key, const QKeySequence &defaultShortcut):
+Action::Action(QAction *act,
+               QString text,
+               const char *key,
+               const char *group_key,
+               const QKeySequence &defaultShortcut):
     m_impl{act},
+    m_text{text},
     m_key{key},
     m_groupKey{group_key},
     m_default{defaultShortcut},
     m_current{defaultShortcut}
 {
     m_impl->setShortcut(m_current);
+    updateTexts();
 }
 
 ActionKey Action::key() const
@@ -229,11 +244,24 @@ void Action::setShortcut(const QKeySequence &shortcut)
 {
     m_current = shortcut;
     m_impl->setShortcut(shortcut);
+    updateTexts();
 }
 
 QKeySequence Action::defaultShortcut()
 {
     return m_default;
+}
+
+void Action::updateTexts()
+{
+    m_impl->setText(m_text);
+
+    QString clearText = m_text;
+    clearText.remove('&');
+    clearText.append(QString(" (%1)").arg(m_impl->shortcut().toString()));
+    m_impl->setToolTip(clearText);
+    m_impl->setWhatsThis(clearText);
+    m_impl->setStatusTip(clearText);
 }
 
 Menu::Menu(QMenu *menu, StringKey<Menu> m):

@@ -29,7 +29,7 @@ const iscore::PanelStatus&PanelDelegate::defaultPanelStatus() const
         Qt::RightDockWidgetArea,
                 10,
                 QObject::tr("Inspector"),
-                QObject::tr("Ctrl+I")};
+                QObject::tr("Ctrl+Shift+I")};
 
     return status;
 }

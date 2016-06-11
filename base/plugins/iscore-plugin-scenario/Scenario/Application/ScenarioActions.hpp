@@ -149,44 +149,44 @@ ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::StateModel)
 
 /// Actions
 // View
-ISCORE_DECLARE_ACTION(SelectAll, Scenario, QKeySequence::SelectAll)
-ISCORE_DECLARE_ACTION(DeselectAll, Scenario, QKeySequence::Deselect)
+ISCORE_DECLARE_ACTION(SelectAll, "&Select All", Scenario, QKeySequence::SelectAll)
+ISCORE_DECLARE_ACTION(DeselectAll, "&Deselect All", Scenario, QKeySequence::Deselect)
 
 // Transport
-ISCORE_DECLARE_ACTION(Play, Scenario, Qt::Key_Space)
-ISCORE_DECLARE_ACTION(Stop, Scenario, Qt::Key_Return)
-ISCORE_DECLARE_ACTION(GoToStart, Scenario, Qt::Key_Back)
-ISCORE_DECLARE_ACTION(GoToEnd, Scenario, Qt::Key_Forward)
-ISCORE_DECLARE_ACTION(Reinitialize, Scenario, Qt::CTRL + Qt::Key_Return)
-ISCORE_DECLARE_ACTION(Record, Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(Play, "&Play", Scenario, Qt::Key_Space)
+ISCORE_DECLARE_ACTION(Stop, "&Stop", Scenario, Qt::Key_Return)
+ISCORE_DECLARE_ACTION(GoToStart, "&Go to Start", Scenario, Qt::Key_Back)
+ISCORE_DECLARE_ACTION(GoToEnd, "Go to &End", Scenario, Qt::Key_Forward)
+ISCORE_DECLARE_ACTION(Reinitialize, "&Reinitialize", Scenario, Qt::CTRL + Qt::Key_Return)
+ISCORE_DECLARE_ACTION(Record, "&Record", Scenario, QKeySequence::UnknownKey)
 
 // Edit
-ISCORE_DECLARE_ACTION(SelectTool, Scenario, Qt::Key_S)
-ISCORE_DECLARE_ACTION_2S(CreateTool, Scenario, QKeySequence{QObject::tr("C")}, QKeySequence{QObject::tr("Shift+C")})
-ISCORE_DECLARE_ACTION(PlayTool, Scenario, Qt::Key_P)
-ISCORE_DECLARE_ACTION(SequenceMode, Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(SelectTool, "Tool &Select", Scenario, Qt::Key_S)
+ISCORE_DECLARE_ACTION_2S(CreateTool, "Tool &Create", Scenario, QKeySequence{QObject::tr("C")}, QKeySequence{QObject::tr("Shift+C")})
+ISCORE_DECLARE_ACTION(PlayTool, "Tool &Play",Scenario, Qt::Key_P)
+ISCORE_DECLARE_ACTION(SequenceMode, "Se&quence", Scenario, QKeySequence::UnknownKey)
 
-ISCORE_DECLARE_ACTION(Scale, Scenario, Qt::ALT + Qt::Key_S)
-ISCORE_DECLARE_ACTION(Grow, Scenario, Qt::ALT + Qt::Key_D)
+ISCORE_DECLARE_ACTION(Scale, "&Scale mode", Scenario, Qt::ALT + Qt::Key_S)
+ISCORE_DECLARE_ACTION(Grow, "&Grow mode", Scenario, Qt::ALT + Qt::Key_D)
 
 // Object
-ISCORE_DECLARE_ACTION(RemoveElements, Scenario, Qt::Key_Backspace)
-ISCORE_DECLARE_ACTION(ClearElements, Scenario, Qt::Key_Delete)
-ISCORE_DECLARE_ACTION(CopyContent, Scenario, QKeySequence::Copy)
-ISCORE_DECLARE_ACTION(CutContent, Scenario, QKeySequence::Cut)
-ISCORE_DECLARE_ACTION(PasteContent, Scenario, QKeySequence::Paste)
-ISCORE_DECLARE_ACTION(ElementsToJson, Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(RemoveElements, "&Remove elements", Scenario, Qt::Key_Backspace)
+ISCORE_DECLARE_ACTION(ClearElements, "C&lear elements", Scenario, Qt::Key_Delete)
+ISCORE_DECLARE_ACTION(CopyContent, "C&opy", Scenario, QKeySequence::Copy)
+ISCORE_DECLARE_ACTION(CutContent, "C&ut", Scenario, QKeySequence::Cut)
+ISCORE_DECLARE_ACTION(PasteContent, "&Paste (content)", Scenario, QKeySequence::Paste)
+ISCORE_DECLARE_ACTION(ElementsToJson, "Convert to &JSON", Scenario, QKeySequence::UnknownKey)
 
 // Event
-ISCORE_DECLARE_ACTION(AddTrigger, Scenario, QKeySequence::UnknownKey)
-ISCORE_DECLARE_ACTION(RemoveTrigger, Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(AddTrigger, "&Add Trigger", Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(RemoveTrigger, "&Remove Trigger", Scenario, QKeySequence::UnknownKey)
 
 // State
-ISCORE_DECLARE_ACTION(RefreshStates, Scenario, Qt::CTRL + Qt::Key_U)
+ISCORE_DECLARE_ACTION(RefreshStates, "Refresh St&ate", Scenario, Qt::CTRL + Qt::Key_U)
 
 // Constraint
-ISCORE_DECLARE_ACTION(AddProcess, Scenario, QKeySequence::UnknownKey)
-ISCORE_DECLARE_ACTION(InterpolateStates, Scenario, Qt::CTRL + Qt::Key_K)
+ISCORE_DECLARE_ACTION(AddProcess, "&Add a process", Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(InterpolateStates, "&Interpolate states", Scenario, Qt::CTRL + Qt::Key_K)
 
 /// Context menus
 ISCORE_PROCESS_DECLARE_CONTEXT_MENU(ScenarioObjectContextMenu)

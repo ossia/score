@@ -29,7 +29,7 @@ const iscore::PanelStatus& PanelDelegate::defaultPanelStatus() const
         Qt::RightDockWidgetArea,
                 0,
                 QObject::tr("Library"),
-                QObject::tr("Ctrl+L")};
+                QObject::tr("Ctrl+Shift+L")};
 
     return status;
 }
