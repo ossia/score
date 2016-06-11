@@ -164,7 +164,7 @@ ISCORE_DECLARE_ACTION(Record, "&Record", Scenario, QKeySequence::UnknownKey)
 ISCORE_DECLARE_ACTION(SelectTool, "Tool &Select", Scenario, Qt::Key_S)
 ISCORE_DECLARE_ACTION_2S(CreateTool, "Tool &Create", Scenario, QKeySequence{QObject::tr("C")}, QKeySequence{QObject::tr("Shift+C")})
 ISCORE_DECLARE_ACTION(PlayTool, "Tool &Play",Scenario, Qt::Key_P)
-ISCORE_DECLARE_ACTION(SequenceMode, "Se&quence", Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(SequenceMode, "Se&quence", Scenario, Qt::Key_Shift)
 
 ISCORE_DECLARE_ACTION(Scale, "&Scale mode", Scenario, Qt::ALT + Qt::Key_S)
 ISCORE_DECLARE_ACTION(Grow, "&Grow mode", Scenario, Qt::ALT + Qt::Key_D)
