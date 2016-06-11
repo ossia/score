@@ -4,6 +4,7 @@
 #include <iscore/plugins/Addon.hpp>
 #include <boost/iterator/filter_iterator.hpp>
 #include <QUrl>
+#include <QImage>
 namespace PluginSettings
 {
 

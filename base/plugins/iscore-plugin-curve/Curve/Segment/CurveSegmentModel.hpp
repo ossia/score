@@ -5,6 +5,7 @@
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
+#include <boost/align/aligned_allocator_adaptor.hpp>
 #include <QPoint>
 #include <QVariant>
 #include <vector>
@@ -33,6 +34,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
         ISCORE_SERIALIZE_FRIENDS(Curve::SegmentModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Curve::SegmentModel, JSONObject)
     public:
+            using data_vector = std::vector<QPointF, boost::alignment::aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
         Selectable selection;
         SegmentModel(
                 const Id<SegmentModel>& id,
@@ -57,7 +59,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
         virtual void updateData(int numInterp) const = 0; // Will interpolate.
         virtual double valueAt(double x) const = 0;
 
-        const std::vector<QPointF>& data() const
+        const data_vector& data() const
         { return m_data; }
 
 
@@ -105,7 +107,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
 
         virtual QVariant toSegmentSpecificData() const = 0;
 
-        mutable std::vector<QPointF> m_data; // A data cache.
+        mutable data_vector m_data; // A data cache.
         mutable bool m_valid{}; // Used to perform caching.
         // TODO it seems that m_valid is never true.
 

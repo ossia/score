@@ -38,7 +38,7 @@ std::shared_ptr<OSSIA::CurveAbstract> curve(
         {
             auto val = iscore_segment.specificSegmentData.template value<Curve::PowerSegmentData>();
 
-            if(val.gamma == 12.05)
+            if(val.gamma == Curve::PowerSegmentData::linearGamma)
             {
                 curve->addPoint(
                             OSSIA::CurveSegmentLinear<Y_T>::create(curve),
@@ -48,7 +48,7 @@ std::shared_ptr<OSSIA::CurveAbstract> curve(
             else
             {
                 auto powSegment = OSSIA::CurveSegmentPower<Y_T>::create(curve);
-                powSegment->setPower(12.05 - val.gamma); // TODO document this somewhere.
+                powSegment->setPower(Curve::PowerSegmentData::linearGamma + 1 - val.gamma);
 
                 curve->addPoint(
                             powSegment,

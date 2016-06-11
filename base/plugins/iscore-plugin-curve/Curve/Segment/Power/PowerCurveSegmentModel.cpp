@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstddef>
 #include <vector>
+#include <iostream>
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
@@ -57,7 +58,7 @@ void PowerSegment::updateData(int numInterp) const
         m_valid = false;
     if(!m_valid)
     {
-        if(gamma == 12.05)
+        if(gamma == PowerSegmentData::linearGamma)
         {
             if(m_data.size() != 2)
                 m_data.resize(2);
@@ -73,11 +74,27 @@ void PowerSegment::updateData(int numInterp) const
             double end_x = end().x();
             double end_y = end().y();
 
-            for(int j = 0; j <= numInterp; j++)
+            double power = PowerSegmentData::linearGamma + 1 - gamma;
+
+            if(power < 0.5)
             {
-                QPointF& pt = m_data[j];
-                pt.setX(start_x + (double(j) / numInterp) * (end_x - start_x));
-                pt.setY(start_y + std::pow(double(j) / numInterp, 12.05 - gamma) * (end_y - start_y));
+                for(int j = 0; j <= numInterp; j++)
+                {
+                    double pos_x = std::pow(double(j) / numInterp, 1./power);
+                    m_data[j] = {
+                        start_x + pos_x * (end_x - start_x),
+                        start_y + std::pow(pos_x, power) * (end_y - start_y)};
+                }
+            }
+            else
+            {
+                for(int j = 0; j <= numInterp; j++)
+                {
+                    double pos_x = double(j) / numInterp;
+                    m_data[numInterp - j] = {
+                        start_x + pos_x * (end_x - start_x),
+                        start_y + std::pow(pos_x, power) * (end_y - start_y)};
+                }
             }
         }
     }
@@ -97,6 +114,7 @@ void PowerSegment::setVerticalParameter(double p)
         gamma = (p + 1) * 6.;
     else
         gamma = (1 - p) * 6.;
+
     emit dataChanged();
 }
 

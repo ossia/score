@@ -14,12 +14,11 @@
 namespace Curve
 {
 SetSegmentParameters::SetSegmentParameters(
-        Path<Model>&& model,
+        const Model& curve,
         SegmentParameterMap&& parameters):
-    m_model{std::move(model)},
+    m_model{curve},
     m_new{std::move(parameters)}
 {
-    const auto& curve = m_model.find();
     for(auto it = m_new.cbegin(); it != m_new.cend(); ++it)
     {
         const auto& seg = curve.segments().at(it.key());
@@ -55,11 +54,6 @@ void SetSegmentParameters::redo() const
     }
 
     curve.changed();
-}
-
-void SetSegmentParameters::update(Path<Model>&& model, SegmentParameterMap &&segments)
-{
-    m_new = std::move(segments);
 }
 
 void SetSegmentParameters::serializeImpl(DataStreamInput& s) const
