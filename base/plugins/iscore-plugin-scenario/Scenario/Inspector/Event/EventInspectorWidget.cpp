@@ -139,6 +139,7 @@ EventInspectorWidget::EventInspectorWidget(
     auto lay = new iscore::MarginLess<QVBoxLayout>{this};
     for(auto w : m_properties)
         lay->addWidget(w);
+    this->setLayout(lay);
 }
 
 void EventInspectorWidget::addState(const StateModel& state)
