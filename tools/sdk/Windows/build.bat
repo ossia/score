@@ -18,7 +18,6 @@ c:/sdk-build/qt5/configure -release -prefix c:\sdk-build\qt5-release -opensource
                    -no-gif ^
                    -qt-libpng ^
                    -qt-libjpeg ^
-                   -openssl ^
                    -qt-pcre ^
                    -no-compile-examples ^
                    -no-cups ^
