@@ -25,6 +25,5 @@ c:/sdk-build/qt5/configure -release -prefix c:\sdk-build\qt5-release -opensource
                    -no-icu ^
                    -no-pch ^
                    -ltcg ^
-                   -dbus-linked ^
                    -no-system-proxies ^
                    -opengl desktop
