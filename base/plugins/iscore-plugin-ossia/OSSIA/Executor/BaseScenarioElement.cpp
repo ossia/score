@@ -18,6 +18,9 @@
 #include <OSSIA/Executor/TimeNodeElement.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <OSSIA/Executor/Settings/ExecutorModel.hpp>
@@ -27,7 +30,6 @@
 
 namespace RecreateOnPlay
 {
-
 static void statusCallback(
         OSSIA::TimeEvent::Status newStatus)
 {
@@ -35,7 +37,7 @@ static void statusCallback(
 }
 
 BaseScenarioElement::BaseScenarioElement(
-        const Scenario::BaseScenario& element,
+        BaseScenarioRefContainer element,
         const Context& ctx,
         QObject *parent):
     QObject{parent},
@@ -132,5 +134,19 @@ void BaseScenarioElement::baseScenarioConstraintCallback(const OSSIA::TimeValue&
         cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
 }
 
+
+}
+
+BaseScenarioRefContainer::BaseScenarioRefContainer(
+        Scenario::ConstraintModel& constraint,
+        Scenario::ScenarioInterface& s):
+    m_constraint{constraint},
+    m_startState{s.state(constraint.startState())},
+    m_endState{s.state(constraint.endState())},
+    m_startEvent{s.event(m_startState.eventId())},
+    m_endEvent{s.event(m_endState.eventId())},
+    m_startNode{s.timeNode(m_startEvent.timeNode())},
+    m_endNode{s.timeNode(m_endEvent.timeNode())}
+{
 
 }

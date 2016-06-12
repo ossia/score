@@ -9,6 +9,9 @@ cd ..
 
 mkdir qt5-build
 cd qt5-build
+
+set PATH=C:\sdk-build\mingw64\bin;c:\Perl\bin;c:\Python27;%PATH%
+set QMAKESPEC=win32-g++
 c:/sdk-build/qt5/configure -release -prefix c:\sdk-build\qt5-release -opensource ^
                    -confirm-license ^
                    -nomake examples ^

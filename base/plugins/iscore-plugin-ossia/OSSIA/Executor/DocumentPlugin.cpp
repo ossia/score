@@ -7,6 +7,8 @@
 #include <core/document/Document.hpp>
 #include <OSSIA/Executor/ConstraintElement.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 class QObject;
 namespace iscore {
 class Document;
@@ -44,13 +46,15 @@ DocumentPlugin::~DocumentPlugin()
     }
 }
 
-void DocumentPlugin::reload(Scenario::BaseScenario& doc)
+void DocumentPlugin::reload(Scenario::ConstraintModel& cst)
 {
     if(m_base)
     {
         m_base->baseConstraint()->stop();
     }
-    m_base = std::make_unique<BaseScenarioElement>(doc, m_ctx, this);
+    auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
+    ISCORE_ASSERT(parent);
+    m_base = std::make_unique<BaseScenarioElement>(BaseScenarioRefContainer{cst, *parent}, m_ctx, this);
 }
 
 void DocumentPlugin::clear()

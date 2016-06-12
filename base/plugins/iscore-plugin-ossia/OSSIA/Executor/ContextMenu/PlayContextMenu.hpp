@@ -26,7 +26,6 @@ class PlayContextMenu final : public QObject
         PlayContextMenu(
                 OSSIAApplicationPlugin& plug,
                 const iscore::ApplicationContext& ctx);
-        void fillContextMenu(QMenu* menu, const Selection&, const Scenario::TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) ;
         void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
         void setEnabled(bool);
