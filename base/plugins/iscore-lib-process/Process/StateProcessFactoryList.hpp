@@ -10,6 +10,7 @@ class ISCORE_LIB_PROCESS_EXPORT StateProcessList final :
 {
     public:
         using object_type = Process::StateProcess;
+        ~StateProcessList();
 };
 
 }

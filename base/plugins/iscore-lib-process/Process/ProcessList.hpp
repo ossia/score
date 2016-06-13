@@ -10,5 +10,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessList final :
 {
     public:
         using object_type = Process::ProcessModel;
+        ~ProcessList();
 };
 }

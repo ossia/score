@@ -48,6 +48,10 @@ ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
                 QStringLiteral("false"),
                 QStringLiteral("True"),
                 QStringLiteral("False"),
+                QStringLiteral("yes"),
+                QStringLiteral("no"),
+                QStringLiteral("Yes"),
+                QStringLiteral("Nes"),
 
 
     };

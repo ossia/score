@@ -5,7 +5,7 @@ namespace iscore
 {
 
 template<typename T>
-class ISCORE_LIB_BASE_EXPORT SettingsCommand :
+class SettingsCommand :
         public iscore::Command
 {
     public:

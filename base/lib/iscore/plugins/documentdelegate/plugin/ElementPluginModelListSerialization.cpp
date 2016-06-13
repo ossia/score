@@ -15,7 +15,8 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 
-template<> void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPluginModelList& elts)
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPluginModelList& elts)
 {
     m_stream << (int32_t)elts.list().size();
     for(const iscore::ElementPluginModel* plug : elts.list())
@@ -26,7 +27,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPlugi
     insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(iscore::ElementPluginModelList& elts)
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(iscore::ElementPluginModelList& elts)
 {
     int32_t plugin_count;
     m_stream >> plugin_count;
@@ -43,12 +45,14 @@ template<> void Visitor<Writer<DataStream>>::writeTo(iscore::ElementPluginModelL
     checkDelimiter();
 }
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const iscore::ElementPluginModelList& elts)
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const iscore::ElementPluginModelList& elts)
 {
     m_obj["PluginsMetadata"] = toJsonArray(elts.list());
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(iscore::ElementPluginModelList& elts)
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(iscore::ElementPluginModelList& elts)
 {
     QJsonArray plugin_array = m_obj["PluginsMetadata"].toArray();
 
@@ -65,12 +69,14 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(iscore::ElementPluginModelL
 }
 
 
-template<> void Visitor<Reader<JSONValue>>::readFrom(const iscore::ElementPluginModelList& elts)
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONValue>>::readFrom(const iscore::ElementPluginModelList& elts)
 {
     val = toJsonArray(elts.list());
 }
 
-template<> void Visitor<Writer<JSONValue>>::writeTo(iscore::ElementPluginModelList& elts)
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(iscore::ElementPluginModelList& elts)
 {
     QJsonArray plugin_array = val.toArray();
 

@@ -11,25 +11,25 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ObjectPath& path)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ObjectPath& path)
 {
     readFrom(path.vec());
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ObjectPath& path)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(ObjectPath& path)
 {
     writeTo(path.vec());
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ObjectPath& path)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const ObjectPath& path)
 {
     m_obj[iscore::StringConstant().Identifiers] = toJsonArray(path.vec());
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(ObjectPath& path)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ObjectPath& path)
 {
     fromJsonArray(m_obj[iscore::StringConstant().Identifiers].toArray(), path.vec());
 }

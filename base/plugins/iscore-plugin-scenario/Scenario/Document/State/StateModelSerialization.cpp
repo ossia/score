@@ -29,7 +29,8 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 template <typename model> class IdentifiedObject;
 
-template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::StateModel& s)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Scenario::StateModel& s)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::StateModel>&>(s));
 
@@ -54,7 +55,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::StateModel
     insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::StateModel& s)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::StateModel& s)
 {
     // Common metadata
     writeTo(s.metadata);
@@ -83,7 +85,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::StateModel& s)
     checkDelimiter();
 }
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::StateModel& s)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::StateModel& s)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::StateModel>&>(s));
     // Common metadata
@@ -101,7 +104,8 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::StateModel
     m_obj["StateProcesses"] = toJsonArray(s.stateProcesses);
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::StateModel& s)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::StateModel& s)
 {
     // Common metadata
     s.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);

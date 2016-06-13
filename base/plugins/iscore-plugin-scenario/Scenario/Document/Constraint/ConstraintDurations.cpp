@@ -102,7 +102,7 @@ void ConstraintDurations::setMaxInfinite(bool isMaxInfinite)
 }
 
 
-void ConstraintDurations::Algorithms::setDurationInBounds(ConstraintModel &cstr, const TimeValue &time)
+ISCORE_PLUGIN_SCENARIO_EXPORT void ConstraintDurations::Algorithms::setDurationInBounds(ConstraintModel &cstr, const TimeValue &time)
 {
     if(cstr.duration.defaultDuration() != time)
     {
@@ -123,7 +123,7 @@ void ConstraintDurations::Algorithms::setDurationInBounds(ConstraintModel &cstr,
 }
 
 
-void ConstraintDurations::Algorithms::changeAllDurations(ConstraintModel &cstr, const TimeValue &time)
+ISCORE_PLUGIN_SCENARIO_EXPORT void ConstraintDurations::Algorithms::changeAllDurations(ConstraintModel &cstr, const TimeValue &time)
 {
     if(cstr.duration.defaultDuration() != time)
     {

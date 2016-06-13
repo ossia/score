@@ -29,7 +29,7 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(ColorRef& md
 }
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ModelMetadata& md)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ModelMetadata& md)
 {
     m_stream << md.m_scriptingName
              << md.m_comment
@@ -40,7 +40,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ModelMetadata& md)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ModelMetadata& md)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(ModelMetadata& md)
 {
     m_stream >> md.m_scriptingName
              >> md.m_comment
@@ -51,7 +51,7 @@ void Visitor<Writer<DataStream>>::writeTo(ModelMetadata& md)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ModelMetadata& md)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const ModelMetadata& md)
 {
     m_obj["ScriptingName"] = md.m_scriptingName;
     m_obj["Comment"] = md.m_comment;
@@ -69,7 +69,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const ModelMetadata& md)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(ModelMetadata& md)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ModelMetadata& md)
 {
     md.m_scriptingName = m_obj["ScriptingName"].toString();
     md.m_comment = m_obj["Comment"].toString();

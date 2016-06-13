@@ -34,7 +34,7 @@
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 
-#include <Inspector/Separator.hpp>
+#include <iscore/widgets/Separator.hpp>
 
 namespace Scenario
 {

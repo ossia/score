@@ -5,7 +5,7 @@
 namespace Curve
 {
 template<typename LayerModel_T>
-class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPanelProxy :
+class CurveProcessPanelProxy :
         public Process::GraphicsViewLayerModelPanelProxy
 {
     public:
