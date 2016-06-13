@@ -46,6 +46,7 @@ add_subdirectory("${3RDPARTY_FOLDER}/Qt-Color-Widgets" )
 add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator" )
 add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu" )
 
+set(SKIP_INSTALL_ALL True) # For zlib to not install anything
 add_subdirectory("${3RDPARTY_FOLDER}/zlib" )
 add_subdirectory("${3RDPARTY_FOLDER}/quazip" )
 
