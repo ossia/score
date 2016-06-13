@@ -35,6 +35,7 @@
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 #include <Scenario/Settings/Model.hpp>
 class QObject;
+
 #if defined(ISCORE_OPENGL)
 #include <QOpenGLWidget>
 #endif
