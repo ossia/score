@@ -28,6 +28,7 @@ class ElementPluginModelList;
 namespace Process
 {
 class ProcessFactory;
+class ProcessModel;
 /**
  * @brief The Process class
  *

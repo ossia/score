@@ -1,4 +1,5 @@
-#include <Inspector/Separator.hpp>
+
+#include <iscore/widgets/Separator.hpp>
 #include <Scenario/Commands/Event/SetCondition.hpp>
 #include <Scenario/Commands/Event/SplitEvent.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>

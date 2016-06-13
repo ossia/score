@@ -5,7 +5,7 @@
 #include <QDebug>
 // TODO rename file.
 template<typename Tag>
-class ISCORE_LIB_BASE_EXPORT StringKey : OpaqueString
+class StringKey : OpaqueString
 {
         using this_type = StringKey<Tag>;
 

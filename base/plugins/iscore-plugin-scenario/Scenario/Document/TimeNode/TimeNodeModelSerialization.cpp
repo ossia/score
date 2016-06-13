@@ -25,7 +25,7 @@ template <typename T> class Writer;
 template <typename model> class IdentifiedObject;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Scenario::TimeNodeModel& timenode)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Scenario::TimeNodeModel& timenode)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::TimeNodeModel>&>(timenode));
 
@@ -43,7 +43,7 @@ void Visitor<Reader<DataStream>>::readFrom(const Scenario::TimeNodeModel& timeno
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Scenario::TimeNodeModel& timenode)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::TimeNodeModel& timenode)
 {
     writeTo(timenode.metadata);
     timenode.pluginModelList = iscore::ElementPluginModelList{*this, &timenode};
@@ -64,7 +64,7 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::TimeNodeModel& timenode)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TimeNodeModel& timenode)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TimeNodeModel& timenode)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::TimeNodeModel>&>(timenode));
     m_obj["Metadata"] = toJsonObject(timenode.metadata);
@@ -82,7 +82,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TimeNodeModel& timeno
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Scenario::TimeNodeModel& timenode)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::TimeNodeModel& timenode)
 {
     timenode.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
 

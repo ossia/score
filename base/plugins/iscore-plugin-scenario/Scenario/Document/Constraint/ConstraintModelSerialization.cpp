@@ -35,7 +35,8 @@ template <typename T> class Writer;
 
 // Note : comment gérer le cas d'un process shared model qui ne sait se sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
-template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::ConstraintModel& constraint)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Scenario::ConstraintModel& constraint)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintModel>&>(constraint));
 
@@ -73,7 +74,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::Constraint
     insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintModel& constraint)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintModel& constraint)
 {
     writeTo(constraint.metadata);
 
@@ -119,7 +121,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintModel& 
 
 
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintModel& constraint)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintModel& constraint)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintModel>&>(constraint));
     m_obj["Metadata"] = toJsonObject(constraint.metadata);
@@ -149,7 +152,8 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::Constraint
     m_obj["PluginsMetadata"] = toJsonValue(constraint.pluginModelList);
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintModel& constraint)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintModel& constraint)
 {
     constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
 
