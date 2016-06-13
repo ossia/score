@@ -10,7 +10,7 @@ namespace iscore
 struct ApplicationContext;
 class ApplicationRegistrar;
 class Plugin_QtInterface;
-class Addon;
+struct Addon;
 
 namespace PluginLoader
 {

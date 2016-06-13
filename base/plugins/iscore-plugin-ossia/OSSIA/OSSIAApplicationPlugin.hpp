@@ -14,6 +14,8 @@ class Document;
 }  // namespace iscore
 struct VisitorVariant;
 
+namespace Scenario
+{ class ConstraintModel; }
 namespace OSSIA
 {
     class Device;
@@ -47,11 +49,11 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
                 iscore::Document* olddoc,
                 iscore::Document* newdoc) override;
 
-        RecreateOnPlay::ConstraintElement& baseConstraint() const;
         const std::shared_ptr<OSSIA::Device>& localDevice() const
         { return m_localDevice; }
 
         void on_play(bool, ::TimeValue t = ::TimeValue::zero() );
+        void on_play(Scenario::ConstraintModel&, bool, ::TimeValue t = ::TimeValue::zero() );
         void on_record(::TimeValue t);
 
     signals:
