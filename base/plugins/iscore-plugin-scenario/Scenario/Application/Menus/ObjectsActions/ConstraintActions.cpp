@@ -160,6 +160,7 @@ void ConstraintActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
         if(selectedConstraints.size() >= 1)
         {
             auto cstrSubmenu = menu.addMenu(tr("Constraint"));
+            cstrSubmenu->setObjectName("Constraint");
             if(m_addProcess)
             {
                 cstrSubmenu->addAction(m_addProcess);
