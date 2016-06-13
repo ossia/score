@@ -29,8 +29,6 @@ class DurationWidget final : public QWidget
                 ConstraintInspectorWidget* parent);
 
     private:
-        ConstraintInspectorWidget* m_parent {};
-
         EditionGrid* m_editingWidget{};
         PlayGrid* m_playingWidget{};
 };

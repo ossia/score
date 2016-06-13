@@ -31,8 +31,9 @@
 
 namespace Scenario
 {
-struct EditionGrid : public QWidget
+class EditionGrid : public QWidget
 {
+    public:
         EditionGrid(const ConstraintModel& m,
                     const iscore::CommandStackFacade& fac,
                     const Scenario::EditionSettings& set,
@@ -281,8 +282,9 @@ struct EditionGrid : public QWidget
 
 };
 
-struct PlayGrid : public QWidget
+class PlayGrid : public QWidget
 {
+    public:
         PlayGrid(const ConstraintDurations& dur):
             m_dur{dur}
         {
@@ -353,7 +355,6 @@ DurationWidget::DurationWidget(
         const ConstraintInspectorDelegate& delegate,
         ConstraintInspectorWidget* parent):
     QWidget{parent},
-    m_parent {parent}, // TODO parent should have a cref to commandStack ?
     m_editingWidget{new EditionGrid{parent->model(), parent->commandDispatcher()->stack(), set, delegate}},
     m_playingWidget{new PlayGrid{parent->model().duration}}
 {
