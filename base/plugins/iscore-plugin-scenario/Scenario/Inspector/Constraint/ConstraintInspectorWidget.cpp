@@ -1,5 +1,5 @@
 #include <Inspector/InspectorWidgetList.hpp>
-#include <Inspector/Separator.hpp>
+#include <iscore/widgets/Separator.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Constraint/SetLooping.hpp>

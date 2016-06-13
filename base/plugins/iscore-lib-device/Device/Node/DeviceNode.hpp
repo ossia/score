@@ -95,7 +95,7 @@ ISCORE_LIB_DEVICE_EXPORT void merge(
 
 // True if gramps is a parent, grand-parent, etc. of node.
 template<typename Node_T>
-ISCORE_LIB_DEVICE_EXPORT bool isAncestor(const Node_T& gramps, const Node_T* node)
+bool isAncestor(const Node_T& gramps, const Node_T* node)
 {
     auto parent = node->parent();
     if(!parent)
@@ -129,7 +129,7 @@ ISCORE_LIB_DEVICE_EXPORT bool isAncestor(const Node_T& gramps, const Node_T* nod
  * TESTME
  */
 template<typename Node_T>
-ISCORE_LIB_DEVICE_EXPORT QList<Node_T*> filterUniqueParents(const QList<Node_T*>& nodes)
+QList<Node_T*> filterUniqueParents(const QList<Node_T*>& nodes)
 {
     // OPTIMIZEME this horrible lazy algorithm.
     auto nodes_cpy = nodes.toSet().toList(); // Remove duplicates
@@ -160,7 +160,7 @@ ISCORE_LIB_DEVICE_EXPORT QList<Node_T*> filterUniqueParents(const QList<Node_T*>
 
 // Generic algorithms for DeviceExplorerNode-like structures.
 template<typename Node_T>
-ISCORE_LIB_DEVICE_EXPORT Node_T* try_getNodeFromString(Node_T& n, QStringList&& parts)
+Node_T* try_getNodeFromString(Node_T& n, QStringList&& parts)
 {
     if(parts.size() == 0)
         return &n;
@@ -178,7 +178,7 @@ ISCORE_LIB_DEVICE_EXPORT Node_T* try_getNodeFromString(Node_T& n, QStringList&& 
 }
 
 template<typename Node_T>
-ISCORE_LIB_DEVICE_EXPORT Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
+Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
 {
     if(addr.device.isEmpty())
         return &root;

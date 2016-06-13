@@ -302,8 +302,12 @@ bool value(const State::Value& val)
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
             return_type operator()(bool v) const { return v; }
-            return_type operator()(const QString& v) const { return v == iscore::StringConstant().lowercase_true || v == iscore::StringConstant().True; } // TODO boueeeff
-            return_type operator()(const QChar& v) const { return v.toLatin1(); }
+            return_type operator()(const QString& v) const {
+                return v == iscore::StringConstant().lowercase_true ||
+                       v == iscore::StringConstant().True ||
+                       v == iscore::StringConstant().lowercase_yes||
+                       v == iscore::StringConstant().Yes; }
+            return_type operator()(const QChar& v) const { return v == 't' || v == 'T' || v == 'y' || v == 'Y'; }
             return_type operator()(const tuple_t& v) const { return false; }
     } visitor{};
 

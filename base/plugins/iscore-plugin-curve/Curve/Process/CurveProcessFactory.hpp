@@ -14,7 +14,7 @@ template<
         typename LayerPresenter_T,
         typename LayerView_T,
         typename CurveColors_T>
-class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessFactory_T :
+class CurveProcessFactory_T :
         public Process::ProcessFactory
 {
     public:

@@ -36,7 +36,7 @@ namespace iscore
 {
 struct concrete { using is_concrete_tag = std::integral_constant<bool, true>; };
 template<typename T>
-class ISCORE_LIB_BASE_EXPORT SerializableInterface
+class SerializableInterface
 {
     public:
         using is_abstract_base_tag = std::integral_constant<bool, true>;

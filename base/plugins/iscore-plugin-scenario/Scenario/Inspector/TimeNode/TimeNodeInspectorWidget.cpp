@@ -1,7 +1,7 @@
 #include "TimeNodeInspectorWidget.hpp"
 
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <Inspector/Separator.hpp>
+#include <iscore/widgets/Separator.hpp>
 #include <Scenario/Commands/TimeNode/SplitTimeNode.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>

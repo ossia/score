@@ -27,7 +27,8 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 
-template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::EventModel& ev)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Scenario::EventModel& ev)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::EventModel>&>(ev));
 
@@ -43,7 +44,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::EventModel
     insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::EventModel& ev)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::EventModel& ev)
 {
     writeTo(ev.metadata);
     ev.pluginModelList = iscore::ElementPluginModelList(*this, &ev);
@@ -60,7 +62,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::EventModel& ev)
 
 
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::EventModel& ev)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::EventModel& ev)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::EventModel>&>(ev));
     m_obj["Metadata"] = toJsonObject(ev.metadata);
@@ -76,7 +79,8 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::EventModel
     m_obj["PluginsMetadata"] = toJsonValue(ev.pluginModelList);
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::EventModel& ev)
+template<>
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::EventModel& ev)
 {
     ev.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
 
