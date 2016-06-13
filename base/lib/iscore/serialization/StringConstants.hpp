@@ -47,6 +47,10 @@ struct StringConstants
         const QString lowercase_false;
         const QString True;
         const QString False;
+        const QString lowercase_yes;
+        const QString lowercase_no;
+        const QString Yes;
+        const QString No;
 };
 
 ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant();

@@ -102,6 +102,8 @@ AddressSettingsWidget::AddressSettingsWidget(
     setLayout(m_layout);
 }
 
+AddressSettingsWidget::~AddressSettingsWidget() = default;
+
 Device::AddressSettings AddressSettingsWidget::getCommonSettings() const
 {
     Device::AddressSettings settings;

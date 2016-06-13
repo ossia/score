@@ -13,6 +13,7 @@ if(ISCORE_WEBSOCKETS)
 find_package(Qt5 5.3 REQUIRED COMPONENTS WebSockets)
 endif()
 
+find_package(Threads)
 ### Dummy process ###
 add_subdirectory(DummyProcess)
 
@@ -331,7 +332,7 @@ target_link_libraries(iscore_plugin_scenario
   PUBLIC
     Qt5::Core Qt5::Widgets Qt5::Svg
         iscore_lib_base ColorWidgets-qt5
-    iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation pthread)
+    iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation Threads::Threads)
 
 if(ISCORE_OPENGL)
 target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::OpenGL)

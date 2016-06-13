@@ -24,6 +24,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/CharValueWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/StringValueWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/BoolValueWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressLineEdit.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressValidator.cpp"
 )
 
 file(GLOB_RECURSE HDRS

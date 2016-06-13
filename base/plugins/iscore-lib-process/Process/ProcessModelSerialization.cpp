@@ -17,7 +17,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom_impl(const Process::ProcessModel& process)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom_impl(const Process::ProcessModel& process)
 {
     // To allow recration using createProcess
     readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
@@ -30,7 +30,7 @@ void Visitor<Reader<DataStream>>::readFrom_impl(const Process::ProcessModel& pro
 
 // We only load the members of the process here.
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Process::ProcessModel& process)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(Process::ProcessModel& process)
 {
     writeTo(process.m_duration);
     //m_stream >> process.m_useParentDuration;
@@ -41,7 +41,7 @@ void Visitor<Writer<DataStream>>::writeTo(Process::ProcessModel& process)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom_impl(const Process::ProcessModel& process)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom_impl(const Process::ProcessModel& process)
 {
     readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
 
@@ -51,7 +51,7 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(const Process::ProcessModel& pro
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Process::ProcessModel& process)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Process::ProcessModel& process)
 {
     process.m_duration = fromJsonValue<TimeValue>(m_obj[iscore::StringConstant().Duration]);
     //process.m_useParentDuration = m_obj["UseParentDuration"].toBool();

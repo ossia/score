@@ -24,7 +24,7 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 
-#include <Inspector/Separator.hpp>
+#include <iscore/widgets/Separator.hpp>
 
 #include <Scenario/Commands/Constraint/RemoveRackFromConstraint.hpp>
 #include <algorithm>

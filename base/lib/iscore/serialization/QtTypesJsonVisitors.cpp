@@ -2,6 +2,7 @@
 #include <iscore/tools/std/Optional.hpp>
 #include <QJsonArray>
 #include <QJsonValue>
+#include <QJsonDocument>
 #include <QPoint>
 #include <QTransform>
 
@@ -27,24 +28,22 @@ auto makeJsonArray(std::initializer_list<QJsonValue> lst)
 #endif
 }
 
-// TODO RENAME FILE
 template<>
-void Visitor<Reader<JSONValue>>::readFrom(const QPointF& pt)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONValue>>::readFrom(const QPointF& pt)
 {
     val = makeJsonArray({pt.x(), pt.y()});
 }
 
 template<>
-void Visitor<Writer<JSONValue>>::writeTo(QPointF& pt)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QPointF& pt)
 {
     auto arr = val.toArray();
     pt.setX(arr[0].toDouble());
     pt.setY(arr[1].toDouble());
 }
 
-// TODO RENAME FILE
 template<>
-void Visitor<Reader<JSONValue>>::readFrom(const QTransform& pt)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONValue>>::readFrom(const QTransform& pt)
 {
     val = makeJsonArray({
         pt.m11(), pt.m12(), pt.m13(),
@@ -53,7 +52,7 @@ void Visitor<Reader<JSONValue>>::readFrom(const QTransform& pt)
 }
 
 template<>
-void Visitor<Writer<JSONValue>>::writeTo(QTransform& pt)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QTransform& pt)
 {
     auto arr = val.toArray();
     pt.setMatrix(
@@ -61,3 +60,23 @@ void Visitor<Writer<JSONValue>>::writeTo(QTransform& pt)
           arr[3].toDouble(), arr[4].toDouble(), arr[5].toDouble(),
           arr[6].toDouble(), arr[7].toDouble(), arr[8].toDouble());
 }
+
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const QJsonObject& obj)
+{
+    QJsonDocument doc{obj};
+    m_stream << doc.toBinaryData();
+    insertDelimiter();
+}
+
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(QJsonObject& obj)
+{
+    QByteArray arr;
+    m_stream >> arr;
+
+    obj = QJsonDocument::fromBinaryData(arr).object();
+
+    checkDelimiter();
+}
+

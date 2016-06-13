@@ -18,7 +18,7 @@ template <typename T> class Writer;
 template <typename model> class IdentifiedObject;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Scenario::ConstraintViewModel& cvm)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Scenario::ConstraintViewModel& cvm)
 {
     // Add the constraint id since we need it for construction
     m_stream << cvm.model().id();
@@ -33,7 +33,7 @@ void Visitor<Reader<DataStream>>::readFrom(const Scenario::ConstraintViewModel& 
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintViewModel& cvm)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintViewModel& cvm)
 {
     Id<Scenario::RackModel> id;
     m_stream >> id;
@@ -52,7 +52,7 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintViewModel& cvm)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintViewModel& cvm)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintViewModel& cvm)
 {
     m_obj["ConstraintId"] = toJsonValue(cvm.model().id());
 
@@ -62,7 +62,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintViewModel& 
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintViewModel& cvm)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintViewModel& cvm)
 {
     auto id = fromJsonValue<Id<Scenario::RackModel>>(m_obj["ShownRack"]);
 

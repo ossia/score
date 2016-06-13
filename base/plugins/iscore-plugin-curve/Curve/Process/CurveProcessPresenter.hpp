@@ -24,7 +24,7 @@ class CurveProcessView;
 namespace Curve
 {
 template<typename LayerModel_T, typename LayerView_T>
-class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessPresenter :
+class CurveProcessPresenter :
         public Process::LayerPresenter
 {
     public:

@@ -14,7 +14,7 @@ using uuid_t = boost::uuids::uuid;
 }
 
 template<typename Tag>
-class ISCORE_LIB_BASE_EXPORT UuidKey : iscore::uuid_t
+class UuidKey : iscore::uuid_t
 {
         using this_type = UuidKey<Tag>;
 

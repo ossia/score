@@ -23,7 +23,7 @@ class ISCORE_LIB_BASE_EXPORT FactoryInterfaceBase
 
 // Keys for the sub-classes to identify themselves.
 template<typename Key>
-class ISCORE_LIB_BASE_EXPORT FactoryInterface_T : public FactoryInterfaceBase
+class FactoryInterface_T : public FactoryInterfaceBase
 {
     public:
         virtual ~FactoryInterface_T() = default;

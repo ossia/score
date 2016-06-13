@@ -9,27 +9,27 @@ struct DeviceSettings;
 }  // namespace iscore
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Device::DeviceExplorerNode& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Device::DeviceExplorerNode& n)
 {
     readFrom(n.m_data);
     insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Device::DeviceExplorerNode& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(Device::DeviceExplorerNode& n)
 {
     writeTo(n.m_data);
     checkDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Device::DeviceExplorerNode& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device::DeviceExplorerNode& n)
 {
     readFrom(n.m_data);
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Device::DeviceExplorerNode& n)
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::DeviceExplorerNode& n)
 {
     writeTo(n.m_data);
 }

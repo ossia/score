@@ -23,19 +23,19 @@
 template <typename T> class Reader;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Scenario::TemporalConstraintViewModel& constraint)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Scenario::TemporalConstraintViewModel& constraint)
 {
     readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TemporalConstraintViewModel& constraint)
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TemporalConstraintViewModel& constraint)
 {
     readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
 }
 namespace Scenario
 {
-SerializedConstraintViewModels serializeConstraintViewModels(
+ISCORE_PLUGIN_SCENARIO_EXPORT SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,
         const Scenario::ScenarioModel& scenario)
 {
@@ -65,7 +65,7 @@ SerializedConstraintViewModels serializeConstraintViewModels(
 }
 
 
-void deserializeConstraintViewModels(
+ISCORE_PLUGIN_SCENARIO_EXPORT void deserializeConstraintViewModels(
         const SerializedConstraintViewModels& vms,
         const Scenario::ScenarioModel& scenar)
 {

@@ -13,7 +13,7 @@ template <typename T> class Reader;
 template <typename model> class IdentifiedObject;
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Process::LayerModel& layerModel)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Process::LayerModel& layerModel)
 {
     // To allow recration using createLayerModel.
     // This supposes that the process is stored inside a Constraint.
@@ -30,7 +30,7 @@ void Visitor<Reader<DataStream>>::readFrom(const Process::LayerModel& layerModel
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Process::LayerModel& layerModel)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Process::LayerModel& layerModel)
 {
     // To allow recration using createLayerModel.
     // This supposes that the process is stored inside a Constraint.
