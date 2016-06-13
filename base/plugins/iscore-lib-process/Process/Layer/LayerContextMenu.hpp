@@ -12,7 +12,7 @@ namespace Process
 {
 template<typename T>
 class MetaContextMenu;
-class LayerContext;
+struct LayerContext;
 
 using ContextMenuFun = std::function<void(QMenu&, QPoint, QPointF, const Process::LayerContext&)>;
 class ISCORE_LIB_PROCESS_EXPORT LayerContextMenu

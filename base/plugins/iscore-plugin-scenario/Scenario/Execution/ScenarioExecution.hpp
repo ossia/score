@@ -8,7 +8,7 @@ namespace Scenario
 class ScenarioInterface;
 class ScenarioModel;
 class StateModel;
-struct ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioExecution : public QObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioExecution : public QObject
 {
         Q_OBJECT
     signals:
