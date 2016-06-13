@@ -19,7 +19,7 @@ class AddProcessDialog final : public QWidget
     public:
         AddProcessDialog(
                 const Process::ProcessList& plist,
-                QWidget* parent = nullptr);
+                QWidget* parent);
 
         void launchWindow();
 
@@ -37,7 +37,7 @@ class AddStateProcessDialog final : public QWidget
     public:
         AddStateProcessDialog(
                 const Process::StateProcessList& plist,
-                QWidget* parent = nullptr);
+                QWidget* parent);
 
         void launchWindow();
 

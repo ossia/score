@@ -103,31 +103,14 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(
 
 OSSIAApplicationPlugin::~OSSIAApplicationPlugin()
 {
-    // TODO doesn't handle the case where
-    // two scenarios are playing in two ducments (we have to
-    // stop them both)
-
-    // TODO check the deletion order.
-    // Maybe we should have a dependency graph of some kind ??
-    if(auto doc = currentDocument())
-    if(auto pm = doc->context().findPlugin<RecreateOnPlay::DocumentPlugin>())
-    if(auto scenar = pm->baseScenario())
-    if(auto cstr = scenar->baseConstraint())
-    {
-        cstr->stop();
-    }
+    // The scenarios playing should already have been stopped by virtue of
+    // aboutToClose.
 
     auto& children = m_localDevice->children();
     while(!children.empty())
         m_localDevice->erase(children.end() - 1);
 
     OSSIA::CleanupProtocols();
-}
-
-
-RecreateOnPlay::ConstraintElement &OSSIAApplicationPlugin::baseConstraint() const
-{
-    return *currentDocument()->context().plugin<RecreateOnPlay::DocumentPlugin>().baseScenario()->baseConstraint();
 }
 
 bool OSSIAApplicationPlugin::handleStartup()
@@ -186,53 +169,61 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
     // TODO have a on_exit handler to properly stop the scenario.
     if(auto doc = currentDocument())
     {
-        auto plugmodel = doc->context().findPlugin<RecreateOnPlay::DocumentPlugin>();
-        if(!plugmodel)
-            return;
         auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
         if(!scenar)
             return;
+        on_play(scenar->baseConstraint(), b, t);
+    }
+}
 
-        if(b)
-        {
-            if(m_playing)
-            {
-                if(auto bs = plugmodel->baseScenario())
-                {
-                    auto& cstr = *bs->baseConstraint()->OSSIAConstraint();
-                    if(cstr.paused())
-                    {
-                        emit requestResume();
-                        cstr.resume();
-                    }
-                }
-            }
-            else
-            {
-                // Here we stop the listening when we start playing the scenario.
-                // Get all the selected nodes
-                auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
-                // Disable listening for everything
-                if(explorer)
-                    explorer->deviceModel().listening().stop();
+void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, TimeValue t)
+{
+    auto doc = currentDocument();
+    ISCORE_ASSERT(doc);
 
-                plugmodel->reload(scenar->baseScenario());
-                auto& cstr = *plugmodel->baseScenario()->baseConstraint();
+    auto plugmodel = doc->context().findPlugin<RecreateOnPlay::DocumentPlugin>();
+    if(!plugmodel)
+        return;
 
-                emit requestPlay();
-                cstr.play(t);
-            }
-
-            m_playing = true;
-        }
-        else
+    if(b)
+    {
+        if(m_playing)
         {
             if(auto bs = plugmodel->baseScenario())
             {
-                auto& cstr = *bs->baseConstraint();
-                emit requestPause();
-                cstr.OSSIAConstraint()->pause();
+                auto& cstr = *bs->baseConstraint()->OSSIAConstraint();
+                if(cstr.paused())
+                {
+                    emit requestResume();
+                    cstr.resume();
+                }
             }
+        }
+        else
+        {
+            // Here we stop the listening when we start playing the scenario.
+            // Get all the selected nodes
+            auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
+            // Disable listening for everything
+            if(explorer)
+                explorer->deviceModel().listening().stop();
+
+            plugmodel->reload(cst);
+            auto& cstr = *plugmodel->baseScenario()->baseConstraint();
+
+            emit requestPlay();
+            cstr.play(t);
+        }
+
+        m_playing = true;
+    }
+    else
+    {
+        if(auto bs = plugmodel->baseScenario())
+        {
+            auto& cstr = *bs->baseConstraint();
+            emit requestPause();
+            cstr.OSSIAConstraint()->pause();
         }
     }
 }
@@ -252,7 +243,7 @@ void OSSIAApplicationPlugin::on_record(::TimeValue t)
             return;
 
         // Listening isn't stopped here.
-        plugmodel->reload(scenar->baseScenario());
+        plugmodel->reload(scenar->baseConstraint());
         auto& cstr = *plugmodel->baseScenario()->baseConstraint();
 
         emit requestPlay();
@@ -307,7 +298,8 @@ void OSSIAApplicationPlugin::on_init()
         if(explorer)
             explorer->deviceModel().listening().stop();
 
-        plugmodel->reload(scenar->baseScenario());
+        // FIXME this is terribly inefficient; we should just recreate the state...
+        plugmodel->reload(scenar->baseConstraint());
 
         auto& st = *plugmodel->baseScenario()->startState();
         st.OSSIAState()->launch();

@@ -16,6 +16,7 @@ class DocumentModel;
 namespace Scenario
 {
 class BaseScenario;
+class ConstraintModel;
 }
 namespace RecreateOnPlay
 {
@@ -28,7 +29,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin final : public iscore::DocumentP
         DocumentPlugin(iscore::Document& doc, QObject* parent);
 
         ~DocumentPlugin();
-        void reload(Scenario::BaseScenario& doc);
+        void reload(Scenario::ConstraintModel& doc);
         void clear();
 
         BaseScenarioElement* baseScenario() const;
