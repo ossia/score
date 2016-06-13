@@ -5,7 +5,7 @@ set -o pipefail
 # Minimal stuff
 yum -y install epel-release
 yum -y update
-yum -y install libmpc gcc  wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 libXrender fontconfig freetype xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm libXi
+yum -y install libmpc gcc  wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 libXrender fontconfig freetype xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm libXi alsa-lib-devel
 
 
 git_pull_rebase_helper()
@@ -16,7 +16,7 @@ git_pull_rebase_helper()
 }
 
 # Install required libs
-wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/2.0-linux/i-score-sdk-linux-2.0.tar.xz
+wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/2.0-linux/i-score-sdk-linux-2.0.tar.xz -O i-score-sdk.txz
 tar -xaf i-score-sdk.txz --directory /
 cp -rf /usr/local/lib64/* /usr/lib64/
 

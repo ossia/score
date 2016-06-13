@@ -1,7 +1,5 @@
 #!/bin/bash -eux
 
-(cd /image/gcc-build ; make install -j8)
-(cp -nrf /usr/local/* /usr/)
 cd /image
 
 NPROC=$(nproc)
