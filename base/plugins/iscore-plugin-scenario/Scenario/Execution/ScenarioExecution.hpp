@@ -8,11 +8,14 @@ namespace Scenario
 class ScenarioInterface;
 class ScenarioModel;
 class StateModel;
-struct ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioExecution : public QObject
+class ConstraintModel;
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioExecution :
+        public QObject
 {
         Q_OBJECT
     signals:
         void playState(const Scenario::ScenarioInterface&, Id<Scenario::StateModel>) const;
+        void playConstraint(const Scenario::ScenarioInterface&, Id<Scenario::ConstraintModel>) const;
         void playAtDate(const TimeValue&) const;
 
         void startRecording(const Scenario::ScenarioModel&, Scenario::Point) const;

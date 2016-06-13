@@ -83,19 +83,21 @@ PlayContextMenu::PlayContextMenu(
 
     m_playConstraints = new QAction{tr("Play (Constraints)"), this};
     connect(m_playConstraints, &QAction::triggered,
-            [=]()
+            [&]()
     {
-        /*
-        if (auto sm = parent->focusedScenarioModel())
-        {
-            auto s_plugin = sm->findChild<OSSIAScenarioElement*>(QString(), Qt::FindDirectChildrenOnly);
+        const auto& ctx = m_ctx.documents.currentDocument()->context();
+        auto sm = focusedScenarioInterface(ctx);
+        if(!sm)
+            return;
 
-            for(const auto& constraint : selectedElements(sm->constraints))
+        for(auto& elt : sm->getConstraints())
+        {
+            if(elt.selection.get())
             {
-                s_plugin->constraints().at(constraint->id())->play();
+                plug.on_play(elt, true);
+                return;
             }
         }
-        */
     });
     m_playEvents = new QAction{tr("Play (Events)"), this};
     connect(m_playEvents, &QAction::triggered,
@@ -165,34 +167,29 @@ PlayContextMenu::PlayContextMenu(
     });
 }
 
-void PlayContextMenu::fillContextMenu(
-        QMenu *menu,
-        const Selection & s,
-        const Scenario::TemporalScenarioPresenter& pres,
-        const QPoint&,
-        const QPointF& scenept)
-{
-    using namespace Scenario;
-    menu->addAction(m_playFromHere);
-    auto scenPoint = Scenario::ConvertToScenarioPoint(scenept, pres.zoomRatio(), pres.view().height());
-    m_playFromHere->setData(QVariant::fromValue(scenPoint.date));
-
-    if(s.empty())
-    {
-        menu->addAction(m_recordAutomations);
-        menu->addAction(m_recordMessages);
-
-        auto data = QVariant::fromValue(ScenarioRecordInitData{&pres, scenept});
-        m_recordAutomations->setData(data);
-        m_recordMessages->setData(data);
-    }
-}
-
 void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
 {
     using namespace Process;
     Process::LayerContextMenu& scenario_cm = ctxm.menu<ContextMenus::ScenarioModelContextMenu>();
     Process::LayerContextMenu& state_cm = ctxm.menu<ContextMenus::StateContextMenu>();
+    Process::LayerContextMenu& cst_cm = ctxm.menu<ContextMenus::ConstraintContextMenu>();
+
+    cst_cm.functions.push_back(
+    [this] (QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx)
+    {
+        using namespace iscore;
+        auto sel = ctx.context.selectionStack.currentSelection();
+        if(sel.empty())
+            return;
+
+        if(any_of(sel, matches<Scenario::ConstraintModel>{}))
+        {
+            auto submenu = menu.findChild<QMenu*>("Constraint");
+            ISCORE_ASSERT(submenu);
+
+            submenu->addAction(m_playConstraints);
+        }
+    });
 
     state_cm.functions.push_back(
     [this] (QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx)

@@ -42,12 +42,13 @@ set(ISCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${ISCORE_ROOT_BINARY_DIR}")
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/variant/include")
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/nano-signal-slot")
-add_subdirectory("${3RDPARTY_FOLDER}/Qt-Color-Widgets" EXCLUDE_FROM_ALL)
-add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator" EXCLUDE_FROM_ALL)
-add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu" EXCLUDE_FROM_ALL)
+add_subdirectory("${3RDPARTY_FOLDER}/Qt-Color-Widgets" )
+add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator" )
+add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu" )
 
-add_subdirectory("${3RDPARTY_FOLDER}/zlib" EXCLUDE_FROM_ALL)
-add_subdirectory("${3RDPARTY_FOLDER}/quazip" EXCLUDE_FROM_ALL)
+set(SKIP_INSTALL_ALL True) # For zlib to not install anything
+add_subdirectory("${3RDPARTY_FOLDER}/zlib" )
+add_subdirectory("${3RDPARTY_FOLDER}/quazip" )
 
 set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
 set(ISCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
