@@ -8,7 +8,7 @@
 #include <iscore/actions/Action.hpp>
 
 namespace iscore {
-class GUIApplicationContext;
+struct GUIApplicationContext;
 }
 class QAction;
 class QMenu;

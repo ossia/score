@@ -10,7 +10,7 @@ class SettingsModel;
 class SettingsPresenter;
 class SettingsView;
 
-class ApplicationContext;
+struct ApplicationContext;
 }  // namespace iscore
 
 namespace iscore
