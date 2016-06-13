@@ -53,12 +53,12 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(
 // Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
 #if defined(__APPLE__)
     auto contents = QFileInfo(qApp->applicationDirPath()).dir().path() + "/Frameworks/jamoma/extensions";
-    TTFoundationInit(contents.toUtf8().constData(), true);
-    TTModularInit(contents.toUtf8().constData(), true);
+    TTFoundationInit(contents.toUtf8().constData(), false);
+    TTModularInit(contents.toUtf8().constData(), false);
 #elif defined(linux)
     auto contents = QFileInfo(qApp->applicationDirPath()).dir().path() + "/../lib/jamoma";
-    TTFoundationInit(contents.toUtf8().constData(), true);
-    TTModularInit(contents.toUtf8().constData(), true);
+    TTFoundationInit(contents.toUtf8().constData(), false);
+    TTModularInit(contents.toUtf8().constData(), false);
 #endif
 #endif
     auto localDevice = OSSIA::Local::create();
