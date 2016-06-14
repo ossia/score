@@ -62,7 +62,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final :
 
         ~ConstraintInspectorWidget();
 
-        const ConstraintModel& model() const;
+        ConstraintModel& model() const;
 
         const Inspector::InspectorWidgetList& widgetList() const
         { return m_widgetList; }

@@ -16,7 +16,7 @@
 #include <QString>
 
 #include "AddressEditWidget.hpp"
-#include <Explorer/Widgets/ValueWrapper.hpp>
+#include <iscore/widgets/WidgetWrapper.hpp>
 #include "MessageEditDialog.hpp"
 #include <State/Value.hpp>
 #include <State/Widgets/Values/ValueWidget.hpp>
@@ -40,7 +40,7 @@ MessageEditDialog::MessageEditDialog(const State::Message &mess, DeviceExplorerM
     connect(m_typeCombo, SignalUtils::QComboBox_currentIndexChanged_int(),
             this, &MessageEditDialog::on_typeChanged);
 
-    m_val = new WidgetWrapper<ValueWidget>{this};
+    m_val = new WidgetWrapper<State::ValueWidget>{this};
     m_lay->addItem(new QSpacerItem(10, 10));
     m_lay->addRow(tr("Type"), m_typeCombo);
     m_lay->addRow(tr("Value"), m_val);

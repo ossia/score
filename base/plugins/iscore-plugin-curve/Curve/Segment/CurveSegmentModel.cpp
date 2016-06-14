@@ -4,8 +4,8 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 
 class QObject;
-template ISCORE_PLUGIN_CURVE_EXPORT class IdentifiedObject<Curve::SegmentModel>;
-template ISCORE_PLUGIN_CURVE_EXPORT class iscore::SerializableInterface<Curve::SegmentModel>;
+template class IdentifiedObject<Curve::SegmentModel>;
+template class iscore::SerializableInterface<Curve::SegmentModel>;
 
 namespace Curve
 {

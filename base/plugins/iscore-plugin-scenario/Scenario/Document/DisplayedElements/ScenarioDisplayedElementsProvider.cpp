@@ -28,7 +28,7 @@ bool ScenarioDisplayedElementsProvider::matches(
 }
 
 DisplayedElementsContainer ScenarioDisplayedElementsProvider::make(
-        const ConstraintModel& cst) const
+        ConstraintModel& cst) const
 {
     if(auto parent_scenario = dynamic_cast<Scenario::ScenarioModel*>(cst.parent()))
     {

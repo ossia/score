@@ -13,7 +13,7 @@ bool DisplayedElementsProvider::matches(
 }
 
 Scenario::DisplayedElementsContainer DisplayedElementsProvider::make(
-        const Scenario::ConstraintModel& cst) const
+        Scenario::ConstraintModel& cst) const
 {
     if(auto parent_base = dynamic_cast<Loop::ProcessModel*>(cst.parent()))
     {

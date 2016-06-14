@@ -27,17 +27,17 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintViewModel final : public C
          * @param parent Parent object (most certainly ScenarioViewModel)
          */
         TemporalConstraintViewModel(const Id<ConstraintViewModel>& id,
-                                    const ConstraintModel& model,
+                                    ConstraintModel& model,
                                     QObject* parent);
 
         virtual TemporalConstraintViewModel* clone(
                 const Id<ConstraintViewModel>& id,
-                const ConstraintModel& cm,
+                ConstraintModel& cm,
                 QObject* parent) override;
 
         template<typename DeserializerVisitor>
         TemporalConstraintViewModel(DeserializerVisitor&& vis,
-                                    const ConstraintModel& model,
+                                    ConstraintModel& model,
                                     QObject* parent) :
             ConstraintViewModel {vis, model, parent}
         {

@@ -58,7 +58,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final :
         const Process::ProcessFocusManager& focusManager() const
         { return m_focusManager; }
 
-        void setDisplayedConstraint(const ConstraintModel& constraint);
+        void setDisplayedConstraint(Scenario::ConstraintModel& constraint);
 
         void on_viewModelDefocused(const Process::LayerModel* vm);
         void on_viewModelFocused(const Process::LayerModel* vm);

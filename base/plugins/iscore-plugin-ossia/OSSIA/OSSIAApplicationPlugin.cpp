@@ -172,7 +172,7 @@ void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
         auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
         if(!scenar)
             return;
-        on_play(scenar->baseConstraint(), b, t);
+        on_play(scenar->displayedElements.constraint(), b, t);
     }
 }
 

@@ -28,7 +28,7 @@ void DisplayedElementsModel::setDisplayedElements(
     m_initialized = true;
 }
 
-const ConstraintModel &DisplayedElementsModel::constraint() const
+ConstraintModel &DisplayedElementsModel::constraint() const
 {
     return *m_elements.constraint;
 }

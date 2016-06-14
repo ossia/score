@@ -16,7 +16,7 @@ class ScenarioDisplayedElementsProvider final :
         bool matches(
                 const ConstraintModel& cst) const override;
         DisplayedElementsContainer make(
-                const ConstraintModel& cst) const override;
+                ConstraintModel& cst) const override;
 
         DisplayedElementsPresenterContainer make_presenters(
                 const ConstraintModel& m,

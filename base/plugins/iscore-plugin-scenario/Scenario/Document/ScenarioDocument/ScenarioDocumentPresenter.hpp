@@ -75,7 +75,7 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
         void released(QPointF);
         void escPressed();
 
-        void requestDisplayedConstraintChange(const ConstraintModel&);
+        void requestDisplayedConstraintChange(ConstraintModel&);
 
     private:
         void on_displayedConstraintChanged();

@@ -11,7 +11,7 @@ class EventModel;
 class StateModel;
 class TimeNodeModel;
 
-class DisplayedElementsModel
+class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsModel
 {
     public:
         DisplayedElementsModel() = default;
@@ -20,7 +20,7 @@ class DisplayedElementsModel
         void setSelection(const Selection&);
 
         void setDisplayedElements(DisplayedElementsContainer&&);
-        const ConstraintModel& constraint() const;
+        ConstraintModel& constraint() const;
 
         const TimeNodeModel& startTimeNode() const;
         const TimeNodeModel& endTimeNode() const;

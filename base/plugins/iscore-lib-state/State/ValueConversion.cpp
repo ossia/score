@@ -41,6 +41,16 @@ static const std::array<const QString, 8> ValuePrettyTypesArray{{
                 QObject::tr("None")
                                                                 }};
 
+static const std::array<std::pair<QString, ValueType>, 7>
+    ValuePrettyTypesPairArray{{
+        std::make_pair(QObject::tr("Impulse"), ValueType::Impulse),
+        std::make_pair(QObject::tr("Int"), ValueType::Int),
+        std::make_pair(QObject::tr("Float"), ValueType::Float),
+        std::make_pair(QObject::tr("Bool"), ValueType::Bool),
+        std::make_pair(QObject::tr("String"), ValueType::String),
+        std::make_pair(QObject::tr("Char"), ValueType::Char),
+        std::make_pair(QObject::tr("Tuple"), ValueType::Tuple)}};
+
 template<>
 QVariant value(const State::Value& val)
 {
@@ -549,6 +559,11 @@ State::Value fromQVariant(const QVariant& val)
 QString prettyType(ValueType t)
 {
     return ValuePrettyTypesArray[static_cast<int>(t)];
+}
+
+const std::array<std::pair<QString, State::ValueType>, 7> & ValuePrettyTypesMap()
+{
+    return ValuePrettyTypesPairArray;
 }
 
 }

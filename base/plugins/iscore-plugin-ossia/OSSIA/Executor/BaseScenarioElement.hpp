@@ -2,7 +2,7 @@
 #include <memory>
 
 #include <QObject>
-
+#include <OSSIA/Executor/ConstraintExecutionFacade.hpp>
 namespace OSSIA
 {
     class TimeValue;
@@ -76,7 +76,6 @@ class BaseScenarioRefContainer
         Scenario::TimeNodeModel& m_startNode;
         Scenario::TimeNodeModel& m_endNode;
 };
-
 
 namespace RecreateOnPlay
 {

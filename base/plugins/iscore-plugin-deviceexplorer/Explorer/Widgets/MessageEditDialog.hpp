@@ -1,18 +1,18 @@
 #pragma once
 #include <State/Value.hpp>
 #include <QDialog>
-#include <Explorer/Widgets/ValueWrapper.hpp>
+#include <iscore/widgets/WidgetWrapper.hpp>
 
 class QWidget;
 namespace State
 {
 struct Address;
 struct Message;
+class ValueWidget;
 }
 
 class QComboBox;
 class QFormLayout;
-class ValueWidget;
 
 namespace Explorer
 {
@@ -50,6 +50,6 @@ class MessageEditDialog final : public QDialog
 
         QFormLayout* m_lay{};
         QComboBox* m_typeCombo{};
-        WidgetWrapper<ValueWidget>* m_val{};
+        WidgetWrapper<State::ValueWidget>* m_val{};
 };
 }

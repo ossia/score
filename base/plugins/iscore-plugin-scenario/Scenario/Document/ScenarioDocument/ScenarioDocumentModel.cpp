@@ -246,7 +246,7 @@ void ScenarioDocumentModel::setNewSelection(const Selection& s)
     emit focusMe();
 }
 
-void ScenarioDocumentModel::setDisplayedConstraint(const ConstraintModel& constraint)
+void ScenarioDocumentModel::setDisplayedConstraint(ConstraintModel& constraint)
 {
     if(displayedElements.initialized())
     {

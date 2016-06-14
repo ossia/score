@@ -17,7 +17,7 @@ struct DisplayedElementsContainer {
         DisplayedElementsContainer() = default;
 
         DisplayedElementsContainer(
-                const ConstraintModel& cst,
+                ConstraintModel& cst,
                 const StateModel& sst,
                 const StateModel& est,
                 const EventModel& sev,
@@ -35,7 +35,7 @@ struct DisplayedElementsContainer {
 
         }
 
-    QPointer<const ConstraintModel> constraint{};
+    QPointer<ConstraintModel> constraint{};
     QPointer<const StateModel> startState{};
     QPointer<const StateModel> endState{};
     QPointer<const EventModel> startEvent{};

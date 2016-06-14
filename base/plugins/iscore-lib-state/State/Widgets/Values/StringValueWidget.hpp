@@ -7,7 +7,7 @@
 class QLineEdit;
 class QWidget;
 
-class ISCORE_LIB_STATE_EXPORT  StringValueWidget : public ValueWidget
+class ISCORE_LIB_STATE_EXPORT  StringValueWidget : public State::ValueWidget
 {
     public:
         StringValueWidget(const QString& value, QWidget* parent = nullptr);

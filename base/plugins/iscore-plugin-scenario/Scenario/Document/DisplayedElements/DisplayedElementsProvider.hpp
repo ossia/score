@@ -26,7 +26,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsProvider :
                      QObject* parent) const
         { return matches(cst); }
 
-        virtual DisplayedElementsContainer make(const ConstraintModel& cst) const = 0;
+        virtual DisplayedElementsContainer make(ConstraintModel& cst) const = 0;
         virtual DisplayedElementsPresenterContainer make_presenters(
                 const ConstraintModel& m,
                 const Process::ProcessPresenterContext& ctx,

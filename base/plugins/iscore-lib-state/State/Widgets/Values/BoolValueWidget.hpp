@@ -5,7 +5,7 @@
 class QComboBox;
 class QWidget;
 
-class ISCORE_LIB_STATE_EXPORT  BoolValueWidget : public ValueWidget
+class ISCORE_LIB_STATE_EXPORT  BoolValueWidget : public State::ValueWidget
 {
     public:
         BoolValueWidget(bool value, QWidget* parent = nullptr);
