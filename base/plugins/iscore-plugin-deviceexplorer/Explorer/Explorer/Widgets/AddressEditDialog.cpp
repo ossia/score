@@ -17,7 +17,7 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/Domain.hpp>
 #include <Device/Address/IOType.hpp>
-#include <Explorer/Widgets/ValueWrapper.hpp>
+#include <iscore/widgets/WidgetWrapper.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 #include <iscore/widgets/SignalUtils.hpp>

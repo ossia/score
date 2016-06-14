@@ -12,8 +12,8 @@
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
-template ISCORE_LIB_PROCESS_EXPORT class IdentifiedObject<Process::ProcessModel>;
-template ISCORE_LIB_PROCESS_EXPORT class iscore::SerializableInterface<Process::ProcessFactory>;
+template class IdentifiedObject<Process::ProcessModel>;
+template class iscore::SerializableInterface<Process::ProcessFactory>;
 namespace Process
 {
 ProcessModel::ProcessModel(

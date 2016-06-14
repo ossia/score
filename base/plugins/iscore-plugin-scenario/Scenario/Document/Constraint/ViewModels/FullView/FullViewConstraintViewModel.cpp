@@ -16,7 +16,7 @@ namespace Scenario
 {
 FullViewConstraintViewModel::FullViewConstraintViewModel(
         const Id<ConstraintViewModel>& id,
-        const ConstraintModel& model,
+        ConstraintModel& model,
         QObject* parent) :
     ConstraintViewModel {id,
                          "FullViewConstraintViewModel",
@@ -29,7 +29,7 @@ FullViewConstraintViewModel::FullViewConstraintViewModel(
 
 FullViewConstraintViewModel* FullViewConstraintViewModel::clone(
         const Id<ConstraintViewModel>& id,
-        const ConstraintModel& cm,
+        ConstraintModel& cm,
         QObject* parent)
 {
     auto cstr = new FullViewConstraintViewModel {id, cm, parent};

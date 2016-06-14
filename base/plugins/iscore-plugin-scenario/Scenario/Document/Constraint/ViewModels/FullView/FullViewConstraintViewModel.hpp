@@ -33,17 +33,17 @@ class FullViewConstraintViewModel final : public ConstraintViewModel
          */
         FullViewConstraintViewModel(
                 const Id<ConstraintViewModel>& id,
-                const ConstraintModel& model,
+                ConstraintModel& model,
                 QObject* parent);
 
         virtual FullViewConstraintViewModel* clone(
                 const Id<ConstraintViewModel>& id,
-                const ConstraintModel& cm,
+                ConstraintModel& cm,
                 QObject* parent) override;
 
         template<typename DeserializerVisitor>
         FullViewConstraintViewModel(DeserializerVisitor&& vis,
-                                    const ConstraintModel& model,
+                                    ConstraintModel& model,
                                     QObject* parent) :
             ConstraintViewModel {vis, model, parent}
         {

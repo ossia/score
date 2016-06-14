@@ -8,7 +8,7 @@ namespace Scenario
 {
 TemporalConstraintViewModel::TemporalConstraintViewModel(
         const Id<ConstraintViewModel>& id,
-        const ConstraintModel& model,
+        ConstraintModel& model,
         QObject* parent) :
     ConstraintViewModel {id,
                          "TemporalConstraintViewModel",
@@ -21,7 +21,7 @@ TemporalConstraintViewModel::TemporalConstraintViewModel(
 
 TemporalConstraintViewModel* TemporalConstraintViewModel::clone(
         const Id<ConstraintViewModel>& id,
-        const ConstraintModel& cm,
+        ConstraintModel& cm,
         QObject* parent)
 {
     auto cstr = new TemporalConstraintViewModel {id, cm, parent};

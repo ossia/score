@@ -21,14 +21,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel :
     public:
         ConstraintViewModel(const Id<ConstraintViewModel>& id,
                             const QString& name,
-                            const ConstraintModel& model,
+                            ConstraintModel& model,
                             QObject* parent);
 
         virtual ~ConstraintViewModel();
 
         template<typename DeserializerVisitor>
         ConstraintViewModel(DeserializerVisitor&& vis,
-                            const ConstraintModel& model,
+                            ConstraintModel& model,
                             QObject* parent) :
             IdentifiedObject{vis, parent},
             m_model {model}
@@ -38,11 +38,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel :
 
         virtual ConstraintViewModel* clone(
                 const Id<ConstraintViewModel>& id,
-                const ConstraintModel& cm,
+                ConstraintModel& cm,
                 QObject* parent) = 0;
 
         virtual QString type() const = 0;
-        const ConstraintModel& model() const;
+        ConstraintModel& model() const;
 
         bool isRackShown() const;
         const Id<RackModel>& shownRack() const;
@@ -62,7 +62,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel :
     private:
         // A view model cannot be constructed without a model
         // hence we are safe with a pointer
-        const ConstraintModel& m_model;
+        ConstraintModel& m_model;
 
         Id<RackModel> m_shownRack {};
 };

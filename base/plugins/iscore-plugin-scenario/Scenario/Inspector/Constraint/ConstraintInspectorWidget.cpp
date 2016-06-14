@@ -258,9 +258,9 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
 ConstraintInspectorWidget::~ConstraintInspectorWidget() = default;
 
-const ConstraintModel& ConstraintInspectorWidget::model() const
+ConstraintModel& ConstraintInspectorWidget::model() const
 {
-    return m_model;
+    return const_cast<ConstraintModel&>(m_model);
 }
 
 QString ConstraintInspectorWidget::tabName()

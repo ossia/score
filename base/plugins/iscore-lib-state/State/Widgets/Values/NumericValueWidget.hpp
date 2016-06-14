@@ -6,7 +6,7 @@
 
 #include <QGridLayout>
 template<typename T>
-class NumericValueWidget : public ValueWidget
+class NumericValueWidget : public State::ValueWidget
 {
     public:
         NumericValueWidget(

@@ -424,17 +424,13 @@ std::shared_ptr<OSSIA::State> state(
             const auto& val = n.value();
             if(val)
             {
-                elts.push_back(
-                            message(
-                                State::Message{
-                                    address(n),
-                                    *val},
-                                    dl
-                                )
-                            );
+                auto mess = message(State::Message{address(n), *val}, dl);
+                if(mess)
+                    elts.push_back(std::move(mess));
+                else
+                    qDebug( ) << State::Message{address(n), *val} << " message creation failed";
             }
     });
-
 
     for(auto& proc : iscore_state.stateProcesses)
     {
