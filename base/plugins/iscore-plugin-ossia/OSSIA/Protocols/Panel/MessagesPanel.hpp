@@ -26,6 +26,7 @@ class PanelDelegate final :
 
 
         void setupConnections(Device::DeviceList&);
+        Device::DeviceList* getDeviceList(iscore::MaybeDocument);
 
         QListWidget *m_widget{};
 

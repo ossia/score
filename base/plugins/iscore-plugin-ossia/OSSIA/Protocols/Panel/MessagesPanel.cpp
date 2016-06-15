@@ -43,21 +43,25 @@ void PanelDelegate::on_modelChanged(
     {
         QObject::connect(qw, &QDockWidget::visibilityChanged,
                          [=] (bool visible) {
-            Device::DeviceList& devices = newm->plugin<Explorer::DeviceDocumentPlugin>().list();
-            if(visible)
+            if(auto devices = getDeviceList(newm))
             {
-                setupConnections(devices);
-            }
+                if(visible)
+                {
+                    setupConnections(*devices);
+                }
 
-            devices.setLogging(visible);
+                devices->setLogging(visible);
+            }
         });
 
-        Device::DeviceList& devices = newm->plugin<Explorer::DeviceDocumentPlugin>().list();
-        if(qw->isVisible())
+        if(auto devices = getDeviceList(newm))
         {
-            setupConnections(devices);
+            if(qw->isVisible())
+            {
+                setupConnections(*devices);
+            }
+            devices->setLogging(qw->isVisible());
         }
-        devices.setLogging(qw->isVisible());
     }
 }
 
@@ -84,6 +88,14 @@ void PanelDelegate::setupConnections(Device::DeviceList& devices)
             delete m_widget->takeItem(0);
         m_widget->scrollToBottom();
     }, Qt::QueuedConnection);
+}
+
+Device::DeviceList* PanelDelegate::getDeviceList(iscore::MaybeDocument newm)
+{
+    auto plug = newm->findPlugin<Explorer::DeviceDocumentPlugin>();
+    if(!plug)
+        return nullptr;
+    return &plug->list();
 }
 
 std::unique_ptr<iscore::PanelDelegate> PanelDelegateFactory::make(
