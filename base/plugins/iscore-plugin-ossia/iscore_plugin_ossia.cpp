@@ -2,6 +2,7 @@
 #include <OSSIA/Protocols/OSC/OSCProtocolFactory.hpp>
 #include <OSSIA/Protocols/MIDI/MIDIProtocolFactory.hpp>
 #include <OSSIA/Protocols/Local/LocalProtocolFactory.hpp>
+#include <OSSIA/Protocols/Panel/MessagesPanel.hpp>
 #include <QString>
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
@@ -69,12 +70,14 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
             FW<RecreateOnPlay::ProcessComponentFactory,
                  RecreateOnPlay::ScenarioComponentFactory>,
             FW<Explorer::ListeningHandlerFactory,
-                Ossia::PlayListeningHandlerFactory>,
+                 Ossia::PlayListeningHandlerFactory>,
             FW<iscore::SettingsDelegateFactory,
-                RecreateOnPlay::Settings::Factory,
-                LocalTree::Settings::Factory>,
+                 RecreateOnPlay::Settings::Factory,
+                 LocalTree::Settings::Factory>,
             FW<Ossia::LocalTree::ProcessComponentFactory,
-                 Ossia::LocalTree::ScenarioComponentFactory>
+                 Ossia::LocalTree::ScenarioComponentFactory>,
+            FW<iscore::PanelDelegateFactory,
+                 Ossia::PanelDelegateFactory>
             >
             >(ctx, key);
 }

@@ -174,12 +174,10 @@ ProcessComponent* ComponentFactory::make(
         const Id<iscore::Component>& id,
         QObject* parent) const
 {
-
     return new Component{
                 cst,
                 static_cast<::Automation::ProcessModel&>(proc),
                 ctx, id, parent};
-
 }
 
 const ComponentFactory::ConcreteFactoryKey&

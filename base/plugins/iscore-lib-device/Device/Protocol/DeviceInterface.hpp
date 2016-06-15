@@ -67,10 +67,12 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 
         // Execution API... Maybe we don't need it here.
         virtual void sendMessage(const State::Message& mess) = 0;
-        virtual bool check(const QString& str) = 0;
 
         // Make a node from an inside path, if it has been added for instance.
         virtual Device::Node getNode(const State::Address&) = 0;
+
+        virtual bool isLogging() const = 0;
+        virtual void setLogging(bool) const = 0;
 
     signals:
         // These signals are emitted if a device changes from the inside
@@ -84,6 +86,11 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 
         // In case the whole namespace changed?
         void namespaceUpdated();
+
+        /* If logging is enabled, these two signals may be sent
+         * when something happens */
+        void logInbound(const QString&) const;
+        void logOutbound(const QString&) const;
 
     protected:
         Device::DeviceSettings m_settings;
