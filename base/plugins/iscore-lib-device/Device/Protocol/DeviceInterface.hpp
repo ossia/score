@@ -72,7 +72,7 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
         virtual Device::Node getNode(const State::Address&) = 0;
 
         virtual bool isLogging() const = 0;
-        virtual void setLogging(bool) const = 0;
+        virtual void setLogging(bool) = 0;
 
     signals:
         // These signals are emitted if a device changes from the inside
