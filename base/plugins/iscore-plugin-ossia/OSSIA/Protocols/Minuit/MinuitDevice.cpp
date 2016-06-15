@@ -30,6 +30,7 @@ bool MinuitDevice::reconnect()
                                stgs.outputPort);
 
         m_dev = OSSIA::Device::create(ossia_settings, settings().name.toStdString());
+        setLogging(true);
     }
     catch(std::exception& e)
     {

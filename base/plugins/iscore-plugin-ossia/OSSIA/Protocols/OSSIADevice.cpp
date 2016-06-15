@@ -9,7 +9,9 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "Network/Address.h"
 #include "Network/Device.h"
+#include "Network/Protocol.h"
 #include "OSSIADevice.hpp"
+#include "Network/NetworkLogger.h"
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
@@ -87,6 +89,7 @@ void OSSIADevice::disconnect()
 
     m_callbacks.clear();
     m_dev.reset();
+    setLogging(false);
 }
 
 void OSSIADevice::addAddress(const Device::FullAddressSettings &settings)
@@ -355,15 +358,36 @@ void OSSIADevice::sendMessage(const State::Message& mess)
     }
 }
 
+bool OSSIADevice::isLogging() const
+{
+    return m_logging;
+}
 
-bool OSSIADevice::check(const QString &str)
+void OSSIADevice::setLogging(bool b) const
 {
     if(!connected())
-        return false;
+        return;
 
-    ISCORE_TODO;
-    return false;
+    if(b == m_logging)
+        return;
+
+    if(b)
+    {
+        auto l = std::make_shared<OSSIA::NetworkLogger>();
+        l->setInboundLogCallback([=] (std::string s) {
+            emit logInbound(QString::fromStdString(s));
+        });
+        l->setOutboundLogCallback([=] (std::string s) {
+            emit logOutbound(QString::fromStdString(s));
+        });
+        m_dev->getProtocol()->setLogger(std::move(l));
+    }
+    else
+    {
+        m_dev->getProtocol()->setLogger({});
+    }
 }
+
 
 OSSIA::Device& OSSIADevice::impl() const
 {

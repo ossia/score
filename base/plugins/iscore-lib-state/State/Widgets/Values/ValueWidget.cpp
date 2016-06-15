@@ -10,7 +10,6 @@
 namespace State
 {
 ValueWidget::~ValueWidget() = default;
-TypeComboBox::~TypeComboBox() = default;
 
 TypeAndValueWidget::~TypeAndValueWidget() = default;
 
@@ -29,6 +28,11 @@ TypeComboBox::TypeComboBox(QWidget* parent):
             this, [=] (int i) {
         emit typeChanged(this->itemData(i).value<State::ValueType>());
     });
+}
+
+TypeComboBox::~TypeComboBox()
+{
+
 }
 
 TypeAndValueWidget::TypeAndValueWidget(
