@@ -1,5 +1,5 @@
 #include "MessagesPanel.hpp"
-
+#include <QDockWidget>
 #include <QListWidget>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -34,13 +34,37 @@ void PanelDelegate::on_modelChanged(
 {
     QObject::disconnect(m_inbound);
     QObject::disconnect(m_outbound);
+    QObject::disconnect(m_visible);
 
     if(!newm)
         return;
 
+    if(auto qw = qobject_cast<QDockWidget*>(m_widget->parent()))
+    {
+        QObject::connect(qw, &QDockWidget::visibilityChanged,
+                         [=] (bool visible) {
+            Device::DeviceList& devices = newm->plugin<Explorer::DeviceDocumentPlugin>().list();
+            if(visible)
+            {
+                setupConnections(devices);
+            }
+
+            devices.setLogging(visible);
+        });
+
+        Device::DeviceList& devices = newm->plugin<Explorer::DeviceDocumentPlugin>().list();
+        if(qw->isVisible())
+        {
+            setupConnections(devices);
+        }
+        devices.setLogging(qw->isVisible());
+    }
+}
+
+void PanelDelegate::setupConnections(Device::DeviceList& devices)
+{
     const auto dark1 = QColor(Qt::darkGray).darker();
     const auto dark2 = dark1.darker(); // almost darker than black
-    Device::DeviceList& devices= newm->plugin<Explorer::DeviceDocumentPlugin>().list();
     m_inbound = QObject::connect(&devices, &Device::DeviceList::logInbound,
                                  m_widget, [=] (const QString& str) {
         auto lw = new QListWidgetItem{str};
@@ -48,7 +72,9 @@ void PanelDelegate::on_modelChanged(
         m_widget->addItem(lw);
         if(m_widget->count() > 500)
             delete m_widget->takeItem(0);
+        m_widget->scrollToBottom();
     }, Qt::QueuedConnection);
+
     m_outbound = QObject::connect(&devices, &Device::DeviceList::logOutbound,
                                  m_widget, [=] (const QString& str) {
         auto lw = new QListWidgetItem{str};
@@ -56,6 +82,7 @@ void PanelDelegate::on_modelChanged(
         m_widget->addItem(lw);
         if(m_widget->count() > 500)
             delete m_widget->takeItem(0);
+        m_widget->scrollToBottom();
     }, Qt::QueuedConnection);
 }
 

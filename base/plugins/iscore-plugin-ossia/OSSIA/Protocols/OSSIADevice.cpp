@@ -89,7 +89,7 @@ void OSSIADevice::disconnect()
 
     m_callbacks.clear();
     m_dev.reset();
-    setLogging(false);
+    setLogging_impl(false);
 }
 
 void OSSIADevice::addAddress(const Device::FullAddressSettings &settings)
@@ -154,6 +154,30 @@ void OSSIADevice::removeListening_impl(
         State::Address sub_addr = addr;
         sub_addr.path += QString::fromStdString(child->getName());
         removeListening_impl(*child.get(), sub_addr);
+    }
+}
+
+void OSSIADevice::setLogging_impl(bool b) const
+{
+    if(!m_dev)
+        return;
+
+    if(b)
+    {
+        auto l = std::make_shared<OSSIA::NetworkLogger>();
+        l->setInboundLogCallback([=] (std::string s) {
+            emit logInbound(QString::fromStdString(s));
+        });
+        l->setOutboundLogCallback([=] (std::string s) {
+            emit logOutbound(QString::fromStdString(s));
+        });
+        m_dev->getProtocol()->setLogger(std::move(l));
+        qDebug() << "logging enabled";
+    }
+    else
+    {
+        m_dev->getProtocol()->setLogger({});
+        qDebug() << "logging disnabled";
     }
 }
 
@@ -363,7 +387,7 @@ bool OSSIADevice::isLogging() const
     return m_logging;
 }
 
-void OSSIADevice::setLogging(bool b) const
+void OSSIADevice::setLogging(bool b)
 {
     if(!connected())
         return;
@@ -371,21 +395,8 @@ void OSSIADevice::setLogging(bool b) const
     if(b == m_logging)
         return;
 
-    if(b)
-    {
-        auto l = std::make_shared<OSSIA::NetworkLogger>();
-        l->setInboundLogCallback([=] (std::string s) {
-            emit logInbound(QString::fromStdString(s));
-        });
-        l->setOutboundLogCallback([=] (std::string s) {
-            emit logOutbound(QString::fromStdString(s));
-        });
-        m_dev->getProtocol()->setLogger(std::move(l));
-    }
-    else
-    {
-        m_dev->getProtocol()->setLogger({});
-    }
+    m_logging = b;
+    setLogging_impl(m_logging);
 }
 
 

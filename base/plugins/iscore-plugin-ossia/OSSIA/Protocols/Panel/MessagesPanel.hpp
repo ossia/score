@@ -2,6 +2,10 @@
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/plugins/panel/PanelDelegateFactory.hpp>
 class QListWidget;
+namespace Device
+{
+class DeviceList;
+}
 namespace Ossia
 {
 class PanelDelegate final :
@@ -20,9 +24,12 @@ class PanelDelegate final :
                 iscore::MaybeDocument oldm,
                 iscore::MaybeDocument newm) override;
 
+
+        void setupConnections(Device::DeviceList&);
+
         QListWidget *m_widget{};
 
-        QMetaObject::Connection m_inbound, m_outbound;
+        QMetaObject::Connection m_inbound, m_outbound, m_visible;
 };
 
 class PanelDelegateFactory final :

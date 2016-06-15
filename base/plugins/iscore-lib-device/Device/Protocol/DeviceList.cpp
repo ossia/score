@@ -30,6 +30,8 @@ void DeviceList::addDevice(DeviceInterface *dev)
             this, &DeviceList::logInbound);
     connect(dev, &DeviceInterface::logOutbound,
             this, &DeviceList::logOutbound);
+
+    dev->setLogging(m_logging);
 }
 
 void DeviceList::removeDevice(const QString &name)
@@ -44,5 +46,16 @@ void DeviceList::removeDevice(const QString &name)
 const std::vector<DeviceInterface *> &DeviceList::devices() const
 {
     return m_devices;
+}
+
+void DeviceList::setLogging(bool b)
+{
+    if(m_logging == b)
+        return;
+    m_logging = b;
+
+    for(DeviceInterface* dev : m_devices)
+        dev->setLogging(b);
+
 }
 }

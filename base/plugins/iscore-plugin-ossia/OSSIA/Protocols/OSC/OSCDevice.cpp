@@ -29,7 +29,7 @@ bool OSCDevice::reconnect()
                                       stgs.inputPort,
                                       stgs.outputPort);
         m_dev = OSSIA::Device::create(ossia_settings, settings().name.toStdString());
-        setLogging(true);
+        setLogging_impl(isLogging());
     }
     catch(...)
     {

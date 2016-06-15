@@ -61,7 +61,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         void sendMessage(const State::Message& mess) final override;
 
         bool isLogging() const final override;
-        void setLogging(bool) const final override;
+        void setLogging(bool) final override;
 
         OSSIA::Device& impl() const;
         std::shared_ptr<OSSIA::Device> impl_ptr() const
@@ -81,7 +81,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         > m_callbacks;
 
         void removeListening_impl(OSSIA::Node &node, State::Address addr);
-
+        void setLogging_impl(bool) const;
     private:
         bool m_logging = false;
 };
