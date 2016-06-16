@@ -1,11 +1,12 @@
 #include "ValueWidget.hpp"
-#include <iscore/widgets/SignalUtils.hpp>
 #include <State/ValueConversion.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <State/Widgets/Values/BoolValueWidget.hpp>
 #include <State/Widgets/Values/CharValueWidget.hpp>
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/StringValueWidget.hpp>
+#include <State/Widgets/Values/TypeComboBox.hpp>
+
 #include <QHBoxLayout>
 namespace State
 {
@@ -13,27 +14,6 @@ ValueWidget::~ValueWidget() = default;
 
 TypeAndValueWidget::~TypeAndValueWidget() = default;
 
-ValueType TypeComboBox::currentType() const
-{
-    return this->currentData().value<State::ValueType>();
-}
-
-TypeComboBox::TypeComboBox(QWidget* parent):
-    QComboBox{parent}
-{
-    for(auto& tp : State::convert::ValuePrettyTypesMap())
-        this->addItem(tp.first, QVariant::fromValue(tp.second));
-
-    connect(this, SignalUtils::QComboBox_currentIndexChanged_int(),
-            this, [=] (int i) {
-        emit typeChanged(this->itemData(i).value<State::ValueType>());
-    });
-}
-
-TypeComboBox::~TypeComboBox()
-{
-
-}
 
 TypeAndValueWidget::TypeAndValueWidget(
         State::Value init,
@@ -46,6 +26,7 @@ TypeAndValueWidget::TypeAndValueWidget(
 
     lay->addWidget(m_type);
     auto t = m_type->currentType();
+    ISCORE_TODO;
 }
 
 Value TypeAndValueWidget::value() const

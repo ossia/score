@@ -3,9 +3,9 @@
 #include <QWidget>
 #include <iscore/widgets/WidgetWrapper.hpp>
 #include <iscore_lib_state_export.h>
-class QComboBox;
 namespace State
 {
+class TypeComboBox;
 /**
  * @brief The ValueWidget class
  *
@@ -26,21 +26,16 @@ class ISCORE_LIB_STATE_EXPORT ValueWidget :
         virtual State::Value value() const = 0;
 };
 
-
-class ISCORE_LIB_STATE_EXPORT TypeComboBox :
-        public QComboBox
-{
-        Q_OBJECT
-    public:
-        TypeComboBox(QWidget* parent);
-        virtual ~TypeComboBox();
-
-        State::ValueType currentType() const;
-    signals:
-        void typeChanged(State::ValueType);
-
-};
-
+/**
+ * @brief The TypeAndValueWidget class
+ *
+ * Represents a "line" with a combobox for
+ * choosing a type, and a widget for the value.
+ *
+ * e.g.
+ *
+ * [Int  ^]     |      234 |
+ */
 class ISCORE_LIB_STATE_EXPORT TypeAndValueWidget :
         public QWidget
 {
