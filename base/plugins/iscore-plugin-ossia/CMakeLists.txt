@@ -58,6 +58,9 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorFactory.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ClockManager/ClockManagerFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ClockManager/DefaultClockManager.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandler.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Listening/PlayListeningHandlerFactory.hpp"
 
@@ -120,6 +123,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/DocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/TimeNodeElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ConstraintElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ClockManager/ClockManagerFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/ClockManager/DefaultClockManager.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Executor/Settings/ExecutorPresenter.cpp"

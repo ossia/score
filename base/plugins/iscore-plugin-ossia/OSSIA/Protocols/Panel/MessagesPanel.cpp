@@ -41,7 +41,7 @@ void PanelDelegate::on_modelChanged(
 
     if(auto qw = qobject_cast<QDockWidget*>(m_widget->parent()))
     {
-        QObject::connect(qw, &QDockWidget::visibilityChanged,
+        m_visible = QObject::connect(qw, &QDockWidget::visibilityChanged,
                          [=] (bool visible) {
             if(auto devices = getDeviceList(newm))
             {
@@ -67,6 +67,9 @@ void PanelDelegate::on_modelChanged(
 
 void PanelDelegate::setupConnections(Device::DeviceList& devices)
 {
+    QObject::disconnect(m_inbound);
+    QObject::disconnect(m_outbound);
+
     const auto dark1 = QColor(Qt::darkGray).darker();
     const auto dark2 = dark1.darker(); // almost darker than black
     m_inbound = QObject::connect(&devices, &Device::DeviceList::logInbound,
@@ -92,6 +95,9 @@ void PanelDelegate::setupConnections(Device::DeviceList& devices)
 
 Device::DeviceList* PanelDelegate::getDeviceList(iscore::MaybeDocument newm)
 {
+    if(!newm)
+        return nullptr;
+
     auto plug = newm->findPlugin<Explorer::DeviceDocumentPlugin>();
     if(!plug)
         return nullptr;

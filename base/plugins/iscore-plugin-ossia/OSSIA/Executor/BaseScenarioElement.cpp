@@ -69,6 +69,7 @@ BaseScenarioElement::BaseScenarioElement(
                                iscore::convert::time(element.constraint().duration.maxDuration()));
 
     main_constraint->setGranularity(ctx.doc.app.settings<Settings::Model>().getRate());
+    main_constraint->setDriveMode(OSSIA::Clock::DriveMode::EXTERNAL);
 
     m_ossia_startTimeNode = new TimeNodeElement{main_start_node, element.startTimeNode(),  m_ctx.devices.list(), this};
     m_ossia_endTimeNode = new TimeNodeElement{main_end_node, element.endTimeNode(), m_ctx.devices.list(), this};
