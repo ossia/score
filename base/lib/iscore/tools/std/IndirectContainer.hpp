@@ -233,9 +233,9 @@ class IndirectUnorderedMap
         auto empty() const { return map.empty(); }
 
         template<typename K>
-        auto find(K&& key)
+        auto find(K&& key) const
         {
-            return map.find(std::forward<K>(key));
+            return make_indirect_map_iterator(map.find(std::forward<K>(key)));
         }
 
         template<typename E>

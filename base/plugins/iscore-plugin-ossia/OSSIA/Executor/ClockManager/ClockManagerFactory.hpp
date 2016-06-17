@@ -5,7 +5,8 @@
 
 namespace RecreateOnPlay
 {
-class BaseScenarioRefContainer;
+class Context;
+class BaseScenarioElement;
 
 /**
  * @brief The ClockManager class
@@ -26,13 +27,28 @@ class BaseScenarioRefContainer;
 class ISCORE_PLUGIN_OSSIA_EXPORT ClockManager
 {
     public:
+        ClockManager(const RecreateOnPlay::Context& ctx): context{ctx} { }
         virtual ~ClockManager();
 
-        virtual void play() = 0;
-        virtual void pause() = 0;
-        virtual void stop() = 0;
+        void play();
+        void pause();
+        void resume();
+        void stop();
+        void setup();
 
-        virtual void setup(BaseScenarioRefContainer&) = 0;
+    protected:
+        virtual void play_impl(BaseScenarioElement&) = 0;
+        virtual void pause_impl(BaseScenarioElement&) = 0;
+        virtual void resume_impl(BaseScenarioElement&) = 0;
+        virtual void stop_impl(BaseScenarioElement&) = 0;
+
+        /**
+         * @brief setup
+         * Should set-up the clock drive mode, speed, etc.
+         */
+        virtual void setup_impl(BaseScenarioElement&) = 0;
+
+        const Context& context;
 };
 
 class ISCORE_PLUGIN_OSSIA_EXPORT ClockManagerFactory :
@@ -45,7 +61,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ClockManagerFactory :
             virtual ~ClockManagerFactory();
 
             virtual std::unique_ptr<ClockManager> make(
-                const iscore::ApplicationContext& ctx) = 0;
+                const RecreateOnPlay::Context& ctx) = 0;
 };
 
 class ISCORE_LIB_BASE_EXPORT ClockManagerFactoryList final :

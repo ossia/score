@@ -23,19 +23,12 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 
 #include <OSSIA/Executor/ExecutorContext.hpp>
-#include <OSSIA/Executor/Settings/ExecutorModel.hpp>
 
 #include <OSSIA/OSSIA2iscore.hpp>
 
 
 namespace RecreateOnPlay
 {
-static void statusCallback(
-        OSSIA::TimeEvent::Status newStatus)
-{
-
-}
-
 BaseScenarioElement::BaseScenarioElement(
         BaseScenarioRefContainer element,
         const Context& ctx,
@@ -45,8 +38,8 @@ BaseScenarioElement::BaseScenarioElement(
 {
     auto main_start_node = OSSIA::TimeNode::create();
     auto main_end_node = OSSIA::TimeNode::create();
-    auto main_start_event_it = main_start_node->emplace(main_start_node->timeEvents().begin(), statusCallback);
-    auto main_end_event_it = main_end_node->emplace(main_end_node->timeEvents().begin(), statusCallback);
+    auto main_start_event_it = main_start_node->emplace(main_start_node->timeEvents().begin(), [] (auto&&...) {});
+    auto main_end_event_it = main_end_node->emplace(main_end_node->timeEvents().begin(), [] (auto&&...) {});
     auto main_start_state = OSSIA::State::create();
     auto main_end_state = OSSIA::State::create();
 
@@ -56,19 +49,12 @@ BaseScenarioElement::BaseScenarioElement(
     // TODO PlayDuration of base constraint.
     // TODO PlayDuration of FullView
     auto main_constraint = OSSIA::TimeConstraint::create(
-                                [&] (const OSSIA::TimeValue& position,
-                               const OSSIA::TimeValue& date,
-                               std::shared_ptr<OSSIA::StateElement> state)
-    {
-        baseScenarioConstraintCallback(position, date, state);
-    },
+                                [] (auto&&...) {},
                                *main_start_event_it,
                                *main_end_event_it,
                                iscore::convert::time(element.constraint().duration.defaultDuration()),
                                iscore::convert::time(element.constraint().duration.minDuration()),
                                iscore::convert::time(element.constraint().duration.maxDuration()));
-
-    main_constraint->setGranularity(ctx.doc.app.settings<Settings::Model>().getRate());
 
     m_ossia_startTimeNode = new TimeNodeElement{main_start_node, element.startTimeNode(),  m_ctx.devices.list(), this};
     m_ossia_endTimeNode = new TimeNodeElement{main_end_node, element.endTimeNode(), m_ctx.devices.list(), this};
@@ -116,24 +102,6 @@ StateElement *BaseScenarioElement::endState() const
 {
     return m_ossia_endState;
 }
-
-void BaseScenarioElement::baseScenarioConstraintCallback(const OSSIA::TimeValue& position,
-                               const OSSIA::TimeValue& date,
-                               std::shared_ptr<OSSIA::StateElement> state)
-{
-    state->launch();
-
-    auto currentTime = Ossia::convert::time(date);
-
-    auto& cstdur = m_ossia_constraint->iscoreConstraint().duration;
-    const auto& maxdur = cstdur.maxDuration();
-
-    if(!maxdur.isInfinite())
-        cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
-    else
-        cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
-}
-
 
 }
 

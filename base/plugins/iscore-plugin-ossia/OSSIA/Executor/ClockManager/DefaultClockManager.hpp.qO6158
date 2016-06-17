@@ -1,0 +1,19 @@
+#pragma once
+#include <OSSIA/Executor/ClockManager/ClockManagerFactory.hpp>
+
+namespace RecreateOnPlay
+{
+class DefaultClockManager final : public ClockManager
+{
+        ISCORE_CONCRETE_FACTORY_DECL("f00bb518-ce49-47a0-82af-c5dce756ee6c")
+    public:
+        DefaultClockManager(const Context& ctx);
+
+    private:
+        void play() override;
+        void pause() override;
+        void stop() override;
+        void setup() override;
+};
+
+}

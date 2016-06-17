@@ -38,9 +38,9 @@ using StateProcessComponentFactoryList =
 struct Context
 {
     const iscore::DocumentContext& doc;
-    const DocumentPlugin& sys;
+    const RecreateOnPlay::DocumentPlugin& sys;
     const Explorer::DeviceDocumentPlugin& devices;
-    const ProcessComponentFactoryList& processes;
-    const StateProcessComponentFactoryList& stateProcesses;
+    const RecreateOnPlay::ProcessComponentFactoryList& processes;
+    const RecreateOnPlay::StateProcessComponentFactoryList& stateProcesses;
 };
 }
