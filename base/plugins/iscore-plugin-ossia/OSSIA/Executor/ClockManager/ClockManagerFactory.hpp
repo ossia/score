@@ -58,6 +58,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ClockManagerFactory :
         public:
             virtual ~ClockManagerFactory();
 
+            virtual QString prettyName() const = 0;
             virtual std::unique_ptr<ClockManager> make(
                 const RecreateOnPlay::Context& ctx) = 0;
 };
@@ -69,3 +70,5 @@ class ISCORE_LIB_BASE_EXPORT ClockManagerFactoryList final :
         using object_type = ClockManager;
 };
 }
+
+Q_DECLARE_METATYPE(RecreateOnPlay::ClockManagerFactory::ConcreteFactoryKey)

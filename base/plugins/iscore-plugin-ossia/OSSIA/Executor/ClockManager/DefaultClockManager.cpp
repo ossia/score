@@ -68,6 +68,11 @@ void DefaultClockManager::stop_impl(BaseScenarioElement& bs)
     bs.baseConstraint()->stop();
 }
 
+QString DefaultClockManagerFactory::prettyName() const
+{
+    return QObject::tr("Default");
+}
+
 std::unique_ptr<ClockManager> DefaultClockManagerFactory::make(
         const RecreateOnPlay::Context& ctx)
 {

@@ -45,7 +45,7 @@ struct VisitorVariant;
 #include <algorithm>
 #include <vector>
 
-#include <OSSIA/Executor/ClockManager/DefaultClockManager.hpp>
+#include <OSSIA/Executor/Settings/ExecutorModel.hpp>
 
 OSSIAApplicationPlugin::OSSIAApplicationPlugin(
         const iscore::GUIApplicationContext& ctx):
@@ -211,7 +211,7 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
 
             plugmodel->reload(cst);
 
-            m_clock = std::make_unique<RecreateOnPlay::DefaultClockManager>(plugmodel->context());
+            m_clock = makeClock(plugmodel->context());
             m_clock->play(t);
         }
 
@@ -242,7 +242,7 @@ void OSSIAApplicationPlugin::on_record(::TimeValue t)
 
         // Listening isn't stopped here.
         plugmodel->reload(scenar->baseConstraint());
-        m_clock = std::make_unique<RecreateOnPlay::DefaultClockManager>(plugmodel->context());
+        m_clock = makeClock(plugmodel->context());
         m_clock->play(t);
 
         m_playing = true;
@@ -344,3 +344,10 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
     m_remoteDevice = OSSIA::Device::create(remote_protocol, "i-score-remote");
 }
 
+
+std::unique_ptr<RecreateOnPlay::ClockManager> OSSIAApplicationPlugin::makeClock(
+        const RecreateOnPlay::Context& ctx)
+{
+    auto& s = context.settings<RecreateOnPlay::Settings::Model>();
+    return s.makeClock(ctx);
+}

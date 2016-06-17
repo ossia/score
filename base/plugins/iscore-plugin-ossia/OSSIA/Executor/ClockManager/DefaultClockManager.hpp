@@ -27,7 +27,8 @@ class DefaultClockManagerFactory final : public ClockManagerFactory
 {
         ISCORE_CONCRETE_FACTORY_DECL("583e9c52-e136-46b6-852f-7eef2993e9eb")
 
-        virtual std::unique_ptr<ClockManager> make(
+        QString prettyName() const override;
+        std::unique_ptr<ClockManager> make(
             const RecreateOnPlay::Context& ctx) override;
 };
 
