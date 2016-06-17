@@ -1,4 +1,5 @@
 #include "ExecutorModel.hpp"
+#include <OSSIA/Executor/ClockManager/DefaultClockManager.hpp>
 namespace RecreateOnPlay
 {
 namespace Settings
@@ -11,7 +12,7 @@ namespace Parameters
                     50};
         const iscore::sp<ModelClockParameter> Clock{
             QStringLiteral("iscore_plugin_ossia/Clock"),
-                    };
+                    DefaultClockManagerFactory::static_concreteFactoryKey()};
 
         auto list() {
             return std::tie(Rate, Clock);
@@ -24,19 +25,16 @@ Model::Model(QSettings& set, const iscore::ApplicationContext& ctx):
     iscore::setupDefaultSettings(set, Parameters::list(), *this);
 }
 
-std::unique_ptr<ClockManager> Model::makeClock(const RecreateOnPlay::Context& ctx) const
+std::unique_ptr<ClockManager> Model::makeClock(
+        const RecreateOnPlay::Context& ctx) const
 {
-    // 1. Create an uuid from the QString.
-    auto txt = m_Clock.toLatin1();
-    auto uid = ClockManagerFactory::ConcreteFactoryKey{txt.constData()};
-
-    auto it = m_clockFactories.find(std::move(uid));
+    auto it = m_clockFactories.find(m_Clock);
     return it != m_clockFactories.end()
-                ? it->make(ctx)
-                : nullptr;
+                 ? it->make(ctx)
+                 : std::make_unique<DefaultClockManager>(ctx);
 }
 
 ISCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
-ISCORE_SETTINGS_PARAMETER_CPP(QString, Model, Clock)
+ISCORE_SETTINGS_PARAMETER_CPP(ClockManagerFactory::ConcreteFactoryKey, Model, Clock)
 }
 }

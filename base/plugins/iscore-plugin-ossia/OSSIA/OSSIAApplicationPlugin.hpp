@@ -23,6 +23,7 @@ namespace OSSIA
 namespace RecreateOnPlay
 {
 class ClockManager;
+class Context;
 class ConstraintElement;
 }
 // TODO this should have "OSSIA Policies" : one would be the
@@ -34,8 +35,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         public QObject,
         public iscore::GUIApplicationContextPlugin
 {
-        Q_OBJECT
-
     public:
         OSSIAApplicationPlugin(
                 const iscore::GUIApplicationContext& app);
@@ -57,17 +56,14 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         void on_play(Scenario::ConstraintModel&, bool, ::TimeValue t = ::TimeValue::zero() );
         void on_record(::TimeValue t);
 
-    signals:
-        void requestPlay();
-        void requestPause();
-        void requestResume();
-        void requestStop();
-
     private:
         void on_stop();
         void on_init();
 
         void setupOSSIACallbacks();
+
+        std::unique_ptr<RecreateOnPlay::ClockManager> makeClock(const RecreateOnPlay::Context&);
+
         std::shared_ptr<OSSIA::Device> m_localDevice;
         std::shared_ptr<OSSIA::Device> m_remoteDevice;
 
