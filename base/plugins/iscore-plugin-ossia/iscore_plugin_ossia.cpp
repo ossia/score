@@ -17,6 +17,8 @@
 
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <OSSIA/Executor/Settings/ExecutorFactory.hpp>
+#include <OSSIA/Executor/ClockManager/ClockManagerFactory.hpp>
+#include <OSSIA/Executor/ClockManager/DefaultClockManager.hpp>
 #include <OSSIA/LocalTree/Settings/LocalTreeFactory.hpp>
 #include <OSSIA/Listening/PlayListeningHandlerFactory.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
@@ -45,7 +47,8 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_ossia::
     return make_ptr_vector<iscore::FactoryListInterface,
             Ossia::LocalTree::ProcessComponentFactoryList,
             RecreateOnPlay::ProcessComponentFactoryList,
-            RecreateOnPlay::StateProcessComponentFactoryList
+            RecreateOnPlay::StateProcessComponentFactoryList,
+            RecreateOnPlay::ClockManagerFactoryList
             >();
 }
 
@@ -77,7 +80,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
             FW<Ossia::LocalTree::ProcessComponentFactory,
                  Ossia::LocalTree::ScenarioComponentFactory>,
             FW<iscore::PanelDelegateFactory,
-                 Ossia::PanelDelegateFactory>
+                 Ossia::PanelDelegateFactory>,
+            FW<RecreateOnPlay::ClockManagerFactory,
+                 RecreateOnPlay::DefaultClockManagerFactory>
             >
             >(ctx, key);
 }
