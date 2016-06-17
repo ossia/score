@@ -7,13 +7,13 @@ namespace RecreateOnPlay
 ClockManager::~ClockManager() = default;
 ClockManagerFactory::~ClockManagerFactory() = default;
 
-void ClockManager::play()
+void ClockManager::play(const TimeValue& t)
 {
     auto bs = context.sys.baseScenario();
     if(!bs)
         return;
 
-    play_impl(*bs);
+    play_impl(t, *bs);
 }
 
 void ClockManager::pause()
@@ -41,15 +41,6 @@ void ClockManager::stop()
         return;
 
     stop_impl(*bs);
-}
-
-void ClockManager::setup()
-{
-    auto bs = context.sys.baseScenario();
-    if(!bs)
-        return;
-
-    setup_impl(*bs);
 }
 
 }

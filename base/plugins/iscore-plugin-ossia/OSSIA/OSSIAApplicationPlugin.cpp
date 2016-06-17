@@ -41,8 +41,11 @@ struct VisitorVariant;
 #include <core/presenter/DocumentManager.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/application/ApplicationSettings.hpp>
+#include <OSSIA/Executor/ClockManager/ClockManagerFactory.hpp>
 #include <algorithm>
 #include <vector>
+
+#include <OSSIA/Executor/ClockManager/DefaultClockManager.hpp>
 
 OSSIAApplicationPlugin::OSSIAApplicationPlugin(
         const iscore::GUIApplicationContext& ctx):
@@ -189,14 +192,12 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
     {
         if(m_playing)
         {
-            if(auto bs = plugmodel->baseScenario())
+            ISCORE_ASSERT(bool(m_clock));
+            auto bs = plugmodel->baseScenario();
+            auto& cstr = *bs->baseConstraint()->OSSIAConstraint();
+            if(cstr.paused())
             {
-                auto& cstr = *bs->baseConstraint()->OSSIAConstraint();
-                if(cstr.paused())
-                {
-                    emit requestResume();
-                    cstr.resume();
-                }
+                m_clock->resume();
             }
         }
         else
@@ -209,21 +210,18 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
                 explorer->deviceModel().listening().stop();
 
             plugmodel->reload(cst);
-            auto& cstr = *plugmodel->baseScenario()->baseConstraint();
 
-            emit requestPlay();
-            cstr.play(t);
+            m_clock = std::make_unique<RecreateOnPlay::DefaultClockManager>(plugmodel->context());
+            m_clock->play(t);
         }
 
         m_playing = true;
     }
     else
     {
-        if(auto bs = plugmodel->baseScenario())
+        if(m_clock)
         {
-            auto& cstr = *bs->baseConstraint();
-            emit requestPause();
-            cstr.OSSIAConstraint()->pause();
+            m_clock->pause();
         }
     }
 }
@@ -244,10 +242,9 @@ void OSSIAApplicationPlugin::on_record(::TimeValue t)
 
         // Listening isn't stopped here.
         plugmodel->reload(scenar->baseConstraint());
-        auto& cstr = *plugmodel->baseScenario()->baseConstraint();
+        m_clock = std::make_unique<RecreateOnPlay::DefaultClockManager>(plugmodel->context());
+        m_clock->play(t);
 
-        emit requestPlay();
-        cstr.play(t);
         m_playing = true;
     }
 }
@@ -263,11 +260,9 @@ void OSSIAApplicationPlugin::on_stop()
         if(plugmodel && plugmodel->baseScenario())
         {
             m_playing = false;
-            auto& cstr = *plugmodel->baseScenario()->baseConstraint();
 
-            emit requestStop();
-            cstr.stop();
-
+            m_clock->stop();
+            m_clock.reset();
             plugmodel->clear();
         }
 
@@ -328,7 +323,6 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
         auto local_play_address = local_play_node->createAddress(OSSIA::Value::Type::BOOL);
         local_play_address->setValue(new OSSIA::Bool{false});
         local_play_address->addCallback([&] (const OSSIA::Value* v) {
-            qDebug("play");
             if (v->getType() == OSSIA::Value::Type::BOOL)
             {
                 on_play(static_cast<const OSSIA::Bool*>(v)->value);
@@ -341,7 +335,6 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
         auto local_stop_address = local_stop_node->createAddress(OSSIA::Value::Type::IMPULSE);
         local_stop_address->setValue(new OSSIA::Impulse{});
         local_stop_address->addCallback([&] (const OSSIA::Value*) {
-            qDebug("stop");
             on_stop();
         });
 

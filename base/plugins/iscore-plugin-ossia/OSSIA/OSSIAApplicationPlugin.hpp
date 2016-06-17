@@ -22,6 +22,7 @@ namespace OSSIA
 }
 namespace RecreateOnPlay
 {
+class ClockManager;
 class ConstraintElement;
 }
 // TODO this should have "OSSIA Policies" : one would be the
@@ -71,5 +72,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         std::shared_ptr<OSSIA::Device> m_remoteDevice;
 
         RecreateOnPlay::PlayContextMenu m_playActions;
+
+        std::unique_ptr<RecreateOnPlay::ClockManager> m_clock;
         bool m_playing{false};
 };

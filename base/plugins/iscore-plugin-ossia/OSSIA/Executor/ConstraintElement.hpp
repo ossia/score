@@ -43,6 +43,8 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ConstraintElement final : public QObject
         Scenario::ConstraintModel& iscoreConstraint() const;
 
         void play(TimeValue t = TimeValue::zero());
+        void pause();
+        void resume();
         void stop();
 
         void executionStarted();
