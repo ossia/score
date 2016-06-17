@@ -3,6 +3,8 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
+#include <Process/TimeValue.hpp>
+
 namespace RecreateOnPlay
 {
 class Context;
@@ -21,7 +23,8 @@ class BaseScenarioElement;
  * to external clocks, such as the sound card clock,
  * or the host clock if i-score is used as a plug-in.
  *
- * TODO use this to clean-up the requestPlay, requestStop, etc... mess.
+ * The derived constructors should set-up
+ * the clock drive mode, speed, etc.
  *
  */
 class ISCORE_PLUGIN_OSSIA_EXPORT ClockManager
@@ -30,25 +33,20 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ClockManager
         ClockManager(const RecreateOnPlay::Context& ctx): context{ctx} { }
         virtual ~ClockManager();
 
-        void play();
+        const Context& context;
+
+        void play(const TimeValue& t);
         void pause();
         void resume();
         void stop();
-        void setup();
 
     protected:
-        virtual void play_impl(BaseScenarioElement&) = 0;
+        virtual void play_impl(
+                const TimeValue& t,
+                BaseScenarioElement&) = 0;
         virtual void pause_impl(BaseScenarioElement&) = 0;
         virtual void resume_impl(BaseScenarioElement&) = 0;
         virtual void stop_impl(BaseScenarioElement&) = 0;
-
-        /**
-         * @brief setup
-         * Should set-up the clock drive mode, speed, etc.
-         */
-        virtual void setup_impl(BaseScenarioElement&) = 0;
-
-        const Context& context;
 };
 
 class ISCORE_PLUGIN_OSSIA_EXPORT ClockManagerFactory :

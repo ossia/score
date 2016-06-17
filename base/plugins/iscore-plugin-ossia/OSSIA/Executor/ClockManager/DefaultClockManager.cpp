@@ -9,7 +9,6 @@
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
-#include <Editor/TimeConstraint.h>
 #include <Editor/Clock.h>
 namespace RecreateOnPlay
 {
@@ -18,34 +17,21 @@ DefaultClockManager::DefaultClockManager(
         const Context& ctx):
     ClockManager{ctx}
 {
-
-}
-
-void DefaultClockManager::play_impl(BaseScenarioElement&)
-{
-
-}
-
-void DefaultClockManager::pause_impl(BaseScenarioElement&)
-{
-}
-void DefaultClockManager::resume_impl(BaseScenarioElement&)
-{
-}
-
-void DefaultClockManager::stop_impl(BaseScenarioElement&)
-{
-}
-
-void DefaultClockManager::setup_impl(BaseScenarioElement& bs)
-{
+    auto& bs = *ctx.sys.baseScenario();
     OSSIA::TimeConstraint& ossia_cst = *bs.baseConstraint()->OSSIAConstraint();
+
     ossia_cst.setDriveMode(OSSIA::Clock::DriveMode::INTERNAL);
     ossia_cst.setGranularity(context.doc.app.settings<Settings::Model>().getRate());
-    ossia_cst.setCallback([&,&iscore_cst=bs.baseConstraint()->iscoreConstraint()] (const OSSIA::TimeValue& position,
-                          const OSSIA::TimeValue& date,
-                          std::shared_ptr<OSSIA::StateElement> state)
+    ossia_cst.setCallback(makeDefaultCallback(bs.baseConstraint()->iscoreConstraint()));
+}
+
+OSSIA::TimeConstraint::ExecutionCallback DefaultClockManager::makeDefaultCallback(
+        Scenario::ConstraintModel& cst)
 {
+    return [&iscore_cst=cst] (const OSSIA::TimeValue& position,
+            const OSSIA::TimeValue& date,
+            std::shared_ptr<OSSIA::StateElement> state)
+    {
         state->launch();
 
         auto currentTime = Ossia::convert::time(date);
@@ -57,7 +43,29 @@ void DefaultClockManager::setup_impl(BaseScenarioElement& bs)
             cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
         else
             cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
-});
+    };
+}
+
+void DefaultClockManager::play_impl(
+        const TimeValue& t,
+        BaseScenarioElement& bs)
+{
+    bs.baseConstraint()->play(t);
+}
+
+void DefaultClockManager::pause_impl(BaseScenarioElement& bs)
+{
+    bs.baseConstraint()->pause();
+}
+
+void DefaultClockManager::resume_impl(BaseScenarioElement& bs)
+{
+    bs.baseConstraint()->resume();
+}
+
+void DefaultClockManager::stop_impl(BaseScenarioElement& bs)
+{
+    bs.baseConstraint()->stop();
 }
 
 std::unique_ptr<ClockManager> DefaultClockManagerFactory::make(

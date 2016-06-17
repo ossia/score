@@ -100,6 +100,16 @@ void ConstraintElement::play(TimeValue t)
 
 }
 
+void ConstraintElement::pause()
+{
+    m_ossia_constraint->pause();
+}
+
+void ConstraintElement::resume()
+{
+    m_ossia_constraint->resume();
+}
+
 void ConstraintElement::flattenAndFilter(const std::shared_ptr<OSSIA::StateElement>& element)
 {
     if (!element)
