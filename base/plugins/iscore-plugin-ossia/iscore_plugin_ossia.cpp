@@ -29,8 +29,8 @@ namespace iscore {
 iscore_plugin_ossia::iscore_plugin_ossia() :
     QObject {}
 {
-    qRegisterMetaType<RecreateOnPlay::ClockManagerFactory::ConcreteFactoryKey>();
-    qRegisterMetaTypeStreamOperators<RecreateOnPlay::ClockManagerFactory::ConcreteFactoryKey>();
+    qRegisterMetaType<RecreateOnPlay::ClockManagerFactory::ConcreteFactoryKey>("ClockManagerKey");
+    qRegisterMetaTypeStreamOperators<RecreateOnPlay::ClockManagerFactory::ConcreteFactoryKey>("ClockManagerKey");
 }
 
 iscore_plugin_ossia::~iscore_plugin_ossia()

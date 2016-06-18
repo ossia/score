@@ -20,10 +20,11 @@ Settings::~Settings()
 }
 
 void Settings::setupSettingsPlugin(
+        QSettings& s,
         const iscore::ApplicationContext& ctx,
         SettingsDelegateFactory& plugin)
 {
-    auto model = plugin.makeModel(m_qtSettings, ctx);
+    auto model = plugin.makeModel(s, ctx);
     if(!model)
         return;
 
