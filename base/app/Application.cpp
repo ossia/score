@@ -212,9 +212,10 @@ void Application::loadPluginData()
 
     iscore::PluginLoader::loadPlugins(registrar, ctx);
     // Load the settings
+    QSettings s;
     for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
     {
-        m_settings.setupSettingsPlugin(ctx, elt);
+        m_settings.setupSettingsPlugin(s, ctx, elt);
     }
 
     m_presenter->setupGUI();

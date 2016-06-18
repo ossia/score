@@ -95,16 +95,14 @@ struct TSerializer<DataStream, void, UuidKey<U>>
                 DataStream::Serializer& s,
                 const UuidKey<U>& uid)
         {
-            for(auto val : uid.impl().data)
-                s.stream() << val;
+            s.stream().stream.writeRawData((const char*) uid.impl().data, sizeof(uid.impl().data));
         }
 
         static void writeTo(
                 DataStream::Deserializer& s,
                 UuidKey<U>& uid)
         {
-            for(auto& val : uid.impl().data)
-                s.stream() >> val;
+            s.stream().stream.readRawData((char*) uid.impl().data, sizeof(uid.impl().data));
         }
 };
 

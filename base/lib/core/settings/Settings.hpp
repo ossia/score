@@ -37,6 +37,7 @@ namespace iscore
             ~Settings();
 
             void setupSettingsPlugin(
+                    QSettings& s,
                     const iscore::ApplicationContext& ctx,
                     SettingsDelegateFactory& plugin);
             SettingsView& view() const
@@ -47,8 +48,6 @@ namespace iscore
             auto& settings() const
             { return m_settings; }
         private:
-            QSettings m_qtSettings;
-
             SettingsView* m_settingsView{};
             SettingsPresenter* m_settingsPresenter{};
 
