@@ -24,6 +24,11 @@ View::View():
 
     connect(m_sb, SignalUtils::QSpinBox_valueChanged_int(),
             this, &View::rateChanged);
+
+    connect(m_cb, SignalUtils::QComboBox_currentIndexChanged_int(),
+            this, [this] (int i) {
+        emit clockChanged(m_cb->itemData(i).value<ClockManagerFactory::ConcreteFactoryKey>());
+    });
 }
 
 void View::setRate(int val)

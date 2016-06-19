@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <OSSIA/Executor/ConstraintExecutionFacade.hpp>
+#include <iscore_plugin_ossia_export.h>
 namespace OSSIA
 {
     class TimeValue;
@@ -80,7 +81,7 @@ class BaseScenarioRefContainer
 namespace RecreateOnPlay
 {
 struct Context;
-class BaseScenarioElement final : public QObject
+class ISCORE_PLUGIN_OSSIA_EXPORT BaseScenarioElement final : public QObject
 {
     public:
         BaseScenarioElement(
