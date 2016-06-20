@@ -19,7 +19,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final : public IdentifiedObject
 
         State::Trigger expression() const;
         void setExpression(const State::Trigger& expression);
-        bool isVoid();
 
         bool active() const;
         void setActive(bool active);

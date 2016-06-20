@@ -69,7 +69,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final : public IdentifiedObjec
         const QVector<Id<EventModel>>& events() const;
         void setEvents(const QVector<Id<EventModel>>& events);
 
-        TriggerModel* trigger() const;
+        Scenario::TriggerModel* trigger() const;
         QString expression() const;
 
         bool hasTrigger() const;
