@@ -47,6 +47,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         };
 
         Scenario_T& scenario;
+        System_T& system;
 
         ScenarioComponentHierarchyManager(
                 Component_T& component,
@@ -56,8 +57,8 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
                 QObject* parentcomp
                 ):
             scenario{scenar},
+            system{doc},
             m_component{component},
-            m_system{doc},
             m_context{ctx},
             m_parentObject{parentcomp}
         {
@@ -127,7 +128,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
             auto comp = m_component.template make<typename map_t::type>(
                             getStrongId(element.components),
                             element,
-                            m_system,
+                            system,
                             m_context,
                             m_parentObject);
             if(comp)
@@ -157,7 +158,6 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
 
         Component_T& m_component;
 
-        System_T& m_system;
         const iscore::DocumentContext& m_context;
         QObject* m_parentObject{};
 

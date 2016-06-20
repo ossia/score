@@ -27,6 +27,8 @@ DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, Curve::GammaSegment)
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}
 {
+    qRegisterMetaType<Curve::Settings::Mode>();
+    qRegisterMetaTypeStreamOperators<Curve::Settings::Mode>();
 }
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_curve::factories(
