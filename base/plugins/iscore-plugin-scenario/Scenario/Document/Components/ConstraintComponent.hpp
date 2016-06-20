@@ -17,6 +17,7 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
         };
 
         Scenario::ConstraintModel& constraint;
+        System_T& system;
 
         ConstraintComponentHierarchyManager(
                 Component_T& component,
@@ -25,9 +26,9 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
                 const iscore::DocumentContext& ctx,
                 QObject* component_as_parent):
             constraint{cst},
+            system{doc},
             m_component{component},
             m_componentFactory{ctx.app.components.factory<ProcessComponentFactoryList_T>()},
-            m_system{doc},
             m_context{ctx},
             m_parentObject{component_as_parent}
         {
@@ -51,13 +52,13 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
         void add(Process::ProcessModel& process)
         {
             // Will return a factory for the given process if available
-            if(auto factory = m_componentFactory.factory(process, m_system, m_context))
+            if(auto factory = m_componentFactory.factory(process, system, m_context))
             {
                 // The subclass should provide this function to construct
                 // the correct component relative to this process.
                 auto proc_comp = m_component.make_processComponent(
                                      getStrongId(process.components),
-                                     *factory, process, m_system, m_context, m_parentObject);
+                                     *factory, process, system, m_context, m_parentObject);
                 if(proc_comp)
                 {
                     process.components.add(proc_comp);
@@ -97,7 +98,6 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
     private:
         Component_T& m_component;
         const ProcessComponentFactoryList_T& m_componentFactory;
-        System_T& m_system;
         const iscore::DocumentContext& m_context;
 
         QObject* m_parentObject{};
