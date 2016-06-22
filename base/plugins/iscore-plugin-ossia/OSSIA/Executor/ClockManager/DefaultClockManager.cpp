@@ -22,13 +22,15 @@ DefaultClockManager::DefaultClockManager(
 
     ossia_cst.setDriveMode(OSSIA::Clock::DriveMode::INTERNAL);
     ossia_cst.setGranularity(context.doc.app.settings<Settings::Model>().getRate());
-    ossia_cst.setCallback(makeDefaultCallback(bs.baseConstraint()->iscoreConstraint()));
+    ossia_cst.setCallback(makeDefaultCallback(bs));
 }
 
 OSSIA::TimeConstraint::ExecutionCallback DefaultClockManager::makeDefaultCallback(
-        Scenario::ConstraintModel& cst)
+        RecreateOnPlay::BaseScenarioElement& bs)
 {
-    return [&iscore_cst=cst] (const OSSIA::TimeValue& position,
+    auto& cst = *bs.baseConstraint();
+    return [&bs,&iscore_cst=cst.iscoreConstraint()] (
+            const OSSIA::TimeValue& position,
             const OSSIA::TimeValue& date,
             std::shared_ptr<OSSIA::StateElement> state)
     {

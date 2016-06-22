@@ -6,6 +6,7 @@ namespace Scenario
 { class ConstraintModel; }
 namespace RecreateOnPlay
 {
+class BaseScenarioElement;
 class ISCORE_PLUGIN_OSSIA_EXPORT DefaultClockManager final : public ClockManager
 {
     public:
@@ -13,7 +14,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DefaultClockManager final : public ClockManager
 
         // Pass the root constraint.
         static OSSIA::TimeConstraint::ExecutionCallback makeDefaultCallback(
-                Scenario::ConstraintModel&);
+                RecreateOnPlay::BaseScenarioElement&);
     private:
         void play_impl(
                 const TimeValue& t,

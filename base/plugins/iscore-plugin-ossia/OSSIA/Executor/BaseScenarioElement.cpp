@@ -38,8 +38,9 @@ BaseScenarioElement::BaseScenarioElement(
 {
     auto main_start_node = OSSIA::TimeNode::create();
     auto main_end_node = OSSIA::TimeNode::create();
-    auto main_start_event_it = main_start_node->emplace(main_start_node->timeEvents().begin(), [] (auto&&...) {});
-    auto main_end_event_it = main_end_node->emplace(main_end_node->timeEvents().begin(), [] (auto&&...) {});
+
+    auto main_start_event_it = main_start_node->emplace(main_start_node->timeEvents().begin(), [this] (auto&&...) { });
+    auto main_end_event_it = main_end_node->emplace(main_end_node->timeEvents().begin(), [this] (auto&&...) { });
     auto main_start_state = OSSIA::State::create();
     auto main_end_state = OSSIA::State::create();
 
@@ -66,6 +67,19 @@ BaseScenarioElement::BaseScenarioElement(
     m_ossia_endState = new StateElement{element.endState(), main_end_state, m_ctx, this};
 
     m_ossia_constraint = new ConstraintElement{main_constraint, element.constraint(), m_ctx, this};
+
+    main_constraint->setExecutionStatusCallback(
+                [=] (OSSIA::Clock::ClockExecutionStatus c)
+    {
+        if(c == OSSIA::Clock::ClockExecutionStatus::STOPPED)
+        {
+            auto accumulator = OSSIA::State::create();
+            flattenAndFilter(main_end_state, accumulator);
+            accumulator->launch();
+
+            emit finished();
+        }
+    });
 }
 
 ConstraintElement *BaseScenarioElement::baseConstraint() const

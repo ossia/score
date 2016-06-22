@@ -212,6 +212,12 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
             plugmodel->reload(cst);
 
             m_clock = makeClock(plugmodel->context());
+
+            connect(plugmodel->baseScenario(), &RecreateOnPlay::BaseScenarioElement::finished,
+                    this, [=] () {
+                // TODO change the action icon state
+                on_stop();
+            });
             m_clock->play(t);
         }
 
