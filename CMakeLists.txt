@@ -5,6 +5,9 @@ set(CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Configurations"
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Configurations/travis"
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules/cmake-modules")
+set(CMAKE_PREFIX_PATH
+  "${CMAKE_PREFIX_PATH}"
+  "${CMAKE_MODULE_PATH}")
 
 if(NOT ISCORE_CONFIGURATION)
   set(ISCORE_CONFIGURATION developer)
