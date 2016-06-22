@@ -4,8 +4,7 @@
 #include <QFlags>
 #include <QIODevice>
 #include <QStringList>
-#include <stdlib.h>
-
+#include <cstdlib>
 #include "RandomNameProvider.hpp"
 
 struct WordList :
