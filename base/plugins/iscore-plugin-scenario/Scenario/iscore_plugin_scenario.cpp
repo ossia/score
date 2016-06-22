@@ -16,6 +16,8 @@
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Settings/Factory.hpp>
 #include <Scenario/iscore_plugin_scenario.hpp>
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <Scenario/Application/Drops/MessageDropHandler.hpp>
 #include <State/Message.hpp>
 #include <QMetaType>
 #include <QString>
@@ -104,7 +106,8 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
             TriggerCommandFactoryList,
             DisplayedElementsProviderList,
             Process::InspectorWidgetDelegateFactoryList,
-            Process::StateProcessInspectorWidgetDelegateFactoryList
+            Process::StateProcessInspectorWidgetDelegateFactoryList,
+            DropHandlerList
             >();
 }
 
@@ -148,7 +151,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
     FW<iscore::SettingsDelegateFactory,
         Scenario::Settings::Factory>,
     FW<iscore::PanelDelegateFactory,
-        Scenario::PanelDelegateFactory>
+        Scenario::PanelDelegateFactory>,
+    FW<Scenario::DropHandler,
+        Scenario::MessageDropHandler>
 #if defined(ISCORE_LIB_INSPECTOR)
     ,
     FW<Inspector::InspectorWidgetFactory,

@@ -119,7 +119,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
 
         void handleDrop(
                 const QPointF& pos,
-                const QMimeData *mime);
+                const QMimeData *mime) const;
 
         bool event(QEvent* e) override
         {
