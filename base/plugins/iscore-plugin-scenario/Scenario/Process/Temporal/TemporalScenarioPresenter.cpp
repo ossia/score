@@ -171,6 +171,11 @@ const Id<Process::ProcessModel>& TemporalScenarioPresenter::modelId() const
     return m_layer.processModel().id();
 }
 
+Point TemporalScenarioPresenter::toScenarioPoint(QPointF pt) const
+{
+    return ConvertToScenarioPoint(pt, zoomRatio(), view().boundingRect().size().height());
+}
+
 void TemporalScenarioPresenter::setWidth(qreal width)
 {
     m_view->setWidth(width);
@@ -211,6 +216,11 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
     {
         comment.on_zoomRatioChanged(m_zoomRatio);
     }
+}
+
+const ScenarioModel &TemporalScenarioPresenter::processModel() const
+{
+    return ::model(m_layer);
 }
 
 void TemporalScenarioPresenter::fillContextMenu(

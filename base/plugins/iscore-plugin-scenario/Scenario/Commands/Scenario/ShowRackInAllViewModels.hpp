@@ -19,7 +19,7 @@ class ConstraintViewModel;
 namespace Command
 {
 
-class ShowRackInAllViewModels final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT ShowRackInAllViewModels final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ShowRackInAllViewModels, "Show a rack everywhere")
     public:

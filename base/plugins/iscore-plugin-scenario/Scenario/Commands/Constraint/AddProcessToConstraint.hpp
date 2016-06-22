@@ -417,7 +417,7 @@ class AddProcessDelegate<HasRacks, IsBaseConstraint>
 };
 
 
-inline iscore::SerializableCommand* make_AddProcessToConstraint(
+inline Scenario::Command::AddProcessToConstraintBase* make_AddProcessToConstraint(
         const ConstraintModel& constraint,
         const UuidKey<Process::ProcessFactory>& process)
 {
@@ -425,7 +425,7 @@ inline iscore::SerializableCommand* make_AddProcessToConstraint(
     auto noRackes = constraint.racks.empty();
 
 
-    iscore::SerializableCommand* cmd{};
+    Scenario::Command::AddProcessToConstraintBase* cmd{};
     if(noRackes)
     {
         cmd = new AddProcessToConstraint<AddProcessDelegate<HasNoRacks>>{

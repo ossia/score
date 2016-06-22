@@ -116,7 +116,7 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent *event)
 
 void TemporalScenarioView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
-    emit dropReceived(event->scenePos(), event->mimeData());
+    emit dropReceived(event->pos(), event->mimeData());
 
     event->accept();
 }
