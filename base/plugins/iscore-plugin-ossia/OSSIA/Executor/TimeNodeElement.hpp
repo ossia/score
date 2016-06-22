@@ -21,7 +21,6 @@ namespace RecreateOnPlay
 {
 class ISCORE_PLUGIN_OSSIA_EXPORT TimeNodeElement final : public QObject
 {
-        Q_OBJECT
     public:
         TimeNodeElement(
                 std::shared_ptr<OSSIA::TimeNode> ossia_tn,
@@ -31,9 +30,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT TimeNodeElement final : public QObject
 
         std::shared_ptr<OSSIA::TimeNode> OSSIATimeNode() const;
         const Scenario::TimeNodeModel& iscoreTimeNode() const;
-
-    signals:
-        void triggered();
 
     private:
         std::shared_ptr<OSSIA::TimeNode> m_ossia_node;

@@ -83,6 +83,7 @@ namespace RecreateOnPlay
 struct Context;
 class ISCORE_PLUGIN_OSSIA_EXPORT BaseScenarioElement final : public QObject
 {
+        Q_OBJECT
     public:
         BaseScenarioElement(
                 BaseScenarioRefContainer element,
@@ -99,6 +100,9 @@ class ISCORE_PLUGIN_OSSIA_EXPORT BaseScenarioElement final : public QObject
 
         StateElement* startState() const;
         StateElement* endState() const;
+
+    signals:
+        void finished();
 
     private:
         void baseScenarioConstraintCallback(const OSSIA::TimeValue&position,

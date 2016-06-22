@@ -273,7 +273,6 @@ void ScenarioElement::eventCallback(
 
 void ScenarioElement::timeNodeCallback(TimeNodeElement* tn, const OSSIA::TimeValue& date)
 {
-    emit tn->triggered();
     if(m_checker)
     {
         m_pastTn.push_back(tn->iscoreTimeNode().id());
