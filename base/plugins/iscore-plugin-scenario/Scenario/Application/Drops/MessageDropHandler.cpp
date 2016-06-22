@@ -31,32 +31,33 @@ bool MessageDropHandler::handle(
     State::MessageList ml = des.deserialize();
 
     MacroCommandDispatcher m(
-                new  Scenario::Command::CreateStateMacro,
+                new Scenario::Command::CreateStateMacro,
                 pres.context().context.commandStack);
 
-    const Scenario::ScenarioModel& scenar = ::model(static_cast<const TemporalScenarioLayerModel&>(pres.layerModel()));
+
+    const Scenario::ScenarioModel& scenar = pres.processModel();
     Id<StateModel> createdState;
-    auto t = TimeValue::fromMsecs(pos.x() * pres.zoomRatio());
-    auto y = pos.y() / (pres.view().boundingRect().size().height() + 150);
+
+    Scenario::Point pt = pres.toScenarioPoint(pos);
 
     auto state = furthestSelectedState(scenar);
-    if(state && (scenar.events.at(state->eventId()).date() < t))
+    if(state && (scenar.events.at(state->eventId()).date() < pt.date))
     {
         if(state->nextConstraint())
         {
             // We create from the event instead
-            auto cmd1 = new Scenario::Command::CreateState{scenar, state->eventId(), y};
+            auto cmd1 = new Scenario::Command::CreateState{scenar, state->eventId(), pt.y};
             m.submitCommand(cmd1);
 
             auto cmd2 = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
-                    scenar, cmd1->createdState(), t, y};
+                    scenar, cmd1->createdState(), pt.date, pt.y};
             m.submitCommand(cmd2);
             createdState = cmd2->createdState();
         }
         else
         {
             auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
-                    scenar, state->id(), t, state->heightPercentage()};
+                    scenar, state->id(), pt.date, state->heightPercentage()};
             m.submitCommand(cmd);
             createdState = cmd->createdState();
         }
@@ -65,7 +66,7 @@ bool MessageDropHandler::handle(
     {
         // We create in the emptiness
         auto cmd = new Scenario::Command::CreateTimeNode_Event_State(
-                    scenar, t, y);
+                    scenar, pt.date, pt.y);
         m.submitCommand(cmd);
         createdState = cmd->createdState();
     }

@@ -71,6 +71,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
         const Process::LayerModel& layerModel() const override;
         const Id<Process::ProcessModel>& modelId() const override;
 
+        /**
+         * @brief toScenarioPoint
+         *
+         * Maps a point in item coordinates
+         * to a point in scenario model coordinates (time; y percentage)
+         */
+        Scenario::Point toScenarioPoint(QPointF pt) const;
+
         void setWidth(qreal width) override;
         void setHeight(qreal height) override;
         void putToFront() override;
@@ -101,6 +109,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
         const auto& getComments() const
         { return m_comments; }
 
+        const ScenarioModel& processModel() const;
         TemporalScenarioView& view() const
         { return *m_view; }
         const ZoomRatio& zoomRatio() const

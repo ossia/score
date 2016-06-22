@@ -3,11 +3,12 @@
 #include <QMimeData>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 namespace Scenario
 {
 class TemporalScenarioPresenter;
-class DropHandler :
+class ISCORE_PLUGIN_SCENARIO_EXPORT DropHandler :
         public iscore::AbstractFactory<DropHandler>
 {
         ISCORE_ABSTRACT_FACTORY_DECL(
@@ -18,8 +19,8 @@ class DropHandler :
 
         // Returns false if not handled.
         virtual bool handle(
-                const TemporalScenarioPresenter&,
-                QPointF drop,
+                const Scenario::TemporalScenarioPresenter&,
+                QPointF pos,
                 const QMimeData* mime) = 0;
 };
 
@@ -30,7 +31,7 @@ class DropHandlerList final :
             virtual ~DropHandlerList();
 
         bool handle(const TemporalScenarioPresenter& scen,
-                    QPointF drop,
+                    QPointF pos,
                     const QMimeData* mime) const;
 };
 }
