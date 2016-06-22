@@ -11,6 +11,8 @@ QString addonArchitecture()
     return "linux-amd64";
 #elif defined(__APPLE__) && defined(__MACH__)
     return "darwin-amd64";
+#else
+    return "undefined";
 #endif
 }
 

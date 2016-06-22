@@ -146,7 +146,8 @@ function(iscore_set_unix_compile_options theTarget)
     "$<$<CONFIG:Debug>:-g>"
 
     # Release options
-    "$<$<CONFIG:Release>:-Ofast>"
+    "$<$<AND:$<CONFIG:Release>,$<BOOL:${NACL}>>:-O3>"
+    "$<$<AND:$<CONFIG:Release>,$<NOT:$<BOOL:${NACL}>>>:-Ofast>"
     "$<$<AND:$<CONFIG:Release>,$<BOOL:${ISCORE_ENABLE_OPTIMIZE_CUSTOM}>>:-march=native>"
     )
 
