@@ -1,4 +1,13 @@
 #pragma once
+#if defined(__native_client__)
+#include <boost/optional.hpp>
+namespace iscore {
+template<typename... Args> using optional = boost::optional<Args...>;
+const constexpr auto none = boost::none;
+}
+
+#else
+
 #ifdef __has_include
 #  if __has_include(<optional>)
 #    include <optional>
@@ -26,7 +35,7 @@ template<typename... Args> using optional = boost::optional<Args...>;
 const constexpr auto none = boost::none;
 }
 #endif
-
+#endif
 //TODO
 template<typename... Args>
 using optional = iscore::optional<Args...>;
