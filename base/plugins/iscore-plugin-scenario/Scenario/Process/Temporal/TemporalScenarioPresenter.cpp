@@ -1,5 +1,3 @@
-#include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveCommentBlock.hpp>
 #include <Scenario/Commands/Comment/SetCommentText.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
@@ -8,19 +6,7 @@
 #include <State/MessageListSerialization.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 
-#include <boost/iterator/indirect_iterator.hpp>
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/operators.hpp>
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <QGraphicsItem>
-#include <QMimeData>
-#include <QRect>
-#include <QSize>
-#include <QStringList>
-
 #include <Process/LayerModel.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
@@ -40,6 +26,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <State/Message.hpp>
 #include "TemporalScenarioPresenter.hpp"
 #include <iscore/document/DocumentContext.hpp>
@@ -523,68 +510,12 @@ void TemporalScenarioPresenter::updateAllElements()
     }
 }
 
-void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
+void TemporalScenarioPresenter::handleDrop(
+        const QPointF &pos,
+        const QMimeData *mime) const
 {
-    using namespace Scenario::Command;
-    // If the mime data has states in it we can handle it.
-    if(mime->formats().contains(iscore::mime::messagelist()))
-    {
-        Mime<State::MessageList>::Deserializer des{*mime};
-        State::MessageList ml = des.deserialize();
-
-        MacroCommandDispatcher m(
-                    new  Scenario::Command::CreateStateMacro,
-                    m_context.context.commandStack);
-
-        const Scenario::ScenarioModel& scenar = ::model(m_layer);
-        Id<StateModel> createdState;
-        auto t = TimeValue::fromMsecs(pos.x() * zoomRatio());
-        auto y = pos.y() / (m_view->boundingRect().size().height() + 150);
-
-
-        auto state = furthestSelectedState(scenar);
-        if(state && (scenar.events.at(state->eventId()).date() < t))
-        {
-            if(state->nextConstraint())
-            {
-                // We create from the event instead
-                auto cmd1 = new Scenario::Command::CreateState{scenar, state->eventId(), y};
-                m.submitCommand(cmd1);
-
-                auto cmd2 = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
-                            scenar, cmd1->createdState(), t, y};
-                m.submitCommand(cmd2);
-                createdState = cmd2->createdState();
-            }
-            else
-            {
-                auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
-                           scenar, state->id(), t, state->heightPercentage()};
-                m.submitCommand(cmd);
-                createdState = cmd->createdState();
-            }
-        }
-        else
-        {
-            // We create in the emptiness
-            auto cmd = new Scenario::Command::CreateTimeNode_Event_State(
-                           scenar, t, y);
-            m.submitCommand(cmd);
-            createdState = cmd->createdState();
-        }
-
-        auto state_path = make_path(scenar)
-                .extend(createdState)
-                .extend(Id<MessageItemModel>{});
-
-        auto cmd2 = new AddMessagesToState{
-                   std::move(state_path),
-                   ml};
-
-        m.submitCommand(cmd2);
-
-
-        m.commit();
-    }
+    m_context.context.app.components
+           .factory<Scenario::DropHandlerList>()
+           .handle(*this, pos, mime);
 }
 }
