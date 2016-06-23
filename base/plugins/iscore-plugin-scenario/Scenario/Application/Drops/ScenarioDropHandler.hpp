@@ -34,4 +34,31 @@ class DropHandlerList final :
                     QPointF pos,
                     const QMimeData* mime) const;
 };
+
+class ConstraintModel;
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDropHandler :
+        public iscore::AbstractFactory<ConstraintDropHandler>
+{
+        ISCORE_ABSTRACT_FACTORY_DECL(
+                ConstraintDropHandler,
+                "b9f3efc0-b906-487a-ac49-87924edd2cff")
+    public:
+        virtual ~ConstraintDropHandler();
+
+        // Returns false if not handled.
+        virtual bool handle(
+                const Scenario::ConstraintModel&,
+                const QMimeData* mime) = 0;
+};
+
+class ConstraintDropHandlerList final :
+        public iscore::ConcreteFactoryList<ConstraintDropHandler>
+{
+        public:
+            virtual ~ConstraintDropHandlerList();
+
+        bool handle(
+                const Scenario::ConstraintModel&,
+                const QMimeData* mime) const;
+};
 }

@@ -187,6 +187,7 @@ ISCORE_DECLARE_ACTION(RefreshStates, "Refresh St&ates", Scenario, Qt::CTRL + Qt:
 // Constraint
 ISCORE_DECLARE_ACTION(AddProcess, "&Add a process", Scenario, QKeySequence::UnknownKey)
 ISCORE_DECLARE_ACTION(InterpolateStates, "&Interpolate states", Scenario, Qt::CTRL + Qt::Key_K)
+ISCORE_DECLARE_ACTION(MergeTimeNodes, "&Merge TimeNodes", Scenario, Qt::SHIFT + Qt::Key_M)
 
 /// Context menus
 ISCORE_PROCESS_DECLARE_CONTEXT_MENU(ScenarioObjectContextMenu)

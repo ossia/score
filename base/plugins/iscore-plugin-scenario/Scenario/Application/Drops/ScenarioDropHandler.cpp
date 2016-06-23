@@ -27,4 +27,28 @@ bool DropHandlerList::handle(
     return false;
 }
 
+
+ConstraintDropHandler::~ConstraintDropHandler()
+{
+
+}
+
+ConstraintDropHandlerList::~ConstraintDropHandlerList()
+{
+
+}
+
+bool ConstraintDropHandlerList::handle(
+        const Scenario::ConstraintModel& cst,
+        const QMimeData* mime) const
+{
+    for(auto& fact : *this)
+    {
+        if(fact.handle(cst, mime))
+            return true;
+    }
+
+    return false;
+}
+
 }

@@ -13,4 +13,6 @@ void removeSelection(const Scenario::ScenarioModel&, const iscore::CommandStackF
 void clearContentFromSelection(const Scenario::ScenarioModel&, const iscore::CommandStackFacade&);
 void removeSelection(const BaseScenario&, const iscore::CommandStackFacade&);
 void clearContentFromSelection(const BaseScenario&, const iscore::CommandStackFacade&);
+
+void mergeTimeNodes(const Scenario::ScenarioModel&, const iscore::CommandStackFacade&);
 }

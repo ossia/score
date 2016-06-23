@@ -49,5 +49,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions : public QObject
         QAction *m_cutContent{};
         QAction *m_pasteContent{};
         QAction *m_elementsToJson{};
+        QAction* m_mergeTimeNodes{};
 };
 }
