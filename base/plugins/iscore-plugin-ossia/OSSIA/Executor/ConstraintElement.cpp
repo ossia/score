@@ -169,7 +169,15 @@ void flattenAndFilter(
 void ConstraintElement::stop()
 {
     m_ossia_constraint->stop();
-    m_ossia_constraint->getEndEvent()->getState()->launch();
+    auto st = m_ossia_constraint->getEndEvent()->getState();
+    if(st)
+    {
+        st->launch();
+    }
+    else
+    {
+        qDebug() << "Error : state missing";
+    }
 
     for(auto& process : m_processes)
     {

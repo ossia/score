@@ -17,7 +17,7 @@ case "$TRAVIS_OS_NAME" in
 
     if [[ "$CONF" != "linux-package" ]];
     then
-      sudo add-apt-repository --yes ppa:beineri/opt-qt56-trusty
+      sudo add-apt-repository --yes ppa:beineri/opt-qt57-trusty
     fi
 
     sudo apt-get update -qq
@@ -32,7 +32,7 @@ case "$TRAVIS_OS_NAME" in
       (cd /opt; sudo tar xaf qt5.6-static-release.tgz)
       sudo apt-get install -qq libxcb-icccm4-dev libxi-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-xkb-dev libxcb-render-util0-dev libxinerama-dev libxcb-xinerama0-dev libudev-dev
     else
-      sudo apt-get install -qq qt56-meta-full
+      sudo apt-get install -qq qt57-meta
     fi
 
     wget https://cmake.org/files/v3.6/cmake-3.6.0-rc1-Linux-x86_64.tar.gz -O cmake-linux.tgz

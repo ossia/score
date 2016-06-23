@@ -217,7 +217,7 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
                     this, [=] () {
                 // TODO change the action icon state
                 on_stop();
-            });
+            }, Qt::QueuedConnection);
             m_clock->play(t);
         }
 
