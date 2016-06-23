@@ -126,10 +126,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
                 QPointF scenepos,
                 const Process::LayerContextMenuManager&) const override;
 
-        void handleDrop(
-                const QPointF& pos,
-                const QMimeData *mime) const;
-
         bool event(QEvent* e) override
         {
             return QObject::event(e);

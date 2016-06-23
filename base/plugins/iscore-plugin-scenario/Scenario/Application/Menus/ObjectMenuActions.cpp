@@ -139,6 +139,17 @@ ObjectMenuActions::ObjectMenuActions(
         s.exec();
     });
 
+    // DISPLAY JSON
+    m_mergeTimeNodes = new QAction{this};
+    connect(m_mergeTimeNodes, &QAction::triggered,
+            [this]()
+    {
+        auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
+        ISCORE_ASSERT(sm);
+
+        Scenario::mergeTimeNodes(*sm, m_parent->currentDocument()->context().commandStack);
+    });
+
 }
 
 void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
@@ -154,8 +165,10 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
     actions.add<Actions::CutContent>(m_cutContent);
     actions.add<Actions::PasteContent>(m_pasteContent);
     actions.add<Actions::ElementsToJson>(m_elementsToJson);
+    actions.add<Actions::MergeTimeNodes>(m_mergeTimeNodes);
 
     scenariomodel_cond.add<Actions::RemoveElements>();
+    scenariomodel_cond.add<Actions::MergeTimeNodes>();
     scenarioiface_cond.add<Actions::ClearElements>();
     scenarioiface_cond.add<Actions::CopyContent>();
     scenarioiface_cond.add<Actions::CutContent>();
@@ -171,6 +184,7 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
     object.menu()->addAction(m_cutContent);
     object.menu()->addAction(m_pasteContent);
     object.menu()->addSeparator();
+    object.menu()->addAction(m_mergeTimeNodes);
     m_eventActions.makeGUIElements(ref);
     m_cstrActions.makeGUIElements(ref);
     m_stateActions.makeGUIElements(ref);

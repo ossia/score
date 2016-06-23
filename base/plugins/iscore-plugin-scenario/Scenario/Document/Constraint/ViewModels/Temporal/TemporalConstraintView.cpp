@@ -3,6 +3,7 @@
 #include <QBrush>
 #include <QFont>
 #include <QGraphicsItem>
+#include <QGraphicsSceneEvent>
 #include <qnamespace.h>
 #include <QPainter>
 #include <QPainterPath>
@@ -33,6 +34,8 @@ TemporalConstraintView::TemporalConstraintView(
     m_counterItem{new SimpleTextItem{this}}
 {
     this->setParentItem(parent);
+
+    setAcceptDrops(true);
 
     this->setZValue(ZPos::Constraint);
     m_leftBrace = new LeftBraceView{*this, this};
@@ -216,6 +219,14 @@ void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
     QGraphicsObject::hoverLeaveEvent(h);
     emit constraintHoverLeave();
 }
+
+void TemporalConstraintView::dropEvent(QGraphicsSceneDragDropEvent *event)
+{
+    emit dropReceived(event->pos(), event->mimeData());
+
+    event->accept();
+}
+
 void TemporalConstraintView::setLabel(const QString &label)
 {
     m_labelItem->setText(label);

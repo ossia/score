@@ -11,8 +11,10 @@
 #include <QString>
 #include <QPainter>
 
+class QMimeData;
 class QGraphicsObject;
 class QGraphicsSceneHoverEvent;
+class QGraphicsSceneDragDropEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -71,10 +73,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
     signals:
         void constraintHoverEnter();
         void constraintHoverLeave();
+        void dropReceived(const QPointF& pos, const QMimeData*);
 
     protected:
         void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
         void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
+        void dropEvent(QGraphicsSceneDragDropEvent *event) override;
 
     private:
         QPointF m_clickedPoint {};

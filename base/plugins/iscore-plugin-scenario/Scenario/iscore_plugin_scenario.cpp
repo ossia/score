@@ -107,7 +107,8 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
             DisplayedElementsProviderList,
             Process::InspectorWidgetDelegateFactoryList,
             Process::StateProcessInspectorWidgetDelegateFactoryList,
-            DropHandlerList
+            DropHandlerList,
+            ConstraintDropHandlerList
             >();
 }
 

@@ -125,7 +125,13 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     connect(m_view, &TemporalScenarioView::askContextMenu,
             this,   &TemporalScenarioPresenter::contextMenuRequested);
     connect(m_view, &TemporalScenarioView::dropReceived,
-            this,   &TemporalScenarioPresenter::handleDrop);
+            this, [=] (
+            const QPointF &pos,
+            const QMimeData *mime) {
+        m_context.context.app.components
+               .factory<Scenario::DropHandlerList>()
+               .handle(*this, pos, mime);
+    });
 
     con(model(m_layer), &Scenario::ScenarioModel::locked,
             m_view,     &TemporalScenarioView::lock);
@@ -520,12 +526,4 @@ void TemporalScenarioPresenter::updateAllElements()
     }
 }
 
-void TemporalScenarioPresenter::handleDrop(
-        const QPointF &pos,
-        const QMimeData *mime) const
-{
-    m_context.context.app.components
-           .factory<Scenario::DropHandlerList>()
-           .handle(*this, pos, mime);
-}
 }

@@ -83,6 +83,15 @@ const auto& parentTimeNode(
     return parentTimeNode(parentEvent(st, scenario), scenario);
 }
 
+// This one is just here to allow generic facilities
+template<typename Scenario_T>
+const auto& parentTimeNode(
+        const TimeNodeModel& st,
+        const Scenario_T& )
+{
+    return st;
+}
+
 
 template<typename Scenario_T>
 const auto& previousConstraint(
@@ -178,6 +187,15 @@ auto states(
     }
 
     return stateList;
+}
+
+// Dates
+template<typename Element_T, typename Scenario_T>
+const auto& date(
+        const Element_T& e,
+        const Scenario_T& scenario)
+{
+    return parentTimeNode(e, scenario).date();
 }
 
 }
