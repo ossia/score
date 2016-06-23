@@ -1,5 +1,6 @@
 #include "DeviceDocumentPlugin.hpp"
-
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <iscore/tools/VariantSerialization.hpp>
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
         const Explorer::DeviceDocumentPlugin& dev)
@@ -10,16 +11,41 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Explorer::DeviceDocumentPlugin& dev)
+        const Explorer::DeviceDocumentPlugin& plug)
 {
-    readFrom(dev.rootNode());
+    // Childrens of the root node are the devices
+    // We don't save their children if they don't have canSerialize().
+
+    m_obj["RootNode"] = QJsonObject{};
+    QJsonArray children;
+    for(auto& node : plug.rootNode().children())
+    {
+        QJsonObject this_node;
+
+        ISCORE_ASSERT(node.is<Device::DeviceSettings>());
+        const Device::DeviceSettings& dev = node.get<Device::DeviceSettings>();
+        auto actual = plug.list().find(dev.name);
+        ISCORE_ASSERT(actual != plug.list().devices().cend());
+        if((*actual)->capabilities().canSerialize)
+        {
+            this_node = toJsonObject(node);
+        }
+        else
+        {
+            this_node = toJsonObject(node.impl());
+        }
+
+
+        children.push_back(std::move(this_node));
+    }
+    m_obj["Children"] = children;
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(
-        Explorer::DeviceDocumentPlugin& dev)
+        Explorer::DeviceDocumentPlugin& plug)
 {
-    writeTo(dev.rootNode());
+    writeTo(plug.rootNode());
 }
 
 
