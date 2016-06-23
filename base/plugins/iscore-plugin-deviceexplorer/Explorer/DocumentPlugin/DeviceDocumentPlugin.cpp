@@ -31,6 +31,7 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <iostream>
 
 namespace Explorer
 {
@@ -41,6 +42,18 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
 {
 }
 
+struct print_node_rec
+{
+
+        void visit(const Device::Node& addr)
+        {
+            std::cerr << Device::address(addr).toString().toStdString() << std::endl;
+            for(auto& child : addr)
+            {
+                visit(child);
+            }
+        }
+};
 DeviceDocumentPlugin::DeviceDocumentPlugin(
         const iscore::DocumentContext& ctx,
         const VisitorVariant& vis,
@@ -48,13 +61,24 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
     iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
 {
     deserialize_dyn(vis, *this);
+    // Here everything is loaded in m_loadingNode
 
     // Here we recreate the correct structures in term of devices,
     // given what's present in the node hierarchy
-    for(const auto& node : m_rootNode)
+    for(const auto& node : m_loadingNode)
     {
-        loadDeviceFromNode(node);
+        // We replace the node only if it changed.
+        auto new_node = loadDeviceFromNode(node);
+        if(new_node)
+        {
+            updateProxy.loadDevice(*new_node);
+        }
+        else
+        {
+            updateProxy.loadDevice(node);
+        }
     }
+    m_loadingNode = Device::Node{};
 }
 
 void DeviceDocumentPlugin::serialize_impl(const VisitorVariant& vis) const
@@ -101,7 +125,7 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & nod
     return node;
 }
 
-Device::Node DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node & node)
+optional<Device::Node> DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node & node)
 {
     try {
         // Instantiate a real device.
@@ -118,9 +142,17 @@ Device::Node DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node & node)
             {
                 newdev->addNode(child);
             }
+
+            return {};
+        }
+        else
+        {
+            // In this case we instead explore the actual
+            // device node.
+            newdev->reconnect();
+            return newdev->refresh();
         }
 
-        return node;
     }
     catch(const std::runtime_error& e)
     {
@@ -129,7 +161,7 @@ Device::Node DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node & node)
                              node.get<Device::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
     }
 
-    return node;
+    return {};
 }
 
 void DeviceDocumentPlugin::setConnection(bool b)
@@ -139,15 +171,18 @@ void DeviceDocumentPlugin::setConnection(bool b)
         if(b)
         {
             dev->reconnect();
-            auto it = std::find_if(m_rootNode.cbegin(), m_rootNode.cend(), [&,dev] (const auto& dev_node) {
-                return dev_node.template get<Device::DeviceSettings>().name == dev->settings().name;
-            });
-
-            ISCORE_ASSERT(it != m_rootNode.cend());
-
-            for(const auto& nodes : *it)
+            if(dev->capabilities().canSerialize)
             {
-                dev->addNode(nodes);
+                auto it = std::find_if(m_rootNode.cbegin(), m_rootNode.cend(), [&,dev] (const auto& dev_node) {
+                    return dev_node.template get<Device::DeviceSettings>().name == dev->settings().name;
+                });
+
+                ISCORE_ASSERT(it != m_rootNode.cend());
+
+                for(const auto& nodes : *it)
+                {
+                    dev->addNode(nodes);
+                }
             }
         }
         else

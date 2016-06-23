@@ -17,5 +17,6 @@ class MIDIDevice final : public OSSIADevice
 
         void disconnect() override;
 
+        Device::Node refresh() override;
 };
 }

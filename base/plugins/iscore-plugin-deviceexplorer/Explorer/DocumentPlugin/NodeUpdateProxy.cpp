@@ -45,14 +45,15 @@ void NodeUpdateProxy::addDevice(const Device::DeviceSettings& dev)
 void NodeUpdateProxy::loadDevice(const Device::Node& node)
 {
     auto n = devModel.loadDeviceFromNode(node);
+    auto actual_node = n ? *n : node;
 
     if(deviceExplorer)
     {
-        deviceExplorer->addDevice(std::move(n));
+        deviceExplorer->addDevice(std::move(actual_node));
     }
     else
     {
-        devModel.rootNode().push_back(std::move(n));
+        devModel.rootNode().push_back(std::move(actual_node));
     }
 }
 

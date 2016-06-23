@@ -8,6 +8,8 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
 #include <core/document/Document.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 class QObject;
 namespace iscore {
@@ -46,7 +48,11 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         // TODO make functions that take an address and call list().device(...).TheRelevantMethod
 
         Device::Node createDeviceFromNode(const Device::Node&);
-        Device::Node loadDeviceFromNode(const Device::Node&);
+
+        // If the output is different that the input,
+        // it means that the node has changes and the output should
+        // be used.
+        optional<Device::Node> loadDeviceFromNode(const Device::Node&);
 
 
         void setConnection(bool);
@@ -66,6 +72,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
     public:
         DeviceExplorerModel explorer{*this, this};
         NodeUpdateProxy updateProxy{*this};
+        Device::Node m_loadingNode; // FIXME hack
 };
 
 }
