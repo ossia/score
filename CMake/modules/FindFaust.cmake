@@ -8,7 +8,7 @@ find_path(
       /usr/local/lib/faust/architecture/
     )
 
-set(FAUST_NAMES ${FAUST_NAMES} faust libfaust)
+set(FAUST_NAMES ${FAUST_NAMES} libfaust.so libfaust.dylib faust.dll faust libfaust)
 find_library(FAUST_LIBRARY NAMES ${FAUST_NAMES})
 
 if(FAUST_INCLUDE_DIR AND FAUST_LIBRARY)
