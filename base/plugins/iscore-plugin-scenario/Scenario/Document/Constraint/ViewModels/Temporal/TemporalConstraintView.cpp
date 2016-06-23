@@ -34,8 +34,7 @@ TemporalConstraintView::TemporalConstraintView(
     m_counterItem{new SimpleTextItem{this}}
 {
     this->setParentItem(parent);
-
-    setAcceptDrops(true);
+    this->setAcceptDrops(true);
 
     this->setZValue(ZPos::Constraint);
     m_leftBrace = new LeftBraceView{*this, this};

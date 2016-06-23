@@ -19,7 +19,7 @@ class ScenarioModel;
 namespace Command
 {
 
-class MoveEventMeta final : public SerializableMoveEvent
+class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final : public SerializableMoveEvent
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventMeta, "Move an event")
 
