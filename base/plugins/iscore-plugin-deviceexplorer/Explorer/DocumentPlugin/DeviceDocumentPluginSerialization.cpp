@@ -45,13 +45,13 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(
         Explorer::DeviceDocumentPlugin& plug)
 {
-    writeTo(plug.rootNode());
+    writeTo(plug.m_loadingNode);
 }
 
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(
-        Explorer::DeviceDocumentPlugin& dev)
+        Explorer::DeviceDocumentPlugin& plug)
 {
-    writeTo(dev.rootNode());
+    writeTo(plug.m_loadingNode);
 }

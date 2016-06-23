@@ -20,7 +20,7 @@ MinuitDevice::MinuitDevice(const Device::DeviceSettings &settings):
 
 bool MinuitDevice::reconnect()
 {
-    OSSIADevice::disconnect();
+    disconnect();
 
     try {
         auto stgs = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();

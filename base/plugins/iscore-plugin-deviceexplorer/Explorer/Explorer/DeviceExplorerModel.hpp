@@ -65,6 +65,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
         Q_OBJECT
 
     public:
+        using QAbstractItemModel::beginResetModel;
+        using QAbstractItemModel::endResetModel;
 
         explicit DeviceExplorerModel(
                 DeviceDocumentPlugin&,
