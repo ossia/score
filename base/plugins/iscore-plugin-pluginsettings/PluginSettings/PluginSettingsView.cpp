@@ -180,7 +180,7 @@ void PluginSettingsView::handleAddon(const QJsonObject& obj)
     using Funmap = std::map<QString, std::function<void(QJsonValue)>>;
 
     RemoteAddon add;
-    QString small, large;
+    QString smallImage, largeImage; // thank you, Microsh**, for #define small char
     const Funmap funmap
     {
         { "name",    [&] (QJsonValue v) { add.name = v.toString(); } },
@@ -188,8 +188,8 @@ void PluginSettingsView::handleAddon(const QJsonObject& obj)
         { "url",     [&] (QJsonValue v) { add.latestVersionAddress = v.toString(); } },
         { "short",   [&] (QJsonValue v) { add.shortDescription = v.toString(); } },
         { "long",    [&] (QJsonValue v) { add.longDescription = v.toString(); } },
-        { "small",   [&] (QJsonValue v) { small = v.toString(); } },
-        { "large",   [&] (QJsonValue v) { large = v.toString(); } },
+        { "small",   [&] (QJsonValue v) { smallImage = v.toString(); } },
+        { "large",   [&] (QJsonValue v) { largeImage = v.toString(); } },
         { "key",     [&] (QJsonValue v) { add.key = UuidKey<iscore::Addon>(v.toString().toLatin1().constData()); } }
     };
 
@@ -222,10 +222,10 @@ void PluginSettingsView::handleAddon(const QJsonObject& obj)
 
     // Load images
     RemotePluginItemModel* model = static_cast<RemotePluginItemModel*>(m_remoteAddons->model());
-    if(!small.isEmpty())
+    if(!smallImage.isEmpty())
     {
         // c.f. https://wiki.qt.io/Download_Data_from_URL
-        auto dl = new iscore::FileDownloader{QUrl{small}};
+        auto dl = new iscore::FileDownloader{QUrl{smallImage}};
         connect(dl, &iscore::FileDownloader::downloaded,
                 this, [=] (QByteArray arr) {
             model->updateAddon(add.key, [=] (RemoteAddon& add) {
@@ -236,10 +236,10 @@ void PluginSettingsView::handleAddon(const QJsonObject& obj)
         });
     }
 
-    if(!large.isEmpty())
+    if(!largeImage.isEmpty())
     {
         // c.f. https://wiki.qt.io/Download_Data_from_URL
-        auto dl = new iscore::FileDownloader{QUrl{large}};
+        auto dl = new iscore::FileDownloader{QUrl{largeImage}};
         connect(dl, &iscore::FileDownloader::downloaded,
                 this, [=] (QByteArray arr) {
             model->updateAddon(add.key, [=] (RemoteAddon& add) {

@@ -28,16 +28,18 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             m_id.m_ptr = this;
         }
 
-        template<typename ReaderImpl, typename... Args>
-        IdentifiedObject(Deserializer<ReaderImpl>& v,
-                         Args&& ... args) :
-            IdentifiedObjectAbstract {v, std::forward<Args> (args)...}
+        template<typename ReaderImpl>
+        IdentifiedObject(Deserializer<ReaderImpl>& v, QObject* parent) :
+            IdentifiedObjectAbstract {v, parent}
         {
             v.writeTo(*this);
             m_id.m_ptr = this;
         }
 
-        virtual ~IdentifiedObject() = default;
+        virtual ~IdentifiedObject()
+        {
+
+        }
 
         const Id<model>& id() const
         {

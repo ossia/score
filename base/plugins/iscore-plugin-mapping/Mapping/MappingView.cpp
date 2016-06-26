@@ -22,7 +22,7 @@ MappingView::MappingView(QGraphicsItem* parent) :
 void MappingView::paint_impl(QPainter* painter) const
 {
     static const int fontSize = 8;
-    QRectF processNameRect{10, fontSize, 0.95 * this->width(), fontSize * 6 };
+    QRectF processNameRect{10, (qreal)fontSize, 0.95 * this->width(), fontSize * 6 };
 
     if(m_showName)
     {

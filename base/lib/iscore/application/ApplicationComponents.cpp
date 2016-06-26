@@ -9,7 +9,7 @@
 
 namespace iscore
 {
-
+ApplicationComponentsData::ApplicationComponentsData() = default;
 ApplicationComponentsData::~ApplicationComponentsData()
 {/*
     for(auto& elt : settings)

@@ -128,17 +128,17 @@ void ScenarioContextMenuManager::createSlotContextMenu(
         QObject::connect(&dialog, &AddProcessDialog::okPressed,
             [&] (const auto& proc) {
             auto& constraint = slotm.parentConstraint();
-            QuietMacroCommandDispatcher disp{
-                new CreateProcessInExistingSlot,
-                        ctx.commandStack};
+            QuietMacroCommandDispatcher disp(
+                new Scenario::Command::CreateProcessInExistingSlot,
+                        ctx.commandStack);
 
-            auto cmd1 = new AddOnlyProcessToConstraint{constraint, proc};
+            auto cmd1 = new Scenario::Command::AddOnlyProcessToConstraint(constraint, proc);
             cmd1->redo();
             disp.submitCommand(cmd1);
 
-            auto cmd2 = new Scenario::Command::AddLayerModelToSlot{
+            auto cmd2 = new Scenario::Command::AddLayerModelToSlot(
                         slotm,
-                        constraint.processes.at(cmd1->processId())};
+                        constraint.processes.at(cmd1->processId()));
             cmd2->redo();
             disp.submitCommand(cmd2);
 
@@ -159,22 +159,22 @@ void ScenarioContextMenuManager::createSlotContextMenu(
         QObject::connect(&dialog, &AddProcessDialog::okPressed,
             [&] (const auto& proc) {
             auto& constraint = slotm.parentConstraint();
-            QuietMacroCommandDispatcher disp{
-                new CreateProcessInNewSlot,
-                        ctx.commandStack};
+            QuietMacroCommandDispatcher disp(
+                new Scenario::Command::CreateProcessInNewSlot,
+                        ctx.commandStack);
 
-            auto cmd1 = new AddOnlyProcessToConstraint{constraint, proc};
+            auto cmd1 = new Scenario::Command::AddOnlyProcessToConstraint(constraint, proc);
             cmd1->redo();
             disp.submitCommand(cmd1);
 
             auto& rack = slotm.rack();
-            auto cmd2 = new Scenario::Command::AddSlotToRack{rack};
+            auto cmd2 = new Scenario::Command::AddSlotToRack(rack);
             cmd2->redo();
             disp.submitCommand(cmd2);
 
-            auto cmd3 = new Scenario::Command::AddLayerModelToSlot{
+            auto cmd3 = new Scenario::Command::AddLayerModelToSlot(
                         rack.slotmodels.at(cmd2->createdSlot()),
-                        constraint.processes.at(cmd1->processId())};
+                        constraint.processes.at(cmd1->processId()));
             cmd3->redo();
             disp.submitCommand(cmd3);
 

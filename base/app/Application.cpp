@@ -43,6 +43,7 @@
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
+
 #include "iscore_git_info.hpp"
 
 namespace iscore {
@@ -126,6 +127,7 @@ void Application::init()
 
     this->setObjectName("Application");
     this->setParent(qApp);
+    qApp->addLibraryPath(qApp->applicationDirPath() + "/plugins");
     iscore::setQApplicationSettings(*qApp);
 
     // MVP

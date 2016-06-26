@@ -35,7 +35,6 @@ class ISCORE_LIB_BASE_EXPORT FactoryListInterface
         virtual void insert(std::unique_ptr<iscore::FactoryInterfaceBase>) = 0;
 };
 
-// FIXME They should take an export macro also ?
 template<typename FactoryType>
 class ConcreteFactoryList :
         public iscore::FactoryListInterface,
@@ -48,6 +47,10 @@ class ConcreteFactoryList :
     public:
         using factory_type = FactoryType;
         using key_type = typename FactoryType::ConcreteFactoryKey;
+		ConcreteFactoryList()
+		{
+
+		}
 
         ~ConcreteFactoryList() noexcept override = default;
 
@@ -61,9 +64,10 @@ class ConcreteFactoryList :
 
         void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
         {
-            auto pf = dynamic_unique_ptr_cast<factory_type>(std::move(e));
-            if(pf)
-            {
+			if (auto result = dynamic_cast<factory_type *>(e.get())) {
+				e.release();
+				std::unique_ptr<factory_type> pf{ result };
+
                 auto k = pf->concreteFactoryKey();
                 auto it = this->map.find(k);
                 ISCORE_ASSERT(it == this->map.end());
@@ -81,6 +85,12 @@ class ConcreteFactoryList :
     protected:
         const auto& list() const
         { return this->map; }
+
+    private:
+        ConcreteFactoryList(const ConcreteFactoryList&) = delete;
+		ConcreteFactoryList(ConcreteFactoryList&&) = delete;
+		ConcreteFactoryList& operator=(const ConcreteFactoryList&) = delete;
+		ConcreteFactoryList& operator=(ConcreteFactoryList&&) = delete;
 };
 
 template<typename T>
@@ -90,9 +100,10 @@ class MatchingFactory : public iscore::ConcreteFactoryList<T>
         template<typename Fun, typename... Args>
         auto make(Fun f, Args&&... args) const
         {
+			using val_t = decltype(*this->begin());
             auto it = find_if(
                           *this,
-                          [&] (const auto& elt)
+                          [&] (const val_t& elt)
             { return elt.matches(std::forward<Args>(args)...); });
 
             return (it != this->end())
@@ -116,7 +127,7 @@ struct GenericFactoryInserter
         }
 
         template<typename TheClass>
-        void operator()()
+        void perform()
         {
             vec.push_back(std::make_unique<TheClass>());
         }
@@ -160,7 +171,7 @@ struct ContextualGenericFactoryInserter
         }
 
         template<typename TheClass>
-        void operator()()
+        void perform()
         {
             vec.push_back(FactoryBuilder<Context_T, TheClass>::make(context));
         }

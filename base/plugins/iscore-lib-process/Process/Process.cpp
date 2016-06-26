@@ -41,6 +41,17 @@ ProcessModel::ProcessModel(
     metadata.setName(QString("Process.%1").arg(*this->id().val()));
 }
 
+ProcessModel::ProcessModel(Deserializer<DataStream>& vis, QObject* parent) :
+	IdentifiedObject(vis, parent)
+{
+	vis.writeTo(*this);
+}
+
+ProcessModel::ProcessModel(Deserializer<JSONObject>& vis, QObject* parent) :
+	IdentifiedObject(vis, parent)
+{
+	vis.writeTo(*this);
+}
 
 QByteArray ProcessModel::makeLayerConstructionData() const { return {}; }
 

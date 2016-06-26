@@ -86,10 +86,10 @@ void Scenario::clearContentFromSelection(
 template<typename T>
 struct DateComparator
 {
-        const Scenario::ScenarioModel& scenario;
+        const Scenario::ScenarioModel* scenario;
         bool operator()(const T* lhs, const T* rhs)
         {
-            return Scenario::date(*lhs, scenario) < Scenario::date(*rhs, scenario);
+            return Scenario::date(*lhs, *scenario) < Scenario::date(*rhs, *scenario);
         }
 };
 
@@ -99,7 +99,7 @@ auto make_ordered(const Scenario::ScenarioModel& scenario)
     using comp_t = DateComparator<T>;
     using set_t = std::set<const T*, comp_t>;
 
-    set_t the_set(comp_t{scenario});
+    set_t the_set(comp_t{&scenario});
 
     auto cont = Scenario::ScenarioElementTraits<Scenario::ScenarioModel, T>::accessor;
     for(auto& tn : selectedElements(cont(scenario)))

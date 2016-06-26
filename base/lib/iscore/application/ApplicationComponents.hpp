@@ -28,8 +28,8 @@ class PanelDelegate;
 
 struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
 {
+	    ApplicationComponentsData();
         ~ApplicationComponentsData();
-        ApplicationComponentsData() = default;
         ApplicationComponentsData(const ApplicationComponentsData&) = delete;
         ApplicationComponentsData(ApplicationComponentsData&&) = delete;
         ApplicationComponentsData& operator=(const ApplicationComponentsData&) = delete;

@@ -48,19 +48,14 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         iscore::ElementPluginModelList* pluginModelList{}; // Note: has to be initialized by the sub-classes.
         ModelMetadata metadata;
 
-        using IdentifiedObject<ProcessModel>::IdentifiedObject;
         ProcessModel(
                 TimeValue duration,
                 const Id<ProcessModel>& id,
                 const QString& name,
                 QObject* parent);
 
-        template<typename Impl>
-        ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
-            IdentifiedObject {vis, parent}
-        {
-            vis.writeTo(*this);
-        }
+		ProcessModel(Deserializer<DataStream>& vis, QObject* parent);
+		ProcessModel(Deserializer<JSONObject>& vis, QObject* parent);
 
         virtual ~ProcessModel();
 

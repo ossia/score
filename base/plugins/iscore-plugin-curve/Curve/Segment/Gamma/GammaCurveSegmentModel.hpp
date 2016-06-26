@@ -29,7 +29,7 @@ class GammaSegment final :
 
         template<typename Impl>
         GammaSegment(Deserializer<Impl>& vis, QObject* parent) :
-            SegmentModel {vis, parent}
+			Segment<GammaSegment>{vis, parent}
         {
             vis.writeTo(*this);
         }

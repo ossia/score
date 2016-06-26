@@ -119,8 +119,8 @@ void RackWidget::updateComboBox(QComboBox* combobox, ConstraintViewModel* vm)
     }
 
     connect(combobox, SignalUtils::QComboBox_activated_int(),
-            combobox, [=] (int i) {
-        m_parent->activeRackChanged(combobox->itemData(i).value<Id<RackModel>>(), vm);
+            combobox, [=,cvm=vm] (int i) {
+        m_parent->activeRackChanged(combobox->itemData(i).value<Id<RackModel>>(), cvm);
     });
 
     connect(vm, &ConstraintViewModel::rackHidden,

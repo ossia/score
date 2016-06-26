@@ -51,6 +51,11 @@ class ISCORE_LIB_BASE_EXPORT DocumentDelegateList final :
         public ConcreteFactoryList<iscore::DocumentDelegateFactory>
 {
     public:
+		DocumentDelegateList()
+		{
+
+		}
+
         using object_type = DocumentDelegateModelInterface;
 };
 

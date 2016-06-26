@@ -82,11 +82,10 @@ void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
     devModel.list().removeDevice(dev.name);
 
     const auto& rootNode = devModel.rootNode();
-    auto it = find_if(rootNode, [&] (const auto& val) {
-        return val.template is<Device::DeviceSettings>() && val.template get<Device::DeviceSettings>().name == dev.name;
+    auto it = find_if(rootNode, [&] (const Device::Node& val) {
+        return val.is<Device::DeviceSettings>() && val.get<Device::DeviceSettings>().name == dev.name;
     });
     ISCORE_ASSERT(it != rootNode.end());
-
     if(deviceExplorer)
     {
         deviceExplorer->removeNode(it);

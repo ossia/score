@@ -83,7 +83,7 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
         TheType get() const
         { return eggs::variants::get<TheType>(m_variant); }
 
-        friend QDebug& operator<<(QDebug& s, const ValueImpl& m);
+        ISCORE_LIB_STATE_EXPORT friend QDebug& operator<<(QDebug& s, const ValueImpl& m);
 
     private:
         variant_t m_variant;

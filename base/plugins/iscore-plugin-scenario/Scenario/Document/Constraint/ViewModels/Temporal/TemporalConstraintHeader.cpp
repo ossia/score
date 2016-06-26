@@ -24,7 +24,7 @@ namespace Scenario
 {
 QRectF TemporalConstraintHeader::boundingRect() const
 {
-    return {0, 0, m_width, ConstraintHeader::headerHeight()};
+    return {0, 0, m_width, qreal(ConstraintHeader::headerHeight())};
 }
 
 void TemporalConstraintHeader::paint(
