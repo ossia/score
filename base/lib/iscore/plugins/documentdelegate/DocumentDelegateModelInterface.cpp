@@ -1,2 +1,11 @@
 #include "DocumentDelegateModelInterface.hpp"
-iscore::DocumentDelegateModelInterface::~DocumentDelegateModelInterface() = default;
+
+template class IdentifiedObject<iscore::DocumentDelegateModelInterface>;
+
+namespace iscore
+{
+DocumentDelegateModelInterface::~DocumentDelegateModelInterface()
+{
+
+}
+}

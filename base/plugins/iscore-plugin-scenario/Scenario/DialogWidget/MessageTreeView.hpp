@@ -32,6 +32,6 @@ class MessageTreeView final : public QTreeView
         const StateModel& m_model;
 
         CommandDispatcher<> m_dispatcher;
-        float m_valueColumnSize{0.15};
+        float m_valueColumnSize{0.15f};
 };
 }

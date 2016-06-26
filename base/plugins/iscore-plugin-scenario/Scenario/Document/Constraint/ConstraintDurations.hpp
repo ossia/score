@@ -92,7 +92,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final :
         void checkConsistency();
 
         // Modification algorithms that keep everything consistent
-        class Algorithms
+        class ISCORE_PLUGIN_SCENARIO_EXPORT Algorithms
         {
             public:
                 static void setDurationInBounds(ConstraintModel& cstr, const TimeValue& time);

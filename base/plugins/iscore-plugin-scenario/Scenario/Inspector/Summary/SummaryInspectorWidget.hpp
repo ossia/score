@@ -2,7 +2,7 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <list>
 #include <vector>
-
+#include <set>
 
 namespace Scenario
 {

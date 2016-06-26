@@ -18,21 +18,13 @@ using ContextMenuFun = std::function<void(QMenu&, QPoint, QPointF, const Process
 class ISCORE_LIB_PROCESS_EXPORT LayerContextMenu
 {
     public:
-        LayerContextMenu(StringKey<LayerContextMenu> k):
-            m_key{std::move(k)}
-        {
-
-        }
+        LayerContextMenu(StringKey<LayerContextMenu> k);
 
         StringKey<LayerContextMenu> key() const { return m_key; }
 
         std::vector<ContextMenuFun> functions;
 
-        void build(QMenu& m, QPoint pt, QPointF ptf, const Process::LayerContext& proc) const
-        {
-            for(auto& fun : functions)
-                fun(m, pt, ptf, proc);
-        }
+        void build(QMenu& m, QPoint pt, QPointF ptf, const Process::LayerContext& proc) const;
 
     private:
         StringKey<LayerContextMenu> m_key;
@@ -74,10 +66,10 @@ class ISCORE_LIB_PROCESS_EXPORT LayerContextMenuManager
 
 }
 
-#define ISCORE_PROCESS_DECLARE_CONTEXT_MENU(Type) \
+#define ISCORE_PROCESS_DECLARE_CONTEXT_MENU(Export, Type) \
 namespace ContextMenus { class Type; } \
 namespace Process { template<> \
-class MetaContextMenu<ContextMenus::Type> \
+class Export MetaContextMenu<ContextMenus::Type> \
 { \
     public: \
         static LayerContextMenu make() { return LayerContextMenu{ static_key() }; } \

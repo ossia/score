@@ -85,7 +85,7 @@ class StateAwareTransition : public T
 template<typename Transition, typename SourceState, typename TargetState, typename... Args>
 Transition* make_transition(SourceState source, TargetState dest, Args&&... args)
 {
-    auto t = new Transition{std::forward<Args>(args)...};
+	Transition* t = new Transition{std::forward<Args>(args)...};
     t->setTargetState(dest);
     source->addTransition(t);
     return t;

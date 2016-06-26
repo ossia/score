@@ -10,31 +10,21 @@ class ISCORE_LIB_BASE_EXPORT NamedObject : public QObject
 {
         Q_OBJECT
     public:
-        template<typename... Args>
-        NamedObject(const QString& name, QObject* parent, Args&& ... args) :
-            QObject {std::forward<Args> (args)...}
+        NamedObject(const QString& name, QObject* parent)
         {
             QObject::setObjectName(name);
             QObject::setParent(parent);
         }
 
-        template<typename ReaderImpl, typename... Args>
-        NamedObject(Deserializer<ReaderImpl>& v, QObject* parent, Args&& ... args) :
-            QObject {std::forward<Args> (args)...}
+        template<typename ReaderImpl>
+        NamedObject(Deserializer<ReaderImpl>& v, QObject* p)
         {
             v.writeTo(*this);
-            QObject::setParent(parent);
+            QObject::setParent(p);
         }
 
         virtual ~NamedObject();
 };
 
 
-inline void debug_parentHierarchy(QObject* obj)
-{
-    while(obj)
-    {
-        qDebug() << obj->objectName();
-        obj = obj->parent();
-    }
-}
+void debug_parentHierarchy(QObject* obj);

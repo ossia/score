@@ -69,7 +69,7 @@ namespace commands
 struct FactoryInserter
 {
         CommandGeneratorMap& fact;
-        template< typename TheCommand > void operator()() const
+        template< typename TheCommand > void perform() const
         {
             fact.insert(std::pair<const CommandFactoryKey, std::unique_ptr<CommandFactory>>{
                                 TheCommand::static_key(),

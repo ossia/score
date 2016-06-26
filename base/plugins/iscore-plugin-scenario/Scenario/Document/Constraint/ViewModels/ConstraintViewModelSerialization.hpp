@@ -8,6 +8,7 @@
 
 #include <Process/LayerModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 template <typename VisitorType> class Visitor;
 namespace Scenario
@@ -65,14 +66,14 @@ loadConstraintViewModel(Deserializer<JSONObject>& deserializer,
 // NOTE : the implementation for now is in TemporalConstraintViewModelSerialization but
 // should be in its own file.
 
-SerializedConstraintViewModels serializeConstraintViewModels(
+ISCORE_PLUGIN_SCENARIO_EXPORT SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,
         const Scenario::ScenarioModel& scenario);
 
 // Save all the constraint view models
 // Load a group of constraint view models
 
-void deserializeConstraintViewModels(
+ISCORE_PLUGIN_SCENARIO_EXPORT void deserializeConstraintViewModels(
         const SerializedConstraintViewModels& vms,
         const Scenario::ScenarioModel& scenar);
 }

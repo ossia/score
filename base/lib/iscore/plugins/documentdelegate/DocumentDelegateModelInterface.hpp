@@ -7,11 +7,12 @@ struct VisitorVariant;
 
 namespace iscore
 {
-    class ISCORE_LIB_BASE_EXPORT DocumentDelegateModelInterface : public IdentifiedObject<DocumentDelegateModelInterface>
+    class ISCORE_LIB_BASE_EXPORT DocumentDelegateModelInterface :
+        public IdentifiedObject<DocumentDelegateModelInterface>
     {
             Q_OBJECT
         public:
-            using IdentifiedObject::IdentifiedObject;
+            using IdentifiedObject<DocumentDelegateModelInterface>::IdentifiedObject;
             virtual ~DocumentDelegateModelInterface();
 
             virtual void serialize(const VisitorVariant&) const = 0;

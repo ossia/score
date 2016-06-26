@@ -225,7 +225,7 @@ class Creation_FromNothing final : public CreationState<Scenario_T, ToolPalette_
         void createInitialState()
         {
             auto cmd = new Scenario::Command::CreateState{this->m_scenarioPath, this->clickedEvent, this->currentPoint.y};
-            this->m_dispatcher.template submitCommand(cmd);
+            this->m_dispatcher.submitCommand(cmd);
 
             this->createdStates.append(cmd->createdState());
         }

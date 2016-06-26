@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/plugins/panel/PanelDelegateFactory.hpp>
+#include <iscore/plugins/panel/PanelDelegate.hpp>
 
 namespace Scenario
 {

@@ -28,7 +28,7 @@ struct TypeVisitor<Sequence<Args...>> {
   // Base case: one type, invoke functor
   template <typename F, typename Head>
   static constexpr void do_visit(const F& f) {
-    f.template operator()<Head>();
+    f.template perform<Head>();
   }
 
   // At least [Head, Next], Tail... can be empty
@@ -53,7 +53,7 @@ struct TypeVisitor<Sequence<Args...>> {
   // Base case: one type, invoke functor
   template <typename F, typename Head>
   static constexpr void do_visit(F& f) {
-    f.template operator()<Head>();
+    f.template perform<Head>();
   }
 
   // At least [Head, Next], Tail... can be empty
