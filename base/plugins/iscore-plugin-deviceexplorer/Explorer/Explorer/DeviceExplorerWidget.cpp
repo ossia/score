@@ -280,23 +280,24 @@ void
 DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 {
     updateActions();
-    QMenu contextMenu{this};
+    QMenu* contextMenu = new QMenu{this};
 
-    contextMenu.addAction(m_editAction);
-    contextMenu.addAction(m_refreshAction);
-    contextMenu.addAction(m_refreshValueAction);
+    contextMenu->addAction(m_editAction);
+    contextMenu->addAction(m_refreshAction);
+    contextMenu->addAction(m_refreshValueAction);
 
-    contextMenu.addAction(m_disconnect);
-    contextMenu.addAction(m_reconnect);
+    contextMenu->addAction(m_disconnect);
+    contextMenu->addAction(m_reconnect);
 
-    contextMenu.addSeparator();
-    contextMenu.addAction(m_addDeviceAction);
-    contextMenu.addAction(m_addSiblingAction);
-    contextMenu.addAction(m_addChildAction);
-    contextMenu.addSeparator();
-    contextMenu.addAction(m_removeNodeAction);
+    contextMenu->addSeparator();
+    contextMenu->addAction(m_addDeviceAction);
+    contextMenu->addAction(m_addSiblingAction);
+    contextMenu->addAction(m_addChildAction);
+    contextMenu->addSeparator();
+    contextMenu->addAction(m_removeNodeAction);
 
-    contextMenu.exec(event->globalPos());
+    contextMenu->exec(event->globalPos());
+    contextMenu->deleteLater();
 }
 
 void
