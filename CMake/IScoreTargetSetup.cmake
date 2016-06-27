@@ -259,7 +259,9 @@ function(setup_iscore_library PluginName)
   setup_iscore_common_lib_features("${PluginName}")
 
   set(ISCORE_LIBRARIES_LIST ${ISCORE_LIBRARIES_LIST} "${PluginName}" CACHE INTERNAL "List of libraries")
-  set_target_properties(${PluginName} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/")
+  set_target_properties(${PluginName} PROPERTIES
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/")
 
   if(NOT ISCORE_STATIC_PLUGINS)
     if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
@@ -269,7 +271,8 @@ function(setup_iscore_library PluginName)
     else()
       install(TARGETS "${PluginName}"
         LIBRARY DESTINATION .
-        ARCHIVE DESTINATION static_lib)
+        ARCHIVE DESTINATION static_lib
+        RUNTIME DESTINATION bin)
     endif()
   endif()
 
@@ -283,7 +286,9 @@ function(setup_iscore_plugin PluginName)
 
   set(ISCORE_PLUGINS_LIST ${ISCORE_PLUGINS_LIST} "${PluginName}" CACHE INTERNAL "List of plugins")
 
-  set_target_properties(${PluginName} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/")
+  set_target_properties(${PluginName} PROPERTIES
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/")
   if(NOT ISCORE_STATIC_PLUGINS)
     if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
       install(TARGETS "${PluginName}"
@@ -292,7 +297,8 @@ function(setup_iscore_plugin PluginName)
     else()
       install(TARGETS "${PluginName}"
         LIBRARY DESTINATION plugins
-        ARCHIVE DESTINATION static_plugins)
+        ARCHIVE DESTINATION static_plugins
+        RUNTIME DESTINATION bin/plugins)
     endif()
   endif()
 

@@ -83,8 +83,14 @@ std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     {
         return std::make_pair(nullptr, PluginLoadingError::Blacklisted);
     }
-
+    
+#if defined(_MSC_VER)
+    QDir iscore_dir = QDir::current();
+    QPluginLoader loader {iscore_dir.relativeFilePath(fileName)};
+#else 
     QPluginLoader loader {fileName};
+#endif
+
     if(QObject* plugin = loader.instance())
     {
         auto iscore_plugin = dynamic_cast<iscore::Plugin_QtInterface*>(plugin);
