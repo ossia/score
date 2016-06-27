@@ -22,6 +22,22 @@ class TTException {
         }
 };
 
+class ISCORE_LIB_BASE_EXPORT LogFile
+{
+public:
+	LogFile():
+		fd{ fopen("i-score.log", "a") }
+	{
+	}
+
+	FILE* desc() const { return fd; }
+	~LogFile()
+	{
+		fclose(fd);
+	}
+private:
+	FILE* fd{};
+};
 /**
  * @brief The SafeQApplication class
  *
@@ -43,33 +59,37 @@ class ISCORE_LIB_BASE_EXPORT SafeQApplication final : public QApplication
 
         ~SafeQApplication();
 #if defined(ISCORE_DEBUG)
-        static void DebugOutput(
-                QtMsgType type,
-                const QMessageLogContext &context,
-                const QString &msg)
-        {
-            auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
-            auto basename = basename_arr.constData();
-
+		static void DebugOutput(
+			QtMsgType type,
+			const QMessageLogContext &context,
+			const QString &msg)
+		{
+			auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
+			auto basename = basename_arr.constData();
+			FILE* out_file = stderr;
+#if defined(_MSC_VER)
+			static LogFile logger;
+			out_file = logger.desc();
+#endif
             QByteArray localMsg = msg.toLocal8Bit();
             switch (type) {
                 case QtDebugMsg:
-                    fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
+                    fprintf(out_file, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
                     break;
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
                 case QtInfoMsg:
-                    fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
+                    fprintf(out_file, "Info: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
                     break;
 #endif
                 case QtWarningMsg:
-                    fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
+                    fprintf(out_file, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
                     break;
                 case QtCriticalMsg:
-                    fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
+                    fprintf(out_file, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
                     break;
                 case QtFatalMsg:
-                    fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
+                    fprintf(out_file, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), basename, context.line, context.function);
                     ISCORE_BREAKPOINT;
                     std::terminate();
             }
