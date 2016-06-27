@@ -23,7 +23,7 @@ namespace OSSIA
 namespace RecreateOnPlay
 {
 class ClockManager;
-class Context;
+struct Context;
 class ConstraintElement;
 }
 // TODO this should have "OSSIA Policies" : one would be the

@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore_plugin_ossia_export.h>
 namespace iscore
 {
 struct DocumentContext;
@@ -35,7 +36,7 @@ using StateProcessComponentFactoryList =
         RecreateOnPlay::DocumentPlugin,
         RecreateOnPlay::StateProcessComponentFactory>;
 
-struct Context
+struct ISCORE_PLUGIN_OSSIA_EXPORT Context
 {
     const iscore::DocumentContext& doc;
     const RecreateOnPlay::DocumentPlugin& sys;

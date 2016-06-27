@@ -1,6 +1,5 @@
 #pragma once
 #include <OSSIA/Executor/ClockManager/ClockManagerFactory.hpp>
-
 #include <Editor/TimeConstraint.h>
 namespace Scenario
 { class ConstraintModel; }
@@ -10,7 +9,9 @@ class BaseScenarioElement;
 class ISCORE_PLUGIN_OSSIA_EXPORT DefaultClockManager final : public ClockManager
 {
     public:
-        DefaultClockManager(const Context& ctx);
+		DefaultClockManager(const Context& ctx);
+
+		virtual ~DefaultClockManager();
 
         // Pass the root constraint.
         static OSSIA::TimeConstraint::ExecutionCallback makeDefaultCallback(
@@ -24,13 +25,15 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DefaultClockManager final : public ClockManager
         void stop_impl(BaseScenarioElement&) override;
 };
 
-class DefaultClockManagerFactory final : public ClockManagerFactory
+class ISCORE_PLUGIN_OSSIA_EXPORT DefaultClockManagerFactory final : public ClockManagerFactory
 {
         ISCORE_CONCRETE_FACTORY_DECL("583e9c52-e136-46b6-852f-7eef2993e9eb")
 
+    public:
+		virtual ~DefaultClockManagerFactory();
         QString prettyName() const override;
-        std::unique_ptr<ClockManager> make(
-            const RecreateOnPlay::Context& ctx) override;
+		std::unique_ptr<ClockManager> make(
+			const RecreateOnPlay::Context& ctx) override;
 };
 
 }
