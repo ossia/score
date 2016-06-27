@@ -1,12 +1,12 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <OSSIA/Executor/ClockManager/ClockManagerFactory.hpp>
-
+#include <iscore_plugin_ossia_export.h>
 namespace RecreateOnPlay
 {
 namespace Settings
 {
-class Model :
+class ISCORE_PLUGIN_OSSIA_EXPORT Model :
         public iscore::SettingsDelegateModel
 {
         Q_OBJECT
@@ -24,7 +24,7 @@ class Model :
         const ClockManagerFactoryList& clockFactories() const
         { return m_clockFactories; }
 
-        std::unique_ptr<ClockManager> makeClock(const RecreateOnPlay::Context& ctx) const;
+		std::unique_ptr<ClockManager> makeClock(const RecreateOnPlay::Context& ctx) const;
 
         ISCORE_SETTINGS_PARAMETER_HPP(int, Rate)
         ISCORE_SETTINGS_PARAMETER_HPP(ClockManagerFactory::ConcreteFactoryKey, Clock)

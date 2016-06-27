@@ -31,7 +31,7 @@ std::unique_ptr<ClockManager> Model::makeClock(
     auto it = m_clockFactories.find(m_Clock);
     return it != m_clockFactories.end()
                  ? it->make(ctx)
-                 : std::make_unique<DefaultClockManager>(ctx);
+		         : std::make_unique<DefaultClockManager>( ctx );
 }
 
 ISCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)

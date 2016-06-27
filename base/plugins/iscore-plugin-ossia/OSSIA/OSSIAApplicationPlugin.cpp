@@ -355,5 +355,5 @@ std::unique_ptr<RecreateOnPlay::ClockManager> OSSIAApplicationPlugin::makeClock(
         const RecreateOnPlay::Context& ctx)
 {
     auto& s = context.settings<RecreateOnPlay::Settings::Model>();
-    return s.makeClock(ctx);
+	return s.makeClock(ctx);
 }

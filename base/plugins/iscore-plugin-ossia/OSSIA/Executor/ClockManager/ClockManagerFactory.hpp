@@ -7,7 +7,7 @@
 
 namespace RecreateOnPlay
 {
-class Context;
+struct Context;
 class BaseScenarioElement;
 
 /**
@@ -63,7 +63,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ClockManagerFactory :
                 const RecreateOnPlay::Context& ctx) = 0;
 };
 
-class ISCORE_LIB_BASE_EXPORT ClockManagerFactoryList final :
+class ISCORE_PLUGIN_OSSIA_EXPORT ClockManagerFactoryList final :
         public iscore::ConcreteFactoryList<ClockManagerFactory>
 {
     public:
