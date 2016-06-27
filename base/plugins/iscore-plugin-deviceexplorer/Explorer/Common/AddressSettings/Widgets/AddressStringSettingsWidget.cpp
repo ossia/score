@@ -23,6 +23,7 @@ Device::AddressSettings AddressStringSettingsWidget::getSettings() const
 {
     auto settings = getCommonSettings();
     settings.value.val = m_valueEdit->text();
+    settings.domain = Device::Domain{};
     return settings;
 }
 

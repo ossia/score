@@ -94,7 +94,9 @@ void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettingsCommon& n)
     // TODO doesn't handle multi-type variants.
     if(m_obj.contains(iscore::StringConstant().Type))
     {
-        n.domain = Device::JsonToDomain(m_obj[iscore::StringConstant().Domain].toObject(), m_obj[iscore::StringConstant().Type].toString());
+        n.domain = Device::JsonToDomain(
+            m_obj[iscore::StringConstant().Domain].toObject(),
+            m_obj[iscore::StringConstant().Type].toString());
     }
 }
 
