@@ -1,3 +1,4 @@
+#include "StandardRemovalPolicy.hpp"
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -14,7 +15,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include "StandardRemovalPolicy.hpp"
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -82,7 +83,7 @@ void StandardRemovalPolicy::removeState(
 
     scenario.states.remove(&state);
 
-    qDebug() << "todo : update event extent";
+    updateEventExtent(ev.id(), scenario);
 }
 
 void StandardRemovalPolicy::removeEventStatesAndConstraints(
