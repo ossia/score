@@ -10,6 +10,18 @@ StateProcess::StateProcess(
 
 }
 
+StateProcess::StateProcess(Deserializer<JSONObject>& vis, QObject* parent) :
+    IdentifiedObject(vis, parent)
+{
+    vis.writeTo(*this);
+}
+
+StateProcess::StateProcess(Deserializer<DataStream>& vis, QObject* parent) :
+    IdentifiedObject(vis, parent)
+{
+    vis.writeTo(*this);
+}
+
 ISCORE_LIB_PROCESS_EXPORT StateProcess::~StateProcess() = default;
 
 }

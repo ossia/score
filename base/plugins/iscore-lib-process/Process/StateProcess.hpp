@@ -21,18 +21,14 @@ class ISCORE_LIB_PROCESS_EXPORT StateProcess:
         ISCORE_SERIALIZE_FRIENDS(StateProcess, JSONObject)
 
     public:
-        using IdentifiedObject<StateProcess>::IdentifiedObject;
         StateProcess(
                 const Id<StateProcess>& id,
                 const QString& name,
                 QObject* parent);
 
-        template<typename Impl>
-        StateProcess(Deserializer<Impl>& vis, QObject* parent) :
-            IdentifiedObject {vis, parent}
-        {
-            vis.writeTo(*this);
-        }
+
+        StateProcess(Deserializer<DataStream>& vis, QObject* parent);
+        StateProcess(Deserializer<JSONObject>& vis, QObject* parent);
 
         virtual ~StateProcess();
 
