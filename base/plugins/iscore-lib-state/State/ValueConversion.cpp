@@ -179,6 +179,9 @@ State::Value fromQJsonValue(const QJsonValue& val)
 
 static State::ValueImpl fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
 {
+    if(val.isNull())
+        return State::ValueImpl{State::no_value_t{}};
+
     switch(type)
     {
         case ValueType::NoValue:

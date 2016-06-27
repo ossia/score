@@ -228,11 +228,11 @@ void updateOSSIAAddress(
     auto val = iscore::convert::toOSSIAValue(settings.value);
     addr->setValue(val.get());
 
-    auto min = toOSSIAValue(settings.domain.min).release();
-    auto max = toOSSIAValue(settings.domain.max).release();
+    auto min = toOSSIAValue(settings.domain.min);
+    auto max = toOSSIAValue(settings.domain.max);
     if(min && max)
     {
-        addr->setDomain(OSSIA::Domain::create(min, max));
+        addr->setDomain(OSSIA::Domain::create(min.get(), max.get()));
     }
 }
 
@@ -385,11 +385,13 @@ std::shared_ptr<OSSIA::Message> message(
 
         if(!ossia_node)
             return {};
+        auto ossia_addr = ossia_node->getAddress();
+        if (!ossia_addr)
+            return{};
 
         auto val = iscore::convert::toOSSIAValue(mess.value);
         return OSSIA::Message::create(
-                    ossia_node->getAddress(),
-                    val.get());
+            ossia_addr, val.get());
     }
 
     return {};
