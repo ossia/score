@@ -43,7 +43,6 @@ mkdir qt5-build
                    -glib \
                    -no-pulseaudio \
                    -no-alsa \
-                   -no-gtkstyle \
                    -no-compile-examples \
                    -no-cups \
                    -no-iconv \
