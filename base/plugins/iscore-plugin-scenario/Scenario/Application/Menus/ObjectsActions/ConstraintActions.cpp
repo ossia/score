@@ -25,11 +25,12 @@
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
+#include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <QAction>
 #include <QMenu>
 #include <QToolBar>
-
+#include <QMainWindow>
 #include <QApplication>
 
 namespace Scenario
@@ -80,6 +81,21 @@ ConstraintActions::ConstraintActions(
     DoForSelectedConstraints(m_parent->currentDocument()->context(), Command::InterpolateStates);
     });
 
+
+    m_curves = new QAction{this};
+    m_curves->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    // TODO add "center widget" and "panels"
+    parent->context.mainWindow.addAction(m_curves);
+
+    setIcons(m_curves, QString(":/icons/create_curve_on.png"), QString(":/icons/create_curve_off.png"));
+
+    connect(m_curves, &QAction::triggered,
+            this, [&] () {
+        if(auto doc = m_parent->currentDocument())
+            DoForSelectedConstraints(doc->context(), CreateCurves);
+    });
+    m_curves->setEnabled(false);
+
 }
 
 ConstraintActions::~ConstraintActions()
@@ -95,18 +111,22 @@ void ConstraintActions::makeGUIElements(iscore::GUIElements& ref)
     Menu& object = m_parent->context.menus.get().at(Menus::Object());
     object.menu()->addAction(m_addProcess);
     object.menu()->addAction(m_interp);
+    object.menu()->addAction(m_curves);
     {
         auto bar = new QToolBar{tr("Constraint")};
         bar->addAction(m_interp);
+        bar->addAction(m_curves);
         ref.toolbars.emplace_back(bar, StringKey<iscore::Toolbar>("Constraint"), 0, 0);
     }
 
     ref.actions.add<Actions::AddProcess>(m_addProcess);
     ref.actions.add<Actions::InterpolateStates>(m_interp);
+    ref.actions.add<Actions::CreateCurves>(m_curves);
 
     auto& cond = m_parent->context.actions.condition<iscore::EnableWhenSelectionContains<Scenario::ConstraintModel>>();
     cond.add<Actions::AddProcess>();
     cond.add<Actions::InterpolateStates>();
+    cond.add<Actions::CreateCurves>();
 }
 
 void ConstraintActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)

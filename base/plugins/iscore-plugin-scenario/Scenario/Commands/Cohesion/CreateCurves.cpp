@@ -21,6 +21,8 @@
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
 
 #include <Automation/AutomationModel.hpp>
+namespace Scenario
+{
 void CreateCurves(
         const QList<const Scenario::ConstraintModel*>& selected_constraints,
         const iscore::CommandStackFacade& stack)
@@ -154,4 +156,5 @@ void CreateCurves(
     {
         delete big_macro;
     }
+}
 }
