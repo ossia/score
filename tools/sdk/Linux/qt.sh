@@ -10,7 +10,7 @@ git clone https://code.qt.io/qt/qt5.git
 
 (
   cd qt5
-  git checkout 5.6.1
+  git checkout 5.7
   perl init-repository --module-subset=qtbase,qtimageformats,qtsvg,qtwebsockets,qttranslations,qtrepotools,qtdeclarative
 )
 
@@ -54,8 +54,7 @@ mkdir qt5-build
                    -dbus-linked \
                    -no-gstreamer \
                    -no-system-proxies
-                   
+
   make -j$NPROC
   make install -j$NPROC
-                   
 )
