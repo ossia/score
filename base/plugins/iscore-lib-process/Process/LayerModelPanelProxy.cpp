@@ -78,12 +78,10 @@ Process::GraphicsViewLayerModelPanelProxy::~GraphicsViewLayerModelPanelProxy()
     {
         deleteGraphicsObject(m_layerView);
         delete m_processPresenter;
-        m_processPresenter = nullptr;
     }
 
     delete m_obj;
-    m_obj = nullptr;
-
+    delete m_widget;
 }
 
 const Process::LayerModel&Process::GraphicsViewLayerModelPanelProxy::layer()
