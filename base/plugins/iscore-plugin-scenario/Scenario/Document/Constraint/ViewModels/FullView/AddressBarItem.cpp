@@ -34,25 +34,8 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
     m_currentPath = std::move(path);
 
     double currentWidth = 0;
+
     int i = -1;
-
-    auto& constraint = m_currentPath.find<ConstraintModel>();
-    auto cstr = &constraint;
-    QMap<int, QString> name;
-
-    for(int j = m_currentPath.vec().size() - 1 ; j > -1 ; j--)
-    {
-        if (! m_currentPath.vec().at(j).objectName().contains("ConstraintModel") )
-          continue;
-
-        name[j] = (cstr->metadata.name());
-
-        auto scenar = dynamic_cast<Scenario::ScenarioModel*>(cstr->parent());
-        if(scenar)
-            cstr = safe_cast<ConstraintModel*>(scenar->parent());
-    }
-
-
     for(auto& identifier : m_currentPath)
     {
         i++;
@@ -64,7 +47,7 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
         pathVec.resize(i + 1);
         ConstraintModel& thisObj = thisPath.find<ConstraintModel>();
 
-        QString txt = name.value(i);
+        QString txt = thisObj.metadata.name();
 
         auto lab = new ClickableLabelItem{
                    thisObj.metadata,
