@@ -36,6 +36,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions : public QObject
         ScenarioApplicationPlugin* m_parent{};
         QAction *m_addProcess{};
         QAction *m_interp{};
+        QAction* m_curves{};
 
         AddProcessDialog* m_addProcessDialog{};
 
