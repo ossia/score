@@ -6,8 +6,6 @@
 #include <QString>
 #include <QToolBar>
 
-#include "Actions/CreateCurves.hpp"
-#include "Actions/SnapshotParameters.hpp"
 #include "IScoreCohesionApplicationPlugin.hpp"
 #include "Record/RecordManager.hpp"
 #include <Scenario/Palette/ScenarioPoint.hpp>
@@ -24,8 +22,6 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <QApplication>
 #include <QMainWindow>
-ISCORE_DECLARE_ACTION(Snapshot,"Snapshot in Event", Scenario, QKeySequence(QObject::tr("Ctrl+L")))
-ISCORE_DECLARE_ACTION(CreateCurves, "Create Curves", Scenario, QKeySequence(QObject::tr("Ctrl+J")))
 
 IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(
         const iscore::GUIApplicationContext& ctx) :
@@ -50,59 +46,7 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(
     connect(m_stopAction, &QAction::triggered,
             this, [&] { stopRecord(); });
 
-    m_snapshot = new QAction {this};
-    m_snapshot->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    ctx.mainWindow.addAction(m_snapshot);
 
-    setIcons(m_snapshot, QString(":/icons/snapshot_on.png"), QString(":/icons/snapshot_off.png"));
-
-    connect(m_snapshot, &QAction::triggered,
-            this, [&] () {
-        if(auto doc = currentDocument())
-            SnapshotParametersInStates(doc->context());
-    });
-    m_snapshot->setEnabled(false);
-
-    m_curves = new QAction{this};
-    m_curves->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    ctx.mainWindow.addAction(m_curves);
-
-    setIcons(m_curves, QString(":/icons/create_curve_on.png"), QString(":/icons/create_curve_off.png"));
-
-    connect(m_curves, &QAction::triggered,
-            this, [&] () {
-        if(auto doc = currentDocument())
-            DoForSelectedConstraints(doc->context(), CreateCurves);
-    });
-    m_curves->setEnabled(false);
-
-}
-
-iscore::GUIElements IScoreCohesionApplicationPlugin::makeGUIElements()
-{
-    using namespace iscore;
-
-    GUIElements e;
-
-    Menu& object = context.menus.get().at(Menus::Object());
-    object.menu()->addAction(m_snapshot);
-    object.menu()->addAction(m_curves);
-    {
-        iscore::Toolbar& bar = context.toolbars.get().at(StringKey<iscore::Toolbar>("Constraint"));
-        bar.toolbar()->addAction(m_snapshot);
-        bar.toolbar()->addAction(m_curves);
-    }
-
-    e.actions.add<Actions::Snapshot>(m_snapshot);
-    e.actions.add<Actions::CreateCurves>(m_curves);
-
-    auto& cstr_cond = context.actions.condition<iscore::EnableWhenSelectionContains<Scenario::ConstraintModel>>();
-    auto& state_cond = context.actions.condition<iscore::EnableWhenSelectionContains<Scenario::StateModel>>();
-
-    state_cond.add<Actions::Snapshot>();
-    cstr_cond.add<Actions::CreateCurves>();
-
-    return e;
 }
 
 void IScoreCohesionApplicationPlugin::record(

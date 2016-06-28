@@ -1,4 +1,4 @@
-#include <Commands/SnapshotStatesMacro.hpp>
+#include <Scenario/Commands/State/SnapshotStatesMacro.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
@@ -19,6 +19,8 @@
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
+namespace Scenario
+{
 void SnapshotParametersInStates(const iscore::DocumentContext& doc)
 {
     using namespace std;
@@ -51,4 +53,5 @@ void SnapshotParametersInStates(const iscore::DocumentContext& doc)
     }
 
     macro.commit();
+}
 }

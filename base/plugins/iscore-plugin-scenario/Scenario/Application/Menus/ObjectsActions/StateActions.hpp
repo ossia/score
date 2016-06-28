@@ -25,5 +25,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateActions : public QObject
 
         ScenarioApplicationPlugin* m_parent{};
         QAction* m_refreshStates{};
+        QAction* m_snapshot{};
 };
 }
