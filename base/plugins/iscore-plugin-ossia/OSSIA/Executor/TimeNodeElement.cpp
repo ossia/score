@@ -7,6 +7,8 @@
 
 #include "Editor/Expression.h"
 #include "TimeNodeElement.hpp"
+#include "ConstraintElement.hpp"
+#include <Editor/State.h>
 
 namespace RecreateOnPlay
 {
@@ -40,6 +42,14 @@ TimeNodeElement::TimeNodeElement(
             this, [&] () {
         try {
             m_ossia_node->trigger();
+
+            auto accumulator = OSSIA::State::create();
+            for(auto& event : m_ossia_node->timeEvents())
+            {
+                if(event->getStatus() == OSSIA::TimeEvent::Status::HAPPENED)
+                    flattenAndFilter(event->getState(), accumulator);
+            }
+            accumulator->launch();
         }
         catch(...)
         {
