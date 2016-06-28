@@ -2,9 +2,11 @@ environment:
   QTDIR: C:\Qt\5.7\msvc2015
   BOOST_ROOT: c:\Libraries\boost_1_60_0
   JAMOMA_ROOT: c:\projects\i-score\iscore-windows-sdk\jamoma
-  VCVARS: "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\vcvars32.bat"
 
 configuration: Release
+
+image: Visual Studio 2015
+platform: x86
 
 install:
   - appveyor DownloadFile "https://github.com/OSSIA/iscore-sdk/releases/download/4.0-win/iscore-windows-sdk.7z" -FileName iscore-windows-sdk.7z
@@ -18,9 +20,8 @@ build_script:
   - mkdir build
   - cd build
   - set PATH=%QTDIR%\bin;
-  - cmd: call "%VCVARS%"
-  - cmake -G"NMake Makefiles" -DISCORE_CONFIGURATION=release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5;%JAMOMA_ROOT%/share/cmake/jamoma" ..
-  - cmake --build . --target all_unity -- -j2
+  - cmake -DISCORE_CONFIGURATION=release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5;%JAMOMA_ROOT%/share/cmake/jamoma" ..
+  - msbuild ALL_UNITY.vcxproj /p:Configuration=Release /m
   - cmake --build . --target package
 
 artifacts:
