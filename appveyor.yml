@@ -1,35 +1,27 @@
 environment:
-  QTDIR: c:\projects\i-score\iscore-windows-sdk\qt-5.6
-  MINGW: c:\projects\i-score\iscore-windows-sdk\mingw32
-  BOOST_ROOT: c:\Libraries\boost_1_59_0
-  BOOST_LIBRARYDIR: c:\Libraries\boost_1_59_0\stage\lib
+  QTDIR: C:\Qt\5.7\msvc2015
+  BOOST_ROOT: c:\Libraries\boost_1_60_0
   JAMOMA_ROOT: c:\projects\i-score\iscore-windows-sdk\jamoma
-  CHOCO_PATH: c:\ProgramData\chocolatey\bin
-  CMAKE_PATH: c:\projects\i-score\iscore-windows-sdk\cmake
-
+  VCVARS: "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\vcvars32.bat"
 
 configuration: Release
 
 install:
-  - appveyor DownloadFile "https://www.dropbox.com/s/4hc09x926sa6w2k/iscore-windows-sdk.7z?dl=1" -FileName iscore-windows-sdk.7z
+  - appveyor DownloadFile "https://github.com/OSSIA/iscore-sdk/releases/download/4.0-win/iscore-windows-sdk.7z" -FileName iscore-windows-sdk.7z
   - 7z x iscore-windows-sdk.7z -y > nul
   - cd iscore-windows-sdk
   - nsis.exe /S
   - cd ..
-  
+
 build_script:
   - git submodule update --init --recursive
-#  - cd base/addons
-#  - git clone https://github.com/OSSIA/iscore-addon-csp
-#  - cd iscore-addon-csp
-#  - git submodule update --init --recursive
-#  - cd ../../../
   - mkdir build
   - cd build
-  - set PATH=%CMAKE_PATH%\bin;%QTDIR%\bin;%MINGW%\bin;
-  - cmake -G"MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE=CMake/Configurations/travis/appveyor-mingw-static-release.toolchain -DISCORE_CONFIGURATION=appveyor-mingw-static-release -DISCORE_SDK_PATH=c:/projects/i-score/iscore-windows-sdk ..
+  - set PATH=%QTDIR%\bin;
+  - cmd: call "%VCVARS%"
+  - cmake -G"NMake Makefiles" -DISCORE_CONFIGURATION=release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5;%JAMOMA_ROOT%/share/cmake/jamoma" ..
   - cmake --build . --target all_unity -- -j2
-  - cpack
+  - cmake --build . --target package
 
 artifacts:
   - name: Installer
