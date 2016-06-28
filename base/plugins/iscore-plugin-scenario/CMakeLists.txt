@@ -123,6 +123,8 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/CreateCurveFromStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/InterpolateStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/RefreshStates.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/CreateCurves.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/SnapshotParameters.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/RemoveMessageNodes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/AddMessagesToState.cpp"

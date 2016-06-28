@@ -20,7 +20,7 @@ build_script:
   - mkdir build
   - cd build
   - set PATH=%QTDIR%\bin;%PATH%
-  - cmake -DISCORE_CONFIGURATION=release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5;%JAMOMA_ROOT%/share/cmake/jamoma" ..
+  - cmake -G"NMake Makefiles" -DISCORE_CONFIGURATION=release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5;%JAMOMA_ROOT%/share/cmake/jamoma" ..
   - msbuild ALL_UNITY.vcxproj /p:Configuration=Release /m
   - cmake --build . --target package
 

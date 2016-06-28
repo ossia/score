@@ -183,11 +183,19 @@ ISCORE_DECLARE_ACTION(RemoveTrigger, "&Remove Trigger", Scenario, QKeySequence::
 
 // State
 ISCORE_DECLARE_ACTION(RefreshStates, "Refresh St&ates", Scenario, Qt::CTRL + Qt::Key_U)
+ISCORE_DECLARE_ACTION(Snapshot,"Snapshot in Event", Scenario, QKeySequence(QObject::tr("Ctrl+L")))
 
 // Constraint
 ISCORE_DECLARE_ACTION(AddProcess, "&Add a process", Scenario, QKeySequence::UnknownKey)
 ISCORE_DECLARE_ACTION(InterpolateStates, "&Interpolate states", Scenario, Qt::CTRL + Qt::Key_K)
+ISCORE_DECLARE_ACTION(CreateCurves, "Create Curves", Scenario, QKeySequence(QObject::tr("Ctrl+J")))
 ISCORE_DECLARE_ACTION(MergeTimeNodes, "&Merge TimeNodes", Scenario, Qt::SHIFT + Qt::Key_M)
+
+// Navigation
+ISCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)
+ISCORE_DECLARE_ACTION(MoveDown, "&Move down", Scenario, Qt::DownArrow)
+ISCORE_DECLARE_ACTION(MoveLeft, "&Move left", Scenario, Qt::LeftArrow)
+ISCORE_DECLARE_ACTION(MoveRight, "&Move right", Scenario, Qt::RightArrow)
 
 /// Context menus
 ISCORE_PROCESS_DECLARE_CONTEXT_MENU(ISCORE_PLUGIN_SCENARIO_EXPORT, ScenarioObjectContextMenu)

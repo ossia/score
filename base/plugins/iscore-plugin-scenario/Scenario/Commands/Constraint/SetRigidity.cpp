@@ -59,8 +59,8 @@ void SetRigidity::redo() const
     }
     else
     {
-        constraint.duration.setMinDuration( TimeValue::fromMsecs(0.8 * dur.msec()));
-        constraint.duration.setMaxDuration( TimeValue::fromMsecs(1.2 * dur.msec()));
+        constraint.duration.setMinNull(true);
+        constraint.duration.setMaxInfinite(true);
     }
 
 }
