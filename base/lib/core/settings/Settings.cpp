@@ -17,6 +17,11 @@ Settings::Settings() :
 Settings::~Settings()
 {
     m_settingsView->deleteLater();
+    for(auto& ptr : m_settings)
+    {
+        auto p = ptr.release();
+        p->deleteLater();
+    }
 }
 
 void Settings::setupSettingsPlugin(
