@@ -59,7 +59,7 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(
     TTFoundationInit(contents.toUtf8().constData(), false);
     TTModularInit(contents.toUtf8().constData(), false);
 #elif defined(linux)
-    auto contents = QFileInfo(qApp->applicationDirPath()).dir().path() + "/../lib/jamoma";
+    auto contents = QFileInfo(qApp->applicationDirPath()).dir().path() + "/lib/jamoma";
     TTFoundationInit(contents.toUtf8().constData(), false);
     TTModularInit(contents.toUtf8().constData(), false);
 #endif
