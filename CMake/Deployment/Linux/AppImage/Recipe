@@ -50,17 +50,18 @@ mkdir -p $APP.AppDir/usr
 cp $APP.AppDir/usr/share/applications/i-score.desktop $APP.AppDir/
 cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
 
+export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
 # Copy needed libraries and remove system ones
 (
     cd $APP.AppDir
     cp ../../AppImageKit/AppRun .
     chmod a+x AppRun
     mkdir -p ./usr/lib/qt5/
-    cp -rf /usr/local/Qt-5.6.1/plugins/  ./usr/lib/qt5/plugins
+    cp -rf "$QTDIR/plugins/"  ./usr/lib/qt5/plugins
     
     # Dependencies of plugins and i-score
-    for lib in usr/lib/libiscore_lib_*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v /usr/local/Qt-5.6.1/lib/'{}' ./usr/lib
-    for lib in usr/lib/i-score/*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v /usr/local/Qt-5.6.1/lib/'{}' ./usr/lib
+    for lib in usr/lib/libiscore_lib_*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
+    for lib in usr/lib/i-score/*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
     ldd usr/bin/i-score | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     
     # Jamoma
@@ -77,9 +78,9 @@ cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
     
     # Dependencies of qt
     ldd usr/lib/qt5/plugins/platforms/libqxcb.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
-    cp -v /usr/local/Qt-5.6.1/lib/libQt5XcbQpa.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5XcbQpa.so.5 ./usr/lib || true
     ldd ./usr/lib/libQt5XcbQpa.so.5 | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
-    cp -v /usr/local/Qt-5.6.1/lib/libQt5DBus.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5DBus.so.5 ./usr/lib || true
     
     # Taken from Subsurface appimage
     # The following are assumed to be part of the base system
@@ -124,7 +125,7 @@ cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
     strip usr/bin/i-score usr/lib/*.* usr/lib/qt5/plugins/*/*.* usr/lib/i-score/*.* || true
 
     cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
-    cd usr/ ; find . -type f -exec sed -i -e 's|/usr/local/Qt-5.6.1/lib|././/lib|g' {} \; ; cd ..
+    cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
 )
 
 cp i-score/CMake/Deployment/Linux/AppImage/qt.conf $APP.AppDir/usr/bin/

@@ -2934,10 +2934,17 @@ function (cotire_setup_unity_build_target _languages _configurations _target)
         add_library(${_unityTargetName} ${_unityTargetSubType} EXCLUDE_FROM_ALL ${_unityTargetSources})
     endif()
     
-    if (TARGET ${_target}_automoc OR _targetAutoMoc OR _targetAutoUic OR _targetAutoRcc)
-        # depend on the original target's implicity generated <targetname>_automoc target
-        add_dependencies(${_unityTargetName} ${_target}_automoc)
+    if("${CMAKE_GENERATOR}" MATCHES "Visual")
+        if (TARGET ${_target}_automoc)
+            # depend on the original target's implicity generated <targetname>_automoc target
+            add_dependencies(${_unityTargetName} ${_target}_automoc)
+        endif()
+    else()
+        if (_targetAutoMoc OR _targetAutoUic OR _targetAutoRcc)
+            add_dependencies(${_unityTargetName} ${_target}_automoc)
+        endif()
     endif()
+    
     # copy output location properties
     set (_outputDirProperties
         ARCHIVE_OUTPUT_DIRECTORY ARCHIVE_OUTPUT_DIRECTORY_<CONFIG>
