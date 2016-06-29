@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 set -o pipefail
-
+ 
 
 # Minimal stuff
 yum -y install epel-release
@@ -58,4 +58,4 @@ export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
     cmake .
     make clean
     make
-)
+) 

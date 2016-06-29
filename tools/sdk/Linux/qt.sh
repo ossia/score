@@ -11,7 +11,7 @@ git clone https://code.qt.io/qt/qt5.git
 (
   cd qt5
   git checkout 5.7
-  perl init-repository --module-subset=qtbase,qtimageformats,qtsvg,qtwebsockets,qttranslations,qtrepotools,qtdeclarative
+  perl init-repository --module-subset=qtbase,qtimageformats,qtsvg,qtwebsockets,qttranslations,qtrepotools,qtdeclarative,qttools,qtdoc
 )
 
 export CC=/usr/local/bin/gcc
