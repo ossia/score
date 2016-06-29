@@ -31,8 +31,10 @@ endif()
 # Qt Libraries
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     set(DEBUG_CHAR "d")
+    get_property(APIJamoma_dll TARGET APIJamoma PROPERTY LOCATION_DEBUG)
 else()
     set(DEBUG_CHAR "")
+    get_property(APIJamoma_dll TARGET APIJamoma PROPERTY LOCATION_RELEASE)
 endif()
 
 get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
@@ -40,9 +42,11 @@ get_filename_component(QT_DLL_DIR ${QtCore_LOCATION} PATH)
 file(GLOB ICU_DLLS "${QT_DLL_DIR}/icu*.dll")
 
 # TODO instead register them somewhere like the plug-ins.
-install(FILES
 
-  "${CMAKE_BINARY_DIR}/API/Implementations/Jamoma/APIJamoma.dll"
+
+
+install(FILES
+  "${APIJamoma_dll}"
   ${ICU_DLLS}
   "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Gui${DEBUG_CHAR}.dll"
@@ -108,7 +112,7 @@ WriteRegStr HKEY_LOCAL_MACHINE 'SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersi
 WriteRegStr HKEY_LOCAL_MACHINE 'SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\\\i-score.exe' 'Path' '$INSTDIR\\\\bin\\\\;$INSTDIR\\\\bin\\\\plugins\\\\;'
 ")
 set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
-Delete '$DESKTOP\\\\i-score.lnk' 
+Delete '$DESKTOP\\\\i-score.lnk'
 DeleteRegKey HKLM 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\\\i-score.exe'
 \\\${unregisterExtension} '.scorejson' 'i-score score'
 ")
