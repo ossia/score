@@ -31,10 +31,8 @@ endif()
 # Qt Libraries
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     set(DEBUG_CHAR "d")
-    get_property(APIJamoma_dll TARGET APIJamoma PROPERTY LOCATION_DEBUG)
 else()
     set(DEBUG_CHAR "")
-    get_property(APIJamoma_dll TARGET APIJamoma PROPERTY LOCATION_RELEASE)
 endif()
 
 get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
@@ -46,7 +44,7 @@ file(GLOB ICU_DLLS "${QT_DLL_DIR}/icu*.dll")
 
 
 install(FILES
-  "${APIJamoma_dll}"
+  "$<TARGET_FILE:APIJamoma>"
   ${ICU_DLLS}
   "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Gui${DEBUG_CHAR}.dll"
