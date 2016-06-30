@@ -39,6 +39,7 @@ cmake --build . -- -j4
 
 if [[ "$INSTALL" == "1" ]]; 
 then
+    cmake --build . -- -j4
     cmake --build . --target install -- -j4
     rm -rf i-score.app
     mv build/i-score.app .
