@@ -83,6 +83,7 @@ auto deserialize_interface(
     -> typename FactoryList_T::object_type*
 {
     // Deserialize the interface identifier
+    try {
     auto k = deserialize_key<typename FactoryList_T::factory_type::ConcreteFactoryKey>(des);
 
     // Get the factory
@@ -95,6 +96,9 @@ auto deserialize_interface(
 
         return obj;
     }
-
+    }
+    catch(...) {
+        // We should create a DefaultInterface in this case.
+    }
     return nullptr;
 }

@@ -93,8 +93,12 @@ void SlotModel::putToFront(
 
     if(id != m_frontLayerModelId)
     {
-        m_frontLayerModelId = id;
-        emit layerModelPutToFront(layers.at(id));
+        auto lay = layers.find(id);
+        if(lay != layers.end())
+        {
+            m_frontLayerModelId = id;
+            emit layerModelPutToFront(*lay);
+        }
     }
 }
 

@@ -68,7 +68,9 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
     for(const auto& segment : m_obj["Segments"].toArray())
     {
         Deserializer<JSONObject> segment_deser{segment.toObject()};
-        curve.addSegment(deserialize_interface(csl, segment_deser, &curve));
+        auto seg = deserialize_interface(csl, segment_deser, &curve);
+        if(seg)
+            curve.addSegment(seg);
     }
 
     curve.changed();

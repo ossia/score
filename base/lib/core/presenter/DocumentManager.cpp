@@ -441,9 +441,12 @@ Document* DocumentManager::loadFile(
                 doc = loadDocument(ctx, json.object(), *ctx.components.factory<DocumentDelegateList>().begin());
             }
 
-            m_currentDocument->metadata.setFileName(fileName);
-            m_recentFiles->addRecentFile(fileName);
-            saveRecentFilesState();
+            if(doc)
+            {
+                m_currentDocument->metadata.setFileName(fileName);
+                m_recentFiles->addRecentFile(fileName);
+                saveRecentFilesState();
+            }
         }
     }
 

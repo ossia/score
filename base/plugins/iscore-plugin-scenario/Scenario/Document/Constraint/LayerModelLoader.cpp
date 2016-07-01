@@ -39,12 +39,15 @@ LayerModel* createLayerModel(
         const Scenario::ConstraintModel& constraint,
         QObject* parent)
 {
-    auto& process = constraint.processes.at(
-                fromJsonValue<Id<ProcessModel>>(deserializer.m_obj["SharedProcessId"]));
-    auto viewmodel = process.loadLayer(deserializer.toVariant(),
-                                            parent);
+    auto proc_id = fromJsonValue<Id<ProcessModel>>(deserializer.m_obj["SharedProcessId"]);
+    if(!proc_id)
+        return nullptr;
 
-    return viewmodel;
+    auto process_it = constraint.processes.find(proc_id);
+    if(process_it == constraint.processes.end())
+        return nullptr;
+
+    return process_it->loadLayer(deserializer.toVariant(), parent);
 }
 
 }

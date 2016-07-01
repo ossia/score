@@ -136,4 +136,20 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void ConstraintDurations::Algorithms::changeAllDur
         cstr.duration.setMaxDuration(cstr.duration.maxDuration() + delta);
     }
 }
+
+
+
+ISCORE_PLUGIN_SCENARIO_EXPORT void ConstraintDurations::Algorithms::scaleAllDurations(ConstraintModel &cstr, const TimeValue &time)
+{
+    if(cstr.duration.defaultDuration() != time)
+    {
+        // Note: the OSSIA implementation requires min <= dur <= max at all time
+        // and will throw if not the case. Hence this order.
+        auto ratio = time / cstr.duration.defaultDuration();
+        cstr.duration.setDefaultDuration(time);
+
+        cstr.duration.setMinDuration(cstr.duration.minDuration() * ratio);
+        cstr.duration.setMaxDuration(cstr.duration.maxDuration() * ratio);
+    }
+}
 }
