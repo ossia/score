@@ -126,6 +126,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario
     for(const auto& json_vref : process_array)
     {
         Deserializer<JSONObject> deserializer{json_vref.toObject()};
-        s.stateProcesses.add(deserialize_interface(pl, deserializer, &s));
+        auto proc = deserialize_interface(pl, deserializer, &s);
+        if(proc)
+            s.stateProcesses.add(proc);
     }
 }

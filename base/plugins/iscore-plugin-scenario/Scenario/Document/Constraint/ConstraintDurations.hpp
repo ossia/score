@@ -97,6 +97,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final :
             public:
                 static void setDurationInBounds(ConstraintModel& cstr, const TimeValue& time);
                 static void changeAllDurations(ConstraintModel& cstr, const TimeValue& time);
+                static void scaleAllDurations(ConstraintModel& cstr, const TimeValue& time);
         };
 
         bool isMinNul() const

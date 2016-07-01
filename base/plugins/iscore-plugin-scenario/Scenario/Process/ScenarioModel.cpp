@@ -204,7 +204,7 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
         // Note : scale the min / max.
 
         auto newdur = constraint.duration.defaultDuration() * scale;
-        ConstraintDurations::Algorithms::changeAllDurations(
+        ConstraintDurations::Algorithms::scaleAllDurations(
                     constraint, newdur);
 
         for(auto& process : constraint.processes)

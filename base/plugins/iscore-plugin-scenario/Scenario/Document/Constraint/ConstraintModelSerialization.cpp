@@ -163,7 +163,9 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario
     for(const auto& json_vref : process_array)
     {
         Deserializer<JSONObject> deserializer{json_vref.toObject()};
-        constraint.processes.add(deserialize_interface(pl, deserializer, &constraint));
+        auto proc = deserialize_interface(pl, deserializer, &constraint);
+        if(proc)
+            constraint.processes.add(proc);
     }
 
     QJsonArray rack_array = m_obj["Rackes"].toArray();

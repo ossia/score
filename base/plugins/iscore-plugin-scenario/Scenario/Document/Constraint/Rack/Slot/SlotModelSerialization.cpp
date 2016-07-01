@@ -102,11 +102,11 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
         auto lm = Process::createLayerModel(deserializer,
                                           cstr,
                                           &slot);
-        slot.layers.add(lm);
+        if(lm)
+            slot.layers.add(lm);
     }
 
     slot.setHeight(static_cast<qreal>(m_obj["Height"].toDouble()));
-    slot.putToFront(
-                fromJsonValue<Id<Process::LayerModel>>(
-                    m_obj["EditedProcess"]));
+    auto editedProc = fromJsonValue<Id<Process::LayerModel>>(m_obj["EditedProcess"]);
+    slot.putToFront(editedProc);
 }

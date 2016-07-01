@@ -177,7 +177,7 @@ void OSSIADevice::setLogging_impl(bool b) const
     else
     {
         m_dev->getProtocol()->setLogger({});
-        qDebug() << "logging disnabled";
+        qDebug() << "logging disabled";
     }
 }
 
