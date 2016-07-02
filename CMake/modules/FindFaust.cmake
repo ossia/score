@@ -2,14 +2,17 @@
 
 find_path(
     FAUST_INCLUDE_DIR faust/dsp/llvm-dsp.h
-    HINTS 
+    HINTS
       /opt/lib/faust/architecture/
       /usr/lib/faust/architecture/
       /usr/local/lib/faust/architecture/
+      "${FAUST_INCLUDE_DIR_HINT}"
     )
 
 set(FAUST_NAMES ${FAUST_NAMES} libfaust.so libfaust.dylib faust.dll faust libfaust)
-find_library(FAUST_LIBRARY NAMES ${FAUST_NAMES})
+find_library(FAUST_LIBRARY
+    NAMES ${FAUST_NAMES}
+    HINTS "${FAUST_LIB_DIR_HINT}")
 
 if(FAUST_INCLUDE_DIR AND FAUST_LIBRARY)
   set(FAUST_FOUND TRUE)
