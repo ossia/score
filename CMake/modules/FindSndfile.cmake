@@ -16,23 +16,18 @@ if(NO_LIBSNDFILE)
 elseif (SNDFILE_INCLUDE_DIR AND SNDFILE_LIBRARY)
     set(SNDFILE_LIBRARIES ${SNDFILE_LIBRARY})
     set(SNDFILE_FOUND TRUE)
-#elseif (APPLE)
-    #set(SNDFILE_FOUND TRUE)
-	#set(SNDFILE_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../external_libraries/libsndfile/)
-	#set(SNDFILE_LIBRARIES ${CMAKE_CURRENT_LIST_DIR}/../platform/mac/lib/scUBlibsndfile.a)
-	#add_definitions("-isystem ${CMAKE_CURRENT_LIST_DIR}/../external_libraries/libsndfile")
-
-    # TODO on non-apple platforms, we need to be able to test for >=1018.
-    # (On apple it is known true, because we bundle a later version.)
-	#add_definitions("-DLIBSNDFILE_1018")
-
 else()
+    set(ProgramFilesX86 "ProgramFiles(X86)")
     find_path(SNDFILE_INCLUDE_DIR sndfile.h
-        PATHS "$ENV{ProgramFiles}/Mega-Nerd/libsndfile/include"
+        PATHS
+            "$ENV{ProgramFiles}/Mega-Nerd/libsndfile/include"
+            "$ENV{${ProgramFilesX86}}/Mega-Nerd/libsndfile/include"
     )
 
     find_library(SNDFILE_LIBRARY NAMES sndfile sndfile-1 libsndfile libsndfile-1
-        PATHS "$ENV{ProgramFiles}/Mega-Nerd/libsndfile/lib"
+        PATHS
+            "$ENV{ProgramFiles}/Mega-Nerd/libsndfile/lib"
+            "$ENV{${ProgramFilesX86}}/Mega-Nerd/libsndfile/lib"
     )
 
     # Handle the QUIETLY and REQUIRED arguments and set SNDFILE_FOUND to TRUE if
