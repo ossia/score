@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <algorithm>
 
+#include <Process/ProcessList.hpp>
 #include "SlotModel.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
@@ -52,9 +53,10 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
 
     const auto& cstr = slot.parentConstraint();
 
+    auto& processes = context.components.factory<Process::ProcessList>();
     for(int i = 0; i < lm_size; i++)
     {
-        auto lm = Process::createLayerModel(*this, cstr, &slot);
+        auto lm = Process::createLayerModel(processes, *this, cstr, &slot);
         slot.layers.add(lm);
     }
 
@@ -96,12 +98,15 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
 
     const auto& cstr = slot.parentConstraint();
 
+    auto& processes = context.components.factory<Process::ProcessList>();
     for(const auto& json_vref : arr)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };
-        auto lm = Process::createLayerModel(deserializer,
-                                          cstr,
-                                          &slot);
+        auto lm = Process::createLayerModel(
+                      processes,
+                      deserializer,
+                      cstr,
+                      &slot);
         if(lm)
             slot.layers.add(lm);
     }

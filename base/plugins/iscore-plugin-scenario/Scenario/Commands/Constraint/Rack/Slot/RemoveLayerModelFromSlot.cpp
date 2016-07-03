@@ -3,6 +3,7 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
 
+#include <Process/ProcessList.hpp>
 #include "RemoveLayerModelFromSlot.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -31,7 +32,9 @@ void RemoveLayerModelFromSlot::undo() const
     auto& slot = m_path.find();
     Deserializer<DataStream> s {m_serializedLayerData};
 
-    auto lm = Process::createLayerModel(s,
+    auto& procs = this->context.components.factory<Process::ProcessList>();
+    auto lm = Process::createLayerModel(
+                               procs, s,
                                slot.parentConstraint(),
                                &slot);
     slot.layers.add(lm);

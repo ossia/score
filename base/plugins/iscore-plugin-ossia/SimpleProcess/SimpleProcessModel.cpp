@@ -1,4 +1,4 @@
-#include <DummyProcess/DummyLayerModel.hpp>
+#include <Process/Dummy/DummyLayerModel.hpp>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <algorithm>
@@ -58,11 +58,6 @@ QString SimpleProcessModel::prettyName() const
     return "SimpleProcessModel process";
 }
 
-QByteArray SimpleProcessModel::makeLayerConstructionData() const
-{
-    return {};
-}
-
 void SimpleProcessModel::setDurationAndScale(const TimeValue& newDuration)
 {
     setDuration(newDuration);
@@ -118,36 +113,6 @@ void SimpleProcessModel::serialize_impl(const VisitorVariant& s) const
 {
     serialize_dyn(s, *this);
 }
-
-Process::LayerModel* SimpleProcessModel::makeLayer_impl(
-        const Id<Process::LayerModel>& viewModelId,
-        const QByteArray& constructionData,
-        QObject* parent)
-{
-    return new Dummy::DummyLayerModel{*this, viewModelId, parent};
-}
-
-Process::LayerModel* SimpleProcessModel::loadLayer_impl(
-        const VisitorVariant& vis,
-        QObject* parent)
-{
-    return deserialize_dyn(vis, [&] (auto&& deserializer)
-    {
-        auto autom = new Dummy::DummyLayerModel{
-                        deserializer, *this, parent};
-
-        return autom;
-    });
-}
-
-Process::LayerModel* SimpleProcessModel::cloneLayer_impl(
-        const Id<Process::LayerModel>& newId,
-        const Process::LayerModel& source,
-        QObject* parent)
-{
-    return new Dummy::DummyLayerModel{safe_cast<const Dummy::DummyLayerModel&>(source), *this, newId, parent};
-}
-
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(const SimpleProcessModel& proc)

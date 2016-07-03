@@ -40,6 +40,26 @@ class ScenarioFactory final :
 
         QByteArray makeStaticLayerConstructionData() const override;
 
+        QByteArray makeLayerConstructionData(
+                const Process::ProcessModel& proc) const override;
+
+        Process::LayerModel* makeLayer_impl(
+                Process::ProcessModel& proc,
+                const Id<Process::LayerModel>& viewModelId,
+                const QByteArray& constructionData,
+                QObject* parent) override;
+
+        Process::LayerModel* cloneLayer_impl(
+                Process::ProcessModel& proc,
+                const Id<Process::LayerModel>& newId,
+                const Process::LayerModel& source,
+                QObject* parent) override;
+
+        Process::LayerModel* loadLayer_impl(
+                Process::ProcessModel& proc,
+                const VisitorVariant& vis,
+                QObject* parent) override;
+
         Process::LayerPresenter* makeLayerPresenter(
                 const Process::LayerModel&,
                 Process::LayerView*,

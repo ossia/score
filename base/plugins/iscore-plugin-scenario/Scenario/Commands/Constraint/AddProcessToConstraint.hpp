@@ -192,14 +192,18 @@ class AddProcessDelegate<HasNoRacks>
             }
 
             // Slot
-            auto h = iscore::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+            auto h = m_cmd.context.settings<Scenario::Settings::Model>().getSlotHeight();
             auto slot = new SlotModel {m_createdSlotId,
                     h,
                     rack};
             rack->addSlot(slot);
 
             // Process View
-            slot->layers.add(proc.makeLayer(m_createdLayerId, m_layerConstructionData, slot));
+            auto& procs = m_cmd.context.components.factory<Process::ProcessList>();
+            auto fact = procs.get(proc.concreteFactoryKey());
+            slot->layers.add(
+                        fact->makeLayer(proc,
+                            m_createdLayerId, m_layerConstructionData, slot));
         }
 
         void serialize(DataStreamInput& s) const
@@ -269,7 +273,7 @@ class AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>
             auto& firstRack = *constraint.racks.begin();
 
             // Slot
-            auto h = iscore::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+            auto h = m_cmd.context.settings<Scenario::Settings::Model>().getSlotHeight();
             auto slot = new SlotModel {
                     m_createdSlotId,
                     h,
@@ -277,7 +281,10 @@ class AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>
             firstRack.addSlot(slot);
 
             // Layer
-            slot->layers.add(proc.makeLayer(m_createdLayerId, m_layerConstructionData, slot));
+            auto& procs = m_cmd.context.components.factory<Process::ProcessList>();
+            auto fact = procs.get(proc.concreteFactoryKey());
+            slot->layers.add(
+                        fact->makeLayer(proc, m_createdLayerId, m_layerConstructionData, slot));
         }
 
         void serialize(DataStreamInput& s) const
@@ -352,7 +359,10 @@ class AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>
             ISCORE_ASSERT(!firstRack.slotmodels.empty());
             auto& firstSlot = *firstRack.slotmodels.begin();
 
-            firstSlot.layers.add(proc.makeLayer(m_createdLayerId, m_layerConstructionData, &firstSlot));
+            auto& procs = m_cmd.context.components.factory<Process::ProcessList>();
+            auto fact = procs.get(proc.concreteFactoryKey());
+            firstSlot.layers.add(
+                        fact->makeLayer(proc, m_createdLayerId, m_layerConstructionData, &firstSlot));
         }
 
         void serialize(DataStreamInput& s) const

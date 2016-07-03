@@ -1,4 +1,5 @@
 #include <Process/LayerModel.hpp>
+#include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
@@ -79,6 +80,7 @@ ConstraintModel::ConstraintModel(
         // We don't need to resize them since the new constraint will have the same duration.
     }
 
+    auto& procs = iscore::AppContext().components.factory<Process::ProcessList>();
     for(const auto& rack : source.racks)
     {
         racks.add(new RackModel {
@@ -90,8 +92,9 @@ ConstraintModel::ConstraintModel(
                    {
                        // We can safely reuse the same id since it's in a different slot.
                        auto proc = processPairs[&lm.processModel()];
+                       auto fact = procs.get(proc->concreteFactoryKey());
                        // TODO harmonize the order of parameters (source first, then new id)
-                       target.layers.add(proc->cloneLayer(lm.id(), lm, &target));
+                       target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
                    }
         }, this});
     }

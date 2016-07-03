@@ -29,6 +29,8 @@ namespace Process
 {
 class ProcessFactory;
 class ProcessModel;
+class LayerModelFactory;
+
 /**
  * @brief The Process class
  *
@@ -42,6 +44,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
 
         ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, JSONObject)
+        friend class Process::LayerModelFactory; // to register layers
 
     public:
         iscore::Components components;
@@ -54,8 +57,8 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
                 const QString& name,
                 QObject* parent);
 
-		ProcessModel(Deserializer<DataStream>& vis, QObject* parent);
-		ProcessModel(Deserializer<JSONObject>& vis, QObject* parent);
+        ProcessModel(Deserializer<DataStream>& vis, QObject* parent);
+        ProcessModel(Deserializer<JSONObject>& vis, QObject* parent);
 
         virtual ~ProcessModel();
 
@@ -66,36 +69,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         // A user-friendly text to show to the users
         virtual QString prettyName() const = 0;
 
-        //// View models interface
-        // For deterministic operation in a command,
-        // we have to generate some data (like ids...) before making a new view model.
-        // This data is valid for construction only for the current state
-        // of the scenario.
-        virtual QByteArray makeLayerConstructionData() const;
 
-        // TODO pass the name of the view model to be created
-        // (e.g. temporal / logical...).
-        LayerModel* makeLayer(
-                const Id<LayerModel>& viewModelId,
-                const QByteArray& constructionData,
-                QObject* parent);
-
-        // Load
-        LayerModel* loadLayer(
-                const VisitorVariant& v,
-                QObject* parent);
-
-        // Clone
-        LayerModel* cloneLayer(
-                const Id<LayerModel>& newId,
-                const LayerModel& source,
-                QObject* parent);
-
-        // For use where the view model is ephemeral (e.g. process panel)
-        LayerModel* makeTemporaryLayer(
-                const Id<LayerModel>& newId,
-                const LayerModel& source,
-                QObject* parent);
         // Do a copy.
         std::vector<LayerModel*> layers() const;
 
@@ -120,22 +94,21 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         // TODO might not be useful... put in protected ?
         // Constructor needs it, too.
         void setDuration(const TimeValue& other);
-
         const TimeValue& duration() const;
 
         /// Execution
-        virtual void startExecution() = 0;
-        virtual void stopExecution() = 0;
-        virtual void reset() = 0;
+        virtual void startExecution() { }
+        virtual void stopExecution() { }
+        virtual void reset() { }
 
         /// States. The process has ownership.
-        virtual ProcessStateDataInterface* startStateData() const = 0;
-        virtual ProcessStateDataInterface* endStateData() const = 0;
+        virtual ProcessStateDataInterface* startStateData() const { return nullptr; }
+        virtual ProcessStateDataInterface* endStateData() const { return nullptr; }
 
         /// Selection
-        virtual Selection selectableChildren() const = 0;
-        virtual Selection selectedChildren() const = 0;
-        virtual void setSelection(const Selection& s) const = 0;
+        virtual Selection selectableChildren() const { return {}; }
+        virtual Selection selectedChildren() const { return {}; }
+        virtual void setSelection(const Selection& s) const { }
 
     signals:
         // True if the execution is running.
@@ -151,30 +124,21 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
                 const QString& name,
                 QObject* parent);
 
-        virtual LayerModel* makeLayer_impl(
-                const Id<LayerModel>& viewModelId,
-                const QByteArray& constructionData,
-                QObject* parent) = 0;
-        virtual LayerModel* loadLayer_impl(
-                const VisitorVariant&,
-                QObject* parent) = 0;
-        virtual LayerModel* cloneLayer_impl(
-                const Id<LayerModel>& newId,
-                const LayerModel& source,
-                QObject* parent) = 0;
-
         // Used to scale the process.
         // This should be commutative :
         //   setDurationWithScale(2); setDurationWithScale(3);
         // yields the same result as :
         //   setDurationWithScale(3); setDurationWithScale(2);
-        virtual void setDurationAndScale(const TimeValue& newDuration) = 0;
+        virtual void setDurationAndScale(const TimeValue& newDuration)
+        { setDuration(newDuration); }
 
         // Does nothing if newDuration < currentDuration
-        virtual void setDurationAndGrow(const TimeValue& newDuration) = 0;
+        virtual void setDurationAndGrow(const TimeValue& newDuration)
+        { setDuration(newDuration); }
 
         // Does nothing if newDuration > currentDuration
-        virtual void setDurationAndShrink(const TimeValue& newDuration) = 0;
+        virtual void setDurationAndShrink(const TimeValue& newDuration)
+        { setDuration(newDuration); }
 
     private:
         void addLayer(LayerModel* m);

@@ -13,11 +13,11 @@ class LayerModelPanelProxy;
 }
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore_lib_dummyprocess_export.h>
+#include <iscore_lib_process_export.h>
 
 namespace Dummy
 {
-class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerModel final : public Process::LayerModel
+class ISCORE_LIB_PROCESS_EXPORT DummyLayerModel final : public Process::LayerModel
 {
         ISCORE_SERIALIZE_FRIENDS(DummyLayerModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(DummyLayerModel, JSONObject)

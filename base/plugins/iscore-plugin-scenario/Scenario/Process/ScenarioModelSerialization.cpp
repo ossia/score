@@ -275,15 +275,3 @@ Process::ProcessModel* Scenario::ScenarioFactory::load(
     { return new Scenario::ScenarioModel{deserializer, parent};});
 }
 
-Process::LayerModel* Scenario::ScenarioModel::loadLayer_impl(
-        const VisitorVariant& vis,
-        QObject* parent)
-{
-    return deserialize_dyn(vis, [&] (auto&& deserializer)
-    {
-        auto scen = new TemporalScenarioLayerModel{
-                            deserializer, *this, parent};
-        this->makeLayer_impl(scen);
-        return scen;
-    });
-}

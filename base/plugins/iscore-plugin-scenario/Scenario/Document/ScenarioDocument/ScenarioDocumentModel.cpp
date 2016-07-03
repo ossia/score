@@ -129,8 +129,8 @@ void ScenarioDocumentModel::initializeNewDocument(const FullViewConstraintViewMo
 
     AddLayerModelToSlot cmd6
     {
-        iscore::IDocument::path(*m_baseScenario->constraint().racks.begin()->slotmodels.begin()),
-        iscore::IDocument::path(*m_baseScenario->constraint().processes.begin())
+        *m_baseScenario->constraint().racks.begin()->slotmodels.begin(),
+        *m_baseScenario->constraint().processes.begin()
     };
     cmd6.redo();
 }

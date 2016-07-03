@@ -118,55 +118,6 @@ ScenarioModel::~ScenarioModel()
     delete pluginModelList;
 }
 
-QByteArray ScenarioModel::makeLayerConstructionData() const
-{
-    // For all existing constraints we need to generate corresponding
-    // view models ids. One day we may need to do this for events / time nodes too.
-    QMap<Id<ConstraintModel>, Id<ConstraintViewModel>> map;
-    std::vector<Id<ConstraintViewModel>> vec;
-    vec.reserve(constraints.size());
-    for(const auto& constraint : constraints)
-    {
-        auto id = getStrongId(vec);
-        vec.push_back(id);
-        map.insert(constraint.id(), id);
-    }
-
-    QByteArray arr;
-    QDataStream s{&arr, QIODevice::WriteOnly};
-    s << map;
-    return arr;
-}
-
-Process::LayerModel* ScenarioModel::makeLayer_impl(
-        const Id<Process::LayerModel>& viewModelId,
-        const QByteArray& constructionData,
-        QObject* parent)
-{
-    QMap<Id<ConstraintModel>, Id<ConstraintViewModel>> map;
-    QDataStream s{constructionData};
-    s >> map;
-
-    auto scen = new TemporalScenarioLayerModel {viewModelId, map, *this, parent};
-    makeLayer_impl(scen);
-    return scen;
-}
-
-
-Process::LayerModel* ScenarioModel::cloneLayer_impl(
-        const Id<Process::LayerModel>& newId,
-        const Process::LayerModel& source,
-        QObject* parent)
-{
-    auto scen = new TemporalScenarioLayerModel{
-                static_cast<const TemporalScenarioLayerModel&>(source),
-                newId,
-                *this,
-                parent};
-    makeLayer_impl(scen);
-    return scen;
-}
-
 UuidKey<Process::ProcessFactory>ScenarioModel::concreteFactoryKey() const
 {
     return Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get();
@@ -306,19 +257,7 @@ void ScenarioModel::setSelection(const Selection& s) const
     });
 }
 
-ProcessStateDataInterface* ScenarioModel::startStateData() const
-{
-    ISCORE_TODO;
-    return nullptr;
-}
-
-ProcessStateDataInterface* ScenarioModel::endStateData() const
-{
-    ISCORE_TODO;
-    return nullptr;
-}
-
-void ScenarioModel::makeLayer_impl(AbstractScenarioLayerModel* scen)
+void ScenarioModel::setupLayer(AbstractScenarioLayerModel* scen)
 {
     // There is no ConstraintCreated connection to the layer,
     // because the constraints view models are created

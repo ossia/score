@@ -141,7 +141,9 @@ void RecordMessagesManager::recordInNewBox(
     m_createdProcess = &record_proc;
 
     //// Creation of the layer ////
-    auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{box.slot, proc};
+    auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{
+                     box.slot,
+                     proc};
     cmd_layer->redo();
     m_dispatcher->submitCommand(cmd_layer);
 

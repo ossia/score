@@ -17,6 +17,7 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Process/LayerModel.hpp>
+#include <Process/ProcessList.hpp>
 
 #include <Scenario/Tools/dataStructures.hpp>
 
@@ -174,6 +175,8 @@ class CommonDisplacementPolicy
                     }
 
                     // Clone the rackes
+                    auto& procs = iscore::AppContext().components.factory<Process::ProcessList>();
+
                     for(const auto& sourcerack : src_constraint.racks)
                     {
                         // A note about what happens here :
@@ -190,8 +193,10 @@ class CommonDisplacementPolicy
                             {
                                 // We can safely reuse the same id since it's in a different slot.
                                 Process::ProcessModel* proc = processPairs[&lm.processModel()];
+                                auto fact = procs.get(proc->concreteFactoryKey());
+
                                 // TODO harmonize the order of parameters (source first, then new id)
-                                target.layers.add(proc->cloneLayer(lm.id(), lm, &target));
+                                target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
                             }
                         },
                         &constraint};

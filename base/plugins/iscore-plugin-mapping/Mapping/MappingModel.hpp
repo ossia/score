@@ -80,10 +80,6 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel : public Curve::CurveProcessMode
         ProcessModel(const ProcessModel& source,
                         const Id<Process::ProcessModel>& id,
                         QObject* parent);
-        Process::LayerModel* cloneLayer_impl(
-                const Id<Process::LayerModel>& newId,
-                const Process::LayerModel& source,
-                QObject* parent) override;
 
         Process::ProcessModel* clone(
                 const Id<Process::ProcessModel>& newId,
@@ -92,25 +88,11 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel : public Curve::CurveProcessMode
         //// ProcessModel ////
         UuidKey<Process::ProcessFactory> concreteFactoryKey() const override;
 
-        Process::LayerModel* makeLayer_impl(
-                const Id<Process::LayerModel>& viewModelId,
-                const QByteArray& constructionData,
-                QObject* parent) override;
-        Process::LayerModel* loadLayer_impl(
-                const VisitorVariant&,
-                QObject* parent) override;
-
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
 
         void serialize_impl(const VisitorVariant& vis) const override;
-
-        /// States
-        ProcessStateDataInterface* startStateData() const override;
-        ProcessStateDataInterface* endStateData() const override;
-
-
 
         State::Address m_sourceAddress;
         State::Address m_targetAddress;

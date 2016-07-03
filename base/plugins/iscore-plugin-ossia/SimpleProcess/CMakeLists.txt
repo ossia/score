@@ -31,6 +31,6 @@ set(SRCS
 
 add_library(iscore_plugin_ossia_simpleprocess ${HDRS} ${SRCS})
 target_link_libraries(iscore_plugin_ossia_simpleprocess PUBLIC
-    Qt5::Core Qt5::Widgets iscore_plugin_ossia iscore_lib_process iscore_lib_device iscore_lib_dummyprocess)
+    Qt5::Core Qt5::Widgets iscore_plugin_ossia iscore_lib_process iscore_lib_device)
 
 setup_iscore_plugin(iscore_plugin_ossia_simpleprocess)

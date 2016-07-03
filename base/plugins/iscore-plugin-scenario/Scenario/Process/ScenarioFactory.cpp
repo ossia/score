@@ -15,6 +15,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 
 namespace Process { class LayerPresenter; }
 class LayerView;
@@ -92,4 +93,77 @@ QByteArray ScenarioFactory::makeStaticLayerConstructionData() const
 
     return arr;
 }
+
+QByteArray ScenarioFactory::makeLayerConstructionData(
+        const Process::ProcessModel& proc) const
+{
+    auto& scenar = static_cast<const Scenario::ScenarioModel&>(proc);
+    // For all existing constraints we need to generate corresponding
+    // view models ids. One day we may need to do this for events / time nodes too.
+    QMap<Id<ConstraintModel>, Id<ConstraintViewModel>> map;
+    std::vector<Id<ConstraintViewModel>> vec;
+    vec.reserve(scenar.constraints.size());
+    for(const auto& constraint : scenar.constraints)
+    {
+        auto id = getStrongId(vec);
+        vec.push_back(id);
+        map.insert(constraint.id(), id);
+    }
+
+    QByteArray arr;
+    QDataStream s{&arr, QIODevice::WriteOnly};
+    s << map;
+    return arr;
+}
+
+Process::LayerModel* ScenarioFactory::makeLayer_impl(
+        Process::ProcessModel& proc,
+        const Id<Process::LayerModel>& viewModelId,
+        const QByteArray& constructionData,
+        QObject* parent)
+{
+    QMap<Id<ConstraintModel>, Id<ConstraintViewModel>> map;
+    QDataStream s{constructionData};
+    s >> map;
+
+    auto& scenar = static_cast<Scenario::ScenarioModel&>(proc);
+    auto scen = new TemporalScenarioLayerModel {
+                viewModelId, map,
+                scenar, parent};
+    scenar.setupLayer(scen);
+    return scen;
+}
+
+
+Process::LayerModel* ScenarioFactory::cloneLayer_impl(
+        Process::ProcessModel& proc,
+        const Id<Process::LayerModel>& newId,
+        const Process::LayerModel& source,
+        QObject* parent)
+{
+    auto& scenar = static_cast<Scenario::ScenarioModel&>(proc);
+    auto scen = new TemporalScenarioLayerModel{
+                static_cast<const TemporalScenarioLayerModel&>(source),
+                newId,
+                scenar,
+                parent};
+    scenar.setupLayer(scen);
+    return scen;
+}
+
+Process::LayerModel* ScenarioFactory::loadLayer_impl(
+        Process::ProcessModel& proc,
+        const VisitorVariant& vis,
+        QObject* parent)
+{
+    auto& scenar = static_cast<Scenario::ScenarioModel&>(proc);
+    return deserialize_dyn(vis, [&] (auto&& deserializer)
+    {
+        auto scen = new TemporalScenarioLayerModel{
+                    deserializer, scenar, parent};
+        scenar.setupLayer(scen);
+        return scen;
+    });
+}
+
 }

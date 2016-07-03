@@ -15,38 +15,38 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessModel :
 {
         Q_OBJECT
     public:
-		CurveProcessModel(
-			TimeValue duration,
-			const Id<ProcessModel>& id,
-			const QString& name,
-			QObject* parent) :
-			Process::ProcessModel( duration, id, name, parent )
-		{
+        CurveProcessModel(
+            TimeValue duration,
+            const Id<ProcessModel>& id,
+            const QString& name,
+            QObject* parent) :
+            Process::ProcessModel( duration, id, name, parent )
+        {
 
-		}
+        }
 
-		CurveProcessModel(Deserializer<DataStream>& vis, QObject* p) :
-			Process::ProcessModel(vis, p)
-		{
-			// Nothing to do
-		}
+        CurveProcessModel(Deserializer<DataStream>& vis, QObject* p) :
+            Process::ProcessModel(vis, p)
+        {
+            // Nothing to do
+        }
 
-		CurveProcessModel(Deserializer<JSONObject>& vis, QObject* p) :
-			Process::ProcessModel(vis, p)
-		{
-			// Nothing to do
-		}
+        CurveProcessModel(Deserializer<JSONObject>& vis, QObject* p) :
+            Process::ProcessModel(vis, p)
+        {
+            // Nothing to do
+        }
 
-		// Clone
-		CurveProcessModel(
-			const CurveProcessModel& other,
-			const Id<ProcessModel>& id,
-			const QString& name,
-			QObject* parent):
-			Process::ProcessModel(other, id, name, parent)
-		{
+        // Clone
+        CurveProcessModel(
+            const CurveProcessModel& other,
+            const Id<ProcessModel>& id,
+            const QString& name,
+            QObject* parent):
+            Process::ProcessModel(other, id, name, parent)
+        {
 
-		}
+        }
 
 
         Model& curve() const

@@ -27,9 +27,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final : public iscore::S
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "Add a layer to a slot")
         public:
             // Use this constructor when the process already exists
-            AddLayerModelToSlot(
+        /*
+        AddLayerModelToSlot(
                 Path<SlotModel>&& slot,
                 Path<Process::ProcessModel>&& process);
+                    */
+        AddLayerModelToSlot(
+                const SlotModel& slot,
+                const Process::ProcessModel& process);
 
         // Use this constructor when the process isn't created yet
         AddLayerModelToSlot(

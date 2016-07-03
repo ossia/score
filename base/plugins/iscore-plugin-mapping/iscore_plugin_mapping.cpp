@@ -16,17 +16,15 @@
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 #include <Curve/Process/CurveProcessFactory.hpp>
 
-namespace Mapping
-{
-DEFINE_CURVE_PROCESS_FACTORY(
-        MappingFactory,
-        Mapping::ProcessModel,
-        Mapping::LayerModel,
-        Mapping::MappingPresenter,
-        Mapping::MappingView,
-        Mapping::MappingColors)
+namespace Mapping {
+using MappingFactory =
+    Curve::CurveProcessFactory_T<
+Mapping::ProcessModel,
+Mapping::LayerModel,
+Mapping::MappingPresenter,
+Mapping::MappingView,
+Mapping::MappingColors>;
 }
-
 
 #if defined(ISCORE_LIB_INSPECTOR)
 #include <Mapping/Inspector/MappingInspectorFactory.hpp>

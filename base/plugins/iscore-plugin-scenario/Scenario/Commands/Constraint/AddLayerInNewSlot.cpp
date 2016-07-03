@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <vector>
 
+#include <Process/ProcessList.hpp>
 #include "AddLayerInNewSlot.hpp"
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Settings/Model.hpp>
@@ -48,7 +49,11 @@ AddLayerInNewSlot::AddLayerInNewSlot(
     }
 
     m_createdLayerId = Id<Process::LayerModel> (iscore::id_generator::getFirstId());
-    m_processData = constraint.processes.at(m_sharedProcessModelId).makeLayerConstructionData();
+
+    auto& proc = constraint.processes.at(m_sharedProcessModelId);
+    auto& procs = this->context.components.factory<Process::ProcessList>();
+    auto fact = procs.get(proc.concreteFactoryKey());
+    m_processData = fact->makeLayerConstructionData(proc);
 }
 
 void AddLayerInNewSlot::undo() const
@@ -88,7 +93,7 @@ void AddLayerInNewSlot::redo() const
         }
     }
 
-    auto h = iscore::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+    auto h = context.settings<Scenario::Settings::Model>().getSlotHeight();
     // Slot
     auto& rack = constraint.racks.at(m_createdRackId);
     rack.addSlot(new SlotModel {m_createdSlotId,
@@ -99,9 +104,13 @@ void AddLayerInNewSlot::redo() const
     auto& slot = rack.slotmodels.at(m_createdSlotId);
     auto& proc = constraint.processes.at(m_sharedProcessModelId);
 
-    slot.layers.add(proc.makeLayer(m_createdLayerId,
-                                      m_processData,
-                                      &slot));
+    auto& procs = context.components.factory<Process::ProcessList>();
+    auto fact = procs.get(proc.concreteFactoryKey());
+    slot.layers.add(
+                fact->makeLayer(
+                    proc, m_createdLayerId,
+                    m_processData,
+                    &slot));
 }
 
 void AddLayerInNewSlot::serializeImpl(DataStreamInput& s) const

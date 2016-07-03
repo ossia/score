@@ -263,7 +263,8 @@ void RecordManager::recordInNewBox(
             auto& autom = static_cast<Automation::ProcessModel&>(proc);
 
 
-            auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{box.slot, proc};
+            auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{
+                             box.slot, proc};
             cmd_layer->redo();
 
             autom.curve().clear();

@@ -23,27 +23,63 @@ class CurveProcessFactory_T :
         Model_T* makeModel(
                 const TimeValue& duration,
                 const Id<Process::ProcessModel>& id,
-                QObject* parent) override
+                QObject* parent) final override
         {
             return new Model_T{duration, id, parent};
         }
 
         Model_T* load(
                 const VisitorVariant& vis,
-                QObject* parent) override
+                QObject* parent) final override
         {
             return deserialize_dyn(vis, [&] (auto&& deserializer)
             { return new Model_T{deserializer, parent}; });
         }
 
-        QByteArray makeStaticLayerConstructionData() const override
+        Process::LayerModel* makeLayer_impl(
+                Process::ProcessModel& proc,
+                const Id<Process::LayerModel>& viewModelId,
+                const QByteArray& constructionData,
+                QObject* parent) final override
         {
-            return {};
+            auto layer = new LayerModel_T{
+                         static_cast<Model_T&>(proc),
+                         viewModelId, parent};
+            return layer;
+        }
+
+        Process::LayerModel* cloneLayer_impl(
+                Process::ProcessModel& proc,
+                const Id<Process::LayerModel>& newId,
+                const Process::LayerModel& source,
+                QObject* parent) final override
+        {
+            auto layer = new LayerModel_T {
+                      static_cast<const LayerModel_T&>(source),
+                      static_cast<Model_T&>(proc),
+                      newId, parent};
+            return layer;
+        }
+
+        Process::LayerModel* loadLayer_impl(
+                Process::ProcessModel& proc,
+                const VisitorVariant& vis,
+                QObject* parent) final override
+        {
+            return deserialize_dyn(vis, [&] (auto&& deserializer)
+            {
+                auto layer = new LayerModel_T{
+                                deserializer,
+                                static_cast<Model_T&>(proc),
+                                parent};
+
+                return layer;
+            });
         }
 
         LayerView_T* makeLayerView(
                 const Process::LayerModel& viewmodel,
-                QGraphicsItem* parent) override
+                QGraphicsItem* parent) final override
         {
             return new LayerView_T{parent};
         }
@@ -52,7 +88,7 @@ class CurveProcessFactory_T :
                 const Process::LayerModel& lm,
                 Process::LayerView* v,
                 const Process::ProcessPresenterContext& context,
-                QObject* parent) override
+                QObject* parent) final override
         {
             return new LayerPresenter_T {
                 m_colors.style(),
@@ -62,25 +98,14 @@ class CurveProcessFactory_T :
                 parent};
         }
 
+        const UuidKey<Process::ProcessFactory>& concreteFactoryKey() const override \
+        { return Metadata<ConcreteFactoryKey_k, Model_T>::get(); } \
+        \
+        QString prettyName() const override \
+        { return Metadata<PrettyName_k, Model_T>::get(); } \
+
     private:
         CurveColors_T m_colors;
 };
 
 }
-
-namespace Process
-{
-class ProcessFactory;
-}
-
-// See AutomationProcessMetadata.
-#define DEFINE_CURVE_PROCESS_FACTORY(Name, Model, Layer, Presenter, View, Colors) \
-class Name final : public Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors> \
-{ \
-    using Curve::CurveProcessFactory_T<Model, Layer, Presenter, View, Colors>::CurveProcessFactory_T; \
-    const UuidKey<Process::ProcessFactory>& concreteFactoryKey() const override \
-    { return Metadata<ConcreteFactoryKey_k, ProcessModel>::get(); } \
-    \
-    QString prettyName() const override \
-    { return Metadata<PrettyName_k, ProcessModel>::get(); } \
-};
