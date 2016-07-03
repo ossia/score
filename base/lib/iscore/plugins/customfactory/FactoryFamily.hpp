@@ -47,10 +47,10 @@ class ConcreteFactoryList :
     public:
         using factory_type = FactoryType;
         using key_type = typename FactoryType::ConcreteFactoryKey;
-		ConcreteFactoryList()
-		{
+        ConcreteFactoryList()
+        {
 
-		}
+        }
 
         ~ConcreteFactoryList() noexcept override = default;
 
@@ -64,9 +64,9 @@ class ConcreteFactoryList :
 
         void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
         {
-			if (auto result = dynamic_cast<factory_type *>(e.get())) {
-				e.release();
-				std::unique_ptr<factory_type> pf{ result };
+            if (auto result = dynamic_cast<factory_type *>(e.get())) {
+                e.release();
+                std::unique_ptr<factory_type> pf{ result };
 
                 auto k = pf->concreteFactoryKey();
                 auto it = this->map.find(k);
@@ -88,9 +88,9 @@ class ConcreteFactoryList :
 
     private:
         ConcreteFactoryList(const ConcreteFactoryList&) = delete;
-		ConcreteFactoryList(ConcreteFactoryList&&) = delete;
-		ConcreteFactoryList& operator=(const ConcreteFactoryList&) = delete;
-		ConcreteFactoryList& operator=(ConcreteFactoryList&&) = delete;
+        ConcreteFactoryList(ConcreteFactoryList&&) = delete;
+        ConcreteFactoryList& operator=(const ConcreteFactoryList&) = delete;
+        ConcreteFactoryList& operator=(ConcreteFactoryList&&) = delete;
 };
 
 template<typename T>
@@ -100,7 +100,7 @@ class MatchingFactory : public iscore::ConcreteFactoryList<T>
         template<typename Fun, typename... Args>
         auto make(Fun f, Args&&... args) const
         {
-			using val_t = decltype(*this->begin());
+            using val_t = decltype(*this->begin());
             auto it = find_if(
                           *this,
                           [&] (const val_t& elt)

@@ -1,5 +1,6 @@
 #include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
+#include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 
@@ -56,14 +57,17 @@ void SlotModel::copyViewModelsInSameConstraint(
         const SlotModel &source,
         SlotModel &target)
 {
+    auto& procs = iscore::AppContext().components.factory<Process::ProcessList>();
+
     for(const auto& lm : source.layers)
     {
         // We can safely reuse the same id since it's in a different slot.
         auto& proc = lm.processModel();
+        auto fact = procs.get(proc.concreteFactoryKey());
+
         target.layers.add(
-                    proc.cloneLayer(lm.id(),
-                                    lm,
-                                    &target));
+                    fact->cloneLayer(
+                        proc, lm.id(), lm, &target));
     }
 }
 

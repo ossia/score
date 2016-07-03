@@ -20,15 +20,16 @@ endif (NOT WIN32)
 
 if (PORTAUDIO2_FOUND)
   set(PORTAUDIO_INCLUDE_DIRS ${PORTAUDIO2_INCLUDE_DIRS})
+  message("${PORTAUDIO2_INCLUDE_DIRS}")
   if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(PORTAUDIO_LIBRARIES "${PORTAUDIO2_LIBRARY_DIRS}/lib${PORTAUDIO2_LIBRARIES}.dylib")
   else ()
     set(PORTAUDIO_LIBRARIES ${PORTAUDIO2_LIBRARIES})
   endif ()
   set(PORTAUDIO_VERSION 19)
-  set(PORTAUDIO_FOUND TRUE)
-  
-else ()
+endif()
+
+if(NOT PORTAUDIO2_FOUND OR "${PORTAUDIO_INCLUDE_DIRS}" MATCHES "")
   find_path(PORTAUDIO_INCLUDE_DIR
     NAMES
       portaudio.h
@@ -37,9 +38,9 @@ else ()
       /usr/local/include
       /opt/local/include
       /sw/include
-      ${PORTAUDIO_INCLUDE_DIR_HINT}
+      "${PORTAUDIO_INCLUDE_DIR_HINT}"
   )
- 
+
   find_library(PORTAUDIO_LIBRARY
     NAMES
       portaudio
@@ -48,15 +49,14 @@ else ()
       /usr/local/lib
       /opt/local/lib
       /sw/lib
-      ${PORTAUDIO_LIB_DIR_HINT}
+      "${PORTAUDIO_LIB_DIR_HINT}"
   )
- 
+
   set(PORTAUDIO_INCLUDE_DIRS ${PORTAUDIO_INCLUDE_DIR})
   set(PORTAUDIO_LIBRARIES ${PORTAUDIO_LIBRARY})
- 
   set(PORTAUDIO_VERSION 19)
-
 endif ()
+
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(

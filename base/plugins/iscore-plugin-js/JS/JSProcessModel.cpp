@@ -1,4 +1,4 @@
-#include <DummyProcess/DummyLayerModel.hpp>
+#include <Process/Dummy/DummyLayerModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <algorithm>
@@ -70,102 +70,12 @@ Process::ProcessModel* ProcessModel::clone(
 
 QString ProcessModel::prettyName() const
 {
-    auto name = this->metadata.name();
-    return name;
-}
-
-QByteArray ProcessModel::makeLayerConstructionData() const
-{
-    return {};
-}
-
-void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
-{
-    setDuration(newDuration);
-}
-
-void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
-{
-    setDuration(newDuration);
-}
-
-void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
-{
-    setDuration(newDuration);
-}
-
-void ProcessModel::startExecution()
-{
-}
-
-void ProcessModel::stopExecution()
-{
-}
-
-void ProcessModel::reset()
-{
-}
-
-ProcessStateDataInterface* ProcessModel::startStateData() const
-{
-    return nullptr;
-}
-
-ProcessStateDataInterface* ProcessModel::endStateData() const
-{
-    return nullptr;
-}
-
-Selection ProcessModel::selectableChildren() const
-{
-    return {};
-}
-
-Selection ProcessModel::selectedChildren() const
-{
-    return {};
-}
-
-void ProcessModel::setSelection(const Selection&) const
-{
+    return this->metadata.name();
 }
 
 void ProcessModel::serialize_impl(const VisitorVariant& s) const
 {
     serialize_dyn(s, *this);
-}
-
-Process::LayerModel* ProcessModel::makeLayer_impl(
-        const Id<Process::LayerModel>& viewModelId,
-        const QByteArray& constructionData,
-        QObject* parent)
-{
-    auto lay = new Dummy::DummyLayerModel{*this, viewModelId, parent};
-    lay->setObjectName("JSProcessLayerModel");
-    return lay;
-}
-
-Process::LayerModel* ProcessModel::loadLayer_impl(
-        const VisitorVariant& vis,
-        QObject* parent)
-{
-    return deserialize_dyn(vis, [&] (auto&& deserializer)
-    {
-        auto autom = new Dummy::DummyLayerModel{
-                        deserializer, *this, parent};
-        autom->setObjectName("JSProcessLayerModel");
-        return autom;
-    });
-}
-
-Process::LayerModel* ProcessModel::cloneLayer_impl(
-        const Id<Process::LayerModel>& newId,
-        const Process::LayerModel& source,
-        QObject* parent)
-{
-    auto lay = new Dummy::DummyLayerModel{safe_cast<const Dummy::DummyLayerModel&>(source), *this, newId, parent};
-    lay->setObjectName("JSProcessLayerModel");
-    return lay;
 }
 
 }

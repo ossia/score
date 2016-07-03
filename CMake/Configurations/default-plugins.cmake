@@ -1,10 +1,10 @@
 set(ISCORE_PLUGINS_TO_BUILD
 
 iscore-plugin-pluginsettings
+iscore-lib-inspector
 iscore-lib-state
 iscore-lib-process
 iscore-lib-device
-iscore-lib-inspector
 
 iscore-plugin-inspector
 iscore-plugin-deviceexplorer

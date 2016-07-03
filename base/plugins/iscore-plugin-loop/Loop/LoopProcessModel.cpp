@@ -94,26 +94,6 @@ QString ProcessModel::prettyName() const
     return "Loop Process";
 }
 
-QByteArray ProcessModel::makeLayerConstructionData() const
-{
-    return {};
-}
-
-void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
-{
-    setDuration(newDuration);
-}
-
-void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
-{
-    setDuration(newDuration);
-}
-
-void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
-{
-    setDuration(newDuration);
-}
-
 void ProcessModel::startExecution()
 {
     constraint().startExecution();
@@ -130,16 +110,6 @@ void ProcessModel::reset()
     startEvent().reset();
     endEvent().reset();
     // TODO reset events / states display too
-}
-
-ProcessStateDataInterface* ProcessModel::startStateData() const
-{
-    return nullptr;
-}
-
-ProcessStateDataInterface* ProcessModel::endStateData() const
-{
-    return nullptr;
 }
 
 Selection ProcessModel::selectableChildren() const
@@ -173,35 +143,6 @@ void ProcessModel::setSelection(const Selection& s) const
 void ProcessModel::serialize_impl(const VisitorVariant& s) const
 {
     serialize_dyn(s, *this);
-}
-
-Process::LayerModel* ProcessModel::makeLayer_impl(
-        const Id<Process::LayerModel>& viewModelId,
-        const QByteArray& constructionData,
-        QObject* parent)
-{
-    return new Layer{*this, viewModelId, parent};
-}
-
-Process::LayerModel* ProcessModel::loadLayer_impl(
-        const VisitorVariant& vis,
-        QObject* parent)
-{
-    return deserialize_dyn(vis, [&] (auto&& deserializer)
-    {
-        auto autom = new Layer{
-                        deserializer, *this, parent};
-
-        return autom;
-    });
-}
-
-Process::LayerModel* ProcessModel::cloneLayer_impl(
-        const Id<Process::LayerModel>& newId,
-        const Process::LayerModel& source,
-        QObject* parent)
-{
-    return new Layer{safe_cast<const Layer&>(source), *this, newId, parent};
 }
 
 const QVector<Id<Scenario::ConstraintModel> > constraintsBeforeTimeNode(

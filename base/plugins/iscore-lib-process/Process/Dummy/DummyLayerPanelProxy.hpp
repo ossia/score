@@ -1,14 +1,14 @@
 #pragma once
 #include <Process/LayerModelPanelProxy.hpp>
 
-#include <iscore_lib_dummyprocess_export.h>
+#include <iscore_lib_process_export.h>
 
 namespace Process { class LayerModel; }
 class QObject;
 
 namespace Dummy
 {
-class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPanelProxy final :
+class ISCORE_LIB_PROCESS_EXPORT DummyLayerPanelProxy final :
         public Process::LayerModelPanelProxy
 {
     public:

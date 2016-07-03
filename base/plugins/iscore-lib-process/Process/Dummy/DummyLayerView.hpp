@@ -2,7 +2,7 @@
 #include <Process/LayerView.hpp>
 #include <QString>
 #include <QGraphicsSimpleTextItem>
-#include <iscore_lib_dummyprocess_export.h>
+#include <iscore_lib_process_export.h>
 
 
 class QGraphicsItem;
@@ -13,7 +13,7 @@ class QQuickItem;
 namespace Dummy
 {
 class DummyTextItem;
-class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerView final : public Process::LayerView
+class ISCORE_LIB_PROCESS_EXPORT DummyLayerView final : public Process::LayerView
 {
         Q_OBJECT
     public:

@@ -51,7 +51,6 @@ class SimpleProcessModel final : public Process::ProcessModel
                 QObject* newParent) const override;
 
         QString prettyName() const override;
-        QByteArray makeLayerConstructionData() const override;
 
         UuidKey<Process::ProcessFactory>concreteFactoryKey() const override
         {
@@ -77,18 +76,6 @@ class SimpleProcessModel final : public Process::ProcessModel
         void serialize_impl(const VisitorVariant& vis) const override;
 
         ~SimpleProcessModel();
-    protected:
-        Process::LayerModel* makeLayer_impl(
-                const Id<Process::LayerModel>& viewModelId,
-                const QByteArray& constructionData,
-                QObject* parent) override;
-        Process::LayerModel* loadLayer_impl(
-                const VisitorVariant&,
-                QObject* parent) override;
-        Process::LayerModel* cloneLayer_impl(
-                const Id<Process::LayerModel>& newId,
-                const Process::LayerModel& source,
-                QObject* parent) override;
 
     private:
         std::shared_ptr<OSSIA::TimeProcess> m_ossia_process;

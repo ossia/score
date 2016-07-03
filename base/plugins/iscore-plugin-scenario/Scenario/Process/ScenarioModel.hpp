@@ -171,16 +171,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
 
     private:
         //// ProcessModel specifics ////
-        QByteArray makeLayerConstructionData() const override;
-        Process::LayerModel* makeLayer_impl(
-                const Id<Process::LayerModel>& viewModelId,
-                const QByteArray& constructionData,
-                QObject* parent) override;
-
-        Process::LayerModel* cloneLayer_impl(
-                const Id<Process::LayerModel>& newId,
-                const Process::LayerModel& source,
-                QObject* parent) override;
 
         UuidKey<Process::ProcessFactory>concreteFactoryKey() const override;
 
@@ -196,19 +186,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
 public: Selection selectedChildren() const override;
 private:void setSelection(const Selection& s) const override;
 
-        ProcessStateDataInterface* startStateData() const override;
-        ProcessStateDataInterface* endStateData() const override;
-
         template<typename Impl>
         ScenarioModel(Deserializer<Impl>& vis, QObject* parent) :
             ProcessModel {vis, parent}
         {
             vis.writeTo(*this);
         }
-
-        Process::LayerModel* loadLayer_impl(
-                const VisitorVariant& vis,
-                QObject* parent) override;
 
         void serialize_impl(const VisitorVariant&) const override;
 
@@ -230,7 +213,7 @@ private:void setSelection(const Selection& s) const override;
         ScenarioModel(const Scenario::ScenarioModel& source,
                       const Id<ProcessModel>& id,
                       QObject* parent);
-        void makeLayer_impl(AbstractScenarioLayerModel*);
+        void setupLayer(AbstractScenarioLayerModel*);
 
         Id<TimeNodeModel> m_startTimeNodeId {};
         Id<TimeNodeModel> m_endTimeNodeId {};

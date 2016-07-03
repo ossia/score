@@ -4,7 +4,7 @@
 
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore_lib_dummyprocess_export.h>
+#include <iscore_lib_process_export.h>
 #include <Process/Focus/FocusDispatcher.hpp>
 
 namespace Process { class LayerModel; }
@@ -15,7 +15,7 @@ class QObject;
 namespace Dummy
 {
 class DummyLayerView;
-class ISCORE_LIB_DUMMYPROCESS_EXPORT DummyLayerPresenter final :
+class ISCORE_LIB_PROCESS_EXPORT DummyLayerPresenter final :
         public Process::LayerPresenter
 {
     public:

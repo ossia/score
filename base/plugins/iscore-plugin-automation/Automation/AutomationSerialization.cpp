@@ -92,16 +92,4 @@ void ProcessModel::serialize_impl(const VisitorVariant& vis) const
     serialize_dyn(vis, *this);
 }
 
-Process::LayerModel* ProcessModel::loadLayer_impl(
-        const VisitorVariant& vis,
-        QObject* parent)
-{
-    return deserialize_dyn(vis, [&] (auto&& deserializer)
-    {
-        auto autom = new LayerModel{
-                        deserializer, *this, parent};
-
-        return autom;
-    });
-}
 }

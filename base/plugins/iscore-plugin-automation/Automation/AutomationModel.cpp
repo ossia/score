@@ -164,25 +164,6 @@ void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
     m_curve->changed();
 }
 
-Process::LayerModel* ProcessModel::makeLayer_impl(
-        const Id<Process::LayerModel>& viewModelId,
-        const QByteArray& constructionData,
-        QObject* parent)
-{
-    auto vm = new LayerModel{*this, viewModelId, parent};
-    return vm;
-}
-
-Process::LayerModel* ProcessModel::cloneLayer_impl(
-        const Id<Process::LayerModel>& newId,
-        const Process::LayerModel& source,
-        QObject* parent)
-{
-    auto vm = new LayerModel {
-              static_cast<const LayerModel&>(source), *this, newId, parent};
-    return vm;
-}
-
 void ProcessModel::setCurve_impl()
 {
     connect(m_curve, &Curve::Model::changed,

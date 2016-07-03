@@ -1,5 +1,6 @@
 #include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
+#include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
@@ -124,6 +125,8 @@ void InsertContentInConstraint::redo() const
     }
 
     // Clone the rackes
+    auto& procs = context.components.factory<Process::ProcessList>();
+
     const auto& src_racks = src_constraint.racks;
     for(const auto& sourcerack: src_racks)
     {
@@ -141,8 +144,9 @@ void InsertContentInConstraint::redo() const
                     {
                         // We can safely reuse the same id since it's in a different slot.
                         auto proc = processPairs[&lm.processModel()];
+                        auto fact = procs.get(proc->concreteFactoryKey());
                         // TODO harmonize the order of parameters (source first, then new id)
-                        target.layers.add(proc->cloneLayer(lm.id(), lm, &target));
+                        target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
                     }
                 },
                 &trg_constraint};

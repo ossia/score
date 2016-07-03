@@ -22,26 +22,19 @@
 #endif
 #include <iscore_plugin_automation_commands_files.hpp>
 #include <Curve/Process/CurveProcessFactory.hpp>
-namespace Automation
-{
-DEFINE_CURVE_PROCESS_FACTORY(
-        AutomationFactory,
-        Automation::ProcessModel,
-        Automation::LayerModel,
-        Automation::LayerPresenter,
-        Automation::LayerView,
-        Automation::Colors)
-}
-iscore_plugin_automation::iscore_plugin_automation() :
-    QObject {}
-{
+
+namespace Automation {
+using AutomationFactory =
+    Curve::CurveProcessFactory_T<
+Automation::ProcessModel,
+Automation::LayerModel,
+Automation::LayerPresenter,
+Automation::LayerView,
+Automation::Colors>;
 }
 
-iscore_plugin_automation::~iscore_plugin_automation()
-{
-
-}
-
+iscore_plugin_automation::iscore_plugin_automation() = default;
+iscore_plugin_automation::~iscore_plugin_automation() = default;
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_automation::factories(
         const iscore::ApplicationContext& ctx,

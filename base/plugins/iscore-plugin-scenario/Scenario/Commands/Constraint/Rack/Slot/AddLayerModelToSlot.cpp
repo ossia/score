@@ -4,6 +4,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <Process/ProcessList.hpp>
 #include <algorithm>
 #include <vector>
 
@@ -17,14 +18,31 @@ namespace Scenario
 {
 namespace Command
 {
+/* REMOVEME
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
         Path<Process::ProcessModel>&& processPath) :
     m_slotPath {std::move(slotPath)},
     m_processPath {std::move(processPath)},
-    m_processData{m_processPath.find().makeLayerConstructionData()},
     m_createdLayerId{getStrongId(m_slotPath.find().layers)}
 {
+    auto& process = m_processPath.find();
+    auto& procs = this->context.components.factory<Process::ProcessList>();
+    auto fact = procs.get(process.concreteFactoryKey());
+    m_processData = fact->makeLayerConstructionData(process);
+}
+*/
+
+AddLayerModelToSlot::AddLayerModelToSlot(
+        const SlotModel& slot,
+        const Process::ProcessModel& process) :
+    m_slotPath {slot},
+    m_processPath {process},
+    m_createdLayerId{getStrongId(m_slotPath.find().layers)}
+{
+    auto& procs = this->context.components.factory<Process::ProcessList>();
+    auto fact = procs.get(process.concreteFactoryKey());
+    m_processData = fact->makeLayerConstructionData(process);
 }
 
 AddLayerModelToSlot::AddLayerModelToSlot(
@@ -60,9 +78,14 @@ void AddLayerModelToSlot::undo() const
 void AddLayerModelToSlot::redo() const
 {
     auto& slot = m_slotPath.find();
-    auto& proc = m_processPath.find();
+    auto& process = m_processPath.find();
 
-    slot.layers.add(proc.makeLayer(m_createdLayerId, m_processData, &slot));
+    auto& procs = this->context.components.factory<Process::ProcessList>();
+
+    auto fact = procs.get(process.concreteFactoryKey());
+    slot.layers.add(
+                fact->makeLayer(
+                    process, m_createdLayerId, m_processData, &slot));
 }
 
 void AddLayerModelToSlot::serializeImpl(DataStreamInput& s) const

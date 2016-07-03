@@ -60,6 +60,7 @@ void RemoveProcessFromConstraint::undo() const
     AddProcess(constraint, deserialize_interface(fact, s, &constraint));
 
     // Restore the view models
+    auto& processes = context.components.factory<Process::ProcessList>();
     for(const auto& it : m_serializedViewModels)
     {
         const auto& path = it.first.unsafePath().vec();
@@ -69,7 +70,8 @@ void RemoveProcessFromConstraint::undo() const
                 .slotmodels.at(Id<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> stream {it.second};
-        auto lm = Process::createLayerModel(stream,
+        auto lm = Process::createLayerModel(
+                                   processes, stream,
                                    slot.parentConstraint(),
                                    &slot);
         slot.layers.add(lm);

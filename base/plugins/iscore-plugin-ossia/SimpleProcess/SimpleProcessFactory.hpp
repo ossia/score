@@ -2,8 +2,8 @@
 
 #include <Process/ProcessFactory.hpp>
 #include "SimpleProcessModel.hpp"
-#include <DummyProcess/DummyLayerPresenter.hpp>
-#include <DummyProcess/DummyLayerView.hpp>
+#include <Process/Dummy/DummyLayerPresenter.hpp>
+#include <Process/Dummy/DummyLayerView.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
 
@@ -25,11 +25,6 @@ class SimpleProcessFactory : public Process::ProcessFactory
                 QObject* parent) override
         {
             return new SimpleProcessModel{duration, id, parent};
-        }
-
-        QByteArray makeStaticLayerConstructionData() const override
-        {
-            return {};
         }
 
         Process::ProcessModel* load(const VisitorVariant& vis, QObject* parent) override
