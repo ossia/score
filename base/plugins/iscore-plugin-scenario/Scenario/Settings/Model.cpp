@@ -13,7 +13,7 @@ namespace Parameters
 {
         const iscore::sp<ModelSkinParameter> Skin{QStringLiteral("Skin/Skin"), "Default"};
         const iscore::sp<ModelGraphicZoomParameter> GraphicZoom{QStringLiteral("Skin/Zoom"), 1};
-        const iscore::sp<ModelSlotHeightParameter> SlotHeight{QStringLiteral("Skin/slotHeight"), 400};
+        const iscore::sp<ModelSlotHeightParameter> SlotHeight{QStringLiteral("Skin/slotHeight"), 200};
         const iscore::sp<ModelDefaultDurationParameter> DefaultDuration{QStringLiteral("Skin/defaultDuration"), TimeValue::fromMsecs(15000)};
 
         auto list() {
