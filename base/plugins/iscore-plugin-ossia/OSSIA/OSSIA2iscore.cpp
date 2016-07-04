@@ -156,7 +156,6 @@ Device::AddressSettings ToAddressSettings(const OSSIA::Node &node)
             if(auto val = addr->cloneValue())
             {
                 s.value = ToValue(val);
-                delete val;
             }
             else
             {

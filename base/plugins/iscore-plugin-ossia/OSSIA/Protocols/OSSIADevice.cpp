@@ -251,10 +251,7 @@ optional<State::Value> OSSIADevice::refresh(const State::Address& address)
         if(auto addr = node->getAddress())
         {
             addr->pullValue();
-            auto cp = addr->cloneValue();
-            auto res = Ossia::convert::ToValue(cp);
-            delete cp;
-            return res;
+            return Ossia::convert::ToValue(addr->cloneValue());
         }
     }
 
@@ -308,9 +305,8 @@ void OSSIADevice::setListening(
     if(b)
     {
         ossia_addr->pullValue();
-        std::unique_ptr<OSSIA::Value> v;
-        v.reset(ossia_addr->cloneValue());
-        emit valueUpdated(addr, Ossia::convert::ToValue(v.get()));
+
+        emit valueUpdated(addr, Ossia::convert::ToValue(ossia_addr->cloneValue()));
 
         if(cb_it == m_callbacks.end())
         {
