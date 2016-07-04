@@ -18,9 +18,6 @@ void LayerView::paint(QPainter* painter,
                       const QStyleOptionGraphicsItem* option,
                       QWidget* widget)
 {
-    painter->setPen(ScenarioStyle::instance().ProcessViewBorder.getColor());
-    painter->drawRect(boundingRect());
-
     paint_impl(painter);
 }
 

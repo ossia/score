@@ -2,6 +2,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 #include <QGraphicsItem>
 #include <qnamespace.h>
+#include <QTextLayout>
 #include <QRect>
 
 class QGraphicsSceneMouseEvent;
@@ -15,12 +16,7 @@ class TemporalConstraintHeader final : public ConstraintHeader
 {
         Q_OBJECT
     public:
-        TemporalConstraintHeader():
-            ConstraintHeader{}
-        {
-            this->setAcceptedMouseButtons(Qt::LeftButton);  // needs to be enabled for dblclick
-            this->setFlags(QGraphicsItem::ItemIsSelectable);// needs to be enabled for dblclick
-        }
+        TemporalConstraintHeader();
 
         QRectF boundingRect() const override;
         void paint(QPainter *painter,
@@ -33,6 +29,10 @@ class TemporalConstraintHeader final : public ConstraintHeader
         void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
     private:
+        void on_textChange() override;
         int m_previous_x{};
+
+        int m_textWidthCache;
+        QTextLayout m_textCache;
 };
 }

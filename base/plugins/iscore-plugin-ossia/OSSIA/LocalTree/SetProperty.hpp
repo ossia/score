@@ -20,7 +20,7 @@ struct SetPropertyWrapper : public BaseCallbackWrapper
             BaseCallbackWrapper{param_node, param_addr},
             setFun{prop}
         {
-            callbackIt = addr->addCallback([=] (const OSSIA::Value* v) {
+            callbackIt = addr->addCallback([=] (const OSSIA::Value& v) {
                 setFun(Ossia::convert::ToValue(v));
             });
 

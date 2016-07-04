@@ -95,6 +95,7 @@ Device::Domain ToDomain(OSSIA::Domain& domain);
 
 ISCORE_PLUGIN_OSSIA_EXPORT
 State::Value ToValue(const OSSIA::Value* val);
+inline State::Value ToValue(const OSSIA::Value& val) { return ToValue(&val); }
 State::Value ToValue(OSSIA::Value::Type);
 inline State::Value ToValue(const std::unique_ptr<OSSIA::Value>& val) { return ToValue(val.get()); }
 

@@ -10,6 +10,7 @@
 #include <Process/LayerView.hpp>
 #include <Process/Style/Skin.hpp>
 
+static const int fontSize = 8;
 namespace Mapping
 {
 MappingView::MappingView(QGraphicsItem* parent) :
@@ -17,20 +18,41 @@ MappingView::MappingView(QGraphicsItem* parent) :
 {
     setZValue(1);
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+
+    auto f = Skin::instance().SansFont;
+    f.setPointSize(fontSize);
+
+    m_textcache.setFont(f);
+    m_textcache.setCacheEnabled(true);
+}
+
+void MappingView::showName(bool b)
+{
+    m_showName = b;
+
+    update();
+}
+
+void MappingView::setDisplayedName(const QString& s)
+{
+    m_displayedName = s;
+
+    // TODO refactor with automation
+    m_textcache.setText(s);
+    m_textcache.beginLayout();
+    QTextLine line = m_textcache.createLine();
+    line.setPosition(QPointF{0., 0.});
+
+    m_textcache.endLayout();
+
+    update();
 }
 
 void MappingView::paint_impl(QPainter* painter) const
 {
-    static const int fontSize = 8;
-    QRectF processNameRect{10, (qreal)fontSize, 0.95 * this->width(), fontSize * 6 };
-
     if(m_showName)
     {
-        auto f = Skin::instance().SansFont;
-        f.setPointSize(fontSize);
-        painter->setFont(f);
-        painter->setPen(Qt::lightGray);
-        painter->drawText(processNameRect, Qt::AlignLeft, m_displayedName);
+        m_textcache.draw(painter, QPointF{5, fontSize});
     }
 }
 }

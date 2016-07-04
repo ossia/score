@@ -10,6 +10,7 @@
 #include "AutomationView.hpp"
 #include <Process/LayerView.hpp>
 
+const int fontSize = 8;
 namespace Automation
 {
 LayerView::LayerView(QGraphicsItem* parent) :
@@ -17,21 +18,34 @@ LayerView::LayerView(QGraphicsItem* parent) :
 {
     setZValue(1);
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+
+    auto f = Skin::instance().SansFont;
+    f.setPointSize(fontSize);
+
+    m_textcache.setFont(f);
+    m_textcache.setCacheEnabled(true);
+}
+
+void LayerView::setDisplayedName(const QString& s)
+{
+    m_displayedName = s;
+
+    m_textcache.setText(s);
+    m_textcache.beginLayout();
+    QTextLine line = m_textcache.createLine();
+    line.setPosition(QPointF{0., 0.});
+
+    m_textcache.endLayout();
+
+    update();
 }
 
 void LayerView::paint_impl(QPainter* painter) const
 {
-    static const int fontSize = 8;
-    QRectF processNameRect{0, this->height() - 2*fontSize, 0.95 * this->width(), fontSize + 2 };
-
 #if !defined(ISCORE_IEEE_SKIN)
     if(m_showName)
     {
-        auto f = Skin::instance().SansFont;
-        f.setPointSize(fontSize);
-        painter->setFont(f);
-        painter->setPen(Qt::lightGray);
-        painter->drawText(processNameRect, Qt::AlignCenter, m_displayedName);
+        m_textcache.draw(painter, QPointF{5, fontSize});
     }
 #endif
 }
