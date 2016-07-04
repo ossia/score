@@ -11,6 +11,9 @@ enum class Tool {
 enum class AddPointBehaviour {
     LinearBefore, LinearAfter, DuplicateSegment
 };
+enum class RemovePointBehaviour {
+    Remove, RemoveAndAddSegment
+};
 
 class ISCORE_PLUGIN_CURVE_EXPORT  EditionSettings : public QObject
 {
@@ -19,12 +22,14 @@ class ISCORE_PLUGIN_CURVE_EXPORT  EditionSettings : public QObject
         Q_PROPERTY(bool suppressOnOverlap READ suppressOnOverlap WRITE setSuppressOnOverlap NOTIFY suppressOnOverlapChanged)
         Q_PROPERTY(bool stretchBothBounds READ stretchBothBounds WRITE setStretchBothBounds NOTIFY stretchBothBoundsChanged)
         Q_PROPERTY(Curve::AddPointBehaviour addPointBehaviour READ addPointBehaviour WRITE setAddPointBehaviour NOTIFY addPointBehaviourChanged)
+        Q_PROPERTY(Curve::RemovePointBehaviour removePointBehaviour READ removePointBehaviour WRITE setRemovePointBehaviour NOTIFY removePointBehaviourChanged)
         Q_PROPERTY(Curve::Tool tool READ tool WRITE setTool NOTIFY toolChanged)
 
         bool m_lockBetweenPoints{true};
         bool m_suppressOnOverlap{true};
         bool m_stretchBothBounds{false};
         Curve::AddPointBehaviour m_addPointBehaviour{AddPointBehaviour::DuplicateSegment};
+        Curve::RemovePointBehaviour m_removePointBehaviour{RemovePointBehaviour::RemoveAndAddSegment};
         Curve::Tool m_tool{Curve::Tool::Disabled};
 
     public:
@@ -32,12 +37,14 @@ class ISCORE_PLUGIN_CURVE_EXPORT  EditionSettings : public QObject
         bool suppressOnOverlap() const;
         bool stretchBothBounds() const;
         Curve::AddPointBehaviour addPointBehaviour() const;
+        Curve::RemovePointBehaviour removePointBehaviour() const;
         Curve::Tool tool() const;
 
         void setLockBetweenPoints(bool);
         void setSuppressOnOverlap(bool);
         void setStretchBothBounds(bool);
         void setAddPointBehaviour(Curve::AddPointBehaviour);
+        void setRemovePointBehaviour(Curve::RemovePointBehaviour removePointBehaviour);
         void setTool(Curve::Tool tool);
 
     signals:
@@ -45,6 +52,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT  EditionSettings : public QObject
         void suppressOnOverlapChanged(bool);
         void stretchBothBoundsChanged(bool);
         void addPointBehaviourChanged(Curve::AddPointBehaviour);
+        void removePointBehaviourChanged(Curve::RemovePointBehaviour removePointBehaviour);
         void toolChanged(Curve::Tool tool);
 };
 }

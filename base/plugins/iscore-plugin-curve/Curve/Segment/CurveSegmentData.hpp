@@ -8,6 +8,7 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 namespace Curve
 {
@@ -109,6 +110,34 @@ inline bool operator<=(const SegmentData& lhs, const SegmentData& rhs)
 }
 
 
+
+
+template<typename Container>
+Id<SegmentModel> getSegmentId(const Container& ids)
+{
+    Id<SegmentModel> id {};
+
+    do
+    {
+        id = Id<SegmentModel>{iscore::random_id_generator::getRandomId()};
+    }
+    while(ids.find(id) != ids.end());
+
+    return id;
+}
+
+inline Id<SegmentModel> getSegmentId(const std::vector<SegmentData>& ids)
+{
+    Id<SegmentModel> id {};
+
+    do
+    {
+        id = Id<SegmentModel>{iscore::random_id_generator::getRandomId()};
+    }
+    while(find_if(ids, [&] (const auto& other) { return other.id == id; }) != ids.end());
+
+    return id;
+}
 
 
 // We don't want crashes on invalid ids search
