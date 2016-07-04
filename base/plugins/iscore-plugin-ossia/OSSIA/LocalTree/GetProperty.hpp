@@ -66,15 +66,13 @@ struct GetPropertyWrapper : public BaseProperty
                 auto newVal = converter_t::convert(property.get());
                 try
                 {
-                    auto cl = addr->cloneValue();
-                    auto res = Ossia::convert::ToValue(cl);
+                    auto res = Ossia::convert::ToValue(addr->cloneValue());
 
                     if(newVal != res)
                     {
                         auto new_ossia_val = iscore::convert::toOSSIAValue(newVal);
                         addr->pushValue(new_ossia_val.get());
                     }
-                    delete cl;
                 }
                 catch(...)
                 {

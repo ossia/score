@@ -15,15 +15,15 @@ namespace RecreateOnPlay
 {
 DefaultClockManager:: ~DefaultClockManager() = default;
 DefaultClockManager::DefaultClockManager(
-	const Context& ctx) :
-	ClockManager{ ctx }
+    const Context& ctx) :
+    ClockManager{ ctx }
 {
-	auto& bs = *ctx.sys.baseScenario();
-	OSSIA::TimeConstraint& ossia_cst = *bs.baseConstraint()->OSSIAConstraint();
+    auto& bs = *ctx.sys.baseScenario();
+    OSSIA::TimeConstraint& ossia_cst = *bs.baseConstraint()->OSSIAConstraint();
 
-	ossia_cst.setDriveMode(OSSIA::Clock::DriveMode::INTERNAL);
-	ossia_cst.setGranularity(context.doc.app.settings<Settings::Model>().getRate());
-	ossia_cst.setCallback(makeDefaultCallback(bs));
+    ossia_cst.setDriveMode(OSSIA::Clock::DriveMode::INTERNAL);
+    ossia_cst.setGranularity(context.doc.app.settings<Settings::Model>().getRate());
+    ossia_cst.setCallback(makeDefaultCallback(bs));
 }
 OSSIA::TimeConstraint::ExecutionCallback DefaultClockManager::makeDefaultCallback(
         RecreateOnPlay::BaseScenarioElement& bs)
@@ -77,8 +77,8 @@ QString DefaultClockManagerFactory::prettyName() const
 }
 
 std::unique_ptr<ClockManager> DefaultClockManagerFactory::make(
-	const RecreateOnPlay::Context& ctx)
+    const RecreateOnPlay::Context& ctx)
 {
-	return std::make_unique<DefaultClockManager>( ctx );
+    return std::make_unique<DefaultClockManager>( ctx );
 }
 }
