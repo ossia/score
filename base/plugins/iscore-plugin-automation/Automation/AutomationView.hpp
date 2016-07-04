@@ -2,6 +2,7 @@
 
 #include <Process/LayerView.hpp>
 #include <QString>
+#include <QTextLayout>
 
 class QGraphicsItem;
 class QPainter;
@@ -13,8 +14,12 @@ class LayerView final : public Process::LayerView
     public:
         explicit LayerView(QGraphicsItem *parent);
 
-        void setDisplayedName(QString s) {m_displayedName = s;}
-        void showName(bool b) {m_showName = b;}
+        void setDisplayedName(const QString& s);
+        void showName(bool b)
+        {
+            m_showName = b;
+            update();
+        }
 
     protected:
         void paint_impl(QPainter* painter) const override;
@@ -22,5 +27,7 @@ class LayerView final : public Process::LayerView
     private:
         QString m_displayedName{};
         bool m_showName{true};
+
+        QTextLayout m_textcache;
 };
 }

@@ -18,9 +18,6 @@ SlotHandle::SlotHandle(const SlotView &slotView, QGraphicsItem *parent):
     m_width{slotView.boundingRect().width()}
 {
     this->setCursor(Qt::SizeVerCursor);
-
-    m_pen.setColor(ScenarioStyle::instance().SlotHandle.getColor());
-    m_pen.setCosmetic(true);
     m_pen.setWidth(0);
 }
 
@@ -34,9 +31,10 @@ void SlotHandle::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing, false);
+    m_pen.setColor(ScenarioStyle::instance().ProcessViewBorder.getColor());
     painter->setPen(m_pen);
-    painter->drawLine(QPointF{0., 0.}, QPointF{m_width, 0.});
+    painter->setBrush(m_pen.color());
+    painter->drawRect(boundingRect());
 }
 
 void SlotHandle::setWidth(qreal width)

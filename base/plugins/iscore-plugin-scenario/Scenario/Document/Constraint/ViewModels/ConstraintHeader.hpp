@@ -54,6 +54,7 @@ class ConstraintHeader : public QGraphicsObject
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) final override;
 
     protected:
+        virtual void on_textChange() { }
         ConstraintView* m_view{};
         State m_state{};
         double m_width{};

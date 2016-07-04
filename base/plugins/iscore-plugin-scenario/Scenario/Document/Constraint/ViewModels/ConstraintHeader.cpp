@@ -13,6 +13,7 @@ void ConstraintHeader::setWidth(double width)
 void ConstraintHeader::setText(const QString &text)
 {
     m_text = text;
+    on_textChange();
     update();
 }
 
