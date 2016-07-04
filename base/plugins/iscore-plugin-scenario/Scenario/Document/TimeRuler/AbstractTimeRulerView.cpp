@@ -136,7 +136,7 @@ void AbstractTimeRulerView::createRulerPath()
 
 void AbstractTimeRulerView::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
-    emit drag(ev->buttonDownScenePos(Qt::LeftButton), ev->scenePos());
+    emit drag(ev->lastScenePos(), ev->scenePos());
     ev->accept();
 }
 

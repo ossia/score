@@ -98,7 +98,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
     connect(m_mainTimeRuler->view(), &TimeRulerView::drag,
             this, [&] (QPointF click, QPointF current) {
-        on_zoomOnWheelEvent((current - click).toPoint(), current);
+        auto dy = current.y() - click.y();
+        on_zoomOnWheelEvent({0, dy}, {0, current.y()});
     });
 
     // Focus
