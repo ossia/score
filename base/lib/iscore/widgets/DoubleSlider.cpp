@@ -6,7 +6,7 @@
 #include <iscore/tools/Clamp.hpp>
 #include "DoubleSlider.hpp"
 
-static const constexpr double max = std::numeric_limits<int>::max() / 16384;
+static const constexpr double max = std::numeric_limits<int>::max() / 65536.;
 
 DoubleSlider::DoubleSlider(QWidget* parent):
     QWidget{parent},
@@ -14,7 +14,7 @@ DoubleSlider::DoubleSlider(QWidget* parent):
 {
     //m_slider->setContentsMargins(0, 0, 0, 0);
     m_slider->setMinimum(0);
-    m_slider->setMaximum(std::numeric_limits<int>::max() / 16384);
+    m_slider->setMaximum(0.99 * max);
 
     auto lay = new iscore::MarginLess<QGridLayout>(this);
     lay->addWidget(m_slider);

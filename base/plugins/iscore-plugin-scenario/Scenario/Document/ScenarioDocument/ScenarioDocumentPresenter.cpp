@@ -198,7 +198,7 @@ void ScenarioDocumentPresenter::on_zoomSliderChanged(double sliderPos)
                 view().view().width()
                 );
 
-    updateZoom(newMillisPerPix, QPointF(0,0));
+    updateZoom(newMillisPerPix, QPointF{}); // Null point
 }
 
 void ScenarioDocumentPresenter::on_zoomOnWheelEvent(QPointF zoom, QPointF center)
@@ -284,16 +284,13 @@ void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
 
 void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 {
-    auto w = view().view().viewport()->width();
-    auto h = view().view().viewport()->height();
-
     QRect viewport_rect = view().view().viewport()->rect() ;
     QRectF visible_scene_rect = view().view().mapToScene(viewport_rect).boundingRect();
 
-    qreal center = focus.x();
+    double center = focus.x();
     if (focus.isNull())
     {
-        center = visible_scene_rect.center().x();
+        center = view().view().mapToScene(viewport_rect.center()).x();
     }
     else if (focus.x() - visible_scene_rect.left() < 40)
     {
@@ -305,29 +302,21 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     }
 
 
-    qreal centerT = center * m_zoomRatio; // here's the old zoom
-
-    auto deltaX = center - visible_scene_rect.left();
-
-    auto y = visible_scene_rect.top();
-
     if(newZoom != m_zoomRatio)
     {
+        auto oldZoom = m_zoomRatio;
         setMillisPerPixel(newZoom);
-
         displayedConstraint().fullView()->setZoom(m_zoomRatio);
+
+        double y = visible_scene_rect.top();
+        view().view().centerOn(center * oldZoom / newZoom, y);
+
+        QRectF new_visible_scene_rect = view().view().mapToScene(view().view().viewport()->rect()).boundingRect();
+
+        // TODO should call displayedElementsPresenter instead??
+        displayedConstraint().fullView()->setCenter(new_visible_scene_rect.center());
     }
 
-    qreal x = centerT/m_zoomRatio - deltaX;; // here's the new zoom
-
-    auto newView = QRectF{x, y,(qreal)w, (qreal)h};
-
-    view().view().ensureVisible(newView,0,0);
-
-    QRectF new_visible_scene_rect = view().view().mapToScene(view().view().viewport()->rect()).boundingRect();
-
-    // TODO should call displayedElementsPresenter instead??
-    displayedConstraint().fullView()->setCenter(new_visible_scene_rect.center());
 }
 
 void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, double dx)
