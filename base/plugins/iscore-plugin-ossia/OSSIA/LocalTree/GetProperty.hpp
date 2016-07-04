@@ -71,7 +71,7 @@ struct GetPropertyWrapper : public BaseProperty
                     if(newVal != res)
                     {
                         auto new_ossia_val = iscore::convert::toOSSIAValue(newVal);
-                        addr->pushValue(new_ossia_val.get());
+                        addr->pushValue(*new_ossia_val);
                     }
                 }
                 catch(...)
@@ -83,7 +83,7 @@ struct GetPropertyWrapper : public BaseProperty
 
             {
                 auto new_ossia_val = iscore::convert::toOSSIAValue(converter_t::convert(property.get()));
-                addr->setValue(new_ossia_val.get());
+                addr->setValue(*new_ossia_val);
             }
         }
 };

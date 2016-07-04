@@ -24,7 +24,7 @@ struct SetPropertyWrapper : public BaseCallbackWrapper
                 setFun(Ossia::convert::ToValue(v));
             });
 
-            addr->setValue(new typename Ossia::convert::MatchingType<T>::type);
+            addr->setValue(typename Ossia::convert::MatchingType<T>::type{});
         }
 };
 

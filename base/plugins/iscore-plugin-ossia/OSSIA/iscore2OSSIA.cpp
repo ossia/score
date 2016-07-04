@@ -226,7 +226,7 @@ void updateOSSIAAddress(
     addr->setBoundingMode(toBoundingMode(settings.clipMode));
 
     auto val = iscore::convert::toOSSIAValue(settings.value);
-    addr->setValue(val.get());
+    addr->setValue(*val);
 
     auto min = toOSSIAValue(settings.domain.min);
     auto max = toOSSIAValue(settings.domain.max);
@@ -390,8 +390,7 @@ std::shared_ptr<OSSIA::Message> message(
             return{};
 
         auto val = iscore::convert::toOSSIAValue(mess.value);
-        return OSSIA::Message::create(
-            ossia_addr, val.get());
+        return OSSIA::Message::create(ossia_addr, *val);
     }
 
     return {};
