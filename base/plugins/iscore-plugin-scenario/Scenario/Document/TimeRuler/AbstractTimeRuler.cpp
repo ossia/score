@@ -60,12 +60,13 @@ void AbstractTimeRuler::computeGraduationSpacing()
     double pixPerSec = 1000 * m_pixelPerMillis;
     double gradSpace = pixPerSec;
 
-    int deltaTime = 100;
+    double deltaTime = 100;
     QString format = "m:ss";
     int loop = 5;
 
     int i = 0;
-    for (i = 0; i < m_graduationsSpacing.size() - 1; i++ )
+    int n = m_graduationsSpacing.size();
+    for (i = 0; i < n - 1; i++ )
     {
         if (pixPerSec > m_graduationsSpacing[i].first && pixPerSec < m_graduationsSpacing[i+1].first)
         {
