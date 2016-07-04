@@ -97,9 +97,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
         this,    [&] () { view().view().setFocus(); });
 
     connect(m_mainTimeRuler->view(), &TimeRulerView::drag,
-            this, [&] (QPointF click, QPointF current) {
-        auto dy = current.y() - click.y();
-        on_zoomOnWheelEvent({0, dy}, {0, current.y()});
+            this, [&] (QPointF prev, QPointF current) {
+        on_timeRulerScrollEvent(prev, current);
     });
 
     // Focus
@@ -155,20 +154,20 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
     if(newZoom != -1) // constraint has already been in fullview
     {
         double newSliderPos = ZoomPolicy::zoomRatioToSliderPos(
-                                  newZoom,
-                                  displayedConstraint().duration.defaultDuration().msec(),
-                                  view().view().width()
-                                  );
+                    newZoom,
+                    displayedConstraint().duration.defaultDuration().msec(),
+                    view().view().width()
+                    );
         view().zoomSlider()->setValue(newSliderPos);
     }
     else // first time in fullview : init the zoom ratio
     {
         view().zoomSlider()->setValue(0.01);
         newZoom = ZoomPolicy::sliderPosToZoomRatio(
-                      0.01,
-                      displayedConstraint().duration.defaultDuration().msec(),
-                      view().view().width()
-                      );
+                    0.01,
+                    displayedConstraint().duration.defaultDuration().msec(),
+                    view().view().width()
+                    );
     }
 
     setMillisPerPixel(newZoom);
@@ -194,15 +193,15 @@ void ScenarioDocumentPresenter::on_newSelection(const Selection& sel)
 void ScenarioDocumentPresenter::on_zoomSliderChanged(double sliderPos)
 {
     auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
-                               sliderPos,
-                               displayedConstraint().duration.defaultDuration().msec(),
-                               view().view().width()
-                               );
+                sliderPos,
+                displayedConstraint().duration.defaultDuration().msec(),
+                view().view().width()
+                );
 
     updateZoom(newMillisPerPix, QPointF(0,0));
 }
 
-void ScenarioDocumentPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
+void ScenarioDocumentPresenter::on_zoomOnWheelEvent(QPointF zoom, QPointF center)
 {
     // convert the mouse displacement into a fake slider move
 
@@ -218,21 +217,44 @@ void ScenarioDocumentPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
     view().zoomSlider()->setValue(newSliderPos);
 
     auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
-                               newSliderPos,
-                               displayedConstraint().duration.defaultDuration().msec(),
-                               view().view().width()
-                               );
+                newSliderPos,
+                displayedConstraint().duration.defaultDuration().msec(),
+                view().view().width()
+                );
 
     updateZoom(newMillisPerPix, center);
 
 }
 
+void ScenarioDocumentPresenter::on_timeRulerScrollEvent(QPointF previous, QPointF current)
+{
+    auto delta = current - previous;
+    double zoomSpeed = 0.5; // experiment value
+    double newSliderPos = (view().zoomSlider()->value() +
+                           zoomSpeed * float(delta.y())/float(view().zoomSlider()->width()));
+
+    if (newSliderPos > 1.)
+        newSliderPos = 1;
+    else if(newSliderPos < 0.)
+        newSliderPos = 0;
+
+    view().zoomSlider()->setValue(newSliderPos);
+
+    auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
+                newSliderPos,
+                displayedConstraint().duration.defaultDuration().msec(),
+                view().view().width()
+                );
+
+    updateZoom(newMillisPerPix, delta.x());
+}
+
 void ScenarioDocumentPresenter::on_viewSizeChanged(const QSize &s)
 {
     auto zoom = ZoomPolicy::sliderPosToZoomRatio(
-                    view().zoomSlider()->value(),
-                    displayedConstraint().duration.defaultDuration().msec(),
-                    view().view().width());
+                view().zoomSlider()->value(),
+                displayedConstraint().duration.defaultDuration().msec(),
+                view().view().width());
 
     m_mainTimeRuler->view()->setWidth(s.width());
     updateZoom(zoom, {0,0});
@@ -271,7 +293,7 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     qreal center = focus.x();
     if (focus.isNull())
     {
-           center = visible_scene_rect.center().x();
+        center = visible_scene_rect.center().x();
     }
     else if (focus.x() - visible_scene_rect.left() < 40)
     {
@@ -290,8 +312,11 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     auto y = visible_scene_rect.top();
 
     if(newZoom != m_zoomRatio)
+    {
         setMillisPerPixel(newZoom);
 
+        displayedConstraint().fullView()->setZoom(m_zoomRatio);
+    }
 
     qreal x = centerT/m_zoomRatio - deltaX;; // here's the new zoom
 
@@ -302,7 +327,17 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     QRectF new_visible_scene_rect = view().view().mapToScene(view().view().viewport()->rect()).boundingRect();
 
     // TODO should call displayedElementsPresenter instead??
-    displayedConstraint().fullView()->setZoom(m_zoomRatio);
     displayedConstraint().fullView()->setCenter(new_visible_scene_rect.center());
+}
+
+void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, double dx)
+{
+    if(newZoom != m_zoomRatio)
+    {
+        displayedConstraint().fullView()->setZoom(m_zoomRatio);
+        setMillisPerPixel(newZoom);
+    }
+
+    view().view().scrollHorizontal(dx);
 }
 }

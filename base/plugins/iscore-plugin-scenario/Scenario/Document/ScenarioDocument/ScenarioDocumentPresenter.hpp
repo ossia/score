@@ -80,13 +80,15 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
     private:
         void on_displayedConstraintChanged();
         void on_zoomSliderChanged(double);
-        void on_zoomOnWheelEvent(QPoint, QPointF);
+        void on_zoomOnWheelEvent(QPointF, QPointF);
+        void on_timeRulerScrollEvent(QPointF, QPointF);
         void on_viewSizeChanged(const QSize& s);
         void on_horizontalPositionChanged(int dx);
         void on_elementsScaleChanged(double s);
 
         //void updateGrid();
         void updateZoom(ZoomRatio newZoom, QPointF focus);
+        void updateZoom(ZoomRatio newZoom, double dx);
 
         DisplayedElementsPresenter* m_scenarioPresenter{};
 
