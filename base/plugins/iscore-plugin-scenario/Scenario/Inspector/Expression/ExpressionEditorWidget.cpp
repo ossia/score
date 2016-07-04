@@ -193,11 +193,19 @@ void ExpressionEditorWidget::addNewTerm()
 
 void ExpressionEditorWidget::removeTerm(int index)
 {
-    for (int i = index; i < m_relations.size(); i++)
+    if(m_relations.size() > 1)
     {
-        m_relations.at(i)->id--;
+        for (int i = index; i < m_relations.size(); i++)
+        {
+            m_relations.at(i)->id--;
+        }
+        delete m_relations.at(index);
+        m_relations.removeAt(index);
     }
-    delete m_relations.at(index);
-    m_relations.removeAt(index);
+    else if(m_relations.size() == 1)
+    {
+        // We just clear the expression
+        emit resetExpression();
+    }
 }
 }

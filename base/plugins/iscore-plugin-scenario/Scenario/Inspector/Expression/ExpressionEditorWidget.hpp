@@ -32,8 +32,10 @@ class ExpressionEditorWidget : public QWidget
         void setExpression(State::Expression e);
 
         void addNewTerm();
+
     signals:
         void editingFinished();
+        void resetExpression();
 
 
     private:

@@ -49,6 +49,7 @@ class EventInspectorWidget final : public QWidget
     private:
         void updateDisplayedValues();
         void on_conditionChanged();
+        void on_conditionReset();
 
         std::list<QWidget*> m_properties;
 

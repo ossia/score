@@ -95,10 +95,11 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(infoWidg);
 
     // Condition
-
     m_exprEditor = new ExpressionEditorWidget{m_context, this};
     connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
             this, &EventInspectorWidget::on_conditionChanged);
+    connect(m_exprEditor, &ExpressionEditorWidget::resetExpression,
+            this, &EventInspectorWidget::on_conditionReset);
     con(m_model, &EventModel::conditionChanged,
         m_exprEditor, &ExpressionEditorWidget::setExpression);
 
@@ -109,7 +110,6 @@ EventInspectorWidget::EventInspectorWidget(
     condSection->expand(!m_model.condition().toString().isEmpty());
 
     // State
-
     m_statesWidget = new QWidget{this};
     auto dispLayout = new QVBoxLayout{m_statesWidget};
     m_statesWidget->setLayout(dispLayout);
@@ -223,6 +223,11 @@ void EventInspectorWidget::on_conditionChanged()
         auto cmd = new Scenario::Command::SetCondition{path(m_model), std::move(cond)};
         emit commandDispatcher()->submitCommand(cmd);
     }
+}
+void EventInspectorWidget::on_conditionReset()
+{
+    auto cmd = new Scenario::Command::SetCondition{path(m_model), State::Condition{}};
+    emit commandDispatcher()->submitCommand(cmd);
 }
 
 }
