@@ -7,7 +7,7 @@
 #include <QPainterPath>
 #include <QWheelEvent>
 #include <QKeyEvent>
-
+#include <QScrollBar>
 #include "ProcessGraphicsView.hpp"
 
 ProcessGraphicsView::ProcessGraphicsView(QGraphicsScene* parent):
@@ -30,6 +30,14 @@ ProcessGraphicsView::ProcessGraphicsView(QGraphicsScene* parent):
 void ProcessGraphicsView::setGrid(QPainterPath&& newGrid)
 {
     //m_graduations->setGrid(std::move(newGrid));
+}
+
+void ProcessGraphicsView::scrollHorizontal(double dx)
+{
+    if(auto bar = horizontalScrollBar())
+    {
+        bar->setValue(bar->value() + dx);
+    }
 }
 
 void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
