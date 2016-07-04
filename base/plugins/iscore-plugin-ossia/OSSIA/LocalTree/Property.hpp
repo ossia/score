@@ -81,7 +81,7 @@ struct PropertyWrapper : public BaseCallbackWrapper
                     if(newVal != res)
                     {
                         auto new_ossia_val = iscore::convert::toOSSIAValue(newVal);
-                        addr->pushValue(new_ossia_val.get());
+                        addr->pushValue(*new_ossia_val);
                     }
                 }
                 catch(...)
@@ -94,7 +94,7 @@ struct PropertyWrapper : public BaseCallbackWrapper
             {
                 auto new_ossia_val = iscore::convert::toOSSIAValue(
                             State::Value::fromValue(property.get()));
-                addr->setValue(new_ossia_val.get());
+                addr->setValue(*new_ossia_val);
             }
         }
 };

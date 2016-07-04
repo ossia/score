@@ -327,7 +327,7 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
         auto end = children.cend();
         auto local_play_node = *(m_localDevice->emplace(end, "play"));
         auto local_play_address = local_play_node->createAddress(OSSIA::Value::Type::BOOL);
-        local_play_address->setValue(new OSSIA::Bool{false});
+        local_play_address->setValue(OSSIA::Bool{false});
         local_play_address->addCallback([&] (const OSSIA::Value* v) {
             if (v->getType() == OSSIA::Value::Type::BOOL)
             {
@@ -339,7 +339,7 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
         auto end = children.cend();
         auto local_stop_node = *(m_localDevice->emplace(end, "stop"));
         auto local_stop_address = local_stop_node->createAddress(OSSIA::Value::Type::IMPULSE);
-        local_stop_address->setValue(new OSSIA::Impulse{});
+        local_stop_address->setValue(OSSIA::Impulse{});
         local_stop_address->addCallback([&] (const OSSIA::Value*) {
             on_stop();
         });
@@ -355,5 +355,5 @@ std::unique_ptr<RecreateOnPlay::ClockManager> OSSIAApplicationPlugin::makeClock(
         const RecreateOnPlay::Context& ctx)
 {
     auto& s = context.settings<RecreateOnPlay::Settings::Model>();
-	return s.makeClock(ctx);
+  return s.makeClock(ctx);
 }
