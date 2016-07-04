@@ -67,6 +67,20 @@ void EditionSettings::setTool(Tool tool)
     emit toolChanged(tool);
 }
 
+RemovePointBehaviour EditionSettings::removePointBehaviour() const
+{
+    return m_removePointBehaviour;
+}
+
+void EditionSettings::setRemovePointBehaviour(RemovePointBehaviour removePointBehaviour)
+{
+    if (m_removePointBehaviour == removePointBehaviour)
+        return;
+
+    m_removePointBehaviour = removePointBehaviour;
+    emit removePointBehaviourChanged(removePointBehaviour);
+}
+
 Tool EditionSettings::tool() const
 {
     return m_tool;

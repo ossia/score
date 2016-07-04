@@ -80,35 +80,6 @@ class CommandObjectBase
                         [&] (const auto& seg) { return seg.id == id; });
         }
 
-        template<typename Container>
-        Id<SegmentModel> getSegmentId(const Container& ids)
-        {
-            Id<SegmentModel> id {};
-
-            do
-            {
-                id = Id<SegmentModel>{iscore::random_id_generator::getRandomId()};
-            }
-            while(ids.find(id) != ids.end());
-
-            return id;
-        }
-
-        Id<SegmentModel> getSegmentId(const std::vector<SegmentData>& ids)
-        {
-            Id<SegmentModel> id {};
-
-            do
-            {
-                id = Id<SegmentModel>{iscore::random_id_generator::getRandomId()};
-            }
-            while(std::find_if(ids.begin(),
-                               ids.end(),
-                               [&] (const auto& other) { return other.id == id; }) != ids.end());
-
-            return id;
-        }
-
         virtual void on_press() = 0;
 
         QVector<QByteArray> m_oldCurveData;

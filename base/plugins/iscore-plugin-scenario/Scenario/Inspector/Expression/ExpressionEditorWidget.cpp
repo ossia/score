@@ -201,6 +201,7 @@ void ExpressionEditorWidget::removeTerm(int index)
         }
         delete m_relations.at(index);
         m_relations.removeAt(index);
+        // TODO the model should be updated here.
     }
     else if(m_relations.size() == 1)
     {

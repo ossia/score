@@ -22,8 +22,6 @@
 class QObject;
 namespace Curve
 {
-class PowerSegment;
-
 // Gives the data.
 class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
         public IdentifiedObject<SegmentModel>,
@@ -128,5 +126,9 @@ class Segment : public SegmentModel
         using SegmentModel::SegmentModel;
 };
 
+class PowerSegment;
+class PowerSegmentData;
+
 using DefaultCurveSegmentModel = PowerSegment;
+using DefaultCurveSegmentData = PowerSegmentData;
 }
