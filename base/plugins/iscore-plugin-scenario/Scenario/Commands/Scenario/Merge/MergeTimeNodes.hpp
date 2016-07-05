@@ -27,7 +27,7 @@ namespace Command
 template < typename Scenario_T>
 class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes : std::false_type { };
 template<>
-class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ProcessModel> : public iscore::SerializableCommand
 {
         // No ISCORE_COMMAND here since it's a template.
     public:
@@ -52,7 +52,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
 
         MergeTimeNodes() = default;
 
-        MergeTimeNodes(Path<ScenarioModel>&& scenar,
+        MergeTimeNodes(Path<ProcessModel>&& scenar,
                        Id<TimeNodeModel> clickedTn,
                        Id<TimeNodeModel> hoveredTn):
             m_scenarioPath{scenar},
@@ -69,7 +69,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
             m_serializedTimeNode = arr;
 
             m_moveCommand = new MoveEvent<GoodOldDisplacementPolicy>{
-                            Path<ScenarioModel>{scenario},
+                            Path<ProcessModel>{scenario},
                             tn.events().front(),
                             destinantionTn.date(),
                             ExpandMode::Scale};
@@ -129,7 +129,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
             updateTimeNodeExtent(m_destinationTnId, scenar);            
         }
 
-        void update(Path<ScenarioModel> scenar,
+        void update(Path<ProcessModel> scenar,
                     const Id<TimeNodeModel>& clickedTn,
                     const Id<TimeNodeModel>& hoveredTn) {}
 
@@ -152,7 +152,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
         }
 
     private:
-        Path<ScenarioModel> m_scenarioPath;
+        Path<ProcessModel> m_scenarioPath;
         Id<TimeNodeModel> m_movingTnId;
         Id<TimeNodeModel> m_destinationTnId;
 
@@ -165,4 +165,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ScenarioModel> : public iscor
 }
 }
 
-ISCORE_COMMAND_DECL_T(Scenario::Command::MergeTimeNodes<Scenario::ScenarioModel>)
+ISCORE_COMMAND_DECL_T(Scenario::Command::MergeTimeNodes<Scenario::ProcessModel>)

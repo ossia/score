@@ -15,7 +15,7 @@ struct DataStreamOutput;
 namespace Scenario
 {
 class EventModel;
-class ScenarioModel;
+class ProcessModel;
 namespace Command
 {
 
@@ -26,7 +26,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final : public SerializableMov
         public:
 
             MoveEventMeta(
-                Path<Scenario::ScenarioModel>&& scenarioPath,
+                Path<Scenario::ProcessModel>&& scenarioPath,
                 Id<EventModel> eventId,
                 TimeValue newDate,
                 double y,
@@ -35,7 +35,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final : public SerializableMov
         void undo() const override;
         void redo() const override;
 
-        const Path<Scenario::ScenarioModel>& path() const override;
+        const Path<Scenario::ProcessModel>& path() const override;
 
         void update( const Id<EventModel>& eventId, const TimeValue& newDate, double y, ExpandMode mode) override;
         void update(unused_t, const Id<EventModel>& eventId,
@@ -52,7 +52,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final : public SerializableMov
 
     private:
         // TODO : make a UI to change that
-        Path<Scenario::ScenarioModel> m_scenario;
+        Path<Scenario::ProcessModel> m_scenario;
         Id<EventModel> m_eventId;
         double m_oldY{};
         double m_newY{};

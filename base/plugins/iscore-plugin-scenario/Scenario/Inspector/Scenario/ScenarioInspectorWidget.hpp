@@ -5,7 +5,7 @@
 class QWidget;
 namespace Process { class ProcessModel; }
 namespace Scenario {
-class ScenarioModel;
+class ProcessModel;
 }  // namespace Scenario
 namespace iscore {
 class Document;
@@ -14,10 +14,10 @@ class Document;
 
 
 class ScenarioInspectorWidget final :
-        public Process::InspectorWidgetDelegate_T<Scenario::ScenarioModel>
+        public Process::InspectorWidgetDelegate_T<Scenario::ProcessModel>
 {
     public:
         explicit ScenarioInspectorWidget(
-                const Scenario::ScenarioModel& object,
+                const Scenario::ProcessModel& object,
                 QWidget* parent);
 };

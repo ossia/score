@@ -24,13 +24,13 @@ namespace Scenario
 bool ScenarioDisplayedElementsProvider::matches(
         const ConstraintModel& cst) const
 {
-    return dynamic_cast<Scenario::ScenarioModel*>(cst.parent());
+    return dynamic_cast<Scenario::ProcessModel*>(cst.parent());
 }
 
 DisplayedElementsContainer ScenarioDisplayedElementsProvider::make(
         ConstraintModel& cst) const
 {
-    if(auto parent_scenario = dynamic_cast<Scenario::ScenarioModel*>(cst.parent()))
+    if(auto parent_scenario = dynamic_cast<Scenario::ProcessModel*>(cst.parent()))
     {
         const auto& sst = parent_scenario->states.at(cst.startState());
         const auto& est = parent_scenario->states.at(cst.endState());
@@ -57,7 +57,7 @@ DisplayedElementsPresenterContainer ScenarioDisplayedElementsProvider::make_pres
         QGraphicsObject* view_parent,
         QObject* parent) const
 {
-    if(auto sm = dynamic_cast<Scenario::ScenarioModel*>(m.parent()))
+    if(auto sm = dynamic_cast<Scenario::ProcessModel*>(m.parent()))
     {
         const auto& startState = sm->states.at(m.startState());
         const auto& endState = sm->states.at(m.endState());

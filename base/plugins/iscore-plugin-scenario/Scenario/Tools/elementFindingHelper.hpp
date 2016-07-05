@@ -5,7 +5,7 @@
 namespace Scenario
 {
 inline
-TimeValue getDate(const Scenario::ScenarioModel& scenario, const Id<StateModel>& state)
+TimeValue getDate(const Scenario::ProcessModel& scenario, const Id<StateModel>& state)
 {
     return scenario.timeNodes.at(
                 scenario.events.at(
@@ -15,7 +15,7 @@ TimeValue getDate(const Scenario::ScenarioModel& scenario, const Id<StateModel>&
 }
 
 inline
-TimeValue getDate(const Scenario::ScenarioModel& scenario, const Id<EventModel>& event)
+TimeValue getDate(const Scenario::ProcessModel& scenario, const Id<EventModel>& event)
 {
     return scenario.timeNodes.at(
                 scenario.events.at(event).timeNode()
@@ -23,7 +23,7 @@ TimeValue getDate(const Scenario::ScenarioModel& scenario, const Id<EventModel>&
 }
 
 inline
-TimeValue getDate(const Scenario::ScenarioModel& scenario, const Id<TimeNodeModel>& timenode)
+TimeValue getDate(const Scenario::ProcessModel& scenario, const Id<TimeNodeModel>& timenode)
 {
     return scenario.timeNodes.at(timenode).date();
 }

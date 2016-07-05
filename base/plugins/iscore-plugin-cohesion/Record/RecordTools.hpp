@@ -21,7 +21,7 @@ namespace Explorer
 class DeviceExplorerModel;
 }
 namespace Scenario {
-class ScenarioModel;
+class ProcessModel;
 class ConstraintModel;
 class EventModel;
 class RackModel;
@@ -70,7 +70,7 @@ std::vector<std::vector<Device::FullAddressSettings> > GetAddressesToRecordRecur
         Explorer::DeviceExplorerModel& explorer);
 
 Box CreateBox(
-        const Scenario::ScenarioModel& scenar,
+        const Scenario::ProcessModel& scenar,
         Scenario::Point pt,
         RecordCommandDispatcher& dispatcher);
 

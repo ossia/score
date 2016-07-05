@@ -431,7 +431,7 @@ inline Scenario::Command::AddProcessToConstraintBase* make_AddProcessToConstrain
         const ConstraintModel& constraint,
         const UuidKey<Process::ProcessFactory>& process)
 {
-    auto isScenarioModel = dynamic_cast<Scenario::ScenarioModel*>(constraint.parent());
+    auto isScenarioModel = dynamic_cast<Scenario::ProcessModel*>(constraint.parent());
     auto noRackes = constraint.racks.empty();
 
 

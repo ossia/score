@@ -21,7 +21,7 @@ class EventModel;
 class StateModel;
 class TimeNodeModel;
 class CommentBlockModel;
-class ScenarioModel;
+class ProcessModel;
 namespace Command
 {
 /**
@@ -33,7 +33,7 @@ class RemoveSelection final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSelection, "Remove selected elements")
         public:
-            RemoveSelection(Path<Scenario::ScenarioModel>&& scenarioPath, Selection sel);
+            RemoveSelection(Path<Scenario::ProcessModel>&& scenarioPath, Selection sel);
 
         void undo() const override;
         void redo() const override;
@@ -43,7 +43,7 @@ class RemoveSelection final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<Scenario::ScenarioModel> m_path;
+        Path<Scenario::ProcessModel> m_path;
 
         // For timenodes that may be removed when there is only a single event
         QVector<QPair<Id<TimeNodeModel>, QByteArray>> m_maybeRemovedTimeNodes;

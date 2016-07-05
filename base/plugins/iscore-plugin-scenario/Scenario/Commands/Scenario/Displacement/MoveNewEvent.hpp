@@ -24,7 +24,7 @@ namespace Scenario
 {
 class EventModel;
 class ConstraintModel;
-class ScenarioModel;
+class ProcessModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public iscore::SerializableCommand
@@ -32,14 +32,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public iscore::Serializ
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveNewEvent, "Move a new event")
         public:
             MoveNewEvent(
-                Path<Scenario::ScenarioModel>&& scenarioPath,
+                Path<Scenario::ProcessModel>&& scenarioPath,
                 Id<ConstraintModel> constraintId,
                 Id<EventModel> eventId,
                 TimeValue date,
                 const double y,
                 bool yLocked);
         MoveNewEvent(
-                Path<Scenario::ScenarioModel>&& scenarioPath,
+                Path<Scenario::ProcessModel>&& scenarioPath,
                 Id<ConstraintModel> constraintId,
                 Id<EventModel> eventId,
                 TimeValue date,
@@ -63,7 +63,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public iscore::Serializ
             m_yLocked = yLocked;
         }
 
-        const Path<Scenario::ScenarioModel>& path() const
+        const Path<Scenario::ProcessModel>& path() const
         { return m_path; }
 
     protected:
@@ -71,7 +71,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public iscore::Serializ
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<Scenario::ScenarioModel> m_path;
+        Path<Scenario::ProcessModel> m_path;
         Id<ConstraintModel> m_constraintId{};
 
         MoveEventOnCreationMeta m_cmd;

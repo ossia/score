@@ -22,6 +22,7 @@ class ProcessModel final : public Process::ProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
+        PROCESS_METADATA_IMPL(JS::ProcessModel)
     Q_OBJECT
     public:
         explicit ProcessModel(
@@ -52,20 +53,6 @@ class ProcessModel final : public Process::ProcessModel
         void scriptChanged(QString);
 
     private:
-        // Process interface
-        Process::ProcessModel* clone(
-                const Id<Process::ProcessModel>& newId,
-                QObject* newParent) const override;
-
-        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override
-        {
-            return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
-        }
-
-        QString prettyName() const override;
-
-        void serialize_impl(const VisitorVariant& vis) const override;
-
         QString m_script;
 };
 }

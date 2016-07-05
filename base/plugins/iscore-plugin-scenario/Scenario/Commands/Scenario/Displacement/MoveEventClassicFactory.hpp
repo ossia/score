@@ -9,7 +9,7 @@
 template <typename Object> class Path;
 
 namespace Scenario {
-class ScenarioModel;
+class ProcessModel;
 class EventModel;
 
 namespace Command
@@ -21,7 +21,7 @@ class MoveEventClassicFactory final : public MoveEventFactoryInterface
         ISCORE_CONCRETE_FACTORY_DECL("644a6f8d-de63-4951-b28b-33b5e2c71ac8")
 
         SerializableMoveEvent* make(
-                Path<Scenario::ScenarioModel>&& scenarioPath,
+                Path<Scenario::ProcessModel>&& scenarioPath,
                 Id<EventModel> eventId,
                 TimeValue newDate,
                 ExpandMode mode) override;

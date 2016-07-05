@@ -26,7 +26,7 @@ class CommandStackFacade;
 using namespace Scenario::Command;
 using namespace iscore::IDocument; // for ::path
 void Scenario::clearContentFromSelection(
-        const Scenario::ScenarioModel& scenario,
+        const Scenario::ProcessModel& scenario,
         const iscore::CommandStackFacade& stack)
 {
     // 1. Select items
@@ -52,7 +52,7 @@ void Scenario::clearContentFromSelection(
 
 
 void Scenario::removeSelection(
-        const Scenario::ScenarioModel& scenario,
+        const Scenario::ProcessModel& scenario,
         const iscore::CommandStackFacade& stack)
 {
     Selection sel = scenario.selectedChildren();
@@ -86,7 +86,7 @@ void Scenario::clearContentFromSelection(
 template<typename T>
 struct DateComparator
 {
-        const Scenario::ScenarioModel* scenario;
+        const Scenario::ProcessModel* scenario;
         bool operator()(const T* lhs, const T* rhs)
         {
             return Scenario::date(*lhs, *scenario) < Scenario::date(*rhs, *scenario);
@@ -94,14 +94,14 @@ struct DateComparator
 };
 
 template<typename T>
-auto make_ordered(const Scenario::ScenarioModel& scenario)
+auto make_ordered(const Scenario::ProcessModel& scenario)
 {
     using comp_t = DateComparator<T>;
     using set_t = std::set<const T*, comp_t>;
 
     set_t the_set(comp_t{&scenario});
 
-    auto cont = Scenario::ScenarioElementTraits<Scenario::ScenarioModel, T>::accessor;
+    auto cont = Scenario::ScenarioElementTraits<Scenario::ProcessModel, T>::accessor;
     for(auto& tn : selectedElements(cont(scenario)))
     {
         the_set.insert(tn);
@@ -110,7 +110,7 @@ auto make_ordered(const Scenario::ScenarioModel& scenario)
 }
 
 void Scenario::mergeTimeNodes(
-        const Scenario::ScenarioModel & scenario,
+        const Scenario::ProcessModel & scenario,
         const iscore::CommandStackFacade & f)
 {
     // We merge all the furthest timenodes to the first one.
@@ -126,7 +126,7 @@ void Scenario::mergeTimeNodes(
             auto& first = Scenario::parentTimeNode(**it, scenario);
             auto& second = Scenario::parentTimeNode(**(++it), scenario);
 
-            auto cmd = new Command::MergeTimeNodes<ScenarioModel>(scenario, second.id(), first.id());
+            auto cmd = new Command::MergeTimeNodes<ProcessModel>(scenario, second.id(), first.id());
             f.redoAndPush(cmd);
         }
     }
@@ -136,7 +136,7 @@ void Scenario::mergeTimeNodes(
         auto first_tn = (*it)->id();
         for(++it; it != timenodes.end(); ++it)
         {
-            auto cmd = new Command::MergeTimeNodes<ScenarioModel>(scenario, first_tn, (*it)->id());
+            auto cmd = new Command::MergeTimeNodes<ProcessModel>(scenario, first_tn, (*it)->id());
             f.redoAndPush(cmd);
         }
     }

@@ -29,14 +29,14 @@ class LayerPresenter final :
             con(m_layer.model().metadata, &ModelMetadata::nameChanged,
                 this, &LayerPresenter::on_nameChanges);
 
-            m_view->setDisplayedName(m_layer.model().prettyName());
+            m_view->setDisplayedName(m_layer.processModel().prettyName());
             m_view->showName(true);
         }
 
     private:
         void on_nameChanges()
         {
-            m_view->setDisplayedName(m_layer.model().prettyName());
+            m_view->setDisplayedName(m_layer.processModel().prettyName());
         }
 };
 }

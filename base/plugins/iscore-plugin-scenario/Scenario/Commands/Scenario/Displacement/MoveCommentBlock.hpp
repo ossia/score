@@ -19,7 +19,7 @@ class MoveCommentBlock final : public iscore::SerializableCommand
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveCommentBlock, "Move a comment block")
         public:
             MoveCommentBlock(
-                const ScenarioModel& scenarPath,
+                const ProcessModel& scenarPath,
                 Id<CommentBlockModel> id,
                 TimeValue newDate,
                 double newY);
@@ -41,7 +41,7 @@ class MoveCommentBlock final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<ScenarioModel> m_path;
+        Path<ProcessModel> m_path;
         Id<CommentBlockModel> m_id;
         TimeValue m_oldDate, m_newDate;
         double m_oldY, m_newY;

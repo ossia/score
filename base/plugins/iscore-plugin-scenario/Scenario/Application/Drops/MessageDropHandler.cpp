@@ -35,7 +35,7 @@ bool MessageDropHandler::handle(
                 pres.context().context.commandStack);
 
 
-    const Scenario::ScenarioModel& scenar = pres.processModel();
+    const Scenario::ProcessModel& scenar = pres.processModel();
     Id<StateModel> createdState;
 
     Scenario::Point pt = pres.toScenarioPoint(pos);

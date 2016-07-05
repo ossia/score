@@ -2,7 +2,7 @@
 
 namespace Scenario
 {
-class ScenarioModel;
+class ProcessModel;
 namespace Command
 {
 class AddLayerModelToSlot;

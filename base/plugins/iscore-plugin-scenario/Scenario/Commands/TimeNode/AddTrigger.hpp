@@ -106,7 +106,7 @@ class AddTrigger final : public iscore::SerializableCommand
 }
 
 #include <Scenario/Process/ScenarioModel.hpp>
-ISCORE_COMMAND_DECL_T(Scenario::Command::AddTrigger<Scenario::ScenarioModel>)
+ISCORE_COMMAND_DECL_T(Scenario::Command::AddTrigger<Scenario::ProcessModel>)
 
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 ISCORE_COMMAND_DECL_T(Scenario::Command::AddTrigger<Scenario::BaseScenario>)

@@ -19,11 +19,11 @@ inline const Scenario::ScenarioInterface* focusedScenarioInterface(const iscore:
     }
     return nullptr;
 }
-inline const Scenario::ScenarioModel* focusedScenarioModel(const iscore::DocumentContext& ctx)
+inline const Scenario::ProcessModel* focusedScenarioModel(const iscore::DocumentContext& ctx)
 {
     if(auto layer = dynamic_cast<const Process::LayerModel*>(ctx.document.focusManager().get()))
     {
-        return dynamic_cast<Scenario::ScenarioModel*>(&layer->processModel());
+        return dynamic_cast<Scenario::ProcessModel*>(&layer->processModel());
     }
     return nullptr;
 }
@@ -61,7 +61,7 @@ class EnableWhenScenarioModelObject final :
                 return;
             }
 
-            auto proc = dynamic_cast<const Scenario::ScenarioModel*>(&lm->processModel());
+            auto proc = dynamic_cast<const Scenario::ProcessModel*>(&lm->processModel());
             if(!proc)
             {
                 setEnabled(mgr, false);
@@ -139,7 +139,7 @@ class EnableWhenScenarioInterfaceObject final :
 ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Scenario::TemporalScenarioLayerModel)
 ISCORE_DECLARE_DOCUMENT_CONDITION(Scenario::ScenarioDocumentModel)
 
-ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ScenarioModel)
+ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ProcessModel)
 ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ScenarioInterface)
 
 ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::ConstraintModel)

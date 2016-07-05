@@ -19,7 +19,7 @@ class CreateEventAfterEventOnTimeNodeTest : public QObject
     private slots:
             void CreateTest()
             {
-                Scenario::ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
+                Scenario::ProcessModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
 
                 EventData data {};
                 data.dDate.setMSecs(10);

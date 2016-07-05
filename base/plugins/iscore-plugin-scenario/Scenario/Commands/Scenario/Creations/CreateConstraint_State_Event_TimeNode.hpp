@@ -14,7 +14,7 @@ struct DataStreamOutput;
 
 namespace Scenario
 {
-class ScenarioModel;
+class ProcessModel;
 class ConstraintModel;
 class EventModel;
 class StateModel;
@@ -27,18 +27,18 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint_State_Event_TimeNode final 
         public:
 
             CreateConstraint_State_Event_TimeNode(
-                const Scenario::ScenarioModel& scenario,
+                const Scenario::ProcessModel& scenario,
                 Id<StateModel> startState,
                 TimeValue date,
                 double endStateY);
 
         CreateConstraint_State_Event_TimeNode(
-                const Path<Scenario::ScenarioModel>& scenario,
+                const Path<Scenario::ProcessModel>& scenario,
                 Id<StateModel> startState,
                 TimeValue date,
                 double endStateY);
 
-        const Path<Scenario::ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ProcessModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const Id<ConstraintModel>& createdConstraint() const

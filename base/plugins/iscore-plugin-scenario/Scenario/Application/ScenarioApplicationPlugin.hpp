@@ -28,7 +28,7 @@ class ObjectMenuActions;
 class ScenarioActions;
 class TemporalScenarioPresenter;
 class ToolMenuActions;
-class ScenarioModel;
+class ProcessModel;
 class ScenarioInterface;
 class StateModel;
 

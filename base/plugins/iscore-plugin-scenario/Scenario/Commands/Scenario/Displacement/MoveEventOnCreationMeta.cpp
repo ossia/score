@@ -14,12 +14,12 @@
 namespace Scenario
 {
 class EventModel;
-class ScenarioModel;
+class ProcessModel;
 namespace Command
 {
 
 MoveEventOnCreationMeta::MoveEventOnCreationMeta(
-        Path<Scenario::ScenarioModel>&& scenarioPath,
+        Path<Scenario::ProcessModel>&& scenarioPath,
         Id<EventModel> eventId,
         TimeValue newDate,
         ExpandMode mode):
@@ -41,7 +41,7 @@ void MoveEventOnCreationMeta::redo() const
     m_moveEventImplementation->redo();
 }
 
-const Path<Scenario::ScenarioModel>&MoveEventOnCreationMeta::path() const
+const Path<Scenario::ProcessModel>&MoveEventOnCreationMeta::path() const
 {
     return m_moveEventImplementation->path();
 }

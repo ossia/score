@@ -32,7 +32,7 @@ namespace Scenario
 namespace Command
 {
 CreateConstraint::CreateConstraint(
-        Path<Scenario::ScenarioModel>&& scenarioPath,
+        Path<Scenario::ProcessModel>&& scenarioPath,
         Id<StateModel> startState,
         Id<StateModel> endState) :
     m_path {std::move(scenarioPath) },

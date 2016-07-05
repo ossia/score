@@ -50,7 +50,7 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(
 }
 
 void IScoreCohesionApplicationPlugin::record(
-        const Scenario::ScenarioModel& scenar,
+        const Scenario::ProcessModel& scenar,
         Scenario::Point pt)
 {
     m_stopAction->trigger();
@@ -73,7 +73,7 @@ void IScoreCohesionApplicationPlugin::record(
 }
 
 void IScoreCohesionApplicationPlugin::recordMessages(
-        const Scenario::ScenarioModel& scenar,
+        const Scenario::ProcessModel& scenar,
         Scenario::Point pt)
 {
     m_stopAction->trigger();

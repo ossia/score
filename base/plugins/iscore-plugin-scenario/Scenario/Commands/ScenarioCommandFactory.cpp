@@ -17,7 +17,7 @@ const CommandParentFactoryKey& ScenarioCommandFactoryName(){
 
 
 template<>
-const CommandParentFactoryKey& CommandFactoryName<Scenario::ScenarioModel>()
+const CommandParentFactoryKey& CommandFactoryName<Scenario::ProcessModel>()
 { return Scenario::Command::ScenarioCommandFactoryName(); }
 
 

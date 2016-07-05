@@ -93,7 +93,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     // We assign new ids WRT the elements of the scenario - these ids can
     // be easily mapped.
     const auto& tsModel = m_ts.find();
-    const Scenario::ScenarioModel& scenario = ::model(tsModel);
+    const Scenario::ProcessModel& scenario = ::model(tsModel);
 
     auto& doc = iscore::IDocument::documentContext(scenario);
     auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
@@ -370,7 +370,7 @@ ScenarioPasteElements::ScenarioPasteElements(
 void ScenarioPasteElements::undo() const
 {
     auto& tsModel = m_ts.find();
-    Scenario::ScenarioModel& scenario = ::model(tsModel);
+    Scenario::ProcessModel& scenario = ::model(tsModel);
 
     for(const auto& elt : m_ids_timenodes)
     {
@@ -393,7 +393,7 @@ void ScenarioPasteElements::undo() const
 void ScenarioPasteElements::redo() const
 {
     auto& tsModel = m_ts.find();
-    Scenario::ScenarioModel& scenario = ::model(tsModel);
+    Scenario::ProcessModel& scenario = ::model(tsModel);
 
     std::vector<TimeNodeModel*> addedTimeNodes;
     addedTimeNodes.reserve(m_json_timenodes.size());

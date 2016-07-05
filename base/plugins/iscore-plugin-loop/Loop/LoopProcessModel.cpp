@@ -82,18 +82,6 @@ ProcessModel::~ProcessModel()
     delete pluginModelList;
 }
 
-ProcessModel* ProcessModel::clone(
-        const Id<Process::ProcessModel>& newId,
-        QObject* newParent) const
-{
-    return new ProcessModel{*this, newId, newParent};
-}
-
-QString ProcessModel::prettyName() const
-{
-    return "Loop Process";
-}
-
 void ProcessModel::startExecution()
 {
     constraint().startExecution();
@@ -138,11 +126,6 @@ void ProcessModel::setSelection(const Selection& s) const
     for_each_in_tuple(elements(), [&] (auto elt) {
         elt->selection.set(s.contains(elt)); // OPTIMIZEME
     });
-}
-
-void ProcessModel::serialize_impl(const VisitorVariant& s) const
-{
-    serialize_dyn(s, *this);
 }
 
 const QVector<Id<Scenario::ConstraintModel> > constraintsBeforeTimeNode(

@@ -6,13 +6,13 @@ class QObject;
 namespace Scenario
 {
 class ConstraintModel;
-class ScenarioModel;
+class ProcessModel;
 
 class BaseScenario;
 class BaseScenarioContainer;
 QJsonObject copyBaseConstraint(const ConstraintModel&);
 
-QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel& sm);
+QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm);
 
 /**
  * The parent should be in the object tree of the scenario.

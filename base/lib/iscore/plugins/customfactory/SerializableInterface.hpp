@@ -34,6 +34,7 @@ struct AbstractSerializer<JSONObject, T>
 
 namespace iscore
 {
+// FIXME why is this not used everywhere
 struct concrete { using is_concrete_tag = std::integral_constant<bool, true>; };
 template<typename T>
 class SerializableInterface

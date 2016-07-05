@@ -20,7 +20,7 @@ class QObject;
 
 namespace Mapping
 {
-class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel : public Curve::CurveProcessModel
+class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel final : public Curve::CurveProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(Mapping::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Mapping::ProcessModel, JSONObject)

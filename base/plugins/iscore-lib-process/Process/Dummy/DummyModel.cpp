@@ -32,24 +32,6 @@ DummyModel::DummyModel(
 
 }
 
-DummyModel* DummyModel::clone(
-        const Id<ProcessModel>& newId,
-        QObject* newParent) const
-{
-    return new DummyModel{*this, newId, newParent};
-}
-
-UuidKey<Process::ProcessFactory>DummyModel::concreteFactoryKey() const
-{
-    static const UuidKey<Process::ProcessFactory>key{"7db45400-6033-425e-9ded-d60a35d4c4b2"};
-    return key;
-}
-
-QString DummyModel::prettyName() const
-{
-    return "Dummy process";
-}
-
 ProcessStateDataInterface* DummyModel::startStateData() const
 {
     return &m_startState;
@@ -58,11 +40,6 @@ ProcessStateDataInterface* DummyModel::startStateData() const
 ProcessStateDataInterface* DummyModel::endStateData() const
 {
     return &m_endState;
-}
-
-void DummyModel::serialize_impl(const VisitorVariant& s) const
-{
-    serialize_dyn(s, *this);
 }
 
 }

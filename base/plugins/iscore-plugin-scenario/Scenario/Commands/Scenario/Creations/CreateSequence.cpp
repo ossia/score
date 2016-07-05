@@ -47,7 +47,7 @@ namespace Scenario
 namespace Command
 {
 CreateSequence::CreateSequence(
-        const Scenario::ScenarioModel& scenario,
+        const Scenario::ProcessModel& scenario,
         Id<StateModel> start,
         TimeValue date,
         double endStateY):
@@ -124,7 +124,7 @@ CreateSequence::CreateSequence(
     if(!matchingMessages.empty())
     {
         m_addedProcessCount = matchingMessages.size();
-        auto constraint = Path<Scenario::ScenarioModel>{scenario}.extend(m_command.createdConstraint());
+        auto constraint = Path<Scenario::ProcessModel>{scenario}.extend(m_command.createdConstraint());
 
         {
             AddMultipleProcessesToConstraintMacro interpolateMacro{Path<ConstraintModel>{constraint}};
@@ -170,7 +170,7 @@ CreateSequence::CreateSequence(
 }
 
 CreateSequence::CreateSequence(
-        const Path<Scenario::ScenarioModel>& scenarioPath,
+        const Path<Scenario::ProcessModel>& scenarioPath,
         Id<StateModel> startState,
         TimeValue date,
         double endStateY):

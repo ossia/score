@@ -37,7 +37,7 @@ namespace Scenario
 {
 ISCORE_PLUGIN_SCENARIO_EXPORT SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,
-        const Scenario::ScenarioModel& scenario)
+        const Scenario::ProcessModel& scenario)
 {
     SerializedConstraintViewModels map;
     // The other constraint view models are in their respective scenario view models
@@ -67,7 +67,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT SerializedConstraintViewModels serializeConstraint
 
 ISCORE_PLUGIN_SCENARIO_EXPORT void deserializeConstraintViewModels(
         const SerializedConstraintViewModels& vms,
-        const Scenario::ScenarioModel& scenar)
+        const Scenario::ProcessModel& scenar)
 {
     using namespace std;
     for(auto& viewModel : layers(scenar))

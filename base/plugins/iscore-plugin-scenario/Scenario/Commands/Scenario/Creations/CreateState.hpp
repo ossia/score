@@ -11,7 +11,7 @@ struct DataStreamOutput;
 
 namespace Scenario
 {
-class ScenarioModel;
+class ProcessModel;
 class EventModel;
 class StateModel;
 namespace Command
@@ -22,16 +22,16 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateState final : public iscore::Serializa
         public:
 
         CreateState(
-            const Scenario::ScenarioModel& scenario,
+            const Scenario::ProcessModel& scenario,
             Id<EventModel> event,
             double stateY);
 
         CreateState(
-                const Path<Scenario::ScenarioModel> &scenarioPath,
+                const Path<Scenario::ProcessModel> &scenarioPath,
                 Id<EventModel> event,
                 double stateY);
 
-        const Path<Scenario::ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ProcessModel>& scenarioPath() const
         { return m_path; }
 
         const double& endStateY() const
@@ -49,7 +49,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateState final : public iscore::Serializa
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<Scenario::ScenarioModel> m_path;
+        Path<Scenario::ProcessModel> m_path;
 
         Id<StateModel> m_newState;
         Id<EventModel> m_event;

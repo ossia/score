@@ -23,7 +23,7 @@ namespace Scenario
 AddressBarItem::AddressBarItem(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
-
+    this->setFlag(QGraphicsItem::ItemHasNoContents, true);
 }
 
 void AddressBarItem::setTargetObject(ObjectPath && path)

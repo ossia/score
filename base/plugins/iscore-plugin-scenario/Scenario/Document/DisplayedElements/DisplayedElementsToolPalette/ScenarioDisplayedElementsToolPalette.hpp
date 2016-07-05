@@ -19,7 +19,7 @@ class MoveLeftBraceInScenario_StateWrapper;
 class MoveRightBraceInScenario_StateWrapper;
 class MoveEventInScenario_StateWrapper;
 class MoveTimeNodeInScenario_StateWrapper;
-class ScenarioModel;
+class ProcessModel;
 class DisplayedElementsModel;
 class DisplayedElementsPresenter;
 class ScenarioDocumentPresenter;
@@ -34,7 +34,7 @@ class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalet
 
         BaseGraphicsObject& view() const;
         const DisplayedElementsPresenter& presenter() const;
-        const Scenario::ScenarioModel& model() const;
+        const Scenario::ProcessModel& model() const;
         const BaseElementContext& context() const;
         const Scenario::EditionSettings& editionSettings() const;
 
@@ -49,14 +49,14 @@ class ScenarioDisplayedElementsToolPalette final : public GraphicsSceneToolPalet
     private:
         Scenario::Point ScenePointToScenarioPoint(QPointF point);
         const DisplayedElementsModel& m_model;
-        const Scenario::ScenarioModel& m_scenarioModel;
+        const Scenario::ProcessModel& m_scenarioModel;
         ScenarioDocumentPresenter& m_presenter;
         BaseElementContext m_context;
         BaseGraphicsObject& m_view;
         const Scenario::EditionSettings& m_editionSettings;
 
         Scenario::SmartTool<
-            Scenario::ScenarioModel,
+            Scenario::ProcessModel,
             ScenarioDisplayedElementsToolPalette,
             BaseGraphicsObject,
             Scenario::MoveConstraintInScenario_StateWrapper,

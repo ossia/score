@@ -34,7 +34,7 @@ template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
-        const Scenario::ScenarioModel& scenario)
+        const Scenario::ProcessModel& scenario)
 {
     readFrom(*scenario.pluginModelList);
 
@@ -96,7 +96,7 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(
-        Scenario::ScenarioModel& scenario)
+        Scenario::ProcessModel& scenario)
 {
     scenario.pluginModelList = new iscore::ElementPluginModelList{*this, &scenario};
 
@@ -174,7 +174,7 @@ void Visitor<Writer<DataStream>>::writeTo(
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Scenario::ScenarioModel& scenario)
+        const Scenario::ProcessModel& scenario)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*scenario.pluginModelList);
     m_obj["Metadata"] = toJsonObject(scenario.metadata);
@@ -194,7 +194,7 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(
-        Scenario::ScenarioModel& scenario)
+        Scenario::ProcessModel& scenario)
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     scenario.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &scenario};
@@ -261,17 +261,11 @@ void Visitor<Writer<JSONObject>>::writeTo(
 
 }
 
-
-void Scenario::ScenarioModel::serialize_impl(const VisitorVariant& vis) const
-{
-    serialize_dyn(vis, *this);
-}
-
 Process::ProcessModel* Scenario::ScenarioFactory::load(
         const VisitorVariant& vis,
         QObject* parent)
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
-    { return new Scenario::ScenarioModel{deserializer, parent};});
+    { return new Scenario::ProcessModel{deserializer, parent};});
 }
 

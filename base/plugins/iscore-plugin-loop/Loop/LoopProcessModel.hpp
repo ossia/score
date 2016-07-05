@@ -32,6 +32,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
 {
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, JSONObject)
+        PROCESS_METADATA_IMPL(Loop::ProcessModel)
 
     public:
         explicit ProcessModel(
@@ -58,17 +59,6 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
         using QObject::event;
 
         // Process interface
-        ProcessModel* clone(
-                const Id<Process::ProcessModel>& newId,
-                QObject* newParent) const override;
-
-        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override
-        {
-            return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
-        }
-
-        QString prettyName() const override;
-
         void startExecution() override;
         void stopExecution() override;
         void reset() override;
@@ -76,8 +66,6 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
-
-        void serialize_impl(const VisitorVariant& vis) const override;
 
         ~ProcessModel();
 };

@@ -14,7 +14,7 @@ namespace Scenario
 namespace Command
 {
 MoveNewEvent::MoveNewEvent(
-        Path<Scenario::ScenarioModel>&& scenarioPath,
+        Path<Scenario::ProcessModel>&& scenarioPath,
         Id<ConstraintModel> constraintId,
         Id<EventModel> eventId,
         TimeValue date,
@@ -22,7 +22,7 @@ MoveNewEvent::MoveNewEvent(
         bool yLocked) :
     m_path {std::move(scenarioPath)},
     m_constraintId {std::move(constraintId)},
-    m_cmd{Path<Scenario::ScenarioModel>{m_path}, std::move(eventId), std::move(date), ExpandMode::Scale},
+    m_cmd{Path<Scenario::ProcessModel>{m_path}, std::move(eventId), std::move(date), ExpandMode::Scale},
     m_y{y},
     m_yLocked{yLocked}
 {
@@ -30,7 +30,7 @@ MoveNewEvent::MoveNewEvent(
 }
 
 MoveNewEvent::MoveNewEvent(
-        Path<Scenario::ScenarioModel>&& scenarioPath,
+        Path<Scenario::ProcessModel>&& scenarioPath,
         Id<ConstraintModel> constraintId,
         Id<EventModel> eventId,
         TimeValue date,

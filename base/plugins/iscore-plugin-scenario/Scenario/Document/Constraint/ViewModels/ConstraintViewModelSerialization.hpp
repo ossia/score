@@ -13,7 +13,7 @@
 template <typename VisitorType> class Visitor;
 namespace Scenario
 {
-class ScenarioModel;
+class ProcessModel;
 class ConstraintModel;
 
 // Load a single constraint view model.
@@ -68,12 +68,12 @@ loadConstraintViewModel(Deserializer<JSONObject>& deserializer,
 
 ISCORE_PLUGIN_SCENARIO_EXPORT SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,
-        const Scenario::ScenarioModel& scenario);
+        const Scenario::ProcessModel& scenario);
 
 // Save all the constraint view models
 // Load a group of constraint view models
 
 ISCORE_PLUGIN_SCENARIO_EXPORT void deserializeConstraintViewModels(
         const SerializedConstraintViewModels& vms,
-        const Scenario::ScenarioModel& scenar);
+        const Scenario::ProcessModel& scenar);
 }

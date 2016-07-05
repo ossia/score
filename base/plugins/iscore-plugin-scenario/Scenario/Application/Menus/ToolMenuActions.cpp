@@ -242,7 +242,7 @@ ToolMenuActions::ToolMenuActions(
 
 void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
 {
-    auto& scenario_proc_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioModel>>();
+    auto& scenario_proc_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ProcessModel>>();
     auto& scenario_iface_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ScenarioInterface>>();
 
     iscore::Menu& menu = m_parent->context.menus.get().at(iscore::Menus::Edit());

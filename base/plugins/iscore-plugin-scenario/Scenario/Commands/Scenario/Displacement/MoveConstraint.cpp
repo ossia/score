@@ -15,7 +15,7 @@ namespace Scenario
 namespace Command
 {
 MoveConstraint::MoveConstraint(
-        Path<Scenario::ScenarioModel>&& scenarioPath,
+        Path<Scenario::ProcessModel>&& scenarioPath,
         Id<ConstraintModel> id,
         double height) :
     m_path{std::move(scenarioPath)},

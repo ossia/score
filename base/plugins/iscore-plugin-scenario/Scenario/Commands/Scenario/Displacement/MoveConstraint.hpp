@@ -16,7 +16,7 @@ struct DataStreamOutput;
 namespace Scenario
 {
 class ConstraintModel;
-class ScenarioModel;
+class ProcessModel;
 namespace Command
 {
 class MoveConstraint final : public iscore::SerializableCommand
@@ -24,7 +24,7 @@ class MoveConstraint final : public iscore::SerializableCommand
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveConstraint, "Move a constraint")
         public:
             MoveConstraint(
-                Path<Scenario::ScenarioModel>&& scenarioPath,
+                Path<Scenario::ProcessModel>&& scenarioPath,
                 Id<ConstraintModel> id,
                 double y);
 
@@ -43,7 +43,7 @@ class MoveConstraint final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<Scenario::ScenarioModel> m_path;
+        Path<Scenario::ProcessModel> m_path;
         Id<ConstraintModel> m_constraint;
         double m_oldHeight{};
         double m_newHeight{};

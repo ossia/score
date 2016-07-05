@@ -125,7 +125,7 @@ PlayContextMenu::PlayContextMenu(
             return;
 
         auto& pres = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
-        auto proc = safe_cast<Scenario::ScenarioModel*>(&pres.layerModel().processModel());
+        auto proc = safe_cast<Scenario::ProcessModel*>(&pres.layerModel().processModel());
 
         exec_signals.startRecording(
                     *proc,
@@ -146,7 +146,7 @@ PlayContextMenu::PlayContextMenu(
             return;
 
         auto& pres = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
-        auto proc = safe_cast<Scenario::ScenarioModel*>(&pres.layerModel().processModel());
+        auto proc = safe_cast<Scenario::ProcessModel*>(&pres.layerModel().processModel());
 
         exec_signals.startRecordingMessages(
                     *proc,

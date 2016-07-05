@@ -1,7 +1,7 @@
 #pragma once
 class BaseScenario;
 namespace Scenario {
-class ScenarioModel;
+class ProcessModel;
 }  // namespace Scenario
 namespace iscore {
 class CommandStackFacade;
@@ -9,10 +9,10 @@ class CommandStackFacade;
 
 namespace Scenario
 {
-void removeSelection(const Scenario::ScenarioModel&, const iscore::CommandStackFacade&);
-void clearContentFromSelection(const Scenario::ScenarioModel&, const iscore::CommandStackFacade&);
+void removeSelection(const Scenario::ProcessModel&, const iscore::CommandStackFacade&);
+void clearContentFromSelection(const Scenario::ProcessModel&, const iscore::CommandStackFacade&);
 void removeSelection(const BaseScenario&, const iscore::CommandStackFacade&);
 void clearContentFromSelection(const BaseScenario&, const iscore::CommandStackFacade&);
 
-void mergeTimeNodes(const Scenario::ScenarioModel&, const iscore::CommandStackFacade&);
+void mergeTimeNodes(const Scenario::ProcessModel&, const iscore::CommandStackFacade&);
 }

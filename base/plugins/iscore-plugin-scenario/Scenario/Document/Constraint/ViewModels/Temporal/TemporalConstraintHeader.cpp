@@ -23,25 +23,26 @@ class QWidget;
 namespace Scenario
 {
 TemporalConstraintHeader::TemporalConstraintHeader():
-  ConstraintHeader{}
+    ConstraintHeader{}
 {
-  this->setAcceptedMouseButtons(Qt::LeftButton);  // needs to be enabled for dblclick
-  this->setFlags(QGraphicsItem::ItemIsSelectable);// needs to be enabled for dblclick
+    this->setAcceptedMouseButtons(Qt::LeftButton);  // needs to be enabled for dblclick
+    this->setFlags(QGraphicsItem::ItemIsSelectable);// needs to be enabled for dblclick
+    this->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
 
-  m_textCache.setCacheEnabled(true);
+    m_textCache.setCacheEnabled(true);
 }
 
 QRectF TemporalConstraintHeader::boundingRect() const
 {
-  return {0, 0, m_width, qreal(ConstraintHeader::headerHeight())};
+    return {0, 0, m_width, qreal(ConstraintHeader::headerHeight())};
 }
 
 void TemporalConstraintHeader::paint(
-    QPainter *painter,
-    const QStyleOptionGraphicsItem *option,
-    QWidget *widget)
+        QPainter *painter,
+        const QStyleOptionGraphicsItem *option,
+        QWidget *widget)
 {
-  painter->setRenderHint(QPainter::Antialiasing, false);
+    painter->setRenderHint(QPainter::Antialiasing, false);
     if(m_state == State::RackHidden)
     {
         auto rect = boundingRect();
@@ -80,19 +81,19 @@ void TemporalConstraintHeader::paint(
     }
 
     x = std::max(x, 10.);
-    double y = 2.5;
+    double y = 4;
     double w = m_width - x;
     double h = ConstraintHeader::headerHeight();
-
 
     if(std::abs(m_previous_x - x) > 1)
     {
         m_previous_x = x;
     }
-    // TODO m_textCache.draw(painter, QPointF{m_previous_x,y}, {}, boundingRect();
+    // TODO m_textCache.draw(painter, QPointF{m_previous_x,y}, {}, boundingRect());
     auto font = Skin::instance().SansFont;
     font.setPointSize(10);
     font.setBold(true);
+    painter->setFont(font);
     painter->drawText(m_previous_x,y,w,h, Qt::AlignLeft, m_text);
 
     if(m_width > 20)
@@ -106,25 +107,24 @@ void TemporalConstraintHeader::paint(
 
 void TemporalConstraintHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit doubleClicked();
+    emit doubleClicked();
 }
 
 void TemporalConstraintHeader::on_textChange()
 {
-  auto font = Skin::instance().SansFont;
-  font.setPointSize(10);
-  font.setBold(true);
-  QFontMetrics fm(font);
-  m_textWidthCache = fm.width(m_text);
+    auto font = Skin::instance().SansFont;
+    font.setPointSize(10);
+    font.setBold(true);
+    QFontMetrics fm(font);
+    m_textWidthCache = fm.width(m_text);
+/*
+    m_textCache.setFont(font);
+    m_textCache.setText(m_text);
 
+    m_textCache.beginLayout();
+    QTextLine line = m_textCache.createLine();
+    line.setPosition(QPointF{0., 0.});
 
-  m_textCache.setFont(font);
-  m_textCache.setText(m_text);
-
-  m_textCache.beginLayout();
-  QTextLine line = m_textCache.createLine();
-  line.setPosition(QPointF{0., 0.});
-
-  m_textCache.endLayout();
+    m_textCache.endLayout();*/
 }
 }

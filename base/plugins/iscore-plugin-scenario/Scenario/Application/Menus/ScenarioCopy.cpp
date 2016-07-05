@@ -154,9 +154,9 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
     return base;
 }
 
-QJsonObject copySelectedScenarioElements(const Scenario::ScenarioModel &sm)
+QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel &sm)
 {
-    auto obj = copySelected(sm, const_cast<Scenario::ScenarioModel*>(&sm));
+    auto obj = copySelected(sm, const_cast<Scenario::ProcessModel*>(&sm));
 
     obj["Comments"] = arrayToJson(selectedElements(sm.comments));
 

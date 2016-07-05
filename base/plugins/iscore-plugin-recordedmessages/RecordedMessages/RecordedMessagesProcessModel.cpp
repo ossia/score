@@ -55,19 +55,6 @@ void ProcessModel::setMessages(const QList<RecordedMessage>& script)
     emit messagesChanged();
 }
 
-Process::ProcessModel* ProcessModel::clone(
-        const Id<Process::ProcessModel>& newId,
-        QObject* newParent) const
-{
-    return new ProcessModel{*this, newId, newParent};
-}
-
-QString ProcessModel::prettyName() const
-{
-    auto name = this->metadata.name();
-    return name;
-}
-
 void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
 {
     setDuration(newDuration);
@@ -101,10 +88,5 @@ void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
     }
     setDuration(newDuration);
     emit messagesChanged();
-}
-
-void ProcessModel::serialize_impl(const VisitorVariant& s) const
-{
-    serialize_dyn(s, *this);
 }
 }

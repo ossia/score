@@ -108,7 +108,7 @@ class TestObject : public QObject
             auto& doc_pm = doc->model().modelDelegate();
             auto& scenario_dm = static_cast<Scenario::ScenarioDocumentModel&>(doc_pm);
 
-            auto& scenar = static_cast<Scenario::ScenarioModel&>(*scenario_dm.baseConstraint().processes.begin());
+            auto& scenar = static_cast<Scenario::ProcessModel&>(*scenario_dm.baseConstraint().processes.begin());
             for(auto& elt : scenar.constraints)
             {
                 doc->context().selectionStack.pushNewSelection({&elt});

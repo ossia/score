@@ -61,21 +61,4 @@ void ProcessModel::setScript(const QString& script)
     emit scriptChanged(script);
 }
 
-Process::ProcessModel* ProcessModel::clone(
-        const Id<Process::ProcessModel>& newId,
-        QObject* newParent) const
-{
-    return new ProcessModel{*this, newId, newParent};
-}
-
-QString ProcessModel::prettyName() const
-{
-    return this->metadata.name();
-}
-
-void ProcessModel::serialize_impl(const VisitorVariant& s) const
-{
-    serialize_dyn(s, *this);
-}
-
 }

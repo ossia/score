@@ -9,7 +9,7 @@
 namespace Scenario {
 
 class EventModel;
-class ScenarioModel;
+class ProcessModel;
 
 namespace Command
 {
@@ -25,7 +25,7 @@ public:
 
     virtual
     const
-    Path<Scenario::ScenarioModel>&
+    Path<Scenario::ProcessModel>&
     path() const = 0;
 };
 }

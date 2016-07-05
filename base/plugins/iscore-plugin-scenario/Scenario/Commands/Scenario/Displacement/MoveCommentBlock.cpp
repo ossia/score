@@ -12,7 +12,7 @@ namespace Scenario
 namespace Command
 {
 MoveCommentBlock::MoveCommentBlock(
-        const ScenarioModel& scenar,
+        const ProcessModel& scenar,
         Id<CommentBlockModel> id,
         TimeValue newDate,
         double newY):

@@ -26,7 +26,7 @@ class StateElement;
 class TimeNodeElement;
 }  // namespace RecreateOnPlay
 namespace Scenario {
-class ScenarioModel;
+class ProcessModel;
 class EventModel;
 class StateModel;
 class TimeNodeModel;
@@ -48,7 +48,7 @@ class ScenarioElement final : public ProcessComponent
     public:
         ScenarioElement(
                 ConstraintElement& cst,
-                Scenario::ScenarioModel& proc,
+                Scenario::ProcessModel& proc,
                 const Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);

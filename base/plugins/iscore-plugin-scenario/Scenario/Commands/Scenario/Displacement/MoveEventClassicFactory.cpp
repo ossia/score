@@ -14,14 +14,14 @@
 
 namespace Scenario
 {
-class ScenarioModel;
+class ProcessModel;
 class EventModel;
 namespace Command
 {
 class SerializableMoveEvent;
 
 SerializableMoveEvent* MoveEventClassicFactory::make(
-        Path<Scenario::ScenarioModel>&& scenarioPath,
+        Path<Scenario::ProcessModel>&& scenarioPath,
         Id<EventModel> eventId,
         TimeValue newDate,
         ExpandMode mode)
