@@ -2,6 +2,8 @@
 #include "StateProcessFactoryList.hpp"
 #include "ProcessList.hpp"
 #include <Process/Dummy/DummyLayerModel.hpp>
+#include <Process/Dummy/DummyLayerPresenter.hpp>
+#include <Process/Dummy/DummyLayerView.hpp>
 #include <Process/Process.hpp>
 
 namespace Process
@@ -63,19 +65,19 @@ QByteArray LayerModelFactory::makeStaticLayerConstructionData() const
 }
 
 LayerPresenter*LayerModelFactory::makeLayerPresenter(
-        const LayerModel&,
-        LayerView*,
+        const LayerModel& lm,
+        LayerView* v,
         const ProcessPresenterContext& context,
         QObject* parent)
 {
-    return nullptr;
+    return new Dummy::DummyLayerPresenter{lm, static_cast<Dummy::DummyLayerView*>(v), context, parent};
 }
 
 LayerView*LayerModelFactory::makeLayerView(
         const LayerModel& view,
         QGraphicsItem* parent)
 {
-    return nullptr;
+    return new Dummy::DummyLayerView{parent};
 }
 
 LayerModel*LayerModelFactory::makeLayer_impl(
