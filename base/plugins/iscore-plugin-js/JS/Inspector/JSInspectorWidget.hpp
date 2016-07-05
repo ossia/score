@@ -8,7 +8,7 @@ namespace JS
 class StateProcess;
 class ProcessModel;
 }
-class NotifyingPlainTextEdit;
+class JSEdit;
 class QWidget;
 namespace iscore {
 class Document;
@@ -30,7 +30,7 @@ class InspectorWidget final :
         void on_textChange(const QString& newText);
         void on_modelChanged(const QString& script);
 
-        NotifyingPlainTextEdit* m_edit{};
+        JSEdit* m_edit{};
         QString m_script;
 
         CommandDispatcher<> m_dispatcher;
@@ -49,7 +49,7 @@ class StateInspectorWidget final :
         void on_textChange(const QString& newText);
         void on_modelChanged(const QString& script);
 
-        NotifyingPlainTextEdit* m_edit{};
+        JSEdit* m_edit{};
         QString m_script;
 
         CommandDispatcher<> m_dispatcher;

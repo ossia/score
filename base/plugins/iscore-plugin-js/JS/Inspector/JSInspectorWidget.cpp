@@ -11,6 +11,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <QVBoxLayout>
 
+#include <JS/jsedit/jsedit.hpp>
 class QVBoxLayout;
 class QWidget;
 namespace iscore {
@@ -30,8 +31,9 @@ InspectorWidget::InspectorWidget(
     setParent(parent);
     auto lay = new QVBoxLayout;
 
-    m_edit = new NotifyingPlainTextEdit{JSModel.script()};
-    connect(m_edit, &NotifyingPlainTextEdit::editingFinished,
+    m_edit = new JSEdit;
+    m_edit->setPlainText(JSModel.script());
+    connect(m_edit, &JSEdit::editingFinished,
             this, &InspectorWidget::on_textChange);
 
     con(process(), &JS::ProcessModel::scriptChanged,
@@ -74,8 +76,9 @@ StateInspectorWidget::StateInspectorWidget(
     setParent(parent);
     auto lay = new QVBoxLayout;
 
-    m_edit = new NotifyingPlainTextEdit{JSModel.script()};
-    connect(m_edit, &NotifyingPlainTextEdit::editingFinished,
+    m_edit = new JSEdit;
+    m_edit->setPlainText(JSModel.script());
+    connect(m_edit, &JSEdit::editingFinished,
             this, &StateInspectorWidget::on_textChange);
 
     con(process(), &JS::StateProcess::scriptChanged,
