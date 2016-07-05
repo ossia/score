@@ -22,7 +22,7 @@ namespace Scenario
 namespace Command
 {
 CreateState::CreateState(
-        const Scenario::ScenarioModel& scenario,
+        const Scenario::ProcessModel& scenario,
         Id<EventModel> event,
         double stateY) :
     m_path {scenario},
@@ -34,7 +34,7 @@ CreateState::CreateState(
 }
 
 CreateState::CreateState(
-        const Path<Scenario::ScenarioModel> &scenarioPath,
+        const Path<Scenario::ProcessModel> &scenarioPath,
         Id<EventModel> event,
         double stateY):
     CreateState{scenarioPath.find(), std::move(event), stateY}

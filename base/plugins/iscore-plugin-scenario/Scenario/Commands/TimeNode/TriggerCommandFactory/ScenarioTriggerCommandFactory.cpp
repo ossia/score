@@ -17,23 +17,23 @@ namespace Command
 
 bool ScenarioTriggerCommandFactory::matches(const TimeNodeModel& tn) const
 {
-  return dynamic_cast<Scenario::ScenarioModel*>(tn.parent());
+  return dynamic_cast<Scenario::ProcessModel*>(tn.parent());
 }
 
 iscore::SerializableCommand*ScenarioTriggerCommandFactory::make_addTriggerCommand(const TimeNodeModel& tn) const
 {
-  if(dynamic_cast<Scenario::ScenarioModel*>(tn.parent()))
+  if(dynamic_cast<Scenario::ProcessModel*>(tn.parent()))
   {
-    return new Scenario::Command::AddTrigger<Scenario::ScenarioModel>(tn);
+    return new Scenario::Command::AddTrigger<Scenario::ProcessModel>(tn);
   }
   return nullptr;
 }
 
 iscore::SerializableCommand*ScenarioTriggerCommandFactory::make_removeTriggerCommand(const TimeNodeModel& tn) const
 {
-  if(dynamic_cast<Scenario::ScenarioModel*>(tn.parent()))
+  if(dynamic_cast<Scenario::ProcessModel*>(tn.parent()))
   {
-    return new Scenario::Command::RemoveTrigger<Scenario::ScenarioModel>(tn);
+    return new Scenario::Command::RemoveTrigger<Scenario::ProcessModel>(tn);
   }
   return nullptr;
 }

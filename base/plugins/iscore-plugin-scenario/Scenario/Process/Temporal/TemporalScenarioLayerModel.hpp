@@ -22,25 +22,25 @@ class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
 {
         Q_OBJECT
     public:
-        using model_type = Scenario::ScenarioModel;
+        using model_type = Scenario::ProcessModel;
         using constraint_layer_type = TemporalConstraintViewModel;
 
         TemporalScenarioLayerModel(const Id<LayerModel>& id,
                               const QMap<Id<ConstraintModel>,
                               Id<ConstraintViewModel>>& constraintIds,
-                              Scenario::ScenarioModel& model,
+                              Scenario::ProcessModel& model,
                               QObject* parent);
 
         // Copy
         TemporalScenarioLayerModel(const TemporalScenarioLayerModel& source,
                               const Id<LayerModel>& id,
-                              Scenario::ScenarioModel& model,
+                              Scenario::ProcessModel& model,
                               QObject* parent);
 
         // Load
         template<typename Impl>
         TemporalScenarioLayerModel(Deserializer<Impl>& vis,
-                              Scenario::ScenarioModel& model,
+                              Scenario::ProcessModel& model,
                               QObject* parent) :
             AbstractScenarioLayerModel {vis, model, parent}
         {

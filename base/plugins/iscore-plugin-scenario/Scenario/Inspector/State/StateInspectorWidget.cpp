@@ -154,7 +154,7 @@ void StateInspectorWidget::updateDisplayedValues()
 
 void StateInspectorWidget::splitEvent()
 {
-    auto scenar = dynamic_cast<const Scenario::ScenarioModel*>(m_model.parent());
+    auto scenar = dynamic_cast<const Scenario::ProcessModel*>(m_model.parent());
     if (scenar)
     {
         auto& parentEvent = scenar->events.at(m_model.eventId());

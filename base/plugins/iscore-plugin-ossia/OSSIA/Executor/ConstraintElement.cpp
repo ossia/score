@@ -48,7 +48,7 @@ ConstraintElement::ConstraintElement(
     });
 
     // BaseScenario needs a special callback.
-    if(dynamic_cast<Scenario::ScenarioModel*>(iscore_cst.parent())
+    if(dynamic_cast<Scenario::ProcessModel*>(iscore_cst.parent())
     || dynamic_cast<Loop::ProcessModel*>(iscore_cst.parent()))
     {
         ossia_cst->setCallback([&] (

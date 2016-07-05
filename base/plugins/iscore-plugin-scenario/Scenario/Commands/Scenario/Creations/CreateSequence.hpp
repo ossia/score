@@ -18,7 +18,7 @@ class EventModel;
 class ConstraintModel;
 class StateModel;
 class TimeNodeModel;
-class ScenarioModel;
+class ProcessModel;
 namespace Command
 {
 class CreateSequence final : public iscore::SerializableCommand
@@ -27,18 +27,18 @@ class CreateSequence final : public iscore::SerializableCommand
     public:
 
         CreateSequence(
-            const Scenario::ScenarioModel& scenario,
+            const Scenario::ProcessModel& scenario,
             Id<StateModel> startState,
             TimeValue date,
             double endStateY);
 
         CreateSequence(
-            const Path<Scenario::ScenarioModel>& scenarioPath,
+            const Path<Scenario::ProcessModel>& scenarioPath,
             Id<StateModel> startState,
             TimeValue date,
             double endStateY);
 
-        const Path<Scenario::ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ProcessModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const Id<ConstraintModel>& createdConstraint() const

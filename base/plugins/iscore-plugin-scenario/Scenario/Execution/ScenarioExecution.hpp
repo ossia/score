@@ -6,7 +6,7 @@
 namespace Scenario
 {
 class ScenarioInterface;
-class ScenarioModel;
+class ProcessModel;
 class StateModel;
 class ConstraintModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioExecution :
@@ -18,8 +18,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioExecution :
         void playConstraint(const Scenario::ScenarioInterface&, Id<Scenario::ConstraintModel>) const;
         void playAtDate(const TimeValue&) const;
 
-        void startRecording(const Scenario::ScenarioModel&, Scenario::Point) const;
-        void startRecordingMessages(const Scenario::ScenarioModel&, Scenario::Point) const;
+        void startRecording(const Scenario::ProcessModel&, Scenario::Point) const;
+        void startRecordingMessages(const Scenario::ProcessModel&, Scenario::Point) const;
         void stopRecording() const;
 };
 }

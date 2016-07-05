@@ -18,7 +18,7 @@ class ScenarioComponent final : public ProcessComponent
            ScenarioComponentHierarchyManager<
                ScenarioComponent,
                system_t,
-               Scenario::ScenarioModel,
+               Scenario::ProcessModel,
                ConstraintComponent,
                EventComponent,
                TimeNodeComponent,
@@ -29,7 +29,7 @@ class ScenarioComponent final : public ProcessComponent
        ScenarioComponent(
                const Id<Component>& id,
                OSSIA::Node& parent,
-               Scenario::ScenarioModel& scenario,
+               Scenario::ProcessModel& scenario,
                system_t& doc,
                const iscore::DocumentContext& ctx,
                QObject* parent_obj);

@@ -37,7 +37,7 @@ class MetadataWidget;
 class ConstraintModel;
 class ConstraintViewModel;
 class RackModel;
-class ScenarioModel;
+class ProcessModel;
 class ScenarioInterface;
 class ProcessTabWidget;
 class ProcessViewTabWidget;

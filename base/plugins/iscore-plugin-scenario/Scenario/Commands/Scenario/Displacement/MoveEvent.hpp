@@ -25,7 +25,7 @@ class TimeNodeModel;
 class ConstraintModel;
 class ConstraintViewModel;
 class RackModel;
-class ScenarioModel;
+class ProcessModel;
 namespace Command
 {
 /**
@@ -64,7 +64,7 @@ class MoveEvent final : public SerializableMoveEvent
                  * @param mode
                  */
         MoveEvent(
-                Path<Scenario::ScenarioModel>&& scenarioPath,
+                Path<Scenario::ProcessModel>&& scenarioPath,
                 const Id<EventModel>& eventId,
                 const TimeValue& newDate,
                 ExpandMode mode)
@@ -135,7 +135,7 @@ class MoveEvent final : public SerializableMoveEvent
             updateEventExtent(m_eventId, scenario);
         }
 
-        const Path<Scenario::ScenarioModel>& path() const override
+        const Path<Scenario::ProcessModel>& path() const override
         { return m_path; }
 
     protected:
@@ -162,7 +162,7 @@ class MoveEvent final : public SerializableMoveEvent
 
     private:
         ElementsProperties m_savedElementsProperties;
-        Path<Scenario::ScenarioModel> m_path;
+        Path<Scenario::ProcessModel> m_path;
 
         ExpandMode m_mode{ExpandMode::Scale};
 

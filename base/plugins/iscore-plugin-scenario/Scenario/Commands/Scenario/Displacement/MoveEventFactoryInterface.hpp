@@ -10,9 +10,9 @@
 template <typename Object> class Path;
 namespace Scenario
 {
-class ScenarioModel;
+class ProcessModel;
 class EventModel;
-class ScenarioModel;
+class ProcessModel;
 namespace Command
 {
 class SerializableMoveEvent;
@@ -25,7 +25,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface :
 public:
         enum Strategy{CREATION, MOVE};
     virtual SerializableMoveEvent* make(
-            Path<Scenario::ScenarioModel>&& scenarioPath,
+            Path<Scenario::ProcessModel>&& scenarioPath,
             Id<EventModel> eventId,
             TimeValue newDate,
             ExpandMode mode) = 0;

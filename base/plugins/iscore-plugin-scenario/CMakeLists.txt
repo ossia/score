@@ -14,8 +14,6 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS WebSockets)
 endif()
 
 find_package(Threads)
-### Dummy process ###
-add_subdirectory(DummyProcess)
 
 ### Scenario plugin ###
 file(GLOB_RECURSE HDRS

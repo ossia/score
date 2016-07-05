@@ -13,7 +13,7 @@ class Document;
 }  // namespace iscore
 
 ScenarioInspectorWidget::ScenarioInspectorWidget(
-        const Scenario::ScenarioModel& object,
+        const Scenario::ProcessModel& object,
         QWidget* parent) :
     InspectorWidgetDelegate_T {object, parent}
 {

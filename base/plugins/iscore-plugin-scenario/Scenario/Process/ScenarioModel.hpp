@@ -13,6 +13,7 @@
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <QByteArray>
 #include <QList>
 #include <QObject>
@@ -41,27 +42,23 @@ class QEvent;
 namespace Scenario
 {
 class ScenarioFactory;
-class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
+class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final :
         public Process::ProcessModel,
         public ScenarioInterface
 {
         Q_OBJECT
 
-        ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::ProcessModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Scenario::ProcessModel, JSONObject)
+        PROCESS_METADATA_IMPL(Scenario::ProcessModel)
         friend class ScenarioFactory;
 
     public:
         using layer_type = AbstractScenarioLayerModel;
-        ScenarioModel(const TimeValue& duration,
-                      const Id<ProcessModel>& id,
+        ProcessModel(const TimeValue& duration,
+                      const Id<Process::ProcessModel>& id,
                       QObject* parent);
-        Scenario::ScenarioModel* clone(
-                const Id<ProcessModel>& newId,
-                QObject* newParent) const override;
-        ~ScenarioModel();
-
-        QString prettyName() const override;
+        ~ProcessModel();
 
         //// ScenarioModel specifics ////
 
@@ -171,9 +168,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioModel final :
 
     private:
         //// ProcessModel specifics ////
-
-        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override;
-
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
@@ -187,13 +181,11 @@ public: Selection selectedChildren() const override;
 private:void setSelection(const Selection& s) const override;
 
         template<typename Impl>
-        ScenarioModel(Deserializer<Impl>& vis, QObject* parent) :
-            ProcessModel {vis, parent}
+        ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
+            Process::ProcessModel {vis, parent}
         {
             vis.writeTo(*this);
         }
-
-        void serialize_impl(const VisitorVariant&) const override;
 
         // To prevent warnings in Clang
         bool event(QEvent* e) override
@@ -204,14 +196,14 @@ private:void setSelection(const Selection& s) const override;
     private:
         template<typename Fun>
         void apply(Fun fun) const {
-            fun(&ScenarioModel::constraints);
-            fun(&ScenarioModel::states);
-            fun(&ScenarioModel::events);
-            fun(&ScenarioModel::timeNodes);
-            fun(&ScenarioModel::comments);
+            fun(&ProcessModel::constraints);
+            fun(&ProcessModel::states);
+            fun(&ProcessModel::events);
+            fun(&ProcessModel::timeNodes);
+            fun(&ProcessModel::comments);
         }
-        ScenarioModel(const Scenario::ScenarioModel& source,
-                      const Id<ProcessModel>& id,
+        ProcessModel(const Scenario::ProcessModel& source,
+                      const Id<Process::ProcessModel>& id,
                       QObject* parent);
         void setupLayer(AbstractScenarioLayerModel*);
 
@@ -249,7 +241,7 @@ QList<const T*> filterSelectionByType(const Selection& sel)
         // TODO replace with a virtual Element::type() which will be faster.
         if(auto casted_obj = dynamic_cast<const T*>(obj.data()))
         {
-            if(casted_obj->selection.get() && dynamic_cast<Scenario::ScenarioModel*>(casted_obj->parent()))
+            if(casted_obj->selection.get() && dynamic_cast<Scenario::ProcessModel*>(casted_obj->parent()))
             {
                 selected_elements.push_back(casted_obj);
             }
@@ -263,50 +255,49 @@ QList<const T*> filterSelectionByType(const Selection& sel)
 namespace Scenario
 {
 ISCORE_PLUGIN_SCENARIO_EXPORT const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
-        const Scenario::ScenarioModel&,
+        const Scenario::ProcessModel&,
         const Id<TimeNodeModel>& timeNodeId);
 
-const StateModel* furthestSelectedState(const Scenario::ScenarioModel& scenario);
-const StateModel* furthestSelectedStateWithoutFollowingConstraint(const Scenario::ScenarioModel& scenario);
+const StateModel* furthestSelectedState(const Scenario::ProcessModel& scenario);
+const StateModel* furthestSelectedStateWithoutFollowingConstraint(const Scenario::ProcessModel& scenario);
 
-inline auto& constraints(const Scenario::ScenarioModel& scenar)
+inline auto& constraints(const Scenario::ProcessModel& scenar)
 {
     return scenar.constraints;
 }
-inline auto& events(const Scenario::ScenarioModel& scenar)
+inline auto& events(const Scenario::ProcessModel& scenar)
 {
     return scenar.events;
 }
-inline auto& timeNodes(const Scenario::ScenarioModel& scenar)
+inline auto& timeNodes(const Scenario::ProcessModel& scenar)
 {
     return scenar.timeNodes;
 }
-inline auto& states(const Scenario::ScenarioModel& scenar)
+inline auto& states(const Scenario::ProcessModel& scenar)
 {
     return scenar.states;
 }
 
 template<>
-struct ScenarioElementTraits<Scenario::ScenarioModel, ConstraintModel>
+struct ScenarioElementTraits<Scenario::ProcessModel, ConstraintModel>
 {
-        static const constexpr auto accessor = static_cast<const NotifyingMap<ConstraintModel>& (*) (const Scenario::ScenarioModel&)>(&constraints);
+        static const constexpr auto accessor = static_cast<const NotifyingMap<ConstraintModel>& (*) (const Scenario::ProcessModel&)>(&constraints);
 };
 template<>
-struct ScenarioElementTraits<Scenario::ScenarioModel, EventModel>
+struct ScenarioElementTraits<Scenario::ProcessModel, EventModel>
 {
-        static const constexpr auto accessor = static_cast<const NotifyingMap<EventModel>& (*) (const Scenario::ScenarioModel&)>(&events);
+        static const constexpr auto accessor = static_cast<const NotifyingMap<EventModel>& (*) (const Scenario::ProcessModel&)>(&events);
 };
 template<>
-struct ScenarioElementTraits<Scenario::ScenarioModel, TimeNodeModel>
+struct ScenarioElementTraits<Scenario::ProcessModel, TimeNodeModel>
 {
-        static const constexpr auto accessor = static_cast<const NotifyingMap<TimeNodeModel>& (*) (const Scenario::ScenarioModel&)>(&timeNodes);
+        static const constexpr auto accessor = static_cast<const NotifyingMap<TimeNodeModel>& (*) (const Scenario::ProcessModel&)>(&timeNodes);
 };
 template<>
-struct ScenarioElementTraits<Scenario::ScenarioModel, StateModel>
+struct ScenarioElementTraits<Scenario::ProcessModel, StateModel>
 {
-        static const constexpr auto accessor = static_cast<const NotifyingMap<StateModel>& (*) (const Scenario::ScenarioModel&)>(&states);
+        static const constexpr auto accessor = static_cast<const NotifyingMap<StateModel>& (*) (const Scenario::ProcessModel&)>(&states);
 };
 
 }
-
-DEFAULT_MODEL_METADATA(Scenario::ScenarioModel, "Scenario")
+DESCRIPTION_METADATA(ISCORE_PLUGIN_SCENARIO_EXPORT, Scenario::ProcessModel, "Scenario")

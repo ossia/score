@@ -18,7 +18,7 @@ class ModelMetadata;
 
 namespace Scenario
 {
-class ScenarioModel;
+class ProcessModel;
 class ConstraintModel;
 class EventModel;
 class TimeNodeModel;

@@ -15,7 +15,7 @@ struct DataStreamOutput;
 namespace Scenario
 {
 class EventModel;
-class ScenarioModel;
+class ProcessModel;
 namespace Command
 {
 
@@ -24,7 +24,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final : public Seria
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventOnCreationMeta, "Move an event on creation")
 public:
     MoveEventOnCreationMeta(
-            Path<Scenario::ScenarioModel>&& scenarioPath,
+            Path<Scenario::ProcessModel>&& scenarioPath,
             Id<EventModel> eventId,
             TimeValue newDate,
             ExpandMode mode);
@@ -32,7 +32,7 @@ public:
     void undo() const override;
     void redo() const override;
 
-    const Path<Scenario::ScenarioModel>& path() const override;
+    const Path<Scenario::ProcessModel>& path() const override;
 
     // SerializableCommand interface
 protected:

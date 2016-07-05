@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Dummy/DummyState.hpp>
 #include <Process/Process.hpp>
+#include <Process/ProcessMetadata.hpp>
 #include <QByteArray>
 #include <QString>
 
@@ -20,11 +21,25 @@ class QObject;
 
 namespace Dummy
 {
+class DummyModel;
+}
+PROCESS_METADATA(
+        ISCORE_LIB_PROCESS_EXPORT,
+        Dummy::DummyModel,
+        "7db45400-6033-425e-9ded-d60a35d4c4b2",
+        "Dummy",
+        "Dummy"
+        )
+
+
+namespace Dummy
+{
 class ISCORE_LIB_PROCESS_EXPORT DummyModel final :
         public Process::ProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(DummyModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(DummyModel, JSONObject)
+        PROCESS_METADATA_IMPL(Dummy::DummyModel)
 
     public:
         explicit DummyModel(
@@ -47,17 +62,8 @@ class ISCORE_LIB_PROCESS_EXPORT DummyModel final :
         }
 
     private:
-        DummyModel* clone(
-                const Id<ProcessModel>& newId,
-                QObject* newParent) const override;
-
-        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override;
-        QString prettyName() const override;
-
         ProcessStateDataInterface* startStateData() const override;
         ProcessStateDataInterface* endStateData() const override;
-
-        void serialize_impl(const VisitorVariant& vis) const override;
 
         mutable DummyState m_startState{*this, nullptr};
         mutable DummyState m_endState{*this, nullptr};

@@ -260,7 +260,7 @@ QJsonObject ObjectMenuActions::copySelectedElementsToJson()
 {
     auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
     auto si_obj = dynamic_cast<QObject*>(const_cast<ScenarioInterface*>(si));
-    if(auto sm = dynamic_cast<const Scenario::ScenarioModel*>(si))
+    if(auto sm = dynamic_cast<const Scenario::ProcessModel*>(si))
     {
         return copySelectedScenarioElements(*sm);
     }
@@ -353,7 +353,7 @@ static void writeJsonToScenario(
 void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 {
     auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
-    if(auto sm = dynamic_cast<const Scenario::ScenarioModel*>(si))
+    if(auto sm = dynamic_cast<const Scenario::ProcessModel*>(si))
     {
         writeJsonToScenario(*sm, *this, obj);
     }

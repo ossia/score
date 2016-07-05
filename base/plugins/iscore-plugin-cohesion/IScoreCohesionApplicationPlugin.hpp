@@ -9,7 +9,7 @@
 class OSSIAApplicationPlugin;
 class QAction;
 namespace Scenario {
-class ScenarioModel;
+class ProcessModel;
 struct Point;
 }  // namespace Scenario
 class IScoreCohesionApplicationPlugin final :
@@ -20,8 +20,8 @@ class IScoreCohesionApplicationPlugin final :
         IScoreCohesionApplicationPlugin(
                 const iscore::GUIApplicationContext& app);
 
-        void record(const Scenario::ScenarioModel&, Scenario::Point pt);
-        void recordMessages(const Scenario::ScenarioModel&, Scenario::Point pt);
+        void record(const Scenario::ProcessModel&, Scenario::Point pt);
+        void recordMessages(const Scenario::ProcessModel&, Scenario::Point pt);
         void stopRecord();
 
     private:

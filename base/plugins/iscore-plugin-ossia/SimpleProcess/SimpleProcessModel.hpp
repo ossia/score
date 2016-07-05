@@ -50,8 +50,6 @@ class SimpleProcessModel final : public Process::ProcessModel
                 const Id<ProcessModel>& newId,
                 QObject* newParent) const override;
 
-        QString prettyName() const override;
-
         UuidKey<Process::ProcessFactory>concreteFactoryKey() const override
         {
             static const UuidKey<Process::ProcessFactory>name{"0107dfb7-dcab-45c3-b7b8-e824c0fe49a1"};

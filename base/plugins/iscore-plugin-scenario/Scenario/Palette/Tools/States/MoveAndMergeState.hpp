@@ -153,16 +153,16 @@ class MoveEventState final : public StateBase<Scenario_T>
 template<
     typename MoveEventCommand_T, // MoveEventMeta
     typename ToolPalette_T>
-class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T> final :
-        public StateBase<Scenario::ScenarioModel>
+class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T> final :
+        public StateBase<Scenario::ProcessModel>
 {
     public:
     MoveEventState(const ToolPalette_T& stateMachine,
-               const Path<Scenario::ScenarioModel>& scenarioPath,
+               const Path<Scenario::ProcessModel>& scenarioPath,
                const iscore::CommandStackFacade& stack,
                iscore::ObjectLocker& locker,
                QState* parent):
-        StateBase<Scenario::ScenarioModel>{scenarioPath, parent},
+        StateBase<Scenario::ProcessModel>{scenarioPath, parent},
         m_movingDispatcher{stack},
         m_mergingTnDispatcher{stack},
         m_mergingEventDispatcher{stack}
@@ -194,7 +194,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
             // transitions
 
             // press
-            iscore::make_transition<MoveOnAnything_Transition<Scenario::ScenarioModel>>(
+            iscore::make_transition<MoveOnAnything_Transition<Scenario::ProcessModel>>(
                     pressed, onlyMoving, *this);
             iscore::make_transition<ReleaseOnAnything_Transition>(
                     pressed, finalState);
@@ -203,19 +203,19 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
 //            iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
 //                    onlyMoving, onlyMoving, *this);
 //*
-            iscore::make_transition<MoveOnAnythingButPonctual_Transition<Scenario::ScenarioModel>>(
+            iscore::make_transition<MoveOnAnythingButPonctual_Transition<Scenario::ProcessModel>>(
                     onlyMoving, onlyMoving, *this);
 
-            iscore::make_transition<MoveOnTimeNode_Transition<Scenario::ScenarioModel>>(
+            iscore::make_transition<MoveOnTimeNode_Transition<Scenario::ProcessModel>>(
                     onlyMoving, mergingOnTimeNode, *this);
 
-            iscore::make_transition<MoveOnEvent_Transition<Scenario::ScenarioModel>>(
+            iscore::make_transition<MoveOnEvent_Transition<Scenario::ProcessModel>>(
                     onlyMoving, mergingOnEvent, *this);
 //*/
             // rollback merging
-            iscore::make_transition<MoveOnAnythingButTimeNode_Transition<Scenario::ScenarioModel>>(
+            iscore::make_transition<MoveOnAnythingButTimeNode_Transition<Scenario::ProcessModel>>(
                     mergingOnTimeNode, rollbackTnMerging, *this);
-            iscore::make_transition<MoveOnAnythingButEvent_Transition<Scenario::ScenarioModel>>(
+            iscore::make_transition<MoveOnAnythingButEvent_Transition<Scenario::ProcessModel>>(
                     mergingOnEvent, rollbackEventMerging, *this);
 
             // commit merging
@@ -252,7 +252,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
                     this->m_mergingEventDispatcher.rollback();
 
                     this->m_mergingTnDispatcher.submitCommand(
-                            Path<Scenario::ScenarioModel>{this->m_scenarioPath},
+                            Path<Scenario::ProcessModel>{this->m_scenarioPath},
                             tnId,
                             this->hoveredTimeNode);
                 }
@@ -290,7 +290,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
                     m_mergingTnDispatcher.rollback();
 
                     m_mergingEventDispatcher.submitCommand(
-                            Path<Scenario::ScenarioModel>{this->m_scenarioPath},
+                            Path<Scenario::ProcessModel>{this->m_scenarioPath},
                             clickedEvId,
                             destinationEvId);
                 }
@@ -316,7 +316,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
                     : this->currentPoint.date;
 
                 this->m_movingDispatcher.submitCommand(
-                    Path<Scenario::ScenarioModel>{this->m_scenarioPath},
+                    Path<Scenario::ProcessModel>{this->m_scenarioPath},
                     evId,
                     date,
                     this->currentPoint.y,
@@ -380,8 +380,8 @@ class MoveEventState<MoveEventCommand_T, Scenario::ScenarioModel, ToolPalette_T>
     }
 
     SingleOngoingCommandDispatcher<MoveEventCommand_T> m_movingDispatcher;
-    SingleOngoingCommandDispatcher<Command::MergeTimeNodes<Scenario::ScenarioModel>> m_mergingTnDispatcher;
-    SingleOngoingCommandDispatcher<Command::MergeEvents<Scenario::ScenarioModel>> m_mergingEventDispatcher;
+    SingleOngoingCommandDispatcher<Command::MergeTimeNodes<Scenario::ProcessModel>> m_mergingTnDispatcher;
+    SingleOngoingCommandDispatcher<Command::MergeEvents<Scenario::ProcessModel>> m_mergingEventDispatcher;
 
     optional<TimeValue> m_pressedPrevious;
     Scenario::Point m_clickedPoint;

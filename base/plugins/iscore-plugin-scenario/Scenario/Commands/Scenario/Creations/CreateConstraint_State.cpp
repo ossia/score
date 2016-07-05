@@ -22,7 +22,7 @@ namespace Scenario
 namespace Command
 {
 CreateConstraint_State::CreateConstraint_State(
-        const Scenario::ScenarioModel& scenario,
+        const Scenario::ProcessModel& scenario,
         Id<StateModel> startState,
         Id<EventModel> endEvent,
         double endStateY):
@@ -36,7 +36,7 @@ CreateConstraint_State::CreateConstraint_State(
 }
 
 CreateConstraint_State::CreateConstraint_State(
-        const Path<Scenario::ScenarioModel>& scenario,
+        const Path<Scenario::ProcessModel>& scenario,
         Id<StateModel> startState,
         Id<EventModel> endEvent,
         double endStateY):

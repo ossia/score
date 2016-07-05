@@ -78,7 +78,7 @@ Process::ProcessModel* ScenarioFactory::makeModel(
         const Id<Process::ProcessModel>& id,
         QObject* parent)
 {
-    return new Scenario::ScenarioModel {duration, id, parent};
+    return new Scenario::ProcessModel {duration, id, parent};
 }
 
 QByteArray ScenarioFactory::makeStaticLayerConstructionData() const
@@ -97,7 +97,7 @@ QByteArray ScenarioFactory::makeStaticLayerConstructionData() const
 QByteArray ScenarioFactory::makeLayerConstructionData(
         const Process::ProcessModel& proc) const
 {
-    auto& scenar = static_cast<const Scenario::ScenarioModel&>(proc);
+    auto& scenar = static_cast<const Scenario::ProcessModel&>(proc);
     // For all existing constraints we need to generate corresponding
     // view models ids. One day we may need to do this for events / time nodes too.
     QMap<Id<ConstraintModel>, Id<ConstraintViewModel>> map;
@@ -126,7 +126,7 @@ Process::LayerModel* ScenarioFactory::makeLayer_impl(
     QDataStream s{constructionData};
     s >> map;
 
-    auto& scenar = static_cast<Scenario::ScenarioModel&>(proc);
+    auto& scenar = static_cast<Scenario::ProcessModel&>(proc);
     auto scen = new TemporalScenarioLayerModel {
                 viewModelId, map,
                 scenar, parent};
@@ -141,7 +141,7 @@ Process::LayerModel* ScenarioFactory::cloneLayer_impl(
         const Process::LayerModel& source,
         QObject* parent)
 {
-    auto& scenar = static_cast<Scenario::ScenarioModel&>(proc);
+    auto& scenar = static_cast<Scenario::ProcessModel&>(proc);
     auto scen = new TemporalScenarioLayerModel{
                 static_cast<const TemporalScenarioLayerModel&>(source),
                 newId,
@@ -156,7 +156,7 @@ Process::LayerModel* ScenarioFactory::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {
-    auto& scenar = static_cast<Scenario::ScenarioModel&>(proc);
+    auto& scenar = static_cast<Scenario::ProcessModel&>(proc);
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
         auto scen = new TemporalScenarioLayerModel{

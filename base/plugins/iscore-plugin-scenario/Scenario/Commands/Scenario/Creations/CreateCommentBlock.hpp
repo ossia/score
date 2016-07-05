@@ -21,7 +21,7 @@ class CreateCommentBlock final : public iscore::SerializableCommand
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateCommentBlock, "Create a comment block")
         public:
             CreateCommentBlock(
-                Path<ScenarioModel>&& scenarioPath,
+                Path<ProcessModel>&& scenarioPath,
                 TimeValue date,
                 double yPosition);
 
@@ -33,7 +33,7 @@ class CreateCommentBlock final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<ScenarioModel> m_path;
+        Path<ProcessModel> m_path;
         TimeValue m_date;
         double m_y;
 

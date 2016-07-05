@@ -14,7 +14,7 @@ struct DataStreamOutput;
 
 namespace Scenario
 {
-class ScenarioModel;
+class ProcessModel;
 class EventModel;
 class StateModel;
 
@@ -26,7 +26,7 @@ class SplitEvent final : public iscore::SerializableCommand
 
     public:
             SplitEvent(
-                const Path<Scenario::ScenarioModel>& scenario,
+                const Path<Scenario::ProcessModel>& scenario,
                 Id<EventModel> event,
                 QVector<Id<StateModel>> movingstates);
 
@@ -38,7 +38,7 @@ class SplitEvent final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<Scenario::ScenarioModel> m_scenarioPath;
+        Path<Scenario::ProcessModel> m_scenarioPath;
 
         Id<EventModel> m_originalEvent;
         Id<EventModel> m_newEvent;

@@ -62,7 +62,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     m_selectionDispatcher{context.selectionStack},
     m_sm{m_context, *this}
 {
-    const Scenario::ScenarioModel& scenario = model(m_layer);
+    const Scenario::ProcessModel& scenario = model(m_layer);
     /////// Setup of existing data
     // For each constraint & event, display' em
     for(const auto& state_model : scenario.states)
@@ -133,9 +133,9 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
                .handle(*this, pos, mime);
     });
 
-    con(model(m_layer), &Scenario::ScenarioModel::locked,
+    con(model(m_layer), &Scenario::ProcessModel::locked,
             m_view,     &TemporalScenarioView::lock);
-    con(model(m_layer), &Scenario::ScenarioModel::unlocked,
+    con(model(m_layer), &Scenario::ProcessModel::unlocked,
             m_view,     &TemporalScenarioView::unlock);
 
     connect(&layerModel().processModel(), &Process::ProcessModel::execution,
@@ -223,7 +223,7 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
     }
 }
 
-const ScenarioModel &TemporalScenarioPresenter::processModel() const
+const ProcessModel &TemporalScenarioPresenter::processModel() const
 {
     return ::model(m_layer);
 }
@@ -260,7 +260,7 @@ void TemporalScenarioPresenter::fillContextMenu(
         auto scenPoint = Scenario::ConvertToScenarioPoint(scenepos, zoomRatio(), view().height());
 
         auto cmd = new Scenario::Command::CreateCommentBlock{
-                   static_cast<Scenario::ScenarioModel&>(layerModel().processModel()),
+                   static_cast<Scenario::ProcessModel&>(layerModel().processModel()),
                    scenPoint.date,
                    scenPoint.y};
         CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
@@ -476,7 +476,7 @@ void TemporalScenarioPresenter::on_commentBlockCreated(const CommentBlockModel& 
     connect(cmt_pres, &CommentBlockPresenter::moved,
             this, [&] (QPointF scenPos)
     {
-        auto& scenarModel = static_cast<Scenario::ScenarioModel&>(this->layerModel().processModel());
+        auto& scenarModel = static_cast<Scenario::ProcessModel&>(this->layerModel().processModel());
         auto pos = Scenario::ConvertToScenarioPoint(scenPos, m_zoomRatio, m_view->height());
         m_ongoingDispatcher.submitCommand<MoveCommentBlock>(
                     scenarModel,

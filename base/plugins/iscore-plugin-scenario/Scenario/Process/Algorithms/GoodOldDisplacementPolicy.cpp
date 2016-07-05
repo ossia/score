@@ -25,7 +25,7 @@ namespace Scenario
 class RackModel;
 void
 GoodOldDisplacementPolicy::computeDisplacement(
-        Scenario::ScenarioModel& scenario,
+        Scenario::ProcessModel& scenario,
         const QVector<Id<TimeNodeModel>>& draggedElements,
         const TimeValue& deltaTime,
         ElementsProperties& elementsProperties)
@@ -137,7 +137,7 @@ GoodOldDisplacementPolicy::computeDisplacement(
 }
 
 void GoodOldDisplacementPolicy::getRelatedTimeNodes(
-        Scenario::ScenarioModel& scenario,
+        Scenario::ProcessModel& scenario,
         const Id<TimeNodeModel>& firstTimeNodeMovedId,
         std::vector<Id<TimeNodeModel> >& translatedTimeNodes)
 {

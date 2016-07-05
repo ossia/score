@@ -28,7 +28,7 @@ class MoveLeftBraceInScenario_StateWrapper;
 class MoveRightBraceInScenario_StateWrapper;
 class MoveEventInScenario_StateWrapper;
 class MoveTimeNodeInScenario_StateWrapper;
-class ScenarioModel;
+class ProcessModel;
 class ToolPalette final : public GraphicsSceneToolPalette
 {
     public:
@@ -41,7 +41,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
         const Process::LayerContext& context() const
         { return m_context; }
 
-        const Scenario::ScenarioModel& model() const
+        const Scenario::ProcessModel& model() const
         { return m_model; }
 
         void on_pressed(QPointF);
@@ -56,12 +56,12 @@ class ToolPalette final : public GraphicsSceneToolPalette
         Scenario::Point ScenePointToScenarioPoint(QPointF point);
 
         TemporalScenarioPresenter& m_presenter;
-        const Scenario::ScenarioModel& m_model;
+        const Scenario::ProcessModel& m_model;
         Process::LayerContext& m_context;
 
-        CreationTool<ScenarioModel, Scenario::ToolPalette> m_createTool;
+        CreationTool<ProcessModel, Scenario::ToolPalette> m_createTool;
         SmartTool<
-            ScenarioModel,
+            ProcessModel,
             Scenario::ToolPalette,
             TemporalScenarioView,
             Scenario::MoveConstraintInScenario_StateWrapper,

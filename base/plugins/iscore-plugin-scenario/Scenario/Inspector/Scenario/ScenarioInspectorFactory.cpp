@@ -18,11 +18,11 @@ Process::InspectorWidgetDelegate* ScenarioInspectorFactory::make(
         QWidget* parent) const
 {
     return new ScenarioInspectorWidget{
-        static_cast<const Scenario::ScenarioModel&>(process),
+        static_cast<const Scenario::ProcessModel&>(process),
                 parent};
 }
 
 bool ScenarioInspectorFactory::matches(const Process::ProcessModel& process) const
 {
-    return dynamic_cast<const Scenario::ScenarioModel*>(&process);
+    return dynamic_cast<const Scenario::ProcessModel*>(&process);
 }

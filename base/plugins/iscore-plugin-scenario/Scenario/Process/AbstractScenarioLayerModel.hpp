@@ -19,7 +19,7 @@ class TimeNodeModel;
 class ConstraintModel;
 class ConstraintViewModel;
 class EventModel;
-class ScenarioModel;
+class ProcessModel;
 
 class AbstractScenarioLayerModel :
         public Process::LayerModel,
@@ -27,7 +27,7 @@ class AbstractScenarioLayerModel :
 {
         Q_OBJECT
     public:
-        using model_type = Scenario::ScenarioModel;
+        using model_type = Scenario::ProcessModel;
 
         virtual void makeConstraintViewModel(
                 const Id<ConstraintModel>& constraintModelId,
@@ -134,10 +134,10 @@ QVector<typename T::constraint_layer_type*> constraintsViewModels(const T& scena
 
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const Id<ConstraintModel>& constraint,
-                                const Scenario::ScenarioModel& scenario);
+                                const Scenario::ProcessModel& scenario);
 
 // Note : the view models can also be more easily accessed using the viewModels methods of ConstraintModel
 std::vector<ConstraintViewModel*> getConstraintViewModels(
         const Id<ConstraintModel>& constraintId,
-        const Scenario::ScenarioModel& scenario);
+        const Scenario::ProcessModel& scenario);
 }

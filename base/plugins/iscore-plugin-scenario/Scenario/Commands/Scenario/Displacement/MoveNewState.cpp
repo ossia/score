@@ -16,7 +16,7 @@ namespace Scenario
 namespace Command
 {
 Scenario::Command::MoveNewState::MoveNewState(
-        Path<Scenario::ScenarioModel>&& scenarioPath,
+        Path<Scenario::ProcessModel>&& scenarioPath,
         Id<StateModel> stateId,
         double y):
     m_path(std::move(scenarioPath)),

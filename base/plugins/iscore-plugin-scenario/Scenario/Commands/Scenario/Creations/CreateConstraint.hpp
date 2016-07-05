@@ -16,7 +16,7 @@ namespace Scenario
 class StateModel;
 class ConstraintModel;
 class ConstraintViewModel;
-class ScenarioModel;
+class ProcessModel;
 
 namespace Command
 {
@@ -31,12 +31,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint final : public iscore::Seri
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint,"Create a constraint")
         public:
             CreateConstraint(
-                Path<Scenario::ScenarioModel>&& scenarioPath,
+                Path<Scenario::ProcessModel>&& scenarioPath,
                 Id<StateModel> startState,
                 Id<StateModel> endState);
         CreateConstraint& operator= (CreateConstraint &&) = default;
 
-        const Path<Scenario::ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ProcessModel>& scenarioPath() const
         { return m_path; }
 
         void undo() const override;
@@ -53,7 +53,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint final : public iscore::Seri
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<Scenario::ScenarioModel> m_path;
+        Path<Scenario::ProcessModel> m_path;
         QString m_createdName;
 
         Id<ConstraintModel> m_createdConstraintId {};

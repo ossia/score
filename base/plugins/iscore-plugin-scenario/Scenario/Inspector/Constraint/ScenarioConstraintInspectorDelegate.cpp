@@ -39,7 +39,7 @@ void ScenarioConstraintInspectorDelegate::on_defaultDurationChanged(
         const TimeValue& val,
         ExpandMode expandmode) const
 {
-    auto& scenario = *safe_cast<Scenario::ScenarioModel*>(m_model.parent());
+    auto& scenario = *safe_cast<Scenario::ProcessModel*>(m_model.parent());
     dispatcher.submitCommand<Command::MoveEventMeta>(
             scenario,
             scenario.state(m_model.endState()).eventId(),

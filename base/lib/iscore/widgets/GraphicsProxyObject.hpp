@@ -6,7 +6,12 @@
 class BaseGraphicsObject final : public QGraphicsObject
 {
     public:
-        using QGraphicsObject::QGraphicsObject;
+        BaseGraphicsObject(QGraphicsObject* parent = nullptr):
+            QGraphicsObject{parent}
+        {
+            this->setFlag(QGraphicsItem::ItemHasNoContents, true);
+        }
+
         QRectF boundingRect() const override
         {
             return {};

@@ -6,7 +6,7 @@
 namespace Scenario
 {
 class BaseScenario;
-class ScenarioModel;
+class ProcessModel;
 namespace Command
 {
 
@@ -18,7 +18,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT const CommandParentFactoryKey& ScenarioCommandFact
 }  // namespace Scenario
 
 template<>
-ISCORE_PLUGIN_SCENARIO_EXPORT const CommandParentFactoryKey& CommandFactoryName<Scenario::ScenarioModel>();
+ISCORE_PLUGIN_SCENARIO_EXPORT const CommandParentFactoryKey& CommandFactoryName<Scenario::ProcessModel>();
 
 
 template<>

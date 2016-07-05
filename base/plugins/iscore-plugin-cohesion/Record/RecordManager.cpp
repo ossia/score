@@ -223,7 +223,7 @@ static int getReasonableUpdateInterval(int numberOfCurves)
 }
 
 void RecordManager::recordInNewBox(
-        const Scenario::ScenarioModel& scenar,
+        const Scenario::ProcessModel& scenar,
         Scenario::Point pt)
 {
     using namespace std::chrono;

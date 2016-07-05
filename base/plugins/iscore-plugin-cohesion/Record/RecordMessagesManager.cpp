@@ -101,7 +101,7 @@ void RecordMessagesManager::stopRecording()
 }
 
 void RecordMessagesManager::recordInNewBox(
-        const Scenario::ScenarioModel& scenar,
+        const Scenario::ProcessModel& scenar,
         Scenario::Point pt)
 {
     using namespace std::chrono;
@@ -196,7 +196,7 @@ void RecordMessagesManager::recordInNewBox(
             this, [=] () {
         // Move end event by the current duration.
         box.moveCommand.update(
-                    Path<Scenario::ScenarioModel>{},
+                    Path<Scenario::ProcessModel>{},
                     Id<Scenario::ConstraintModel>{},
                     box.endEvent,
                     pt.date + GetTimeDifference(start_time_pt),

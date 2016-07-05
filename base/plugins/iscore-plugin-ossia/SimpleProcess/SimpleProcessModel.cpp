@@ -53,11 +53,6 @@ SimpleProcessModel* SimpleProcessModel::clone(
     return new SimpleProcessModel{*this, newId, newParent};
 }
 
-QString SimpleProcessModel::prettyName() const
-{
-    return "SimpleProcessModel process";
-}
-
 void SimpleProcessModel::setDurationAndScale(const TimeValue& newDuration)
 {
     setDuration(newDuration);

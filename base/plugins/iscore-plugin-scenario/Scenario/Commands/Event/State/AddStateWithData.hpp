@@ -16,7 +16,7 @@ class AddStateWithData final : public iscore::AggregateCommand
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddStateWithData, "Drop a new state in an event")
         public:
             AddStateWithData(
-                const Scenario::ScenarioModel& scenario,
+                const Scenario::ProcessModel& scenario,
                 Id<EventModel> ev,
                 double ypos,
                 State::MessageList&& stateData)

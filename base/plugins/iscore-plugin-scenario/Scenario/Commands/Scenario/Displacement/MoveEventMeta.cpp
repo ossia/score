@@ -22,7 +22,7 @@ class EventModel;
 namespace Command
 {
 MoveEventMeta::MoveEventMeta(
-        Path<Scenario::ScenarioModel>&& scenarioPath,
+        Path<Scenario::ProcessModel>&& scenarioPath,
         Id<EventModel> eventId,
         TimeValue newDate,
         double y,
@@ -84,7 +84,7 @@ void MoveEventMeta::redo() const
     }
 }
 
-const Path<Scenario::ScenarioModel>&MoveEventMeta::path() const
+const Path<Scenario::ProcessModel>&MoveEventMeta::path() const
 {
     return m_moveEventImplementation->path();
 }

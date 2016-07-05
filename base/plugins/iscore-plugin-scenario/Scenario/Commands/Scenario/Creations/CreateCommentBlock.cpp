@@ -13,7 +13,7 @@ namespace Scenario
 namespace Command
 {
 CreateCommentBlock::CreateCommentBlock(
-        Path<ScenarioModel>&& scenarioPath,
+        Path<ProcessModel>&& scenarioPath,
         TimeValue date,
         double yPosition):
     m_path{std::move(scenarioPath)},

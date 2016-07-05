@@ -20,7 +20,7 @@ namespace Scenario
 {
 void ScenarioCreate<CommentBlockModel>::undo(
         const Id<CommentBlockModel> &id,
-        Scenario::ScenarioModel &s)
+        Scenario::ProcessModel &s)
 {
     s.comments.remove(id);
 }
@@ -29,7 +29,7 @@ CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
         const Id<CommentBlockModel> &id,
         const TimeValue &date,
         double y,
-        Scenario::ScenarioModel &s)
+        Scenario::ProcessModel &s)
 {
     auto comment = new CommentBlockModel{id, date, y, &s};
     s.comments.add(comment);
@@ -39,7 +39,7 @@ CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
 
 void ScenarioCreate<TimeNodeModel>::undo(
         const Id<TimeNodeModel>& id,
-        Scenario::ScenarioModel& s)
+        Scenario::ProcessModel& s)
 {
     s.timeNodes.remove(id);
 }
@@ -48,7 +48,7 @@ TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
         const Id<TimeNodeModel>& id,
         const VerticalExtent& extent,
         const TimeValue& date,
-        Scenario::ScenarioModel& s)
+        Scenario::ProcessModel& s)
 {
     auto timeNode = new TimeNodeModel{id, extent, date, &s};
     s.timeNodes.add(timeNode);
@@ -58,7 +58,7 @@ TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
 
 void ScenarioCreate<EventModel>::undo(
         const Id<EventModel>& id,
-        Scenario::ScenarioModel& s)
+        Scenario::ProcessModel& s)
 {
     auto& ev = s.event(id);
     s.timeNode(ev.timeNode()).removeEvent(id);
@@ -69,7 +69,7 @@ EventModel& ScenarioCreate<EventModel>::redo(
         const Id<EventModel>& id,
         TimeNodeModel& timenode,
         const VerticalExtent& extent,
-        Scenario::ScenarioModel& s)
+        Scenario::ProcessModel& s)
 {
     auto ev = new EventModel{id, timenode.id(), extent, timenode.date(), &s};
 
@@ -82,7 +82,7 @@ EventModel& ScenarioCreate<EventModel>::redo(
 
 void ScenarioCreate<StateModel>::undo(
         const Id<StateModel> &id,
-        Scenario::ScenarioModel& s)
+        Scenario::ProcessModel& s)
 {
     auto& state = s.state(id);
     auto& ev = s.event(state.eventId());
@@ -96,7 +96,7 @@ StateModel &ScenarioCreate<StateModel>::redo(
         const Id<StateModel> &id,
         EventModel &ev,
         double y,
-        Scenario::ScenarioModel& s)
+        Scenario::ProcessModel& s)
 {
     auto& stack = iscore::IDocument::documentContext(s).commandStack;
     auto state = new StateModel{
@@ -114,7 +114,7 @@ StateModel &ScenarioCreate<StateModel>::redo(
 
 void ScenarioCreate<ConstraintModel>::undo(
         const Id<ConstraintModel>& id,
-        Scenario::ScenarioModel& s)
+        Scenario::ProcessModel& s)
 {
     auto& cst = s.constraints.at(id);
 
@@ -130,7 +130,7 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
         StateModel& sst,
         StateModel& est,
         double ypos,
-        Scenario::ScenarioModel& s)
+        Scenario::ProcessModel& s)
 {
     auto constraint = new ConstraintModel {
                       id,

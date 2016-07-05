@@ -14,25 +14,25 @@ namespace Scenario
 {
 struct ElementsProperties;
 class TimeNodeModel;
-class ScenarioModel;
+class ProcessModel;
 class GoodOldDisplacementPolicy
 {
     public:
         static void init(
-                Scenario::ScenarioModel& scenario,
+                Scenario::ProcessModel& scenario,
                 const QVector<Id<TimeNodeModel>>& draggedElements)
         {
 
         }
 
         static void computeDisplacement(
-                Scenario::ScenarioModel& scenario,
+                Scenario::ProcessModel& scenario,
                 const QVector<Id<TimeNodeModel>>& draggedElements,
                 const TimeValue& deltaTime,
                 ElementsProperties& elementsProperties);
 
         static void getRelatedTimeNodes(
-                Scenario::ScenarioModel& scenario,
+                Scenario::ProcessModel& scenario,
                 const Id<TimeNodeModel>& firstTimeNodeMovedId,
                 std::vector<Id<TimeNodeModel> >& translatedTimeNodes);
 

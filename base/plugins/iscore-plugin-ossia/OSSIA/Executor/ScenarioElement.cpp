@@ -49,7 +49,7 @@ namespace RecreateOnPlay
 {
 ScenarioElement::ScenarioElement(
         ConstraintElement& parentConstraint,
-        Scenario::ScenarioModel& element,
+        Scenario::ProcessModel& element,
         const Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
@@ -106,7 +106,7 @@ static void ScenarioConstraintCallback(const OSSIA::TimeValue&,
 
 void ScenarioElement::on_constraintCreated(const Scenario::ConstraintModel& const_constraint)
 {
-    auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
+    auto& iscore_scenario = static_cast<Scenario::ProcessModel&>(m_iscore_process);
     auto& ossia_scenario = dynamic_cast<OSSIA::Scenario&>(*m_ossia_process.get());
     auto& cst = const_cast<Scenario::ConstraintModel&>(const_constraint);
     // TODO have a ConstraintPlayAspect to prevent this const_cast.
@@ -171,7 +171,7 @@ void ScenarioElement::on_eventCreated(const Scenario::EventModel& const_ev)
 
 void ScenarioElement::on_timeNodeCreated(const Scenario::TimeNodeModel& tn)
 {
-    auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
+    auto& iscore_scenario = static_cast<Scenario::ProcessModel&>(m_iscore_process);
     auto& ossia_scenario = dynamic_cast<OSSIA::Scenario&>(*m_ossia_process.get());
     std::shared_ptr<OSSIA::TimeNode> ossia_tn;
     if(&tn == &iscore_scenario.startTimeNode())
@@ -195,7 +195,7 @@ void ScenarioElement::on_timeNodeCreated(const Scenario::TimeNodeModel& tn)
 
 void ScenarioElement::startConstraintExecution(const Id<Scenario::ConstraintModel>& id)
 {
-    auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
+    auto& iscore_scenario = static_cast<Scenario::ProcessModel&>(m_iscore_process);
     auto& cst = iscore_scenario.constraints.at(id);
     if(m_executingConstraints.find(id) == m_executingConstraints.end())
         m_executingConstraints.insert(&cst);
@@ -205,7 +205,7 @@ void ScenarioElement::startConstraintExecution(const Id<Scenario::ConstraintMode
 
 void ScenarioElement::disableConstraintExecution(const Id<Scenario::ConstraintModel>& id)
 {
-    auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
+    auto& iscore_scenario = static_cast<Scenario::ProcessModel&>(m_iscore_process);
     auto& cst = iscore_scenario.constraints.at(id);
     cst.setExecutionState(Scenario::ConstraintExecutionState::Disabled);
 }
@@ -220,7 +220,7 @@ void ScenarioElement::eventCallback(
         EventElement& ev,
         OSSIA::TimeEvent::Status newStatus)
 {
-    auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
+    auto& iscore_scenario = static_cast<Scenario::ProcessModel&>(m_iscore_process);
     auto the_event = const_cast<Scenario::EventModel*>(&ev.iscoreEvent());
     the_event->setStatus(static_cast<Scenario::ExecutionStatus>(newStatus));
 
@@ -285,7 +285,7 @@ void ScenarioElement::timeNodeCallback(TimeNodeElement* tn, const OSSIA::TimeVal
         curTnProp.status = Scenario::ExecutionStatus::Happened;
 
         // Fix previous constraints
-        auto& iscore_scenario = static_cast<Scenario::ScenarioModel&>(m_iscore_process);
+        auto& iscore_scenario = static_cast<Scenario::ProcessModel&>(m_iscore_process);
         auto previousCstrs = Scenario::previousConstraints(tn->iscoreTimeNode(), iscore_scenario);
 
         for(auto& cstrId : previousCstrs)
@@ -335,7 +335,7 @@ ProcessComponent *ScenarioComponentFactory::make(
         const Id<iscore::Component> &id,
         QObject *parent) const
 {
-    return new ScenarioElement{cst, static_cast<Scenario::ScenarioModel&>(proc), ctx, id, parent};
+    return new ScenarioElement{cst, static_cast<Scenario::ProcessModel&>(proc), ctx, id, parent};
 }
 
 bool ScenarioComponentFactory::matches(
@@ -343,7 +343,7 @@ bool ScenarioComponentFactory::matches(
         const DocumentPlugin &,
         const iscore::DocumentContext &) const
 {
-    return dynamic_cast<Scenario::ScenarioModel*>(&proc);
+    return dynamic_cast<Scenario::ProcessModel*>(&proc);
 }
 
 }

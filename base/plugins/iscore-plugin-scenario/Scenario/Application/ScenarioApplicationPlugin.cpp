@@ -84,7 +84,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     using namespace iscore;
     using namespace Process;
     ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedObjectIs<TemporalScenarioLayerModel>>());
-    ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedProcessIs<ScenarioModel>>());
+    ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedProcessIs<ProcessModel>>());
     ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedProcessIs<ScenarioInterface>>());
     ctx.actions.onDocumentChange(std::make_shared<EnableWhenDocumentIs<ScenarioDocumentModel>>());
 

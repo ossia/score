@@ -6,25 +6,25 @@ namespace Scenario
 {
 
 inline static auto& getConstraints(
-        const ScenarioModel& target)
+        const ProcessModel& target)
 {
     return target.constraints;
 }
 
 inline static auto& getStates(
-        const ScenarioModel& target)
+        const ProcessModel& target)
 {
     return target.states;
 }
 
 inline static auto& getEvents(
-        const ScenarioModel& target)
+        const ProcessModel& target)
 {
     return target.events;
 }
 
 inline static auto& getTimeNodes(
-        const ScenarioModel& target)
+        const ProcessModel& target)
 {
     return target.timeNodes;
 }

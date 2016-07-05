@@ -15,7 +15,7 @@
 
 namespace Scenario
 {
-void updateEventExtent(const Id<EventModel> &id, Scenario::ScenarioModel& s)
+void updateEventExtent(const Id<EventModel> &id, Scenario::ProcessModel& s)
 {
     auto& ev = s.event(id);
     double min = std::numeric_limits<double>::max();
@@ -35,7 +35,7 @@ void updateEventExtent(const Id<EventModel> &id, Scenario::ScenarioModel& s)
 }
 
 
-void updateTimeNodeExtent(const Id<TimeNodeModel>& id, Scenario::ScenarioModel& s)
+void updateTimeNodeExtent(const Id<TimeNodeModel>& id, Scenario::ProcessModel& s)
 {
     auto& tn = s.timeNodes.at(id);
     double min = std::numeric_limits<double>::max();
@@ -52,7 +52,7 @@ void updateTimeNodeExtent(const Id<TimeNodeModel>& id, Scenario::ScenarioModel& 
     tn.setExtent({min, max});
 }
 
-void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, Scenario::ScenarioModel& s)
+void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, Scenario::ProcessModel& s)
 {
     auto& cst = s.constraints.at(id);
 

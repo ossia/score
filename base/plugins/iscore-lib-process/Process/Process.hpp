@@ -3,6 +3,7 @@
 
 #include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <QByteArray>
 #include <QString>
@@ -63,11 +64,12 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         virtual ~ProcessModel();
 
         virtual ProcessModel* clone(
-                const Id<ProcessModel>& newId,
+                const Id<Process::ProcessModel>& newId,
                 QObject* newParent) const = 0;
 
         // A user-friendly text to show to the users
-        virtual QString prettyName() const = 0;
+        virtual QString prettyName() const
+        { return metadata.name(); }
 
 
         // Do a copy.
@@ -171,3 +173,23 @@ std::vector<typename T::layer_type*> layers(const T& processModel)
 DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")
 
 Q_DECLARE_METATYPE(Id<Process::ProcessModel>)
+
+
+#define PROCESS_METADATA_IMPL(Process_T) \
+UuidKey<Process::ProcessFactory> concreteFactoryKey() const final override \
+{ \
+    return Metadata<ConcreteFactoryKey_k, Process_T>::get(); \
+} \
+ \
+void serialize_impl(const VisitorVariant& vis) const final override \
+{ \
+    serialize_dyn(vis, *this); \
+} \
+\
+Process_T* clone( \
+    const Id<Process::ProcessModel>& newId, \
+    QObject* newParent) const final override\
+{ \
+   return new Process_T{*this, newId, newParent}; \
+}
+

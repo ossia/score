@@ -12,7 +12,7 @@ struct DataStreamOutput;
 
 namespace Scenario
 {
-class ScenarioModel;
+class ProcessModel;
 class EventModel;
 class StateModel;
 class ConstraintModel;
@@ -25,18 +25,18 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint_State final : public iscore
         public:
 
           CreateConstraint_State(
-            const Scenario::ScenarioModel& scenario,
+            const Scenario::ProcessModel& scenario,
             Id<StateModel> startState,
             Id<EventModel> endEvent,
             double endStateY);
 
         CreateConstraint_State(
-          const Path<Scenario::ScenarioModel>& scenario,
+          const Path<Scenario::ProcessModel>& scenario,
           Id<StateModel> startState,
           Id<EventModel> endEvent,
           double endStateY);
 
-        const Path<Scenario::ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ProcessModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const double& endStateY() const

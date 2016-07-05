@@ -31,6 +31,7 @@ class ISCORE_PLUGIN_RECORDEDMESSAGES_EXPORT ProcessModel final : public Process:
 {
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
+        PROCESS_METADATA_IMPL(RecordedMessages::ProcessModel)
     Q_OBJECT
     public:
         explicit ProcessModel(
@@ -58,22 +59,9 @@ class ISCORE_PLUGIN_RECORDEDMESSAGES_EXPORT ProcessModel final : public Process:
         { return m_messages; }
 
         // Process interface
-        Process::ProcessModel* clone(
-                const Id<Process::ProcessModel>& newId,
-                QObject* newParent) const override;
-
-        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override
-        {
-            return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
-        }
-
-        QString prettyName() const override;
-
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
-
-        void serialize_impl(const VisitorVariant& vis) const override;
 
     signals:
         void messagesChanged();

@@ -28,7 +28,7 @@ template < typename Scenario_T>
 class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents : std::false_type { };
 
 template<>
-class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ScenarioModel> : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ProcessModel> : public iscore::SerializableCommand
 {
     // No ISCORE_COMMAND here since it's a template.
     public:
@@ -53,7 +53,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ScenarioModel> : public iscore::
 
     MergeEvents() = default;
 
-    MergeEvents(Path<ScenarioModel>&& scenar,
+    MergeEvents(Path<ProcessModel>&& scenar,
                Id<EventModel> clickedEv,
                Id<EventModel> hoveredEv):
         m_scenarioPath{scenar},
@@ -69,8 +69,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ScenarioModel> : public iscore::
         s.readFrom(event);
         m_serializedEvent = arr;
 
-        m_mergeTimeNodesCommand = new MergeTimeNodes<ScenarioModel>{
-                Path<ScenarioModel>{scenario},
+        m_mergeTimeNodesCommand = new MergeTimeNodes<ProcessModel>{
+                Path<ProcessModel>{scenario},
                 event.timeNode(),
                 destinantionEvent.timeNode()};
     }
@@ -135,7 +135,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ScenarioModel> : public iscore::
         updateEventExtent(m_destinationEventId, scenar);
     }
 
-    void update(Path<ScenarioModel> ,
+    void update(Path<ProcessModel> ,
             const Id<EventModel>& ,
             const Id<EventModel>& ) {}
 
@@ -153,20 +153,20 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ScenarioModel> : public iscore::
         s >> m_scenarioPath >> m_movingEventId >> m_destinationEventId
         >> m_serializedEvent >> cmd;
 
-        m_mergeTimeNodesCommand = new MergeTimeNodes<ScenarioModel>{};
+        m_mergeTimeNodesCommand = new MergeTimeNodes<ProcessModel>{};
         m_mergeTimeNodesCommand->deserialize(cmd);
     }
 
     private:
-    Path<ScenarioModel> m_scenarioPath;
+    Path<ProcessModel> m_scenarioPath;
     Id<EventModel> m_movingEventId;
     Id<EventModel> m_destinationEventId;
 
     QByteArray m_serializedEvent;
-    MergeTimeNodes<ScenarioModel>* m_mergeTimeNodesCommand;
+    MergeTimeNodes<ProcessModel>* m_mergeTimeNodesCommand;
 };
 
 }
 }
 
-ISCORE_COMMAND_DECL_T(Scenario::Command::MergeEvents<Scenario::ScenarioModel>)
+ISCORE_COMMAND_DECL_T(Scenario::Command::MergeEvents<Scenario::ProcessModel>)

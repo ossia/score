@@ -12,7 +12,7 @@ struct DataStreamInput;
 struct DataStreamOutput;
 namespace Scenario
 {
-class ScenarioModel;
+class ProcessModel;
 class EventModel;
 class StateModel;
 class TimeNodeModel;
@@ -24,16 +24,16 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateTimeNode_Event_State final : public is
         public:
 
           CreateTimeNode_Event_State(
-            const Scenario::ScenarioModel& scenario,
+            const Scenario::ProcessModel& scenario,
             TimeValue date,
             double stateY);
 
         CreateTimeNode_Event_State(
-          const Path<Scenario::ScenarioModel>& scenario,
+          const Path<Scenario::ProcessModel>& scenario,
           TimeValue date,
           double stateY);
 
-        const Path<Scenario::ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ProcessModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const Id<StateModel>& createdState() const

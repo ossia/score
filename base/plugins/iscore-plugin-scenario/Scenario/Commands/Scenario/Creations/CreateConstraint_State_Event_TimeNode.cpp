@@ -23,7 +23,7 @@ namespace Scenario
 namespace Command
 {
 CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
-        const Scenario::ScenarioModel& scenario,
+        const Scenario::ProcessModel& scenario,
         Id<StateModel> startState,
         TimeValue date,
         double endStateY):
@@ -39,7 +39,7 @@ CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
 }
 
 CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
-        const Path<Scenario::ScenarioModel>& scenarioPath,
+        const Path<Scenario::ProcessModel>& scenarioPath,
         Id<StateModel> startState,
         TimeValue date,
         double endStateY):

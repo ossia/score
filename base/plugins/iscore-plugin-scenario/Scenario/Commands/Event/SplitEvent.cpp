@@ -24,7 +24,7 @@ namespace Scenario
 {
 namespace Command
 {
-SplitEvent::SplitEvent(const Path<Scenario::ScenarioModel> &scenario,
+SplitEvent::SplitEvent(const Path<Scenario::ProcessModel> &scenario,
                        Id<EventModel> event,
                        QVector<Id<StateModel>> movingstates):
     m_scenarioPath{scenario},

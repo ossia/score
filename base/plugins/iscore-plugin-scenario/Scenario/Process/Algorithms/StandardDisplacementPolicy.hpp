@@ -35,7 +35,7 @@ class CommonDisplacementPolicy
         static
         void
         updatePositions(
-                Scenario::ScenarioModel& scenario,
+                Scenario::ProcessModel& scenario,
                 ProcessScaleMethod&& scaleMethod,
                 const ElementsProperties& propsToUpdate)
         {
@@ -97,7 +97,7 @@ class CommonDisplacementPolicy
         static
         void
         revertPositions(
-                Scenario::ScenarioModel& scenario,
+                Scenario::ProcessModel& scenario,
                 ProcessScaleMethod&& scaleMethod,
                 const ElementsProperties& propsToUpdate)
         {

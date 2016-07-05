@@ -15,7 +15,7 @@ namespace Scenario
 {
 class EventModel;
 class StateModel;
-class ScenarioModel;
+class ProcessModel;
 class TimeNodeModel;
 namespace Command
 {
@@ -25,15 +25,15 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final : public iscore::Ser
         public:
 
           CreateEvent_State(
-            const Scenario::ScenarioModel& scenario,
+            const Scenario::ProcessModel& scenario,
             Id<TimeNodeModel> timeNode,
             double stateY);
         CreateEvent_State(
-          const Path<Scenario::ScenarioModel>& scenario,
+          const Path<Scenario::ProcessModel>& scenario,
           Id<TimeNodeModel> timeNode,
           double stateY);
 
-        const Path<Scenario::ScenarioModel>& scenarioPath() const
+        const Path<Scenario::ProcessModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const Id<StateModel>& createdState() const
