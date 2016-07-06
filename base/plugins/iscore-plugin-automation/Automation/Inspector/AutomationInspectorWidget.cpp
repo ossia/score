@@ -95,6 +95,7 @@ void InspectorWidget::on_addressChange(const ::State::Address& newAddr)
 
     m_dispatcher.submitCommand(cmd);
 }
+
 void InspectorWidget::on_minValueChanged()
 {
     auto newVal = m_minsb->value();

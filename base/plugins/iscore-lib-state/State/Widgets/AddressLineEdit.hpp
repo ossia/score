@@ -58,6 +58,7 @@ class AddressLineEditBase :
                 if(!ml.empty())
                 {
                     this->setText(ml[0].address.toString());
+                    emit editingFinished();
                 }
             }
         }
