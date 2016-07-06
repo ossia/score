@@ -27,9 +27,6 @@ class AbstractTimeRuler : public QObject
         virtual void setStartPoint(TimeValue dur);
         void setPixelPerMillis(double factor);
 
-    signals:
-        void drag(QPointF origin, QPointF current);
-
     protected:
         void computeGraduationSpacing();
 
