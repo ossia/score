@@ -490,6 +490,10 @@ void Presenter::removeSelection()
     if(segmentsToDelete.empty())
         return;
 
+    double y0 = 0;
+    double y1 = 1;
+    bool firstRemoved = false;
+    bool lastRemoved = false;
     // Then remove
     auto newSegments = model().toCurveData();
     {
@@ -498,6 +502,16 @@ void Presenter::removeSelection()
         {
             if(contains(segmentsToDelete,it->id))
             {
+                if(it->start.x() == 0)
+                {
+                    firstRemoved = true;
+                    y0 = it->start.y();
+                }
+                else if(it->end.x() == 1)
+                {
+                    lastRemoved = true;
+                    y1 = it->end.y();
+                }
                 it = newSegments.erase(it);
                 continue;
             }
@@ -519,6 +533,58 @@ void Presenter::removeSelection()
             return s1.x() < s2.x();
         });
 
+        // First if there is no segments, we recreate one.
+        if(newSegments.empty())
+        {
+            SegmentData d;
+            d.start = QPointF{0, y0};
+            d.end = QPointF{1, y1};
+            d.id = getSegmentId(newSegments);
+            d.type = Metadata<ConcreteFactoryKey_k, DefaultCurveSegmentModel>::get();
+            d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
+            newSegments.push_back(d);
+        }
+        else
+        {
+            if(firstRemoved)
+            {
+                // Recreate a segment from x = 0 to the beginning of the first segment.
+                auto it = newSegments.begin();
+
+                // Create a new segment
+                SegmentData d;
+                d.start = QPointF{0, y0};
+                d.end = it->start;
+                d.following = it->id;
+                d.id = getSegmentId(newSegments);
+                d.type = Metadata<ConcreteFactoryKey_k, DefaultCurveSegmentModel>::get();
+                d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
+                it->previous = d.id;
+
+                newSegments.insert(it, d);
+            }
+
+            if(lastRemoved)
+            {
+                // Recreate a segment from x = 0 to the beginning of the first segment.
+                auto it = newSegments.rbegin();
+
+                // Create a new segment
+                SegmentData d;
+                d.end = QPointF{1, y1};
+                d.start = it->end;
+                d.previous = it->id;
+                d.id = getSegmentId(newSegments);
+                d.type = Metadata<ConcreteFactoryKey_k, DefaultCurveSegmentModel>::get();
+                d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
+                it->following = d.id;
+
+
+                newSegments.insert(newSegments.end(), d);
+            }
+        }
+
+        // Then try to fill the holes
         auto it = newSegments.begin();
         for(; it != newSegments.end(); )
         {
