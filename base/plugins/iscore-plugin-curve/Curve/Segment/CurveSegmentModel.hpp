@@ -127,7 +127,7 @@ class Segment : public SegmentModel
 };
 
 class PowerSegment;
-class PowerSegmentData;
+struct PowerSegmentData;
 
 using DefaultCurveSegmentModel = PowerSegment;
 using DefaultCurveSegmentData = PowerSegmentData;
