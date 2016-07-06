@@ -243,19 +243,18 @@ void TemporalConstraintView::setExecutionState(ConstraintExecutionState s)
     update();
 }
 
-void TemporalConstraintView::setExecutionDuration(TimeValue progress)
+void TemporalConstraintView::setExecutionDuration(const TimeValue& progress)
 {
     if(!progress.isZero())
     {
-        QString percent = progress.toString();
         m_counterItem->setVisible(true);
-        m_counterItem->setText(percent);
+        m_counterItem->setText(progress.toString());
     }
     else
     {
         m_counterItem->setVisible(false);
     }
-
+    update();
 }
 
 void TemporalConstraintView::setLabelColor(ColorRef labelColor)

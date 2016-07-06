@@ -35,7 +35,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
                          ctx,
                          parent}
 {
-    auto& v = *Scenario::view(this);
+    TemporalConstraintView& v = *Scenario::view(this);
     con(v, &TemporalConstraintView::constraintHoverEnter,
         this,       &TemporalConstraintPresenter::constraintHoverEnter);
 

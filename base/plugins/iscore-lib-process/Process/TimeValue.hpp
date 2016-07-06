@@ -2,6 +2,7 @@
 #include <QTime>
 #include <iscore/tools/std/Optional.hpp>
 #include <chrono>
+#include <QStringBuilder>
 #include "ZoomHelper.hpp"
 
 //using namespace std::literals::chrono_literals;
@@ -91,26 +92,11 @@ class TimeValue_T
 
         QString toString() const
         {
-            QString t;
             auto qT = this->toQTime();
-
-            if(qT.hour() != 0)
-            {
-                t += QString::number(qT.hour());
-                t += " h ";
-            }
-            if(qT.minute() != 0)
-            {
-                t += QString::number(qT.minute());
-                t += " min ";
-            }
-
-            t += QString::number(qT.second());
-            t += " s ";
-            t += QString::number(qT.msec());
-            t += " ms";
-
-            return t;
+            return QString("%1%2%3 s %4 ms")
+                    .arg(qT.hour() != 0 ? QString::number(qT.hour()) % QStringLiteral(" h ") : QString(),
+                         qT.minute() != 0 ? QString::number(qT.minute()) % QStringLiteral(" min ") : QString(),
+                         QString::number(qT.second()), QString::number(qT.msec()) );
         }
 
         void addMSecs(T msecs)
