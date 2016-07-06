@@ -6,6 +6,36 @@
 namespace Scenario
 {
 
+static void getAddressesRecursively(
+        const Device::Node& node,
+        State::Address curAddr,
+        std::vector<Device::FullAddressSettings>& addresses)
+{
+    qDebug() << curAddr.toString();
+    // TODO refactor with CreateCurves
+    if(node.is<Device::AddressSettings>())
+    {
+        const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
+        if(addr.value.val.isNumeric())
+        {
+            Device::FullAddressSettings as;
+            static_cast<Device::AddressSettingsCommon&>(as) = addr;
+            as.address = curAddr;
+            addresses.push_back(std::move(as));
+        }
+    }
+
+    for(auto& child : node)
+    {
+        const Device::AddressSettings& addr = child.get<Device::AddressSettings>();
+
+        State::Address newAddr = curAddr;
+        newAddr.path.append(addr.name);
+        qDebug() << curAddr.toString() << addr.name << newAddr.toString();
+        getAddressesRecursively(child, newAddr, addresses);
+    }
+}
+
 bool AutomationDropHandler::handle(
         const ConstraintModel& cst,
         const QMimeData* mime)
@@ -13,28 +43,16 @@ bool AutomationDropHandler::handle(
     // TODO refactor with AddressEditWidget
     if(!mime->formats().contains(iscore::mime::nodelist()))
         return false;
-    // TODO c.f. DeviceExplorerModel:784
-/*
-    Mime<Device::NodeList>::Deserializer des{*mime};
-    Device::NodeList nl = des.deserialize();
+
+    Mime<Device::FreeNodeList>::Deserializer des{*mime};
+    Device::FreeNodeList nl = des.deserialize();
     if(nl.empty())
         return false;
 
     std::vector<Device::FullAddressSettings> addresses;
-    for(auto& node: nl)
+    for(auto& np: nl)
     {
-        // TODO refactor with CreateCurves
-        if(node->is<Device::AddressSettings>())
-        {
-            const Device::AddressSettings& addr = node->get<Device::AddressSettings>();
-            if(addr.value.val.isNumeric())
-            {
-                Device::FullAddressSettings as;
-                static_cast<Device::AddressSettingsCommon&>(as) = addr;
-                as.address = Device::address(*node);
-                addresses.push_back(std::move(as));
-            }
-        }
+        getAddressesRecursively(np.second, np.first, addresses);
     }
 
     if(addresses.empty())
@@ -42,7 +60,7 @@ bool AutomationDropHandler::handle(
 
     auto& doc = iscore::IDocument::documentContext(cst);
     CreateCurvesFromAddresses({&cst}, addresses, doc.commandStack);
-    */
+
     return true;
 }
 
