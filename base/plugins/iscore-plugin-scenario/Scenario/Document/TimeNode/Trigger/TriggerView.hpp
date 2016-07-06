@@ -11,7 +11,9 @@ class QWidget;
 
 namespace Scenario
 {
-class TriggerView final : public QGraphicsObject
+class TriggerView final :
+        public QObject,
+        public QGraphicsItem
 {
         Q_OBJECT
     public:

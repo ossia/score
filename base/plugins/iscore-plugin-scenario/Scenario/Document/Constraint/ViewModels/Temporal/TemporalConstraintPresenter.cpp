@@ -26,10 +26,9 @@ namespace Scenario
 TemporalConstraintPresenter::TemporalConstraintPresenter(
         const TemporalConstraintViewModel& cstr_model,
         const Process::ProcessPresenterContext& ctx,
-        QGraphicsObject *parentobject,
+        QGraphicsItem *parentobject,
         QObject* parent) :
-    ConstraintPresenter {"TemporalConstraintPresenter",
-                         cstr_model,
+    ConstraintPresenter {cstr_model,
                          new TemporalConstraintView{*this, parentobject},
                          new TemporalConstraintHeader,
                          ctx,

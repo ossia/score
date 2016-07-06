@@ -9,12 +9,13 @@ namespace Scenario
 class TextItem;
 
 class CommentBlockPresenter;
-class CommentBlockView final : public QGraphicsObject
+class CommentBlockView final :
+        public QObject,
+        public QGraphicsItem
 {
-        Q_OBJECT
     public:
         CommentBlockView(CommentBlockPresenter& presenter,
-                         QGraphicsObject* parent);
+                         QGraphicsItem* parent);
 
         //~TimeNodeView() = default;
 

@@ -27,7 +27,7 @@ namespace Scenario
 {
 TemporalConstraintView::TemporalConstraintView(
         TemporalConstraintPresenter &presenter,
-        QGraphicsObject* parent) :
+        QGraphicsItem* parent) :
     ConstraintView {presenter, parent},
     m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground},
     m_labelItem{new SimpleTextItem{this}},
@@ -209,13 +209,13 @@ void TemporalConstraintView::paint(
 
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
 {
-    QGraphicsObject::hoverEnterEvent(h);
+    QGraphicsItem::hoverEnterEvent(h);
     emit constraintHoverEnter();
 }
 
 void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 {
-    QGraphicsObject::hoverLeaveEvent(h);
+    QGraphicsItem::hoverLeaveEvent(h);
     emit constraintHoverLeave();
 }
 

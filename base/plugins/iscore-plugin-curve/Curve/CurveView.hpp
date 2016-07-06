@@ -14,7 +14,9 @@ class QWidget;
 
 namespace Curve
 {
-class ISCORE_PLUGIN_CURVE_EXPORT View final : public QGraphicsObject
+class ISCORE_PLUGIN_CURVE_EXPORT View final :
+        public QObject,
+        public QGraphicsItem
 {
         Q_OBJECT
     public:

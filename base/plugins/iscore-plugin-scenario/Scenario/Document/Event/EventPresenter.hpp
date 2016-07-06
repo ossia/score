@@ -4,7 +4,7 @@
 #include <QPoint>
 #include <QString>
 #include <iscore_plugin_scenario_export.h>
-class QGraphicsObject;
+class QGraphicsItem;
 class QMimeData;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -13,13 +13,14 @@ namespace Scenario
 {
 class EventModel;
 class EventView;
-class ISCORE_PLUGIN_SCENARIO_EXPORT EventPresenter final : public NamedObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventPresenter final :
+        public QObject
 {
         Q_OBJECT
 
     public:
         EventPresenter(const EventModel& model,
-                       QGraphicsObject* parentview,
+                       QGraphicsItem* parentview,
                        QObject* parent);
         virtual ~EventPresenter();
 

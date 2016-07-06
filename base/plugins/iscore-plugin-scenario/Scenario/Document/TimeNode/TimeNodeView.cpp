@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QPen>
 #include <algorithm>
+#include <QGraphicsScene>
 
 #include <Process/ModelMetadata.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
@@ -19,8 +20,8 @@ class QWidget;
 namespace Scenario
 {
 TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
-                           QGraphicsObject* parent) :
-    QGraphicsObject {parent},
+                           QGraphicsItem* parent) :
+    QGraphicsItem {parent},
     m_presenter{presenter}
 {
     this->setParentItem(parent);
@@ -28,7 +29,18 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     this->setAcceptHoverEvents(true);
     this->setCursor(Qt::CrossCursor);
 
+    m_text = new SimpleTextItem{this};
     m_color = presenter.model().metadata.color();
+
+    auto f = Skin::instance().SansFont;
+    f.setPointSize(8);
+    m_text->setFont(f);
+    m_text->setPos(-m_text->boundingRect().width() / 2, -15);
+
+}
+
+TimeNodeView::~TimeNodeView()
+{
 }
 
 void TimeNodeView::paint(QPainter* painter,
@@ -86,6 +98,11 @@ void TimeNodeView::changeColor(ColorRef newColor)
 {
     m_color = newColor;
     this->update();
+}
+
+void TimeNodeView::setLabel(const QString& s)
+{
+    m_text->setText(s);
 }
 
 

@@ -7,12 +7,12 @@
 
 namespace Scenario
 {
-
+// TODO move these two
 class TextItem final : public QGraphicsTextItem
 {
     Q_OBJECT
     public:
-    TextItem(QString text, QGraphicsObject* parent);
+    TextItem(QString text, QGraphicsItem* parent);
 
     signals:
     void focusOut();

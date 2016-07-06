@@ -3,7 +3,7 @@
 #include <iscore/statemachine/StateMachineTools.hpp>
 #include <QState>
 
-class QGraphicsObject;
+class QGraphicsItem;
 
 namespace iscore
 {
@@ -41,7 +41,7 @@ class ISCORE_LIB_BASE_EXPORT CommonSelectionState : public QState
     protected:
         CommonSelectionState(
                 iscore::SelectionStack& stack,
-                QGraphicsObject* process_view,
+                QObject* process_view,
                 QState* parent);
 
     private:

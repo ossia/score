@@ -19,8 +19,7 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
         const Process::ProcessPresenterContext& ctx,
         QGraphicsItem* parentobject,
         QObject* parent) :
-    ConstraintPresenter {"FullViewConstraintPresenter",
-                         cstr_model,
+    ConstraintPresenter {cstr_model,
                          new FullViewConstraintView{*this, parentobject},
                          new FullViewConstraintHeader{parentobject},
                          ctx,

@@ -8,9 +8,9 @@ namespace Scenario
 {
 CommentBlockPresenter::CommentBlockPresenter(
         const CommentBlockModel& model,
-        QGraphicsObject* parentView,
+        QGraphicsItem* parentView,
         QObject* parent):
-    NamedObject{"CommentBlock", parent},
+    QObject{parent},
     m_model{model},
     m_view{new CommentBlockView{*this, parentView}}
 {
@@ -35,7 +35,7 @@ CommentBlockPresenter::CommentBlockPresenter(
 
 CommentBlockPresenter::~CommentBlockPresenter()
 {
-    deleteGraphicsObject(m_view);
+    deleteGraphicsItem(m_view);
 }
 
 const Id<CommentBlockModel>&CommentBlockPresenter::id() const

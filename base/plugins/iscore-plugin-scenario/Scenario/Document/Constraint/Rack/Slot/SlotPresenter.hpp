@@ -45,7 +45,9 @@ struct SlotProcessData
         std::vector<ProcessPair> processes;
 };
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final : public NamedObject, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final :
+        public QObject,
+        public Nano::Observer
 {
         Q_OBJECT
 
