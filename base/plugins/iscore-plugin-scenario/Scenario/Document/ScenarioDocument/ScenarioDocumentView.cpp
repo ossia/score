@@ -138,6 +138,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     lay->setSpacing(1);
 
     m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(m_view, &ProcessGraphicsView::scrolled,
             this,   &ScenarioDocumentView::horizontalPositionChanged);
 

@@ -121,7 +121,7 @@ const ConstraintModel& ScenarioDocumentPresenter::displayedConstraint() const
 
 void ScenarioDocumentPresenter::on_askUpdate()
 {
-    view().update();
+   // view().update();
 }
 
 void ScenarioDocumentPresenter::selectAll()
@@ -211,7 +211,7 @@ void ScenarioDocumentPresenter::on_zoomOnWheelEvent(QPointF zoom, QPointF center
     double newSliderPos = (slider.value() +
                            zoomSpeed * double(zoom.y()) / (double(slider.width() * (1. + slider.value()))));
 
-    newSliderPos = clamp(newSliderPos, 0., 0.99);
+    newSliderPos = clamp(newSliderPos, 0., 1.);
 
     slider.setValue(newSliderPos);
 
