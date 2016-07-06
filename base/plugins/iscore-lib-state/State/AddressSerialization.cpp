@@ -38,5 +38,8 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Address
 {
     a.device = m_obj[iscore::StringConstant().Device].toString();
 
-    a.path = m_obj[iscore::StringConstant().Path].toString().split('/');
+    auto path = m_obj[iscore::StringConstant().Path].toString();
+
+    if(!path.isEmpty())
+        a.path = m_obj[iscore::StringConstant().Path].toString().split('/');
 }

@@ -11,7 +11,6 @@ static void getAddressesRecursively(
         State::Address curAddr,
         std::vector<Device::FullAddressSettings>& addresses)
 {
-    qDebug() << curAddr.toString();
     // TODO refactor with CreateCurves
     if(node.is<Device::AddressSettings>())
     {
@@ -29,9 +28,8 @@ static void getAddressesRecursively(
     {
         const Device::AddressSettings& addr = child.get<Device::AddressSettings>();
 
-        State::Address newAddr = curAddr;
+        State::Address newAddr{curAddr};
         newAddr.path.append(addr.name);
-        qDebug() << curAddr.toString() << addr.name << newAddr.toString();
         getAddressesRecursively(child, newAddr, addresses);
     }
 }
