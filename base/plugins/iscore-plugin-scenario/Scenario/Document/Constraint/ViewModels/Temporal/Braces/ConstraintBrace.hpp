@@ -11,25 +11,27 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace :
+        public QGraphicsItem
 {
-    Q_OBJECT
     public:
-      ConstraintBrace(const TemporalConstraintView& parentCstr, QGraphicsItem* parent);
+        ConstraintBrace(
+                const TemporalConstraintView& parentCstr,
+                QGraphicsItem* parent);
 
-      QRectF boundingRect() const override;
+        QRectF boundingRect() const override;
 
-      void paint(QPainter* painter,
-                 const QStyleOptionGraphicsItem* option,
-                 QWidget* widget) override;
+        void paint(QPainter* painter,
+                   const QStyleOptionGraphicsItem* option,
+                   QWidget* widget) override;
 
-      void mousePressEvent(QGraphicsSceneMouseEvent *event) final override;
-      void mouseMoveEvent(QGraphicsSceneMouseEvent *event) final override;
-      void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) final override;
+        void mousePressEvent(QGraphicsSceneMouseEvent *event) final override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent *event) final override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) final override;
 
     protected:
-      const TemporalConstraintView& m_parent;
-      QPainterPath m_path;
+        const TemporalConstraintView& m_parent;
+        QPainterPath m_path;
 
     private:
 

@@ -167,7 +167,17 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
 {
-    deleteGraphicsObject(m_view);
+    for(auto& elt : m_states)
+        delete &elt;
+    for(auto& elt : m_events)
+        delete &elt;
+    for(auto& elt : m_constraints)
+        delete &elt;
+    for(auto& elt : m_timeNodes)
+        delete &elt;
+    for(auto& elt : m_comments)
+        delete &elt;
+    deleteGraphicsItem(m_view);
 }
 
 const Process::LayerModel& TemporalScenarioPresenter::layerModel() const

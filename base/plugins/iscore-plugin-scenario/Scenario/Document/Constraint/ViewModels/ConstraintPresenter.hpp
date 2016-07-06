@@ -22,13 +22,14 @@ class ConstraintViewModel;
 class RackModel;
 class RackPresenter;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public NamedObject, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter :
+        public QObject,
+        public Nano::Observer
 {
         Q_OBJECT
 
     public:
         ConstraintPresenter(
-                const QString& name,
                 const ConstraintViewModel& model,
                 ConstraintView* view,
                 ConstraintHeader* header,

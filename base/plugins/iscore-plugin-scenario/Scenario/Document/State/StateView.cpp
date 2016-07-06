@@ -13,7 +13,7 @@ class QWidget;
 namespace Scenario
 {
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
-    QGraphicsObject(parent),
+    QGraphicsItem(parent),
     m_presenter{pres}
 {
     this->setParentItem(parent);

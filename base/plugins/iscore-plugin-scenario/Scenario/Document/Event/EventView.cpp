@@ -22,8 +22,8 @@ class QWidget;
 namespace Scenario
 {
 EventView::EventView(EventPresenter& presenter,
-                     QGraphicsObject* parent) :
-    QGraphicsObject {parent},
+                     QGraphicsItem* parent) :
+    QGraphicsItem {parent},
     m_presenter{presenter}
 {
     setAcceptDrops(true);
@@ -175,13 +175,13 @@ void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void EventView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
 {
-    QGraphicsObject::hoverEnterEvent(h);
+    QGraphicsItem::hoverEnterEvent(h);
     emit eventHoverEnter();
 }
 
 void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 {
-    QGraphicsObject::hoverLeaveEvent(h);
+    QGraphicsItem::hoverLeaveEvent(h);
     emit eventHoverLeave();
 }
 

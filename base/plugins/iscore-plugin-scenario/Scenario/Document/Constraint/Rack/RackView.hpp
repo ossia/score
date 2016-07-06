@@ -9,12 +9,14 @@ class QWidget;
 
 namespace Scenario
 {
-class RackView final : public QGraphicsObject
+class RackView final :
+        public QObject,
+        public QGraphicsItem
 {
         Q_OBJECT
 
     public:
-        RackView(QGraphicsObject* parent);
+        RackView(QGraphicsItem* parent);
         virtual ~RackView() = default;
 
 

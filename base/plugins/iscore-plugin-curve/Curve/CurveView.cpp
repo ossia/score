@@ -13,7 +13,7 @@ class QWidget;
 namespace Curve
 {
 View::View(QGraphicsItem *parent):
-    QGraphicsObject{parent}
+    QGraphicsItem{parent}
 {
     this->setFlags(ItemClipsChildrenToShape | ItemIsFocusable);
     this->setZValue(1);

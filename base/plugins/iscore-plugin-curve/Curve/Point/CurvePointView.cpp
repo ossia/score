@@ -22,7 +22,7 @@ PointView::PointView(
         const PointModel* model,
         const Curve::Style& style,
         QGraphicsItem* parent):
-    QGraphicsObject{parent},
+    QGraphicsItem{parent},
     m_style{style}
 {
     this->setZValue(2);

@@ -9,8 +9,8 @@ class QWidget;
 
 namespace Scenario
 {
-RackView::RackView(QGraphicsObject* parent) :
-    QGraphicsObject {parent}
+RackView::RackView(QGraphicsItem* parent) :
+    QGraphicsItem{parent}
 {
     this->setZValue(ZPos::Rack);
 }

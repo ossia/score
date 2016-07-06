@@ -10,13 +10,15 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 class ConstraintPresenter;
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView :
+        public QObject,
+        public QGraphicsItem
 {
         Q_OBJECT
 
     public:
         ConstraintView(ConstraintPresenter& presenter,
-                               QGraphicsItem* parent);
+                       QGraphicsItem* parent);
         virtual ~ConstraintView();
 
         static constexpr int static_type()
@@ -97,17 +99,17 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QGraphicsObject
         {
             QBrush{Qt::black},
             m_constraintLineWidth,
-            Qt::SolidLine,
-            Qt::SquareCap,
-            Qt::RoundJoin
+                    Qt::SolidLine,
+                    Qt::SquareCap,
+                    Qt::RoundJoin
         };
         QPen m_dashPen
         {
             QBrush{Qt::black},
             m_constraintLineWidth,
-            Qt::CustomDashLine,
-            Qt::SquareCap,
-            Qt::RoundJoin
+                    Qt::CustomDashLine,
+                    Qt::SquareCap,
+                    Qt::RoundJoin
         };
 
     private:

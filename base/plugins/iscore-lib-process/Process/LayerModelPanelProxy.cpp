@@ -76,8 +76,8 @@ Process::GraphicsViewLayerModelPanelProxy::~GraphicsViewLayerModelPanelProxy()
 {
     if(m_processPresenter)
     {
-        deleteGraphicsObject(m_layerView);
         delete m_processPresenter;
+        m_layerView = nullptr;
     }
 
     delete m_obj;

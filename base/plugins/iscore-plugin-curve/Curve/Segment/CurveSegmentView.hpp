@@ -15,7 +15,9 @@ namespace Curve
 class SegmentModel;
 
 struct Style;
-class SegmentView final : public QGraphicsObject
+class SegmentView final :
+        public QObject,
+        public QGraphicsItem
 {
         Q_OBJECT
     public:

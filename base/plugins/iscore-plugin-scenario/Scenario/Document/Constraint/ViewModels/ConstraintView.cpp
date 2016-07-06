@@ -9,7 +9,7 @@ namespace Scenario
 ConstraintView::ConstraintView(
         ConstraintPresenter& presenter,
         QGraphicsItem *parent) :
-    QGraphicsObject {parent},
+    QGraphicsItem{parent},
     m_presenter{presenter}
 {
     setAcceptHoverEvents(true);

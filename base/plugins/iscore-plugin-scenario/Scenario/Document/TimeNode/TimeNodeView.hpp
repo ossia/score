@@ -5,8 +5,11 @@
 #include <QGraphicsItem>
 #include <QPoint>
 #include <QRect>
+#include <QTextLayout>
 #include <iscore_plugin_scenario_export.h>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -16,14 +19,12 @@ namespace Scenario
 {
 class TimeNodePresenter;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsItem
 {
-        Q_OBJECT
-
     public:
         TimeNodeView(TimeNodePresenter& presenter,
-                     QGraphicsObject* parent);
-        ~TimeNodeView() = default;
+                     QGraphicsItem* parent);
+        ~TimeNodeView();
 
         static constexpr int static_type()
         { return QGraphicsItem::UserType + ItemType::TimeNode; }
@@ -54,6 +55,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsObject
         }
 
         void changeColor(ColorRef);
+        void setLabel(const QString& label);
 
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -67,5 +69,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsObject
         QPointF m_clickedPoint {};
         ColorRef m_color;
         bool m_selected{};
+
+        SimpleTextItem* m_text{};
 };
 }

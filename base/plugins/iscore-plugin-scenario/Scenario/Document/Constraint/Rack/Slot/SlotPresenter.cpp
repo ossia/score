@@ -39,7 +39,7 @@ SlotPresenter::SlotPresenter(
         RackView *view,
         const Process::ProcessPresenterContext& ctx,
         QObject* par) :
-    NamedObject {"SlotPresenter", par},
+    QObject {par},
     m_processList{ctx.app.components.factory<Process::ProcessList>()},
     m_model {model},
     m_view {new SlotView{*this, view}},
@@ -83,7 +83,10 @@ SlotPresenter::SlotPresenter(
 
 SlotPresenter::~SlotPresenter()
 {
-    deleteGraphicsObject(m_view);
+    for(auto& proc : m_processes)
+        for(auto& sub : proc.processes)
+            delete sub.first;
+    deleteGraphicsItem(m_view);
 }
 
 const Id<SlotModel>& SlotPresenter::id() const
@@ -170,7 +173,7 @@ void SlotPresenter::on_layerModelRemoved(
             for(const auto& pair : elt.processes)
             {
                 delete pair.first;
-                deleteGraphicsObject(pair.second);
+                deleteGraphicsItem(pair.second);
             }
         }
 

@@ -29,13 +29,12 @@ class QObject;
 namespace Scenario
 {
 ConstraintPresenter::ConstraintPresenter(
-        const QString& name,
         const ConstraintViewModel& model,
         ConstraintView* view,
         ConstraintHeader* header,
         const Process::ProcessPresenterContext& ctx,
         QObject* parent) :
-    NamedObject {name, parent},
+    QObject {parent},
     m_viewModel {model},
     m_view {view},
     m_header{header},
@@ -108,7 +107,10 @@ ConstraintPresenter::ConstraintPresenter(
     }
 }
 
-ConstraintPresenter::~ConstraintPresenter() = default;
+ConstraintPresenter::~ConstraintPresenter()
+{
+    delete m_rack;
+}
 
 void ConstraintPresenter::updateScaling()
 {
