@@ -73,6 +73,13 @@ void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     event->accept();
 }
 
+void TemporalScenarioView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit doubleClick(event->pos());
+
+    event->accept();
+}
+
 void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
     emit askContextMenu(event->screenPos(), event->scenePos());
