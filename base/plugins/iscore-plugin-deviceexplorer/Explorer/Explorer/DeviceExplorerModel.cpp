@@ -780,9 +780,7 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
         s.serialize(messages);
     }
 
-    // The "Nodes" part.
-    // TODO The mime data should also transmit the root address for
-    // each node in this case. For now it's useless.
+    // The "Nodes" part. Deserialize with FreeNodeList to get the adresses.
     {
         Mime<Device::NodeList>::Serializer s{*mimeData};
         s.serialize(uniqueNodes.parents + uniqueNodes.messages);

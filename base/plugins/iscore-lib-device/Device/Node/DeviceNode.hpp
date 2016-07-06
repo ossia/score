@@ -52,7 +52,9 @@ using Node = TreeNode<DeviceExplorerNode>;
 using NodePath = TreePath<Device::Node>;
 
 // TODO reflist may be a better name.
+using FreeNode = std::pair<State::Address, Device::Node>;
 using NodeList = QList<Device::Node*>;
+using FreeNodeList = std::vector<FreeNode>;
 
 // TODO add specifications & tests to these functions
 ISCORE_LIB_DEVICE_EXPORT State::Address address(const Node& treeNode);

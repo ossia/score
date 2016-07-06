@@ -212,7 +212,11 @@ void DocumentModel::loadDocumentAsJson(
         const QJsonObject& json,
         DocumentDelegateFactory& fact)
 {
-    const auto& doc = json["Document"].toObject();
+    const auto& doc_obj = json.find("Document");
+    if(doc_obj == json.end())
+        throw std::runtime_error(tr("Invalid document").toStdString());
+
+    const auto& doc = (*doc_obj).toObject();
     auto doc_id = fromJsonValue<Id<DocumentModel>>(doc["DocumentId"]);
 
     if(any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
