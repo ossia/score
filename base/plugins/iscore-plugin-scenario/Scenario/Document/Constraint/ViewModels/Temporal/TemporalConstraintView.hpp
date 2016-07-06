@@ -68,7 +68,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
 
         void setHeightScale(double);
         void setExecutionState(ConstraintExecutionState);
-        void setExecutionDuration(TimeValue progress);
+        void setExecutionDuration(const TimeValue& progress);
 
     signals:
         void constraintHoverEnter();

@@ -20,6 +20,10 @@ ProcessGraphicsView::ProcessGraphicsView(QGraphicsScene* parent):
     setAttribute(Qt::WA_PaintOnScreen, true);
     setAttribute(Qt::WA_OpaquePaintEvent, true);
 
+#if defined(__APPLE__)
+    setOptimizationFlags(QGraphicsView::IndirectPainting);
+#endif
+
     //m_graduations = new SceneGraduations{this};
     //scene()->addItem(m_graduations);
 
