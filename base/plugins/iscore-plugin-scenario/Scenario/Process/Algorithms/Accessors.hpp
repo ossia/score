@@ -8,7 +8,7 @@
 namespace Scenario
 {
 template<typename Scenario_T>
-auto& startState(
+StateModel& startState(
         const ConstraintModel& cst,
         const Scenario_T& scenario)
 {
@@ -16,7 +16,7 @@ auto& startState(
 }
 
 template<typename Scenario_T>
-auto& endState(
+StateModel& endState(
         const ConstraintModel& cst,
         const Scenario_T& scenario)
 {
@@ -24,7 +24,7 @@ auto& endState(
 }
 
 template<typename Scenario_T>
-const auto& startEvent(
+const EventModel& startEvent(
         const ConstraintModel& cst,
         const Scenario_T& scenario)
 {
@@ -32,7 +32,7 @@ const auto& startEvent(
 }
 
 template<typename Scenario_T>
-const auto& endEvent(
+const EventModel& endEvent(
         const ConstraintModel& cst,
         const Scenario_T& scenario)
 {
@@ -41,7 +41,7 @@ const auto& endEvent(
 
 
 template<typename Scenario_T>
-const auto& startTimeNode(
+const TimeNodeModel& startTimeNode(
         const ConstraintModel& cst,
         const Scenario_T& scenario)
 {
@@ -49,7 +49,7 @@ const auto& startTimeNode(
 }
 
 template<typename Scenario_T>
-const auto& endTimeNode(
+const TimeNodeModel& endTimeNode(
         const ConstraintModel& cst,
         const Scenario_T& scenario)
 {
@@ -58,7 +58,7 @@ const auto& endTimeNode(
 
 // Events
 template<typename Scenario_T>
-const auto& parentTimeNode(
+const TimeNodeModel& parentTimeNode(
         const EventModel& ev,
         const Scenario_T& scenario)
 {
@@ -68,7 +68,7 @@ const auto& parentTimeNode(
 
 // States
 template<typename Scenario_T>
-const auto& parentEvent(
+const EventModel& parentEvent(
         const StateModel& st,
         const Scenario_T& scenario)
 {
@@ -76,7 +76,7 @@ const auto& parentEvent(
 }
 
 template<typename Scenario_T>
-const auto& parentTimeNode(
+const TimeNodeModel& parentTimeNode(
         const StateModel& st,
         const Scenario_T& scenario)
 {
@@ -85,7 +85,7 @@ const auto& parentTimeNode(
 
 // This one is just here to allow generic facilities
 template<typename Scenario_T>
-const auto& parentTimeNode(
+const TimeNodeModel& parentTimeNode(
         const TimeNodeModel& st,
         const Scenario_T& )
 {
@@ -94,7 +94,7 @@ const auto& parentTimeNode(
 
 
 template<typename Scenario_T>
-const auto& previousConstraint(
+const ConstraintModel& previousConstraint(
         const StateModel& st,
         const Scenario_T& scenario)
 {
@@ -102,7 +102,7 @@ const auto& previousConstraint(
 }
 
 template<typename Scenario_T>
-const auto& nextConstraint(
+const ConstraintModel& nextConstraint(
         const StateModel& st,
         const Scenario_T& scenario)
 {

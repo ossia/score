@@ -38,9 +38,10 @@ class TemporalScenarioView final :
         }
 
     signals:
-        void pressed(const QPointF&);
-        void released(const QPointF&);
-        void moved(const QPointF&);
+        void pressed(QPointF);
+        void released(QPointF);
+        void moved(QPointF);
+        void doubleClick(QPointF);
 
         void clearPressed();
         void escPressed();
@@ -77,6 +78,7 @@ class TemporalScenarioView final :
         void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
         void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
         void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+        void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
         void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
         void keyPressEvent(QKeyEvent *event) override;
