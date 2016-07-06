@@ -9,6 +9,7 @@ namespace Process
 {
 LayerView::~LayerView() = default;
 
+
 QRectF LayerView::boundingRect() const
 {
     return {0, 0, m_width, m_height};

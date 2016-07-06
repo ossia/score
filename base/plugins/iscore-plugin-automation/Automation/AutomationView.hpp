@@ -6,13 +6,16 @@
 
 class QGraphicsItem;
 class QPainter;
+class QMimeData;
 
 namespace Automation
 {
 class LayerView final : public Process::LayerView
 {
+        Q_OBJECT
     public:
         explicit LayerView(QGraphicsItem *parent);
+        virtual ~LayerView();
 
         void setDisplayedName(const QString& s);
         void showName(bool b)
@@ -21,8 +24,12 @@ class LayerView final : public Process::LayerView
             update();
         }
 
+    signals:
+        void dropReceived(const QMimeData* mime);
+
     protected:
         void paint_impl(QPainter* painter) const override;
+        void dropEvent(QGraphicsSceneDragDropEvent *event) override;
 
     private:
         QString m_displayedName{};

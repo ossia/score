@@ -23,22 +23,9 @@
 #include <Automation/AutomationModel.hpp>
 namespace Scenario
 {
-void CreateCurves(
-        const QList<const Scenario::ConstraintModel*>& selected_constraints,
-        const iscore::CommandStackFacade& stack)
+static std::vector<Device::FullAddressSettings> getSelectedAddresses(
+        const iscore::DocumentContext& doc)
 {
-    if(selected_constraints.empty())
-        return;
-
-    // For each constraint, interpolate between the states in its start event and end event.
-
-    // They should all be in the same scenario so we can select the first.
-    Scenario::ProcessModel* scenar = dynamic_cast<Scenario::ProcessModel*>(
-                                selected_constraints.first()->parent());
-
-    auto& doc = iscore::IDocument::documentContext(*scenar);
-
-
     // First get the addresses
     auto& device_explorer = Explorer::deviceExplorerFromContext(doc);
 
@@ -58,9 +45,40 @@ void CreateCurves(
             }
         }
     }
+    return addresses;
 
+}
+
+void CreateCurves(
+        const QList<const Scenario::ConstraintModel*>& selected_constraints,
+        const iscore::CommandStackFacade& stack)
+{
+    if(selected_constraints.empty())
+        return;
+
+    // For each constraint, interpolate between the states in its start event and end event.
+    auto& doc = iscore::IDocument::documentContext(*selected_constraints.first());
+
+    auto addresses = getSelectedAddresses(doc);
     if(addresses.empty())
         return;
+
+    CreateCurvesFromAddresses(selected_constraints, addresses, stack);
+}
+
+void CreateCurvesFromAddresses(
+        const QList<const Scenario::ConstraintModel*>& selected_constraints,
+        const std::vector<Device::FullAddressSettings>& addresses,
+        const iscore::CommandStackFacade& stack)
+{
+    if(selected_constraints.empty())
+        return;
+
+    // They should all be in the same scenario so we can select the first.
+    // FIXME check that the other "cohesion" methods also use ScenarioInterface and not Scenario::ProcessModel
+    auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(
+                                selected_constraints.first()->parent());
+
 
     int added_processes = 0;
     // Then create the commands

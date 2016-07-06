@@ -85,6 +85,7 @@ void AddressEditWidget::dropEvent(QDropEvent* ev)
         if(!ml.empty())
         {
             setAddress(ml[0].address);
+            emit addressChanged(ml[0].address);
         }
     }
 }

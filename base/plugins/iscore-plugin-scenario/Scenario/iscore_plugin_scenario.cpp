@@ -18,6 +18,7 @@
 #include <Scenario/iscore_plugin_scenario.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/Drops/MessageDropHandler.hpp>
+#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 #include <State/Message.hpp>
 #include <QMetaType>
 #include <QString>
@@ -154,7 +155,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
     FW<iscore::PanelDelegateFactory,
         Scenario::PanelDelegateFactory>,
     FW<Scenario::DropHandler,
-        Scenario::MessageDropHandler>
+        Scenario::MessageDropHandler>,
+    FW<Scenario::ConstraintDropHandler,
+        Scenario::AutomationDropHandler>
 #if defined(ISCORE_LIB_INSPECTOR)
     ,
     FW<Inspector::InspectorWidgetFactory,
