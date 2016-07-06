@@ -9,6 +9,7 @@
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerPresenter.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
 #include <iscore/application/ApplicationContext.hpp>
+#include <iscore/tools/Clamp.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <QtGlobal>
@@ -205,68 +206,49 @@ void ScenarioDocumentPresenter::on_zoomOnWheelEvent(QPointF zoom, QPointF center
 {
     // convert the mouse displacement into a fake slider move
 
+    auto& slider = *view().zoomSlider();
     double zoomSpeed = 1.5; // experiment value
-    double newSliderPos = (view().zoomSlider()->value() +
-                           zoomSpeed * float(zoom.y())/float(view().zoomSlider()->width()));
+    double newSliderPos = (slider.value() +
+                           zoomSpeed * double(zoom.y()) / (double(slider.width() * (1. + slider.value()))));
 
-    if (newSliderPos > 1.)
-        newSliderPos = 0.99;
-    else if(newSliderPos < 0.)
-        newSliderPos = 0.01;
+    newSliderPos = clamp(newSliderPos, 0., 0.99);
 
-    view().zoomSlider()->setValue(newSliderPos);
+    slider.setValue(newSliderPos);
 
     auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
-                newSliderPos,
-                displayedConstraint().duration.defaultDuration().msec(),
-                view().view().width()
-                );
+                               newSliderPos,
+                               displayedConstraint().duration.defaultDuration().msec(),
+                               view().view().width()
+                               );
 
     updateZoom(newMillisPerPix, center);
-
 }
 
 void ScenarioDocumentPresenter::on_timeRulerScrollEvent(QPointF previous, QPointF current)
 {
-    auto delta = current - previous;
-    double zoomSpeed = 0.5; // experiment value
-    double newSliderPos = (view().zoomSlider()->value() +
-                           zoomSpeed * float(delta.y())/float(view().zoomSlider()->width()));
-
-    if (newSliderPos > 1.)
-        newSliderPos = 1;
-    else if(newSliderPos < 0.)
-        newSliderPos = 0;
-
-    view().zoomSlider()->setValue(newSliderPos);
-
-    auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
-                newSliderPos,
-                displayedConstraint().duration.defaultDuration().msec(),
-                view().view().width()
-                );
-
-    updateZoom(newMillisPerPix, delta.x());
+    view().view().scrollHorizontal(previous.x() - current.x());
 }
 
 void ScenarioDocumentPresenter::on_viewSizeChanged(const QSize &s)
 {
+    auto& gv = view().view();
     auto zoom = ZoomPolicy::sliderPosToZoomRatio(
                 view().zoomSlider()->value(),
                 displayedConstraint().duration.defaultDuration().msec(),
-                view().view().width());
+                gv.width());
 
     m_mainTimeRuler->view()->setWidth(s.width());
     updateZoom(zoom, {0,0});
 
     // update the center of view
-    displayedConstraint().fullView()->setCenter(view().view().mapToScene(view().view().viewport()->rect()).boundingRect().center());
+    displayedConstraint().fullView()->setCenter(gv.mapToScene(gv.viewport()->rect()).boundingRect().center());
 }
 
 void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 {
-    QRect viewport_rect = view().view().viewport()->rect() ;
-    QRectF visible_scene_rect = view().view().mapToScene(viewport_rect).boundingRect();
+    auto& gv = view().view();
+    QRect viewport_rect = gv.viewport()->rect() ;
+    QRectF visible_scene_rect = gv.mapToScene(viewport_rect).boundingRect();
 
     m_mainTimeRuler->setStartPoint(TimeValue::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
     displayedConstraint().fullView()->setCenter(visible_scene_rect.center());
@@ -284,13 +266,18 @@ void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
 
 void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 {
-    QRect viewport_rect = view().view().viewport()->rect() ;
-    QRectF visible_scene_rect = view().view().mapToScene(viewport_rect).boundingRect();
+    auto& gv = view().view();
+    auto& vp = *gv.viewport();
+    auto w = vp.width();
+    auto h = vp.height();
 
-    double center = focus.x();
+    QRect viewport_rect = vp.rect() ;
+    QRectF visible_scene_rect = gv.mapToScene(viewport_rect).boundingRect();
+
+    qreal center = focus.x();
     if (focus.isNull())
     {
-        center = view().view().mapToScene(viewport_rect.center()).x();
+        center = visible_scene_rect.center().x();
     }
     else if (focus.x() - visible_scene_rect.left() < 40)
     {
@@ -302,31 +289,26 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     }
 
 
+    qreal centerT = center * m_zoomRatio; // here's the old zoom
+
+    auto deltaX = center - visible_scene_rect.left();
+
+    auto y = visible_scene_rect.top();
+
     if(newZoom != m_zoomRatio)
-    {
-        auto oldZoom = m_zoomRatio;
         setMillisPerPixel(newZoom);
-        displayedConstraint().fullView()->setZoom(m_zoomRatio);
 
-        double y = visible_scene_rect.top();
-        view().view().centerOn(center * oldZoom / newZoom, y);
 
-        QRectF new_visible_scene_rect = view().view().mapToScene(view().view().viewport()->rect()).boundingRect();
+    qreal x = centerT/m_zoomRatio - deltaX;; // here's the new zoom
 
-        // TODO should call displayedElementsPresenter instead??
-        displayedConstraint().fullView()->setCenter(new_visible_scene_rect.center());
-    }
+    auto newView = QRectF{x, y,(qreal)w, (qreal)h};
 
-}
+    gv.ensureVisible(newView,0,0);
 
-void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, double dx)
-{
-    if(newZoom != m_zoomRatio)
-    {
-        displayedConstraint().fullView()->setZoom(m_zoomRatio);
-        setMillisPerPixel(newZoom);
-    }
+    QRectF new_visible_scene_rect = gv.mapToScene(vp.rect()).boundingRect();
 
-    view().view().scrollHorizontal(dx);
+    // TODO should call displayedElementsPresenter instead??
+    displayedConstraint().fullView()->setZoom(m_zoomRatio);
+    displayedConstraint().fullView()->setCenter(new_visible_scene_rect.center());
 }
 }

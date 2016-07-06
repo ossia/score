@@ -88,7 +88,6 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
 
         //void updateGrid();
         void updateZoom(ZoomRatio newZoom, QPointF focus);
-        void updateZoom(ZoomRatio newZoom, double dx);
 
         DisplayedElementsPresenter* m_scenarioPresenter{};
 

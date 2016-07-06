@@ -34,6 +34,7 @@
 #include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 #include <Scenario/Settings/Model.hpp>
+#include <QScrollBar>
 class QObject;
 
 #if defined(ISCORE_OPENGL)
@@ -136,6 +137,7 @@ ScenarioDocumentView::ScenarioDocumentView(
 
     lay->setSpacing(1);
 
+    m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(m_view, &ProcessGraphicsView::scrolled,
             this,   &ScenarioDocumentView::horizontalPositionChanged);
 
