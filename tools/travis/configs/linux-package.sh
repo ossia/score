@@ -1,6 +1,6 @@
 #!/bin/sh
-export CC=gcc-5
-export CXX=g++-5
+export CC=gcc-6
+export CXX=g++-6
 
 $CMAKE_BIN -DBOOST_ROOT="$BOOST_ROOT" -DCMAKE_PREFIX_PATH="/usr/local/jamoma/share/cmake/Jamoma;/opt/qt5-static/lib/cmake/Qt5" -DISCORE_CONFIGURATION=staticqt-release ..
 
