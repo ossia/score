@@ -58,8 +58,14 @@ class MetadataNamePropertyWrapper
             setNameFun(metadata.name());
         }
 
+        void clear()
+        {
+            node.reset();
+        }
+
         ~MetadataNamePropertyWrapper()
         {
             //node->removeCallback(m_callbackIt);
+            clear();
         }
 };

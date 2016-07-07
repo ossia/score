@@ -23,12 +23,13 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent : public iscore::Component
         auto& node() const
         { return m_thisNode.node; }
 
-    private:
+    protected:
         OSSIA::Node& thisNode() const
         { return *node(); }
         MetadataNamePropertyWrapper m_thisNode;
 };
 
+// TODO template version
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
         public iscore::GenericComponentFactory<
             Process::ProcessModel,

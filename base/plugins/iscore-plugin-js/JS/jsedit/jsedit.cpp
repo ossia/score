@@ -486,8 +486,8 @@ public:
     QPixmap rightArrowIcon;
     QPixmap downArrowIcon;
 protected:
-    void mousePressEvent(QMouseEvent *event);
-    void paintEvent(QPaintEvent *event);
+    void mousePressEvent(QMouseEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 };
 
 SidebarWidget::SidebarWidget(JSEdit *editor)

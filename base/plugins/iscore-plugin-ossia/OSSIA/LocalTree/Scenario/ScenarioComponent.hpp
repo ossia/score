@@ -11,7 +11,7 @@ namespace LocalTree
 {
 class ScenarioComponent final : public ProcessComponent
 {
-       COMPONENT_METADATA(Ossia::LocalTree::ScenarioComponent)
+       COMPONENT_METADATA("57c37324-f5a5-494e-8b45-206750d9fa77")
 
         using system_t = Ossia::LocalTree::DocumentPlugin;
         using hierarchy_t =
@@ -33,6 +33,8 @@ class ScenarioComponent final : public ProcessComponent
                system_t& doc,
                const iscore::DocumentContext& ctx,
                QObject* parent_obj);
+
+       ~ScenarioComponent();
 
        template<typename Component_T, typename Element>
        Component_T* make(

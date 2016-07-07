@@ -37,6 +37,8 @@ class BaseScenario final :
             vis.writeTo(*this);
         }
 
+        ~BaseScenario();
+
         Selection selectedChildren() const;
 
         using BaseScenarioContainer::event;

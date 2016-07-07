@@ -190,7 +190,7 @@ void PluginSettingsView::handleAddon(const QJsonObject& obj)
         { "long",    [&] (QJsonValue v) { add.longDescription = v.toString(); } },
         { "small",   [&] (QJsonValue v) { smallImage = v.toString(); } },
         { "large",   [&] (QJsonValue v) { largeImage = v.toString(); } },
-        { "key",     [&] (QJsonValue v) { add.key = UuidKey<iscore::Addon>(v.toString().toLatin1().constData()); } }
+        { "key",     [&] (QJsonValue v) { add.key = UuidKey<iscore::Addon>::fromString(v.toString()); } }
     };
 
     // Add metadata keys

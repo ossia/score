@@ -4,12 +4,11 @@
 namespace iscore
 {
 
-#define COMPONENT_METADATA(TheType) \
+#define COMPONENT_METADATA(Uuid) \
     public: \
     static const Component::Key& static_key() { \
-      static const Component::Key& s \
-      { #TheType }; \
-      return s; \
+        static const constexpr Component::Key s{Uuid}; \
+        return s; \
     } \
     \
     const Component::Key& key() const final override { \
@@ -18,7 +17,8 @@ namespace iscore
     private:
 
 
-class ISCORE_LIB_BASE_EXPORT Component : public IdentifiedObject<Component>
+class ISCORE_LIB_BASE_EXPORT Component :
+        public IdentifiedObject<Component>
 {
     public:
         using IdentifiedObject<Component>::IdentifiedObject;
@@ -29,4 +29,36 @@ class ISCORE_LIB_BASE_EXPORT Component : public IdentifiedObject<Component>
 };
 
 using Components = NotifyingMap<Component>;
+
+template<typename T>
+auto& component(const iscore::Components& c)
+{
+    static_assert(T::is_unique, "Components must be unique to use getComponent");
+
+    auto it = find_if(c, [] (auto& other) {
+        return T::static_key() == other.key();
+    });
+
+    ISCORE_ASSERT(it != c.end());
+    return static_cast<T&>(*it);
+}
+
+template<typename T>
+auto findComponent(const iscore::Components& c)
+{
+    static_assert(T::is_unique, "Components must be unique to use getComponent");
+
+    auto it = find_if(c, [] (auto& other) {
+        return T::static_key() == other.key();
+    });
+
+    if(it != c.end())
+    {
+        return static_cast<T*>(&*it);
+    }
+    else
+    {
+        return (T*)nullptr;
+    }
+}
 }

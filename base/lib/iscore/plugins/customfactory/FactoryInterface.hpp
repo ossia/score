@@ -38,7 +38,7 @@ using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
 #define ISCORE_ABSTRACT_FACTORY_DECL(Type, Uuid) \
     public: \
     static const iscore::AbstractFactoryKey& static_abstractFactoryKey() { \
-        static const iscore::AbstractFactoryKey s{boost::uuids::string_generator{}(Uuid)}; \
+        static const constexpr iscore::AbstractFactoryKey s{Uuid}; \
         return s; \
     } \
     \
@@ -54,7 +54,7 @@ using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
 #define ISCORE_CONCRETE_FACTORY_DECL(Uuid) \
     public: \
     static const auto& static_concreteFactoryKey() { \
-        static const ConcreteFactoryKey id{boost::uuids::string_generator{}(Uuid)}; \
+        static const constexpr ConcreteFactoryKey id{Uuid}; \
         return id; \
     } \
     \

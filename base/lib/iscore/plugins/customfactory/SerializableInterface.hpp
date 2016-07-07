@@ -56,13 +56,13 @@ class SerializableInterface
 template<typename Type>
 Type deserialize_key(Deserializer<JSONObject>& des)
 {
-    return fromJsonValue<boost::uuids::uuid>(des.m_obj["uuid"]);;
+    return fromJsonValue<iscore::uuid_t>(des.m_obj["uuid"]);;
 }
 
 template<typename Type>
 Type deserialize_key(Deserializer<DataStream>& des)
 {
-    boost::uuids::uuid uid;
+    iscore::uuid_t uid;
     des.writeTo(uid);
     return uid;
 }

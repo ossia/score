@@ -67,6 +67,27 @@ void BaseScenarioContainer::init(const BaseScenarioContainer& source)
     SetNextConstraint(*m_startState, *m_constraint);
 }
 
+void BaseScenarioContainer::clear()
+{
+    delete m_constraint;
+    m_constraint = nullptr;
+
+    delete m_startState;
+    m_startState = nullptr;
+    delete m_endState;
+    m_endState = nullptr;
+
+    delete m_startEvent;
+    m_startEvent = nullptr;
+    delete m_endEvent;
+    m_endEvent = nullptr;
+
+    delete m_startNode;
+    m_startNode = nullptr;
+    delete m_endNode;
+    m_endNode = nullptr;
+}
+
 ConstraintModel* BaseScenarioContainer::findConstraint(
         const Id<ConstraintModel>& id) const
 {

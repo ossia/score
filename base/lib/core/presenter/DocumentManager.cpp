@@ -513,7 +513,7 @@ bool DocumentManager::checkAndUpdateJson(
             auto plugin_key_it = plugin_obj.find("Key");
             if(plugin_key_it == plugin_obj.end())
                 continue;
-            UuidKey<iscore::Plugin> plugin_key = (*plugin_key_it).toString().toUtf8().constData();
+            auto plugin_key = UuidKey<iscore::Plugin>::fromString((*plugin_key_it).toString());
 
             Version plugin_version{0};
             auto plugin_ver_it = plugin_obj.find("Version");
