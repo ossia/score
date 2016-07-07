@@ -27,6 +27,8 @@ const iscore::Component::Key&StateComponent::key() const
 
 StateComponent::~StateComponent()
 {
+    m_properties.clear();
+    m_thisNode.clear();
 }
 
 }

@@ -86,12 +86,18 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
             pair.process.components.remove(pair.component);
         }
 
-        ~ConstraintComponentHierarchyManager()
+        void clear()
         {
             for(ProcessPair element : m_children)
             {
                 remove(element);
             }
+            m_children.clear();
+        }
+
+        ~ConstraintComponentHierarchyManager()
+        {
+            clear();
         }
 
 

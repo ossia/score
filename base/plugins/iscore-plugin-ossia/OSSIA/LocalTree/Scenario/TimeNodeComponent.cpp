@@ -34,6 +34,8 @@ const iscore::Component::Key&TimeNodeComponent::key() const
 
 TimeNodeComponent::~TimeNodeComponent()
 {
+    m_properties.clear();
+    m_thisNode.clear();
 }
 
 }

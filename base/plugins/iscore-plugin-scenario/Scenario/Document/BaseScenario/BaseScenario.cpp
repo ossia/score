@@ -29,6 +29,11 @@ BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
     m_endNode->trigger()->setActive(true);
 }
 
+BaseScenario::~BaseScenario()
+{
+    BaseScenarioContainer::clear();
+}
+
 Selection BaseScenario::selectedChildren() const
 {
     Selection s;

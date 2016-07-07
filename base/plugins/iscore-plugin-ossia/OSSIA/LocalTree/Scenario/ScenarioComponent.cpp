@@ -23,6 +23,20 @@ ScenarioComponent::ScenarioComponent(
     make_metadata_node(scenario.metadata, *node(), m_properties, this);
 }
 
+ScenarioComponent::~ScenarioComponent()
+{
+    m_hm.clear();
+
+    m_properties.clear();
+
+    m_constraintsNode.reset();
+    m_eventsNode.reset();
+    m_timeNodesNode.reset();
+    m_statesNode.reset();
+
+    m_thisNode.clear();
+}
+
 template<>
 ConstraintComponent* ScenarioComponent::make<ConstraintComponent, Scenario::ConstraintModel>(
         const Id<iscore::Component>& id,

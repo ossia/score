@@ -26,6 +26,8 @@ const iscore::Component::Key&EventComponent::key() const
 
 EventComponent::~EventComponent()
 {
+    m_properties.clear();
+    m_thisNode.clear();
 }
 
 }

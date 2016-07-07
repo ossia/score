@@ -14,6 +14,8 @@
 #include <iscore/tools/std/Algorithms.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
+#include <boost/container/static_vector.hpp>
+
 template<
         typename Component_T,
         typename System_T,
@@ -77,7 +79,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         const std::list<TimeNodePair>& timeNodes() const
         { return m_timeNodes; }
 
-        ~ScenarioComponentHierarchyManager()
+        void clear()
         {
             for(auto element : m_constraints)
                 cleanup(element);
@@ -87,6 +89,16 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
                 cleanup(element);
             for(auto element : m_timeNodes)
                 cleanup(element);
+
+            m_constraints.clear();
+            m_events.clear();
+            m_states.clear();
+            m_timeNodes.clear();
+        }
+
+        ~ScenarioComponentHierarchyManager()
+        {
+            clear();
         }
 
     private:
@@ -246,10 +258,10 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
             m_component{component},
             m_context{ctx},
             m_parentObject{parentcomp},
-            m_constraints{{setup<Scenario::ConstraintModel>(0)}},
-            m_events{{setup<Scenario::EventModel>(0), setup<Scenario::EventModel>(1)}},
-            m_timeNodes{{setup<Scenario::TimeNodeModel>(0), setup<Scenario::TimeNodeModel>(1)}},
-            m_states{{setup<Scenario::StateModel>(0), setup<Scenario::StateModel>(1)}}
+            m_constraints{setup<Scenario::ConstraintModel>(0)},
+            m_events{setup<Scenario::EventModel>(0), setup<Scenario::EventModel>(1)},
+            m_timeNodes{setup<Scenario::TimeNodeModel>(0), setup<Scenario::TimeNodeModel>(1)},
+            m_states{setup<Scenario::StateModel>(0), setup<Scenario::StateModel>(1)}
         {
         }
 
@@ -262,7 +274,7 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
         const auto& timeNodes() const
         { return m_timeNodes; }
 
-        ~BaseScenarioComponentHierarchyManager()
+        void clear()
         {
             for(auto element : m_constraints)
                 cleanup(element);
@@ -272,6 +284,16 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
                 cleanup(element);
             for(auto element : m_timeNodes)
                 cleanup(element);
+
+            m_constraints.clear();
+            m_events.clear();
+            m_states.clear();
+            m_timeNodes.clear();
+        }
+
+        ~BaseScenarioComponentHierarchyManager()
+        {
+            clear();
         }
 
     private:
@@ -335,11 +357,10 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
         const iscore::DocumentContext& m_context;
         QObject* m_parentObject{};
 
-
-        std::array<ConstraintPair, 1> m_constraints;
-        std::array<EventPair, 2> m_events;
-        std::array<TimeNodePair, 2> m_timeNodes;
-        std::array<StatePair, 2> m_states;
+        std::list<ConstraintPair> m_constraints;
+        std::list<EventPair> m_events;
+        std::list<TimeNodePair> m_timeNodes;
+        std::list<StatePair> m_states;
 
         template<bool dummy>
         struct MatchingComponent<Scenario::ConstraintModel, dummy> {

@@ -205,7 +205,7 @@ static optional<iscore::Addon> makeAddon(
         { "url",     [&] (QJsonValue v) { add.latestVersionAddress = v.toString(); } },
         { "short",   [&] (QJsonValue v) { add.shortDescription = v.toString(); } },
         { "long",    [&] (QJsonValue v) { add.longDescription = v.toString(); } },
-        { "key",     [&] (QJsonValue v) { add.key = UuidKey<Addon>(v.toString().toLatin1().constData()); } },
+        { "key",     [&] (QJsonValue v) { add.key = UuidKey<Addon>::fromString(v.toString()); } },
         { "small",   [&] (QJsonValue v) { add.smallImage = QImage{v.toString()}; } },
         { "large",   [&] (QJsonValue v) { add.largeImage = QImage{v.toString()}; } }
     };

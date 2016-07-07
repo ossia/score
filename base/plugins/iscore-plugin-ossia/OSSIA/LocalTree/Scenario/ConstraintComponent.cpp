@@ -6,15 +6,6 @@ namespace Ossia
 {
 namespace LocalTree
 {
-
-
-const iscore::Component::Key&ConstraintComponent::key() const
-{
-    static const Key k{"Ossia::LocalTree::ConstraintComponent"};
-    return k;
-}
-
-
 ConstraintComponent::ConstraintComponent(
         OSSIA::Node& parent,
         const Id<iscore::Component>& id,
@@ -72,6 +63,12 @@ ConstraintComponent::ConstraintComponent(
 
 ConstraintComponent::~ConstraintComponent()
 {
+    // TODO do the same everywhere
+    m_baseComponent.clear();
+    m_properties.clear();
+
+    m_processesNode.reset();
+    m_thisNode.clear();
 }
 
 

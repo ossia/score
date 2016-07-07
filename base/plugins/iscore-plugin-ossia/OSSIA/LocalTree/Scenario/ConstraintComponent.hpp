@@ -9,6 +9,7 @@ namespace LocalTree
 class ConstraintComponent final :
         public iscore::Component
 {
+        COMPONENT_METADATA("11d928b5-eaeb-471c-b3b7-dc453180b10f")
     public:
         using system_t = Ossia::LocalTree::DocumentPlugin;
         using process_component_t = Ossia::LocalTree::ProcessComponent;
@@ -21,8 +22,6 @@ class ConstraintComponent final :
             process_component_t,
             process_component_factory_list_t
         >;
-
-        const Key& key() const override;
 
         ConstraintComponent(
                 OSSIA::Node& parent,

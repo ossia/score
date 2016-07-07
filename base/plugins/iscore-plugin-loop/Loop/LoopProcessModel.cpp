@@ -79,6 +79,8 @@ ProcessModel::~ProcessModel()
     for(auto comp : components.map().get())
         delete comp;
 
+    BaseScenarioContainer::clear();
+
     delete pluginModelList;
 }
 

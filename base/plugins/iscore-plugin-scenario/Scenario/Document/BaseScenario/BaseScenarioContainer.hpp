@@ -37,6 +37,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer :
         void init();
         void init(const BaseScenarioContainer&); // clone
 
+        void clear(); // To be called in subclasses or by users of this class.
+
         ElementContainer<ConstraintModel> getConstraints() const override
         { return {m_constraint}; }
         ElementContainer<StateModel> getStates() const override
