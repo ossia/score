@@ -174,7 +174,7 @@ struct string_generator {
         template<int N>
         static constexpr uuid compute(const char (&s)[N]) {
             if(N != 37)
-                throw_uuid();
+                throw std::runtime_error{"Invalid uuid"};
             return compute(s, s + N);
         }
 
@@ -210,7 +210,7 @@ struct string_generator {
                         if (is_dash(c)) {
                             c = get_next_char(begin, end);
                         } else {
-                            throw_uuid();
+                            throw std::runtime_error{"Invalid uuid"};
                         }
                     }
                 }
@@ -230,7 +230,7 @@ struct string_generator {
         static constexpr auto get_next_char(CharIterator& begin, CharIterator end)
         {
             if (begin == end) {
-                throw;
+                throw std::runtime_error{"Invalid uuid"};
             }
             return *begin++;
         }
@@ -253,7 +253,7 @@ struct string_generator {
 
             if(!found)
             {
-                throw_uuid();
+                throw std::runtime_error{"Invalid uuid"};
             }
             return -1;
         }
@@ -267,11 +267,6 @@ struct string_generator {
         }
         static constexpr bool is_dash(QChar c) {
             return c.toLatin1() == '-';
-        }
-
-        static void throw_uuid()
-        {
-            throw std::runtime_error{"Invalid uuid"};
         }
 };
 }
