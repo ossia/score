@@ -35,10 +35,9 @@ ProcessComponent*ConstraintComponent::make_processComponent(
         ProcessComponentFactory& factory,
         Process::ProcessModel& process,
         const DocumentPlugin& system,
-        const iscore::DocumentContext& ctx,
         QObject* parent_component)
 {
-    return factory.make(id, process, system, ctx, parent_component);
+    return factory.make(id, process, system, parent_component);
 }
 
 

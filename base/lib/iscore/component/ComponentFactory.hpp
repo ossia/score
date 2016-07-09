@@ -17,8 +17,7 @@ class GenericComponentFactory :
     public:
         virtual bool matches(
                 Model_T&,
-                const System_T&,
-                const iscore::DocumentContext&) const = 0;
+                const System_T&) const = 0;
 };
 
 
@@ -32,12 +31,11 @@ class GenericComponentFactoryList final :
     public:
         Factory_T* factory(
                 Model_T& model,
-                const System_T& doc,
-                const iscore::DocumentContext& ctx) const
+                const System_T& doc) const
         {
             for(auto& factory : *this)
             {
-                if(factory.matches(model, doc, ctx))
+                if(factory.matches(model, doc))
                 {
                     return &factory;
                 }

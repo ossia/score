@@ -114,8 +114,7 @@ ProcessComponentFactory::concreteFactoryKey() const
 
 bool ProcessComponentFactory::matches(
         Process::ProcessModel& proc,
-        const RecreateOnPlay::DocumentPlugin&,
-        const iscore::DocumentContext&) const
+        const RecreateOnPlay::DocumentPlugin&) const
 {
     return dynamic_cast<JS::ProcessModel*>(&proc);
 }

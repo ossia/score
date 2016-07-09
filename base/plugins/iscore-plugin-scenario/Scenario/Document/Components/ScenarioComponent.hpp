@@ -55,13 +55,11 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
                 Component_T& component,
                 Scenario_T& scenar,
                 System_T& doc,
-                const iscore::DocumentContext& ctx,
                 QObject* parentcomp
                 ):
             scenario{scenar},
             system{doc},
             m_component{component},
-            m_context{ctx},
             m_parentObject{parentcomp}
         {
             setup<Scenario::ConstraintModel>();
@@ -141,7 +139,6 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
                             getStrongId(element.components),
                             element,
                             system,
-                            m_context,
                             m_parentObject);
             if(comp)
             {
@@ -169,8 +166,6 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
 
 
         Component_T& m_component;
-
-        const iscore::DocumentContext& m_context;
         QObject* m_parentObject{};
 
 
@@ -250,13 +245,11 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
                 Component_T& component,
                 BaseScenario_T& scenar,
                 System_T& doc,
-                const iscore::DocumentContext& ctx,
                 QObject* parentcomp
                 ):
             scenario{scenar},
             system{doc},
             m_component{component},
-            m_context{ctx},
             m_parentObject{parentcomp},
             m_constraints{setup<Scenario::ConstraintModel>(0)},
             m_events{setup<Scenario::EventModel>(0), setup<Scenario::EventModel>(1)},
@@ -326,7 +319,6 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
                             getStrongId(element.components),
                             element,
                             system,
-                            m_context,
                             m_parentObject);
 
             ISCORE_ASSERT(comp);
@@ -354,7 +346,6 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
 
         Component_T& m_component;
 
-        const iscore::DocumentContext& m_context;
         QObject* m_parentObject{};
 
         std::list<ConstraintPair> m_constraints;

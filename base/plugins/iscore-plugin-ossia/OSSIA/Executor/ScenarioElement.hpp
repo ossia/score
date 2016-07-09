@@ -111,8 +111,7 @@ class ScenarioComponentFactory final :
 
         bool matches(
                 Process::ProcessModel&,
-                const DocumentPlugin&,
-                const iscore::DocumentContext &) const override;
+                const DocumentPlugin&) const override;
 
     public:
         virtual ~ScenarioComponentFactory();

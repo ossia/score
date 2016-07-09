@@ -340,8 +340,7 @@ ProcessComponent *ScenarioComponentFactory::make(
 
 bool ScenarioComponentFactory::matches(
         Process::ProcessModel& proc,
-        const DocumentPlugin &,
-        const iscore::DocumentContext &) const
+        const DocumentPlugin &) const
 {
     return dynamic_cast<Scenario::ProcessModel*>(&proc);
 }

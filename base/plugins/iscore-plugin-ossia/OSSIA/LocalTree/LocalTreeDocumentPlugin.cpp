@@ -79,7 +79,6 @@ void Ossia::LocalTree::DocumentPlugin::create()
                 getStrongId(cstr.components),
                 cstr,
                 *this,
-                m_context,
                 this);
     cstr.components.add(m_root);
 }
