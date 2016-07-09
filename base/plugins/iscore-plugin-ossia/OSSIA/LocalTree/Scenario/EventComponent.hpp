@@ -9,14 +9,14 @@ namespace Ossia
 {
 namespace LocalTree
 {
-class EventComponent final :
+class Event final :
         public iscore::Component
 {
 
     public:
         using system_t = Ossia::LocalTree::DocumentPlugin;
 
-        EventComponent(
+        Event(
                 OSSIA::Node& parent,
                 const Id<Component>& id,
                 Scenario::EventModel& event,
@@ -28,7 +28,7 @@ class EventComponent final :
         auto& node() const
         { return m_thisNode.node; }
 
-        ~EventComponent();
+        ~Event();
 
     private:
         OSSIA::Node& thisNode() const

@@ -18,7 +18,6 @@
 
 template<
         typename Component_T,
-        typename System_T,
         typename Scenario_T,
         typename ConstraintComponent_T,
         typename EventComponent_T,
@@ -93,7 +92,6 @@ class HierarchicalScenarioComponent :
         }
 
     private:
-
         template<typename T, bool dummy = true>
         struct MatchingComponent;
 
@@ -108,7 +106,7 @@ class HierarchicalScenarioComponent :
         void setup()
         {
             using map_t = MatchingComponent<elt_t, true>;
-            auto&& member = map_t::scenario_container(this->process());
+            auto&& member = map_t::scenario_container(Component_T::process());
 
             for(auto& elt : member)
             {
@@ -130,8 +128,7 @@ class HierarchicalScenarioComponent :
             using map_t = MatchingComponent<elt_t, true>;
             auto comp = Component_T::template make<typename map_t::type>(
                             getStrongId(element.components),
-                            element,
-                            this);
+                            element);
             if(comp)
             {
                 element.components.add(comp);
@@ -194,7 +191,6 @@ class HierarchicalScenarioComponent :
 
 template<
         typename Component_T,
-        typename System_T,
         typename BaseScenario_T,
         typename ConstraintComponent_T,
         typename EventComponent_T,
@@ -275,7 +271,7 @@ class HierarchicalBaseScenario :
         template<typename Pair_T>
         void cleanup(const Pair_T& pair)
         {
-            this->removing(pair.element, pair.component);
+            Component_T::removing(pair.element, pair.component);
             pair.element.components.remove(pair.component);
         }
 
@@ -293,10 +289,9 @@ class HierarchicalBaseScenario :
         auto add(elt_t& element, int pos)
         {
             using map_t = MatchingComponent<elt_t, true>;
-            auto comp = this->template make<typename map_t::type>(
+            auto comp = Component_T::template make<typename map_t::type>(
                             getStrongId(element.components),
-                            element,
-                            this);
+                            element);
 
             ISCORE_ASSERT(comp);
             element.components.add(comp);

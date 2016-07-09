@@ -5,11 +5,11 @@ namespace Ossia
 {
 namespace LocalTree
 {
-EventComponent::EventComponent(
+Event::Event(
         OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         Scenario::EventModel& event,
-        const EventComponent::system_t& doc,
+        const Event::system_t& doc,
         QObject* parent_comp):
     Component{id, "EventComponent", parent_comp},
     m_thisNode{parent, event.metadata, this}
@@ -17,13 +17,13 @@ EventComponent::EventComponent(
     make_metadata_node(event.metadata, thisNode(), m_properties, this);
 }
 
-const iscore::Component::Key&EventComponent::key() const
+const iscore::Component::Key&Event::key() const
 {
     static const Key k{"Ossia::LocalTree::EventComponent"};
     return k;
 }
 
-EventComponent::~EventComponent()
+Event::~Event()
 {
     m_properties.clear();
     m_thisNode.clear();

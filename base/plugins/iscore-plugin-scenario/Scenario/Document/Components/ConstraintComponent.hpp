@@ -3,60 +3,104 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
-template<
-        typename Component_T,
-        typename System_T,
-        typename ProcessComponent_T,
-        typename ProcessComponentFactoryList_T>
-class ConstraintComponentHierarchyManager : public Nano::Observer
+namespace Scenario
+{
+
+template<typename Component_T>
+class ConstraintComponent :
+        public Component_T
 {
     public:
+        template<typename... Args>
+        ConstraintComponent(Scenario::ConstraintModel& cst, Args&&... args):
+            Component_T{std::forward<Args>(args)...},
+            m_constraint{cst}
+        {
+
+        }
+
+        Scenario::ConstraintModel& constraint() const
+        { return m_constraint; }
+
+    private:
+        Scenario::ConstraintModel& m_constraint;
+};
+
+template<typename Component_T>
+class ProcessComponent :
+        public Component_T
+{
+    public:
+        template<typename... Args>
+        ProcessComponent(Process::ProcessModel& cst, Args&&... args):
+            Component_T{std::forward<Args>(args)...},
+            m_process{cst}
+        {
+
+        }
+
+        Process::ProcessModel& process() const
+        { return m_process; }
+
+    private:
+        Process::ProcessModel& m_process;
+};
+
+template<typename System_T>
+using GenericConstraintComponent = Scenario::ConstraintComponent<iscore::SystemComponent<iscore::Component, System_T>>;
+template<typename System_T>
+using GenericProcessComponent = Scenario::ProcessComponent<iscore::SystemComponent<iscore::Component, System_T>>;
+}
+
+// TODO put it in namespace, too
+template<
+        typename Component_T,
+        typename ProcessComponent_T,
+        typename ProcessComponentFactoryList_T>
+class ConstraintComponentHierarchyManager :
+        public Component_T,
+        public Nano::Observer
+{
+    public:
+        using hierarchy_t = ConstraintComponentHierarchyManager;
         struct ProcessPair {
                 Process::ProcessModel& process;
                 ProcessComponent_T& component;
         };
 
-        Scenario::ConstraintModel& constraint;
-        System_T& system;
-
-        ConstraintComponentHierarchyManager(
-                Component_T& component,
-                Scenario::ConstraintModel& cst,
-                System_T& doc,
-                QObject* component_as_parent):
-            constraint{cst},
-            system{doc},
-            m_component{component},
-            m_componentFactory{doc.context().app.components.template factory<ProcessComponentFactoryList_T>()},
-            m_parentObject{component_as_parent}
+        template<typename... Args>
+        ConstraintComponentHierarchyManager(Args&&... args):
+            Component_T{std::forward<Args>(args)...},
+            m_componentFactory{Component_T::system().context().app.components.template factory<ProcessComponentFactoryList_T>()}
         {
-            for(auto& process : constraint.processes)
+            auto& processes = Component_T::constraint().processes;
+            for(auto& process : processes)
             {
                 add(process);
             }
-
-            constraint.processes.mutable_added.connect<
+            ISCORE_TODO;
+/*
+            processes.mutable_added.connect<
                     ConstraintComponentHierarchyManager,
                     &ConstraintComponentHierarchyManager::add>(this);
 
-            constraint.processes.removing.connect<
+            processes.removing.connect<
                     ConstraintComponentHierarchyManager,
-                    &ConstraintComponentHierarchyManager::remove>(this);
+                    &ConstraintComponentHierarchyManager::remove>(this);*/
         }
 
-        const std::list<ProcessPair>& processes() const
+        auto& processes() const
         { return m_children; }
 
         void add(Process::ProcessModel& process)
         {
             // Will return a factory for the given process if available
-            if(auto factory = m_componentFactory.factory(process, system))
+            if(auto factory = m_componentFactory.factory(process, Component_T::system()))
             {
                 // The subclass should provide this function to construct
                 // the correct component relative to this process.
-                auto proc_comp = m_component.make_processComponent(
-                                     getStrongId(process.components),
-                                     *factory, process, system, m_parentObject);
+                auto proc_comp = Component_T::make_processComponent(
+                            getStrongId(process.components), *factory, process);
                 if(proc_comp)
                 {
                     process.components.add(proc_comp);
@@ -80,7 +124,7 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
 
         void remove(const ProcessPair& pair)
         {
-            m_component.removing(pair.process, pair.component);
+            Component_T::removing(pair.process, pair.component);
             pair.process.components.remove(pair.component);
         }
 
@@ -100,10 +144,7 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
 
 
     private:
-        Component_T& m_component;
         const ProcessComponentFactoryList_T& m_componentFactory;
-
-        QObject* m_parentObject{};
 
         std::list<ProcessPair> m_children; // todo map ? multi_index with both index of the component and of the process ?
 };

@@ -6,16 +6,15 @@ namespace Ossia
 {
 namespace LocalTree
 {
-ConstraintComponent::ConstraintComponent(
+ConstraintBase::ConstraintBase(
         OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         Scenario::ConstraintModel& constraint,
-        ConstraintComponent::system_t& doc,
+        ConstraintBase::system_t& doc,
         QObject* parent_comp):
-    Component{id, "ConstraintComponent", parent_comp},
+    parent_t{constraint, doc, id, "ConstraintComponent", parent_comp},
     m_thisNode{parent, constraint.metadata, this},
-    m_processesNode{add_node(thisNode(), "processes")},
-    m_baseComponent{*this, constraint, doc, this}
+    m_processesNode{add_node(thisNode(), "processes")}
 {
     using namespace Scenario;
     using tv_t = ::TimeValue;
@@ -60,10 +59,8 @@ ConstraintComponent::ConstraintComponent(
                            this));
 }
 
-ConstraintComponent::~ConstraintComponent()
+ConstraintBase::~ConstraintBase()
 {
-    // TODO do the same everywhere
-    m_baseComponent.clear();
     m_properties.clear();
 
     m_processesNode.reset();
@@ -71,18 +68,16 @@ ConstraintComponent::~ConstraintComponent()
 }
 
 
-ProcessComponent*ConstraintComponent::make_processComponent(
+ProcessComponent*ConstraintBase::make_processComponent(
         const Id<iscore::Component>& id,
         ProcessComponentFactory& factory,
-        Process::ProcessModel& process,
-        DocumentPlugin& system,
-        QObject* parent_component)
+        Process::ProcessModel& process)
 {
-    return factory.make(id, *m_processesNode, process, system, parent_component);
+    return factory.make(id, *m_processesNode, process, system(), this);
 }
 
 
-void ConstraintComponent::removing(
+void ConstraintBase::removing(
         const Process::ProcessModel& cst,
         const ProcessComponent& comp)
 {

@@ -9,13 +9,13 @@ namespace Ossia
 {
 namespace LocalTree
 {
-class StateComponent final :
+class State final :
         public iscore::Component
 {
     public:
         using system_t = Ossia::LocalTree::DocumentPlugin;
 
-        StateComponent(
+        State(
                 OSSIA::Node& parent,
                 const Id<iscore::Component>& id,
                 Scenario::StateModel& state,
@@ -26,7 +26,7 @@ class StateComponent final :
 
         auto& node() const
         { return m_thisNode.node; }
-        ~StateComponent();
+        ~State();
 
     private:
         OSSIA::Node& thisNode() const

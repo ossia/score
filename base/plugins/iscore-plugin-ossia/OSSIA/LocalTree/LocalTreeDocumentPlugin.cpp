@@ -74,7 +74,7 @@ void Ossia::LocalTree::DocumentPlugin::create()
                       &doc);
     ISCORE_ASSERT(scenar);
     auto& cstr = scenar->baseScenario().constraint();
-    m_root = new ConstraintComponent(
+    m_root = new Constraint(
                 *m_localDevice,
                 getStrongId(cstr.components),
                 cstr,
