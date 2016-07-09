@@ -10,7 +10,6 @@ EventComponent::EventComponent(
         const Id<iscore::Component>& id,
         Scenario::EventModel& event,
         const EventComponent::system_t& doc,
-        const iscore::DocumentContext& ctx,
         QObject* parent_comp):
     Component{id, "EventComponent", parent_comp},
     m_thisNode{parent, event.metadata, this}

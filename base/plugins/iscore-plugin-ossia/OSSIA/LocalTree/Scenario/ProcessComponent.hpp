@@ -12,6 +12,8 @@ namespace LocalTree
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent : public iscore::Component
 {
     public:
+        const Process::ProcessModel& process;
+
         ProcessComponent(
                 OSSIA::Node& node,
                 Process::ProcessModel& proc,
@@ -29,7 +31,17 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent : public iscore::Component
         MetadataNamePropertyWrapper m_thisNode;
 };
 
-// TODO template version
+template<typename Process_T>
+class ProcessComponent_T : public ProcessComponent
+{
+    public:
+        using ProcessComponent::ProcessComponent;
+
+        const Process_T& process() const
+        { return static_cast<const Process_T&>(ProcessComponent::process); }
+};
+
+
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
         public iscore::GenericComponentFactory<
             Process::ProcessModel,
@@ -46,8 +58,34 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
                 OSSIA::Node& parent,
                 Process::ProcessModel& proc,
                 LocalTree::DocumentPlugin& doc,
-                const iscore::DocumentContext& ctx,
                 QObject* paren_objt) const = 0;
+};
+
+template<
+        typename ProcessComponent_T,
+        typename Process_T>
+class ProcessComponentFactory_T :
+        public ProcessComponentFactory
+{
+    public:
+        virtual ~ProcessComponentFactory_T() = default;
+
+        bool matches(
+                Process::ProcessModel& p,
+                const DocumentPlugin&) const override
+        {
+            return dynamic_cast<Process_T*>(&p);
+        }
+
+        ProcessComponent* make(
+                const Id<iscore::Component>& id,
+                OSSIA::Node& parent,
+                Process::ProcessModel& proc,
+                DocumentPlugin& doc,
+                QObject* paren_objt) const override
+        {
+            return new ProcessComponent_T{id, parent, static_cast<Process_T&>(proc), doc, paren_objt};
+        }
 };
 
 using ProcessComponentFactoryList =
@@ -57,3 +95,11 @@ using ProcessComponentFactoryList =
             LocalTree::ProcessComponentFactory>;
 }
 }
+
+
+#define LOCALTREE_PROCESS_COMPONENT_FACTORY(FactoryName, Uuid, ProcessComponent, Process) \
+class FactoryName final : \
+        public Ossia::LocalTree::ProcessComponentFactory_T<ProcessComponent, Process> \
+{ \
+        ISCORE_CONCRETE_FACTORY_DECL(Uuid)  \
+};

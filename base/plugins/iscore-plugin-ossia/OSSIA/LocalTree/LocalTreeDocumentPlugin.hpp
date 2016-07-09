@@ -29,7 +29,8 @@ namespace Ossia
 namespace LocalTree
 {
 class ConstraintComponent;
-class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin : public iscore::DocumentPlugin
+class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin :
+        public iscore::DocumentPlugin
 {
     public:
         DocumentPlugin(

@@ -214,7 +214,7 @@ void ConstraintElement::on_processAdded(
     // TODO maybe have an execution_view template on processes, that
     // gives correct const / non_const access ?
     auto proc = const_cast<Process::ProcessModel*>(&iscore_proc);
-    auto fac = m_ctx.processes.factory(*proc, m_ctx.sys, m_ctx.doc);
+    auto fac = m_ctx.processes.factory(*proc, m_ctx.sys);
     if(fac)
     {
         auto plug = fac->make(*this, *proc, m_ctx, getStrongId(iscore_proc.components), this);

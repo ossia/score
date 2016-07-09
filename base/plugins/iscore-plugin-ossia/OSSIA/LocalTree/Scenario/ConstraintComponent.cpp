@@ -11,12 +11,11 @@ ConstraintComponent::ConstraintComponent(
         const Id<iscore::Component>& id,
         Scenario::ConstraintModel& constraint,
         ConstraintComponent::system_t& doc,
-        const iscore::DocumentContext& ctx,
         QObject* parent_comp):
     Component{id, "ConstraintComponent", parent_comp},
     m_thisNode{parent, constraint.metadata, this},
     m_processesNode{add_node(thisNode(), "processes")},
-    m_baseComponent{*this, constraint, doc, ctx, this}
+    m_baseComponent{*this, constraint, doc, this}
 {
     using namespace Scenario;
     using tv_t = ::TimeValue;
@@ -77,10 +76,9 @@ ProcessComponent*ConstraintComponent::make_processComponent(
         ProcessComponentFactory& factory,
         Process::ProcessModel& process,
         DocumentPlugin& system,
-        const iscore::DocumentContext& ctx,
         QObject* parent_component)
 {
-    return factory.make(id, *m_processesNode, process, system, ctx, parent_component);
+    return factory.make(id, *m_processesNode, process, system, parent_component);
 }
 
 

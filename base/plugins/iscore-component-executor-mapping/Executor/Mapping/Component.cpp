@@ -221,8 +221,7 @@ ComponentFactory::concreteFactoryKey() const
 
 bool ComponentFactory::matches(
         Process::ProcessModel& proc,
-        const DocumentPlugin&,
-        const iscore::DocumentContext&) const
+        const DocumentPlugin&) const
 {
     return dynamic_cast<::Mapping::ProcessModel*>(&proc);
 }

@@ -11,7 +11,6 @@ StateComponent::StateComponent(
         const Id<iscore::Component>& id,
         Scenario::StateModel& state,
         const StateComponent::system_t& doc,
-        const iscore::DocumentContext& ctx,
         QObject* parent_comp):
     Component{id, "StateComponent", parent_comp},
     m_thisNode{parent, state.metadata, this}

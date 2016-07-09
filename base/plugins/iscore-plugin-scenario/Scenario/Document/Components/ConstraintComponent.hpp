@@ -23,13 +23,11 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
                 Component_T& component,
                 Scenario::ConstraintModel& cst,
                 System_T& doc,
-                const iscore::DocumentContext& ctx,
                 QObject* component_as_parent):
             constraint{cst},
             system{doc},
             m_component{component},
-            m_componentFactory{ctx.app.components.factory<ProcessComponentFactoryList_T>()},
-            m_context{ctx},
+            m_componentFactory{doc.context().app.components.template factory<ProcessComponentFactoryList_T>()},
             m_parentObject{component_as_parent}
         {
             for(auto& process : constraint.processes)
@@ -52,13 +50,13 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
         void add(Process::ProcessModel& process)
         {
             // Will return a factory for the given process if available
-            if(auto factory = m_componentFactory.factory(process, system, m_context))
+            if(auto factory = m_componentFactory.factory(process, system))
             {
                 // The subclass should provide this function to construct
                 // the correct component relative to this process.
                 auto proc_comp = m_component.make_processComponent(
                                      getStrongId(process.components),
-                                     *factory, process, system, m_context, m_parentObject);
+                                     *factory, process, system, m_parentObject);
                 if(proc_comp)
                 {
                     process.components.add(proc_comp);
@@ -104,7 +102,6 @@ class ConstraintComponentHierarchyManager : public Nano::Observer
     private:
         Component_T& m_component;
         const ProcessComponentFactoryList_T& m_componentFactory;
-        const iscore::DocumentContext& m_context;
 
         QObject* m_parentObject{};
 

@@ -2,12 +2,13 @@
 #include <Process/Process.hpp>
 Ossia::LocalTree::ProcessComponent::ProcessComponent(
         OSSIA::Node& parentNode,
-        Process::ProcessModel& process,
+        Process::ProcessModel& proc,
         const Id<iscore::Component>& id,
         const QString& name,
         QObject* parent):
     Component{id, name, parent},
-    m_thisNode{parentNode, process.metadata, this}
+    process{proc},
+    m_thisNode{parentNode, proc.metadata, this}
 {
 }
 

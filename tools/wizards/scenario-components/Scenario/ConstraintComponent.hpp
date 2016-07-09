@@ -38,7 +38,6 @@ class ConstraintComponent final :
                 ProcessComponentFactory& factory,
                 Process::ProcessModel &process,
                 const DocumentPlugin &system,
-                const iscore::DocumentContext &ctx,
                 QObject *parent_component);
 
         void removing(const Process::ProcessModel& cst, const ProcessComponent& comp);
