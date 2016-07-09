@@ -28,7 +28,7 @@ namespace Ossia
 {
 namespace LocalTree
 {
-class ConstraintComponent;
+class Constraint;
 class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin :
         public iscore::DocumentPlugin
 {
@@ -44,7 +44,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin :
         void create();
         void cleanup();
 
-        ConstraintComponent* m_root{};
+        Constraint* m_root{};
         std::shared_ptr<OSSIA::Device> m_localDevice;
 };
 }

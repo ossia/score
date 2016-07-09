@@ -26,25 +26,24 @@ class ScenarioComponentBase :
        template<typename Component_T, typename Element>
        Component_T* make(
                const Id<Component>& id,
-               Element& elt,
-               QObject* parent);
+               Element& elt);
 
 
         void removing(
                 const Scenario::ConstraintModel& elt,
-                const ConstraintComponent& comp);
+                const Constraint& comp);
 
         void removing(
                 const Scenario::EventModel& elt,
-                const EventComponent& comp);
+                const Event& comp);
 
         void removing(
                 const Scenario::TimeNodeModel& elt,
-                const TimeNodeComponent& comp);
+                const TimeNode& comp);
 
         void removing(
                 const Scenario::StateModel& elt,
-                const StateComponent& comp);
+                const State& comp);
 
     private:
         system_t& m_sys;
@@ -58,11 +57,10 @@ class ScenarioComponentBase :
 
 using ScenarioComponent = HierarchicalScenarioComponent<
     ScenarioComponentBase,
-    ScenarioComponentBase::system_t,
     Scenario::ProcessModel,
-    ConstraintComponent,
-    EventComponent,
-    TimeNodeComponent,
-    StateComponent>;
+    Constraint,
+    Event,
+    TimeNode,
+    State>;
 }
 }

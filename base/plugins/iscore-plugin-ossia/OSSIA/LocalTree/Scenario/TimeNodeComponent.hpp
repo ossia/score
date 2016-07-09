@@ -10,13 +10,13 @@ namespace Ossia
 {
 namespace LocalTree
 {
-class TimeNodeComponent final :
+class TimeNode final :
         public iscore::Component
 {
     public:
         using system_t = Ossia::LocalTree::DocumentPlugin;
 
-        TimeNodeComponent(
+        TimeNode(
                 OSSIA::Node& parent,
                 const Id<iscore::Component>& id,
                 Scenario::TimeNodeModel& timeNode,
@@ -27,7 +27,7 @@ class TimeNodeComponent final :
 
         auto& node() const
         { return m_thisNode.node; }
-        ~TimeNodeComponent();
+        ~TimeNode();
 
     private:
         MetadataNamePropertyWrapper m_thisNode;

@@ -6,11 +6,11 @@ namespace Ossia
 namespace LocalTree
 {
 
-StateComponent::StateComponent(
+State::State(
         OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         Scenario::StateModel& state,
-        const StateComponent::system_t& doc,
+        const State::system_t& doc,
         QObject* parent_comp):
     Component{id, "StateComponent", parent_comp},
     m_thisNode{parent, state.metadata, this}
@@ -18,13 +18,13 @@ StateComponent::StateComponent(
     make_metadata_node(state.metadata, thisNode(), m_properties, this);
 }
 
-const iscore::Component::Key&StateComponent::key() const
+const iscore::Component::Key&State::key() const
 {
     static const Key k{"Ossia::LocalTree::StateComponent"};
     return k;
 }
 
-StateComponent::~StateComponent()
+State::~State()
 {
     m_properties.clear();
     m_thisNode.clear();

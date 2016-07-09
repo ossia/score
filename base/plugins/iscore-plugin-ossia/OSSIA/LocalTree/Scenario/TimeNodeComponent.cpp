@@ -7,11 +7,11 @@ namespace Ossia
 namespace LocalTree
 {
 
-TimeNodeComponent::TimeNodeComponent(
+TimeNode::TimeNode(
         OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         Scenario::TimeNodeModel& timeNode,
-        const TimeNodeComponent::system_t& doc,
+        const TimeNode::system_t& doc,
         QObject* parent_comp):
     Component{id, "TimeNodeComponent", parent_comp},
     m_thisNode{parent, timeNode.metadata, this}
@@ -25,13 +25,13 @@ TimeNodeComponent::TimeNodeComponent(
     }));
 }
 
-const iscore::Component::Key&TimeNodeComponent::key() const
+const iscore::Component::Key&TimeNode::key() const
 {
     static const Key k{"Ossia::LocalTree::TimeNodeComponent"};
     return k;
 }
 
-TimeNodeComponent::~TimeNodeComponent()
+TimeNode::~TimeNode()
 {
     m_properties.clear();
     m_thisNode.clear();

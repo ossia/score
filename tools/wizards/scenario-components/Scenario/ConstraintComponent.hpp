@@ -37,8 +37,7 @@ class Constraint final :
                 const Id<Component> & id,
                 ProcessComponentFactory& factory,
                 Process::ProcessModel &process,
-                const DocumentPlugin &system,
-                QObject *parent_component);
+                const DocumentPlugin &system);
 
         void removing(const Process::ProcessModel& cst, const ProcessComponent& comp);
 

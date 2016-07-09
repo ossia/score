@@ -28,6 +28,26 @@ class ISCORE_LIB_BASE_EXPORT Component :
         virtual ~Component();
 };
 
+template<typename Component_T, typename System_T>
+class SystemComponent :
+        public Component_T
+{
+    public:
+        template<typename... Args>
+        SystemComponent(System_T& sys, Args&&... args):
+            Component_T{std::forward<Args>(args)...},
+            m_system{sys}
+        {
+
+        }
+
+        System_T& system() const
+        { return m_system; }
+
+    private:
+        System_T& m_system;
+};
+
 using Components = NotifyingMap<Component>;
 
 template<typename T>
