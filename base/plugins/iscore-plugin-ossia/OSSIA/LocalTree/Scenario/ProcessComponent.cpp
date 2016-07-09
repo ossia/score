@@ -8,7 +8,7 @@ Ossia::LocalTree::ProcessComponent::ProcessComponent(
         const Id<iscore::Component>& id,
         const QString& name,
         QObject* parent):
-    LocalTreeComponent<Scenario::GenericProcessComponent<DocumentPlugin>>{
+    Component<Scenario::GenericProcessComponent<DocumentPlugin>>{
         parentNode, proc.metadata, proc, doc, id, name, parent}
 {
 }

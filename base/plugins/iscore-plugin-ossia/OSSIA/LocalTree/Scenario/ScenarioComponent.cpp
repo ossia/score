@@ -7,7 +7,7 @@ namespace LocalTree
 {
 
 ScenarioComponentBase::ScenarioComponentBase(
-        const Id<Component>& id,
+        const Id<iscore::Component>& id,
         OSSIA::Node& parent,
         Scenario::ProcessModel& scenario,
         system_t& sys,

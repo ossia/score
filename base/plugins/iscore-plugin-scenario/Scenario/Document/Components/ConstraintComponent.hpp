@@ -26,30 +26,9 @@ class ConstraintComponent :
         Scenario::ConstraintModel& m_constraint;
 };
 
-template<typename Component_T>
-class ProcessComponent :
-        public Component_T
-{
-    public:
-        template<typename... Args>
-        ProcessComponent(Process::ProcessModel& cst, Args&&... args):
-            Component_T{std::forward<Args>(args)...},
-            m_process{cst}
-        {
-
-        }
-
-        Process::ProcessModel& process() const
-        { return m_process; }
-
-    private:
-        Process::ProcessModel& m_process;
-};
-
 template<typename System_T>
-using GenericConstraintComponent = Scenario::ConstraintComponent<iscore::SystemComponent<iscore::Component, System_T>>;
-template<typename System_T>
-using GenericProcessComponent = Scenario::ProcessComponent<iscore::SystemComponent<iscore::Component, System_T>>;
+using GenericConstraintComponent =
+    Scenario::ConstraintComponent<iscore::GenericComponent<System_T>>;
 }
 
 // TODO put it in namespace, too
@@ -73,20 +52,19 @@ class ConstraintComponentHierarchyManager :
             Component_T{std::forward<Args>(args)...},
             m_componentFactory{Component_T::system().context().app.components.template factory<ProcessComponentFactoryList_T>()}
         {
-            auto& processes = Component_T::constraint().processes;
+            NotifyingMap<Process::ProcessModel>& processes = Component_T::constraint().processes;
             for(auto& process : processes)
             {
                 add(process);
             }
-            ISCORE_TODO;
-/*
+
             processes.mutable_added.connect<
                     ConstraintComponentHierarchyManager,
                     &ConstraintComponentHierarchyManager::add>(this);
 
             processes.removing.connect<
                     ConstraintComponentHierarchyManager,
-                    &ConstraintComponentHierarchyManager::remove>(this);*/
+                    &ConstraintComponentHierarchyManager::remove>(this);
         }
 
         auto& processes() const

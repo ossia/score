@@ -1,5 +1,6 @@
 #pragma once
 #include <OSSIA/LocalTree/Scenario/ProcessComponent.hpp>
+#include <OSSIA/LocalTree/LocalTreeComponent.hpp>
 #include <Scenario/Document/Components/ConstraintComponent.hpp>
 
 namespace Ossia
@@ -7,11 +8,11 @@ namespace Ossia
 namespace LocalTree
 {
 class ConstraintBase :
-        public Scenario::GenericConstraintComponent<Ossia::LocalTree::DocumentPlugin>
+        public Component<Scenario::GenericConstraintComponent<DocumentPlugin>>
 {
         COMPONENT_METADATA("11d928b5-eaeb-471c-b3b7-dc453180b10f")
     public:
-        using parent_t = Scenario::GenericConstraintComponent<Ossia::LocalTree::DocumentPlugin>;
+        using parent_t = Component<Scenario::GenericConstraintComponent<DocumentPlugin>>;
         using system_t = Ossia::LocalTree::DocumentPlugin;
         using process_component_t = Ossia::LocalTree::ProcessComponent;
         using process_component_factory_t = Ossia::LocalTree::ProcessComponentFactory;
@@ -19,29 +20,20 @@ class ConstraintBase :
 
         ConstraintBase(
                 OSSIA::Node& parent,
-                const Id<Component>& id,
+                const Id<iscore::Component>& id,
                 Scenario::ConstraintModel& constraint,
                 system_t& doc,
                 QObject* parent_comp);
-        ~ConstraintBase();
 
         ProcessComponent* make_processComponent(
-                const Id<Component> & id,
+                const Id<iscore::Component> & id,
                 ProcessComponentFactory& factory,
                 Process::ProcessModel &process);
 
         void removing(const Process::ProcessModel& cst, const ProcessComponent& comp);
 
-        auto& node() const
-        { return m_thisNode.node; }
-
     private:
-        OSSIA::Node& thisNode() const
-        { return *node(); }
-
-        MetadataNamePropertyWrapper m_thisNode;
         std::shared_ptr<OSSIA::Node> m_processesNode;
-        std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 
 

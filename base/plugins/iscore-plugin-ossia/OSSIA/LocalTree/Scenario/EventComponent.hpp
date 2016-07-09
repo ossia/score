@@ -1,41 +1,23 @@
 #pragma once
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Network/Node.h>
-#include <OSSIA/LocalTree/BaseProperty.hpp>
+#include <OSSIA/LocalTree/LocalTreeComponent.hpp>
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
-#include <OSSIA/LocalTree/NameProperty.hpp>
 
 namespace Ossia
 {
 namespace LocalTree
 {
 class Event final :
-        public iscore::Component
+        public CommonComponent
 {
-
+        COMPONENT_METADATA("918b757d-d304-4362-bbd3-120f84e229fe")
     public:
-        using system_t = Ossia::LocalTree::DocumentPlugin;
-
         Event(
                 OSSIA::Node& parent,
-                const Id<Component>& id,
+                const Id<iscore::Component>& id,
                 Scenario::EventModel& event,
-                const system_t& doc,
+                DocumentPlugin& doc,
                 QObject* parent_comp);
-
-        const Key& key() const override;
-
-        auto& node() const
-        { return m_thisNode.node; }
-
-        ~Event();
-
-    private:
-        OSSIA::Node& thisNode() const
-        { return *node(); }
-
-        MetadataNamePropertyWrapper m_thisNode;
-        std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 }
 }
