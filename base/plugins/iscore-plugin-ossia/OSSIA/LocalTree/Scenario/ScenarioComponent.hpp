@@ -17,7 +17,7 @@ class ScenarioComponentBase :
     public:
            using system_t = Ossia::LocalTree::DocumentPlugin;
        ScenarioComponentBase(
-               const Id<Component>& id,
+               const Id<iscore::Component>& id,
                OSSIA::Node& parent,
                Scenario::ProcessModel& scenario,
                system_t& doc,
@@ -25,7 +25,7 @@ class ScenarioComponentBase :
 
        template<typename Component_T, typename Element>
        Component_T* make(
-               const Id<Component>& id,
+               const Id<iscore::Component>& id,
                Element& elt);
 
         void removing(

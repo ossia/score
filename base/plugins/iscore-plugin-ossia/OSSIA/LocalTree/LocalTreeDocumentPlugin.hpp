@@ -47,5 +47,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin :
         Constraint* m_root{};
         std::shared_ptr<OSSIA::Device> m_localDevice;
 };
+
 }
 }

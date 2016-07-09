@@ -1,40 +1,22 @@
 #pragma once
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Network/Node.h>
-#include <OSSIA/LocalTree/BaseProperty.hpp>
-#include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
-#include <OSSIA/LocalTree/NameProperty.hpp>
-
+#include <OSSIA/LocalTree/LocalTreeComponent.hpp>
 
 namespace Ossia
 {
 namespace LocalTree
 {
 class TimeNode final :
-        public iscore::Component
+        public CommonComponent
 {
+        COMPONENT_METADATA("104e4446-b09f-4bf6-92ef-0fe360397066")
     public:
-        using system_t = Ossia::LocalTree::DocumentPlugin;
-
         TimeNode(
                 OSSIA::Node& parent,
                 const Id<iscore::Component>& id,
-                Scenario::TimeNodeModel& timeNode,
-                const system_t& doc,
+                Scenario::TimeNodeModel& event,
+                DocumentPlugin& doc,
                 QObject* parent_comp);
-
-        const Key& key() const override;
-
-        auto& node() const
-        { return m_thisNode.node; }
-        ~TimeNode();
-
-    private:
-        MetadataNamePropertyWrapper m_thisNode;
-        std::vector<std::unique_ptr<BaseProperty>> m_properties;
-
-        OSSIA::Node& thisNode() const
-        { return *node(); }
 };
 }
 }

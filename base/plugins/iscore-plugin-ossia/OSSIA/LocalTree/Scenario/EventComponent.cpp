@@ -9,25 +9,10 @@ Event::Event(
         OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         Scenario::EventModel& event,
-        const Event::system_t& doc,
+        DocumentPlugin& doc,
         QObject* parent_comp):
-    Component{id, "EventComponent", parent_comp},
-    m_thisNode{parent, event.metadata, this}
+    CommonComponent{parent, event.metadata, doc, id, "EventComponent", parent_comp}
 {
-    make_metadata_node(event.metadata, thisNode(), m_properties, this);
 }
-
-const iscore::Component::Key&Event::key() const
-{
-    static const Key k{"Ossia::LocalTree::EventComponent"};
-    return k;
-}
-
-Event::~Event()
-{
-    m_properties.clear();
-    m_thisNode.clear();
-}
-
 }
 }

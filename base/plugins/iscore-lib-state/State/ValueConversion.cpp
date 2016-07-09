@@ -19,7 +19,7 @@ namespace State
 namespace convert
 {
 
-static const std::array<const QString, 8> ValueTypesArray{{
+const std::array<const QString, 8> ValueTypesArray{{
         QStringLiteral("Impulse"),
                 QStringLiteral("Int"),
                 QStringLiteral("Float"),
@@ -27,10 +27,9 @@ static const std::array<const QString, 8> ValueTypesArray{{
                 QStringLiteral("String"),
                 QStringLiteral("Char"),
                 QStringLiteral("Tuple"),
-                QStringLiteral("None")
-                                                          }};
+                QStringLiteral("None")}};
 
-static const std::array<const QString, 8> ValuePrettyTypesArray{{
+const std::array<const QString, 8> ValuePrettyTypesArray{{
         QObject::tr("Impulse"),
                 QObject::tr("Int"),
                 QObject::tr("Float"),
@@ -38,10 +37,9 @@ static const std::array<const QString, 8> ValuePrettyTypesArray{{
                 QObject::tr("String"),
                 QObject::tr("Char"),
                 QObject::tr("Tuple"),
-                QObject::tr("None")
-                                                                }};
+                QObject::tr("None")}};
 
-static const std::array<std::pair<QString, ValueType>, 7>
+const std::array<std::pair<QString, ValueType>, 7>
     ValuePrettyTypesPairArray{{
         std::make_pair(QObject::tr("Impulse"), ValueType::Impulse),
         std::make_pair(QObject::tr("Int"), ValueType::Int),

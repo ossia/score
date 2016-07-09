@@ -18,11 +18,11 @@ namespace iscore
 
 
 class ISCORE_LIB_BASE_EXPORT Component :
-        public IdentifiedObject<Component>
+        public IdentifiedObject<iscore::Component>
 {
     public:
-        using IdentifiedObject<Component>::IdentifiedObject;
-        using Key = UuidKey<Component>;
+        using IdentifiedObject<iscore::Component>::IdentifiedObject;
+        using Key = UuidKey<iscore::Component>;
         virtual const Key& key() const = 0;
 
         virtual ~Component();
@@ -48,7 +48,10 @@ class SystemComponent :
         System_T& m_system;
 };
 
-using Components = NotifyingMap<Component>;
+template<typename System_T>
+using GenericComponent = iscore::SystemComponent<iscore::Component, System_T>;
+
+using Components = NotifyingMap<iscore::Component>;
 
 template<typename T>
 auto& component(const iscore::Components& c)

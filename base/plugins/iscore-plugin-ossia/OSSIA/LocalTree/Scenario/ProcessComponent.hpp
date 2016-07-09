@@ -1,37 +1,17 @@
 #pragma once
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
-#include <OSSIA/LocalTree/NameProperty.hpp>
 #include <iscore/component/Component.hpp>
 #include <iscore/component/ComponentFactory.hpp>
-#include <Scenario/Document/Components/ConstraintComponent.hpp>
+#include <Scenario/Document/Components/ProcessComponent.hpp>
+#include <OSSIA/LocalTree/LocalTreeComponent.hpp>
 
 // TODO clean me up
 namespace Ossia
 {
 namespace LocalTree
 {
-template<typename Component_T>
-class LocalTreeComponent :
-        public Component_T
-{
-    public:
-        template<typename... Args>
-        LocalTreeComponent(OSSIA::Node& n, ModelMetadata& m, Args&&... args):
-            Component_T{std::forward<Args>(args)...},
-            m_thisNode{n, m, this}
-        {
-
-        }
-
-        auto& node() const
-        { return m_thisNode.node; }
-
-    protected:
-        MetadataNamePropertyWrapper m_thisNode;
-};
-
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :
-        public LocalTreeComponent<Scenario::GenericProcessComponent<DocumentPlugin>>
+        public Component<Scenario::GenericProcessComponent<DocumentPlugin>>
 {
     public:
         ProcessComponent(
