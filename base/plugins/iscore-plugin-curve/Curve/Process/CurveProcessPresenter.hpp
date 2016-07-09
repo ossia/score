@@ -60,7 +60,8 @@ class CurveProcessPresenter :
 
         virtual ~CurveProcessPresenter()
         {
-            deleteGraphicsObject(m_view);
+            delete m_curvepresenter;
+            deleteGraphicsItem(m_view);
         }
 
         void on_focusChanged() override

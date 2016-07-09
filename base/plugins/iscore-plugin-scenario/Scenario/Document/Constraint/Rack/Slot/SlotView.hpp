@@ -17,14 +17,16 @@ class SlotHandle;
 class SlotOverlay;
 class SlotPresenter;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT SlotView final : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotView final :
+        public QObject,
+        public QGraphicsItem
 {
         Q_OBJECT
 
     public:
         const SlotPresenter& presenter;
 
-        SlotView(const SlotPresenter&pres, QGraphicsObject* parent);
+        SlotView(const SlotPresenter&pres, QGraphicsItem* parent);
         virtual ~SlotView() = default;
 
         QRectF boundingRect() const override;

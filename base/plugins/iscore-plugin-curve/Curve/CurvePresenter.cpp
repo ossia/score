@@ -79,7 +79,11 @@ Presenter::Presenter(
 
 Presenter::~Presenter()
 {
-    deleteGraphicsObject(m_view);
+    for(auto& pt : m_points)
+        delete &pt;
+    for(auto& seg : m_segments)
+        delete &seg;
+    deleteGraphicsItem(m_view);
 }
 
 void Presenter::setRect(const QRectF& rect)
@@ -352,7 +356,7 @@ void Presenter::modelReset()
             int inv_diff_points = -diff_points;
             for(;inv_diff_points --> 0;)
             {
-                deleteGraphicsObject(points[points.size() - inv_diff_points - 1]);
+                deleteGraphicsItem(points[points.size() - inv_diff_points - 1]);
             }
             points.resize(points.size() + diff_points);
         }
@@ -376,7 +380,7 @@ void Presenter::modelReset()
             int inv_diff_segts = -diff_segts;
             for(;inv_diff_segts --> 0;)
             {
-                deleteGraphicsObject(segments[segments.size() - inv_diff_segts - 1]);
+                deleteGraphicsItem(segments[segments.size() - inv_diff_segts - 1]);
             }
             segments.resize(segments.size() + diff_segts);
         }
@@ -388,9 +392,9 @@ void Presenter::modelReset()
     // 3. We set the data
     { // Points
         int i = 0;
-        for(const auto& point : m_model.points())
+        for(auto point : m_model.points())
         {
-            points.at(i)->setModel(point);
+            points[i]->setModel(point);
             i++;
         }
     }
@@ -403,9 +407,9 @@ void Presenter::modelReset()
         }
     }
 
-    for(const auto& seg : newSegments)
+    for(auto seg : newSegments)
         setupSegmentConnections(seg);
-    for(const auto& pt: newPoints)
+    for(auto pt: newPoints)
         setupPointConnections(pt);
 
     // Now the ones that have a new model
@@ -413,11 +417,11 @@ void Presenter::modelReset()
     m_points.clear();
     m_segments.clear();
 
-    for(const auto& pt_view : points)
+    for(auto pt_view : points)
     {
         addPoint_impl(pt_view);
     }
-    for(const auto& seg_view : segments)
+    for(auto seg_view : segments)
     {
         addSegment_impl(seg_view);
     }

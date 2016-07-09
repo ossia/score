@@ -34,8 +34,6 @@ LayerView::~LayerView()
 
 void LayerView::setDisplayedName(const QString& s)
 {
-    m_displayedName = s;
-
     m_textcache.setText(s);
     m_textcache.beginLayout();
     QTextLine line = m_textcache.createLine();

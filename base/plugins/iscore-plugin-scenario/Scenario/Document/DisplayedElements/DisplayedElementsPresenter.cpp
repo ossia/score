@@ -51,6 +51,18 @@ DisplayedElementsPresenter::DisplayedElementsPresenter(ScenarioDocumentPresenter
 
 }
 
+DisplayedElementsPresenter::~DisplayedElementsPresenter()
+{
+    // TODO use directly displayedelementspresentercontainer
+    delete m_constraintPresenter;
+    delete m_startStatePresenter;
+    delete m_endStatePresenter;
+    delete m_startEventPresenter;
+    delete m_endEventPresenter;
+    delete m_startNodePresenter;
+    delete m_endNodePresenter;
+}
+
 BaseGraphicsObject&DisplayedElementsPresenter::view() const
 {
     return *m_model->view().baseItem();

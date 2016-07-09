@@ -20,7 +20,9 @@ namespace Scenario
 {
 class StatePresenter;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final :
+        public QObject,
+        public QGraphicsItem
 {
         Q_OBJECT
     public:

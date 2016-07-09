@@ -67,7 +67,6 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
         const iscore::DocumentDelegateModelInterface& delegate_model,
         iscore::DocumentDelegateViewInterface& delegate_view) :
     DocumentDelegatePresenterInterface {parent_presenter,
-                                        "ScenarioDocumentPresenter",
                                         delegate_model,
                                         delegate_view},
     m_scenarioPresenter{new DisplayedElementsPresenter{this}},

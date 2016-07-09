@@ -17,7 +17,9 @@ class QWidget;
 namespace Scenario
 {
 class AbstractTimeRuler;
-class AbstractTimeRulerView : public QGraphicsObject
+class AbstractTimeRulerView :
+        public QObject,
+        public QGraphicsItem
 {
         Q_OBJECT
         AbstractTimeRuler* m_pres{};

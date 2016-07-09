@@ -32,7 +32,6 @@ class LayerView final : public Process::LayerView
         void dropEvent(QGraphicsSceneDragDropEvent *event) override;
 
     private:
-        QString m_displayedName{};
         bool m_showName{true};
 
         QTextLayout m_textcache;

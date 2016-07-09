@@ -13,7 +13,8 @@ namespace Scenario
 {
 class StateModel;
 class StateView;
-class ISCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public NamedObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final :
+        public QObject
 {
         Q_OBJECT
 

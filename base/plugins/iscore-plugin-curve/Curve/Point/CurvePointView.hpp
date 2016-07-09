@@ -13,7 +13,9 @@ namespace Curve
 {
 class PointModel;
 struct Style;
-class PointView final : public QGraphicsObject
+class PointView final :
+        public QObject,
+        public QGraphicsItem
 {
         Q_OBJECT
     public:

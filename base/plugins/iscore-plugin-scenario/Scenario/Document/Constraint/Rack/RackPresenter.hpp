@@ -18,7 +18,7 @@ namespace Scenario
 class RackModel;
 class RackView;
 class RackPresenter final :
-        public NamedObject,
+        public QObject,
         public Nano::Observer
 {
         Q_OBJECT

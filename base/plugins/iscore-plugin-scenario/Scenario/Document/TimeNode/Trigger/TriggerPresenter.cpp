@@ -9,7 +9,7 @@ namespace Scenario
 {
 TriggerPresenter::TriggerPresenter(
         const TriggerModel& model,
-        QGraphicsObject* parentView,
+        QGraphicsItem* parentView,
         QObject* parent):
     QObject{parent},
     m_model{model},

@@ -5,7 +5,7 @@
 namespace Scenario
 {
 
-TextItem::TextItem(QString text, QGraphicsObject* parent):
+TextItem::TextItem(QString text, QGraphicsItem* parent):
     QGraphicsTextItem{text, parent}
 {
     this->setFlag(QGraphicsItem::ItemIsFocusable);

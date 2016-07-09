@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <iscore_plugin_scenario_export.h>
 
-class QGraphicsObject;
+class QGraphicsItem;
 class QObject;
 
 namespace Scenario
@@ -15,12 +15,12 @@ class TimeNodeModel;
 class TimeNodeView;
 class TriggerPresenter;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodePresenter final :  public NamedObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodePresenter final :  public QObject
 {
         Q_OBJECT
     public:
         TimeNodePresenter(const TimeNodeModel& model,
-                          QGraphicsObject* parentview,
+                          QGraphicsItem* parentview,
                           QObject* parent);
         ~TimeNodePresenter();
 

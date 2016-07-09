@@ -5,7 +5,8 @@
 namespace Scenario
 {
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT LeftBraceView : public ConstraintBrace
+class ISCORE_PLUGIN_SCENARIO_EXPORT LeftBraceView final :
+        public ConstraintBrace
 {
     public:
         LeftBraceView(const TemporalConstraintView& parentCstr, QGraphicsItem* parent);

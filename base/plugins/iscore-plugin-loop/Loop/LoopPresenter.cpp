@@ -106,7 +106,14 @@ LayerPresenter::LayerPresenter(
 
 LayerPresenter::~LayerPresenter()
 {
-    deleteGraphicsObject(m_view);
+    delete m_constraintPresenter;
+    delete m_startStatePresenter;
+    delete m_endStatePresenter;
+    delete m_startEventPresenter;
+    delete m_endEventPresenter;
+    delete m_startNodePresenter;
+    delete m_endNodePresenter;
+    deleteGraphicsItem(m_view);
 }
 
 void LayerPresenter::setWidth(qreal width)

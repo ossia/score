@@ -16,7 +16,7 @@ class QWidget;
 #include <iscore/tools/SettableIdentifier.hpp>
 namespace Curve
 {
-static const QPainterPathStroker CurveSegmentStroker{
+const QPainterPathStroker CurveSegmentStroker{
     [] () {
         QPen p;
         p.setWidth(12);
@@ -27,7 +27,7 @@ SegmentView::SegmentView(
         const SegmentModel* model,
         const Curve::Style& style,
         QGraphicsItem *parent):
-    QGraphicsObject{parent},
+    QGraphicsItem{parent},
     m_style{style}
 {
     this->setZValue(1);
@@ -81,8 +81,6 @@ void SegmentView::paint(
 
     painter->setPen(pen);
     painter->drawPath(m_unstrokedShape);
-
-    //painter->fillPath(m_strokedShape, QBrush{Qt::blue});
 }
 
 
@@ -117,21 +115,23 @@ void SegmentView::updatePoints()
     m_model->updateData(25); // Set the number of required points here.
     const auto& pts = m_model->data();
 
+    const auto rect_height = m_rect.height();
     // Map to the scene coordinates
     if(!pts.empty())
     {
         auto first = pts.front();
         auto first_scaled = QPointF{
                 first.x() * scalex - startx,
-                (1. - first.y()) * m_rect.height()};
+                (1. - first.y()) * rect_height};
 
         m_unstrokedShape = QPainterPath{first_scaled};
-        for(std::size_t i = 1; i < pts.size(); i++)
+        int n = pts.size();
+        for(std::size_t i = 1; i < n; i++)
         {
-            auto next = pts.at(i);
+            auto next = pts[i];
             m_unstrokedShape.lineTo(QPointF{
                                          next.x() * scalex - startx,
-                                         (1. - next.y()) * m_rect.height()});
+                                         (1. - next.y()) * rect_height});
         }
     }
 

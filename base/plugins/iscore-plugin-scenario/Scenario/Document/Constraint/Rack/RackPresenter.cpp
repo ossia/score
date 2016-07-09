@@ -31,7 +31,7 @@ RackPresenter::RackPresenter(const RackModel& model,
                            RackView* view,
                            const Process::ProcessPresenterContext& ctx,
                            QObject* parent):
-    NamedObject {"RackPresenter", parent},
+    QObject {parent},
     m_model {model},
     m_view {view},
     m_context{ctx}
@@ -57,7 +57,9 @@ RackPresenter::RackPresenter(const RackModel& model,
 
 RackPresenter::~RackPresenter()
 {
-    deleteGraphicsObject(m_view);
+    for(auto& slot : m_slots)
+        delete &slot;
+    deleteGraphicsItem(m_view);
 }
 
 const RackView &RackPresenter::view() const
