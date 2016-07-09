@@ -34,7 +34,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
     public:
         TemporalConstraintView(
                 TemporalConstraintPresenter& presenter,
-                QGraphicsObject* parent);
+                QGraphicsItem* parent);
 
         QRectF boundingRect() const override
         {

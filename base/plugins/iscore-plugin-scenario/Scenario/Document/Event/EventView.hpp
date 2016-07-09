@@ -22,12 +22,14 @@ namespace Scenario
 {
 class ConditionView;
 class EventPresenter;
-class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QGraphicsObject
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final :
+        public QObject,
+        public QGraphicsItem
 {
         Q_OBJECT
 
     public:
-        EventView(EventPresenter& presenter, QGraphicsObject* parent);
+        EventView(EventPresenter& presenter, QGraphicsItem* parent);
         virtual ~EventView() = default;
 
         static constexpr int static_type()

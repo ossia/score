@@ -11,7 +11,7 @@ class QWidget;
 namespace Scenario
 {
 TriggerView::TriggerView(QGraphicsItem *parent):
-    QGraphicsObject{parent}
+    QGraphicsItem{parent}
 {
     setFlag(ItemStacksBehindParent, true);
     m_item = new QGraphicsSvgItem(":/images/trigger.svg");

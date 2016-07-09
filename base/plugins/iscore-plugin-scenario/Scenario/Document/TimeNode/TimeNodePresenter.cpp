@@ -14,23 +14,28 @@ class QObject;
 
 namespace Scenario
 {
-TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
-                                     QGraphicsObject *parentview,
-                                     QObject* parent) :
-    NamedObject {"TimeNodePresenter", parent},
+TimeNodePresenter::TimeNodePresenter(
+        const TimeNodeModel& model,
+        QGraphicsItem* parentview,
+        QObject* parent) :
+    QObject {parent},
     m_model {model},
     m_view {new TimeNodeView{*this, parentview}}
 {
     m_triggerPres = new TriggerPresenter{*m_model.trigger(), m_view, this };
 
     con(m_model.selection, &Selectable::changed,
-            m_view, &TimeNodeView::setSelected);
+        this, [=] (bool b) { m_view->setSelected(b); });
 
     con(m_model, &TimeNodeModel::newEvent,
-            this,     &TimeNodePresenter::on_eventAdded);
+        this,     &TimeNodePresenter::on_eventAdded);
 
-    con((m_model.metadata), &ModelMetadata::colorChanged,
-            m_view,               &TimeNodeView::changeColor);
+    con(m_model.metadata, &ModelMetadata::colorChanged,
+        this, [=] (const ColorRef& c) { m_view->changeColor(c); });
+    con(m_model.metadata, &ModelMetadata::labelChanged,
+        this, [=] (const QString& l) { m_view->setLabel(l); });
+    m_view->changeColor(m_model.metadata.color());
+    m_view->setLabel(m_model.metadata.label());
 
     // TODO find a correct way to handle validity of model elements.
     // extentChanged is updated in scenario.
@@ -38,7 +43,7 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
 
 TimeNodePresenter::~TimeNodePresenter()
 {
-    deleteGraphicsObject(m_view);
+    deleteGraphicsItem(m_view);
 }
 
 const Id<TimeNodeModel>& TimeNodePresenter::id() const

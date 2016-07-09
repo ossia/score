@@ -89,7 +89,7 @@ void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* even
 
 void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
 {
-    QGraphicsObject::keyPressEvent(event);
+    QGraphicsItem::keyPressEvent(event);
     if(event->key() == Qt::Key_Escape)
     {
         emit escPressed();
@@ -104,7 +104,7 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
 
 void TemporalScenarioView::keyReleaseEvent(QKeyEvent *event)
 {
-    QGraphicsObject::keyReleaseEvent(event);
+    QGraphicsItem::keyReleaseEvent(event);
     if(event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control)
     {
         emit keyReleased(event->key());

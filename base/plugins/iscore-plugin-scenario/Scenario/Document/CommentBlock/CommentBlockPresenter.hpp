@@ -12,12 +12,12 @@ namespace Scenario
 {
 class CommentBlockView;
 class CommentBlockModel;
-class CommentBlockPresenter final :  public NamedObject
+class CommentBlockPresenter final :  public QObject
 {
         Q_OBJECT
     public:
         CommentBlockPresenter(const CommentBlockModel& model,
-                              QGraphicsObject* parentView,
+                              QGraphicsItem* parentView,
                               QObject* parent);
 
         ~CommentBlockPresenter();

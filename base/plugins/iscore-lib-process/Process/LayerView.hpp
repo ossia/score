@@ -11,10 +11,18 @@ class QWidget;
 
 namespace Process
 {
-class ISCORE_LIB_PROCESS_EXPORT LayerView : public QGraphicsObject
+class ISCORE_LIB_PROCESS_EXPORT LayerView :
+        public QObject,
+        public QGraphicsItem
 {
+        Q_OBJECT
     public:
-        using QGraphicsObject::QGraphicsObject;
+        LayerView(QGraphicsItem* parent):
+            QGraphicsItem{parent}
+        {
+
+        }
+
         virtual ~LayerView();
 
         QRectF boundingRect() const final override;
@@ -27,6 +35,10 @@ class ISCORE_LIB_PROCESS_EXPORT LayerView : public QGraphicsObject
 
         void setWidth(qreal width);
         qreal width() const;
+
+    signals:
+        void heightChanged();
+        void widthChanged();
 
     protected:
         virtual void paint_impl(QPainter*) const = 0;

@@ -31,9 +31,9 @@ namespace Scenario
 {
 EventPresenter::EventPresenter(
         const EventModel& model,
-        QGraphicsObject* parentview,
+        QGraphicsItem* parentview,
         QObject* parent) :
-    NamedObject {"EventPresenter", parent},
+    QObject {parent},
     m_model {model},
     m_view {new EventView{*this, parentview}},
     m_dispatcher{iscore::IDocument::documentContext(m_model).commandStack}
@@ -69,7 +69,7 @@ EventPresenter::EventPresenter(
 
 EventPresenter::~EventPresenter()
 {
-    deleteGraphicsObject(m_view);
+    deleteGraphicsItem(m_view);
 }
 
 const Id<EventModel>& EventPresenter::id() const

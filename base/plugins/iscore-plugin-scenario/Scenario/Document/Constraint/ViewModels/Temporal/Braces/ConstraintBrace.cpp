@@ -9,8 +9,10 @@
 
 using namespace Scenario;
 
-ConstraintBrace::ConstraintBrace(const TemporalConstraintView& parentCstr, QGraphicsItem* parent):
-    QGraphicsObject(parent),
+ConstraintBrace::ConstraintBrace(
+        const TemporalConstraintView& parentCstr,
+        QGraphicsItem* parent):
+    QGraphicsItem(parent),
     m_parent{parentCstr}
 {
     this->setCursor(Qt::SizeHorCursor);

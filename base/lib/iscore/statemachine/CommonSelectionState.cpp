@@ -11,7 +11,7 @@
 
 CommonSelectionState::CommonSelectionState(
         iscore::SelectionStack &stack,
-        QGraphicsObject *process_view,
+        QObject* obj,
         QState *parent):
     QState{parent},
     dispatcher{stack}
@@ -28,10 +28,10 @@ CommonSelectionState::CommonSelectionState(
             selectionModeState->setInitialState(m_singleSelection);
             m_multiSelection = new QState{selectionModeState};
 
-            auto trans1 = new QKeyEventTransition(process_view,
+            auto trans1 = new QKeyEventTransition(obj,
                                                   QEvent::KeyPress, Qt::Key_Control, m_singleSelection);
             trans1->setTargetState(m_multiSelection);
-            auto trans2 = new QKeyEventTransition(process_view,
+            auto trans2 = new QKeyEventTransition(obj,
                                                   QEvent::KeyRelease, Qt::Key_Control, m_multiSelection);
             trans2->setTargetState(m_singleSelection);
         }
@@ -90,12 +90,12 @@ CommonSelectionState::CommonSelectionState(
             // Actions on selected elements
             //NOTE : see ObjectMenuActions too.
             auto t_delete = new QKeyEventTransition(
-                                process_view, QEvent::KeyPress, Qt::Key_Backspace, m_waitState);
+                                obj, QEvent::KeyPress, Qt::Key_Backspace, m_waitState);
             connect(t_delete, &QAbstractTransition::triggered,
                     this, &CommonSelectionState::on_delete);
 
             auto t_deleteContent = new QKeyEventTransition(
-                                       process_view, QEvent::KeyPress, Qt::Key_Delete, m_waitState);
+                                       obj, QEvent::KeyPress, Qt::Key_Delete, m_waitState);
             connect(t_deleteContent, &QAbstractTransition::triggered,
                     this, &CommonSelectionState::on_deleteContent);
         }

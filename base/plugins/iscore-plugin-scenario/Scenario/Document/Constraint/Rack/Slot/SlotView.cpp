@@ -13,8 +13,8 @@ class QWidget;
 
 namespace Scenario
 {
-SlotView::SlotView(const SlotPresenter &pres, QGraphicsObject* parent) :
-    QGraphicsObject {parent},
+SlotView::SlotView(const SlotPresenter &pres, QGraphicsItem* parent) :
+    QGraphicsItem {parent},
     presenter{pres},
     m_handle{new SlotHandle{*this, this}}
 {

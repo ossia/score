@@ -29,7 +29,7 @@ StatePresenter::StatePresenter(
         const StateModel &model,
         QGraphicsItem *parentview,
         QObject *parent) :
-    NamedObject {"StatePresenter", parent},
+    QObject {parent},
     m_model {model},
     m_view {new StateView{*this, parentview}},
     m_dispatcher{iscore::IDocument::documentContext(m_model).commandStack}
@@ -56,7 +56,7 @@ StatePresenter::StatePresenter(
 
 StatePresenter::~StatePresenter()
 {
-    deleteGraphicsObject(m_view);
+    deleteGraphicsItem(m_view);
 }
 
 const Id<StateModel> &StatePresenter::id() const

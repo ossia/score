@@ -14,8 +14,8 @@ namespace Scenario
 {
 CommentBlockView::CommentBlockView(
         CommentBlockPresenter& presenter,
-        QGraphicsObject* parent):
-    QGraphicsObject{parent},
+        QGraphicsItem* parent):
+    QGraphicsItem{parent},
     m_presenter{presenter}
 {
     this->setParentItem(parent);
@@ -25,7 +25,7 @@ CommentBlockView::CommentBlockView(
     m_textItem = new TextItem{"", this};
 
     connect(m_textItem->document(), &QTextDocument::contentsChanged,
-            this, [&] () {this->prepareGeometryChange();});
+            this, [&] () { this->prepareGeometryChange(); });
     connect(m_textItem, &TextItem::focusOut,
             this, &CommentBlockView::focusOut);
     focusOut();

@@ -26,7 +26,6 @@ TimeNodeModel::TimeNodeModel(
     m_trigger{new TriggerModel{Id<TriggerModel>(0), this} }
 {
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
-    metadata.setLabel("TimeNode");
     metadata.setColor(ScenarioStyle::instance().TimenodeDefault);
 }
 
