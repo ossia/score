@@ -8,6 +8,8 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore_lib_process_export.h>
+
+// TODO should go in a namespace
 /**
  * @brief The ModelMetadata class
  */

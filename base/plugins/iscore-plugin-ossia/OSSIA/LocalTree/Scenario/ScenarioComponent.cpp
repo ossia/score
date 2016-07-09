@@ -12,8 +12,7 @@ ScenarioComponentBase::ScenarioComponentBase(
         Scenario::ProcessModel& scenario,
         system_t& sys,
         QObject* parent_obj):
-    ProcessComponent_T{parent, scenario, id, "ScenarioComponent", parent_obj},
-    m_sys{sys},
+    ProcessComponent_T{parent, scenario, sys, id, "ScenarioComponent", parent_obj},
     m_constraintsNode{add_node(*node(), "constraints")},
     m_eventsNode{add_node(*node(), "events")},
     m_timeNodesNode{add_node(*node(), "timenodes")},
@@ -27,7 +26,7 @@ Constraint* ScenarioComponentBase::make<Constraint, Scenario::ConstraintModel>(
         const Id<iscore::Component>& id,
         Scenario::ConstraintModel& elt)
 {
-    return new Constraint{*m_constraintsNode, id, elt, m_sys, this};
+    return new Constraint{*m_constraintsNode, id, elt, system(), this};
 }
 
 template<>
@@ -35,7 +34,7 @@ Event* ScenarioComponentBase::make<Event, Scenario::EventModel>(
         const Id<iscore::Component>& id,
         Scenario::EventModel& elt)
 {
-    return new Event{*m_eventsNode, id, elt, m_sys, this};
+    return new Event{*m_eventsNode, id, elt, system(), this};
 }
 
 template<>
@@ -43,7 +42,7 @@ TimeNode* ScenarioComponentBase::make<TimeNode, Scenario::TimeNodeModel>(
         const Id<iscore::Component>& id,
         Scenario::TimeNodeModel& elt)
 {
-    return new TimeNode{*m_timeNodesNode, id, elt, m_sys, this};
+    return new TimeNode{*m_timeNodesNode, id, elt, system(), this};
 }
 
 template<>
@@ -51,7 +50,7 @@ State* ScenarioComponentBase::make<State, Scenario::StateModel>(
         const Id<iscore::Component>& id,
         Scenario::StateModel& elt)
 {
-    return new State{*m_statesNode, id, elt, m_sys, this};
+    return new State{*m_statesNode, id, elt, system(), this};
 }
 
 void ScenarioComponentBase::removing(const Scenario::ConstraintModel& elt, const Constraint& comp)

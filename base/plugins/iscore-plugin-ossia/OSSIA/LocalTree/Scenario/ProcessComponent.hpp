@@ -3,32 +3,46 @@
 #include <OSSIA/LocalTree/NameProperty.hpp>
 #include <iscore/component/Component.hpp>
 #include <iscore/component/ComponentFactory.hpp>
+#include <Scenario/Document/Components/ConstraintComponent.hpp>
 
 // TODO clean me up
 namespace Ossia
 {
 namespace LocalTree
 {
-class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent : public iscore::Component
+template<typename Component_T>
+class LocalTreeComponent :
+        public Component_T
 {
     public:
-        const Process::ProcessModel& process;
+        template<typename... Args>
+        LocalTreeComponent(OSSIA::Node& n, ModelMetadata& m, Args&&... args):
+            Component_T{std::forward<Args>(args)...},
+            m_thisNode{n, m, this}
+        {
 
+        }
+
+        auto& node() const
+        { return m_thisNode.node; }
+
+    protected:
+        MetadataNamePropertyWrapper m_thisNode;
+};
+
+class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :
+        public LocalTreeComponent<Scenario::GenericProcessComponent<DocumentPlugin>>
+{
+    public:
         ProcessComponent(
                 OSSIA::Node& node,
                 Process::ProcessModel& proc,
+                DocumentPlugin& doc,
                 const Id<iscore::Component>& id,
                 const QString& name,
                 QObject* parent);
 
         virtual ~ProcessComponent();
-        auto& node() const
-        { return m_thisNode.node; }
-
-    protected:
-        OSSIA::Node& thisNode() const
-        { return *node(); }
-        MetadataNamePropertyWrapper m_thisNode;
 };
 
 template<typename Process_T>
@@ -38,7 +52,7 @@ class ProcessComponent_T : public ProcessComponent
         using ProcessComponent::ProcessComponent;
 
         const Process_T& process() const
-        { return static_cast<const Process_T&>(ProcessComponent::process); }
+        { return static_cast<const Process_T&>(ProcessComponent::process()); }
 };
 
 

@@ -28,7 +28,6 @@ class ScenarioComponentBase :
                const Id<Component>& id,
                Element& elt);
 
-
         void removing(
                 const Scenario::ConstraintModel& elt,
                 const Constraint& comp);
@@ -46,7 +45,6 @@ class ScenarioComponentBase :
                 const State& comp);
 
     private:
-        system_t& m_sys;
         std::shared_ptr<OSSIA::Node> m_constraintsNode;
         std::shared_ptr<OSSIA::Node> m_eventsNode;
         std::shared_ptr<OSSIA::Node> m_timeNodesNode;
