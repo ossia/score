@@ -24,7 +24,9 @@ template<
         typename EventComponent_T,
         typename TimeNodeComponent_T,
         typename StateComponent_T>
-class ScenarioComponentHierarchyManager : public Nano::Observer
+class HierarchicalScenarioComponent :
+        public Component_T,
+        public Nano::Observer
 {
     public:
         struct ConstraintPair {
@@ -48,19 +50,10 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
                 StateComponent_T& component;
         };
 
-        Scenario_T& scenario;
-        System_T& system;
 
-        ScenarioComponentHierarchyManager(
-                Component_T& component,
-                Scenario_T& scenar,
-                System_T& doc,
-                QObject* parentcomp
-                ):
-            scenario{scenar},
-            system{doc},
-            m_component{component},
-            m_parentObject{parentcomp}
+        template<typename... Args>
+        HierarchicalScenarioComponent(Args&&... args):
+            Component_T{std::forward<Args>(args)...}
         {
             setup<Scenario::ConstraintModel>();
             setup<Scenario::EventModel>();
@@ -94,7 +87,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
             m_timeNodes.clear();
         }
 
-        ~ScenarioComponentHierarchyManager()
+        ~HierarchicalScenarioComponent()
         {
             clear();
         }
@@ -107,7 +100,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         template<typename Pair_T>
         void cleanup(const Pair_T& pair)
         {
-            m_component.removing(pair.element, pair.component);
+            Component_T::removing(pair.element, pair.component);
             pair.element.components.remove(pair.component);
         }
 
@@ -115,7 +108,7 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         void setup()
         {
             using map_t = MatchingComponent<elt_t, true>;
-            auto&& member = map_t::scenario_container(scenario);
+            auto&& member = map_t::scenario_container(this->process());
 
             for(auto& elt : member)
             {
@@ -123,23 +116,22 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
             }
 
             member.mutable_added.template connect<
-                    ScenarioComponentHierarchyManager,
-                    &ScenarioComponentHierarchyManager::add>(this);
+                    HierarchicalScenarioComponent,
+                    &HierarchicalScenarioComponent::add>(this);
 
             member.removing.template connect<
-                    ScenarioComponentHierarchyManager,
-                    &ScenarioComponentHierarchyManager::remove>(this);
+                    HierarchicalScenarioComponent,
+                    &HierarchicalScenarioComponent::remove>(this);
         }
 
         template<typename elt_t>
         void add(elt_t& element)
         {
             using map_t = MatchingComponent<elt_t, true>;
-            auto comp = m_component.template make<typename map_t::type>(
+            auto comp = Component_T::template make<typename map_t::type>(
                             getStrongId(element.components),
                             element,
-                            system,
-                            m_parentObject);
+                            this);
             if(comp)
             {
                 element.components.add(comp);
@@ -164,11 +156,6 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
             }
         }
 
-
-        Component_T& m_component;
-        QObject* m_parentObject{};
-
-
         std::list<ConstraintPair> m_constraints;
         std::list<EventPair> m_events;
         std::list<TimeNodePair> m_timeNodes;
@@ -178,32 +165,31 @@ class ScenarioComponentHierarchyManager : public Nano::Observer
         struct MatchingComponent<Scenario::ConstraintModel, dummy> {
                 using type = ConstraintComponent_T;
                 using pair_type = ConstraintPair;
-                static const constexpr auto local_container = &ScenarioComponentHierarchyManager::m_constraints;
+                static const constexpr auto local_container = &HierarchicalScenarioComponent::m_constraints;
                 static const constexpr auto scenario_container = Scenario::ScenarioElementTraits<Scenario_T, Scenario::ConstraintModel>::accessor;
         };
         template<bool dummy>
         struct MatchingComponent<Scenario::EventModel, dummy> {
                 using type = EventComponent_T;
                 using pair_type = EventPair;
-                static const constexpr auto local_container = &ScenarioComponentHierarchyManager::m_events;
+                static const constexpr auto local_container = &HierarchicalScenarioComponent::m_events;
                 static const constexpr auto scenario_container = Scenario::ScenarioElementTraits<Scenario_T, Scenario::EventModel>::accessor;
         };
         template<bool dummy>
         struct MatchingComponent<Scenario::TimeNodeModel, dummy> {
                 using type = TimeNodeComponent_T;
                 using pair_type = TimeNodePair;
-                static const constexpr auto local_container = &ScenarioComponentHierarchyManager::m_timeNodes;
+                static const constexpr auto local_container = &HierarchicalScenarioComponent::m_timeNodes;
                 static const constexpr auto scenario_container = Scenario::ScenarioElementTraits<Scenario_T, Scenario::TimeNodeModel>::accessor;
         };
         template<bool dummy>
         struct MatchingComponent<Scenario::StateModel, dummy> {
                 using type = StateComponent_T;
                 using pair_type = StatePair;
-                static const constexpr auto local_container = &ScenarioComponentHierarchyManager::m_states;
+                static const constexpr auto local_container = &HierarchicalScenarioComponent::m_states;
                 static const constexpr auto scenario_container = Scenario::ScenarioElementTraits<Scenario_T, Scenario::StateModel>::accessor;
         };
 };
-
 
 
 template<
@@ -214,7 +200,9 @@ template<
         typename EventComponent_T,
         typename TimeNodeComponent_T,
         typename StateComponent_T>
-class BaseScenarioComponentHierarchyManager : public Nano::Observer
+class HierarchicalBaseScenario :
+        public Component_T,
+        public Nano::Observer
 {
     public:
         struct ConstraintPair {
@@ -238,19 +226,9 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
                 StateComponent_T& component;
         };
 
-        BaseScenario_T& scenario;
-        System_T& system;
-
-        BaseScenarioComponentHierarchyManager(
-                Component_T& component,
-                BaseScenario_T& scenar,
-                System_T& doc,
-                QObject* parentcomp
-                ):
-            scenario{scenar},
-            system{doc},
-            m_component{component},
-            m_parentObject{parentcomp},
+        template<typename... Args>
+        HierarchicalBaseScenario(Args&&... args):
+            Component_T{std::forward<Args>(args)...},
             m_constraints{setup<Scenario::ConstraintModel>(0)},
             m_events{setup<Scenario::EventModel>(0), setup<Scenario::EventModel>(1)},
             m_timeNodes{setup<Scenario::TimeNodeModel>(0), setup<Scenario::TimeNodeModel>(1)},
@@ -284,7 +262,7 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
             m_timeNodes.clear();
         }
 
-        ~BaseScenarioComponentHierarchyManager()
+        ~HierarchicalBaseScenario()
         {
             clear();
         }
@@ -297,7 +275,7 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
         template<typename Pair_T>
         void cleanup(const Pair_T& pair)
         {
-            m_component.removing(pair.element, pair.component);
+            this->removing(pair.element, pair.component);
             pair.element.components.remove(pair.component);
         }
 
@@ -305,21 +283,20 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
         auto setup(int pos)
         {
             using map_t = MatchingComponent<elt_t, true>;
-            auto&& member = map_t::scenario_container(scenario);
+            auto&& member = map_t::scenario_container(this->process());
 
-            return make(member[pos], pos);
+            return add(member[pos], pos);
 
         }
 
         template<typename elt_t>
-        auto make(elt_t& element, int pos)
+        auto add(elt_t& element, int pos)
         {
             using map_t = MatchingComponent<elt_t, true>;
-            auto comp = m_component.template make<typename map_t::type>(
+            auto comp = this->template make<typename map_t::type>(
                             getStrongId(element.components),
                             element,
-                            system,
-                            m_parentObject);
+                            this);
 
             ISCORE_ASSERT(comp);
             element.components.add(comp);
@@ -343,11 +320,6 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
             }
         }
 
-
-        Component_T& m_component;
-
-        QObject* m_parentObject{};
-
         std::list<ConstraintPair> m_constraints;
         std::list<EventPair> m_events;
         std::list<TimeNodePair> m_timeNodes;
@@ -357,28 +329,28 @@ class BaseScenarioComponentHierarchyManager : public Nano::Observer
         struct MatchingComponent<Scenario::ConstraintModel, dummy> {
                 using type = ConstraintComponent_T;
                 using pair_type = ConstraintPair;
-                static const constexpr auto local_container = &BaseScenarioComponentHierarchyManager::m_constraints;
+                static const constexpr auto local_container = &HierarchicalBaseScenario::m_constraints;
                 static const constexpr auto scenario_container = Scenario::ScenarioElementTraits<BaseScenario_T, Scenario::ConstraintModel>::accessor;
         };
         template<bool dummy>
         struct MatchingComponent<Scenario::EventModel, dummy> {
                 using type = EventComponent_T;
                 using pair_type = EventPair;
-                static const constexpr auto local_container = &BaseScenarioComponentHierarchyManager::m_events;
+                static const constexpr auto local_container = &HierarchicalBaseScenario::m_events;
                 static const constexpr auto scenario_container = Scenario::ScenarioElementTraits<BaseScenario_T, Scenario::EventModel>::accessor;
         };
         template<bool dummy>
         struct MatchingComponent<Scenario::TimeNodeModel, dummy> {
                 using type = TimeNodeComponent_T;
                 using pair_type = TimeNodePair;
-                static const constexpr auto local_container = &BaseScenarioComponentHierarchyManager::m_timeNodes;
+                static const constexpr auto local_container = &HierarchicalBaseScenario::m_timeNodes;
                 static const constexpr auto scenario_container = Scenario::ScenarioElementTraits<BaseScenario_T, Scenario::TimeNodeModel>::accessor;
         };
         template<bool dummy>
         struct MatchingComponent<Scenario::StateModel, dummy> {
                 using type = StateComponent_T;
                 using pair_type = StatePair;
-                static const constexpr auto local_container = &BaseScenarioComponentHierarchyManager::m_states;
+                static const constexpr auto local_container = &HierarchicalBaseScenario::m_states;
                 static const constexpr auto scenario_container = Scenario::ScenarioElementTraits<BaseScenario_T, Scenario::StateModel>::accessor;
         };
 };
