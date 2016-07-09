@@ -1,14 +1,15 @@
 #include "ProcessComponent.hpp"
 #include <Process/Process.hpp>
+
 Ossia::LocalTree::ProcessComponent::ProcessComponent(
         OSSIA::Node& parentNode,
         Process::ProcessModel& proc,
+        DocumentPlugin& doc,
         const Id<iscore::Component>& id,
         const QString& name,
         QObject* parent):
-    Component{id, name, parent},
-    process{proc},
-    m_thisNode{parentNode, proc.metadata, this}
+    LocalTreeComponent<Scenario::GenericProcessComponent<DocumentPlugin>>{
+        parentNode, proc.metadata, proc, doc, id, name, parent}
 {
 }
 
