@@ -47,6 +47,7 @@ class Component final :
 };
 
 EXECUTOR_PROCESS_COMPONENT_FACTORY(ComponentFactory, "a20bb032-2dfc-4048-acd2-7060c6af9c76", Component, Automation::ProcessModel)
+}
+}
 
-}
-}
+ISCORE_COMPONENT_FACTORY(RecreateOnPlay::ProcessComponentFactory, Automation::RecreateOnPlay::ComponentFactory)

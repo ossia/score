@@ -5,7 +5,7 @@
 #include <QPoint>
 #include <Process/TimeValue.hpp>
 
-class QGraphicsObject;
+class QGraphicsItem;
 class QTextDocument;
 
 namespace Scenario

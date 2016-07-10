@@ -53,3 +53,5 @@ EXECUTOR_PROCESS_COMPONENT_FACTORY(ComponentFactory, "53bde917-0c67-4c5c-b490-fb
 
 }
 }
+
+ISCORE_COMPONENT_FACTORY(RecreateOnPlay::ProcessComponentFactory, Mapping::RecreateOnPlay::ComponentFactory)
