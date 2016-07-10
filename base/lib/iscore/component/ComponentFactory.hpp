@@ -24,7 +24,7 @@ class GenericComponentFactory :
 template<
         typename Model_T, // e.g. ProcessModel - maybe ProcessEntity ?
         typename System_T, // e.g. LocalTree::DocumentPlugin
-        typename Factory_T> // e.g. ProcessComponentFactoryList
+        typename Factory_T> // e.g. ProcessComponentFactory
 class GenericComponentFactoryList final :
         public iscore::ConcreteFactoryList<Factory_T>
 {
@@ -43,5 +43,33 @@ class GenericComponentFactoryList final :
 
             return nullptr;
         }
+};
+
+template<
+        typename Model_T, // e.g. ProcessModel - maybe ProcessEntity ?
+        typename System_T, // e.g. LocalTree::DocumentPlugin
+        typename Factory_T, // e.g. ProcessComponentFactory
+        typename DefaultFactory_T>
+class DefaultedGenericComponentFactoryList final :
+        public iscore::ConcreteFactoryList<Factory_T>
+{
+    public:
+        Factory_T& factory(
+                Model_T& model,
+                const System_T& doc) const
+        {
+            for(auto& factory : *this)
+            {
+                if(factory.matches(model, doc))
+                {
+                    return factory;
+                }
+            }
+
+            return m_default;
+        }
+
+    private:
+        mutable DefaultFactory_T m_default;
 };
 }

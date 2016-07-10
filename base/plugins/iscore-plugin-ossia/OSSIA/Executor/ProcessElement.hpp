@@ -53,14 +53,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :
 };
 
 template<typename Process_T>
-class ProcessComponent_T : public ProcessComponent
-{
-    public:
-        using ProcessComponent::ProcessComponent;
-
-        const Process_T& process() const
-        { return static_cast<const Process_T&>(ProcessComponent::process()); }
-};
+using ProcessComponent_T = Scenario::GenericProcessComponent_T<ProcessComponent, Process_T>;
 
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
         public iscore::GenericComponentFactory<
@@ -121,73 +114,3 @@ class FactoryName final : \
         ISCORE_CONCRETE_FACTORY_DECL(Uuid)  \
 };
 
-
-///// State processes
-#include <Process/StateProcess.hpp>
-#include <OSSIA/Executor/StateElement.hpp>
-#include <Editor/State.h>
-namespace RecreateOnPlay
-{
-class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponent :
-        public iscore::Component
-{
-    public:
-        StateProcessComponent(
-                StateElement& state,
-                Process::StateProcess& proc,
-                const Id<iscore::Component>& id,
-                const QString& name,
-                QObject* parent):
-            iscore::Component{id, name, parent},
-            m_parent_state{state},
-            m_iscore_process{proc}
-        {
-
-        }
-
-        virtual ~StateProcessComponent();
-
-        auto& iscoreProcess() const
-        { return m_iscore_process; }
-
-        auto& OSSIAProcess() const
-        { return m_ossia_process; }
-
-    protected:
-        StateElement& m_parent_state;
-        Process::StateProcess& m_iscore_process;
-        std::shared_ptr<OSSIA::StateElement> m_ossia_process;
-};
-
-class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponentFactory :
-        public iscore::GenericComponentFactory<
-            Process::StateProcess,
-            RecreateOnPlay::DocumentPlugin,
-            RecreateOnPlay::ProcessComponentFactory>
-{
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                RecreateOnPlay::ProcessComponentFactory,
-                "cef1b394-84b2-4241-b4eb-72b1fb504f92")
-    public:
-        virtual ~StateProcessComponentFactory();
-
-        virtual StateProcessComponent* make(
-                  StateElement& cst,
-                  Process::StateProcess& proc,
-                  const Context& ctx,
-                  const Id<iscore::Component>& id,
-                  QObject* parent) const = 0;
-
-        virtual std::shared_ptr<OSSIA::StateElement> make(
-                  Process::StateProcess& proc,
-                  const Context& ctxt) const = 0;
-};
-
-using StateProcessComponentFactoryList =
-    iscore::GenericComponentFactoryList<
-            Process::StateProcess,
-            RecreateOnPlay::DocumentPlugin,
-            RecreateOnPlay::StateProcessComponentFactory>;
-
-
-}

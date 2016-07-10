@@ -18,7 +18,7 @@ class ISCORE_LIB_BASE_EXPORT FactoryInterfaceBase
          * @brief abstractFactoryKey
          * @return The general factory (ProtocolFactory, ProcessFactory)
          */
-        virtual const AbstractFactoryKey& abstractFactoryKey() const = 0;
+        virtual AbstractFactoryKey abstractFactoryKey() const = 0;
 };
 
 // Keys for the sub-classes to identify themselves.
@@ -28,7 +28,7 @@ class FactoryInterface_T : public FactoryInterfaceBase
     public:
         virtual ~FactoryInterface_T() = default;
 
-        virtual const Key& concreteFactoryKey() const = 0;
+        virtual Key concreteFactoryKey() const = 0;
 };
 
 template<typename T>
@@ -37,12 +37,12 @@ using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
 
 #define ISCORE_ABSTRACT_FACTORY_DECL(Type, Uuid) \
     public: \
-    static const iscore::AbstractFactoryKey& static_abstractFactoryKey() { \
-        static const constexpr iscore::AbstractFactoryKey s{Uuid}; \
+    static constexpr iscore::AbstractFactoryKey static_abstractFactoryKey() { \
+        const constexpr iscore::AbstractFactoryKey s{Uuid}; \
         return s; \
     } \
     \
-    const iscore::AbstractFactoryKey& abstractFactoryKey() const final override { \
+    iscore::AbstractFactoryKey abstractFactoryKey() const final override { \
         return static_abstractFactoryKey(); \
     } \
     using ConcreteFactoryKey = UuidKey<Type>; \
@@ -53,12 +53,12 @@ using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
 // ConcreteFactoryKey should be defined in the subclass
 #define ISCORE_CONCRETE_FACTORY_DECL(Uuid) \
     public: \
-    static const auto& static_concreteFactoryKey() { \
-        static const constexpr ConcreteFactoryKey id{Uuid}; \
+    static auto static_concreteFactoryKey() { \
+        const constexpr ConcreteFactoryKey id{Uuid}; \
         return id; \
     } \
     \
-    const ConcreteFactoryKey& concreteFactoryKey() const final override { \
+    ConcreteFactoryKey concreteFactoryKey() const final override { \
         return static_concreteFactoryKey(); \
     }\
     private:

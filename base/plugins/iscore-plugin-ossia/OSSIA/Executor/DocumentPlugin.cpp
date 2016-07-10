@@ -7,7 +7,7 @@
 #include <core/document/Document.hpp>
 #include <OSSIA/Executor/ConstraintElement.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
+#include <OSSIA/Executor/StateProcessComponent.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 class QObject;
 namespace iscore {

@@ -4,7 +4,7 @@
 #include <QJSValue>
 #include <QString>
 #include <memory>
-#include <OSSIA/Executor/ProcessElement.hpp>
+#include <OSSIA/Executor/StateProcessComponent.hpp>
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -53,8 +53,9 @@ class State :
 };
 
 class StateProcessComponent final :
-        public RecreateOnPlay::StateProcessComponent
+        public RecreateOnPlay::StateProcessComponent_T<JS::StateProcess>
 {
+        COMPONENT_METADATA("068c116f-9d1f-47d0-bd43-335792ba1a6a")
     public:
         StateProcessComponent(
                 RecreateOnPlay::StateElement& parentState,
@@ -63,35 +64,10 @@ class StateProcessComponent final :
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
-    private:
-        const Key &key() const override;
-};
-
-class StateProcessComponentFactory final :
-        public RecreateOnPlay::StateProcessComponentFactory
-{
-    public:
-        virtual ~StateProcessComponentFactory();
-
-        virtual RecreateOnPlay::StateProcessComponent* make(
-                    RecreateOnPlay::StateElement& cst,
-                    Process::StateProcess& proc,
-                    const RecreateOnPlay::Context& ctx,
-                    const Id<iscore::Component>& id,
-                    QObject* parent) const override;
-
-        const ConcreteFactoryKey& concreteFactoryKey() const override;
-
-        bool matches(
+        static std::shared_ptr<OSSIA::StateElement> make(
                 Process::StateProcess& proc,
-                const RecreateOnPlay::DocumentPlugin&) const override;
-
-        virtual std::shared_ptr<OSSIA::StateElement> make(
-                  Process::StateProcess& proc,
-                  const RecreateOnPlay::Context& ctxt) const override;
+                const RecreateOnPlay::Context& ctxt);
 };
-
-
-
+EXECUTOR_STATE_PROCESS_COMPONENT_FACTORY(StateProcessComponentFactory, "e696bbe1-d15e-43aa-bd7f-7f4b629a245f", StateProcessComponent, JS::StateProcess)
 }
 }

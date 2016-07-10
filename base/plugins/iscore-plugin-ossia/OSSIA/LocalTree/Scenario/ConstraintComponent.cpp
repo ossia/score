@@ -9,7 +9,7 @@ ConstraintBase::ConstraintBase(
         OSSIA::Node& parent,
         const Id<iscore::Component>& id,
         Scenario::ConstraintModel& constraint,
-        ConstraintBase::system_t& doc,
+        DocumentPlugin& doc,
         QObject* parent_comp):
     parent_t{parent, constraint.metadata, constraint, doc, id, "ConstraintComponent", parent_comp},
     m_processesNode{add_node(*node(), "processes")}

@@ -61,19 +61,24 @@ class Json_k;
 #define JSON_METADATA(Type, Text) \
     LIT_TEXT_METADATA(, Type, Json_k, Text)
 
-// TODO use thread_local ??
 #define STATIC_METADATA(Export, Model, Key, Type, Value) \
     template<> \
     struct Export Metadata< \
             Key, \
             Model> \
     { \
-            static const auto& get() \
+            static constexpr Type get() \
             { \
-                static const Type k{Value}; \
+                const constexpr Type k{Value}; \
                 return k; \
             } \
     };
 
 #define UUID_METADATA(Export, Factory, Model, Uuid) \
     STATIC_METADATA(Export, Model, ConcreteFactoryKey_k, UuidKey<Factory>, Uuid)
+
+
+#define MODEL_METADATA(Export, Factory, Model, Uuid, ObjectKey, PrettyName) \
+    OBJECTKEY_METADATA(Export, Model, ObjectKey) \
+    UUID_METADATA(Export, Factory, Model, Uuid) \
+    TR_TEXT_METADATA(Export, Model, PrettyName_k, PrettyName)

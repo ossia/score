@@ -31,4 +31,30 @@ class ISCORE_LIB_PROCESS_EXPORT StateProcessFactory :
                 const VisitorVariant&,
                 QObject* parent) = 0;
 };
+
+template<typename Model_T>
+class StateProcessFactory_T : public StateProcessFactory
+{
+    public:
+        QString prettyName() const override
+        { return Metadata<PrettyName_k, Model_T>::get(); }
+
+        UuidKey<Process::StateProcessFactory> concreteFactoryKey() const override
+        { return Metadata<ConcreteFactoryKey_k, Model_T>::get(); }
+
+        Model_T* make(
+                const Id<StateProcess>& id,
+                QObject* parent) override
+        {
+            return new Model_T{id, parent};
+        }
+
+        Model_T* load(
+                const VisitorVariant& vis,
+                QObject* parent) override
+        {
+            return deserialize_dyn(vis, [&] (auto&& deserializer)
+            { return new Model_T{deserializer, parent};});
+        }
+};
 }

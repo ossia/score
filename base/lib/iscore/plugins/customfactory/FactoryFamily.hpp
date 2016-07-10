@@ -54,7 +54,7 @@ class ConcreteFactoryList :
 
         ~ConcreteFactoryList() noexcept override = default;
 
-        static const constexpr iscore::AbstractFactoryKey& static_abstractFactoryKey() {
+        static const constexpr iscore::AbstractFactoryKey static_abstractFactoryKey() {
             return FactoryType::static_abstractFactoryKey();
         }
 

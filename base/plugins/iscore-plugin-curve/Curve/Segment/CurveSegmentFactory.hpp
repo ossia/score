@@ -91,7 +91,7 @@ class SegmentFactory_T : public SegmentFactory
     virtual ~Name() = default; \
     \
     private: \
-    const UuidKey<Curve::SegmentFactory>& concreteFactoryKey() const override { \
+    UuidKey<Curve::SegmentFactory> concreteFactoryKey() const override { \
         return Metadata<ConcreteFactoryKey_k, Model>::get(); \
     } \
     \

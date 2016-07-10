@@ -18,6 +18,7 @@
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <OSSIA/Executor/Settings/ExecutorFactory.hpp>
 #include <OSSIA/Executor/ClockManager/ClockManagerFactory.hpp>
+#include <OSSIA/Executor/StateProcessComponent.hpp>
 #include <OSSIA/Executor/ClockManager/DefaultClockManager.hpp>
 #include <OSSIA/LocalTree/Settings/LocalTreeFactory.hpp>
 #include <OSSIA/Listening/PlayListeningHandlerFactory.hpp>

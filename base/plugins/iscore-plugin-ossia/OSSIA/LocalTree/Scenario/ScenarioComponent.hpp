@@ -15,12 +15,11 @@ class ScenarioComponentBase :
        COMPONENT_METADATA("57c37324-f5a5-494e-8b45-206750d9fa77")
 
     public:
-           using system_t = Ossia::LocalTree::DocumentPlugin;
        ScenarioComponentBase(
                const Id<iscore::Component>& id,
                OSSIA::Node& parent,
                Scenario::ProcessModel& scenario,
-               system_t& doc,
+               DocumentPlugin& doc,
                QObject* parent_obj);
 
        template<typename Component_T, typename Element>
