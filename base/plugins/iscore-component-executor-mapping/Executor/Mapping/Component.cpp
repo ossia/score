@@ -4,7 +4,6 @@
 #include <Editor/State.h>
 #include <Editor/Message.h>
 #include <Editor/Value.h>
-#include <Mapping/MappingModel.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -28,46 +27,39 @@
 #include <Editor/CurveSegment/CurveSegmentPower.h>
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
-namespace RecreateOnPlay
-{
 
 namespace Mapping
 {
+namespace RecreateOnPlay
+{
 Component::Component(
-        ConstraintElement& parentConstraint,
+        ::RecreateOnPlay::ConstraintElement& parentConstraint,
         ::Mapping::ProcessModel& element,
-        const Context& ctx,
+        const ::RecreateOnPlay::Context& ctx,
         const Id<iscore::Component>& id,
         QObject *parent):
-    ProcessComponent{parentConstraint, element, id, "MappingElement", parent},
+    ::RecreateOnPlay::ProcessComponent_T<Mapping::ProcessModel>{parentConstraint, element, ctx, id, "MappingElement", parent},
     m_deviceList{ctx.devices.list()}
 {
     recreate();
 }
 
-const Component::Key& Component::key() const
-{
-    static iscore::Component::Key k("OSSIAMappingElement");
-    return k;
-}
-
 template<typename X_T, typename Y_T>
 std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl2()
 {
-    auto& iscore_mapping = static_cast<::Mapping::ProcessModel&>(m_iscore_process);
-    if(iscore_mapping.curve().segments().size() == 0)
+    if(process().curve().segments().size() == 0)
         return {};
 
-    const double xmin = iscore_mapping.sourceMin();
-    const double xmax = iscore_mapping.sourceMax();
+    const double xmin = process().sourceMin();
+    const double xmax = process().sourceMax();
 
-    const double ymin = iscore_mapping.targetMin();
-    const double ymax = iscore_mapping.targetMax();
+    const double ymin = process().targetMin();
+    const double ymax = process().targetMax();
 
     auto scale_x = [=] (double val) -> X_T { return val * (xmax - xmin) + xmin; };
     auto scale_y = [=] (double val) -> Y_T { return val * (ymax - ymin) + ymin; };
 
-    auto segt_data = iscore_mapping.curve().toCurveData();
+    auto segt_data = process().curve().toCurveData();
 
     if(segt_data.size() != 0)
     {
@@ -120,9 +112,8 @@ std::shared_ptr<OSSIA::CurveAbstract> Component::rebuildCurve()
 
 void Component::recreate()
 {
-    auto& iscore_mapping = static_cast<::Mapping::ProcessModel&>(m_iscore_process);
-    auto iscore_source_addr = iscore_mapping.sourceAddress();
-    auto iscore_target_addr = iscore_mapping.targetAddress();
+    auto iscore_source_addr = process().sourceAddress();
+    auto iscore_target_addr = process().targetAddress();
 
     std::shared_ptr<OSSIA::Address> ossia_source_addr;
     std::shared_ptr<OSSIA::Address> ossia_target_addr;
@@ -189,41 +180,5 @@ curve_cleanup_label:
     return;
 }
 
-
-
-
-ComponentFactory::~ComponentFactory()
-{
-
-}
-
-ProcessComponent* ComponentFactory::make(
-        ConstraintElement& cst,
-        Process::ProcessModel& proc,
-        const Context& ctx,
-        const Id<iscore::Component>& id,
-        QObject* parent) const
-{
-
-    return new Component{
-                cst,
-                static_cast<::Mapping::ProcessModel&>(proc),
-                ctx, id, parent};
-
-}
-
-const ComponentFactory::ConcreteFactoryKey&
-ComponentFactory::concreteFactoryKey() const
-{
-    static ComponentFactory::ConcreteFactoryKey k("e6d2980e-b1d4-4993-9f98-782727f6143b");
-    return k;
-}
-
-bool ComponentFactory::matches(
-        Process::ProcessModel& proc,
-        const DocumentPlugin&) const
-{
-    return dynamic_cast<::Mapping::ProcessModel*>(&proc);
-}
 }
 }

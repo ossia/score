@@ -1,5 +1,4 @@
 #include <Editor/Automation.h>
-#include <Automation/AutomationModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDebug>
 #include <QString>
@@ -39,32 +38,25 @@ class ConstraintElement;
 
 
 
-namespace RecreateOnPlay
-{
 namespace Automation
 {
+namespace RecreateOnPlay
+{
 Component::Component(
-        ConstraintElement& parentConstraint,
+        ::RecreateOnPlay::ConstraintElement& parentConstraint,
         ::Automation::ProcessModel& element,
-        const Context& ctx,
+        const ::RecreateOnPlay::Context& ctx,
         const Id<iscore::Component>& id,
         QObject *parent):
-    ProcessComponent{parentConstraint, element, id, "Executor::Automation::Component", parent},
+    ::RecreateOnPlay::ProcessComponent_T<Automation::ProcessModel>{parentConstraint, element, ctx, id, "Executor::Automation::Component", parent},
     m_deviceList{ctx.devices.list()}
 {
     recreate();
 }
 
-const iscore::Component::Key& Component::key() const
-{
-    static iscore::Component::Key k("OSSIAComponent");
-    return k;
-}
-
 void Component::recreate()
 {
-    auto& iscore_autom = static_cast<::Automation::ProcessModel&>(m_iscore_process);
-    auto addr = iscore_autom.address();
+    auto addr = process().address();
     std::shared_ptr<OSSIA::Address> address;
     OSSIA::Node* node{};
     Ossia::OSSIADevice* dev{};
@@ -120,16 +112,15 @@ curve_cleanup_label:
 template<typename Y_T>
 std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl()
 {
-    auto& iscore_autom = static_cast<::Automation::ProcessModel&>(m_iscore_process);
     using namespace OSSIA;
 
-    const double min = iscore_autom.min();
-    const double max = iscore_autom.max();
+    const double min = process().min();
+    const double max = process().max();
 
     auto scale_x = [=] (double val) -> double { return val; };
     auto scale_y = [=] (double val) -> Y_T { return val * (max - min) + min; };
 
-    auto segt_data = iscore_autom.curve().toCurveData();
+    auto segt_data = process().curve().toCurveData();
     if(segt_data.size() != 0)
     {
         std::sort(segt_data.begin(), segt_data.end());
@@ -158,40 +149,6 @@ std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged()
     }
 
     return m_ossia_curve;
-}
-
-
-
-ComponentFactory::~ComponentFactory()
-{
-
-}
-
-ProcessComponent* ComponentFactory::make(
-        ConstraintElement& cst,
-        Process::ProcessModel& proc,
-        const Context& ctx,
-        const Id<iscore::Component>& id,
-        QObject* parent) const
-{
-    return new Component{
-                cst,
-                static_cast<::Automation::ProcessModel&>(proc),
-                ctx, id, parent};
-}
-
-const ComponentFactory::ConcreteFactoryKey&
-ComponentFactory::concreteFactoryKey() const
-{
-    static ComponentFactory::ConcreteFactoryKey k("d85c0412-69b9-4ad3-973e-0f6e400599db");
-    return k;
-}
-
-bool ComponentFactory::matches(
-        Process::ProcessModel& proc,
-        const DocumentPlugin&) const
-{
-    return dynamic_cast<::Automation::ProcessModel*>(&proc);
 }
 }
 }

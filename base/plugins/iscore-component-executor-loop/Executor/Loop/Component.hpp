@@ -1,6 +1,7 @@
 #pragma once
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <memory>
+#include <Loop/LoopProcessModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 class DeviceList;
@@ -23,20 +24,20 @@ namespace Scenario
 class ConstraintModel;
 }
 
-namespace RecreateOnPlay
-{
-class ConstraintElement;
-
 namespace Loop
 {
-// TODO see if this can be used for the base scenario model too.
-class Component final : public ProcessComponent
+namespace RecreateOnPlay
 {
+// TODO see if this can be used for the base scenario model too.
+class Component final :
+        public ::RecreateOnPlay::ProcessComponent_T<Loop::ProcessModel>
+{
+        COMPONENT_METADATA("77b987ae-7bc8-4273-aa9c-9e4ba53a053d")
     public:
         Component(
-                ConstraintElement& parentConstraint,
+                ::RecreateOnPlay::ConstraintElement& parentConstraint,
                 ::Loop::ProcessModel& element,
-                const Context& ctx,
+                const ::RecreateOnPlay::Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
@@ -50,40 +51,19 @@ class Component final : public ProcessComponent
 
 
     private:
-        const Key &key() const override;
-        const Context& m_ctx;
+        ::RecreateOnPlay::ConstraintElement* m_ossia_constraint{};
 
-        ConstraintElement* m_ossia_constraint{};
+        ::RecreateOnPlay::TimeNodeElement* m_ossia_startTimeNode{};
+        ::RecreateOnPlay::TimeNodeElement* m_ossia_endTimeNode{};
 
-        TimeNodeElement* m_ossia_startTimeNode{};
-        TimeNodeElement* m_ossia_endTimeNode{};
+        ::RecreateOnPlay::EventElement* m_ossia_startEvent{};
+        ::RecreateOnPlay::EventElement* m_ossia_endEvent{};
 
-        EventElement* m_ossia_startEvent{};
-        EventElement* m_ossia_endEvent{};
-
-        StateElement* m_ossia_startState{};
-        StateElement* m_ossia_endState{};
+        ::RecreateOnPlay::StateElement* m_ossia_startState{};
+        ::RecreateOnPlay::StateElement* m_ossia_endState{};
 };
 
+EXECUTOR_PROCESS_COMPONENT_FACTORY(ComponentFactory, "91c65252-21d3-4db5-a4a6-c6f7547fb5ee", Component, Loop::ProcessModel)
 
-class ComponentFactory final :
-        public ProcessComponentFactory
-{
-        ISCORE_COMPONENT_FACTORY(RecreateOnPlay::ProcessComponentFactory, RecreateOnPlay::Loop::ComponentFactory)
-    public:
-        virtual ~ComponentFactory();
-        ProcessComponent* make(
-                ConstraintElement& cst,
-                Process::ProcessModel& proc,
-                const Context& ctx,
-                const Id<iscore::Component>& id,
-                QObject* parent) const override;
-
-        const ConcreteFactoryKey& concreteFactoryKey() const override;
-
-        bool matches(
-                Process::ProcessModel&,
-                const DocumentPlugin&) const override;
-};
 }
 }
