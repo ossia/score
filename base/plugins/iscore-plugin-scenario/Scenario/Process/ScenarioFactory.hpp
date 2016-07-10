@@ -26,7 +26,7 @@ class ScenarioFactory final :
 {
     public:
         ScenarioFactory(Scenario::EditionSettings&);
-        const UuidKey<Process::ProcessFactory>& concreteFactoryKey() const override;
+        UuidKey<Process::ProcessFactory> concreteFactoryKey() const override;
         QString prettyName() const override;
 
         Process::ProcessModel* makeModel(

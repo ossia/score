@@ -1,5 +1,6 @@
 #pragma once
 #include <Editor/TimeValue.h>
+#include <Editor/State.h>
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QObject>

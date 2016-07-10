@@ -9,15 +9,10 @@
 
 class SimpleProcessFactory : public Process::ProcessFactory
 {
+        ISCORE_CONCRETE_FACTORY_DECL("0107dfb7-dcab-45c3-b7b8-e824c0fe49a1")
     public:
         QString prettyName() const override
         { return QObject::tr("SimpleProcess"); }
-
-        const UuidKey<Process::ProcessFactory>& concreteFactoryKey() const override
-        {
-            static const UuidKey<Process::ProcessFactory>name{"0107dfb7-dcab-45c3-b7b8-e824c0fe49a1"};
-            return name;
-        }
 
         Process::ProcessModel* makeModel(
                 const TimeValue& duration,

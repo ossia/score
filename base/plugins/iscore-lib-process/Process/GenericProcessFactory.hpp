@@ -18,7 +18,7 @@ class GenericProcessFactory final :
         virtual ~GenericProcessFactory() = default;
 
     private:
-        const UuidKey<Process::ProcessFactory>& concreteFactoryKey() const override
+        UuidKey<Process::ProcessFactory> concreteFactoryKey() const override
         { return Metadata<ConcreteFactoryKey_k, Model_T>::get(); }
 
         QString prettyName() const override
@@ -163,7 +163,7 @@ class GenericProcessFactory<Model_T, default_t, default_t, default_t> final :
         virtual ~GenericProcessFactory() = default;
 
     private:
-        const UuidKey<Process::ProcessFactory>& concreteFactoryKey() const override
+        UuidKey<Process::ProcessFactory> concreteFactoryKey() const override
         { return Metadata<ConcreteFactoryKey_k, Model_T>::get(); }
 
         QString prettyName() const override

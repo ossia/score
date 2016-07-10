@@ -44,6 +44,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 #include <OSSIA/Executor/ExecutorContext.hpp>
+#include <OSSIA/Executor/StateProcessComponent.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
 

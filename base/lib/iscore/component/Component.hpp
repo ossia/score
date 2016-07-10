@@ -3,15 +3,14 @@
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 namespace iscore
 {
-
 #define COMPONENT_METADATA(Uuid) \
     public: \
-    static const Component::Key& static_key() { \
-        static const constexpr Component::Key s{Uuid}; \
+    static constexpr Component::Key static_key() { \
+        const constexpr Component::Key s{Uuid}; \
         return s; \
     } \
     \
-    const Component::Key& key() const final override { \
+    Component::Key key() const final override { \
       return static_key(); \
     } \
     private:
@@ -23,7 +22,7 @@ class ISCORE_LIB_BASE_EXPORT Component :
     public:
         using IdentifiedObject<iscore::Component>::IdentifiedObject;
         using Key = UuidKey<iscore::Component>;
-        virtual const Key& key() const = 0;
+        virtual Key key() const = 0;
 
         virtual ~Component();
 };

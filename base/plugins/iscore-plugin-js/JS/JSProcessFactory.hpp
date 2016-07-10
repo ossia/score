@@ -12,27 +12,5 @@ namespace JS
 {
 using ProcessFactory = Process::GenericDefaultProcessFactory<JS::ProcessModel>;
 
-// MOVEME
-// REFACTORME
-class StateProcessFactory : public Process::StateProcessFactory
-{
-    public:
-        QString prettyName() const override
-        { return Metadata<PrettyName_k, StateProcess>::get(); }
-
-        const UuidKey<Process::StateProcessFactory>& concreteFactoryKey() const override
-        { return Metadata<ConcreteFactoryKey_k, StateProcess>::get(); }
-
-        StateProcess* make(const Id<Process::StateProcess>& id, QObject* parent) override
-        { return new StateProcess{id, parent}; }
-
-        Process::StateProcess* load(
-                const VisitorVariant& vis,
-                QObject* parent) override
-        {
-            return deserialize_dyn(vis, [&] (auto&& deserializer)
-            { return new StateProcess{deserializer, parent};});
-        }
-};
-
+using StateProcessFactory = Process::StateProcessFactory_T<JS::StateProcess>;
 }

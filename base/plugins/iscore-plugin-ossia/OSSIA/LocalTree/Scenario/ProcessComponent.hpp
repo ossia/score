@@ -26,15 +26,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :
 };
 
 template<typename Process_T>
-class ProcessComponent_T : public ProcessComponent
-{
-    public:
-        using ProcessComponent::ProcessComponent;
-
-        const Process_T& process() const
-        { return static_cast<const Process_T&>(ProcessComponent::process()); }
-};
-
+using ProcessComponent_T = Scenario::GenericProcessComponent_T<ProcessComponent, Process_T>;
 
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
         public iscore::GenericComponentFactory<

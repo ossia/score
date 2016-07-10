@@ -13,7 +13,6 @@ class ConstraintBase :
         COMPONENT_METADATA("11d928b5-eaeb-471c-b3b7-dc453180b10f")
     public:
         using parent_t = Component<Scenario::GenericConstraintComponent<DocumentPlugin>>;
-        using system_t = Ossia::LocalTree::DocumentPlugin;
         using process_component_t = Ossia::LocalTree::ProcessComponent;
         using process_component_factory_t = Ossia::LocalTree::ProcessComponentFactory;
         using process_component_factory_list_t = Ossia::LocalTree::ProcessComponentFactoryList;
@@ -22,7 +21,7 @@ class ConstraintBase :
                 OSSIA::Node& parent,
                 const Id<iscore::Component>& id,
                 Scenario::ConstraintModel& constraint,
-                system_t& doc,
+                DocumentPlugin& sys,
                 QObject* parent_comp);
 
         ProcessComponent* make_processComponent(

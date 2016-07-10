@@ -10,9 +10,9 @@ ScenarioComponentBase::ScenarioComponentBase(
         const Id<iscore::Component>& id,
         OSSIA::Node& parent,
         Scenario::ProcessModel& scenario,
-        system_t& sys,
+        DocumentPlugin& sys,
         QObject* parent_obj):
-    ProcessComponent_T{parent, scenario, sys, id, "ScenarioComponent", parent_obj},
+    ProcessComponent_T<Scenario::ProcessModel>{parent, scenario, sys, id, "ScenarioComponent", parent_obj},
     m_constraintsNode{add_node(*node(), "constraints")},
     m_eventsNode{add_node(*node(), "events")},
     m_timeNodesNode{add_node(*node(), "timenodes")},

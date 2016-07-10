@@ -52,56 +52,18 @@ StateProcessComponent::StateProcessComponent(
         const RecreateOnPlay::Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    RecreateOnPlay::StateProcessComponent{parentConstraint, element, id, "JSStateComponent", parent}
+    RecreateOnPlay::StateProcessComponent_T<JS::StateProcess>{
+        parentConstraint, element, ctx, id, "JSStateComponent", parent}
 {
     auto proc = std::make_shared<State>(element.script(), ctx.devices);
     m_ossia_process = proc;
 }
 
-const iscore::Component::Key& StateProcessComponent::key() const
-{
-    // TODO these should be uuids !!!!!
-    static iscore::Component::Key k("3e46d422-6b69-4142-8500-a806b8a94284");
-    return k;
-}
-
-
-
-//// Factory ////
-StateProcessComponentFactory::~StateProcessComponentFactory()
-{
-
-}
-
-RecreateOnPlay::StateProcessComponent* StateProcessComponentFactory::make(
-        RecreateOnPlay::StateElement& cst,
+std::shared_ptr<OSSIA::StateElement> StateProcessComponent::make(
         Process::StateProcess& proc,
-        const RecreateOnPlay::Context& ctx,
-        const Id<iscore::Component>& id,
-        QObject* parent) const
+        const RecreateOnPlay::Context& ctx)
 {
-    return new StateProcessComponent{cst, static_cast<JS::StateProcess&>(proc), ctx, id, parent};
-}
-
-const StateProcessComponentFactory::ConcreteFactoryKey&
-StateProcessComponentFactory::concreteFactoryKey() const
-{
-    static ConcreteFactoryKey k("ff5a59c5-a710-46b5-a9c8-74d72a67a5d9");
-    return k;
-}
-
-bool StateProcessComponentFactory::matches(
-        Process::StateProcess& proc,
-        const RecreateOnPlay::DocumentPlugin&) const
-{
-    return dynamic_cast<JS::StateProcess*>(&proc);
-}
-
-std::shared_ptr<OSSIA::StateElement> StateProcessComponentFactory::make(
-        Process::StateProcess &proc,
-        const RecreateOnPlay::Context &ctx) const
-{
-    return  std::make_shared<State>(static_cast<const JS::StateProcess&>(proc).script(), ctx.devices);
+    return std::make_shared<State>(static_cast<const JS::StateProcess&>(proc).script(), ctx.devices);
 }
 
 }

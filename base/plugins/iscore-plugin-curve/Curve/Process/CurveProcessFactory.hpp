@@ -98,11 +98,11 @@ class CurveProcessFactory_T :
                 parent};
         }
 
-        const UuidKey<Process::ProcessFactory>& concreteFactoryKey() const override \
-        { return Metadata<ConcreteFactoryKey_k, Model_T>::get(); } \
-        \
-        QString prettyName() const override \
-        { return Metadata<PrettyName_k, Model_T>::get(); } \
+        UuidKey<Process::ProcessFactory> concreteFactoryKey() const override
+        { return Metadata<ConcreteFactoryKey_k, Model_T>::get(); }
+
+        QString prettyName() const override
+        { return Metadata<PrettyName_k, Model_T>::get(); }
 
     private:
         CurveColors_T m_colors;
