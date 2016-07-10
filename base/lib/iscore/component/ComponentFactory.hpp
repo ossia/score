@@ -15,9 +15,13 @@ class GenericComponentFactory :
         public iscore::AbstractFactory<ComponentFactory_T>
 {
     public:
+        using base_model_type = Model_T;
+        using system_type = System_T;
+        using factory_type = ComponentFactory_T;
+
         virtual bool matches(
-                Model_T&,
-                const System_T&) const = 0;
+                base_model_type&,
+                const system_type&) const = 0;
 };
 
 

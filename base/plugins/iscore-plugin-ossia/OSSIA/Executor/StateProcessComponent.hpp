@@ -10,6 +10,7 @@
 #include <OSSIA/Executor/StateElement.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <Editor/State.h>
+#include <iscore/plugins/customfactory/ModelFactory.hpp>
 namespace RecreateOnPlay
 {
 class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponent :
@@ -65,30 +66,11 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponentFactory :
 };
 
 template<typename StateProcessComponent_T>
-class StateProcessComponentFactory_T : public StateProcessComponentFactory
+class StateProcessComponentFactory_T :
+        public iscore::GenericComponentFactoryImpl<StateProcessComponent_T, StateProcessComponentFactory>
 {
     public:
-        using StateProcessComponentFactory::StateProcessComponentFactory;
-
         using model_type = typename StateProcessComponent_T::model_type;
-        using component_type = StateProcessComponent_T;
-
-        static auto static_concreteFactoryKey()
-        {
-            return StateProcessComponent_T::static_key().impl();
-        }
-
-        ConcreteFactoryKey concreteFactoryKey() const final override
-        {
-            return StateProcessComponent_T::static_key().impl(); // Note : here there is a conversion between UuidKey<Component> and ConcreteFactoryKey
-        }
-
-        bool matches(
-                Process::StateProcess& p, const DocumentPlugin&) const final override
-        {
-            return dynamic_cast<model_type*>(&p);
-        }
-
         StateProcessComponent_T* make(
                   StateElement& st,
                   Process::StateProcess& proc,
