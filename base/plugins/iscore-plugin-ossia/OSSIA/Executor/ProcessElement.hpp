@@ -7,6 +7,7 @@
 
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <Scenario/Document/Components/ProcessComponent.hpp>
+#include <iscore/plugins/customfactory/ModelFactory.hpp>
 #include <iscore_plugin_ossia_export.h>
 namespace OSSIA
 {
@@ -73,30 +74,11 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
 };
 
 template<typename ProcessComponent_T>
-class ProcessComponentFactory_T : public ProcessComponentFactory
+class ProcessComponentFactory_T :
+        public iscore::GenericComponentFactoryImpl<ProcessComponent_T, ProcessComponentFactory>
 {
     public:
-        using ProcessComponentFactory::ProcessComponentFactory;
-
         using model_type = typename ProcessComponent_T::model_type;
-        using component_type = ProcessComponent_T;
-
-        static auto static_concreteFactoryKey()
-        {
-            return ProcessComponent_T::static_key().impl();
-        }
-
-        ConcreteFactoryKey concreteFactoryKey() const final override
-        {
-            return ProcessComponent_T::static_key().impl(); // Note : here there is a conversion between UuidKey<Component> and ConcreteFactoryKey
-        }
-
-        bool matches(
-                Process::ProcessModel& p, const DocumentPlugin&) const final override
-        {
-            return dynamic_cast<model_type*>(&p);
-        }
-
         ProcessComponent* make(
                 ConstraintElement& cst,
                 Process::ProcessModel& proc,

@@ -4,6 +4,7 @@
 #include <iscore/component/ComponentFactory.hpp>
 #include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <OSSIA/LocalTree/LocalTreeComponent.hpp>
+#include <iscore/plugins/customfactory/ModelFactory.hpp>
 
 // TODO clean me up
 namespace Ossia
@@ -47,30 +48,10 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
 
 template<typename ProcessComponent_T>
 class ProcessComponentFactory_T :
-        public ProcessComponentFactory
+        public iscore::GenericComponentFactoryImpl<ProcessComponent_T, ProcessComponentFactory>
 {
     public:
         using model_type = typename ProcessComponent_T::model_type;
-        using component_type = ProcessComponent_T;
-        virtual ~ProcessComponentFactory_T() = default;
-
-        static auto static_concreteFactoryKey()
-        {
-            return ProcessComponent_T::static_key().impl();
-        }
-
-        ConcreteFactoryKey concreteFactoryKey() const final override
-        {
-            return ProcessComponent_T::static_key().impl(); // Note : here there is a conversion between UuidKey<Component> and ConcreteFactoryKey
-        }
-
-        bool matches(
-                Process::ProcessModel& p,
-                const DocumentPlugin&) const override
-        {
-            return dynamic_cast<model_type*>(&p);
-        }
-
         ProcessComponent* make(
                 const Id<iscore::Component>& id,
                 OSSIA::Node& parent,
