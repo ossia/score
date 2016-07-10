@@ -10,7 +10,7 @@ namespace Scenario
 class AutomationDropHandler final :
         public ConstraintDropHandler
 {
-        ISCORE_CONCRETE_FACTORY_DECL("851c98e1-4bcb-407b-9a72-8288d83c9f38")
+        ISCORE_CONCRETE_FACTORY("851c98e1-4bcb-407b-9a72-8288d83c9f38")
 
         bool handle(
                 const Scenario::ConstraintModel&,

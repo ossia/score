@@ -11,7 +11,7 @@ namespace Scenario
 class MessageDropHandler final :
         public DropHandler
 {
-        ISCORE_CONCRETE_FACTORY_DECL("75156fa7-e083-4c9c-a88c-3a05c54f330f")
+        ISCORE_CONCRETE_FACTORY("75156fa7-e083-4c9c-a88c-3a05c54f330f")
 
         bool handle(
                  const TemporalScenarioPresenter &,

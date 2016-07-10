@@ -15,9 +15,7 @@ namespace iscore
     class ISCORE_LIB_BASE_EXPORT ProjectSettingsFactory :
             public iscore::AbstractFactory<ProjectSettingsFactory>
     {
-            ISCORE_ABSTRACT_FACTORY_DECL(
-                    ProjectSettingsFactory,
-                    "18658b23-d20e-4a54-b16d-8f7072de9e9f")
+            ISCORE_ABSTRACT_FACTORY("18658b23-d20e-4a54-b16d-8f7072de9e9f")
 
         public:
             virtual ~ProjectSettingsFactory();

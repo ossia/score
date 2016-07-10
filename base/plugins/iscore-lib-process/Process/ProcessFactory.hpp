@@ -114,9 +114,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
         public ProcessModelFactory,
         public LayerModelFactory
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                ProcessFactory,
-                "507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
+        ISCORE_ABSTRACT_FACTORY("507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
     public:
         virtual ~ProcessFactory();
 };

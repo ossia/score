@@ -18,9 +18,7 @@ namespace iscore
     class ISCORE_LIB_BASE_EXPORT SettingsDelegateFactory :
             public iscore::AbstractFactory<SettingsDelegateFactory>
     {
-            ISCORE_ABSTRACT_FACTORY_DECL(
-                    SettingsDelegateFactory,
-                    "f18653bc-7ca9-44aa-a08b-4188d086b46e")
+            ISCORE_ABSTRACT_FACTORY("f18653bc-7ca9-44aa-a08b-4188d086b46e")
 
         public:
             virtual ~SettingsDelegateFactory();
@@ -81,6 +79,6 @@ namespace iscore
     class Factory final : \
         public iscore::SettingsDelegateFactory_T<Model, Presenter, View> \
     { \
-            ISCORE_CONCRETE_FACTORY_DECL(Uuid) \
+            ISCORE_CONCRETE_FACTORY(Uuid) \
     };
 }

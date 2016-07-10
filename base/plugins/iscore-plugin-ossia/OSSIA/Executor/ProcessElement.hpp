@@ -61,9 +61,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
             RecreateOnPlay::DocumentPlugin,
             RecreateOnPlay::ProcessComponentFactory>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                RecreateOnPlay::ProcessComponentFactory,
-                "d0f714de-c832-42d8-a605-60f5ffd0b7af")
+        ISCORE_ABSTRACT_FACTORY("d0f714de-c832-42d8-a605-60f5ffd0b7af")
     public:
         virtual ~ProcessComponentFactory();
         virtual ProcessComponent* make(
@@ -74,18 +72,29 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
                   QObject* parent) const = 0;
 };
 
-template<
-        typename ProcessComponent_T,
-        typename Process_T>
+template<typename ProcessComponent_T>
 class ProcessComponentFactory_T : public ProcessComponentFactory
 {
     public:
         using ProcessComponentFactory::ProcessComponentFactory;
 
+        using model_type = typename ProcessComponent_T::model_type;
+        using component_type = ProcessComponent_T;
+
+        static auto static_concreteFactoryKey()
+        {
+            return ProcessComponent_T::static_key().impl();
+        }
+
+        ConcreteFactoryKey concreteFactoryKey() const final override
+        {
+            return ProcessComponent_T::static_key().impl(); // Note : here there is a conversion between UuidKey<Component> and ConcreteFactoryKey
+        }
+
         bool matches(
                 Process::ProcessModel& p, const DocumentPlugin&) const final override
         {
-            return dynamic_cast<Process_T*>(&p);
+            return dynamic_cast<model_type*>(&p);
         }
 
         ProcessComponent* make(
@@ -96,7 +105,7 @@ class ProcessComponentFactory_T : public ProcessComponentFactory
                 QObject* parent) const final override
         {
             return new ProcessComponent_T{
-                cst, static_cast<Process_T&>(proc), ctx, id, parent};
+                cst, static_cast<model_type&>(proc), ctx, id, parent};
         }
 };
 using ProcessComponentFactoryList =
@@ -105,12 +114,3 @@ using ProcessComponentFactoryList =
             RecreateOnPlay::DocumentPlugin,
             RecreateOnPlay::ProcessComponentFactory>;
 }
-
-
-#define EXECUTOR_PROCESS_COMPONENT_FACTORY(FactoryName, Uuid, ProcessComponent, Process) \
-class FactoryName final : \
-        public ::RecreateOnPlay::ProcessComponentFactory_T<ProcessComponent, Process> \
-{ \
-        ISCORE_CONCRETE_FACTORY_DECL(Uuid)  \
-};
-

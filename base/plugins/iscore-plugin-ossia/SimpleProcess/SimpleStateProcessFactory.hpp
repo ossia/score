@@ -5,7 +5,7 @@
 
 class SimpleStateProcessFactory : public Process::StateProcessFactory
 {
-        ISCORE_CONCRETE_FACTORY_DECL("40517cca-3cbe-42bf-9bd4-982bc4696516")
+        ISCORE_CONCRETE_FACTORY("40517cca-3cbe-42bf-9bd4-982bc4696516")
 
         // StateProcessFactory interface
     public:

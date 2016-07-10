@@ -8,9 +8,7 @@ namespace iscore
 class ISCORE_LIB_BASE_EXPORT PanelDelegateFactory :
         public iscore::AbstractFactory<PanelDelegateFactory>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                PanelDelegateFactory,
-                "8d6211f7-5244-44f9-94dd-f3e32255c43e")
+        ISCORE_ABSTRACT_FACTORY("8d6211f7-5244-44f9-94dd-f3e32255c43e")
         public:
             virtual ~PanelDelegateFactory();
 

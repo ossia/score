@@ -15,7 +15,7 @@ namespace Automation
 class StateInspectorFactory final :
         public Inspector::InspectorWidgetFactory
 {
-        ISCORE_CONCRETE_FACTORY_DECL("71a5f5b6-6c10-4057-ab10-278c3f18e9af")
+        ISCORE_CONCRETE_FACTORY("71a5f5b6-6c10-4057-ab10-278c3f18e9af")
     public:
         StateInspectorFactory();
 

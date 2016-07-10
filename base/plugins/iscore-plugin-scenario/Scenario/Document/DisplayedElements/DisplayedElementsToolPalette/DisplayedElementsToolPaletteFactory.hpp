@@ -11,9 +11,7 @@ class ScenarioDocumentPresenter;
 class DisplayedElementsToolPaletteFactory :
         public iscore::AbstractFactory<DisplayedElementsToolPaletteFactory>
 {
-         ISCORE_ABSTRACT_FACTORY_DECL(
-                 DisplayedElementsToolPaletteFactory,
-                 "0884edb9-81e4-44ff-856f-fbc772f6d683")
+         ISCORE_ABSTRACT_FACTORY("0884edb9-81e4-44ff-856f-fbc772f6d683")
     public:
         virtual ~DisplayedElementsToolPaletteFactory();
 

@@ -68,6 +68,7 @@ class StateProcessComponent final :
                 Process::StateProcess& proc,
                 const RecreateOnPlay::Context& ctxt);
 };
-EXECUTOR_STATE_PROCESS_COMPONENT_FACTORY(StateProcessComponentFactory, "e696bbe1-d15e-43aa-bd7f-7f4b629a245f", StateProcessComponent, JS::StateProcess)
+
+using StateProcessComponentFactory = RecreateOnPlay::StateProcessComponentFactory_T<StateProcessComponent>;
 }
 }

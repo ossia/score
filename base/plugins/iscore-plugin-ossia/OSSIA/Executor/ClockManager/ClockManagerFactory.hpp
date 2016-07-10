@@ -52,9 +52,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ClockManager
 class ISCORE_PLUGIN_OSSIA_EXPORT ClockManagerFactory :
         public iscore::AbstractFactory<ClockManagerFactory>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                ClockManagerFactory,
-                "fb2b3624-ee6f-4e9a-901a-a096bb5fec0a")
+        ISCORE_ABSTRACT_FACTORY("fb2b3624-ee6f-4e9a-901a-a096bb5fec0a")
         public:
             virtual ~ClockManagerFactory();
 

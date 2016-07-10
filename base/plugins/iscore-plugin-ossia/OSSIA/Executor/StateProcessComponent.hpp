@@ -48,9 +48,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponentFactory :
             RecreateOnPlay::DocumentPlugin,
             RecreateOnPlay::StateProcessComponentFactory>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                RecreateOnPlay::StateProcessComponentFactory,
-                "cef1b394-84b2-4241-b4eb-72b1fb504f92")
+        ISCORE_ABSTRACT_FACTORY("cef1b394-84b2-4241-b4eb-72b1fb504f92")
     public:
         virtual ~StateProcessComponentFactory();
 
@@ -66,18 +64,29 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponentFactory :
                   const Context& ctxt) const = 0;
 };
 
-template<
-        typename StateProcessComponent_T,
-        typename StateProcess_T>
+template<typename StateProcessComponent_T>
 class StateProcessComponentFactory_T : public StateProcessComponentFactory
 {
     public:
         using StateProcessComponentFactory::StateProcessComponentFactory;
 
+        using model_type = typename StateProcessComponent_T::model_type;
+        using component_type = StateProcessComponent_T;
+
+        static auto static_concreteFactoryKey()
+        {
+            return StateProcessComponent_T::static_key().impl();
+        }
+
+        ConcreteFactoryKey concreteFactoryKey() const final override
+        {
+            return StateProcessComponent_T::static_key().impl(); // Note : here there is a conversion between UuidKey<Component> and ConcreteFactoryKey
+        }
+
         bool matches(
                 Process::StateProcess& p, const DocumentPlugin&) const final override
         {
-            return dynamic_cast<StateProcess_T*>(&p);
+            return dynamic_cast<model_type*>(&p);
         }
 
         StateProcessComponent_T* make(
@@ -88,7 +97,7 @@ class StateProcessComponentFactory_T : public StateProcessComponentFactory
                   QObject* parent) const override
         {
             return new StateProcessComponent_T{
-                st, static_cast<StateProcess_T&>(proc), ctx, id, parent};
+                st, static_cast<model_type&>(proc), ctx, id, parent};
         }
 
         std::shared_ptr<OSSIA::StateElement> make(
@@ -105,11 +114,3 @@ using StateProcessComponentFactoryList =
             RecreateOnPlay::DocumentPlugin,
             RecreateOnPlay::StateProcessComponentFactory>;
 }
-
-
-#define EXECUTOR_STATE_PROCESS_COMPONENT_FACTORY(FactoryName, Uuid, ProcessComponent, Process) \
-class FactoryName final : \
-        public ::RecreateOnPlay::StateProcessComponentFactory_T<ProcessComponent, Process> \
-{ \
-        ISCORE_CONCRETE_FACTORY_DECL(Uuid)  \
-};
