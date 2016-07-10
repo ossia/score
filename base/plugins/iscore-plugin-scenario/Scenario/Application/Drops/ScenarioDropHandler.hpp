@@ -11,9 +11,7 @@ class TemporalScenarioPresenter;
 class ISCORE_PLUGIN_SCENARIO_EXPORT DropHandler :
         public iscore::AbstractFactory<DropHandler>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                DropHandler,
-                "ce1c5b6c-fe4c-416f-877c-eae642a1413a")
+        ISCORE_ABSTRACT_FACTORY("ce1c5b6c-fe4c-416f-877c-eae642a1413a")
     public:
         virtual ~DropHandler();
 
@@ -39,9 +37,7 @@ class ConstraintModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDropHandler :
         public iscore::AbstractFactory<ConstraintDropHandler>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                ConstraintDropHandler,
-                "b9f3efc0-b906-487a-ac49-87924edd2cff")
+        ISCORE_ABSTRACT_FACTORY("b9f3efc0-b906-487a-ac49-87924edd2cff")
     public:
         virtual ~ConstraintDropHandler();
 

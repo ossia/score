@@ -63,7 +63,7 @@ class Component final :
         ::RecreateOnPlay::StateElement* m_ossia_endState{};
 };
 
-EXECUTOR_PROCESS_COMPONENT_FACTORY(ComponentFactory, "91c65252-21d3-4db5-a4a6-c6f7547fb5ee", Component, Loop::ProcessModel)
+using ComponentFactory = ::RecreateOnPlay::ProcessComponentFactory_T<Component>;
 
 }
 }

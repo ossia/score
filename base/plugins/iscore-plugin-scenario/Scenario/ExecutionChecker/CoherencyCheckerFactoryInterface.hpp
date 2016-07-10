@@ -11,9 +11,7 @@ namespace Scenario
 class ISCORE_PLUGIN_SCENARIO_EXPORT CoherencyCheckerFactoryInterface :
          public iscore::AbstractFactory<CoherencyCheckerFactoryInterface>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                CoherencyCheckerFactoryInterface,
-                "e9942ad6-1e39-4bdf-bb93-f31962e3cf79")
+        ISCORE_ABSTRACT_FACTORY("e9942ad6-1e39-4bdf-bb93-f31962e3cf79")
 
     public:
         virtual CSPCoherencyCheckerInterface* make(

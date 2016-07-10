@@ -12,9 +12,7 @@ class DeviceDocumentPlugin;
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactory :
         public iscore::AbstractFactory<ListeningHandlerFactory>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                Explorer::ListeningHandlerFactory,
-                "42828393-b8de-45a6-b79f-811eea2e1a40")
+        ISCORE_ABSTRACT_FACTORY("42828393-b8de-45a6-b79f-811eea2e1a40")
 
     public:
         virtual ~ListeningHandlerFactory();

@@ -65,7 +65,7 @@ class Component final :
                 QObject* parent);
 };
 
-EXECUTOR_PROCESS_COMPONENT_FACTORY(ComponentFactory, "7beefd3e-af2c-4a20-9f5b-01283ae1c072", Component, JS::ProcessModel)
+using ComponentFactory = ::RecreateOnPlay::ProcessComponentFactory_T<Component>;
 
 }
 }

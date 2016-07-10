@@ -7,7 +7,7 @@ namespace Mapping
 {
 class MappingInspectorFactory final : public Process::InspectorWidgetDelegateFactory
 {
-        ISCORE_CONCRETE_FACTORY_DECL("14b3dc85-6152-4526-8d61-6b038ec5d676")
+        ISCORE_CONCRETE_FACTORY("14b3dc85-6152-4526-8d61-6b038ec5d676")
     public:
         MappingInspectorFactory() = default;
 

@@ -49,6 +49,7 @@ template<typename ProcessComponentBase_T, typename Process_T>
 class GenericProcessComponent_T : public ProcessComponentBase_T
 {
     public:
+        using model_type = Process_T;
         using ProcessComponentBase_T::ProcessComponentBase_T;
 
         const Process_T& process() const

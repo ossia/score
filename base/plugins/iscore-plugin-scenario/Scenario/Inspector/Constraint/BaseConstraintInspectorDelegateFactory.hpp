@@ -9,7 +9,7 @@ class ConstraintModel;
 
 class BaseConstraintInspectorDelegateFactory : public ConstraintInspectorDelegateFactory
 {
-        ISCORE_CONCRETE_FACTORY_DECL("dee3fedd-4c36-4d2f-8315-448ea593ad46")
+        ISCORE_CONCRETE_FACTORY("dee3fedd-4c36-4d2f-8315-448ea593ad46")
     public:
         virtual ~BaseConstraintInspectorDelegateFactory();
 

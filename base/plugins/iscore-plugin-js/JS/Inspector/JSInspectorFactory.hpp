@@ -20,7 +20,7 @@ namespace JS
 class InspectorFactory final :
         public Process::InspectorWidgetDelegateFactory
 {
-        ISCORE_CONCRETE_FACTORY_DECL("035923ae-1cbf-4ca8-97bd-cf6205ca396e")
+        ISCORE_CONCRETE_FACTORY("035923ae-1cbf-4ca8-97bd-cf6205ca396e")
     public:
         InspectorFactory();
         virtual ~InspectorFactory();
@@ -36,7 +36,7 @@ class InspectorFactory final :
 class StateInspectorFactory final :
         public Process::StateProcessInspectorWidgetDelegateFactory
 {
-        ISCORE_CONCRETE_FACTORY_DECL("5f31a70f-94f1-489d-ac96-55d36d7d81e8")
+        ISCORE_CONCRETE_FACTORY("5f31a70f-94f1-489d-ac96-55d36d7d81e8")
     public:
         StateInspectorFactory();
         virtual ~StateInspectorFactory();

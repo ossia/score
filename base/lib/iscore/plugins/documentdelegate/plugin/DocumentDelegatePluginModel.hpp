@@ -74,9 +74,7 @@ class ISCORE_LIB_BASE_EXPORT SerializableDocumentPlugin :
 class ISCORE_LIB_BASE_EXPORT DocumentPluginFactory :
         public iscore::AbstractFactory<DocumentPluginFactory>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                DocumentPluginFactory,
-                "570faa0b-f100-4039-a2f0-b60347c4e581")
+        ISCORE_ABSTRACT_FACTORY("570faa0b-f100-4039-a2f0-b60347c4e581")
     public:
         virtual ~DocumentPluginFactory();
 

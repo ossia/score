@@ -24,7 +24,7 @@ namespace Loop
 class ConstraintInspectorDelegateFactory :
         public Scenario::ConstraintInspectorDelegateFactory
 {
-        ISCORE_CONCRETE_FACTORY_DECL("295245d4-2019-4849-9d49-10c1e21c209c")
+        ISCORE_CONCRETE_FACTORY("295245d4-2019-4849-9d49-10c1e21c209c")
     public:
         virtual ~ConstraintInspectorDelegateFactory();
 
@@ -38,7 +38,7 @@ class ConstraintInspectorDelegateFactory :
 
 class InspectorFactory final : public Process::InspectorWidgetDelegateFactory
 {
-        ISCORE_CONCRETE_FACTORY_DECL("f45f98f2-f721-4ffa-9219-114832fe06bd")
+        ISCORE_CONCRETE_FACTORY("f45f98f2-f721-4ffa-9219-114832fe06bd")
     public:
         InspectorFactory();
         virtual ~InspectorFactory();

@@ -59,5 +59,7 @@ using ScenarioComponent = HierarchicalScenarioComponent<
     Event,
     TimeNode,
     State>;
+
+using ScenarioComponentFactory = Ossia::LocalTree::ProcessComponentFactory_T<ScenarioComponent>;
 }
 }

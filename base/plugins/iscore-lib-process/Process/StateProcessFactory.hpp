@@ -14,9 +14,7 @@ class StateProcess;
 class ISCORE_LIB_PROCESS_EXPORT StateProcessFactory :
         public iscore::AbstractFactory<StateProcessFactory>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                StateProcessFactory,
-                "262852da-8662-482e-a7be-ee7896d13866")
+        ISCORE_ABSTRACT_FACTORY("262852da-8662-482e-a7be-ee7896d13866")
 
     public:
         virtual ~StateProcessFactory();

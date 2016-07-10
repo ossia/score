@@ -17,9 +17,7 @@ struct SegmentData;
 class SegmentFactory :
         public iscore::AbstractFactory<SegmentFactory>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                SegmentFactory,
-                "608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
+        ISCORE_ABSTRACT_FACTORY("608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
     public:
         virtual ~SegmentFactory();
 

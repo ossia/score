@@ -8,7 +8,7 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <OSSIA/OSSIAApplicationPlugin.hpp>
 
-#include <OSSIA/LocalTree/Scenario/ScenarioComponentFactory.hpp>
+#include <OSSIA/LocalTree/Scenario/ScenarioComponent.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <OSSIA/Executor/ScenarioElement.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>

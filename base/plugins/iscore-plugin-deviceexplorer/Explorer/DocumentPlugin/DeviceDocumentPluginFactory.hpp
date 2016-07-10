@@ -7,7 +7,7 @@ namespace Explorer
 class DocumentPluginFactory final :
         public iscore::DocumentPluginFactory
 {
-        ISCORE_CONCRETE_FACTORY_DECL("6e610e1f-9de2-4c36-90dd-0ef570002a21")
+        ISCORE_CONCRETE_FACTORY("6e610e1f-9de2-4c36-90dd-0ef570002a21")
 
     public:
         iscore::DocumentPlugin* load(

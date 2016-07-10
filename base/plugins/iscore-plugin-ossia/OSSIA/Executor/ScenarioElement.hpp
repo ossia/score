@@ -98,6 +98,6 @@ class ScenarioComponent final :
         Scenario::ElementsProperties m_properties{};
 };
 
-EXECUTOR_PROCESS_COMPONENT_FACTORY(ScenarioComponentFactory, "b2b19e28-cd49-470f-ba70-b1703689218f", ScenarioComponent, Scenario::ProcessModel)
+using ScenarioComponentFactory = ::RecreateOnPlay::ProcessComponentFactory_T<ScenarioComponent>;
 
 }

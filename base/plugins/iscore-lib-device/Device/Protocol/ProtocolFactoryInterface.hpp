@@ -17,9 +17,7 @@ class ProtocolSettingsWidget;
 class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory :
         public iscore::AbstractFactory<ProtocolFactory>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                ProtocolFactory,
-                "3f69d72e-318d-42dc-b48c-a806036592f1")
+        ISCORE_ABSTRACT_FACTORY("3f69d72e-318d-42dc-b48c-a806036592f1")
 
     public:
         virtual ~ProtocolFactory();

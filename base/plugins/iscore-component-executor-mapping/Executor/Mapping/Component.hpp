@@ -49,7 +49,7 @@ class Component final :
         const Device::DeviceList& m_deviceList;
 };
 
-EXECUTOR_PROCESS_COMPONENT_FACTORY(ComponentFactory, "53bde917-0c67-4c5c-b490-fbe79f92633e", Component, Mapping::ProcessModel)
+using ComponentFactory = ::RecreateOnPlay::ProcessComponentFactory_T<Component>;
 
 }
 }

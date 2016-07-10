@@ -23,9 +23,7 @@ struct DocumentContext;
 class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactory :
         public iscore::AbstractFactory<DocumentDelegateFactory>
 {
-        ISCORE_ABSTRACT_FACTORY_DECL(
-                DocumentDelegateFactory,
-                "127ea824-f623-4f68-8deb-7c8c930a262b")
+        ISCORE_ABSTRACT_FACTORY("127ea824-f623-4f68-8deb-7c8c930a262b")
         public:
             virtual ~DocumentDelegateFactory();
 
@@ -51,10 +49,10 @@ class ISCORE_LIB_BASE_EXPORT DocumentDelegateList final :
         public ConcreteFactoryList<iscore::DocumentDelegateFactory>
 {
     public:
-		DocumentDelegateList()
-		{
+        DocumentDelegateList()
+        {
 
-		}
+        }
 
         using object_type = DocumentDelegateModelInterface;
 };

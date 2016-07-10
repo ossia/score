@@ -28,14 +28,16 @@ class FactoryInterface_T : public FactoryInterfaceBase
     public:
         virtual ~FactoryInterface_T() = default;
 
+        using ConcreteFactoryKey = Key;
         virtual Key concreteFactoryKey() const = 0;
+
 };
 
 template<typename T>
 using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
 }
 
-#define ISCORE_ABSTRACT_FACTORY_DECL(Type, Uuid) \
+#define ISCORE_ABSTRACT_FACTORY(Uuid) \
     public: \
     static constexpr iscore::AbstractFactoryKey static_abstractFactoryKey() { \
         const constexpr iscore::AbstractFactoryKey s{Uuid}; \
@@ -45,13 +47,12 @@ using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
     iscore::AbstractFactoryKey abstractFactoryKey() const final override { \
         return static_abstractFactoryKey(); \
     } \
-    using ConcreteFactoryKey = UuidKey<Type>; \
     private:
 
 
 
 // ConcreteFactoryKey should be defined in the subclass
-#define ISCORE_CONCRETE_FACTORY_DECL(Uuid) \
+#define ISCORE_CONCRETE_FACTORY(Uuid) \
     public: \
     static auto static_concreteFactoryKey() { \
         const constexpr ConcreteFactoryKey id{Uuid}; \

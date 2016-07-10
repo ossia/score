@@ -17,9 +17,7 @@ namespace Process
 class ISCORE_LIB_PROCESS_EXPORT InspectorWidgetDelegateFactory :
         public iscore::AbstractFactory<InspectorWidgetDelegateFactory>
 {
-         ISCORE_ABSTRACT_FACTORY_DECL(
-                 InspectorWidgetDelegateFactory,
-                 "75a45c5e-24ab-4ebb-ba57-195254a6847f")
+         ISCORE_ABSTRACT_FACTORY("75a45c5e-24ab-4ebb-ba57-195254a6847f")
     public:
         virtual ~InspectorWidgetDelegateFactory();
         virtual Process::InspectorWidgetDelegate* make(
@@ -41,9 +39,7 @@ class ISCORE_LIB_PROCESS_EXPORT InspectorWidgetDelegateFactory :
 class ISCORE_LIB_PROCESS_EXPORT StateProcessInspectorWidgetDelegateFactory :
         public iscore::AbstractFactory<StateProcessInspectorWidgetDelegateFactory>
 {
-         ISCORE_ABSTRACT_FACTORY_DECL(
-                 StateProcessInspectorWidgetDelegateFactory,
-                 "707f7d38-7897-4b8f-81eb-737976b05ea6")
+         ISCORE_ABSTRACT_FACTORY("707f7d38-7897-4b8f-81eb-737976b05ea6")
     public:
         virtual ~StateProcessInspectorWidgetDelegateFactory();
         virtual Process::StateProcessInspectorWidgetDelegate* make(
