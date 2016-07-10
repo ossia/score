@@ -43,10 +43,12 @@ namespace RecreateOnPlay
 class ConstraintElement;
 
 // TODO see if this can be used for the base scenario model too.
-class ScenarioElement final : public ProcessComponent
+class ScenarioComponent final :
+        public ProcessComponent_T<Scenario::ProcessModel>
 {
+        COMPONENT_METADATA("4e4b1c1a-1a2a-4ae6-a1a1-38d0900e74e8")
     public:
-        ScenarioElement(
+        ScenarioComponent(
                 ConstraintElement& cst,
                 Scenario::ProcessModel& proc,
                 const Context& ctx,
@@ -81,7 +83,6 @@ class ScenarioElement final : public ProcessComponent
          void timeNodeCallback(RecreateOnPlay::TimeNodeElement* tn, const OSSIA::TimeValue& date);
 
     private:
-        const Key &key() const override;
         // TODO use IdContainer
         std::map<Id<Scenario::ConstraintModel>, ConstraintElement*> m_ossia_constraints;
         std::map<Id<Scenario::StateModel>, StateElement*> m_ossia_states;
@@ -97,24 +98,6 @@ class ScenarioElement final : public ProcessComponent
         Scenario::ElementsProperties m_properties{};
 };
 
-
-class ScenarioComponentFactory final :
-        public ProcessComponentFactory
-{
-        ISCORE_CONCRETE_FACTORY_DECL("b2b19e28-cd49-470f-ba70-b1703689218f")
-        ProcessComponent* make(
-                ConstraintElement& cst,
-                Process::ProcessModel& proc,
-                const Context& ctx,
-                const Id<iscore::Component>& id,
-                QObject* parent) const override;
-
-        bool matches(
-                Process::ProcessModel&,
-                const DocumentPlugin&) const override;
-
-    public:
-        virtual ~ScenarioComponentFactory();
-};
+EXECUTOR_PROCESS_COMPONENT_FACTORY(ScenarioComponentFactory, "b2b19e28-cd49-470f-ba70-b1703689218f", ScenarioComponent, Scenario::ProcessModel)
 
 }

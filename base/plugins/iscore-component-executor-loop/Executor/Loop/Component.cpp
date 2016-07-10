@@ -11,7 +11,6 @@
 #include "Editor/Loop.h"
 #include "Editor/TimeValue.h"
 #include "Editor/State.h"
-#include <Loop/LoopProcessModel.hpp>
 #include "Component.hpp"
 #include <OSSIA/Executor/ConstraintElement.hpp>
 #include <OSSIA/Executor/EventElement.hpp>
@@ -31,14 +30,17 @@ class TimeProcess;
 }  // namespace OSSIA
 #include <iscore/tools/SettableIdentifier.hpp>
 
-RecreateOnPlay::Loop::Component::Component(
-        RecreateOnPlay::ConstraintElement& parentConstraint,
+namespace Loop
+{
+namespace RecreateOnPlay
+{
+Component::Component(
+        ::RecreateOnPlay::ConstraintElement& parentConstraint,
         ::Loop::ProcessModel& element,
-        const Context& ctx,
+        const ::RecreateOnPlay::Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    ProcessComponent{parentConstraint, element, id, "LoopComponent", parent},
-    m_ctx{ctx}
+    ::RecreateOnPlay::ProcessComponent_T<Loop::ProcessModel>{parentConstraint, element, ctx, id, "LoopComponent", parent}
 {
     OSSIA::TimeValue main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
 
@@ -103,90 +105,47 @@ RecreateOnPlay::Loop::Component::Component(
     endEV->addState(endST);
 
 
-    m_ossia_startTimeNode = new TimeNodeElement{startTN, element.startTimeNode(),  m_ctx.devices.list(), this};
-    m_ossia_endTimeNode = new TimeNodeElement{endTN, element.endTimeNode(), m_ctx.devices.list(), this};
+    using namespace ::RecreateOnPlay;
+    m_ossia_startTimeNode = new TimeNodeElement{startTN, element.startTimeNode(), system().devices.list(), this};
+    m_ossia_endTimeNode = new TimeNodeElement{endTN, element.endTimeNode(), system().devices.list(), this};
 
-    m_ossia_startEvent = new EventElement{startEV, element.startEvent(), m_ctx.devices.list(), this};
-    m_ossia_endEvent = new EventElement{endEV, element.endEvent(), m_ctx.devices.list(), this};
+    m_ossia_startEvent = new EventElement{startEV, element.startEvent(), system().devices.list(), this};
+    m_ossia_endEvent = new EventElement{endEV, element.endEvent(), system().devices.list(), this};
 
 
     m_ossia_startState = new StateElement{
             element.startState(),
             startST,
-            m_ctx,
+            system(),
             this};
     m_ossia_endState = new StateElement{
             element.endState(),
             endST,
-            m_ctx,
+            system(),
             this};
 
-    m_ossia_constraint = new ConstraintElement{loop->getPatternTimeConstraint(), element.constraint(), m_ctx, this};
+    m_ossia_constraint = new ConstraintElement{loop->getPatternTimeConstraint(), element.constraint(), system(), this};
 }
 
-RecreateOnPlay::Loop::Component::~Component()
+Component::~Component()
 {
 }
 
-void RecreateOnPlay::Loop::Component::stop()
+void Component::stop()
 {
     ProcessComponent::stop();
-    static_cast< ::Loop::ProcessModel&>(m_iscore_process).constraint().duration.setPlayPercentage(0);
+    process().constraint().duration.setPlayPercentage(0);
 }
 
-void RecreateOnPlay::Loop::Component::startConstraintExecution(const Id<Scenario::ConstraintModel>&)
+void Component::startConstraintExecution(const Id<Scenario::ConstraintModel>&)
 {
     m_ossia_constraint->executionStarted();
 }
 
-void RecreateOnPlay::Loop::Component::stopConstraintExecution(const Id<Scenario::ConstraintModel>&)
+void Component::stopConstraintExecution(const Id<Scenario::ConstraintModel>&)
 {
     m_ossia_constraint->executionStopped();
 }
 
-const iscore::Component::Key&RecreateOnPlay::Loop::Component::key() const
-{
-    static iscore::Component::Key k("OSSIALoopElement");
-    return k;
-}
-
-namespace RecreateOnPlay
-{
-
-namespace Loop
-{
-ComponentFactory::~ComponentFactory()
-{
-
-}
-
-ProcessComponent* ComponentFactory::make(
-        ConstraintElement& cst,
-        Process::ProcessModel& proc,
-        const Context& ctx,
-        const Id<iscore::Component>& id,
-        QObject* parent) const
-{
-
-    return new Component{
-                cst,
-                static_cast< ::Loop::ProcessModel&>(proc),
-                ctx, id, parent};
-
-}
-
-const ComponentFactory::ConcreteFactoryKey&
-ComponentFactory::concreteFactoryKey() const
-{
-    static ComponentFactory::ConcreteFactoryKey k("60e3b412-559d-4385-9a58-bdcd19bb9fa7");
-    return k;
-}
-
-bool ComponentFactory::matches(
-        Process::ProcessModel& proc,
-        const DocumentPlugin&) const
-{
-    return dynamic_cast< ::Loop::ProcessModel*>(&proc);
-}
 }
 }

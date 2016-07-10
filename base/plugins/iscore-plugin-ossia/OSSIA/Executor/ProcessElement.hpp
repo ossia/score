@@ -6,6 +6,7 @@
 #include <iscore/component/ComponentFactory.hpp>
 
 #include <OSSIA/Executor/DocumentPlugin.hpp>
+#include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <iscore_plugin_ossia_export.h>
 namespace OSSIA
 {
@@ -20,18 +21,18 @@ struct Context;
 class ConstraintElement;
 
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :
-        public iscore::Component
+        public Scenario::GenericProcessComponent<const Context>
 {
     public:
         ProcessComponent(
                 ConstraintElement& cst,
                 Process::ProcessModel& proc,
+                const Context& ctx,
                 const Id<iscore::Component>& id,
                 const QString& name,
                 QObject* parent):
-            iscore::Component{id, name, parent},
-            m_parent_constraint{cst},
-            m_iscore_process{proc}
+            Scenario::GenericProcessComponent<const Context>{proc, ctx, id, name, parent},
+            m_parent_constraint{cst}
         {
 
         }
@@ -40,18 +41,25 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :
 
         virtual void stop()
         {
-            m_iscore_process.stopExecution();
+            process().stopExecution();
         }
 
-        auto& iscoreProcess() const
-        { return m_iscore_process; }
         auto& OSSIAProcess() const
         { return m_ossia_process; }
 
     protected:
         ConstraintElement& m_parent_constraint;
-        Process::ProcessModel& m_iscore_process;
         std::shared_ptr<OSSIA::TimeProcess> m_ossia_process;
+};
+
+template<typename Process_T>
+class ProcessComponent_T : public ProcessComponent
+{
+    public:
+        using ProcessComponent::ProcessComponent;
+
+        const Process_T& process() const
+        { return static_cast<const Process_T&>(ProcessComponent::process()); }
 };
 
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
@@ -73,12 +81,45 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
                   QObject* parent) const = 0;
 };
 
+template<
+        typename ProcessComponent_T,
+        typename Process_T>
+class ProcessComponentFactory_T : public ProcessComponentFactory
+{
+    public:
+        using ProcessComponentFactory::ProcessComponentFactory;
+
+        bool matches(
+                Process::ProcessModel& p, const DocumentPlugin&) const final override
+        {
+            return dynamic_cast<Process_T*>(&p);
+        }
+
+        ProcessComponent* make(
+                ConstraintElement& cst,
+                Process::ProcessModel& proc,
+                const Context& ctx,
+                const Id<iscore::Component>& id,
+                QObject* parent) const final override
+        {
+            return new ProcessComponent_T{
+                cst, static_cast<Process_T&>(proc), ctx, id, parent};
+        }
+};
 using ProcessComponentFactoryList =
     iscore::GenericComponentFactoryList<
             Process::ProcessModel,
             RecreateOnPlay::DocumentPlugin,
             RecreateOnPlay::ProcessComponentFactory>;
 }
+
+
+#define EXECUTOR_PROCESS_COMPONENT_FACTORY(FactoryName, Uuid, ProcessComponent, Process) \
+class FactoryName final : \
+        public ::RecreateOnPlay::ProcessComponentFactory_T<ProcessComponent, Process> \
+{ \
+        ISCORE_CONCRETE_FACTORY_DECL(Uuid)  \
+};
 
 
 ///// State processes
@@ -150,4 +191,3 @@ using StateProcessComponentFactoryList =
 
 
 }
-

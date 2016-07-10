@@ -227,7 +227,7 @@ void ConstraintElement::on_processAdded(
                 wp = std::make_unique<BasicProcessWrapper>(
                             m_ossia_constraint,
                             plug->OSSIAProcess(),
-                            iscore::convert::time(plug->iscoreProcess().duration()),
+                            iscore::convert::time(plug->process().duration()),
                             m_iscore_constraint.looping() );
             }
             else
@@ -235,7 +235,7 @@ void ConstraintElement::on_processAdded(
                 wp = std::make_unique<LoopingProcessWrapper>(
                             m_ossia_constraint,
                             plug->OSSIAProcess(),
-                            iscore::convert::time(plug->iscoreProcess().duration()),
+                            iscore::convert::time(plug->process().duration()),
                             m_iscore_constraint.looping()) ;
             }
             m_processes.insert(

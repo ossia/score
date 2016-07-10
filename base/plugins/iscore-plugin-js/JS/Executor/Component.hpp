@@ -52,39 +52,20 @@ class ProcessExecutor final :
 };
 
 
-class ProcessComponent final : public RecreateOnPlay::ProcessComponent
+class Component final :
+        public ::RecreateOnPlay::ProcessComponent_T<JS::ProcessModel>
 {
+        COMPONENT_METADATA("c2737929-231e-4d57-9088-a2a3a8d3c24e")
     public:
-        ProcessComponent(
+        Component(
                 RecreateOnPlay::ConstraintElement& parentConstraint,
                 JS::ProcessModel& element,
                 const RecreateOnPlay::Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
-
-    private:
-        const Key &key() const override;
 };
 
+EXECUTOR_PROCESS_COMPONENT_FACTORY(ComponentFactory, "7beefd3e-af2c-4a20-9f5b-01283ae1c072", Component, JS::ProcessModel)
 
-class ProcessComponentFactory final :
-        public RecreateOnPlay::ProcessComponentFactory
-{
-    public:
-        virtual ~ProcessComponentFactory();
-
-        virtual RecreateOnPlay::ProcessComponent* make(
-                RecreateOnPlay::ConstraintElement& cst,
-                Process::ProcessModel& proc,
-                const RecreateOnPlay::Context& ctx,
-                const Id<iscore::Component>& id,
-                QObject* parent) const override;
-
-        const ConcreteFactoryKey& concreteFactoryKey() const override;
-
-        bool matches(
-                Process::ProcessModel& proc,
-                const RecreateOnPlay::DocumentPlugin&) const override;
-};
 }
 }

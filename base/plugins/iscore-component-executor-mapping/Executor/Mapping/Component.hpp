@@ -2,6 +2,7 @@
 #include <OSSIA/Executor/ProcessElement.hpp>
 
 #include <State/Address.hpp>
+#include <Mapping/MappingModel.hpp>
 #include <QPointer>
 #include <Editor/Value.h>
 namespace OSSIA
@@ -9,30 +10,24 @@ namespace OSSIA
     class Mapper;
     class CurveAbstract;
 }
-
-namespace Mapping
-{
-class ProcessModel;
-}
-
 namespace Device
 {
 class DeviceList;
 }
-class ConstraintElement;
 
-
-namespace RecreateOnPlay
-{
 namespace Mapping
 {
-class Component final : public ProcessComponent
+namespace RecreateOnPlay
 {
+class Component final :
+        public ::RecreateOnPlay::ProcessComponent_T<Mapping::ProcessModel>
+{
+        COMPONENT_METADATA("da360b58-9885-4106-be54-8e272ed45dbe")
     public:
         Component(
-                ConstraintElement& parentConstraint,
+                ::RecreateOnPlay::ConstraintElement& parentConstraint,
                 ::Mapping::ProcessModel& element,
-                const Context& ctx,
+                const ::RecreateOnPlay::Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
@@ -52,31 +47,9 @@ class Component final : public ProcessComponent
         std::shared_ptr<OSSIA::CurveAbstract> m_ossia_curve;
 
         const Device::DeviceList& m_deviceList;
-
-        // Component interface
-    public:
-        const Key&key() const override;
 };
 
+EXECUTOR_PROCESS_COMPONENT_FACTORY(ComponentFactory, "53bde917-0c67-4c5c-b490-fbe79f92633e", Component, Mapping::ProcessModel)
 
-class ComponentFactory final :
-        public ProcessComponentFactory
-{
-        ISCORE_COMPONENT_FACTORY(RecreateOnPlay::ProcessComponentFactory, RecreateOnPlay::Mapping::ComponentFactory)
-    public:
-        virtual ~ComponentFactory();
-        virtual ProcessComponent* make(
-                ConstraintElement& cst,
-                Process::ProcessModel& proc,
-                const Context& ctx,
-                const Id<iscore::Component>& id,
-                QObject* parent) const override;
-
-        const ConcreteFactoryKey& concreteFactoryKey() const override;
-
-        bool matches(
-                Process::ProcessModel&,
-                const DocumentPlugin&) const override;
-};
 }
 }

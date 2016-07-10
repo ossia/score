@@ -41,7 +41,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_js::fac
         FW<Process::StateProcessInspectorWidgetDelegateFactory,
              JS::StateInspectorFactory>,
         FW<RecreateOnPlay::ProcessComponentFactory,
-             JS::Executor::ProcessComponentFactory>,
+             JS::Executor::ComponentFactory>,
         FW<RecreateOnPlay::StateProcessComponentFactory,
              JS::Executor::StateProcessComponentFactory>
     >>(ctx, key);
