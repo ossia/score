@@ -273,6 +273,11 @@ struct string_generator {
 using uuid_t = uuids::uuid;
 }
 
+#define return_uuid(text) do { \
+    constexpr const auto t = iscore::uuids::string_generator::compute((text)); \
+    return t; \
+    } while(0)
+
 template<typename Tag>
 class UuidKey : iscore::uuid_t
 {
@@ -305,7 +310,7 @@ class UuidKey : iscore::uuid_t
         }
 
         template<int N>
-        constexpr UuidKey(const char (&txt)[N]) :
+        explicit constexpr UuidKey(const char (&txt)[N]) :
             iscore::uuid_t(iscore::uuids::string_generator::compute<N>(txt))
         {
 

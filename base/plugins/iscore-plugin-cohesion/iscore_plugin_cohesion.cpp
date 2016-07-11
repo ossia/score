@@ -52,5 +52,5 @@ iscore::Version iscore_plugin_cohesion::version() const
 
 UuidKey<iscore::Plugin> iscore_plugin_cohesion::key() const
 {
-    return "659ba25e-97e5-40d9-8db8-f7a8537035ad";
+    return_uuid("659ba25e-97e5-40d9-8db8-f7a8537035ad");
 }

@@ -6,8 +6,7 @@ namespace iscore
 #define COMPONENT_METADATA(Uuid) \
     public: \
     static constexpr Component::Key static_key() { \
-        const constexpr Component::Key s{Uuid}; \
-        return s; \
+        return_uuid(Uuid); \
     } \
     \
     Component::Key key() const final override { \

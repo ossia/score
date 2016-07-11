@@ -85,5 +85,5 @@ iscore::Version iscore_plugin_deviceexplorer::version() const
 
 UuidKey<iscore::Plugin> iscore_plugin_deviceexplorer::key() const
 {
-    return "3c2a0e25-ab14-4c06-a1ba-033d721a520f";
+    return_uuid("3c2a0e25-ab14-4c06-a1ba-033d721a520f");
 }

@@ -76,5 +76,5 @@ iscore::Version iscore_plugin_automation::version() const
 
 UuidKey<iscore::Plugin> iscore_plugin_automation::key() const
 {
-    return "255cbc40-c7e9-4bb2-87ea-8ad803fb9f2b";
+    return_uuid("255cbc40-c7e9-4bb2-87ea-8ad803fb9f2b");
 }
