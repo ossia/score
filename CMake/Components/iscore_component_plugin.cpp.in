@@ -31,5 +31,5 @@ iscore::Version ${PLUGIN_NAME}::version() const
 
 UuidKey<iscore::Plugin> ${PLUGIN_NAME}::key() const
 {
-    return "${ISCORE_COMPONENT_Uuid}";
+    return_uuid("${ISCORE_COMPONENT_Uuid}");
 }

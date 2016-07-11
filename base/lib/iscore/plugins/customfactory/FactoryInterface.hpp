@@ -40,8 +40,7 @@ using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
 #define ISCORE_ABSTRACT_FACTORY(Uuid) \
     public: \
     static constexpr iscore::AbstractFactoryKey static_abstractFactoryKey() { \
-        const constexpr iscore::AbstractFactoryKey s{Uuid}; \
-        return s; \
+        return_uuid(Uuid); \
     } \
     \
     iscore::AbstractFactoryKey abstractFactoryKey() const final override { \
@@ -55,8 +54,7 @@ using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
 #define ISCORE_CONCRETE_FACTORY(Uuid) \
     public: \
     static auto static_concreteFactoryKey() { \
-        const constexpr ConcreteFactoryKey id{Uuid}; \
-        return id; \
+        return_uuid(Uuid); \
     } \
     \
     ConcreteFactoryKey concreteFactoryKey() const final override { \

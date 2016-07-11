@@ -75,5 +75,5 @@ iscore::Version iscore_plugin_curve::version() const
 
 UuidKey<iscore::Plugin> iscore_plugin_curve::key() const
 {
-    return "49837ed7-dbc5-4330-9890-a130a2718b5e";
+    return_uuid("49837ed7-dbc5-4330-9890-a130a2718b5e");
 }

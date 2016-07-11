@@ -62,5 +62,5 @@ iscore::Version iscore_plugin_recordedmessages::version() const
 
 UuidKey<iscore::Plugin> iscore_plugin_recordedmessages::key() const
 {
-    return "82124ca8-d4ca-4891-b77e-8f450b0377a4";
+    return_uuid("82124ca8-d4ca-4891-b77e-8f450b0377a4");
 }

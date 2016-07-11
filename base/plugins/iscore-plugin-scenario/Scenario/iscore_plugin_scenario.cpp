@@ -187,5 +187,5 @@ iscore::Version iscore_plugin_scenario::version() const
 
 UuidKey<iscore::Plugin> iscore_plugin_scenario::key() const
 {
-    return "8439ef6c-90c3-4e08-8185-6a0f3c87f8b4";
+    return_uuid("8439ef6c-90c3-4e08-8185-6a0f3c87f8b4");
 }

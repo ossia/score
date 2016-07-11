@@ -108,5 +108,5 @@ iscore::Version iscore_plugin_ossia::version() const
 
 UuidKey<iscore::Plugin> iscore_plugin_ossia::key() const
 {
-    return "d4758f8d-64ac-41b4-8aaf-1cbd6f3feb91";
+    return_uuid("d4758f8d-64ac-41b4-8aaf-1cbd6f3feb91");
 }
