@@ -58,11 +58,9 @@ class GenericComponentFactoryImpl : public ComponentFactoryBase_T
             return Component_T::static_key().impl(); // Note : here there is a conversion between UuidKey<Component> and ConcreteFactoryKey
         }
 
-        bool matches(
-                base_model_type& p,
-                const system_type&) const final override
+        bool matches(const base_model_type& p) const final override
         {
-            return dynamic_cast<model_type*>(&p);
+            return dynamic_cast<const model_type*>(&p);
         }
 };
 }
