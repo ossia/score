@@ -19,9 +19,7 @@ class GenericComponentFactory :
         using system_type = System_T;
         using factory_type = ComponentFactory_T;
 
-        virtual bool matches(
-                base_model_type&,
-                const system_type&) const = 0;
+        virtual bool matches(const base_model_type&) const = 0;
 };
 
 
@@ -33,13 +31,12 @@ class GenericComponentFactoryList final :
         public iscore::ConcreteFactoryList<Factory_T>
 {
     public:
-        Factory_T* factory(
-                Model_T& model,
-                const System_T& doc) const
+        template<typename... Args>
+        Factory_T* factory(Args&&... args) const
         {
             for(auto& factory : *this)
             {
-                if(factory.matches(model, doc))
+                if(factory.matches(std::forward<Args>(args)...))
                 {
                     return &factory;
                 }
@@ -58,13 +55,12 @@ class DefaultedGenericComponentFactoryList final :
         public iscore::ConcreteFactoryList<Factory_T>
 {
     public:
-        Factory_T& factory(
-                Model_T& model,
-                const System_T& doc) const
+        template<typename... Args>
+        Factory_T& factory(Args&&... args) const
         {
             for(auto& factory : *this)
             {
-                if(factory.matches(model, doc))
+                if(factory.matches(std::forward<Args>(args)...))
                 {
                     return factory;
                 }

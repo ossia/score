@@ -73,7 +73,7 @@ class ConstraintComponentHierarchyManager :
         void add(Process::ProcessModel& process)
         {
             // Will return a factory for the given process if available
-            if(auto factory = m_componentFactory.factory(process, Component_T::system()))
+            if(auto factory = m_componentFactory.factory(process))
             {
                 // The subclass should provide this function to construct
                 // the correct component relative to this process.

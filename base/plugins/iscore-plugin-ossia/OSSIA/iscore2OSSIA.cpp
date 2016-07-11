@@ -436,7 +436,7 @@ std::shared_ptr<OSSIA::State> state(
 
     for(auto& proc : iscore_state.stateProcesses)
     {
-        auto fac = ctx.stateProcesses.factory(proc, ctx.sys);
+        auto fac = ctx.stateProcesses.factory(proc);
         if(fac)
         {
             auto state = fac->make(proc, ctx);
