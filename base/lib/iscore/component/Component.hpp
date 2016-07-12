@@ -5,7 +5,7 @@ namespace iscore
 {
 #define COMPONENT_METADATA(Uuid) \
     public: \
-    static constexpr Component::Key static_key() { \
+    static Q_RELAXED_CONSTEXPR Component::Key static_key() { \
         return_uuid(Uuid); \
     } \
     \

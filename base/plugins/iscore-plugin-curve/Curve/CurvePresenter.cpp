@@ -5,6 +5,7 @@
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/operators.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <set>
 
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QAction>
