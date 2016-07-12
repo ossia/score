@@ -52,7 +52,7 @@ void MappingView::paint_impl(QPainter* painter) const
 {
     if(m_showName)
     {
-        m_textcache.draw(painter, QPointF{5, fontSize});
+        m_textcache.draw(painter, QPointF{5., double(fontSize)});
     }
 }
 }

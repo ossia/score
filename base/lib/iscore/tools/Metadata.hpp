@@ -67,9 +67,9 @@ class Json_k;
             Key, \
             Model> \
     { \
-            static constexpr Type get() \
+            static Q_RELAXED_CONSTEXPR Type get() \
             { \
-                const constexpr Type k{Value}; \
+                const Q_RELAXED_CONSTEXPR Type k{Value}; \
                 return k; \
             } \
     };

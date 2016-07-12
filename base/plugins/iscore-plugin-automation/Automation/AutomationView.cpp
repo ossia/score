@@ -49,7 +49,7 @@ void LayerView::paint_impl(QPainter* painter) const
 #if !defined(ISCORE_IEEE_SKIN)
     if(m_showName)
     {
-        m_textcache.draw(painter, QPointF{5, fontSize});
+        m_textcache.draw(painter, QPointF{ 5., double(fontSize)});
     }
 #endif
 }

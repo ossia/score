@@ -8,7 +8,7 @@ namespace iscore
 {
 namespace uuids
 {
-static constexpr char to_char(size_t i) {
+static Q_RELAXED_CONSTEXPR char to_char(size_t i) {
     if (i <= 9) {
         return static_cast<char>('0' + i);
     } else {

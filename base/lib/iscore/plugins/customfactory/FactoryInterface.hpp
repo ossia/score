@@ -39,7 +39,7 @@ using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
 
 #define ISCORE_ABSTRACT_FACTORY(Uuid) \
     public: \
-    static constexpr iscore::AbstractFactoryKey static_abstractFactoryKey() { \
+    static Q_RELAXED_CONSTEXPR iscore::AbstractFactoryKey static_abstractFactoryKey() { \
         return_uuid(Uuid); \
     } \
     \
@@ -53,7 +53,7 @@ using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
 // ConcreteFactoryKey should be defined in the subclass
 #define ISCORE_CONCRETE_FACTORY(Uuid) \
     public: \
-    static auto static_concreteFactoryKey() { \
+    static Q_RELAXED_CONSTEXPR auto static_concreteFactoryKey() { \
         return_uuid(Uuid); \
     } \
     \
