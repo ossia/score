@@ -86,6 +86,9 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario
 {
     timenode.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
 
+    if(timenode.metadata.label() == QStringLiteral("TimeNode"))
+        timenode.metadata.setLabel("");
+
     timenode.m_date = fromJsonValue<TimeValue> (m_obj["Date"]);
     timenode.m_extent = fromJsonValue<Scenario::VerticalExtent>(m_obj["Extent"]);
 

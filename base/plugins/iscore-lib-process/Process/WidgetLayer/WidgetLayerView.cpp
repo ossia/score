@@ -8,9 +8,9 @@ View::View(QGraphicsItem* parent):
 {
     m_widg = new QGraphicsProxyWidget{this};
     connect(this, &LayerView::heightChanged,
-            this, [=] { m_widg->setGeometry(QRectF{0, 0, this->width(), this->height() - 5});});
+            this, [=] { m_widg->setGeometry(QRectF{0, 0, this->width() - 10, this->height() - 10});});
     connect(this, &LayerView::widthChanged,
-            this, [=] { m_widg->setGeometry(QRectF{0, 0, this->width(), this->height() - 5});});
+            this, [=] { m_widg->setGeometry(QRectF{0, 0, this->width() - 10, this->height() - 10});});
 }
 
 void View::setWidget(QWidget* w)

@@ -21,6 +21,7 @@ SlotView::SlotView(const SlotPresenter &pres, QGraphicsItem* parent) :
     this->setFlag(ItemClipsChildrenToShape, true);
     this->setZValue(1);
     m_handle->setPos(0, this->boundingRect().height() - SlotHandle::handleHeight());
+    m_handle->setZValue(100);
 }
 
 QRectF SlotView::boundingRect() const
