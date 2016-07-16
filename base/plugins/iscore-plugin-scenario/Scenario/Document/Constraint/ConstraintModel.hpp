@@ -29,7 +29,7 @@ class StateModel;
 class ConstraintViewModel;
 class FullViewConstraintViewModel;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final :
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel :
         public IdentifiedObject<ConstraintModel>,
         public Nano::Observer
 {
@@ -46,6 +46,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final :
 
     public:
         /** Properties of the class **/
+        NotifyingMap<Process::ProcessModel> processes;
+        NotifyingMap<RackModel> racks;
+
         iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
@@ -116,14 +119,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final :
         void setFullView(FullViewConstraintViewModel* fv);
 
 
-
         void startExecution();
         void stopExecution();
         // Resets the execution display recursively
         void reset();
-
-        NotifyingMap<RackModel> racks;
-        NotifyingMap<Process::ProcessModel> processes;
 
         bool looping() const;
         void setLooping(bool looping);

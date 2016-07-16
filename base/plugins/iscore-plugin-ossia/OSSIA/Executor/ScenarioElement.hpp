@@ -83,13 +83,12 @@ class ScenarioComponent final :
          void timeNodeCallback(RecreateOnPlay::TimeNodeElement* tn, const OSSIA::TimeValue& date);
 
     private:
-        // TODO use IdContainer
-        std::map<Id<Scenario::ConstraintModel>, ConstraintElement*> m_ossia_constraints;
-        std::map<Id<Scenario::StateModel>, StateElement*> m_ossia_states;
-        std::map<Id<Scenario::TimeNodeModel>, TimeNodeElement*> m_ossia_timenodes;
-        std::map<Id<Scenario::EventModel>, EventElement*> m_ossia_timeevents;
+        std::unordered_map<Id<Scenario::ConstraintModel>, ConstraintElement*> m_ossia_constraints;
+        std::unordered_map<Id<Scenario::StateModel>, StateElement*> m_ossia_states;
+        std::unordered_map<Id<Scenario::TimeNodeModel>, TimeNodeElement*> m_ossia_timenodes;
+        std::unordered_map<Id<Scenario::EventModel>, EventElement*> m_ossia_timeevents;
 
-        IdContainer<Scenario::ConstraintModel> m_executingConstraints;
+        std::unordered_map<Id<Scenario::ConstraintModel>, Scenario::ConstraintModel*> m_executingConstraints;
 
         const Context& m_ctx;
 

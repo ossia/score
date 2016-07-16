@@ -101,15 +101,6 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
-    // TODO don't forget to put this anywhere.
-    // Or just find a better way...
-    for(auto elt : this->components.map().get())
-        delete elt;
-
-    apply([&] (const auto& m) {
-        for(auto elt : (this->*m).map().get())
-            delete elt;
-    });
     delete pluginModelList;
 }
 

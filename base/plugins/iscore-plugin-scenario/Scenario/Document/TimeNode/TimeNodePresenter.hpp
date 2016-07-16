@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <QPoint>
 #include <sys/types.h>
 #include <iscore_plugin_scenario_export.h>
@@ -45,7 +46,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodePresenter final :  public QObject
 
     private:
         const TimeNodeModel& m_model;
-        TimeNodeView* m_view {};
+        graphics_item_ptr<TimeNodeView> m_view;
         TriggerPresenter* m_triggerPres;
  };
 }

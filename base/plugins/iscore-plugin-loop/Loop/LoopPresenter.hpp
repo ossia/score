@@ -10,6 +10,7 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
 
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
@@ -93,7 +94,7 @@ class LayerPresenter final :
 
     private:
         const Loop::Layer& m_layer;
-        LayerView* m_view{};
+        graphics_item_ptr<LayerView> m_view;
 
         ZoomRatio m_zoomRatio {};
 

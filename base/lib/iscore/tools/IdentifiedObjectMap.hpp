@@ -31,13 +31,21 @@ class MapBase
         using model_type = Model;
 
         MapBase() = default;
-
         template<typename T>
         MapBase(const T& container)
         {
             for(auto& element : container)
             {
                 insert(&element);
+            }
+        }
+
+        ~MapBase()
+        {
+            // To ensure that children are deleted before their parents
+            for(auto elt : this->get())
+            {
+                delete elt;
             }
         }
 

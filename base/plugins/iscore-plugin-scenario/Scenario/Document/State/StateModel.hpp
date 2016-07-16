@@ -56,6 +56,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
         ISCORE_SERIALIZE_FRIENDS(Scenario::StateModel, JSONObject)
     public:
         using ProcessVector = std::list<ProcessStateWrapper>;
+
+        NotifyingMap<Process::StateProcess> stateProcesses;
         iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
@@ -112,8 +114,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
         void setStatus(ExecutionStatus);
         ExecutionStatus status() const
         { return m_status.get(); }
-
-        NotifyingMap<Process::StateProcess> stateProcesses;
 
         void setHeightPercentage(double y);
 

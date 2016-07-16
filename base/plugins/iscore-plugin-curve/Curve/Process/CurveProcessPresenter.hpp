@@ -61,7 +61,6 @@ class CurveProcessPresenter :
         virtual ~CurveProcessPresenter()
         {
             delete m_curvepresenter;
-            deleteGraphicsItem(m_view);
         }
 
         void on_focusChanged() override
@@ -135,7 +134,7 @@ class CurveProcessPresenter :
 
     protected:
         const LayerModel_T& m_layer;
-        LayerView_T* m_view{};
+        graphics_item_ptr<LayerView_T> m_view;
 
         Presenter* m_curvepresenter{};
 
