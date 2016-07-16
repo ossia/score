@@ -195,7 +195,7 @@ void ScenarioComponent::startConstraintExecution(const Id<Scenario::ConstraintMo
 {
     auto& cst = process().constraints.at(id);
     if(m_executingConstraints.find(id) == m_executingConstraints.end())
-        m_executingConstraints.insert(&cst);
+        m_executingConstraints.insert(std::make_pair(cst.id(), &cst));
 
     m_ossia_constraints.at(id)->executionStarted();
 }
@@ -208,7 +208,7 @@ void ScenarioComponent::disableConstraintExecution(const Id<Scenario::Constraint
 
 void ScenarioComponent::stopConstraintExecution(const Id<Scenario::ConstraintModel>& id)
 {
-    m_executingConstraints.remove(id);
+    m_executingConstraints.erase(id);
     m_ossia_constraints.at(id)->executionStopped();
 }
 

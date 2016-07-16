@@ -1,6 +1,8 @@
 #pragma once
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/NamedObject.hpp>
+
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <QPoint>
 #include <QString>
 #include <iscore_plugin_scenario_export.h>
@@ -44,7 +46,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventPresenter final :
     private:
         void triggerSetted(QString);
         const EventModel& m_model;
-        EventView* m_view {};
+        graphics_item_ptr<EventView> m_view;
 
         CommandDispatcher<> m_dispatcher;
 };

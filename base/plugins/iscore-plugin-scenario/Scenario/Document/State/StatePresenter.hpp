@@ -1,18 +1,14 @@
 #pragma once
+#include <Scenario/Document/State/StateView.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <QPoint>
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <iscore_plugin_scenario_export.h>
 #include <iscore/tools/SettableIdentifier.hpp>
-
-class QGraphicsItem;
-class QMimeData;
-class QObject;
 
 namespace Scenario
 {
 class StateModel;
-class StateView;
 class ISCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final :
         public QObject
 {
@@ -49,7 +45,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final :
         void updateStateView();
 
         const StateModel& m_model;
-        StateView* m_view {};
+        graphics_item_ptr<StateView> m_view {};
 
         CommandDispatcher<> m_dispatcher;
 };

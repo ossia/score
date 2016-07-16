@@ -86,7 +86,6 @@ SlotPresenter::~SlotPresenter()
     for(auto& proc : m_processes)
         for(auto& sub : proc.processes)
             delete sub.first;
-    deleteGraphicsItem(m_view);
 }
 
 const Id<SlotModel>& SlotPresenter::id() const

@@ -69,7 +69,6 @@ EventPresenter::EventPresenter(
 
 EventPresenter::~EventPresenter()
 {
-    deleteGraphicsItem(m_view);
 }
 
 const Id<EventModel>& EventPresenter::id() const

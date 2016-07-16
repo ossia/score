@@ -35,7 +35,6 @@ CommentBlockPresenter::CommentBlockPresenter(
 
 CommentBlockPresenter::~CommentBlockPresenter()
 {
-    deleteGraphicsItem(m_view);
 }
 
 const Id<CommentBlockModel>&CommentBlockPresenter::id() const

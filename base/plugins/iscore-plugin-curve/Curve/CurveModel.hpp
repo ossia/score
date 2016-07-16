@@ -75,7 +75,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT Model final : public IdentifiedObject<Model>
         void addPoint(PointModel* pt);
         void removePoint(PointModel* pt);
 
-        IdContainer<SegmentModel> m_segments;
+        IdContainer<SegmentModel> m_segments; // TODO why not notifying
         std::vector<PointModel*> m_points; // Each between 0, 1
 };
 

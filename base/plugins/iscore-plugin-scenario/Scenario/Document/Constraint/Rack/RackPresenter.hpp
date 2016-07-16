@@ -3,6 +3,7 @@
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/NamedObject.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <QtGlobal>
 #include <QPoint>
 
@@ -69,10 +70,10 @@ class RackPresenter final :
         void updateShape();
 
         const RackModel& m_model;
-        RackView* m_view{};
-        const Process::ProcessPresenterContext& m_context;
-
+        graphics_item_ptr<RackView> m_view;
         IdContainer<SlotPresenter,SlotModel> m_slots;
+
+        const Process::ProcessPresenterContext& m_context;
 
         ZoomRatio m_zoomRatio{};
         TimeValue m_duration {};

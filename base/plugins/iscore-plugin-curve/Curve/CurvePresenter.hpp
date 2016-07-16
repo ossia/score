@@ -7,6 +7,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <QObject>
 #include <QPoint>
 #include <QRect>
@@ -96,7 +97,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT Presenter : public QObject
         Curve::EditionSettings m_editionSettings;
 
         const Model& m_model;
-        View* m_view{};
+        graphics_item_ptr<View> m_view;
 
         IdContainer<PointView, PointModel> m_points;
         IdContainer<SegmentView, SegmentModel> m_segments;

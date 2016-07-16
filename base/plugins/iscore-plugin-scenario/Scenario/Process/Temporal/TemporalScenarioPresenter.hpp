@@ -21,7 +21,7 @@
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 
 namespace Process { class ProcessModel; }
@@ -165,17 +165,20 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
         void updateAllElements();
         void eventHasTrigger(const EventPresenter&, bool);
 
+        ZoomRatio m_zoomRatio {1};
+        double m_graphicalScale{1.};
+
+        const TemporalScenarioLayerModel& m_layer;
+
+        // The order of deletion matters!
+        // m_view has to be deleted after the other elements.
+        graphics_item_ptr<TemporalScenarioView> m_view;
+
         IdContainer<StatePresenter, StateModel> m_states;
         IdContainer<EventPresenter, EventModel> m_events;
         IdContainer<TimeNodePresenter, TimeNodeModel> m_timeNodes;
         IdContainer<TemporalConstraintPresenter, ConstraintModel> m_constraints;
         IdContainer<CommentBlockPresenter, CommentBlockModel> m_comments;
-
-        ZoomRatio m_zoomRatio {1};
-        double m_graphicalScale{1.};
-
-        const TemporalScenarioLayerModel& m_layer;
-        TemporalScenarioView* m_view;
 
         ScenarioViewInterface m_viewInterface;
 

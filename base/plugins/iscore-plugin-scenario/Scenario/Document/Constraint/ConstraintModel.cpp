@@ -16,7 +16,6 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <iscore/tools/Todo.hpp>
 
-
 namespace Scenario
 {
 class StateModel;
@@ -40,12 +39,6 @@ ConstraintModel::ConstraintModel(
 
 ConstraintModel::~ConstraintModel()
 {
-    for(auto elt : components.map().get())
-        delete elt;
-    for(auto elt : racks.map().get())
-        delete elt;
-    for(auto elt : processes.map().get())
-        delete elt;
 }
 
 ConstraintModel::ConstraintModel(

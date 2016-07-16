@@ -80,11 +80,6 @@ Presenter::Presenter(
 
 Presenter::~Presenter()
 {
-    for(auto& pt : m_points)
-        delete &pt;
-    for(auto& seg : m_segments)
-        delete &seg;
-    deleteGraphicsItem(m_view);
 }
 
 void Presenter::setRect(const QRectF& rect)

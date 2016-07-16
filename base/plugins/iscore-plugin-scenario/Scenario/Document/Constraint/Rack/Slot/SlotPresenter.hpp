@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <nano_signal_slot.hpp>
 
 class QObject;
@@ -100,7 +101,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final :
 
         const Process::ProcessList& m_processList;
         const SlotModel& m_model;
-        SlotView* m_view{};
+        graphics_item_ptr<SlotView> m_view;
         std::vector<SlotProcessData> m_processes;
 
         const Process::ProcessPresenterContext& m_context;

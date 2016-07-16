@@ -139,7 +139,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final :
             return events.at(m_endEventId);
         }
 
-
         NotifyingMap<ConstraintModel> constraints;
         NotifyingMap<EventModel> events;
         NotifyingMap<TimeNodeModel> timeNodes;

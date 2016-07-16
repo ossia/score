@@ -43,7 +43,6 @@ TimeNodePresenter::TimeNodePresenter(
 
 TimeNodePresenter::~TimeNodePresenter()
 {
-    deleteGraphicsItem(m_view);
 }
 
 const Id<TimeNodeModel>& TimeNodePresenter::id() const

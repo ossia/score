@@ -4,6 +4,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QPoint>
 #include <Process/TimeValue.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
 
 class QGraphicsItem;
 class QTextDocument;
@@ -45,7 +46,7 @@ class CommentBlockPresenter final :  public QObject
 
     private:
         const CommentBlockModel& m_model;
-        CommentBlockView* m_view{};
+        graphics_item_ptr<CommentBlockView> m_view;
 
 };
 

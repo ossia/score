@@ -57,9 +57,6 @@ RackPresenter::RackPresenter(const RackModel& model,
 
 RackPresenter::~RackPresenter()
 {
-    for(auto& slot : m_slots)
-        delete &slot;
-    deleteGraphicsItem(m_view);
 }
 
 const RackView &RackPresenter::view() const

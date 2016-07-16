@@ -11,7 +11,6 @@
 #include <State/Message.hpp>
 #include "StateModel.hpp"
 #include "StatePresenter.hpp"
-#include "StateView.hpp"
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/Selectable.hpp>
@@ -56,7 +55,6 @@ StatePresenter::StatePresenter(
 
 StatePresenter::~StatePresenter()
 {
-    deleteGraphicsItem(m_view);
 }
 
 const Id<StateModel> &StatePresenter::id() const
