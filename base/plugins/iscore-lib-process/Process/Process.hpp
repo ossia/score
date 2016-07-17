@@ -15,16 +15,11 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
 
 namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
-class QObject;
-
-namespace iscore {
-class ElementPluginModelList;
-}  // namespace iscore
-#include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Process
 {
@@ -49,7 +44,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
 
     public:
         iscore::Components components;
-        iscore::ElementPluginModelList* pluginModelList{}; // Note: has to be initialized by the sub-classes.
         ModelMetadata metadata;
 
         ProcessModel(

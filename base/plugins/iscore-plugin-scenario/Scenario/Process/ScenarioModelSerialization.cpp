@@ -16,7 +16,6 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include "ScenarioFactory.hpp"
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -36,8 +35,6 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
         const Scenario::ProcessModel& scenario)
 {
-    readFrom(*scenario.pluginModelList);
-
     m_stream << scenario.metadata.name();
 
     m_stream << scenario.m_startTimeNodeId
@@ -98,8 +95,6 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(
         Scenario::ProcessModel& scenario)
 {
-    scenario.pluginModelList = new iscore::ElementPluginModelList{*this, &scenario};
-
     QString name;
     m_stream >> name;
     scenario.metadata.setName(name);
@@ -176,7 +171,6 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Scenario::ProcessModel& scenario)
 {
-    m_obj["PluginsMetadata"] = toJsonValue(*scenario.pluginModelList);
     m_obj["Metadata"] = toJsonObject(scenario.metadata);
 
     m_obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);
@@ -196,8 +190,6 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(
         Scenario::ProcessModel& scenario)
 {
-    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    scenario.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &scenario};
     scenario.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
 
     scenario.m_startTimeNodeId = fromJsonValue<Id<Scenario::TimeNodeModel>> (m_obj["StartTimeNodeId"]);

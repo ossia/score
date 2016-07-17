@@ -27,7 +27,6 @@ ConstraintModel::ConstraintModel(
         double yPos,
         QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent},
-    pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
     initConnections();
@@ -45,8 +44,7 @@ ConstraintModel::ConstraintModel(
         const ConstraintModel& source,
         const Id<ConstraintModel>& id,
         QObject* parent):
-    IdentifiedObject<ConstraintModel> {id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent},
-    pluginModelList{source.pluginModelList, this}
+    IdentifiedObject<ConstraintModel> {id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent}
 {
     initConnections();
     metadata = source.metadata;

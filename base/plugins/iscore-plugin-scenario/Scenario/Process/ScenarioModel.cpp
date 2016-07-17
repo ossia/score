@@ -21,7 +21,6 @@
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include "ScenarioModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
@@ -54,7 +53,6 @@ ProcessModel::ProcessModel(const TimeValue& duration,
     ScenarioCreate<StateModel>::redo(m_startStateId, start_ev, 0.02, *this);
 
     // At the end because plug-ins depend on the start/end timenode & al being here
-    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
     metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 
@@ -68,8 +66,6 @@ ProcessModel::ProcessModel(
     m_startEventId{source.m_startEventId},
     m_endEventId{source.m_endEventId}
 {
-    pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
-
     // This almost terrifying piece of code will simply clone
     // all the elements (constraint, etc...) from the source to this class
     // without duplicating code too much.
@@ -101,7 +97,6 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
-    delete pluginModelList;
 }
 
 void ProcessModel::setDurationAndScale(const TimeValue& newDuration)

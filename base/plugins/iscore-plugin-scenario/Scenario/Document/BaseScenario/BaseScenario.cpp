@@ -21,8 +21,7 @@ namespace Scenario
 {
 BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
     IdentifiedObject<BaseScenario>{id, "Scenario::BaseScenario", parent},
-    BaseScenarioContainer{this},
-    pluginModelList{iscore::IDocument::documentContext(*parent), this}
+    BaseScenarioContainer{this}
 {
     BaseScenarioContainer::init();
 

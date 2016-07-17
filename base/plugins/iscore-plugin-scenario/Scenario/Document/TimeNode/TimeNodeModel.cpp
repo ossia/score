@@ -20,7 +20,6 @@ TimeNodeModel::TimeNodeModel(
         const TimeValue& date,
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, Metadata<ObjectKey_k, TimeNodeModel>::get(), parent},
-    pluginModelList{iscore::IDocument::documentContext(*parent), this},
     m_extent{extent},
     m_date{date},
     m_trigger{new TriggerModel{Id<TriggerModel>(0), this} }
@@ -35,7 +34,6 @@ TimeNodeModel::TimeNodeModel(
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, Metadata<ObjectKey_k, TimeNodeModel>::get(), parent},
     metadata{source.metadata},
-    pluginModelList{source.pluginModelList, this},
     m_extent{source.m_extent},
     m_date{source.m_date},
     m_events(source.m_events)

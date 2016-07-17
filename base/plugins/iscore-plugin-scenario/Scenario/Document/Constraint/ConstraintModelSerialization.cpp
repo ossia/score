@@ -17,7 +17,6 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -69,8 +68,6 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const S
              << constraint.m_heightPercentage
              << constraint.m_looping;
 
-    readFrom(constraint.pluginModelList);
-
     insertDelimiter();
 }
 
@@ -113,9 +110,6 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario
              >> constraint.m_heightPercentage
              >> constraint.m_looping;
 
-
-    constraint.pluginModelList = iscore::ElementPluginModelList{*this, &constraint};
-
     checkDelimiter();
 }
 
@@ -148,8 +142,6 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const S
     m_obj["StartDate"] = toJsonValue(constraint.m_startDate);
     m_obj["HeightPercentage"] = constraint.m_heightPercentage;
     m_obj["Looping"] = constraint.m_looping;
-
-    m_obj["PluginsMetadata"] = toJsonValue(constraint.pluginModelList);
 }
 
 template<>
@@ -187,9 +179,4 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario
     constraint.m_startDate = fromJsonValue<TimeValue> (m_obj["StartDate"]);
     constraint.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
     constraint.m_looping = m_obj["Looping"].toBool();
-
-
-
-    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    constraint.pluginModelList = iscore::ElementPluginModelList{elementPluginDeserializer, &constraint};
 }

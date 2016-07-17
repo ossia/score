@@ -8,7 +8,6 @@
 #include "AutomationModel.hpp"
 #include <Curve/CurveModel.hpp>
 #include <State/Address.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
@@ -22,8 +21,6 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
         const Automation::ProcessModel& autom)
 {
-    readFrom(*autom.pluginModelList);
-
     readFrom(autom.curve());
 
     m_stream << autom.address();
@@ -37,8 +34,6 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(
         Automation::ProcessModel& autom)
 {
-    autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
-
     autom.setCurve(new Curve::Model{*this, &autom});
 
     State::Address address;
@@ -60,8 +55,6 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Automation::ProcessModel& autom)
 {
-    m_obj["PluginsMetadata"] = toJsonValue(*autom.pluginModelList);
-
     m_obj["Curve"] = toJsonObject(autom.curve());
     m_obj["Address"] = toJsonObject(autom.address());
     m_obj["Min"] = autom.min();
@@ -72,9 +65,6 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(
         Automation::ProcessModel& autom)
 {
-    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    autom.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &autom};
-
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
     autom.setCurve(new Curve::Model{curve_deser, &autom});
 

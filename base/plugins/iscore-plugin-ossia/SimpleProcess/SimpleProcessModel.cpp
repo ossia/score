@@ -6,7 +6,6 @@
 #include "SimpleProcess.hpp"
 #include "SimpleProcessModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -25,9 +24,6 @@ SimpleProcessModel::SimpleProcessModel(
     Process::ProcessModel{duration, id, "SimpleProcessModel", parent},
     m_ossia_process{std::make_shared<SimpleProcess>()}
 {
-    pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentContext(*parent),
-                      this};
 }
 
 SimpleProcessModel::SimpleProcessModel(
@@ -36,14 +32,10 @@ SimpleProcessModel::SimpleProcessModel(
         QObject* parent):
     SimpleProcessModel{source.duration(), id, parent}
 {
-    pluginModelList = new iscore::ElementPluginModelList{
-                      *source.pluginModelList,
-                      this};
 }
 
 SimpleProcessModel::~SimpleProcessModel()
 {
-    delete pluginModelList;
 }
 
 SimpleProcessModel* SimpleProcessModel::clone(
@@ -112,29 +104,22 @@ void SimpleProcessModel::serialize_impl(const VisitorVariant& s) const
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(const SimpleProcessModel& proc)
 {
-    readFrom(*proc.pluginModelList);
-
     insertDelimiter();
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(SimpleProcessModel& proc)
 {
-    proc.pluginModelList = new iscore::ElementPluginModelList{*this, &proc};
-
     checkDelimiter();
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(const SimpleProcessModel& proc)
 {
-    m_obj["PluginsMetadata"] = toJsonValue(*proc.pluginModelList);
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(SimpleProcessModel& proc)
 {
-    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    proc.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &proc};
 }
 

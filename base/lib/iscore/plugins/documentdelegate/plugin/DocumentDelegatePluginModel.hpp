@@ -29,25 +29,6 @@ class ISCORE_LIB_BASE_EXPORT DocumentPlugin :
 
         virtual ~DocumentPlugin();
 
-        virtual std::vector<ElementPluginModelType> elementPlugins() const { return {}; }
-        virtual ElementPluginModel* makeElementPlugin(
-                const QObject* element,
-                ElementPluginModelType type,
-                QObject* parent) { return nullptr; }
-        virtual ElementPluginModel* loadElementPlugin(
-                const QObject* element,
-                const VisitorVariant&,
-                QObject* parent) { return nullptr; }
-
-        virtual ElementPluginModel* cloneElementPlugin(
-                const QObject* element,
-                iscore::ElementPluginModel* source,
-                QObject* parent) { return nullptr; }
-
-        virtual QWidget* makeElementPluginWidget(
-                const ElementPluginModel*,
-                QWidget* parent) const { return nullptr; }
-
         auto& context() const
         { return m_context; }
 
@@ -60,9 +41,6 @@ class ISCORE_LIB_BASE_EXPORT SerializableDocumentPlugin :
         public DocumentPlugin,
         public SerializableInterface<DocumentPluginFactory>
 {
-        //ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPlugin, DataStream)
-        //ISCORE_SERIALIZE_FRIENDS(SerializableDocumentPlugin, JSONObject)
-
     protected:
         using DocumentPlugin::DocumentPlugin;
         using ConcreteFactoryKey = UuidKey<DocumentPluginFactory>;
