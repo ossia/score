@@ -23,14 +23,11 @@ BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
     IdentifiedObject<BaseScenario>{id, "Scenario::BaseScenario", parent},
     BaseScenarioContainer{this}
 {
-    BaseScenarioContainer::init();
-
     m_endNode->trigger()->setActive(true);
 }
 
 BaseScenario::~BaseScenario()
 {
-    BaseScenarioContainer::clear();
 }
 
 Selection BaseScenario::selectedChildren() const

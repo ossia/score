@@ -27,6 +27,7 @@
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/MapCopy.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -255,7 +256,7 @@ void RemoveSelection::undo() const
     {
         // We have to make a copy at each iteration since each iteration
         // might add a timenode.
-        auto timenodes_in_scenar = scenar.timeNodes.map();
+        auto timenodes_in_scenar = shallow_copy(scenar.timeNodes.map());
         auto scenar_timenode_it = std::find(timenodes_in_scenar.begin(),
                                      timenodes_in_scenar.end(),
                                      event->timeNode());
@@ -278,7 +279,7 @@ void RemoveSelection::undo() const
             scenar.events.add(event);
 
             // Maybe this shall be done after everything has been added to prevent problems ?
-            (*scenar_timenode_it).addEvent(event->id());
+            (*scenar_timenode_it)->addEvent(event->id());
         }
         else
         {

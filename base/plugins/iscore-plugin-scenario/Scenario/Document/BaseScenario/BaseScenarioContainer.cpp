@@ -16,9 +16,9 @@ namespace Scenario
 {
 class ConstraintViewModel;
 
-BaseScenarioContainer::~BaseScenarioContainer() = default;
-
-void BaseScenarioContainer::init()
+BaseScenarioContainer::BaseScenarioContainer(
+        QObject* parentObject):
+    m_parent{parentObject}
 {
     auto& stack = iscore::IDocument::documentContext(*m_parent).commandStack;
     m_startNode = new TimeNodeModel{Scenario::startId<TimeNodeModel>(), {0.2, 0.8}, TimeValue::zero(),  m_parent};
@@ -49,7 +49,10 @@ void BaseScenarioContainer::init()
     SetPreviousConstraint(*m_endState, *m_constraint);
 }
 
-void BaseScenarioContainer::init(const BaseScenarioContainer& source)
+BaseScenarioContainer::BaseScenarioContainer(
+        const BaseScenarioContainer& source,
+        QObject* parentObject):
+    m_parent{parentObject}
 {
     auto& stack = iscore::IDocument::documentContext(*m_parent).commandStack;
     m_constraint = new ConstraintModel{*source.m_constraint, source.m_constraint->id(), m_parent};
@@ -67,7 +70,7 @@ void BaseScenarioContainer::init(const BaseScenarioContainer& source)
     SetNextConstraint(*m_startState, *m_constraint);
 }
 
-void BaseScenarioContainer::clear()
+BaseScenarioContainer::~BaseScenarioContainer()
 {
     delete m_constraint;
     m_constraint = nullptr;

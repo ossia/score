@@ -31,6 +31,8 @@ class MapBase
         using model_type = Model;
 
         MapBase() = default;
+        MapBase(const MapBase& other) = delete;
+        /*
         template<typename T>
         MapBase(const T& container)
         {
@@ -39,6 +41,7 @@ class MapBase
                 insert(&element);
             }
         }
+        */
 
         ~MapBase()
         {

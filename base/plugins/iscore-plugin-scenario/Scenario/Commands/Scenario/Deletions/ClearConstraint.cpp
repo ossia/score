@@ -17,6 +17,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/MapCopy.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 
@@ -86,16 +87,16 @@ void ClearConstraint::redo() const
 
     // We make copies since the iterators might change.
     // TODO check if this is still valid wrt boost::multi_index
-    auto processes = constraint.processes.map();
-    for(const auto& process : processes)
+    auto processes = shallow_copy(constraint.processes.map());
+    for(auto process : processes)
     {
-        RemoveProcess(constraint, process.id());
+        RemoveProcess(constraint, process->id());
     }
 
-    auto rackes = constraint.racks.map();
+    auto rackes = shallow_copy(constraint.racks.map());
     for(const auto& rack : rackes)
     {
-        constraint.racks.remove(rack.id());
+        constraint.racks.remove(rack->id());
     }
 }
 

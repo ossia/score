@@ -18,6 +18,7 @@
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/MapCopy.hpp>
 
 namespace Scenario
 {
@@ -26,17 +27,17 @@ static void removeEventFromTimeNode(
         const Id<EventModel>& eventId)
 {
     // We have to make a copy else the iterator explodes.
-    auto timenodes = scenario.timeNodes.map();
-    for(auto& timeNode : timenodes)
+    auto timenodes = shallow_copy(scenario.timeNodes.map());
+    for(auto timeNode : timenodes)
     {
-        if(timeNode.removeEvent(eventId))
+        if(timeNode->removeEvent(eventId))
         {
-            if(timeNode.events().isEmpty())
+            if(timeNode->events().isEmpty())
             {
                 // TODO transform this into a class with algorithms on timenodes + scenario, etc.
                 // Note : this changes the scenario.timeNodes() iterator, however
                 // since we return afterwards there is no problem.
-                ScenarioCreate<TimeNodeModel>::undo(timeNode.id(), scenario);
+                ScenarioCreate<TimeNodeModel>::undo(timeNode->id(), scenario);
             }
         }
     }

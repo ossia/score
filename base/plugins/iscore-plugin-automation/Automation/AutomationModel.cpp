@@ -14,6 +14,7 @@
 #include <Process/ModelMetadata.hpp>
 #include <State/Address.hpp>
 #include <Automation/State/AutomationState.hpp>
+#include <iscore/tools/MapCopy.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -139,19 +140,19 @@ void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
 
     // Since we shrink, scale > 1. so we have to cut.
     // Note:  this will certainly change how some functions do look.
-    auto segments = m_curve->segments(); // Make a copy since we will change the map.
-    for(auto& segment : segments)
+    auto segments = shallow_copy(m_curve->segments());// Make a copy since we will change the map.
+    for(auto segment : segments)
     {
-        if(segment.start().x() >= 1.)
+        if(segment->start().x() >= 1.)
         {
             // bye
-            m_curve->removeSegment(&segment);
+            m_curve->removeSegment(segment);
         }
-        else if(segment.end().x() >= 1.)
+        else if(segment->end().x() >= 1.)
         {
-            auto end = segment.end();
+            auto end = segment->end();
             end.setX(1.);
-            segment.setEnd(end);
+            segment->setEnd(end);
         }
     }
 
