@@ -23,8 +23,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryFamily.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/SerializableInterface.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelListSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/AggregateCommand.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/Command.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandData.cpp"
@@ -48,8 +46,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateViewInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/application/GUIApplicationContextPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelDelegateFactory.cpp"

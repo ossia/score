@@ -6,7 +6,6 @@
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
 #include <iscore/tools/std/Optional.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -36,7 +35,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
         iscore::Components components;
         Selectable selection;
         ModelMetadata metadata;
-        iscore::ElementPluginModelList pluginModelList;
 
         /** The class **/
         EventModel(const Id<EventModel>&,

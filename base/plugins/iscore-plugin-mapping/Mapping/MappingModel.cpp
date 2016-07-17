@@ -10,7 +10,6 @@
 #include "MappingModel.hpp"
 #include <Process/ModelMetadata.hpp>
 #include <State/Address.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Process { class LayerModel; }
@@ -25,7 +24,6 @@ ProcessModel::ProcessModel(
         QObject* parent) :
     Curve::CurveProcessModel {duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
     setUseParentDuration(true);
     // Named shall be enough ?
     setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
@@ -54,7 +52,6 @@ ProcessModel::ProcessModel(
     m_targetMax{source.targetMax()}
 {
     setCurve(source.curve().clone(source.curve().id(), this));
-    pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
     metadata.setName(QString("Mapping.%1").arg(*this->id().val()));
@@ -62,8 +59,8 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
-    delete pluginModelList;
 }
+
 Process::ProcessModel* ProcessModel::clone(
         const Id<Process::ProcessModel>& newId,
         QObject* newParent) const

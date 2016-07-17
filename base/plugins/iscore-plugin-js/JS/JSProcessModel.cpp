@@ -7,7 +7,6 @@
 #include "JS/JSProcessMetadata.hpp"
 #include "JSProcessModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
 namespace Process { class LayerModel; }
@@ -24,10 +23,6 @@ ProcessModel::ProcessModel(
         QObject* parent):
     Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-    pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentContext(*parent),
-                      this};
-
     m_script = "(function(t) { \n"
                "     var obj = new Object; \n"
                "     obj[\"address\"] = 'OSCdevice:/millumin/layer/x/instance'; \n"
@@ -45,14 +40,10 @@ ProcessModel::ProcessModel(
     Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     m_script{source.m_script}
 {
-    pluginModelList = new iscore::ElementPluginModelList{
-                      *source.pluginModelList,
-                      this};
 }
 
 ProcessModel::~ProcessModel()
 {
-    delete pluginModelList;
 }
 
 void ProcessModel::setScript(const QString& script)

@@ -42,7 +42,6 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -222,6 +221,9 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(tabWidget);
 
     // Plugins
+
+    ISCORE_TODO;
+    /*
     for(auto& plugdata : m_model.pluginModelList.list())
     {
         for(auto plugin : ctx.pluginModels())
@@ -234,6 +236,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
             }
         }
     }
+    */
 
     // Constraint interface
     model().processes.added.connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_processCreated>(this);

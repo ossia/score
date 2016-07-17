@@ -1,7 +1,6 @@
 #pragma once
 #include <iscore/tools/Metadata.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <QVector>
 
@@ -24,8 +23,6 @@ class BaseScenario final :
         ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, JSONObject)
 
     public:
-        iscore::ElementPluginModelList pluginModelList;
-
         BaseScenario(const Id<BaseScenario>& id, QObject* parentObject);
 
         template<typename DeserializerVisitor,

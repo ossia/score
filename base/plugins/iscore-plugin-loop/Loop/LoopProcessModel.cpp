@@ -16,7 +16,6 @@
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
@@ -38,10 +37,6 @@ ProcessModel::ProcessModel(
     Scenario::BaseScenarioContainer{this}
 {
     this->setUseParentDuration(true);
-    pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentContext(*parent),
-                      this};
-
     Scenario::BaseScenarioContainer::init();
 
     Scenario::ConstraintDurations::Algorithms::changeAllDurations(constraint(), duration);
@@ -67,10 +62,6 @@ ProcessModel::ProcessModel(
     Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     BaseScenarioContainer{this}
 {
-    pluginModelList = new iscore::ElementPluginModelList{
-                      *source.pluginModelList,
-                      this};
-
     BaseScenarioContainer::init(source);
 }
 
@@ -80,8 +71,6 @@ ProcessModel::~ProcessModel()
         delete comp;
 
     BaseScenarioContainer::clear();
-
-    delete pluginModelList;
 }
 
 void ProcessModel::startExecution()

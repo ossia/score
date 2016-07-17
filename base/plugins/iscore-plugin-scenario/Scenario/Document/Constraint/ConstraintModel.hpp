@@ -7,7 +7,6 @@
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
 #include <iscore/tools/std/Optional.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <QObject>
 #include <nano_signal_slot.hpp>
@@ -54,8 +53,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel :
         ModelMetadata metadata;
         ModelConsistency consistency{nullptr};
         ConstraintDurations duration{*this};
-
-        iscore::ElementPluginModelList pluginModelList;
 
         /** The class **/
         ConstraintModel(const Id<ConstraintModel>&,

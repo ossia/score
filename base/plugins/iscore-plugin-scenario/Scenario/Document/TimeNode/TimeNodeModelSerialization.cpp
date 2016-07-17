@@ -13,7 +13,6 @@
 #include <State/Expression.hpp>
 #include "TimeNodeModel.hpp"
 #include "Trigger/TriggerModel.hpp"
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -30,7 +29,6 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const S
     readFrom(static_cast<const IdentifiedObject<Scenario::TimeNodeModel>&>(timenode));
 
     readFrom(timenode.metadata);
-    readFrom(timenode.pluginModelList);
 
     m_stream << timenode.m_date
              << timenode.m_events
@@ -46,7 +44,6 @@ template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::TimeNodeModel& timenode)
 {
     writeTo(timenode.metadata);
-    timenode.pluginModelList = iscore::ElementPluginModelList{*this, &timenode};
 
     bool a;
     State::Trigger t;
@@ -73,8 +70,6 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const S
     m_obj["Events"] = toJsonArray(timenode.m_events);
     m_obj["Extent"] = toJsonValue(timenode.m_extent);
 
-    m_obj["PluginsMetadata"] = toJsonValue(timenode.pluginModelList);
-
     QJsonObject trig;
     trig["Active"] = timenode.m_trigger->active();
     trig["Expression"] = toJsonObject(timenode.m_trigger->expression());
@@ -100,7 +95,4 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario
     fromJsonObject(m_obj["Trigger"].toObject()["Expression"], t);
     timenode.m_trigger->setExpression(t);
     timenode.m_trigger->setActive(m_obj["Trigger"].toObject()["Active"].toBool());
-
-    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    timenode.pluginModelList = iscore::ElementPluginModelList{elementPluginDeserializer, &timenode};
 }

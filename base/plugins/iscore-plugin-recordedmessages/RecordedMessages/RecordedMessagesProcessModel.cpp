@@ -8,7 +8,6 @@
 #include "RecordedMessages/RecordedMessagesProcessMetadata.hpp"
 #include "RecordedMessagesProcessModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
 namespace Process { class LayerModel; }
@@ -25,10 +24,6 @@ ProcessModel::ProcessModel(
         QObject* parent):
     Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-    pluginModelList = new iscore::ElementPluginModelList{
-                      iscore::IDocument::documentContext(*parent),
-                      this};
-
     metadata.setName(QString("RecordedMessages.%1").arg(*this->id().val()));
 }
 
@@ -39,14 +34,10 @@ ProcessModel::ProcessModel(
     Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     m_messages{source.m_messages}
 {
-    pluginModelList = new iscore::ElementPluginModelList{
-                      *source.pluginModelList,
-            this};
 }
 
 ProcessModel::~ProcessModel()
 {
-    delete pluginModelList;
 }
 
 void ProcessModel::setMessages(const QList<RecordedMessage>& script)

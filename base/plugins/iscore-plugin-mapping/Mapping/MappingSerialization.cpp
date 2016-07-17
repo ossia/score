@@ -7,7 +7,6 @@
 #include "MappingLayerModel.hpp"
 #include "MappingModel.hpp"
 #include <State/Address.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -22,8 +21,6 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
         const Mapping::ProcessModel& autom)
 {
-    readFrom(*autom.pluginModelList); // TODO it is unbearable to save / load these every time
-
     readFrom(autom.curve());
 
     m_stream << autom.sourceAddress()
@@ -41,8 +38,6 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(
         Mapping::ProcessModel& autom)
 {
-    autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
-
     autom.setCurve(new Curve::Model{*this, &autom});
     { // Source
         State::Address address;
@@ -74,8 +69,6 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Mapping::ProcessModel& autom)
 {
-    m_obj["PluginsMetadata"] = toJsonValue(*autom.pluginModelList);
-
     m_obj["Curve"] = toJsonObject(autom.curve());
 
     m_obj["SourceAddress"] = toJsonObject(autom.sourceAddress());
@@ -90,9 +83,6 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(Mapping::ProcessModel& autom)
 {
-    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    autom.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &autom};
-
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
     autom.setCurve(new Curve::Model{curve_deser, &autom});
 
@@ -104,9 +94,6 @@ void Visitor<Writer<JSONObject>>::writeTo(Mapping::ProcessModel& autom)
     autom.setTargetMin(m_obj["TargetMin"].toDouble());
     autom.setTargetMax(m_obj["TargetMax"].toDouble());
 }
-
-
-
 
 void Mapping::ProcessModel::serialize_impl(const VisitorVariant& vis) const
 {

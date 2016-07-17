@@ -38,7 +38,6 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
@@ -119,6 +118,8 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(m_statesWidget);
 
     // Plugins (TODO factorize with ConstraintInspectorWidget)
+    ISCORE_TODO;
+    /*
     for(auto& plugdata : m_model.pluginModelList.list())
     {
         for(auto plugin : doc.pluginModels())
@@ -131,6 +132,7 @@ EventInspectorWidget::EventInspectorWidget(
             }
         }
     }
+    */
 
     updateDisplayedValues();
 

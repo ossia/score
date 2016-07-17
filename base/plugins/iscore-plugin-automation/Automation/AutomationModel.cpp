@@ -14,7 +14,6 @@
 #include <Process/ModelMetadata.hpp>
 #include <State/Address.hpp>
 #include <Automation/State/AutomationState.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -31,8 +30,6 @@ ProcessModel::ProcessModel(
     m_startState{new ProcessState{*this, 0., this}},
     m_endState{new ProcessState{*this, 1., this}}
 {
-    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentContext(*parent), this};
-
     // Named shall be enough ?
     setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
@@ -49,7 +46,6 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
-    delete pluginModelList;
 }
 
 ProcessModel::ProcessModel(
@@ -64,7 +60,6 @@ ProcessModel::ProcessModel(
     m_endState{new ProcessState{*this, 1., this}}
 {
     setCurve(source.curve().clone(source.curve().id(), this));
-    pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
     metadata.setName(QString("Automation.%1").arg(*this->id().val()));
