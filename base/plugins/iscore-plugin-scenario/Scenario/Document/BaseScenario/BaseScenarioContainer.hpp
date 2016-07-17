@@ -22,22 +22,15 @@ class TimeNodeModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer :
         public ScenarioInterface
 {
-        ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, JSONObject)
+          ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, DataStream)
+          ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, JSONObject)
     public:
-        explicit BaseScenarioContainer(QObject* parentObject):
-            m_parent{parentObject}
-        {
-
-        }
+        explicit BaseScenarioContainer(QObject* parentObject);
+        explicit BaseScenarioContainer(const BaseScenarioContainer&, QObject* parentObject);
 
         virtual ~BaseScenarioContainer();
 
         QObject& parentObject() const { return *m_parent; }
-        void init();
-        void init(const BaseScenarioContainer&); // clone
-
-        void clear(); // To be called in subclasses or by users of this class.
 
         ElementContainer<ConstraintModel> getConstraints() const override
         { return {m_constraint}; }

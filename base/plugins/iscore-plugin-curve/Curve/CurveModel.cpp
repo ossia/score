@@ -22,6 +22,7 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
+#include <iscore/tools/MapCopy.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
 class QObject;
@@ -290,10 +291,10 @@ void Model::clear()
 {
     emit cleared();
 
-    auto segs = m_segments;
+    auto segs = shallow_copy(m_segments);
     m_segments.clear();
-    for(auto& seg : segs)
-        seg.deleteLater();
+    for(auto seg : segs)
+        seg->deleteLater();
 
     auto pts = m_points;
     m_points.clear();

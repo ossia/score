@@ -37,7 +37,6 @@ ProcessModel::ProcessModel(
     Scenario::BaseScenarioContainer{this}
 {
     this->setUseParentDuration(true);
-    Scenario::BaseScenarioContainer::init();
 
     Scenario::ConstraintDurations::Algorithms::changeAllDurations(constraint(), duration);
     endEvent().setDate(duration);
@@ -60,17 +59,12 @@ ProcessModel::ProcessModel(
         const Id<Process::ProcessModel>& id,
         QObject* parent):
     Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
-    BaseScenarioContainer{this}
+    BaseScenarioContainer{source, this}
 {
-    BaseScenarioContainer::init(source);
 }
 
 ProcessModel::~ProcessModel()
 {
-    for(auto comp : components.map().get())
-        delete comp;
-
-    BaseScenarioContainer::clear();
 }
 
 void ProcessModel::startExecution()
