@@ -29,7 +29,8 @@ class Settings;
      * It is also able to instantiate a Command from serialized Undo/Redo data.
      * (this should go in the DocumentPresenter maybe ?)
      */
-class ISCORE_LIB_BASE_EXPORT Presenter final : public NamedObject
+class ISCORE_LIB_BASE_EXPORT Presenter final :
+        public QObject
 {
         Q_OBJECT
         friend class iscore::CoreApplicationPlugin;
