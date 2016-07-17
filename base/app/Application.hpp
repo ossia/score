@@ -27,7 +27,7 @@ namespace iscore
      * It does instantiate the rest of the software (MVP, settings, plugins).
      */
 class Application final :
-        public NamedObject,
+        public QObject,
         public iscore::ApplicationInterface
 {
         Q_OBJECT

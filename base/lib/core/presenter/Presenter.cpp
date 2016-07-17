@@ -48,7 +48,7 @@ Presenter::Presenter(
         const iscore::Settings& set,
         View* view,
         QObject* arg_parent) :
-    NamedObject {"Presenter", arg_parent},
+    QObject {arg_parent},
     m_view {view},
     m_settings{set},
     m_docManager{*view, this},

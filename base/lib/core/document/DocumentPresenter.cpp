@@ -13,7 +13,7 @@ DocumentPresenter::DocumentPresenter(DocumentDelegateFactory& fact,
                                      const DocumentModel& m,
                                      DocumentView& v,
                                      QObject* parent) :
-    NamedObject {"DocumentPresenter", parent},
+    QObject {parent},
             m_view{v},
             m_model{m},
             m_presenter{fact.makePresenter(this,

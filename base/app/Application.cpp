@@ -80,7 +80,7 @@ static void setQApplicationSettings(QApplication &m_app)
 }  // namespace iscore
 
 Application::Application(int& argc, char** argv) :
-    NamedObject {"Application", nullptr},
+    QObject {nullptr},
     m_app{new SafeQApplication{argc, argv}}
 {
     m_instance = this;
@@ -92,7 +92,7 @@ Application::Application(
         const iscore::ApplicationSettings& appSettings,
         int& argc,
         char** argv) :
-    NamedObject {"Application", nullptr},
+    QObject {nullptr},
     m_app{new SafeQApplication{argc, argv}},
     m_applicationSettings(appSettings)
 {
@@ -184,7 +184,7 @@ void Application::initDocuments()
             m_presenter->documentManager().newDocument(
                         ctx,
                         Id<iscore::DocumentModel>{iscore::random_id_generator::getRandomId()},
-                        *m_presenter->applicationComponents().factory<iscore::DocumentDelegateList>().begin()); 
+                        *m_presenter->applicationComponents().factory<iscore::DocumentDelegateList>().begin());
         }
     }
 
