@@ -75,7 +75,6 @@ set(HDRS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ProcessComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponentFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ConstraintComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/EventComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/TimeNodeComponent.hpp"
@@ -140,7 +139,6 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ScenarioComponentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/ConstraintComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/EventComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Scenario/TimeNodeComponent.cpp"

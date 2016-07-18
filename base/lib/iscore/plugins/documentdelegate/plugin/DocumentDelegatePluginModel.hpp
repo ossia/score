@@ -1,12 +1,10 @@
 #pragma once
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
 #include <QString>
 #include <vector>
 
-class QObject;
 class QWidget;
 namespace iscore {
 class Document;
