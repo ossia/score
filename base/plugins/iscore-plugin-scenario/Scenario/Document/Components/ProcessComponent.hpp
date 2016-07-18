@@ -26,6 +26,7 @@ class ProcessComponentBase :
     private:
         ProcessBase_T& m_process;
 };
+
 template<typename Component_T>
 using ProcessComponent = ProcessComponentBase<Process::ProcessModel, Component_T>;
 
