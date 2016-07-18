@@ -21,7 +21,7 @@ namespace Parameters
             QStringLiteral("iscore_plugin_curve/PlayWhileRecording"),
                     true};
 
-        auto list() {
+        static auto list() {
             return std::tie(SimplificationRatio, Simplify, CurveMode, PlayWhileRecording);
         }
 }

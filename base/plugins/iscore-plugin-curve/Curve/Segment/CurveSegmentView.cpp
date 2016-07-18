@@ -126,7 +126,7 @@ void SegmentView::updatePoints()
 
         m_unstrokedShape = QPainterPath{first_scaled};
         int n = pts.size();
-        for(std::size_t i = 1; i < n; i++)
+        for(int i = 1; i < n; i++)
         {
             auto next = pts[i];
             m_unstrokedShape.lineTo(QPointF{

@@ -29,10 +29,10 @@ class TransportActions : public QObject
 
         QAction* m_play{};
         QAction* m_stop{};
-        QAction* m_goToStart{};
-        QAction* m_goToEnd{};
+        //QAction* m_goToStart{};
+        //QAction* m_goToEnd{};
         QAction* m_stopAndInit{};
-        QAction* m_record{};
+        //QAction* m_record{};
 };
 
 }

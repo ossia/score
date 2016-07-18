@@ -42,7 +42,7 @@ TransportActions::TransportActions(
     m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     setIcons(m_stop, QString(":/icons/stop_on.png"), QString(":/icons/stop_off.png"));
     obj.addAction(m_stop);
-
+/*
     m_goToStart = new QAction{tr("⏮ Start"), nullptr};
     m_goToStart->setObjectName("Start");
     setIcons(m_goToStart, QString(":/icons/start_on.png"), QString(":/icons/start_off.png"));
@@ -50,7 +50,7 @@ TransportActions::TransportActions(
     m_goToEnd = new QAction{tr("⏭ End"), nullptr};
     m_goToEnd->setObjectName("End");
     setIcons(m_goToEnd, QString(":/icons/end_on.png"), QString(":/icons/end_off.png"));
-
+*/
     m_stopAndInit = new QAction{tr("Reinitialize"), nullptr};
     m_stopAndInit->setObjectName("StopAndInit");
     m_stopAndInit->setShortcut(Qt::CTRL + Qt::Key_Return);
@@ -58,13 +58,13 @@ TransportActions::TransportActions(
     obj.addAction(m_stopAndInit);
 
     setIcons(m_stopAndInit, QString(":/icons/reinitialize_on.png"), QString(":/icons/reinitialize_off.png"));
-
+/*
     m_record = new QAction{tr("Record"), nullptr};
     m_record->setObjectName("Record");
     setIcons(m_record, QString(":/icons/record_on.png"), QString(":/icons/record_off.png"));
-
+*/
     m_play->setCheckable(true);
-    m_record->setCheckable(true);
+//    m_record->setCheckable(true);
 
     connect(m_play, &QAction::toggled,
             this, [&] (bool b) {
@@ -76,17 +76,18 @@ TransportActions::TransportActions(
     });
     connect(m_stop, &QAction::triggered, this, [&] {
         m_play->blockSignals(true);
-        m_record->blockSignals(true);
+//        m_record->blockSignals(true);
 
         m_play->setChecked(false);
         m_play->setText(tr("Play"));
         setIcons(m_play, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
         m_play->setData(false);
-        m_record->setChecked(false);
+//        m_record->setChecked(false);
 
         m_play->blockSignals(false);
-        m_record->blockSignals(false);
+//        m_record->blockSignals(false);
     });
+    /*
     connect(m_goToStart, &QAction::triggered, this, [&] {
         m_play->blockSignals(true);
         m_record->blockSignals(true);
@@ -107,10 +108,11 @@ TransportActions::TransportActions(
         m_play->blockSignals(false);
         m_record->blockSignals(false);
     });
+    */
     connect(m_stopAndInit, &QAction::triggered,
             m_stop, &QAction::trigger);
-    connect(m_record, &QAction::toggled, this, [&] (bool b) {
-    });
+//    connect(m_record, &QAction::toggled, this, [&] (bool b) {
+//    });
 }
 
 void TransportActions::makeGUIElements(iscore::GUIElements& ref)
@@ -137,17 +139,17 @@ void TransportActions::makeGUIElements(iscore::GUIElements& ref)
 
     ref.actions.add<Actions::Play>(m_play);
     ref.actions.add<Actions::Stop>(m_stop);
-    ref.actions.add<Actions::GoToStart>(m_goToStart);
-    ref.actions.add<Actions::GoToEnd>(m_goToEnd);
+    //ref.actions.add<Actions::GoToStart>(m_goToStart);
+    //ref.actions.add<Actions::GoToEnd>(m_goToEnd);
     ref.actions.add<Actions::Reinitialize>(m_stopAndInit);
-    ref.actions.add<Actions::Record>(m_record);
+    //ref.actions.add<Actions::Record>(m_record);
 
     cond.add<Actions::Play>();
     cond.add<Actions::Stop>();
-    cond.add<Actions::GoToStart>();
-    cond.add<Actions::GoToEnd>();
+    //cond.add<Actions::GoToStart>();
+    //cond.add<Actions::GoToEnd>();
     cond.add<Actions::Reinitialize>();
-    cond.add<Actions::Record>();
+    //cond.add<Actions::Record>();
 }
 
 }
