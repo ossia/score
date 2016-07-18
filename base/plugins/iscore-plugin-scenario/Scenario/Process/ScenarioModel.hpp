@@ -231,8 +231,8 @@ QList<const typename Vector::value_type*> selectedElements(const Vector& in)
     return out;
 }
 
-template<typename T>
-QList<const T*> filterSelectionByType(const Selection& sel)
+template<typename T, typename Container>
+QList<const T*> filterSelectionByType(const Container& sel)
 {
     QList<const T*> selected_elements;
     for(auto obj : sel)
