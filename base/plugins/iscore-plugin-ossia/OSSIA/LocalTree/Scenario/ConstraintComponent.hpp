@@ -2,7 +2,7 @@
 #include <OSSIA/LocalTree/Scenario/ProcessComponent.hpp>
 #include <OSSIA/LocalTree/LocalTreeComponent.hpp>
 #include <Scenario/Document/Components/ConstraintComponent.hpp>
-
+#include <iscore/component/ComponentHierarchy.hpp>
 namespace Ossia
 {
 namespace LocalTree
@@ -13,9 +13,10 @@ class ConstraintBase :
         COMPONENT_METADATA("11d928b5-eaeb-471c-b3b7-dc453180b10f")
     public:
         using parent_t = Component<Scenario::GenericConstraintComponent<DocumentPlugin>>;
-        using process_component_t = Ossia::LocalTree::ProcessComponent;
-        using process_component_factory_t = Ossia::LocalTree::ProcessComponentFactory;
-        using process_component_factory_list_t = Ossia::LocalTree::ProcessComponentFactoryList;
+        using model_t = Process::ProcessModel;
+        using component_t = Ossia::LocalTree::ProcessComponent;
+        using component_factory_t = Ossia::LocalTree::ProcessComponentFactory;
+        using component_factory_list_t = Ossia::LocalTree::ProcessComponentFactoryList;
 
         ConstraintBase(
                 OSSIA::Node& parent,
@@ -24,7 +25,7 @@ class ConstraintBase :
                 DocumentPlugin& sys,
                 QObject* parent_comp);
 
-        ProcessComponent* make_processComponent(
+        ProcessComponent* make(
                 const Id<iscore::Component> & id,
                 ProcessComponentFactory& factory,
                 Process::ProcessModel &process);
@@ -37,14 +38,11 @@ class ConstraintBase :
 
 
 
-class Constraint final : public ConstraintComponentHierarchyManager<
-    ConstraintBase,
-    ConstraintBase::process_component_t,
-    ConstraintBase::process_component_factory_list_t
->
+class Constraint final :
+        public iscore::PolymorphicComponentHierarchy<ConstraintBase>
 {
     public:
-        using hierarchy_t::ConstraintComponentHierarchyManager;
+        using iscore::PolymorphicComponentHierarchy<ConstraintBase>::PolymorphicComponentHierarchyManager;
 
 };
 }

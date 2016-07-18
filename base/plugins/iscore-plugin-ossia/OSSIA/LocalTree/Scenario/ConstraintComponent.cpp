@@ -56,7 +56,7 @@ ConstraintBase::ConstraintBase(
                            this));
 }
 
-ProcessComponent* ConstraintBase::make_processComponent(
+ProcessComponent* ConstraintBase::make(
         const Id<iscore::Component>& id,
         ProcessComponentFactory& factory,
         Process::ProcessModel& process)
