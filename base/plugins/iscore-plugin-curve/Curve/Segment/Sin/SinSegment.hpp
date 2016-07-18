@@ -1,14 +1,14 @@
 #pragma once
-#include <iscore/tools/std/Optional.hpp>
-#include <QVariant>
-
-
 #include <Curve/Segment/CurveSegmentModel.hpp>
-#include <iscore/serialization/VisitorInterface.hpp>
 
-class QObject;
-struct CurveSegmentData;
-#include <iscore/tools/SettableIdentifier.hpp>
+namespace Curve { class SinSegment; }
+
+CURVE_SEGMENT_METADATA(
+        ISCORE_PLUGIN_CURVE_EXPORT,
+        Curve::SinSegment,
+        "c16dad6a-a422-4fb7-8bd5-850cbe8c3f28",
+        "Sin",
+        "Sin")
 
 namespace Curve
 {
@@ -19,27 +19,27 @@ struct SinSegmentData
 };
 
 class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final :
-        public Segment<SinSegment>
+        public SegmentModel
 {
+        MODEL_METADATA_IMPL(SinSegment)
     public:
         using data_type = SinSegmentData;
-        using Segment<SinSegment>::Segment;
+        using SegmentModel::SegmentModel;
         SinSegment(
                 const SegmentData& dat,
                 QObject* parent);
+        SinSegment(
+                    const SinSegment& other,
+                    const id_type& id,
+                    QObject* parent);
 
         template<typename Impl>
         SinSegment(Deserializer<Impl>& vis, QObject* parent) :
-            Segment<SinSegment> {vis, parent}
+            SegmentModel {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        SegmentModel* clone(
-                const Id<SegmentModel>& id,
-                QObject* parent) const override;
-
-        void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 
@@ -58,14 +58,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final :
         {
             return QVariant::fromValue(SinSegmentData{freq, ampl});
         }
-
 };
 }
-CURVE_SEGMENT_METADATA(
-        ISCORE_PLUGIN_CURVE_EXPORT,
-        Curve::SinSegment,
-        "c16dad6a-a422-4fb7-8bd5-850cbe8c3f28",
-        "Sin",
-        "Sin")
 
 Q_DECLARE_METATYPE(Curve::SinSegmentData)

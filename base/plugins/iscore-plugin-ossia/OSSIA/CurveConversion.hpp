@@ -3,8 +3,8 @@
 #include <Editor/Curve.h>
 #include <Editor/CurveSegment/CurveSegmentLinear.h>
 #include <Editor/CurveSegment/CurveSegmentPower.h>
-#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
-#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <Curve/Segment/Linear/LinearSegment.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 
 
 namespace iscore

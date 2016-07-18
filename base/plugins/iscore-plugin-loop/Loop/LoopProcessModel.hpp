@@ -32,7 +32,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
 {
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, JSONObject)
-        PROCESS_METADATA_IMPL(Loop::ProcessModel)
+        MODEL_METADATA_IMPL(Loop::ProcessModel)
 
     public:
         explicit ProcessModel(

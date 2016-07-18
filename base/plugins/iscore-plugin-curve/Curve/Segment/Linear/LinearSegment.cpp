@@ -1,35 +1,15 @@
-
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <QPoint>
 #include <vector>
 
 #include <Curve/Palette/CurvePoint.hpp>
-#include "LinearCurveSegmentModel.hpp"
+#include "LinearSegment.hpp"
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Curve
 {
-SegmentModel* LinearSegment::clone(
-        const Id<SegmentModel>& id,
-        QObject *parent) const
-{
-    auto cs = new LinearSegment{id, parent};
-    cs->setStart(this->start());
-    cs->setEnd(this->end());
-
-    // Previous and following shall be set afterwards by the cloner.
-    return cs;
-}
-
-
-
-void LinearSegment::serialize_impl(const VisitorVariant& vis) const
-{
-    serialize_dyn(vis, *this);
-}
-
 void LinearSegment::on_startChanged()
 {
     emit dataChanged();

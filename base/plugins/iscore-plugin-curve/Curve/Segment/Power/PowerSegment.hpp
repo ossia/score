@@ -1,13 +1,22 @@
 #pragma once
 #include <iscore/tools/std/Optional.hpp>
 #include <QVariant>
-
-
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
-class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
+
+namespace Curve
+{
+class PowerSegment;
+}
+
+CURVE_SEGMENT_METADATA(
+        ISCORE_PLUGIN_CURVE_EXPORT,
+        Curve::PowerSegment,
+        "1e7cb83f-4e47-4b14-814d-2242a9c75991",
+        "Power",
+        "Power")
 
 namespace Curve
 {
@@ -28,29 +37,34 @@ struct ISCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
 };
 
 class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final :
-        public Segment<PowerSegment>
+        public SegmentModel
 {
+        MODEL_METADATA_IMPL(PowerSegment)
     public:
         using data_type = PowerSegmentData;
-        using Segment<PowerSegment>::Segment;
+        using SegmentModel::SegmentModel;
         PowerSegment(
                 const SegmentData& dat,
                 QObject* parent);
 
+        PowerSegment(
+                const PowerSegment& other,
+                const id_type& id,
+                QObject* parent):
+            SegmentModel{other.start(), other.end(), id, parent},
+            gamma{other.gamma}
+        {
+        }
+
         template<typename Impl>
         PowerSegment(Deserializer<Impl>& vis, QObject* parent) :
-             Segment<PowerSegment> {vis, parent}
+             SegmentModel {vis, parent}
         {
             vis.writeTo(*this);
         }
 
         double gamma = PowerSegmentData::linearGamma; // TODO private
     private:
-        SegmentModel* clone(
-                const Id<SegmentModel>& id,
-                QObject* parent) const override;
-
-        void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 
@@ -67,11 +81,5 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final :
 
 };
 }
-CURVE_SEGMENT_METADATA(
-        ISCORE_PLUGIN_CURVE_EXPORT,
-        Curve::PowerSegment,
-        "1e7cb83f-4e47-4b14-814d-2242a9c75991",
-        "Power",
-        "Power")
 
 Q_DECLARE_METATYPE(Curve::PowerSegmentData)

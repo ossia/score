@@ -1,6 +1,6 @@
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/InitAutomation.hpp>
-#include <Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp>
+#include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>

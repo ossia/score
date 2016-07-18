@@ -1,5 +1,5 @@
 #include <Curve/CurveModel.hpp>
-#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
@@ -60,19 +60,6 @@ ProcessModel::ProcessModel(
 ProcessModel::~ProcessModel()
 {
 }
-
-Process::ProcessModel* ProcessModel::clone(
-        const Id<Process::ProcessModel>& newId,
-        QObject* newParent) const
-{
-    return new ProcessModel {*this, newId, newParent};
-}
-
-UuidKey<Process::ProcessFactory>ProcessModel::concreteFactoryKey() const
-{
-    return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
-}
-
 
 QString ProcessModel::prettyName() const
 {

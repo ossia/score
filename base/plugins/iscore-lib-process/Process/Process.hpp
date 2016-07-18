@@ -167,23 +167,3 @@ std::vector<typename T::layer_type*> layers(const T& processModel)
 DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")
 
 Q_DECLARE_METATYPE(Id<Process::ProcessModel>)
-
-
-#define PROCESS_METADATA_IMPL(Process_T) \
-UuidKey<Process::ProcessFactory> concreteFactoryKey() const final override \
-{ \
-    return Metadata<ConcreteFactoryKey_k, Process_T>::get(); \
-} \
- \
-void serialize_impl(const VisitorVariant& vis) const final override \
-{ \
-    serialize_dyn(vis, *this); \
-} \
-\
-Process_T* clone( \
-    const Id<Process::ProcessModel>& newId, \
-    QObject* newParent) const final override\
-{ \
-   return new Process_T{*this, newId, newParent}; \
-}
-

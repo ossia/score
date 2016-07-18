@@ -10,7 +10,7 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
-#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Process/ModelMetadata.hpp>
 #include <State/Address.hpp>
 #include <Automation/State/AutomationState.hpp>
@@ -64,18 +64,6 @@ ProcessModel::ProcessModel(
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
     metadata.setName(QString("Automation.%1").arg(*this->id().val()));
-}
-
-Process::ProcessModel* ProcessModel::clone(
-        const Id<Process::ProcessModel>& newId,
-        QObject* newParent) const
-{
-    return new ProcessModel {*this, newId, newParent};
-}
-
-UuidKey<Process::ProcessFactory>ProcessModel::concreteFactoryKey() const
-{
-    return Metadata<ConcreteFactoryKey_k, ProcessModel>::get();
 }
 
 QString ProcessModel::prettyName() const

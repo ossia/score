@@ -3,7 +3,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 
-#include "PowerCurveSegmentModel.hpp"
+#include "PowerSegment.hpp"
 
 template <typename T> class Reader;
 template <typename T> class Writer;

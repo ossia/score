@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Automation/AutomationProcessMetadata.hpp>
 #include <Automation/State/AutomationState.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <State/Address.hpp>
@@ -25,6 +26,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
 {
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
+        MODEL_METADATA_IMPL(Automation::ProcessModel)
 
         Q_OBJECT
         Q_PROPERTY(::State::Address address READ address WRITE setAddress NOTIFY addressChanged)
@@ -37,8 +39,6 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
                      const Id<Process::ProcessModel>& id,
                      QObject* parent);
         ~ProcessModel();
-        Process::ProcessModel* clone(const Id<Process::ProcessModel>& newId,
-                            QObject* newParent) const override;
 
         template<typename Impl>
         ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
@@ -66,14 +66,11 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
 
     private:
         //// ProcessModel ////
-        UuidKey<Process::ProcessFactory>concreteFactoryKey() const override;
-
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
 
         QString prettyName() const override;
-        void serialize_impl(const VisitorVariant& vis) const override;
 
         /// States
         ProcessState* startStateData() const override;

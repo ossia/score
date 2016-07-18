@@ -16,6 +16,18 @@ class QObject;
 
 namespace Curve
 {
+class PointArraySegment;
+}
+
+CURVE_SEGMENT_METADATA(
+        ISCORE_PLUGIN_CURVE_EXPORT,
+        Curve::PointArraySegment,
+        "c598b840-db67-4c8f-937a-46cfac87cb59",
+        "PointArray",
+        "PointArray")
+
+namespace Curve
+{
 class LinearSegment;
 struct SegmentData;
 struct PointArraySegmentData
@@ -24,15 +36,22 @@ struct PointArraySegmentData
     double min_y, max_y;
     QVector<QPointF> m_points;
 };
-class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final : public SegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final :
+        public SegmentModel
 {
         Q_OBJECT
+        MODEL_METADATA_IMPL(PointArraySegment)
     public:
         using data_type = PointArraySegmentData;
         using SegmentModel::SegmentModel;
         PointArraySegment(
                 const SegmentData& dat,
                 QObject* parent);
+
+        PointArraySegment(
+                    const PointArraySegment& other,
+                    const id_type& id,
+                    QObject* parent);
 
         template<typename Impl>
         PointArraySegment(Deserializer<Impl>& vis, QObject* parent) :
@@ -41,12 +60,6 @@ class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final : public SegmentModel
             vis.writeTo(*this);
         }
 
-        SegmentModel* clone(
-                const Id<SegmentModel>& id,
-                QObject* parent) const override;
-
-        UuidKey<Curve::SegmentFactory> concreteFactoryKey() const override;
-        void serialize_impl(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;
 

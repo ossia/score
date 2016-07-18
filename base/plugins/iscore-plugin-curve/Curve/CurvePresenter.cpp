@@ -32,7 +32,7 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
 
-#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 #include "CurveModel.hpp"
 #include "CurvePresenter.hpp"
 #include "CurveView.hpp"

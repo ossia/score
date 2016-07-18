@@ -1,6 +1,6 @@
 #include <Automation/AutomationModel.hpp>
 #include <Curve/CurveModel.hpp>
-#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <iscore/tools/std/Optional.hpp>
