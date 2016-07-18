@@ -99,16 +99,10 @@ set(PROCESS_SRCS
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerModelSerialization.cpp"
 )
-
-if(TARGET iscore_lib_inspector)
-    set(PROCESS_HDRS ${PROCESS_HDRS}
-            "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyInspectorWidget.hpp")
-endif()
 
 qt5_add_resources(DUMMYPROCESS_QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/resources/DummyResources.qrc")
 
