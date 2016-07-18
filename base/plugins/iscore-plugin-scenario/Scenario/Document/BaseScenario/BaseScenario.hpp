@@ -29,7 +29,7 @@ class BaseScenario final :
                  enable_if_deserializer<DeserializerVisitor>* = nullptr>
         BaseScenario(DeserializerVisitor&& vis, QObject* parent) :
             IdentifiedObject{vis, parent},
-            BaseScenarioContainer{this}
+            BaseScenarioContainer{BaseScenarioContainer::no_init{}, this}
         {
             vis.writeTo(*this);
         }

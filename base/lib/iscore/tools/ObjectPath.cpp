@@ -35,18 +35,20 @@ ObjectPath ObjectPath::pathBetweenObjects(
         else
             v.push_back({ptr->objectName(), {}});
     };
-
-    // TODO only do this in debug mode
+#if defined(ISCORE_DEBUG)
     QString debug_objectnames;
+#endif
     // Recursively go through the object and all the parents
     while(current_obj != parent_obj)
     {
+#if defined(ISCORE_DEBUG)
         debug_objectnames += current_obj->objectName() + "->";
-
+#endif
         if(current_obj->objectName().isEmpty())
         {
+#if defined(ISCORE_DEBUG)
             qDebug() << "Names: " << debug_objectnames;
-
+#endif
             ISCORE_BREAKPOINT;
             throw std::runtime_error("ObjectPath::pathFromObject : an object in the hierarchy does not have a name.");
         }
@@ -156,10 +158,9 @@ QObject* ObjectPath::find_impl() const
         obj = findById_weak_safe(objs, *m_objectIdentifiers.at(0).id());
     }
 
-    std::vector<ObjectIdentifier> children(m_objectIdentifiers.size() - 1);
-    std::copy(std::begin(m_objectIdentifiers) + 1,
-              std::end(m_objectIdentifiers),
-              std::begin(children));
+    std::vector<ObjectIdentifier> children{
+        m_objectIdentifiers.begin() + 1,
+        m_objectIdentifiers.end()};
     for(const auto& currentObjIdentifier : children)
     {
         if(currentObjIdentifier.id())

@@ -25,7 +25,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer :
           ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, DataStream)
           ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, JSONObject)
     public:
+        struct no_init {};
         explicit BaseScenarioContainer(QObject* parentObject);
+        explicit BaseScenarioContainer(no_init, QObject* parentObject);
         explicit BaseScenarioContainer(const BaseScenarioContainer&, QObject* parentObject);
 
         virtual ~BaseScenarioContainer();
