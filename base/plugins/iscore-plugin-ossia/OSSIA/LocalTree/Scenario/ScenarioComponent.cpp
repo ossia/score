@@ -18,7 +18,6 @@ ScenarioComponentBase::ScenarioComponentBase(
     m_timeNodesNode{add_node(*node(), "timenodes")},
     m_statesNode{add_node(*node(), "states")}
 {
-    make_metadata_node(scenario.metadata, *node(), m_properties, this);
 }
 
 template<>
