@@ -68,5 +68,3 @@ class ISCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final :
 };
 
 }
-
-

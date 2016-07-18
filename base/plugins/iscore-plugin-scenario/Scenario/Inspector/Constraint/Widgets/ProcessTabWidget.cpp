@@ -115,6 +115,7 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     {
         newProc->addContent(widg);
 
+        newProc->menu()->addAction(process.objectName() + " " + QString::number(process.id_val()));
         auto act = newProc->menu()->addAction(tr("Display in new slot"));
 
         connect(act, &QAction::triggered,

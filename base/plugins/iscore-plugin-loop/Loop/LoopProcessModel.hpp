@@ -50,7 +50,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
                 Deserializer<Impl>& vis,
                 QObject* parent) :
             Process::ProcessModel{vis, parent},
-            BaseScenarioContainer{this}
+            BaseScenarioContainer{BaseScenarioContainer::no_init{}, this}
         {
             vis.writeTo(*this);
         }

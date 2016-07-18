@@ -17,6 +17,14 @@ namespace Scenario
 class ConstraintViewModel;
 
 BaseScenarioContainer::BaseScenarioContainer(
+        no_init,
+        QObject* parentObject):
+    m_parent{parentObject}
+{
+
+}
+
+BaseScenarioContainer::BaseScenarioContainer(
         QObject* parentObject):
     m_parent{parentObject}
 {

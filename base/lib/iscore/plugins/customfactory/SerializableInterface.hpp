@@ -106,23 +106,25 @@ auto deserialize_interface(
     return nullptr;
 }
 
-
-#define MODEL_METADATA_IMPL(Process_T) \
+// This one does not have clone.
+#define SERIALIZABLE_MODEL_METADATA_IMPL(Model_T) \
 key_type concreteFactoryKey() const final override \
 { \
-    return Metadata<ConcreteFactoryKey_k, Process_T>::get(); \
+    return Metadata<ConcreteFactoryKey_k, Model_T>::get(); \
 } \
  \
 void serialize_impl(const VisitorVariant& vis) const final override \
 { \
     serialize_dyn(vis, *this); \
-} \
-\
-Process_T* clone( \
+}
+
+#define MODEL_METADATA_IMPL(Model_T) \
+SERIALIZABLE_MODEL_METADATA_IMPL(Model_T) \
+Model_T* clone( \
     const id_type& newId, \
     QObject* newParent) const final override\
 { \
-   return new Process_T{*this, newId, newParent}; \
+   return new Model_T{*this, newId, newParent}; \
 }
 
 
