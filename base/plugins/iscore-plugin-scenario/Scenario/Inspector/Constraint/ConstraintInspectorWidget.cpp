@@ -75,7 +75,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     // metadata
     m_metadata = new MetadataWidget{
                  &m_model.metadata,
-                 commandDispatcher(),
+                 ctx.commandStack,
                  &m_model,
                  this};
 

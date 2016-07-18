@@ -20,22 +20,22 @@ namespace Command
 {
 class SerializableMoveEvent;
 
-SerializableMoveEvent* MoveEventClassicFactory::make(
+std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make(
         Path<Scenario::ProcessModel>&& scenarioPath,
         Id<EventModel> eventId,
         TimeValue newDate,
         ExpandMode mode)
 {
-    return new MoveEvent<GoodOldDisplacementPolicy>(
+    return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>(
                 std::move(scenarioPath),
                 std::move(eventId),
                 std::move(newDate),
                 mode);
 }
 
-SerializableMoveEvent* MoveEventClassicFactory::make()
+std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make()
 {
-    return new MoveEvent<GoodOldDisplacementPolicy>();
+    return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>();
 }
 }
 }

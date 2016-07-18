@@ -16,7 +16,13 @@
 
 namespace iscore
 {
-AggregateCommand::~AggregateCommand() = default;
+AggregateCommand::~AggregateCommand()
+{
+    for(auto cmd : m_cmds)
+        delete cmd;
+    m_cmds.clear();
+}
+
 void AggregateCommand::undo() const
 {
     for (auto cmd : boost::adaptors::reverse(m_cmds))

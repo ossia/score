@@ -40,7 +40,7 @@ protected:
     void deserializeImpl(DataStreamOutput&) override;
 
 private:
-    SerializableMoveEvent* m_moveEventImplementation;
+    std::unique_ptr<SerializableMoveEvent> m_moveEventImplementation;
 
     // SerializableMoveEvent interface
 public:

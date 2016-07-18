@@ -40,7 +40,7 @@ template <typename Vector, typename id_T>
 void removeById(Vector& c, const id_T& id)
 {
     vec_erase_remove_if(c,
-                        [&id](typename Vector::value_type model)
+                        [=](typename Vector::value_type model)
     {
         bool to_delete = model->id() == id;
 
@@ -59,7 +59,6 @@ void AbstractScenarioLayerModel::removeConstraintViewModel(
     // We have to emit before, because on removal,
     // some other stuff might use the now-removed model id
     // to do the comparison in vec_erase_remove_if
-
     using namespace std;
     auto it = find_if(begin(m_constraints),
                       end(m_constraints),

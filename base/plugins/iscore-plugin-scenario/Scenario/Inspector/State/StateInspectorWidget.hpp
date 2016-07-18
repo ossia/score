@@ -32,9 +32,6 @@ class StateInspectorWidget final :
         Inspector::InspectorSectionWidget& stateSection()
         { return *m_stateSection; }
 
-        iscore::SelectionDispatcher& selectionDispatcher() const
-        { return *m_selectionDispatcher; }
-
     public slots:
         void splitEvent();
 
@@ -48,8 +45,8 @@ class StateInspectorWidget final :
 
         const StateModel& m_model;
         const iscore::DocumentContext& m_context;
-        CommandDispatcher<>* m_commandDispatcher{};
-        std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
+        CommandDispatcher<> m_commandDispatcher;
+        iscore::SelectionDispatcher m_selectionDispatcher;
 
         std::list<QWidget*> m_properties;
 

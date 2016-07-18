@@ -24,7 +24,7 @@ namespace Scenario
 {
 MetadataWidget::MetadataWidget(
         const ModelMetadata* metadata,
-        CommandDispatcher<>* m,
+        const iscore::CommandStackFacade& m,
         const QObject *docObject,
         QWidget* parent) :
     QWidget(parent),

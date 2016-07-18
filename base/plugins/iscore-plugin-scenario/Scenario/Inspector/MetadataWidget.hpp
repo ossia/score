@@ -37,7 +37,7 @@ class MetadataWidget final : public QWidget
     public:
         explicit MetadataWidget(
                 const ModelMetadata* metadata,
-                CommandDispatcher<>* m,
+                const iscore::CommandStackFacade& m,
                 const QObject* docObject,
                 QWidget* parent = nullptr);
 
@@ -52,28 +52,28 @@ class MetadataWidget final : public QWidget
                     [&](const QString& newName)
             {
                 if(newName != model.metadata.name())
-                    m_commandDispatcher->submitCommand(new ChangeElementName<T>{path(model), newName});
+                    m_commandDispatcher.submitCommand(new ChangeElementName<T>{path(model), newName});
             });
 
             connect(this, &MetadataWidget::labelChanged,
                     [&](const QString& newLabel)
             {
                 if(newLabel != model.metadata.label())
-                    m_commandDispatcher->submitCommand(new ChangeElementLabel<T>{path(model), newLabel});
+                    m_commandDispatcher.submitCommand(new ChangeElementLabel<T>{path(model), newLabel});
             });
 
             connect(this, &MetadataWidget::commentsChanged,
                     [&](const QString& newComments)
             {
                 if(newComments != model.metadata.comment())
-                    m_commandDispatcher->submitCommand(new ChangeElementComments<T>{path(model), newComments});
+                    m_commandDispatcher.submitCommand(new ChangeElementComments<T>{path(model), newComments});
             });
 
             connect(this, &MetadataWidget::colorChanged,
                     [&](ColorRef newColor)
             {
                 if(newColor != model.metadata.color())
-                    m_commandDispatcher->submitCommand(new ChangeElementColor<T>{path(model), newColor});
+                    m_commandDispatcher.submitCommand(new ChangeElementColor<T>{path(model), newColor});
             });
         }
 
@@ -88,7 +88,7 @@ class MetadataWidget final : public QWidget
 
     private:
         const ModelMetadata* m_metadata;
-        CommandDispatcher<>* m_commandDispatcher;
+        CommandDispatcher<> m_commandDispatcher;
 
         QLineEdit* m_scriptingNameLine {};
         QLineEdit* m_labelLine {};
