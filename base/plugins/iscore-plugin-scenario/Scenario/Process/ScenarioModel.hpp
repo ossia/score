@@ -50,7 +50,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final :
 
         ISCORE_SERIALIZE_FRIENDS(Scenario::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::ProcessModel, JSONObject)
-        PROCESS_METADATA_IMPL(Scenario::ProcessModel)
+        MODEL_METADATA_IMPL(Scenario::ProcessModel)
         friend class ScenarioFactory;
 
     public:

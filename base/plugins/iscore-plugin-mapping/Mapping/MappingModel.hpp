@@ -1,5 +1,5 @@
 #pragma once
-
+#include <Mapping/MappingProcessMetadata.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <State/Address.hpp>
 #include <QByteArray>
@@ -24,6 +24,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel final : public Curve::CurveProce
 {
         ISCORE_SERIALIZE_FRIENDS(Mapping::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Mapping::ProcessModel, JSONObject)
+        MODEL_METADATA_IMPL(Mapping::ProcessModel)
 
         Q_OBJECT
 
@@ -81,18 +82,11 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel final : public Curve::CurveProce
                         const Id<Process::ProcessModel>& id,
                         QObject* parent);
 
-        Process::ProcessModel* clone(
-                const Id<Process::ProcessModel>& newId,
-                QObject* newParent) const override;
 
         //// ProcessModel ////
-        UuidKey<Process::ProcessFactory> concreteFactoryKey() const override;
-
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
-
-        void serialize_impl(const VisitorVariant& vis) const override;
 
         State::Address m_sourceAddress;
         State::Address m_targetAddress;

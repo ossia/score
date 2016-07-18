@@ -7,7 +7,7 @@
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include "SinCurveSegmentModel.hpp"
+#include "SinSegment.hpp"
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -17,32 +17,21 @@ namespace Curve
 SinSegment::SinSegment(
         const SegmentData& dat,
         QObject* parent):
-    Segment<SinSegment>{dat, parent}
+    SegmentModel{dat, parent}
 {
     const auto& sin_data = dat.specificSegmentData.value<SinSegmentData>();
     freq = sin_data.freq;
     ampl = sin_data.ampl;
 }
 
-
-SegmentModel*SinSegment::clone(
-        const Id<SegmentModel>& id,
-        QObject* parent) const
+SinSegment::SinSegment(
+        const SinSegment& other,
+        const id_type& id,
+        QObject* parent):
+    SegmentModel{other.start(), other.end(), id, parent},
+    freq{other.freq},
+    ampl{other.ampl}
 {
-    auto cs = new SinSegment{id, parent};
-    cs->setStart(this->start());
-    cs->setEnd(this->end());
-
-    cs->freq = freq;
-    cs->ampl = ampl;
-
-    // Previous and following shall be set afterwards by the cloner.
-    return cs;
-}
-
-void SinSegment::serialize_impl(const VisitorVariant& vis) const
-{
-    serialize_dyn(vis, *this);
 }
 
 void SinSegment::on_startChanged()

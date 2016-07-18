@@ -3,7 +3,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 
-#include "SinCurveSegmentModel.hpp"
+#include "SinSegment.hpp"
 
 template <typename T> class Reader;
 template <typename T> class Writer;

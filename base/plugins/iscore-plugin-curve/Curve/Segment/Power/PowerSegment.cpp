@@ -8,7 +8,7 @@
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include "PowerCurveSegmentModel.hpp"
+#include "PowerSegment.hpp"
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -18,28 +18,10 @@ namespace Curve
 PowerSegment::PowerSegment(
         const SegmentData& dat,
         QObject* parent):
-    Segment<PowerSegment>{dat, parent},
+    SegmentModel{dat, parent},
     gamma{dat.specificSegmentData.value<PowerSegmentData>().gamma}
 {
 
-}
-
-SegmentModel*PowerSegment::clone(
-        const Id<SegmentModel>& id,
-        QObject* parent) const
-{
-    auto cs = new PowerSegment{id, parent};
-    cs->setStart(this->start());
-    cs->setEnd(this->end());
-
-    cs->gamma = gamma;
-    // Previous and following shall be set afterwards by the cloner.
-    return cs;
-}
-
-void PowerSegment::serialize_impl(const VisitorVariant& vis) const
-{
-    serialize_dyn(vis, *this);
 }
 
 void PowerSegment::on_startChanged()

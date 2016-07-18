@@ -41,6 +41,14 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
                 const SegmentData& id,
                 QObject* parent);
 
+        // Used for cloning :
+        // Previous and following shall be set afterwards by the cloner.
+        SegmentModel(
+                Curve::Point s,
+                Curve::Point e,
+                const Id<SegmentModel>& id,
+                QObject* parent);
+
         template<typename Impl>
         SegmentModel(Deserializer<Impl>& vis, QObject* parent) :
             IdentifiedObject{vis, parent}
@@ -115,20 +123,11 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
         Id<SegmentModel> m_previous, m_following;
 };
 
-template<typename T>
-class Segment : public SegmentModel
-{
-    public:
-        UuidKey<SegmentFactory> concreteFactoryKey() const final override {
-            return Metadata<ConcreteFactoryKey_k, T>::get();
-        }
-
-        using SegmentModel::SegmentModel;
-};
-
 class PowerSegment;
 struct PowerSegmentData;
 
 using DefaultCurveSegmentModel = PowerSegment;
 using DefaultCurveSegmentData = PowerSegmentData;
 }
+
+OBJECTKEY_METADATA(ISCORE_PLUGIN_CURVE_EXPORT, Curve::SegmentModel, "CurveSegmentModel")

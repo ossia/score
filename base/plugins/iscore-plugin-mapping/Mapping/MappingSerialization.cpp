@@ -94,8 +94,3 @@ void Visitor<Writer<JSONObject>>::writeTo(Mapping::ProcessModel& autom)
     autom.setTargetMin(m_obj["TargetMin"].toDouble());
     autom.setTargetMax(m_obj["TargetMax"].toDouble());
 }
-
-void Mapping::ProcessModel::serialize_impl(const VisitorVariant& vis) const
-{
-    serialize_dyn(vis, *this);
-}

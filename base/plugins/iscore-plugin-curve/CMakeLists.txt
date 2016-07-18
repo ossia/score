@@ -13,11 +13,10 @@ file(GLOB_RECURSE HDRS
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Linear/LinearCurveSegmentSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Gamma/GammaCurveSegmentSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Power/PowerCurveSegmentSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Sin/SinCurveSegmentSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArrayCurveSegmentSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Linear/LinearSegmentSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Power/PowerSegmentSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Sin/SinSegmentSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArraySegmentSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModelSerialization.cpp"
 
@@ -33,11 +32,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentView.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Linear/LinearCurveSegmentModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Gamma/GammaCurveSegmentModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Power/PowerCurveSegmentModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Sin/SinCurveSegmentModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArrayCurveSegmentModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Linear/LinearSegment.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Power/PowerSegment.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Sin/SinSegment.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArraySegment.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/MoveSegmentCommandObject.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/CreatePointCommandObject.cpp"

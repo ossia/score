@@ -31,7 +31,7 @@ class ISCORE_PLUGIN_RECORDEDMESSAGES_EXPORT ProcessModel final : public Process:
 {
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
-        PROCESS_METADATA_IMPL(RecordedMessages::ProcessModel)
+        MODEL_METADATA_IMPL(RecordedMessages::ProcessModel)
     Q_OBJECT
     public:
         explicit ProcessModel(

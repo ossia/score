@@ -2,6 +2,7 @@
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 
 template<typename T>
 struct AbstractSerializer<DataStream, T>
@@ -40,6 +41,7 @@ template<typename T>
 class SerializableInterface
 {
     public:
+        using key_type = UuidKey<T>;
         using is_abstract_base_tag = std::integral_constant<bool, true>;
 
         SerializableInterface() = default;
@@ -103,3 +105,24 @@ auto deserialize_interface(
     }
     return nullptr;
 }
+
+
+#define MODEL_METADATA_IMPL(Process_T) \
+key_type concreteFactoryKey() const final override \
+{ \
+    return Metadata<ConcreteFactoryKey_k, Process_T>::get(); \
+} \
+ \
+void serialize_impl(const VisitorVariant& vis) const final override \
+{ \
+    serialize_dyn(vis, *this); \
+} \
+\
+Process_T* clone( \
+    const id_type& newId, \
+    QObject* newParent) const final override\
+{ \
+   return new Process_T{*this, newId, newParent}; \
+}
+
+

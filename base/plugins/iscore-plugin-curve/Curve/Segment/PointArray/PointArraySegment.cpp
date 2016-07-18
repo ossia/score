@@ -1,5 +1,5 @@
-#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
-#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <Curve/Segment/Linear/LinearSegment.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/serialization/VisitorCommon.hpp>
@@ -10,7 +10,7 @@
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include "PointArrayCurveSegmentModel.hpp"
+#include "PointArraySegment.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include "psimpl.h"
 
@@ -34,28 +34,17 @@ PointArraySegment::PointArraySegment(
     }
 }
 
-
-SegmentModel*PointArraySegment::clone(
-        const Id<SegmentModel>& id,
-        QObject *parent) const
+PointArraySegment::PointArraySegment(
+        const PointArraySegment& other,
+        const id_type& id,
+        QObject* parent):
+    SegmentModel{other.start(), other.end(), id, parent},
+    min_x{other.min_x},
+    max_x{other.max_x},
+    min_y{other.min_y},
+    max_y{other.max_y},
+    m_points{other.m_points}
 {
-    auto cs = new PointArraySegment{id, parent};
-    cs->setStart(this->start());
-    cs->setEnd(this->end());
-
-    // Previous and following shall be set afterwards by the cloner.
-    return cs;
-}
-
-UuidKey<Curve::SegmentFactory> PointArraySegment::concreteFactoryKey() const
-{
-    static const UuidKey<Curve::SegmentFactory> name{"c598b840-db67-4c8f-937a-46cfac87cb59"};
-    return name;
-}
-
-void PointArraySegment::serialize_impl(const VisitorVariant& vis) const
-{
-    serialize_dyn(vis, *this);
 }
 
 void PointArraySegment::on_startChanged()

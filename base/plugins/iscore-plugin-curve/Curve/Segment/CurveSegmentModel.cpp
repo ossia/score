@@ -12,7 +12,7 @@ namespace Curve
 SegmentModel::SegmentModel(
         const Id<SegmentModel>& id,
         QObject* parent):
-    IdentifiedObject<SegmentModel>{id, "CurveSegmentModel", parent}
+    IdentifiedObject<SegmentModel>{id, Metadata<ObjectKey_k, SegmentModel>::get(), parent}
 
 {
 
@@ -21,11 +21,22 @@ SegmentModel::SegmentModel(
 SegmentModel::SegmentModel(
         const SegmentData& data,
         QObject* parent):
-    IdentifiedObject<SegmentModel>{data.id, "CurveSegmentModel", parent},
+    IdentifiedObject<SegmentModel>{data.id, Metadata<ObjectKey_k, SegmentModel>::get(), parent},
     m_start{data.start},
     m_end{data.end},
     m_previous{data.previous},
     m_following{data.following}
+{
+}
+
+SegmentModel::SegmentModel(
+        Curve::Point s,
+        Curve::Point e,
+        const Id<SegmentModel>& id,
+        QObject* parent):
+    IdentifiedObject<SegmentModel>{id, Metadata<ObjectKey_k, SegmentModel>::get(), parent},
+    m_start{s},
+    m_end{e}
 {
 }
 

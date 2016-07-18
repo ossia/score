@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/serialization/VisitorCommon.hpp>
 #include <Process/StateProcess.hpp>
 #include <JS/JSProcessMetadata.hpp>
 namespace JS
@@ -9,6 +10,7 @@ class StateProcess :
         Q_OBJECT
         ISCORE_SERIALIZE_FRIENDS(JS::StateProcess, DataStream)
         ISCORE_SERIALIZE_FRIENDS(JS::StateProcess, JSONObject)
+        MODEL_METADATA_IMPL(StateProcess)
     public:
         explicit StateProcess(
                 const Id<Process::StateProcess>& id,
@@ -38,25 +40,11 @@ class StateProcess :
         const QString& script() const
         { return m_script; }
 
-        UuidKey<Process::StateProcessFactory> concreteFactoryKey() const override
-        {
-            return Metadata<ConcreteFactoryKey_k, StateProcess>::get();
-        }
-        void serialize_impl(const VisitorVariant& vis) const override;
 
     signals:
         void scriptChanged(QString);
 
     private:
-        StateProcess* clone(
-                const Id<Process::StateProcess>& newId,
-                QObject* newParent) const override
-        {
-            return new StateProcess {*this, newId, newParent};
-        }
-
-
-
         QString prettyName() const override
         {
             return Metadata<PrettyName_k, StateProcess>::get();

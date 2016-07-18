@@ -72,14 +72,3 @@ void Visitor<Writer<JSONObject>>::writeTo(
     autom.setMin(m_obj["Min"].toDouble());
     autom.setMax(m_obj["Max"].toDouble());
 }
-
-
-// Dynamic stuff
-namespace Automation
-{
-void ProcessModel::serialize_impl(const VisitorVariant& vis) const
-{
-    serialize_dyn(vis, *this);
-}
-
-}

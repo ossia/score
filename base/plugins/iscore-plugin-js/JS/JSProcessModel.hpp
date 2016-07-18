@@ -22,7 +22,7 @@ class ProcessModel final : public Process::ProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
-        PROCESS_METADATA_IMPL(JS::ProcessModel)
+        MODEL_METADATA_IMPL(JS::ProcessModel)
     Q_OBJECT
     public:
         explicit ProcessModel(

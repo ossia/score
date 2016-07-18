@@ -14,8 +14,8 @@
 
 
 #include <Curve/CurveModel.hpp>
-#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
-#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <Curve/Segment/Linear/LinearSegment.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>

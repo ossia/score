@@ -189,4 +189,3 @@ if(TARGET iscore_plugin_loop)
 endif()
 
 setup_iscore_plugin(${PROJECT_NAME})
-add_subdirectory(SimpleProcess)

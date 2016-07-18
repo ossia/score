@@ -3,10 +3,9 @@
 #include <Curve/Commands/CurveCommandFactory.hpp>
 #include <Curve/Segment/CurveSegmentFactory.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
-#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
-#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
-#include <Curve/Segment/Sin/SinCurveSegmentModel.hpp>
-#include <Curve/Segment/Gamma/GammaCurveSegmentModel.hpp>
+#include <Curve/Segment/Linear/LinearSegment.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
+#include <Curve/Segment/Sin/SinSegment.hpp>
 #include <Curve/Settings/Factory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_curve.hpp"
@@ -22,7 +21,6 @@ namespace Curve
 DEFINE_CURVE_SEGMENT_FACTORY(LinearCurveSegmentFactory, Curve::LinearSegment)
 DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, Curve::PowerSegment)
 DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, Curve::SinSegment)
-DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, Curve::GammaSegment)
 }
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}

@@ -73,6 +73,9 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         DeviceExplorerModel explorer{*this, this};
         NodeUpdateProxy updateProxy{*this};
         Device::Node m_loadingNode; // FIXME hack
+        // TODO maybe have another root node only for the "local" device ?
+        // Also have something to go through the document recursively if a node changes....
+        // or have "local" addresses with a pointer to something instead of a textual address.
 };
 
 }

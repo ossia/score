@@ -1,5 +1,4 @@
 #include "StateProcess.hpp"
-#include <iscore/serialization/VisitorCommon.hpp>
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(const JS::StateProcess& proc)
@@ -46,10 +45,5 @@ void StateProcess::setScript(const QString& script)
 {
     m_script = script;
     emit scriptChanged(script);
-}
-
-void StateProcess::serialize_impl(const VisitorVariant &vis) const
-{
-    serialize_dyn(vis, *this);
 }
 }

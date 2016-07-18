@@ -19,8 +19,9 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 {
     public:
         using model_type = model;
+        using id_type = Id<model>;
         template<typename... Args>
-        IdentifiedObject(Id<model> id,
+        IdentifiedObject(id_type id,
                          Args&& ... args) :
             IdentifiedObjectAbstract {std::forward<Args> (args)...},
             m_id {std::move(id)}
@@ -41,7 +42,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 
         }
 
-        const Id<model>& id() const
+        const id_type& id() const
         {
             return m_id;
         }
@@ -51,18 +52,18 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             return *m_id.val();
         }
 
-        void setId(const Id<model>& id)
+        void setId(const id_type& id)
         {
             m_id = id;
         }
-        void setId(Id<model>&& id)
+        void setId(id_type&& id)
         {
             m_id = std::move(id);
         }
 
         mutable Path<model> m_path_cache; // TODO see http://stackoverflow.com/questions/32987869/befriending-of-function-template-with-enable-if to put in private
     private:
-        Id<model> m_id {};
+        id_type m_id {};
 };
 
 

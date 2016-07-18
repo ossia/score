@@ -11,7 +11,7 @@
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 
-#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 

@@ -39,7 +39,7 @@ class ISCORE_LIB_PROCESS_EXPORT DummyModel final :
 {
         ISCORE_SERIALIZE_FRIENDS(DummyModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(DummyModel, JSONObject)
-        PROCESS_METADATA_IMPL(Dummy::DummyModel)
+        MODEL_METADATA_IMPL(Dummy::DummyModel)
 
     public:
         explicit DummyModel(
