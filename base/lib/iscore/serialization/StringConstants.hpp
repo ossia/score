@@ -13,6 +13,7 @@ struct StringConstants
         const QString Type;
         const QString Value;
         const QString Address;
+        const QString Message;
         const QString value;
         const QString address;
         const QString LHS;

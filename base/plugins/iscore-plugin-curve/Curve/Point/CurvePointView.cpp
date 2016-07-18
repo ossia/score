@@ -17,7 +17,9 @@ class QWidget;
 #include <iscore/tools/SettableIdentifier.hpp>
 namespace Curve
 {
-static const qreal radius = 2.5;
+const qreal radius = 2.5;
+const QRectF ellipse{-radius, -radius, 2*radius, 2*radius};
+
 PointView::PointView(
         const PointModel* model,
         const Curve::Style& style,
@@ -53,7 +55,7 @@ const Id<PointModel>& PointView::id() const
 
 QRectF PointView::boundingRect() const
 {
-    qreal gripSize = radius * 2;
+    const qreal gripSize = radius * 2;
     return {-gripSize, -gripSize, 2 * gripSize, 2 * gripSize};
 }
 
@@ -79,7 +81,7 @@ void PointView::paint(
     pen.setWidth(1);
 
     painter->setPen(pen);
-    painter->drawEllipse(QRectF{-radius, -radius, 2*radius, 2*radius});
+    painter->drawEllipse(ellipse);
 }
 
 void PointView::setSelected(bool selected)

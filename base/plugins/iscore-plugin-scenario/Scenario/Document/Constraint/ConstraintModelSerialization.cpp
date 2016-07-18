@@ -119,7 +119,7 @@ template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintModel& constraint)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintModel>&>(constraint));
-    m_obj["Metadata"] = toJsonObject(constraint.metadata);
+    m_obj[iscore::StringConstant().Metadata] = toJsonObject(constraint.metadata);
 
     // Processes
     m_obj["Processes"] = toJsonArray(constraint.processes);
@@ -147,7 +147,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintModel& constraint)
 {
-    constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
+    constraint.metadata = fromJsonObject<ModelMetadata>(m_obj[iscore::StringConstant().Metadata]);
 
     auto& pl = context.components.factory<Process::ProcessList>();
 

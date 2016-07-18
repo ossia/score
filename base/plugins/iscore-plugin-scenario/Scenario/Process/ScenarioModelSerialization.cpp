@@ -171,7 +171,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Scenario::ProcessModel& scenario)
 {
-    m_obj["Metadata"] = toJsonObject(scenario.metadata);
+    m_obj[iscore::StringConstant().Metadata] = toJsonObject(scenario.metadata);
 
     m_obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);
     m_obj["EndTimeNodeId"] = toJsonValue(scenario.m_endTimeNodeId);
@@ -190,7 +190,7 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(
         Scenario::ProcessModel& scenario)
 {
-    scenario.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"]);
+    scenario.metadata = fromJsonObject<ModelMetadata>(m_obj[iscore::StringConstant().Metadata]);
 
     scenario.m_startTimeNodeId = fromJsonValue<Id<Scenario::TimeNodeModel>> (m_obj["StartTimeNodeId"]);
     scenario.m_endTimeNodeId = fromJsonValue<Id<Scenario::TimeNodeModel>> (m_obj["EndTimeNodeId"]);
