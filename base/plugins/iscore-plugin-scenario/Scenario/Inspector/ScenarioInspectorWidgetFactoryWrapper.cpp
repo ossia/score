@@ -17,27 +17,18 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
-    std::set<const ConstraintModel*> constraints;
-    std::set<const TimeNodeModel*> timenodes;
-    std::set<const EventModel*> events;
-    std::set<const StateModel*> states;
+    std::vector<const ConstraintModel*> constraints;
+    std::vector<const TimeNodeModel*> timenodes;
+    std::vector<const EventModel*> events;
+    std::vector<const StateModel*> states;
 
-    const IdentifiedObjectAbstract* abstr; // the first matching element (default case purpose)
+    if(sourceElements.empty())
+        return nullptr;
 
-    ScenarioInterface* scenar{};
-    for(auto elt : sourceElements)
-    {
-        if(dynamic_cast<const StateModel*>(elt) ||
-                dynamic_cast<const EventModel*>(elt) ||
-                dynamic_cast<const TimeNodeModel*>(elt) ||
-                dynamic_cast<const ConstraintModel*>(elt))
-        {
-            scenar = dynamic_cast<ScenarioInterface*>(elt->parent());
-            abstr = dynamic_cast<const IdentifiedObjectAbstract*>(elt);
-            break;
-        }
-    }
+    auto scenar = dynamic_cast<ScenarioInterface*>(sourceElements[0]->parent());
+    auto abstr = safe_cast<const IdentifiedObjectAbstract*>(sourceElements[0]);
     ISCORE_ASSERT(scenar); // because else, matches should have return false
+
     for(auto elt : sourceElements)
     {
         if(auto st = dynamic_cast<const StateModel*>(elt))
@@ -47,9 +38,9 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
                 auto tn = scenar->findTimeNode(ev->timeNode());
                 if(!tn)
                     continue;
-                states.insert(st);
-                events.insert(ev);
-                timenodes.insert(tn);
+                states.push_back(st);
+                events.push_back(ev);
+                timenodes.push_back(tn);
             }
         }
         else if (auto ev = dynamic_cast<const EventModel*>(elt))
@@ -57,16 +48,16 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
             auto tn = scenar->findTimeNode(ev->timeNode());
             if(!tn)
                 continue;
-            events.insert(ev);
-            timenodes.insert(tn);
+            events.push_back(ev);
+            timenodes.push_back(tn);
         }
         else if (auto tn = dynamic_cast<const TimeNodeModel*>(elt))
         {
-            timenodes.insert(tn);
+            timenodes.push_back(tn);
         }
         else if (auto cstr = dynamic_cast<const ConstraintModel*>(elt))
         {
-            constraints.insert(cstr);
+            constraints.push_back(cstr);
         }
     }
 
@@ -80,7 +71,11 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
     }
 
     return new SummaryInspectorWidget{
-        abstr, constraints, timenodes, events, states, doc, parent
+        abstr,
+        std::move(constraints),
+        std::move(timenodes),
+        std::move(events),
+        std::move(states), doc, parent
     }; // the default InspectorWidgetBase need an only IdentifiedObject : this will be "abstr"
 }
 

@@ -15,10 +15,10 @@
 namespace Scenario
 {
 SummaryInspectorWidget::SummaryInspectorWidget(const IdentifiedObjectAbstract* obj,
-        std::set<const ConstraintModel*> constraints,
-        std::set<const TimeNodeModel*> timenodes,
-        std::set<const EventModel*> events,
-        std::set<const StateModel*> states,
+        std::vector<const ConstraintModel*> constraints,
+        std::vector<const TimeNodeModel*> timenodes,
+        std::vector<const EventModel*> events,
+        std::vector<const StateModel*> states,
         const iscore::DocumentContext& context,
         QWidget* parent):
     InspectorWidgetBase {*obj, context, parent}
