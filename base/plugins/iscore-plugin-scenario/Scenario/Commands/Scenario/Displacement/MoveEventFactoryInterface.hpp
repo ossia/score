@@ -22,13 +22,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface :
         ISCORE_ABSTRACT_FACTORY("69dc1f79-5cb9-4a36-b382-8c099f7abf57")
 public:
         enum Strategy{CREATION, MOVE};
-    virtual SerializableMoveEvent* make(
+    virtual std::unique_ptr<SerializableMoveEvent> make(
             Path<Scenario::ProcessModel>&& scenarioPath,
             Id<EventModel> eventId,
             TimeValue newDate,
             ExpandMode mode) = 0;
 
-    virtual SerializableMoveEvent* make() = 0;
+    virtual std::unique_ptr<SerializableMoveEvent> make() = 0;
 
     virtual ~MoveEventFactoryInterface();
 

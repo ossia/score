@@ -50,8 +50,8 @@ StateInspectorWidget::StateInspectorWidget(
     QWidget {parent},
     m_model {object},
     m_context{doc},
-    m_commandDispatcher(new CommandDispatcher<>{m_context.commandStack}),
-    m_selectionDispatcher(new iscore::SelectionDispatcher{m_context.selectionStack})
+    m_commandDispatcher{m_context.commandStack},
+    m_selectionDispatcher{m_context.selectionStack}
 {
     setObjectName("StateInspectorWidget");
     setParent(parent);
@@ -92,7 +92,7 @@ void StateInspectorWidget::updateDisplayedValues()
         auto btn = SelectionButton::make(
                     tr("Prev. Constraint"),
                 &scenar->constraint(m_model.previousConstraint()),
-                selectionDispatcher(),
+                m_selectionDispatcher,
                 this);
 
         linkLay->addWidget(btn);
@@ -102,7 +102,7 @@ void StateInspectorWidget::updateDisplayedValues()
         auto btn = SelectionButton::make(
                     tr("Next Constraint"),
                 &scenar->constraint(m_model.nextConstraint()),
-                selectionDispatcher(),
+                m_selectionDispatcher,
                 this);
 
         linkLay->addWidget(btn);
@@ -165,7 +165,7 @@ void StateInspectorWidget::splitEvent()
                         m_model.eventId(),
                         {m_model.id()}};
 
-            m_commandDispatcher->submitCommand(cmd);
+            m_commandDispatcher.submitCommand(cmd);
         }
     }
 }
@@ -185,7 +185,7 @@ void StateInspectorWidget::createStateProcess(
         const UuidKey<Process::StateProcessFactory> & key)
 {
     auto cmd = new Command::AddStateProcessToState(m_model, key);
-    m_commandDispatcher->submitCommand(cmd);
+    m_commandDispatcher.submitCommand(cmd);
 }
 
 Inspector::InspectorSectionWidget*
@@ -214,7 +214,7 @@ Inspector::InspectorSectionWidget*
             this, [=,id=process.id()] ()
         {
             auto cmd = new Command::RemoveStateProcess{iscore::IDocument::path(m_model), id};
-            emit m_commandDispatcher->submitCommand(cmd);
+            emit m_commandDispatcher.submitCommand(cmd);
         }, Qt::QueuedConnection);
 
     return sectionWidg;

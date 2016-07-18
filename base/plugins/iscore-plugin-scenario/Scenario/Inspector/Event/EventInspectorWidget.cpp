@@ -54,8 +54,8 @@ EventInspectorWidget::EventInspectorWidget(
     QWidget{parent},
     m_model {object},
     m_context{doc},
-    m_commandDispatcher{new CommandDispatcher<>{doc.commandStack}},
-    m_selectionDispatcher{new iscore::SelectionDispatcher{doc.selectionStack}}
+    m_commandDispatcher{doc.commandStack},
+    m_selectionDispatcher{doc.selectionStack}
 {
     setObjectName("EventInspectorWidget");
     setParent(parent);
@@ -69,7 +69,7 @@ EventInspectorWidget::EventInspectorWidget(
 
     ////// HEADER
     // metadata
-    m_metadata = new MetadataWidget{&m_model.metadata, commandDispatcher(), &m_model, this};
+    m_metadata = new MetadataWidget{&m_model.metadata, doc.commandStack, &m_model, this};
     m_metadata->setupConnections(m_model);
 
     m_properties.push_back(m_metadata);
@@ -86,7 +86,7 @@ EventInspectorWidget::EventInspectorWidget(
         auto tnBtn = SelectionButton::make(
                     tr("Parent TimeNode"),
                     &scenar->timeNode(timeNode),
-                    selectionDispatcher(),
+                    m_selectionDispatcher,
                     infoWidg);
 
         infoLay->addWidget(tnBtn);
@@ -223,13 +223,13 @@ void EventInspectorWidget::on_conditionChanged()
     if(cond != m_model.condition())
     {
         auto cmd = new Scenario::Command::SetCondition{path(m_model), std::move(cond)};
-        emit commandDispatcher()->submitCommand(cmd);
+        emit m_commandDispatcher.submitCommand(cmd);
     }
 }
 void EventInspectorWidget::on_conditionReset()
 {
     auto cmd = new Scenario::Command::SetCondition{path(m_model), State::Condition{}};
-    emit commandDispatcher()->submitCommand(cmd);
+    emit m_commandDispatcher.submitCommand(cmd);
 }
 
 }

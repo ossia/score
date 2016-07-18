@@ -57,7 +57,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final : public SerializableMov
         double m_oldY{};
         double m_newY{};
 
-        SerializableMoveEvent* m_moveEventImplementation{};
+        std::unique_ptr<SerializableMoveEvent> m_moveEventImplementation{};
 
 };
 }

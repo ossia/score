@@ -37,12 +37,6 @@ class EventInspectorWidget final : public QWidget
         //void removeState(const Id<StateModel>& state);
         void focusState(const StateModel* state);
 
-        CommandDispatcher<>* commandDispatcher() const
-        { return m_commandDispatcher; }
-
-        iscore::SelectionDispatcher& selectionDispatcher() const
-        { return *m_selectionDispatcher; }
-
     signals:
         void expandEventSection(bool b);
 
@@ -60,8 +54,8 @@ class EventInspectorWidget final : public QWidget
         QWidget* m_statesWidget{};
         const EventModel& m_model;
         const iscore::DocumentContext& m_context;
-        CommandDispatcher<>* m_commandDispatcher{};
-        std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
+        CommandDispatcher<> m_commandDispatcher;
+        iscore::SelectionDispatcher m_selectionDispatcher;
 
         MetadataWidget* m_metadata {};
 

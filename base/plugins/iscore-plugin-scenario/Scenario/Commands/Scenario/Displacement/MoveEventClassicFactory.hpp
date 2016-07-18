@@ -20,13 +20,13 @@ class MoveEventClassicFactory final : public MoveEventFactoryInterface
 {
         ISCORE_CONCRETE_FACTORY("644a6f8d-de63-4951-b28b-33b5e2c71ac8")
 
-        SerializableMoveEvent* make(
+        std::unique_ptr<SerializableMoveEvent> make(
                 Path<Scenario::ProcessModel>&& scenarioPath,
                 Id<EventModel> eventId,
                 TimeValue newDate,
                 ExpandMode mode) override;
 
-        SerializableMoveEvent* make() override;
+        std::unique_ptr<SerializableMoveEvent> make() override;
 
         int priority(const iscore::ApplicationContext& ctx,  MoveEventFactoryInterface::Strategy s) const override
         {
