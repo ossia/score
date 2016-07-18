@@ -73,7 +73,7 @@ QString ScenarioFactory::prettyName() const
     return Metadata<PrettyName_k, Scenario::ProcessModel>::get();
 }
 
-Process::ProcessModel* ScenarioFactory::makeModel(
+Process::ProcessModel* ScenarioFactory::make(
         const TimeValue& duration,
         const Id<Process::ProcessModel>& id,
         QObject* parent)

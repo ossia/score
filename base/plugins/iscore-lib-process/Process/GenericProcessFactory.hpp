@@ -24,7 +24,7 @@ class GenericProcessFactory final :
         QString prettyName() const override
         { return Metadata<PrettyName_k, Model_T>::get(); }
 
-        Model_T* makeModel(
+        Model_T* make(
                 const TimeValue& duration,
                 const Id<Process::ProcessModel>& id,
                 QObject* parent) final override;
@@ -77,7 +77,7 @@ template<
         typename LayerModel_T,
         typename LayerPresenter_T,
         typename LayerView_T>
-Model_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T>::makeModel(
+Model_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T>::make(
         const TimeValue& duration,
         const Id<Process::ProcessModel>& id,
         QObject* parent)
@@ -169,7 +169,7 @@ class GenericProcessFactory<Model_T, default_t, default_t, default_t> final :
         QString prettyName() const override
         { return Metadata<PrettyName_k, Model_T>::get(); }
 
-        Model_T* makeModel(
+        Model_T* make(
                 const TimeValue& duration,
                 const Id<Process::ProcessModel>& id,
                 QObject* parent) final override

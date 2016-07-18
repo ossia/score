@@ -17,7 +17,7 @@ DocumentModel::DocumentModel(
         DocumentDelegateFactory& fact,
         QObject* parent) :
     IdentifiedObject {id, "DocumentModel", parent},
-    m_model{fact.makeModel(ctx, this)}
+    m_model{fact.make(ctx, this)}
 {
 }
 
