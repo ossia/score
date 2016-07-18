@@ -16,7 +16,7 @@ namespace Parameters
         const iscore::sp<ModelSlotHeightParameter> SlotHeight{QStringLiteral("Skin/slotHeight"), 200};
         const iscore::sp<ModelDefaultDurationParameter> DefaultDuration{QStringLiteral("Skin/defaultDuration"), TimeValue::fromMsecs(15000)};
 
-        auto list() {
+        static auto list() {
             return std::tie(Skin, GraphicZoom, SlotHeight, DefaultDuration);
         }
 }
