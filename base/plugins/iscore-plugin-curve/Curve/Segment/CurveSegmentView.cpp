@@ -73,6 +73,7 @@ void SegmentView::paint(
 {
     QPen pen;
     pen.setWidth(m_enabled ? 2 : 1);
+    painter->setRenderHint(QPainter::RenderHint::Antialiasing, m_enabled);
     pen.setColor(m_enabled
                     ? (m_selected
                         ? m_style.SegmentSelected

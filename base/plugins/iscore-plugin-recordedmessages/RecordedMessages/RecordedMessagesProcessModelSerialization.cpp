@@ -29,7 +29,7 @@ void Visitor<Reader<JSONObject>>::readFrom(
         const RecordedMessages::RecordedMessage& rm)
 {
     m_obj["Percentage"] = rm.percentage;
-    m_obj["Message"] = toJsonObject(rm.message);
+    m_obj[iscore::StringConstant().Message] = toJsonObject(rm.message);
 }
 
 template<>
@@ -37,7 +37,7 @@ void Visitor<Writer<JSONObject>>::writeTo(
         RecordedMessages::RecordedMessage& rm)
 {
     rm.percentage = m_obj["Percentage"].toDouble();
-    rm.message = fromJsonObject<State::Message>(m_obj["Message"]);
+    rm.message = fromJsonObject<State::Message>(m_obj[iscore::StringConstant().Message]);
 }
 
 

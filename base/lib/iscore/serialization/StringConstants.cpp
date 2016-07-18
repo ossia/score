@@ -14,6 +14,7 @@ ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
                 QStringLiteral("Type"),
                 QStringLiteral("Value"),
                 QStringLiteral("Address"),
+                QStringLiteral("Message"),
                 QStringLiteral("value"),
                 QStringLiteral("address"),
                 QStringLiteral("LHS"),
