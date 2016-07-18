@@ -29,11 +29,11 @@ class ScenarioDocumentFactory final :
                 const iscore::DocumentDelegateModelInterface& model,
                 iscore::DocumentDelegateViewInterface& view) override;
 
-        iscore::DocumentDelegateModelInterface* makeModel(
+        iscore::DocumentDelegateModelInterface* make(
                 const iscore::DocumentContext& ctx,
                 iscore::DocumentModel* parent) override;
 
-        iscore::DocumentDelegateModelInterface* loadModel(
+        iscore::DocumentDelegateModelInterface* load(
                 const VisitorVariant&,
                 const iscore::DocumentContext& ctx,
                 iscore::DocumentModel* parent) override;

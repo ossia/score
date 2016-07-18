@@ -14,7 +14,7 @@ class SimpleProcessFactory : public Process::ProcessFactory
         QString prettyName() const override
         { return QObject::tr("SimpleProcess"); }
 
-        Process::ProcessModel* makeModel(
+        Process::ProcessModel* make(
                 const TimeValue& duration,
                 const Id<Process::ProcessModel>& id,
                 QObject* parent) override

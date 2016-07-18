@@ -76,7 +76,7 @@ class ConcreteFactoryList :
             }
         }
 
-        auto get(const key_type& k) const
+        FactoryType* get(const key_type& k) const
         {
             auto it = this->map.find(k);
             return (it != this->map.end()) ? it->second.get() : nullptr;

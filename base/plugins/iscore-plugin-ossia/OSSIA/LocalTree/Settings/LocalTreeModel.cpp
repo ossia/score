@@ -14,7 +14,7 @@ namespace Parameters
             QStringLiteral("iscore_plugin_ossia/LocalTree"),
                     false};
 
-        auto list() {
+        static auto list() {
             return std::tie(LocalTree);
         }
 }

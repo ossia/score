@@ -70,7 +70,7 @@ Process::ProcessModel& AddOnlyProcessToConstraint::redo(ConstraintModel& constra
 {
     // Create process model
     auto proc = context.components.factory<Process::ProcessList>().get(m_processName)
-            ->makeModel(
+            ->make(
                 constraint.duration.defaultDuration(), // TODO should maybe be max ?
                 m_createdProcessId,
                 &constraint);

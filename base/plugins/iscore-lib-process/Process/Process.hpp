@@ -11,7 +11,7 @@
 
 #include <iscore/component/Component.hpp>
 #include <iscore/tools/Metadata.hpp>
-#include "ModelMetadata.hpp"
+#include <Process/ModelMetadata.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>

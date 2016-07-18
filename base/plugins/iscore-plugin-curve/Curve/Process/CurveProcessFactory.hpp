@@ -20,7 +20,7 @@ class CurveProcessFactory_T :
     public:
         virtual ~CurveProcessFactory_T() = default;
 
-        Model_T* makeModel(
+        Model_T* make(
                 const TimeValue& duration,
                 const Id<Process::ProcessModel>& id,
                 QObject* parent) final override

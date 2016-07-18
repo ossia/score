@@ -22,7 +22,7 @@ class ProcessFactory final :
         QString prettyName() const override
         { return Metadata<PrettyName_k, Model_T>::get(); }
 
-        Model_T* makeModel(
+        Model_T* make(
                 const TimeValue& duration,
                 const Id<Process::ProcessModel>& id,
                 QObject* parent) final override;
@@ -73,7 +73,7 @@ class ProcessFactory final :
 template<
         typename Model_T,
         typename Widget_T>
-Model_T* ProcessFactory<Model_T, Widget_T>::makeModel(
+Model_T* ProcessFactory<Model_T, Widget_T>::make(
         const TimeValue& duration,
         const Id<Process::ProcessModel>& id,
         QObject* parent)

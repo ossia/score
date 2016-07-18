@@ -32,14 +32,14 @@ ScenarioDocumentFactory::makePresenter(
 }
 
 iscore::DocumentDelegateModelInterface*
-ScenarioDocumentFactory::makeModel(
+ScenarioDocumentFactory::make(
         const iscore::DocumentContext& ctx,
         iscore::DocumentModel* parent)
 {
     return new ScenarioDocumentModel {ctx, parent};
 }
 
-iscore::DocumentDelegateModelInterface* ScenarioDocumentFactory::loadModel(
+iscore::DocumentDelegateModelInterface* ScenarioDocumentFactory::load(
         const VisitorVariant& vis,
         const iscore::DocumentContext& ctx,
         iscore::DocumentModel* parent)

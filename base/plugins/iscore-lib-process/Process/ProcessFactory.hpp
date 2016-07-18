@@ -32,7 +32,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModelFactory
 
         virtual QString prettyName() const = 0;
 
-        virtual Process::ProcessModel* makeModel(
+        virtual Process::ProcessModel* make(
                 const TimeValue& duration,
                 const Id<ProcessModel>& id,
                 QObject* parent) = 0;

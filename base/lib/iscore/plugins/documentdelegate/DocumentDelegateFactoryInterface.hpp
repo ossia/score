@@ -36,10 +36,10 @@ class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactory :
                 const DocumentDelegateModelInterface& model,
                 DocumentDelegateViewInterface& view) = 0;
 
-        virtual DocumentDelegateModelInterface* makeModel(
+        virtual DocumentDelegateModelInterface* make(
                 const iscore::DocumentContext& ctx,
                 DocumentModel* parent) = 0;
-        virtual DocumentDelegateModelInterface* loadModel(
+        virtual DocumentDelegateModelInterface* load(
                 const VisitorVariant&,
                 const iscore::DocumentContext& ctx,
                 DocumentModel* parent) = 0;
