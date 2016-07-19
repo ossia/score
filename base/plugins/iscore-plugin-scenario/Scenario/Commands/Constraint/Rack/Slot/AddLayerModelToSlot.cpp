@@ -18,21 +18,6 @@ namespace Scenario
 {
 namespace Command
 {
-/* REMOVEME
-AddLayerModelToSlot::AddLayerModelToSlot(
-        Path<SlotModel>&& slotPath,
-        Path<Process::ProcessModel>&& processPath) :
-    m_slotPath {std::move(slotPath)},
-    m_processPath {std::move(processPath)},
-    m_createdLayerId{getStrongId(m_slotPath.find().layers)}
-{
-    auto& process = m_processPath.find();
-    auto& procs = this->context.components.factory<Process::ProcessList>();
-    auto fact = procs.get(process.concreteFactoryKey());
-    m_processData = fact->makeLayerConstructionData(process);
-}
-*/
-
 AddLayerModelToSlot::AddLayerModelToSlot(
         const SlotModel& slot,
         const Process::ProcessModel& process) :
