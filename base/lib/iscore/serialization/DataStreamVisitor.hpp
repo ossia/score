@@ -10,6 +10,10 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
+
+#include <QVector2D>
+#include <QVector3D>
+#include <QVector4D>
 namespace iscore
 {
 struct ApplicationContext;
@@ -20,7 +24,9 @@ using enable_if_QDataStreamSerializable =
     typename std::enable_if_t<
         std::is_arithmetic<T>::value ||
         std::is_same<T, QStringList>::value ||
+        std::is_same<T, QVector2D>::value ||
         std::is_same<T, QVector3D>::value ||
+        std::is_same<T, QVector4D>::value ||
         std::is_same<T, QPointF>::value ||
         std::is_same<T, QPoint>::value
 >;
@@ -378,6 +384,33 @@ struct TSerializer<DataStream, void, QList<T>>
 template<typename... Args>
 struct TSerializer<
         DataStream,
+        void,
+        std::array<Args...>>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const std::array<Args...>& arr)
+        {
+            for(int i = 0; i < arr.size(); i++)
+                s.stream() << arr[i];
+
+            s.insertDelimiter();
+        }
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                std::array<Args...>& arr)
+        {
+            for(int i = 0; i < arr.size(); i++)
+                s.stream() >> arr[i];
+
+            s.checkDelimiter();
+        }
+};
+
+template<typename... Args>
+struct TSerializer<
+        DataStream,
         std::enable_if_t<!is_QDataStreamSerializable<typename std::vector<Args...>::value_type>::value>,
         std::vector<Args...>>
 {
@@ -396,7 +429,7 @@ struct TSerializer<
                 DataStream::Deserializer& s,
                 std::vector<Args...>& vec)
         {
-            int32_t n = 0;
+            int32_t n;
             s.stream() >> n;
 
             vec.clear();
@@ -409,6 +442,7 @@ struct TSerializer<
             s.checkDelimiter();
         }
 };
+
 
 template<typename... Args>
 struct TSerializer<

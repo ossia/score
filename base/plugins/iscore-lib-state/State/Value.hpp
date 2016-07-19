@@ -24,9 +24,11 @@ inline bool operator==(impulse_t, impulse_t) { return true; }
 inline bool operator!=(impulse_t, impulse_t) { return false; }
 
 class ValueImpl;
-
+using vec2f = std::array<float, 2>;
+using vec3f = std::array<float, 3>;
+using vec4f = std::array<float, 4>;
 using tuple_t = std::vector<ValueImpl>;
-enum class ValueType { Impulse, Int, Float, Bool, String, Char, Tuple, NoValue };
+enum class ValueType { Impulse, Int, Float, Bool, String, Char, Vec2f, Vec3f, Vec4f, Tuple, NoValue };
 
 class ISCORE_LIB_STATE_EXPORT ValueImpl
 {
@@ -34,7 +36,7 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
         ISCORE_SERIALIZE_FRIENDS(ValueImpl, JSONObject)
 
     public:
-        using variant_t = eggs::variant<impulse_t, int, float, bool, QString, QChar, tuple_t, no_value_t>;
+        using variant_t = eggs::variant<impulse_t, int, float, bool, QString, QChar, vec2f, vec3f, vec4f, tuple_t, no_value_t>;
         ValueImpl();
         ValueImpl(const ValueImpl&) = default;
         ValueImpl(ValueImpl&&) = default;
@@ -50,6 +52,9 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
         ValueImpl(bool v);
         ValueImpl(const QString& v);
         ValueImpl(QChar v);
+        ValueImpl(vec2f v);
+        ValueImpl(vec3f v);
+        ValueImpl(vec4f v);
         ValueImpl(const tuple_t& v);
 
         ValueImpl& operator=(no_value_t v);
@@ -60,6 +65,9 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
         ValueImpl& operator=(bool v);
         ValueImpl& operator=(const QString& v);
         ValueImpl& operator=(QChar v);
+        ValueImpl& operator=(vec2f v);
+        ValueImpl& operator=(vec3f v);
+        ValueImpl& operator=(vec4f v);
         ValueImpl& operator=(const tuple_t& v);
 
         const auto& impl() const { return m_variant; }

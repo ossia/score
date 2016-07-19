@@ -326,10 +326,10 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
     {
         auto end = children.cend();
         auto local_play_node = *(m_localDevice->emplace(end, "play"));
-        auto local_play_address = local_play_node->createAddress(OSSIA::Value::Type::BOOL);
+        auto local_play_address = local_play_node->createAddress(OSSIA::Type::BOOL);
         local_play_address->setValue(OSSIA::Bool{false});
         local_play_address->addCallback([&] (const OSSIA::Value& v) {
-            if (v.getType() == OSSIA::Value::Type::BOOL)
+            if (v.getType() == OSSIA::Type::BOOL)
             {
                 on_play(static_cast<const OSSIA::Bool&>(v).value);
             }
@@ -338,7 +338,7 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
     {
         auto end = children.cend();
         auto local_stop_node = *(m_localDevice->emplace(end, "stop"));
-        auto local_stop_address = local_stop_node->createAddress(OSSIA::Value::Type::IMPULSE);
+        auto local_stop_address = local_stop_node->createAddress(OSSIA::Type::IMPULSE);
         local_stop_address->setValue(OSSIA::Impulse{});
         local_stop_address->addCallback([&] (const OSSIA::Value&) {
             on_stop();

@@ -77,10 +77,10 @@ std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl()
 {
     switch(m_targetAddressType)
     {
-        case OSSIA::Value::Type::INT:
+        case OSSIA::Type::INT:
             return on_curveChanged_impl2<X_T, int>();
             break;
-        case OSSIA::Value::Type::FLOAT:
+        case OSSIA::Type::FLOAT:
             return on_curveChanged_impl2<X_T, float>();
             break;
         default:
@@ -96,10 +96,10 @@ std::shared_ptr<OSSIA::CurveAbstract> Component::rebuildCurve()
     m_ossia_curve.reset();
     switch(m_sourceAddressType)
     {
-        case OSSIA::Value::Type::INT:
+        case OSSIA::Type::INT:
             m_ossia_curve = on_curveChanged_impl<int>();
             break;
-        case OSSIA::Value::Type::FLOAT:
+        case OSSIA::Type::FLOAT:
             m_ossia_curve = on_curveChanged_impl<float>();
             break;
         default:

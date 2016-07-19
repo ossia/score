@@ -25,6 +25,9 @@ State::ValueImpl::ValueImpl(double v): m_variant{(float)v} { }
 State::ValueImpl::ValueImpl(bool v): m_variant{v} { }
 State::ValueImpl::ValueImpl(const QString& v): m_variant{v} { }
 State::ValueImpl::ValueImpl(QChar v): m_variant{v} { }
+State::ValueImpl::ValueImpl(vec2f v): m_variant{v} { }
+State::ValueImpl::ValueImpl(vec3f v): m_variant{v} { }
+State::ValueImpl::ValueImpl(vec4f v): m_variant{v} { }
 State::ValueImpl::ValueImpl(const State::tuple_t& v): m_variant{v} { }
 
 
@@ -42,6 +45,9 @@ State::ValueImpl& State::ValueImpl::operator=(double v) { m_variant = (float)v; 
 State::ValueImpl& State::ValueImpl::operator=(bool v) { m_variant = v; return *this;  }
 State::ValueImpl& State::ValueImpl::operator=(const QString& v) { m_variant = v; return *this;  }
 State::ValueImpl& State::ValueImpl::operator=(QChar v) { m_variant = v; return *this;  }
+State::ValueImpl& State::ValueImpl::operator=(vec2f v) { m_variant = v; return *this;  }
+State::ValueImpl& State::ValueImpl::operator=(vec3f v) { m_variant = v; return *this;  }
+State::ValueImpl& State::ValueImpl::operator=(vec4f v) { m_variant = v; return *this;  }
 State::ValueImpl& State::ValueImpl::operator=(const State::tuple_t& v) { m_variant = v; return *this;  }
 
 

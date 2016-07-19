@@ -103,6 +103,9 @@ void MessageEditDialog::on_typeChanged(int t)
             // TODO here a bug might be introduced : everywhere the char are utf8 while here it's latin1.
             m_val->setWidget(new CharValueWidget(State::convert::value<QChar>(m_message.value).toLatin1(), this));
             break;
+        case State::ValueType::Vec2f:
+        case State::ValueType::Vec3f:
+        case State::ValueType::Vec4f:
         case State::ValueType::Tuple:
             ISCORE_TODO; // TODO Tuples
             break;

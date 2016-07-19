@@ -40,6 +40,7 @@
 #include <State/Relation.hpp>
 #include <iscore/tools/InvisibleRootNode.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
+#include <OSSIA/OSSIA2iscore.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
@@ -48,6 +49,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
 
+#include <boost/call_traits.hpp>
 class NodeNotFoundException : public std::exception
 {
         State::Address m_addr;
@@ -246,15 +248,18 @@ void createOSSIAAddress(
 
     struct {
         public:
-            using return_type = OSSIA::Value::Type;
-            return_type operator()(const State::no_value_t&) const { ISCORE_ABORT; return OSSIA::Value::Type::IMPULSE; }
-            return_type operator()(const State::impulse_t&) const { return OSSIA::Value::Type::IMPULSE; }
-            return_type operator()(int) const { return OSSIA::Value::Type::INT; }
-            return_type operator()(float) const { return OSSIA::Value::Type::FLOAT; }
-            return_type operator()(bool) const { return OSSIA::Value::Type::BOOL; }
-            return_type operator()(const QString&) const { return OSSIA::Value::Type::STRING; }
-            return_type operator()(const QChar&) const { return OSSIA::Value::Type::CHAR; }
-            return_type operator()(const State::tuple_t&) const { return OSSIA::Value::Type::TUPLE; }
+            using return_type = OSSIA::Type;
+            return_type operator()(const State::no_value_t&) const { ISCORE_ABORT; return OSSIA::Type::IMPULSE; }
+            return_type operator()(const State::impulse_t&) const { return OSSIA::Type::IMPULSE; }
+            return_type operator()(int) const { return OSSIA::Type::INT; }
+            return_type operator()(float) const { return OSSIA::Type::FLOAT; }
+            return_type operator()(bool) const { return OSSIA::Type::BOOL; }
+            return_type operator()(const QString&) const { return OSSIA::Type::STRING; }
+            return_type operator()(const QChar&) const { return OSSIA::Type::CHAR; }
+            return_type operator()(const State::vec2f&) const { return OSSIA::Type::VEC2F; }
+            return_type operator()(const State::vec3f&) const { return OSSIA::Type::VEC3F; }
+            return_type operator()(const State::vec4f&) const { return OSSIA::Type::VEC4F; }
+            return_type operator()(const State::tuple_t&) const { return OSSIA::Type::TUPLE; }
     } visitor{};
 
     updateOSSIAAddress(settings,  node->createAddress(eggs::variants::apply(visitor, settings.value.val.impl())));
@@ -264,72 +269,56 @@ void updateOSSIAValue(const State::ValueImpl& data, OSSIA::Value& val)
 {
     switch(val.getType())
     {
-        case OSSIA::Value::Type::IMPULSE:
+        case OSSIA::Type::IMPULSE:
             break;
-        case OSSIA::Value::Type::BOOL:
+        case OSSIA::Type::BOOL:
             safe_cast<OSSIA::Bool&>(val).value = data.get<bool>();
             break;
-        case OSSIA::Value::Type::INT:
+        case OSSIA::Type::INT:
             safe_cast<OSSIA::Int&>(val).value = data.get<int>();
             break;
-        case OSSIA::Value::Type::FLOAT:
+        case OSSIA::Type::FLOAT:
             safe_cast<OSSIA::Float&>(val).value = data.get<float>();
             break;
-        case OSSIA::Value::Type::CHAR: // TODO See TODO in MessageEditDialog
+        case OSSIA::Type::CHAR: // TODO See TODO in MessageEditDialog
             safe_cast<OSSIA::Char&>(val).value = data.get<QChar>().toLatin1();
             break;
-        case OSSIA::Value::Type::STRING:
+        case OSSIA::Type::STRING:
             safe_cast<OSSIA::String&>(val).value = data.get<QString>().toStdString();
             break;
-        case OSSIA::Value::Type::TUPLE:
+        case OSSIA::Type::VEC2F:
+        {
+            safe_cast<OSSIA::Vec2f&>(val).value = data.get<State::vec2f>();
+            break;
+        }
+        case OSSIA::Type::VEC3F:
+        {
+            safe_cast<OSSIA::Vec3f&>(val).value = data.get<State::vec3f>();
+            break;
+        }
+        case OSSIA::Type::VEC4F:
+        {
+            safe_cast<OSSIA::Vec4f&>(val).value = data.get<State::vec4f>();
+            break;
+        }
+        case OSSIA::Type::TUPLE:
         {
             State::tuple_t tuple = data.get<State::tuple_t>();
             const auto& vec = safe_cast<OSSIA::Tuple&>(val).value;
             ISCORE_ASSERT(tuple.size() == vec.size());
-            for(int i = 0; i < (int)vec.size(); i++)
+            int n = vec.size();
+            for(int i = 0; i < n; i++)
             {
                 updateOSSIAValue(tuple[i], *vec[i]);
             }
 
             break;
         }
-        case OSSIA::Value::Type::GENERIC:
-        {
-            ISCORE_TODO;
-            /*
-            const auto& array = data.value<QByteArray>();
-            auto& generic = dynamic_cast<OSSIA::Generic&>(val);
-
-            generic.size = array.size();
-
-            delete generic.start;
-            generic.start = new char[generic.size];
-
-            copy(array, generic.start);
-            break;
-            */
-        }
-        case OSSIA::Value::Type::DESTINATION:
-        case OSSIA::Value::Type::BEHAVIOR:
+        case OSSIA::Type::DESTINATION:
+        case OSSIA::Type::BEHAVIOR:
         default:
             break;
     }
-}
-
-
-using OSSIATypeMap =
-boost::mpl::map<
-boost::mpl::pair<bool, OSSIA::Bool>,
-boost::mpl::pair<int, OSSIA::Int>,
-boost::mpl::pair<float, OSSIA::Float>,
-boost::mpl::pair<char, OSSIA::Char>,
-boost::mpl::pair<std::string, OSSIA::String>
->;
-
-template<typename T>
-OSSIA::Value* createOSSIAValue(const T& val)
-{
-    return new typename boost::mpl::at<OSSIATypeMap, T>::type(val);
 }
 
 static std::unique_ptr<OSSIA::Value> toOSSIAValue(const State::ValueImpl& val)
@@ -344,6 +333,9 @@ static std::unique_ptr<OSSIA::Value> toOSSIAValue(const State::ValueImpl& val)
             return_type operator()(bool v) const { return new OSSIA::Bool{v}; }
             return_type operator()(const QString& v) const { return new OSSIA::String{v.toStdString()}; }
             return_type operator()(const QChar& v) const { return new OSSIA::Char{v.toLatin1()}; }
+            return_type operator()(const State::vec2f& v) const { return new OSSIA::Vec2f{v}; }
+            return_type operator()(const State::vec3f& v) const { return new OSSIA::Vec3f{v}; }
+            return_type operator()(const State::vec4f& v) const { return new OSSIA::Vec4f{v}; }
             return_type operator()(const State::tuple_t& v) const
             {
                 auto ossia_tuple = new OSSIA::Tuple;
