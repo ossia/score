@@ -53,6 +53,39 @@ inline QJSValue value(
                 return QString(c);
             }
 
+            return_type operator()(const State::vec2f& t) const
+            {
+                auto arr = engine.newArray(t.size());
+
+                for(auto i = 0U; i < t.size(); i++)
+                {
+                    arr.setProperty(i, t[i]);
+                }
+
+                return arr;
+            }
+            return_type operator()(const State::vec3f& t) const
+            {
+                auto arr = engine.newArray(t.size());
+
+                for(auto i = 0U; i < t.size(); i++)
+                {
+                    arr.setProperty(i, t[i]);
+                }
+
+                return arr;
+            }
+            return_type operator()(const State::vec4f& t) const
+            {
+                auto arr = engine.newArray(t.size());
+
+                for(auto i = 0U; i < t.size(); i++)
+                {
+                    arr.setProperty(i, t[i]);
+                }
+
+                return arr;
+            }
             return_type operator()(const State::tuple_t& t) const
             {
                 auto arr = engine.newArray(t.size());

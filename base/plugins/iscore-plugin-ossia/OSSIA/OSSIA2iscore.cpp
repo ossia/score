@@ -65,40 +65,55 @@ State::Value ToValue(const OSSIA::Value *val)
 
     switch(val->getType())
     {
-        case OSSIA::Value::Type::IMPULSE:
+        case OSSIA::Type::IMPULSE:
             return State::Value::fromValue(State::impulse_t{});
-        case OSSIA::Value::Type::BOOL:
+        case OSSIA::Type::BOOL:
         {
             auto val_sub = static_cast<const OSSIA::Bool*>(val);
             return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(bool{});
         }
-        case OSSIA::Value::Type::INT:
+        case OSSIA::Type::INT:
         {
             auto val_sub = static_cast<const OSSIA::Int*>(val);
             return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(int{});
         }
-        case OSSIA::Value::Type::FLOAT:
+        case OSSIA::Type::FLOAT:
         {
             auto val_sub = static_cast<const OSSIA::Float*>(val);
             return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(float{});
         }
-        case OSSIA::Value::Type::CHAR:
+        case OSSIA::Type::CHAR:
         {
             auto val_sub = static_cast<const OSSIA::Char*>(val);
             return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(char{});
         }
-        case OSSIA::Value::Type::STRING:
+        case OSSIA::Type::STRING:
         {
             auto val_sub = static_cast<const OSSIA::String*>(val);
-            return val_sub ? State::Value::fromValue(QString::fromStdString(val_sub->value)) : State::Value::fromValue(QString{});
+            return val_sub ?
+                        State::Value::fromValue(QString::fromStdString(val_sub->value)) :
+                        State::Value::fromValue(QString{});
         }
-        case OSSIA::Value::Type::TUPLE:
+        case OSSIA::Type::VEC2F:
+        {
+            auto& arr = static_cast<const OSSIA::Vec2f*>(val)->value;
+            return State::Value::fromValue(State::tuple_t{arr[0], arr[1]});
+        }
+        case OSSIA::Type::VEC3F:
+        {
+            auto& arr = static_cast<const OSSIA::Vec3f*>(val)->value;
+            return State::Value::fromValue(State::tuple_t{arr[0], arr[1], arr[2]});
+        }
+        case OSSIA::Type::VEC4F:
+        {
+            auto& arr = static_cast<const OSSIA::Vec4f*>(val)->value;
+            return State::Value::fromValue(State::tuple_t{arr[0], arr[1], arr[2], arr[3]});
+        }
+        case OSSIA::Type::TUPLE:
         {
             auto ossia_tuple = static_cast<const OSSIA::Tuple*>(val);
 
             State::tuple_t tuple;
-            if(!ossia_tuple)
-                return State::Value::fromValue(tuple);
 
             tuple.reserve(ossia_tuple->value.size());
             for (const auto & e : ossia_tuple->value)
@@ -108,18 +123,8 @@ State::Value ToValue(const OSSIA::Value *val)
 
             return State::Value::fromValue(tuple);
         }
-        case OSSIA::Value::Type::GENERIC:
-        {
-            ISCORE_TODO;
-            return {};
-            /*
-            auto generic = dynamic_cast<const OSSIA::Generic*>(val);
-            v = QByteArray{generic->start, generic->size};
-            break;
-            */
-        }
-        case OSSIA::Value::Type::DESTINATION:
-        case OSSIA::Value::Type::BEHAVIOR:
+        case OSSIA::Type::DESTINATION:
+        case OSSIA::Type::BEHAVIOR:
         default:
             return {};
     }
@@ -230,27 +235,26 @@ Device::Domain ToDomain(OSSIA::Domain &domain)
     return d;
 }
 
-State::Value ToValue(OSSIA::Value::Type t)
+State::Value ToValue(OSSIA::Type t)
 {
     switch(t)
     {
-        case OSSIA::Value::Type::FLOAT:
+        case OSSIA::Type::FLOAT:
             return State::Value::fromValue(float{});
-        case OSSIA::Value::Type::IMPULSE:
+        case OSSIA::Type::IMPULSE:
             return State::Value::fromValue(State::impulse_t{});
-        case OSSIA::Value::Type::INT:
+        case OSSIA::Type::INT:
             return State::Value::fromValue(int{});
-        case OSSIA::Value::Type::BOOL:
+        case OSSIA::Type::BOOL:
             return State::Value::fromValue(bool{});
-        case OSSIA::Value::Type::CHAR:
+        case OSSIA::Type::CHAR:
             return State::Value::fromValue(QChar{});
-        case OSSIA::Value::Type::STRING:
+        case OSSIA::Type::STRING:
             return State::Value::fromValue(QString{});
-        case OSSIA::Value::Type::TUPLE:
+        case OSSIA::Type::TUPLE:
             return State::Value::fromValue(State::tuple_t{});
-        case OSSIA::Value::Type::GENERIC:
-        case OSSIA::Value::Type::DESTINATION:
-        case OSSIA::Value::Type::BEHAVIOR:
+        case OSSIA::Type::DESTINATION:
+        case OSSIA::Type::BEHAVIOR:
         default:
             return State::Value{};
     }

@@ -61,6 +61,55 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QTransform& pt)
           arr[6].toDouble(), arr[7].toDouble(), arr[8].toDouble());
 }
 
+
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const std::array<float, 2>& obj)
+{
+    for(auto i = 0U; i < obj.size(); i++)
+        m_stream << obj[i];
+    insertDelimiter();
+}
+
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(std::array<float, 2>& obj)
+{
+    for(auto i = 0U; i < obj.size(); i++)
+        m_stream >> obj[i];
+    checkDelimiter();
+}
+
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const std::array<float, 3>& obj)
+{
+    for(auto i = 0U; i < obj.size(); i++)
+        m_stream << obj[i];
+    insertDelimiter();
+}
+
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(std::array<float, 3>& obj)
+{
+    for(auto i = 0U; i < obj.size(); i++)
+        m_stream >> obj[i];
+    checkDelimiter();
+}
+
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const std::array<float, 4>& obj)
+{
+    for(auto i = 0U; i < obj.size(); i++)
+        m_stream << obj[i];
+    insertDelimiter();
+}
+
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(std::array<float, 4>& obj)
+{
+    for(auto i = 0U; i < obj.size(); i++)
+        m_stream >> obj[i];
+    checkDelimiter();
+}
+
 template<>
 ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const QJsonObject& obj)
 {

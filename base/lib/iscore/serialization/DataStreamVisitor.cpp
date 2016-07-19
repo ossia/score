@@ -8,7 +8,6 @@ template <typename T> class Writer;
 Visitor<Reader<DataStream>>::Visitor():
     context{iscore::AppContext()}
 {
-
 }
 
 Visitor<Reader<DataStream>>::Visitor(QByteArray* array):

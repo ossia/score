@@ -35,8 +35,8 @@ class Component final :
         void recreate();
         std::shared_ptr<OSSIA::CurveAbstract> rebuildCurve();
 
-        OSSIA::Value::Type m_sourceAddressType{OSSIA::Value::Type(-1)};
-        OSSIA::Value::Type m_targetAddressType{OSSIA::Value::Type(-1)};
+        OSSIA::Type m_sourceAddressType{OSSIA::Type(-1)};
+        OSSIA::Type m_targetAddressType{OSSIA::Type(-1)};
 
         template<typename T>
         std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl();
