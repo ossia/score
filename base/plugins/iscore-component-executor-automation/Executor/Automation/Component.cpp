@@ -13,7 +13,8 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "Editor/Curve.h"
 #include "Editor/CurveSegment.h"
-#include "Editor/Value.h"
+#include <Editor/Value/Value.h>
+#include <Editor/Value/Behavior.h>
 #include "Network/Address.h"
 #include "Network/Node.h"
 #include <OSSIA/Protocols/OSSIADevice.hpp>

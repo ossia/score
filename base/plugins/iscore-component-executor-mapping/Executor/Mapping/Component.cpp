@@ -3,7 +3,8 @@
 #include <Editor/Mapper.h>
 #include <Editor/State.h>
 #include <Editor/Message.h>
-#include <Editor/Value.h>
+#include <Editor/Value/Value.h>
+#include <Editor/Value/Behavior.h>
 #include <OSSIA/iscore2OSSIA.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>

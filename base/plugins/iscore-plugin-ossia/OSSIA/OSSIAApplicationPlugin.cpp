@@ -11,7 +11,7 @@
 #include <QVariant>
 #include <QVector>
 
-#include "Editor/Value.h"
+#include <Editor/Value/Value.h>
 
 #include "Network/Address.h"
 #include "Network/Node.h"

@@ -1,6 +1,6 @@
 #include "LocalTreeDocumentPlugin.hpp"
 #include <Network/Device.h>
-#include <Editor/Value.h>
+#include <Editor/Value/Value.h>
 #include <Network/Address.h>
 
 
