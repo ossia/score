@@ -28,7 +28,7 @@
 #include <Device/Protocol/DeviceList.hpp>
 #include "Editor/Message.h"
 #include "Editor/State.h"
-#include "Editor/Value.h"
+#include <Editor/Value/Value.h>
 #include <Editor/ExpressionPulse.h>
 #include "Network/Address.h"
 #include "Network/Device.h"
