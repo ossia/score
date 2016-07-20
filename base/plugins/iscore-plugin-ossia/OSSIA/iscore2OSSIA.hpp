@@ -1,5 +1,6 @@
 #pragma once
 #include <Editor/TimeValue.h>
+#include <Editor/Value/SafeValue.h>
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
 #include <State/Expression.hpp>
@@ -27,7 +28,6 @@ class Expression;
 class Message;
 class Node;
 class State;
-class Value;
 }  // namespace OSSIA
 namespace Device
 {
@@ -71,9 +71,9 @@ ISCORE_PLUGIN_OSSIA_EXPORT void removeOSSIAAddress(
         OSSIA::Node*); // Keeps the Node.
 ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAValue(
         const State::ValueImpl& data,
-        OSSIA::Value& val);
+        OSSIA::SafeValue& val);
 
-ISCORE_PLUGIN_OSSIA_EXPORT std::unique_ptr<OSSIA::Value> toOSSIAValue(
+ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::SafeValue toOSSIAValue(
         const State::Value&);
 
 //// Other conversions

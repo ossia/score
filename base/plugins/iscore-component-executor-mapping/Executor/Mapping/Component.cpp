@@ -172,7 +172,7 @@ void Component::recreate()
     // TODO on_min/max changed
     m_ossia_process = OSSIA::Mapper::create(
                 ossia_source_addr, ossia_target_addr,
-                new Behavior(m_ossia_curve));
+                Behavior(m_ossia_curve));
 
     return;
 

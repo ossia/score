@@ -66,7 +66,7 @@ struct PropertyWrapper : public BaseCallbackWrapper
             BaseCallbackWrapper{param_node, param_addr},
             property{prop}
         {
-            callbackIt = addr->addCallback([=] (const OSSIA::Value& v) {
+            callbackIt = addr->addCallback([=] (const OSSIA::SafeValue& v) {
                     property.set(Ossia::convert::ToValue(v));
             });
 
@@ -79,8 +79,7 @@ struct PropertyWrapper : public BaseCallbackWrapper
 
                     if(newVal != res)
                     {
-                        auto new_ossia_val = iscore::convert::toOSSIAValue(newVal);
-                        addr->pushValue(*new_ossia_val);
+                        addr->pushValue(iscore::convert::toOSSIAValue(newVal));
                     }
                 }
                 catch(...)
@@ -91,9 +90,10 @@ struct PropertyWrapper : public BaseCallbackWrapper
             Qt::QueuedConnection);
 
             {
-                auto new_ossia_val = iscore::convert::toOSSIAValue(
-                            State::Value::fromValue(property.get()));
-                addr->setValue(*new_ossia_val);
+                addr->setValue(
+                            iscore::convert::toOSSIAValue(
+                                State::Value::fromValue(
+                                    property.get())));
             }
         }
 };

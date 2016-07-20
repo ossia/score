@@ -100,7 +100,7 @@ void Component::recreate()
     // TODO on_min/max changed
     m_ossia_process = OSSIA::Automation::create(
                 address,
-                new Behavior(m_ossia_curve));
+                Behavior(m_ossia_curve));
 
 
     return;
