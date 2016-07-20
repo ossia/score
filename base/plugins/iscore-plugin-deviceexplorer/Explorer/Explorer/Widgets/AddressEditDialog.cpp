@@ -34,10 +34,12 @@ AddressEditDialog::AddressEditDialog(
 
 static void populateTypeCb(QComboBox& cb)
 {
-    for(int i = 0; i < 8; i++)
+    auto& arr = State::convert::ValuePrettyTypesArray();
+    const int n = arr.size();
+    for(int i = 0; i < n; i++)
     {
         auto t = static_cast<State::ValueType>(i);
-        cb.addItem(State::convert::prettyType(t), QVariant::fromValue(t));
+        cb.addItem(arr[i], QVariant::fromValue(t));
     }
 }
 
