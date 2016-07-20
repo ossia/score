@@ -58,78 +58,6 @@ Device::ClipMode ToClipMode(OSSIA::BoundingMode b)
     }
 }
 
-State::Value ToValue(const OSSIA::Value *val)
-{
-    if(!val)
-        return {};
-
-    switch(val->getType())
-    {
-        case OSSIA::Type::IMPULSE:
-            return State::Value::fromValue(State::impulse_t{});
-        case OSSIA::Type::BOOL:
-        {
-            auto val_sub = static_cast<const OSSIA::Bool*>(val);
-            return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(bool{});
-        }
-        case OSSIA::Type::INT:
-        {
-            auto val_sub = static_cast<const OSSIA::Int*>(val);
-            return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(int{});
-        }
-        case OSSIA::Type::FLOAT:
-        {
-            auto val_sub = static_cast<const OSSIA::Float*>(val);
-            return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(float{});
-        }
-        case OSSIA::Type::CHAR:
-        {
-            auto val_sub = static_cast<const OSSIA::Char*>(val);
-            return val_sub ? State::Value::fromValue(val_sub->value) : State::Value::fromValue(char{});
-        }
-        case OSSIA::Type::STRING:
-        {
-            auto val_sub = static_cast<const OSSIA::String*>(val);
-            return val_sub ?
-                        State::Value::fromValue(QString::fromStdString(val_sub->value)) :
-                        State::Value::fromValue(QString{});
-        }
-        case OSSIA::Type::VEC2F:
-        {
-            auto& arr = static_cast<const OSSIA::Vec2f*>(val)->value;
-            return State::Value::fromValue(State::tuple_t{arr[0], arr[1]});
-        }
-        case OSSIA::Type::VEC3F:
-        {
-            auto& arr = static_cast<const OSSIA::Vec3f*>(val)->value;
-            return State::Value::fromValue(State::tuple_t{arr[0], arr[1], arr[2]});
-        }
-        case OSSIA::Type::VEC4F:
-        {
-            auto& arr = static_cast<const OSSIA::Vec4f*>(val)->value;
-            return State::Value::fromValue(State::tuple_t{arr[0], arr[1], arr[2], arr[3]});
-        }
-        case OSSIA::Type::TUPLE:
-        {
-            auto ossia_tuple = static_cast<const OSSIA::Tuple*>(val);
-
-            State::tuple_t tuple;
-
-            tuple.reserve(ossia_tuple->value.size());
-            for (const auto & e : ossia_tuple->value)
-            {
-                tuple.push_back(ToValue(e).val); // TODO REVIEW THIS
-            }
-
-            return State::Value::fromValue(tuple);
-        }
-        case OSSIA::Type::DESTINATION:
-        case OSSIA::Type::BEHAVIOR:
-        default:
-            return {};
-    }
-}
-
 State::Address ToAddress(const OSSIA::Node& node)
 {
     State::Address addr;
@@ -157,20 +85,13 @@ Device::AddressSettings ToAddressSettings(const OSSIA::Node &node)
     if(addr)
     {
         addr->pullValue();
+
         try {
-            if(auto val = addr->cloneValue())
-            {
-                s.value = ToValue(val);
-            }
-            else
-            {
-                s.value = ToValue(addr->getValueType());
-            }
+            s.value = ToValue(addr->cloneValue());
         }
         catch(...)
         {
             s.value = ToValue(addr->getValueType());
-
         }
 
         /* Debug code
@@ -259,6 +180,38 @@ State::Value ToValue(OSSIA::Type t)
             return State::Value{};
     }
 
+}
+
+State::Value ToValue(const OSSIA::SafeValue& val)
+{
+    struct {
+            using return_type = State::Value;
+            return_type operator()(OSSIA::Destination) const { return {}; }
+            return_type operator()(OSSIA::Behavior) const { return {}; }
+            return_type operator()(OSSIA::Impulse) const { return State::Value::fromValue(State::impulse_t{}); }
+            return_type operator()(OSSIA::Int v) const { return State::Value::fromValue(v.value); }
+            return_type operator()(OSSIA::Float v) const { return State::Value::fromValue(v.value); }
+            return_type operator()(OSSIA::Bool v) const { return State::Value::fromValue(v.value); }
+            return_type operator()(OSSIA::Char v) const { return State::Value::fromValue(v.value); }
+            return_type operator()(const OSSIA::String& v) const { return State::Value::fromValue(QString::fromStdString(v.value)); }
+            return_type operator()(OSSIA::Vec2f v) const { return State::Value::fromValue(State::vec2f{v.value}); }
+            return_type operator()(OSSIA::Vec3f v) const { return State::Value::fromValue(State::vec3f{v.value}); }
+            return_type operator()(OSSIA::Vec4f v) const { return State::Value::fromValue(State::vec4f{v.value}); }
+            return_type operator()(const OSSIA::Tuple& v) const
+            {
+                State::tuple_t tuple;
+
+                tuple.reserve(v.value.size());
+                for (const auto & e : v.value)
+                {
+                    tuple.push_back(ToValue(e).val); // TODO REVIEW THIS
+                }
+
+                return State::Value::fromValue(std::move(tuple));
+            }
+    } visitor{};
+
+    return eggs::variants::apply(visitor, val.v);
 }
 
 }

@@ -228,14 +228,13 @@ void updateOSSIAAddress(
     addr->setRepetitionFilter(settings.repetitionFilter);
     addr->setBoundingMode(toBoundingMode(settings.clipMode));
 
-    auto val = iscore::convert::toOSSIAValue(settings.value);
-    addr->setValue(*val);
+    addr->setValue(iscore::convert::toOSSIAValue(settings.value));
 
     auto min = toOSSIAValue(settings.domain.min);
     auto max = toOSSIAValue(settings.domain.max);
-    if(min && max)
+    if(min.valid() && max.valid())
     {
-        addr->setDomain(OSSIA::Domain::create(min.get(), max.get()));
+        addr->setDomain(OSSIA::Domain::create(min, max));
     }
 }
 
@@ -265,92 +264,68 @@ void createOSSIAAddress(
     updateOSSIAAddress(settings,  node->createAddress(eggs::variants::apply(visitor, settings.value.val.impl())));
 }
 
-void updateOSSIAValue(const State::ValueImpl& data, OSSIA::Value& val)
-{
-    switch(val.getType())
-    {
-        case OSSIA::Type::IMPULSE:
-            break;
-        case OSSIA::Type::BOOL:
-            safe_cast<OSSIA::Bool&>(val).value = data.get<bool>();
-            break;
-        case OSSIA::Type::INT:
-            safe_cast<OSSIA::Int&>(val).value = data.get<int>();
-            break;
-        case OSSIA::Type::FLOAT:
-            safe_cast<OSSIA::Float&>(val).value = data.get<float>();
-            break;
-        case OSSIA::Type::CHAR: // TODO See TODO in MessageEditDialog
-            safe_cast<OSSIA::Char&>(val).value = data.get<QChar>().toLatin1();
-            break;
-        case OSSIA::Type::STRING:
-            safe_cast<OSSIA::String&>(val).value = data.get<QString>().toStdString();
-            break;
-        case OSSIA::Type::VEC2F:
-        {
-            safe_cast<OSSIA::Vec2f&>(val).value = data.get<State::vec2f>();
-            break;
-        }
-        case OSSIA::Type::VEC3F:
-        {
-            safe_cast<OSSIA::Vec3f&>(val).value = data.get<State::vec3f>();
-            break;
-        }
-        case OSSIA::Type::VEC4F:
-        {
-            safe_cast<OSSIA::Vec4f&>(val).value = data.get<State::vec4f>();
-            break;
-        }
-        case OSSIA::Type::TUPLE:
-        {
-            State::tuple_t tuple = data.get<State::tuple_t>();
-            const auto& vec = safe_cast<OSSIA::Tuple&>(val).value;
-            ISCORE_ASSERT(tuple.size() == vec.size());
-            int n = vec.size();
-            for(int i = 0; i < n; i++)
-            {
-                updateOSSIAValue(tuple[i], *vec[i]);
-            }
-
-            break;
-        }
-        case OSSIA::Type::DESTINATION:
-        case OSSIA::Type::BEHAVIOR:
-        default:
-            break;
-    }
-}
-
-static std::unique_ptr<OSSIA::Value> toOSSIAValue(const State::ValueImpl& val)
+void updateOSSIAValue(const State::ValueImpl& iscore_data, OSSIA::SafeValue& val)
 {
     struct {
-        public:
-            using return_type = OSSIA::Value*;
-            return_type operator()(const State::no_value_t&) const { return nullptr; }
-            return_type operator()(const State::impulse_t&) const { return new OSSIA::Impulse; }
-            return_type operator()(int v) const { return new OSSIA::Int{v}; }
-            return_type operator()(float v) const { return new OSSIA::Float{v}; }
-            return_type operator()(bool v) const { return new OSSIA::Bool{v}; }
-            return_type operator()(const QString& v) const { return new OSSIA::String{v.toStdString()}; }
-            return_type operator()(const QChar& v) const { return new OSSIA::Char{v.toLatin1()}; }
-            return_type operator()(const State::vec2f& v) const { return new OSSIA::Vec2f{v}; }
-            return_type operator()(const State::vec3f& v) const { return new OSSIA::Vec3f{v}; }
-            return_type operator()(const State::vec4f& v) const { return new OSSIA::Vec4f{v}; }
+            const State::ValueImpl& data;
+            void operator()(const OSSIA::Destination&) const { }
+            void operator()(const OSSIA::Behavior&) const { }
+            void operator()(OSSIA::Impulse) const { }
+            void operator()(OSSIA::Int& v) const { v = data.get<int>(); }
+            void operator()(OSSIA::Float& v) const { v = data.get<float>(); }
+            void operator()(OSSIA::Bool& v) const { v = data.get<bool>(); }
+            void operator()(OSSIA::Char& v) const { v = data.get<QChar>().toLatin1(); }
+            void operator()(OSSIA::String& v) const { v = data.get<QString>().toStdString(); }
+            void operator()(OSSIA::Vec2f& v) const { v.value = data.get<State::vec2f>(); }
+            void operator()(OSSIA::Vec3f& v) const { v.value = data.get<State::vec3f>(); }
+            void operator()(OSSIA::Vec4f& v) const { v.value = data.get<State::vec4f>(); }
+            void operator()(OSSIA::Tuple& v) const
+            {
+                State::tuple_t tuple = data.get<State::tuple_t>();
+                auto& vec = v.value;
+                ISCORE_ASSERT(tuple.size() == vec.size());
+                int n = vec.size();
+                for(int i = 0; i < n; i++)
+                {
+                    updateOSSIAValue(tuple[i], vec[i]);
+                }
+            }
+    } visitor{iscore_data};
+
+    return eggs::variants::apply(visitor, val.v);
+}
+
+static OSSIA::SafeValue toOSSIAValue(const State::ValueImpl& val)
+{
+    struct {
+            using return_type = OSSIA::SafeValue;
+            return_type operator()(const State::no_value_t&) const { return OSSIA::SafeValue{}; }
+            return_type operator()(const State::impulse_t&) const { return OSSIA::Impulse{}; }
+            return_type operator()(int v) const { return OSSIA::Int{v}; }
+            return_type operator()(float v) const { return OSSIA::Float{v}; }
+            return_type operator()(bool v) const { return OSSIA::Bool{v}; }
+            return_type operator()(const QString& v) const { return OSSIA::String{v.toStdString()}; }
+            return_type operator()(const QChar& v) const { return OSSIA::Char{v.toLatin1()}; }
+            return_type operator()(const State::vec2f& v) const { return OSSIA::Vec2f{v}; }
+            return_type operator()(const State::vec3f& v) const { return OSSIA::Vec3f{v}; }
+            return_type operator()(const State::vec4f& v) const { return OSSIA::Vec4f{v}; }
             return_type operator()(const State::tuple_t& v) const
             {
-                auto ossia_tuple = new OSSIA::Tuple;
+                OSSIA::Tuple ossia_tuple;
+                ossia_tuple.value.reserve(v.size());
                 for(const auto& tuple_elt : v)
                 {
-                    ossia_tuple->value.push_back(eggs::variants::apply(*this, tuple_elt.impl()));
+                    ossia_tuple.value.push_back(eggs::variants::apply(*this, tuple_elt.impl()));
                 }
+
                 return ossia_tuple;
             }
     } visitor{};
 
-    return std::unique_ptr<OSSIA::Value>{eggs::variants::apply(visitor, val.impl())};
+    return eggs::variants::apply(visitor, val.impl());
 }
 
-std::unique_ptr<OSSIA::Value> toOSSIAValue(
+OSSIA::SafeValue toOSSIAValue(
         const State::Value& value)
 {
     return toOSSIAValue(value.val);
@@ -382,8 +357,9 @@ std::shared_ptr<OSSIA::Message> message(
         if (!ossia_addr)
             return{};
 
-        auto val = iscore::convert::toOSSIAValue(mess.value);
-        return OSSIA::Message::create(ossia_addr, *val);
+        return OSSIA::Message::create(
+                    ossia_addr,
+                    iscore::convert::toOSSIAValue(mess.value));
     }
 
     return {};
@@ -451,7 +427,7 @@ std::shared_ptr<OSSIA::State> state(
 }
 
 
-static OSSIA::Destination* expressionAddress(
+static OSSIA::Destination expressionAddress(
         const State::Address& addr,
         const Device::DeviceList& devlist)
 {
@@ -470,7 +446,7 @@ static OSSIA::Destination* expressionAddress(
         auto n = findNodeFromPath(addr.path, casted_dev->impl_ptr());
         if(n)
         {
-            return new OSSIA::Destination(n);
+            return OSSIA::Destination(n);
         }
         else
         {
@@ -483,7 +459,7 @@ static OSSIA::Destination* expressionAddress(
     }
 }
 
-static OSSIA::Value* expressionOperand(
+static OSSIA::SafeValue expressionOperand(
         const State::RelationMember& relm,
         const Device::DeviceList& list)
 {
@@ -492,21 +468,20 @@ static OSSIA::Value* expressionOperand(
     const struct {
         public:
             const Device::DeviceList& devlist;
-            using return_type = OSSIA::Value*;
+            using return_type = OSSIA::SafeValue;
             return_type operator()(const State::Address& addr) const {
                 return expressionAddress(addr, devlist);
             }
 
             return_type operator()(const State::Value& val) const {
-                return toOSSIAValue(val).release();
+                return toOSSIAValue(val);
             }
 
             return_type operator()(const State::AddressAccessor& acc) const {
                 auto dest = expressionAddress(acc.address, devlist);
-                if(dest)
-                {
-                    transform(acc.accessors, std::back_inserter(dest->index), [] (auto i) { return i;});
-                }
+
+                transform(acc.accessors, std::back_inserter(dest.index), [] (auto i) { return i;});
+
                 return dest;
             }
     } visitor{list};

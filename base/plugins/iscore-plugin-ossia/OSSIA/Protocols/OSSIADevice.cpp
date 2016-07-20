@@ -17,10 +17,6 @@
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
-namespace OSSIA {
-class Value;
-}  // namespace OSSIA
-
 using namespace iscore::convert;
 using namespace Ossia::convert;
 
@@ -315,7 +311,7 @@ void OSSIADevice::setListening(
                 addr,
                 {
                      ossia_addr,
-                     ossia_addr->addCallback([=] (const OSSIA::Value& val)
+                     ossia_addr->addCallback([=] (const OSSIA::SafeValue& val)
                       {
                           emit valueUpdated(addr, Ossia::convert::ToValue(val));
                       })
@@ -373,8 +369,7 @@ void OSSIADevice::sendMessage(const State::Message& mess)
     auto addr = node->getAddress();
     if(addr)
     {
-        auto val = iscore::convert::toOSSIAValue(mess.value);
-        addr->pushValue(*val);
+        addr->pushValue(iscore::convert::toOSSIAValue(mess.value));
     }
 }
 
