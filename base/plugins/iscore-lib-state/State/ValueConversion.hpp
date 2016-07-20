@@ -59,6 +59,7 @@ ISCORE_LIB_STATE_EXPORT State::Value fromQJsonValue(const QJsonValue& val, const
 
 ISCORE_LIB_STATE_EXPORT QString prettyType(const State::Value& val); // For display to the user, translated
 ISCORE_LIB_STATE_EXPORT QString prettyType(State::ValueType); // For display to the user, translated
+ISCORE_LIB_STATE_EXPORT const std::array<const QString, 11>& ValuePrettyTypesArray(); // For display to the user, translated
 ISCORE_LIB_STATE_EXPORT const QStringList& ValuePrettyTypesList(); // For display to the user, translated
 ISCORE_LIB_STATE_EXPORT const std::array<std::pair<QString, State::ValueType>, 10>& ValuePrettyTypesMap();
 }

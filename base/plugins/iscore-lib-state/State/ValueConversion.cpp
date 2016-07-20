@@ -35,7 +35,7 @@ const std::array<const QString, 11> ValueTypesArray{{
                 QStringLiteral("Tuple"),
                 QStringLiteral("None")}};
 
-const std::array<const QString, 11> ValuePrettyTypesArray{{
+const std::array<const QString, 11> ValuePrettyTypes{{
         QObject::tr("Impulse"),
                 QObject::tr("Int"),
                 QObject::tr("Float"),
@@ -297,8 +297,8 @@ State::Value fromQJsonValue(const QJsonValue& val, const QString& type)
 QString prettyType(const State::Value& val)
 {
     const auto& impl = val.val.impl();
-    ISCORE_ASSERT(impl.which() < ValuePrettyTypesArray.size());
-    return ValuePrettyTypesArray.at(impl.which());
+    ISCORE_ASSERT(impl.which() < ValuePrettyTypes.size());
+    return ValuePrettyTypes.at(impl.which());
 }
 
 
@@ -308,7 +308,7 @@ const QStringList& ValuePrettyTypesList()
     static QStringList lst;
     if(!init)
     {
-        for(const auto& str : ValuePrettyTypesArray)
+        for(const auto& str : ValuePrettyTypes)
             lst.append(str);
         init = true;
     }
@@ -815,12 +815,17 @@ State::Value fromQVariant(const QVariant& val)
 
 QString prettyType(ValueType t)
 {
-    return ValuePrettyTypesArray[static_cast<int>(t)];
+    return ValuePrettyTypes[static_cast<int>(t)];
 }
 
 const std::array<std::pair<QString, State::ValueType>, 10> & ValuePrettyTypesMap()
 {
     return ValuePrettyTypesPairArray;
+}
+
+const std::array<const QString, 11>& ValuePrettyTypesArray()
+{
+    return ValuePrettyTypes;
 }
 
 }
