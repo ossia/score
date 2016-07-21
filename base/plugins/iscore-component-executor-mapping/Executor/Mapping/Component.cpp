@@ -24,8 +24,8 @@
 #include <OSSIA/CurveConversion.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include <Editor/Curve.h>
-#include <Editor/CurveSegment/CurveSegmentLinear.h>
-#include <Editor/CurveSegment/CurveSegmentPower.h>
+#include <Editor/CurveSegment/Linear.h>
+#include <Editor/CurveSegment/Power.h>
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 

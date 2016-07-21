@@ -5,7 +5,7 @@
 #include <QString>
 #include <QVariant>
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_curve_export.h>
 
 class QObject;
 struct VisitorVariant;
@@ -14,7 +14,7 @@ namespace Curve
 {
 class SegmentModel;
 struct SegmentData;
-class SegmentFactory :
+class ISCORE_PLUGIN_CURVE_EXPORT SegmentFactory :
         public iscore::AbstractFactory<SegmentFactory>
 {
         ISCORE_ABSTRACT_FACTORY("608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
@@ -82,6 +82,7 @@ class SegmentFactory_T : public SegmentFactory
 };
 
 }
+// TODO this needn't be a macro anymore.
 #define DEFINE_CURVE_SEGMENT_FACTORY(Name, Model) \
     class Name final : public Curve::SegmentFactory_T<Model> \
 { \
