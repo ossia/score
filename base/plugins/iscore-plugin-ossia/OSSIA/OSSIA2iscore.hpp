@@ -112,7 +112,7 @@ State::Value ToValue(OSSIA::Type);
 
 State::Address ToAddress(const OSSIA::Node& node);
 Device::AddressSettings ToAddressSettings(const OSSIA::Node& node);
-Device::Node ToDeviceExplorer(const OSSIA::Node& node);
+ISCORE_PLUGIN_OSSIA_EXPORT Device::Node ToDeviceExplorer(const OSSIA::Node& node);
 
 
 inline ::TimeValue time(const OSSIA::TimeValue& t)
