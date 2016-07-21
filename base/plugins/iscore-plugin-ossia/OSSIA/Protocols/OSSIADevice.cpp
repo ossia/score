@@ -301,7 +301,6 @@ void OSSIADevice::setListening(
     if(b)
     {
         ossia_addr->pullValue();
-
         emit valueUpdated(addr, Ossia::convert::ToValue(ossia_addr->cloneValue()));
 
         if(cb_it == m_callbacks.end())
