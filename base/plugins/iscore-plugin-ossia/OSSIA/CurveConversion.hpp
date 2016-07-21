@@ -1,8 +1,9 @@
 #pragma once
 
 #include <Editor/Curve.h>
-#include <Editor/CurveSegment/CurveSegmentLinear.h>
-#include <Editor/CurveSegment/CurveSegmentPower.h>
+#include <Editor/CurveSegment/Linear.h>
+#include <Editor/CurveSegment/Power.h>
+#include <Editor/CurveSegment/Easing.h>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 
@@ -30,7 +31,7 @@ std::shared_ptr<OSSIA::CurveAbstract> curve(
         if(iscore_segment.type == Metadata<ConcreteFactoryKey_k, Curve::LinearSegment>::get())
         {
             curve->addPoint(
-                        OSSIA::CurveSegmentLinear<Y_T>::create(curve),
+                        std::make_unique<OSSIA::CurveSegmentLinear<Y_T>>(),
                         scale_x(iscore_segment.end.x()),
                         scale_y(iscore_segment.end.y()));
         }
@@ -41,17 +42,18 @@ std::shared_ptr<OSSIA::CurveAbstract> curve(
             if(val.gamma == Curve::PowerSegmentData::linearGamma)
             {
                 curve->addPoint(
-                            OSSIA::CurveSegmentLinear<Y_T>::create(curve),
+                            std::make_unique<OSSIA::CurveSegmentLinear<Y_T>>(),
                             scale_x(iscore_segment.end.x()),
                             scale_y(iscore_segment.end.y()));
             }
             else
             {
-                auto powSegment = OSSIA::CurveSegmentPower<Y_T>::create(curve);
-                powSegment->setPower(Curve::PowerSegmentData::linearGamma + 1 - val.gamma);
+              auto easing = std::make_unique<OSSIA::CurveSegmentEase<Y_T, OSSIA::easing::backIn<double>>>();
+                auto powSegment = std::make_unique<OSSIA::CurveSegmentPower<Y_T>>();
+                powSegment->power = Curve::PowerSegmentData::linearGamma + 1 - val.gamma;
 
                 curve->addPoint(
-                            powSegment,
+                            std::move(powSegment),
                             scale_x(iscore_segment.end.x()),
                             scale_y(iscore_segment.end.y()));
             }

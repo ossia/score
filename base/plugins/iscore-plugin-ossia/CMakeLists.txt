@@ -34,6 +34,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDISpecificSettings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Panel/MessagesPanel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Curve/EasingSegment.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIAApplicationPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.hpp"
 
@@ -149,6 +150,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreeView.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Curve/EasingSegment.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.cpp"
