@@ -124,8 +124,7 @@ class EasingSegment final :
 
         double valueAt(double x) const override
         {
-            ISCORE_TODO;
-            return -1;
+            return start().y() + (end().y() - start().y()) * (Easing_T{}(x) - start().x()) / (end().x() - start().x());
         }
 
         optional<double> verticalParameter() const override { return {}; }
