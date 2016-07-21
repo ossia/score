@@ -9,6 +9,7 @@ class DeviceList;
 namespace Ossia
 {
 class PanelDelegate final :
+        public QObject,
         public iscore::PanelDelegate
 {
     public:

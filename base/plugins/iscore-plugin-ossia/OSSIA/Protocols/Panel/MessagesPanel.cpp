@@ -3,12 +3,24 @@
 #include <QListWidget>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <QMenu>
 namespace Ossia
 {
 PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx):
     iscore::PanelDelegate{ctx},
     m_widget{new QListWidget}
 {
+    m_widget->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+    connect(m_widget, &QListWidget::customContextMenuRequested,
+            this, [=] (const QPoint &pos) {
+        QMenu m{};
+        auto act = m.addAction(QObject::tr("Clear"));
+        auto res = m.exec(QCursor::pos());
+        if(res == act)
+        {
+            m_widget->clear();
+        }
+    });
 }
 
 QWidget*PanelDelegate::widget()
