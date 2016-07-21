@@ -44,6 +44,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT Model final : public IdentifiedObject<Model>
         // Here we don't pass an id because it's more efficient
         void removeSegment(SegmentModel* m);
 
+        std::vector<SegmentModel*> sortedSegments() const;
         std::vector<SegmentData> toCurveData() const;
         void fromCurveData(const std::vector<SegmentData>& curve);
 

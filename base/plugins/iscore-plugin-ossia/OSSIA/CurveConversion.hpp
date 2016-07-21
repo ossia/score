@@ -13,6 +13,28 @@ namespace iscore
 namespace convert
 {
 
+template<typename Y_T>
+struct CurveTraits;
+
+template<>
+struct CurveTraits<int>
+{
+        static const constexpr auto fun = &Curve::SegmentModel::makeIntFunction;
+};
+
+template<>
+struct CurveTraits<float>
+{
+        static const constexpr auto fun = &Curve::SegmentModel::makeFloatFunction;
+};
+
+template<>
+struct CurveTraits<bool>
+{
+        static const constexpr auto fun = &Curve::SegmentModel::makeBoolFunction;
+};
+
+
 template<typename X_T, typename Y_T, typename XScaleFun, typename YScaleFun, typename Segments>
 std::shared_ptr<OSSIA::CurveAbstract> curve(
         XScaleFun scale_x,
@@ -20,44 +42,21 @@ std::shared_ptr<OSSIA::CurveAbstract> curve(
         const Segments& segments)
 {
     auto curve = OSSIA::Curve<X_T, Y_T>::create();
-    if(segments[0].start.x() == 0.)
+
+    auto start = segments[0]->start();
+    if(start.x() == 0.)
     {
-        curve->setInitialPointAbscissa(scale_x(segments[0].start.x()));
-        curve->setInitialPointOrdinate(scale_y(segments[0].start.y()));
+        curve->setInitialPointAbscissa(scale_x(start.x()));
+        curve->setInitialPointOrdinate(scale_y(start.y()));
     }
 
-    for(const auto& iscore_segment : segments)
+    for(auto iscore_segment : segments)
     {
-        if(iscore_segment.type == Metadata<ConcreteFactoryKey_k, Curve::LinearSegment>::get())
-        {
-            curve->addPoint(
-                        std::make_unique<OSSIA::CurveSegmentLinear<Y_T>>(),
-                        scale_x(iscore_segment.end.x()),
-                        scale_y(iscore_segment.end.y()));
-        }
-        else if(iscore_segment.type == Metadata<ConcreteFactoryKey_k, Curve::PowerSegment>::get())
-        {
-            auto val = iscore_segment.specificSegmentData.template value<Curve::PowerSegmentData>();
-
-            if(val.gamma == Curve::PowerSegmentData::linearGamma)
-            {
-                curve->addPoint(
-                            std::make_unique<OSSIA::CurveSegmentLinear<Y_T>>(),
-                            scale_x(iscore_segment.end.x()),
-                            scale_y(iscore_segment.end.y()));
-            }
-            else
-            {
-              auto easing = std::make_unique<OSSIA::CurveSegmentEase<Y_T, OSSIA::easing::backIn<double>>>();
-                auto powSegment = std::make_unique<OSSIA::CurveSegmentPower<Y_T>>();
-                powSegment->power = Curve::PowerSegmentData::linearGamma + 1 - val.gamma;
-
-                curve->addPoint(
-                            std::move(powSegment),
-                            scale_x(iscore_segment.end.x()),
-                            scale_y(iscore_segment.end.y()));
-            }
-        }
+        auto end = iscore_segment->end();
+        curve->addPoint(
+                    (iscore_segment->*CurveTraits<Y_T>::fun)(),
+                    scale_x(end.x()),
+                    scale_y(end.y()));
     }
     return curve;
 }

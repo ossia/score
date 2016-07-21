@@ -46,6 +46,20 @@ class ISCORE_PLUGIN_CURVE_EXPORT LinearSegment final :
         double valueAt(double x) const override;
 
         QVariant toSegmentSpecificData() const override;
+
+        template<typename T>
+        std::function<T(double, T, T)> makeFunction() const
+        {
+            return [] (double ratio, T start, T end) {
+                return start + ratio * (end - start);
+            };
+        }
+        std::function<float(double, float, float)> makeFloatFunction() const override
+        { return makeFunction<float>(); }
+        std::function<int(double, int, int)> makeIntFunction() const override
+        { return makeFunction<int>(); }
+        std::function<bool(double, bool, bool)> makeBoolFunction() const override
+        { return makeFunction<bool>(); }
 };
 }
 
