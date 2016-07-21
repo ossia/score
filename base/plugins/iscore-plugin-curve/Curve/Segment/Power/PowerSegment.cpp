@@ -84,10 +84,15 @@ void PowerSegment::updateData(int numInterp) const
 
 double PowerSegment::valueAt(double x) const
 {
-    // TODO nope nope, that's linear ... but ok for 0 and 1
-    return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
-
-    return -1;
+    if(gamma == PowerSegmentData::linearGamma)
+    {
+        return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
+    }
+    else
+    {
+        double power = PowerSegmentData::linearGamma + 1 - gamma;
+        return start().y() + (end().y() - start().y()) * (std::pow(x, power) - start().x()) / (end().x() - start().x());
+    }
 }
 
 void PowerSegment::setVerticalParameter(double p)
