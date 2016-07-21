@@ -91,6 +91,14 @@ class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final :
             return QVariant::fromValue(std::move(dat));
         }
 
+        // This will throw if execution is attempted.
+        std::function<float(double, float, float)> makeFloatFunction() const override
+        { return {}; }
+        std::function<int(double, int, int)> makeIntFunction() const override
+        { return {}; }
+        std::function<bool(double, bool, bool)> makeBoolFunction() const override
+        { return {}; }
+
     signals:
         void minChanged(double);
         void maxChanged(double);

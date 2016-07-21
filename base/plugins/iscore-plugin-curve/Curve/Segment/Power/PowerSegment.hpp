@@ -79,6 +79,30 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final :
             return QVariant::fromValue(PowerSegmentData(gamma));
         }
 
+        template<typename Y>
+        std::function<Y(double, Y, Y)> makeFunction() const
+        {
+            if(gamma == Curve::PowerSegmentData::linearGamma)
+            {
+                // We just return the linear one
+                return [] (double ratio, Y start, Y end) {
+                    return start + ratio * (end - start);
+                };
+            }
+            else
+            {
+                double thepow = Curve::PowerSegmentData::linearGamma + 1 - gamma;
+                return [=] (double ratio, Y start, Y end) {
+                    return start + std::pow(ratio, thepow) * (end - start);
+                };
+            }
+        }
+        std::function<float(double, float, float)> makeFloatFunction() const override
+        { return makeFunction<float>(); }
+        std::function<int(double, int, int)> makeIntFunction() const override
+        { return makeFunction<int>(); }
+        std::function<bool(double, bool, bool)> makeBoolFunction() const override
+        { return makeFunction<bool>(); }
 };
 }
 

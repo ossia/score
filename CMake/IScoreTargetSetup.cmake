@@ -143,7 +143,7 @@ function(iscore_set_unix_compile_options theTarget)
     # Debug options
     "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-gsplit-dwarf>"
     "$<$<AND:$<CONFIG:Debug>,$<BOOL:${WIN32}>>:-Os>"
-    "$<$<AND:$<CONFIG:Debug>,$<NOT:$<BOOL:${WIN32}>>>:-O0>"
+    "$<$<AND:$<CONFIG:Debug>,$<NOT:$<BOOL:${WIN32}>>>:-Og>"
     "$<$<CONFIG:Debug>:-g>"
 
     # Release options

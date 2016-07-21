@@ -121,10 +121,9 @@ std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl()
     auto scale_x = [=] (double val) -> double { return val; };
     auto scale_y = [=] (double val) -> Y_T { return val * (max - min) + min; };
 
-    auto segt_data = process().curve().toCurveData();
+    auto segt_data = process().curve().sortedSegments();
     if(segt_data.size() != 0)
     {
-        std::sort(segt_data.begin(), segt_data.end());
         return iscore::convert::curve<double, Y_T>(scale_x, scale_y, segt_data);
     }
     else

@@ -9,6 +9,7 @@
 #include <QPoint>
 #include <QVariant>
 #include <vector>
+#include <functional>
 
 
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -90,6 +91,10 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
         virtual void setHorizontalParameter(double p);
         virtual optional<double> verticalParameter() const;
         virtual optional<double> horizontalParameter() const;
+
+        virtual std::function<float(double, float, float)> makeFloatFunction() const = 0;
+        virtual std::function<int(double, int, int)> makeIntFunction() const = 0;
+        virtual std::function<bool(double, bool, bool)> makeBoolFunction() const = 0;
 
         SegmentData toSegmentData() const
         {

@@ -137,6 +137,20 @@ class EasingSegment final :
         {
             return QVariant::fromValue(EasingData{});
         }
+
+        template<typename Y>
+        std::function<Y(double, Y, Y)> makeFunction() const
+        {
+            return [=] (double ratio, Y start, Y end) {
+                return start + Easing_T{}(ratio) * (end - start);
+            };
+        }
+        std::function<float(double, float, float)> makeFloatFunction() const override
+        { return makeFunction<float>(); }
+        std::function<int(double, int, int)> makeIntFunction() const override
+        { return makeFunction<int>(); }
+        std::function<bool(double, bool, bool)> makeBoolFunction() const override
+        { return makeFunction<bool>(); }
 };
 using Segment_backIn = EasingSegment<OSSIA::easing::backIn<double>>;
 using Segment_backOut = EasingSegment<OSSIA::easing::backOut<double>>;

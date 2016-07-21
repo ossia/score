@@ -58,6 +58,20 @@ class ISCORE_PLUGIN_CURVE_EXPORT SinSegment final :
         {
             return QVariant::fromValue(SinSegmentData{freq, ampl});
         }
+
+        template<typename Y>
+        std::function<Y(double, Y, Y)> makeFunction() const
+        {
+            return [=] (double ratio, Y start, Y end) {
+                return (end - start) / 2. + ampl * std::sin(6.28 * ratio / freq) * (end - start) / 2.;
+            };
+        }
+        std::function<float(double, float, float)> makeFloatFunction() const override
+        { return makeFunction<float>(); }
+        std::function<int(double, int, int)> makeIntFunction() const override
+        { return makeFunction<int>(); }
+        std::function<bool(double, bool, bool)> makeBoolFunction() const override
+        { return makeFunction<bool>(); }
 };
 }
 

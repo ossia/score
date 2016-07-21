@@ -232,6 +232,22 @@ void Model::removeSegment(SegmentModel* m)
     delete m;
 }
 
+std::vector<SegmentModel*> Model::sortedSegments() const
+{
+    std::vector<SegmentModel*> dat;
+    dat.reserve(m_segments.size());
+    for(auto& seg : m_segments)
+    {
+        dat.push_back(&seg);
+    }
+
+    sort(dat, [] (auto s1, auto s2) {
+        return s1->start().x() < s2->start().x();
+    });
+
+    return dat;
+}
+
 std::vector<SegmentData> Model::toCurveData() const
 {
     std::vector<SegmentData> dat;
