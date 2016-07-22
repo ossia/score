@@ -20,7 +20,7 @@ class LoopingProcessWrapper : public ProcessWrapper
     public:
         LoopingProcessWrapper(const std::shared_ptr<OSSIA::TimeConstraint>& cst,
                        const std::shared_ptr<OSSIA::TimeProcess>& ptr,
-                       const OSSIA::TimeValue& dur,
+                       OSSIA::TimeValue dur,
                        bool looping);
 
     private:

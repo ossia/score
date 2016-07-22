@@ -165,6 +165,9 @@ void TemporalConstraintView::paint(
         constraintColor = skin.ConstraintInvalid.getColor();
     }
 
+    if(m_shadow)
+        constraintColor = constraintColor.lighter();
+
 
     m_solidPen.setColor(constraintColor);
     m_dashPen.setColor(constraintColor);
@@ -210,12 +213,16 @@ void TemporalConstraintView::paint(
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
 {
     QGraphicsItem::hoverEnterEvent(h);
+    m_shadow = true;
+    update();
     emit constraintHoverEnter();
 }
 
 void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 {
     QGraphicsItem::hoverLeaveEvent(h);
+    m_shadow = false;
+    update();
     emit constraintHoverLeave();
 }
 

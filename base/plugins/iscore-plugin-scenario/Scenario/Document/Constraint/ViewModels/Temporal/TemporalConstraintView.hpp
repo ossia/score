@@ -83,15 +83,16 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
     private:
         QPointF m_clickedPoint {};
 
-        bool m_shadow {false};
-        bool m_hasFocus{};
         QString m_label{};
         ColorRef m_bgColor;
 
         LeftBraceView* m_leftBrace{};
         RightBraceView* m_rightBrace{};
 
+        bool m_shadow {false};
+        bool m_hasFocus{};
         ConstraintExecutionState m_state{};
+
         SimpleTextItem* m_labelItem{};
         SimpleTextItem* m_counterItem{};
 };

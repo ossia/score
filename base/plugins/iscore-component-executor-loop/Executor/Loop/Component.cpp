@@ -45,8 +45,7 @@ Component::Component(
     OSSIA::TimeValue main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
 
     auto loop = OSSIA::Loop::create(main_duration,
-          [] (const OSSIA::TimeValue& t0,
-              const OSSIA::TimeValue&,
+          [] (OSSIA::TimeValue, OSSIA::TimeValue,
               std::shared_ptr<OSSIA::StateElement>) {
     },
           [this,&element] (OSSIA::TimeEvent::Status newStatus) {

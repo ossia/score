@@ -80,7 +80,7 @@ class ScenarioComponent final :
                 EventElement& ev,
                 OSSIA::TimeEvent::Status newStatus);
 
-         void timeNodeCallback(RecreateOnPlay::TimeNodeElement* tn, const OSSIA::TimeValue& date);
+         void timeNodeCallback(RecreateOnPlay::TimeNodeElement* tn, OSSIA::TimeValue date);
 
     private:
         std::unordered_map<Id<Scenario::ConstraintModel>, ConstraintElement*> m_ossia_constraints;
