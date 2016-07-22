@@ -50,12 +50,12 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
         ValueImpl(float v);
         ValueImpl(double v);
         ValueImpl(bool v);
-        ValueImpl(const QString& v);
+        ValueImpl(QString v);
         ValueImpl(QChar v);
         ValueImpl(vec2f v);
         ValueImpl(vec3f v);
         ValueImpl(vec4f v);
-        ValueImpl(const tuple_t& v);
+        ValueImpl(tuple_t v);
 
         ValueImpl& operator=(no_value_t v);
         ValueImpl& operator=(impulse_t v);
@@ -64,11 +64,13 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
         ValueImpl& operator=(double v);
         ValueImpl& operator=(bool v);
         ValueImpl& operator=(const QString& v);
+        ValueImpl& operator=(QString&& v);
         ValueImpl& operator=(QChar v);
         ValueImpl& operator=(vec2f v);
         ValueImpl& operator=(vec3f v);
         ValueImpl& operator=(vec4f v);
         ValueImpl& operator=(const tuple_t& v);
+        ValueImpl& operator=(tuple_t&& v);
 
         const auto& impl() const { return m_variant; }
 
