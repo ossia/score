@@ -126,6 +126,7 @@ MIDIProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
 
 void MIDIProtocolSettingsWidget::updateDevices(OSSIA::MidiInfo::Type t)
 {
+    try {
     auto prot = OSSIA::MIDI::create();
     auto vec = prot->scan();
 
@@ -139,6 +140,11 @@ void MIDIProtocolSettingsWidget::updateDevices(OSSIA::MidiInfo::Type t)
     }
     m_deviceCBox->setCurrentIndex(0);
     qDebug() << m_deviceCBox->count();
+    }
+    catch( std::exception& e)
+    {
+        qDebug() << e.what();
+    }
 }
 
 void
