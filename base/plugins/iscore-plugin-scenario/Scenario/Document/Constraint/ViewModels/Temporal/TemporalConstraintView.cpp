@@ -226,6 +226,23 @@ void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
     emit constraintHoverLeave();
 }
 
+void TemporalConstraintView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+    QGraphicsItem::dragEnterEvent(event);
+    m_shadow = true;
+    update();
+    event->accept();
+
+}
+
+void TemporalConstraintView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+    QGraphicsItem::dragLeaveEvent(event);
+    m_shadow = false;
+    update();
+    event->accept();
+}
+
 void TemporalConstraintView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     emit dropReceived(event->pos(), event->mimeData());

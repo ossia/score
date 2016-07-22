@@ -78,6 +78,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
     protected:
         void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
         void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
+        void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
+        void dragLeaveEvent(QGraphicsSceneDragDropEvent *event) override;
         void dropEvent(QGraphicsSceneDragDropEvent *event) override;
 
     private:
