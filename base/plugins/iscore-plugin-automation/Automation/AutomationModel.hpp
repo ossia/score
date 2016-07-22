@@ -33,6 +33,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         // Min and max to scale the curve with at execution
         Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
         Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
+        Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
 
     public:
         ProcessModel(const TimeValue& duration,
@@ -59,10 +60,24 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         void setMin(double arg);
         void setMax(double arg);
 
+        bool tween() const
+        {
+            return m_tween;
+        }
+        void setTween(bool tween)
+        {
+            if (m_tween == tween)
+                return;
+
+            m_tween = tween;
+            emit tweenChanged(tween);
+        }
+
     signals:
         void addressChanged(const ::State::Address&);
         void minChanged(double);
         void maxChanged(double);
+        void tweenChanged(bool tween);
 
     private:
         //// ProcessModel ////
@@ -88,5 +103,6 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
 
         ProcessState* m_startState{};
         ProcessState* m_endState{};
+        bool m_tween = false;
 };
 }

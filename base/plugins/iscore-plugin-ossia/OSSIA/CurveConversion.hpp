@@ -35,11 +35,14 @@ struct CurveTraits<bool>
 };
 
 
-template<typename X_T, typename Y_T, typename XScaleFun, typename YScaleFun, typename Segments>
+template<typename X_T, typename Y_T,
+         typename XScaleFun, typename YScaleFun,
+         typename Segments>
 std::shared_ptr<OSSIA::CurveAbstract> curve(
         XScaleFun scale_x,
         YScaleFun scale_y,
-        const Segments& segments)
+        const Segments& segments,
+        const optional<OSSIA::Destination>& tween)
 {
     auto curve = OSSIA::Curve<X_T, Y_T>::create();
 
@@ -58,6 +61,12 @@ std::shared_ptr<OSSIA::CurveAbstract> curve(
                     scale_x(end.x()),
                     scale_y(end.y()));
     }
+
+    if(tween)
+    {
+        curve->setInitialPointOrdinateDestination(*tween);
+    }
+
     return curve;
 }
 

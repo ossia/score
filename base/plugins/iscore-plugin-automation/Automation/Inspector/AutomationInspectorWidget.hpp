@@ -5,6 +5,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 class QWidget;
+class QCheckBox;
 
 namespace iscore{
 class Document;
@@ -33,13 +34,14 @@ class InspectorWidget final :
                 const iscore::DocumentContext& context,
                 QWidget* parent);
 
-    public slots:
+    private:
         void on_addressChange(const ::State::Address& newText);
         void on_minValueChanged();
         void on_maxValueChanged();
+        void on_tweenChanged();
 
-    private:
         Explorer::AddressEditWidget* m_lineEdit{};
+        QCheckBox* m_tween{};
         QDoubleSpinBox* m_minsb{}, *m_maxsb{};
 
         CommandDispatcher<> m_dispatcher;

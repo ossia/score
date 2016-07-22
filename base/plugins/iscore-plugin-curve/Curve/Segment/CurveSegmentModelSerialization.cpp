@@ -100,10 +100,10 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
     readFrom(static_cast<const IdentifiedObject<SegmentModel>&>(segmt));
 
     // Save this class (this will be loaded by writeTo(*this) in CurveSegmentModel ctor
-    m_obj["Previous"] = toJsonValue(segmt.previous());
-    m_obj["Following"] = toJsonValue(segmt.following());
-    m_obj["Start"] = toJsonValue(segmt.start());
-    m_obj["End"] = toJsonValue(segmt.end());
+    m_obj[iscore::StringConstant().Previous] = toJsonValue(segmt.previous());
+    m_obj[iscore::StringConstant().Following] = toJsonValue(segmt.following());
+    m_obj[iscore::StringConstant().Start] = toJsonValue(segmt.start());
+    m_obj[iscore::StringConstant().End] = toJsonValue(segmt.end());
 }
 
 template<>
@@ -111,10 +111,10 @@ void Visitor<Writer<JSONObject>>::writeTo(
         Curve::SegmentModel& segmt)
 {
     using namespace Curve;
-    segmt.m_previous = fromJsonValue<Id<SegmentModel>>(m_obj["Previous"]);
-    segmt.m_following = fromJsonValue<Id<SegmentModel>>(m_obj["Following"]);
-    segmt.m_start = fromJsonValue<Curve::Point>(m_obj["Start"]);
-    segmt.m_end = fromJsonValue<Curve::Point>(m_obj["End"]);
+    segmt.m_previous = fromJsonValue<Id<SegmentModel>>(m_obj[iscore::StringConstant().Previous]);
+    segmt.m_following = fromJsonValue<Id<SegmentModel>>(m_obj[iscore::StringConstant().Following]);
+    segmt.m_start = fromJsonValue<Curve::Point>(m_obj[iscore::StringConstant().Start]);
+    segmt.m_end = fromJsonValue<Curve::Point>(m_obj[iscore::StringConstant().End]);
 }
 
 

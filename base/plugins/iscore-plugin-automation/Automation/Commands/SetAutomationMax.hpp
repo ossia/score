@@ -16,4 +16,17 @@ class SetMax final : public iscore::PropertyCommand
 
         }
 };
+
+
+class SetTween final : public iscore::PropertyCommand
+{
+        ISCORE_COMMAND_DECL(CommandFactoryName(), SetTween, "Set curve tween")
+        public:
+
+        SetTween(Path<ProcessModel>&& path, bool newval):
+            iscore::PropertyCommand{std::move(path), "tween", newval}
+        {
+
+        }
+};
 }
