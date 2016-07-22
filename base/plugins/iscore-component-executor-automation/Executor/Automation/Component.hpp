@@ -36,10 +36,10 @@ class Component final :
         void recreate();
         OSSIA::Type m_addressType{OSSIA::Type(-1)};
 
-        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged();
+        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged(const optional<OSSIA::Destination>&);
 
         template<typename T>
-        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl();
+        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl(const optional<OSSIA::Destination>&);
 
         std::shared_ptr<OSSIA::CurveAbstract> m_ossia_curve;
 

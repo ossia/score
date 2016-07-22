@@ -93,11 +93,13 @@ void Component::recreate()
 
 
     using namespace OSSIA;
-    on_curveChanged(); // If the type changes we need to rebuild the curve.
+    if(process().tween())
+        on_curveChanged(Destination(node->getThis(), {})); // If the type changes we need to rebuild the curve.
+    else
+        on_curveChanged({});
     if(!m_ossia_curve)
         goto curve_cleanup_label;
 
-    // TODO on_min/max changed
     m_ossia_process = OSSIA::Automation::create(
                 address,
                 Behavior(m_ossia_curve));
@@ -111,7 +113,8 @@ curve_cleanup_label:
 }
 
 template<typename Y_T>
-std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl()
+std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl(
+        const optional<OSSIA::Destination>& d)
 {
     using namespace OSSIA;
 
@@ -124,7 +127,7 @@ std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl()
     auto segt_data = process().curve().sortedSegments();
     if(segt_data.size() != 0)
     {
-        return iscore::convert::curve<double, Y_T>(scale_x, scale_y, segt_data);
+        return iscore::convert::curve<double, Y_T>(scale_x, scale_y, segt_data, d);
     }
     else
     {
@@ -132,16 +135,17 @@ std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl()
     }
 }
 
-std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged()
+std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged(
+        const optional<OSSIA::Destination>& d)
 {
     m_ossia_curve.reset();
     switch(m_addressType)
     {
         case OSSIA::Type::INT:
-            m_ossia_curve = on_curveChanged_impl<int>();
+            m_ossia_curve = on_curveChanged_impl<int>(d);
             break;
         case OSSIA::Type::FLOAT:
-            m_ossia_curve = on_curveChanged_impl<float>();
+            m_ossia_curve = on_curveChanged_impl<float>(d);
             break;
         default:
             qDebug() << "Unsupported curve type: " << (int)m_addressType;

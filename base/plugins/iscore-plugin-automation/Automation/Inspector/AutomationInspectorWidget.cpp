@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <list>
 #include <vector>
+#include <QCheckBox>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
@@ -61,8 +62,15 @@ InspectorWidget::InspectorWidget(
 
     vlay->addRow(tr("Address"), m_lineEdit);
 
-    // Min / max
+    // Tween
+    m_tween = new QCheckBox;
+    vlay->addRow(tr("Tween"), m_tween);
+    m_tween->setChecked(process().tween());
+    con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
+    connect(m_tween, &QCheckBox::toggled,
+            this, &InspectorWidget::on_tweenChanged);
 
+    // Min / max
     m_minsb = new iscore::SpinBox<float>;
     m_maxsb = new iscore::SpinBox<float>;
     m_minsb->setValue(process().min());
@@ -113,6 +121,16 @@ void InspectorWidget::on_maxValueChanged()
     if(newVal != process().max())
     {
         auto cmd = new SetMax{process(), newVal};
+
+        m_dispatcher.submitCommand(cmd);
+    }
+}
+void InspectorWidget::on_tweenChanged()
+{
+    bool newVal = m_tween->checkState();
+    if(newVal != process().tween())
+    {
+        auto cmd = new SetTween{process(), newVal};
 
         m_dispatcher.submitCommand(cmd);
     }

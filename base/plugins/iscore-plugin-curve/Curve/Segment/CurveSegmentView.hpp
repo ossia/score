@@ -4,7 +4,7 @@
 #include <QPoint>
 #include <QRect>
 #include <iscore/tools/SettableIdentifier.hpp>
-
+#include <iscore_plugin_curve_export.h>
 class QGraphicsSceneContextMenuEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -15,7 +15,7 @@ namespace Curve
 class SegmentModel;
 
 struct Style;
-class SegmentView final :
+class ISCORE_PLUGIN_CURVE_EXPORT SegmentView final :
         public QObject,
         public QGraphicsItem
 {
@@ -64,6 +64,7 @@ class SegmentView final :
         void enable();
         void disable();
 
+        void setTween(bool b);
     signals:
         void contextMenuRequested(const QPoint&, const QPointF&);
 
@@ -78,12 +79,13 @@ class SegmentView final :
 
         const SegmentModel* m_model{};
         const Curve::Style& m_style;
-        bool m_selected{};
 
         QPainterPath m_unstrokedShape;
         QPainterPath m_strokedShape;
 
         bool m_enabled{true};
+        bool m_tween{false};
+        bool m_selected{};
 };
 
 }

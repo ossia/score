@@ -63,7 +63,7 @@ std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl2()
     auto segt_data = process().curve().sortedSegments();
     if(segt_data.size() != 0)
     {
-        return iscore::convert::curve<X_T, Y_T>(scale_x, scale_y, segt_data);
+        return iscore::convert::curve<X_T, Y_T>(scale_x, scale_y, segt_data, {});
     }
     else
     {

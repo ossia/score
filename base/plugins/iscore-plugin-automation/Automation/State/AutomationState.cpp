@@ -43,6 +43,9 @@ QString ProcessState::stateName() const
 // TESTME
 ::State::Message ProcessState::message() const
 {
+    if(m_point == 0. && process().tween())
+        return {};
+
     // Set-up a message
     ::State::Message m;
     m.address = process().address();

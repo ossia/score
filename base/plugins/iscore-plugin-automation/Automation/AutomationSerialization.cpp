@@ -26,6 +26,7 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
     m_stream << autom.address();
     m_stream << autom.min();
     m_stream << autom.max();
+    m_stream << autom.tween();
 
     insertDelimiter();
 }
@@ -38,12 +39,14 @@ void Visitor<Writer<DataStream>>::writeTo(
 
     State::Address address;
     double min, max;
+    bool tw;
 
-    m_stream >> address >> min >> max;
+    m_stream >> address >> min >> max >> tw;
 
     autom.setAddress(address);
     autom.setMin(min);
     autom.setMax(max);
+    autom.setTween(tw);
 
     checkDelimiter();
 }
@@ -57,8 +60,9 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
 {
     m_obj["Curve"] = toJsonObject(autom.curve());
     m_obj[iscore::StringConstant().Address] = toJsonObject(autom.address());
-    m_obj["Min"] = autom.min();
-    m_obj["Max"] = autom.max();
+    m_obj[iscore::StringConstant().Min] = autom.min();
+    m_obj[iscore::StringConstant().Max] = autom.max();
+    m_obj["Tween"] = autom.tween();
 }
 
 template<>
@@ -69,6 +73,7 @@ void Visitor<Writer<JSONObject>>::writeTo(
     autom.setCurve(new Curve::Model{curve_deser, &autom});
 
     autom.setAddress(fromJsonObject<State::Address>(m_obj[iscore::StringConstant().Address]));
-    autom.setMin(m_obj["Min"].toDouble());
-    autom.setMax(m_obj["Max"].toDouble());
+    autom.setMin(m_obj[iscore::StringConstant().Min].toDouble());
+    autom.setMax(m_obj[iscore::StringConstant().Max].toDouble());
+    autom.setTween(m_obj["Tween"].toBool());
 }

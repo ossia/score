@@ -73,6 +73,7 @@ void SegmentView::paint(
 {
     QPen pen;
     pen.setWidth(m_enabled ? 2 : 1);
+    pen.setStyle(m_tween ? Qt::PenStyle::DashLine : Qt::PenStyle::SolidLine);
     painter->setRenderHint(QPainter::RenderHint::Antialiasing, m_enabled);
     pen.setColor(m_enabled
                     ? (m_selected
@@ -100,6 +101,12 @@ void SegmentView::enable()
 void SegmentView::disable()
 {
     m_enabled = false;
+    update();
+}
+
+void SegmentView::setTween(bool b)
+{
+    m_tween = b;
     update();
 }
 

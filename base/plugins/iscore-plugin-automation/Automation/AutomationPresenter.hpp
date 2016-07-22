@@ -29,8 +29,11 @@ class LayerPresenter final :
             // TODO instead have a prettyNameChanged signal.
             con(m_layer.model(), &ProcessModel::addressChanged,
                 this, &LayerPresenter::on_nameChanges);
+            con(m_layer.model(), &ProcessModel::tweenChanged,
+                this, &LayerPresenter::on_tweenChanges);
             con(m_layer.model().metadata, &ModelMetadata::nameChanged,
                 this, &LayerPresenter::on_nameChanges);
+
 
             connect(m_view, &LayerView::dropReceived,
                     this, [&] (const QMimeData* mime) {
@@ -56,11 +59,26 @@ class LayerPresenter final :
                 }
 
             });
-            m_view->setDisplayedName(m_layer.processModel().prettyName());
+            on_nameChanges();
             m_view->showName(true);
+
+            on_tweenChanges(m_layer.model().tween());
         }
 
     private:
+        void on_tweenChanges(bool b)
+        {
+            for(auto& seg : m_curvepresenter->segments())
+            {
+                if(seg.model().start().x() == 0.)
+                {
+                    seg.setTween(b);
+                    return;
+                }
+            }
+
+        }
+
         void on_nameChanges()
         {
             m_view->setDisplayedName(m_layer.processModel().prettyName());
