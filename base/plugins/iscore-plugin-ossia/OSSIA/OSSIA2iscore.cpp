@@ -211,7 +211,9 @@ State::Value ToValue(const OSSIA::SafeValue& val)
             }
     } visitor{};
 
-    return eggs::variants::apply(visitor, val.v);
+    if(val.valid())
+        return eggs::variants::apply(visitor, val.v);
+    return {};
 }
 
 }
