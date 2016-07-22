@@ -43,7 +43,7 @@ class ProcessExecutor final :
 
         std::shared_ptr<OSSIA::StateElement> state(double);
         std::shared_ptr<OSSIA::StateElement> state() override;
-        std::shared_ptr<OSSIA::StateElement> offset(const OSSIA::TimeValue &) override;
+        std::shared_ptr<OSSIA::StateElement> offset(OSSIA::TimeValue) override;
 
     private:
         const Device::DeviceList& m_devices;

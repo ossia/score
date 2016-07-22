@@ -96,9 +96,10 @@ void ScenarioComponent::stop()
     ProcessComponent::stop();
 }
 
-static void ScenarioConstraintCallback(const OSSIA::TimeValue&,
-                               const OSSIA::TimeValue&,
-                               std::shared_ptr<OSSIA::StateElement> element)
+static void ScenarioConstraintCallback(
+        OSSIA::TimeValue,
+        OSSIA::TimeValue,
+        std::shared_ptr<OSSIA::StateElement> element)
 {
 
 }
@@ -266,7 +267,9 @@ void ScenarioComponent::eventCallback(
     }
 }
 
-void ScenarioComponent::timeNodeCallback(TimeNodeElement* tn, const OSSIA::TimeValue& date)
+void ScenarioComponent::timeNodeCallback(
+        TimeNodeElement* tn,
+        OSSIA::TimeValue date)
 {
     if(m_checker)
     {

@@ -30,8 +30,8 @@ OSSIA::TimeConstraint::ExecutionCallback DefaultClockManager::makeDefaultCallbac
 {
     auto& cst = *bs.baseConstraint();
     return [&bs,&iscore_cst=cst.iscoreConstraint()] (
-            const OSSIA::TimeValue& position,
-            const OSSIA::TimeValue& date,
+            OSSIA::TimeValue position,
+            OSSIA::TimeValue date,
             std::shared_ptr<OSSIA::StateElement> state)
     {
         state->launch();

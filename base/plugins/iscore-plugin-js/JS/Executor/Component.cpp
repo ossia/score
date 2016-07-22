@@ -66,7 +66,7 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(double t)
     return st;
 }
 
-std::shared_ptr<OSSIA::StateElement> ProcessExecutor::offset(const OSSIA::TimeValue & off)
+std::shared_ptr<OSSIA::StateElement> ProcessExecutor::offset(OSSIA::TimeValue off)
 {
     return state(off / parent->getDurationNominal());
 }

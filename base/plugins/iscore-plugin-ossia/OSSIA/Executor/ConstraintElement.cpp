@@ -52,8 +52,8 @@ ConstraintElement::ConstraintElement(
     || dynamic_cast<Loop::ProcessModel*>(iscore_cst.parent()))
     {
         ossia_cst->setCallback([&] (
-                               const OSSIA::TimeValue& position,
-                               const OSSIA::TimeValue& date,
+                               OSSIA::TimeValue position,
+                               OSSIA::TimeValue date,
                                const std::shared_ptr<OSSIA::StateElement>& state)
         {
             constraintCallback(position, date, state);
@@ -247,8 +247,8 @@ void ConstraintElement::on_processAdded(
 }
 
 void ConstraintElement::constraintCallback(
-        const OSSIA::TimeValue& position,
-        const OSSIA::TimeValue& date,
+        OSSIA::TimeValue position,
+        OSSIA::TimeValue date,
         const std::shared_ptr<OSSIA::StateElement>& state)
 {
     auto currentTime = Ossia::convert::time(date);

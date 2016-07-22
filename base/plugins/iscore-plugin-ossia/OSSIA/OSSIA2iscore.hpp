@@ -115,7 +115,7 @@ Device::AddressSettings ToAddressSettings(const OSSIA::Node& node);
 ISCORE_PLUGIN_OSSIA_EXPORT Device::Node ToDeviceExplorer(const OSSIA::Node& node);
 
 
-inline ::TimeValue time(const OSSIA::TimeValue& t)
+inline ::TimeValue time(OSSIA::TimeValue t)
 {
     return t.isInfinite()
             ? ::TimeValue{PositiveInfinity{}}
