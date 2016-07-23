@@ -1,6 +1,6 @@
 #pragma once
 #include <Editor/TimeValue.h>
-#include <Editor/Value/SafeValue.h>
+#include <Editor/Value/Value.h>
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
 #include <State/Expression.hpp>
