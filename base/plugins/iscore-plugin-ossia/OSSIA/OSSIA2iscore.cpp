@@ -182,7 +182,7 @@ State::Value ToValue(OSSIA::Type t)
 
 }
 
-State::Value ToValue(const OSSIA::SafeValue& val)
+State::Value ToValue(const OSSIA::Value& val)
 {
     struct {
             using return_type = State::Value;

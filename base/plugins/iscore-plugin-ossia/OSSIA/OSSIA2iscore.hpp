@@ -107,7 +107,7 @@ Device::IOType ToIOType(OSSIA::AccessMode t);
 Device::ClipMode ToClipMode(OSSIA::BoundingMode b);
 Device::Domain ToDomain(OSSIA::Domain& domain);
 
-ISCORE_PLUGIN_OSSIA_EXPORT State::Value ToValue(const OSSIA::SafeValue& val);
+ISCORE_PLUGIN_OSSIA_EXPORT State::Value ToValue(const OSSIA::Value& val);
 State::Value ToValue(OSSIA::Type);
 
 State::Address ToAddress(const OSSIA::Node& node);
