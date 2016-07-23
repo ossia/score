@@ -11,9 +11,6 @@
 #include <Editor/Clock.h>
 #include <Editor/TimeConstraint.h>
 #include <RecordedMessages/RecordedMessagesProcessModel.hpp>
-namespace OSSIA {
-class StateElement;
-}  // namespace OSSIA
 
 
 namespace RecordedMessages
@@ -29,14 +26,14 @@ ProcessExecutor::ProcessExecutor(
     m_list.detach();
 }
 
-std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state()
+OSSIA::StateElement ProcessExecutor::state()
 {
     return state(parent->getPosition());
 }
 
-std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(double t)
+OSSIA::StateElement ProcessExecutor::state(double t)
 {
-    auto st = OSSIA::State::create();
+    OSSIA::State st;
     OSSIA::TimeConstraint& par_cst = *parent;
 
     auto cur_pos = t;
@@ -56,14 +53,14 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(double t)
             qDebug() << mess.message.toString();
             auto ossia_mess = iscore::convert::message(mess.message, m_devices);
             if(ossia_mess)
-                st->stateElements().push_back(ossia_mess);
+                st.children.push_back(std::move(*ossia_mess));
         }
     }
 
     return st;
 }
 
-std::shared_ptr<OSSIA::StateElement> ProcessExecutor::offset(
+OSSIA::StateElement ProcessExecutor::offset(
         OSSIA::TimeValue off)
 {
     return state(off / parent->getDurationNominal());

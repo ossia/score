@@ -1,6 +1,6 @@
 #pragma once
 #include <Editor/TimeValue.h>
-#include <Editor/State.h>
+#include <Editor/StateElement.h>
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QObject>
@@ -19,7 +19,6 @@ struct DocumentContext;
 namespace OSSIA
 {
 class Loop;
-class StateElement;
 class TimeConstraint;
 }
 namespace Scenario
@@ -57,7 +56,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ConstraintElement final : public QObject
         void constraintCallback(
                 OSSIA::TimeValue position,
                 OSSIA::TimeValue date,
-                const std::shared_ptr<OSSIA::StateElement>& state);
+                const OSSIA::State& state);
 
         Scenario::ConstraintModel& m_iscore_constraint;
         std::shared_ptr<OSSIA::TimeConstraint> m_ossia_constraint;

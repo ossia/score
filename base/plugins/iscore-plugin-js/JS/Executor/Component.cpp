@@ -10,10 +10,6 @@
 #include "Component.hpp"
 #include <Editor/TimeConstraint.h>
 #include <JS/JSProcessModel.hpp>
-namespace OSSIA {
-class StateElement;
-}  // namespace OSSIA
-
 
 namespace JS
 {
@@ -38,14 +34,14 @@ void ProcessExecutor::setTickFun(const QString& val)
 
 }
 
-std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state()
+OSSIA::StateElement ProcessExecutor::state()
 {
     return state(parent->getPosition());
 }
 
-std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(double t)
+OSSIA::StateElement ProcessExecutor::state(double t)
 {
-    auto st = OSSIA::State::create();
+    OSSIA::State st;
     if(!m_tickFun.isCallable())
         return st;
 
@@ -59,14 +55,14 @@ std::shared_ptr<OSSIA::StateElement> ProcessExecutor::state(double t)
         //qDebug() << mess.toString();
         auto ossia_mess = iscore::convert::message(mess, m_devices);
         if(ossia_mess)
-            st->stateElements().push_back(ossia_mess);
+            st.children.push_back(std::move(*ossia_mess));
     }
 
     // 3. Convert our value back
     return st;
 }
 
-std::shared_ptr<OSSIA::StateElement> ProcessExecutor::offset(OSSIA::TimeValue off)
+OSSIA::StateElement ProcessExecutor::offset(OSSIA::TimeValue off)
 {
     return state(off / parent->getDurationNominal());
 }

@@ -64,7 +64,7 @@ PlayContextMenu::PlayContextMenu(
             for(const StateModel* state : selectedElements(sm->getStates()))
             {
                 auto ossia_state = iscore::convert::state(*state, r_ctx);
-                ossia_state->launch();
+                ossia_state.launch();
             }
         }
     });
@@ -78,7 +78,7 @@ PlayContextMenu::PlayContextMenu(
         auto ossia_state = iscore::convert::state(
                     scenar.state(stateId),
                     r_ctx);
-        ossia_state->launch();
+        ossia_state.launch();
     });
 
     m_playConstraints = new QAction{tr("Play (Constraints)"), this};

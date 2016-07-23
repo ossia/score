@@ -39,20 +39,16 @@ BaseScenarioElement::BaseScenarioElement(
     auto main_start_node = OSSIA::TimeNode::create();
     auto main_end_node = OSSIA::TimeNode::create();
 
-    auto main_start_event_it = main_start_node->emplace(main_start_node->timeEvents().begin(), [this] (auto&&...) { });
-    auto main_end_event_it = main_end_node->emplace(main_end_node->timeEvents().begin(), [this] (auto&&...) { });
-    auto main_start_state = OSSIA::State::create();
-    auto main_end_state = OSSIA::State::create();
+    auto main_start_event = *main_start_node->emplace(main_start_node->timeEvents().begin(), [this] (auto&&...) { });
+    auto main_end_event = *main_end_node->emplace(main_end_node->timeEvents().begin(), [this] (auto&&...) { });
 
-    (*main_start_event_it)->addState(main_start_state);
-    (*main_end_event_it)->addState(main_end_state);
 
     // TODO PlayDuration of base constraint.
     // TODO PlayDuration of FullView
     auto main_constraint = OSSIA::TimeConstraint::create(
                                 [] (auto&&...) {},
-                               *main_start_event_it,
-                               *main_end_event_it,
+                               main_start_event,
+                               main_end_event,
                                iscore::convert::time(element.constraint().duration.defaultDuration()),
                                iscore::convert::time(element.constraint().duration.minDuration()),
                                iscore::convert::time(element.constraint().duration.maxDuration()));
@@ -60,11 +56,11 @@ BaseScenarioElement::BaseScenarioElement(
     m_ossia_startTimeNode = new TimeNodeElement{main_start_node, element.startTimeNode(),  m_ctx.devices.list(), this};
     m_ossia_endTimeNode = new TimeNodeElement{main_end_node, element.endTimeNode(), m_ctx.devices.list(), this};
 
-    m_ossia_startEvent = new EventElement{*main_start_event_it, element.startEvent(), m_ctx.devices.list(), this};
-    m_ossia_endEvent = new EventElement{*main_end_event_it, element.endEvent(), m_ctx.devices.list(), this};
+    m_ossia_startEvent = new EventElement{main_start_event, element.startEvent(), m_ctx.devices.list(), this};
+    m_ossia_endEvent = new EventElement{main_end_event, element.endEvent(), m_ctx.devices.list(), this};
 
-    m_ossia_startState = new StateElement{element.startState(), main_start_state, m_ctx, this};
-    m_ossia_endState = new StateElement{element.endState(), main_end_state, m_ctx, this};
+    m_ossia_startState = new StateElement{element.startState(), *main_start_event, m_ctx, this};
+    m_ossia_endState = new StateElement{element.endState(), *main_end_event, m_ctx, this};
 
     m_ossia_constraint = new ConstraintElement{main_constraint, element.constraint(), m_ctx, this};
 
@@ -73,9 +69,9 @@ BaseScenarioElement::BaseScenarioElement(
     {
         if(c == OSSIA::Clock::ClockExecutionStatus::STOPPED)
         {
-            auto accumulator = OSSIA::State::create();
-            flattenAndFilter(main_end_state, accumulator);
-            accumulator->launch();
+            OSSIA::State accumulator;
+            flattenAndFilter(accumulator, main_end_event->getState());
+            accumulator.launch();
 
             emit finished();
         }

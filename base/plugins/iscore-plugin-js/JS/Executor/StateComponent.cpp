@@ -15,18 +15,20 @@ State::State(
         const Explorer::DeviceDocumentPlugin& devices):
     m_devices{devices.list()}
 {
-    m_engine.globalObject()
+    // TODO find how to make it copyable ?
+    m_engine = std::make_shared<QJSEngine>();
+    m_engine->globalObject()
             .setProperty(
                 "iscore",
-                m_engine.newQObject(
-                    new JS::APIWrapper{m_engine, devices}
+                m_engine->newQObject(
+                    new JS::APIWrapper{*m_engine, devices}
                     )
                 );
 
-    m_fun = m_engine.evaluate(script);
+    m_fun = m_engine->evaluate(script);
 }
 
-void State::launch() const
+void State::operator()()
 {
     if(!m_fun.isCallable())
         return;
@@ -34,14 +36,14 @@ void State::launch() const
     // Get the value of the js fun
     auto messages = JS::convert::messages(m_fun.call());
 
-    m_engine.collectGarbage();
+    m_engine->collectGarbage();
 
     for(const auto& mess : messages)
     {
         qDebug() << mess.toString();
         auto ossia_mess = iscore::convert::message(mess, m_devices);
         if(ossia_mess)
-            ossia_mess->launch();
+            ossia_mess->launch(); // TODO try to make a "state" convertible to message ?
     }
 }
 
@@ -55,15 +57,14 @@ StateProcessComponent::StateProcessComponent(
     RecreateOnPlay::StateProcessComponent_T<JS::StateProcess>{
         parentConstraint, element, ctx, id, "JSStateComponent", parent}
 {
-    auto proc = std::make_shared<State>(element.script(), ctx.devices);
-    m_ossia_process = proc;
+    m_ossia_state = OSSIA::CustomState{State{element.script(), ctx.devices}};
 }
 
-std::shared_ptr<OSSIA::StateElement> StateProcessComponent::make(
+OSSIA::StateElement StateProcessComponent::make(
         Process::StateProcess& proc,
         const RecreateOnPlay::Context& ctx)
 {
-    return std::make_shared<State>(static_cast<const JS::StateProcess&>(proc).script(), ctx.devices);
+    return OSSIA::CustomState{State{static_cast<const JS::StateProcess&>(proc).script(), ctx.devices}};
 }
 
 }

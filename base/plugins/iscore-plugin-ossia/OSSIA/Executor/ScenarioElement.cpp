@@ -99,7 +99,7 @@ void ScenarioComponent::stop()
 static void ScenarioConstraintCallback(
         OSSIA::TimeValue,
         OSSIA::TimeValue,
-        std::shared_ptr<OSSIA::StateElement> element)
+        const OSSIA::State& element)
 {
 
 }
@@ -137,12 +137,9 @@ void ScenarioComponent::on_stateCreated(const Scenario::StateModel &iscore_state
     auto ossia_ev = m_ossia_timeevents.at(iscore_state.eventId());
 
     // Create the mapping object
-    auto root_state = OSSIA::State::create();
-    ossia_ev->OSSIAEvent()->addState(root_state);
-
     auto state_elt = new StateElement{
             iscore_state,
-            root_state,
+            *ossia_ev->OSSIAEvent(),
             m_ctx,
             this};
 

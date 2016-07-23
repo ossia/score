@@ -3,11 +3,11 @@
 
 #include <QObject>
 #include <OSSIA/Executor/ConstraintExecutionFacade.hpp>
+#include <Editor/StateElement.h>
 #include <iscore_plugin_ossia_export.h>
 namespace OSSIA
 {
     class TimeValue;
-    class StateElement;
 }
 
 namespace Scenario

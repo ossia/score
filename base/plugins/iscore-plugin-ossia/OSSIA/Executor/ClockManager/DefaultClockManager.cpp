@@ -32,9 +32,9 @@ OSSIA::TimeConstraint::ExecutionCallback DefaultClockManager::makeDefaultCallbac
     return [&bs,&iscore_cst=cst.iscoreConstraint()] (
             OSSIA::TimeValue position,
             OSSIA::TimeValue date,
-            std::shared_ptr<OSSIA::StateElement> state)
+            const OSSIA::StateElement& state)
     {
-        state->launch();
+        OSSIA::launch(state);
 
         auto currentTime = Ossia::convert::time(date);
 

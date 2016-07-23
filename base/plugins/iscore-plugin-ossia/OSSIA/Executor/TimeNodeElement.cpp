@@ -43,13 +43,13 @@ TimeNodeElement::TimeNodeElement(
         try {
             m_ossia_node->trigger();
 
-            auto accumulator = OSSIA::State::create();
+            OSSIA::State accumulator;
             for(auto& event : m_ossia_node->timeEvents())
             {
                 if(event->getStatus() == OSSIA::TimeEvent::Status::HAPPENED)
-                    flattenAndFilter(event->getState(), accumulator);
+                    flattenAndFilter(accumulator, event->getState());
             }
-            accumulator->launch();
+            accumulator.launch();
         }
         catch(...)
         {

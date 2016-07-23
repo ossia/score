@@ -12,7 +12,7 @@ namespace RecreateOnPlay
 static void loopingConstraintCallback(
         OSSIA::TimeValue,
         OSSIA::TimeValue t,
-        std::shared_ptr<OSSIA::StateElement> element)
+        const OSSIA::State& element)
 {
 }
 LoopingProcessWrapper::LoopingProcessWrapper(

@@ -9,7 +9,7 @@
 #include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <OSSIA/Executor/StateElement.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
-#include <Editor/State.h>
+#include <Editor/StateElement.h>
 #include <iscore/plugins/customfactory/ModelFactory.hpp>
 namespace RecreateOnPlay
 {
@@ -33,11 +33,11 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponent :
         virtual ~StateProcessComponent();
 
         auto& OSSIAProcess() const
-        { return m_ossia_process; }
+        { return m_ossia_state; }
 
     protected:
         StateElement& m_parent_state;
-        std::shared_ptr<OSSIA::StateElement> m_ossia_process;
+        OSSIA::StateElement m_ossia_state;
 };
 
 template<typename Process_T>
@@ -60,7 +60,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponentFactory :
                   const Id<iscore::Component>& id,
                   QObject* parent) const = 0;
 
-        virtual std::shared_ptr<OSSIA::StateElement> make(
+        virtual OSSIA::StateElement make(
                   Process::StateProcess& proc,
                   const Context& ctxt) const = 0;
 };
@@ -82,7 +82,7 @@ class StateProcessComponentFactory_T :
                 st, static_cast<model_type&>(proc), ctx, id, parent};
         }
 
-        std::shared_ptr<OSSIA::StateElement> make(
+        OSSIA::StateElement make(
                   Process::StateProcess& proc,
                   const Context& ctx) const override
         {

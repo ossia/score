@@ -1,8 +1,11 @@
 #pragma once
 #include <Editor/TimeValue.h>
 #include <Editor/Value/Value.h>
+#include <Editor/StateElement.h>
+
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
+
 #include <State/Expression.hpp>
 #include <QStringList>
 #include <memory>
@@ -84,16 +87,16 @@ ISCORE_PLUGIN_OSSIA_EXPORT inline OSSIA::TimeValue time(const TimeValue& t)
             : OSSIA::TimeValue{t.msec()};
 }
 
-ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::State> state(
-        std::shared_ptr<OSSIA::State> ossia_state,
+ISCORE_PLUGIN_OSSIA_EXPORT void state(
+        OSSIA::State& ossia_state,
         const Scenario::StateModel& iscore_state,
         const RecreateOnPlay::Context& ctx);
-ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::State> state(
+ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::State state(
         const Scenario::StateModel& iscore_state,
         const RecreateOnPlay::Context& ctx);
 
 
-ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::Message> message(
+ISCORE_PLUGIN_OSSIA_EXPORT optional<OSSIA::Message> message(
         const State::Message& mess,
         const Device::DeviceList&);
 
