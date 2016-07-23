@@ -331,7 +331,7 @@ OSSIA::Value toOSSIAValue(
     return toOSSIAValue(value.val);
 }
 
-std::shared_ptr<OSSIA::Message> message(
+optional<OSSIA::Message> message(
         const State::Message& mess,
         const Device::DeviceList& deviceList)
 {
@@ -357,9 +357,9 @@ std::shared_ptr<OSSIA::Message> message(
         if (!ossia_addr)
             return{};
 
-        return OSSIA::Message::create(
+        return OSSIA::Message{
                     ossia_addr,
-                    iscore::convert::toOSSIAValue(mess.value));
+                    iscore::convert::toOSSIAValue(mess.value)};
     }
 
     return {};
@@ -378,13 +378,13 @@ static void visit_node(
     }
 }
 
-std::shared_ptr<OSSIA::State> state(
-        std::shared_ptr<OSSIA::State> ossia_state,
+void state(
+        OSSIA::State& parent,
         const Scenario::StateModel& iscore_state,
         const RecreateOnPlay::Context& ctx
         )
 {
-    auto& elts = ossia_state->stateElements();
+    auto& elts = parent.children;
 
     // For all elements where IOType != Invalid,
     // we add the elements to the state.
@@ -396,7 +396,7 @@ std::shared_ptr<OSSIA::State> state(
             {
                 auto mess = message(State::Message{address(n), *val}, dl);
                 if(mess)
-                    elts.push_back(std::move(mess));
+                    elts.push_back(std::move(*mess));
                 else
                     qDebug( ) << State::Message{address(n), *val} << " message creation failed";
             }
@@ -410,20 +410,20 @@ std::shared_ptr<OSSIA::State> state(
             auto state = fac->make(proc, ctx);
             if(state)
             {
-                elts.push_back(state);
+                elts.push_back(std::move(state));
             }
         }
     }
-
-    return ossia_state;
 }
 
 
-std::shared_ptr<OSSIA::State> state(
+OSSIA::State state(
         const Scenario::StateModel& iscore_state,
         const RecreateOnPlay::Context& ctx)
 {
-    return state(OSSIA::State::create(), iscore_state, ctx);
+    OSSIA::State s;
+    iscore::convert::state(s, iscore_state, ctx);
+    return s;
 }
 
 

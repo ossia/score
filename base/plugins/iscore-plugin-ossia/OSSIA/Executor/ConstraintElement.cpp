@@ -54,7 +54,7 @@ ConstraintElement::ConstraintElement(
         ossia_cst->setCallback([&] (
                                OSSIA::TimeValue position,
                                OSSIA::TimeValue date,
-                               const std::shared_ptr<OSSIA::StateElement>& state)
+                               const OSSIA::State& state)
         {
             constraintCallback(position, date, state);
         });
@@ -85,10 +85,10 @@ void ConstraintElement::play(TimeValue t)
     auto start_state = m_ossia_constraint->getStartEvent()->getState();
     auto offset_state = m_ossia_constraint->offset(m_offset);
 
-    auto accumulator = OSSIA::State::create();
-    flattenAndFilter(start_state, accumulator);
-    flattenAndFilter(offset_state, accumulator);
-    accumulator->launch();
+    OSSIA::State accumulator;
+    flattenAndFilter(accumulator, start_state);
+    flattenAndFilter(accumulator, offset_state);
+    accumulator.launch();
 
     try {
         m_ossia_constraint->start();
@@ -110,74 +110,11 @@ void ConstraintElement::resume()
     m_ossia_constraint->resume();
 }
 
-void flattenAndFilter(
-        const std::shared_ptr<OSSIA::StateElement>& element,
-        std::shared_ptr<OSSIA::State> accumulator
-        )
-{
-    if (!element)
-        return;
-
-    switch (element->getType())
-    {
-        case OSSIA::StateElement::Type::MESSAGE :
-        {
-            std::shared_ptr<OSSIA::Message> messageToAppend = std::dynamic_pointer_cast<OSSIA::Message>(element);
-
-            // find message with the same address to replace it
-            bool found = false;
-            for (auto it = accumulator->stateElements().begin();
-                 it != accumulator->stateElements().end();
-                 it++)
-            {
-                std::shared_ptr<OSSIA::Message> messageToCheck = std::dynamic_pointer_cast<OSSIA::Message>(*it);
-
-                // replace if addresses are the same
-                if (messageToCheck->getAddress() == messageToAppend->getAddress())
-                {
-                    *it = element;
-                    found = true;
-                    break;
-                }
-            }
-
-            // if not found append it
-            if (!found)
-                accumulator->stateElements().push_back(element);
-
-            break;
-        }
-        case OSSIA::StateElement::Type::STATE :
-        {
-            std::shared_ptr<OSSIA::State> stateToFlatAndFilter = std::dynamic_pointer_cast<OSSIA::State>(element);
-
-            for (const auto& e : stateToFlatAndFilter->stateElements())
-            {
-                flattenAndFilter(e, accumulator);
-            }
-            break;
-        }
-
-        default:
-        {
-            accumulator->stateElements().push_back(element);
-            break;
-        }
-    }
-}
-
 void ConstraintElement::stop()
 {
     m_ossia_constraint->stop();
     auto st = m_ossia_constraint->getEndEvent()->getState();
-    if(st)
-    {
-        st->launch();
-    }
-    else
-    {
-        qDebug() << "Error : state missing";
-    }
+    st.launch();
 
     for(auto& process : m_processes)
     {
@@ -249,7 +186,7 @@ void ConstraintElement::on_processAdded(
 void ConstraintElement::constraintCallback(
         OSSIA::TimeValue position,
         OSSIA::TimeValue date,
-        const std::shared_ptr<OSSIA::StateElement>& state)
+        const OSSIA::State& state)
 {
     auto currentTime = Ossia::convert::time(date);
 

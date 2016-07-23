@@ -44,6 +44,7 @@ struct VisitorVariant;
 #include <OSSIA/Executor/ClockManager/ClockManagerFactory.hpp>
 #include <algorithm>
 #include <vector>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 
 #include <OSSIA/Executor/Settings/ExecutorModel.hpp>
 
@@ -299,13 +300,8 @@ void OSSIAApplicationPlugin::on_init()
         if(explorer)
             explorer->deviceModel().listening().stop();
 
-        // FIXME this is terribly inefficient; we should just recreate the state...
-        plugmodel->reload(scenar->baseConstraint());
-
-        auto& st = *plugmodel->baseScenario()->startState();
-        st.OSSIAState()->launch();
-
-        plugmodel->clear();
+        auto state = iscore::convert::state(scenar->baseScenario().startState(), plugmodel->context());
+        state.launch();
 
         // If we can we resume listening
         if(!context.documents.preparingNewDocument())

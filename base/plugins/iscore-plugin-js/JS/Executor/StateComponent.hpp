@@ -24,7 +24,6 @@ class ConstraintElement;
 }
 namespace OSSIA {
 class State;
-class StateElement;
 }  // namespace OSSIA
 
 namespace JS
@@ -32,24 +31,18 @@ namespace JS
 class StateProcess;
 namespace Executor
 {
-class State :
-        public OSSIA::StateElement
+class State
 {
     public:
         State(
             const QString& script,
             const Explorer::DeviceDocumentPlugin& devices);
 
-        void launch() const override;
-
-        OSSIA::StateElement::Type getType() const override
-        {
-            return OSSIA::StateElement::Type::USER;
-        }
+        void operator()();
 
         const Device::DeviceList& m_devices;
-        mutable QJSEngine m_engine;
-        mutable QJSValue m_fun;
+        std::shared_ptr<QJSEngine> m_engine;
+        QJSValue m_fun;
 };
 
 class StateProcessComponent final :
@@ -64,7 +57,7 @@ class StateProcessComponent final :
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
-        static std::shared_ptr<OSSIA::StateElement> make(
+        static OSSIA::StateElement make(
                 Process::StateProcess& proc,
                 const RecreateOnPlay::Context& ctxt);
 };

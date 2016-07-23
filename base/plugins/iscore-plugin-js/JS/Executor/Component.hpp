@@ -22,11 +22,6 @@ namespace RecreateOnPlay
 {
 class ConstraintElement;
 }
-namespace OSSIA {
-class State;
-class StateElement;
-}  // namespace OSSIA
-
 namespace JS
 {
 class ProcessModel;
@@ -41,9 +36,9 @@ class ProcessExecutor final :
 
         void setTickFun(const QString& val);
 
-        std::shared_ptr<OSSIA::StateElement> state(double);
-        std::shared_ptr<OSSIA::StateElement> state() override;
-        std::shared_ptr<OSSIA::StateElement> offset(OSSIA::TimeValue) override;
+        OSSIA::StateElement state(double);
+        OSSIA::StateElement state() override;
+        OSSIA::StateElement offset(OSSIA::TimeValue) override;
 
     private:
         const Device::DeviceList& m_devices;

@@ -25,7 +25,6 @@
 namespace Process { class ProcessModel; }
 class QObject;
 namespace OSSIA {
-class StateElement;
 class TimeProcess;
 }  // namespace OSSIA
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -46,7 +45,7 @@ Component::Component(
 
     auto loop = OSSIA::Loop::create(main_duration,
           [] (OSSIA::TimeValue, OSSIA::TimeValue,
-              std::shared_ptr<OSSIA::StateElement>) {
+              const OSSIA::StateElement&) {
     },
           [this,&element] (OSSIA::TimeEvent::Status newStatus) {
 
@@ -97,12 +96,6 @@ Component::Component(
     auto endTN = loop->getPatternEndTimeNode();
     auto startEV = *startTN->timeEvents().begin();
     auto endEV = *endTN->timeEvents().begin();
-    auto startST = OSSIA::State::create();
-    auto endST = OSSIA::State::create();
-
-    startEV->addState(startST);
-    endEV->addState(endST);
-
 
     using namespace ::RecreateOnPlay;
     m_ossia_startTimeNode = new TimeNodeElement{startTN, element.startTimeNode(), system().devices.list(), this};
@@ -114,12 +107,12 @@ Component::Component(
 
     m_ossia_startState = new StateElement{
             element.startState(),
-            startST,
+            *startEV,
             system(),
             this};
     m_ossia_endState = new StateElement{
             element.endState(),
-            endST,
+            *endEV,
             system(),
             this};
 
