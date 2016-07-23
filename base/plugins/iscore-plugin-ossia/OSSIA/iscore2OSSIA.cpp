@@ -264,7 +264,7 @@ void createOSSIAAddress(
     updateOSSIAAddress(settings,  node->createAddress(eggs::variants::apply(visitor, settings.value.val.impl())));
 }
 
-void updateOSSIAValue(const State::ValueImpl& iscore_data, OSSIA::SafeValue& val)
+void updateOSSIAValue(const State::ValueImpl& iscore_data, OSSIA::Value& val)
 {
     struct {
             const State::ValueImpl& data;
@@ -295,11 +295,11 @@ void updateOSSIAValue(const State::ValueImpl& iscore_data, OSSIA::SafeValue& val
     return eggs::variants::apply(visitor, val.v);
 }
 
-static OSSIA::SafeValue toOSSIAValue(const State::ValueImpl& val)
+static OSSIA::Value toOSSIAValue(const State::ValueImpl& val)
 {
     struct {
-            using return_type = OSSIA::SafeValue;
-            return_type operator()(const State::no_value_t&) const { return OSSIA::SafeValue{}; }
+            using return_type = OSSIA::Value;
+            return_type operator()(const State::no_value_t&) const { return OSSIA::Value{}; }
             return_type operator()(const State::impulse_t&) const { return OSSIA::Impulse{}; }
             return_type operator()(int v) const { return OSSIA::Int{v}; }
             return_type operator()(float v) const { return OSSIA::Float{v}; }
@@ -325,7 +325,7 @@ static OSSIA::SafeValue toOSSIAValue(const State::ValueImpl& val)
     return eggs::variants::apply(visitor, val.impl());
 }
 
-OSSIA::SafeValue toOSSIAValue(
+OSSIA::Value toOSSIAValue(
         const State::Value& value)
 {
     return toOSSIAValue(value.val);
@@ -459,7 +459,7 @@ static OSSIA::Destination expressionAddress(
     }
 }
 
-static OSSIA::SafeValue expressionOperand(
+static OSSIA::Value expressionOperand(
         const State::RelationMember& relm,
         const Device::DeviceList& list)
 {
@@ -468,7 +468,7 @@ static OSSIA::SafeValue expressionOperand(
     const struct {
         public:
             const Device::DeviceList& devlist;
-            using return_type = OSSIA::SafeValue;
+            using return_type = OSSIA::Value;
             return_type operator()(const State::Address& addr) const {
                 return expressionAddress(addr, devlist);
             }

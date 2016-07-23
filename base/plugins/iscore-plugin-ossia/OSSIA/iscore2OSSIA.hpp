@@ -71,9 +71,9 @@ ISCORE_PLUGIN_OSSIA_EXPORT void removeOSSIAAddress(
         OSSIA::Node*); // Keeps the Node.
 ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAValue(
         const State::ValueImpl& data,
-        OSSIA::SafeValue& val);
+        OSSIA::Value& val);
 
-ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::SafeValue toOSSIAValue(
+ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Value toOSSIAValue(
         const State::Value&);
 
 //// Other conversions

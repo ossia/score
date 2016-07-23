@@ -328,7 +328,7 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
         auto local_play_node = *(m_localDevice->emplace(end, "play"));
         auto local_play_address = local_play_node->createAddress(OSSIA::Type::BOOL);
         local_play_address->setValue(OSSIA::Bool{false});
-        local_play_address->addCallback([&] (const OSSIA::SafeValue& v) {
+        local_play_address->addCallback([&] (const OSSIA::Value& v) {
             if (auto b = v.try_get<OSSIA::Bool>())
             {
                 on_play(b->value);
@@ -340,7 +340,7 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
         auto local_stop_node = *(m_localDevice->emplace(end, "stop"));
         auto local_stop_address = local_stop_node->createAddress(OSSIA::Type::IMPULSE);
         local_stop_address->setValue(OSSIA::Impulse{});
-        local_stop_address->addCallback([&] (const OSSIA::SafeValue&) {
+        local_stop_address->addCallback([&] (const OSSIA::Value&) {
             on_stop();
         });
 
