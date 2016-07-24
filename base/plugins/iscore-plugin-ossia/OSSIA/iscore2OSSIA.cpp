@@ -384,7 +384,7 @@ void state(
         const RecreateOnPlay::Context& ctx
         )
 {
-    auto& elts = parent.children;
+    auto& elts = parent;
 
     // For all elements where IOType != Invalid,
     // we add the elements to the state.
@@ -394,11 +394,7 @@ void state(
             const auto& val = n.value();
             if(val)
             {
-                auto mess = message(State::Message{address(n), *val}, dl);
-                if(mess)
-                    elts.push_back(std::move(*mess));
-                else
-                    qDebug( ) << State::Message{address(n), *val} << " message creation failed";
+                elts.add(message(State::Message{address(n), *val}, dl));
             }
     });
 
@@ -407,11 +403,7 @@ void state(
         auto fac = ctx.stateProcesses.factory(proc);
         if(fac)
         {
-            auto state = fac->make(proc, ctx);
-            if(state)
-            {
-                elts.push_back(std::move(state));
-            }
+            elts.add(fac->make(proc, ctx));
         }
     }
 }
