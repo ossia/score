@@ -28,7 +28,7 @@ namespace OSSIA {
 class Address;
 class Device;
 class Expression;
-class Message;
+struct Message;
 class Node;
 class State;
 }  // namespace OSSIA

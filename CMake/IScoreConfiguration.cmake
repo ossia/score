@@ -100,9 +100,6 @@ endif()
 # Settings
 include(GenerateExportHeader)
 
-cmake_policy(SET CMP0020 NEW)
-cmake_policy(SET CMP0042 NEW)
-
 set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
 set(ISCORE_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(CTEST_OUTPUT_ON_FAILURE ON)
