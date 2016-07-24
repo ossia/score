@@ -52,10 +52,7 @@ OSSIA::StateElement ProcessExecutor::state(double t)
 
     for(const auto& mess : messages)
     {
-        //qDebug() << mess.toString();
-        auto ossia_mess = iscore::convert::message(mess, m_devices);
-        if(ossia_mess)
-            st.children.push_back(std::move(*ossia_mess));
+        st.add(iscore::convert::message(mess, m_devices));
     }
 
     // 3. Convert our value back

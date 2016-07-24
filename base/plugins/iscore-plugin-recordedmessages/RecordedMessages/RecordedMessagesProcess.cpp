@@ -50,10 +50,7 @@ OSSIA::StateElement ProcessExecutor::state(double t)
         auto time = mess.percentage * par_cst.getDurationNominal();
         if(time >= cur_pos && time < max_pos)
         {
-            qDebug() << mess.message.toString();
-            auto ossia_mess = iscore::convert::message(mess.message, m_devices);
-            if(ossia_mess)
-                st.children.push_back(std::move(*ossia_mess));
+            st.add(iscore::convert::message(mess.message, m_devices));
         }
     }
 
