@@ -1,8 +1,6 @@
 #pragma once
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
-#include <iscore/tools/std/StdlibWrapper.hpp>
-
 template<typename U>
 struct TSerializer<JSONValue, StringKey<U>>
 {

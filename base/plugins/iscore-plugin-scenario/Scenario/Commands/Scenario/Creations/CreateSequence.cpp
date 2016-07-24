@@ -129,7 +129,7 @@ CreateSequence::CreateSequence(
         {
             AddMultipleProcessesToConstraintMacro interpolateMacro{Path<ConstraintModel>{constraint}};
             m_interpolations.slotsToUse = interpolateMacro.slotsToUse;
-            m_interpolations.commands() = interpolateMacro.commands();
+            m_interpolations.commands() = interpolateMacro.takeCommands();
         }
 
         // Generate brand new ids for the processes

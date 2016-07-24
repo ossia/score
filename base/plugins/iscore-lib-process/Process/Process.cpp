@@ -9,7 +9,6 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
 template class IdentifiedObject<Process::ProcessModel>;

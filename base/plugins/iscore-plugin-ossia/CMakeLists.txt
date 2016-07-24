@@ -150,7 +150,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/LocalTree/Settings/LocalTreeView.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Curve/EasingSegment.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/iscore2OSSIA.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.cpp"

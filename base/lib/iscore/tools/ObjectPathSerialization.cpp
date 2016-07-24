@@ -1,4 +1,3 @@
-#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>

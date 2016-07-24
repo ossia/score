@@ -12,7 +12,6 @@
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
 class QObject;

@@ -1,7 +1,6 @@
 #pragma once
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <memory>
 #include <vector>
 

@@ -20,7 +20,6 @@
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>

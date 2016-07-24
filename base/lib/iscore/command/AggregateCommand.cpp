@@ -12,7 +12,6 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
 
 namespace iscore
 {

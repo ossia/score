@@ -1,7 +1,6 @@
 #pragma once
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 
 namespace Scenario

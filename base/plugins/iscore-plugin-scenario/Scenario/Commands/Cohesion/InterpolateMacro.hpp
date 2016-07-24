@@ -29,6 +29,7 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
 
         public:
             auto& commands() { return m_cmds; }
+            auto&& takeCommands() { return std::move(m_cmds); }
 
         // Use this constructor when the constraint does not exist yet.
         AddMultipleProcessesToConstraintMacro(const Path<ConstraintModel>& cstpath)
