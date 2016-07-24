@@ -17,6 +17,9 @@ include("${ISCORE_CONFIGURATION}")
 project(iscore LANGUAGES CXX)
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
+cmake_policy(SET CMP0020 NEW)
+cmake_policy(SET CMP0042 NEW)
+cmake_policy(SET CMP0063 NEW)
 
 set(ISCORE_VERSION_MAJOR 1)
 set(ISCORE_VERSION_MINOR 0)
@@ -33,9 +36,6 @@ if(ISCORE_SANITIZE)
     set(OSSIA_SANITIZE True)
 endif()
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" EXCLUDE_FROM_ALL)
-if(POLICY CMP0063)
-CMAKE_POLICY(SET CMP0063 NEW)
-endif()
 
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Qml WebSockets)
 
