@@ -18,7 +18,6 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 

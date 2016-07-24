@@ -105,10 +105,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT BaseScenarioElement final : public QObject
         void finished();
 
     private:
-        void baseScenarioConstraintCallback(OSSIA::TimeValue position,
-                                            OSSIA::TimeValue date,
-                                            std::shared_ptr<OSSIA::StateElement> state);
-
         const Context& m_ctx;
         ConstraintElement* m_ossia_constraint{};
 

@@ -5,7 +5,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/VariantSerialization.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <QChar>
 #include <QJsonObject>
 #include <QJsonValue>

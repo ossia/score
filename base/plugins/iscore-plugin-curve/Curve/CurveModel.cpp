@@ -21,7 +21,6 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/tools/MapCopy.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 

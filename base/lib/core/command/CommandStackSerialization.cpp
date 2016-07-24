@@ -11,7 +11,6 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 template <typename T> class Reader;
