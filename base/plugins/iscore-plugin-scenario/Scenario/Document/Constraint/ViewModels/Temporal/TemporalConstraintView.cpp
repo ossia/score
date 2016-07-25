@@ -269,6 +269,8 @@ void TemporalConstraintView::setExecutionState(ConstraintExecutionState s)
 
 void TemporalConstraintView::setExecutionDuration(const TimeValue& progress)
 {
+    // FIXME this should be merged with the slot in ConstraintPresenter!!!
+    // Also make a setting to disable it since it may take a lot of time
     if(!progress.isZero())
     {
         m_counterItem->setVisible(true);
