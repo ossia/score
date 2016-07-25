@@ -34,7 +34,7 @@ AddressEditDialog::AddressEditDialog(
 
 static void populateTypeCb(QComboBox& cb)
 {
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 11; i++)
     {
         auto t = static_cast<State::ValueType>(i);
         cb.addItem(State::convert::prettyType(t), QVariant::fromValue(t));
