@@ -35,6 +35,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         public QObject,
         public iscore::GUIApplicationContextPlugin
 {
+        Q_OBJECT
     public:
         OSSIAApplicationPlugin(
                 const iscore::GUIApplicationContext& app);
@@ -56,6 +57,9 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         void on_play(Scenario::ConstraintModel&, bool, ::TimeValue t = ::TimeValue::zero() );
         void on_record(::TimeValue t);
 
+    signals:
+        void sig_play(bool, ::TimeValue);
+        void sig_stop();
     private:
         void on_stop();
         void on_init();

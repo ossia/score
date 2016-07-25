@@ -83,11 +83,12 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(
             this, [&] (bool b)
     {
         on_play(b);
-    });
+    }, Qt::QueuedConnection);
 
     auto& stop_action = ctx.actions.action<Actions::Stop>();
     connect(stop_action.action(), &QAction::triggered,
-            this, &OSSIAApplicationPlugin::on_stop);
+            this, &OSSIAApplicationPlugin::on_stop,
+            Qt::QueuedConnection);
 
     auto& init_action = ctx.actions.action<Actions::Reinitialize>();
     connect(init_action.action(), &QAction::triggered,
@@ -331,7 +332,8 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
         local_play_address->addCallback([&] (const OSSIA::Value& v) {
             if (v.getType() == OSSIA::Type::BOOL)
             {
-                on_play(static_cast<const OSSIA::Bool&>(v).value);
+                auto& play_action = context.actions.action<Actions::Play>();
+                play_action.action()->trigger();
             }
         });
     }
@@ -341,7 +343,8 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
         auto local_stop_address = local_stop_node->createAddress(OSSIA::Type::IMPULSE);
         local_stop_address->setValue(OSSIA::Impulse{});
         local_stop_address->addCallback([&] (const OSSIA::Value&) {
-            on_stop();
+            auto& stop_action = context.actions.action<Actions::Stop>();
+            stop_action.action()->trigger();
         });
 
     }
