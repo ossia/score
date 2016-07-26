@@ -83,7 +83,7 @@ function(iscore_set_gcc_compile_options theTarget)
           -ffunction-sections
           -fdata-sections
           -Wl,--gc-sections
-          "$<$<CONFIG:Debug>:-Og>"
+          "$<$<CONFIG:Debug>:-O0>"
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
@@ -109,7 +109,7 @@ function(iscore_set_clang_compile_options theTarget)
     target_compile_options(${theTarget} PUBLIC
         -Wno-gnu-string-literal-operator-template
         -ftemplate-backtrace-limit=0
-        "$<$<CONFIG:Debug>:-O1>"
+        "$<$<CONFIG:Debug>:-O0>"
         )
     #if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -Wno-c++98-compat -Wno-exit-time-destructors -Wno-padded")
