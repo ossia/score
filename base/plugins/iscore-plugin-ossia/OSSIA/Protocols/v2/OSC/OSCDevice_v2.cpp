@@ -28,9 +28,10 @@ bool OSCDevice::reconnect()
 
     try {
         auto stgs = settings().deviceSpecificSettings.value<OSCSpecificSettings>();
-        std::unique_ptr<OSSIA::v2::Protocol> ossia_settings = std::make_unique<impl::OSC2>(stgs.host.toStdString(),
-                                      stgs.inputPort,
-                                      stgs.outputPort);
+        std::unique_ptr<OSSIA::v2::Protocol> ossia_settings = std::make_unique<impl::OSC2>(
+                    stgs.host.toStdString(),
+                    stgs.inputPort,
+                    stgs.outputPort);
         m_dev = std::make_unique<impl::BasicDevice>(
                     std::move(ossia_settings),
                     settings().name.toStdString());
