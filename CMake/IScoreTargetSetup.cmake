@@ -83,6 +83,7 @@ function(iscore_set_gcc_compile_options theTarget)
           -ffunction-sections
           -fdata-sections
           -Wl,--gc-sections
+          "$<$<CONFIG:Debug>:-Og>"
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
@@ -108,6 +109,7 @@ function(iscore_set_clang_compile_options theTarget)
     target_compile_options(${theTarget} PUBLIC
         -Wno-gnu-string-literal-operator-template
         -ftemplate-backtrace-limit=0
+        "$<$<CONFIG:Debug>:-O1>"
         )
     #if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -Wno-c++98-compat -Wno-exit-time-destructors -Wno-padded")
@@ -142,10 +144,7 @@ function(iscore_set_unix_compile_options theTarget)
 
     # Debug options
     "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-gsplit-dwarf>"
-	"$<$<AND:$<CONFIG:Debug>,$<PLATFORM_ID:Windows>>:-Os>"
-	"$<$<AND:$<CONFIG:Debug>,$<PLATFORM_ID:Linux>>:-Og>"
-	"$<$<AND:$<CONFIG:Debug>,$<PLATFORM_ID:Darwin>>:-O1>"
-    "$<$<CONFIG:Debug>:-g>"
+    "$<$<AND:$<CONFIG:Debug>,$<PLATFORM_ID:Windows>>:-Os>"
 
     # Release options
     "$<$<AND:$<CONFIG:Release>,$<BOOL:${NACL}>>:-O3>"
@@ -244,7 +243,7 @@ function(setup_iscore_common_lib_features TheTarget)
   generate_export_header(${TheTarget})
   if(NOT ISCORE_STATIC_PLUGINS)
     set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-	set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 0)
+    set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 0)
   endif()
 
   string(TOUPPER "${TheTarget}" UPPERCASE_PLUGIN_NAME)
