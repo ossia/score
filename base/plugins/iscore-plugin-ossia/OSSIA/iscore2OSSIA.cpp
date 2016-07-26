@@ -383,6 +383,9 @@ std::shared_ptr<OSSIA::Message> message(
             return{};
 
         auto val = iscore::convert::toOSSIAValue(mess.value);
+        if(!val)
+            return {};
+
         return OSSIA::Message::create(ossia_addr, *val);
     }
 
