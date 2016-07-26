@@ -34,6 +34,10 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDISpecificSettings.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSSIADevice_v2.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCDevice_v2.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCProtocolFactory_v2.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Panel/MessagesPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Curve/EasingSegment.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIAApplicationPlugin.hpp"
@@ -109,6 +113,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCProtocolFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSSIADevice.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSSIADevice_v2.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCDevice_v2.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCProtocolFactory_v2.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Panel/MessagesPanel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIA2iscore.cpp"
@@ -164,21 +172,9 @@ target_link_libraries(${PROJECT_NAME}
         PUBLIC
           Qt5::Core Qt5::Widgets
           iscore_lib_base iscore_lib_device iscore_lib_process iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
-          APIJamoma
+          OSSIA
 )
-if(TARGET BasicOSSIA)
-    target_sources(${PROJECT_NAME}
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSSIADevice_v2.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCDevice_v2.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCProtocolFactory_v2.hpp"
 
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSSIADevice_v2.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCDevice_v2.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCProtocolFactory_v2.cpp"
-        )
-    target_compile_definitions(${PROJECT_NAME} HAS_OSSIA_V2)
-    target_link_libraries(${PROJECT_NAME} PUBLIC BasicOSSIA)
-endif()
 # Necesarry to override plug-in loading path
 if(DEPLOYMENT_BUILD AND NOT ISCORE_STATIC_PLUGINS)
     if (APPLE)

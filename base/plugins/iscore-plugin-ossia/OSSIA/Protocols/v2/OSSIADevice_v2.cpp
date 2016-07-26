@@ -235,26 +235,6 @@ Device::AddressSettings ToAddressSettings(const OSSIA::v2::Node &node)
             s.value = ToValue(addr->getValueType());
         }
 
-        /* Debug code
-        else
-        {
-            QStringList total;
-            auto nptr = &node;
-            while(nptr)
-            {
-                total += QString::fromStdString(nptr->getName());
-                if(nptr->getParent())
-                {
-                    nptr = nptr->getParent().get();
-                }
-                else
-                    break;
-            }
-            std::reverse(total.begin(), total.end());
-            qDebug() << total.join("/");
-        }
-        */
-
         s.ioType = ToIOType(addr->getAccessMode());
         s.clipMode = ToClipMode(addr->getBoundingMode());
         s.repetitionFilter = addr->getRepetitionFilter();
