@@ -63,7 +63,7 @@ AddressEditDialog::AddressEditDialog(
     populateTypeCb(*m_valueTypeCBox);
 
     connect(m_valueTypeCBox, SignalUtils::QComboBox_currentIndexChanged_int(),
-            this, &AddressEditDialog::updateType);
+            this, &AddressEditDialog::updateType, Qt::QueuedConnection);
 
     m_layout->addRow(tr("Value type"), m_valueTypeCBox);
 
@@ -92,10 +92,12 @@ AddressEditDialog::~AddressEditDialog()
 void AddressEditDialog::updateType()
 {
     const auto valueType = m_valueTypeCBox->currentData().value<State::ValueType>();
-    m_addressWidget->setWidget(AddressSettingsFactory::instance().getValueTypeWidget(valueType));
+    auto widg = AddressSettingsFactory::instance().getValueTypeWidget(valueType);
+    m_addressWidget->setWidget(widg);
     if(m_originalSettings.ioType == Device::IOType::Invalid)
         m_originalSettings.ioType = Device::IOType::InOut;
-    m_addressWidget->widget()->setSettings(m_originalSettings);
+    if(widg)
+        widg->setSettings(m_originalSettings);
 }
 
 
