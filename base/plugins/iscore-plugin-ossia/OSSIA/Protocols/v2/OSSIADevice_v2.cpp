@@ -59,7 +59,7 @@ void updateOSSIAAddress(
             break;
     }
 
-    addr.setRepetitionFilter(settings.repetitionFilter);
+    addr.setRepetitionFilter(OSSIA::RepetitionFilter(settings.repetitionFilter));
     addr.setBoundingMode(iscore::convert::toBoundingMode(settings.clipMode));
 
     addr.setValue(iscore::convert::toOSSIAValue(settings.value));
@@ -236,7 +236,7 @@ Device::AddressSettings ToAddressSettings(const OSSIA::v2::Node &node)
 
         s.ioType = ToIOType(addr->getAccessMode());
         s.clipMode = ToClipMode(addr->getBoundingMode());
-        s.repetitionFilter = addr->getRepetitionFilter();
+        s.repetitionFilter = bool(addr->getRepetitionFilter());
 
         if(auto& domain = addr->getDomain())
             s.domain = ToDomain(domain);
