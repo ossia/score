@@ -1,5 +1,5 @@
-#include <Network/Device.h>
-#include <Network/Protocol/MIDI.h>
+#include <ossia/network/v1/Device.hpp>
+#include <ossia/network/v1/Protocol/MIDI.hpp>
 #include <QString>
 #include <memory>
 #include <OSSIA/Protocols/MIDI/MIDISpecificSettings.hpp>

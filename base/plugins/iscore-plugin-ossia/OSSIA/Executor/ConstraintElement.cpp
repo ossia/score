@@ -1,4 +1,4 @@
-#include <Editor/TimeConstraint.h>
+#include <ossia/editor/scenario/time_constraint.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
@@ -7,7 +7,7 @@
 #include <utility>
 
 #include "ConstraintElement.hpp"
-#include "Editor/TimeValue.h"
+#include <ossia/editor/scenario/time_value.hpp>
 #include "Loop/LoopProcessModel.hpp"
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>

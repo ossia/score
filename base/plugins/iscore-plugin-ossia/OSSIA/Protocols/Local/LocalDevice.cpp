@@ -1,11 +1,11 @@
-#include <Network/Device.h>
+#include <ossia/network/v1/Device.hpp>
 #include <QString>
 #include <QVariant>
 #include <memory>
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "LocalDevice.hpp"
-#include "Network/Protocol/Local.h"
+#include <ossia/network/v1/Protocol/Local.hpp>
 #include <OSSIA/Protocols/Local/LocalSpecificSettings.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>

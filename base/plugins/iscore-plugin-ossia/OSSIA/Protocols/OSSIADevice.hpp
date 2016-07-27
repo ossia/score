@@ -1,6 +1,6 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Network/Address.h>
+#include <ossia/network/v1/Address.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <QString>
 #include <memory>
@@ -9,7 +9,6 @@
 #include <vector>
 
 #include <Device/Node/DeviceNode.hpp>
-#include "Misc/CallbackContainer.h"
 #include <State/Address.hpp>
 #include <iscore_plugin_ossia_export.h>
 

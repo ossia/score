@@ -1,4 +1,4 @@
-#include <Editor/State.h>
+#include <ossia/editor/state/state.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
@@ -22,7 +22,7 @@
 #include <OSSIA/Executor/ScenarioElement.hpp>
 #include <OSSIA/Executor/StateElement.hpp>
 
-#include "Editor/TimeEvent.h"
+#include <ossia/editor/scenario/time_event.hpp>
 #include "PlayContextMenu.hpp"
 #include <Process/LayerModel.hpp>
 #include <Process/TimeValue.hpp>

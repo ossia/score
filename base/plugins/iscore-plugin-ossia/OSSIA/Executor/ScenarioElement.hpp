@@ -1,5 +1,5 @@
 #pragma once
-#include <Editor/TimeEvent.h>
+#include <ossia/editor/scenario/time_event.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>

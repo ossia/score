@@ -1,5 +1,5 @@
 #pragma once
-#include <Network/Node.h>
+#include <ossia/network/v1/Node.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/tools/Metadata.hpp>
 

@@ -1,7 +1,7 @@
 #include "LocalTreeDocumentPlugin.hpp"
-#include <Network/Device.h>
-#include <Editor/Value/Value.h>
-#include <Network/Address.h>
+#include <ossia/network/v1/Device.hpp>
+#include <ossia/editor/value/value.hpp>
+#include <ossia/network/v1/Address.hpp>
 
 
 #include <Curve/CurveModel.hpp>

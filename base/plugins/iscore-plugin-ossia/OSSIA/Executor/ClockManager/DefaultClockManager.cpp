@@ -10,7 +10,7 @@
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
-#include <Editor/Clock.h>
+#include <ossia/editor/scenario/clock.hpp>
 namespace RecreateOnPlay
 {
 DefaultClockManager:: ~DefaultClockManager() = default;

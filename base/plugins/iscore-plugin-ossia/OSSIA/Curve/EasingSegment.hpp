@@ -1,6 +1,6 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
-#include <Editor/CurveSegment/Easing.h>
+#include <ossia/editor/curve/curve_segment/easing.hpp>
 #include <Curve/Segment/CurveSegmentFactory.hpp>
 #include <iscore_plugin_ossia_export.h>
 

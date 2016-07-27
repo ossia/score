@@ -5,11 +5,12 @@
 #include <memory>
 #include <vector>
 
-#include "Editor/Domain.h"
-#include <Editor/Value/Value.h>
-#include "Network/Address.h"
-#include "Network/Device.h"
-#include "Network/Node.h"
+#include <ossia/network/v1/Domain.hpp>
+#include <ossia/network/v1/Address.hpp>
+#include <ossia/network/v1/Device.hpp>
+#include <ossia/network/v1/Node.hpp>
+#include <ossia/editor/value/value.hpp>
+
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <iscore/tools/TreeNode.hpp>
 

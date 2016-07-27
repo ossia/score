@@ -4,11 +4,11 @@
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <vector>
 
-#include "Editor/Message.h"
-#include "Editor/State.h"
+#include <ossia/editor/state/message.hpp>
+#include <ossia/editor/state/state.hpp>
 #include "JSAPIWrapper.hpp"
 #include "Component.hpp"
-#include <Editor/TimeConstraint.h>
+#include <ossia/editor/scenario/time_constraint.hpp>
 #include <JS/JSProcessModel.hpp>
 
 namespace JS

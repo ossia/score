@@ -4,12 +4,12 @@
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <vector>
 
-#include "Editor/Message.h"
-#include "Editor/State.h"
+#include <ossia/editor/state/message.hpp>
+#include <ossia/editor/state/state.hpp>
 
 #include "RecordedMessagesProcess.hpp"
-#include <Editor/Clock.h>
-#include <Editor/TimeConstraint.h>
+#include <ossia/editor/scenario/clock.hpp>
+#include <ossia/editor/scenario/time_constraint.hpp>
 #include <RecordedMessages/RecordedMessagesProcessModel.hpp>
 
 

@@ -9,7 +9,7 @@
 #include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <OSSIA/Executor/StateElement.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
-#include <Editor/StateElement.h>
+#include <ossia/editor/state/state_element.hpp>
 #include <iscore/plugins/customfactory/ModelFactory.hpp>
 namespace RecreateOnPlay
 {

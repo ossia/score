@@ -1,4 +1,4 @@
-#include <Network/Node.h>
+
 #include <QDebug>
 #include <QStringList>
 #include <algorithm>
@@ -7,11 +7,12 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include "Network/Address.h"
-#include "Network/Device.h"
-#include "Network/Protocol.h"
+#include <ossia/network/v1/Address.hpp>
+#include <ossia/network/v1/Device.hpp>
+#include <ossia/network/v1/Protocol.hpp>
+#include <ossia/network/v1/Node.hpp>
+#include <ossia/network/common/network_logger.hpp>
 #include "OSSIADevice.hpp"
-#include "Network/NetworkLogger.h"
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>

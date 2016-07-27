@@ -1,6 +1,9 @@
-#include <Editor/TimeConstraint.h>
-#include <Editor/TimeEvent.h>
-#include <Editor/TimeNode.h>
+#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/scenario/time_event.hpp>
+#include <ossia/editor/scenario/time_node.hpp>
+#include <ossia/editor/state/state.hpp>
+#include <ossia/editor/state/state_element.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -9,9 +12,6 @@
 #include <vector>
 
 #include "BaseScenarioElement.hpp"
-#include "Editor/State.h"
-#include "Editor/StateElement.h"
-#include "Editor/TimeValue.h"
 #include <OSSIA/Executor/ConstraintElement.hpp>
 #include <OSSIA/Executor/EventElement.hpp>
 #include <OSSIA/Executor/StateElement.hpp>
@@ -70,7 +70,7 @@ BaseScenarioElement::BaseScenarioElement(
         if(c == OSSIA::Clock::ClockExecutionStatus::STOPPED)
         {
             OSSIA::State accumulator;
-            flattenAndFilter(accumulator, main_end_event->getState());
+            OSSIA::flattenAndFilter(accumulator, main_end_event->getState());
             accumulator.launch();
 
             emit finished();

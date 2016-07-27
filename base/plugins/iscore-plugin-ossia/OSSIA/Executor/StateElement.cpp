@@ -3,7 +3,7 @@
 
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include "StateElement.hpp"
-#include <Editor/TimeEvent.h>
+#include <ossia/editor/scenario/time_event.hpp>
 namespace RecreateOnPlay
 {
 StateElement::StateElement(

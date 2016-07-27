@@ -1,6 +1,6 @@
 #pragma once
 #include <OSSIA/Executor/ClockManager/ClockManagerFactory.hpp>
-#include <Editor/TimeConstraint.h>
+#include <ossia/editor/scenario/time_constraint.hpp>
 namespace Scenario
 { class ConstraintModel; }
 namespace RecreateOnPlay
