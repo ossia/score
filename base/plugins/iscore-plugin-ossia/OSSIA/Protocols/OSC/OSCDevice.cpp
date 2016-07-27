@@ -1,11 +1,11 @@
-#include <Network/Device.h>
+#include <ossia/network/v1/Device.hpp>
 #include <QDebug>
 #include <QString>
 #include <QVariant>
 #include <memory>
 
 #include <Device/Protocol/DeviceSettings.hpp>
-#include "Network/Protocol/OSC.h"
+#include <ossia/network/v1/Protocol/OSC.hpp>
 #include "OSCDevice.hpp"
 #include <OSSIA/Protocols/OSC/OSCSpecificSettings.hpp>
 

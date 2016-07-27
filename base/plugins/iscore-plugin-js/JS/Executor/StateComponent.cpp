@@ -3,7 +3,7 @@
 #include <JS/StateProcess.hpp>
 #include <JS/Executor/JSAPIWrapper.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
-#include <Editor/Message.h>
+#include <ossia/editor/state/message.hpp>
 
 namespace JS
 {

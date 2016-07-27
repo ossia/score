@@ -1,10 +1,9 @@
 #include "Component.hpp"
-
-#include <Editor/Mapper.h>
-#include <Editor/State.h>
-#include <Editor/Message.h>
-#include <Editor/Value/Value.h>
-#include <Editor/Value/Behavior.h>
+#include <ossia/editor/mapper/mapper.hpp>
+#include <ossia/editor/state/state.hpp>
+#include <ossia/editor/state/message.hpp>
+#include <ossia/editor/value/value.hpp>
+#include <ossia/network/v1/Node.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -15,17 +14,14 @@
 
 
 #include <Curve/CurveModel.hpp>
-#include <Curve/Segment/Linear/LinearSegment.hpp>
-#include <Curve/Segment/Power/PowerSegment.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/CurveConversion.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
-#include <Editor/Curve.h>
-#include <Editor/CurveSegment/Linear.h>
-#include <Editor/CurveSegment/Power.h>
+#include <ossia/editor/curve/curve.hpp>
+#include <ossia/editor/curve/curve_segment.hpp>
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 

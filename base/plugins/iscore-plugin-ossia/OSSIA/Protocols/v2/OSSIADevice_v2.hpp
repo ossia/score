@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <iscore/tools/std/Optional.hpp>
-#include <Misc/CallbackContainer.h>
+#include <ossia/detail/callback_container.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <State/Address.hpp>
 #include <iscore_plugin_ossia_export.h>

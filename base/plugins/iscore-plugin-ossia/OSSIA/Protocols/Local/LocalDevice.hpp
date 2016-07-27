@@ -1,6 +1,6 @@
 #pragma once
 #include <OSSIA/Protocols/OSSIADevice.hpp>
-#include <Network/Device.h>
+#include <ossia/network/v1/Device.hpp>
 
 namespace iscore {
 struct DeviceSettings;

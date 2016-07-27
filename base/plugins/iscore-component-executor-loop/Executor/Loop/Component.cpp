@@ -1,5 +1,5 @@
-#include <Editor/TimeEvent.h>
-#include <Editor/TimeNode.h>
+#include <ossia/editor/scenario/time_event.hpp>
+#include <ossia/editor/scenario/time_node.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <core/document/Document.hpp>
@@ -8,9 +8,10 @@
 #include <algorithm>
 #include <vector>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include "Editor/Loop.h"
-#include "Editor/TimeValue.h"
-#include "Editor/State.h"
+
+#include <ossia/editor/loop/loop.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
+#include <ossia/editor/state/state.hpp>
 #include "Component.hpp"
 #include <OSSIA/Executor/ConstraintElement.hpp>
 #include <OSSIA/Executor/EventElement.hpp>

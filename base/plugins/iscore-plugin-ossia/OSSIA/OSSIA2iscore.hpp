@@ -1,8 +1,8 @@
 #pragma once
-#include <Editor/Message.h>
-#include <Editor/State.h>
-#include <Editor/TimeValue.h>
-#include <Network/Address.h>
+#include <ossia/editor/state/message.hpp>
+#include <ossia/editor/state/state.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
+#include <ossia/network/v1/Address.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <Device/Address/AddressSettings.hpp>

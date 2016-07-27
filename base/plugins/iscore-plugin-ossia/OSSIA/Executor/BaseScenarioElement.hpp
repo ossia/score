@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <OSSIA/Executor/ConstraintExecutionFacade.hpp>
-#include <Editor/StateElement.h>
+#include <ossia/editor/state/state_element.hpp>
 #include <iscore_plugin_ossia_export.h>
 namespace OSSIA
 {

@@ -1,6 +1,6 @@
 #pragma once
-#include <Network/Address.h>
-#include <Network/Node.h>
+#include <ossia/network/v1/Address.hpp>
+#include <ossia/network/v1/Node.hpp>
 #include <iscore_plugin_ossia_export.h>
 
 namespace Ossia

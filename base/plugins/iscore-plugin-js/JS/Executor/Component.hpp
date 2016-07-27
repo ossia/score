@@ -1,5 +1,5 @@
 #pragma once
-#include <Editor/TimeProcess.h>
+#include <ossia/editor/scenario/time_process.hpp>
 #include <QJSEngine>
 #include <QJSValue>
 #include <QString>
@@ -8,7 +8,7 @@
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include "Editor/TimeValue.h"
+#include <ossia/editor/scenario/time_value.hpp>
 
 namespace Explorer
 {

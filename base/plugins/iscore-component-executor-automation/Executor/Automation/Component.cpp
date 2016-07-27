@@ -1,4 +1,4 @@
-#include <Editor/Automation.h>
+#include <ossia/editor/automation/automation.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDebug>
 #include <QString>
@@ -11,12 +11,12 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include "Editor/Curve.h"
-#include "Editor/CurveSegment.h"
-#include <Editor/Value/Value.h>
-#include <Editor/Value/Behavior.h>
-#include "Network/Address.h"
-#include "Network/Node.h"
+
+#include <ossia/editor/curve/curve.hpp>
+#include <ossia/editor/curve/curve_segment.hpp>
+#include <ossia/editor/value/value.hpp>
+#include <ossia/network/v1/Address.hpp>
+#include <ossia/network/v1/Node.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <State/Address.hpp>

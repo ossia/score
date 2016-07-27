@@ -1,6 +1,6 @@
 #pragma once
-#include <Editor/TimeValue.h>
-#include <Editor/StateElement.h>
+#include <ossia/editor/scenario/time_value.hpp>
+#include <ossia/editor/state/state_element.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QObject>
@@ -70,8 +70,4 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ConstraintElement final : public QObject
         const RecreateOnPlay::Context& m_ctx;
 };
 
-void flattenAndFilter(
-        const std::shared_ptr<OSSIA::StateElement>&,
-        std::shared_ptr<OSSIA::State>
-        );
 }

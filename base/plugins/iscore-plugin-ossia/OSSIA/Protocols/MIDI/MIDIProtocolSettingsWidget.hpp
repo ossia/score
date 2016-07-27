@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <Network/Protocol/MIDI.h>
+#include <ossia/network/v1/Protocol/MIDI.hpp>
 
 
 class QComboBox;

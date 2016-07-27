@@ -1,10 +1,10 @@
-#include <Editor/Loop.h>
-#include <Editor/Scenario.h>
-#include <Editor/TimeConstraint.h>
-#include <Editor/TimeNode.h>
+#include <ossia/editor/loop/loop.hpp>
+#include <ossia/editor/scenario/scenario.hpp>
+#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/scenario/time_node.hpp>
 #include <vector>
 
-#include "Editor/TimeValue.h"
+#include <ossia/editor/scenario/time_value.hpp>
 #include "LoopingProcessWrapper.hpp"
 
 namespace RecreateOnPlay

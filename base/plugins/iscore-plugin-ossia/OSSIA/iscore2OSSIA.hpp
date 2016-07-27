@@ -1,7 +1,7 @@
 #pragma once
-#include <Editor/TimeValue.h>
-#include <Editor/Value/Value.h>
-#include <Editor/StateElement.h>
+#include <ossia/editor/scenario/time_value.hpp>
+#include <ossia/editor/value/value.hpp>
+#include <ossia/editor/state/state_element.hpp>
 
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>

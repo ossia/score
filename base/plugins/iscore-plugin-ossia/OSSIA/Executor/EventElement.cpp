@@ -1,10 +1,10 @@
-#include <Editor/TimeEvent.h>
+#include <ossia/editor/scenario/time_event.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <QDebug>
 #include <exception>
 
-#include "Editor/Expression.h"
+#include <ossia/editor/expression/expression.hpp>
 #include "EventElement.hpp"
 
 namespace RecreateOnPlay

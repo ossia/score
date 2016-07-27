@@ -1,9 +1,5 @@
 #pragma once
-
-#include <Editor/Curve.h>
-#include <Editor/CurveSegment/Linear.h>
-#include <Editor/CurveSegment/Power.h>
-#include <Editor/CurveSegment/Easing.h>
+#include <ossia/editor/curve/curve.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 

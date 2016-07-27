@@ -1,7 +1,8 @@
-#include <Editor/Expression.h>
-#include <Editor/ExpressionAtom.h>
-#include <Editor/ExpressionComposition.h>
-#include <Editor/ExpressionNot.h>
+#include <ossia/editor/expression/expression.hpp>
+#include <ossia/editor/expression/expression_atom.hpp>
+#include <ossia/editor/expression/expression_composition.hpp>
+#include <ossia/editor/expression/expression_not.hpp>
+#include <ossia/editor/expression/expression_pulse.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <boost/concept/usage.hpp>
 
@@ -26,13 +27,13 @@
 #include <Device/Address/IOType.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
-#include "Editor/Message.h"
-#include "Editor/State.h"
-#include <Editor/Value/Value.h>
-#include <Editor/ExpressionPulse.h>
-#include "Network/Address.h"
-#include "Network/Device.h"
-#include "Network/Node.h"
+#include <ossia/editor/state/message.hpp>
+#include <ossia/editor/state/state.hpp>
+#include <ossia/editor/value/value.hpp>
+#include <ossia/network/v1/Domain.hpp>
+#include <ossia/network/v1/Address.hpp>
+#include <ossia/network/v1/Device.hpp>
+#include <ossia/network/v1/Node.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include <State/Address.hpp>
 #include <State/Expression.hpp>

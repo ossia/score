@@ -1,7 +1,7 @@
-#include <Editor/TimeConstraint.h>
+#include <ossia/editor/scenario/time_constraint.hpp>
 
 #include "BasicProcessWrapper.hpp"
-#include "Editor/TimeValue.h"
+#include <ossia/editor/scenario/time_value.hpp>
 
 namespace RecreateOnPlay
 {

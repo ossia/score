@@ -1,14 +1,14 @@
-#include <Editor/TimeNode.h>
+#include <ossia/editor/scenario/time_node.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <QDebug>
 #include <exception>
 
-#include "Editor/Expression.h"
+#include <ossia/editor/expression/expression.hpp>
 #include "TimeNodeElement.hpp"
 #include "ConstraintElement.hpp"
-#include <Editor/State.h>
+#include <ossia/editor/state/state.hpp>
 
 namespace RecreateOnPlay
 {

@@ -1,25 +1,14 @@
-#include <Editor/TimeConstraint.h>
-#include <Editor/StateElement.h>
-#include <Network/Device.h>
-#include <Network/Protocol/Local.h>
+#include "OSSIAApplicationPlugin.hpp"
+
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Network/Protocol/OSC.h>
+
 #include <OSSIA/Executor/BaseScenarioElement.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <QAction>
-#include <QVariant>
-#include <QVector>
 
-#include <Editor/Value/Value.h>
-
-#include "Network/Address.h"
-#include "Network/Node.h"
-#include "OSSIAApplicationPlugin.hpp"
 #include <Process/TimeValue.hpp>
 #include <OSSIA/Executor/ConstraintElement.hpp>
 #include <OSSIA/Executor/StateElement.hpp>
-#include <Network/Protocol/Minuit.h>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
@@ -47,6 +36,22 @@ struct VisitorVariant;
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 
 #include <OSSIA/Executor/Settings/ExecutorModel.hpp>
+
+
+#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/state/state_element.hpp>
+#include <ossia/editor/value/value.hpp>
+
+#include <ossia/network/v1/Device.hpp>
+#include <ossia/network/v1/Address.hpp>
+#include <ossia/network/v1/Node.hpp>
+#include <ossia/network/v1/Protocol/Local.hpp>
+#include <ossia/network/v1/Protocol/OSC.hpp>
+#include <ossia/network/v1/Protocol/Minuit.hpp>
+
+#include <QAction>
+#include <QVariant>
+#include <QVector>
 
 OSSIAApplicationPlugin::OSSIAApplicationPlugin(
         const iscore::GUIApplicationContext& ctx):

@@ -1,21 +1,20 @@
-#include <Network/Node.h>
 #include <QDebug>
 #include <QStringList>
 #include <algorithm>
 #include <list>
-
-#include <Device.hpp>
-#include <Address.hpp>
-#include <Protocol.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 
 #include "OSSIADevice_v2.hpp"
-#include <Network/NetworkLogger.h>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
+
+#include <ossia/network/v2/base/device.hpp>
+#include <ossia/network/v2/base/address.hpp>
+#include <ossia/network/v2/base/protocol.hpp>
+#include <ossia/network/common/network_logger.hpp>
 
 namespace iscore
 {

@@ -1,11 +1,11 @@
-#include <Network/Device.h>
+#include <ossia/network/v1/Device.hpp>
 #include <QString>
 #include <QVariant>
 #include <memory>
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "MinuitDevice.hpp"
-#include "Network/Protocol/Minuit.h"
+#include <ossia/network/v1/Protocol/Minuit.hpp>
 #include <OSSIA/Protocols/Minuit/MinuitSpecificSettings.hpp>
 
 namespace Ossia
