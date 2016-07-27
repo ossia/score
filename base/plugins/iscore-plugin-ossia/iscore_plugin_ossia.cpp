@@ -4,6 +4,7 @@
 #include <OSSIA/Protocols/Local/LocalProtocolFactory.hpp>
 
 #include <OSSIA/Protocols/v2/OSC/OSCProtocolFactory_v2.hpp>
+#include <OSSIA/Protocols/v2/Minuit/MinuitProtocolFactory_v2.hpp>
 
 #include <OSSIA/Protocols/Panel/MessagesPanel.hpp>
 
@@ -75,7 +76,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
                  OSCProtocolFactory,
                  MinuitProtocolFactory,
                  MIDIProtocolFactory,
-                 Protocols::OSCProtocolFactory
+                 Protocols::OSCProtocolFactory,
+                 Protocols::MinuitProtocolFactory
             >,
             FW<RecreateOnPlay::ProcessComponentFactory,
                  RecreateOnPlay::ScenarioComponentFactory>,

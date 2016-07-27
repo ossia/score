@@ -1,4 +1,3 @@
-#include <ossia/network/v1/Device.hpp>
 #include <QDebug>
 #include <QString>
 #include <QVariant>

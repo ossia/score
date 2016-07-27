@@ -5,10 +5,10 @@ namespace Ossia
 {
 namespace Protocols
 {
-class OSCDevice final : public OSSIADevice_v2
+class MinuitDevice final : public OSSIADevice_v2
 {
     public:
-        OSCDevice(const Device::DeviceSettings& stngs);
+        MinuitDevice(const Device::DeviceSettings& settings);
 
         bool reconnect() override;
 };

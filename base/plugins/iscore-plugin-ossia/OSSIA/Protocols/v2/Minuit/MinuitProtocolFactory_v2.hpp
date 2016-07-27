@@ -5,10 +5,10 @@ namespace Ossia
 {
 namespace Protocols
 {
-class OSCProtocolFactory final :
+class MinuitProtocolFactory final :
         public Device::ProtocolFactory
 {
-        ISCORE_CONCRETE_FACTORY("7d34907f-8262-4c60-9735-6ec45dc88628")
+        ISCORE_CONCRETE_FACTORY("f1b90a2a-b5e2-4cd7-9b75-987df7e25bdc")
         // Implement with OSSIA::Device
         QString prettyName() const override;
 
@@ -16,6 +16,7 @@ class OSCProtocolFactory final :
                 const Device::DeviceSettings& settings,
                 const iscore::DocumentContext& ctx) override;
         const Device::DeviceSettings& defaultSettings() const override;
+
 
         Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
