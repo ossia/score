@@ -3,8 +3,8 @@
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "OSCDevice_v2.hpp"
-#include <OSSIA/Protocols/OSC/OSCProtocolSettingsWidget.hpp>
 #include "OSCProtocolFactory_v2.hpp"
+#include <OSSIA/Protocols/OSC/OSCProtocolSettingsWidget.hpp>
 #include <OSSIA/Protocols/OSC/OSCSpecificSettings.hpp>
 
 namespace Device
