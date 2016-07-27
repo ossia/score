@@ -454,7 +454,8 @@ Device::Node OSSIADevice_v2::refresh()
         // Clear the listening
         removeListening_impl(*m_dev.get(), State::Address{m_settings.name, {}});
 
-        if(m_dev->updateNamespace())
+
+        if(m_dev->getProtocol().updateChildren(*m_dev))
         {
             // Make a device explorer node from the current state of the device.
             // First make the node corresponding to the root node.
