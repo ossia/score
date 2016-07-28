@@ -16,7 +16,7 @@
 #include <ossia/editor/curve/curve_segment.hpp>
 #include <ossia/editor/value/value.hpp>
 #include <ossia/network/base/address.hpp>
-#include <ossia/network/base/Node.hpp>
+#include <ossia/network/base/node.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <State/Address.hpp>
@@ -58,9 +58,9 @@ Component::Component(
 void Component::recreate()
 {
     auto addr = process().address();
-    std::shared_ptr<OSSIA::Address> address;
-    OSSIA::Node* node{};
-    Ossia::OSSIADevice* dev{};
+    OSSIA::net::Address* address{};
+    OSSIA::net::Node* node{};
+    Ossia::Protocols::OSSIADevice* dev{};
 
     m_ossia_curve.reset(); // It will be remade after.
 
@@ -76,11 +76,11 @@ void Component::recreate()
     if(dev_it == devices.end())
         goto curve_cleanup_label;
 
-    dev = dynamic_cast<Ossia::OSSIADevice*>(*dev_it);
+    dev = dynamic_cast<Ossia::Protocols::OSSIADevice*>(*dev_it);
     if(!dev)
         goto curve_cleanup_label;
 
-    node = iscore::convert::findNodeFromPath(addr.path, &dev->impl());
+    node = iscore::convert::findNodeFromPath(addr.path, dev->impl());
     if(!node)
         goto curve_cleanup_label;
 
@@ -94,14 +94,14 @@ void Component::recreate()
 
     using namespace OSSIA;
     if(process().tween())
-        on_curveChanged(Destination(node->getThis(), {})); // If the type changes we need to rebuild the curve.
+        on_curveChanged(Destination(*node, {})); // If the type changes we need to rebuild the curve.
     else
         on_curveChanged({});
     if(!m_ossia_curve)
         goto curve_cleanup_label;
 
     m_ossia_process = OSSIA::Automation::create(
-                address,
+                *address,
                 Behavior(m_ossia_curve));
 
 

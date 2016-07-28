@@ -35,7 +35,7 @@
 #include <OSSIA/LocalTree/Settings/LocalTreeModel.hpp>
 
 Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
-        std::shared_ptr<OSSIA::Device> localDev,
+        OSSIA::net::Device& localDev,
         iscore::Document& doc,
         QObject* parent):
     iscore::DocumentPlugin{doc.context(), "LocalTree::DocumentPlugin", parent},
@@ -75,7 +75,7 @@ void Ossia::LocalTree::DocumentPlugin::create()
     ISCORE_ASSERT(scenar);
     auto& cstr = scenar->baseScenario().constraint();
     m_root = new Constraint(
-                *m_localDevice,
+                m_localDevice.getRootNode(),
                 getStrongId(cstr.components),
                 cstr,
                 *this,
@@ -89,17 +89,10 @@ void Ossia::LocalTree::DocumentPlugin::cleanup()
         return;
 
     // Remove the node from local device
-    auto it = find_if(
-                m_localDevice->children(),
-                [&] (const auto& node)
-    { return node == m_root->node(); });
-
-    if(it != m_localDevice->children().end())
-    {
-        m_localDevice->erase(it);
-    }
+    m_localDevice.getRootNode().removeChild(m_root->node());
 
     // Delete
+    // TODO why not delete m_root;
     m_root = nullptr;
     /*
     auto& doc = m_context.document.model().modelDelegate();

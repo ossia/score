@@ -25,11 +25,14 @@ namespace Device
 class DeviceList;
 }
 namespace OSSIA {
+namespace net
+{
 class Address;
+class Node;
 class Device;
+}
 class Expression;
 struct Message;
-class Node;
 class State;
 }  // namespace OSSIA
 namespace Device
@@ -48,30 +51,27 @@ namespace convert
 // Gets a node from an address in a device.
 // Creates it if necessary.
 //// Device-related functions
-// OSSIA::Node* might be null.
-ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Node* findNodeFromPath(
+// OSSIA::net::Node* might be null.
+ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::net::Node* findNodeFromPath(
         const QStringList& path,
-        OSSIA::Device *dev);
-ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<OSSIA::Node> findNodeFromPath(
-        const QStringList& path,
-        std::shared_ptr<OSSIA::Device> dev);
+        OSSIA::net::Device& dev);
 
-// OSSIA::Node* won't be null.
-ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Node* getNodeFromPath(
+// OSSIA::net::Node* won't be null.
+ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::net::Node* getNodeFromPath(
         const QStringList& path,
-        OSSIA::Device *dev);
-ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::Node* createNodeFromPath(
+        OSSIA::net::Device& dev);
+ISCORE_PLUGIN_OSSIA_EXPORT OSSIA::net::Node* createNodeFromPath(
         const QStringList& path,
-        OSSIA::Device* dev);
+        OSSIA::net::Device& dev);
 
 ISCORE_PLUGIN_OSSIA_EXPORT void createOSSIAAddress(
         const Device::FullAddressSettings& settings,
-        OSSIA::Node* node);
+        OSSIA::net::Node& node);
 ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAAddress(
         const Device::FullAddressSettings& settings,
-        const std::shared_ptr<OSSIA::Address>& addr);
+        OSSIA::net::Address& addr);
 ISCORE_PLUGIN_OSSIA_EXPORT void removeOSSIAAddress(
-        OSSIA::Node*); // Keeps the Node.
+        OSSIA::net::Node&); // Keeps the Node.
 ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAValue(
         const State::ValueImpl& data,
         OSSIA::Value& val);

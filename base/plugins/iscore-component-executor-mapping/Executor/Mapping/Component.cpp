@@ -3,7 +3,7 @@
 #include <ossia/editor/state/state.hpp>
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/value/value.hpp>
-#include <ossia/network/base/Node.hpp>
+#include <ossia/network/base/node.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -24,6 +24,7 @@
 #include <ossia/editor/curve/curve_segment.hpp>
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
+#include <ossia/network/base/address.hpp>
 
 namespace Mapping
 {
@@ -110,8 +111,8 @@ void Component::recreate()
     auto iscore_source_addr = process().sourceAddress();
     auto iscore_target_addr = process().targetAddress();
 
-    std::shared_ptr<OSSIA::Address> ossia_source_addr;
-    std::shared_ptr<OSSIA::Address> ossia_target_addr;
+    OSSIA::net::Address* ossia_source_addr{};
+    OSSIA::net::Address* ossia_target_addr{};
 
     m_ossia_curve.reset(); // It will be remade after.
 
@@ -119,7 +120,7 @@ void Component::recreate()
     const auto& devices = m_deviceList.devices();
 
     // TODO use this in automation
-    auto getAddress = [&] (const State::Address& addr) -> std::shared_ptr<OSSIA::Address>
+    auto getAddress = [&] (const State::Address& addr) -> OSSIA::net::Address*
     {
         // Look for the real node in the device
         auto dev_it = std::find_if(devices.begin(), devices.end(),
@@ -130,11 +131,11 @@ void Component::recreate()
         if(dev_it == devices.end())
             return {};
 
-        auto dev = dynamic_cast<Ossia::OSSIADevice*>(*dev_it);
+        auto dev = dynamic_cast<Ossia::Protocols::OSSIADevice*>(*dev_it);
         if(!dev)
             return {};
 
-        auto node = iscore::convert::findNodeFromPath(addr.path, &dev->impl());
+        auto node = iscore::convert::findNodeFromPath(addr.path, dev->impl());
         if(!node)
             return {};
 
@@ -165,7 +166,8 @@ void Component::recreate()
 
     // TODO on_min/max changed
     m_ossia_process = OSSIA::Mapper::create(
-                ossia_source_addr, ossia_target_addr,
+                *ossia_source_addr,
+                *ossia_target_addr,
                 Behavior(m_ossia_curve));
 
     return;

@@ -13,7 +13,7 @@ class Event final :
         COMPONENT_METADATA("918b757d-d304-4362-bbd3-120f84e229fe")
     public:
         Event(
-                OSSIA::Node& parent,
+                OSSIA::net::Node& parent,
                 const Id<iscore::Component>& id,
                 Scenario::EventModel& event,
                 DocumentPlugin& doc,

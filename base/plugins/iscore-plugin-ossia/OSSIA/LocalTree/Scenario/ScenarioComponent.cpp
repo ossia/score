@@ -8,15 +8,15 @@ namespace LocalTree
 
 ScenarioComponentBase::ScenarioComponentBase(
         const Id<iscore::Component>& id,
-        OSSIA::Node& parent,
+        OSSIA::net::Node& parent,
         Scenario::ProcessModel& scenario,
         DocumentPlugin& sys,
         QObject* parent_obj):
     ProcessComponent_T<Scenario::ProcessModel>{parent, scenario, sys, id, "ScenarioComponent", parent_obj},
-    m_constraintsNode{node()->createChild("constraints")},
-    m_eventsNode{node()->createChild("events")},
-    m_timeNodesNode{node()->createChild("timenodes")},
-    m_statesNode{node()->createChild("states")}
+    m_constraintsNode{node().createChild("constraints")},
+    m_eventsNode{node().createChild("events")},
+    m_timeNodesNode{node().createChild("timenodes")},
+    m_statesNode{node().createChild("states")}
 {
 }
 
@@ -54,38 +54,22 @@ State* ScenarioComponentBase::make<State, Scenario::StateModel>(
 
 void ScenarioComponentBase::removing(const Scenario::ConstraintModel& elt, const Constraint& comp)
 {
-    auto it = find_if(m_constraintsNode->children(), [&] (const auto& node)
-    { return node == comp.node(); });
-    ISCORE_ASSERT(it != m_constraintsNode->children().end());
-
-    m_constraintsNode->erase(it);
+    m_constraintsNode->removeChild(comp.node());
 }
 
 void ScenarioComponentBase::removing(const Scenario::EventModel& elt, const Event& comp)
 {
-    auto it = find_if(m_eventsNode->children(), [&] (const auto& node)
-    { return node == comp.node(); });
-    ISCORE_ASSERT(it != m_eventsNode->children().end());
-
-    m_eventsNode->erase(it);
+    m_eventsNode->removeChild(comp.node());
 }
 
 void ScenarioComponentBase::removing(const Scenario::TimeNodeModel& elt, const TimeNode& comp)
 {
-    auto it = find_if(m_timeNodesNode->children(), [&] (const auto& node)
-    { return node == comp.node(); });
-    ISCORE_ASSERT(it != m_timeNodesNode->children().end());
-
-    m_timeNodesNode->erase(it);
+    m_timeNodesNode->removeChild(comp.node());
 }
 
 void ScenarioComponentBase::removing(const Scenario::StateModel& elt, const State& comp)
 {
-    auto it = find_if(m_statesNode->children(), [&] (const auto& node)
-    { return node == comp.node(); });
-    ISCORE_ASSERT(it != m_statesNode->children().end());
-
-    m_statesNode->erase(it);
+    m_statesNode->removeChild(comp.node());
 }
 
 }

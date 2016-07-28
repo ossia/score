@@ -5,25 +5,22 @@
 class MetadataNamePropertyWrapper
 {
         ModelMetadata& metadata;
-        OSSIA::CallbackContainer<OSSIA::NodeChangeCallback>::iterator m_callbackIt;
-
     public:
         OSSIA::net::Node& node;
 
         MetadataNamePropertyWrapper(
-                OSSIA::Node& parent,
+                OSSIA::net::Node& parent,
                 ModelMetadata& arg_metadata,
                 QObject* context
                 ):
-            metadata{arg_metadata}
+            metadata{arg_metadata},
+            node{*parent.createChild(arg_metadata.name().toStdString())}
         {
-            node = *parent.createChild(arg_metadata.name().toStdString());
-
-            /*
+            /* // TODO do me with nano-signal-slot in device.hpp
             m_callbackIt =
                     node->addCallback(
-                        [=] (const OSSIA::Node& node, const std::string& name, OSSIA::NodeChange t) {
-                if(t == OSSIA::NodeChange::RENAMED)
+                        [=] (const OSSIA::net::Node& node, const std::string& name, OSSIA::net::NodeChange t) {
+                if(t == OSSIA::net::NodeChange::RENAMED)
                 {
                     auto str = QString::fromStdString(node.getName());
                     if(str != metadata.name())
@@ -34,12 +31,12 @@ class MetadataNamePropertyWrapper
 
             auto setNameFun = [=] (const QString& newName_qstring) {
                 auto newName = newName_qstring.toStdString();
-                auto curName = node->getName();
+                auto curName = node.getName();
 
                 if(curName != newName)
                 {
-                    node->setName(newName);
-                    auto real_newName = node->getName();
+                    node.setName(newName);
+                    auto real_newName = node.getName();
 
                     if(real_newName != newName)
                     {
@@ -56,14 +53,9 @@ class MetadataNamePropertyWrapper
             setNameFun(metadata.name());
         }
 
-        void clear()
-        {
-            node.reset();
-        }
-
         ~MetadataNamePropertyWrapper()
         {
             //node->removeCallback(m_callbackIt);
-            clear();
+            node.getParent()->removeChild(node);
         }
 };

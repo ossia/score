@@ -15,13 +15,6 @@
 #include <iscore/tools/Todo.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 
-struct VisitorVariant;
-#if defined(ISCORE_DEPLOYMENT_BUILD) && (defined(__APPLE__) || defined(linux))
-#include <TTFoundationAPI.h>
-#include <TTModular.h>
-#include <QFileInfo>
-#include <QDir>
-#endif
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <OSSIA/Executor/ContextMenu/PlayContextMenu.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -44,10 +37,7 @@ struct VisitorVariant;
 
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/address.hpp>
-#include <ossia/network/base/Node.hpp>
-#include <ossia/network/v1/Protocol/Local.hpp>
-#include <ossia/network/v1/Protocol/OSC.hpp>
-#include <ossia/network/v1/Protocol/Minuit.hpp>
+#include <ossia/network/base/node.hpp>
 
 #include <QAction>
 #include <QVariant>
@@ -58,23 +48,6 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(
     iscore::GUIApplicationContextPlugin {ctx},
     m_playActions{*this, ctx}
 {
-#if defined(ISCORE_DEPLOYMENT_BUILD)
-// Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
-#if defined(__APPLE__)
-    auto contents = QFileInfo(qApp->applicationDirPath()).dir().path() + "/Frameworks/jamoma/extensions";
-    TTFoundationInit(contents.toUtf8().constData(), false);
-    TTModularInit(contents.toUtf8().constData(), false);
-#elif defined(linux)
-    auto contents = QFileInfo(qApp->applicationDirPath()).dir().path() + "/lib/jamoma";
-    TTFoundationInit(contents.toUtf8().constData(), false);
-    TTModularInit(contents.toUtf8().constData(), false);
-#endif
-#endif
-    auto localDevice = OSSIA::Local::create();
-    m_localDevice = OSSIA::Device::create(localDevice, "i-score");
-
-    setupOSSIACallbacks();
-
     // Two parts :
     // One that maintains the devices for each document
     // (and disconnects / reconnects them when the current document changes)

@@ -17,7 +17,7 @@ class ScenarioComponentBase :
     public:
        ScenarioComponentBase(
                const Id<iscore::Component>& id,
-               OSSIA::Node& parent,
+               OSSIA::net::Node& parent,
                Scenario::ProcessModel& scenario,
                DocumentPlugin& doc,
                QObject* parent_obj);
@@ -44,10 +44,10 @@ class ScenarioComponentBase :
                 const State& comp);
 
     private:
-        std::shared_ptr<OSSIA::Node> m_constraintsNode;
-        std::shared_ptr<OSSIA::Node> m_eventsNode;
-        std::shared_ptr<OSSIA::Node> m_timeNodesNode;
-        std::shared_ptr<OSSIA::Node> m_statesNode;
+        std::shared_ptr<OSSIA::net::Node> m_constraintsNode;
+        std::shared_ptr<OSSIA::net::Node> m_eventsNode;
+        std::shared_ptr<OSSIA::net::Node> m_timeNodesNode;
+        std::shared_ptr<OSSIA::net::Node> m_statesNode;
 
         std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };

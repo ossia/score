@@ -52,8 +52,8 @@ struct GetPropertyWrapper : public BaseProperty
         using converter_t = Ossia::convert::MatchingType<typename GetProperty::value_type>;
 
         GetPropertyWrapper(
-                const std::shared_ptr<OSSIA::Node>& param_node,
-                const std::shared_ptr<OSSIA::Address>& param_addr,
+                OSSIA::net::Node& param_node,
+                OSSIA::net::Address& param_addr,
                 GetProperty prop,
                 QObject* context
                 ):
@@ -66,11 +66,11 @@ struct GetPropertyWrapper : public BaseProperty
                 auto newVal = converter_t::convert(property.get());
                 try
                 {
-                    auto res = Ossia::convert::ToValue(addr->cloneValue());
+                    auto res = Ossia::convert::ToValue(addr.cloneValue());
 
                     if(newVal != res)
                     {
-                        addr->pushValue(iscore::convert::toOSSIAValue(newVal));
+                        addr.pushValue(iscore::convert::toOSSIAValue(newVal));
                     }
                 }
                 catch(...)
@@ -80,7 +80,7 @@ struct GetPropertyWrapper : public BaseProperty
             },
             Qt::QueuedConnection);
 
-            addr->setValue(
+            addr.setValue(
                         iscore::convert::toOSSIAValue(
                             converter_t::convert(
                                 property.get())));
@@ -89,8 +89,8 @@ struct GetPropertyWrapper : public BaseProperty
 
 template<typename Property>
 auto make_getProperty(
-        const std::shared_ptr<OSSIA::Node>& node,
-        const std::shared_ptr<OSSIA::Address>& addr,
+        OSSIA::net::Node& node,
+        OSSIA::net::Address& addr,
         Property prop,
         QObject* context)
 {
@@ -99,7 +99,7 @@ auto make_getProperty(
 
 template<typename T, typename Object, typename PropGet, typename PropChanged>
 auto add_getProperty(
-        OSSIA::Node& n,
+        OSSIA::net::Node& n,
         const std::string& name,
         Object* obj,
         PropGet get,
@@ -107,13 +107,17 @@ auto add_getProperty(
         QObject* context)
 {
     constexpr const auto t = Ossia::convert::MatchingType<T>::val;
-    std::shared_ptr<OSSIA::Node> node = *n.emplace(
-                                            n.children().end(),
-                                            name,
-                                            t,
-                                            OSSIA::AccessMode::GET);
+    auto node = n.createChild(name);
+    ISCORE_ASSERT(node);
 
-    return make_getProperty(node, node->getAddress(), QtGetProperty<T, Object, PropGet, PropChanged>{*obj, get, chgd}, context);
+    auto addr = node->createAddress(t);
+    ISCORE_ASSERT(addr);
+
+    addr->setAccessMode(OSSIA::AccessMode::GET);
+
+    return make_getProperty(*node, *addr,
+                            QtGetProperty<T, Object, PropGet, PropChanged>{*obj, get, chgd},
+                            context);
 }
 }
 }
