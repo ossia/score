@@ -8,7 +8,7 @@ class MetadataNamePropertyWrapper
         OSSIA::CallbackContainer<OSSIA::NodeChangeCallback>::iterator m_callbackIt;
 
     public:
-        std::shared_ptr<OSSIA::Node> node;
+        OSSIA::net::Node& node;
 
         MetadataNamePropertyWrapper(
                 OSSIA::Node& parent,
@@ -17,9 +17,7 @@ class MetadataNamePropertyWrapper
                 ):
             metadata{arg_metadata}
         {
-            node = *parent.emplace(
-                       parent.children().end(),
-                       arg_metadata.name().toStdString());
+            node = *parent.createChild(arg_metadata.name().toStdString());
 
             /*
             m_callbackIt =

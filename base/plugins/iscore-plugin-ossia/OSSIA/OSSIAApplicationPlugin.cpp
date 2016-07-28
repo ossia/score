@@ -42,9 +42,9 @@ struct VisitorVariant;
 #include <ossia/editor/state/state_element.hpp>
 #include <ossia/editor/value/value.hpp>
 
-#include <ossia/network/v1/Device.hpp>
-#include <ossia/network/v1/Address.hpp>
-#include <ossia/network/v1/Node.hpp>
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/Node.hpp>
 #include <ossia/network/v1/Protocol/Local.hpp>
 #include <ossia/network/v1/Protocol/OSC.hpp>
 #include <ossia/network/v1/Protocol/Minuit.hpp>
@@ -114,12 +114,6 @@ OSSIAApplicationPlugin::~OSSIAApplicationPlugin()
 {
     // The scenarios playing should already have been stopped by virtue of
     // aboutToClose.
-
-    auto& children = m_localDevice->children();
-    while(!children.empty())
-        m_localDevice->erase(children.end() - 1);
-
-    OSSIA::CleanupProtocols();
 }
 
 bool OSSIAApplicationPlugin::handleStartup()
@@ -139,7 +133,7 @@ bool OSSIAApplicationPlugin::handleStartup()
 
 void OSSIAApplicationPlugin::on_newDocument(iscore::Document* doc)
 {
-    doc->model().addPluginModel(new Ossia::LocalTree::DocumentPlugin{m_localDevice,*doc, &doc->model()});
+    //doc->model().addPluginModel(new Ossia::LocalTree::DocumentPlugin{m_localDevice,*doc, &doc->model()});
     doc->model().addPluginModel(new RecreateOnPlay::DocumentPlugin{*doc, &doc->model()});
 }
 
@@ -317,40 +311,6 @@ void OSSIAApplicationPlugin::on_init()
         }
     }
 }
-
-void OSSIAApplicationPlugin::setupOSSIACallbacks()
-{
-    if(!m_localDevice)
-        return;
-    auto& dev = *m_localDevice;
-    auto& children = dev.children();
-    {
-        auto end = children.cend();
-        auto local_play_node = *(m_localDevice->emplace(end, "play"));
-        auto local_play_address = local_play_node->createAddress(OSSIA::Type::BOOL);
-        local_play_address->setValue(OSSIA::Bool{false});
-        local_play_address->addCallback([&] (const OSSIA::Value& v) {
-            if (auto b = v.try_get<OSSIA::Bool>())
-            {
-                on_play(b->value);
-            }
-        });
-    }
-    {
-        auto end = children.cend();
-        auto local_stop_node = *(m_localDevice->emplace(end, "stop"));
-        auto local_stop_address = local_stop_node->createAddress(OSSIA::Type::IMPULSE);
-        local_stop_address->setValue(OSSIA::Impulse{});
-        local_stop_address->addCallback([&] (const OSSIA::Value&) {
-            on_stop();
-        });
-
-    }
-
-    auto remote_protocol = OSSIA::Minuit::create("127.0.0.1", 9999, 6666);
-    m_remoteDevice = OSSIA::Device::create(remote_protocol, "i-score-remote");
-}
-
 
 std::unique_ptr<RecreateOnPlay::ClockManager> OSSIAApplicationPlugin::makeClock(
         const RecreateOnPlay::Context& ctx)

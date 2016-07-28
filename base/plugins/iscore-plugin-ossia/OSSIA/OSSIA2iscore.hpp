@@ -1,8 +1,9 @@
 #pragma once
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
+#include <ossia/network/domain.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/network/v1/Address.hpp>
+#include <ossia/network/base/address.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <Device/Address/AddressSettings.hpp>
@@ -15,9 +16,10 @@
 #include <iscore_plugin_ossia_export.h>
 
 namespace OSSIA {
-class Domain;
+namespace net {
 class Node;
-}  // namespace OSSIA
+}
+}
 
 // Utility functions to convert from one node to another.
 namespace Ossia
@@ -105,14 +107,14 @@ template<> struct MatchingType<::TimeValue> {
 
 Device::IOType ToIOType(OSSIA::AccessMode t);
 Device::ClipMode ToClipMode(OSSIA::BoundingMode b);
-Device::Domain ToDomain(OSSIA::Domain& domain);
+Device::Domain ToDomain(OSSIA::net::Domain& domain);
 
 ISCORE_PLUGIN_OSSIA_EXPORT State::Value ToValue(const OSSIA::Value& val);
 State::Value ToValue(OSSIA::Type);
 
-State::Address ToAddress(const OSSIA::Node& node);
-Device::AddressSettings ToAddressSettings(const OSSIA::Node& node);
-ISCORE_PLUGIN_OSSIA_EXPORT Device::Node ToDeviceExplorer(const OSSIA::Node& node);
+State::Address ToAddress(const OSSIA::net::Node& node);
+Device::AddressSettings ToAddressSettings(const OSSIA::net::Node& node);
+ISCORE_PLUGIN_OSSIA_EXPORT Device::Node ToDeviceExplorer(const OSSIA::net::Node& node);
 
 
 inline ::TimeValue time(OSSIA::TimeValue t)

@@ -8,6 +8,8 @@ struct DeviceSettings;
 
 namespace Ossia
 {
+namespace Protocols
+{
 class MIDIDevice final : public OSSIADevice
 {
     public:
@@ -19,4 +21,5 @@ class MIDIDevice final : public OSSIADevice
 
         Device::Node refresh() override;
 };
+}
 }

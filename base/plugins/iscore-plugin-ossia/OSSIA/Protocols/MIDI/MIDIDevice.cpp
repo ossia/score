@@ -1,5 +1,5 @@
-#include <ossia/network/v1/Device.hpp>
-#include <ossia/network/v1/Protocol/MIDI.hpp>
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/midi/midi.hpp>
 #include <QString>
 #include <memory>
 #include <OSSIA/Protocols/MIDI/MIDISpecificSettings.hpp>
@@ -28,8 +28,8 @@ bool MIDIDevice::reconnect()
     MIDISpecificSettings set = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
     try {
         auto proto = OSSIA::MIDI::create();
-        proto->setInfo(OSSIA::MidiInfo(
-                           static_cast<OSSIA::MidiInfo::Type>(set.io),
+        proto->setInfo(OSSIA::net::MidiInfo(
+                           static_cast<OSSIA::net::MidiInfo::Type>(set.io),
                            set.endpoint.toStdString(),
                            set.port));
         m_dev = OSSIA::createMIDIDevice(proto);

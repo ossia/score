@@ -1,5 +1,5 @@
 #pragma once
-#include <ossia/network/v1/Node.hpp>
+#include <ossia/network/base/Node.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/tools/Metadata.hpp>
 
@@ -7,12 +7,6 @@
 #include "SetProperty.hpp"
 #include "GetProperty.hpp"
 #include "Property.hpp"
-
-inline auto add_node(OSSIA::Node& n, const std::string& name)
-{
-    return *n.emplace(n.children().end(), name);
-}
-
 
 class ModelMetadata;
 

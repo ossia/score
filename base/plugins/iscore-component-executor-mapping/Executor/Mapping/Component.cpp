@@ -3,7 +3,7 @@
 #include <ossia/editor/state/state.hpp>
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/value/value.hpp>
-#include <ossia/network/v1/Node.hpp>
+#include <ossia/network/base/Node.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>

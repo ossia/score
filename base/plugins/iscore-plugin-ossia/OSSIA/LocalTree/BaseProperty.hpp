@@ -1,6 +1,6 @@
 #pragma once
-#include <ossia/network/v1/Address.hpp>
-#include <ossia/network/v1/Node.hpp>
+#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/node.hpp>
 #include <iscore_plugin_ossia_export.h>
 
 namespace Ossia
@@ -10,12 +10,12 @@ namespace LocalTree
 class ISCORE_PLUGIN_OSSIA_EXPORT BaseProperty
 {
     public:
-        std::shared_ptr<OSSIA::Node> node;
-        std::shared_ptr<OSSIA::Address> addr;
+        OSSIA::net::Node& node;
+        OSSIA::net::Address& addr;
 
         BaseProperty(
-                const std::shared_ptr<OSSIA::Node> & n,
-                const std::shared_ptr<OSSIA::Address>& a):
+                OSSIA::net::Node& n,
+                OSSIA::net::Address& a):
             node{n},
             addr{a}
         {

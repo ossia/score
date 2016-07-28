@@ -14,7 +14,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT BaseCallbackWrapper : public BaseProperty
             addr->removeCallback(callbackIt);
         }
 
-        OSSIA::Address::iterator callbackIt{};
+        OSSIA::net::Address::iterator callbackIt{};
 };
 }
 }

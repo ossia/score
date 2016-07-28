@@ -1,30 +1,66 @@
-#include <ossia/network/v1/Device.hpp>
+#include <ossia/network/base/device.hpp>
 #include <QString>
 #include <QVariant>
 #include <memory>
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "LocalDevice.hpp"
-#include <ossia/network/v1/Protocol/Local.hpp>
+#include <ossia/network/local/local.hpp>
+#include <ossia/network/generic/generic_device.hpp>
 #include <OSSIA/Protocols/Local/LocalSpecificSettings.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
 namespace Ossia
 {
+namespace Protocols
+{
 LocalDevice::LocalDevice(
         const iscore::DocumentContext& ctx,
-        const std::shared_ptr<OSSIA::Device>& dev,
         const Device::DeviceSettings &settings):
     OSSIADevice{settings}
 {
-    m_dev = dev;
+    m_dev = std::make_unique<impl::BasicDevice>(std::make_unique<impl::Local2>(), "i-score");
     m_capas.canRefreshTree = true;
     m_capas.canAddNode = false;
     m_capas.canRemoveNode = false;
     m_capas.canSerialize = false;
 
+
     setLogging_impl(isLogging());
+    /*
+     *
+    auto& dev = *m_localDevice;
+    auto& children = dev.children();
+    {
+        auto end = children.cend();
+        auto local_play_node = *(m_localDevice->emplace(end, "play"));
+        auto local_play_address = local_play_node->createAddress(OSSIA::Type::BOOL);
+        local_play_address->setValue(OSSIA::Bool{false});
+        local_play_address->addCallback([&] (const OSSIA::Value& v) {
+            if (auto b = v.try_get<OSSIA::Bool>())
+            {
+                on_play(b->value);
+            }
+        });
+    }
+    {
+        auto end = children.cend();
+        auto local_stop_node = *(m_localDevice->emplace(end, "stop"));
+        auto local_stop_address = local_stop_node->createAddress(OSSIA::Type::IMPULSE);
+        local_stop_address->setValue(OSSIA::Impulse{});
+        local_stop_address->addCallback([&] (const OSSIA::Value&) {
+            on_stop();
+        });
+
+    }
+
+    auto remote_protocol = OSSIA::Minuit::create("127.0.0.1", 9999, 6666);
+    m_remoteDevice = OSSIA::Device::create(remote_protocol, "i-score-remote");
+
+     */
+
+    /*
     m_addedNodeCb = m_dev->addCallback(
                         [this] (const OSSIA::Node& n, const std::string& name, OSSIA::NodeChange chg)
     {
@@ -56,14 +92,17 @@ LocalDevice::LocalDevice(
             emit pathUpdated(currentAddress, as);
         }
     });
+    */
 }
 
 LocalDevice::~LocalDevice()
 {
     ISCORE_ASSERT(m_dev.get());
+    /*
     m_dev->removeCallback(m_addedNodeCb);
     m_dev->removeCallback(m_removedNodeCb);
     m_dev->removeCallback(m_nameChangesCb);
+    */
 }
 
 void LocalDevice::disconnect()
@@ -93,5 +132,6 @@ Device::Node LocalDevice::refresh()
     iscore_device.get<Device::DeviceSettings>().name = QString::fromStdString(m_dev->getName());
 
     return iscore_device;
+}
 }
 }

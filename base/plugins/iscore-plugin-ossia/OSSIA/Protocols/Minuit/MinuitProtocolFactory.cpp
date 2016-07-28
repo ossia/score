@@ -4,7 +4,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "MinuitDevice.hpp"
 #include "MinuitProtocolFactory.hpp"
-#include "MinuitProtocolSettingsWidget.hpp"
+#include <OSSIA/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp>
 #include <OSSIA/Protocols/Minuit/MinuitSpecificSettings.hpp>
 
 namespace Device
@@ -17,9 +17,11 @@ struct VisitorVariant;
 
 namespace Ossia
 {
+namespace Protocols
+{
 QString MinuitProtocolFactory::prettyName() const
 {
-    return QObject::tr("Minuit");
+    return QObject::tr("Minuit (v2)");
 }
 
 Device::DeviceInterface* MinuitProtocolFactory::makeDevice(
@@ -64,5 +66,6 @@ bool MinuitProtocolFactory::checkCompatibility(const Device::DeviceSettings& a, 
     auto a_p = a.deviceSpecificSettings.value<MinuitSpecificSettings>();
     auto b_p = b.deviceSpecificSettings.value<MinuitSpecificSettings>();
     return a.name != b.name && a_p.inputPort != b_p.inputPort;
+}
 }
 }

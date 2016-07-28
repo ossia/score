@@ -13,10 +13,10 @@ ScenarioComponentBase::ScenarioComponentBase(
         DocumentPlugin& sys,
         QObject* parent_obj):
     ProcessComponent_T<Scenario::ProcessModel>{parent, scenario, sys, id, "ScenarioComponent", parent_obj},
-    m_constraintsNode{add_node(*node(), "constraints")},
-    m_eventsNode{add_node(*node(), "events")},
-    m_timeNodesNode{add_node(*node(), "timenodes")},
-    m_statesNode{add_node(*node(), "states")}
+    m_constraintsNode{node()->createChild("constraints")},
+    m_eventsNode{node()->createChild("events")},
+    m_timeNodesNode{node()->createChild("timenodes")},
+    m_statesNode{node()->createChild("states")}
 {
 }
 

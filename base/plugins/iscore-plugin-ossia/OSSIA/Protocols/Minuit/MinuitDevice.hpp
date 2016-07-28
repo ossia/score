@@ -1,12 +1,9 @@
 #pragma once
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 
-namespace iscore {
-struct DeviceSettings;
-}  // namespace iscore
-
-
 namespace Ossia
+{
+namespace Protocols
 {
 class MinuitDevice final : public OSSIADevice
 {
@@ -15,4 +12,5 @@ class MinuitDevice final : public OSSIADevice
 
         bool reconnect() override;
 };
+}
 }

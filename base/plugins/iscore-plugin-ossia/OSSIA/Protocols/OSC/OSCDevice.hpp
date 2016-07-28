@@ -1,11 +1,9 @@
 #pragma once
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 
-namespace iscore {
-struct DeviceSettings;
-}  // namespace iscore
-
 namespace Ossia
+{
+namespace Protocols
 {
 class OSCDevice final : public OSSIADevice
 {
@@ -14,4 +12,5 @@ class OSCDevice final : public OSSIADevice
 
         bool reconnect() override;
 };
+}
 }
