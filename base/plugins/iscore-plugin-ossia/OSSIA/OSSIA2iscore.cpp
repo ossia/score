@@ -129,7 +129,7 @@ State::Address ToAddress(const OSSIA::net::Node& node)
     while(!dynamic_cast<const OSSIA::net::Device*>(cur))
     {
         addr.path.push_front(QString::fromStdString(cur->getName()));
-        cur = cur->getParent().get();
+        cur = cur->getParent();
         ISCORE_ASSERT(cur);
     }
 

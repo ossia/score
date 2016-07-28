@@ -13,11 +13,11 @@ class Component :
 {
     public:
         template<typename... Args>
-        Component(OSSIA::Node& n, ModelMetadata& m, Args&&... args):
+        Component(OSSIA::net::Node& n, ModelMetadata& m, Args&&... args):
             Component_T{std::forward<Args>(args)...},
             m_thisNode{n, m, this}
         {
-            make_metadata_node(m, *m_thisNode.node, m_properties, this);
+            make_metadata_node(m, m_thisNode.node, m_properties, this);
         }
 
         auto& node() const

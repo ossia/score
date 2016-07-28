@@ -10,6 +10,8 @@
 
 namespace Ossia
 {
+namespace Protocols
+{
 MIDIDevice::MIDIDevice(const Device::DeviceSettings &settings):
     OSSIADevice{settings}
 {
@@ -27,12 +29,12 @@ bool MIDIDevice::reconnect()
 
     MIDISpecificSettings set = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
     try {
-        auto proto = OSSIA::MIDI::create();
+        auto proto = std::make_unique<OSSIA::net::MIDI>();
         proto->setInfo(OSSIA::net::MidiInfo(
                            static_cast<OSSIA::net::MidiInfo::Type>(set.io),
                            set.endpoint.toStdString(),
                            set.port));
-        m_dev = OSSIA::createMIDIDevice(proto);
+        m_dev = std::make_unique<OSSIA::net::MIDIDevice>(std::move(proto));
         m_dev->setName(settings().name.toStdString());
         m_dev->updateNamespace();
     }
@@ -48,7 +50,7 @@ void MIDIDevice::disconnect()
 {
     if(connected())
     {
-        removeListening_impl(*m_dev.get(), State::Address{m_settings.name, {}});
+        removeListening_impl(m_dev->getRootNode(), State::Address{m_settings.name, {}});
     }
 
     m_callbacks.clear();
@@ -65,7 +67,7 @@ Device::Node MIDIDevice::refresh()
     }
     else
     {
-        auto& children = m_dev->children();
+        auto& children = m_dev->getRootNode().children();
         device_node.reserve(children.size());
         for(const auto& node : children)
         {
@@ -77,4 +79,5 @@ Device::Node MIDIDevice::refresh()
     return device_node;
 }
 
+}
 }

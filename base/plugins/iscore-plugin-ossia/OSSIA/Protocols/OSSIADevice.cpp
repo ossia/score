@@ -42,7 +42,7 @@ void OSSIADevice::updateSettings(const Device::DeviceSettings& newsettings)
         Device::Node iscore_device{settings(), nullptr};
 
         // Recurse on the children
-        auto& ossia_children = m_dev->children();
+        auto& ossia_children = m_dev->getRootNode().children();
         iscore_device.reserve(ossia_children.size());
         for(const auto& node : ossia_children)
         {
@@ -74,9 +74,10 @@ void OSSIADevice::disconnect()
 {
     if(connected())
     {
-        removeListening_impl(*m_dev.get(), State::Address{m_settings.name, {}});
+        auto& root = m_dev->getRootNode();
+        removeListening_impl(root, State::Address{m_settings.name, {}});
 
-        m_dev->clearChildren();
+        root.clearChildren();
     }
 
     m_callbacks.clear();
@@ -94,10 +95,13 @@ void OSSIADevice::addAddress(const Device::FullAddressSettings &settings)
         return;
 
     // Create the node. It is added into the device.
-    OSSIA::net::Node* node = Ossia::convert::createNodeFromPath(settings.address.path, m_dev.get());
+    OSSIA::net::Node* node = iscore::convert::createNodeFromPath(
+                settings.address.path,
+                *m_dev);
+    ISCORE_ASSERT(node);
 
     // Populate the node with an address (if it isn't a no_value_t).
-    iscore::convert::createOSSIAAddress(settings, node);
+    iscore::convert::createOSSIAAddress(settings, *node);
 }
 
 
@@ -108,7 +112,9 @@ void OSSIADevice::updateAddress(
     if(!connected())
         return;
 
-    OSSIA::net::Node* node = iscore::convert::getNodeFromPath(currentAddr.path, *m_dev);
+    OSSIA::net::Node* node = iscore::convert::getNodeFromPath(
+                currentAddr.path,
+                *m_dev);
     auto newName = settings.address.path.last().toStdString();
     if(newName != node->getName())
     {
@@ -125,7 +131,7 @@ void OSSIADevice::updateAddress(
         if(currentAddr)
             iscore::convert::updateOSSIAAddress(settings, *currentAddr);
         else
-            iscore::convert::createOSSIAAddress(settings, node);
+            iscore::convert::createOSSIAAddress(settings, *node);
     }
 }
 
@@ -209,17 +215,18 @@ Device::Node OSSIADevice::refresh()
     }
     else
     {
+        auto& root = m_dev->getRootNode();
         // Clear the listening
-        removeListening_impl(*m_dev.get(), State::Address{m_settings.name, {}});
+        removeListening_impl(root, State::Address{m_settings.name, {}});
 
 
-        if(m_dev->getProtocol().updateChildren(*m_dev))
+        if(m_dev->getProtocol().update(root))
         {
             // Make a device explorer node from the current state of the device.
             // First make the node corresponding to the root node.
 
             // Recurse on the children
-            auto& children = m_dev->children();
+            auto& children = root.children();
             device_node.reserve(children.size());
             for(const auto& node : children)
             {

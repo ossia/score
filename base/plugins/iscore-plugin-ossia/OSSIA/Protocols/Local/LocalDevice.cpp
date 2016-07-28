@@ -62,27 +62,27 @@ LocalDevice::LocalDevice(
 
     /*
     m_addedNodeCb = m_dev->addCallback(
-                        [this] (const OSSIA::Node& n, const std::string& name, OSSIA::NodeChange chg)
+                        [this] (const OSSIA::net::Node& n, const std::string& name, OSSIA::net::NodeChange chg)
     {
-        if(chg == OSSIA::NodeChange::EMPLACED)
+        if(chg == OSSIA::net::NodeChange::EMPLACED)
         {
             emit pathAdded(Ossia::convert::ToAddress(n));
         }
     });
 
     m_removedNodeCb = m_dev->addCallback(
-                          [this] (const OSSIA::Node& n, const std::string& name, OSSIA::NodeChange chg)
+                          [this] (const OSSIA::net::Node& n, const std::string& name, OSSIA::net::NodeChange chg)
     {
-        if(chg == OSSIA::NodeChange::ERASED)
+        if(chg == OSSIA::net::NodeChange::ERASED)
         {
             emit pathRemoved(Ossia::convert::ToAddress(n));
         }
     });
 
     m_nameChangesCb = m_dev->addCallback(
-                          [this] (const OSSIA::Node& node, const std::string& old_name, OSSIA::NodeChange chg)
+                          [this] (const OSSIA::net::Node& node, const std::string& old_name, OSSIA::net::NodeChange chg)
     {
-        if(chg == OSSIA::NodeChange::RENAMED)
+        if(chg == OSSIA::net::NodeChange::RENAMED)
         {
             State::Address currentAddress = Ossia::convert::ToAddress(*node.getParent());
             currentAddress.path.push_back(QString::fromStdString(old_name));
@@ -122,7 +122,7 @@ Device::Node LocalDevice::refresh()
     Device::Node iscore_device{settings(), nullptr};
 
     // Recurse on the children
-    auto& ossia_children = m_dev->children();
+    auto& ossia_children = m_dev->getRootNode().children();
     iscore_device.reserve(ossia_children.size());
     for(const auto& node : ossia_children)
     {

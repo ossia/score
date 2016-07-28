@@ -1,5 +1,5 @@
 #pragma once
-#include <ossia/network/base/Node.hpp>
+#include <ossia/network/base/node.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/tools/Metadata.hpp>
 
@@ -28,7 +28,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin :
 {
     public:
         DocumentPlugin(
-                std::shared_ptr<OSSIA::Device> localDev,
+                OSSIA::net::Device& localDev,
                 iscore::Document& doc,
                 QObject* parent);
 
@@ -39,7 +39,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin :
         void cleanup();
 
         Constraint* m_root{};
-        std::shared_ptr<OSSIA::Device> m_localDevice;
+        OSSIA::net::Device& m_localDevice;
 };
 
 }

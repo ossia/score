@@ -8,7 +8,7 @@ namespace Ossia
 namespace LocalTree
 {
 TimeNode::TimeNode(
-        OSSIA::Node& parent,
+        OSSIA::net::Node& parent,
         const Id<iscore::Component>& id,
         Scenario::TimeNodeModel& timeNode,
         DocumentPlugin& doc,
@@ -16,7 +16,7 @@ TimeNode::TimeNode(
     CommonComponent{parent, timeNode.metadata, doc, id, "StateComponent", parent_comp}
 {
     m_properties.push_back(
-    add_setProperty<::State::impulse_t>(*node(), "trigger",
+    add_setProperty<::State::impulse_t>(node(), "trigger",
                                        [&] (auto) {
         timeNode.trigger()->triggeredByGui();
     }));

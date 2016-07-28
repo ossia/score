@@ -73,11 +73,13 @@ namespace iscore
 namespace convert
 {
 
-OSSIA::net::Node *createNodeFromPath(const QStringList &path, OSSIA::net::Device *dev)
+OSSIA::net::Node *createNodeFromPath(
+        const QStringList &path,
+        OSSIA::net::Device& dev)
 {
     using namespace OSSIA;
     // Find the relevant node to add in the device
-    OSSIA::net::Node* node = dev;
+    OSSIA::net::Node* node = &dev.getRootNode();
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -122,11 +124,11 @@ OSSIA::net::Node *createNodeFromPath(const QStringList &path, OSSIA::net::Device
 }
 
 
-OSSIA::Node* findNodeFromPath(const QStringList& path, OSSIA::Device* dev)
+OSSIA::net::Node* findNodeFromPath(const QStringList& path, OSSIA::net::Device* dev)
 {
     using namespace OSSIA;
     // Find the relevant node to add in the device
-    OSSIA::Node* node = dev;
+    OSSIA::net::Node* node = &dev->getRootNode();
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -147,7 +149,7 @@ OSSIA::net::Node* findNodeFromPath(
 {
     using namespace OSSIA;
     // Find the relevant node to add in the device
-    OSSIA::net::Node* node = &dev;
+    OSSIA::net::Node* node = &dev.getRootNode();
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -171,7 +173,7 @@ OSSIA::net::Node* getNodeFromPath(
 {
     using namespace OSSIA;
     // Find the relevant node to add in the device
-    OSSIA::net::Node* node = &dev;
+    OSSIA::net::Node* node = &dev.getRootNode();
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -243,7 +245,7 @@ void updateOSSIAAddress(
 
 void createOSSIAAddress(
         const Device::FullAddressSettings &settings,
-        OSSIA::net::Node *node)
+        OSSIA::net::Node& node)
 {
     if(settings.value.val.is<State::no_value_t>())
         return;
@@ -264,7 +266,7 @@ void createOSSIAAddress(
             return_type operator()(const State::tuple_t&) const { return OSSIA::Type::TUPLE; }
     } visitor{};
 
-    auto addr = node->createAddress(eggs::variants::apply(visitor, settings.value.val.impl()));
+    auto addr = node.createAddress(eggs::variants::apply(visitor, settings.value.val.impl()));
     if(addr)
         updateOSSIAAddress(settings, *addr);
 }
@@ -350,7 +352,7 @@ optional<OSSIA::Message> message(
     if(!dev.connected())
         return {};
 
-    if(auto casted_dev = dynamic_cast<const Ossia::OSSIADevice*>(&dev))
+    if(auto casted_dev = dynamic_cast<const Ossia::Protocols::OSSIADevice*>(&dev))
     {
         auto ossia_node = iscore::convert::findNodeFromPath(
                     mess.address.path,
@@ -363,7 +365,7 @@ optional<OSSIA::Message> message(
             return{};
 
         return OSSIA::Message{
-                    ossia_addr,
+                    *ossia_addr,
                     iscore::convert::toOSSIAValue(mess.value)};
     }
 
@@ -438,12 +440,12 @@ static OSSIA::Destination expressionAddress(
         throw NodeNotFoundException(addr);
     }
 
-    if(auto casted_dev = dynamic_cast<const Ossia::OSSIADevice*>(&device))
+    if(auto casted_dev = dynamic_cast<const Ossia::Protocols::OSSIADevice*>(&device))
     {
-        auto n = findNodeFromPath(addr.path, casted_dev->impl_ptr());
+        auto n = findNodeFromPath(addr.path, casted_dev->impl());
         if(n)
         {
-            return OSSIA::Destination(n);
+            return OSSIA::Destination(*n);
         }
         else
         {
@@ -589,7 +591,7 @@ std::shared_ptr<OSSIA::Expression> expression(
     return eggs::variants::apply(visitor, e.impl());
 }
 
-void removeOSSIAAddress(OSSIA::Node* n)
+void removeOSSIAAddress(OSSIA::net::Node* n)
 {
     n->removeAddress();
 }
