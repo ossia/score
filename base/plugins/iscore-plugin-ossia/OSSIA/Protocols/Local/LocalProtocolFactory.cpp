@@ -27,8 +27,7 @@ Device::DeviceInterface* LocalProtocolFactory::makeDevice(
         const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)
 {
-    auto& app_plug = ctx.app.components.applicationPlugin<OSSIAApplicationPlugin>();
-    return new LocalDevice{ctx, app_plug.localDevice(), settings};
+    return new Protocols::LocalDevice{ctx, settings};
 }
 
 const Device::DeviceSettings& LocalProtocolFactory::defaultSettings() const

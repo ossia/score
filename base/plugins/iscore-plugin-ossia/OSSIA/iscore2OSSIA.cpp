@@ -30,10 +30,10 @@
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <ossia/editor/value/value.hpp>
-#include <ossia/network/v1/Domain.hpp>
-#include <ossia/network/v1/Address.hpp>
-#include <ossia/network/v1/Device.hpp>
-#include <ossia/network/v1/Node.hpp>
+#include <ossia/network/domain.hpp>
+#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/node.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include <State/Address.hpp>
 #include <State/Expression.hpp>
@@ -72,11 +72,12 @@ namespace iscore
 {
 namespace convert
 {
-OSSIA::Node *createNodeFromPath(const QStringList &path, OSSIA::Device *dev)
+
+OSSIA::net::Node *createNodeFromPath(const QStringList &path, OSSIA::net::Device *dev)
 {
     using namespace OSSIA;
     // Find the relevant node to add in the device
-    OSSIA::Node* node = dev;
+    OSSIA::net::Node* node = dev;
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -86,13 +87,13 @@ OSSIA::Node *createNodeFromPath(const QStringList &path, OSSIA::Device *dev)
         if(it == children.end())
         {
             // We have to start adding sub-nodes from here.
-            OSSIA::Node* parentnode = node;
+            OSSIA::net::Node* parentnode = node;
             for(int k = i; k < path.size(); k++)
             {
-                auto newNodeIt = parentnode->emplace(parentnode->children().begin(), path[k].toStdString());
-                if(path[k].toStdString() != (*newNodeIt)->getName())
+                auto newNode = parentnode->createChild(path[k].toStdString());
+                if(path[k].toStdString() != newNode->getName())
                 {
-                    qDebug() << path[k] << (*newNodeIt)->getName().c_str();
+                    qDebug() << path[k] << newNode->getName().c_str();
                     for(const auto& node : parentnode->children())
                     {
                         qDebug() << node->getName().c_str();
@@ -101,11 +102,11 @@ OSSIA::Node *createNodeFromPath(const QStringList &path, OSSIA::Device *dev)
                 }
                 if(k == path.size() - 1)
                 {
-                    node = newNodeIt->get();
+                    node = newNode;
                 }
                 else
                 {
-                    parentnode = newNodeIt->get();
+                    parentnode = newNode;
                 }
             }
 
@@ -141,11 +142,12 @@ OSSIA::Node* findNodeFromPath(const QStringList& path, OSSIA::Device* dev)
     return node;
 }
 
-std::shared_ptr<OSSIA::Node> findNodeFromPath(const QStringList& path, std::shared_ptr<OSSIA::Device> dev)
+OSSIA::net::Node* findNodeFromPath(
+        const QStringList& path, OSSIA::net::Device& dev)
 {
     using namespace OSSIA;
     // Find the relevant node to add in the device
-    std::shared_ptr<OSSIA::Node> node = dev;
+    OSSIA::net::Node* node = &dev;
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -155,7 +157,7 @@ std::shared_ptr<OSSIA::Node> findNodeFromPath(const QStringList& path, std::shar
             return ossia_node->getName() == path[i].toStdString();
         });
         if(it != children.end())
-            node = *it;
+            node = it->get();
         else
             return {};
     }
@@ -163,13 +165,13 @@ std::shared_ptr<OSSIA::Node> findNodeFromPath(const QStringList& path, std::shar
     return node;
 }
 
-OSSIA::Node* getNodeFromPath(
+OSSIA::net::Node* getNodeFromPath(
         const QStringList &path,
-        OSSIA::Device *dev)
+        OSSIA::net::Device& dev)
 {
     using namespace OSSIA;
     // Find the relevant node to add in the device
-    OSSIA::Node* node = dev;
+    OSSIA::net::Node* node = &dev;
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -206,42 +208,42 @@ static OSSIA::BoundingMode toBoundingMode(Device::ClipMode c)
     }
 }
 
+
 void updateOSSIAAddress(
         const Device::FullAddressSettings &settings,
-        const std::shared_ptr<OSSIA::Address> &addr)
+        OSSIA::net::Address& addr)
 {
     switch(settings.ioType)
     {
         case Device::IOType::In:
-            addr->setAccessMode(OSSIA::AccessMode::GET);
+            addr.setAccessMode(OSSIA::AccessMode::GET);
             break;
         case Device::IOType::Out:
-            addr->setAccessMode(OSSIA::AccessMode::SET);
+            addr.setAccessMode(OSSIA::AccessMode::SET);
             break;
         case Device::IOType::InOut:
-            addr->setAccessMode(OSSIA::AccessMode::BI);
+            addr.setAccessMode(OSSIA::AccessMode::BI);
             break;
         case Device::IOType::Invalid:
             ISCORE_ABORT;
             break;
     }
 
-    addr->setRepetitionFilter(settings.repetitionFilter);
-    addr->setBoundingMode(toBoundingMode(settings.clipMode));
+    addr.setRepetitionFilter(OSSIA::RepetitionFilter(settings.repetitionFilter));
+    addr.setBoundingMode(iscore::convert::toBoundingMode(settings.clipMode));
 
-    addr->setValue(iscore::convert::toOSSIAValue(settings.value));
+    addr.setValue(iscore::convert::toOSSIAValue(settings.value));
 
-    auto min = toOSSIAValue(settings.domain.min);
-    auto max = toOSSIAValue(settings.domain.max);
-    if(min.valid() && max.valid())
-    {
-        addr->setDomain(OSSIA::Domain::create(min, max));
-    }
+    addr.setDomain(
+                OSSIA::net::makeDomain(
+                    toOSSIAValue(settings.domain.min),
+                    toOSSIAValue(settings.domain.max)));
+
 }
 
 void createOSSIAAddress(
         const Device::FullAddressSettings &settings,
-        OSSIA::Node *node)
+        OSSIA::net::Node *node)
 {
     if(settings.value.val.is<State::no_value_t>())
         return;
@@ -262,7 +264,9 @@ void createOSSIAAddress(
             return_type operator()(const State::tuple_t&) const { return OSSIA::Type::TUPLE; }
     } visitor{};
 
-    updateOSSIAAddress(settings,  node->createAddress(eggs::variants::apply(visitor, settings.value.val.impl())));
+    auto addr = node->createAddress(eggs::variants::apply(visitor, settings.value.val.impl()));
+    if(addr)
+        updateOSSIAAddress(settings, *addr);
 }
 
 void updateOSSIAValue(const State::ValueImpl& iscore_data, OSSIA::Value& val)

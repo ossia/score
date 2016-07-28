@@ -34,12 +34,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/MIDI/MIDISpecificSettings.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSSIADevice_v2.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCDevice_v2.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCProtocolFactory_v2.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/Minuit/MinuitDevice_v2.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/Minuit/MinuitProtocolFactory_v2.hpp"
-
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Panel/MessagesPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Curve/EasingSegment.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIAApplicationPlugin.hpp"
@@ -114,12 +108,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSC/OSCProtocolFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/OSSIADevice.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSSIADevice_v2.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCDevice_v2.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/OSC/OSCProtocolFactory_v2.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/Minuit/MinuitDevice_v2.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/v2/Minuit/MinuitProtocolFactory_v2.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Panel/MessagesPanel.cpp"
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <ossia/network/v1/Protocol/MIDI.hpp>
+#include <ossia/network/midi/midi.hpp>
 
 
 class QComboBox;
@@ -26,7 +26,7 @@ class MIDIProtocolSettingsWidget :
 
         void setSettings(const Device::DeviceSettings& settings) override;
 
-        void updateDevices(OSSIA::MidiInfo::Type);
+        void updateDevices(OSSIA::net::MidiInfo::Type);
         void updateInputDevices();
         void updateOutputDevices();
 

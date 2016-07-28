@@ -5,10 +5,10 @@
 #include <memory>
 #include <vector>
 
-#include <ossia/network/v1/Domain.hpp>
-#include <ossia/network/v1/Address.hpp>
-#include <ossia/network/v1/Device.hpp>
-#include <ossia/network/v1/Node.hpp>
+#include <ossia/network/domain.hpp>
+#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/node.hpp>
 #include <ossia/editor/value/value.hpp>
 
 #include <OSSIA/OSSIA2iscore.hpp>
@@ -18,6 +18,68 @@ namespace Ossia
 {
 namespace convert
 {
+
+Device::Domain ToDomain(const OSSIA::net::Domain &domain)
+{
+    Device::Domain d;
+    d.min = ToValue(OSSIA::net::min(domain));
+    d.max = ToValue(OSSIA::net::max(domain));
+
+    ISCORE_TODO;
+    // TODO values!!
+    return d;
+}
+
+Device::AddressSettings ToAddressSettings(const OSSIA::net::Node &node)
+{
+    Device::AddressSettings s;
+    s.name = QString::fromStdString(node.getName());
+
+    const auto& addr = node.getAddress();
+
+    if(addr)
+    {
+        addr->pullValue();
+
+        try {
+            s.value = ToValue(addr->cloneValue());
+        }
+        catch(...)
+        {
+            s.value = ToValue(addr->getValueType());
+        }
+
+        s.ioType = ToIOType(addr->getAccessMode());
+        s.clipMode = ToClipMode(addr->getBoundingMode());
+        s.repetitionFilter = bool(addr->getRepetitionFilter());
+
+        if(auto& domain = addr->getDomain())
+            s.domain = ToDomain(domain);
+    }
+    return s;
+}
+
+
+Device::Node ToDeviceExplorer(const OSSIA::net::Node &ossia_node)
+{
+    Device::Node iscore_node{ToAddressSettings(ossia_node), nullptr};
+    iscore_node.reserve(ossia_node.children().size());
+
+    // 2. Recurse on the children
+    for(const auto& ossia_child : ossia_node.children())
+    {
+        auto child_n = ToDeviceExplorer(*ossia_child.get());
+        child_n.setParent(&iscore_node);
+        iscore_node.push_back(std::move(child_n));
+    }
+
+    return iscore_node;
+}
+
+
+
+
+
 
 
 Device::IOType ToIOType(OSSIA::AccessMode t)
@@ -59,83 +121,24 @@ Device::ClipMode ToClipMode(OSSIA::BoundingMode b)
     }
 }
 
-State::Address ToAddress(const OSSIA::Node& node)
+State::Address ToAddress(const OSSIA::net::Node& node)
 {
     State::Address addr;
-    const OSSIA::Node* cur = &node;
+    const OSSIA::net::Node* cur = &node;
 
-    while(!dynamic_cast<const OSSIA::Device*>(cur))
+    while(!dynamic_cast<const OSSIA::net::Device*>(cur))
     {
         addr.path.push_front(QString::fromStdString(cur->getName()));
         cur = cur->getParent().get();
         ISCORE_ASSERT(cur);
     }
 
-    ISCORE_ASSERT(dynamic_cast<const OSSIA::Device*>(cur));
+    ISCORE_ASSERT(dynamic_cast<const OSSIA::net::Device*>(cur));
     addr.device = QString::fromStdString(cur->getName());
     return addr;
 }
 
-Device::AddressSettings ToAddressSettings(const OSSIA::Node &node)
-{
-    Device::AddressSettings s;
-    s.name = QString::fromStdString(node.getName());
 
-    const auto& addr = node.getAddress();
-
-    if(addr)
-    {
-        addr->pullValue();
-
-        try {
-            s.value = ToValue(addr->cloneValue());
-        }
-        catch(...)
-        {
-            s.value = ToValue(addr->getValueType());
-        }
-
-        s.ioType = ToIOType(addr->getAccessMode());
-        s.clipMode = ToClipMode(addr->getBoundingMode());
-        s.repetitionFilter = addr->getRepetitionFilter();
-
-        if(auto& domain = addr->getDomain())
-            s.domain = ToDomain(*domain);
-    }
-    return s;
-}
-
-
-Device::Node ToDeviceExplorer(const OSSIA::Node &ossia_node)
-{
-    Device::Node iscore_node{ToAddressSettings(ossia_node), nullptr};
-    iscore_node.reserve(ossia_node.children().size());
-
-    // 2. Recurse on the children
-    for(const auto& ossia_child : ossia_node.children())
-    {
-        auto child_n = ToDeviceExplorer(*ossia_child.get());
-        child_n.setParent(&iscore_node);
-        iscore_node.push_back(std::move(child_n));
-    }
-
-    return iscore_node;
-}
-
-
-Device::Domain ToDomain(OSSIA::Domain &domain)
-{
-    Device::Domain d;
-    d.min = ToValue(domain.getMin());
-    d.max = ToValue(domain.getMax());
-
-    for(const auto& val : domain.getValues())
-    {
-        d.values.append(ToValue(val));
-    }
-
-    return d;
-}
 
 State::Value ToValue(OSSIA::Type t)
 {

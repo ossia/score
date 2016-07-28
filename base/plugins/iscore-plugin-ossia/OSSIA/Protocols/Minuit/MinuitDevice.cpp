@@ -1,14 +1,17 @@
-#include <ossia/network/v1/Device.hpp>
 #include <QString>
 #include <QVariant>
 #include <memory>
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <ossia/network/generic/generic_device.hpp>
+#include <ossia/network/generic/generic_address.hpp>
+#include <ossia/network/minuit/minuit.hpp>
 #include "MinuitDevice.hpp"
-#include <ossia/network/v1/Protocol/Minuit.hpp>
 #include <OSSIA/Protocols/Minuit/MinuitSpecificSettings.hpp>
 
 namespace Ossia
+{
+namespace Protocols
 {
 MinuitDevice::MinuitDevice(const Device::DeviceSettings &settings):
     OSSIADevice{settings}
@@ -24,12 +27,16 @@ bool MinuitDevice::reconnect()
 
     try {
         auto stgs = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();
-        auto ossia_settings = OSSIA::Minuit::create(
-                               stgs.host.toStdString(),
-                               stgs.inputPort,
-                               stgs.outputPort);
 
-        m_dev = OSSIA::Device::create(ossia_settings, settings().name.toStdString());
+        std::unique_ptr<OSSIA::net::Protocol> ossia_settings = std::make_unique<impl::Minuit2>(
+                    stgs.host.toStdString(),
+                    stgs.inputPort,
+                    stgs.outputPort);
+
+        m_dev = std::make_unique<impl::BasicDevice>(
+              std::move(ossia_settings),
+              settings().name.toStdString());
+
         setLogging_impl(isLogging());
     }
     catch(std::exception& e)
@@ -42,5 +49,6 @@ bool MinuitDevice::reconnect()
     }
 
     return connected();
+}
 }
 }

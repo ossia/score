@@ -1,27 +1,24 @@
-
 #include <QDebug>
 #include <QStringList>
 #include <algorithm>
 #include <list>
-
-#include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <ossia/network/v1/Address.hpp>
-#include <ossia/network/v1/Device.hpp>
-#include <ossia/network/v1/Protocol.hpp>
-#include <ossia/network/v1/Node.hpp>
-#include <ossia/network/common/network_logger.hpp>
+
 #include "OSSIADevice.hpp"
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <OSSIA/iscore2OSSIA.hpp>
 
-using namespace iscore::convert;
-using namespace Ossia::convert;
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/protocol.hpp>
+#include <ossia/network/common/network_logger.hpp>
 
 namespace Ossia
+{
+namespace Protocols
 {
 OSSIADevice::~OSSIADevice()
 {
@@ -79,9 +76,7 @@ void OSSIADevice::disconnect()
     {
         removeListening_impl(*m_dev.get(), State::Address{m_settings.name, {}});
 
-        auto& children = m_dev->children();
-        while(!children.empty())
-            m_dev->erase(children.end() - 1);
+        m_dev->clearChildren();
     }
 
     m_callbacks.clear();
@@ -99,10 +94,10 @@ void OSSIADevice::addAddress(const Device::FullAddressSettings &settings)
         return;
 
     // Create the node. It is added into the device.
-    OSSIA::Node* node = createNodeFromPath(settings.address.path, m_dev.get());
+    OSSIA::net::Node* node = Ossia::convert::createNodeFromPath(settings.address.path, m_dev.get());
 
     // Populate the node with an address (if it isn't a no_value_t).
-    createOSSIAAddress(settings, node);
+    iscore::convert::createOSSIAAddress(settings, node);
 }
 
 
@@ -113,7 +108,7 @@ void OSSIADevice::updateAddress(
     if(!connected())
         return;
 
-    OSSIA::Node* node = getNodeFromPath(currentAddr.path, m_dev.get());
+    OSSIA::net::Node* node = iscore::convert::getNodeFromPath(currentAddr.path, *m_dev);
     auto newName = settings.address.path.last().toStdString();
     if(newName != node->getName())
     {
@@ -122,20 +117,20 @@ void OSSIADevice::updateAddress(
 
     if(settings.value.val.which() == State::ValueType::NoValue)
     {
-        removeOSSIAAddress(node);
+        node->removeAddress();
     }
     else
     {
         auto currentAddr = node->getAddress();
         if(currentAddr)
-            updateOSSIAAddress(settings, node->getAddress());
+            iscore::convert::updateOSSIAAddress(settings, *currentAddr);
         else
-            createOSSIAAddress(settings, node);
+            iscore::convert::createOSSIAAddress(settings, node);
     }
 }
 
 void OSSIADevice::removeListening_impl(
-        OSSIA::Node& node, State::Address addr)
+        OSSIA::net::Node& node, State::Address addr)
 {
     // Find & remove our callback
     auto it = m_callbacks.find(addr);
@@ -168,12 +163,12 @@ void OSSIADevice::setLogging_impl(bool b) const
         l->setOutboundLogCallback([=] (std::string s) {
             emit logOutbound(QString::fromStdString(s));
         });
-        m_dev->getProtocol()->setLogger(std::move(l));
+        m_dev->getProtocol().setLogger(std::move(l));
         qDebug() << "logging enabled";
     }
     else
     {
-        m_dev->getProtocol()->setLogger({});
+        m_dev->getProtocol().setLogger({});
         qDebug() << "logging disabled";
     }
 }
@@ -186,7 +181,7 @@ void OSSIADevice::removeNode(const State::Address& address)
     if(!connected())
         return;
 
-    OSSIA::Node* node = getNodeFromPath(address.path, m_dev.get());
+    OSSIA::net::Node* node = iscore::convert::getNodeFromPath(address.path, *m_dev);
     auto parent = node->getParent();
     auto& parentChildren = node->getParent()->children();
     auto it = std::find_if(parentChildren.begin(), parentChildren.end(),
@@ -200,7 +195,7 @@ void OSSIADevice::removeNode(const State::Address& address)
         // TODO !! if we remove nodes while recording
         // (or anything involving a registered listening state), there will be crashes.
         // The Device Explorer should be locked for edition during recording / playing.
-        parent->erase(it);
+        parent->removeChild((*it)->getName());
     }
 }
 
@@ -217,7 +212,8 @@ Device::Node OSSIADevice::refresh()
         // Clear the listening
         removeListening_impl(*m_dev.get(), State::Address{m_settings.name, {}});
 
-        if(m_dev->updateNamespace())
+
+        if(m_dev->getProtocol().updateChildren(*m_dev))
         {
             // Make a device explorer node from the current state of the device.
             // First make the node corresponding to the root node.
@@ -242,7 +238,7 @@ optional<State::Value> OSSIADevice::refresh(const State::Address& address)
     if(!connected())
         return {};
 
-    auto node = findNodeFromPath(address.path, m_dev.get());
+    auto node = iscore::convert::findNodeFromPath(address.path, *m_dev);
     if(node)
     {
         if(auto addr = node->getAddress())
@@ -257,9 +253,12 @@ optional<State::Value> OSSIADevice::refresh(const State::Address& address)
 
 Device::Node OSSIADevice::getNode(const State::Address& address)
 {
-    auto ossia_node = iscore::convert::findNodeFromPath(address.path, m_dev);
+    if(!m_dev)
+        return {};
+
+    auto ossia_node = iscore::convert::findNodeFromPath(address.path, *m_dev);
     if(ossia_node)
-        return Ossia::convert::ToDeviceExplorer(*ossia_node.get());
+        return Ossia::convert::ToDeviceExplorer(*ossia_node);
     return {};
 }
 
@@ -274,10 +273,10 @@ void OSSIADevice::setListening(
     // so that we don't have to go through the tree.
     auto cb_it = m_callbacks.find(addr);
 
-    std::shared_ptr<OSSIA::Address> ossia_addr;
+    OSSIA::net::Address* ossia_addr{};
     if(cb_it == m_callbacks.end())
     {
-        auto n = findNodeFromPath(addr.path, m_dev.get());
+        auto n = iscore::convert::findNodeFromPath(addr.path, *m_dev);
         if(!n)
             return;
 
@@ -364,7 +363,7 @@ void OSSIADevice::sendMessage(const State::Message& mess)
     if(!connected())
         return;
 
-    auto node = getNodeFromPath(mess.address.path, m_dev.get());
+    auto node = iscore::convert::getNodeFromPath(mess.address.path, *m_dev);
 
     auto addr = node->getAddress();
     if(addr)
@@ -391,9 +390,10 @@ void OSSIADevice::setLogging(bool b)
 }
 
 
-OSSIA::Device& OSSIADevice::impl() const
+OSSIA::net::Device& OSSIADevice::impl() const
 {
     ISCORE_ASSERT(connected());
     return *m_dev;
+}
 }
 }

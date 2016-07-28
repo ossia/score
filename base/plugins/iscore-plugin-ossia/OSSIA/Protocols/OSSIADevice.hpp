@@ -1,34 +1,34 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <ossia/network/v1/Address.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <ossia/detail/callback_container.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <State/Address.hpp>
+#include <iscore_plugin_ossia_export.h>
+
 #include <QString>
 #include <memory>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-#include <Device/Node/DeviceNode.hpp>
-#include <State/Address.hpp>
-#include <iscore_plugin_ossia_export.h>
-
-namespace Device {
-struct DeviceSettings;
-struct FullAddressSettings;
-}
-namespace State
-{
-struct Message;
-struct Value;
-}  // namespace iscore
-
+#include <functional>
 namespace OSSIA
 {
-    class Device;
+class Value;
+namespace net
+{
+class Address;
+class Node;
+class Device;
+using ValueCallback = std::function<void(const OSSIA::Value&)>;
+}
 }
 
 namespace Ossia
 {
+namespace Protocols
+{
+
 class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         public Device::DeviceInterface
 {
@@ -62,26 +62,25 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         bool isLogging() const final override;
         void setLogging(bool) final override;
 
-        OSSIA::Device& impl() const;
-        std::shared_ptr<OSSIA::Device> impl_ptr() const
-        { return m_dev; }
+        OSSIA::net::Device& impl() const;
 
     protected:
         using DeviceInterface::DeviceInterface;
 
-        std::shared_ptr<OSSIA::Device> m_dev;
+        std::unique_ptr<OSSIA::net::Device> m_dev;
 
         std::unordered_map<
             State::Address,
             std::pair<
-                std::shared_ptr<OSSIA::Address>,
-                OSSIA::CallbackContainer<OSSIA::ValueCallback>::iterator
+                OSSIA::net::Address*,
+                OSSIA::CallbackContainer<OSSIA::net::ValueCallback>::iterator
             >
         > m_callbacks;
 
-        void removeListening_impl(OSSIA::Node &node, State::Address addr);
+        void removeListening_impl(OSSIA::net::Node &node, State::Address addr);
         void setLogging_impl(bool) const;
     private:
         bool m_logging = false;
 };
+}
 }

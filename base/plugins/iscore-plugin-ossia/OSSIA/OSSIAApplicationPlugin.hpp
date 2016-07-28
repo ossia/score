@@ -49,9 +49,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
                 iscore::Document* olddoc,
                 iscore::Document* newdoc) override;
 
-        const std::shared_ptr<OSSIA::Device>& localDevice() const
-        { return m_localDevice; }
-
         void on_play(bool, ::TimeValue t = ::TimeValue::zero() );
         void on_play(Scenario::ConstraintModel&, bool, ::TimeValue t = ::TimeValue::zero() );
         void on_record(::TimeValue t);
@@ -60,12 +57,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         void on_stop();
         void on_init();
 
-        void setupOSSIACallbacks();
-
         std::unique_ptr<RecreateOnPlay::ClockManager> makeClock(const RecreateOnPlay::Context&);
-
-        std::shared_ptr<OSSIA::Device> m_localDevice;
-        std::shared_ptr<OSSIA::Device> m_remoteDevice;
 
         RecreateOnPlay::PlayContextMenu m_playActions;
 

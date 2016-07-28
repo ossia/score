@@ -15,8 +15,8 @@
 #include <ossia/editor/curve/curve.hpp>
 #include <ossia/editor/curve/curve_segment.hpp>
 #include <ossia/editor/value/value.hpp>
-#include <ossia/network/v1/Address.hpp>
-#include <ossia/network/v1/Node.hpp>
+#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/Node.hpp>
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <State/Address.hpp>
