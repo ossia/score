@@ -76,12 +76,6 @@ Device::Node ToDeviceExplorer(const OSSIA::net::Node &ossia_node)
     return iscore_node;
 }
 
-
-
-
-
-
-
 Device::IOType ToIOType(OSSIA::AccessMode t)
 {
     switch(t)
@@ -97,7 +91,6 @@ Device::IOType ToIOType(OSSIA::AccessMode t)
             return Device::IOType::Invalid;
     }
 }
-
 
 Device::ClipMode ToClipMode(OSSIA::BoundingMode b)
 {
@@ -126,19 +119,17 @@ State::Address ToAddress(const OSSIA::net::Node& node)
     State::Address addr;
     const OSSIA::net::Node* cur = &node;
 
-    while(!dynamic_cast<const OSSIA::net::Device*>(cur))
+    while(auto padre = cur->getParent())
     {
         addr.path.push_front(QString::fromStdString(cur->getName()));
-        cur = cur->getParent();
-        ISCORE_ASSERT(cur);
+        cur = padre;
     }
 
-    ISCORE_ASSERT(dynamic_cast<const OSSIA::net::Device*>(cur));
+    // The last node is the root node "/", which by convention
+    // has the same name than the device
     addr.device = QString::fromStdString(cur->getName());
     return addr;
 }
-
-
 
 State::Value ToValue(OSSIA::Type t)
 {

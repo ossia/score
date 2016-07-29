@@ -22,8 +22,6 @@ namespace Protocols
 {
 OSSIADevice::~OSSIADevice()
 {
-    if(connected())
-        disconnect();
 }
 
 bool OSSIADevice::connected() const
