@@ -61,6 +61,7 @@ void Component::recreate()
     OSSIA::net::Address* address{};
     OSSIA::net::Node* node{};
     Ossia::Protocols::OSSIADevice* dev{};
+    OSSIA::net::Device* ossia_dev{};
 
     m_ossia_curve.reset(); // It will be remade after.
 
@@ -80,7 +81,11 @@ void Component::recreate()
     if(!dev)
         goto curve_cleanup_label;
 
-    node = iscore::convert::findNodeFromPath(addr.path, dev->impl());
+    ossia_dev = dev->getDevice();
+    if(!ossia_dev)
+        goto curve_cleanup_label;
+
+    node = iscore::convert::findNodeFromPath(addr.path, *ossia_dev);
     if(!node)
         goto curve_cleanup_label;
 

@@ -5,7 +5,7 @@ namespace Ossia
 {
 namespace Protocols
 {
-class MinuitDevice final : public OSSIADevice
+class MinuitDevice final : public OwningOSSIADevice
 {
     public:
         MinuitDevice(const Device::DeviceSettings& settings);

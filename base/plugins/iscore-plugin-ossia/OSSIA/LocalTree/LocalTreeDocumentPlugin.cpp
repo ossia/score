@@ -35,11 +35,10 @@
 #include <OSSIA/LocalTree/Settings/LocalTreeModel.hpp>
 
 Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
-        OSSIA::net::Device& localDev,
         iscore::Document& doc,
         QObject* parent):
     iscore::DocumentPlugin{doc.context(), "LocalTree::DocumentPlugin", parent},
-    m_localDevice{localDev}
+    m_localDevice{std::make_unique<impl::Local2>(), "i-score"}
 {
     con(doc, &iscore::Document::aboutToClose,
         this, &DocumentPlugin::cleanup);
@@ -89,7 +88,7 @@ void Ossia::LocalTree::DocumentPlugin::cleanup()
         return;
 
     // Remove the node from local device
-    m_localDevice.getRootNode().removeChild(m_root->node());
+    //m_localDevice.getRootNode().removeChild(m_root->node());
 
     // Delete
     // TODO why not delete m_root;

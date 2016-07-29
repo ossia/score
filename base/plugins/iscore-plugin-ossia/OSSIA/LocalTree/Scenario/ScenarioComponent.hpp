@@ -44,10 +44,10 @@ class ScenarioComponentBase :
                 const State& comp);
 
     private:
-        std::shared_ptr<OSSIA::net::Node> m_constraintsNode;
-        std::shared_ptr<OSSIA::net::Node> m_eventsNode;
-        std::shared_ptr<OSSIA::net::Node> m_timeNodesNode;
-        std::shared_ptr<OSSIA::net::Node> m_statesNode;
+        OSSIA::net::Node& m_constraintsNode;
+        OSSIA::net::Node& m_eventsNode;
+        OSSIA::net::Node& m_timeNodesNode;
+        OSSIA::net::Node& m_statesNode;
 
         std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };

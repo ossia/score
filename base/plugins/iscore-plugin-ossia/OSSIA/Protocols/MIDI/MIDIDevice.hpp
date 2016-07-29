@@ -10,7 +10,7 @@ namespace Ossia
 {
 namespace Protocols
 {
-class MIDIDevice final : public OSSIADevice
+class MIDIDevice final : public OwningOSSIADevice
 {
     public:
         MIDIDevice(const Device::DeviceSettings& settings);

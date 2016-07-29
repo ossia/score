@@ -33,7 +33,7 @@ class ConstraintBase :
         void removing(const Process::ProcessModel& cst, const ProcessComponent& comp);
 
     private:
-        std::shared_ptr<OSSIA::net::Node> m_processesNode;
+        OSSIA::net::Node& m_processesNode;
 };
 
 

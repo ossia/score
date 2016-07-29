@@ -1,5 +1,6 @@
 #pragma once
-#include <ossia/network/base/node.hpp>
+#include <ossia/network/local/local.hpp>
+#include <ossia/network/generic/generic_device.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/tools/Metadata.hpp>
 
@@ -28,18 +29,20 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin :
 {
     public:
         DocumentPlugin(
-                OSSIA::net::Device& localDev,
                 iscore::Document& doc,
                 QObject* parent);
 
         ~DocumentPlugin();
+
+        impl::BasicDevice& device() { return m_localDevice; }
+        const impl::BasicDevice& device() const { return m_localDevice; }
 
     private:
         void create();
         void cleanup();
 
         Constraint* m_root{};
-        OSSIA::net::Device& m_localDevice;
+        impl::BasicDevice m_localDevice;
 };
 
 }

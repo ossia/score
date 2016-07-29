@@ -5,7 +5,7 @@ namespace Ossia
 {
 namespace Protocols
 {
-class OSCDevice final : public OSSIADevice
+class OSCDevice final : public OwningOSSIADevice
 {
     public:
         OSCDevice(const Device::DeviceSettings& stngs);

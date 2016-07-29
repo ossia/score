@@ -12,7 +12,7 @@ ConstraintBase::ConstraintBase(
         DocumentPlugin& doc,
         QObject* parent_comp):
     parent_t{parent, constraint.metadata, constraint, doc, id, "ConstraintComponent", parent_comp},
-    m_processesNode{node().createChild("processes")}
+    m_processesNode{*node().createChild("processes")}
 {
     using namespace Scenario;
     using tv_t = ::TimeValue;
@@ -61,7 +61,7 @@ ProcessComponent* ConstraintBase::make(
         ProcessComponentFactory& factory,
         Process::ProcessModel& process)
 {
-    return factory.make(id, *m_processesNode, process, system(), this);
+    return factory.make(id, m_processesNode, process, system(), this);
 }
 
 
@@ -69,7 +69,7 @@ void ConstraintBase::removing(
         const Process::ProcessModel& cst,
         const ProcessComponent& comp)
 {
-    m_processesNode->removeChild(comp.node());
+    m_processesNode.removeChild(comp.node());
 }
 
 

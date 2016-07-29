@@ -7,7 +7,6 @@ namespace LocalTree
 {
 BaseProperty::~BaseProperty()
 {
-    node.getParent()->removeChild(node);
 }
 }
 }
