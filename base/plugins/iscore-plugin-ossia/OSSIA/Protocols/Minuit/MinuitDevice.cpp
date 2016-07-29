@@ -14,7 +14,7 @@ namespace Ossia
 namespace Protocols
 {
 MinuitDevice::MinuitDevice(const Device::DeviceSettings &settings):
-    OSSIADevice{settings}
+    OwningOSSIADevice{settings}
 {
     m_capas.canRefreshTree = true;
 

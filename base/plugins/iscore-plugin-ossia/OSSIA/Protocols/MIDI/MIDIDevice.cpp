@@ -13,7 +13,7 @@ namespace Ossia
 namespace Protocols
 {
 MIDIDevice::MIDIDevice(const Device::DeviceSettings &settings):
-    OSSIADevice{settings}
+    OwningOSSIADevice{settings}
 {
     using namespace OSSIA;
     m_capas.canRefreshTree = true;

@@ -15,7 +15,7 @@ namespace Ossia
 namespace Protocols
 {
 OSCDevice::OSCDevice(const Device::DeviceSettings &settings):
-    OSSIADevice{settings}
+    OwningOSSIADevice{settings}
 {
     using namespace OSSIA;
 

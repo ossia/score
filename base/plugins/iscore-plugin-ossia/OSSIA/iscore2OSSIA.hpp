@@ -70,8 +70,6 @@ ISCORE_PLUGIN_OSSIA_EXPORT void createOSSIAAddress(
 ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAAddress(
         const Device::FullAddressSettings& settings,
         OSSIA::net::Address& addr);
-ISCORE_PLUGIN_OSSIA_EXPORT void removeOSSIAAddress(
-        OSSIA::net::Node&); // Keeps the Node.
 ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAValue(
         const State::ValueImpl& data,
         OSSIA::Value& val);

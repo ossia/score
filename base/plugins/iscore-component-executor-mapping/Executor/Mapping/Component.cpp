@@ -135,7 +135,11 @@ void Component::recreate()
         if(!dev)
             return {};
 
-        auto node = iscore::convert::findNodeFromPath(addr.path, dev->impl());
+        auto ossia_dev = dev->getDevice();
+        if(!ossia_dev)
+            return {};
+
+        auto node = iscore::convert::findNodeFromPath(addr.path, *ossia_dev);
         if(!node)
             return {};
 

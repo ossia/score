@@ -123,27 +123,6 @@ OSSIA::net::Node *createNodeFromPath(
     return node;
 }
 
-
-OSSIA::net::Node* findNodeFromPath(const QStringList& path, OSSIA::net::Device* dev)
-{
-    using namespace OSSIA;
-    // Find the relevant node to add in the device
-    OSSIA::net::Node* node = &dev->getRootNode();
-    for(int i = 0; i < path.size(); i++)
-    {
-        const auto& children = node->children();
-        auto it = std::find_if(children.begin(), children.end(),
-                               [&] (const auto& ossia_node)
-        { return ossia_node->getName() == path[i].toStdString(); });
-        if(it != children.end())
-            node = it->get();
-        else
-            return nullptr;
-    }
-
-    return node;
-}
-
 OSSIA::net::Node* findNodeFromPath(
         const QStringList& path, OSSIA::net::Device& dev)
 {
@@ -354,15 +333,19 @@ optional<OSSIA::Message> message(
 
     if(auto casted_dev = dynamic_cast<const Ossia::Protocols::OSSIADevice*>(&dev))
     {
+        auto dev = casted_dev->getDevice();
+        if(!dev)
+            return {};
+
         auto ossia_node = iscore::convert::findNodeFromPath(
                     mess.address.path,
-                    &casted_dev->impl());
+                    *dev);
 
         if(!ossia_node)
             return {};
         auto ossia_addr = ossia_node->getAddress();
         if (!ossia_addr)
-            return{};
+            return {};
 
         return OSSIA::Message{
                     *ossia_addr,
@@ -442,7 +425,11 @@ static OSSIA::Destination expressionAddress(
 
     if(auto casted_dev = dynamic_cast<const Ossia::Protocols::OSSIADevice*>(&device))
     {
-        auto n = findNodeFromPath(addr.path, casted_dev->impl());
+        auto dev = casted_dev->getDevice();
+        if(!dev)
+            throw NodeNotFoundException(addr);
+
+        auto n = findNodeFromPath(addr.path, *dev);
         if(n)
         {
             return OSSIA::Destination(*n);
@@ -590,11 +577,5 @@ std::shared_ptr<OSSIA::Expression> expression(
 
     return eggs::variants::apply(visitor, e.impl());
 }
-
-void removeOSSIAAddress(OSSIA::net::Node* n)
-{
-    n->removeAddress();
-}
-
 }
 }

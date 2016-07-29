@@ -62,15 +62,18 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(
             this, [&] (bool b)
     {
         on_play(b);
-    });
+    },
+    Qt::QueuedConnection);
 
     auto& stop_action = ctx.actions.action<Actions::Stop>();
     connect(stop_action.action(), &QAction::triggered,
-            this, &OSSIAApplicationPlugin::on_stop);
+            this, &OSSIAApplicationPlugin::on_stop,
+            Qt::QueuedConnection);
 
     auto& init_action = ctx.actions.action<Actions::Reinitialize>();
     connect(init_action.action(), &QAction::triggered,
-            this, &OSSIAApplicationPlugin::on_init);
+            this, &OSSIAApplicationPlugin::on_init,
+            Qt::QueuedConnection);
 
     auto& ctrl = ctx.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>();
     con(ctrl.execution(), &Scenario::ScenarioExecution::playAtDate,
@@ -106,7 +109,7 @@ bool OSSIAApplicationPlugin::handleStartup()
 
 void OSSIAApplicationPlugin::on_newDocument(iscore::Document* doc)
 {
-    //doc->model().addPluginModel(new Ossia::LocalTree::DocumentPlugin{m_localDevice,*doc, &doc->model()});
+    doc->model().addPluginModel(new Ossia::LocalTree::DocumentPlugin{*doc, &doc->model()});
     doc->model().addPluginModel(new RecreateOnPlay::DocumentPlugin{*doc, &doc->model()});
 }
 

@@ -62,12 +62,10 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         bool isLogging() const final override;
         void setLogging(bool) final override;
 
-        OSSIA::net::Device& impl() const;
+        virtual OSSIA::net::Device* getDevice() const = 0;
 
     protected:
         using DeviceInterface::DeviceInterface;
-
-        std::unique_ptr<OSSIA::net::Device> m_dev;
 
         std::unordered_map<
             State::Address,
@@ -81,6 +79,20 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         void setLogging_impl(bool) const;
     private:
         bool m_logging = false;
+};
+
+class ISCORE_PLUGIN_OSSIA_EXPORT OwningOSSIADevice :
+        public OSSIADevice
+{
+    protected:
+        void disconnect() override;
+
+        using OSSIADevice::OSSIADevice;
+
+        OSSIA::net::Device* getDevice() const final override
+        { return m_dev.get(); }
+
+        std::unique_ptr<OSSIA::net::Device> m_dev;
 };
 }
 }

@@ -55,7 +55,5 @@ class MetadataNamePropertyWrapper
 
         ~MetadataNamePropertyWrapper()
         {
-            //node->removeCallback(m_callbackIt);
-            node.getParent()->removeChild(node);
         }
 };
