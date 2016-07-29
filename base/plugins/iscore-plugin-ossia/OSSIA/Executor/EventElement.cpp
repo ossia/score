@@ -10,7 +10,7 @@
 namespace RecreateOnPlay
 {
 EventElement::EventElement(
-        std::shared_ptr<OSSIA::TimeEvent> event,
+        std::shared_ptr<ossia::time_event> event,
         const Scenario::EventModel &element,
         const Device::DeviceList& deviceList,
         QObject* parent):
@@ -27,11 +27,11 @@ EventElement::EventElement(
     catch(std::exception& e)
     {
         qDebug() << e.what();
-        m_ossia_event->setExpression(OSSIA::Expression::create(true));
+        m_ossia_event->setExpression(ossia::expression_base::create(true));
     }
 }
 
-std::shared_ptr<OSSIA::TimeEvent> EventElement::OSSIAEvent() const
+std::shared_ptr<ossia::time_event> EventElement::OSSIAEvent() const
 {
     return m_ossia_event;
 }

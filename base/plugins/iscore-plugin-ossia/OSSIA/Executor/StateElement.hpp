@@ -8,9 +8,9 @@ namespace Device
 class DeviceList;
 }
 
-namespace OSSIA
+namespace ossia
 {
-    class TimeEvent;
+    class time_event;
 }
 namespace Scenario
 {
@@ -24,7 +24,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateElement final : public QObject
     public:
         StateElement(
                 const Scenario::StateModel& element,
-                OSSIA::TimeEvent& root,
+                ossia::time_event& root,
                 const RecreateOnPlay::Context& deviceList,
                 QObject* parent);
 
@@ -32,7 +32,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateElement final : public QObject
 
     private:
         const Scenario::StateModel& m_iscore_state;
-        OSSIA::TimeEvent& m_root;
+        ossia::time_event& m_root;
 
         const RecreateOnPlay::Context& m_context;
 };

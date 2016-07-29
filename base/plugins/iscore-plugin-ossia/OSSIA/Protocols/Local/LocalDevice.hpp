@@ -19,19 +19,19 @@ class LocalDevice final :
 
         ~LocalDevice();
 
-        OSSIA::net::Device* getDevice() const override
+        ossia::net::Device* getDevice() const override
         { return m_dev; }
 
     private:
         void disconnect() override;
         bool reconnect() override;
 
-        void nodeCreated(const OSSIA::net::Node&);
-        void nodeRemoving(const OSSIA::net::Node&);
-        void nodeRenamed(const OSSIA::net::Node&, std::string);
+        void nodeCreated(const ossia::net::Node&);
+        void nodeRemoving(const ossia::net::Node&);
+        void nodeRenamed(const ossia::net::Node&, std::string);
         Device::Node refresh() override;
 
-        OSSIA::net::Device* m_dev{};
+        ossia::net::Device* m_dev{};
 
         using OSSIADevice::refresh;
 /*

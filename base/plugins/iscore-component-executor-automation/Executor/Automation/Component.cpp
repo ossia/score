@@ -29,8 +29,8 @@
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 namespace Process { class ProcessModel; }
 class QObject;
-namespace OSSIA {
-class TimeProcess;
+namespace ossia {
+class time_process;
 }  // namespace OSSIA
 namespace RecreateOnPlay {
 class ConstraintElement;
@@ -58,10 +58,10 @@ Component::Component(
 void Component::recreate()
 {
     auto addr = process().address();
-    OSSIA::net::Address* address{};
-    OSSIA::net::Node* node{};
+    ossia::net::address* address{};
+    ossia::net::Node* node{};
     Ossia::Protocols::OSSIADevice* dev{};
-    OSSIA::net::Device* ossia_dev{};
+    ossia::net::Device* ossia_dev{};
 
     m_ossia_curve.reset(); // It will be remade after.
 
@@ -97,7 +97,7 @@ void Component::recreate()
     m_addressType = address->getValueType();
 
 
-    using namespace OSSIA;
+    using namespace ossia;
     if(process().tween())
         on_curveChanged(Destination(*node, {})); // If the type changes we need to rebuild the curve.
     else
@@ -105,7 +105,7 @@ void Component::recreate()
     if(!m_ossia_curve)
         goto curve_cleanup_label;
 
-    m_ossia_process = OSSIA::Automation::create(
+    m_ossia_process = ossia::automation::create(
                 *address,
                 Behavior(m_ossia_curve));
 
@@ -118,10 +118,10 @@ curve_cleanup_label:
 }
 
 template<typename Y_T>
-std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl(
-        const optional<OSSIA::Destination>& d)
+std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
+        const optional<ossia::Destination>& d)
 {
-    using namespace OSSIA;
+    using namespace ossia;
 
     const double min = process().min();
     const double max = process().max();
@@ -140,16 +140,16 @@ std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged_impl(
     }
 }
 
-std::shared_ptr<OSSIA::CurveAbstract> Component::on_curveChanged(
-        const optional<OSSIA::Destination>& d)
+std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged(
+        const optional<ossia::Destination>& d)
 {
     m_ossia_curve.reset();
     switch(m_addressType)
     {
-        case OSSIA::Type::INT:
+        case ossia::Type::INT:
             m_ossia_curve = on_curveChanged_impl<int>(d);
             break;
-        case OSSIA::Type::FLOAT:
+        case ossia::Type::FLOAT:
             m_ossia_curve = on_curveChanged_impl<float>(d);
             break;
         default:

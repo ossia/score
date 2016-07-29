@@ -26,7 +26,7 @@
 namespace RecreateOnPlay
 {
 ConstraintElement::ConstraintElement(
-        std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
+        std::shared_ptr<ossia::time_constraint> ossia_cst,
         Scenario::ConstraintModel& iscore_cst,
         const Context&ctx,
         QObject* parent):
@@ -35,8 +35,8 @@ ConstraintElement::ConstraintElement(
     m_ossia_constraint{ossia_cst},
     m_ctx{ctx}
 {
-    OSSIA::TimeValue min_duration(iscore::convert::time(m_iscore_constraint.duration.minDuration()));
-    OSSIA::TimeValue max_duration(iscore::convert::time(m_iscore_constraint.duration.maxDuration()));
+    ossia::time_value min_duration(iscore::convert::time(m_iscore_constraint.duration.minDuration()));
+    ossia::time_value max_duration(iscore::convert::time(m_iscore_constraint.duration.maxDuration()));
 
     m_ossia_constraint->setDurationMin(min_duration);
     m_ossia_constraint->setDurationMax(max_duration);
@@ -52,9 +52,9 @@ ConstraintElement::ConstraintElement(
     || dynamic_cast<Loop::ProcessModel*>(iscore_cst.parent()))
     {
         ossia_cst->setCallback([&] (
-                               OSSIA::TimeValue position,
-                               OSSIA::TimeValue date,
-                               const OSSIA::State& state)
+                               ossia::time_value position,
+                               ossia::time_value date,
+                               const ossia::State& state)
         {
             constraintCallback(position, date, state);
         });
@@ -67,7 +67,7 @@ ConstraintElement::ConstraintElement(
 
 }
 
-std::shared_ptr<OSSIA::TimeConstraint> ConstraintElement::OSSIAConstraint() const
+std::shared_ptr<ossia::time_constraint> ConstraintElement::OSSIAConstraint() const
 {
     return m_ossia_constraint;
 }
@@ -85,7 +85,7 @@ void ConstraintElement::play(TimeValue t)
     auto start_state = m_ossia_constraint->getStartEvent()->getState();
     auto offset_state = m_ossia_constraint->offset(m_offset);
 
-    OSSIA::State accumulator;
+    ossia::State accumulator;
     flattenAndFilter(accumulator, start_state);
     flattenAndFilter(accumulator, offset_state);
     accumulator.launch();
@@ -184,9 +184,9 @@ void ConstraintElement::on_processAdded(
 }
 
 void ConstraintElement::constraintCallback(
-        OSSIA::TimeValue position,
-        OSSIA::TimeValue date,
-        const OSSIA::State& state)
+        ossia::time_value position,
+        ossia::time_value date,
+        const ossia::State& state)
 {
     auto currentTime = Ossia::convert::time(date);
 

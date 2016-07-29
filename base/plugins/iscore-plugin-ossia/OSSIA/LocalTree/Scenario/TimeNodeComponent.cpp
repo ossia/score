@@ -8,7 +8,7 @@ namespace Ossia
 namespace LocalTree
 {
 TimeNode::TimeNode(
-        OSSIA::net::Node& parent,
+        ossia::net::Node& parent,
         const Id<iscore::Component>& id,
         Scenario::TimeNodeModel& timeNode,
         DocumentPlugin& doc,

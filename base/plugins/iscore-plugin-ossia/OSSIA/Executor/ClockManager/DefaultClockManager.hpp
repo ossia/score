@@ -14,7 +14,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DefaultClockManager final : public ClockManager
         virtual ~DefaultClockManager();
 
         // Pass the root constraint.
-        static OSSIA::TimeConstraint::ExecutionCallback makeDefaultCallback(
+        static ossia::time_constraint::ExecutionCallback makeDefaultCallback(
                 RecreateOnPlay::BaseScenarioElement&);
     private:
         void play_impl(

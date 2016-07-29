@@ -34,14 +34,14 @@ void ProcessExecutor::setTickFun(const QString& val)
 
 }
 
-OSSIA::StateElement ProcessExecutor::state()
+ossia::StateElement ProcessExecutor::state()
 {
     return state(parent->getPosition());
 }
 
-OSSIA::StateElement ProcessExecutor::state(double t)
+ossia::StateElement ProcessExecutor::state(double t)
 {
-    OSSIA::State st;
+    ossia::State st;
     if(!m_tickFun.isCallable())
         return st;
 
@@ -59,7 +59,7 @@ OSSIA::StateElement ProcessExecutor::state(double t)
     return st;
 }
 
-OSSIA::StateElement ProcessExecutor::offset(OSSIA::TimeValue off)
+ossia::StateElement ProcessExecutor::offset(ossia::time_value off)
 {
     return state(off / parent->getDurationNominal());
 }

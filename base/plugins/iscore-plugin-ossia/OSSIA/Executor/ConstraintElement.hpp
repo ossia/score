@@ -16,10 +16,10 @@ namespace iscore
 {
 struct DocumentContext;
 }
-namespace OSSIA
+namespace ossia
 {
-class Loop;
-class TimeConstraint;
+class loop;
+class time_constraint;
 }
 namespace Scenario
 {
@@ -34,12 +34,12 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ConstraintElement final : public QObject
 {
     public:
         ConstraintElement(
-                std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
+                std::shared_ptr<ossia::time_constraint> ossia_cst,
                 Scenario::ConstraintModel& iscore_cst,
                 const Context &ctx,
                 QObject* parent);
 
-        std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraint() const;
+        std::shared_ptr<ossia::time_constraint> OSSIAConstraint() const;
         Scenario::ConstraintModel& iscoreConstraint() const;
 
         void play(TimeValue t = TimeValue::zero());
@@ -54,18 +54,18 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ConstraintElement final : public QObject
         void on_processAdded(
                 const Process::ProcessModel& iscore_proc);
         void constraintCallback(
-                OSSIA::TimeValue position,
-                OSSIA::TimeValue date,
-                const OSSIA::State& state);
+                ossia::time_value position,
+                ossia::time_value date,
+                const ossia::State& state);
 
         Scenario::ConstraintModel& m_iscore_constraint;
-        std::shared_ptr<OSSIA::TimeConstraint> m_ossia_constraint;
+        std::shared_ptr<ossia::time_constraint> m_ossia_constraint;
 
         std::unordered_map<Id<Process::ProcessModel>, OSSIAProcess> m_processes;
 
-        std::shared_ptr<OSSIA::Loop> m_loop;
+        std::shared_ptr<ossia::loop> m_loop;
 
-        OSSIA::TimeValue m_offset;
+        ossia::time_value m_offset;
 
         const RecreateOnPlay::Context& m_ctx;
 };

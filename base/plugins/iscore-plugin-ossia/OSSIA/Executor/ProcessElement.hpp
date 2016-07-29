@@ -9,10 +9,10 @@
 #include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <iscore/plugins/customfactory/ModelFactory.hpp>
 #include <iscore_plugin_ossia_export.h>
-namespace OSSIA
+namespace ossia
 {
-    class Scenario;
-    class TimeProcess;
+    class scenario;
+    class time_process;
 }
 
 // TODO RENAMEME
@@ -50,7 +50,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :
 
     protected:
         ConstraintElement& m_parent_constraint;
-        std::shared_ptr<OSSIA::TimeProcess> m_ossia_process;
+        std::shared_ptr<ossia::time_process> m_ossia_process;
 };
 
 template<typename Process_T>

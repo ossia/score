@@ -19,18 +19,18 @@ namespace Ossia
 namespace convert
 {
 
-Device::Domain ToDomain(const OSSIA::net::Domain &domain)
+Device::Domain ToDomain(const ossia::net::Domain &domain)
 {
     Device::Domain d;
-    d.min = ToValue(OSSIA::net::min(domain));
-    d.max = ToValue(OSSIA::net::max(domain));
+    d.min = ToValue(ossia::net::min(domain));
+    d.max = ToValue(ossia::net::max(domain));
 
     ISCORE_TODO;
     // TODO values!!
     return d;
 }
 
-Device::AddressSettings ToAddressSettings(const OSSIA::net::Node &node)
+Device::AddressSettings ToAddressSettings(const ossia::net::Node &node)
 {
     Device::AddressSettings s;
     s.name = QString::fromStdString(node.getName());
@@ -60,7 +60,7 @@ Device::AddressSettings ToAddressSettings(const OSSIA::net::Node &node)
 }
 
 
-Device::Node ToDeviceExplorer(const OSSIA::net::Node &ossia_node)
+Device::Node ToDeviceExplorer(const ossia::net::Node &ossia_node)
 {
     Device::Node iscore_node{ToAddressSettings(ossia_node), nullptr};
     iscore_node.reserve(ossia_node.children().size());
@@ -76,15 +76,15 @@ Device::Node ToDeviceExplorer(const OSSIA::net::Node &ossia_node)
     return iscore_node;
 }
 
-Device::IOType ToIOType(OSSIA::AccessMode t)
+Device::IOType ToIOType(ossia::AccessMode t)
 {
     switch(t)
     {
-        case OSSIA::AccessMode::GET:
+        case ossia::AccessMode::GET:
             return Device::IOType::In;
-        case OSSIA::AccessMode::SET:
+        case ossia::AccessMode::SET:
             return Device::IOType::Out;
-        case OSSIA::AccessMode::BI:
+        case ossia::AccessMode::BI:
             return Device::IOType::InOut;
         default:
             ISCORE_ABORT;
@@ -92,20 +92,20 @@ Device::IOType ToIOType(OSSIA::AccessMode t)
     }
 }
 
-Device::ClipMode ToClipMode(OSSIA::BoundingMode b)
+Device::ClipMode ToClipMode(ossia::BoundingMode b)
 {
     switch(b)
     {
-        case OSSIA::BoundingMode::CLIP:
+        case ossia::BoundingMode::CLIP:
             return Device::ClipMode::Clip;
             break;
-        case OSSIA::BoundingMode::FOLD:
+        case ossia::BoundingMode::FOLD:
             return Device::ClipMode::Fold;
             break;
-        case OSSIA::BoundingMode::FREE:
+        case ossia::BoundingMode::FREE:
             return Device::ClipMode::Free;
             break;
-        case OSSIA::BoundingMode::WRAP:
+        case ossia::BoundingMode::WRAP:
             return Device::ClipMode::Wrap;
             break;
         default:
@@ -114,10 +114,10 @@ Device::ClipMode ToClipMode(OSSIA::BoundingMode b)
     }
 }
 
-State::Address ToAddress(const OSSIA::net::Node& node)
+State::Address ToAddress(const ossia::net::Node& node)
 {
     State::Address addr;
-    const OSSIA::net::Node* cur = &node;
+    const ossia::net::Node* cur = &node;
 
     while(auto padre = cur->getParent())
     {
@@ -131,48 +131,48 @@ State::Address ToAddress(const OSSIA::net::Node& node)
     return addr;
 }
 
-State::Value ToValue(OSSIA::Type t)
+State::Value ToValue(ossia::Type t)
 {
     switch(t)
     {
-        case OSSIA::Type::FLOAT:
+        case ossia::Type::FLOAT:
             return State::Value::fromValue(float{});
-        case OSSIA::Type::IMPULSE:
+        case ossia::Type::IMPULSE:
             return State::Value::fromValue(State::impulse_t{});
-        case OSSIA::Type::INT:
+        case ossia::Type::INT:
             return State::Value::fromValue(int{});
-        case OSSIA::Type::BOOL:
+        case ossia::Type::BOOL:
             return State::Value::fromValue(bool{});
-        case OSSIA::Type::CHAR:
+        case ossia::Type::CHAR:
             return State::Value::fromValue(QChar{});
-        case OSSIA::Type::STRING:
+        case ossia::Type::STRING:
             return State::Value::fromValue(QString{});
-        case OSSIA::Type::TUPLE:
+        case ossia::Type::TUPLE:
             return State::Value::fromValue(State::tuple_t{});
-        case OSSIA::Type::DESTINATION:
-        case OSSIA::Type::BEHAVIOR:
+        case ossia::Type::DESTINATION:
+        case ossia::Type::BEHAVIOR:
         default:
             return State::Value{};
     }
 
 }
 
-State::Value ToValue(const OSSIA::Value& val)
+State::Value ToValue(const ossia::value& val)
 {
     struct {
             using return_type = State::Value;
-            return_type operator()(OSSIA::Destination) const { return {}; }
-            return_type operator()(OSSIA::Behavior) const { return {}; }
-            return_type operator()(OSSIA::Impulse) const { return State::Value::fromValue(State::impulse_t{}); }
-            return_type operator()(OSSIA::Int v) const { return State::Value::fromValue(v.value); }
-            return_type operator()(OSSIA::Float v) const { return State::Value::fromValue(v.value); }
-            return_type operator()(OSSIA::Bool v) const { return State::Value::fromValue(v.value); }
-            return_type operator()(OSSIA::Char v) const { return State::Value::fromValue(v.value); }
-            return_type operator()(const OSSIA::String& v) const { return State::Value::fromValue(QString::fromStdString(v.value)); }
-            return_type operator()(OSSIA::Vec2f v) const { return State::Value::fromValue(State::vec2f{v.value}); }
-            return_type operator()(OSSIA::Vec3f v) const { return State::Value::fromValue(State::vec3f{v.value}); }
-            return_type operator()(OSSIA::Vec4f v) const { return State::Value::fromValue(State::vec4f{v.value}); }
-            return_type operator()(const OSSIA::Tuple& v) const
+            return_type operator()(ossia::Destination) const { return {}; }
+            return_type operator()(ossia::Behavior) const { return {}; }
+            return_type operator()(ossia::Impulse) const { return State::Value::fromValue(State::impulse_t{}); }
+            return_type operator()(ossia::Int v) const { return State::Value::fromValue(v.value); }
+            return_type operator()(ossia::Float v) const { return State::Value::fromValue(v.value); }
+            return_type operator()(ossia::Bool v) const { return State::Value::fromValue(v.value); }
+            return_type operator()(ossia::Char v) const { return State::Value::fromValue(v.value); }
+            return_type operator()(const ossia::String& v) const { return State::Value::fromValue(QString::fromStdString(v.value)); }
+            return_type operator()(ossia::Vec2f v) const { return State::Value::fromValue(State::vec2f{v.value}); }
+            return_type operator()(ossia::Vec3f v) const { return State::Value::fromValue(State::vec3f{v.value}); }
+            return_type operator()(ossia::Vec4f v) const { return State::Value::fromValue(State::vec4f{v.value}); }
+            return_type operator()(const ossia::Tuple& v) const
             {
                 State::tuple_t tuple;
 

@@ -5,9 +5,9 @@
 #include <OSSIA/Executor/ConstraintExecutionFacade.hpp>
 #include <ossia/editor/state/state_element.hpp>
 #include <iscore_plugin_ossia_export.h>
-namespace OSSIA
+namespace ossia
 {
-    class TimeValue;
+    class time_value;
 }
 
 namespace Scenario

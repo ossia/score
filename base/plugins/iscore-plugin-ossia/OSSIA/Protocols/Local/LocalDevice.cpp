@@ -47,10 +47,10 @@ LocalDevice::LocalDevice(
 
     {
         auto local_play_node = root.createChild("play");
-        auto local_play_address = local_play_node->createAddress(OSSIA::Type::BOOL);
-        local_play_address->setValue(OSSIA::Bool{false});
-        local_play_address->addCallback([&] (const OSSIA::Value& v) {
-            if (v.try_get<OSSIA::Bool>())
+        auto local_play_address = local_play_node->createAddress(ossia::Type::BOOL);
+        local_play_address->setValue(ossia::Bool{false});
+        local_play_address->addCallback([&] (const ossia::value& v) {
+            if (v.try_get<ossia::Bool>())
             {
                 auto& play_action = appplug.context.actions.action<Actions::Play>();
                 play_action.action()->trigger();
@@ -59,9 +59,9 @@ LocalDevice::LocalDevice(
     }
     {
         auto local_stop_node = root.createChild("stop");
-        auto local_stop_address = local_stop_node->createAddress(OSSIA::Type::IMPULSE);
-        local_stop_address->setValue(OSSIA::Impulse{});
-        local_stop_address->addCallback([&] (const OSSIA::Value&) {
+        auto local_stop_address = local_stop_node->createAddress(ossia::Type::IMPULSE);
+        local_stop_address->setValue(ossia::Impulse{});
+        local_stop_address->addCallback([&] (const ossia::value&) {
             auto& stop_action = appplug.context.actions.action<Actions::Stop>();
             stop_action.action()->trigger();
         });
@@ -90,17 +90,17 @@ bool LocalDevice::reconnect()
     return connected();
 }
 
-void LocalDevice::nodeCreated(const OSSIA::net::Node & n)
+void LocalDevice::nodeCreated(const ossia::net::Node & n)
 {
     emit pathAdded(Ossia::convert::ToAddress(n));
 }
 
-void LocalDevice::nodeRemoving(const OSSIA::net::Node & n)
+void LocalDevice::nodeRemoving(const ossia::net::Node & n)
 {
     emit pathRemoved(Ossia::convert::ToAddress(n));
 }
 
-void LocalDevice::nodeRenamed(const OSSIA::net::Node& node, std::string old_name)
+void LocalDevice::nodeRenamed(const ossia::net::Node& node, std::string old_name)
 {
     if(!node.getParent())
         return;

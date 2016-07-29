@@ -36,8 +36,8 @@ BaseScenarioElement::BaseScenarioElement(
     QObject{parent},
     m_ctx{ctx}
 {
-    auto main_start_node = OSSIA::TimeNode::create();
-    auto main_end_node = OSSIA::TimeNode::create();
+    auto main_start_node = ossia::time_node::create();
+    auto main_end_node = ossia::time_node::create();
 
     auto main_start_event = *main_start_node->emplace(main_start_node->timeEvents().begin(), [this] (auto&&...) { });
     auto main_end_event = *main_end_node->emplace(main_end_node->timeEvents().begin(), [this] (auto&&...) { });
@@ -45,7 +45,7 @@ BaseScenarioElement::BaseScenarioElement(
 
     // TODO PlayDuration of base constraint.
     // TODO PlayDuration of FullView
-    auto main_constraint = OSSIA::TimeConstraint::create(
+    auto main_constraint = ossia::time_constraint::create(
                                 [] (auto&&...) {},
                                main_start_event,
                                main_end_event,
@@ -65,12 +65,12 @@ BaseScenarioElement::BaseScenarioElement(
     m_ossia_constraint = new ConstraintElement{main_constraint, element.constraint(), m_ctx, this};
 
     main_constraint->setExecutionStatusCallback(
-                [=] (OSSIA::Clock::ClockExecutionStatus c)
+                [=] (ossia::clock::ClockExecutionStatus c)
     {
-        if(c == OSSIA::Clock::ClockExecutionStatus::STOPPED)
+        if(c == ossia::clock::ClockExecutionStatus::STOPPED)
         {
-            OSSIA::State accumulator;
-            OSSIA::flattenAndFilter(accumulator, main_end_event->getState());
+            ossia::State accumulator;
+            ossia::flattenAndFilter(accumulator, main_end_event->getState());
             accumulator.launch();
 
             emit finished();

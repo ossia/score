@@ -6,9 +6,9 @@
 namespace RecreateOnPlay
 {
 BasicProcessWrapper::BasicProcessWrapper(
-        const std::shared_ptr<OSSIA::TimeConstraint>& cst,
-        const std::shared_ptr<OSSIA::TimeProcess>& ptr,
-        OSSIA::TimeValue dur,
+        const std::shared_ptr<ossia::time_constraint>& cst,
+        const std::shared_ptr<ossia::time_process>& ptr,
+        ossia::time_value dur,
         bool looping):
     m_parent{cst},
     m_process{ptr}
@@ -17,9 +17,9 @@ BasicProcessWrapper::BasicProcessWrapper(
         m_parent->addTimeProcess(m_process);
 }
 
-std::shared_ptr<OSSIA::TimeProcess> BasicProcessWrapper::currentProcess() const
+std::shared_ptr<ossia::time_process> BasicProcessWrapper::currentProcess() const
 { return m_process; }
 
-OSSIA::TimeConstraint&BasicProcessWrapper::currentConstraint() const
+ossia::time_constraint&BasicProcessWrapper::currentConstraint() const
 { return *m_parent; }
 }

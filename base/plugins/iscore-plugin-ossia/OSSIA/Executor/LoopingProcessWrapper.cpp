@@ -10,21 +10,21 @@
 namespace RecreateOnPlay
 {
 static void loopingConstraintCallback(
-        OSSIA::TimeValue,
-        OSSIA::TimeValue t,
-        const OSSIA::State& element)
+        ossia::time_value,
+        ossia::time_value t,
+        const ossia::State& element)
 {
 }
 LoopingProcessWrapper::LoopingProcessWrapper(
-        const std::shared_ptr<OSSIA::TimeConstraint>& cst,
-        const std::shared_ptr<OSSIA::TimeProcess>& ptr,
-        OSSIA::TimeValue dur,
+        const std::shared_ptr<ossia::time_constraint>& cst,
+        const std::shared_ptr<ossia::time_process>& ptr,
+        ossia::time_value dur,
         bool looping):
     m_parent{cst},
     m_process{ptr},
-    m_fixed_impl{OSSIA::Scenario::create()},
-    m_fixed_endNode{OSSIA::TimeNode::create()},
-    m_looping_impl{OSSIA::Loop::create(dur, loopingConstraintCallback, {}, {})},
+    m_fixed_impl{ossia::scenario::create()},
+    m_fixed_endNode{ossia::time_node::create()},
+    m_looping_impl{ossia::loop::create(dur, loopingConstraintCallback, {}, {})},
     m_looping{looping}
 {
     auto sev = m_fixed_impl->getStartTimeNode()->emplace(m_fixed_impl->getStartTimeNode()->timeEvents().begin(), {});
@@ -32,7 +32,7 @@ LoopingProcessWrapper::LoopingProcessWrapper(
     auto eev = m_fixed_endNode->emplace(m_fixed_endNode->timeEvents().begin(), {});
     m_fixed_impl->addTimeNode(m_fixed_endNode);
 
-    m_fixed_cst = OSSIA::TimeConstraint::create(loopingConstraintCallback,
+    m_fixed_cst = ossia::time_constraint::create(loopingConstraintCallback,
                        *sev, *eev, dur, dur, dur);
 
     m_fixed_impl->addTimeConstraint(m_fixed_cst);
@@ -53,7 +53,7 @@ LoopingProcessWrapper::LoopingProcessWrapper(
     }
 }
 
-std::shared_ptr<OSSIA::TimeProcess> LoopingProcessWrapper::currentProcess() const
+std::shared_ptr<ossia::time_process> LoopingProcessWrapper::currentProcess() const
 {
     if(m_looping)
         return m_looping_impl;
@@ -61,7 +61,7 @@ std::shared_ptr<OSSIA::TimeProcess> LoopingProcessWrapper::currentProcess() cons
         return m_fixed_impl;
 }
 
-OSSIA::TimeConstraint& LoopingProcessWrapper::currentConstraint() const
+ossia::time_constraint& LoopingProcessWrapper::currentConstraint() const
 {
     if(m_looping)
         return *m_looping_impl->getPatternTimeConstraint();

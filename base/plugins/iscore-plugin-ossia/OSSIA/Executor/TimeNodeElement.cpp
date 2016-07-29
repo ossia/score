@@ -13,7 +13,7 @@
 namespace RecreateOnPlay
 {
 TimeNodeElement::TimeNodeElement(
-        std::shared_ptr<OSSIA::TimeNode> ossia_tn,
+        std::shared_ptr<ossia::time_node> ossia_tn,
         const Scenario::TimeNodeModel& element,
         const Device::DeviceList& devlist,
         QObject* parent):
@@ -35,7 +35,7 @@ TimeNodeElement::TimeNodeElement(
         catch(std::exception& e)
         {
             qDebug() << e.what();
-            m_ossia_node->setExpression(OSSIA::Expression::create(true));
+            m_ossia_node->setExpression(ossia::expression_base::create(true));
         }
     }
     connect(m_iscore_node.trigger(), &Scenario::TriggerModel::triggeredByGui,
@@ -43,10 +43,10 @@ TimeNodeElement::TimeNodeElement(
         try {
             m_ossia_node->trigger();
 
-            OSSIA::State accumulator;
+            ossia::State accumulator;
             for(auto& event : m_ossia_node->timeEvents())
             {
-                if(event->getStatus() == OSSIA::TimeEvent::Status::HAPPENED)
+                if(event->getStatus() == ossia::time_event::Status::HAPPENED)
                     flattenAndFilter(accumulator, event->getState());
             }
             accumulator.launch();
@@ -58,7 +58,7 @@ TimeNodeElement::TimeNodeElement(
     });
 }
 
-std::shared_ptr<OSSIA::TimeNode> TimeNodeElement::OSSIATimeNode() const
+std::shared_ptr<ossia::time_node> TimeNodeElement::OSSIATimeNode() const
 {
     return m_ossia_node;
 }

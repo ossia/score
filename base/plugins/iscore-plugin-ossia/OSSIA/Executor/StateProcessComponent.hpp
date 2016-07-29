@@ -37,7 +37,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponent :
 
     protected:
         StateElement& m_parent_state;
-        OSSIA::StateElement m_ossia_state;
+        ossia::StateElement m_ossia_state;
 };
 
 template<typename Process_T>
@@ -60,7 +60,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponentFactory :
                   const Id<iscore::Component>& id,
                   QObject* parent) const = 0;
 
-        virtual OSSIA::StateElement make(
+        virtual ossia::StateElement make(
                   Process::StateProcess& proc,
                   const Context& ctxt) const = 0;
 };
@@ -82,7 +82,7 @@ class StateProcessComponentFactory_T :
                 st, static_cast<model_type&>(proc), ctx, id, parent};
         }
 
-        OSSIA::StateElement make(
+        ossia::StateElement make(
                   Process::StateProcess& proc,
                   const Context& ctx) const override
         {

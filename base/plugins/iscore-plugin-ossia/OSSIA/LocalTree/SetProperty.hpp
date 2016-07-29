@@ -13,14 +13,14 @@ struct SetPropertyWrapper : public BaseCallbackWrapper
         SetFun setFun;
 
         SetPropertyWrapper(
-                OSSIA::net::Node& param_node,
-                OSSIA::net::Address& param_addr,
+                ossia::net::Node& param_node,
+                ossia::net::address& param_addr,
                 SetFun prop
                 ):
             BaseCallbackWrapper{param_node, param_addr},
             setFun{prop}
         {
-            callbackIt = addr.addCallback([=] (const OSSIA::Value& v) {
+            callbackIt = addr.addCallback([=] (const ossia::value& v) {
                 setFun(Ossia::convert::ToValue(v));
             });
 
@@ -30,15 +30,15 @@ struct SetPropertyWrapper : public BaseCallbackWrapper
 
 template<typename T, typename Callback>
 auto make_setProperty(
-        OSSIA::net::Node& node,
-        OSSIA::net::Address& addr,
+        ossia::net::Node& node,
+        ossia::net::address& addr,
         Callback prop)
 {
     return std::make_unique<SetPropertyWrapper<T, Callback>>(node, addr, prop);
 }
 
 template<typename T, typename Callback>
-auto add_setProperty(OSSIA::net::Node& n, const std::string& name, Callback cb)
+auto add_setProperty(ossia::net::Node& n, const std::string& name, Callback cb)
 {
     constexpr const auto t = Ossia::convert::MatchingType<T>::val;
     auto node = n.createChild(name);
@@ -47,7 +47,7 @@ auto add_setProperty(OSSIA::net::Node& n, const std::string& name, Callback cb)
     auto addr = node->createAddress(t);
     ISCORE_ASSERT(addr);
 
-    addr->setAccessMode(OSSIA::AccessMode::SET);
+    addr->setAccessMode(ossia::AccessMode::SET);
 
     return make_setProperty<T>(*node, *addr, cb);
 }

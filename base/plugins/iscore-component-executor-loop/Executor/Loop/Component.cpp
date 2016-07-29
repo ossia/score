@@ -25,8 +25,8 @@
 
 namespace Process { class ProcessModel; }
 class QObject;
-namespace OSSIA {
-class TimeProcess;
+namespace ossia {
+class time_process;
 }  // namespace OSSIA
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -42,43 +42,43 @@ Component::Component(
         QObject* parent):
     ::RecreateOnPlay::ProcessComponent_T<Loop::ProcessModel>{parentConstraint, element, ctx, id, "LoopComponent", parent}
 {
-    OSSIA::TimeValue main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
+    ossia::time_value main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
 
-    auto loop = OSSIA::Loop::create(main_duration,
-          [] (OSSIA::TimeValue, OSSIA::TimeValue,
-              const OSSIA::StateElement&) { },
-          [this,&element] (OSSIA::TimeEvent::Status newStatus) {
+    auto loop = ossia::loop::create(main_duration,
+          [] (ossia::time_value, ossia::time_value,
+              const ossia::StateElement&) { },
+          [this,&element] (ossia::time_event::Status newStatus) {
 
             element.startEvent().setStatus(static_cast<Scenario::ExecutionStatus>(newStatus));
             switch(newStatus)
             {
-                case OSSIA::TimeEvent::Status::NONE:
+                case ossia::time_event::Status::NONE:
                     break;
-                case OSSIA::TimeEvent::Status::PENDING:
+                case ossia::time_event::Status::PENDING:
                     break;
-                case OSSIA::TimeEvent::Status::HAPPENED:
+                case ossia::time_event::Status::HAPPENED:
                     startConstraintExecution(m_ossia_constraint->iscoreConstraint().id());
                     break;
-                case OSSIA::TimeEvent::Status::DISPOSED:
+                case ossia::time_event::Status::DISPOSED:
                     break;
                 default:
                     ISCORE_TODO;
                     break;
             }
     },
-          [this,&element] (OSSIA::TimeEvent::Status newStatus) {
+          [this,&element] (ossia::time_event::Status newStatus) {
 
         element.endEvent().setStatus(static_cast<Scenario::ExecutionStatus>(newStatus));
         switch(newStatus)
         {
-            case OSSIA::TimeEvent::Status::NONE:
+            case ossia::time_event::Status::NONE:
                 break;
-            case OSSIA::TimeEvent::Status::PENDING:
+            case ossia::time_event::Status::PENDING:
                 break;
-            case OSSIA::TimeEvent::Status::HAPPENED:
+            case ossia::time_event::Status::HAPPENED:
                 stopConstraintExecution(m_ossia_constraint->iscoreConstraint().id());
                 break;
-            case OSSIA::TimeEvent::Status::DISPOSED:
+            case ossia::time_event::Status::DISPOSED:
                 break;
             default:
                 ISCORE_TODO;

@@ -19,22 +19,22 @@ DefaultClockManager::DefaultClockManager(
     ClockManager{ ctx }
 {
     auto& bs = *ctx.sys.baseScenario();
-    OSSIA::TimeConstraint& ossia_cst = *bs.baseConstraint()->OSSIAConstraint();
+    ossia::time_constraint& ossia_cst = *bs.baseConstraint()->OSSIAConstraint();
 
-    ossia_cst.setDriveMode(OSSIA::Clock::DriveMode::INTERNAL);
+    ossia_cst.setDriveMode(ossia::clock::DriveMode::INTERNAL);
     ossia_cst.setGranularity(context.doc.app.settings<Settings::Model>().getRate());
     ossia_cst.setCallback(makeDefaultCallback(bs));
 }
-OSSIA::TimeConstraint::ExecutionCallback DefaultClockManager::makeDefaultCallback(
+ossia::time_constraint::ExecutionCallback DefaultClockManager::makeDefaultCallback(
         RecreateOnPlay::BaseScenarioElement& bs)
 {
     auto& cst = *bs.baseConstraint();
     return [&bs,&iscore_cst=cst.iscoreConstraint()] (
-            OSSIA::TimeValue position,
-            OSSIA::TimeValue date,
-            const OSSIA::StateElement& state)
+            ossia::time_value position,
+            ossia::time_value date,
+            const ossia::StateElement& state)
     {
-        OSSIA::launch(state);
+        ossia::launch(state);
 
         auto currentTime = Ossia::convert::time(date);
 

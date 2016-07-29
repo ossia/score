@@ -22,7 +22,7 @@ namespace RecreateOnPlay
 {
 class ConstraintElement;
 }
-namespace OSSIA {
+namespace ossia {
 class State;
 }  // namespace OSSIA
 
@@ -57,7 +57,7 @@ class StateProcessComponent final :
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
-        static OSSIA::StateElement make(
+        static ossia::StateElement make(
                 Process::StateProcess& proc,
                 const RecreateOnPlay::Context& ctxt);
 };

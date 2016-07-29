@@ -40,8 +40,8 @@
 
 namespace Process { class ProcessModel; }
 class QObject;
-namespace OSSIA {
-class TimeProcess;
+namespace ossia {
+class time_process;
 }  // namespace OSSIA
 
 
@@ -59,7 +59,7 @@ ScenarioComponent::ScenarioComponent(
     this->setObjectName("OSSIAScenarioElement");
 
     // Setup of the OSSIA API Part
-    m_ossia_process = OSSIA::Scenario::create();
+    m_ossia_process = ossia::scenario::create();
 
     // Create elements for the existing stuff. (e.g. start/ end timenode / event)
     for(const auto& timenode : element.timeNodes)
@@ -97,9 +97,9 @@ void ScenarioComponent::stop()
 }
 
 static void ScenarioConstraintCallback(
-        OSSIA::TimeValue,
-        OSSIA::TimeValue,
-        const OSSIA::State& element)
+        ossia::time_value,
+        ossia::time_value,
+        const ossia::State& element)
 {
 
 }
@@ -107,7 +107,7 @@ static void ScenarioConstraintCallback(
 
 void ScenarioComponent::on_constraintCreated(const Scenario::ConstraintModel& const_constraint)
 {
-    auto& ossia_scenario = dynamic_cast<OSSIA::Scenario&>(*m_ossia_process.get());
+    auto& ossia_scenario = dynamic_cast<ossia::scenario&>(*m_ossia_process.get());
     auto& cst = const_cast<Scenario::ConstraintModel&>(const_constraint);
     // TODO have a ConstraintPlayAspect to prevent this const_cast.
     ISCORE_ASSERT(m_ossia_timeevents.find(process().state(cst.startState()).eventId()) != m_ossia_timeevents.end());
@@ -115,7 +115,7 @@ void ScenarioComponent::on_constraintCreated(const Scenario::ConstraintModel& co
     ISCORE_ASSERT(m_ossia_timeevents.find(process().state(cst.endState()).eventId()) != m_ossia_timeevents.end());
     auto& ossia_eev = m_ossia_timeevents.at(process().state(cst.endState()).eventId());
 
-    auto ossia_cst = OSSIA::TimeConstraint::create(
+    auto ossia_cst = ossia::time_constraint::create(
                 ScenarioConstraintCallback,
                 ossia_sev->OSSIAEvent(),
                 ossia_eev->OSSIAEvent(),
@@ -155,28 +155,28 @@ void ScenarioComponent::on_eventCreated(const Scenario::EventModel& const_ev)
 
     auto ossia_ev = *ossia_tn->OSSIATimeNode()->emplace(
                 ossia_tn->OSSIATimeNode()->timeEvents().begin(),
-                OSSIA::TimeEvent::ExecutionCallback{});
+                ossia::time_event::ExecutionCallback{});
 
     // Create the mapping object
     auto elt = new EventElement{ossia_ev, ev, m_ctx.devices.list(), this};
     m_ossia_timeevents.insert({ev.id(), elt});
 
-    elt->OSSIAEvent()->setCallback([=] (OSSIA::TimeEvent::Status st) {
+    elt->OSSIAEvent()->setCallback([=] (ossia::time_event::Status st) {
         return eventCallback(*elt, st);
     });
 }
 
 void ScenarioComponent::on_timeNodeCreated(const Scenario::TimeNodeModel& tn)
 {
-    auto& ossia_scenario = dynamic_cast<OSSIA::Scenario&>(*m_ossia_process.get());
-    std::shared_ptr<OSSIA::TimeNode> ossia_tn;
+    auto& ossia_scenario = dynamic_cast<ossia::scenario&>(*m_ossia_process.get());
+    std::shared_ptr<ossia::time_node> ossia_tn;
     if(&tn == &process().startTimeNode())
     {
         ossia_tn = ossia_scenario.getStartTimeNode();
     }
     else
     {
-        ossia_tn = OSSIA::TimeNode::create();
+        ossia_tn = ossia::time_node::create();
         ossia_scenario.addTimeNode(ossia_tn);
     }
 
@@ -212,7 +212,7 @@ void ScenarioComponent::stopConstraintExecution(const Id<Scenario::ConstraintMod
 
 void ScenarioComponent::eventCallback(
         EventElement& ev,
-        OSSIA::TimeEvent::Status newStatus)
+        ossia::time_event::Status newStatus)
 {
     auto the_event = const_cast<Scenario::EventModel*>(&ev.iscoreEvent());
     the_event->setStatus(static_cast<Scenario::ExecutionStatus>(newStatus));
@@ -228,11 +228,11 @@ void ScenarioComponent::eventCallback(
 
         switch(newStatus)
         {
-            case OSSIA::TimeEvent::Status::NONE:
+            case ossia::time_event::Status::NONE:
                 break;
-            case OSSIA::TimeEvent::Status::PENDING:
+            case ossia::time_event::Status::PENDING:
                 break;
-            case OSSIA::TimeEvent::Status::HAPPENED:
+            case ossia::time_event::Status::HAPPENED:
             {
                 // Stop the previous constraints clocks,
                 // start the next constraints clocks
@@ -248,7 +248,7 @@ void ScenarioComponent::eventCallback(
                 break;
             }
 
-            case OSSIA::TimeEvent::Status::DISPOSED:
+            case ossia::time_event::Status::DISPOSED:
             {
                 // TODO disable the constraints graphically
                 if(iscore_state.nextConstraint())
@@ -266,7 +266,7 @@ void ScenarioComponent::eventCallback(
 
 void ScenarioComponent::timeNodeCallback(
         TimeNodeElement* tn,
-        OSSIA::TimeValue date)
+        ossia::time_value date)
 {
     if(m_checker)
     {
@@ -302,10 +302,10 @@ void ScenarioComponent::timeNodeCallback(
             auto ossiaCstr = cstr.second->OSSIAConstraint();
 
             auto tmin = m_properties.constraints[cstr.first].newMin.msec();
-            ossiaCstr->setDurationMin(OSSIA::TimeValue{tmin});
+            ossiaCstr->setDurationMin(ossia::time_value{tmin});
 
             auto tmax = m_properties.constraints[cstr.first].newMax.msec();
-            ossiaCstr->setDurationMax(OSSIA::TimeValue{tmax});
+            ossiaCstr->setDurationMax(ossia::time_value{tmax});
         }
     }
 }

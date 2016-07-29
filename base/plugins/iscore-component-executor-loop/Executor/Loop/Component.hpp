@@ -10,9 +10,9 @@ class QObject;
 namespace Loop {
 class ProcessModel;
 }  // namespace Loop
-namespace OSSIA {
-class Loop;
-class TimeProcess;
+namespace ossia {
+class loop;
+class time_process;
 }  // namespace OSSIA
 namespace RecreateOnPlay {
 class EventElement;
