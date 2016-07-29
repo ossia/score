@@ -7,9 +7,9 @@ namespace Device
 {
 class DeviceList;
 }
-namespace OSSIA
+namespace ossia
 {
-    class TimeEvent;
+    class time_event;
 }
 namespace Scenario
 {
@@ -23,12 +23,12 @@ class ISCORE_PLUGIN_OSSIA_EXPORT EventElement final : public QObject
         Q_OBJECT
     public:
         EventElement(
-                std::shared_ptr<OSSIA::TimeEvent> event,
+                std::shared_ptr<ossia::time_event> event,
                 const Scenario::EventModel& element,
                 const Device::DeviceList& deviceList,
                 QObject* parent);
 
-        std::shared_ptr<OSSIA::TimeEvent> OSSIAEvent() const;
+        std::shared_ptr<ossia::time_event> OSSIAEvent() const;
         const Scenario::EventModel& iscoreEvent() const
         { return m_iscore_event; }
 
@@ -37,7 +37,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT EventElement final : public QObject
 
     private:
         const Scenario::EventModel& m_iscore_event;
-        std::shared_ptr<OSSIA::TimeEvent> m_ossia_event;
+        std::shared_ptr<ossia::time_event> m_ossia_event;
         const Device::DeviceList& m_deviceList;
 };
 }

@@ -15,7 +15,7 @@
 
 #include <iscore_plugin_ossia_export.h>
 
-namespace OSSIA {
+namespace ossia {
 namespace net {
 class Node;
 }
@@ -30,94 +30,94 @@ namespace convert
 
 template<typename> struct MatchingType;
 template<> struct MatchingType<float> {
-        static constexpr const auto val = OSSIA::Type::FLOAT;
-        using type = OSSIA::Float;
+        static constexpr const auto val = ossia::Type::FLOAT;
+        using type = ossia::Float;
         static auto convert(float f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<double> {
-        static constexpr const auto val = OSSIA::Type::FLOAT;
-        using type = OSSIA::Float;
+        static constexpr const auto val = ossia::Type::FLOAT;
+        using type = ossia::Float;
         static auto convert(double f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<int> {
-        static constexpr const auto val = OSSIA::Type::INT;
-        using type = OSSIA::Int;
+        static constexpr const auto val = ossia::Type::INT;
+        using type = ossia::Int;
         static auto convert(int f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<bool> {
-        static constexpr const auto val = OSSIA::Type::BOOL;
-        using type = OSSIA::Bool;
+        static constexpr const auto val = ossia::Type::BOOL;
+        using type = ossia::Bool;
         static auto convert(bool f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<State::impulse_t> {
-        static constexpr const auto val = OSSIA::Type::IMPULSE;
-        using type = OSSIA::Impulse;
+        static constexpr const auto val = ossia::Type::IMPULSE;
+        using type = ossia::Impulse;
         static auto convert(State::impulse_t) { return State::Value::fromValue(State::impulse_t{}); }
 };
 template<> struct MatchingType<std::string> {
-        static constexpr const auto val = OSSIA::Type::STRING;
-        using type = OSSIA::String;
+        static constexpr const auto val = ossia::Type::STRING;
+        using type = ossia::String;
         static auto convert(const std::string& f) { return State::Value::fromValue(QString::fromStdString(f)); }
         static auto convert(std::string&& f) { return State::Value::fromValue(QString::fromStdString(std::move(f))); }
 };
 template<> struct MatchingType<QString> {
-        static constexpr const auto val = OSSIA::Type::STRING;
-        using type = OSSIA::String;
+        static constexpr const auto val = ossia::Type::STRING;
+        using type = ossia::String;
         static auto convert(const QString& f) { return State::Value::fromValue(f); }
         static auto convert(QString&& f) { return State::Value::fromValue(std::move(f)); }
 };
 template<> struct MatchingType<char> {
-        static constexpr const auto val = OSSIA::Type::CHAR;
-        using type = OSSIA::Char;
+        static constexpr const auto val = ossia::Type::CHAR;
+        using type = ossia::Char;
         static auto convert(char f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<QChar> {
-        static constexpr const auto val = OSSIA::Type::CHAR;
-        using type = OSSIA::Char;
+        static constexpr const auto val = ossia::Type::CHAR;
+        using type = ossia::Char;
         static auto convert(QChar f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<State::vec2f> {
-        static constexpr const auto val = OSSIA::Type::VEC2F;
-        using type = OSSIA::Vec2f;
+        static constexpr const auto val = ossia::Type::VEC2F;
+        using type = ossia::Vec2f;
         static auto convert(const State::vec2f& t) { return State::Value::fromValue(t); }
 };
 template<> struct MatchingType<State::vec3f> {
-        static constexpr const auto val = OSSIA::Type::VEC3F;
-        using type = OSSIA::Vec3f;
+        static constexpr const auto val = ossia::Type::VEC3F;
+        using type = ossia::Vec3f;
         static auto convert(const State::vec3f& t) { return State::Value::fromValue(t); }
 };
 template<> struct MatchingType<State::vec4f> {
-        static constexpr const auto val = OSSIA::Type::VEC4F;
-        using type = OSSIA::Vec4f;
+        static constexpr const auto val = ossia::Type::VEC4F;
+        using type = ossia::Vec4f;
         static auto convert(const State::vec4f& t) { return State::Value::fromValue(t); }
 };
 template<> struct MatchingType<State::tuple_t> {
-        static constexpr const auto val = OSSIA::Type::TUPLE;
-        using type = OSSIA::Tuple;
+        static constexpr const auto val = ossia::Type::TUPLE;
+        using type = ossia::Tuple;
         static auto convert(const State::tuple_t& t) { return State::Value::fromValue(t); }
         static auto convert(State::tuple_t&& t) { return State::Value::fromValue(std::move(t)); }
 };
 template<> struct MatchingType<::TimeValue> {
-        static constexpr const auto val = OSSIA::Type::FLOAT;
-        using type = OSSIA::Float;
+        static constexpr const auto val = ossia::Type::FLOAT;
+        using type = ossia::Float;
         static auto convert(::TimeValue&& t) { return State::Value::fromValue(t.msec()); }
 };
 
 
 
-Device::IOType ToIOType(OSSIA::AccessMode t);
-Device::ClipMode ToClipMode(OSSIA::BoundingMode b);
-Device::Domain ToDomain(OSSIA::net::Domain& domain);
+Device::IOType ToIOType(ossia::AccessMode t);
+Device::ClipMode ToClipMode(ossia::BoundingMode b);
+Device::Domain ToDomain(ossia::net::Domain& domain);
 
-ISCORE_PLUGIN_OSSIA_EXPORT State::Value ToValue(const OSSIA::Value& val);
-State::Value ToValue(OSSIA::Type);
+ISCORE_PLUGIN_OSSIA_EXPORT State::Value ToValue(const ossia::value& val);
+State::Value ToValue(ossia::Type);
 
-State::Address ToAddress(const OSSIA::net::Node& node);
-Device::AddressSettings ToAddressSettings(const OSSIA::net::Node& node);
-ISCORE_PLUGIN_OSSIA_EXPORT Device::Node ToDeviceExplorer(const OSSIA::net::Node& node);
+State::Address ToAddress(const ossia::net::Node& node);
+Device::AddressSettings ToAddressSettings(const ossia::net::Node& node);
+ISCORE_PLUGIN_OSSIA_EXPORT Device::Node ToDeviceExplorer(const ossia::net::Node& node);
 
 
-inline ::TimeValue time(OSSIA::TimeValue t)
+inline ::TimeValue time(ossia::time_value t)
 {
     return t.isInfinite()
             ? ::TimeValue{PositiveInfinity{}}

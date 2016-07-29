@@ -16,7 +16,7 @@ struct VisitorVariant;
 
 namespace Scenario
 { class ConstraintModel; }
-namespace OSSIA
+namespace ossia
 {
     class Device;
 }

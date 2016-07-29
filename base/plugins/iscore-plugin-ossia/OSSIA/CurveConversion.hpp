@@ -34,13 +34,13 @@ struct CurveTraits<bool>
 template<typename X_T, typename Y_T,
          typename XScaleFun, typename YScaleFun,
          typename Segments>
-std::shared_ptr<OSSIA::CurveAbstract> curve(
+std::shared_ptr<ossia::curve_abstract> curve(
         XScaleFun scale_x,
         YScaleFun scale_y,
         const Segments& segments,
-        const optional<OSSIA::Destination>& tween)
+        const optional<ossia::Destination>& tween)
 {
-    auto curve = OSSIA::Curve<X_T, Y_T>::create();
+    auto curve = ossia::curve<X_T, Y_T>::create();
 
     auto start = segments[0]->start();
     if(start.x() == 0.)

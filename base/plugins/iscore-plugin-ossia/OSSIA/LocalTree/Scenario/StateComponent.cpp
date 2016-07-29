@@ -7,7 +7,7 @@ namespace LocalTree
 {
 
 State::State(
-        OSSIA::net::Node& parent,
+        ossia::net::Node& parent,
         const Id<iscore::Component>& id,
         Scenario::StateModel& state,
         DocumentPlugin& doc,

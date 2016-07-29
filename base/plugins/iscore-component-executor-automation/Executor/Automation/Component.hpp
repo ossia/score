@@ -4,10 +4,10 @@
 #include <memory>
 #include <Automation/AutomationModel.hpp>
 
-namespace OSSIA
+namespace ossia
 {
-    class Automation;
-    class CurveAbstract;
+    class automation;
+    class curve_abstract;
 }
 
 namespace Device
@@ -34,14 +34,14 @@ class Component final :
 
     private:
         void recreate();
-        OSSIA::Type m_addressType{OSSIA::Type(-1)};
+        ossia::Type m_addressType{ossia::Type(-1)};
 
-        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged(const optional<OSSIA::Destination>&);
+        std::shared_ptr<ossia::curve_abstract> on_curveChanged(const optional<ossia::Destination>&);
 
         template<typename T>
-        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl(const optional<OSSIA::Destination>&);
+        std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl(const optional<ossia::Destination>&);
 
-        std::shared_ptr<OSSIA::CurveAbstract> m_ossia_curve;
+        std::shared_ptr<ossia::curve_abstract> m_ossia_curve;
 
         const Device::DeviceList& m_deviceList;
 };

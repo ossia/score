@@ -6,7 +6,7 @@ namespace Ossia
 namespace LocalTree
 {
 Event::Event(
-        OSSIA::net::Node& parent,
+        ossia::net::Node& parent,
         const Id<iscore::Component>& id,
         Scenario::EventModel& event,
         DocumentPlugin& doc,

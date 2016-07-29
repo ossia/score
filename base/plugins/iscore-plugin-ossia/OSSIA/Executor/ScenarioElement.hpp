@@ -16,9 +16,9 @@ class DeviceList;
 }
 namespace Process { class ProcessModel; }
 class QObject;
-namespace OSSIA {
-class TimeProcess;
-class TimeValue;
+namespace ossia {
+class time_process;
+class time_value;
 }  // namespace OSSIA
 namespace RecreateOnPlay {
 class EventElement;
@@ -33,9 +33,9 @@ class TimeNodeModel;
 class CSPCoherencyCheckerInterface;
 }  // namespace Scenario
 
-namespace OSSIA
+namespace ossia
 {
-    class Scenario;
+    class scenario;
 }
 
 namespace RecreateOnPlay
@@ -78,9 +78,9 @@ class ScenarioComponent final :
 
         void eventCallback(
                 EventElement& ev,
-                OSSIA::TimeEvent::Status newStatus);
+                ossia::time_event::Status newStatus);
 
-         void timeNodeCallback(RecreateOnPlay::TimeNodeElement* tn, OSSIA::TimeValue date);
+         void timeNodeCallback(RecreateOnPlay::TimeNodeElement* tn, ossia::time_value date);
 
     private:
         std::unordered_map<Id<Scenario::ConstraintModel>, ConstraintElement*> m_ossia_constraints;

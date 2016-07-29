@@ -151,36 +151,36 @@ class EasingSegment final :
         std::function<bool(double, bool, bool)> makeBoolFunction() const override
         { return makeFunction<bool>(); }
 };
-using Segment_backIn = EasingSegment<OSSIA::easing::backIn<double>>;
-using Segment_backOut = EasingSegment<OSSIA::easing::backOut<double>>;
-using Segment_backInOut = EasingSegment<OSSIA::easing::backInOut<double>>;
-using Segment_bounceIn = EasingSegment<OSSIA::easing::bounceIn<double>>;
-using Segment_bounceOut = EasingSegment<OSSIA::easing::bounceOut<double>>;
-using Segment_bounceInOut = EasingSegment<OSSIA::easing::bounceInOut<double>>;
-using Segment_quadraticIn = EasingSegment<OSSIA::easing::quadraticIn<double>>;
-using Segment_quadraticOut = EasingSegment<OSSIA::easing::quadraticOut<double>>;
-using Segment_quadraticInOut = EasingSegment<OSSIA::easing::quadraticInOut<double>>;
-using Segment_cubicIn = EasingSegment<OSSIA::easing::cubicIn<double>>;
-using Segment_cubicOut = EasingSegment<OSSIA::easing::cubicOut<double>>;
-using Segment_cubicInOut = EasingSegment<OSSIA::easing::cubicInOut<double>>;
-using Segment_quarticIn = EasingSegment<OSSIA::easing::quarticIn<double>>;
-using Segment_quarticOut = EasingSegment<OSSIA::easing::quarticOut<double>>;
-using Segment_quarticInOut = EasingSegment<OSSIA::easing::quarticInOut<double>>;
-using Segment_quinticIn = EasingSegment<OSSIA::easing::quinticIn<double>>;
-using Segment_quinticOut = EasingSegment<OSSIA::easing::quinticOut<double>>;
-using Segment_quinticInOut = EasingSegment<OSSIA::easing::quinticInOut<double>>;
-using Segment_sineIn = EasingSegment<OSSIA::easing::sineIn<double>>;
-using Segment_sineOut = EasingSegment<OSSIA::easing::sineOut<double>>;
-using Segment_sineInOut = EasingSegment<OSSIA::easing::sineInOut<double>>;
-using Segment_circularIn = EasingSegment<OSSIA::easing::circularIn<double>>;
-using Segment_circularOut = EasingSegment<OSSIA::easing::circularOut<double>>;
-using Segment_circularInOut = EasingSegment<OSSIA::easing::circularInOut<double>>;
-using Segment_exponentialIn = EasingSegment<OSSIA::easing::exponentialIn<double>>;
-using Segment_exponentialOut = EasingSegment<OSSIA::easing::exponentialOut<double>>;
-using Segment_exponentialInOut = EasingSegment<OSSIA::easing::exponentialInOut<double>>;
-using Segment_elasticIn = EasingSegment<OSSIA::easing::elasticIn<double>>;
-using Segment_elasticOut = EasingSegment<OSSIA::easing::elasticOut<double>>;
-using Segment_elasticInOut = EasingSegment<OSSIA::easing::elasticInOut<double>>;
+using Segment_backIn = EasingSegment<ossia::easing::backIn<double>>;
+using Segment_backOut = EasingSegment<ossia::easing::backOut<double>>;
+using Segment_backInOut = EasingSegment<ossia::easing::backInOut<double>>;
+using Segment_bounceIn = EasingSegment<ossia::easing::bounceIn<double>>;
+using Segment_bounceOut = EasingSegment<ossia::easing::bounceOut<double>>;
+using Segment_bounceInOut = EasingSegment<ossia::easing::bounceInOut<double>>;
+using Segment_quadraticIn = EasingSegment<ossia::easing::quadraticIn<double>>;
+using Segment_quadraticOut = EasingSegment<ossia::easing::quadraticOut<double>>;
+using Segment_quadraticInOut = EasingSegment<ossia::easing::quadraticInOut<double>>;
+using Segment_cubicIn = EasingSegment<ossia::easing::cubicIn<double>>;
+using Segment_cubicOut = EasingSegment<ossia::easing::cubicOut<double>>;
+using Segment_cubicInOut = EasingSegment<ossia::easing::cubicInOut<double>>;
+using Segment_quarticIn = EasingSegment<ossia::easing::quarticIn<double>>;
+using Segment_quarticOut = EasingSegment<ossia::easing::quarticOut<double>>;
+using Segment_quarticInOut = EasingSegment<ossia::easing::quarticInOut<double>>;
+using Segment_quinticIn = EasingSegment<ossia::easing::quinticIn<double>>;
+using Segment_quinticOut = EasingSegment<ossia::easing::quinticOut<double>>;
+using Segment_quinticInOut = EasingSegment<ossia::easing::quinticInOut<double>>;
+using Segment_sineIn = EasingSegment<ossia::easing::sineIn<double>>;
+using Segment_sineOut = EasingSegment<ossia::easing::sineOut<double>>;
+using Segment_sineInOut = EasingSegment<ossia::easing::sineInOut<double>>;
+using Segment_circularIn = EasingSegment<ossia::easing::circularIn<double>>;
+using Segment_circularOut = EasingSegment<ossia::easing::circularOut<double>>;
+using Segment_circularInOut = EasingSegment<ossia::easing::circularInOut<double>>;
+using Segment_exponentialIn = EasingSegment<ossia::easing::exponentialIn<double>>;
+using Segment_exponentialOut = EasingSegment<ossia::easing::exponentialOut<double>>;
+using Segment_exponentialInOut = EasingSegment<ossia::easing::exponentialInOut<double>>;
+using Segment_elasticIn = EasingSegment<ossia::easing::elasticIn<double>>;
+using Segment_elasticOut = EasingSegment<ossia::easing::elasticOut<double>>;
+using Segment_elasticInOut = EasingSegment<ossia::easing::elasticInOut<double>>;
 
 
 }

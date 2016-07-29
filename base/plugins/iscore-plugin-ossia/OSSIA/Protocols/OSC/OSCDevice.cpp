@@ -17,7 +17,7 @@ namespace Protocols
 OSCDevice::OSCDevice(const Device::DeviceSettings &settings):
     OwningOSSIADevice{settings}
 {
-    using namespace OSSIA;
+    using namespace ossia;
 
     reconnect();
 }
@@ -28,7 +28,7 @@ bool OSCDevice::reconnect()
 
     try {
         auto stgs = settings().deviceSpecificSettings.value<OSCSpecificSettings>();
-        std::unique_ptr<OSSIA::net::Protocol> ossia_settings = std::make_unique<impl::OSC2>(
+        std::unique_ptr<ossia::net::Protocol> ossia_settings = std::make_unique<impl::OSC2>(
                     stgs.host.toStdString(),
                     stgs.inputPort,
                     stgs.outputPort);

@@ -52,8 +52,8 @@ struct GetPropertyWrapper : public BaseProperty
         using converter_t = Ossia::convert::MatchingType<typename GetProperty::value_type>;
 
         GetPropertyWrapper(
-                OSSIA::net::Node& param_node,
-                OSSIA::net::Address& param_addr,
+                ossia::net::Node& param_node,
+                ossia::net::address& param_addr,
                 GetProperty prop,
                 QObject* context
                 ):
@@ -89,8 +89,8 @@ struct GetPropertyWrapper : public BaseProperty
 
 template<typename Property>
 auto make_getProperty(
-        OSSIA::net::Node& node,
-        OSSIA::net::Address& addr,
+        ossia::net::Node& node,
+        ossia::net::address& addr,
         Property prop,
         QObject* context)
 {
@@ -99,7 +99,7 @@ auto make_getProperty(
 
 template<typename T, typename Object, typename PropGet, typename PropChanged>
 auto add_getProperty(
-        OSSIA::net::Node& n,
+        ossia::net::Node& n,
         const std::string& name,
         Object* obj,
         PropGet get,
@@ -113,7 +113,7 @@ auto add_getProperty(
     auto addr = node->createAddress(t);
     ISCORE_ASSERT(addr);
 
-    addr->setAccessMode(OSSIA::AccessMode::GET);
+    addr->setAccessMode(ossia::AccessMode::GET);
 
     return make_getProperty(*node, *addr,
                             QtGetProperty<T, Object, PropGet, PropChanged>{*obj, get, chgd},

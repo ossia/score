@@ -28,7 +28,7 @@ class ProcessModel;
 namespace Executor
 {
 class ProcessExecutor final :
-        public OSSIA::TimeProcess
+        public ossia::time_process
 {
     public:
         ProcessExecutor(
@@ -36,9 +36,9 @@ class ProcessExecutor final :
 
         void setTickFun(const QString& val);
 
-        OSSIA::StateElement state(double);
-        OSSIA::StateElement state() override;
-        OSSIA::StateElement offset(OSSIA::TimeValue) override;
+        ossia::StateElement state(double);
+        ossia::StateElement state() override;
+        ossia::StateElement offset(ossia::time_value) override;
 
     private:
         const Device::DeviceList& m_devices;

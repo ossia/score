@@ -58,15 +58,15 @@ struct PropertyWrapper : public BaseCallbackWrapper
         Property property;
 
         PropertyWrapper(
-                OSSIA::net::Node& param_node,
-                OSSIA::net::Address& param_addr,
+                ossia::net::Node& param_node,
+                ossia::net::address& param_addr,
                 Property prop,
                 QObject* context
                 ):
             BaseCallbackWrapper{param_node, param_addr},
             property{prop}
         {
-            callbackIt = addr.addCallback([=] (const OSSIA::Value& v) {
+            callbackIt = addr.addCallback([=] (const ossia::value& v) {
                     property.set(Ossia::convert::ToValue(v));
             });
 
@@ -100,8 +100,8 @@ struct PropertyWrapper : public BaseCallbackWrapper
 
 template<typename Property>
 auto make_property(
-        OSSIA::net::Node& node,
-        OSSIA::net::Address& addr,
+        ossia::net::Node& node,
+        ossia::net::address& addr,
         Property prop,
         QObject* context)
 {
@@ -110,7 +110,7 @@ auto make_property(
 
 template<typename T, typename Object, typename PropGet, typename PropSet, typename PropChanged>
 auto add_property(
-        OSSIA::net::Node& n,
+        ossia::net::Node& n,
         const std::string& name,
         Object* obj,
         PropGet get,
@@ -125,7 +125,7 @@ auto add_property(
     auto addr = node->createAddress(t);
     ISCORE_ASSERT(addr);
 
-    addr->setAccessMode(OSSIA::AccessMode::BI);
+    addr->setAccessMode(ossia::AccessMode::BI);
 
     return make_property(*node,
                          *addr,

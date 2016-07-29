@@ -15,7 +15,7 @@ namespace Protocols
 MIDIDevice::MIDIDevice(const Device::DeviceSettings &settings):
     OwningOSSIADevice{settings}
 {
-    using namespace OSSIA;
+    using namespace ossia;
     m_capas.canRefreshTree = true;
     m_capas.canSerialize = false;
 
@@ -29,12 +29,12 @@ bool MIDIDevice::reconnect()
 
     MIDISpecificSettings set = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
     try {
-        auto proto = std::make_unique<OSSIA::net::MIDI>();
-        proto->setInfo(OSSIA::net::MidiInfo(
-                           static_cast<OSSIA::net::MidiInfo::Type>(set.io),
+        auto proto = std::make_unique<ossia::net::MIDI>();
+        proto->setInfo(ossia::net::MidiInfo(
+                           static_cast<ossia::net::MidiInfo::Type>(set.io),
                            set.endpoint.toStdString(),
                            set.port));
-        m_dev = std::make_unique<OSSIA::net::MIDIDevice>(std::move(proto));
+        m_dev = std::make_unique<ossia::net::MIDIDevice>(std::move(proto));
         m_dev->setName(settings().name.toStdString());
         m_dev->updateNamespace();
     }

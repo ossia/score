@@ -8,7 +8,7 @@ namespace RecreateOnPlay
 {
 StateElement::StateElement(
         const Scenario::StateModel &element,
-        OSSIA::TimeEvent& root,
+        ossia::time_event& root,
         const RecreateOnPlay::Context& ctx,
         QObject *parent):
     QObject{parent},

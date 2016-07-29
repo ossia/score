@@ -5,10 +5,10 @@
 #include <Mapping/MappingModel.hpp>
 #include <QPointer>
 #include <ossia/editor/value/value.hpp>
-namespace OSSIA
+namespace ossia
 {
-    class Mapper;
-    class CurveAbstract;
+    class mapper;
+    class curve_abstract;
 }
 namespace Device
 {
@@ -33,18 +33,18 @@ class Component final :
 
     private:
         void recreate();
-        std::shared_ptr<OSSIA::CurveAbstract> rebuildCurve();
+        std::shared_ptr<ossia::curve_abstract> rebuildCurve();
 
-        OSSIA::Type m_sourceAddressType{OSSIA::Type(-1)};
-        OSSIA::Type m_targetAddressType{OSSIA::Type(-1)};
+        ossia::Type m_sourceAddressType{ossia::Type(-1)};
+        ossia::Type m_targetAddressType{ossia::Type(-1)};
 
         template<typename T>
-        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl();
+        std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl();
 
         template<typename X_T, typename Y_T>
-        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl2();
+        std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl2();
 
-        std::shared_ptr<OSSIA::CurveAbstract> m_ossia_curve;
+        std::shared_ptr<ossia::curve_abstract> m_ossia_curve;
 
         const Device::DeviceList& m_deviceList;
 };
