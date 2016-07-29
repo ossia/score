@@ -59,6 +59,7 @@ class ISCORE_LIB_DEVICE_EXPORT NodeBasedItemModel : public TreeNodeBasedItemMode
             if(node->is<Device::AddressSettings>())
             {
                 node_type* parent = node->parent();
+                ISCORE_ASSERT(parent);
                 ISCORE_ASSERT(parent != &rootNode());
                 node_type* grandparent = parent->parent();
                 ISCORE_ASSERT(grandparent);

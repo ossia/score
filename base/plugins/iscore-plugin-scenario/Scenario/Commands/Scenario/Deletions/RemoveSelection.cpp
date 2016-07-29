@@ -355,7 +355,6 @@ void RemoveSelection::redo() const
 
     for(const auto& cmt : m_removedComments)
     {
-
         auto it = scenar.comments.find(cmt.first);
         if(it != scenar.comments.end())
             StandardRemovalPolicy::removeComment(scenar, *it);

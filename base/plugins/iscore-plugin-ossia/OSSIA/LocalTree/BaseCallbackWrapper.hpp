@@ -13,7 +13,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT BaseCallbackWrapper : public BaseProperty
         {
         }
 
-        OSSIA::net::Address::iterator callbackIt{};
+        OSSIA::net::Address::callback_index callbackIt{};
 };
 }
 }

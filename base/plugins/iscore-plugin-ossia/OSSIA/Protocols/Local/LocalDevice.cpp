@@ -98,7 +98,6 @@ void LocalDevice::nodeCreated(const OSSIA::net::Node & n)
 void LocalDevice::nodeRemoving(const OSSIA::net::Node & n)
 {
     emit pathRemoved(Ossia::convert::ToAddress(n));
-
 }
 
 void LocalDevice::nodeRenamed(const OSSIA::net::Node& node, std::string old_name)
