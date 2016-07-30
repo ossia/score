@@ -50,15 +50,15 @@ QString State::toString(const Relation& rel)
             .arg(toString(rel.rhs));
 }
 
-const QMap<State::Relation::Operator, QString> State::opToString()
+const QMap<State::Relation::Comparator, QString> State::opToString()
 {
     return {
-        {State::Relation::Operator::LowerEqual,    "<="},
-        {State::Relation::Operator::GreaterEqual,  ">="},
-        {State::Relation::Operator::Lower,         "<"},
-        {State::Relation::Operator::Greater,       ">"},
-        {State::Relation::Operator::Different,     "!="},
-        {State::Relation::Operator::Equal,         "=="},
-        {State::Relation::Operator::None,          ""}
+        {State::Relation::Comparator::LowerEqual,    "<="},
+        {State::Relation::Comparator::GreaterEqual,  ">="},
+        {State::Relation::Comparator::Lower,         "<"},
+        {State::Relation::Comparator::Greater,       ">"},
+        {State::Relation::Comparator::Different,     "!="},
+        {State::Relation::Comparator::Equal,         "=="},
+        {State::Relation::Comparator::None,          ""}
     };
 }

@@ -22,12 +22,12 @@ EventElement::EventElement(
     try
     {
         auto expr = iscore::convert::expression(m_iscore_event.condition(), m_deviceList);
-        m_ossia_event->setExpression(expr);
+        m_ossia_event->setExpression(std::move(expr));
     }
     catch(std::exception& e)
     {
         qDebug() << e.what();
-        m_ossia_event->setExpression(ossia::expression_base::create(true));
+        m_ossia_event->setExpression(ossia::expressions::make_expression_true());
     }
 }
 

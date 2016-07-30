@@ -121,7 +121,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
         State::Relation,
         (State::RelationMember, lhs)
-        (State::Relation::Operator, op)
+        (State::Relation::Comparator, op)
         (State::RelationMember, rhs)
         )
 
@@ -258,16 +258,16 @@ struct RelationMember_parser : qi::grammar<Iterator, State::RelationMember()>
 };
 
 /// Relation parsing
-struct RelationOperation_map : qi::symbols<char, State::Relation::Operator>
+struct RelationOperation_map : qi::symbols<char, State::Relation::Comparator>
 {
         RelationOperation_map() {
             add
-                    ("<=", State::Relation::Operator::LowerEqual)
-                    (">=", State::Relation::Operator::GreaterEqual)
-                    ("<" , State::Relation::Operator::Lower)
-                    (">" , State::Relation::Operator::Greater)
-                    ("!=", State::Relation::Operator::Different)
-                    ("==", State::Relation::Operator::Equal)
+                    ("<=", State::Relation::Comparator::LowerEqual)
+                    (">=", State::Relation::Comparator::GreaterEqual)
+                    ("<" , State::Relation::Comparator::Lower)
+                    (">" , State::Relation::Comparator::Greater)
+                    ("!=", State::Relation::Comparator::Different)
+                    ("==", State::Relation::Comparator::Equal)
                     ;
         }
 };
