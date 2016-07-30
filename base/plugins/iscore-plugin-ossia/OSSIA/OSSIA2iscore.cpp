@@ -30,7 +30,7 @@ Device::Domain ToDomain(const ossia::net::Domain &domain)
     return d;
 }
 
-Device::AddressSettings ToAddressSettings(const ossia::net::Node &node)
+Device::AddressSettings ToAddressSettings(const ossia::net::node &node)
 {
     Device::AddressSettings s;
     s.name = QString::fromStdString(node.getName());
@@ -60,7 +60,7 @@ Device::AddressSettings ToAddressSettings(const ossia::net::Node &node)
 }
 
 
-Device::Node ToDeviceExplorer(const ossia::net::Node &ossia_node)
+Device::Node ToDeviceExplorer(const ossia::net::node &ossia_node)
 {
     Device::Node iscore_node{ToAddressSettings(ossia_node), nullptr};
     iscore_node.reserve(ossia_node.children().size());
@@ -114,10 +114,10 @@ Device::ClipMode ToClipMode(ossia::BoundingMode b)
     }
 }
 
-State::Address ToAddress(const ossia::net::Node& node)
+State::Address ToAddress(const ossia::net::node& node)
 {
     State::Address addr;
-    const ossia::net::Node* cur = &node;
+    const ossia::net::node* cur = &node;
 
     while(auto padre = cur->getParent())
     {

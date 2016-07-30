@@ -2,7 +2,7 @@
 #include <Process/Process.hpp>
 
 Ossia::LocalTree::ProcessComponent::ProcessComponent(
-        ossia::net::Node& parentNode,
+        ossia::net::node& parentNode,
         Process::ProcessModel& proc,
         DocumentPlugin& doc,
         const Id<iscore::Component>& id,

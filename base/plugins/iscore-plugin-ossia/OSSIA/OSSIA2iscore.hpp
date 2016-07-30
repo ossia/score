@@ -17,7 +17,7 @@
 
 namespace ossia {
 namespace net {
-class Node;
+class node;
 }
 }
 
@@ -112,9 +112,9 @@ Device::Domain ToDomain(ossia::net::Domain& domain);
 ISCORE_PLUGIN_OSSIA_EXPORT State::Value ToValue(const ossia::value& val);
 State::Value ToValue(ossia::Type);
 
-State::Address ToAddress(const ossia::net::Node& node);
-Device::AddressSettings ToAddressSettings(const ossia::net::Node& node);
-ISCORE_PLUGIN_OSSIA_EXPORT Device::Node ToDeviceExplorer(const ossia::net::Node& node);
+State::Address ToAddress(const ossia::net::node& node);
+Device::AddressSettings ToAddressSettings(const ossia::net::node& node);
+ISCORE_PLUGIN_OSSIA_EXPORT Device::Node ToDeviceExplorer(const ossia::net::node& node);
 
 
 inline ::TimeValue time(ossia::time_value t)

@@ -52,7 +52,7 @@ struct GetPropertyWrapper : public BaseProperty
         using converter_t = Ossia::convert::MatchingType<typename GetProperty::value_type>;
 
         GetPropertyWrapper(
-                ossia::net::Node& param_node,
+                ossia::net::node& param_node,
                 ossia::net::address& param_addr,
                 GetProperty prop,
                 QObject* context
@@ -89,7 +89,7 @@ struct GetPropertyWrapper : public BaseProperty
 
 template<typename Property>
 auto make_getProperty(
-        ossia::net::Node& node,
+        ossia::net::node& node,
         ossia::net::address& addr,
         Property prop,
         QObject* context)
@@ -99,7 +99,7 @@ auto make_getProperty(
 
 template<typename T, typename Object, typename PropGet, typename PropChanged>
 auto add_getProperty(
-        ossia::net::Node& n,
+        ossia::net::node& n,
         const std::string& name,
         Object* obj,
         PropGet get,

@@ -59,9 +59,9 @@ void Component::recreate()
 {
     auto addr = process().address();
     ossia::net::address* address{};
-    ossia::net::Node* node{};
+    ossia::net::node* node{};
     Ossia::Protocols::OSSIADevice* dev{};
-    ossia::net::Device* ossia_dev{};
+    ossia::net::device* ossia_dev{};
 
     m_ossia_curve.reset(); // It will be remade after.
 

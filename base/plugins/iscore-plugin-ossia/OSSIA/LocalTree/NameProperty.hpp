@@ -6,10 +6,10 @@ class MetadataNamePropertyWrapper
 {
         ModelMetadata& metadata;
     public:
-        ossia::net::Node& node;
+        ossia::net::node& node;
 
         MetadataNamePropertyWrapper(
-                ossia::net::Node& parent,
+                ossia::net::node& parent,
                 ModelMetadata& arg_metadata,
                 QObject* context
                 ):

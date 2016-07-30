@@ -13,7 +13,7 @@ struct SetPropertyWrapper : public BaseCallbackWrapper
         SetFun setFun;
 
         SetPropertyWrapper(
-                ossia::net::Node& param_node,
+                ossia::net::node& param_node,
                 ossia::net::address& param_addr,
                 SetFun prop
                 ):
@@ -30,7 +30,7 @@ struct SetPropertyWrapper : public BaseCallbackWrapper
 
 template<typename T, typename Callback>
 auto make_setProperty(
-        ossia::net::Node& node,
+        ossia::net::node& node,
         ossia::net::address& addr,
         Callback prop)
 {
@@ -38,7 +38,7 @@ auto make_setProperty(
 }
 
 template<typename T, typename Callback>
-auto add_setProperty(ossia::net::Node& n, const std::string& name, Callback cb)
+auto add_setProperty(ossia::net::node& n, const std::string& name, Callback cb)
 {
     constexpr const auto t = Ossia::convert::MatchingType<T>::val;
     auto node = n.createChild(name);

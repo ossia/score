@@ -13,7 +13,7 @@ class Component :
 {
     public:
         template<typename... Args>
-        Component(ossia::net::Node& n, ModelMetadata& m, Args&&... args):
+        Component(ossia::net::node& n, ModelMetadata& m, Args&&... args):
             Component_T{std::forward<Args>(args)...},
             m_thisNode{n, m, this}
         {

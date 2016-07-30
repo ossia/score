@@ -30,8 +30,8 @@ namespace ossia {
 namespace net
 {
 class address;
-class Node;
-class Device;
+class node;
+class device;
 }
 struct Message;
 class State;
@@ -53,21 +53,21 @@ namespace convert
 // Creates it if necessary.
 //// Device-related functions
 // OSSIA::net::Node* might be null.
-ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::Node* findNodeFromPath(
+ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::node* findNodeFromPath(
         const QStringList& path,
-        ossia::net::Device& dev);
+        ossia::net::device& dev);
 
 // OSSIA::net::Node* won't be null.
-ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::Node* getNodeFromPath(
+ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::node* getNodeFromPath(
         const QStringList& path,
-        ossia::net::Device& dev);
-ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::Node* createNodeFromPath(
+        ossia::net::device& dev);
+ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::node* createNodeFromPath(
         const QStringList& path,
-        ossia::net::Device& dev);
+        ossia::net::device& dev);
 
 ISCORE_PLUGIN_OSSIA_EXPORT void createOSSIAAddress(
         const Device::FullAddressSettings& settings,
-        ossia::net::Node& node);
+        ossia::net::node& node);
 ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAAddress(
         const Device::FullAddressSettings& settings,
         ossia::net::address& addr);

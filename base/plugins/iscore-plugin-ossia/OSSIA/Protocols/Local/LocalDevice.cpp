@@ -90,17 +90,17 @@ bool LocalDevice::reconnect()
     return connected();
 }
 
-void LocalDevice::nodeCreated(const ossia::net::Node & n)
+void LocalDevice::nodeCreated(const ossia::net::node & n)
 {
     emit pathAdded(Ossia::convert::ToAddress(n));
 }
 
-void LocalDevice::nodeRemoving(const ossia::net::Node & n)
+void LocalDevice::nodeRemoving(const ossia::net::node & n)
 {
     emit pathRemoved(Ossia::convert::ToAddress(n));
 }
 
-void LocalDevice::nodeRenamed(const ossia::net::Node& node, std::string old_name)
+void LocalDevice::nodeRenamed(const ossia::net::node& node, std::string old_name)
 {
     if(!node.getParent())
         return;
