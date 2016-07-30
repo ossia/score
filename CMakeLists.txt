@@ -35,7 +35,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 if(ISCORE_SANITIZE)
     set(OSSIA_SANITIZE True)
 endif()
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" EXCLUDE_FROM_ALL)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" )
 
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Qml WebSockets)
 
