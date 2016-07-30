@@ -1,6 +1,7 @@
 #pragma once
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/value/value.hpp>
+#include <ossia/editor/expression/expression_fwd.hpp>
 #include <ossia/editor/state/state_element.hpp>
 
 #include <Process/State/MessageNode.hpp>
@@ -11,6 +12,7 @@
 #include <memory>
 
 #include <State/Value.hpp>
+
 #include <iscore_plugin_ossia_export.h>
 namespace RecreateOnPlay
 {
@@ -31,7 +33,6 @@ class address;
 class Node;
 class Device;
 }
-class expression_base;
 struct Message;
 class State;
 }  // namespace OSSIA
@@ -98,7 +99,7 @@ ISCORE_PLUGIN_OSSIA_EXPORT optional<ossia::Message> message(
         const State::Message& mess,
         const Device::DeviceList&);
 
-ISCORE_PLUGIN_OSSIA_EXPORT std::shared_ptr<ossia::expression_base> expression(
+ISCORE_PLUGIN_OSSIA_EXPORT ossia::expression_ptr expression(
         const State::Expression& expr,
         const Device::DeviceList&);
 

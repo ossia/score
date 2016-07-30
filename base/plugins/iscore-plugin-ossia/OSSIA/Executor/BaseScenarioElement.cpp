@@ -39,8 +39,14 @@ BaseScenarioElement::BaseScenarioElement(
     auto main_start_node = ossia::time_node::create();
     auto main_end_node = ossia::time_node::create();
 
-    auto main_start_event = *main_start_node->emplace(main_start_node->timeEvents().begin(), [this] (auto&&...) { });
-    auto main_end_event = *main_end_node->emplace(main_end_node->timeEvents().begin(), [this] (auto&&...) { });
+    auto main_start_event = *main_start_node->emplace(
+          main_start_node->timeEvents().begin(),
+          [this] (auto&&...) { },
+          ossia::expressions::make_expression_true());
+    auto main_end_event = *main_end_node->emplace(
+          main_end_node->timeEvents().begin(),
+          [this] (auto&&...) { },
+          ossia::expressions::make_expression_true());
 
 
     // TODO PlayDuration of base constraint.

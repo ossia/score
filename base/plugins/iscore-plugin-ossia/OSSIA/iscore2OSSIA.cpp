@@ -475,64 +475,75 @@ static ossia::value expressionOperand(
     return eggs::variants::apply(visitor, relm);
 }
 
-static ossia::expression_atom::Operator expressionOperator(State::Relation::Operator op)
+static ossia::expressions::expression_atom::Comparator
+  expressionComparator(State::Relation::Comparator op)
 {
+    using namespace ossia::expressions;
     switch(op)
     {
-        case State::Relation::Operator::Different:
-            return ossia::expression_atom::Operator::DIFFERENT;
-        case State::Relation::Operator::Equal:
-            return ossia::expression_atom::Operator::EQUAL;
-        case State::Relation::Operator::Greater:
-            return ossia::expression_atom::Operator::GREATER_THAN;
-        case State::Relation::Operator::GreaterEqual:
-            return ossia::expression_atom::Operator::GREATER_THAN_OR_EQUAL;
-        case State::Relation::Operator::Lower:
-            return ossia::expression_atom::Operator::LOWER_THAN;
-        case State::Relation::Operator::LowerEqual:
-            return ossia::expression_atom::Operator::LOWER_THAN_OR_EQUAL;
+        case State::Relation::Comparator::Different:
+            return expression_atom::Comparator::DIFFERENT;
+        case State::Relation::Comparator::Equal:
+            return expression_atom::Comparator::EQUAL;
+        case State::Relation::Comparator::Greater:
+            return expression_atom::Comparator::GREATER_THAN;
+        case State::Relation::Comparator::GreaterEqual:
+            return expression_atom::Comparator::GREATER_THAN_OR_EQUAL;
+        case State::Relation::Comparator::Lower:
+            return expression_atom::Comparator::LOWER_THAN;
+        case State::Relation::Comparator::LowerEqual:
+            return expression_atom::Comparator::LOWER_THAN_OR_EQUAL;
         default:
             ISCORE_ABORT;
     }
 }
 
+static ossia::expressions::expression_composition::Operator
+expressionOperator(State::BinaryOperator op)
+{
+    using namespace ossia::expressions;
+    switch(op)
+    {
+        case State::BinaryOperator::And:
+            return expression_composition::Operator::AND;
+        case State::BinaryOperator::Or:
+            return expression_composition::Operator::OR;
+        case State::BinaryOperator::Xor:
+            return expression_composition::Operator::XOR;
+        default:
+            ISCORE_ABORT;
+    }
+}
 // State::Relation -> OSSIA::ExpressionAtom
-static std::shared_ptr<ossia::expression_atom> expressionAtom(
+static ossia::expression_ptr expressionAtom(
         const State::Relation& rel,
         const Device::DeviceList& dev)
 {
     using namespace eggs::variants;
 
-    return ossia::expression_atom::create(
+    return ossia::expressions::make_expression_atom(
                 expressionOperand(rel.lhs, dev),
-                expressionOperator(rel.op),
+                expressionComparator(rel.op),
                 expressionOperand(rel.rhs, dev));
 }
 
-static std::shared_ptr<ossia::expression_pulse> expressionPulse(
+static ossia::expression_ptr expressionPulse(
         const State::Pulse& rel,
         const Device::DeviceList& dev)
 {
     using namespace eggs::variants;
 
-    return ossia::expression_pulse::create(expressionAddress(rel.address, dev));
+    return ossia::expressions::make_expression_pulse(expressionAddress(rel.address, dev));
 }
 
-static const QMap<State::BinaryOperator, ossia::expression_composition::Operator> comp_map
-{
-    {State::BinaryOperator::And, ossia::expression_composition::Operator::AND},
-    {State::BinaryOperator::Or, ossia::expression_composition::Operator::OR},
-    {State::BinaryOperator::Xor, ossia::expression_composition::Operator::XOR}
-};
-
-std::shared_ptr<ossia::expression_base> expression(
+ossia::expression_ptr expression(
         const State::Expression& e,
         const Device::DeviceList& list)
 {
     const struct {
             const State::Expression& expr;
             const Device::DeviceList& devlist;
-            using return_type = std::shared_ptr<ossia::expression_base>;
+            using return_type = ossia::expression_ptr;
             return_type operator()(const State::Relation& rel) const
             {
                 return expressionAtom(rel, devlist);
@@ -546,22 +557,23 @@ std::shared_ptr<ossia::expression_base> expression(
             {
                 const auto& lhs = expr.childAt(0);
                 const auto& rhs = expr.childAt(1);
-                return ossia::expression_composition::create(
+                return ossia::expressions::make_expression_composition(
                             expression(lhs, devlist),
-                            comp_map[rel],
+                            expressionOperator(rel),
                             expression(rhs, devlist)
                             );
             }
             return_type operator()(const State::UnaryOperator) const
             {
-                return ossia::expression_not::create(expression(expr.childAt(0), devlist));
+                return ossia::expressions::make_expression_not(
+                            expression(expr.childAt(0), devlist));
             }
             return_type operator()(const InvisibleRootNodeTag) const
             {
                 if(expr.childCount() == 0)
                 {
                     // By default no expression == true
-                    return ossia::expression_base::create(true);
+                    return ossia::expressions::make_expression_true();
                 }
                 else if(expr.childCount() == 1)
                 {

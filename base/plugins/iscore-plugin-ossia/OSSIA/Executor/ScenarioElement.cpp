@@ -153,9 +153,10 @@ void ScenarioComponent::on_eventCreated(const Scenario::EventModel& const_ev)
     ISCORE_ASSERT(m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
     auto ossia_tn = m_ossia_timenodes.at(ev.timeNode());
 
-    auto ossia_ev = *ossia_tn->OSSIATimeNode()->emplace(
+    std::shared_ptr<ossia::time_event> ossia_ev = *ossia_tn->OSSIATimeNode()->emplace(
                 ossia_tn->OSSIATimeNode()->timeEvents().begin(),
-                ossia::time_event::ExecutionCallback{});
+                ossia::time_event::ExecutionCallback{},
+                ossia::expressions::make_expression_true());
 
     // Create the mapping object
     auto elt = new EventElement{ossia_ev, ev, m_ctx.devices.list(), this};

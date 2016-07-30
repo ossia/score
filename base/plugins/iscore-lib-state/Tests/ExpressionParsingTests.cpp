@@ -81,7 +81,7 @@ void test_parse_expr()
 
 QDebug operator<<(QDebug dbg, const State::Address& a);
 QDebug operator<<(QDebug dbg, const State::RelationMember& v);
-QDebug operator<<(QDebug dbg, const State::Relation::Operator& v);
+QDebug operator<<(QDebug dbg, const State::Relation::Comparator& v);
 QDebug operator<<(QDebug dbg, const State::Relation& v);
 QDebug operator<<(QDebug dbg, const State::BinaryOperator& v);
 QDebug operator<<(QDebug dbg, const State::UnaryOperator& v);
@@ -100,23 +100,23 @@ QDebug operator<<(QDebug dbg, const State::RelationMember& v)
     return dbg;
 }
 
-QDebug operator<<(QDebug dbg, const State::Relation::Operator& v)
+QDebug operator<<(QDebug dbg, const State::Relation::Comparator& v)
 {
     switch(v)
     {
-        case State::Relation::Operator::Different:
+        case State::Relation::Comparator::Different:
             dbg << "!="; break;
-        case State::Relation::Operator::Equal:
+        case State::Relation::Comparator::Equal:
             dbg << "=="; break;
-        case State::Relation::Operator::Greater:
+        case State::Relation::Comparator::Greater:
             dbg << ">"; break;
-        case State::Relation::Operator::GreaterEqual:
+        case State::Relation::Comparator::GreaterEqual:
             dbg << ">="; break;
-        case State::Relation::Operator::Lower:
+        case State::Relation::Comparator::Lower:
             dbg << "<"; break;
-        case State::Relation::Operator::LowerEqual:
+        case State::Relation::Comparator::LowerEqual:
             dbg << "<="; break;
-        case State::Relation::Operator::None:
+        case State::Relation::Comparator::None:
             dbg << "none"; break;
     }
     return dbg;

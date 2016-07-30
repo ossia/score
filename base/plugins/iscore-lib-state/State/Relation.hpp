@@ -16,7 +16,7 @@ ISCORE_LIB_STATE_EXPORT QString toString(const RelationMember&);
 
 struct ISCORE_LIB_STATE_EXPORT Relation
 {
-        enum Operator {
+        enum Comparator {
             Equal,
             Different,
             Greater,
@@ -27,7 +27,7 @@ struct ISCORE_LIB_STATE_EXPORT Relation
         } ;
 
         RelationMember lhs;
-        Operator op;
+        Comparator op;
         RelationMember rhs;
 
         friend bool operator==(const Relation& eq_lhs, const Relation& eq_rhs)
@@ -49,6 +49,6 @@ struct ISCORE_LIB_STATE_EXPORT Pulse
 
 };
 ISCORE_LIB_STATE_EXPORT QString toString(const Pulse&);
-ISCORE_LIB_STATE_EXPORT const QMap<State::Relation::Operator, QString> opToString();
+ISCORE_LIB_STATE_EXPORT const QMap<State::Relation::Comparator, QString> opToString();
 
 }

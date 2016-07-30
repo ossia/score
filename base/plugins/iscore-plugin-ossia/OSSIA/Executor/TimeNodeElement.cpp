@@ -30,12 +30,12 @@ TimeNodeElement::TimeNodeElement(
                             element.trigger()->expression(),
                             m_deviceList);
 
-            m_ossia_node->setExpression(expr);
+            m_ossia_node->setExpression(std::move(expr));
         }
         catch(std::exception& e)
         {
             qDebug() << e.what();
-            m_ossia_node->setExpression(ossia::expression_base::create(true));
+            m_ossia_node->setExpression(ossia::expressions::make_expression_true());
         }
     }
     connect(m_iscore_node.trigger(), &Scenario::TriggerModel::triggeredByGui,

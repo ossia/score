@@ -27,9 +27,11 @@ LoopingProcessWrapper::LoopingProcessWrapper(
     m_looping_impl{ossia::loop::create(dur, loopingConstraintCallback, {}, {})},
     m_looping{looping}
 {
-    auto sev = m_fixed_impl->getStartTimeNode()->emplace(m_fixed_impl->getStartTimeNode()->timeEvents().begin(), {});
+    auto sev = m_fixed_impl->getStartTimeNode()->emplace(
+          m_fixed_impl->getStartTimeNode()->timeEvents().begin(),
+          {}, ossia::expressions::make_expression_true());
 
-    auto eev = m_fixed_endNode->emplace(m_fixed_endNode->timeEvents().begin(), {});
+    auto eev = m_fixed_endNode->emplace(m_fixed_endNode->timeEvents().begin(), {}, ossia::expressions::make_expression_true());
     m_fixed_impl->addTimeNode(m_fixed_endNode);
 
     m_fixed_cst = ossia::time_constraint::create(loopingConstraintCallback,

@@ -147,7 +147,7 @@ void SimpleExpressionEditorWidget::setRelation(State::Relation r)
         auto lv = *lptr;
         auto rv = *rptr;
 
-        if(r.op == State::Relation::Operator::Equal && lv == rv)
+        if(r.op == State::Relation::Comparator::Equal && lv == rv)
         {
             m_comparator->setCurrentIndex(ExpressionEditorComparator::AlwaysTrue);
         }
