@@ -28,7 +28,7 @@ bool MinuitDevice::reconnect()
     try {
         auto stgs = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();
 
-        std::unique_ptr<ossia::net::Protocol> ossia_settings = std::make_unique<impl::Minuit2>(
+        std::unique_ptr<ossia::net::protocol> ossia_settings = std::make_unique<impl::Minuit2>(
                     stgs.host.toStdString(),
                     stgs.inputPort,
                     stgs.outputPort);

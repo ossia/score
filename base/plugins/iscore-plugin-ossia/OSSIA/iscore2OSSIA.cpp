@@ -73,13 +73,13 @@ namespace iscore
 namespace convert
 {
 
-ossia::net::Node *createNodeFromPath(
+ossia::net::node *createNodeFromPath(
         const QStringList &path,
-        ossia::net::Device& dev)
+        ossia::net::device& dev)
 {
     using namespace ossia;
     // Find the relevant node to add in the device
-    ossia::net::Node* node = &dev.getRootNode();
+    ossia::net::node* node = &dev.getRootNode();
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -89,7 +89,7 @@ ossia::net::Node *createNodeFromPath(
         if(it == children.end())
         {
             // We have to start adding sub-nodes from here.
-            ossia::net::Node* parentnode = node;
+            ossia::net::node* parentnode = node;
             for(int k = i; k < path.size(); k++)
             {
                 auto newNode = parentnode->createChild(path[k].toStdString());
@@ -123,12 +123,12 @@ ossia::net::Node *createNodeFromPath(
     return node;
 }
 
-ossia::net::Node* findNodeFromPath(
-        const QStringList& path, ossia::net::Device& dev)
+ossia::net::node* findNodeFromPath(
+        const QStringList& path, ossia::net::device& dev)
 {
     using namespace ossia;
     // Find the relevant node to add in the device
-    ossia::net::Node* node = &dev.getRootNode();
+    ossia::net::node* node = &dev.getRootNode();
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -146,13 +146,13 @@ ossia::net::Node* findNodeFromPath(
     return node;
 }
 
-ossia::net::Node* getNodeFromPath(
+ossia::net::node* getNodeFromPath(
         const QStringList &path,
-        ossia::net::Device& dev)
+        ossia::net::device& dev)
 {
     using namespace ossia;
     // Find the relevant node to add in the device
-    ossia::net::Node* node = &dev.getRootNode();
+    ossia::net::node* node = &dev.getRootNode();
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -224,7 +224,7 @@ void updateOSSIAAddress(
 
 void createOSSIAAddress(
         const Device::FullAddressSettings &settings,
-        ossia::net::Node& node)
+        ossia::net::node& node)
 {
     if(settings.value.val.is<State::no_value_t>())
         return;

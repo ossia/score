@@ -12,7 +12,7 @@ class TimeNode final :
         COMPONENT_METADATA("104e4446-b09f-4bf6-92ef-0fe360397066")
     public:
         TimeNode(
-                ossia::net::Node& parent,
+                ossia::net::node& parent,
                 const Id<iscore::Component>& id,
                 Scenario::TimeNodeModel& event,
                 DocumentPlugin& doc,

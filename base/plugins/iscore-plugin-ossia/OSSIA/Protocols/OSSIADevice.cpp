@@ -90,7 +90,7 @@ void OSSIADevice::addAddress(const Device::FullAddressSettings &settings)
     if(auto dev = getDevice())
     {
         // Create the node. It is added into the device.
-        ossia::net::Node* node = iscore::convert::createNodeFromPath(
+        ossia::net::node* node = iscore::convert::createNodeFromPath(
                     settings.address.path,
                     *dev);
         ISCORE_ASSERT(node);
@@ -107,7 +107,7 @@ void OSSIADevice::updateAddress(
 {
     if(auto dev = getDevice())
     {
-        ossia::net::Node* node = iscore::convert::getNodeFromPath(
+        ossia::net::node* node = iscore::convert::getNodeFromPath(
                     currentAddr.path,
                     *dev);
         auto newName = settings.address.path.last().toStdString();
@@ -133,7 +133,7 @@ void OSSIADevice::updateAddress(
 }
 
 void OSSIADevice::removeListening_impl(
-        ossia::net::Node& node, State::Address addr)
+        ossia::net::node& node, State::Address addr)
 {
     // Find & remove our callback
     auto it = m_callbacks.find(addr);
@@ -184,7 +184,7 @@ void OSSIADevice::removeNode(const State::Address& address)
         return;
     if(auto dev = getDevice())
     {
-        ossia::net::Node* node = iscore::convert::getNodeFromPath(address.path, *dev);
+        ossia::net::node* node = iscore::convert::getNodeFromPath(address.path, *dev);
         auto parent = node->getParent();
         auto& parentChildren = node->getParent()->children();
         auto it = std::find_if(parentChildren.begin(), parentChildren.end(),
