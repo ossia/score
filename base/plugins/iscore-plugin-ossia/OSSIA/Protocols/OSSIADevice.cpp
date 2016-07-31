@@ -90,7 +90,7 @@ void OSSIADevice::addAddress(const Device::FullAddressSettings &settings)
     if(auto dev = getDevice())
     {
         // Create the node. It is added into the device.
-        ossia::net::node* node = iscore::convert::createNodeFromPath(
+        ossia::net::node_base* node = iscore::convert::createNodeFromPath(
                     settings.address.path,
                     *dev);
         ISCORE_ASSERT(node);
@@ -107,7 +107,7 @@ void OSSIADevice::updateAddress(
 {
     if(auto dev = getDevice())
     {
-        ossia::net::node* node = iscore::convert::getNodeFromPath(
+        ossia::net::node_base* node = iscore::convert::getNodeFromPath(
                     currentAddr.path,
                     *dev);
         auto newName = settings.address.path.last().toStdString();
@@ -133,7 +133,7 @@ void OSSIADevice::updateAddress(
 }
 
 void OSSIADevice::removeListening_impl(
-        ossia::net::node& node, State::Address addr)
+        ossia::net::node_base& node, State::Address addr)
 {
     // Find & remove our callback
     auto it = m_callbacks.find(addr);
@@ -158,7 +158,7 @@ void OSSIADevice::setLogging_impl(bool b) const
     {
         if(b)
         {
-            auto l = std::make_shared<ossia::NetworkLogger>();
+            auto l = std::make_shared<ossia::network_logger>();
             l->setInboundLogCallback([=] (std::string s) {
                 emit logInbound(QString::fromStdString(s));
             });
@@ -184,7 +184,7 @@ void OSSIADevice::removeNode(const State::Address& address)
         return;
     if(auto dev = getDevice())
     {
-        ossia::net::node* node = iscore::convert::getNodeFromPath(address.path, *dev);
+        ossia::net::node_base* node = iscore::convert::getNodeFromPath(address.path, *dev);
         auto parent = node->getParent();
         auto& parentChildren = node->getParent()->children();
         auto it = std::find_if(parentChildren.begin(), parentChildren.end(),
@@ -274,7 +274,7 @@ void OSSIADevice::setListening(
         // so that we don't have to go through the tree.
         auto cb_it = m_callbacks.find(addr);
 
-        ossia::net::address* ossia_addr{};
+        ossia::net::address_base* ossia_addr{};
         if(cb_it == m_callbacks.end())
         {
             auto n = iscore::convert::findNodeFromPath(addr.path, *dev);

@@ -58,10 +58,10 @@ Component::Component(
 void Component::recreate()
 {
     auto addr = process().address();
-    ossia::net::address* address{};
-    ossia::net::node* node{};
+    ossia::net::address_base* address{};
+    ossia::net::node_base* node{};
     Ossia::Protocols::OSSIADevice* dev{};
-    ossia::net::device* ossia_dev{};
+    ossia::net::device_base* ossia_dev{};
 
     m_ossia_curve.reset(); // It will be remade after.
 
@@ -146,10 +146,10 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged(
     m_ossia_curve.reset();
     switch(m_addressType)
     {
-        case ossia::Type::INT:
+        case ossia::val_type::INT:
             m_ossia_curve = on_curveChanged_impl<int>(d);
             break;
-        case ossia::Type::FLOAT:
+        case ossia::val_type::FLOAT:
             m_ossia_curve = on_curveChanged_impl<float>(d);
             break;
         default:

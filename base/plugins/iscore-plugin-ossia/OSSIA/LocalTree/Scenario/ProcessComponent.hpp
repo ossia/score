@@ -16,7 +16,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :
 {
     public:
         ProcessComponent(
-                ossia::net::node& node,
+                ossia::net::node_base& node,
                 Process::ProcessModel& proc,
                 DocumentPlugin& doc,
                 const Id<iscore::Component>& id,
@@ -40,7 +40,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
         virtual ~ProcessComponentFactory();
         virtual ProcessComponent* make(
                 const Id<iscore::Component>&,
-                ossia::net::node& parent,
+                ossia::net::node_base& parent,
                 Process::ProcessModel& proc,
                 LocalTree::DocumentPlugin& doc,
                 QObject* paren_objt) const = 0;
@@ -54,7 +54,7 @@ class ProcessComponentFactory_T :
         using model_type = typename ProcessComponent_T::model_type;
         ProcessComponent* make(
                 const Id<iscore::Component>& id,
-                ossia::net::node& parent,
+                ossia::net::node_base& parent,
                 Process::ProcessModel& proc,
                 DocumentPlugin& doc,
                 QObject* paren_objt) const override

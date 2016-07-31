@@ -32,7 +32,7 @@ ossia::time_constraint::ExecutionCallback DefaultClockManager::makeDefaultCallba
     return [&bs,&iscore_cst=cst.iscoreConstraint()] (
             ossia::time_value position,
             ossia::time_value date,
-            const ossia::StateElement& state)
+            const ossia::state_element& state)
     {
         ossia::launch(state);
 

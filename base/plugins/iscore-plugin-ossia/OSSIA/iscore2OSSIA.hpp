@@ -29,12 +29,12 @@ class DeviceList;
 namespace ossia {
 namespace net
 {
-class address;
-class node;
-class device;
+class address_base;
+class node_base;
+class device_base;
 }
-struct Message;
-class State;
+struct message;
+class state;
 }  // namespace OSSIA
 namespace Device
 {
@@ -53,24 +53,24 @@ namespace convert
 // Creates it if necessary.
 //// Device-related functions
 // OSSIA::net::Node* might be null.
-ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::node* findNodeFromPath(
+ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::node_base* findNodeFromPath(
         const QStringList& path,
-        ossia::net::device& dev);
+        ossia::net::device_base& dev);
 
 // OSSIA::net::Node* won't be null.
-ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::node* getNodeFromPath(
+ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::node_base* getNodeFromPath(
         const QStringList& path,
-        ossia::net::device& dev);
-ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::node* createNodeFromPath(
+        ossia::net::device_base& dev);
+ISCORE_PLUGIN_OSSIA_EXPORT ossia::net::node_base* createNodeFromPath(
         const QStringList& path,
-        ossia::net::device& dev);
+        ossia::net::device_base& dev);
 
 ISCORE_PLUGIN_OSSIA_EXPORT void createOSSIAAddress(
         const Device::FullAddressSettings& settings,
-        ossia::net::node& node);
+        ossia::net::node_base& node);
 ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAAddress(
         const Device::FullAddressSettings& settings,
-        ossia::net::address& addr);
+        ossia::net::address_base& addr);
 ISCORE_PLUGIN_OSSIA_EXPORT void updateOSSIAValue(
         const State::ValueImpl& data,
         ossia::value& val);
@@ -87,15 +87,15 @@ ISCORE_PLUGIN_OSSIA_EXPORT inline ossia::time_value time(const TimeValue& t)
 }
 
 ISCORE_PLUGIN_OSSIA_EXPORT void state(
-        ossia::State& ossia_state,
+        ossia::state& ossia_state,
         const Scenario::StateModel& iscore_state,
         const RecreateOnPlay::Context& ctx);
-ISCORE_PLUGIN_OSSIA_EXPORT ossia::State state(
+ISCORE_PLUGIN_OSSIA_EXPORT ossia::state state(
         const Scenario::StateModel& iscore_state,
         const RecreateOnPlay::Context& ctx);
 
 
-ISCORE_PLUGIN_OSSIA_EXPORT optional<ossia::Message> message(
+ISCORE_PLUGIN_OSSIA_EXPORT optional<ossia::message> message(
         const State::Message& mess,
         const Device::DeviceList&);
 

@@ -17,10 +17,10 @@ namespace ossia
 class value;
 namespace net
 {
-class address;
-class node;
-class device;
-using ValueCallback = std::function<void(const ossia::value&)>;
+class address_base;
+class node_base;
+class device_base;
+using value_callback = std::function<void(const ossia::value&)>;
 }
 }
 
@@ -62,7 +62,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         bool isLogging() const final override;
         void setLogging(bool) final override;
 
-        virtual ossia::net::device* getDevice() const = 0;
+        virtual ossia::net::device_base* getDevice() const = 0;
 
     protected:
         using DeviceInterface::DeviceInterface;
@@ -70,12 +70,12 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         std::unordered_map<
             State::Address,
             std::pair<
-                ossia::net::address*,
-                ossia::callback_container<ossia::net::ValueCallback>::iterator
+                ossia::net::address_base*,
+                ossia::callback_container<ossia::net::value_callback>::iterator
             >
         > m_callbacks;
 
-        void removeListening_impl(ossia::net::node &node, State::Address addr);
+        void removeListening_impl(ossia::net::node_base &node, State::Address addr);
         void setLogging_impl(bool) const;
     private:
         bool m_logging = false;
@@ -89,10 +89,10 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OwningOSSIADevice :
 
         using OSSIADevice::OSSIADevice;
 
-        ossia::net::device* getDevice() const final override
+        ossia::net::device_base* getDevice() const final override
         { return m_dev.get(); }
 
-        std::unique_ptr<ossia::net::device> m_dev;
+        std::unique_ptr<ossia::net::device_base> m_dev;
 };
 }
 }

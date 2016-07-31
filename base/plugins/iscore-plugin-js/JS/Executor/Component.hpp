@@ -36,9 +36,9 @@ class ProcessExecutor final :
 
         void setTickFun(const QString& val);
 
-        ossia::StateElement state(double);
-        ossia::StateElement state() override;
-        ossia::StateElement offset(ossia::time_value) override;
+        ossia::state_element state(double);
+        ossia::state_element state() override;
+        ossia::state_element offset(ossia::time_value) override;
 
     private:
         const Device::DeviceList& m_devices;

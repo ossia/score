@@ -8,7 +8,7 @@ namespace LocalTree
 
 ScenarioComponentBase::ScenarioComponentBase(
         const Id<iscore::Component>& id,
-        ossia::net::node& parent,
+        ossia::net::node_base& parent,
         Scenario::ProcessModel& scenario,
         DocumentPlugin& sys,
         QObject* parent_obj):

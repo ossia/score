@@ -9,7 +9,7 @@ namespace LocalTree
 ISCORE_PLUGIN_OSSIA_EXPORT
 void make_metadata_node(
         ModelMetadata& metadata,
-        ossia::net::node& parent,
+        ossia::net::node_base& parent,
         std::vector<std::unique_ptr<BaseProperty>>& properties,
         QObject* context)
 {

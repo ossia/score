@@ -38,7 +38,7 @@ Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
         iscore::Document& doc,
         QObject* parent):
     iscore::DocumentPlugin{doc.context(), "LocalTree::DocumentPlugin", parent},
-    m_localDevice{std::make_unique<impl::Local2>(), "i-score"}
+    m_localDevice{std::make_unique<ossia::net::local_protocol>(), "i-score"}
 {
     con(doc, &iscore::Document::aboutToClose,
         this, &DocumentPlugin::cleanup);

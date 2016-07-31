@@ -7,7 +7,7 @@ namespace ossia
 {
 namespace net
 {
-class node;
+class node_base;
 }
 }
 class QObject;
@@ -21,7 +21,7 @@ class BaseProperty;
 ISCORE_PLUGIN_OSSIA_EXPORT
 void make_metadata_node(
         ModelMetadata& metadata,
-        ossia::net::node& parent,
+        ossia::net::node_base& parent,
         std::vector<std::unique_ptr<BaseProperty>>& properties,
         QObject* context);
 }

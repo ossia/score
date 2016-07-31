@@ -30,7 +30,7 @@
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <ossia/editor/value/value.hpp>
-#include <ossia/network/domain.hpp>
+#include <ossia/network/domain/domain.hpp>
 #include <ossia/network/base/address.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
@@ -73,13 +73,13 @@ namespace iscore
 namespace convert
 {
 
-ossia::net::node *createNodeFromPath(
+ossia::net::node_base *createNodeFromPath(
         const QStringList &path,
-        ossia::net::device& dev)
+        ossia::net::device_base& dev)
 {
     using namespace ossia;
     // Find the relevant node to add in the device
-    ossia::net::node* node = &dev.getRootNode();
+    ossia::net::node_base* node = &dev.getRootNode();
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -89,7 +89,7 @@ ossia::net::node *createNodeFromPath(
         if(it == children.end())
         {
             // We have to start adding sub-nodes from here.
-            ossia::net::node* parentnode = node;
+            ossia::net::node_base* parentnode = node;
             for(int k = i; k < path.size(); k++)
             {
                 auto newNode = parentnode->createChild(path[k].toStdString());
@@ -123,12 +123,12 @@ ossia::net::node *createNodeFromPath(
     return node;
 }
 
-ossia::net::node* findNodeFromPath(
-        const QStringList& path, ossia::net::device& dev)
+ossia::net::node_base* findNodeFromPath(
+        const QStringList& path, ossia::net::device_base& dev)
 {
     using namespace ossia;
     // Find the relevant node to add in the device
-    ossia::net::node* node = &dev.getRootNode();
+    ossia::net::node_base* node = &dev.getRootNode();
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -146,13 +146,13 @@ ossia::net::node* findNodeFromPath(
     return node;
 }
 
-ossia::net::node* getNodeFromPath(
+ossia::net::node_base* getNodeFromPath(
         const QStringList &path,
-        ossia::net::device& dev)
+        ossia::net::device_base& dev)
 {
     using namespace ossia;
     // Find the relevant node to add in the device
-    ossia::net::node* node = &dev.getRootNode();
+    ossia::net::node_base* node = &dev.getRootNode();
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
@@ -171,46 +171,46 @@ ossia::net::node* getNodeFromPath(
     return node;
 }
 
-static ossia::BoundingMode toBoundingMode(Device::ClipMode c)
+static ossia::bounding_mode toBoundingMode(Device::ClipMode c)
 {
     switch(c)
     {
         case Device::ClipMode::Free:
-            return ossia::BoundingMode::FREE;
+            return ossia::bounding_mode::FREE;
         case Device::ClipMode::Clip:
-            return ossia::BoundingMode::CLIP;
+            return ossia::bounding_mode::CLIP;
         case Device::ClipMode::Wrap:
-            return ossia::BoundingMode::WRAP;
+            return ossia::bounding_mode::WRAP;
         case Device::ClipMode::Fold:
-            return ossia::BoundingMode::FOLD;
+            return ossia::bounding_mode::FOLD;
         default:
             ISCORE_ABORT;
-            return static_cast<ossia::BoundingMode>(-1);
+            return static_cast<ossia::bounding_mode>(-1);
     }
 }
 
 
 void updateOSSIAAddress(
         const Device::FullAddressSettings &settings,
-        ossia::net::address& addr)
+        ossia::net::address_base& addr)
 {
     switch(settings.ioType)
     {
         case Device::IOType::In:
-            addr.setAccessMode(ossia::AccessMode::GET);
+            addr.setAccessMode(ossia::access_mode::GET);
             break;
         case Device::IOType::Out:
-            addr.setAccessMode(ossia::AccessMode::SET);
+            addr.setAccessMode(ossia::access_mode::SET);
             break;
         case Device::IOType::InOut:
-            addr.setAccessMode(ossia::AccessMode::BI);
+            addr.setAccessMode(ossia::access_mode::BI);
             break;
         case Device::IOType::Invalid:
             ISCORE_ABORT;
             break;
     }
 
-    addr.setRepetitionFilter(ossia::RepetitionFilter(settings.repetitionFilter));
+    addr.setRepetitionFilter(ossia::repetition_filter(settings.repetitionFilter));
     addr.setBoundingMode(iscore::convert::toBoundingMode(settings.clipMode));
 
     addr.setValue(iscore::convert::toOSSIAValue(settings.value));
@@ -224,25 +224,25 @@ void updateOSSIAAddress(
 
 void createOSSIAAddress(
         const Device::FullAddressSettings &settings,
-        ossia::net::node& node)
+        ossia::net::node_base& node)
 {
     if(settings.value.val.is<State::no_value_t>())
         return;
 
     struct {
         public:
-            using return_type = ossia::Type;
-            return_type operator()(const State::no_value_t&) const { ISCORE_ABORT; return ossia::Type::IMPULSE; }
-            return_type operator()(const State::impulse_t&) const { return ossia::Type::IMPULSE; }
-            return_type operator()(int) const { return ossia::Type::INT; }
-            return_type operator()(float) const { return ossia::Type::FLOAT; }
-            return_type operator()(bool) const { return ossia::Type::BOOL; }
-            return_type operator()(const QString&) const { return ossia::Type::STRING; }
-            return_type operator()(const QChar&) const { return ossia::Type::CHAR; }
-            return_type operator()(const State::vec2f&) const { return ossia::Type::VEC2F; }
-            return_type operator()(const State::vec3f&) const { return ossia::Type::VEC3F; }
-            return_type operator()(const State::vec4f&) const { return ossia::Type::VEC4F; }
-            return_type operator()(const State::tuple_t&) const { return ossia::Type::TUPLE; }
+            using return_type = ossia::val_type;
+            return_type operator()(const State::no_value_t&) const { ISCORE_ABORT; return ossia::val_type::IMPULSE; }
+            return_type operator()(const State::impulse_t&) const { return ossia::val_type::IMPULSE; }
+            return_type operator()(int) const { return ossia::val_type::INT; }
+            return_type operator()(float) const { return ossia::val_type::FLOAT; }
+            return_type operator()(bool) const { return ossia::val_type::BOOL; }
+            return_type operator()(const QString&) const { return ossia::val_type::STRING; }
+            return_type operator()(const QChar&) const { return ossia::val_type::CHAR; }
+            return_type operator()(const State::vec2f&) const { return ossia::val_type::VEC2F; }
+            return_type operator()(const State::vec3f&) const { return ossia::val_type::VEC3F; }
+            return_type operator()(const State::vec4f&) const { return ossia::val_type::VEC4F; }
+            return_type operator()(const State::tuple_t&) const { return ossia::val_type::TUPLE; }
     } visitor{};
 
     auto addr = node.createAddress(eggs::variants::apply(visitor, settings.value.val.impl()));
@@ -317,7 +317,7 @@ ossia::value toOSSIAValue(
     return toOSSIAValue(value.val);
 }
 
-optional<ossia::Message> message(
+optional<ossia::message> message(
         const State::Message& mess,
         const Device::DeviceList& deviceList)
 {
@@ -347,7 +347,7 @@ optional<ossia::Message> message(
         if (!ossia_addr)
             return {};
 
-        return ossia::Message{
+        return ossia::message{
                     *ossia_addr,
                     iscore::convert::toOSSIAValue(mess.value)};
     }
@@ -369,7 +369,7 @@ static void visit_node(
 }
 
 void state(
-        ossia::State& parent,
+        ossia::state& parent,
         const Scenario::StateModel& iscore_state,
         const RecreateOnPlay::Context& ctx
         )
@@ -399,11 +399,11 @@ void state(
 }
 
 
-ossia::State state(
+ossia::state state(
         const Scenario::StateModel& iscore_state,
         const RecreateOnPlay::Context& ctx)
 {
-    ossia::State s;
+    ossia::state s;
     iscore::convert::state(s, iscore_state, ctx);
     return s;
 }

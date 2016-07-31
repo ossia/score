@@ -56,7 +56,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ConstraintElement final : public QObject
         void constraintCallback(
                 ossia::time_value position,
                 ossia::time_value date,
-                const ossia::State& state);
+                const ossia::state& state);
 
         Scenario::ConstraintModel& m_iscore_constraint;
         std::shared_ptr<ossia::time_constraint> m_ossia_constraint;

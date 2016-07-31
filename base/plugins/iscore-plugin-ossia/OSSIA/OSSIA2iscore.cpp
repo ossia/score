@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-#include <ossia/network/domain.hpp>
+#include <ossia/network/domain/domain.hpp>
 #include <ossia/network/base/address.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
@@ -19,7 +19,7 @@ namespace Ossia
 namespace convert
 {
 
-Device::Domain ToDomain(const ossia::net::Domain &domain)
+Device::Domain ToDomain(const ossia::net::domain &domain)
 {
     Device::Domain d;
     d.min = ToValue(ossia::net::min(domain));
@@ -30,7 +30,7 @@ Device::Domain ToDomain(const ossia::net::Domain &domain)
     return d;
 }
 
-Device::AddressSettings ToAddressSettings(const ossia::net::node &node)
+Device::AddressSettings ToAddressSettings(const ossia::net::node_base &node)
 {
     Device::AddressSettings s;
     s.name = QString::fromStdString(node.getName());
@@ -60,7 +60,7 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node &node)
 }
 
 
-Device::Node ToDeviceExplorer(const ossia::net::node &ossia_node)
+Device::Node ToDeviceExplorer(const ossia::net::node_base &ossia_node)
 {
     Device::Node iscore_node{ToAddressSettings(ossia_node), nullptr};
     iscore_node.reserve(ossia_node.children().size());
@@ -76,15 +76,15 @@ Device::Node ToDeviceExplorer(const ossia::net::node &ossia_node)
     return iscore_node;
 }
 
-Device::IOType ToIOType(ossia::AccessMode t)
+Device::IOType ToIOType(ossia::access_mode t)
 {
     switch(t)
     {
-        case ossia::AccessMode::GET:
+        case ossia::access_mode::GET:
             return Device::IOType::In;
-        case ossia::AccessMode::SET:
+        case ossia::access_mode::SET:
             return Device::IOType::Out;
-        case ossia::AccessMode::BI:
+        case ossia::access_mode::BI:
             return Device::IOType::InOut;
         default:
             ISCORE_ABORT;
@@ -92,20 +92,20 @@ Device::IOType ToIOType(ossia::AccessMode t)
     }
 }
 
-Device::ClipMode ToClipMode(ossia::BoundingMode b)
+Device::ClipMode ToClipMode(ossia::bounding_mode b)
 {
     switch(b)
     {
-        case ossia::BoundingMode::CLIP:
+        case ossia::bounding_mode::CLIP:
             return Device::ClipMode::Clip;
             break;
-        case ossia::BoundingMode::FOLD:
+        case ossia::bounding_mode::FOLD:
             return Device::ClipMode::Fold;
             break;
-        case ossia::BoundingMode::FREE:
+        case ossia::bounding_mode::FREE:
             return Device::ClipMode::Free;
             break;
-        case ossia::BoundingMode::WRAP:
+        case ossia::bounding_mode::WRAP:
             return Device::ClipMode::Wrap;
             break;
         default:
@@ -114,10 +114,10 @@ Device::ClipMode ToClipMode(ossia::BoundingMode b)
     }
 }
 
-State::Address ToAddress(const ossia::net::node& node)
+State::Address ToAddress(const ossia::net::node_base& node)
 {
     State::Address addr;
-    const ossia::net::node* cur = &node;
+    const ossia::net::node_base* cur = &node;
 
     while(auto padre = cur->getParent())
     {
@@ -131,26 +131,26 @@ State::Address ToAddress(const ossia::net::node& node)
     return addr;
 }
 
-State::Value ToValue(ossia::Type t)
+State::Value ToValue(ossia::val_type t)
 {
     switch(t)
     {
-        case ossia::Type::FLOAT:
+        case ossia::val_type::FLOAT:
             return State::Value::fromValue(float{});
-        case ossia::Type::IMPULSE:
+        case ossia::val_type::IMPULSE:
             return State::Value::fromValue(State::impulse_t{});
-        case ossia::Type::INT:
+        case ossia::val_type::INT:
             return State::Value::fromValue(int{});
-        case ossia::Type::BOOL:
+        case ossia::val_type::BOOL:
             return State::Value::fromValue(bool{});
-        case ossia::Type::CHAR:
+        case ossia::val_type::CHAR:
             return State::Value::fromValue(QChar{});
-        case ossia::Type::STRING:
+        case ossia::val_type::STRING:
             return State::Value::fromValue(QString{});
-        case ossia::Type::TUPLE:
+        case ossia::val_type::TUPLE:
             return State::Value::fromValue(State::tuple_t{});
-        case ossia::Type::DESTINATION:
-        case ossia::Type::BEHAVIOR:
+        case ossia::val_type::DESTINATION:
+        case ossia::val_type::BEHAVIOR:
         default:
             return State::Value{};
     }

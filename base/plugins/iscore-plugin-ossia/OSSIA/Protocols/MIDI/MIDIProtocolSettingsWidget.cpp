@@ -51,14 +51,14 @@ MIDIProtocolSettingsWidget::buildGUI()
             this, [this] (bool b) {
         if(b)
         {
-            updateDevices(ossia::net::MidiInfo::Type::RemoteInput);
+            updateDevices(ossia::net::midi::midi_info::Type::RemoteInput);
         }
     });
     connect(m_outButton, &QAbstractButton::toggled,
             this, [this] (bool b) {
         if(b)
         {
-            updateDevices(ossia::net::MidiInfo::Type::RemoteOutput);
+            updateDevices(ossia::net::midi::midi_info::Type::RemoteOutput);
         }
     });
 
@@ -124,10 +124,10 @@ MIDIProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
     }
 }
 
-void MIDIProtocolSettingsWidget::updateDevices(ossia::net::MidiInfo::Type t)
+void MIDIProtocolSettingsWidget::updateDevices(ossia::net::midi::midi_info::Type t)
 {
     try {
-    auto prot = std::make_unique<ossia::net::MIDI>();
+    auto prot = std::make_unique<ossia::net::midi::midi_protocol>();
     auto vec = prot->scan();
 
     m_deviceCBox->clear();
@@ -150,12 +150,12 @@ void MIDIProtocolSettingsWidget::updateDevices(ossia::net::MidiInfo::Type t)
 void
 MIDIProtocolSettingsWidget::updateInputDevices()
 {
-    updateDevices(ossia::net::MidiInfo::Type::RemoteInput);
+    updateDevices(ossia::net::midi::midi_info::Type::RemoteInput);
 }
 
 void
 MIDIProtocolSettingsWidget::updateOutputDevices()
 {
-    updateDevices(ossia::net::MidiInfo::Type::RemoteOutput);
+    updateDevices(ossia::net::midi::midi_info::Type::RemoteOutput);
 }
 }

@@ -57,14 +57,14 @@ StateProcessComponent::StateProcessComponent(
     RecreateOnPlay::StateProcessComponent_T<JS::StateProcess>{
         parentConstraint, element, ctx, id, "JSStateComponent", parent}
 {
-    m_ossia_state = ossia::CustomState{State{element.script(), ctx.devices}};
+    m_ossia_state = ossia::custom_state{State{element.script(), ctx.devices}};
 }
 
-ossia::StateElement StateProcessComponent::make(
+ossia::state_element StateProcessComponent::make(
         Process::StateProcess& proc,
         const RecreateOnPlay::Context& ctx)
 {
-    return ossia::CustomState{State{static_cast<const JS::StateProcess&>(proc).script(), ctx.devices}};
+    return ossia::custom_state{State{static_cast<const JS::StateProcess&>(proc).script(), ctx.devices}};
 }
 
 }

@@ -46,7 +46,7 @@ Component::Component(
 
     auto loop = ossia::loop::create(main_duration,
           [] (ossia::time_value, ossia::time_value,
-              const ossia::StateElement&) { },
+              const ossia::state_element&) { },
           [this,&element] (ossia::time_event::Status newStatus) {
 
             element.startEvent().setStatus(static_cast<Scenario::ExecutionStatus>(newStatus));
