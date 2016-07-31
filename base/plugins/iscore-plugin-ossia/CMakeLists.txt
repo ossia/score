@@ -6,12 +6,6 @@ iscore_common_setup()
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
-find_package(Jamoma 0.6)
-if(NOT ${Jamoma_FOUND})
-    message("Jamoma not found - won't build OSSIA plugin")
-    return()
-endif()
-
 # Files & main target
 set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/CurveConversion.hpp"
@@ -164,19 +158,8 @@ target_link_libraries(${PROJECT_NAME}
         PUBLIC
           Qt5::Core Qt5::Widgets
           iscore_lib_base iscore_lib_device iscore_lib_process iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
-          OSSIA
+          ossia
 )
-
-# Necesarry to override plug-in loading path
-if(DEPLOYMENT_BUILD AND NOT ISCORE_STATIC_PLUGINS)
-    if (APPLE)
-        find_package(Jamoma 0.6)
-        target_link_libraries(${PROJECT_NAME} PRIVATE Jamoma::Foundation Jamoma::Modular)
-    elseif(UNIX AND NOT WIN32)
-        find_package(Jamoma 0.6)
-        target_link_libraries(${PROJECT_NAME} PRIVATE Jamoma::Foundation Jamoma::Modular)
-    endif()
-endif()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC iscore_plugin_loop)
 setup_iscore_plugin(${PROJECT_NAME})
