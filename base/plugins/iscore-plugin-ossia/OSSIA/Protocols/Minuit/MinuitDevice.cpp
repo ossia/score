@@ -29,6 +29,7 @@ bool MinuitDevice::reconnect()
         auto stgs = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();
 
         std::unique_ptr<ossia::net::protocol_base> ossia_settings = std::make_unique<ossia::net::minuit_protocol>(
+                    "i-score", // TODO use local name
                     stgs.host.toStdString(),
                     stgs.inputPort,
                     stgs.outputPort);

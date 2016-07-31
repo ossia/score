@@ -48,6 +48,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :
         Device::Node refresh() override;
 
         // throws std::runtime_error
+        using Device::DeviceInterface::refresh;
         optional<State::Value> refresh(const State::Address&) final override;
 
         Device::Node getNode(const State::Address&) final override;

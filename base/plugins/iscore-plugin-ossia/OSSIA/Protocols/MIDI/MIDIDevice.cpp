@@ -36,7 +36,7 @@ bool MIDIDevice::reconnect()
                            set.port));
         m_dev = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
         m_dev->setName(settings().name.toStdString());
-        m_dev->updateNamespace();
+        m_dev->getProtocol().update(m_dev->getRootNode());
     }
     catch(std::exception& e)
     {
