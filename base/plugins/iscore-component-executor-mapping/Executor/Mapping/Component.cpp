@@ -73,10 +73,10 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl()
 {
     switch(m_targetAddressType)
     {
-        case ossia::Type::INT:
+        case ossia::val_type::INT:
             return on_curveChanged_impl2<X_T, int>();
             break;
-        case ossia::Type::FLOAT:
+        case ossia::val_type::FLOAT:
             return on_curveChanged_impl2<X_T, float>();
             break;
         default:
@@ -92,10 +92,10 @@ std::shared_ptr<ossia::curve_abstract> Component::rebuildCurve()
     m_ossia_curve.reset();
     switch(m_sourceAddressType)
     {
-        case ossia::Type::INT:
+        case ossia::val_type::INT:
             m_ossia_curve = on_curveChanged_impl<int>();
             break;
-        case ossia::Type::FLOAT:
+        case ossia::val_type::FLOAT:
             m_ossia_curve = on_curveChanged_impl<float>();
             break;
         default:
@@ -111,8 +111,8 @@ void Component::recreate()
     auto iscore_source_addr = process().sourceAddress();
     auto iscore_target_addr = process().targetAddress();
 
-    ossia::net::address* ossia_source_addr{};
-    ossia::net::address* ossia_target_addr{};
+    ossia::net::address_base* ossia_source_addr{};
+    ossia::net::address_base* ossia_target_addr{};
 
     m_ossia_curve.reset(); // It will be remade after.
 
@@ -120,7 +120,7 @@ void Component::recreate()
     const auto& devices = m_deviceList.devices();
 
     // TODO use this in automation
-    auto getAddress = [&] (const State::Address& addr) -> ossia::net::address*
+    auto getAddress = [&] (const State::Address& addr) -> ossia::net::address_base*
     {
         // Look for the real node in the device
         auto dev_it = std::find_if(devices.begin(), devices.end(),

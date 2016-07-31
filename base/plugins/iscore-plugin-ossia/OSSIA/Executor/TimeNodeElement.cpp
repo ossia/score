@@ -43,7 +43,7 @@ TimeNodeElement::TimeNodeElement(
         try {
             m_ossia_node->trigger();
 
-            ossia::State accumulator;
+            ossia::state accumulator;
             for(auto& event : m_ossia_node->timeEvents())
             {
                 if(event->getStatus() == ossia::time_event::Status::HAPPENED)

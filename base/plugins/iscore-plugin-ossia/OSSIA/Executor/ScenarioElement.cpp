@@ -99,7 +99,7 @@ void ScenarioComponent::stop()
 static void ScenarioConstraintCallback(
         ossia::time_value,
         ossia::time_value,
-        const ossia::State& element)
+        const ossia::state& element)
 {
 
 }

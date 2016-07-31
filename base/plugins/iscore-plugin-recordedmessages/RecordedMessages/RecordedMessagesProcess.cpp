@@ -26,14 +26,14 @@ ProcessExecutor::ProcessExecutor(
     m_list.detach();
 }
 
-ossia::StateElement ProcessExecutor::state()
+ossia::state_element ProcessExecutor::state()
 {
     return state(parent->getPosition());
 }
 
-ossia::StateElement ProcessExecutor::state(double t)
+ossia::state_element ProcessExecutor::state(double t)
 {
-    ossia::State st;
+    ossia::state st;
     ossia::time_constraint& par_cst = *parent;
 
     auto cur_pos = t;
@@ -57,7 +57,7 @@ ossia::StateElement ProcessExecutor::state(double t)
     return st;
 }
 
-ossia::StateElement ProcessExecutor::offset(
+ossia::state_element ProcessExecutor::offset(
         ossia::time_value off)
 {
     return state(off / parent->getDurationNominal());

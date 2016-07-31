@@ -6,7 +6,7 @@ namespace Ossia
 namespace LocalTree
 {
 ConstraintBase::ConstraintBase(
-        ossia::net::node& parent,
+        ossia::net::node_base& parent,
         const Id<iscore::Component>& id,
         Scenario::ConstraintModel& constraint,
         DocumentPlugin& doc,

@@ -34,7 +34,7 @@ class Component final :
 
     private:
         void recreate();
-        ossia::Type m_addressType{ossia::Type(-1)};
+        ossia::val_type m_addressType{ossia::val_type(-1)};
 
         std::shared_ptr<ossia::curve_abstract> on_curveChanged(const optional<ossia::Destination>&);
 

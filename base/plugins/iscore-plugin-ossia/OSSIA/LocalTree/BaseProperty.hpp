@@ -10,12 +10,12 @@ namespace LocalTree
 class ISCORE_PLUGIN_OSSIA_EXPORT BaseProperty
 {
     public:
-        ossia::net::node& node;
-        ossia::net::address& addr;
+        ossia::net::node_base& node;
+        ossia::net::address_base& addr;
 
         BaseProperty(
-                ossia::net::node& n,
-                ossia::net::address& a):
+                ossia::net::node_base& n,
+                ossia::net::address_base& a):
             node{n},
             addr{a}
         {

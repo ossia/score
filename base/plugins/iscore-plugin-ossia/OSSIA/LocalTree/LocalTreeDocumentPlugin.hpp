@@ -34,15 +34,15 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin :
 
         ~DocumentPlugin();
 
-        impl::BasicDevice& device() { return m_localDevice; }
-        const impl::BasicDevice& device() const { return m_localDevice; }
+        ossia::net::generic_device& device() { return m_localDevice; }
+        const ossia::net::generic_device& device() const { return m_localDevice; }
 
     private:
         void create();
         void cleanup();
 
         Constraint* m_root{};
-        impl::BasicDevice m_localDevice;
+        ossia::net::generic_device m_localDevice;
 };
 
 }

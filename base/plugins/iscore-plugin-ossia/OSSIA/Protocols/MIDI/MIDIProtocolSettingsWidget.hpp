@@ -26,7 +26,7 @@ class MIDIProtocolSettingsWidget :
 
         void setSettings(const Device::DeviceSettings& settings) override;
 
-        void updateDevices(ossia::net::MidiInfo::Type);
+        void updateDevices(ossia::net::midi::midi_info::Type);
         void updateInputDevices();
         void updateOutputDevices();
 

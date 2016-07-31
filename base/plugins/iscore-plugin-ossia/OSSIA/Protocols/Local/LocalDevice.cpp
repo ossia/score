@@ -39,7 +39,7 @@ LocalDevice::LocalDevice(
 
     auto& dev = docplug->device();
     m_dev = &dev;
-    auto& proto = safe_cast<impl::Local2&>(dev.getProtocol());
+    auto& proto = safe_cast<ossia::net::local_protocol&>(dev.getProtocol());
 
     setLogging_impl(isLogging());
 
@@ -47,7 +47,7 @@ LocalDevice::LocalDevice(
 
     {
         auto local_play_node = root.createChild("play");
-        auto local_play_address = local_play_node->createAddress(ossia::Type::BOOL);
+        auto local_play_address = local_play_node->createAddress(ossia::val_type::BOOL);
         local_play_address->setValue(ossia::Bool{false});
         local_play_address->addCallback([&] (const ossia::value& v) {
             if (v.try_get<ossia::Bool>())
@@ -59,7 +59,7 @@ LocalDevice::LocalDevice(
     }
     {
         auto local_stop_node = root.createChild("stop");
-        auto local_stop_address = local_stop_node->createAddress(ossia::Type::IMPULSE);
+        auto local_stop_address = local_stop_node->createAddress(ossia::val_type::IMPULSE);
         local_stop_address->setValue(ossia::Impulse{});
         local_stop_address->addCallback([&] (const ossia::value&) {
             auto& stop_action = appplug.context.actions.action<Actions::Stop>();
@@ -67,7 +67,7 @@ LocalDevice::LocalDevice(
         });
     }
 
-    proto.exposeTo(std::make_unique<impl::Minuit2>("127.0.0.1", 9999, 6666));
+    proto.exposeTo(std::make_unique<ossia::net::minuit_protocol>("127.0.0.1", 9999, 6666));
 
     dev.onNodeCreated.connect<LocalDevice, &LocalDevice::nodeCreated>(this);
     dev.onNodeRemoving.connect<LocalDevice, &LocalDevice::nodeRemoving>(this);
@@ -90,17 +90,17 @@ bool LocalDevice::reconnect()
     return connected();
 }
 
-void LocalDevice::nodeCreated(const ossia::net::node & n)
+void LocalDevice::nodeCreated(const ossia::net::node_base & n)
 {
     emit pathAdded(Ossia::convert::ToAddress(n));
 }
 
-void LocalDevice::nodeRemoving(const ossia::net::node & n)
+void LocalDevice::nodeRemoving(const ossia::net::node_base & n)
 {
     emit pathRemoved(Ossia::convert::ToAddress(n));
 }
 
-void LocalDevice::nodeRenamed(const ossia::net::node& node, std::string old_name)
+void LocalDevice::nodeRenamed(const ossia::net::node_base& node, std::string old_name)
 {
     if(!node.getParent())
         return;

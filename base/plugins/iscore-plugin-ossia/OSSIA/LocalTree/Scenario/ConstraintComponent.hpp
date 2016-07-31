@@ -19,7 +19,7 @@ class ConstraintBase :
         using component_factory_list_t = Ossia::LocalTree::ProcessComponentFactoryList;
 
         ConstraintBase(
-                ossia::net::node& parent,
+                ossia::net::node_base& parent,
                 const Id<iscore::Component>& id,
                 Scenario::ConstraintModel& constraint,
                 DocumentPlugin& sys,
@@ -33,7 +33,7 @@ class ConstraintBase :
         void removing(const Process::ProcessModel& cst, const ProcessComponent& comp);
 
     private:
-        ossia::net::node& m_processesNode;
+        ossia::net::node_base& m_processesNode;
 };
 
 
