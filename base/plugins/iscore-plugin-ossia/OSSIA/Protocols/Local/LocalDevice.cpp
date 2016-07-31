@@ -67,7 +67,7 @@ LocalDevice::LocalDevice(
         });
     }
 
-    proto.exposeTo(std::make_unique<ossia::net::minuit_protocol>("127.0.0.1", 9999, 6666));
+    proto.exposeTo(std::make_unique<ossia::net::minuit_protocol>("i-score-remote", "127.0.0.1", 9999, 6666));
 
     dev.onNodeCreated.connect<LocalDevice, &LocalDevice::nodeCreated>(this);
     dev.onNodeRemoving.connect<LocalDevice, &LocalDevice::nodeRemoving>(this);
