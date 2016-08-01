@@ -2,36 +2,65 @@
 #include <eggs/variant.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <boost/mpl/list.hpp>
-#include <boost/mpl/for_each.hpp>
 #include <QDebug>
+
+template<typename T>
+struct VariantDataStreamSerializer
+{
+  DataStream::Serializer& s;
+  const T& var;
+
+  bool done = false;
+  template<typename TheClass>
+  void perform()
+  {
+    // This trickery iterates over all the types in Args...
+    // A single type should be serialized, even if we cannot break.
+    if(done)
+        return;
+    if(auto res = var.template target<TheClass>())
+    {
+        s.stream() << *res;
+        done = true;
+    }
+  }
+};
+
+template<typename T>
+struct VariantDataStreamDeserializer
+{
+  DataStream::Deserializer& s;
+  quint64 which;
+  T& var;
+
+  quint64 i = 0;
+  template<typename TheClass>
+  void perform()
+  {
+    // Here we iterate until we are on the correct type, and we deserialize it.
+    if(i++ != which)
+        return;
+
+    TheClass data;
+    s.stream() >> data;
+    var = std::move(data);
+  }
+};
 
 template<typename... Args>
 struct TSerializer<DataStream, void, eggs::variant<Args...>>
 {
+        using var_t = eggs::variant<Args...>;
         static void readFrom(
                 DataStream::Serializer& s,
-                const eggs::variant<Args...>& var)
+                const var_t& var)
         {
             s.stream() << (quint64)var.which();
 
             // TODO this should be an assert.
             if((quint64)var.which() != (quint64)var.npos)
             {
-                // This trickery iterates over all the types in Args...
-                // A single type should be serialized, even if we cannot break.
-                bool done = false;
-                using typelist = boost::mpl::list<Args...>;
-                boost::mpl::for_each<typelist>([&] (auto&& elt) {
-                    if(done)
-                        return;
-
-                    if(auto res = var.template target<typename std::remove_reference<decltype(elt)>::type>())
-                    {
-                        s.stream() << *res;
-                        done = true;
-                    }
-                });
+                for_each_type<TypeList<Args...>>(VariantDataStreamSerializer<var_t>{s, var});
             }
 
             s.insertDelimiter();
@@ -39,24 +68,14 @@ struct TSerializer<DataStream, void, eggs::variant<Args...>>
 
         static void writeTo(
                 DataStream::Deserializer& s,
-                eggs::variant<Args...>& var)
+                var_t& var)
         {
             quint64 which;
             s.stream() >> which;
 
             if(which != (quint64)var.npos)
             {
-                // Here we iterate until we are on the correct type, and we deserialize it.
-                quint64 i = 0;
-                using typelist = boost::mpl::list<Args...>;
-                boost::mpl::for_each<typelist>([&] (auto&& elt) {
-                    if(i++ != which)
-                        return;
-
-                    typename std::remove_reference<decltype(elt)>::type data;
-                    s.stream() >> data;
-                    var = data;
-                });
+                for_each_type<TypeList<Args...>>(VariantDataStreamDeserializer<var_t>{s, which, var});
             }
             s.checkDelimiter();
         }
@@ -104,53 +123,70 @@ auto writeTo_eggs_impl(const QJsonValue& res)
     return fromJsonValue<T>(res);
 }
 
+template<typename T>
+struct VariantJSONSerializer
+{
+  JSONObject::Serializer& s;
+  const T& var;
+
+  bool done = false;
+
+  template<typename TheClass>
+  void perform()
+  {
+    if(done)
+      return;
+
+    if(auto res = var.template target<TheClass>())
+    {
+      s.m_obj[Metadata<Json_k, TheClass>::get()] = readFrom_eggs_impl(*res);
+      done = true;
+    }
+  }
+};
+
+template<typename T>
+struct VariantJSONDeserializer
+{
+  JSONObject::Deserializer& s;
+  T& var;
+
+  bool done = false;
+  template<typename TheClass>
+  void perform()
+  {
+    if(done)
+      return;
+
+    auto it = s.m_obj.constFind(Metadata<Json_k, TheClass>::get());
+    if(it != s.m_obj.constEnd())
+    {
+      var = writeTo_eggs_impl<TheClass>(*it);
+      done = true;
+    }
+  }
+};
+
 
 template<typename... Args>
 struct TSerializer<JSONObject, eggs::variant<Args...>>
 {
+        using var_t = eggs::variant<Args...>;
         static void readFrom(
                 JSONObject::Serializer& s,
-                const eggs::variant<Args...>& var)
+                const var_t& var)
         {
             if((quint64)var.which() != (quint64)var.npos)
             {
-                bool done = false;
-                using typelist = boost::mpl::list<Args...>;
-                boost::mpl::for_each<typelist>([&] (auto&& elt) {
-                    if(done)
-                        return;
-
-                    using current_type = typename std::remove_reference<decltype(elt)>::type;
-
-                    if(auto res = var.template target<current_type>())
-                    {
-                        s.m_obj[Metadata<Json_k, current_type>::get()] = readFrom_eggs_impl(*res);
-                        done = true;
-                    }
-                });
+                for_each_type<TypeList<Args...>>(VariantJSONSerializer<var_t>{s, var});
             }
         }
 
 
         static void writeTo(
                 JSONObject::Deserializer& s,
-                eggs::variant<Args...>& var)
+                var_t& var)
         {
-            bool done = false;
-            using typelist = boost::mpl::list<Args...>;
-            boost::mpl::for_each<typelist>([&] (auto&& elt) {
-                if(done)
-                    return;
-                using current_type = typename std::remove_reference<decltype(elt)>::type;
-
-                auto it = s.m_obj.constFind(Metadata<Json_k, current_type>::get());
-                if(it != s.m_obj.constEnd())
-                {
-                    current_type data = writeTo_eggs_impl<current_type>(*it);
-
-                    var = data;
-                    done = true;
-                }
-            });
+            for_each_type<TypeList<Args...>>(VariantJSONDeserializer<var_t>{s, var});
         }
 };

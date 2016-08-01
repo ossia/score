@@ -49,7 +49,7 @@ LocalDevice::LocalDevice(
         auto local_play_node = root.createChild("play");
         auto local_play_address = local_play_node->createAddress(ossia::val_type::BOOL);
         local_play_address->setValue(ossia::Bool{false});
-        local_play_address->addCallback([&] (const ossia::value& v) {
+        local_play_address->add_callback([&] (const ossia::value& v) {
             if (auto val = v.try_get<ossia::Bool>())
             {
                 if(!appplug.playing() && val->value)
@@ -76,7 +76,7 @@ LocalDevice::LocalDevice(
         auto local_stop_node = root.createChild("stop");
         auto local_stop_address = local_stop_node->createAddress(ossia::val_type::IMPULSE);
         local_stop_address->setValue(ossia::Impulse{});
-        local_stop_address->addCallback([&] (const ossia::value&) {
+        local_stop_address->add_callback([&] (const ossia::value&) {
             auto& stop_action = appplug.context.actions.action<Actions::Stop>();
             stop_action.action()->trigger();
         });

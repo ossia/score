@@ -76,7 +76,7 @@ BaseScenarioElement::BaseScenarioElement(
         if(c == ossia::clock::ClockExecutionStatus::STOPPED)
         {
             ossia::state accumulator;
-            ossia::flattenAndFilter(accumulator, main_end_event->getState());
+            ossia::flatten_and_filter(accumulator, main_end_event->getState());
             accumulator.launch();
 
             emit finished();

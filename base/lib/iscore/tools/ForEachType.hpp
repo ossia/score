@@ -16,67 +16,35 @@ template <template <typename ...> class Sequence, typename... Args>
 struct TypeVisitor<Sequence<Args...>> {
 
   template <typename F>
-  static constexpr void visit(const F& f) {
+  static constexpr void visit(F&& f) {
     // Start recursive visitation for each type
-    do_visit<F, Args...>(f);
+    do_visit<F, Args...>(std::forward<F>(f));
   }
 
   // Allow empty sequence
   template <typename F>
-  static constexpr void do_visit(const F& f) { }
+  static constexpr void do_visit(F&& f) { }
 
   // Base case: one type, invoke functor
   template <typename F, typename Head>
-  static constexpr void do_visit(const F& f) {
-    f.template perform<Head>();
+  static constexpr void do_visit(F&& f) {
+    std::forward<F>(f).template perform<Head>();
   }
 
   // At least [Head, Next], Tail... can be empty
   template <typename F, typename Head, typename Next, typename... Tail>
-  static constexpr void do_visit(const F& f) {
+  static constexpr void do_visit(F&& f) {
     // visit head and recurse visitation on rest
-    do_visit<F, Head>(f), do_visit<F, Next, Tail...>(f);
-  }
-
-
-
-  template <typename F>
-  static constexpr void visit(F& f) {
-    // Start recursive visitation for each type
-    do_visit<F, Args...>(f);
-  }
-
-  // Allow empty sequence
-  template <typename F>
-  static constexpr void do_visit(F& f) { }
-
-  // Base case: one type, invoke functor
-  template <typename F, typename Head>
-  static constexpr void do_visit(F& f) {
-    f.template perform<Head>();
-  }
-
-  // At least [Head, Next], Tail... can be empty
-  template <typename F, typename Head, typename Next, typename... Tail>
-  static constexpr void do_visit(F& f) {
-    // visit head and recurse visitation on rest
-    do_visit<F, Head>(f), do_visit<F, Next, Tail...>(f);
+    do_visit<F, Head>(std::forward<F>(f)), do_visit<F, Next, Tail...>(std::forward<F>(f));
   }
 };
 } // End Detail
 // Invokes the functor with every type, this code generation is done at compile time
 template <typename Sequence, typename F>
-constexpr void for_each_type(const F& f)
+constexpr void for_each_type(F&& f)
 {
-    detail::TypeVisitor<Sequence>::template visit<F>(f);
+    detail::TypeVisitor<Sequence>::template visit<F>(std::forward<F>(f));
 }
-template <typename Sequence, typename F>
-constexpr void for_each_type(F& f)
-{
-    detail::TypeVisitor<Sequence>::template visit<F>(f);
-}
-
-
 
 
 namespace detail {
