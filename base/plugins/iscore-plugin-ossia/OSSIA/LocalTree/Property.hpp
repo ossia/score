@@ -66,7 +66,7 @@ struct PropertyWrapper : public BaseCallbackWrapper
             BaseCallbackWrapper{param_node, param_addr},
             property{prop}
         {
-            callbackIt = addr.addCallback([=] (const ossia::value& v) {
+            callbackIt = addr.add_callback([=] (const ossia::value& v) {
                     property.set(Ossia::convert::ToValue(v));
             });
 

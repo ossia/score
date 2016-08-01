@@ -86,8 +86,8 @@ void ConstraintElement::play(TimeValue t)
     auto offset_state = m_ossia_constraint->offset(m_offset);
 
     ossia::state accumulator;
-    flattenAndFilter(accumulator, start_state);
-    flattenAndFilter(accumulator, offset_state);
+    ossia::flatten_and_filter(accumulator, start_state);
+    ossia::flatten_and_filter(accumulator, offset_state);
     accumulator.launch();
 
     try {

@@ -139,7 +139,7 @@ void OSSIADevice::removeListening_impl(
     auto it = m_callbacks.find(addr);
     if(it != m_callbacks.end())
     {
-        it->second.first->removeCallback(it->second.second);
+        it->second.first->remove_callback(it->second.second);
         m_callbacks.erase(it);
     }
 
@@ -311,7 +311,7 @@ void OSSIADevice::setListening(
                     addr,
                     {
                          ossia_addr,
-                         ossia_addr->addCallback([=] (const ossia::value& val)
+                         ossia_addr->add_callback([=] (const ossia::value& val)
                           {
                               emit valueUpdated(addr, Ossia::convert::ToValue(val));
                           })
@@ -324,7 +324,7 @@ void OSSIADevice::setListening(
             // If we can disable listening
             if(cb_it != m_callbacks.end())
             {
-                ossia_addr->removeCallback(cb_it->second.second);
+                ossia_addr->remove_callback(cb_it->second.second);
                 m_callbacks.erase(cb_it);
             }
         }

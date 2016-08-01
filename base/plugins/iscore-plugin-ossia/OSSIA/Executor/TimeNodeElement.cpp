@@ -47,7 +47,7 @@ TimeNodeElement::TimeNodeElement(
             for(auto& event : m_ossia_node->timeEvents())
             {
                 if(event->getStatus() == ossia::time_event::Status::HAPPENED)
-                    flattenAndFilter(accumulator, event->getState());
+                    ossia::flatten_and_filter(accumulator, event->getState());
             }
             accumulator.launch();
         }
