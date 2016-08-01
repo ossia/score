@@ -199,6 +199,7 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
             if(cstr.paused())
             {
                 m_clock->resume();
+                m_paused = false;
             }
         }
         else
@@ -220,6 +221,7 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
                 on_stop();
             }, Qt::QueuedConnection);
             m_clock->play(t);
+            m_paused = false;
         }
 
         m_playing = true;
@@ -229,6 +231,7 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
         if(m_clock)
         {
             m_clock->pause();
+            m_paused = true;
         }
     }
 }
@@ -332,8 +335,24 @@ void OSSIAApplicationPlugin::setupOSSIACallbacks()
         local_play_address->addCallback([&] (const OSSIA::Value& v) {
             if (v.getType() == OSSIA::Type::BOOL)
             {
-                auto& play_action = context.actions.action<Actions::Play>();
-                play_action.action()->trigger();
+                auto& val = dynamic_cast<const OSSIA::Bool&>(v);
+                if(!m_playing && val.value)
+                {
+                    // not playing, play requested
+                    auto& play_action = context.actions.action<Actions::Play>();
+                    play_action.action()->trigger();
+                }
+                else if(m_playing)
+                {
+                    if(m_paused == val.value)
+                    {
+                        // paused, play requested
+                        // or playing, pause requested
+
+                        auto& play_action = context.actions.action<Actions::Play>();
+                        play_action.action()->trigger();
+                    }
+                }
             }
         });
     }

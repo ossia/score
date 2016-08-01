@@ -74,5 +74,5 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         RecreateOnPlay::PlayContextMenu m_playActions;
 
         std::unique_ptr<RecreateOnPlay::ClockManager> m_clock;
-        bool m_playing{false};
+        bool m_playing{false}, m_paused{false};
 };
