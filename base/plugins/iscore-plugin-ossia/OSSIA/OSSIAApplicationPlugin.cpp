@@ -174,6 +174,7 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
             if(cstr.paused())
             {
                 m_clock->resume();
+                m_paused = false;
             }
         }
         else
@@ -195,6 +196,7 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
                 on_stop();
             }, Qt::QueuedConnection);
             m_clock->play(t);
+            m_paused = false;
         }
 
         m_playing = true;
@@ -204,6 +206,7 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
         if(m_clock)
         {
             m_clock->pause();
+            m_paused = true;
         }
     }
 }
@@ -228,6 +231,7 @@ void OSSIAApplicationPlugin::on_record(::TimeValue t)
         m_clock->play(t);
 
         m_playing = true;
+        m_paused = false;
     }
 }
 
@@ -242,6 +246,7 @@ void OSSIAApplicationPlugin::on_stop()
         if(plugmodel && plugmodel->baseScenario())
         {
             m_playing = false;
+            m_paused = false;
 
             m_clock->stop();
             m_clock.reset();
