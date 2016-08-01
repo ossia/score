@@ -341,7 +341,7 @@ class ExpressionParsingTests: public QObject
                 State::Value val;
                 bool r = parse(first, last, parser, val);
 
-                qDebug() << str.c_str() << r << val.val << "                    ";
+                qDebug() << str.c_str() << r << val << "                    ";
             }
         }
 

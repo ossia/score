@@ -73,12 +73,14 @@ bool State::ValueImpl::isValid() const
 {
     return m_variant.which() != m_variant.npos;
 }
-
+#include <State/ValueConversion.hpp>
 
 namespace State {
 
-ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const State::ValueImpl& m)
+ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m)
 {
-    return s;
+  s << State::convert::textualType(m) << State::convert::toPrettyString(m);
+  return s;
 }
+
 }
