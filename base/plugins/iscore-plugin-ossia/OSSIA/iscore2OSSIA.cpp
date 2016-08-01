@@ -83,7 +83,7 @@ ossia::net::node_base *createNodeFromPath(
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
-        auto it = find_if(children,
+        auto it = ossia::find_if(children,
                     [&] (const auto& ossia_node) { return ossia_node->getName() == path[i].toStdString(); });
 
         if(it == children.end())
@@ -157,7 +157,7 @@ ossia::net::node_base* getNodeFromPath(
     {
         const auto& children = node->children();
 
-        auto it = find_if(children, [&] (const auto& ossia_node)
+        auto it = ossia::find_if(children, [&] (const auto& ossia_node)
         {
             return ossia_node->getName() == path[i].toStdString();
         });

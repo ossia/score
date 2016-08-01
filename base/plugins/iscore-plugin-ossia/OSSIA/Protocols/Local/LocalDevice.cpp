@@ -50,13 +50,24 @@ LocalDevice::LocalDevice(
         auto local_play_address = local_play_node->createAddress(ossia::val_type::BOOL);
         local_play_address->setValue(ossia::Bool{false});
         local_play_address->addCallback([&] (const ossia::value& v) {
-            if (auto do_play = v.try_get<ossia::Bool>())
+            if (auto val = v.try_get<ossia::Bool>())
             {
-                // We only must switch between play / pause
-                if(appplug.playing() != do_play->value)
+                if(!appplug.playing() && val->value)
                 {
+                    // not playing, play requested
                     auto& play_action = appplug.context.actions.action<Actions::Play>();
                     play_action.action()->trigger();
+                }
+                else if(appplug.playing())
+                {
+                    if(appplug.paused() == val->value)
+                    {
+                        // paused, play requested
+                        // or playing, pause requested
+
+                        auto& play_action = appplug.context.actions.action<Actions::Play>();
+                        play_action.action()->trigger();
+                    }
                 }
             }
         });

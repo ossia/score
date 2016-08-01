@@ -55,6 +55,8 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
 
         bool playing() const
         { return m_playing; }
+        bool paused() const
+        { return m_paused; }
 
     private:
         void on_stop();
@@ -65,5 +67,5 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         RecreateOnPlay::PlayContextMenu m_playActions;
 
         std::unique_ptr<RecreateOnPlay::ClockManager> m_clock;
-        bool m_playing{false};
+        bool m_playing{false}, m_paused{false};
 };
