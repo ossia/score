@@ -53,6 +53,9 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         void on_play(Scenario::ConstraintModel&, bool, ::TimeValue t = ::TimeValue::zero() );
         void on_record(::TimeValue t);
 
+        bool playing() const
+        { return m_playing; }
+
     private:
         void on_stop();
         void on_init();
