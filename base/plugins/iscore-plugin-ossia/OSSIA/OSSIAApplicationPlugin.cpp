@@ -256,6 +256,7 @@ void OSSIAApplicationPlugin::on_record(::TimeValue t)
         m_clock->play(t);
 
         m_playing = true;
+        m_paused = false;
     }
 }
 
@@ -270,6 +271,7 @@ void OSSIAApplicationPlugin::on_stop()
         if(plugmodel && plugmodel->baseScenario())
         {
             m_playing = false;
+            m_paused = false;
 
             m_clock->stop();
             m_clock.reset();
