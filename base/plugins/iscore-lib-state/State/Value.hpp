@@ -93,8 +93,6 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
         TheType get() const
         { return eggs::variants::get<TheType>(m_variant); }
 
-        ISCORE_LIB_STATE_EXPORT friend QDebug& operator<<(QDebug& s, const ValueImpl& m);
-
     private:
         variant_t m_variant;
 };
@@ -129,6 +127,8 @@ struct ISCORE_LIB_STATE_EXPORT Value
 
 using ValueList = QList<Value>;
 using OptionalValue = optional<State::Value>;
+
+ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m);
 }
 
 Q_DECLARE_METATYPE(State::no_value_t)

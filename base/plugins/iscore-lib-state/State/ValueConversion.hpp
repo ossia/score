@@ -64,9 +64,3 @@ ISCORE_LIB_STATE_EXPORT const QStringList& ValuePrettyTypesList(); // For displa
 ISCORE_LIB_STATE_EXPORT const std::array<std::pair<QString, State::ValueType>, 10>& ValuePrettyTypesMap();
 }
 }
-
-inline QDebug operator<<(QDebug s, const State::Value& val)
-{
-    s << State::convert::toPrettyString(val);
-    return s;
-}
