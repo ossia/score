@@ -16,6 +16,7 @@ endif()
 set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/CurveConversion.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/OSSIA2iscore.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Curve/EasingSegment.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitDevice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA/Protocols/Minuit/MinuitSpecificSettings.hpp"
