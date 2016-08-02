@@ -52,10 +52,25 @@ std::shared_ptr<ossia::curve_abstract> curve(
     for(auto iscore_segment : segments)
     {
         auto end = iscore_segment->end();
+#if defined(_MSC_VER)
+        if (std::is_same<Y_T, int>::value)
+        {
+            curve->addPoint(iscore_segment->makeIntFunction(), scale_x(end.x()), scale_y(end.y()));
+        }
+        else if (std::is_same<Y_T, float>::value)
+        {
+            curve->addPoint(iscore_segment->makeFloatFunction(), scale_x(end.x()), scale_y(end.y()));
+        }
+        else if (std::is_same<Y_T, bool>::value)
+        {
+            curve->addPoint(iscore_segment->makeBoolFunction(), scale_x(end.x()), scale_y(end.y()));
+        }
+#else
         curve->addPoint(
                     (iscore_segment->*CurveTraits<Y_T>::fun)(),
                     scale_x(end.x()),
                     scale_y(end.y()));
+#endif
     }
 
     if(tween)
