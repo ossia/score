@@ -24,11 +24,7 @@ endif()
 
 
 # Qt Libraries
-if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-    set(DEBUG_CHAR "d")
-else()
-    set(DEBUG_CHAR "")
-endif()
+set(DEBUG_CHAR "$<$<CONFIG:Debug>:d>")
 
 get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
 get_filename_component(QT_DLL_DIR ${QtCore_LOCATION} PATH)
