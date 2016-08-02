@@ -4,11 +4,6 @@ endif()
 
 set(ISCORE_BIN_INSTALL_DIR "bin")
 
-find_package(Jamoma)
-if(${Jamoma_FOUND})
-    copy_in_folder_jamoma(${ISCORE_BIN_INSTALL_DIR} "${JAMOMA_LIBS}" "${JAMOMA_PLUGINS}")
-endif()
-
 ### TODO InstallRequiredSystemLibraries ###
  # Compiler Runtime DLLs
 if (MSVC)
@@ -43,8 +38,12 @@ file(GLOB ICU_DLLS "${QT_DLL_DIR}/icu*.dll")
 
 
 
+if(NOT OSSIA_STATIC)
+install(FILES "$<TARGET_FILE:ossia>" 
+        DESTINATION ${ISCORE_BIN_INSTALL_DIR})
+endif()
+
 install(FILES
-  "$<TARGET_FILE:APIJamoma>"
   ${ICU_DLLS}
   "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Gui${DEBUG_CHAR}.dll"

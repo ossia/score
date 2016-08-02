@@ -38,9 +38,6 @@ case "$TRAVIS_OS_NAME" in
     wget https://cmake.org/files/v3.6/cmake-3.6.0-rc1-Linux-x86_64.tar.gz -O cmake-linux.tgz
     tar xaf cmake-linux.tgz
     mv cmake-*-x86_64 cmake
-
-    wget https://www.dropbox.com/s/0pmy14zlpqpyaq6/JamomaCore-0.6-dev-Linux.deb?dl=1 -O jamoma.deb
-    sudo dpkg -i jamoma.deb
   ;;
   osx)
     set +e
@@ -49,9 +46,6 @@ case "$TRAVIS_OS_NAME" in
     wget https://github.com/OSSIA/iscore-sdk/releases/download/2.0-OSX/homebrew-cache.tar.gz -O homebrew-cache.tar.gz
     gtar xhzf homebrew-cache.tar.gz --directory /usr/local/Cellar
     brew link --force boost cmake ninja qt5 wget
-
-    wget https://github.com/OSSIA/iscore-sdk/releases/download/2.0-OSX/JamomaDarwin-2016-06-12.tar.gz -O Jamoma.tar.gz
-    gtar xhzf Jamoma.tar.gz
     set -e
   ;;
 esac
