@@ -42,7 +42,10 @@ class Constraint final :
         public iscore::PolymorphicComponentHierarchy<ConstraintBase>
 {
     public:
-        using iscore::PolymorphicComponentHierarchy<ConstraintBase>::PolymorphicComponentHierarchyManager;
+        template<typename... Args>
+        Constraint(Args&&... args):
+            iscore::PolymorphicComponentHierarchy<ConstraintBase>{std::forward<Args>(args)...}
+        {}
 
 };
 }

@@ -18,6 +18,7 @@ class PolymorphicComponentHierarchyManager :
 
         struct ChildPair
         {
+                ChildPair(ChildModel_T* m, ChildComponent_T* c): model{m}, component{c} { }
                 ChildModel_T* model{};
                 ChildComponent_T* component{};
         };

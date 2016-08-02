@@ -64,7 +64,7 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom_impl(
         const Curve::SegmentModel& segmt)
 {
     // Save the parent class
@@ -76,7 +76,7 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
         Curve::SegmentModel& segmt)
 {
     m_stream >> segmt.m_previous >> segmt.m_following
@@ -88,7 +88,7 @@ void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Curve::SegmentModel& segmt)
 {
     using namespace Curve;
@@ -104,7 +104,7 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(
+ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
         Curve::SegmentModel& segmt)
 {
     using namespace Curve;
