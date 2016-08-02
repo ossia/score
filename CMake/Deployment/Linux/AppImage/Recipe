@@ -40,7 +40,7 @@ mkdir -p $APP.AppDir/usr
     mkdir -p build
     
     cd build
-    cmake ../i-score -DISCORE_CONFIGURATION=release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="/usr/local/jamoma/share/cmake/Jamoma;$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON
+    cmake ../i-score -DISCORE_CONFIGURATION=release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON
     
     cmake --build . --target all_unity -- -j$NPROC
     cmake --build . --target install -- -j$NPROC
@@ -64,17 +64,9 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     for lib in usr/lib/i-score/*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
     ldd usr/bin/i-score | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     
-    # Jamoma
-    cp -v ../build/API/Implementations/Jamoma/libAPIJamoma.so usr/lib/
-    cp -v /usr/local/jamoma/lib/libJamomaFoundation.so.6 usr/lib/
-    cp -v /usr/local/jamoma/lib/libJamomaDSP.so.6 usr/lib/
-    cp -v /usr/local/jamoma/lib/libJamomaModular.so.6 usr/lib/
-    cp -v /usr/lib64/libxml2.so.2 usr/lib/
-    mkdir usr/lib/jamoma
-    for name in Minuit OSC AnalysisLib DataspaceLib FunctionLib System NetworkLib
-    do
-        cp -v /usr/local/jamoma/lib/jamoma/$name.ttso usr/lib/jamoma
-    done
+    # libossia
+    cp -v ../build/API/OSSIA/*.so* usr/lib/
+    
     
     # Dependencies of qt
     ldd usr/lib/qt5/plugins/platforms/libqxcb.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true

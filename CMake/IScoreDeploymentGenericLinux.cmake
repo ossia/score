@@ -2,34 +2,7 @@ if(UNIX)
 
 set(ISCORE_BIN_INSTALL_DIR ".")
 
-find_package(Jamoma)
-if(${Jamoma_FOUND})
-function(copy_in_bundle_jamoma_linux theTarget theBundle theLibs thePlugins)
-# TODO use OSX bundle name property?
-    # Jamoma setup
-    add_custom_command(TARGET ${theTarget} POST_BUILD
-                      COMMAND mkdir -p ${theBundle}/Contents/Frameworks/jamoma/extensions)
-
-    foreach(library ${theLibs})
-        message("${library}")
-        add_custom_command(TARGET ${theTarget} POST_BUILD
-                           COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Jamoma::${library}> ${theBundle}/Contents/Frameworks/jamoma)
-    endforeach()
-    foreach(plugin ${thePlugins})
-
-        message("${plugin}")
-        add_custom_command(TARGET ${theTarget} POST_BUILD
-                           COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Jamoma::${plugin}> ${theBundle}/Contents/Frameworks/jamoma/extensions)
-    endforeach()
-
-endfunction()
-
-
-    copy_in_bundle_jamoma_linux(${APPNAME} ${ISCORE_BIN_INSTALL_DIR} "${JAMOMA_LIBS}" "${JAMOMA_PLUGINS}")
-endif()
-
 # Qt Libraries
-
 get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
 get_filename_component(QT_SO_DIR ${QtCore_LOCATION} PATH)
 # TODO Same than for windows deployment
