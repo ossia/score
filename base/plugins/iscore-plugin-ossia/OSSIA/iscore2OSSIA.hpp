@@ -1,8 +1,5 @@
 #pragma once
-#include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/editor/value/value.hpp>
-#include <ossia/editor/expression/expression_fwd.hpp>
-#include <ossia/editor/state/state_element.hpp>
+#include <ossia/ossia.hpp>
 
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>

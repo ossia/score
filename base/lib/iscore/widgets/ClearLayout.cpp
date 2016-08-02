@@ -2,7 +2,6 @@
 #include <QLayout>
 #include <QLayoutItem>
 #include <QWidget>
-
 #include "ClearLayout.hpp"
 
 void iscore::clearLayout(QLayout *layout)

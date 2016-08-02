@@ -7,6 +7,10 @@
 template<typename T>
 struct VariantDataStreamSerializer
 {
+  VariantDataStreamSerializer(
+      DataStream::Serializer& s_p, 
+      const T& var_p): s{s_p}, var{var_p} { }
+
   DataStream::Serializer& s;
   const T& var;
 
@@ -29,6 +33,11 @@ struct VariantDataStreamSerializer
 template<typename T>
 struct VariantDataStreamDeserializer
 {
+    VariantDataStreamDeserializer(
+        DataStream::Deserializer& s_p,
+        quint64 which_p,
+        T& var_p) : s{ s_p }, which{which_p}, var{ var_p } { }
+
   DataStream::Deserializer& s;
   quint64 which;
   T& var;
@@ -126,6 +135,9 @@ auto writeTo_eggs_impl(const QJsonValue& res)
 template<typename T>
 struct VariantJSONSerializer
 {
+    VariantJSONSerializer(
+        JSONObject::Serializer& s_p,
+        const T& var_p) : s{ s_p }, var{ var_p } { }
   JSONObject::Serializer& s;
   const T& var;
 
@@ -148,6 +160,9 @@ struct VariantJSONSerializer
 template<typename T>
 struct VariantJSONDeserializer
 {
+    VariantJSONDeserializer(
+        JSONObject::Deserializer& s_p,
+        T& var_p) : s{ s_p }, var{ var_p } { }
   JSONObject::Deserializer& s;
   T& var;
 
