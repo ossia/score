@@ -1,9 +1,5 @@
 #pragma once
-#include <ossia/editor/state/message.hpp>
-#include <ossia/editor/state/state.hpp>
-#include <ossia/network/domain/domain.hpp>
-#include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/network/base/address.hpp>
+#include <ossia/ossia.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <Device/Address/AddressSettings.hpp>

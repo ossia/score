@@ -1,4 +1,5 @@
 #pragma once
+#include <ossia/ossia.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <ossia/detail/callback_container.hpp>
@@ -12,17 +13,6 @@
 #include <utility>
 #include <vector>
 #include <functional>
-namespace ossia
-{
-class value;
-namespace net
-{
-class address_base;
-class node_base;
-class device_base;
-using value_callback = std::function<void(const ossia::value&)>;
-}
-}
 
 namespace Ossia
 {
