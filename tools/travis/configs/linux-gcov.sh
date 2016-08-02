@@ -13,4 +13,4 @@ cp -rf ../Tests/testdata .
 LD_LIBRARY_PATH=/usr/lib64 $CMAKE_BIN --build . --target iscore_test_coverage_unity
 # lcov --compat-libtool --directory .. --capture --output-file coverage.info --no-external
 mv coverage.info.cleaned coverage.info
-coveralls-lcov --repo-token jjoMcOyOg9R05XT3aVysqTcsL1gyAc9tF coverage.info
+coveralls-lcov coverage.info
