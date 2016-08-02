@@ -23,12 +23,12 @@ DocumentModel::DocumentModel(
 
 DocumentModel::~DocumentModel()
 {
-    delete m_model;
     // We remove the plug-ins first.
     for(auto plug : m_pluginModels)
     {
-        delete plug;
+       delete plug;
     }
+    delete m_model;
 }
 
 void DocumentModel::addPluginModel(DocumentPlugin *m)

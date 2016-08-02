@@ -69,9 +69,7 @@ void ConstraintBase::removing(
         const Process::ProcessModel& cst,
         const ProcessComponent& comp)
 {
-    m_processesNode.removeChild(comp.node());
 }
-
 
 }
 }
