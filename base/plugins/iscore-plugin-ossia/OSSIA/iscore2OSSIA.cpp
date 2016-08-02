@@ -344,9 +344,11 @@ optional<ossia::message> message(
         if (!ossia_addr)
             return {};
 
-        return ossia::message{
-                    *ossia_addr,
-                    iscore::convert::toOSSIAValue(mess.value)};
+        auto val = iscore::convert::toOSSIAValue(mess.value);
+        if(!val.valid())
+            return {};
+
+        return ossia::message{*ossia_addr, std::move(val)};
     }
 
     return {};
