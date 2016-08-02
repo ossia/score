@@ -54,22 +54,18 @@ State* ScenarioComponentBase::make<State, Scenario::StateModel>(
 
 void ScenarioComponentBase::removing(const Scenario::ConstraintModel& elt, const Constraint& comp)
 {
-    m_constraintsNode.removeChild(comp.node());
 }
 
 void ScenarioComponentBase::removing(const Scenario::EventModel& elt, const Event& comp)
 {
-    m_eventsNode.removeChild(comp.node());
 }
 
 void ScenarioComponentBase::removing(const Scenario::TimeNodeModel& elt, const TimeNode& comp)
 {
-    m_timeNodesNode.removeChild(comp.node());
 }
 
 void ScenarioComponentBase::removing(const Scenario::StateModel& elt, const State& comp)
 {
-    m_statesNode.removeChild(comp.node());
 }
 
 }

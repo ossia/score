@@ -92,6 +92,7 @@ void Ossia::LocalTree::DocumentPlugin::cleanup()
 
     // Delete
     // TODO why not delete m_root;
+    m_root->constraint().components.remove(m_root);
     m_root = nullptr;
     /*
     auto& doc = m_context.document.model().modelDelegate();
