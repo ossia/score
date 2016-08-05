@@ -32,7 +32,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponent :
 
         virtual ~StateProcessComponent();
 
-        auto& OSSIAProcess() const
+        auto& OSSIAState() const
         { return m_ossia_state; }
 
     protected:

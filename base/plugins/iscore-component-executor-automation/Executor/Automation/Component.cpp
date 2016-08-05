@@ -49,7 +49,8 @@ Component::Component(
         const ::RecreateOnPlay::Context& ctx,
         const Id<iscore::Component>& id,
         QObject *parent):
-    ::RecreateOnPlay::ProcessComponent_T<Automation::ProcessModel>{parentConstraint, element, ctx, id, "Executor::Automation::Component", parent},
+    ::RecreateOnPlay::ProcessComponent_T<Automation::ProcessModel, ossia::automation>{
+          parentConstraint, element, ctx, id, "Executor::Automation::Component", parent},
     m_deviceList{ctx.devices.list()}
 {
     recreate();
@@ -105,7 +106,7 @@ void Component::recreate()
     if(!m_ossia_curve)
         goto curve_cleanup_label;
 
-    m_ossia_process = ossia::automation::create(
+    m_ossia_process = new ossia::automation(
                 *address,
                 Behavior(m_ossia_curve));
 
@@ -113,7 +114,7 @@ void Component::recreate()
     return;
 
 curve_cleanup_label:
-    m_ossia_process.reset(); // Cleanup
+    m_ossia_process = nullptr; // Cleanup
     return;
 }
 

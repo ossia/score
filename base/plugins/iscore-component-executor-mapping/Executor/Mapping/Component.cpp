@@ -36,7 +36,7 @@ Component::Component(
         const ::RecreateOnPlay::Context& ctx,
         const Id<iscore::Component>& id,
         QObject *parent):
-    ::RecreateOnPlay::ProcessComponent_T<Mapping::ProcessModel>{parentConstraint, element, ctx, id, "MappingElement", parent},
+    ::RecreateOnPlay::ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>{parentConstraint, element, ctx, id, "MappingElement", parent},
     m_deviceList{ctx.devices.list()}
 {
     recreate();
@@ -169,7 +169,7 @@ void Component::recreate()
         goto curve_cleanup_label;
 
     // TODO on_min/max changed
-    m_ossia_process = ossia::mapper::create(
+    m_ossia_process = new ossia::mapper(
                 *ossia_source_addr,
                 *ossia_target_addr,
                 Behavior(m_ossia_curve));
@@ -177,7 +177,7 @@ void Component::recreate()
     return;
 
 curve_cleanup_label:
-    m_ossia_process.reset();
+    m_ossia_process = nullptr;
     return;
 }
 

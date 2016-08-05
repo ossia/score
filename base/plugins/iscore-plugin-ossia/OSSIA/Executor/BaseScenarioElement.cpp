@@ -36,8 +36,8 @@ BaseScenarioElement::BaseScenarioElement(
     QObject{parent},
     m_ctx{ctx}
 {
-    auto main_start_node = ossia::time_node::create();
-    auto main_end_node = ossia::time_node::create();
+    auto main_start_node = std::make_shared<ossia::time_node>();
+    auto main_end_node = std::make_shared<ossia::time_node>();
 
     auto main_start_event = *main_start_node->emplace(
           main_start_node->timeEvents().begin(),
@@ -53,8 +53,8 @@ BaseScenarioElement::BaseScenarioElement(
     // TODO PlayDuration of FullView
     auto main_constraint = ossia::time_constraint::create(
                                 [] (auto&&...) {},
-                               main_start_event,
-                               main_end_event,
+                               *main_start_event,
+                               *main_end_event,
                                iscore::convert::time(element.constraint().duration.defaultDuration()),
                                iscore::convert::time(element.constraint().duration.minDuration()),
                                iscore::convert::time(element.constraint().duration.maxDuration()));

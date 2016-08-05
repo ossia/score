@@ -1,4 +1,5 @@
 #pragma once
+/*
 #include <memory>
 #include <OSSIA/Executor/ProcessWrapper.hpp>
 
@@ -30,7 +31,7 @@ class LoopingProcessWrapper : public ProcessWrapper
         std::shared_ptr<ossia::time_constraint> m_parent;
         std::shared_ptr<ossia::time_process> m_process;
 
-        std::shared_ptr<ossia::scenario> m_fixed_impl;
+        std::unique_ptr<ossia::scenario> m_fixed_impl;
         std::shared_ptr<ossia::time_node> m_fixed_endNode;
         std::shared_ptr<ossia::time_constraint> m_fixed_cst;
 
@@ -38,3 +39,4 @@ class LoopingProcessWrapper : public ProcessWrapper
         bool m_looping = false;
 };
 }
+*/

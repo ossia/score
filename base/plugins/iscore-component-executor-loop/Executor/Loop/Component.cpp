@@ -40,11 +40,12 @@ Component::Component(
         const ::RecreateOnPlay::Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    ::RecreateOnPlay::ProcessComponent_T<Loop::ProcessModel>{parentConstraint, element, ctx, id, "LoopComponent", parent}
+    ::RecreateOnPlay::ProcessComponent_T<Loop::ProcessModel, ossia::loop>{
+          parentConstraint, element, ctx, id, "LoopComponent", parent}
 {
     ossia::time_value main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
 
-    auto loop = ossia::loop::create(main_duration,
+    auto loop = new ossia::loop(main_duration,
           [] (ossia::time_value, ossia::time_value,
               const ossia::state_element&) { },
           [this,&element] (ossia::time_event::Status newStatus) {
