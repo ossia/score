@@ -53,13 +53,13 @@ ScenarioComponent::ScenarioComponent(
         const Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    ProcessComponent_T<Scenario::ProcessModel>{parentConstraint, element, ctx, id, "ScenarioComponent", parent},
+    ProcessComponent_T<Scenario::ProcessModel, ossia::scenario>{parentConstraint, element, ctx, id, "ScenarioComponent", parent},
     m_ctx{ctx}
 {
     this->setObjectName("OSSIAScenarioElement");
 
     // Setup of the OSSIA API Part
-    m_ossia_process = ossia::scenario::create();
+    m_ossia_process = new ossia::scenario;
 
     // Create elements for the existing stuff. (e.g. start/ end timenode / event)
     for(const auto& timenode : element.timeNodes)
@@ -105,9 +105,9 @@ static void ScenarioConstraintCallback(
 }
 
 
-void ScenarioComponent::on_constraintCreated(const Scenario::ConstraintModel& const_constraint)
+void ScenarioComponent::on_constraintCreated(
+        const Scenario::ConstraintModel& const_constraint)
 {
-    auto& ossia_scenario = dynamic_cast<ossia::scenario&>(*m_ossia_process.get());
     auto& cst = const_cast<Scenario::ConstraintModel&>(const_constraint);
     // TODO have a ConstraintPlayAspect to prevent this const_cast.
     ISCORE_ASSERT(m_ossia_timeevents.find(process().state(cst.startState()).eventId()) != m_ossia_timeevents.end());
@@ -117,14 +117,14 @@ void ScenarioComponent::on_constraintCreated(const Scenario::ConstraintModel& co
 
     auto ossia_cst = ossia::time_constraint::create(
                 ScenarioConstraintCallback,
-                ossia_sev->OSSIAEvent(),
-                ossia_eev->OSSIAEvent(),
+                *ossia_sev->OSSIAEvent(),
+                *ossia_eev->OSSIAEvent(),
                 iscore::convert::time(cst.duration.defaultDuration()),
                 iscore::convert::time(cst.duration.minDuration()),
                 iscore::convert::time(cst.duration.maxDuration()));
 
 
-    ossia_scenario.addTimeConstraint(ossia_cst);
+    OSSIAProcess().addTimeConstraint(ossia_cst);
 
     // Create the mapping object
     auto elt = new ConstraintElement{ossia_cst, cst, m_ctx, this};
@@ -169,16 +169,15 @@ void ScenarioComponent::on_eventCreated(const Scenario::EventModel& const_ev)
 
 void ScenarioComponent::on_timeNodeCreated(const Scenario::TimeNodeModel& tn)
 {
-    auto& ossia_scenario = dynamic_cast<ossia::scenario&>(*m_ossia_process.get());
     std::shared_ptr<ossia::time_node> ossia_tn;
     if(&tn == &process().startTimeNode())
     {
-        ossia_tn = ossia_scenario.getStartTimeNode();
+        ossia_tn = OSSIAProcess().getStartTimeNode();
     }
     else
     {
-        ossia_tn = ossia::time_node::create();
-        ossia_scenario.addTimeNode(ossia_tn);
+        ossia_tn = std::make_shared<ossia::time_node>();
+        OSSIAProcess().addTimeNode(ossia_tn);
     }
 
     // Create the mapping object

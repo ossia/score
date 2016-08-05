@@ -46,7 +46,7 @@ class ProcessExecutor final :
 
 
 class Component final :
-        public ::RecreateOnPlay::ProcessComponent_T<RecordedMessages::ProcessModel>
+        public ::RecreateOnPlay::ProcessComponent_T<RecordedMessages::ProcessModel, ProcessExecutor>
 {
         COMPONENT_METADATA("bfcdcd2a-be3c-4bb1-bcca-240a6435b06b")
     public:

@@ -70,11 +70,10 @@ Component::Component(
         const ::RecreateOnPlay::Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    ::RecreateOnPlay::ProcessComponent_T<JS::ProcessModel>{parentConstraint, element, ctx, id, "JSComponent", parent}
+    ::RecreateOnPlay::ProcessComponent_T<JS::ProcessModel, ProcessExecutor>{parentConstraint, element, ctx, id, "JSComponent", parent}
 {
-    auto proc = std::make_shared<ProcessExecutor>(ctx.devices);
-    proc->setTickFun(element.script());
-    m_ossia_process = proc;
+    m_ossia_process = new ProcessExecutor{ctx.devices};
+    OSSIAProcess().setTickFun(element.script());
 }
 }
 }

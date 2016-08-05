@@ -1,3 +1,4 @@
+/*
 #include <ossia/editor/loop/loop.hpp>
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_constraint.hpp>
@@ -22,8 +23,8 @@ LoopingProcessWrapper::LoopingProcessWrapper(
         bool looping):
     m_parent{cst},
     m_process{ptr},
-    m_fixed_impl{ossia::scenario::create()},
-    m_fixed_endNode{ossia::time_node::create()},
+    m_fixed_impl{std::make_unique<ossia::scenario>()},
+    m_fixed_endNode{std::make_shared<ossia::time_node>()},
     m_looping_impl{ossia::loop::create(dur, loopingConstraintCallback, {}, {})},
     m_looping{looping}
 {
@@ -71,3 +72,4 @@ ossia::time_constraint& LoopingProcessWrapper::currentConstraint() const
         return *m_fixed_cst;
 }
 }
+*/

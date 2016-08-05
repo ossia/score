@@ -3,10 +3,9 @@
 #include <OSSIA/Executor/ProcessElement.hpp>
 #include <memory>
 #include <Automation/AutomationModel.hpp>
-
+#include <ossia/editor/automation/automation.hpp>
 namespace ossia
 {
-    class automation;
     class curve_abstract;
 }
 
@@ -21,7 +20,7 @@ namespace Automation
 namespace RecreateOnPlay
 {
 class Component final :
-        public ::RecreateOnPlay::ProcessComponent_T<Automation::ProcessModel>
+        public ::RecreateOnPlay::ProcessComponent_T<Automation::ProcessModel, ossia::automation>
 {
         COMPONENT_METADATA("f759eacd-5a67-4627-bbe8-c649e0f9b6c5")
     public:

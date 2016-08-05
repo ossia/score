@@ -40,7 +40,7 @@ std::shared_ptr<ossia::curve_abstract> curve(
         const Segments& segments,
         const optional<ossia::Destination>& tween)
 {
-    auto curve = ossia::curve<X_T, Y_T>::create();
+    auto curve = std::make_shared<ossia::curve<X_T, Y_T>>();
 
     auto start = segments[0]->start();
     if(start.x() == 0.)

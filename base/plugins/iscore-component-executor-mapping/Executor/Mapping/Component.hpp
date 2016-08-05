@@ -5,9 +5,9 @@
 #include <Mapping/MappingModel.hpp>
 #include <QPointer>
 #include <ossia/editor/value/value.hpp>
+#include <ossia/editor/mapper/mapper.hpp>
 namespace ossia
 {
-    class mapper;
     class curve_abstract;
 }
 namespace Device
@@ -20,7 +20,7 @@ namespace Mapping
 namespace RecreateOnPlay
 {
 class Component final :
-        public ::RecreateOnPlay::ProcessComponent_T<Mapping::ProcessModel>
+        public ::RecreateOnPlay::ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>
 {
         COMPONENT_METADATA("da360b58-9885-4106-be54-8e272ed45dbe")
     public:

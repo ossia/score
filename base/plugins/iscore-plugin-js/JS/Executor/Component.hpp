@@ -48,7 +48,7 @@ class ProcessExecutor final :
 
 
 class Component final :
-        public ::RecreateOnPlay::ProcessComponent_T<JS::ProcessModel>
+        public ::RecreateOnPlay::ProcessComponent_T<JS::ProcessModel, ProcessExecutor>
 {
         COMPONENT_METADATA("c2737929-231e-4d57-9088-a2a3a8d3c24e")
     public:

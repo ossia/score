@@ -61,7 +61,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ConstraintElement final : public QObject
         Scenario::ConstraintModel& m_iscore_constraint;
         std::shared_ptr<ossia::time_constraint> m_ossia_constraint;
 
-        std::unordered_map<Id<Process::ProcessModel>, OSSIAProcess> m_processes;
+        std::vector<ProcessComponent*> m_processes;
 
         std::shared_ptr<ossia::loop> m_loop;
 

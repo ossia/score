@@ -69,10 +69,10 @@ Component::Component(
         const RecreateOnPlay::Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    ::RecreateOnPlay::ProcessComponent_T<RecordedMessages::ProcessModel>{parentConstraint, element, ctx, id, "RecordedMessagesComponent", parent}
+    ::RecreateOnPlay::ProcessComponent_T<RecordedMessages::ProcessModel, ProcessExecutor>{
+          parentConstraint, element, ctx, id, "RecordedMessagesComponent", parent}
 {
-    auto proc = std::make_shared<ProcessExecutor>(ctx.devices, element.messages());
-    m_ossia_process = proc;
+    m_ossia_process = new ProcessExecutor{ctx.devices, element.messages()};
 }
 }
 }

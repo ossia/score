@@ -43,13 +43,13 @@ ConstraintElement::ConstraintElement(
     m_ossia_constraint->setSpeed(iscore_cst.duration.executionSpeed());
 
     con(iscore_cst.duration, &Scenario::ConstraintDurations::executionSpeedChanged,
-            this, [&] (double sp) {
+        this, [&] (double sp) {
         m_ossia_constraint->setSpeed(sp);
     });
 
     // BaseScenario needs a special callback.
     if(dynamic_cast<Scenario::ProcessModel*>(iscore_cst.parent())
-    || dynamic_cast<Loop::ProcessModel*>(iscore_cst.parent()))
+            || dynamic_cast<Loop::ProcessModel*>(iscore_cst.parent()))
     {
         ossia_cst->setCallback([&] (
                                ossia::time_value position,
@@ -82,7 +82,7 @@ void ConstraintElement::play(TimeValue t)
     m_offset = iscore::convert::time(t);
     m_iscore_constraint.duration.setPlayPercentage(0);
 
-    auto start_state = m_ossia_constraint->getStartEvent()->getState();
+    auto start_state = m_ossia_constraint->getStartEvent().getState();
     auto offset_state = m_ossia_constraint->offset(m_offset);
 
     ossia::state accumulator;
@@ -113,12 +113,12 @@ void ConstraintElement::resume()
 void ConstraintElement::stop()
 {
     m_ossia_constraint->stop();
-    auto st = m_ossia_constraint->getEndEvent()->getState();
+    auto st = m_ossia_constraint->getEndEvent().getState();
     st.launch();
 
     for(auto& process : m_processes)
     {
-        process.second.element->stop();
+        process->stop();
     }
     m_iscore_constraint.reset();
 
@@ -157,28 +157,8 @@ void ConstraintElement::on_processAdded(
         auto plug = fac->make(*this, *proc, m_ctx, getStrongId(iscore_proc.components), this);
         if(plug)
         {
-            auto id = iscore_proc.id();
-            std::unique_ptr<ProcessWrapper> wp;
-            if(proc->useParentDuration())
-            {
-                wp = std::make_unique<BasicProcessWrapper>(
-                            m_ossia_constraint,
-                            plug->OSSIAProcess(),
-                            iscore::convert::time(plug->process().duration()),
-                            m_iscore_constraint.looping() );
-            }
-            else
-            {
-                wp = std::make_unique<LoopingProcessWrapper>(
-                            m_ossia_constraint,
-                            plug->OSSIAProcess(),
-                            iscore::convert::time(plug->process().duration()),
-                            m_iscore_constraint.looping()) ;
-            }
-            m_processes.insert(
-                        std::make_pair(
-                            id,
-                            OSSIAProcess(plug, std::move(wp))));
+            m_processes.push_back(plug);
+            m_ossia_constraint->addTimeProcess(plug->give_OSSIAProcess());
         }
     }
 }

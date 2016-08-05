@@ -6,6 +6,7 @@
 #include <iscore/component/ComponentFactory.hpp>
 
 #include <OSSIA/Executor/DocumentPlugin.hpp>
+#include <ossia/editor/scenario/time_process.hpp>
 #include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <iscore/plugins/customfactory/ModelFactory.hpp>
 #include <iscore_plugin_ossia_export.h>
@@ -45,16 +46,25 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponent :
             process().stopExecution();
         }
 
+        std::unique_ptr<ossia::time_process> give_OSSIAProcess()
+        { return std::unique_ptr<ossia::time_process>(m_ossia_process); }
         auto& OSSIAProcess() const
-        { return m_ossia_process; }
+        { return *m_ossia_process; }
 
     protected:
         ConstraintElement& m_parent_constraint;
-        std::shared_ptr<ossia::time_process> m_ossia_process;
+        ossia::time_process* m_ossia_process{};
 };
 
-template<typename Process_T>
-using ProcessComponent_T = Scenario::GenericProcessComponent_T<ProcessComponent, Process_T>;
+template<typename Process_T, typename OSSIA_Process_T>
+struct ProcessComponent_T :
+        public Scenario::GenericProcessComponent_T<ProcessComponent, Process_T>
+{
+        using Scenario::GenericProcessComponent_T<ProcessComponent, Process_T>::GenericProcessComponent_T;
+
+        auto& OSSIAProcess() const
+        { return static_cast<OSSIA_Process_T&>(ProcessComponent::OSSIAProcess()); }
+};
 
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
         public iscore::GenericComponentFactory<
