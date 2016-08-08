@@ -126,7 +126,7 @@ DocumentManager::~DocumentManager()
     saveRecentFilesState();
 
     // The documents have to be deleted before the application context plug-ins.
-    // This is because the Local device has to be deleted last in OSSIAApplicationPlugin.
+    // This is because the Local device has to be deleted last in ApplicationPlugin.
     for(auto document : m_documents)
     {
         document->deleteLater();

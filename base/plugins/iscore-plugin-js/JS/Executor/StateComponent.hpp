@@ -4,8 +4,8 @@
 #include <QJSValue>
 #include <QString>
 #include <memory>
-#include <OSSIA/Executor/StateProcessComponent.hpp>
-#include <OSSIA/Executor/ExecutorContext.hpp>
+#include <Engine/Executor/StateProcessComponent.hpp>
+#include <Engine/Executor/ExecutorContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <ossia/editor/scenario/time_value.hpp>

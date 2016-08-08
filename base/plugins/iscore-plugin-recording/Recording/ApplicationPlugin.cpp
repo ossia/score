@@ -17,7 +17,7 @@
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
-#include <OSSIA/OSSIAApplicationPlugin.hpp>
+#include <Engine/ApplicationPlugin.hpp>
 #include <Curve/Settings/Model.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <QApplication>
@@ -39,7 +39,7 @@ RecordingApplicationPlugin::RecordingApplicationPlugin(
             this, &RecordingApplicationPlugin::stopRecord);
 
 
-    m_ossiaplug = &ctx.components.applicationPlugin<OSSIAApplicationPlugin>();
+    m_ossiaplug = &ctx.components.applicationPlugin<ApplicationPlugin>();
 
     auto& stop_action = ctx.actions.action<Actions::Stop>();
     m_stopAction = stop_action.action();

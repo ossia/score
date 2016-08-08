@@ -13,7 +13,7 @@ iscore-plugin-automation
 iscore-plugin-scenario
 iscore-plugin-loop
 
-iscore-plugin-ossia
+iscore-plugin-engine
 iscore-plugin-js
 iscore-plugin-recording
 iscore-plugin-mapping

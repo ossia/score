@@ -2,7 +2,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <JS/StateProcess.hpp>
 #include <JS/Executor/JSAPIWrapper.hpp>
-#include <OSSIA/iscore2OSSIA.hpp>
+#include <Engine/iscore2OSSIA.hpp>
 #include <ossia/editor/state/message.hpp>
 
 namespace JS

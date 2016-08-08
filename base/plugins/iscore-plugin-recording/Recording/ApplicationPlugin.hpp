@@ -6,7 +6,7 @@
 #include "Record/RecordManager.hpp"
 #include "Record/RecordMessagesManager.hpp"
 
-class OSSIAApplicationPlugin;
+class ApplicationPlugin;
 class QAction;
 namespace Scenario {
 class ProcessModel;
@@ -25,7 +25,7 @@ class RecordingApplicationPlugin final :
         void stopRecord();
 
     private:
-        OSSIAApplicationPlugin* m_ossiaplug{};
+        ApplicationPlugin* m_ossiaplug{};
         QAction* m_stopAction{};
 
         std::unique_ptr<Recording::RecordManager> m_recManager;

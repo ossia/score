@@ -2,8 +2,8 @@
 #include <ossia/editor/scenario/time_process.hpp>
 #include <QString>
 #include <memory>
-#include <OSSIA/Executor/ProcessElement.hpp>
-#include <OSSIA/Executor/ExecutorContext.hpp>
+#include <Engine/Executor/ProcessElement.hpp>
+#include <Engine/Executor/ExecutorContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>

@@ -1,7 +1,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <OSSIA/OSSIA2iscore.hpp>
-#include <OSSIA/iscore2OSSIA.hpp>
-#include <OSSIA/Executor/DocumentPlugin.hpp>
+#include <Engine/OSSIA2iscore.hpp>
+#include <Engine/iscore2OSSIA.hpp>
+#include <Engine/Executor/DocumentPlugin.hpp>
 #include <vector>
 
 #include <ossia/editor/state/message.hpp>
