@@ -6,7 +6,7 @@ namespace Device
 {
 class DeviceList;
 }
-namespace Ossia
+namespace Engine
 {
 class PanelDelegate final :
         public QObject,

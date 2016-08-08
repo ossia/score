@@ -10,7 +10,9 @@ class QRadioButton;
 class QWidget;
 class QLineEdit;
 
-namespace Ossia
+namespace Engine
+{
+namespace Network
 {
 class MIDIProtocolSettingsWidget :
         public Device::ProtocolSettingsWidget
@@ -38,4 +40,5 @@ class MIDIProtocolSettingsWidget :
         QComboBox* m_deviceCBox;
 
 };
+}
 }

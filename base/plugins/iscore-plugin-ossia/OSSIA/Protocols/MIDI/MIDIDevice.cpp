@@ -8,9 +8,9 @@
 #include "MIDIDevice.hpp"
 #include <OSSIA/OSSIA2iscore.hpp>
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 MIDIDevice::MIDIDevice(const Device::DeviceSettings &settings):
     OwningOSSIADevice{settings}
@@ -72,7 +72,7 @@ Device::Node MIDIDevice::refresh()
         device_node.reserve(children.size());
         for(const auto& node : children)
         {
-            device_node.push_back(Ossia::convert::ToDeviceExplorer(*node.get()));
+            device_node.push_back(Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
         }
     }
 

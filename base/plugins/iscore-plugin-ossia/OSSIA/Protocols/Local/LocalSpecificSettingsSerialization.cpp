@@ -11,23 +11,23 @@ template <typename T> class Writer;
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom_impl(const Ossia::LocalSpecificSettings& n)
+void Visitor<Reader<DataStream>>::readFrom_impl(const Engine::Network::LocalSpecificSettings& n)
 {
     insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Ossia::LocalSpecificSettings& n)
+void Visitor<Writer<DataStream>>::writeTo(Engine::Network::LocalSpecificSettings& n)
 {
     checkDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom_impl(const Ossia::LocalSpecificSettings& n)
+void Visitor<Reader<JSONObject>>::readFrom_impl(const Engine::Network::LocalSpecificSettings& n)
 {
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Ossia::LocalSpecificSettings& n)
+void Visitor<Writer<JSONObject>>::writeTo(Engine::Network::LocalSpecificSettings& n)
 {
 }

@@ -34,7 +34,7 @@
 #include "Scenario/ScenarioComponent.hpp"
 #include <OSSIA/LocalTree/Settings/LocalTreeModel.hpp>
 
-Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
+Engine::LocalTree::DocumentPlugin::DocumentPlugin(
         iscore::Document& doc,
         QObject* parent):
     iscore::DocumentPlugin{doc.context(), "LocalTree::DocumentPlugin", parent},
@@ -58,12 +58,12 @@ Ossia::LocalTree::DocumentPlugin::DocumentPlugin(
     }, Qt::QueuedConnection);
 }
 
-Ossia::LocalTree::DocumentPlugin::~DocumentPlugin()
+Engine::LocalTree::DocumentPlugin::~DocumentPlugin()
 {
     cleanup();
 }
 
-void Ossia::LocalTree::DocumentPlugin::create()
+void Engine::LocalTree::DocumentPlugin::create()
 {
     if(m_root)
         cleanup();
@@ -82,7 +82,7 @@ void Ossia::LocalTree::DocumentPlugin::create()
     cstr.components.add(m_root);
 }
 
-void Ossia::LocalTree::DocumentPlugin::cleanup()
+void Engine::LocalTree::DocumentPlugin::cleanup()
 {
     if(!m_root)
         return;

@@ -3,7 +3,7 @@
 #include <ossia/editor/scenario/time_constraint.hpp>
 namespace Scenario
 { class ConstraintModel; }
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 class BaseScenarioElement;
 class ISCORE_PLUGIN_OSSIA_EXPORT DefaultClockManager final : public ClockManager
@@ -15,7 +15,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DefaultClockManager final : public ClockManager
 
         // Pass the root constraint.
         static ossia::time_constraint::ExecutionCallback makeDefaultCallback(
-                RecreateOnPlay::BaseScenarioElement&);
+                Engine::Execution::BaseScenarioElement&);
     private:
         void play_impl(
                 const TimeValue& t,
@@ -33,7 +33,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DefaultClockManagerFactory final : public Clock
         virtual ~DefaultClockManagerFactory();
         QString prettyName() const override;
         std::unique_ptr<ClockManager> make(
-            const RecreateOnPlay::Context& ctx) override;
+            const Engine::Execution::Context& ctx) override;
 };
 
-}
+} }

@@ -45,7 +45,7 @@ class time_process;
 }  // namespace OSSIA
 
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 ScenarioComponent::ScenarioComponent(
         ConstraintElement& parentConstraint,
@@ -119,9 +119,9 @@ void ScenarioComponent::on_constraintCreated(
                 ScenarioConstraintCallback,
                 *ossia_sev->OSSIAEvent(),
                 *ossia_eev->OSSIAEvent(),
-                iscore::convert::time(cst.duration.defaultDuration()),
-                iscore::convert::time(cst.duration.minDuration()),
-                iscore::convert::time(cst.duration.maxDuration()));
+                Engine::iscore_to_ossia::time(cst.duration.defaultDuration()),
+                Engine::iscore_to_ossia::time(cst.duration.minDuration()),
+                Engine::iscore_to_ossia::time(cst.duration.maxDuration()));
 
 
     OSSIAProcess().addTimeConstraint(ossia_cst);
@@ -309,4 +309,4 @@ void ScenarioComponent::timeNodeCallback(
         }
     }
 }
-}
+} }

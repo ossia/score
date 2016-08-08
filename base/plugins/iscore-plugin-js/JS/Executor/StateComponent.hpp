@@ -18,10 +18,10 @@ namespace Device
 {
 class DeviceList;
 }
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 class ConstraintElement;
-}
+} }
 namespace ossia {
 class state;
 }  // namespace OSSIA
@@ -46,22 +46,22 @@ class State
 };
 
 class StateProcessComponent final :
-        public RecreateOnPlay::StateProcessComponent_T<JS::StateProcess>
+        public Engine::Execution::StateProcessComponent_T<JS::StateProcess>
 {
         COMPONENT_METADATA("068c116f-9d1f-47d0-bd43-335792ba1a6a")
     public:
         StateProcessComponent(
-                RecreateOnPlay::StateElement& parentState,
+                Engine::Execution::StateElement& parentState,
                 JS::StateProcess& element,
-                const RecreateOnPlay::Context& ctx,
+                const Engine::Execution::Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
         static ossia::state_element make(
                 Process::StateProcess& proc,
-                const RecreateOnPlay::Context& ctxt);
+                const Engine::Execution::Context& ctxt);
 };
 
-using StateProcessComponentFactory = RecreateOnPlay::StateProcessComponentFactory_T<StateProcessComponent>;
+using StateProcessComponentFactory = Engine::Execution::StateProcessComponentFactory_T<StateProcessComponent>;
 }
 }

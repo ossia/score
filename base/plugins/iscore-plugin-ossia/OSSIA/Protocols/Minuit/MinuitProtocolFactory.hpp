@@ -1,9 +1,9 @@
 #pragma once
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 class MinuitProtocolFactory final :
         public Device::ProtocolFactory

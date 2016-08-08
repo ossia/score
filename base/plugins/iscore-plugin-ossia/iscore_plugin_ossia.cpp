@@ -29,8 +29,8 @@
 iscore_plugin_ossia::iscore_plugin_ossia() :
     QObject {}
 {
-    qRegisterMetaType<RecreateOnPlay::ClockManagerFactory::ConcreteFactoryKey>("ClockManagerKey");
-    qRegisterMetaTypeStreamOperators<RecreateOnPlay::ClockManagerFactory::ConcreteFactoryKey>("ClockManagerKey");
+    qRegisterMetaType<Engine::Execution::ClockManagerFactory::ConcreteFactoryKey>("ClockManagerKey");
+    qRegisterMetaTypeStreamOperators<Engine::Execution::ClockManagerFactory::ConcreteFactoryKey>("ClockManagerKey");
 }
 
 iscore_plugin_ossia::~iscore_plugin_ossia()
@@ -47,10 +47,10 @@ iscore::GUIApplicationContextPlugin* iscore_plugin_ossia::make_applicationPlugin
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_ossia::factoryFamilies()
 {
     return make_ptr_vector<iscore::FactoryListInterface,
-            Ossia::LocalTree::ProcessComponentFactoryList,
-            RecreateOnPlay::ProcessComponentFactoryList,
-            RecreateOnPlay::StateProcessComponentFactoryList,
-            RecreateOnPlay::ClockManagerFactoryList
+            Engine::LocalTree::ProcessComponentFactoryList,
+            Engine::Execution::ProcessComponentFactoryList,
+            Engine::Execution::StateProcessComponentFactoryList,
+            Engine::Execution::ClockManagerFactoryList
             >();
 }
 
@@ -61,31 +61,31 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_ossia::
         const iscore::AbstractFactoryKey& key) const
 {
     using namespace Scenario;
-    using namespace Ossia;
-    using namespace RecreateOnPlay;
+    using namespace Engine;
+    using namespace Engine::Execution;
     using namespace EasingCurve;
 
     return instantiate_factories<
             iscore::ApplicationContext,
             TL<
             FW<Device::ProtocolFactory,
-                 LocalProtocolFactory,
-                 Protocols::OSCProtocolFactory,
-                 Protocols::MinuitProtocolFactory,
-                 Protocols::MIDIProtocolFactory
+                 Network::LocalProtocolFactory,
+                 Network::OSCProtocolFactory,
+                 Network::MinuitProtocolFactory,
+                 Network::MIDIProtocolFactory
             >,
-            FW<RecreateOnPlay::ProcessComponentFactory,
-                 RecreateOnPlay::ScenarioComponentFactory>,
+            FW<Engine::Execution::ProcessComponentFactory,
+                 Engine::Execution::ScenarioComponentFactory>,
             FW<Explorer::ListeningHandlerFactory,
-                 Ossia::PlayListeningHandlerFactory>,
+                 Engine::Execution::PlayListeningHandlerFactory>,
             FW<iscore::SettingsDelegateFactory,
-                 RecreateOnPlay::Settings::Factory,
+                 Engine::Execution::Settings::Factory,
                  LocalTree::Settings::Factory>,
-            FW<Ossia::LocalTree::ProcessComponentFactory,
-                 Ossia::LocalTree::ScenarioComponentFactory>,
+            FW<Engine::LocalTree::ProcessComponentFactory,
+                 Engine::LocalTree::ScenarioComponentFactory>,
             FW<iscore::PanelDelegateFactory,
-                 Ossia::PanelDelegateFactory>,
-            FW<RecreateOnPlay::ClockManagerFactory, RecreateOnPlay::DefaultClockManagerFactory>,
+                 Engine::PanelDelegateFactory>,
+            FW<Engine::Execution::ClockManagerFactory, Engine::Execution::DefaultClockManagerFactory>,
             FW<Curve::SegmentFactory,
             SegmentFactory_backIn,
             SegmentFactory_backOut,

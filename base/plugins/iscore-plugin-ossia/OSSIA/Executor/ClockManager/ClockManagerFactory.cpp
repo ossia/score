@@ -1,7 +1,7 @@
 #include "ClockManagerFactory.hpp"
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 
 ClockManager::~ClockManager() = default;
@@ -43,5 +43,4 @@ void ClockManager::stop()
     stop_impl(*bs);
 }
 
-}
-
+} }

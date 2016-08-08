@@ -20,12 +20,12 @@ namespace ossia
 {
     class Device;
 }
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 class ClockManager;
 struct Context;
 class ConstraintElement;
-}
+} }
 // TODO this should have "OSSIA Policies" : one would be the
 // "basic" that corresponds to the default scenario.
 // One would be the "distributed" policy which provides the
@@ -62,10 +62,10 @@ class ISCORE_PLUGIN_OSSIA_EXPORT OSSIAApplicationPlugin final :
         void on_stop();
         void on_init();
 
-        std::unique_ptr<RecreateOnPlay::ClockManager> makeClock(const RecreateOnPlay::Context&);
+        std::unique_ptr<Engine::Execution::ClockManager> makeClock(const Engine::Execution::Context&);
 
-        RecreateOnPlay::PlayContextMenu m_playActions;
+        Engine::Execution::PlayContextMenu m_playActions;
 
-        std::unique_ptr<RecreateOnPlay::ClockManager> m_clock;
+        std::unique_ptr<Engine::Execution::ClockManager> m_clock;
         bool m_playing{false}, m_paused{false};
 };

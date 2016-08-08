@@ -15,9 +15,9 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <ossia/network/minuit/minuit.hpp>
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 LocalDevice::LocalDevice(
         const iscore::DocumentContext& ctx,
@@ -30,7 +30,7 @@ LocalDevice::LocalDevice(
     m_capas.canSerialize = false;
 
     auto& appplug = ctx.app.components.applicationPlugin<OSSIAApplicationPlugin>();
-    auto docplug = ctx.findPlugin<Ossia::LocalTree::DocumentPlugin>();
+    auto docplug = ctx.findPlugin<Engine::LocalTree::DocumentPlugin>();
     if(!docplug)
     {
         // There is no local device in this document
@@ -107,12 +107,12 @@ bool LocalDevice::reconnect()
 
 void LocalDevice::nodeCreated(const ossia::net::node_base & n)
 {
-    emit pathAdded(Ossia::convert::ToAddress(n));
+    emit pathAdded(Engine::ossia_to_iscore::ToAddress(n));
 }
 
 void LocalDevice::nodeRemoving(const ossia::net::node_base & n)
 {
-    emit pathRemoved(Ossia::convert::ToAddress(n));
+    emit pathRemoved(Engine::ossia_to_iscore::ToAddress(n));
 }
 
 void LocalDevice::nodeRenamed(const ossia::net::node_base& node, std::string old_name)
@@ -120,10 +120,10 @@ void LocalDevice::nodeRenamed(const ossia::net::node_base& node, std::string old
     if(!node.getParent())
         return;
 
-    State::Address currentAddress = Ossia::convert::ToAddress(*node.getParent());
+    State::Address currentAddress = Engine::ossia_to_iscore::ToAddress(*node.getParent());
     currentAddress.path.push_back(QString::fromStdString(old_name));
 
-    Device::AddressSettings as = Ossia::convert::ToAddressSettings(node);
+    Device::AddressSettings as = Engine::ossia_to_iscore::ToAddressSettings(node);
     as.name = QString::fromStdString(node.getName());
     emit pathUpdated(currentAddress, as);
 
@@ -140,7 +140,7 @@ Device::Node LocalDevice::refresh()
         iscore_device.reserve(ossia_children.size());
         for(const auto& node : ossia_children)
         {
-            iscore_device.push_back(Ossia::convert::ToDeviceExplorer(*node.get()));
+            iscore_device.push_back(Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
         }
 
         iscore_device.get<Device::DeviceSettings>().name = QString::fromStdString(m_dev->getName());

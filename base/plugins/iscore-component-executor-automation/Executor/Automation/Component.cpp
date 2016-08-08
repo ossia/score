@@ -32,10 +32,9 @@ class QObject;
 namespace ossia {
 class time_process;
 }  // namespace OSSIA
-namespace RecreateOnPlay {
+namespace Engine { namespace Execution {
 class ConstraintElement;
-
-}  // namespace RecreateOnPlay
+} }
 
 
 
@@ -44,12 +43,12 @@ namespace Automation
 namespace RecreateOnPlay
 {
 Component::Component(
-        ::RecreateOnPlay::ConstraintElement& parentConstraint,
+        ::Engine::Execution::ConstraintElement& parentConstraint,
         ::Automation::ProcessModel& element,
-        const ::RecreateOnPlay::Context& ctx,
+        const ::Engine::Execution::Context& ctx,
         const Id<iscore::Component>& id,
         QObject *parent):
-    ::RecreateOnPlay::ProcessComponent_T<Automation::ProcessModel, ossia::automation>{
+    ::Engine::Execution::ProcessComponent_T<Automation::ProcessModel, ossia::automation>{
           parentConstraint, element, ctx, id, "Executor::Automation::Component", parent},
     m_deviceList{ctx.devices.list()}
 {
@@ -61,7 +60,7 @@ void Component::recreate()
     auto addr = process().address();
     ossia::net::address_base* address{};
     ossia::net::node_base* node{};
-    Ossia::Protocols::OSSIADevice* dev{};
+    Engine::Network::OSSIADevice* dev{};
     ossia::net::device_base* ossia_dev{};
 
     m_ossia_curve.reset(); // It will be remade after.
@@ -78,7 +77,7 @@ void Component::recreate()
     if(dev_it == devices.end())
         goto curve_cleanup_label;
 
-    dev = dynamic_cast<Ossia::Protocols::OSSIADevice*>(*dev_it);
+    dev = dynamic_cast<Engine::Network::OSSIADevice*>(*dev_it);
     if(!dev)
         goto curve_cleanup_label;
 
@@ -86,7 +85,7 @@ void Component::recreate()
     if(!ossia_dev)
         goto curve_cleanup_label;
 
-    node = iscore::convert::findNodeFromPath(addr.path, *ossia_dev);
+    node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
     if(!node)
         goto curve_cleanup_label;
 
@@ -133,7 +132,7 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
     auto segt_data = process().curve().sortedSegments();
     if(segt_data.size() != 0)
     {
-        return iscore::convert::curve<double, Y_T>(scale_x, scale_y, segt_data, d);
+        return Engine::iscore_to_ossia::curve<double, Y_T>(scale_x, scale_y, segt_data, d);
     }
     else
     {

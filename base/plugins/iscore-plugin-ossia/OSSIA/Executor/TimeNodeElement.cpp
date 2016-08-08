@@ -10,7 +10,7 @@
 #include "ConstraintElement.hpp"
 #include <ossia/editor/state/state.hpp>
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 TimeNodeElement::TimeNodeElement(
         std::shared_ptr<ossia::time_node> ossia_tn,
@@ -26,7 +26,7 @@ TimeNodeElement::TimeNodeElement(
     {
         try
         {
-            auto expr = iscore::convert::expression(
+            auto expr = Engine::iscore_to_ossia::expression(
                             element.trigger()->expression(),
                             m_deviceList);
 
@@ -68,4 +68,4 @@ const Scenario::TimeNodeModel&TimeNodeElement::iscoreTimeNode() const
     return m_iscore_node;
 }
 
-}
+} }

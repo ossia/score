@@ -41,7 +41,7 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/OSSIAApplicationPlugin.hpp>
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 PlayContextMenu::PlayContextMenu(
         OSSIAApplicationPlugin& plug,
@@ -59,11 +59,11 @@ PlayContextMenu::PlayContextMenu(
         auto sm = focusedScenarioInterface(ctx);
         if (sm)
         {
-            auto& r_ctx = ctx.plugin<RecreateOnPlay::DocumentPlugin>().context();
+            auto& r_ctx = ctx.plugin<Engine::Execution::DocumentPlugin>().context();
 
             for(const StateModel* state : selectedElements(sm->getStates()))
             {
-                auto ossia_state = iscore::convert::state(*state, r_ctx);
+                auto ossia_state = Engine::iscore_to_ossia::state(*state, r_ctx);
                 ossia_state.launch();
             }
         }
@@ -73,9 +73,9 @@ PlayContextMenu::PlayContextMenu(
         this, [=] (const Scenario::ScenarioInterface& scenar, const Id<StateModel>& stateId)
     {
         const auto& ctx = m_ctx.documents.currentDocument()->context();
-        auto& r_ctx = ctx.plugin<RecreateOnPlay::DocumentPlugin>().context();
+        auto& r_ctx = ctx.plugin<Engine::Execution::DocumentPlugin>().context();
 
-        auto ossia_state = iscore::convert::state(
+        auto ossia_state = Engine::iscore_to_ossia::state(
                     scenar.state(stateId),
                     r_ctx);
         ossia_state.launch();
@@ -230,4 +230,4 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
     });
 }
 
-}
+} }

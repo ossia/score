@@ -1,7 +1,7 @@
 #include "ConstraintComponent.hpp"
 #include <iscore/tools/std/Algorithms.hpp>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

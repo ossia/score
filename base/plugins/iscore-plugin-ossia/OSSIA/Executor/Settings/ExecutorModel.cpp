@@ -1,6 +1,6 @@
 #include "ExecutorModel.hpp"
 #include <OSSIA/Executor/ClockManager/DefaultClockManager.hpp>
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 namespace Settings
 {
@@ -26,7 +26,7 @@ Model::Model(QSettings& set, const iscore::ApplicationContext& ctx):
 }
 
 std::unique_ptr<ClockManager> Model::makeClock(
-        const RecreateOnPlay::Context& ctx) const
+        const Engine::Execution::Context& ctx) const
 {
     auto it = m_clockFactories.find(m_Clock);
     return it != m_clockFactories.end()
@@ -37,4 +37,4 @@ std::unique_ptr<ClockManager> Model::makeClock(
 ISCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
 ISCORE_SETTINGS_PARAMETER_CPP(ClockManagerFactory::ConcreteFactoryKey, Model, Clock)
 }
-}
+} }

@@ -3,7 +3,7 @@
 #include <OSSIA/LocalTree/Scenario/MetadataParameters.hpp>
 #include <iscore/component/Component.hpp>
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

@@ -23,7 +23,7 @@
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 ConstraintElement::ConstraintElement(
         std::shared_ptr<ossia::time_constraint> ossia_cst,
@@ -35,8 +35,8 @@ ConstraintElement::ConstraintElement(
     m_ossia_constraint{ossia_cst},
     m_ctx{ctx}
 {
-    ossia::time_value min_duration(iscore::convert::time(m_iscore_constraint.duration.minDuration()));
-    ossia::time_value max_duration(iscore::convert::time(m_iscore_constraint.duration.maxDuration()));
+    ossia::time_value min_duration(Engine::iscore_to_ossia::time(m_iscore_constraint.duration.minDuration()));
+    ossia::time_value max_duration(Engine::iscore_to_ossia::time(m_iscore_constraint.duration.maxDuration()));
 
     m_ossia_constraint->setDurationMin(min_duration);
     m_ossia_constraint->setDurationMax(max_duration);
@@ -79,7 +79,7 @@ Scenario::ConstraintModel& ConstraintElement::iscoreConstraint() const
 
 void ConstraintElement::play(TimeValue t)
 {
-    m_offset = iscore::convert::time(t);
+    m_offset = Engine::iscore_to_ossia::time(t);
     m_iscore_constraint.duration.setPlayPercentage(0);
 
     auto start_state = m_ossia_constraint->getStartEvent().getState();
@@ -168,7 +168,7 @@ void ConstraintElement::constraintCallback(
         ossia::time_value date,
         const ossia::state& state)
 {
-    auto currentTime = Ossia::convert::time(date);
+    auto currentTime = Engine::ossia_to_iscore::time(date);
 
     auto& cstdur = m_iscore_constraint.duration;
     const auto& maxdur = cstdur.maxDuration();
@@ -178,4 +178,4 @@ void ConstraintElement::constraintCallback(
     else
         cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
 }
-}
+} }

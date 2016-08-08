@@ -8,7 +8,9 @@ class QLineEdit;
 class QSpinBox;
 class QWidget;
 
-namespace Ossia
+namespace Engine
+{
+namespace Network
 {
 class LocalProtocolSettingsWidget final :
         public Device::ProtocolSettingsWidget
@@ -21,4 +23,5 @@ class LocalProtocolSettingsWidget final :
         void setSettings(const Device::DeviceSettings& settings) override;
 };
 
+}
 }

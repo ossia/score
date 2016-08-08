@@ -9,9 +9,9 @@
 #include "MinuitDevice.hpp"
 #include <OSSIA/Protocols/Minuit/MinuitSpecificSettings.hpp>
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 MinuitDevice::MinuitDevice(const Device::DeviceSettings &settings):
     OwningOSSIADevice{settings}

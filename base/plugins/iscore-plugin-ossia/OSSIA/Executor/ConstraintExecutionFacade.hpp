@@ -1,7 +1,7 @@
 #pragma once
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 
 class ConstraintExecutionFacade
@@ -42,4 +42,5 @@ class ConstraintExecutionFacade
     Scenario::ConstraintModel& m_cst;
 };
 
+}
 }

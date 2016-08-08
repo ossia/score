@@ -3,7 +3,7 @@
 #include <OSSIA/LocalTree/LocalTreeComponent.hpp>
 #include <OSSIA/LocalTree/LocalTreeDocumentPlugin.hpp>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

@@ -10,9 +10,9 @@
 #include "OSCDevice.hpp"
 #include <OSSIA/Protocols/OSC/OSCSpecificSettings.hpp>
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 OSCDevice::OSCDevice(const Device::DeviceSettings &settings):
     OwningOSSIADevice{settings}

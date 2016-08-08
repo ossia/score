@@ -13,9 +13,9 @@ struct DeviceSettings;
 }  // namespace iscore
 struct VisitorVariant;
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 class MIDIProtocolFactory final :
         public Device::ProtocolFactory

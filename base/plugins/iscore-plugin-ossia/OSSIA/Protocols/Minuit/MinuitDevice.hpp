@@ -1,9 +1,9 @@
 #pragma once
 #include <OSSIA/Protocols/OSSIADevice.hpp>
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 class MinuitDevice final : public OwningOSSIADevice
 {

@@ -3,7 +3,7 @@
 #include <QFormLayout>
 #include <iscore/widgets/SignalUtils.hpp>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

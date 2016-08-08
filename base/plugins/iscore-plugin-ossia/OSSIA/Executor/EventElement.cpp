@@ -7,7 +7,7 @@
 #include <ossia/editor/expression/expression.hpp>
 #include "EventElement.hpp"
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 EventElement::EventElement(
         std::shared_ptr<ossia::time_event> event,
@@ -21,7 +21,7 @@ EventElement::EventElement(
 {
     try
     {
-        auto expr = iscore::convert::expression(m_iscore_event.condition(), m_deviceList);
+        auto expr = Engine::iscore_to_ossia::expression(m_iscore_event.condition(), m_deviceList);
         m_ossia_event->setExpression(std::move(expr));
     }
     catch(std::exception& e)
@@ -35,4 +35,4 @@ std::shared_ptr<ossia::time_event> EventElement::OSSIAEvent() const
 {
     return m_ossia_event;
 }
-}
+} }

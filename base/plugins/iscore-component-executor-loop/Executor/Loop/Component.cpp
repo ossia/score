@@ -35,15 +35,15 @@ namespace Loop
 namespace RecreateOnPlay
 {
 Component::Component(
-        ::RecreateOnPlay::ConstraintElement& parentConstraint,
+        ::Engine::Execution::ConstraintElement& parentConstraint,
         ::Loop::ProcessModel& element,
-        const ::RecreateOnPlay::Context& ctx,
+        const ::Engine::Execution::Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    ::RecreateOnPlay::ProcessComponent_T<Loop::ProcessModel, ossia::loop>{
+    ::Engine::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>{
           parentConstraint, element, ctx, id, "LoopComponent", parent}
 {
-    ossia::time_value main_duration(iscore::convert::time(element.constraint().duration.defaultDuration()));
+    ossia::time_value main_duration(Engine::iscore_to_ossia::time(element.constraint().duration.defaultDuration()));
 
     auto loop = new ossia::loop(main_duration,
           [] (ossia::time_value, ossia::time_value,
@@ -98,7 +98,7 @@ Component::Component(
     auto startEV = *startTN->timeEvents().begin();
     auto endEV = *endTN->timeEvents().begin();
 
-    using namespace ::RecreateOnPlay;
+    using namespace Engine::Execution;
     m_ossia_startTimeNode = new TimeNodeElement{startTN, element.startTimeNode(), system().devices.list(), this};
     m_ossia_endTimeNode = new TimeNodeElement{endTN, element.endTimeNode(), system().devices.list(), this};
 

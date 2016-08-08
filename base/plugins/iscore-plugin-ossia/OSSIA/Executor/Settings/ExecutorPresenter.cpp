@@ -7,7 +7,7 @@
 #include <QStyle>
 #include <iscore/command/SettingsCommand.hpp>
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 namespace Settings
 {
@@ -67,4 +67,4 @@ QIcon Presenter::settingsIcon()
 
 
 }
-}
+} }

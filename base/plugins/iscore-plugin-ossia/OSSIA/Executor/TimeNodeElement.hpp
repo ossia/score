@@ -17,7 +17,7 @@ namespace Scenario
 class TimeNodeModel;
 }
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 class ISCORE_PLUGIN_OSSIA_EXPORT TimeNodeElement final : public QObject
 {
@@ -38,4 +38,4 @@ class ISCORE_PLUGIN_OSSIA_EXPORT TimeNodeElement final : public QObject
         const Device::DeviceList& m_deviceList;
 };
 
-}
+} }

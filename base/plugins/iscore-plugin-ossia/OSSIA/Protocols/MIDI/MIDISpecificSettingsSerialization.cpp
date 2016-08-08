@@ -12,21 +12,21 @@ template <typename T> class Writer;
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom_impl(const Ossia::MIDISpecificSettings& n)
+void Visitor<Reader<DataStream>>::readFrom_impl(const Engine::Network::MIDISpecificSettings& n)
 {
     m_stream << n.io << n.endpoint << n.port;
     insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Ossia::MIDISpecificSettings& n)
+void Visitor<Writer<DataStream>>::writeTo(Engine::Network::MIDISpecificSettings& n)
 {
     m_stream >> n.io >> n.endpoint >> n.port;
     checkDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom_impl(const Ossia::MIDISpecificSettings& n)
+void Visitor<Reader<JSONObject>>::readFrom_impl(const Engine::Network::MIDISpecificSettings& n)
 {
     m_obj["IO"] = toJsonValue(n.io);
     m_obj["Endpoint"] = n.endpoint;
@@ -34,7 +34,7 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(const Ossia::MIDISpecificSetting
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Ossia::MIDISpecificSettings& n)
+void Visitor<Writer<JSONObject>>::writeTo(Engine::Network::MIDISpecificSettings& n)
 {
     fromJsonValue(m_obj["IO"], n.io);
     n.endpoint = m_obj["Endpoint"].toString();

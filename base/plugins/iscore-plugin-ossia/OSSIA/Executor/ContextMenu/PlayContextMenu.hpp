@@ -18,7 +18,7 @@ class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
 }
 class OSSIAApplicationPlugin;
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 class PlayContextMenu final : public QObject
 {
@@ -42,4 +42,4 @@ class PlayContextMenu final : public QObject
 
         QAction* m_playFromHere{};
 };
-}
+} }

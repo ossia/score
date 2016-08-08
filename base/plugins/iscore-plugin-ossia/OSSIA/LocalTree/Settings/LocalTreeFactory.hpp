@@ -5,7 +5,7 @@
 #include <OSSIA/LocalTree/Settings/LocalTreePresenter.hpp>
 #include <OSSIA/LocalTree/Settings/LocalTreeView.hpp>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

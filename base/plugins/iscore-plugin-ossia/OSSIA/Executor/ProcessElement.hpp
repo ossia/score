@@ -17,7 +17,7 @@ namespace ossia
 }
 
 // TODO RENAMEME
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 struct Context;
 class ConstraintElement;
@@ -69,8 +69,8 @@ struct ProcessComponent_T :
 class ISCORE_PLUGIN_OSSIA_EXPORT ProcessComponentFactory :
         public iscore::GenericComponentFactory<
             Process::ProcessModel,
-            RecreateOnPlay::DocumentPlugin,
-            RecreateOnPlay::ProcessComponentFactory>
+            Engine::Execution::DocumentPlugin,
+            Engine::Execution::ProcessComponentFactory>
 {
         ISCORE_ABSTRACT_FACTORY("d0f714de-c832-42d8-a605-60f5ffd0b7af")
     public:
@@ -103,6 +103,6 @@ class ProcessComponentFactory_T :
 using ProcessComponentFactoryList =
     iscore::GenericComponentFactoryList<
             Process::ProcessModel,
-            RecreateOnPlay::DocumentPlugin,
-            RecreateOnPlay::ProcessComponentFactory>;
-}
+            Engine::Execution::DocumentPlugin,
+            Engine::Execution::ProcessComponentFactory>;
+} }

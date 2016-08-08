@@ -31,12 +31,12 @@ namespace Mapping
 namespace RecreateOnPlay
 {
 Component::Component(
-        ::RecreateOnPlay::ConstraintElement& parentConstraint,
+        ::Engine::Execution::ConstraintElement& parentConstraint,
         ::Mapping::ProcessModel& element,
-        const ::RecreateOnPlay::Context& ctx,
+        const ::Engine::Execution::Context& ctx,
         const Id<iscore::Component>& id,
         QObject *parent):
-    ::RecreateOnPlay::ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>{parentConstraint, element, ctx, id, "MappingElement", parent},
+    ::Engine::Execution::ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>{parentConstraint, element, ctx, id, "MappingElement", parent},
     m_deviceList{ctx.devices.list()}
 {
     recreate();
@@ -60,7 +60,7 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl2()
     auto segt_data = process().curve().sortedSegments();
     if(segt_data.size() != 0)
     {
-        return iscore::convert::curve<X_T, Y_T>(scale_x, scale_y, segt_data, {});
+        return Engine::iscore_to_ossia::curve<X_T, Y_T>(scale_x, scale_y, segt_data, {});
     }
     else
     {
@@ -131,7 +131,7 @@ void Component::recreate()
         if(dev_it == devices.end())
             return {};
 
-        auto dev = dynamic_cast<Ossia::Protocols::OSSIADevice*>(*dev_it);
+        auto dev = dynamic_cast<Engine::Network::OSSIADevice*>(*dev_it);
         if(!dev)
             return {};
 
@@ -139,7 +139,7 @@ void Component::recreate()
         if(!ossia_dev)
             return {};
 
-        auto node = iscore::convert::findNodeFromPath(addr.path, *ossia_dev);
+        auto node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
         if(!node)
             return {};
 

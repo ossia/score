@@ -2,7 +2,9 @@
 #include <QString>
 #include <QMetaType>
 
-namespace Ossia
+namespace Engine
+{
+namespace Network
 {
 struct MinuitSpecificSettings
 {
@@ -11,4 +13,5 @@ struct MinuitSpecificSettings
     QString host;
 };
 }
-Q_DECLARE_METATYPE(Ossia::MinuitSpecificSettings)
+}
+Q_DECLARE_METATYPE(Engine::Network::MinuitSpecificSettings)

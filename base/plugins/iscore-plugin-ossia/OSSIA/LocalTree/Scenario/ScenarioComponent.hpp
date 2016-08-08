@@ -5,7 +5,7 @@
 #include <OSSIA/LocalTree/Scenario/StateComponent.hpp>
 #include <Scenario/Document/Components/ScenarioComponent.hpp>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {
@@ -60,6 +60,6 @@ using ScenarioComponent = HierarchicalScenarioComponent<
     TimeNode,
     State>;
 
-using ScenarioComponentFactory = Ossia::LocalTree::ProcessComponentFactory_T<ScenarioComponent>;
+using ScenarioComponentFactory = Engine::LocalTree::ProcessComponentFactory_T<ScenarioComponent>;
 }
 }

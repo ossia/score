@@ -3,7 +3,7 @@
 #include <OSSIA/Executor/Settings/ExecutorModel.hpp>
 class QSpinBox;
 class QComboBox;
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 namespace Settings
 {
@@ -33,4 +33,4 @@ class View :
 };
 
 }
-}
+} }

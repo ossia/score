@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

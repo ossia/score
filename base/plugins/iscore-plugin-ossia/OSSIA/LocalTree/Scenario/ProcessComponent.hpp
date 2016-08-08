@@ -7,7 +7,7 @@
 #include <iscore/plugins/customfactory/ModelFactory.hpp>
 
 // TODO clean me up
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

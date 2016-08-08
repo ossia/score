@@ -7,7 +7,9 @@
 
 class QWidget;
 
-namespace Ossia
+namespace Engine
+{
+namespace Network
 {
 LocalProtocolSettingsWidget::LocalProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -23,7 +25,7 @@ Device::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
     Device::DeviceSettings s;
     // TODO *** protocol is never set here. Check everywhere.! ***
     s.name = "i-score";
-    LocalSpecificSettings local;
+    Network::LocalSpecificSettings local;
     s.deviceSpecificSettings = QVariant::fromValue(local);
     return s;
 }
@@ -31,8 +33,9 @@ Device::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
 void
 LocalProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
 {
-    if(settings.deviceSpecificSettings.canConvert<LocalSpecificSettings>())
+    if(settings.deviceSpecificSettings.canConvert<Network::LocalSpecificSettings>())
     {
     }
+}
 }
 }

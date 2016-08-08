@@ -2,7 +2,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <OSSIA/LocalTree/LocalTreeComponent.hpp>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

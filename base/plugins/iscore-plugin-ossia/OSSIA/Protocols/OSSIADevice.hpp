@@ -14,9 +14,9 @@
 #include <vector>
 #include <functional>
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 
 class ISCORE_PLUGIN_OSSIA_EXPORT OSSIADevice :

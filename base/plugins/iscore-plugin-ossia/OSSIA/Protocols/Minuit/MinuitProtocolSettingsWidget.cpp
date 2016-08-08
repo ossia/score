@@ -13,7 +13,9 @@
 
 class QWidget;
 
-namespace Ossia
+namespace Engine
+{
+namespace Network
 {
 MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -78,7 +80,7 @@ Device::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
     Device::DeviceSettings s;
     s.name = m_deviceNameEdit->text();
 
-    MinuitSpecificSettings minuit;
+    Network::MinuitSpecificSettings minuit;
     minuit.host = m_localHostEdit->text();
     minuit.inputPort = m_portInputSBox->value();
     minuit.outputPort = m_portOutputSBox->value();
@@ -91,13 +93,14 @@ void
 MinuitProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
 {
     m_deviceNameEdit->setText(settings.name);
-    MinuitSpecificSettings minuit;
-    if(settings.deviceSpecificSettings.canConvert<MinuitSpecificSettings>())
+    Network::MinuitSpecificSettings minuit;
+    if(settings.deviceSpecificSettings.canConvert<Network::MinuitSpecificSettings>())
     {
-        minuit = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
+        minuit = settings.deviceSpecificSettings.value<Network::MinuitSpecificSettings>();
         m_portInputSBox->setValue(minuit.inputPort);
         m_portOutputSBox->setValue(minuit.outputPort);
         m_localHostEdit->setText(minuit.host);
     }
+}
 }
 }

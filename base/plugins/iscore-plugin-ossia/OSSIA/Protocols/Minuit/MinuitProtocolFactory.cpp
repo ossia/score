@@ -15,9 +15,9 @@ class ProtocolSettingsWidget;
 
 struct VisitorVariant;
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 QString MinuitProtocolFactory::prettyName() const
 {

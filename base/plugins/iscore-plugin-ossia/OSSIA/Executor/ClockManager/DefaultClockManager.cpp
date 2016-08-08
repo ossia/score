@@ -11,7 +11,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <ossia/editor/scenario/clock.hpp>
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 DefaultClockManager:: ~DefaultClockManager() = default;
 DefaultClockManager::DefaultClockManager(
@@ -26,7 +26,7 @@ DefaultClockManager::DefaultClockManager(
     ossia_cst.setCallback(makeDefaultCallback(bs));
 }
 ossia::time_constraint::ExecutionCallback DefaultClockManager::makeDefaultCallback(
-        RecreateOnPlay::BaseScenarioElement& bs)
+        Engine::Execution::BaseScenarioElement& bs)
 {
     auto& cst = *bs.baseConstraint();
     return [&bs,&iscore_cst=cst.iscoreConstraint()] (
@@ -36,7 +36,7 @@ ossia::time_constraint::ExecutionCallback DefaultClockManager::makeDefaultCallba
     {
         ossia::launch(state);
 
-        auto currentTime = Ossia::convert::time(date);
+        auto currentTime = Engine::ossia_to_iscore::time(date);
 
         auto& cstdur = iscore_cst.duration;
         const auto& maxdur = cstdur.maxDuration();
@@ -77,8 +77,8 @@ QString DefaultClockManagerFactory::prettyName() const
 }
 
 std::unique_ptr<ClockManager> DefaultClockManagerFactory::make(
-    const RecreateOnPlay::Context& ctx)
+    const Engine::Execution::Context& ctx)
 {
     return std::make_unique<DefaultClockManager>( ctx );
 }
-}
+} }

@@ -2,7 +2,9 @@
 
 #include <Explorer/Listening/ListeningHandlerFactory.hpp>
 
-namespace Ossia
+namespace Engine
+{
+namespace Execution
 {
 class PlayListeningHandlerFactory final :
         public Explorer::ListeningHandlerFactory
@@ -13,4 +15,5 @@ class PlayListeningHandlerFactory final :
                 const Explorer::DeviceDocumentPlugin& plug,
                 const iscore::DocumentContext& ctx) override;
 };
+}
 }

@@ -65,9 +65,9 @@ class NodeNotFoundException : public std::exception
         }
 };
 
-namespace iscore
+namespace Engine
 {
-namespace convert
+namespace iscore_to_ossia
 {
 
 ossia::net::node_base *createNodeFromPath(
@@ -208,9 +208,9 @@ void updateOSSIAAddress(
     }
 
     addr.setRepetitionFilter(ossia::repetition_filter(settings.repetitionFilter));
-    addr.setBoundingMode(iscore::convert::toBoundingMode(settings.clipMode));
+    addr.setBoundingMode(Engine::iscore_to_ossia::toBoundingMode(settings.clipMode));
 
-    addr.setValue(iscore::convert::toOSSIAValue(settings.value));
+    addr.setValue(Engine::iscore_to_ossia::toOSSIAValue(settings.value));
 
     addr.setDomain(
                 ossia::net::makeDomain(
@@ -328,13 +328,13 @@ optional<ossia::message> message(
     if(!dev.connected())
         return {};
 
-    if(auto casted_dev = dynamic_cast<const Ossia::Protocols::OSSIADevice*>(&dev))
+    if(auto casted_dev = dynamic_cast<const Engine::Network::OSSIADevice*>(&dev))
     {
         auto dev = casted_dev->getDevice();
         if(!dev)
             return {};
 
-        auto ossia_node = iscore::convert::findNodeFromPath(
+        auto ossia_node = Engine::iscore_to_ossia::findNodeFromPath(
                     mess.address.path,
                     *dev);
 
@@ -344,7 +344,7 @@ optional<ossia::message> message(
         if (!ossia_addr)
             return {};
 
-        auto val = iscore::convert::toOSSIAValue(mess.value);
+        auto val = Engine::iscore_to_ossia::toOSSIAValue(mess.value);
         if(!val.valid())
             return {};
 
@@ -370,7 +370,7 @@ static void visit_node(
 void state(
         ossia::state& parent,
         const Scenario::StateModel& iscore_state,
-        const RecreateOnPlay::Context& ctx
+        const Engine::Execution::Context& ctx
         )
 {
     auto& elts = parent;
@@ -400,10 +400,10 @@ void state(
 
 ossia::state state(
         const Scenario::StateModel& iscore_state,
-        const RecreateOnPlay::Context& ctx)
+        const Engine::Execution::Context& ctx)
 {
     ossia::state s;
-    iscore::convert::state(s, iscore_state, ctx);
+    Engine::iscore_to_ossia::state(s, iscore_state, ctx);
     return s;
 }
 
@@ -422,7 +422,7 @@ static ossia::Destination expressionAddress(
         throw NodeNotFoundException(addr);
     }
 
-    if(auto casted_dev = dynamic_cast<const Ossia::Protocols::OSSIADevice*>(&device))
+    if(auto casted_dev = dynamic_cast<const Engine::Network::OSSIADevice*>(&device))
     {
         auto dev = casted_dev->getDevice();
         if(!dev)

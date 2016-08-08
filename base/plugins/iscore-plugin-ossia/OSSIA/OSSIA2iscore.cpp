@@ -14,9 +14,9 @@
 #include <OSSIA/OSSIA2iscore.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
-namespace Ossia
+namespace Engine
 {
-namespace convert
+namespace ossia_to_iscore
 {
 
 Device::Domain ToDomain(const ossia::net::domain &domain)

@@ -2,7 +2,7 @@
 #include <iscore/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
 class QCheckBox;
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

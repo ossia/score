@@ -27,7 +27,7 @@
 #include <OSSIA/OSSIA2iscore.hpp>
 
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 BaseScenarioElement::BaseScenarioElement(
         BaseScenarioRefContainer element,
@@ -55,9 +55,9 @@ BaseScenarioElement::BaseScenarioElement(
                                 [] (auto&&...) {},
                                *main_start_event,
                                *main_end_event,
-                               iscore::convert::time(element.constraint().duration.defaultDuration()),
-                               iscore::convert::time(element.constraint().duration.minDuration()),
-                               iscore::convert::time(element.constraint().duration.maxDuration()));
+                               Engine::iscore_to_ossia::time(element.constraint().duration.defaultDuration()),
+                               Engine::iscore_to_ossia::time(element.constraint().duration.minDuration()),
+                               Engine::iscore_to_ossia::time(element.constraint().duration.maxDuration()));
 
     m_ossia_startTimeNode = new TimeNodeElement{main_start_node, element.startTimeNode(),  m_ctx.devices.list(), this};
     m_ossia_endTimeNode = new TimeNodeElement{main_end_node, element.endTimeNode(), m_ctx.devices.list(), this};
@@ -119,7 +119,7 @@ StateElement *BaseScenarioElement::endState() const
     return m_ossia_endState;
 }
 
-}
+} }
 
 BaseScenarioRefContainer::BaseScenarioRefContainer(
         Scenario::ConstraintModel& constraint,
