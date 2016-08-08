@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(iscore_plugin_recording LANGUAGES CXX)
 
-if(NOT TARGET iscore_plugin_ossia)
+if(NOT TARGET iscore_plugin_engine)
     return()
 endif()
 
@@ -34,6 +34,6 @@ set(SRCS
 )
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
-target_link_libraries(${PROJECT_NAME} PUBLIC iscore_plugin_ossia)
+target_link_libraries(${PROJECT_NAME} PUBLIC iscore_plugin_engine)
 
 setup_iscore_plugin(${PROJECT_NAME})

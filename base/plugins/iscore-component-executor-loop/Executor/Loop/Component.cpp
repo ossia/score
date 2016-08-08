@@ -4,7 +4,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <OSSIA/iscore2OSSIA.hpp>
+#include <Engine/iscore2OSSIA.hpp>
 #include <algorithm>
 #include <vector>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -13,15 +13,15 @@
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
 #include "Component.hpp"
-#include <OSSIA/Executor/ConstraintElement.hpp>
-#include <OSSIA/Executor/EventElement.hpp>
-#include <OSSIA/Executor/ProcessElement.hpp>
-#include <OSSIA/Executor/TimeNodeElement.hpp>
-#include <OSSIA/Executor/StateElement.hpp>
+#include <Engine/Executor/ConstraintElement.hpp>
+#include <Engine/Executor/EventElement.hpp>
+#include <Engine/Executor/ProcessElement.hpp>
+#include <Engine/Executor/TimeNodeElement.hpp>
+#include <Engine/Executor/StateElement.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 
-#include <OSSIA/Executor/ExecutorContext.hpp>
-#include <OSSIA/Executor/DocumentPlugin.hpp>
+#include <Engine/Executor/ExecutorContext.hpp>
+#include <Engine/Executor/DocumentPlugin.hpp>
 
 namespace Process { class ProcessModel; }
 class QObject;

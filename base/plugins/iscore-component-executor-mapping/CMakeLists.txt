@@ -6,7 +6,7 @@ set(DEPS
       iscore_lib_base
       iscore_lib_process
       iscore_lib_device
-      iscore_plugin_ossia
+      iscore_plugin_engine
       iscore_plugin_curve
       iscore_plugin_deviceexplorer
       iscore_plugin_mapping)

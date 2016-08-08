@@ -17,16 +17,16 @@
 #include <ossia/editor/value/value.hpp>
 #include <ossia/network/base/address.hpp>
 #include <ossia/network/base/node.hpp>
-#include <OSSIA/Protocols/OSSIADevice.hpp>
-#include <OSSIA/Executor/ProcessElement.hpp>
+#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Engine/Executor/ProcessElement.hpp>
 #include <State/Address.hpp>
-#include <OSSIA/CurveConversion.hpp>
+#include <Engine/CurveConversion.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <OSSIA/iscore2OSSIA.hpp>
+#include <Engine/iscore2OSSIA.hpp>
 
-#include <OSSIA/Executor/ExecutorContext.hpp>
-#include <OSSIA/Executor/DocumentPlugin.hpp>
+#include <Engine/Executor/ExecutorContext.hpp>
+#include <Engine/Executor/DocumentPlugin.hpp>
 namespace Process { class ProcessModel; }
 class QObject;
 namespace ossia {

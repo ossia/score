@@ -45,7 +45,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase> > iscore_plugin_record
 
 QStringList iscore_plugin_recording::required() const
 {
-    return {"Scenario", "OSSIA"};
+    return {"Scenario", "Engine"};
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_recording::make_commands()

@@ -13,7 +13,7 @@
 #include <iscore_plugin_js_commands_files.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
-#include <OSSIA/Executor/DocumentPlugin.hpp>
+#include <Engine/Executor/DocumentPlugin.hpp>
 
 iscore_plugin_js::iscore_plugin_js() :
     QObject {}

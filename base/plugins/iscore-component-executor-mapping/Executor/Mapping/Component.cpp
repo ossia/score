@@ -4,26 +4,26 @@
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/value/value.hpp>
 #include <ossia/network/base/node.hpp>
-#include <OSSIA/iscore2OSSIA.hpp>
+#include <Engine/iscore2OSSIA.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <OSSIA/Protocols/OSSIADevice.hpp>
-#include <OSSIA/Executor/ConstraintElement.hpp>
+#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Engine/Executor/ConstraintElement.hpp>
 
 
 #include <Curve/CurveModel.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
-#include <OSSIA/iscore2OSSIA.hpp>
-#include <OSSIA/CurveConversion.hpp>
-#include <OSSIA/Protocols/OSSIADevice.hpp>
+#include <Engine/iscore2OSSIA.hpp>
+#include <Engine/CurveConversion.hpp>
+#include <Engine/Protocols/OSSIADevice.hpp>
 #include <ossia/editor/curve/curve.hpp>
 #include <ossia/editor/curve/curve_segment.hpp>
-#include <OSSIA/Executor/ExecutorContext.hpp>
-#include <OSSIA/Executor/DocumentPlugin.hpp>
+#include <Engine/Executor/ExecutorContext.hpp>
+#include <Engine/Executor/DocumentPlugin.hpp>
 #include <ossia/network/base/address.hpp>
 
 namespace Mapping
