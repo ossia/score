@@ -16,7 +16,7 @@ namespace Scenario
 {
 class StateModel;
 }
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 struct Context;
 class ISCORE_PLUGIN_OSSIA_EXPORT StateElement final : public QObject
@@ -25,7 +25,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateElement final : public QObject
         StateElement(
                 const Scenario::StateModel& element,
                 ossia::time_event& root,
-                const RecreateOnPlay::Context& deviceList,
+                const Engine::Execution::Context& deviceList,
                 QObject* parent);
 
         const Scenario::StateModel& iscoreState() const;
@@ -34,6 +34,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT StateElement final : public QObject
         const Scenario::StateModel& m_iscore_state;
         ossia::time_event& m_root;
 
-        const RecreateOnPlay::Context& m_context;
+        const Engine::Execution::Context& m_context;
 };
-}
+} }

@@ -3,7 +3,7 @@
 #include <ossia/network/base/node.hpp>
 #include <iscore_plugin_ossia_export.h>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

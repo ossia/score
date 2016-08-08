@@ -19,7 +19,7 @@ class EventModel;
 class TimeNodeModel;
 class StateModel;
 }
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

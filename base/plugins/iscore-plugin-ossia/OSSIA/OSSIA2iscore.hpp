@@ -18,9 +18,9 @@ class node_base;
 }
 
 // Utility functions to convert from one node to another.
-namespace Ossia
+namespace Engine
 {
-namespace convert
+namespace ossia_to_iscore
 {
 
 

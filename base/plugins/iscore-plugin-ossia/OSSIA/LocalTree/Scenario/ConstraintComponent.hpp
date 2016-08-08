@@ -3,7 +3,7 @@
 #include <OSSIA/LocalTree/LocalTreeComponent.hpp>
 #include <Scenario/Document/Components/ConstraintComponent.hpp>
 #include <iscore/component/ComponentHierarchy.hpp>
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {
@@ -14,9 +14,9 @@ class ConstraintBase :
     public:
         using parent_t = Component<Scenario::GenericConstraintComponent<DocumentPlugin>>;
         using model_t = Process::ProcessModel;
-        using component_t = Ossia::LocalTree::ProcessComponent;
-        using component_factory_t = Ossia::LocalTree::ProcessComponentFactory;
-        using component_factory_list_t = Ossia::LocalTree::ProcessComponentFactoryList;
+        using component_t = Engine::LocalTree::ProcessComponent;
+        using component_factory_t = Engine::LocalTree::ProcessComponentFactory;
+        using component_factory_list_t = Engine::LocalTree::ProcessComponentFactoryList;
 
         ConstraintBase(
                 ossia::net::node_base& parent,

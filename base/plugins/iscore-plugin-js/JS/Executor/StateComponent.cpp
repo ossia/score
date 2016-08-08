@@ -41,7 +41,7 @@ void State::operator()()
     for(const auto& mess : messages)
     {
         qDebug() << mess.toString();
-        auto ossia_mess = iscore::convert::message(mess, m_devices);
+        auto ossia_mess = Engine::iscore_to_ossia::message(mess, m_devices);
         if(ossia_mess)
             ossia_mess->launch(); // TODO try to make a "state" convertible to message ?
     }
@@ -49,12 +49,12 @@ void State::operator()()
 
 //// Component ////
 StateProcessComponent::StateProcessComponent(
-        RecreateOnPlay::StateElement& parentConstraint,
+        Engine::Execution::StateElement& parentConstraint,
         JS::StateProcess& element,
-        const RecreateOnPlay::Context& ctx,
+        const Engine::Execution::Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    RecreateOnPlay::StateProcessComponent_T<JS::StateProcess>{
+    Engine::Execution::StateProcessComponent_T<JS::StateProcess>{
         parentConstraint, element, ctx, id, "JSStateComponent", parent}
 {
     m_ossia_state = ossia::custom_state{State{element.script(), ctx.devices}};
@@ -62,7 +62,7 @@ StateProcessComponent::StateProcessComponent(
 
 ossia::state_element StateProcessComponent::make(
         Process::StateProcess& proc,
-        const RecreateOnPlay::Context& ctx)
+        const Engine::Execution::Context& ctx)
 {
     return ossia::custom_state{State{static_cast<const JS::StateProcess&>(proc).script(), ctx.devices}};
 }

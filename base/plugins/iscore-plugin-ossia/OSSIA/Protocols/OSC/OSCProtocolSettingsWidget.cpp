@@ -15,7 +15,9 @@
 
 class QWidget;
 
-namespace Ossia
+namespace Engine
+{
+namespace Network
 {
 OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -85,7 +87,7 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
     Device::DeviceSettings s;
     s.name = m_deviceNameEdit->text();
 
-    OSCSpecificSettings osc;
+    Network::OSCSpecificSettings osc;
     osc.host = m_localHostEdit->text();
     osc.inputPort = m_portInputSBox->value();
     osc.outputPort = m_portOutputSBox->value();
@@ -110,10 +112,10 @@ OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
     m_namespaceFilePathEdit->setText(settings.at(4));
 */
     m_deviceNameEdit->setText(settings.name);
-    OSCSpecificSettings osc;
-    if (settings.deviceSpecificSettings.canConvert<OSCSpecificSettings>())
+    Network::OSCSpecificSettings osc;
+    if (settings.deviceSpecificSettings.canConvert<Network::OSCSpecificSettings>())
     {
-        osc = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
+        osc = settings.deviceSpecificSettings.value<Network::OSCSpecificSettings>();
         m_portInputSBox->setValue(osc.inputPort);
         m_portOutputSBox->setValue(osc.outputPort);
         m_localHostEdit->setText(osc.host);
@@ -131,5 +133,6 @@ OSCProtocolSettingsWidget::openFileDialog()
     {
         m_namespaceFilePathEdit->setText(fileName);
     }
+}
 }
 }

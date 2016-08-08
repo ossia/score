@@ -38,7 +38,7 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase> > iscore_plugin_record
                RecordedMessages::ProcessFactory>,
             FW<Process::InspectorWidgetDelegateFactory,
                RecordedMessages::InspectorFactory>,
-            FW<RecreateOnPlay::ProcessComponentFactory,
+            FW<Engine::Execution::ProcessComponentFactory,
                RecordedMessages::Executor::ComponentFactory>
             >>(ctx, key);
 }

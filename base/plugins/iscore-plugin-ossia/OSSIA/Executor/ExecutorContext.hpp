@@ -16,7 +16,7 @@ class ProcessModel;
 class StateProcess;
 }
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 class DocumentPlugin;
 class ProcessComponent;
@@ -27,21 +27,21 @@ class StateProcessComponentFactory;
 using ProcessComponentFactoryList =
     iscore::GenericComponentFactoryList<
             Process::ProcessModel,
-            RecreateOnPlay::DocumentPlugin,
-            RecreateOnPlay::ProcessComponentFactory>;
+            Engine::Execution::DocumentPlugin,
+            Engine::Execution::ProcessComponentFactory>;
 
 using StateProcessComponentFactoryList =
     iscore::GenericComponentFactoryList<
         Process::StateProcess,
-        RecreateOnPlay::DocumentPlugin,
-        RecreateOnPlay::StateProcessComponentFactory>;
+        Engine::Execution::DocumentPlugin,
+        Engine::Execution::StateProcessComponentFactory>;
 
 struct ISCORE_PLUGIN_OSSIA_EXPORT Context
 {
     const iscore::DocumentContext& doc;
-    const RecreateOnPlay::DocumentPlugin& sys;
+    const Engine::Execution::DocumentPlugin& sys;
     const Explorer::DeviceDocumentPlugin& devices;
-    const RecreateOnPlay::ProcessComponentFactoryList& processes;
-    const RecreateOnPlay::StateProcessComponentFactoryList& stateProcesses;
+    const Engine::Execution::ProcessComponentFactoryList& processes;
+    const Engine::Execution::StateProcessComponentFactoryList& stateProcesses;
 };
-}
+} }

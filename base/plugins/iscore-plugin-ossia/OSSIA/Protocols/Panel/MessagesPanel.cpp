@@ -4,7 +4,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QMenu>
-namespace Ossia
+namespace Engine
 {
 PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx):
     iscore::PanelDelegate{ctx},

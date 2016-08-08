@@ -20,11 +20,11 @@ namespace ossia {
 class time_process;
 class time_value;
 }  // namespace OSSIA
-namespace RecreateOnPlay {
+namespace Engine { namespace Execution {
 class EventElement;
 class StateElement;
 class TimeNodeElement;
-}  // namespace RecreateOnPlay
+} } // namespace RecreateOnPlay
 namespace Scenario {
 class ProcessModel;
 class EventModel;
@@ -38,7 +38,7 @@ namespace ossia
     class scenario;
 }
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 class ConstraintElement;
 
@@ -80,7 +80,7 @@ class ScenarioComponent final :
                 EventElement& ev,
                 ossia::time_event::Status newStatus);
 
-         void timeNodeCallback(RecreateOnPlay::TimeNodeElement* tn, ossia::time_value date);
+         void timeNodeCallback(Engine::Execution::TimeNodeElement* tn, ossia::time_value date);
 
     private:
         std::unordered_map<Id<Scenario::ConstraintModel>, ConstraintElement*> m_ossia_constraints;
@@ -97,6 +97,7 @@ class ScenarioComponent final :
         Scenario::ElementsProperties m_properties{};
 };
 
-using ScenarioComponentFactory = ::RecreateOnPlay::ProcessComponentFactory_T<ScenarioComponent>;
+using ScenarioComponentFactory = ::Engine::Execution::ProcessComponentFactory_T<ScenarioComponent>;
 
+}
 }

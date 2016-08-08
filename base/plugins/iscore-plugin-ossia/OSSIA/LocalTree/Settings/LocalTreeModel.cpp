@@ -1,7 +1,7 @@
 #include "LocalTreeModel.hpp"
 #include <QSettings>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

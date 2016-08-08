@@ -4,9 +4,9 @@
 #include <Curve/Segment/Power/PowerSegment.hpp>
 
 
-namespace iscore
+namespace Engine
 {
-namespace convert
+namespace iscore_to_ossia
 {
 
 template<typename Y_T>

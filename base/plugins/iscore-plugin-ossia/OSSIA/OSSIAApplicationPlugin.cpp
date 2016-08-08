@@ -109,8 +109,8 @@ bool OSSIAApplicationPlugin::handleStartup()
 
 void OSSIAApplicationPlugin::on_newDocument(iscore::Document* doc)
 {
-    doc->model().addPluginModel(new Ossia::LocalTree::DocumentPlugin{*doc, &doc->model()});
-    doc->model().addPluginModel(new RecreateOnPlay::DocumentPlugin{*doc, &doc->model()});
+    doc->model().addPluginModel(new Engine::LocalTree::DocumentPlugin{*doc, &doc->model()});
+    doc->model().addPluginModel(new Engine::Execution::DocumentPlugin{*doc, &doc->model()});
 }
 
 void OSSIAApplicationPlugin::on_loadedDocument(iscore::Document *doc)
@@ -160,7 +160,7 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
     auto doc = currentDocument();
     ISCORE_ASSERT(doc);
 
-    auto plugmodel = doc->context().findPlugin<RecreateOnPlay::DocumentPlugin>();
+    auto plugmodel = doc->context().findPlugin<Engine::Execution::DocumentPlugin>();
     if(!plugmodel)
         return;
 
@@ -190,7 +190,7 @@ void OSSIAApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, Tim
 
             m_clock = makeClock(plugmodel->context());
 
-            connect(plugmodel->baseScenario(), &RecreateOnPlay::BaseScenarioElement::finished,
+            connect(plugmodel->baseScenario(), &Engine::Execution::BaseScenarioElement::finished,
                     this, [=] () {
                 // TODO change the action icon state
                 on_stop();
@@ -218,7 +218,7 @@ void OSSIAApplicationPlugin::on_record(::TimeValue t)
     // TODO have a on_exit handler to properly stop the scenario.
     if(auto doc = currentDocument())
     {
-        auto plugmodel = doc->context().findPlugin<RecreateOnPlay::DocumentPlugin>();
+        auto plugmodel = doc->context().findPlugin<Engine::Execution::DocumentPlugin>();
         if(!plugmodel)
             return;
         auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc->model().modelDelegate());
@@ -239,7 +239,7 @@ void OSSIAApplicationPlugin::on_stop()
 {
     if(auto doc = currentDocument())
     {
-        auto plugmodel = doc->context().findPlugin<RecreateOnPlay::DocumentPlugin>();
+        auto plugmodel = doc->context().findPlugin<Engine::Execution::DocumentPlugin>();
         if(!plugmodel)
             return;
 
@@ -267,7 +267,7 @@ void OSSIAApplicationPlugin::on_init()
 {
     if(auto doc = currentDocument())
     {
-        auto plugmodel = doc->context().findPlugin<RecreateOnPlay::DocumentPlugin>();
+        auto plugmodel = doc->context().findPlugin<Engine::Execution::DocumentPlugin>();
         if(!plugmodel)
             return;
 
@@ -280,7 +280,7 @@ void OSSIAApplicationPlugin::on_init()
         if(explorer)
             explorer->deviceModel().listening().stop();
 
-        auto state = iscore::convert::state(scenar->baseScenario().startState(), plugmodel->context());
+        auto state = Engine::iscore_to_ossia::state(scenar->baseScenario().startState(), plugmodel->context());
         state.launch();
 
         // If we can we resume listening
@@ -293,9 +293,9 @@ void OSSIAApplicationPlugin::on_init()
     }
 }
 
-std::unique_ptr<RecreateOnPlay::ClockManager> OSSIAApplicationPlugin::makeClock(
-        const RecreateOnPlay::Context& ctx)
+std::unique_ptr<Engine::Execution::ClockManager> OSSIAApplicationPlugin::makeClock(
+        const Engine::Execution::Context& ctx)
 {
-    auto& s = context.settings<RecreateOnPlay::Settings::Model>();
+    auto& s = context.settings<Engine::Execution::Settings::Model>();
   return s.makeClock(ctx);
 }

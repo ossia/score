@@ -6,9 +6,9 @@ struct DeviceSettings;
 }  // namespace iscore
 
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 class MIDIDevice final : public OwningOSSIADevice
 {

@@ -7,7 +7,7 @@
 #include <QStyle>
 #include <iscore/command/SettingsCommand.hpp>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

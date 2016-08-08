@@ -4,7 +4,7 @@
 #include <OSSIA/OSSIA2iscore.hpp>
 
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {
@@ -49,7 +49,7 @@ template<typename GetProperty>
 struct GetPropertyWrapper : public BaseProperty
 {
         GetProperty property;
-        using converter_t = Ossia::convert::MatchingType<typename GetProperty::value_type>;
+        using converter_t = Engine::ossia_to_iscore::MatchingType<typename GetProperty::value_type>;
 
         GetPropertyWrapper(
                 ossia::net::node_base& param_node,
@@ -66,11 +66,11 @@ struct GetPropertyWrapper : public BaseProperty
                 auto newVal = converter_t::convert(property.get());
                 try
                 {
-                    auto res = Ossia::convert::ToValue(addr.cloneValue());
+                    auto res = Engine::ossia_to_iscore::ToValue(addr.cloneValue());
 
                     if(newVal != res)
                     {
-                        addr.pushValue(iscore::convert::toOSSIAValue(newVal));
+                        addr.pushValue(Engine::iscore_to_ossia::toOSSIAValue(newVal));
                     }
                 }
                 catch(...)
@@ -81,7 +81,7 @@ struct GetPropertyWrapper : public BaseProperty
             Qt::QueuedConnection);
 
             addr.setValue(
-                        iscore::convert::toOSSIAValue(
+                        Engine::iscore_to_ossia::toOSSIAValue(
                             converter_t::convert(
                                 property.get())));
         }
@@ -106,7 +106,7 @@ auto add_getProperty(
         PropChanged chgd,
         QObject* context)
 {
-    constexpr const auto t = Ossia::convert::MatchingType<T>::val;
+    constexpr const auto t = Engine::ossia_to_iscore::MatchingType<T>::val;
     auto node = n.createChild(name);
     ISCORE_ASSERT(node);
 

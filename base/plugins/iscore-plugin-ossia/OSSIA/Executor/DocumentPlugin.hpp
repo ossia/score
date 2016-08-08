@@ -18,7 +18,7 @@ namespace Scenario
 class BaseScenario;
 class ConstraintModel;
 }
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 
 class BaseScenarioElement;
@@ -43,4 +43,4 @@ class ISCORE_PLUGIN_OSSIA_EXPORT DocumentPlugin final : public iscore::DocumentP
         Context m_ctx;
         std::unique_ptr<BaseScenarioElement> m_base;
 };
-}
+} }

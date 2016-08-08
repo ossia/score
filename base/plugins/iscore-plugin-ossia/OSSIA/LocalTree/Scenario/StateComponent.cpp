@@ -1,7 +1,7 @@
 #include "StateComponent.hpp"
 #include "MetadataParameters.hpp"
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

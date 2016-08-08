@@ -52,7 +52,7 @@ ossia::state_element ProcessExecutor::state(double t)
 
     for(const auto& mess : messages)
     {
-        st.add(iscore::convert::message(mess, m_devices));
+        st.add(Engine::iscore_to_ossia::message(mess, m_devices));
     }
 
     // 3. Convert our value back
@@ -65,12 +65,12 @@ ossia::state_element ProcessExecutor::offset(ossia::time_value off)
 }
 
 Component::Component(
-        ::RecreateOnPlay::ConstraintElement& parentConstraint,
+        ::Engine::Execution::ConstraintElement& parentConstraint,
         JS::ProcessModel& element,
-        const ::RecreateOnPlay::Context& ctx,
+        const ::Engine::Execution::Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    ::RecreateOnPlay::ProcessComponent_T<JS::ProcessModel, ProcessExecutor>{parentConstraint, element, ctx, id, "JSComponent", parent}
+    ::Engine::Execution::ProcessComponent_T<JS::ProcessModel, ProcessExecutor>{parentConstraint, element, ctx, id, "JSComponent", parent}
 {
     m_ossia_process = new ProcessExecutor{ctx.devices};
     OSSIAProcess().setTickFun(element.script());

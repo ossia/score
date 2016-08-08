@@ -12,7 +12,7 @@ class node_base;
 }
 class QObject;
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

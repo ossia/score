@@ -26,7 +26,7 @@ namespace Scenario
 class ConstraintModel;
 }
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 struct Context;
 class DocumentPlugin;
@@ -67,7 +67,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ConstraintElement final : public QObject
 
         ossia::time_value m_offset;
 
-        const RecreateOnPlay::Context& m_ctx;
+        const Engine::Execution::Context& m_ctx;
 };
 
-}
+} }

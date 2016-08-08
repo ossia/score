@@ -2,7 +2,9 @@
 #include <QMetaType>
 #include <QJsonObject>
 
-namespace Ossia
+namespace Engine
+{
+namespace Network
 {
 struct MIDISpecificSettings
 {
@@ -11,5 +13,6 @@ struct MIDISpecificSettings
         int port{};
 };
 }
-Q_DECLARE_METATYPE(Ossia::MIDISpecificSettings)
+}
+Q_DECLARE_METATYPE(Engine::Network::MIDISpecificSettings)
 

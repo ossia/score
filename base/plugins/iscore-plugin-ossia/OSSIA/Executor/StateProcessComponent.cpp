@@ -1,7 +1,7 @@
 #include "StateProcessComponent.hpp"
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 StateProcessComponent::~StateProcessComponent() = default;
 StateProcessComponentFactory::~StateProcessComponentFactory() = default;
-}
+} }

@@ -1,7 +1,7 @@
 #include "ProcessComponent.hpp"
 #include <Process/Process.hpp>
 
-Ossia::LocalTree::ProcessComponent::ProcessComponent(
+Engine::LocalTree::ProcessComponent::ProcessComponent(
         ossia::net::node_base& parentNode,
         Process::ProcessModel& proc,
         DocumentPlugin& doc,
@@ -13,12 +13,12 @@ Ossia::LocalTree::ProcessComponent::ProcessComponent(
 {
 }
 
-Ossia::LocalTree::ProcessComponent::~ProcessComponent()
+Engine::LocalTree::ProcessComponent::~ProcessComponent()
 {
 
 }
 
-Ossia::LocalTree::ProcessComponentFactory::~ProcessComponentFactory()
+Engine::LocalTree::ProcessComponentFactory::~ProcessComponentFactory()
 {
 
 }

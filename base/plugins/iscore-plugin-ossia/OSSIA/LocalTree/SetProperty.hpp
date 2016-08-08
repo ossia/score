@@ -3,7 +3,7 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {
@@ -21,10 +21,10 @@ struct SetPropertyWrapper : public BaseCallbackWrapper
             setFun{prop}
         {
             callbackIt = addr.add_callback([=] (const ossia::value& v) {
-                setFun(Ossia::convert::ToValue(v));
+                setFun(Engine::ossia_to_iscore::ToValue(v));
             });
 
-            addr.setValue(typename Ossia::convert::MatchingType<T>::type{});
+            addr.setValue(typename Engine::ossia_to_iscore::MatchingType<T>::type{});
         }
 };
 
@@ -40,7 +40,7 @@ auto make_setProperty(
 template<typename T, typename Callback>
 auto add_setProperty(ossia::net::node_base& n, const std::string& name, Callback cb)
 {
-    constexpr const auto t = Ossia::convert::MatchingType<T>::val;
+    constexpr const auto t = Engine::ossia_to_iscore::MatchingType<T>::val;
     auto node = n.createChild(name);
     ISCORE_ASSERT(node);
 

@@ -11,10 +11,10 @@
 #include <State/Value.hpp>
 
 #include <iscore_plugin_ossia_export.h>
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 struct Context;
-}
+} }
 namespace Scenario
 {
 class StateModel;
@@ -42,9 +42,9 @@ namespace State
 struct Message;
 }  // namespace iscore
 
-namespace iscore
+namespace Engine
 {
-namespace convert
+namespace iscore_to_ossia
 {
 // Gets a node from an address in a device.
 // Creates it if necessary.
@@ -86,10 +86,10 @@ ISCORE_PLUGIN_OSSIA_EXPORT inline ossia::time_value time(const TimeValue& t)
 ISCORE_PLUGIN_OSSIA_EXPORT void state(
         ossia::state& ossia_state,
         const Scenario::StateModel& iscore_state,
-        const RecreateOnPlay::Context& ctx);
+        const Engine::Execution::Context& ctx);
 ISCORE_PLUGIN_OSSIA_EXPORT ossia::state state(
         const Scenario::StateModel& iscore_state,
-        const RecreateOnPlay::Context& ctx);
+        const Engine::Execution::Context& ctx);
 
 
 ISCORE_PLUGIN_OSSIA_EXPORT optional<ossia::message> message(

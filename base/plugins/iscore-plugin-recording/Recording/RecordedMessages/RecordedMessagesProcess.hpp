@@ -17,10 +17,10 @@ namespace Device
 {
 class DeviceList;
 }
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 class ConstraintElement;
-}
+} }
 
 namespace RecordedMessages
 {
@@ -46,19 +46,19 @@ class ProcessExecutor final :
 
 
 class Component final :
-        public ::RecreateOnPlay::ProcessComponent_T<RecordedMessages::ProcessModel, ProcessExecutor>
+        public ::Engine::Execution::ProcessComponent_T<RecordedMessages::ProcessModel, ProcessExecutor>
 {
         COMPONENT_METADATA("bfcdcd2a-be3c-4bb1-bcca-240a6435b06b")
     public:
         Component(
-                RecreateOnPlay::ConstraintElement& parentConstraint,
+                Engine::Execution::ConstraintElement& parentConstraint,
                 RecordedMessages::ProcessModel& element,
-                const RecreateOnPlay::Context& ctx,
+                const Engine::Execution::Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
 };
 
-using ComponentFactory = ::RecreateOnPlay::ProcessComponentFactory_T<Component>;
+using ComponentFactory = ::Engine::Execution::ProcessComponentFactory_T<Component>;
 
 }
 }

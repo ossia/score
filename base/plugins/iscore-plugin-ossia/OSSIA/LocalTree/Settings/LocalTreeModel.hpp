@@ -2,7 +2,7 @@
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {

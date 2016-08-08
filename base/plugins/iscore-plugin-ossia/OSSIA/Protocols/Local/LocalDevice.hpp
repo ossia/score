@@ -4,9 +4,9 @@
 #include <ossia/network/base/node.hpp>
 #include <nano_observer.hpp>
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 class LocalDevice final :
         public OSSIADevice,

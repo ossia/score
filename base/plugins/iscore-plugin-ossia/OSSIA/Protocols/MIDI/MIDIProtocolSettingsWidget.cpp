@@ -14,7 +14,9 @@
 #include "MIDISpecificSettings.hpp"
 class QWidget;
 
-namespace Ossia
+namespace Engine
+{
+namespace Network
 {
 MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -74,12 +76,12 @@ Device::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 
     // TODO *** Initialize with ProtocolFactory.defaultSettings().
     Device::DeviceSettings s;
-    MIDISpecificSettings midi;
+    Network::MIDISpecificSettings midi;
     s.name = m_name->text();
 
     midi.io = m_inButton->isChecked()
-              ? MIDISpecificSettings::IO::In
-              : MIDISpecificSettings::IO::Out;
+              ? Network::MIDISpecificSettings::IO::In
+              : Network::MIDISpecificSettings::IO::Out;
     midi.endpoint = m_deviceCBox->currentText();
     midi.port = m_deviceCBox->currentData().toInt();
 
@@ -110,10 +112,10 @@ MIDIProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
         m_deviceCBox->setCurrentIndex(index);
     }
 
-    if (settings.deviceSpecificSettings.canConvert<MIDISpecificSettings>())
+    if (settings.deviceSpecificSettings.canConvert<Network::MIDISpecificSettings>())
     {
-        MIDISpecificSettings midi = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
-        if(midi.io == MIDISpecificSettings::IO::In)
+        Network::MIDISpecificSettings midi = settings.deviceSpecificSettings.value<Network::MIDISpecificSettings>();
+        if(midi.io == Network::MIDISpecificSettings::IO::In)
         {
             m_inButton->setChecked(true);
         }
@@ -157,5 +159,6 @@ void
 MIDIProtocolSettingsWidget::updateOutputDevices()
 {
     updateDevices(ossia::net::midi::midi_info::Type::RemoteOutput);
+}
 }
 }

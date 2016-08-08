@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 namespace Settings
 {
@@ -21,4 +21,4 @@ class Presenter :
 };
 
 }
-}
+} }

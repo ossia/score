@@ -20,14 +20,14 @@ namespace Automation
 namespace RecreateOnPlay
 {
 class Component final :
-        public ::RecreateOnPlay::ProcessComponent_T<Automation::ProcessModel, ossia::automation>
+        public ::Engine::Execution::ProcessComponent_T<Automation::ProcessModel, ossia::automation>
 {
         COMPONENT_METADATA("f759eacd-5a67-4627-bbe8-c649e0f9b6c5")
     public:
         Component(
-                ::RecreateOnPlay::ConstraintElement& parentConstraint,
+                ::Engine::Execution::ConstraintElement& parentConstraint,
                 Automation::ProcessModel& element,
-                const ::RecreateOnPlay::Context& ctx,
+                const ::Engine::Execution::Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
@@ -44,8 +44,8 @@ class Component final :
 
         const Device::DeviceList& m_deviceList;
 };
-using ComponentFactory = ::RecreateOnPlay::ProcessComponentFactory_T<Component>;
+using ComponentFactory = ::Engine::Execution::ProcessComponentFactory_T<Component>;
 }
 }
 
-ISCORE_COMPONENT_FACTORY(RecreateOnPlay::ProcessComponentFactory, Automation::RecreateOnPlay::ComponentFactory)
+ISCORE_COMPONENT_FACTORY(Engine::Execution::ProcessComponentFactory, Automation::RecreateOnPlay::ComponentFactory)

@@ -5,7 +5,7 @@
 
 #include <Process/TimeValue.hpp>
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 struct Context;
 class BaseScenarioElement;
@@ -30,7 +30,7 @@ class BaseScenarioElement;
 class ISCORE_PLUGIN_OSSIA_EXPORT ClockManager
 {
     public:
-        ClockManager(const RecreateOnPlay::Context& ctx): context{ctx} { }
+        ClockManager(const Engine::Execution::Context& ctx): context{ctx} { }
         virtual ~ClockManager();
 
         const Context& context;
@@ -58,7 +58,7 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ClockManagerFactory :
 
             virtual QString prettyName() const = 0;
             virtual std::unique_ptr<ClockManager> make(
-                const RecreateOnPlay::Context& ctx) = 0;
+                const Engine::Execution::Context& ctx) = 0;
 };
 
 class ISCORE_PLUGIN_OSSIA_EXPORT ClockManagerFactoryList final :
@@ -67,6 +67,6 @@ class ISCORE_PLUGIN_OSSIA_EXPORT ClockManagerFactoryList final :
     public:
         using object_type = ClockManager;
 };
-}
+} }
 
-Q_DECLARE_METATYPE(RecreateOnPlay::ClockManagerFactory::ConcreteFactoryKey)
+Q_DECLARE_METATYPE(Engine::Execution::ClockManagerFactory::ConcreteFactoryKey)

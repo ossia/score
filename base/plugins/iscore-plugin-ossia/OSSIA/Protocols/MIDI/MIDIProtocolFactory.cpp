@@ -16,9 +16,9 @@ class ProtocolSettingsWidget;
 struct VisitorVariant;
 
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 QString MIDIProtocolFactory::prettyName() const
 {

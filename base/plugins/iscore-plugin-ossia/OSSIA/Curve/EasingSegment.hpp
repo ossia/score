@@ -5,7 +5,7 @@
 #include <iscore_plugin_ossia_export.h>
 
 
-namespace Ossia
+namespace Engine
 {
 namespace EasingCurve
 {
@@ -16,29 +16,29 @@ class EasingSegment;
 }
 }
 template<typename T>
-struct TSerializer<DataStream, void, Ossia::EasingCurve::EasingSegment<T>>
+struct TSerializer<DataStream, void, Engine::EasingCurve::EasingSegment<T>>
 {
         static void readFrom(
                 DataStream::Serializer& s,
-                const Ossia::EasingCurve::EasingSegment<T>& obj);
+                const Engine::EasingCurve::EasingSegment<T>& obj);
         static void writeTo(
                 DataStream::Deserializer& s,
-                Ossia::EasingCurve::EasingSegment<T>& obj);
+                Engine::EasingCurve::EasingSegment<T>& obj);
 };
 
 template<typename T>
-struct TSerializer<JSONObject, Ossia::EasingCurve::EasingSegment<T>>
+struct TSerializer<JSONObject, Engine::EasingCurve::EasingSegment<T>>
 {
         static void readFrom(
                 JSONObject::Serializer& s,
-                const Ossia::EasingCurve::EasingSegment<T>& obj);
+                const Engine::EasingCurve::EasingSegment<T>& obj);
         static void writeTo(
                 JSONObject::Deserializer& s,
-                Ossia::EasingCurve::EasingSegment<T>& obj);
+                Engine::EasingCurve::EasingSegment<T>& obj);
 };
 
 
-namespace Ossia
+namespace Engine
 {
 namespace EasingCurve
 {
@@ -187,99 +187,99 @@ using Segment_elasticInOut = EasingSegment<ossia::easing::elasticInOut<double>>;
 
 template<>
 inline void Visitor<Reader<DataStream>>::readFrom_impl(
-        const Ossia::EasingCurve::EasingData& segmt)
+        const Engine::EasingCurve::EasingData& segmt)
 {
 }
 
 template<>
 inline void Visitor<Writer<DataStream>>::writeTo(
-        Ossia::EasingCurve::EasingData& segmt)
+        Engine::EasingCurve::EasingData& segmt)
 {
 }
 
 template<>
 inline void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Ossia::EasingCurve::EasingData& segmt)
+        const Engine::EasingCurve::EasingData& segmt)
 {
 }
 
 template<>
 inline void Visitor<Writer<JSONObject>>::writeTo(
-        Ossia::EasingCurve::EasingData& segmt)
+        Engine::EasingCurve::EasingData& segmt)
 {
 }
 
 
 template<typename T>
-void TSerializer<DataStream, void, Ossia::EasingCurve::EasingSegment<T>>::readFrom(
+void TSerializer<DataStream, void, Engine::EasingCurve::EasingSegment<T>>::readFrom(
         DataStream::Serializer& s,
-        const Ossia::EasingCurve::EasingSegment<T>& obj)
+        const Engine::EasingCurve::EasingSegment<T>& obj)
 {
 
 }
 template<typename T>
-void TSerializer<DataStream, void, Ossia::EasingCurve::EasingSegment<T>>::writeTo(
+void TSerializer<DataStream, void, Engine::EasingCurve::EasingSegment<T>>::writeTo(
         DataStream::Deserializer& s,
-        Ossia::EasingCurve::EasingSegment<T>& obj)
+        Engine::EasingCurve::EasingSegment<T>& obj)
 {
 
 }
 
 template<typename T>
-void TSerializer<JSONObject, Ossia::EasingCurve::EasingSegment<T>>::readFrom(
+void TSerializer<JSONObject, Engine::EasingCurve::EasingSegment<T>>::readFrom(
         JSONObject::Serializer& s,
-        const Ossia::EasingCurve::EasingSegment<T>& obj)
+        const Engine::EasingCurve::EasingSegment<T>& obj)
 {
 
 }
 template<typename T>
-void TSerializer<JSONObject, Ossia::EasingCurve::EasingSegment<T>>::writeTo(
+void TSerializer<JSONObject, Engine::EasingCurve::EasingSegment<T>>::writeTo(
         JSONObject::Deserializer& s,
-        Ossia::EasingCurve::EasingSegment<T>& obj)
+        Engine::EasingCurve::EasingSegment<T>& obj)
 {
 
 }
 
 
 
-Q_DECLARE_METATYPE(Ossia::EasingCurve::EasingData)
+Q_DECLARE_METATYPE(Engine::EasingCurve::EasingData)
 
 // cat easings | xargs -L1 bash -c 'echo $(uuidgen)' | paste - easings | sed 's/\t/ /' > easings2
-// cat easings2 | awk '{ print "CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_" $2 ">, \"" $1 "\", \"" $2 "\", \"" $2 "\")";} '
+// cat easings2 | awk '{ print "CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_" $2 ">, \"" $1 "\", \"" $2 "\", \"" $2 "\")";} '
 
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_backIn, "fb5cb6c1-47fd-497c-9d69-7a87adbaf3b3", "backIn", "backIn")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_backIn, "fb5cb6c1-47fd-497c-9d69-7a87adbaf3b3", "backIn", "backIn")
 
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_backOut, "0edbd8f5-67c2-41f2-ae80-f014e5c24aa6", "backOut", "backOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_backInOut, "3825c351-698d-4930-9862-28c5f7f51c61", "backInOut", "backInOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_bounceIn, "51fafa98-aa8e-48f0-adae-c21c3eeb63ca", "bounceIn", "bounceIn")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_bounceOut, "75ce6961-22b3-4a9e-b989-3131098bd092", "bounceOut", "bounceOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_bounceInOut, "30d5c3dc-5a8c-44a8-95b4-67ca3ff5088b", "bounceInOut", "bounceInOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_quadraticIn, "a2f38b24-f2c9-42d7-bb5e-a51a821d2ffd", "quadraticIn", "quadraticIn")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_quadraticOut, "9717560b-fae1-4035-afbf-031f3581d132", "quadraticOut", "quadraticOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_quadraticInOut, "fc333d55-064a-4af8-b4a8-23fe16e80ecc", "quadraticInOut", "quadraticInOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_cubicIn, "b6bddf8b-b2cb-46d6-8d90-31b3029317e8", "cubicIn", "cubicIn")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_cubicOut, "ff9a7726-2d8f-43f2-a95c-e395fdbd5aa9", "cubicOut", "cubicOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_cubicInOut, "21556d2a-ac8a-4acf-bf42-5eca9795047c", "cubicInOut", "cubicInOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_quarticIn, "72678775-535f-438e-b4bb-1077af3fab99", "quarticIn", "quarticIn")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_quarticOut, "bd6f4867-2c30-4267-aa97-0ed767883d22", "quarticOut", "quarticOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_quarticInOut, "93cac01a-dedc-4cb4-ad2d-d81b31e6187c", "quarticInOut", "quarticInOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_quinticIn, "cd08eabe-51a4-429e-8740-c097c1b34b83", "quinticIn", "quinticIn")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_quinticOut, "cb6e340b-faee-440c-8ef5-05ec6f7f4791", "quinticOut", "quinticOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_quinticInOut, "b2cce6a7-c651-429f-ae46-d322991e92d4", "quinticInOut", "quinticInOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_sineIn, "e8a44b49-4d91-4066-8e25-7669d8927792", "sineIn", "sineIn")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_sineOut, "e5d2dea4-061e-4139-8da2-1d21b0414273", "sineOut", "sineOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_sineInOut, "61bd1bb4-353b-435f-8b4c-ed61ed43bcf9", "sineInOut", "sineInOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_circularIn, "45b06858-2e16-4cdc-82cc-70f8545bab03", "circularIn", "circularIn")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_circularOut, "32a67b2a-61f5-49cd-b1c4-37419350fca8", "circularOut", "circularOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_circularInOut, "b70a58f2-2fff-4fda-b1fa-cad6c7c11b88", "circularInOut", "circularInOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_exponentialIn, "8db88491-bed5-4a0d-bcb6-45811c5a7722", "exponentialIn", "exponentialIn")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_exponentialOut, "40f17c1a-9611-4468-b114-c6338fb0fbb7", "exponentialOut", "exponentialOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_exponentialInOut, "46224c2f-f60d-4f60-93b8-a0ebe6931d00", "exponentialInOut", "exponentialInOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_elasticIn, "6e301164-e079-466b-a518-12fe89048283", "elasticIn", "elasticIn")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_elasticOut, "1f1fddd4-7a23-4c15-a3ec-6e88e9787a97", "elasticOut", "elasticOut")
-CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Ossia::EasingCurve::Segment_elasticInOut, "8bad1486-b616-4ebe-aa5e-844162545f8b", "elasticInOut", "elasticInOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_backOut, "0edbd8f5-67c2-41f2-ae80-f014e5c24aa6", "backOut", "backOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_backInOut, "3825c351-698d-4930-9862-28c5f7f51c61", "backInOut", "backInOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_bounceIn, "51fafa98-aa8e-48f0-adae-c21c3eeb63ca", "bounceIn", "bounceIn")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_bounceOut, "75ce6961-22b3-4a9e-b989-3131098bd092", "bounceOut", "bounceOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_bounceInOut, "30d5c3dc-5a8c-44a8-95b4-67ca3ff5088b", "bounceInOut", "bounceInOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_quadraticIn, "a2f38b24-f2c9-42d7-bb5e-a51a821d2ffd", "quadraticIn", "quadraticIn")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_quadraticOut, "9717560b-fae1-4035-afbf-031f3581d132", "quadraticOut", "quadraticOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_quadraticInOut, "fc333d55-064a-4af8-b4a8-23fe16e80ecc", "quadraticInOut", "quadraticInOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_cubicIn, "b6bddf8b-b2cb-46d6-8d90-31b3029317e8", "cubicIn", "cubicIn")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_cubicOut, "ff9a7726-2d8f-43f2-a95c-e395fdbd5aa9", "cubicOut", "cubicOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_cubicInOut, "21556d2a-ac8a-4acf-bf42-5eca9795047c", "cubicInOut", "cubicInOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_quarticIn, "72678775-535f-438e-b4bb-1077af3fab99", "quarticIn", "quarticIn")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_quarticOut, "bd6f4867-2c30-4267-aa97-0ed767883d22", "quarticOut", "quarticOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_quarticInOut, "93cac01a-dedc-4cb4-ad2d-d81b31e6187c", "quarticInOut", "quarticInOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_quinticIn, "cd08eabe-51a4-429e-8740-c097c1b34b83", "quinticIn", "quinticIn")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_quinticOut, "cb6e340b-faee-440c-8ef5-05ec6f7f4791", "quinticOut", "quinticOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_quinticInOut, "b2cce6a7-c651-429f-ae46-d322991e92d4", "quinticInOut", "quinticInOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_sineIn, "e8a44b49-4d91-4066-8e25-7669d8927792", "sineIn", "sineIn")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_sineOut, "e5d2dea4-061e-4139-8da2-1d21b0414273", "sineOut", "sineOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_sineInOut, "61bd1bb4-353b-435f-8b4c-ed61ed43bcf9", "sineInOut", "sineInOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_circularIn, "45b06858-2e16-4cdc-82cc-70f8545bab03", "circularIn", "circularIn")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_circularOut, "32a67b2a-61f5-49cd-b1c4-37419350fca8", "circularOut", "circularOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_circularInOut, "b70a58f2-2fff-4fda-b1fa-cad6c7c11b88", "circularInOut", "circularInOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_exponentialIn, "8db88491-bed5-4a0d-bcb6-45811c5a7722", "exponentialIn", "exponentialIn")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_exponentialOut, "40f17c1a-9611-4468-b114-c6338fb0fbb7", "exponentialOut", "exponentialOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_exponentialInOut, "46224c2f-f60d-4f60-93b8-a0ebe6931d00", "exponentialInOut", "exponentialInOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_elasticIn, "6e301164-e079-466b-a518-12fe89048283", "elasticIn", "elasticIn")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_elasticOut, "1f1fddd4-7a23-4c15-a3ec-6e88e9787a97", "elasticOut", "elasticOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_OSSIA_EXPORT, Engine::EasingCurve::Segment_elasticInOut, "8bad1486-b616-4ebe-aa5e-844162545f8b", "elasticInOut", "elasticInOut")
 
-namespace Ossia { namespace EasingCurve {
+namespace Engine { namespace EasingCurve {
 DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_backIn, Segment_backIn)
 DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_backOut, Segment_backOut)
 DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_backInOut, Segment_backInOut)

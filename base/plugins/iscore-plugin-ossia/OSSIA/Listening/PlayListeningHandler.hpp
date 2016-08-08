@@ -5,19 +5,17 @@ namespace Device
 {
 class DeviceList;
 }
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 class DocumentPlugin;
-}
-namespace Ossia
-{
+
 class PlayListeningHandler final : public Explorer::ListeningHandler
 {
-        const RecreateOnPlay::DocumentPlugin& m_executor;
+        const Engine::Execution::DocumentPlugin& m_executor;
 
     public:
         PlayListeningHandler(
-                const RecreateOnPlay::DocumentPlugin& docpl);
+                const Engine::Execution::DocumentPlugin& docpl);
 
     private:
         void setListening(
@@ -29,4 +27,5 @@ class PlayListeningHandler final : public Explorer::ListeningHandler
                 Device::DeviceInterface& dev,
                 const std::vector<State::Address>& v) override;
 };
+}
 }

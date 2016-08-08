@@ -20,12 +20,12 @@ class BaseScenario;
 class ScenarioInterface;
 }
 class DeviceList;
-namespace RecreateOnPlay {
+namespace Engine { namespace Execution {
 class ConstraintElement;
 class EventElement;
 class StateElement;
 class TimeNodeElement;
-}  // namespace RecreateOnPlay
+} }
 
 
 // MOVEME
@@ -78,7 +78,7 @@ class BaseScenarioRefContainer
         Scenario::TimeNodeModel& m_endNode;
 };
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 struct Context;
 class ISCORE_PLUGIN_OSSIA_EXPORT BaseScenarioElement final : public QObject
@@ -117,4 +117,5 @@ class ISCORE_PLUGIN_OSSIA_EXPORT BaseScenarioElement final : public QObject
         StateElement* m_ossia_startState{};
         StateElement* m_ossia_endState{};
 };
+}
 }

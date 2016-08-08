@@ -3,7 +3,7 @@
 #include <QFormLayout>
 #include <iscore/widgets/SignalUtils.hpp>
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 namespace Settings
 {
@@ -59,4 +59,4 @@ QWidget *View::getWidget()
 }
 
 }
-}
+} }

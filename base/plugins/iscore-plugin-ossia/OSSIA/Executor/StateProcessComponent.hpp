@@ -11,7 +11,7 @@
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 #include <ossia/editor/state/state_element.hpp>
 #include <iscore/plugins/customfactory/ModelFactory.hpp>
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponent :
         public Scenario::GenericStateProcessComponent<const Context>
@@ -46,8 +46,8 @@ using StateProcessComponent_T = Scenario::GenericProcessComponent_T<StateProcess
 class ISCORE_PLUGIN_OSSIA_EXPORT StateProcessComponentFactory :
         public iscore::GenericComponentFactory<
             Process::StateProcess,
-            RecreateOnPlay::DocumentPlugin,
-            RecreateOnPlay::StateProcessComponentFactory>
+            Engine::Execution::DocumentPlugin,
+            Engine::Execution::StateProcessComponentFactory>
 {
         ISCORE_ABSTRACT_FACTORY("cef1b394-84b2-4241-b4eb-72b1fb504f92")
     public:
@@ -93,6 +93,6 @@ class StateProcessComponentFactory_T :
 using StateProcessComponentFactoryList =
     iscore::GenericComponentFactoryList<
             Process::StateProcess,
-            RecreateOnPlay::DocumentPlugin,
-            RecreateOnPlay::StateProcessComponentFactory>;
-}
+            Engine::Execution::DocumentPlugin,
+            Engine::Execution::StateProcessComponentFactory>;
+} }

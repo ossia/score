@@ -3,7 +3,7 @@
 #include <OSSIA/iscore2OSSIA.hpp>
 #include <OSSIA/OSSIA2iscore.hpp>
 
-namespace Ossia
+namespace Engine
 {
 namespace LocalTree
 {
@@ -67,7 +67,7 @@ struct PropertyWrapper : public BaseCallbackWrapper
             property{prop}
         {
             callbackIt = addr.add_callback([=] (const ossia::value& v) {
-                    property.set(Ossia::convert::ToValue(v));
+                    property.set(Engine::ossia_to_iscore::ToValue(v));
             });
 
             QObject::connect(&property.object(), property.changed_property(),
@@ -75,11 +75,11 @@ struct PropertyWrapper : public BaseCallbackWrapper
                 auto newVal = State::Value::fromValue(property.get());
                 try
                 {
-                    auto res = Ossia::convert::ToValue( addr.cloneValue());
+                    auto res = Engine::ossia_to_iscore::ToValue( addr.cloneValue());
 
                     if(newVal != res)
                     {
-                        addr.pushValue(iscore::convert::toOSSIAValue(newVal));
+                        addr.pushValue(Engine::iscore_to_ossia::toOSSIAValue(newVal));
                     }
                 }
                 catch(...)
@@ -91,7 +91,7 @@ struct PropertyWrapper : public BaseCallbackWrapper
 
             {
                 addr.setValue(
-                            iscore::convert::toOSSIAValue(
+                            Engine::iscore_to_ossia::toOSSIAValue(
                                 State::Value::fromValue(
                                     property.get())));
             }
@@ -118,7 +118,7 @@ auto add_property(
         PropChanged chgd,
         QObject* context)
 {
-    constexpr const auto t = Ossia::convert::MatchingType<T>::val;
+    constexpr const auto t = Engine::ossia_to_iscore::MatchingType<T>::val;
     auto node = n.createChild(name);
     ISCORE_ASSERT(node);
 

@@ -14,11 +14,9 @@
 
 // TODO cleanup this file
 
-namespace iscore
+namespace JS
 {
 namespace convert
-{
-namespace JS
 {
 inline QJSValue makeImpulse(
         QJSEngine& engine)
@@ -139,7 +137,7 @@ inline QJSValue messages(
 
 }
 }
-}
+
 
 namespace JS
 {

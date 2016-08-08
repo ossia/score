@@ -50,7 +50,7 @@ ossia::state_element ProcessExecutor::state(double t)
         auto time = mess.percentage * par_cst.getDurationNominal();
         if(time >= cur_pos && time < max_pos)
         {
-            st.add(iscore::convert::message(mess.message, m_devices));
+            st.add(Engine::iscore_to_ossia::message(mess.message, m_devices));
         }
     }
 
@@ -64,12 +64,12 @@ ossia::state_element ProcessExecutor::offset(
 }
 
 Component::Component(
-        RecreateOnPlay::ConstraintElement& parentConstraint,
+        Engine::Execution::ConstraintElement& parentConstraint,
         RecordedMessages::ProcessModel& element,
-        const RecreateOnPlay::Context& ctx,
+        const Engine::Execution::Context& ctx,
         const Id<iscore::Component>& id,
         QObject* parent):
-    ::RecreateOnPlay::ProcessComponent_T<RecordedMessages::ProcessModel, ProcessExecutor>{
+    ::Engine::Execution::ProcessComponent_T<RecordedMessages::ProcessModel, ProcessExecutor>{
           parentConstraint, element, ctx, id, "RecordedMessagesComponent", parent}
 {
     m_ossia_process = new ProcessExecutor{ctx.devices, element.messages()};

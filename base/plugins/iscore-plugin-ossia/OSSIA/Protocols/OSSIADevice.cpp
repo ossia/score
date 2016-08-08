@@ -16,9 +16,9 @@
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/network_logger.hpp>
 
-namespace Ossia
+namespace Engine
 {
-namespace Protocols
+namespace Network
 {
 OSSIADevice::~OSSIADevice()
 {
@@ -44,7 +44,7 @@ void OSSIADevice::updateSettings(const Device::DeviceSettings& newsettings)
         iscore_device.reserve(ossia_children.size());
         for(const auto& node : ossia_children)
         {
-            iscore_device.push_back(Ossia::convert::ToDeviceExplorer(*node.get()));
+            iscore_device.push_back(Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
         }
 
         // We change the settings safely
@@ -90,13 +90,13 @@ void OSSIADevice::addAddress(const Device::FullAddressSettings &settings)
     if(auto dev = getDevice())
     {
         // Create the node. It is added into the device.
-        ossia::net::node_base* node = iscore::convert::createNodeFromPath(
+        ossia::net::node_base* node = Engine::iscore_to_ossia::createNodeFromPath(
                     settings.address.path,
                     *dev);
         ISCORE_ASSERT(node);
 
         // Populate the node with an address (if it isn't a no_value_t).
-        iscore::convert::createOSSIAAddress(settings, *node);
+        Engine::iscore_to_ossia::createOSSIAAddress(settings, *node);
     }
 }
 
@@ -107,7 +107,7 @@ void OSSIADevice::updateAddress(
 {
     if(auto dev = getDevice())
     {
-        ossia::net::node_base* node = iscore::convert::getNodeFromPath(
+        ossia::net::node_base* node = Engine::iscore_to_ossia::getNodeFromPath(
                     currentAddr.path,
                     *dev);
         auto newName = settings.address.path.last().toStdString();
@@ -124,9 +124,9 @@ void OSSIADevice::updateAddress(
         {
             auto currentAddr = node->getAddress();
             if(currentAddr)
-                iscore::convert::updateOSSIAAddress(settings, *currentAddr);
+                Engine::iscore_to_ossia::updateOSSIAAddress(settings, *currentAddr);
             else
-                iscore::convert::createOSSIAAddress(settings, *node);
+                Engine::iscore_to_ossia::createOSSIAAddress(settings, *node);
         }
     }
 
@@ -184,7 +184,7 @@ void OSSIADevice::removeNode(const State::Address& address)
         return;
     if(auto dev = getDevice())
     {
-        ossia::net::node_base* node = iscore::convert::getNodeFromPath(address.path, *dev);
+        ossia::net::node_base* node = Engine::iscore_to_ossia::getNodeFromPath(address.path, *dev);
         auto parent = node->getParent();
         auto& parentChildren = node->getParent()->children();
         auto it = std::find_if(parentChildren.begin(), parentChildren.end(),
@@ -224,7 +224,7 @@ Device::Node OSSIADevice::refresh()
             device_node.reserve(children.size());
             for(const auto& node : children)
             {
-                device_node.push_back(Ossia::convert::ToDeviceExplorer(*node.get()));
+                device_node.push_back(Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
             }
         }
 
@@ -238,13 +238,13 @@ optional<State::Value> OSSIADevice::refresh(const State::Address& address)
 {
     if(auto dev = getDevice())
     {
-        auto node = iscore::convert::findNodeFromPath(address.path, *dev);
+        auto node = Engine::iscore_to_ossia::findNodeFromPath(address.path, *dev);
         if(node)
         {
             if(auto addr = node->getAddress())
             {
                 addr->pullValue();
-                return Ossia::convert::ToValue(addr->cloneValue());
+                return Engine::ossia_to_iscore::ToValue(addr->cloneValue());
             }
         }
     }
@@ -256,9 +256,9 @@ Device::Node OSSIADevice::getNode(const State::Address& address)
 {
     if(auto dev = getDevice())
     {
-        auto ossia_node = iscore::convert::findNodeFromPath(address.path, *dev);
+        auto ossia_node = Engine::iscore_to_ossia::findNodeFromPath(address.path, *dev);
         if(ossia_node)
-            return Ossia::convert::ToDeviceExplorer(*ossia_node);
+            return Engine::ossia_to_iscore::ToDeviceExplorer(*ossia_node);
     }
 
     return {};
@@ -277,7 +277,7 @@ void OSSIADevice::setListening(
         ossia::net::address_base* ossia_addr{};
         if(cb_it == m_callbacks.end())
         {
-            auto n = iscore::convert::findNodeFromPath(addr.path, *dev);
+            auto n = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *dev);
             if(!n)
                 return;
 
@@ -302,7 +302,7 @@ void OSSIADevice::setListening(
         if(b)
         {
             ossia_addr->pullValue();
-            emit valueUpdated(addr, Ossia::convert::ToValue(ossia_addr->cloneValue()));
+            emit valueUpdated(addr, Engine::ossia_to_iscore::ToValue(ossia_addr->cloneValue()));
 
             if(cb_it == m_callbacks.end())
             {
@@ -313,7 +313,7 @@ void OSSIADevice::setListening(
                          ossia_addr,
                          ossia_addr->add_callback([=] (const ossia::value& val)
                           {
-                              emit valueUpdated(addr, Ossia::convert::ToValue(val));
+                              emit valueUpdated(addr, Engine::ossia_to_iscore::ToValue(val));
                           })
                     }
                 });
@@ -364,12 +364,12 @@ void OSSIADevice::sendMessage(const State::Message& mess)
 {
     if(auto dev = getDevice())
     {
-        auto node = iscore::convert::getNodeFromPath(mess.address.path, *dev);
+        auto node = Engine::iscore_to_ossia::getNodeFromPath(mess.address.path, *dev);
 
         auto addr = node->getAddress();
         if(addr)
         {
-            addr->pushValue(iscore::convert::toOSSIAValue(mess.value));
+            addr->pushValue(Engine::iscore_to_ossia::toOSSIAValue(mess.value));
         }
     }
 }

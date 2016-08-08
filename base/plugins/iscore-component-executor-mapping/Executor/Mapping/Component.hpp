@@ -20,14 +20,14 @@ namespace Mapping
 namespace RecreateOnPlay
 {
 class Component final :
-        public ::RecreateOnPlay::ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>
+        public ::Engine::Execution::ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>
 {
         COMPONENT_METADATA("da360b58-9885-4106-be54-8e272ed45dbe")
     public:
         Component(
-                ::RecreateOnPlay::ConstraintElement& parentConstraint,
+                ::Engine::Execution::ConstraintElement& parentConstraint,
                 ::Mapping::ProcessModel& element,
-                const ::RecreateOnPlay::Context& ctx,
+                const ::Engine::Execution::Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
@@ -49,9 +49,9 @@ class Component final :
         const Device::DeviceList& m_deviceList;
 };
 
-using ComponentFactory = ::RecreateOnPlay::ProcessComponentFactory_T<Component>;
+using ComponentFactory = ::Engine::Execution::ProcessComponentFactory_T<Component>;
 
 }
 }
 
-ISCORE_COMPONENT_FACTORY(RecreateOnPlay::ProcessComponentFactory, Mapping::RecreateOnPlay::ComponentFactory)
+ISCORE_COMPONENT_FACTORY(Engine::Execution::ProcessComponentFactory, Mapping::RecreateOnPlay::ComponentFactory)

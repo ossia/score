@@ -2,10 +2,12 @@
 #include <Device/Protocol/DeviceList.hpp>
 #include <OSSIA/Executor/DocumentPlugin.hpp>
 
-namespace Ossia
+namespace Engine
+{
+namespace Execution
 {
 PlayListeningHandler::PlayListeningHandler(
-        const RecreateOnPlay::DocumentPlugin &docpl):
+        const Engine::Execution::DocumentPlugin &docpl):
     m_executor{docpl}
 {
 
@@ -30,5 +32,6 @@ void PlayListeningHandler::addToListening(
     {
         dev.addToListening(v);
     }
+}
 }
 }

@@ -11,7 +11,7 @@ QJSValue APIWrapper::value(QJSValue address)
     auto addr_str = address.toString();
     if(State::Address::validateString(addr_str))
     {
-        return iscore::convert::JS::value(
+        return JS::convert::value(
                     m_engine,
                     devices.updateProxy.refreshRemoteValue(State::Address::fromString(addr_str)));
     }

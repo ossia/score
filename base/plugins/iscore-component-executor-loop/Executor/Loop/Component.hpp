@@ -14,11 +14,11 @@ namespace ossia {
 class loop;
 class time_process;
 }  // namespace OSSIA
-namespace RecreateOnPlay {
+namespace Engine { namespace Execution {
 class EventElement;
 class StateElement;
 class TimeNodeElement;
-}  // namespace RecreateOnPlay
+} }
 namespace Scenario
 {
 class ConstraintModel;
@@ -30,14 +30,14 @@ namespace RecreateOnPlay
 {
 // TODO see if this can be used for the base scenario model too.
 class Component final :
-        public ::RecreateOnPlay::ProcessComponent_T<Loop::ProcessModel, ossia::loop>
+        public ::Engine::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>
 {
         COMPONENT_METADATA("77b987ae-7bc8-4273-aa9c-9e4ba53a053d")
     public:
         Component(
-                ::RecreateOnPlay::ConstraintElement& parentConstraint,
+                ::Engine::Execution::ConstraintElement& parentConstraint,
                 ::Loop::ProcessModel& element,
-                const ::RecreateOnPlay::Context& ctx,
+                const ::Engine::Execution::Context& ctx,
                 const Id<iscore::Component>& id,
                 QObject* parent);
 
@@ -51,21 +51,21 @@ class Component final :
 
 
     private:
-        ::RecreateOnPlay::ConstraintElement* m_ossia_constraint{};
+        ::Engine::Execution::ConstraintElement* m_ossia_constraint{};
 
-        ::RecreateOnPlay::TimeNodeElement* m_ossia_startTimeNode{};
-        ::RecreateOnPlay::TimeNodeElement* m_ossia_endTimeNode{};
+        ::Engine::Execution::TimeNodeElement* m_ossia_startTimeNode{};
+        ::Engine::Execution::TimeNodeElement* m_ossia_endTimeNode{};
 
-        ::RecreateOnPlay::EventElement* m_ossia_startEvent{};
-        ::RecreateOnPlay::EventElement* m_ossia_endEvent{};
+        ::Engine::Execution::EventElement* m_ossia_startEvent{};
+        ::Engine::Execution::EventElement* m_ossia_endEvent{};
 
-        ::RecreateOnPlay::StateElement* m_ossia_startState{};
-        ::RecreateOnPlay::StateElement* m_ossia_endState{};
+        ::Engine::Execution::StateElement* m_ossia_startState{};
+        ::Engine::Execution::StateElement* m_ossia_endState{};
 };
 
-using ComponentFactory = ::RecreateOnPlay::ProcessComponentFactory_T<Component>;
+using ComponentFactory = ::Engine::Execution::ProcessComponentFactory_T<Component>;
 
 }
 }
 
-ISCORE_COMPONENT_FACTORY(RecreateOnPlay::ProcessComponentFactory, Loop::RecreateOnPlay::ComponentFactory)
+ISCORE_COMPONENT_FACTORY(Engine::Execution::ProcessComponentFactory, Loop::RecreateOnPlay::ComponentFactory)

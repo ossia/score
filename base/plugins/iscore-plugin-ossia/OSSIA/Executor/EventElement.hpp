@@ -16,7 +16,7 @@ namespace Scenario
 class EventModel;
 }
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 class ISCORE_PLUGIN_OSSIA_EXPORT EventElement final : public QObject
 {
@@ -40,4 +40,4 @@ class ISCORE_PLUGIN_OSSIA_EXPORT EventElement final : public QObject
         std::shared_ptr<ossia::time_event> m_ossia_event;
         const Device::DeviceList& m_deviceList;
 };
-}
+} }

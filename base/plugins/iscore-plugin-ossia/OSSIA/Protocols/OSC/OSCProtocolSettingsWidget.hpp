@@ -6,7 +6,9 @@ class QLineEdit;
 class QSpinBox;
 class QWidget;
 
-namespace Ossia
+namespace Engine
+{
+namespace Network
 {
 class OSCProtocolSettingsWidget :
         public Device::ProtocolSettingsWidget
@@ -36,4 +38,5 @@ class OSCProtocolSettingsWidget :
         QLineEdit* m_localHostEdit;
         QLineEdit* m_namespaceFilePathEdit;
 };
+}
 }

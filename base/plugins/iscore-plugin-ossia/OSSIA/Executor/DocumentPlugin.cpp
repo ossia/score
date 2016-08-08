@@ -14,7 +14,7 @@ namespace iscore {
 class Document;
 }  // namespace iscore
 
-namespace RecreateOnPlay
+namespace Engine { namespace Execution
 {
 DocumentPlugin::DocumentPlugin(
             iscore::Document& doc,
@@ -71,4 +71,4 @@ bool DocumentPlugin::isPlaying() const
 {
     return m_base.get();
 }
-}
+} }
