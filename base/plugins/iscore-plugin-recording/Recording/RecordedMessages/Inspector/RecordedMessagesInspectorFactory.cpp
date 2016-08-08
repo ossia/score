@@ -1,7 +1,7 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include "RecordedMessagesInspectorFactory.hpp"
-#include "RecordedMessages/RecordedMessagesProcessModel.hpp"
-#include "RecordedMessagesInspectorWidget.hpp"
+#include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
+#include <Recording/RecordedMessages/Inspector/RecordedMessagesInspectorWidget.hpp>
 
 class InspectorWidgetBase;
 class RecordedMessagesProcessModel;

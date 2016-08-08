@@ -21,7 +21,7 @@
 #include <utility>
 
 #include <Automation/AutomationProcessMetadata.hpp>
-#include "Commands/Record.hpp"
+#include <Recording/Commands/Record.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/IOType.hpp>
@@ -33,8 +33,8 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include "Record/RecordData.hpp"
-#include "RecordManager.hpp"
+#include <Recording/Record/RecordData.hpp>
+#include <Recording/Record/RecordManager.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>

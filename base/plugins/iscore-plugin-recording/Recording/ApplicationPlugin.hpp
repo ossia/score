@@ -12,12 +12,12 @@ namespace Scenario {
 class ProcessModel;
 struct Point;
 }  // namespace Scenario
-class IScoreCohesionApplicationPlugin final :
+class RecordingApplicationPlugin final :
         public QObject,
         public iscore::GUIApplicationContextPlugin
 {
     public:
-        IScoreCohesionApplicationPlugin(
+        RecordingApplicationPlugin(
                 const iscore::GUIApplicationContext& app);
 
         void record(const Scenario::ProcessModel&, Scenario::Point pt);

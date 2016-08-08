@@ -1,9 +1,9 @@
-#include <RecordedMessages/RecordedMessagesProcessModel.hpp>
+#include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
 #include <algorithm>
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include "RecordedMessages/Commands/EditMessages.hpp"
-#include "RecordedMessagesInspectorWidget.hpp"
+#include <Recording/RecordedMessages/Commands/EditMessages.hpp>
+#include <Recording/RecordedMessages/Inspector/RecordedMessagesInspectorWidget.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/document/DocumentContext.hpp>

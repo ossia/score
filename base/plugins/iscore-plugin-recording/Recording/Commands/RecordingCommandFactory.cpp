@@ -1,7 +1,7 @@
-#include "IScoreCohesionCommandFactory.hpp"
+#include "RecordingCommandFactory.hpp"
 #include <iscore/command/SerializableCommand.hpp>
 
-const CommandParentFactoryKey& IScoreCohesionCommandFactoryName() {
+const CommandParentFactoryKey& RecordingCommandFactoryName() {
     static const CommandParentFactoryKey key{"Cohesion"};
     return key;
 }

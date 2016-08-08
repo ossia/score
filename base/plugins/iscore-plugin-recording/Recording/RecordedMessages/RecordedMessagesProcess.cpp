@@ -10,7 +10,7 @@
 #include "RecordedMessagesProcess.hpp"
 #include <ossia/editor/scenario/clock.hpp>
 #include <ossia/editor/scenario/time_constraint.hpp>
-#include <RecordedMessages/RecordedMessagesProcessModel.hpp>
+#include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
 
 
 namespace RecordedMessages

@@ -8,7 +8,7 @@ namespace Protocols
 class MinuitProtocolFactory final :
         public Device::ProtocolFactory
 {
-        ISCORE_CONCRETE_FACTORY("f1b90a2a-b5e2-4cd7-9b75-987df7e25bdc")
+        ISCORE_CONCRETE_FACTORY("d305c12e-31f0-46e3-8c9b-3b8744092fc4")
         // Implement with OSSIA::Device
         QString prettyName() const override;
 

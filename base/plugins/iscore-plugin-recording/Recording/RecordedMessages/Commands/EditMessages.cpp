@@ -1,4 +1,4 @@
-#include <RecordedMessages/RecordedMessagesProcessModel.hpp>
+#include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
 #include <algorithm>
 
 #include "EditMessages.hpp"

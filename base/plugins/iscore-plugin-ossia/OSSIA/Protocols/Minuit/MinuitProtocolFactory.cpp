@@ -21,7 +21,7 @@ namespace Protocols
 {
 QString MinuitProtocolFactory::prettyName() const
 {
-    return QObject::tr("Minuit (v2)");
+    return QObject::tr("Minuit");
 }
 
 Device::DeviceInterface* MinuitProtocolFactory::makeDevice(

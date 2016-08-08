@@ -1,6 +1,6 @@
 #pragma once
-#include <Record/RecordTools.hpp>
-#include <RecordedMessages/RecordedMessagesProcessModel.hpp>
+#include <Recording/Record/RecordTools.hpp>
+#include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
 namespace Recording
 {
 struct RecordMessagesData

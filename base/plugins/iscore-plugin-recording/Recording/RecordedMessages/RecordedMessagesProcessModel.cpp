@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <vector>
 
-#include "RecordedMessages/RecordedMessagesProcess.hpp"
-#include "RecordedMessages/RecordedMessagesProcessMetadata.hpp"
-#include "RecordedMessagesProcessModel.hpp"
+#include <Recording/RecordedMessages/RecordedMessagesProcess.hpp>
+#include <Recording/RecordedMessages/RecordedMessagesProcessMetadata.hpp>
+#include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 

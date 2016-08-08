@@ -16,14 +16,14 @@ namespace iscore {
 }  // namespace iscore
 
 /**
- * @brief The IScoreCohesion class
+ * @brief The Recording class
  *
  * This plug-in is here to set-up things that require multiple plug-ins.
  * For instance, if a feature requires the Scenario, the Curve, and the DeviceExplorer,
  * it should certainly be implemented here.
  *
  */
-class iscore_plugin_cohesion final :
+class iscore_plugin_recording final :
         public QObject,
         public iscore::Plugin_QtInterface,
         public iscore::GUIApplicationContextPlugin_QtInterface,
@@ -38,12 +38,17 @@ class iscore_plugin_cohesion final :
                 )
 
     public:
-        iscore_plugin_cohesion();
-        virtual ~iscore_plugin_cohesion();
+        iscore_plugin_recording();
+        virtual ~iscore_plugin_recording();
 
     private:
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(
                 const iscore::GUIApplicationContext& app) override;
+
+        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+                const iscore::ApplicationContext& ctx,
+                const iscore::AbstractFactoryKey& key) const;
+
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 
