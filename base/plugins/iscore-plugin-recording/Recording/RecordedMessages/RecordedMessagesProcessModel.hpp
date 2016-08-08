@@ -1,5 +1,5 @@
 #pragma once
-#include <RecordedMessages/RecordedMessagesProcessMetadata.hpp>
+#include <Recording/RecordedMessages/RecordedMessagesProcessMetadata.hpp>
 #include <Process/Process.hpp>
 #include <QByteArray>
 #include <QString>
@@ -17,7 +17,7 @@ namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore_plugin_recordedmessages_export.h>
+#include <iscore_plugin_recording_export.h>
 namespace RecordedMessages
 {
 struct RecordedMessage
@@ -27,7 +27,7 @@ struct RecordedMessage
 };
 using RecordedMessagesList = QList<RecordedMessage>;
 
-class ISCORE_PLUGIN_RECORDEDMESSAGES_EXPORT ProcessModel final : public Process::ProcessModel
+class ISCORE_PLUGIN_RECORDING_EXPORT ProcessModel final : public Process::ProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)

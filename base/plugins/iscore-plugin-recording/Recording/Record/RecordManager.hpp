@@ -1,6 +1,6 @@
 #pragma once
-#include <Record/RecordTools.hpp>
-#include <Record/RecordData.hpp>
+#include <Recording/Record/RecordTools.hpp>
+#include <Recording/Record/RecordData.hpp>
 
 namespace Curve
 {

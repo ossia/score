@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
-#include <RecordedMessages/RecordedMessagesProcessMetadata.hpp>
+#include <Recording/RecordedMessages/RecordedMessagesProcessMetadata.hpp>
 #include <QList>
 #include <QString>
 namespace RecordedMessages

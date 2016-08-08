@@ -28,9 +28,9 @@
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 
-#include "Commands/Record.hpp"
+#include <Recording/Commands/Record.hpp>
 #include "RecordMessagesManager.hpp"
-#include <RecordedMessages/Commands/EditMessages.hpp>
+#include <Recording/RecordedMessages/Commands/EditMessages.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/ModelPath.hpp>

@@ -1,3 +1,5 @@
+#include "ApplicationPlugin.hpp"
+
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <QAction>
@@ -5,8 +7,6 @@
 
 #include <QString>
 #include <QToolBar>
-
-#include "IScoreCohesionApplicationPlugin.hpp"
 #include "Record/RecordManager.hpp"
 #include <Scenario/Palette/ScenarioPoint.hpp>
 
@@ -23,7 +23,7 @@
 #include <QApplication>
 #include <QMainWindow>
 
-IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(
+RecordingApplicationPlugin::RecordingApplicationPlugin(
         const iscore::GUIApplicationContext& ctx) :
     iscore::GUIApplicationContextPlugin {ctx}
 {
@@ -32,11 +32,11 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(
     // that ScenarioApplicationPlugin is instantiated already.
     auto& scenario_plugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
     connect(&scenario_plugin.execution(), &ScenarioExecution::startRecording,
-            this, &IScoreCohesionApplicationPlugin::record);
+            this, &RecordingApplicationPlugin::record);
     connect(&scenario_plugin.execution(), &ScenarioExecution::startRecordingMessages,
-            this, &IScoreCohesionApplicationPlugin::recordMessages);
+            this, &RecordingApplicationPlugin::recordMessages);
     connect(&scenario_plugin.execution(), &ScenarioExecution::stopRecording, // TODO this seems useless
-            this, &IScoreCohesionApplicationPlugin::stopRecord);
+            this, &RecordingApplicationPlugin::stopRecord);
 
 
     m_ossiaplug = &ctx.components.applicationPlugin<OSSIAApplicationPlugin>();
@@ -49,7 +49,7 @@ IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(
 
 }
 
-void IScoreCohesionApplicationPlugin::record(
+void RecordingApplicationPlugin::record(
         const Scenario::ProcessModel& scenar,
         Scenario::Point pt)
 {
@@ -72,7 +72,7 @@ void IScoreCohesionApplicationPlugin::record(
 
 }
 
-void IScoreCohesionApplicationPlugin::recordMessages(
+void RecordingApplicationPlugin::recordMessages(
         const Scenario::ProcessModel& scenar,
         Scenario::Point pt)
 {
@@ -94,7 +94,7 @@ void IScoreCohesionApplicationPlugin::recordMessages(
     m_recMessagesManager->recordInNewBox(scenar, pt);
 }
 
-void IScoreCohesionApplicationPlugin::stopRecord()
+void RecordingApplicationPlugin::stopRecord()
 {
     if(m_recManager)
     {

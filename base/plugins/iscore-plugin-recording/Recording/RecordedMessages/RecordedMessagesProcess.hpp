@@ -6,7 +6,7 @@
 #include <OSSIA/Executor/ExecutorContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <RecordedMessages/RecordedMessagesProcessModel.hpp>
+#include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
 namespace Explorer
