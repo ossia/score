@@ -1,6 +1,7 @@
 #pragma once
 #include <Recording/Record/RecordTools.hpp>
 #include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
+#include <Recording/Record/RecordProviderFactory.hpp>
 namespace Recording
 {
 struct RecordMessagesData
@@ -10,23 +11,17 @@ class RecordMessagesManager final : public QObject
 {
         Q_OBJECT
     public:
-        RecordMessagesManager(const iscore::DocumentContext& ctx);
+        RecordMessagesManager(RecordContext& ctx);
 
-        void recordInNewBox(const Scenario::ProcessModel& scenar, Scenario::Point pt);
-        // TODO : recordInExstingBox; recordFromState.
-        void stopRecording();
-
-        void commit();
+        void setup();
+        void stop();
 
     signals:
         void requestPlay();
 
     private:
-        const iscore::DocumentContext& m_ctx;
-        std::unique_ptr<RecordCommandDispatcher> m_dispatcher;
+        RecordContext& m_context;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
-
-        Explorer::DeviceExplorerModel* m_explorer{};
 
         QTimer m_recordTimer;
         bool m_firstValueReceived{};

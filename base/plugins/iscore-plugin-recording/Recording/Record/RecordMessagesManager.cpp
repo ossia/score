@@ -51,14 +51,14 @@
 namespace Recording
 {
 RecordMessagesManager::RecordMessagesManager(
-        const iscore::DocumentContext& ctx):
-    m_ctx{ctx}
+        RecordContext& ctx):
+    m_context{ctx}
 {
-    m_recordTimer.setInterval(8);
+    m_recordTimer.setInterval(32);
     m_recordTimer.setTimerType(Qt::PreciseTimer);
 }
 
-void RecordMessagesManager::stopRecording()
+void RecordMessagesManager::stop()
 {
     // Stop all the recording machinery
     m_recordTimer.stop();
@@ -71,14 +71,10 @@ void RecordMessagesManager::stopRecording()
 
     qApp->processEvents();
 
-    // Nothing was being recorded
-    if(!m_dispatcher)
-        return;
-
     // Record and then stop
     if(!m_firstValueReceived)
     {
-        m_dispatcher->rollback();
+        m_context.dispatcher.rollback();
         return;
     }
 
@@ -94,37 +90,27 @@ void RecordMessagesManager::stopRecording()
 
     // Commit
     cmd->redo();
-    m_dispatcher->submitCommand(cmd);
-    m_dispatcher->commit();
+    m_context.dispatcher.submitCommand(cmd);
+    m_context.dispatcher.commit();
 
-    m_explorer->deviceModel().listening().restore();
+    m_context.explorer.deviceModel().listening().restore();
 }
 
-void RecordMessagesManager::recordInNewBox(
-        const Scenario::ProcessModel& scenar,
-        Scenario::Point pt)
+void RecordMessagesManager::setup()
 {
     using namespace std::chrono;
-    auto& doc = iscore::IDocument::documentContext(scenar);
     //// Device tree management ////
 
-    // Get all the selected nodes
-    m_explorer = &Explorer::deviceExplorerFromContext(doc);
-
     // Get the listening of the selected addresses
-    auto recordListening = GetAddressesToRecordRecursive(*m_explorer);
+    auto recordListening = GetAddressesToRecordRecursive(m_context.explorer);
     if(recordListening.empty())
         return;
 
     // Disable listening for everything
-    m_explorer->deviceModel().listening().stop();
-
-    m_dispatcher = std::make_unique<RecordCommandDispatcher>(
-                new Recording::Record,
-                doc.commandStack);
+    m_context.explorer.deviceModel().listening().stop();
 
     //// Initial commands ////
-    Box box = CreateBox(scenar, pt, *m_dispatcher);
+    Box box = CreateBox(m_context);
 
     //// Creation of the process ////
     // Note : since we directly create the IDs here, we don't have to worry
@@ -134,7 +120,7 @@ void RecordMessagesManager::recordInNewBox(
             Metadata<ConcreteFactoryKey_k, RecordedMessages::ProcessModel>::get()};
 
     cmd_proc->redo();
-    m_dispatcher->submitCommand(cmd_proc);
+    m_context.dispatcher.submitCommand(cmd_proc);
 
     auto& proc = box.constraint.processes.at(cmd_proc->processId());
     auto& record_proc = static_cast<RecordedMessages::ProcessModel&>(proc);
@@ -145,9 +131,9 @@ void RecordMessagesManager::recordInNewBox(
                      box.slot,
                      proc};
     cmd_layer->redo();
-    m_dispatcher->submitCommand(cmd_layer);
+    m_context.dispatcher.submitCommand(cmd_layer);
 
-    const auto& devicelist = m_explorer->deviceModel().list();
+    const auto& devicelist = m_context.explorer.deviceModel().list();
     //// Setup listening on the curves ////
     for(const auto& vec : recordListening)
     {
@@ -199,7 +185,7 @@ void RecordMessagesManager::recordInNewBox(
                     Path<Scenario::ProcessModel>{},
                     Id<Scenario::ConstraintModel>{},
                     box.endEvent,
-                    pt.date + GetTimeDifference(start_time_pt),
+                    m_context.point.date + GetTimeDifference(start_time_pt),
                     0,
                     true);
 
@@ -208,7 +194,7 @@ void RecordMessagesManager::recordInNewBox(
 
     // In case where the software is exited
     // during recording.
-    connect(&scenar, &IdentifiedObjectAbstract::identified_object_destroyed,
+    connect(&m_context.scenario, &IdentifiedObjectAbstract::identified_object_destroyed,
             this, [&] () {
         m_recordTimer.stop();
     });

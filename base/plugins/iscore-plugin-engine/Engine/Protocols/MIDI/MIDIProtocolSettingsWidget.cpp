@@ -28,9 +28,9 @@ void
 MIDIProtocolSettingsWidget::buildGUI()
 {
     m_name = new QLineEdit;
-    m_inButton = new QCheckBox(tr("Input"), this);
+    m_inButton = new QCheckBox(tr("Send"), this);
     m_inButton->setAutoExclusive(true);
-    m_outButton = new QCheckBox(tr("Output"), this);
+    m_outButton = new QCheckBox(tr("Receive"), this);
     m_outButton->setAutoExclusive(true);
     m_deviceCBox = new QComboBox(this);
 

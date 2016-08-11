@@ -17,8 +17,10 @@ namespace Scenario
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
 }
+namespace Engine
+{
 class ApplicationPlugin;
-namespace Engine { namespace Execution
+namespace Execution
 {
 class PlayContextMenu final : public QObject
 {

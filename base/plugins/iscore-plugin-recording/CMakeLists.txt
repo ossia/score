@@ -25,6 +25,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Commands/RecordingCommandFactory.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordProviderFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordTools.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordMessagesManager.cpp"

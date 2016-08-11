@@ -2,6 +2,7 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Inspector/InspectorSectionWidget.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 #include <list>
 #include <vector>
 

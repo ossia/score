@@ -5,19 +5,23 @@
 
 #include "Record/RecordManager.hpp"
 #include "Record/RecordMessagesManager.hpp"
-
+namespace Engine
+{
 class ApplicationPlugin;
+}
 class QAction;
 namespace Scenario {
 class ProcessModel;
 struct Point;
 }  // namespace Scenario
-class RecordingApplicationPlugin final :
+namespace Recording
+{
+class ApplicationPlugin final :
         public QObject,
         public iscore::GUIApplicationContextPlugin
 {
     public:
-        RecordingApplicationPlugin(
+        ApplicationPlugin(
                 const iscore::GUIApplicationContext& app);
 
         void record(const Scenario::ProcessModel&, Scenario::Point pt);
@@ -25,9 +29,10 @@ class RecordingApplicationPlugin final :
         void stopRecord();
 
     private:
-        ApplicationPlugin* m_ossiaplug{};
+        Engine::ApplicationPlugin* m_ossiaplug{};
         QAction* m_stopAction{};
 
         std::unique_ptr<Recording::RecordManager> m_recManager;
         std::unique_ptr<Recording::RecordMessagesManager> m_recMessagesManager;
 };
+}

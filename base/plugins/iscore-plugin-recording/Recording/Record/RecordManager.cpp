@@ -58,15 +58,15 @@ class SegmentModel;
 namespace Recording
 {
 RecordManager::RecordManager(
-        const iscore::DocumentContext& ctx):
-    m_ctx{ctx},
-    m_settings{m_ctx.app.settings<Curve::Settings::Model>()}
+        RecordContext& ctx):
+    m_context{ctx},
+    m_settings{m_context.context.app.settings<Curve::Settings::Model>()}
 {
     m_recordTimer.setInterval(8);
     m_recordTimer.setTimerType(Qt::PreciseTimer);
 }
 
-void RecordManager::stopRecording()
+void RecordManager::stop()
 {
     // Stop all the recording machinery
     m_recordTimer.stop();
@@ -79,14 +79,10 @@ void RecordManager::stopRecording()
 
     qApp->processEvents();
 
-    // Nothing was being recorded
-    if(!m_dispatcher)
-        return;
-
     // Record and then stop
     if(!m_firstValueReceived)
     {
-        m_dispatcher->rollback();
+        m_context.dispatcher.rollback();
         return;
     }
 
@@ -128,15 +124,15 @@ void RecordManager::stopRecording()
                 recorded.second.segment.toPowerSegments()};
 
         // This one shall not be redone
-        m_dispatcher->submitCommand(recorded.second.addProcCmd);
-        m_dispatcher->submitCommand(recorded.second.addLayCmd);
-        m_dispatcher->submitCommand(initCurveCmd);
+        m_context.dispatcher.submitCommand(recorded.second.addProcCmd);
+        m_context.dispatcher.submitCommand(recorded.second.addLayCmd);
+        m_context.dispatcher.submitCommand(initCurveCmd);
     }
 
     // Commit
-    m_dispatcher->commit();
+    m_context.dispatcher.commit();
 
-    m_explorer->deviceModel().listening().restore();
+    m_context.explorer.deviceModel().listening().restore();
 }
 
 void RecordManager::messageCallback(const State::Address &addr, const State::Value &val)
@@ -222,29 +218,21 @@ static int getReasonableUpdateInterval(int numberOfCurves)
     return 5000;
 }
 
-void RecordManager::recordInNewBox(
-        const Scenario::ProcessModel& scenar,
-        Scenario::Point pt)
+void RecordManager::setup()
 {
     using namespace std::chrono;
-    auto& doc = iscore::IDocument::documentContext(scenar);
     //// Device tree management ////
 
-    // Get all the selected nodes
-    m_explorer = &Explorer::deviceExplorerFromContext(doc);
-
     // Get the listening of the selected addresses
-    auto recordListening = GetAddressesToRecordRecursive(*m_explorer);
+    auto recordListening = GetAddressesToRecordRecursive(m_context.explorer);
     if(recordListening.empty())
         return;
 
     // Disable listening for everything
-    m_explorer->deviceModel().listening().stop();
-
-    m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Recording::Record, doc.commandStack);
+    m_context.explorer.deviceModel().listening().stop();
 
     //// Initial commands ////
-    Box box = CreateBox(scenar, pt, *m_dispatcher);
+    Box box = CreateBox(m_context);
 
     //// Creation of the curves ////
     int curve_count = 0;
@@ -301,7 +289,7 @@ void RecordManager::recordInNewBox(
         }
     }
 
-    const auto& devicelist = m_explorer->deviceModel().list();
+    const auto& devicelist = m_context.explorer.deviceModel().list();
     //// Setup listening on the curves ////
     auto callback_to_use =
             m_settings.getCurveMode() == Curve::Settings::Mode::Parameter
@@ -335,7 +323,7 @@ void RecordManager::recordInNewBox(
                     {},
                     {},
                     box.endEvent,
-                    pt.date + GetTimeDifference(start_time_pt),
+                    m_context.point.date + GetTimeDifference(start_time_pt),
                     0,
                     true);
 
@@ -344,7 +332,7 @@ void RecordManager::recordInNewBox(
 
     // In case where the software is exited
     // during recording.
-    connect(&scenar, &IdentifiedObjectAbstract::identified_object_destroyed,
+    connect(&m_context.scenario, &IdentifiedObjectAbstract::identified_object_destroyed,
             this, [&] () {
         m_recordTimer.stop();
     });

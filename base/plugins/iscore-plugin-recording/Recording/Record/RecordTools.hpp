@@ -35,6 +35,7 @@ class MoveNewEvent;
 
 namespace std
 {
+// MOVEME
 template <>
 struct hash<Device::FullAddressSettings>
 {
@@ -47,6 +48,7 @@ struct hash<Device::FullAddressSettings>
 
 namespace Recording
 {
+struct RecordContext;
 using RecordCommandDispatcher = GenericMacroCommandDispatcher<
 RedoStrategy::Quiet,
 SendStrategy::UndoRedo>;
@@ -69,11 +71,7 @@ std::vector<std::vector<Device::FullAddressSettings>> GetAddressesToRecord(
 std::vector<std::vector<Device::FullAddressSettings> > GetAddressesToRecordRecursive(
         Explorer::DeviceExplorerModel& explorer);
 
-Box CreateBox(
-        const Scenario::ProcessModel& scenar,
-        Scenario::Point pt,
-        RecordCommandDispatcher& dispatcher);
-
+Box CreateBox(RecordContext&);
 
 inline double GetTimeDifferenceInDouble(std::chrono::steady_clock::time_point start)
 {
