@@ -31,6 +31,8 @@ class ConstraintElement;
 // One would be the "distributed" policy which provides the
 // same functionalities but for scenario executing on different computers.
 
+namespace Engine
+{
 class ISCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final :
         public QObject,
         public iscore::GUIApplicationContextPlugin
@@ -69,3 +71,4 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final :
         std::unique_ptr<Engine::Execution::ClockManager> m_clock;
         bool m_playing{false}, m_paused{false};
 };
+}

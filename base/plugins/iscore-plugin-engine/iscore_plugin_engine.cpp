@@ -41,7 +41,7 @@ iscore_plugin_engine::~iscore_plugin_engine()
 iscore::GUIApplicationContextPlugin* iscore_plugin_engine::make_applicationPlugin(
         const iscore::GUIApplicationContext& app)
 {
-    return new ApplicationPlugin{app};
+    return new Engine::ApplicationPlugin{app};
 }
 
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_engine::factoryFamilies()

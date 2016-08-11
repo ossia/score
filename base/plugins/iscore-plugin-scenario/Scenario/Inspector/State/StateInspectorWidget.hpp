@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 #include <list>
 
 namespace Inspector

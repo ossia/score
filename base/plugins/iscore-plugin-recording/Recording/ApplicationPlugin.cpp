@@ -7,7 +7,8 @@
 
 #include <QString>
 #include <QToolBar>
-#include "Record/RecordManager.hpp"
+#include <Recording/Record/RecordManager.hpp>
+#include <Recording/Record/RecordProviderFactory.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
@@ -23,7 +24,9 @@
 #include <QApplication>
 #include <QMainWindow>
 
-RecordingApplicationPlugin::RecordingApplicationPlugin(
+namespace Recording
+{
+ApplicationPlugin::ApplicationPlugin(
         const iscore::GUIApplicationContext& ctx) :
     iscore::GUIApplicationContextPlugin {ctx}
 {
@@ -32,14 +35,14 @@ RecordingApplicationPlugin::RecordingApplicationPlugin(
     // that ScenarioApplicationPlugin is instantiated already.
     auto& scenario_plugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
     connect(&scenario_plugin.execution(), &ScenarioExecution::startRecording,
-            this, &RecordingApplicationPlugin::record);
+            this, &ApplicationPlugin::record);
     connect(&scenario_plugin.execution(), &ScenarioExecution::startRecordingMessages,
-            this, &RecordingApplicationPlugin::recordMessages);
+            this, &ApplicationPlugin::recordMessages);
     connect(&scenario_plugin.execution(), &ScenarioExecution::stopRecording, // TODO this seems useless
-            this, &RecordingApplicationPlugin::stopRecord);
+            this, &ApplicationPlugin::stopRecord);
 
 
-    m_ossiaplug = &ctx.components.applicationPlugin<ApplicationPlugin>();
+    m_ossiaplug = &ctx.components.applicationPlugin<Engine::ApplicationPlugin>();
 
     auto& stop_action = ctx.actions.action<Actions::Stop>();
     m_stopAction = stop_action.action();
@@ -49,15 +52,15 @@ RecordingApplicationPlugin::RecordingApplicationPlugin(
 
 }
 
-void RecordingApplicationPlugin::record(
+void ApplicationPlugin::record(
         const Scenario::ProcessModel& scenar,
         Scenario::Point pt)
 {
     m_stopAction->trigger();
     QApplication::processEvents();
 
-    m_recManager = std::make_unique<Recording::RecordManager>(
-                iscore::IDocument::documentContext(scenar));
+    Recording::RecordContext ctx{scenar, pt};
+    m_recManager = std::make_unique<Recording::RecordManager>(ctx);
 
     if(context.settings<Curve::Settings::Model>().getPlayWhileRecording())
     {
@@ -68,19 +71,19 @@ void RecordingApplicationPlugin::record(
         }, Qt::QueuedConnection);
     }
 
-    m_recManager->recordInNewBox(scenar, pt);
+    m_recManager->setup();
 
 }
 
-void RecordingApplicationPlugin::recordMessages(
+void ApplicationPlugin::recordMessages(
         const Scenario::ProcessModel& scenar,
         Scenario::Point pt)
 {
     m_stopAction->trigger();
     QApplication::processEvents();
 
-    m_recMessagesManager = std::make_unique<Recording::RecordMessagesManager>(
-                iscore::IDocument::documentContext(scenar));
+    Recording::RecordContext ctx{scenar, pt};
+    m_recMessagesManager = std::make_unique<Recording::RecordMessagesManager>(ctx);
 
     if(context.settings<Curve::Settings::Model>().getPlayWhileRecording())
     {
@@ -91,20 +94,21 @@ void RecordingApplicationPlugin::recordMessages(
         }, Qt::QueuedConnection);
     }
 
-    m_recMessagesManager->recordInNewBox(scenar, pt);
+    m_recMessagesManager->setup();
 }
 
-void RecordingApplicationPlugin::stopRecord()
+void ApplicationPlugin::stopRecord()
 {
     if(m_recManager)
     {
-        m_recManager->stopRecording();
+        m_recManager->stop();
         m_recManager.reset();
     }
 
     if(m_recMessagesManager)
     {
-        m_recMessagesManager->stopRecording();
+        m_recMessagesManager->stop();
         m_recMessagesManager.reset();
     }
+}
 }

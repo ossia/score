@@ -42,7 +42,8 @@
 #include <QAction>
 #include <QVariant>
 #include <QVector>
-
+namespace Engine
+{
 ApplicationPlugin::ApplicationPlugin(
         const iscore::GUIApplicationContext& ctx):
     iscore::GUIApplicationContextPlugin {ctx},
@@ -298,4 +299,5 @@ std::unique_ptr<Engine::Execution::ClockManager> ApplicationPlugin::makeClock(
 {
     auto& s = context.settings<Engine::Execution::Settings::Model>();
   return s.makeClock(ctx);
+}
 }

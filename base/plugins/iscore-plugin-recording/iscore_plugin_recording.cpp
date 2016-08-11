@@ -26,7 +26,7 @@ iscore_plugin_recording::~iscore_plugin_recording()
 iscore::GUIApplicationContextPlugin* iscore_plugin_recording::make_applicationPlugin(
         const iscore::GUIApplicationContext& app)
 {
-    return new RecordingApplicationPlugin {app};
+    return new Recording::ApplicationPlugin {app};
 }
 
 std::vector<std::unique_ptr<iscore::FactoryInterfaceBase> > iscore_plugin_recording::factories(const iscore::ApplicationContext& ctx, const iscore::AbstractFactoryKey& key) const
