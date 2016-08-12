@@ -50,19 +50,16 @@
 
 namespace Recording
 {
-RecordMessagesManager::RecordMessagesManager(
+MessageRecorder::MessageRecorder(
         RecordContext& ctx):
-    m_context{ctx}
+    context{ctx}
 {
-    m_recordTimer.setInterval(32);
-    m_recordTimer.setTimerType(Qt::PreciseTimer);
 }
 
-void RecordMessagesManager::stop()
+void MessageRecorder::stop()
 {
     // Stop all the recording machinery
-    m_recordTimer.stop();
-    auto msecs = GetTimeDifferenceInDouble(start_time_pt);
+    auto msecs = context.timeInDouble();
     for(const auto& con : m_recordCallbackConnections)
     {
         QObject::disconnect(con);
@@ -72,9 +69,9 @@ void RecordMessagesManager::stop()
     qApp->processEvents();
 
     // Record and then stop
-    if(!m_firstValueReceived)
+    if(!context.started())
     {
-        m_context.dispatcher.rollback();
+        context.dispatcher.rollback();
         return;
     }
 
@@ -90,27 +87,13 @@ void RecordMessagesManager::stop()
 
     // Commit
     cmd->redo();
-    m_context.dispatcher.submitCommand(cmd);
-    m_context.dispatcher.commit();
-
-    m_context.explorer.deviceModel().listening().restore();
+    context.dispatcher.submitCommand(cmd);
 }
 
-void RecordMessagesManager::setup()
+void MessageRecorder::setup(const Box& box, const RecordListening& recordListening)
 {
     using namespace std::chrono;
     //// Device tree management ////
-
-    // Get the listening of the selected addresses
-    auto recordListening = GetAddressesToRecordRecursive(m_context.explorer);
-    if(recordListening.empty())
-        return;
-
-    // Disable listening for everything
-    m_context.explorer.deviceModel().listening().stop();
-
-    //// Initial commands ////
-    Box box = CreateBox(m_context);
 
     //// Creation of the process ////
     // Note : since we directly create the IDs here, we don't have to worry
@@ -120,7 +103,7 @@ void RecordMessagesManager::setup()
             Metadata<ConcreteFactoryKey_k, RecordedMessages::ProcessModel>::get()};
 
     cmd_proc->redo();
-    m_context.dispatcher.submitCommand(cmd_proc);
+    context.dispatcher.submitCommand(cmd_proc);
 
     auto& proc = box.constraint.processes.at(cmd_proc->processId());
     auto& record_proc = static_cast<RecordedMessages::ProcessModel&>(proc);
@@ -131,9 +114,9 @@ void RecordMessagesManager::setup()
                      box.slot,
                      proc};
     cmd_layer->redo();
-    m_context.dispatcher.submitCommand(cmd_layer);
+    context.dispatcher.submitCommand(cmd_layer);
 
-    const auto& devicelist = m_context.explorer.deviceModel().list();
+    const auto& devicelist = context.explorer.deviceModel().list();
     //// Setup listening on the curves ////
     for(const auto& vec : recordListening)
     {
@@ -152,21 +135,10 @@ void RecordMessagesManager::setup()
         m_recordCallbackConnections.push_back(
                     connect(&dev, &Device::DeviceInterface::valueUpdated,
                 this, [=] (const State::Address& addr, const State::Value& val) {
-            if(!m_firstValueReceived)
-            {
-                emit requestPlay();
-                m_firstValueReceived = true;
-                start_time_pt = steady_clock::now();
-                m_recordTimer.start();
-
-                m_records.append(RecordedMessages::RecordedMessage{
-                                     0.,
-                                     State::Message{addr, val}});
-            }
-            else
+            if(context.started())
             {
                 // Move end event by the current duration.
-                auto msecs = GetTimeDifferenceInDouble(start_time_pt);
+                auto msecs = context.timeInDouble();
 
                 m_records.append(RecordedMessages::RecordedMessage{
                                      msecs,
@@ -174,29 +146,16 @@ void RecordMessagesManager::setup()
 
                 m_createdProcess->setDuration(TimeValue::fromMsecs(msecs));
             }
+            else
+            {
+                emit firstMessageReceived();
+                context.start();
+
+                m_records.append(RecordedMessages::RecordedMessage{
+                                     0.,
+                                     State::Message{addr, val}});
+            }
         }));
     }
-
-    //// Start the record timer ////
-    connect(&m_recordTimer, &QTimer::timeout,
-            this, [=] () {
-        // Move end event by the current duration.
-        box.moveCommand.update(
-                    Path<Scenario::ProcessModel>{},
-                    Id<Scenario::ConstraintModel>{},
-                    box.endEvent,
-                    m_context.point.date + GetTimeDifference(start_time_pt),
-                    0,
-                    true);
-
-        box.moveCommand.redo();
-    });
-
-    // In case where the software is exited
-    // during recording.
-    connect(&m_context.scenario, &IdentifiedObjectAbstract::identified_object_destroyed,
-            this, [&] () {
-        m_recordTimer.stop();
-    });
 }
 }

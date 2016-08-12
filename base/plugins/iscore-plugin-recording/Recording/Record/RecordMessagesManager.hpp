@@ -7,25 +7,24 @@ namespace Recording
 struct RecordMessagesData
 {
 };
-class RecordMessagesManager final : public QObject
+class MessageRecorder :
+        public QObject,
+        public RecordProvider
 {
         Q_OBJECT
     public:
-        RecordMessagesManager(RecordContext& ctx);
+        RecordContext& context;
 
-        void setup();
-        void stop();
+        MessageRecorder(RecordContext& ctx);
+
+        void setup(const Box&, const RecordListening&) override;
+        void stop() override;
 
     signals:
-        void requestPlay();
+        void firstMessageReceived();
 
     private:
-        RecordContext& m_context;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
-
-        QTimer m_recordTimer;
-        bool m_firstValueReceived{};
-        std::chrono::steady_clock::time_point start_time_pt;
 
         RecordedMessages::ProcessModel* m_createdProcess{};
         QList<RecordedMessages::RecordedMessage> m_records;

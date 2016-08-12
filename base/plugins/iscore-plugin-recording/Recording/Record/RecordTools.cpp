@@ -4,7 +4,6 @@
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -61,8 +60,8 @@ static QList<Device::Node*> GetParametersRecursive(QList<Device::Node*> parents)
     return res;
 }
 
-std::vector<std::vector<Device::FullAddressSettings> >
-    GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer)
+RecordListening GetAddressesToRecordRecursive(
+        Explorer::DeviceExplorerModel& explorer)
 {
     std::vector<std::vector<Device::FullAddressSettings>> recordListening;
 
@@ -101,8 +100,8 @@ std::vector<std::vector<Device::FullAddressSettings> >
     return recordListening;
 }
 
-std::vector<std::vector<Device::FullAddressSettings> >
-    GetAddressesToRecord(Explorer::DeviceExplorerModel& explorer)
+RecordListening GetAddressesToRecord(
+        Explorer::DeviceExplorerModel& explorer)
 {
     std::vector<std::vector<Device::FullAddressSettings>> recordListening;
 

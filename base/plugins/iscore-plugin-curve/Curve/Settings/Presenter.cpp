@@ -82,7 +82,7 @@ Presenter::Presenter(
         con(m, &Model::PlayWhileRecordingChanged, &v, &View::setPlayWhileRecording);
 
         // initial value
-        v.setMode(m.getCurveMode());
+        v.setPlayWhileRecording(m.getPlayWhileRecording());
     }
 }
 

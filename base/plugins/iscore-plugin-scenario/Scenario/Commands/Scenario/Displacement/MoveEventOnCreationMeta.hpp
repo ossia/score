@@ -28,6 +28,7 @@ public:
             Id<EventModel> eventId,
             TimeValue newDate,
             ExpandMode mode);
+    ~MoveEventOnCreationMeta();
 
     void undo() const override;
     void redo() const override;

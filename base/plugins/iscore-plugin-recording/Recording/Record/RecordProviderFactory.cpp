@@ -1,11 +1,11 @@
 #include "RecordProviderFactory.hpp"
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Recording/Commands/Record.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/document/DocumentContext.hpp>
 namespace Recording
 {
-RecordProviderFactory::~RecordProviderFactory() = default;
+RecordProvider::~RecordProvider() = default;
+RecorderFactory::~RecorderFactory() = default;
 
 RecordContext::RecordContext(
         const Scenario::ProcessModel& scenar,
