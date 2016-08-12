@@ -56,15 +56,18 @@ void ApplicationPlugin::record(
         const Scenario::ProcessModel& scenar,
         Scenario::Point pt)
 {
+    if(m_currentContext)
+        return;
+
     m_stopAction->trigger();
     QApplication::processEvents();
 
-    Recording::RecordContext ctx{scenar, pt};
-    m_recManager = std::make_unique<Recording::RecordManager>(ctx);
+    m_currentContext = std::make_unique<Recording::RecordContext>(scenar, pt);
+    m_recManager = std::make_unique<SingleRecorder<AutomationRecorder>>(*m_currentContext);
 
     if(context.settings<Curve::Settings::Model>().getPlayWhileRecording())
     {
-        connect(m_recManager.get(), &Recording::RecordManager::requestPlay,
+        connect(&m_recManager->recorder, &Recording::AutomationRecorder::firstMessageReceived,
                 this, [=] ()
         {
             m_ossiaplug->on_record(pt.date);
@@ -79,15 +82,18 @@ void ApplicationPlugin::recordMessages(
         const Scenario::ProcessModel& scenar,
         Scenario::Point pt)
 {
+    if(m_currentContext)
+        return;
+
     m_stopAction->trigger();
     QApplication::processEvents();
 
-    Recording::RecordContext ctx{scenar, pt};
-    m_recMessagesManager = std::make_unique<Recording::RecordMessagesManager>(ctx);
+    m_currentContext = std::make_unique<Recording::RecordContext>(scenar, pt);
+    m_recMessagesManager = std::make_unique<SingleRecorder<MessageRecorder>>(*m_currentContext);
 
     if(context.settings<Curve::Settings::Model>().getPlayWhileRecording())
     {
-        connect(m_recMessagesManager.get(), &Recording::RecordMessagesManager::requestPlay,
+        connect(&m_recMessagesManager->recorder, &Recording::MessageRecorder::firstMessageReceived,
                 this, [=] ()
         {
             m_ossiaplug->on_record(pt.date);
@@ -110,5 +116,7 @@ void ApplicationPlugin::stopRecord()
         m_recMessagesManager->stop();
         m_recMessagesManager.reset();
     }
+
+    m_currentContext.reset();
 }
 }

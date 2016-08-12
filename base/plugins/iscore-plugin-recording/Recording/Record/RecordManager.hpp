@@ -15,34 +15,48 @@ namespace Recording
 struct RecordContext;
 // TODO for some reason we have to undo redo
 // to be able to send the curve at execution. Investigate why.
-class RecordManager final : public QObject
+class AutomationRecorder :
+        public QObject,
+        public RecordProvider
 {
         Q_OBJECT
     public:
-        RecordManager(RecordContext& ctx);
+        RecordContext& context;
+        AutomationRecorder(RecordContext& ctx);
 
-        void setup();
-        void stop();
+        void setup(const Box&, const RecordListening&) override;
+        void stop() override;
 
         void commit();
 
     signals:
-        void requestPlay();
+        void firstMessageReceived();
 
     private:
         void messageCallback(const State::Address& addr, const State::Value& val);
         void parameterCallback(const State::Address& addr, const State::Value& val);
 
-        RecordContext& m_context;
         const Curve::Settings::Model& m_settings;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
 
-        QTimer m_recordTimer;
-        bool m_firstValueReceived{};
-        std::chrono::steady_clock::time_point start_time_pt;
 
         std::unordered_map<
-            Device::FullAddressSettings,
-        RecordData> records;
+            State::Address,
+            RecordData> records;
+        // TODO see this : http://stackoverflow.com/questions/34596768/stdunordered-mapfind-using-a-type-different-than-the-key-type
 };
+
+class AutomationRecorderFactory final :
+        public RecorderFactory
+{
+        Priority matches(
+            const Device::Node&,
+            const iscore::DocumentContext& ctx) override;
+
+        std::unique_ptr<RecordProvider> make(
+            const Device::NodeList&,
+            const iscore::DocumentContext& ctx) override;
+
+};
+
 }

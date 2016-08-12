@@ -57,20 +57,17 @@ class SegmentModel;
 
 namespace Recording
 {
-RecordManager::RecordManager(
+AutomationRecorder::AutomationRecorder(
         RecordContext& ctx):
-    m_context{ctx},
-    m_settings{m_context.context.app.settings<Curve::Settings::Model>()}
+    context{ctx},
+    m_settings{context.context.app.settings<Curve::Settings::Model>()}
 {
-    m_recordTimer.setInterval(8);
-    m_recordTimer.setTimerType(Qt::PreciseTimer);
 }
 
-void RecordManager::stop()
+void AutomationRecorder::stop()
 {
     // Stop all the recording machinery
-    m_recordTimer.stop();
-    auto msecs = GetTimeDifference(start_time_pt);
+    auto msecs = context.time();
     for(const auto& con : m_recordCallbackConnections)
     {
         QObject::disconnect(con);
@@ -80,9 +77,9 @@ void RecordManager::stop()
     qApp->processEvents();
 
     // Record and then stop
-    if(!m_firstValueReceived)
+    if(!context.started())
     {
-        m_context.dispatcher.rollback();
+        context.dispatcher.rollback();
         return;
     }
 
@@ -118,33 +115,28 @@ void RecordManager::stop()
         // Add a point with the last state.
         auto initCurveCmd = new Automation::InitAutomation{
                 automation,
-                recorded.first.address,
+                recorded.first,
                 recorded.second.segment.min(),
                 recorded.second.segment.max(),
                 recorded.second.segment.toPowerSegments()};
 
         // This one shall not be redone
-        m_context.dispatcher.submitCommand(recorded.second.addProcCmd);
-        m_context.dispatcher.submitCommand(recorded.second.addLayCmd);
-        m_context.dispatcher.submitCommand(initCurveCmd);
+        context.dispatcher.submitCommand(recorded.second.addProcCmd);
+        context.dispatcher.submitCommand(recorded.second.addLayCmd);
+        context.dispatcher.submitCommand(initCurveCmd);
     }
-
-    // Commit
-    m_context.dispatcher.commit();
-
-    m_context.explorer.deviceModel().listening().restore();
 }
 
-void RecordManager::messageCallback(const State::Address &addr, const State::Value &val)
+void AutomationRecorder::messageCallback(const State::Address &addr, const State::Value &val)
 {
     using namespace std::chrono;
-    if(m_firstValueReceived)
+    if(context.started())
     {
-        auto msecs = GetTimeDifference(start_time_pt);
+        auto msecs = context.time();
 
         auto newval = State::convert::value<float>(val.val);
 
-        auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
+        auto it = records.find(addr);
         ISCORE_ASSERT(it != records.end());
 
         const auto& proc_data = it->second;
@@ -155,13 +147,12 @@ void RecordManager::messageCallback(const State::Address &addr, const State::Val
     }
     else
     {
-        m_firstValueReceived = true;
-        start_time_pt = steady_clock::now();
-        m_recordTimer.start();
+        emit firstMessageReceived();
+        context.start();
 
         auto newval = State::convert::value<float>(val.val);
 
-        auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
+        auto it = records.find(addr);
         ISCORE_ASSERT(it != records.end());
 
         const auto& proc_data = it->second;
@@ -169,16 +160,16 @@ void RecordManager::messageCallback(const State::Address &addr, const State::Val
     }
 }
 
-void RecordManager::parameterCallback(const State::Address &addr, const State::Value &val)
+void AutomationRecorder::parameterCallback(const State::Address &addr, const State::Value &val)
 {
     using namespace std::chrono;
-    if(m_firstValueReceived)
+    if(context.started())
     {
-        auto msecs = GetTimeDifference(start_time_pt);
+        auto msecs = context.time();
 
         auto newval = State::convert::value<float>(val.val);
 
-        auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
+        auto it = records.find(addr);
         ISCORE_ASSERT(it != records.end());
 
         const auto& proc_data = it->second;
@@ -191,48 +182,23 @@ void RecordManager::parameterCallback(const State::Address &addr, const State::V
     }
     else
     {
-        emit requestPlay();
-        m_firstValueReceived = true;
-        start_time_pt = steady_clock::now();
-        m_recordTimer.start();
+        emit firstMessageReceived();
+        context.start();
 
         auto newval = State::convert::value<float>(val.val);
 
-        auto it = find_if(records, [&] (const auto& elt) { return elt.first.address == addr; });
+        auto it = records.find(addr);
         ISCORE_ASSERT(it != records.end());
 
         const auto& proc_data = it->second;
         proc_data.segment.addPoint(0, newval);
     }
 }
-static int getReasonableUpdateInterval(int numberOfCurves)
-{
-    if(numberOfCurves < 10)
-        return 8;
-    if(numberOfCurves < 50)
-        return 16;
-    if(numberOfCurves < 100)
-        return 100;
-    if(numberOfCurves < 1000)
-        return 1000;
-    return 5000;
-}
 
-void RecordManager::setup()
+void AutomationRecorder::setup(const Box& box, const RecordListening& recordListening)
 {
     using namespace std::chrono;
-    //// Device tree management ////
-
-    // Get the listening of the selected addresses
-    auto recordListening = GetAddressesToRecordRecursive(m_context.explorer);
-    if(recordListening.empty())
-        return;
-
-    // Disable listening for everything
-    m_context.explorer.deviceModel().listening().stop();
-
     //// Initial commands ////
-    Box box = CreateBox(m_context);
 
     //// Creation of the curves ////
     int curve_count = 0;
@@ -280,7 +246,7 @@ void RecordManager::setup()
 
             records.insert(
                         std::make_pair(
-                            addr,
+                            addr.address,
                             RecordData{
                                 cmd_proc,
                                 cmd_layer,
@@ -289,12 +255,12 @@ void RecordManager::setup()
         }
     }
 
-    const auto& devicelist = m_context.explorer.deviceModel().list();
+    const auto& devicelist = context.explorer.deviceModel().list();
     //// Setup listening on the curves ////
     auto callback_to_use =
             m_settings.getCurveMode() == Curve::Settings::Mode::Parameter
-            ? &RecordManager::parameterCallback
-            : &RecordManager::messageCallback;
+            ? &AutomationRecorder::parameterCallback
+            : &AutomationRecorder::messageCallback;
 
     for(const auto& vec : recordListening)
     {
@@ -313,28 +279,22 @@ void RecordManager::setup()
                     connect(&dev, &Device::DeviceInterface::valueUpdated,
                 this, callback_to_use));
     }
-
-    //// Start the record timer ////
-    m_recordTimer.setInterval(getReasonableUpdateInterval(curve_count));
-    connect(&m_recordTimer, &QTimer::timeout,
-            this, [=] () {
-        // Move end event by the current duration.
-        box.moveCommand.update(
-                    {},
-                    {},
-                    box.endEvent,
-                    m_context.point.date + GetTimeDifference(start_time_pt),
-                    0,
-                    true);
-
-        box.moveCommand.redo();
-    });
-
-    // In case where the software is exited
-    // during recording.
-    connect(&m_context.scenario, &IdentifiedObjectAbstract::identified_object_destroyed,
-            this, [&] () {
-        m_recordTimer.stop();
-    });
 }
+
+Priority AutomationRecorderFactory::matches(
+        const Device::Node& n,
+        const iscore::DocumentContext& ctx)
+{
+    return {};
+
+}
+
+std::unique_ptr<RecordProvider> AutomationRecorderFactory::make(
+        const Device::NodeList&,
+        const iscore::DocumentContext& ctx)
+{
+    return {};
+
+}
+
 }

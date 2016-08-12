@@ -32,7 +32,8 @@ class ApplicationPlugin final :
         Engine::ApplicationPlugin* m_ossiaplug{};
         QAction* m_stopAction{};
 
-        std::unique_ptr<Recording::RecordManager> m_recManager;
-        std::unique_ptr<Recording::RecordMessagesManager> m_recMessagesManager;
+        std::unique_ptr<RecordContext> m_currentContext{};
+        std::unique_ptr<SingleRecorder<AutomationRecorder>> m_recManager;
+        std::unique_ptr<SingleRecorder<MessageRecorder>> m_recMessagesManager;
 };
 }

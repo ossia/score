@@ -31,6 +31,11 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
 {
 }
 
+MoveEventOnCreationMeta::~MoveEventOnCreationMeta()
+{
+
+}
+
 void MoveEventOnCreationMeta::undo() const
 {
     m_moveEventImplementation->undo();
