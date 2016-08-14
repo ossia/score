@@ -195,18 +195,18 @@ void AutomationRecorder::parameterCallback(const State::Address &addr, const Sta
     }
 }
 
-void AutomationRecorder::setup(const Box& box, const RecordListening& recordListening)
+bool AutomationRecorder::setup(const Box& box, const RecordListening& recordListening)
 {
-    using namespace std::chrono;
-    //// Initial commands ////
-
+    std::vector<std::vector<State::Address>> addresses;
     //// Creation of the curves ////
-    int curve_count = 0;
     for(const auto& vec : recordListening)
     {
-        for(const Device::FullAddressSettings& addr : vec)
+        addresses.push_back({Device::address(*vec.front())});
+        addresses.back().reserve(vec.size());
+
+        for(auto node : vec)
         {
-            curve_count++;
+            auto& addr = node->get<Device::AddressSettings>();
             // Note : since we directly create the IDs here, we don't have to worry
             // about their generation.
             auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
@@ -244,9 +244,10 @@ void AutomationRecorder::setup(const Box& box, const RecordListening& recordList
 
             autom.curve().addSegment(segt);
 
+            addresses.back().push_back(Device::address(*node));
             records.insert(
                         std::make_pair(
-                            addr.address,
+                            addresses.back().back(),
                             RecordData{
                                 cmd_proc,
                                 cmd_layer,
@@ -262,30 +263,30 @@ void AutomationRecorder::setup(const Box& box, const RecordListening& recordList
             ? &AutomationRecorder::parameterCallback
             : &AutomationRecorder::messageCallback;
 
+    int i = 0;
     for(const auto& vec : recordListening)
     {
-        auto& dev = devicelist.device(vec.front().address.device);
+        auto& dev = devicelist.device(*vec.front());
         if(!dev.connected())
             continue;
 
-        std::vector<State::Address> addr_vec;
-        addr_vec.reserve(vec.size());
-        std::transform(vec.begin(), vec.end(),
-                       std::back_inserter(addr_vec),
-                       [] (const auto& e) { return e.address; });
-        dev.addToListening(addr_vec);
+        dev.addToListening(addresses[i]);
         // Add a custom callback.
         m_recordCallbackConnections.push_back(
                     connect(&dev, &Device::DeviceInterface::valueUpdated,
                 this, callback_to_use));
+
+        i++;
     }
+
+    return true;
 }
 
 Priority AutomationRecorderFactory::matches(
         const Device::Node& n,
         const iscore::DocumentContext& ctx)
 {
-    return {};
+    return 2;
 
 }
 

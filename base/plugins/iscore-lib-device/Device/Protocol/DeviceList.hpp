@@ -21,6 +21,7 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceList : public QObject
 
 
         DeviceInterface& device(const QString& name) const;
+        DeviceInterface& device(const Device::Node& name) const;
 
         void addDevice(DeviceInterface* dev);
         void removeDevice(const QString& name);

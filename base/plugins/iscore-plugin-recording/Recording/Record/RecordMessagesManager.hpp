@@ -17,7 +17,7 @@ class MessageRecorder :
 
         MessageRecorder(RecordContext& ctx);
 
-        void setup(const Box&, const RecordListening&) override;
+        bool setup(const Box&, const RecordListening&) override;
         void stop() override;
 
     signals:

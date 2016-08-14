@@ -62,7 +62,7 @@ struct RecordContext
 struct RecordProvider
 {
         virtual ~RecordProvider();
-        virtual void setup(const Box&, const RecordListening&) = 0;
+        virtual bool setup(const Box&, const RecordListening&) = 0;
         virtual void stop() = 0;
 };
 
@@ -80,10 +80,14 @@ class Recorder
             // 3. Create a box corresponding to the case where we record
             // in the void, in an existing constraint, starting from a state / event...
 
+            // Have a "record as" attribute on nodes to indicate if
+            // it should be recorded as a message, or automation, or ...
+
         }
 
-        void setup()
+        bool setup()
         {
+            return false;
 
         }
 
@@ -110,14 +114,14 @@ class SingleRecorder :
         {
         }
 
-        void setup()
+        bool setup()
         {
             auto& ctx = recorder.context;
             //// Device tree management ////
             // Get the listening of the selected addresses
             auto recordListening = GetAddressesToRecordRecursive(ctx.explorer);
             if(recordListening.empty())
-                return;
+                return false;
 
             // Disable listening for everything
             ctx.explorer.deviceModel().listening().stop();
@@ -125,13 +129,17 @@ class SingleRecorder :
             // Create the processes, etc.
             Box box = CreateBox(ctx);
 
-            recorder.setup(box, recordListening);
+            if(!recorder.setup(box, recordListening))
+            {
+                ctx.explorer.deviceModel().listening().restore();
+                return false;
+            }
 
             //// Start the record timer ////
             ctx.timer.setTimerType(Qt::PreciseTimer);
             ctx.timer.setInterval(16.66 * 4); // TODO ReasonableUpdateInterval(curve_count));
             QObject::connect(&ctx.timer, &QTimer::timeout,
-                    this, [&] () {
+                    this, [&,box] () {
 
                 // Move end event by the current duration.
                 box.moveCommand.update(
@@ -151,6 +159,8 @@ class SingleRecorder :
                     this, [&] () {
                 ctx.timer.stop();
             });
+
+            return true;
         }
 
         void stop()

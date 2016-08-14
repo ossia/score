@@ -63,7 +63,7 @@ static QList<Device::Node*> GetParametersRecursive(QList<Device::Node*> parents)
 RecordListening GetAddressesToRecordRecursive(
         Explorer::DeviceExplorerModel& explorer)
 {
-    std::vector<std::vector<Device::FullAddressSettings>> recordListening;
+    RecordListening recordListening;
 
     auto parameters = GetParametersRecursive(
                   explorer.uniqueSelectedNodes(explorer.selectedIndexes()).parents);
@@ -84,22 +84,23 @@ RecordListening GetAddressesToRecordRecursive(
         // We sort the addresses by device to optimize.
         auto dev_it = find_if(recordListening,
                               [&] (const auto& vec)
-        { return vec.front().address.device == addr.device; });
+        {
+            return Device::deviceName(*vec.front()) == addr.device;
+        });
 
-        auto& as = node.get<Device::AddressSettings>();
         if(dev_it != recordListening.end())
         {
-            dev_it->push_back(Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(as, addr));
+            dev_it->push_back(node_ptr);
         }
         else
         {
-            recordListening.push_back({Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(as, addr)});
+            recordListening.push_back({node_ptr});
         }
     }
 
     return recordListening;
 }
-
+/*
 RecordListening GetAddressesToRecord(
         Explorer::DeviceExplorerModel& explorer)
 {
@@ -138,6 +139,7 @@ RecordListening GetAddressesToRecord(
 
     return recordListening;
 }
+*/
 
 Box CreateBox(RecordContext& context)
 {

@@ -1,6 +1,6 @@
 #include "MappingLayerModel.hpp"
 #include "MappingModel.hpp"
-#include "MappingPanelProxy.hpp"
+#include <Curve/Process/CurveProcessPanelProxy.hpp>
 #include <Process/LayerModel.hpp>
 
 class LayerModelPanelProxy;
@@ -37,7 +37,7 @@ LayerModel::LayerModel(
 Process::LayerModelPanelProxy* LayerModel::make_panelProxy(
         QObject* parent) const
 {
-    return new MappingPanelProxy{*this, parent};
+    return new  Curve::CurveProcessPanelProxy<LayerModel>{*this, parent};
 }
 
 void LayerModel::serialize(const VisitorVariant&) const
