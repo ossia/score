@@ -1,8 +1,6 @@
-
-
 #include "AutomationLayerModel.hpp"
 #include "AutomationModel.hpp"
-#include "AutomationPanelProxy.hpp"
+#include <Curve/Process/CurveProcessPanelProxy.hpp>
 #include <Process/LayerModel.hpp>
 
 class QObject;
@@ -41,7 +39,7 @@ LayerModel::LayerModel(
 Process::LayerModelPanelProxy* LayerModel::make_panelProxy(
         QObject* parent) const
 {
-    return new PanelProxy{*this, parent};
+    return new Curve::CurveProcessPanelProxy<LayerModel>{*this, parent};
 }
 
 void LayerModel::serialize(

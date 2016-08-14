@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <QObject>
 #include <QStringList>
 #include <utility>
@@ -27,7 +27,8 @@ class iscore_plugin_recording final :
         public QObject,
         public iscore::Plugin_QtInterface,
         public iscore::GUIApplicationContextPlugin_QtInterface,
-        public iscore::CommandFactory_QtInterface
+        public iscore::CommandFactory_QtInterface,
+        public iscore::FactoryInterface_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID GUIApplicationContextPlugin_QtInterface_iid)
@@ -35,6 +36,7 @@ class iscore_plugin_recording final :
                 iscore::Plugin_QtInterface
                 iscore::GUIApplicationContextPlugin_QtInterface
                 iscore::CommandFactory_QtInterface
+                iscore::FactoryInterface_QtInterface
                 )
 
     public:
@@ -47,7 +49,7 @@ class iscore_plugin_recording final :
 
         std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
-                const iscore::AbstractFactoryKey& key) const;
+                const iscore::AbstractFactoryKey& key) const override;
 
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;

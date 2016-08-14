@@ -220,5 +220,18 @@ void dumpTree(const Node& node, QString rec)
     }
 }
 
+QString deviceName(const Node& treeNode)
+{
+    const Node* n = &treeNode;
+    while(n->parent() && !n->is<DeviceSettings>())
+    {
+        n = n->parent();
+    }
+
+    ISCORE_ASSERT(n);
+    ISCORE_ASSERT(n->is<DeviceSettings>());
+    return n->get<DeviceSettings>().name;
+}
+
 }
 

@@ -69,8 +69,9 @@ void AddOnlyProcessToConstraint::undo(ConstraintModel& constraint) const
 Process::ProcessModel& AddOnlyProcessToConstraint::redo(ConstraintModel& constraint) const
 {
     // Create process model
-    auto proc = context.components.factory<Process::ProcessList>().get(m_processName)
-            ->make(
+    auto fac = context.components.factory<Process::ProcessList>().get(m_processName);
+    ISCORE_ASSERT(fac);
+    auto proc = fac->make(
                 constraint.duration.defaultDuration(), // TODO should maybe be max ?
                 m_createdProcessId,
                 &constraint);

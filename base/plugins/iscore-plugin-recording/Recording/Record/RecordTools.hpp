@@ -4,6 +4,7 @@
 #include <State/Address.hpp>
 #include <Process/TimeValue.hpp>
 #include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 
@@ -46,7 +47,17 @@ struct hash<Device::FullAddressSettings>
 namespace Recording
 {
 struct RecordContext;
-using RecordListening = std::vector<std::vector<Device::FullAddressSettings> >;
+/** @typedef RecordListening
+ *
+ * The set of nodes that should be recorded.
+ * Sorted by devices as an optimization.
+ * All the susb-vectors are assumed to be non-empty.
+ */
+using RecordListening =
+    std::vector<
+        std::vector<
+            Device::Node*
+        >>;
 using RecordCommandDispatcher = GenericMacroCommandDispatcher<
 RedoStrategy::Quiet,
 SendStrategy::UndoRedo>;
@@ -60,11 +71,11 @@ struct Box
         Scenario::Command::MoveNewEvent& moveCommand;
         Id<Scenario::EventModel> endEvent;
 };
-
+/*
 // Only the selected addresses
 RecordListening GetAddressesToRecord(
         Explorer::DeviceExplorerModel& m_explorer);
-
+*/
 // The selected addresses and all their children
 RecordListening GetAddressesToRecordRecursive(
         Explorer::DeviceExplorerModel& explorer);

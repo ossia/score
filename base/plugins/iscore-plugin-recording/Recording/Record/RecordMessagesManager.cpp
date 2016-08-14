@@ -90,7 +90,7 @@ void MessageRecorder::stop()
     context.dispatcher.submitCommand(cmd);
 }
 
-void MessageRecorder::setup(const Box& box, const RecordListening& recordListening)
+bool MessageRecorder::setup(const Box& box, const RecordListening& recordListening)
 {
     using namespace std::chrono;
     //// Device tree management ////
@@ -120,7 +120,7 @@ void MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
     //// Setup listening on the curves ////
     for(const auto& vec : recordListening)
     {
-        auto& dev = devicelist.device(vec.front().address.device);
+        auto& dev = devicelist.device(*vec.front());
         if(!dev.connected())
             continue;
 
@@ -128,7 +128,7 @@ void MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
         addr_vec.reserve(vec.size());
         std::transform(vec.begin(), vec.end(),
                        std::back_inserter(addr_vec),
-                       [] (const auto& e ) { return e.address; });
+                       [] (const auto& e ) { return Device::address(*e); });
         dev.addToListening(addr_vec);
 
         // Add a custom callback.
@@ -157,5 +157,7 @@ void MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
             }
         }));
     }
+
+    return true;
 }
 }

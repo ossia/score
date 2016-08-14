@@ -15,12 +15,17 @@ static auto get_device_iterator_by_name(
     });
 }
 
-DeviceInterface &DeviceList::device(const QString &name) const
+DeviceInterface& DeviceList::device(const QString &name) const
 {
     auto it = get_device_iterator_by_name(name, m_devices);
     ISCORE_ASSERT(it != m_devices.cend());
 
     return **it;
+}
+
+DeviceInterface& DeviceList::device(const Node& node) const
+{
+    return device(Device::deviceName(node));
 }
 
 void DeviceList::addDevice(DeviceInterface *dev)

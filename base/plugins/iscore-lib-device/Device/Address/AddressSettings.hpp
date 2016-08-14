@@ -8,11 +8,16 @@
 #include <State/Message.hpp>
 #include <iscore/tools/Metadata.hpp>
 #include <iscore_lib_device_export.h>
+
+template<typename T>
+class TreeNode;
 namespace Device
 {
+class DeviceExplorerNode;
+using Node = TreeNode<DeviceExplorerNode>;
+
 using RefreshRate = int;
 using RepetitionFilter = bool;
-
 struct AddressSettingsCommon
 {
     State::Value value;
@@ -50,6 +55,9 @@ struct FullAddressSettings : public Device::AddressSettingsCommon
 
         ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings make(
                 const State::Message& mess);
+
+        ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings make(
+                const Device::Node& node);
         // Specializations are in FullAddressSettings.cpp
 };
 

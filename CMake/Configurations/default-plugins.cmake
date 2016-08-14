@@ -15,6 +15,7 @@ iscore-plugin-loop
 
 iscore-plugin-engine
 iscore-plugin-js
+iscore-plugin-midi
 iscore-plugin-recording
 iscore-plugin-mapping
 
