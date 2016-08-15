@@ -81,6 +81,6 @@ class Note : public IdentifiedObject<Note>
         double m_duration{};
 
         midi_size_t m_pitch{};
-        midi_size_t m_velocity{};
+        midi_size_t m_velocity{64};
 };
 }

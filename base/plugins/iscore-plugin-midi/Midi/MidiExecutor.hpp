@@ -7,9 +7,13 @@ namespace ossia
 {
 namespace net
 {
-class node_base;
+namespace midi
+{
+class channel_node;
 }
 }
+}
+
 namespace Device
 {
 class DeviceList;
@@ -36,8 +40,24 @@ class ProcessExecutor final :
         const Midi::ProcessModel& m_process;
         const Device::DeviceList& m_devices;
 
-        ossia::net::node_base* m_channelNode{};
+        ossia::net::midi::channel_node* m_channelNode{};
+        ossia::state m_lastState;
 };
 
+
+class Component final :
+        public ::Engine::Execution::ProcessComponent_T<Midi::ProcessModel, ProcessExecutor>
+{
+        COMPONENT_METADATA("6d5334a5-7b8c-45df-9805-11d1b4472cdf")
+    public:
+        Component(
+                Engine::Execution::ConstraintElement& parentConstraint,
+                Midi::ProcessModel& element,
+                const Engine::Execution::Context& ctx,
+                const Id<iscore::Component>& id,
+                QObject* parent);
+};
+
+using ComponentFactory = ::Engine::Execution::ProcessComponentFactory_T<Component>;
 }
 }
