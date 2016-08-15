@@ -66,7 +66,7 @@ class ISCORE_PLUGIN_MIDI_EXPORT ProcessModel final :
         void setDurationAndShrink(const TimeValue& newDuration) override;
 
         QString m_device;
-        int m_channel{0};
+        int m_channel{1};
 };
 
 

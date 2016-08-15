@@ -10,6 +10,7 @@ ProcessModel::ProcessModel(
 {
     metadata.setName(QString("Midi.%1").arg(*this->id().val()));
 
+    m_device = "tata";
     for(int i = 0; i < 10; i++)
     {
         auto n = new Note{Id<Note>(i), this};

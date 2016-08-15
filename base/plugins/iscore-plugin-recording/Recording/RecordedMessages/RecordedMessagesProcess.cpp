@@ -37,7 +37,8 @@ ossia::state_element ProcessExecutor::state(double t)
     ossia::time_constraint& par_cst = *parent;
 
     auto cur_pos = t;
-    auto span = par_cst.getGranularity();
+    auto span = par_cst.getGranularity(); // TODO this does not make sense :
+    // granularity is in MS
 
     auto max_pos = cur_pos + span;
 
