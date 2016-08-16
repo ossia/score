@@ -11,24 +11,24 @@ class QObject;
 namespace Automation
 {
 class ProcessModel;
-class LayerModel final : public Process::LayerModel
+class Layer final : public Process::LayerModel
 {
     public:
-        LayerModel(
+        Layer(
                 ProcessModel& model,
                 const Id<Process::LayerModel>& id,
                 QObject* parent);
 
         // Copy
-        LayerModel(
-                const LayerModel& source,
+        Layer(
+                const Layer& source,
                 ProcessModel& model,
                 const Id<Process::LayerModel>& id,
                 QObject* parent);
 
         // Load
         template<typename Impl>
-        LayerModel(
+        Layer(
                 Deserializer<Impl>& vis,
                 ProcessModel& model,
                 QObject* parent) :
@@ -37,11 +37,10 @@ class LayerModel final : public Process::LayerModel
             vis.writeTo(*this);
         }
 
-        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
-        void serialize(const VisitorVariant&) const override;
+        void serialize_impl(const VisitorVariant&) const override;
 
         const ProcessModel& model() const;
 };
 }
 
-DEFAULT_MODEL_METADATA(Automation::LayerModel, "Automation layer")
+DEFAULT_MODEL_METADATA(Automation::Layer, "Automation layer")

@@ -17,36 +17,35 @@ class QObject;
 
 namespace Dummy
 {
-class ISCORE_LIB_PROCESS_EXPORT DummyLayerModel final : public Process::LayerModel
+class ISCORE_LIB_PROCESS_EXPORT Layer final : public Process::LayerModel
 {
-        ISCORE_SERIALIZE_FRIENDS(DummyLayerModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(DummyLayerModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Layer, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Layer, JSONObject)
 
     public:
-        explicit DummyLayerModel(
+        explicit Layer(
                 Process::ProcessModel& model,
                 const Id<LayerModel>& id,
                 QObject* parent);
 
         // Copy
-        explicit DummyLayerModel(
-                const DummyLayerModel& source,
+        explicit Layer(
+                const Layer& source,
                 Process::ProcessModel& model,
                 const Id<LayerModel>& id,
                 QObject* parent);
 
         // Load
         template<typename Impl>
-        explicit DummyLayerModel(
+        explicit Layer(
                 Deserializer<Impl>& vis,
                 Process::ProcessModel& model,
                 QObject* parent) :
-            LayerModel {vis, model, parent}
+            LayerModel{vis, model, parent}
         {
             vis.writeTo(*this);
         }
 
-        void serialize(const VisitorVariant&) const override;
-        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        void serialize_impl(const VisitorVariant&) const override;
 };
 }

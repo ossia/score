@@ -12,16 +12,6 @@
 #include <iscore_plugin_curve_commands_files.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 
-namespace iscore {
-class FactoryListInterface;
-}  // namespace iscore
-
-namespace Curve
-{
-DEFINE_CURVE_SEGMENT_FACTORY(LinearCurveSegmentFactory, Curve::LinearSegment)
-DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, Curve::PowerSegment)
-DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, Curve::SinSegment)
-}
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}
 {
@@ -37,8 +27,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_curve::
        iscore::ApplicationContext,
        TL<
          FW<Curve::SegmentFactory,
-             Curve::LinearCurveSegmentFactory,
-             Curve::PowerCurveSegmentFactory>,
+            Curve::SegmentFactory_T<Curve::LinearSegment>,
+            Curve::SegmentFactory_T<Curve::PowerSegment>>,
         FW<iscore::SettingsDelegateFactory,
              Curve::Settings::Factory>>>(ctx, factoryName);
 }

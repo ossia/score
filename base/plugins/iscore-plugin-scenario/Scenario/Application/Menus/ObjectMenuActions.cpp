@@ -305,7 +305,7 @@ void ObjectMenuActions::pasteElements(
     if(!pres)
         return;
 
-    auto& sm = static_cast<const TemporalScenarioLayerModel&>(pres->layerModel());
+    auto& sm = static_cast<const TemporalScenarioLayer&>(pres->layerModel());
     // TODO check json validity
     auto cmd = new Command::ScenarioPasteElements(sm, obj, origin);
 

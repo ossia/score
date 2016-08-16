@@ -1,5 +1,6 @@
 #include "LayerModel.hpp"
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <Process/LayerModelPanelProxy.hpp>
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -9,6 +10,12 @@ LayerModel::~LayerModel() = default;
 
 ProcessModel& LayerModel::processModel() const
 { return m_sharedProcessModel; }
+
+
+LayerModelPanelProxy*LayerModel::make_panelProxy(QObject* parent) const
+{
+    return new Process::GraphicsViewLayerModelPanelProxy{*this, parent};
+}
 
 
 LayerModel::LayerModel(

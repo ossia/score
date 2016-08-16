@@ -17,7 +17,7 @@ template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
-        const Scenario::TemporalScenarioLayerModel& lm)
+        const Scenario::TemporalScenarioLayer& lm)
 {
     auto constraints = constraintsViewModels(lm);
 
@@ -33,7 +33,7 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(
-        Scenario::TemporalScenarioLayerModel& lm)
+        Scenario::TemporalScenarioLayer& lm)
 {
     int count;
     m_stream >> count;
@@ -51,7 +51,7 @@ void Visitor<Writer<DataStream>>::writeTo(
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Scenario::TemporalScenarioLayerModel& lm)
+        const Scenario::TemporalScenarioLayer& lm)
 {
     QJsonArray arr;
 
@@ -65,7 +65,7 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(
-        Scenario::TemporalScenarioLayerModel& lm)
+        Scenario::TemporalScenarioLayer& lm)
 {
     QJsonArray arr = m_obj["Constraints"].toArray();
 
@@ -78,7 +78,7 @@ void Visitor<Writer<JSONObject>>::writeTo(
     }
 }
 
-void Scenario::TemporalScenarioLayerModel::serialize(const VisitorVariant& vis) const
+void Scenario::TemporalScenarioLayer::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }

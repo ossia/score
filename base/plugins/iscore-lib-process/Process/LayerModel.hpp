@@ -18,14 +18,15 @@ class ProcessModel;
  *
  * Interface to implement to make a process view model.
  */
-class ISCORE_LIB_PROCESS_EXPORT LayerModel: public IdentifiedObject<LayerModel>
+class ISCORE_LIB_PROCESS_EXPORT LayerModel:
+        public IdentifiedObject<LayerModel>
 {
     public:
         virtual ~LayerModel();
         ProcessModel& processModel() const;
 
-        virtual void serialize(const VisitorVariant&) const = 0;
-        virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const = 0;
+        virtual void serialize_impl(const VisitorVariant&) const = 0;
+        virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const;
 
 
     protected:

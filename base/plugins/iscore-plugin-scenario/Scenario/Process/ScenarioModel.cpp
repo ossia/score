@@ -228,33 +228,33 @@ void ProcessModel::setSelection(const Selection& s) const
     });
 }
 
-void ProcessModel::setupLayer(AbstractScenarioLayerModel* scen)
+void ProcessModel::setupLayer(AbstractScenarioLayer* scen)
 {
     // There is no ConstraintCreated connection to the layer,
     // because the constraints view models are created
     // from the commands, since they require ids too.
-    constraints.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::on_constraintRemoved>(scen);
+    constraints.removed.connect<AbstractScenarioLayer, &AbstractScenarioLayer::on_constraintRemoved>(scen);
 
-    states.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::stateCreated>(scen);
-    states.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::stateRemoved>(scen);
+    states.added.connect<AbstractScenarioLayer, &AbstractScenarioLayer::stateCreated>(scen);
+    states.removed.connect<AbstractScenarioLayer, &AbstractScenarioLayer::stateRemoved>(scen);
 
-    events.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::eventCreated>(scen);
-    events.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::eventRemoved>(scen);
+    events.added.connect<AbstractScenarioLayer, &AbstractScenarioLayer::eventCreated>(scen);
+    events.removed.connect<AbstractScenarioLayer, &AbstractScenarioLayer::eventRemoved>(scen);
 
-    timeNodes.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::timeNodeCreated>(scen);
-    timeNodes.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::timeNodeRemoved>(scen);
+    timeNodes.added.connect<AbstractScenarioLayer, &AbstractScenarioLayer::timeNodeCreated>(scen);
+    timeNodes.removed.connect<AbstractScenarioLayer, &AbstractScenarioLayer::timeNodeRemoved>(scen);
 
-    comments.added.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::commentCreated>(scen);
-    comments.removed.connect<AbstractScenarioLayerModel, &AbstractScenarioLayerModel::commentRemoved>(scen);
+    comments.added.connect<AbstractScenarioLayer, &AbstractScenarioLayer::commentCreated>(scen);
+    comments.removed.connect<AbstractScenarioLayer, &AbstractScenarioLayer::commentRemoved>(scen);
 
     connect(this, &ProcessModel::eventMoved,
-            scen, &AbstractScenarioLayerModel::eventMoved);
+            scen, &AbstractScenarioLayer::eventMoved);
 
     connect(this, &ProcessModel::constraintMoved,
-            scen, &AbstractScenarioLayerModel::constraintMoved);
+            scen, &AbstractScenarioLayer::constraintMoved);
 
     connect(this, &ProcessModel::commentMoved,
-            scen, &AbstractScenarioLayerModel::commentMoved);
+            scen, &AbstractScenarioLayer::commentMoved);
 }
 
 

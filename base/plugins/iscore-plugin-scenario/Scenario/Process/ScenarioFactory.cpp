@@ -36,7 +36,7 @@ Process::LayerView* ScenarioFactory::makeLayerView(
         const Process::LayerModel& viewmodel,
         QGraphicsItem* parent)
 {
-    if(dynamic_cast<const TemporalScenarioLayerModel*>(&viewmodel))
+    if(dynamic_cast<const TemporalScenarioLayer*>(&viewmodel))
         return new TemporalScenarioView {parent};
 
     return nullptr;
@@ -49,7 +49,7 @@ ScenarioFactory::makeLayerPresenter(
         const Process::ProcessPresenterContext& context,
         QObject* parent)
 {
-    if(auto vm = dynamic_cast<const TemporalScenarioLayerModel*>(&lm))
+    if(auto vm = dynamic_cast<const TemporalScenarioLayer*>(&lm))
     {
         auto pres = new TemporalScenarioPresenter {
                 m_editionSettings,
@@ -127,7 +127,7 @@ Process::LayerModel* ScenarioFactory::makeLayer_impl(
     s >> map;
 
     auto& scenar = static_cast<Scenario::ProcessModel&>(proc);
-    auto scen = new TemporalScenarioLayerModel {
+    auto scen = new TemporalScenarioLayer {
                 viewModelId, map,
                 scenar, parent};
     scenar.setupLayer(scen);
@@ -142,8 +142,8 @@ Process::LayerModel* ScenarioFactory::cloneLayer_impl(
         QObject* parent)
 {
     auto& scenar = static_cast<Scenario::ProcessModel&>(proc);
-    auto scen = new TemporalScenarioLayerModel{
-                static_cast<const TemporalScenarioLayerModel&>(source),
+    auto scen = new TemporalScenarioLayer{
+                static_cast<const TemporalScenarioLayer&>(source),
                 newId,
                 scenar,
                 parent};
@@ -159,7 +159,7 @@ Process::LayerModel* ScenarioFactory::loadLayer_impl(
     auto& scenar = static_cast<Scenario::ProcessModel&>(proc);
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto scen = new TemporalScenarioLayerModel{
+        auto scen = new TemporalScenarioLayer{
                     deserializer, scenar, parent};
         scenar.setupLayer(scen);
         return scen;

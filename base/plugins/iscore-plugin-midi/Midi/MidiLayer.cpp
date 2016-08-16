@@ -30,13 +30,7 @@ Layer::Layer(
     // Nothing to copy
 }
 
-Process::LayerModelPanelProxy* Layer::make_panelProxy(
-        QObject* parent) const
-{
-    return nullptr;
-}
-
-void Layer::serialize(
+void Layer::serialize_impl(
         const VisitorVariant&) const
 {
     // Nothing to save

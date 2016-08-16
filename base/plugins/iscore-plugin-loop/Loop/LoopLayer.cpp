@@ -1,5 +1,5 @@
+#include <Process/LayerModelPanelProxy.hpp>
 
-#include <Loop/LoopPanelProxy.hpp>
 #include <Loop/LoopProcessModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
@@ -43,13 +43,6 @@ Layer::Layer(
                 model.constraint(),
                 this);
 }
-
-Process::LayerModelPanelProxy* Layer::make_panelProxy(
-        QObject* parent) const
-{
-    return new PanelProxy{*this, parent};
-}
-
 
 const Loop::ProcessModel& Layer::model() const
 {

@@ -85,7 +85,7 @@ namespace Scenario
 namespace Command
 {
 ScenarioPasteElements::ScenarioPasteElements(
-        Path<TemporalScenarioLayerModel>&& path,
+        Path<TemporalScenarioLayer>&& path,
         const QJsonObject& obj,
         const Scenario::Point& pt):
     m_ts{std::move(path)}

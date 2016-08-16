@@ -21,7 +21,7 @@ class ConstraintViewModel;
 class EventModel;
 class ProcessModel;
 
-class AbstractScenarioLayerModel :
+class AbstractScenarioLayer :
         public Process::LayerModel,
         public Nano::Observer
 {
@@ -68,7 +68,7 @@ class AbstractScenarioLayerModel :
         virtual void on_constraintRemoved(const ConstraintModel&) = 0;
 
     protected:
-        AbstractScenarioLayerModel(const Id<LayerModel>& viewModelId,
+        AbstractScenarioLayer(const Id<LayerModel>& viewModelId,
                               const QString& name,
                               Process::ProcessModel& sharedProcess,
                               QObject* parent) :
@@ -81,7 +81,7 @@ class AbstractScenarioLayerModel :
         }
 
         // Copy
-        AbstractScenarioLayerModel(const AbstractScenarioLayerModel& source,
+        AbstractScenarioLayer(const AbstractScenarioLayer& source,
                               const Id<LayerModel>& viewModelId,
                               const QString& name,
                               Process::ProcessModel& sharedProcess,
@@ -95,7 +95,7 @@ class AbstractScenarioLayerModel :
 
         // Load
         template<typename Impl>
-        AbstractScenarioLayerModel(Deserializer<Impl>& vis,
+        AbstractScenarioLayer(Deserializer<Impl>& vis,
                               Process::ProcessModel& sharedProcess,
                               QObject* parent) :
             LayerModel {vis,

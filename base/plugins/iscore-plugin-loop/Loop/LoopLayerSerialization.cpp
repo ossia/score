@@ -18,7 +18,7 @@ template <typename T> class Writer;
 
 namespace Loop
 {
-void Layer::serialize(
+void Layer::serialize_impl(
         const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);

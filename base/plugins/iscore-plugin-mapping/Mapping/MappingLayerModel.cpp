@@ -9,43 +9,37 @@ class QObject;
 
 namespace Mapping
 {
-LayerModel::LayerModel(
+Layer::Layer(
         ProcessModel& model,
         const Id<Process::LayerModel>& id,
         QObject* parent) :
     Process::LayerModel {id,
-                Metadata<ObjectKey_k, LayerModel>::get(),
+                Metadata<ObjectKey_k, Layer>::get(),
                 model,
                 parent}
 {
 
 }
 
-LayerModel::LayerModel(
-        const LayerModel& source,
+Layer::Layer(
+        const Layer& source,
         ProcessModel& model,
         const Id<Process::LayerModel>& id,
         QObject* parent) :
     Process::LayerModel {id,
-                Metadata<ObjectKey_k, LayerModel>::get(),
+                Metadata<ObjectKey_k, Layer>::get(),
                 model,
                 parent}
 {
     // Nothing to copy
 }
 
-Process::LayerModelPanelProxy* LayerModel::make_panelProxy(
-        QObject* parent) const
-{
-    return new  Curve::CurveProcessPanelProxy<LayerModel>{*this, parent};
-}
-
-void LayerModel::serialize(const VisitorVariant&) const
+void Layer::serialize_impl(const VisitorVariant&) const
 {
     // Nothing to save
 }
 
-const ProcessModel& LayerModel::model() const
+const ProcessModel& Layer::model() const
 {
     return static_cast<const ProcessModel&>(processModel());
 }

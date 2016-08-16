@@ -49,8 +49,7 @@ class Layer final : public Process::LayerModel
             vis.writeTo(*this);
         }
 
-        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
-        void serialize(const VisitorVariant&) const override;
+        void serialize_impl(const VisitorVariant&) const override;
 
         const Loop::ProcessModel& model() const;
 

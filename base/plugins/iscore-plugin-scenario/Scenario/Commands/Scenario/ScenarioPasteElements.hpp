@@ -18,7 +18,7 @@ namespace Scenario
 struct Point;
 class EventModel;
 class StateModel;
-class TemporalScenarioLayerModel;
+class TemporalScenarioLayer;
 class TimeNodeModel;
 class ConstraintModel;
 namespace Command
@@ -29,7 +29,7 @@ class ScenarioPasteElements final : public iscore::SerializableCommand
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ScenarioPasteElements, "Paste elements in scenario")
     public:
         ScenarioPasteElements(
-                Path<TemporalScenarioLayerModel>&& path,
+                Path<TemporalScenarioLayer>&& path,
                 const QJsonObject& obj,
                 const Scenario::Point& pt);
 
@@ -41,7 +41,7 @@ class ScenarioPasteElements final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<TemporalScenarioLayerModel> m_ts;
+        Path<TemporalScenarioLayer> m_ts;
 
         // TODO std::vector...
         QVector<Id<TimeNodeModel>> m_ids_timenodes;

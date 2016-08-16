@@ -79,22 +79,12 @@ class SegmentFactory_T : public SegmentFactory
         QVariant makeCurveSegmentData(
                 const VisitorVariant& vis) const override
         { return QVariant::fromValue(deserialize_dyn<typename T::data_type>(vis)); }
+
+        UuidKey<Curve::SegmentFactory> concreteFactoryKey() const override
+        { return Metadata<ConcreteFactoryKey_k, T>::get(); }
+
+        QString prettyName() const override
+        { return Metadata<PrettyName_k, T>::get(); }
 };
 
 }
-// TODO this needn't be a macro anymore.
-#define DEFINE_CURVE_SEGMENT_FACTORY(Name, Model) \
-    class Name final : public Curve::SegmentFactory_T<Model> \
-{ \
-    public: \
-    virtual ~Name() = default; \
-    \
-    private: \
-    UuidKey<Curve::SegmentFactory> concreteFactoryKey() const override { \
-        return Metadata<ConcreteFactoryKey_k, Model>::get(); \
-    } \
-    \
-    QString prettyName() const override { \
-        return Metadata<PrettyName_k, Model>::get(); \
-    } \
-};

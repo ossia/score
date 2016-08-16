@@ -17,6 +17,7 @@ class LayerModel;
 class LayerPresenter;
 class LayerView;
 class ProcessModel;
+class LayerModelPanelProxy;
 struct ProcessPresenterContext;
 
 /**
@@ -43,10 +44,10 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModelFactory
 
 };
 
-class ISCORE_LIB_PROCESS_EXPORT LayerModelFactory
+class ISCORE_LIB_PROCESS_EXPORT LayerFactory
 {
     public:
-        virtual ~LayerModelFactory();
+        virtual ~LayerFactory();
 
         //// View models interface
         // For deterministic operation in a command,
@@ -92,6 +93,10 @@ class ISCORE_LIB_PROCESS_EXPORT LayerModelFactory
                 const Process::LayerModel& view,
                 QGraphicsItem* parent);
 
+        virtual Process::LayerModelPanelProxy* makePanel(
+                LayerModel& layer,
+                QObject* parent);
+
     protected:
         virtual LayerModel* makeLayer_impl(
                 Process::ProcessModel&,
@@ -112,7 +117,7 @@ class ISCORE_LIB_PROCESS_EXPORT LayerModelFactory
 class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
         public iscore::AbstractFactory<ProcessFactory>,
         public ProcessModelFactory,
-        public LayerModelFactory
+        public LayerFactory
 {
         ISCORE_ABSTRACT_FACTORY("507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
     public:
