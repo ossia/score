@@ -179,6 +179,7 @@ using Segment_exponentialInOut = EasingSegment<ossia::easing::exponentialInOut<d
 using Segment_elasticIn = EasingSegment<ossia::easing::elasticIn<double>>;
 using Segment_elasticOut = EasingSegment<ossia::easing::elasticOut<double>>;
 using Segment_elasticInOut = EasingSegment<ossia::easing::elasticInOut<double>>;
+using Segment_perlinInOut = EasingSegment<ossia::easing::perlinInOut<double>>;
 
 
 }
@@ -248,7 +249,6 @@ Q_DECLARE_METATYPE(Engine::EasingCurve::EasingData)
 // cat easings2 | awk '{ print "CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_ENGINE_EXPORT, Engine::EasingCurve::Segment_" $2 ">, \"" $1 "\", \"" $2 "\", \"" $2 "\")";} '
 
 CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_ENGINE_EXPORT, Engine::EasingCurve::Segment_backIn, "fb5cb6c1-47fd-497c-9d69-7a87adbaf3b3", "backIn", "backIn")
-
 CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_ENGINE_EXPORT, Engine::EasingCurve::Segment_backOut, "0edbd8f5-67c2-41f2-ae80-f014e5c24aa6", "backOut", "backOut")
 CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_ENGINE_EXPORT, Engine::EasingCurve::Segment_backInOut, "3825c351-698d-4930-9862-28c5f7f51c61", "backInOut", "backInOut")
 CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_ENGINE_EXPORT, Engine::EasingCurve::Segment_bounceIn, "51fafa98-aa8e-48f0-adae-c21c3eeb63ca", "bounceIn", "bounceIn")
@@ -278,36 +278,5 @@ CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_ENGINE_EXPORT, Engine::EasingCurve::Segment
 CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_ENGINE_EXPORT, Engine::EasingCurve::Segment_elasticIn, "6e301164-e079-466b-a518-12fe89048283", "elasticIn", "elasticIn")
 CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_ENGINE_EXPORT, Engine::EasingCurve::Segment_elasticOut, "1f1fddd4-7a23-4c15-a3ec-6e88e9787a97", "elasticOut", "elasticOut")
 CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_ENGINE_EXPORT, Engine::EasingCurve::Segment_elasticInOut, "8bad1486-b616-4ebe-aa5e-844162545f8b", "elasticInOut", "elasticInOut")
+CURVE_SEGMENT_METADATA(ISCORE_PLUGIN_ENGINE_EXPORT, Engine::EasingCurve::Segment_perlinInOut, "66cf32a5-86c5-4747-89d4-523e26dcc1fc", "perlinInOut", "perlinInOut")
 
-namespace Engine { namespace EasingCurve {
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_backIn, Segment_backIn)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_backOut, Segment_backOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_backInOut, Segment_backInOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_bounceIn, Segment_bounceIn)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_bounceOut, Segment_bounceOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_bounceInOut, Segment_bounceInOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_quadraticIn, Segment_quadraticIn)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_quadraticOut, Segment_quadraticOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_quadraticInOut, Segment_quadraticInOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_cubicIn, Segment_cubicIn)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_cubicOut, Segment_cubicOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_cubicInOut, Segment_cubicInOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_quarticIn, Segment_quarticIn)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_quarticOut, Segment_quarticOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_quarticInOut, Segment_quarticInOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_quinticIn, Segment_quinticIn)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_quinticOut, Segment_quinticOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_quinticInOut, Segment_quinticInOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_sineIn, Segment_sineIn)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_sineOut, Segment_sineOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_sineInOut, Segment_sineInOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_circularIn, Segment_circularIn)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_circularOut, Segment_circularOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_circularInOut, Segment_circularInOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_exponentialIn, Segment_exponentialIn)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_exponentialOut, Segment_exponentialOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_exponentialInOut, Segment_exponentialInOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_elasticIn, Segment_elasticIn)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_elasticOut, Segment_elasticOut)
-DEFINE_CURVE_SEGMENT_FACTORY(SegmentFactory_elasticInOut, Segment_elasticInOut)
-    } }

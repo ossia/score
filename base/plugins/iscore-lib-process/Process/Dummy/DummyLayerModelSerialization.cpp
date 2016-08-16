@@ -5,20 +5,20 @@
 #include <iscore_lib_process_export.h>
 namespace Dummy
 {
-class DummyLayerModel;
+class Layer;
 }
 template <typename T> class Reader;
 template <typename T> class Writer;
 
 template<>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom_impl(
-        const Dummy::DummyLayerModel& lm)
+        const Dummy::Layer& lm)
 {
 }
 
 template<>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(
-        Dummy::DummyLayerModel& lm)
+        Dummy::Layer& lm)
 {
 }
 
@@ -26,12 +26,12 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 
 template<>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Dummy::DummyLayerModel& lm)
+        const Dummy::Layer& lm)
 {
 }
 
 template<>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
-        Dummy::DummyLayerModel& lm)
+        Dummy::Layer& lm)
 {
 }

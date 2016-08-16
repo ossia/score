@@ -25,7 +25,7 @@ namespace Process
 {
 class ProcessFactory;
 class ProcessModel;
-class LayerModelFactory;
+class LayerFactory;
 
 /**
  * @brief The Process class
@@ -40,7 +40,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
 
         ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, JSONObject)
-        friend class Process::LayerModelFactory; // to register layers
+        friend class Process::LayerFactory; // to register layers
 
     public:
         iscore::Components components;

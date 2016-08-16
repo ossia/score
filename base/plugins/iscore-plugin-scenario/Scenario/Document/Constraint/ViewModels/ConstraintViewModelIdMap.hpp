@@ -7,7 +7,7 @@
 namespace Scenario
 {
 class ConstraintViewModel;
-class AbstractScenarioLayerModel;
-using ConstraintViewModelIdMap = QHash<Path<AbstractScenarioLayerModel>, Id<ConstraintViewModel>>;
-using SerializedConstraintViewModels = QVector<QPair<Path<AbstractScenarioLayerModel>, QPair<QString, QByteArray>>>;
+class AbstractScenarioLayer;
+using ConstraintViewModelIdMap = QHash<Path<AbstractScenarioLayer>, Id<ConstraintViewModel>>;
+using SerializedConstraintViewModels = QVector<QPair<Path<AbstractScenarioLayer>, QPair<QString, QByteArray>>>;
 }

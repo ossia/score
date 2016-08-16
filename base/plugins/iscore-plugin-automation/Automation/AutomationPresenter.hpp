@@ -14,13 +14,13 @@ namespace Automation
 {
 class LayerPresenter final :
         public Curve::CurveProcessPresenter<
-            LayerModel,
+            Layer,
             LayerView>
 {
     public:
         LayerPresenter(
                 const Curve::Style& style,
-                const LayerModel& layer,
+                const Layer& layer,
                 LayerView* view,
                 const Process::ProcessPresenterContext& context,
                 QObject* parent):

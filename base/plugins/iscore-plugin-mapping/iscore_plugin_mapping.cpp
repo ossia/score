@@ -20,7 +20,7 @@ namespace Mapping {
 using MappingFactory =
     Curve::CurveProcessFactory_T<
 Mapping::ProcessModel,
-Mapping::LayerModel,
+Mapping::Layer,
 Mapping::MappingPresenter,
 Mapping::MappingView,
 Mapping::MappingColors>;

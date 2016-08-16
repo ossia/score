@@ -18,40 +18,38 @@ namespace Scenario
 {
 class ConstraintModel;
 class ConstraintViewModel;
-class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
+class TemporalScenarioLayer final : public AbstractScenarioLayer
 {
         Q_OBJECT
     public:
         using model_type = Scenario::ProcessModel;
         using constraint_layer_type = TemporalConstraintViewModel;
 
-        TemporalScenarioLayerModel(const Id<LayerModel>& id,
+        TemporalScenarioLayer(const Id<LayerModel>& id,
                               const QMap<Id<ConstraintModel>,
                               Id<ConstraintViewModel>>& constraintIds,
                               Scenario::ProcessModel& model,
                               QObject* parent);
 
         // Copy
-        TemporalScenarioLayerModel(const TemporalScenarioLayerModel& source,
+        TemporalScenarioLayer(const TemporalScenarioLayer& source,
                               const Id<LayerModel>& id,
                               Scenario::ProcessModel& model,
                               QObject* parent);
 
         // Load
         template<typename Impl>
-        TemporalScenarioLayerModel(Deserializer<Impl>& vis,
+        TemporalScenarioLayer(Deserializer<Impl>& vis,
                               Scenario::ProcessModel& model,
                               QObject* parent) :
-            AbstractScenarioLayerModel {vis, model, parent}
+            AbstractScenarioLayer {vis, model, parent}
         {
             vis.writeTo(*this);
         }
 
-        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        ~TemporalScenarioLayer() = default;
 
-        ~TemporalScenarioLayerModel() = default;
-
-        void serialize(const VisitorVariant&) const override;
+        void serialize_impl(const VisitorVariant&) const override;
 
         void makeConstraintViewModel(
                 const Id<ConstraintModel>& constraintModelId,

@@ -18,12 +18,12 @@ class QObject;
 namespace Scenario
 {
 class ConstraintViewModel;
-TemporalScenarioLayerModel::TemporalScenarioLayerModel(
+TemporalScenarioLayer::TemporalScenarioLayer(
         const Id<LayerModel>& viewModelId,
         const QMap<Id<ConstraintModel>, Id<ConstraintViewModel> >& constraintIds,
         Scenario::ProcessModel& model,
         QObject* parent) :
-    AbstractScenarioLayerModel {viewModelId,
+    AbstractScenarioLayer {viewModelId,
                               "TemporalScenarioLayer",
                               model,
                               parent}
@@ -34,12 +34,12 @@ TemporalScenarioLayerModel::TemporalScenarioLayerModel(
     }
 }
 
-TemporalScenarioLayerModel::TemporalScenarioLayerModel(
-        const TemporalScenarioLayerModel& source,
+TemporalScenarioLayer::TemporalScenarioLayer(
+        const TemporalScenarioLayer& source,
         const Id<LayerModel>& id,
         Scenario::ProcessModel& newScenario,
         QObject* parent) :
-    AbstractScenarioLayerModel {source,
+    AbstractScenarioLayer {source,
                               id,
                               "TemporalScenarioLayer",
                               newScenario,
@@ -57,13 +57,7 @@ TemporalScenarioLayerModel::TemporalScenarioLayerModel(
     }
 }
 
-Process::LayerModelPanelProxy* TemporalScenarioLayerModel::make_panelProxy(QObject* parent) const
-{
-    return new TemporalScenarioPanelProxy{*this, parent};
-}
-
-
-void TemporalScenarioLayerModel::makeConstraintViewModel(
+void TemporalScenarioLayer::makeConstraintViewModel(
         const Id<ConstraintModel>& constraintModelId,
         const Id<ConstraintViewModel>& constraintViewModelId)
 {
@@ -77,14 +71,14 @@ void TemporalScenarioLayerModel::makeConstraintViewModel(
     addConstraintViewModel(constraint_view_model);
 }
 
-void TemporalScenarioLayerModel::addConstraintViewModel(constraint_layer_type* constraint_view_model)
+void TemporalScenarioLayer::addConstraintViewModel(constraint_layer_type* constraint_view_model)
 {
     m_constraints.push_back(constraint_view_model);
 
     emit constraintViewModelCreated(*constraint_view_model);
 }
 
-void TemporalScenarioLayerModel::on_constraintRemoved(const ConstraintModel& cstr)
+void TemporalScenarioLayer::on_constraintRemoved(const ConstraintModel& cstr)
 {
     auto cvms = constraintsViewModels(*this);
     for(auto& constraint_view_model : cvms)

@@ -11,7 +11,7 @@ class QObject;
 
 namespace Dummy
 {
-DummyLayerModel::DummyLayerModel(
+Layer::Layer(
         Process::ProcessModel& model,
         const Id<LayerModel>& id,
         QObject* parent):
@@ -19,8 +19,8 @@ DummyLayerModel::DummyLayerModel(
 {
 }
 
-DummyLayerModel::DummyLayerModel(
-        const DummyLayerModel&,
+Layer::Layer(
+        const Layer&,
         Process::ProcessModel& model,
         const Id<LayerModel>& id,
         QObject* parent):
@@ -29,13 +29,8 @@ DummyLayerModel::DummyLayerModel(
 
 }
 
-void DummyLayerModel::serialize(const VisitorVariant& vis) const
+void Layer::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
-}
-
-Process::LayerModelPanelProxy* DummyLayerModel::make_panelProxy(QObject* parent) const
-{
-    return new DummyLayerPanelProxy{*this, parent};
 }
 }

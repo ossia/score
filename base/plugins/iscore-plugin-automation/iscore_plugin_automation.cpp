@@ -27,7 +27,7 @@ namespace Automation {
 using AutomationFactory =
     Curve::CurveProcessFactory_T<
 Automation::ProcessModel,
-Automation::LayerModel,
+Automation::Layer,
 Automation::LayerPresenter,
 Automation::LayerView,
 Automation::Colors>;

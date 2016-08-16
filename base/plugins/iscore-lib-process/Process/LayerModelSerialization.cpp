@@ -13,7 +13,8 @@ template <typename T> class Reader;
 template <typename model> class IdentifiedObject;
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Process::LayerModel& layerModel)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+        const Process::LayerModel& layerModel)
 {
     // To allow recration using createLayerModel.
     // This supposes that the process is stored inside a Constraint.
@@ -24,13 +25,14 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Proce
     // LayerModel doesn't have any particular data to save
 
     // Save the subclass
-    layerModel.serialize(toVariant());
+    layerModel.serialize_impl(toVariant());
 
     insertDelimiter();
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Process::LayerModel& layerModel)
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
+        const Process::LayerModel& layerModel)
 {
     // To allow recration using createLayerModel.
     // This supposes that the process is stored inside a Constraint.
@@ -41,5 +43,5 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Proce
     // LayerModel doesn't have any particular data to save
 
     // Save the subclass
-    layerModel.serialize(toVariant());
+    layerModel.serialize_impl(toVariant());
 }

@@ -12,13 +12,13 @@ namespace Mapping
 {
 class MappingPresenter :
         public Curve::CurveProcessPresenter<
-            LayerModel,
+            Layer,
             MappingView>
 {
     public:
         MappingPresenter(
                 const Curve::Style& style,
-                const LayerModel& layer,
+                const Layer& layer,
                 MappingView* view,
                 const Process::ProcessPresenterContext& context,
                 QObject* parent):

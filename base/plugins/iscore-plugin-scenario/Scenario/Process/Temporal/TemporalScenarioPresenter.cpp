@@ -50,7 +50,7 @@ struct VerticalExtent;
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
         Scenario::EditionSettings& e,
-        const TemporalScenarioLayerModel& process_view_model,
+        const TemporalScenarioLayer& process_view_model,
         Process::LayerView* view,
         const Process::ProcessPresenterContext& context,
         QObject* parent) :
@@ -93,29 +93,29 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
 
     /////// Connections
-    con(m_layer, &TemporalScenarioLayerModel::stateCreated,
+    con(m_layer, &TemporalScenarioLayer::stateCreated,
         this, &TemporalScenarioPresenter::on_stateCreated);
-    con(m_layer, &TemporalScenarioLayerModel::stateRemoved,
+    con(m_layer, &TemporalScenarioLayer::stateRemoved,
         this, &TemporalScenarioPresenter::on_stateRemoved);
 
-    con(m_layer, &TemporalScenarioLayerModel::commentCreated,
+    con(m_layer, &TemporalScenarioLayer::commentCreated,
         this, &TemporalScenarioPresenter::on_commentBlockCreated);
-    con(m_layer, &TemporalScenarioLayerModel::commentRemoved,
+    con(m_layer, &TemporalScenarioLayer::commentRemoved,
         this, &TemporalScenarioPresenter::on_commentBlockRemoved);
 
-    con(m_layer, &TemporalScenarioLayerModel::eventCreated,
+    con(m_layer, &TemporalScenarioLayer::eventCreated,
         this, &TemporalScenarioPresenter::on_eventCreated);
-    con(m_layer, &TemporalScenarioLayerModel::eventRemoved,
+    con(m_layer, &TemporalScenarioLayer::eventRemoved,
         this, &TemporalScenarioPresenter::on_eventRemoved);
 
-    con(m_layer, &TemporalScenarioLayerModel::timeNodeCreated,
+    con(m_layer, &TemporalScenarioLayer::timeNodeCreated,
         this, &TemporalScenarioPresenter::on_timeNodeCreated);
-    con(m_layer, &TemporalScenarioLayerModel::timeNodeRemoved,
+    con(m_layer, &TemporalScenarioLayer::timeNodeRemoved,
         this, &TemporalScenarioPresenter::on_timeNodeRemoved);
 
-    con(m_layer, &TemporalScenarioLayerModel::constraintViewModelCreated,
+    con(m_layer, &TemporalScenarioLayer::constraintViewModelCreated,
         this, &TemporalScenarioPresenter::on_constraintViewModelCreated);
-    con(m_layer, &TemporalScenarioLayerModel::constraintViewModelRemoved,
+    con(m_layer, &TemporalScenarioLayer::constraintViewModelRemoved,
         this, &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
     connect(m_view, &TemporalScenarioView::keyPressed,

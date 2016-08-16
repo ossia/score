@@ -83,7 +83,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     // Register conditions for the actions enablement
     using namespace iscore;
     using namespace Process;
-    ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedObjectIs<TemporalScenarioLayerModel>>());
+    ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedObjectIs<TemporalScenarioLayer>>());
     ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedProcessIs<ProcessModel>>());
     ctx.actions.onFocusChange(std::make_shared<EnableWhenFocusedProcessIs<ScenarioInterface>>());
     ctx.actions.onDocumentChange(std::make_shared<EnableWhenDocumentIs<ScenarioDocumentModel>>());

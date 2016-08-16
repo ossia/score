@@ -29,7 +29,7 @@ Layer::Layer(
 
 }
 
-void Layer::serialize(const VisitorVariant& vis) const
+void Layer::serialize_impl(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }

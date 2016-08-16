@@ -54,7 +54,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final :
         friend class ScenarioFactory;
 
     public:
-        using layer_type = AbstractScenarioLayerModel;
+        using layer_type = AbstractScenarioLayer;
         ProcessModel(const TimeValue& duration,
                       const Id<Process::ProcessModel>& id,
                       QObject* parent);
@@ -204,7 +204,7 @@ private:void setSelection(const Selection& s) const override;
         ProcessModel(const Scenario::ProcessModel& source,
                       const Id<Process::ProcessModel>& id,
                       QObject* parent);
-        void setupLayer(AbstractScenarioLayerModel*);
+        void setupLayer(AbstractScenarioLayer*);
 
         Id<TimeNodeModel> m_startTimeNodeId {};
         Id<TimeNodeModel> m_endTimeNodeId {};

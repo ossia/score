@@ -15,7 +15,7 @@
 
 namespace Scenario
 {
-ConstraintViewModel& AbstractScenarioLayerModel::constraint(
+ConstraintViewModel& AbstractScenarioLayer::constraint(
         const Id<ConstraintViewModel>& id) const
 {
     auto it = std::find(
@@ -30,7 +30,7 @@ ConstraintViewModel& AbstractScenarioLayerModel::constraint(
     ISCORE_ABORT;
 }
 
-QVector<ConstraintViewModel*> AbstractScenarioLayerModel::constraints() const
+QVector<ConstraintViewModel*> AbstractScenarioLayer::constraints() const
 {
     return m_constraints;
 }
@@ -53,7 +53,7 @@ void removeById(Vector& c, const id_T& id)
     });
 }
 
-void AbstractScenarioLayerModel::removeConstraintViewModel(
+void AbstractScenarioLayer::removeConstraintViewModel(
         const Id<ConstraintViewModel>& constraintViewModelId)
 {
     // We have to emit before, because on removal,
@@ -73,7 +73,7 @@ void AbstractScenarioLayerModel::removeConstraintViewModel(
 
 }
 
-ConstraintViewModel& AbstractScenarioLayerModel::constraint(
+ConstraintViewModel& AbstractScenarioLayer::constraint(
         const Id<ConstraintModel>& constraintModelId) const
 {
     using namespace std;

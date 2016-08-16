@@ -46,7 +46,7 @@ namespace Scenario
 class EditionSettings;
 class ConstraintViewModel;
 class TemporalConstraintViewModel;
-class TemporalScenarioLayerModel;
+class TemporalScenarioLayer;
 class TemporalScenarioView;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
@@ -61,7 +61,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
     public:
         TemporalScenarioPresenter(
                 Scenario::EditionSettings&,
-                const TemporalScenarioLayerModel& model,
+                const TemporalScenarioLayer& model,
                 Process::LayerView* view,
                 const Process::ProcessPresenterContext& context,
                 QObject* parent);
@@ -168,7 +168,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
         ZoomRatio m_zoomRatio {1};
         double m_graphicalScale{1.};
 
-        const TemporalScenarioLayerModel& m_layer;
+        const TemporalScenarioLayer& m_layer;
 
         // The order of deletion matters!
         // m_view has to be deleted after the other elements.

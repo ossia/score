@@ -136,7 +136,7 @@ class EnableWhenScenarioInterfaceObject final :
 
 
 /// Conditions relative to Scenario elements
-ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Scenario::TemporalScenarioLayerModel)
+ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Scenario::TemporalScenarioLayer)
 ISCORE_DECLARE_DOCUMENT_CONDITION(Scenario::ScenarioDocumentModel)
 
 ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ProcessModel)

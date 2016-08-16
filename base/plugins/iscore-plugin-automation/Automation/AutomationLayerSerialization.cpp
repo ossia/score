@@ -5,27 +5,27 @@ template <typename T> class Writer;
 
 namespace Automation
 {
-class LayerModel;
+class Layer;
 }
 /////// ViewModel
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Automation::LayerModel& lm)
+void Visitor<Reader<DataStream>>::readFrom(const Automation::Layer& lm)
 {
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Automation::LayerModel& lm)
+void Visitor<Writer<DataStream>>::writeTo(Automation::Layer& lm)
 {
 }
 
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Automation::LayerModel& lm)
+void Visitor<Reader<JSONObject>>::readFrom(const Automation::Layer& lm)
 {
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(Automation::LayerModel& lm)
+void Visitor<Writer<JSONObject>>::writeTo(Automation::Layer& lm)
 {
 }

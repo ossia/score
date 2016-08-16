@@ -4,18 +4,19 @@
 #include <Process/Dummy/DummyLayerModel.hpp>
 #include <Process/Dummy/DummyLayerPresenter.hpp>
 #include <Process/Dummy/DummyLayerView.hpp>
+#include <Process/LayerModelPanelProxy.hpp>
 #include <Process/Process.hpp>
 
 namespace Process
 {
 ProcessFactory::~ProcessFactory() = default;
 ProcessModelFactory::~ProcessModelFactory() = default;
-LayerModelFactory::~LayerModelFactory() = default;
+LayerFactory::~LayerFactory() = default;
 ProcessList::~ProcessList() = default;
 StateProcessList::~StateProcessList() = default;
 
 
-LayerModel* LayerModelFactory::makeLayer(
+LayerModel* LayerFactory::makeLayer(
         Process::ProcessModel& proc,
         const Id<LayerModel>& viewModelId,
         const QByteArray& constructionData,
@@ -28,7 +29,7 @@ LayerModel* LayerModelFactory::makeLayer(
 }
 
 
-LayerModel*LayerModelFactory::loadLayer(
+LayerModel*LayerFactory::loadLayer(
         Process::ProcessModel& proc,
         const VisitorVariant& v,
         QObject* parent)
@@ -39,7 +40,7 @@ LayerModel*LayerModelFactory::loadLayer(
     return lm;
 }
 
-LayerModel*LayerModelFactory::cloneLayer(
+LayerModel*LayerFactory::cloneLayer(
         Process::ProcessModel& proc,
         const Id<LayerModel>& newId,
         const LayerModel& source,
@@ -53,18 +54,18 @@ LayerModel*LayerModelFactory::cloneLayer(
 
 
 
-QByteArray LayerModelFactory::makeLayerConstructionData(
+QByteArray LayerFactory::makeLayerConstructionData(
         const ProcessModel&) const
 {
     return { };
 }
 
-QByteArray LayerModelFactory::makeStaticLayerConstructionData() const
+QByteArray LayerFactory::makeStaticLayerConstructionData() const
 {
     return { };
 }
 
-LayerPresenter*LayerModelFactory::makeLayerPresenter(
+LayerPresenter*LayerFactory::makeLayerPresenter(
         const LayerModel& lm,
         LayerView* v,
         const ProcessPresenterContext& context,
@@ -73,44 +74,49 @@ LayerPresenter*LayerModelFactory::makeLayerPresenter(
     return new Dummy::DummyLayerPresenter{lm, static_cast<Dummy::DummyLayerView*>(v), context, parent};
 }
 
-LayerView*LayerModelFactory::makeLayerView(
+LayerView*LayerFactory::makeLayerView(
         const LayerModel& view,
         QGraphicsItem* parent)
 {
     return new Dummy::DummyLayerView{parent};
 }
 
-LayerModel*LayerModelFactory::makeLayer_impl(
+LayerModelPanelProxy* LayerFactory::makePanel(LayerModel& layer, QObject* parent)
+{
+    return new Process::GraphicsViewLayerModelPanelProxy{layer, parent};
+}
+
+LayerModel*LayerFactory::makeLayer_impl(
         ProcessModel& p,
         const Id<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
-    return new Dummy::DummyLayerModel{p, viewModelId, parent};
+    return new Dummy::Layer{p, viewModelId, parent};
 }
 
-LayerModel*LayerModelFactory::loadLayer_impl(
+LayerModel*LayerFactory::loadLayer_impl(
         ProcessModel& p ,
         const VisitorVariant& vis,
         QObject* parent)
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto autom = new Dummy::DummyLayerModel{
+        auto autom = new Dummy::Layer{
                         deserializer, p, parent};
 
         return autom;
     });
 }
 
-LayerModel*LayerModelFactory::cloneLayer_impl(
+LayerModel*LayerFactory::cloneLayer_impl(
         ProcessModel& p,
         const Id<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
 {
-    return new Dummy::DummyLayerModel{
-        safe_cast<const Dummy::DummyLayerModel&>(source),
+    return new Dummy::Layer{
+        safe_cast<const Dummy::Layer&>(source),
                 p,
                 newId,
                 parent};
