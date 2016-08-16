@@ -67,16 +67,7 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
     // given what's present in the node hierarchy
     for(const auto& node : m_loadingNode)
     {
-        // We replace the node only if it changed.
-        auto new_node = loadDeviceFromNode(node);
-        if(new_node)
-        {
-            updateProxy.loadDevice(*new_node);
-        }
-        else
-        {
-            updateProxy.loadDevice(node);
-        }
+        updateProxy.loadDevice(node);
     }
     m_loadingNode = Device::Node{};
 }
@@ -166,11 +157,12 @@ optional<Device::Node> DeviceDocumentPlugin::loadDeviceFromNode(const Device::No
 
 void DeviceDocumentPlugin::setConnection(bool b)
 {
-    for(auto& dev : m_list.devices())
+    for(Device::DeviceInterface* dev : m_list.devices())
     {
         if(b)
         {
-            dev->reconnect();
+            if(!dev->connected())
+              dev->reconnect();
             if(dev->capabilities().canSerialize)
             {
                 auto it = std::find_if(m_rootNode.cbegin(), m_rootNode.cend(), [&,dev] (const auto& dev_node) {

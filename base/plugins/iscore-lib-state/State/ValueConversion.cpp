@@ -22,19 +22,6 @@ namespace State
 namespace convert
 {
 
-const std::array<const QString, 11> ValueTypesArray{{
-        QStringLiteral("Impulse"),
-                QStringLiteral("Int"),
-                QStringLiteral("Float"),
-                QStringLiteral("Bool"),
-                QStringLiteral("String"),
-                QStringLiteral("Char"),
-                QStringLiteral("Vec2f"),
-                QStringLiteral("Vec3f"),
-                QStringLiteral("Vec4f"),
-                QStringLiteral("Tuple"),
-                QStringLiteral("None")}};
-
 const std::array<const QString, 11> ValuePrettyTypes{{
         QObject::tr("Impulse"),
                 QObject::tr("Int"),
@@ -46,7 +33,7 @@ const std::array<const QString, 11> ValuePrettyTypes{{
                 QObject::tr("Vec3f"),
                 QObject::tr("Vec4f"),
                 QObject::tr("Tuple"),
-                QObject::tr("None")}};
+                QObject::tr("Container")}};
 
 const std::array<std::pair<QString, ValueType>, 10>
     ValuePrettyTypesPairArray{{
@@ -74,7 +61,7 @@ QVariant value(const State::Value& val)
             return_type operator()(float f) const { return QVariant::fromValue(f); }
             return_type operator()(bool b) const { return QVariant::fromValue(b); }
             return_type operator()(const QString& s) const { return QVariant::fromValue(s); }
-            return_type operator()(const QChar& c) const { return QVariant::fromValue(c); }
+            return_type operator()(QChar c) const { return QVariant::fromValue(c); }
 
             return_type operator()(vec2f t) const { return QVector2D{t[0], t[1]}; }
             return_type operator()(vec3f t) const { return QVector3D{t[0], t[1], t[2]}; }
@@ -109,7 +96,7 @@ QJsonValue value(const State::Value& val)
             return_type operator()(bool b) const { return b; }
             return_type operator()(const QString& s) const { return s; }
 
-            return_type operator()(const QChar& c) const
+            return_type operator()(QChar c) const
             {
                 // Note : it is saved as a string but the actual type should be saved also
                 // so that the QChar can be recovered.
@@ -142,16 +129,44 @@ QJsonValue value(const State::Value& val)
 
 QString textualType(const State::Value& val)
 {
-    const auto& impl = val.val.impl();
-    ISCORE_ASSERT(impl.which() < ValueTypesArray.size());
-    return ValueTypesArray.at(impl.which());
+    struct vis {
+        public:
+            using return_type = QString;
+            return_type operator()(no_value_t) const { return QStringLiteral("None"); }
+            return_type operator()(impulse_t) const { return QStringLiteral("Impulse"); }
+            return_type operator()(int i) const { return QStringLiteral("Int"); }
+            return_type operator()(float f) const { return QStringLiteral("Float"); }
+            return_type operator()(bool b) const { return QStringLiteral("Bool"); }
+            return_type operator()(const QString& s) const { return QStringLiteral("String"); }
+            return_type operator()(QChar c) const { return QStringLiteral("Char"); }
+            return_type operator()(vec2f t) const { return QStringLiteral("Vec2f"); }
+            return_type operator()(vec3f t) const { return QStringLiteral("Vec3f"); }
+            return_type operator()(vec4f t) const { return QStringLiteral("Vec4f"); }
+            return_type operator()(const tuple_t& t) const { return QStringLiteral("Tuple"); }
+    };
+
+    return eggs::variants::apply(vis{}, val.val.impl());
 }
+
+const QHash<QString, State::ValueType> ValueTypesMap{
+    { QStringLiteral("Impulse"), State::ValueType::Impulse },
+    { QStringLiteral("Int"), State::ValueType::Int },
+    { QStringLiteral("Float"), State::ValueType::Float },
+    { QStringLiteral("Bool"), State::ValueType::Bool },
+    { QStringLiteral("String"), State::ValueType::String },
+    { QStringLiteral("Char"), State::ValueType::Char },
+    { QStringLiteral("Vec2f"), State::ValueType::Vec2f },
+    { QStringLiteral("Vec3f"), State::ValueType::Vec3f },
+    { QStringLiteral("Vec4f"), State::ValueType::Vec4f },
+    { QStringLiteral("Tuple"), State::ValueType::Tuple },
+    { QStringLiteral("None"), State::ValueType::NoValue }
+};
 
 static ValueType which(const QString& val)
 {
-    auto it = find(ValueTypesArray, val);
-    ISCORE_ASSERT(it != ValueTypesArray.end()); // What happens if there is a corrupt save file ?
-    return static_cast<State::ValueType>(std::distance(ValueTypesArray.begin(), it));
+    auto it = ValueTypesMap.find(val);
+    ISCORE_ASSERT(it != ValueTypesMap.end()); // What happens if there is a corrupt save file ?
+    return static_cast<State::ValueType>(*it);
 }
 
 static State::ValueImpl fromQJsonValueImpl(
@@ -198,7 +213,12 @@ State::Value fromQJsonValue(const QJsonValue& val)
 static State::ValueImpl fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
 {
     if(val.isNull())
-        return State::ValueImpl{State::no_value_t{}};
+    {
+        if(type == State::ValueType::Impulse)
+            return State::ValueImpl{State::impulse_t{}};
+        else
+            return State::ValueImpl{State::no_value_t{}};
+    }
 
     switch(type)
     {
@@ -327,7 +347,7 @@ int value(const State::Value& val)
             return_type operator()(float v) const { return v; }
             return_type operator()(bool v) const { return v; }
             return_type operator()(const QString& v) const { return QLocale::c().toInt(v); }
-            return_type operator()(const QChar& v) const { return QLocale::c().toInt(QString(v)); }
+            return_type operator()(QChar v) const { return QLocale::c().toInt(QString(v)); }
             return_type operator()(const vec2f& v) const { return 0; }
             return_type operator()(const vec3f& v) const { return 0; }
             return_type operator()(const vec4f& v) const { return 0; }
@@ -349,7 +369,7 @@ float value(const State::Value& val)
             return_type operator()(float v) const { return v; }
             return_type operator()(bool v) const { return v; }
             return_type operator()(const QString& v) const { return QLocale::c().toFloat(v); }
-            return_type operator()(const QChar& v) const { return QLocale::c().toFloat(QString(v)); }
+            return_type operator()(QChar v) const { return QLocale::c().toFloat(QString(v)); }
             return_type operator()(const vec2f& v) const { return 0; }
             return_type operator()(const vec3f& v) const { return 0; }
             return_type operator()(const vec4f& v) const { return 0; }
@@ -380,7 +400,7 @@ bool value(const State::Value& val)
                        v == iscore::StringConstant().True ||
                        v == iscore::StringConstant().lowercase_yes||
                        v == iscore::StringConstant().Yes; }
-            return_type operator()(const QChar& v) const { return v == 't' || v == 'T' || v == 'y' || v == 'Y'; }
+            return_type operator()(QChar v) const { return v == 't' || v == 'T' || v == 'y' || v == 'Y'; }
             return_type operator()(const vec2f& v) const { return false; }
             return_type operator()(const vec3f& v) const { return false; }
             return_type operator()(const vec4f& v) const { return false; }
@@ -402,7 +422,7 @@ QChar value(const State::Value& val)
             return_type operator()(float) const { return '-'; }
             return_type operator()(bool v) const { return v ? 'T' : 'F'; }
             return_type operator()(const QString& s) const { return !s.isEmpty() ? s[0] : '-'; } // TODO boueeeff
-                return_type operator()(const QChar& v) const { return  v; }
+                return_type operator()(QChar v) const { return  v; }
             return_type operator()(const vec2f& v) const { return '-'; }
             return_type operator()(const vec3f& v) const { return '-'; }
             return_type operator()(const vec4f& v) const { return '-'; }
@@ -427,7 +447,7 @@ QString value(const State::Value& val)
                         : iscore::StringConstant().lowercase_false;
             }
             return_type operator()(const QString& s) const { return s; }
-            return_type operator()(const QChar& c) const { return c; }
+            return_type operator()(QChar c) const { return c; }
             return_type operator()(const vec2f& v) const { return {}; }
             return_type operator()(const vec3f& v) const { return {}; }
             return_type operator()(const vec4f& v) const { return {}; }
@@ -444,9 +464,9 @@ vec2f value(const State::Value& val)
             using return_type = vec2f;
             return_type operator()(const State::no_value_t&) const { return {}; }
             return_type operator()(const State::impulse_t&) const { return {}; }
-            return_type operator()(int i) const { return {float(i)}; }
-            return_type operator()(float f) const { return {f}; }
-            return_type operator()(bool b) const { return {float(b)};}
+            return_type operator()(int i) const { return { { float(i) } }; }
+            return_type operator()(float f) const { return {{f}}; }
+            return_type operator()(bool b) const { return {{float(b)}};}
             return_type operator()(const QString& s) const {
                 auto v = parseValue(s);
 
@@ -455,10 +475,10 @@ vec2f value(const State::Value& val)
 
                 return {};
             }
-            return_type operator()(const QChar& c) const { return {}; }
+            return_type operator()(QChar c) const { return {}; }
             return_type operator()(const vec2f& v) const { return v; }
-            return_type operator()(const vec3f& v) const { return {v[0], v[1]}; }
-            return_type operator()(const vec4f& v) const { return {v[0], v[1]}; }
+            return_type operator()(const vec3f& v) const { return {{v[0], v[1]}}; }
+            return_type operator()(const vec4f& v) const { return {{v[0], v[1]}}; }
             return_type operator()(const State::tuple_t& t) const {
                 const int n = t.size();
                 const int n_2 = std::tuple_size<return_type>::value;
@@ -481,9 +501,9 @@ vec3f value(const State::Value& val)
             using return_type = vec3f;
             return_type operator()(const State::no_value_t&) const { return {}; }
             return_type operator()(const State::impulse_t&) const { return {}; }
-            return_type operator()(int i) const { return {float(i)}; }
-            return_type operator()(float f) const { return {f}; }
-            return_type operator()(bool b) const { return {float(b)};}
+            return_type operator()(int i) const { return {{float(i)}}; }
+            return_type operator()(float f) const { return {{f}}; }
+            return_type operator()(bool b) const { return {{float(b)}};}
             return_type operator()(const QString& s) const {
                 auto v = parseValue(s);
 
@@ -492,10 +512,10 @@ vec3f value(const State::Value& val)
 
                 return {};
             }
-            return_type operator()(const QChar& c) const { return {}; }
-            return_type operator()(const vec2f& v) const { return {v[0], v[1]}; }
+            return_type operator()(QChar c) const { return {}; }
+            return_type operator()(const vec2f& v) const { return {{v[0], v[1]}}; }
             return_type operator()(const vec3f& v) const { return v; }
-            return_type operator()(const vec4f& v) const { return {v[0], v[1], v[2]}; }
+            return_type operator()(const vec4f& v) const { return {{v[0], v[1], v[2]}}; }
             return_type operator()(const State::tuple_t& t) const {
                 const int n = t.size();
                 const int n_2 = std::tuple_size<return_type>::value;
@@ -518,9 +538,9 @@ vec4f value(const State::Value& val)
             using return_type = vec4f;
             return_type operator()(const State::no_value_t&) const { return {}; }
             return_type operator()(const State::impulse_t&) const { return {}; }
-            return_type operator()(int i) const { return {float(i)}; }
-            return_type operator()(float f) const { return {f}; }
-            return_type operator()(bool b) const { return {float(b)};}
+            return_type operator()(int i) const { return {{float(i)}}; }
+            return_type operator()(float f) const { return {{f}}; }
+            return_type operator()(bool b) const { return {{float(b)}};}
             return_type operator()(const QString& s) const {
                 auto v = parseValue(s);
 
@@ -529,9 +549,9 @@ vec4f value(const State::Value& val)
 
                 return {};
             }
-            return_type operator()(const QChar& c) const { return {}; }
-            return_type operator()(const vec2f& v) const { return {v[0], v[1]}; }
-            return_type operator()(const vec3f& v) const { return {v[0], v[1], v[2]}; }
+            return_type operator()(QChar c) const { return {}; }
+            return_type operator()(const vec2f& v) const { return {{v[0], v[1]}}; }
+            return_type operator()(const vec3f& v) const { return {{v[0], v[1], v[2]}}; }
             return_type operator()(const vec4f& v) const { return v; }
             return_type operator()(const State::tuple_t& t) const {
                 const int n = t.size();
@@ -567,10 +587,10 @@ tuple_t value(const State::Value& val)
 
                 return {s};
             }
-            return_type operator()(const QChar& c) const { return {c}; }
-            return_type operator()(const vec2f& v) const { return {v[0], v[1]}; }
-            return_type operator()(const vec3f& v) const { return {v[0], v[1], v[2]}; }
-            return_type operator()(const vec4f& v) const { return {v[0], v[1], v[2], v[3]}; }
+            return_type operator()(QChar c) const { return {c}; }
+            return_type operator()(const vec2f& v) const { return {{v[0], v[1]}}; }
+            return_type operator()(const vec3f& v) const { return {{v[0], v[1], v[2]}}; }
+            return_type operator()(const vec4f& v) const { return {{v[0], v[1], v[2], v[3]}}; }
             return_type operator()(const State::tuple_t& t) const { return t; }
     };
 
@@ -606,7 +626,7 @@ QString toPrettyString(const State::Value& val)
                 return QString("\"%1\"").arg(s);
             }
 
-            QString operator()(const QChar& c) const
+            QString operator()(QChar c) const
             {
                 return QString("'%1'").arg(c);
             }
@@ -778,17 +798,17 @@ static State::ValueImpl fromQVariantImpl(const QVariant& val)
         case QMetaType::QVector2D:
         {
             auto vec = val.value<QVector2D>();
-            return State::ValueImpl{vec2f{vec[0], vec[1]}};
+            return State::ValueImpl{vec2f{{vec[0], vec[1]}}};
         }
         case QMetaType::QVector3D:
         {
             auto vec = val.value<QVector3D>();
-            return State::ValueImpl{vec3f{vec[0], vec[1], vec[2]}};
+            return State::ValueImpl{vec3f{{vec[0], vec[1], vec[2]}}};
         }
         case QMetaType::QVector4D:
         {
             auto vec = val.value<QVector4D>();
-            return State::ValueImpl{vec4f{vec[0], vec[1], vec[2], vec[3]}};
+            return State::ValueImpl{vec4f{{vec[0], vec[1], vec[2], vec[3]}}};
         }
         default:
         {
