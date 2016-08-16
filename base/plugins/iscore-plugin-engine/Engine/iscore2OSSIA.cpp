@@ -235,7 +235,7 @@ void createOSSIAAddress(
             return_type operator()(float) const { return ossia::val_type::FLOAT; }
             return_type operator()(bool) const { return ossia::val_type::BOOL; }
             return_type operator()(const QString&) const { return ossia::val_type::STRING; }
-            return_type operator()(const QChar&) const { return ossia::val_type::CHAR; }
+            return_type operator()(QChar) const { return ossia::val_type::CHAR; }
             return_type operator()(const State::vec2f&) const { return ossia::val_type::VEC2F; }
             return_type operator()(const State::vec3f&) const { return ossia::val_type::VEC3F; }
             return_type operator()(const State::vec4f&) const { return ossia::val_type::VEC4F; }
@@ -288,7 +288,7 @@ static ossia::value toOSSIAValue(const State::ValueImpl& val)
             return_type operator()(float v) const { return ossia::Float{v}; }
             return_type operator()(bool v) const { return ossia::Bool{v}; }
             return_type operator()(const QString& v) const { return ossia::String{v.toStdString()}; }
-            return_type operator()(const QChar& v) const { return ossia::Char{v.toLatin1()}; }
+            return_type operator()(QChar v) const { return ossia::Char{v.toLatin1()}; }
             return_type operator()(const State::vec2f& v) const { return ossia::Vec2f{v}; }
             return_type operator()(const State::vec3f& v) const { return ossia::Vec3f{v}; }
             return_type operator()(const State::vec4f& v) const { return ossia::Vec4f{v}; }
