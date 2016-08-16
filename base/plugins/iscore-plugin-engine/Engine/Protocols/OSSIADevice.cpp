@@ -152,20 +152,50 @@ void OSSIADevice::removeListening_impl(
     }
 }
 
+namespace
+{
+struct in_sink final : public spdlog::sinks::sink
+{
+        const OSSIADevice& m_dev;
+        in_sink(const OSSIADevice& dev): m_dev{dev} { }
+        void log(const spdlog::details::log_msg& msg) override
+        {
+            m_dev.logInbound(QString::fromLatin1(msg.formatted.data(), msg.formatted.size()));
+        }
+
+        void flush() override
+        {
+        }
+};
+struct out_sink final : public spdlog::sinks::sink
+{
+        const OSSIADevice& m_dev;
+        out_sink(const OSSIADevice& dev): m_dev{dev} { }
+        void log(const spdlog::details::log_msg& msg) override
+        {
+            m_dev.logOutbound(QString::fromLatin1(msg.formatted.data(), msg.formatted.size()));
+        }
+
+        void flush() override
+        {
+        }
+};
+}
 void OSSIADevice::setLogging_impl(bool b) const
 {
     if(auto dev = getDevice())
     {
         if(b)
         {
-            auto l = std::make_shared<ossia::network_logger>();
-            l->setInboundLogCallback([=] (std::string s) {
-                emit logInbound(QString::fromStdString(s));
-            });
-            l->setOutboundLogCallback([=] (std::string s) {
-                emit logOutbound(QString::fromStdString(s));
-            });
-            dev->getProtocol().setLogger(std::move(l));
+            ossia::network_logger logger;
+            logger.inbound_logger = spdlog::create("in_logger", std::make_shared<in_sink>(*this));
+            logger.outbound_logger = spdlog::create("out_logger", std::make_shared<out_sink>(*this));
+
+            logger.inbound_logger->set_pattern("%v");
+            logger.inbound_logger->set_level(spdlog::level::info);
+            logger.outbound_logger->set_pattern("%v");
+            logger.outbound_logger->set_level(spdlog::level::info);
+            dev->getProtocol().setLogger(std::move(logger));
             qDebug() << "logging enabled";
         }
         else
