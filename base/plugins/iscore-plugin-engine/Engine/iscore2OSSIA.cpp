@@ -180,6 +180,10 @@ static ossia::bounding_mode toBoundingMode(Device::ClipMode c)
             return ossia::bounding_mode::WRAP;
         case Device::ClipMode::Fold:
             return ossia::bounding_mode::FOLD;
+        case Device::ClipMode::Low:
+            return ossia::bounding_mode::LOW;
+        case Device::ClipMode::High:
+            return ossia::bounding_mode::HIGH;
         default:
             ISCORE_ABORT;
             return static_cast<ossia::bounding_mode>(-1);

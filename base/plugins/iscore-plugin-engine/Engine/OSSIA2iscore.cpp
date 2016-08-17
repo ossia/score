@@ -98,16 +98,16 @@ Device::ClipMode ToClipMode(ossia::bounding_mode b)
     {
         case ossia::bounding_mode::CLIP:
             return Device::ClipMode::Clip;
-            break;
         case ossia::bounding_mode::FOLD:
             return Device::ClipMode::Fold;
-            break;
         case ossia::bounding_mode::FREE:
             return Device::ClipMode::Free;
-            break;
         case ossia::bounding_mode::WRAP:
             return Device::ClipMode::Wrap;
-            break;
+        case ossia::bounding_mode::LOW:
+            return Device::ClipMode::Low;
+        case ossia::bounding_mode::HIGH:
+            return Device::ClipMode::High;
         default:
             ISCORE_ABORT;
             return static_cast<Device::ClipMode>(-1);
