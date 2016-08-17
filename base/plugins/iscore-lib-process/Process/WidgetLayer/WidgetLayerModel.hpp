@@ -49,6 +49,5 @@ class ISCORE_LIB_PROCESS_EXPORT Layer final : public Process::LayerModel
         }
 
         void serialize_impl(const VisitorVariant&) const override;
-        Process::LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
 };
 }

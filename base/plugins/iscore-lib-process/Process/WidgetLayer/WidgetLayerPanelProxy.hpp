@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/LayerModelPanelProxy.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 
 #include <iscore_lib_process_export.h>
 
@@ -8,17 +9,32 @@ class QObject;
 
 namespace WidgetLayer
 {
+template<typename Process_T, typename Widget_T>
 class ISCORE_LIB_PROCESS_EXPORT LayerPanelProxy final :
         public Process::LayerModelPanelProxy
 {
     public:
         explicit LayerPanelProxy(
                 const Process::LayerModel& vm,
-                QObject* parent);
+                QObject* parent):
+            Process::LayerModelPanelProxy{parent},
+            m_layer{vm}
+        {
+            m_widget = new Widget_T{
+                    safe_cast<Process_T&>(vm.processModel()),
+                    iscore::IDocument::documentContext(vm),
+                    nullptr};
+        }
 
+        const Process::LayerModel& layer() final override
+        {
+            return m_layer;
+        }
 
-        const Process::LayerModel& layer() final override;
-        QWidget* widget() const final override;
+        QWidget* widget() const final override
+        {
+            return m_widget;
+        }
 
     private:
         const Process::LayerModel& m_layer;

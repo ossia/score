@@ -3,6 +3,7 @@
 #include <Process/WidgetLayer/WidgetLayerModel.hpp>
 #include <Process/WidgetLayer/WidgetLayerPresenter.hpp>
 #include <Process/WidgetLayer/WidgetLayerView.hpp>
+#include <Process/WidgetLayer/WidgetLayerPanelProxy.hpp>
 
 namespace WidgetLayer
 {
@@ -66,6 +67,13 @@ class ProcessFactory final :
                 safe_cast<View*>(v),
                 context,
                 parent};
+        }
+
+        Process::LayerModelPanelProxy* makePanel(
+                const Process::LayerModel& viewmodel,
+                QObject* parent) final override
+        {
+            return new LayerPanelProxy<Model_T, Widget_T>{viewmodel, parent};
         }
 };
 

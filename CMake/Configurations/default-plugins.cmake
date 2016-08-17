@@ -10,6 +10,7 @@ iscore-plugin-inspector
 iscore-plugin-deviceexplorer
 iscore-plugin-curve
 iscore-plugin-automation
+iscore-plugin-interpolation
 iscore-plugin-scenario
 iscore-plugin-loop
 

@@ -94,7 +94,7 @@ class ISCORE_LIB_PROCESS_EXPORT LayerFactory
                 QGraphicsItem* parent);
 
         virtual Process::LayerModelPanelProxy* makePanel(
-                LayerModel& layer,
+                const LayerModel& layer,
                 QObject* parent);
 
     protected:

@@ -63,7 +63,7 @@ class ISCORE_LIB_BASE_EXPORT PanelDelegate
         auto document() const
         { return m_model; }
 
-        auto& context() const
+        const iscore::ApplicationContext& context() const
         { return m_context; }
 
 
