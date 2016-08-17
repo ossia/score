@@ -2,6 +2,7 @@
 
 #include <State/Address.hpp>
 #include <iscore/tools/Todo.hpp>
+#include <QStringBuilder>
 namespace State
 {
     bool Address::validateString(const QString &str)
@@ -70,7 +71,7 @@ namespace State
 
     QString Address::toString() const
     {
-        QString ad =  device + ":/" + path.join("/");
+        QString ad = device % ":/" % path.join("/");
         if (!validateString(ad))
             ad.clear();
 
@@ -82,7 +83,7 @@ namespace State
         auto str = address.toString();
         for(auto acc : accessors)
         {
-            str += "[" + QString::number(acc) + "]";
+            str += "[" % QString::number(acc) % "]";
         }
         return str;
     }

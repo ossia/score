@@ -15,11 +15,6 @@ DummyState::DummyState(
 
 }
 
-QString DummyState::stateName() const
-{
-    return "Dummy";
-}
-
 ProcessStateDataInterface* DummyState::clone(
         QObject* parent) const
 {

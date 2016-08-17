@@ -44,9 +44,7 @@ if(TARGET iscore_lib_inspector)
     set(HDRS ${HDRS} ${INSPECTOR_HDRS})
 endif()
 
-qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Resources/AutomationResources.qrc")
-
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 

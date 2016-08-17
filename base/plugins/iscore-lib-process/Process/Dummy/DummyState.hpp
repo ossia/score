@@ -20,7 +20,6 @@ class ISCORE_LIB_PROCESS_EXPORT DummyState final : public ProcessStateDataInterf
 {
     public:
         DummyState(Process::ProcessModel& model, QObject* parent);
-        QString stateName() const override;
         ProcessStateDataInterface* clone(QObject* parent) const override;
 
         std::vector<State::Address> matchingAddresses() override;

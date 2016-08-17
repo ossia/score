@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>AutomationColors.json</file>
-        <file>AutomationColors-IEEE.json</file>
-    </qresource>
-</RCC>
