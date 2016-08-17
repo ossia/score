@@ -37,17 +37,17 @@ class CurveProcessPresenter :
             LayerPresenter {ctx, parent},
             m_layer{lm},
             m_view{static_cast<LayerView_T*>(view)},
-            m_curvepresenter{new Presenter{ctx, style, m_layer.model().curve(), new View{m_view}, this}},
+            m_curvepresenter{new Presenter{ctx, style, m_layer.processModel().curve(), new View{m_view}, this}},
             m_commandDispatcher{ctx.commandStack},
             m_sm{m_context, *m_curvepresenter}
         {
-            con(m_layer.model(), &CurveProcessModel::curveChanged,
+            con(m_layer.processModel(), &CurveProcessModel::curveChanged,
                 this, &CurveProcessPresenter::parentGeometryChanged);
 
             connect(m_curvepresenter, &Presenter::contextMenuRequested,
                     this, &LayerPresenter::contextMenuRequested);
 
-            con(m_layer.model(), &Process::ProcessModel::execution,
+            con(m_layer.processModel(), &Process::ProcessModel::execution,
                 this, [&] (bool b) {
                 m_curvepresenter->editionSettings().setTool(
                             b ? Curve::Tool::Playing
@@ -108,7 +108,7 @@ class CurveProcessPresenter :
             // Compute the rect with the duration of the process.
             QRectF rect = m_view->boundingRect(); // for the height
 
-            rect.setWidth(m_layer.model().duration().toPixels(m_zoomRatio));
+            rect.setWidth(m_layer.processModel().duration().toPixels(m_zoomRatio));
 
             m_curvepresenter->setRect(rect);
         }
@@ -120,7 +120,7 @@ class CurveProcessPresenter :
 
         const Id<Process::ProcessModel>& modelId() const override
         {
-            return m_layer.model().id();
+            return m_layer.processModel().id();
         }
 
         void fillContextMenu(

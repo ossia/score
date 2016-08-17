@@ -19,7 +19,7 @@ Presenter::Presenter(
 {
     putToFront();
 
-    auto& model = layer.model();
+    auto& model = layer.processModel();
 
     con(model, &ProcessModel::notesChanged,
         this, [&] ( ) {

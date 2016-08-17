@@ -73,6 +73,8 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
             emit tweenChanged(tween);
         }
 
+        QString prettyName() const override;
+
     signals:
         void addressChanged(const ::State::Address&);
         void minChanged(double);
@@ -84,8 +86,6 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
-
-        QString prettyName() const override;
 
         /// States
         ProcessState* startStateData() const override;

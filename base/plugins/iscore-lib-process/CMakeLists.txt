@@ -46,7 +46,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyModel.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerModel.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerPresenter.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerPanelProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyState.hpp"
 
@@ -89,18 +88,14 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerModelSerialization.cpp"
 
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerModelSerialization.cpp"
 )
 

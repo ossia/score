@@ -10,7 +10,8 @@ template<
         typename Model_T,
         typename LayerModel_T,
         typename LayerPresenter_T,
-        typename LayerView_T>
+        typename LayerView_T,
+        typename LayerPanel_T>
 class GenericProcessFactory final :
         public Process::ProcessFactory
 {
@@ -69,6 +70,10 @@ class GenericProcessFactory final :
                 context,
                 parent};
         }
+
+        LayerPanel_T* makePanel(
+                const Process::LayerModel& viewmodel,
+                QObject* parent) final override;
 };
 
 
@@ -76,8 +81,9 @@ template<
         typename Model_T,
         typename LayerModel_T,
         typename LayerPresenter_T,
-        typename LayerView_T>
-Model_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T>::make(
+        typename LayerView_T,
+        typename LayerPanel_T>
+Model_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T, LayerPanel_T>::make(
         const TimeValue& duration,
         const Id<Process::ProcessModel>& id,
         QObject* parent)
@@ -89,8 +95,9 @@ template<
         typename Model_T,
         typename LayerModel_T,
         typename LayerPresenter_T,
-        typename LayerView_T>
-Model_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T>::load(
+        typename LayerView_T,
+        typename LayerPanel_T>
+Model_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T, LayerPanel_T>::load(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -102,8 +109,9 @@ template<
         typename Model_T,
         typename LayerModel_T,
         typename LayerPresenter_T,
-        typename LayerView_T>
-LayerModel_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T>::makeLayer_impl(
+        typename LayerView_T,
+        typename LayerPanel_T>
+LayerModel_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T, LayerPanel_T>::makeLayer_impl(
         Process::ProcessModel& proc,
         const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
@@ -119,8 +127,9 @@ template<
         typename Model_T,
         typename LayerModel_T,
         typename LayerPresenter_T,
-        typename LayerView_T>
-LayerModel_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T>::cloneLayer_impl(
+        typename LayerView_T,
+        typename LayerPanel_T>
+LayerModel_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T, LayerPanel_T>::cloneLayer_impl(
         Process::ProcessModel& proc,
         const Id<Process::LayerModel>& newId,
         const Process::LayerModel& source,
@@ -138,8 +147,9 @@ template<
         typename Model_T,
         typename LayerModel_T,
         typename LayerPresenter_T,
-        typename LayerView_T>
-LayerModel_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T>::loadLayer_impl(
+        typename LayerView_T,
+        typename LayerPanel_T>
+LayerModel_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T, LayerPanel_T>::loadLayer_impl(
         Process::ProcessModel& proc,
         const VisitorVariant& vis,
         QObject* parent)
@@ -155,8 +165,21 @@ LayerModel_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, Lay
     });
 }
 
+template<
+        typename Model_T,
+        typename LayerModel_T,
+        typename LayerPresenter_T,
+        typename LayerView_T,
+        typename LayerPanel_T>
+LayerPanel_T* GenericProcessFactory<Model_T, LayerModel_T, LayerPresenter_T, LayerView_T, LayerPanel_T>::makePanel(
+        const Process::LayerModel& viewmodel,
+        QObject* parent)
+{
+    return new LayerPanel_T{static_cast<const LayerModel_T&>(viewmodel), parent};
+}
+
 template<typename Model_T>
-class GenericProcessFactory<Model_T, default_t, default_t, default_t> final :
+class GenericProcessFactory<Model_T, default_t, default_t, default_t, default_t> final :
         public Process::ProcessFactory
 {
     public:
@@ -187,5 +210,5 @@ class GenericProcessFactory<Model_T, default_t, default_t, default_t> final :
 };
 
 template<typename Model_T>
-using GenericDefaultProcessFactory = GenericProcessFactory<Model_T, default_t, default_t, default_t>;
+using GenericDefaultProcessFactory = GenericProcessFactory<Model_T, default_t, default_t, default_t, default_t>;
 }

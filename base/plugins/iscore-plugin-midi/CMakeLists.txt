@@ -29,7 +29,6 @@ set(SOURCE_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/Commands/ScaleNotes.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/Commands/CommandFactory.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiProcess.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiLayer.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiPresenter.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiView.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.cpp"

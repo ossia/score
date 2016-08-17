@@ -11,13 +11,6 @@ LayerModel::~LayerModel() = default;
 ProcessModel& LayerModel::processModel() const
 { return m_sharedProcessModel; }
 
-
-LayerModelPanelProxy*LayerModel::make_panelProxy(QObject* parent) const
-{
-    return new Process::GraphicsViewLayerModelPanelProxy{*this, parent};
-}
-
-
 LayerModel::LayerModel(
         const Id<LayerModel>& viewModelId,
         const QString& name,

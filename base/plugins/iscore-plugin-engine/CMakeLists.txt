@@ -37,15 +37,12 @@ set(HDRS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ExecutorContext.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/BasicProcessWrapper.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/LoopingProcessWrapper.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/BaseScenarioElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/EventElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ScenarioElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ProcessElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateProcessComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ProcessWrapper.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/DocumentPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/TimeNodeElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ConstraintElement.hpp"
@@ -110,9 +107,6 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayContextMenu.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/BasicProcessWrapper.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/LoopingProcessWrapper.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ProcessWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/BaseScenarioElement.cpp"
