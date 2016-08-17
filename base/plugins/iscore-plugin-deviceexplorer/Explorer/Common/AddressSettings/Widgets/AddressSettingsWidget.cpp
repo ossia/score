@@ -62,7 +62,7 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
         m_ioTypeCBox->addItem(it.value(), (int)it.key());
     }
 
-    const auto& clip_map = Device::ClipModeStringMap();
+    const auto& clip_map = Device::ClipModePrettyStringMap();
     for(auto it = clip_map.cbegin(); it != clip_map.cend(); ++it)
     {
         m_clipModeCBox->addItem(it.value(), (int)it.key());

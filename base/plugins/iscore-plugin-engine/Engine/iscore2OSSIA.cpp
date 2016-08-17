@@ -217,7 +217,7 @@ void updateOSSIAAddress(
     addr.setValue(Engine::iscore_to_ossia::toOSSIAValue(settings.value));
 
     addr.setDomain(
-                ossia::net::makeDomain(
+                ossia::net::make_domain(
                     toOSSIAValue(settings.domain.min),
                     toOSSIAValue(settings.domain.max)));
 
