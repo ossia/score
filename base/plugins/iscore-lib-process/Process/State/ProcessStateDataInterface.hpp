@@ -22,8 +22,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface :
 
         virtual ~ProcessStateDataInterface();
 
-        virtual QString stateName() const = 0;
-
         virtual ProcessStateDataInterface* clone(QObject* parent) const = 0;
 
         /**

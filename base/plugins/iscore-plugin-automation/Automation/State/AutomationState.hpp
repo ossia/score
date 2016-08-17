@@ -24,7 +24,6 @@ class ProcessState final : public ProcessStateDataInterface
                 double watchedPoint,
                 QObject* parent);
 
-        QString stateName() const override;
         ProcessModel& process() const;
 
         ::State::Message message() const;

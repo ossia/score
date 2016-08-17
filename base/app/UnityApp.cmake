@@ -3,8 +3,6 @@ if(ISCORE_UNITY_BUILD)
 
         qt5_add_resources(QRCS1 "${CMAKE_SOURCE_DIR}/base/lib/resources/iscore.qrc"
  "${CMAKE_SOURCE_DIR}/base/plugins/iscore-plugin-deviceexplorer/Explorer/DeviceExplorer.qrc"
-"${CMAKE_SOURCE_DIR}/base/plugins/iscore-plugin-automation/Automation/Resources/AutomationResources.qrc"
-"${CMAKE_SOURCE_DIR}/base/plugins/iscore-plugin-mapping/Mapping/Resources/MappingResources.qrc"
  "${CMAKE_SOURCE_DIR}/base/plugins/iscore-plugin-scenario/Scenario/resources/ScenarioResources.qrc")
         IScoreWriteStaticPluginsHeader()
 
@@ -19,10 +17,7 @@ if(ISCORE_UNITY_BUILD)
         endforeach()
 
         list(REMOVE_ITEM UNITY_SOURCES
-                ${CMAKE_BINARY_DIR}/base/lib/iscore-plugin-mapping/qrc_MappingResources.cpp
-                ${CMAKE_BINARY_DIR}/base/plugins/iscore-plugin-mapping/qrc_MappingResources.cpp
                 ${CMAKE_BINARY_DIR}/base/plugins/iscore-plugin-scenario/qrc_ScenarioResources.cpp
-                ${CMAKE_BINARY_DIR}/base/plugins/iscore-plugin-automation/qrc_AutomationResources.cpp
                 ${CMAKE_BINARY_DIR}/base/plugins/iscore-plugin-deviceexplorer/qrc_DeviceExplorer.cpp
 )
         add_executable(IscoreCustomUnity ${UNITY_SOURCES})

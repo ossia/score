@@ -37,9 +37,6 @@ ProcessState::ProcessState(
             this, &ProcessStateDataInterface::stateChanged);
 }
 
-QString ProcessState::stateName() const
-{ return "AutomationState"; }
-
 // TESTME
 ::State::Message ProcessState::message() const
 {
