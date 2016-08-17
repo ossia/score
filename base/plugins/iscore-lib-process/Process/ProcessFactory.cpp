@@ -81,7 +81,7 @@ LayerView*LayerFactory::makeLayerView(
     return new Dummy::DummyLayerView{parent};
 }
 
-LayerModelPanelProxy* LayerFactory::makePanel(LayerModel& layer, QObject* parent)
+LayerModelPanelProxy* LayerFactory::makePanel(const LayerModel& layer, QObject* parent)
 {
     return new Process::GraphicsViewLayerModelPanelProxy{layer, parent};
 }

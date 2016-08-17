@@ -34,8 +34,4 @@ void Layer::serialize_impl(const VisitorVariant& vis) const
     serialize_dyn(vis, *this);
 }
 
-Process::LayerModelPanelProxy* Layer::make_panelProxy(QObject* parent) const
-{
-    return new LayerPanelProxy{*this, parent};
-}
 }

@@ -1,5 +1,5 @@
 #include "PanelDelegate.hpp"
-
+#include <Process/ProcessList.hpp>
 #include <Process/LayerModel.hpp>
 #include <Process/LayerModelPanelProxy.hpp>
 #include <Process/Tools/ProcessPanelGraphicsProxy.hpp>
@@ -102,7 +102,8 @@ void PanelDelegate::on_focusedViewModelChanged(const Process::LayerModel* theLM)
         if(!m_layerModel)
             return;
 
-        m_proxy = m_layerModel->make_panelProxy(this);
+        auto fact = context().components.factory<Process::ProcessList>().get(theLM->processModel().concreteFactoryKey());
+        m_proxy = fact->makePanel(*theLM, this);
         if(m_proxy)
             m_widget->layout()->addWidget(m_proxy->widget());
     }
