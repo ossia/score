@@ -24,21 +24,21 @@ class MappingPresenter :
                 QObject* parent):
             CurveProcessPresenter{style, layer, view, context, parent}
         {
-            con(m_layer.model(), &ProcessModel::sourceAddressChanged,
+            con(m_layer.processModel(), &ProcessModel::sourceAddressChanged,
                 this, &MappingPresenter::on_nameChanges);
-            con(m_layer.model(), &ProcessModel::targetAddressChanged,
+            con(m_layer.processModel(), &ProcessModel::targetAddressChanged,
                 this, &MappingPresenter::on_nameChanges);
-            con(m_layer.model().metadata, &ModelMetadata::nameChanged,
+            con(m_layer.processModel().metadata, &ModelMetadata::nameChanged,
                 this, &MappingPresenter::on_nameChanges);
 
-            m_view->setDisplayedName(m_layer.model().prettyName());
+            m_view->setDisplayedName(m_layer.processModel().prettyName());
             m_view->showName(true);
         }
 
     private:
         void on_nameChanges()
         {
-            m_view->setDisplayedName(m_layer.model().prettyName());
+            m_view->setDisplayedName(m_layer.processModel().prettyName());
         }
 };
 }

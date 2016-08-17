@@ -12,11 +12,9 @@ file(GLOB_RECURSE HDRS
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationLayerSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationLayerModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.cpp"

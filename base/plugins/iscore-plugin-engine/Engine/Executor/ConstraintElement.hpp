@@ -8,7 +8,6 @@
 #include <memory>
 
 #include <Engine/Executor/ProcessElement.hpp>
-#include <Engine/Executor/ProcessWrapper.hpp>
 #include <iscore_plugin_engine_export.h>
 
 namespace Process { class ProcessModel; }

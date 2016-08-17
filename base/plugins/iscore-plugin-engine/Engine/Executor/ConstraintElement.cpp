@@ -12,9 +12,6 @@
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Engine/Executor/ProcessElement.hpp>
-#include <Engine/Executor/ProcessWrapper.hpp>
-#include <Engine/Executor/BasicProcessWrapper.hpp>
-#include <Engine/Executor/LoopingProcessWrapper.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include "ScenarioElement.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>

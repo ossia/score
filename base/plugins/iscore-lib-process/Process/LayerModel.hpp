@@ -26,7 +26,6 @@ class ISCORE_LIB_PROCESS_EXPORT LayerModel:
         ProcessModel& processModel() const;
 
         virtual void serialize_impl(const VisitorVariant&) const = 0;
-        virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const;
 
 
     protected:
@@ -48,6 +47,48 @@ class ISCORE_LIB_PROCESS_EXPORT LayerModel:
 
     private:
         ProcessModel& m_sharedProcessModel;
+};
+
+template<typename Process_T>
+class LayerModel_T : public LayerModel
+{
+    public:
+        explicit LayerModel_T(
+                ProcessModel& model,
+                const Id<Process::LayerModel>& id,
+                QObject* parent):
+            LayerModel{id, Metadata<ObjectKey_k, LayerModel_T>::get(), model, parent}
+        {
+
+        }
+
+        explicit LayerModel_T(
+                const LayerModel_T& other,
+                ProcessModel& model,
+                const Id<Process::LayerModel>& id,
+                QObject* parent):
+            LayerModel_T{model, id, parent}
+        {
+
+        }
+
+
+        template<typename Impl>
+        explicit LayerModel_T(
+                Deserializer<Impl>& vis,
+                ProcessModel& model,
+                QObject* parent) :
+            Process::LayerModel {vis, model, parent}
+        {
+            // Nothing to load
+        }
+
+        Process_T& processModel() const
+        { return static_cast<Process_T&>(LayerModel::processModel()); }
+
+    protected:
+        // Nothing to save
+        void serialize_impl(const VisitorVariant&) const override { }
 };
 }
 

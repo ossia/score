@@ -6,6 +6,7 @@
 #include <Loop/LoopPresenter.hpp>
 #include <Loop/LoopView.hpp>
 #include <Loop/LoopProcessMetadata.hpp>
+#include <Process/LayerModelPanelProxy.hpp>
 
 namespace Loop
 {
@@ -13,5 +14,6 @@ using ProcessFactory = Process::GenericProcessFactory<
     Loop::ProcessModel,
     Loop::Layer,
     Loop::LayerPresenter,
-    Loop::LayerView>;
+    Loop::LayerView,
+    Process::GraphicsViewLayerModelPanelProxy>;
 }

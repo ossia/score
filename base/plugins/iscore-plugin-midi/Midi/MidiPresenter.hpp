@@ -4,7 +4,6 @@
 
 namespace Midi
 {
-class Layer;
 class NoteView;
 class View;
 class Note;

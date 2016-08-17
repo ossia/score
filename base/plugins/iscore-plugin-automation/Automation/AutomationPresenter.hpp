@@ -27,11 +27,11 @@ class LayerPresenter final :
             CurveProcessPresenter{style, layer, view, context, parent}
         {
             // TODO instead have a prettyNameChanged signal.
-            con(m_layer.model(), &ProcessModel::addressChanged,
+            con(m_layer.processModel(), &ProcessModel::addressChanged,
                 this, &LayerPresenter::on_nameChanges);
-            con(m_layer.model(), &ProcessModel::tweenChanged,
+            con(m_layer.processModel(), &ProcessModel::tweenChanged,
                 this, &LayerPresenter::on_tweenChanges);
-            con(m_layer.model().metadata, &ModelMetadata::nameChanged,
+            con(m_layer.processModel().metadata, &ModelMetadata::nameChanged,
                 this, &LayerPresenter::on_nameChanges);
 
 
@@ -46,13 +46,13 @@ class LayerPresenter final :
                         return;
                     auto& newAddr = ml[0].address;
 
-                    if(newAddr == layer.model().address())
+                    if(newAddr == layer.processModel().address())
                         return;
 
                     if(newAddr.path.isEmpty())
                         return;
 
-                    auto cmd = new ChangeAddress{layer.model(), newAddr};
+                    auto cmd = new ChangeAddress{layer.processModel(), newAddr};
 
                     CommandDispatcher<> disp{context.commandStack};
                     disp.submitCommand(cmd);
@@ -62,7 +62,7 @@ class LayerPresenter final :
             on_nameChanges();
             m_view->showName(true);
 
-            on_tweenChanges(m_layer.model().tween());
+            on_tweenChanges(m_layer.processModel().tween());
         }
 
     private:
