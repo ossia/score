@@ -89,8 +89,6 @@ void ConstraintInspectorDelegate::on_defaultDurationChanged(
 
 
 
-
-
 ConstraintInspectorDelegateFactory::~ConstraintInspectorDelegateFactory()
 {
 
@@ -106,34 +104,5 @@ bool ConstraintInspectorDelegateFactory::matches(
         const Scenario::ConstraintModel& constraint) const
 {
     return dynamic_cast<Loop::ProcessModel*>(constraint.parent());
-}
-
-
-
-InspectorFactory::InspectorFactory() :
-    Process::InspectorWidgetDelegateFactory {}
-{
-
-}
-
-InspectorFactory::~InspectorFactory()
-{
-
-}
-
-Process::InspectorWidgetDelegate* InspectorFactory::make(
-        const Process::ProcessModel& process,
-        const iscore::DocumentContext& doc,
-        QWidget* parent) const
-{
-    return new LoopInspectorWidget{
-        static_cast<const Loop::ProcessModel&>(process),
-                doc,
-                parent};
-}
-
-bool InspectorFactory::matches(const Process::ProcessModel& process) const
-{
-    return dynamic_cast<const Loop::ProcessModel*>(&process);
 }
 }

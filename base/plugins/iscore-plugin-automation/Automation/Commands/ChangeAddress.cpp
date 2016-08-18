@@ -31,14 +31,6 @@ ChangeAddress::ChangeAddress(
     m_old.domain.min.val = autom.min();
     m_old.domain.max.val = autom.max();
 
-    // First and last point may change to keep the start / end state happy.
-    auto& pts = autom.curve().points();
-    auto first_it = find_if(pts, [] (Curve::PointModel* pt) { return pt->pos().x() == 0; } );
-    auto last_it = find_if(pts, [] (Curve::PointModel* pt) { return pt->pos().x() == 1; } );
-    m_oldFirst = first_it != pts.end() ? (*first_it)->pos() : Curve::Point{0, 0};
-    m_oldLast = last_it != pts.end() ? (*last_it)->pos() : Curve::Point{1, 1};
-
-
     if(auto deviceexplorer = Explorer::try_deviceExplorerFromObject(autom))
     {
         // Note : since we change the address, we also have to update the min / max if possible.
@@ -51,8 +43,9 @@ ChangeAddress::ChangeAddress(
         auto new_n = Device::try_getNodeFromString(deviceexplorer->rootNode(), std::move(newpath));
         if(new_n)
         {
-            ISCORE_ASSERT(!new_n->is<Device::DeviceSettings>());
-            m_new = Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(new_n->get<Device::AddressSettings>(), newval);
+            ISCORE_ASSERT(new_n->is<Device::AddressSettings>());
+            m_new = Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(
+                        new_n->get<Device::AddressSettings>(), newval);
         }
         else
         {
@@ -94,11 +87,11 @@ void ChangeAddress::redo() const
 
 void ChangeAddress::serializeImpl(DataStreamInput & s) const
 {
-    s << m_path << m_old << m_new << m_oldFirst << m_oldLast << m_newFirst << m_newLast;
+    s << m_path << m_old << m_new;
 }
 
 void ChangeAddress::deserializeImpl(DataStreamOutput & s)
 {
-    s >> m_path >> m_old >> m_new >> m_oldFirst >> m_oldLast >> m_newFirst >> m_newLast;
+    s >> m_path >> m_old >> m_new;
 }
 }

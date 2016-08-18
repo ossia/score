@@ -31,7 +31,7 @@ static void AddProcessBeforeState(
         updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Previous);
         messages = std::move(node);
 
-        for(const auto& next_proc : statemodel.followingProcesses())
+        for(const ProcessStateWrapper& next_proc : statemodel.followingProcesses())
         {
             next_proc.process().setMessages(ml, messages.rootNode());
         }
@@ -62,7 +62,7 @@ static void AddProcessAfterState(
         updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Following);
         messages = std::move(node);
 
-        for(const auto& prev_proc : statemodel.previousProcesses())
+        for(const ProcessStateWrapper& prev_proc : statemodel.previousProcesses())
         {
             prev_proc.process().setMessages(ml, messages.rootNode());
         }

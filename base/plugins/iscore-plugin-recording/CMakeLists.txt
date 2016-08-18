@@ -20,7 +20,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/Commands/EditMessages.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/Commands/RecordedMessagesCommandFactory.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/Inspector/RecordedMessagesInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/Inspector/RecordedMessagesInspectorWidget.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Commands/RecordingCommandFactory.cpp"

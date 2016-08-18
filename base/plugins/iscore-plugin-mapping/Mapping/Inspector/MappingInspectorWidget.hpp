@@ -22,11 +22,11 @@ class QDoubleSpinBox;
 namespace Mapping
 {
 class ProcessModel;
-class MappingInspectorWidget :
+class InspectorWidget :
         public Process::InspectorWidgetDelegate_T<ProcessModel>
 {
     public:
-        explicit MappingInspectorWidget(
+        explicit InspectorWidget(
                 const ProcessModel& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent);

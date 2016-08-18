@@ -2,13 +2,11 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <QString>
 
-class QWidget;
-namespace Process { class ProcessModel; }
 namespace Scenario {
 class ProcessModel;
 }  // namespace Scenario
 namespace iscore {
-class Document;
+class DocumentContext;
 }  // namespace iscore
 
 
@@ -19,5 +17,6 @@ class ScenarioInspectorWidget final :
     public:
         explicit ScenarioInspectorWidget(
                 const Scenario::ProcessModel& object,
+                const iscore::DocumentContext& doc,
                 QWidget* parent);
 };
