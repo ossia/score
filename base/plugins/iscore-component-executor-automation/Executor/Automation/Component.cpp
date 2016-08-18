@@ -126,7 +126,7 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
     const double min = process().min();
     const double max = process().max();
 
-    auto scale_x = [=] (double val) -> double { return val; };
+    auto scale_x = [] (double val) -> double { return val; };
     auto scale_y = [=] (double val) -> Y_T { return val * (max - min) + min; };
 
     auto segt_data = process().curve().sortedSegments();

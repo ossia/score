@@ -188,8 +188,8 @@ void OSSIADevice::setLogging_impl(bool b) const
         if(b)
         {
             ossia::network_logger logger;
-            logger.inbound_logger = spdlog::create("in_logger", std::make_shared<in_sink>(*this));
-            logger.outbound_logger = spdlog::create("out_logger", std::make_shared<out_sink>(*this));
+            logger.inbound_logger = std::make_shared<spdlog::logger>("in_logger", std::make_shared<in_sink>(*this));
+            logger.outbound_logger = std::make_shared<spdlog::logger>("out_logger", std::make_shared<out_sink>(*this));
 
             logger.inbound_logger->set_pattern("%v");
             logger.inbound_logger->set_level(spdlog::level::info);

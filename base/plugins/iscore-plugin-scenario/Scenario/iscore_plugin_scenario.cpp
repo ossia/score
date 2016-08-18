@@ -53,7 +53,7 @@
 iscore_plugin_scenario::iscore_plugin_scenario()
 {
     using namespace Scenario;
-    QMetaType::registerComparators<State::Value>();
+    //QMetaType::registerComparators<State::Value>();
     QMetaType::registerComparators<State::Message>();
     QMetaType::registerComparators<State::MessageList>();
 

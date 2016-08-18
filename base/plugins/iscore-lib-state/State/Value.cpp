@@ -11,12 +11,12 @@ bool State::Value::operator!=(const State::Value& m) const
 {
     return val != m.val;
 }
-
+/*
 bool State::Value::operator<(const State::Value& m) const
 {
     return false;
 }
-
+*/
 State::ValueImpl::ValueImpl(State::no_value_t v): m_variant{v} { }
 State::ValueImpl::ValueImpl(State::impulse_t v): m_variant{v} { }
 State::ValueImpl::ValueImpl(int v): m_variant{v} { }

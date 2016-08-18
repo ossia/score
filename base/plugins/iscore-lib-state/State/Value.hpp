@@ -122,7 +122,7 @@ struct ISCORE_LIB_STATE_EXPORT Value
 
         bool operator==(const Value& m) const;
         bool operator!=(const Value& m) const;
-        bool operator<(const Value& m) const;
+        //bool operator<(const Value& m) const;
 };
 
 using ValueList = QList<Value>;

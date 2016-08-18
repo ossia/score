@@ -46,14 +46,6 @@ InspectorWidget::InspectorWidget(
 
     vlay->addRow(tr("Address"), m_lineEdit);
 
-    // Tween
-    m_tween = new QCheckBox;
-    vlay->addRow(tr("Tween"), m_tween);
-    m_tween->setChecked(process().tween());
-    con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
-    connect(m_tween, &QCheckBox::toggled,
-            this, &InspectorWidget::on_tweenChanged);
-
     // Min / max
     auto start_label = new QLabel;
     auto end_label = new QLabel;
@@ -111,17 +103,6 @@ void InspectorWidget::on_addressChange(const ::State::Address& addr)
         }
 
         m_dispatcher.submitCommand(new ChangeAddress{process(), addr, sv, ev});
-    }
-}
-
-void InspectorWidget::on_tweenChanged()
-{
-    bool newVal = m_tween->checkState();
-    if(newVal != process().tween())
-    {
-        auto cmd = new SetTween{process(), newVal};
-
-        m_dispatcher.submitCommand(cmd);
     }
 }
 }
