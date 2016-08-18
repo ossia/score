@@ -23,8 +23,6 @@ ProcessModel&ProcessState::process() const
 State::Message ProcessState::message() const
 {
     auto& proc = process();
-    if(m_point == Point::Start && proc.tween())
-        return {};
 
     if(m_point == Point::Start)
     {
@@ -137,7 +135,6 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
     m_stream << interp.address();
     m_stream << interp.start();
     m_stream << interp.end();
-    m_stream << interp.tween();
 
     insertDelimiter();
 }
@@ -150,14 +147,12 @@ void Visitor<Writer<DataStream>>::writeTo(
 
     State::Address address;
     State::Value start, end;
-    bool tw;
 
-    m_stream >> address >> start >> end >> tw;
+    m_stream >> address >> start >> end;
 
     interp.setAddress(address);
     interp.setStart(start);
     interp.setEnd(end);
-    interp.setTween(tw);
 
     checkDelimiter();
 }
@@ -173,7 +168,6 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
     m_obj[iscore::StringConstant().Address] = toJsonObject(interp.address());
     m_obj[iscore::StringConstant().Start] = toJsonObject(interp.start());
     m_obj[iscore::StringConstant().End] = toJsonObject(interp.end());
-    m_obj["Tween"] = interp.tween();
 }
 
 template<>
@@ -186,6 +180,5 @@ void Visitor<Writer<JSONObject>>::writeTo(
     interp.setAddress(fromJsonObject<State::Address>(m_obj[iscore::StringConstant().Address]));
     interp.setStart(fromJsonObject<State::Value>(m_obj[iscore::StringConstant().Start]));
     interp.setEnd(fromJsonObject<State::Value>(m_obj[iscore::StringConstant().End]));
-    interp.setTween(m_obj["Tween"].toBool());
 }
 

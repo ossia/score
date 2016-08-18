@@ -4,7 +4,6 @@
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/value/value.hpp>
 #include <ossia/network/base/node.hpp>
-#include <Engine/iscore2OSSIA.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
@@ -19,7 +18,6 @@
 #include <core/document/Document.hpp>
 #include <Engine/iscore2OSSIA.hpp>
 #include <Engine/CurveConversion.hpp>
-#include <Engine/Protocols/OSSIADevice.hpp>
 #include <ossia/editor/curve/curve.hpp>
 #include <ossia/editor/curve/curve_segment.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>

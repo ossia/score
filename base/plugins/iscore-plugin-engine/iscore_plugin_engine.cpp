@@ -25,6 +25,7 @@
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
 #include <Engine/LocalTree/Settings/LocalTreeFactory.hpp>
 #include <Engine/Listening/PlayListeningHandlerFactory.hpp>
+#include <Engine/Executor/Interpolation/InterpolationComponent.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 iscore_plugin_engine::iscore_plugin_engine() :
     QObject {}
@@ -75,7 +76,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_engine:
                  Network::MIDIProtocolFactory
             >,
             FW<Engine::Execution::ProcessComponentFactory,
-                 Engine::Execution::ScenarioComponentFactory>,
+                 Engine::Execution::ScenarioComponentFactory,
+                 Interpolation::Executor::ComponentFactory>,
             FW<Explorer::ListeningHandlerFactory,
                  Engine::Execution::PlayListeningHandlerFactory>,
             FW<iscore::SettingsDelegateFactory,

@@ -66,7 +66,6 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
         Q_PROPERTY(State::Address address READ address WRITE setAddress NOTIFY addressChanged)
         Q_PROPERTY(State::Value start READ start WRITE setStart NOTIFY startChanged)
         Q_PROPERTY(State::Value end READ end WRITE setEnd NOTIFY endChanged)
-        Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
 
     public:
         ProcessModel(const TimeValue& duration,
@@ -89,8 +88,6 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
         {
             return m_address;
         }
-
-
         State::Value start() const
         {
             return m_start;
@@ -99,7 +96,6 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
         {
             return m_end;
         }
-
 
         void setAddress(const ::State::Address& arg)
         {
@@ -112,7 +108,6 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
             emit addressChanged(arg);
             emit m_curve->changed();
         }
-
         void setStart(State::Value arg)
         {
             if (m_start == arg)
@@ -122,7 +117,6 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
             emit startChanged(arg);
             emit m_curve->changed();
         }
-
         void setEnd(State::Value arg)
         {
             if (m_end == arg)
@@ -131,19 +125,6 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
             m_end = arg;
             emit endChanged(arg);
             emit m_curve->changed();
-        }
-
-        bool tween() const
-        {
-            return m_tween;
-        }
-        void setTween(bool tween)
-        {
-            if (m_tween == tween)
-                return;
-
-            m_tween = tween;
-            emit tweenChanged(tween);
         }
 
         QString prettyName() const override
@@ -200,6 +181,5 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
 
         ProcessState* m_startState{};
         ProcessState* m_endState{};
-        bool m_tween = false;
 };
 }
