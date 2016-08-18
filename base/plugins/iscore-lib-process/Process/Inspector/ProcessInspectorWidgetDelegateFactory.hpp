@@ -35,6 +35,26 @@ class ISCORE_LIB_PROCESS_EXPORT InspectorWidgetDelegateFactory :
          }
 };
 
+template<typename Process_T, typename Widget_T>
+class InspectorWidgetDelegateFactory_T :
+        public Process::InspectorWidgetDelegateFactory
+{
+    private:
+        Process::InspectorWidgetDelegate* make(
+                const Process::ProcessModel& process,
+                const iscore::DocumentContext& doc,
+                QWidget* parent) const override
+        {
+            return new Widget_T{
+                safe_cast<const Process_T&>(process), doc, parent};
+        }
+
+        bool matches(const Process::ProcessModel& process) const override
+        {
+            return dynamic_cast<const Process_T*>(&process);
+        }
+};
+
 
 class ISCORE_LIB_PROCESS_EXPORT StateProcessInspectorWidgetDelegateFactory :
         public iscore::AbstractFactory<StateProcessInspectorWidgetDelegateFactory>
@@ -56,4 +76,25 @@ class ISCORE_LIB_PROCESS_EXPORT StateProcessInspectorWidgetDelegateFactory :
              return matches(proc);
          }
 };
+
+template<typename Process_T, typename Widget_T>
+class StateProcessInspectorWidgetDelegateFactory_T :
+        public Process::StateProcessInspectorWidgetDelegateFactory
+{
+    private:
+        Process::StateProcessInspectorWidgetDelegate* make(
+                const Process::StateProcess& process,
+                const iscore::DocumentContext& doc,
+                QWidget* parent) const override
+        {
+            return new Widget_T{
+                safe_cast<const Process_T&>(process), doc, parent};
+        }
+
+        bool matches(const Process::StateProcess& process) const override
+        {
+            return dynamic_cast<const Process_T*>(&process);
+        }
+};
+
 }

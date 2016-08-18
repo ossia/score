@@ -33,9 +33,6 @@ class ChangeAddress final : public iscore::SerializableCommand
     private:
         Path<ProcessModel> m_path;
         Device::FullAddressSettings m_old, m_new;
-
-        Curve::Point m_oldFirst, m_oldLast,
-                     m_newFirst, m_newLast;
 };
 
 }

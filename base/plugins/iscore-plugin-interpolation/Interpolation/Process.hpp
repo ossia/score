@@ -36,13 +36,17 @@ class ProcessState final :
 
         ProcessModel& process() const;
 
-        ::State::Message message() const;
+
+        State::Message message() const;
         Point point() const;
 
         ProcessState* clone(QObject* parent) const override;
 
+
         std::vector<State::Address> matchingAddresses() override;
+
         ::State::MessageList messages() const override;
+
         ::State::MessageList setMessages(
                 const ::State::MessageList&,
                 const Process::MessageNode&) override;
@@ -68,6 +72,7 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
         ProcessModel(const TimeValue& duration,
                      const Id<Process::ProcessModel>& id,
                      QObject* parent);
+
         ~ProcessModel();
 
         template<typename Impl>
@@ -80,14 +85,53 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
         }
 
 
-        ::State::Address address() const;
+        State::Address address() const
+        {
+            return m_address;
+        }
 
-        State::Value start() const;
-        State::Value end() const;
 
-        void setAddress(const ::State::Address& arg);
-        void setStart(State::Value arg);
-        void setEnd(State::Value arg);
+        State::Value start() const
+        {
+            return m_start;
+        }
+        State::Value end() const
+        {
+            return m_end;
+        }
+
+
+        void setAddress(const ::State::Address& arg)
+        {
+            if(m_address == arg)
+            {
+                return;
+            }
+
+            m_address = arg;
+            emit addressChanged(arg);
+            emit m_curve->changed();
+        }
+
+        void setStart(State::Value arg)
+        {
+            if (m_start == arg)
+                return;
+
+            m_start = arg;
+            emit startChanged(arg);
+            emit m_curve->changed();
+        }
+
+        void setEnd(State::Value arg)
+        {
+            if (m_end == arg)
+                return;
+
+            m_end = arg;
+            emit endChanged(arg);
+            emit m_curve->changed();
+        }
 
         bool tween() const
         {
@@ -102,7 +146,10 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
             emit tweenChanged(tween);
         }
 
-        QString prettyName() const override;
+        QString prettyName() const override
+        {
+            return metadata.name() + " : " + address().toString();
+        }
 
     signals:
         void addressChanged(const ::State::Address&);
@@ -112,19 +159,40 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
 
     private:
         //// ProcessModel ////
-        void setDurationAndScale(const TimeValue& newDuration) override;
-        void setDurationAndGrow(const TimeValue& newDuration) override;
-        void setDurationAndShrink(const TimeValue& newDuration) override;
+        void setDurationAndScale(const TimeValue& newDuration) override
+        {
+            // We only need to change the duration.
+            setDuration(newDuration);
+            m_curve->changed();
+        }
+        void setDurationAndGrow(const TimeValue& newDuration) override
+        {
+            // We only need to change the duration.
+            setDuration(newDuration);
+            m_curve->changed();
+        }
+        void setDurationAndShrink(const TimeValue& newDuration) override
+        {
+            // We only need to change the duration.
+            setDuration(newDuration);
+            m_curve->changed();
+        }
 
         /// States
-        ProcessState* startStateData() const override;
-        ProcessState* endStateData() const override;
+        ProcessState* startStateData() const override
+        {
+            return m_startState;
+        }
+
+        ProcessState* endStateData() const override
+        {
+            return m_endState;
+        }
 
         ProcessModel(const ProcessModel& source,
-                        const Id<Process::ProcessModel>& id,
-                        QObject* parent);
+                     const Id<Process::ProcessModel>& id,
+                     QObject* parent);
 
-        void setCurve_impl() override;
         ::State::Address m_address;
 
         State::Value m_start{};

@@ -17,7 +17,7 @@ class SetMax final : public iscore::PropertyCommand
         }
 };
 
-
+// MOVEME
 class SetTween final : public iscore::PropertyCommand
 {
         ISCORE_COMMAND_DECL(CommandFactoryName(), SetTween, "Set curve tween")

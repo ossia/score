@@ -16,13 +16,6 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
-/*
-#include <Process/ProcessList.hpp>
-#include <iscore/document/DocumentContext.hpp>
-#include <iscore/application/ApplicationContext.hpp>
-
-*/
-
 namespace Scenario
 {
 StateModel::StateModel(
@@ -43,11 +36,6 @@ StateModel::StateModel(
 
     metadata.setName(QString("State.%1").arg(*this->id().val()));
     init();
-/*
-    auto ctx = iscore::IDocument::documentContext(*this);
-    auto& fact = *ctx.app.components.factory<StateProcessList>().get().begin()->second;
-    stateProcesses.add(fact.make(Id<StateProcess>{123}, this));
-    */
 }
 
 StateModel::StateModel(

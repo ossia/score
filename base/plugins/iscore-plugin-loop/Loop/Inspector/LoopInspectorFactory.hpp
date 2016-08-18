@@ -1,7 +1,8 @@
 #pragma once
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
-#include <Loop/LoopProcessMetadata.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+#include <Loop/LoopProcessModel.hpp>
+#include <Loop/Inspector/LoopInspectorWidget.hpp>
 #include <QList>
 #include <QString>
 #include <memory>
@@ -36,18 +37,9 @@ class ConstraintInspectorDelegateFactory :
                 const Scenario::ConstraintModel& constraint) const override;
 };
 
-class InspectorFactory final : public Process::InspectorWidgetDelegateFactory
+class InspectorFactory final :
+        public Process::InspectorWidgetDelegateFactory_T<ProcessModel, LoopInspectorWidget>
 {
         ISCORE_CONCRETE_FACTORY("f45f98f2-f721-4ffa-9219-114832fe06bd")
-    public:
-        InspectorFactory();
-        virtual ~InspectorFactory();
-
-    private:
-        Process::InspectorWidgetDelegate* make(
-                const Process::ProcessModel&,
-                const iscore::DocumentContext&,
-                QWidget* parent) const override;
-        bool matches(const Process::ProcessModel&) const override;
 };
 }

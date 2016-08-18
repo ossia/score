@@ -28,7 +28,7 @@
 
 namespace Mapping
 {
-MappingInspectorWidget::MappingInspectorWidget(
+InspectorWidget::InspectorWidget(
         const ProcessModel& mappingModel,
         const iscore::DocumentContext& doc,
         QWidget* parent) :
@@ -63,7 +63,7 @@ MappingInspectorWidget::MappingInspectorWidget(
             m_sourceLineEdit, &AddressEditWidget::setAddress);
 
         connect(m_sourceLineEdit, &AddressEditWidget::addressChanged,
-                this, &MappingInspectorWidget::on_sourceAddressChange);
+                this, &InspectorWidget::on_sourceAddressChange);
 
         vlay->addWidget(m_sourceLineEdit);
 
@@ -87,9 +87,9 @@ MappingInspectorWidget::MappingInspectorWidget(
             m_sourceMax, &QDoubleSpinBox::setValue);
 
         connect(m_sourceMin, &QAbstractSpinBox::editingFinished,
-                this, &MappingInspectorWidget::on_sourceMinValueChanged);
+                this, &InspectorWidget::on_sourceMinValueChanged);
         connect(m_sourceMax, &QAbstractSpinBox::editingFinished,
-                this, &MappingInspectorWidget::on_sourceMaxValueChanged);
+                this, &InspectorWidget::on_sourceMaxValueChanged);
 
         // TODO in AutomationInspectorWidget, remove all Qt4-style connects.
         lay->addWidget(widg);
@@ -111,7 +111,7 @@ MappingInspectorWidget::MappingInspectorWidget(
             m_targetLineEdit, &AddressEditWidget::setAddress);
 
         connect(m_targetLineEdit, &AddressEditWidget::addressChanged,
-                this, &MappingInspectorWidget::on_targetAddressChange);
+                this, &InspectorWidget::on_targetAddressChange);
 
         vlay->addWidget(m_targetLineEdit);
 
@@ -135,9 +135,9 @@ MappingInspectorWidget::MappingInspectorWidget(
             m_targetMax, &QDoubleSpinBox::setValue);
 
         connect(m_targetMin, &QAbstractSpinBox::editingFinished,
-                this, &MappingInspectorWidget::on_targetMinValueChanged);
+                this, &InspectorWidget::on_targetMinValueChanged);
         connect(m_targetMax, &QAbstractSpinBox::editingFinished,
-                this, &MappingInspectorWidget::on_targetMaxValueChanged);
+                this, &InspectorWidget::on_targetMaxValueChanged);
         lay->addWidget(widg);
     }
 
@@ -145,7 +145,7 @@ MappingInspectorWidget::MappingInspectorWidget(
     this->setLayout(lay);
 }
 
-void MappingInspectorWidget::on_sourceAddressChange(const State::Address& newAddr)
+void InspectorWidget::on_sourceAddressChange(const State::Address& newAddr)
 {
     // Various checks
     if(newAddr == process().sourceAddress())
@@ -159,7 +159,7 @@ void MappingInspectorWidget::on_sourceAddressChange(const State::Address& newAdd
     m_dispatcher.submitCommand(cmd);
 }
 
-void MappingInspectorWidget::on_sourceMinValueChanged()
+void InspectorWidget::on_sourceMinValueChanged()
 {
     auto newVal = m_sourceMin->value();
     if(newVal != process().sourceMin())
@@ -170,7 +170,7 @@ void MappingInspectorWidget::on_sourceMinValueChanged()
     }
 }
 
-void MappingInspectorWidget::on_sourceMaxValueChanged()
+void InspectorWidget::on_sourceMaxValueChanged()
 {
     auto newVal = m_sourceMax->value();
     if(newVal != process().sourceMax())
@@ -182,7 +182,7 @@ void MappingInspectorWidget::on_sourceMaxValueChanged()
 }
 
 
-void MappingInspectorWidget::on_targetAddressChange(const State::Address& newAddr)
+void InspectorWidget::on_targetAddressChange(const State::Address& newAddr)
 {
     // Various checks
     if(newAddr == process().targetAddress())
@@ -196,7 +196,7 @@ void MappingInspectorWidget::on_targetAddressChange(const State::Address& newAdd
     m_dispatcher.submitCommand(cmd);
 }
 
-void MappingInspectorWidget::on_targetMinValueChanged()
+void InspectorWidget::on_targetMinValueChanged()
 {
     auto newVal = m_targetMin->value();
     if(newVal != process().targetMin())
@@ -207,7 +207,7 @@ void MappingInspectorWidget::on_targetMinValueChanged()
     }
 }
 
-void MappingInspectorWidget::on_targetMaxValueChanged()
+void InspectorWidget::on_targetMaxValueChanged()
 {
     auto newVal = m_targetMax->value();
     if(newVal != process().targetMax())

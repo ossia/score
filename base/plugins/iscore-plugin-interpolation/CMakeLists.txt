@@ -1,4 +1,3 @@
-return()
 cmake_minimum_required(VERSION 3.1)
 project(iscore_plugin_interpolation LANGUAGES CXX)
 
@@ -14,7 +13,6 @@ file(GLOB_RECURSE HDRS
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Process.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/View.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Factory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Colors.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.cpp"

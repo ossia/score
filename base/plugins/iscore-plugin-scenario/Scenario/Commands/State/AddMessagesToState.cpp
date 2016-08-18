@@ -45,7 +45,8 @@ AddMessagesToState::AddMessagesToState(
         // of this node, and if there is no "user" or message from another process, we remove
         // the node altogether
 
-        for(const auto& prevProc : sm.previousProcesses())
+        // TODO this won't work in network editing ???
+        for(const ProcessStateWrapper& prevProc : sm.previousProcesses())
         {
             const auto& processModel = prevProc.process().process();
             m_previousBackup.insert(processModel.id(), prevProc.process().messages());
@@ -55,7 +56,7 @@ AddMessagesToState::AddMessagesToState(
             updateTreeWithMessageList(m_newState, lst, processModel.id(), ProcessPosition::Previous);
         }
 
-        for(const auto& nextProc : sm.followingProcesses())
+        for(const ProcessStateWrapper& nextProc : sm.followingProcesses())
         {
             const auto& processModel = nextProc.process().process();
             m_followingBackup.insert(processModel.id(), nextProc.process().messages());
@@ -67,6 +68,7 @@ AddMessagesToState::AddMessagesToState(
 
         // TODO one day there will also be State functions that will perform
         // some local computation.
+        // TODO this day has come
     }
 
     updateTreeWithMessageList(m_newState, messages);
@@ -79,11 +81,11 @@ void AddMessagesToState::undo() const
 
     // Restore the state of the processes.
     auto& sm = model.stateModel;
-    for(const auto& prevProc : sm.previousProcesses())
+    for(const ProcessStateWrapper& prevProc : sm.previousProcesses())
     {
         prevProc.process().setMessages(m_previousBackup[prevProc.process().process().id()], m_oldState);
     }
-    for(const auto& nextProc : sm.followingProcesses())
+    for(const ProcessStateWrapper& nextProc : sm.followingProcesses())
     {
         nextProc.process().setMessages(m_followingBackup[nextProc.process().process().id()], m_oldState);
     }

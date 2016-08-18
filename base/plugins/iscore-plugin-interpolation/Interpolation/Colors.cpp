@@ -5,10 +5,10 @@ namespace Interpolation
 {
 Colors::Colors():
     m_style{
-        Skin::instance().Smooth2,
-        Skin::instance().Emphasis2,
-        Skin::instance().Smooth1,
+        Skin::instance().Emphasis4,
+        Skin::instance().Smooth3,
         Skin::instance().Tender3,
+        Skin::instance().Smooth3,
         Skin::instance().Gray}
 {
 }
