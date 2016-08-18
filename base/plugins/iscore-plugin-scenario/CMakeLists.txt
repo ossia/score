@@ -21,6 +21,7 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Execution/*.hpp"
@@ -274,13 +275,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/View.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/Presenter.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.cpp"
-)
-
-if(TARGET iscore_lib_inspector)
-    set(INSPECTOR_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/SelectionButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.cpp"
@@ -316,15 +310,11 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/SimpleExpressionEditorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Summary/SummaryInspectorWidget.cpp"
-    )
 
-    set(SRCS ${SRCS} ${INSPECTOR_SRCS})
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 
-    file(GLOB_RECURSE INSPECTOR_HDRS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/*.hpp")
-
-    set(HDRS ${HDRS} ${INSPECTOR_HDRS})
-endif()
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.cpp"
+)
 
 add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
 iscore_generate_command_list_file(iscore_plugin_scenario "${HDRS}")
@@ -333,7 +323,7 @@ target_link_libraries(iscore_plugin_scenario
   PUBLIC
     Qt5::Core Qt5::Widgets Qt5::Svg
         iscore_lib_base ColorWidgets-qt5
-    iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation Threads::Threads)
+    iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation iscore_lib_inspector Threads::Threads)
 
 if(ISCORE_OPENGL)
 target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::OpenGL)
@@ -341,10 +331,6 @@ endif()
 
 if(ISCORE_WEBSOCKETS)
 target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::WebSockets)
-endif()
-
-if(TARGET iscore_lib_inspector)
-  target_link_libraries(iscore_plugin_scenario PUBLIC iscore_lib_inspector)
 endif()
 
 setup_iscore_plugin(iscore_plugin_scenario)
