@@ -18,8 +18,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Inspector/InspectorWidget.cpp"
-
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_interpolation.cpp"
 )
 

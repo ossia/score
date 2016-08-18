@@ -23,7 +23,7 @@ PROCESS_METADATA(
 
 namespace Interpolation
 {
-class ProcessState final :
+class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessState final :
         public ProcessStateDataInterface
 {
     public:

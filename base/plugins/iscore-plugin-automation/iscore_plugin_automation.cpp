@@ -14,12 +14,9 @@
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 #include "iscore_plugin_automation.hpp"
 
-
-#if defined(ISCORE_LIB_INSPECTOR)
 #include <Automation/Inspector/AutomationInspectorFactory.hpp>
 #include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
 #include <Automation/Inspector/CurvePointInspectorFactory.hpp>
-#endif
 #include <iscore_plugin_automation_commands_files.hpp>
 #include <Curve/Process/CurveProcessFactory.hpp>
 
@@ -45,11 +42,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_automat
     TL<
         FW<Process::ProcessFactory,
              Automation::AutomationFactory>,
-#if defined(ISCORE_LIB_INSPECTOR)
         FW<Inspector::InspectorWidgetFactory,
              Automation::StateInspectorFactory,
              Automation::PointInspectorFactory>,
-#endif
         FW<Process::InspectorWidgetDelegateFactory,
              Automation::InspectorFactory>
     >>(ctx, key);

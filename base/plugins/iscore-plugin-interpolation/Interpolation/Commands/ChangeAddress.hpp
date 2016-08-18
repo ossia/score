@@ -3,10 +3,12 @@
 #include <Interpolation/Process.hpp>
 
 #include <iscore/command/PropertyCommand.hpp>
+#include <iscore_plugin_interpolation_export.h>
+
 namespace Interpolation
 {
 class ProcessModel;
-class ChangeAddress final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_INTERPOLATION_EXPORT ChangeAddress final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(CommandFactoryName(), ChangeAddress, "Change Interpolation Address")
     public:
@@ -32,7 +34,7 @@ class ChangeAddress final : public iscore::SerializableCommand
 };
 
 // MOVEME && should apply to both Interpolation and Automation
-class SetTween final : public iscore::PropertyCommand
+class ISCORE_PLUGIN_INTERPOLATION_EXPORT SetTween final : public iscore::PropertyCommand
 {
         ISCORE_COMMAND_DECL(CommandFactoryName(), SetTween, "Set curve tween")
         public:

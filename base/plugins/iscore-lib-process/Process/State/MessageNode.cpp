@@ -96,4 +96,40 @@ State::MessageList getUserMessages(const MessageNode& n)
     return ml;
 }
 
+
+Process::MessageNode* try_getNodeFromAddress(
+        Process::MessageNode& root,
+        const State::Address& addr)
+{
+    if(addr.device.isEmpty())
+        return nullptr;
+
+    // Find first node
+    auto first_node_it = find_if(root, [&] (const auto& cld) {
+        return cld.displayName() == addr.device;
+    });
+    if(first_node_it == root.end())
+        return nullptr;
+
+    Process::MessageNode* node = &*first_node_it;
+
+    for(auto& node_name : addr.path)
+    {
+        auto& n = *node;
+        auto child_it = find_if(n, [&] (const auto& cld) {
+            return cld.displayName() == node_name;
+        } );
+        if(child_it != n.end())
+        {
+            node = &*child_it;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    return node;
+}
+
 }
