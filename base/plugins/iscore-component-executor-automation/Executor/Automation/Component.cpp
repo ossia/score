@@ -99,7 +99,7 @@ void Component::recreate()
 
     using namespace ossia;
     if(process().tween())
-        on_curveChanged(Destination(*node, {})); // If the type changes we need to rebuild the curve.
+        on_curveChanged(Destination(*address, {})); // If the type changes we need to rebuild the curve.
     else
         on_curveChanged({});
     if(!m_ossia_curve)
