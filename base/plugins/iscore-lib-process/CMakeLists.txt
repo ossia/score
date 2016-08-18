@@ -103,11 +103,7 @@ qt5_add_resources(DUMMYPROCESS_QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/r
 
 add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS}  ${DUMMYPROCESS_QRCS} )
 target_link_libraries(iscore_lib_process  PUBLIC
-    Qt5::Core Qt5::Widgets iscore_lib_base iscore_lib_state)
-
-if(TARGET iscore_lib_inspector)
-  target_link_libraries(iscore_lib_process PUBLIC iscore_lib_inspector)
-endif()
+    Qt5::Core Qt5::Widgets iscore_lib_base iscore_lib_state iscore_lib_inspector)
 
 target_compile_definitions(iscore_lib_process PUBLIC
     $<$<BOOL:${DEFINE_ISCORE_SCENARIO_DEBUG_RECTS}>:ISCORE_SCENARIO_DEBUG_RECTS>)
