@@ -42,25 +42,13 @@
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 
-namespace iscore {
-
-class DocumentDelegateFactory;
-class FactoryListInterface;
-class PanelFactory;
-}
-namespace State
-{
-struct Address;
-}  // namespace iscore
-
-#if defined(ISCORE_LIB_INSPECTOR)
 #include <Scenario/Inspector/Constraint/BaseConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Scenario/Inspector/Constraint/ScenarioConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
-#endif
+#include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
 
 iscore_plugin_scenario::iscore_plugin_scenario()
 {
@@ -138,7 +126,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
     FW<MoveEventFactoryInterface,
         MoveEventClassicFactory>,
     FW<Process::InspectorWidgetDelegateFactory,
-        ScenarioInspectorFactory>,
+        ScenarioInspectorFactory,
+        Interpolation::InspectorFactory>,
     FW<DisplayedElementsToolPaletteFactory,
         BaseScenarioDisplayedElementsToolPaletteFactory,
         ScenarioDisplayedElementsToolPaletteFactory>,
@@ -157,15 +146,12 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
     FW<Scenario::DropHandler,
         Scenario::MessageDropHandler>,
     FW<Scenario::ConstraintDropHandler,
-        Scenario::AutomationDropHandler>
-#if defined(ISCORE_LIB_INSPECTOR)
-    ,
+        Scenario::AutomationDropHandler>,
     FW<Inspector::InspectorWidgetFactory,
         ScenarioInspectorWidgetFactoryWrapper>,
     FW<ConstraintInspectorDelegateFactory,
         ScenarioConstraintInspectorDelegateFactory,
         BaseConstraintInspectorDelegateFactory>
-#endif
     >>(ctx, key);
 }
 

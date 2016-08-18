@@ -73,7 +73,7 @@ struct StateNodeValues
         // if we have both previous and following processes ?
         State::OptionalValue value() const
         {
-            for(const auto& prio : priorities)
+            for(auto prio : priorities)
             {
                 switch(prio)
                 {
@@ -163,6 +163,7 @@ ISCORE_LIB_PROCESS_EXPORT State::Address address(const MessageNode& treeNode);
 ISCORE_LIB_PROCESS_EXPORT State::Message message(const MessageNode& node);
 ISCORE_LIB_PROCESS_EXPORT State::Message userMessage(const MessageNode& node);
 ISCORE_LIB_PROCESS_EXPORT QStringList toStringList(const State::Address& addr);
+ISCORE_LIB_PROCESS_EXPORT Process::MessageNode* try_getNodeFromAddress(Process::MessageNode& root, const State::Address& addr);
 
 ISCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);
 ISCORE_LIB_PROCESS_EXPORT State::MessageList getUserMessages(const MessageNode&);

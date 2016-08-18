@@ -306,6 +306,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TimeNodeInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TriggerInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TimeNodeSummaryWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Interpolation/InterpolationInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/ExpressionEditorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/SimpleExpressionEditorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.cpp"
@@ -323,7 +324,9 @@ target_link_libraries(iscore_plugin_scenario
   PUBLIC
     Qt5::Core Qt5::Widgets Qt5::Svg
         iscore_lib_base ColorWidgets-qt5
-    iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_state iscore_plugin_curve iscore_plugin_automation iscore_lib_inspector Threads::Threads)
+    iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer
+    iscore_lib_state iscore_plugin_curve iscore_plugin_automation iscore_plugin_interpolation
+    iscore_lib_inspector Threads::Threads)
 
 if(ISCORE_OPENGL)
 target_link_libraries(iscore_plugin_scenario PRIVATE Qt5::OpenGL)

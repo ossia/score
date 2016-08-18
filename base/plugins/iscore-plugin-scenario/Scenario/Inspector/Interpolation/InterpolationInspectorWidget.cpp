@@ -1,9 +1,15 @@
-#include "InspectorWidget.hpp"
+#include "InterpolationInspectorWidget.hpp"
 #include <Interpolation/Commands/ChangeAddress.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QCheckBox>
 #include <QFormLayout>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QLabel>
+
 namespace Interpolation
 {
 InspectorWidget::InspectorWidget(
@@ -65,19 +71,47 @@ InspectorWidget::InspectorWidget(
     this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(const ::State::Address& newAddr)
+void InspectorWidget::on_addressChange(const ::State::Address& addr)
 {
     // Various checks
-    if(newAddr == process().address())
+    if(addr == process().address())
         return;
 
-    if(newAddr.path.isEmpty())
+    if(addr.path.isEmpty())
         return;
 
-    ISCORE_TODO;
-    //auto cmd = new ChangeAddress{process(), newAddr};
+    if(addr == State::Address{})
+    {
+        m_dispatcher.submitCommand(new ChangeAddress{process(), {}, {}, {}});
+    }
+    else
+    {
+        // Try to find a matching state in the start & end state in order to update the process
+        auto cst = dynamic_cast<Scenario::ConstraintModel*>(process().parent());
+        if(!cst)
+            return;
+        auto parent_scenario = dynamic_cast<Scenario::ScenarioInterface*>(cst->parent());
+        if(!parent_scenario)
+            return;
 
-    //m_dispatcher.submitCommand(cmd);
+        State::Value sv, ev;
+
+        {
+            auto& ss = Scenario::startState(*cst, *parent_scenario);
+            Process::MessageNode* snode = Process::try_getNodeFromAddress(ss.messages().rootNode(), addr);
+            if(snode && snode->hasValue())
+                sv = *snode->value();
+        }
+
+        {
+            auto& es = Scenario::endState(*cst, *parent_scenario);
+            Process::MessageNode* enode = Process::try_getNodeFromAddress(es.messages().rootNode(), addr);
+            if(enode && enode->hasValue())
+                ev = *enode->value();
+        }
+
+        m_dispatcher.submitCommand(new ChangeAddress{process(), addr, sv, ev});
+    }
 }
 
 void InspectorWidget::on_tweenChanged()

@@ -16,6 +16,8 @@
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 #include <Curve/Process/CurveProcessFactory.hpp>
 
+#include <Mapping/Inspector/MappingInspectorFactory.hpp>
+
 namespace Mapping {
 using MappingFactory =
     Curve::CurveProcessFactory_T<
@@ -25,10 +27,6 @@ Mapping::MappingPresenter,
 Mapping::MappingView,
 Mapping::MappingColors>;
 }
-
-#if defined(ISCORE_LIB_INSPECTOR)
-#include <Mapping/Inspector/MappingInspectorFactory.hpp>
-#endif
 
 #include <iscore_plugin_mapping_commands_files.hpp>
 
