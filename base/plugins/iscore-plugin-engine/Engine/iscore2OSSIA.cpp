@@ -435,7 +435,11 @@ static ossia::Destination expressionAddress(
         auto n = findNodeFromPath(addr.path, *dev);
         if(n)
         {
-            return ossia::Destination(n->getAddress());
+            auto ossia_addr = n->getAddress();
+            if(ossia_addr)
+              return ossia::Destination(*ossia_addr);
+            else
+              throw NodeNotFoundException(addr);
         }
         else
         {
