@@ -116,6 +116,7 @@ endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
     set(CXX_IS_MSVC True)
+    set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} runtimeobject.lib")
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
