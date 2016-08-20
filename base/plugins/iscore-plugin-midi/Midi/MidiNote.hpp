@@ -7,6 +7,10 @@ namespace Midi
 using midi_size_t = uint8_t;
 struct NoteData
 {
+        NoteData() = default;
+        NoteData(double s, double d, midi_size_t p, midi_size_t v):
+            start{s}, duration{d}, pitch{p}, velocity{v} { }
+
         double start{};
         double duration{};
 
