@@ -5,7 +5,8 @@
 template <typename... Args> struct TypeList {
         static const constexpr auto size = sizeof...(Args);
 };
-
+namespace iscore
+{
 namespace detail {
 
 // Forward declare, in order to pattern match via specialization
@@ -39,14 +40,15 @@ struct TypeVisitor<Sequence<Args...>> {
   }
 };
 } // End Detail
+}
 // Invokes the functor with every type, this code generation is done at compile time
 template <typename Sequence, typename F>
 constexpr void for_each_type(F&& f)
 {
-    detail::TypeVisitor<Sequence>::template visit<F>(std::forward<F>(f));
+    iscore::detail::TypeVisitor<Sequence>::template visit<F>(std::forward<F>(f));
 }
 
-
+namespace iscore {
 namespace detail {
 
 // Forward declare, in order to pattern match via specialization
@@ -112,16 +114,16 @@ struct TypeVisitorIf<Sequence<Args...>> {
             : do_visit_if<F, Next, Tail...>(f);
   }
 };
-} // End Detail
+} } // End Detail
 // Invokes the functor with every type, this code generation is done at compile time
 template <typename Sequence, typename F>
 constexpr void for_each_type_if(const F& f)
 {
-    detail::TypeVisitorIf<Sequence>::template visit_if<F>(f);
+    iscore::detail::TypeVisitorIf<Sequence>::template visit_if<F>(f);
 }
 template <typename Sequence, typename F>
 constexpr void for_each_type_if(F& f)
 {
-    detail::TypeVisitorIf<Sequence>::template visit_if<F>(f);
+	iscore::detail::TypeVisitorIf<Sequence>::template visit_if<F>(f);
 }
 
