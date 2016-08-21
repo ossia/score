@@ -40,8 +40,8 @@ class QtProperty
 
         auto set(const T& newval) const
         { return (m_obj.*m_set)(newval); }
-        auto set(const State::Value& newval) const
-        { return (m_obj.*m_set)(State::convert::value<T>(newval)); }
+        auto set(const ::State::Value& newval) const
+        { return (m_obj.*m_set)(::State::convert::value<T>(newval)); }
 
         auto changed() const
         { return (m_obj.*m_changed); }
@@ -72,7 +72,7 @@ struct PropertyWrapper : public BaseCallbackWrapper
 
             QObject::connect(&property.object(), property.changed_property(),
                     context, [=] {
-                auto newVal = State::Value::fromValue(property.get());
+                auto newVal = ::State::Value::fromValue(property.get());
                 try
                 {
                     auto res = Engine::ossia_to_iscore::ToValue( addr.cloneValue());
@@ -92,7 +92,7 @@ struct PropertyWrapper : public BaseCallbackWrapper
             {
                 addr.setValue(
                             Engine::iscore_to_ossia::toOSSIAValue(
-                                State::Value::fromValue(
+                                ::State::Value::fromValue(
                                     property.get())));
             }
         }
