@@ -32,15 +32,17 @@ endif()
 # Copy our dylibs if necessary
 if(NOT ISCORE_STATIC_PLUGINS)
     set(ISCORE_BUNDLE_PLUGINS_FOLDER "${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/")
+    
     function(iscore_copy_osx_plugin theTarget)
-        add_custom_command(
-          TARGET ${APPNAME} POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${theTarget}> ${ISCORE_BUNDLE_PLUGINS_FOLDER})
-    if(TARGET ${APPNAME}_unity)
       add_custom_command(
-      TARGET ${APPNAME}_unity POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${theTarget}_unity> ${ISCORE_BUNDLE_PLUGINS_FOLDER})
-    endif()
+        TARGET ${APPNAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${theTarget}> ${ISCORE_BUNDLE_PLUGINS_FOLDER})
+
+      if(TARGET ${theTarget}_unity)
+        add_custom_command(
+          TARGET ${APPNAME}_unity POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${theTarget}_unity> ${ISCORE_BUNDLE_PLUGINS_FOLDER})
+      endif()
     endfunction()
 
     # Copy iscore plugins into the app bundle

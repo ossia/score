@@ -6,6 +6,8 @@
 #include <Process/State/MessageNode.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <Process/ProcessMetadata.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore_plugin_interpolation_export.h>
 
 namespace Interpolation
@@ -58,8 +60,8 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessState final :
 class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
         public Curve::CurveProcessModel
 {
-        ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Interpolation::ProcessModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Interpolation::ProcessModel, JSONObject)
         MODEL_METADATA_IMPL(Interpolation::ProcessModel)
 
         Q_OBJECT

@@ -127,7 +127,7 @@ ProcessModel::ProcessModel(const ProcessModel& source, const Id<Process::Process
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Reader<DataStream>>::readFrom_impl(
         const Interpolation::ProcessModel& interp)
 {
     readFrom(interp.curve());
@@ -140,7 +140,7 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(
+ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Writer<DataStream>>::writeTo(
         Interpolation::ProcessModel& interp)
 {
     interp.setCurve(new Curve::Model{*this, &interp});
@@ -161,7 +161,7 @@ void Visitor<Writer<DataStream>>::writeTo(
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Interpolation::ProcessModel& interp)
 {
     m_obj["Curve"] = toJsonObject(interp.curve());
@@ -171,7 +171,7 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(
+ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
         Interpolation::ProcessModel& interp)
 {
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
