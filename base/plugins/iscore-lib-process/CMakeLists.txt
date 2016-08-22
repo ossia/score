@@ -92,7 +92,6 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerModelSerialization.cpp"
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.cpp"
