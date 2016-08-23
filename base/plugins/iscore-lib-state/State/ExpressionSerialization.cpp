@@ -19,7 +19,7 @@ void Visitor<Reader<DataStream>>::readFrom(const State::AddressAccessor& rel)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const State::AddressAccessor& rel)
 {
-    m_obj[iscore::StringConstant().address] = toJsonObject(rel.address);
+    m_obj[strings.address] = toJsonObject(rel.address);
     m_obj["Accessors"] = toJsonValueArray(rel.accessors);
 }
 
@@ -34,7 +34,7 @@ void Visitor<Writer<DataStream>>::writeTo(State::AddressAccessor& rel)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(State::AddressAccessor& rel)
 {
-    fromJsonObject(m_obj[iscore::StringConstant().address], rel.address);
+    fromJsonObject(m_obj[strings.address], rel.address);
     fromJsonArray(m_obj["Accessors"].toArray(), rel.accessors);
 }
 
@@ -50,7 +50,7 @@ void Visitor<Reader<DataStream>>::readFrom(const State::Pulse& rel)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const State::Pulse& rel)
 {
-    m_obj[iscore::StringConstant().address] = toJsonObject(rel.address);
+    m_obj[strings.address] = toJsonObject(rel.address);
 }
 
 template<>
@@ -64,7 +64,7 @@ void Visitor<Writer<DataStream>>::writeTo(State::Pulse& rel)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(State::Pulse& rel)
 {
-    fromJsonObject(m_obj[iscore::StringConstant().address], rel.address);
+    fromJsonObject(m_obj[strings.address], rel.address);
 }
 
 template<>
@@ -81,9 +81,9 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const State::Relation& rel)
 {
     // TODO harmonize from... with marshall(..) in VisitorCommon.hpp
-    m_obj[iscore::StringConstant().LHS] = toJsonObject(rel.lhs);
-    m_obj[iscore::StringConstant().Op] = toJsonValue(rel.op);
-    m_obj[iscore::StringConstant().RHS] = toJsonObject(rel.rhs);
+    m_obj[strings.LHS] = toJsonObject(rel.lhs);
+    m_obj[strings.Op] = toJsonValue(rel.op);
+    m_obj[strings.RHS] = toJsonObject(rel.rhs);
 }
 
 template<>
@@ -99,9 +99,9 @@ void Visitor<Writer<DataStream>>::writeTo(State::Relation& rel)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(State::Relation& rel)
 {
-    fromJsonObject(m_obj[iscore::StringConstant().LHS], rel.lhs);
-    fromJsonValue(m_obj[iscore::StringConstant().Op], rel.op);
-    fromJsonObject(m_obj[iscore::StringConstant().RHS], rel.rhs);
+    fromJsonObject(m_obj[strings.LHS], rel.lhs);
+    fromJsonValue(m_obj[strings.Op], rel.op);
+    fromJsonObject(m_obj[strings.RHS], rel.rhs);
 }
 
 

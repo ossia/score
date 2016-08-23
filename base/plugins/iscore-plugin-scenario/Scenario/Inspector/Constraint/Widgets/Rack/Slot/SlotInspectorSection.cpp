@@ -181,7 +181,7 @@ const SlotModel&SlotInspectorSection::model() const
 void SlotInspectorSection::ask_changeName(QString newName)
 {
 
-    if(newName != m_model.metadata.name())
+    if(newName != m_model.metadata.getName())
     {
         auto cmd = new Command::ChangeElementName<SlotModel>{m_model, newName};
         emit m_parent.commandDispatcher()->submitCommand(cmd);

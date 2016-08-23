@@ -30,7 +30,7 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     this->setCursor(Qt::CrossCursor);
 
     m_text = new SimpleTextItem{this};
-    m_color = presenter.model().metadata.color();
+    m_color = presenter.model().metadata.getColor();
 
     auto f = Skin::instance().SansFont;
     f.setPointSize(8);

@@ -42,10 +42,10 @@ EventPresenter::EventPresenter(
     con(m_model.selection, &Selectable::changed,
         m_view, &EventView::setSelected);
 
-    con(m_model.metadata, &ModelMetadata::colorChanged,
+    con(m_model.metadata, &ModelMetadata::ColorChanged,
         m_view, &EventView::changeColor);
 
-    con(m_model.metadata, &ModelMetadata::commentChanged,
+    con(m_model.metadata, &ModelMetadata::CommentChanged,
         m_view, &EventView::changeToolTip);
 
     con(m_model, &EventModel::statusChanged,
@@ -61,7 +61,7 @@ EventPresenter::EventPresenter(
             this, &EventPresenter::handleDrop);
 
     m_view->setCondition(m_model.condition().toString());
-    m_view->setToolTip(m_model.metadata.comment());
+    m_view->setToolTip(m_model.metadata.getComment());
 
     con(m_model, &EventModel::conditionChanged,
         this, [&] (const State::Condition& c) { m_view->setCondition(c.toString()); });

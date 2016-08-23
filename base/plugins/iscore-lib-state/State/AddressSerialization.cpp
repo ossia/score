@@ -22,8 +22,8 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const State::Address& a)
 {
-    m_obj[iscore::StringConstant().Device] = a.device;
-    m_obj[iscore::StringConstant().Path] = a.path.join('/');
+    m_obj[strings.Device] = a.device;
+    m_obj[strings.Path] = a.path.join('/');
 }
 
 template<>
@@ -36,10 +36,10 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::Address
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Address& a)
 {
-    a.device = m_obj[iscore::StringConstant().Device].toString();
+    a.device = m_obj[strings.Device].toString();
 
-    auto path = m_obj[iscore::StringConstant().Path].toString();
+    auto path = m_obj[strings.Path].toString();
 
     if(!path.isEmpty())
-        a.path = m_obj[iscore::StringConstant().Path].toString().split('/');
+        a.path = m_obj[strings.Path].toString().split('/');
 }

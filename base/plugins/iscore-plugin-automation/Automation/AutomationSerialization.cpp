@@ -59,9 +59,9 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Automation::ProcessModel& autom)
 {
     m_obj["Curve"] = toJsonObject(autom.curve());
-    m_obj[iscore::StringConstant().Address] = toJsonObject(autom.address());
-    m_obj[iscore::StringConstant().Min] = autom.min();
-    m_obj[iscore::StringConstant().Max] = autom.max();
+    m_obj[strings.Address] = toJsonObject(autom.address());
+    m_obj[strings.Min] = autom.min();
+    m_obj[strings.Max] = autom.max();
     m_obj["Tween"] = autom.tween();
 }
 
@@ -72,8 +72,8 @@ void Visitor<Writer<JSONObject>>::writeTo(
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
     autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-    autom.setAddress(fromJsonObject<State::Address>(m_obj[iscore::StringConstant().Address]));
-    autom.setMin(m_obj[iscore::StringConstant().Min].toDouble());
-    autom.setMax(m_obj[iscore::StringConstant().Max].toDouble());
+    autom.setAddress(fromJsonObject<State::Address>(m_obj[strings.Address]));
+    autom.setMin(m_obj[strings.Min].toDouble());
+    autom.setMax(m_obj[strings.Max].toDouble());
     autom.setTween(m_obj["Tween"].toBool());
 }

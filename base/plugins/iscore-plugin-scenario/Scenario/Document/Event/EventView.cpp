@@ -28,7 +28,7 @@ EventView::EventView(EventPresenter& presenter,
 {
     setAcceptDrops(true);
 
-    m_color = presenter.model().metadata.color();
+    m_color = presenter.model().metadata.getColor();
 
     m_conditionItem = new ConditionView(ScenarioStyle::instance().ConditionDefault, this);
     m_conditionItem->setVisible(false);

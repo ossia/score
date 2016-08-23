@@ -37,7 +37,7 @@ StatePresenter::StatePresenter(
     con(m_model.selection, &Selectable::changed,
         m_view, &StateView::setSelected);
 
-    con(m_model.metadata,  &ModelMetadata::colorChanged,
+    con(m_model.metadata,  &ModelMetadata::ColorChanged,
         m_view, &StateView::changeColor);
 
     con(m_model, &StateModel::sig_statesUpdated,

@@ -40,7 +40,7 @@ class ChangeElementName final : public iscore::SerializableCommand
             m_newName {std::move(newName)}
         {
             auto& obj = m_path.find();
-            m_oldName = obj.metadata.name();
+            m_oldName = obj.metadata.getName();
         }
 
         void undo() const override

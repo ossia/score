@@ -23,7 +23,7 @@ TimeNodeSummaryWidget::TimeNodeSummaryWidget(const TimeNodeModel& object,
 
     auto eventBtn = SelectionButton::make("", &object, *m_selectionDispatcher , this);
 
-    mainLay->addWidget(new QLabel{object.metadata.name()},0, 0, 1, 3);
+    mainLay->addWidget(new QLabel{object.metadata.getName()},0, 0, 1, 3);
     mainLay->addWidget( new QLabel{object.date().toString()}, 0, 3, 1, 3);
     mainLay->addWidget(eventBtn, 0, 6, 1, 1);
 

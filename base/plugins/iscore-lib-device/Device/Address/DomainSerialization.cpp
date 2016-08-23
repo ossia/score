@@ -30,13 +30,15 @@ namespace Device
 QJsonObject DomainToJson(const Device::Domain& d)
 {
     QJsonObject obj;
-    obj[iscore::StringConstant().Min] = ValueToJson(d.min);
-    obj[iscore::StringConstant().Max] = ValueToJson(d.max);
+    auto& strings = iscore::StringConstant();
+
+    obj[strings.Min] = ValueToJson(d.min);
+    obj[strings.Max] = ValueToJson(d.max);
 
     QJsonArray arr;
     for(auto& val : d.values)
         arr.append(ValueToJson(val));
-    obj[iscore::StringConstant().Values] = arr;
+    obj[strings.Values] = arr;
 
     return obj;
 }
@@ -44,20 +46,21 @@ QJsonObject DomainToJson(const Device::Domain& d)
 Device::Domain JsonToDomain(const QJsonObject& obj, const QString& t)
 {
     Device::Domain d;
+    auto& strings = iscore::StringConstant();
 
-    auto min_it = obj.constFind(iscore::StringConstant().Min);
+    auto min_it = obj.constFind(strings.Min);
     if(min_it != obj.constEnd())
     {
         d.min = State::convert::fromQJsonValue(*min_it, t);
     }
 
-    auto max_it = obj.constFind(iscore::StringConstant().Max);
+    auto max_it = obj.constFind(strings.Max);
     if(max_it != obj.constEnd())
     {
         d.max = State::convert::fromQJsonValue(*max_it, t);
     }
 
-    for(const QJsonValue& val : obj[iscore::StringConstant().Values].toArray())
+    for(const QJsonValue& val : obj[strings.Values].toArray())
         d.values.append(State::convert::fromQJsonValue(val, t));
 
     return d;

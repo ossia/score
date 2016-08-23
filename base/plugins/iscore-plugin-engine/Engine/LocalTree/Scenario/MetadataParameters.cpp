@@ -16,22 +16,22 @@ void make_metadata_node(
 
     properties.push_back(
     add_getProperty<QString>(parent, "name", &metadata,
-                             &ModelMetadata::name,
-                             &ModelMetadata::nameChanged,
+                             &ModelMetadata::getName,
+                             &ModelMetadata::NameChanged,
                              context));
 
     properties.push_back(
     add_property<QString>(parent, "comment", &metadata,
-                          &ModelMetadata::comment,
+                          &ModelMetadata::getComment,
                           &ModelMetadata::setComment,
-                          &ModelMetadata::commentChanged,
+                          &ModelMetadata::CommentChanged,
                           context));
 
     properties.push_back(
     add_property<QString>(parent, "label", &metadata,
-                          &ModelMetadata::label,
+                          &ModelMetadata::getLabel,
                           &ModelMetadata::setLabel,
-                          &ModelMetadata::labelChanged,
+                          &ModelMetadata::LabelChanged,
                           context));
 }
 }

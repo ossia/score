@@ -32,9 +32,9 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
             this, &FullViewConstraintPresenter::constraintSelected);
 
     const auto& metadata = m_viewModel.model().metadata;
-    con(metadata, &ModelMetadata::nameChanged,
+    con(metadata, &ModelMetadata::NameChanged,
         m_header, &ConstraintHeader::setText);
-    m_header->setText(metadata.name());
+    m_header->setText(metadata.getName());
     m_header->show();
 }
 

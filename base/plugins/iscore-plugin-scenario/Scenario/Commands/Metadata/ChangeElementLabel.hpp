@@ -40,7 +40,7 @@ class ChangeElementLabel final : public iscore::SerializableCommand
             m_newLabel {std::move(newLabel)}
         {
             auto& obj = m_path.find();
-            m_oldLabel = obj.metadata.label();
+            m_oldLabel = obj.metadata.getLabel();
         }
 
         void undo() const override

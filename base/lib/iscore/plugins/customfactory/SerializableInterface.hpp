@@ -27,7 +27,7 @@ struct AbstractSerializer<JSONObject, T>
             JSONObject::Serializer& s,
             const T& obj)
     {
-        s.m_obj["uuid"] = toJsonValue(obj.concreteFactoryKey().impl());
+        s.m_obj[s.strings.uuid] = toJsonValue(obj.concreteFactoryKey().impl());
         s.readFrom_impl(obj);
         obj.serialize_impl(s.toVariant());
     }
@@ -58,7 +58,7 @@ class SerializableInterface
 template<typename Type>
 Type deserialize_key(Deserializer<JSONObject>& des)
 {
-    return fromJsonValue<iscore::uuid_t>(des.m_obj["uuid"]);;
+    return fromJsonValue<iscore::uuid_t>(des.m_obj[des.strings.uuid]);
 }
 
 template<typename Type>

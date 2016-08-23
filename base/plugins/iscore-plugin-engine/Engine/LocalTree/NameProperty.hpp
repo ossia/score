@@ -14,7 +14,7 @@ class MetadataNamePropertyWrapper
                 QObject* context
                 ):
             metadata{arg_metadata},
-            node{*parent.createChild(arg_metadata.name().toStdString())}
+            node{*parent.createChild(arg_metadata.getName().toStdString())}
         {
             /* // TODO do me with nano-signal-slot in device.hpp
             m_callbackIt =
@@ -46,11 +46,11 @@ class MetadataNamePropertyWrapper
             };
 
             QObject::connect(
-                        &metadata, &ModelMetadata::nameChanged,
+                        &metadata, &ModelMetadata::NameChanged,
                         context, setNameFun,
                         Qt::QueuedConnection);
 
-            setNameFun(metadata.name());
+            setNameFun(metadata.getName());
         }
 
         ~MetadataNamePropertyWrapper()

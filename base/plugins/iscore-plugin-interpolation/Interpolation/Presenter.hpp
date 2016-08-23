@@ -22,7 +22,7 @@ class Presenter :
         {
             con(m_layer.processModel(), &ProcessModel::addressChanged,
                 this, &Presenter::on_nameChanges);
-            con(m_layer.processModel().metadata, &ModelMetadata::nameChanged,
+            con(m_layer.processModel().metadata, &ModelMetadata::NameChanged,
                 this, &Presenter::on_nameChanges);
 
             m_view->setDisplayedName(m_layer.processModel().prettyName());

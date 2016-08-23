@@ -109,9 +109,9 @@ void RackWidget::updateComboBox(QComboBox* combobox, ConstraintViewModel* vm)
     combobox->clear();
     combobox->addItem(hiddenText);
 
-    for(const auto& rack : m_model.racks)
+    for(const RackModel& rack : m_model.racks)
     {
-        combobox->addItem(rack.metadata.name(), QVariant::fromValue(rack.id()));
+        combobox->addItem(rack.metadata.getName(), QVariant::fromValue(rack.id()));
         if(vm->shownRack() == rack.id())
         {
             combobox->setCurrentIndex(combobox->count() - 1);

@@ -49,23 +49,23 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
         v.setExecutionDuration(duration.defaultDuration() * percentage);
     });
     const auto& metadata = m_viewModel.model().metadata;
-    con(metadata, &ModelMetadata::labelChanged,
+    con(metadata, &ModelMetadata::LabelChanged,
         &v, &TemporalConstraintView::setLabel);
 
-    con(metadata,   &ModelMetadata::colorChanged,
+    con(metadata,   &ModelMetadata::ColorChanged,
         &v, [&] (ColorRef c) {
         v.setLabelColor(c);
         v.setColor(c);
     });
 
-    con(metadata, &ModelMetadata::nameChanged,
+    con(metadata, &ModelMetadata::NameChanged,
         this, [&] (const QString& name) { m_header->setText(name); });
 
 
-    v.setLabel(metadata.label());
-    v.setLabelColor(metadata.color());
-    v.setColor(metadata.color());
-    m_header->setText(metadata.name());
+    v.setLabel(metadata.getLabel());
+    v.setLabelColor(metadata.getColor());
+    v.setColor(metadata.getColor());
+    m_header->setText(metadata.getName());
     v.setExecutionState(m_viewModel.model().executionState());
 
     con(m_viewModel.model().selection, &Selectable::changed,

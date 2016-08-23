@@ -27,12 +27,12 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(NamedObject& na
 template<>
 ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const NamedObject& namedObject)
 {
-    m_obj[iscore::StringConstant().ObjectName] = namedObject.objectName();
+    m_obj[strings.ObjectName] = namedObject.objectName();
 }
 
 template<>
 ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(NamedObject& namedObject)
 {
-    namedObject.setObjectName(m_obj[iscore::StringConstant().ObjectName].toString());
+    namedObject.setObjectName(m_obj[strings.ObjectName].toString());
 
 }

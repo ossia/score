@@ -77,15 +77,15 @@ ISCORE_LIB_STATE_EXPORT QJsonValue ValueToJson(const State::Value & value)
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const State::Value& val)
 {
-    m_obj[iscore::StringConstant().Type] = State::convert::textualType(val);
-    m_obj[iscore::StringConstant().Value] = ValueToJson(val);
+    m_obj[strings.Type] = State::convert::textualType(val);
+    m_obj[strings.Value] = ValueToJson(val);
 }
 
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Value& val)
 {
     val = State::convert::fromQJsonValue(
-                m_obj[iscore::StringConstant().Value],
-            m_obj[iscore::StringConstant().Type].toString());
+                m_obj[strings.Value],
+            m_obj[strings.Type].toString());
 }
 
