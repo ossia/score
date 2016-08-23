@@ -54,6 +54,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONValue>> : public AbstractVisitor
         }
 
         QJsonValue val;
+        const iscore::StringConstants& strings{iscore::StringConstant()};
 };
 
 template<>
@@ -94,6 +95,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONValue>> : public AbstractVisitor
 
 
         QJsonValue val;
+        const iscore::StringConstants& strings{iscore::StringConstant()};
 };
 
 template<>
@@ -109,7 +111,7 @@ struct TSerializer<JSONValue, optional<int32_t>>
         }
         else
         {
-            s.val = iscore::StringConstant().none;
+            s.val = s.strings.none;
         }
     }
 
@@ -117,7 +119,7 @@ struct TSerializer<JSONValue, optional<int32_t>>
             JSONValue::Deserializer& s,
             optional<int32_t>& obj)
     {
-        if(s.val.toString() == iscore::StringConstant().none)
+        if(s.val.toString() == s.strings.none)
         {
             obj = iscore::none;
         }
@@ -141,7 +143,7 @@ struct TSerializer<JSONValue, optional<double>>
         }
         else
         {
-            s.val = iscore::StringConstant().none;
+            s.val = s.strings.none;
         }
     }
 
@@ -149,7 +151,7 @@ struct TSerializer<JSONValue, optional<double>>
             JSONValue::Deserializer& s,
             optional<double>& obj)
     {
-        if(s.val.toString() == iscore::StringConstant().none)
+        if(s.val.toString() == s.strings.none)
         {
             obj = iscore::none;
         }

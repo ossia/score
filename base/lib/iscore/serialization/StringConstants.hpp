@@ -54,6 +54,12 @@ struct StringConstants
         const QString No;
         const QString Start;
         const QString End;
+        const QString ScriptingName;
+        const QString Comment;
+        const QString Color;
+        const QString Label;
+        const QString Extended;
+        const QString uuid;
 };
 
 ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant();

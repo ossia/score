@@ -76,7 +76,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
 template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::SlotModel& slot)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::SlotModel>&>(slot));
-    m_obj[iscore::StringConstant().Metadata] = toJsonObject(slot.metadata);
+    m_obj[strings.Metadata] = toJsonObject(slot.metadata);
 
     m_obj["EditedProcess"] = toJsonValue(slot.m_frontLayerModelId);
     m_obj["Height"] = slot.getHeight();
@@ -93,7 +93,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::SlotModel&
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
 {
-    slot.metadata = fromJsonObject<ModelMetadata>(m_obj[iscore::StringConstant().Metadata]);
+    slot.metadata = fromJsonObject<ModelMetadata>(m_obj[strings.Metadata]);
     QJsonArray arr = m_obj["LayerModels"].toArray();
 
     const auto& cstr = slot.parentConstraint();

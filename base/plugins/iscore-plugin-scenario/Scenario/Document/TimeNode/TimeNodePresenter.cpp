@@ -30,12 +30,12 @@ TimeNodePresenter::TimeNodePresenter(
     con(m_model, &TimeNodeModel::newEvent,
         this,     &TimeNodePresenter::on_eventAdded);
 
-    con(m_model.metadata, &ModelMetadata::colorChanged,
+    con(m_model.metadata, &ModelMetadata::ColorChanged,
         this, [=] (const ColorRef& c) { m_view->changeColor(c); });
-    con(m_model.metadata, &ModelMetadata::labelChanged,
+    con(m_model.metadata, &ModelMetadata::LabelChanged,
         this, [=] (const QString& l) { m_view->setLabel(l); });
-    m_view->changeColor(m_model.metadata.color());
-    m_view->setLabel(m_model.metadata.label());
+    m_view->changeColor(m_model.metadata.getColor());
+    m_view->setLabel(m_model.metadata.getLabel());
 
     // TODO find a correct way to handle validity of model elements.
     // extentChanged is updated in scenario.

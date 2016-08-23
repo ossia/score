@@ -43,11 +43,12 @@ struct Visitor<Writer<Mime<Device::FreeNodeList>>> : public MimeDataWriter
             Device::FreeNodeList ml;
             auto arr =  QJsonDocument::fromJson(m_mime.data(iscore::mime::nodelist())).array();
 
+            auto& strings = iscore::StringConstant();
             for(const auto& elt : arr)
             {
                 Device::FreeNode n;
                 auto obj = elt.toObject();
-                n.first = fromJsonObject<State::Address>(obj[iscore::StringConstant().Address]);
+                n.first = fromJsonObject<State::Address>(obj[strings.Address]);
 
                 Deserializer<JSONObject> des{obj};
                 des.writeTo(n.second);

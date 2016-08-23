@@ -33,7 +33,7 @@ ClickableLabelItem::ClickableLabelItem(
     QGraphicsSimpleTextItem{text, parent},
     m_onClick{std::move(onClick)}
 {
-    connect(&metadata, &ModelMetadata::nameChanged,
+    connect(&metadata, &ModelMetadata::NameChanged,
             this, [&] (const QString& name) {
         setText(name);
         emit textChanged();

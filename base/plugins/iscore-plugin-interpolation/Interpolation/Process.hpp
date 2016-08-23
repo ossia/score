@@ -131,7 +131,7 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
 
         QString prettyName() const override
         {
-            return metadata.name() + " : " + address().toString();
+            return metadata.getName() + " : " + address().toString();
         }
 
     signals:

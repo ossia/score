@@ -47,7 +47,7 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
         pathVec.resize(i + 1);
         ConstraintModel& thisObj = thisPath.find<ConstraintModel>();
 
-        QString txt = thisObj.metadata.name();
+        QString txt = thisObj.metadata.getName();
 
         auto lab = new ClickableLabelItem{
                    thisObj.metadata,

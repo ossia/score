@@ -64,7 +64,7 @@ template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TimeNodeModel& timenode)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::TimeNodeModel>&>(timenode));
-    m_obj[iscore::StringConstant().Metadata] = toJsonObject(timenode.metadata);
+    m_obj[strings.Metadata] = toJsonObject(timenode.metadata);
 
     m_obj["Date"] = toJsonValue(timenode.date());
     m_obj["Events"] = toJsonArray(timenode.m_events);
@@ -79,9 +79,9 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::TimeNodeModel& timenode)
 {
-    timenode.metadata = fromJsonObject<ModelMetadata>(m_obj[iscore::StringConstant().Metadata]);
+    timenode.metadata = fromJsonObject<ModelMetadata>(m_obj[strings.Metadata]);
 
-    if(timenode.metadata.label() == QStringLiteral("TimeNode"))
+    if(timenode.metadata.getLabel() == QStringLiteral("TimeNode"))
         timenode.metadata.setLabel("");
 
     timenode.m_date = fromJsonValue<TimeValue> (m_obj["Date"]);

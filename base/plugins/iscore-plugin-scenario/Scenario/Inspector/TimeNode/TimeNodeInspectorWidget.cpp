@@ -103,7 +103,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
 void TimeNodeInspectorWidget::addEvent(const EventModel& event)
 {
-    auto evSection = new Inspector::InspectorSectionWidget{event.metadata.name(), false, this};
+    auto evSection = new Inspector::InspectorSectionWidget{event.metadata.getName(), false, this};
     auto ew = new EventInspectorWidget{event, context(), evSection};
     evSection->addContent(ew);
     evSection->expand(false);
@@ -146,7 +146,7 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
         }
     });
 
-    con(event.metadata, &ModelMetadata::nameChanged,
+    con(event.metadata, &ModelMetadata::NameChanged,
         this, [&] (const QString s) {
         for(auto sec : m_eventList)
         {

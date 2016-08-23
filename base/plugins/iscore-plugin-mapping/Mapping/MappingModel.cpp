@@ -63,7 +63,7 @@ ProcessModel::~ProcessModel()
 
 QString ProcessModel::prettyName() const
 {
-    return metadata.name() + " : \n  " + sourceAddress().toString() + " ->\n  " + targetAddress().toString();
+    return metadata.getName() + " : \n  " + sourceAddress().toString() + " ->\n  " + targetAddress().toString();
 }
 
 void ProcessModel::setDurationAndScale(const TimeValue& newDuration)

@@ -165,9 +165,9 @@ ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Reader<JSONObject>>::readFrom_im
         const Interpolation::ProcessModel& interp)
 {
     m_obj["Curve"] = toJsonObject(interp.curve());
-    m_obj[iscore::StringConstant().Address] = toJsonObject(interp.address());
-    m_obj[iscore::StringConstant().Start] = toJsonObject(interp.start());
-    m_obj[iscore::StringConstant().End] = toJsonObject(interp.end());
+    m_obj[strings.Address] = toJsonObject(interp.address());
+    m_obj[strings.Start] = toJsonObject(interp.start());
+    m_obj[strings.End] = toJsonObject(interp.end());
 }
 
 template<>
@@ -177,8 +177,8 @@ ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
     interp.setCurve(new Curve::Model{curve_deser, &interp});
 
-    interp.setAddress(fromJsonObject<State::Address>(m_obj[iscore::StringConstant().Address]));
-    interp.setStart(fromJsonObject<State::Value>(m_obj[iscore::StringConstant().Start]));
-    interp.setEnd(fromJsonObject<State::Value>(m_obj[iscore::StringConstant().End]));
+    interp.setAddress(fromJsonObject<State::Address>(m_obj[strings.Address]));
+    interp.setStart(fromJsonObject<State::Value>(m_obj[strings.Start]));
+    interp.setEnd(fromJsonObject<State::Value>(m_obj[strings.End]));
 }
 

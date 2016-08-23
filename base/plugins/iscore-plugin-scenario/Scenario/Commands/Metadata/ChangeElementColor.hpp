@@ -35,12 +35,12 @@ class ChangeElementColor final : public iscore::SerializableCommand
         }
 
         ChangeElementColor() = default;
-        ChangeElementColor(Path<T>&& path, ColorRef newLabel) :
+        ChangeElementColor(Path<T>&& path, ColorRef newColor) :
             m_path {std::move(path) },
-            m_newColor {newLabel}
+            m_newColor {newColor}
         {
             auto& obj = m_path.find();
-            m_oldColor = obj.metadata.color();
+            m_oldColor = obj.metadata.getColor();
         }
 
         void undo() const override

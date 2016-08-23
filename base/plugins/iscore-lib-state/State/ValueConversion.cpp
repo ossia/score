@@ -110,12 +110,13 @@ QJsonValue value(const State::Value& val)
             return_type operator()(const tuple_t& t) const
             {
                 QJsonArray arr;
+                auto& strings = iscore::StringConstant();
 
                 for(const auto& elt : t)
                 {
                     QJsonObject obj;
-                    obj[iscore::StringConstant().Type] = textualType(elt);
-                    obj[iscore::StringConstant().Value] = eggs::variants::apply(*this, elt.impl());
+                    obj[strings.Type] = textualType(elt);
+                    obj[strings.Value] = eggs::variants::apply(*this, elt.impl());
                     arr.append(obj);
                 }
 
@@ -283,11 +284,13 @@ static State::ValueImpl fromQJsonValueImpl(const QJsonValue& val, State::ValueTy
             State::tuple_t tuple;
             tuple.reserve(arr.size());
 
+            auto& strings = iscore::StringConstant();
+
             Foreach(arr, [&] (const auto& elt)
             {
                 auto obj = elt.toObject();
-                auto type_it = obj.find(iscore::StringConstant().Type);
-                auto val_it = obj.find(iscore::StringConstant().Value);
+                auto type_it = obj.find(strings.Type);
+                auto val_it = obj.find(strings.Value);
                 if(val_it != obj.end() && type_it != obj.end())
                 {
                     tuple.push_back(fromQJsonValueImpl(*val_it, which((*type_it).toString())));
@@ -395,11 +398,13 @@ bool value(const State::Value& val)
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
             return_type operator()(bool v) const { return v; }
-            return_type operator()(const QString& v) const {
-                return v == iscore::StringConstant().lowercase_true ||
-                       v == iscore::StringConstant().True ||
-                       v == iscore::StringConstant().lowercase_yes||
-                       v == iscore::StringConstant().Yes; }
+            return_type operator()(const QString& v) const {                
+                auto& strings = iscore::StringConstant();
+
+                return v == strings.lowercase_true ||
+                       v == strings.True ||
+                       v == strings.lowercase_yes||
+                       v == strings.Yes; }
             return_type operator()(QChar v) const { return v == 't' || v == 'T' || v == 'y' || v == 'Y'; }
             return_type operator()(const vec2f& v) const { return false; }
             return_type operator()(const vec3f& v) const { return false; }
@@ -442,9 +447,11 @@ QString value(const State::Value& val)
             return_type operator()(int i) const { return QLocale::c().toString(i); }
             return_type operator()(float f) const { return QLocale::c().toString(f); }
             return_type operator()(bool b) const {
+                auto& strings = iscore::StringConstant();
+
                 return b
-                        ? iscore::StringConstant().lowercase_true
-                        : iscore::StringConstant().lowercase_false;
+                        ? strings.lowercase_true
+                        : strings.lowercase_false;
             }
             return_type operator()(const QString& s) const { return s; }
             return_type operator()(QChar c) const { return c; }

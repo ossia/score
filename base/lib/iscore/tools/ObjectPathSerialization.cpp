@@ -24,11 +24,11 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(ObjectPath& pat
 template<>
 ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const ObjectPath& path)
 {
-    m_obj[iscore::StringConstant().Identifiers] = toJsonArray(path.vec());
+    m_obj[strings.Identifiers] = toJsonArray(path.vec());
 }
 
 template<>
 ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ObjectPath& path)
 {
-    fromJsonArray(m_obj[iscore::StringConstant().Identifiers].toArray(), path.vec());
+    fromJsonArray(m_obj[strings.Identifiers].toArray(), path.vec());
 }

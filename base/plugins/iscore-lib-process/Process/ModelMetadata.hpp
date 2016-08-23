@@ -19,63 +19,56 @@ class ISCORE_LIB_PROCESS_EXPORT ModelMetadata : public QObject
         ISCORE_SERIALIZE_FRIENDS(ModelMetadata, JSONObject)
 
         Q_OBJECT
-        Q_PROPERTY(QString name
-                   READ name
+        Q_PROPERTY(QString Name
+                   READ getName
                    WRITE setName
-                   NOTIFY nameChanged)
+                   NOTIFY NameChanged)
 
-        Q_PROPERTY(QString comment
-                   READ comment
+        Q_PROPERTY(QString Comment
+                   READ getComment
                    WRITE setComment
-                   NOTIFY commentChanged)
+                   NOTIFY CommentChanged)
 
-        Q_PROPERTY(ColorRef color
-                   READ color
+        Q_PROPERTY(ColorRef Color
+                   READ getColor
                    WRITE setColor
-                   NOTIFY colorChanged)
+                   NOTIFY ColorChanged)
 
-        Q_PROPERTY(QString label
-                   READ label
+        Q_PROPERTY(QString Label
+                   READ getLabel
                    WRITE setLabel
-                   NOTIFY labelChanged)
+                   NOTIFY LabelChanged)
+
+        Q_PROPERTY(QVariantMap ExtendedMetadata
+                   READ getExtendedMetadata
+                   WRITE setExtendedMetadata
+                   NOTIFY ExtendedMetadataChanged)
 
     public:
         ModelMetadata() = default;
-        ModelMetadata(const ModelMetadata& other) :
-            QObject {}
-        {
-            setName(other.name());
-            setComment(other.comment());
-            setColor(other.color());
-            setLabel(other.label());
-        }
+        ModelMetadata(const ModelMetadata& other);
 
-        ModelMetadata& operator= (const ModelMetadata& other)
-        {
-            setName(other.name());
-            setComment(other.comment());
-            setColor(other.color());
-            setLabel(other.label());
+        ModelMetadata& operator= (const ModelMetadata& other);
 
-            return *this;
-        }
+        const QString& getName() const;
+        const QString& getComment() const;
+        ColorRef getColor() const;
+        const QString& getLabel() const;
+        const QVariantMap& getExtendedMetadata() const;
 
-        const QString& name() const;
-        const QString& comment() const;
-        ColorRef color() const;
-        const QString& label() const;
-
-        void setName(const QString& arg);
-        void setComment(const QString& arg);
-        void setColor(ColorRef arg);
-        void setLabel(const QString& arg);
+        void setName(const QString&);
+        void setComment(const QString&);
+        void setColor(ColorRef);
+        void setLabel(const QString&);
+        void setExtendedMetadata(const QVariantMap&);
 
 
     signals:
-        void nameChanged(const QString& arg);
-        void commentChanged(const QString& arg);
-        void colorChanged(ColorRef arg);
-        void labelChanged(const QString& arg);
+        void NameChanged(const QString& arg);
+        void CommentChanged(const QString& arg);
+        void ColorChanged(ColorRef arg);
+        void LabelChanged(const QString& arg);
+        void ExtendedMetadataChanged(const QVariantMap& arg);
         void metadataChanged();
 
     private:
@@ -83,7 +76,13 @@ class ISCORE_LIB_PROCESS_EXPORT ModelMetadata : public QObject
         QString m_comment;
         ColorRef m_color;
         QString m_label;
+        QVariantMap m_extendedMetadata;
 };
 
 Q_DECLARE_METATYPE(ModelMetadata)
 
+ISCORE_PARAMETER_TYPE(ModelMetadata, Name)
+ISCORE_PARAMETER_TYPE(ModelMetadata, Comment)
+ISCORE_PARAMETER_TYPE(ModelMetadata, Color)
+ISCORE_PARAMETER_TYPE(ModelMetadata, Label)
+ISCORE_PARAMETER_TYPE(ModelMetadata, ExtendedMetadata)

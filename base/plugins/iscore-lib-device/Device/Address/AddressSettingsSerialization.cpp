@@ -54,49 +54,49 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Device::AddressSettingsCommon& n)
 {
     // Metadata
-    m_obj[iscore::StringConstant().ioType] = Device::IOTypeStringMap()[n.ioType];
-    m_obj[iscore::StringConstant().ClipMode] = Device::ClipModeStringMap()[n.clipMode];
-    m_obj[iscore::StringConstant().Unit] = n.unit;
+    m_obj[strings.ioType] = Device::IOTypeStringMap()[n.ioType];
+    m_obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
+    m_obj[strings.Unit] = n.unit;
 
-    m_obj[iscore::StringConstant().RepetitionFilter] = n.repetitionFilter;
-    m_obj[iscore::StringConstant().RefreshRate] = n.rate;
+    m_obj[strings.RepetitionFilter] = n.repetitionFilter;
+    m_obj[strings.RefreshRate] = n.rate;
 
-    m_obj[iscore::StringConstant().Priority] = n.priority;
+    m_obj[strings.Priority] = n.priority;
 
     QJsonArray arr;
     for(auto& str : n.tags)
         arr.append(str);
-    m_obj[iscore::StringConstant().Tags] = arr;
+    m_obj[strings.Tags] = arr;
 
     // Value, domain and type
     readFrom(n.value);
-    m_obj[iscore::StringConstant().Domain] = DomainToJson(n.domain);
+    m_obj[strings.Domain] = DomainToJson(n.domain);
 }
 
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettingsCommon& n)
 {
-    n.ioType = Device::IOTypeStringMap().key(m_obj[iscore::StringConstant().ioType].toString());
-    n.clipMode = Device::ClipModeStringMap().key(m_obj[iscore::StringConstant().ClipMode].toString());
-    n.unit = m_obj[iscore::StringConstant().Unit].toString();
+    n.ioType = Device::IOTypeStringMap().key(m_obj[strings.ioType].toString());
+    n.clipMode = Device::ClipModeStringMap().key(m_obj[strings.ClipMode].toString());
+    n.unit = m_obj[strings.Unit].toString();
 
-    n.repetitionFilter = m_obj[iscore::StringConstant().RepetitionFilter].toBool();
-    n.rate = m_obj[iscore::StringConstant().RefreshRate].toInt();
+    n.repetitionFilter = m_obj[strings.RepetitionFilter].toBool();
+    n.rate = m_obj[strings.RefreshRate].toInt();
 
-    n.priority = m_obj[iscore::StringConstant().Priority].toInt();
+    n.priority = m_obj[strings.Priority].toInt();
 
-    auto arr = m_obj[iscore::StringConstant().Tags].toArray();
+    auto arr = m_obj[strings.Tags].toArray();
     for(auto&& elt : arr)
         n.tags.append(elt.toString());
 
     writeTo(n.value);
     // TODO doesn't handle multi-type variants.
-    if(m_obj.contains(iscore::StringConstant().Type))
+    if(m_obj.contains(strings.Type))
     {
         n.domain = Device::JsonToDomain(
-            m_obj[iscore::StringConstant().Domain].toObject(),
-            m_obj[iscore::StringConstant().Type].toString());
+            m_obj[strings.Domain].toObject(),
+            m_obj[strings.Type].toString());
     }
 }
 
@@ -138,26 +138,26 @@ template<>
 ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device::AddressSettings& n)
 {
     readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
-    m_obj[iscore::StringConstant().Name] = n.name;
+    m_obj[strings.Name] = n.name;
 }
 
 template<>
 ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettings& n)
 {
     writeTo(static_cast<Device::AddressSettingsCommon&>(n));
-    n.name = m_obj[iscore::StringConstant().Name].toString();
+    n.name = m_obj[strings.Name].toString();
 }
 
 template<>
 ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device::FullAddressSettings& n)
 {
     readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
-    m_obj[iscore::StringConstant().Address] = toJsonObject(n.address);
+    m_obj[strings.Address] = toJsonObject(n.address);
 }
 
 template<>
 ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::FullAddressSettings& n)
 {
     writeTo(static_cast<Device::AddressSettingsCommon&>(n));
-    n.address = fromJsonObject<State::Address>(m_obj[iscore::StringConstant().Address]);
+    n.address = fromJsonObject<State::Address>(m_obj[strings.Address]);
 }

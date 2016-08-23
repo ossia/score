@@ -2,10 +2,9 @@
 
 namespace iscore
 {
-
 ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
 {
-    static StringConstants strings{
+    static const StringConstants strings{
         QStringLiteral("k"),
                 QStringLiteral("v"),
                 QStringLiteral("id"),
@@ -54,11 +53,14 @@ ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
                 QStringLiteral("Yes"),
                 QStringLiteral("No"),
                 QStringLiteral("Start"),
-                QStringLiteral("End")
-
-
+                QStringLiteral("End"),
+                QStringLiteral("ScriptingName"),
+                QStringLiteral("Comment"),
+                QStringLiteral("Color"),
+                QStringLiteral("Label"),
+                QStringLiteral("Extended"),
+                QStringLiteral("uuid"),
     };
-
     return strings;
 }
 

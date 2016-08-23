@@ -33,7 +33,7 @@ void ProcessWidgetArea::mousePressEvent(QMouseEvent* event)
         mimeData->setData("application/x-iscore-processdrag",
                           marshall<DataStream>(make_path(m_proc)));
         drag->setMimeData(mimeData);
-        QLabel label{m_proc.metadata.name()};
+        QLabel label{m_proc.metadata.getName()};
         drag->setPixmap(label.grab());
         drag->setHotSpot(label.rect().center());
 

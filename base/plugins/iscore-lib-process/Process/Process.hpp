@@ -63,7 +63,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
 
         // A user-friendly text to show to the users
         virtual QString prettyName() const
-        { return metadata.name(); }
+        { return metadata.getName(); }
 
 
         // Do a copy.

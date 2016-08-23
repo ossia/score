@@ -109,13 +109,13 @@ struct TSerializer<JSONObject, TreePath<T>>
                 JSONObject::Serializer& s,
                 const TreePath<T>& path)
         {
-            s.m_obj[iscore::StringConstant().Path] = toJsonArray(static_cast<const QList<int>&>(path));
+            s.m_obj[s.strings.Path] = toJsonArray(static_cast<const QList<int>&>(path));
         }
 
         static void writeTo(
                 JSONObject::Deserializer& s,
                 TreePath<T>& path)
         {
-            fromJsonArray(s.m_obj[iscore::StringConstant().Path].toArray(), static_cast<QList<int>&>(path));
+            fromJsonArray(s.m_obj[s.strings.Path].toArray(), static_cast<QList<int>&>(path));
         }
 };

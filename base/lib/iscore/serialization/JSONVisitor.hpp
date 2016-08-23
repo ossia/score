@@ -3,6 +3,7 @@
 
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/application/ApplicationContext.hpp>
+#include <iscore/serialization/StringConstants.hpp>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QMap>
@@ -100,6 +101,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONObject>> : public AbstractVisito
         QJsonObject m_obj;
 
         const iscore::ApplicationContext& context;
+        const iscore::StringConstants& strings;
 };
 
 template<>
@@ -148,6 +150,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONObject>> : public AbstractVisito
 
         const QJsonObject m_obj;
         const iscore::ApplicationContext& context;
+        const iscore::StringConstants& strings;
 };
 
 
@@ -188,11 +191,11 @@ struct TSerializer<JSONObject, optional<int32_t>>
         {
             if(obj)
             {
-                s.m_obj[iscore::StringConstant().id] = *obj;
+                s.m_obj[s.strings.id] = *obj;
             }
             else
             {
-                s.m_obj[iscore::StringConstant().id] = iscore::StringConstant().none;
+                s.m_obj[s.strings.id] = s.strings.none;
             }
         }
 
@@ -200,13 +203,13 @@ struct TSerializer<JSONObject, optional<int32_t>>
                 JSONObject::Deserializer& s,
                 optional<int32_t>& obj)
         {
-            if(s.m_obj[iscore::StringConstant().id].toString() == iscore::StringConstant().none)
+            if(s.m_obj[s.strings.id].toString() == s.strings.none)
             {
                 obj = iscore::none;
             }
             else
             {
-                obj =s.m_obj[iscore::StringConstant().id].toInt();
+                obj = s.m_obj[s.strings.id].toInt();
             }
         }
 };
@@ -352,11 +355,12 @@ QJsonArray toJsonMap(const QMap<double, Value>& map)
 {
     QJsonArray arr;
 
+    auto& strings = iscore::StringConstant();
     for(const auto& key : map.keys())
     {
         QJsonObject obj;
-        obj[iscore::StringConstant().k] = key;
-        obj[iscore::StringConstant().v] = map[key];
+        obj[strings.k] = key;
+        obj[strings.v] = map[key];
         arr.append(obj);
     }
 
@@ -368,11 +372,12 @@ QJsonArray toJsonMap(const QMap<Key, Value>& map)
 {
     QJsonArray arr;
 
+    auto& strings = iscore::StringConstant();
     for(const auto& key : map.keys())
     {
         QJsonObject obj;
-        obj[iscore::StringConstant().k] = *key.val();
-        obj[iscore::StringConstant().v] = map[key];
+        obj[strings.k] = *key.val();
+        obj[strings.v] = map[key];
         arr.append(obj);
     }
 
@@ -386,10 +391,11 @@ QMap<Key, Value> fromJsonMap(const QJsonArray& array)
 {
     QMap<Key, Value> map;
 
+    auto& strings = iscore::StringConstant();
     for(const auto& value : array)
     {
         QJsonObject obj = value.toObject();
-        map[Key {obj[iscore::StringConstant().k].toInt()}] = obj[iscore::StringConstant().v].toBool();
+        map[Key {obj[strings.k].toInt()}] = obj[strings.v].toBool();
     }
 
     return map;
@@ -400,10 +406,11 @@ QMap<Key, double> fromJsonMap(const QJsonArray& array)
 {
     QMap<Key, double> map;
 
+    auto& strings = iscore::StringConstant();
     for(const auto& value : array)
     {
         QJsonObject obj = value.toObject();
-        map[Key {obj[iscore::StringConstant().k].toInt() }] = obj[iscore::StringConstant().v].toDouble();
+        map[Key {obj[strings.k].toInt() }] = obj[strings.v].toDouble();
     }
 
     return map;
@@ -414,10 +421,11 @@ inline QMap<int32_t, double> fromJsonMap(const QJsonArray& array)
 {
     QMap<int32_t, double> map;
 
+    auto& strings = iscore::StringConstant();
     for(const auto& value : array)
     {
         QJsonObject obj = value.toObject();
-        map[obj[iscore::StringConstant().k].toInt()] = obj[iscore::StringConstant().v].toDouble();
+        map[obj[strings.k].toInt()] = obj[strings.v].toDouble();
     }
 
     return map;
@@ -427,10 +435,11 @@ inline QMap<double, double> fromJsonMap(const QJsonArray& array)
 {
     QMap<double, double> map;
 
+    auto& strings = iscore::StringConstant();
     for(const auto& value : array)
     {
         QJsonObject obj = value.toObject();
-        map[obj[iscore::StringConstant().k].toDouble()] = obj[iscore::StringConstant().v].toDouble();
+        map[obj[strings.k].toDouble()] = obj[strings.v].toDouble();
     }
 
     return map;

@@ -40,7 +40,7 @@ class ChangeElementComments final : public iscore::SerializableCommand
             m_newComments {std::move(newComments)}
         {
             auto& obj = m_path.find();
-            m_oldComments = obj.metadata.comment();
+            m_oldComments = obj.metadata.getComment();
         }
 
         void undo() const override

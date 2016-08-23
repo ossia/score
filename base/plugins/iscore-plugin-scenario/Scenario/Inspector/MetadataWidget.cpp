@@ -45,8 +45,8 @@ MetadataWidget::MetadataWidget(
     auto descriptionWidget = new QWidget {this};
     auto descriptionLay = new iscore::MarginLess<QFormLayout>{descriptionWidget};
 
-    m_scriptingNameLine = new QLineEdit{metadata->name(), this};
-    m_labelLine = new QLineEdit{metadata->label(), this};
+    m_scriptingNameLine = new QLineEdit{metadata->getName(), this};
+    m_labelLine = new QLineEdit{metadata->getLabel(), this};
 
     descriptionLay->addRow("Name", m_scriptingNameLine);
     descriptionLay->addRow("Label", m_labelLine);
@@ -57,12 +57,12 @@ MetadataWidget::MetadataWidget(
     m_colorButton = new QPushButton{};
     m_colorButton->setMaximumSize(QSize(1.5 * m_colorIconSize, 1.5 * m_colorIconSize));
     m_colorButton->setIconSize(QSize(m_colorIconSize, m_colorIconSize));
-    m_colorButtonPixmap.fill(metadata->color().getColor());
+    m_colorButtonPixmap.fill(metadata->getColor().getColor());
     m_colorButton->setIcon(QIcon(m_colorButtonPixmap));
 
 
     // comments
-    m_comments = new CommentEdit{metadata->comment(), this};
+    m_comments = new CommentEdit{metadata->getComment(), this};
     m_comments->setVisible(false);
 
     m_cmtBtn = new QToolButton{};
@@ -160,11 +160,11 @@ void MetadataWidget::setScriptingName(QString arg)
 
 void MetadataWidget::updateAsked()
 {
-    m_scriptingNameLine->setText(m_metadata->name());
-    m_labelLine->setText(m_metadata->label());
-    m_comments->setText(m_metadata->comment());
+    m_scriptingNameLine->setText(m_metadata->getName());
+    m_labelLine->setText(m_metadata->getLabel());
+    m_comments->setText(m_metadata->getComment());
 
-    m_colorButtonPixmap.fill(m_metadata->color().getColor());
+    m_colorButtonPixmap.fill(m_metadata->getColor().getColor());
     m_colorButton->setIcon(QIcon(m_colorButtonPixmap));
     // m_currentColor = newColor;
 }
