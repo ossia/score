@@ -1,6 +1,5 @@
 #include <Engine/Protocols/Minuit/MinuitProtocolFactory.hpp>
 #include <Engine/Protocols/OSC/OSCProtocolFactory.hpp>
-#include <Engine/Protocols/MIDI/MIDIProtocolFactory.hpp>
 #include <Engine/Protocols/Local/LocalProtocolFactory.hpp>
 
 #include <Engine/Protocols/Panel/MessagesPanel.hpp>
@@ -27,6 +26,10 @@
 #include <Engine/Listening/PlayListeningHandlerFactory.hpp>
 #include <Engine/Executor/Interpolation/InterpolationComponent.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
+
+#if defined(OSSIA_PROTOCOL_MIDI)
+#include <Engine/Protocols/MIDI/MIDIProtocolFactory.hpp>
+#endif
 iscore_plugin_engine::iscore_plugin_engine() :
     QObject {}
 {
@@ -72,8 +75,10 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_engine:
             FW<Device::ProtocolFactory,
                  Network::LocalProtocolFactory,
                  Network::OSCProtocolFactory,
-                 Network::MinuitProtocolFactory,
-                 Network::MIDIProtocolFactory
+                 Network::MinuitProtocolFactory
+#if defined(OSSIA_PROTOCOL_MIDI)
+                 , Network::MIDIProtocolFactory
+#endif
             >,
             FW<Engine::Execution::ProcessComponentFactory,
                  Engine::Execution::ScenarioComponentFactory,

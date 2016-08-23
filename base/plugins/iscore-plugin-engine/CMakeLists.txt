@@ -23,10 +23,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCProtocolFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCSpecificSettings.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDISpecificSettings.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Panel/MessagesPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Curve/EasingSegment.hpp"
@@ -83,10 +79,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_engine.hpp"
     )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitSpecificSettingsSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitProtocolSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitDevice.cpp"
@@ -148,8 +140,23 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_engine.cpp"
 )
 
+set(MIDI_HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDISpecificSettings.hpp"
+)
+set(MIDI_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIDevice.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolFactory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
+)
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
-
+if(OSSIA_PROTOCOL_MIDI)
+    target_sources(${PROJECT_NAME} PRIVATE ${MIDI_HDRS} ${MIDI_SRCS})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_MIDI)
+endif()
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
           Qt5::Core Qt5::Widgets

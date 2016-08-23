@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_midi LANGUAGES CXX)
 
+if(IOS)
+  return()
+endif()
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 

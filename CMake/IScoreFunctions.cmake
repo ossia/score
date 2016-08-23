@@ -229,9 +229,7 @@ endfunction()
 
 ### Adds tests ###
 function(setup_iscore_tests TestFolder)
-  if(NOT DEPLOYMENT_BUILD)
-    if(NOT ISCORE_STATIC_QT)
-      add_subdirectory(${TestFolder})
-    endif()
+  if(NOT DEPLOYMENT_BUILD AND NOT ISCORE_STATIC_QT AND NOT IOS)
+    add_subdirectory(${TestFolder})
   endif()
 endfunction()
