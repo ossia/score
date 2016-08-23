@@ -11,6 +11,7 @@ class QSize;
 class QWheelEvent;
 class SceneGraduations;
 
+// TODO namespace !!!
 class ISCORE_LIB_PROCESS_EXPORT ProcessGraphicsView final : public QGraphicsView
 {
         Q_OBJECT

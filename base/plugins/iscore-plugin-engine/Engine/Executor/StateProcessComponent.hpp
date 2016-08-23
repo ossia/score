@@ -16,6 +16,7 @@ namespace Engine { namespace Execution
 class ISCORE_PLUGIN_ENGINE_EXPORT StateProcessComponent :
         public Scenario::GenericStateProcessComponent<const Context>
 {
+        ABSTRACT_COMPONENT_METADATA(StateProcessComponent, "cef1b394-84b2-4241-b4eb-72b1fb504f92")
     public:
         StateProcessComponent(
                 StateElement& state,
@@ -49,7 +50,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT StateProcessComponentFactory :
             Engine::Execution::DocumentPlugin,
             Engine::Execution::StateProcessComponentFactory>
 {
-        ISCORE_ABSTRACT_FACTORY("cef1b394-84b2-4241-b4eb-72b1fb504f92")
+        ISCORE_ABSTRACT_COMPONENT_FACTORY(StateProcessComponent)
     public:
         virtual ~StateProcessComponentFactory();
 

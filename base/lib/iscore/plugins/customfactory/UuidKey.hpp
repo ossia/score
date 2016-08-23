@@ -46,7 +46,7 @@ struct uuid
 
         Q_RELAXED_CONSTEXPR size_type size() const noexcept { return static_size(); }
 
-        bool is_nil() const noexcept
+        Q_RELAXED_CONSTEXPR bool is_nil() const noexcept
         {
             for (std::size_t i = 0; i < sizeof(data); ++i)
             {
@@ -117,7 +117,7 @@ struct uuid
 
 Q_RELAXED_CONSTEXPR inline bool operator== (uuid const& lhs, uuid const& rhs) noexcept
 {
-     for (std::size_t i = 0; i < sizeof(lhs); ++i)
+     for (std::size_t i = 0; i < uuid::static_size(); ++i)
      {
          if (lhs.data[i] != rhs.data[i])
              return false;
@@ -127,7 +127,7 @@ Q_RELAXED_CONSTEXPR inline bool operator== (uuid const& lhs, uuid const& rhs) no
 
 Q_RELAXED_CONSTEXPR inline bool operator< (uuid const& lhs, uuid const& rhs) noexcept
 {
-     for (std::size_t i = 0; i < sizeof(lhs); ++i)
+     for (std::size_t i = 0; i < uuid::static_size(); ++i)
      {
          if (lhs.data[i] > rhs.data[i])
              return false;
@@ -286,22 +286,22 @@ class UuidKey : iscore::uuid_t
         friend struct std::hash<this_type>;
         friend struct boost::hash<this_type>;
         friend struct boost::hash<const this_type>;
-        friend bool operator==(const this_type& lhs, const this_type& rhs) {
+        friend Q_RELAXED_CONSTEXPR bool operator==(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) == static_cast<const iscore::uuid_t&>(rhs);
         }
-        friend bool operator!=(const this_type& lhs, const this_type& rhs) {
+        friend Q_RELAXED_CONSTEXPR bool operator!=(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) != static_cast<const iscore::uuid_t&>(rhs);
         }
-        friend bool operator<(const this_type& lhs, const this_type& rhs) {
+        friend Q_RELAXED_CONSTEXPR bool operator<(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) < static_cast<const iscore::uuid_t&>(rhs);
         }
 
     public:
         Q_RELAXED_CONSTEXPR UuidKey() noexcept = default;
         Q_RELAXED_CONSTEXPR UuidKey(const UuidKey& other) noexcept = default;
-        UuidKey(UuidKey&& other) noexcept = default;
-        UuidKey& operator=(const UuidKey& other) noexcept = default;
-        UuidKey& operator=(UuidKey&& other) noexcept = default;
+        Q_RELAXED_CONSTEXPR UuidKey(UuidKey&& other) noexcept = default;
+        Q_RELAXED_CONSTEXPR UuidKey& operator=(const UuidKey& other) noexcept = default;
+        Q_RELAXED_CONSTEXPR UuidKey& operator=(UuidKey&& other) noexcept = default;
 
         Q_RELAXED_CONSTEXPR UuidKey(iscore::uuid_t other) noexcept :
             iscore::uuid_t(other)
@@ -333,8 +333,8 @@ class UuidKey : iscore::uuid_t
             return UuidKey{str.begin(), str.end()};
         }
 
-        const iscore::uuid_t& impl() const { return *this; }
-        iscore::uuid_t& impl() { return *this; }
+        Q_RELAXED_CONSTEXPR const iscore::uuid_t& impl() const { return *this; }
+        Q_RELAXED_CONSTEXPR iscore::uuid_t& impl() { return *this; }
 };
 
 namespace std

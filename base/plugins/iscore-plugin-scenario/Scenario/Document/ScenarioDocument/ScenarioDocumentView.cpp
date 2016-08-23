@@ -82,10 +82,10 @@ ScenarioDocumentView::ScenarioDocumentView(
     auto transportLayout = new iscore::MarginLess<QGridLayout>{transportWidget};
 
     /// Zoom
-    m_zoomSlider = new DoubleSlider{transportWidget};
+    m_zoomSlider = new iscore::DoubleSlider{transportWidget};
     m_zoomSlider->setObjectName("ZoomSliderWidget");
 
-    connect(m_zoomSlider, &DoubleSlider::valueChanged,
+    connect(m_zoomSlider, &iscore::DoubleSlider::valueChanged,
             this,         &ScenarioDocumentView::horizontalZoomChanged);
 
     QLabel* zoomLabel = new QLabel{tr("Zoom") };

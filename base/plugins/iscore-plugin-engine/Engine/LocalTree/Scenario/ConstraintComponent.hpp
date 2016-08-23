@@ -10,7 +10,7 @@ namespace LocalTree
 class ConstraintBase :
         public Component<Scenario::GenericConstraintComponent<DocumentPlugin>>
 {
-        COMPONENT_METADATA("11d928b5-eaeb-471c-b3b7-dc453180b10f")
+        COMMON_COMPONENT_METADATA("11d928b5-eaeb-471c-b3b7-dc453180b10f")
     public:
         using parent_t = Component<Scenario::GenericConstraintComponent<DocumentPlugin>>;
         using model_t = Process::ProcessModel;
