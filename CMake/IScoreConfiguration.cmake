@@ -32,6 +32,7 @@ option(ISCORE_COVERAGE "Enable coverage" OFF)
 
 include("${ISCORE_CONFIGURATION}")
 
+set(CMAKE_DEBUG_POSTFIX "")
 if(APPLE)
     set(ISCORE_ADDON_PLATFORM "darwin-amd64")
     set(ISCORE_ADDON_SUFFIX "amd64.dylib")
