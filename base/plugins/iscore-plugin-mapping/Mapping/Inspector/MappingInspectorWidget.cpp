@@ -46,7 +46,7 @@ InspectorWidget::InspectorWidget(
     auto plug = doc.findPlugin<DeviceDocumentPlugin>();
     DeviceExplorerModel* explorer{};
     if(plug)
-        explorer = &plug->explorer;
+        explorer = &plug->explorer();
     {
         // Source
         auto widg = new QWidget;

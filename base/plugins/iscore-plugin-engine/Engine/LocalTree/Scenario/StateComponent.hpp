@@ -9,7 +9,7 @@ namespace LocalTree
 class State final :
         public CommonComponent
 {
-        COMPONENT_METADATA("2e5fefa2-3442-4c08-9f3e-564ab65f7b22")
+        COMMON_COMPONENT_METADATA("2e5fefa2-3442-4c08-9f3e-564ab65f7b22")
     public:
         State(
                 ossia::net::node_base& parent,

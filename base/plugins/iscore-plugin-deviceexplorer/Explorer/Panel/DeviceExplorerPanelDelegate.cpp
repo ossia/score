@@ -38,14 +38,14 @@ void PanelDelegate::on_modelChanged(
     if(oldm)
     {
         auto& plug = oldm->plugin<DeviceDocumentPlugin>();
-        plug.explorer.setView(nullptr);
+        plug.explorer().setView(nullptr);
     }
 
     if(newm)
     {
         auto& plug = newm->plugin<DeviceDocumentPlugin>();
-        plug.explorer.setView(m_widget->view());
-        m_widget->setModel(&plug.explorer);
+        plug.explorer().setView(m_widget->view());
+        m_widget->setModel(&plug.explorer());
     }
     else
     {

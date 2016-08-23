@@ -14,6 +14,7 @@ namespace LocalTree
 class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponent :
         public Component<Scenario::GenericProcessComponent<DocumentPlugin>>
 {
+        ABSTRACT_COMPONENT_METADATA(Engine::LocalTree::ProcessComponent, "0732ab51-a052-4e2e-a1f7-9bf2926c199c")
     public:
         ProcessComponent(
                 ossia::net::node_base& node,
@@ -35,7 +36,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory :
             LocalTree::DocumentPlugin,
             LocalTree::ProcessComponentFactory>
 {
-        ISCORE_ABSTRACT_FACTORY("0732ab51-a052-4e2e-a1f7-9bf2926c199c")
+        ISCORE_ABSTRACT_COMPONENT_FACTORY(Engine::LocalTree::ProcessComponent)
     public:
         virtual ~ProcessComponentFactory();
         virtual ProcessComponent* make(

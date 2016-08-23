@@ -37,10 +37,10 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
             this,   &GraphicsViewLayerModelPanelProxy::on_sizeChanged);
 
 
-    m_zoomSlider = new DoubleSlider{m_widget};
+    m_zoomSlider = new iscore::DoubleSlider{m_widget};
     m_zoomSlider->setValue(0.03); // 30 seconds by default on an average screen
 
-    connect(m_zoomSlider, &DoubleSlider::valueChanged,
+    connect(m_zoomSlider, &iscore::DoubleSlider::valueChanged,
             this,         &GraphicsViewLayerModelPanelProxy::on_zoomChanged);
     m_widget->layout()->addWidget(m_zoomSlider);
     m_view->show();

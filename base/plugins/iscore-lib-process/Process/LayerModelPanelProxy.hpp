@@ -8,7 +8,7 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 class ProcessGraphicsView;
-class DoubleSlider;
+namespace iscore { class DoubleSlider; }
 class ProcessPanelGraphicsProxy;
 namespace Process {
 class LayerModel;
@@ -52,7 +52,7 @@ class ISCORE_LIB_PROCESS_EXPORT GraphicsViewLayerModelPanelProxy : public LayerM
         QGraphicsScene* m_scene{};
         ProcessGraphicsView* m_view{};
         ProcessPanelGraphicsProxy* m_obj{};
-        DoubleSlider* m_zoomSlider{};
+        iscore::DoubleSlider* m_zoomSlider{};
 
         Process::LayerPresenter* m_processPresenter{};
         Process::LayerView* m_layerView{};

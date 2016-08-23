@@ -21,40 +21,30 @@
 namespace Explorer
 {
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
-    devModel{root},
-    deviceExplorer{&root.explorer}
+    devModel{root}
 {
 
 }
 
 void NodeUpdateProxy::addDevice(const Device::DeviceSettings& dev)
 {
-    Device::Node node(dev, nullptr);
-    auto newNode = devModel.createDeviceFromNode(node);
-
-    if(deviceExplorer)
-    {
-        deviceExplorer->addDevice(std::move(newNode));
-    }
-    else
-    {
-        devModel.rootNode().push_back(std::move(newNode));
-    }
+    devModel.explorer()
+            .addDevice(devModel.createDeviceFromNode(
+                           Device::Node(dev, nullptr)));
 }
 
 void NodeUpdateProxy::loadDevice(const Device::Node& node)
 {
     auto n = devModel.loadDeviceFromNode(node);
-    auto actual_node = n ? std::move(*n) : node;
-
-    if(deviceExplorer)
+    if(n)
     {
-        deviceExplorer->addDevice(std::move(actual_node));
+        devModel.explorer().addDevice(std::move(*n));
     }
     else
     {
-        devModel.rootNode().push_back(std::move(actual_node));
+        devModel.explorer().addDevice(node);
     }
+
 }
 
 void NodeUpdateProxy::updateDevice(
@@ -62,19 +52,7 @@ void NodeUpdateProxy::updateDevice(
         const Device::DeviceSettings& dev)
 {
     devModel.list().device(name).updateSettings(dev);
-
-    if(deviceExplorer)
-    {
-        deviceExplorer->updateDevice(name, dev);
-    }
-    else
-    {
-        auto it = std::find_if(devModel.rootNode().begin(), devModel.rootNode().end(),
-                               [&] (const Device::Node& n) { return n.get<Device::DeviceSettings>().name == name; });
-
-        ISCORE_ASSERT(it != devModel.rootNode().end());
-        it->set(dev);
-    }
+    devModel.explorer().updateDevice(name, dev);
 }
 
 void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
@@ -86,14 +64,7 @@ void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
         return val.is<Device::DeviceSettings>() && val.get<Device::DeviceSettings>().name == dev.name;
     });
     ISCORE_ASSERT(it != rootNode.end());
-    if(deviceExplorer)
-    {
-        deviceExplorer->removeNode(it);
-    }
-    else
-    {
-        devModel.rootNode().erase(it);
-    }
+    devModel.explorer().removeNode(it);
 }
 
 void NodeUpdateProxy::addAddress(
@@ -174,16 +145,9 @@ void NodeUpdateProxy::updateAddress(
             .updateAddress(addr, full);
 
     // Update in the device explorer
-    if(deviceExplorer)
-    {
-        deviceExplorer->updateAddress(
-                    node,
-                    settings);
-    }
-    else
-    {
-        node->set(settings);
-    }
+    devModel.explorer().updateAddress(
+                node,
+                settings);
 }
 
 void NodeUpdateProxy::removeNode(
@@ -209,14 +173,7 @@ void NodeUpdateProxy::removeNode(
                   [&] (const Device::Node& n) { return n.get<Device::AddressSettings>().name == settings.name; });
     ISCORE_ASSERT(it != parentnode->end());
 
-    if(deviceExplorer)
-    {
-        deviceExplorer->removeNode(it);
-    }
-    else
-    {
-        parentnode->erase(it);
-    }
+    devModel.explorer().removeNode(it);
 }
 
 
@@ -225,17 +182,10 @@ void NodeUpdateProxy::addLocalAddress(
         const Device::AddressSettings& settings,
         int row)
 {
-    if(deviceExplorer)
-    {
-        deviceExplorer->addAddress(
-                    &parentnode,
-                    settings,
-                    row);
-    }
-    else
-    {
-        parentnode.emplace(parentnode.begin() + row, settings, &parentnode);
-    }
+    devModel.explorer().addAddress(
+                &parentnode,
+                settings,
+                row);
 }
 
 void NodeUpdateProxy::updateLocalValue(
@@ -252,14 +202,7 @@ void NodeUpdateProxy::updateLocalValue(
         return;
     }
 
-    if(deviceExplorer)
-    {
-        deviceExplorer->updateValue(n, v);
-    }
-    else
-    {
-        n->template get<Device::AddressSettings>().value = v;
-    }
+    devModel.explorer().updateValue(n, v);
 }
 
 void NodeUpdateProxy::updateLocalSettings(
@@ -276,14 +219,7 @@ void NodeUpdateProxy::updateLocalSettings(
         return;
     }
 
-    if(deviceExplorer)
-    {
-        deviceExplorer->updateAddress(n, set);
-    }
-    else
-    {
-        n->set(set);
-    }
+    devModel.explorer().updateAddress(n, set);
 }
 
 void NodeUpdateProxy::updateRemoteValue(
@@ -373,18 +309,11 @@ void NodeUpdateProxy::addLocalNode(
     ISCORE_ASSERT(node.template is<Device::AddressSettings>());
 
     int row = parent.childCount();
-    if(deviceExplorer)
-    {
-        deviceExplorer->addNode(
-                    &parent,
-                    std::move(node),
-                    row);
-    }
-    else
-    {
-        parent.emplace(parent.begin() + row,
-                       std::move(node));
-    }
+
+    devModel.explorer().addNode(
+                &parent,
+                std::move(node),
+                row);
 }
 
 
@@ -401,14 +330,7 @@ void NodeUpdateProxy::removeLocalNode(const State::Address& addr)
                           [&] (const Device::Node& n) { return n.get<Device::AddressSettings>().name == nodeName; });
         if(it != parentNode->end())
         {
-            if(deviceExplorer)
-            {
-                deviceExplorer->removeNode(it);
-            }
-            else
-            {
-                parentNode->erase(it);
-            }
+            devModel.explorer().removeNode(it);
         }
     }
 }

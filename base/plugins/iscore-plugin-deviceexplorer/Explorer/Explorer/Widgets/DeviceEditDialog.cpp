@@ -142,6 +142,7 @@ Device::DeviceSettings DeviceEditDialog::getSettings() const
 
 QString DeviceEditDialog::getPath() const
 {
+    // TODO do this properly please
     return m_protocolWidget->getPath();
 }
 
