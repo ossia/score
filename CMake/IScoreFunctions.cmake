@@ -65,9 +65,9 @@ function(iscore_parse_components TargetName Headers)
   set(ComponentFactoryList)
   set(ComponentFactoryFileList)
 
-  # First look for the ISCORE_COMPONENT_FACTORY(...) ones
+  # First look for the ISCORE_CONCRETE_COMPONENT_FACTORY(...) ones
   foreach(header ${Headers})
-      file(STRINGS "${header}" fileContent REGEX "ISCORE_COMPONENT_FACTORY\\(")
+      file(STRINGS "${header}" fileContent REGEX "ISCORE_CONCRETE_COMPONENT_FACTORY\\(")
 
       # If there are matching strings, we add the file to our include list
       list(LENGTH fileContent matchingLines)
@@ -77,7 +77,7 @@ function(iscore_parse_components TargetName Headers)
 
       foreach(fileLine ${fileContent})
           string(STRIP ${fileLine} strippedLine)
-          string(REPLACE "ISCORE_COMPONENT_FACTORY(" "" strippedLine ${strippedLine})
+          string(REPLACE "ISCORE_CONCRETE_COMPONENT_FACTORY(" "" strippedLine ${strippedLine})
           string(REPLACE ")" "" strippedLine ${strippedLine})
           string(REPLACE "," ";" lineAsList ${strippedLine})
           list(GET lineAsList 0 AbstractClassName)

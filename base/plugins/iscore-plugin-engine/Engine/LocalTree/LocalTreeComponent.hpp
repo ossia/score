@@ -20,7 +20,7 @@ class Component :
             make_metadata_node(m, m_thisNode.node, m_properties, this);
         }
 
-        auto& node() const
+        ossia::net::node_base& node() const
         { return m_thisNode.node; }
 
     protected:

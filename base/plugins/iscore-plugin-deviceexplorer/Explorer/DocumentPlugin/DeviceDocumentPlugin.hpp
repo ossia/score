@@ -59,6 +59,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
 
         Explorer::ListeningHandler& listening() const;
 
+        DeviceExplorerModel& explorer() const { return *m_explorer; }
+
     private:
         void serialize_impl(const VisitorVariant&) const override;
         ConcreteFactoryKey concreteFactoryKey() const override;
@@ -68,9 +70,9 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         Device::DeviceList m_list;
 
         mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
+        DeviceExplorerModel* m_explorer{};
 
     public:
-        DeviceExplorerModel explorer{*this, this};
         NodeUpdateProxy updateProxy{*this};
         Device::Node m_loadingNode; // FIXME hack
         // TODO maybe have another root node only for the "local" device ?

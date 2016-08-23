@@ -25,6 +25,8 @@ class ConstraintElement;
 class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponent :
         public Scenario::GenericProcessComponent<const Context>
 {
+        ABSTRACT_COMPONENT_METADATA(Engine::Execution::ProcessComponent, "d0f714de-c832-42d8-a605-60f5ffd0b7af")
+
     public:
         ProcessComponent(
                 ConstraintElement& cst,
@@ -72,7 +74,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory :
             Engine::Execution::DocumentPlugin,
             Engine::Execution::ProcessComponentFactory>
 {
-        ISCORE_ABSTRACT_FACTORY("d0f714de-c832-42d8-a605-60f5ffd0b7af")
+        ISCORE_ABSTRACT_COMPONENT_FACTORY(Engine::Execution::ProcessComponent)
     public:
         virtual ~ProcessComponentFactory();
         virtual ProcessComponent* make(

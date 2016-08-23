@@ -48,4 +48,4 @@ using ComponentFactory = ::Engine::Execution::ProcessComponentFactory_T<Componen
 }
 }
 
-ISCORE_COMPONENT_FACTORY(Engine::Execution::ProcessComponentFactory, Automation::RecreateOnPlay::ComponentFactory)
+ISCORE_CONCRETE_COMPONENT_FACTORY(Engine::Execution::ProcessComponentFactory, Automation::RecreateOnPlay::ComponentFactory)
