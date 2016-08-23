@@ -2,7 +2,19 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
-#define ISCORE_COMPONENT_FACTORY( AbstractFactory, ConcreteFactory )
+#define ISCORE_CONCRETE_COMPONENT_FACTORY( AbstractFactory, ConcreteFactory )
+
+
+#define ISCORE_ABSTRACT_COMPONENT_FACTORY( Type ) \
+    public: \
+    static Q_RELAXED_CONSTEXPR iscore::AbstractFactoryKey static_abstractFactoryKey() { \
+        return static_cast<iscore::AbstractFactoryKey>(Type::static_key().impl()); \
+    } \
+    \
+    iscore::AbstractFactoryKey abstractFactoryKey() const final override { \
+        return static_abstractFactoryKey(); \
+    } \
+    private:
 
 namespace iscore
 {

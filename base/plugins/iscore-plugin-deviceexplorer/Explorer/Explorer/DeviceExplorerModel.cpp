@@ -357,13 +357,15 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         {
             if(n.is<Device::AddressSettings>())
                 return Device::nameColumnData(n, role);
-            else
+            else if(n.is<Device::DeviceSettings>())
             {
+                auto& dev_set = n.get<Device::DeviceSettings>();
                 return Device::deviceNameColumnData(
                             n,
-                            deviceModel().list().device(n.get<Device::DeviceSettings>().name),
+                            deviceModel().list().device(dev_set.name),
                             role);
             }
+            return {};
         }
 
         case Column::Value:
@@ -1011,7 +1013,7 @@ DeviceExplorerModel* try_deviceExplorerFromObject(const QObject& obj)
 {
     auto plug = iscore::IDocument::documentContext(obj).findPlugin<DeviceDocumentPlugin>();
     if(plug)
-        return &plug->explorer;
+        return &plug->explorer();
     return nullptr;
 }
 
@@ -1026,7 +1028,7 @@ DeviceExplorerModel* try_deviceExplorerFromContext(const iscore::DocumentContext
 {
     auto plug = ctx.findPlugin<DeviceDocumentPlugin>();
     if(plug)
-        return &plug->explorer;
+        return &plug->explorer();
     return nullptr;
 }
 

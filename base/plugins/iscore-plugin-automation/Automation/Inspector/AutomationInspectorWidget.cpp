@@ -50,7 +50,7 @@ InspectorWidget::InspectorWidget(
     auto plug = doc.findPlugin<DeviceDocumentPlugin>();
     DeviceExplorerModel* explorer{};
     if(plug)
-        explorer = &plug->explorer;
+        explorer = &plug->explorer();
     m_lineEdit = new AddressEditWidget{explorer, this};
 
     m_lineEdit->setAddress(process().address());

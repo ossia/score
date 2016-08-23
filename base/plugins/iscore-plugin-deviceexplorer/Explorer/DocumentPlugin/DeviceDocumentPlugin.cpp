@@ -40,11 +40,12 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
         QObject* parent):
     iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
 {
+    m_explorer = new DeviceExplorerModel{*this, this};
 }
 
+// MOVEME
 struct print_node_rec
 {
-
         void visit(const Device::Node& addr)
         {
             std::cerr << Device::address(addr).toString().toStdString() << std::endl;
@@ -54,6 +55,7 @@ struct print_node_rec
             }
         }
 };
+
 DeviceDocumentPlugin::DeviceDocumentPlugin(
         const iscore::DocumentContext& ctx,
         const VisitorVariant& vis,
@@ -61,6 +63,7 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
     iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
 {
     deserialize_dyn(vis, *this);
+    m_explorer = new DeviceExplorerModel{*this, this};
     // Here everything is loaded in m_loadingNode
 
     // Here we recreate the correct structures in term of devices,

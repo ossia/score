@@ -67,15 +67,15 @@ Document* DocumentBuilder::loadDocument_impl(
     try
     {
         doc = new Document{docData, doctype, m_parentView, m_parentPresenter};
-        ctx.documents.documents().push_back(doc);
-        initfun(doc);
-        m_backupManager = new DocumentBackupManager{*doc};
 
         for(auto& appPlug: ctx.components.applicationPlugins())
         {
-            appPlug->on_loadedDocument(doc);
+            appPlug->on_newDocument(doc);
         }
 
+        ctx.documents.documents().push_back(doc);
+        initfun(doc);
+        m_backupManager = new DocumentBackupManager{*doc};
         m_backupManager->saveModelData(backupfun(doc));
         setBackupManager(doc);
 

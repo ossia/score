@@ -28,3 +28,6 @@
 [submodule "3rdparty/zlib"]
 	path = 3rdparty/zlib
 	url = https://github.com/madler/zlib
+[submodule "3rdparty/verdigris"]
+	path = 3rdparty/verdigris
+	url = https://github.com/woboq/verdigris

@@ -3,6 +3,19 @@
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 namespace iscore
 {
+#define ABSTRACT_COMPONENT_METADATA(Type, Uuid) \
+    public: \
+    using base_component_type = Type; \
+    \
+    static Q_RELAXED_CONSTEXPR Component::Key static_key() { \
+        return_uuid(Uuid); \
+    } \
+    \
+    static Q_RELAXED_CONSTEXPR bool base_key_match(Component::Key other) { \
+      return static_key() == other; \
+    } \
+    private:
+
 #define COMPONENT_METADATA(Uuid) \
     public: \
     static Q_RELAXED_CONSTEXPR Component::Key static_key() { \
@@ -12,8 +25,26 @@ namespace iscore
     Component::Key key() const final override { \
       return static_key(); \
     } \
+    \
+    bool key_match(Component::Key other) const final override { \
+      return static_key() == other || base_component_type::base_key_match(other); \
+    } \
     private:
 
+#define COMMON_COMPONENT_METADATA(Uuid) \
+    public: \
+    static Q_RELAXED_CONSTEXPR Component::Key static_key() { \
+        return_uuid(Uuid); \
+    } \
+    \
+    Component::Key key() const final override { \
+      return static_key(); \
+    } \
+    \
+    bool key_match(Component::Key other) const final override { \
+      return static_key() == other; \
+    } \
+    private:
 
 class ISCORE_LIB_BASE_EXPORT Component :
         public IdentifiedObject<iscore::Component>
@@ -22,6 +53,7 @@ class ISCORE_LIB_BASE_EXPORT Component :
         using IdentifiedObject<iscore::Component>::IdentifiedObject;
         using Key = UuidKey<iscore::Component>;
         virtual Key key() const = 0;
+        virtual bool key_match(Key other) const = 0;
 
         virtual ~Component();
 };
@@ -57,7 +89,7 @@ auto& component(const iscore::Components& c)
     static_assert(T::is_unique, "Components must be unique to use getComponent");
 
     auto it = find_if(c, [] (auto& other) {
-        return T::static_key() == other.key();
+        return other.key_match(T::static_key());
     });
 
     ISCORE_ASSERT(it != c.end());
@@ -70,7 +102,7 @@ auto findComponent(const iscore::Components& c)
     static_assert(T::is_unique, "Components must be unique to use getComponent");
 
     auto it = find_if(c, [] (auto& other) {
-        return T::static_key() == other.key();
+        return other.key_match(T::static_key());
     });
 
     if(it != c.end())

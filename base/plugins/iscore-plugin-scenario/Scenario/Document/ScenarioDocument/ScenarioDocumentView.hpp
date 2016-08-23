@@ -2,7 +2,6 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 
 class BaseGraphicsObject;
-class DoubleSlider;
 class QGraphicsView;
 class QObject;
 class QWidget;
@@ -10,6 +9,7 @@ class ProcessGraphicsView;
 
 namespace iscore
 {
+class DoubleSlider;
 struct ApplicationContext;
 }
 
@@ -46,7 +46,7 @@ class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
         TimeRulerView* timeRuler()
         { return m_timeRuler;}
 
-        DoubleSlider* zoomSlider() const
+        iscore::DoubleSlider* zoomSlider() const
         { return m_zoomSlider;}
 
         void newLocalTimeRuler();
@@ -65,6 +65,6 @@ class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
         QGraphicsView* m_timeRulersView {};
         TimeRulerView* m_timeRuler {};
 
-        DoubleSlider* m_zoomSlider {};
+        iscore::DoubleSlider* m_zoomSlider {};
 };
 }
