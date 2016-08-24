@@ -1,4 +1,4 @@
-#include "View.hpp"
+#include "CurveSettingsView.hpp"
 #include <QSpinBox>
 #include <QCheckBox>
 #include <QFormLayout>

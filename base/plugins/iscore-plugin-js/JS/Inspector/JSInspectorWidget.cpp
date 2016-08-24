@@ -1,5 +1,5 @@
 #include <JS/JSProcessModel.hpp>
-#include <JS/StateProcess.hpp>
+#include <JS/JSStateProcess.hpp>
 #include "NotifyingPlainTextEdit.hpp"
 #include <algorithm>
 

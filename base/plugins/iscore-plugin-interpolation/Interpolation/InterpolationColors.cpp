@@ -1,4 +1,4 @@
-#include <Interpolation/Colors.hpp>
+#include <Interpolation/InterpolationColors.hpp>
 #include <Process/Style/Skin.hpp>
 
 namespace Interpolation

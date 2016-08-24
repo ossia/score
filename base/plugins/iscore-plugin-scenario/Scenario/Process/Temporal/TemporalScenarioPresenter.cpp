@@ -16,7 +16,7 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Settings/Model.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>

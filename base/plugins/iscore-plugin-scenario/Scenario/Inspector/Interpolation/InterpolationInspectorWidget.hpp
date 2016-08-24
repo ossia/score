@@ -2,7 +2,7 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Explorer/Widgets/AddressEditWidget.hpp>
-#include <Interpolation/Process.hpp>
+#include <Interpolation/InterpolationProcess.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 namespace Interpolation

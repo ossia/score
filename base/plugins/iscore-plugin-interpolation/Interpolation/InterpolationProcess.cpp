@@ -1,4 +1,4 @@
-#include "Process.hpp"
+#include "InterpolationProcess.hpp"
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 namespace Interpolation

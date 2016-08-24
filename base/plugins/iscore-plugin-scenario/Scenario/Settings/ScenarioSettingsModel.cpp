@@ -1,4 +1,4 @@
-#include "Model.hpp"
+#include "ScenarioSettingsModel.hpp"
 #include <QSettings>
 #include <QFile>
 #include <QJsonDocument>

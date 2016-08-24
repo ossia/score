@@ -19,7 +19,7 @@
 #include <iscore/widgets/SetIcons.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 #include <Engine/ApplicationPlugin.hpp>
-#include <Curve/Settings/Model.hpp>
+#include <Curve/Settings/CurveSettingsModel.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <QApplication>
 #include <QMainWindow>

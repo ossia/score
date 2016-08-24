@@ -1,8 +1,8 @@
 #pragma once
 #include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Curve/CurveStyle.hpp>
-#include <Interpolation/Layer.hpp>
-#include <Interpolation/View.hpp>
+#include <Interpolation/InterpolationLayer.hpp>
+#include <Interpolation/InterpolationView.hpp>
 
 namespace Interpolation
 {

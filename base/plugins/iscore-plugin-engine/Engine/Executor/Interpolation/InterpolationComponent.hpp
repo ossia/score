@@ -1,6 +1,6 @@
 #pragma once
 #include <Engine/Executor/ProcessElement.hpp>
-#include <Interpolation/Process.hpp>
+#include <Interpolation/InterpolationProcess.hpp>
 #include <ossia/editor/automation/automation.hpp>
 #include <ossia/network/domain/domain.hpp>
 

@@ -2,7 +2,7 @@
 #include <JS/Executor/Component.hpp>
 #include <JS/Executor/StateComponent.hpp>
 #include <JS/JSProcessFactory.hpp>
-#include <JS/StateProcess.hpp>
+#include <JS/JSStateProcess.hpp>
 #include <unordered_map>
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>

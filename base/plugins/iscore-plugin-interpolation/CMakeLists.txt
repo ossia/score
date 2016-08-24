@@ -11,9 +11,9 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/*.hpp"
 )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Process.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/View.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Colors.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.cpp"

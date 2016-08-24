@@ -1,4 +1,4 @@
-#include "View.hpp"
+#include "ScenarioSettingsView.hpp"
 #include <QComboBox>
 #include <QFormLayout>
 #include <QSlider>
