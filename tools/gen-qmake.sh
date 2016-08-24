@@ -46,6 +46,6 @@ cmake -DISCORE_CONFIGURATION=static-release ../../
 cp **/*.{h,hpp,cpp} ../
 )
 rm -rf cmake-tmp
-qmake ..
+# qmake ..
 )
 

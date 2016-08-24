@@ -31,6 +31,7 @@
 #include "jsedit.hpp"
 
 #include <QtGui>
+#include <array>
 
 const std::array<QColor, 16> colors{
     QColor{"#151515"},
