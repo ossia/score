@@ -54,6 +54,11 @@ ISCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base* findNodeFromPath(
         const QStringList& path,
         ossia::net::device_base& dev);
 
+ISCORE_PLUGIN_ENGINE_EXPORT ossia::net::address_base* findAddress(
+    const Device::DeviceList& devices,
+    const iscore::DocumentContext& ctx,
+    const State::Address& addr);
+
 // OSSIA::net::Node* won't be null.
 ISCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base* getNodeFromPath(
         const QStringList& path,

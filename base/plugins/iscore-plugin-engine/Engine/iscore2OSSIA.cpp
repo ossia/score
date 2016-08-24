@@ -32,6 +32,7 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
+#include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <State/Address.hpp>
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
@@ -596,5 +597,46 @@ ossia::expression_ptr expression(
 
     return eggs::variants::apply(visitor, e.impl());
 }
+
+ossia::net::address_base* findAddress(
+    const Device::DeviceList& devs,
+    const iscore::DocumentContext& ctx,
+    const State::Address& addr)
+{
+  auto& devices = devs.devices();
+  // Look for the real node in the device
+  auto dev_it = std::find_if(devices.begin(), devices.end(),
+                             [&] (Device::DeviceInterface* a_device) {
+                return a_device->settings().name == addr.device;
+  });
+
+  if(dev_it != devices.end())
+  {
+    auto dev = dynamic_cast<Engine::Network::OSSIADevice*>(*dev_it);
+    if(dev)
+    {
+      auto ossia_dev = dev->getDevice();
+      if(ossia_dev)
+      {
+        auto node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
+        if(node)
+          return node->getAddress();
+      }
+    }
+  }
+  else
+  {
+    // We try to look into the local device which may not be visible.
+    if(auto doc_plug = ctx.findPlugin<Engine::LocalTree::DocumentPlugin>())
+    {
+      auto node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, doc_plug->device());
+      if(node)
+        return node->getAddress();
+    }
+  }
+
+  return {};
+}
+
 }
 }
