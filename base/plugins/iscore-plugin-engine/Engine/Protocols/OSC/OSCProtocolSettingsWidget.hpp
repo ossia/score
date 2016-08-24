@@ -10,7 +10,7 @@ namespace Engine
 {
 namespace Network
 {
-class OSCProtocolSettingsWidget :
+class OSCProtocolSettingsWidget final :
         public Device::ProtocolSettingsWidget
 {
         Q_OBJECT
@@ -27,8 +27,6 @@ class OSCProtocolSettingsWidget :
         void openFileDialog();
 
     protected:
-        void buildGUI();
-
         void setDefaults();
 
     protected:

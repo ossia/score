@@ -21,12 +21,6 @@ namespace Network
 MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-    buildGUI();
-}
-
-void
-MIDIProtocolSettingsWidget::buildGUI()
-{
     m_name = new QLineEdit;
     m_inButton = new QCheckBox(tr("Send"), this);
     m_inButton->setAutoExclusive(true);
@@ -68,6 +62,7 @@ MIDIProtocolSettingsWidget::buildGUI()
     m_inButton->setChecked(true);  //TODO: QSettings
     updateInputDevices();
 }
+
 
 Device::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 {

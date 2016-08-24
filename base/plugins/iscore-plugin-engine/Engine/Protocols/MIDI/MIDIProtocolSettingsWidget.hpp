@@ -14,7 +14,7 @@ namespace Engine
 {
 namespace Network
 {
-class MIDIProtocolSettingsWidget :
+class MIDIProtocolSettingsWidget final :
         public Device::ProtocolSettingsWidget
 {
         Q_OBJECT
@@ -31,8 +31,6 @@ class MIDIProtocolSettingsWidget :
         void updateDevices(ossia::net::midi::midi_info::Type);
         void updateInputDevices();
         void updateOutputDevices();
-
-        void buildGUI();
 
         QLineEdit* m_name;
         QCheckBox* m_inButton;

@@ -22,12 +22,6 @@ namespace Network
 OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-    buildGUI();
-}
-
-void
-OSCProtocolSettingsWidget::buildGUI()
-{
     QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
     m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 

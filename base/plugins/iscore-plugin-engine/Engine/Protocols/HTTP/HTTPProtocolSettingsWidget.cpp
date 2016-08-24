@@ -12,6 +12,7 @@
 #include "HTTPSpecificSettings.hpp"
 
 #include <QPlainTextEdit>
+#include <iscore/widgets/JS/JSEdit.hpp>
 class QWidget;
 
 namespace Engine
@@ -21,17 +22,11 @@ namespace Network
 HTTPProtocolSettingsWidget::HTTPProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-    buildGUI();
-}
-
-void
-HTTPProtocolSettingsWidget::buildGUI()
-{
     QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
     m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
     QLabel* codeLabel = new QLabel(tr("Code"), this);
-    m_codeEdit = new QPlainTextEdit(this);
+    m_codeEdit = new JSEdit(this);
 
 
     QGridLayout* gLayout = new QGridLayout;
