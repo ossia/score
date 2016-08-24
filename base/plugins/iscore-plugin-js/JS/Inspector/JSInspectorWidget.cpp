@@ -11,7 +11,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <QVBoxLayout>
 
-#include <JS/jsedit/jsedit.hpp>
+#include <iscore/widgets/JS/JSEdit.hpp>
 class QVBoxLayout;
 class QWidget;
 namespace iscore {

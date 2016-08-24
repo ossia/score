@@ -34,10 +34,11 @@
 #include <QColor>
 #include <QPlainTextEdit>
 #include <QScopedPointer>
+#include <iscore_lib_base_export.h>
 
 class JSEditPrivate;
 
-class JSEdit final : public QPlainTextEdit
+class ISCORE_LIB_BASE_EXPORT JSEdit final : public QPlainTextEdit
 {
         Q_OBJECT
         Q_PROPERTY(bool bracketsMatchingEnabled READ isBracketsMatchingEnabled WRITE setBracketsMatchingEnabled)

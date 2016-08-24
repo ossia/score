@@ -12,7 +12,7 @@ namespace Engine
 {
 namespace Network
 {
-class MinuitProtocolSettingsWidget :
+class MinuitProtocolSettingsWidget final :
         public Device::ProtocolSettingsWidget
 {
     public:
@@ -23,8 +23,6 @@ class MinuitProtocolSettingsWidget :
         void setSettings(const Device::DeviceSettings& settings) override;
 
     protected:
-        void buildGUI();
-
         void setDefaults();
 
     protected:

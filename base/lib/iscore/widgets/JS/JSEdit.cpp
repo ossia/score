@@ -28,7 +28,7 @@
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "jsedit.hpp"
+#include "JSEdit.hpp"
 
 #include <QtGui>
 #include <array>

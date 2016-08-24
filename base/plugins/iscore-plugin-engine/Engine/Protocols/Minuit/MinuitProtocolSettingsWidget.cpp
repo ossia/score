@@ -20,12 +20,6 @@ namespace Network
 MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-    buildGUI();
-}
-
-void
-MinuitProtocolSettingsWidget::buildGUI()
-{
     QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
     m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 

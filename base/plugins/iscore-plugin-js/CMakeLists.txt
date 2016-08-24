@@ -18,8 +18,6 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
 )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/JS/jsedit/jsedit.cpp"
-
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSStateProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModelSerialization.cpp"

@@ -3,9 +3,8 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
 #include <Device/Protocol/DeviceSettings.hpp>
-
 class QLineEdit;
-class QPlainTextEdit;
+class JSEdit;
 class QSpinBox;
 class QWidget;
 
@@ -24,13 +23,11 @@ class HTTPProtocolSettingsWidget :
         void setSettings(const Device::DeviceSettings& settings) override;
 
     protected:
-        void buildGUI();
-
         void setDefaults();
 
     protected:
-        QLineEdit* m_deviceNameEdit;
-        QPlainTextEdit* m_codeEdit;
+        QLineEdit* m_deviceNameEdit{};
+        JSEdit* m_codeEdit{};
 
 };
 }
