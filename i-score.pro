@@ -19,6 +19,8 @@ $$PWD/API/OSSIA \
 $$PWD/API/3rdparty/spdlog/include \
 $$PWD/API/3rdparty/oscpack \
 $$PWD/API/3rdparty/ModernMIDI \
+$$PWD/API/3rdparty/rapidjson/include \
+$$PWD/API/3rdparty/ModernMIDI/third_party \
 $$PWD/base/plugins/iscore-lib-state \
 $$PWD/base/plugins/iscore-plugin-curve \
 $$PWD/base/plugins/iscore-plugin-deviceexplorer \
@@ -61,4 +63,8 @@ SOURCES += \
     $$OUT_PWD/iscore_component_executor_mapping_plugin.cpp \
     $$OUT_PWD/iscore_component_executor_loop_plugin.cpp
 
-LIBS += /home/jcelerier/travail/build-i-score-Desktop-Défaut/API/OSSIA/libossia.so -lz
+LIBS += -lz
+ios{
+    INCLUDEPATH += /opt/boost_1_61_0
+    QMAKE_INFO_PLIST = $$PWD/base/app/Info.plist.ios
+}
