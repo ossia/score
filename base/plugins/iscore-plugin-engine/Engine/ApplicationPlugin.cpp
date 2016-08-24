@@ -30,14 +30,7 @@
 
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 
-
-#include <ossia/editor/scenario/time_constraint.hpp>
-#include <ossia/editor/state/state_element.hpp>
-#include <ossia/editor/value/value.hpp>
-
-#include <ossia/network/base/device.hpp>
-#include <ossia/network/base/address.hpp>
-#include <ossia/network/base/node.hpp>
+#include <ossia/ossia.hpp>
 
 #include <QAction>
 #include <QVariant>
@@ -49,6 +42,7 @@ ApplicationPlugin::ApplicationPlugin(
     iscore::GUIApplicationContextPlugin {ctx},
     m_playActions{*this, ctx}
 {
+    ossia::context context;
     // Two parts :
     // One that maintains the devices for each document
     // (and disconnects / reconnects them when the current document changes)
