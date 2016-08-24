@@ -152,11 +152,32 @@ set(MIDI_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolFactory.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
 )
+
+set(HTTP_HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPSpecificSettings.hpp"
+)
+set(HTTP_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPProtocolSettingsWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPDevice.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPProtocolFactory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPSpecificSettingsSerialization.cpp"
+)
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
-if(OSSIA_PROTOCOL_MIDI)
+
+get_target_property(OSSIA_PROTOCOLS ossia OSSIA_PROTOCOLS)
+if("${OSSIA_PROTOCOLS}" MATCHES ".*MIDI.*")
     target_sources(${PROJECT_NAME} PRIVATE ${MIDI_HDRS} ${MIDI_SRCS})
     target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_MIDI)
 endif()
+
+if("${OSSIA_PROTOCOLS}" MATCHES ".*HTTP.*")
+    target_sources(${PROJECT_NAME} PRIVATE ${HTTP_HDRS} ${HTTP_SRCS})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_HTTP)
+endif()
+
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
           Qt5::Core Qt5::Widgets

@@ -56,11 +56,11 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPanelProxy.hpp"
 )
 set(PROCESS_SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadataSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNodeSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadataSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.cpp"

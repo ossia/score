@@ -30,6 +30,9 @@
 #if defined(OSSIA_PROTOCOL_MIDI)
 #include <Engine/Protocols/MIDI/MIDIProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_HTTP)
+#include <Engine/Protocols/HTTP/HTTPProtocolFactory.hpp>
+#endif
 iscore_plugin_engine::iscore_plugin_engine() :
     QObject {}
 {
@@ -78,6 +81,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_engine:
                  Network::MinuitProtocolFactory
 #if defined(OSSIA_PROTOCOL_MIDI)
                  , Network::MIDIProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_MIDI)
+                 , Network::HTTPProtocolFactory
 #endif
             >,
             FW<Engine::Execution::ProcessComponentFactory,

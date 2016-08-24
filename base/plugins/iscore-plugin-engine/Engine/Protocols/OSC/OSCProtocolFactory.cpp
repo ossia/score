@@ -20,7 +20,7 @@ namespace Network
 {
 QString OSCProtocolFactory::prettyName() const
 {
-    return QObject::tr("OSC (v2)");
+    return QObject::tr("OSC");
 }
 
 Device::DeviceInterface* OSCProtocolFactory::makeDevice(

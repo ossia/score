@@ -52,6 +52,8 @@ struct ISCORE_LIB_STATE_EXPORT Address
         }
 };
 
+ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::Address& a);
+
 inline QStringList stringList(const State::Address& addr)
 {
     return QStringList{} << addr.device << addr.path;
