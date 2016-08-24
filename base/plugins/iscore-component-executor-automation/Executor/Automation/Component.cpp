@@ -27,16 +27,6 @@
 
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
-namespace Process { class ProcessModel; }
-class QObject;
-namespace ossia {
-class time_process;
-}  // namespace OSSIA
-namespace Engine { namespace Execution {
-class ConstraintElement;
-} }
-
-
 
 namespace Automation
 {
@@ -57,64 +47,30 @@ Component::Component(
 
 void Component::recreate()
 {
-    auto addr = process().address();
-    ossia::net::address_base* address{};
-    ossia::net::node_base* node{};
-    Engine::Network::OSSIADevice* dev{};
-    ossia::net::device_base* ossia_dev{};
-
     m_ossia_curve.reset(); // It will be remade after.
+    m_ossia_process = nullptr;
 
-    // Get the device list to obtain the nodes.
-    const auto& devices = m_deviceList.devices();
+    auto address = Engine::iscore_to_ossia::findAddress(
+          m_deviceList,
+          this->system().doc,
+          process().address());
 
-    // Look for the real node in the device
-    auto dev_it = std::find_if(devices.begin(), devices.end(),
-                               [&] (Device::DeviceInterface* a_device) {
-        return a_device->settings().name == addr.device;
-    });
+    if(address)
+    {
+      m_addressType = address->getValueType();
 
-    if(dev_it == devices.end())
-        goto curve_cleanup_label;
+      if(process().tween())
+          on_curveChanged(ossia::Destination(*address, {})); // If the type changes we need to rebuild the curve.
+      else
+          on_curveChanged({});
 
-    dev = dynamic_cast<Engine::Network::OSSIADevice*>(*dev_it);
-    if(!dev)
-        goto curve_cleanup_label;
-
-    ossia_dev = dev->getDevice();
-    if(!ossia_dev)
-        goto curve_cleanup_label;
-
-    node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
-    if(!node)
-        goto curve_cleanup_label;
-
-    // Add the real address
-    address = node->getAddress();
-    if(!address)
-        goto curve_cleanup_label;
-
-    m_addressType = address->getValueType();
-
-
-    using namespace ossia;
-    if(process().tween())
-        on_curveChanged(Destination(*address, {})); // If the type changes we need to rebuild the curve.
-    else
-        on_curveChanged({});
-    if(!m_ossia_curve)
-        goto curve_cleanup_label;
-
-    m_ossia_process = new ossia::automation(
-                *address,
-                Behavior(m_ossia_curve));
-
-
-    return;
-
-curve_cleanup_label:
-    m_ossia_process = nullptr; // Cleanup
-    return;
+      if(m_ossia_curve)
+      {
+        m_ossia_process = new ossia::automation(
+                    *address,
+                    ossia::Behavior(m_ossia_curve));
+      }
+    }
 }
 
 template<typename Y_T>
