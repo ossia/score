@@ -4,6 +4,7 @@
 #include <QJsonValue>
 #include <QJsonDocument>
 #include <QPoint>
+#include <array>
 #include <QTransform>
 
 #include <iscore/tools/std/Optional.hpp>
