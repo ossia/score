@@ -1,4 +1,4 @@
-#include "Model.hpp"
+#include "CurveSettingsModel.hpp"
 #include <QSettings>
 
 namespace Curve

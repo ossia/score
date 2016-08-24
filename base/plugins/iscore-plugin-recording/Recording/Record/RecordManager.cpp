@@ -49,7 +49,7 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
-#include <Curve/Settings/Model.hpp>
+#include <Curve/Settings/CurveSettingsModel.hpp>
 namespace Curve
 {
 class SegmentModel;

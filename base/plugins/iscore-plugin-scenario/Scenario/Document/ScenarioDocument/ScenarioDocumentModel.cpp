@@ -45,7 +45,7 @@
 #include <QFileInfo>
 #include <algorithm>
 #include <chrono>
-#include <Scenario/Settings/Model.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 namespace Process { class LayerPresenter; }
 namespace Scenario

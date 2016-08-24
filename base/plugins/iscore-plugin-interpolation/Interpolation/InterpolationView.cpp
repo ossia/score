@@ -1,4 +1,4 @@
-#include "View.hpp"
+#include "InterpolationView.hpp"
 #include <Process/Style/ProcessFonts.hpp>
 #include <Process/Style/Skin.hpp>
 #include <QGraphicsSceneMouseEvent>

@@ -271,9 +271,9 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioInterface.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/Model.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/View.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/Presenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsPresenter.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/SelectionButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Constraint/ConstraintInspectorFactory.cpp"

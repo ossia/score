@@ -12,7 +12,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Settings/Model.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/std/Optional.hpp>

@@ -1,5 +1,5 @@
 #pragma once
-#include <Interpolation/Process.hpp>
+#include <Interpolation/InterpolationProcess.hpp>
 #include <Process/LayerModel.hpp>
 
 namespace Interpolation

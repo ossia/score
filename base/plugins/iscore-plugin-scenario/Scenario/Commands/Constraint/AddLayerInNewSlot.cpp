@@ -12,7 +12,7 @@
 #include <Process/ProcessList.hpp>
 #include "AddLayerInNewSlot.hpp"
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <Scenario/Settings/Model.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>

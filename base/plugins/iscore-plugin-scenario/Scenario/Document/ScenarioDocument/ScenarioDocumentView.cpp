@@ -33,7 +33,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
-#include <Scenario/Settings/Model.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <QScrollBar>
 class QObject;
 

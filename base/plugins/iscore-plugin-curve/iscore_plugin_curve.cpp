@@ -6,7 +6,7 @@
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Curve/Segment/Sin/SinSegment.hpp>
-#include <Curve/Settings/Factory.hpp>
+#include <Curve/Settings/CurveSettingsFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include "iscore_plugin_curve.hpp"
 #include <iscore_plugin_curve_commands_files.hpp>

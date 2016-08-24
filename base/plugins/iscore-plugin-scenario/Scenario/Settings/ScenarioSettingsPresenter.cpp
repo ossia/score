@@ -1,6 +1,6 @@
-#include "Presenter.hpp"
-#include "Model.hpp"
-#include "View.hpp"
+#include "ScenarioSettingsPresenter.hpp"
+#include "ScenarioSettingsModel.hpp"
+#include "ScenarioSettingsView.hpp"
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/command/Dispatchers/ICommandDispatcher.hpp>
 #include <QApplication>

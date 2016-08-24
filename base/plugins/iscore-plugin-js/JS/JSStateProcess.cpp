@@ -1,4 +1,4 @@
-#include "StateProcess.hpp"
+#include "JSStateProcess.hpp"
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(const JS::StateProcess& proc)

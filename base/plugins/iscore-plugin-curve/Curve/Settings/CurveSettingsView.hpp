@@ -1,5 +1,5 @@
 #pragma once
-#include <Curve/Settings/Model.hpp>
+#include <Curve/Settings/CurveSettingsModel.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateView.hpp>
 class QCheckBox;
 class QDoubleSpinBox;

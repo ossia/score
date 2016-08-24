@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <JS/JSProcessModel.hpp>
-#include <JS/StateProcess.hpp>
+#include <JS/JSStateProcess.hpp>
 #include <JS/Inspector/JSInspectorWidget.hpp>
 
 namespace JS

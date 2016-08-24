@@ -1,9 +1,9 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
-#include <Curve/Settings/Model.hpp>
-#include <Curve/Settings/Presenter.hpp>
-#include <Curve/Settings/View.hpp>
+#include <Curve/Settings/CurveSettingsModel.hpp>
+#include <Curve/Settings/CurveSettingsPresenter.hpp>
+#include <Curve/Settings/CurveSettingsView.hpp>
 
 namespace Curve
 {

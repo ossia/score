@@ -1,5 +1,5 @@
 #include "iscore_plugin_interpolation.hpp"
-#include <Interpolation/Factory.hpp>
+#include <Interpolation/InterpolationFactory.hpp>
 #include <Interpolation/Commands/CommandFactory.hpp>
 
 #include <iscore/plugins/customfactory/FactorySetup.hpp>

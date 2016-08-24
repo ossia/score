@@ -1,6 +1,6 @@
 #pragma once
 #include <Interpolation/Commands/CommandFactory.hpp>
-#include <Interpolation/Process.hpp>
+#include <Interpolation/InterpolationProcess.hpp>
 
 #include <iscore/command/PropertyCommand.hpp>
 #include <iscore_plugin_interpolation_export.h>

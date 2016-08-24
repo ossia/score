@@ -3,7 +3,7 @@
 
 #include <Process/ProcessFactory.hpp>
 #include <JS/JSProcessModel.hpp>
-#include <JS/StateProcess.hpp>
+#include <JS/JSStateProcess.hpp>
 #include <JS/JSProcessMetadata.hpp>
 
 #include <Process/StateProcessFactory.hpp>
