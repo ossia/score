@@ -105,30 +105,6 @@ bool LocalDevice::reconnect()
     return connected();
 }
 
-void LocalDevice::nodeCreated(const ossia::net::node_base & n)
-{
-    emit pathAdded(Engine::ossia_to_iscore::ToAddress(n));
-}
-
-void LocalDevice::nodeRemoving(const ossia::net::node_base & n)
-{
-    emit pathRemoved(Engine::ossia_to_iscore::ToAddress(n));
-}
-
-void LocalDevice::nodeRenamed(const ossia::net::node_base& node, std::string old_name)
-{
-    if(!node.getParent())
-        return;
-
-    State::Address currentAddress = Engine::ossia_to_iscore::ToAddress(*node.getParent());
-    currentAddress.path.push_back(QString::fromStdString(old_name));
-
-    Device::AddressSettings as = Engine::ossia_to_iscore::ToAddressSettings(node);
-    as.name = QString::fromStdString(node.getName());
-    emit pathUpdated(currentAddress, as);
-
-}
-
 Device::Node LocalDevice::refresh()
 {
     if(m_dev)

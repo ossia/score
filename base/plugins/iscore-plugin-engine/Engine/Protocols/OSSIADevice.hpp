@@ -55,6 +55,10 @@ class ISCORE_PLUGIN_ENGINE_EXPORT OSSIADevice :
 
         virtual ossia::net::device_base* getDevice() const = 0;
 
+        void nodeCreated(const ossia::net::node_base&);
+        void nodeRemoving(const ossia::net::node_base&);
+        void nodeRenamed(const ossia::net::node_base&, std::string);
+
     protected:
         using DeviceInterface::DeviceInterface;
 
@@ -68,6 +72,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT OSSIADevice :
 
         void removeListening_impl(ossia::net::node_base &node, State::Address addr);
         void setLogging_impl(bool) const;
+
     private:
         bool m_logging = false;
 };

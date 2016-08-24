@@ -45,7 +45,7 @@ class TimeValue_T
         { }
 
         template<typename Duration,
-                 std::enable_if_t<std::is_class<Duration>::value>* = nullptr>
+                 std::enable_if_t<std::is_class<typename Duration::period>::value>* = nullptr>
         constexpr TimeValue_T(Duration && dur) :
             m_impl {T(std::chrono::duration_cast<std::chrono::milliseconds> (dur).count()) }
         { }
