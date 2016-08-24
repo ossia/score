@@ -9,8 +9,8 @@
 #include <iscore/selection/Selection.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
+#include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 
-class GraphicsSceneToolPalette;
 class ObjectPath;
 class QSize;
 namespace iscore {

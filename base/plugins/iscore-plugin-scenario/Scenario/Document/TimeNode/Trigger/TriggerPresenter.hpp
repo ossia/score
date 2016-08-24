@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 
-class QGraphicsObject;
+class QGraphicsItem;
 
 namespace Scenario
 {
