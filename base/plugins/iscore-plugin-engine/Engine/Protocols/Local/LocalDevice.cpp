@@ -20,25 +20,19 @@ namespace Engine
 namespace Network
 {
 LocalDevice::LocalDevice(
+        ossia::net::generic_device& dev,
         const iscore::DocumentContext& ctx,
         const Device::DeviceSettings &settings):
-    OSSIADevice{settings}
+    OSSIADevice{settings},
+    m_dev{dev}
 {
     m_capas.canRefreshTree = true;
     m_capas.canAddNode = false;
     m_capas.canRemoveNode = false;
     m_capas.canSerialize = false;
 
-    auto& appplug = ctx.app.components.applicationPlugin<ApplicationPlugin>();
-    auto docplug = ctx.findPlugin<Engine::LocalTree::DocumentPlugin>();
-    if(!docplug)
-    {
-        // There is no local device in this document
-        return;
-    }
+    auto& appplug = ctx.app.components.applicationPlugin<Engine::ApplicationPlugin>();
 
-    auto& dev = docplug->device();
-    m_dev = &dev;
     auto& proto = safe_cast<ossia::net::local_protocol&>(dev.getProtocol());
 
     setLogging_impl(isLogging());
@@ -107,23 +101,20 @@ bool LocalDevice::reconnect()
 
 Device::Node LocalDevice::refresh()
 {
-    if(m_dev)
+    Device::Node iscore_device{settings(), nullptr};
+
+    // Recurse on the children
+    auto& ossia_children = m_dev.getRootNode().children();
+    iscore_device.reserve(ossia_children.size());
+    for(const auto& node : ossia_children)
     {
-        Device::Node iscore_device{settings(), nullptr};
-
-        // Recurse on the children
-        auto& ossia_children = m_dev->getRootNode().children();
-        iscore_device.reserve(ossia_children.size());
-        for(const auto& node : ossia_children)
-        {
-            iscore_device.push_back(Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
-        }
-
-        iscore_device.get<Device::DeviceSettings>().name = QString::fromStdString(m_dev->getName());
-
-        return iscore_device;
+        iscore_device.push_back(Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
     }
-    return {};
+
+    iscore_device.get<Device::DeviceSettings>().name =
+            QString::fromStdString(m_dev.getName());
+
+    return iscore_device;
 }
 }
 }

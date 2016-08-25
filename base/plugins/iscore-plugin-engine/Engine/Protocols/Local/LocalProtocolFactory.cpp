@@ -7,7 +7,7 @@
 #include "LocalProtocolSettingsWidget.hpp"
 #include <Engine/Protocols/Local/LocalSpecificSettings.hpp>
 #include <Engine/ApplicationPlugin.hpp>
-
+#include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 namespace Device
 {
 class DeviceInterface;
@@ -29,20 +29,30 @@ Device::DeviceInterface* LocalProtocolFactory::makeDevice(
         const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)
 {
-    return new Network::LocalDevice{ctx, settings};
+    auto doc = ctx.findPlugin<LocalTree::DocumentPlugin>();
+    if(doc)
+        return &doc->localDevice();
+    else
+        return nullptr;
 }
 
-const Device::DeviceSettings& LocalProtocolFactory::defaultSettings() const
+const Device::DeviceSettings& LocalProtocolFactory::static_defaultSettings()
 {
     static const Device::DeviceSettings settings = [&] () {
         Device::DeviceSettings s;
-        s.protocol = concreteFactoryKey(); // Todo check for un-set protocol.
+        s.protocol = static_concreteFactoryKey(); // Todo check for un-set protocol.
         s.name = "i-score";
         Network::LocalSpecificSettings specif;
         s.deviceSpecificSettings = QVariant::fromValue(specif);
         return s;
     }();
+
     return settings;
+}
+
+const Device::DeviceSettings& LocalProtocolFactory::defaultSettings() const
+{
+    return static_defaultSettings();
 }
 
 Device::ProtocolSettingsWidget* LocalProtocolFactory::makeSettingsWidget()

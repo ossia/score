@@ -106,77 +106,35 @@ std::shared_ptr<ossia::curve_abstract> Component::rebuildCurve()
 
 void Component::recreate()
 {
-    auto iscore_source_addr = process().sourceAddress();
-    auto iscore_target_addr = process().targetAddress();
-
-    ossia::net::address_base* ossia_source_addr{};
-    ossia::net::address_base* ossia_target_addr{};
-
     m_ossia_curve.reset(); // It will be remade after.
+    m_ossia_process = nullptr;
 
-    // Get the device list to obtain the nodes.
-    const auto& devices = m_deviceList.devices();
-
-    // TODO use this in automation
-    auto getAddress = [&] (const State::Address& addr) -> ossia::net::address_base*
-    {
-        // Look for the real node in the device
-        auto dev_it = std::find_if(devices.begin(), devices.end(),
-                                   [&] (Device::DeviceInterface* dev) {
-            return dev->settings().name == addr.device;
-        });
-
-        if(dev_it == devices.end())
-            return {};
-
-        auto dev = dynamic_cast<Engine::Network::OSSIADevice*>(*dev_it);
-        if(!dev)
-            return {};
-
-        auto ossia_dev = dev->getDevice();
-        if(!ossia_dev)
-            return {};
-
-        auto node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
-        if(!node)
-            return {};
-
-        // Add the real address
-        auto address = node->getAddress();
-        if(!address)
-            return {};
-        return address;
-    };
-
-    ossia_source_addr = getAddress(iscore_source_addr);
+    auto ossia_source_addr = Engine::iscore_to_ossia::findAddress(
+                m_deviceList,
+                this->system().doc,
+                process().sourceAddress());
     if(!ossia_source_addr)
-        goto curve_cleanup_label;
+        return;
+
+    auto ossia_target_addr = Engine::iscore_to_ossia::findAddress(
+                m_deviceList,
+                this->system().doc,
+                process().targetAddress());
+    if(!ossia_target_addr)
+        return;
 
     m_sourceAddressType = ossia_source_addr->getValueType();
-
-    ossia_target_addr = getAddress(iscore_target_addr);
-    if(!ossia_target_addr)
-        goto curve_cleanup_label;
-
     m_targetAddressType = ossia_target_addr->getValueType();
 
-
-    using namespace ossia;
     rebuildCurve(); // If the type changes we need to rebuild the curve.
-    if(!m_ossia_curve)
-        goto curve_cleanup_label;
 
-    // TODO on_min/max changed
-    m_ossia_process = new ossia::mapper(
-                *ossia_source_addr,
-                *ossia_target_addr,
-                Behavior(m_ossia_curve));
-
-    return;
-
-curve_cleanup_label:
-    m_ossia_process = nullptr;
-    return;
+    if(m_ossia_curve)
+    {
+        m_ossia_process = new ossia::mapper(
+                    *ossia_source_addr,
+                    *ossia_target_addr,
+                    ossia::Behavior(m_ossia_curve));
+    }
 }
 
 }

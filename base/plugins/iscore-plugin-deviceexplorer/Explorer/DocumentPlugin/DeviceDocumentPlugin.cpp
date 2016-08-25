@@ -94,6 +94,9 @@ Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & nod
         auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 
+        if(!newdev)
+            throw std::runtime_error("Null device");
+
         initDevice(*newdev);
 
         if(newdev->capabilities().canRefreshTree)
@@ -160,28 +163,30 @@ optional<Device::Node> DeviceDocumentPlugin::loadDeviceFromNode(const Device::No
 
 void DeviceDocumentPlugin::setConnection(bool b)
 {
-    for(Device::DeviceInterface* dev : m_list.devices())
+    if(b)
     {
-        if(b)
+        m_list.apply([&] (Device::DeviceInterface& dev)
         {
-            if(!dev->connected())
-              dev->reconnect();
-            if(dev->capabilities().canSerialize)
+            if(!dev.connected())
+                dev.reconnect();
+            if(dev.capabilities().canSerialize)
             {
-                auto it = std::find_if(m_rootNode.cbegin(), m_rootNode.cend(), [&,dev] (const auto& dev_node) {
-                    return dev_node.template get<Device::DeviceSettings>().name == dev->settings().name;
+                auto it = find_if(m_rootNode, [&] (const auto& dev_node) {
+                    return dev_node.template get<Device::DeviceSettings>().name == dev.settings().name;
                 });
 
                 ISCORE_ASSERT(it != m_rootNode.cend());
 
                 for(const auto& nodes : *it)
                 {
-                    dev->addNode(nodes);
+                    dev.addNode(nodes);
                 }
             }
-        }
-        else
-            dev->disconnect();
+        });
+    }
+    else
+    {
+        m_list.apply([&] (Device::DeviceInterface& dev) { dev.disconnect(); });
     }
 }
 

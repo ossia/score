@@ -4,6 +4,7 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/tools/Metadata.hpp>
 
+#include <Engine/Protocols/Local/LocalDevice.hpp>
 
 #include "SetProperty.hpp"
 #include "GetProperty.hpp"
@@ -37,12 +38,17 @@ class ISCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin :
         ossia::net::generic_device& device() { return m_localDevice; }
         const ossia::net::generic_device& device() const { return m_localDevice; }
 
+        Network::LocalDevice& localDevice()
+        { return m_localDeviceWrapper; }
+
     private:
         void create();
         void cleanup();
 
         Constraint* m_root{};
         ossia::net::generic_device m_localDevice;
+        Network::LocalDevice m_localDeviceWrapper;
+
 };
 
 }
