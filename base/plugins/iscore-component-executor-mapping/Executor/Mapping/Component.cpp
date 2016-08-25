@@ -111,14 +111,12 @@ void Component::recreate()
 
     auto ossia_source_addr = Engine::iscore_to_ossia::findAddress(
                 m_deviceList,
-                this->system().doc,
                 process().sourceAddress());
     if(!ossia_source_addr)
         return;
 
     auto ossia_target_addr = Engine::iscore_to_ossia::findAddress(
                 m_deviceList,
-                this->system().doc,
                 process().targetAddress());
     if(!ossia_target_addr)
         return;

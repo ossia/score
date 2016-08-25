@@ -25,6 +25,11 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final : public iscore::Seri
                 double newmin,
                 double newmax,
                 std::vector<Curve::SegmentData>&& segments);
+        InitAutomation(
+                Path<ProcessModel>&& path,
+                const State::Address& newaddr,
+                double newmin,
+                double newmax);
 
     public:
         void undo() const override;

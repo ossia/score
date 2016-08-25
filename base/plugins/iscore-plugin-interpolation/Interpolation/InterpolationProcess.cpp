@@ -107,6 +107,11 @@ ProcessModel::ProcessModel(const TimeValue& duration, const Id<Process::ProcessM
     metadata.setName(QString("Interpolation.%1").arg(*this->id().val()));
 }
 
+QString ProcessModel::prettyName() const
+{
+    return address().toShortString();
+}
+
 ProcessModel::ProcessModel(const ProcessModel& source, const Id<Process::ProcessModel>& id, QObject* parent):
     Curve::CurveProcessModel{source, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     m_address(source.address()),

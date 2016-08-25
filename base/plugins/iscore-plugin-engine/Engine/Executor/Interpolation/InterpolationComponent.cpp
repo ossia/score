@@ -140,7 +140,6 @@ void Component::recreate()
     // Add the real address
     auto address = Engine::iscore_to_ossia::findAddress(
           m_deviceList,
-          this->system().doc,
           process().address());
 
     if(address)

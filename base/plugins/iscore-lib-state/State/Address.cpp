@@ -78,6 +78,12 @@ QString Address::toString() const
     return ad;
 }
 
+QString Address::toShortString() const
+{
+    auto str = toString();
+    return str.size() < 15 ? str : "..." % str.right(12);
+}
+
 QString AddressAccessor::toString() const
 {
     auto str = address.toString();

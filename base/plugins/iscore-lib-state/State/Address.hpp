@@ -39,8 +39,17 @@ struct ISCORE_LIB_STATE_EXPORT Address
         static Address fromString(const QString& str); // TODO return optional
         static Address rootAddress();
 
-        // Utility
+        /**
+         * @brief toString
+         * @return aDevice:/and/path if valid, else an empty string.
+         */
         QString toString() const;
+
+        /**
+         * @brief toShortString
+         * @return If short, "dev:/foo", else the last fifteen chars.
+         */
+        QString toShortString() const;
 
         bool operator==(const Address& a) const
         {
