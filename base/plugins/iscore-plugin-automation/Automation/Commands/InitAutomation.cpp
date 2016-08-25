@@ -8,10 +8,6 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 
-namespace State {
-struct Address;
-}  // namespace iscore
-
 namespace Automation
 {
 InitAutomation::InitAutomation(
@@ -28,6 +24,14 @@ InitAutomation::InitAutomation(
 {
 }
 
+InitAutomation::InitAutomation(
+        Path<ProcessModel>&& path,
+        const ::State::Address& newaddr,
+        double newmin,
+        double newmax):
+    InitAutomation(std::move(path), newaddr, newmin, newmax, { })
+{
+}
 void InitAutomation::undo() const
 {
 
@@ -38,7 +42,9 @@ void InitAutomation::redo() const
     auto& autom = m_path.find();
 
     auto& curve = autom.curve();
-    curve.fromCurveData(m_segments);
+
+    if(!m_segments.empty())
+        curve.fromCurveData(m_segments);
 
     autom.setMin(m_newMin);
     autom.setMax(m_newMax);

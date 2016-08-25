@@ -129,10 +129,7 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
             emit m_curve->changed();
         }
 
-        QString prettyName() const override
-        {
-            return metadata.getName() + " : " + address().toString();
-        }
+        QString prettyName() const override;
 
     signals:
         void addressChanged(const ::State::Address&);

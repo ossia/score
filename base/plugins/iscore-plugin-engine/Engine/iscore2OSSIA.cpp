@@ -600,7 +600,6 @@ ossia::expression_ptr expression(
 
 ossia::net::address_base* findAddress(
         const Device::DeviceList& devs,
-        const iscore::DocumentContext& ctx,
         const State::Address& addr)
 {
     auto dev_p =
@@ -616,17 +615,6 @@ ossia::net::address_base* findAddress(
                 return node->getAddress();
         }
     }
-    else
-    {
-        // We try to look into the local device which may not be visible.
-        if(auto doc_plug = ctx.findPlugin<Engine::LocalTree::DocumentPlugin>())
-        {
-            auto node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, doc_plug->device());
-            if(node)
-                return node->getAddress();
-        }
-    }
-
     return {};
 }
 
