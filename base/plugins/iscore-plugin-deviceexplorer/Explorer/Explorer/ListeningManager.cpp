@@ -153,12 +153,13 @@ void ListeningManager::resetListening(
 
 void ListeningManager::stopListening()
 {
-    for(auto device : m_model.deviceModel().list().devices())
+    m_model.deviceModel().list().apply(
+                [] (Device::DeviceInterface& device)
     {
-        auto vec = device->listening();
+        auto vec = device.listening();
         for(const auto& elt : vec)
-            device->setListening(elt, false);
-    }
+            device.setListening(elt, false);
+    });
 }
 
 void ListeningManager::setDeviceWidgetListening()

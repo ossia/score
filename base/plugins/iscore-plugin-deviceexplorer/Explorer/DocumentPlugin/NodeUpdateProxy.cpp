@@ -227,11 +227,10 @@ void NodeUpdateProxy::updateRemoteValue(
         const State::Value& val)
 {
     // TODO add these checks everywhere.
-    auto it = devModel.list().find(addr.device);
-    if(it != devModel.list().devices().end())
+    if(auto dev = devModel.list().findDevice(addr.device))
     {
         // Update in the device implementation
-        (*it)->sendMessage({addr, val});
+        dev->sendMessage({addr, val});
     }
 
     // Update in the tree
@@ -242,11 +241,11 @@ State::Value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) con
 {
     // TODO here and in the following function, we should still update
     // the device explorer.
-    auto dev_it = devModel.list().find(addr.device);
-    if(dev_it == devModel.list().devices().end())
+    auto dev_p = devModel.list().findDevice(addr.device);
+    if(!dev_p)
         return {};
 
-    auto& dev = **dev_it;
+    auto& dev = *dev_p;
 
     auto& n = Device::getNodeFromAddress(devModel.rootNode(), addr).template get<Device::AddressSettings>();
     if(dev.capabilities().canRefreshValue)

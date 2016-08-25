@@ -24,9 +24,9 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
 
         ISCORE_ASSERT(node.is<Device::DeviceSettings>());
         const Device::DeviceSettings& dev = node.get<Device::DeviceSettings>();
-        auto actual = plug.list().find(dev.name);
-        ISCORE_ASSERT(actual != plug.list().devices().cend());
-        if((*actual)->capabilities().canSerialize)
+        auto actual = plug.list().findDevice(dev.name);
+        ISCORE_ASSERT(actual);
+        if(actual->capabilities().canSerialize)
         {
             this_node = toJsonObject(node);
         }

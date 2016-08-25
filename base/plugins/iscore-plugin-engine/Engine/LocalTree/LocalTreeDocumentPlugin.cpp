@@ -33,12 +33,19 @@
 
 #include "Scenario/ScenarioComponent.hpp"
 #include <Engine/LocalTree/Settings/LocalTreeModel.hpp>
+#include <Engine/Protocols/Local/LocalProtocolFactory.hpp>
+#include <Engine/Protocols/Local/LocalSpecificSettings.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 Engine::LocalTree::DocumentPlugin::DocumentPlugin(
         iscore::Document& doc,
         QObject* parent):
     iscore::DocumentPlugin{doc.context(), "LocalTree::DocumentPlugin", parent},
-    m_localDevice{std::make_unique<ossia::net::local_protocol>(), "i-score"}
+    m_localDevice{std::make_unique<ossia::net::local_protocol>(), "i-score"},
+    m_localDeviceWrapper{
+        m_localDevice,
+        doc.context(),
+        Network::LocalProtocolFactory::static_defaultSettings()}
 {
     con(doc, &iscore::Document::aboutToClose,
         this, &DocumentPlugin::cleanup);
@@ -56,11 +63,19 @@ Engine::LocalTree::DocumentPlugin::DocumentPlugin(
         else
             cleanup();
     }, Qt::QueuedConnection);
+
+    auto docplug = doc.context().findPlugin<Explorer::DeviceDocumentPlugin>();
+    if(docplug)
+        docplug->list().setLocalDevice(&m_localDeviceWrapper);
 }
 
 Engine::LocalTree::DocumentPlugin::~DocumentPlugin()
 {
     cleanup();
+
+    auto docplug = context().findPlugin<Explorer::DeviceDocumentPlugin>();
+    if(docplug)
+        docplug->list().setLocalDevice(&m_localDeviceWrapper);
 }
 
 void Engine::LocalTree::DocumentPlugin::create()
@@ -87,23 +102,6 @@ void Engine::LocalTree::DocumentPlugin::cleanup()
     if(!m_root)
         return;
 
-    // Remove the node from local device
-    //m_localDevice.getRootNode().removeChild(m_root->node());
-
-    // Delete
-    // TODO why not delete m_root;
     m_root->constraint().components.remove(m_root);
     m_root = nullptr;
-    /*
-    auto& doc = m_context.document.model().modelDelegate();
-    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
-                      &doc);
-    ISCORE_ASSERT(scenar);
-    auto& cstr = scenar->baseScenario().constraint();
-    m_root = nullptr;
-    auto cit = cstr.components.find(m_root->id());
-    if(cit != cstr.components.end())
-        cstr.components.remove(m_root);
-    m_root = nullptr;
-    */
 }

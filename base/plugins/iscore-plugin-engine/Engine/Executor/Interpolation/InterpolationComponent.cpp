@@ -134,58 +134,20 @@ ossia::value Component::on_curveChanged(ossia::val_type type)
 
 void Component::recreate()
 {
-    auto iscore_addr = process().address();
-
-    ossia::net::node_base* ossia_node{};
+    m_ossia_process = nullptr;
     ossia::net::address_base* ossia_addr{};
 
-    // Get the device list to obtain the nodes.
-    const auto& devices = m_deviceList.devices();
-
-    // TODO use this in automation
-    auto getNode = [&] (const State::Address& addr) -> ossia::net::node_base*
-    {
-        // Look for the real node in the device
-        auto dev_it = std::find_if(devices.begin(), devices.end(),
-                                   [&] (Device::DeviceInterface* dev) {
-            return dev->settings().name == addr.device;
-        });
-
-        if(dev_it == devices.end())
-            return {};
-
-        auto dev = dynamic_cast<Engine::Network::OSSIADevice*>(*dev_it);
-        if(!dev)
-            return {};
-
-        auto ossia_dev = dev->getDevice();
-        if(!ossia_dev)
-            return {};
-
-        auto node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
-        if(!node)
-            return {};
-
-        return node;
-    };
-
-    ossia_node = getNode(iscore_addr);
-    if(!ossia_node)
-        goto curve_cleanup_label;
-
     // Add the real address
-    ossia_addr = ossia_node->getAddress();
-    if(!ossia_addr)
-        goto curve_cleanup_label;
+    auto address = Engine::iscore_to_ossia::findAddress(
+          m_deviceList,
+          this->system().doc,
+          process().address());
 
-    m_ossia_process = new ossia::automation(
-                *ossia_addr, on_curveChanged(ossia_addr->getValueType()));
-
-    return;
-
-curve_cleanup_label:
-    m_ossia_process = nullptr;
-    return;
+    if(address)
+    {
+        m_ossia_process = new ossia::automation(
+                    *ossia_addr, on_curveChanged(ossia_addr->getValueType()));
+    }
 }
 
 }

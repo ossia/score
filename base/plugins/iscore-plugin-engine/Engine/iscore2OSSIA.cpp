@@ -82,7 +82,7 @@ ossia::net::node_base *createNodeFromPath(
     {
         const auto& children = node->children();
         auto it = ::find_if(children,
-                    [&] (const auto& ossia_node) { return ossia_node->getName() == path[i].toStdString(); });
+                            [&] (const auto& ossia_node) { return ossia_node->getName() == path[i].toStdString(); });
 
         if(it == children.end())
         {
@@ -323,13 +323,13 @@ optional<ossia::message> message(
         const State::Message& mess,
         const Device::DeviceList& deviceList)
 {
-    auto it = deviceList.find(mess.address.device);
-    if(it == deviceList.devices().end())
+    auto dev_p = deviceList.findDevice(mess.address.device);
+    if(!dev_p)
         return {};
 
     // OPTIMIZEME by sorting by device prior
     // to this.
-    const auto& dev = **it;
+    const auto& dev = *dev_p;
     if(!dev.connected())
         return {};
 
@@ -385,11 +385,11 @@ void state(
 
     auto& dl = ctx.devices.list();
     visit_node(iscore_state.messages().rootNode(), [&] (const auto& n) {
-            const auto& val = n.value();
-            if(val)
-            {
-                elts.add(message(State::Message{address(n), *val}, dl));
-            }
+        const auto& val = n.value();
+        if(val)
+        {
+            elts.add(message(State::Message{address(n), *val}, dl));
+        }
     });
 
     for(auto& proc : iscore_state.stateProcesses)
@@ -417,11 +417,11 @@ static ossia::Destination expressionAddress(
         const State::Address& addr,
         const Device::DeviceList& devlist)
 {
-    auto it = devlist.find(addr.device);
-    if(it == devlist.devices().end())
+    auto dev_p = devlist.findDevice(addr.device);
+    if(!dev_p)
         throw NodeNotFoundException(addr);
 
-    auto& device = **it;
+    auto& device = *dev_p;
     if(!device.connected())
     {
         throw NodeNotFoundException(addr);
@@ -438,9 +438,9 @@ static ossia::Destination expressionAddress(
         {
             auto ossia_addr = n->getAddress();
             if(ossia_addr)
-              return ossia::Destination(*ossia_addr);
+                return ossia::Destination(*ossia_addr);
             else
-              throw NodeNotFoundException(addr);
+                throw NodeNotFoundException(addr);
         }
         else
         {
@@ -484,7 +484,7 @@ static ossia::value expressionOperand(
 }
 
 static ossia::expressions::expression_atom::Comparator
-  expressionComparator(State::Relation::Comparator op)
+expressionComparator(State::Relation::Comparator op)
 {
     using namespace ossia::expressions;
     switch(op)
@@ -599,43 +599,35 @@ ossia::expression_ptr expression(
 }
 
 ossia::net::address_base* findAddress(
-    const Device::DeviceList& devs,
-    const iscore::DocumentContext& ctx,
-    const State::Address& addr)
+        const Device::DeviceList& devs,
+        const iscore::DocumentContext& ctx,
+        const State::Address& addr)
 {
-  auto& devices = devs.devices();
-  // Look for the real node in the device
-  auto dev_it = std::find_if(devices.begin(), devices.end(),
-                             [&] (Device::DeviceInterface* a_device) {
-                return a_device->settings().name == addr.device;
-  });
-
-  if(dev_it != devices.end())
-  {
-    auto dev = dynamic_cast<Engine::Network::OSSIADevice*>(*dev_it);
-    if(dev)
+    auto dev_p =
+            dynamic_cast<Engine::Network::OSSIADevice*>(
+                devs.findDevice(addr.device));
+    if(dev_p)
     {
-      auto ossia_dev = dev->getDevice();
-      if(ossia_dev)
-      {
-        auto node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
-        if(node)
-          return node->getAddress();
-      }
+        auto ossia_dev = dev_p->getDevice();
+        if(ossia_dev)
+        {
+            auto node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
+            if(node)
+                return node->getAddress();
+        }
     }
-  }
-  else
-  {
-    // We try to look into the local device which may not be visible.
-    if(auto doc_plug = ctx.findPlugin<Engine::LocalTree::DocumentPlugin>())
+    else
     {
-      auto node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, doc_plug->device());
-      if(node)
-        return node->getAddress();
+        // We try to look into the local device which may not be visible.
+        if(auto doc_plug = ctx.findPlugin<Engine::LocalTree::DocumentPlugin>())
+        {
+            auto node = Engine::iscore_to_ossia::findNodeFromPath(addr.path, doc_plug->device());
+            if(node)
+                return node->getAddress();
+        }
     }
-  }
 
-  return {};
+    return {};
 }
 
 }

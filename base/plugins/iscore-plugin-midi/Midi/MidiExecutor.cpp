@@ -18,11 +18,11 @@ ProcessExecutor::ProcessExecutor(
 {
     // Load the address
     // Look for the real node in the device
-    auto dev_it = devices.find(proc.device());
-    if(dev_it == devices.devices().end())
+    auto dev_p = devices.findDevice(proc.device());
+    if(!dev_p)
         return;
 
-    auto dev = dynamic_cast<Engine::Network::OSSIADevice*>(*dev_it);
+    auto dev = dynamic_cast<Engine::Network::OSSIADevice*>(dev_p);
     if(!dev)
         return;
 

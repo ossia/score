@@ -22,6 +22,10 @@ class LocalProtocolFactory final :
 {
         ISCORE_CONCRETE_FACTORY("3fad3354-e103-4bc4-a34f-2d0cc4b02565")
 
+    public:
+        static const Device::DeviceSettings& static_defaultSettings();
+
+    private:
         // Implement with OSSIA::Device
         QString prettyName() const override;
 

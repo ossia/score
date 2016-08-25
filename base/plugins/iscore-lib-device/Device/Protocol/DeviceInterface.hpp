@@ -40,6 +40,8 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
         virtual ~DeviceInterface();
 
         const Device::DeviceSettings& settings() const;
+        const auto& name() const
+        { return settings().name; }
 
         virtual void addNode(const Device::Node& n);
 

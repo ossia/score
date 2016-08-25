@@ -14,13 +14,14 @@ class LocalDevice final :
 {
     public:
         LocalDevice(
+                ossia::net::generic_device& dev,
                 const iscore::DocumentContext& ctx,
                 const Device::DeviceSettings& settings);
 
         ~LocalDevice();
 
         ossia::net::device_base* getDevice() const override
-        { return m_dev; }
+        { return &m_dev; }
 
         void nodeCreated(const ossia::net::node_base& n) { OSSIADevice::nodeCreated(n); }
         void nodeRemoving(const ossia::net::node_base& n) { OSSIADevice::nodeRemoving(n); }
@@ -31,7 +32,7 @@ class LocalDevice final :
 
         Device::Node refresh() override;
 
-        ossia::net::device_base* m_dev{};
+        ossia::net::device_base& m_dev;
 
         using OSSIADevice::refresh;
 };
