@@ -32,14 +32,4 @@ DummyModel::DummyModel(
 
 }
 
-ProcessStateDataInterface* DummyModel::startStateData() const
-{
-    return &m_startState;
-}
-
-ProcessStateDataInterface* DummyModel::endStateData() const
-{
-    return &m_endState;
-}
-
 }

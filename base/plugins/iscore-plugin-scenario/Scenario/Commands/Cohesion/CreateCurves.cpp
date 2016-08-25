@@ -84,20 +84,20 @@ void CreateCurvesFromAddresses(
     // Then create the commands
     auto big_macro = new Scenario::Command::AddMultipleProcessesToMultipleConstraintsMacro;
 
-    for(const auto& constraint : selected_constraints)
+    for(const auto& constraint_ptr : selected_constraints)
     {
+        auto& constraint = *constraint_ptr;
         // Generate brand new ids for the processes
-        auto process_ids = getStrongIdRange<Process::ProcessModel>(addresses.size(), constraint->processes);
-        auto macro_tuple = Scenario::Command::makeAddProcessMacro(*constraint, addresses.size());
+        auto process_ids = getStrongIdRange<Process::ProcessModel>(addresses.size(), constraint.processes);
+        auto macro_tuple = Scenario::Command::makeAddProcessMacro(constraint, addresses.size());
         auto macro = std::get<0>(macro_tuple);
         auto& bigLayerVec = std::get<1>(macro_tuple);
 
-        Path<Scenario::ConstraintModel> constraintPath{*constraint};
-        const Scenario::StateModel& ss = startState(*constraint, *scenar);
-        const auto& es = endState(*constraint, *scenar);
+        const Scenario::StateModel& ss = startState(constraint, *scenar);
+        const auto& es = endState(constraint, *scenar);
 
         std::vector<State::Address> existing_automations;
-        for(const auto& proc : constraint->processes)
+        for(const auto& proc : constraint.processes)
         {
             if(auto autom = dynamic_cast<const Automation::ProcessModel*>(&proc))
                 existing_automations.push_back(autom->address());
@@ -151,8 +151,8 @@ void CreateCurvesFromAddresses(
             }
 
             // Send the command.
-            macro->addCommand(new Scenario::Command::CreateCurveFromStates{
-                                  Path<Scenario::ConstraintModel>{constraintPath},
+            macro->addCommand(new Scenario::Command::CreateAutomationFromStates{
+                                  constraint,
                                   bigLayerVec[i],
                                   process_ids[i],
                                   as.address,

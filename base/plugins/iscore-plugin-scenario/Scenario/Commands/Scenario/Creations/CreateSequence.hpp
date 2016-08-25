@@ -2,6 +2,7 @@
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
+#include <iscore/command/CommandStackFacade.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 #include "CreateConstraint_State_Event_TimeNode.hpp"
@@ -21,40 +22,50 @@ class TimeNodeModel;
 class ProcessModel;
 namespace Command
 {
-class CreateSequence final : public iscore::SerializableCommand
+
+class CreateSequence final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateSequence,"Create a sequence")
-    public:
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateSequence, "CreateSequence")
 
-        CreateSequence(
-            const Scenario::ProcessModel& scenario,
-            Id<StateModel> startState,
-            TimeValue date,
-            double endStateY);
+        public:
+            static CreateSequence* make(
+                const Scenario::ProcessModel& scenario,
+                const Id<StateModel>& start,
+                const TimeValue& date,
+                double endStateY);
 
-        CreateSequence(
-            const Path<Scenario::ProcessModel>& scenarioPath,
-            Id<StateModel> startState,
-            TimeValue date,
-            double endStateY);
-
-        const Path<Scenario::ProcessModel>& scenarioPath() const
-        { return m_command.scenarioPath(); }
+        void undo() const override
+        {
+            m_cmds.front()->undo();
+        }
 
         const Id<ConstraintModel>& createdConstraint() const
-        { return m_command.createdConstraint(); }
-
-        const Id<StateModel>& startState() const
-        { return m_command.startState(); }
+        { return m_newConstraint; }
 
         const Id<StateModel>& createdState() const
-        { return m_command.createdState(); }
+        { return m_newState; }
 
         const Id<EventModel>& createdEvent() const
-        { return m_command.createdEvent(); }
+        { return m_newEvent; }
 
         const Id<TimeNodeModel>& createdTimeNode() const
-        { return m_command.createdTimeNode(); }
+        { return m_newTimeNode; }
+
+    private:
+        Id<ConstraintModel> m_newConstraint;
+        Id<StateModel> m_newState;
+        Id<EventModel> m_newEvent;
+        Id<TimeNodeModel> m_newTimeNode;
+};
+
+class CreateSequenceProcesses final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateSequenceProcesses, "CreateSequenceData")
+
+    public:
+        CreateSequenceProcesses(
+                const Scenario::ProcessModel& scenario,
+                const Scenario::ConstraintModel& constraint);
 
         void undo() const override;
         void redo() const override;
@@ -64,9 +75,10 @@ class CreateSequence final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        CreateConstraint_State_Event_TimeNode m_command;
+        Path<Scenario::ProcessModel> m_scenario;
         AddMultipleProcessesToConstraintMacro m_interpolations;
         Process::MessageNode m_stateData;
+        Id<StateModel> m_endState;
         int m_addedProcessCount{};
 };
 }

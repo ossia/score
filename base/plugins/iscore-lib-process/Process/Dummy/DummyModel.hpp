@@ -62,10 +62,5 @@ class ISCORE_LIB_PROCESS_EXPORT DummyModel final :
         }
 
     private:
-        ProcessStateDataInterface* startStateData() const override;
-        ProcessStateDataInterface* endStateData() const override;
-
-        mutable DummyState m_startState{*this, nullptr};
-        mutable DummyState m_endState{*this, nullptr};
 };
 }

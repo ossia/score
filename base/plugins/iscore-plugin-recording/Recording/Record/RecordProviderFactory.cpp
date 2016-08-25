@@ -14,7 +14,6 @@ RecordContext::RecordContext(
     scenario{scenar},
     explorer{Explorer::deviceExplorerFromContext(context)},
     dispatcher{
-        new Recording::Record,
         context.commandStack},
     point{pt}
 

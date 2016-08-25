@@ -128,30 +128,37 @@ class CreationState : public CreationStateBase<Scenario_T>
 
         void createToNothing_base(const Id<StateModel> & originalState)
         {
-            auto create = [&] (auto cmd) {
+            if(!m_parentSM.editionSettings().sequence())
+            {
+                auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+                           this->m_scenarioPath,
+                           originalState, // Put there in createInitialState
+                           this->currentPoint.date,
+                           this->currentPoint.y};
+
                 m_dispatcher.submitCommand(cmd);
 
                 this->createdStates.append(cmd->createdState());
                 this->createdEvents.append(cmd->createdEvent());
                 this->createdTimeNodes.append(cmd->createdTimeNode());
                 this->createdConstraints.append(cmd->createdConstraint());
-            };
-
-            if(!m_parentSM.editionSettings().sequence())
-            {
-                create(new Scenario::Command::CreateConstraint_State_Event_TimeNode{
-                           this->m_scenarioPath,
-                           originalState, // Put there in createInitialState
-                           this->currentPoint.date,
-                           this->currentPoint.y});
             }
             else
             {
-                create(new Scenario::Command::CreateSequence{
-                           this->m_scenarioPath,
+
+                // This
+                auto cmd = Scenario::Command::CreateSequence::make(
+                           this->m_parentSM.model(),
                            originalState, // Put there in createInitialState
                            this->currentPoint.date,
-                           this->currentPoint.y});
+                           this->currentPoint.y);
+
+                m_dispatcher.submitCommandQuiet(cmd);
+
+                this->createdStates.append(cmd->createdState());
+                this->createdEvents.append(cmd->createdEvent());
+                this->createdTimeNodes.append(cmd->createdTimeNode());
+                this->createdConstraints.append(cmd->createdConstraint());
             }
         }
 

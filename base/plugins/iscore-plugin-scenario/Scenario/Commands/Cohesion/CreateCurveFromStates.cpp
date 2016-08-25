@@ -34,8 +34,8 @@ namespace Scenario
 class SlotModel;
 namespace Command
 {
-CreateCurveFromStates::CreateCurveFromStates(
-        Path<ConstraintModel>&& constraint,
+CreateAutomationFromStates::CreateAutomationFromStates(
+        const ConstraintModel& constraint,
         const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel> > >& slotList,
         Id<Process::ProcessModel> curveId,
         State::Address address,
@@ -44,7 +44,7 @@ CreateCurveFromStates::CreateCurveFromStates(
         double min,
         double max):
     CreateProcessAndLayers<Automation::ProcessModel>{
-        std::move(constraint),
+        constraint,
         slotList,
         std::move(curveId)},
     m_address{std::move(address)},
@@ -55,7 +55,7 @@ CreateCurveFromStates::CreateCurveFromStates(
 {
 }
 
-void CreateCurveFromStates::redo() const
+void CreateAutomationFromStates::redo() const
 {
     m_addProcessCmd.redo();
     auto& cstr = m_addProcessCmd.constraintPath().find();
@@ -83,16 +83,61 @@ void CreateCurveFromStates::redo() const
         cmd.redo();
 }
 
-void CreateCurveFromStates::serializeImpl(DataStreamInput& s) const
+void CreateAutomationFromStates::serializeImpl(DataStreamInput& s) const
 {
     CreateProcessAndLayers<Automation::ProcessModel>::serializeImpl(s);
     s << m_address << m_start << m_end << m_min << m_max;
 }
 
-void CreateCurveFromStates::deserializeImpl(DataStreamOutput& s)
+void CreateAutomationFromStates::deserializeImpl(DataStreamOutput& s)
 {
     CreateProcessAndLayers<Automation::ProcessModel>::deserializeImpl(s);
     s >> m_address >> m_start >> m_end >> m_min >> m_max;
+}
+
+
+
+
+CreateInterpolationFromStates::CreateInterpolationFromStates(
+        const ConstraintModel& constraint,
+        const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel> > >& slotList,
+        Id<Process::ProcessModel> curveId,
+        State::Address address,
+        State::Value start, State::Value end):
+    CreateProcessAndLayers<Interpolation::ProcessModel>{
+        constraint,
+        slotList,
+        std::move(curveId)},
+    m_address{std::move(address)},
+    m_start{std::move(start)},
+    m_end{std::move(end)}
+{
+}
+
+void CreateInterpolationFromStates::redo() const
+{
+    m_addProcessCmd.redo();
+
+    auto& cstr = m_addProcessCmd.constraintPath().find();
+    auto& autom = safe_cast<Interpolation::ProcessModel&>(cstr.processes.at(m_addProcessCmd.processId()));
+    autom.setAddress(m_address);
+    autom.setStart(m_start);
+    autom.setEnd(m_end);
+
+    for(const auto& cmd : m_slotsCmd)
+        cmd.redo();
+}
+
+void CreateInterpolationFromStates::serializeImpl(DataStreamInput& s) const
+{
+    CreateProcessAndLayers<Interpolation::ProcessModel>::serializeImpl(s);
+    s << m_address << m_start << m_end;
+}
+
+void CreateInterpolationFromStates::deserializeImpl(DataStreamOutput& s)
+{
+    CreateProcessAndLayers<Interpolation::ProcessModel>::deserializeImpl(s);
+    s >> m_address >> m_start >> m_end;
 }
 }
 

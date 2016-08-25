@@ -148,7 +148,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
     FW<Scenario::ConstraintDropHandler,
         Scenario::AutomationDropHandler>,
     FW<Inspector::InspectorWidgetFactory,
-        ScenarioInspectorWidgetFactoryWrapper>,
+        ScenarioInspectorWidgetFactoryWrapper,
+        Interpolation::StateInspectorFactory>,
     FW<ConstraintInspectorDelegateFactory,
         ScenarioConstraintInspectorDelegateFactory,
         BaseConstraintInspectorDelegateFactory>

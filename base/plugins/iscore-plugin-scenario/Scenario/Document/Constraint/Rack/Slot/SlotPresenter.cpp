@@ -171,8 +171,10 @@ void SlotPresenter::on_layerModelRemoved(
 
             for(const auto& pair : elt.processes)
             {
+                QPointer<Process::LayerView> view_p{pair.second};
                 delete pair.first;
-                deleteGraphicsItem(pair.second);
+                if(view_p)
+                    deleteGraphicsItem(pair.second);
             }
         }
 
