@@ -10,6 +10,7 @@
 
 #include <Process/ProcessList.hpp>
 #include <Automation/AutomationProcessMetadata.hpp>
+#include <Interpolation/InterpolationProcess.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -98,13 +99,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
 };
 
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final :
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final :
         public CreateProcessAndLayers<Automation::ProcessModel>
 {
-         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateCurveFromStates, "CreateCurveFromStates")
+         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateAutomationFromStates, "CreateCurveFromStates")
     public:
-        CreateCurveFromStates(
-                Path<ConstraintModel>&& constraint,
+        CreateAutomationFromStates(
+                const ConstraintModel& constraint,
                 const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>& slotList,
                 Id<Process::ProcessModel> curveId,
                 State::Address address,
@@ -124,6 +125,29 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateCurveFromStates final :
         double m_start{}, m_end{};
         double m_min{}, m_max{};
 
+};
+
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final :
+        public CreateProcessAndLayers<Interpolation::ProcessModel>
+{
+         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateInterpolationFromStates, "CreateInterpolationFromStates")
+    public:
+        CreateInterpolationFromStates(
+                const ConstraintModel& constraint,
+                const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>& slotList,
+                Id<Process::ProcessModel> curveId,
+                State::Address address,
+                State::Value start, State::Value end);
+
+        void redo() const override;
+
+    protected:
+        void serializeImpl(DataStreamInput& s) const override;
+        void deserializeImpl(DataStreamOutput&) override;
+
+    private:
+        State::Address m_address;
+        State::Value m_start, m_end;
 };
 }
 }

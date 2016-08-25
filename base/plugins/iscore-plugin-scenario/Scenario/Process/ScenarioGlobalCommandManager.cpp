@@ -33,8 +33,7 @@ void Scenario::clearContentFromSelection(
     auto constraintsToRemove = selectedElements(scenario.constraints);
     auto statesToRemove = selectedElements(scenario.states);
 
-    MacroCommandDispatcher cleaner(new ClearSelection,
-                                   stack);
+    MacroCommandDispatcher<ClearSelection> cleaner{stack};
 
     // 2. Create a Clear command for each.
     for(auto& constraint : constraintsToRemove)

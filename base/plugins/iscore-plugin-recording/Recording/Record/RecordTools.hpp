@@ -5,6 +5,7 @@
 #include <Process/TimeValue.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <Recording/Commands/Record.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 
@@ -59,6 +60,7 @@ using RecordListening =
             Device::Node*
         >>;
 using RecordCommandDispatcher = GenericMacroCommandDispatcher<
+Recording::Record,
 RedoStrategy::Quiet,
 SendStrategy::UndoRedo>;
 

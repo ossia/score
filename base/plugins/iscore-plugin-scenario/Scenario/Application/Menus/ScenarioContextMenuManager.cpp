@@ -128,9 +128,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
         QObject::connect(&dialog, &AddProcessDialog::okPressed,
             [&] (const auto& proc) {
             auto& constraint = slotm.parentConstraint();
-            QuietMacroCommandDispatcher disp(
-                new Scenario::Command::CreateProcessInExistingSlot,
-                        ctx.commandStack);
+            QuietMacroCommandDispatcher<Scenario::Command::CreateProcessInExistingSlot> disp{ctx.commandStack};
 
             auto cmd1 = new Scenario::Command::AddOnlyProcessToConstraint(constraint, proc);
             cmd1->redo();
@@ -159,9 +157,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
         QObject::connect(&dialog, &AddProcessDialog::okPressed,
             [&] (const auto& proc) {
             auto& constraint = slotm.parentConstraint();
-            QuietMacroCommandDispatcher disp(
-                new Scenario::Command::CreateProcessInNewSlot,
-                        ctx.commandStack);
+            QuietMacroCommandDispatcher<Scenario::Command::CreateProcessInNewSlot> disp{ctx.commandStack};
 
             auto cmd1 = new Scenario::Command::AddOnlyProcessToConstraint(constraint, proc);
             cmd1->redo();

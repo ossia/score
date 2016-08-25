@@ -21,4 +21,9 @@ class CommandDispatcher final : public ICommandDispatcher
         {
             SendStrategy::send(stack(), cmd);
         }
+
+        void submitCommand(std::unique_ptr<iscore::SerializableCommand> cmd) const
+        {
+            SendStrategy::send(stack(), cmd.release());
+        }
 };

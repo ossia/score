@@ -27,7 +27,6 @@ StateInspectorWidget::StateInspectorWidget(
     std::list<QWidget*> vec;
     vec.push_back(m_label);
 
-
     con(m_state, &ProcessStateDataInterface::stateChanged,
         this,    &StateInspectorWidget::on_stateChanged);
 

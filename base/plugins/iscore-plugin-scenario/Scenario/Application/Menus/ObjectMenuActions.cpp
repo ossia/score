@@ -318,7 +318,7 @@ static void writeJsonToScenario(
         const ObjectMenuActions& self,
         const QJsonObject& obj)
 {
-    MacroCommandDispatcher dispatcher{new Command::ScenarioPasteContent, self.dispatcher().stack()};
+    MacroCommandDispatcher<Command::ScenarioPasteContent> dispatcher{self.dispatcher().stack()};
     auto selectedConstraints = selectedElements(getConstraints(scen));
     auto expandMode = self.appPlugin()->editionSettings().expandMode();
     for(const auto& json_vref : obj["Constraints"].toArray())

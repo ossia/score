@@ -27,6 +27,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
@@ -35,8 +36,10 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
 class SlotModel;
@@ -46,32 +49,28 @@ namespace Scenario
 {
 namespace Command
 {
-CreateSequence::CreateSequence(
+
+CreateSequenceProcesses::CreateSequenceProcesses(
         const Scenario::ProcessModel& scenario,
-        Id<StateModel> start,
-        TimeValue date,
-        double endStateY):
-    m_command{scenario,
-              std::move(start),
-              std::move(date),
-              endStateY}
+        const Scenario::ConstraintModel& constraint):
+    m_scenario{scenario},
+    m_endState{Scenario::endState(constraint, scenario).id()}
 {
     // TESTME
 
     // We get the device explorer, and we fetch the new states.
-    auto& scenar = m_command.scenarioPath().find();
-    const auto& startMessages = flatten(scenar.state(startState()).messages().rootNode());
+    const auto& startMessages = Process::flatten(Scenario::startState(constraint, scenario).messages().rootNode());
 
     std::vector<Device::FullAddressSettings> endAddresses;
     endAddresses.reserve(startMessages.size());
-    std::transform(startMessages.begin(), startMessages.end(), std::back_inserter(endAddresses),
-                   [] (const auto& mess) { return Device::FullAddressSettings::make(mess); });
+    transform(startMessages, std::back_inserter(endAddresses),
+              [] (const auto& mess) { return Device::FullAddressSettings::make(mess); });
 
     auto& devPlugin = iscore::IDocument::documentContext(scenario).plugin<Explorer::DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
-    auto it = endAddresses.begin();
-    while(it != endAddresses.end())
+
+    for(auto it = endAddresses.begin(); it != endAddresses.end(); )
     {
         auto& mess = *it;
 
@@ -79,9 +78,11 @@ CreateSequence::CreateSequence(
 
         if(node && node->is<Device::AddressSettings>())
         {
+            // TODO this would be a nice use of futures
             devPlugin.updateProxy.refreshRemoteValue(mess.address);
             const auto& nodeImpl = node->get<Device::AddressSettings>();
-            static_cast<Device::AddressSettingsCommon&>(mess) = static_cast<const Device::AddressSettingsCommon&>(nodeImpl);
+            static_cast<Device::AddressSettingsCommon&>(mess) =
+                    static_cast<const Device::AddressSettingsCommon&>(nodeImpl);
             ++it;
         }
         else
@@ -92,107 +93,113 @@ CreateSequence::CreateSequence(
 
     QList<State::Message> endMessages;
     endMessages.reserve(endAddresses.size());
-    std::transform(endAddresses.begin(), endAddresses.end(), std::back_inserter(endMessages),
-                   [] (const auto& addr) { return State::Message{addr.address, addr.value}; });
+    transform(endAddresses, std::back_inserter(endMessages),
+              [] (const auto& addr) { return State::Message{addr.address, addr.value}; });
 
     updateTreeWithMessageList(m_stateData, endMessages);
 
     // We also create relevant curves.
-    std::vector<std::pair<const State::Message*, const Device::FullAddressSettings*>> matchingMessages;
+    std::vector<std::pair<State::Message, Device::FullAddressSettings>> matchingNumericMessages;
+    std::vector<std::pair<State::Message, Device::FullAddressSettings>> matchingTupleMessages;
     // First we filter the messages
     for(auto& message : startMessages)
     {
-        if(!message.value.val.isNumeric())
-            continue;
-
-        auto addr_it = std::find_if(std::begin(endAddresses),
-                                    std::end(endAddresses),
-                                    [&] (const auto& arg) {
-            return message.address == arg.address
-                  //  && message.value.val.impl().which() == arg.value.val.impl().which()
-                  // TODO this does not work because of the int -> float conversion that happens after a curve.
-                    // Investigate more and comment the other uses.
-                    && message.value != arg.value; });
-
-        if(addr_it != std::end(endAddresses))
+        if(message.value.val.isNumeric())
         {
-            matchingMessages.emplace_back(&message, &*addr_it);
+            auto addr_it = find_if(endAddresses, [&] (const auto& arg) {
+                return message.address == arg.address && message.value != arg.value; });
+
+            if(addr_it != std::end(endAddresses))
+            {
+                matchingNumericMessages.emplace_back(message, *addr_it);
+            }
+        }
+        else if(message.value.val.is<State::tuple_t>())
+        {
+            auto addr_it = find_if(endAddresses, [&] (const auto& arg) {
+                return message.address == arg.address && message.value != arg.value; });
+
+            if(addr_it != std::end(endAddresses))
+            {
+                matchingTupleMessages.emplace_back(message, *addr_it);
+            }
         }
     }
 
     // Then, if there are correct messages we can actually do our interpolation.
-    if(!matchingMessages.empty())
+    m_addedProcessCount = matchingNumericMessages.size() + matchingTupleMessages.size();
+    if(m_addedProcessCount == 0)
+        return;
+
     {
-        m_addedProcessCount = matchingMessages.size();
-        auto constraint = Path<Scenario::ProcessModel>{scenario}.extend(m_command.createdConstraint());
-
-        {
-            AddMultipleProcessesToConstraintMacro interpolateMacro{Path<ConstraintModel>{constraint}};
-            m_interpolations.slotsToUse = interpolateMacro.slotsToUse;
-            m_interpolations.commands() = interpolateMacro.takeCommands();
-        }
-
-        // Generate brand new ids for the processes
-        auto process_ids = getStrongIdRange<Process::ProcessModel>(matchingMessages.size());
-        auto layers_ids = getStrongIdRange<Process::LayerModel>(matchingMessages.size());
-
-        int i = 0;
-        // Here we know that there is nothing yet, so we can just assign
-        // ids 1, 2, 3, 4 to each process and each process view in each slot
-        for(const auto& elt : matchingMessages)
-        {
-            std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>> layer_vect;
-            for(const auto& slots_elt : m_interpolations.slotsToUse)
-            {
-                layer_vect.push_back(std::make_pair(slots_elt.first, layers_ids[i]));
-            }
-
-
-            auto start = State::convert::value<double>(elt.first->value);
-            auto end = State::convert::value<double>(elt.second->value);
-            double min = (elt.second->domain.min.val.which() != State::ValueType::NoValue)
-                           ? std::min(State::convert::value<double>(elt.second->domain.min), std::min(start, end))
-                           : std::min(start, end);
-            double max = (elt.second->domain.max.val.which() != State::ValueType::NoValue)
-                         ? std::max(State::convert::value<double>(elt.second->domain.max), std::max(start, end))
-                         : std::max(start, end);
-
-            auto cmd = new CreateCurveFromStates{
-                       Path<ConstraintModel>{constraint},
-                       layer_vect,
-                       process_ids[i],
-                       elt.first->address, start, end, min, max};
-            m_interpolations.addCommand(cmd);
-            i++;
-        }
+        AddMultipleProcessesToConstraintMacro interpolateMacro{constraint};
+        m_interpolations.slotsToUse = interpolateMacro.slotsToUse;
+        m_interpolations.commands() = interpolateMacro.takeCommands();
     }
 
+    // Generate brand new ids for the processes
+    auto process_ids = getStrongIdRange<Process::ProcessModel>(m_addedProcessCount);
+    auto layers_ids = getStrongIdRange<Process::LayerModel>(m_addedProcessCount);
+
+    int cur_proc = 0;
+    // Here we know that there is nothing yet, so we can just assign
+    // ids 1, 2, 3, 4 to each process and each process view in each slot
+    for(const auto& elt : matchingNumericMessages)
+    {
+        std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>> layer_vect;
+        for(const auto& slots_elt : m_interpolations.slotsToUse)
+        {
+            layer_vect.push_back(std::make_pair(slots_elt.first, layers_ids[cur_proc]));
+        }
+
+        auto start = State::convert::value<double>(elt.first.value);
+        auto end = State::convert::value<double>(elt.second.value);
+        double min = (elt.second.domain.min.val.which() != State::ValueType::NoValue)
+                ? std::min(State::convert::value<double>(elt.second.domain.min), std::min(start, end))
+                : std::min(start, end);
+        double max = (elt.second.domain.max.val.which() != State::ValueType::NoValue)
+                ? std::max(State::convert::value<double>(elt.second.domain.max), std::max(start, end))
+                : std::max(start, end);
+
+        auto cmd = new CreateAutomationFromStates{
+                constraint,
+                layer_vect,
+                process_ids[cur_proc],
+                elt.first.address, start, end, min, max};
+        m_interpolations.addCommand(cmd);
+        cur_proc++;
+    }
+
+    for(const auto& elt : matchingTupleMessages)
+    {
+        std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>> layer_vect;
+        for(const auto& slots_elt : m_interpolations.slotsToUse)
+        {
+            layer_vect.push_back(std::make_pair(slots_elt.first, layers_ids[cur_proc]));
+        }
+
+        m_interpolations.addCommand(new CreateInterpolationFromStates{
+                              constraint,
+                              layer_vect,
+                              process_ids[cur_proc],
+                              elt.first.address,
+                              elt.first.value,
+                              elt.second.value
+                          });
+        cur_proc++;
+    }
 }
 
-CreateSequence::CreateSequence(
-        const Path<Scenario::ProcessModel>& scenarioPath,
-        Id<StateModel> startState,
-        TimeValue date,
-        double endStateY):
-    CreateSequence{scenarioPath.find(),
-                   std::move(startState),
-                   std::move(date),
-                   endStateY}
+void CreateSequenceProcesses::undo() const
 {
-
+    if(m_addedProcessCount > 0)
+        m_interpolations.undo();
 }
 
-void CreateSequence::undo() const
+void CreateSequenceProcesses::redo() const
 {
-    m_command.undo();
-}
-
-void CreateSequence::redo() const
-{
-    m_command.redo();
-
-    auto& scenar = m_command.scenarioPath().find();
-    auto& endstate = scenar.state(m_command.createdState());
+    auto& scenar = m_scenario.find();
+    auto& endstate = scenar.state(m_endState);
 
     endstate.messages() = m_stateData;
 
@@ -200,23 +207,52 @@ void CreateSequence::redo() const
         m_interpolations.redo();
 }
 
-void CreateSequence::serializeImpl(DataStreamInput& s) const
+void CreateSequenceProcesses::serializeImpl(DataStreamInput& s) const
 {
-    s << m_command.serialize()
+    s << m_scenario
       << m_interpolations.serialize()
       << m_stateData
+      << m_endState
       << m_addedProcessCount;
 }
 
-void CreateSequence::deserializeImpl(DataStreamOutput& s)
+void CreateSequenceProcesses::deserializeImpl(DataStreamOutput& s)
 {
-    QByteArray command, interp;
-    s >> command
+    QByteArray interp;
+    s >> m_scenario
       >> interp
       >> m_stateData
+      >> m_endState
       >> m_addedProcessCount;
-    m_command.deserialize(command);
     m_interpolations.deserialize(interp);
 }
+
+CreateSequence* CreateSequence::make(
+        const ProcessModel &scenario,
+        const Id<StateModel> &start,
+        const TimeValue &date,
+        double endStateY)
+{
+    auto cmd = new CreateSequence;
+
+    auto create_command = new CreateConstraint_State_Event_TimeNode{
+            scenario, start, date, endStateY};
+    cmd->m_newConstraint = create_command->createdConstraint();
+    cmd->m_newState= create_command->createdState();
+    cmd->m_newEvent= create_command->createdEvent();
+    cmd->m_newTimeNode = create_command->createdTimeNode();
+
+    create_command->redo();
+    cmd->addCommand(create_command);
+
+    auto proc_command = new CreateSequenceProcesses{
+            scenario,
+            scenario.constraint(create_command->createdConstraint())};
+    proc_command->redo();
+    cmd->addCommand(proc_command);
+
+    return cmd;
+}
+
 }
 }

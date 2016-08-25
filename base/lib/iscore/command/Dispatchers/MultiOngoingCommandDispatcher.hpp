@@ -50,6 +50,12 @@ class MultiOngoingCommandDispatcher final : public ICommandDispatcher
             m_cmds.push_back(cmd);
         }
 
+        void submitCommandQuiet(iscore::SerializableCommand* cmd)
+        {
+            stack().disableActions();
+            m_cmds.push_back(cmd);
+        }
+
         template<typename TheCommand, typename... Args>
         void submitCommand(Args&&... args)
         {

@@ -42,8 +42,7 @@ void SnapshotParametersInStates(const iscore::DocumentContext& doc)
     if(messages.empty())
         return;
 
-    MacroCommandDispatcher macro{new SnapshotStatesMacro,
-                doc.commandStack};
+    MacroCommandDispatcher<SnapshotStatesMacro> macro{doc.commandStack};
     for(auto& state : selected_states)
     {
         auto cmd = new Scenario::Command::AddMessagesToState{

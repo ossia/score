@@ -166,7 +166,7 @@ struct AccessorList_parser : qi::grammar<Iterator, std::vector<int32_t>()>
     {
         using qi::alnum;
         using boost::spirit::qi::skip;
-        using boost::spirit::ascii::space;
+        using boost::spirit::standard::space;
         using boost::spirit::int_;
 
         index %= skip(space) [ "[" >> int_ >> "]" ];
@@ -185,7 +185,7 @@ struct AddressAccessor_parser : qi::grammar<Iterator, State::AddressAccessor()>
     {
         using qi::alnum;
         using boost::spirit::qi::skip;
-        using boost::spirit::ascii::space;
+        using boost::spirit::standard::space;
         using boost::spirit::int_;
 
         start %= skip(space) [ address >> accessors ];
@@ -221,7 +221,7 @@ struct Value_parser : qi::grammar<Iterator, State::Value()>
         char_parser %= "'" >> (char_ - "'") >> "'";
         str_parser %= '"' >> qi::lexeme [ *(char_ - '"') ] >> '"';
 
-        tuple_parser %= skip(boost::spirit::ascii::space) [ "[" >> variant % "," >> "]" ];
+        tuple_parser %= skip(boost::spirit::standard::space) [ "[" >> variant % "," >> "]" ];
         variant %=  real_parser<float, boost::spirit::qi::strict_real_policies<float> >()
                 | int_
                 | bool_parser
@@ -279,7 +279,7 @@ struct Relation_parser : qi::grammar<Iterator, State::Relation()>
     Relation_parser() : Relation_parser::base_type(start)
     {
         using boost::spirit::qi::skip;
-        start %= skip(boost::spirit::ascii::space) [
+        start %= skip(boost::spirit::standard::space) [
                  (rm_parser >> op_map >> rm_parser)
         ];
 
@@ -297,8 +297,8 @@ struct Pulse_parser : qi::grammar<Iterator, State::Pulse()>
     {
         using boost::spirit::qi::skip;
         using boost::spirit::qi::lit;
-        using boost::spirit::ascii::string;
-        start %= skip(boost::spirit::ascii::space) [
+        using boost::spirit::standard::string;
+        start %= skip(boost::spirit::standard::space) [
                 addr >> "impulse"
         ];
     }
@@ -439,7 +439,7 @@ struct Expression_builder : boost::static_visitor<void>
         try
         {
             expr_raw result;
-            bool ok = qi::phrase_parse(f, l , p, qi::space, result);
+            bool ok = qi::phrase_parse(f, l , p, qi::standard::space, result);
 
             if (!ok)
             {
@@ -469,13 +469,13 @@ struct Expression_builder : boost::static_visitor<void>
 
     iscore::optional<State::Value> State::parseValue(const QString& str)
     {
-        auto input = str.toStdString();
+        auto input = str.toUtf8().toStdString();
         auto f(std::begin(input)), l(std::end(input));
         Value_parser<decltype(f)> p;
         try
         {
             State::Value result;
-            bool ok = qi::phrase_parse(f, l , p, qi::space, result);
+            bool ok = qi::phrase_parse(f, l , p, qi::standard::space, result);
 
             if (!ok)
             {
@@ -507,7 +507,7 @@ struct Expression_builder : boost::static_visitor<void>
         try
         {
             State::Address result;
-            bool ok = qi::phrase_parse(f, l , p, qi::space, result);
+            bool ok = qi::phrase_parse(f, l , p, qi::standard::space, result);
 
             if (!ok)
             {
@@ -537,7 +537,7 @@ struct Expression_builder : boost::static_visitor<void>
         try
         {
             State::AddressAccessor result;
-            bool ok = qi::phrase_parse(f, l , p, qi::space, result);
+            bool ok = qi::phrase_parse(f, l , p, qi::standard::space, result);
 
             if (ok)
             {

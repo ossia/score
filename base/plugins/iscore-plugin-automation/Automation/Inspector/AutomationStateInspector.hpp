@@ -11,6 +11,7 @@ class Document;
 namespace Automation
 {
 class ProcessState;
+// TODO this should not be some random widget but a ProcessStateInspectorDelegate
 class StateInspectorWidget final : public Inspector::InspectorWidgetBase
 {
     public:

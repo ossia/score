@@ -36,109 +36,176 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <Interpolation/InterpolationProcess.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
+struct MessagePairs
+{
+        MessagePairs(const Scenario::ConstraintModel& constraint, const Scenario::ScenarioInterface& scenar):
+            MessagePairs{
+                Process::flatten(Scenario::startState(constraint, scenar).messages().rootNode()),
+                Process::flatten(Scenario::endState(constraint, scenar).messages().rootNode()),
+                constraint}
+        {
+
+        }
+
+        MessagePairs(
+                const State::MessageList& startMessages,
+                const State::MessageList& endMessages,
+                const Scenario::ConstraintModel& constraint)
+        {
+            for(auto& message : startMessages)
+            {
+                // First check if we can build a process from this
+                if(message.value.val.isNumeric())
+                {
+                    // Look for a corresponding message on the end state
+                    auto it = find_if(endMessages, [&] (const State::Message& arg) {
+                        return message.address == arg.address
+                                && arg.value.val.isNumeric()
+                                && message.value != arg.value; });
+
+                    if(it != endMessages.end())
+                    {
+                        // Check that there isn't already an automation with this address
+                        auto has_existing_curve = any_of(constraint.processes,
+                                    [&] (const Process::ProcessModel& proc) {
+                            auto ptr = dynamic_cast<const Automation::ProcessModel*>(&proc);
+                            return ptr && ptr->address() == message.address;
+                        });
+
+                        if(has_existing_curve)
+                            continue;
+
+                        // We can add this
+                        numericMessages.emplace_back(message, *it);
+                    }
+                }
+                else if(message.value.val.is<State::tuple_t>())
+                {
+                    auto it = find_if(endMessages, [&] (const State::Message& arg) {
+                        return message.address == arg.address
+                                && arg.value.val.is<State::tuple_t>()
+                                && message.value != arg.value; });
+
+                    if(it != endMessages.end())
+                    {
+                        // Check that there isn't already an interpolation with this address
+                        auto has_existing_curve = any_of(constraint.processes,
+                                    [&] (const Process::ProcessModel& proc) {
+                            auto ptr = dynamic_cast<const Interpolation::ProcessModel*>(&proc);
+                            return ptr && ptr->address() == message.address;
+                        });
+
+                        if(has_existing_curve)
+                            continue;
+
+                        // We can add this
+                        tupleMessages.emplace_back(message, *it);
+                    }
+                }
+            }
+        }
+
+        using messages_pairs = std::vector<std::pair<State::Message, State::Message>>;
+        messages_pairs numericMessages;
+        messages_pairs tupleMessages;
+
+};
+
 void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints,
                        const iscore::CommandStackFacade& stack)
 {
     // For each constraint, interpolate between the states in its start event and end event.
+    if(selected_constraints.empty())
+        return;
 
     // They should all be in the same scenario so we can select the first.
-    Scenario::ProcessModel* scenar = dynamic_cast<Scenario::ProcessModel*>(
-                                selected_constraints.first()->parent());
+    auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(selected_constraints.first()->parent());
+    if(!scenar)
+        return;
 
-    auto& devPlugin = iscore::IDocument::documentContext(*scenar).plugin<Explorer::DeviceDocumentPlugin>();
+    auto& devPlugin = iscore::IDocument::documentContext(*selected_constraints.first()).plugin<Explorer::DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
-    auto big_macro = new Command::AddMultipleProcessesToMultipleConstraintsMacro;
-    for(auto& constraint : selected_constraints)
+    auto big_macro = std::make_unique<Command::AddMultipleProcessesToMultipleConstraintsMacro>();
+    for(auto& constraint_ptr : selected_constraints)
     {
-        const auto& startState = scenar->state(constraint->startState());
-        const auto& endState = scenar->state(constraint->endState());
+        auto& constraint = *constraint_ptr;
+        // Find the matching pairs of messages from both sides of the constraint
+        MessagePairs pairs{constraint, *scenar};
 
-        State::MessageList startMessages = flatten(startState.messages().rootNode());
-        State::MessageList endMessages = flatten(endState.messages().rootNode());
+        int total_procs = pairs.numericMessages.size() + pairs.tupleMessages.size();
+        if(total_procs == 0)
+            continue;
 
-        std::vector<std::pair<const State::Message*, const State::Message*>> matchingMessages;
+        // Generate brand new ids for the processes, as well as layers, etc.
+        auto process_ids = getStrongIdRange<Process::ProcessModel>(total_procs, constraint.processes);
 
-        for(auto& message : startMessages)
+        // Note : a *lot* of thins happen in makeAddProcessMacro.
+        auto macro_tuple = Command::makeAddProcessMacro(constraint, total_procs);
+
+        // TODO Refactor with structured bindings when C++17
+        auto macro = std::get<0>(macro_tuple);
+        auto& bigLayerVec = std::get<1>(macro_tuple);
+
+        int cur_proc = 0;
+        // Generate automations between numeric values
+        for(const auto& elt : pairs.numericMessages)
         {
-            if(!message.value.val.isNumeric())
-                continue;
+            double start = State::convert::value<double>(elt.first.value);
+            double end = State::convert::value<double>(elt.second.value);
 
-            auto it = std::find_if(std::begin(endMessages),
-                                   std::end(endMessages),
-                                   [&] (const State::Message& arg) {
-                return message.address == arg.address
-                        && arg.value.val.isNumeric()
-                        // TODO see CreateSequence (and refactor this) && message.value.val.impl().which() == arg.value.val.impl().which()
-                        && message.value != arg.value; });
-
-            if(it != std::end(endMessages))
+            double min = std::min(start, end);
+            double max = std::max(start, end);
+            if(auto node = Device::try_getNodeFromAddress(rootNode, elt.first.address))
             {
-                // TODO any_of
-                auto has_existing_curve = std::find_if(
-                            constraint->processes.begin(),
-                            constraint->processes.end(),
-                            [&] (const Process::ProcessModel& proc) {
-                    auto ptr = dynamic_cast<const Automation::ProcessModel*>(&proc);
-                    return ptr && ptr->address() == message.address;
-                });
+                const Device::AddressSettings& as = node->get<Device::AddressSettings>();
+                if(as.domain.min.val.isNumeric())
+                    min = std::min(min, State::convert::value<double>(as.domain.min));
 
-                if(has_existing_curve != constraint->processes.end())
-                    continue;
-
-                matchingMessages.emplace_back(&message, &*it);
+                if(as.domain.max.val.isNumeric())
+                    max = std::max(max, State::convert::value<double>(as.domain.max));
             }
+
+            macro->addCommand(new CreateAutomationFromStates{
+                                  constraint,
+                                  bigLayerVec[cur_proc],
+                                  process_ids[cur_proc],
+                                  elt.first.address,
+                                  start, end, min, max
+                              });
+
+            cur_proc++;
         }
 
-        if(!matchingMessages.empty())
+        // Generate interpolations between tuples
+        for(const auto& elt : pairs.tupleMessages)
         {
-            // Generate brand new ids for the processes
-            auto process_ids = getStrongIdRange<Process::ProcessModel>(matchingMessages.size(), constraint->processes);
-            auto macro_tuple = Command::makeAddProcessMacro(*constraint, matchingMessages.size());
-            auto macro = std::get<0>(macro_tuple);
-            auto& bigLayerVec = std::get<1>(macro_tuple);
-
-            Path<ConstraintModel> constraintPath{*constraint};
-
-            int i = 0;
-            for(const auto& elt : matchingMessages)
-            {
-                double start = State::convert::value<double>(elt.first->value);
-                double end = State::convert::value<double>(elt.second->value);
-
-                double min = std::min(start, end);
-                double max = std::max(start, end);
-                if(auto node = Device::try_getNodeFromAddress(rootNode, elt.first->address))
-                {
-                    const Device::AddressSettings& as = node->get<Device::AddressSettings>();
-                    if(as.domain.min.val.isNumeric())
-                        min = std::min(min, State::convert::value<double>(as.domain.min));
-
-                    if(as.domain.max.val.isNumeric())
-                        max = std::max(max, State::convert::value<double>(as.domain.max));
-                }
-
-                macro->addCommand(new CreateCurveFromStates{
-                                      Path<ConstraintModel>{constraintPath},
-                                      bigLayerVec[i],
-                                      process_ids[i],
-                                      elt.first->address,
-                                      start, end, min, max
-                                  });
-
-                i++;
-            }
-            big_macro->addCommand(macro);
+            macro->addCommand(new CreateInterpolationFromStates{
+                                  constraint,
+                                  bigLayerVec[cur_proc],
+                                  process_ids[cur_proc],
+                                  elt.first.address,
+                                  elt.first.value,
+                                  elt.second.value
+                              });
+            cur_proc++;
         }
+
+        big_macro->addCommand(macro);
     }
 
-    CommandDispatcher<> disp{stack};
-    disp.submitCommand(big_macro);
+    if(!big_macro->commands().empty())
+    {
+        CommandDispatcher<> disp{stack};
+        disp.submitCommand(big_macro.release());
+    }
 }
 }
 }
