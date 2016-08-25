@@ -79,12 +79,10 @@ State::MessageList ProcessState::setMessages(
         if(m_point == Point::Start)
         {
             proc.setStart(it->value);
-            emit stateChanged();
         }
         else if(m_point == Point::End)
         {
             proc.setEnd(it->value);
-            emit stateChanged();
         }
     }
     return messages();

@@ -42,9 +42,13 @@ Document* DocumentBuilder::newDocument(
     m_backupManager = new DocumentBackupManager{*doc};
     for(auto& appPlug: ctx.components.applicationPlugins())
     {
-        appPlug->on_newDocument(doc);
+        appPlug->on_newDocument(*doc);
     }
 
+    for(auto& appPlug: ctx.components.applicationPlugins())
+    {
+        appPlug->on_createdDocument(*doc);
+    }
     // First save
     m_backupManager->saveModelData(doc->saveAsByteArray());
     setBackupManager(doc);
@@ -52,31 +56,30 @@ Document* DocumentBuilder::newDocument(
     return doc;
 }
 
-template<
-        typename InitFun, // for setup of m_backupManager
-        typename BackupFun // the model data to save
->
-Document* DocumentBuilder::loadDocument_impl(
+ISCORE_LIB_BASE_EXPORT
+Document* DocumentBuilder::loadDocument(
         const iscore::ApplicationContext& ctx,
-        const QVariant &docData,
-        iscore::DocumentDelegateFactory& doctype,
-        InitFun&& initfun,
-        BackupFun&& backupfun)
+        const QVariant& docData,
+        DocumentDelegateFactory& doctype)
 {
     Document* doc = nullptr;
     try
     {
         doc = new Document{docData, doctype, m_parentView, m_parentPresenter};
+        for(auto& appPlug: ctx.components.applicationPlugins())
+        {
+            appPlug->on_loadedDocument(*doc);
+        }
 
         for(auto& appPlug: ctx.components.applicationPlugins())
         {
-            appPlug->on_newDocument(doc);
+            appPlug->on_createdDocument(*doc);
         }
 
         ctx.documents.documents().push_back(doc);
-        initfun(doc);
+
         m_backupManager = new DocumentBackupManager{*doc};
-        m_backupManager->saveModelData(backupfun(doc));
+        m_backupManager->saveModelData(doc->saveAsByteArray());
         setBackupManager(doc);
 
         return doc;
@@ -92,21 +95,6 @@ Document* DocumentBuilder::loadDocument_impl(
         return nullptr;
     }
 }
-
-ISCORE_LIB_BASE_EXPORT
-Document* DocumentBuilder::loadDocument(
-        const iscore::ApplicationContext& ctx,
-        const QVariant& docData,
-        DocumentDelegateFactory& doctype)
-{
-    return loadDocument_impl(
-                ctx,
-                docData,
-                doctype,
-                [] (iscore::Document*) { },
-                [] (iscore::Document* doc) { return doc->saveAsByteArray(); }
-    );
-}
 ISCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::restoreDocument(
         const iscore::ApplicationContext& ctx,
@@ -114,11 +102,26 @@ Document* DocumentBuilder::restoreDocument(
         const QByteArray& cmdData,
         DocumentDelegateFactory& doctype)
 {
-    return loadDocument_impl(
-                ctx,
-                docData,
-                doctype,
-                [&] (iscore::Document* doc) {
+
+    Document* doc = nullptr;
+    try
+    {
+        // Restoring behaves just like loading : we reload what was loaded
+        // (potentially a blank document which is saved at the beginning, once
+        // every plug-in has been loaded)
+        doc = new Document{docData, doctype, m_parentView, m_parentPresenter};
+        for(auto& appPlug: ctx.components.applicationPlugins())
+        {
+            appPlug->on_loadedDocument(*doc);
+        }
+
+        for(auto& appPlug: ctx.components.applicationPlugins())
+        {
+            appPlug->on_createdDocument(*doc);
+        }
+
+        ctx.documents.documents().push_back(doc);
+
         // We restore the pre-crash command stack.
         Deserializer<DataStream> writer(cmdData);
         loadCommandStack(
@@ -127,9 +130,23 @@ Document* DocumentBuilder::restoreDocument(
                     doc->commandStack(),
                     [] (auto cmd) { cmd->redo(); }
         );
-    },
-                [&] (iscore::Document*) { return docData; }
-);
+
+        m_backupManager = new DocumentBackupManager{*doc};
+        m_backupManager->saveModelData(docData); // Reuse the same data
+        setBackupManager(doc);
+
+        return doc;
+    }
+    catch(std::runtime_error& e)
+    {
+        QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
+
+        if(!ctx.documents.documents().empty() && ctx.documents.documents().back() == doc)
+            ctx.documents.documents().pop_back();
+
+        delete doc;
+        return nullptr;
+    }
 }
 
 void DocumentBuilder::setBackupManager(Document* doc)

@@ -2,7 +2,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 
@@ -19,6 +19,10 @@ DocumentModel::DocumentModel(
     IdentifiedObject {id, "DocumentModel", parent},
     m_model{fact.make(ctx, this)}
 {
+    for(auto& appPlug: ctx.app.components.applicationPlugins())
+    {
+        appPlug->on_initDocument(ctx.document);
+    }
 }
 
 DocumentModel::~DocumentModel()

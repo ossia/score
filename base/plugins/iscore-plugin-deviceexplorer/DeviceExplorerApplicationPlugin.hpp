@@ -12,15 +12,15 @@ struct VisitorVariant;
 
 namespace Explorer
 {
-class DeviceExplorerApplicationPlugin final :
+class ApplicationPlugin final :
         public iscore::GUIApplicationContextPlugin
 {
     public:
-        DeviceExplorerApplicationPlugin(
+        ApplicationPlugin(
                 const iscore::GUIApplicationContext& app);
 
     protected:
-        void on_newDocument(iscore::Document* doc) override;
+        void on_newDocument(iscore::Document& doc) override;
         void on_documentChanged(
                 iscore::Document* olddoc,
                 iscore::Document* newdoc) override;

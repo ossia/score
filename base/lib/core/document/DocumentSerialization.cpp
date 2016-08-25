@@ -38,10 +38,6 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
-class QObject;
-class QWidget;
-
-
 namespace iscore
 {
 QByteArray Document::saveDocumentModelAsByteArray()
@@ -256,6 +252,12 @@ DocumentModel::DocumentModel(
     IdentifiedObject {Id<DocumentModel>(iscore::id_generator::getFirstId()), "DocumentModel", parent}
 {
     using namespace std;
+
+    for(auto& appPlug: ctx.app.components.applicationPlugins())
+    {
+        appPlug->on_initDocument(ctx.document);
+    }
+
     if(data.canConvert(QMetaType::QByteArray))
     {
         loadDocumentAsByteArray(ctx, data.toByteArray(), fact);

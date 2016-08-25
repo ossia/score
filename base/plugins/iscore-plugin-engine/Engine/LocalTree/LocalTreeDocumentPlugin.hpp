@@ -35,6 +35,8 @@ class ISCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin :
 
         ~DocumentPlugin();
 
+        void init();
+
         ossia::net::generic_device& device() { return m_localDevice; }
         const ossia::net::generic_device& device() const { return m_localDevice; }
 

@@ -76,7 +76,13 @@ LocalDevice::LocalDevice(
         });
     }
 
+    try {
     proto.exposeTo(std::make_unique<ossia::net::minuit_protocol>("i-score-remote", "127.0.0.1", 9999, 6666));
+    }
+    catch(...)
+    {
+        qDebug() << "LocalDevice: could not expose i-score-remote on port 6666";
+    }
 
     dev.onNodeCreated.connect<LocalDevice, &LocalDevice::nodeCreated>(this);
     dev.onNodeRemoving.connect<LocalDevice, &LocalDevice::nodeRemoving>(this);

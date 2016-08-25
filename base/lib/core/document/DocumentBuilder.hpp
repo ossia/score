@@ -43,16 +43,6 @@ class ISCORE_LIB_BASE_EXPORT DocumentBuilder
 
     private:
         void setBackupManager(Document* doc);
-        template<
-                typename InitFun, // for setup of m_backupManager
-                typename BackupFun // the model data to save
-        >
-        Document* loadDocument_impl(
-                const iscore::ApplicationContext& ctx,
-                const QVariant &data,
-                iscore::DocumentDelegateFactory& doctype,
-                InitFun&& initfun,
-                BackupFun&& backupfun);
 
         QObject* m_parentPresenter{};
         QWidget* m_parentView{};
