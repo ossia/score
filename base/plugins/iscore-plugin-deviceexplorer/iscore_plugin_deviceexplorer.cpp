@@ -56,7 +56,7 @@ iscore_plugin_deviceexplorer::factories(
 iscore::GUIApplicationContextPlugin *iscore_plugin_deviceexplorer::make_applicationPlugin(
         const iscore::GUIApplicationContext& app)
 {
-    return new Explorer::DeviceExplorerApplicationPlugin{app};
+    return new Explorer::ApplicationPlugin{app};
 }
 
 

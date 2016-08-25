@@ -102,15 +102,19 @@ bool ApplicationPlugin::handleStartup()
     return false;
 }
 
-void ApplicationPlugin::on_newDocument(iscore::Document* doc)
+void ApplicationPlugin::on_initDocument(iscore::Document& doc)
 {
-    doc->model().addPluginModel(new Engine::LocalTree::DocumentPlugin{*doc, &doc->model()});
-    doc->model().addPluginModel(new Engine::Execution::DocumentPlugin{*doc, &doc->model()});
+    doc.model().addPluginModel(new Engine::LocalTree::DocumentPlugin{doc, &doc.model()});
 }
 
-void ApplicationPlugin::on_loadedDocument(iscore::Document *doc)
+void ApplicationPlugin::on_createdDocument(iscore::Document& doc)
 {
-    on_newDocument(doc);
+    auto lt = doc.context().findPlugin<LocalTree::DocumentPlugin>();
+    if(lt)
+    {
+        lt->init();
+    }
+    doc.model().addPluginModel(new Engine::Execution::DocumentPlugin{doc, &doc.model()});
 }
 
 void ApplicationPlugin::on_documentChanged(

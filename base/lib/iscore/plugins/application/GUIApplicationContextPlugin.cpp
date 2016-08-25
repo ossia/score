@@ -34,7 +34,7 @@ void GUIApplicationContextPlugin::initialize()
 
 }
 
-auto GUIApplicationContextPlugin::makeGUIElements() -> GUIElements
+GUIElements GUIApplicationContextPlugin::makeGUIElements()
 {
     return {};
 }
@@ -67,12 +67,22 @@ void GUIApplicationContextPlugin::on_activeWindowChanged()
 
 }
 
-void GUIApplicationContextPlugin::on_newDocument(iscore::Document* doc)
+void GUIApplicationContextPlugin::on_initDocument(iscore::Document& doc)
 {
 
 }
 
-void GUIApplicationContextPlugin::on_loadedDocument(iscore::Document *doc)
+void GUIApplicationContextPlugin::on_newDocument(iscore::Document& doc)
+{
+
+}
+
+void GUIApplicationContextPlugin::on_loadedDocument(iscore::Document& doc)
+{
+
+}
+
+void GUIApplicationContextPlugin::on_createdDocument(iscore::Document& doc)
 {
 
 }

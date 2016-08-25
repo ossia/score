@@ -44,8 +44,8 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final :
 
         bool handleStartup() override;
 
-        void on_newDocument(iscore::Document* doc) override;
-        void on_loadedDocument(iscore::Document* doc) override;
+        void on_initDocument(iscore::Document& doc) override;
+        void on_createdDocument(iscore::Document& doc) override;
 
         void on_documentChanged(
                 iscore::Document* olddoc,

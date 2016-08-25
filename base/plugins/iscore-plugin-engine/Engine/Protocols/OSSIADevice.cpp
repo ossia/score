@@ -429,7 +429,6 @@ void OwningOSSIADevice::disconnect()
 
 void OSSIADevice::nodeCreated(const ossia::net::node_base & n)
 {
-    qDebug() << Engine::ossia_to_iscore::ToAddress(n);
     emit pathAdded(Engine::ossia_to_iscore::ToAddress(n));
 }
 

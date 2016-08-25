@@ -277,6 +277,9 @@ bool DocumentManager::saveDocument(Document& doc)
         f.commit();
     }
 
+    m_recentFiles->addRecentFile(savename);
+    saveRecentFilesState();
+
     return true;
 }
 
@@ -430,6 +433,9 @@ Document* DocumentManager::loadFile(
         QFile f {fileName};
         if(f.open(QIODevice::ReadOnly))
         {
+            m_recentFiles->addRecentFile(fileName);
+            saveRecentFilesState();
+
             if (fileName.indexOf(".scorebin") != -1)
             {
                 doc = loadDocument(ctx, f.readAll(), *ctx.components.factory<DocumentDelegateList>().begin());
@@ -443,8 +449,6 @@ Document* DocumentManager::loadFile(
             if(doc)
             {
                 m_currentDocument->metadata.setFileName(fileName);
-                m_recentFiles->addRecentFile(fileName);
-                saveRecentFilesState();
             }
         }
     }

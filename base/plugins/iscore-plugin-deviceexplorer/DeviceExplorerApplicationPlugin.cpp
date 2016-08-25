@@ -12,20 +12,20 @@ struct VisitorVariant;
 
 namespace Explorer
 {
-DeviceExplorerApplicationPlugin::DeviceExplorerApplicationPlugin(
+ApplicationPlugin::ApplicationPlugin(
         const iscore::GUIApplicationContext& app) :
     GUIApplicationContextPlugin {app}
 {
 
 }
 
-void DeviceExplorerApplicationPlugin::on_newDocument(iscore::Document* doc)
+void ApplicationPlugin::on_newDocument(iscore::Document& doc)
 {
-    doc->model().addPluginModel(
-                new DeviceDocumentPlugin{doc->context(), &doc->model()});
+    doc.model().addPluginModel(
+                new DeviceDocumentPlugin{doc.context(), &doc.model()});
 }
 
-void DeviceExplorerApplicationPlugin::on_documentChanged(
+void ApplicationPlugin::on_documentChanged(
         iscore::Document* olddoc,
         iscore::Document* newdoc)
 {

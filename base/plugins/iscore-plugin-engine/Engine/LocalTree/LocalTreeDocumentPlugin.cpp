@@ -49,7 +49,19 @@ Engine::LocalTree::DocumentPlugin::DocumentPlugin(
 {
     con(doc, &iscore::Document::aboutToClose,
         this, &DocumentPlugin::cleanup);
+}
 
+Engine::LocalTree::DocumentPlugin::~DocumentPlugin()
+{
+    cleanup();
+
+    auto docplug = context().findPlugin<Explorer::DeviceDocumentPlugin>();
+    if(docplug)
+        docplug->list().setLocalDevice(nullptr);
+}
+
+void Engine::LocalTree::DocumentPlugin::init()
+{
     auto& set = m_context.app.settings<Settings::Model>();
     if(set.getLocalTree())
     {
@@ -64,15 +76,6 @@ Engine::LocalTree::DocumentPlugin::DocumentPlugin(
             cleanup();
     }, Qt::QueuedConnection);
 
-    auto docplug = doc.context().findPlugin<Explorer::DeviceDocumentPlugin>();
-    if(docplug)
-        docplug->list().setLocalDevice(&m_localDeviceWrapper);
-}
-
-Engine::LocalTree::DocumentPlugin::~DocumentPlugin()
-{
-    cleanup();
-
     auto docplug = context().findPlugin<Explorer::DeviceDocumentPlugin>();
     if(docplug)
         docplug->list().setLocalDevice(&m_localDeviceWrapper);
@@ -84,9 +87,10 @@ void Engine::LocalTree::DocumentPlugin::create()
         cleanup();
 
     auto& doc = m_context.document.model().modelDelegate();
-    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
-                      &doc);
-    ISCORE_ASSERT(scenar);
+    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&doc);
+    if(!scenar)
+        return;
+
     auto& cstr = scenar->baseScenario().constraint();
     m_root = new Constraint(
                 m_localDevice.getRootNode(),
