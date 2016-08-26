@@ -60,7 +60,8 @@ void PanelDelegate::on_modelChanged(
 
 void PanelDelegate::setNewSelection(const Selection& s)
 {
-    m_inspectorPanel->newItemsInspected(s);
+    if(m_inspectorPanel)
+        m_inspectorPanel->newItemsInspected(s);
 }
 
 }

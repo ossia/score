@@ -37,6 +37,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ConstraintElement final : public QObject
                 Scenario::ConstraintModel& iscore_cst,
                 const Context &ctx,
                 QObject* parent);
+        ~ConstraintElement();
 
         std::shared_ptr<ossia::time_constraint> OSSIAConstraint() const;
         Scenario::ConstraintModel& iscoreConstraint() const;

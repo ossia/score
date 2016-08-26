@@ -31,7 +31,7 @@ DocumentContext::DocumentContext(Document& d):
     commandStack{d.m_commandStack},
     selectionStack{d.selectionStack()},
     objectLocker{d.locker()},
-    focus{d.m_focus}
+    focus{d.focusManager()}
 {
 }
 
@@ -102,6 +102,9 @@ Document::~Document()
     // to be deleted before the model.
     // (Else we would have to fine-grain the deletion of the selection stack).
 
+    m_commandStack.blockSignals(true);
+    m_selectionStack.blockSignals(true);
+    m_focus.blockSignals(true);
     delete m_presenter;
     delete m_view;
     delete m_model;
