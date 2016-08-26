@@ -64,6 +64,11 @@ ConstraintElement::ConstraintElement(
 
 }
 
+ConstraintElement::~ConstraintElement()
+{
+    executionStopped();
+}
+
 std::shared_ptr<ossia::time_constraint> ConstraintElement::OSSIAConstraint() const
 {
     return m_ossia_constraint;

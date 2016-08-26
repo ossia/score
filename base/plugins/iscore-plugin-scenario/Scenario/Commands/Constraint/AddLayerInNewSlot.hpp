@@ -22,7 +22,7 @@ namespace Command
 /**
         * @brief The AddLayerInNewSlot class
         */
-class AddLayerInNewSlot final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerInNewSlot final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerInNewSlot, "Add a new layer")
         public:
