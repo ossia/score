@@ -104,6 +104,7 @@ Document::~Document()
 
     delete m_presenter;
     delete m_view;
+    delete m_model;
 }
 
 const Id<DocumentModel>&Document::id() const

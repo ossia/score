@@ -135,7 +135,6 @@ ossia::value Component::on_curveChanged(ossia::val_type type)
 void Component::recreate()
 {
     m_ossia_process = nullptr;
-    ossia::net::address_base* ossia_addr{};
 
     // Add the real address
     auto address = Engine::iscore_to_ossia::findAddress(
@@ -145,7 +144,8 @@ void Component::recreate()
     if(address)
     {
         m_ossia_process = new ossia::automation(
-                    *ossia_addr, on_curveChanged(ossia_addr->getValueType()));
+                    *address,
+              on_curveChanged(address->getValueType()));
     }
 }
 

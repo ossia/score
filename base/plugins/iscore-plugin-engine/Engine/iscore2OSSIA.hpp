@@ -1,12 +1,13 @@
 #pragma once
-#include <ossia/ossia.hpp>
-
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <State/Expression.hpp>
 #include <QStringList>
 #include <memory>
+#include <ossia/editor/scenario/time_value.hpp>
+#include <ossia/editor/expression/expression.hpp>
+#include <ossia/editor/state/state.hpp>
 
 #include <State/Value.hpp>
 

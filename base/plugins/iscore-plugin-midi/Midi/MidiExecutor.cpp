@@ -5,6 +5,7 @@
 #include <Engine/iscore2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <ossia/network/midi/detail/midi_impl.hpp>
+#include <ossia/editor/scenario/time_constraint.hpp>
 
 namespace Midi
 {

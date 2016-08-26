@@ -4,6 +4,13 @@
 #include <ossia/network/base/node.hpp>
 #include <nano_observer.hpp>
 
+namespace ossia
+{
+namespace net
+{
+class generic_device;
+}
+}
 namespace Engine
 {
 namespace Network
