@@ -89,6 +89,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT BaseScenarioElement final : public QObject
                 BaseScenarioRefContainer element,
                 const Context&,
                 QObject* parent);
+        ~BaseScenarioElement();
 
         ConstraintElement* baseConstraint() const;
 

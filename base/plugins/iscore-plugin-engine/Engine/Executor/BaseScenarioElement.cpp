@@ -84,6 +84,12 @@ BaseScenarioElement::BaseScenarioElement(
     });
 }
 
+BaseScenarioElement::~BaseScenarioElement()
+{
+  m_ossia_startTimeNode->OSSIATimeNode()->cleanup();
+  m_ossia_endTimeNode->OSSIATimeNode()->cleanup();
+}
+
 ConstraintElement *BaseScenarioElement::baseConstraint() const
 {
     return m_ossia_constraint;

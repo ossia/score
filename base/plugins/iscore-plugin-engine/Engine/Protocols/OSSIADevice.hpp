@@ -1,5 +1,6 @@
 #pragma once
-#include <ossia/ossia.hpp>
+#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/device.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <ossia/detail/callback_container.hpp>
