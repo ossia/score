@@ -80,9 +80,12 @@ function(iscore_set_gcc_compile_options theTarget)
           )
 
       target_compile_options(${theTarget} PUBLIC
-          -ffunction-sections
-          -fdata-sections
-          -Wl,--gc-sections
+          "$<$<CONFIG:Release>:-ffunction-sections>"
+          "$<$<CONFIG:Release>:-fdata-sections>"
+          "$<$<CONFIG:Release>:-Wl,--gc-sections>"
+          "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-fvar-tracking-assignments>"
+          "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-Wl,--gdb-index>"
+
           "$<$<CONFIG:Debug>:-O0>"
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
@@ -90,9 +93,11 @@ function(iscore_set_gcc_compile_options theTarget)
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
           )
       target_link_libraries(${theTarget} PUBLIC
-          -ffunction-sections
-          -fdata-sections
-          -Wl,--gc-sections
+          "$<$<CONFIG:Release>:-ffunction-sections>"
+          "$<$<CONFIG:Release>:-fdata-sections>"
+          "$<$<CONFIG:Release>:-Wl,--gc-sections>"
+          "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-fvar-tracking-assignments>"
+          "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-Wl,--gdb-index>"
 
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
@@ -144,6 +149,7 @@ function(iscore_set_unix_compile_options theTarget)
 
     # Debug options
     "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-gsplit-dwarf>"
+    "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-gdwarf-4>"
     "$<$<AND:$<CONFIG:Debug>,$<PLATFORM_ID:Windows>>:-Os>"
 
     # Release options
@@ -243,7 +249,7 @@ function(setup_iscore_common_lib_features TheTarget)
   generate_export_header(${TheTarget})
   if(NOT ISCORE_STATIC_PLUGINS)
     set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-	  set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+      set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
   endif()
 
   string(TOUPPER "${TheTarget}" UPPERCASE_PLUGIN_NAME)
