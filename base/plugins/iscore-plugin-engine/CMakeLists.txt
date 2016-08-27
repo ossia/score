@@ -65,6 +65,7 @@ set(HDRS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ProcessComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ScenarioComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/LoopComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ConstraintComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/EventComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/TimeNodeComponent.hpp"
@@ -125,6 +126,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ScenarioComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/LoopComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ConstraintComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/EventComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/TimeNodeComponent.cpp"

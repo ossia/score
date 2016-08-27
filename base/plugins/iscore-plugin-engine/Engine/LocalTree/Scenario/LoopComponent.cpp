@@ -1,4 +1,4 @@
-#include "ScenarioComponent.hpp"
+#include "LoopComponent.hpp"
 #include <Engine/LocalTree/Scenario/MetadataParameters.hpp>
 
 namespace Engine
@@ -6,13 +6,13 @@ namespace Engine
 namespace LocalTree
 {
 
-ScenarioComponentBase::ScenarioComponentBase(
+LoopComponentBase::LoopComponentBase(
         const Id<iscore::Component>& id,
         ossia::net::node_base& parent,
-        Scenario::ProcessModel& scenario,
+        Loop::ProcessModel& loop,
         DocumentPlugin& sys,
         QObject* parent_obj):
-    ProcessComponent_T<Scenario::ProcessModel>{parent, scenario, sys, id, "ScenarioComponent", parent_obj},
+    ProcessComponent_T<Loop::ProcessModel>{parent, loop, sys, id, "LoopComponent", parent_obj},
     m_constraintsNode{*node().createChild("constraints")},
     m_eventsNode{*node().createChild("events")},
     m_timeNodesNode{*node().createChild("timenodes")},
@@ -21,7 +21,7 @@ ScenarioComponentBase::ScenarioComponentBase(
 }
 
 template<>
-Constraint* ScenarioComponentBase::make<Constraint, Scenario::ConstraintModel>(
+Constraint* LoopComponentBase::make<Constraint, Scenario::ConstraintModel>(
         const Id<iscore::Component>& id,
         Scenario::ConstraintModel& elt)
 {
@@ -29,7 +29,7 @@ Constraint* ScenarioComponentBase::make<Constraint, Scenario::ConstraintModel>(
 }
 
 template<>
-Event* ScenarioComponentBase::make<Event, Scenario::EventModel>(
+Event* LoopComponentBase::make<Event, Scenario::EventModel>(
         const Id<iscore::Component>& id,
         Scenario::EventModel& elt)
 {
@@ -37,7 +37,7 @@ Event* ScenarioComponentBase::make<Event, Scenario::EventModel>(
 }
 
 template<>
-TimeNode* ScenarioComponentBase::make<TimeNode, Scenario::TimeNodeModel>(
+TimeNode* LoopComponentBase::make<TimeNode, Scenario::TimeNodeModel>(
         const Id<iscore::Component>& id,
         Scenario::TimeNodeModel& elt)
 {
@@ -45,11 +45,12 @@ TimeNode* ScenarioComponentBase::make<TimeNode, Scenario::TimeNodeModel>(
 }
 
 template<>
-State* ScenarioComponentBase::make<State, Scenario::StateModel>(
+State* LoopComponentBase::make<State, Scenario::StateModel>(
         const Id<iscore::Component>& id,
         Scenario::StateModel& elt)
 {
     return new State{m_statesNode, id, elt, system(), this};
 }
+
 }
 }

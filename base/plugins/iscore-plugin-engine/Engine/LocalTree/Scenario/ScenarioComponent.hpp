@@ -27,21 +27,11 @@ class ScenarioComponentBase :
                const Id<iscore::Component>& id,
                Element& elt);
 
+        template<typename Component_T, typename Element>
         void removing(
-                const Scenario::ConstraintModel& elt,
-                const Constraint& comp);
-
-        void removing(
-                const Scenario::EventModel& elt,
-                const Event& comp);
-
-        void removing(
-                const Scenario::TimeNodeModel& elt,
-                const TimeNode& comp);
-
-        void removing(
-                const Scenario::StateModel& elt,
-                const State& comp);
+                const Element& elt,
+                const Component_T& comp)
+        { }
 
     private:
         ossia::net::node_base& m_constraintsNode;

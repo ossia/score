@@ -59,6 +59,13 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base &node)
     return s;
 }
 
+Device::FullAddressSettings ToFullAddressSettings(const ossia::net::node_base &node)
+{
+    Device::FullAddressSettings set;
+    static_cast<Device::AddressSettingsCommon&>(set) = ToAddressSettings(node);
+    set.address = ToAddress(node);
+    return set;
+}
 
 Device::Node ToDeviceExplorer(const ossia::net::node_base &ossia_node)
 {
