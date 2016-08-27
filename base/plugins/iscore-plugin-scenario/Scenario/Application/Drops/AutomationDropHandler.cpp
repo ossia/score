@@ -22,6 +22,7 @@ static void getAddressesRecursively(
             as.address = curAddr;
             addresses.push_back(std::move(as));
         }
+        // TODO interpolation
     }
 
     for(auto& child : node)
@@ -39,27 +40,39 @@ bool AutomationDropHandler::handle(
         const QMimeData* mime)
 {
     // TODO refactor with AddressEditWidget
-    if(!mime->formats().contains(iscore::mime::nodelist()))
-        return false;
-
-    Mime<Device::FreeNodeList>::Deserializer des{*mime};
-    Device::FreeNodeList nl = des.deserialize();
-    if(nl.empty())
-        return false;
-
-    std::vector<Device::FullAddressSettings> addresses;
-    for(auto& np: nl)
+    if(mime->formats().contains(iscore::mime::nodelist()))
     {
-        getAddressesRecursively(np.second, np.first, addresses);
+        Mime<Device::FreeNodeList>::Deserializer des{*mime};
+        Device::FreeNodeList nl = des.deserialize();
+        if(nl.empty())
+            return false;
+
+        std::vector<Device::FullAddressSettings> addresses;
+        for(auto& np: nl)
+        {
+            getAddressesRecursively(np.second, np.first, addresses);
+        }
+
+        if(addresses.empty())
+            return false;
+
+        auto& doc = iscore::IDocument::documentContext(cst);
+        CreateCurvesFromAddresses({&cst}, addresses, doc.commandStack);
+
+        return true;
     }
+    else if(mime->formats().contains(iscore::mime::addressettings()))
+    {
+        Mime<Device::FullAddressSettings>::Deserializer des{*mime};
+        auto& doc = iscore::IDocument::documentContext(cst);
 
-    if(addresses.empty())
+        CreateCurvesFromAddresses({&cst}, {des.deserialize()}, doc.commandStack);
+        return true;
+    }
+    else
+    {
         return false;
-
-    auto& doc = iscore::IDocument::documentContext(cst);
-    CreateCurvesFromAddresses({&cst}, addresses, doc.commandStack);
-
-    return true;
+    }
 }
 
 }

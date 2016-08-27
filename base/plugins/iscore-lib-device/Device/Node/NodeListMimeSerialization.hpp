@@ -9,8 +9,33 @@ namespace iscore
 namespace mime
 {
 inline constexpr const char * nodelist() { return "application/x-iscore-nodelist"; }
+inline constexpr const char * addressettings() { return "application/x-iscore-address-settings"; }
 }
 }
+
+
+template<>
+struct Visitor<Reader<Mime<Device::FullAddressSettings>>> : public MimeDataReader
+{
+        using MimeDataReader::MimeDataReader;
+        void serialize(const Device::FullAddressSettings& lst) const
+        {
+            m_mime.setData(
+                        iscore::mime::addressettings(),
+                        QJsonDocument(toJsonObject(lst)).toJson(QJsonDocument::Indented));
+        }
+};
+
+template<>
+struct Visitor<Writer<Mime<Device::FullAddressSettings>>> : public MimeDataWriter
+{
+        using MimeDataWriter::MimeDataWriter;
+        auto deserialize()
+        {
+            auto obj = QJsonDocument::fromJson(m_mime.data(iscore::mime::addressettings())).object();
+            return fromJsonObject<Device::FullAddressSettings>(obj);
+        }
+};
 
 
 template<>

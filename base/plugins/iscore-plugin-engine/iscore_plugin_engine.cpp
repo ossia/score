@@ -10,6 +10,7 @@
 #include <Engine/ApplicationPlugin.hpp>
 
 #include <Engine/LocalTree/Scenario/ScenarioComponent.hpp>
+#include <Engine/LocalTree/Scenario/LoopComponent.hpp>
 #include <Engine/Executor/ProcessElement.hpp>
 #include <Engine/Executor/ScenarioElement.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
@@ -95,7 +96,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_engine:
                  Engine::Execution::Settings::Factory,
                  LocalTree::Settings::Factory>,
             FW<Engine::LocalTree::ProcessComponentFactory,
-                 Engine::LocalTree::ScenarioComponentFactory>,
+                 Engine::LocalTree::ScenarioComponentFactory,
+                 Engine::LocalTree::LoopComponentFactory
+            >,
             FW<iscore::PanelDelegateFactory,
                  Engine::PanelDelegateFactory>,
             FW<Engine::Execution::ClockManagerFactory, Engine::Execution::DefaultClockManagerFactory>,

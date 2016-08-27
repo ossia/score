@@ -104,15 +104,16 @@ template<> struct MatchingType<::TimeValue> {
 
 
 
-Device::IOType ToIOType(ossia::access_mode t);
-Device::ClipMode ToClipMode(ossia::bounding_mode b);
-Device::Domain ToDomain(ossia::net::domain& domain);
+ISCORE_PLUGIN_ENGINE_EXPORT Device::IOType ToIOType(ossia::access_mode t);
+ISCORE_PLUGIN_ENGINE_EXPORT Device::ClipMode ToClipMode(ossia::bounding_mode b);
+ISCORE_PLUGIN_ENGINE_EXPORT Device::Domain ToDomain(ossia::net::domain& domain);
 
 ISCORE_PLUGIN_ENGINE_EXPORT State::Value ToValue(const ossia::value& val);
-State::Value ToValue(ossia::val_type);
+ISCORE_PLUGIN_ENGINE_EXPORT State::Value ToValue(ossia::val_type);
 
-State::Address ToAddress(const ossia::net::node_base& node);
-Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node);
+ISCORE_PLUGIN_ENGINE_EXPORT State::Address ToAddress(const ossia::net::node_base& node);
+ISCORE_PLUGIN_ENGINE_EXPORT Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node);
+ISCORE_PLUGIN_ENGINE_EXPORT Device::FullAddressSettings ToFullAddressSettings(const ossia::net::node_base& node);
 ISCORE_PLUGIN_ENGINE_EXPORT Device::Node ToDeviceExplorer(const ossia::net::node_base& node);
 
 
