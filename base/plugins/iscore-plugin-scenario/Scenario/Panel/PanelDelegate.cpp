@@ -4,8 +4,10 @@
 #include <Process/LayerModelPanelProxy.hpp>
 #include <Process/Tools/ProcessPanelGraphicsProxy.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <iscore/widgets/ClearLayout.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <QVBoxLayout>
 
 namespace Scenario
@@ -84,14 +86,40 @@ void PanelDelegate::cleanup()
     m_proxy = nullptr;
 }
 
+template<typename T>
+QDebug operator<<(QDebug d, Path<T> path)
+{
+    auto& unsafe = path.unsafePath();
+    d << unsafe.toString();
+    return d;
+}
+bool isInFullView(const Process::LayerModel& theLM)
+{
+    auto& doc = iscore::IDocument::documentContext(theLM);
+    auto& sub = safe_cast<Scenario::ScenarioDocumentModel&>(doc.document.model().modelDelegate());
+    return &sub.displayedElements.constraint() == dynamic_cast<ConstraintModel*>(theLM.parent()->parent()->parent());
+}
+
 void PanelDelegate::on_focusedViewModelChanged(const Process::LayerModel* theLM)
 {
     if(theLM &&
        m_layerModel &&
        &theLM->processModel() == &m_layerModel->processModel())
     {
+        // We don't want to switch if we click on the same layer
         return;
     }
+    else if(theLM && isInFullView(*theLM))
+    {
+        // We don't want to switch if we click into the background of the scenario
+        return;
+    }
+    /*
+    else if(!theLM)
+    {
+        return ;
+    }
+    */
     else if(theLM != m_layerModel)
     {
         m_layerModel = theLM;
@@ -107,6 +135,11 @@ void PanelDelegate::on_focusedViewModelChanged(const Process::LayerModel* theLM)
         if(m_proxy)
             m_widget->layout()->addWidget(m_proxy->widget());
     }
+}
+
+void PanelDelegate::on_focusedViewModelRemoved(const Process::LayerModel* theLM)
+{
+    ISCORE_TODO;
 }
 
 }
