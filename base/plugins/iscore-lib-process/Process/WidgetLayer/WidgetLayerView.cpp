@@ -20,14 +20,14 @@ void View::setWidget(QWidget* w)
     m_widg->setWidget(w);
     m_widg->setContentsMargins(0, 0, 0, 0);
 
-
-
     QPalette palette ;
     palette.setBrush(QPalette::Background, Qt::transparent);
     w->setPalette(palette);
 
     w->setAutoFillBackground(false);
     w->setStyleSheet("QWidget { background-color:transparent }");
+
+    connect(w, SIGNAL(pressed()), this, SIGNAL(pressed()));
 }
 
 

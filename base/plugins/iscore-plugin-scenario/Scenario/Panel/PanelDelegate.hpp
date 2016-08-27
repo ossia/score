@@ -28,12 +28,14 @@ class PanelDelegate final :
 
         void on_focusedViewModelChanged(
                 const Process::LayerModel* theLM);
+        void on_focusedViewModelRemoved(
+                const Process::LayerModel* theLM);
 
 
         void cleanup();
 
         QWidget* m_widget{};
-        const Process::LayerModel* m_layerModel{};
+        QPointer<const Process::LayerModel> m_layerModel{};
         Process::LayerModelPanelProxy* m_proxy{};
 
         std::vector<QMetaObject::Connection> m_connections;

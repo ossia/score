@@ -41,7 +41,7 @@ struct graphics_item_ptr
         operator T*() const
         { return impl; }
 
-        auto operator*() const -> decltype(auto)
+        T& operator*() const
         {
             return *impl;
         }

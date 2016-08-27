@@ -32,7 +32,11 @@ QRectF SlotView::boundingRect() const
 void SlotView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->setPen(ScenarioStyle::instance().ProcessViewBorder.getColor());
+  if(!m_focus)
+      painter->setPen(ScenarioStyle::instance().ProcessViewBorder.getColor());
+  else
+      painter->setPen(ScenarioStyle::instance().SlotFocus.getColor());
+
   painter->drawLine(0, 0, m_width, 0);
 }
 
