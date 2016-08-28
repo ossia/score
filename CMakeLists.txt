@@ -13,10 +13,8 @@ if(NOT ISCORE_CONFIGURATION)
   set(ISCORE_CONFIGURATION developer)
 endif()
 include("${ISCORE_CONFIGURATION}")
-message(STATUS "iscore - Static plug-ins 0: ${ISCORE_STATIC_PLUGINS}")
 
 project(iscore LANGUAGES CXX)
-message(STATUS "iscore - Static plug-ins 1: ${ISCORE_STATIC_PLUGINS}")
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
@@ -33,17 +31,14 @@ set(ISCORE_VERSION "${ISCORE_VERSION_MAJOR}.${ISCORE_VERSION_MINOR}.${ISCORE_VER
 
 enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
-message(STATUS "iscore - Static plug-ins 2: ${ISCORE_STATIC_PLUGINS}")
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
-message(STATUS "iscore - Static plug-ins 3: ${ISCORE_STATIC_PLUGINS}")
 if(ISCORE_SANITIZE)
-    set(OSSIA_SANITIZE True)
+    set(OSSIA_SANITIZE True CACHE INTERNAL "" FORCE)
 endif()
 if(ISCORE_STATIC_PLUGINS)
-    set(OSSIA_STATIC ON)
+    set(OSSIA_STATIC ON CACHE INTERNAL "" FORCE)
 endif()
-set(OSSIA_NO_INSTALL ON)
-message(STATUS "iscore - Static plug-ins 4: ${ISCORE_STATIC_PLUGINS} ${OSSIA_STATIC}")
+set(OSSIA_NO_INSTALL ON CACHE INTERNAL "" FORCE)
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" )
 
