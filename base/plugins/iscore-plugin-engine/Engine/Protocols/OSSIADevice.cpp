@@ -11,6 +11,7 @@
 #include <Engine/OSSIA2iscore.hpp>
 #include <Engine/iscore2OSSIA.hpp>
 
+#include <ossia/editor/state/state_element.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/address.hpp>
 #include <ossia/network/base/protocol.hpp>

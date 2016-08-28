@@ -1,5 +1,6 @@
 #include "ProcessComponent.hpp"
 #include <Process/Process.hpp>
+#include <ossia/editor/state/state_element.hpp>
 
 Engine::LocalTree::ProcessComponent::ProcessComponent(
         ossia::net::node_base& parentNode,

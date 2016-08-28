@@ -23,14 +23,14 @@ struct uuid
         typedef std::size_t size_type;
         typedef std::ptrdiff_t difference_type;
 
-        static Q_RELAXED_CONSTEXPR size_type static_size() noexcept { return 16; }
+        static Q_DECL_CONSTEXPR size_type static_size() noexcept { return 16; }
 
     public:
-        Q_RELAXED_CONSTEXPR uuid() noexcept:
+        Q_DECL_CONSTEXPR uuid() noexcept:
             data{{}}
         { }
 
-        Q_RELAXED_CONSTEXPR uuid(const uuid& other) noexcept:
+        Q_DECL_RELAXED_CONSTEXPR uuid(const uuid& other) noexcept:
             data{{}}
         {
             for (std::size_t i = 0; i < sizeof(data); ++i)
@@ -39,14 +39,14 @@ struct uuid
             }
         }
 
-        Q_RELAXED_CONSTEXPR iterator begin() noexcept { return data; }
-        Q_RELAXED_CONSTEXPR const_iterator begin() const noexcept { return data; }
-        Q_RELAXED_CONSTEXPR iterator end() noexcept { return data+size(); }
-        Q_RELAXED_CONSTEXPR const_iterator end() const noexcept { return data+size(); }
+        Q_DECL_CONSTEXPR iterator begin() noexcept { return data; }
+        Q_DECL_CONSTEXPR const_iterator begin() const noexcept { return data; }
+        Q_DECL_CONSTEXPR iterator end() noexcept { return data+size(); }
+        Q_DECL_CONSTEXPR const_iterator end() const noexcept { return data+size(); }
 
-        Q_RELAXED_CONSTEXPR size_type size() const noexcept { return static_size(); }
+        Q_DECL_CONSTEXPR size_type size() const noexcept { return static_size(); }
 
-        Q_RELAXED_CONSTEXPR bool is_nil() const noexcept
+        Q_DECL_RELAXED_CONSTEXPR bool is_nil() const noexcept
         {
             for (std::size_t i = 0; i < sizeof(data); ++i)
             {
@@ -115,7 +115,7 @@ struct uuid
         uint8_t data[16];
 };
 
-Q_RELAXED_CONSTEXPR inline bool operator== (uuid const& lhs, uuid const& rhs) noexcept
+Q_DECL_RELAXED_CONSTEXPR inline bool operator== (uuid const& lhs, uuid const& rhs) noexcept
 {
      for (std::size_t i = 0; i < uuid::static_size(); ++i)
      {
@@ -125,7 +125,7 @@ Q_RELAXED_CONSTEXPR inline bool operator== (uuid const& lhs, uuid const& rhs) no
      return true;
 }
 
-Q_RELAXED_CONSTEXPR inline bool operator< (uuid const& lhs, uuid const& rhs) noexcept
+Q_DECL_RELAXED_CONSTEXPR inline bool operator< (uuid const& lhs, uuid const& rhs) noexcept
 {
      for (std::size_t i = 0; i < uuid::static_size(); ++i)
      {
@@ -135,28 +135,28 @@ Q_RELAXED_CONSTEXPR inline bool operator< (uuid const& lhs, uuid const& rhs) noe
      return true;
 }
 
-Q_RELAXED_CONSTEXPR inline bool operator!=(uuid const& lhs, uuid const& rhs) noexcept
+Q_DECL_CONSTEXPR inline bool operator!=(uuid const& lhs, uuid const& rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
-Q_RELAXED_CONSTEXPR inline bool operator>(uuid const& lhs, uuid const& rhs) noexcept
+Q_DECL_CONSTEXPR inline bool operator>(uuid const& lhs, uuid const& rhs) noexcept
 {
     return rhs < lhs;
 }
 
-Q_RELAXED_CONSTEXPR inline bool operator<=(uuid const& lhs, uuid const& rhs) noexcept
+Q_DECL_CONSTEXPR inline bool operator<=(uuid const& lhs, uuid const& rhs) noexcept
 {
     return !(rhs < lhs);
 }
 
-Q_RELAXED_CONSTEXPR inline bool operator>=(uuid const& lhs, uuid const& rhs) noexcept
+Q_DECL_CONSTEXPR inline bool operator>=(uuid const& lhs, uuid const& rhs) noexcept
 {
     return !(lhs < rhs);
 }
 
 // This is equivalent to boost::hash_range(u.begin(), u.end());
-Q_RELAXED_CONSTEXPR inline std::size_t hash_value(uuid const& u) noexcept
+Q_DECL_RELAXED_CONSTEXPR inline std::size_t hash_value(uuid const& u) noexcept
 {
     std::size_t seed = 0;
     for(uuid::const_iterator i = u.begin(), e = u.end(); i != e; ++i)
@@ -172,14 +172,14 @@ struct string_generator {
         typedef uuid result_type;
 
         template<int N>
-        static Q_RELAXED_CONSTEXPR uuid compute(const char (&s)[N]) {
+        static Q_DECL_RELAXED_CONSTEXPR uuid compute(const char (&s)[N]) {
             if(N != 37)
                 throw std::runtime_error{"Invalid uuid"};
             return compute(s, s + N);
         }
 
         template <typename CharIterator>
-        static Q_RELAXED_CONSTEXPR uuid compute(CharIterator begin, CharIterator end)
+        static Q_DECL_RELAXED_CONSTEXPR uuid compute(CharIterator begin, CharIterator end)
         {
             // check open brace
             auto c = get_next_char(begin, end);
@@ -227,7 +227,7 @@ struct string_generator {
 
     private:
         template <typename CharIterator>
-        static Q_RELAXED_CONSTEXPR auto get_next_char(CharIterator& begin, CharIterator end)
+        static Q_DECL_RELAXED_CONSTEXPR auto get_next_char(CharIterator& begin, CharIterator end)
         {
             if (begin == end) {
                 throw std::runtime_error{"Invalid uuid"};
@@ -235,9 +235,9 @@ struct string_generator {
             return *begin++;
         }
 
-        static Q_RELAXED_CONSTEXPR unsigned char get_value(char c) {
-            Q_RELAXED_CONSTEXPR auto digits_begin = "0123456789abcdefABCDEF";
-            Q_RELAXED_CONSTEXPR unsigned char const values[] =
+        static Q_DECL_RELAXED_CONSTEXPR unsigned char get_value(char c) {
+            Q_DECL_RELAXED_CONSTEXPR const auto digits_begin = "0123456789abcdefABCDEF";
+            Q_DECL_RELAXED_CONSTEXPR unsigned char const values[] =
             { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,10,11,12,13,14,15
               , static_cast<unsigned char>(-1) };
 
@@ -258,14 +258,14 @@ struct string_generator {
             return -1;
         }
 
-        static Q_RELAXED_CONSTEXPR unsigned char get_value(QChar c) {
+        static Q_DECL_CONSTEXPR unsigned char get_value(QChar c) {
             return get_value(c.toLatin1());
         }
 
-        static Q_RELAXED_CONSTEXPR bool is_dash(char c) {
+        static Q_DECL_CONSTEXPR bool is_dash(char c) {
             return c == '-';
         }
-        static Q_RELAXED_CONSTEXPR bool is_dash(QChar c) {
+        static Q_DECL_CONSTEXPR bool is_dash(QChar c) {
             return c.toLatin1() == '-';
         }
 };
@@ -274,7 +274,7 @@ using uuid_t = uuids::uuid;
 }
 
 #define return_uuid(text) do { \
-    Q_RELAXED_CONSTEXPR const auto t = iscore::uuids::string_generator::compute((text)); \
+    Q_DECL_RELAXED_CONSTEXPR const auto t = iscore::uuids::string_generator::compute((text)); \
     return t; \
     } while(0)
 
@@ -286,55 +286,55 @@ class UuidKey : iscore::uuid_t
         friend struct std::hash<this_type>;
         friend struct boost::hash<this_type>;
         friend struct boost::hash<const this_type>;
-        friend Q_RELAXED_CONSTEXPR bool operator==(const this_type& lhs, const this_type& rhs) {
+        friend Q_DECL_CONSTEXPR bool operator==(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) == static_cast<const iscore::uuid_t&>(rhs);
         }
-        friend Q_RELAXED_CONSTEXPR bool operator!=(const this_type& lhs, const this_type& rhs) {
+        friend Q_DECL_CONSTEXPR bool operator!=(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) != static_cast<const iscore::uuid_t&>(rhs);
         }
-        friend Q_RELAXED_CONSTEXPR bool operator<(const this_type& lhs, const this_type& rhs) {
+        friend Q_DECL_CONSTEXPR bool operator<(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) < static_cast<const iscore::uuid_t&>(rhs);
         }
 
     public:
-        Q_RELAXED_CONSTEXPR UuidKey() noexcept = default;
-        Q_RELAXED_CONSTEXPR UuidKey(const UuidKey& other) noexcept = default;
-        Q_RELAXED_CONSTEXPR UuidKey(UuidKey&& other) noexcept = default;
-        Q_RELAXED_CONSTEXPR UuidKey& operator=(const UuidKey& other) noexcept = default;
-        Q_RELAXED_CONSTEXPR UuidKey& operator=(UuidKey&& other) noexcept = default;
+        Q_DECL_CONSTEXPR UuidKey() noexcept = default;
+        Q_DECL_CONSTEXPR UuidKey(const UuidKey& other) noexcept = default;
+        Q_DECL_CONSTEXPR UuidKey(UuidKey&& other) noexcept = default;
+        Q_DECL_CONSTEXPR UuidKey& operator=(const UuidKey& other) noexcept = default;
+        Q_DECL_CONSTEXPR UuidKey& operator=(UuidKey&& other) noexcept = default;
 
-        Q_RELAXED_CONSTEXPR UuidKey(iscore::uuid_t other) noexcept :
+        Q_DECL_CONSTEXPR UuidKey(iscore::uuid_t other) noexcept :
             iscore::uuid_t(other)
         {
 
         }
 
         template<int N>
-        explicit Q_RELAXED_CONSTEXPR UuidKey(const char (&txt)[N]) :
+        explicit Q_DECL_CONSTEXPR UuidKey(const char (&txt)[N]) :
             iscore::uuid_t(iscore::uuids::string_generator::compute<N>(txt))
         {
 
         }
 
         template<typename Iterator>
-        Q_RELAXED_CONSTEXPR UuidKey(Iterator beg_it, Iterator end_it) :
+        Q_DECL_CONSTEXPR UuidKey(Iterator beg_it, Iterator end_it) :
             iscore::uuid_t(iscore::uuids::string_generator::compute(beg_it, end_it))
         {
 
         }
 
-        static UuidKey fromString(const std::string& str)
+        Q_DECL_CONSTEXPR static UuidKey fromString(const std::string& str)
         {
             return UuidKey{str.begin(), str.end()};
         }
 
-        static UuidKey fromString(const QString& str)
+        Q_DECL_CONSTEXPR static UuidKey fromString(const QString& str)
         {
             return UuidKey{str.begin(), str.end()};
         }
 
-        Q_RELAXED_CONSTEXPR const iscore::uuid_t& impl() const { return *this; }
-        Q_RELAXED_CONSTEXPR iscore::uuid_t& impl() { return *this; }
+        Q_DECL_CONSTEXPR const iscore::uuid_t& impl() const { return *this; }
+        Q_DECL_CONSTEXPR iscore::uuid_t& impl() { return *this; }
 };
 
 namespace std
@@ -342,7 +342,7 @@ namespace std
 template<typename T>
 struct hash<UuidKey<T>>
 {
-        std::size_t operator()(const UuidKey<T>& kagi) const noexcept
+        Q_DECL_CONSTEXPR std::size_t operator()(const UuidKey<T>& kagi) const noexcept
         { return boost::hash<iscore::uuid_t>()(static_cast<const iscore::uuid_t&>(kagi)); }
 };
 }
@@ -352,14 +352,14 @@ namespace boost
 template<typename T>
 struct hash<UuidKey<T>>
 {
-        std::size_t operator()(const UuidKey<T>& kagi) const noexcept
+        Q_DECL_CONSTEXPR std::size_t operator()(const UuidKey<T>& kagi) const noexcept
         { return boost::hash<iscore::uuid_t>()(static_cast<const iscore::uuid_t&>(kagi)); }
 };
 
 template<typename T>
 struct hash<const UuidKey<T>>
 {
-        std::size_t operator()(const UuidKey<T>& kagi) const noexcept
+        Q_DECL_CONSTEXPR std::size_t operator()(const UuidKey<T>& kagi) const noexcept
         { return boost::hash<iscore::uuid_t>()(static_cast<const iscore::uuid_t&>(kagi)); }
 };
 }
