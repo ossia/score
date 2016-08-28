@@ -2,6 +2,7 @@ find_path(
     Lilv_INCLUDE_DIR lilv/lilv.h
     HINTS
         /usr/include/lilv-0
+        /usr/local/include/lilv-0
     )
 
 set(Lilv_NAMES lilv lilv-0)
@@ -20,14 +21,16 @@ if(Lilv_FOUND)
     set(Lilv_LIBRARIES ${Lilv_LIBRARY})
     set(Lilv_INCLUDE_DIRS ${Lilv_INCLUDE_DIR})
 
-    string(REGEX MATCH "(a|lib)$" IS_STATIC "${Lilv_LIBRARY}")
-    if(IS_STATIC)
-        add_library(Lilv STATIC IMPORTED GLOBAL)
+    string(REGEX MATCH "(dll|so|dylib)$" IS_SHARED "${Lilv_LIBRARY}")
+
+    if(IS_SHARED)
+      add_library(Lilv SHARED IMPORTED GLOBAL)
+      set_target_properties(Lilv PROPERTIES
+          INTERFACE_COMPILE_DEFINITIONS LILV_SHARED)
     else()
-        add_library(Lilv SHARED IMPORTED GLOBAL)
-        set_target_properties(Lilv PROPERTIES
-            INTERFACE_COMPILE_DEFINITIONS LILV_SHARED)
+      add_library(Lilv STATIC IMPORTED GLOBAL)
     endif()
+
     set_target_properties(Lilv PROPERTIES
         IMPORTED_LOCATION ${Lilv_LIBRARY}
         INTERFACE_INCLUDE_DIRECTORIES ${Lilv_INCLUDE_DIR})

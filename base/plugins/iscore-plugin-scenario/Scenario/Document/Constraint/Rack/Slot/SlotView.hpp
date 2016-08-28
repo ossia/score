@@ -22,6 +22,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotView final :
         public QGraphicsItem
 {
         Q_OBJECT
+  Q_INTERFACES(QGraphicsItem)
 
     public:
         const SlotPresenter& presenter;

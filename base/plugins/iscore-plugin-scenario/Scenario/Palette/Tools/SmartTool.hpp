@@ -52,7 +52,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                 MoveTimeNodeWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
 
                 /// Slot resize
-                auto resizeSlot = new ResizeSlotState<ToolPalette_T>{
+                auto resizeSlot = new ResizeSlotState<Scenario_T, ToolPalette_T>{
                         this->m_parentSM.context().context.commandStack,
                         this->m_parentSM,
                         actionsState};
@@ -109,7 +109,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
             [&] (const SlotModel& slot) // Slot handle
             {
                 this->localSM().postEvent(new ClickOnSlotHandle_Event{slot});
-                m_nothingPressed = true; // Because we use the Move_Event and Release_Event.
+                m_nothingPressed = false;
             },
             [&] ()
             {
@@ -142,8 +142,8 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                 { this->localSM().postEvent(new MoveOnLeftBrace_Event{id, sp}); }, // LeftBrace
                 [&] (const Id<ConstraintModel>& id)
                 { this->localSM().postEvent(new MoveOnRightBrace_Event{id, sp}); }, // RightBrace
-                [&] (const SlotModel& slot) // Slot handle
-                { /* do nothing, we aren't in this part but in m_nothingPressed == true part */ },
+                [&] (const SlotModel& slot)
+                { this->localSM().postEvent(new MoveOnSlotHandle_Event{slot}); }, // Slot handle
                 [&] ()
                 { this->localSM().postEvent(new MoveOnNothing_Event{sp});});
             }
@@ -161,6 +161,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
             if(m_moved) // then don't change selection
             {
                 this->localSM().postEvent(new ReleaseOnNothing_Event{sp});
+                m_nothingPressed = false;
 
                 return;
             }
@@ -228,8 +229,7 @@ class SmartTool final : public ToolBase<ToolPalette_T>
             },
             [&] (const SlotModel& slot) // Slot handle
             {
-                this->localSM().postEvent(new iscore::Release_Event); // select
-                m_nothingPressed = false; // TODO useless ???
+              this->localSM().postEvent(new ReleaseOnSlotHandle_Event{slot});
             },
             [&] ()
             {
@@ -238,6 +238,11 @@ class SmartTool final : public ToolBase<ToolPalette_T>
 
         }
 
+        void on_cancel() override
+        {
+          GraphicsSceneTool<Point>::on_cancel();
+
+        }
     private:
         SelectionState<ToolPalette_T, View_T>* m_state{};
 

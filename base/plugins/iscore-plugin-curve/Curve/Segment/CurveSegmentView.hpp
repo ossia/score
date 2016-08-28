@@ -20,6 +20,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentView final :
         public QGraphicsItem
 {
         Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
     public:
         SegmentView(
                 const SegmentModel* model,

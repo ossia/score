@@ -22,6 +22,8 @@ class AbstractTimeRulerView :
         public QGraphicsItem
 {
         Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
+
         AbstractTimeRuler* m_pres{};
     public:
         AbstractTimeRulerView();

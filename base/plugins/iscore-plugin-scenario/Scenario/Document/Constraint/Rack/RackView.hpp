@@ -14,6 +14,7 @@ class RackView final :
         public QGraphicsItem
 {
         Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
 
     public:
         RackView(QGraphicsItem* parent);

@@ -16,6 +16,7 @@ class ISCORE_LIB_PROCESS_EXPORT LayerView :
         public QGraphicsItem
 {
         Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
     public:
         LayerView(QGraphicsItem* parent):
             QGraphicsItem{parent}

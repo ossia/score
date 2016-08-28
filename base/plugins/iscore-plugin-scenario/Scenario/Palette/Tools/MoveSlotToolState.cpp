@@ -45,7 +45,7 @@ MoveSlotTool::MoveSlotTool(const ToolPalette& sm):
     }
 
     {
-        auto resizeSlot = new ResizeSlotState<ToolPalette>{m_sm.context().context.commandStack, m_sm, &m_localSM};
+        auto resizeSlot = new ResizeSlotState<Scenario::ProcessModel, ToolPalette>{m_sm.context().context.commandStack, m_sm, &m_localSM};
         iscore::make_transition<ClickOnSlotHandle_Transition>(
                     m_waitState,
                     resizeSlot,

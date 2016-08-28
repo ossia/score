@@ -16,6 +16,8 @@ class TriggerView final :
         public QGraphicsItem
 {
         Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
+
     public:
         TriggerView(QGraphicsItem* parent);
         QRectF boundingRect() const override;
