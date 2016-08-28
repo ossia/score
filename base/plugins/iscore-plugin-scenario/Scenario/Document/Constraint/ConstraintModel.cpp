@@ -208,6 +208,7 @@ void ConstraintModel::startExecution()
 }
 void ConstraintModel::stopExecution()
 {
+    duration.setPlayPercentage(0);
     duration.setExecutionSpeed(1.0);
     for(Process::ProcessModel& proc : processes)
     {

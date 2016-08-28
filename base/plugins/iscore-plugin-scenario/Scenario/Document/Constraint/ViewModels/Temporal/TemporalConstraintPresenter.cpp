@@ -47,7 +47,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     con(cstr_model.model().duration, &ConstraintDurations::playPercentageChanged,
         this, [&] (double percentage) {
         v.setExecutionDuration(duration.defaultDuration() * percentage);
-    });
+    }, Qt::QueuedConnection);
     const auto& metadata = m_viewModel.model().metadata;
     con(metadata, &ModelMetadata::LabelChanged,
         &v, &TemporalConstraintView::setLabel);
@@ -83,8 +83,26 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
                .handle(m_viewModel.model(), mime);
     });
 
-    // Change to full view when header is double-clicked
-    connect(static_cast<TemporalConstraintHeader*>(m_header), &TemporalConstraintHeader::doubleClicked,
+    // Header set-up
+    auto header = static_cast<TemporalConstraintHeader*>(m_header);
+
+    connect(header, &TemporalConstraintHeader::constraintHoverEnter,
+            this, &TemporalConstraintPresenter::constraintHoverEnter);
+    connect(header, &TemporalConstraintHeader::constraintHoverLeave,
+            this, &TemporalConstraintPresenter::constraintHoverLeave);
+    connect(header, &TemporalConstraintHeader::shadowChanged,
+            &v, &TemporalConstraintView::setShadow);
+
+    connect(header, &TemporalConstraintHeader::dropReceived,
+            this, [=] (
+            const QPointF &pos,
+            const QMimeData *mime) {
+        m_context.app.components
+               .factory<Scenario::ConstraintDropHandlerList>()
+               .handle(m_viewModel.model(), mime);
+    });
+    // Go to full-view on double click
+    connect(header, &TemporalConstraintHeader::doubleClicked,
             this, [this] () {
         using namespace iscore::IDocument;
         auto& base = get<ScenarioDocumentModel> (*documentFromObject(m_viewModel.model()));

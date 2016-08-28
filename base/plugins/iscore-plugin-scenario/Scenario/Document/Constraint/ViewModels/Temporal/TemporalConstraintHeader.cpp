@@ -4,6 +4,7 @@
 #include <QFont>
 #include <QFontMetrics>
 #include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 #include <QList>
 #include <QPainter>
@@ -25,6 +26,7 @@ namespace Scenario
 TemporalConstraintHeader::TemporalConstraintHeader():
     ConstraintHeader{}
 {
+    this->setAcceptDrops(true);
     this->setAcceptedMouseButtons(Qt::LeftButton);  // needs to be enabled for dblclick
     this->setFlags(QGraphicsItem::ItemIsSelectable);// needs to be enabled for dblclick
     this->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
@@ -126,5 +128,40 @@ void TemporalConstraintHeader::on_textChange()
     line.setPosition(QPointF{0., 0.});
 
     m_textCache.endLayout();*/
+}
+
+void TemporalConstraintHeader::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
+{
+    QGraphicsItem::hoverEnterEvent(h);
+    emit constraintHoverEnter();
+    emit shadowChanged(true);
+}
+
+void TemporalConstraintHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
+{
+    QGraphicsItem::hoverLeaveEvent(h);
+    emit shadowChanged(false);
+    emit constraintHoverLeave();
+}
+
+void TemporalConstraintHeader::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+    QGraphicsItem::dragEnterEvent(event);
+    emit shadowChanged(true);
+    event->accept();
+}
+
+void TemporalConstraintHeader::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+    QGraphicsItem::dragLeaveEvent(event);
+    emit shadowChanged(false);
+    event->accept();
+}
+
+void TemporalConstraintHeader::dropEvent(QGraphicsSceneDragDropEvent *event)
+{
+    emit dropReceived(event->pos(), event->mimeData());
+
+    event->accept();
 }
 }
