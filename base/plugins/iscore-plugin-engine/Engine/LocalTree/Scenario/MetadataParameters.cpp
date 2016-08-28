@@ -2,6 +2,7 @@
 #include <Engine/LocalTree/GetProperty.hpp>
 #include <Engine/LocalTree/Property.hpp>
 #include <Process/ModelMetadata.hpp>
+#include <ossia/editor/state/state_element.hpp>
 namespace Engine
 {
 namespace LocalTree
