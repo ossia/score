@@ -44,15 +44,15 @@ matrix:
 #      env: CONF=osx-debug CAN_DEPLOY=False
 #    - os: osx
 #      env: CONF=osx-static-debug CAN_DEPLOY=False
-    - os: osx
-      env: CONF=osx-package CAN_DEPLOY=False
+#    - os: osx
+#      env: CONF=osx-package CAN_DEPLOY=False
 
 #    - os: linux
 #      env: CONF=linux-debug CAN_DEPLOY=False
 #    - os: linux
 #      env: CONF=linux-static-debug CAN_DEPLOY=False
-#    - os: linux
-#      env: CONF=linux-release CAN_DEPLOY=False
+    - os: linux
+      env: CONF=linux-release CAN_DEPLOY=False
 
 # Coverity
 #    - os: linux
