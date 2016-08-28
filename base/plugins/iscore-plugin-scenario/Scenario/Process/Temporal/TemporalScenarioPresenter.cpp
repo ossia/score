@@ -132,9 +132,16 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
             this, [=] (
             const QPointF &pos,
             const QMimeData *mime) {
-        m_context.context.app.components
-               .factory<Scenario::DropHandlerList>()
-               .handle(*this, pos, mime);
+        try {
+            m_context.context.app.components
+                   .factory<Scenario::DropHandlerList>()
+                   .handle(*this, pos, mime);
+        }
+        catch(std::exception& e)
+        {
+            qDebug() << "Error during drop: " << e.what();
+
+        }
     });
 
     con(model(m_layer), &Scenario::ProcessModel::locked,
