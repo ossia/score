@@ -1,5 +1,6 @@
 #include "ConstraintComponent.hpp"
 #include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/editor/state/state_element.hpp>
 
 namespace Engine
 {

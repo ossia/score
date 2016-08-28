@@ -171,7 +171,7 @@ void DeviceDocumentPlugin::setConnection(bool b)
                 dev.reconnect();
             if(dev.capabilities().canSerialize)
             {
-                auto it = find_if(m_rootNode, [&] (const auto& dev_node) {
+                auto it = find_if(m_rootNode, [&] (const Device::Node& dev_node) {
                     return dev_node.template get<Device::DeviceSettings>().name == dev.settings().name;
                 });
 

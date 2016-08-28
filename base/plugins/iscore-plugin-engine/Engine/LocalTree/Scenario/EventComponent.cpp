@@ -1,5 +1,6 @@
 #include "EventComponent.hpp"
 #include "MetadataParameters.hpp"
+#include <ossia/editor/state/state_element.hpp>
 
 namespace Engine
 {

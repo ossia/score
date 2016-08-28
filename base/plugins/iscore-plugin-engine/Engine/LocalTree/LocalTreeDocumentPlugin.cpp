@@ -2,6 +2,7 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/editor/value/value.hpp>
 #include <ossia/network/base/address.hpp>
+#include <ossia/editor/state/state_element.hpp>
 
 
 #include <Curve/CurveModel.hpp>
