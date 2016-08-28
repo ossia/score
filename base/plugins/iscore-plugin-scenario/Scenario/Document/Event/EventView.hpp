@@ -27,6 +27,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final :
         public QGraphicsItem
 {
         Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
 
     public:
         EventView(EventPresenter& presenter, QGraphicsItem* parent);

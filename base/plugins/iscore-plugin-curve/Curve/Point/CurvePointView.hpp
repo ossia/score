@@ -18,6 +18,7 @@ class PointView final :
         public QGraphicsItem
 {
         Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
     public:
         PointView(
                 const PointModel* model,

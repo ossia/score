@@ -19,6 +19,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT View final :
         public QGraphicsItem
 {
         Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
     public:
         explicit View(QGraphicsItem* parent);
         virtual ~View();

@@ -42,6 +42,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QGraphicsItem
         void setWidth(qreal width);
 
     private:
+        void mousePressEvent(QGraphicsSceneMouseEvent *event) final override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent *event) final override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) final override;
+
         const SlotView& m_slotView;
         qreal m_width {};
         QPen m_pen;

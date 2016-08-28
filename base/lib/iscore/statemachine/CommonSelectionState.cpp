@@ -83,6 +83,7 @@ CommonSelectionState::CommonSelectionState(
             deselectState->setObjectName("deselectState");
             iscore::make_transition<iscore::Cancel_Transition>(selectionAreaState, deselectState);
             iscore::make_transition<iscore::Cancel_Transition>(m_waitState, deselectState);
+            iscore::make_transition<iscore::Cancel_Transition>(selectionState, deselectState);
             deselectState->addTransition(m_waitState);
             connect(deselectState, &QAbstractState::entered,
                     this, &CommonSelectionState::on_deselect);

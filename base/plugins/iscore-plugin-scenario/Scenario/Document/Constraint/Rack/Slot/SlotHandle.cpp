@@ -3,9 +3,11 @@
 #include <QPainter>
 #include <QPoint>
 #include <QCursor>
+#include <QGraphicsSceneEvent>
 
 #include "SlotHandle.hpp"
-#include "SlotView.hpp"
+#include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
 
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -41,5 +43,20 @@ void SlotHandle::setWidth(qreal width)
 {
     m_width = width;
     prepareGeometryChange();
+}
+
+void SlotHandle::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    m_slotView.presenter.pressed(event->scenePos());
+}
+
+void SlotHandle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    m_slotView.presenter.moved(event->scenePos());
+}
+
+void SlotHandle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    m_slotView.presenter.released(event->scenePos());
 }
 }

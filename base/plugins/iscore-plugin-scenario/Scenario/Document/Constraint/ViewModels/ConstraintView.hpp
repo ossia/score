@@ -15,6 +15,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView :
         public QGraphicsItem
 {
         Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
 
     public:
         ConstraintView(ConstraintPresenter& presenter,

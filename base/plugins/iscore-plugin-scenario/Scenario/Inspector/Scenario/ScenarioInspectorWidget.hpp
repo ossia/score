@@ -6,10 +6,8 @@ namespace Scenario {
 class ProcessModel;
 }  // namespace Scenario
 namespace iscore {
-class DocumentContext;
+struct DocumentContext;
 }  // namespace iscore
-
-
 
 class ScenarioInspectorWidget final :
         public Process::InspectorWidgetDelegate_T<Scenario::ProcessModel>
