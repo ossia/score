@@ -13,8 +13,11 @@ if(NOT ISCORE_CONFIGURATION)
   set(ISCORE_CONFIGURATION developer)
 endif()
 include("${ISCORE_CONFIGURATION}")
+message(STATUS "iscore - Static plug-ins 0: ${ISCORE_STATIC_PLUGINS}")
 
 project(iscore LANGUAGES CXX)
+message(STATUS "iscore - Static plug-ins 1: ${ISCORE_STATIC_PLUGINS}")
+
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 cmake_policy(SET CMP0020 NEW)
@@ -30,8 +33,9 @@ set(ISCORE_VERSION "${ISCORE_VERSION_MAJOR}.${ISCORE_VERSION_MINOR}.${ISCORE_VER
 
 enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
+message(STATUS "iscore - Static plug-ins 2: ${ISCORE_STATIC_PLUGINS}")
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
-
+message(STATUS "iscore - Static plug-ins 3: ${ISCORE_STATIC_PLUGINS}")
 if(ISCORE_SANITIZE)
     set(OSSIA_SANITIZE True)
 endif()
@@ -39,6 +43,8 @@ if(ISCORE_STATIC_PLUGINS)
     set(OSSIA_STATIC ON)
 endif()
 set(OSSIA_NO_INSTALL ON)
+message(STATUS "iscore - Static plug-ins 4: ${ISCORE_STATIC_PLUGINS} ${OSSIA_STATIC}")
+
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" )
 
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Qml WebSockets)
