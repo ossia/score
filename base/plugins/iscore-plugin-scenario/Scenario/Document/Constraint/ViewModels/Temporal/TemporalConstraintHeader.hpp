@@ -25,7 +25,19 @@ class TemporalConstraintHeader final : public ConstraintHeader
     signals:
         void doubleClicked();
 
+        void constraintHoverEnter();
+        void constraintHoverLeave();
+        void dropReceived(const QPointF& pos, const QMimeData*);
+
+        void shadowChanged(bool);
+
     protected:
+        void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
+        void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
+        void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
+        void dragLeaveEvent(QGraphicsSceneDragDropEvent *event) override;
+        void dropEvent(QGraphicsSceneDragDropEvent *event) override;
+
         void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
     private:

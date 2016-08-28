@@ -271,7 +271,7 @@ void TemporalConstraintView::setExecutionDuration(const TimeValue& progress)
 {
     // FIXME this should be merged with the slot in ConstraintPresenter!!!
     // Also make a setting to disable it since it may take a lot of time
-    if(!progress.isZero())
+    if(!qFuzzyCompare(progress.msec(), 0))
     {
         m_counterItem->setVisible(true);
         m_counterItem->setText(progress.toString());
