@@ -32,27 +32,27 @@ matrix:
     - os: osx
 
   include:
-    - os: linux
-      env: CONF=linux-gcov CAN_DEPLOY=False
+#    - os: linux
+#      env: CONF=linux-gcov CAN_DEPLOY=False
 
-    - os: osx
-      env: CONF=osx-release CAN_DEPLOY=True
-    - os: linux
-      env: CONF=linux-package-appimage CAN_DEPLOY=True
+#    - os: osx
+#      env: CONF=osx-release CAN_DEPLOY=True
+#    - os: linux
+#      env: CONF=linux-package-appimage CAN_DEPLOY=True
 
-    - os: osx
-      env: CONF=osx-debug CAN_DEPLOY=False
-    - os: osx
-      env: CONF=osx-static-debug CAN_DEPLOY=False
+#    - os: osx
+#      env: CONF=osx-debug CAN_DEPLOY=False
+#    - os: osx
+#      env: CONF=osx-static-debug CAN_DEPLOY=False
     - os: osx
       env: CONF=osx-package CAN_DEPLOY=False
 
-    - os: linux
-      env: CONF=linux-debug CAN_DEPLOY=False
-    - os: linux
-      env: CONF=linux-static-debug CAN_DEPLOY=False
-    - os: linux
-      env: CONF=linux-release CAN_DEPLOY=False
+#    - os: linux
+#      env: CONF=linux-debug CAN_DEPLOY=False
+#    - os: linux
+#      env: CONF=linux-static-debug CAN_DEPLOY=False
+#    - os: linux
+#      env: CONF=linux-release CAN_DEPLOY=False
 
 # Coverity
 #    - os: linux
