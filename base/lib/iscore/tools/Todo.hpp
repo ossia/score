@@ -14,8 +14,8 @@
 #define DEBUG_BREAK std::raise(SIGTRAP)
 #endif
 
-#define ISCORE_TODO do { qDebug() << "TODO"; } while (0)
-#define ISCORE_TODO_(Str) do { qDebug() << "TODO: " << Str; } while (0)
+#define ISCORE_TODO do { static bool iscore_todo_b = false; if(!iscore_todo_b) { qDebug() << "TODO"; iscore_todo_b = true; } } while (0)
+#define ISCORE_TODO_(Str) do { static bool iscore_todo_b = false; if(!iscore_todo_b) { qDebug() << "TODO: " << ( Str ); iscore_todo_b = true; } } while (0)
 #if defined(ISCORE_DEBUG)
 #define ISCORE_BREAKPOINT do { DEBUG_BREAK; } while (0)
 #else

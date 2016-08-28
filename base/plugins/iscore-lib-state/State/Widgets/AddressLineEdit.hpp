@@ -41,7 +41,8 @@ class AddressLineEditBase :
     private:
         void dragEnterEvent(QDragEnterEvent *event) override
         {
-            if(event->mimeData()->formats().contains(iscore::mime::messagelist()))
+            const auto& formats = event->mimeData()->formats();
+            if(formats.contains(iscore::mime::messagelist()))
             {
                 event->accept();
             }
