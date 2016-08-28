@@ -43,7 +43,7 @@ ProcessModel::ProcessModel(
 
     const double height = 0.15;
     constraint().setHeightPercentage(height);
-    constraint().metadata.setName("Loop pattern");
+    constraint().metadata.setName("pattern");
     constraint().metadata.setColor(ScenarioStyle::instance().ConstraintInvalid);
     BaseScenarioContainer::startState().setHeightPercentage(height);
     BaseScenarioContainer::endState().setHeightPercentage(height);

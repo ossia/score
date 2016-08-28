@@ -36,7 +36,6 @@ class SelectionState final : public CommonSelectionState
 
         void on_pressAreaSelection() override
         {
-            qDebug("Press");
             m_initialPoint = m_parentSM.scenePoint;
         }
 
@@ -51,7 +50,6 @@ class SelectionState final : public CommonSelectionState
 
         void on_releaseAreaSelection() override
         {
-            qDebug("Release");
             if(m_parentSM.scenePoint == m_initialPoint)
                 on_deselect();
 

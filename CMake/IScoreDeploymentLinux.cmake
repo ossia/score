@@ -66,9 +66,9 @@ set(CPACK_PACKAGE_FILE_NAME "i-score-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAM
 set(CPACK_PACKAGING_INSTALL_PREFIX "")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "i-score devs <i-score-devs@lists.sourceforge.net>")
 if(ISCORE_STATIC_QT)
-  set(CPACK_DEBIAN_PACKAGE_DEPENDS "jamomacore")
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
 else()
-  set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a, libqt5gui5, libqt5svg5, libqt5xml5, libqt5network5, jamomacore, ")
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a, libqt5gui5, libqt5svg5, libqt5xml5, libqt5network5")
 endif()
 set(CPACK_DEBIAN_PACKAGE_SECTION "sound")
 
