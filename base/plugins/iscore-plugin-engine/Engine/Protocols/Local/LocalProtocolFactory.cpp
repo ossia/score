@@ -8,6 +8,7 @@
 #include <Engine/Protocols/Local/LocalSpecificSettings.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
+#include <ossia/editor/state/state_element.hpp>
 namespace Device
 {
 class DeviceInterface;
