@@ -10,7 +10,7 @@ class QObject;
 namespace WidgetLayer
 {
 template<typename Process_T, typename Widget_T>
-class ISCORE_LIB_PROCESS_EXPORT LayerPanelProxy final :
+class LayerPanelProxy final :
         public Process::LayerModelPanelProxy
 {
     public:

@@ -18,7 +18,7 @@ class Json_k;
             Key, \
             Model> \
     { \
-            static auto get() \
+            static Q_DECL_RELAXED_CONSTEXPR auto get() \
             { \
                 return Text; \
             } \
@@ -31,7 +31,7 @@ class Json_k;
             Key, \
             Model> \
     { \
-            static Type get() \
+            static Q_DECL_RELAXED_CONSTEXPR Type get() \
             { \
                 return Text; \
             } \
@@ -67,7 +67,7 @@ class Json_k;
             Key, \
             Model> \
     { \
-            static Q_RELAXED_CONSTEXPR Type get() \
+            static Q_DECL_RELAXED_CONSTEXPR Type get() \
             { \
                 const Q_RELAXED_CONSTEXPR Type k{Value}; \
                 return k; \

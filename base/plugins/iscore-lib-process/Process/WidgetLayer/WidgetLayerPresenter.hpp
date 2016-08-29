@@ -17,7 +17,7 @@
 namespace WidgetLayer
 {
 template<typename Process_T, typename Widget_T>
-class ISCORE_LIB_PROCESS_EXPORT Presenter final :
+class Presenter final :
         public Process::LayerPresenter
 {
     public:
