@@ -46,7 +46,9 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
                 return QModelIndex();
 
             const int rowParent = grandparentNode->indexOfChild(parentNode);
-            ISCORE_ASSERT(rowParent != -1);
+            if(rowParent == -1)
+                return QModelIndex();
+
             return createIndex(rowParent, 0, parentNode);
         }
 

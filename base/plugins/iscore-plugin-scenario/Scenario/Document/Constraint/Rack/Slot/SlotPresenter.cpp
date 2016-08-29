@@ -71,10 +71,11 @@ SlotPresenter::SlotPresenter(
 
     connect(m_view, &SlotView::askContextMenu,
             this, [&] (const QPoint& pos, const QPointF& scenept) {
-        QMenu menu;
-        ScenarioContextMenuManager::createSlotContextMenu(ctx, menu, *this);
-        menu.exec(pos);
-        menu.close();
+        QMenu* menu = new QMenu;
+        ScenarioContextMenuManager::createSlotContextMenu(ctx, *menu, *this);
+        menu->exec(pos);
+        menu->close();
+        menu->deleteLater();
     });
 
     if(auto frontLayer = m_model.frontLayerModel())
