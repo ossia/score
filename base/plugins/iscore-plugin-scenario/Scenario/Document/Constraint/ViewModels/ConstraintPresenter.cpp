@@ -65,8 +65,13 @@ ConstraintPresenter::ConstraintPresenter(
         on_maxDurationChanged(val);
         updateChildren();
     });
-    con(m_viewModel.model().duration, &ConstraintDurations::playPercentageChanged,
-            this, &ConstraintPresenter::on_playPercentageChanged, Qt::QueuedConnection);
+
+    m_executionTimer.setInterval(16.66 * 3);
+    m_executionTimer.start();
+    con(m_executionTimer, &QTimer::timeout,
+        this, [&] { on_playPercentageChanged(this->model().duration.playPercentage()); }, Qt::QueuedConnection);
+   // con(m_viewModel.model().duration, &ConstraintDurations::playPercentageChanged,
+   //         this, &ConstraintPresenter::on_playPercentageChanged, Qt::QueuedConnection);
 
     con(m_viewModel.model(), &ConstraintModel::heightPercentageChanged,
             this, &ConstraintPresenter::heightPercentageChanged);

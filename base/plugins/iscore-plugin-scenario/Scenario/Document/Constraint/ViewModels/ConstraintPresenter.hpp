@@ -7,6 +7,7 @@
 #include <QString>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
+#include <QTimer>
 
 namespace Process
 {
@@ -91,6 +92,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter :
 
         ZoomRatio m_zoomRatio {};
         RackPresenter* m_rack {};
+
+        QTimer m_executionTimer;
 };
 
 // TODO concept: constraint view model.

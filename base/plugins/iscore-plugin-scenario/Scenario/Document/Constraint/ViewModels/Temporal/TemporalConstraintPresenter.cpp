@@ -44,10 +44,10 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     con(cstr_model.model(), &ConstraintModel::executionStateChanged,
         &v, &TemporalConstraintView::setExecutionState);
     auto& duration = cstr_model.model().duration;
-    con(cstr_model.model().duration, &ConstraintDurations::playPercentageChanged,
+    /*con(cstr_model.model().duration, &ConstraintDurations::playPercentageChanged,
         this, [&] (double percentage) {
         v.setExecutionDuration(duration.defaultDuration() * percentage);
-    }, Qt::QueuedConnection);
+    }, Qt::QueuedConnection);*/
     const auto& metadata = m_viewModel.model().metadata;
     con(metadata, &ModelMetadata::LabelChanged,
         &v, &TemporalConstraintView::setLabel);
