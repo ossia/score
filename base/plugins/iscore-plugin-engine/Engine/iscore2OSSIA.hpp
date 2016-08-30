@@ -8,6 +8,7 @@
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/state/state.hpp>
+#include <ossia/editor/state/state_element.hpp>
 
 #include <State/Value.hpp>
 
