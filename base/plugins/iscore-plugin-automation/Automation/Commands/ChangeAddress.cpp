@@ -56,6 +56,18 @@ ChangeAddress::ChangeAddress(
     }
 }
 
+ChangeAddress::ChangeAddress(
+        Path<ProcessModel> &&path,
+        Device::FullAddressSettings newval):
+    m_path{path},
+    m_new{std::move(newval)}
+{
+    auto& autom = m_path.find();
+    m_old.address = autom.address();
+    m_old.domain.min.val = autom.min();
+    m_old.domain.max.val = autom.max();
+}
+
 
 void ChangeAddress::undo() const
 {

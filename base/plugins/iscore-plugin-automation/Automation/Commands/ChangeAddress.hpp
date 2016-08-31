@@ -21,6 +21,9 @@ class ChangeAddress final : public iscore::SerializableCommand
         ChangeAddress(
                 Path<ProcessModel>&& path,
                 const State::Address& newval);
+        ChangeAddress(
+                Path<ProcessModel>&& path,
+                Device::FullAddressSettings newval);
 
     public:
         void undo() const override;
