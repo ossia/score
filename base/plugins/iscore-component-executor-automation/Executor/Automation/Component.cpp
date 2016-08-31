@@ -56,7 +56,7 @@ void Component::recreate()
 
     if(address)
     {
-      m_addressType = address->getValueType();
+        m_addressType = address->getValueType();
 
       if(process().tween())
           on_curveChanged(ossia::Destination(*address, {})); // If the type changes we need to rebuild the curve.

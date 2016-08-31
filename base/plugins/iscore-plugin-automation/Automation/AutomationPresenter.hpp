@@ -1,6 +1,7 @@
 #pragma once
 #include <Curve/Process/CurveProcessPresenter.hpp>
 
+#include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationLayerModel.hpp>
 #include <Automation/AutomationView.hpp>
@@ -14,8 +15,8 @@ namespace Automation
 {
 class LayerPresenter final :
         public Curve::CurveProcessPresenter<
-            Layer,
-            LayerView>
+        Layer,
+        LayerView>
 {
     public:
         LayerPresenter(
@@ -36,29 +37,7 @@ class LayerPresenter final :
 
 
             connect(m_view, &LayerView::dropReceived,
-                    this, [&] (const QMimeData* mime) {
-                // TODO refactor with AddressEditWidget
-                if(mime->formats().contains(iscore::mime::messagelist()))
-                {
-                    Mime<State::MessageList>::Deserializer des{*mime};
-                    State::MessageList ml = des.deserialize();
-                    if(ml.empty())
-                        return;
-                    auto& newAddr = ml[0].address;
-
-                    if(newAddr == layer.processModel().address())
-                        return;
-
-                    if(newAddr.path.isEmpty())
-                        return;
-
-                    auto cmd = new ChangeAddress{layer.processModel(), newAddr};
-
-                    CommandDispatcher<> disp{context.commandStack};
-                    disp.submitCommand(cmd);
-                }
-
-            });
+                    this, &LayerPresenter::on_dropReceived);
             on_nameChanges();
             m_view->showName(true);
 
@@ -82,6 +61,41 @@ class LayerPresenter final :
         void on_nameChanges()
         {
             m_view->setDisplayedName(m_layer.processModel().prettyName());
+        }
+
+        void on_dropReceived(const QMimeData& mime)
+        {
+            auto& autom = this->layerModel().processModel();
+            // TODO refactor with AddressEditWidget
+            if(mime.formats().contains(iscore::mime::addressettings()))
+            {
+                Mime<Device::FullAddressSettings>::Deserializer des{mime};
+                Device::FullAddressSettings as = des.deserialize();
+
+                if(as.address.path.isEmpty())
+                    return;
+
+                CommandDispatcher<> disp{context().context.commandStack};
+                disp.submitCommand(new ChangeAddress{autom, std::move(as)});
+
+            }
+            else if(mime.formats().contains(iscore::mime::messagelist()))
+            {
+                Mime<State::MessageList>::Deserializer des{mime};
+                State::MessageList ml = des.deserialize();
+                if(ml.empty())
+                    return;
+                auto& newAddr = ml[0].address;
+
+                if(newAddr == autom.address())
+                    return;
+
+                if(newAddr.path.isEmpty())
+                    return;
+
+                CommandDispatcher<> disp{context().context.commandStack};
+                disp.submitCommand(new ChangeAddress{autom, newAddr});
+            }
         }
 };
 }

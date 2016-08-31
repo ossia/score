@@ -25,7 +25,7 @@ class LayerView final : public Process::LayerView
         }
 
     signals:
-        void dropReceived(const QMimeData* mime);
+        void dropReceived(const QMimeData& mime);
 
     protected:
         void paint_impl(QPainter* painter) const override;

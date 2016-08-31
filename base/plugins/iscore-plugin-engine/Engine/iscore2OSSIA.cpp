@@ -130,15 +130,18 @@ ossia::net::node_base* findNodeFromPath(
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
-        auto it = std::find_if(children.begin(), children.end(),
-                               [&] (const auto& ossia_node)
+        auto it = ::find_if(children,
+                          [&] (const auto& ossia_node)
         {
             return ossia_node->getName() == path[i].toStdString();
         });
         if(it != children.end())
             node = it->get();
         else
+        {
+            qDebug() << "looking for" << path << " -- last found: " << node->getName() << "\n";
             return {};
+        }
     }
 
     return node;
