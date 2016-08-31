@@ -451,5 +451,19 @@ void OSSIADevice::nodeRenamed(const ossia::net::node_base& node, std::string old
     emit pathUpdated(currentAddress, as);
 }
 
+void OSSIADevice::addressCreated(const ossia::net::address_base& addr)
+{
+  State::Address currentAddress = Engine::ossia_to_iscore::ToAddress(addr.getNode());
+  Device::AddressSettings as = Engine::ossia_to_iscore::ToAddressSettings(addr.getNode());
+  emit pathUpdated(currentAddress, as);
+}
+
+void OSSIADevice::addressUpdated(const ossia::net::address_base& addr)
+{
+  State::Address currentAddress = Engine::ossia_to_iscore::ToAddress(addr.getNode());
+  Device::AddressSettings as = Engine::ossia_to_iscore::ToAddressSettings(addr.getNode());
+  emit pathUpdated(currentAddress, as);
+}
+
 }
 }
