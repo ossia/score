@@ -59,6 +59,8 @@ class ISCORE_PLUGIN_ENGINE_EXPORT OSSIADevice :
         void nodeCreated(const ossia::net::node_base&);
         void nodeRemoving(const ossia::net::node_base&);
         void nodeRenamed(const ossia::net::node_base&, std::string);
+        void addressCreated(const ossia::net::address_base&);
+        void addressUpdated(const ossia::net::address_base&);
 
     protected:
         using DeviceInterface::DeviceInterface;
