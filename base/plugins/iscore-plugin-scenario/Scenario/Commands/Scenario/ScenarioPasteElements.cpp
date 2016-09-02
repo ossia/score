@@ -316,6 +316,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     }
 
     auto delta_y = pt.y - highest_y;
+
     for(ConstraintModel* cst: constraints)
     {
         cst->setHeightPercentage(clamp(cst->heightPercentage() + delta_y, 0., 1.));

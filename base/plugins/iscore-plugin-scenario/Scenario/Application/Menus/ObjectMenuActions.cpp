@@ -222,11 +222,9 @@ void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
         connect(pasteElements, &QAction::triggered,
                 [&,scenePoint]()
         {
-            this->pasteElements(QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8()).object(),
-                          Scenario::ConvertToScenarioPoint(
-                                    scenePoint,
-                                    scenario.zoomRatio(),
-                                    scenario.view().boundingRect().height()));
+            this->pasteElements(
+                        QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8()).object(),
+                        scenario.toScenarioPoint(scenario.view().mapFromScene(scenePoint)));
         });
         menu.addAction(pasteElements);
     });
