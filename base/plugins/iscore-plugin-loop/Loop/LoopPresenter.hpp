@@ -93,6 +93,9 @@ class LayerPresenter final :
         void escPressed();
 
     private:
+        void updateAllElements();
+        void on_constraintExecutionTimer();
+
         const Loop::Layer& m_layer;
         graphics_item_ptr<LayerView> m_view;
 
@@ -101,6 +104,5 @@ class LayerPresenter final :
         ViewUpdater m_viewUpdater;
 
         ToolPalette m_palette;
-        void updateAllElements();
 };
 }

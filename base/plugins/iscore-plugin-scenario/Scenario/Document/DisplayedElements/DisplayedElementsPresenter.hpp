@@ -43,6 +43,7 @@ class DisplayedElementsPresenter final :
         void requestFocusedPresenterChange(Process::LayerPresenter*);
 
     private:
+        void on_constraintExecutionTimer();
         void updateLength(double);
 
         ScenarioDocumentPresenter* m_model{};

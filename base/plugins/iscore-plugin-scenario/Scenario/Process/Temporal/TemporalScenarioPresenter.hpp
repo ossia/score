@@ -155,6 +155,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
 
         void on_askUpdate();
 
+
+        void on_constraintExecutionTimer();
     private:
         void doubleClick(QPointF);
         void on_focusChanged() override;

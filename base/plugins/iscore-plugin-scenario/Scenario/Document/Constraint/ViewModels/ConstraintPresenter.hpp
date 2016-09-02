@@ -92,8 +92,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter :
 
         ZoomRatio m_zoomRatio {};
         RackPresenter* m_rack {};
-
-        QTimer m_executionTimer;
 };
 
 // TODO concept: constraint view model.

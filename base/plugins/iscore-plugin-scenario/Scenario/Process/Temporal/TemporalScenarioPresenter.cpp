@@ -170,10 +170,16 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         m_graphicalScale = d;
         m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
     });
-    m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);}
+    m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
+
+    con(context.updateTimer, &QTimer::timeout,
+        this, &TemporalScenarioPresenter::on_constraintExecutionTimer);
+}
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
 {
+    disconnect(&m_context.context.updateTimer, &QTimer::timeout,
+               this, &TemporalScenarioPresenter::on_constraintExecutionTimer);
 }
 
 const Process::LayerModel& TemporalScenarioPresenter::layerModel() const
@@ -348,6 +354,14 @@ void TemporalScenarioPresenter::on_commentBlockRemoved(
 void TemporalScenarioPresenter::on_askUpdate()
 {
     m_view->update();
+}
+
+void TemporalScenarioPresenter::on_constraintExecutionTimer()
+{
+    for(TemporalConstraintPresenter& cst : m_constraints)
+    {
+        cst.on_playPercentageChanged(cst.model().duration.playPercentage());
+    }
 }
 
 void TemporalScenarioPresenter::doubleClick(QPointF pt)

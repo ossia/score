@@ -52,6 +52,9 @@ DisplayedElementsPresenter::DisplayedElementsPresenter(ScenarioDocumentPresenter
 
 DisplayedElementsPresenter::~DisplayedElementsPresenter()
 {
+    disconnect(&m_model->context().updateTimer, &QTimer::timeout,
+               this, &DisplayedElementsPresenter::on_constraintExecutionTimer);
+
     // TODO use directly displayedelementspresentercontainer
     delete m_constraintPresenter;
     delete m_startStatePresenter;
@@ -69,6 +72,9 @@ BaseGraphicsObject&DisplayedElementsPresenter::view() const
 
 void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintModel& m)
 {
+    disconnect(&m_model->context().updateTimer, &QTimer::timeout,
+               this, &DisplayedElementsPresenter::on_constraintExecutionTimer);
+
     for(auto& con : m_connections)
         QObject::disconnect(con);
 
@@ -126,6 +132,9 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
     showConstraint();
 
     on_zoomRatioChanged(m_constraintPresenter->zoomRatio());
+
+    con(ctx.updateTimer, &QTimer::timeout,
+        this, &DisplayedElementsPresenter::on_constraintExecutionTimer);
 }
 
 void DisplayedElementsPresenter::showConstraint()
@@ -186,4 +195,11 @@ void DisplayedElementsPresenter::updateLength(double length)
     m_endEventPresenter->view()->setPos({length, 0});
     m_endNodePresenter->view()->setPos({length, 0});
 }
+
+void DisplayedElementsPresenter::on_constraintExecutionTimer()
+{
+    m_constraintPresenter->on_playPercentageChanged(
+                m_constraintPresenter->model().duration.playPercentage());
+}
+
 }

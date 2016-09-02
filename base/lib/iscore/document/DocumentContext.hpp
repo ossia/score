@@ -22,6 +22,7 @@ struct ISCORE_LIB_BASE_EXPORT DocumentContext
         iscore::SelectionStack& selectionStack;
         iscore::ObjectLocker& objectLocker;
         const iscore::FocusFacade focus;
+        QTimer& updateTimer;
 
         const std::vector<DocumentPlugin*>& pluginModels() const;
 

@@ -36,23 +36,26 @@ void FullViewConstraintView::paint(QPainter* painter,
                                    const QStyleOptionGraphicsItem* option,
                                    QWidget* widget)
 {
+    auto& skin = ScenarioStyle::instance();
+
     painter->setRenderHint(QPainter::Antialiasing, false);
-    int min_w = static_cast<int>(minWidth());
-    int max_w = static_cast<int>(maxWidth());
-    int def_w = static_cast<int>(defaultWidth());
+    qreal min_w = minWidth();
+    qreal max_w = maxWidth();
+    qreal def_w = defaultWidth();
+    qreal play_w = playWidth();
 
     QColor c;
     if(isSelected())
     {
-        c = ScenarioStyle::instance().ConstraintSelected.getColor();
+        c = skin.ConstraintSelected.getColor();
     }
     else if(parentItem()->isSelected())
     {
-        c = ScenarioStyle::instance().ConstraintFullViewParentSelected.getColor();
+        c = skin.ConstraintFullViewParentSelected.getColor();
     }
     else
     {
-        c = ScenarioStyle::instance().ConstraintBase.getColor();
+        c = skin.ConstraintBase.getColor();
     }
 
     m_solidPen.setColor(c);
@@ -77,6 +80,21 @@ void FullViewConstraintView::paint(QPainter* painter,
         // Finally the dashed line
         painter->setPen(m_dashPen);
         painter->drawLine(min_w, 0, max_w, 0);
+    }
+
+    auto pw = playWidth();
+    if(pw != 0.)
+    {
+
+        const QPen playedPen{
+            skin.ConstraintPlayFill.getColor(),
+            4,
+            Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin
+        };
+
+        painter->setPen(playedPen);
+
+        painter->drawLine(0, 0, std::min(play_w, std::max(def_w, max_w)), 0);
     }
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setPen(Qt::red);
