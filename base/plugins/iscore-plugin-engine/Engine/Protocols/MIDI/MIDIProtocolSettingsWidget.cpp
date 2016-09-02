@@ -28,20 +28,20 @@ MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
     m_outButton->setAutoExclusive(true);
     m_deviceCBox = new QComboBox(this);
 
-    auto gb = new QWidget;
-    gb->setContentsMargins(0, 0, 0, 0);
     auto gb_lay = new QHBoxLayout;
     gb_lay->setContentsMargins(0, 0, 0, 0);
     gb_lay->addWidget(m_inButton);
     gb_lay->addWidget(m_outButton);
-    gb->setLayout(gb_lay);
 
     auto lay = new QFormLayout;
     lay->addRow(tr("Name"), m_name);
-    lay->addRow(tr("Type"), gb);
+    lay->addRow(tr("Type"), gb_lay);
     lay->addRow(tr("Device"), m_deviceCBox);
 
     setLayout(lay);
+
+    this->setTabOrder(m_name, m_inButton);
+    this->setTabOrder(m_inButton, m_deviceCBox);
 
     connect(m_inButton, &QAbstractButton::toggled,
             this, [this] (bool b) {

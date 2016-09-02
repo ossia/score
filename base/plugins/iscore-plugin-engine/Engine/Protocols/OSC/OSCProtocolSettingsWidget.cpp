@@ -3,6 +3,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QFormLayout>
 
 #include <QPushButton>
 #include <QSpinBox>
@@ -22,18 +23,14 @@ namespace Network
 OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-    QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
     m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
-    QLabel* portOutputLabel = new QLabel(tr("i-score listening port"), this);
     m_portOutputSBox = new QSpinBox(this);
     m_portOutputSBox->setRange(0, 65535);
 
-    QLabel* portInputLabel = new QLabel(tr("Device listening port"), this);
     m_portInputSBox = new QSpinBox(this);
     m_portInputSBox->setRange(0, 65535);
 
-    QLabel* localHostLabel = new QLabel(tr("Host"), this);
     m_localHostEdit = new QLineEdit(this);
 
     QPushButton* loadNamespaceButton = new QPushButton(tr("Load..."), this);
@@ -42,27 +39,19 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
     m_namespaceFilePathEdit = new QLineEdit(this);
 
 
-    QGridLayout* gLayout = new QGridLayout;
+    auto layout = new QFormLayout;
 
-    gLayout->addWidget(deviceNameLabel, 0, 0, 1, 1);
-    gLayout->addWidget(m_deviceNameEdit, 0, 1, 1, 1);
-
-    gLayout->addWidget(portInputLabel, 1, 0, 1, 1);
-    gLayout->addWidget(m_portInputSBox, 1, 1, 1, 1);
-
-    gLayout->addWidget(portOutputLabel, 2, 0, 1, 1);
-    gLayout->addWidget(m_portOutputSBox, 2, 1, 1, 1);
-
-    gLayout->addWidget(localHostLabel, 3, 0, 1, 1);
-    gLayout->addWidget(m_localHostEdit, 3, 1, 1, 1);
-
-    gLayout->addWidget(loadNamespaceButton, 4, 0, 1, 1);
-    gLayout->addWidget(m_namespaceFilePathEdit, 4, 1, 1, 1);
+    layout->addRow(tr("Device name"), m_deviceNameEdit);
+    layout->addRow(tr("i-score listening port"), m_portOutputSBox);
+    layout->addRow(tr("Device listening port"), m_portInputSBox);
+    layout->addRow(tr("Host"), m_localHostEdit);
+    layout->addRow(tr("Load..."), loadNamespaceButton);
+    layout->addWidget(m_namespaceFilePathEdit);
 
     connect(loadNamespaceButton, &QAbstractButton::clicked,
             this, &OSCProtocolSettingsWidget::openFileDialog);
 
-    setLayout(gLayout);
+    setLayout(layout);
 
     setDefaults();
 }
