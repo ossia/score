@@ -9,6 +9,7 @@
 #include <QByteArray>
 #include <QJsonObject>
 #include <QString>
+#include <QTimer>
 #include <QVariant>
 
 class QObject;
@@ -108,6 +109,7 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
         SelectionStack m_selectionStack;
         ObjectLocker m_objectLocker;
         FocusManager m_focus;
+        QTimer m_documentUpdateTimer;
 
         DocumentModel* m_model{};
         DocumentView* m_view{};

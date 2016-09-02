@@ -31,7 +31,8 @@ DocumentContext::DocumentContext(Document& d):
     commandStack{d.m_commandStack},
     selectionStack{d.selectionStack()},
     objectLocker{d.locker()},
-    focus{d.focusManager()}
+    focus{d.focusManager()},
+    updateTimer{d.m_documentUpdateTimer}
 {
 }
 
@@ -88,6 +89,8 @@ void Document::init()
                 m_model->setNewSelection(s);
             });
 
+    m_documentUpdateTimer.setInterval(33); // 30 hz
+    m_documentUpdateTimer.start();
 }
 
 void Document::setBackupMgr(DocumentBackupManager* backupMgr)

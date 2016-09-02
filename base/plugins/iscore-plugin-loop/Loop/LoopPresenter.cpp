@@ -101,10 +101,16 @@ LayerPresenter::LayerPresenter(
             this, [&] () {
         m_context.context.focusDispatcher.focus(this);
     });
+
+    con(ctx.updateTimer, &QTimer::timeout,
+        this, &LayerPresenter::on_constraintExecutionTimer);
 }
 
 LayerPresenter::~LayerPresenter()
 {
+    disconnect(&m_context.context.updateTimer, &QTimer::timeout,
+               this, &LayerPresenter::on_constraintExecutionTimer);
+
     delete m_constraintPresenter;
     delete m_startStatePresenter;
     delete m_endStatePresenter;
@@ -112,6 +118,11 @@ LayerPresenter::~LayerPresenter()
     delete m_endEventPresenter;
     delete m_startNodePresenter;
     delete m_endNodePresenter;
+}
+
+void LayerPresenter::on_constraintExecutionTimer()
+{
+    m_constraintPresenter->on_playPercentageChanged(m_constraintPresenter->model().duration.playPercentage());
 }
 
 void LayerPresenter::setWidth(qreal width)
