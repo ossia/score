@@ -7,7 +7,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 
 class QComboBox;
-class QGridLayout;
+class QFormLayout;
 class QWidget;
 
 namespace Device
@@ -52,7 +52,7 @@ class DeviceEditDialog final : public QDialog
 
         QComboBox* m_protocolCBox;
         Device::ProtocolSettingsWidget* m_protocolWidget;
-        QGridLayout* m_gLayout;
+        QFormLayout* m_layout;
         QList<Device::DeviceSettings> m_previousSettings;
         int m_index;
 

@@ -10,6 +10,7 @@
 #include <QVariant>
 #include <QWidget>
 #include <utility>
+#include <QFormLayout>
 
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
@@ -31,6 +32,7 @@ DeviceEditDialog::DeviceEditDialog(
 {
     setModal(true);
     buildGUI();
+    setMinimumWidth(400);
 }
 
 DeviceEditDialog::~DeviceEditDialog()
@@ -41,9 +43,6 @@ DeviceEditDialog::~DeviceEditDialog()
 void
 DeviceEditDialog::buildGUI()
 {
-    QLabel* protocolLabel = new QLabel(tr("Protocol"), this);
-    m_protocolCBox = new QComboBox(this);
-
     QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
             | QDialogButtonBox::Cancel, Qt::Horizontal, this);
     connect(buttonBox, &QDialogButtonBox::accepted,
@@ -52,17 +51,16 @@ DeviceEditDialog::buildGUI()
             this, &QDialog::reject);
 
 
-    m_gLayout = new QGridLayout;
+    m_layout = new QFormLayout;
+    setLayout(m_layout);
 
     // QLabel for the warning text
-    m_gLayout->addWidget(new QLabel, 0, 0, 1, 2);
+    m_layout->addWidget(new QLabel);
 
-    m_gLayout->addWidget(protocolLabel, 1, 0, 1, 1);
-    m_gLayout->addWidget(m_protocolCBox, 1, 1, 1, 1);
-    //keep one row for m_protocolWidget
-    m_gLayout->addWidget(buttonBox, 3, 0, 1, 2);
+    m_protocolCBox = new QComboBox(this);
+    m_layout->addRow(tr("Protocol"), m_protocolCBox);
+    m_layout->addWidget(buttonBox);
 
-    setLayout(m_gLayout);
 
     initAvailableProtocols(); //populate m_protocolCBox
 
@@ -119,7 +117,7 @@ DeviceEditDialog::updateProtocolWidget()
 
     if(m_protocolWidget)
     {
-        m_gLayout->addWidget(m_protocolWidget, 2, 0, 1, 2);
+        m_layout->insertRow(2, m_protocolWidget);
         updateGeometry();
     }
 
@@ -172,12 +170,12 @@ void DeviceEditDialog::setEditingInvalidState(bool st)
     {
         if(st)
         {
-            auto item = m_gLayout->itemAtPosition(0, 0);
+            auto item = m_layout->itemAt(0);
             static_cast<QLabel*>(item->widget())->setText(tr("Warning : device requires editing."));
         }
         else
         {
-            auto item = m_gLayout->takeAt(0);
+            auto item = m_layout->takeAt(0);
             delete item->widget();
             delete item;
         }
