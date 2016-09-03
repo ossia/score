@@ -73,7 +73,9 @@ class EnableWhenScenarioModelObject final :
                 auto ptr = obj.data();
                 return bool(dynamic_cast<const Scenario::ConstraintModel*>(ptr))
                     || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
-                    || bool(dynamic_cast<const Scenario::StateModel*>(ptr));
+                    || bool(dynamic_cast<const Scenario::StateModel*>(ptr))
+                    || bool(dynamic_cast<const Scenario::CommentBlockModel*>(ptr))
+                        ;
             });
 
             setEnabled(mgr, res);
