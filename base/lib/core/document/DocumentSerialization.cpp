@@ -258,6 +258,7 @@ DocumentModel::DocumentModel(
         appPlug->on_initDocument(ctx.document);
     }
 
+    try {
     if(data.canConvert(QMetaType::QByteArray))
     {
         loadDocumentAsByteArray(ctx, data.toByteArray(), fact);
@@ -269,6 +270,13 @@ DocumentModel::DocumentModel(
     else
     {
         ISCORE_ABORT;
+    }
+    }
+    catch(...) {
+        // In case of exception, we just clear the container so that some plug-in does not try to access
+        // a "dead" plug-in due to the deletion order of QObject (e.g. calling findPlugin in a dtor).
+        m_pluginModels.clear();
+        throw;
     }
 }
 }

@@ -16,7 +16,7 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(const Scenario::FullViewConstraintViewModel& constraint)
 {
     readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
-    m_stream << constraint.zoom() << constraint.center();
+    m_stream << constraint.zoom() << constraint.visibleRect();
 }
 
 template<>
@@ -24,16 +24,16 @@ void Visitor<Reader<JSONObject>>::readFrom(const Scenario::FullViewConstraintVie
 {
     readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
     m_obj["Zoom"] = constraint.zoom();
-    m_obj["CenterOn"] = toJsonValue(constraint.center());
+    m_obj["CenterOn"] = toJsonValue(constraint.visibleRect());
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(Scenario::FullViewConstraintViewModel& cvm)
 {
     double z;
-    QPointF c;
+    QRectF c;
     m_stream >> z >> c;
-    cvm.setCenter(c);
+    cvm.setVisibleRect(c);
     cvm.setZoom(z);
 }
 
@@ -42,8 +42,14 @@ void Visitor<Writer<JSONObject>>::writeTo(Scenario::FullViewConstraintViewModel&
 {
     auto z = m_obj["Zoom"].toDouble();
     auto c = m_obj["CenterOn"].toArray();
-    QPointF center { c.at(0).toDouble(), c.at(1).toDouble() };
 
-    cvm.setCenter(center);
+    if(c.size() == 4)
+        cvm.setVisibleRect(
+                    QRectF{
+                        qreal(c.at(0).toDouble()),
+                        qreal(c.at(1).toDouble()),
+                        qreal(c.at(2).toDouble()),
+                        qreal(c.at(3).toDouble()) });
+
     cvm.setZoom(z);
 }

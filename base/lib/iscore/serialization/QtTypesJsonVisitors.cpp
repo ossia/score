@@ -44,6 +44,22 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QPointF& pt)
 }
 
 template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONValue>>::readFrom(const QRectF& pt)
+{
+    val = makeJsonArray({pt.x(), pt.y(), pt.width(), pt.height()});
+}
+
+template<>
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QRectF& pt)
+{
+    auto arr = val.toArray();
+    pt.setX(arr[0].toDouble());
+    pt.setY(arr[1].toDouble());
+    pt.setWidth(arr[2].toDouble());
+    pt.setHeight(arr[3].toDouble());
+}
+
+template<>
 ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONValue>>::readFrom(const QTransform& pt)
 {
     val = makeJsonArray({
