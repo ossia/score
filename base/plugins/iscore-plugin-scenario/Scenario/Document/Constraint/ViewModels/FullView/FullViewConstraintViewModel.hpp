@@ -55,13 +55,13 @@ class FullViewConstraintViewModel final : public ConstraintViewModel
         ZoomRatio zoom() const;
         void setZoom(const ZoomRatio& zoom);
 
-        QPointF center() const;
-        void setCenter(const QPointF& value);
+        QRectF visibleRect() const;
+        void setVisibleRect(const QRectF& value);
 
         bool isActive();
 
     private:
         ZoomRatio m_zoom{-1};
-        QPointF m_center{0,0};
+        QRectF m_center{};
 };
 }

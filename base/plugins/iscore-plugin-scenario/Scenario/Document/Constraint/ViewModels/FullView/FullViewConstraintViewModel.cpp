@@ -53,12 +53,12 @@ void FullViewConstraintViewModel::setZoom(const ZoomRatio& zoom)
     m_zoom = zoom;
 }
 
-QPointF FullViewConstraintViewModel::center() const
+QRectF FullViewConstraintViewModel::visibleRect() const
 {
     return m_center;
 }
 
-void FullViewConstraintViewModel::setCenter(const QPointF& value)
+void FullViewConstraintViewModel::setVisibleRect(const QRectF& value)
 {
     m_center = value;
 }
