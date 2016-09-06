@@ -17,22 +17,25 @@ ProcessExecutor::ProcessExecutor(
     m_process{proc},
     m_devices{devices}
 {
+    using error_t = Engine::Execution::InvalidProcessException<Midi::ProcessModel>;
     // Load the address
     // Look for the real node in the device
     auto dev_p = devices.findDevice(proc.device());
     if(!dev_p)
-        return;
+        throw error_t("Bad device");
 
     auto dev = dynamic_cast<Engine::Network::OSSIADevice*>(dev_p);
     if(!dev)
-        return;
+        throw error_t("Bad process");
 
     // We get the node corresponding to the channel
-
     m_channelNode = dynamic_cast<ossia::net::midi::channel_node*>(
                 Engine::iscore_to_ossia::findNodeFromPath(
     {QString::number(proc.channel())},
                     *dev->getDevice()));
+
+    if(!m_channelNode)
+        throw error_t("Bad node");
 }
 
 ProcessExecutor::~ProcessExecutor()

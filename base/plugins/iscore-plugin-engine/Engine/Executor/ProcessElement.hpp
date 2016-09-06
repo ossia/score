@@ -22,6 +22,17 @@ namespace Engine { namespace Execution
 struct Context;
 class ConstraintElement;
 
+template<typename T>
+class InvalidProcessException : public std::runtime_error
+{
+    public:
+        InvalidProcessException(const QString& s):
+            std::runtime_error{(Metadata<PrettyName_k, T>::get() + ": " + s).toStdString()}
+        {
+
+        }
+};
+
 class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponent :
         public Scenario::GenericProcessComponent<const Context>
 {
