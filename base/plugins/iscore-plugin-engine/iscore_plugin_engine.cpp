@@ -34,6 +34,9 @@
 #if defined(OSSIA_PROTOCOL_HTTP)
 #include <Engine/Protocols/HTTP/HTTPProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_WEBSOCKETS)
+#include <Engine/Protocols/WS/WSProtocolFactory.hpp>
+#endif
 iscore_plugin_engine::iscore_plugin_engine() :
     QObject {}
 {
@@ -83,8 +86,11 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_engine:
 #if defined(OSSIA_PROTOCOL_MIDI)
                  , Network::MIDIProtocolFactory
 #endif
-#if defined(OSSIA_PROTOCOL_MIDI)
+#if defined(OSSIA_PROTOCOL_HTTP)
                  , Network::HTTPProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_WEBSOCKETS)
+                 , Network::WSProtocolFactory
 #endif
             >,
             FW<Engine::Execution::ProcessComponentFactory,

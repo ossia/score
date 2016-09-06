@@ -53,6 +53,7 @@ DeviceEditDialog::buildGUI()
 
     m_layout = new QFormLayout;
     setLayout(m_layout);
+    m_layout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
 
     // QLabel for the warning text
     m_layout->addWidget(new QLabel);
@@ -60,7 +61,6 @@ DeviceEditDialog::buildGUI()
     m_protocolCBox = new QComboBox(this);
     m_layout->addRow(tr("Protocol"), m_protocolCBox);
     m_layout->addWidget(buttonBox);
-
 
     initAvailableProtocols(); //populate m_protocolCBox
 
@@ -118,6 +118,11 @@ DeviceEditDialog::updateProtocolWidget()
     if(m_protocolWidget)
     {
         m_layout->insertRow(2, m_protocolWidget);
+        QSizePolicy pol{QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding};
+        pol.setVerticalStretch(1);
+        m_protocolWidget->setSizePolicy(pol);
+        m_protocolWidget->setMinimumHeight(200);
+        this->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         updateGeometry();
     }
 
