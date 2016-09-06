@@ -167,17 +167,35 @@ set(HTTP_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPProtocolFactory.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPSpecificSettingsSerialization.cpp"
 )
+
+set(WS_HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSSpecificSettings.hpp"
+)
+set(WS_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSProtocolSettingsWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSDevice.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSProtocolFactory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSSpecificSettingsSerialization.cpp"
+)
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 get_target_property(OSSIA_PROTOCOLS ossia OSSIA_PROTOCOLS)
-if("${OSSIA_PROTOCOLS}" MATCHES ".*MIDI.*")
+if("${OSSIA_PROTOCOLS}" MATCHES "MIDI")
     target_sources(${PROJECT_NAME} PRIVATE ${MIDI_HDRS} ${MIDI_SRCS})
     target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_MIDI)
 endif()
 
-if("${OSSIA_PROTOCOLS}" MATCHES ".*HTTP.*")
+if("${OSSIA_PROTOCOLS}" MATCHES "HTTP")
     target_sources(${PROJECT_NAME} PRIVATE ${HTTP_HDRS} ${HTTP_SRCS})
     target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_HTTP)
+endif()
+
+if("${OSSIA_PROTOCOLS}" MATCHES "WebSockets")
+    target_sources(${PROJECT_NAME} PRIVATE ${WS_HDRS} ${WS_SRCS})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_WEBSOCKETS)
 endif()
 
 target_link_libraries(${PROJECT_NAME}

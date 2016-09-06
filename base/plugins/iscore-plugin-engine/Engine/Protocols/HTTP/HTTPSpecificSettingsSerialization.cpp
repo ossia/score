@@ -33,5 +33,5 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(const Engine::Network::HTTPSpeci
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(Engine::Network::HTTPSpecificSettings& n)
 {
-    n.text = m_obj["TExt"].toString();
+    n.text = m_obj["Text"].toString();
 }
