@@ -156,11 +156,22 @@ void ConstraintElement::on_processAdded(
     auto fac = m_ctx.processes.factory(*proc);
     if(fac)
     {
-        auto plug = fac->make(*this, *proc, m_ctx, getStrongId(iscore_proc.components), this);
-        if(plug)
+        try
         {
-            m_processes.push_back(plug);
-            m_ossia_constraint->addTimeProcess(plug->give_OSSIAProcess());
+            auto plug = fac->make(*this, *proc, m_ctx, getStrongId(iscore_proc.components), this);
+            if(plug)
+            {
+                m_processes.push_back(plug);
+                m_ossia_constraint->addTimeProcess(plug->give_OSSIAProcess());
+            }
+        }
+        catch(const std::exception& e)
+        {
+            qDebug() << "Error while creating a process: " << e.what();
+        }
+        catch(...)
+        {
+            qDebug() << "Error while creating a process";
         }
     }
 }
