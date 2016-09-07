@@ -1,5 +1,5 @@
 #pragma once
-#include <Process/Style/ColorReference.hpp>
+#include <iscore/model/ColorReference.hpp>
 #include <QColor>
 #include <QPen>
 #include <QGraphicsTextItem>
@@ -32,14 +32,14 @@ class SimpleTextItem final : public QGraphicsSimpleTextItem
                 const QStyleOptionGraphicsItem *option,
                 QWidget *widget) override;
 
-        void setColor(ColorRef c)
+        void setColor(iscore::ColorRef c)
         {
             m_color = c;
             update();
         }
 
     private:
-        ColorRef m_color;
+        iscore::ColorRef m_color;
 };
 
 

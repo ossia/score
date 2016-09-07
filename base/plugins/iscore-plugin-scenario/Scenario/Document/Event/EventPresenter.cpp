@@ -13,7 +13,7 @@
 #include <algorithm>
 
 #include "EventPresenter.hpp"
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
@@ -42,10 +42,10 @@ EventPresenter::EventPresenter(
     con(m_model.selection, &Selectable::changed,
         m_view, &EventView::setSelected);
 
-    con(m_model.metadata, &ModelMetadata::ColorChanged,
+    con(m_model.metadata(), &iscore::ModelMetadata::ColorChanged,
         m_view, &EventView::changeColor);
 
-    con(m_model.metadata, &ModelMetadata::CommentChanged,
+    con(m_model.metadata(), &iscore::ModelMetadata::CommentChanged,
         m_view, &EventView::changeToolTip);
 
     con(m_model, &EventModel::statusChanged,
@@ -61,7 +61,7 @@ EventPresenter::EventPresenter(
             this, &EventPresenter::handleDrop);
 
     m_view->setCondition(m_model.condition().toString());
-    m_view->setToolTip(m_model.metadata.getComment());
+    m_view->setToolTip(m_model.metadata().getComment());
 
     con(m_model, &EventModel::conditionChanged,
         this, [&] (const State::Condition& c) { m_view->setCondition(c.toString()); });

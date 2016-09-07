@@ -1,6 +1,6 @@
 #include "InterpolationView.hpp"
 #include <Process/Style/ProcessFonts.hpp>
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 #include <QGraphicsSceneMouseEvent>
 
 const int fontSize = 8;
@@ -12,7 +12,7 @@ View::View(QGraphicsItem* parent) :
     setZValue(1);
     setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
     setAcceptDrops(true);
-    auto f = Skin::instance().SansFont;
+    auto f = iscore::Skin::instance().SansFont;
     f.setPointSize(fontSize);
 
     m_textcache.setFont(f);

@@ -1,16 +1,16 @@
 #pragma once
 #include <Engine/LocalTree/BaseProperty.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 
 class MetadataNamePropertyWrapper
 {
-        ModelMetadata& metadata;
+        iscore::ModelMetadata& metadata;
     public:
         ossia::net::node_base& node;
 
         MetadataNamePropertyWrapper(
                 ossia::net::node_base& parent,
-                ModelMetadata& arg_metadata,
+                iscore::ModelMetadata& arg_metadata,
                 QObject* context
                 ):
             metadata{arg_metadata},
@@ -23,8 +23,8 @@ class MetadataNamePropertyWrapper
                 if(t == OSSIA::net::NodeChange::RENAMED)
                 {
                     auto str = QString::fromStdString(node.getName());
-                    if(str != metadata.name())
-                        metadata.setName(str);
+                    if(str != metadata().name())
+                        metadata().setName(str);
                 }
             });
             */
@@ -46,7 +46,7 @@ class MetadataNamePropertyWrapper
             };
 
             QObject::connect(
-                        &metadata, &ModelMetadata::NameChanged,
+                        &metadata, &iscore::ModelMetadata::NameChanged,
                         context, setNameFun,
                         Qt::QueuedConnection);
 

@@ -39,9 +39,11 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
         friend class DocumentBuilder;
         friend struct DocumentContext;
     public:
-        DocumentMetadata metadata;
 
         ~Document();
+
+        const DocumentMetadata& metadata() const { return m_metadata; }
+        DocumentMetadata& metadata() { return m_metadata; }
 
         const Id<DocumentModel>& id() const;
 
@@ -104,6 +106,7 @@ class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
 
         void init();
 
+        DocumentMetadata m_metadata;
         CommandStack m_commandStack;
 
         SelectionStack m_selectionStack;

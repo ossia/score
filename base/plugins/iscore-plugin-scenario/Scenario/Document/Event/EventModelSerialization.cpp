@@ -8,7 +8,7 @@
 #include <QJsonValue>
 #include <algorithm>
 
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
@@ -31,7 +31,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const S
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::EventModel>&>(ev));
 
-    readFrom(ev.metadata);
+    readFrom(ev.metadata());
 
     m_stream << ev.m_timeNode
              << ev.m_states
@@ -45,7 +45,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::EventModel& ev)
 {
-    writeTo(ev.metadata);
+    writeTo(ev.metadata());
 
     m_stream >> ev.m_timeNode
              >> ev.m_states
@@ -63,7 +63,7 @@ template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::EventModel& ev)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::EventModel>&>(ev));
-    m_obj[strings.Metadata] = toJsonObject(ev.metadata);
+    m_obj[strings.Metadata] = toJsonObject(ev.metadata());
 
     m_obj["TimeNode"] = toJsonValue(ev.m_timeNode);
     m_obj["States"] = toJsonArray(ev.m_states);
@@ -77,7 +77,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::EventModel& ev)
 {
-    ev.metadata = fromJsonObject<ModelMetadata>(m_obj[strings.Metadata]);
+    ev.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
 
     ev.m_timeNode = fromJsonValue<Id<Scenario::TimeNodeModel>> (m_obj["TimeNode"]);
     fromJsonValueArray(m_obj["States"].toArray(), ev.m_states);

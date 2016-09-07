@@ -6,7 +6,7 @@
 
 namespace Scenario
 {
-ColorRef ExecutionStatusProperty::eventStatusColor()
+iscore::ColorRef ExecutionStatusProperty::eventStatusColor()
 {
     const auto& col = ScenarioStyle::instance();
     switch(m_status)
@@ -16,11 +16,11 @@ ColorRef ExecutionStatusProperty::eventStatusColor()
         case ExecutionStatus::Pending:  return col.EventPending;
         case ExecutionStatus::Happened: return col.EventHappened;
         case ExecutionStatus::Disposed: return col.EventDisposed;
-        default: return ColorRef(&Skin::instance().Warn3);
+        default: return iscore::ColorRef(&iscore::Skin::instance().Warn3);
     }
 }
 
-ColorRef ExecutionStatusProperty::stateStatusColor()
+iscore::ColorRef ExecutionStatusProperty::stateStatusColor()
 {
     const auto& col = ScenarioStyle::instance();
     switch(m_status)
@@ -30,7 +30,7 @@ ColorRef ExecutionStatusProperty::stateStatusColor()
         case ExecutionStatus::Pending:  return col.EventPending;
         case ExecutionStatus::Happened: return col.EventHappened;
         case ExecutionStatus::Disposed: return col.EventDisposed;
-        default: return ColorRef(&Skin::instance().Warn3);
+        default: return iscore::ColorRef(&iscore::Skin::instance().Warn3);
     }
 }
 }

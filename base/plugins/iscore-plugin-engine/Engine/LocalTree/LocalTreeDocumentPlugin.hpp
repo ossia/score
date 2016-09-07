@@ -10,7 +10,7 @@
 #include "GetProperty.hpp"
 #include "Property.hpp"
 
-class ModelMetadata;
+namespace iscore { class ModelMetadata; }
 
 namespace Scenario
 {

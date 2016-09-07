@@ -1,12 +1,14 @@
 #pragma once
 #include <QObject>
 #include <boost/bimap.hpp>
-#include <iscore_lib_process_export.h>
+#include <iscore_lib_base_export.h>
 #include <QFont>
 #include <QColor>
 #include <QVector>
 #include <QPair>
-class ISCORE_LIB_PROCESS_EXPORT Skin :
+namespace iscore
+{
+class ISCORE_LIB_BASE_EXPORT Skin :
         public QObject
 {
         Q_OBJECT
@@ -66,3 +68,4 @@ class ISCORE_LIB_PROCESS_EXPORT Skin :
         boost::bimap<QString, const QColor*> m_colorMap;
 
 };
+}

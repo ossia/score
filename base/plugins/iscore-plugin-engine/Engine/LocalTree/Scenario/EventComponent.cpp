@@ -12,7 +12,7 @@ Event::Event(
         Scenario::EventModel& event,
         DocumentPlugin& doc,
         QObject* parent_comp):
-    CommonComponent{parent, event.metadata, doc, id, "EventComponent", parent_comp}
+    CommonComponent{parent, event.metadata(), doc, id, "EventComponent", parent_comp}
 {
 }
 }

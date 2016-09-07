@@ -1,5 +1,5 @@
 #pragma once
-#include <Process/Style/ColorReference.hpp>
+#include <iscore/model/ColorReference.hpp>
 #include <QColor>
 #include <qnamespace.h>
 #include <QObject>
@@ -7,13 +7,14 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore_lib_process_export.h>
+#include <iscore_lib_base_export.h>
 
-// TODO should go in a namespace
+namespace iscore
+{
 /**
  * @brief The ModelMetadata class
  */
-class ISCORE_LIB_PROCESS_EXPORT ModelMetadata : public QObject
+class ISCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
 {
         ISCORE_SERIALIZE_FRIENDS(ModelMetadata, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ModelMetadata, JSONObject)
@@ -79,10 +80,11 @@ class ISCORE_LIB_PROCESS_EXPORT ModelMetadata : public QObject
         QVariantMap m_extendedMetadata;
 };
 
-Q_DECLARE_METATYPE(ModelMetadata)
-
 ISCORE_PARAMETER_TYPE(ModelMetadata, Name)
 ISCORE_PARAMETER_TYPE(ModelMetadata, Comment)
 ISCORE_PARAMETER_TYPE(ModelMetadata, Color)
 ISCORE_PARAMETER_TYPE(ModelMetadata, Label)
 ISCORE_PARAMETER_TYPE(ModelMetadata, ExtendedMetadata)
+}
+Q_DECLARE_METATYPE(iscore::ModelMetadata)
+

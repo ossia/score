@@ -26,7 +26,7 @@ DummyLayerPresenter::DummyLayerPresenter(
             this, [&] () {
         m_context.context.focusDispatcher.focus(this);
     });
-    con(model.processModel().metadata, &ModelMetadata::NameChanged,
+    con(model.processModel().metadata(), &iscore::ModelMetadata::NameChanged,
             this, [&] (QString s)
     {
         putToFront();

@@ -95,11 +95,11 @@ void Engine::LocalTree::DocumentPlugin::create()
     auto& cstr = scenar->baseScenario().constraint();
     m_root = new Constraint(
                 m_localDevice.getRootNode(),
-                getStrongId(cstr.components),
+                getStrongId(cstr.components()),
                 cstr,
                 *this,
                 this);
-    cstr.components.add(m_root);
+    cstr.components().add(m_root);
 }
 
 void Engine::LocalTree::DocumentPlugin::cleanup()
@@ -107,6 +107,6 @@ void Engine::LocalTree::DocumentPlugin::cleanup()
     if(!m_root)
         return;
 
-    m_root->constraint().components.remove(m_root);
+    m_root->constraint().components().remove(m_root);
     m_root = nullptr;
 }

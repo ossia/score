@@ -6,7 +6,7 @@
 #include "DummyLayerView.hpp"
 #include <Process/LayerView.hpp>
 
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 /*
 #include <QQuickWindow>
 #include <QGraphicsProxyWidget>
@@ -70,7 +70,7 @@ DummyLayerView::DummyLayerView(QGraphicsItem* parent):
     LayerView{parent},
     m_text{new DummyTextItem{this}}
 {
-    m_text->setFont(Skin::instance().SansFont);
+    m_text->setFont(iscore::Skin::instance().SansFont);
     connect(this, &DummyLayerView::heightChanged,
             this, &DummyLayerView::updateText);
     connect(this, &DummyLayerView::widthChanged,

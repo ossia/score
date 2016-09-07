@@ -9,7 +9,7 @@
 #include <QPushButton>
 #include <QToolButton>
 #include <QSize>
-#include <Process//ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 
 #include "CommentEdit.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
@@ -23,7 +23,7 @@ class QObject;
 namespace Scenario
 {
 MetadataWidget::MetadataWidget(
-        const ModelMetadata* metadata,
+        const iscore::ModelMetadata* metadata,
         const iscore::CommandStackFacade& m,
         const QObject *docObject,
         QWidget* parent) :
@@ -113,7 +113,7 @@ MetadataWidget::MetadataWidget(
         delete m_palette;
         m_palette = new ColorPaletteModel;
         ColorPalette palette1;
-        palette1.setColors(Skin::instance().getColors());
+        palette1.setColors(iscore::Skin::instance().getColors());
         palette1.setName("Choose a color");
         m_palette->addPalette(palette1, false);
 
@@ -126,7 +126,7 @@ MetadataWidget::MetadataWidget(
             if(colors.size() <= idx)
                 return;
 
-            auto col = ColorRef::ColorFromString(colors.at(idx).second);
+            auto col = iscore::ColorRef::ColorFromString(colors.at(idx).second);
             if(col)
                 emit colorChanged(*col);
         } );
@@ -138,7 +138,7 @@ MetadataWidget::MetadataWidget(
         m_colorButton->setMenu(colorMenu);
     }
 
-    connect(metadata,   &ModelMetadata::metadataChanged,
+    connect(metadata,   &iscore::ModelMetadata::metadataChanged,
             this,       &MetadataWidget::updateAsked);
 }
 

@@ -22,7 +22,7 @@ template <typename model> class IdentifiedObject;
 template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::RackModel& rack)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::RackModel>&>(rack));
-    readFrom(rack.metadata);
+    readFrom(rack.metadata());
     m_stream << rack.slotsPositions();
 
     const auto& theSlots = rack.slotmodels;
@@ -38,7 +38,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::RackModel&
 
 template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::RackModel& rack)
 {
-    writeTo(rack.metadata);
+    writeTo(rack.metadata());
 
     int32_t slots_size;
     QList<Id<Scenario::SlotModel>> positions;
@@ -59,7 +59,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::RackModel& rack)
 template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::RackModel& rack)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::RackModel>&>(rack));
-    m_obj[strings.Metadata] = toJsonObject(rack.metadata);
+    m_obj[strings.Metadata] = toJsonObject(rack.metadata());
 
     QJsonArray arr;
     for(const auto& slot : rack.slotmodels)
@@ -81,7 +81,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::RackModel&
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::RackModel& rack)
 {
-    rack.metadata = fromJsonObject<ModelMetadata>(m_obj[strings.Metadata]);
+    rack.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
     QJsonArray theSlots = m_obj["Slots"].toArray();
     QJsonArray slotsPositions = m_obj["SlotsPositions"].toArray();
     QMap<Id<Scenario::SlotModel>, int> list;

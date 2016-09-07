@@ -9,7 +9,7 @@
 
 #include "AddSlotWidget.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include "RackInspectorSection.hpp"
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
@@ -93,7 +93,7 @@ void RackInspectorSection::createSlot()
 
 void RackInspectorSection::ask_changeName(QString newName)
 {
-    if(newName != m_model.metadata.getName())
+    if(newName != m_model.metadata().getName())
     {
         auto cmd = new Command::ChangeElementName<RackModel>{m_model, newName};
         emit m_parent.commandDispatcher()->submitCommand(cmd);
@@ -103,7 +103,7 @@ void RackInspectorSection::ask_changeName(QString newName)
 void RackInspectorSection::addSlotInspectorSection(const SlotModel& slot)
 {
     auto newSlot = new SlotInspectorSection {
-                                    slot.metadata.getName(),
+                                    slot.metadata().getName(),
                                     slot,
                                     this};
 

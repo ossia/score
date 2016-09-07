@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Document/VerticalExtent.hpp>
-#include <Process/Style/ColorReference.hpp>
+#include <iscore/model/ColorReference.hpp>
 #include <QtGlobal>
 #include <QGraphicsItem>
 #include <QPoint>
@@ -62,7 +62,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final :
 
         void setStatus(ExecutionStatus s);
 
-        void changeColor(ColorRef);
+        void changeColor(iscore::ColorRef);
 
         void setWidthScale(double);
         void changeToolTip(const QString&);
@@ -87,7 +87,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final :
         EventPresenter& m_presenter;
         QString m_condition;
         QString m_trigger;
-        ColorRef m_color;
+        iscore::ColorRef m_color;
 
         ExecutionStatusProperty m_status{};
         bool m_selected{};

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "CreateEvent_State.hpp"
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -65,7 +65,7 @@ void CreateEvent_State::redo() const
                 {m_command.endStateY() - 0.1, m_command.endStateY() + 0.1},
                 scenar);
 
-    scenar.events.at(m_newEvent).metadata.setName(m_createdName);
+    scenar.events.at(m_newEvent).metadata().setName(m_createdName);
 
     // And the state
     m_command.redo();

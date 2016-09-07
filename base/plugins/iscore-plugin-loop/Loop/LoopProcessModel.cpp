@@ -9,8 +9,8 @@
 
 #include "Loop/LoopProcessMetadata.hpp"
 #include "LoopProcessModel.hpp"
-#include <Process/Style/Skin.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/Skin.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
@@ -43,8 +43,8 @@ ProcessModel::ProcessModel(
 
     const double height = 0.15;
     constraint().setHeightPercentage(height);
-    constraint().metadata.setName("pattern");
-    constraint().metadata.setColor(ScenarioStyle::instance().ConstraintInvalid);
+    constraint().metadata().setName("pattern");
+    constraint().metadata().setColor(ScenarioStyle::instance().ConstraintInvalid);
     BaseScenarioContainer::startState().setHeightPercentage(height);
     BaseScenarioContainer::endState().setHeightPercentage(height);
     BaseScenarioContainer::startEvent().setExtent({height, 0.2});

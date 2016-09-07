@@ -1,5 +1,5 @@
 #pragma once
-#include <Process/Style/ColorReference.hpp>
+#include <iscore/model/ColorReference.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <Scenario/Document/Constraint/ExecutionState.hpp>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
@@ -51,7 +51,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
         bool shadow() const;
         void setShadow(bool shadow);
 
-        void setLabelColor(ColorRef labelColor);
+        void setLabelColor(iscore::ColorRef labelColor);
         void setLabel(const QString &label);
 
         void setFocused(bool b)
@@ -60,7 +60,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
             update();
         }
 
-        void setColor(ColorRef c)
+        void setColor(iscore::ColorRef c)
         {
             m_bgColor = c;
             update();
@@ -86,7 +86,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
         QPointF m_clickedPoint {};
 
         QString m_label{};
-        ColorRef m_bgColor;
+        iscore::ColorRef m_bgColor;
 
         LeftBraceView* m_leftBrace{};
         RightBraceView* m_rightBrace{};

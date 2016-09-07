@@ -4,19 +4,20 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/Entity.hpp>
 #include <QByteArray>
 #include <QString>
 #include <vector>
 
 #include <iscore/component/Component.hpp>
 #include <iscore/tools/Metadata.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
+#include <iscore_lib_process_export.h>
 
 namespace Process { class LayerModel; }
 class ProcessStateDataInterface;
@@ -33,7 +34,7 @@ class LayerFactory;
  * Interface to implement to make a process.
  */
 class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
-        public IdentifiedObject<ProcessModel>,
+        public iscore::Entity<ProcessModel>,
         public iscore::SerializableInterface<ProcessFactory>
 {
         Q_OBJECT
@@ -43,9 +44,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         friend class Process::LayerFactory; // to register layers
 
     public:
-        iscore::Components components;
-        ModelMetadata metadata;
-
         ProcessModel(
                 TimeValue duration,
                 const Id<ProcessModel>& id,
@@ -63,7 +61,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
 
         // A user-friendly text to show to the users
         virtual QString prettyName() const
-        { return metadata.getName(); }
+        { return metadata().getName(); }
 
 
         // Do a copy.

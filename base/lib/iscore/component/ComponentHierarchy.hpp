@@ -48,10 +48,10 @@ class ComponentHierarchyManager :
         {
             // The subclass should provide this function to construct
             // the correct component relative to this process.
-            auto proc_comp = ParentComponent_T::make(getStrongId(model.components), model);
+            auto proc_comp = ParentComponent_T::make(getStrongId(model.components()), model);
             if(proc_comp)
             {
-                model.components.add(proc_comp);
+                model.components().add(proc_comp);
                 m_children.emplace_back(ChildPair{&model, proc_comp});
             }
         }
@@ -72,7 +72,7 @@ class ComponentHierarchyManager :
         void remove(const ChildPair& pair)
         {
             ParentComponent_T::removing(*pair.model, *pair.component);
-            pair.model->components.remove(*pair.component);
+            pair.model->components().remove(*pair.component);
         }
 
         void clear()
@@ -145,11 +145,11 @@ class PolymorphicComponentHierarchyManager :
                 // The subclass should provide this function to construct
                 // the correct component relative to this process.
                 auto proc_comp = ParentComponent_T::make(
-                                     getStrongId(model.components),
+                                     getStrongId(model.components()),
                                      *factory, model);
                 if(proc_comp)
                 {
-                    model.components.add(proc_comp);
+                    model.components().add(proc_comp);
                     m_children.emplace_back(ChildPair{&model, proc_comp});
                 }
             }
@@ -171,7 +171,7 @@ class PolymorphicComponentHierarchyManager :
         void remove(const ChildPair& pair)
         {
             ParentComponent_T::removing(*pair.model, *pair.component);
-            pair.model->components.remove(*pair.component);
+            pair.model->components().remove(*pair.component);
         }
 
         void clear()

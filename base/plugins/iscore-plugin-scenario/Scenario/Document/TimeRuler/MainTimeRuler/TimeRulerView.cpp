@@ -1,5 +1,5 @@
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 #include <QColor>
 
 #include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
@@ -15,8 +15,8 @@ TimeRulerView::TimeRulerView() :
     m_color = ScenarioStyle::instance().TimeRuler;
 
 
-    auto& skin = Skin::instance();
-    con(skin, &Skin::changed,
+    auto& skin = iscore::Skin::instance();
+    con(skin, &iscore::Skin::changed,
         this, [&] () {
         auto& skin = ScenarioStyle::instance();
         m_color = skin.TimeRuler;

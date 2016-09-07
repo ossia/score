@@ -1,5 +1,5 @@
 #pragma once
-#include <Process/Style/ColorReference.hpp>
+#include <iscore/model/ColorReference.hpp>
 #include <QColor>
 #include <QDateTime>
 #include <QtGlobal>
@@ -65,7 +65,7 @@ class AbstractTimeRulerView :
         qreal m_textPosition{};
         int m_graduationHeight {};
 
-        ColorRef m_color;
+        iscore::ColorRef m_color;
         QPainterPath m_path;
 
         QMap<double, QTime> m_marks;

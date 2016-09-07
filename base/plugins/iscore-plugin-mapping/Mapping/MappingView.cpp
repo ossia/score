@@ -8,7 +8,7 @@
 
 #include "MappingView.hpp"
 #include <Process/LayerView.hpp>
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 
 static const int fontSize = 8;
 namespace Mapping
@@ -19,7 +19,7 @@ MappingView::MappingView(QGraphicsItem* parent) :
     setZValue(1);
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 
-    auto f = Skin::instance().SansFont;
+    auto f = iscore::Skin::instance().SansFont;
     f.setPointSize(fontSize);
 
     m_textcache.setFont(f);

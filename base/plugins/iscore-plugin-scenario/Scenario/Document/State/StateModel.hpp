@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/Metadata.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/Entity.hpp>
 #include <Process/StateProcess.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <iscore/tools/std/Optional.hpp>
@@ -48,7 +48,8 @@ class ProcessStateWrapper : public QObject
 };
 
 // Model for the graphical state in a scenario.
-class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<StateModel>, public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final :
+        public iscore::Entity<StateModel>, public Nano::Observer
 {
         Q_OBJECT
 
@@ -58,9 +59,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
         using ProcessVector = std::list<ProcessStateWrapper>;
 
         NotifyingMap<Process::StateProcess> stateProcesses;
-        iscore::Components components;
         Selectable selection;
-        ModelMetadata metadata;
 
         StateModel(const Id<StateModel>& id,
                    const Id<EventModel>& eventId,
@@ -80,7 +79,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final : public IdentifiedObject<S
         StateModel(DeserializerVisitor&& vis,
                    const iscore::CommandStackFacade& stack,
                    QObject* parent) :
-            IdentifiedObject{vis, parent},
+            Entity{vis, parent},
             m_stack{stack}
         {
             vis.writeTo(*this);

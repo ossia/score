@@ -4,7 +4,7 @@
 
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <Process/Style/ColorReference.hpp>
+#include <iscore/model/ColorReference.hpp>
 
 namespace Scenario
 {
@@ -35,24 +35,24 @@ class ChangeElementColor final : public iscore::SerializableCommand
         }
 
         ChangeElementColor() = default;
-        ChangeElementColor(Path<T>&& path, ColorRef newColor) :
+        ChangeElementColor(Path<T>&& path, iscore::ColorRef newColor) :
             m_path {std::move(path) },
             m_newColor {newColor}
         {
             auto& obj = m_path.find();
-            m_oldColor = obj.metadata.getColor();
+            m_oldColor = obj.metadata().getColor();
         }
 
         void undo() const override
         {
             auto& obj = m_path.find();
-            obj.metadata.setColor(m_oldColor);
+            obj.metadata().setColor(m_oldColor);
         }
 
         void redo() const override
         {
             auto& obj = m_path.find();
-            obj.metadata.setColor(m_newColor);
+            obj.metadata().setColor(m_newColor);
         }
 
     protected:
@@ -68,8 +68,8 @@ class ChangeElementColor final : public iscore::SerializableCommand
 
     private:
         Path<T> m_path;
-        ColorRef m_newColor;
-        ColorRef m_oldColor;
+        iscore::ColorRef m_newColor;
+        iscore::ColorRef m_oldColor;
 };
 }
 }

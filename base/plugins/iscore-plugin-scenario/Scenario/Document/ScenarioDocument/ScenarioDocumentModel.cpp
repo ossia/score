@@ -67,14 +67,14 @@ ScenarioDocumentModel::ScenarioDocumentModel(
     m_baseScenario->endEvent().setDate(m_baseScenario->constraint().duration.defaultDuration());
     m_baseScenario->endTimeNode().setDate(m_baseScenario->constraint().duration.defaultDuration());
 
-    auto& doc_metadata = iscore::IDocument::documentContext(*parent).document.metadata;
-    m_baseScenario->constraint().metadata.setName(doc_metadata.fileName());
+    auto& doc_metadata = iscore::IDocument::documentContext(*parent).document.metadata();
+    m_baseScenario->constraint().metadata().setName(doc_metadata.fileName());
 
     connect(&doc_metadata, &iscore::DocumentMetadata::fileNameChanged,
             this, [&] (const QString& newName) {
         QFileInfo info(newName);
 
-        m_baseScenario->constraint().metadata.setName(info.baseName());
+        m_baseScenario->constraint().metadata().setName(info.baseName());
     });
 
     initializeNewDocument(m_baseScenario->constraint().fullView());

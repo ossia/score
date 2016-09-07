@@ -83,7 +83,7 @@ void ProcessViewTabWidget::setupRack(const RackModel& rack)
 {
     // Display the widget
     auto newRack = new RackInspectorSection {
-            rack.metadata.getName(),
+            rack.metadata().getName(),
             rack,
             m_constraintWidget,
             this};

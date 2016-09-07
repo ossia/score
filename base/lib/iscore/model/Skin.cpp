@@ -3,6 +3,8 @@
 #include <QJsonArray>
 #include <boost/assign/list_of.hpp>
 
+namespace iscore
+{
 // Taken from http://stackoverflow.com/a/31841462
 template <typename L, typename R>
 boost::bimap<L, R>
@@ -46,7 +48,7 @@ Skin::Skin() noexcept:
 {
 }
 
-Skin& Skin::instance()
+Skin& iscore::Skin::instance()
 {
     static Skin s;
     return s;
@@ -152,3 +154,4 @@ QString Skin::toString(const QColor* c) const
 #undef ISCORE_INSERT_COLOR
 #undef ISCORE_CONVERT_COLOR
 #undef ISCORE_MAKE_PAIR_COLOR
+}

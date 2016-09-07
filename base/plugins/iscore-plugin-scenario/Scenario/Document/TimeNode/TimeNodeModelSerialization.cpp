@@ -7,7 +7,7 @@
 #include <QJsonValue>
 #include <algorithm>
 
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
@@ -28,7 +28,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const S
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::TimeNodeModel>&>(timenode));
 
-    readFrom(timenode.metadata);
+    readFrom(timenode.metadata());
 
     m_stream << timenode.m_date
              << timenode.m_events
@@ -43,7 +43,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::TimeNodeModel& timenode)
 {
-    writeTo(timenode.metadata);
+    writeTo(timenode.metadata());
 
     bool a;
     State::Trigger t;
@@ -64,7 +64,7 @@ template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::TimeNodeModel& timenode)
 {
     readFrom(static_cast<const IdentifiedObject<Scenario::TimeNodeModel>&>(timenode));
-    m_obj[strings.Metadata] = toJsonObject(timenode.metadata);
+    m_obj[strings.Metadata] = toJsonObject(timenode.metadata());
 
     m_obj["Date"] = toJsonValue(timenode.date());
     m_obj["Events"] = toJsonArray(timenode.m_events);
@@ -79,10 +79,10 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::TimeNodeModel& timenode)
 {
-    timenode.metadata = fromJsonObject<ModelMetadata>(m_obj[strings.Metadata]);
+    timenode.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
 
-    if(timenode.metadata.getLabel() == QStringLiteral("TimeNode"))
-        timenode.metadata.setLabel("");
+    if(timenode.metadata().getLabel() == QStringLiteral("TimeNode"))
+        timenode.metadata().setLabel("");
 
     timenode.m_date = fromJsonValue<TimeValue> (m_obj["Date"]);
     timenode.m_extent = fromJsonValue<Scenario::VerticalExtent>(m_obj["Extent"]);

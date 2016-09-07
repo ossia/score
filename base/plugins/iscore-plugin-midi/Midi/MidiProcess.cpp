@@ -8,7 +8,7 @@ ProcessModel::ProcessModel(
         QObject* parent):
     Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-    metadata.setName(QString("Midi.%1").arg(*this->id().val()));
+    metadata().setName(QString("Midi.%1").arg(*this->id().val()));
 
     m_device = "tata";
     for(int i = 0; i < 10; i++)

@@ -2,7 +2,10 @@
 #include <QGraphicsItem>
 #include <QString>
 #include <functional>
+namespace iscore
+{
 class ModelMetadata;
+}
 class QGraphicsSceneHoverEvent;
 class QGraphicsSceneMouseEvent;
 
@@ -23,7 +26,7 @@ class ClickableLabelItem final :
     public:
         using ClickHandler= std::function<void(ClickableLabelItem*)>;
         ClickableLabelItem(
-                ModelMetadata& constraint,
+                iscore::ModelMetadata& constraint,
                 ClickHandler&& onClick,
                 const QString& text,
                 QGraphicsItem* parent);

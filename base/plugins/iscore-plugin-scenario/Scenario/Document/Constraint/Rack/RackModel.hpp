@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/Metadata.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/Entity.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -29,13 +29,12 @@ class ConstraintModel;
  * A Rack is always found in a Constraint.
  */
 class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final :
-        public IdentifiedObject<RackModel>,
+        public iscore::Entity<RackModel>,
         public Nano::Observer
 {
         Q_OBJECT
 
     public:
-        ModelMetadata metadata;
         RackModel(const Id<RackModel>& id, QObject* parent);
 
         // Copy
@@ -46,7 +45,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final :
 
         template<typename Impl>
         RackModel(Deserializer<Impl>& vis, QObject* parent) :
-            IdentifiedObject{vis, parent}
+            Entity{vis, parent}
         {
             initConnections();
             vis.writeTo(*this);

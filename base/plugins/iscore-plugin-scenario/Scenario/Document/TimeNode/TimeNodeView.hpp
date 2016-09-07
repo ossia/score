@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Document/VerticalExtent.hpp>
-#include <Process/Style/ColorReference.hpp>
+#include <iscore/model/ColorReference.hpp>
 #include <QColor>
 #include <QGraphicsItem>
 #include <QPoint>
@@ -54,7 +54,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsItem
             return m_selected;
         }
 
-        void changeColor(ColorRef);
+        void changeColor(iscore::ColorRef);
         void setLabel(const QString& label);
 
     protected:
@@ -67,7 +67,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsItem
         VerticalExtent m_extent;
 
         QPointF m_clickedPoint {};
-        ColorRef m_color;
+        iscore::ColorRef m_color;
         bool m_selected{};
 
         SimpleTextItem* m_text{};

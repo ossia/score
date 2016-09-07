@@ -3,7 +3,7 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 
 namespace Scenario
 {
@@ -54,7 +54,7 @@ void Model::setSkin(const QString& skin)
         else
         {
             auto obj = doc.object();
-            Skin::instance().load(obj);
+            iscore::Skin::instance().load(obj);
         }
     }
     else

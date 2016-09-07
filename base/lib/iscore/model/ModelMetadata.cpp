@@ -3,6 +3,8 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <QJsonObject>
 
+namespace iscore
+{
 ModelMetadata::ModelMetadata(const ModelMetadata &other) :
     QObject {}
 {
@@ -13,7 +15,7 @@ ModelMetadata::ModelMetadata(const ModelMetadata &other) :
     setExtendedMetadata(other.getExtendedMetadata());
 }
 
-ModelMetadata &ModelMetadata::operator=(const ModelMetadata &other)
+ModelMetadata &iscore::ModelMetadata::operator=(const ModelMetadata &other)
 {
     setName(other.getName());
     setComment(other.getComment());
@@ -110,27 +112,28 @@ void ModelMetadata::setExtendedMetadata(const QVariantMap& arg)
     emit ExtendedMetadataChanged(arg);
     emit metadataChanged();
 }
+}
 
 // MOVEME
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ColorRef& md)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const iscore::ColorRef& md)
 {
     m_stream << md.name();
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(ColorRef& md)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(iscore::ColorRef& md)
 {
     QString col_name;
     m_stream >> col_name;
 
-    auto col = ColorRef::ColorFromString(col_name);
+    auto col = iscore::ColorRef::ColorFromString(col_name);
     if(col)
         md = *col;
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ModelMetadata& md)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const iscore::ModelMetadata& md)
 {
     m_stream << md.m_scriptingName
              << md.m_comment
@@ -142,7 +145,7 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Model
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(ModelMetadata& md)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<DataStream>>::writeTo(iscore::ModelMetadata& md)
 {
     m_stream >> md.m_scriptingName
              >> md.m_comment
@@ -154,7 +157,7 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(ModelMetadat
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const ModelMetadata& md)
+ISCORE_LIB_BASE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const iscore::ModelMetadata& md)
 {
     m_obj[strings.ScriptingName] = md.m_scriptingName;
     m_obj[strings.Comment] = md.m_comment;
@@ -167,7 +170,7 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Model
 }
 
 template<>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ModelMetadata& md)
+ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(iscore::ModelMetadata& md)
 {
     md.m_scriptingName = m_obj[strings.ScriptingName].toString();
     md.m_comment = m_obj[strings.Comment].toString();
@@ -178,14 +181,14 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ModelMetadat
         // Old save format
         const auto& color = color_val.toArray();
         QColor col(color[0].toInt(), color[1].toInt(), color[2].toInt());
-        auto sim_col = ColorRef::SimilarColor(col);
+        auto sim_col = iscore::ColorRef::SimilarColor(col);
         if(sim_col)
             md.m_color = *sim_col;
     }
     else if(color_val.isString())
     {
         auto col_name = color_val.toString();
-        auto col = ColorRef::ColorFromString(col_name);
+        auto col = iscore::ColorRef::ColorFromString(col_name);
         if(col)
             md.m_color = *col;
     }

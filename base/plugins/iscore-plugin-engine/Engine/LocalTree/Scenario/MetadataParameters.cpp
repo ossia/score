@@ -1,7 +1,7 @@
 #include "MetadataParameters.hpp"
 #include <Engine/LocalTree/GetProperty.hpp>
 #include <Engine/LocalTree/Property.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <ossia/editor/state/state_element.hpp>
 namespace Engine
 {
@@ -9,7 +9,7 @@ namespace LocalTree
 {
 ISCORE_PLUGIN_ENGINE_EXPORT
 void make_metadata_node(
-        ModelMetadata& metadata,
+        iscore::ModelMetadata& metadata,
         ossia::net::node_base& parent,
         std::vector<std::unique_ptr<BaseProperty>>& properties,
         QObject* context)
@@ -17,22 +17,22 @@ void make_metadata_node(
 
     properties.push_back(
     add_getProperty<QString>(parent, "name", &metadata,
-                             &ModelMetadata::getName,
-                             &ModelMetadata::NameChanged,
+                             &iscore::ModelMetadata::getName,
+                             &iscore::ModelMetadata::NameChanged,
                              context));
 
     properties.push_back(
     add_property<QString>(parent, "comment", &metadata,
-                          &ModelMetadata::getComment,
-                          &ModelMetadata::setComment,
-                          &ModelMetadata::CommentChanged,
+                          &iscore::ModelMetadata::getComment,
+                          &iscore::ModelMetadata::setComment,
+                          &iscore::ModelMetadata::CommentChanged,
                           context));
 
     properties.push_back(
     add_property<QString>(parent, "label", &metadata,
-                          &ModelMetadata::getLabel,
-                          &ModelMetadata::setLabel,
-                          &ModelMetadata::LabelChanged,
+                          &iscore::ModelMetadata::getLabel,
+                          &iscore::ModelMetadata::setLabel,
+                          &iscore::ModelMetadata::LabelChanged,
                           context));
 }
 }

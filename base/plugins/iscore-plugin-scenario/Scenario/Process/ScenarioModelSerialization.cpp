@@ -12,7 +12,7 @@
 #include <algorithm>
 
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include "ScenarioFactory.hpp"
@@ -35,7 +35,7 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
         const Scenario::ProcessModel& scenario)
 {
-    m_stream << scenario.metadata.getName();
+    m_stream << scenario.metadata().getName();
 
     m_stream << scenario.m_startTimeNodeId
              << scenario.m_endTimeNodeId;
@@ -97,7 +97,7 @@ void Visitor<Writer<DataStream>>::writeTo(
 {
     QString name;
     m_stream >> name;
-    scenario.metadata.setName(name);
+    scenario.metadata().setName(name);
     m_stream >> scenario.m_startTimeNodeId
              >> scenario.m_endTimeNodeId;
     m_stream >> scenario.m_startEventId
@@ -171,7 +171,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
         const Scenario::ProcessModel& scenario)
 {
-    m_obj[strings.Metadata] = toJsonObject(scenario.metadata);
+    m_obj[strings.Metadata] = toJsonObject(scenario.metadata());
 
     m_obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);
     m_obj["EndTimeNodeId"] = toJsonValue(scenario.m_endTimeNodeId);
@@ -190,7 +190,7 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(
         Scenario::ProcessModel& scenario)
 {
-    scenario.metadata = fromJsonObject<ModelMetadata>(m_obj[strings.Metadata]);
+    scenario.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
 
     scenario.m_startTimeNodeId = fromJsonValue<Id<Scenario::TimeNodeModel>> (m_obj["StartTimeNodeId"]);
     scenario.m_endTimeNodeId = fromJsonValue<Id<Scenario::TimeNodeModel>> (m_obj["EndTimeNodeId"]);

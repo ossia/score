@@ -32,7 +32,7 @@ class LayerPresenter final :
                 this, &LayerPresenter::on_nameChanges);
             con(m_layer.processModel(), &ProcessModel::tweenChanged,
                 this, &LayerPresenter::on_tweenChanges);
-            con(m_layer.processModel().metadata, &ModelMetadata::NameChanged,
+            con(m_layer.processModel().metadata(), &iscore::ModelMetadata::NameChanged,
                 this, &LayerPresenter::on_nameChanges);
 
 

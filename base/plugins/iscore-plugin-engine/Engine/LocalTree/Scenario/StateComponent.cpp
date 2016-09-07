@@ -13,7 +13,7 @@ State::State(
         Scenario::StateModel& state,
         DocumentPlugin& doc,
         QObject* parent_comp):
-    CommonComponent{parent, state.metadata, doc, id, "StateComponent", parent_comp}
+    CommonComponent{parent, state.metadata(), doc, id, "StateComponent", parent_comp}
 {
 }
 }

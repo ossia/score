@@ -11,7 +11,7 @@
 #include "EventModel.hpp"
 #include "EventPresenter.hpp"
 #include "EventView.hpp"
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <QCursor>
@@ -28,7 +28,7 @@ EventView::EventView(EventPresenter& presenter,
 {
     setAcceptDrops(true);
 
-    m_color = presenter.model().metadata.getColor();
+    m_color = presenter.model().metadata().getColor();
 
     m_conditionItem = new ConditionView(ScenarioStyle::instance().ConditionDefault, this);
     m_conditionItem->setVisible(false);
@@ -140,7 +140,7 @@ bool EventView::isSelected() const
     return m_selected;
 }
 
-void EventView::changeColor(ColorRef newColor)
+void EventView::changeColor(iscore::ColorRef newColor)
 {
     m_color = newColor;
     this->update();

@@ -10,7 +10,7 @@ Engine::LocalTree::ProcessComponent::ProcessComponent(
         const QString& name,
         QObject* parent):
     Component<Scenario::GenericProcessComponent<DocumentPlugin>>{
-        parentNode, proc.metadata, proc, doc, id, name, parent}
+        parentNode, proc.metadata(), proc, doc, id, name, parent}
 {
 }
 

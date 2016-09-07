@@ -11,7 +11,7 @@
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <State/Address.hpp>
 #include <Automation/State/AutomationState.hpp>
 #include <iscore/tools/MapCopy.hpp>
@@ -42,7 +42,7 @@ ProcessModel::ProcessModel(
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
 
-    metadata.setName(QString("Automation.%1").arg(*this->id().val()));
+    metadata().setName(QString("Automation.%1").arg(*this->id().val()));
 }
 
 ProcessModel::~ProcessModel()
@@ -63,7 +63,7 @@ ProcessModel::ProcessModel(
     setCurve(source.curve().clone(source.curve().id(), this));
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
-    metadata.setName(QString("Automation.%1").arg(*this->id().val()));
+    metadata().setName(QString("Automation.%1").arg(*this->id().val()));
 }
 
 QString ProcessModel::prettyName() const

@@ -1,7 +1,7 @@
 #include "ScenarioStyle.hpp"
-#include "Skin.hpp"
-
-ScenarioStyle::ScenarioStyle(const Skin& s) noexcept:
+#include <iscore/model/Skin.hpp>
+// TODO namespace
+ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept:
 
     ConstraintBase{&s.Base1},
     ConstraintSelected{&s.Base2},
@@ -59,6 +59,6 @@ ScenarioStyle::ScenarioStyle(const Skin& s) noexcept:
 
 ScenarioStyle& ScenarioStyle::instance()
 {
-    static ScenarioStyle s(Skin::instance());
+    static ScenarioStyle s(iscore::Skin::instance());
     return s;
 }

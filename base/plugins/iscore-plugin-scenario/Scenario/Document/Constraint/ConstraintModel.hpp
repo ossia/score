@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/Metadata.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/Entity.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
@@ -29,7 +29,7 @@ class ConstraintViewModel;
 class FullViewConstraintViewModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel :
-        public IdentifiedObject<ConstraintModel>,
+        public iscore::Entity<ConstraintModel>,
         public Nano::Observer
 {
         Q_OBJECT
@@ -48,9 +48,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel :
         NotifyingMap<Process::ProcessModel> processes;
         NotifyingMap<RackModel> racks;
 
-        iscore::Components components;
         Selectable selection;
-        ModelMetadata metadata;
         ModelConsistency consistency{nullptr};
         ConstraintDurations duration{*this};
 
@@ -70,7 +68,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel :
         // Serialization
         template<typename Deserializer>
         ConstraintModel(Deserializer&& vis, QObject* parent) :
-            IdentifiedObject{vis, parent}
+            Entity{vis, parent}
         {
             initConnections();
             vis.writeTo(*this);

@@ -1,5 +1,5 @@
 #pragma once
-#include <Process/Style/ColorReference.hpp>
+#include <iscore/model/ColorReference.hpp>
 #include <QObject>
 
 class QColor;
@@ -23,8 +23,8 @@ class ExecutionStatusProperty final : public QObject
                 emit changed(m_status);
             }
         }
-        ColorRef eventStatusColor();
-        ColorRef stateStatusColor();
+        iscore::ColorRef eventStatusColor();
+        iscore::ColorRef stateStatusColor();
 
     signals:
         void changed(ExecutionStatus);

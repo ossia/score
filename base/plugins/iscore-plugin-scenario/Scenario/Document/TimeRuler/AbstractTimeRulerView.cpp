@@ -7,7 +7,7 @@
 #include <QPen>
 #include <cmath>
 
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 #include "AbstractTimeRulerView.hpp"
 #include <Process/TimeValue.hpp>
 
@@ -36,7 +36,7 @@ void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsI
     painter->setPen(QPen(brush, 1, Qt::SolidLine));
     painter->drawPath(m_path);
 
-    painter->setFont(Skin::instance().MonoFont);
+    painter->setFont(iscore::Skin::instance().MonoFont);
 
     if (m_width > 0)
     {

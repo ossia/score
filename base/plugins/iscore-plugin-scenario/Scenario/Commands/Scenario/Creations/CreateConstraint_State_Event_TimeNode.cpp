@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "CreateConstraint_State_Event_TimeNode.hpp"
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
@@ -71,7 +71,7 @@ void CreateConstraint_State_Event_TimeNode::redo() const
                 m_date,
                 scenar);
 
-    scenar.timeNode(m_newTimeNode).metadata.setName(m_createdName);
+    scenar.timeNode(m_newTimeNode).metadata().setName(m_createdName);
 
     // The event + state + constraint between
     m_command.redo();

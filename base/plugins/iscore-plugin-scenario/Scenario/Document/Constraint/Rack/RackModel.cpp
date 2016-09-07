@@ -1,4 +1,4 @@
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include "RackModel.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
@@ -9,18 +9,17 @@
 namespace Scenario
 {
 RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :
-    IdentifiedObject<RackModel> {id, Metadata<ObjectKey_k, RackModel>::get(), parent}
+    Entity{id, Metadata<ObjectKey_k, RackModel>::get(), parent}
 {
     initConnections();
-    metadata.setName(QString{"Rack.%1"} .arg(*id.val()));
+    metadata().setName(QString{"Rack.%1"} .arg(*id.val()));
 }
 
 RackModel::RackModel(const RackModel& source,
                    const Id<RackModel>& id,
                    std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
                    QObject *parent) :
-    IdentifiedObject<RackModel> {id, Metadata<ObjectKey_k, RackModel>::get(), parent},
-    metadata{source.metadata}
+    Entity{source, id, Metadata<ObjectKey_k, RackModel>::get(), parent}
 {
     initConnections();
     for(const auto& slot : source.slotmodels)
