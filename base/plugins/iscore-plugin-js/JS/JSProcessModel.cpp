@@ -30,7 +30,7 @@ ProcessModel::ProcessModel(
                "     return [ obj ]; \n"
                "});";
 
-    metadata.setName(QString("JavaScript.%1").arg(*this->id().val()));
+    metadata().setName(QString("JavaScript.%1").arg(*this->id().val()));
 }
 
 ProcessModel::ProcessModel(

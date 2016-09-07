@@ -5,7 +5,7 @@
 #include <QPoint>
 
 #include "EventModel.hpp"
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -23,20 +23,19 @@ EventModel::EventModel(
         const VerticalExtent &extent,
         const TimeValue &date,
         QObject* parent):
-    IdentifiedObject<EventModel> {id, Metadata<ObjectKey_k, EventModel>::get(), parent},
+    Entity{id, Metadata<ObjectKey_k, EventModel>::get(), parent},
     m_timeNode{timenode},
     m_extent{extent},
     m_date{date}
 {
-    metadata.setName(QString("Event.%1").arg(*this->id().val()));
-    metadata.setColor(ScenarioStyle::instance().EventDefault);
+    metadata().setName(QString("Event.%1").arg(*this->id().val()));
+    metadata().setColor(ScenarioStyle::instance().EventDefault);
 }
 
 EventModel::EventModel(const EventModel& source,
                        const Id<EventModel>& id,
                        QObject* parent) :
-    IdentifiedObject<EventModel> {id, Metadata<ObjectKey_k, EventModel>::get(), parent},
-    metadata{source.metadata},
+    Entity{source, id, Metadata<ObjectKey_k, EventModel>::get(), parent},
     m_timeNode{source.m_timeNode},
     m_states(source.m_states),
     m_condition{source.m_condition},

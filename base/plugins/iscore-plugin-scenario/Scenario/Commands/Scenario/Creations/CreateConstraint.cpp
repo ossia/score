@@ -15,7 +15,7 @@
 
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include "CreateConstraint.hpp"
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -77,7 +77,7 @@ void CreateConstraint::redo() const
                 sst.heightPercentage(),
                 scenar);
 
-    scenar.constraints.at(m_createdConstraintId).metadata.setName(m_createdName);
+    scenar.constraints.at(m_createdConstraintId).metadata().setName(m_createdName);
 
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,

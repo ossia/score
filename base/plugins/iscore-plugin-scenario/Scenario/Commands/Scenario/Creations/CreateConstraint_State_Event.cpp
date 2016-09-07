@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "CreateConstraint_State_Event.hpp"
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -71,7 +71,7 @@ void CreateConstraint_State_Event::redo() const
                 {m_command.endStateY(), m_command.endStateY()},
                 scenar);
 
-    scenar.events.at(m_newEvent).metadata.setName(m_createdName);
+    scenar.events.at(m_newEvent).metadata().setName(m_createdName);
 
     // The state + constraint between
     m_command.redo();

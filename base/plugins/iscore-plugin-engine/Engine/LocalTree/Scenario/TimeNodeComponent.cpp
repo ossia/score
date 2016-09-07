@@ -14,7 +14,7 @@ TimeNode::TimeNode(
         Scenario::TimeNodeModel& timeNode,
         DocumentPlugin& doc,
         QObject* parent_comp):
-    CommonComponent{parent, timeNode.metadata, doc, id, "StateComponent", parent_comp}
+    CommonComponent{parent, timeNode.metadata(), doc, id, "StateComponent", parent_comp}
 {
     m_properties.push_back(
     add_setProperty<::State::impulse_t>(node(), "trigger",

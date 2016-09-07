@@ -6,7 +6,7 @@
 #include <QGraphicsScene>
 #include <QList>
 
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
@@ -48,17 +48,17 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
         this, [&] (double percentage) {
         v.setExecutionDuration(duration.defaultDuration() * percentage);
     }, Qt::QueuedConnection);*/
-    const auto& metadata = m_viewModel.model().metadata;
-    con(metadata, &ModelMetadata::LabelChanged,
+    const auto& metadata = m_viewModel.model().metadata();
+    con(metadata, &iscore::ModelMetadata::LabelChanged,
         &v, &TemporalConstraintView::setLabel);
 
-    con(metadata,   &ModelMetadata::ColorChanged,
-        &v, [&] (ColorRef c) {
+    con(metadata,   &iscore::ModelMetadata::ColorChanged,
+        &v, [&] (iscore::ColorRef c) {
         v.setLabelColor(c);
         v.setColor(c);
     });
 
-    con(metadata, &ModelMetadata::NameChanged,
+    con(metadata, &iscore::ModelMetadata::NameChanged,
         this, [&] (const QString& name) { m_header->setText(name); });
 
 

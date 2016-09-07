@@ -1,15 +1,15 @@
 #include "MappingColors.hpp"
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 
 namespace Mapping
 {
 MappingColors::MappingColors():
     m_style{
-        Skin::instance().Tender3,
-        Skin::instance().Emphasis2,
-        Skin::instance().Emphasis3,
-        Skin::instance().Tender2,
-        Skin::instance().Gray}
+        iscore::Skin::instance().Tender3,
+        iscore::Skin::instance().Emphasis2,
+        iscore::Skin::instance().Emphasis3,
+        iscore::Skin::instance().Tender2,
+        iscore::Skin::instance().Gray}
 {
 }
 }

@@ -5,7 +5,7 @@
 #include "LayerModel.hpp"
 #include "Process.hpp"
 #include <Process/ExpandMode.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -20,10 +20,10 @@ ProcessModel::ProcessModel(
         const Id<ProcessModel>& id,
         const QString& name,
         QObject* parent):
-    IdentifiedObject<ProcessModel>{id, name, parent},
+    Entity{id, name, parent},
     m_duration{std::move(duration)}
 {
-    metadata.setName(QString("Process.%1").arg(*this->id().val()));
+    metadata().setName(QString("Process.%1").arg(*this->id().val()));
 }
 
 ProcessModel::~ProcessModel() = default;
@@ -34,20 +34,20 @@ ProcessModel::ProcessModel(
         const Id<ProcessModel>& id,
         const QString& name,
         QObject* parent):
-    IdentifiedObject<ProcessModel>{id, name, parent},
+    Entity{source, id, name, parent},
     m_duration{source.duration()}
 {
-    metadata.setName(QString("Process.%1").arg(*this->id().val()));
+    metadata().setName(QString("Process.%1").arg(*this->id().val()));
 }
 
 ProcessModel::ProcessModel(Deserializer<DataStream>& vis, QObject* parent) :
-    IdentifiedObject(vis, parent)
+    Entity(vis, parent)
 {
     vis.writeTo(*this);
 }
 
 ProcessModel::ProcessModel(Deserializer<JSONObject>& vis, QObject* parent) :
-    IdentifiedObject(vis, parent)
+    Entity(vis, parent)
 {
     vis.writeTo(*this);
 }

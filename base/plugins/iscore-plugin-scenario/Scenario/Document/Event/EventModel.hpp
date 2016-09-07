@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/Metadata.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/Entity.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
@@ -23,7 +23,8 @@ class StateModel;
 class ScenarioInterface;
 class TimeNodeModel;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<EventModel>
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final :
+        public iscore::Entity<EventModel>
 {
         Q_OBJECT
 
@@ -32,9 +33,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
 
     public:
         /** Public properties of the class **/
-        iscore::Components components;
         Selectable selection;
-        ModelMetadata metadata;
 
         /** The class **/
         EventModel(const Id<EventModel>&,
@@ -50,7 +49,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final : public IdentifiedObject<E
 
         template<typename DeserializerVisitor>
         EventModel(DeserializerVisitor&& vis, QObject* parent) :
-            IdentifiedObject{vis, parent}
+            Entity{vis, parent}
         {
             vis.writeTo(*this);
         }

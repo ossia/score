@@ -3,7 +3,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Process/ProcessFactory.hpp>
 
 #include <Process/ProcessList.hpp>
@@ -25,7 +25,7 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom_impl(const 
     readFrom(process.duration());
     //m_stream << process.useParentDuration();
 
-    readFrom(process.metadata);
+    readFrom(process.metadata());
 }
 
 // We only load the members of the process here.
@@ -34,7 +34,7 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(Process::Pro
 {
     writeTo(process.m_duration);
     //m_stream >> process.m_useParentDuration;
-    writeTo(process.metadata);
+    writeTo(process.metadata());
 
     // Delimiter checked on createProcess
 }
@@ -47,7 +47,7 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom_impl(const 
 
     m_obj[strings.Duration] = toJsonValue(process.duration());
     //m_obj["UseParentDuration"] = process.useParentDuration();
-    m_obj[strings.Metadata] = toJsonObject(process.metadata);
+    m_obj[strings.Metadata] = toJsonObject(process.metadata());
 }
 
 template<>
@@ -55,5 +55,5 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Process::Pro
 {
     process.m_duration = fromJsonValue<TimeValue>(m_obj[strings.Duration]);
     //process.m_useParentDuration = m_obj["UseParentDuration"].toBool();
-    process.metadata = fromJsonObject<ModelMetadata>(m_obj[strings.Metadata]);
+    process.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
 }

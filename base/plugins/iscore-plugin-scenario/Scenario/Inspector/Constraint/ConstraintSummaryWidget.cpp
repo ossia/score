@@ -25,7 +25,7 @@ ConstraintSummaryWidget::ConstraintSummaryWidget(const ConstraintModel& object,
 
     auto eventBtn = SelectionButton::make("", &object, *m_selectionDispatcher , this);
 
-    mainLay->addWidget(new QLabel{object.metadata.getName()},
+    mainLay->addWidget(new QLabel{object.metadata().getName()},
                        0, 0, 1, 3);
     mainLay->addWidget(new QLabel{tr("start : ") + object.startDate().toString()},
                        0, 3, 1, 3);

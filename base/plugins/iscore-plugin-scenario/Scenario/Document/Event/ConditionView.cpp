@@ -16,7 +16,7 @@ class QWidget;
 namespace Scenario
 {
 ConditionView::ConditionView(
-        ColorRef color,
+        iscore::ColorRef color,
         QGraphicsItem *parent):
     QGraphicsItem{parent},
     m_color{color}

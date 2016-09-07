@@ -3,7 +3,7 @@
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <QtGlobal>
 
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
@@ -19,21 +19,20 @@ TimeNodeModel::TimeNodeModel(
         const VerticalExtent& extent,
         const TimeValue& date,
         QObject* parent):
-    IdentifiedObject<TimeNodeModel> {id, Metadata<ObjectKey_k, TimeNodeModel>::get(), parent},
+    Entity{id, Metadata<ObjectKey_k, TimeNodeModel>::get(), parent},
     m_extent{extent},
     m_date{date},
     m_trigger{new TriggerModel{Id<TriggerModel>(0), this} }
 {
-    metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
-    metadata.setColor(ScenarioStyle::instance().TimenodeDefault);
+    metadata().setName(QString("TimeNode.%1").arg(*this->id().val()));
+    metadata().setColor(ScenarioStyle::instance().TimenodeDefault);
 }
 
 TimeNodeModel::TimeNodeModel(
         const TimeNodeModel &source,
         const Id<TimeNodeModel>& id,
         QObject* parent):
-    IdentifiedObject<TimeNodeModel> {id, Metadata<ObjectKey_k, TimeNodeModel>::get(), parent},
-    metadata{source.metadata},
+    Entity{source, id, Metadata<ObjectKey_k, TimeNodeModel>::get(), parent},
     m_extent{source.m_extent},
     m_date{source.m_date},
     m_events(source.m_events)

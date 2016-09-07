@@ -155,7 +155,7 @@ void ConstraintActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
 
                 for(const RackModel& rack : cst.racks)
                 {
-                    auto act = new QAction{rack.metadata.getName(), rackMenu};
+                    auto act = new QAction{rack.metadata().getName(), rackMenu};
                     connect(act, &QAction::triggered,
                             this, [&] () {
                         auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};

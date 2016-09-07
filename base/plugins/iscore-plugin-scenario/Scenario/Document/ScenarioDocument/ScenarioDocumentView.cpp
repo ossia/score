@@ -19,7 +19,7 @@
 #include <QWidget>
 #include <QFile>
 #include <QStyleFactory>
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 
 #include <Process/Tools/ProcessGraphicsView.hpp>
 #include "ScenarioDocumentView.hpp"
@@ -142,8 +142,8 @@ ScenarioDocumentView::ScenarioDocumentView(
     connect(m_view, &ProcessGraphicsView::scrolled,
             this,   &ScenarioDocumentView::horizontalPositionChanged);
 
-    auto& skin = Skin::instance();
-    con(skin, &Skin::changed,
+    auto& skin = iscore::Skin::instance();
+    con(skin, &iscore::Skin::changed,
         this, [&] () {
         auto& skin = ScenarioStyle::instance();
         m_timeRulersView->setBackgroundBrush(skin.TimeRulerBackground.getBrush());

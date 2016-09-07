@@ -99,7 +99,7 @@ class HierarchicalScenarioComponent :
         void cleanup(const Pair_T& pair)
         {
             Component_T::removing(pair.element, pair.component);
-            pair.element.components.remove(pair.component);
+            pair.element.components().remove(pair.component);
         }
 
         template<typename elt_t>
@@ -127,11 +127,11 @@ class HierarchicalScenarioComponent :
         {
             using map_t = MatchingComponent<elt_t, true>;
             auto comp = Component_T::template make<typename map_t::type>(
-                            getStrongId(element.components),
+                            getStrongId(element.components()),
                             element);
             if(comp)
             {
-                element.components.add(comp);
+                element.components().add(comp);
                 (this->*map_t::local_container).emplace_back(typename map_t::pair_type{element, *comp});
             }
         }
@@ -272,7 +272,7 @@ class HierarchicalBaseScenario :
         void cleanup(const Pair_T& pair)
         {
             Component_T::removing(pair.element, pair.component);
-            pair.element.components.remove(pair.component);
+            pair.element.components().remove(pair.component);
         }
 
         template<typename elt_t>
@@ -290,11 +290,11 @@ class HierarchicalBaseScenario :
         {
             using map_t = MatchingComponent<elt_t, true>;
             auto comp = Component_T::template make<typename map_t::type>(
-                            getStrongId(element.components),
+                            getStrongId(element.components()),
                             element);
 
             ISCORE_ASSERT(comp);
-            element.components.add(comp);
+            element.components().add(comp);
             return typename map_t::pair_type{element, *comp};
         }
 

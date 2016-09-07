@@ -28,7 +28,7 @@ class MappingPresenter :
                 this, &MappingPresenter::on_nameChanges);
             con(m_layer.processModel(), &ProcessModel::targetAddressChanged,
                 this, &MappingPresenter::on_nameChanges);
-            con(m_layer.processModel().metadata, &ModelMetadata::NameChanged,
+            con(m_layer.processModel().metadata(), &iscore::ModelMetadata::NameChanged,
                 this, &MappingPresenter::on_nameChanges);
 
             m_view->setDisplayedName(m_layer.processModel().prettyName());

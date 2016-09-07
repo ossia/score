@@ -3,11 +3,15 @@
 #include <qnamespace.h>
 #include <iscore_lib_process_export.h>
 
-#include <Process/Style/ColorReference.hpp>
+#include <iscore/model/ColorReference.hpp>
+namespace iscore
+{
 class Skin;
+}
+
 struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 {
-        ScenarioStyle(const Skin&) noexcept;
+        ScenarioStyle(const iscore::Skin&) noexcept;
 
         ScenarioStyle(const ScenarioStyle&) = delete;
         ScenarioStyle(ScenarioStyle&&) = delete;
@@ -16,56 +20,56 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 
         static ScenarioStyle& instance();
 
-        ColorRef ConstraintBase;
-        ColorRef ConstraintSelected;
-        ColorRef ConstraintPlayFill;
-        ColorRef ConstraintWarning;
-        ColorRef ConstraintInvalid;
-        ColorRef ConstraintDefaultLabel;
-        ColorRef ConstraintDefaultBackground;
+        iscore::ColorRef ConstraintBase;
+        iscore::ColorRef ConstraintSelected;
+        iscore::ColorRef ConstraintPlayFill;
+        iscore::ColorRef ConstraintWarning;
+        iscore::ColorRef ConstraintInvalid;
+        iscore::ColorRef ConstraintDefaultLabel;
+        iscore::ColorRef ConstraintDefaultBackground;
 
-        ColorRef RackSideBorder;
+        iscore::ColorRef RackSideBorder;
 
-        ColorRef ConstraintFullViewParentSelected;
+        iscore::ColorRef ConstraintFullViewParentSelected;
 
-        ColorRef ConstraintHeaderText;
-        ColorRef ConstraintHeaderBottomLine;
-        ColorRef ConstraintHeaderRackHidden;
-        ColorRef ConstraintHeaderSideBorder;
+        iscore::ColorRef ConstraintHeaderText;
+        iscore::ColorRef ConstraintHeaderBottomLine;
+        iscore::ColorRef ConstraintHeaderRackHidden;
+        iscore::ColorRef ConstraintHeaderSideBorder;
 
-        ColorRef ProcessViewBorder;
+        iscore::ColorRef ProcessViewBorder;
 
-        ColorRef SlotFocus;
-        ColorRef SlotOverlayBorder;
-        ColorRef SlotOverlay;
-        ColorRef SlotHandle;
+        iscore::ColorRef SlotFocus;
+        iscore::ColorRef SlotOverlayBorder;
+        iscore::ColorRef SlotOverlay;
+        iscore::ColorRef SlotHandle;
 
-        ColorRef TimenodeDefault;
-        ColorRef TimenodeSelected;
+        iscore::ColorRef TimenodeDefault;
+        iscore::ColorRef TimenodeSelected;
 
-        ColorRef EventDefault;
-        ColorRef EventWaiting;
-        ColorRef EventPending;
-        ColorRef EventHappened;
-        ColorRef EventDisposed;
-        ColorRef EventSelected;
+        iscore::ColorRef EventDefault;
+        iscore::ColorRef EventWaiting;
+        iscore::ColorRef EventPending;
+        iscore::ColorRef EventHappened;
+        iscore::ColorRef EventDisposed;
+        iscore::ColorRef EventSelected;
 
-        ColorRef ConditionDefault;
-        ColorRef ConditionWaiting;
-        ColorRef ConditionDisabled;
-        ColorRef ConditionFalse;
-        ColorRef ConditionTrue;
+        iscore::ColorRef ConditionDefault;
+        iscore::ColorRef ConditionWaiting;
+        iscore::ColorRef ConditionDisabled;
+        iscore::ColorRef ConditionFalse;
+        iscore::ColorRef ConditionTrue;
 
-        ColorRef StateOutline;
-        ColorRef StateSelected;
-        ColorRef StateDot;
+        iscore::ColorRef StateOutline;
+        iscore::ColorRef StateSelected;
+        iscore::ColorRef StateDot;
 
-        ColorRef Background;
-        ColorRef ProcessPanelBackground;
+        iscore::ColorRef Background;
+        iscore::ColorRef ProcessPanelBackground;
 
-        ColorRef TimeRulerBackground;
-        ColorRef TimeRuler;
-        ColorRef LocalTimeRuler;
+        iscore::ColorRef TimeRulerBackground;
+        iscore::ColorRef TimeRuler;
+        iscore::ColorRef LocalTimeRuler;
 
     private:
         ScenarioStyle() noexcept = default;

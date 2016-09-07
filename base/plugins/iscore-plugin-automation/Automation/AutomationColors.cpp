@@ -1,15 +1,15 @@
 #include "AutomationColors.hpp"
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 
 namespace Automation
 {
 Colors::Colors():
     m_style{
-        Skin::instance().Tender3,
-        Skin::instance().Emphasis2,
-        Skin::instance().Tender1,
-        Skin::instance().Tender2,
-        Skin::instance().Gray}
+        iscore::Skin::instance().Tender3,
+        iscore::Skin::instance().Emphasis2,
+        iscore::Skin::instance().Tender1,
+        iscore::Skin::instance().Tender2,
+        iscore::Skin::instance().Gray}
 {
 }
 }

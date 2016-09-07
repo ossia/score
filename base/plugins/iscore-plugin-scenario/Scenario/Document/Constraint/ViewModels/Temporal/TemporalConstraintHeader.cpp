@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 #include "TemporalConstraintHeader.hpp"
 
@@ -92,7 +92,7 @@ void TemporalConstraintHeader::paint(
         m_previous_x = x;
     }
     // TODO m_textCache.draw(painter, QPointF{m_previous_x,y}, {}, boundingRect());
-    auto font = Skin::instance().SansFont;
+    auto font = iscore::Skin::instance().SansFont;
     font.setPointSize(10);
     font.setBold(true);
     painter->setFont(font);
@@ -114,7 +114,7 @@ void TemporalConstraintHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e
 
 void TemporalConstraintHeader::on_textChange()
 {
-    auto font = Skin::instance().SansFont;
+    auto font = iscore::Skin::instance().SansFont;
     font.setPointSize(10);
     font.setBold(true);
     QFontMetrics fm(font);

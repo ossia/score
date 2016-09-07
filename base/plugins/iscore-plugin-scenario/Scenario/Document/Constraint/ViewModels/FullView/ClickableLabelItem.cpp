@@ -5,8 +5,8 @@
 #include <QBrush>
 
 #include "ClickableLabelItem.hpp"
-#include <Process/ModelMetadata.hpp>
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/ModelMetadata.hpp>
+#include <iscore/model/Skin.hpp>
 
 class QGraphicsSceneHoverEvent;
 class QGraphicsSceneMouseEvent;
@@ -17,7 +17,7 @@ namespace Scenario
 SeparatorItem::SeparatorItem(QGraphicsItem *parent):
     QGraphicsSimpleTextItem{"/", parent}
 {
-    auto font = Skin::instance().SansFont;
+    auto font = iscore::Skin::instance().SansFont;
     font.setPointSize(10);
     font.setBold(true);
     this->setFont(font);
@@ -26,20 +26,20 @@ SeparatorItem::SeparatorItem(QGraphicsItem *parent):
 
 
 ClickableLabelItem::ClickableLabelItem(
-        ModelMetadata& metadata,
+        iscore::ModelMetadata& metadata,
         ClickHandler&& onClick,
         const QString &text,
         QGraphicsItem *parent):
     QGraphicsSimpleTextItem{text, parent},
     m_onClick{std::move(onClick)}
 {
-    connect(&metadata, &ModelMetadata::NameChanged,
+    connect(&metadata, &iscore::ModelMetadata::NameChanged,
             this, [&] (const QString& name) {
         setText(name);
         emit textChanged();
     });
 
-    auto font = Skin::instance().SansFont;
+    auto font = iscore::Skin::instance().SansFont;
     font.setPointSize(10);
     font.setBold(true);
     this->setFont(font);

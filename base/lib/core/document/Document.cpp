@@ -54,7 +54,7 @@ Document::Document(
     m_context{DocumentContext::fromDocument(*this)},
     m_virgin{true}
 {
-    metadata.setFileName(name);
+    metadata().setFileName(name);
     /// Construction of the document model
 
     // Note : we have to separate allocation

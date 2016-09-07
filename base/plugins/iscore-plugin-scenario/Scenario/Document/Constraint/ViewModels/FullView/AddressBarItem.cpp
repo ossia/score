@@ -11,7 +11,7 @@
 
 #include "AddressBarItem.hpp"
 #include "ClickableLabelItem.hpp"
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <iscore/tools/ObjectIdentifier.hpp>
 
 class QPainter;
@@ -47,10 +47,10 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
         pathVec.resize(i + 1);
         ConstraintModel& thisObj = thisPath.find<ConstraintModel>();
 
-        QString txt = thisObj.metadata.getName();
+        QString txt = thisObj.metadata().getName();
 
         auto lab = new ClickableLabelItem{
-                   thisObj.metadata,
+                   thisObj.metadata(),
                 [&] (ClickableLabelItem* item) {
                     emit constraintSelected(thisObj);
                 },

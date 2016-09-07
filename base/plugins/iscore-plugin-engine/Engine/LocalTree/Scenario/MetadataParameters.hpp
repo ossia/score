@@ -2,7 +2,7 @@
 #include <vector>
 #include <memory>
 #include <iscore_plugin_engine_export.h>
-class ModelMetadata;
+namespace iscore { class ModelMetadata; }
 namespace ossia
 {
 namespace net
@@ -20,7 +20,7 @@ class BaseProperty;
 
 ISCORE_PLUGIN_ENGINE_EXPORT
 void make_metadata_node(
-        ModelMetadata& metadata,
+        iscore::ModelMetadata& metadata,
         ossia::net::node_base& parent,
         std::vector<std::unique_ptr<BaseProperty>>& properties,
         QObject* context);

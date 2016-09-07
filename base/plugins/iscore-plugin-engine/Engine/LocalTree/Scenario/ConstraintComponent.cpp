@@ -12,7 +12,7 @@ ConstraintBase::ConstraintBase(
         Scenario::ConstraintModel& constraint,
         DocumentPlugin& doc,
         QObject* parent_comp):
-    parent_t{parent, constraint.metadata, constraint, doc, id, "ConstraintComponent", parent_comp},
+    parent_t{parent, constraint.metadata(), constraint, doc, id, "ConstraintComponent", parent_comp},
     m_processesNode{*node().createChild("processes")}
 {
     using namespace Scenario;

@@ -10,7 +10,7 @@
 #include <QPen>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include "TemporalConstraintPresenter.hpp"
@@ -44,7 +44,7 @@ TemporalConstraintView::TemporalConstraintView(
     m_rightBrace->setX(maxWidth());
 
     const int fontSize = 12;
-    auto f = Skin::instance().SansFont;
+    auto f = iscore::Skin::instance().SansFont;
     f.setBold(false);
     f.setPointSize(fontSize);
     f.setStyleStrategy(QFont::NoAntialias);
@@ -56,7 +56,7 @@ TemporalConstraintView::TemporalConstraintView(
     f.setStyleStrategy(QFont::NoAntialias);
     f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
     m_counterItem->setFont(f);
-    m_counterItem->setColor(ColorRef(&Skin::Light));
+    m_counterItem->setColor(iscore::ColorRef(&iscore::Skin::Light));
     m_counterItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
     m_counterItem->setAcceptHoverEvents(false);
 }
@@ -283,7 +283,7 @@ void TemporalConstraintView::setExecutionDuration(const TimeValue& progress)
     update();
 }
 
-void TemporalConstraintView::setLabelColor(ColorRef labelColor)
+void TemporalConstraintView::setLabelColor(iscore::ColorRef labelColor)
 {
     m_labelItem->setColor(labelColor);
     update();

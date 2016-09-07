@@ -1,5 +1,5 @@
 #pragma once
-#include <Process/Style/ColorReference.hpp>
+#include <iscore/model/ColorReference.hpp>
 #include <QColor>
 #include <QtGlobal>
 #include <QGraphicsItem>
@@ -51,7 +51,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final :
         void setContainMessage(bool);
         void setSelected(bool arg);
 
-        void changeColor(ColorRef);
+        void changeColor(iscore::ColorRef);
         void setStatus(ExecutionStatus);
 
     signals:
@@ -74,7 +74,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final :
         bool m_containMessage{false};
         bool m_selected{false};
 
-        ColorRef m_color;
+        iscore::ColorRef m_color;
 
         ExecutionStatusProperty m_status{};
 

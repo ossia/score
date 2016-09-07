@@ -85,7 +85,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     updateDisplayedValues();
 
     // metadata
-    m_metadata = new MetadataWidget{&m_model.metadata, ctx.commandStack, &m_model, this};
+    m_metadata = new MetadataWidget{&m_model.metadata(), ctx.commandStack, &m_model, this};
 
     m_metadata->setupConnections(m_model);
 
@@ -103,7 +103,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
 void TimeNodeInspectorWidget::addEvent(const EventModel& event)
 {
-    auto evSection = new Inspector::InspectorSectionWidget{event.metadata.getName(), false, this};
+    auto evSection = new Inspector::InspectorSectionWidget{event.metadata().getName(), false, this};
     auto ew = new EventInspectorWidget{event, context(), evSection};
     evSection->addContent(ew);
     evSection->expand(false);
@@ -146,7 +146,7 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
         }
     });
 
-    con(event.metadata, &ModelMetadata::NameChanged,
+    con(event.metadata(), &iscore::ModelMetadata::NameChanged,
         this, [&] (const QString s) {
         for(auto sec : m_eventList)
         {

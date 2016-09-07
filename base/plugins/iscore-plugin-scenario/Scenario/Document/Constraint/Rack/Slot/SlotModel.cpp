@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <iterator>
 
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include "SlotModel.hpp"
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/Todo.hpp>
@@ -22,11 +22,11 @@ namespace Scenario
 SlotModel::SlotModel(const Id<SlotModel>& id,
         const qreal slotHeight,
         RackModel* parent) :
-    IdentifiedObject<SlotModel> {id, Metadata<ObjectKey_k, SlotModel>::get(), parent}
+    Entity{id, Metadata<ObjectKey_k, SlotModel>::get(), parent}
 {
     m_height = slotHeight;
     initConnections();
-    metadata.setName(QString{"Slot.%1"}.arg(*id.val()));
+    metadata().setName(QString{"Slot.%1"}.arg(*id.val()));
 }
 
 SlotModel::SlotModel(
@@ -34,7 +34,7 @@ SlotModel::SlotModel(
         const SlotModel& source,
         const Id<SlotModel>& id,
         RackModel *parent):
-    IdentifiedObject<SlotModel> {id, Metadata<ObjectKey_k, SlotModel>::get(), parent},
+    Entity{source, id, Metadata<ObjectKey_k, SlotModel>::get(), parent},
     m_frontLayerModelId{Id<Process::LayerModel>{source.m_frontLayerModelId.val()}},
     m_height {source.getHeight() }
 {
@@ -46,8 +46,7 @@ SlotModel::SlotModel(
     // one we have cloned, hence instead of just copying the id, we ask the corresponding
     // layer model to give us its id.
     // TODO this is fucking ugly - mostly because two objects exist with the same id...
-    metadata = source.metadata;
-    metadata.setName(QString{"Slot.%1"} .arg(*id.val()));
+    metadata().setName(QString{"Slot.%1"} .arg(*id.val()));
 }
 
 RackModel&SlotModel::rack() const

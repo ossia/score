@@ -158,7 +158,7 @@ void ConstraintElement::on_processAdded(
     {
         try
         {
-            auto plug = fac->make(*this, *proc, m_ctx, getStrongId(iscore_proc.components), this);
+            auto plug = fac->make(*this, *proc, m_ctx, getStrongId(iscore_proc.components()), this);
             if(plug)
             {
                 m_processes.push_back(plug);

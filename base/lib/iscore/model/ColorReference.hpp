@@ -2,11 +2,13 @@
 #include <QColor>
 #include <QBrush>
 #include <utility>
-#include <Process/Style/Skin.hpp>
+#include <iscore/model/Skin.hpp>
 #include <eggs/variant.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-struct ISCORE_LIB_PROCESS_EXPORT ColorRef
+namespace iscore
+{
+struct ISCORE_LIB_BASE_EXPORT ColorRef
 {
         friend bool operator==(ColorRef lhs, ColorRef rhs)
         {
@@ -26,7 +28,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ColorRef
         ColorRef& operator=(ColorRef&& other) = default;
 
         ColorRef(QColor Skin::*s):
-            ref{&(Skin::instance().*s)}
+            ref{&(iscore::Skin::instance().*s)}
         {
 
         }
@@ -40,7 +42,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ColorRef
         void setColor(QColor Skin::*s)
         {
             // Set color by reference
-            ref = &(Skin::instance().*s);
+            ref = &(iscore::Skin::instance().*s);
         }
 
         QColor getColor() const
@@ -56,7 +58,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ColorRef
 
         QString name() const
         {
-            return Skin::instance().toString(ref);
+            return iscore::Skin::instance().toString(ref);
         }
 
         static optional<ColorRef> ColorFromString(const QString&);
@@ -65,6 +67,6 @@ struct ISCORE_LIB_PROCESS_EXPORT ColorRef
     private:
         const QColor* ref{};
 };
+}
 
-
-Q_DECLARE_METATYPE(ColorRef)
+Q_DECLARE_METATYPE(iscore::ColorRef)

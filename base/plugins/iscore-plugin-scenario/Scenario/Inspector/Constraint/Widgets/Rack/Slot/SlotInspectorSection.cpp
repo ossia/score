@@ -18,7 +18,7 @@
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/LayerModel.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include "SlotInspectorSection.hpp"
@@ -181,7 +181,7 @@ const SlotModel&SlotInspectorSection::model() const
 void SlotInspectorSection::ask_changeName(QString newName)
 {
 
-    if(newName != m_model.metadata.getName())
+    if(newName != m_model.metadata().getName())
     {
         auto cmd = new Command::ChangeElementName<SlotModel>{m_model, newName};
         emit m_parent.commandDispatcher()->submitCommand(cmd);

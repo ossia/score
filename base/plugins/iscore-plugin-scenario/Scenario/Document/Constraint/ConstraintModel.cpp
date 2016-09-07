@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "ConstraintModel.hpp"
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
@@ -26,13 +26,13 @@ ConstraintModel::ConstraintModel(
         const Id<ConstraintViewModel>& fullViewId,
         double yPos,
         QObject* parent) :
-    IdentifiedObject<ConstraintModel> {id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent},
+    Entity{id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
     initConnections();
     setupConstraintViewModel(m_fullViewModel);
-    metadata.setName(QString("Constraint.%1").arg(*this->id().val()));
-    metadata.setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
+    metadata().setName(QString("Constraint.%1").arg(*this->id().val()));
+    metadata().setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
     setHeightPercentage(yPos);
 }
 
@@ -44,10 +44,9 @@ ConstraintModel::ConstraintModel(
         const ConstraintModel& source,
         const Id<ConstraintModel>& id,
         QObject* parent):
-    IdentifiedObject<ConstraintModel> {id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent}
+    Entity{source, id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent}
 {
     initConnections();
-    metadata = source.metadata;
     // It is not necessary to save modelconsistency because it should be recomputed
 
     m_startState = source.startState();

@@ -31,8 +31,8 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
     connect(addressBar, &AddressBarItem::constraintSelected,
             this, &FullViewConstraintPresenter::constraintSelected);
 
-    const auto& metadata = m_viewModel.model().metadata;
-    con(metadata, &ModelMetadata::NameChanged,
+    const auto& metadata = m_viewModel.model().metadata();
+    con(metadata, &iscore::ModelMetadata::NameChanged,
         m_header, &ConstraintHeader::setText);
     m_header->setText(metadata.getName());
     m_header->show();

@@ -1,7 +1,7 @@
 #pragma once
-#include <iscore/tools/Metadata.hpp>
+#include <iscore/model/Entity.hpp>
 #include <Process/LayerModel.hpp>
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
 #include <QtGlobal>
@@ -25,7 +25,7 @@ class ConstraintModel;
 class RackModel;
 // Note : the SlotModel is assumed to be in a Rack, itself in a Constraint.
 class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
-        public IdentifiedObject<SlotModel>,
+        public iscore::Entity<SlotModel>,
         public Nano::Observer
 {
         Q_OBJECT
@@ -43,7 +43,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
                    NOTIFY focusChanged)
 
     public:
-        ModelMetadata metadata;
         SlotModel(const Id<SlotModel>& id,
                   const qreal slotHeight,
                   RackModel* parent);
@@ -60,7 +59,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
 
         template<typename Impl>
         SlotModel(Deserializer<Impl>& vis, QObject* parent) :
-            IdentifiedObject{vis, parent}
+            Entity{vis, parent}
         {
             initConnections();
             vis.writeTo(*this);

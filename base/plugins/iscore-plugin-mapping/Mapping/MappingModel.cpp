@@ -8,7 +8,7 @@
 #include <Mapping/MappingProcessMetadata.hpp>
 #include "MappingLayerModel.hpp"
 #include "MappingModel.hpp"
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <State/Address.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -36,7 +36,7 @@ ProcessModel::ProcessModel(
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
 
-    metadata.setName(QString("Mapping.%1").arg(*this->id().val()));
+    metadata().setName(QString("Mapping.%1").arg(*this->id().val()));
 }
 
 ProcessModel::ProcessModel(
@@ -54,7 +54,7 @@ ProcessModel::ProcessModel(
     setCurve(source.curve().clone(source.curve().id(), this));
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
-    metadata.setName(QString("Mapping.%1").arg(*this->id().val()));
+    metadata().setName(QString("Mapping.%1").arg(*this->id().val()));
 }
 
 ProcessModel::~ProcessModel()
@@ -63,7 +63,7 @@ ProcessModel::~ProcessModel()
 
 QString ProcessModel::prettyName() const
 {
-    return metadata.getName() + " : \n  " + sourceAddress().toShortString() + " ->\n  " + targetAddress().toShortString();
+    return metadata().getName() + " : \n  " + sourceAddress().toShortString() + " ->\n  " + targetAddress().toShortString();
 }
 
 void ProcessModel::setDurationAndScale(const TimeValue& newDuration)

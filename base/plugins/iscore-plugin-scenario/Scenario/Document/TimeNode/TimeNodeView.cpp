@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <QGraphicsScene>
 
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include "TimeNodePresenter.hpp"
@@ -30,9 +30,9 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     this->setCursor(Qt::CrossCursor);
 
     m_text = new SimpleTextItem{this};
-    m_color = presenter.model().metadata.getColor();
+    m_color = presenter.model().metadata().getColor();
 
-    auto f = Skin::instance().SansFont;
+    auto f = iscore::Skin::instance().SansFont;
     f.setPointSize(8);
     m_text->setFont(f);
     m_text->setPos(-m_text->boundingRect().width() / 2, -15);
@@ -94,7 +94,7 @@ void TimeNodeView::setSelected(bool selected)
     update();
 }
 
-void TimeNodeView::changeColor(ColorRef newColor)
+void TimeNodeView::changeColor(iscore::ColorRef newColor)
 {
     m_color = newColor;
     this->update();

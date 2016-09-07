@@ -68,7 +68,7 @@ void StateView::setSelected(bool arg)
     setDilatation(m_selected ? 1.5 : 1);
 }
 
-void StateView::changeColor(ColorRef c)
+void StateView::changeColor(iscore::ColorRef c)
 {
     m_color = c;
     update();

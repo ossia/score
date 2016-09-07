@@ -13,7 +13,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelPanelProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerPresenter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerView.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessContext.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/GenericProcessFactory.hpp"
@@ -27,8 +26,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ProcessFonts.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/Skin.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ColorReference.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/TimeValue.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ToolPalette.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessGraphicsView.hpp"
@@ -56,7 +53,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPanelProxy.hpp"
 )
 set(PROCESS_SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelSerialization.cpp"
@@ -72,8 +68,6 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ProcessFonts.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/Skin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ColorReference.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.cpp"
 

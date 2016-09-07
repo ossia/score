@@ -10,7 +10,7 @@
 #include <QtGlobal>
 #include <vector>
 
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
@@ -65,7 +65,7 @@ void SplitEvent::redo() const
                 scenar);
 
     auto& newEvent = scenar.events.at(m_newEvent);
-    newEvent.metadata.setName(m_createdName);
+    newEvent.metadata().setName(m_createdName);
 
     for(auto& st : m_movingStates)
     {

@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
-#include <sys/types.h>
+#include <cinttypes>
 
 class ISCORE_LIB_BASE_EXPORT IdentifiedObjectAbstract : public NamedObject
 {

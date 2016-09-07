@@ -4,7 +4,7 @@
 #include <QMimeData>
 #include <QStringList>
 
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -37,7 +37,7 @@ StatePresenter::StatePresenter(
     con(m_model.selection, &Selectable::changed,
         m_view, &StateView::setSelected);
 
-    con(m_model.metadata,  &ModelMetadata::ColorChanged,
+    con(m_model.metadata(),  &iscore::ModelMetadata::ColorChanged,
         m_view, &StateView::changeColor);
 
     con(m_model, &StateModel::sig_statesUpdated,

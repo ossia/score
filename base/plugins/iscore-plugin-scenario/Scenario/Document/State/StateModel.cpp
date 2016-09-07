@@ -24,7 +24,7 @@ StateModel::StateModel(
         double yPos,
         const iscore::CommandStackFacade& stack,
         QObject *parent):
-    IdentifiedObject<StateModel> {id, Metadata<ObjectKey_k, StateModel>::get(), parent},
+    Entity{id, Metadata<ObjectKey_k, StateModel>::get(), parent},
     m_stack{stack},
     m_eventId{eventId},
     m_heightPercentage{yPos},
@@ -34,7 +34,7 @@ StateModel::StateModel(
                             this}}
 {
 
-    metadata.setName(QString("State.%1").arg(*this->id().val()));
+    metadata().setName(QString("State.%1").arg(*this->id().val()));
     init();
 }
 
@@ -43,8 +43,7 @@ StateModel::StateModel(
         const Id<StateModel> &id,
         const iscore::CommandStackFacade& stack,
         QObject *parent):
-    IdentifiedObject<StateModel> {id, Metadata<ObjectKey_k, StateModel>::get(), parent},
-    metadata{source.metadata},
+    Entity{source, id, Metadata<ObjectKey_k, StateModel>::get(), parent},
     m_stack{stack},
     m_eventId{source.eventId()},
     m_previousConstraint{source.previousConstraint()},

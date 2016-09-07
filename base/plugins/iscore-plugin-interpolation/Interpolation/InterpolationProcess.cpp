@@ -104,7 +104,7 @@ ProcessModel::ProcessModel(const TimeValue& duration, const Id<Process::ProcessM
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
 
-    metadata.setName(QString("Interpolation.%1").arg(*this->id().val()));
+    metadata().setName(QString("Interpolation.%1").arg(*this->id().val()));
 }
 
 QString ProcessModel::prettyName() const
@@ -123,7 +123,7 @@ ProcessModel::ProcessModel(const ProcessModel& source, const Id<Process::Process
     setCurve(source.curve().clone(source.curve().id(), this));
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
-    metadata.setName(QString("Interpolation.%1").arg(*this->id().val()));
+    metadata().setName(QString("Interpolation.%1").arg(*this->id().val()));
     // TODO instead make a copy constructor in CurveProcessModel
 }
 }

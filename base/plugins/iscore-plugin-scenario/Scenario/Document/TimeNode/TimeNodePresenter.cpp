@@ -3,7 +3,7 @@
 #include <Scenario/Document/TimeNode/Trigger/TriggerPresenter.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
-#include <Process/ModelMetadata.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include "TimeNodePresenter.hpp"
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/NamedObject.hpp>
@@ -30,12 +30,12 @@ TimeNodePresenter::TimeNodePresenter(
     con(m_model, &TimeNodeModel::newEvent,
         this,     &TimeNodePresenter::on_eventAdded);
 
-    con(m_model.metadata, &ModelMetadata::ColorChanged,
-        this, [=] (const ColorRef& c) { m_view->changeColor(c); });
-    con(m_model.metadata, &ModelMetadata::LabelChanged,
+    con(m_model.metadata(), &iscore::ModelMetadata::ColorChanged,
+        this, [=] (const iscore::ColorRef& c) { m_view->changeColor(c); });
+    con(m_model.metadata(), &iscore::ModelMetadata::LabelChanged,
         this, [=] (const QString& l) { m_view->setLabel(l); });
-    m_view->changeColor(m_model.metadata.getColor());
-    m_view->setLabel(m_model.metadata.getLabel());
+    m_view->changeColor(m_model.metadata().getColor());
+    m_view->setLabel(m_model.metadata().getLabel());
 
     // TODO find a correct way to handle validity of model elements.
     // extentChanged is updated in scenario.

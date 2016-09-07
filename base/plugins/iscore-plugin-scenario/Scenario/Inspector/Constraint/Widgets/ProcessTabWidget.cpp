@@ -92,7 +92,7 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
     using namespace iscore;
 
     // New Section
-    auto newProc = new ProcessWidgetArea(process, *m_constraintWidget.commandDispatcher(), process.metadata.getName(), true);
+    auto newProc = new ProcessWidgetArea(process, *m_constraintWidget.commandDispatcher(), process.metadata().getName(), true);
 
     // name changing connections
     connect(newProc, &ProcessWidgetArea::nameChanged,
@@ -100,7 +100,7 @@ void ProcessTabWidget::displaySharedProcess(const Process::ProcessModel& process
         {
             ask_processNameChanged(process, s);
         });
-    con(process.metadata, &ModelMetadata::NameChanged,
+    con(process.metadata(), &iscore::ModelMetadata::NameChanged,
         newProc, &ProcessWidgetArea::renameSection);
 
     // ***********************
@@ -216,7 +216,7 @@ void ProcessTabWidget::updateDisplayedValues()
 
 void ProcessTabWidget::ask_processNameChanged(const Process::ProcessModel& p, QString s)
 {
-    if(s != p.metadata.getName())
+    if(s != p.metadata().getName())
     {
         auto cmd = new Command::ChangeElementName<Process::ProcessModel>{iscore::IDocument::path(p), s};
         emit m_constraintWidget.commandDispatcher()->submitCommand(cmd);
