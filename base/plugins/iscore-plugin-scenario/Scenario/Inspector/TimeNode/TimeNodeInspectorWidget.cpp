@@ -85,7 +85,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     updateDisplayedValues();
 
     // metadata
-    m_metadata = new MetadataWidget{&m_model.metadata(), ctx.commandStack, &m_model, this};
+    m_metadata = new MetadataWidget{m_model.metadata(), ctx.commandStack, &m_model, this};
 
     m_metadata->setupConnections(m_model);
 

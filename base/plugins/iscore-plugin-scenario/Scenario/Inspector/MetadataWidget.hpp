@@ -4,6 +4,7 @@
 #include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementLabel.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Commands/Metadata/SetExtendedMetadata.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <QColor>
 #include <QPixmap>
@@ -26,7 +27,7 @@ class ColorPaletteModel;
 
 namespace Scenario
 {
-
+class ExtendedMetadataWidget;
 class CommentEdit;
 
 // TODO move me in Process
@@ -36,7 +37,7 @@ class MetadataWidget final : public QWidget
 
     public:
         explicit MetadataWidget(
-                const iscore::ModelMetadata* metadata,
+                const iscore::ModelMetadata& metadata,
                 const iscore::CommandStackFacade& m,
                 const QObject* docObject,
                 QWidget* parent = nullptr);
@@ -75,6 +76,13 @@ class MetadataWidget final : public QWidget
                 if(newColor != model.metadata().getColor())
                     m_commandDispatcher.submitCommand(new ChangeElementColor<T>{path(model), newColor});
             });
+
+            connect(this, &MetadataWidget::extendedMetadataChanged,
+                    [&](const QVariantMap& newM)
+            {
+                if(newM != model.metadata().getExtendedMetadata())
+                    m_commandDispatcher.submitCommand(new SetExtendedMetadata<T>{path(model), newM});
+            });
         }
 
         void setScriptingName(QString arg);
@@ -85,15 +93,17 @@ class MetadataWidget final : public QWidget
         void labelChanged(QString arg);
         void commentsChanged(QString arg);
         void colorChanged(iscore::ColorRef arg);
+        void extendedMetadataChanged(const QVariantMap& arg);
 
     private:
-        const iscore::ModelMetadata* m_metadata;
+        const iscore::ModelMetadata& m_metadata;
         CommandDispatcher<> m_commandDispatcher;
 
         QLineEdit* m_scriptingNameLine {};
         QLineEdit* m_labelLine {};
         QPushButton* m_colorButton {};
         CommentEdit* m_comments {};
+        ExtendedMetadataWidget* m_meta{};
         QPixmap m_colorButtonPixmap {4 * m_colorIconSize / 3, 4 * m_colorIconSize / 3};
         static const int m_colorIconSize
         {
