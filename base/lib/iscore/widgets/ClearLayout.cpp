@@ -6,6 +6,11 @@
 
 void iscore::clearLayout(QLayout *layout)
 {
+    if(!layout)
+        return;
+    if(layout->count() == 0)
+        return;
+
     QLayoutItem *child{};
     while ((child = layout->takeAt(0)) != nullptr)
     {

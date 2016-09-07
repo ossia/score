@@ -69,7 +69,7 @@ EventInspectorWidget::EventInspectorWidget(
 
     ////// HEADER
     // metadata
-    m_metadata = new MetadataWidget{&m_model.metadata(), doc.commandStack, &m_model, this};
+    m_metadata = new MetadataWidget{m_model.metadata(), doc.commandStack, &m_model, this};
     m_metadata->setupConnections(m_model);
 
     m_properties.push_back(m_metadata);
