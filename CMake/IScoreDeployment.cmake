@@ -2,9 +2,6 @@ if(NOT DEPLOYMENT_BUILD)
     return()
 endif()
 
-set(JAMOMA_LIBS "Modular;Foundation;DSP")
-set(JAMOMA_PLUGINS "Minuit;OSC;AnalysisLib;DataspaceLib;FunctionLib;System;NetworkLib")
-
 set(CPACK_PACKAGE_NAME "i-score")
 set(CPACK_PACKAGE_VENDOR "i-score")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "An intermedia sequencer for the precise and flexible scripting of interactive scenarios.")
