@@ -9,18 +9,6 @@
 #endif
 #include <iscore/tools/Todo.hpp>
 #include <iscore_lib_base_export.h>
-class TTException {
-        const char*	reason;
-    public:
-        TTException(const char* aReason)
-            : reason(aReason)
-        {}
-
-        const char* getReason()
-        {
-            return reason;
-        }
-};
 
 class ISCORE_LIB_BASE_EXPORT LogFile
 {
@@ -105,10 +93,6 @@ class ISCORE_LIB_BASE_EXPORT SafeQApplication final : public QApplication
             try
             {
                 return QApplication::notify(receiver, event);
-            }
-            catch(TTException& e)
-            {
-                inform(QObject::tr("Internal error: ") + e.getReason());
             }
             catch(std::exception& e)
             {
