@@ -4,7 +4,6 @@ To build, you will need the following dependencies :
  * [qt5](http://www.qt.io/) (>= 5.3)
  * [cmake](https://cmake.org/) (>= 3.1)
  * [boost](http://www.boost.org/) (>= 1.55)
- * [jamoma core](https://github.com/jamoma/JamomaCore) (_project compile without, but it's required by the API used for execution ..._)
 
 Your compiler need to be C++11 compliant (gcc5.x should work).
 
@@ -33,7 +32,7 @@ _see below for CMake options_
 
 ### To make a deployable .app
 
-    cmake -DCOTIRE_MINIMUM_NUMBER_OF_TARGET_SOURCES=5000 -DCMAKE_BUILD_TYPE=Release -DDEPLOYMENT_BUILD:Bool=True -DCMAKE_PREFIX_PATH="$ISCORE_CMAKE_QT_PATH/Qt5;/usr/local/jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle ~/i-score
+    cmake -DCOTIRE_MINIMUM_NUMBER_OF_TARGET_SOURCES=5000 -DCMAKE_BUILD_TYPE=Release -DDEPLOYMENT_BUILD:Bool=True -DCMAKE_PREFIX_PATH="$ISCORE_CMAKE_QT_PATH/Qt5" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle ~/i-score
 
 ### run :
  
@@ -63,28 +62,28 @@ cppcheck :
 
 */!\ OSX PATHS /!\*
 
-## static, no deploy/bundle, no jamoma : 
+## static, no deploy/bundle : 
 
     cmake ../../i-score -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5;/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5Test" -DISCORE_STATIC_PLUGINS:Bool=True 
 
-## shared, no deploy/bundle, no jamoma : 
+## shared, no deploy/bundle : 
 
     cmake ../../i-score -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5;/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5Test" -DISCORE_STATIC_PLUGINS:Bool=False 
 
-## shared, no deploy/bundle,  jamoma : 
+## shared, no deploy/bundle : 
 
-    cmake ../../i-score -DCMAKE_PREFIX_PATH="/usr/local/jamoma/share/cmake/Jamoma;/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5;/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5Test" -DISCORE_STATIC_PLUGINS:Bool=False 
+    cmake ../../i-score -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5;/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5Test" -DISCORE_STATIC_PLUGINS:Bool=False 
 
-## static, deploy, jamoma :
+## static, deploy :
 
-    cmake ../../i-score -DCMAKE_PREFIX_PATH="/usr/local/jamoma/share/cmake/Jamoma;/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5;/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5Test" -DISCORE_STATIC_PLUGINS:Bool=True -DDEPLOYMENT_BUILD:Bool=True -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle   
+    cmake ../../i-score -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5;/usr/local/Cellar/qt5/5.4.0/lib/cmake/Qt5Test" -DISCORE_STATIC_PLUGINS:Bool=True -DDEPLOYMENT_BUILD:Bool=True -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle   
     rm -rf bundle i-score.app
     cmake .
     make install
 
-## Static, deploy, jamoma, kf5dnssd
+## Static, deploy, kf5dnssd
 
     brew tap haraldf/kf5
     brew install kf5-kdnssd
-    cmake ../i-score -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="/usr/local/Cellar/kf5-kdnssd/5.9.0/lib/cmake/KF5DNSSD;/usr/local/jamoma/share/cmake/Jamoma;/usr/local/Cellar/qt5/5.4.1/lib/cmake/Qt5;/usr/local/Cellar/qt5/5.4.1/lib/cmake/Qt5Test" -DISCORE_BUILD_COHESION:Bool=True -DISCORE_STATIC_PLUGINS:Bool=True -DDEPLOYMENT_BUILD:Bool=True -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle
+    cmake ../i-score -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="/usr/local/Cellar/kf5-kdnssd/5.9.0/lib/cmake/KF5DNSSD;/usr/local/Cellar/qt5/5.4.1/lib/cmake/Qt5;/usr/local/Cellar/qt5/5.4.1/lib/cmake/Qt5Test" -DISCORE_BUILD_COHESION:Bool=True -DISCORE_STATIC_PLUGINS:Bool=True -DDEPLOYMENT_BUILD:Bool=True -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle
     make install
