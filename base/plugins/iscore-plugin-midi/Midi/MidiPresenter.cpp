@@ -2,10 +2,13 @@
 #include <Midi/MidiLayer.hpp>
 #include <Midi/MidiPresenter.hpp>
 #include <Midi/MidiView.hpp>
+#include <Midi/MidiNoteView.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/document/DocumentContext.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
+#include <Midi/Commands/AddNote.hpp>
 namespace Midi
 {
 Presenter::Presenter(
@@ -28,6 +31,13 @@ Presenter::Presenter(
     model.notes.added.connect<Presenter, &Presenter::on_noteAdded>(this);
     model.notes.removing.connect<Presenter, &Presenter::on_noteRemoving>(this);
 
+    connect(m_view, &View::doubleClicked,
+            this, [&] (QPointF pos) {
+        CommandDispatcher<>{
+            context().context.commandStack}.submitCommand(
+                    new AddNote{
+                        layer.processModel(), noteAtPos(pos, m_view->boundingRect())});
+    });
     for(auto& note : model.notes)
     {
         on_noteAdded(note);
@@ -82,6 +92,11 @@ void Presenter::setupNote(NoteView& v)
     v.setWidth(v.note.duration() * m_view->width());
     v.setY(m_view->height() - v.note.pitch() * note_height);
     v.setHeight(note_height);
+
+    con(v, &NoteView::noteChanged,
+        this, [] () {
+
+    });
 }
 
 void Presenter::on_noteAdded(const Note& n)

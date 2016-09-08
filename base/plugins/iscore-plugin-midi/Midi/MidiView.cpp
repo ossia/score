@@ -1,14 +1,17 @@
 #include "MidiView.hpp"
+#include <QGraphicsScene>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-class QPainter;
 
 namespace Midi
 {
+
 View::View(QGraphicsItem *parent):
     Process::LayerView {parent}
 {
+    this->setFlag(QGraphicsItem::ItemIsFocusable, true);
+
 }
 
 View::~View()
@@ -71,12 +74,20 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
     ev->accept();
 }
 
-void NoteView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * ev)
 {
-    const QColor orange = QColor::fromRgb(200, 120, 20);
-    painter->setBrush(orange);
-    painter->setPen(orange.darker());
-    painter->drawRect(boundingRect());
+    emit doubleClicked(ev->pos());
+    ev->accept();
+}
+
+NoteData noteAtPos(QPointF point, const QRectF& rect)
+{
+    NoteData n;
+    n.start = qBound(0., point.x() / rect.width(), 1.);
+    n.duration = 0.1;
+    n.pitch = qBound(0, int(127 - (qBound(rect.bottom(), point.y(), rect.top()) / rect.height()) * 127), 127);
+    n.velocity = 127.;
+    return n;
 }
 
 }
