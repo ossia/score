@@ -18,6 +18,15 @@ struct NoteData
         midi_size_t velocity{};
 };
 
+/**
+ * @brief The Note class
+ *
+ * TODO rethink the object model.
+ * Add a virtual findChild method to Entity.
+ * Remove all uses of NamedObject and add IDs everywhere.
+ * Allocate the Notes on a vector<Note> and allow them to be copied.
+ * Don't allow signals in some way.
+ */
 class Note : public IdentifiedObject<Note>
 {
         Q_OBJECT
@@ -37,6 +46,11 @@ class Note : public IdentifiedObject<Note>
             m_pitch{n.pitch},
             m_velocity{n.velocity}
         {
+        }
+
+        Note* clone(const Id<Note>& id, QObject* parent)
+        {
+            return new Note{id, this->nodeData(), parent};
         }
 
         // Both are between 0 - 1, 1 being the process duration.
@@ -75,6 +89,13 @@ class Note : public IdentifiedObject<Note>
         {
             m_velocity = s;
             emit noteChanged();
+        }
+
+        NoteData nodeData() const
+        {
+            return NoteData{
+                m_start, m_duration,
+                m_pitch, m_velocity};
         }
 
     signals:
