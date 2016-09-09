@@ -198,4 +198,9 @@ const auto& date(
     return parentTimeNode(e, scenario).date();
 }
 
+template<typename Element_T>
+Scenario::ScenarioInterface& parentScenario(Element_T&& e)
+{
+    return *safe_cast<Scenario::ScenarioInterface*>(e.parent());
+}
 }

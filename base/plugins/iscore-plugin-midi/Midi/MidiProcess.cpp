@@ -28,6 +28,12 @@ ProcessModel::ProcessModel(
     Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
     //TODO clone notes
+    m_device = source.device();
+    m_channel = source.channel();
+    for(Note& note : source.notes)
+    {
+        notes.add(note.clone(note.id(), this));
+    }
 }
 
 ProcessModel::~ProcessModel()
