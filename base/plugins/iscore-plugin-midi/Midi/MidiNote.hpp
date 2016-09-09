@@ -62,33 +62,48 @@ class Note : public IdentifiedObject<Note>
 
         void scale(double s)
         {
-            m_start *= s;
-            m_duration *= s;
-            emit noteChanged();
+            if(s != 1.)
+            {
+                m_start *= s;
+                m_duration *= s;
+                emit noteChanged();
+            }
         }
 
         void setStart(double s)
         {
-            m_start = s;
-            emit noteChanged();
+            if(m_start != s)
+            {
+                m_start = s;
+                emit noteChanged();
+            }
         }
 
         void setDuration(double s)
         {
-            m_duration = s;
-            emit noteChanged();
+            if(m_duration != s)
+            {
+                m_duration = s;
+                emit noteChanged();
+            }
         }
 
         void setPitch(midi_size_t s)
         {
-            m_pitch = s;
-            emit noteChanged();
+            if(m_pitch != s)
+            {
+                m_pitch = s;
+                emit noteChanged();
+            }
         }
 
         void setVelocity(midi_size_t s)
         {
-            m_velocity = s;
-            emit noteChanged();
+            if(m_velocity != s)
+            {
+                m_velocity = s;
+                emit noteChanged();
+            }
         }
 
         NoteData noteData() const
