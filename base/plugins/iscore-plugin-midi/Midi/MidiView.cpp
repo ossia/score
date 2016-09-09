@@ -85,7 +85,7 @@ NoteData noteAtPos(QPointF point, const QRectF& rect)
     NoteData n;
     n.start = qBound(0., point.x() / rect.width(), 1.);
     n.duration = 0.1;
-    n.pitch = qBound(0, int(127 - (qBound(rect.bottom(), point.y(), rect.top()) / rect.height()) * 127), 127);
+    n.pitch = qBound(0, int(127 - (qMin(rect.bottom(), qMax(point.y(), rect.top())) / rect.height()) * 127), 127);
     n.velocity = 127.;
     return n;
 }

@@ -50,7 +50,7 @@ class Note : public IdentifiedObject<Note>
 
         Note* clone(const Id<Note>& id, QObject* parent)
         {
-            return new Note{id, this->nodeData(), parent};
+            return new Note{id, this->noteData(), parent};
         }
 
         // Both are between 0 - 1, 1 being the process duration.
@@ -91,7 +91,7 @@ class Note : public IdentifiedObject<Note>
             emit noteChanged();
         }
 
-        NoteData nodeData() const
+        NoteData noteData() const
         {
             return NoteData{
                 m_start, m_duration,

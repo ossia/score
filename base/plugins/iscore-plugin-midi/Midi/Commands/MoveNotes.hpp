@@ -14,19 +14,21 @@ class MoveNotes final : public iscore::SerializableCommand
         MoveNotes(
                 const ProcessModel& model,
                 const std::vector<Id<Note>>& to_move,
-                double delta);
+                int note_delta,
+                double t_delta
+                );
 
         void undo() const override;
         void redo() const override;
 
+        void update(unused_t, unused_t, int note_delta, double t_delta);
     protected:
         void serializeImpl(DataStreamInput & s) const override;
         void deserializeImpl(DataStreamOutput & s) override;
 
     private:
         Path<ProcessModel> m_model;
-        std::vector<Id<Note>> m_toMove;
-        double m_delta{};
+        QVector<QPair<Id<Note>, NoteData>> m_before, m_after;
 
 };
 
