@@ -1,7 +1,9 @@
 #pragma once
 #include <Process/LayerPresenter.hpp>
+#include <Midi/MidiLayer.hpp>
 #include <nano_observer.hpp>
-
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <Midi/Commands/MoveNotes.hpp>
 namespace Midi
 {
 class NoteView;
@@ -33,12 +35,14 @@ class Presenter final :
 
     private:
         void setupNote(NoteView&);
+        void updateNote(NoteView&);
         void on_noteAdded(const Note&);
         void on_noteRemoving(const Note&);
-        void recompute();
 
         const Layer& m_layer;
         View* m_view{};
         std::vector<NoteView*> m_notes;
+
+        SingleOngoingCommandDispatcher<MoveNotes> m_ongoing;
 };
 }

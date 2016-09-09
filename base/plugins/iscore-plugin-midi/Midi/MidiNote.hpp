@@ -18,6 +18,15 @@ struct NoteData
         midi_size_t velocity{};
 };
 
+/**
+ * @brief The Note class
+ *
+ * TODO rethink the object model.
+ * Add a virtual findChild method to Entity.
+ * Remove all uses of NamedObject and add IDs everywhere.
+ * Allocate the Notes on a vector<Note> and allow them to be copied.
+ * Don't allow signals in some way.
+ */
 class Note : public IdentifiedObject<Note>
 {
         Q_OBJECT
@@ -39,6 +48,11 @@ class Note : public IdentifiedObject<Note>
         {
         }
 
+        Note* clone(const Id<Note>& id, QObject* parent)
+        {
+            return new Note{id, this->noteData(), parent};
+        }
+
         // Both are between 0 - 1, 1 being the process duration.
         double start() const { return m_start; }
         double duration() const { return m_duration; }
@@ -48,33 +62,55 @@ class Note : public IdentifiedObject<Note>
 
         void scale(double s)
         {
-            m_start *= s;
-            m_duration *= s;
-            emit noteChanged();
+            if(s != 1.)
+            {
+                m_start *= s;
+                m_duration *= s;
+                emit noteChanged();
+            }
         }
 
         void setStart(double s)
         {
-            m_start = s;
-            emit noteChanged();
+            if(m_start != s)
+            {
+                m_start = s;
+                emit noteChanged();
+            }
         }
 
         void setDuration(double s)
         {
-            m_duration = s;
-            emit noteChanged();
+            if(m_duration != s)
+            {
+                m_duration = s;
+                emit noteChanged();
+            }
         }
 
         void setPitch(midi_size_t s)
         {
-            m_pitch = s;
-            emit noteChanged();
+            if(m_pitch != s)
+            {
+                m_pitch = s;
+                emit noteChanged();
+            }
         }
 
         void setVelocity(midi_size_t s)
         {
-            m_velocity = s;
-            emit noteChanged();
+            if(m_velocity != s)
+            {
+                m_velocity = s;
+                emit noteChanged();
+            }
+        }
+
+        NoteData noteData() const
+        {
+            return NoteData{
+                m_start, m_duration,
+                m_pitch, m_velocity};
         }
 
     signals:

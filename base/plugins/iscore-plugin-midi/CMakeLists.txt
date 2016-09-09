@@ -14,6 +14,7 @@ set(HEADER_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/Commands/MoveNotes.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/Commands/ScaleNotes.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/Commands/CommandFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/Inspector/MidiProcessInspector.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiProcess.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiFactory.hpp"
@@ -21,6 +22,7 @@ set(HEADER_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiLayer.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_midi.hpp"
   )
@@ -31,9 +33,11 @@ set(SOURCE_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/Commands/MoveNotes.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/Commands/ScaleNotes.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/Commands/CommandFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/Inspector/MidiProcessInspector.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiProcess.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiPresenter.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiView.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteView.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_midi.cpp"
   )
