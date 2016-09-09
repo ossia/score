@@ -1,4 +1,7 @@
 #include "MidiNoteView.hpp"
+#include <QGraphicsSceneMouseEvent>
+#include <QPainter>
+#include <QCursor>
 
 namespace Midi
 {
@@ -10,6 +13,7 @@ NoteView::NoteView(const Note &n, QGraphicsItem *parent):
     this->setFlag(QGraphicsItem::ItemIsSelectable, true);
     this->setFlag(QGraphicsItem::ItemIsMovable, true);
     this->setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
+    this->setAcceptHoverEvents(true);
 }
 
 void NoteView::paint(
@@ -58,10 +62,80 @@ QVariant NoteView::itemChange(
     return QGraphicsItem::itemChange(change, value);
 }
 
+void NoteView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+    if(event->pos().x() >= this->boundingRect().width() - 2)
+    {
+        this->setCursor(Qt::SplitHCursor);
+    }
+    else
+    {
+        this->setCursor(Qt::ArrowCursor);
+    }
+
+    QGraphicsItem::hoverEnterEvent(event);
+}
+
+void NoteView::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+{
+    if(event->pos().x() >= this->boundingRect().width() - 2)
+    {
+        this->setCursor(Qt::SplitHCursor);
+    }
+    else
+    {
+        this->setCursor(Qt::ArrowCursor);
+    }
+
+    QGraphicsItem::hoverMoveEvent(event);
+
+}
+
+void NoteView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+    this->setCursor(Qt::ArrowCursor);
+
+    QGraphicsItem::hoverEnterEvent(event);
+
+}
+
+void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    if(event->pos().x() >= this->boundingRect().width() - 2)
+    {
+        event->accept();
+    }
+    else
+    {
+        QGraphicsItem::mousePressEvent(event);
+    }
+}
+
+void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    if(event->pos().x() >= this->boundingRect().width() - 2)
+    {
+        this->setWidth(event->pos().x());
+        event->accept();
+    }
+    else
+    {
+        QGraphicsItem::mouseMoveEvent(event);
+    }
+}
+
 void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit noteChangeFinished();
-    QGraphicsItem::mouseReleaseEvent(event);
+    if(event->pos().x() >= this->boundingRect().width() - 2)
+    {
+        emit noteScaled(m_width / parentItem()->boundingRect().width());
+        event->accept();
+    }
+    else
+    {
+        emit noteChangeFinished();
+        QGraphicsItem::mouseReleaseEvent(event);
+    }
 }
 
 }

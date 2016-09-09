@@ -9,6 +9,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <Midi/Commands/AddNote.hpp>
+#include <Midi/Commands/ScaleNotes.hpp>
 namespace Midi
 {
 Presenter::Presenter(
@@ -122,6 +123,7 @@ void Presenter::setupNote(NoteView& v)
                     int(127 - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height) * 127),
                     127);
 
+        qDebug() << note;
         m_ongoing.submitCommand(
                     m_layer.processModel(),
                     std::vector<Id<Note>>{v.note.id()},
@@ -129,6 +131,17 @@ void Presenter::setupNote(NoteView& v)
                     newPos.x() / rect.width() - v.note.start());
 
         m_ongoing.commit();
+    });
+
+    con(v, &NoteView::noteScaled,
+        this, [&] (double newScale) {
+
+        CommandDispatcher<>{
+            context().context.commandStack}.submitCommand(
+                    new ScaleNotes{
+                        m_layer.processModel(),
+                        std::vector<Id<Note>>{v.note.id()},
+                        newScale / v.note.duration() });
     });
 }
 

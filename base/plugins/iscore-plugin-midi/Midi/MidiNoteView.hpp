@@ -37,9 +37,15 @@ class NoteView final :
     signals:
         void noteChanged(int, double); // pitch, scaled between [0; 1]
         void noteChangeFinished();
+        void noteScaled(double);
 
     private:
         QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+        void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+        void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
+        void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+        void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
         void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
         double m_width{};

@@ -88,18 +88,7 @@ Device::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 void
 MIDIProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
 {
-    /*
-    ISCORE_ASSERT(settings.size() == 2);
-
-    if(settings.at(1) == "In")
-    {
-        m_inButton->setChecked(true);
-    }
-    else
-    {
-        m_outButton->setChecked(true);
-    }
-*/
+    m_name->setText(settings.name);
     int index = m_deviceCBox->findText(settings.name);
 
     if(index >= 0 && index < m_deviceCBox->count())
@@ -118,6 +107,9 @@ MIDIProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
         {
             m_outButton->setChecked(true);
         }
+
+        m_deviceCBox->setCurrentText(midi.endpoint);
+        // TODO <!> setData <!> (midi.port)
     }
 }
 
