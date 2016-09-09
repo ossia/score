@@ -1,7 +1,7 @@
 #!/bin/bash -eux
 
 git submodule update --init --recursive
-export ISCORE_PLUGINS_TO_BUILD=("iscore-addon-csp")
+# export ISCORE_PLUGINS_TO_BUILD=("iscore-addon-csp")
 
 # In this case everything is built in docker
 if [[ "$CONF" == "linux-package-appimage" ]];
@@ -21,7 +21,7 @@ case "$TRAVIS_OS_NAME" in
     fi
 
     sudo apt-get update -qq
-    sudo apt-get install -qq g++-6 libavahi-compat-libdnssd-dev libportmidi-dev libasound2-dev ninja-build gcovr lcov
+    sudo apt-get install -qq g++-6 ninja-build gcovr lcov
 
     sudo wget https://sourceforge.net/projects/boost/files/boost/1.61.0/boost_1_61_0.tar.bz2 -O /opt/boost.tar.bz2
     (cd /opt; sudo tar xaf boost.tar.bz2; sudo mv boost_* boost ; sudo chmod -R a+rwx boost)
@@ -35,7 +35,7 @@ case "$TRAVIS_OS_NAME" in
       sudo apt-get install -qq qt57-meta-full
     fi
 
-    wget https://cmake.org/files/v3.6/cmake-3.6.0-rc1-Linux-x86_64.tar.gz -O cmake-linux.tgz
+    wget https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.tar.gz -O cmake-linux.tgz
     tar xaf cmake-linux.tgz
     mv cmake-*-x86_64 cmake
   ;;
