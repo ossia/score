@@ -35,9 +35,9 @@ class Presenter final :
 
     private:
         void setupNote(NoteView&);
+        void updateNote(NoteView&);
         void on_noteAdded(const Note&);
         void on_noteRemoving(const Note&);
-        void recompute();
 
         const Layer& m_layer;
         View* m_view{};
