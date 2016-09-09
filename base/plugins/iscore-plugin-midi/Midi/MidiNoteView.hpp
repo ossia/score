@@ -35,12 +35,15 @@ class NoteView final :
         void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
     signals:
-        void noteChanged(int);
+        void noteChanged(int, double); // pitch, scaled between [0; 1]
+        void noteChangeFinished();
 
     private:
-        QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+        QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
         double m_width{};
         double m_height{};
+
 };
 }

@@ -44,7 +44,7 @@ QVariant NoteView::itemChange(
                         127);
 
             newPos.setY(height - note * note_height);
-            emit noteChanged(note);
+            emit noteChanged(note, newPos.x() / rect.width());
             return newPos;
         }
         case QGraphicsItem::ItemSelectedChange:
@@ -57,6 +57,12 @@ QVariant NoteView::itemChange(
     }
 
     return QGraphicsItem::itemChange(change, value);
+}
+
+void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit noteChangeFinished();
+    QGraphicsItem::mouseReleaseEvent(event);
 }
 
 }

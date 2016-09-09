@@ -18,7 +18,8 @@ Presenter::Presenter(
         QObject* parent):
     LayerPresenter{ctx, parent},
     m_layer{layer},
-    m_view{view}
+    m_view{view},
+    m_ongoing{ctx.commandStack}
 {
     putToFront();
 
@@ -94,9 +95,16 @@ void Presenter::setupNote(NoteView& v)
     v.setHeight(note_height);
 
     con(v, &NoteView::noteChanged,
-        this, [] () {
-
+        this, [&] (int note, double pos) {
+        m_ongoing.submitCommand(
+                    m_layer.processModel(),
+                    std::vector<Id<Note>>{v.note.id()},
+                    v.note.pitch() - note,
+                    v.note.start() - pos);
     });
+
+    con(v, &NoteView::noteChangeFinished,
+        this, [&] { m_ongoing.commit(); });
 }
 
 void Presenter::on_noteAdded(const Note& n)
