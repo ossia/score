@@ -1,6 +1,7 @@
 #include "iscore_plugin_midi.hpp"
 #include <Midi/MidiFactory.hpp>
 #include <Midi/MidiExecutor.hpp>
+#include <Midi/Inspector/MidiProcessInspector.hpp>
 
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 
@@ -24,7 +25,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_midi::f
             iscore::ApplicationContext,
             TL<
                 FW<Process::ProcessFactory, Midi::ProcessFactory>,
-                FW<Engine::Execution::ProcessComponentFactory, Midi::Executor::ComponentFactory>
+                FW<Engine::Execution::ProcessComponentFactory, Midi::Executor::ComponentFactory>,
+                FW<Process::InspectorWidgetDelegateFactory, Midi::InspectorFactory>
             >>(ctx, key);
 }
 

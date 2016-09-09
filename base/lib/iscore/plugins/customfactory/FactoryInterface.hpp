@@ -53,7 +53,7 @@ using AbstractFactory = FactoryInterface_T<UuidKey<T>>;
 // ConcreteFactoryKey should be defined in the subclass
 #define ISCORE_CONCRETE_FACTORY(Uuid) \
     public: \
-    static Q_RELAXED_CONSTEXPR auto static_concreteFactoryKey() { \
+    static Q_RELAXED_CONSTEXPR ConcreteFactoryKey static_concreteFactoryKey() { \
         return_uuid(Uuid); \
     } \
     \
