@@ -35,4 +35,34 @@ void SetOutput::deserializeImpl(DataStreamOutput& s)
 }
 
 
+
+SetChannel::SetChannel(
+        const ProcessModel& model, int n):
+  m_model{model},
+  m_old{model.channel()},
+  m_new{n}
+{
+}
+
+void SetChannel::undo() const
+{
+    m_model.find().setChannel(m_old);
+}
+
+void SetChannel::redo() const
+{
+    m_model.find().setChannel(m_new);
+}
+
+void SetChannel::serializeImpl(DataStreamInput& s) const
+{
+    s << m_model << m_old << m_new;
+}
+
+void SetChannel::deserializeImpl(DataStreamOutput& s)
+{
+    s >> m_model >> m_old >> m_new;
+}
+
+
 }

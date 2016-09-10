@@ -3,6 +3,7 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Midi/MidiProcess.hpp>
 class QComboBox;
+class QSpinBox;
 namespace Midi
 {
 class InspectorWidget final :
@@ -17,7 +18,8 @@ class InspectorWidget final :
     private:
         void on_deviceChange(const QString& dev);
 
-        QComboBox* m_devices;
+        QComboBox* m_devices{};
+        QSpinBox* m_chan{};
 };
 class InspectorFactory final :
         public Process::InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>

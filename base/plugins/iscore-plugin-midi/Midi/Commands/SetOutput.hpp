@@ -25,4 +25,23 @@ class SetOutput final : public iscore::SerializableCommand
         QString m_old, m_new;
 };
 
+class SetChannel final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(Midi::CommandFactoryName(), SetChannel, "Set Midi channel")
+    public:
+        // Channel should be in [ 0; 15 ]
+        SetChannel(const ProcessModel& model, int chan);
+
+        void undo() const override;
+        void redo() const override;
+
+    protected:
+        void serializeImpl(DataStreamInput & s) const override;
+        void deserializeImpl(DataStreamOutput & s) override;
+
+    private:
+        Path<ProcessModel> m_model;
+        int m_old{}, m_new{};
+};
+
 }
