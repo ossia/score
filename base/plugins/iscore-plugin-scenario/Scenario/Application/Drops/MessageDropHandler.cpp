@@ -30,7 +30,7 @@ bool MessageDropHandler::handle(
     Mime<State::MessageList>::Deserializer des{*mime};
     State::MessageList ml = des.deserialize();
 
-    MacroCommandDispatcher<Scenario::Command::CreateStateMacro> m{
+    RedoMacroCommandDispatcher<Scenario::Command::CreateStateMacro> m{
         pres.context().context.commandStack};
 
 
