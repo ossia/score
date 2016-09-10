@@ -6,6 +6,7 @@
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Application/ScenarioValidity.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
 #include <State/MessageListSerialization.hpp>
@@ -47,11 +48,13 @@ bool MessageDropHandler::handle(
             // We create from the event instead
             auto cmd1 = new Scenario::Command::CreateState{scenar, state->eventId(), pt.y};
             m.submitCommand(cmd1);
+            ScenarioValidityChecker::checkValidity(scenar);
 
             auto cmd2 = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
                     scenar, cmd1->createdState(), pt.date, pt.y};
             m.submitCommand(cmd2);
             createdState = cmd2->createdState();
+            ScenarioValidityChecker::checkValidity(scenar);
         }
         else
         {
@@ -59,6 +62,7 @@ bool MessageDropHandler::handle(
                     scenar, state->id(), pt.date, state->heightPercentage()};
             m.submitCommand(cmd);
             createdState = cmd->createdState();
+            ScenarioValidityChecker::checkValidity(scenar);
         }
     }
     else
@@ -68,6 +72,7 @@ bool MessageDropHandler::handle(
                     scenar, pt.date, pt.y);
         m.submitCommand(cmd);
         createdState = cmd->createdState();
+        ScenarioValidityChecker::checkValidity(scenar);
     }
 
     auto state_path = make_path(scenar)
@@ -80,8 +85,10 @@ bool MessageDropHandler::handle(
 
     m.submitCommand(cmd2);
 
+    ScenarioValidityChecker::checkValidity(scenar);
     m.commit();
 
+    ScenarioValidityChecker::checkValidity(scenar);
     return true;
 }
 }

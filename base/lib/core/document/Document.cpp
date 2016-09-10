@@ -49,6 +49,7 @@ Document::Document(
         QWidget* parentview,
         QObject* parent) :
     NamedObject {"Document", parent},
+    m_commandStack{*this},
     m_objectLocker{this},
     m_backupMgr{new DocumentBackupManager{*this}},
     m_context{DocumentContext::fromDocument(*this)},

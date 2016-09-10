@@ -42,6 +42,7 @@ TestApplication::TestApplication(int &argc, char **argv):
                 m_presenter->toolbarManager(),
                 m_presenter->actionManager()};
 
+    registrar.registerFactory(std::make_unique<iscore::ValidityCheckerList>());
     registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
     auto panels = std::make_unique<iscore::PanelDelegateFactoryList>();
     panels->insert(std::make_unique<iscore::UndoPanelDelegateFactory>());

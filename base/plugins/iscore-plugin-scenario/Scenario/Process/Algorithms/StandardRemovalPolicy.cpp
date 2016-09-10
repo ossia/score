@@ -104,6 +104,7 @@ void StandardRemovalPolicy::removeEventStatesAndConstraints(
     removeEventFromTimeNode(scenario, eventId);
 
     scenario.events.remove(&ev);
+
 }
 
 void StandardRemovalPolicy::removeComment(Scenario::ProcessModel& scenario, CommentBlockModel& cmt)

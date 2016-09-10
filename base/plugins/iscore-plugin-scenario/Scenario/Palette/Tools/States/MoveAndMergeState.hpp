@@ -256,6 +256,10 @@ class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T> 
                             tnId,
                             this->hoveredTimeNode);
                 }
+                else
+                {
+                    qDebug("stuck 1");
+                }
 
             });
             QObject::connect(rollbackTnMerging, &QState::entered, [&] ()
@@ -293,6 +297,22 @@ class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T> 
                             Path<Scenario::ProcessModel>{this->m_scenarioPath},
                             clickedEvId,
                             destinationEvId);
+                }
+                else
+                {
+                    m_mergingEventDispatcher.rollback();
+                    m_mergingTnDispatcher.rollback();
+
+                    TimeValue date = this->m_pressedPrevious
+                        ? max(this->currentPoint.date, *this->m_pressedPrevious)
+                        : this->currentPoint.date;
+
+                    this->m_movingDispatcher.submitCommand(
+                        Path<Scenario::ProcessModel>{this->m_scenarioPath},
+                        clickedEvId,
+                        date,
+                        this->currentPoint.y,
+                        stateMachine.editionSettings().expandMode() );
                 }
             });
             QObject::connect(rollbackEventMerging, &QState::entered, [&] ()

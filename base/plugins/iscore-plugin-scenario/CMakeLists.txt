@@ -157,6 +157,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Drops/AutomationDropHandler.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioEditionSettings.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioValidity.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ExecutionChecker/CoherencyCheckerFactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ExecutionChecker/CSPCoherencyCheckerList.cpp"
