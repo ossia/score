@@ -4,12 +4,19 @@
 #include <Midi/MidiView.hpp>
 #include <Midi/MidiNoteView.hpp>
 
+#include <Process/Focus/FocusDispatcher.hpp>
+
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/Commands/ScaleNotes.hpp>
+
+#include <boost/range/algorithm/copy.hpp>
+#include <boost/range/adaptor/filtered.hpp>
+#include <boost/range/adaptor/transformed.hpp>
+
 namespace Midi
 {
 Presenter::Presenter(
@@ -51,6 +58,15 @@ Presenter::Presenter(
                     new AddNote{
                         layer.processModel(), noteAtPos(pos, m_view->boundingRect())});
     });
+
+    connect(m_view, &View::pressed,
+            this, [&] () {
+        m_context.context.focusDispatcher.focus(this);
+    });
+
+    connect(m_view, &View::askContextMenu,
+            this,   &Presenter::contextMenuRequested);
+
     for(auto& note : model.notes)
     {
         on_noteAdded(note);
@@ -123,10 +139,9 @@ void Presenter::setupNote(NoteView& v)
                     int(127 - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height) * 127),
                     127);
 
-        qDebug() << note;
         m_ongoing.submitCommand(
                     m_layer.processModel(),
-                    std::vector<Id<Note>>{v.note.id()},
+                    selectedNotes(),
                     note - v.note.pitch(),
                     newPos.x() / rect.width() - v.note.start());
 
@@ -140,7 +155,7 @@ void Presenter::setupNote(NoteView& v)
             context().context.commandStack}.submitCommand(
                     new ScaleNotes{
                         m_layer.processModel(),
-                        std::vector<Id<Note>>{v.note.id()},
+                        selectedNotes(),
                         newScale / v.note.duration() });
     });
 }
@@ -173,6 +188,18 @@ void Presenter::on_noteRemoving(const Note& n)
         delete *it;
         m_notes.erase(it);
     }
+}
+
+std::vector<Id<Note>> Presenter::selectedNotes() const
+{
+    using namespace boost::adaptors;
+
+    std::vector<Id<Note>> res;
+    boost::copy(m_notes
+                | filtered([] (NoteView* v) { return v->isSelected(); })
+                | transformed([] (NoteView* v) { return v->note.id(); }),
+                std::back_inserter(res));
+    return res;
 }
 
 }

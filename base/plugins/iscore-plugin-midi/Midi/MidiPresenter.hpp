@@ -39,6 +39,9 @@ class Presenter final :
         void on_noteAdded(const Note&);
         void on_noteRemoving(const Note&);
 
+        std::vector<Id<Note>> selectedNotes() const;
+
+
         const Layer& m_layer;
         View* m_view{};
         std::vector<NoteView*> m_notes;

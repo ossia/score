@@ -6,12 +6,6 @@
 #include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-
-namespace Process {
-class LayerModel;
-class LayerModelPanelProxy;
-}
-class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario

@@ -3,6 +3,7 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <QGraphicsView>
 
 namespace Midi
 {
@@ -10,6 +11,8 @@ namespace Midi
 View::View(QGraphicsItem *parent):
     Process::LayerView {parent}
 {
+    this->setAcceptHoverEvents(true);
+    this->setAcceptDrops(true);
     this->setFlag(QGraphicsItem::ItemIsFocusable, true);
 
 }
@@ -21,6 +24,7 @@ View::~View()
 
 void View::paint_impl(QPainter* p) const
 {
+    p->setRenderHint(QPainter::Antialiasing, false);
     //    1 3   6 8 10
     //   0 2 4 5 7 9  11
     QColor l1 = QColor::fromRgb(200, 200, 200);
@@ -59,6 +63,16 @@ void View::paint_impl(QPainter* p) const
 
         p->drawRect(0, rect.height() - note_height * i,rect.width(), note_height );
     }
+
+
+    if(!m_selectArea.isEmpty())
+    {
+        p->setCompositionMode(QPainter::CompositionMode_Xor);
+        p->setBrush(Qt::transparent);
+        p->setPen(QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
+
+        p->drawPath(m_selectArea);
+    }
 }
 
 void View::contextMenuEvent(
@@ -71,6 +85,26 @@ void View::contextMenuEvent(
 void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
     emit pressed();
+
+    ev->accept();
+}
+
+void View::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
+{
+    QPainterPath p;
+    p.addRect(QRectF{ev->buttonDownPos(Qt::LeftButton), ev->pos()});
+    this->scene()->setSelectionArea(mapToScene(p));
+
+    m_selectArea = p;
+    update();
+    ev->accept();
+}
+
+
+void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
+{
+    m_selectArea = {};
+    update();
     ev->accept();
 }
 

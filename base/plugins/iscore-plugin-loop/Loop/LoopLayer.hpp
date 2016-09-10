@@ -8,9 +8,6 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-
-namespace Process { class LayerModelPanelProxy; }
-class QObject;
 namespace Scenario
 {
 class TemporalConstraintViewModel;

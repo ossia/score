@@ -5,18 +5,9 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-
 #include "LoopLayer.hpp"
 #include <Process/LayerModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-
-namespace Scenario
-{
-class ConstraintViewModel;
-}
-namespace Process { class LayerModelPanelProxy; }
-
-class QObject;
 
 namespace Loop
 {

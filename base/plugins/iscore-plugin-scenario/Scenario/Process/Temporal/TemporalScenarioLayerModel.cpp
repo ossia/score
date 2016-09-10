@@ -9,11 +9,6 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-namespace Process {
-class LayerModelPanelProxy;
-}
-class QObject;
-
 namespace Scenario
 {
 class ConstraintViewModel;
