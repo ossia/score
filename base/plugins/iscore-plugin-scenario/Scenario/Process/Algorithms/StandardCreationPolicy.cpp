@@ -106,6 +106,7 @@ StateModel &ScenarioCreate<StateModel>::redo(
             stack,
             &s};
 
+
     s.states.add(state);
     ev.addState(state->id());
 
