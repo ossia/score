@@ -30,10 +30,13 @@ bool MIDIDevice::reconnect()
     MIDISpecificSettings set = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
     try {
         auto proto = std::make_unique<ossia::net::midi::midi_protocol>();
-        proto->setInfo(ossia::net::midi::midi_info(
+        bool res = proto->setInfo(ossia::net::midi::midi_info(
                            static_cast<ossia::net::midi::midi_info::Type>(set.io),
                            set.endpoint.toStdString(),
                            set.port));
+        if(!res)
+            return false;
+
         auto dev = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
         dev->setName(settings().name.toStdString());
         dev->updateNamespace();
