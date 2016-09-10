@@ -42,6 +42,7 @@ set(SOURCE_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiPresenter.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiView.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteView.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNote.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_midi.cpp"
   )
