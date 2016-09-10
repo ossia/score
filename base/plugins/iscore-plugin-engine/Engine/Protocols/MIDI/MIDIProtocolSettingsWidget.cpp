@@ -21,7 +21,7 @@ namespace Network
 MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-    m_name = new QLineEdit;
+    m_name = new QLineEdit{"MidiDevice"};
     m_inButton = new QCheckBox(tr("Send"), this);
     m_inButton->setAutoExclusive(true);
     m_outButton = new QCheckBox(tr("Receive"), this);

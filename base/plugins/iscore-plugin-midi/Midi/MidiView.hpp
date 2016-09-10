@@ -20,11 +20,16 @@ class View final :
         void pressed();
         void doubleClicked(QPointF);
 
-    protected:
+    private:
         void paint_impl(QPainter*) const override;
         void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
         void mousePressEvent(QGraphicsSceneMouseEvent*) override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
         void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) override;
+
+
+        QPainterPath m_selectArea;
 };
 
 NoteData noteAtPos(QPointF point, const QRectF& rect);

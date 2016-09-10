@@ -36,6 +36,7 @@ class ProcessExecutor final :
         ossia::state_element state() override;
         ossia::state_element offset(ossia::time_value) override;
 
+        void stop() override;
     private:
         const Midi::ProcessModel& m_process;
         const Device::DeviceList& m_devices;

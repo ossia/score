@@ -21,10 +21,18 @@ void NoteView::paint(
         const QStyleOptionGraphicsItem* option,
         QWidget* widget)
 {
-    const QColor orange = QColor::fromRgb(200, 120, 20);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+
+    QColor orange = QColor::fromRgb(200, 120, 20);
     painter->setBrush(this->isSelected() ? orange.darker() : orange);
     painter->setPen(orange.darker());
-    painter->drawRect(boundingRect());
+    painter->drawRect(boundingRect().adjusted(0, -1, 0, -1));
+
+    orange.setHslF(orange.hslHueF() - 0.02, 1., 0.25 + (127 - note.velocity()) / 256.);
+    QPen p(orange);
+    p.setWidthF(2);
+    painter->setPen(p);
+    painter->drawLine(QPointF{2, m_height / 2.}, QPointF{m_width - 2, m_height/2.});
 }
 
 QVariant NoteView::itemChange(

@@ -17,6 +17,7 @@ ProcessModel::ProcessModel(
         n->setPitch(64 + i);
         n->setStart(0.1 + i * 0.05);
         n->setDuration(0.1 + i * 0.05);
+        n->setVelocity(i * 127. / 9.);
         notes.add(n);
     }
 }

@@ -232,6 +232,10 @@ void DeviceExplorerModel::updateValue(Device::Node* n, const State::Value& v)
 bool DeviceExplorerModel::checkDeviceInstantiatable(
         Device::DeviceSettings& n)
 {
+    // No name -> no love
+    if(n.name.isEmpty())
+        return false;
+
     // Request from the protocol factory the protocol to see
     // if it is compatible.
     auto& context = m_devicePlugin.context().app.components;

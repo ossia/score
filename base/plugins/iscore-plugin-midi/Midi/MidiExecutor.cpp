@@ -86,9 +86,7 @@ ossia::state_element ProcessExecutor::state(double t)
         }
 
         m_lastState = std::move(st);
-
     }
-    //qDebug() << (double)par_cst.getGranularity() << (double)par_cst.getDurationNominal() << cur_pos << max_pos;
 
     return m_lastState;
 }
@@ -96,6 +94,11 @@ ossia::state_element ProcessExecutor::state(double t)
 ossia::state_element ProcessExecutor::offset(ossia::time_value off)
 {
     return state(off / parent->getDurationNominal());
+}
+
+void ProcessExecutor::stop()
+{
+    // TODO Send a "note-off" to all the notes that are still running ?
 }
 
 
