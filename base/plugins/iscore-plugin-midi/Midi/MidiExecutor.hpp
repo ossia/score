@@ -39,10 +39,11 @@ class ProcessExecutor final :
         void stop() override;
     private:
         const Midi::ProcessModel& m_process;
-        const Device::DeviceList& m_devices;
 
         ossia::net::midi::channel_node* m_channelNode{};
         ossia::state m_lastState;
+
+        std::set<int> m_playing;
 };
 
 
