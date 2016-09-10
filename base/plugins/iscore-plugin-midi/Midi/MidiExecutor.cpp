@@ -14,8 +14,7 @@ namespace Executor
 ProcessExecutor::ProcessExecutor(
         const Midi::ProcessModel& proc,
         const Device::DeviceList& devices):
-    m_process{proc},
-    m_devices{devices}
+    m_process{proc}
 {
     using error_t = Engine::Execution::InvalidProcessException<Midi::ProcessModel>;
     // Load the address
@@ -33,6 +32,7 @@ ProcessExecutor::ProcessExecutor(
         Engine::iscore_to_ossia::findNodeFromPath(
                 {QString::number(proc.channel())},
                  *dev->getDevice());
+
     m_channelNode = dynamic_cast<ossia::net::midi::channel_node*>(node);
 
     if(!m_channelNode)
@@ -45,7 +45,7 @@ ProcessExecutor::~ProcessExecutor()
 
 ossia::state_element ProcessExecutor::state()
 {
-    return state(parent->getPosition());
+    return state(parent->getDate() / parent->getDurationNominal());
 }
 
 ossia::state_element ProcessExecutor::state(double t)
@@ -69,13 +69,14 @@ ossia::state_element ProcessExecutor::state(double t)
             auto start_time = note.start();
             auto end_time = note.end();
 
-            //qDebug() << cur_pos << start_time << end_time << max_pos;
             if(start_time >= cur_pos && start_time < max_pos)
             {
                 // Send note_on
                 auto p = m_channelNode->note_on(note.pitch(), note.velocity());
                 st.add(std::move(p[0]));
                 st.add(std::move(p[1]));
+
+                m_playing.insert(note.pitch());
             }
             if(end_time >= cur_pos && end_time < max_pos)
             {
@@ -83,6 +84,8 @@ ossia::state_element ProcessExecutor::state(double t)
                 auto p = m_channelNode->note_off(note.pitch(), note.velocity());
                 st.add(std::move(p[0]));
                 st.add(std::move(p[1]));
+
+                m_playing.erase(note.pitch());
             }
         }
 
@@ -99,7 +102,15 @@ ossia::state_element ProcessExecutor::offset(ossia::time_value off)
 
 void ProcessExecutor::stop()
 {
-    // TODO Send a "note-off" to all the notes that are still running ?
+    ossia::state s;
+    for(auto& note : m_playing)
+    {
+        auto p = m_channelNode->note_off(note, 0);
+        s.add(std::move(p[0]));
+        s.add(std::move(p[1]));
+    }
+    s.launch();
+    m_playing.clear();
 }
 
 

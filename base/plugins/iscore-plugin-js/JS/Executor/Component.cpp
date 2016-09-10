@@ -36,7 +36,7 @@ void ProcessExecutor::setTickFun(const QString& val)
 
 ossia::state_element ProcessExecutor::state()
 {
-    return state(parent->getPosition());
+    return state(parent->getDate() / parent->getDurationNominal());
 }
 
 ossia::state_element ProcessExecutor::state(double t)

@@ -34,84 +34,40 @@ class Note : public IdentifiedObject<Note>
     public:
         Selectable selection;
 
-        Note(const Id<Note>& id, QObject* parent):
-            IdentifiedObject<Note>(id, "Note", parent)
+        Note(const Id<Note>& id, QObject* parent);
+        Note(const Id<Note>& id, NoteData n, QObject* parent);
+
+        template<typename DeserializerVisitor,
+                 enable_if_deserializer<DeserializerVisitor>* = nullptr>
+        Note(DeserializerVisitor&& vis,
+             QObject* parent) :
+            IdentifiedObject<Note>{vis, parent}
         {
+            vis.writeTo(*this);
         }
 
-        Note(const Id<Note>& id, NoteData n, QObject* parent):
-            IdentifiedObject<Note>(id, "Note", parent),
-            m_start{n.start},
-            m_duration{n.duration},
-            m_pitch{n.pitch},
-            m_velocity{n.velocity}
-        {
-        }
-
-        Note* clone(const Id<Note>& id, QObject* parent)
-        {
-            return new Note{id, this->noteData(), parent};
-        }
+        Note* clone(const Id<Note>& id, QObject* parent);
 
         // Both are between 0 - 1, 1 being the process duration.
-        double start() const { return m_start; }
-        double duration() const { return m_duration; }
-        double end() const { return m_start + m_duration; }
-        midi_size_t pitch() const { return m_pitch; }
-        midi_size_t velocity() const { return m_velocity; }
+        double start() const;
+        double duration() const;
+        double end() const;
+        midi_size_t pitch() const;
+        midi_size_t velocity() const;
 
-        void scale(double s)
-        {
-            if(s != 1.)
-            {
-                m_start *= s;
-                m_duration *= s;
-                emit noteChanged();
-            }
-        }
+        void scale(double s);
 
-        void setStart(double s)
-        {
-            if(m_start != s)
-            {
-                m_start = s;
-                emit noteChanged();
-            }
-        }
+        void setStart(double s);
 
-        void setDuration(double s)
-        {
-            if(m_duration != s)
-            {
-                m_duration = s;
-                emit noteChanged();
-            }
-        }
+        void setDuration(double s);
 
-        void setPitch(midi_size_t s)
-        {
-            if(m_pitch != s)
-            {
-                m_pitch = s;
-                emit noteChanged();
-            }
-        }
+        void setPitch(midi_size_t s);
 
-        void setVelocity(midi_size_t s)
-        {
-            if(m_velocity != s)
-            {
-                m_velocity = s;
-                emit noteChanged();
-            }
-        }
+        void setVelocity(midi_size_t s);
 
-        NoteData noteData() const
-        {
-            return NoteData{
-                m_start, m_duration,
-                m_pitch, m_velocity};
-        }
+        NoteData noteData() const;
+
+        void setData(NoteData d);
 
     signals:
         void noteChanged();
