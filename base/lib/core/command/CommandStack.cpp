@@ -3,11 +3,15 @@
 #include <QVector>
 
 #include <iscore/command/SerializableCommand.hpp>
-
+#include <iscore/command/Validity/ValidityChecker.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <core/document/Document.hpp>
 namespace iscore
 {
-CommandStack::CommandStack(QObject* parent) :
-    QObject {}
+CommandStack::CommandStack(
+        const iscore::Document& ctx,
+        QObject* parent) :
+    m_checker{iscore::AppContext().components.factory<ValidityCheckerList>(), ctx}
 {
     this->setObjectName("CommandStack");
     this->setParent(parent);

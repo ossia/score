@@ -22,6 +22,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
@@ -183,6 +184,7 @@ RemoveSelection::RemoveSelection(Path<Scenario::ProcessModel>&& scenarioPath, Se
 void RemoveSelection::undo() const
 {
     auto& scenar = m_path.find();
+
     auto& stack = iscore::IDocument::documentContext(scenar).commandStack;
     // First instantiate everything
 
@@ -336,11 +338,21 @@ void RemoveSelection::undo() const
         // view model creation
         deserializeConstraintViewModels(constraintdata.second, scenar);
     }
+
+    for(auto& tn : scenar.timeNodes)
+    {
+        updateTimeNodeExtent(tn.id(), scenar);
+    }
+    for(auto& ev : scenar.events)
+    {
+        updateEventExtent(ev.id(), scenar);
+    }
 }
 
 void RemoveSelection::redo() const
 {
     auto& scenar = m_path.find();
+
     // Remove the constraints
     for(const auto& cstr : m_removedConstraints)
     {
@@ -368,6 +380,15 @@ void RemoveSelection::redo() const
         {
             StandardRemovalPolicy::removeState(scenar, *it);
         }
+    }
+
+    for(auto& tn : scenar.timeNodes)
+    {
+        updateTimeNodeExtent(tn.id(), scenar);
+    }
+    for(auto& ev : scenar.events)
+    {
+        updateEventExtent(ev.id(), scenar);
     }
 }
 

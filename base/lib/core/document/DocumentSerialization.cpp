@@ -120,6 +120,7 @@ Document::Document(const QVariant& data,
                    QWidget* parentview,
                    QObject* parent):
     NamedObject {"Document", parent},
+    m_commandStack{*this},
     m_objectLocker{this},
     m_context{*this}
 {

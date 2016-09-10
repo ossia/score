@@ -1,4 +1,5 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/ScenarioValidity.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp>
@@ -152,7 +153,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
         Interpolation::StateInspectorFactory>,
     FW<ConstraintInspectorDelegateFactory,
         ScenarioConstraintInspectorDelegateFactory,
-        BaseConstraintInspectorDelegateFactory>
+        BaseConstraintInspectorDelegateFactory>,
+    FW<iscore::ValidityChecker,
+        ScenarioValidityChecker>
     >>(ctx, key);
 }
 
