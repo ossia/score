@@ -29,10 +29,11 @@ ProcessExecutor::ProcessExecutor(
         throw error_t("Bad process");
 
     // We get the node corresponding to the channel
-    m_channelNode = dynamic_cast<ossia::net::midi::channel_node*>(
-                Engine::iscore_to_ossia::findNodeFromPath(
-    {QString::number(proc.channel())},
-                    *dev->getDevice()));
+    auto node =
+        Engine::iscore_to_ossia::findNodeFromPath(
+                {QString::number(proc.channel())},
+                 *dev->getDevice());
+    m_channelNode = dynamic_cast<ossia::net::midi::channel_node*>(node);
 
     if(!m_channelNode)
         throw error_t("Bad node");

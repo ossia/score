@@ -28,7 +28,6 @@ ProcessModel::ProcessModel(
         QObject* parent):
     Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-    //TODO clone notes
     m_device = source.device();
     m_channel = source.channel();
     for(Note& note : source.notes)
@@ -91,24 +90,34 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(
         const Midi::NoteData& n)
 {
+  m_stream << n.start << n.duration << n.pitch << n.velocity;
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(
         Midi::NoteData& n)
 {
+  m_stream >> n.start >> n.duration >> n.pitch >> n.velocity;
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(
         const Midi::NoteData& n)
 {
+  m_obj["Start"] = n.start;
+  m_obj["Duration"] = n.duration;
+  m_obj["Pitch"] = n.pitch;
+  m_obj["Velocity"] = n.velocity;
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(
         Midi::NoteData& n)
 {
+  n.start = m_obj["Start"].toDouble();
+  n.duration = m_obj["Duration"].toDouble();
+  n.pitch = m_obj["Pitch"].toInt();
+  n.velocity = m_obj["Velocity"].toInt();
 }
 
 

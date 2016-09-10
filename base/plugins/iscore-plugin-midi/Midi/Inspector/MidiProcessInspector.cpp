@@ -49,6 +49,37 @@ InspectorWidget::InspectorWidget(
         }
     });
 
-    m_devices->setCurrentText(model.device());
+    if(m_devices->findText(model.device()) != -1)
+    {
+      m_devices->setCurrentText(model.device());
+    }
+    else
+    {
+      m_devices->addItem(model.device());
+      QFont f;
+      f.setItalic(true);
+      m_devices->setItemData(m_devices->count() - 1, f, Qt::FontRole);
+      m_devices->setCurrentIndex(m_devices->count() - 1);
+    }
+
+    m_chan = new QSpinBox;
+    m_chan->setMinimum(1);
+    m_chan->setMaximum(16);
+
+    vlay->addRow(tr("Channel"), m_chan);
+    m_chan->setValue(model.channel() + 1);
+    con(model, &ProcessModel::channelChanged,
+        this, [=] (int n) {
+      if(m_chan->value() != n + 1)
+          m_chan->setValue(n + 1);
+    });
+    connect(m_chan, SignalUtils::QSpinBox_valueChanged_int(),
+            this, [&] (int n) {
+      if(model.channel() != n - 1)
+      {
+        CommandDispatcher<> d{doc.commandStack};
+        d.submitCommand(new SetChannel{model, n - 1});
+      }
+    });
 }
 }

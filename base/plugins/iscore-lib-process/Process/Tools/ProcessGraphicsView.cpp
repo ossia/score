@@ -13,16 +13,20 @@
 ProcessGraphicsView::ProcessGraphicsView(QGraphicsScene* parent):
     QGraphicsView{parent}
 {
-    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    setFrameStyle(0);
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
+    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     setAlignment(Qt::AlignTop | Qt::AlignLeft);
     setCacheMode(QGraphicsView::CacheBackground);
     setAttribute(Qt::WA_PaintOnScreen, true);
     setAttribute(Qt::WA_OpaquePaintEvent, true);
 
 #if defined(__APPLE__)
+    setRenderHints(0);
     setOptimizationFlags(QGraphicsView::IndirectPainting);
 #endif
+
+
 
     //m_graduations = new SceneGraduations{this};
     //scene()->addItem(m_graduations);
