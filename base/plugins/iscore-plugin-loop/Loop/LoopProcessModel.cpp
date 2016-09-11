@@ -41,7 +41,7 @@ ProcessModel::ProcessModel(
     endEvent().setDate(duration);
     endTimeNode().setDate(duration);
 
-    const double height = 0.15;
+    const double height = 0.5;
     constraint().setHeightPercentage(height);
     constraint().metadata().setName("pattern");
     constraint().metadata().setColor(ScenarioStyle::instance().ConstraintInvalid);
