@@ -27,7 +27,7 @@ class ViewUpdater
         LayerPresenter& m_presenter;
 
         static const Scenario::VerticalExtent extent() {
-            return {20., 50. };
+            return {30., 50. };
         }
 };
 
