@@ -190,5 +190,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
 
         iscore::SelectionDispatcher m_selectionDispatcher;
         Scenario::ToolPalette m_sm;
+
+        QMetaObject::Connection m_con;
 };
 }

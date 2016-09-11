@@ -172,14 +172,13 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     });
     m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
 
-    con(context.updateTimer, &QTimer::timeout,
+    m_con = con(context.updateTimer, &QTimer::timeout,
         this, &TemporalScenarioPresenter::on_constraintExecutionTimer);
 }
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
 {
-    disconnect(&m_context.context.updateTimer, &QTimer::timeout,
-               this, &TemporalScenarioPresenter::on_constraintExecutionTimer);
+    disconnect(m_con);
 }
 
 const Process::LayerModel& TemporalScenarioPresenter::layerModel() const
