@@ -241,5 +241,5 @@ void Application::loadPluginData()
 
 
 int Application::exec()
-{ return m_app->exec(); }
+    { return m_app->exec(); }
 

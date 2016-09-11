@@ -259,6 +259,32 @@ State::Value NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) con
     return n.value;
 }
 
+optional<State::Value> NodeUpdateProxy::try_refreshRemoteValue(const State::Address& addr) const
+{
+    // TODO here and in the following function, we should still update
+    // the device explorer.
+    auto dev_p = devModel.list().findDevice(addr.device);
+    if(!dev_p)
+        return {};
+
+    auto& dev = *dev_p;
+
+    auto node = Device::try_getNodeFromAddress(devModel.rootNode(), addr);
+    if(!node)
+        return {};
+
+    auto& n = node->template get<Device::AddressSettings>();
+    if(dev.capabilities().canRefreshValue)
+    {
+        if(auto val = dev.refresh(addr))
+        {
+            n.value = *val;
+        }
+    }
+
+    return n.value;
+}
+
 static void rec_refreshRemoteValues(Device::Node& n, Device::DeviceInterface& dev)
 {
     // OPTIMIZEME
