@@ -218,11 +218,11 @@ class IndirectUnorderedMap
         using base_const_iterator_t = typename Map_T::const_iterator;
 
     public:
-		using value_type = typename base_iterator_t::value_type;
-		IndirectUnorderedMap()
-		{
+        using value_type = typename base_iterator_t::value_type;
+        IndirectUnorderedMap()
+        {
 
-		}
+        }
 
         auto begin()        { return make_indirect_map_iterator(map.begin()); }
         auto begin() const  { return make_indirect_map_iterator(map.begin()); }

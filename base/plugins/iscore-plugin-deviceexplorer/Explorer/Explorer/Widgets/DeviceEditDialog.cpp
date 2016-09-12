@@ -82,8 +82,16 @@ DeviceEditDialog::initAvailableProtocols()
     //initialize previous settings
     m_previousSettings.clear();
 
-    for(const auto& prot : m_protocolList)
+    std::vector<Device::ProtocolFactory*> sorted;
+    for(auto& elt : m_protocolList) { sorted.push_back(&elt); }
+
+    sort(sorted, [] (Device::ProtocolFactory* lhs, Device::ProtocolFactory* rhs) {
+        return lhs->visualPriority() > rhs->visualPriority();
+    });
+
+    for(const auto& prot_pair : sorted)
     {
+        auto& prot = *prot_pair;
         m_protocolCBox->addItem(
                     prot.prettyName(),
                     QVariant::fromValue(prot.concreteFactoryKey()));
@@ -91,6 +99,7 @@ DeviceEditDialog::initAvailableProtocols()
         m_previousSettings.append(prot.defaultSettings());
     }
 
+    m_protocolCBox->setCurrentIndex(0);
     m_index = m_protocolCBox->currentIndex();
 }
 
