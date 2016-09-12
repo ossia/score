@@ -5,7 +5,7 @@
 namespace iscore
 {
 class Document;
-class DocumentContext;
+struct DocumentContext;
 class ISCORE_LIB_BASE_EXPORT ValidityChecker :
         public iscore::AbstractFactory<ValidityChecker>
 {
