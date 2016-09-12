@@ -4,6 +4,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QGraphicsView>
+#include <QKeyEvent>
 
 namespace Midi
 {
@@ -111,6 +112,16 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * ev)
 {
     emit doubleClicked(ev->pos());
+    ev->accept();
+}
+
+void View::keyPressEvent(QKeyEvent* ev)
+{
+    if(ev->key() == Qt::Key_Backspace || ev->key() == Qt::Key_Delete)
+    {
+        emit deleteRequested();
+    }
+
     ev->accept();
 }
 
