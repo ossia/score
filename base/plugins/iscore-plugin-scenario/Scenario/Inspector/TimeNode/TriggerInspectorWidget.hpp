@@ -3,6 +3,7 @@
 #include <QWidget>
 
 #include <State/Expression.hpp>
+#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
 
 namespace Inspector
 {
@@ -46,7 +47,7 @@ class TriggerInspectorWidget final : public QWidget
 
         QPushButton* m_addTrigBtn{};
         QPushButton* m_menuButton{};
-        QMenu* m_menu{};
+        ExpressionMenu m_menu;
 
         ExpressionEditorWidget* m_exprEditor{};
 };

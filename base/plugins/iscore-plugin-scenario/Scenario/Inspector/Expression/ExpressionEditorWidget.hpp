@@ -32,6 +32,7 @@ class ExpressionEditorWidget : public QWidget
         void setExpression(State::Expression e);
 
         void addNewTerm();
+        void on_editFinished();
 
     signals:
         void editingFinished();
@@ -39,7 +40,6 @@ class ExpressionEditorWidget : public QWidget
 
 
     private:
-        void on_editFinished();
 //	void on_operatorChanged(int i);
 // TODO on_modelChanged()
 
