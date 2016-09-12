@@ -36,6 +36,7 @@ LocalDevice::LocalDevice(
 
     auto& proto = safe_cast<ossia::net::local_protocol&>(dev.getProtocol());
 
+    m_proto = &proto;
     setLogging_impl(isLogging());
 
     auto& root = dev.getRootNode();
@@ -77,13 +78,8 @@ LocalDevice::LocalDevice(
         });
     }
 
-    try {
-    proto.exposeTo(std::make_unique<ossia::net::minuit_protocol>("i-score-remote", "127.0.0.1", 9999, 6666));
-    }
-    catch(...)
-    {
-        qDebug() << "LocalDevice: could not expose i-score-remote on port 6666";
-    }
+    setRemoteSettings(settings);
+
 
     dev.onNodeCreated.connect<LocalDevice, &LocalDevice::nodeCreated>(this);
     dev.onNodeRemoving.connect<LocalDevice, &LocalDevice::nodeRemoving>(this);
@@ -96,6 +92,32 @@ LocalDevice::~LocalDevice()
 {
 }
 
+void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
+{
+    if(!m_proto)
+        return;
+
+    try {
+        auto set = settings.deviceSpecificSettings.value<LocalSpecificSettings>();
+        if(set.remoteName == "")
+        {
+            set.remoteName = "i-score-remote";
+            set.host = "127.0.0.1";
+            set.remotePort = 9999;
+            set.localPort = 6666;
+        }
+        m_proto->exposeTo(std::make_unique<ossia::net::minuit_protocol>(
+                           set.remoteName.toStdString(),
+                           set.host.toStdString(),
+                           set.remotePort,
+                           set.localPort));
+    }
+    catch(...)
+    {
+        qDebug() << "LocalDevice: could not expose i-score-remote on port 6666";
+    }
+}
+
 void LocalDevice::disconnect()
 {
     // TODO handle listening ??
@@ -105,6 +127,7 @@ void LocalDevice::disconnect()
 bool LocalDevice::reconnect()
 {
     m_callbacks.clear();
+    setRemoteSettings(settings());
     return connected();
 }
 

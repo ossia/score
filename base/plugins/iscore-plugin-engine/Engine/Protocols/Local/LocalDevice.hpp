@@ -9,6 +9,7 @@ namespace ossia
 namespace net
 {
 class generic_device;
+class local_protocol;
 }
 }
 namespace Engine
@@ -27,6 +28,8 @@ class LocalDevice final :
 
         ~LocalDevice();
 
+        void setRemoteSettings(const Device::DeviceSettings&);
+
         ossia::net::device_base* getDevice() const override
         { return &m_dev; }
 
@@ -42,7 +45,7 @@ class LocalDevice final :
         Device::Node refresh() override;
 
         ossia::net::device_base& m_dev;
-
+        ossia::net::local_protocol* m_proto;
         using OSSIADevice::refresh;
 };
 }
