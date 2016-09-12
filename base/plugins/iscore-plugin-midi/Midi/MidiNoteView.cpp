@@ -111,17 +111,19 @@ void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     if(event->pos().x() >= this->boundingRect().width() - 2)
     {
+        m_scaling = true;
         event->accept();
     }
     else
     {
+        m_scaling = false;
         QGraphicsItem::mousePressEvent(event);
     }
 }
 
 void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    if(event->pos().x() >= this->boundingRect().width() - 2)
+    if(m_scaling)
     {
         this->setWidth(event->pos().x());
         event->accept();
@@ -134,7 +136,7 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    if(event->pos().x() >= this->boundingRect().width() - 2)
+    if(m_scaling)
     {
         emit noteScaled(m_width / parentItem()->boundingRect().width());
         event->accept();

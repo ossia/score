@@ -51,5 +51,6 @@ class NoteView final :
         double m_width{};
         double m_height{};
 
+        bool m_scaling = false;
 };
 }

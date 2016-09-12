@@ -26,7 +26,7 @@ class ScaleNotes final : public iscore::SerializableCommand
     private:
         Path<ProcessModel> m_model;
         std::vector<Id<Note>> m_toScale;
-        double m_ratio{};
+        double m_delta{};
 
 };
 
