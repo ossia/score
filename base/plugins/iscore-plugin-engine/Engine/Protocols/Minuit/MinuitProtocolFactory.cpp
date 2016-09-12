@@ -24,6 +24,11 @@ QString MinuitProtocolFactory::prettyName() const
     return QObject::tr("Minuit");
 }
 
+int MinuitProtocolFactory::visualPriority() const
+{
+    return 1;
+}
+
 Device::DeviceInterface* MinuitProtocolFactory::makeDevice(
         const Device::DeviceSettings& settings,
         const iscore::DocumentContext& ctx)
