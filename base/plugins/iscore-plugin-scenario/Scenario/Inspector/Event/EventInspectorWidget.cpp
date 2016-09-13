@@ -55,7 +55,8 @@ EventInspectorWidget::EventInspectorWidget(
     m_model {object},
     m_context{doc},
     m_commandDispatcher{doc.commandStack},
-    m_selectionDispatcher{doc.selectionStack}
+    m_selectionDispatcher{doc.selectionStack},
+    m_menu{[&] { return m_model.condition(); }}
 {
     setObjectName("EventInspectorWidget");
     setParent(parent);
@@ -94,7 +95,10 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(infoWidg);
 
     // Condition
-    m_exprEditor = new ExpressionEditorWidget{m_context, this};
+    auto expr_widg = new QWidget;
+    auto expr_lay = new QHBoxLayout{expr_widg};
+
+    m_exprEditor = new ExpressionEditorWidget{m_context, expr_widg};
     connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
             this, &EventInspectorWidget::on_conditionChanged);
     connect(m_exprEditor, &ExpressionEditorWidget::resetExpression,
@@ -102,8 +106,35 @@ EventInspectorWidget::EventInspectorWidget(
     con(m_model, &EventModel::conditionChanged,
         m_exprEditor, &ExpressionEditorWidget::setExpression);
 
+    auto condMenuButton = new QPushButton{"#"};
+    condMenuButton->setMenu(m_menu.menu);
+
+    connect(m_menu.addSubAction, &QAction::triggered,
+            m_exprEditor, [=] {
+        m_exprEditor->addNewTerm();
+        m_exprEditor->on_editFinished();
+    });
+
+    m_menu.menu->removeAction(m_menu.deleteAction);
+    delete m_menu.deleteAction; // Blergh
+
+    con(m_menu, &ExpressionMenu::expressionChanged,
+            this, [=] (const QString& str) {
+        if(auto cond = State::parseExpression(str))
+        {
+            if(*cond != m_model.condition())
+            {
+                auto cmd = new Scenario::Command::SetCondition{m_model, std::move(*cond)};
+                m_commandDispatcher.submitCommand(cmd);
+            }
+        }
+    });
+
+    expr_lay->addWidget(m_exprEditor);
+    expr_lay->addWidget(condMenuButton);
     auto condSection = new Inspector::InspectorSectionWidget{"Condition", false, this};
-    condSection->addContent(m_exprEditor);
+    condSection->addContent(expr_widg);
+
     m_properties.push_back(condSection);
 
     condSection->expand(!m_model.condition().toString().isEmpty());
