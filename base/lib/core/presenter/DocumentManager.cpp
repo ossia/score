@@ -604,7 +604,7 @@ Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v)
               ids.begin(),
               [](const auto elt)
     {
-        return * (elt->id().val());
+        return elt->id().val();
     });
 
     return Id<iscore::DocumentModel>{iscore::random_id_generator::getNextId(ids)};

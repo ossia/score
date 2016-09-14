@@ -12,7 +12,7 @@ RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :
     Entity{id, Metadata<ObjectKey_k, RackModel>::get(), parent}
 {
     initConnections();
-    metadata().setName(QString{"Rack.%1"} .arg(*id.val()));
+    metadata().setName(QString{"Rack.%1"} .arg(id.val()));
 }
 
 RackModel::RackModel(const RackModel& source,

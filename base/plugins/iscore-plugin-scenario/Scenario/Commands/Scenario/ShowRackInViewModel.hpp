@@ -42,7 +42,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ShowRackInViewModel final : public iscore::S
     private:
         Path<ConstraintViewModel> m_constraintViewPath;
         Id<RackModel> m_rackId {};
-        Id<RackModel> m_previousRackId {};
+        OptionalId<RackModel> m_previousRackId {};
 
 };
 }

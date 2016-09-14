@@ -25,9 +25,7 @@ class CommentBlockPresenter final :  public QObject
 
         const Id<CommentBlockModel>& id() const;
         int32_t id_val() const
-        {
-            return *id().val();
-        }
+        { return id().val(); }
 
         const CommentBlockModel& model() const
         {return m_model; }

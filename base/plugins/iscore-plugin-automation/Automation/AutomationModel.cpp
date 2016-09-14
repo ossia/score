@@ -42,7 +42,7 @@ ProcessModel::ProcessModel(
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
 
-    metadata().setName(QString("Automation.%1").arg(*this->id().val()));
+    metadata().setName(QString("Automation.%1").arg(this->id().val()));
 }
 
 ProcessModel::~ProcessModel()
@@ -63,7 +63,7 @@ ProcessModel::ProcessModel(
     setCurve(source.curve().clone(source.curve().id(), this));
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
-    metadata().setName(QString("Automation.%1").arg(*this->id().val()));
+    metadata().setName(QString("Automation.%1").arg(this->id().val()));
 }
 
 QString ProcessModel::prettyName() const

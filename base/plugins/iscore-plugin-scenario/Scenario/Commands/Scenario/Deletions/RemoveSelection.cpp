@@ -105,9 +105,9 @@ RemoveSelection::RemoveSelection(Path<Scenario::ProcessModel>&& scenarioPath, Se
         if(auto state = dynamic_cast<const StateModel*>(obj.data()))
         {
             if(state->previousConstraint())
-                sel.append(&scenar.constraints.at(state->previousConstraint()));
+                sel.append(&scenar.constraints.at(*state->previousConstraint()));
             if(state->nextConstraint())
-                sel.append(&scenar.constraints.at(state->nextConstraint()));
+                sel.append(&scenar.constraints.at(*state->nextConstraint()));
         }
     }
 

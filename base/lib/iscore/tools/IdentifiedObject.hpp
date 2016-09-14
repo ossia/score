@@ -49,7 +49,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 
         int32_t id_val() const final override
         {
-            return *m_id.val();
+            return m_id.val();
         }
 
         void setId(const id_type& id)
@@ -70,9 +70,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 template<typename model>
 std::size_t hash_value(const Id<model>& id)
 {
-    ISCORE_ASSERT(bool(id));
-
-    return *id.val();
+    return id.val();
 }
 
 template<typename T, typename U>
@@ -81,7 +79,7 @@ bool operator==(const T* obj, const Id<U>& id)
     return obj->id() == id;
 }
 
-template<typename T, typename U,std::enable_if_t<! std::is_pointer<std::decay_t<T>>::value>* = nullptr>
+template<typename T, typename U, typename = decltype(std::declval<T>().id())>
 bool operator==(const T& obj, const Id<U>& id)
 {
     return obj.id() == id;

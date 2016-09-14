@@ -71,8 +71,8 @@ struct SegmentData
                 Id<SegmentModel> i,
                 Curve::Point s,
                 Curve::Point e,
-                Id<SegmentModel> prev,
-                Id<SegmentModel>  foll,
+                OptionalId<SegmentModel> prev,
+                OptionalId<SegmentModel>  foll,
                 UuidKey<Curve::SegmentFactory> t,
                 QVariant data):
             id(std::move(i)),
@@ -89,7 +89,7 @@ struct SegmentData
         Id<SegmentModel> id;
 
         Curve::Point start, end;
-        Id<SegmentModel> previous, following;
+        OptionalId<SegmentModel> previous, following;
 
         UuidKey<Curve::SegmentFactory> type;
         QVariant specificSegmentData;
@@ -146,10 +146,7 @@ class CurveDataHash
     public:
         std::size_t operator()(const Id<SegmentModel>& id) const
         {
-            if(!id)
-                return -1;
-
-            return *id.val();
+            return id.val();
         }
 };
 

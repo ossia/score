@@ -28,7 +28,7 @@ EventModel::EventModel(
     m_extent{extent},
     m_date{date}
 {
-    metadata().setName(QString("Event.%1").arg(*this->id().val()));
+    metadata().setName(QString("Event.%1").arg(this->id().val()));
     metadata().setColor(ScenarioStyle::instance().EventDefault);
 }
 

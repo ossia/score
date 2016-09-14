@@ -38,7 +38,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ShowRackInAllViewModels final : public iscor
         Path<ConstraintModel> m_constraintPath;
         Id<RackModel> m_rackId {};
 
-        QMap<Id<ConstraintViewModel>, Id<RackModel>> m_previousRacks;
+        QMap<Id<ConstraintViewModel>, OptionalId<RackModel>> m_previousRacks;
 
 };
 

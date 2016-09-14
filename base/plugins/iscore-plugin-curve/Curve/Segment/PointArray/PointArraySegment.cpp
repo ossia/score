@@ -161,7 +161,7 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
 
     vec.emplace_back(Id<SegmentModel>{0},
                      pts[0], pts[1],
-                     Id<SegmentModel>{}, Id<SegmentModel>{},
+                     OptionalId<SegmentModel>{}, OptionalId<SegmentModel>{},
                      Metadata<ConcreteFactoryKey_k, LinearSegment>::get(),
                      QVariant::fromValue(LinearSegmentData{}));
 
@@ -172,7 +172,7 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
 
         vec.emplace_back(Id<SegmentModel>{i},
                          pts[i], pts[i+1],
-                         Id<SegmentModel>{i-1}, Id<SegmentModel>{},
+                         Id<SegmentModel>{i-1}, OptionalId<SegmentModel>{},
                          Metadata<ConcreteFactoryKey_k, LinearSegment>::get(),
                          QVariant::fromValue(LinearSegmentData()));
     }
@@ -191,7 +191,7 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
 
     vec.emplace_back(Id<SegmentModel>{0},
                      pts[0], pts[1],
-                     Id<SegmentModel>{}, Id<SegmentModel>{},
+                     OptionalId<SegmentModel>{}, OptionalId<SegmentModel>{},
                      Metadata<ConcreteFactoryKey_k, PowerSegment>::get(),
                      QVariant::fromValue(PowerSegmentData{}));
 
@@ -202,7 +202,7 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
 
         vec.emplace_back(Id<SegmentModel>{i},
                          pts[i], pts[i+1],
-                         Id<SegmentModel>{i-1}, Id<SegmentModel>{},
+                         Id<SegmentModel>{i-1}, OptionalId<SegmentModel>{},
                          Metadata<ConcreteFactoryKey_k, PowerSegment>::get(),
                          QVariant::fromValue(PowerSegmentData()));
     }

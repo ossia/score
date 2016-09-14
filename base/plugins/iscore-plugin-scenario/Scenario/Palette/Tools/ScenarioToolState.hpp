@@ -78,34 +78,34 @@ class ToolBase : public GraphicsSceneTool<Scenario::Point>
         }
 
     protected:
-        Id<EventModel> itemToEventId(const QGraphicsItem* pressedItem) const
+        OptionalId<EventModel> itemToEventId(const QGraphicsItem* pressedItem) const
         {
             const auto& event = static_cast<const EventView*>(pressedItem)->presenter().model();
             return event.parent() == &this->m_parentSM.model()
                     ? event.id()
-                    : Id<EventModel>{};
+                    : OptionalId<EventModel>{};
         }
-        Id<TimeNodeModel> itemToTimeNodeId(const QGraphicsItem* pressedItem) const
+        OptionalId<TimeNodeModel> itemToTimeNodeId(const QGraphicsItem* pressedItem) const
         {
             const auto& timenode = static_cast<const TimeNodeView*>(pressedItem)->presenter().model();
             return timenode.parent() == &this->m_parentSM.model()
                     ? timenode.id()
-                    : Id<TimeNodeModel>{};
+                    : OptionalId<TimeNodeModel>{};
         }
-        Id<ConstraintModel> itemToConstraintId(const QGraphicsItem* pressedItem) const
+        OptionalId<ConstraintModel> itemToConstraintId(const QGraphicsItem* pressedItem) const
         {
             const auto& constraint = static_cast<const ConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel().model();
             return constraint.parent() == &this->m_parentSM.model()
                     ? constraint.id()
-                    : Id<ConstraintModel>{};
+                    : OptionalId<ConstraintModel>{};
         }
-        Id<StateModel> itemToStateId(const QGraphicsItem* pressedItem) const
+        OptionalId<StateModel> itemToStateId(const QGraphicsItem* pressedItem) const
         {
             const auto& state = static_cast<const StateView*>(pressedItem)->presenter().model();
 
             return state.parent() == &this->m_parentSM.model()
                     ? state.id()
-                    : Id<StateModel>{};
+                    : OptionalId<StateModel>{};
         }
         const SlotModel* itemToSlotFromHandle(const QGraphicsItem *pressedItem) const
         {
@@ -142,7 +142,7 @@ class ToolBase : public GraphicsSceneTool<Scenario::Point>
             }
             auto tryFun = [=] (auto fun, const auto& id)
             {
-                if(id) fun(id);
+                if(id) fun(*id);
                 else   nothing_fun();
             };
 

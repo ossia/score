@@ -58,7 +58,7 @@ struct ISCORE_LIB_BASE_EXPORT linear_id_generator
 
     private:
         template<typename T>
-        static int32_t getId(const Id<T>& other) { return *other.val(); }
+        static int32_t getId(const Id<T>& other) { return other.val(); }
         static int32_t getId(const optional<int32_t>& i) { return *i; }
         static int32_t getId(int32_t i) { return i; }
 };
@@ -96,7 +96,7 @@ auto getStrongId(const Container& v)
               ids.begin(),
               [](const typename Container::value_type& elt)
     {
-        return * (elt->id().val());
+        return elt->id().val();
     });
 
     return local_id_t{iscore::id_generator::getNextId(ids)};
@@ -119,7 +119,7 @@ auto getStrongId(const Container& v) ->
               ids.begin(),
               [](const auto& elt)
     {
-        return * (elt.id().val());
+        return elt.id().val();
     });
 
     return Id<typename Container::value_type>{iscore::id_generator::getNextId(ids)};

@@ -74,10 +74,10 @@ class MoveEventState final : public StateBase<Scenario_T>
             {
                 auto& scenar = stateMachine.model();
                 // If we came here through a state.
-                Id<EventModel> evId{this->clickedEvent};
+                auto evId = this->clickedEvent;
                 if(!bool(evId) && bool(this->clickedState))
                 {
-                    evId = scenar.state(this->clickedState).eventId();
+                    evId = scenar.state(*this->clickedState).eventId();
                 }
 
                 TimeValue date = this->m_pressedPrevious
@@ -95,13 +95,16 @@ class MoveEventState final : public StateBase<Scenario_T>
             QObject::connect(pressed, &QState::entered, [&] ()
             {
                 auto& scenar = stateMachine.model();
-                Id<EventModel> evId{this->clickedEvent};
+                auto evId{this->clickedEvent};
                 if(!bool(evId) && bool(this->clickedState))
                 {
-                    evId = scenar.state(this->clickedState).eventId();
+                    evId = scenar.state(*this->clickedState).eventId();
                 }
 
-                auto prev_csts = previousConstraints(scenar.event(evId), scenar);
+                if(!evId)
+                    return;
+
+                auto prev_csts = previousConstraints(scenar.event(*evId), scenar);
                 if(!prev_csts.empty())
                 {
                     // We find the one that starts the latest.

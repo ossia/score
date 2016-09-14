@@ -43,7 +43,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ClearConstraint final : public iscore::Seria
         QVector<QByteArray> m_serializedRackes;
         QVector<QByteArray> m_serializedProcesses;
 
-        QMap<Id<ConstraintViewModel>, Id<RackModel>> m_rackMappings;
+        QMap<Id<ConstraintViewModel>, OptionalId<RackModel>> m_rackMappings;
 };
 }
 }

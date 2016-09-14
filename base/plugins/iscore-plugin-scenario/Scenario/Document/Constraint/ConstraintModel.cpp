@@ -31,7 +31,7 @@ ConstraintModel::ConstraintModel(
 {
     initConnections();
     setupConstraintViewModel(m_fullViewModel);
-    metadata().setName(QString("Constraint.%1").arg(*this->id().val()));
+    metadata().setName(QString("Constraint.%1").arg(this->id().val()));
     metadata().setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
     setHeightPercentage(yPos);
 }

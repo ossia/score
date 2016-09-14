@@ -39,15 +39,28 @@ AddLayerInNewSlot::AddLayerInNewSlot(
     }
     else
     {
+        m_existingRack = true;
+
+        // TODO why are we looping like this ?
         for(auto vm : constraint.viewModels())
         {
             m_createdRackId = vm->shownRack();
         }
-        auto& rack = constraint.racks.at(m_createdRackId);
-        m_existingRack = true;
-        m_createdSlotId = getStrongId(rack.slotmodels);
+
+        if(m_createdRackId)
+        {
+            auto& rack = constraint.racks.at(*m_createdRackId);
+            m_createdSlotId = getStrongId(rack.slotmodels);
+        }
+        else
+        {
+            m_createdRackId = constraint.racks.begin()->id();
+            auto& rack = constraint.racks.at(*m_createdRackId);
+            m_createdSlotId = getStrongId(rack.slotmodels);
+        }
     }
 
+    ISCORE_ASSERT(m_createdRackId);
     m_createdLayerId = Id<Process::LayerModel> (iscore::id_generator::getFirstId());
 
     auto& proc = constraint.processes.at(m_sharedProcessModelId);
@@ -59,7 +72,7 @@ AddLayerInNewSlot::AddLayerInNewSlot(
 void AddLayerInNewSlot::undo() const
 {
     auto& constraint = m_path.find();
-    auto& rack = constraint.racks.at(m_createdRackId);
+    auto& rack = constraint.racks.at(*m_createdRackId);
 
     // Removing the slot is enough
     rack.slotmodels.remove(m_createdSlotId);
@@ -67,7 +80,7 @@ void AddLayerInNewSlot::undo() const
     // Remove the rack
     if(!m_existingRack)
     {
-        constraint.racks.remove(m_createdRackId);
+        constraint.racks.remove(*m_createdRackId);
     }
 }
 
@@ -79,7 +92,7 @@ void AddLayerInNewSlot::redo() const
     if(!m_existingRack)
     {
         // TODO refactor with AddRackToConstraint
-        auto rack = new RackModel{m_createdRackId, &constraint};
+        auto rack = new RackModel{*m_createdRackId, &constraint};
         constraint.racks.add(rack);
 
         // If it is the first rack created,
@@ -88,14 +101,14 @@ void AddLayerInNewSlot::redo() const
         {
             for(const auto& vm : constraint.viewModels())
             {
-                vm->showRack(m_createdRackId);
+                vm->showRack(*m_createdRackId);
             }
         }
     }
 
     auto h = context.settings<Scenario::Settings::Model>().getSlotHeight();
     // Slot
-    auto& rack = constraint.racks.at(m_createdRackId);
+    auto& rack = constraint.racks.at(*m_createdRackId);
     rack.addSlot(new SlotModel {m_createdSlotId,
                                 h,
                                 &rack});

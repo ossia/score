@@ -48,8 +48,6 @@ LayerModel* createLayerModel(
         QObject* parent)
 {
     auto proc_id = fromJsonValue<Id<ProcessModel>>(deserializer.m_obj["SharedProcessId"]);
-    if(!proc_id)
-        return nullptr;
 
     auto process_it = constraint.processes.find(proc_id);
     if(process_it == constraint.processes.end())

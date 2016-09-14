@@ -10,8 +10,7 @@
  *
  * Example:
  * @code
- *	ObjectIdentifier ob{"TheObjectName", {}}; // id-less
- *	ObjectIdentifier ob{"TheObjectName", 34}; // with id
+ *	ObjectIdentifier ob{"TheObjectName", 34};
  * @endcode
  */
 class ObjectIdentifier
@@ -26,19 +25,16 @@ class ObjectIdentifier
             m_objectName {name}
         { }
 
-        ObjectIdentifier(QString name, optional<int32_t> id) :
+        ObjectIdentifier(QString name, int32_t id) :
             m_objectName {std::move(name) },
-                     m_id {std::move(id) }
+                     m_id {id}
         { }
 
         template<typename T>
         ObjectIdentifier(QString name, Id<T> id) :
-            m_objectName {std::move(name) }
+            m_objectName {std::move(name) },
+            m_id{id.val()}
         {
-            if(id.val())
-            {
-                m_id = *id.val();
-            }
         }
 
         const QString& objectName() const
@@ -46,14 +42,14 @@ class ObjectIdentifier
             return m_objectName;
         }
 
-        const optional<int32_t>& id() const
+        int32_t id() const
         {
             return m_id;
         }
 
     private:
         QString m_objectName;
-        optional<int32_t> m_id;
+        int32_t m_id{};
 };
 
 Q_DECLARE_METATYPE(ObjectIdentifier)

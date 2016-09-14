@@ -34,7 +34,7 @@ StateModel::StateModel(
                             this}}
 {
 
-    metadata().setName(QString("State.%1").arg(*this->id().val()));
+    metadata().setName(QString("State.%1").arg(this->id().val()));
     init();
 }
 
@@ -103,22 +103,22 @@ void StateModel::setEventId(const Id<EventModel> & id)
     m_eventId = id;
 }
 
-const Id<ConstraintModel> &StateModel::previousConstraint() const
+const OptionalId<ConstraintModel> &StateModel::previousConstraint() const
 {
     return m_previousConstraint;
 }
 
-const Id<ConstraintModel> &StateModel::nextConstraint() const
+const OptionalId<ConstraintModel> &StateModel::nextConstraint() const
 {
     return m_nextConstraint;
 }
 
-void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
+void StateModel::setNextConstraint(const OptionalId<ConstraintModel> & id)
 {
     m_nextConstraint = id;
 }
 
-void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
+void StateModel::setPreviousConstraint(const OptionalId<ConstraintModel> & id)
 {
     m_previousConstraint = id;
 }

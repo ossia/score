@@ -120,7 +120,7 @@ auto nextConstraints(
     {
         const StateModel& st = scenario.state(state);
         if(const auto& cst_id = st.nextConstraint())
-            constraints.push_back(cst_id);
+            constraints.push_back(*cst_id);
     }
     return constraints;
 }
@@ -134,7 +134,7 @@ auto previousConstraints(
     {
         const StateModel& st = scenario.state(state);
         if(const auto& cst_id = st.previousConstraint())
-            constraints.push_back(cst_id);
+            constraints.push_back(*cst_id);
     }
     return constraints;
 }

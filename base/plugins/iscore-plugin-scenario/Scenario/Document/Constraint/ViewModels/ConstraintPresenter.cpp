@@ -93,7 +93,7 @@ ConstraintPresenter::ConstraintPresenter(
     {
         if(m_viewModel.isRackShown())
         {
-            on_rackShown(m_viewModel.shownRack());
+            on_rackShown(*m_viewModel.shownRack());
         }
         else if(!m_viewModel.model().processes.empty()) // TODO why isn't this when there are racks but hidden ?
         {

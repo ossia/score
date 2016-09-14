@@ -73,8 +73,9 @@ GoodOldDisplacementPolicy::computeDisplacement(
                 for(const auto& st_id : ev.states())
                 {
                     const auto& st = scenario.states.at(st_id);
-                    if(const auto& curConstraintId = st.previousConstraint())
+                    if(const auto& optCurConstraintId = st.previousConstraint())
                     {
+                        auto curConstraintId = *optCurConstraintId;
                         auto& curConstraint = scenario.constraints.at(curConstraintId);
 
                         // if timenode NOT already in element properties, create new element properties and set old values
@@ -141,7 +142,8 @@ void GoodOldDisplacementPolicy::getRelatedTimeNodes(
         const Id<TimeNodeModel>& firstTimeNodeMovedId,
         std::vector<Id<TimeNodeModel> >& translatedTimeNodes)
 {
-    if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
+    if (firstTimeNodeMovedId.val() == Scenario::startId_val() ||
+        firstTimeNodeMovedId.val() == Scenario::endId_val() )
         return;
 
     auto it = std::find(translatedTimeNodes.begin(), translatedTimeNodes.end(), firstTimeNodeMovedId);
