@@ -40,9 +40,9 @@ void MovePoint::undo() const
         {
             p->setPos(m_oldPoint);
             if(p->previous())
-                curve.segments().at(p->previous()).setEnd(m_oldPoint);
+                curve.segments().at(*p->previous()).setEnd(m_oldPoint);
             if(p->following())
-                curve.segments().at(p->following()).setStart(m_oldPoint);
+                curve.segments().at(*p->following()).setStart(m_oldPoint);
             break;
         }
     }
@@ -57,9 +57,9 @@ void MovePoint::redo() const
         if(p->id() == m_pointId)
         {
             if(p->previous())
-                curve.segments().at(p->previous()).setEnd(m_newPoint);
+                curve.segments().at(*p->previous()).setEnd(m_newPoint);
             if(p->following())
-                curve.segments().at(p->following()).setStart(m_newPoint);
+                curve.segments().at(*p->following()).setStart(m_newPoint);
             p->setPos(m_newPoint);
             break;
         }

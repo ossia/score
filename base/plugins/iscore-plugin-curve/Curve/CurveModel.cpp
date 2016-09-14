@@ -214,12 +214,12 @@ void Model::removeSegment(SegmentModel* m)
     {
         if(pt->previous() == m->id())
         {
-            pt->setPrevious(Id<SegmentModel>{});
+            pt->setPrevious(OptionalId<SegmentModel>{});
         }
 
         if(pt->following() == m->id())
         {
-            pt->setFollowing(Id<SegmentModel>{});
+            pt->setFollowing(OptionalId<SegmentModel>{});
         }
 
         if(!pt->previous() && !pt->following())

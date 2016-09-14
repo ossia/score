@@ -277,31 +277,16 @@ struct TSerializer<DataStream, void, Id<U>>
             DataStream::Serializer& s,
             const Id<U>& obj)
     {
-        s.stream() << bool (obj.val());
-
-        if(obj.val())
-        {
-            s.stream() << *obj.val();
-        }
+        s.stream() << obj.val();
     }
 
     static void writeTo(
             DataStream::Deserializer& s,
             Id<U>& obj)
     {
-        bool init {};
         int32_t val {};
-        s.stream() >> init;
-
-        if(init)
-        {
-            s.stream() >> val;
-            obj.setVal(val);
-        }
-        else
-        {
-            obj.unset();
-        }
+        s.stream() >> val;
+        obj.setVal(val);
     }
 };
 

@@ -97,7 +97,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
         void on_addLayer(const Process::LayerModel& viewmodel);
         void on_removeLayer(const Process::LayerModel&);
 
-        Id<Process::LayerModel> m_frontLayerModelId;
+        OptionalId<Process::LayerModel> m_frontLayerModelId;
 
         qreal m_height {200};
         bool m_focus{false};

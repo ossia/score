@@ -10,8 +10,8 @@ class SegmentModel;
 
 struct PointId
 {
-        Id<SegmentModel> previous;
-        Id<SegmentModel> following;
+        OptionalId<SegmentModel> previous;
+        OptionalId<SegmentModel> following;
 };
 
 class StateBase : public QState

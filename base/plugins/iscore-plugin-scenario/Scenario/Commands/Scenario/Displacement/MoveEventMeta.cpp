@@ -56,9 +56,9 @@ void MoveEventMeta::undo() const
     {
         auto& st = scenar.states.at(states.front());
         if(st.previousConstraint())
-            updateConstraintVerticalPos(m_oldY, st.previousConstraint(), scenar);
+            updateConstraintVerticalPos(m_oldY, *st.previousConstraint(), scenar);
         if(st.nextConstraint())
-            updateConstraintVerticalPos(m_oldY, st.nextConstraint(), scenar);
+            updateConstraintVerticalPos(m_oldY, *st.nextConstraint(), scenar);
         if(!st.previousConstraint() && !st.nextConstraint())
             st.setHeightPercentage(m_oldY);
     }
@@ -78,9 +78,9 @@ void MoveEventMeta::redo() const
         if(!st.previousConstraint() && !st.nextConstraint())
             st.setHeightPercentage(m_newY);
         if(st.previousConstraint())
-            updateConstraintVerticalPos(m_newY, st.previousConstraint(), scenar);
+            updateConstraintVerticalPos(m_newY, *st.previousConstraint(), scenar);
         if(st.nextConstraint())
-            updateConstraintVerticalPos(m_newY, st.nextConstraint(), scenar);
+            updateConstraintVerticalPos(m_newY, *st.nextConstraint(), scenar);
     }
 }
 

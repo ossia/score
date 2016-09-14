@@ -79,7 +79,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
 
             // Save for each view model of this constraint
             // the identifier of the rack that was displayed
-            QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
+            QMap<Id<ConstraintViewModel>, OptionalId<RackModel>> map;
             for(const ConstraintViewModel* vm : constraint.viewModels())
             {
                 map.insert(vm->id(), vm->shownRack());

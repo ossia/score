@@ -26,7 +26,7 @@ SlotModel::SlotModel(const Id<SlotModel>& id,
 {
     m_height = slotHeight;
     initConnections();
-    metadata().setName(QString{"Slot.%1"}.arg(*id.val()));
+    metadata().setName(QString{"Slot.%1"}.arg(id.val()));
 }
 
 SlotModel::SlotModel(
@@ -35,7 +35,7 @@ SlotModel::SlotModel(
         const Id<SlotModel>& id,
         RackModel *parent):
     Entity{source, id, Metadata<ObjectKey_k, SlotModel>::get(), parent},
-    m_frontLayerModelId{Id<Process::LayerModel>{source.m_frontLayerModelId.val()}},
+    m_frontLayerModelId{source.m_frontLayerModelId},
     m_height {source.getHeight() }
 {
     initConnections();
@@ -46,7 +46,7 @@ SlotModel::SlotModel(
     // one we have cloned, hence instead of just copying the id, we ask the corresponding
     // layer model to give us its id.
     // TODO this is fucking ugly - mostly because two objects exist with the same id...
-    metadata().setName(QString{"Slot.%1"} .arg(*id.val()));
+    metadata().setName(QString{"Slot.%1"} .arg(id.val()));
 }
 
 RackModel&SlotModel::rack() const
@@ -84,7 +84,7 @@ void SlotModel::on_removeLayer(
     }
     else
     {
-        m_frontLayerModelId.setVal({});
+        m_frontLayerModelId = iscore::none;
     }
 }
 
@@ -109,7 +109,7 @@ const Process::LayerModel* SlotModel::frontLayerModel() const
 {
     if(!m_frontLayerModelId)
         return nullptr;
-    return &layers.at(m_frontLayerModelId);
+    return &layers.at(*m_frontLayerModelId);
 }
 
 void SlotModel::on_deleteSharedProcessModel(

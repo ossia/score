@@ -162,18 +162,14 @@ struct TSerializer<JSONObject, IdentifiedObject<T>>
                 const IdentifiedObject<T>& obj)
         {
             s.readFrom(static_cast<const NamedObject&>(obj));
-            s.readFrom(obj.id().val());
+            s.m_obj[s.strings.id] = obj.id().val();
         }
 
         static void writeTo(
                 JSONObject::Deserializer& s,
                 IdentifiedObject<T>& obj)
         {
-            typename Id<T>::value_type id_impl;
-            s.writeTo(id_impl);
-            Id<T> id;
-            id.setVal(std::move(id_impl));
-            obj.setId(std::move(id));
+            obj.setId(Id<T>{s.m_obj[s.strings.id].toInt()});
         }
 
 };

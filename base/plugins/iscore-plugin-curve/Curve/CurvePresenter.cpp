@@ -473,9 +473,9 @@ void Presenter::removeSelection()
             if(point->previous() && point->following())
             {
                 if(point->previous())
-                    segmentsToDelete.insert(point->previous());
+                    segmentsToDelete.insert(*point->previous());
                 if(point->following())
-                    segmentsToDelete.insert(point->following());
+                    segmentsToDelete.insert(*point->following());
             }
         }
 
@@ -517,9 +517,9 @@ void Presenter::removeSelection()
             }
 
             if(it->previous && contains(segmentsToDelete, it->previous))
-                it->previous = Id<SegmentModel>{};
+                it->previous = OptionalId<SegmentModel>{};
             if(it->following && contains(segmentsToDelete, it->following))
-                it->following = Id<SegmentModel>{};
+                it->following = OptionalId<SegmentModel>{};
 
             it++;
         }

@@ -63,7 +63,7 @@ void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, Scenar
     StateModel* rec_state = &s.state(cst.startState());
     while(rec_state->previousConstraint())
     {
-        ConstraintModel* rec_cst = &s.constraints.at(rec_state->previousConstraint());
+        ConstraintModel* rec_cst = &s.constraints.at(*rec_state->previousConstraint());
         constraintsToUpdate.insert(rec_cst);
         statesToUpdate.insert(rec_state);
         rec_state = &s.states.at(rec_cst->startState());
@@ -73,7 +73,7 @@ void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, Scenar
     rec_state = &s.state(cst.endState());
     while(rec_state->nextConstraint())
     {
-        ConstraintModel* rec_cst = &s.constraints.at(rec_state->nextConstraint());
+        ConstraintModel* rec_cst = &s.constraints.at(*rec_state->nextConstraint());
         constraintsToUpdate.insert(rec_cst);
         statesToUpdate.insert(rec_state);
         rec_state = &s.states.at(rec_cst->endState());

@@ -73,7 +73,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::RackModel&
 
     for(auto& id : rack.slotsPositions())
     {
-        positions.append(*id.val());
+        positions.append(id.val());
     }
 
     m_obj["SlotsPositions"] = positions;

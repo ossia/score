@@ -72,11 +72,11 @@ void StandardRemovalPolicy::removeState(
 {
     if(state.previousConstraint())
     {
-        StandardRemovalPolicy::removeConstraint(scenario, state.previousConstraint());
+        StandardRemovalPolicy::removeConstraint(scenario, *state.previousConstraint());
     }
 
     if(state.nextConstraint()){
-        StandardRemovalPolicy::removeConstraint(scenario, state.nextConstraint());
+        StandardRemovalPolicy::removeConstraint(scenario, *state.nextConstraint());
     }
 
     auto& ev = scenario.events.at(state.eventId());

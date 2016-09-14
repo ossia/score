@@ -15,6 +15,12 @@ class IdentifiedObject;
  *
  * The base identifier type.
  */
+
+namespace iscore
+{
+class unsafe_t {};
+const constexpr unsafe_t unsafe;
+}
 template<typename tag, typename impl>
 class id_base_t
 {
@@ -27,6 +33,7 @@ class id_base_t
     public:
         using value_type = impl;
         explicit id_base_t() = default;
+
         id_base_t(const id_base_t & other):
             m_id{other.m_id}
         {
@@ -84,14 +91,14 @@ class id_base_t
 
         friend bool operator< (const id_base_t& lhs, const id_base_t& rhs)
         {
-            return *lhs.val() < *rhs.val();
+            return lhs.val() < rhs.val();
         }
-
+/*
         explicit operator bool() const
         {
             return bool(m_id);
         }
-
+*/
         explicit operator value_type() const
         {
             return m_id;
@@ -102,14 +109,9 @@ class id_base_t
             return m_id;
         }
 
-        void setVal(value_type&& val)
+        void setVal(value_type val)
         {
             m_id = val;
-        }
-
-        void unset()
-        {
-            m_id = value_type();
         }
 
     private:
@@ -124,8 +126,10 @@ template<typename tag>
 using optional_tagged_int32_id = optional_tagged_id<tag, int32_t>;
 
 template<typename tag>
-using Id = optional_tagged_int32_id<tag>;
+using Id = id_base_t<tag, int32_t>;
 
+template<typename tag>
+using OptionalId = optional<Id<tag>>;
 namespace std
 {
 template<typename tag>
@@ -148,7 +152,7 @@ QDebug operator<< (QDebug dbg, const Id<tag>& c)
 {
     if(c.val())
     {
-        dbg.nospace() << *c.val();
+        dbg.nospace() << c.val();
     }
     else
     {
