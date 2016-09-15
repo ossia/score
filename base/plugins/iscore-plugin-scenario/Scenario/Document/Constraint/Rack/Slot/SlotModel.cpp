@@ -89,14 +89,14 @@ void SlotModel::on_removeLayer(
 }
 
 void SlotModel::putToFront(
-        const Id<Process::LayerModel>& id)
+        const OptionalId<Process::LayerModel>& id)
 {
-    if(!id.val())
+    if(!id)
         return;
 
     if(id != m_frontLayerModelId)
     {
-        auto lay = layers.find(id);
+        auto lay = layers.find(*id);
         if(lay != layers.end())
         {
             m_frontLayerModelId = id;

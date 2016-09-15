@@ -20,7 +20,7 @@ auto id(const Path<T>& path)
     ISCORE_ASSERT(path.valid());
     ISCORE_ASSERT(bool(path.unsafePath().vec().back().id()));
 
-    return Id<T>(*path.unsafePath().vec().back().id());
+    return Id<T>(path.unsafePath().vec().back().id());
 }
 
 void ProcessWidgetArea::mousePressEvent(QMouseEvent* event)

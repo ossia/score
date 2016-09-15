@@ -52,7 +52,9 @@ void ProcessViewTabWidget::updateDisplayedValues()
     }
 }
 
-void ProcessViewTabWidget::activeRackChanged(Id<RackModel> rack, ConstraintViewModel* vm)
+void ProcessViewTabWidget::activeRackChanged(
+        OptionalId<RackModel> rack,
+        ConstraintViewModel* vm)
 {
     // TODO mettre à jour l'inspecteur si la rack affichée change (i.e. via une commande réseau).
     if (m_rackWidget == nullptr)
@@ -68,7 +70,7 @@ void ProcessViewTabWidget::activeRackChanged(Id<RackModel> rack, ConstraintViewM
     }
     else
     {
-        auto cmd = new Command::ShowRackInViewModel{*vm, rack};
+        auto cmd = new Command::ShowRackInViewModel{*vm, *rack};
         emit m_commandDispatcher->submitCommand(cmd);
     }
 }

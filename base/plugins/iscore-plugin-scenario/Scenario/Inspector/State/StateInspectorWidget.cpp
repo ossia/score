@@ -91,7 +91,7 @@ void StateInspectorWidget::updateDisplayedValues()
     {
         auto btn = SelectionButton::make(
                     tr("Prev. Constraint"),
-                &scenar->constraint(m_model.previousConstraint()),
+                &scenar->constraint(*m_model.previousConstraint()),
                 m_selectionDispatcher,
                 this);
 
@@ -101,7 +101,7 @@ void StateInspectorWidget::updateDisplayedValues()
     {
         auto btn = SelectionButton::make(
                     tr("Next Constraint"),
-                &scenar->constraint(m_model.nextConstraint()),
+                &scenar->constraint(*m_model.nextConstraint()),
                 m_selectionDispatcher,
                 this);
 

@@ -75,29 +75,34 @@ class CreationState : public CreationStateBase<Scenario_T>
     protected:
         void createToState_base(const Id<StateModel>& originalState)
         {
-            // make sure the hovered corresponding timenode dont have a date prior to original state date
-            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), this->hoveredState) )
+            if(this->hoveredState)
             {
-                auto cmd = new Scenario::Command::CreateConstraint{
-                        Path<Scenario_T>{this->m_scenarioPath},
-                        originalState,
-                        this->hoveredState};
+                // make sure the hovered corresponding timenode dont have a date prior to original state date
+                if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredState) )
+                {
+                    auto cmd = new Scenario::Command::CreateConstraint{
+                            Path<Scenario_T>{this->m_scenarioPath},
+                            originalState,
+                            *this->hoveredState};
 
-                m_dispatcher.submitCommand(cmd);
+                    m_dispatcher.submitCommand(cmd);
 
-                this->createdConstraints.append(cmd->createdConstraint());
-            }//else do nothing
+                    this->createdConstraints.append(cmd->createdConstraint());
+                }//else do nothing
+            }
         }
 
         void createToEvent_base(const Id<StateModel> & originalState)
         {
+            if(this->hoveredEvent)
+            {
             // make sure the hovered corresponding timenode dont have a date prior to original state date
-            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), this->hoveredEvent) )
+            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredEvent) )
             {
                 auto cmd = new Scenario::Command::CreateConstraint_State{
                         Path<Scenario_T>{this->m_scenarioPath},
                         originalState,
-                        this->hoveredEvent,
+                        *this->hoveredEvent,
                         this->currentPoint.y};
 
                 m_dispatcher.submitCommand(cmd);
@@ -105,17 +110,20 @@ class CreationState : public CreationStateBase<Scenario_T>
                 this->createdConstraints.append(cmd->createdConstraint());
                 this->createdStates.append(cmd->createdState());
             }//else do nothing
+            }
         }
 
         void createToTimeNode_base(const Id<StateModel> & originalState)
         {
+            if(this->hoveredTimeNode)
+            {
             // make sure the hovered corresponding timenode dont have a date prior to original state date
-            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), this->hoveredTimeNode) )
+            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredTimeNode) )
             {
                 auto cmd = new Scenario::Command::CreateConstraint_State_Event{
                         this->m_scenarioPath,
                         originalState,
-                        this->hoveredTimeNode,
+                        *this->hoveredTimeNode,
                         this->currentPoint.y};
 
                 m_dispatcher.submitCommand(cmd);
@@ -123,6 +131,7 @@ class CreationState : public CreationStateBase<Scenario_T>
                 this->createdStates.append(cmd->createdState());
                 this->createdEvents.append(cmd->createdEvent());
                 this->createdConstraints.append(cmd->createdConstraint());
+            }
             }
         }
 

@@ -79,7 +79,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                 // MoveOnNothing -> MoveOnEvent.
                 this->add_transition(move_nothing, move_event,
                                [&] () {
-                    if(this->createdEvents.contains(this->hoveredEvent))
+                    if(this->hoveredEvent && this->createdEvents.contains(*this->hoveredEvent))
                     {
                         return;
                     }
@@ -91,7 +91,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                 // MoveOnNothing -> MoveOnTimeNode
                 this->add_transition(move_nothing, move_timenode,
                                [&] () {
-                    if(this->createdTimeNodes.contains(this->hoveredTimeNode))
+                    if(this->hoveredTimeNode && this->createdTimeNodes.contains(*this->hoveredTimeNode))
                     {
                         return;
                     }
@@ -135,7 +135,8 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                 // MoveOnEvent -> MoveOnTimeNode
                 this->add_transition(move_event, move_timenode,
                                [&] () {
-                    if(this->createdTimeNodes.contains(this->hoveredTimeNode))
+
+                    if(this->hoveredTimeNode && this->createdTimeNodes.contains(*this->hoveredTimeNode))
                     {
                         return;
                     }
@@ -159,7 +160,7 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                 // MoveOnTimeNode -> MoveOnEvent
                 this->add_transition(move_timenode, move_event,
                                [&] () {
-                    if(this->createdEvents.contains(this->hoveredEvent))
+                    if(this->hoveredEvent && this->createdEvents.contains(*this->hoveredEvent))
                     {
                         this->rollback();
                         return;
@@ -246,14 +247,17 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
     private:
         void createInitialEventAndState()
         {
-            auto cmd = new Command::CreateEvent_State{
-                    this->m_scenarioPath,
-                    this->clickedTimeNode,
-                    this->currentPoint.y};
-            this->m_dispatcher.submitCommand(cmd);
+            if(this->clickedTimeNode)
+            {
+                auto cmd = new Command::CreateEvent_State{
+                        this->m_scenarioPath,
+                        *this->clickedTimeNode,
+                        this->currentPoint.y};
+                this->m_dispatcher.submitCommand(cmd);
 
-            this->createdStates.append(cmd->createdState());
-            this->createdEvents.append(cmd->createdEvent());
+                this->createdStates.append(cmd->createdState());
+                this->createdEvents.append(cmd->createdEvent());
+            }
         }
 
         void createToNothing()

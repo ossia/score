@@ -224,10 +224,13 @@ class Creation_FromNothing final : public CreationState<Scenario_T, ToolPalette_
     private:
         void createInitialState()
         {
-            auto cmd = new Scenario::Command::CreateState{this->m_scenarioPath, this->clickedEvent, this->currentPoint.y};
-            this->m_dispatcher.submitCommand(cmd);
+            if(this->clickedEvent)
+            {
+                auto cmd = new Scenario::Command::CreateState{this->m_scenarioPath, *this->clickedEvent, this->currentPoint.y};
+                this->m_dispatcher.submitCommand(cmd);
 
-            this->createdStates.append(cmd->createdState());
+                this->createdStates.append(cmd->createdState());
+            }
         }
 
         void createToNothing()
@@ -239,7 +242,7 @@ class Creation_FromNothing final : public CreationState<Scenario_T, ToolPalette_
         {
             ISCORE_ASSERT(bool(this->hoveredState));
 
-            const auto& state = this->m_parentSM.model().states.at(this->hoveredState);
+            const auto& state = this->m_parentSM.model().states.at(*this->hoveredState);
             if(!bool(state.previousConstraint()))
             {
                 createInitialState();

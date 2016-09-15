@@ -137,7 +137,7 @@ struct hash<Id<tag>>
 {
     std::size_t operator()(const Id<tag>& id) const
     {
-        return std::hash<int32_t>{}(*id.val());
+        return std::hash<int32_t>{}(id.val());
     }
 };
 }

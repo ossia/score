@@ -224,12 +224,19 @@ ConstraintView* ConstraintPresenter::view() const
     return m_view;
 }
 
-void ConstraintPresenter::on_rackShown(const Id<RackModel>& rackId)
+void ConstraintPresenter::on_rackShown(const OptionalId<RackModel>& rackId)
 {
     clearRackPresenter();
-    createRackPresenter(m_viewModel.model().racks.at(rackId));
+    if(rackId)
+    {
+        createRackPresenter(m_viewModel.model().racks.at(*rackId));
 
-    m_header->setState(ConstraintHeader::State::RackShown);
+        m_header->setState(ConstraintHeader::State::RackShown);
+    }
+    else
+    {
+        m_header->setState(ConstraintHeader::State::RackHidden);
+    }
     updateHeight();
 }
 

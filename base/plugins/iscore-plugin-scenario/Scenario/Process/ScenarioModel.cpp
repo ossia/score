@@ -53,7 +53,7 @@ ProcessModel::ProcessModel(const TimeValue& duration,
     ScenarioCreate<StateModel>::redo(m_startStateId, start_ev, 0.02, *this);
 
     // At the end because plug-ins depend on the start/end timenode & al being here
-    metadata().setName(QString("Scenario.%1").arg(*this->id().val()));
+    metadata().setName(QString("Scenario.%1").arg(this->id().val()));
 }
 
 ProcessModel::ProcessModel(
@@ -92,7 +92,7 @@ ProcessModel::ProcessModel(
         Scenario::SetNextConstraint(states.at(constraint.startState()), constraint);
     }
 
-    metadata().setName(QString("Scenario.%1").arg(*this->id().val()));
+    metadata().setName(QString("Scenario.%1").arg(this->id().val()));
 }
 
 ProcessModel::~ProcessModel()
@@ -271,7 +271,7 @@ const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
         {
             const auto& stM = scenar.states.at(st);
             if(stM.previousConstraint())
-                cstrs.push_back(stM.previousConstraint());
+                cstrs.push_back(*stM.previousConstraint());
         }
     }
 

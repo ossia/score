@@ -67,10 +67,13 @@ class MoveConstraintState final : public StateBase<Scenario_T>
 
                 QObject::connect(moving, &QState::entered, [&] ()
                 {
-                    this->m_dispatcher.submitCommand(
-                                Path<Scenario_T>{this->m_scenarioPath},
-                                this->clickedConstraint,
-                                m_constraintInitialPoint.y + (this->currentPoint.y - m_initialClick.y));
+                    if(this->clickedConstraint)
+                    {
+                        this->m_dispatcher.submitCommand(
+                                    Path<Scenario_T>{this->m_scenarioPath},
+                                    *this->clickedConstraint,
+                                    m_constraintInitialPoint.y + (this->currentPoint.y - m_initialClick.y));
+                    }
                 });
 
                 QObject::connect(released, &QState::entered, [&] ()
@@ -258,9 +261,12 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
 
                 QObject::connect(moving, &QState::entered, [&] ()
                 {
+                    if(!this->clickedTimeNode)
+                        return;
+
                     // Get the 1st event on the timenode.
                     auto& scenar = stateMachine.model();
-                    auto& tn = scenar.timeNode(this->clickedTimeNode);
+                    auto& tn = scenar.timeNode(*this->clickedTimeNode);
                     const auto& ev_id = tn.events().first();
                     auto date = this->currentPoint.date;
 

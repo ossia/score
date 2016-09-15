@@ -43,7 +43,7 @@ class SelectionButton final : public QPushButton
                 disp,
                 parent};
 
-            but->setToolTip(QString::number(*obj->id().val()));
+            but->setToolTip(QString::number(obj->id().val()));
             return but;
         }
 

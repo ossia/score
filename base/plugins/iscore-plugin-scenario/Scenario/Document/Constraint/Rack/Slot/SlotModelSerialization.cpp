@@ -45,7 +45,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
 {
     writeTo(slot.metadata());
 
-    Id<Process::LayerModel> editedProcessId;
+    OptionalId<Process::LayerModel> editedProcessId;
     m_stream >> editedProcessId;
 
     int32_t lm_size;
