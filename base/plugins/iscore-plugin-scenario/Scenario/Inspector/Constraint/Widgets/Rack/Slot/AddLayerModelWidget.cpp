@@ -69,7 +69,7 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
             if(it == end_it)
             {
                 QString name = process.prettyName();
-                available_models[name] = *process.id().val();
+                available_models[name] = process.id().val();
                 modelList += name;
             }
         }

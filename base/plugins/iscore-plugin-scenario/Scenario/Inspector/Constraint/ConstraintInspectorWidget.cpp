@@ -163,7 +163,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         ISCORE_ASSERT(scenar);
         transportLay->addStretch(1);
 
-        if(auto sst = m_model.startState())
+        auto sst = m_model.startState();
         {
             auto btn = SelectionButton::make(
                         tr("Start State"),
@@ -172,10 +172,9 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
                         this);
             transportLay->addWidget(btn);
         }
-
         transportLay->addWidget(setAsDisplayedConstraint);
 
-        if(auto est = m_model.endState())
+        auto est = m_model.endState();
         {
             auto btn = SelectionButton::make(
                         tr("End State"),

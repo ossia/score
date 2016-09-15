@@ -70,7 +70,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
          // A process is selected for edition when it is
          // the edited process when the interface is clicked.
         void putToFront(
-                const Id<Process::LayerModel>& layerId);
+                const OptionalId<Process::LayerModel>& layerId);
         const Process::LayerModel* frontLayerModel() const;
 
         // A slot is always in a constraint

@@ -218,11 +218,11 @@ class MoveBaseEvent final : public iscore::SerializableCommand
         ExpandMode m_mode{ExpandMode::Scale};
 
         QPair<
-        QByteArray, // The constraint data
-        QMap< // Mapping for the view models of this constraint
-        Id<ConstraintViewModel>,
-        Id<RackModel>
-        >
+          QByteArray, // The constraint data
+          QMap< // Mapping for the view models of this constraint
+            Id<ConstraintViewModel>,
+            OptionalId<RackModel>
+          >
         > m_savedConstraint;
 };
 

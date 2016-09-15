@@ -31,9 +31,9 @@ void PlayToolState::on_pressed(QPointF scenePoint, Scenario::Point scenarioPoint
 
             auto id = state.parent() == &this->m_sm.model()
                     ? state.id()
-                    : Id<StateModel>{};
+                    : OptionalId<StateModel>{};
             if(id)
-                emit m_exec.playState(m_sm.model(), id);
+                emit m_exec.playState(m_sm.model(), *id);
             break;
         }
         default:

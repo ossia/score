@@ -94,7 +94,7 @@ GoodOldDisplacementPolicy::computeDisplacement(
 
                             // Save for each view model of this constraint
                             // the identifier of the rack that was displayed
-                            QMap<Id<ConstraintViewModel>, Id<RackModel> > map;
+                            QMap<Id<ConstraintViewModel>, OptionalId<RackModel> > map;
                             for(const ConstraintViewModel* vm : curConstraint.viewModels())
                             {
                                 map[vm->id()] = vm->shownRack();
@@ -166,7 +166,7 @@ void GoodOldDisplacementPolicy::getRelatedTimeNodes(
             const auto& state = scenario.states.at(state_id);
             if(const auto& cons = state.nextConstraint())
             {
-                const auto& endStateId = scenario.constraints.at(cons).endState();
+                const auto& endStateId = scenario.constraints.at(*cons).endState();
                 const auto& endTnId = scenario.events.at(scenario.state(endStateId).eventId()).timeNode();
                 getRelatedTimeNodes(scenario, endTnId, translatedTimeNodes);
             }

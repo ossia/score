@@ -42,7 +42,7 @@ struct ConstraintProperties {
         >, // The constraint data
         QMap< // Mapping for the view models of this constraint
             Id<ConstraintViewModel>,
-            Id<RackModel>
+            OptionalId<RackModel>
         >
      > savedDisplay;
 

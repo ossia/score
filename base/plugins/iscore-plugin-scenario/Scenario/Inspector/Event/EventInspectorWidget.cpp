@@ -81,16 +81,14 @@ EventInspectorWidget::EventInspectorWidget(
 
     // timeNode
     auto timeNode = m_model.timeNode();
-    if(timeNode)
-    {
-        auto tnBtn = SelectionButton::make(
-                    tr("Parent TimeNode"),
-                    &scenar->timeNode(timeNode),
-                    m_selectionDispatcher,
-                    infoWidg);
+    auto tnBtn = SelectionButton::make(
+                tr("Parent TimeNode"),
+                &scenar->timeNode(timeNode),
+                m_selectionDispatcher,
+                infoWidg);
 
-        infoLay->addWidget(tnBtn);
-    }
+    infoLay->addWidget(tnBtn);
+
     m_properties.push_back(infoWidg);
 
     // Condition
@@ -137,7 +135,7 @@ EventInspectorWidget::EventInspectorWidget(
     updateDisplayedValues();
 
     // Display data
-//    updateAreaLayout(m_properties);
+    //    updateAreaLayout(m_properties);
 
     auto lay = new iscore::MarginLess<QVBoxLayout>{this};
     for(auto w : m_properties)

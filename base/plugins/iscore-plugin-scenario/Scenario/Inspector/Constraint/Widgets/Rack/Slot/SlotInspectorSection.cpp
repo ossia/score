@@ -121,7 +121,7 @@ void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
 
     auto row = m_lmGridLayout->rowCount();
 
-    auto label = new QLabel {QString{name + ".%1"} .arg(*id.val()), this};
+    auto label = new QLabel {QString{name + ".%1"} .arg(id.val()), this};
     m_lmGridLayout->addWidget(label, row ,0);
 
     // To front button

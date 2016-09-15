@@ -18,11 +18,15 @@ class ProcessViewTabWidget :
 {
         Q_OBJECT
     public:
-        explicit ProcessViewTabWidget(const ConstraintInspectorWidget& parentCstr, QWidget *parent = nullptr);
+        explicit ProcessViewTabWidget(
+            const ConstraintInspectorWidget& parentCstr,
+            QWidget *parent = nullptr);
 
         void updateDisplayedValues();
 
-        void activeRackChanged(Id<RackModel> rack, ConstraintViewModel* vm);
+        void activeRackChanged(
+                OptionalId<RackModel> rack,
+                ConstraintViewModel* vm);
         void createRack();
 
 
