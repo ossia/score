@@ -70,7 +70,7 @@ ConstraintModel::ConstraintModel(
         // We don't need to resize them since the new constraint will have the same duration.
     }
 
-    auto& procs = iscore::AppContext().components.factory<Process::ProcessList>();
+    auto& procs = iscore::AppContext().components.factory<Process::ProcessFactoryList>();
     for(const auto& rack : source.racks)
     {
         racks.add(new RackModel {

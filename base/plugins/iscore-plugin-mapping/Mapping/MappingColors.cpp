@@ -3,7 +3,7 @@
 
 namespace Mapping
 {
-MappingColors::MappingColors():
+Colors::Colors():
     m_style{
         iscore::Skin::instance().Tender3,
         iscore::Skin::instance().Emphasis2,

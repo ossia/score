@@ -26,8 +26,10 @@ struct ProcessPresenterContext;
      * Interface to make processes, like Scenario, Automation...
      */
 
-class ISCORE_LIB_PROCESS_EXPORT ProcessModelFactory
+class ISCORE_LIB_PROCESS_EXPORT ProcessModelFactory:
+        public iscore::AbstractFactory<ProcessModelFactory>
 {
+    ISCORE_ABSTRACT_FACTORY("507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
     public:
         virtual ~ProcessModelFactory();
 
@@ -44,8 +46,10 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModelFactory
 
 };
 
-class ISCORE_LIB_PROCESS_EXPORT LayerFactory
+class ISCORE_LIB_PROCESS_EXPORT LayerFactory:
+        public iscore::AbstractFactory<LayerFactory>
 {
+    ISCORE_ABSTRACT_FACTORY("aeee61e4-89aa-42ec-aa33-bf4522ed710b")
     public:
         virtual ~LayerFactory();
 
@@ -58,14 +62,14 @@ class ISCORE_LIB_PROCESS_EXPORT LayerFactory
 
         // TODO pass the name of the view model to be created
         // (e.g. temporal / logical...).
-        Process::LayerModel* makeLayer(
+        Process::LayerModel* make(
                 Process::ProcessModel&,
                 const Id<Process::LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent);
 
         // Load
-        Process::LayerModel* loadLayer(
+        Process::LayerModel* load(
                 Process::ProcessModel&,
                 const VisitorVariant& v,
                 QObject* parent);
@@ -113,15 +117,4 @@ class ISCORE_LIB_PROCESS_EXPORT LayerFactory
                 const Process::LayerModel& source,
                 QObject* parent);
 };
-
-class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
-        public iscore::AbstractFactory<ProcessFactory>,
-        public ProcessModelFactory,
-        public LayerFactory
-{
-        ISCORE_ABSTRACT_FACTORY("507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
-    public:
-        virtual ~ProcessFactory();
-};
-
 }

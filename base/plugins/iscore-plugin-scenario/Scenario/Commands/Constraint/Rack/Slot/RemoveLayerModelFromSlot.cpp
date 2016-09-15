@@ -32,7 +32,7 @@ void RemoveLayerModelFromSlot::undo() const
     auto& slot = m_path.find();
     Deserializer<DataStream> s {m_serializedLayerData};
 
-    auto& procs = this->context.components.factory<Process::ProcessList>();
+    auto& procs = this->context.components.factory<Process::ProcessFactoryList>();
     auto lm = Process::createLayerModel(
                                procs, s,
                                slot.parentConstraint(),

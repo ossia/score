@@ -10,10 +10,10 @@ class QPainter;
 
 namespace Mapping
 {
-class MappingView final : public Process::LayerView
+class LayerView final : public Process::LayerView
 {
     public:
-        explicit MappingView(QGraphicsItem *parent);
+        explicit LayerView(QGraphicsItem *parent);
 
         void showName(bool b);
 

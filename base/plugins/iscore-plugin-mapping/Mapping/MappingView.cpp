@@ -13,8 +13,8 @@
 static const int fontSize = 8;
 namespace Mapping
 {
-MappingView::MappingView(QGraphicsItem* parent) :
-    LayerView {parent}
+LayerView::LayerView(QGraphicsItem* parent) :
+    Process::LayerView {parent}
 {
     setZValue(1);
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
@@ -26,14 +26,14 @@ MappingView::MappingView(QGraphicsItem* parent) :
     m_textcache.setCacheEnabled(true);
 }
 
-void MappingView::showName(bool b)
+void LayerView::showName(bool b)
 {
     m_showName = b;
 
     update();
 }
 
-void MappingView::setDisplayedName(const QString& s)
+void LayerView::setDisplayedName(const QString& s)
 {
     m_displayedName = s;
 
@@ -48,7 +48,7 @@ void MappingView::setDisplayedName(const QString& s)
     update();
 }
 
-void MappingView::paint_impl(QPainter* painter) const
+void LayerView::paint_impl(QPainter* painter) const
 {
     if(m_showName)
     {

@@ -19,10 +19,12 @@
 #include <Automation/Inspector/CurvePointInspectorFactory.hpp>
 #include <iscore_plugin_automation_commands_files.hpp>
 #include <Curve/Process/CurveProcessFactory.hpp>
-
+#include <Process/GenericProcessFactory.hpp>
 namespace Automation {
 using AutomationFactory =
-    Curve::CurveProcessFactory_T<
+    Process::GenericProcessModelFactory<Automation::ProcessModel>;
+using AutomationLayerFactory =
+    Curve::CurveLayerFactory_T<
 Automation::ProcessModel,
 Automation::Layer,
 Automation::LayerPresenter,
@@ -40,8 +42,10 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_automat
     return instantiate_factories<
             iscore::ApplicationContext,
     TL<
-        FW<Process::ProcessFactory,
+        FW<Process::ProcessModelFactory,
              Automation::AutomationFactory>,
+        FW<Process::LayerFactory,
+             Automation::AutomationLayerFactory>,
         FW<Inspector::InspectorWidgetFactory,
              Automation::StateInspectorFactory,
              Automation::PointInspectorFactory>,

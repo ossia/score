@@ -12,7 +12,7 @@
 #include <iscore/tools/std/Algorithms.hpp>
 
 template class IdentifiedObject<Process::ProcessModel>;
-template class iscore::SerializableInterface<Process::ProcessFactory>;
+template class iscore::SerializableInterface<Process::ProcessModelFactory>;
 namespace Process
 {
 ProcessModel::ProcessModel(

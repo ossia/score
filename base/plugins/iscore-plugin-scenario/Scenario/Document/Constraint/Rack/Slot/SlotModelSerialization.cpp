@@ -53,7 +53,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
 
     const auto& cstr = slot.parentConstraint();
 
-    auto& processes = context.components.factory<Process::ProcessList>();
+    auto& processes = context.components.factory<Process::ProcessFactoryList>();
     for(int i = 0; i < lm_size; i++)
     {
         auto lm = Process::createLayerModel(processes, *this, cstr, &slot);
@@ -81,6 +81,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::SlotModel&
     m_obj["EditedProcess"] = toJsonValue(slot.m_frontLayerModelId);
     m_obj["Height"] = slot.getHeight();
 
+    // TODO toJsonArray
     QJsonArray arr;
 
     for(const auto& lm : slot.layers)
@@ -98,7 +99,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
 
     const auto& cstr = slot.parentConstraint();
 
-    auto& processes = context.components.factory<Process::ProcessList>();
+    auto& processes = context.components.factory<Process::ProcessFactoryList>();
     for(const auto& json_vref : arr)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };

@@ -16,7 +16,7 @@
 namespace Scenario
 {
 AddProcessDialog::AddProcessDialog(
-        const Process::ProcessList& plist,
+        const Process::ProcessFactoryList& plist,
         QWidget *parent) :
     QWidget {parent},
     m_factoryList{plist}

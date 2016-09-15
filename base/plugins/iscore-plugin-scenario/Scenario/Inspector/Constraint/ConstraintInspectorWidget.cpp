@@ -56,7 +56,7 @@ namespace Scenario
 {
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const Inspector::InspectorWidgetList& widg,
-        const Process::ProcessList& pl,
+        const Process::ProcessFactoryList& pl,
         const ConstraintModel& object,
         std::unique_ptr<ConstraintInspectorDelegate> del,
         const iscore::DocumentContext& ctx,

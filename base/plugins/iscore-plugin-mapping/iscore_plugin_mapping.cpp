@@ -17,15 +17,18 @@
 #include <Curve/Process/CurveProcessFactory.hpp>
 
 #include <Mapping/Inspector/MappingInspectorFactory.hpp>
-
+#include <Process/GenericProcessFactory.hpp>
 namespace Mapping {
+
 using MappingFactory =
-    Curve::CurveProcessFactory_T<
+    Process::GenericProcessModelFactory<Mapping::ProcessModel>;
+using MappingLayerFactory =
+    Curve::CurveLayerFactory_T<
 Mapping::ProcessModel,
 Mapping::Layer,
-Mapping::MappingPresenter,
-Mapping::MappingView,
-Mapping::MappingColors>;
+Mapping::LayerPresenter,
+Mapping::LayerView,
+Mapping::Colors>;
 }
 
 #include <iscore_plugin_mapping_commands_files.hpp>
@@ -48,8 +51,10 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_mapping
     return instantiate_factories<
             iscore::ApplicationContext,
             TL<
-            FW<Process::ProcessFactory,
+            FW<Process::ProcessModelFactory,
                 Mapping::MappingFactory>,
+            FW<Process::LayerFactory,
+                Mapping::MappingLayerFactory>,
             FW<Process::InspectorWidgetDelegateFactory,
                 MappingInspectorFactory>
             >>(ctx, key);

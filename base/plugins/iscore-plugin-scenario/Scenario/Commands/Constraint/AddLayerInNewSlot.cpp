@@ -64,7 +64,7 @@ AddLayerInNewSlot::AddLayerInNewSlot(
     m_createdLayerId = Id<Process::LayerModel> (iscore::id_generator::getFirstId());
 
     auto& proc = constraint.processes.at(m_sharedProcessModelId);
-    auto& procs = this->context.components.factory<Process::ProcessList>();
+    auto& procs = this->context.components.factory<Process::ProcessFactoryList>();
     auto fact = procs.get(proc.concreteFactoryKey());
     m_processData = fact->makeLayerConstructionData(proc);
 }
@@ -117,7 +117,7 @@ void AddLayerInNewSlot::redo() const
     auto& slot = rack.slotmodels.at(m_createdSlotId);
     auto& proc = constraint.processes.at(m_sharedProcessModelId);
 
-    auto& procs = context.components.factory<Process::ProcessList>();
+    auto& procs = context.components.factory<Process::ProcessFactoryList>();
     auto fact = procs.get(proc.concreteFactoryKey());
     slot.layers.add(
                 fact->makeLayer(

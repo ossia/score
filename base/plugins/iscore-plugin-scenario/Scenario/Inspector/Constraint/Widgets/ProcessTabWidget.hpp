@@ -7,7 +7,7 @@ namespace Inspector{
     class InspectorSectionWidget;
 }
 namespace Process {
-class ProcessFactory;
+class ProcessModelFactory; class LayerFactory;
 }
 namespace Scenario {
 class ProcessTabWidget :

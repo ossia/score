@@ -5,11 +5,19 @@
 
 namespace Process
 {
-class ISCORE_LIB_PROCESS_EXPORT ProcessList final :
-        public iscore::ConcreteFactoryList<ProcessFactory>
+class ISCORE_LIB_PROCESS_EXPORT ProcessFactoryList final :
+        public iscore::ConcreteFactoryList<ProcessModelFactory>
 {
     public:
         using object_type = Process::ProcessModel;
-        ~ProcessList();
+        ~ProcessFactoryList();
+};
+
+class ISCORE_LIB_PROCESS_EXPORT LayerFactoryList final :
+        public iscore::ConcreteFactoryList<LayerFactory>
+{
+    public:
+        using object_type = Process::LayerModel;
+        ~LayerFactoryList();
 };
 }

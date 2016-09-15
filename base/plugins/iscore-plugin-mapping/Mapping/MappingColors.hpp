@@ -3,10 +3,10 @@
 
 namespace Mapping
 {
-class MappingColors
+class Colors
 {
     public:
-        MappingColors();
+        Colors();
 
         const auto& style() const
         { return m_style; }
