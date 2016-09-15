@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include <iscore/serialization/VisitorInterface.hpp>
 namespace Scenario
@@ -21,3 +22,4 @@ LayerModel* createLayerModel(
         const Scenario::ConstraintModel& constraint,
         QObject* parent);
 }
+*/

@@ -10,7 +10,10 @@
 class QGraphicsItem;
 class QObject;
 struct VisitorVariant;
-
+namespace iscore
+{
+class DocumentContext;
+}
 namespace Process
 {
 class LayerModel;
@@ -58,7 +61,8 @@ class ISCORE_LIB_PROCESS_EXPORT LayerFactory:
         // we have to generate some data (like ids...) before making a new view model.
         // This data is valid for construction only for the current state
         // of the scenario.
-        virtual QByteArray makeLayerConstructionData(const Process::ProcessModel&) const;
+        virtual QByteArray makeLayerConstructionData(
+            const Process::ProcessModel&) const;
 
         // TODO pass the name of the view model to be created
         // (e.g. temporal / logical...).
@@ -70,7 +74,6 @@ class ISCORE_LIB_PROCESS_EXPORT LayerFactory:
 
         // Load
         Process::LayerModel* load(
-                Process::ProcessModel&,
                 const VisitorVariant& v,
                 QObject* parent);
 
@@ -100,6 +103,9 @@ class ISCORE_LIB_PROCESS_EXPORT LayerFactory:
         virtual Process::LayerModelPanelProxy* makePanel(
                 const LayerModel& layer,
                 QObject* parent);
+
+        virtual bool matches(
+                const Process::ProcessModel&) const;
 
     protected:
         virtual LayerModel* makeLayer_impl(

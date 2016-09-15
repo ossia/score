@@ -77,8 +77,3 @@ void Visitor<Writer<JSONObject>>::writeTo(
         lm.addConstraintViewModel(cstrvm);
     }
 }
-
-void Scenario::TemporalScenarioLayer::serialize_impl(const VisitorVariant& vis) const
-{
-    serialize_dyn(vis, *this);
-}

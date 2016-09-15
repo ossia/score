@@ -82,6 +82,8 @@ class CurveLayerFactory_T :
                 parent};
         }
 
+        UuidKey<Process::LayerFactory> concreteFactoryKey() const override
+        { return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get(); }
 
     private:
         CurveColors_T m_colors;

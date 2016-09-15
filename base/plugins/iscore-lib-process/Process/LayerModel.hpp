@@ -53,6 +53,7 @@ template<typename Process_T>
 class LayerModel_T final : public LayerModel
 {
     public:
+        using process_type = Process_T;
         explicit LayerModel_T(
                 ProcessModel& model,
                 const Id<Process::LayerModel>& id,
