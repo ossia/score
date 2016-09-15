@@ -18,7 +18,7 @@ class IdentifiedObject;
 
 namespace iscore
 {
-class unsafe_t {};
+struct unsafe_t { unsafe_t() = default; };
 const constexpr unsafe_t unsafe;
 }
 template<typename tag, typename impl>
