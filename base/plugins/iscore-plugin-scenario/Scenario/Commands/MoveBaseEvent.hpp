@@ -128,7 +128,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
                 AddProcess(constraint, newproc);
             }
 
-            auto& procs = context.components.factory<Process::ProcessList>();
+            auto& procs = context.components.factory<Process::ProcessFactoryList>();
 
             // Clone the rackes
             for(const auto& sourcerack : src_constraint.racks)

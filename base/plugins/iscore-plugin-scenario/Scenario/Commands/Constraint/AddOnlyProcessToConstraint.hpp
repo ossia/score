@@ -11,7 +11,7 @@
 struct DataStreamInput;
 struct DataStreamOutput;
 namespace Process {
-class ProcessFactory;
+class ProcessModelFactory; class LayerFactory;
 class ProcessModel;
 }
 

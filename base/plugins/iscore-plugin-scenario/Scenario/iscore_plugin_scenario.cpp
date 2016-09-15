@@ -87,7 +87,7 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
     using namespace Scenario;
     using namespace Scenario::Command;
     return make_ptr_vector<iscore::FactoryListInterface,
-            Process::ProcessList,
+            Process::ProcessFactoryList,
             Process::StateProcessList,
             MoveEventList,
             CSPCoherencyCheckerList,

@@ -56,7 +56,7 @@ void SlotModel::copyViewModelsInSameConstraint(
         const SlotModel &source,
         SlotModel &target)
 {
-    auto& procs = iscore::AppContext().components.factory<Process::ProcessList>();
+    auto& procs = iscore::AppContext().components.factory<Process::ProcessFactoryList>();
 
     for(const auto& lm : source.layers)
     {

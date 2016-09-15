@@ -56,11 +56,11 @@ void RemoveProcessFromConstraint::undo() const
 {
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedProcessData};
-    auto& fact = context.components.factory<Process::ProcessList>();
+    auto& fact = context.components.factory<Process::ProcessFactoryList>();
     AddProcess(constraint, deserialize_interface(fact, s, &constraint));
 
     // Restore the view models
-    auto& processes = context.components.factory<Process::ProcessList>();
+    auto& processes = context.components.factory<Process::ProcessFactoryList>();
     for(const auto& it : m_serializedViewModels)
     {
         const auto& path = it.first.unsafePath().vec();

@@ -175,7 +175,7 @@ class CommonDisplacementPolicy
                     }
 
                     // Clone the rackes
-                    auto& procs = iscore::AppContext().components.factory<Process::ProcessList>();
+                    auto& procs = iscore::AppContext().components.factory<Process::ProcessFactoryList>();
 
                     for(const auto& sourcerack : src_constraint.racks)
                     {

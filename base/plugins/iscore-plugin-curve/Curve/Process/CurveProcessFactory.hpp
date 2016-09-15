@@ -14,27 +14,11 @@ template<
         typename LayerPresenter_T,
         typename LayerView_T,
         typename CurveColors_T>
-class CurveProcessFactory_T :
-        public Process::ProcessFactory
+class CurveLayerFactory_T :
+        public Process::LayerFactory
 {
     public:
-        virtual ~CurveProcessFactory_T() = default;
-
-        Model_T* make(
-                const TimeValue& duration,
-                const Id<Process::ProcessModel>& id,
-                QObject* parent) final override
-        {
-            return new Model_T{duration, id, parent};
-        }
-
-        Model_T* load(
-                const VisitorVariant& vis,
-                QObject* parent) final override
-        {
-            return deserialize_dyn(vis, [&] (auto&& deserializer)
-            { return new Model_T{deserializer, parent}; });
-        }
+        virtual ~CurveLayerFactory_T() = default;
 
         Process::LayerModel* makeLayer_impl(
                 Process::ProcessModel& proc,
@@ -98,11 +82,6 @@ class CurveProcessFactory_T :
                 parent};
         }
 
-        UuidKey<Process::ProcessFactory> concreteFactoryKey() const override
-        { return Metadata<ConcreteFactoryKey_k, Model_T>::get(); }
-
-        QString prettyName() const override
-        { return Metadata<PrettyName_k, Model_T>::get(); }
 
     private:
         CurveColors_T m_colors;

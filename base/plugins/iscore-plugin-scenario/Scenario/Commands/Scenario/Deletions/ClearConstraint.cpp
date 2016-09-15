@@ -56,7 +56,7 @@ ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
 
 void ClearConstraint::undo() const
 {
-    auto& fact = context.components.factory<Process::ProcessList>();
+    auto& fact = context.components.factory<Process::ProcessFactoryList>();
 
     auto& constraint = m_path.find();
 

@@ -7,4 +7,11 @@ namespace Automation
 using Layer = Process::LayerModel_T<ProcessModel>;
 }
 
-DEFAULT_MODEL_METADATA(Automation::Layer, "Automation layer")
+
+LAYER_METADATA(
+        ISCORE_PLUGIN_AUTOMATION_EXPORT,
+        Automation::Layer,
+        "657d8a05-6ee5-4093-8d61-d6ee2c425acf",
+        "Automation",
+        "Automation"
+        )

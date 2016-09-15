@@ -9,14 +9,14 @@
 
 namespace Process
 {
-ProcessFactory::~ProcessFactory() = default;
 ProcessModelFactory::~ProcessModelFactory() = default;
 LayerFactory::~LayerFactory() = default;
-ProcessList::~ProcessList() = default;
+ProcessFactoryList::~ProcessFactoryList() = default;
+LayerFactoryList::~LayerFactoryList() = default;
 StateProcessList::~StateProcessList() = default;
 
 
-LayerModel* LayerFactory::makeLayer(
+LayerModel* LayerFactory::make(
         Process::ProcessModel& proc,
         const Id<LayerModel>& viewModelId,
         const QByteArray& constructionData,
@@ -29,7 +29,7 @@ LayerModel* LayerFactory::makeLayer(
 }
 
 
-LayerModel*LayerFactory::loadLayer(
+LayerModel*LayerFactory::load(
         Process::ProcessModel& proc,
         const VisitorVariant& v,
         QObject* parent)

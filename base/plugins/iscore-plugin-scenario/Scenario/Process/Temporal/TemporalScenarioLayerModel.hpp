@@ -15,6 +15,7 @@ class ConstraintViewModel;
 class TemporalScenarioLayer final : public AbstractScenarioLayer
 {
         Q_OBJECT
+        SERIALIZABLE_MODEL_METADATA_IMPL(TemporalScenarioLayer)
     public:
         using model_type = Scenario::ProcessModel;
         using constraint_layer_type = TemporalConstraintViewModel;

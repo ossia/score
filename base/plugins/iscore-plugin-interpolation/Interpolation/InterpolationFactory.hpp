@@ -5,12 +5,13 @@
 #include <Interpolation/InterpolationLayer.hpp>
 #include <Interpolation/InterpolationPresenter.hpp>
 #include <Interpolation/InterpolationView.hpp>
-
+#include <Process/GenericProcessFactory.hpp>
 
 namespace Interpolation
 {
-using Factory =
-    Curve::CurveProcessFactory_T<
+using InterpolationFactory = Process::GenericProcessModelFactory<ProcessModel>;
+using InterpolationLayerFactory =
+Curve::CurveLayerFactory_T<
 ProcessModel, Layer, Presenter, View, Colors>;
 }
 

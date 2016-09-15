@@ -22,7 +22,6 @@ PROCESS_METADATA(
         "Interpolation",
         "Interpolation"
         )
-
 namespace Interpolation
 {
 class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessState final :

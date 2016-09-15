@@ -24,7 +24,7 @@ class ProcessStateDataInterface;
 
 namespace Process
 {
-class ProcessFactory;
+class ProcessModelFactory; class LayerFactory;
 class ProcessModel;
 class LayerFactory;
 
@@ -35,7 +35,7 @@ class LayerFactory;
  */
 class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         public iscore::Entity<ProcessModel>,
-        public iscore::SerializableInterface<ProcessFactory>
+        public iscore::SerializableInterface<ProcessModelFactory>
 {
         Q_OBJECT
 

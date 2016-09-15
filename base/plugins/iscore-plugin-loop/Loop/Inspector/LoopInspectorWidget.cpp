@@ -35,7 +35,7 @@ LoopInspectorWidget::LoopInspectorWidget(
     auto lay = new QVBoxLayout;
     this->setLayout(lay);
     auto& widgetFact = appContext.factory<Inspector::InspectorWidgetList>();
-    auto& processFact = appContext.factory<Process::ProcessList>();
+    auto& processFact = appContext.factory<Process::ProcessFactoryList>();
     lay->addWidget(new Scenario::ConstraintInspectorWidget{
                        widgetFact,
                        processFact,

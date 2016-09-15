@@ -47,9 +47,10 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
 
 
     // Setup the model
-    auto& sharedmodel = m_layer.processModel();
-    auto fact = iscore::AppContext().components.factory<ProcessList>().get(sharedmodel.concreteFactoryKey());
+    auto fact = iscore::AppContext().components.factory<LayerFactoryList>().get(m_layer.concreteFactoryKey());
 
+    if(!fact)
+        return;
 
     m_obj = new ProcessPanelGraphicsProxy{};
     // Add the items to the scene early because

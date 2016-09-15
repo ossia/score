@@ -25,7 +25,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
     m_processPath {process},
     m_createdLayerId{getStrongId(m_slotPath.find().layers)}
 {
-    auto& procs = this->context.components.factory<Process::ProcessList>();
+    auto& procs = this->context.components.factory<Process::ProcessFactoryList>();
     auto fact = procs.get(process.concreteFactoryKey());
     m_processData = fact->makeLayerConstructionData(process);
 }
@@ -65,7 +65,7 @@ void AddLayerModelToSlot::redo() const
     auto& slot = m_slotPath.find();
     auto& process = m_processPath.find();
 
-    auto& procs = this->context.components.factory<Process::ProcessList>();
+    auto& procs = this->context.components.factory<Process::ProcessFactoryList>();
 
     auto fact = procs.get(process.concreteFactoryKey());
     slot.layers.add(

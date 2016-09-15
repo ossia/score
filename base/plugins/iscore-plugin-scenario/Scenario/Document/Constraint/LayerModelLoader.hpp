@@ -7,7 +7,7 @@ class ConstraintModel;
 namespace Process
 {
 class LayerModel;
-class ProcessList;
+class ProcessFactoryList;
 }
 class QObject;
 
@@ -16,7 +16,7 @@ namespace Process
 {
 template<typename T>
 LayerModel* createLayerModel(
-        const Process::ProcessList& processes,
+        const Process::ProcessFactoryList& processes,
         Deserializer<T>& deserializer,
         const Scenario::ConstraintModel& constraint,
         QObject* parent);

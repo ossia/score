@@ -17,7 +17,7 @@ namespace Process
 {
 template<>
 LayerModel* createLayerModel(
-        const Process::ProcessList& processes,
+        const Process::ProcessFactoryList& processes,
         Deserializer<DataStream>& deserializer,
         const Scenario::ConstraintModel& constraint,
         QObject* parent)
@@ -42,7 +42,7 @@ LayerModel* createLayerModel(
 
 template<>
 LayerModel* createLayerModel(
-        const Process::ProcessList& processes,
+        const Process::ProcessFactoryList& processes,
         Deserializer<JSONObject>& deserializer,
         const Scenario::ConstraintModel& constraint,
         QObject* parent)

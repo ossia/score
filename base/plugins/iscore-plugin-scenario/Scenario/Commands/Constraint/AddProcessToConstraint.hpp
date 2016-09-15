@@ -90,7 +90,7 @@ class AddProcessToConstraint final : public AddProcessToConstraintBase
                 const UuidKey<Process::ProcessFactory>& process) :
             AddProcessToConstraintBase{constraint, process}
         {
-            auto& fact = context.components.factory<Process::ProcessList>();
+            auto& fact = context.components.factory<Process::ProcessFactoryList>();
             m_delegate.init(fact, constraint);
         }
 
@@ -158,7 +158,7 @@ class AddProcessDelegate<HasNoRacks>
 
         }
 
-        void init(const Process::ProcessList& fact, const ConstraintModel& constraint)
+        void init(const Process::ProcessFactoryList& fact, const ConstraintModel& constraint)
         {
             m_createdRackId = getStrongId(constraint.racks);
             m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
@@ -199,7 +199,7 @@ class AddProcessDelegate<HasNoRacks>
             rack->addSlot(slot);
 
             // Process View
-            auto& procs = m_cmd.context.components.factory<Process::ProcessList>();
+            auto& procs = m_cmd.context.components.factory<Process::ProcessFactoryList>();
             auto fact = procs.get(proc.concreteFactoryKey());
             slot->layers.add(
                         fact->makeLayer(proc,
@@ -250,7 +250,7 @@ class AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>
 
         }
 
-        void init(const Process::ProcessList& fact, const ConstraintModel& constraint)
+        void init(const Process::ProcessFactoryList& fact, const ConstraintModel& constraint)
         {
             m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
 
@@ -281,7 +281,7 @@ class AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>
             firstRack.addSlot(slot);
 
             // Layer
-            auto& procs = m_cmd.context.components.factory<Process::ProcessList>();
+            auto& procs = m_cmd.context.components.factory<Process::ProcessFactoryList>();
             auto fact = procs.get(proc.concreteFactoryKey());
             slot->layers.add(
                         fact->makeLayer(proc, m_createdLayerId, m_layerConstructionData, slot));
@@ -328,7 +328,7 @@ class AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>
 
         }
 
-        void init(const Process::ProcessList& fact, const ConstraintModel& constraint)
+        void init(const Process::ProcessFactoryList& fact, const ConstraintModel& constraint)
         {
             ISCORE_ASSERT(!constraint.racks.empty());
             const auto& firstRack = *constraint.racks.begin();
@@ -359,7 +359,7 @@ class AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>
             ISCORE_ASSERT(!firstRack.slotmodels.empty());
             auto& firstSlot = *firstRack.slotmodels.begin();
 
-            auto& procs = m_cmd.context.components.factory<Process::ProcessList>();
+            auto& procs = m_cmd.context.components.factory<Process::ProcessFactoryList>();
             auto fact = procs.get(proc.concreteFactoryKey());
             firstSlot.layers.add(
                         fact->makeLayer(proc, m_createdLayerId, m_layerConstructionData, &firstSlot));
@@ -400,7 +400,7 @@ class AddProcessDelegate<HasRacks, IsBaseConstraint>
 
         }
 
-        void init(const Process::ProcessList& fact, const ConstraintModel& constraint)
+        void init(const Process::ProcessFactoryList& fact, const ConstraintModel& constraint)
         {
             // Base constraint : add in new slot?
         }

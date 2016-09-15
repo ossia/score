@@ -80,7 +80,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario
     int32_t process_count;
     m_stream >> process_count;
 
-    auto& pl = context.components.factory<Process::ProcessList>();
+    auto& pl = context.components.factory<Process::ProcessFactoryList>();
     for(; process_count -- > 0;)
     {
         constraint.processes.add(deserialize_interface(pl, *this, &constraint));
@@ -149,7 +149,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario
 {
     constraint.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
 
-    auto& pl = context.components.factory<Process::ProcessList>();
+    auto& pl = context.components.factory<Process::ProcessFactoryList>();
 
     QJsonArray process_array = m_obj["Processes"].toArray();
     for(const auto& json_vref : process_array)

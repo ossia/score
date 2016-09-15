@@ -40,7 +40,7 @@ SlotPresenter::SlotPresenter(
         const Process::ProcessPresenterContext& ctx,
         QObject* par) :
     QObject {par},
-    m_processList{ctx.app.components.factory<Process::ProcessList>()},
+    m_processList{ctx.app.components.factory<Process::ProcessFactoryList>()},
     m_model {model},
     m_view {new SlotView{*this, view}},
     m_context{ctx}

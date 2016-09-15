@@ -11,7 +11,7 @@
 namespace Process
 {
 class LayerContextMenuManager;
-class ProcessFactory;
+class ProcessModelFactory; class LayerFactory;
 }
 namespace Scenario
 {
