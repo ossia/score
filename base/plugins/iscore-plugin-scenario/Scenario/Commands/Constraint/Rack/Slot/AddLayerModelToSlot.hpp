@@ -9,7 +9,7 @@
 #include <iscore_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
-namespace Process { class LayerModel; }
+namespace Process { class LayerModel; class LayerFactory; }
 namespace Process { class ProcessModel; }
 
 namespace Scenario
@@ -58,6 +58,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final : public iscore::S
     private:
         Path<SlotModel> m_slotPath;
         Path<Process::ProcessModel> m_processPath;
+        UuidKey<Process::LayerFactory> m_layerFactory;
 
         QByteArray m_processData;
 

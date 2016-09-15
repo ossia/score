@@ -66,7 +66,7 @@ class GenericLayerFactory final :
         virtual ~GenericLayerFactory() = default;
 
     private:
-        UuidKey<Process::ProcessModelFactory> concreteFactoryKey() const override
+        UuidKey<Process::LayerFactory> concreteFactoryKey() const override
         { return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get(); }
 
         LayerModel_T* makeLayer_impl(
@@ -109,6 +109,12 @@ class GenericLayerFactory final :
         LayerPanel_T* makePanel(
                 const Process::LayerModel& viewmodel,
                 QObject* parent) final override;
+
+        bool matches(
+                const Process::ProcessModel& p) const override
+        {
+            return p.concreteFactoryKey() == Model_T::static_concreteFactoryKey();
+        }
 };
 
 template<
@@ -184,15 +190,18 @@ LayerPanel_T* GenericLayerFactory<Model_T, LayerModel_T, LayerPresenter_T, Layer
     return new LayerPanel_T{static_cast<const LayerModel_T&>(viewmodel), parent};
 }
 
-template<typename Model_T>
-class GenericLayerFactory<Model_T, default_t, default_t, default_t, default_t> final :
+template<typename Model_T, typename LayerModel_T>
+class GenericLayerFactory<Model_T, LayerModel_T, default_t, default_t, default_t> final :
         public Process::LayerFactory
 {
     public:
         virtual ~GenericLayerFactory() = default;
 
+    private:
+        UuidKey<Process::ProcessModelFactory> concreteFactoryKey() const override
+        { return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get(); }
 };
 
-template<typename Model_T>
-using GenericDefaultLayerFactory = GenericLayerFactory<Model_T, default_t, default_t, default_t, default_t>;
+template<typename LayerModel_T>
+using GenericDefaultLayerFactory = GenericLayerFactory<typename LayerModel_T::process_type, LayerModel_T, default_t, default_t, default_t>;
 }

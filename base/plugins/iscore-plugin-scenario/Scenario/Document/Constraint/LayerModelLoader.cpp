@@ -1,3 +1,7 @@
+#if defined(__GNUC__)
+#warning Remove me
+#endif
+/*
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
@@ -60,4 +64,6 @@ LayerModel* createLayerModel(
     return viewmodel;
 }
 
+
 }
+*/

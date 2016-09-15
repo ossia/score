@@ -1,6 +1,7 @@
 #include "ProcessFactory.hpp"
 #include "StateProcessFactoryList.hpp"
 #include "ProcessList.hpp"
+#include <iscore/tools/ModelPathSerialization.hpp>
 #include <Process/Dummy/DummyLayerModel.hpp>
 #include <Process/Dummy/DummyLayerPresenter.hpp>
 #include <Process/Dummy/DummyLayerView.hpp>
@@ -30,14 +31,44 @@ LayerModel* LayerFactory::make(
 
 
 LayerModel*LayerFactory::load(
-        Process::ProcessModel& proc,
         const VisitorVariant& v,
         QObject* parent)
 {
-    auto lm = loadLayer_impl(proc, v, parent);
-    proc.addLayer(lm);
+    switch(v.identifier)
+    {
+        case DataStream::type():
+        {
+            auto& des = static_cast<DataStream::Deserializer&>(v.visitor);
 
-    return lm;
+            ObjectPath process;
+            des.m_stream >> process;
+            auto& proc = process.find<Process::ProcessModel>();
+
+            // Note : we pass a reference to the stream,
+            // so it is already increased past the reading of the path.
+            auto lm = loadLayer_impl(proc, v, parent);
+            proc.addLayer(lm);
+
+            return lm;
+        }
+        case JSONObject::type():
+        {
+            auto& des = static_cast<JSONObject::Deserializer&>(v.visitor);
+            auto proc = fromJsonObject<ObjectPath>(des.m_obj["SharedProcess"]);
+
+            if(auto p = proc.try_find<Process::ProcessModel>())
+            {
+                auto& proc = *p;
+                auto lm = loadLayer_impl(proc, v, parent);
+                proc.addLayer(lm);
+
+                return lm;
+            }
+            return nullptr;
+        }
+        default:
+            return nullptr;
+    }
 }
 
 LayerModel*LayerFactory::cloneLayer(
@@ -86,6 +117,11 @@ LayerModelPanelProxy* LayerFactory::makePanel(const LayerModel& layer, QObject* 
     return new Process::GraphicsViewLayerModelPanelProxy{layer, parent};
 }
 
+bool LayerFactory::matches(const ProcessModel& p) const
+{
+    return false;
+}
+
 LayerModel*LayerFactory::makeLayer_impl(
         ProcessModel& p,
         const Id<LayerModel>& viewModelId,
@@ -103,7 +139,7 @@ LayerModel*LayerFactory::loadLayer_impl(
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
         auto autom = new Dummy::Layer{
-                        deserializer, p, parent};
+                     deserializer, p, parent};
 
         return autom;
     });

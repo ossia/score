@@ -3,7 +3,7 @@
 
 #include <QJsonObject>
 #include <QJsonValue>
-
+#include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -18,7 +18,7 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom(
 {
     // To allow recration using createLayerModel.
     // This supposes that the process is stored inside a Constraint.
-    m_stream << layerModel.processModel().id();
+    m_stream << Path<Process::ProcessModel>(layerModel.processModel()).unsafePath();
 
     readFrom(static_cast<const IdentifiedObject<Process::LayerModel>&>(layerModel));
 
@@ -36,7 +36,7 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
 {
     // To allow recration using createLayerModel.
     // This supposes that the process is stored inside a Constraint.
-    m_obj["SharedProcessId"] = toJsonValue(layerModel.processModel().id());
+    m_obj["SharedProcess"] = toJsonObject(Path<Process::ProcessModel>{layerModel.processModel()}.unsafePath());
 
     readFrom(static_cast<const IdentifiedObject<Process::LayerModel>&>(layerModel));
 

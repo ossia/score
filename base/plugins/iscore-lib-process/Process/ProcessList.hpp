@@ -19,5 +19,15 @@ class ISCORE_LIB_PROCESS_EXPORT LayerFactoryList final :
     public:
         using object_type = Process::LayerModel;
         ~LayerFactoryList();
+
+        LayerFactory* findDefaultFactory(const Process::ProcessModel& proc) const
+        {
+            for(auto& fac : *this)
+            {
+                if(fac.matches(proc))
+                    return &fac;
+            }
+            return nullptr;
+        }
 };
 }

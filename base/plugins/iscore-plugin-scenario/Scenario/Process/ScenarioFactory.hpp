@@ -22,11 +22,11 @@ namespace Scenario
 class EditionSettings;
 
 class ScenarioFactory final :
-        public Process::ProcessFactory
+        public Process::ProcessModelFactory
 {
     public:
         ScenarioFactory(Scenario::EditionSettings&);
-        UuidKey<Process::ProcessFactory> concreteFactoryKey() const override;
+        UuidKey<Process::ProcessModelFactory> concreteFactoryKey() const override;
         QString prettyName() const override;
 
         Process::ProcessModel* make(
@@ -37,7 +37,12 @@ class ScenarioFactory final :
         Process::ProcessModel* load(
                 const VisitorVariant&,
                 QObject* parent) override;
+};
 
+class ScenarioTemporalLayerFactory final :
+        public Process::LayerFactory
+{
+    public:
         QByteArray makeStaticLayerConstructionData() const override;
 
         QByteArray makeLayerConstructionData(

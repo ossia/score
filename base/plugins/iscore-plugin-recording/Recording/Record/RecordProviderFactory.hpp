@@ -18,7 +18,6 @@ class DeviceExplorerModel;
 }
 namespace Recording
 {
-using Priority = int;
 struct RecordContext
 {
         using clock = std::chrono::steady_clock;
@@ -184,11 +183,7 @@ class ISCORE_PLUGIN_RECORDING_EXPORT RecorderFactory :
     ISCORE_ABSTRACT_FACTORY("64999184-a705-4686-b967-14e8f79692f1")
     public:
         virtual ~RecorderFactory();
-        /**
-         * @brief matches
-         * @return <= 0 : does not match
-         * > 0 : matches. The highest priority should be taken.
-         */
+
         virtual Priority matches(
             const Device::Node&,
             const iscore::DocumentContext& ctx) = 0;

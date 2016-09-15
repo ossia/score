@@ -51,12 +51,10 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
     int32_t lm_size;
     m_stream >> lm_size;
 
-    const auto& cstr = slot.parentConstraint();
-
-    auto& processes = context.components.factory<Process::ProcessFactoryList>();
+    auto& layers = context.components.factory<Process::LayerFactoryList>();
     for(int i = 0; i < lm_size; i++)
     {
-        auto lm = Process::createLayerModel(processes, *this, cstr, &slot);
+        auto lm = deserialize_interface(layers, *this, &slot);
         slot.layers.add(lm);
     }
 
@@ -97,17 +95,11 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
     slot.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
     QJsonArray arr = m_obj["LayerModels"].toArray();
 
-    const auto& cstr = slot.parentConstraint();
-
-    auto& processes = context.components.factory<Process::ProcessFactoryList>();
+    auto& layers = context.components.factory<Process::LayerFactoryList>();
     for(const auto& json_vref : arr)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };
-        auto lm = Process::createLayerModel(
-                      processes,
-                      deserializer,
-                      cstr,
-                      &slot);
+        auto lm = deserialize_interface(layers, deserializer, &slot);
         if(lm)
             slot.layers.add(lm);
     }
