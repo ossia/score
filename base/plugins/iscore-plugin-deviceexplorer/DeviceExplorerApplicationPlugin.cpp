@@ -7,6 +7,7 @@
 #include "DeviceExplorerApplicationPlugin.hpp"
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 struct VisitorVariant;
 
@@ -22,7 +23,10 @@ ApplicationPlugin::ApplicationPlugin(
 void ApplicationPlugin::on_newDocument(iscore::Document& doc)
 {
     doc.model().addPluginModel(
-                new DeviceDocumentPlugin{doc.context(), &doc.model()});
+                new DeviceDocumentPlugin{
+                    doc.context(),
+                    getStrongId(doc.model().pluginModels()),
+                    &doc.model()});
 }
 
 void ApplicationPlugin::on_documentChanged(

@@ -8,10 +8,7 @@ iscore::DocumentPlugin* DocumentPluginFactory::load(
         iscore::DocumentContext& doc,
         QObject* parent)
 {
-    // TODO smell
-    return new DeviceDocumentPlugin{
-                doc,
-                var,
-                parent};
+    return deserialize_dyn(var, [&] (auto&& deserializer)
+    { return new DeviceDocumentPlugin{doc, deserializer, parent}; });
 }
 }

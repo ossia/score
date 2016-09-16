@@ -31,6 +31,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin :
     public:
         DocumentPlugin(
                 iscore::Document& doc,
+                Id<iscore::DocumentPlugin> id,
                 QObject* parent);
 
         ~DocumentPlugin();

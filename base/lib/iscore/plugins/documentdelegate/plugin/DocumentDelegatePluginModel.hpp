@@ -16,19 +16,30 @@ struct VisitorVariant;
 namespace iscore
 {
 class ISCORE_LIB_BASE_EXPORT DocumentPlugin :
-        public NamedObject
+        public IdentifiedObject<DocumentPlugin>
 {
         Q_OBJECT
     public:
         DocumentPlugin(
                 const iscore::DocumentContext&,
+                Id<DocumentPlugin> id,
                 const QString& name,
                 QObject* parent);
 
         virtual ~DocumentPlugin();
 
-        auto& context() const
+        const iscore::DocumentContext& context() const
         { return m_context; }
+
+        template<typename Impl>
+        explicit DocumentPlugin(
+                const iscore::DocumentContext& ctx,
+                Deserializer<Impl>& vis,
+                QObject* parent) :
+            IdentifiedObject{vis, parent},
+            m_context{ctx}
+        {
+        }
 
     protected:
         const iscore::DocumentContext& m_context;

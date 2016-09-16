@@ -18,8 +18,10 @@ namespace Engine { namespace Execution
 {
 DocumentPlugin::DocumentPlugin(
             iscore::Document& doc,
+            Id<iscore::DocumentPlugin> id,
             QObject* parent):
-    iscore::DocumentPlugin{doc.context(), "OSSIADocumentPlugin", parent},
+    iscore::DocumentPlugin{
+        doc.context(), std::move(id), "OSSIADocumentPlugin", parent},
     m_ctx{doc.context(),
           *this,
           doc.context().plugin<Explorer::DeviceDocumentPlugin>(),

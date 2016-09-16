@@ -5,6 +5,7 @@
 #include "SetProcessDuration.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
 
 namespace Scenario
 {
