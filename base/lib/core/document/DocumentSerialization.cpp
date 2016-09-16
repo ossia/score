@@ -8,6 +8,7 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <QByteArray>
 #include <QCryptographicHash>
 #include <QDataStream>
@@ -74,6 +75,7 @@ QJsonObject Document::saveAsJson()
 
     complete["Plugins"] = json_plugins;
     complete["Document"] = saveDocumentModelAsJson();
+    complete["Version"] = context().app.applicationSettings.saveFormatVersion.value();
 
     // Indicate in the stack that the current position is saved
     m_commandStack.markCurrentIndexAsSaved();

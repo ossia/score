@@ -443,7 +443,21 @@ Document* DocumentManager::loadFile(
             else if (fileName.indexOf(".scorejson") != -1)
             {
                 auto json = QJsonDocument::fromJson(f.readAll());
-                doc = loadDocument(ctx, json.object(), *ctx.components.factory<DocumentDelegateList>().begin());
+                bool ok = checkAndUpdateJson(json, ctx);
+                if(ok)
+                {
+                    doc = loadDocument(ctx, json.object(), *ctx.components.factory<DocumentDelegateList>().begin());
+                }
+                else
+                {
+                    QMessageBox::warning(
+                                qApp->activeWindow(),
+                                tr("Unable to load"),
+                                tr("Unable to load file : "
+                                   "it has to be converted but the conversion was not implemented yet."
+                                   "\n"
+                                   "Blame the developer."));
+                }
             }
 
             if(doc)
@@ -540,6 +554,11 @@ bool DocumentManager::checkAndUpdateJson(
     else if(loaded_version < ctx.applicationSettings.saveFormatVersion)
     {
         // TODO update main
+        auto res = updateJson(obj, loaded_version, ctx.applicationSettings.saveFormatVersion);
+        if(!res)
+        {
+            return false;
+        }
     }
 
 
@@ -571,6 +590,12 @@ bool DocumentManager::checkAndUpdateJson(
 
     json.setObject(obj);
     return mainLoadable && pluginsAvailable && pluginsLoadable;
+}
+
+bool DocumentManager::updateJson(QJsonObject& object, Version json_ver, Version iscore_ver)
+{
+    ISCORE_TODO;
+    return false;
 }
 
 void DocumentManager::saveRecentFilesState()
