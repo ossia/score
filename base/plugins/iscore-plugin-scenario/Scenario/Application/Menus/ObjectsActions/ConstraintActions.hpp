@@ -29,7 +29,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions : public QObject
         void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
     private:
-        void addProcessInConstraint(const UuidKey<Process::ProcessFactory>&);
+        void addProcessInConstraint(const UuidKey<Process::ProcessModelFactory>&);
 
         CommandDispatcher<> dispatcher();
 

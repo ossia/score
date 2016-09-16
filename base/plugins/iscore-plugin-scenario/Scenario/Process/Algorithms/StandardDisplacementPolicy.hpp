@@ -175,7 +175,7 @@ class CommonDisplacementPolicy
                     }
 
                     // Clone the rackes
-                    auto& procs = iscore::AppContext().components.factory<Process::ProcessFactoryList>();
+                    auto& layerfactories = iscore::AppContext().components.factory<Process::LayerFactoryList>();
 
                     for(const auto& sourcerack : src_constraint.racks)
                     {
@@ -193,7 +193,7 @@ class CommonDisplacementPolicy
                             {
                                 // We can safely reuse the same id since it's in a different slot.
                                 Process::ProcessModel* proc = processPairs[&lm.processModel()];
-                                auto fact = procs.get(proc->concreteFactoryKey());
+                                auto fact = layerfactories.findDefaultFactory(proc->concreteFactoryKey());
 
                                 // TODO harmonize the order of parameters (source first, then new id)
                                 target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));

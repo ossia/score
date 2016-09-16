@@ -34,8 +34,10 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase> > iscore_plugin_record
     return instantiate_factories<
             iscore::ApplicationContext,
             TL<
-            FW<Process::ProcessFactory,
+            FW<Process::ProcessModelFactory,
                RecordedMessages::ProcessFactory>,
+            FW<Process::LayerFactory,
+               RecordedMessages::LayerFactory>,
             FW<Process::InspectorWidgetDelegateFactory,
                RecordedMessages::InspectorFactory>,
             FW<Engine::Execution::ProcessComponentFactory,

@@ -108,9 +108,13 @@ auto deserialize_interface(
 
 // This one does not have clone.
 #define SERIALIZABLE_MODEL_METADATA_IMPL(Model_T) \
-key_type concreteFactoryKey() const final override \
+static key_type static_concreteFactoryKey() \
 { \
     return Metadata<ConcreteFactoryKey_k, Model_T>::get(); \
+} \
+key_type concreteFactoryKey() const final override \
+{ \
+    return static_concreteFactoryKey(); \
 } \
  \
 void serialize_impl(const VisitorVariant& vis) const final override \

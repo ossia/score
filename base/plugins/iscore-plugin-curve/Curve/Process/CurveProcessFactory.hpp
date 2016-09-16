@@ -85,6 +85,11 @@ class CurveLayerFactory_T :
         UuidKey<Process::LayerFactory> concreteFactoryKey() const override
         { return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get(); }
 
+        bool matches(
+                const UuidKey<Process::ProcessModelFactory>& p) const override
+        {
+            return p == Metadata<ConcreteFactoryKey_k, Model_T>::get();
+        }
     private:
         CurveColors_T m_colors;
 };

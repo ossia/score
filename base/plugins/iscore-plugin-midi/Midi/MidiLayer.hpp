@@ -7,4 +7,10 @@ namespace Midi
 using Layer = Process::LayerModel_T<ProcessModel>;
 }
 
-DEFAULT_MODEL_METADATA(Midi::Layer, "MidiLayer")
+LAYER_METADATA(
+        ,
+        Midi::Layer,
+        "248952e7-843c-4ad4-b9a4-36987a87d544",
+        "MidiLayer",
+        "MidiLayer"
+        )

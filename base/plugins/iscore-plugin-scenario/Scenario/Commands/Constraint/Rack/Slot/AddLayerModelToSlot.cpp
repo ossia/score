@@ -79,12 +79,12 @@ void AddLayerModelToSlot::redo() const
 
 void AddLayerModelToSlot::serializeImpl(DataStreamInput& s) const
 {
-    s << m_slotPath << m_processPath << m_processData << m_createdLayerId;
+    s << m_slotPath << m_processPath << m_layerFactory << m_processData << m_createdLayerId;
 }
 
 void AddLayerModelToSlot::deserializeImpl(DataStreamOutput& s)
 {
-    s >> m_slotPath >> m_processPath >> m_processData >> m_createdLayerId;
+    s >> m_slotPath >> m_processPath >> m_layerFactory >> m_processData >> m_createdLayerId;
 }
 }
 }

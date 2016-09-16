@@ -25,7 +25,6 @@ class ScenarioFactory final :
         public Process::ProcessModelFactory
 {
     public:
-        ScenarioFactory(Scenario::EditionSettings&);
         UuidKey<Process::ProcessModelFactory> concreteFactoryKey() const override;
         QString prettyName() const override;
 
@@ -43,6 +42,7 @@ class ScenarioTemporalLayerFactory final :
         public Process::LayerFactory
 {
     public:
+        ScenarioTemporalLayerFactory(Scenario::EditionSettings&);
         QByteArray makeStaticLayerConstructionData() const override;
 
         QByteArray makeLayerConstructionData(
@@ -75,6 +75,9 @@ class ScenarioTemporalLayerFactory final :
                 const Process::LayerModel& viewmodel,
                 QGraphicsItem* parent) override;
 
+        bool matches(
+                const UuidKey<Process::ProcessModelFactory>& p) const override;
+        UuidKey<Process::LayerFactory> concreteFactoryKey() const override;
     private:
         Scenario::EditionSettings& m_editionSettings;
 

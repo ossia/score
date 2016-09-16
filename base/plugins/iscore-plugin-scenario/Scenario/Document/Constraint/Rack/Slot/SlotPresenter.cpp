@@ -40,7 +40,7 @@ SlotPresenter::SlotPresenter(
         const Process::ProcessPresenterContext& ctx,
         QObject* par) :
     QObject {par},
-    m_processList{ctx.app.components.factory<Process::ProcessFactoryList>()},
+    m_processList{ctx.app.components.factory<Process::LayerFactoryList>()},
     m_model {model},
     m_view {new SlotView{*this, view}},
     m_context{ctx}
@@ -250,7 +250,7 @@ void SlotPresenter::on_layerModelCreated_impl(
 {
     const auto& procKey = proc_vm.processModel().concreteFactoryKey();
 
-    auto factory = m_processList.get(procKey);
+    auto factory = m_processList.findDefaultFactory(procKey);
     ISCORE_ASSERT(factory);
 
     int numproc = m_looping
@@ -318,7 +318,7 @@ void SlotPresenter::updateProcesses()
             if(proc_size < numproc)
             {
                 auto procKey = proc.model->processModel().concreteFactoryKey();
-                auto factory = m_processList.get(procKey);
+                auto factory = m_processList.findDefaultFactory(procKey);
                 ISCORE_ASSERT(factory);
 
                 for(int i = proc_size; i < numproc; i++)

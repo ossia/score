@@ -125,7 +125,7 @@ void InsertContentInConstraint::redo() const
     }
 
     // Clone the rackes
-    auto& procs = context.components.factory<Process::ProcessFactoryList>();
+    auto& procs = context.components.factory<Process::LayerFactoryList>();
 
     const auto& src_racks = src_constraint.racks;
     for(const auto& sourcerack: src_racks)
@@ -144,7 +144,7 @@ void InsertContentInConstraint::redo() const
                     {
                         // We can safely reuse the same id since it's in a different slot.
                         auto proc = processPairs[&lm.processModel()];
-                        auto fact = procs.get(proc->concreteFactoryKey());
+                        auto fact = procs.findDefaultFactory(*proc);
                         // TODO harmonize the order of parameters (source first, then new id)
                         target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
                     }

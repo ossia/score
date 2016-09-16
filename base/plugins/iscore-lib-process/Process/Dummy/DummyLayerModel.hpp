@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/LayerModel.hpp>
+#include <Process/ProcessFactory.hpp>
 #include <Process/ProcessMetadata.hpp>
 
 namespace Dummy
@@ -14,4 +15,3 @@ LAYER_METADATA(
         "DummyLayerModel",
         "DummyLayerModel"
         )
-
