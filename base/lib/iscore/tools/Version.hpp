@@ -19,6 +19,8 @@ class Version
         bool operator<=(Version other) const { return m_impl <= other.m_impl; }
         bool operator>=(Version other) const { return m_impl >= other.m_impl; }
 
+        int32_t value() const
+        { return m_impl; }
     private:
         int32_t m_impl = 0;
 };
