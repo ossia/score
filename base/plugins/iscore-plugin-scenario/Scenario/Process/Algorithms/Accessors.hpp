@@ -98,7 +98,8 @@ const ConstraintModel& previousConstraint(
         const StateModel& st,
         const Scenario_T& scenario)
 {
-    return scenario.constraint(st.previousConstraint());
+    ISCORE_ASSERT(st.previousConstraint());
+    return scenario.constraint(*st.previousConstraint());
 }
 
 template<typename Scenario_T>
@@ -106,7 +107,8 @@ const ConstraintModel& nextConstraint(
         const StateModel& st,
         const Scenario_T& scenario)
 {
-    return scenario.constraint(st.nextConstraint());
+    ISCORE_ASSERT(st.nextConstraint());
+    return scenario.constraint(*st.nextConstraint());
 }
 
 
