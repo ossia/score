@@ -11,7 +11,9 @@
 #include <iterator>
 #include <stdexcept>
 #include <typeinfo>
+#include <QStringBuilder>
 
+#include <boost/range.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectIdentifier.hpp>
@@ -82,12 +84,7 @@ QString ObjectPath::toString() const
 
     for(auto& obj : m_objectIdentifiers)
     {
-        s += obj.objectName();
-
-        s += ".";
-        s += QString::number(obj.id());
-
-        s += "/";
+        s += obj.objectName() % "." % QString::number(obj.id()) % "/";
     }
 
     return s;
@@ -155,9 +152,9 @@ QObject* ObjectPath::find_impl() const
         obj = findById_weak_safe(objs, m_objectIdentifiers.at(0).id());
     }
 
-    std::vector<ObjectIdentifier> children{
+     auto children = boost::make_iterator_range(
         m_objectIdentifiers.begin() + 1,
-        m_objectIdentifiers.end()};
+        m_objectIdentifiers.end());
     for(const auto& currentObjIdentifier : children)
     {
         auto found_children = obj->findChildren<IdentifiedObjectAbstract*> (currentObjIdentifier.objectName(),
@@ -194,10 +191,10 @@ QObject* ObjectPath::find_impl_unsafe() const
             return nullptr;
     }
 
-    std::vector<ObjectIdentifier> children(m_objectIdentifiers.size() - 1);
-    std::copy(std::begin(m_objectIdentifiers) + 1,
-              std::end(m_objectIdentifiers),
-              std::begin(children));
+
+    auto children = boost::make_iterator_range(
+              std::begin(m_objectIdentifiers) + 1,
+              std::end(m_objectIdentifiers));
     for(const auto& currentObjIdentifier : children)
     {
         auto found_children = obj->findChildren<IdentifiedObjectAbstract*> (

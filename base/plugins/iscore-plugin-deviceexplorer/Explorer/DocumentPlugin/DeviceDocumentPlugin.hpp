@@ -20,19 +20,26 @@ struct VisitorVariant;
 namespace Explorer
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
-        public iscore::SerializableDocumentPlugin,
-        public iscore::concrete
+        public iscore::SerializableDocumentPlugin
 {
         Q_OBJECT
+        ISCORE_SERIALIZE_FRIENDS(DeviceDocumentPlugin, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(DeviceDocumentPlugin, JSONObject)
     public:
         explicit DeviceDocumentPlugin(
                 const iscore::DocumentContext& ctx,
+                Id<DocumentPlugin> id,
                 QObject* parent);
 
+        template<typename Impl>
         DeviceDocumentPlugin(
                 const iscore::DocumentContext& ctx,
-                const VisitorVariant& loader,
-                QObject* parent);
+                Deserializer<Impl>& vis,
+                QObject* parent):
+            iscore::SerializableDocumentPlugin{ctx, vis, parent}
+        {
+            vis.writeTo(*this);
+        }
 
         Device::Node& rootNode()
         { return m_rootNode; }

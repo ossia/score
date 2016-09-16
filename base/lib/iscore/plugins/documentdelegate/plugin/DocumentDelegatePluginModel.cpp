@@ -7,9 +7,10 @@ class Document;
 
 DocumentPlugin::DocumentPlugin(
         const iscore::DocumentContext& ctx,
+        Id<DocumentPlugin> id,
         const QString& name,
         QObject* parent):
-    NamedObject{name, parent},
+    IdentifiedObject<DocumentPlugin>{id, name, parent},
     m_context{ctx}
 {
 

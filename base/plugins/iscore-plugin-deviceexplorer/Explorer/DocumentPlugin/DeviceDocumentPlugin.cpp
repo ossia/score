@@ -37,8 +37,9 @@ namespace Explorer
 {
 DeviceDocumentPlugin::DeviceDocumentPlugin(
         const iscore::DocumentContext& ctx,
+        Id<DocumentPlugin> id,
         QObject* parent):
-    iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, std::move(id), "Explorer::DeviceDocumentPlugin", parent}
 {
     m_explorer = new DeviceExplorerModel{*this, this};
 }
@@ -55,25 +56,6 @@ struct print_node_rec
             }
         }
 };
-
-DeviceDocumentPlugin::DeviceDocumentPlugin(
-        const iscore::DocumentContext& ctx,
-        const VisitorVariant& vis,
-        QObject* parent):
-    iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
-{
-    deserialize_dyn(vis, *this);
-    m_explorer = new DeviceExplorerModel{*this, this};
-    // Here everything is loaded in m_loadingNode
-
-    // Here we recreate the correct structures in term of devices,
-    // given what's present in the node hierarchy
-    for(const auto& node : m_loadingNode)
-    {
-        updateProxy.loadDevice(node);
-    }
-    m_loadingNode = Device::Node{};
-}
 
 void DeviceDocumentPlugin::serialize_impl(const VisitorVariant& vis) const
 {

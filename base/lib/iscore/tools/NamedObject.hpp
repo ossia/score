@@ -6,7 +6,8 @@
 // This file contains utility algorithms & classes that can be used
 // everywhere (core, plugins...)
 ////////////////////////////////////////////////
-class ISCORE_LIB_BASE_EXPORT NamedObject : public QObject
+class ISCORE_LIB_BASE_EXPORT NamedObject :
+        public QObject
 {
         Q_OBJECT
     public:

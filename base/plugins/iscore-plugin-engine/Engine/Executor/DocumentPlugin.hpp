@@ -26,7 +26,10 @@ class BaseScenarioElement;
 class ISCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public iscore::DocumentPlugin
 {
     public:
-        DocumentPlugin(iscore::Document& doc, QObject* parent);
+        DocumentPlugin(
+                iscore::Document& doc,
+                Id<iscore::DocumentPlugin>,
+                QObject* parent);
 
         ~DocumentPlugin();
         void reload(Scenario::ConstraintModel& doc);
