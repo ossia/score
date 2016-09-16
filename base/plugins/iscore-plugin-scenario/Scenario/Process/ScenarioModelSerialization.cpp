@@ -2,7 +2,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
-
+#include <Scenario/Application/ScenarioValidity.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -161,6 +161,7 @@ void Visitor<Writer<DataStream>>::writeTo(
         Scenario::SetNextConstraint(scenario.states.at(constraint.startState()), constraint);
     }
 
+    //Scenario::ScenarioValidityChecker::checkValidity(scenario);
     checkDelimiter();
 }
 
@@ -251,6 +252,7 @@ void Visitor<Writer<JSONObject>>::writeTo(
         Scenario::SetNextConstraint(scenario.states.at(constraint.startState()), constraint);
     }
 
+    //Scenario::ScenarioValidityChecker::checkValidity(scenario);
 }
 
 Process::ProcessModel* Scenario::ScenarioFactory::load(

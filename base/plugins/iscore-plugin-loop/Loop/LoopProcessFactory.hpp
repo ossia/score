@@ -10,7 +10,8 @@
 
 namespace Loop
 {
-using ProcessFactory = Process::GenericProcessFactory<
+using ProcessFactory = Process::GenericProcessModelFactory<Loop::ProcessModel>;
+using LayerFactory = Process::GenericLayerFactory<
     Loop::ProcessModel,
     Loop::Layer,
     Loop::LayerPresenter,

@@ -192,7 +192,8 @@ void ConstraintActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
     ctxm.insert(std::move(cm));
 }
 
-void ConstraintActions::addProcessInConstraint(const UuidKey<Process::ProcessFactory>& processName)
+void ConstraintActions::addProcessInConstraint(
+        const UuidKey<Process::ProcessModelFactory>& processName)
 {
     auto selectedConstraints = selectedConstraintsInCurrentDocument(m_parent->context);
     if(selectedConstraints.isEmpty())

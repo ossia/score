@@ -104,8 +104,10 @@ class ISCORE_LIB_PROCESS_EXPORT LayerFactory:
                 const LayerModel& layer,
                 QObject* parent);
 
+        bool matches(
+                const Process::ProcessModel& p) const;
         virtual bool matches(
-                const Process::ProcessModel&) const;
+                const UuidKey<Process::ProcessModelFactory>&) const = 0;
 
     protected:
         virtual LayerModel* makeLayer_impl(

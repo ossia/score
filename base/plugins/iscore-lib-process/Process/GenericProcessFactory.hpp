@@ -111,9 +111,9 @@ class GenericLayerFactory final :
                 QObject* parent) final override;
 
         bool matches(
-                const Process::ProcessModel& p) const override
+                const UuidKey<Process::ProcessModelFactory>& p) const override
         {
-            return p.concreteFactoryKey() == Model_T::static_concreteFactoryKey();
+            return p == Metadata<ConcreteFactoryKey_k, Model_T>::get();
         }
 };
 
@@ -198,8 +198,14 @@ class GenericLayerFactory<Model_T, LayerModel_T, default_t, default_t, default_t
         virtual ~GenericLayerFactory() = default;
 
     private:
-        UuidKey<Process::ProcessModelFactory> concreteFactoryKey() const override
+        UuidKey<Process::LayerFactory> concreteFactoryKey() const override
         { return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get(); }
+
+        bool matches(
+                const UuidKey<Process::ProcessModelFactory>& p) const override
+        {
+            return p == Metadata<ConcreteFactoryKey_k, Model_T>::get();
+        }
 };
 
 template<typename LayerModel_T>

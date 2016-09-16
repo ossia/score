@@ -28,7 +28,7 @@ void AddProcessDialog::launchWindow()
 {
     bool ok = false;
 
-    std::vector<std::pair<QString, UuidKey<Process::ProcessFactory>>> sortedFactoryList;
+    std::vector<std::pair<QString, UuidKey<Process::ProcessModelFactory>>> sortedFactoryList;
     for(const auto& factory : m_factoryList)
     {
         sortedFactoryList.push_back(

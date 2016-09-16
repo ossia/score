@@ -56,13 +56,13 @@ void SlotModel::copyViewModelsInSameConstraint(
         const SlotModel &source,
         SlotModel &target)
 {
-    auto& procs = iscore::AppContext().components.factory<Process::ProcessFactoryList>();
+    auto& procs = iscore::AppContext().components.factory<Process::LayerFactoryList>();
 
     for(const auto& lm : source.layers)
     {
         // We can safely reuse the same id since it's in a different slot.
         auto& proc = lm.processModel();
-        auto fact = procs.get(proc.concreteFactoryKey());
+        auto fact = procs.findDefaultFactory(proc.concreteFactoryKey());
 
         target.layers.add(
                     fact->cloneLayer(

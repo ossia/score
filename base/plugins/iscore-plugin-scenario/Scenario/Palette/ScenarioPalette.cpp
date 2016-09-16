@@ -34,7 +34,6 @@ ToolPalette::ToolPalette(
     m_createTool{*this},
     m_selectTool{*this},
     m_playTool{*this},
-    m_moveSlotTool{*this},
     m_inputDisp{presenter.view(), *this, lay}
 {
 }
@@ -60,9 +59,6 @@ void ToolPalette::on_pressed(QPointF point)
         case Scenario::Tool::Play:
             m_playTool.on_pressed(point, scenarioPoint);
             break;
-        case Scenario::Tool::MoveSlot:
-            m_moveSlotTool.on_pressed(point);
-            break;
         default:
             break;
     }
@@ -80,9 +76,6 @@ void ToolPalette::on_moved(QPointF point)
             break;
         case Scenario::Tool::Select:
             m_selectTool.on_moved(point, scenarioPoint);
-            break;
-        case Scenario::Tool::MoveSlot:
-            m_moveSlotTool.on_moved();
             break;
         default:
             break;
@@ -108,10 +101,6 @@ void ToolPalette::on_released(QPointF point)
         case Scenario::Tool::Select:
             m_selectTool.on_released(point, scenarioPoint);
             break;
-        case Scenario::Tool::MoveSlot:
-            m_moveSlotTool.on_released();
-            es.setTool(Scenario::Tool::Select);
-            break;
         default:
             break;
     }
@@ -122,20 +111,15 @@ void ToolPalette::on_cancel()
 {
     m_createTool.on_cancel();
     m_selectTool.on_cancel();
-    m_moveSlotTool.on_cancel();
     m_presenter.editionSettings().setTool(Scenario::Tool::Select);
 }
 
 void ToolPalette::activate(Tool t)
 {
-    if(t == Scenario::Tool::MoveSlot)
-        m_moveSlotTool.activate();
 }
 
 void ToolPalette::desactivate(Tool t)
 {
-    if(t == Scenario::Tool::MoveSlot)
-        m_moveSlotTool.desactivate();
 }
 
 Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)

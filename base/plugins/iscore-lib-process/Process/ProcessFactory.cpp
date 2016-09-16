@@ -118,6 +118,9 @@ LayerModelPanelProxy* LayerFactory::makePanel(const LayerModel& layer, QObject* 
 }
 
 bool LayerFactory::matches(const ProcessModel& p) const
+{ return matches(p.concreteFactoryKey()); }
+
+bool LayerFactory::matches(const UuidKey<Process::ProcessModelFactory>& p) const
 {
     return false;
 }
@@ -158,4 +161,18 @@ LayerModel*LayerFactory::cloneLayer_impl(
                 parent};
 }
 
+LayerFactory* LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
+{
+    return findDefaultFactory(proc.concreteFactoryKey());
+}
+
+LayerFactory* LayerFactoryList::findDefaultFactory(const UuidKey<ProcessModelFactory>& proc) const
+{
+    for(auto& fac : *this)
+    {
+        if(fac.matches(proc))
+            return &fac;
+    }
+    return nullptr;
+}
 }

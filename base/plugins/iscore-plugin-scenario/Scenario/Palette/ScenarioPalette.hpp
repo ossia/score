@@ -72,8 +72,6 @@ class ToolPalette final : public GraphicsSceneToolPalette
 
         PlayToolState m_playTool;
 
-        MoveSlotTool m_moveSlotTool;
-
         ToolPaletteInputDispatcher<
             Scenario::Tool,
             ToolPalette,

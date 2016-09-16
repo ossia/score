@@ -44,7 +44,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
 
             m_slotsCmd.reserve(slotList.size());
 
-            auto fact = context.components.factory<Process::ProcessFactoryList>().get(
+            auto fact = context.components.factory<Process::LayerFactoryList>().findDefaultFactory(
                         Metadata<ConcreteFactoryKey_k, ProcessModel_T>::get());
             ISCORE_ASSERT(fact);
             auto procData = fact->makeStaticLayerConstructionData();

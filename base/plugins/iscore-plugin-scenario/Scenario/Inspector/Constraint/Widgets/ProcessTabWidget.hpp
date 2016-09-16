@@ -21,7 +21,7 @@ class ProcessTabWidget :
     signals:
 
     public slots:
-        void createProcess(const UuidKey<Process::ProcessFactory>& processName);
+        void createProcess(const UuidKey<Process::ProcessModelFactory>& processName);
         void displaySharedProcess(const Process::ProcessModel&);
 
         void updateDisplayedValues();

@@ -108,8 +108,8 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
         Curve::SegmentModel& segmt)
 {
     using namespace Curve;
-    segmt.m_previous = fromJsonValue<Id<SegmentModel>>(m_obj[strings.Previous]);
-    segmt.m_following = fromJsonValue<Id<SegmentModel>>(m_obj[strings.Following]);
+    segmt.m_previous = fromJsonValue<OptionalId<SegmentModel>>(m_obj[strings.Previous]);
+    segmt.m_following = fromJsonValue<OptionalId<SegmentModel>>(m_obj[strings.Following]);
     segmt.m_start = fromJsonValue<Curve::Point>(m_obj[strings.Start]);
     segmt.m_end = fromJsonValue<Curve::Point>(m_obj[strings.End]);
 }

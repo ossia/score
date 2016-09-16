@@ -128,7 +128,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
                 AddProcess(constraint, newproc);
             }
 
-            auto& procs = context.components.factory<Process::ProcessFactoryList>();
+            auto& procs = context.components.factory<Process::LayerFactoryList>();
 
             // Clone the rackes
             for(const auto& sourcerack : src_constraint.racks)
@@ -147,7 +147,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
                     {
                         // We can safely reuse the same id since it's in a different slot.
                         Process::ProcessModel* proc = processPairs[&lm.processModel()];
-                        auto fact = procs.get(proc->concreteFactoryKey());
+                        auto fact = procs.findDefaultFactory(proc->concreteFactoryKey());
 
                         // TODO harmonize the order of parameters (source first, then new id)
                         target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));

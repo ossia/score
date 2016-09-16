@@ -89,6 +89,7 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
     return make_ptr_vector<iscore::FactoryListInterface,
             Process::ProcessFactoryList,
             Process::StateProcessList,
+            Process::LayerFactoryList,
             MoveEventList,
             CSPCoherencyCheckerList,
             ConstraintInspectorDelegateFactoryList,
@@ -103,13 +104,13 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
 }
 
 template<>
-struct FactoryBuilder<iscore::ApplicationContext, Scenario::ScenarioFactory>
+struct FactoryBuilder<iscore::ApplicationContext, Scenario::ScenarioTemporalLayerFactory>
 {
         static auto make(const iscore::ApplicationContext& ctx)
         {
             using namespace Scenario;
             auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
-            return std::make_unique<ScenarioFactory>(appPlugin.editionSettings());
+            return std::make_unique<ScenarioTemporalLayerFactory>(appPlugin.editionSettings());
         }
 };
 
@@ -122,8 +123,10 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
     return instantiate_factories<
             iscore::ApplicationContext,
     TL<
-    FW<Process::ProcessFactory,
+    FW<Process::ProcessModelFactory,
         ScenarioFactory>,
+   FW<Process::LayerFactory,
+        ScenarioTemporalLayerFactory>,
     FW<MoveEventFactoryInterface,
         MoveEventClassicFactory>,
     FW<Process::InspectorWidgetDelegateFactory,
