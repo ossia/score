@@ -124,7 +124,8 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> : public AbstractVisito
 
         template<typename T,
                  std::enable_if_t<
-                     is_abstract_base<T>::value
+                     is_abstract_base<T>::value &&
+                     !is_concrete<T>::value
                      >* = nullptr>
         void readFrom(const T& obj)
         {
