@@ -57,16 +57,6 @@ struct print_node_rec
         }
 };
 
-void DeviceDocumentPlugin::serialize_impl(const VisitorVariant& vis) const
-{
-    serialize_dyn(vis, *this);
-}
-
-auto DeviceDocumentPlugin::concreteFactoryKey() const -> ConcreteFactoryKey
-{
-    return DocumentPluginFactory::static_concreteFactoryKey();
-}
-
 Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & node)
 {
     try {

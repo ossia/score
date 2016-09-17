@@ -26,13 +26,13 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
         const iscore::SerializableDocumentPlugin& dpm)
 {
-    // Nothing to save
+    readFrom(static_cast<const IdentifiedObject<iscore::DocumentPlugin>&>(dpm));
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
         const iscore::SerializableDocumentPlugin& dpm)
 {
-    // Nothing to save
+    readFrom(static_cast<const IdentifiedObject<iscore::DocumentPlugin>&>(dpm));
 }
 

@@ -10,13 +10,7 @@
 #include <core/document/Document.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-
-class QObject;
-namespace iscore {
-class Document;
-}  // namespace iscore
-struct VisitorVariant;
-
+#include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 namespace Explorer
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
@@ -25,6 +19,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         Q_OBJECT
         ISCORE_SERIALIZE_FRIENDS(DeviceDocumentPlugin, DataStream)
         ISCORE_SERIALIZE_FRIENDS(DeviceDocumentPlugin, JSONObject)
+
+        SERIALIZABLE_MODEL_METADATA_IMPL(DeviceDocumentPlugin)
     public:
         explicit DeviceDocumentPlugin(
                 const iscore::DocumentContext& ctx,
@@ -69,9 +65,6 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         DeviceExplorerModel& explorer() const { return *m_explorer; }
 
     private:
-        void serialize_impl(const VisitorVariant&) const override;
-        ConcreteFactoryKey concreteFactoryKey() const override;
-
         void initDevice(Device::DeviceInterface&);
         Device::Node m_rootNode;
         Device::DeviceList m_list;

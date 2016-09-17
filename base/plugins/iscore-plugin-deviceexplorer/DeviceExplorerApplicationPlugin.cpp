@@ -8,6 +8,7 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 struct VisitorVariant;
 

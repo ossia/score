@@ -2,6 +2,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 #include <QString>
 #include <vector>
 
@@ -76,6 +77,32 @@ class ISCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final :
 {
     public:
         using object_type = DocumentPlugin;
+};
+
+
+template<typename T>
+class DocumentPluginFactory_T final :
+        public iscore::DocumentPluginFactory
+{
+    public:
+        T* load(
+                const VisitorVariant& var,
+                iscore::DocumentContext& doc,
+                QObject* parent) override
+        {
+            return deserialize_dyn(var, [&] (auto&& deserializer)
+            { return new T{doc, deserializer, parent}; });
+        }
+
+        static UuidKey<iscore::DocumentPluginFactory> static_concreteFactoryKey()
+        {
+            return Metadata<ConcreteFactoryKey_k, T>::get();
+        }
+
+        UuidKey<iscore::DocumentPluginFactory> concreteFactoryKey() const final override
+        {
+            return Metadata<ConcreteFactoryKey_k, T>::get();
+        }
 };
 
 }
