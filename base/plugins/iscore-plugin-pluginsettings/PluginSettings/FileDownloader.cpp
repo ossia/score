@@ -8,7 +8,10 @@ FileDownloader::FileDownloader(QUrl imageUrl)
             this, &FileDownloader::fileDownloaded);
 
     QNetworkRequest request(imageUrl);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+#endif
     request.setAttribute(QNetworkRequest::SpdyAllowedAttribute, true);
     request.setAttribute(QNetworkRequest::HttpPipeliningAllowedAttribute, true);
     m_mgr.get(request);

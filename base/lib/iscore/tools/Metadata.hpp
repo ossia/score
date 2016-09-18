@@ -69,7 +69,7 @@ class Json_k;
     { \
             static Q_DECL_RELAXED_CONSTEXPR Type get() \
             { \
-                const Q_RELAXED_CONSTEXPR Type k{Value}; \
+                const Q_DECL_RELAXED_CONSTEXPR Type k{Value}; \
                 return k; \
             } \
     };
