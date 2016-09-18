@@ -15,7 +15,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT LeftBraceView final :
         { return QGraphicsItem::UserType + ItemType::LeftBrace; }
         int type() const override
         { return static_type(); }
-
 };
 
 }

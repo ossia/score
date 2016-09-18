@@ -19,6 +19,7 @@ class View final :
         void askContextMenu(const QPoint&, const QPointF&);
         void pressed();
         void doubleClicked(QPointF);
+        void deleteRequested();
 
     private:
         void paint_impl(QPainter*) const override;
@@ -27,6 +28,7 @@ class View final :
         void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
         void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
         void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) override;
+        void keyPressEvent(QKeyEvent*) override;
 
 
         QPainterPath m_selectArea;

@@ -311,6 +311,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Interpolation/InterpolationInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/ExpressionEditorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/SimpleExpressionEditorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/ExpressionMenu.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Summary/SummaryInspectorWidget.cpp"
 

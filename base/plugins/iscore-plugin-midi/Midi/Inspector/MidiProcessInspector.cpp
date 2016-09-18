@@ -35,12 +35,6 @@ InspectorWidget::InspectorWidget(
         }
     }
 
-    connect(m_devices, SignalUtils::QComboBox_currentIndexChanged_int(),
-            this, [&] (int idx) {
-        CommandDispatcher<> d{doc.commandStack};
-        d.submitCommand(new SetOutput{model, m_devices->itemText(idx)});
-    });
-
     con(model, &ProcessModel::deviceChanged,
         this, [=] (const QString& dev) {
         if(dev != m_devices->currentText())
@@ -61,6 +55,12 @@ InspectorWidget::InspectorWidget(
       m_devices->setItemData(m_devices->count() - 1, f, Qt::FontRole);
       m_devices->setCurrentIndex(m_devices->count() - 1);
     }
+
+    connect(m_devices, SignalUtils::QComboBox_currentIndexChanged_int(),
+            this, [&] (int idx) {
+        CommandDispatcher<> d{doc.commandStack};
+        d.submitCommand(new SetOutput{model, m_devices->itemText(idx)});
+    });
 
     m_chan = new QSpinBox;
     m_chan->setMinimum(1);

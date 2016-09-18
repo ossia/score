@@ -11,6 +11,7 @@ class MinuitProtocolFactory final :
         ISCORE_CONCRETE_FACTORY("d305c12e-31f0-46e3-8c9b-3b8744092fc4")
         // Implement with OSSIA::Device
         QString prettyName() const override;
+        int visualPriority() const override;
 
         Device::DeviceInterface* makeDevice(
                 const Device::DeviceSettings& settings,

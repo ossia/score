@@ -26,10 +26,10 @@ class MinuitProtocolSettingsWidget final :
         void setDefaults();
 
     protected:
-        QLineEdit* m_deviceNameEdit;
-        QSpinBox* m_portInputSBox;
-        QSpinBox* m_portOutputSBox;
-        QLineEdit* m_localHostEdit;
+        QLineEdit* m_deviceNameEdit{};
+        QSpinBox* m_portInputSBox{};
+        QSpinBox* m_portOutputSBox{};
+        QLineEdit* m_localHostEdit{};
 
 };
 }

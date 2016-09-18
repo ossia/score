@@ -17,6 +17,7 @@
 #include <QJsonDocument>
 #include <QJsonValue>
 #include <QKeySequence>
+#include <QMainWindow>
 #include <QMenu>
 #include <qnamespace.h>
 #include <QObject>
@@ -69,6 +70,7 @@ ObjectMenuActions::ObjectMenuActions(
     connect(m_removeElements, &QAction::triggered,
             [this]()
     {
+
         auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
         if (sm)
         {
@@ -149,6 +151,9 @@ ObjectMenuActions::ObjectMenuActions(
 
         Scenario::mergeTimeNodes(*sm, m_parent->currentDocument()->context().commandStack);
     });
+
+    parent->context.mainWindow.addAction(m_removeElements);
+    parent->context.mainWindow.addAction(m_clearElements);
 
 }
 

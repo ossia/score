@@ -32,7 +32,10 @@ Device::DeviceInterface* LocalProtocolFactory::makeDevice(
 {
     auto doc = ctx.findPlugin<LocalTree::DocumentPlugin>();
     if(doc)
+    {
+        doc->localDevice().updateSettings(settings);
         return &doc->localDevice();
+    }
     else
         return nullptr;
 }
@@ -44,6 +47,10 @@ const Device::DeviceSettings& LocalProtocolFactory::static_defaultSettings()
         s.protocol = static_concreteFactoryKey(); // Todo check for un-set protocol.
         s.name = "i-score";
         Network::LocalSpecificSettings specif;
+        specif.host = "127.0.0.1";
+        specif.remoteName = "i-score-remote";
+        specif.localPort = 6666;
+        specif.remotePort = 9999;
         s.deviceSpecificSettings = QVariant::fromValue(specif);
         return s;
     }();

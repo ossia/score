@@ -109,6 +109,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT NodeUpdateProxy
 
         State::Value refreshRemoteValue(
                 const State::Address&) const;
+        optional<State::Value> try_refreshRemoteValue(
+                const State::Address&) const;
         void refreshRemoteValues(
                 const Device::NodeList&);
 

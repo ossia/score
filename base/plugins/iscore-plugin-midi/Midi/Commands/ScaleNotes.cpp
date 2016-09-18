@@ -10,7 +10,7 @@ ScaleNotes::ScaleNotes(
         double delta):
   m_model{model},
   m_toScale{to_move},
-  m_ratio{delta}
+  m_delta{delta}
 {
 }
 
@@ -20,7 +20,7 @@ void ScaleNotes::undo() const
     for(auto& note : m_toScale)
     {
         auto& n = model.notes.at(note);
-        n.setDuration(n.duration() / m_ratio);
+        n.setDuration(n.duration() - m_delta);
     }
 }
 
@@ -30,17 +30,17 @@ void ScaleNotes::redo() const
     for(auto& note : m_toScale)
     {
         auto& n = model.notes.at(note);
-        n.setDuration(n.duration() * m_ratio);
+        n.setDuration(n.duration() + m_delta);
     }
 }
 
 void ScaleNotes::serializeImpl(DataStreamInput& s) const
 {
-    s << m_model << m_toScale << m_ratio;
+    s << m_model << m_toScale << m_delta;
 }
 
 void ScaleNotes::deserializeImpl(DataStreamOutput& s)
 {
-    s >> m_model >> m_toScale >> m_ratio;
+    s >> m_model >> m_toScale >> m_delta;
 }
 }
