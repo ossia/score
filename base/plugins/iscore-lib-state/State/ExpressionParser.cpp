@@ -110,7 +110,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
         State::AddressAccessor,
         (State::Address, address)
-        (std::vector<int32_t>, accessors)
+        (State::AccessorVector, accessors)
         )
 
 BOOST_FUSION_ADAPT_STRUCT(

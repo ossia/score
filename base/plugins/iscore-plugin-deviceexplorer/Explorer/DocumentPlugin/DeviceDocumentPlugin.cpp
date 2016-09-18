@@ -175,7 +175,7 @@ void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
 {
     con(newdev, &Device::DeviceInterface::valueUpdated,
         this, [&] (const State::Address& addr, const State::Value& v) {
-        updateProxy.updateLocalValue(addr, v);
+        updateProxy.updateLocalValue(State::AddressAccessor{addr}, v);
     });
 
     con(newdev, &Device::DeviceInterface::pathAdded,

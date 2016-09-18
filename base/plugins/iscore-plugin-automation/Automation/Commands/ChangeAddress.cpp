@@ -21,15 +21,16 @@ namespace Automation
 {
 ChangeAddress::ChangeAddress(
         Path<ProcessModel> &&path,
-        const ::State::Address &newval):
-    m_path{path}
+        const ::State::AddressAccessor &newval):
+    m_path{path},
+    m_newAddress{newval}
 {
     auto& autom = m_path.find();
 
     // Get the current data.
-    m_old.address = autom.address();
-    m_old.domain.min.val = autom.min();
-    m_old.domain.max.val = autom.max();
+    m_oldAddress = autom.address();
+    m_oldDomain.min.val = autom.min();
+    m_oldDomain.max.val = autom.max();
 
     if(auto deviceexplorer = Explorer::try_deviceExplorerFromObject(autom))
     {
@@ -38,20 +39,19 @@ ChangeAddress::ChangeAddress(
         // If the node isn't found, we fallback on common values.
 
         // Get the new data.
-        auto newpath = newval.path;
-        newpath.prepend(newval.device);
+        auto newpath = newval.address.path;
+        newpath.prepend(newval.address.device);
         auto new_n = Device::try_getNodeFromString(deviceexplorer->rootNode(), std::move(newpath));
         if(new_n)
         {
             ISCORE_ASSERT(new_n->is<Device::AddressSettings>());
-            m_new = Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(
-                        new_n->get<Device::AddressSettings>(), newval);
+            m_newDomain = new_n->get<Device::AddressSettings>().domain;
         }
         else
         {
-            m_new.address = newval;
-            m_new.domain.min.val = 0.;
-            m_new.domain.max.val = 1.;
+            m_newAddress = newval;
+            m_newDomain.min.val = 0.;
+            m_newDomain.max.val = 1.;
         }
     }
 }
@@ -60,12 +60,12 @@ ChangeAddress::ChangeAddress(
         Path<ProcessModel> &&path,
         Device::FullAddressSettings newval):
     m_path{path},
-    m_new{std::move(newval)}
+    m_newAddress{newval.address}
 {
     auto& autom = m_path.find();
-    m_old.address = autom.address();
-    m_old.domain.min.val = autom.min();
-    m_old.domain.max.val = autom.max();
+    m_oldAddress = autom.address();
+    m_oldDomain.min.val = autom.min();
+    m_oldDomain.max.val = autom.max();
 }
 
 
@@ -75,10 +75,10 @@ void ChangeAddress::undo() const
 
     {
         QSignalBlocker blck{autom.curve()};
-        autom.setMin(::State::convert::value<double>(m_old.domain.min));
-        autom.setMax(::State::convert::value<double>(m_old.domain.max));
+        autom.setMin(::State::convert::value<double>(m_oldDomain.min));
+        autom.setMax(::State::convert::value<double>(m_oldDomain.max));
 
-        autom.setAddress(m_old.address);
+        autom.setAddress(m_oldAddress);
     }
     autom.curve().changed();
 }
@@ -89,21 +89,21 @@ void ChangeAddress::redo() const
 
     {
         QSignalBlocker blck{autom.curve()};
-        autom.setMin(::State::convert::value<double>(m_new.domain.min));
-        autom.setMax(::State::convert::value<double>(m_new.domain.max));
+        autom.setMin(::State::convert::value<double>(m_newDomain.min));
+        autom.setMax(::State::convert::value<double>(m_newDomain.max));
 
-        autom.setAddress(m_new.address);
+        autom.setAddress(m_newAddress);
     }
     autom.curve().changed();
 }
 
 void ChangeAddress::serializeImpl(DataStreamInput & s) const
 {
-    s << m_path << m_old << m_new;
+    s << m_path << m_oldAddress << m_newAddress << m_oldDomain << m_newDomain;
 }
 
 void ChangeAddress::deserializeImpl(DataStreamOutput & s)
 {
-    s >> m_path >> m_old >> m_new;
+    s >> m_path >> m_oldAddress >> m_newAddress >> m_oldDomain >> m_newDomain;
 }
 }

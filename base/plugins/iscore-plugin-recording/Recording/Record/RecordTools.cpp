@@ -85,7 +85,7 @@ RecordListening GetAddressesToRecordRecursive(
         auto dev_it = find_if(recordListening,
                               [&] (const auto& vec)
         {
-            return Device::deviceName(*vec.front()) == addr.device;
+            return Device::deviceName(*vec.front()) == addr.address.device;
         });
 
         if(dev_it != recordListening.end())

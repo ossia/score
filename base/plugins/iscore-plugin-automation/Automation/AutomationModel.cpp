@@ -170,7 +170,7 @@ ProcessState* ProcessModel::endStateData() const
     return m_endState;
 }
 
-::State::Address ProcessModel::address() const
+::State::AddressAccessor ProcessModel::address() const
 {
     return m_address;
 }
@@ -185,7 +185,7 @@ double ProcessModel::max() const
     return m_max;
 }
 
-void ProcessModel::setAddress(const ::State::Address &arg)
+void ProcessModel::setAddress(const ::State::AddressAccessor &arg)
 {
     if(m_address == arg)
     {

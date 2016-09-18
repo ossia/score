@@ -43,7 +43,7 @@ ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make(
 {
     FullAddressSettings as;
 
-    as.address = mess.address;
+    as.address = mess.address.address;
     as.value = mess.value;
 
     return as;
@@ -57,7 +57,7 @@ ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make(
 
     FullAddressSettings as;
     static_cast<AddressSettingsCommon&>(as) = other;
-    as.address = Device::address(node);
+    as.address = Device::address(node).address;
 
     return as;
 }

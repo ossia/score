@@ -9,37 +9,6 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const State::AddressAccessor& rel)
-{
-    m_stream << rel.address << rel.accessors;
-
-    insertDelimiter();
-}
-
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const State::AddressAccessor& rel)
-{
-    m_obj[strings.address] = toJsonObject(rel.address);
-    m_obj["Accessors"] = toJsonValueArray(rel.accessors);
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(State::AddressAccessor& rel)
-{
-    m_stream >> rel.address >> rel.accessors;
-
-    checkDelimiter();
-}
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(State::AddressAccessor& rel)
-{
-    fromJsonObject(m_obj[strings.address], rel.address);
-    fromJsonArray(m_obj["Accessors"].toArray(), rel.accessors);
-}
-
-
-template<>
 void Visitor<Reader<DataStream>>::readFrom(const State::Pulse& rel)
 {
     m_stream << rel.address;

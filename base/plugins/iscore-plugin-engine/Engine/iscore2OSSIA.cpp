@@ -326,7 +326,7 @@ optional<ossia::message> message(
         const State::Message& mess,
         const Device::DeviceList& deviceList)
 {
-    auto dev_p = deviceList.findDevice(mess.address.device);
+    auto dev_p = deviceList.findDevice(mess.address.address.device);
     if(!dev_p)
         return {};
 
@@ -343,7 +343,7 @@ optional<ossia::message> message(
             return {};
 
         auto ossia_node = Engine::iscore_to_ossia::findNodeFromPath(
-                    mess.address.path,
+                    mess.address.address.path,
                     *dev);
 
         if(!ossia_node)

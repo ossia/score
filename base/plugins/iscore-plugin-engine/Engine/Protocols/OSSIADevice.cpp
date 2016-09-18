@@ -395,7 +395,8 @@ void OSSIADevice::sendMessage(const State::Message& mess)
 {
     if(auto dev = getDevice())
     {
-        auto node = Engine::iscore_to_ossia::getNodeFromPath(mess.address.path, *dev);
+        ISCORE_TODO; // FIXME handle address accessor
+        auto node = Engine::iscore_to_ossia::getNodeFromPath(mess.address.address.path, *dev);
 
         auto addr = node->getAddress();
         if(addr)

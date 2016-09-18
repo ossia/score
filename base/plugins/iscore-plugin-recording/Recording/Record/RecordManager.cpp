@@ -201,7 +201,7 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
     //// Creation of the curves ////
     for(const auto& vec : recordListening)
     {
-        addresses.push_back({Device::address(*vec.front())});
+        addresses.push_back({Device::address(*vec.front()).address});
         addresses.back().reserve(vec.size());
 
         for(auto node : vec)

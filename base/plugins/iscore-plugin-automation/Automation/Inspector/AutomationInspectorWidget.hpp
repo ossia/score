@@ -35,7 +35,7 @@ class InspectorWidget final :
                 QWidget* parent);
 
     private:
-        void on_addressChange(const ::State::Address& newText);
+        void on_addressChange(const ::State::AddressAccessor& newText);
         void on_minValueChanged();
         void on_maxValueChanged();
         void on_tweenChanged();

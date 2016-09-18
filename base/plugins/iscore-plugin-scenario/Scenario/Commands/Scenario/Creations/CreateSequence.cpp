@@ -165,7 +165,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
                 constraint,
                 layer_vect,
                 process_ids[cur_proc],
-                elt.first.address, start, end, min, max};
+                elt.first.address.address, start, end, min, max};
         m_interpolations.addCommand(cmd);
         cur_proc++;
     }
@@ -182,7 +182,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
                               constraint,
                               layer_vect,
                               process_ids[cur_proc],
-                              elt.first.address,
+                              elt.first.address.address,
                               elt.first.value,
                               elt.second.value
                           });

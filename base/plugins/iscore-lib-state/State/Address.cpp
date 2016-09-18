@@ -3,6 +3,7 @@
 #include <State/Address.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <QStringBuilder>
+#include <State/Expression.hpp>
 namespace State
 {
 bool Address::validateString(const QString &str)
@@ -92,6 +93,32 @@ QString AddressAccessor::toString() const
         str += "[" % QString::number(acc) % "]";
     }
     return str;
+}
+
+QString AddressAccessor::toShortString() const
+{
+    auto str = address.toShortString();
+    for(auto acc : accessors)
+    {
+        str += "[" % QString::number(acc) % "]";
+    }
+    return str;
+}
+
+QString AddressAccessor::accessorsString() const
+{
+    QString str;
+    for(auto acc : accessors)
+    {
+        str += "[" % QString::number(acc) % "]";
+    }
+    return str;
+}
+
+optional<AddressAccessor> AddressAccessor::fromString(
+        const QString& str)
+{
+    return parseAddressAccessor(str);
 }
 
 QDebug operator<<(QDebug d, const State::Address& a)

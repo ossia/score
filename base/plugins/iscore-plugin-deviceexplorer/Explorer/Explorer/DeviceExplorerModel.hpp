@@ -114,7 +114,9 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
                 Device::Node&& child,
                 int row);
 
-        void updateValue(Device::Node* n,
+        void updateValue(
+                Device::Node* n,
+                const State::AddressAccessor& addr,
                 const State::Value& v);
 
         // Checks if the settings can be added; if not,

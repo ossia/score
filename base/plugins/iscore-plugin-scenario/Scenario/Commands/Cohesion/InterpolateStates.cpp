@@ -99,7 +99,7 @@ struct MessagePairs
                         auto has_existing_curve = any_of(constraint.processes,
                                     [&] (const Process::ProcessModel& proc) {
                             auto ptr = dynamic_cast<const Interpolation::ProcessModel*>(&proc);
-                            return ptr && ptr->address() == message.address;
+                            return ptr && ptr->address() == message.address.address;
                         });
 
                         if(has_existing_curve)
@@ -163,7 +163,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 
             double min = std::min(start, end);
             double max = std::max(start, end);
-            if(auto node = Device::try_getNodeFromAddress(rootNode, elt.first.address))
+            if(auto node = Device::try_getNodeFromAddress(rootNode, elt.first.address.address))
             {
                 const Device::AddressSettings& as = node->get<Device::AddressSettings>();
                 if(as.domain.min.val.isNumeric())
@@ -177,7 +177,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
                                   constraint,
                                   bigLayerVec[cur_proc],
                                   process_ids[cur_proc],
-                                  elt.first.address,
+                                  elt.first.address.address,
                                   start, end, min, max
                               });
 
@@ -191,7 +191,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
                                   constraint,
                                   bigLayerVec[cur_proc],
                                   process_ids[cur_proc],
-                                  elt.first.address,
+                                  elt.first.address.address,
                                   elt.first.value,
                                   elt.second.value
                               });
