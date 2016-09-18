@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include "RemoveMessageNodes.hpp"
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -13,14 +14,14 @@ namespace Command
 {
 
 RemoveMessageNodes::RemoveMessageNodes(
-        Path<MessageItemModel>&& device_tree,
+        Path<StateModel>&& device_tree,
         const QList<const Process::MessageNode*>& nodes):
     m_path{device_tree}
 {
     auto model = m_path.try_find();
     if(model)
     {
-        m_oldState = model->rootNode();
+        m_oldState = model->messages().rootNode();
     }
 
     m_newState = m_oldState;
@@ -32,13 +33,13 @@ RemoveMessageNodes::RemoveMessageNodes(
 
 void RemoveMessageNodes::undo() const
 {
-    auto& model = m_path.find();
+    auto& model = m_path.find().messages();
     model = m_oldState;
 }
 
 void RemoveMessageNodes::redo() const
 {
-    auto& model = m_path.find();
+    auto& model = m_path.find().messages();
     model = m_newState;
 }
 

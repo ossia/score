@@ -11,6 +11,7 @@
 #include <QString>
 #include <algorithm>
 
+#include <Scenario/Document/State/StateModel.hpp>
 #include "MessageItemModel.hpp"
 #include <Process/State/MessageNode.hpp>
 #include <State/Message.hpp>
@@ -219,7 +220,7 @@ bool MessageItemModel::dropMimeData(
                 QJsonDocument::fromJson(data->data(iscore::mime::messagelist())).array(),
                 ml);
 
-    auto cmd = new Command::AddMessagesToState{*this, ml};
+    auto cmd = new Command::AddMessagesToState{stateModel, ml};
 
     CommandDispatcher<> disp(m_stack);
     disp.submitCommand(cmd);
@@ -285,7 +286,7 @@ bool MessageItemModel::setData(
             {
                 State::convert::convert(*current_val, value);
             }
-            auto cmd = new Command::AddMessagesToState{*this,
+            auto cmd = new Command::AddMessagesToState{stateModel,
                                      State::MessageList{{address(n), value}}};
 
             CommandDispatcher<> disp(m_stack);

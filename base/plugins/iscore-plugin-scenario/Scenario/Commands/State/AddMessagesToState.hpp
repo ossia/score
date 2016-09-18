@@ -15,7 +15,7 @@ namespace Process { class ProcessModel; }
 
 namespace Scenario
 {
-class MessageItemModel;
+class StateModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final : public iscore::SerializableCommand
@@ -24,7 +24,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final : public iscore::Se
         public:
 
           AddMessagesToState(
-            Path<MessageItemModel>&&,
+            Path<StateModel>&&,
             const State::MessageList& messages);
 
         void undo() const override;
@@ -35,7 +35,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final : public iscore::Se
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<MessageItemModel> m_path;
+        Path<StateModel> m_path;
 
         Process::MessageNode m_oldState, m_newState;
 

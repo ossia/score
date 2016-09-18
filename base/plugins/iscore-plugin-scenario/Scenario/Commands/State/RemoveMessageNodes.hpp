@@ -11,7 +11,7 @@ struct DataStreamOutput;
 
 namespace Scenario
 {
-class MessageItemModel;
+class StateModel;
 
 namespace Command
 {
@@ -21,7 +21,7 @@ class RemoveMessageNodes final : public iscore::SerializableCommand
 
         public:
           RemoveMessageNodes(
-            Path<MessageItemModel>&& ,
+            Path<StateModel>&& ,
             const QList<const Process::MessageNode*>&);
 
         void undo() const override;
@@ -32,7 +32,7 @@ class RemoveMessageNodes final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<MessageItemModel> m_path;
+        Path<StateModel> m_path;
         Process::MessageNode m_oldState;
         Process::MessageNode m_newState;
 };

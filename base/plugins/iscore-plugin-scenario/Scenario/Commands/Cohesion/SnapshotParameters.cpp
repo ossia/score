@@ -46,7 +46,7 @@ void SnapshotParametersInStates(const iscore::DocumentContext& doc)
     for(auto& state : selected_states)
     {
         auto cmd = new Scenario::Command::AddMessagesToState{
-                state->messages(),
+                *state,
                 messages};
         macro.submitCommand(cmd);
     }

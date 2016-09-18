@@ -26,12 +26,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final : public iscore::S
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "Add a layer to a slot")
         public:
-            // Use this constructor when the process already exists
-        /*
-        AddLayerModelToSlot(
-                Path<SlotModel>&& slot,
-                Path<Process::ProcessModel>&& process);
-                    */
         AddLayerModelToSlot(
                 const SlotModel& slot,
                 const Process::ProcessModel& process);
@@ -39,13 +33,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final : public iscore::S
         // Use this constructor when the process isn't created yet
         AddLayerModelToSlot(
                 Path<SlotModel>&& slot,
-                Path<Process::ProcessModel>&& process,
+                const Process::ProcessModel& process,
                 QByteArray processConstructionData);
 
         AddLayerModelToSlot(
                 Path<SlotModel>&& slot,
                 Id<Process::LayerModel> layerid,
-                Path<Process::ProcessModel>&& process,
+                Path<Process::ProcessModel> process,
+                UuidKey<Process::LayerFactory> uid,
                 QByteArray processConstructionData);
 
         void undo() const override;

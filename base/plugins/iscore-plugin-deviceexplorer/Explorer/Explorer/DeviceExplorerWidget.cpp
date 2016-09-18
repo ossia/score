@@ -491,7 +491,7 @@ void DeviceExplorerWidget::refresh()
         auto wrkr = make_worker(
             [=] (Device::Node&& node) {
                 auto cmd = new Explorer::Command::ReplaceDevice{
-                    *m,
+                    m->deviceModel(),
                     m_ntView->selectedIndex().row(),
                     std::move(node)};
 
@@ -534,7 +534,7 @@ void DeviceExplorerWidget::refreshValue()
 
     // Send the command
     Explorer::Command::UpdateAddressesValues cmd{
-            *model(),
+            model()->deviceModel(),
             lst};
 
     cmd.redo();

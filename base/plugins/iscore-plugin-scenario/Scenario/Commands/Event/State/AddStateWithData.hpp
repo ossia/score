@@ -25,8 +25,7 @@ class AddStateWithData final : public iscore::AggregateCommand
 
             // We create the path of the to-be state
             auto path = createStateCmd->scenarioPath()
-                        .extend(createStateCmd->createdState())
-                        .extend(Id<MessageItemModel>{});
+                        .extend(createStateCmd->createdState());
 
             addCommand(createStateCmd);
             addCommand(new AddMessagesToState{

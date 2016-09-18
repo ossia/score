@@ -198,7 +198,7 @@ class CreationState : public CreationStateBase<Scenario_T>
                 return;
 
             m_dispatcher.submitCommand(new AddMessagesToState{
-                                           m_parentSM.model().states.at(this->createdStates.last()).messages(),
+                                           m_parentSM.model().states.at(this->createdStates.last()),
                                            messages});
         }
 

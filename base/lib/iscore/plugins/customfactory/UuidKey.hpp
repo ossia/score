@@ -6,7 +6,11 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 class JSONObject;
-
+#if defined(__GNUC__) && __GNUC__ < 6
+// GCC 5.x isn't happy with throw in constexpr...
+#undef Q_DECL_RELAXED_CONSTEXPR
+#defined Q_DECL_RELAXED_CONSTEXPR
+#endif
 namespace iscore
 {
 namespace uuids
