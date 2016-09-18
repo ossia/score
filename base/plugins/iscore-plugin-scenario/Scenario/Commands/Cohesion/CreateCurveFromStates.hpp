@@ -55,6 +55,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
                             Path<SlotModel>(elt.first),
                             elt.second,
                             Path<Process::ProcessModel>{proc},
+                            fact->concreteFactoryKey(),
                             procData);
             }
         }

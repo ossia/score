@@ -115,17 +115,5 @@ Path<T> path(const T& obj)
     return obj.m_path_cache;
 }
 
-template<typename T, std::enable_if_t<
-             !std::is_base_of<
-                 IdentifiedObjectAbstract,
-                 T
-                >::value
-             >*
-         >
-Path<T> path(const T& obj)
-{
-    static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
-    return Path<T>{iscore::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
-}
 }
 }

@@ -37,15 +37,6 @@ template<typename T, std::enable_if_t<
              >* = nullptr
          >
 Path<T> path(const T& obj);
-
-template<typename T, std::enable_if_t<
-             !std::is_base_of<
-                 IdentifiedObjectAbstract,
-                 T
-                >::value
-             >* = nullptr
-         >
-Path<T> path(const T& obj);
 }
 }
 

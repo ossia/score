@@ -19,21 +19,21 @@ namespace Scenario
 namespace Command
 {
 AddMessagesToState::AddMessagesToState(
-        Path<MessageItemModel> &&device_tree,
+        Path<StateModel>&& state,
         const State::MessageList& messages):
-    m_path{device_tree}
+    m_path{state}
 {
     auto model = m_path.try_find();
     if(model)
     {
-        m_oldState = model->rootNode();
+        m_oldState = model->messages().rootNode();
     }
 
     m_newState = m_oldState;
 
     if(model)
     {
-        auto& sm = model->stateModel;
+        auto& sm = *model;
 
         // TODO backup all the processes, not just the messages.
 
@@ -76,7 +76,7 @@ AddMessagesToState::AddMessagesToState(
 
 void AddMessagesToState::undo() const
 {
-    auto& model = m_path.find();
+    auto& model = m_path.find().messages();
     model = m_oldState;
 
     // Restore the state of the processes.
@@ -93,7 +93,7 @@ void AddMessagesToState::undo() const
 
 void AddMessagesToState::redo() const
 {
-    auto& model = m_path.find();
+    auto& model = m_path.find().messages();
     model = m_newState;
 }
 

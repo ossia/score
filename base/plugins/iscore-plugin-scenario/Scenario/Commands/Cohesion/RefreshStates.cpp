@@ -52,7 +52,7 @@ void RefreshStates(
         {
             elt.value = proxy.refreshRemoteValue(elt.address);
         }
-        macro->addCommand(new AddMessagesToState{state.messages(), messages});
+        macro->addCommand(new AddMessagesToState{state, messages});
     }
 
     CommandDispatcher<> disp{stack};

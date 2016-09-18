@@ -5,7 +5,7 @@
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include "UpdateAddresses.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -19,7 +19,7 @@ namespace Command
 {
 // TODO this should not be a command, values can be updated without undo-ability.
 UpdateAddressesValues::UpdateAddressesValues(
-        Path<DeviceExplorerModel>&& device_tree,
+        Path<DeviceDocumentPlugin>&& device_tree,
         const QList<QPair<const Device::Node *, State::Value> > &nodes):
     m_deviceTree{std::move(device_tree)}
 {
@@ -32,14 +32,14 @@ UpdateAddressesValues::UpdateAddressesValues(
 
 void UpdateAddressesValues::undo() const
 {
-    auto& explorer = m_deviceTree.find();
+    auto& explorer = m_deviceTree.find().explorer();
     for(const auto& elt : m_data)
         explorer.editData(elt.first, Explorer::Column::Value, elt.second.first, Qt::EditRole);
 }
 
 void UpdateAddressesValues::redo() const
 {
-    auto& explorer = m_deviceTree.find();
+    auto& explorer = m_deviceTree.find().explorer();
     for(const auto& elt : m_data)
         explorer.editData(elt.first, Explorer::Column::Value, elt.second.second, Qt::EditRole);
 }

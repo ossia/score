@@ -1,4 +1,5 @@
 #include <State/MessageListSerialization.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QMimeData>
@@ -85,9 +86,7 @@ void StatePresenter::handleDrop(const QMimeData *mime)
         Mime<State::MessageList>::Deserializer des{*mime};
         State::MessageList ml = des.deserialize();
 
-        auto cmd = new Command::AddMessagesToState{
-                   iscore::IDocument::path(m_model.messages()),
-                   ml};
+        auto cmd = new Command::AddMessagesToState{m_model, ml};
 
         m_dispatcher.submitCommand(cmd);
     }

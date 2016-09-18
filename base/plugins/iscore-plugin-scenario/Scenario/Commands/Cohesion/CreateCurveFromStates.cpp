@@ -24,14 +24,8 @@
 #include <iscore/tools/NotifyingMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-namespace Process { class LayerModel; }
-namespace State {
-struct Address;
-}  // namespace iscore
-
 namespace Scenario
 {
-class SlotModel;
 namespace Command
 {
 CreateAutomationFromStates::CreateAutomationFromStates(
