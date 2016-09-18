@@ -7,18 +7,18 @@ namespace iscore
     public: \
     using base_component_type = Type; \
     \
-    static Q_RELAXED_CONSTEXPR Component::Key static_key() { \
+    static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() { \
         return_uuid(Uuid); \
     } \
     \
-    static Q_RELAXED_CONSTEXPR bool base_key_match(Component::Key other) { \
+    static Q_DECL_RELAXED_CONSTEXPR bool base_key_match(Component::Key other) { \
       return static_key() == other; \
     } \
     private:
 
 #define COMPONENT_METADATA(Uuid) \
     public: \
-    static Q_RELAXED_CONSTEXPR Component::Key static_key() { \
+    static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() { \
         return_uuid(Uuid); \
     } \
     \
@@ -33,7 +33,7 @@ namespace iscore
 
 #define COMMON_COMPONENT_METADATA(Uuid) \
     public: \
-    static Q_RELAXED_CONSTEXPR Component::Key static_key() { \
+    static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() { \
         return_uuid(Uuid); \
     } \
     \

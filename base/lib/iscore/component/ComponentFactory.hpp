@@ -7,7 +7,7 @@
 
 #define ISCORE_ABSTRACT_COMPONENT_FACTORY( Type ) \
     public: \
-    static Q_RELAXED_CONSTEXPR iscore::AbstractFactoryKey static_abstractFactoryKey() { \
+    static Q_DECL_RELAXED_CONSTEXPR iscore::AbstractFactoryKey static_abstractFactoryKey() { \
         return static_cast<iscore::AbstractFactoryKey>(Type::static_key().impl()); \
     } \
     \
