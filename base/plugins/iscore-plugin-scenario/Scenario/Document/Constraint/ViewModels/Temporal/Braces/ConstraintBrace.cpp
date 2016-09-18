@@ -67,16 +67,15 @@ void ConstraintBrace::paint(QPainter* painter,
 void ConstraintBrace::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     if(event->button() == Qt::MouseButton::LeftButton)
-        emit m_parent.presenter().pressed(event->scenePos());
+        m_parent.presenter().pressed(event->scenePos());
 }
 
 void ConstraintBrace::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-        emit m_parent.presenter().moved(event->scenePos());
-
+    m_parent.presenter().moved(event->scenePos());
 }
 
 void ConstraintBrace::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-        emit m_parent.presenter().released(event->scenePos());
+    m_parent.presenter().released(event->scenePos());
 }

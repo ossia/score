@@ -5,6 +5,7 @@
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <list>
 #include <vector>
+#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
 
 class QLabel;
 class QLineEdit;
@@ -60,6 +61,7 @@ class EventInspectorWidget final : public QWidget
 
         MetadataWidget* m_metadata {};
 
+        ExpressionMenu m_menu;
         ExpressionEditorWidget* m_exprEditor{};
 };
 }

@@ -11,9 +11,13 @@ QJSValue APIWrapper::value(QJSValue address)
     auto addr_str = address.toString();
     if(State::Address::validateString(addr_str))
     {
-        return JS::convert::value(
-                    m_engine,
-                    devices.updateProxy.refreshRemoteValue(State::Address::fromString(addr_str)));
+        auto val = devices.updateProxy.try_refreshRemoteValue(State::Address::fromString(addr_str));
+        if(val)
+        {
+            return JS::convert::value(
+                        m_engine,
+                        *std::move(val));
+        }
     }
 
     return {};

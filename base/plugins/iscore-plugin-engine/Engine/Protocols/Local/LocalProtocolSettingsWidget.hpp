@@ -21,6 +21,11 @@ class LocalProtocolSettingsWidget final :
     private:
         Device::DeviceSettings getSettings() const override;
         void setSettings(const Device::DeviceSettings& settings) override;
+
+        QLineEdit* m_remoteNameEdit{};
+        QLineEdit* m_localHostEdit{};
+        QSpinBox* m_localPort{};
+        QSpinBox* m_remotePort{};
 };
 
 }

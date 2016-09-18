@@ -82,11 +82,15 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
         on_editFinished();
     });
     connect(m_comparator, &QComboBox::currentTextChanged,
-            this, [&] (QString) {on_editFinished();} );
+            this, [&] {
+        on_editFinished();
+    } );
     connect(m_value, &QLineEdit::editingFinished,
             this, &SimpleExpressionEditorWidget::on_editFinished);
     connect(m_binOperator, &QComboBox::currentTextChanged,
-            this, [&] (QString) {on_editFinished(); });
+            this, [&] {
+        on_editFinished();
+    });
 
     // enable value field
     connect(m_comparator,  SignalUtils::QComboBox_currentIndexChanged_int(),
@@ -111,7 +115,16 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
         m_comparator->addItem(c.second, QVariant::fromValue(c.first));
     }
 
-    m_comparator->setCurrentText(lst.at(ExpressionEditorComparator::None));
+    m_comparator->setCurrentText(lst.at(ExpressionEditorComparator::AlwaysFalse));
+
+    QSizePolicy sp_retain = m_binOperator->sizePolicy();
+    sp_retain.setRetainSizeWhenHidden(true);
+    m_binOperator->setSizePolicy(sp_retain);
+
+    if(id == 0)
+        m_binOperator->setVisible(false);
+    else
+        m_binOperator->setCurrentIndex(1);
 }
 
 State::Expression SimpleExpressionEditorWidget::relation()

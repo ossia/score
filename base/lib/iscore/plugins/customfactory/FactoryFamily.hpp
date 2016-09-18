@@ -82,8 +82,7 @@ class ConcreteFactoryList :
             return (it != this->map.end()) ? it->second.get() : nullptr;
         }
 
-    protected:
-        const auto& list() const
+        const auto& ptr_list() const
         { return this->map; }
 
     private:

@@ -24,6 +24,10 @@ class ISCORE_LIB_DEVICE_EXPORT ProtocolFactory :
 
         virtual QString prettyName() const = 0;
 
+        /** The one with the highest priority
+         * will show up first in the protocol list */
+        virtual int visualPriority() const;
+
         virtual DeviceInterface* makeDevice(
                 const Device::DeviceSettings& settings,
                 const iscore::DocumentContext& ctx) = 0;

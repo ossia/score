@@ -13,8 +13,11 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <QInputDialog>
 #include <QMenu>
+
+
 namespace Scenario
 {
+
 TriggerInspectorWidget::TriggerInspectorWidget(
         const iscore::DocumentContext& doc,
         const Command::TriggerCommandFactoryList& fact,
@@ -23,7 +26,8 @@ TriggerInspectorWidget::TriggerInspectorWidget(
     QWidget{parent},
     m_triggerCommandFactory{fact},
     m_model {object},
-    m_parent{parent}
+    m_parent{parent},
+    m_menu{[&] { return m_model.trigger()->expression(); }}
 {
     auto triglay = new QHBoxLayout{this};
 
@@ -35,11 +39,7 @@ TriggerInspectorWidget::TriggerInspectorWidget(
 
     m_addTrigBtn = new QPushButton{tr("Add Trigger")};
     m_menuButton = new QPushButton{"#"};
-    m_menu = new QMenu;
-    m_menuButton->setMenu(m_menu);
-    auto delete_act = m_menu->addAction(tr("Delete"));
-    auto edit_act = m_menu->addAction(tr("Edit"));
-    auto add_sub_act = m_menu->addAction(tr("Add sub-expression"));
+    m_menuButton->setMenu(m_menu.menu);
 
     triglay->addWidget(m_exprEditor);
     triglay->addWidget(m_menuButton);
@@ -50,26 +50,18 @@ TriggerInspectorWidget::TriggerInspectorWidget(
     connect(m_addTrigBtn, &QPushButton::released,
             this, &TriggerInspectorWidget::createTrigger );
 
-    connect(add_sub_act, &QAction::triggered,
-            m_exprEditor, &ExpressionEditorWidget::addNewTerm);
-    connect(delete_act, &QAction::triggered,
+    connect(m_menu.addSubAction, &QAction::triggered,
+            m_exprEditor, [=] {
+        m_exprEditor->addNewTerm();
+        m_exprEditor->on_editFinished();
+    });
+    connect(m_menu.deleteAction, &QAction::triggered,
             this, &TriggerInspectorWidget::removeTrigger);
-    connect(edit_act, &QAction::triggered,
-            this, [=] () {
-        bool ok = false;
-        auto str = QInputDialog::getText(
-                       this,
-                       tr("Edit trigger"),
-                       tr("Edit trigger"),
-                       QLineEdit::Normal,
-                       m_model.trigger()->expression().toString(),
-                       &ok);
-        if(!ok)
-            return;
-
+    con(m_menu, &ExpressionMenu::expressionChanged,
+            this, [=] (const QString& str) {
         if(auto trig = State::parseExpression(str))
         {
-            if(trig != m_model.trigger()->expression())
+            if(*trig != m_model.trigger()->expression())
             {
                 auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
                 m_parent->commandDispatcher()->submitCommand(cmd);

@@ -1,5 +1,5 @@
 #include <State/Widgets/AddressLineEdit.hpp>
-#include <QGridLayout>
+#include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
 
@@ -20,36 +20,24 @@ namespace Network
 MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-    QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
     m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
-    QLabel* portInputLabel = new QLabel(tr("Device listening port"), this);
     m_portInputSBox = new QSpinBox(this);
     m_portInputSBox->setRange(0, 65535);
 
-    QLabel* portOutputLabel = new QLabel(tr("i-score listening port"), this);
     m_portOutputSBox = new QSpinBox(this);
     m_portOutputSBox->setRange(0, 65535);
 
-    QLabel* localHostLabel = new QLabel(tr("Host"), this);
     m_localHostEdit = new QLineEdit(this);
 
+    QFormLayout* layout = new QFormLayout;
 
-    QGridLayout* gLayout = new QGridLayout;
+    layout->addRow(tr("Device Name"), m_deviceNameEdit);
+    layout->addRow(tr("Device listening port"), m_portInputSBox);
+    layout->addRow(tr("i-score listening port"), m_portOutputSBox);
+    layout->addRow(tr("Host"), m_localHostEdit);
 
-    gLayout->addWidget(deviceNameLabel, 0, 0, 1, 1);
-    gLayout->addWidget(m_deviceNameEdit, 0, 1, 1, 1);
-
-    gLayout->addWidget(portInputLabel, 1, 0, 1, 1);
-    gLayout->addWidget(m_portInputSBox, 1, 1, 1, 1);
-
-    gLayout->addWidget(portOutputLabel, 2, 0, 1, 1);
-    gLayout->addWidget(m_portOutputSBox, 2, 1, 1, 1);
-
-    gLayout->addWidget(localHostLabel, 3, 0, 1, 1);
-    gLayout->addWidget(m_localHostEdit, 3, 1, 1, 1);
-
-    setLayout(gLayout);
+    setLayout(layout);
 
     setDefaults();
 }

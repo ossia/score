@@ -12,6 +12,7 @@
 
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/Commands/ScaleNotes.hpp>
+#include <Midi/Commands/RemoveNotes.hpp>
 
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/range/adaptor/filtered.hpp>
@@ -62,6 +63,17 @@ Presenter::Presenter(
     connect(m_view, &View::pressed,
             this, [&] () {
         m_context.context.focusDispatcher.focus(this);
+    });
+
+    connect(m_view, &View::deleteRequested,
+            this, [&] {
+        CommandDispatcher<>{
+            context().context.commandStack}
+           .submitCommand(
+                    new RemoveNotes{
+                        m_layer.processModel(),
+                        selectedNotes()});
+
     });
 
     connect(m_view, &View::askContextMenu,
@@ -151,12 +163,13 @@ void Presenter::setupNote(NoteView& v)
     con(v, &NoteView::noteScaled,
         this, [&] (double newScale) {
 
+        auto dt = newScale - v.note.duration();
         CommandDispatcher<>{
             context().context.commandStack}.submitCommand(
                     new ScaleNotes{
                         m_layer.processModel(),
                         selectedNotes(),
-                        newScale / v.note.duration() });
+                        dt });
     });
 }
 
