@@ -102,7 +102,7 @@ inline QJSValue value(
 }
 
 inline QJSValue address(
-        const State::Address& val)
+        const State::AddressAccessor& val)
 {
     return val.toString();
 }
@@ -194,7 +194,10 @@ inline State::Message message(const QJSValue& val)
         auto iscore_val = val.property(strings.value);
         if(iscore_addr.isString())
         {
-            return {State::Address::fromString(iscore_addr.toString()), value(iscore_val)};
+            auto res = State::AddressAccessor::fromString(iscore_addr.toString());
+            if(res)
+                return {*res, value(iscore_val)};
+            return {};
         }
     }
 
@@ -212,7 +215,7 @@ inline State::MessageList messages(const QJSValue& val)
     {
         it.next();
         auto mess = message(it.value());
-        if(!mess.address.device.isEmpty())
+        if(!mess.address.address.device.isEmpty())
         {
             ml.append(mess);
         }

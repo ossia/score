@@ -90,7 +90,7 @@ class LayerPresenter final :
                 if(newAddr == autom.address())
                     return;
 
-                if(newAddr.path.isEmpty())
+                if(newAddr.address.path.isEmpty())
                     return;
 
                 CommandDispatcher<> disp{context().context.commandStack};

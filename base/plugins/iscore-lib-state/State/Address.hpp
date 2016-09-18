@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <QMetaType>
 #include <QMetaObject>
+#include <iscore/tools/std/Optional.hpp>
+#include <boost/container/static_vector.hpp>
 #include <iscore_lib_state_export.h>
 
 namespace State
@@ -68,14 +70,46 @@ inline QStringList stringList(const State::Address& addr)
     return QStringList{} << addr.device << addr.path;
 }
 
+using AccessorVector = boost::container::static_vector<char, 8>;
 struct ISCORE_LIB_STATE_EXPORT AddressAccessor
 {
+        AddressAccessor() = default;
+        AddressAccessor(const AddressAccessor&) = default;
+        AddressAccessor(AddressAccessor&&) = default;
+        AddressAccessor& operator=(const AddressAccessor&) = default;
+        AddressAccessor& operator=(AddressAccessor&&) = default;
+
+        AddressAccessor(State::Address a): address{std::move(a)} { }
+        AddressAccessor(State::Address a, const AccessorVector& v):
+            address{std::move(a)},
+            accessors{v}
+        {
+
+        }
+
+        AddressAccessor& operator=(const Address& a)
+        {
+            address = a;
+            accessors.clear();
+            return *this;
+        }
+
+        AddressAccessor& operator=(Address&& a)
+        {
+            address = std::move(a);
+            accessors.clear();
+            return *this;
+        }
+
         State::Address address;
-        std::vector<int32_t> accessors;
+        AccessorVector accessors;
 
         // Utility
         QString toString() const;
+        QString toShortString() const;
+        QString accessorsString() const;
 
+        static optional<AddressAccessor> fromString(const QString& str);
         bool operator==(const AddressAccessor& other) const
         {
             return address == other.address && accessors == other.accessors;

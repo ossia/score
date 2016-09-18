@@ -17,7 +17,7 @@ namespace State
 struct Message
 {
     Message() = default;
-    Message(State::Address addr, State::Value val):
+    Message(State::AddressAccessor addr, State::Value val):
         address(std::move(addr)),
         value(std::move(val))
     { }
@@ -51,7 +51,7 @@ struct Message
         return s;
     }
 
-    Address address;
+    AddressAccessor address;
     Value value;
 };
 

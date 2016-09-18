@@ -43,7 +43,11 @@ static bool match(Process::MessageNode& node, const State::Message& mess)
 {
     Process::MessageNode* n = &node;
 
-    auto path = Process::toStringList(mess.address);
+    QStringList path = Process::toStringList(mess.address);
+    if(!mess.address.accessors.empty())
+    {
+        path.last() += mess.address.accessorsString();
+    }
     std::reverse(path.begin(), path.end());
     int i = 0;
     int imax = path.size();
@@ -243,7 +247,7 @@ static void rec_updateTree(
 template<typename MergeFun>
 static void merge_impl(
         Process::MessageNode& base,
-        const State::Address& addr,
+        const State::AddressAccessor& addr,
         MergeFun merge)
 {
     QStringList path = Process::toStringList(addr);

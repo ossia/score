@@ -40,7 +40,7 @@ static std::vector<Device::FullAddressSettings> getSelectedAddresses(
             {
                 Device::FullAddressSettings as;
                 static_cast<Device::AddressSettingsCommon&>(as) = addr;
-                as.address = Device::address(node);
+                as.address = Device::address(node).address;
                 addresses.push_back(std::move(as));
             }
         }
@@ -96,7 +96,7 @@ void CreateCurvesFromAddresses(
         const Scenario::StateModel& ss = startState(constraint, *scenar);
         const auto& es = endState(constraint, *scenar);
 
-        std::vector<State::Address> existing_automations;
+        std::vector<State::AddressAccessor> existing_automations;
         for(const auto& proc : constraint.processes)
         {
             if(auto autom = dynamic_cast<const Automation::ProcessModel*>(&proc))

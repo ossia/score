@@ -44,7 +44,7 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessState final :
         ProcessState* clone(QObject* parent) const override;
 
 
-        std::vector<State::Address> matchingAddresses() override;
+        std::vector<State::AddressAccessor> matchingAddresses() override;
 
         ::State::MessageList messages() const override;
 

@@ -59,7 +59,7 @@ using FreeNodeList = std::vector<FreeNode>;
 // TODO add specifications & tests to these functions
 
 ISCORE_LIB_DEVICE_EXPORT QString deviceName(const Node& treeNode);
-ISCORE_LIB_DEVICE_EXPORT State::Address address(const Node& treeNode);
+ISCORE_LIB_DEVICE_EXPORT State::AddressAccessor address(const Node& treeNode);
 
 ISCORE_LIB_DEVICE_EXPORT State::Message message(const Device::Node& node);
 

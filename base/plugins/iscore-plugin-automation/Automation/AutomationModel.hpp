@@ -29,7 +29,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         MODEL_METADATA_IMPL(Automation::ProcessModel)
 
         Q_OBJECT
-        Q_PROPERTY(::State::Address address READ address WRITE setAddress NOTIFY addressChanged)
+        Q_PROPERTY(::State::AddressAccessor address READ address WRITE setAddress NOTIFY addressChanged)
         // Min and max to scale the curve with at execution
         Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
         Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
@@ -51,12 +51,12 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         }
 
 
-        ::State::Address address() const;
+        ::State::AddressAccessor address() const;
 
         double min() const;
         double max() const;
 
-        void setAddress(const ::State::Address& arg);
+        void setAddress(const ::State::AddressAccessor& arg);
         void setMin(double arg);
         void setMax(double arg);
 
@@ -76,7 +76,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         QString prettyName() const override;
 
     signals:
-        void addressChanged(const ::State::Address&);
+        void addressChanged(const ::State::AddressAccessor&);
         void minChanged(double);
         void maxChanged(double);
         void tweenChanged(bool tween);
@@ -96,7 +96,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
                         QObject* parent);
 
         void setCurve_impl() override;
-        ::State::Address m_address;
+        ::State::AddressAccessor m_address;
 
         double m_min{};
         double m_max{};

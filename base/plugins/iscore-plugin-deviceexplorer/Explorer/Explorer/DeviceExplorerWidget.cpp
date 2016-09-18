@@ -519,12 +519,12 @@ void DeviceExplorerWidget::refreshValue()
 
         // Device checks
         auto addr = Device::address(*node);
-        auto& dev = model()->deviceModel().list().device(addr.device);
+        auto& dev = model()->deviceModel().list().device(addr.address.device);
         if(!dev.capabilities().canRefreshValue)
             return;
 
         // Getting the new values
-        auto val = dev.refresh(addr);
+        auto val = dev.refresh(addr.address);
         if(val)
             lst.append({node, *val});
     }

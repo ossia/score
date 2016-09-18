@@ -55,7 +55,7 @@ ProcessState::ProcessState(
     auto tree = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
     if(tree)
     {
-        auto node = Device::try_getNodeFromAddress(tree->rootNode(), m.address);
+        auto node = Device::try_getNodeFromAddress(tree->rootNode(), m.address.address);
         if(node && node->is<Device::AddressSettings>())
         {
             treeValue = node->get<Device::AddressSettings>().value;
@@ -71,6 +71,7 @@ ProcessState::ProcessState(
             m.value.val = seg.valueAt(m_point) * (process().max() - process().min()) + process().min();
 
             // Convert to the correct type.
+            // FIXME we have to take into account the address accessor
             State::convert::convert(treeValue, m.value);
             return m;
         }
@@ -92,20 +93,20 @@ ProcessModel& ProcessState::process() const
     return static_cast<ProcessModel&>(ProcessStateDataInterface::process());
 }
 
-std::vector<State::Address> ProcessState::matchingAddresses()
+std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
 {
     // TODO have a better check of "address validity"
-    if(!process().address().device.isEmpty())
+    if(!process().address().address.device.isEmpty())
         return {process().address()};
     return {};
 }
 
 ::State::MessageList ProcessState::messages() const
 {
-    if(!process().address().device.isEmpty())
+    if(!process().address().address.device.isEmpty())
     {
         auto mess = message();
-        if(!mess.address.device.isEmpty())
+        if(!mess.address.address.device.isEmpty())
             return {mess};
     }
 

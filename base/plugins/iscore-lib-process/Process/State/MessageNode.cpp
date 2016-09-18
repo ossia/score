@@ -1,21 +1,21 @@
 #include "MessageNode.hpp"
 #include <State/Message.hpp>
 #include <iscore/tools/TreeNode.hpp>
-
+#include <QStringBuilder>
 namespace Process
 {
-State::Address address(const Process::MessageNode& treeNode)
+State::AddressAccessor address(const Process::MessageNode& treeNode)
 {
-    State::Address addr;
+    State::AddressAccessor addr;
     auto n = &treeNode;
     while(n->parent() && n->parent()->parent())
     {
-        addr.path.prepend(n->name);
+        addr.address.path.prepend(n->name);
         n = n->parent();
     }
 
     ISCORE_ASSERT(n);
-    addr.device = n->name;
+    addr.address.device = n->name;
 
     return addr;
 }
@@ -48,6 +48,15 @@ QStringList toStringList(const State::Address& addr)
     QStringList l;
     l.append(addr.device);
     return l + addr.path;
+}
+
+QStringList toStringList(const State::AddressAccessor& addr)
+{
+    QStringList l;
+    l += addr.address.device;
+    l += addr.address.path;
+    l.back() += addr.accessorsString();
+    return l;
 }
 
 // TESTME

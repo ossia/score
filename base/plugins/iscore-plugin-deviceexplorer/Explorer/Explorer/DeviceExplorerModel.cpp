@@ -220,8 +220,15 @@ void DeviceExplorerModel::updateAddress(
                 modelIndexFromNode(*node, (int)Column::Count));
 }
 
-void DeviceExplorerModel::updateValue(Device::Node* n, const State::Value& v)
+void DeviceExplorerModel::updateValue(
+        Device::Node* n,
+        const State::AddressAccessor& addr,
+        const State::Value& v)
 {
+    if(!addr.accessors.empty())
+    {
+        ISCORE_TODO;
+    }
     n->get<Device::AddressSettings>().value = v;
 
     QModelIndex nodeIndex = modelIndexFromNode(*n, 1);

@@ -52,6 +52,11 @@ struct FullAddressSettings : public Device::AddressSettingsCommon
         ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings make(
                 const Device::AddressSettings& other,
                 const State::Address& addr);
+        template<typename T>
+        static FullAddressSettings make(
+                const Device::AddressSettings& other,
+                const State::AddressAccessor& addr)
+        { return make<T>(other, addr.address); }
 
         ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings make(
                 const State::Message& mess);

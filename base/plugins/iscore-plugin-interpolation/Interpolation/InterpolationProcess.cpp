@@ -46,7 +46,7 @@ ProcessState*ProcessState::clone(QObject* parent) const
     return new ProcessState{process(), m_point, parent};
 }
 
-std::vector<State::Address> ProcessState::matchingAddresses()
+std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
 {
     // TODO have a better check of "address validity"
     if(!process().address().device.isEmpty())
@@ -59,7 +59,7 @@ State::MessageList ProcessState::messages() const
     if(!process().address().device.isEmpty())
     {
         auto mess = message();
-        if(!mess.address.device.isEmpty())
+        if(!mess.address.address.device.isEmpty())
             return {mess};
     }
 
