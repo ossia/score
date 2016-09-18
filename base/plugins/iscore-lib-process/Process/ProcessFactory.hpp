@@ -12,7 +12,7 @@ class QObject;
 struct VisitorVariant;
 namespace iscore
 {
-class DocumentContext;
+struct DocumentContext;
 }
 namespace Process
 {
