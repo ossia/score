@@ -1,5 +1,5 @@
 
-#include <Explorer/Widgets/AddressEditWidget.hpp>
+#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <QBoxLayout>
 #include <QFormLayout>
@@ -51,13 +51,13 @@ InspectorWidget::InspectorWidget(
     DeviceExplorerModel* explorer{};
     if(plug)
         explorer = &plug->explorer();
-    m_lineEdit = new AddressEditWidget{explorer, this};
+    m_lineEdit = new AddressAccessorEditWidget{explorer, this};
 
     m_lineEdit->setAddress(process().address().address);
     con(process(), &ProcessModel::addressChanged,
-        m_lineEdit, [=] (const State::AddressAccessor& addr) { m_lineEdit->setAddress(addr.address); });
+        m_lineEdit, [=] (const State::AddressAccessor& addr) { m_lineEdit->setAddress(addr); });
 
-    connect(m_lineEdit, &AddressEditWidget::addressChanged,
+    connect(m_lineEdit, &AddressAccessorEditWidget::addressChanged,
             this, &InspectorWidget::on_addressChange);
 
     vlay->addRow(tr("Address"), m_lineEdit);

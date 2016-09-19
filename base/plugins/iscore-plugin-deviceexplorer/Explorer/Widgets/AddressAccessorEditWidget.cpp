@@ -32,7 +32,6 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
         else {
             m_address = State::AddressAccessor{};
         }
-
         emit addressChanged(m_address);
     });
 
