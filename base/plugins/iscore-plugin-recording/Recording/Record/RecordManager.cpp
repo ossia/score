@@ -244,7 +244,7 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
 
             autom.curve().addSegment(segt);
 
-            addresses.back().push_back(Device::address(*node));
+            addresses.back().push_back(Device::address(*node).address);
             records.insert(
                         std::make_pair(
                             addresses.back().back(),

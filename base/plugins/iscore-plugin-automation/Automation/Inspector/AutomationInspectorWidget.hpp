@@ -17,7 +17,7 @@ struct Address;
 }
 namespace Explorer
 {
-class AddressEditWidget;
+class AddressAccessorEditWidget;
 class DeviceExplorerModel;
 }
 class QDoubleSpinBox;
@@ -40,7 +40,7 @@ class InspectorWidget final :
         void on_maxValueChanged();
         void on_tweenChanged();
 
-        Explorer::AddressEditWidget* m_lineEdit{};
+        Explorer::AddressAccessorEditWidget* m_lineEdit{};
         QCheckBox* m_tween{};
         QDoubleSpinBox* m_minsb{}, *m_maxsb{};
 

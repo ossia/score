@@ -128,7 +128,7 @@ bool MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
         addr_vec.reserve(vec.size());
         std::transform(vec.begin(), vec.end(),
                        std::back_inserter(addr_vec),
-                       [] (const auto& e ) { return Device::address(*e); });
+                       [] (const auto& e ) { return Device::address(*e).address; });
         dev.addToListening(addr_vec);
 
         // Add a custom callback.

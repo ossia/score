@@ -50,23 +50,24 @@ void Component::recreate()
     m_ossia_curve.reset(); // It will be remade after.
     m_ossia_process = nullptr;
 
+    auto dest = process().address();
     auto address = Engine::iscore_to_ossia::findAddress(
           m_deviceList,
-          process().address());
+          dest.address);
 
     if(address)
     {
         m_addressType = address->getValueType();
 
       if(process().tween())
-          on_curveChanged(ossia::Destination(*address, {})); // If the type changes we need to rebuild the curve.
+          on_curveChanged(ossia::Destination(*address, dest.accessors)); // If the type changes we need to rebuild the curve.
       else
           on_curveChanged({});
 
       if(m_ossia_curve)
       {
         m_ossia_process = new ossia::automation(
-                    *address,
+                    ossia::Destination(*address, dest.accessors),
                     ossia::Behavior(m_ossia_curve));
       }
     }
@@ -105,6 +106,12 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged(
             m_ossia_curve = on_curveChanged_impl<int>(d);
             break;
         case ossia::val_type::FLOAT:
+            m_ossia_curve = on_curveChanged_impl<float>(d);
+            break;
+        case ossia::val_type::TUPLE:
+        case ossia::val_type::VEC2F:
+        case ossia::val_type::VEC3F:
+        case ossia::val_type::VEC4F:
             m_ossia_curve = on_curveChanged_impl<float>(d);
             break;
         default:
