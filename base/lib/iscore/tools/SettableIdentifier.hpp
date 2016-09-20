@@ -16,11 +16,6 @@ class IdentifiedObject;
  * The base identifier type.
  */
 
-namespace iscore
-{
-struct unsafe_t { unsafe_t() = default; };
-const constexpr unsafe_t unsafe;
-}
 template<typename tag, typename impl>
 class id_base_t
 {
