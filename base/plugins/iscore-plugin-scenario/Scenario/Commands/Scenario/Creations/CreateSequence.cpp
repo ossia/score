@@ -40,10 +40,7 @@
 #include <iscore/tools/TreeNode.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-namespace Process { class LayerModel; }
-namespace Process { class ProcessModel; }
-class SlotModel;
-
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 namespace Scenario
 {
@@ -57,6 +54,9 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     m_endState{Scenario::endState(constraint, scenario).id()}
 {
     // TESTME
+
+    if(!context.settings<Scenario::Settings::Model>().getAutoSequence())
+        return;
 
     // We get the device explorer, and we fetch the new states.
     const auto& startMessages = Process::flatten(Scenario::startState(constraint, scenario).messages().rootNode());
