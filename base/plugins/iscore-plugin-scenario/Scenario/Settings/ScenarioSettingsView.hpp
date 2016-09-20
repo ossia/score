@@ -5,6 +5,7 @@
 
 class QComboBox;
 class QSpinBox;
+class QCheckBox;
 namespace Scenario
 {
 namespace Settings
@@ -21,12 +22,16 @@ class View :
         void setZoom(const int); // zoom percentage
         void setSlotHeight(const qreal);
         void setDefaultDuration(const TimeValue& t);
+        void setSnapshot(bool);
+        void setSequence(bool);
 
     signals:
         void skinChanged(const QString&);
         void zoomChanged(int);
         void slotHeightChanged(qreal);
         void defaultDurationChanged(const TimeValue& t);
+        void snapshotChanged(bool);
+        void sequenceChanged(bool);
 
     private:
         QWidget* getWidget() override;
@@ -36,6 +41,8 @@ class View :
         QSpinBox* m_zoomSpinBox{};
         QSpinBox* m_slotHeightBox{};
         iscore::TimeSpinBox* m_defaultDur{};
+        QCheckBox* m_snapshot{};
+        QCheckBox* m_sequence{};
 };
 
 }

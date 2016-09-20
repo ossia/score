@@ -68,6 +68,26 @@ Presenter::Presenter(
         v.setDefaultDuration(t);
     });
     v.setDefaultDuration(m.getDefaultDuration());
+
+
+    con(v, &View::snapshotChanged, this,
+        [&] (bool b) {
+        if(b != m.getSnapshotOnCreate())
+            m_disp.submitCommand<SetModelSnapshotOnCreate>(this->model(this), b);
+    });
+    con(m, &Model::SnapshotOnCreateChanged,
+        this, [&] (bool b) { v.setSnapshot(b); });
+    v.setSnapshot(m.getSnapshotOnCreate());
+
+
+    con(v, &View::sequenceChanged, this,
+        [&] (bool b) {
+        if(b != m.getAutoSequence())
+            m_disp.submitCommand<SetModelAutoSequence>(this->model(this), b);
+    });
+    con(m, &Model::AutoSequenceChanged,
+        this, [&] (bool b) { v.setSequence(b); });
+    v.setSequence(m.getAutoSequence());
 }
 
 QString Presenter::settingsName()

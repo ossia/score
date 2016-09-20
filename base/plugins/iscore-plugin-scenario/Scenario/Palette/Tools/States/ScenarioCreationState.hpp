@@ -17,6 +17,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 
 namespace Scenario
@@ -173,6 +174,10 @@ class CreationState : public CreationStateBase<Scenario_T>
 
         void makeSnapshot()
         {
+            const iscore::DocumentContext& ctx = this->m_parentSM.context().context;
+            if(!ctx.app.settings<Scenario::Settings::Model>().getSnapshotOnCreate())
+                return;
+
             using namespace Command;
             if(m_parentSM.editionSettings().sequence())
                 return;
@@ -191,7 +196,7 @@ class CreationState : public CreationStateBase<Scenario_T>
                 }
             }
 
-            auto& device_explorer = this->m_parentSM.context().context.template plugin<Explorer::DeviceDocumentPlugin>().explorer();
+            auto& device_explorer = ctx.template plugin<Explorer::DeviceDocumentPlugin>().explorer();
 
             State::MessageList messages = getSelectionSnapshot(device_explorer);
             if(messages.empty())
