@@ -203,6 +203,6 @@ const auto& date(
 template<typename Element_T>
 Scenario::ScenarioInterface& parentScenario(Element_T&& e)
 {
-    return *safe_cast<Scenario::ScenarioInterface*>(e.parent());
+    return *dynamic_cast<Scenario::ScenarioInterface*>(e.parent());
 }
 }
