@@ -63,13 +63,13 @@ ProcessTabWidget::ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, 
     addProcText->setStyleSheet(QString("text-align : left;"));
 
     // add new process dialog
-    auto addProcess = new AddProcessDialog {m_constraintWidget.processList(), this};
+    m_addProcess = new AddProcessDialog {m_constraintWidget.processList(), this};
 
     // CONNECTIONS
     connect(addProcButton,  &QToolButton::pressed,
-        addProcess, &AddProcessDialog::launchWindow);
+        m_addProcess, &AddProcessDialog::launchWindow);
 
-    connect(addProcess, &AddProcessDialog::okPressed,
+    connect(m_addProcess, &AddProcessDialog::okPressed,
         this, &ProcessTabWidget::createProcess);
 
     // LAYOUTS

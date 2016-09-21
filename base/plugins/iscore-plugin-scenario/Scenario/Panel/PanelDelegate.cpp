@@ -130,8 +130,10 @@ void PanelDelegate::on_focusedViewModelChanged(const Process::LayerModel* theLM)
         if(!m_layerModel)
             return;
 
-        auto fact = context().components.factory<Process::LayerFactoryList>().findDefaultFactory(theLM->processModel().concreteFactoryKey());
-        m_proxy = fact->makePanel(*theLM, this);
+        auto fact = context().components.factory<Process::LayerFactoryList>().findDefaultFactory(
+                    m_layerModel->processModel().concreteFactoryKey());
+
+        m_proxy = fact->makePanel(*m_layerModel, this);
         if(m_proxy)
             m_widget->layout()->addWidget(m_proxy->widget());
     }

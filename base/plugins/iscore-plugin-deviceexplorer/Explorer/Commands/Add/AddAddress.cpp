@@ -26,15 +26,20 @@ AddAddress::AddAddress(
     auto& devplug = m_devicesModel.find();
 
     const Device::Node* parentNode{};
+
     // DeviceExplorerWidget prevents adding a sibling on a Device
-    if (insert == InsertMode::AsChild)
+    switch(insert)
     {
-        parentNode = nodePath.toNode(&devplug.rootNode());
+        case InsertMode::AsChild:
+            parentNode = nodePath.toNode(&devplug.rootNode());
+            break;
+        case InsertMode::AsSibling:
+            parentNode = nodePath.toNode(&devplug.rootNode())->parent();
+            break;
+        default:
+            throw std::runtime_error("AddAddress: Invalid InsertMode");
     }
-    else if (insert == InsertMode::AsSibling)
-    {
-        parentNode =  nodePath.toNode(&devplug.rootNode())->parent();
-    }
+
     ISCORE_ASSERT(parentNode);
     m_parentNodePath = Device::NodePath{*parentNode};
 }

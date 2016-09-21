@@ -125,15 +125,16 @@ void StateInspectorWidget::updateDisplayedValues()
         procLay->addWidget(addProcText);
 
         // add new process dialog
-        auto addProcess = new AddStateProcessDialog {
+        delete m_addProcess;
+        m_addProcess = new AddStateProcessDialog {
                 m_context.app.components.factory<Process::StateProcessList>(),
                 this};
 
         // CONNECTIONS
         connect(addProcButton,  &QPushButton::pressed,
-            addProcess, &AddStateProcessDialog::launchWindow);
+            m_addProcess, &AddStateProcessDialog::launchWindow);
 
-        connect(addProcess, &AddStateProcessDialog::okPressed,
+        connect(m_addProcess, &AddStateProcessDialog::okPressed,
             this, &StateInspectorWidget::createStateProcess);
 
         for(auto& proc : m_model.stateProcesses)
