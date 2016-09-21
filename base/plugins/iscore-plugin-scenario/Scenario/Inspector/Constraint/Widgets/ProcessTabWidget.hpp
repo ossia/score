@@ -9,7 +9,9 @@ namespace Inspector{
 namespace Process {
 class ProcessModelFactory; class LayerFactory;
 }
-namespace Scenario {
+namespace Scenario
+{
+class AddProcessDialog;
 class ProcessTabWidget :
         public QWidget,
         public Nano::Observer
@@ -34,6 +36,7 @@ class ProcessTabWidget :
         Inspector::InspectorSectionWidget* m_processSection{};
 
         std::vector<Inspector::InspectorSectionWidget*> m_processesSectionWidgets;
+        AddProcessDialog* m_addProcess{};
 
 };
 

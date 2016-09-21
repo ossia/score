@@ -26,6 +26,36 @@ namespace State
  */
 struct ISCORE_LIB_STATE_EXPORT Address
 {
+        Address() noexcept = default;
+        Address(const Address& other) noexcept:
+            device{other.device},
+            path{other.path}
+        {
+
+        }
+
+        Address(Address&&) noexcept = default;
+        Address& operator=(const Address& other) noexcept
+        {
+            device = other.device;
+            path = other.path;
+            return *this;
+        }
+
+        Address& operator=(Address&& other) noexcept
+        {
+            device = std::move(other.device);
+            path = std::move(other.path);
+            return *this;
+        }
+
+        Address(QString d, QStringList p) noexcept :
+            device{std::move(d)},
+            path{std::move(p)}
+        {
+
+        }
+
         // Data
         QString device; // No device means that this is the invisible root node.
 
@@ -73,14 +103,35 @@ inline QStringList stringList(const State::Address& addr)
 using AccessorVector = boost::container::static_vector<char, 8>;
 struct ISCORE_LIB_STATE_EXPORT AddressAccessor
 {
-        AddressAccessor() = default;
-        AddressAccessor(const AddressAccessor&) = default;
-        AddressAccessor(AddressAccessor&&) = default;
-        AddressAccessor& operator=(const AddressAccessor&) = default;
-        AddressAccessor& operator=(AddressAccessor&&) = default;
+        AddressAccessor() noexcept = default;
+        AddressAccessor(const AddressAccessor& other) noexcept:
+            address{other.address},
+            accessors{other.accessors}
+        {
 
-        AddressAccessor(State::Address a): address{std::move(a)} { }
-        AddressAccessor(State::Address a, const AccessorVector& v):
+        }
+        AddressAccessor(AddressAccessor&& other) noexcept:
+            address{std::move(other.address)},
+            accessors{std::move(other.accessors)}
+        {
+
+        }
+        AddressAccessor& operator=(const AddressAccessor& other) noexcept
+        {
+            address = other.address;
+            accessors = other.accessors;
+            return *this;
+        }
+        AddressAccessor& operator=(AddressAccessor&& other) noexcept
+        {
+            address = std::move(other.address);
+            accessors = std::move(other.accessors);
+            return *this;
+        }
+
+        AddressAccessor(State::Address a) noexcept :
+            address{std::move(a)} { }
+        AddressAccessor(State::Address a, const AccessorVector& v) noexcept :
             address{std::move(a)},
             accessors{v}
         {

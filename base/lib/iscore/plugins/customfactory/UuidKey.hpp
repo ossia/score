@@ -251,6 +251,7 @@ struct string_generator {
                 if(digits_begin[i] == c)
                 {
                     found = true;
+                    (void) found; // to prevent warnings with static analyzers
                     return values[i];
                 }
             }

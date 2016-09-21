@@ -189,7 +189,7 @@ struct TSerializer<JSONValue, OptionalId<U>>
             const OptionalId<U>& obj)
     {
         if(obj)
-            s.val = obj->val();
+            s.val = (*obj).val();
         else
             s.val = QJsonValue{};
     }
