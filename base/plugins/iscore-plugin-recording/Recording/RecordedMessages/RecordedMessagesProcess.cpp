@@ -28,13 +28,13 @@ ProcessExecutor::ProcessExecutor(
 
 ossia::state_element ProcessExecutor::state()
 {
-    return state(parent->getDate() / parent->getDurationNominal());
+    return state(parent()->getDate() / parent()->getDurationNominal());
 }
 
 ossia::state_element ProcessExecutor::state(double t)
 {
     ossia::state st;
-    ossia::time_constraint& par_cst = *parent;
+    ossia::time_constraint& par_cst = *parent();
 
     auto cur_pos = t;
     auto span = par_cst.getGranularity(); // TODO this does not make sense :
@@ -61,7 +61,7 @@ ossia::state_element ProcessExecutor::state(double t)
 ossia::state_element ProcessExecutor::offset(
         ossia::time_value off)
 {
-    return state(off / parent->getDurationNominal());
+    return state(off / parent()->getDurationNominal());
 }
 
 Component::Component(
