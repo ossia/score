@@ -45,12 +45,12 @@ ProcessExecutor::~ProcessExecutor()
 
 ossia::state_element ProcessExecutor::state()
 {
-    return state(parent->getDate() / parent->getDurationNominal());
+    return state(parent()->getDate() / parent()->getDurationNominal());
 }
 
 ossia::state_element ProcessExecutor::state(double t)
 {
-    ossia::time_constraint& par_cst = *parent;
+    ossia::time_constraint& par_cst = *parent();
 
     ossia::time_value date = par_cst.getDate();
     if (date != mLastDate)
@@ -97,7 +97,7 @@ ossia::state_element ProcessExecutor::state(double t)
 
 ossia::state_element ProcessExecutor::offset(ossia::time_value off)
 {
-    return state(off / parent->getDurationNominal());
+    return state(off / parent()->getDurationNominal());
 }
 
 void ProcessExecutor::stop()
