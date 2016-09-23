@@ -42,8 +42,11 @@ MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
     auto pb = new QPushButton{tr("Find devices..."), this};
     connect(pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
     connect(m_browser, &ZeroconfBrowser::sessionSelected,
-            this, [] (QString ip, int port, QMap<QString, QByteArray> txt) {
-      qDebug() << ip << port;
+            this, [=] (QString ip, int port, QMap<QString, QByteArray> txt) {
+      m_deviceNameEdit->setText(txt["LocalName"]);
+      m_portInputSBox->setValue(txt["LocalPort"].toInt());
+      m_portOutputSBox->setValue(txt["RemotePort"].toInt());
+      m_localHostEdit->setText(ip);
     });
     layout->addWidget(pb);
 #endif

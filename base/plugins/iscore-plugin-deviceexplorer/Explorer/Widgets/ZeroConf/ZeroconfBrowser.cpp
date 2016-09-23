@@ -78,7 +78,9 @@ void ZeroconfBrowser::accept()
             }
         }
 
-        qDebug() << data->isResolved()<< ipAddress << data->port();
+        if(ipAddress.isEmpty())
+          ipAddress = "127.0.0.1";
+
         emit sessionSelected(ipAddress, data->port(), data->textData());
         m_dialog->close();
     }
