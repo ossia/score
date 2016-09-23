@@ -38,7 +38,7 @@ MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
     QFormLayout* layout = new QFormLayout;
 
 #if defined(ISCORE_ZEROCONF)
-    m_browser = new ZeroconfBrowser{"_ossia_minuit._tcp", this};
+    m_browser = new ZeroconfBrowser{"_minuit._tcp", this};
     auto pb = new QPushButton{tr("Find devices..."), this};
     connect(pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
     connect(m_browser, &ZeroconfBrowser::sessionSelected,
