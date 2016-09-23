@@ -4,6 +4,7 @@
 
 #include <Device/Protocol/DeviceSettings.hpp>
 
+class ZeroconfBrowser;
 class QLineEdit;
 class QSpinBox;
 class QWidget;
@@ -30,6 +31,8 @@ class MinuitProtocolSettingsWidget final :
         QSpinBox* m_portInputSBox{};
         QSpinBox* m_portOutputSBox{};
         QLineEdit* m_localHostEdit{};
+
+        ZeroconfBrowser* m_browser{};
 
 };
 }
