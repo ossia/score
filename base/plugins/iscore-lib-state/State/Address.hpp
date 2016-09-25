@@ -100,7 +100,7 @@ inline QStringList stringList(const State::Address& addr)
     return QStringList{} << addr.device << addr.path;
 }
 
-using AccessorVector = boost::container::static_vector<char, 8>;
+using AccessorVector = boost::container::static_vector<uint8_t, 8>;
 struct ISCORE_LIB_STATE_EXPORT AddressAccessor
 {
         AddressAccessor() noexcept = default;
