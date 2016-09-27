@@ -11,6 +11,7 @@ This file is used to define simple data structure to simplify the code when need
 #include <QMap>
 #include <QPair>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 namespace Scenario
 {
@@ -30,7 +31,7 @@ struct TimenodeProperties {
     ExecutionStatus status{ExecutionStatus::Editing};
 };
 
-struct ConstraintSaveData
+struct ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintSaveData
 {
         ConstraintSaveData() = default;
         ConstraintSaveData(const ConstraintModel&);

@@ -38,7 +38,7 @@ void Scenario::clearContentFromSelection(
     // 2. Create a Clear command for each.
     for(auto& constraint : constraintsToRemove)
     {
-        cleaner.submitCommand(new ClearConstraint(path(*constraint)));
+        cleaner.submitCommand(new ClearConstraint(*constraint));
     }
 
     for(auto& state : statesToRemove)
