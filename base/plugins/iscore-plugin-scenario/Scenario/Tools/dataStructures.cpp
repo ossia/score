@@ -55,7 +55,7 @@ void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
     }
 
     // Restore the rackes
-    for(auto& sourcerack : curConstraintPropertiesToUpdate.racks)
+    for(auto& sourcerack : racks)
     {
         Deserializer<DataStream> des{sourcerack};
         constraint.racks.add(new RackModel{des, &constraint});
@@ -147,7 +147,7 @@ void Visitor<Writer<DataStream>>::writeTo(
              >> constraintProperties.oldMax
              >> constraintProperties.newMax;
 
-    writeTo(static_cast<const Scenario::ConstraintSaveData&>(constraintProperties));
+    writeTo(static_cast<Scenario::ConstraintSaveData&>(constraintProperties));
     checkDelimiter();
 }
 
