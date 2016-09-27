@@ -30,26 +30,35 @@ struct TimenodeProperties {
     ExecutionStatus status{ExecutionStatus::Editing};
 };
 
-struct ConstraintProperties {
+struct ConstraintSaveData
+{
+        ConstraintSaveData() = default;
+        ConstraintSaveData(const ConstraintModel&);
+
+        void reload(ConstraintModel&) const;
+
+        Path<ConstraintModel> constraintPath;
+        QVector<QByteArray> processes;
+        QVector<QByteArray> racks;
+        QMap< // Mapping for the view models of this constraint
+            Id<ConstraintViewModel>,
+            OptionalId<RackModel>
+        > viewMapping;
+};
+
+struct ConstraintProperties : public ConstraintSaveData
+{
+    using ConstraintSaveData::ConstraintSaveData;
+
     TimeValue oldMin;
     TimeValue newMin;
     TimeValue oldMax;
     TimeValue newMax;
-    QPair<
-        QPair<
-            Path<ConstraintModel>,
-            QByteArray
-        >, // The constraint data
-        QMap< // Mapping for the view models of this constraint
-            Id<ConstraintViewModel>,
-            OptionalId<RackModel>
-        >
-     > savedDisplay;
-
     ExecutionStatus status{ExecutionStatus::Editing};
 };
 
-struct ElementsProperties {
+struct ElementsProperties
+{
     QMap<Id<TimeNodeModel>, TimenodeProperties> timenodes;
     QMap<Id<ConstraintModel>, ConstraintProperties> constraints;
 };
