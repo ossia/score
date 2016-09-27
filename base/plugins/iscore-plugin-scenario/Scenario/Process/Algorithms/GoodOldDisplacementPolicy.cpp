@@ -82,27 +82,10 @@ GoodOldDisplacementPolicy::computeDisplacement(
                         auto cur_constraint_it = elementsProperties.constraints.find(curConstraintId);
                         if(cur_constraint_it == elementsProperties.constraints.end())
                         {
-                            ConstraintProperties c;
+                            ConstraintProperties c{curConstraint};
                             c.oldMin = curConstraint.duration.minDuration();
                             c.oldMax = curConstraint.duration.maxDuration();
                             cur_constraint_it = elementsProperties.constraints.insert(curConstraintId, c);
-
-                            // Save the constraint display data START ----------------
-                            QByteArray arr;
-                            Visitor<Reader<DataStream> > jr{&arr};
-                            jr.readFrom(curConstraint);
-
-                            // Save for each view model of this constraint
-                            // the identifier of the rack that was displayed
-                            QMap<Id<ConstraintViewModel>, OptionalId<RackModel> > map;
-                            for(const ConstraintViewModel* vm : curConstraint.viewModels())
-                            {
-                                map[vm->id()] = vm->shownRack();
-                            }
-
-                            cur_constraint_it->savedDisplay = {{curConstraint, arr}, map};
-                            // Save the constraint display data END ----------------
-
                         }
 
                         auto& curConstraintStartEvent = Scenario::startEvent(curConstraint, scenario);

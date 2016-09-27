@@ -130,7 +130,7 @@ void InsertContentInConstraint::redo() const
     const auto& src_racks = src_constraint.racks;
     for(const auto& sourcerack: src_racks)
     {
-        // A note about what happens here :
+        // REFACTORME 01
         // Since we want to duplicate our process view models using
         // the target constraint's cloned shared processes (they might setup some specific data),
         // we maintain a pair mapping each original process to their cloned counterpart.

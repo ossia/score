@@ -83,6 +83,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario
     auto& pl = context.components.factory<Process::ProcessFactoryList>();
     for(; process_count -- > 0;)
     {
+        // TODO why isn't AddProcess used here ?!
         constraint.processes.add(deserialize_interface(pl, *this, &constraint));
     }
 
