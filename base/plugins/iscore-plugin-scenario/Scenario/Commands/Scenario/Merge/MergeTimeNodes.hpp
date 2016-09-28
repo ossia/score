@@ -9,6 +9,8 @@
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
+#include <iscore/tools/TreeNode.hpp>
+#include <State/Expression.hpp>
 
 #include <iscore/command/SerializableCommand.hpp>
 

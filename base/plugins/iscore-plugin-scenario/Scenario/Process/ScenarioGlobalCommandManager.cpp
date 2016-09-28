@@ -82,6 +82,7 @@ void Scenario::clearContentFromSelection(
     ISCORE_TODO;
 }
 
+// MOVEME : these are useful.
 template<typename T>
 struct DateComparator
 {

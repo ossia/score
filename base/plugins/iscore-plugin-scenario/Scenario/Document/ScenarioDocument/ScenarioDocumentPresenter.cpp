@@ -113,6 +113,11 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     emit requestDisplayedConstraintChange(model().baseConstraint());
 }
 
+ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
+{
+    delete m_scenarioPresenter;
+}
+
 const ConstraintModel& ScenarioDocumentPresenter::displayedConstraint() const
 {
     return model().displayedElements.constraint();
