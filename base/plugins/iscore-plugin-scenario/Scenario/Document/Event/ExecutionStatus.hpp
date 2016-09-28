@@ -6,6 +6,15 @@ class QColor;
 
 namespace Scenario
 {
+
+// See ossia::time_event
+enum class OffsetBehavior
+{
+    True,
+    False,
+    Expression
+};
+
 enum class ExecutionStatus { Waiting, Pending, Happened, Disposed, Editing };
 
 
@@ -35,3 +44,4 @@ class ExecutionStatusProperty final : public QObject
 }
 
 Q_DECLARE_METATYPE(Scenario::ExecutionStatus)
+Q_DECLARE_METATYPE(Scenario::OffsetBehavior)
