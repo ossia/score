@@ -37,10 +37,7 @@ template <typename T> class Writer;
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Scenario::ConstraintModel& constraint)
 {
-    readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintModel>&>(constraint));
-
-    // Metadata
-    readFrom(constraint.metadata());
+    readFrom(static_cast<const iscore::Entity<Scenario::ConstraintModel>&>(constraint));
 
     // Processes
     m_stream << (int32_t) constraint.processes.size();
@@ -74,8 +71,6 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintModel& constraint)
 {
-    writeTo(constraint.metadata());
-
     // Processes
     int32_t process_count;
     m_stream >> process_count;
@@ -119,8 +114,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintModel& constraint)
 {
-    readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintModel>&>(constraint));
-    m_obj[strings.Metadata] = toJsonObject(constraint.metadata());
+    readFrom(static_cast<const iscore::Entity<Scenario::ConstraintModel>&>(constraint));
 
     // Processes
     m_obj["Processes"] = toJsonArray(constraint.processes);
@@ -148,8 +142,6 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintModel& constraint)
 {
-    constraint.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
-
     auto& pl = context.components.factory<Process::ProcessFactoryList>();
 
     QJsonArray process_array = m_obj["Processes"].toArray();

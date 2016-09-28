@@ -77,6 +77,10 @@ class ISCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final :
 {
     public:
         using object_type = DocumentPlugin;
+        object_type* loadMissing(
+                const VisitorVariant& vis,
+                iscore::DocumentContext& doc,
+                QObject* parent) const;
 };
 
 

@@ -32,10 +32,7 @@ template <typename model> class IdentifiedObject;
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Scenario::StateModel& s)
 {
-    readFrom(static_cast<const IdentifiedObject<Scenario::StateModel>&>(s));
-
-    // Common metadata
-    readFrom(s.metadata());
+    readFrom(static_cast<const iscore::Entity<Scenario::StateModel>&>(s));
 
     m_stream << s.m_eventId
              << s.m_previousConstraint
@@ -58,9 +55,6 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::StateModel& s)
 {
-    // Common metadata
-    writeTo(s.metadata());
-
     m_stream >> s.m_eventId
             >> s.m_previousConstraint
             >> s.m_nextConstraint
@@ -88,9 +82,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::StateModel& s)
 {
-    readFrom(static_cast<const IdentifiedObject<Scenario::StateModel>&>(s));
-    // Common metadata
-    m_obj[strings.Metadata] = toJsonObject(s.metadata());
+    readFrom(static_cast<const iscore::Entity<Scenario::StateModel>&>(s));
 
     m_obj["Event"] = toJsonValue(s.m_eventId);
     m_obj["PreviousConstraint"] = toJsonValue(s.m_previousConstraint);

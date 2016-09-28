@@ -161,6 +161,32 @@ LayerModel*LayerFactory::cloneLayer_impl(
                 parent};
 }
 
+
+ProcessFactoryList::object_type*ProcessFactoryList::loadMissing(
+        const VisitorVariant& vis,
+        QObject* parent) const
+{
+    ISCORE_TODO;
+    return nullptr;
+}
+
+StateProcessList::object_type*StateProcessList::loadMissing(
+        const VisitorVariant& vis,
+        QObject* parent) const
+{
+    ISCORE_TODO;
+    return nullptr;
+}
+
+
+LayerFactoryList::object_type* LayerFactoryList::loadMissing(
+        const VisitorVariant& vis,
+        QObject* parent) const
+{
+    ISCORE_TODO;
+    return nullptr;
+}
+
 LayerFactory* LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 {
     return findDefaultFactory(proc.concreteFactoryKey());
