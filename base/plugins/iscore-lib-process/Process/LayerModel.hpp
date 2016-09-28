@@ -24,6 +24,7 @@ class ISCORE_LIB_PROCESS_EXPORT LayerModel:
         public IdentifiedObject<LayerModel>,
         public iscore::SerializableInterface<LayerFactory>
 {
+        Q_OBJECT
     public:
         virtual ~LayerModel();
         ProcessModel& processModel() const;
