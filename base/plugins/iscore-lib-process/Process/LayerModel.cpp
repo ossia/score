@@ -6,7 +6,10 @@ class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 namespace Process
 {
-LayerModel::~LayerModel() = default;
+LayerModel::~LayerModel()
+{
+    emit identified_object_destroying(this);
+}
 
 ProcessModel& LayerModel::processModel() const
 { return m_sharedProcessModel; }

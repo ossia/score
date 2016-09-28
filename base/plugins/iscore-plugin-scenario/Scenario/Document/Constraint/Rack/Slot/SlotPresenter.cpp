@@ -279,7 +279,7 @@ void SlotPresenter::on_layerModelCreated_impl(
         if(it != m_processes.end())
             updateProcessShape(*it);
     });
-    con(proc_vm, &IdentifiedObjectAbstract::identified_object_destroyed,
+    con(proc_vm, &IdentifiedObjectAbstract::identified_object_destroying,
         this, [=] {
         QObject::disconnect(con_id);
     });
