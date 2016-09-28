@@ -213,6 +213,16 @@ void ProcessTabWidget::updateDisplayedValues()
     }
 
 }
+template<typename T>
+std::vector<std::string> brethrenNames(const T& vec)
+{
+    std::vector<std::string> names;
+    for(auto& elt : vec)
+    {
+        names.push_back(elt.metadata.getName().toStdString());
+    }
+    return names;
+}
 
 void ProcessTabWidget::ask_processNameChanged(const Process::ProcessModel& p, QString s)
 {

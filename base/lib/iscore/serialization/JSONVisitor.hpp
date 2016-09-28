@@ -109,6 +109,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONObject>> : public AbstractVisito
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
+        using is_deserializer_tag = std::integral_constant<bool, true>;
 
         VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
@@ -161,7 +162,7 @@ struct TSerializer<JSONObject, IdentifiedObject<T>>
                 JSONObject::Serializer& s,
                 const IdentifiedObject<T>& obj)
         {
-            s.readFrom(static_cast<const NamedObject&>(obj));
+            s.m_obj[s.strings.ObjectName] = obj.objectName();
             s.m_obj[s.strings.id] = obj.id().val();
         }
 
@@ -169,6 +170,7 @@ struct TSerializer<JSONObject, IdentifiedObject<T>>
                 JSONObject::Deserializer& s,
                 IdentifiedObject<T>& obj)
         {
+            obj.setObjectName(s.m_obj[s.strings.ObjectName].toString());
             obj.setId(Id<T>{s.m_obj[s.strings.id].toInt()});
         }
 

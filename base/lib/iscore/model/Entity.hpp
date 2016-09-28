@@ -13,9 +13,8 @@ class Entity :
     public:
         using IdentifiedObject<T>::IdentifiedObject;
 
-        template<typename... Args>
-        Entity(const Entity& other, Args&&... args):
-            IdentifiedObject<T>{ std::forward<Args>(args)...},
+        Entity(const Entity& other, Id<T> id, const QString& name, QObject* parent):
+            IdentifiedObject<T>{std::move(id), name, parent},
             m_metadata{other.metadata()}
         {
 

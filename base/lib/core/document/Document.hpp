@@ -33,7 +33,7 @@ class DocumentView;
      * It is similar to the opened file in Word for instance, this is the
      * data on which i-score operates, further defined by the plugins.
      */
-class ISCORE_LIB_BASE_EXPORT Document final : public NamedObject
+class ISCORE_LIB_BASE_EXPORT Document final : public QObject
 {
         Q_OBJECT
         friend class DocumentBuilder;

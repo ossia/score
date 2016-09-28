@@ -15,28 +15,16 @@ struct in_relationship
 // which in turns calls another constructor of Path<T>.
 template<typename T>
 class Path;
+template<typename T>
+class IdentifiedObject;
 
 namespace iscore
 {
 namespace IDocument
 {
-#if defined(__clang__)
-/*
-template<typename T, typename U = void>
-  Path<T> path(const T& obj)
-  {
-      static_assert(false, "Bad instantiation");
-  }
-  */
-#endif
-template<typename T, std::enable_if_t<
-             std::is_base_of<
-                 IdentifiedObjectAbstract,
-                 T
-                >::value
-             >* = nullptr
-         >
-Path<T> path(const T& obj);
+
+template<typename T>
+Path<T> path(const IdentifiedObject<T>& obj);
 }
 }
 
