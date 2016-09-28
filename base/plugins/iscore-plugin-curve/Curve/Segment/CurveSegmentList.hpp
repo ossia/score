@@ -9,5 +9,11 @@ class SegmentList final :
 {
     public:
         using object_type = Curve::SegmentModel;
+        virtual ~SegmentList();
+
+        object_type* loadMissing(
+                const VisitorVariant& vis,
+                QObject* parent) const;
 };
+
 }

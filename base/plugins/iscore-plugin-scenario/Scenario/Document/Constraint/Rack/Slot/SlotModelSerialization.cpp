@@ -23,8 +23,7 @@ template <typename model> class IdentifiedObject;
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::SlotModel& slot)
 {
-    readFrom(static_cast<const IdentifiedObject<Scenario::SlotModel>&>(slot));
-    readFrom(slot.metadata());
+    readFrom(static_cast<const iscore::Entity<Scenario::SlotModel>&>(slot));
 
     m_stream << slot.m_frontLayerModelId;
 
@@ -43,8 +42,6 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const Scenario::SlotModel&
 
 template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
 {
-    writeTo(slot.metadata());
-
     OptionalId<Process::LayerModel> editedProcessId;
     m_stream >> editedProcessId;
 

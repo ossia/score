@@ -87,23 +87,22 @@ auto deserialize_interface(
 {
     // Deserialize the interface identifier
     try {
-    auto k = deserialize_key<typename FactoryList_T::factory_type::ConcreteFactoryKey>(des);
+        auto k = deserialize_key<typename FactoryList_T::factory_type::ConcreteFactoryKey>(des);
 
-    // Get the factory
-    if(auto concrete_factory = factories.get(k))
-    {
-        // Create the object
-        auto obj = concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
+        // Get the factory
+        if(auto concrete_factory = factories.get(k))
+        {
+            // Create the object
+            auto obj = concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
 
-        deserialize_check(des);
+            deserialize_check(des);
 
-        return obj;
-    }
-    }
-    catch(...) {
-        // TODO We should create a DefaultInterface in this case.
-    }
-    return nullptr;
+            return obj;
+        }
+    } catch(...) { }
+
+    // If the object could not be loaded, we try to load a "missing" verson of it.
+    return factories.loadMissing(des.toVariant(), std::forward<Args>(args)...);
 }
 
 // This one does not have clone.

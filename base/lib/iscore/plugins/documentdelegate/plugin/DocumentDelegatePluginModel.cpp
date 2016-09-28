@@ -20,6 +20,15 @@ DocumentPlugin::~DocumentPlugin() = default;
 SerializableDocumentPlugin::~SerializableDocumentPlugin() = default;
 DocumentPluginFactory::~DocumentPluginFactory() = default;
 
+DocumentPluginFactoryList::object_type*DocumentPluginFactoryList::loadMissing(
+        const VisitorVariant& vis,
+        DocumentContext& doc,
+        QObject* parent) const
+{
+    ISCORE_TODO;
+    return nullptr;
+}
+
 }
 
 template<>
