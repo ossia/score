@@ -71,6 +71,9 @@ iscore_plugin_scenario::iscore_plugin_scenario()
 
     qRegisterMetaType<Path<Scenario::ConstraintModel>>();
     qRegisterMetaType<Id<Process::ProcessModel>>();
+
+    qRegisterMetaType<Scenario::OffsetBehavior>();
+    qRegisterMetaTypeStreamOperators<Scenario::OffsetBehavior>();
 }
 
 iscore_plugin_scenario::~iscore_plugin_scenario() = default;
