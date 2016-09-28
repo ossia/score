@@ -99,14 +99,14 @@ void DocumentManager::init(const ApplicationContext& ctx)
     con(m_view, &View::activeDocumentChanged,
         this, [&] (const Id<DocumentModel>& doc) {
         prepareNewDocument(ctx);
-        auto it = find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
+        auto it = ossia::find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
         setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
     }, Qt::QueuedConnection);
 
 
     con(m_view, &View::closeRequested,
         this, [&] (const Id<DocumentModel>& doc) {
-        auto it = find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
+        auto it = ossia::find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
         ISCORE_ASSERT(it != m_documents.end());
         closeDocument(ctx, **it);
     });
@@ -145,7 +145,7 @@ Document* DocumentManager::setupDocument(
 {
     if(doc)
     {
-        auto it = find(m_documents, doc);
+        auto it = ossia::find(m_documents, doc);
         if(it == m_documents.end())
             m_documents.push_back(doc);
 
@@ -245,7 +245,7 @@ void DocumentManager::forceCloseDocument(
     qApp->processEvents();
 
     m_view.closeDocument(&doc.view());
-    remove_one(m_documents, &doc);
+    ossia::remove_one(m_documents, &doc);
     setCurrentDocument(
                 ctx,
                 !m_documents.empty() ? m_documents.back() : nullptr);

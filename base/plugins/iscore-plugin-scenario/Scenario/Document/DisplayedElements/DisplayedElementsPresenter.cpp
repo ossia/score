@@ -122,7 +122,7 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
                 m_startNodePresenter,
                 m_endNodePresenter);
 
-    for_each_in_tuple(elements, [&] (auto elt) {
+    ossia::for_each_in_tuple(elements, [&] (auto elt) {
         using elt_t = std::remove_reference_t<decltype(*elt)>;
         m_connections.push_back(connect(elt, &elt_t::pressed,  m_model, &ScenarioDocumentPresenter::pressed));
         m_connections.push_back(connect(elt, &elt_t::moved,    m_model, &ScenarioDocumentPresenter::moved));

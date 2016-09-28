@@ -128,7 +128,7 @@ set(SRCS
 add_library(iscore_lib_base ${SRCS} ${HEADERS} ${QRCS})
 
 target_link_libraries(iscore_lib_base
-        PUBLIC Qt5::Core Qt5::Widgets Qt5::Qml Qt5::QuickWidgets
+        PUBLIC Qt5::Core Qt5::Widgets Qt5::Qml Qt5::QuickWidgets ossia
     PRIVATE Qt5::Svg QRecentFilesMenu)
 
 set_property(TARGET iscore_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/iscore/prefix.hpp")

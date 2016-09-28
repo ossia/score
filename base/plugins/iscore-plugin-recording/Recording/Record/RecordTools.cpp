@@ -82,7 +82,7 @@ RecordListening GetAddressesToRecordRecursive(
         // here (for instance recording someone typing).
 
         // We sort the addresses by device to optimize.
-        auto dev_it = find_if(recordListening,
+        auto dev_it = ossia::find_if(recordListening,
                               [&] (const auto& vec)
         {
             return Device::deviceName(*vec.front()) == addr.address.device;

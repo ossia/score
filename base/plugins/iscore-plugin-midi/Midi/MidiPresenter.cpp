@@ -195,7 +195,7 @@ void Presenter::on_noteAdded(const Note& n)
 
 void Presenter::on_noteRemoving(const Note& n)
 {
-    auto it = find_if(m_notes, [&] (const auto& other) { return &other->note == &n; });
+    auto it = ossia::find_if(m_notes, [&] (const auto& other) { return &other->note == &n; });
     if(it != m_notes.end())
     {
         delete *it;

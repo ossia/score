@@ -90,19 +90,19 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final :
 
         ConstraintModel* findConstraint(const Id<ConstraintModel>& id) const override
         {
-            return ptr_find(constraints, id);
+            return ossia::ptr_find(constraints, id);
         }
         EventModel* findEvent(const Id<EventModel>& id) const override
         {
-            return ptr_find(events, id);
+            return ossia::ptr_find(events, id);
         }
         TimeNodeModel* findTimeNode(const Id<TimeNodeModel>& id) const override
         {
-            return ptr_find(timeNodes, id);
+            return ossia::ptr_find(timeNodes, id);
         }
         StateModel* findState(const Id<StateModel>& id) const override
         {
-            return ptr_find(states, id);
+            return ossia::ptr_find(states, id);
         }
 
         ConstraintModel& constraint(const Id<ConstraintModel>& constraintId) const override

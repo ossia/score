@@ -88,7 +88,7 @@ struct ActionContainer
         template<typename Action_T>
         void add(QAction* ptr)
         {
-            ISCORE_ASSERT(find_if(container, [] (auto ac) { return ac.key() == MetaAction<Action_T>::key(); }) == container.end());
+            ISCORE_ASSERT(ossia::find_if(container, [] (auto ac) { return ac.key() == MetaAction<Action_T>::key(); }) == container.end());
             container.emplace_back(MetaAction<Action_T>::make(ptr));
         }
 };
@@ -101,7 +101,7 @@ struct ActionKeyContainer
         template<typename Action_T>
         void add()
         {
-            ISCORE_ASSERT(find_if(actions, [] (auto ac) { return ac == MetaAction<Action_T>::key(); }) == actions.end());
+            ISCORE_ASSERT(ossia::find_if(actions, [] (auto ac) { return ac == MetaAction<Action_T>::key(); }) == actions.end());
             actions.emplace_back(MetaAction<Action_T>::key());
         }
 };
@@ -215,7 +215,7 @@ class EnableWhenSelectionContains<Type> final : \
             } \
  \
             const auto& sel = doc->selectionStack.currentSelection(); \
-            auto res = any_of(sel, [] (auto obj) { return bool(dynamic_cast<const Type*>(obj.data())); }); \
+            auto res = ossia::any_of(sel, [] (auto obj) { return bool(dynamic_cast<const Type*>(obj.data())); }); \
  \
             setEnabled(mgr, res); \
         } \

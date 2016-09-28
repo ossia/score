@@ -111,17 +111,17 @@ inline bool operator<=(const SegmentData& lhs, const SegmentData& rhs)
 
 
 
-
+// REFACTORME with SettableIdentifierGeneration...
 template<typename Container>
 Id<SegmentModel> getSegmentId(const Container& ids)
 {
     Id<SegmentModel> id {};
-
+    auto end = ids.end();
     do
     {
         id = Id<SegmentModel>{iscore::random_id_generator::getRandomId()};
     }
-    while(ids.find(id) != ids.end());
+    while(ids.find(id) != end);
 
     return id;
 }
@@ -130,11 +130,12 @@ inline Id<SegmentModel> getSegmentId(const std::vector<SegmentData>& ids)
 {
     Id<SegmentModel> id {};
 
+    auto end = ids.end();
     do
     {
         id = Id<SegmentModel>{iscore::random_id_generator::getRandomId()};
     }
-    while(find_if(ids, [&] (const auto& other) { return other.id == id; }) != ids.end());
+    while(ossia::find_if(ids, [&] (const auto& other) { return other.id == id; }) != end);
 
     return id;
 }

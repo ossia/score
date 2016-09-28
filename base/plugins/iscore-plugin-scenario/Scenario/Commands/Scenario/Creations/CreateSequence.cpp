@@ -63,7 +63,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
     std::vector<Device::FullAddressSettings> endAddresses;
     endAddresses.reserve(startMessages.size());
-    transform(startMessages, std::back_inserter(endAddresses),
+    ossia::transform(startMessages, std::back_inserter(endAddresses),
               [] (const auto& mess) { return Device::FullAddressSettings::make(mess); });
 
     auto& devPlugin = iscore::IDocument::documentContext(scenario).plugin<Explorer::DeviceDocumentPlugin>();
@@ -93,7 +93,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
     QList<State::Message> endMessages;
     endMessages.reserve(endAddresses.size());
-    transform(endAddresses, std::back_inserter(endMessages),
+    ossia::transform(endAddresses, std::back_inserter(endMessages),
               [] (const auto& addr) { return State::Message{addr.address, addr.value}; });
 
     updateTreeWithMessageList(m_stateData, endMessages);
@@ -106,7 +106,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     {
         if(message.value.val.isNumeric())
         {
-            auto addr_it = find_if(endAddresses, [&] (const auto& arg) {
+            auto addr_it = ossia::find_if(endAddresses, [&] (const auto& arg) {
                 return message.address == arg.address && message.value != arg.value; });
 
             if(addr_it != std::end(endAddresses))
@@ -116,7 +116,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
         }
         else if(message.value.val.is<State::tuple_t>())
         {
-            auto addr_it = find_if(endAddresses, [&] (const auto& arg) {
+            auto addr_it = ossia::find_if(endAddresses, [&] (const auto& arg) {
                 return message.address == arg.address && message.value != arg.value; });
 
             if(addr_it != std::end(endAddresses))

@@ -182,7 +182,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
         if(sel.empty())
             return;
 
-        if(any_of(sel, matches<Scenario::ConstraintModel>{}))
+        if(ossia::any_of(sel, matches<Scenario::ConstraintModel>{}))
         {
             auto submenu = menu.findChild<QMenu*>("Constraint");
             ISCORE_ASSERT(submenu);
@@ -199,7 +199,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
         if(sel.empty())
             return;
 
-        if(any_of(sel, matches<Scenario::StateModel>{}))
+        if(ossia::any_of(sel, matches<Scenario::StateModel>{}))
         {
             auto stateSubmenu = menu.findChild<QMenu*>("State");
             ISCORE_ASSERT(stateSubmenu);

@@ -32,11 +32,12 @@ static auto getNextId(const Vector& ids)
 {
     typename Vector::value_type id {};
 
+    auto end = std::end(ids);
     do
     {
         id = typename Vector::value_type{getRandomId()};
     }
-    while(find(ids, id) != std::end(ids));
+    while(ossia::find(ids, id) != end);
 
     return id;
 }

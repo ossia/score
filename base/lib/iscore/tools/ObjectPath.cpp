@@ -135,7 +135,7 @@ QObject* ObjectPath::find_impl() const
     QObject* obj{};
 
     const auto& docs = iscore::AppContext().documents.documents();
-    auto parent_doc_it = find_if(docs,
+    auto parent_doc_it = ossia::find_if(docs,
                             [root_id_val = m_objectIdentifiers.at(0).id()]
                                  (const iscore::Document* doc) {
             return doc->model().id().val() == root_id_val;
@@ -173,7 +173,7 @@ QObject* ObjectPath::find_impl_unsafe() const
     QObject* obj{};
 
     const auto& docs = iscore::AppContext().documents.documents();
-    auto parent_doc_it = find_if(docs,
+    auto parent_doc_it = ossia::find_if(docs,
                             [&] (iscore::Document* doc) {
             return doc->model().id().val() == m_objectIdentifiers.at(0).id();
     });

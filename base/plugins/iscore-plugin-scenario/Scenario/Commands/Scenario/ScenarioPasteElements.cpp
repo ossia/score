@@ -222,14 +222,14 @@ ScenarioPasteElements::ScenarioPasteElements(
         {
             constraint->setId(constraint_ids[i]);
             {
-                auto start_state_id = find_if(states, [&] (auto state) {
+                auto start_state_id = ossia::find_if(states, [&] (auto state) {
                     return state->id() == constraint->startState();
                 });
                 if(start_state_id != states.end())
                     SetNextConstraint(**start_state_id, *constraint);
             }
             {
-                auto end_state_id = find_if(states, [&] (auto state) {
+                auto end_state_id = ossia::find_if(states, [&] (auto state) {
                     return state->id() == constraint->endState();
                 });
                 if(end_state_id != states.end())

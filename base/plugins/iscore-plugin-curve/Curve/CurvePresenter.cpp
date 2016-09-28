@@ -500,7 +500,7 @@ void Presenter::removeSelection()
         auto it = newSegments.begin();
         while(it != newSegments.end())
         {
-            if(contains(segmentsToDelete,it->id))
+            if(ossia::contains(segmentsToDelete,it->id))
             {
                 if(it->start.x() == 0)
                 {
@@ -516,9 +516,9 @@ void Presenter::removeSelection()
                 continue;
             }
 
-            if(it->previous && contains(segmentsToDelete, it->previous))
+            if(it->previous && ossia::contains(segmentsToDelete, it->previous))
                 it->previous = OptionalId<SegmentModel>{};
-            if(it->following && contains(segmentsToDelete, it->following))
+            if(it->following && ossia::contains(segmentsToDelete, it->following))
                 it->following = OptionalId<SegmentModel>{};
 
             it++;
@@ -529,7 +529,7 @@ void Presenter::removeSelection()
     if(editionSettings().removePointBehaviour() == RemovePointBehaviour::RemoveAndAddSegment)
     {
         // Find the "holes" in the new segment list.
-        sort(newSegments, [] (const SegmentData& s1, const SegmentData& s2) {
+        ossia::sort(newSegments, [] (const SegmentData& s1, const SegmentData& s2) {
             return s1.x() < s2.x();
         });
 

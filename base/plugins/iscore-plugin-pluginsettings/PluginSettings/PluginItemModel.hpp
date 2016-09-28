@@ -40,7 +40,7 @@ struct AddonVectorWrapper
         using const_iterator = boost::filter_iterator<not_core_addon, std::vector<iscore::Addon>::const_iterator>;
 
         auto size() const
-        { return count_if(vec, [] (auto& e) { return !e.corePlugin; }); }
+        { return ossia::count_if(vec, [] (auto& e) { return !e.corePlugin; }); }
 
         auto begin() const
         { return const_iterator{vec.begin()}; }
@@ -122,7 +122,7 @@ class RemotePluginItemModel : public QAbstractItemModel
 
         RemoteAddon* addon(UuidKey<iscore::Addon> k)
         {
-            auto it = find_if(m_vec, [&] (auto& add) {
+            auto it = ossia::find_if(m_vec, [&] (auto& add) {
                 return add.key == k;
             });
 

@@ -108,7 +108,7 @@ void CreateCurvesFromAddresses(
         {
             // First, we skip the curve if there is already a curve
             // with this address in the constraint.
-            if(contains(existing_automations, as.address))
+            if(ossia::contains(existing_automations, as.address))
                 continue;
 
             // Then we set-up all the necessary values

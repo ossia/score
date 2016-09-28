@@ -776,7 +776,7 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
         // If the node is going to be visible, we have to start listening to it.
         if(parent_is_expanded)
         {
-            auto child_it = find_if(*parent, [&] (const Device::Node& child) {
+            auto child_it = ossia::find_if(*parent, [&] (const Device::Node& child) {
                 return child.get<Device::AddressSettings>().name == stgs.name;
             });
             ISCORE_ASSERT(child_it != parent->end());
