@@ -80,7 +80,6 @@ namespace iscore
     ISCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)
 
 
-
 #define ISCORE_SETTINGS_PARAMETER_HPP(Type, Name) \
     public: \
         Type get ## Name() const; \

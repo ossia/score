@@ -13,7 +13,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT Model :
         Q_PROPERTY(int rate READ getRate WRITE setRate NOTIFY RateChanged)
         Q_PROPERTY(ClockManagerFactory::ConcreteFactoryKey clock READ getClock WRITE setClock NOTIFY ClockChanged)
 
-        int m_Rate;
+        int m_Rate{};
         ClockManagerFactory::ConcreteFactoryKey m_Clock;
 
         const ClockManagerFactoryList& m_clockFactories;

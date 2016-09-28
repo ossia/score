@@ -38,10 +38,10 @@ class ISCORE_PLUGIN_CURVE_EXPORT Model :
         ISCORE_SETTINGS_PARAMETER_HPP(Curve::Settings::Mode, CurveMode)
         ISCORE_SETTINGS_PARAMETER_HPP(bool, PlayWhileRecording)
     private:
-        int m_SimplificationRatio;
+        int m_SimplificationRatio{};
         bool m_Simplify = true;
         Mode m_CurveMode = Mode::Parameter;
-        bool m_PlayWhileRecording;
+        bool m_PlayWhileRecording{};
 };
 
 ISCORE_SETTINGS_PARAMETER(Model, SimplificationRatio)
