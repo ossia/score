@@ -4,6 +4,8 @@
 #include <iscore/tools/Todo.hpp>
 #include <QStringBuilder>
 #include <State/Expression.hpp>
+#include <ossia/network/base/name_validation.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 namespace State
 {
 bool Address::validateString(const QString &str)
@@ -30,20 +32,7 @@ bool Address::validateString(const QString &str)
 
 bool Address::validateFragment(const QString& s)
 {
-    // TODO refactor with ExpressionParser.cpp (auto base = +qi::char_("a-zA-Z0-9_~().-");)
-    return std::all_of(s.cbegin(), s.cend(), [] (auto uc) {
-        auto c = uc.toLatin1();
-        return (c >= 'a' && c <= 'z')
-                || (c >= 'A' && c <= 'Z')
-                || (c >= '0' && c <= '9')
-                || (c == '.')
-                || (c == '~')
-                || (c == '_')
-                || (c == '(')
-                || (c == ')')
-                || (c == '-')
-                ;
-    });
+    return ossia::all_of(s, &ossia::net::is_valid_character_for_name<QChar>);
 }
 
 

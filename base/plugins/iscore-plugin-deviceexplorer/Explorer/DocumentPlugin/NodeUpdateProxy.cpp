@@ -60,7 +60,7 @@ void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
     devModel.list().removeDevice(dev.name);
 
     const auto& rootNode = devModel.rootNode();
-    auto it = find_if(rootNode, [&] (const Device::Node& val) {
+    auto it = ossia::find_if(rootNode, [&] (const Device::Node& val) {
         return val.is<Device::DeviceSettings>() && val.get<Device::DeviceSettings>().name == dev.name;
     });
     ISCORE_ASSERT(it != rootNode.end());
@@ -351,7 +351,7 @@ void NodeUpdateProxy::removeLocalNode(const State::Address& addr)
                            parentAddr);
     if(parentNode)
     {
-        auto it = find_if(*parentNode,
+        auto it = ossia::find_if(*parentNode,
                           [&] (const Device::Node& n) { return n.get<Device::AddressSettings>().name == nodeName; });
         if(it != parentNode->end())
         {

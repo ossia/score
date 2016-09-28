@@ -85,7 +85,7 @@ DeviceEditDialog::initAvailableProtocols()
     std::vector<Device::ProtocolFactory*> sorted;
     for(auto& elt : m_protocolList) { sorted.push_back(&elt); }
 
-    sort(sorted, [] (Device::ProtocolFactory* lhs, Device::ProtocolFactory* rhs) {
+    ossia::sort(sorted, [] (Device::ProtocolFactory* lhs, Device::ProtocolFactory* rhs) {
         return lhs->visualPriority() > rhs->visualPriority();
     });
 

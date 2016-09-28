@@ -12,6 +12,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/fusion/adapted.hpp>
+#include <ossia/network/base/name_validation.hpp>
 #include <iscore/prefix.hpp>
 #endif
 /*
@@ -143,8 +144,10 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
     Address_parser() : Address_parser::base_type(start)
     {
         using qi::alnum;
-        dev = +qi::char_("a-zA-Z0-9_~().-");
-        member_elt = +qi::char_("a-zA-Z0-9_~().-");
+        // OPTIMIZEME
+        auto str = ossia::net::name_characters().to_string();
+        dev = +qi::char_(str);
+        member_elt = +qi::char_(str);
         path %= (
                     +("/" >> member_elt)
                     | "/"

@@ -69,7 +69,7 @@ class EnableWhenScenarioModelObject final :
             }
 
             const auto& sel = doc->selectionStack.currentSelection();
-            auto res = any_of(sel, [] (auto obj) {
+            auto res = ossia::any_of(sel, [] (auto obj) {
                 auto ptr = obj.data();
                 return bool(dynamic_cast<const Scenario::ConstraintModel*>(ptr))
                     || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
@@ -124,7 +124,7 @@ class EnableWhenScenarioInterfaceObject final :
             }
 
             const auto& sel = doc->selectionStack.currentSelection();
-            auto res = any_of(sel, [] (auto obj) {
+            auto res = ossia::any_of(sel, [] (auto obj) {
                 auto ptr = obj.data();
                 return bool(dynamic_cast<const Scenario::ConstraintModel*>(ptr))
                     || bool(dynamic_cast<const Scenario::EventModel*>(ptr))

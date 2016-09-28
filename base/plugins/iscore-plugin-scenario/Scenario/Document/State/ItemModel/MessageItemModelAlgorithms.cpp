@@ -74,7 +74,7 @@ static void updateNode(
         const State::Value& val,
         const Id<Process::ProcessModel>& proc)
 {
-    auto it = find_if(vec, [&] (auto& data) { return data.process == proc; });
+    auto it = ossia::find_if(vec, [&] (auto& data) { return data.process == proc; });
     if(it != vec.end())
     {
         it->value = val;
@@ -116,7 +116,7 @@ static bool nodePruneAction_impl(
     {
         // We just remove the element
         // corresponding to this process.
-        auto it = find_if(vec,
+        auto it = ossia::find_if(vec,
                       [&] (const auto& data) {
             return data.process == proc;
         });
@@ -509,7 +509,7 @@ static bool rec_cleanup(
         }
     }
 
-    auto remove_it = remove_if(node,
+    auto remove_it = ossia::remove_if(node,
                                [&] (const auto& child) {
         return toRemove.find(&child) != toRemove.end();
     });

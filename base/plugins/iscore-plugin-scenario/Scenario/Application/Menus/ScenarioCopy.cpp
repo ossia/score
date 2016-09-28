@@ -48,14 +48,14 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
 
     for(const ConstraintModel* constraint : selectedConstraints)
     {
-        auto start_it = find_if(selectedStates,
+        auto start_it = ossia::find_if(selectedStates,
                                 [&] (const StateModel* state) { return state->id() == constraint->startState();});
         if(start_it == selectedStates.end())
         {
             selectedStates.push_back(&sm.state(constraint->startState()));
         }
 
-        auto end_it = find_if(selectedStates,
+        auto end_it = ossia::find_if(selectedStates,
                               [&] (const StateModel* state) { return state->id() == constraint->endState();});
         if(end_it == selectedStates.end())
         {
@@ -65,7 +65,7 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
 
     for(const StateModel* state : selectedStates)
     {
-        auto ev_it = find_if(selectedEvents,
+        auto ev_it = ossia::find_if(selectedEvents,
                              [&] (const EventModel* event) { return state->eventId() == event->id(); });
         if(ev_it == selectedEvents.end())
         {
@@ -76,7 +76,7 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
     }
     for(const EventModel* event : selectedEvents)
     {
-        auto tn_it = find_if(selectedTimeNodes,
+        auto tn_it = ossia::find_if(selectedTimeNodes,
                              [&] (const TimeNodeModel* tn) { return tn->id() == event->timeNode(); });
         if(tn_it == selectedTimeNodes.end())
         {
@@ -94,7 +94,7 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
         auto events = clone_tn->events();
         for(const auto& event : events)
         {
-            auto absent = none_of(selectedEvents,
+            auto absent = ossia::none_of(selectedEvents,
                                   [&] (const EventModel* ev) { return ev->id() == event; });
             if(absent)
                 clone_tn->removeEvent(event);
@@ -112,7 +112,7 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
         auto states = clone_ev->states();
         for(const auto& state : states)
         {
-            auto absent = none_of(selectedStates,
+            auto absent = ossia::none_of(selectedStates,
                                   [&] (const StateModel* st) { return st->id() == state; });
             if(absent)
                 clone_ev->removeState(state);

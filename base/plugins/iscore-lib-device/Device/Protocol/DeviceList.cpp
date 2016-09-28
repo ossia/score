@@ -9,7 +9,7 @@ static auto get_device_iterator_by_name(
         const QString& name,
         const TheList& devlist)
 {
-    return find_if(devlist,
+    return ossia::find_if(devlist,
                    [&] (DeviceInterface* d) {
         return d->settings().name == name;
     });

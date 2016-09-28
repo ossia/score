@@ -175,7 +175,7 @@ void DocumentModel::loadDocumentAsByteArray(
         Id<DocumentModel> doc_id;
         doc_writer.writeTo(doc_id);
 
-        if(any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
+        if(ossia::any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
             throw std::runtime_error(tr("The document is already loaded").toStdString());
 
         this->setId(std::move(doc_id));
@@ -218,7 +218,7 @@ void DocumentModel::loadDocumentAsJson(
     const auto& doc = (*doc_obj).toObject();
     auto doc_id = fromJsonValue<Id<DocumentModel>>(doc["DocumentId"]);
 
-    if(any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
+    if(ossia::any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
         throw std::runtime_error(tr("The document is already loaded").toStdString());
 
     this->setId(doc_id);

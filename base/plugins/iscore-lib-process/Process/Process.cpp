@@ -109,7 +109,7 @@ void ProcessModel::addLayer(LayerModel* m)
 
 void ProcessModel::removeLayer(LayerModel* m)
 {
-    auto it = find(m_layers, m);
+    auto it = ossia::find(m_layers, m);
     if(it != m_layers.end())
     {
         m_layers.erase(it);

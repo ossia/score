@@ -117,7 +117,7 @@ void View::setupPanel(PanelDelegate* v)
         if(m_leftPanels.size() > 1)
         {
             // Find the one with the biggest priority
-            auto it = max_element(m_leftPanels, PanelComparator{});
+            auto it = ossia::max_element(m_leftPanels, PanelComparator{});
 
             it->second->raise();
             if(dial != it->second)
@@ -128,7 +128,7 @@ void View::setupPanel(PanelDelegate* v)
             else
             {
                 // dial is on top
-                auto it = find_if(m_leftPanels, [=] (auto elt) {
+                auto it = ossia::find_if(m_leftPanels, [=] (auto elt) {
                     return elt.second != dial;
                 });
                 ISCORE_ASSERT(it != m_leftPanels.end());
@@ -143,7 +143,7 @@ void View::setupPanel(PanelDelegate* v)
         if(m_rightPanels.size() > 1)
         {
             // Find the one with the biggest priority
-            auto it = max_element(m_rightPanels, PanelComparator{});
+            auto it = ossia::max_element(m_rightPanels, PanelComparator{});
 
             it->second->raise();
             if(dial != it->second)
@@ -152,7 +152,7 @@ void View::setupPanel(PanelDelegate* v)
             }
             else
             {
-                auto it = find_if(m_rightPanels, [=] (auto elt) {
+                auto it = ossia::find_if(m_rightPanels, [=] (auto elt) {
                     return elt.second != dial;
                 });
                 ISCORE_ASSERT(it != m_rightPanels.end());
@@ -181,7 +181,7 @@ void View::restoreLayout()
 {
     for(auto panels : {m_leftPanels, m_rightPanels})
     {
-        sort(panels, PanelComparator{});
+        ossia::sort(panels, PanelComparator{});
 
         for(auto& panel : panels)
         {

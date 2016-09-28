@@ -15,7 +15,7 @@ namespace Scenario
 void DisplayedElementsModel::setSelection(
         const Selection & s)
 {
-    for_each_in_tuple(elements(), [&] (auto elt) {
+    ossia::for_each_in_tuple(elements(), [&] (auto elt) {
         elt->selection.set(s.contains(elt.data())); // OPTIMIZEME
     });
  }

@@ -740,7 +740,7 @@ SelectedNodes DeviceExplorerModel::uniqueSelectedNodes(
         const QModelIndexList& indexes) const
 {
     SelectedNodes nodes;
-    transform(indexes, std::back_inserter(nodes.parents),
+    ossia::transform(indexes, std::back_inserter(nodes.parents),
               [&] (const QModelIndex& idx) {
         return &nodeFromModelIndex(idx);
     });

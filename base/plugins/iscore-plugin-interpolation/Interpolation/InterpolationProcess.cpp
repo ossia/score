@@ -71,7 +71,7 @@ State::MessageList ProcessState::setMessages(
         const Process::MessageNode&)
 {
     auto& proc = process();
-    auto it = find_if(received, [&] (const auto& mess) {
+    auto it = ossia::find_if(received, [&] (const auto& mess) {
         return mess.address == proc.address();
     });
     if(it != received.end())

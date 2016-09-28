@@ -122,7 +122,7 @@ class AddMultipleProcessesToConstraintMacro final : public iscore::AggregateComm
                             const auto& firstSlot = rack.slotmodels.at(rack.slotsPositions()[0]);
 
                             // Check if the rack / slot has already been added
-                            bool used = any_of(slotsToUse, [&] (const auto& elt) {
+                            bool used = ossia::any_of(slotsToUse, [&] (const auto& elt) {
                                 const ObjectIdentifierVector& vec = elt.first.unsafePath().vec();
                                 return (vec[vec.size() - 2].id() == rackId->val()) &&
                                         (vec[vec.size() - 1].id() == firstSlot.id().val());

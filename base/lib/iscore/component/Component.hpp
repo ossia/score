@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 namespace iscore
 {
@@ -88,7 +89,7 @@ auto& component(const iscore::Components& c)
 {
     static_assert(T::is_unique, "Components must be unique to use getComponent");
 
-    auto it = find_if(c, [] (auto& other) {
+    auto it = ossia::find_if(c, [] (auto& other) {
         return other.key_match(T::static_key());
     });
 
@@ -101,7 +102,7 @@ auto findComponent(const iscore::Components& c)
 {
     static_assert(T::is_unique, "Components must be unique to use getComponent");
 
-    auto it = find_if(c, [] (auto& other) {
+    auto it = ossia::find_if(c, [] (auto& other) {
         return other.key_match(T::static_key());
     });
 

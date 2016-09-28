@@ -89,7 +89,7 @@ static void RemoveProcessBeforeState(StateModel& statemodel, const Process::Proc
     updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Previous);
     statemodel.messages() = std::move(node);
 
-    auto it = find_if(statemodel.previousProcesses(), [&] (const auto& elt) {
+    auto it = ossia::find_if(statemodel.previousProcesses(), [&] (const auto& elt) {
         return state->id() == elt.process().id();
     });
 
@@ -108,7 +108,7 @@ static void RemoveProcessAfterState(StateModel& statemodel, const Process::Proce
     updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Following);
     statemodel.messages() = std::move(node);
 
-    auto it = find_if(statemodel.followingProcesses(), [&] (const auto& elt) {
+    auto it = ossia::find_if(statemodel.followingProcesses(), [&] (const auto& elt) {
         return state->id() == elt.process().id();
     });
 

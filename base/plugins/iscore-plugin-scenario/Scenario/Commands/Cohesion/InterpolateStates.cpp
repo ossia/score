@@ -65,7 +65,7 @@ struct MessagePairs
                 if(message.value.val.isNumeric())
                 {
                     // Look for a corresponding message on the end state
-                    auto it = find_if(endMessages, [&] (const State::Message& arg) {
+                    auto it = ossia::find_if(endMessages, [&] (const State::Message& arg) {
                         return message.address == arg.address
                                 && arg.value.val.isNumeric()
                                 && message.value != arg.value; });
@@ -73,7 +73,7 @@ struct MessagePairs
                     if(it != endMessages.end())
                     {
                         // Check that there isn't already an automation with this address
-                        auto has_existing_curve = any_of(constraint.processes,
+                        auto has_existing_curve = ossia::any_of(constraint.processes,
                                     [&] (const Process::ProcessModel& proc) {
                             auto ptr = dynamic_cast<const Automation::ProcessModel*>(&proc);
                             return ptr && ptr->address() == message.address;
@@ -88,7 +88,7 @@ struct MessagePairs
                 }
                 else if(message.value.val.is<State::tuple_t>())
                 {
-                    auto it = find_if(endMessages, [&] (const State::Message& arg) {
+                    auto it = ossia::find_if(endMessages, [&] (const State::Message& arg) {
                         return message.address == arg.address
                                 && arg.value.val.is<State::tuple_t>()
                                 && message.value != arg.value; });
@@ -96,7 +96,7 @@ struct MessagePairs
                     if(it != endMessages.end())
                     {
                         // Check that there isn't already an interpolation with this address
-                        auto has_existing_curve = any_of(constraint.processes,
+                        auto has_existing_curve = ossia::any_of(constraint.processes,
                                     [&] (const Process::ProcessModel& proc) {
                             auto ptr = dynamic_cast<const Interpolation::ProcessModel*>(&proc);
                             return ptr && ptr->address() == message.address.address;

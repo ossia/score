@@ -114,7 +114,7 @@ Process::MessageNode* try_getNodeFromAddress(
         return nullptr;
 
     // Find first node
-    auto first_node_it = find_if(root, [&] (const auto& cld) {
+    auto first_node_it = ossia::find_if(root, [&] (const auto& cld) {
         return cld.displayName() == addr.device;
     });
     if(first_node_it == root.end())
@@ -125,7 +125,7 @@ Process::MessageNode* try_getNodeFromAddress(
     for(auto& node_name : addr.path)
     {
         auto& n = *node;
-        auto child_it = find_if(n, [&] (const auto& cld) {
+        auto child_it = ossia::find_if(n, [&] (const auto& cld) {
             return cld.displayName() == node_name;
         } );
         if(child_it != n.end())

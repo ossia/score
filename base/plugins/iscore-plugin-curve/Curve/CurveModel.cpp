@@ -240,7 +240,7 @@ std::vector<SegmentModel*> Model::sortedSegments() const
         dat.push_back(&seg);
     }
 
-    sort(dat, [] (auto s1, auto s2) {
+    ossia::sort(dat, [] (auto s1, auto s2) {
         return s1->start().x() < s2->start().x();
     });
 
@@ -334,7 +334,7 @@ void Model::addPoint(PointModel *pt)
 
 void Model::removePoint(PointModel *pt)
 {
-    auto it = find(m_points, pt);
+    auto it = ossia::find(m_points, pt);
     if(it != m_points.end())
     {
         m_points.erase(it);
