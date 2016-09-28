@@ -121,7 +121,7 @@ Document::Document(const QVariant& data,
                    DocumentDelegateFactory& factory,
                    QWidget* parentview,
                    QObject* parent):
-    NamedObject {"Document", parent},
+    QObject {parent},
     m_commandStack{*this},
     m_objectLocker{this},
     m_context{*this}

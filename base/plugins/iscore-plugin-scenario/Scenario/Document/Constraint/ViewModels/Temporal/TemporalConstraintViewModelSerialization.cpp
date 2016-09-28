@@ -74,7 +74,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void deserializeConstraintViewModels(
     {
         if(TemporalScenarioLayer* temporalSVM = dynamic_cast<TemporalScenarioLayer*>(viewModel))
         {
-            auto svm_id = iscore::IDocument::path(static_cast<const AbstractScenarioLayer&>(*temporalSVM));
+            auto svm_id = iscore::IDocument::path(static_cast<const Process::LayerModel&>(*temporalSVM));
 
             auto it = std::find_if(begin(vms), end(vms),
                           [&] (const auto& elt) { return elt.first == svm_id; });

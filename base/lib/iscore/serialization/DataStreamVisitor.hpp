@@ -176,6 +176,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisito
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
+        using is_deserializer_tag = std::integral_constant<bool, true>;
 
         VisitorVariant toVariant() { return {*this, DataStream::type()}; }
 
@@ -299,7 +300,7 @@ struct TSerializer<DataStream, void, IdentifiedObject<T>>
                 DataStream::Serializer& s,
                 const IdentifiedObject<T>& obj)
         {
-            s.readFrom(static_cast<const NamedObject&>(obj));
+            s.stream() << obj.objectName();
             s.readFrom(obj.id());
         }
 
@@ -307,7 +308,10 @@ struct TSerializer<DataStream, void, IdentifiedObject<T>>
                 DataStream::Deserializer& s,
                 IdentifiedObject<T>& obj)
         {
+            QString name;
             Id<T> id;
+            s.stream() >> name;
+            obj.setObjectName(name);
             s.writeTo(id);
             obj.setId(std::move(id));
         }

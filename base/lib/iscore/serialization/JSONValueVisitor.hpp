@@ -62,6 +62,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONValue>> : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
+        using is_deserializer_tag = std::integral_constant<bool, true>;
 
         VisitorVariant toVariant() { return {*this, JSONValue::type()}; }
 
