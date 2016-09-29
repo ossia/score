@@ -29,7 +29,7 @@ EventModel::EventModel(
     m_date{date},
     m_offset{OffsetBehavior::True}
 {
-    metadata().setName(QString("Event.%1").arg(this->id().val()));
+    metadata().setInstanceName(*this);
     metadata().setColor(ScenarioStyle::instance().EventDefault);
 }
 
@@ -44,6 +44,7 @@ EventModel::EventModel(const EventModel& source,
     m_date{source.m_date},
     m_offset{source.m_offset}
 {
+    metadata().setInstanceName(*this);
 }
 
 VerticalExtent EventModel::extent() const

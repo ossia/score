@@ -18,7 +18,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>

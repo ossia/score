@@ -21,7 +21,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario

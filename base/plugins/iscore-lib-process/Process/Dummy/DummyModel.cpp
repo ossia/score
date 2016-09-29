@@ -20,16 +20,16 @@ DummyModel::DummyModel(
         QObject* parent):
     ProcessModel{duration, id, "DummyModel", parent}
 {
-
+    metadata().setInstanceName(*this);
 }
 
 DummyModel::DummyModel(
         const DummyModel& source,
         const Id<ProcessModel>& id,
         QObject* parent):
-    ProcessModel{source.duration(), id, source.objectName(), parent}
+    ProcessModel{source, id, source.objectName(), parent}
 {
-
+    metadata().setInstanceName(*this);
 }
 
 }

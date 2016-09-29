@@ -22,7 +22,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 

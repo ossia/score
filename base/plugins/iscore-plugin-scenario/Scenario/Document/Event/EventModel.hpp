@@ -117,3 +117,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final :
 }
 
 DEFAULT_MODEL_METADATA(Scenario::EventModel, "Event")
+TR_TEXT_METADATA(, Scenario::EventModel, PrettyName_k, "Event")
+

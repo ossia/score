@@ -5,8 +5,18 @@
 #include <array>
 #include <iostream>
 
+template<typename T>
+class EntityMap;
+template<typename T>
+class EntityMapInserter
+{
+    public:
+        void add(EntityMap<T>& map, T* t);
+};
+
+
 /**
- * @brief The NotifyingMap class
+ * @brief The EntityMap class
  *
  * This class is a wrapper over IdContainer.
  * Differences :
@@ -19,7 +29,7 @@
  *
  */
 template<typename T>
-class NotifyingMap
+class EntityMap
 {
     public:
         // The real interface starts here
@@ -30,6 +40,7 @@ class NotifyingMap
         auto cend() const { return m_map.cend(); }
         auto size() const { return m_map.size(); }
         bool empty() const { return m_map.empty(); }
+        auto& unsafe_map() { return m_map; }
         const auto& map() const { return m_map; }
         const auto& get() const { return m_map.get(); }
         T& at(const Id<T>& id) { return m_map.at(id); }
@@ -45,10 +56,7 @@ class NotifyingMap
 
         void add(T* t)
         {
-            m_map.insert(t);
-
-            mutable_added(*t);
-            added(*t);
+            EntityMapInserter<T>{}.add(*this, t);
         }
 
         void remove(T& elt)
@@ -109,3 +117,12 @@ class NotifyingMap
     private:
         IdContainer<T> m_map;
 };
+
+template<typename T>
+void EntityMapInserter<T>::add(EntityMap<T>& map, T* t)
+{
+    map.unsafe_map().insert(t);
+
+    map.mutable_added(*t);
+    map.added(*t);
+}

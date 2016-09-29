@@ -46,7 +46,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <iscore/widgets/MarginLess.hpp>

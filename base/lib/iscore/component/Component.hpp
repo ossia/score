@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 namespace iscore
@@ -82,7 +82,7 @@ class SystemComponent :
 template<typename System_T>
 using GenericComponent = iscore::SystemComponent<iscore::Component, System_T>;
 
-using Components = NotifyingMap<iscore::Component>;
+using Components = EntityMap<iscore::Component>;
 
 template<typename T>
 auto& component(const iscore::Components& c)

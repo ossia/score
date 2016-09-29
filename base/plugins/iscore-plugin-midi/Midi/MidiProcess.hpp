@@ -38,7 +38,7 @@ class ISCORE_PLUGIN_MIDI_EXPORT ProcessModel final :
 
         virtual ~ProcessModel();
 
-        NotifyingMap<Note> notes;
+        EntityMap<Note> notes;
 
         void setDevice(const QString& dev)
         {

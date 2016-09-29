@@ -36,7 +36,7 @@ ProcessModel::ProcessModel(
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
 
-    metadata().setName(QString("Mapping.%1").arg(this->id().val()));
+    metadata().setInstanceName(*this);
 }
 
 ProcessModel::ProcessModel(
@@ -54,7 +54,7 @@ ProcessModel::ProcessModel(
     setCurve(source.curve().clone(source.curve().id(), this));
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
-    metadata().setName(QString("Mapping.%1").arg(this->id().val()));
+    metadata().setInstanceName(*this);
 }
 
 ProcessModel::~ProcessModel()

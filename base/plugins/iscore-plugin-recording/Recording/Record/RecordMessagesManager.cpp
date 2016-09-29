@@ -34,7 +34,7 @@
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <Explorer/Explorer/ListeningManager.hpp>

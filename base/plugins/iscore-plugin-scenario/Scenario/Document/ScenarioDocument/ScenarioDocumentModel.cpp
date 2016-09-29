@@ -33,7 +33,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 
 template<typename T>
 std::vector<T*> shallow_copy(const IdContainer<T>& m)
@@ -9,7 +9,7 @@ std::vector<T*> shallow_copy(const IdContainer<T>& m)
 }
 
 template<typename T>
-std::vector<T*> shallow_copy(const NotifyingMap<T>& m)
+std::vector<T*> shallow_copy(const EntityMap<T>& m)
 {
     return shallow_copy(m.map());
 }

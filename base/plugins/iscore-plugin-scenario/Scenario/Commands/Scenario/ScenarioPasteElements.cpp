@@ -37,7 +37,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 #include <core/document/Document.hpp>

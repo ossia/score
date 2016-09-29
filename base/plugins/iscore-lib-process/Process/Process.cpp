@@ -23,7 +23,6 @@ ProcessModel::ProcessModel(
     Entity{id, name, parent},
     m_duration{std::move(duration)}
 {
-    metadata().setName(QString("Process.%1").arg(this->id().val()));
 }
 
 ProcessModel::~ProcessModel() = default;
@@ -37,7 +36,6 @@ ProcessModel::ProcessModel(
     Entity{source, id, name, parent},
     m_duration{source.duration()}
 {
-    metadata().setName(QString("Process.%1").arg(this->id().val()));
 }
 
 ProcessModel::ProcessModel(Deserializer<DataStream>& vis, QObject* parent) :

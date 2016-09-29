@@ -7,7 +7,7 @@
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <nano_signal_slot.hpp>
 
 #include <set>
@@ -58,7 +58,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final :
     public:
         using ProcessVector = std::list<ProcessStateWrapper>;
 
-        NotifyingMap<Process::StateProcess> stateProcesses;
+        EntityMap<Process::StateProcess> stateProcesses;
         Selectable selection;
 
         StateModel(const Id<StateModel>& id,
@@ -142,3 +142,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final :
 }
 
 DEFAULT_MODEL_METADATA(Scenario::StateModel, "State")
+
+TR_TEXT_METADATA(, Scenario::StateModel, PrettyName_k, "State")

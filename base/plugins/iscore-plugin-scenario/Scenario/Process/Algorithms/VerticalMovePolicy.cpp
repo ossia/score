@@ -10,7 +10,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include "VerticalMovePolicy.hpp"
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario

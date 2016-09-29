@@ -19,7 +19,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/MapCopy.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 
 namespace Scenario
 {

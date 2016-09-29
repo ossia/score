@@ -13,7 +13,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Process { class LayerModel; }
@@ -70,8 +70,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
 
 template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::SlotModel& slot)
 {
-    readFrom(static_cast<const IdentifiedObject<Scenario::SlotModel>&>(slot));
-    m_obj[strings.Metadata] = toJsonObject(slot.metadata());
+    readFrom(static_cast<const iscore::Entity<Scenario::SlotModel>&>(slot));
 
     m_obj["EditedProcess"] = toJsonValue(slot.m_frontLayerModelId);
     m_obj["Height"] = slot.getHeight();
@@ -89,7 +88,6 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const Scenario::SlotModel&
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
 {
-    slot.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
     QJsonArray arr = m_obj["LayerModels"].toArray();
 
     auto& layers = context.components.factory<Process::LayerFactoryList>();

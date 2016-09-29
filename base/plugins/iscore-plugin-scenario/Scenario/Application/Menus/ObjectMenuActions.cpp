@@ -46,7 +46,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>

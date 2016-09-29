@@ -34,7 +34,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 

@@ -31,7 +31,7 @@ ConstraintModel::ConstraintModel(
 {
     initConnections();
     setupConstraintViewModel(m_fullViewModel);
-    metadata().setName(QString("Constraint.%1").arg(this->id().val()));
+    metadata().setInstanceName(*this);
     metadata().setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
     setHeightPercentage(yPos);
 }
@@ -46,6 +46,7 @@ ConstraintModel::ConstraintModel(
         QObject* parent):
     Entity{source, id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent}
 {
+    metadata().setInstanceName(*this);
     initConnections();
     // It is not necessary to save modelconsistency because it should be recomputed
 

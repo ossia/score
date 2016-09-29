@@ -33,8 +33,7 @@ StateModel::StateModel(
                             *this,
                             this}}
 {
-
-    metadata().setName(QString("State.%1").arg(this->id().val()));
+    metadata().setInstanceName(*this);
     init();
 }
 
@@ -54,6 +53,7 @@ StateModel::StateModel(
                             *this,
                             this}}
 {
+    metadata().setInstanceName(*this);
     // FIXME Source has to be in the same document else it will crash.
     // FIXME prune the messages from the prev / next processes data and rebuild it.
     messages() = source.messages();

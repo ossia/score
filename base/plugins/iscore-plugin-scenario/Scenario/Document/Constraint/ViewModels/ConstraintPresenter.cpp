@@ -15,7 +15,7 @@
 #include <Scenario/Document/ModelConsistency.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 

@@ -88,3 +88,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final :
 }
 
 DEFAULT_MODEL_METADATA(Scenario::TimeNodeModel, "Time Node")
+TR_TEXT_METADATA(, Scenario::TimeNodeModel, PrettyName_k, "TimeNode")
