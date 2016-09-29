@@ -4,6 +4,9 @@
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/component/Component.hpp>
 
+template<typename T>
+class EntityMapInserter;
+
 namespace iscore
 {
 template<typename T>
@@ -11,24 +14,30 @@ class Entity :
         public IdentifiedObject<T>
 {
     public:
-        using IdentifiedObject<T>::IdentifiedObject;
+        Entity(Id<T> id, const QString& name, QObject* parent):
+          IdentifiedObject<T>{std::move(id), name, parent}
+        {
+            m_metadata.setParent(this);
+        }
 
         Entity(const Entity& other, Id<T> id, const QString& name, QObject* parent):
             IdentifiedObject<T>{std::move(id), name, parent},
             m_metadata{other.metadata()}
         {
-
+            m_metadata.setParent(this);
         }
 
         Entity(Deserializer<DataStream>& vis, QObject* parent):
             IdentifiedObject<T>{vis, parent}
         {
+            m_metadata.setParent(this);
             vis.writeTo(*this);
         }
 
         Entity(Deserializer<JSONObject>& vis, QObject* parent):
             IdentifiedObject<T>{vis, parent}
         {
+            m_metadata.setParent(this);
             vis.writeTo(*this);
         }
 
@@ -81,4 +90,16 @@ struct TSerializer<JSONObject, iscore::Entity<T>>
             obj.metadata() = fromJsonObject<iscore::ModelMetadata>(s.m_obj[s.strings.Metadata]);
         }
 
+};
+
+template<typename T>
+class EntityMapInserter<iscore::Entity<T>>
+{
+        void add(EntityMap<T>& map, T* t)
+        {
+            map.unsafe_map().insert(t);
+
+            map.mutable_added(*t);
+            map.added(*t);
+        }
 };

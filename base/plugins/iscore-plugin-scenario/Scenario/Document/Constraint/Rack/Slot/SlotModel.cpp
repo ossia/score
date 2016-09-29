@@ -12,7 +12,7 @@
 
 #include <iscore/model/ModelMetadata.hpp>
 #include "SlotModel.hpp"
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
@@ -26,7 +26,7 @@ SlotModel::SlotModel(const Id<SlotModel>& id,
 {
     m_height = slotHeight;
     initConnections();
-    metadata().setName(QString{"Slot.%1"}.arg(id.val()));
+    metadata().setInstanceName(*this);
 }
 
 SlotModel::SlotModel(
@@ -39,14 +39,15 @@ SlotModel::SlotModel(
     m_height {source.getHeight() }
 {
     initConnections();
-    lmCopyMethod(source, *this);
 
     // Note: we have a small trick for the layer model id.
     // Since we're cloning, we want the pointer cached in the layer model to be the
     // one we have cloned, hence instead of just copying the id, we ask the corresponding
     // layer model to give us its id.
     // TODO this is fucking ugly - mostly because two objects exist with the same id...
-    metadata().setName(QString{"Slot.%1"} .arg(id.val()));
+    lmCopyMethod(source, *this);
+
+    metadata().setInstanceName(*this);
 }
 
 RackModel&SlotModel::rack() const

@@ -24,7 +24,7 @@ TimeNodeModel::TimeNodeModel(
     m_date{date},
     m_trigger{new TriggerModel{Id<TriggerModel>(0), this} }
 {
-    metadata().setName(QString("TimeNode.%1").arg(this->id().val()));
+    metadata().setInstanceName(*this);
     metadata().setColor(ScenarioStyle::instance().TimenodeDefault);
 }
 
@@ -37,6 +37,7 @@ TimeNodeModel::TimeNodeModel(
     m_date{source.m_date},
     m_events(source.m_events)
 {
+    metadata().setInstanceName(*this);
     m_trigger = new TriggerModel{Id<TriggerModel>(0), this};
     m_trigger->setExpression(source.trigger()->expression());
     m_trigger->setActive(source.trigger()->active());

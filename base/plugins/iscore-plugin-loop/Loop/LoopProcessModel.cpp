@@ -57,7 +57,7 @@ ProcessModel::ProcessModel(
         const Loop::ProcessModel& source,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
+    Process::ProcessModel{source, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     BaseScenarioContainer{source, this}
 {
 }

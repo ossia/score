@@ -30,7 +30,7 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <iscore/document/DocumentContext.hpp>

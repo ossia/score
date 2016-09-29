@@ -3,7 +3,7 @@
 #include <Process/LayerModel.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/tools/std/Optional.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <QtGlobal>
 #include <QObject>
 #include <nano_signal_slot.hpp>
@@ -79,7 +79,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
         qreal getHeight() const;
         bool focus() const;
 
-        NotifyingMap<Process::LayerModel> layers;
+        EntityMap<Process::LayerModel> layers;
 
         void on_deleteSharedProcessModel(const Process::ProcessModel& sharedProcessId);
 
@@ -114,4 +114,4 @@ ConstraintModel* parentConstraint(Process::LayerModel* lm);
 }
 
 DEFAULT_MODEL_METADATA(Scenario::SlotModel, "Slot")
-
+TR_TEXT_METADATA(, Scenario::SlotModel, PrettyName_k, "Slot")

@@ -6,7 +6,7 @@
 
 #include <Process/LayerModel.hpp>
 #include "TemporalScenarioLayerModel.hpp"
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario

@@ -37,7 +37,7 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioRecordInitData.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <Engine/iscore2OSSIA.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 

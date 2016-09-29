@@ -16,7 +16,7 @@
 #include <QVector>
 
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/component/Component.hpp>
 class DataStream;
@@ -45,8 +45,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel :
 
     public:
         /** Properties of the class **/
-        NotifyingMap<Process::ProcessModel> processes;
-        NotifyingMap<RackModel> racks;
+        EntityMap<Process::ProcessModel> processes;
+        EntityMap<RackModel> racks;
 
         Selectable selection;
         ModelConsistency consistency{nullptr};
@@ -170,3 +170,4 @@ DEFAULT_MODEL_METADATA(Scenario::ConstraintModel, "Constraint")
 
 Q_DECLARE_METATYPE(Id<Scenario::ConstraintModel>)
 Q_DECLARE_METATYPE(Path<Scenario::ConstraintModel>)
+TR_TEXT_METADATA(, Scenario::ConstraintModel, PrettyName_k, "Constraint")

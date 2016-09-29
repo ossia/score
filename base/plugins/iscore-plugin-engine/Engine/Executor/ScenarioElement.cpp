@@ -33,7 +33,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>

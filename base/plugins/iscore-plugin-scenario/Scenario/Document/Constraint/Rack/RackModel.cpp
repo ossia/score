@@ -2,7 +2,7 @@
 #include "RackModel.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
@@ -12,7 +12,7 @@ RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :
     Entity{id, Metadata<ObjectKey_k, RackModel>::get(), parent}
 {
     initConnections();
-    metadata().setName(QString{"Rack.%1"} .arg(id.val()));
+    metadata().setInstanceName(*this);
 }
 
 RackModel::RackModel(const RackModel& source,
@@ -21,6 +21,7 @@ RackModel::RackModel(const RackModel& source,
                    QObject *parent) :
     Entity{source, id, Metadata<ObjectKey_k, RackModel>::get(), parent}
 {
+    metadata().setInstanceName(*this);
     initConnections();
     for(const auto& slot : source.slotmodels)
     {

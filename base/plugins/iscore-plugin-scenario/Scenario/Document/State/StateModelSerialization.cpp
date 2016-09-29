@@ -99,9 +99,6 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::StateModel& s)
 {
-    // Common metadata
-    s.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
-
     s.m_eventId = fromJsonValue<Id<Scenario::EventModel>>(m_obj["Event"]);
     s.m_previousConstraint = fromJsonValue<OptionalId<Scenario::ConstraintModel>>(m_obj["PreviousConstraint"]);
     s.m_nextConstraint = fromJsonValue<OptionalId<Scenario::ConstraintModel>>(m_obj["NextConstraint"]);

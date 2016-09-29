@@ -17,7 +17,7 @@
 
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/std/Algorithms.hpp>

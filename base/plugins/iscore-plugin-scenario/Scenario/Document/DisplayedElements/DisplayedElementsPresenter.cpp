@@ -33,7 +33,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
