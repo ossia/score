@@ -61,21 +61,28 @@ void ModelMetadata::setName(const QString& arg)
         return;
     }
 
-    auto parent_bros = parent()->parent()->findChildren<IdentifiedObjectAbstract*>(
-                         QString{},
-                         Qt::FindDirectChildrenOnly);
-
-    std::vector<std::string> bros;
-    bros.reserve(parent_bros.size());
-    for(auto o : parent_bros)
+    if(parent() && parent()->parent())
     {
-      auto objs = o->findChildren<ModelMetadata*>(QString{}, Qt::FindDirectChildrenOnly);
-      if(!objs.empty())
-        bros.push_back(objs[0]->getName().toStdString());
-    }
+      auto parent_bros = parent()->parent()->findChildren<IdentifiedObjectAbstract*>(
+                           QString{},
+                           Qt::FindDirectChildrenOnly);
 
-    auto res = QString::fromStdString(ossia::net::sanitize_name(arg.toStdString(), bros));
-    m_scriptingName = res;
+      std::vector<std::string> bros;
+      bros.reserve(parent_bros.size());
+      for(auto o : parent_bros)
+      {
+        auto objs = o->findChildren<ModelMetadata*>(QString{}, Qt::FindDirectChildrenOnly);
+        if(!objs.empty())
+          bros.push_back(objs[0]->getName().toStdString());
+      }
+
+      auto res = QString::fromStdString(ossia::net::sanitize_name(arg.toStdString(), bros));
+      m_scriptingName = res;
+    }
+    else
+    {
+      m_scriptingName = QString::fromStdString(ossia::net::sanitize_name(arg.toStdString()));
+    }
     emit NameChanged(arg);
     emit metadataChanged();
 }

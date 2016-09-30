@@ -3,6 +3,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/component/Component.hpp>
+#include <ossia/network/base/name_validation.hpp>
 
 template<typename T>
 class EntityMapInserter;
@@ -97,6 +98,18 @@ class EntityMapInserter<iscore::Entity<T>>
 {
         void add(EntityMap<T>& map, T* t)
         {
+            ISCORE_ASSERT(t);
+
+            std::vector<std::string> bros_names;
+            bros_names.reserve(map.size());
+            std::transform(map.begin(), map.end(), std::back_inserter(bros_names),
+                           [&] (const auto & res) {
+              bros_names.push_back(res.metadata().getName().toStdString());
+            });
+
+            auto new_name = ossia::net::sanitize_name(t->metadata().getName().toStdString(), bros_names);
+            t->metadata().setName(QString::fromStdString(new_name));
+
             map.unsafe_map().insert(t);
 
             map.mutable_added(*t);

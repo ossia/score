@@ -121,6 +121,7 @@ class EntityMap
 template<typename T>
 void EntityMapInserter<T>::add(EntityMap<T>& map, T* t)
 {
+    ISCORE_ASSERT(t);
     map.unsafe_map().insert(t);
 
     map.mutable_added(*t);
