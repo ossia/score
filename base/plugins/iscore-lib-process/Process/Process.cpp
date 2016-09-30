@@ -96,10 +96,38 @@ const TimeValue& ProcessModel::duration() const
     return m_duration;
 }
 
+int32_t ProcessModel::priority() const
+{
+    return m_priority;
+}
+
+void ProcessModel::setPriority(int32_t i)
+{
+    if(m_priority != i)
+    {
+        m_priority = i;
+        emit priorityChanged(i);
+    }
+}
+
+bool ProcessModel::priorityOverride() const
+{
+    return m_priorityOverride;
+}
+
+void ProcessModel::setPriorityOverride(bool o)
+{
+  if(m_priorityOverride != o)
+  {
+      m_priorityOverride = o;
+      emit priorityOverrideChanged(o);
+  }
+}
+
 
 void ProcessModel::addLayer(LayerModel* m)
 {
-    connect(m, &LayerModel::destroyed,
+  connect(m, &LayerModel::destroyed,
             this, [=] () { removeLayer(m); });
     m_layers.push_back(m);
 }

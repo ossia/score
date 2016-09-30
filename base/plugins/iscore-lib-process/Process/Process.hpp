@@ -41,6 +41,9 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
 
         ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, JSONObject)
+
+        Q_PROPERTY(int32_t priority READ priority WRITE setPriority NOTIFY priorityChanged)
+        Q_PROPERTY(bool priorityOverride READ priorityOverride WRITE setPriorityOverride NOTIFY priorityOverrideChanged)
         friend class Process::LayerFactory; // to register layers
 
     public:
@@ -104,11 +107,19 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         virtual Selection selectedChildren() const { return {}; }
         virtual void setSelection(const Selection& s) const { }
 
+        int32_t priority() const;
+        void setPriority(int32_t);
+
+        bool priorityOverride() const;
+        void setPriorityOverride(bool);
+
     signals:
         // True if the execution is running.
         void execution(bool);
         void durationChanged(const TimeValue&);
         void useParentDurationChanged(bool);
+        void priorityChanged(int32_t);
+        void priorityOverrideChanged(bool);
 
     protected:
         // Clone
@@ -143,6 +154,9 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
         std::vector<LayerModel*> m_layers;
         TimeValue m_duration;
         bool m_useParentDuration{true};
+
+        int32_t m_priority = 0;
+        bool m_priorityOverride = 0;
 };
 
 ISCORE_LIB_PROCESS_EXPORT ProcessModel* parentProcess(QObject* obj);
