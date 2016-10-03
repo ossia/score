@@ -15,6 +15,7 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/address.hpp>
 #include <ossia/network/base/protocol.hpp>
+#include <ossia/detail/logger.hpp>
 #include <ossia/network/common/network_logger.hpp>
 
 namespace Engine
