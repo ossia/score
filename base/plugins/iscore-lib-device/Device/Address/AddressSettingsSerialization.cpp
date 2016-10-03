@@ -27,11 +27,12 @@ void Visitor<Reader<DataStream>>::readFrom(const Device::AddressSettingsCommon& 
              << n.domain
              << n.ioType
              << n.clipMode
-             << n.unit
+             // << n.unit
              << n.repetitionFilter
              << n.rate
              << n.priority
-             << n.tags;
+             << n.tags
+             << n.description;
 }
 
 
@@ -42,11 +43,12 @@ void Visitor<Writer<DataStream>>::writeTo(Device::AddressSettingsCommon& n)
              >> n.domain
              >> n.ioType
              >> n.clipMode
-             >> n.unit
+             // >> n.unit
              >> n.repetitionFilter
              >> n.rate
              >> n.priority
-             >> n.tags;
+             >> n.tags
+             >> n.description;
 }
 
 
@@ -56,7 +58,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Device::AddressSettingsCommon& 
     // Metadata
     m_obj[strings.ioType] = Device::IOTypeStringMap()[n.ioType];
     m_obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
-    m_obj[strings.Unit] = n.unit;
+    //m_obj[strings.Unit] = n.unit;
 
     m_obj[strings.RepetitionFilter] = n.repetitionFilter;
     m_obj[strings.RefreshRate] = n.rate;
@@ -67,6 +69,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Device::AddressSettingsCommon& 
     for(auto& str : n.tags)
         arr.append(str);
     m_obj[strings.Tags] = arr;
+    m_obj[strings.Description] = n.description;
 
     // Value, domain and type
     readFrom(n.value);
@@ -79,7 +82,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettingsCommon& n)
 {
     n.ioType = Device::IOTypeStringMap().key(m_obj[strings.ioType].toString());
     n.clipMode = Device::ClipModeStringMap().key(m_obj[strings.ClipMode].toString());
-    n.unit = m_obj[strings.Unit].toString();
+    //n.unit = m_obj[strings.Unit].toString();
 
     n.repetitionFilter = m_obj[strings.RepetitionFilter].toBool();
     n.rate = m_obj[strings.RefreshRate].toInt();
@@ -89,6 +92,8 @@ void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettingsCommon& n)
     auto arr = m_obj[strings.Tags].toArray();
     for(auto&& elt : arr)
         n.tags.append(elt.toString());
+
+    n.description = m_obj[strings.Description].toString();
 
     writeTo(n.value);
     // TODO doesn't handle multi-type variants.

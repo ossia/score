@@ -6,6 +6,7 @@
 
 class QComboBox;
 class QCheckBox;
+class QLabel;
 class QFormLayout;
 
 
@@ -34,6 +35,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget : public QWidget
         QComboBox* m_clipModeCBox{};
         QCheckBox* m_repetition{};
         QComboBox* m_tagsEdit{};
+        QLabel* m_description{};
+        QLabel* m_unit{};
 };
 }
 

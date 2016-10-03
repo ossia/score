@@ -6,6 +6,7 @@
 #include "ClipMode.hpp"
 #include "Domain.hpp"
 #include <State/Message.hpp>
+#include <ossia/editor/dataspace/dataspace.hpp>
 #include <iscore/tools/Metadata.hpp>
 #include <iscore_lib_device_export.h>
 
@@ -25,7 +26,7 @@ struct AddressSettingsCommon
 
     Device::IOType ioType{};
     Device::ClipMode clipMode{};
-    QString unit;
+    ossia::unit_t unit;
 
     Device::RepetitionFilter repetitionFilter{};
     Device::RefreshRate rate{};
@@ -33,6 +34,7 @@ struct AddressSettingsCommon
     int priority{};
 
     QStringList tags;
+    QString description;
 };
 
 // this one has only the name of the current node (e.g. 'a' for dev:/azazd/a)

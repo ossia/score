@@ -9,11 +9,13 @@
 #include <QString>
 #include <QStringList>
 #include <QVariant>
-
+#include <QLabel>
 #include "AddressSettingsWidget.hpp"
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/IOType.hpp>
+
+#include <ossia/editor/dataspace/dataspace_visitors.hpp>
 
 namespace Explorer
 {
@@ -49,10 +51,15 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     tagLayout->addWidget(m_tagsEdit);
     tagLayout->addWidget(addTagButton);
 
+    m_unit = new QLabel;
+    m_description = new QLabel;
+
     m_layout->addRow(tr("I/O type"), m_ioTypeCBox);
     m_layout->addRow(tr("Clip mode"), m_clipModeCBox);
     m_layout->addRow(tr("Repetition filter"), m_repetition);
     m_layout->addRow(tr("Tags"), tagLayout);
+    m_layout->addRow(tr("Unit"), m_unit);
+    m_layout->addRow(tr("Description"), m_description);
 
     // Populate the combo boxes
 
@@ -133,6 +140,14 @@ void AddressSettingsWidget::setCommonSettings(const Device::AddressSettings & se
         m_clipModeCBox->setCurrentIndex(clipModeIndex);
 
         m_repetition->setChecked(settings.repetitionFilter);
+
+        m_unit->setText(
+                    QString::fromStdString(
+                        ossia::get_dataspace_text(settings.unit).to_string() +
+                        "." +
+                        ossia::get_unit_text(settings.unit).to_string()));
+
+        m_description->setText(settings.description);
     }
     m_tagsEdit->addItems(settings.tags);
 }

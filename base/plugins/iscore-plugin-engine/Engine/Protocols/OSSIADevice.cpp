@@ -189,7 +189,7 @@ void OSSIADevice::setLogging_impl(bool b) const
     {
         if(b)
         {
-            ossia::network_logger logger;
+            ossia::net::network_logger logger;
             logger.inbound_logger = std::make_shared<spdlog::logger>("in_logger", std::make_shared<in_sink>(*this));
             logger.outbound_logger = std::make_shared<spdlog::logger>("out_logger", std::make_shared<out_sink>(*this));
 
