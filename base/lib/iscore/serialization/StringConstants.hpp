@@ -60,6 +60,7 @@ struct StringConstants
         const QString Label;
         const QString Extended;
         const QString uuid;
+        const QString Description;
 };
 
 ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant();

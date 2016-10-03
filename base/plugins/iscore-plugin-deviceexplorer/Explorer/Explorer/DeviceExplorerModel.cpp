@@ -1,4 +1,4 @@
-#include <Device/ItemModels/NodeDisplayMethods.hpp>
+﻿#include <Device/ItemModels/NodeDisplayMethods.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
@@ -362,44 +362,59 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
     }
 
     const Device::Node& n = nodeFromModelIndex(index);
-    switch((Column)col)
+    if(role != Qt::ToolTipRole)
     {
-        case Column::Name:
+        switch((Column)col)
         {
-            if(n.is<Device::AddressSettings>())
-                return Device::nameColumnData(n, role);
-            else if(n.is<Device::DeviceSettings>())
+            case Column::Name:
             {
-                auto& dev_set = n.get<Device::DeviceSettings>();
-                return Device::deviceNameColumnData(
-                            n,
-                            deviceModel().list().device(dev_set.name),
-                            role);
+                if(n.is<Device::AddressSettings>())
+                    return Device::nameColumnData(n, role);
+                else if(n.is<Device::DeviceSettings>())
+                {
+                    auto& dev_set = n.get<Device::DeviceSettings>();
+                    return Device::deviceNameColumnData(
+                                n,
+                                deviceModel().list().device(dev_set.name),
+                                role);
+                }
+                return {};
             }
+
+            case Column::Value:
+                return Device::valueColumnData(n, role);
+
+            case Column::Get:
+                return Device::GetColumnData(n, role);
+
+            case Column::Set:
+                return Device::SetColumnData(n, role);
+
+            case Column::Min:
+                return Device::minColumnData(n, role);
+
+            case Column::Max:
+                return Device::maxColumnData(n, role);
+
+            case Column::Count:
+            default :
+                ISCORE_ABORT;
+                return {};
+        }
+    }
+    else
+    {
+        // Tooltip
+        if(n.is<Device::AddressSettings>())
+        {
+            auto& addr_set = n.get<Device::AddressSettings>();
+            return addr_set.description;
+        }
+        else
+        {
             return {};
         }
-
-        case Column::Value:
-            return Device::valueColumnData(n, role);
-
-        case Column::Get:
-            return Device::GetColumnData(n, role);
-
-        case Column::Set:
-            return Device::SetColumnData(n, role);
-
-        case Column::Min:
-            return Device::minColumnData(n, role);
-
-        case Column::Max:
-            return Device::maxColumnData(n, role);
-
-        case Column::Count:
-        default :
-            ISCORE_ABORT;
-            return {};
     }
-
     return {};
 }
 

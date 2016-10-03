@@ -10,7 +10,7 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
 #include <ossia/editor/value/value.hpp>
-
+#include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <Engine/OSSIA2iscore.hpp>
 #include <iscore/tools/TreeNode.hpp>
 
@@ -27,6 +27,7 @@ Device::Domain ToDomain(const ossia::net::domain &domain)
 
     ISCORE_TODO;
     // TODO values!!
+    // TODO change the i-score domain to use the ossia one.
     return d;
 }
 
@@ -52,6 +53,8 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base &node)
         s.ioType = ToIOType(addr->getAccessMode());
         s.clipMode = ToClipMode(addr->getBoundingMode());
         s.repetitionFilter = bool(addr->getRepetitionFilter());
+        s.unit = addr->getUnit();
+        s.description = QString::fromStdString(addr->getDescription());
 
         if(auto& domain = addr->getDomain())
             s.domain = ToDomain(domain);
