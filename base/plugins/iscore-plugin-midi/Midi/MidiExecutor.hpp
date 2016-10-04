@@ -2,6 +2,7 @@
 #include <ossia/editor/scenario/time_process.hpp>
 #include <Engine/Executor/ProcessElement.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
+#include <set>
 
 namespace ossia
 {

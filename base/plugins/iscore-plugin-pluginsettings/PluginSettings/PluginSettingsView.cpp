@@ -14,7 +14,9 @@
 #include <QStandardPaths>
 #include <QBuffer>
 #include <QFile>
+#if !defined(_MSC_VER)
 #include <quazip/JlCompress.h>
+#endif
 #include <QMessageBox>
 class QObject;
 
@@ -94,6 +96,7 @@ PluginSettingsView::PluginSettingsView()
         mgr.get(rqst);
 
     });
+#if !defined(_MSC_VER)
 
     connect(m_install, &QPushButton::pressed,
             this, [this] () {
@@ -150,6 +153,7 @@ PluginSettingsView::PluginSettingsView()
             }
         });
     });
+#endif
 
 }
 
