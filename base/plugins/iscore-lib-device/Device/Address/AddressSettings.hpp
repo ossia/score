@@ -6,7 +6,7 @@
 #include "ClipMode.hpp"
 #include "Domain.hpp"
 #include <State/Message.hpp>
-#include <ossia/editor/dataspace/dataspace.hpp>
+#include <State/Unit.hpp>
 #include <iscore/tools/Metadata.hpp>
 #include <iscore_lib_device_export.h>
 

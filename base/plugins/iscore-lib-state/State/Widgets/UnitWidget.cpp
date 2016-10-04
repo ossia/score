@@ -57,7 +57,7 @@ void UnitWidget::setUnit(ossia::unit_t u)
     if(u)
     {
         // First update the dataspace combobox
-        on_dataspaceChanged(u);
+        m_dataspace->setCurrentIndex(u.which() + 1);
 
         // Then set the correct unit
         eggs::variants::apply(

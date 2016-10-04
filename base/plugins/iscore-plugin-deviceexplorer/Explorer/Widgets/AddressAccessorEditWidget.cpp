@@ -47,7 +47,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
     lay->addWidget(m_lineEdit);
 }
 
-void AddressAccessorEditWidget::setAddress(const State::Address& addr)
+void AddressAccessorEditWidget::setOnlyAddress(const State::Address& addr)
 {
     m_address.address = addr;
     m_address.accessors.clear();

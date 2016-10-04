@@ -51,6 +51,7 @@
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
 #include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
 
+#include <State/Unit.hpp>
 iscore_plugin_scenario::iscore_plugin_scenario()
 {
     using namespace Scenario;
@@ -74,6 +75,9 @@ iscore_plugin_scenario::iscore_plugin_scenario()
 
     qRegisterMetaType<Scenario::OffsetBehavior>();
     qRegisterMetaTypeStreamOperators<Scenario::OffsetBehavior>();
+
+    qRegisterMetaType<ossia::unit_t>();
+    qRegisterMetaTypeStreamOperators<ossia::unit_t>();
 }
 
 iscore_plugin_scenario::~iscore_plugin_scenario() = default;
