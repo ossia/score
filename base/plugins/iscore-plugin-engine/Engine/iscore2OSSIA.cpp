@@ -471,9 +471,7 @@ static ossia::value expressionOperand(
 
             return_type operator()(const State::AddressAccessor& acc) const {
                 auto dest = expressionAddress(acc.address, devlist);
-
-                ossia::transform(acc.accessors, std::back_inserter(dest.index), [] (auto i) { return i;});
-
+                dest.index = acc.accessors;
                 return dest;
             }
     } visitor{list};

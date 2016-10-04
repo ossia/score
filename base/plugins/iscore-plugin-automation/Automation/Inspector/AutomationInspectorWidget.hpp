@@ -14,6 +14,7 @@ struct DocumentContext;
 namespace State
 {
 struct Address;
+class UnitWidget;
 }
 namespace Explorer
 {
@@ -39,10 +40,12 @@ class InspectorWidget final :
         void on_minValueChanged();
         void on_maxValueChanged();
         void on_tweenChanged();
+        void on_unitChanged();
 
         Explorer::AddressAccessorEditWidget* m_lineEdit{};
         QCheckBox* m_tween{};
         QDoubleSpinBox* m_minsb{}, *m_maxsb{};
+        State::UnitWidget* m_uw{};
 
         CommandDispatcher<> m_dispatcher;
 };
