@@ -56,9 +56,9 @@ InspectorWidget::InspectorWidget(
         explorer = &plug->explorer();
     m_lineEdit = new AddressAccessorEditWidget{explorer, this};
 
-    m_lineEdit->setAddress(process().address().address);
+    m_lineEdit->setAddress(process().address());
     con(process(), &ProcessModel::addressChanged,
-        m_lineEdit, [=] (const State::AddressAccessor& addr) { m_lineEdit->setAddress(addr); });
+        m_lineEdit,  &AddressAccessorEditWidget::setAddress);
 
     connect(m_lineEdit, &AddressAccessorEditWidget::addressChanged,
             this, &InspectorWidget::on_addressChange);
@@ -80,6 +80,7 @@ InspectorWidget::InspectorWidget(
     m_maxsb->setValue(process().max());
 
     m_uw = new State::UnitWidget{{}, this};
+    m_uw->setUnit(process().unit());
 
     vlay->addRow(tr("Min"), m_minsb);
     vlay->addRow(tr("Max"), m_maxsb);
@@ -87,6 +88,7 @@ InspectorWidget::InspectorWidget(
 
     con(process(), &ProcessModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
     con(process(), &ProcessModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);
+    con(process(), &ProcessModel::unitChanged, m_uw, &State::UnitWidget::setUnit);
 
 
     connect(m_minsb, &QAbstractSpinBox::editingFinished,

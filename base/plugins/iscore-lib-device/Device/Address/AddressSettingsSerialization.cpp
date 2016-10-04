@@ -10,6 +10,7 @@
 #include <QStringList>
 
 #include "AddressSettings.hpp"
+#include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/Domain.hpp>
 #include <Device/Address/IOType.hpp>
@@ -19,7 +20,6 @@
 template <typename T> class Reader;
 template <typename T> class Writer;
 
-
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Device::AddressSettingsCommon& n)
 {
@@ -27,7 +27,7 @@ void Visitor<Reader<DataStream>>::readFrom(const Device::AddressSettingsCommon& 
              << n.domain
              << n.ioType
              << n.clipMode
-             // << n.unit
+             << n.unit
              << n.repetitionFilter
              << n.rate
              << n.priority
@@ -43,7 +43,7 @@ void Visitor<Writer<DataStream>>::writeTo(Device::AddressSettingsCommon& n)
              >> n.domain
              >> n.ioType
              >> n.clipMode
-             // >> n.unit
+             >> n.unit
              >> n.repetitionFilter
              >> n.rate
              >> n.priority
@@ -58,7 +58,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Device::AddressSettingsCommon& 
     // Metadata
     m_obj[strings.ioType] = Device::IOTypeStringMap()[n.ioType];
     m_obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
-    //m_obj[strings.Unit] = n.unit;
+    m_obj[strings.Unit] = QString::fromStdString(ossia::get_pretty_unit_text(n.unit));
 
     m_obj[strings.RepetitionFilter] = n.repetitionFilter;
     m_obj[strings.RefreshRate] = n.rate;
@@ -82,7 +82,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettingsCommon& n)
 {
     n.ioType = Device::IOTypeStringMap().key(m_obj[strings.ioType].toString());
     n.clipMode = Device::ClipModeStringMap().key(m_obj[strings.ClipMode].toString());
-    //n.unit = m_obj[strings.Unit].toString();
+    n.unit = ossia::parse_pretty_unit(m_obj[strings.Unit].toString().toStdString());
 
     n.repetitionFilter = m_obj[strings.RepetitionFilter].toBool();
     n.rate = m_obj[strings.RefreshRate].toInt();

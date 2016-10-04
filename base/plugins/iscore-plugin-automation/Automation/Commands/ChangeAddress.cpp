@@ -31,6 +31,7 @@ ChangeAddress::ChangeAddress(
     m_oldAddress = autom.address();
     m_oldDomain.min.val = autom.min();
     m_oldDomain.max.val = autom.max();
+    m_oldUnit = autom.unit();
 
     if(auto deviceexplorer = Explorer::try_deviceExplorerFromObject(autom))
     {
@@ -45,7 +46,9 @@ ChangeAddress::ChangeAddress(
         if(new_n)
         {
             ISCORE_ASSERT(new_n->is<Device::AddressSettings>());
-            m_newDomain = new_n->get<Device::AddressSettings>().domain;
+            auto& addr = new_n->get<Device::AddressSettings>();
+            m_newDomain = addr.domain;
+            m_newUnit = addr.unit;
         }
         else
         {
@@ -60,12 +63,15 @@ ChangeAddress::ChangeAddress(
         Path<ProcessModel> &&path,
         Device::FullAddressSettings newval):
     m_path{path},
-    m_newAddress{newval.address}
+    m_newAddress{newval.address},
+    m_newDomain{newval.domain},
+    m_newUnit{newval.unit}
 {
     auto& autom = m_path.find();
     m_oldAddress = autom.address();
     m_oldDomain.min.val = autom.min();
     m_oldDomain.max.val = autom.max();
+    m_oldUnit = autom.unit();
 }
 
 
@@ -77,7 +83,7 @@ void ChangeAddress::undo() const
         QSignalBlocker blck{autom.curve()};
         autom.setMin(::State::convert::value<double>(m_oldDomain.min));
         autom.setMax(::State::convert::value<double>(m_oldDomain.max));
-
+        autom.setUnit(m_oldUnit);
         autom.setAddress(m_oldAddress);
     }
     autom.curve().changed();
@@ -91,7 +97,7 @@ void ChangeAddress::redo() const
         QSignalBlocker blck{autom.curve()};
         autom.setMin(::State::convert::value<double>(m_newDomain.min));
         autom.setMax(::State::convert::value<double>(m_newDomain.max));
-
+        autom.setUnit(m_newUnit);
         autom.setAddress(m_newAddress);
     }
     autom.curve().changed();
@@ -99,11 +105,11 @@ void ChangeAddress::redo() const
 
 void ChangeAddress::serializeImpl(DataStreamInput & s) const
 {
-    s << m_path << m_oldAddress << m_newAddress << m_oldDomain << m_newDomain;
+    s << m_path << m_oldAddress << m_newAddress << m_oldDomain << m_newDomain << m_oldUnit << m_newUnit;
 }
 
 void ChangeAddress::deserializeImpl(DataStreamOutput & s)
 {
-    s >> m_path >> m_oldAddress >> m_newAddress >> m_oldDomain >> m_newDomain;
+    s >> m_path >> m_oldAddress >> m_newAddress >> m_oldDomain >> m_newDomain >> m_oldUnit >> m_newUnit;
 }
 }
