@@ -73,10 +73,12 @@ void UnitWidget::setUnit(ossia::unit_t u)
 
 void UnitWidget::on_dataspaceChanged(ossia::unit_t d)
 {
-    m_unit->clear();
+    { QSignalBlocker _{this}; m_unit->clear(); }
 
     if(d)
     {
+        { QSignalBlocker _{this};
+
         // Set to default unit, which is the first one for each type list
 
         // First lift ourselves in the dataspace realm
@@ -94,8 +96,9 @@ void UnitWidget::on_dataspaceChanged(ossia::unit_t d)
             });
         }, d);
 
-        // Update the current unit
-        emit unitChanged(m_unit->itemData(0).value<ossia::unit_t>());
+        }
+
+        emit unitChanged(m_unit->currentData().value<ossia::unit_t>());
     }
     else
     {

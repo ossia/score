@@ -88,10 +88,13 @@ InspectorWidget::InspectorWidget(
     con(process(), &ProcessModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
     con(process(), &ProcessModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);
 
+
     connect(m_minsb, &QAbstractSpinBox::editingFinished,
             this, &InspectorWidget::on_minValueChanged);
     connect(m_maxsb, &QAbstractSpinBox::editingFinished,
             this, &InspectorWidget::on_maxValueChanged);
+    connect(m_uw, &State::UnitWidget::unitChanged,
+            this, [=] (ossia::unit_t) { on_unitChanged(); });
 
     this->setLayout(vlay);
 }
