@@ -66,9 +66,11 @@ void Component::recreate()
 
       if(m_ossia_curve)
       {
-        m_ossia_process = new ossia::automation(
+        auto autom = new ossia::automation(
                     ossia::Destination(*address, dest.accessors),
                     ossia::Behavior(m_ossia_curve));
+        autom->setUnit(process().unit());
+        m_ossia_process = autom;
       }
     }
 }

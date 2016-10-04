@@ -7,9 +7,9 @@
 #include <QByteArray>
 #include <QString>
 
-
 #include <Process/TimeValue.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <State/Unit.hpp>
 
 class DataStream;
 class JSONObject;
@@ -34,6 +34,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
         Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
         Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
+        Q_PROPERTY(ossia::unit_t unit READ unit WRITE setUnit NOTIFY unitChanged)
 
     public:
         ProcessModel(const TimeValue& duration,
@@ -60,6 +61,9 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         void setMin(double arg);
         void setMax(double arg);
 
+        ossia::unit_t unit() const;
+        void setUnit(ossia::unit_t);
+
         bool tween() const
         {
             return m_tween;
@@ -80,6 +84,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         void minChanged(double);
         void maxChanged(double);
         void tweenChanged(bool tween);
+        void unitChanged(ossia::unit_t);
 
     private:
         //// ProcessModel ////
@@ -100,6 +105,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
 
         double m_min{};
         double m_max{};
+        ossia::unit_t m_unit{};
 
         ProcessState* m_startState{};
         ProcessState* m_endState{};

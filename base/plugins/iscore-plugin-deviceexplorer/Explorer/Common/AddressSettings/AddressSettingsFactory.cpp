@@ -43,18 +43,18 @@ AddressSettingsFactory::AddressSettingsFactory()
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Bool,
                                           std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressBoolSettingsWidget> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Tuple,
-                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressTupleSettingsWidget> >()));
+                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressArraySettingsWidget<State::tuple_t>> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Char,
                                           std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressCharSettingsWidget> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Impulse,
                                           std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressImpulseSettingsWidget> >()));
 
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Vec2f,
-                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressTupleSettingsWidget> >()));
+                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressArraySettingsWidget<State::vec2f>> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Vec3f,
-                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressTupleSettingsWidget> >()));
+                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressArraySettingsWidget<State::vec3f>> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Vec4f,
-                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressTupleSettingsWidget> >()));
+                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressArraySettingsWidget<State::vec4f>> >()));
 }
 
 
