@@ -79,6 +79,7 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
 
         bool isNumeric() const;
         bool isValid() const;
+        bool isArray() const;
 
         ValueType which() const
         {
@@ -129,6 +130,8 @@ using ValueList = QList<Value>;
 using OptionalValue = optional<State::Value>;
 
 ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m);
+
+
 }
 
 Q_DECLARE_METATYPE(State::no_value_t)

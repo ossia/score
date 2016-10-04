@@ -159,6 +159,12 @@ State::Value ToValue(ossia::val_type t)
             return State::Value::fromValue(QString{});
         case ossia::val_type::TUPLE:
             return State::Value::fromValue(State::tuple_t{});
+        case ossia::val_type::VEC2F:
+          return State::Value::fromValue(State::vec2f{});
+        case ossia::val_type::VEC3F:
+            return State::Value::fromValue(State::vec3f{});
+        case ossia::val_type::VEC4F:
+            return State::Value::fromValue(State::vec4f{});
         case ossia::val_type::DESTINATION:
         case ossia::val_type::BEHAVIOR:
         default:

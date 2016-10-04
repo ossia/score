@@ -46,7 +46,7 @@ UnitWidget::UnitWidget(ossia::unit_t u, QWidget* parent):
 
 }
 
-ossia::unit_t UnitWidget::unit()
+ossia::unit_t UnitWidget::unit() const
 {
     return m_unit->currentData().value<ossia::unit_t>();
 }

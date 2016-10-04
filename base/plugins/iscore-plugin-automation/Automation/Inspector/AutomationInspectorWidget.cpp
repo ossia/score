@@ -146,7 +146,12 @@ void InspectorWidget::on_tweenChanged()
 }
 void InspectorWidget::on_unitChanged()
 {
-    qDebug() << "Unit changed ! " << QString::fromStdString(ossia::get_pretty_unit_text(m_uw->unit()));
+    auto newVal = m_uw->unit();
+    if(newVal != process().unit())
+    {
+        auto cmd = new SetUnit{process(), newVal};
 
+        m_dispatcher.submitCommand(cmd);
+    }
 }
 }

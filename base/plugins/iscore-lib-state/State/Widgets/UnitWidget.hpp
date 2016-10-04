@@ -1,9 +1,8 @@
 #pragma once
 #include <QWidget>
 #include <iscore_lib_state_export.h>
-#include <ossia/editor/dataspace/dataspace.hpp>
+#include <State/Unit.hpp>
 
-Q_DECLARE_METATYPE(ossia::unit_t)
 
 class QComboBox;
 class QHBoxLayout;
@@ -15,7 +14,7 @@ class ISCORE_LIB_STATE_EXPORT UnitWidget : public QWidget
     public:
         UnitWidget(ossia::unit_t u, QWidget* parent);
 
-        ossia::unit_t unit();
+        ossia::unit_t unit() const;
         void setUnit(ossia::unit_t);
 
     signals:

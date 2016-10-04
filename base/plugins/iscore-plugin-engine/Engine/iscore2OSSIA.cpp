@@ -220,6 +220,8 @@ void updateOSSIAAddress(
                     toOSSIAValue(settings.domain.min),
                     toOSSIAValue(settings.domain.max)));
 
+    addr.setUnit(settings.unit);
+
 }
 
 void createOSSIAAddress(

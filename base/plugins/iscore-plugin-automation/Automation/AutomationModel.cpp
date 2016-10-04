@@ -216,5 +216,20 @@ void ProcessModel::setMax(double arg)
     emit maxChanged(arg);
     emit m_curve->changed();
 }
+
+ossia::unit_t ProcessModel::unit() const
+{
+    return m_unit;
+}
+
+void ProcessModel::setUnit(ossia::unit_t u)
+{
+    if(u != m_unit)
+    {
+        m_unit = u;
+        emit unitChanged(u);
+    }
+
+}
 }
 

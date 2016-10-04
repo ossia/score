@@ -76,8 +76,8 @@ QVariant valueColumnData(const Device::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        const auto& val = node.get<AddressSettings>().value;
-        if(val.val.is<State::tuple_t>())
+        const State::Value& val = node.get<AddressSettings>().value;
+        if(val.val.isArray())
         {
             // TODO a nice editor for tuples.
             return State::convert::toPrettyString(val);

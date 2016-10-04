@@ -73,14 +73,23 @@ bool State::ValueImpl::isValid() const
 {
     return m_variant.which() != m_variant.npos;
 }
+
+bool State::ValueImpl::isArray() const
+{
+    return is<State::tuple_t>()
+            || is<State::vec2f>()
+            || is<State::vec3f>()
+            || is<State::vec4f>();
+}
+
 #include <State/ValueConversion.hpp>
 
 namespace State {
 
 ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m)
 {
-  s << State::convert::textualType(m) << State::convert::toPrettyString(m);
-  return s;
+    s << State::convert::textualType(m) << State::convert::toPrettyString(m);
+    return s;
 }
 
 }

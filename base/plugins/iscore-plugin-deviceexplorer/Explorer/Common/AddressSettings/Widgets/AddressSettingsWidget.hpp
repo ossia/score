@@ -9,7 +9,10 @@ class QCheckBox;
 class QLabel;
 class QFormLayout;
 
-
+namespace State
+{
+class UnitWidget;
+}
 namespace Explorer
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget : public QWidget
@@ -36,7 +39,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget : public QWidget
         QCheckBox* m_repetition{};
         QComboBox* m_tagsEdit{};
         QLabel* m_description{};
-        QLabel* m_unit{};
+        State::UnitWidget* m_unit{};
 };
 }
 
