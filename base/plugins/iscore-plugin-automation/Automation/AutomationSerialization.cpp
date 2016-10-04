@@ -67,7 +67,7 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
     m_obj[strings.Min] = autom.min();
     m_obj[strings.Max] = autom.max();
     m_obj["Tween"] = autom.tween();
-    m_obj[strings.Unit] = QString::fromStdString(ossia::get_pretty_unit_text(n.unit)); // TODO refactor with AddressSettings
+    m_obj[strings.Unit] = QString::fromStdString(ossia::get_pretty_unit_text(autom.unit())); // TODO refactor with AddressSettings
 }
 
 template<>
