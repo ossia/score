@@ -15,7 +15,6 @@
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/utilsCPP11.hpp>
 
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeNodes.hpp>

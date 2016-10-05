@@ -1,6 +1,7 @@
 #include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/RelativePath.hpp>
 #include <QApplication>
 #include <QByteArray>
 #include <QDebug>
@@ -90,48 +91,9 @@ QString ObjectPath::toString() const
     return s;
 }
 
-
-template<typename Container>
-typename Container::value_type findById_weak_safe(const Container& c, int32_t id)
-{
-    auto it = std::find_if(std::begin(c),
-                           std::end(c),
-                           [&id](typename Container::value_type model)
-    {
-        return model->id_val() == id;
-    });
-
-    if(it != std::end(c))
-    {
-        return *it;
-    }
-
-    ISCORE_BREAKPOINT;
-    throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(id).arg(typeid(c).name()).toUtf8().constData());
-}
-
-template<typename Container>
-typename Container::value_type findById_weak_unsafe(const Container& c, int32_t id)
-{
-    auto it = std::find_if(std::begin(c),
-                           std::end(c),
-                           [&id](typename Container::value_type model)
-    {
-        return model->id_val() == id;
-    });
-
-    if(it != std::end(c))
-    {
-        return *it;
-    }
-
-    return nullptr;
-}
-
-
-
 QObject* ObjectPath::find_impl() const
 {
+    using namespace iscore;
     QObject* obj{};
 
     const auto& docs = iscore::AppContext().documents.documents();
@@ -152,7 +114,7 @@ QObject* ObjectPath::find_impl() const
         obj = findById_weak_safe(objs, m_objectIdentifiers.at(0).id());
     }
 
-     auto children = boost::make_iterator_range(
+    auto children = boost::make_iterator_range(
         m_objectIdentifiers.begin() + 1,
         m_objectIdentifiers.end());
     for(const auto& currentObjIdentifier : children)
@@ -170,6 +132,7 @@ QObject* ObjectPath::find_impl() const
 
 QObject* ObjectPath::find_impl_unsafe() const
 {
+    using namespace iscore;
     QObject* obj{};
 
     const auto& docs = iscore::AppContext().documents.documents();

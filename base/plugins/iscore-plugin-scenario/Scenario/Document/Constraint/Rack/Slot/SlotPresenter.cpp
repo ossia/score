@@ -28,7 +28,6 @@
 #include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/tools/utilsCPP11.hpp>
 
 class QObject;
 

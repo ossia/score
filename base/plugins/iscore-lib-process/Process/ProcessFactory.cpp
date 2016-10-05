@@ -6,7 +6,9 @@
 #include <Process/Dummy/DummyLayerPresenter.hpp>
 #include <Process/Dummy/DummyLayerView.hpp>
 #include <Process/LayerModelPanelProxy.hpp>
+#include <iscore/tools/RelativePath.hpp>
 #include <Process/Process.hpp>
+
 
 namespace Process
 {
@@ -15,6 +17,7 @@ LayerFactory::~LayerFactory() = default;
 ProcessFactoryList::~ProcessFactoryList() = default;
 LayerFactoryList::~LayerFactoryList() = default;
 StateProcessList::~StateProcessList() = default;
+
 
 
 LayerModel* LayerFactory::make(
@@ -26,6 +29,7 @@ LayerModel* LayerFactory::make(
     auto lm = makeLayer_impl(proc, viewModelId, constructionData, parent);
     proc.addLayer(lm);
 
+    iscore::RelativePath(lm, &proc);
     return lm;
 }
 
@@ -36,38 +40,38 @@ LayerModel*LayerFactory::load(
 {
     switch(v.identifier)
     {
-        case DataStream::type():
+    case DataStream::type():
+    {
+        auto& des = static_cast<DataStream::Deserializer&>(v.visitor);
+
+        iscore::RelativePath process;
+        des.m_stream >> process;
+        auto& proc = process.find<Process::ProcessModel>(parent);
+
+        // Note : we pass a reference to the stream,
+        // so it is already increased past the reading of the path.
+        auto lm = loadLayer_impl(proc, v, parent);
+        proc.addLayer(lm);
+
+        return lm;
+    }
+    case JSONObject::type():
+    {
+        auto& des = static_cast<JSONObject::Deserializer&>(v.visitor);
+        auto proc = fromJsonObject<iscore::RelativePath>(des.m_obj["SharedProcess"]);
+
+        if(auto p = proc.try_find<Process::ProcessModel>(parent))
         {
-            auto& des = static_cast<DataStream::Deserializer&>(v.visitor);
-
-            ObjectPath process;
-            des.m_stream >> process;
-            auto& proc = process.find<Process::ProcessModel>();
-
-            // Note : we pass a reference to the stream,
-            // so it is already increased past the reading of the path.
+            auto& proc = *p;
             auto lm = loadLayer_impl(proc, v, parent);
             proc.addLayer(lm);
 
             return lm;
         }
-        case JSONObject::type():
-        {
-            auto& des = static_cast<JSONObject::Deserializer&>(v.visitor);
-            auto proc = fromJsonObject<ObjectPath>(des.m_obj["SharedProcess"]);
-
-            if(auto p = proc.try_find<Process::ProcessModel>())
-            {
-                auto& proc = *p;
-                auto lm = loadLayer_impl(proc, v, parent);
-                proc.addLayer(lm);
-
-                return lm;
-            }
-            return nullptr;
-        }
-        default:
-            return nullptr;
+        return nullptr;
+    }
+    default:
+        return nullptr;
     }
 }
 
@@ -142,7 +146,7 @@ LayerModel*LayerFactory::loadLayer_impl(
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
         auto autom = new Dummy::Layer{
-                     deserializer, p, parent};
+                deserializer, p, parent};
 
         return autom;
     });
