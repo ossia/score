@@ -11,7 +11,6 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/utilsCPP11.hpp>
 
 namespace Scenario
 {
