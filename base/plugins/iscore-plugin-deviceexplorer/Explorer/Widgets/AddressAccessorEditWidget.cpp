@@ -50,7 +50,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 void AddressAccessorEditWidget::setOnlyAddress(const State::Address& addr)
 {
     m_address.address = addr;
-    m_address.accessors.clear();
+    m_address.qualifiers.accessors.clear();
     m_lineEdit->setText(m_address.toString());
 }
 

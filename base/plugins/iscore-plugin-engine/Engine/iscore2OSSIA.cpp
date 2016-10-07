@@ -473,7 +473,7 @@ static ossia::value expressionOperand(
 
             return_type operator()(const State::AddressAccessor& acc) const {
                 auto dest = expressionAddress(acc.address, devlist);
-                dest.index = acc.accessors;
+                dest.index = acc.qualifiers.accessors;
                 return dest;
             }
     } visitor{list};

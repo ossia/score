@@ -1,6 +1,4 @@
 #pragma once
-
-
 #include <QHash>
 #include <QList>
 #include <QString>
@@ -11,7 +9,7 @@
 #include <QMetaType>
 #include <QMetaObject>
 #include <iscore/tools/std/Optional.hpp>
-#include <boost/container/static_vector.hpp>
+#include <ossia/detail/destination_index.hpp>
 #include <iscore_lib_state_export.h>
 
 namespace State
@@ -27,34 +25,11 @@ namespace State
 struct ISCORE_LIB_STATE_EXPORT Address
 {
         Address() noexcept = default;
-        Address(const Address& other) noexcept:
-            device{other.device},
-            path{other.path}
-        {
-
-        }
-
+        Address(const Address& other) noexcept;
         Address(Address&&) noexcept = default;
-        Address& operator=(const Address& other) noexcept
-        {
-            device = other.device;
-            path = other.path;
-            return *this;
-        }
-
-        Address& operator=(Address&& other) noexcept
-        {
-            device = std::move(other.device);
-            path = std::move(other.path);
-            return *this;
-        }
-
-        Address(QString d, QStringList p) noexcept :
-            device{std::move(d)},
-            path{std::move(p)}
-        {
-
-        }
+        Address& operator=(const Address& other) noexcept;
+        Address& operator=(Address&& other) noexcept;
+        Address(QString d, QStringList p) noexcept;
 
         // Data
         QString device; // No device means that this is the invisible root node.
@@ -83,77 +58,38 @@ struct ISCORE_LIB_STATE_EXPORT Address
          */
         QString toShortString() const;
 
-        bool operator==(const Address& a) const
-        {
-            return device == a.device && path == a.path;
-        }
-        bool operator!=(const Address& a) const
-        {
-            return !(*this == a);
-        }
+        bool operator==(const Address& a) const;
+        bool operator!=(const Address& a) const;
 };
 
-ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::Address& a);
-
-inline QStringList stringList(const State::Address& addr)
+using AccessorVector = ossia::destination_index;
+struct ISCORE_LIB_STATE_EXPORT AddressQualifiers
 {
-    return QStringList{} << addr.device << addr.path;
-}
+  // In the future, also bring in the unit ?
+  // Maybe we should just use FullAddressSettings behind a flyweight
+  // pattern everywhere... (see mnmlstc/flyweight)
+  ossia::destination_index accessors;
 
-using AccessorVector = boost::container::static_vector<uint8_t, 8>;
+  bool operator==(const AddressQualifiers& a) const;
+  bool operator!=(const AddressQualifiers& a) const;
+};
+
 struct ISCORE_LIB_STATE_EXPORT AddressAccessor
 {
         AddressAccessor() noexcept = default;
-        AddressAccessor(const AddressAccessor& other) noexcept:
-            address{other.address},
-            accessors{other.accessors}
-        {
+        AddressAccessor(const AddressAccessor& other) noexcept;
+        AddressAccessor(AddressAccessor&& other) noexcept;
+        AddressAccessor& operator=(const AddressAccessor& other) noexcept;
+        AddressAccessor& operator=(AddressAccessor&& other) noexcept;
 
-        }
-        AddressAccessor(AddressAccessor&& other) noexcept:
-            address{std::move(other.address)},
-            accessors{std::move(other.accessors)}
-        {
+        AddressAccessor(State::Address a) noexcept;
+        AddressAccessor(State::Address a, const AccessorVector& v) noexcept;
 
-        }
-        AddressAccessor& operator=(const AddressAccessor& other) noexcept
-        {
-            address = other.address;
-            accessors = other.accessors;
-            return *this;
-        }
-        AddressAccessor& operator=(AddressAccessor&& other) noexcept
-        {
-            address = std::move(other.address);
-            accessors = std::move(other.accessors);
-            return *this;
-        }
-
-        AddressAccessor(State::Address a) noexcept :
-            address{std::move(a)} { }
-        AddressAccessor(State::Address a, const AccessorVector& v) noexcept :
-            address{std::move(a)},
-            accessors{v}
-        {
-
-        }
-
-        AddressAccessor& operator=(const Address& a)
-        {
-            address = a;
-            accessors.clear();
-            return *this;
-        }
-
-        AddressAccessor& operator=(Address&& a)
-        {
-            address = std::move(a);
-            accessors.clear();
-            return *this;
-        }
+        AddressAccessor& operator=(const Address& a);
+        AddressAccessor& operator=(Address&& a);
 
         State::Address address;
-        AccessorVector accessors;
+        AddressQualifiers qualifiers;
 
         // Utility
         QString toString() const;
@@ -161,15 +97,31 @@ struct ISCORE_LIB_STATE_EXPORT AddressAccessor
         QString accessorsString() const;
 
         static optional<AddressAccessor> fromString(const QString& str);
-        bool operator==(const AddressAccessor& other) const
-        {
-            return address == other.address && accessors == other.accessors;
-        }
-        bool operator!=(const AddressAccessor& a) const
-        {
-            return !(*this == a);
-        }
+        bool operator==(const AddressAccessor& other) const;
+        bool operator!=(const AddressAccessor& a) const;
 };
+
+/**
+ * @brief The AddressAccessorHead struct
+ *
+ * The head of an address : just the last aprt, e.g. "baz" in "foo:/bar/baz"
+ * but with potential qualifiers
+ */
+struct ISCORE_LIB_STATE_EXPORT AddressAccessorHead
+{
+        QString name;
+        AddressQualifiers qualifiers;
+
+        QString toString() const;
+};
+
+
+ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::Address& a);
+ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AddressQualifiers& a);
+ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AccessorVector& a);
+ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AddressAccessorHead& a);
+ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AddressAccessor& a);
+ISCORE_LIB_STATE_EXPORT QStringList stringList(const State::Address& addr);
 }
 
 namespace std {
@@ -202,3 +154,4 @@ namespace std {
 
 }
 Q_DECLARE_METATYPE(State::Address)
+Q_DECLARE_METATYPE(State::AddressAccessor)

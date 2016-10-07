@@ -109,9 +109,14 @@ BOOST_FUSION_ADAPT_STRUCT(
         )
 
 BOOST_FUSION_ADAPT_STRUCT(
+        State::AddressQualifiers,
+        (State::AccessorVector, accessors)
+        )
+
+BOOST_FUSION_ADAPT_STRUCT(
         State::AddressAccessor,
         (State::Address, address)
-        (State::AccessorVector, accessors)
+        (State::AddressQualifiers, qualifiers)
         )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -163,7 +168,7 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
 };
 
 template <typename Iterator>
-struct AccessorList_parser : qi::grammar<Iterator, std::vector<int32_t>()>
+struct AccessorList_parser : qi::grammar<Iterator, ossia::destination_index()>
 {
     AccessorList_parser() : AccessorList_parser::base_type(start)
     {
@@ -176,9 +181,27 @@ struct AccessorList_parser : qi::grammar<Iterator, std::vector<int32_t>()>
         start %= skip(space) [ +(index) ];
     }
 
-    qi::rule<Iterator, std::vector<int32_t>()> start;
-    qi::rule<Iterator, int32_t()> index;
+    qi::rule<Iterator, ossia::destination_index()> start; // OPTIMIZEME use fixed array
+    qi::rule<Iterator, uint8_t()> index;
 };
+
+template <typename Iterator>
+struct AddressQualifiers_parser : qi::grammar<Iterator, State::AddressQualifiers()>
+{
+    AddressQualifiers_parser() : AddressQualifiers_parser::base_type(start)
+    {
+        using qi::alnum;
+        using boost::spirit::qi::skip;
+        using boost::spirit::standard::space;
+        using boost::spirit::int_;
+
+        start %= accessors;
+    }
+
+    qi::rule<Iterator, State::AddressQualifiers()> start;
+    AccessorList_parser<Iterator> accessors;
+};
+
 
 
 template <typename Iterator>
@@ -191,12 +214,12 @@ struct AddressAccessor_parser : qi::grammar<Iterator, State::AddressAccessor()>
         using boost::spirit::standard::space;
         using boost::spirit::int_;
 
-        start %= skip(space) [ address >> accessors ];
+        start %= skip(space) [ address >> qualifiers ];
     }
 
     qi::rule<Iterator, State::AddressAccessor()> start;
     Address_parser<Iterator> address;
-    AccessorList_parser<Iterator> accessors;
+    AddressQualifiers_parser<Iterator> qualifiers;
 };
 
 
@@ -553,7 +576,7 @@ struct Expression_builder : boost::static_visitor<void>
                 if(res)
                 {
                     result.address = (*res);
-                    result.accessors.clear();
+                    result.qualifiers.accessors.clear();
 
                     return result;
                 }

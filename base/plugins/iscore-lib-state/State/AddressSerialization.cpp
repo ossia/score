@@ -9,6 +9,7 @@
 
 #include "Address.hpp"
 
+/// AccessorVector ///
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::AccessorVector& a)
 {
@@ -35,6 +36,8 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::Accesso
     checkDelimiter();
 }
 
+
+/// Address ///
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::Address& a)
 {
@@ -67,10 +70,42 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Address
         a.path = m_obj[strings.Path].toString().split('/');
 }
 
+
+/// AddressQualifiers ///
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::AddressQualifiers& a)
+{
+    m_stream << a.accessors;
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const State::AddressQualifiers& a)
+{
+    m_obj["Accessors"] = toJsonValueArray(a.accessors);
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::AddressQualifiers& a)
+{
+    m_stream >> a.accessors;
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::AddressQualifiers& a)
+{
+    auto arr = m_obj["Accessors"].toArray();
+    for(auto v : arr)
+    {
+        a.accessors.push_back(v.toInt());
+    }
+}
+
+
+/// AddressAccessor ///
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::AddressAccessor& rel)
 {
-    m_stream << rel.address << rel.accessors;
+    m_stream << rel.address << rel.qualifiers;
 
     insertDelimiter();
 }
@@ -79,13 +114,13 @@ template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const State::AddressAccessor& rel)
 {
     m_obj[strings.address] = toJsonObject(rel.address);
-    m_obj["Accessors"] = toJsonValueArray(rel.accessors);
+    readFrom(rel.qualifiers);
 }
 
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::AddressAccessor& rel)
 {
-    m_stream >> rel.address >> rel.accessors;
+    m_stream >> rel.address >> rel.qualifiers;
 
     checkDelimiter();
 }
@@ -94,10 +129,40 @@ template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::AddressAccessor& rel)
 {
     fromJsonObject(m_obj[strings.address], rel.address);
-    auto arr = m_obj["Accessors"].toArray();
-    for(auto v : arr)
-    {
-        rel.accessors.push_back(v.toInt());
-    }
+    writeTo(rel.qualifiers);
 }
+
+
+
+/// AddressAccessorHead ///
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::AddressAccessorHead& rel)
+{
+    m_stream << rel.name << rel.qualifiers;
+
+    insertDelimiter();
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const State::AddressAccessorHead& rel)
+{
+    m_obj[strings.Name] = rel.name;
+    readFrom(rel.qualifiers);
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::AddressAccessorHead& rel)
+{
+    m_stream >> rel.name >> rel.qualifiers;
+
+    checkDelimiter();
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::AddressAccessorHead& rel)
+{
+    rel.name = m_obj[strings.Name].toString();
+    writeTo(rel.qualifiers);
+}
+
 

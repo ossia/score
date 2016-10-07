@@ -44,7 +44,7 @@ static bool match(Process::MessageNode& node, const State::Message& mess)
     Process::MessageNode* n = &node;
 
     QStringList path = Process::toStringList(mess.address);
-    if(!mess.address.accessors.empty())
+    if(!mess.address.qualifiers.accessors.empty())
     {
         path.last() += mess.address.accessorsString();
     }
@@ -53,10 +53,12 @@ static bool match(Process::MessageNode& node, const State::Message& mess)
     int imax = path.size();
     while(n->parent() && i < imax)
     {
-        if(n->name == path.at(i))
+        if(n->name.name == path.at(i))
         {
-            if(i == imax - 1 && !n->parent()->parent())
+            if(i == imax - 1 && !n->parent()->parent() && mess.address.qualifiers == n->name.qualifiers)
+            {
                 return true;
+            }
 
             i++;
             n = n->parent();
@@ -272,7 +274,7 @@ static void merge_impl(
                 {
                     newNode = &parentnode->emplace_back(
                                 Process::StateNodeData{
-                                    path[k],
+                                    {path[k], {}},
                                     {}},
                                 nullptr);
                 }
@@ -282,7 +284,7 @@ static void merge_impl(
                     merge(v);
                     newNode = &parentnode->emplace_back(
                                 Process::StateNodeData{
-                                    path[k],
+                                    {path[k], addr.qualifiers},
                                     std::move(v)},
                                 nullptr);
                 }

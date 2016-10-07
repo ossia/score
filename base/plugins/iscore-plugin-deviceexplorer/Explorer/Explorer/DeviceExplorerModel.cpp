@@ -225,7 +225,7 @@ void DeviceExplorerModel::updateValue(
         const State::AddressAccessor& addr,
         const State::Value& v)
 {
-    if(!addr.accessors.empty())
+    if(!addr.qualifiers.accessors.empty())
     {
         ISCORE_TODO;
     }
