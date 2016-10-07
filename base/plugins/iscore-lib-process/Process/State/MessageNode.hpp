@@ -6,13 +6,10 @@
 #include <QString>
 #include <QStringList>
 #include <QVector>
-#include <algorithm>
 #include <array>
 
 #include <State/Address.hpp>
 #include <State/Value.hpp>
-#include <State/ValueConversion.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_lib_process_export.h>
 
@@ -29,18 +26,14 @@ enum class PriorityPolicy {
     User, Previous, Following
 };
 
-struct StateNodeValues
+struct ISCORE_LIB_PROCESS_EXPORT StateNodeValues
 {
-        bool empty() const
-        {
-            return previousProcessValues.isEmpty() && followingProcessValues.isEmpty() && !userValue;
-        }
+        bool empty() const;
 
         // TODO use lists or queues instead to manage the priorities
         QVector<ProcessStateData> previousProcessValues;
         QVector<ProcessStateData> followingProcessValues;
         State::OptionalValue userValue;
-
 
         std::array<PriorityPolicy, 3> priorities{{
             PriorityPolicy::Previous,
@@ -48,113 +41,31 @@ struct StateNodeValues
             PriorityPolicy::User
         }};
 
-        static bool hasValue(const QVector<ProcessStateData>& vec)
-        {
-            return std::any_of(vec.cbegin(), vec.cend(),
-                            [] (const auto& pv) {
-                    return bool(pv.value);
-                });
-        }
+        bool hasValue() const;
 
-        bool hasValue() const
-        {
-            return hasValue(previousProcessValues) || hasValue(followingProcessValues) || bool(userValue);
-        }
-
-        static auto value(const QVector<ProcessStateData>& vec)
-        {
-            return std::find_if(vec.cbegin(), vec.cend(),
-                            [] (const auto& pv) {
-                    return bool(pv.value);
-                });
-        }
+        static bool hasValue(const QVector<ProcessStateData>& vec);
+        static QVector<ProcessStateData>::const_iterator value(const QVector<ProcessStateData>& vec);
 
         // TODO here we have to choose a policy
         // if we have both previous and following processes ?
-        State::OptionalValue value() const
-        {
-            for(auto prio : priorities)
-            {
-                switch(prio)
-                {
-                    case PriorityPolicy::User:
-                    {
-                        if(userValue)
-                            return *userValue;
-                        break;
-                    }
+        State::OptionalValue value() const;
 
-                    case PriorityPolicy::Previous:
-                    {
-                        // OPTIMIZEME  by computing them only once
-                        auto it = value(previousProcessValues);
-                        if(it != previousProcessValues.cend())
-                            return *it->value;
-                        break;
-                    }
-
-                    case PriorityPolicy::Following:
-                    {
-                        auto it = value(followingProcessValues);
-                        if(it != followingProcessValues.cend())
-                            return *it->value;
-                        break;
-                    }
-
-                    default:
-                        break;
-                }
-            }
-
-            return {};
-        }
-
-        QString displayValue() const
-        {
-            auto val = value();
-            if(val)
-                return State::convert::value<QString>(*val);
-            return {};
-        }
+        QString displayValue() const;
 
 };
 
-struct StateNodeMessage
+struct ISCORE_LIB_PROCESS_EXPORT StateNodeData
 {
-        State::AddressAccessor addr; // device + path
-        StateNodeValues values;
-};
-
-struct StateNodeData
-{
-        QString name;
+        State::AddressAccessorHead name;
         StateNodeValues values;
 
-        const QString& displayName() const
-        { return name; }
-
-        bool hasValue() const
-        { return values.hasValue(); }
-
-        State::OptionalValue value() const
-        { return values.value(); }
-
+        const QString& displayName() const;
+        bool hasValue() const;
+        State::OptionalValue value() const;
 };
 
-inline QDebug operator<<(QDebug d, const ProcessStateData& mess)
-{
-    d << "{" << mess.process << State::convert::toPrettyString(*mess.value) << "}";
-    return d;
-}
-
-inline QDebug operator<<(QDebug d, const StateNodeData& mess)
-{
-    if(mess.values.userValue)
-        d << mess.name << mess.values.previousProcessValues << State::convert::toPrettyString(*mess.values.userValue) << mess.values.followingProcessValues;
-    else
-        d << mess.name<< mess.values.previousProcessValues << "-- no user value --" << mess.values.followingProcessValues;
-    return d;
-}
+ISCORE_LIB_PROCESS_EXPORT QDebug operator<<(QDebug d, const ProcessStateData& mess);
+ISCORE_LIB_PROCESS_EXPORT QDebug operator<<(QDebug d, const StateNodeData& mess);
 
 using MessageNode = TreeNode<StateNodeData>;
 using MessageNodePath = TreePath<MessageNode>;

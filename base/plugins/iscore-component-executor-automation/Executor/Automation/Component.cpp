@@ -27,7 +27,7 @@
 
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
-
+#include <ossia/editor/dataspace/dataspace_visitors.hpp> // temporary
 namespace Automation
 {
 namespace RecreateOnPlay
@@ -60,16 +60,17 @@ void Component::recreate()
         m_addressType = address->getValueType();
 
       if(process().tween())
-          on_curveChanged(ossia::Destination(*address, dest.accessors)); // If the type changes we need to rebuild the curve.
+          on_curveChanged(ossia::Destination(*address, dest.qualifiers.accessors)); // If the type changes we need to rebuild the curve.
       else
           on_curveChanged({});
 
       if(m_ossia_curve)
       {
         auto autom = new ossia::automation(
-                    ossia::Destination(*address, dest.accessors),
+                    ossia::Destination(*address, dest.qualifiers.accessors),
                     ossia::Behavior(m_ossia_curve));
         autom->setUnit(process().unit());
+        qDebug()<< QString::fromStdString(ossia::get_pretty_unit_text(process().unit()));
         m_ossia_process = autom;
       }
     }

@@ -245,8 +245,8 @@ class ExpressionParsingTests: public QObject
 
                 QVERIFY(r);
                 QVERIFY(p.address.toString() == "minuit:/device/lol");
-                QVERIFY(p.accessors.size() == 1);
-                QVERIFY(p.accessors[0] == 7);
+                QVERIFY(p.qualifiers.accessors.size() == 1);
+                QVERIFY(p.qualifiers.accessors[0] == 7);
             }
 
             {
@@ -262,8 +262,8 @@ class ExpressionParsingTests: public QObject
                 QVERIFY(rm.which() == 1);
                 auto& p = eggs::variants::get<State::AddressAccessor>(rm);
                 QVERIFY(p.address.toString() == "minuit:/device/lol");
-                QVERIFY(p.accessors.size() == 1);
-                QVERIFY(p.accessors[0] == 7);
+                QVERIFY(p.qualifiers.accessors.size() == 1);
+                QVERIFY(p.qualifiers.accessors[0] == 7);
             }
 
             {
