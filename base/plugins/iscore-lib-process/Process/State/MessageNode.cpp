@@ -137,22 +137,6 @@ State::Message message(const Process::MessageNode& node)
     return mess;
 }
 
-QStringList toStringList(const State::Address& addr)
-{
-    QStringList l;
-    l.append(addr.device);
-    return l + addr.path;
-}
-
-QStringList toStringList(const State::AddressAccessor& addr)
-{
-    QStringList l;
-    l += addr.address.device;
-    l += addr.address.path;
-    l.back() += addr.accessorsString();
-    return l;
-}
-
 // TESTME
 static void flatten_rec(
         State::MessageList& ml,
