@@ -73,8 +73,7 @@ using MessageNodePath = TreePath<MessageNode>;
 ISCORE_LIB_PROCESS_EXPORT State::AddressAccessor address(const MessageNode& treeNode);
 ISCORE_LIB_PROCESS_EXPORT State::Message message(const MessageNode& node);
 ISCORE_LIB_PROCESS_EXPORT State::Message userMessage(const MessageNode& node);
-ISCORE_LIB_PROCESS_EXPORT QStringList toStringList(const State::Address& addr);
-ISCORE_LIB_PROCESS_EXPORT QStringList toStringList(const State::AddressAccessor& addr);
+
 ISCORE_LIB_PROCESS_EXPORT Process::MessageNode* try_getNodeFromAddress(Process::MessageNode& root, const State::Address& addr);
 
 ISCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);

@@ -388,7 +388,7 @@ void state(
         const auto& val = n.value();
         if(val)
         {
-            elts.add(message(State::Message{address(n), *val}, dl));
+            elts.add(message(State::Message{Process::address(n), *val}, dl));
         }
     });
 

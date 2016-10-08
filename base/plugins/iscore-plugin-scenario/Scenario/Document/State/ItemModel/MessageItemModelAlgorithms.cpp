@@ -19,7 +19,23 @@
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
+namespace Process
+{
+static QStringList toStringList(const State::Address& addr)
+{
+    QStringList l;
+    l.append(addr.device);
+    return l + addr.path;
+}
 
+static QStringList toStringList(const State::AddressAccessor& addr)
+{
+    QStringList l;
+    l += addr.address.device;
+    l += addr.address.path;
+    return l;
+}
+}
 static bool removable(const Process::MessageNode& node)
 { return node.values.empty() && !node.hasChildren(); }
 
@@ -44,10 +60,6 @@ static bool match(Process::MessageNode& node, const State::Message& mess)
     Process::MessageNode* n = &node;
 
     QStringList path = Process::toStringList(mess.address);
-    if(!mess.address.qualifiers.accessors.empty())
-    {
-        path.last() += mess.address.accessorsString();
-    }
     std::reverse(path.begin(), path.end());
     int i = 0;
     int imax = path.size();

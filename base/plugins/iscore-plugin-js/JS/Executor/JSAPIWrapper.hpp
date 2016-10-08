@@ -219,7 +219,6 @@ inline State::MessageList messages(const QJSValue& val)
         {
             ml.append(mess);
         }
-
     }
 
     return ml;
