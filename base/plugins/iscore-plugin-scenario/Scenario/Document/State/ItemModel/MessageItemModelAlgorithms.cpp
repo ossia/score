@@ -265,12 +265,12 @@ static void merge_impl(
         MergeFun merge)
 {
     QStringList path = Process::toStringList(addr);
+    const auto path_n = path.size();
 
     ptr<Process::MessageNode> node = &base;
-    for(int i = 0; i < path.size(); i++)
+    for(int i = 0; i < path_n; i++)
     {
-        auto it = std::find_if(
-                    node->begin(), node->end(),
+        auto it = ossia::find_if(*node,
                     [&] (const auto& cur_node) {
             return cur_node.displayName() == path[i];
         });
@@ -279,10 +279,10 @@ static void merge_impl(
         {
             // We have to start adding sub-nodes from here.
             ptr<Process::MessageNode> parentnode{node};
-            for(int k = i; k < path.size(); k++)
+            for(int k = i; k < path_n; k++)
             {
                 ptr<Process::MessageNode> newNode;
-                if(k < path.size() - 1)
+                if(k < path_n - 1)
                 {
                     newNode = &parentnode->emplace_back(
                                 Process::StateNodeData{

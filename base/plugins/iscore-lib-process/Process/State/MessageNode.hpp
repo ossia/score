@@ -59,7 +59,7 @@ struct ISCORE_LIB_PROCESS_EXPORT StateNodeData
         State::AddressAccessorHead name;
         StateNodeValues values;
 
-        const QString& displayName() const;
+        QString displayName() const;
         bool hasValue() const;
         State::OptionalValue value() const;
 };
