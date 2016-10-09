@@ -11,7 +11,7 @@
 namespace Process
 {
 
-const QString&StateNodeData::displayName() const
+QString StateNodeData::displayName() const
 { return name.toString(); }
 
 bool StateNodeData::hasValue() const
