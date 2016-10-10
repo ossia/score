@@ -19,7 +19,7 @@ namespace Engine
 namespace ossia_to_iscore
 {
 
-Device::Domain ToDomain(const ossia::net::domain &domain)
+static Device::Domain ToDomain(const ossia::net::domain &domain)
 {
     Device::Domain d;
     d.min = ToValue(ossia::net::min(domain));
