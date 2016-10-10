@@ -353,7 +353,7 @@ optional<ossia::message> message(
         if(!val.valid())
             return {};
 
-        return ossia::message{*ossia_addr, std::move(val)};
+        return ossia::message{*ossia_addr, std::move(val), {}};
     }
 
     return {};
