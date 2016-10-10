@@ -29,7 +29,7 @@
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 namespace Process { class LayerModel; }
-class ProcessStateDataInterface;
+
 
 namespace Scenario
 {

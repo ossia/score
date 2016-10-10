@@ -22,7 +22,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 
 namespace Process { class LayerModel; }
-class ProcessStateDataInterface;
+
 class QObject;
 
 namespace Loop

@@ -21,13 +21,6 @@
 #include <iscore/tools/std/Algorithms.hpp>
 namespace Process
 {
-static QStringList toStringList(const State::Address& addr)
-{
-    QStringList l;
-    l.append(addr.device);
-    return l + addr.path;
-}
-
 static QStringList toStringList(const State::AddressAccessor& addr)
 {
     QStringList l;
