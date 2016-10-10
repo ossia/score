@@ -7,7 +7,7 @@
 #include <Process/Process.hpp>
 
 namespace Process { class LayerModel; }
-class ProcessStateDataInterface;
+
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 

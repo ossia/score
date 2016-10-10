@@ -396,13 +396,22 @@ void OSSIADevice::sendMessage(const State::Message& mess)
 {
     if(auto dev = getDevice())
     {
-        ISCORE_TODO; // FIXME handle address accessor
-        auto node = Engine::iscore_to_ossia::getNodeFromPath(mess.address.address.path, *dev);
-
-        auto addr = node->getAddress();
-        if(addr)
+        if(mess.address.qualifiers.accessors.empty())
         {
-            addr->pushValue(Engine::iscore_to_ossia::toOSSIAValue(mess.value));
+            auto node = Engine::iscore_to_ossia::getNodeFromPath(mess.address.address.path, *dev);
+
+            auto addr = node->getAddress();
+            if(addr)
+            {
+                addr->pushValue(Engine::iscore_to_ossia::toOSSIAValue(mess.value));
+            }
+        }
+        else
+        {
+            ISCORE_TODO;
+            // FIXME handle address accessor
+            // We have to get the current value, and merge the accessed element inside.
+            // See for instance the various value merging algorithms in ossia.
         }
     }
 }

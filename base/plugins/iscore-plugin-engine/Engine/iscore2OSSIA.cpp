@@ -3,6 +3,7 @@
 #include <ossia/editor/expression/expression_composition.hpp>
 #include <ossia/editor/expression/expression_not.hpp>
 #include <ossia/editor/expression/expression_pulse.hpp>
+#include <ossia/editor/dataspace/dataspace_visitors.hpp> // REMOVEME
 #include <Process/State/MessageNode.hpp>
 #include <boost/concept/usage.hpp>
 
@@ -221,7 +222,6 @@ void updateOSSIAAddress(
                     toOSSIAValue(settings.domain.max)));
 
     addr.setUnit(settings.unit);
-
 }
 
 void createOSSIAAddress(

@@ -94,7 +94,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     // be easily mapped.
     const auto& tsModel = m_ts.find();
     Scenario::ProcessModel& scenario = ::model(tsModel);
-    auto& doc = iscore::IDocument::documentContext(scenario);
+
     auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
 
 

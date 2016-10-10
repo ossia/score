@@ -13,7 +13,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Process { class LayerModel; }
-class ProcessStateDataInterface;
+
 class QObject;
 
 namespace Mapping
