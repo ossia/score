@@ -1,5 +1,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/VariantSerialization.hpp>
+#include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <QDataStream>
 #include <QtGlobal>
 #include <QJsonObject>
@@ -75,19 +77,20 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Address
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::AddressQualifiers& a)
 {
-    m_stream << a.accessors;
+    m_stream << a.accessors << a.unit;
 }
 
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const State::AddressQualifiers& a)
 {
     m_obj["Accessors"] = toJsonValueArray(a.accessors);
+    m_obj["Unit"] = QString::fromStdString(ossia::get_pretty_unit_text(a.unit));
 }
 
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::AddressQualifiers& a)
 {
-    m_stream >> a.accessors;
+    m_stream >> a.accessors >> a.unit;
 }
 
 template<>
@@ -98,6 +101,7 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Address
     {
         a.accessors.push_back(v.toInt());
     }
+    a.unit = ossia::parse_pretty_unit(m_obj[strings.Unit].toString().toStdString());
 }
 
 

@@ -28,7 +28,6 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
     m_stream << autom.min();
     m_stream << autom.max();
     m_stream << autom.tween();
-    m_stream << autom.unit();
 
     insertDelimiter();
 }
@@ -42,15 +41,13 @@ void Visitor<Writer<DataStream>>::writeTo(
     State::AddressAccessor address;
     double min, max;
     bool tw;
-    ossia::unit_t u;
 
-    m_stream >> address >> min >> max >> tw >> u;
+    m_stream >> address >> min >> max >> tw;
 
     autom.setAddress(address);
     autom.setMin(min);
     autom.setMax(max);
     autom.setTween(tw);
-    autom.setUnit(u);
 
     checkDelimiter();
 }
@@ -67,7 +64,6 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
     m_obj[strings.Min] = autom.min();
     m_obj[strings.Max] = autom.max();
     m_obj["Tween"] = autom.tween();
-    m_obj[strings.Unit] = QString::fromStdString(ossia::get_pretty_unit_text(autom.unit())); // TODO refactor with AddressSettings
 }
 
 template<>
@@ -81,6 +77,4 @@ void Visitor<Writer<JSONObject>>::writeTo(
     autom.setMin(m_obj[strings.Min].toDouble());
     autom.setMax(m_obj[strings.Max].toDouble());
     autom.setTween(m_obj["Tween"].toBool());
-    autom.setUnit(ossia::parse_pretty_unit(m_obj[strings.Unit].toString().toStdString()));
-
 }
