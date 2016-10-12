@@ -327,6 +327,10 @@ optional<ossia::message> message(
     if(!dev_p)
         return {};
 
+    // TODO FIXME
+    if(mess.address.qualifiers.unit)
+      return {};
+
     // OPTIMIZEME by sorting by device prior
     // to this.
     const auto& dev = *dev_p;

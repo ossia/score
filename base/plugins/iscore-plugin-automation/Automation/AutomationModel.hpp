@@ -105,7 +105,6 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
 
         double m_min{};
         double m_max{};
-        ossia::unit_t m_unit{};
 
         ProcessState* m_startState{};
         ProcessState* m_endState{};

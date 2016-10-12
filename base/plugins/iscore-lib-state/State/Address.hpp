@@ -9,6 +9,7 @@
 #include <QMetaType>
 #include <QMetaObject>
 #include <iscore/tools/std/Optional.hpp>
+#include <State/Unit.hpp>
 #include <ossia/detail/destination_index.hpp>
 #include <iscore_lib_state_export.h>
 
@@ -69,6 +70,7 @@ struct ISCORE_LIB_STATE_EXPORT AddressQualifiers
   // Maybe we should just use FullAddressSettings behind a flyweight
   // pattern everywhere... (see mnmlstc/flyweight)
   ossia::destination_index accessors;
+  ossia::unit_t unit;
 
   bool operator==(const AddressQualifiers& a) const;
   bool operator!=(const AddressQualifiers& a) const;

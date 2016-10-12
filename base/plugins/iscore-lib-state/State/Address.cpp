@@ -215,12 +215,12 @@ bool AddressAccessor::operator!=(const AddressAccessor& a) const
 
 bool AddressQualifiers::operator==(const AddressQualifiers &a) const
 {
-    return accessors == a.accessors;
+    return accessors == a.accessors && unit == a.unit;
 }
 
 bool AddressQualifiers::operator!=(const AddressQualifiers &a) const
 {
-    return accessors != a.accessors;
+    return accessors != a.accessors || unit != a.unit;
 }
 
 
