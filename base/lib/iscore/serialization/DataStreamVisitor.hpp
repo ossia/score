@@ -16,7 +16,7 @@
 #include <QVector4D>
 namespace iscore
 {
-struct ApplicationContext;
+struct ApplicationComponents;
 }
 
 template<typename T>
@@ -167,7 +167,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> : public AbstractVisito
         QDataStream m_stream_impl;
 
     public:
-        const iscore::ApplicationContext& context;
+        const iscore::ApplicationComponents& components;
         DataStreamInput m_stream{m_stream_impl};
 };
 
@@ -243,7 +243,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisito
         QDataStream m_stream_impl;
 
     public:
-        const iscore::ApplicationContext& context;
+        const iscore::ApplicationComponents& components;
         DataStreamOutput m_stream{m_stream_impl};
 };
 

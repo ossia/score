@@ -37,7 +37,7 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
              << segmt.previous << segmt.following
              << segmt.type;
 
-    auto& csl = context.components.factory<Curve::SegmentList>();
+    auto& csl = components.factory<Curve::SegmentList>();
     auto segmt_fact = csl.get(segmt.type);
 
     ISCORE_ASSERT(segmt_fact);
@@ -55,7 +55,7 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
              >> segmt.previous >> segmt.following
              >> segmt.type;
 
-    auto& csl = context.components.factory<Curve::SegmentList>();
+    auto& csl = components.factory<Curve::SegmentList>();
     auto segmt_fact = csl.get(segmt.type);
     ISCORE_ASSERT(segmt_fact);
     segmt.specificSegmentData = segmt_fact->makeCurveSegmentData(this->toVariant());

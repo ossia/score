@@ -70,9 +70,6 @@ ProcessState::ProcessState(
         {
             m.value.val = seg.valueAt(m_point) * (process().max() - process().min()) + process().min();
 
-            // Convert to the correct type.
-            // FIXME we have to take into account the address accessor
-            State::convert::convert(treeValue, m.value);
             return m;
         }
     }

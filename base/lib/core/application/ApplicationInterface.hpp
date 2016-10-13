@@ -9,6 +9,7 @@ class ISCORE_LIB_BASE_EXPORT ApplicationInterface
 public:
     virtual ~ApplicationInterface();
     virtual const ApplicationContext& context() const = 0;
+    virtual const ApplicationComponents& components() const = 0;
     static ApplicationInterface& instance();
 
     protected:

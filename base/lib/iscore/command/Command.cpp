@@ -1,5 +1,6 @@
 #include "Command.hpp"
 
+#include <iscore/application/ApplicationContext.hpp>
 iscore::Command::Command():
     context{iscore::AppContext()}
 {

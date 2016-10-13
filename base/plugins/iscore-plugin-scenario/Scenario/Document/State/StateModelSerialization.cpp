@@ -69,7 +69,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario
     // Processes plugins
     int32_t process_count;
     m_stream >> process_count;
-    auto& pl = context.components.factory<Process::StateProcessList>();
+    auto& pl = components.factory<Process::StateProcessList>();
     for(; process_count -- > 0;)
     {
         s.stateProcesses.add(deserialize_interface(pl, *this, &s));
@@ -109,7 +109,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario
     s.messages() = fromJsonObject<Process::MessageNode>(m_obj["Messages"]);
 
     // Processes plugins
-    auto& pl = context.components.factory<Process::StateProcessList>();
+    auto& pl = components.factory<Process::StateProcessList>();
 
     QJsonArray process_array = m_obj["StateProcesses"].toArray();
     for(const auto& json_vref : process_array)

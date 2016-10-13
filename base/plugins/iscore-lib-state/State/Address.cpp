@@ -147,7 +147,7 @@ AddressAccessor::AddressAccessor(Address a) noexcept :
 
 AddressAccessor::AddressAccessor(Address a, const AccessorVector& v) noexcept :
     address{std::move(a)},
-    qualifiers{v}
+    qualifiers{v, {}}
 {
 
 }

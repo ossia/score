@@ -10,9 +10,15 @@ ApplicationInterface& ApplicationInterface::instance()
     return *m_instance;
 }
 
-}
 
-ISCORE_LIB_BASE_EXPORT const iscore::ApplicationContext& iscore::AppContext()
+ISCORE_LIB_BASE_EXPORT const ApplicationContext& AppContext()
 {
     return ApplicationInterface::instance().context();
+}
+
+ISCORE_LIB_BASE_EXPORT const ApplicationComponents& AppComponents()
+{
+    return ApplicationInterface::instance().components();
+}
+
 }
