@@ -327,16 +327,13 @@ optional<ossia::message> message(
     if(!dev_p)
         return {};
 
-    // TODO FIXME
-    if(mess.address.qualifiers.unit)
-      return {};
-
     // OPTIMIZEME by sorting by device prior
     // to this.
     const auto& dev = *dev_p;
     if(!dev.connected())
         return {};
 
+    qDebug() << mess;
     if(auto casted_dev = dynamic_cast<const Engine::Network::OSSIADevice*>(&dev))
     {
         auto dev = casted_dev->getDevice();
@@ -357,7 +354,7 @@ optional<ossia::message> message(
         if(!val.valid())
             return {};
 
-        return ossia::message{*ossia_addr, std::move(val), {}};
+        return ossia::message{{*ossia_addr, mess.address.qualifiers.accessors}, std::move(val), mess.address.qualifiers.unit};
     }
 
     return {};

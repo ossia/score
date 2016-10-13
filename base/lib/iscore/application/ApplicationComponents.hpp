@@ -105,4 +105,6 @@ class ISCORE_LIB_BASE_EXPORT ApplicationComponents
     private:
         const iscore::ApplicationComponentsData& m_data;
 };
+
+ISCORE_LIB_BASE_EXPORT const ApplicationComponents& AppComponents();
 }

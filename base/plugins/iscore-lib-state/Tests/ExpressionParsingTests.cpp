@@ -78,7 +78,7 @@ void test_parse_expr()
     exit(0);
 }*/
 
-
+// TODO move me
 QDebug operator<<(QDebug dbg, const State::Address& a);
 QDebug operator<<(QDebug dbg, const State::RelationMember& v);
 QDebug operator<<(QDebug dbg, const State::Relation::Comparator& v);

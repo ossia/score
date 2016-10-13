@@ -114,7 +114,12 @@ Application::~Application()
 
 const iscore::ApplicationContext& Application::context() const
 {
-    return m_presenter->applicationContext();
+  return m_presenter->applicationContext();
+}
+
+const iscore::ApplicationComponents&Application::components() const
+{
+  return m_presenter->applicationComponents();
 }
 
 

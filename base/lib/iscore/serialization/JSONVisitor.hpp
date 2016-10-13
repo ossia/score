@@ -100,7 +100,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONObject>> : public AbstractVisito
 
         QJsonObject m_obj;
 
-        const iscore::ApplicationContext& context;
+        const iscore::ApplicationComponents& components;
         const iscore::StringConstants& strings;
 };
 
@@ -150,7 +150,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONObject>> : public AbstractVisito
         }
 
         const QJsonObject m_obj;
-        const iscore::ApplicationContext& context;
+        const iscore::ApplicationComponents& components;
         const iscore::StringConstants& strings;
 };
 
