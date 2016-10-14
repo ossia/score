@@ -334,6 +334,8 @@ optional<ossia::message> message(
         return {};
 
     qDebug() << mess;
+    if(mess.address.qualifiers.unit)
+        qDebug() << "unit" << mess << ossia::get_pretty_unit_text(mess.address.qualifiers.unit);
     if(auto casted_dev = dynamic_cast<const Engine::Network::OSSIADevice*>(&dev))
     {
         auto dev = casted_dev->getDevice();

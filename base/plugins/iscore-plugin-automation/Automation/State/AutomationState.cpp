@@ -18,6 +18,7 @@
 #include <iscore/tools/Todo.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/document/DocumentContext.hpp>
+#include <ossia/editor/dataspace/dataspace_visitors.hpp>
 class QObject;
 namespace Automation
 {
@@ -46,6 +47,7 @@ ProcessState::ProcessState(
     // Set-up a message
     ::State::Message m;
     m.address = process().address();
+    qDebug() << bool(m.address.qualifiers.unit) <<  bool(process().unit()) << ossia::get_pretty_unit_text(process().unit());
 
     // Look in the tree if there is a corresponding node,
     // so that we can get the type that we should convert to.
