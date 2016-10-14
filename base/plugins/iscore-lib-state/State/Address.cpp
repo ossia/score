@@ -6,6 +6,7 @@
 #include <State/Expression.hpp>
 #include <ossia/network/base/name_validation.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/editor/dataspace/dataspace_visitors.hpp>
 namespace State
 {
 Address::Address(const Address& other) noexcept :
@@ -168,22 +169,12 @@ AddressAccessor& AddressAccessor::operator=(Address&& a)
 
 QString AddressAccessor::toString() const
 {
-    auto str = address.toString();
-    for(auto acc : qualifiers.accessors)
-    {
-        str += "[" % QString::number(acc) % "]";
-    }
-    return str;
+    return address.toString() + accessorsString();
 }
 
 QString AddressAccessor::toShortString() const
 {
-    auto str = address.toShortString();
-    for(auto acc : qualifiers.accessors)
-    {
-        str += "[" % QString::number(acc) % "]";
-    }
-    return str;
+    return address.toShortString() + accessorsString();
 }
 
 QString AddressAccessor::accessorsString() const
@@ -193,6 +184,9 @@ QString AddressAccessor::accessorsString() const
     {
         str += "[" % QString::number(acc) % "]";
     }
+
+    if(qualifiers.unit)
+        str +=  "[" % QString::fromStdString(ossia::get_pretty_unit_text(qualifiers.unit)) % "]";
     return str;
 }
 
