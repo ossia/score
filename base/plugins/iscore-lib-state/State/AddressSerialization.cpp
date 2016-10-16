@@ -75,26 +75,26 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::Address
 
 /// AddressQualifiers ///
 template<>
-ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::AddressQualifiers& a)
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ossia::destination_qualifiers& a)
 {
     m_stream << a.accessors << a.unit;
 }
 
 template<>
-ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const State::AddressQualifiers& a)
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const ossia::destination_qualifiers& a)
 {
     m_obj["Accessors"] = toJsonValueArray(a.accessors);
     m_obj["Unit"] = QString::fromStdString(ossia::get_pretty_unit_text(a.unit));
 }
 
 template<>
-ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::AddressQualifiers& a)
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(ossia::destination_qualifiers& a)
 {
     m_stream >> a.accessors >> a.unit;
 }
 
 template<>
-ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::AddressQualifiers& a)
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ossia::destination_qualifiers& a)
 {
     auto arr = m_obj["Accessors"].toArray();
     for(auto v : arr)

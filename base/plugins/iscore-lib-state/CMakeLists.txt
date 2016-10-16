@@ -15,6 +15,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Value.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueConversion.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Unit.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Relation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Expression.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ExpressionParser.cpp"

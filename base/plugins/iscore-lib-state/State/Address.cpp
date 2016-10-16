@@ -207,16 +207,6 @@ bool AddressAccessor::operator!=(const AddressAccessor& a) const
 }
 
 
-bool AddressQualifiers::operator==(const AddressQualifiers &a) const
-{
-    return accessors == a.accessors && unit == a.unit;
-}
-
-bool AddressQualifiers::operator!=(const AddressQualifiers &a) const
-{
-    return accessors != a.accessors || unit != a.unit;
-}
-
 
 QString AddressAccessorHead::toString() const
 {
@@ -253,8 +243,8 @@ QDebug operator<<(QDebug d, const State::AccessorVector& a)
 
     return d;
 }
-
-QDebug operator<<(QDebug d, const State::AddressQualifiers& a)
+ 
+QDebug operator<<(QDebug d, const ossia::destination_qualifiers& a)
 {
     d.noquote().nospace() << a.accessors;
     return d;
