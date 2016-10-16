@@ -46,6 +46,8 @@ struct AddressSettings : public Device::AddressSettingsCommon
 // This one has the whole path of the node in address
 struct FullAddressSettings : public Device::AddressSettingsCommon
 {
+        // Maybe we should just use FullAddressSettings behind a flyweight
+        // pattern everywhere... (see mnmlstc/flyweight)
         struct as_parent;
         struct as_child;
         State::Address address;

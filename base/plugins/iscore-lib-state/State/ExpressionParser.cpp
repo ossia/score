@@ -8,11 +8,13 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_real.hpp>
 #include <boost/spirit/include/qi_lit.hpp>
+#include <boost/spirit/include/qi_eoi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/fusion/adapted.hpp>
 #include <ossia/network/base/name_validation.hpp>
+#include <ossia/editor/dataspace/dataspace_parse.hpp>
 #include <iscore/prefix.hpp>
 #endif
 /*
@@ -27,6 +29,10 @@ path_element 	:= fragment;
 path 			:= ('/', path_element)+ | '/';
 
 Address 		:= device, ‘:’, path;
+Dataspace   := 'color' || 'distance' || ...;
+UnitQualifier: Dataspace, '.', Unit, ('.', UnitAccessor)?; // e.g. color.rgb or color.rgb.r ; we make a static table with them precomputed.
+AddressAccessor 	:= Address, (('[', [:int:], ']')* || ('[', UnitQualifier, ']'));
+
 
 
 # Values
@@ -109,14 +115,15 @@ BOOST_FUSION_ADAPT_STRUCT(
         )
 
 BOOST_FUSION_ADAPT_STRUCT(
-        State::AddressQualifiers,
-        (State::AccessorVector, accessors)
+        ossia::destination_qualifiers,
+        (ossia::destination_index, accessors)
+        (ossia::unit_t, unit)
         )
 
 BOOST_FUSION_ADAPT_STRUCT(
         State::AddressAccessor,
         (State::Address, address)
-        (State::AddressQualifiers, qualifiers)
+        (ossia::destination_qualifiers, qualifiers)
         )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -181,12 +188,13 @@ struct AccessorList_parser : qi::grammar<Iterator, ossia::destination_index()>
         start %= skip(space) [ +(index) ];
     }
 
-    qi::rule<Iterator, ossia::destination_index()> start; // OPTIMIZEME use fixed array
+    qi::rule<Iterator, ossia::destination_index()> start;
     qi::rule<Iterator, uint8_t()> index;
 };
 
+#include <boost/spirit/include/qi.hpp>
 template <typename Iterator>
-struct AddressQualifiers_parser : qi::grammar<Iterator, State::AddressQualifiers()>
+struct AddressQualifiers_parser : qi::grammar<Iterator, ossia::destination_qualifiers()>
 {
     AddressQualifiers_parser() : AddressQualifiers_parser::base_type(start)
     {
@@ -195,11 +203,13 @@ struct AddressQualifiers_parser : qi::grammar<Iterator, State::AddressQualifiers
         using boost::spirit::standard::space;
         using boost::spirit::int_;
 
-        start %= accessors;
+        unit %= boost::spirit::eoi;
+        start %= ( (accessors >> -unit) | ("[" >> ossia::get_unit_parser() >> "]") );
     }
 
-    qi::rule<Iterator, State::AddressQualifiers()> start;
+    qi::rule<Iterator, ossia::destination_qualifiers()> start;
     AccessorList_parser<Iterator> accessors;
+    qi::rule<Iterator, ossia::unit_t()> unit;
 };
 
 

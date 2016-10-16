@@ -11,6 +11,7 @@
 #include <iscore/tools/std/Optional.hpp>
 #include <State/Unit.hpp>
 #include <ossia/detail/destination_index.hpp>
+#include <ossia/editor/state/message.hpp>
 #include <iscore_lib_state_export.h>
 
 namespace State
@@ -64,17 +65,6 @@ struct ISCORE_LIB_STATE_EXPORT Address
 };
 
 using AccessorVector = ossia::destination_index;
-struct ISCORE_LIB_STATE_EXPORT AddressQualifiers
-{
-  // In the future, also bring in the unit ?
-  // Maybe we should just use FullAddressSettings behind a flyweight
-  // pattern everywhere... (see mnmlstc/flyweight)
-  ossia::destination_index accessors;
-  ossia::unit_t unit;
-
-  bool operator==(const AddressQualifiers& a) const;
-  bool operator!=(const AddressQualifiers& a) const;
-};
 
 struct ISCORE_LIB_STATE_EXPORT AddressAccessor
 {
@@ -91,7 +81,7 @@ struct ISCORE_LIB_STATE_EXPORT AddressAccessor
         AddressAccessor& operator=(Address&& a);
 
         State::Address address;
-        AddressQualifiers qualifiers;
+        ossia::destination_qualifiers qualifiers;
 
         // Utility
         QString toString() const;
@@ -112,14 +102,14 @@ struct ISCORE_LIB_STATE_EXPORT AddressAccessor
 struct ISCORE_LIB_STATE_EXPORT AddressAccessorHead
 {
         QString name;
-        AddressQualifiers qualifiers;
+        ossia::destination_qualifiers qualifiers;
 
         QString toString() const;
 };
 
 
 ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::Address& a);
-ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AddressQualifiers& a);
+ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const ossia::destination_qualifiers& a);
 ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AccessorVector& a);
 ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AddressAccessorHead& a);
 ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AddressAccessor& a);
