@@ -47,7 +47,6 @@ ProcessState::ProcessState(
     // Set-up a message
     ::State::Message m;
     m.address = process().address();
-    qDebug() << bool(m.address.qualifiers.unit) <<  bool(process().unit()) << ossia::get_pretty_unit_text(process().unit());
 
     // Look in the tree if there is a corresponding node,
     // so that we can get the type that we should convert to.

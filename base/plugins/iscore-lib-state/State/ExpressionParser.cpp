@@ -192,7 +192,6 @@ struct AccessorList_parser : qi::grammar<Iterator, ossia::destination_index()>
     qi::rule<Iterator, uint8_t()> index;
 };
 
-#include <boost/spirit/include/qi.hpp>
 template <typename Iterator>
 struct AddressQualifiers_parser : qi::grammar<Iterator, ossia::destination_qualifiers()>
 {
@@ -211,8 +210,6 @@ struct AddressQualifiers_parser : qi::grammar<Iterator, ossia::destination_quali
     AccessorList_parser<Iterator> accessors;
     qi::rule<Iterator, ossia::unit_t()> unit;
 };
-
-
 
 template <typename Iterator>
 struct AddressAccessor_parser : qi::grammar<Iterator, State::AddressAccessor()>

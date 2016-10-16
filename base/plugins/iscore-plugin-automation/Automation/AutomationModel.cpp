@@ -194,6 +194,7 @@ void ProcessModel::setAddress(const ::State::AddressAccessor &arg)
 
     m_address = arg;
     emit addressChanged(arg);
+    emit unitChanged(arg.qualifiers.unit);
     emit m_curve->changed();
 }
 
@@ -227,6 +228,7 @@ void ProcessModel::setUnit(ossia::unit_t u)
     if(u != unit())
     {
         m_address.qualifiers.unit = u;
+        emit addressChanged(m_address);
         emit unitChanged(u);
     }
 
