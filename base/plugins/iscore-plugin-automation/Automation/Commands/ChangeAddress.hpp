@@ -37,7 +37,6 @@ class ChangeAddress final : public iscore::SerializableCommand
         Path<ProcessModel> m_path;
         State::AddressAccessor m_oldAddress, m_newAddress;
         Device::Domain m_oldDomain, m_newDomain;
-        ossia::unit_t m_oldUnit, m_newUnit;
 };
 
 }

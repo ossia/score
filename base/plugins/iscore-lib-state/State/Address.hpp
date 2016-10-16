@@ -65,6 +65,8 @@ struct ISCORE_LIB_STATE_EXPORT Address
 };
 
 using AccessorVector = ossia::destination_index;
+ISCORE_LIB_STATE_EXPORT
+QString toString(const ossia::destination_qualifiers& d);
 
 struct ISCORE_LIB_STATE_EXPORT AddressAccessor
 {
@@ -86,7 +88,6 @@ struct ISCORE_LIB_STATE_EXPORT AddressAccessor
         // Utility
         QString toString() const;
         QString toShortString() const;
-        QString accessorsString() const;
 
         static optional<AddressAccessor> fromString(const QString& str);
         bool operator==(const AddressAccessor& other) const;

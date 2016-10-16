@@ -169,25 +169,12 @@ AddressAccessor& AddressAccessor::operator=(Address&& a)
 
 QString AddressAccessor::toString() const
 {
-    return address.toString() + accessorsString();
+    return address.toString() + State::toString(qualifiers);
 }
 
 QString AddressAccessor::toShortString() const
 {
-    return address.toShortString() + accessorsString();
-}
-
-QString AddressAccessor::accessorsString() const
-{
-    QString str;
-    for(auto acc : qualifiers.accessors)
-    {
-        str += "[" % QString::number(acc) % "]";
-    }
-
-    if(qualifiers.unit)
-        str +=  "[" % QString::fromStdString(ossia::get_pretty_unit_text(qualifiers.unit)) % "]";
-    return str;
+    return address.toShortString() + State::toString(qualifiers);
 }
 
 optional<AddressAccessor> AddressAccessor::fromString(
@@ -206,18 +193,9 @@ bool AddressAccessor::operator!=(const AddressAccessor& a) const
     return !(*this == a);
 }
 
-
-
 QString AddressAccessorHead::toString() const
 {
-    QString str = name;
-
-    for(auto acc : qualifiers.accessors)
-    {
-        str += "[" % QString::number(acc) % "]";
-    }
-
-    return str;
+    return name + State::toString(qualifiers);
 }
 
 
@@ -243,7 +221,7 @@ QDebug operator<<(QDebug d, const State::AccessorVector& a)
 
     return d;
 }
- 
+
 QDebug operator<<(QDebug d, const ossia::destination_qualifiers& a)
 {
     d.noquote().nospace() << a.accessors;
@@ -265,7 +243,35 @@ QDebug operator<<(QDebug d, const State::AddressAccessorHead& a)
 
 QStringList stringList(const Address& addr)
 {
-    return QStringList{} << addr.device << addr.path;
+  return QStringList{} << addr.device << addr.path;
+}
+
+QString toString(const ossia::destination_qualifiers& qualifiers)
+{
+  QString str;
+  if(qualifiers.unit)
+  {
+    auto unit_text = QString::fromStdString(ossia::get_pretty_unit_text(qualifiers.unit));
+    if(!qualifiers.accessors.empty())
+    {
+      char c = ossia::get_unit_accessor(qualifiers.unit, qualifiers.accessors[0]);
+      if(c != 0)
+      {
+        unit_text += '.';
+        unit_text += c;
+      }
+    }
+
+    str += "[" % std::move(unit_text) % "]";
+  }
+  else
+  {
+    for(auto acc : qualifiers.accessors)
+    {
+        str += "[" % QString::number(acc) % "]";
+    }
+  }
+  return str;
 }
 
 }
