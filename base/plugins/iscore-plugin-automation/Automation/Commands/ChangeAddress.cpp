@@ -22,7 +22,7 @@ namespace Automation
 ChangeAddress::ChangeAddress(
         Path<ProcessModel> &&path,
         const ::State::AddressAccessor &newval):
-    m_path{path},
+    m_path{std::move(path)},
     m_newAddress{newval}
 {
     auto& autom = m_path.find();
