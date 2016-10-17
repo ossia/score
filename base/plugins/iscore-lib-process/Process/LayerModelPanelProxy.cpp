@@ -131,10 +131,13 @@ void Process::GraphicsViewLayerModelPanelProxy::recompute()
     m_view->setSceneRect(
                 0, 0, fullWidth * 1.2,  m_height);
 
-    m_processPresenter->on_zoomRatioChanged(m_zoomRatio);
+    if(m_processPresenter)
+    {
+        m_processPresenter->on_zoomRatioChanged(m_zoomRatio);
 
-    m_obj->setSize(QSizeF{(double)fullWidth, m_height});
-    m_processPresenter->setWidth(fullWidth);
-    m_processPresenter->setHeight(m_height);
-    m_processPresenter->parentGeometryChanged();
+        m_obj->setSize(QSizeF{(double)fullWidth, m_height});
+        m_processPresenter->setWidth(fullWidth);
+        m_processPresenter->setHeight(m_height);
+        m_processPresenter->parentGeometryChanged();
+    }
 }

@@ -996,6 +996,12 @@ void JSEdit::updateSidebar(const QRect &rect, int d)
         updateSidebar();
 }
 
+void JSEdit::focusInEvent(QFocusEvent* event)
+{
+    QPlainTextEdit::focusInEvent(event);
+    emit focused();
+}
+
 void JSEdit::updateSidebar()
 {
     Q_D(JSEdit);

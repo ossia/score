@@ -1,12 +1,13 @@
 #pragma once
 #include <Process/GenericProcessFactory.hpp>
+#include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 
 #include <Process/ProcessFactory.hpp>
 #include <Process/LayerModel.hpp>
 #include <JS/JSProcessModel.hpp>
 #include <JS/JSStateProcess.hpp>
 #include <JS/JSProcessMetadata.hpp>
-
+#include <JS/Inspector/JSInspectorWidget.hpp>
 #include <Process/StateProcessFactory.hpp>
 
 namespace JS
@@ -24,7 +25,7 @@ LAYER_METADATA(
 namespace JS
 {
 using ProcessFactory = Process::GenericProcessModelFactory<JS::ProcessModel>;
-using LayerFactory = Process::GenericDefaultLayerFactory<JS::Layer>;
+using LayerFactory = WidgetLayer::LayerFactory<JS::ProcessModel, JS::Layer, JS::InspectorWidget>;
 
 using StateProcessFactory = Process::StateProcessFactory_T<JS::StateProcess>;
 }
