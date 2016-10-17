@@ -82,8 +82,10 @@ class ISCORE_LIB_BASE_EXPORT JSEdit final : public QPlainTextEdit
 
         bool isFoldable(int line) const;
         bool isFolded(int line) const;
+
     signals:
         void editingFinished(QString);
+        void focused();
 
     public slots:
         void updateSidebar();
@@ -112,6 +114,8 @@ class ISCORE_LIB_BASE_EXPORT JSEdit final : public QPlainTextEdit
         void updateSidebar(const QRect &rect, int d);
 
     private:
+
+        void focusInEvent(QFocusEvent *event) override;
         QScopedPointer<JSEditPrivate> d_ptr;
         Q_DECLARE_PRIVATE(JSEdit)
         Q_DISABLE_COPY(JSEdit)

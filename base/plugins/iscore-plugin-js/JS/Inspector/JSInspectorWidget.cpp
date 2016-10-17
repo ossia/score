@@ -35,6 +35,8 @@ InspectorWidget::InspectorWidget(
     m_edit->setPlainText(JSModel.script());
     connect(m_edit, &JSEdit::editingFinished,
             this, &InspectorWidget::on_textChange);
+    connect(m_edit, &JSEdit::focused,
+            this, &InspectorWidget::pressed);
 
     con(process(), &JS::ProcessModel::scriptChanged,
             this, &InspectorWidget::on_modelChanged);
