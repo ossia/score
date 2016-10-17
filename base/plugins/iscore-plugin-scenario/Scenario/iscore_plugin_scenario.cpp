@@ -78,6 +78,9 @@ iscore_plugin_scenario::iscore_plugin_scenario()
 
     qRegisterMetaType<ossia::unit_t>();
     qRegisterMetaTypeStreamOperators<ossia::unit_t>();
+    qRegisterMetaTypeStreamOperators<State::vec2f>();
+    qRegisterMetaTypeStreamOperators<State::vec3f>();
+    qRegisterMetaTypeStreamOperators<State::vec4f>();
 }
 
 iscore_plugin_scenario::~iscore_plugin_scenario() = default;
