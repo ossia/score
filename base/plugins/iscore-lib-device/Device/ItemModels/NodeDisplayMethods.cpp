@@ -86,7 +86,6 @@ QVariant valueColumnData(const Device::Node& node, int role)
         {
             return State::convert::value<QVariant>(val);
         }
-
     }
     else if(role == Qt::ForegroundRole)
     {

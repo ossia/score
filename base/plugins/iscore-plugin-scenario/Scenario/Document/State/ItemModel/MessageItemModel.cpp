@@ -89,7 +89,7 @@ static QVariant valueColumnData(const MessageItemModel::node_type& node, int rol
         if(opt_val)
         {
             auto& val = *opt_val;
-            if(val.val.is<State::tuple_t>())
+            if(val.val.isArray())
             {
                 // TODO a nice editor for tuples.
                 return State::convert::toPrettyString(val);

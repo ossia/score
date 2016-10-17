@@ -44,13 +44,22 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
     if(segt_data.size() != 0)
     {
         if(start < end)
+        {
             return Engine::iscore_to_ossia::curve<double, Y_T>(
                   scale_x, [=] (double val) -> Y_T { return min + val * (max - min); }, segt_data, {});
+        }
         else if(start == end)
-            return std::make_shared<ossia::constant_curve>(ossia::Float(start));
+        {
+            auto curve = std::make_shared<ossia::curve<double, Y_T>>();
+            curve->setInitialPointAbscissa(0);
+            curve->setInitialPointOrdinate(start);
+            return curve;
+        }
         else // start > end
+        {
             return Engine::iscore_to_ossia::curve<double, Y_T>(
                   scale_x, [=] (double val) -> Y_T { return max - val * (max - min); }, segt_data, {});
+        }
     }
     else
     {
@@ -125,6 +134,73 @@ ossia::value Component::on_curveChanged(ossia::val_type type)
             }
             return t;
         }
+
+        case ossia::val_type::VEC2F:
+        {
+            // First check the number of curves.
+            const constexpr int n_curves = 2;
+            const auto& start_v = State::convert::value<std::array<float, n_curves>>(start);
+            const auto& end_v = State::convert::value<std::array<float, n_curves>>(end);
+
+            ossia::Tuple t;
+
+            for(int i = 0; i < n_curves; i++)
+            {
+                float start_v_i = start_v[i];
+                float end_v_i = end_v[i];
+                t.value.push_back(
+                            ossia::Behavior{
+                                on_curveChanged_impl<float>(
+                                    std::min(start_v_i, end_v_i),
+                                    std::max(start_v_i, end_v_i),
+                                    start_v_i, end_v_i)});
+            }
+            return t;
+        }
+        case ossia::val_type::VEC3F:
+        {
+            // First check the number of curves.
+            const constexpr int n_curves = 3;
+            const auto& start_v = State::convert::value<std::array<float, n_curves>>(start);
+            const auto& end_v = State::convert::value<std::array<float, n_curves>>(end);
+
+            ossia::Tuple t;
+
+            for(int i = 0; i < n_curves; i++)
+            {
+                float start_v_i = start_v[i];
+                float end_v_i = end_v[i];
+                t.value.push_back(
+                            ossia::Behavior{
+                                on_curveChanged_impl<float>(
+                                    std::min(start_v_i, end_v_i),
+                                    std::max(start_v_i, end_v_i),
+                                    start_v_i, end_v_i)});
+            }
+            return t;
+        }
+        case ossia::val_type::VEC4F:
+        {
+            // First check the number of curves.
+            const constexpr int n_curves = 4;
+            const auto& start_v = State::convert::value<std::array<float, n_curves>>(start);
+            const auto& end_v = State::convert::value<std::array<float, n_curves>>(end);
+
+            ossia::Tuple t;
+
+            for(int i = 0; i < n_curves; i++)
+            {
+                float start_v_i = start_v[i];
+                float end_v_i = end_v[i];
+                t.value.push_back(
+                            ossia::Behavior{
+                                on_curveChanged_impl<float>(
+                                    std::min(start_v_i, end_v_i),
+                                    std::max(start_v_i, end_v_i),
+                                    start_v_i, end_v_i)});
+            }
+            return t;
+        }
         default:
             return ossia::Behavior{
                     std::make_shared<ossia::constant_curve>(
@@ -139,13 +215,16 @@ void Component::recreate()
     // Add the real address
     auto address = Engine::iscore_to_ossia::findAddress(
           m_deviceList,
-          process().address());
+          process().address().address);
 
     if(address)
     {
-        m_ossia_process = new ossia::automation(
+        auto autom = new ossia::automation(
                     *address,
               on_curveChanged(address->getValueType()));
+        autom->setUnit(process().address().qualifiers.unit);
+        m_ossia_process = autom;
+
     }
 }
 

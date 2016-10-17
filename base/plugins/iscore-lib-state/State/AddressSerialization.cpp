@@ -84,7 +84,7 @@ template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const ossia::destination_qualifiers& a)
 {
     m_obj["Accessors"] = toJsonValueArray(a.accessors);
-    m_obj["Unit"] = QString::fromStdString(ossia::get_pretty_unit_text(a.unit));
+    m_obj[strings.Unit] = QString::fromStdString(ossia::get_pretty_unit_text(a.unit));
 }
 
 template<>

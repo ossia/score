@@ -1,94 +1,79 @@
 #include "Value.hpp"
+#include <State/ValueConversion.hpp>
 
-class QDebug;
-
-bool State::Value::operator==(const State::Value& m) const
+namespace State {
+bool Value::operator==(const Value& m) const
 {
     return val == m.val;
 }
 
-bool State::Value::operator!=(const State::Value& m) const
+bool Value::operator!=(const Value& m) const
 {
     return val != m.val;
 }
-/*
-bool State::Value::operator<(const State::Value& m) const
-{
-    return false;
-}
-*/
-State::ValueImpl::ValueImpl(State::no_value_t v): m_variant{v} { }
-State::ValueImpl::ValueImpl(State::impulse_t v): m_variant{v} { }
-State::ValueImpl::ValueImpl(int v): m_variant{v} { }
-State::ValueImpl::ValueImpl(float v): m_variant{v} { }
-State::ValueImpl::ValueImpl(double v): m_variant{(float)v} { }
-State::ValueImpl::ValueImpl(bool v): m_variant{v} { }
-State::ValueImpl::ValueImpl(QString v): m_variant{std::move(v)} { }
-State::ValueImpl::ValueImpl(QChar v): m_variant{v} { }
-State::ValueImpl::ValueImpl(vec2f v): m_variant{v} { }
-State::ValueImpl::ValueImpl(vec3f v): m_variant{v} { }
-State::ValueImpl::ValueImpl(vec4f v): m_variant{v} { }
-State::ValueImpl::ValueImpl(State::tuple_t v): m_variant{std::move(v)} { }
+
+ValueImpl::ValueImpl(): m_variant{no_value_t{}} { }
+ValueImpl::ValueImpl(no_value_t v): m_variant{v} { }
+ValueImpl::ValueImpl(impulse_t v): m_variant{v} { }
+ValueImpl::ValueImpl(int v): m_variant{v} { }
+ValueImpl::ValueImpl(float v): m_variant{v} { }
+ValueImpl::ValueImpl(double v): m_variant{(float)v} { }
+ValueImpl::ValueImpl(bool v): m_variant{v} { }
+ValueImpl::ValueImpl(QString v): m_variant{std::move(v)} { }
+ValueImpl::ValueImpl(QChar v): m_variant{v} { }
+ValueImpl::ValueImpl(vec2f v): m_variant{v} { }
+ValueImpl::ValueImpl(vec3f v): m_variant{v} { }
+ValueImpl::ValueImpl(vec4f v): m_variant{v} { }
+ValueImpl::ValueImpl(tuple_t v): m_variant{std::move(v)} { }
+
+ValueImpl& ValueImpl::operator=(no_value_t v) { m_variant = v; return *this; }
+ValueImpl& ValueImpl::operator=(impulse_t v) { m_variant = v; return *this; }
+ValueImpl& ValueImpl::operator=(int v) { m_variant = v; return *this;  }
+ValueImpl& ValueImpl::operator=(float v) { m_variant = v; return *this;  }
+ValueImpl& ValueImpl::operator=(double v) { m_variant = (float)v; return *this;  }
+ValueImpl& ValueImpl::operator=(bool v) { m_variant = v; return *this;  }
+ValueImpl& ValueImpl::operator=(const QString& v) { m_variant = v; return *this;  }
+ValueImpl& ValueImpl::operator=(QString&& v) { m_variant = std::move(v); return *this;  }
+ValueImpl& ValueImpl::operator=(QChar v) { m_variant = v; return *this;  }
+ValueImpl& ValueImpl::operator=(vec2f v) { m_variant = v; return *this;  }
+ValueImpl& ValueImpl::operator=(vec3f v) { m_variant = v; return *this;  }
+ValueImpl& ValueImpl::operator=(vec4f v) { m_variant = v; return *this;  }
+ValueImpl& ValueImpl::operator=(const tuple_t& v) { m_variant = v; return *this;  }
+ValueImpl& ValueImpl::operator=(tuple_t&& v) { m_variant = std::move(v); return *this;  }
 
 
-State::ValueImpl::ValueImpl():
-    m_variant{no_value_t{}}
-{
-
-}
-
-State::ValueImpl& State::ValueImpl::operator=(State::no_value_t v) { m_variant = v; return *this; }
-State::ValueImpl& State::ValueImpl::operator=(State::impulse_t v) { m_variant = v; return *this; }
-State::ValueImpl& State::ValueImpl::operator=(int v) { m_variant = v; return *this;  }
-State::ValueImpl& State::ValueImpl::operator=(float v) { m_variant = v; return *this;  }
-State::ValueImpl& State::ValueImpl::operator=(double v) { m_variant = (float)v; return *this;  }
-State::ValueImpl& State::ValueImpl::operator=(bool v) { m_variant = v; return *this;  }
-State::ValueImpl& State::ValueImpl::operator=(const QString& v) { m_variant = v; return *this;  }
-State::ValueImpl& State::ValueImpl::operator=(QString&& v) { m_variant = std::move(v); return *this;  }
-State::ValueImpl& State::ValueImpl::operator=(QChar v) { m_variant = v; return *this;  }
-State::ValueImpl& State::ValueImpl::operator=(vec2f v) { m_variant = v; return *this;  }
-State::ValueImpl& State::ValueImpl::operator=(vec3f v) { m_variant = v; return *this;  }
-State::ValueImpl& State::ValueImpl::operator=(vec4f v) { m_variant = v; return *this;  }
-State::ValueImpl& State::ValueImpl::operator=(const State::tuple_t& v) { m_variant = v; return *this;  }
-State::ValueImpl& State::ValueImpl::operator=(State::tuple_t&& v) { m_variant = std::move(v); return *this;  }
-
-
-bool State::ValueImpl::operator ==(const State::ValueImpl& other) const
+bool ValueImpl::operator ==(const ValueImpl& other) const
 {
     return m_variant == other.m_variant;
 }
 
-bool State::ValueImpl::operator !=(const State::ValueImpl& other) const
+bool ValueImpl::operator !=(const ValueImpl& other) const
 {
     return m_variant != other.m_variant;
 }
 
-bool State::ValueImpl::isNumeric() const
+bool ValueImpl::isNumeric() const
 {
     auto t = m_variant.which();
     return t == 1 || t == 2;
 }
 
-bool State::ValueImpl::isValid() const
+bool ValueImpl::isValid() const
 {
     return m_variant.which() != m_variant.npos;
 }
 
-bool State::ValueImpl::isArray() const
+bool ValueImpl::isArray() const
 {
-    return is<State::tuple_t>()
-            || is<State::vec2f>()
-            || is<State::vec3f>()
-            || is<State::vec4f>();
+    return is<tuple_t>()
+            || is<vec2f>()
+            || is<vec3f>()
+            || is<vec4f>();
 }
-
-#include <State/ValueConversion.hpp>
-
-namespace State {
 
 ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m)
 {
-    s << State::convert::textualType(m) << State::convert::toPrettyString(m);
+    s << convert::textualType(m) << convert::toPrettyString(m);
     return s;
 }
 

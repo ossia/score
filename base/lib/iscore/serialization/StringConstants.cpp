@@ -36,6 +36,7 @@ ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
                 QStringLiteral("ioType"),
                 QStringLiteral("ClipMode"),
                 QStringLiteral("Unit"),
+                QStringLiteral("unit"),
                 QStringLiteral("RepetitionFilter"),
                 QStringLiteral("RefreshRate"),
                 QStringLiteral("Priority"),

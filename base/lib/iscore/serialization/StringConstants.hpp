@@ -36,6 +36,7 @@ struct StringConstants
         const QString ioType;
         const QString ClipMode;
         const QString Unit;
+        const QString unit;
         const QString RepetitionFilter;
         const QString RefreshRate;
         const QString Priority;
