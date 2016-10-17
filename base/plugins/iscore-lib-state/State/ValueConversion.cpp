@@ -398,7 +398,7 @@ bool value(const State::Value& val)
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
             return_type operator()(bool v) const { return v; }
-            return_type operator()(const QString& v) const {                
+            return_type operator()(const QString& v) const {
                 auto& strings = iscore::StringConstant();
 
                 return v == strings.lowercase_true ||
@@ -710,48 +710,22 @@ QString toPrettyString(const State::Value& val)
     return eggs::variants::apply(vis{}, val.val.impl());
 }
 
+namespace {
+struct convert_helper {
+        State::Value& toConvert;
+        void operator()(const State::no_value_t& v) const { toConvert.val = v; }
+        void operator()(const State::impulse_t& v) const { toConvert.val = v; }
 
+        template<typename T>
+        void operator()(const T&) const
+        {
+            toConvert.val = value<T>(toConvert);
+        }
+};
+}
 bool convert(const State::Value& orig, State::Value& toConvert)
 {
-    switch(orig.val.which())
-    {
-        case ValueType::NoValue:
-            toConvert.val = no_value_t{};
-            break;
-        case ValueType::Impulse:
-            toConvert.val = impulse_t{};
-            break;
-        case ValueType::Int:
-            toConvert.val = value<int>(toConvert);
-            break;
-        case ValueType::Float:
-            toConvert.val = value<float>(toConvert);
-            break;
-        case ValueType::Bool:
-            toConvert.val = value<bool>(toConvert);
-            break;
-        case ValueType::String:
-            toConvert.val = value<QString>(toConvert);
-            break;
-        case ValueType::Char:
-            toConvert.val = value<QChar>(toConvert);
-            break;
-        case ValueType::Vec2f:
-            toConvert.val = value<vec2f>(toConvert);
-            break;
-        case ValueType::Vec3f:
-            toConvert.val = value<vec3f>(toConvert);
-            break;
-        case ValueType::Vec4f:
-            toConvert.val = value<vec4f>(toConvert);
-            break;
-        case ValueType::Tuple:
-            toConvert.val = value<tuple_t>(toConvert);
-            break;
-        default:
-            break;
-    }
-
+    eggs::variants::apply(convert_helper{toConvert}, orig.val.impl());
     return true;
 }
 

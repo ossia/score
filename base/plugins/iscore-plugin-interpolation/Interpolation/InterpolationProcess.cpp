@@ -49,14 +49,14 @@ ProcessState*ProcessState::clone(QObject* parent) const
 std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
 {
     // TODO have a better check of "address validity"
-    if(!process().address().device.isEmpty())
+    if(!process().address().address.device.isEmpty())
         return {process().address()};
     return {};
 }
 
 State::MessageList ProcessState::messages() const
 {
-    if(!process().address().device.isEmpty())
+    if(!process().address().address.device.isEmpty())
     {
         auto mess = message();
         if(!mess.address.address.device.isEmpty())
@@ -107,9 +107,87 @@ ProcessModel::ProcessModel(const TimeValue& duration, const Id<Process::ProcessM
     metadata().setInstanceName(*this);
 }
 
+State::AddressAccessor ProcessModel::address() const
+{
+    return m_address;
+}
+
+State::Value ProcessModel::start() const
+{
+    return m_start;
+}
+
+State::Value ProcessModel::end() const
+{
+    return m_end;
+}
+
+void ProcessModel::setAddress(const State::AddressAccessor& arg)
+{
+    if(m_address == arg)
+    {
+        return;
+    }
+
+    m_address = arg;
+    emit addressChanged(arg);
+    emit m_curve->changed();
+}
+
+void ProcessModel::setStart(State::Value arg)
+{
+    if (m_start == arg)
+        return;
+
+    m_start = arg;
+    emit startChanged(arg);
+    emit m_curve->changed();
+}
+
+void ProcessModel::setEnd(State::Value arg)
+{
+    if (m_end == arg)
+        return;
+
+    m_end = arg;
+    emit endChanged(arg);
+    emit m_curve->changed();
+}
+
 QString ProcessModel::prettyName() const
 {
     return address().toShortString();
+}
+
+void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
+{
+    // We only need to change the duration.
+    setDuration(newDuration);
+    m_curve->changed();
+}
+
+void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
+{
+    // We only need to change the duration.
+    setDuration(newDuration);
+    m_curve->changed();
+}
+
+void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
+{
+    // We only need to change the duration.
+    setDuration(newDuration);
+    m_curve->changed();
+}
+
+ProcessState*ProcessModel::startStateData() const
+{
+    return m_startState;
+}
+
+ProcessState*ProcessModel::endStateData() const
+{
+    return m_endState;
 }
 
 ProcessModel::ProcessModel(const ProcessModel& source, const Id<Process::ProcessModel>& id, QObject* parent):
@@ -148,7 +226,7 @@ ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 {
     interp.setCurve(new Curve::Model{*this, &interp});
 
-    State::Address address;
+    State::AddressAccessor address;
     State::Value start, end;
 
     m_stream >> address >> start >> end;
@@ -180,7 +258,7 @@ ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
     interp.setCurve(new Curve::Model{curve_deser, &interp});
 
-    interp.setAddress(fromJsonObject<State::Address>(m_obj[strings.Address]));
+    interp.setAddress(fromJsonObject<State::AddressAccessor>(m_obj[strings.Address]));
     interp.setStart(fromJsonObject<State::Value>(m_obj[strings.Start]));
     interp.setEnd(fromJsonObject<State::Value>(m_obj[strings.End]));
 }

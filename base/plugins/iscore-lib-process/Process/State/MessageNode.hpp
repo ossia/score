@@ -74,7 +74,7 @@ ISCORE_LIB_PROCESS_EXPORT State::AddressAccessor address(const MessageNode& tree
 ISCORE_LIB_PROCESS_EXPORT State::Message message(const MessageNode& node);
 ISCORE_LIB_PROCESS_EXPORT State::Message userMessage(const MessageNode& node);
 
-ISCORE_LIB_PROCESS_EXPORT Process::MessageNode* try_getNodeFromAddress(Process::MessageNode& root, const State::Address& addr);
+ISCORE_LIB_PROCESS_EXPORT Process::MessageNode* try_getNodeFromAddress(Process::MessageNode& root, const State::AddressAccessor& addr);
 
 ISCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);
 ISCORE_LIB_PROCESS_EXPORT State::MessageList getUserMessages(const MessageNode&);

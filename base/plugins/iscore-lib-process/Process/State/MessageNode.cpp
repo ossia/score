@@ -186,26 +186,31 @@ State::MessageList getUserMessages(const MessageNode& n)
 
 Process::MessageNode* try_getNodeFromAddress(
         Process::MessageNode& root,
-        const State::Address& addr)
+        const State::AddressAccessor& addr)
 {
-    if(addr.device.isEmpty())
+    if(addr.address.device.isEmpty())
         return nullptr;
 
     // Find first node
     auto first_node_it = ossia::find_if(root, [&] (const auto& cld) {
-        return cld.displayName() == addr.device;
+        return cld.displayName() == addr.address.device;
     });
     if(first_node_it == root.end())
         return nullptr;
 
     Process::MessageNode* node = &*first_node_it;
 
-    for(auto& node_name : addr.path)
+    // The n-1 first elements are just checked against the name
+    const int n = addr.address.path.size();
+    for(int i = 0; i < n - 1; i++)
     {
+        const QString& node_name{addr.address.path[i]};
+
         auto& n = *node;
-        auto child_it = ossia::find_if(n, [&] (const auto& cld) {
-            return cld.displayName() == node_name;
-        } );
+        auto child_it = ossia::find_if(n, [&] (const Process::MessageNode& cld) {
+            return cld.name.name == node_name;
+        });
+
         if(child_it != n.end())
         {
             node = &*child_it;
@@ -214,6 +219,18 @@ Process::MessageNode* try_getNodeFromAddress(
         {
             return nullptr;
         }
+    }
+
+    // The last element is checked also against the qualifiers
+    {
+        const QString& node_name{addr.address.path[n-1]};
+
+        auto& n = *node;
+        auto child_it = ossia::find_if(n, [&] (const Process::MessageNode& cld) {
+            return cld.name.name == node_name && cld.name.qualifiers == addr.qualifiers;
+        });
+
+        return child_it != n.end() ? &*child_it : nullptr;
     }
 
     return node;
