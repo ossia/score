@@ -42,38 +42,27 @@ Component::Component(
           parentConstraint, element, ctx, id, "Executor::Automation::Component", parent},
     m_deviceList{ctx.devices.list()}
 {
-    recreate();
-}
+  auto dest = Engine::iscore_to_ossia::makeDestination(
+         m_deviceList,
+         process().address());
 
-void Component::recreate()
-{
-    m_ossia_curve.reset(); // It will be remade after.
-    m_ossia_process = nullptr;
+  if(dest)
+  {
+    auto& d = *dest;
+    m_addressType = d.value.get().getValueType();
 
-    auto dest = process().address();
-    auto address = Engine::iscore_to_ossia::findAddress(
-          m_deviceList,
-          dest.address);
+    if(process().tween())
+        on_curveChanged(d); // If the type changes we need to rebuild the curve.
+    else
+        on_curveChanged({});
 
-    if(address)
+    if(m_ossia_curve)
     {
-        ossia::Destination d{*address, dest.qualifiers.accessors};
-        m_addressType = address->getValueType();
-
-      if(process().tween())
-          on_curveChanged(d); // If the type changes we need to rebuild the curve.
-      else
-          on_curveChanged({});
-
-      if(m_ossia_curve)
-      {
-        auto autom = new ossia::automation{
-                    std::move(d),
-                    ossia::Behavior{m_ossia_curve}};
-        autom->setUnit(process().unit());
-        m_ossia_process = autom;
-      }
+      m_ossia_process = new ossia::automation{
+          std::move(d),
+          ossia::Behavior{m_ossia_curve}};
     }
+  }
 }
 
 template<typename Y_T>

@@ -109,7 +109,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final :
                 const ConstraintModel& constraint,
                 const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>& slotList,
                 Id<Process::ProcessModel> curveId,
-                State::Address address,
+                State::AddressAccessor address,
                 double start,
                 double end,
                 double min, double max);
@@ -121,7 +121,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final :
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        State::Address m_address;
+        State::AddressAccessor m_address;
 
         double m_start{}, m_end{};
         double m_min{}, m_max{};
@@ -137,7 +137,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final :
                 const ConstraintModel& constraint,
                 const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>& slotList,
                 Id<Process::ProcessModel> curveId,
-                State::Address address,
+                State::AddressAccessor address,
                 State::Value start, State::Value end);
 
         void redo() const override;
@@ -147,7 +147,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final :
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        State::Address m_address;
+        State::AddressAccessor m_address;
         State::Value m_start, m_end;
 };
 }

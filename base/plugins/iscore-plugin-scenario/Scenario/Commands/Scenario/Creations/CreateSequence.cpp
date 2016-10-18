@@ -94,7 +94,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     QList<State::Message> endMessages;
     endMessages.reserve(endAddresses.size());
     ossia::transform(endAddresses, std::back_inserter(endMessages),
-              [] (const auto& addr) { return State::Message{addr.address, addr.value}; });
+              [] (const auto& addr) { return State::Message{State::AddressAccessor{addr.address}, addr.value}; });
 
     updateTreeWithMessageList(m_stateData, endMessages);
 
@@ -106,8 +106,8 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     {
         if(message.value.val.isNumeric())
         {
-            auto addr_it = ossia::find_if(endAddresses, [&] (const auto& arg) {
-                return message.address == arg.address && message.value != arg.value; });
+            auto addr_it = ossia::find_if(endAddresses, [&] (const Device::FullAddressSettings& arg) {
+                return message.address.address == arg.address && message.value != arg.value; });
 
             if(addr_it != std::end(endAddresses))
             {
@@ -116,8 +116,8 @@ CreateSequenceProcesses::CreateSequenceProcesses(
         }
         else if(message.value.val.is<State::tuple_t>())
         {
-            auto addr_it = ossia::find_if(endAddresses, [&] (const auto& arg) {
-                return message.address == arg.address && message.value != arg.value; });
+            auto addr_it = ossia::find_if(endAddresses, [&] (const Device::FullAddressSettings& arg) {
+                return message.address.address == arg.address && message.value != arg.value; });
 
             if(addr_it != std::end(endAddresses))
             {
@@ -165,7 +165,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
                 constraint,
                 layer_vect,
                 process_ids[cur_proc],
-                elt.first.address.address, start, end, min, max};
+                elt.first.address, start, end, min, max};
         m_interpolations.addCommand(cmd);
         cur_proc++;
     }
@@ -182,7 +182,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
                               constraint,
                               layer_vect,
                               process_ids[cur_proc],
-                              elt.first.address.address,
+                              elt.first.address,
                               elt.first.value,
                               elt.second.value
                           });

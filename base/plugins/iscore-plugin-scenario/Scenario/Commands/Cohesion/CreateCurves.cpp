@@ -108,7 +108,7 @@ void CreateCurvesFromAddresses(
         {
             // First, we skip the curve if there is already a curve
             // with this address in the constraint.
-            if(ossia::contains(existing_automations, as.address))
+            if(ossia::contains(existing_automations, State::AddressAccessor{as.address}))
                 continue;
 
             // Then we set-up all the necessary values
@@ -155,7 +155,7 @@ void CreateCurvesFromAddresses(
                                   constraint,
                                   bigLayerVec[i],
                                   process_ids[i],
-                                  as.address,
+                                  State::AddressAccessor{as.address},
                                   start, end, min, max
                               });
 

@@ -30,7 +30,10 @@ Component::Component(
           parentConstraint, element, ctx, id, "InterpolationComponent", parent},
     m_deviceList{ctx.devices.list()}
 {
-    recreate();
+  if(auto dest = Engine::iscore_to_ossia::makeDestination(m_deviceList, process().address()))
+  {
+      m_ossia_process = new ossia::automation{*dest, on_curveChanged(dest->value.get().getValueType())};
+  }
 }
 
 template<typename Y_T>
@@ -207,26 +210,5 @@ ossia::value Component::on_curveChanged(ossia::val_type type)
                       Engine::iscore_to_ossia::toOSSIAValue(start))};
     }
 }
-
-void Component::recreate()
-{
-    m_ossia_process = nullptr;
-
-    // Add the real address
-    auto address = Engine::iscore_to_ossia::findAddress(
-          m_deviceList,
-          process().address().address);
-
-    if(address)
-    {
-        auto autom = new ossia::automation(
-                    *address,
-              on_curveChanged(address->getValueType()));
-        autom->setUnit(process().address().qualifiers.unit);
-        m_ossia_process = autom;
-
-    }
-}
-
 }
 }
