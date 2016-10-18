@@ -92,7 +92,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final :
             {
                 double thepow = Curve::PowerSegmentData::linearGamma + 1 - gamma;
                 return [=] (double ratio, Y start, Y end) {
-                    return ossia::easing::ease<Y>{}(start, end, std::pow(ratio, thepow));
+                    return ossia::easing::ease{}(start, end, std::pow(ratio, thepow));
                 };
             }
         }
