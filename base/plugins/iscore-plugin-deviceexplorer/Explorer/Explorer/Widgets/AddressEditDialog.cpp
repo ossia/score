@@ -49,6 +49,7 @@ AddressEditDialog::AddressEditDialog(
     : QDialog{parent},
       m_originalSettings{addr}
 {
+    this->setMinimumWidth(500);
     m_layout = new QFormLayout;
     setLayout(m_layout);
 
