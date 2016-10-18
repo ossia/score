@@ -19,11 +19,11 @@ class ChangeAddress final : public iscore::SerializableCommand
         ISCORE_COMMAND_DECL(CommandFactoryName(), ChangeAddress, "ChangeAddress")
     public:
         ChangeAddress(
-                Path<ProcessModel>&& path,
+                const ProcessModel& autom,
                 const State::AddressAccessor& newval);
         ChangeAddress(
-                Path<ProcessModel>&& path,
-                Device::FullAddressSettings newval);
+                const ProcessModel& autom,
+                const Device::FullAddressSettings& newval);
 
     public:
         void undo() const override;
@@ -35,8 +35,7 @@ class ChangeAddress final : public iscore::SerializableCommand
 
     private:
         Path<ProcessModel> m_path;
-        State::AddressAccessor m_oldAddress, m_newAddress;
-        Device::Domain m_oldDomain, m_newDomain;
+        Device::FullAddressAccessorSettings m_old, m_new;
 };
 
 }

@@ -85,7 +85,7 @@ void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
     m_curve->changed();
 }
 
-State::Address ProcessModel::sourceAddress() const
+State::AddressAccessor ProcessModel::sourceAddress() const
 {
     return m_sourceAddress;
 }
@@ -100,7 +100,7 @@ double ProcessModel::sourceMax() const
     return m_sourceMax;
 }
 
-void ProcessModel::setSourceAddress(const State::Address& arg)
+void ProcessModel::setSourceAddress(const State::AddressAccessor& arg)
 {
     if(m_sourceAddress == arg)
     {
@@ -134,7 +134,7 @@ void ProcessModel::setSourceMax(double arg)
 
 
 
-State::Address ProcessModel::targetAddress() const
+State::AddressAccessor ProcessModel::targetAddress() const
 {
     return m_targetAddress;
 }
@@ -149,7 +149,7 @@ double ProcessModel::targetMax() const
     return m_targetMax;
 }
 
-void ProcessModel::setTargetAddress(const State::Address& arg)
+void ProcessModel::setTargetAddress(const State::AddressAccessor& arg)
 {
     if(m_targetAddress == arg)
     {

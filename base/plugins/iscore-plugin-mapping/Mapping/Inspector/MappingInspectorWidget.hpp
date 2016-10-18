@@ -9,12 +9,12 @@ struct DocumentContext;
 }
 namespace State
 {
-struct Address;
+struct AddressAccessor;
 }
 
 namespace Explorer
 {
-class AddressEditWidget;
+class AddressAccessorEditWidget;
 class DeviceExplorerModel;
 }
 class QDoubleSpinBox;
@@ -32,18 +32,18 @@ class InspectorWidget :
                 QWidget* parent);
 
     public slots:
-        void on_sourceAddressChange(const State::Address& newText);
+        void on_sourceAddressChange(const State::AddressAccessor& newText);
         void on_sourceMinValueChanged();
         void on_sourceMaxValueChanged();
 
-        void on_targetAddressChange(const State::Address& newText);
+        void on_targetAddressChange(const State::AddressAccessor& newText);
         void on_targetMinValueChanged();
         void on_targetMaxValueChanged();
     private:
-        Explorer::AddressEditWidget* m_sourceLineEdit{};
+        Explorer::AddressAccessorEditWidget* m_sourceLineEdit{};
         QDoubleSpinBox* m_sourceMin{}, *m_sourceMax{};
 
-        Explorer::AddressEditWidget* m_targetLineEdit{};
+        Explorer::AddressAccessorEditWidget* m_targetLineEdit{};
         QDoubleSpinBox* m_targetMin{}, *m_targetMax{};
 
         CommandDispatcher<> m_dispatcher;

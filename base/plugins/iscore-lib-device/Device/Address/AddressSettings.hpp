@@ -120,6 +120,77 @@ inline bool operator!=(
 {
     return !(lhs == rhs);
 }
+
+struct FullAddressAccessorSettings
+{
+  State::Value value;
+  Device::Domain domain;
+
+  Device::IOType ioType{};
+  Device::ClipMode clipMode{};
+
+  Device::RepetitionFilter repetitionFilter{};
+  Device::RefreshRate rate{};
+
+  int priority{};
+
+  QStringList tags;
+  QString description;
+
+  State::AddressAccessor address;
+
+  FullAddressAccessorSettings() = default;
+  FullAddressAccessorSettings(const FullAddressAccessorSettings&) = default;
+  FullAddressAccessorSettings(FullAddressAccessorSettings&&) = default;
+  FullAddressAccessorSettings& operator=(const FullAddressAccessorSettings&) = default;
+  FullAddressAccessorSettings& operator=(FullAddressAccessorSettings&&) = default;
+
+  FullAddressAccessorSettings(
+      const State::AddressAccessor& addr,
+      const AddressSettingsCommon& f):
+    value{f.value},
+    domain{f.domain},
+    ioType{f.ioType},
+    clipMode{f.clipMode},
+    repetitionFilter{f.repetitionFilter},
+    rate{f.rate},
+    priority{f.priority},
+    tags{f.tags},
+    description{f.description},
+    address{addr}
+  {
+      if(!address.qualifiers.unit)
+          address.qualifiers.unit = f.unit;
+  }
+
+  FullAddressAccessorSettings(
+      State::AddressAccessor&& addr,
+      AddressSettingsCommon&& f):
+    value{std::move(f.value)},
+    domain{std::move(f.domain)},
+    ioType{f.ioType},
+    clipMode{f.clipMode},
+    repetitionFilter{f.repetitionFilter},
+    rate{f.rate},
+    priority{f.priority},
+    tags{std::move(f.tags)},
+    description{std::move(f.description)},
+    address{std::move(addr)}
+  {
+      if(!address.qualifiers.unit)
+          address.qualifiers.unit = f.unit;
+  }
+
+  FullAddressAccessorSettings(
+      const State::AddressAccessor& addr,
+      const State::ValueImpl& min,
+      const State::ValueImpl& max):
+      domain{{min}, {max}, {}},
+      address{addr}
+  {
+
+  }
+};
 }
 
 JSON_METADATA(Device::AddressSettings, "AddressSettings")
