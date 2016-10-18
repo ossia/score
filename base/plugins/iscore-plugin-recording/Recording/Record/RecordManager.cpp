@@ -115,7 +115,7 @@ void AutomationRecorder::stop()
         // Add a point with the last state.
         auto initCurveCmd = new Automation::InitAutomation{
                 automation,
-                recorded.first,
+                State::AddressAccessor{recorded.first},
                 recorded.second.segment.min(),
                 recorded.second.segment.max(),
                 recorded.second.segment.toPowerSegments()};

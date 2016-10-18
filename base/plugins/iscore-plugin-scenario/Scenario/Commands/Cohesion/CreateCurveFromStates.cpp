@@ -32,7 +32,7 @@ CreateAutomationFromStates::CreateAutomationFromStates(
         const ConstraintModel& constraint,
         const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel> > >& slotList,
         Id<Process::ProcessModel> curveId,
-        State::Address address,
+        State::AddressAccessor address,
         double start,
         double end,
         double min,
@@ -96,7 +96,7 @@ CreateInterpolationFromStates::CreateInterpolationFromStates(
         const ConstraintModel& constraint,
         const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel> > >& slotList,
         Id<Process::ProcessModel> curveId,
-        State::Address address,
+        State::AddressAccessor address,
         State::Value start, State::Value end):
     CreateProcessAndLayers<Interpolation::ProcessModel>{
         constraint,

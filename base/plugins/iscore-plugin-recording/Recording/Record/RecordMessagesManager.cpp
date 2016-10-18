@@ -142,7 +142,7 @@ bool MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
 
                 m_records.append(RecordedMessages::RecordedMessage{
                                      msecs,
-                                     State::Message{addr, val}});
+                                     State::Message{State::AddressAccessor{addr}, val}});
 
                 m_createdProcess->setDuration(TimeValue::fromMsecs(msecs));
             }
@@ -153,7 +153,7 @@ bool MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
 
                 m_records.append(RecordedMessages::RecordedMessage{
                                      0.,
-                                     State::Message{addr, val}});
+                                     State::Message{State::AddressAccessor{addr}, val}});
             }
         }));
     }

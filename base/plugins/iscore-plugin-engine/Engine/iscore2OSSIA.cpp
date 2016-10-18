@@ -616,5 +616,24 @@ ossia::net::address_base* findAddress(
     return {};
 }
 
+optional<ossia::Destination> makeDestination(
+    const Device::DeviceList& devices,
+    const State::AddressAccessor& addr)
+{
+  auto ossia_addr = Engine::iscore_to_ossia::findAddress(
+        devices,
+        addr.address);
+
+  if(ossia_addr)
+  {
+    return ossia::Destination{
+      *ossia_addr,
+      addr.qualifiers.accessors,
+      addr.qualifiers.unit};
+  }
+
+  return {};
+}
+
 }
 }

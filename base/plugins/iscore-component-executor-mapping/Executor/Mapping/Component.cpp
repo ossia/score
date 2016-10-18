@@ -37,7 +37,30 @@ Component::Component(
     ::Engine::Execution::ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>{parentConstraint, element, ctx, id, "MappingElement", parent},
     m_deviceList{ctx.devices.list()}
 {
-    recreate();
+  auto ossia_source_addr = Engine::iscore_to_ossia::makeDestination(
+              m_deviceList,
+              process().sourceAddress());
+  if(!ossia_source_addr)
+      return;
+
+  auto ossia_target_addr = Engine::iscore_to_ossia::makeDestination(
+              m_deviceList,
+              process().targetAddress());
+  if(!ossia_target_addr)
+      return;
+
+  m_sourceAddressType = ossia_source_addr->value.get().getValueType();
+  m_targetAddressType = ossia_target_addr->value.get().getValueType();
+
+  rebuildCurve(); // If the type changes we need to rebuild the curve.
+
+  if(m_ossia_curve)
+  {
+      m_ossia_process = new ossia::mapper(
+                  *ossia_source_addr,
+                  *ossia_target_addr,
+                  ossia::Behavior(m_ossia_curve));
+  }
 }
 
 template<typename X_T, typename Y_T>
@@ -102,38 +125,6 @@ std::shared_ptr<ossia::curve_abstract> Component::rebuildCurve()
     }
 
     return m_ossia_curve;
-}
-
-void Component::recreate()
-{
-    // TODO use dataspaces here.
-    m_ossia_curve.reset(); // It will be remade after.
-    m_ossia_process = nullptr;
-
-    auto ossia_source_addr = Engine::iscore_to_ossia::findAddress(
-                m_deviceList,
-                process().sourceAddress().address);
-    if(!ossia_source_addr)
-        return;
-
-    auto ossia_target_addr = Engine::iscore_to_ossia::findAddress(
-                m_deviceList,
-                process().targetAddress().address);
-    if(!ossia_target_addr)
-        return;
-
-    m_sourceAddressType = ossia_source_addr->getValueType();
-    m_targetAddressType = ossia_target_addr->getValueType();
-
-    rebuildCurve(); // If the type changes we need to rebuild the curve.
-
-    if(m_ossia_curve)
-    {
-        m_ossia_process = new ossia::mapper(
-                    *ossia_source_addr,
-                    *ossia_target_addr,
-                    ossia::Behavior(m_ossia_curve));
-    }
 }
 
 }

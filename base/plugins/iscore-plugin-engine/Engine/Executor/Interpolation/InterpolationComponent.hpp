@@ -31,7 +31,6 @@ class Component final :
                 QObject* parent);
 
     private:
-        void recreate();
         void rebuildCurve();
 
         ossia::value on_curveChanged(ossia::val_type);

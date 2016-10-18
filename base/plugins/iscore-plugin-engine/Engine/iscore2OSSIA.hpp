@@ -60,6 +60,10 @@ ISCORE_PLUGIN_ENGINE_EXPORT ossia::net::address_base* findAddress(
         const Device::DeviceList& devices,
         const State::Address& addr);
 
+ISCORE_PLUGIN_ENGINE_EXPORT optional<ossia::Destination> makeDestination(
+        const Device::DeviceList& devices,
+        const State::AddressAccessor& addr);
+
 // OSSIA::net::Node* won't be null.
 ISCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base* getNodeFromPath(
         const QStringList& path,

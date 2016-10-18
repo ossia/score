@@ -76,7 +76,7 @@ struct ISCORE_LIB_STATE_EXPORT AddressAccessor
         AddressAccessor& operator=(const AddressAccessor& other) noexcept;
         AddressAccessor& operator=(AddressAccessor&& other) noexcept;
 
-        AddressAccessor(State::Address a) noexcept;
+        explicit AddressAccessor(State::Address a) noexcept;
         AddressAccessor(State::Address a, const AccessorVector& v) noexcept;
 
         AddressAccessor& operator=(const Address& a);
