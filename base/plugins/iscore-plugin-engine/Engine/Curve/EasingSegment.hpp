@@ -138,9 +138,7 @@ class EasingSegment final :
         template<typename Y>
         std::function<Y(double, Y, Y)> makeFunction() const
         {
-            return [=] (double ratio, Y start, Y end) {
-                return start + Easing_T{}(ratio) * (end - start);
-            };
+            return ossia::curve_segment_ease<Y, Easing_T>{};
         }
         std::function<float(double, float, float)> makeFloatFunction() const override
         { return makeFunction<float>(); }

@@ -18,42 +18,18 @@
 
 namespace Mapping
 {
-// TODO try to template this to reuse it with ChangeAddress / ChangeTargetAddress
-// TODO why not use AddressSettings directly on Automations / Mapping ? It would simplify...
 ChangeSourceAddress::ChangeSourceAddress(
-        Path<ProcessModel> &&path,
-        const State::Address &newval):
-    m_path{path}
+        const ProcessModel& mapping,
+        const State::AddressAccessor &newval):
+    m_path{mapping},
+    m_old{mapping.sourceAddress(),
+          mapping.sourceMin(),
+          mapping.sourceMax()},
+    m_new{Explorer::makeFullAddressAccessorSettings(
+              newval,
+              iscore::IDocument::documentContext(mapping), 0., 1.)}
 {
-    auto& mapping = m_path.find();
-    auto& deviceexplorer = Explorer::deviceExplorerFromObject(mapping);
-
-    // Note : since we change the address, we also have to update the min / max if possible.
-    // To do this, we must go and check into the device explorer.
-    // If the node isn't found, we fallback on common values.
-
-    // Get the current data.
-    m_old.address = mapping.sourceAddress();
-    m_old.domain.min.val = mapping.sourceMin();
-    m_old.domain.max.val = mapping.sourceMax();
-
-    // Get the new data.
-    auto newpath = newval.path;
-    newpath.prepend(newval.device);
-    auto new_n = Device::try_getNodeFromString(deviceexplorer.rootNode(), std::move(newpath));
-    if(new_n)
-    {
-        ISCORE_ASSERT(!new_n->is<Device::DeviceSettings>());
-        m_new = Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(new_n->get<Device::AddressSettings>(), newval);
-    }
-    else
-    {
-        m_new.address = newval;
-        m_new.domain.min.val = 0.;
-        m_new.domain.max.val = 1.;
-    }
 }
-
 
 void ChangeSourceAddress::undo() const
 {
@@ -87,41 +63,17 @@ void ChangeSourceAddress::deserializeImpl(DataStreamOutput & s)
 
 
 
-
-
-
 ChangeTargetAddress::ChangeTargetAddress(
-        Path<ProcessModel> &&path,
-        const State::Address &newval):
-    m_path{path}
+        const ProcessModel& mapping,
+        const State::AddressAccessor &newval):
+    m_path{mapping},
+    m_old{mapping.targetAddress(),
+          mapping.targetMin(),
+          mapping.targetMax()},
+    m_new{Explorer::makeFullAddressAccessorSettings(
+              newval,
+              iscore::IDocument::documentContext(mapping), 0., 1.)}
 {
-    auto& mapping = m_path.find();
-    auto& deviceexplorer = Explorer::deviceExplorerFromObject(mapping);
-
-    // Note : since we change the address, we also have to update the min / max if possible.
-    // To do this, we must go and check into the device explorer.
-    // If the node isn't found, we fallback on common values.
-
-    // Get the current data.
-    m_old.address = mapping.targetAddress();
-    m_old.domain.min.val = mapping.targetMin();
-    m_old.domain.max.val = mapping.targetMax();
-
-    // Get the new data.
-    auto newpath = newval.path;
-    newpath.prepend(newval.device);
-    auto new_n = Device::try_getNodeFromString(deviceexplorer.rootNode(), std::move(newpath));
-    if(new_n)
-    {
-        ISCORE_ASSERT(!new_n->is<Device::DeviceSettings>());
-        m_new = Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(new_n->get<Device::AddressSettings>(), newval);
-    }
-    else
-    {
-        m_new.address = newval;
-        m_new.domain.min.val = 0.;
-        m_new.domain.max.val = 1.;
-    }
 }
 
 

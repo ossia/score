@@ -1064,4 +1064,37 @@ DeviceExplorerModel& deviceExplorerFromContext(const iscore::DocumentContext& ct
     ISCORE_ASSERT(expl);
     return *expl;
 }
+
+Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
+    const State::AddressAccessor& addr,
+    const iscore::DocumentContext& ctx,
+    const State::ValueImpl& min,
+    const State::ValueImpl& max)
+{
+    auto& newval = addr.address;
+
+    auto newpath = newval.path;
+    newpath.prepend(newval.device);
+
+    // First try to find if there is a matching address
+    // in the device explorer
+    auto deviceexplorer = Explorer::try_deviceExplorerFromContext(ctx);
+    if(deviceexplorer)
+    {
+        auto new_n = Device::try_getNodeFromString(deviceexplorer->rootNode(), std::move(newpath));
+        if(new_n && new_n->is<Device::AddressSettings>())
+        {
+            return Device::FullAddressAccessorSettings{
+                addr, new_n->get<Device::AddressSettings>()};
+        }
+    }
+
+    // If there is none, build with some default settings
+    Device::FullAddressAccessorSettings s;
+    s.address = addr;
+    s.domain.min.val = min;
+    s.domain.max.val = max;
+    return s;
+}
+
 }

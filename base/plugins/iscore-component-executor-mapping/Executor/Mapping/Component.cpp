@@ -106,18 +106,19 @@ std::shared_ptr<ossia::curve_abstract> Component::rebuildCurve()
 
 void Component::recreate()
 {
+    // TODO use dataspaces here.
     m_ossia_curve.reset(); // It will be remade after.
     m_ossia_process = nullptr;
 
     auto ossia_source_addr = Engine::iscore_to_ossia::findAddress(
                 m_deviceList,
-                process().sourceAddress());
+                process().sourceAddress().address);
     if(!ossia_source_addr)
         return;
 
     auto ossia_target_addr = Engine::iscore_to_ossia::findAddress(
                 m_deviceList,
-                process().targetAddress());
+                process().targetAddress().address);
     if(!ossia_target_addr)
         return;
 
