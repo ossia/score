@@ -22,8 +22,8 @@ namespace ossia_to_iscore
 static Device::Domain ToDomain(const ossia::net::domain &domain)
 {
     Device::Domain d;
-    d.min = ToValue(ossia::net::min(domain));
-    d.max = ToValue(ossia::net::max(domain));
+    d.min = ToValue(ossia::net::get_min(domain));
+    d.max = ToValue(ossia::net::get_max(domain));
 
     ISCORE_TODO;
     // TODO values!!
