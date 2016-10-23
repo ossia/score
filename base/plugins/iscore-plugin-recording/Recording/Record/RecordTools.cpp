@@ -44,7 +44,7 @@ static QList<Device::Node*> GetParametersRecursive(QList<Device::Node*> parents)
         {
             auto& as = n->get<Device::AddressSettings>();
             ok &= as.value.val.isValid()
-               && (int)as.value.val.which() < (int)State::ValueType::NoValue;
+               && (std::size_t)as.value.val.which() < (std::size_t)State::ValueType::NoValue;
         }
 
         if(ok)

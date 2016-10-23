@@ -55,7 +55,7 @@ QVariant value(const State::Value& val)
     struct vis {
         public:
             using return_type = QVariant;
-            return_type operator()(const no_value_t&) const { return QVariant::fromValue(State::no_value_t{}); }
+            return_type operator()() const { return QVariant{}; }
             return_type operator()(const impulse_t&) const { return QVariant::fromValue(State::impulse_t{}); }
             return_type operator()(int i) const { return QVariant::fromValue(i); }
             return_type operator()(float f) const { return QVariant::fromValue(f); }
@@ -75,14 +75,14 @@ QVariant value(const State::Value& val)
 
                 for(const auto& elt : t)
                 {
-                    arr.push_back(eggs::variants::apply(*this, elt.impl()));
+                    arr.push_back(ossia::apply(*this, elt.impl()));
                 }
 
                 return arr;
             }
     };
 
-    return eggs::variants::apply(vis{}, val.val.impl());
+    return ossia::apply(vis{}, val.val.impl());
 }
 
 template<>
@@ -91,7 +91,7 @@ QJsonValue value(const State::Value& val)
     struct vis {
         public:
             using return_type = QJsonValue;
-            return_type operator()(const no_value_t&) const { return {}; }
+            return_type operator()() const { return {}; }
             return_type operator()(const impulse_t&) const { return {}; }
             return_type operator()(int i) const { return i; }
             return_type operator()(float f) const { return f; }
@@ -134,7 +134,7 @@ QJsonValue value(const State::Value& val)
             }
     };
 
-    return eggs::variants::apply(vis{}, val.val.impl());
+    return ossia::apply(vis{}, val.val.impl());
 }
 
 
@@ -143,7 +143,7 @@ QString textualType(const State::Value& val)
     struct vis {
         public:
             using return_type = QString;
-            return_type operator()(no_value_t) const { return QStringLiteral("None"); }
+            return_type operator()() const { return QStringLiteral("None"); }
             return_type operator()(impulse_t) const { return QStringLiteral("Impulse"); }
             return_type operator()(int i) const { return QStringLiteral("Int"); }
             return_type operator()(float f) const { return QStringLiteral("Float"); }
@@ -158,7 +158,7 @@ QString textualType(const State::Value& val)
             return_type operator()(const tuple_t& t) const { return QStringLiteral("Tuple"); }
     };
 
-    return eggs::variants::apply(vis{}, val.val.impl());
+    return ossia::apply(vis{}, val.val.impl());
 }
 
 const QHash<QString, State::ValueType> ValueTypesMap{
@@ -187,8 +187,6 @@ static State::ValueImpl fromQJsonValueImpl(
 {
     switch(val.type())
     {
-        case QJsonValue::Type::Null:
-            return no_value_t{};
         case QJsonValue::Type::Bool:
             return val.toBool();
         case QJsonValue::Type::Double:
@@ -208,12 +206,11 @@ static State::ValueImpl fromQJsonValueImpl(
 
             return tuple;
         }
+        case QJsonValue::Type::Null:
         case QJsonValue::Type::Object:
-            return no_value_t{};
         case QJsonValue::Type::Undefined:
-            return no_value_t{};
         default:
-            return no_value_t{};
+            return State::ValueImpl{};
     }
 }
 
@@ -230,13 +227,13 @@ static State::ValueImpl fromQJsonValueImpl(const QJsonValue& val, State::ValueTy
         if(type == State::ValueType::Impulse)
             return State::ValueImpl{State::impulse_t{}};
         else
-            return State::ValueImpl{State::no_value_t{}};
+            return State::ValueImpl{};
     }
 
     switch(type)
     {
         case ValueType::NoValue:
-            return State::ValueImpl{State::no_value_t{}};
+            return State::ValueImpl{};
         case ValueType::Impulse:
             return State::ValueImpl{State::impulse_t{}};
         case ValueType::Int:
@@ -332,8 +329,10 @@ State::Value fromQJsonValue(const QJsonValue& val, const QString& type)
 QString prettyType(const State::Value& val)
 {
     const auto& impl = val.val.impl();
-    ISCORE_ASSERT(impl.which() < ValuePrettyTypes.size());
-    return ValuePrettyTypes.at(impl.which());
+    if(impl.which() < ValuePrettyTypes.size())
+        return ValuePrettyTypes.at(impl.which());
+    else
+        return ValuePrettyTypes.back();
 }
 
 
@@ -356,7 +355,7 @@ int value(const State::Value& val)
     struct {
         public:
             using return_type = int;
-            return_type operator()(const no_value_t&) const { return 0; }
+            return_type operator()() const { return 0; }
             return_type operator()(const impulse_t&) const { return 0; }
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
@@ -371,7 +370,7 @@ int value(const State::Value& val)
             return_type operator()(const tuple_t& v) const { return 0; }
     } visitor{};
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return ossia::apply(visitor, val.val.impl());
 }
 
 template<>
@@ -380,7 +379,7 @@ float value(const State::Value& val)
     struct {
         public:
             using return_type = float;
-            return_type operator()(const no_value_t&) const { return {}; }
+            return_type operator()() const { return {}; }
             return_type operator()(const impulse_t&) const { return {}; }
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
@@ -395,7 +394,7 @@ float value(const State::Value& val)
             return_type operator()(const tuple_t& v) const { return {}; }
     } visitor{};
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return ossia::apply(visitor, val.val.impl());
 }
 template<>
 double value(const State::Value& val)
@@ -409,7 +408,7 @@ bool value(const State::Value& val)
     struct {
         public:
             using return_type = bool;
-            return_type operator()(const no_value_t&) const { return {}; }
+            return_type operator()() const { return {}; }
             return_type operator()(const impulse_t&) const { return {}; }
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
@@ -439,7 +438,7 @@ bool value(const State::Value& val)
             return_type operator()(const tuple_t& v) const { return false; }
     } visitor{};
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return ossia::apply(visitor, val.val.impl());
 }
 
 template<>
@@ -448,7 +447,7 @@ QChar value(const State::Value& val)
     struct {
         public:
             using return_type = QChar;
-            return_type operator()(const no_value_t&) const { return '-'; }
+            return_type operator()() const { return '-'; }
             return_type operator()(const impulse_t&) const { return '-'; }
             return_type operator()(int) const { return '-'; }
             return_type operator()(float) const { return '-'; }
@@ -463,7 +462,7 @@ QChar value(const State::Value& val)
             return_type operator()(const tuple_t&) const { return '-'; }
     } visitor{};
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return ossia::apply(visitor, val.val.impl());
 }
 
 template<>
@@ -471,7 +470,7 @@ QString value(const State::Value& val)
 {
     struct {
             using return_type = QString;
-            return_type operator()(const State::no_value_t&) const { return {}; }
+            return_type operator()() const { return {}; }
             return_type operator()(const State::impulse_t&) const { return {}; }
             return_type operator()(int i) const { return QLocale::c().toString(i); }
             return_type operator()(float f) const { return QLocale::c().toString(f); }
@@ -492,7 +491,7 @@ QString value(const State::Value& val)
             return_type operator()(const State::tuple_t& t) const { return {}; }
     } visitor{};
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return ossia::apply(visitor, val.val.impl());
 }
 
 template<>
@@ -500,7 +499,7 @@ vec2f value(const State::Value& val)
 {
     struct vis {
             using return_type = vec2f;
-            return_type operator()(const State::no_value_t&) const { return {}; }
+            return_type operator()() const { return {}; }
             return_type operator()(const State::impulse_t&) const { return {}; }
             return_type operator()(int i) const { return { { float(i) } }; }
             return_type operator()(float f) const { return {{f}}; }
@@ -533,7 +532,7 @@ vec2f value(const State::Value& val)
             }
     };
 
-    return eggs::variants::apply(vis{}, val.val.impl());
+    return ossia::apply(vis{}, val.val.impl());
 }
 
 template<>
@@ -541,7 +540,7 @@ vec3f value(const State::Value& val)
 {
     struct vis {
             using return_type = vec3f;
-            return_type operator()(const State::no_value_t&) const { return {}; }
+            return_type operator()() const { return {}; }
             return_type operator()(const State::impulse_t&) const { return {}; }
             return_type operator()(int i) const { return {{float(i)}}; }
             return_type operator()(float f) const { return {{f}}; }
@@ -574,7 +573,7 @@ vec3f value(const State::Value& val)
             }
     };
 
-    return eggs::variants::apply(vis{}, val.val.impl());
+    return ossia::apply(vis{}, val.val.impl());
 }
 
 template<>
@@ -582,7 +581,7 @@ vec4f value(const State::Value& val)
 {
     struct vis {
             using return_type = vec4f;
-            return_type operator()(const State::no_value_t&) const { return {}; }
+            return_type operator()() const { return {}; }
             return_type operator()(const State::impulse_t&) const { return {}; }
             return_type operator()(int i) const { return {{float(i)}}; }
             return_type operator()(float f) const { return {{f}}; }
@@ -615,7 +614,7 @@ vec4f value(const State::Value& val)
             }
     };
 
-    return eggs::variants::apply(vis{}, val.val.impl());
+    return ossia::apply(vis{}, val.val.impl());
 }
 
 
@@ -624,7 +623,7 @@ tuple_t value(const State::Value& val)
 {
     struct vis {
             using return_type = tuple_t;
-            return_type operator()(const State::no_value_t&) const { return {impulse_t{}}; }
+            return_type operator()() const { return {}; }
             return_type operator()(const State::impulse_t&) const { return {impulse_t{}}; }
             return_type operator()(int i) const { return {i}; }
             return_type operator()(float f) const { return {f}; }
@@ -648,7 +647,7 @@ tuple_t value(const State::Value& val)
             return_type operator()(const State::tuple_t& t) const { return t; }
     };
 
-    return eggs::variants::apply(vis{}, val.val.impl());
+    return ossia::apply(vis{}, val.val.impl());
 }
 
 template<>
@@ -666,7 +665,7 @@ char value(const State::Value& val)
 QString toPrettyString(const State::Value& val)
 {
     struct vis {
-            QString operator()(const State::no_value_t&) const { return {}; }
+            QString operator()() const { return {}; }
             QString operator()(const State::impulse_t&) const { return {}; }
             QString operator()(int i) const {
                 const auto& loc = QLocale::c();
@@ -769,13 +768,13 @@ QString toPrettyString(const State::Value& val)
             }
     };
 
-    return eggs::variants::apply(vis{}, val.val.impl());
+    return ossia::apply(vis{}, val.val.impl());
 }
 
 namespace {
 struct convert_helper {
         State::Value& toConvert;
-        void operator()(const State::no_value_t& v) const { toConvert.val = v; }
+        void operator()() const { toConvert.val = State::ValueImpl{}; }
         void operator()(const State::impulse_t& v) const { toConvert.val = v; }
 
         template<typename T>
@@ -787,7 +786,7 @@ struct convert_helper {
 }
 bool convert(const State::Value& orig, State::Value& toConvert)
 {
-    eggs::variants::apply(convert_helper{toConvert}, orig.val.impl());
+    ossia::apply(convert_helper{toConvert}, orig.val.impl());
     return true;
 }
 
@@ -861,7 +860,7 @@ static State::ValueImpl fromQVariantImpl(const QVariant& val)
             }
             else
             {
-                return State::ValueImpl{no_value_t{}};
+                return State::ValueImpl{};
             }
         }
     }

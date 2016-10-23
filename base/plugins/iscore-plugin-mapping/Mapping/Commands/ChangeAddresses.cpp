@@ -36,8 +36,8 @@ void ChangeSourceAddress::undo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setSourceMin(ossia::convert<double>(ossia::net::get_min(m_old.domain)));
-    mapping.setSourceMax(ossia::convert<double>(ossia::net::get_max(m_old.domain)));
+    mapping.setSourceMin(m_old.domain.convert_min<double>());
+    mapping.setSourceMax(m_old.domain.convert_max<double>());
 
     mapping.setSourceAddress(m_old.address);
 }
@@ -46,8 +46,8 @@ void ChangeSourceAddress::redo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setSourceMin(ossia::convert<double>(ossia::net::get_min(m_new.domain)));
-    mapping.setSourceMax(ossia::convert<double>(ossia::net::get_max(m_new.domain)));
+    mapping.setSourceMin(m_new.domain.convert_min<double>());
+    mapping.setSourceMax(m_new.domain.convert_max<double>());
 
     mapping.setSourceAddress(m_new.address);
 }
@@ -77,13 +77,12 @@ ChangeTargetAddress::ChangeTargetAddress(
 {
 }
 
-
 void ChangeTargetAddress::undo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setTargetMin(ossia::convert<double>(ossia::net::get_min(m_old.domain)));
-    mapping.setTargetMax(ossia::convert<double>(ossia::net::get_max(m_old.domain)));
+    mapping.setTargetMin(m_old.domain.convert_min<double>());
+    mapping.setTargetMax(m_old.domain.convert_max<double>());
 
     mapping.setTargetAddress(m_old.address);
 }
@@ -92,8 +91,8 @@ void ChangeTargetAddress::redo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setTargetMin(ossia::convert<double>(ossia::net::get_min(m_new.domain)));
-    mapping.setTargetMax(ossia::convert<double>(ossia::net::get_max(m_new.domain)));
+    mapping.setTargetMin(m_new.domain.convert_min<double>());
+    mapping.setTargetMax(m_new.domain.convert_max<double>());
 
     mapping.setTargetAddress(m_new.address);
 }

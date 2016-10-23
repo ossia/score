@@ -228,7 +228,7 @@ QVariant minColumnData(const Device::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return ossia::convert<QVariant>(ossia::net::get_min(node.get<AddressSettings>().domain));
+        return node.get<AddressSettings>().domain.convert_min<QVariant>();
     }
 
     return {};
@@ -242,7 +242,7 @@ QVariant maxColumnData(const Device::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-      return ossia::convert<QVariant>(ossia::net::get_max(node.get<AddressSettings>().domain));
+      return node.get<AddressSettings>().domain.convert_max<QVariant>();
     }
 
     return {};

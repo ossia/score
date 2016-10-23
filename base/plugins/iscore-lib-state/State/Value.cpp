@@ -13,8 +13,6 @@ bool Value::operator!=(const Value& m) const
     return val != m.val;
 }
 
-ValueImpl::ValueImpl(): m_variant{no_value_t{}} { }
-ValueImpl::ValueImpl(no_value_t v): m_variant{v} { }
 ValueImpl::ValueImpl(impulse_t v): m_variant{v} { }
 ValueImpl::ValueImpl(int v): m_variant{v} { }
 ValueImpl::ValueImpl(float v): m_variant{v} { }
@@ -29,7 +27,6 @@ ValueImpl::ValueImpl(vec3f v): m_variant{v} { }
 ValueImpl::ValueImpl(vec4f v): m_variant{v} { }
 ValueImpl::ValueImpl(tuple_t v): m_variant{std::move(v)} { }
 
-ValueImpl& ValueImpl::operator=(no_value_t v) { m_variant = v; return *this; }
 ValueImpl& ValueImpl::operator=(impulse_t v) { m_variant = v; return *this; }
 ValueImpl& ValueImpl::operator=(int v) { m_variant = v; return *this;  }
 ValueImpl& ValueImpl::operator=(float v) { m_variant = v; return *this;  }
@@ -87,7 +84,7 @@ ossia::value toOSSIAValue(const State::ValueImpl& val)
 {
     struct {
             using return_type = ossia::value;
-            return_type operator()(const State::no_value_t&) const { return ossia::value{}; }
+            return_type operator()() const { return ossia::value{}; }
             return_type operator()(const State::impulse_t&) const { return ossia::Impulse{}; }
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
@@ -112,7 +109,7 @@ ossia::value toOSSIAValue(const State::ValueImpl& val)
             }
     } visitor{};
 
-    return eggs::variants::apply(visitor, val.impl());
+    return ossia::apply(visitor, val.impl());
 }
 
 }

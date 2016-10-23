@@ -168,8 +168,8 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
             {
                 const Device::AddressSettings& as = node->get<Device::AddressSettings>();
 
-                auto min_v = ossia::net::get_min(as.domain);
-                auto max_v = ossia::net::get_max(as.domain);
+                auto min_v = as.domain.get_min();
+                auto max_v = as.domain.get_max();
 
                 if(ossia::is_numeric(min_v))
                     min = std::min(min, ossia::convert<double>(min_v));

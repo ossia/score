@@ -225,13 +225,13 @@ void createOSSIAAddress(
         const Device::FullAddressSettings &settings,
         ossia::net::node_base& node)
 {
-    if(settings.value.val.is<State::no_value_t>())
+    if(!settings.value.val.impl())
         return;
 
     struct {
         public:
             using return_type = ossia::val_type;
-            return_type operator()(const State::no_value_t&) const { ISCORE_ABORT; return ossia::val_type::IMPULSE; }
+            return_type operator()() const { ISCORE_ABORT; return ossia::val_type::IMPULSE; }
             return_type operator()(const State::impulse_t&) const { return ossia::val_type::IMPULSE; }
             return_type operator()(int) const { return ossia::val_type::INT; }
             return_type operator()(float) const { return ossia::val_type::FLOAT; }

@@ -35,7 +35,7 @@ inline QJSValue value(
 
         public:
             using return_type = QJSValue;
-            return_type operator()(const State::no_value_t&) const { return {}; }
+            return_type operator()() const { return {}; }
             return_type operator()(const State::impulse_t&) const {
                 return makeImpulse(engine);
             }
@@ -103,7 +103,7 @@ inline QJSValue value(
             }
     } visitor{engine};
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return ossia::apply(visitor, val.val.impl());
 }
 
 inline QJSValue address(
