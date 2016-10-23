@@ -3,6 +3,18 @@
 #include <QDataStream>
 #include <QDebug>
 
+inline QDataStream& operator<<(QDataStream& s, char c)
+{
+  return s << QChar(c);
+}
+inline QDataStream& operator>>(QDataStream& s, char& c)
+{
+  QChar r;
+  s >> r;
+  c = r.toLatin1();
+  return s;
+}
+
 inline QDataStream& operator<< (QDataStream& stream, const std::string& obj)
 {
     uint32_t size = obj.size();

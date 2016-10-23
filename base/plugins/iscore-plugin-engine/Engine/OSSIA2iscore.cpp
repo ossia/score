@@ -18,19 +18,6 @@ namespace Engine
 {
 namespace ossia_to_iscore
 {
-
-static Device::Domain ToDomain(const ossia::net::domain &domain)
-{
-    Device::Domain d;
-    d.min = ToValue(ossia::net::get_min(domain));
-    d.max = ToValue(ossia::net::get_max(domain));
-
-    ISCORE_TODO;
-    // TODO values!!
-    // TODO change the i-score domain to use the ossia one.
-    return d;
-}
-
 Device::AddressSettings ToAddressSettings(const ossia::net::node_base &node)
 {
     Device::AddressSettings s;
@@ -55,9 +42,7 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base &node)
         s.repetitionFilter = bool(addr->getRepetitionFilter());
         s.unit = addr->getUnit();
         s.description = QString::fromStdString(addr->getDescription());
-
-        if(auto& domain = addr->getDomain())
-            s.domain = ToDomain(domain);
+        s.domain = addr->getDomain();
     }
     return s;
 }
@@ -166,7 +151,6 @@ State::Value ToValue(ossia::val_type t)
         case ossia::val_type::VEC4F:
             return State::Value::fromValue(State::vec4f{});
         case ossia::val_type::DESTINATION:
-        case ossia::val_type::BEHAVIOR:
         default:
             return State::Value{};
     }
@@ -178,22 +162,21 @@ State::Value ToValue(const ossia::value& val)
     struct {
             using return_type = State::Value;
             return_type operator()(ossia::Destination) const { return {}; }
-            return_type operator()(ossia::Behavior) const { return {}; }
             return_type operator()(ossia::Impulse) const { return State::Value::fromValue(State::impulse_t{}); }
-            return_type operator()(ossia::Int v) const { return State::Value::fromValue(v.value); }
-            return_type operator()(ossia::Float v) const { return State::Value::fromValue(v.value); }
-            return_type operator()(ossia::Bool v) const { return State::Value::fromValue(v.value); }
-            return_type operator()(ossia::Char v) const { return State::Value::fromValue(v.value); }
-            return_type operator()(const ossia::String& v) const { return State::Value::fromValue(QString::fromStdString(v.value)); }
-            return_type operator()(ossia::Vec2f v) const { return State::Value::fromValue(State::vec2f{v.value}); }
-            return_type operator()(ossia::Vec3f v) const { return State::Value::fromValue(State::vec3f{v.value}); }
-            return_type operator()(ossia::Vec4f v) const { return State::Value::fromValue(State::vec4f{v.value}); }
+            return_type operator()(ossia::Int v) const { return State::Value::fromValue(v); }
+            return_type operator()(ossia::Float v) const { return State::Value::fromValue(v); }
+            return_type operator()(ossia::Bool v) const { return State::Value::fromValue(v); }
+            return_type operator()(ossia::Char v) const { return State::Value::fromValue(v); }
+            return_type operator()(const ossia::String& v) const { return State::Value::fromValue(QString::fromStdString(v)); }
+            return_type operator()(ossia::Vec2f v) const { return State::Value::fromValue(v); }
+            return_type operator()(ossia::Vec3f v) const { return State::Value::fromValue(v); }
+            return_type operator()(ossia::Vec4f v) const { return State::Value::fromValue(v); }
             return_type operator()(const ossia::Tuple& v) const
             {
                 State::tuple_t tuple;
 
-                tuple.reserve(v.value.size());
-                for (const auto & e : v.value)
+                tuple.reserve(v.size());
+                for (const auto & e : v)
                 {
                     tuple.push_back(ToValue(e).val); // TODO REVIEW THIS
                 }

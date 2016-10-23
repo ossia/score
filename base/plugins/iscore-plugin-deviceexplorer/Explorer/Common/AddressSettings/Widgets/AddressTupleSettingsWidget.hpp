@@ -27,5 +27,10 @@ class AddressArraySettingsWidget final : public AddressSettingsWidget
         {
             setCommonSettings(settings);
         }
+
+        Device::AddressSettings getDefaultSettings() const override
+        {
+            return {};
+        }
 };
 }

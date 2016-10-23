@@ -38,6 +38,7 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 
 namespace Scenario
 {
@@ -166,11 +167,15 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
             if(auto node = Device::try_getNodeFromAddress(rootNode, elt.first.address.address))
             {
                 const Device::AddressSettings& as = node->get<Device::AddressSettings>();
-                if(as.domain.min.val.isNumeric())
-                    min = std::min(min, State::convert::value<double>(as.domain.min));
 
-                if(as.domain.max.val.isNumeric())
-                    max = std::max(max, State::convert::value<double>(as.domain.max));
+                auto min_v = ossia::net::get_min(as.domain);
+                auto max_v = ossia::net::get_max(as.domain);
+
+                if(ossia::is_numeric(min_v))
+                    min = std::min(min, ossia::convert<double>(min_v));
+
+                if(ossia::is_numeric(max_v))
+                    max = std::max(max, ossia::convert<double>(max_v));
             }
 
             macro->addCommand(new CreateAutomationFromStates{

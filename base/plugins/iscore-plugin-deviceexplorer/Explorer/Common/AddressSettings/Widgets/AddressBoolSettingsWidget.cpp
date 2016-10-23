@@ -33,6 +33,11 @@ Device::AddressSettings AddressBoolSettingsWidget::getSettings() const
     return settings;
 }
 
+Device::AddressSettings AddressBoolSettingsWidget::getDefaultSettings() const
+{
+  return {};
+}
+
 void AddressBoolSettingsWidget::setSettings(const Device::AddressSettings& settings)
 {
     setCommonSettings(settings);

@@ -23,8 +23,13 @@ Device::AddressSettings AddressStringSettingsWidget::getSettings() const
 {
     auto settings = getCommonSettings();
     settings.value.val = m_valueEdit->text();
-    settings.domain = Device::Domain{};
+    settings.domain = ossia::net::domain{}; // TODO
     return settings;
+}
+
+Device::AddressSettings AddressStringSettingsWidget::getDefaultSettings() const
+{
+  return {};
 }
 
 void

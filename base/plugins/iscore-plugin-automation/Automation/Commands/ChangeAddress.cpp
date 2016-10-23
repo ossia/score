@@ -16,6 +16,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 
 namespace Automation
 {
@@ -26,9 +27,9 @@ ChangeAddress::ChangeAddress(
     m_old{autom.address(),
           autom.min(),
           autom.max()},
-    m_new{Explorer::makeFullAddressAccessorSettings(
+    m_new(Explorer::makeFullAddressAccessorSettings(
               newval,
-              iscore::IDocument::documentContext(autom), 0., 1.)}
+              iscore::IDocument::documentContext(autom), 0., 1.))
 {
 }
 
@@ -42,8 +43,7 @@ ChangeAddress::ChangeAddress(
     m_new.address.qualifiers.unit = newval.unit;
 
     m_old.address = autom.address();
-    m_old.domain.min.val = autom.min();
-    m_old.domain.max.val = autom.max();
+    m_old.domain = ossia::net::make_domain(autom.min(), autom.max());
 }
 
 
@@ -53,8 +53,8 @@ void ChangeAddress::undo() const
 
     {
         //QSignalBlocker blck{autom.curve()};
-        autom.setMin(::State::convert::value<double>(m_old.domain.min));
-        autom.setMax(::State::convert::value<double>(m_old.domain.max));
+        autom.setMin(ossia::convert<double>(ossia::net::get_min(m_old.domain)));
+        autom.setMax(ossia::convert<double>(ossia::net::get_max(m_old.domain)));
         autom.setAddress(m_old.address);
     }
     // autom.curve().changed();
@@ -67,8 +67,8 @@ void ChangeAddress::redo() const
 
     {
         //QSignalBlocker blck{autom.curve()};
-        autom.setMin(::State::convert::value<double>(m_new.domain.min));
-        autom.setMax(::State::convert::value<double>(m_new.domain.max));
+      autom.setMin(ossia::convert<double>(ossia::net::get_min(m_new.domain)));
+      autom.setMax(ossia::convert<double>(ossia::net::get_max(m_new.domain)));
         autom.setAddress(m_new.address);
     }
     // autom.curve().changed();

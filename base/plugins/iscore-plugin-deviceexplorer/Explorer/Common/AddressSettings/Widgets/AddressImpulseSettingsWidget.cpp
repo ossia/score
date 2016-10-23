@@ -18,4 +18,9 @@ void AddressImpulseSettingsWidget::setSettings(const Device::AddressSettings& se
 {
     setCommonSettings(settings);
 }
+
+Device::AddressSettings AddressImpulseSettingsWidget::getDefaultSettings() const
+{
+  return {};
+}
 }

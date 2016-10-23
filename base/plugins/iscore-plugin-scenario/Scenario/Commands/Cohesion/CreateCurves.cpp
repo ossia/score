@@ -21,6 +21,7 @@
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
 
 #include <Automation/AutomationModel.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 namespace Scenario
 {
 static std::vector<Device::FullAddressSettings> getSelectedAddresses(
@@ -113,12 +114,14 @@ void CreateCurvesFromAddresses(
 
             // Then we set-up all the necessary values
             // min / max
-            double min = as.domain.min.val.isNumeric()
-                    ? State::convert::value<double>(as.domain.min)
+            auto min_v = ossia::net::get_min(as.domain);
+            auto max_v = ossia::net::get_max(as.domain);
+            double min = ossia::is_numeric(min_v)
+                    ? ossia::convert<double>(min_v)
                     : 0;
 
-            double max = as.domain.max.val.isNumeric()
-                    ? State::convert::value<double>(as.domain.max)
+            double max = ossia::is_numeric(max_v)
+                    ? ossia::convert<double>(max_v)
                     : 1;
 
             // start value / end value

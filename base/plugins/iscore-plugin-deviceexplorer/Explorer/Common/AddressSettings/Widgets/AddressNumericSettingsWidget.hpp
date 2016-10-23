@@ -9,7 +9,7 @@
 #include <QSpinBox>
 #include <QFormLayout>
 #include <State/ValueConversion.hpp>
-
+#include <ossia/editor/value/value_conversion.hpp>
 
 namespace Explorer
 {
@@ -38,9 +38,22 @@ class AddressNumericSettingsWidget final : public AddressSettingsWidget
         {
             auto settings = getCommonSettings();
             settings.value.val = T(m_valueSBox->value());
-            settings.domain.min.val = T(m_minSBox->value());
-            settings.domain.max.val = T(m_maxSBox->value());
+            settings.domain = ossia::net::make_domain(
+                                T(m_minSBox->value()),
+                                T(m_maxSBox->value()));
             return settings;
+        }
+
+        Device::AddressSettings getDefaultSettings() const override
+        {
+          Device::AddressSettings s;
+
+          ossia::net::domain_base<T> dom;
+          dom.min = 0;
+          dom.max = 100;
+
+          s.domain = std::move(dom);
+          return s;
         }
 
         void setSettings(const Device::AddressSettings& settings) override
@@ -48,8 +61,8 @@ class AddressNumericSettingsWidget final : public AddressSettingsWidget
             setCommonSettings(settings);
             m_valueSBox->setValue(State::convert::value<T>(settings.value));
 
-            m_minSBox->setValue(State::convert::value<T>(settings.domain.min));
-            m_maxSBox->setValue(State::convert::value<T>(settings.domain.max));
+            m_minSBox->setValue(ossia::convert<T>(ossia::net::get_min(settings.domain)));
+            m_maxSBox->setValue(ossia::convert<T>(ossia::net::get_max(settings.domain)));
 
             // TODO if the "values" part of the domain is set, we
             // have to display a combobox instead.

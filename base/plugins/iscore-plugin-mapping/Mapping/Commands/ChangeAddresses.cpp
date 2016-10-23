@@ -15,6 +15,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 
 namespace Mapping
 {
@@ -35,8 +36,8 @@ void ChangeSourceAddress::undo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setSourceMin(State::convert::value<double>(m_old.domain.min));
-    mapping.setSourceMax(State::convert::value<double>(m_old.domain.max));
+    mapping.setSourceMin(ossia::convert<double>(ossia::net::get_min(m_old.domain)));
+    mapping.setSourceMax(ossia::convert<double>(ossia::net::get_max(m_old.domain)));
 
     mapping.setSourceAddress(m_old.address);
 }
@@ -45,8 +46,8 @@ void ChangeSourceAddress::redo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setSourceMin(State::convert::value<double>(m_new.domain.min));
-    mapping.setSourceMax(State::convert::value<double>(m_new.domain.max));
+    mapping.setSourceMin(ossia::convert<double>(ossia::net::get_min(m_new.domain)));
+    mapping.setSourceMax(ossia::convert<double>(ossia::net::get_max(m_new.domain)));
 
     mapping.setSourceAddress(m_new.address);
 }
@@ -81,8 +82,8 @@ void ChangeTargetAddress::undo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setTargetMin(State::convert::value<double>(m_old.domain.min));
-    mapping.setTargetMax(State::convert::value<double>(m_old.domain.max));
+    mapping.setTargetMin(ossia::convert<double>(ossia::net::get_min(m_old.domain)));
+    mapping.setTargetMax(ossia::convert<double>(ossia::net::get_max(m_old.domain)));
 
     mapping.setTargetAddress(m_old.address);
 }
@@ -91,8 +92,8 @@ void ChangeTargetAddress::redo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setTargetMin(State::convert::value<double>(m_new.domain.min));
-    mapping.setTargetMax(State::convert::value<double>(m_new.domain.max));
+    mapping.setTargetMin(ossia::convert<double>(ossia::net::get_min(m_new.domain)));
+    mapping.setTargetMax(ossia::convert<double>(ossia::net::get_max(m_new.domain)));
 
     mapping.setTargetAddress(m_new.address);
 }

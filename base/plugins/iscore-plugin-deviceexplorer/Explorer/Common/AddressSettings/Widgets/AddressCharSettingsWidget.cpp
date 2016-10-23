@@ -29,6 +29,11 @@ Device::AddressSettings AddressCharSettingsWidget::getSettings() const
     return settings;
 }
 
+Device::AddressSettings AddressCharSettingsWidget::getDefaultSettings() const
+{
+  return {};
+}
+
 void
 AddressCharSettingsWidget::setSettings(const Device::AddressSettings &settings)
 {

@@ -33,7 +33,7 @@ class Component final :
     private:
         void rebuildCurve();
 
-        ossia::value on_curveChanged(ossia::val_type);
+        ossia::behavior on_curveChanged(ossia::val_type);
 
         template<typename T>
         std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl(

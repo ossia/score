@@ -13,6 +13,7 @@ class AddressBoolSettingsWidget final : public AddressSettingsWidget
         explicit AddressBoolSettingsWidget(QWidget* parent = nullptr);
 
         Device::AddressSettings getSettings() const override;
+        Device::AddressSettings getDefaultSettings() const override;
 
         void setSettings(const Device::AddressSettings& settings) override;
 

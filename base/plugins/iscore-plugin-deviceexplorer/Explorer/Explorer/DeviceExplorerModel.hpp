@@ -209,6 +209,6 @@ ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT Device::FullAddressAccessorSettings
     makeFullAddressAccessorSettings(
         const State::AddressAccessor& mess,
         const iscore::DocumentContext& ctx,
-        const State::ValueImpl& min,
-        const State::ValueImpl& max);
+        ossia::value min,
+        ossia::value max);
 }

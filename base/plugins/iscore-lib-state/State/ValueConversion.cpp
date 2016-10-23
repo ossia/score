@@ -61,7 +61,9 @@ QVariant value(const State::Value& val)
             return_type operator()(float f) const { return QVariant::fromValue(f); }
             return_type operator()(bool b) const { return QVariant::fromValue(b); }
             return_type operator()(const QString& s) const { return QVariant::fromValue(s); }
+            return_type operator()(const std::string& s) const { return operator()(QString::fromStdString(s)); }
             return_type operator()(QChar c) const { return QVariant::fromValue(c); }
+            return_type operator()(char c) const { return QVariant::fromValue(QChar(c)); }
 
             return_type operator()(vec2f t) const { return QVector2D{t[0], t[1]}; }
             return_type operator()(vec3f t) const { return QVector3D{t[0], t[1], t[2]}; }
@@ -95,12 +97,20 @@ QJsonValue value(const State::Value& val)
             return_type operator()(float f) const { return f; }
             return_type operator()(bool b) const { return b; }
             return_type operator()(const QString& s) const { return s; }
+            return_type operator()(const std::string& s) const { return QString::fromStdString(s); }
 
             return_type operator()(QChar c) const
             {
                 // Note : it is saved as a string but the actual type should be saved also
                 // so that the QChar can be recovered.
                 return QString(c);
+            }
+
+            return_type operator()(char c) const
+            {
+              // Note : it is saved as a string but the actual type should be saved also
+              // so that the QChar can be recovered.
+              return QString(c);
             }
 
             return_type operator()(vec2f t) const { return QJsonArray{t[0], t[1]}; }
@@ -139,7 +149,9 @@ QString textualType(const State::Value& val)
             return_type operator()(float f) const { return QStringLiteral("Float"); }
             return_type operator()(bool b) const { return QStringLiteral("Bool"); }
             return_type operator()(const QString& s) const { return QStringLiteral("String"); }
+            return_type operator()(const std::string& s) const { return QStringLiteral("String"); }
             return_type operator()(QChar c) const { return QStringLiteral("Char"); }
+            return_type operator()(char c) const { return QStringLiteral("Char"); }
             return_type operator()(vec2f t) const { return QStringLiteral("Vec2f"); }
             return_type operator()(vec3f t) const { return QStringLiteral("Vec3f"); }
             return_type operator()(vec4f t) const { return QStringLiteral("Vec4f"); }
@@ -239,8 +251,8 @@ static State::ValueImpl fromQJsonValueImpl(const QJsonValue& val, State::ValueTy
         {
             auto str = val.toString();
             if(!str.isEmpty())
-                return State::ValueImpl{str[0]};
-            return State::ValueImpl{QChar{}};
+                return State::ValueImpl{str[0].toLatin1()};
+            return State::ValueImpl{char{}};
         }
         case ValueType::Vec2f:
         {
@@ -350,7 +362,9 @@ int value(const State::Value& val)
             return_type operator()(float v) const { return v; }
             return_type operator()(bool v) const { return v; }
             return_type operator()(const QString& v) const { return QLocale::c().toInt(v); }
+            return_type operator()(const std::string& v) const { return QLocale::c().toInt(QString::fromStdString(v)); }
             return_type operator()(QChar v) const { return QLocale::c().toInt(QString(v)); }
+            return_type operator()(char v) const { return QLocale::c().toInt(QString(v)); }
             return_type operator()(const vec2f& v) const { return 0; }
             return_type operator()(const vec3f& v) const { return 0; }
             return_type operator()(const vec4f& v) const { return 0; }
@@ -372,7 +386,9 @@ float value(const State::Value& val)
             return_type operator()(float v) const { return v; }
             return_type operator()(bool v) const { return v; }
             return_type operator()(const QString& v) const { return QLocale::c().toFloat(v); }
+            return_type operator()(const std::string& v) const  { return operator()(QString::fromStdString(v)); }
             return_type operator()(QChar v) const { return QLocale::c().toFloat(QString(v)); }
+            return_type operator()(char v) const { return QLocale::c().toFloat(QString(v)); }
             return_type operator()(const vec2f& v) const { return 0; }
             return_type operator()(const vec3f& v) const { return 0; }
             return_type operator()(const vec4f& v) const { return 0; }
@@ -404,8 +420,19 @@ bool value(const State::Value& val)
                 return v == strings.lowercase_true ||
                        v == strings.True ||
                        v == strings.lowercase_yes||
-                       v == strings.Yes; }
+                       v == strings.Yes;
+            }
+            return_type operator()(const std::string& ve) const {
+              auto& strings = iscore::StringConstant();
+
+              auto v = QString::fromStdString(ve);
+              return v == strings.lowercase_true ||
+                  v == strings.True ||
+                  v == strings.lowercase_yes||
+                  v == strings.Yes;
+            }
             return_type operator()(QChar v) const { return v == 't' || v == 'T' || v == 'y' || v == 'Y'; }
+            return_type operator()(char v) const { return v == 't' || v == 'T' || v == 'y' || v == 'Y'; }
             return_type operator()(const vec2f& v) const { return false; }
             return_type operator()(const vec3f& v) const { return false; }
             return_type operator()(const vec4f& v) const { return false; }
@@ -427,7 +454,9 @@ QChar value(const State::Value& val)
             return_type operator()(float) const { return '-'; }
             return_type operator()(bool v) const { return v ? 'T' : 'F'; }
             return_type operator()(const QString& s) const { return !s.isEmpty() ? s[0] : '-'; } // TODO boueeeff
-                return_type operator()(QChar v) const { return  v; }
+            return_type operator()(const std::string& s) const { return !s.empty() ? s[0] : '-'; } // TODO boueeeff
+            return_type operator()(QChar v) const { return v.toLatin1(); }
+            return_type operator()(char v) const { return v; }
             return_type operator()(const vec2f& v) const { return '-'; }
             return_type operator()(const vec3f& v) const { return '-'; }
             return_type operator()(const vec4f& v) const { return '-'; }
@@ -454,7 +483,9 @@ QString value(const State::Value& val)
                         : strings.lowercase_false;
             }
             return_type operator()(const QString& s) const { return s; }
+            return_type operator()(const std::string& s) const { return QString::fromStdString(s); }
             return_type operator()(QChar c) const { return c; }
+            return_type operator()(char c) const { return QChar(c); }
             return_type operator()(const vec2f& v) const { return {}; }
             return_type operator()(const vec3f& v) const { return {}; }
             return_type operator()(const vec4f& v) const { return {}; }
@@ -482,7 +513,11 @@ vec2f value(const State::Value& val)
 
                 return {};
             }
+            return_type operator()(const std::string& s) const {
+              return operator()(QString::fromStdString(s));
+            }
             return_type operator()(QChar c) const { return {}; }
+            return_type operator()(char c) const { return {}; }
             return_type operator()(const vec2f& v) const { return v; }
             return_type operator()(const vec3f& v) const { return {{v[0], v[1]}}; }
             return_type operator()(const vec4f& v) const { return {{v[0], v[1]}}; }
@@ -519,7 +554,11 @@ vec3f value(const State::Value& val)
 
                 return {};
             }
+            return_type operator()(const std::string& s) const {
+              return operator()(QString::fromStdString(s));
+            }
             return_type operator()(QChar c) const { return {}; }
+            return_type operator()(char c) const { return {}; }
             return_type operator()(const vec2f& v) const { return {{v[0], v[1]}}; }
             return_type operator()(const vec3f& v) const { return v; }
             return_type operator()(const vec4f& v) const { return {{v[0], v[1], v[2]}}; }
@@ -556,7 +595,11 @@ vec4f value(const State::Value& val)
 
                 return {};
             }
+            return_type operator()(const std::string& s) const {
+              return operator()(QString::fromStdString(s));
+            }
             return_type operator()(QChar c) const { return {}; }
+            return_type operator()(char c) const { return {}; }
             return_type operator()(const vec2f& v) const { return {{v[0], v[1]}}; }
             return_type operator()(const vec3f& v) const { return {{v[0], v[1], v[2]}}; }
             return_type operator()(const vec4f& v) const { return v; }
@@ -594,7 +637,11 @@ tuple_t value(const State::Value& val)
 
                 return {s};
             }
-            return_type operator()(QChar c) const { return {c}; }
+            return_type operator()(const std::string& s) const {
+              return operator()(QString::fromStdString(s));
+            }
+            return_type operator()(QChar c) const { return {}; }
+            return_type operator()(char c) const { return {}; }
             return_type operator()(const vec2f& v) const { return {{v[0], v[1]}}; }
             return_type operator()(const vec3f& v) const { return {{v[0], v[1], v[2]}}; }
             return_type operator()(const vec4f& v) const { return {{v[0], v[1], v[2], v[3]}}; }
@@ -604,6 +651,17 @@ tuple_t value(const State::Value& val)
     return eggs::variants::apply(vis{}, val.val.impl());
 }
 
+template<>
+std::string value(const State::Value& val)
+{
+  return value<QString>(val).toStdString();
+}
+
+template<>
+char value(const State::Value& val)
+{
+  return value<QChar>(val).toLatin1();
+}
 
 QString toPrettyString(const State::Value& val)
 {
@@ -631,6 +689,10 @@ QString toPrettyString(const State::Value& val)
             {
                 // TODO escape ?
                 return QString("\"%1\"").arg(s);
+            }
+            QString operator()(const std::string& s) const
+            {
+              return operator()(QString::fromStdString(s));
             }
 
             QString operator()(QChar c) const
