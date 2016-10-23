@@ -58,7 +58,7 @@ QDataStream&operator>>(QDataStream& s, char& c)
   return s;
 }
 
-QDataStream&operator<<(QDataStream& stream, const std::__cxx11::string& obj)
+QDataStream&operator<<(QDataStream& stream, const std::string& obj)
 {
   uint32_t size = obj.size();
   stream << size;
@@ -67,7 +67,7 @@ QDataStream&operator<<(QDataStream& stream, const std::__cxx11::string& obj)
   return stream;
 }
 
-QDataStream&operator>>(QDataStream& stream, std::__cxx11::string& obj)
+QDataStream&operator>>(QDataStream& stream, std::string& obj)
 {
   uint32_t n = 0;
   stream >> n;
