@@ -61,8 +61,8 @@ class AddressNumericSettingsWidget final : public AddressSettingsWidget
             setCommonSettings(settings);
             m_valueSBox->setValue(State::convert::value<T>(settings.value));
 
-            m_minSBox->setValue(ossia::convert<T>(ossia::net::get_min(settings.domain)));
-            m_maxSBox->setValue(ossia::convert<T>(ossia::net::get_max(settings.domain)));
+            m_minSBox->setValue(settings.domain.convert_min<T>());
+            m_maxSBox->setValue(settings.domain.convert_max<T>());
 
             // TODO if the "values" part of the domain is set, we
             // have to display a combobox instead.

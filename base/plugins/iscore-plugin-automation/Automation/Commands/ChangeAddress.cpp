@@ -53,8 +53,9 @@ void ChangeAddress::undo() const
 
     {
         //QSignalBlocker blck{autom.curve()};
-        autom.setMin(ossia::convert<double>(ossia::net::get_min(m_old.domain)));
-        autom.setMax(ossia::convert<double>(ossia::net::get_max(m_old.domain)));
+        autom.setMin(m_old.domain.convert_min<double>());
+        autom.setMax(m_old.domain.convert_max<double>());
+
         autom.setAddress(m_old.address);
     }
     // autom.curve().changed();
@@ -67,8 +68,8 @@ void ChangeAddress::redo() const
 
     {
         //QSignalBlocker blck{autom.curve()};
-      autom.setMin(ossia::convert<double>(ossia::net::get_min(m_new.domain)));
-      autom.setMax(ossia::convert<double>(ossia::net::get_max(m_new.domain)));
+        autom.setMin(m_new.domain.convert_min<double>());
+        autom.setMax(m_new.domain.convert_max<double>());
         autom.setAddress(m_new.address);
     }
     // autom.curve().changed();

@@ -17,9 +17,6 @@ class QDebug;
 
 namespace State
 {
-struct no_value_t {};
-inline bool operator==(no_value_t, no_value_t) { return true; }
-inline bool operator!=(no_value_t, no_value_t) { return false; }
 using impulse_t = ossia::Impulse;
 
 class ValueImpl;
@@ -27,7 +24,7 @@ using vec2f = std::array<float, 2>;
 using vec3f = std::array<float, 3>;
 using vec4f = std::array<float, 4>;
 using tuple_t = std::vector<ValueImpl>;
-enum class ValueType { Impulse, Int, Float, Bool, String, Char, Vec2f, Vec3f, Vec4f, Tuple, NoValue };
+enum class ValueType : std::size_t { Impulse, Int, Float, Bool, String, Char, Vec2f, Vec3f, Vec4f, Tuple, NoValue = eggs::variant<>::npos};
 
 class ISCORE_LIB_STATE_EXPORT ValueImpl
 {
@@ -35,15 +32,14 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
         ISCORE_SERIALIZE_FRIENDS(ValueImpl, JSONObject)
 
     public:
-        using variant_t = eggs::variant<impulse_t, int, float, bool, std::string, char, vec2f, vec3f, vec4f, tuple_t, no_value_t>;
-        ValueImpl();
+        using variant_t = eggs::variant<impulse_t, int, float, bool, std::string, char, vec2f, vec3f, vec4f, tuple_t>;
+        ValueImpl() = default;
         ValueImpl(const ValueImpl&) = default;
         ValueImpl(ValueImpl&&) = default;
 
         ValueImpl& operator=(const ValueImpl&) = default;
         ValueImpl& operator=(ValueImpl&&) = default;
 
-        ValueImpl(no_value_t v);
         ValueImpl(impulse_t v);
         ValueImpl(int v);
         ValueImpl(float v);
@@ -58,7 +54,6 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
         ValueImpl(vec4f v);
         ValueImpl(tuple_t v);
 
-        ValueImpl& operator=(no_value_t v);
         ValueImpl& operator=(impulse_t v);
         ValueImpl& operator=(int v);
         ValueImpl& operator=(float v);
@@ -154,7 +149,6 @@ ISCORE_LIB_STATE_EXPORT ossia::value toOSSIAValue(const State::ValueImpl& val);
 
 }
 
-Q_DECLARE_METATYPE(State::no_value_t)
 Q_DECLARE_METATYPE(State::impulse_t)
 Q_DECLARE_METATYPE(State::Value)
 Q_DECLARE_METATYPE(State::ValueList)

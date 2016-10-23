@@ -14,6 +14,7 @@
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
+#include <string>
 namespace iscore
 {
 struct ApplicationComponents;
@@ -37,7 +38,11 @@ struct is_QDataStreamSerializable : std::false_type {};
 template <class T>
 struct is_QDataStreamSerializable<T, enable_if_QDataStreamSerializable<typename std::decay<T>::type> > : std::true_type {};
 
+ISCORE_LIB_BASE_EXPORT QDataStream& operator<<(QDataStream& s, char c);
+ISCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& s, char& c);
 
+ISCORE_LIB_BASE_EXPORT QDataStream& operator<< (QDataStream& stream, const std::string& obj);
+ISCORE_LIB_BASE_EXPORT QDataStream& operator>> (QDataStream& stream, std::string& obj);
 
 class QIODevice;
 class QStringList;
@@ -50,7 +55,7 @@ struct DataStreamInput
         template<typename T>
         friend DataStreamInput& operator<<(DataStreamInput& s, T&& obj)
         {
-            s.stream << obj;
+            s.stream << std::forward<T>(obj);
             return s;
         }
 };

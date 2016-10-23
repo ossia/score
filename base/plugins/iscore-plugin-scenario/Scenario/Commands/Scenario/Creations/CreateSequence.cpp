@@ -155,8 +155,8 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
         auto start = State::convert::value<double>(elt.first.value);
         auto end = State::convert::value<double>(elt.second.value);
-        auto min_v = ossia::net::get_min(elt.second.domain);
-        auto max_v = ossia::net::get_max(elt.second.domain);
+        auto min_v = elt.second.domain.get_min();
+        auto max_v = elt.second.domain.get_max();
         double min = (min_v.valid())
                 ? std::min(ossia::convert<double>(min_v), std::min(start, end))
                 : std::min(start, end);

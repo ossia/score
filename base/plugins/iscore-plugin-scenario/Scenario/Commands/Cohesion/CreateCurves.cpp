@@ -114,8 +114,8 @@ void CreateCurvesFromAddresses(
 
             // Then we set-up all the necessary values
             // min / max
-            auto min_v = ossia::net::get_min(as.domain);
-            auto max_v = ossia::net::get_max(as.domain);
+            auto min_v = as.domain.get_min();
+            auto max_v = as.domain.get_max();
             double min = ossia::is_numeric(min_v)
                     ? ossia::convert<double>(min_v)
                     : 0;

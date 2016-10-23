@@ -33,18 +33,6 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::ValueIm
     checkDelimiter();
 }
 
-
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const State::no_value_t& value)
-{
-}
-
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(State::no_value_t& value)
-{
-}
-
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const State::impulse_t& value)
 {

@@ -205,9 +205,9 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
         addresses.push_back({Device::address(*vec.front()).address});
         addresses.back().reserve(vec.size());
 
-        for(auto node : vec)
+        for(Device::Node* node : vec)
         {
-            auto& addr = node->get<Device::AddressSettings>();
+            Device::AddressSettings& addr = node->get<Device::AddressSettings>();
             // Note : since we directly create the IDs here, we don't have to worry
             // about their generation.
             auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
@@ -225,8 +225,8 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
             autom.curve().clear();
 
             auto val = State::convert::value<float>(addr.value);
-            auto min = ossia::convert<float>(ossia::net::get_min(addr.domain));
-            auto max = ossia::convert<float>(ossia::net::get_max(addr.domain));
+            auto min = addr.domain.convert_min<float>();
+            auto max = addr.domain.convert_max<float>();
 
             Curve::SegmentData seg;
             seg.id = Id<Curve::SegmentModel>{0};
