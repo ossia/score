@@ -41,6 +41,7 @@
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 
 namespace Scenario
 {
@@ -154,11 +155,13 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
         auto start = State::convert::value<double>(elt.first.value);
         auto end = State::convert::value<double>(elt.second.value);
-        double min = (elt.second.domain.min.val.which() != State::ValueType::NoValue)
-                ? std::min(State::convert::value<double>(elt.second.domain.min), std::min(start, end))
+        auto min_v = ossia::net::get_min(elt.second.domain);
+        auto max_v = ossia::net::get_max(elt.second.domain);
+        double min = (min_v.valid())
+                ? std::min(ossia::convert<double>(min_v), std::min(start, end))
                 : std::min(start, end);
-        double max = (elt.second.domain.max.val.which() != State::ValueType::NoValue)
-                ? std::max(State::convert::value<double>(elt.second.domain.max), std::max(start, end))
+        double max = (max_v.valid())
+                ? std::max(ossia::convert<double>(max_v), std::max(start, end))
                 : std::max(start, end);
 
         auto cmd = new CreateAutomationFromStates{

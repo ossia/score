@@ -8,27 +8,32 @@ template<typename T>
 struct VariantDataStreamSerializer
 {
   VariantDataStreamSerializer(
-      DataStream::Serializer& s_p, 
+      DataStream::Serializer& s_p,
       const T& var_p): s{s_p}, var{var_p} { }
 
   DataStream::Serializer& s;
   const T& var;
 
   bool done = false;
+
   template<typename TheClass>
-  void perform()
-  {
-    // This trickery iterates over all the types in Args...
-    // A single type should be serialized, even if we cannot break.
-    if(done)
-        return;
-    if(auto res = var.template target<TheClass>())
-    {
-        s.stream() << *res;
-        done = true;
-    }
-  }
+  void perform();
 };
+
+template<typename T>
+template<typename TheClass>
+void VariantDataStreamSerializer<T>::perform()
+{
+  // This trickery iterates over all the types in Args...
+  // A single type should be serialized, even if we cannot break.
+  if(done)
+      return;
+  if(auto res = var.template target<TheClass>())
+  {
+      s.stream() << *res;
+      done = true;
+  }
+}
 
 template<typename T>
 struct VariantDataStreamDeserializer
@@ -44,17 +49,21 @@ struct VariantDataStreamDeserializer
 
   quint64 i = 0;
   template<typename TheClass>
-  void perform()
-  {
-    // Here we iterate until we are on the correct type, and we deserialize it.
-    if(i++ != which)
-        return;
-
-    TheClass data;
-    s.stream() >> data;
-    var = std::move(data);
-  }
+  void perform();
 };
+
+template<typename T>
+template<typename TheClass>
+void VariantDataStreamDeserializer<T>::perform()
+{
+  // Here we iterate until we are on the correct type, and we deserialize it.
+  if(i++ != which)
+      return;
+
+  TheClass data;
+  s.stream() >> data;
+  var = std::move(data);
+}
 
 template<typename... Args>
 struct TSerializer<DataStream, void, eggs::variant<Args...>>
@@ -144,18 +153,22 @@ struct VariantJSONSerializer
   bool done = false;
 
   template<typename TheClass>
-  void perform()
-  {
-    if(done)
-      return;
-
-    if(auto res = var.template target<TheClass>())
-    {
-      s.m_obj[Metadata<Json_k, TheClass>::get()] = readFrom_eggs_impl(*res);
-      done = true;
-    }
-  }
+  void perform();
 };
+
+template<typename T>
+template<typename TheClass>
+void VariantJSONSerializer<T>::perform()
+{
+  if(done)
+    return;
+
+  if(auto res = var.template target<TheClass>())
+  {
+    s.m_obj[Metadata<Json_k, TheClass>::get()] = readFrom_eggs_impl(*res);
+    done = true;
+  }
+}
 
 template<typename T>
 struct VariantJSONDeserializer
@@ -168,20 +181,23 @@ struct VariantJSONDeserializer
 
   bool done = false;
   template<typename TheClass>
-  void perform()
-  {
-    if(done)
-      return;
-
-    auto it = s.m_obj.constFind(Metadata<Json_k, TheClass>::get());
-    if(it != s.m_obj.constEnd())
-    {
-      var = writeTo_eggs_impl<TheClass>(*it);
-      done = true;
-    }
-  }
+  void perform();
 };
 
+template<typename T>
+template<typename TheClass>
+void VariantJSONDeserializer<T>::perform()
+{
+  if(done)
+    return;
+
+  auto it = s.m_obj.constFind(Metadata<Json_k, TheClass>::get());
+  if(it != s.m_obj.constEnd())
+  {
+    var = writeTo_eggs_impl<TheClass>(*it);
+    done = true;
+  }
+}
 
 template<typename... Args>
 struct TSerializer<JSONObject, eggs::variant<Args...>>

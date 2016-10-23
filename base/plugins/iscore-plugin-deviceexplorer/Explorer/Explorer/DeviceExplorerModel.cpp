@@ -1068,8 +1068,8 @@ DeviceExplorerModel& deviceExplorerFromContext(const iscore::DocumentContext& ct
 Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
     const State::AddressAccessor& addr,
     const iscore::DocumentContext& ctx,
-    const State::ValueImpl& min,
-    const State::ValueImpl& max)
+    ossia::value min,
+    ossia::value max)
 {
     auto& newval = addr.address;
 
@@ -1092,8 +1092,7 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
     // If there is none, build with some default settings
     Device::FullAddressAccessorSettings s;
     s.address = addr;
-    s.domain.min.val = min;
-    s.domain.max.val = max;
+    s.domain = ossia::net::make_domain(std::move(min), std::move(max));
     return s;
 }
 

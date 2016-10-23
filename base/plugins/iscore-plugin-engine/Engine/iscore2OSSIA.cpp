@@ -216,10 +216,7 @@ void updateOSSIAAddress(
 
     addr.setValue(Engine::iscore_to_ossia::toOSSIAValue(settings.value));
 
-    addr.setDomain(
-                ossia::net::make_domain(
-                    toOSSIAValue(settings.domain.min),
-                    toOSSIAValue(settings.domain.max)));
+    addr.setDomain(settings.domain);
 
     addr.setUnit(settings.unit);
 }
@@ -241,6 +238,8 @@ void createOSSIAAddress(
             return_type operator()(bool) const { return ossia::val_type::BOOL; }
             return_type operator()(const QString&) const { return ossia::val_type::STRING; }
             return_type operator()(QChar) const { return ossia::val_type::CHAR; }
+            return_type operator()(const std::string&) const { return ossia::val_type::STRING; }
+            return_type operator()(char) const { return ossia::val_type::CHAR; }
             return_type operator()(const State::vec2f&) const { return ossia::val_type::VEC2F; }
             return_type operator()(const State::vec3f&) const { return ossia::val_type::VEC3F; }
             return_type operator()(const State::vec4f&) const { return ossia::val_type::VEC4F; }
@@ -257,22 +256,20 @@ void updateOSSIAValue(const State::ValueImpl& iscore_data, ossia::value& val)
     struct {
             const State::ValueImpl& data;
             void operator()(const ossia::Destination&) const { }
-            void operator()(const ossia::Behavior&) const { }
             void operator()(ossia::Impulse) const { }
             void operator()(ossia::Int& v) const { v = data.get<int>(); }
             void operator()(ossia::Float& v) const { v = data.get<float>(); }
             void operator()(ossia::Bool& v) const { v = data.get<bool>(); }
-            void operator()(ossia::Char& v) const { v = data.get<QChar>().toLatin1(); }
-            void operator()(ossia::String& v) const { v = data.get<QString>().toStdString(); }
-            void operator()(ossia::Vec2f& v) const { v.value = data.get<State::vec2f>(); }
-            void operator()(ossia::Vec3f& v) const { v.value = data.get<State::vec3f>(); }
-            void operator()(ossia::Vec4f& v) const { v.value = data.get<State::vec4f>(); }
-            void operator()(ossia::Tuple& v) const
+            void operator()(ossia::Char& v) const { v = data.get<char>(); }
+            void operator()(ossia::String& v) const { v = data.get<std::string>(); }
+            void operator()(ossia::Vec2f& v) const { v = data.get<State::vec2f>(); }
+            void operator()(ossia::Vec3f& v) const { v = data.get<State::vec3f>(); }
+            void operator()(ossia::Vec4f& v) const { v = data.get<State::vec4f>(); }
+            void operator()(ossia::Tuple& vec) const
             {
                 State::tuple_t tuple = data.get<State::tuple_t>();
-                auto& vec = v.value;
                 ISCORE_ASSERT(tuple.size() == vec.size());
-                int n = vec.size();
+                const int n = vec.size();
                 for(int i = 0; i < n; i++)
                 {
                     updateOSSIAValue(tuple[i], vec[i]);
@@ -283,40 +280,10 @@ void updateOSSIAValue(const State::ValueImpl& iscore_data, ossia::value& val)
     return eggs::variants::apply(visitor, val.v);
 }
 
-static ossia::value toOSSIAValue(const State::ValueImpl& val)
-{
-    struct {
-            using return_type = ossia::value;
-            return_type operator()(const State::no_value_t&) const { return ossia::value{}; }
-            return_type operator()(const State::impulse_t&) const { return ossia::Impulse{}; }
-            return_type operator()(int v) const { return ossia::Int{v}; }
-            return_type operator()(float v) const { return ossia::Float{v}; }
-            return_type operator()(bool v) const { return ossia::Bool{v}; }
-            return_type operator()(const QString& v) const { return ossia::String{v.toStdString()}; }
-            return_type operator()(QChar v) const { return ossia::Char{v.toLatin1()}; }
-            return_type operator()(const State::vec2f& v) const { return ossia::Vec2f{v}; }
-            return_type operator()(const State::vec3f& v) const { return ossia::Vec3f{v}; }
-            return_type operator()(const State::vec4f& v) const { return ossia::Vec4f{v}; }
-            return_type operator()(const State::tuple_t& v) const
-            {
-                ossia::Tuple ossia_tuple;
-                ossia_tuple.value.reserve(v.size());
-                for(const auto& tuple_elt : v)
-                {
-                    ossia_tuple.value.push_back(eggs::variants::apply(*this, tuple_elt.impl()));
-                }
-
-                return ossia_tuple;
-            }
-    } visitor{};
-
-    return eggs::variants::apply(visitor, val.impl());
-}
-
 ossia::value toOSSIAValue(
         const State::Value& value)
 {
-    return toOSSIAValue(value.val);
+    return State::toOSSIAValue(value.val);
 }
 
 optional<ossia::message> message(

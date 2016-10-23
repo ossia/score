@@ -97,6 +97,8 @@ void AddressEditDialog::updateType()
     m_addressWidget->setWidget(widg);
     if(m_originalSettings.ioType == Device::IOType::Invalid)
         m_originalSettings.ioType = Device::IOType::InOut;
+    if(!m_originalSettings.domain)
+        m_originalSettings.domain = widg->getDefaultSettings().domain;
     if(widg)
         widg->setSettings(m_originalSettings);
 }
@@ -123,18 +125,12 @@ Device::AddressSettings AddressEditDialog::getSettings() const
 
 Device::AddressSettings AddressEditDialog::makeDefaultSettings()
 {
-    static Device::AddressSettings defaultSettings
-            = [] () {
-        Device::AddressSettings s;
-        s.value = State::Value::fromValue(State::no_value_t{});
-        s.domain.min = State::Value::fromValue(0);
-        s.domain.max = State::Value::fromValue(100);
-        s.ioType = Device::IOType::InOut;
-        s.clipMode = Device::ClipMode::Free;
-        return s;
-    }();
+    Device::AddressSettings s;
+    s.value = State::Value::fromValue(State::no_value_t{});
+    s.ioType = Device::IOType::InOut;
+    s.clipMode = Device::ClipMode::Free;
 
-    return defaultSettings;
+    return s;
 }
 
 void AddressEditDialog::setNodeSettings()

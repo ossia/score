@@ -22,7 +22,7 @@ using RepetitionFilter = bool;
 struct AddressSettingsCommon
 {
     State::Value value;
-    Device::Domain domain;
+    ossia::net::domain domain;
 
     Device::IOType ioType{};
     Device::ClipMode clipMode{};
@@ -124,7 +124,7 @@ inline bool operator!=(
 struct FullAddressAccessorSettings
 {
   State::Value value;
-  Device::Domain domain;
+  ossia::net::domain domain;
 
   Device::IOType ioType{};
   Device::ClipMode clipMode{};
@@ -183,13 +183,14 @@ struct FullAddressAccessorSettings
 
   FullAddressAccessorSettings(
       const State::AddressAccessor& addr,
-      const State::ValueImpl& min,
-      const State::ValueImpl& max):
-      domain{{min}, {max}, {}},
+      const ossia::value& min,
+      const ossia::value& max):
+      domain{ossia::net::make_domain(min, max)},
       address{addr}
   {
 
   }
+
 };
 }
 

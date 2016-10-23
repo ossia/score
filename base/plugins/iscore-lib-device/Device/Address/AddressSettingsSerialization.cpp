@@ -73,7 +73,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Device::AddressSettingsCommon& 
 
     // Value, domain and type
     readFrom(n.value);
-    m_obj[strings.Domain] = DomainToJson(n.domain);
+    m_obj[strings.Domain] = Device::DomainToJson(n.domain);
 }
 
 
@@ -223,7 +223,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device
 
     // Value, domain and type
     readFrom(n.value);
-    m_obj[strings.Domain] = DomainToJson(n.domain);
+    m_obj[strings.Domain] = Device::DomainToJson(n.domain);
 
     m_obj[strings.Address] = toJsonObject(n.address);
 }

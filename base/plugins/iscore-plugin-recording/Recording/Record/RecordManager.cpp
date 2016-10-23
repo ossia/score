@@ -11,6 +11,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 #include <core/document/Document.hpp>
 
 #include <QApplication>
@@ -224,8 +225,8 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
             autom.curve().clear();
 
             auto val = State::convert::value<float>(addr.value);
-            auto min = State::convert::value<float>(addr.domain.min);
-            auto max = State::convert::value<float>(addr.domain.max);
+            auto min = ossia::convert<float>(ossia::net::get_min(addr.domain));
+            auto max = ossia::convert<float>(ossia::net::get_max(addr.domain));
 
             Curve::SegmentData seg;
             seg.id = Id<Curve::SegmentModel>{0};

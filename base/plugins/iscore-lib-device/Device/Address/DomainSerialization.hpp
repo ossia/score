@@ -7,6 +7,6 @@
 
 namespace Device
 {
-QJsonObject DomainToJson(const Device::Domain& d);
-Device::Domain JsonToDomain(const QJsonObject& obj, const QString& t);
+QJsonObject DomainToJson(const ossia::net::domain& d);
+ossia::net::domain JsonToDomain(const QJsonObject& obj, const QString& t);
 }

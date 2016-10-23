@@ -43,12 +43,17 @@ inline QJSValue value(
             return_type operator()(float f) const { return f; }
             return_type operator()(bool b) const { return b; }
             return_type operator()(const QString& s) const { return s; }
+            return_type operator()(const std::string& s) const { return QString::fromStdString(s); }
 
             return_type operator()(QChar c) const
             {
                 // Note : it is saved as a string but the actual type should be saved also
                 // so that the QChar can be recovered.
                 return QString(c);
+            }
+            return_type operator()(char c) const
+            {
+              return QString(QChar(c));
             }
 
             return_type operator()(const State::vec2f& t) const

@@ -25,6 +25,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget : public QWidget
         virtual ~AddressSettingsWidget();
 
         virtual Device::AddressSettings getSettings() const = 0;
+        virtual Device::AddressSettings getDefaultSettings() const = 0;
         virtual void setSettings(const Device::AddressSettings& settings) = 0;
 
     protected:

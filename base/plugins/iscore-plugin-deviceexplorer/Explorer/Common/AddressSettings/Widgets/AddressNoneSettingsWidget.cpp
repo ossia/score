@@ -19,4 +19,9 @@ void AddressNoneSettingsWidget::setSettings(const Device::AddressSettings& setti
 {
     setCommonSettings(settings);
 }
+
+Device::AddressSettings AddressNoneSettingsWidget::getDefaultSettings() const
+{
+  return {};
+}
 }

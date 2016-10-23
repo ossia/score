@@ -36,6 +36,10 @@ ISCORE_LIB_STATE_EXPORT QString value(const State::Value& val);
 template<>
 ISCORE_LIB_STATE_EXPORT QChar value(const State::Value& val);
 template<>
+ISCORE_LIB_STATE_EXPORT std::string value(const State::Value& val);
+template<>
+ISCORE_LIB_STATE_EXPORT char value(const State::Value& val);
+template<>
 ISCORE_LIB_STATE_EXPORT vec2f value(const State::Value& val);
 template<>
 ISCORE_LIB_STATE_EXPORT vec3f value(const State::Value& val);

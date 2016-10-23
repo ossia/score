@@ -59,7 +59,7 @@ Component::Component(
       m_ossia_process = new ossia::mapper(
                   *ossia_source_addr,
                   *ossia_target_addr,
-                  ossia::Behavior(m_ossia_curve));
+                  m_ossia_curve);
   }
 }
 
