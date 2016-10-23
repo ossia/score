@@ -21,6 +21,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ExpressionParser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ExpressionSerialization.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/State/OSSIASerialization.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/ValueWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/TypeComboBox.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/CharValueWidget.cpp"
