@@ -73,7 +73,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Device::AddressSettingsCommon& 
 
     // Value, domain and type
     readFrom(n.value);
-    m_obj[strings.Domain] = Device::DomainToJson(n.domain);
+    m_obj[strings.Domain] = toJsonObject(n.domain);
 }
 
 
@@ -96,13 +96,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettingsCommon& n)
     n.description = m_obj[strings.Description].toString();
 
     writeTo(n.value);
-    // TODO doesn't handle multi-type variants.
-    if(m_obj.contains(strings.Type))
-    {
-        n.domain = Device::JsonToDomain(
-            m_obj[strings.Domain].toObject(),
-            m_obj[strings.Type].toString());
-    }
+    n.domain = fromJsonObject<ossia::net::domain>(m_obj[strings.Domain].toObject());
 }
 
 
@@ -223,7 +217,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device
 
     // Value, domain and type
     readFrom(n.value);
-    m_obj[strings.Domain] = Device::DomainToJson(n.domain);
+    m_obj[strings.Domain] = toJsonObject(n.domain);
 
     m_obj[strings.Address] = toJsonObject(n.address);
 }
@@ -247,13 +241,8 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::FullA
     n.description = m_obj[strings.Description].toString();
 
     writeTo(n.value);
-    // TODO doesn't handle multi-type variants.
-    if(m_obj.contains(strings.Type))
-    {
-        n.domain = Device::JsonToDomain(
-            m_obj[strings.Domain].toObject(),
-            m_obj[strings.Type].toString());
-    }
+
+    n.domain = fromJsonObject<ossia::net::domain>(m_obj[strings.Domain].toObject());
 
     n.address = fromJsonObject<State::AddressAccessor>(m_obj[strings.Address]);
 }
