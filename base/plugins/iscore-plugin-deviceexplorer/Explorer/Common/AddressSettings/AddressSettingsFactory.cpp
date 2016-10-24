@@ -50,11 +50,11 @@ AddressSettingsFactory::AddressSettingsFactory()
                                           std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressImpulseSettingsWidget> >()));
 
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Vec2f,
-                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressArraySettingsWidget<State::vec2f>> >()));
+                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressVecSettingsWidget<2>> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Vec3f,
-                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressArraySettingsWidget<State::vec3f>> >()));
+                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressVecSettingsWidget<3>> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Vec4f,
-                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressArraySettingsWidget<State::vec4f>> >()));
+                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressVecSettingsWidget<4>> >()));
 }
 
 

@@ -2,6 +2,7 @@
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <State/Widgets/Values/VecWidgets.hpp>
+#include <State/ValueConversion.hpp>
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <QComboBox>
 #include <QFormLayout>
@@ -45,8 +46,7 @@ class AddressVecSettingsWidget final : public AddressSettingsWidget
         {
             m_valueEdit = new State::VecWidget<N>{this};
             m_domainSelector = new QComboBox{this};
-            m_domainSelector->insertItems(tr("Float"), tr("Vec"));
-            m_domainSelector->setCurrentIndex(0);
+            m_domainSelector->addItems({tr("Float"), tr("Vec")});
             connect(m_domainSelector, SignalUtils::QComboBox_currentIndexChanged_int(),
                     this, &AddressVecSettingsWidget<N>::on_domainTypeChange);
 
@@ -56,6 +56,8 @@ class AddressVecSettingsWidget final : public AddressSettingsWidget
             m_layout->insertRow(0, tr("Value"), m_valueEdit);
             m_layout->insertRow(1, tr("Domain Type"), m_domainSelector);
             m_layout->insertRow(2, tr("Domain"), m_domainFloatEdit);
+
+            m_domainSelector->setCurrentIndex(0);
         }
 
         Device::AddressSettings getSettings() const override
@@ -72,8 +74,17 @@ class AddressVecSettingsWidget final : public AddressSettingsWidget
         void setSettings(const Device::AddressSettings& settings) override
         {
             setCommonSettings(settings);
-            m_valueEdit->setValue(State::value::convert<std::array<float, N>>(settings.value));
-
+            m_valueEdit->setValue(State::convert::value<std::array<float, N>>(settings.value));
+            if(settings.domain.target<ossia::net::domain_base<float>>())
+            {
+                m_domainFloatEdit->setDomain(settings.domain);
+                m_domainSelector->setCurrentIndex(0);
+            }
+            else
+            {
+                m_domainVecEdit->setDomain(settings.domain);
+                m_domainSelector->setCurrentIndex(1);
+            }
         }
 
         Device::AddressSettings getDefaultSettings() const override
@@ -110,7 +121,7 @@ class AddressVecSettingsWidget final : public AddressSettingsWidget
 
         State::VecWidget<N>* m_valueEdit{};
         QComboBox* m_domainSelector{};
-        State::NumericValueWidget<float>* m_domainFloatEdit{};
+        State::NumericDomainWidget<float>* m_domainFloatEdit{};
         State::VecDomainWidget<N>* m_domainVecEdit{};
 };
 }
