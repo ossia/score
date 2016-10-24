@@ -11,6 +11,8 @@
 #include "Widgets/AddressStringSettingsWidget.hpp"
 #include "Widgets/AddressTupleSettingsWidget.hpp"
 
+#include <Explorer/Common/AddressSettings/Widgets/AddressVecSettingsWidget.hpp>
+
 
 namespace Explorer
 {
@@ -43,7 +45,7 @@ AddressSettingsFactory::AddressSettingsFactory()
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Bool,
                                           std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressBoolSettingsWidget> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Tuple,
-                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressArraySettingsWidget<State::tuple_t>> >()));
+                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressTupleSettingsWidget> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Char,
                                           std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressCharSettingsWidget> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Impulse,
