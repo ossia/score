@@ -40,6 +40,7 @@ Component::Component(
   auto ossia_source_addr = Engine::iscore_to_ossia::makeDestination(
               m_deviceList,
               process().sourceAddress());
+
   if(!ossia_source_addr)
       return;
 
@@ -98,6 +99,10 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl()
             return on_curveChanged_impl2<X_T, int>();
             break;
         case ossia::val_type::FLOAT:
+        case ossia::val_type::TUPLE:
+        case ossia::val_type::VEC2F:
+        case ossia::val_type::VEC3F:
+        case ossia::val_type::VEC4F:
             return on_curveChanged_impl2<X_T, float>();
             break;
         default:
@@ -117,8 +122,21 @@ std::shared_ptr<ossia::curve_abstract> Component::rebuildCurve()
             m_ossia_curve = on_curveChanged_impl<int>();
             break;
         case ossia::val_type::FLOAT:
+        case ossia::val_type::TUPLE:
+        case ossia::val_type::VEC2F:
+        case ossia::val_type::VEC3F:
+        case ossia::val_type::VEC4F:
             m_ossia_curve = on_curveChanged_impl<float>();
             break;
+/*
+        {
+            State::AddressAccessor addr = process().sourceAddress();
+            if(addr.qualifiers.accessors.size() == 1)
+            {
+              m_ossia_curve = on_curveChanged_impl<float>();
+            }
+            break;
+        }*/
         default:
             qDebug() << "Unsupported source address type: " << (int)m_sourceAddressType;
             ISCORE_TODO;

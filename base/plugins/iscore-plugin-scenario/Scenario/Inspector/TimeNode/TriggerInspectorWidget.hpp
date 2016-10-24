@@ -43,7 +43,7 @@ class TriggerInspectorWidget final : public QWidget
         const Command::TriggerCommandFactoryList& m_triggerCommandFactory;
         const TimeNodeModel& m_model;
 
-        Inspector::InspectorWidgetBase* m_parent;
+        Inspector::InspectorWidgetBase* m_parent{};
 
         QPushButton* m_addTrigBtn{};
         QPushButton* m_menuButton{};

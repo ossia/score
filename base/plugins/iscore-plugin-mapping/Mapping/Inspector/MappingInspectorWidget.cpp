@@ -154,6 +154,7 @@ void InspectorWidget::on_sourceAddressChange(const State::AddressAccessor& newAd
     if(newAddr.address.path.isEmpty())
         return;
 
+    qDebug() << newAddr;
     auto cmd = new ChangeSourceAddress{process(), newAddr};
 
     m_dispatcher.submitCommand(cmd);
