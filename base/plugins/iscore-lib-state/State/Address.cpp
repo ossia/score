@@ -225,6 +225,9 @@ QDebug operator<<(QDebug d, const State::AccessorVector& a)
 QDebug operator<<(QDebug d, const ossia::destination_qualifiers& a)
 {
     d.noquote().nospace() << a.accessors;
+    if(a.unit)
+      d << QString::fromStdString(ossia::get_pretty_unit_text(a.unit));
+
     return d;
 }
 

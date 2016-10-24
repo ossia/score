@@ -58,7 +58,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_context{doc},
     m_commandDispatcher{doc.commandStack},
     m_selectionDispatcher{doc.selectionStack},
-    m_menu{[&] { return m_model.condition(); }}
+    m_menu{[&] { return m_model.condition(); }, this}
 {
     setObjectName("EventInspectorWidget");
     setParent(parent);

@@ -15,8 +15,8 @@ class ExpressionMenu :
     public:
         // Fun should be a function that returns an expression
         template<typename Fun>
-        ExpressionMenu(Fun f):
-            menu{new QMenu},
+        ExpressionMenu(Fun f, QWidget* parent):
+            menu{new QMenu{parent}},
             deleteAction{menu->addAction(QObject::tr("Delete"))},
             editAction{menu->addAction(QObject::tr("Edit"))},
             addSubAction{menu->addAction(QObject::tr("Add sub-expression"))}
