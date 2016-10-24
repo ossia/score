@@ -7,6 +7,10 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
+namespace iscore
+{
+class ApplicationContext;
+}
 template <typename Object> class Path;
 namespace Scenario
 {

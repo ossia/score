@@ -1,7 +1,6 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
-
-class QObject;
+#include <QObject>
 
 namespace iscore
 {
