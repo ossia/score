@@ -84,7 +84,7 @@ class ISCORE_LIB_STATE_EXPORT VecDomainWidget : public QWidget
         VecDomainWidget(QWidget* parent):
             QWidget{parent}
         {
-            auto lay = new iscore::MarginLess<QHBoxLayout>{this};
+            auto lay = new iscore::MarginLess<QVBoxLayout>{this};
             this->setLayout(lay);
 
             auto min_l = new QLabel{tr("Min"), this};
@@ -111,8 +111,8 @@ class ISCORE_LIB_STATE_EXPORT VecDomainWidget : public QWidget
 
         void setDomain(ossia::net::domain dom_base)
         {
-            m_min->setValue({0, 0, 0});
-            m_max->setValue({1, 1, 1});
+            m_min->setValue(ossia::fill_vec<N>(0));
+            m_max->setValue(ossia::fill_vec<N>(1));
 
             if(auto dom_p = dom_base.target<domain_type>())
             {
