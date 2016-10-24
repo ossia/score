@@ -4,26 +4,123 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QMenu>
+#include <deque>
+//#include <boost/circular_buffer.hpp>
 namespace Engine
 {
+
+struct LogMessage
+{
+        QString message;
+        QColor color;
+};
+
+class LogMessagesItemModel final : public QAbstractItemModel
+{
+    public:
+
+        LogMessagesItemModel(QObject* parent):
+            QAbstractItemModel{parent},
+            m_buffer{}
+        {
+            m_updateScheduler.setInterval(100);
+            con(m_updateScheduler, &QTimer::timeout,
+                this, &LogMessagesItemModel::update);
+            m_updateScheduler.start();
+        }
+
+        std::size_t m_lastCount = 0;
+        void update()
+        {
+            const auto n = m_buffer.size();
+            if(m_lastCount < n)
+            {
+                beginInsertRows(QModelIndex(), m_lastCount, n);
+                m_lastCount = n;
+                endInsertRows();
+
+                if(n > 600)
+                {
+                    auto diff = n - 500;
+                    beginRemoveRows(QModelIndex(), 0, diff);
+                    m_buffer.erase(m_buffer.begin(), m_buffer.begin() + diff);
+                    m_lastCount = 500;
+                    endRemoveRows();
+                }
+            }
+        }
+
+        void push(LogMessage m)
+        {
+            m_buffer.push_back(std::move(m));
+        }
+
+        void clear()
+        {
+            beginResetModel();
+            m_buffer.clear();
+            m_lastCount = 0;
+            endResetModel();
+        }
+
+        QModelIndex index(int row, int column, const QModelIndex& parent) const override
+        {
+            return createIndex(row, column, nullptr);
+        }
+        QModelIndex parent(const QModelIndex& child) const override
+        {
+            return {};
+        }
+        int rowCount(const QModelIndex& parent) const override
+        {
+            return m_lastCount;
+        }
+        int columnCount(const QModelIndex& parent) const override
+        {
+            return 1;
+        }
+
+        QVariant data(const QModelIndex& index, int role) const override
+        {
+            if(index.row() < m_buffer.size())
+            {
+                switch(role)
+                {
+                    case Qt::DisplayRole:
+                        return m_buffer[index.row()].message;
+                    case Qt::BackgroundRole:
+                        return m_buffer[index.row()].message;
+                }
+            }
+
+            return {};
+        }
+
+        std::deque<LogMessage> m_buffer;
+
+        QTimer m_updateScheduler;
+};
+
 PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx):
     iscore::PanelDelegate{ctx},
-    m_widget{new QListWidget}
+    m_itemModel{new LogMessagesItemModel{this}},
+    m_widget{new QListView}
 {
+    m_widget->setModel(m_itemModel);
     m_widget->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
-    connect(m_widget, &QListWidget::customContextMenuRequested,
+    connect(m_widget, &QListView::customContextMenuRequested,
             this, [=] (const QPoint &pos) {
         QMenu m{};
         auto act = m.addAction(QObject::tr("Clear"));
         auto res = m.exec(QCursor::pos());
         if(res == act)
         {
-            m_widget->clear();
+            m_itemModel->clear();
         }
     });
 }
 
-QWidget*PanelDelegate::widget()
+QWidget* PanelDelegate::widget()
 {
     return m_widget;
 }
@@ -86,21 +183,13 @@ void PanelDelegate::setupConnections(Device::DeviceList& devices)
     const auto dark2 = dark1.darker(); // almost darker than black
     m_inbound = QObject::connect(&devices, &Device::DeviceList::logInbound,
                                  m_widget, [=] (const QString& str) {
-        auto lw = new QListWidgetItem{str};
-        lw->setBackgroundColor(dark1);
-        m_widget->addItem(lw);
-        if(m_widget->count() > 500)
-            delete m_widget->takeItem(0);
+        m_itemModel->push({str, dark1});
         m_widget->scrollToBottom();
     }, Qt::QueuedConnection);
 
     m_outbound = QObject::connect(&devices, &Device::DeviceList::logOutbound,
                                  m_widget, [=] (const QString& str) {
-        auto lw = new QListWidgetItem{str};
-        lw->setBackgroundColor(dark2);
-        m_widget->addItem(lw);
-        if(m_widget->count() > 500)
-            delete m_widget->takeItem(0);
+        m_itemModel->push({str, dark2});
         m_widget->scrollToBottom();
     }, Qt::QueuedConnection);
 }

@@ -198,12 +198,10 @@ void OSSIADevice::setLogging_impl(bool b) const
             logger.outbound_logger->set_pattern("%v");
             logger.outbound_logger->set_level(spdlog::level::info);
             dev->getProtocol().setLogger(std::move(logger));
-            qDebug() << "logging enabled";
         }
         else
         {
             dev->getProtocol().setLogger({});
-            qDebug() << "logging disabled";
         }
     }
 

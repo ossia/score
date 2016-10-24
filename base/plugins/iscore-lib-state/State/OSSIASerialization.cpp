@@ -46,14 +46,14 @@ ISCORE_DECL_VALUE_TYPE(ossia::Vec4f)
 
 template<>
 template<>
-void VariantDataStreamSerializer<ossia::value::value_type>::perform<ossia::Destination>()
+void VariantDataStreamSerializer<ossia::value_variant_type>::perform<ossia::Destination>()
 {
     return; // How could we serialize destination ?
 }
 
 template<>
 template<>
-void VariantDataStreamDeserializer<ossia::value::value_type>::perform<ossia::Destination>()
+void VariantDataStreamDeserializer<ossia::value_variant_type>::perform<ossia::Destination>()
 {
     i++;
     return; // How could we deserialize destination ?
@@ -61,14 +61,14 @@ void VariantDataStreamDeserializer<ossia::value::value_type>::perform<ossia::Des
 
 template<>
 template<>
-void VariantJSONSerializer<ossia::value::value_type>::perform<ossia::Destination>()
+void VariantJSONSerializer<ossia::value_variant_type>::perform<ossia::Destination>()
 {
     return; // How could we serialize destination ?
 }
 
 template<>
 template<>
-void VariantJSONDeserializer<ossia::value::value_type>::perform<ossia::Destination>()
+void VariantJSONDeserializer<ossia::value_variant_type>::perform<ossia::Destination>()
 {
     return; // How could we deserialize destination ?
 }
@@ -77,13 +77,13 @@ void VariantJSONDeserializer<ossia::value::value_type>::perform<ossia::Destinati
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ossia::value& n)
 {
-    readFrom(n.v);
+    readFrom((const ossia::value_variant_type&) n.v);
 }
 
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(ossia::value& n)
 {
-    writeTo(n.v);
+    writeTo((ossia::value_variant_type&) n.v);
 }
 
 DataStreamInput& operator<< (DataStreamInput& stream, const ossia::value& obj)
@@ -619,13 +619,13 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ossia::net::do
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const ossia::value& n)
 {
-    readFrom(n.v);
+    readFrom((const ossia::value_variant_type&)n.v);
 }
 
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ossia::value& n)
 {
-    writeTo(n.v);
+    writeTo((ossia::value_variant_type&)n.v);
 }
 
 template<>
