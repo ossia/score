@@ -1,27 +1,33 @@
 #pragma once
 #include <State/Value.hpp>
+
 #include <iscore/widgets/SignalUtils.hpp>
+#include <ossia/network/domain/domain.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 #include <QDoubleSpinBox>
 #include <QWidget>
+#include <QLabel>
 #include <QHBoxLayout>
 
 namespace State
 {
-struct ISCORE_LIB_STATE_EXPORT IChanged
+struct ISCORE_LIB_STATE_EXPORT VecEditBase : public QWidget
 {
+        Q_OBJECT
     public:
-        virtual void changed() = 0;
-        virtual ~IChanged() = default;
+        using QWidget::QWidget;
+
+    signals:
+        void changed();
 };
 
 template<std::size_t N>
-class ISCORE_LIB_STATE_EXPORT VecEdit :
-        public QWidget,
-        public IChanged
+class ISCORE_LIB_STATE_EXPORT VecWidget :
+        public VecEditBase
 {
     public:
-    VecEdit(QWidget* parent):
-        QWidget{parent}
+    VecWidget(QWidget* parent):
+        VecEditBase{parent}
     {
         auto lay = new QHBoxLayout;
         this->setLayout(lay);
@@ -49,7 +55,7 @@ class ISCORE_LIB_STATE_EXPORT VecEdit :
         }
     }
 
-    State::vec3f value() const
+    std::array<float, N> value() const
     {
         std::array<float, N> v;
         for(std::size_t i = 0; i < N; i++)
@@ -63,31 +69,64 @@ class ISCORE_LIB_STATE_EXPORT VecEdit :
         std::array<QDoubleSpinBox*, N> m_boxes;
 };
 
-class ISCORE_LIB_STATE_EXPORT Vec2DEdit final : public VecEdit<2>
+using Vec2DEdit = VecWidget<2>;
+using Vec3DEdit = VecWidget<3>;
+using Vec4DEdit = VecWidget<4>;
+
+
+template<std::size_t N>
+class ISCORE_LIB_STATE_EXPORT VecDomainWidget : public QWidget
 {
-        Q_OBJECT
     public:
-        using VecEdit<2>::VecEdit;
-        virtual ~Vec2DEdit() = default;
-    signals:
-        void changed() override;
-};
-class ISCORE_LIB_STATE_EXPORT Vec3DEdit final : public VecEdit<3>
-{
-        Q_OBJECT
-    public:
-        using VecEdit<3>::VecEdit;
-        virtual ~Vec3DEdit() = default;
-    signals:
-        void changed() override;
-};
-class ISCORE_LIB_STATE_EXPORT Vec4DEdit final : public VecEdit<4>
-{
-        Q_OBJECT
-    public:
-        using VecEdit<4>::VecEdit;
-        virtual ~Vec4DEdit() = default;
-    signals:
-        void changed() override;
+        using domain_type = ossia::net::domain_base<ossia::Vec<float, N>>;
+        using set_type = boost::container::flat_set<ossia::Vec<float, N>>;
+
+        VecDomainWidget(QWidget* parent):
+            QWidget{parent}
+        {
+            auto lay = new iscore::MarginLess<QHBoxLayout>{this};
+            this->setLayout(lay);
+
+            auto min_l = new QLabel{tr("Min"), this};
+            min_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+            m_min = new VecWidget<N>{this};
+            auto max_l = new QLabel{tr("Max"), this};
+            max_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+            m_max = new VecWidget<N>{this};
+            lay->addWidget(min_l);
+            lay->addWidget(m_min);
+            lay->addWidget(max_l);
+            lay->addWidget(m_max);
+        }
+
+        domain_type domain() const
+        {
+            domain_type dom;
+
+            dom.min = m_min->value();
+            dom.max = m_max->value();
+
+            return dom;
+        }
+
+        void setDomain(ossia::net::domain dom_base)
+        {
+            m_min->setValue({0, 0, 0});
+            m_max->setValue({1, 1, 1});
+
+            if(auto dom_p = dom_base.target<domain_type>())
+            {
+                auto& dom = *dom_p;
+
+                if(dom.min)
+                    m_min->setValue(*dom.min);
+                if(dom.max)
+                    m_max->setValue(*dom.max);
+            }
+        }
+
+    private:
+        VecWidget<N>* m_min{};
+        VecWidget<N>* m_max{};
 };
 }

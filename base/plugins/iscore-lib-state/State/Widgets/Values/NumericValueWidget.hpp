@@ -170,7 +170,7 @@ class ISCORE_LIB_STATE_EXPORT NumericDomainWidget final : public QWidget
 
         domain_type domain() const
         {
-            ossia::net::domain_base<T> dom;
+            domain_type dom;
 
             dom.min = m_min->value();
             dom.max = m_max->value();
@@ -185,7 +185,7 @@ class ISCORE_LIB_STATE_EXPORT NumericDomainWidget final : public QWidget
             m_min->setValue(0);
             m_max->setValue(100);
 
-            if(auto dom_p = dom_base.target<ossia::net::domain_base<T>>())
+            if(auto dom_p = dom_base.target<domain_type>())
             {
                 auto& dom = *dom_p;
 
