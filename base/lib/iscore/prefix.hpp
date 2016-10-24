@@ -4,7 +4,7 @@
 #pragma GCC system_header
 #pragma clang system_header
 
-/////////
+//////////
 #include <QSize>
 #include <QComboBox>
 #include <QAbstractItemModel>
