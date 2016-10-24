@@ -5,6 +5,9 @@
 #include <iscore/widgets/SpinBoxes.hpp>
 
 #include <QGridLayout>
+
+namespace State
+{
 template<typename T>
 class NumericValueWidget : public State::ValueWidget
 {
@@ -28,3 +31,4 @@ class NumericValueWidget : public State::ValueWidget
     private:
         typename iscore::TemplatedSpinBox<T>::spinbox_type* m_valueSBox;
 };
+}

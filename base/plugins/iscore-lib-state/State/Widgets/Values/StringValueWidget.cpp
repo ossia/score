@@ -7,6 +7,8 @@
 
 class QWidget;
 
+namespace State
+{
 StringValueWidget::StringValueWidget(const QString &value, QWidget *parent)
     : ValueWidget{parent}
 {
@@ -19,4 +21,5 @@ StringValueWidget::StringValueWidget(const QString &value, QWidget *parent)
 State::Value StringValueWidget::value() const
 {
     return State::Value{m_value->text()};
+}
 }

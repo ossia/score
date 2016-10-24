@@ -7,6 +7,8 @@
 class QLineEdit;
 class QWidget;
 
+namespace State
+{
 class ISCORE_LIB_STATE_EXPORT  StringValueWidget : public State::ValueWidget
 {
     public:
@@ -17,3 +19,4 @@ class ISCORE_LIB_STATE_EXPORT  StringValueWidget : public State::ValueWidget
     private:
         QLineEdit* m_value;
 };
+}

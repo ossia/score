@@ -5,6 +5,8 @@
 class QComboBox;
 class QWidget;
 
+namespace State
+{
 class ISCORE_LIB_STATE_EXPORT  BoolValueWidget : public State::ValueWidget
 {
     public:
@@ -15,3 +17,4 @@ class ISCORE_LIB_STATE_EXPORT  BoolValueWidget : public State::ValueWidget
     private:
         QComboBox* m_value;
 };
+}

@@ -6,6 +6,11 @@
 class QLineEdit;
 class QWidget;
 
+namespace State
+{
+class CharValueWidget;
+class CharDomainWidget;
+}
 namespace Explorer
 {
 class AddressCharSettingsWidget final : public AddressSettingsWidget
@@ -18,7 +23,8 @@ class AddressCharSettingsWidget final : public AddressSettingsWidget
         Device::AddressSettings getDefaultSettings() const override;
 
     protected:
-        QLineEdit* m_valueEdit;
+        State::CharValueWidget* m_valueEdit{};
+        State::CharDomainWidget* m_domainEdit{};
 
 };
 }
