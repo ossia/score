@@ -17,7 +17,7 @@
 #include <string>
 namespace iscore
 {
-struct ApplicationComponents;
+class ApplicationComponents;
 }
 
 template<typename T>
