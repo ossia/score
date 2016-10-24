@@ -59,7 +59,7 @@ void TypeAndValueWidget::on_typeChanged(State::Value val, State::ValueType t)
             m_val->setWidget(new BoolValueWidget(State::convert::value<bool>(val), this));
             break;
         case State::ValueType::String:
-            m_val->setWidget(new StringValueWidget(State::convert::value<QString>(val), this));
+            m_val->setWidget(new StringValueWidget(State::convert::value<std::string>(val), this));
             break;
         case State::ValueType::Char:
             // TODO here a bug might be introduced : everywhere the char are utf8 while here it's latin1.

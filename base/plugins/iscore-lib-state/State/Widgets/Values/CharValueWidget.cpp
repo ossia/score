@@ -9,6 +9,8 @@
 #include <QDialogButtonBox>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 
 namespace State
 {
