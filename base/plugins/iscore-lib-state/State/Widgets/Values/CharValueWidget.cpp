@@ -6,6 +6,9 @@
 
 #include "CharValueWidget.hpp"
 #include <State/Widgets/Values/ValueWidget.hpp>
+#include <QDialogButtonBox>
+#include <QLineEdit>
+#include <QPushButton>
 
 namespace State
 {
@@ -33,6 +36,8 @@ State::Value CharValueWidget::value() const
     auto txt = m_value->text();
     return State::Value{txt.length() > 0 ? txt[0] : QChar{}};
 }
+
+
 
 CharValueSetDialog::CharValueSetDialog(QWidget *parent):
     QDialog{parent}
