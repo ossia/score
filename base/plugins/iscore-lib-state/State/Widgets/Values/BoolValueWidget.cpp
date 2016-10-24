@@ -7,8 +7,8 @@
 #include "BoolValueWidget.hpp"
 #include <State/Widgets/Values/ValueWidget.hpp>
 
-class QWidget;
-
+namespace State
+{
 BoolValueWidget::BoolValueWidget(bool value, QWidget *parent)
     : ValueWidget{parent}
 {
@@ -23,4 +23,5 @@ BoolValueWidget::BoolValueWidget(bool value, QWidget *parent)
 State::Value BoolValueWidget::value() const
 {
     return State::Value{bool(m_value->currentIndex())};
+}
 }
