@@ -6,6 +6,10 @@
 class QLineEdit;
 class QWidget;
 
+namespace State
+{
+class StringValueSetDialog;
+}
 namespace Explorer
 {
 class AddressStringSettingsWidget final : public AddressSettingsWidget
@@ -19,6 +23,7 @@ class AddressStringSettingsWidget final : public AddressSettingsWidget
 
     protected:
         QLineEdit* m_valueEdit;
+        State::StringValueSetDialog* m_values{};
 
 };
 }
