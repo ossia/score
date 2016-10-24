@@ -1,6 +1,6 @@
 #include <QFormLayout>
 #include <QLineEdit>
-
+#include <QPushButton>
 #include <QString>
 
 #include "AddressStringSettingsWidget.hpp"

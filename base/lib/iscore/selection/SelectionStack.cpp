@@ -4,7 +4,7 @@
 #include <QPointer>
 #include <QVector>
 #include <algorithm>
-
+#include <iscore/tools/Todo.hpp>
 #include "SelectionStack.hpp"
 #include <iscore/selection/Selection.hpp>
 
