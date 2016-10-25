@@ -14,8 +14,7 @@
 #include "ScenarioGlobalCommandManager.hpp"
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
-#include <iscore/tools/utilsCPP11.hpp>
+#include <iscore/tools/EntityMap.hpp>
 
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeNodes.hpp>
@@ -38,7 +37,7 @@ void Scenario::clearContentFromSelection(
     // 2. Create a Clear command for each.
     for(auto& constraint : constraintsToRemove)
     {
-        cleaner.submitCommand(new ClearConstraint(path(*constraint)));
+        cleaner.submitCommand(new ClearConstraint(*constraint));
     }
 
     for(auto& state : statesToRemove)
@@ -82,6 +81,7 @@ void Scenario::clearContentFromSelection(
     ISCORE_TODO;
 }
 
+// MOVEME : these are useful.
 template<typename T>
 struct DateComparator
 {

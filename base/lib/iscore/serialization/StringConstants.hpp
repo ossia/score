@@ -36,6 +36,7 @@ struct StringConstants
         const QString ioType;
         const QString ClipMode;
         const QString Unit;
+        const QString unit;
         const QString RepetitionFilter;
         const QString RefreshRate;
         const QString Priority;
@@ -60,6 +61,7 @@ struct StringConstants
         const QString Label;
         const QString Extended;
         const QString uuid;
+        const QString Description;
 };
 
 ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant();

@@ -89,7 +89,7 @@ static void RemoveProcessBeforeState(StateModel& statemodel, const Process::Proc
     updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Previous);
     statemodel.messages() = std::move(node);
 
-    auto it = find_if(statemodel.previousProcesses(), [&] (const auto& elt) {
+    auto it = ossia::find_if(statemodel.previousProcesses(), [&] (const auto& elt) {
         return state->id() == elt.process().id();
     });
 
@@ -108,7 +108,7 @@ static void RemoveProcessAfterState(StateModel& statemodel, const Process::Proce
     updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Following);
     statemodel.messages() = std::move(node);
 
-    auto it = find_if(statemodel.followingProcesses(), [&] (const auto& elt) {
+    auto it = ossia::find_if(statemodel.followingProcesses(), [&] (const auto& elt) {
         return state->id() == elt.process().id();
     });
 
@@ -168,7 +168,7 @@ void SetNoPreviousConstraint(StateModel& state)
         state.messages() = std::move(node);
 
         state.previousProcesses().clear();
-        state.setPreviousConstraint(Id<ConstraintModel>{});
+        state.setPreviousConstraint(OptionalId<ConstraintModel>{});
     }
 }
 
@@ -181,7 +181,7 @@ void SetNoNextConstraint(StateModel& state)
         state.messages() = std::move(node);
 
         state.followingProcesses().clear();
-        state.setNextConstraint(Id<ConstraintModel>{});
+        state.setNextConstraint(OptionalId<ConstraintModel>{});
     }
 }
 }

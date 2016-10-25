@@ -11,6 +11,9 @@ class ISCORE_LIB_PROCESS_EXPORT StateProcessList final :
     public:
         using object_type = Process::StateProcess;
         ~StateProcessList();
+        object_type* loadMissing(
+                const VisitorVariant& vis,
+                QObject* parent) const;
 };
 
 }

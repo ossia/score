@@ -47,7 +47,7 @@ SegmentModel::~SegmentModel()
 
 
 
-void SegmentModel::setPrevious(const Id<SegmentModel>& previous)
+void SegmentModel::setPrevious(const OptionalId<SegmentModel>& previous)
 {
     if(previous != m_previous)
     {
@@ -61,7 +61,7 @@ void SegmentModel::setVerticalParameter(double p)
 
 }
 
-void SegmentModel::setFollowing(const Id<SegmentModel>& following)
+void SegmentModel::setFollowing(const OptionalId<SegmentModel>& following)
 {
     if(following != m_following)
     {

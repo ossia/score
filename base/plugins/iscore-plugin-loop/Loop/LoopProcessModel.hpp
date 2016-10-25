@@ -16,7 +16,6 @@
 class DataStream;
 class JSONObject;
 namespace Process { class LayerModel; }
-class ProcessStateDataInterface;
 class QObject;
 namespace Scenario
 {

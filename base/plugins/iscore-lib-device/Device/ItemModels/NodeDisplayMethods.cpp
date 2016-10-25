@@ -11,7 +11,54 @@
 #include "NodeDisplayMethods.hpp"
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 
+namespace ossia
+{
+
+// TODO MOVEME
+template<>
+QVariant convert(const ossia::value& val)
+{
+    struct vis {
+        public:
+            using return_type = QVariant;
+            return_type operator()(const ossia::Impulse& v) const { return QVariant::fromValue(v); }
+            return_type operator()(int i) const { return QVariant::fromValue(i); }
+            return_type operator()(float f) const { return QVariant::fromValue(f); }
+            return_type operator()(bool b) const { return QVariant::fromValue(b); }
+            return_type operator()(const std::string& s) const { return QString::fromStdString(s); }
+            return_type operator()(char c) const { return QVariant::fromValue(QChar(c)); }
+
+            return_type operator()(ossia::Vec2f t) const { return QVector2D{t[0], t[1]}; }
+            return_type operator()(ossia::Vec3f t) const { return QVector3D{t[0], t[1], t[2]}; }
+            return_type operator()(ossia::Vec4f t) const { return QVector4D{t[0], t[1], t[2], t[3]}; }
+            return_type operator()(const ossia::Tuple& t) const
+            {
+                QVariantList arr;
+                arr.reserve(t.size());
+
+                for(const auto& elt : t)
+                {
+                    arr.push_back(eggs::variants::apply(*this, elt.v));
+                }
+
+                return arr;
+            }
+
+            return_type operator()(const ossia::Destination& t) const
+            {
+              return {};
+            }
+            return_type operator()() const
+            {
+              return {};
+            }
+    };
+
+    return val.apply(vis{});
+}
+}
 namespace Device
 {
 // TODO boost::visitor ?
@@ -76,8 +123,8 @@ QVariant valueColumnData(const Device::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        const auto& val = node.get<AddressSettings>().value;
-        if(val.val.is<State::tuple_t>())
+        const State::Value& val = node.get<AddressSettings>().value;
+        if(val.val.isArray())
         {
             // TODO a nice editor for tuples.
             return State::convert::toPrettyString(val);
@@ -86,7 +133,6 @@ QVariant valueColumnData(const Device::Node& node, int role)
         {
             return State::convert::value<QVariant>(val);
         }
-
     }
     else if(role == Qt::ForegroundRole)
     {
@@ -182,7 +228,7 @@ QVariant minColumnData(const Device::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return State::convert::value<QVariant>(node.get<AddressSettings>().domain.min);
+        return node.get<AddressSettings>().domain.convert_min<QVariant>();
     }
 
     return {};
@@ -196,7 +242,7 @@ QVariant maxColumnData(const Device::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return State::convert::value<QVariant>(node.get<AddressSettings>().domain.max);
+      return node.get<AddressSettings>().domain.convert_max<QVariant>();
     }
 
     return {};

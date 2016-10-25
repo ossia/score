@@ -26,6 +26,46 @@ struct ISCORE_LIB_STATE_EXPORT Relation
             None
         } ;
 
+        Relation() noexcept = default;
+        Relation(const Relation& other) noexcept:
+            lhs{other.lhs},
+            op{other.op},
+            rhs{other.rhs}
+        {
+
+        }
+
+        Relation(Relation&& other) noexcept:
+            lhs{std::move(other.lhs)},
+            op{other.op},
+            rhs{std::move(other.rhs)}
+        {
+
+        }
+
+        Relation& operator=(const Relation& other) noexcept
+        {
+            lhs = other.lhs;
+            op = other.op;
+            rhs = other.rhs;
+            return *this;
+        }
+        Relation& operator=(Relation&& other) noexcept
+        {
+            lhs = std::move(other.lhs);
+            op = other.op;
+            rhs = std::move(other.rhs);
+            return *this;
+        }
+
+        Relation(RelationMember l, Comparator o, RelationMember r):
+            lhs{std::move(l)},
+            op{o},
+            rhs{std::move(r)}
+        {
+
+        }
+
         RelationMember lhs;
         Comparator op;
         RelationMember rhs;
@@ -40,6 +80,12 @@ ISCORE_LIB_STATE_EXPORT QString toString(const Relation&);
 
 struct ISCORE_LIB_STATE_EXPORT Pulse
 {
+        Pulse() noexcept = default;
+        Pulse(const Pulse&) noexcept = default;
+        Pulse(Pulse&&) noexcept = default;
+        Pulse& operator=(const Pulse&) noexcept = default;
+        Pulse& operator=(Pulse&&) noexcept = default;
+
         State::Address address;
 
         friend bool operator==(const Pulse& lhs, const Pulse& rhs)

@@ -51,6 +51,7 @@
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
 #include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
 
+#include <State/Unit.hpp>
 iscore_plugin_scenario::iscore_plugin_scenario()
 {
     using namespace Scenario;
@@ -71,6 +72,15 @@ iscore_plugin_scenario::iscore_plugin_scenario()
 
     qRegisterMetaType<Path<Scenario::ConstraintModel>>();
     qRegisterMetaType<Id<Process::ProcessModel>>();
+
+    qRegisterMetaType<Scenario::OffsetBehavior>();
+    qRegisterMetaTypeStreamOperators<Scenario::OffsetBehavior>();
+
+    qRegisterMetaType<ossia::unit_t>();
+    qRegisterMetaTypeStreamOperators<ossia::unit_t>();
+    qRegisterMetaTypeStreamOperators<State::vec2f>();
+    qRegisterMetaTypeStreamOperators<State::vec3f>();
+    qRegisterMetaTypeStreamOperators<State::vec4f>();
 }
 
 iscore_plugin_scenario::~iscore_plugin_scenario() = default;
@@ -87,8 +97,9 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
     using namespace Scenario;
     using namespace Scenario::Command;
     return make_ptr_vector<iscore::FactoryListInterface,
-            Process::ProcessList,
+            Process::ProcessFactoryList,
             Process::StateProcessList,
+            Process::LayerFactoryList,
             MoveEventList,
             CSPCoherencyCheckerList,
             ConstraintInspectorDelegateFactoryList,
@@ -103,13 +114,13 @@ std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_scenari
 }
 
 template<>
-struct FactoryBuilder<iscore::ApplicationContext, Scenario::ScenarioFactory>
+struct FactoryBuilder<iscore::ApplicationContext, Scenario::ScenarioTemporalLayerFactory>
 {
         static auto make(const iscore::ApplicationContext& ctx)
         {
             using namespace Scenario;
             auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
-            return std::make_unique<ScenarioFactory>(appPlugin.editionSettings());
+            return std::make_unique<ScenarioTemporalLayerFactory>(appPlugin.editionSettings());
         }
 };
 
@@ -122,8 +133,10 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_scenari
     return instantiate_factories<
             iscore::ApplicationContext,
     TL<
-    FW<Process::ProcessFactory,
+    FW<Process::ProcessModelFactory,
         ScenarioFactory>,
+   FW<Process::LayerFactory,
+        ScenarioTemporalLayerFactory>,
     FW<MoveEventFactoryInterface,
         MoveEventClassicFactory>,
     FW<Process::InspectorWidgetDelegateFactory,

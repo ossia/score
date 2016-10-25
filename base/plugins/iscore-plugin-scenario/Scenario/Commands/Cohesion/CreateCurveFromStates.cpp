@@ -21,24 +21,18 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-
-namespace Process { class LayerModel; }
-namespace State {
-struct Address;
-}  // namespace iscore
 
 namespace Scenario
 {
-class SlotModel;
 namespace Command
 {
 CreateAutomationFromStates::CreateAutomationFromStates(
         const ConstraintModel& constraint,
         const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel> > >& slotList,
         Id<Process::ProcessModel> curveId,
-        State::Address address,
+        State::AddressAccessor address,
         double start,
         double end,
         double min,
@@ -102,7 +96,7 @@ CreateInterpolationFromStates::CreateInterpolationFromStates(
         const ConstraintModel& constraint,
         const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel> > >& slotList,
         Id<Process::ProcessModel> curveId,
-        State::Address address,
+        State::AddressAccessor address,
         State::Value start, State::Value end):
     CreateProcessAndLayers<Interpolation::ProcessModel>{
         constraint,

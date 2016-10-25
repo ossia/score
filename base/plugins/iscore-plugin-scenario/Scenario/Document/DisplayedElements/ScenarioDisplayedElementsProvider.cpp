@@ -7,7 +7,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include "ScenarioDisplayedElementsProvider.hpp"
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>

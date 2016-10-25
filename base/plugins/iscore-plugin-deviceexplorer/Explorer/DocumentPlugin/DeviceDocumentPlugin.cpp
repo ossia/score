@@ -37,8 +37,9 @@ namespace Explorer
 {
 DeviceDocumentPlugin::DeviceDocumentPlugin(
         const iscore::DocumentContext& ctx,
+        Id<DocumentPlugin> id,
         QObject* parent):
-    iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
+    iscore::SerializableDocumentPlugin{ctx, std::move(id), "Explorer::DeviceDocumentPlugin", parent}
 {
     m_explorer = new DeviceExplorerModel{*this, this};
 }
@@ -55,35 +56,6 @@ struct print_node_rec
             }
         }
 };
-
-DeviceDocumentPlugin::DeviceDocumentPlugin(
-        const iscore::DocumentContext& ctx,
-        const VisitorVariant& vis,
-        QObject* parent):
-    iscore::SerializableDocumentPlugin{ctx, "Explorer::DeviceDocumentPlugin", parent}
-{
-    deserialize_dyn(vis, *this);
-    m_explorer = new DeviceExplorerModel{*this, this};
-    // Here everything is loaded in m_loadingNode
-
-    // Here we recreate the correct structures in term of devices,
-    // given what's present in the node hierarchy
-    for(const auto& node : m_loadingNode)
-    {
-        updateProxy.loadDevice(node);
-    }
-    m_loadingNode = Device::Node{};
-}
-
-void DeviceDocumentPlugin::serialize_impl(const VisitorVariant& vis) const
-{
-    serialize_dyn(vis, *this);
-}
-
-auto DeviceDocumentPlugin::concreteFactoryKey() const -> ConcreteFactoryKey
-{
-    return DocumentPluginFactory::static_concreteFactoryKey();
-}
 
 Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & node)
 {
@@ -171,7 +143,7 @@ void DeviceDocumentPlugin::setConnection(bool b)
                 dev.reconnect();
             if(dev.capabilities().canSerialize)
             {
-                auto it = find_if(m_rootNode, [&] (const Device::Node& dev_node) {
+                auto it = ossia::find_if(m_rootNode, [&] (const Device::Node& dev_node) {
                     return dev_node.template get<Device::DeviceSettings>().name == dev.settings().name;
                 });
 
@@ -203,7 +175,7 @@ void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
 {
     con(newdev, &Device::DeviceInterface::valueUpdated,
         this, [&] (const State::Address& addr, const State::Value& v) {
-        updateProxy.updateLocalValue(addr, v);
+        updateProxy.updateLocalValue(State::AddressAccessor{addr}, v);
     });
 
     con(newdev, &Device::DeviceInterface::pathAdded,

@@ -19,7 +19,16 @@
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
-
+namespace Process
+{
+static QStringList toStringList(const State::AddressAccessor& addr)
+{
+    QStringList l;
+    l += addr.address.device;
+    l += addr.address.path;
+    return l;
+}
+}
 static bool removable(const Process::MessageNode& node)
 { return node.values.empty() && !node.hasChildren(); }
 
@@ -43,16 +52,18 @@ static bool match(Process::MessageNode& node, const State::Message& mess)
 {
     Process::MessageNode* n = &node;
 
-    auto path = Process::toStringList(mess.address);
+    QStringList path = Process::toStringList(mess.address);
     std::reverse(path.begin(), path.end());
     int i = 0;
     int imax = path.size();
     while(n->parent() && i < imax)
     {
-        if(n->name == path.at(i))
+        if(n->name.name == path.at(i))
         {
-            if(i == imax - 1 && !n->parent()->parent())
+            if(i == imax - 1 && !n->parent()->parent() && mess.address.qualifiers == n->name.qualifiers)
+            {
                 return true;
+            }
 
             i++;
             n = n->parent();
@@ -70,7 +81,7 @@ static void updateNode(
         const State::Value& val,
         const Id<Process::ProcessModel>& proc)
 {
-    auto it = find_if(vec, [&] (auto& data) { return data.process == proc; });
+    auto it = ossia::find_if(vec, [&] (auto& data) { return data.process == proc; });
     if(it != vec.end())
     {
         it->value = val;
@@ -112,7 +123,7 @@ static bool nodePruneAction_impl(
     {
         // We just remove the element
         // corresponding to this process.
-        auto it = find_if(vec,
+        auto it = ossia::find_if(vec,
                       [&] (const auto& data) {
             return data.process == proc;
         });
@@ -243,16 +254,16 @@ static void rec_updateTree(
 template<typename MergeFun>
 static void merge_impl(
         Process::MessageNode& base,
-        const State::Address& addr,
+        const State::AddressAccessor& addr,
         MergeFun merge)
 {
     QStringList path = Process::toStringList(addr);
+    const auto path_n = path.size();
 
     ptr<Process::MessageNode> node = &base;
-    for(int i = 0; i < path.size(); i++)
+    for(int i = 0; i < path_n; i++)
     {
-        auto it = std::find_if(
-                    node->begin(), node->end(),
+        auto it = ossia::find_if(*node,
                     [&] (const auto& cur_node) {
             return cur_node.displayName() == path[i];
         });
@@ -261,14 +272,14 @@ static void merge_impl(
         {
             // We have to start adding sub-nodes from here.
             ptr<Process::MessageNode> parentnode{node};
-            for(int k = i; k < path.size(); k++)
+            for(int k = i; k < path_n; k++)
             {
                 ptr<Process::MessageNode> newNode;
-                if(k < path.size() - 1)
+                if(k < path_n - 1)
                 {
                     newNode = &parentnode->emplace_back(
                                 Process::StateNodeData{
-                                    path[k],
+                                    {path[k], {}},
                                     {}},
                                 nullptr);
                 }
@@ -278,7 +289,7 @@ static void merge_impl(
                     merge(v);
                     newNode = &parentnode->emplace_back(
                                 Process::StateNodeData{
-                                    path[k],
+                                    {path[k], addr.qualifiers},
                                     std::move(v)},
                                 nullptr);
                 }
@@ -505,7 +516,7 @@ static bool rec_cleanup(
         }
     }
 
-    auto remove_it = remove_if(node,
+    auto remove_it = ossia::remove_if(node,
                                [&] (const auto& child) {
         return toRemove.find(&child) != toRemove.end();
     });

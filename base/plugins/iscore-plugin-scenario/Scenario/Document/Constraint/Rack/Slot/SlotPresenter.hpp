@@ -15,7 +15,8 @@ class QObject;
 namespace Process
 {
 struct ProcessPresenterContext;
-class ProcessList;
+class ProcessFactoryList;
+class LayerFactoryList;
 class LayerView;
 class LayerModel;
 class LayerPresenter;
@@ -99,7 +100,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final :
         void updateProcessShape(const SlotProcessData&);
         void updateProcessesShape();
 
-        const Process::ProcessList& m_processList;
+        const Process::LayerFactoryList& m_processList;
         const SlotModel& m_model;
         graphics_item_ptr<SlotView> m_view;
         std::vector<SlotProcessData> m_processes;

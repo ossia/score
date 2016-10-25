@@ -22,7 +22,7 @@ class InspectorWidgetList;
 namespace Process
 {
 class ProcessModel;
-class ProcessList;
+class ProcessFactoryList;
 }
 class QObject;
 class QWidget;
@@ -54,7 +54,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final :
     public:
         explicit ConstraintInspectorWidget(
                 const Inspector::InspectorWidgetList& list,
-                const Process::ProcessList& pl,
+                const Process::ProcessFactoryList& pl,
                 const ConstraintModel& object,
                 std::unique_ptr<ConstraintInspectorDelegate> del,
                 const iscore::DocumentContext& context,
@@ -67,7 +67,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final :
         const Inspector::InspectorWidgetList& widgetList() const
         { return m_widgetList; }
 
-         const Process::ProcessList& processList() const { return m_processList; }
+         const Process::ProcessFactoryList& processList() const { return m_processList; }
 
     private:
         QString tabName() override;
@@ -88,7 +88,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorWidget final :
         QWidget* makeStatesWidget(Scenario::ScenarioInterface*);
 
         const Inspector::InspectorWidgetList& m_widgetList;
-        const Process::ProcessList& m_processList;
+        const Process::ProcessFactoryList& m_processList;
         const ConstraintModel& m_model;
 
         //InspectorSectionWidget* m_eventsSection {};

@@ -38,8 +38,10 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_loop::f
     return instantiate_factories<
             iscore::ApplicationContext,
             TL<
-            FW<Process::ProcessFactory,
+            FW<Process::ProcessModelFactory,
                 Loop::ProcessFactory>,
+            FW<Process::LayerFactory,
+                Loop::LayerFactory>,
             FW<Process::InspectorWidgetDelegateFactory,
                 Loop::InspectorFactory>,
             FW<ConstraintInspectorDelegateFactory,

@@ -2,12 +2,14 @@
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/plugins/panel/PanelDelegateFactory.hpp>
 class QListWidget;
+class QListView;
 namespace Device
 {
 class DeviceList;
 }
 namespace Engine
 {
+class LogMessagesItemModel;
 class PanelDelegate final :
         public QObject,
         public iscore::PanelDelegate
@@ -29,7 +31,8 @@ class PanelDelegate final :
         void setupConnections(Device::DeviceList&);
         Device::DeviceList* getDeviceList(iscore::MaybeDocument);
 
-        QListWidget *m_widget{};
+        LogMessagesItemModel* m_itemModel{};
+        QListView* m_widget{};
 
         QMetaObject::Connection m_inbound, m_outbound, m_visible;
 };

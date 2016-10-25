@@ -2,12 +2,14 @@
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <iscore/command/PropertyCommand.hpp>
 
+#include <State/Unit.hpp>
+
 namespace Automation
 {
 class ProcessModel;
 class SetMax final : public iscore::PropertyCommand
 {
-        ISCORE_COMMAND_DECL(CommandFactoryName(), SetMax, "Set curve maximum")
+        ISCORE_COMMAND_DECL(CommandFactoryName(), SetMax, "Set automation maximum")
         public:
 
         SetMax(Path<ProcessModel>&& path, double newval):
@@ -20,7 +22,7 @@ class SetMax final : public iscore::PropertyCommand
 // MOVEME
 class SetTween final : public iscore::PropertyCommand
 {
-        ISCORE_COMMAND_DECL(CommandFactoryName(), SetTween, "Set curve tween")
+        ISCORE_COMMAND_DECL(CommandFactoryName(), SetTween, "Set automation tween")
         public:
 
         SetTween(Path<ProcessModel>&& path, bool newval):
@@ -29,4 +31,17 @@ class SetTween final : public iscore::PropertyCommand
 
         }
 };
+
+class SetUnit final : public iscore::PropertyCommand
+{
+        ISCORE_COMMAND_DECL(CommandFactoryName(), SetUnit, "Set automation unit")
+        public:
+
+        SetUnit(Path<ProcessModel>&& path, ossia::unit_t newval):
+            iscore::PropertyCommand{std::move(path), "unit", QVariant::fromValue(newval)}
+        {
+
+        }
+};
+
 }

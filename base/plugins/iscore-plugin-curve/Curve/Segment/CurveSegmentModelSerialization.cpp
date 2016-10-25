@@ -37,7 +37,7 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
              << segmt.previous << segmt.following
              << segmt.type;
 
-    auto& csl = context.components.factory<Curve::SegmentList>();
+    auto& csl = components.factory<Curve::SegmentList>();
     auto segmt_fact = csl.get(segmt.type);
 
     ISCORE_ASSERT(segmt_fact);
@@ -55,7 +55,7 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
              >> segmt.previous >> segmt.following
              >> segmt.type;
 
-    auto& csl = context.components.factory<Curve::SegmentList>();
+    auto& csl = components.factory<Curve::SegmentList>();
     auto segmt_fact = csl.get(segmt.type);
     ISCORE_ASSERT(segmt_fact);
     segmt.specificSegmentData = segmt_fact->makeCurveSegmentData(this->toVariant());
@@ -108,8 +108,8 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
         Curve::SegmentModel& segmt)
 {
     using namespace Curve;
-    segmt.m_previous = fromJsonValue<Id<SegmentModel>>(m_obj[strings.Previous]);
-    segmt.m_following = fromJsonValue<Id<SegmentModel>>(m_obj[strings.Following]);
+    segmt.m_previous = fromJsonValue<OptionalId<SegmentModel>>(m_obj[strings.Previous]);
+    segmt.m_following = fromJsonValue<OptionalId<SegmentModel>>(m_obj[strings.Following]);
     segmt.m_start = fromJsonValue<Curve::Point>(m_obj[strings.Start]);
     segmt.m_end = fromJsonValue<Curve::Point>(m_obj[strings.End]);
 }

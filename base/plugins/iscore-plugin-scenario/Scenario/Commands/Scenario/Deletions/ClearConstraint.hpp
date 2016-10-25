@@ -6,7 +6,7 @@
 #include <QByteArray>
 #include <QMap>
 #include <QVector>
-
+#include <Scenario/Tools/dataStructures.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
@@ -29,7 +29,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ClearConstraint final : public iscore::Seria
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "Clear a constraint")
         public:
-            ClearConstraint(Path<ConstraintModel>&& constraintPath);
+            ClearConstraint(const ConstraintModel& constraintPath);
         void undo() const override;
         void redo() const override;
 
@@ -38,12 +38,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ClearConstraint final : public iscore::Seria
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<ConstraintModel> m_path;
-
-        QVector<QByteArray> m_serializedRackes;
-        QVector<QByteArray> m_serializedProcesses;
-
-        QMap<Id<ConstraintViewModel>, Id<RackModel>> m_rackMappings;
+        ConstraintSaveData m_constraintSaveData;
 };
 }
 }

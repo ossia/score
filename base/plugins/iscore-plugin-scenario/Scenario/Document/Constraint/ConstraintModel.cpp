@@ -31,7 +31,7 @@ ConstraintModel::ConstraintModel(
 {
     initConnections();
     setupConstraintViewModel(m_fullViewModel);
-    metadata().setName(QString("Constraint.%1").arg(*this->id().val()));
+    metadata().setInstanceName(*this);
     metadata().setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
     setHeightPercentage(yPos);
 }
@@ -46,6 +46,7 @@ ConstraintModel::ConstraintModel(
         QObject* parent):
     Entity{source, id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent}
 {
+    metadata().setInstanceName(*this);
     initConnections();
     // It is not necessary to save modelconsistency because it should be recomputed
 
@@ -70,7 +71,7 @@ ConstraintModel::ConstraintModel(
         // We don't need to resize them since the new constraint will have the same duration.
     }
 
-    auto& procs = iscore::AppContext().components.factory<Process::ProcessList>();
+    auto& procs = iscore::AppContext().components.factory<Process::LayerFactoryList>();
     for(const auto& rack : source.racks)
     {
         racks.add(new RackModel {
@@ -82,7 +83,7 @@ ConstraintModel::ConstraintModel(
                    {
                        // We can safely reuse the same id since it's in a different slot.
                        auto proc = processPairs[&lm.processModel()];
-                       auto fact = procs.get(proc->concreteFactoryKey());
+                       auto fact = procs.findDefaultFactory(proc->concreteFactoryKey());
                        // TODO harmonize the order of parameters (source first, then new id)
                        target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
                    }

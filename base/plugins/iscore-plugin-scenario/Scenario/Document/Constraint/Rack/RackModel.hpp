@@ -4,7 +4,7 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QList>
 #include <QObject>
@@ -68,7 +68,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final :
         const QList<Id<SlotModel>>& slotsPositions() const
         { return m_positions; }
 
-        NotifyingMap<SlotModel> slotmodels;
+        EntityMap<SlotModel> slotmodels;
     signals:
         void slotPositionsChanged();
 
@@ -85,3 +85,4 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT RackModel final :
 }
 DEFAULT_MODEL_METADATA(Scenario::RackModel, "Rack")
 Q_DECLARE_METATYPE(Id<Scenario::RackModel>)
+TR_TEXT_METADATA(, Scenario::RackModel, PrettyName_k, "Rack")

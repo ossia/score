@@ -20,7 +20,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
 namespace Scenario
@@ -56,11 +56,19 @@ void RemoveProcessFromConstraint::undo() const
 {
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedProcessData};
-    auto& fact = context.components.factory<Process::ProcessList>();
-    AddProcess(constraint, deserialize_interface(fact, s, &constraint));
-
+    auto& fact = context.components.factory<Process::ProcessFactoryList>();
+    auto proc = deserialize_interface(fact, s, &constraint);
+    if(proc)
+    {
+        AddProcess(constraint, proc);
+    }
+    else
+    {
+        ISCORE_TODO;
+        return;
+    }
     // Restore the view models
-    auto& processes = context.components.factory<Process::ProcessList>();
+    auto& layers = context.components.factory<Process::LayerFactoryList>();
     for(const auto& it : m_serializedViewModels)
     {
         const auto& path = it.first.unsafePath().vec();
@@ -70,11 +78,12 @@ void RemoveProcessFromConstraint::undo() const
                 .slotmodels.at(Id<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> stream {it.second};
-        auto lm = Process::createLayerModel(
-                                   processes, stream,
-                                   slot.parentConstraint(),
-                                   &slot);
-        slot.layers.add(lm);
+        auto lm = deserialize_interface(
+                                   layers, stream, &slot);
+        if(lm)
+            slot.layers.add(lm);
+        else
+            ISCORE_TODO;
     }
 }
 

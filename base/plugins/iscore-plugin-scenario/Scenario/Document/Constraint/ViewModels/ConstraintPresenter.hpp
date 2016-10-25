@@ -60,7 +60,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter :
 
         void on_playPercentageChanged(double t);
 
-        void on_rackShown(const Id<RackModel>&);
+        void on_rackShown(const OptionalId<RackModel>&);
         void on_rackHidden();
         void on_noRacks();
 

@@ -8,6 +8,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Tools/dataStructures.hpp>
 
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -71,21 +72,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
             auto& scenar = m_path.find();
             const auto& constraint = scenar.constraint();
             m_oldDate = constraint.duration.defaultDuration();
-
-            // Save the constraint data
-            QByteArray arr;
-            Visitor<Reader<DataStream>> jr{&arr};
-            jr.readFrom(constraint);
-
-            // Save for each view model of this constraint
-            // the identifier of the rack that was displayed
-            QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
-            for(const ConstraintViewModel* vm : constraint.viewModels())
-            {
-                map.insert(vm->id(), vm->shownRack());
-            }
-
-            m_savedConstraint = {arr, map};
+            m_saveData = ConstraintSaveData{constraint};
         }
 
         void undo() const override
@@ -108,61 +95,9 @@ class MoveBaseEvent final : public iscore::SerializableCommand
             ClearConstraint clearCmd{scenar.constraint()};
             clearCmd.redo();
 
+            // 2. Restore
             auto& constraint = scenar.constraint();
-            // 2. Restore the rackes & processes.
-
-            // TODO if possible refactor this with ReplaceConstraintContent and ConstraintModel::clone
-            // Be careful however, the code differs in subtle ways
-            ConstraintModel src_constraint{
-                Deserializer<DataStream>{m_savedConstraint.first},
-                &constraint}; // Temporary parent
-
-            std::map<const Process::ProcessModel*, Process::ProcessModel*> processPairs;
-
-            // Clone the processes
-            for(const auto& sourceproc : src_constraint.processes)
-            {
-                auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
-
-                processPairs.insert(std::make_pair(&sourceproc, newproc));
-                AddProcess(constraint, newproc);
-            }
-
-            auto& procs = context.components.factory<Process::ProcessList>();
-
-            // Clone the rackes
-            for(const auto& sourcerack : src_constraint.racks)
-            {
-                // A note about what happens here :
-                // Since we want to duplicate our process view models using
-                // the target constraint's cloned shared processes (they might setup some specific data),
-                // we maintain a pair mapping each original process to their cloned counterpart.
-                // We can then use the correct cloned process to clone the process view model.
-                auto newrack = new RackModel{
-                        sourcerack,
-                        sourcerack.id(),
-                        [&] (const SlotModel& source, SlotModel& target)
-                {
-                    for(const auto& lm : source.layers)
-                    {
-                        // We can safely reuse the same id since it's in a different slot.
-                        Process::ProcessModel* proc = processPairs[&lm.processModel()];
-                        auto fact = procs.get(proc->concreteFactoryKey());
-
-                        // TODO harmonize the order of parameters (source first, then new id)
-                        target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
-                    }
-                },
-                &constraint};
-                constraint.racks.add(newrack);
-            }
-
-
-            // 3. Restore the correct rackes in the constraint view models
-            for(auto& viewmodel : constraint.viewModels())
-            {
-                viewmodel->showRack(m_savedConstraint.second[viewmodel->id()]);
-            }
+            m_saveData.reload(constraint);
         }
 
         void redo() const override
@@ -196,7 +131,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
               << m_oldDate
               << m_newDate
               << (int)m_mode
-              << m_savedConstraint;
+              << m_saveData;
         }
         void deserializeImpl(DataStreamOutput& s) override
         {
@@ -205,7 +140,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
                     >> m_oldDate
                     >> m_newDate
                     >> mode
-                    >> m_savedConstraint;
+                    >> m_saveData;
             m_mode = static_cast<ExpandMode>(mode);
         }
 
@@ -217,13 +152,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
 
         ExpandMode m_mode{ExpandMode::Scale};
 
-        QPair<
-        QByteArray, // The constraint data
-        QMap< // Mapping for the view models of this constraint
-        Id<ConstraintViewModel>,
-        Id<RackModel>
-        >
-        > m_savedConstraint;
+        ConstraintSaveData m_saveData;
 };
 
 }

@@ -26,13 +26,37 @@ namespace Scenario
 {
 class ConstraintModel;
 class ConstraintViewModel;
-ScenarioFactory::ScenarioFactory(Scenario::EditionSettings& e):
+
+UuidKey<Process::ProcessModelFactory> ScenarioFactory::concreteFactoryKey() const
+{
+    return Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get();
+}
+
+QString ScenarioFactory::prettyName() const
+{
+    return Metadata<PrettyName_k, Scenario::ProcessModel>::get();
+}
+
+Process::ProcessModel* ScenarioFactory::make(
+        const TimeValue& duration,
+        const Id<Process::ProcessModel>& id,
+        QObject* parent)
+{
+    return new Scenario::ProcessModel {duration, id, parent};
+}
+
+
+//////
+
+
+
+ScenarioTemporalLayerFactory::ScenarioTemporalLayerFactory(Scenario::EditionSettings& e):
     m_editionSettings{e}
 {
 
 }
 
-Process::LayerView* ScenarioFactory::makeLayerView(
+Process::LayerView* ScenarioTemporalLayerFactory::makeLayerView(
         const Process::LayerModel& viewmodel,
         QGraphicsItem* parent)
 {
@@ -42,8 +66,18 @@ Process::LayerView* ScenarioFactory::makeLayerView(
     return nullptr;
 }
 
+bool ScenarioTemporalLayerFactory::matches(const UuidKey<Process::ProcessModelFactory>& p) const
+{
+    return p == Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get();
+}
+
+UuidKey<Process::LayerFactory> ScenarioTemporalLayerFactory::concreteFactoryKey() const
+{
+    return Metadata<ConcreteFactoryKey_k, Scenario::TemporalScenarioLayer>::get();
+}
+
 Process::LayerPresenter*
-ScenarioFactory::makeLayerPresenter(
+ScenarioTemporalLayerFactory::makeLayerPresenter(
         const Process::LayerModel& lm,
         Process::LayerView* view,
         const Process::ProcessPresenterContext& context,
@@ -63,25 +97,7 @@ ScenarioFactory::makeLayerPresenter(
     return nullptr;
 }
 
-UuidKey<Process::ProcessFactory> ScenarioFactory::concreteFactoryKey() const
-{
-    return Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get();
-}
-
-QString ScenarioFactory::prettyName() const
-{
-    return Metadata<PrettyName_k, Scenario::ProcessModel>::get();
-}
-
-Process::ProcessModel* ScenarioFactory::make(
-        const TimeValue& duration,
-        const Id<Process::ProcessModel>& id,
-        QObject* parent)
-{
-    return new Scenario::ProcessModel {duration, id, parent};
-}
-
-QByteArray ScenarioFactory::makeStaticLayerConstructionData() const
+QByteArray ScenarioTemporalLayerFactory::makeStaticLayerConstructionData() const
 {
     // Like ScenarioModel::makeViewModelConstructionData but without data since
     // there won't be constraints at the beginning.
@@ -94,7 +110,7 @@ QByteArray ScenarioFactory::makeStaticLayerConstructionData() const
     return arr;
 }
 
-QByteArray ScenarioFactory::makeLayerConstructionData(
+QByteArray ScenarioTemporalLayerFactory::makeLayerConstructionData(
         const Process::ProcessModel& proc) const
 {
     auto& scenar = static_cast<const Scenario::ProcessModel&>(proc);
@@ -116,7 +132,7 @@ QByteArray ScenarioFactory::makeLayerConstructionData(
     return arr;
 }
 
-Process::LayerModel* ScenarioFactory::makeLayer_impl(
+Process::LayerModel* ScenarioTemporalLayerFactory::makeLayer_impl(
         Process::ProcessModel& proc,
         const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
@@ -135,7 +151,7 @@ Process::LayerModel* ScenarioFactory::makeLayer_impl(
 }
 
 
-Process::LayerModel* ScenarioFactory::cloneLayer_impl(
+Process::LayerModel* ScenarioTemporalLayerFactory::cloneLayer_impl(
         Process::ProcessModel& proc,
         const Id<Process::LayerModel>& newId,
         const Process::LayerModel& source,
@@ -151,7 +167,7 @@ Process::LayerModel* ScenarioFactory::cloneLayer_impl(
     return scen;
 }
 
-Process::LayerModel* ScenarioFactory::loadLayer_impl(
+Process::LayerModel* ScenarioTemporalLayerFactory::loadLayer_impl(
         Process::ProcessModel& proc,
         const VisitorVariant& vis,
         QObject* parent)

@@ -7,7 +7,7 @@
 #include <Process/Process.hpp>
 
 namespace Process { class LayerModel; }
-class ProcessStateDataInterface;
+
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -20,16 +20,16 @@ DummyModel::DummyModel(
         QObject* parent):
     ProcessModel{duration, id, "DummyModel", parent}
 {
-
+    metadata().setInstanceName(*this);
 }
 
 DummyModel::DummyModel(
         const DummyModel& source,
         const Id<ProcessModel>& id,
         QObject* parent):
-    ProcessModel{source.duration(), id, source.objectName(), parent}
+    ProcessModel{source, id, source.objectName(), parent}
 {
-
+    metadata().setInstanceName(*this);
 }
 
 }

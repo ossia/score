@@ -97,14 +97,14 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT NodeUpdateProxy
         void removeLocalNode(
                 const State::Address&);
         void updateLocalValue(
-                const State::Address&,
+                const State::AddressAccessor&,
                 const State::Value&);
         void updateLocalSettings(
                 const State::Address&,
                 const Device::AddressSettings&);
 
         void updateRemoteValue(
-                const State::Address&,
+                const State::AddressAccessor&,
                 const State::Value&);
 
         State::Value refreshRemoteValue(

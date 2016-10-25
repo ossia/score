@@ -21,7 +21,7 @@ ProcessStateDataInterface* DummyState::clone(
     return new DummyState{process(), parent};
 }
 
-std::vector<State::Address> DummyState::matchingAddresses()
+std::vector<State::AddressAccessor> DummyState::matchingAddresses()
 {
     return {};
 }

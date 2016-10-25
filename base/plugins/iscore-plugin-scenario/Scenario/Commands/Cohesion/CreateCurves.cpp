@@ -21,6 +21,7 @@
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
 
 #include <Automation/AutomationModel.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 namespace Scenario
 {
 static std::vector<Device::FullAddressSettings> getSelectedAddresses(
@@ -40,7 +41,7 @@ static std::vector<Device::FullAddressSettings> getSelectedAddresses(
             {
                 Device::FullAddressSettings as;
                 static_cast<Device::AddressSettingsCommon&>(as) = addr;
-                as.address = Device::address(node);
+                as.address = Device::address(node).address;
                 addresses.push_back(std::move(as));
             }
         }
@@ -96,7 +97,7 @@ void CreateCurvesFromAddresses(
         const Scenario::StateModel& ss = startState(constraint, *scenar);
         const auto& es = endState(constraint, *scenar);
 
-        std::vector<State::Address> existing_automations;
+        std::vector<State::AddressAccessor> existing_automations;
         for(const auto& proc : constraint.processes)
         {
             if(auto autom = dynamic_cast<const Automation::ProcessModel*>(&proc))
@@ -108,17 +109,19 @@ void CreateCurvesFromAddresses(
         {
             // First, we skip the curve if there is already a curve
             // with this address in the constraint.
-            if(contains(existing_automations, as.address))
+            if(ossia::contains(existing_automations, State::AddressAccessor{as.address}))
                 continue;
 
             // Then we set-up all the necessary values
             // min / max
-            double min = as.domain.min.val.isNumeric()
-                    ? State::convert::value<double>(as.domain.min)
+            auto min_v = as.domain.get_min();
+            auto max_v = as.domain.get_max();
+            double min = ossia::is_numeric(min_v)
+                    ? ossia::convert<double>(min_v)
                     : 0;
 
-            double max = as.domain.max.val.isNumeric()
-                    ? State::convert::value<double>(as.domain.max)
+            double max = ossia::is_numeric(max_v)
+                    ? ossia::convert<double>(max_v)
                     : 1;
 
             // start value / end value
@@ -155,7 +158,7 @@ void CreateCurvesFromAddresses(
                                   constraint,
                                   bigLayerVec[i],
                                   process_ids[i],
-                                  as.address,
+                                  State::AddressAccessor{as.address},
                                   start, end, min, max
                               });
 

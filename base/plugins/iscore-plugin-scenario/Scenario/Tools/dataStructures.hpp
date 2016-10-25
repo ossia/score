@@ -11,6 +11,7 @@ This file is used to define simple data structure to simplify the code when need
 #include <QMap>
 #include <QPair>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 namespace Scenario
 {
@@ -30,26 +31,35 @@ struct TimenodeProperties {
     ExecutionStatus status{ExecutionStatus::Editing};
 };
 
-struct ConstraintProperties {
+struct ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintSaveData
+{
+        ConstraintSaveData() = default;
+        ConstraintSaveData(const ConstraintModel&);
+
+        void reload(ConstraintModel&) const;
+
+        Path<ConstraintModel> constraintPath;
+        QVector<QByteArray> processes;
+        QVector<QByteArray> racks;
+        QMap< // Mapping for the view models of this constraint
+            Id<ConstraintViewModel>,
+            OptionalId<RackModel>
+        > viewMapping;
+};
+
+struct ConstraintProperties : public ConstraintSaveData
+{
+    using ConstraintSaveData::ConstraintSaveData;
+
     TimeValue oldMin;
     TimeValue newMin;
     TimeValue oldMax;
     TimeValue newMax;
-    QPair<
-        QPair<
-            Path<ConstraintModel>,
-            QByteArray
-        >, // The constraint data
-        QMap< // Mapping for the view models of this constraint
-            Id<ConstraintViewModel>,
-            Id<RackModel>
-        >
-     > savedDisplay;
-
     ExecutionStatus status{ExecutionStatus::Editing};
 };
 
-struct ElementsProperties {
+struct ElementsProperties
+{
     QMap<Id<TimeNodeModel>, TimenodeProperties> timenodes;
     QMap<Id<ConstraintModel>, ConstraintProperties> constraints;
 };

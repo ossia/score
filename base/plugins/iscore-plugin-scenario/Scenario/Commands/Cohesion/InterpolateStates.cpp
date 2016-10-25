@@ -33,11 +33,12 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 
 namespace Scenario
 {
@@ -65,7 +66,7 @@ struct MessagePairs
                 if(message.value.val.isNumeric())
                 {
                     // Look for a corresponding message on the end state
-                    auto it = find_if(endMessages, [&] (const State::Message& arg) {
+                    auto it = ossia::find_if(endMessages, [&] (const State::Message& arg) {
                         return message.address == arg.address
                                 && arg.value.val.isNumeric()
                                 && message.value != arg.value; });
@@ -73,7 +74,7 @@ struct MessagePairs
                     if(it != endMessages.end())
                     {
                         // Check that there isn't already an automation with this address
-                        auto has_existing_curve = any_of(constraint.processes,
+                        auto has_existing_curve = ossia::any_of(constraint.processes,
                                     [&] (const Process::ProcessModel& proc) {
                             auto ptr = dynamic_cast<const Automation::ProcessModel*>(&proc);
                             return ptr && ptr->address() == message.address;
@@ -88,7 +89,7 @@ struct MessagePairs
                 }
                 else if(message.value.val.is<State::tuple_t>())
                 {
-                    auto it = find_if(endMessages, [&] (const State::Message& arg) {
+                    auto it = ossia::find_if(endMessages, [&] (const State::Message& arg) {
                         return message.address == arg.address
                                 && arg.value.val.is<State::tuple_t>()
                                 && message.value != arg.value; });
@@ -96,7 +97,7 @@ struct MessagePairs
                     if(it != endMessages.end())
                     {
                         // Check that there isn't already an interpolation with this address
-                        auto has_existing_curve = any_of(constraint.processes,
+                        auto has_existing_curve = ossia::any_of(constraint.processes,
                                     [&] (const Process::ProcessModel& proc) {
                             auto ptr = dynamic_cast<const Interpolation::ProcessModel*>(&proc);
                             return ptr && ptr->address() == message.address;
@@ -163,14 +164,18 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 
             double min = std::min(start, end);
             double max = std::max(start, end);
-            if(auto node = Device::try_getNodeFromAddress(rootNode, elt.first.address))
+            if(auto node = Device::try_getNodeFromAddress(rootNode, elt.first.address.address))
             {
                 const Device::AddressSettings& as = node->get<Device::AddressSettings>();
-                if(as.domain.min.val.isNumeric())
-                    min = std::min(min, State::convert::value<double>(as.domain.min));
 
-                if(as.domain.max.val.isNumeric())
-                    max = std::max(max, State::convert::value<double>(as.domain.max));
+                auto min_v = as.domain.get_min();
+                auto max_v = as.domain.get_max();
+
+                if(ossia::is_numeric(min_v))
+                    min = std::min(min, ossia::convert<double>(min_v));
+
+                if(ossia::is_numeric(max_v))
+                    max = std::max(max, ossia::convert<double>(max_v));
             }
 
             macro->addCommand(new CreateAutomationFromStates{

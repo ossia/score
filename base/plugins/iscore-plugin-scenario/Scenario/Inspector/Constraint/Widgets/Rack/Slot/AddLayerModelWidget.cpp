@@ -19,7 +19,7 @@
 
 #include "AddLayerModelWidget.hpp"
 #include "SlotInspectorSection.hpp"
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SetIcons.hpp>
@@ -69,7 +69,7 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
             if(it == end_it)
             {
                 QString name = process.prettyName();
-                available_models[name] = *process.id().val();
+                available_models[name] = process.id().val();
                 modelList += name;
             }
         }

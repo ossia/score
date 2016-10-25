@@ -17,7 +17,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressAccessorEditWidget final : publ
     public:
         AddressAccessorEditWidget(DeviceExplorerModel* model, QWidget* parent);
 
-        void setAddress(const State::Address& addr);
+        void setOnlyAddress(const State::Address& addr);
         void setAddress(const State::AddressAccessor& addr);
 
         const State::AddressAccessor& address() const

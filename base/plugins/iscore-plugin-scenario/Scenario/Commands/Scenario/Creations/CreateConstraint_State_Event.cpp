@@ -13,7 +13,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 
 
 

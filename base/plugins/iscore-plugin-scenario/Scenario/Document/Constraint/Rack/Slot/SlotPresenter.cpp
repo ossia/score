@@ -25,10 +25,9 @@
 
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/tools/utilsCPP11.hpp>
 
 class QObject;
 
@@ -40,7 +39,7 @@ SlotPresenter::SlotPresenter(
         const Process::ProcessPresenterContext& ctx,
         QObject* par) :
     QObject {par},
-    m_processList{ctx.app.components.factory<Process::ProcessList>()},
+    m_processList{ctx.app.components.factory<Process::LayerFactoryList>()},
     m_model {model},
     m_view {new SlotView{*this, view}},
     m_context{ctx}
@@ -250,7 +249,7 @@ void SlotPresenter::on_layerModelCreated_impl(
 {
     const auto& procKey = proc_vm.processModel().concreteFactoryKey();
 
-    auto factory = m_processList.get(procKey);
+    auto factory = m_processList.findDefaultFactory(procKey);
     ISCORE_ASSERT(factory);
 
     int numproc = m_looping
@@ -279,7 +278,7 @@ void SlotPresenter::on_layerModelCreated_impl(
         if(it != m_processes.end())
             updateProcessShape(*it);
     });
-    con(proc_vm, &IdentifiedObjectAbstract::identified_object_destroyed,
+    con(proc_vm, &IdentifiedObjectAbstract::identified_object_destroying,
         this, [=] {
         QObject::disconnect(con_id);
     });
@@ -318,7 +317,7 @@ void SlotPresenter::updateProcesses()
             if(proc_size < numproc)
             {
                 auto procKey = proc.model->processModel().concreteFactoryKey();
-                auto factory = m_processList.get(procKey);
+                auto factory = m_processList.findDefaultFactory(procKey);
                 ISCORE_ASSERT(factory);
 
                 for(int i = proc_size; i < numproc; i++)

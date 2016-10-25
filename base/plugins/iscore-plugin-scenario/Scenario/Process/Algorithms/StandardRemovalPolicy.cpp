@@ -16,7 +16,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/MapCopy.hpp>
 
@@ -72,11 +72,11 @@ void StandardRemovalPolicy::removeState(
 {
     if(state.previousConstraint())
     {
-        StandardRemovalPolicy::removeConstraint(scenario, state.previousConstraint());
+        StandardRemovalPolicy::removeConstraint(scenario, *state.previousConstraint());
     }
 
     if(state.nextConstraint()){
-        StandardRemovalPolicy::removeConstraint(scenario, state.nextConstraint());
+        StandardRemovalPolicy::removeConstraint(scenario, *state.nextConstraint());
     }
 
     auto& ev = scenario.events.at(state.eventId());

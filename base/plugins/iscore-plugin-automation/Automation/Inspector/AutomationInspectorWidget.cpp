@@ -1,5 +1,5 @@
 
-#include <Explorer/Widgets/AddressEditWidget.hpp>
+#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <QBoxLayout>
 #include <QFormLayout>
@@ -20,6 +20,8 @@
 #include <Automation/Commands/SetAutomationMin.hpp>
 #include "AutomationInspectorWidget.hpp"
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <State/Widgets/UnitWidget.hpp>
 #include <State/Address.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -40,7 +42,8 @@ InspectorWidget::InspectorWidget(
     setParent(parent);
 
     auto vlay = new QFormLayout;
-    vlay->setSpacing(0);
+    vlay->setSpacing(2);
+    vlay->setMargin(2);
     vlay->setContentsMargins(0,0,0,0);
 
     // LineEdit
@@ -51,19 +54,19 @@ InspectorWidget::InspectorWidget(
     DeviceExplorerModel* explorer{};
     if(plug)
         explorer = &plug->explorer();
-    m_lineEdit = new AddressEditWidget{explorer, this};
+    m_lineEdit = new AddressAccessorEditWidget{explorer, this};
 
     m_lineEdit->setAddress(process().address());
     con(process(), &ProcessModel::addressChanged,
-            m_lineEdit, &AddressEditWidget::setAddress);
+        m_lineEdit,  &AddressAccessorEditWidget::setAddress);
 
-    connect(m_lineEdit, &AddressEditWidget::addressChanged,
+    connect(m_lineEdit, &AddressAccessorEditWidget::addressChanged,
             this, &InspectorWidget::on_addressChange);
 
     vlay->addRow(tr("Address"), m_lineEdit);
 
     // Tween
-    m_tween = new QCheckBox;
+    m_tween = new QCheckBox{this};
     vlay->addRow(tr("Tween"), m_tween);
     m_tween->setChecked(process().tween());
     con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
@@ -71,32 +74,40 @@ InspectorWidget::InspectorWidget(
             this, &InspectorWidget::on_tweenChanged);
 
     // Min / max
-    m_minsb = new iscore::SpinBox<float>;
-    m_maxsb = new iscore::SpinBox<float>;
+    m_minsb = new iscore::SpinBox<float>{this};
+    m_maxsb = new iscore::SpinBox<float>{this};
     m_minsb->setValue(process().min());
     m_maxsb->setValue(process().max());
 
+    m_uw = new State::UnitWidget{{}, this};
+    m_uw->setUnit(process().unit());
+
     vlay->addRow(tr("Min"), m_minsb);
     vlay->addRow(tr("Max"), m_maxsb);
+    vlay->addRow(tr("Unit"), m_uw);
 
     con(process(), &ProcessModel::minChanged, m_minsb, &QDoubleSpinBox::setValue);
     con(process(), &ProcessModel::maxChanged, m_maxsb, &QDoubleSpinBox::setValue);
+    con(process(), &ProcessModel::unitChanged, m_uw, &State::UnitWidget::setUnit);
+
 
     connect(m_minsb, &QAbstractSpinBox::editingFinished,
             this, &InspectorWidget::on_minValueChanged);
     connect(m_maxsb, &QAbstractSpinBox::editingFinished,
             this, &InspectorWidget::on_maxValueChanged);
+    connect(m_uw, &State::UnitWidget::unitChanged,
+            this, [=] (ossia::unit_t) { on_unitChanged(); });
 
     this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(const ::State::Address& newAddr)
+void InspectorWidget::on_addressChange(const ::State::AddressAccessor& newAddr)
 {
     // Various checks
     if(newAddr == process().address())
         return;
 
-    if(newAddr.path.isEmpty())
+    if(newAddr.address.path.isEmpty())
         return;
 
     auto cmd = new ChangeAddress{process(), newAddr};
@@ -131,6 +142,16 @@ void InspectorWidget::on_tweenChanged()
     if(newVal != process().tween())
     {
         auto cmd = new SetTween{process(), newVal};
+
+        m_dispatcher.submitCommand(cmd);
+    }
+}
+void InspectorWidget::on_unitChanged()
+{
+    auto newVal = m_uw->unit();
+    if(newVal != process().unit())
+    {
+        auto cmd = new SetUnit{process(), newVal};
 
         m_dispatcher.submitCommand(cmd);
     }

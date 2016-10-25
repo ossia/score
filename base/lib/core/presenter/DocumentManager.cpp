@@ -99,14 +99,14 @@ void DocumentManager::init(const ApplicationContext& ctx)
     con(m_view, &View::activeDocumentChanged,
         this, [&] (const Id<DocumentModel>& doc) {
         prepareNewDocument(ctx);
-        auto it = find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
+        auto it = ossia::find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
         setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
     }, Qt::QueuedConnection);
 
 
     con(m_view, &View::closeRequested,
         this, [&] (const Id<DocumentModel>& doc) {
-        auto it = find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
+        auto it = ossia::find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
         ISCORE_ASSERT(it != m_documents.end());
         closeDocument(ctx, **it);
     });
@@ -145,7 +145,7 @@ Document* DocumentManager::setupDocument(
 {
     if(doc)
     {
-        auto it = find(m_documents, doc);
+        auto it = ossia::find(m_documents, doc);
         if(it == m_documents.end())
             m_documents.push_back(doc);
 
@@ -245,7 +245,7 @@ void DocumentManager::forceCloseDocument(
     qApp->processEvents();
 
     m_view.closeDocument(&doc.view());
-    remove_one(m_documents, &doc);
+    ossia::remove_one(m_documents, &doc);
     setCurrentDocument(
                 ctx,
                 !m_documents.empty() ? m_documents.back() : nullptr);
@@ -443,7 +443,21 @@ Document* DocumentManager::loadFile(
             else if (fileName.indexOf(".scorejson") != -1)
             {
                 auto json = QJsonDocument::fromJson(f.readAll());
-                doc = loadDocument(ctx, json.object(), *ctx.components.factory<DocumentDelegateList>().begin());
+                bool ok = checkAndUpdateJson(json, ctx);
+                if(ok)
+                {
+                    doc = loadDocument(ctx, json.object(), *ctx.components.factory<DocumentDelegateList>().begin());
+                }
+                else
+                {
+                    QMessageBox::warning(
+                                qApp->activeWindow(),
+                                tr("Unable to load"),
+                                tr("Unable to load file : "
+                                   "it has to be converted but the conversion was not implemented yet."
+                                   "\n"
+                                   "Blame the developer."));
+                }
             }
 
             if(doc)
@@ -540,6 +554,11 @@ bool DocumentManager::checkAndUpdateJson(
     else if(loaded_version < ctx.applicationSettings.saveFormatVersion)
     {
         // TODO update main
+        auto res = updateJson(obj, loaded_version, ctx.applicationSettings.saveFormatVersion);
+        if(!res)
+        {
+            return false;
+        }
     }
 
 
@@ -573,6 +592,12 @@ bool DocumentManager::checkAndUpdateJson(
     return mainLoadable && pluginsAvailable && pluginsLoadable;
 }
 
+bool DocumentManager::updateJson(QJsonObject& object, Version json_ver, Version iscore_ver)
+{
+    ISCORE_TODO;
+    return false;
+}
+
 void DocumentManager::saveRecentFilesState()
 {
     QSettings settings("OSSIA", "i-score");
@@ -604,7 +629,7 @@ Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v)
               ids.begin(),
               [](const auto elt)
     {
-        return * (elt->id().val());
+        return elt->id().val();
     });
 
     return Id<iscore::DocumentModel>{iscore::random_id_generator::getNextId(ids)};

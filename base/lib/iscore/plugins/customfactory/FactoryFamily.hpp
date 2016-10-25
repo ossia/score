@@ -100,7 +100,7 @@ class MatchingFactory : public iscore::ConcreteFactoryList<T>
         auto make(Fun f, Args&&... args) const
         {
             using val_t = decltype(*this->begin());
-            auto it = find_if(
+            auto it = ossia::find_if(
                           *this,
                           [&] (const val_t& elt)
             { return elt.matches(std::forward<Args>(args)...); });

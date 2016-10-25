@@ -29,8 +29,8 @@ const QString RackWidget::hiddenText{ QObject::tr("None")};
 
 RackWidget::RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent) :
     QWidget {parent},
-        m_model {parentTabWidget->parentConstraint().model() },
-        m_parent {parentTabWidget}
+    m_model {parentTabWidget->parentConstraint().model() },
+    m_parent {parentTabWidget}
 {
     auto mainLay = new QVBoxLayout{this};
     auto mainWidg = new QWidget;
@@ -87,7 +87,7 @@ void RackWidget::viewModelsChanged()
         }
         else
         {
-//            label = new QLabel{QString::number(vm->id().val().get()), m_comboBoxesWidget};
+            //            label = new QLabel{QString::number(vm->id().val().get()), m_comboBoxesWidget};
             //TODO until we have others viewmodel, display a name instead of Id
             label = new QLabel{tr("Reduce view"), m_comboBoxesWidget};
         }
@@ -120,7 +120,11 @@ void RackWidget::updateComboBox(QComboBox* combobox, ConstraintViewModel* vm)
 
     connect(combobox, SignalUtils::QComboBox_activated_int(),
             combobox, [=,cvm=vm] (int i) {
-        m_parent->activeRackChanged(combobox->itemData(i).value<Id<RackModel>>(), cvm);
+        auto data = combobox->itemData(i);
+        if(data.canConvert<Id<RackModel>>())
+            m_parent->activeRackChanged(data.value<Id<RackModel>>(), cvm);
+        else
+            m_parent->activeRackChanged({}, cvm);
     });
 
     connect(vm, &ConstraintViewModel::rackHidden,
@@ -129,12 +133,15 @@ void RackWidget::updateComboBox(QComboBox* combobox, ConstraintViewModel* vm)
             combobox, [=] () { combobox->setCurrentIndex(0); });
 
     connect(vm, &ConstraintViewModel::rackShown,
-            combobox, [=] (Id<RackModel> id)
+            combobox, [=] (OptionalId<RackModel> id)
     {
         using namespace std;
-        int n = combobox->findData(QVariant::fromValue(id));
-        if(n != -1)
-            combobox->setCurrentIndex(n);
+        if(id)
+        {
+            int n = combobox->findData(QVariant::fromValue(*id));
+            if(n != -1)
+                combobox->setCurrentIndex(n);
+        }
     });
 }
 }

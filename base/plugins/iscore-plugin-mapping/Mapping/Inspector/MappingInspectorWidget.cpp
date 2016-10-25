@@ -1,5 +1,5 @@
 
-#include <Explorer/Widgets/AddressEditWidget.hpp>
+#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
 #include <Mapping/Commands/ChangeAddresses.hpp>
 #include <Mapping/Commands/MinMaxCommands.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -56,13 +56,13 @@ InspectorWidget::InspectorWidget(
 
         vlay->addWidget(new QLabel{tr("Source")});
 
-        m_sourceLineEdit = new AddressEditWidget{explorer, this};
+        m_sourceLineEdit = new AddressAccessorEditWidget{explorer, this};
 
         m_sourceLineEdit->setAddress(process().sourceAddress());
         con(process(), &ProcessModel::sourceAddressChanged,
-            m_sourceLineEdit, &AddressEditWidget::setAddress);
+            m_sourceLineEdit, &AddressAccessorEditWidget::setAddress);
 
-        connect(m_sourceLineEdit, &AddressEditWidget::addressChanged,
+        connect(m_sourceLineEdit, &AddressAccessorEditWidget::addressChanged,
                 this, &InspectorWidget::on_sourceAddressChange);
 
         vlay->addWidget(m_sourceLineEdit);
@@ -104,13 +104,13 @@ InspectorWidget::InspectorWidget(
 
         vlay->addWidget(new QLabel{tr("Target")});
 
-        m_targetLineEdit = new AddressEditWidget{explorer, this};
+        m_targetLineEdit = new AddressAccessorEditWidget{explorer, this};
 
         m_targetLineEdit->setAddress(process().targetAddress());
         con(process(), &ProcessModel::targetAddressChanged,
-            m_targetLineEdit, &AddressEditWidget::setAddress);
+            m_targetLineEdit, &AddressAccessorEditWidget::setAddress);
 
-        connect(m_targetLineEdit, &AddressEditWidget::addressChanged,
+        connect(m_targetLineEdit, &AddressAccessorEditWidget::addressChanged,
                 this, &InspectorWidget::on_targetAddressChange);
 
         vlay->addWidget(m_targetLineEdit);
@@ -145,15 +145,16 @@ InspectorWidget::InspectorWidget(
     this->setLayout(lay);
 }
 
-void InspectorWidget::on_sourceAddressChange(const State::Address& newAddr)
+void InspectorWidget::on_sourceAddressChange(const State::AddressAccessor& newAddr)
 {
     // Various checks
     if(newAddr == process().sourceAddress())
         return;
 
-    if(newAddr.path.isEmpty())
+    if(newAddr.address.path.isEmpty())
         return;
 
+    qDebug() << newAddr;
     auto cmd = new ChangeSourceAddress{process(), newAddr};
 
     m_dispatcher.submitCommand(cmd);
@@ -182,13 +183,13 @@ void InspectorWidget::on_sourceMaxValueChanged()
 }
 
 
-void InspectorWidget::on_targetAddressChange(const State::Address& newAddr)
+void InspectorWidget::on_targetAddressChange(const State::AddressAccessor& newAddr)
 {
     // Various checks
     if(newAddr == process().targetAddress())
         return;
 
-    if(newAddr.path.isEmpty())
+    if(newAddr.address.path.isEmpty())
         return;
 
     auto cmd = new ChangeTargetAddress{process(), newAddr};

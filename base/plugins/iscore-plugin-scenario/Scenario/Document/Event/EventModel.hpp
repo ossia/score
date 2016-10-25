@@ -31,6 +31,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final :
         ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, JSONObject)
 
+        Q_PROPERTY(Scenario::OffsetBehavior offsetBehavior READ offsetBehavior WRITE setOffsetBehavior NOTIFY offsetBehaviorChanged FINAL)
+
     public:
         /** Public properties of the class **/
         Selectable selection;
@@ -68,6 +70,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final :
 
         // Other properties
         const State::Condition& condition() const;
+        OffsetBehavior offsetBehavior() const;
 
         VerticalExtent extent() const;
 
@@ -84,6 +87,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final :
         void setDate(const TimeValue& date);
 
         void setStatus(ExecutionStatus status);
+        void setOffsetBehavior(OffsetBehavior);
 
     signals:
         void extentChanged(const VerticalExtent&);
@@ -94,6 +98,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final :
         void statesChanged();
 
         void statusChanged(Scenario::ExecutionStatus status);
+
+        void offsetBehaviorChanged(OffsetBehavior);
 
     private:
         Id<TimeNodeModel> m_timeNode;
@@ -106,7 +112,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final :
         TimeValue m_date{TimeValue::zero()};
 
         ExecutionStatusProperty m_status{};
+        OffsetBehavior m_offset{};
 };
 }
 
 DEFAULT_MODEL_METADATA(Scenario::EventModel, "Event")
+TR_TEXT_METADATA(, Scenario::EventModel, PrettyName_k, "Event")
+

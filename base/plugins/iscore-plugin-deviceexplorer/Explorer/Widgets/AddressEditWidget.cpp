@@ -65,7 +65,7 @@ void AddressEditWidget::customContextMenuEvent(const QPoint& p)
     connect(device_menu, &QMenuView::triggered,
             this, [&](const QModelIndex & m)
     {
-        auto addr = Device::address(m_model->nodeFromModelIndex(m));
+        auto addr = Device::address(m_model->nodeFromModelIndex(m)).address;
         setAddress(addr);
         emit addressChanged(addr);
     });
@@ -84,8 +84,8 @@ void AddressEditWidget::dropEvent(QDropEvent* ev)
         State::MessageList ml = des.deserialize();
         if(!ml.empty())
         {
-            setAddress(ml[0].address);
-            emit addressChanged(ml[0].address);
+            setAddress(ml[0].address.address);
+            emit addressChanged(ml[0].address.address);
         }
     }
 }

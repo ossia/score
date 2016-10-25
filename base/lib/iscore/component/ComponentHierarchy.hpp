@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/std/Algorithms.hpp>
 #include <vector>
 #include <nano_observer.hpp>
 
@@ -58,7 +59,7 @@ class ComponentHierarchyManager :
 
         void remove(const ChildModel_T& model)
         {
-            auto it = find_if(m_children, [&] (auto pair) {
+            auto it = ossia::find_if(m_children, [&] (auto pair) {
                 return pair.model == &model;
             });
 
@@ -157,7 +158,7 @@ class PolymorphicComponentHierarchyManager :
 
         void remove(const ChildModel_T& model)
         {
-            auto it = find_if(m_children, [&] (auto pair) {
+            auto it = ossia::find_if(m_children, [&] (auto pair) {
                 return pair.model == &model;
             });
 

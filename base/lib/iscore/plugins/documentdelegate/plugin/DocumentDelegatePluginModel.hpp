@@ -2,6 +2,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 #include <QString>
 #include <vector>
 
@@ -16,19 +17,30 @@ struct VisitorVariant;
 namespace iscore
 {
 class ISCORE_LIB_BASE_EXPORT DocumentPlugin :
-        public NamedObject
+        public IdentifiedObject<DocumentPlugin>
 {
         Q_OBJECT
     public:
         DocumentPlugin(
                 const iscore::DocumentContext&,
+                Id<DocumentPlugin> id,
                 const QString& name,
                 QObject* parent);
 
         virtual ~DocumentPlugin();
 
-        auto& context() const
+        const iscore::DocumentContext& context() const
         { return m_context; }
+
+        template<typename Impl>
+        explicit DocumentPlugin(
+                const iscore::DocumentContext& ctx,
+                Deserializer<Impl>& vis,
+                QObject* parent) :
+            IdentifiedObject{vis, parent},
+            m_context{ctx}
+        {
+        }
 
     protected:
         const iscore::DocumentContext& m_context;
@@ -65,6 +77,36 @@ class ISCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final :
 {
     public:
         using object_type = DocumentPlugin;
+        object_type* loadMissing(
+                const VisitorVariant& vis,
+                iscore::DocumentContext& doc,
+                QObject* parent) const;
+};
+
+
+template<typename T>
+class DocumentPluginFactory_T final :
+        public iscore::DocumentPluginFactory
+{
+    public:
+        T* load(
+                const VisitorVariant& var,
+                iscore::DocumentContext& doc,
+                QObject* parent) override
+        {
+            return deserialize_dyn(var, [&] (auto&& deserializer)
+            { return new T{doc, deserializer, parent}; });
+        }
+
+        static UuidKey<iscore::DocumentPluginFactory> static_concreteFactoryKey()
+        {
+            return Metadata<ConcreteFactoryKey_k, T>::get();
+        }
+
+        UuidKey<iscore::DocumentPluginFactory> concreteFactoryKey() const final override
+        {
+            return Metadata<ConcreteFactoryKey_k, T>::get();
+        }
 };
 
 }

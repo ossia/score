@@ -17,6 +17,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 
 namespace Scenario
@@ -75,29 +76,34 @@ class CreationState : public CreationStateBase<Scenario_T>
     protected:
         void createToState_base(const Id<StateModel>& originalState)
         {
-            // make sure the hovered corresponding timenode dont have a date prior to original state date
-            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), this->hoveredState) )
+            if(this->hoveredState)
             {
-                auto cmd = new Scenario::Command::CreateConstraint{
-                        Path<Scenario_T>{this->m_scenarioPath},
-                        originalState,
-                        this->hoveredState};
+                // make sure the hovered corresponding timenode dont have a date prior to original state date
+                if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredState) )
+                {
+                    auto cmd = new Scenario::Command::CreateConstraint{
+                            Path<Scenario_T>{this->m_scenarioPath},
+                            originalState,
+                            *this->hoveredState};
 
-                m_dispatcher.submitCommand(cmd);
+                    m_dispatcher.submitCommand(cmd);
 
-                this->createdConstraints.append(cmd->createdConstraint());
-            }//else do nothing
+                    this->createdConstraints.append(cmd->createdConstraint());
+                }//else do nothing
+            }
         }
 
         void createToEvent_base(const Id<StateModel> & originalState)
         {
+            if(this->hoveredEvent)
+            {
             // make sure the hovered corresponding timenode dont have a date prior to original state date
-            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), this->hoveredEvent) )
+            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredEvent) )
             {
                 auto cmd = new Scenario::Command::CreateConstraint_State{
                         Path<Scenario_T>{this->m_scenarioPath},
                         originalState,
-                        this->hoveredEvent,
+                        *this->hoveredEvent,
                         this->currentPoint.y};
 
                 m_dispatcher.submitCommand(cmd);
@@ -105,17 +111,20 @@ class CreationState : public CreationStateBase<Scenario_T>
                 this->createdConstraints.append(cmd->createdConstraint());
                 this->createdStates.append(cmd->createdState());
             }//else do nothing
+            }
         }
 
         void createToTimeNode_base(const Id<StateModel> & originalState)
         {
+            if(this->hoveredTimeNode)
+            {
             // make sure the hovered corresponding timenode dont have a date prior to original state date
-            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), this->hoveredTimeNode) )
+            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredTimeNode) )
             {
                 auto cmd = new Scenario::Command::CreateConstraint_State_Event{
                         this->m_scenarioPath,
                         originalState,
-                        this->hoveredTimeNode,
+                        *this->hoveredTimeNode,
                         this->currentPoint.y};
 
                 m_dispatcher.submitCommand(cmd);
@@ -123,6 +132,7 @@ class CreationState : public CreationStateBase<Scenario_T>
                 this->createdStates.append(cmd->createdState());
                 this->createdEvents.append(cmd->createdEvent());
                 this->createdConstraints.append(cmd->createdConstraint());
+            }
             }
         }
 
@@ -164,6 +174,10 @@ class CreationState : public CreationStateBase<Scenario_T>
 
         void makeSnapshot()
         {
+            const iscore::DocumentContext& ctx = this->m_parentSM.context().context;
+            if(!ctx.app.settings<Scenario::Settings::Model>().getSnapshotOnCreate())
+                return;
+
             using namespace Command;
             if(m_parentSM.editionSettings().sequence())
                 return;
@@ -182,14 +196,14 @@ class CreationState : public CreationStateBase<Scenario_T>
                 }
             }
 
-            auto& device_explorer = this->m_parentSM.context().context.template plugin<Explorer::DeviceDocumentPlugin>().explorer();
+            auto& device_explorer = ctx.template plugin<Explorer::DeviceDocumentPlugin>().explorer();
 
             State::MessageList messages = getSelectionSnapshot(device_explorer);
             if(messages.empty())
                 return;
 
             m_dispatcher.submitCommand(new AddMessagesToState{
-                                           m_parentSM.model().states.at(this->createdStates.last()).messages(),
+                                           m_parentSM.model().states.at(this->createdStates.last()),
                                            messages});
         }
 

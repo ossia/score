@@ -225,13 +225,16 @@ class Creation_FromEvent final : public CreationState<Scenario_T, ToolPalette_T>
     private:
         void createInitialState()
         {
-            auto cmd = new Scenario::Command::CreateState{
-                    this->m_scenarioPath,
-                    this->clickedEvent,
-                    this->currentPoint.y};
-            this->m_dispatcher.submitCommand(cmd);
+            if(this->clickedEvent)
+            {
+                auto cmd = new Scenario::Command::CreateState{
+                        this->m_scenarioPath,
+                        *this->clickedEvent,
+                        this->currentPoint.y};
+                this->m_dispatcher.submitCommand(cmd);
 
-            this->createdStates.append(cmd->createdState());
+                this->createdStates.append(cmd->createdState());
+            }
         }
 
         void createToNothing()

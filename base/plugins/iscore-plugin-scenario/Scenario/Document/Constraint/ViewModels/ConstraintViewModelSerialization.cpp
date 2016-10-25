@@ -35,12 +35,12 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintViewModel& cvm)
 {
-    Id<Scenario::RackModel> id;
+    OptionalId<Scenario::RackModel> id;
     m_stream >> id;
 
-    if(id.val())
+    if(id)
     {
-        cvm.showRack(id);
+        cvm.showRack(*id);
     }
     else
     {
@@ -64,11 +64,11 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintViewModel& cvm)
 {
-    auto id = fromJsonValue<Id<Scenario::RackModel>>(m_obj["ShownRack"]);
+    auto id = fromJsonValue<OptionalId<Scenario::RackModel>>(m_obj["ShownRack"]);
 
-    if(id.val())
+    if(id)
     {
-        cvm.showRack(id);
+        cvm.showRack(*id);
     }
     else
     {

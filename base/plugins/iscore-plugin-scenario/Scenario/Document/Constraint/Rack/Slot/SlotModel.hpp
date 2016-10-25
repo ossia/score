@@ -3,7 +3,7 @@
 #include <Process/LayerModel.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/tools/std/Optional.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <QtGlobal>
 #include <QObject>
 #include <nano_signal_slot.hpp>
@@ -70,7 +70,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
          // A process is selected for edition when it is
          // the edited process when the interface is clicked.
         void putToFront(
-                const Id<Process::LayerModel>& layerId);
+                const OptionalId<Process::LayerModel>& layerId);
         const Process::LayerModel* frontLayerModel() const;
 
         // A slot is always in a constraint
@@ -79,7 +79,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
         qreal getHeight() const;
         bool focus() const;
 
-        NotifyingMap<Process::LayerModel> layers;
+        EntityMap<Process::LayerModel> layers;
 
         void on_deleteSharedProcessModel(const Process::ProcessModel& sharedProcessId);
 
@@ -97,7 +97,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final :
         void on_addLayer(const Process::LayerModel& viewmodel);
         void on_removeLayer(const Process::LayerModel&);
 
-        Id<Process::LayerModel> m_frontLayerModelId;
+        OptionalId<Process::LayerModel> m_frontLayerModelId;
 
         qreal m_height {200};
         bool m_focus{false};
@@ -114,4 +114,4 @@ ConstraintModel* parentConstraint(Process::LayerModel* lm);
 }
 
 DEFAULT_MODEL_METADATA(Scenario::SlotModel, "Slot")
-
+TR_TEXT_METADATA(, Scenario::SlotModel, PrettyName_k, "Slot")

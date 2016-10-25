@@ -5,7 +5,7 @@ namespace Interpolation
 {
 ChangeAddress::ChangeAddress(
         const ProcessModel& proc,
-        const State::Address& addr,
+        const State::AddressAccessor& addr,
         const State::Value& start,
         const State::Value& end):
     m_path{proc},

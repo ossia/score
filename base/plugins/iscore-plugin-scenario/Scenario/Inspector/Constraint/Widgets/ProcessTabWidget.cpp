@@ -63,13 +63,13 @@ ProcessTabWidget::ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, 
     addProcText->setStyleSheet(QString("text-align : left;"));
 
     // add new process dialog
-    auto addProcess = new AddProcessDialog {m_constraintWidget.processList(), this};
+    m_addProcess = new AddProcessDialog {m_constraintWidget.processList(), this};
 
     // CONNECTIONS
     connect(addProcButton,  &QToolButton::pressed,
-        addProcess, &AddProcessDialog::launchWindow);
+        m_addProcess, &AddProcessDialog::launchWindow);
 
-    connect(addProcess, &AddProcessDialog::okPressed,
+    connect(m_addProcess, &AddProcessDialog::okPressed,
         this, &ProcessTabWidget::createProcess);
 
     // LAYOUTS
@@ -81,7 +81,7 @@ ProcessTabWidget::ProcessTabWidget(const ConstraintInspectorWidget& parentCstr, 
     processesLay->addStretch(1);
 }
 
-void ProcessTabWidget::createProcess(const UuidKey<Process::ProcessFactory>& processName)
+void ProcessTabWidget::createProcess(const UuidKey<Process::ProcessModelFactory>& processName)
 {
     auto cmd = Command::make_AddProcessToConstraint(m_constraintWidget.model(), processName);
     m_constraintWidget.commandDispatcher()->submitCommand(cmd);
@@ -212,6 +212,16 @@ void ProcessTabWidget::updateDisplayedValues()
         displaySharedProcess(process);
     }
 
+}
+template<typename T>
+std::vector<std::string> brethrenNames(const T& vec)
+{
+    std::vector<std::string> names;
+    for(auto& elt : vec)
+    {
+        names.push_back(elt.metadata.getName().toStdString());
+    }
+    return names;
 }
 
 void ProcessTabWidget::ask_processNameChanged(const Process::ProcessModel& p, QString s)

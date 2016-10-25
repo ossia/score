@@ -13,7 +13,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include "StandardCreationPolicy.hpp"
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario

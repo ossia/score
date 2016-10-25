@@ -46,7 +46,7 @@ class HideRackInViewModel final : public iscore::SerializableCommand
     private:
         Path<ConstraintViewModel> m_constraintViewPath;
 
-        Id<RackModel> m_constraintPreviousId {};
+        OptionalId<RackModel> m_constraintPreviousId {};
 };
 }
 }

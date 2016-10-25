@@ -10,29 +10,32 @@
 #include <core/document/Document.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-
-class QObject;
-namespace iscore {
-class Document;
-}  // namespace iscore
-struct VisitorVariant;
-
+#include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 namespace Explorer
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
-        public iscore::SerializableDocumentPlugin,
-        public iscore::concrete
+        public iscore::SerializableDocumentPlugin
 {
         Q_OBJECT
+        ISCORE_SERIALIZE_FRIENDS(DeviceDocumentPlugin, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(DeviceDocumentPlugin, JSONObject)
+
+        SERIALIZABLE_MODEL_METADATA_IMPL(DeviceDocumentPlugin)
     public:
         explicit DeviceDocumentPlugin(
                 const iscore::DocumentContext& ctx,
+                Id<DocumentPlugin> id,
                 QObject* parent);
 
+        template<typename Impl>
         DeviceDocumentPlugin(
                 const iscore::DocumentContext& ctx,
-                const VisitorVariant& loader,
-                QObject* parent);
+                Deserializer<Impl>& vis,
+                QObject* parent):
+            iscore::SerializableDocumentPlugin{ctx, vis, parent}
+        {
+            vis.writeTo(*this);
+        }
 
         Device::Node& rootNode()
         { return m_rootNode; }
@@ -62,9 +65,6 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
         DeviceExplorerModel& explorer() const { return *m_explorer; }
 
     private:
-        void serialize_impl(const VisitorVariant&) const override;
-        ConcreteFactoryKey concreteFactoryKey() const override;
-
         void initDevice(Device::DeviceInterface&);
         Device::Node m_rootNode;
         Device::DeviceList m_list;
@@ -74,10 +74,6 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
 
     public:
         NodeUpdateProxy updateProxy{*this};
-        Device::Node m_loadingNode; // FIXME hack
-        // TODO maybe have another root node only for the "local" device ?
-        // Also have something to go through the document recursively if a node changes....
-        // or have "local" addresses with a pointer to something instead of a textual address.
 };
 
 }

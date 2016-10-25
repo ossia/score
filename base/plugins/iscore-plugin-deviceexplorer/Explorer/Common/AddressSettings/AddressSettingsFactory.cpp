@@ -11,6 +11,8 @@
 #include "Widgets/AddressStringSettingsWidget.hpp"
 #include "Widgets/AddressTupleSettingsWidget.hpp"
 
+#include <Explorer/Common/AddressSettings/Widgets/AddressVecSettingsWidget.hpp>
+
 
 namespace Explorer
 {
@@ -32,9 +34,6 @@ class AddressSettingsWidgetFactoryMethodT final : public AddressSettingsWidgetFa
 
 AddressSettingsFactory::AddressSettingsFactory()
 {
-    // TODO important these strings must be the same than ValueTypesArray in ValueConversion.
-    // Change this by storing keys instead (or the ValueType enum).
-
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::NoValue,
                                           std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressNoneSettingsWidget> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Int,
@@ -51,6 +50,13 @@ AddressSettingsFactory::AddressSettingsFactory()
                                           std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressCharSettingsWidget> >()));
     m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Impulse,
                                           std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressImpulseSettingsWidget> >()));
+
+    m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Vec2f,
+                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressVecSettingsWidget<2>> >()));
+    m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Vec3f,
+                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressVecSettingsWidget<3>> >()));
+    m_addressSettingsWidgetFactory.emplace(std::make_pair(State::ValueType::Vec4f,
+                                          std::make_unique< AddressSettingsWidgetFactoryMethodT<AddressVecSettingsWidget<4>> >()));
 }
 
 

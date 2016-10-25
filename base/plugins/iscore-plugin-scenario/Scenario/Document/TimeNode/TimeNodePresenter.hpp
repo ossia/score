@@ -27,9 +27,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodePresenter final :  public QObject
 
         const Id<TimeNodeModel>& id() const;
         int32_t id_val() const
-        {
-            return *id().val();
-        }
+        { return id().val(); }
 
         const TimeNodeModel& model() const;
         TimeNodeView* view() const;

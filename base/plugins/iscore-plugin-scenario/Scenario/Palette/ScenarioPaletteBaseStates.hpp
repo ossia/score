@@ -29,23 +29,28 @@ class StateBase : public QState
 
         void clear()
         {
-            clickedEvent = Id<EventModel>{};
-            clickedTimeNode = Id<TimeNodeModel>{};
-            clickedConstraint = Id<ConstraintModel>{};
-            clickedState = Id<StateModel>{};
+            clickedEvent = iscore::none;
+            clickedTimeNode = iscore::none;
+            clickedConstraint = iscore::none;
+            clickedState = iscore::none;
+
+            hoveredEvent = iscore::none;
+            hoveredTimeNode = iscore::none;
+            hoveredConstraint = iscore::none;
+            hoveredState = iscore::none;
 
             currentPoint = Scenario::Point();
         }
 
-        Id<StateModel> clickedState;
-        Id<EventModel> clickedEvent;
-        Id<TimeNodeModel> clickedTimeNode;
-        Id<ConstraintModel> clickedConstraint;
+        OptionalId<StateModel> clickedState;
+        OptionalId<EventModel> clickedEvent;
+        OptionalId<TimeNodeModel> clickedTimeNode;
+        OptionalId<ConstraintModel> clickedConstraint;
 
-        Id<StateModel> hoveredState;
-        Id<EventModel> hoveredEvent;
-        Id<TimeNodeModel> hoveredTimeNode;
-        Id<ConstraintModel> hoveredConstraint;
+        OptionalId<StateModel> hoveredState;
+        OptionalId<EventModel> hoveredEvent;
+        OptionalId<TimeNodeModel> hoveredTimeNode;
+        OptionalId<ConstraintModel> hoveredConstraint;
 
         Scenario::Point currentPoint;
 

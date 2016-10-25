@@ -8,7 +8,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 
 namespace Scenario
 {
@@ -32,12 +32,11 @@ void RemoveLayerModelFromSlot::undo() const
     auto& slot = m_path.find();
     Deserializer<DataStream> s {m_serializedLayerData};
 
-    auto& procs = this->context.components.factory<Process::ProcessList>();
-    auto lm = Process::createLayerModel(
-                               procs, s,
-                               slot.parentConstraint(),
-                               &slot);
-    slot.layers.add(lm);
+    auto lm = deserialize_interface(this->context.components.factory<Process::LayerFactoryList>(), s, &slot);
+    if(lm)
+        slot.layers.add(lm);
+    else
+        ISCORE_TODO;
 }
 
 void RemoveLayerModelFromSlot::redo() const

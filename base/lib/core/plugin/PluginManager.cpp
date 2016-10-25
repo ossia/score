@@ -83,11 +83,11 @@ std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     {
         return std::make_pair(nullptr, PluginLoadingError::Blacklisted);
     }
-    
+
 #if defined(_MSC_VER)
     QDir iscore_dir = QDir::current();
     QPluginLoader loader {iscore_dir.relativeFilePath(fileName)};
-#else 
+#else
     QPluginLoader loader {fileName};
 #endif
 
@@ -104,7 +104,7 @@ std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
 
         // Check if the plugin is not already loaded
         auto plug_it =
-                find_if(availablePlugins,
+                ossia::find_if(availablePlugins,
                         [&] (const iscore::Addon& obj)
         { return obj.plugin && (obj.plugin->key() == iscore_plugin->key()); });
 

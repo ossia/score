@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <boost/container/stable_vector.hpp>
 /*
  * @brief The TreeNode class
  *
@@ -10,9 +11,14 @@
 template<typename DataType>
 class TreeNode : public DataType
 {
+    private:
+        TreeNode* m_parent {};
+        boost::container::stable_vector<TreeNode> m_children;
+        using impl_type = boost::container::stable_vector<TreeNode>;
+
     public:
-        using iterator = typename std::vector<TreeNode>::iterator;
-        using const_iterator = typename std::vector<TreeNode>::const_iterator;
+        using iterator = typename impl_type::iterator;
+        using const_iterator = typename impl_type::const_iterator;
 
         auto begin() { return m_children.begin(); }
         auto begin() const { return cbegin(); }
@@ -209,10 +215,6 @@ class TreeNode : public DataType
                 child.visit(f);
             }
         }
-
-    private:
-        TreeNode* m_parent {};
-        std::vector<TreeNode> m_children;
 };
 
 

@@ -4,14 +4,14 @@
 #include "JSONVisitor.hpp"
 
 Visitor<Reader<JSONObject>>::Visitor():
-    context{iscore::AppContext()},
+    components{iscore::AppComponents()},
     strings{iscore::StringConstant()}
 {
 
 }
 
 Visitor<Writer<JSONObject>>::Visitor():
-    context{iscore::AppContext()},
+    components{iscore::AppComponents()},
     strings{iscore::StringConstant()}
 {
 
@@ -19,7 +19,7 @@ Visitor<Writer<JSONObject>>::Visitor():
 
 Visitor<Writer<JSONObject>>::Visitor(const QJsonObject& obj):
     m_obj{obj},
-    context{iscore::AppContext()},
+    components{iscore::AppComponents()},
     strings{iscore::StringConstant()}
 {
 
@@ -27,7 +27,7 @@ Visitor<Writer<JSONObject>>::Visitor(const QJsonObject& obj):
 
 Visitor<Writer<JSONObject>>::Visitor (QJsonObject&& obj):
     m_obj{std::move(obj)},
-    context{iscore::AppContext()},
+    components{iscore::AppComponents()},
     strings{iscore::StringConstant()}
 {
 

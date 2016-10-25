@@ -1,5 +1,7 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <iscore/command/PropertyCommand.hpp>
 #include <State/Expression.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -31,5 +33,13 @@ class SetCondition final : public iscore::SerializableCommand
         State::Condition m_condition;
         State::Condition m_previousCondition;
 };
+
+class SetOffsetBehavior final : public iscore::PropertyCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetOffsetBehavior, "Set offset behavior")
+    public:
+        SetOffsetBehavior(Path<EventModel>&& path, OffsetBehavior newval);
+};
+
 }
 }

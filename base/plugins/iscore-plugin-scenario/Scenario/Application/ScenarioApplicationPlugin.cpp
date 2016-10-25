@@ -57,7 +57,7 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>

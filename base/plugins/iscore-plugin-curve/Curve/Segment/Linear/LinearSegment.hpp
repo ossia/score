@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
+#include <ossia/editor/curve/curve_segment/linear.hpp>
 
 namespace Curve { class LinearSegment; }
 
@@ -47,19 +48,12 @@ class ISCORE_PLUGIN_CURVE_EXPORT LinearSegment final :
 
         QVariant toSegmentSpecificData() const override;
 
-        template<typename T>
-        std::function<T(double, T, T)> makeFunction() const
-        {
-            return [] (double ratio, T start, T end) {
-                return start + ratio * (end - start);
-            };
-        }
         std::function<float(double, float, float)> makeFloatFunction() const override
-        { return makeFunction<float>(); }
+        { return ossia::curve_segment_linear<float>{}; }
         std::function<int(double, int, int)> makeIntFunction() const override
-        { return makeFunction<int>(); }
+        { return ossia::curve_segment_linear<int>{}; }
         std::function<bool(double, bool, bool)> makeBoolFunction() const override
-        { return makeFunction<bool>(); }
+        { return ossia::curve_segment_linear<bool>{}; }
 };
 }
 

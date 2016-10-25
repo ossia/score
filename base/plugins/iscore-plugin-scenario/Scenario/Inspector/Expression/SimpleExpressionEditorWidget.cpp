@@ -175,7 +175,7 @@ void SimpleExpressionEditorWidget::setRelation(State::Relation r)
     {
         if(auto addr_ptr = r.lhs.target<State::Address>())
         {
-            m_address->setAddress(*addr_ptr);
+            m_address->setAddress(State::AddressAccessor{*addr_ptr});
         }
         else if(auto acc_ptr = r.lhs.target<State::AddressAccessor>())
         {
@@ -196,7 +196,7 @@ void SimpleExpressionEditorWidget::setRelation(State::Relation r)
 
 void SimpleExpressionEditorWidget::setPulse(State::Pulse p)
 {
-    m_address->setAddress(p.address);
+    m_address->setAddress(State::AddressAccessor{p.address});
     m_value->setText("");
 
     m_comparator->setCurrentIndex(ExpressionEditorComparator::Pulse);

@@ -5,28 +5,29 @@
 #include <QString>
 
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/plugins/customfactory/SerializableInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 class QObject;
 namespace Process
 {
 class LayerModelPanelProxy;
+class LayerFactory;
 class ProcessModel;
 
 /**
  * @brief The LayerModel class
  *
- * Interface to implement to make a process view model.
+ * Interface to implement to make a layer.
  */
 class ISCORE_LIB_PROCESS_EXPORT LayerModel:
-        public IdentifiedObject<LayerModel>
+        public IdentifiedObject<LayerModel>,
+        public iscore::SerializableInterface<LayerFactory>
 {
+        Q_OBJECT
     public:
         virtual ~LayerModel();
         ProcessModel& processModel() const;
-
-        virtual void serialize_impl(const VisitorVariant&) const = 0;
-
 
     protected:
         // TODO this argument order sucks
@@ -50,9 +51,10 @@ class ISCORE_LIB_PROCESS_EXPORT LayerModel:
 };
 
 template<typename Process_T>
-class LayerModel_T : public LayerModel
+class LayerModel_T final : public LayerModel
 {
     public:
+        using process_type = Process_T;
         explicit LayerModel_T(
                 ProcessModel& model,
                 const Id<Process::LayerModel>& id,
@@ -86,9 +88,14 @@ class LayerModel_T : public LayerModel
         Process_T& processModel() const
         { return static_cast<Process_T&>(LayerModel::processModel()); }
 
+        key_type concreteFactoryKey() const final override
+        {
+            return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get();
+        }
+
     protected:
         // Nothing to save
-        void serialize_impl(const VisitorVariant&) const override { }
+        void serialize_impl(const VisitorVariant&) const final override { }
 };
 }
 

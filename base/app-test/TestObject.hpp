@@ -38,8 +38,12 @@ class TestObject : public QObject
         void appStarted()
         {
             QDirIterator it("testdata/stacks/");
-            while (it.hasNext()) {
+            while (it.hasNext())
+            {
                 qDebug() << it.next();
+
+                if(!it.filePath().contains(".stack"))
+                    continue;
 
                 auto doc = m_context.documents.loadStack(m_context, it.filePath());
                 QApplication::processEvents();
@@ -65,18 +69,21 @@ class TestObject : public QObject
                 auto json_arr = doc->saveAsJson();
                 QApplication::processEvents();
 
-                auto& doctype = *m_context.components.factory<iscore::DocumentDelegateList>().begin();
-                auto ba_doc = m_context.documents.loadDocument(m_context, byte_arr, doctype);
-                QApplication::processEvents();
-                auto json_doc = m_context.documents.loadDocument(m_context, json_arr, doctype);
+                m_context.documents.forceCloseDocument(m_context, *doc);
                 QApplication::processEvents();
 
-                m_context.documents.forceCloseDocument(m_context, *doc);
+                auto& doctype = *m_context.components.factory<iscore::DocumentDelegateList>().begin();
+
+                auto ba_doc = m_context.documents.loadDocument(m_context, byte_arr, doctype);
                 QApplication::processEvents();
                 m_context.documents.forceCloseDocument(m_context, *ba_doc);
                 QApplication::processEvents();
+
+                auto json_doc = m_context.documents.loadDocument(m_context, json_arr, doctype);
+                QApplication::processEvents();
                 m_context.documents.forceCloseDocument(m_context, *json_doc);
                 QApplication::processEvents();
+
             }
 
 

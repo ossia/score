@@ -72,8 +72,7 @@ bool MessageDropHandler::handle(
     }
 
     auto state_path = make_path(scenar)
-            .extend(createdState)
-            .extend(Id<MessageItemModel>{});
+            .extend(createdState);
 
     auto cmd2 = new AddMessagesToState{
             std::move(state_path),

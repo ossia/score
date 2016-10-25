@@ -17,7 +17,7 @@ class ISCORE_LIB_BASE_EXPORT ValidityChecker :
 };
 
 class ValidityCheckerList;
-class DocumentValidator
+class ISCORE_LIB_BASE_EXPORT DocumentValidator
 {
     public:
         DocumentValidator(

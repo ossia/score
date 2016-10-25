@@ -40,10 +40,8 @@
 #include <iscore/tools/TreeNode.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-namespace Process { class LayerModel; }
-namespace Process { class ProcessModel; }
-class SlotModel;
-
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 
 namespace Scenario
 {
@@ -58,12 +56,15 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 {
     // TESTME
 
+    if(!context.settings<Scenario::Settings::Model>().getAutoSequence())
+        return;
+
     // We get the device explorer, and we fetch the new states.
     const auto& startMessages = Process::flatten(Scenario::startState(constraint, scenario).messages().rootNode());
 
     std::vector<Device::FullAddressSettings> endAddresses;
     endAddresses.reserve(startMessages.size());
-    transform(startMessages, std::back_inserter(endAddresses),
+    ossia::transform(startMessages, std::back_inserter(endAddresses),
               [] (const auto& mess) { return Device::FullAddressSettings::make(mess); });
 
     auto& devPlugin = iscore::IDocument::documentContext(scenario).plugin<Explorer::DeviceDocumentPlugin>();
@@ -93,8 +94,8 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
     QList<State::Message> endMessages;
     endMessages.reserve(endAddresses.size());
-    transform(endAddresses, std::back_inserter(endMessages),
-              [] (const auto& addr) { return State::Message{addr.address, addr.value}; });
+    ossia::transform(endAddresses, std::back_inserter(endMessages),
+              [] (const auto& addr) { return State::Message{State::AddressAccessor{addr.address}, addr.value}; });
 
     updateTreeWithMessageList(m_stateData, endMessages);
 
@@ -106,8 +107,8 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     {
         if(message.value.val.isNumeric())
         {
-            auto addr_it = find_if(endAddresses, [&] (const auto& arg) {
-                return message.address == arg.address && message.value != arg.value; });
+            auto addr_it = ossia::find_if(endAddresses, [&] (const Device::FullAddressSettings& arg) {
+                return message.address.address == arg.address && message.value != arg.value; });
 
             if(addr_it != std::end(endAddresses))
             {
@@ -116,8 +117,8 @@ CreateSequenceProcesses::CreateSequenceProcesses(
         }
         else if(message.value.val.is<State::tuple_t>())
         {
-            auto addr_it = find_if(endAddresses, [&] (const auto& arg) {
-                return message.address == arg.address && message.value != arg.value; });
+            auto addr_it = ossia::find_if(endAddresses, [&] (const Device::FullAddressSettings& arg) {
+                return message.address.address == arg.address && message.value != arg.value; });
 
             if(addr_it != std::end(endAddresses))
             {
@@ -154,11 +155,13 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
         auto start = State::convert::value<double>(elt.first.value);
         auto end = State::convert::value<double>(elt.second.value);
-        double min = (elt.second.domain.min.val.which() != State::ValueType::NoValue)
-                ? std::min(State::convert::value<double>(elt.second.domain.min), std::min(start, end))
+        auto min_v = elt.second.domain.get_min();
+        auto max_v = elt.second.domain.get_max();
+        double min = (min_v.valid())
+                ? std::min(ossia::convert<double>(min_v), std::min(start, end))
                 : std::min(start, end);
-        double max = (elt.second.domain.max.val.which() != State::ValueType::NoValue)
-                ? std::max(State::convert::value<double>(elt.second.domain.max), std::max(start, end))
+        double max = (max_v.valid())
+                ? std::max(ossia::convert<double>(max_v), std::max(start, end))
                 : std::max(start, end);
 
         auto cmd = new CreateAutomationFromStates{

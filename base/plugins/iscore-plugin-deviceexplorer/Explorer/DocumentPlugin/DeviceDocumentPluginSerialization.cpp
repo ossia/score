@@ -1,11 +1,16 @@
 #include "DeviceDocumentPlugin.hpp"
 #include <Device/Protocol/DeviceInterface.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <iscore/tools/VariantSerialization.hpp>
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
         const Explorer::DeviceDocumentPlugin& dev)
 {
+    insertDelimiter();
+    insertDelimiter();
+    insertDelimiter();
     readFrom(dev.rootNode());
+    insertDelimiter();
 }
 
 
@@ -45,7 +50,22 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(
         Explorer::DeviceDocumentPlugin& plug)
 {
-    writeTo(plug.m_loadingNode);
+    Device::Node n;
+    checkDelimiter();
+    checkDelimiter();
+    checkDelimiter();
+    writeTo(n);
+    checkDelimiter();
+
+    plug.m_explorer = new Explorer::DeviceExplorerModel{plug, &plug};
+    // Here everything is loaded in m_loadingNode
+
+    // Here we recreate the correct structures in term of devices,
+    // given what's present in the node hierarchy
+    for(const auto& node : n)
+    {
+        plug.updateProxy.loadDevice(node);
+    }
 }
 
 
@@ -53,5 +73,16 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(
         Explorer::DeviceDocumentPlugin& plug)
 {
-    writeTo(plug.m_loadingNode);
+    Device::Node n;
+    writeTo(n);
+
+    plug.m_explorer = new Explorer::DeviceExplorerModel{plug, &plug};
+    // Here everything is loaded in m_loadingNode
+
+    // Here we recreate the correct structures in term of devices,
+    // given what's present in the node hierarchy
+    for(const auto& node : n)
+    {
+        plug.updateProxy.loadDevice(node);
+    }
 }

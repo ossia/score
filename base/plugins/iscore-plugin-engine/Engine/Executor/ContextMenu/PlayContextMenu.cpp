@@ -37,7 +37,7 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioRecordInitData.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <Engine/iscore2OSSIA.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 
@@ -182,7 +182,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
         if(sel.empty())
             return;
 
-        if(any_of(sel, matches<Scenario::ConstraintModel>{}))
+        if(ossia::any_of(sel, matches<Scenario::ConstraintModel>{}))
         {
             auto submenu = menu.findChild<QMenu*>("Constraint");
             ISCORE_ASSERT(submenu);
@@ -199,7 +199,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
         if(sel.empty())
             return;
 
-        if(any_of(sel, matches<Scenario::StateModel>{}))
+        if(ossia::any_of(sel, matches<Scenario::StateModel>{}))
         {
             auto stateSubmenu = menu.findChild<QMenu*>("State");
             ISCORE_ASSERT(stateSubmenu);

@@ -27,7 +27,7 @@
 
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
-
+#include <ossia/editor/dataspace/dataspace_visitors.hpp> // temporary
 namespace Automation
 {
 namespace RecreateOnPlay
@@ -42,34 +42,26 @@ Component::Component(
           parentConstraint, element, ctx, id, "Executor::Automation::Component", parent},
     m_deviceList{ctx.devices.list()}
 {
-    recreate();
-}
+  auto dest = Engine::iscore_to_ossia::makeDestination(
+         m_deviceList,
+         process().address());
 
-void Component::recreate()
-{
-    m_ossia_curve.reset(); // It will be remade after.
-    m_ossia_process = nullptr;
+  if(dest)
+  {
+    auto& d = *dest;
+    m_addressType = d.value.get().getValueType();
 
-    auto address = Engine::iscore_to_ossia::findAddress(
-          m_deviceList,
-          process().address());
+    if(process().tween())
+        on_curveChanged(d); // If the type changes we need to rebuild the curve.
+    else
+        on_curveChanged({});
 
-    if(address)
+    if(m_ossia_curve)
     {
-        m_addressType = address->getValueType();
-
-      if(process().tween())
-          on_curveChanged(ossia::Destination(*address, {})); // If the type changes we need to rebuild the curve.
-      else
-          on_curveChanged({});
-
-      if(m_ossia_curve)
-      {
-        m_ossia_process = new ossia::automation(
-                    *address,
-                    ossia::Behavior(m_ossia_curve));
-      }
+      m_ossia_process = new ossia::automation{
+          std::move(d), m_ossia_curve};
     }
+  }
 }
 
 template<typename Y_T>
@@ -105,6 +97,12 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged(
             m_ossia_curve = on_curveChanged_impl<int>(d);
             break;
         case ossia::val_type::FLOAT:
+            m_ossia_curve = on_curveChanged_impl<float>(d);
+            break;
+        case ossia::val_type::TUPLE:
+        case ossia::val_type::VEC2F:
+        case ossia::val_type::VEC3F:
+        case ossia::val_type::VEC4F:
             m_ossia_curve = on_curveChanged_impl<float>(d);
             break;
         default:

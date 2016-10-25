@@ -15,6 +15,7 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/address.hpp>
 #include <ossia/network/base/protocol.hpp>
+#include <ossia/detail/logger.hpp>
 #include <ossia/network/common/network_logger.hpp>
 
 namespace Engine
@@ -71,15 +72,12 @@ void OSSIADevice::updateSettings(const Device::DeviceSettings& newsettings)
 
 void OSSIADevice::disconnect()
 {
+    m_callbacks.clear();
     if(auto dev = getDevice())
     {
         auto& root = dev->getRootNode();
-        removeListening_impl(root, State::Address{m_settings.name, {}});
-
         root.clearChildren();
     }
-
-    m_callbacks.clear();
 }
 
 void OSSIADevice::addAddress(const Device::FullAddressSettings &settings)
@@ -149,7 +147,7 @@ void OSSIADevice::removeListening_impl(
     {
         State::Address sub_addr = addr;
         sub_addr.path += QString::fromStdString(child->getName());
-        removeListening_impl(*child.get(), sub_addr);
+        removeListening_impl(*child.get(), std::move(sub_addr));
     }
 }
 
@@ -188,7 +186,7 @@ void OSSIADevice::setLogging_impl(bool b) const
     {
         if(b)
         {
-            ossia::network_logger logger;
+            ossia::net::network_logger logger;
             logger.inbound_logger = std::make_shared<spdlog::logger>("in_logger", std::make_shared<in_sink>(*this));
             logger.outbound_logger = std::make_shared<spdlog::logger>("out_logger", std::make_shared<out_sink>(*this));
 
@@ -197,12 +195,10 @@ void OSSIADevice::setLogging_impl(bool b) const
             logger.outbound_logger->set_pattern("%v");
             logger.outbound_logger->set_level(spdlog::level::info);
             dev->getProtocol().setLogger(std::move(logger));
-            qDebug() << "logging enabled";
         }
         else
         {
             dev->getProtocol().setLogger({});
-            qDebug() << "logging disabled";
         }
     }
 
@@ -395,12 +391,22 @@ void OSSIADevice::sendMessage(const State::Message& mess)
 {
     if(auto dev = getDevice())
     {
-        auto node = Engine::iscore_to_ossia::getNodeFromPath(mess.address.path, *dev);
-
-        auto addr = node->getAddress();
-        if(addr)
+        if(mess.address.qualifiers.accessors.empty())
         {
-            addr->pushValue(Engine::iscore_to_ossia::toOSSIAValue(mess.value));
+            auto node = Engine::iscore_to_ossia::getNodeFromPath(mess.address.address.path, *dev);
+
+            auto addr = node->getAddress();
+            if(addr)
+            {
+                addr->pushValue(Engine::iscore_to_ossia::toOSSIAValue(mess.value));
+            }
+        }
+        else
+        {
+            ISCORE_TODO;
+            // FIXME handle address accessor
+            // We have to get the current value, and merge the accessed element inside.
+            // See for instance the various value merging algorithms in ossia.
         }
     }
 }

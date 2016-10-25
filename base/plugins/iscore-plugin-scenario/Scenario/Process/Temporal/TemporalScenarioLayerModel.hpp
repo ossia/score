@@ -12,9 +12,22 @@ namespace Scenario
 {
 class ConstraintModel;
 class ConstraintViewModel;
+class TemporalScenarioLayer;
+}
+LAYER_METADATA(
+        ,
+        Scenario::TemporalScenarioLayer,
+        "f355afd2-9cc7-4223-971a-584d757c7286",
+        "TemporalScenarioLayer",
+        "TemporalScenarioLayer"
+        )
+
+namespace Scenario
+{
 class TemporalScenarioLayer final : public AbstractScenarioLayer
 {
         Q_OBJECT
+        SERIALIZABLE_MODEL_METADATA_IMPL(TemporalScenarioLayer)
     public:
         using model_type = Scenario::ProcessModel;
         using constraint_layer_type = TemporalConstraintViewModel;
@@ -43,8 +56,6 @@ class TemporalScenarioLayer final : public AbstractScenarioLayer
 
         ~TemporalScenarioLayer() = default;
 
-        void serialize_impl(const VisitorVariant&) const override;
-
         void makeConstraintViewModel(
                 const Id<ConstraintModel>& constraintModelId,
                 const Id<ConstraintViewModel>& constraintViewModelId) override;
@@ -59,3 +70,4 @@ class TemporalScenarioLayer final : public AbstractScenarioLayer
 
 };
 }
+

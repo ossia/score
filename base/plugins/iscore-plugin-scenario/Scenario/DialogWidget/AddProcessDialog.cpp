@@ -16,7 +16,7 @@
 namespace Scenario
 {
 AddProcessDialog::AddProcessDialog(
-        const Process::ProcessList& plist,
+        const Process::ProcessFactoryList& plist,
         QWidget *parent) :
     QWidget {parent},
     m_factoryList{plist}
@@ -28,7 +28,7 @@ void AddProcessDialog::launchWindow()
 {
     bool ok = false;
 
-    std::vector<std::pair<QString, UuidKey<Process::ProcessFactory>>> sortedFactoryList;
+    std::vector<std::pair<QString, UuidKey<Process::ProcessModelFactory>>> sortedFactoryList;
     for(const auto& factory : m_factoryList)
     {
         sortedFactoryList.push_back(

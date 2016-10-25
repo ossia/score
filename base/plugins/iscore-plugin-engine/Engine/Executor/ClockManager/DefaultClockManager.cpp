@@ -22,7 +22,7 @@ DefaultClockManager::DefaultClockManager(
     ossia::time_constraint& ossia_cst = *bs.baseConstraint()->OSSIAConstraint();
 
     ossia_cst.setDriveMode(ossia::clock::DriveMode::INTERNAL);
-    ossia_cst.setGranularity(context.doc.app.settings<Settings::Model>().getRate());
+    ossia_cst.setGranularity(ossia::time_value(context.doc.app.settings<Settings::Model>().getRate()));
     ossia_cst.setCallback(makeDefaultCallback(bs));
 }
 ossia::time_constraint::ExecutionCallback DefaultClockManager::makeDefaultCallback(

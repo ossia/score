@@ -42,7 +42,7 @@ ProcessModel::ProcessModel(
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
 
-    metadata().setName(QString("Automation.%1").arg(*this->id().val()));
+    metadata().setInstanceName(*this);
 }
 
 ProcessModel::~ProcessModel()
@@ -60,10 +60,10 @@ ProcessModel::ProcessModel(
     m_startState{new ProcessState{*this, 0., this}},
     m_endState{new ProcessState{*this, 1., this}}
 {
+    metadata().setInstanceName(*this);
     setCurve(source.curve().clone(source.curve().id(), this));
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
-    metadata().setName(QString("Automation.%1").arg(*this->id().val()));
 }
 
 QString ProcessModel::prettyName() const
@@ -170,7 +170,7 @@ ProcessState* ProcessModel::endStateData() const
     return m_endState;
 }
 
-::State::Address ProcessModel::address() const
+::State::AddressAccessor ProcessModel::address() const
 {
     return m_address;
 }
@@ -185,7 +185,7 @@ double ProcessModel::max() const
     return m_max;
 }
 
-void ProcessModel::setAddress(const ::State::Address &arg)
+void ProcessModel::setAddress(const ::State::AddressAccessor &arg)
 {
     if(m_address == arg)
     {
@@ -194,6 +194,7 @@ void ProcessModel::setAddress(const ::State::Address &arg)
 
     m_address = arg;
     emit addressChanged(arg);
+    emit unitChanged(arg.qualifiers.unit);
     emit m_curve->changed();
 }
 
@@ -215,6 +216,22 @@ void ProcessModel::setMax(double arg)
     m_max = arg;
     emit maxChanged(arg);
     emit m_curve->changed();
+}
+
+ossia::unit_t ProcessModel::unit() const
+{
+    return m_address.qualifiers.unit;
+}
+
+void ProcessModel::setUnit(ossia::unit_t u)
+{
+    if(u != unit())
+    {
+        m_address.qualifiers.unit = u;
+        emit addressChanged(m_address);
+        emit unitChanged(u);
+    }
+
 }
 }
 

@@ -37,7 +37,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/std/Algorithms.hpp>
 #include <core/document/Document.hpp>
@@ -93,9 +93,8 @@ ScenarioPasteElements::ScenarioPasteElements(
     // We assign new ids WRT the elements of the scenario - these ids can
     // be easily mapped.
     const auto& tsModel = m_ts.find();
-    const Scenario::ProcessModel& scenario = ::model(tsModel);
+    Scenario::ProcessModel& scenario = ::model(tsModel);
 
-    auto& doc = iscore::IDocument::documentContext(scenario);
     auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
 
 
@@ -104,13 +103,18 @@ ScenarioPasteElements::ScenarioPasteElements(
     std::vector<EventModel*> events;
     std::vector<StateModel*> states;
 
+    // TODO this is really a bad idea... either they should be properly added, or
+    // the json should be modified without including anything in the scenario.
+    // Especially their parents aren't coherent (TimeNode must not have a parent
+    // because it tries to access the event in the scenario if it has one and
+    // Constraint needs a parent for the RelativePath in LayerModel)
     // We deserialize everything
     {
         auto json_arr = obj["Constraints"].toArray();
         constraints.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            constraints.emplace_back(new ConstraintModel{Deserializer<JSONObject>{element.toObject()}, &doc.document});
+            constraints.emplace_back(new ConstraintModel{Deserializer<JSONObject>{element.toObject()}, &scenario});
         }
     }
     {
@@ -222,14 +226,14 @@ ScenarioPasteElements::ScenarioPasteElements(
         {
             constraint->setId(constraint_ids[i]);
             {
-                auto start_state_id = find_if(states, [&] (auto state) {
+                auto start_state_id = ossia::find_if(states, [&] (auto state) {
                     return state->id() == constraint->startState();
                 });
                 if(start_state_id != states.end())
                     SetNextConstraint(**start_state_id, *constraint);
             }
             {
-                auto end_state_id = find_if(states, [&] (auto state) {
+                auto end_state_id = ossia::find_if(states, [&] (auto state) {
                     return state->id() == constraint->endState();
                 });
                 if(end_state_id != states.end())

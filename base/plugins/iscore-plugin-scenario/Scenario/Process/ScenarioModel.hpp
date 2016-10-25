@@ -12,7 +12,7 @@
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <QByteArray>
 #include <QList>
@@ -30,7 +30,7 @@
 class DataStream;
 class JSONObject;
 namespace Process { class LayerModel; }
-class ProcessStateDataInterface;
+
 class QEvent;
 
 /**
@@ -52,6 +52,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final :
         ISCORE_SERIALIZE_FRIENDS(Scenario::ProcessModel, JSONObject)
         MODEL_METADATA_IMPL(Scenario::ProcessModel)
         friend class ScenarioFactory;
+        friend class ScenarioTemporalLayerFactory;
 
     public:
         using layer_type = AbstractScenarioLayer;
@@ -89,19 +90,19 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final :
 
         ConstraintModel* findConstraint(const Id<ConstraintModel>& id) const override
         {
-            return ptr_find(constraints, id);
+            return ossia::ptr_find(constraints, id);
         }
         EventModel* findEvent(const Id<EventModel>& id) const override
         {
-            return ptr_find(events, id);
+            return ossia::ptr_find(events, id);
         }
         TimeNodeModel* findTimeNode(const Id<TimeNodeModel>& id) const override
         {
-            return ptr_find(timeNodes, id);
+            return ossia::ptr_find(timeNodes, id);
         }
         StateModel* findState(const Id<StateModel>& id) const override
         {
-            return ptr_find(states, id);
+            return ossia::ptr_find(states, id);
         }
 
         ConstraintModel& constraint(const Id<ConstraintModel>& constraintId) const override
@@ -139,11 +140,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final :
             return events.at(m_endEventId);
         }
 
-        NotifyingMap<ConstraintModel> constraints;
-        NotifyingMap<EventModel> events;
-        NotifyingMap<TimeNodeModel> timeNodes;
-        NotifyingMap<StateModel> states;
-        NotifyingMap<CommentBlockModel> comments;
+        EntityMap<ConstraintModel> constraints;
+        EntityMap<EventModel> events;
+        EntityMap<TimeNodeModel> timeNodes;
+        EntityMap<StateModel> states;
+        EntityMap<CommentBlockModel> comments;
 
     signals:
         void stateMoved(const StateModel&);
@@ -280,22 +281,22 @@ inline auto& states(const Scenario::ProcessModel& scenar)
 template<>
 struct ScenarioElementTraits<Scenario::ProcessModel, ConstraintModel>
 {
-        static const constexpr auto accessor = static_cast<const NotifyingMap<ConstraintModel>& (*) (const Scenario::ProcessModel&)>(&constraints);
+        static const constexpr auto accessor = static_cast<const EntityMap<ConstraintModel>& (*) (const Scenario::ProcessModel&)>(&constraints);
 };
 template<>
 struct ScenarioElementTraits<Scenario::ProcessModel, EventModel>
 {
-        static const constexpr auto accessor = static_cast<const NotifyingMap<EventModel>& (*) (const Scenario::ProcessModel&)>(&events);
+        static const constexpr auto accessor = static_cast<const EntityMap<EventModel>& (*) (const Scenario::ProcessModel&)>(&events);
 };
 template<>
 struct ScenarioElementTraits<Scenario::ProcessModel, TimeNodeModel>
 {
-        static const constexpr auto accessor = static_cast<const NotifyingMap<TimeNodeModel>& (*) (const Scenario::ProcessModel&)>(&timeNodes);
+        static const constexpr auto accessor = static_cast<const EntityMap<TimeNodeModel>& (*) (const Scenario::ProcessModel&)>(&timeNodes);
 };
 template<>
 struct ScenarioElementTraits<Scenario::ProcessModel, StateModel>
 {
-        static const constexpr auto accessor = static_cast<const NotifyingMap<StateModel>& (*) (const Scenario::ProcessModel&)>(&states);
+        static const constexpr auto accessor = static_cast<const EntityMap<StateModel>& (*) (const Scenario::ProcessModel&)>(&states);
 };
 
 }

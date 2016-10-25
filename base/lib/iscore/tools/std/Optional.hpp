@@ -42,3 +42,4 @@ const constexpr auto none = std::experimental::nullopt;
 //TODO
 template<typename... Args>
 using optional = iscore::optional<Args...>;
+using none_t = decltype(iscore::none);

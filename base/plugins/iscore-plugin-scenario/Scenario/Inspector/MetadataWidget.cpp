@@ -37,12 +37,10 @@ MetadataWidget::MetadataWidget(
     // main
     auto metadataLayout = new iscore::MarginLess<QVBoxLayout>{this};
     metadataLayout->setSizeConstraint(QLayout::SetMinimumSize);
-
-    // btn
-    auto btnLay = new iscore::MarginLess<QVBoxLayout>;
-
-    // header
-    auto headerLay = new iscore::MarginLess<QHBoxLayout>;
+    auto headerLay = new iscore::MarginLess<QHBoxLayout>{};
+    metadataLayout->addLayout(headerLay);
+    auto btnLay = new iscore::MarginLess<QVBoxLayout>{};
+    headerLay->addLayout(btnLay);
 
     // Name(s)
     auto descriptionWidget = new QWidget {this};
@@ -57,7 +55,7 @@ MetadataWidget::MetadataWidget(
     descriptionWidget->setObjectName("Description");
 
      // color
-    m_colorButton = new QPushButton{};
+    m_colorButton = new QPushButton{this};
     m_colorButton->setMaximumSize(QSize(1.5 * m_colorIconSize, 1.5 * m_colorIconSize));
     m_colorButton->setIconSize(QSize(m_colorIconSize, m_colorIconSize));
     m_colorButtonPixmap.fill(metadata.getColor().getColor());
@@ -68,7 +66,7 @@ MetadataWidget::MetadataWidget(
     m_comments = new CommentEdit{metadata.getComment(), this};
     m_comments->setVisible(false);
 
-    m_cmtBtn = new QToolButton{};
+    m_cmtBtn = new QToolButton{this};
     m_cmtBtn->setArrowType(Qt::RightArrow);
 
     m_meta = new ExtendedMetadataWidget{metadata.getExtendedMetadata(), this};
@@ -78,9 +76,7 @@ MetadataWidget::MetadataWidget(
     btnLay->addWidget(m_cmtBtn);
 
     headerLay->addWidget(descriptionWidget);
-    headerLay->addLayout(btnLay);
 
-    metadataLayout->addLayout(headerLay);
     metadataLayout->addWidget(m_comments);
 
     metadataLayout->addWidget(m_meta);
@@ -123,9 +119,9 @@ MetadataWidget::MetadataWidget(
     {
         using namespace color_widgets;
 
-        auto palette_widget = new ColorPaletteWidget;
+        auto palette_widget = new ColorPaletteWidget{this};
         delete m_palette;
-        m_palette = new ColorPaletteModel;
+        m_palette = new ColorPaletteModel{};
         ColorPalette palette1;
         palette1.setColors(iscore::Skin::instance().getColors());
         palette1.setName("Choose a color");
@@ -145,7 +141,7 @@ MetadataWidget::MetadataWidget(
                 emit colorChanged(*col);
         } );
 
-        auto colorMenu = new QMenu;
+        auto colorMenu = new QMenu{this};
         auto act = new QWidgetAction(colorMenu);
         act->setDefaultWidget(palette_widget);
         colorMenu->insertAction(nullptr, act);

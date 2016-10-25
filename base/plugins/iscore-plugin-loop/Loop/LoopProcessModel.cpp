@@ -22,7 +22,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 
 namespace Process { class LayerModel; }
-class ProcessStateDataInterface;
+
 class QObject;
 
 namespace Loop
@@ -57,7 +57,7 @@ ProcessModel::ProcessModel(
         const Loop::ProcessModel& source,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
+    Process::ProcessModel{source, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     BaseScenarioContainer{source, this}
 {
 }
@@ -88,7 +88,7 @@ Selection ProcessModel::selectableChildren() const
 {
     Selection s;
 
-    for_each_in_tuple(elements(), [&] (auto elt) { s.append(elt); });
+    ossia::for_each_in_tuple(elements(), [&] (auto elt) { s.append(elt); });
 
     return s;
 }
@@ -97,7 +97,7 @@ Selection ProcessModel::selectedChildren() const
 {
     Selection s;
 
-    for_each_in_tuple(elements(), [&] (auto elt) {
+    ossia::for_each_in_tuple(elements(), [&] (auto elt) {
         if(elt->selection.get())
             s.append(elt);
     });
@@ -107,7 +107,7 @@ Selection ProcessModel::selectedChildren() const
 
 void ProcessModel::setSelection(const Selection& s) const
 {
-    for_each_in_tuple(elements(), [&] (auto elt) {
+    ossia::for_each_in_tuple(elements(), [&] (auto elt) {
         elt->selection.set(s.contains(elt)); // OPTIMIZEME
     });
 }

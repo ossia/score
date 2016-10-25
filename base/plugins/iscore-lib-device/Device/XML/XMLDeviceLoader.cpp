@@ -46,6 +46,39 @@ static State::Value stringToVal(const QString& str, const QString& type)
     return val;
 }
 
+static ossia::value stringToOssiaVal(const QString& str, const QString& type)
+{
+    ossia::value val;
+    bool ok = false;
+    if(type == "integer")
+    {
+        val = str.toInt(&ok);
+    }
+    else if(type == "decimal")
+    {
+        val = str.toFloat(&ok);
+    }
+    else if(type == "boolean")
+    {
+        val = (str.toFloat(&ok) != 0);
+    }
+    else if(type == "string")
+    {
+        val = str.toStdString();
+        ok = true;
+    }
+    else
+    {
+        qDebug() << "Unknown type: " << type;
+    }
+
+    if(!ok)
+        return {};
+
+    return val;
+}
+
+
 static State::Value read_valueDefault(
         const QDomElement& dom_element,
         const QString& type)
@@ -87,7 +120,7 @@ static auto read_rangeBounds(
         const QDomElement& dom_element,
         const QString& type)
 {
-    Device::Domain domain;
+    ossia::net::domain domain;
 
     if(dom_element.hasAttribute("rangeBounds"))
     {
@@ -98,8 +131,9 @@ static auto read_rangeBounds(
 
         if(type == "decimal" || type == "integer")
         {
-            domain.min = stringToVal(minBound, type);
-            domain.max = stringToVal(bounds, type);
+            auto v1 = stringToOssiaVal(minBound, type);
+            auto v2 = stringToOssiaVal(bounds, type);
+            domain = ossia::net::make_domain(v1, v2);
         }
     }
 

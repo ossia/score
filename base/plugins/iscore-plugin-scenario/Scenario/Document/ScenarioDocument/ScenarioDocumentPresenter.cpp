@@ -113,6 +113,11 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     emit requestDisplayedConstraintChange(model().baseConstraint());
 }
 
+ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
+{
+    delete m_scenarioPresenter;
+}
+
 const ConstraintModel& ScenarioDocumentPresenter::displayedConstraint() const
 {
     return model().displayedElements.constraint();
@@ -172,10 +177,8 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
     }
 
     setMillisPerPixel(newZoom);
-    // scroll to the last center position
-    qDebug() << displayedConstraint().fullView()->visibleRect();
 
-    auto w = gv.width();
+    // scroll to the last center position
     gv.ensureVisible(gv.mapFromScene(displayedConstraint().fullView()->visibleRect()).boundingRect());
 
     on_askUpdate();

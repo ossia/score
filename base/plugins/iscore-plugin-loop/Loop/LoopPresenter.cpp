@@ -79,7 +79,7 @@ LayerPresenter::LayerPresenter(
                 m_startNodePresenter,
                 m_endNodePresenter);
 
-    for_each_in_tuple(elements, [&] (auto elt) {
+    ossia::for_each_in_tuple(elements, [&] (auto elt) {
         using elt_t = std::remove_reference_t<decltype(*elt)>;
         connect(elt, &elt_t::pressed,  this, &LayerPresenter::pressed);
         connect(elt, &elt_t::moved,    this, &LayerPresenter::moved);

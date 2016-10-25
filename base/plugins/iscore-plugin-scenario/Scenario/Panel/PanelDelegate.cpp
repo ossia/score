@@ -86,6 +86,8 @@ void PanelDelegate::cleanup()
     m_proxy = nullptr;
 }
 
+
+// MOVEME in Path.cpp
 template<typename T>
 QDebug operator<<(QDebug d, Path<T> path)
 {
@@ -93,7 +95,9 @@ QDebug operator<<(QDebug d, Path<T> path)
     d << unsafe.toString();
     return d;
 }
-bool isInFullView(const Process::LayerModel& theLM)
+
+// TODO could go in some utility library
+static bool isInFullView(const Process::LayerModel& theLM)
 {
     auto& doc = iscore::IDocument::documentContext(theLM);
     auto& sub = safe_cast<Scenario::ScenarioDocumentModel&>(doc.document.model().modelDelegate());
@@ -130,8 +134,10 @@ void PanelDelegate::on_focusedViewModelChanged(const Process::LayerModel* theLM)
         if(!m_layerModel)
             return;
 
-        auto fact = context().components.factory<Process::ProcessList>().get(theLM->processModel().concreteFactoryKey());
-        m_proxy = fact->makePanel(*theLM, this);
+        auto fact = context().components.factory<Process::LayerFactoryList>().findDefaultFactory(
+                    m_layerModel->processModel().concreteFactoryKey());
+
+        m_proxy = fact->makePanel(*m_layerModel, this);
         if(m_proxy)
             m_widget->layout()->addWidget(m_proxy->widget());
     }

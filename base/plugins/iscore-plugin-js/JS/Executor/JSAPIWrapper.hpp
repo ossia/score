@@ -35,7 +35,7 @@ inline QJSValue value(
 
         public:
             using return_type = QJSValue;
-            return_type operator()(const State::no_value_t&) const { return {}; }
+            return_type operator()() const { return {}; }
             return_type operator()(const State::impulse_t&) const {
                 return makeImpulse(engine);
             }
@@ -43,12 +43,17 @@ inline QJSValue value(
             return_type operator()(float f) const { return f; }
             return_type operator()(bool b) const { return b; }
             return_type operator()(const QString& s) const { return s; }
+            return_type operator()(const std::string& s) const { return QString::fromStdString(s); }
 
             return_type operator()(QChar c) const
             {
                 // Note : it is saved as a string but the actual type should be saved also
                 // so that the QChar can be recovered.
                 return QString(c);
+            }
+            return_type operator()(char c) const
+            {
+              return QString(QChar(c));
             }
 
             return_type operator()(const State::vec2f& t) const
@@ -98,11 +103,11 @@ inline QJSValue value(
             }
     } visitor{engine};
 
-    return eggs::variants::apply(visitor, val.val.impl());
+    return ossia::apply(visitor, val.val.impl());
 }
 
 inline QJSValue address(
-        const State::Address& val)
+        const State::AddressAccessor& val)
 {
     return val.toString();
 }
@@ -194,7 +199,10 @@ inline State::Message message(const QJSValue& val)
         auto iscore_val = val.property(strings.value);
         if(iscore_addr.isString())
         {
-            return {State::Address::fromString(iscore_addr.toString()), value(iscore_val)};
+            auto res = State::AddressAccessor::fromString(iscore_addr.toString());
+            if(res)
+                return {*res, value(iscore_val)};
+            return {};
         }
     }
 
@@ -212,11 +220,10 @@ inline State::MessageList messages(const QJSValue& val)
     {
         it.next();
         auto mess = message(it.value());
-        if(!mess.address.device.isEmpty())
+        if(!mess.address.address.device.isEmpty())
         {
             ml.append(mess);
         }
-
     }
 
     return ml;

@@ -23,7 +23,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_interpo
     return instantiate_factories<
             iscore::ApplicationContext,
             TL<
-                FW<Process::ProcessFactory, Interpolation::Factory>
+                FW<Process::ProcessModelFactory, Interpolation::InterpolationFactory>,
+                FW<Process::LayerFactory, Interpolation::InterpolationLayerFactory>
             >>(ctx, key);
 }
 

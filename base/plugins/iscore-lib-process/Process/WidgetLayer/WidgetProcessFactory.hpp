@@ -9,42 +9,37 @@ namespace WidgetLayer
 {
 template<
         typename Model_T,
+        typename LayerModel_T,
         typename Widget_T>
-class ProcessFactory final :
-        public Process::ProcessFactory
+class LayerFactory final :
+        public Process::LayerFactory
 {
     public:
-        virtual ~ProcessFactory() = default;
+        virtual ~LayerFactory() = default;
 
     private:
-        UuidKey<Process::ProcessFactory> concreteFactoryKey() const override
-        { return Metadata<ConcreteFactoryKey_k, Model_T>::get(); }
+        UuidKey<Process::LayerFactory> concreteFactoryKey() const override
+        { return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get(); }
 
-        QString prettyName() const override
-        { return Metadata<PrettyName_k, Model_T>::get(); }
+        bool matches(
+                const UuidKey<Process::ProcessModelFactory>& p) const override
+        {
+            return p == Metadata<ConcreteFactoryKey_k, Model_T>::get();
+        }
 
-        Model_T* make(
-                const TimeValue& duration,
-                const Id<Process::ProcessModel>& id,
-                QObject* parent) final override;
-
-        Model_T* load(
-                const VisitorVariant& vis,
-                QObject* parent) final override;
-
-        Layer* makeLayer_impl(
+        LayerModel_T* makeLayer_impl(
                 Process::ProcessModel& proc,
                 const Id<Process::LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) final override;
 
-        Layer* cloneLayer_impl(
+        LayerModel_T* cloneLayer_impl(
                 Process::ProcessModel& proc,
                 const Id<Process::LayerModel>& newId,
                 const Process::LayerModel& source,
                 QObject* parent) final override;
 
-        Layer* loadLayer_impl(
+        LayerModel_T* loadLayer_impl(
                 Process::ProcessModel& proc,
                 const VisitorVariant& vis,
                 QObject* parent) final override;
@@ -63,7 +58,7 @@ class ProcessFactory final :
                 QObject* parent) final override
         {
             return new Presenter<Model_T, Widget_T> {
-                safe_cast<const Layer&>(lm),
+                safe_cast<const LayerModel_T&>(lm),
                 safe_cast<View*>(v),
                 context,
                 parent};
@@ -78,38 +73,18 @@ class ProcessFactory final :
 };
 
 
-template<
-        typename Model_T,
-        typename Widget_T>
-Model_T* ProcessFactory<Model_T, Widget_T>::make(
-        const TimeValue& duration,
-        const Id<Process::ProcessModel>& id,
-        QObject* parent)
-{
-    return new Model_T{duration, id, parent};
-}
 
 template<
         typename Model_T,
+        typename LayerModel_T,
         typename Widget_T>
-Model_T* ProcessFactory<Model_T, Widget_T>::load(
-        const VisitorVariant& vis,
-        QObject* parent)
-{
-    return deserialize_dyn(vis, [&] (auto&& deserializer)
-    { return new Model_T{deserializer, parent}; });
-}
-
-template<
-        typename Model_T,
-        typename Widget_T>
-Layer* ProcessFactory<Model_T, Widget_T>::makeLayer_impl(
+LayerModel_T* LayerFactory<Model_T, LayerModel_T, Widget_T>::makeLayer_impl(
         Process::ProcessModel& proc,
         const Id<Process::LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
-    return new Layer{
+    return new LayerModel_T{
                  static_cast<Model_T&>(proc),
                 viewModelId,
                 parent};
@@ -117,15 +92,16 @@ Layer* ProcessFactory<Model_T, Widget_T>::makeLayer_impl(
 
 template<
         typename Model_T,
+        typename LayerModel_T,
         typename Widget_T>
-Layer* ProcessFactory<Model_T, Widget_T>::cloneLayer_impl(
+LayerModel_T* LayerFactory<Model_T, LayerModel_T, Widget_T>::cloneLayer_impl(
         Process::ProcessModel& proc,
         const Id<Process::LayerModel>& newId,
         const Process::LayerModel& source,
         QObject* parent)
 {
-    return new Layer {
-              static_cast<const Layer&>(source),
+    return new LayerModel_T {
+              static_cast<const LayerModel_T&>(source),
               static_cast<Model_T&>(proc),
               newId,
               parent};
@@ -134,15 +110,16 @@ Layer* ProcessFactory<Model_T, Widget_T>::cloneLayer_impl(
 
 template<
         typename Model_T,
+        typename LayerModel_T,
         typename Widget_T>
-Layer* ProcessFactory<Model_T, Widget_T>::loadLayer_impl(
+LayerModel_T* LayerFactory<Model_T, LayerModel_T, Widget_T>::loadLayer_impl(
         Process::ProcessModel& proc,
         const VisitorVariant& vis,
         QObject* parent)
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto layer = new Layer{
+        auto layer = new LayerModel_T{
                         deserializer,
                         static_cast<Model_T&>(proc),
                         parent};

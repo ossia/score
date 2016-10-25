@@ -12,5 +12,6 @@ class AddressImpulseSettingsWidget final : public AddressSettingsWidget
         Device::AddressSettings getSettings() const override;
 
         void setSettings(const Device::AddressSettings& settings) override;
+        Device::AddressSettings getDefaultSettings() const override;
 };
 }

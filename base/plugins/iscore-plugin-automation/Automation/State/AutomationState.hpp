@@ -31,7 +31,7 @@ class ProcessState final : public ProcessStateDataInterface
 
         ProcessState* clone(QObject* parent) const override;
 
-        std::vector<State::Address> matchingAddresses() override;
+        std::vector<State::AddressAccessor> matchingAddresses() override;
         ::State::MessageList messages() const override;
         ::State::MessageList setMessages(
                 const ::State::MessageList&,

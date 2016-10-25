@@ -7,12 +7,20 @@
 namespace Loop
 {
 class ProcessModel;
+class Layer;
 }
 
 PROCESS_METADATA(
         ISCORE_PLUGIN_LOOP_EXPORT,
         Loop::ProcessModel,
         "995d41a8-0f10-4152-971d-e4c033579a02",
+        "Loop",
+        "Loop"
+        )
+LAYER_METADATA(
+        ISCORE_PLUGIN_LOOP_EXPORT,
+        Loop::Layer,
+        "f2199966-1b36-4aa7-ae20-b8461fcbbe2c",
         "Loop",
         "Loop"
         )

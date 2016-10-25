@@ -62,6 +62,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONValue>> : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
+        using is_deserializer_tag = std::integral_constant<bool, true>;
 
         VisitorVariant toVariant() { return {*this, JSONValue::type()}; }
 
@@ -170,16 +171,38 @@ struct TSerializer<JSONValue, Id<U>>
             JSONValue::Serializer& s,
             const Id<U>& obj)
     {
-        s.readFrom(obj.val());
+        s.val = obj.val();
     }
 
     static void writeTo(
             JSONValue::Deserializer& s,
             Id<U>& obj)
     {
-        typename Id<U>::value_type id_impl;
-        s.writeTo(id_impl);
-        obj.setVal(std::move(id_impl));
+        obj.setVal(s.val.toInt());
+    }
+};
+
+template<typename U>
+struct TSerializer<JSONValue, OptionalId<U>>
+{
+    static void readFrom(
+            JSONValue::Serializer& s,
+            const OptionalId<U>& obj)
+    {
+        if(obj)
+            s.val = (*obj).val();
+        else
+            s.val = QJsonValue{};
+    }
+
+    static void writeTo(
+            JSONValue::Deserializer& s,
+            OptionalId<U>& obj)
+    {
+        if(s.val.isNull())
+            obj = {};
+        else
+            obj = Id<U>{s.val.toInt()};
     }
 };
 

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <vector>
 #include <iscore_lib_base_export.h>
+#include <iscore/tools/Version.hpp>
 class QRecentFilesMenu;
 namespace iscore {
 class Document;
@@ -129,6 +130,11 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
         bool checkAndUpdateJson(
                 QJsonDocument&,
                 const iscore::ApplicationContext& ctx);
+
+        bool updateJson(
+                QJsonObject& object,
+                iscore::Version json_ver,
+                iscore::Version iscore_ver);
 
         void saveRecentFilesState();
 

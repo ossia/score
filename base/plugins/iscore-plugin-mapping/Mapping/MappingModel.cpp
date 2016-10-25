@@ -13,7 +13,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Process { class LayerModel; }
-class ProcessStateDataInterface;
+
 class QObject;
 
 namespace Mapping
@@ -36,7 +36,7 @@ ProcessModel::ProcessModel(
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
 
-    metadata().setName(QString("Mapping.%1").arg(*this->id().val()));
+    metadata().setInstanceName(*this);
 }
 
 ProcessModel::ProcessModel(
@@ -54,7 +54,7 @@ ProcessModel::ProcessModel(
     setCurve(source.curve().clone(source.curve().id(), this));
     connect(m_curve, &Curve::Model::changed,
             this, &ProcessModel::curveChanged);
-    metadata().setName(QString("Mapping.%1").arg(*this->id().val()));
+    metadata().setInstanceName(*this);
 }
 
 ProcessModel::~ProcessModel()
@@ -85,7 +85,7 @@ void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
     m_curve->changed();
 }
 
-State::Address ProcessModel::sourceAddress() const
+State::AddressAccessor ProcessModel::sourceAddress() const
 {
     return m_sourceAddress;
 }
@@ -100,7 +100,7 @@ double ProcessModel::sourceMax() const
     return m_sourceMax;
 }
 
-void ProcessModel::setSourceAddress(const State::Address& arg)
+void ProcessModel::setSourceAddress(const State::AddressAccessor& arg)
 {
     if(m_sourceAddress == arg)
     {
@@ -134,7 +134,7 @@ void ProcessModel::setSourceMax(double arg)
 
 
 
-State::Address ProcessModel::targetAddress() const
+State::AddressAccessor ProcessModel::targetAddress() const
 {
     return m_targetAddress;
 }
@@ -149,7 +149,7 @@ double ProcessModel::targetMax() const
     return m_targetMax;
 }
 
-void ProcessModel::setTargetAddress(const State::Address& arg)
+void ProcessModel::setTargetAddress(const State::AddressAccessor& arg)
 {
     if(m_targetAddress == arg)
     {

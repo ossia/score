@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/LayerModel.hpp>
-
+#include <Loop/LoopProcessMetadata.hpp>
 #include <iscore/tools/Metadata.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
@@ -14,10 +14,13 @@ class TemporalConstraintViewModel;
 }
 
 namespace Loop{
-    class ProcessModel;
+class ProcessModel;
+}
 
+namespace Loop{
 class Layer final : public Process::LayerModel
 {
+        SERIALIZABLE_MODEL_METADATA_IMPL(Loop::Layer)
         ISCORE_SERIALIZE_FRIENDS(Layer, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Layer, JSONObject)
 
@@ -46,8 +49,6 @@ class Layer final : public Process::LayerModel
             vis.writeTo(*this);
         }
 
-        void serialize_impl(const VisitorVariant&) const override;
-
         const Loop::ProcessModel& model() const;
 
         const Scenario::TemporalConstraintViewModel& constraint() const
@@ -59,5 +60,3 @@ class Layer final : public Process::LayerModel
         Scenario::TemporalConstraintViewModel* m_constraint{};
 };
 }
-
-DEFAULT_MODEL_METADATA(Loop::Layer, "Loop layer")

@@ -64,6 +64,15 @@ set(SKIP_INSTALL_ALL True) # For zlib to not install anything
 add_subdirectory("${3RDPARTY_FOLDER}/zlib" EXCLUDE_FROM_ALL)
 add_subdirectory("${3RDPARTY_FOLDER}/quazip" EXCLUDE_FROM_ALL)
 
+set(ISCORE_ZEROCONF False)
+find_package(KF5DNSSD NO_MODULE)
+if(KF5DNSSD_FOUND)
+    find_package(Qt5 5.3 COMPONENTS DBus)
+    if(Qt5DBus_FOUND)
+        set(ISCORE_ZEROCONF True)
+    endif()
+endif()
+
 set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
 set(ISCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
 

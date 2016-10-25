@@ -27,7 +27,7 @@ TriggerInspectorWidget::TriggerInspectorWidget(
     m_triggerCommandFactory{fact},
     m_model {object},
     m_parent{parent},
-    m_menu{[&] { return m_model.trigger()->expression(); }}
+    m_menu{[&] { return m_model.trigger()->expression(); }, this}
 {
     auto triglay = new QHBoxLayout{this};
 

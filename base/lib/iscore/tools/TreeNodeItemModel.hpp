@@ -19,9 +19,9 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
         virtual NodeType& rootNode() = 0;
         virtual const NodeType& rootNode() const = 0;
 
-        NodeType& nodeFromModelIndex(const QModelIndex &index) const
+        NodeType& nodeFromModelIndex(const QModelIndex& index) const
         {
-            auto n =  index.isValid()
+            auto n = index.isValid()
                     ? static_cast<NodeType*>(index.internalPointer())
                     : const_cast<NodeType*>(&rootNode());
 
@@ -32,6 +32,8 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
         QModelIndex parent(const QModelIndex &index) const final override
         {
             if(!index.isValid())
+                return QModelIndex();
+            if(index.model() != this)
                 return QModelIndex();
 
             const auto& node = nodeFromModelIndex(index);

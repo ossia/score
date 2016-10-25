@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <vector>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 
@@ -104,7 +105,11 @@ bool ApplicationPlugin::handleStartup()
 
 void ApplicationPlugin::on_initDocument(iscore::Document& doc)
 {
-    doc.model().addPluginModel(new Engine::LocalTree::DocumentPlugin{doc, &doc.model()});
+    doc.model().addPluginModel(
+                new Engine::LocalTree::DocumentPlugin{
+                    doc,
+                    getStrongId(doc.model().pluginModels()),
+                    &doc.model()});
 }
 
 void ApplicationPlugin::on_createdDocument(iscore::Document& doc)
@@ -114,7 +119,11 @@ void ApplicationPlugin::on_createdDocument(iscore::Document& doc)
     {
         lt->init();
     }
-    doc.model().addPluginModel(new Engine::Execution::DocumentPlugin{doc, &doc.model()});
+    doc.model().addPluginModel(
+                new Engine::Execution::DocumentPlugin{
+                    doc,
+                    getStrongId(doc.model().pluginModels()),
+                    &doc.model()});
 }
 
 void ApplicationPlugin::on_documentChanged(

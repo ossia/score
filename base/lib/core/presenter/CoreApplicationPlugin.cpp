@@ -9,7 +9,6 @@
 #include <iscore/menu/MenuInterface.hpp>
 #include <QMessageBox>
 #include <QRecentFilesMenu.h>
-#include <QMessageAuthenticationCode>
 namespace iscore
 {
 
@@ -19,7 +18,6 @@ CoreApplicationPlugin::CoreApplicationPlugin(
     GUIApplicationContextPlugin{app},
     m_presenter{pres}
 {
-
 }
 
 void CoreApplicationPlugin::newDocument()

@@ -6,9 +6,13 @@
 
 class QComboBox;
 class QCheckBox;
+class QLabel;
 class QFormLayout;
 
-
+namespace State
+{
+class UnitWidget;
+}
 namespace Explorer
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget : public QWidget
@@ -21,6 +25,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget : public QWidget
         virtual ~AddressSettingsWidget();
 
         virtual Device::AddressSettings getSettings() const = 0;
+        virtual Device::AddressSettings getDefaultSettings() const = 0;
         virtual void setSettings(const Device::AddressSettings& settings) = 0;
 
     protected:
@@ -34,6 +39,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget : public QWidget
         QComboBox* m_clipModeCBox{};
         QCheckBox* m_repetition{};
         QComboBox* m_tagsEdit{};
+        QLabel* m_description{};
+        State::UnitWidget* m_unit{};
 };
 }
 

@@ -54,7 +54,7 @@ void StateActions::makeGUIElements(iscore::GUIElements& ref)
     object.menu()->addAction(m_snapshot);
     object.menu()->addAction(m_refreshStates);
 
-    Toolbar& tb = *find_if(ref.toolbars, [] (auto& tb) {
+    Toolbar& tb = *ossia::find_if(ref.toolbars, [] (auto& tb) {
         return tb.key() == StringKey<iscore::Toolbar>("Constraint");
     });
     tb.toolbar()->addAction(m_snapshot);
@@ -81,7 +81,7 @@ void StateActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
         if(sel.empty())
             return;
 
-        if(any_of(sel, matches<Scenario::StateModel>{})) // TODO : event or timenode ?
+        if(ossia::any_of(sel, matches<Scenario::StateModel>{})) // TODO : event or timenode ?
         {
             auto stateSubmenu = menu.addMenu(tr("State"));
             stateSubmenu->setObjectName("State");

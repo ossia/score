@@ -32,7 +32,7 @@ BaseScenario::~BaseScenario()
 Selection BaseScenario::selectedChildren() const
 {
     Selection s;
-    for_each_in_tuple(elements(), [&] (auto elt) {
+    ossia::for_each_in_tuple(elements(), [&] (auto elt) {
         if(elt->selection.get())
             s.append(elt);
     });

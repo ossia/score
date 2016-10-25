@@ -11,12 +11,12 @@ PointModel::PointModel(const Id<PointModel>& id, QObject* parent):
 
 }
 
-const Id<SegmentModel>& PointModel::following() const
+const OptionalId<SegmentModel>& PointModel::following() const
 {
     return m_following;
 }
 
-void PointModel::setFollowing(const Id<SegmentModel> &following)
+void PointModel::setFollowing(const OptionalId<SegmentModel> &following)
 {
     m_following = following;
 }
@@ -34,12 +34,12 @@ void PointModel::setPos(const Curve::Point &pos)
 
 
 
-const Id<SegmentModel> &PointModel::previous() const
+const OptionalId<SegmentModel> &PointModel::previous() const
 {
     return m_previous;
 }
 
-void PointModel::setPrevious(const Id<SegmentModel> &previous)
+void PointModel::setPrevious(const OptionalId<SegmentModel> &previous)
 {
     m_previous = previous;
 }

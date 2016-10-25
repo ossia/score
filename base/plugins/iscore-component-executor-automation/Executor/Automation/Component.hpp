@@ -32,7 +32,6 @@ class Component final :
                 QObject* parent);
 
     private:
-        void recreate();
         ossia::val_type m_addressType{ossia::val_type(-1)};
 
         std::shared_ptr<ossia::curve_abstract> on_curveChanged(const optional<ossia::Destination>&);

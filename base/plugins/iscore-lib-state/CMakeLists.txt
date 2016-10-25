@@ -15,18 +15,23 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Value.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueConversion.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Unit.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Relation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Expression.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ExpressionParser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ExpressionSerialization.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/State/OSSIASerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/ValueWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/TypeComboBox.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/CharValueWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/StringValueWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/BoolValueWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/VecWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressLineEdit.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressValidator.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/UnitWidget.cpp"
 )
 
 file(GLOB_RECURSE HDRS
