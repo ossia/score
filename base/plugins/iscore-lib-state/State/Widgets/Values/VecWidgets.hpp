@@ -22,7 +22,7 @@ struct ISCORE_LIB_STATE_EXPORT VecEditBase : public QWidget
 };
 
 template<std::size_t N>
-class ISCORE_LIB_STATE_EXPORT VecWidget :
+class VecWidget :
         public VecEditBase
 {
     public:
@@ -75,7 +75,7 @@ using Vec4DEdit = VecWidget<4>;
 
 
 template<std::size_t N>
-class ISCORE_LIB_STATE_EXPORT VecDomainWidget : public QWidget
+class VecDomainWidget : public QWidget
 {
     public:
         using domain_type = ossia::net::domain_base<ossia::Vec<float, N>>;
