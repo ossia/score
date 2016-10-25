@@ -9,19 +9,14 @@ image: Visual Studio 2015
 platform: x86
 
 install:
-  - appveyor DownloadFile "https://github.com/OSSIA/iscore-sdk/releases/download/4.0-win/iscore-windows-sdk.7z" -FileName iscore-windows-sdk.7z
-  - 7z x iscore-windows-sdk.7z -y > nul
-  - cd iscore-windows-sdk
+  - appveyor DownloadFile "https://unsis.googlecode.com/files/nsis-2.46.5-Unicode-setup.exe" -FileName nsis.exe
   - nsis.exe /S
-  - cd ..
 
 build_script:
   - git submodule update --init --recursive
   - mkdir build
   - cd build
-  - set PATH=%QTDIR%\bin;%PATH%
-  - cmake -DISCORE_CONFIGURATION=release -DISCORE_COTIRE=false -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5;%JAMOMA_ROOT%/share/cmake/jamoma" ..
-#  - C:\Qt\Tools\QtCreator\bin\jom.exe all_unity -j2
+  - cmake -DISCORE_CONFIGURATION=release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" ..
   - msbuild PACKAGE.vcxproj /p:Configuration=Release /m
   - cmake --build . --target package
 
