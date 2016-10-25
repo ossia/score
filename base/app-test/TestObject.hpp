@@ -17,6 +17,7 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QTimer>
+#include <thread>
 
 class TestObject : public QObject
 {
@@ -83,24 +84,36 @@ class TestObject : public QObject
                 QApplication::processEvents();
                 m_context.documents.forceCloseDocument(m_context, *json_doc);
                 QApplication::processEvents();
-
             }
-
 
             {
                 auto doc = m_context.documents.loadFile(m_context, "testdata/execution.scorejson");
+                for(int i = 0; i < 10; i++)
+                {
+                    QApplication::processEvents();
+                }
+
                 m_context.actions.action<Actions::Play>().action()->trigger();
+
                 QTimer* t = new QTimer;
-                t->setInterval(15000);
+                t->setInterval(5000);
                 t->setSingleShot(true);
 
                 t->start();
                 QObject::connect(t, &QTimer::timeout, this, [=] () {
                     m_context.actions.action<Actions::Stop>().action()->trigger();
-                    QApplication::processEvents();
+                    for(int i = 0; i < 30; i++)
+                    {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                        QApplication::processEvents();
+                    }
 
                     m_context.documents.forceCloseDocument(m_context, *doc);
-                    QApplication::processEvents();
+                    for(int i = 0; i < 30; i++)
+                    {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                        QApplication::processEvents();
+                    }
 
                     selectionTest();
                 });
