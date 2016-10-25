@@ -72,7 +72,11 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario
     auto& pl = components.factory<Process::StateProcessList>();
     for(; process_count -- > 0;)
     {
-        s.stateProcesses.add(deserialize_interface(pl, *this, &s));
+        auto proc = deserialize_interface(pl, *this, &s);
+        if(proc)
+            s.stateProcesses.add(proc);
+        else
+            ISCORE_TODO;
     }
 
 
@@ -118,5 +122,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario
         auto proc = deserialize_interface(pl, deserializer, &s);
         if(proc)
             s.stateProcesses.add(proc);
+        else
+            ISCORE_TODO;
     }
 }

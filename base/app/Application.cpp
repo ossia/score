@@ -4,9 +4,6 @@
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/document/DocumentBackups.hpp>
 #include <core/presenter/Presenter.hpp>
-#include <core/undo/Panel/UndoPanelFactory.hpp>
-#include <core/presenter/CoreApplicationPlugin.hpp>
-#include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/view/View.hpp>
 #include <QByteArray>
 #include <QCoreApplication>
@@ -27,23 +24,21 @@
 #include <algorithm>
 #include <vector>
 
+#include <iscore/application/GUIApplicationContext.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <core/application/SafeQApplication.hpp>
 #include <iscore/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationSettings.hpp>
-#include <core/plugin/PluginManager.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/command/Validity/ValidityChecker.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <core/undo/Panel/UndoPanelFactory.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
 #include "iscore_git_info.hpp"
 
@@ -65,10 +60,6 @@ static void setQApplicationSettings(QApplication &m_app)
                 .arg(ISCORE_VERSION_PATCH)
                 .arg(ISCORE_VERSION_EXTRA)
                 );
-
-    qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
-    qRegisterMetaType<Selection>("Selection");
-    qRegisterMetaType<Id<iscore::DocumentModel>>("Id<DocumentModel>");
 
     QFile stylesheet_file{":/qdarkstyle/qdarkstyle.qss"};
     stylesheet_file.open(QFile::ReadOnly);
@@ -212,38 +203,8 @@ void Application::loadPluginData()
                 m_presenter->toolbarManager(),
                 m_presenter->actionManager()};
 
-    registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
-    registrar.registerFactory(std::make_unique<iscore::ValidityCheckerList>());
-    auto panels = std::make_unique<iscore::PanelDelegateFactoryList>();
-    panels->insert(std::make_unique<iscore::UndoPanelDelegateFactory>());
-    registrar.registerFactory(std::move(panels));
-    registrar.registerFactory(std::make_unique<iscore::DocumentPluginFactoryList>());
-    registrar.registerFactory(std::make_unique<iscore::SettingsDelegateFactoryList>());
-
-    registrar.registerApplicationContextPlugin(new iscore::CoreApplicationPlugin{ctx, *m_presenter});
-    registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx});
-
-    iscore::PluginLoader::loadPlugins(registrar, ctx);
-    // Load the settings
-    QSettings s;
-    for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
-    {
-        m_settings.setupSettingsPlugin(s, ctx, elt);
-    }
-
-    m_presenter->setupGUI();
-
-    for(iscore::GUIApplicationContextPlugin* app_plug : ctx.components.applicationPlugins())
-    {
-        app_plug->initialize();
-    }
-
-    for(auto& panel_fac : context().components.factory<iscore::PanelDelegateFactoryList>())
-    {
-        registrar.registerPanel(panel_fac);
-    }
+    ApplicationInterface::loadPluginData(ctx, registrar, m_settings, *m_presenter);
 }
-
 
 int Application::exec()
     { return m_app->exec(); }

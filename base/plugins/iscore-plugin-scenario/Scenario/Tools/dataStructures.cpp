@@ -49,9 +49,12 @@ void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
     for(auto& sourceproc : processes)
     {
         Deserializer<DataStream> des{sourceproc};
-        AddProcess(constraint,
-                   deserialize_interface(
-                       procsfactories, des, &constraint));
+        auto proc = deserialize_interface(
+                    procsfactories, des, &constraint);
+        if(proc)
+            AddProcess(constraint, proc);
+        else
+            ISCORE_TODO;
     }
 
     // Restore the rackes

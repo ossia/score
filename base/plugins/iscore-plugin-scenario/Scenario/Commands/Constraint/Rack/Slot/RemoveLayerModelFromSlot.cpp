@@ -33,7 +33,10 @@ void RemoveLayerModelFromSlot::undo() const
     Deserializer<DataStream> s {m_serializedLayerData};
 
     auto lm = deserialize_interface(this->context.components.factory<Process::LayerFactoryList>(), s, &slot);
-    slot.layers.add(lm);
+    if(lm)
+        slot.layers.add(lm);
+    else
+        ISCORE_TODO;
 }
 
 void RemoveLayerModelFromSlot::redo() const

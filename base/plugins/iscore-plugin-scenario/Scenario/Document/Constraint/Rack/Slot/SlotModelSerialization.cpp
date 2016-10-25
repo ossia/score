@@ -52,7 +52,10 @@ template<> void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
     for(int i = 0; i < lm_size; i++)
     {
         auto lm = deserialize_interface(layers, *this, &slot);
-        slot.layers.add(lm);
+        if(lm)
+            slot.layers.add(lm);
+        else
+            ISCORE_TODO;
     }
 
     qreal height;
@@ -97,6 +100,8 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
         auto lm = deserialize_interface(layers, deserializer, &slot);
         if(lm)
             slot.layers.add(lm);
+        else
+            ISCORE_TODO;
     }
 
     slot.setHeight(static_cast<qreal>(m_obj["Height"].toDouble()));
