@@ -29,7 +29,6 @@ LayerModel* LayerFactory::make(
     auto lm = makeLayer_impl(proc, viewModelId, constructionData, parent);
     proc.addLayer(lm);
 
-    iscore::RelativePath(lm, &proc);
     return lm;
 }
 
