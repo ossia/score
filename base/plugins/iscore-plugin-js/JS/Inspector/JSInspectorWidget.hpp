@@ -1,13 +1,10 @@
 #pragma once
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <JS/JSProcessModel.hpp>
+#include <JS/JSStateProcess.hpp>
 #include <QString>
 
-namespace JS
-{
-class StateProcess;
-class ProcessModel;
-}
 class JSEdit;
 class QWidget;
 namespace iscore {
@@ -20,11 +17,15 @@ namespace JS
 class InspectorWidget final :
         public Process::InspectorWidgetDelegate_T<JS::ProcessModel>
 {
+        Q_OBJECT
     public:
         explicit InspectorWidget(
                 const JS::ProcessModel& object,
                 const iscore::DocumentContext& context,
                 QWidget* parent);
+
+    signals:
+        void pressed();
 
     private:
         void on_textChange(const QString& newText);

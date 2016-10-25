@@ -44,7 +44,7 @@ static QList<Device::Node*> GetParametersRecursive(QList<Device::Node*> parents)
         {
             auto& as = n->get<Device::AddressSettings>();
             ok &= as.value.val.isValid()
-               && (int)as.value.val.which() < (int)State::ValueType::NoValue;
+               && (std::size_t)as.value.val.which() < (std::size_t)State::ValueType::NoValue;
         }
 
         if(ok)
@@ -82,10 +82,10 @@ RecordListening GetAddressesToRecordRecursive(
         // here (for instance recording someone typing).
 
         // We sort the addresses by device to optimize.
-        auto dev_it = find_if(recordListening,
+        auto dev_it = ossia::find_if(recordListening,
                               [&] (const auto& vec)
         {
-            return Device::deviceName(*vec.front()) == addr.device;
+            return Device::deviceName(*vec.front()) == addr.address.device;
         });
 
         if(dev_it != recordListening.end())

@@ -23,6 +23,7 @@ EventElement::EventElement(
     {
         auto expr = Engine::iscore_to_ossia::expression(m_iscore_event.condition(), m_deviceList);
         m_ossia_event->setExpression(std::move(expr));
+        m_ossia_event->setOffsetBehavior((ossia::time_event::OffsetBehavior) element.offsetBehavior());
     }
     catch(std::exception& e)
     {

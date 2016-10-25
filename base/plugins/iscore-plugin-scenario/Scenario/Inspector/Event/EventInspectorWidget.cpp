@@ -18,6 +18,7 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <QBoxLayout>
 #include <QColor>
+#include <QComboBox>
 #include <QDebug>
 #include <QFormLayout>
 #include <QLabel>
@@ -44,6 +45,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
+#include <iscore/widgets/SignalUtils.hpp>
 
 namespace Scenario
 {
@@ -56,7 +58,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_context{doc},
     m_commandDispatcher{doc.commandStack},
     m_selectionDispatcher{doc.selectionStack},
-    m_menu{[&] { return m_model.condition(); }}
+    m_menu{[&] { return m_model.condition(); }, this}
 {
     setObjectName("EventInspectorWidget");
     setParent(parent);
@@ -82,69 +84,103 @@ EventInspectorWidget::EventInspectorWidget(
 
     // timeNode
     auto timeNode = m_model.timeNode();
-    if(timeNode)
-    {
-        auto tnBtn = SelectionButton::make(
-                    tr("Parent TimeNode"),
-                    &scenar->timeNode(timeNode),
-                    m_selectionDispatcher,
-                    infoWidg);
+    auto tnBtn = SelectionButton::make(
+                tr("Parent TimeNode"),
+                &scenar->timeNode(timeNode),
+                m_selectionDispatcher,
+                infoWidg);
 
-        infoLay->addWidget(tnBtn);
-    }
+    infoLay->addWidget(tnBtn);
+
     m_properties.push_back(infoWidg);
 
     // Condition
-    auto expr_widg = new QWidget;
-    auto expr_lay = new QHBoxLayout{expr_widg};
-
-    m_exprEditor = new ExpressionEditorWidget{m_context, expr_widg};
-    connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
-            this, &EventInspectorWidget::on_conditionChanged);
-    connect(m_exprEditor, &ExpressionEditorWidget::resetExpression,
-            this, &EventInspectorWidget::on_conditionReset);
-    con(m_model, &EventModel::conditionChanged,
-        m_exprEditor, &ExpressionEditorWidget::setExpression);
-
-    auto condMenuButton = new QPushButton{"#"};
-    condMenuButton->setMenu(m_menu.menu);
-
-    connect(m_menu.addSubAction, &QAction::triggered,
-            m_exprEditor, [=] {
-        m_exprEditor->addNewTerm();
-        m_exprEditor->on_editFinished();
-    });
-
-    m_menu.menu->removeAction(m_menu.deleteAction);
-    delete m_menu.deleteAction; // Blergh
-
-    con(m_menu, &ExpressionMenu::expressionChanged,
-            this, [=] (const QString& str) {
-        if(auto cond = State::parseExpression(str))
-        {
-            if(*cond != m_model.condition())
-            {
-                auto cmd = new Scenario::Command::SetCondition{m_model, std::move(*cond)};
-                m_commandDispatcher.submitCommand(cmd);
-            }
-        }
-    });
-
-    expr_lay->addWidget(m_exprEditor);
-    expr_lay->addWidget(condMenuButton);
     auto condSection = new Inspector::InspectorSectionWidget{"Condition", false, this};
-    condSection->addContent(expr_widg);
+
+    {
+        auto expr_widg = new QWidget;
+        auto expr_lay = new QHBoxLayout{expr_widg};
+
+        m_exprEditor = new ExpressionEditorWidget{m_context, expr_widg};
+        connect(m_exprEditor, &ExpressionEditorWidget::editingFinished,
+                this, &EventInspectorWidget::on_conditionChanged);
+        connect(m_exprEditor, &ExpressionEditorWidget::resetExpression,
+                this, &EventInspectorWidget::on_conditionReset);
+        con(m_model, &EventModel::conditionChanged,
+            m_exprEditor, &ExpressionEditorWidget::setExpression);
+
+        auto condMenuButton = new QPushButton{"#"};
+        condMenuButton->setMenu(m_menu.menu);
+
+        connect(m_menu.addSubAction, &QAction::triggered,
+                m_exprEditor, [=] {
+            m_exprEditor->addNewTerm();
+            m_exprEditor->on_editFinished();
+        });
+
+        m_menu.menu->removeAction(m_menu.deleteAction);
+        delete m_menu.deleteAction; // Blergh
+
+        con(m_menu, &ExpressionMenu::expressionChanged,
+            this, [=] (const QString& str) {
+            if(auto cond = State::parseExpression(str))
+            {
+                if(*cond != m_model.condition())
+                {
+                    auto cmd = new Scenario::Command::SetCondition{m_model, std::move(*cond)};
+                    m_commandDispatcher.submitCommand(cmd);
+                }
+            }
+        });
+
+        expr_lay->addWidget(m_exprEditor);
+        expr_lay->addWidget(condMenuButton);
+        condSection->addContent(expr_widg);
+    }
+
+    // Offset
+    {
+        auto w = new QWidget;
+        auto l = new QFormLayout{w};
+        m_offsetBehavior = new QComboBox{w};
+        m_offsetBehavior->addItem(tr("True"), QVariant::fromValue(OffsetBehavior::True));
+        m_offsetBehavior->addItem(tr("False"), QVariant::fromValue(OffsetBehavior::False));
+        m_offsetBehavior->addItem(tr("Expression"), QVariant::fromValue(OffsetBehavior::Expression));
+
+        m_offsetBehavior->setCurrentIndex((int)m_model.offsetBehavior());
+        con(m_model, &EventModel::offsetBehaviorChanged,
+            this, [=] (OffsetBehavior b) {
+            m_offsetBehavior->setCurrentIndex((int) b);
+        });
+        connect(m_offsetBehavior, SignalUtils::QComboBox_currentIndexChanged_int(),
+                this, [=] (int idx) {
+            if(idx != (int)m_model.offsetBehavior())
+            {
+                CommandDispatcher<> c{this->m_context.commandStack};
+                c.submitCommand(new Command::SetOffsetBehavior{m_model, (OffsetBehavior) idx});
+            }
+        });
+
+        m_offsetBehavior->setWhatsThis(tr("The offset behaviour is used when playing a score from "
+                                          "the middle. \nThis allows to choose the value that the event will "
+                                          "take, \nsince one may want to try multiple branches of conditions easily.\n"
+                                          "Choosing 'Expression' will instead evaluate the expression."));
+        m_offsetBehavior->setToolTip(m_offsetBehavior->whatsThis());
+        l->addRow(tr("Offset behaviour"), m_offsetBehavior);
+
+        condSection->addContent(w);
+    }
 
     m_properties.push_back(condSection);
 
     condSection->expand(!m_model.condition().toString().isEmpty());
+
 
     // State
     m_statesWidget = new QWidget{this};
     auto dispLayout = new QVBoxLayout{m_statesWidget};
     m_statesWidget->setLayout(dispLayout);
     dispLayout->setSizeConstraint(QLayout::SetMinimumSize);
-
 
     m_properties.push_back(m_statesWidget);
 
@@ -168,7 +204,7 @@ EventInspectorWidget::EventInspectorWidget(
     updateDisplayedValues();
 
     // Display data
-//    updateAreaLayout(m_properties);
+    //    updateAreaLayout(m_properties);
 
     auto lay = new iscore::MarginLess<QVBoxLayout>{this};
     for(auto w : m_properties)

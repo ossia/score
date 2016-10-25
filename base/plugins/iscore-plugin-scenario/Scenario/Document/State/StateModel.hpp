@@ -7,7 +7,7 @@
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <nano_signal_slot.hpp>
 
 #include <set>
@@ -58,7 +58,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final :
     public:
         using ProcessVector = std::list<ProcessStateWrapper>;
 
-        NotifyingMap<Process::StateProcess> stateProcesses;
+        EntityMap<Process::StateProcess> stateProcesses;
         Selectable selection;
 
         StateModel(const Id<StateModel>& id,
@@ -93,13 +93,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final :
         const Id<EventModel>& eventId() const;
         void setEventId(const Id<EventModel>&);
 
-        const Id<ConstraintModel>& previousConstraint() const;
-        const Id<ConstraintModel>& nextConstraint() const;
+        const OptionalId<ConstraintModel>& previousConstraint() const;
+        const OptionalId<ConstraintModel>& nextConstraint() const;
 
         // Note : the added constraint shall be in
         // the scenario when this is called.
-        void setNextConstraint(const Id<ConstraintModel>&);
-        void setPreviousConstraint(const Id<ConstraintModel>&);
+        void setNextConstraint(const OptionalId<ConstraintModel>&);
+        void setPreviousConstraint(const OptionalId<ConstraintModel>&);
 
         ProcessVector& previousProcesses()
         { return m_previousProcesses; }
@@ -131,8 +131,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final :
         Id<EventModel> m_eventId;
 
         // OPTIMIZEME if we shift to Id = int, put this Optional
-        Id<ConstraintModel> m_previousConstraint;
-        Id<ConstraintModel> m_nextConstraint;
+        OptionalId<ConstraintModel> m_previousConstraint;
+        OptionalId<ConstraintModel> m_nextConstraint;
 
         double m_heightPercentage{0.5}; // In the whole scenario
 
@@ -142,3 +142,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final :
 }
 
 DEFAULT_MODEL_METADATA(Scenario::StateModel, "State")
+
+TR_TEXT_METADATA(, Scenario::StateModel, PrettyName_k, "State")

@@ -71,8 +71,8 @@ struct SegmentData
                 Id<SegmentModel> i,
                 Curve::Point s,
                 Curve::Point e,
-                Id<SegmentModel> prev,
-                Id<SegmentModel>  foll,
+                OptionalId<SegmentModel> prev,
+                OptionalId<SegmentModel>  foll,
                 UuidKey<Curve::SegmentFactory> t,
                 QVariant data):
             id(std::move(i)),
@@ -89,7 +89,7 @@ struct SegmentData
         Id<SegmentModel> id;
 
         Curve::Point start, end;
-        Id<SegmentModel> previous, following;
+        OptionalId<SegmentModel> previous, following;
 
         UuidKey<Curve::SegmentFactory> type;
         QVariant specificSegmentData;
@@ -111,17 +111,17 @@ inline bool operator<=(const SegmentData& lhs, const SegmentData& rhs)
 
 
 
-
+// REFACTORME with SettableIdentifierGeneration...
 template<typename Container>
 Id<SegmentModel> getSegmentId(const Container& ids)
 {
     Id<SegmentModel> id {};
-
+    auto end = ids.end();
     do
     {
         id = Id<SegmentModel>{iscore::random_id_generator::getRandomId()};
     }
-    while(ids.find(id) != ids.end());
+    while(ids.find(id) != end);
 
     return id;
 }
@@ -130,11 +130,12 @@ inline Id<SegmentModel> getSegmentId(const std::vector<SegmentData>& ids)
 {
     Id<SegmentModel> id {};
 
+    auto end = ids.end();
     do
     {
         id = Id<SegmentModel>{iscore::random_id_generator::getRandomId()};
     }
-    while(find_if(ids, [&] (const auto& other) { return other.id == id; }) != ids.end());
+    while(ossia::find_if(ids, [&] (const auto& other) { return other.id == id; }) != end);
 
     return id;
 }
@@ -146,10 +147,7 @@ class CurveDataHash
     public:
         std::size_t operator()(const Id<SegmentModel>& id) const
         {
-            if(!id)
-                return -1;
-
-            return *id.val();
+            return id.val();
         }
 };
 

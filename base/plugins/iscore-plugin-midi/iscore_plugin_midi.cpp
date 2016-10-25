@@ -24,7 +24,8 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_midi::f
     return instantiate_factories<
             iscore::ApplicationContext,
             TL<
-                FW<Process::ProcessFactory, Midi::ProcessFactory>,
+                FW<Process::ProcessModelFactory, Midi::ProcessFactory>,
+                FW<Process::LayerFactory, Midi::LayerFactory>,
                 FW<Engine::Execution::ProcessComponentFactory, Midi::Executor::ComponentFactory>,
                 FW<Process::InspectorWidgetDelegateFactory, Midi::InspectorFactory>
             >>(ctx, key);

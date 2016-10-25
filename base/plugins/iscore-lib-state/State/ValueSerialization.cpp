@@ -18,6 +18,7 @@ template <typename T> class Reader;
 template <typename T> class Writer;
 
 // TODO clean this file
+
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::ValueImpl& value)
 {
@@ -30,18 +31,6 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::ValueIm
 {
     writeTo(value.m_variant);
     checkDelimiter();
-}
-
-
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const State::no_value_t& value)
-{
-}
-
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(State::no_value_t& value)
-{
 }
 
 template<>

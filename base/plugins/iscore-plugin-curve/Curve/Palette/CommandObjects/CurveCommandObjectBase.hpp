@@ -63,7 +63,7 @@ class CommandObjectBase
 
         auto find(
                 std::vector<SegmentData>& segments,
-                const Id<SegmentModel>& id)
+                const OptionalId<SegmentModel>& id)
         {
             return std::find_if(
                         segments.begin(),
@@ -72,7 +72,7 @@ class CommandObjectBase
         }
         auto find(
                 const std::vector<SegmentData>& segments,
-                const Id<SegmentModel>& id)
+                const OptionalId<SegmentModel>& id)
         {
             return std::find_if(
                         segments.cbegin(),

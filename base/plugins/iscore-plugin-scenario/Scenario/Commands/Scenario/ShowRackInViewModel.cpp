@@ -35,7 +35,7 @@ void ShowRackInViewModel::undo() const
     auto& vm = m_constraintViewPath.find();
 
     // TODO unnecessary
-    if(m_previousRackId.val())
+    if(m_previousRackId)
     {
         vm.showRack(m_previousRackId);
     }

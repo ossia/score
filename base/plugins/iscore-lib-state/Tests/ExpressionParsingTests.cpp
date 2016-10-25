@@ -78,7 +78,7 @@ void test_parse_expr()
     exit(0);
 }*/
 
-
+// TODO move me
 QDebug operator<<(QDebug dbg, const State::Address& a);
 QDebug operator<<(QDebug dbg, const State::RelationMember& v);
 QDebug operator<<(QDebug dbg, const State::Relation::Comparator& v);
@@ -245,8 +245,8 @@ class ExpressionParsingTests: public QObject
 
                 QVERIFY(r);
                 QVERIFY(p.address.toString() == "minuit:/device/lol");
-                QVERIFY(p.accessors.size() == 1);
-                QVERIFY(p.accessors[0] == 7);
+                QVERIFY(p.qualifiers.accessors.size() == 1);
+                QVERIFY(p.qualifiers.accessors[0] == 7);
             }
 
             {
@@ -262,8 +262,8 @@ class ExpressionParsingTests: public QObject
                 QVERIFY(rm.which() == 1);
                 auto& p = eggs::variants::get<State::AddressAccessor>(rm);
                 QVERIFY(p.address.toString() == "minuit:/device/lol");
-                QVERIFY(p.accessors.size() == 1);
-                QVERIFY(p.accessors[0] == 7);
+                QVERIFY(p.qualifiers.accessors.size() == 1);
+                QVERIFY(p.qualifiers.accessors[0] == 7);
             }
 
             {
@@ -273,6 +273,53 @@ class ExpressionParsingTests: public QObject
 
                 QVERIFY(bool(expr) == true);
             }
+
+        }
+
+        void test_parse_dataspace()
+        {
+          {
+              std::string str("minuit:/device/lol[color.rgb]");
+
+              typedef std::string::const_iterator iterator_type;
+              AddressAccessor_parser<iterator_type> parser;
+              auto first = str.cbegin(), last = str.cend();
+              State::AddressAccessor p;
+              bool r = parse(first, last, parser, p);
+
+              QVERIFY(r);
+              QVERIFY(p.address.toString() == "minuit:/device/lol");
+              QVERIFY(p.qualifiers.accessors.size() == 0);
+              QVERIFY(p.qualifiers.unit == ossia::rgb_u{});
+          }
+
+          {
+              std::string str("minuit:/device/lol[color.hsv.s]");
+
+              typedef std::string::const_iterator iterator_type;
+              AddressAccessor_parser<iterator_type> parser;
+              auto first = str.cbegin(), last = str.cend();
+              State::AddressAccessor p;
+              bool r = parse(first, last, parser, p);
+
+              QVERIFY(r);
+              QVERIFY(p.address.toString() == "minuit:/device/lol");
+
+              QVERIFY(p.qualifiers.unit == ossia::hsv_u{});
+
+              QVERIFY(p.qualifiers.accessors.size() == 1);
+              QVERIFY(p.qualifiers.accessors[0] == 1);
+
+          }
+
+
+          {
+              QString str("(minuit:/device/lol[color.rgb] < 3.14)");
+
+              auto expr = State::parseExpression(str);
+
+              QVERIFY(bool(expr) == true);
+          }
 
         }
 

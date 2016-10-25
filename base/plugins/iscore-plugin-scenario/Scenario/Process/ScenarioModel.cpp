@@ -23,13 +23,13 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 namespace Process { class LayerModel; }
-class ProcessStateDataInterface;
+
 
 namespace Scenario
 {
@@ -53,7 +53,7 @@ ProcessModel::ProcessModel(const TimeValue& duration,
     ScenarioCreate<StateModel>::redo(m_startStateId, start_ev, 0.02, *this);
 
     // At the end because plug-ins depend on the start/end timenode & al being here
-    metadata().setName(QString("Scenario.%1").arg(*this->id().val()));
+    metadata().setInstanceName(*this);
 }
 
 ProcessModel::ProcessModel(
@@ -66,6 +66,7 @@ ProcessModel::ProcessModel(
     m_startEventId{source.m_startEventId},
     m_endEventId{source.m_endEventId}
 {
+    metadata().setInstanceName(*this);
     // This almost terrifying piece of code will simply clone
     // all the elements (constraint, etc...) from the source to this class
     // without duplicating code too much.
@@ -92,7 +93,7 @@ ProcessModel::ProcessModel(
         Scenario::SetNextConstraint(states.at(constraint.startState()), constraint);
     }
 
-    metadata().setName(QString("Scenario.%1").arg(*this->id().val()));
+    metadata().setInstanceName(*this);
 }
 
 ProcessModel::~ProcessModel()
@@ -271,7 +272,7 @@ const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
         {
             const auto& stM = scenar.states.at(st);
             if(stM.previousConstraint())
-                cstrs.push_back(stM.previousConstraint());
+                cstrs.push_back(*stM.previousConstraint());
         }
     }
 

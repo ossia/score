@@ -491,7 +491,7 @@ void DeviceExplorerWidget::refresh()
         auto wrkr = make_worker(
             [=] (Device::Node&& node) {
                 auto cmd = new Explorer::Command::ReplaceDevice{
-                    *m,
+                    m->deviceModel(),
                     m_ntView->selectedIndex().row(),
                     std::move(node)};
 
@@ -519,12 +519,12 @@ void DeviceExplorerWidget::refreshValue()
 
         // Device checks
         auto addr = Device::address(*node);
-        auto& dev = model()->deviceModel().list().device(addr.device);
+        auto& dev = model()->deviceModel().list().device(addr.address.device);
         if(!dev.capabilities().canRefreshValue)
             return;
 
         // Getting the new values
-        auto val = dev.refresh(addr);
+        auto val = dev.refresh(addr.address);
         if(val)
             lst.append({node, *val});
     }
@@ -534,7 +534,7 @@ void DeviceExplorerWidget::refreshValue()
 
     // Send the command
     Explorer::Command::UpdateAddressesValues cmd{
-            *model(),
+            model()->deviceModel(),
             lst};
 
     cmd.redo();
@@ -776,7 +776,7 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
         // If the node is going to be visible, we have to start listening to it.
         if(parent_is_expanded)
         {
-            auto child_it = find_if(*parent, [&] (const Device::Node& child) {
+            auto child_it = ossia::find_if(*parent, [&] (const Device::Node& child) {
                 return child.get<Device::AddressSettings>().name == stgs.name;
             });
             ISCORE_ASSERT(child_it != parent->end());

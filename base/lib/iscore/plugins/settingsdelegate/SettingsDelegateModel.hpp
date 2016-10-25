@@ -33,7 +33,7 @@ namespace iscore
     template<typename T, typename Model>
     void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
     {
-        for_each_in_tuple(tuple, [&] (auto& e) {
+        ossia::for_each_in_tuple(tuple, [&] (auto& e) {
             using type = std::remove_reference_t<decltype(e)>;
             using data_type = typename type::data_type;
             using param_type = typename type::parameter_type;
@@ -78,7 +78,6 @@ namespace iscore
 #define ISCORE_SETTINGS_DEFERRED_PARAMETER(ModelType, Name) \
     ISCORE_PARAMETER_TYPE(ModelType, Name) \
     ISCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)
-
 
 
 #define ISCORE_SETTINGS_PARAMETER_HPP(Type, Name) \

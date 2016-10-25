@@ -1,5 +1,6 @@
 #pragma once
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
+#include <iscore/tools/std/Algorithms.hpp>
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 namespace iscore
 {
@@ -7,18 +8,18 @@ namespace iscore
     public: \
     using base_component_type = Type; \
     \
-    static Q_RELAXED_CONSTEXPR Component::Key static_key() { \
+    static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() { \
         return_uuid(Uuid); \
     } \
     \
-    static Q_RELAXED_CONSTEXPR bool base_key_match(Component::Key other) { \
+    static Q_DECL_RELAXED_CONSTEXPR bool base_key_match(Component::Key other) { \
       return static_key() == other; \
     } \
     private:
 
 #define COMPONENT_METADATA(Uuid) \
     public: \
-    static Q_RELAXED_CONSTEXPR Component::Key static_key() { \
+    static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() { \
         return_uuid(Uuid); \
     } \
     \
@@ -33,7 +34,7 @@ namespace iscore
 
 #define COMMON_COMPONENT_METADATA(Uuid) \
     public: \
-    static Q_RELAXED_CONSTEXPR Component::Key static_key() { \
+    static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() { \
         return_uuid(Uuid); \
     } \
     \
@@ -81,14 +82,14 @@ class SystemComponent :
 template<typename System_T>
 using GenericComponent = iscore::SystemComponent<iscore::Component, System_T>;
 
-using Components = NotifyingMap<iscore::Component>;
+using Components = EntityMap<iscore::Component>;
 
 template<typename T>
 auto& component(const iscore::Components& c)
 {
     static_assert(T::is_unique, "Components must be unique to use getComponent");
 
-    auto it = find_if(c, [] (auto& other) {
+    auto it = ossia::find_if(c, [] (auto& other) {
         return other.key_match(T::static_key());
     });
 
@@ -101,7 +102,7 @@ auto findComponent(const iscore::Components& c)
 {
     static_assert(T::is_unique, "Components must be unique to use getComponent");
 
-    auto it = find_if(c, [] (auto& other) {
+    auto it = ossia::find_if(c, [] (auto& other) {
         return other.key_match(T::static_key());
     });
 

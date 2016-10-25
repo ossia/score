@@ -9,11 +9,12 @@
 #include <QString>
 #include <QStringList>
 #include <QVariant>
-
+#include <QLabel>
 #include "AddressSettingsWidget.hpp"
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/IOType.hpp>
+#include <State/Widgets/UnitWidget.hpp>
 
 namespace Explorer
 {
@@ -49,10 +50,15 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     tagLayout->addWidget(m_tagsEdit);
     tagLayout->addWidget(addTagButton);
 
+    m_unit = new State::UnitWidget({}, this);
+    m_description = new QLabel{this};
+
     m_layout->addRow(tr("I/O type"), m_ioTypeCBox);
     m_layout->addRow(tr("Clip mode"), m_clipModeCBox);
     m_layout->addRow(tr("Repetition filter"), m_repetition);
     m_layout->addRow(tr("Tags"), tagLayout);
+    m_layout->addRow(tr("Unit"), m_unit);
+    m_layout->addRow(tr("Description"), m_description);
 
     // Populate the combo boxes
 
@@ -112,6 +118,7 @@ Device::AddressSettings AddressSettingsWidget::getCommonSettings() const
         settings.ioType = static_cast<Device::IOType>(m_ioTypeCBox->currentData().value<int>());
         settings.clipMode = static_cast<Device::ClipMode>(m_clipModeCBox->currentData().value<int>());
         settings.repetitionFilter = m_repetition->isChecked();
+        settings.unit = m_unit->unit();
     }
 
     for(int i = 0; i < m_tagsEdit->count(); i++)
@@ -133,6 +140,10 @@ void AddressSettingsWidget::setCommonSettings(const Device::AddressSettings & se
         m_clipModeCBox->setCurrentIndex(clipModeIndex);
 
         m_repetition->setChecked(settings.repetitionFilter);
+
+        m_unit->setUnit(settings.unit);
+
+        m_description->setText(settings.description);
     }
     m_tagsEdit->addItems(settings.tags);
 }

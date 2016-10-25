@@ -114,7 +114,9 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
                 Device::Node&& child,
                 int row);
 
-        void updateValue(Device::Node* n,
+        void updateValue(
+                Device::Node* n,
+                const State::AddressAccessor& addr,
                 const State::Value& v);
 
         // Checks if the settings can be added; if not,
@@ -189,10 +191,24 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final :
 
 
 // Will update the tree and return the messages corresponding to the selected nodes.
-ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT State::MessageList getSelectionSnapshot(DeviceExplorerModel& model);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT State::MessageList getSelectionSnapshot(
+        DeviceExplorerModel& model);
 
-ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel& deviceExplorerFromObject(const QObject&);
-ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel* try_deviceExplorerFromObject(const QObject&);
-ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel* try_deviceExplorerFromContext(const iscore::DocumentContext& ctx);
-ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel& deviceExplorerFromContext(const iscore::DocumentContext& ctx);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel& deviceExplorerFromObject(
+        const QObject&);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel* try_deviceExplorerFromObject(
+        const QObject&);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel* try_deviceExplorerFromContext(
+        const iscore::DocumentContext& ctx);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel& deviceExplorerFromContext(
+        const iscore::DocumentContext& ctx);
+
+
+// Will try to find a node and fill the structure with it.
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT Device::FullAddressAccessorSettings
+    makeFullAddressAccessorSettings(
+        const State::AddressAccessor& mess,
+        const iscore::DocumentContext& ctx,
+        ossia::value min,
+        ossia::value max);
 }

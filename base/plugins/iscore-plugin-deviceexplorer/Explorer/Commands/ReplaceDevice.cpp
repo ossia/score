@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
@@ -19,20 +20,20 @@ namespace Command
 {
 // TODO fix this to use NodeUpdateProxy. Maybe it should be a Remove() followed by
 // a LoadDevice() ?
-ReplaceDevice::ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
+ReplaceDevice::ReplaceDevice(Path<DeviceDocumentPlugin>&& device_tree,
                              int deviceIndex,
                              Device::Node&& rootNode):
     m_deviceTree{device_tree},
     m_deviceIndex(deviceIndex),
     m_deviceNode{std::move(rootNode)}
 {
-    auto& explorer = m_deviceTree.find();
+    auto& explorer = m_deviceTree.find().explorer();
     m_savedNode = explorer.nodeFromModelIndex(explorer.index(m_deviceIndex, 0, QModelIndex()));
 }
 
 void ReplaceDevice::undo() const
 {
-    auto& explorer = m_deviceTree.find();
+    auto& explorer = m_deviceTree.find().explorer();
 
     explorer.removeRow(m_deviceIndex);
     explorer.addDevice(m_savedNode);
@@ -40,7 +41,7 @@ void ReplaceDevice::undo() const
 
 void ReplaceDevice::redo() const
 {
-    auto& explorer = m_deviceTree.find();
+    auto& explorer = m_deviceTree.find().explorer();
 
     const auto& cld = explorer.rootNode().children();
     for(auto it = cld.begin(); it != cld.end(); ++it)

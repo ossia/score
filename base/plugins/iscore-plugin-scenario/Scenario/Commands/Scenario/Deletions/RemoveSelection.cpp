@@ -30,7 +30,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/MapCopy.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/document/DocumentContext.hpp>
 
@@ -105,9 +105,9 @@ RemoveSelection::RemoveSelection(Path<Scenario::ProcessModel>&& scenarioPath, Se
         if(auto state = dynamic_cast<const StateModel*>(obj.data()))
         {
             if(state->previousConstraint())
-                sel.append(&scenar.constraints.at(state->previousConstraint()));
+                sel.append(&scenar.constraints.at(*state->previousConstraint()));
             if(state->nextConstraint())
-                sel.append(&scenar.constraints.at(state->nextConstraint()));
+                sel.append(&scenar.constraints.at(*state->nextConstraint()));
         }
     }
 

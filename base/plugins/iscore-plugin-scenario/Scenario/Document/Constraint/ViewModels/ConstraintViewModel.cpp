@@ -10,10 +10,10 @@ namespace Scenario
 {
 bool ConstraintViewModel::isRackShown() const
 {
-    return bool (m_shownRack.val());
+    return bool (m_shownRack);
 }
 
-const Id<RackModel>& ConstraintViewModel::shownRack() const
+const OptionalId<RackModel>& ConstraintViewModel::shownRack() const
 {
     return m_shownRack;
 }
@@ -22,14 +22,14 @@ void ConstraintViewModel::hideRack()
 {
     if(m_shownRack)
     {
-        m_shownRack.unset();
+        m_shownRack = iscore::none;
         emit rackHidden();
     }
 }
 
-void ConstraintViewModel::showRack(const Id<RackModel>& rackId)
+void ConstraintViewModel::showRack(const OptionalId<RackModel>& rackId)
 {
-    if(rackId.val())
+    if(rackId)
     {
         m_shownRack = rackId;
 

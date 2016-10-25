@@ -42,7 +42,7 @@ class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenter
         ScenarioDocumentPresenter(iscore::DocumentPresenter* parent_presenter,
                              const iscore::DocumentDelegateModelInterface& model,
                              iscore::DocumentDelegateViewInterface& view);
-        virtual ~ScenarioDocumentPresenter() = default;
+        virtual ~ScenarioDocumentPresenter();
 
         const ConstraintModel& displayedConstraint() const;
         const DisplayedElementsPresenter& presenters() const

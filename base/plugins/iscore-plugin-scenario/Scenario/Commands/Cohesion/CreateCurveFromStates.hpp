@@ -44,7 +44,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
 
             m_slotsCmd.reserve(slotList.size());
 
-            auto fact = context.components.factory<Process::ProcessList>().get(
+            auto fact = context.components.factory<Process::LayerFactoryList>().findDefaultFactory(
                         Metadata<ConcreteFactoryKey_k, ProcessModel_T>::get());
             ISCORE_ASSERT(fact);
             auto procData = fact->makeStaticLayerConstructionData();
@@ -55,6 +55,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers : public iscore::Seri
                             Path<SlotModel>(elt.first),
                             elt.second,
                             Path<Process::ProcessModel>{proc},
+                            fact->concreteFactoryKey(),
                             procData);
             }
         }
@@ -108,7 +109,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final :
                 const ConstraintModel& constraint,
                 const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>& slotList,
                 Id<Process::ProcessModel> curveId,
-                State::Address address,
+                State::AddressAccessor address,
                 double start,
                 double end,
                 double min, double max);
@@ -120,7 +121,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final :
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        State::Address m_address;
+        State::AddressAccessor m_address;
 
         double m_start{}, m_end{};
         double m_min{}, m_max{};
@@ -136,7 +137,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final :
                 const ConstraintModel& constraint,
                 const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>& slotList,
                 Id<Process::ProcessModel> curveId,
-                State::Address address,
+                State::AddressAccessor address,
                 State::Value start, State::Value end);
 
         void redo() const override;
@@ -146,7 +147,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final :
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        State::Address m_address;
+        State::AddressAccessor m_address;
         State::Value m_start, m_end;
 };
 }

@@ -142,7 +142,7 @@ class HierarchicalScenarioComponent :
             using map_t = MatchingComponent<elt_t, true>;
             auto& container = this->*map_t::local_container;
 
-            auto it = find_if(container, [&] (auto pair) {
+            auto it = ossia::find_if(container, [&] (auto pair) {
                 return &pair.element == &element;
             });
 

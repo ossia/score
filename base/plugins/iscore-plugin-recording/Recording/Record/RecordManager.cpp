@@ -11,6 +11,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 #include <core/document/Document.hpp>
 
 #include <QApplication>
@@ -46,7 +47,7 @@
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <Curve/Settings/CurveSettingsModel.hpp>
@@ -115,7 +116,7 @@ void AutomationRecorder::stop()
         // Add a point with the last state.
         auto initCurveCmd = new Automation::InitAutomation{
                 automation,
-                recorded.first,
+                State::AddressAccessor{recorded.first},
                 recorded.second.segment.min(),
                 recorded.second.segment.max(),
                 recorded.second.segment.toPowerSegments()};
@@ -201,12 +202,12 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
     //// Creation of the curves ////
     for(const auto& vec : recordListening)
     {
-        addresses.push_back({Device::address(*vec.front())});
+        addresses.push_back({Device::address(*vec.front()).address});
         addresses.back().reserve(vec.size());
 
-        for(auto node : vec)
+        for(Device::Node* node : vec)
         {
-            auto& addr = node->get<Device::AddressSettings>();
+            Device::AddressSettings& addr = node->get<Device::AddressSettings>();
             // Note : since we directly create the IDs here, we don't have to worry
             // about their generation.
             auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
@@ -224,8 +225,8 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
             autom.curve().clear();
 
             auto val = State::convert::value<float>(addr.value);
-            auto min = State::convert::value<float>(addr.domain.min);
-            auto max = State::convert::value<float>(addr.domain.max);
+            auto min = addr.domain.convert_min<float>();
+            auto max = addr.domain.convert_max<float>();
 
             Curve::SegmentData seg;
             seg.id = Id<Curve::SegmentModel>{0};
@@ -244,7 +245,7 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
 
             autom.curve().addSegment(segt);
 
-            addresses.back().push_back(Device::address(*node));
+            addresses.back().push_back(Device::address(*node).address);
             records.insert(
                         std::make_pair(
                             addresses.back().back(),

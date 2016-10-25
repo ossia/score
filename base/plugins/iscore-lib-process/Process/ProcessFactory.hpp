@@ -10,7 +10,10 @@
 class QGraphicsItem;
 class QObject;
 struct VisitorVariant;
-
+namespace iscore
+{
+struct DocumentContext;
+}
 namespace Process
 {
 class LayerModel;
@@ -26,8 +29,10 @@ struct ProcessPresenterContext;
      * Interface to make processes, like Scenario, Automation...
      */
 
-class ISCORE_LIB_PROCESS_EXPORT ProcessModelFactory
+class ISCORE_LIB_PROCESS_EXPORT ProcessModelFactory:
+        public iscore::AbstractFactory<ProcessModelFactory>
 {
+    ISCORE_ABSTRACT_FACTORY("507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
     public:
         virtual ~ProcessModelFactory();
 
@@ -44,8 +49,10 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModelFactory
 
 };
 
-class ISCORE_LIB_PROCESS_EXPORT LayerFactory
+class ISCORE_LIB_PROCESS_EXPORT LayerFactory:
+        public iscore::AbstractFactory<LayerFactory>
 {
+    ISCORE_ABSTRACT_FACTORY("aeee61e4-89aa-42ec-aa33-bf4522ed710b")
     public:
         virtual ~LayerFactory();
 
@@ -54,19 +61,19 @@ class ISCORE_LIB_PROCESS_EXPORT LayerFactory
         // we have to generate some data (like ids...) before making a new view model.
         // This data is valid for construction only for the current state
         // of the scenario.
-        virtual QByteArray makeLayerConstructionData(const Process::ProcessModel&) const;
+        virtual QByteArray makeLayerConstructionData(
+            const Process::ProcessModel&) const;
 
         // TODO pass the name of the view model to be created
         // (e.g. temporal / logical...).
-        Process::LayerModel* makeLayer(
+        Process::LayerModel* make(
                 Process::ProcessModel&,
                 const Id<Process::LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent);
 
         // Load
-        Process::LayerModel* loadLayer(
-                Process::ProcessModel&,
+        Process::LayerModel* load(
                 const VisitorVariant& v,
                 QObject* parent);
 
@@ -97,31 +104,25 @@ class ISCORE_LIB_PROCESS_EXPORT LayerFactory
                 const LayerModel& layer,
                 QObject* parent);
 
+        bool matches(
+                const Process::ProcessModel& p) const;
+        virtual bool matches(
+                const UuidKey<Process::ProcessModelFactory>&) const = 0;
+
     protected:
         virtual LayerModel* makeLayer_impl(
                 Process::ProcessModel&,
                 const Id<Process::LayerModel>& viewModelId,
                 const QByteArray& constructionData,
-                QObject* parent);
+                QObject* parent) = 0;
         virtual LayerModel* loadLayer_impl(
                 Process::ProcessModel&,
                 const VisitorVariant&,
-                QObject* parent);
+                QObject* parent) = 0;
         virtual LayerModel* cloneLayer_impl(
                 Process::ProcessModel&,
                 const Id<Process::LayerModel>& newId,
                 const Process::LayerModel& source,
-                QObject* parent);
+                QObject* parent) = 0;
 };
-
-class ISCORE_LIB_PROCESS_EXPORT ProcessFactory :
-        public iscore::AbstractFactory<ProcessFactory>,
-        public ProcessModelFactory,
-        public LayerFactory
-{
-        ISCORE_ABSTRACT_FACTORY("507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
-    public:
-        virtual ~ProcessFactory();
-};
-
 }

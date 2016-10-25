@@ -44,5 +44,14 @@ void SetCondition::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_condition >> m_previousCondition;
 }
+
+SetOffsetBehavior::SetOffsetBehavior(
+    Path<EventModel>&& path,
+    OffsetBehavior newval):
+  iscore::PropertyCommand{std::move(path), "offsetBehavior", QVariant::fromValue(newval)}
+{
+
+}
+
 }
 }

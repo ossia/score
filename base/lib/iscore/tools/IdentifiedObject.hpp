@@ -1,5 +1,4 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/utilsCPP11.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -20,10 +19,9 @@ class IdentifiedObject : public IdentifiedObjectAbstract
     public:
         using model_type = model;
         using id_type = Id<model>;
-        template<typename... Args>
-        IdentifiedObject(id_type id,
-                         Args&& ... args) :
-            IdentifiedObjectAbstract {std::forward<Args> (args)...},
+
+        IdentifiedObject(id_type id, const QString& name, QObject* parent) :
+            IdentifiedObjectAbstract {name, parent},
             m_id {std::move(id)}
         {
             m_id.m_ptr = this;
@@ -31,7 +29,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 
         template<typename ReaderImpl>
         IdentifiedObject(Deserializer<ReaderImpl>& v, QObject* parent) :
-            IdentifiedObjectAbstract {v, parent}
+            IdentifiedObjectAbstract {parent}
         {
             v.writeTo(*this);
             m_id.m_ptr = this;
@@ -49,13 +47,14 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 
         int32_t id_val() const final override
         {
-            return *m_id.val();
+            return m_id.val();
         }
 
         void setId(const id_type& id)
         {
             m_id = id;
         }
+
         void setId(id_type&& id)
         {
             m_id = std::move(id);
@@ -70,9 +69,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 template<typename model>
 std::size_t hash_value(const Id<model>& id)
 {
-    ISCORE_ASSERT(bool(id));
-
-    return *id.val();
+    return id.val();
 }
 
 template<typename T, typename U>
@@ -81,7 +78,7 @@ bool operator==(const T* obj, const Id<U>& id)
     return obj->id() == id;
 }
 
-template<typename T, typename U,std::enable_if_t<! std::is_pointer<std::decay_t<T>>::value>* = nullptr>
+template<typename T, typename U, typename = decltype(std::declval<T>().id())>
 bool operator==(const T& obj, const Id<U>& id)
 {
     return obj.id() == id;
@@ -100,14 +97,8 @@ namespace IDocument
  * This function will abort the software if given an object
  * not in a document hierarchy in argument.
  */
-template<typename T, std::enable_if_t<
-             std::is_base_of<
-                 IdentifiedObjectAbstract,
-                 T
-                >::value
-             >*
-         >
-Path<T> path(const T& obj)
+template<typename T>
+Path<T> path(const IdentifiedObject<T>& obj)
 {
     static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
     if(obj.m_path_cache.valid())
@@ -117,17 +108,5 @@ Path<T> path(const T& obj)
     return obj.m_path_cache;
 }
 
-template<typename T, std::enable_if_t<
-             !std::is_base_of<
-                 IdentifiedObjectAbstract,
-                 T
-                >::value
-             >*
-         >
-Path<T> path(const T& obj)
-{
-    static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
-    return Path<T>{iscore::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
-}
 }
 }

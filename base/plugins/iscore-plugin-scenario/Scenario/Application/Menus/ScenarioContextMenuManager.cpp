@@ -44,7 +44,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario
@@ -122,7 +122,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     auto addNewProcessInExistingSlot = new QAction{tr("Add new process in this slot"), &menu};
     QObject::connect(addNewProcessInExistingSlot, &QAction::triggered,
             [&] () {
-        auto& fact = ctx.app.components.factory<Process::ProcessList>();
+        auto& fact = ctx.app.components.factory<Process::ProcessFactoryList>();
         AddProcessDialog dialog{fact, qApp->activeWindow()};
 
         QObject::connect(&dialog, &AddProcessDialog::okPressed,
@@ -151,7 +151,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     auto addNewProcessInNewSlot = new QAction{tr("Add process in a new slot"), &menu};
     QObject::connect(addNewProcessInNewSlot, &QAction::triggered,
             [&] () {
-        auto& fact = ctx.app.components.factory<Process::ProcessList>();
+        auto& fact = ctx.app.components.factory<Process::ProcessFactoryList>();
         AddProcessDialog dialog{fact, qApp->activeWindow()};
 
         QObject::connect(&dialog, &AddProcessDialog::okPressed,

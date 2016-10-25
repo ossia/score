@@ -8,6 +8,7 @@
 #include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
 
 class QLabel;
+class QComboBox;
 class QLineEdit;
 class QWidget;
 namespace iscore {
@@ -63,5 +64,6 @@ class EventInspectorWidget final : public QWidget
 
         ExpressionMenu m_menu;
         ExpressionEditorWidget* m_exprEditor{};
+        QComboBox* m_offsetBehavior{};
 };
 }

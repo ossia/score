@@ -146,73 +146,15 @@ class CommonDisplacementPolicy
 
                 // Now we have to restore the state of each constraint that might have been modified
                 // during this command.
-                auto& savedConstraintData = propsToUpdate.constraints[curConstraintPropertiesToUpdate_id].savedDisplay;
 
                 // 1. Clear the constraint
                 // TODO Don't use a command since it serializes a ton of unused stuff.
-                Command::ClearConstraint clear_cmd{Path<ConstraintModel>{savedConstraintData.first.first}};
+                Command::ClearConstraint clear_cmd{curConstraintToUpdate};
                 clear_cmd.redo();
 
-                auto& constraint = savedConstraintData.first.first.find();
                 // 2. Restore the rackes & processes.
-
-                // TODO if possible refactor this with ReplaceConstraintContent and ConstraintModel::clone
-                // Be careful however, the code differs in subtle ways
-                {
-                    ConstraintModel src_constraint{
-                        Deserializer<DataStream>{savedConstraintData.first.second},
-                        &constraint}; // Temporary parent
-
-                    std::map<const Process::ProcessModel*, Process::ProcessModel*> processPairs;
-
-                    // Clone the processes
-                    for(const auto& sourceproc : src_constraint.processes)
-                    {
-                        auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
-
-                        processPairs.insert(std::make_pair(&sourceproc, newproc));
-                        AddProcess(constraint, newproc);
-                    }
-
-                    // Clone the rackes
-                    auto& procs = iscore::AppContext().components.factory<Process::ProcessList>();
-
-                    for(const auto& sourcerack : src_constraint.racks)
-                    {
-                        // A note about what happens here :
-                        // Since we want to duplicate our process view models using
-                        // the target constraint's cloned shared processes (they might setup some specific data),
-                        // we maintain a pair mapping each original process to their cloned counterpart.
-                        // We can then use the correct cloned process to clone the process view model.
-                        auto newrack = new RackModel{
-                                       sourcerack,
-                                       sourcerack.id(),
-                                       [&] (const SlotModel& source, SlotModel& target)
-                        {
-                            for(const auto& lm : source.layers)
-                            {
-                                // We can safely reuse the same id since it's in a different slot.
-                                Process::ProcessModel* proc = processPairs[&lm.processModel()];
-                                auto fact = procs.get(proc->concreteFactoryKey());
-
-                                // TODO harmonize the order of parameters (source first, then new id)
-                                target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
-                            }
-                        },
-                        &constraint};
-                        constraint.racks.add(newrack);
-                    }
-                }
-
-                // 3. Restore the correct rackes in the constraint view models
-                if(constraint.processes.size() != 0)
-                {
-                    for(auto& viewmodel : constraint.viewModels())
-                    {
-                        viewmodel->showRack(curConstraintPropertiesToUpdate.savedDisplay.second[viewmodel->id()]);
-                    }
-                }
-
+                // Restore the constraint. The saving is done in GenericDisplacementPolicy.
+                curConstraintPropertiesToUpdate.reload(curConstraintToUpdate);
 
                 emit scenario.constraintMoved(curConstraintToUpdate);
             }

@@ -50,9 +50,11 @@ void RefreshStates(
         auto messages = flatten(state.messages().rootNode());
         for(auto& elt : messages)
         {
-            elt.value = proxy.refreshRemoteValue(elt.address);
+            auto val = proxy.refreshRemoteValue(elt.address.address);
+            ISCORE_TODO; // FIXME merge the value with the address accessor
+            elt.value = val;
         }
-        macro->addCommand(new AddMessagesToState{state.messages(), messages});
+        macro->addCommand(new AddMessagesToState{state, messages});
     }
 
     CommandDispatcher<> disp{stack};

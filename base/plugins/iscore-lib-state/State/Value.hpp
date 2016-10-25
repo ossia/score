@@ -3,6 +3,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore_lib_state_export.h>
 #include <iscore/tools/std/Optional.hpp>
+#include <ossia/editor/value/impulse.hpp>
 #include <eggs/variant.hpp>
 #include <QChar>
 #include <QList>
@@ -16,19 +17,14 @@ class QDebug;
 
 namespace State
 {
-struct no_value_t {};
-inline bool operator==(no_value_t, no_value_t) { return true; }
-inline bool operator!=(no_value_t, no_value_t) { return false; }
-struct impulse_t {};
-inline bool operator==(impulse_t, impulse_t) { return true; }
-inline bool operator!=(impulse_t, impulse_t) { return false; }
+using impulse_t = ossia::Impulse;
 
 class ValueImpl;
 using vec2f = std::array<float, 2>;
 using vec3f = std::array<float, 3>;
 using vec4f = std::array<float, 4>;
 using tuple_t = std::vector<ValueImpl>;
-enum class ValueType { Impulse, Int, Float, Bool, String, Char, Vec2f, Vec3f, Vec4f, Tuple, NoValue };
+enum class ValueType : std::size_t { Impulse, Int, Float, Bool, String, Char, Vec2f, Vec3f, Vec4f, Tuple, NoValue = eggs::variant<>::npos};
 
 class ISCORE_LIB_STATE_EXPORT ValueImpl
 {
@@ -36,28 +32,28 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
         ISCORE_SERIALIZE_FRIENDS(ValueImpl, JSONObject)
 
     public:
-        using variant_t = eggs::variant<impulse_t, int, float, bool, QString, QChar, vec2f, vec3f, vec4f, tuple_t, no_value_t>;
-        ValueImpl();
+        using variant_t = eggs::variant<impulse_t, int, float, bool, std::string, char, vec2f, vec3f, vec4f, tuple_t>;
+        ValueImpl() = default;
         ValueImpl(const ValueImpl&) = default;
         ValueImpl(ValueImpl&&) = default;
 
         ValueImpl& operator=(const ValueImpl&) = default;
         ValueImpl& operator=(ValueImpl&&) = default;
 
-        ValueImpl(no_value_t v);
         ValueImpl(impulse_t v);
         ValueImpl(int v);
         ValueImpl(float v);
         ValueImpl(double v);
         ValueImpl(bool v);
-        ValueImpl(QString v);
+        ValueImpl(const QString& v);
+        ValueImpl(std::string v);
         ValueImpl(QChar v);
+        ValueImpl(char v);
         ValueImpl(vec2f v);
         ValueImpl(vec3f v);
         ValueImpl(vec4f v);
         ValueImpl(tuple_t v);
 
-        ValueImpl& operator=(no_value_t v);
         ValueImpl& operator=(impulse_t v);
         ValueImpl& operator=(int v);
         ValueImpl& operator=(float v);
@@ -65,7 +61,10 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
         ValueImpl& operator=(bool v);
         ValueImpl& operator=(const QString& v);
         ValueImpl& operator=(QString&& v);
+        ValueImpl& operator=(const std::string& v);
+        ValueImpl& operator=(std::string&& v);
         ValueImpl& operator=(QChar v);
+        ValueImpl& operator=(char v);
         ValueImpl& operator=(vec2f v);
         ValueImpl& operator=(vec3f v);
         ValueImpl& operator=(vec4f v);
@@ -79,6 +78,7 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
 
         bool isNumeric() const;
         bool isValid() const;
+        bool isArray() const;
 
         ValueType which() const
         {
@@ -96,6 +96,20 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
     private:
         variant_t m_variant;
 };
+
+template<>
+inline QString ValueImpl::get<QString>() const
+{ return QString::fromStdString(eggs::variants::get<std::string>(m_variant)); }
+template<>
+inline QChar ValueImpl::get<QChar>() const
+{ return QChar(eggs::variants::get<char>(m_variant)); }
+
+template<>
+inline bool ValueImpl::is<QString>() const
+{ return is<std::string>(); }
+template<>
+inline bool ValueImpl::is<QChar>() const
+{ return is<char>(); }
 /**
  * @brief The Value struct
  *
@@ -129,11 +143,18 @@ using ValueList = QList<Value>;
 using OptionalValue = optional<State::Value>;
 
 ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m);
+
+// Hopefully we won't need this for much longer.
+ISCORE_LIB_STATE_EXPORT ossia::value toOSSIAValue(const State::ValueImpl& val);
+
 }
 
-Q_DECLARE_METATYPE(State::no_value_t)
 Q_DECLARE_METATYPE(State::impulse_t)
 Q_DECLARE_METATYPE(State::Value)
 Q_DECLARE_METATYPE(State::ValueList)
 Q_DECLARE_METATYPE(State::ValueType)
+
+Q_DECLARE_METATYPE(State::vec2f)
+Q_DECLARE_METATYPE(State::vec3f)
+Q_DECLARE_METATYPE(State::vec4f)
 

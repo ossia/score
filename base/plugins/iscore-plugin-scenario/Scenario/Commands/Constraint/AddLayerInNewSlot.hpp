@@ -48,7 +48,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerInNewSlot final : public iscore::Ser
         bool m_existingRack {};
 
         Id<Process::ProcessModel> m_processId {};
-        Id<RackModel> m_createdRackId {};
+        OptionalId<RackModel> m_createdRackId {};
         Id<SlotModel> m_createdSlotId {};
         Id<Process::LayerModel> m_createdLayerId {};
         Id<Process::ProcessModel> m_sharedProcessModelId {};

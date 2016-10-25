@@ -36,13 +36,13 @@ InspectorWidget::InspectorWidget(
     DeviceExplorerModel* explorer{};
     if(plug)
         explorer = &plug->explorer();
-    m_lineEdit = new AddressEditWidget{explorer, this};
+    m_lineEdit = new AddressAccessorEditWidget{explorer, this};
 
     m_lineEdit->setAddress(process().address());
     con(process(), &ProcessModel::addressChanged,
-            m_lineEdit, &AddressEditWidget::setAddress);
+            m_lineEdit, &AddressAccessorEditWidget::setAddress);
 
-    connect(m_lineEdit, &AddressEditWidget::addressChanged,
+    connect(m_lineEdit, &AddressAccessorEditWidget::addressChanged,
             this, &InspectorWidget::on_addressChange);
 
     vlay->addRow(tr("Address"), m_lineEdit);
@@ -50,16 +50,16 @@ InspectorWidget::InspectorWidget(
     this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(const ::State::Address& addr)
+void InspectorWidget::on_addressChange(const ::State::AddressAccessor& addr)
 {
     // Various checks
     if(addr == process().address())
         return;
 
-    if(addr.path.isEmpty())
+    if(addr.address.path.isEmpty())
         return;
 
-    if(addr == State::Address{})
+    if(addr == State::AddressAccessor{})
     {
         m_dispatcher.submitCommand(new ChangeAddress{process(), {}, {}, {}});
     }

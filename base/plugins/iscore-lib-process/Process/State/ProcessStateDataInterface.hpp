@@ -30,7 +30,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface :
          * @return nothing if the process doesn't have any "settable" address.
          * Else it returns the addresses that may change.
          */
-        virtual std::vector<State::Address> matchingAddresses()
+        virtual std::vector<State::AddressAccessor> matchingAddresses()
         {
             return {};
         }

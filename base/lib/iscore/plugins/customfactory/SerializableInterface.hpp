@@ -11,10 +11,18 @@ struct AbstractSerializer<DataStream, T>
             DataStream::Serializer& s,
             const T& obj)
     {
-        s.readFrom(obj.concreteFactoryKey().impl());
-        s.readFrom_impl(obj);
-        obj.serialize_impl(s.toVariant());
-        s.insertDelimiter();
+        // We save in a byte array so that
+        // we have a chance to save it as-is and reload it later
+        // if the plug-in is not found on the system.
+        QByteArray b;
+        DataStream::Serializer sub{&b};
+
+        sub.readFrom(obj.concreteFactoryKey().impl());
+        sub.readFrom_impl(obj);
+        obj.serialize_impl(sub.toVariant());
+        sub.insertDelimiter();
+
+        s.stream() << std::move(b);
     }
 };
 
@@ -69,48 +77,69 @@ Type deserialize_key(Deserializer<DataStream>& des)
     return uid;
 }
 
-inline void deserialize_check(Deserializer<JSONObject>& des)
-{
-}
-
-inline void deserialize_check(Deserializer<DataStream>& des)
-{
-    des.checkDelimiter();
-}
-
-template<typename FactoryList_T, typename Deserializer, typename... Args>
+template<typename FactoryList_T, typename... Args>
 auto deserialize_interface(
         const FactoryList_T& factories,
-        Deserializer& des,
+        DataStream::Deserializer& des,
+        Args&&... args)
+    -> typename FactoryList_T::object_type*
+{
+    QByteArray b;
+    des.stream() >> b;
+    DataStream::Deserializer sub{b};
+
+    // Deserialize the interface identifier
+    try {
+        auto k = deserialize_key<typename FactoryList_T::factory_type::ConcreteFactoryKey>(sub);
+
+        // Get the factory
+        if(auto concrete_factory = factories.get(k))
+        {
+            // Create the object
+            auto obj = concrete_factory->load(sub.toVariant(), std::forward<Args>(args)...);
+
+            sub.checkDelimiter();
+
+            return obj;
+        }
+    } catch(...) { }
+
+    // If the object could not be loaded, we try to load a "missing" verson of it.
+    return factories.loadMissing(sub.toVariant(), std::forward<Args>(args)...);
+}
+
+template<typename FactoryList_T, typename... Args>
+auto deserialize_interface(
+        const FactoryList_T& factories,
+        JSONObject::Deserializer& des,
         Args&&... args)
     -> typename FactoryList_T::object_type*
 {
     // Deserialize the interface identifier
     try {
-    auto k = deserialize_key<typename FactoryList_T::factory_type::ConcreteFactoryKey>(des);
+        auto k = deserialize_key<typename FactoryList_T::factory_type::ConcreteFactoryKey>(des);
 
-    // Get the factory
-    if(auto concrete_factory = factories.get(k))
-    {
-        // Create the object
-        auto obj = concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
+        // Get the factory
+        if(auto concrete_factory = factories.get(k))
+        {
+            // Create the object
+            return concrete_factory->load(des.toVariant(), std::forward<Args>(args)...);
+        }
+    } catch(...) { }
 
-        deserialize_check(des);
-
-        return obj;
-    }
-    }
-    catch(...) {
-        // TODO We should create a DefaultInterface in this case.
-    }
-    return nullptr;
+    // If the object could not be loaded, we try to load a "missing" verson of it.
+    return factories.loadMissing(des.toVariant(), std::forward<Args>(args)...);
 }
 
 // This one does not have clone.
 #define SERIALIZABLE_MODEL_METADATA_IMPL(Model_T) \
-key_type concreteFactoryKey() const final override \
+static key_type static_concreteFactoryKey() \
 { \
     return Metadata<ConcreteFactoryKey_k, Model_T>::get(); \
+} \
+key_type concreteFactoryKey() const final override \
+{ \
+    return static_concreteFactoryKey(); \
 } \
  \
 void serialize_impl(const VisitorVariant& vis) const final override \

@@ -74,11 +74,14 @@ class MoveEventState final : public StateBase<Scenario_T>
             {
                 auto& scenar = stateMachine.model();
                 // If we came here through a state.
-                Id<EventModel> evId{this->clickedEvent};
+                auto evId = this->clickedEvent;
                 if(!bool(evId) && bool(this->clickedState))
                 {
-                    evId = scenar.state(this->clickedState).eventId();
+                    evId = scenar.state(*this->clickedState).eventId();
                 }
+
+                if(!evId)
+                    return;
 
                 TimeValue date = this->m_pressedPrevious
                     ? max(this->currentPoint.date, *this->m_pressedPrevious)
@@ -86,7 +89,7 @@ class MoveEventState final : public StateBase<Scenario_T>
 
                 this->m_movingDispatcher.submitCommand(
                     Path<Scenario_T>{this->m_scenarioPath},
-                    evId,
+                    *evId,
                     date,
                     this->currentPoint.y,
                     stateMachine.editionSettings().expandMode() );
@@ -95,13 +98,16 @@ class MoveEventState final : public StateBase<Scenario_T>
             QObject::connect(pressed, &QState::entered, [&] ()
             {
                 auto& scenar = stateMachine.model();
-                Id<EventModel> evId{this->clickedEvent};
+                auto evId{this->clickedEvent};
                 if(!bool(evId) && bool(this->clickedState))
                 {
-                    evId = scenar.state(this->clickedState).eventId();
+                    evId = scenar.state(*this->clickedState).eventId();
                 }
 
-                auto prev_csts = previousConstraints(scenar.event(evId), scenar);
+                if(!evId)
+                    return;
+
+                auto prev_csts = previousConstraints(scenar.event(*evId), scenar);
                 if(!prev_csts.empty())
                 {
                     // We find the one that starts the latest.
@@ -239,14 +245,17 @@ class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T> 
 
                 auto& scenar = stateMachine.model();
                 // If we came here through a state.
-                Id<EventModel> evId{this->clickedEvent};
+                auto evId = this->clickedEvent;
                 if(!bool(evId) && bool(this->clickedState))
                 {
-                    evId = scenar.state(this->clickedState).eventId();
+                    evId = scenar.state(*this->clickedState).eventId();
                 }
-                Id<TimeNodeModel> tnId = scenar.event(evId).timeNode();
+                if(!evId)
+                    return;
 
-                if(tnId != this->hoveredTimeNode)
+                auto tnId = scenar.event(*evId).timeNode();
+
+                if(this->hoveredTimeNode && tnId != this->hoveredTimeNode)
                 {
                     this->m_movingDispatcher.rollback();
                     this->m_mergingEventDispatcher.rollback();
@@ -254,7 +263,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T> 
                     this->m_mergingTnDispatcher.submitCommand(
                             Path<Scenario::ProcessModel>{this->m_scenarioPath},
                             tnId,
-                            this->hoveredTimeNode);
+                            *this->hoveredTimeNode);
                 }
                 else
                 {
@@ -276,17 +285,22 @@ class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T> 
 
                 auto& scenar = stateMachine.model();
                 // If we came here through a state.
-                Id<EventModel> clickedEvId{this->clickedEvent};
+                auto clickedEvId = this->clickedEvent;
                 if(!bool(clickedEvId) && bool(this->clickedState))
                 {
-                    clickedEvId = scenar.state(this->clickedState).eventId();
+                    clickedEvId = scenar.state(*this->clickedState).eventId();
                 }
+                if(!clickedEvId)
+                    return;
 
-                Id<EventModel> destinationEvId{this->hoveredEvent};
+                auto destinationEvId = this->hoveredEvent;
                 if(!bool(destinationEvId) && bool(this->hoveredState))
                 {
-                    destinationEvId = scenar.state(this->hoveredState).eventId();
+                    destinationEvId = scenar.state(*this->hoveredState).eventId();
                 }
+
+                if(!destinationEvId)
+                    return;
 
                 if(clickedEvId != destinationEvId)
                 {
@@ -295,8 +309,8 @@ class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T> 
 
                     m_mergingEventDispatcher.submitCommand(
                             Path<Scenario::ProcessModel>{this->m_scenarioPath},
-                            clickedEvId,
-                            destinationEvId);
+                            *clickedEvId,
+                            *destinationEvId);
                 }
                 else
                 {
@@ -309,7 +323,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T> 
 
                     this->m_movingDispatcher.submitCommand(
                         Path<Scenario::ProcessModel>{this->m_scenarioPath},
-                        clickedEvId,
+                        *clickedEvId,
                         date,
                         this->currentPoint.y,
                         stateMachine.editionSettings().expandMode() );
@@ -325,11 +339,13 @@ class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T> 
             {
                 auto& scenar = stateMachine.model();
                 // If we came here through a state.
-                Id<EventModel> evId{this->clickedEvent};
+                auto evId = this->clickedEvent;
                 if(!bool(evId) && bool(this->clickedState))
                 {
-                    evId = scenar.state(this->clickedState).eventId();
+                    evId = scenar.state(*this->clickedState).eventId();
                 }
+                if(!evId)
+                    return;
 
                 TimeValue date = this->m_pressedPrevious
                     ? max(this->currentPoint.date, *this->m_pressedPrevious)
@@ -337,7 +353,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T> 
 
                 this->m_movingDispatcher.submitCommand(
                     Path<Scenario::ProcessModel>{this->m_scenarioPath},
-                    evId,
+                    *evId,
                     date,
                     this->currentPoint.y,
                     stateMachine.editionSettings().expandMode() );
@@ -348,13 +364,17 @@ class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T> 
                 this->m_clickedPoint = this->currentPoint;
 
                 auto& scenar = stateMachine.model();
-                Id<EventModel> evId{this->clickedEvent};
+
+                // TODO refactor this part, it's used everywhere
+                auto evId = this->clickedEvent;
                 if(!bool(evId) && bool(this->clickedState))
                 {
-                    evId = scenar.state(this->clickedState).eventId();
+                    evId = scenar.state(*this->clickedState).eventId();
                 }
+                if(!evId)
+                    return;
 
-                auto prev_csts = previousConstraints(scenar.event(evId), scenar);
+                auto prev_csts = previousConstraints(scenar.event(*evId), scenar);
                 if(!prev_csts.empty())
                 {
                     // We find the one that starts the latest.

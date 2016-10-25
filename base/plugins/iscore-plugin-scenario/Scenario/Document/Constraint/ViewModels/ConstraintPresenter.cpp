@@ -15,7 +15,7 @@
 #include <Scenario/Document/ModelConsistency.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
@@ -93,7 +93,7 @@ ConstraintPresenter::ConstraintPresenter(
     {
         if(m_viewModel.isRackShown())
         {
-            on_rackShown(m_viewModel.shownRack());
+            on_rackShown(*m_viewModel.shownRack());
         }
         else if(!m_viewModel.model().processes.empty()) // TODO why isn't this when there are racks but hidden ?
         {
@@ -224,12 +224,19 @@ ConstraintView* ConstraintPresenter::view() const
     return m_view;
 }
 
-void ConstraintPresenter::on_rackShown(const Id<RackModel>& rackId)
+void ConstraintPresenter::on_rackShown(const OptionalId<RackModel>& rackId)
 {
     clearRackPresenter();
-    createRackPresenter(m_viewModel.model().racks.at(rackId));
+    if(rackId)
+    {
+        createRackPresenter(m_viewModel.model().racks.at(*rackId));
 
-    m_header->setState(ConstraintHeader::State::RackShown);
+        m_header->setState(ConstraintHeader::State::RackShown);
+    }
+    else
+    {
+        m_header->setState(ConstraintHeader::State::RackHidden);
+    }
     updateHeight();
 }
 

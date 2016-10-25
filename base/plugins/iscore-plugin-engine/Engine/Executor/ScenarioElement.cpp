@@ -33,7 +33,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
@@ -223,7 +223,7 @@ void ScenarioComponent::eventCallback(
 
         if(auto& c = iscore_state.previousConstraint())
         {
-            m_properties.constraints[c].status = static_cast<Scenario::ExecutionStatus>(newStatus);
+            m_properties.constraints[*c].status = static_cast<Scenario::ExecutionStatus>(newStatus);
         }
 
         switch(newStatus)
@@ -238,12 +238,12 @@ void ScenarioComponent::eventCallback(
                 // start the next constraints clocks
                 if(iscore_state.previousConstraint())
                 {
-                    stopConstraintExecution(iscore_state.previousConstraint());
+                    stopConstraintExecution(*iscore_state.previousConstraint());
                 }
 
                 if(iscore_state.nextConstraint())
                 {
-                    startConstraintExecution(iscore_state.nextConstraint());
+                    startConstraintExecution(*iscore_state.nextConstraint());
                 }
                 break;
             }
@@ -253,7 +253,7 @@ void ScenarioComponent::eventCallback(
                 // TODO disable the constraints graphically
                 if(iscore_state.nextConstraint())
                 {
-                    disableConstraintExecution(iscore_state.nextConstraint());
+                    disableConstraintExecution(*iscore_state.nextConstraint());
                 }
                 break;
             }

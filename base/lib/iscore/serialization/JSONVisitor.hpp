@@ -100,7 +100,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONObject>> : public AbstractVisito
 
         QJsonObject m_obj;
 
-        const iscore::ApplicationContext& context;
+        const iscore::ApplicationComponents& components;
         const iscore::StringConstants& strings;
 };
 
@@ -109,6 +109,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONObject>> : public AbstractVisito
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
+        using is_deserializer_tag = std::integral_constant<bool, true>;
 
         VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
@@ -149,7 +150,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONObject>> : public AbstractVisito
         }
 
         const QJsonObject m_obj;
-        const iscore::ApplicationContext& context;
+        const iscore::ApplicationComponents& components;
         const iscore::StringConstants& strings;
 };
 
@@ -161,19 +162,16 @@ struct TSerializer<JSONObject, IdentifiedObject<T>>
                 JSONObject::Serializer& s,
                 const IdentifiedObject<T>& obj)
         {
-            s.readFrom(static_cast<const NamedObject&>(obj));
-            s.readFrom(obj.id().val());
+            s.m_obj[s.strings.ObjectName] = obj.objectName();
+            s.m_obj[s.strings.id] = obj.id().val();
         }
 
         static void writeTo(
                 JSONObject::Deserializer& s,
                 IdentifiedObject<T>& obj)
         {
-            typename Id<T>::value_type id_impl;
-            s.writeTo(id_impl);
-            Id<T> id;
-            id.setVal(std::move(id_impl));
-            obj.setId(std::move(id));
+            obj.setObjectName(s.m_obj[s.strings.ObjectName].toString());
+            obj.setId(Id<T>{s.m_obj[s.strings.id].toInt()});
         }
 
 };

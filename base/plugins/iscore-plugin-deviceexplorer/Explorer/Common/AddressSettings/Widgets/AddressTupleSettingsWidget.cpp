@@ -1,10 +1,8 @@
 #include "AddressTupleSettingsWidget.hpp"
-#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
-
-class QWidget;
 
 namespace Explorer
 {
+
 AddressTupleSettingsWidget::AddressTupleSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
@@ -24,4 +22,10 @@ void AddressTupleSettingsWidget::setSettings(const Device::AddressSettings& sett
 {
     setCommonSettings(settings);
 }
+
+Device::AddressSettings AddressTupleSettingsWidget::getDefaultSettings() const
+{
+    return {};
+}
+
 }

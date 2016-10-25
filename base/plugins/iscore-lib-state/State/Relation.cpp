@@ -29,7 +29,7 @@ QString State::toString(const State::RelationMember& m)
 
             return_type operator()(const State::AddressAccessor& acc) const {
                 auto addr = acc.address.toString();
-                for(auto val : acc.accessors)
+                for(auto val : acc.qualifiers.accessors)
                 {
                     addr += QString("[%1]").arg(val);
                 }

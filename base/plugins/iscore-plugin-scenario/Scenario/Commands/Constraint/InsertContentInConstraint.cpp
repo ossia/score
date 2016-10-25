@@ -26,7 +26,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 
 namespace Scenario
 {
@@ -37,14 +37,11 @@ InsertContentInConstraint::InsertContentInConstraint(
         QJsonObject&& sourceConstraint,
         Path<ConstraintModel>&& targetConstraint,
         ExpandMode mode) :
-    m_source{sourceConstraint},
-    m_target{targetConstraint},
+    m_source{std::move(sourceConstraint)},
+    m_target{std::move(targetConstraint)},
     m_mode{mode}
 {
     auto& trg_constraint = m_target.find();
-    ConstraintModel src_constraint{
-            Deserializer<JSONObject>{m_source},
-            &trg_constraint}; // Temporary parent
 
     // For all rackes in source, generate new id's
     // TODO we can use SettableIdentifierGeneration here.
@@ -55,10 +52,10 @@ InsertContentInConstraint::InsertContentInConstraint(
                    std::back_inserter(target_rackes_ids),
                    [] (const auto& rack) { return rack.id(); });
 
-    for(const auto& rack : src_constraint.racks)
+    for(const auto& rack : m_source["Rackes"].toArray())
     {
         auto newId = getStrongId(target_rackes_ids);
-        m_rackIds.insert(rack.id(), newId);
+        m_rackIds.insert(Id<RackModel>(rack.toObject()["id"].toInt()), newId);
         target_rackes_ids.push_back(newId);
     }
 
@@ -70,16 +67,18 @@ InsertContentInConstraint::InsertContentInConstraint(
                    std::back_inserter(target_processes_ids),
                    [] (const auto& proc) { return proc.id(); });
 
-    for(const auto& proc : src_constraint.processes)
+    for(const auto& proc : m_source["Processes"].toArray())
     {
         auto newId = getStrongId(target_processes_ids);
-        m_processIds.insert(proc.id(), newId);
+        m_processIds.insert(Id<Process::ProcessModel>(proc.toObject()["id"].toInt()), newId);
         target_processes_ids.push_back(newId);
     }
 }
 
 void InsertContentInConstraint::undo() const
 {
+    ISCORE_TODO;
+    /*
     // We just have to remove what we added
     auto& trg_constraint = m_target.find();
 
@@ -92,11 +91,14 @@ void InsertContentInConstraint::undo() const
     {
         trg_constraint.racks.remove(rack_id);
     }
+    */
 }
 
 
 void InsertContentInConstraint::redo() const
 {
+    ISCORE_TODO;
+    /*
     auto& trg_constraint = m_target.find();
     ConstraintModel src_constraint{
             Deserializer<JSONObject>{m_source},
@@ -125,12 +127,12 @@ void InsertContentInConstraint::redo() const
     }
 
     // Clone the rackes
-    auto& procs = context.components.factory<Process::ProcessList>();
+    auto& procs = components.factory<Process::LayerFactoryList>();
 
     const auto& src_racks = src_constraint.racks;
     for(const auto& sourcerack: src_racks)
     {
-        // A note about what happens here :
+        // REFACTORME 01
         // Since we want to duplicate our process view models using
         // the target constraint's cloned shared processes (they might setup some specific data),
         // we maintain a pair mapping each original process to their cloned counterpart.
@@ -144,7 +146,7 @@ void InsertContentInConstraint::redo() const
                     {
                         // We can safely reuse the same id since it's in a different slot.
                         auto proc = processPairs[&lm.processModel()];
-                        auto fact = procs.get(proc->concreteFactoryKey());
+                        auto fact = procs.findDefaultFactory(*proc);
                         // TODO harmonize the order of parameters (source first, then new id)
                         target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
                     }
@@ -152,6 +154,7 @@ void InsertContentInConstraint::redo() const
                 &trg_constraint};
         trg_constraint.racks.add(newrack);
     }
+    */
 }
 
 void InsertContentInConstraint::serializeImpl(DataStreamInput& s) const

@@ -8,9 +8,9 @@ ProcessModel::ProcessModel(
         QObject* parent):
     Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-    metadata().setName(QString("Midi.%1").arg(*this->id().val()));
+    metadata().setInstanceName(*this);
 
-    m_device = "tata";
+    m_device = "MidiDevice";
     for(int i = 0; i < 10; i++)
     {
         auto n = new Note{Id<Note>(i), this};
@@ -26,8 +26,9 @@ ProcessModel::ProcessModel(
         const ProcessModel& source,
         const Id<Process::ProcessModel>& id,
         QObject* parent):
-    Process::ProcessModel{source.duration(), id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    Process::ProcessModel{source, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
+    metadata().setInstanceName(*this);
     m_device = source.device();
     m_channel = source.channel();
     for(Note& note : source.notes)

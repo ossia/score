@@ -20,7 +20,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario
@@ -37,10 +37,7 @@ template <typename T> class Writer;
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Scenario::ConstraintModel& constraint)
 {
-    readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintModel>&>(constraint));
-
-    // Metadata
-    readFrom(constraint.metadata());
+    readFrom(static_cast<const iscore::Entity<Scenario::ConstraintModel>&>(constraint));
 
     // Processes
     m_stream << (int32_t) constraint.processes.size();
@@ -74,16 +71,23 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintModel& constraint)
 {
-    writeTo(constraint.metadata());
-
     // Processes
     int32_t process_count;
     m_stream >> process_count;
 
-    auto& pl = context.components.factory<Process::ProcessList>();
+    auto& pl = components.factory<Process::ProcessFactoryList>();
     for(; process_count -- > 0;)
     {
-        constraint.processes.add(deserialize_interface(pl, *this, &constraint));
+        auto proc = deserialize_interface(pl, *this, &constraint);
+        if(proc)
+        {
+            // TODO why isn't AddProcess used here ?!
+            constraint.processes.add(proc);
+        }
+        else
+        {
+            ISCORE_TODO;
+        }
     }
 
     // Rackes
@@ -118,8 +122,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintModel& constraint)
 {
-    readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintModel>&>(constraint));
-    m_obj[strings.Metadata] = toJsonObject(constraint.metadata());
+    readFrom(static_cast<const iscore::Entity<Scenario::ConstraintModel>&>(constraint));
 
     // Processes
     m_obj["Processes"] = toJsonArray(constraint.processes);
@@ -147,9 +150,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const S
 template<>
 ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintModel& constraint)
 {
-    constraint.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
-
-    auto& pl = context.components.factory<Process::ProcessList>();
+    auto& pl = components.factory<Process::ProcessFactoryList>();
 
     QJsonArray process_array = m_obj["Processes"].toArray();
     for(const auto& json_vref : process_array)
@@ -158,6 +159,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario
         auto proc = deserialize_interface(pl, deserializer, &constraint);
         if(proc)
             constraint.processes.add(proc);
+        else
+            ISCORE_TODO;
     }
 
     QJsonArray rack_array = m_obj["Rackes"].toArray();

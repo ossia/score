@@ -45,17 +45,17 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel :
         ConstraintModel& model() const;
 
         bool isRackShown() const;
-        const Id<RackModel>& shownRack() const;
+        const OptionalId<RackModel>& shownRack() const;
 
         void hideRack();
-        void showRack(const Id<RackModel>& rackId);
+        void showRack(const OptionalId<RackModel>& rackId);
 
         virtual void on_rackRemoval(const RackModel&);
 
     signals:
         void lastRackRemoved();
         void rackHidden();
-        void rackShown(const Id<RackModel>&);
+        void rackShown(const OptionalId<RackModel>&);
 
         void aboutToBeDeleted(ConstraintViewModel*);
 
@@ -64,6 +64,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel :
         // hence we are safe with a pointer
         ConstraintModel& m_model;
 
-        Id<RackModel> m_shownRack {};
+        OptionalId<RackModel> m_shownRack {};
 };
 }

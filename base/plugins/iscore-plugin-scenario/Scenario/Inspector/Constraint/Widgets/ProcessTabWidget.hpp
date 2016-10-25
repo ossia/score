@@ -7,9 +7,11 @@ namespace Inspector{
     class InspectorSectionWidget;
 }
 namespace Process {
-class ProcessFactory;
+class ProcessModelFactory; class LayerFactory;
 }
-namespace Scenario {
+namespace Scenario
+{
+class AddProcessDialog;
 class ProcessTabWidget :
         public QWidget,
         public Nano::Observer
@@ -21,7 +23,7 @@ class ProcessTabWidget :
     signals:
 
     public slots:
-        void createProcess(const UuidKey<Process::ProcessFactory>& processName);
+        void createProcess(const UuidKey<Process::ProcessModelFactory>& processName);
         void displaySharedProcess(const Process::ProcessModel&);
 
         void updateDisplayedValues();
@@ -34,6 +36,7 @@ class ProcessTabWidget :
         Inspector::InspectorSectionWidget* m_processSection{};
 
         std::vector<Inspector::InspectorSectionWidget*> m_processesSectionWidgets;
+        AddProcessDialog* m_addProcess{};
 
 };
 

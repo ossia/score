@@ -46,7 +46,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <iscore/widgets/MarginLess.hpp>
@@ -56,7 +56,7 @@ namespace Scenario
 {
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const Inspector::InspectorWidgetList& widg,
-        const Process::ProcessList& pl,
+        const Process::ProcessFactoryList& pl,
         const ConstraintModel& object,
         std::unique_ptr<ConstraintInspectorDelegate> del,
         const iscore::DocumentContext& ctx,
@@ -163,7 +163,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         ISCORE_ASSERT(scenar);
         transportLay->addStretch(1);
 
-        if(auto sst = m_model.startState())
+        auto sst = m_model.startState();
         {
             auto btn = SelectionButton::make(
                         tr("Start State"),
@@ -172,10 +172,9 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
                         this);
             transportLay->addWidget(btn);
         }
-
         transportLay->addWidget(setAsDisplayedConstraint);
 
-        if(auto est = m_model.endState())
+        auto est = m_model.endState();
         {
             auto btn = SelectionButton::make(
                         tr("End State"),

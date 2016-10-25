@@ -16,7 +16,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 
 namespace Scenario
@@ -39,27 +39,41 @@ AddLayerInNewSlot::AddLayerInNewSlot(
     }
     else
     {
+        m_existingRack = true;
+
+        // TODO why are we looping like this ?
         for(auto vm : constraint.viewModels())
         {
             m_createdRackId = vm->shownRack();
         }
-        auto& rack = constraint.racks.at(m_createdRackId);
-        m_existingRack = true;
-        m_createdSlotId = getStrongId(rack.slotmodels);
+
+        if(m_createdRackId)
+        {
+            auto& rack = constraint.racks.at(*m_createdRackId);
+            m_createdSlotId = getStrongId(rack.slotmodels);
+        }
+        else
+        {
+            m_createdRackId = constraint.racks.begin()->id();
+            auto& rack = constraint.racks.at(*m_createdRackId);
+            m_createdSlotId = getStrongId(rack.slotmodels);
+        }
     }
 
+    ISCORE_ASSERT(m_createdRackId);
     m_createdLayerId = Id<Process::LayerModel> (iscore::id_generator::getFirstId());
 
     auto& proc = constraint.processes.at(m_sharedProcessModelId);
-    auto& procs = this->context.components.factory<Process::ProcessList>();
-    auto fact = procs.get(proc.concreteFactoryKey());
+    auto& procs = this->context.components.factory<Process::LayerFactoryList>();
+    auto fact = procs.findDefaultFactory(proc);
+    ISCORE_ASSERT(fact);
     m_processData = fact->makeLayerConstructionData(proc);
 }
 
 void AddLayerInNewSlot::undo() const
 {
     auto& constraint = m_path.find();
-    auto& rack = constraint.racks.at(m_createdRackId);
+    auto& rack = constraint.racks.at(*m_createdRackId);
 
     // Removing the slot is enough
     rack.slotmodels.remove(m_createdSlotId);
@@ -67,7 +81,7 @@ void AddLayerInNewSlot::undo() const
     // Remove the rack
     if(!m_existingRack)
     {
-        constraint.racks.remove(m_createdRackId);
+        constraint.racks.remove(*m_createdRackId);
     }
 }
 
@@ -79,7 +93,7 @@ void AddLayerInNewSlot::redo() const
     if(!m_existingRack)
     {
         // TODO refactor with AddRackToConstraint
-        auto rack = new RackModel{m_createdRackId, &constraint};
+        auto rack = new RackModel{*m_createdRackId, &constraint};
         constraint.racks.add(rack);
 
         // If it is the first rack created,
@@ -88,14 +102,14 @@ void AddLayerInNewSlot::redo() const
         {
             for(const auto& vm : constraint.viewModels())
             {
-                vm->showRack(m_createdRackId);
+                vm->showRack(*m_createdRackId);
             }
         }
     }
 
     auto h = context.settings<Scenario::Settings::Model>().getSlotHeight();
     // Slot
-    auto& rack = constraint.racks.at(m_createdRackId);
+    auto& rack = constraint.racks.at(*m_createdRackId);
     rack.addSlot(new SlotModel {m_createdSlotId,
                                 h,
                                 &rack});
@@ -104,10 +118,11 @@ void AddLayerInNewSlot::redo() const
     auto& slot = rack.slotmodels.at(m_createdSlotId);
     auto& proc = constraint.processes.at(m_sharedProcessModelId);
 
-    auto& procs = context.components.factory<Process::ProcessList>();
-    auto fact = procs.get(proc.concreteFactoryKey());
+    auto& procs = context.components.factory<Process::LayerFactoryList>();
+    auto fact = procs.findDefaultFactory(proc);
+    ISCORE_ASSERT(fact);
     slot.layers.add(
-                fact->makeLayer(
+                fact->make(
                     proc, m_createdLayerId,
                     m_processData,
                     &slot));

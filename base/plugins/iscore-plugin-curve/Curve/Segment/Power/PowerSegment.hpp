@@ -5,6 +5,7 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <ossia/editor/curve/curve_segment/linear.hpp>
 
 namespace Curve
 {
@@ -85,15 +86,13 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final :
             if(gamma == Curve::PowerSegmentData::linearGamma)
             {
                 // We just return the linear one
-                return [] (double ratio, Y start, Y end) {
-                    return start + ratio * (end - start);
-                };
+                return ossia::curve_segment_linear<Y>{};
             }
             else
             {
                 double thepow = Curve::PowerSegmentData::linearGamma + 1 - gamma;
                 return [=] (double ratio, Y start, Y end) {
-                    return start + std::pow(ratio, thepow) * (end - start);
+                    return ossia::easing::ease{}(start, end, std::pow(ratio, thepow));
                 };
             }
         }

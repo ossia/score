@@ -9,6 +9,8 @@
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
+#include <iscore/tools/TreeNode.hpp>
+#include <State/Expression.hpp>
 
 #include <iscore/command/SerializableCommand.hpp>
 
@@ -126,7 +128,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ProcessModel> : public iscore
             destinationTn.trigger()->setExpression(movingTn.trigger()->expression());
 
             scenar.timeNodes.remove(m_movingTnId);
-            updateTimeNodeExtent(m_destinationTnId, scenar);            
+            updateTimeNodeExtent(m_destinationTnId, scenar);
         }
 
         void update(Path<ProcessModel> scenar,
@@ -137,7 +139,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ProcessModel> : public iscore
         void serializeImpl(DataStreamInput& s) const override
         {
             s << m_scenarioPath << m_movingTnId << m_destinationTnId
-              << m_serializedTimeNode << m_moveCommand->serialize();
+              << m_serializedTimeNode << m_moveCommand->serialize() << m_targetTrigger << m_targetTriggerActive;
         }
 
         void deserializeImpl(DataStreamOutput& s) override
@@ -145,7 +147,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ProcessModel> : public iscore
             QByteArray cmd;
 
             s >> m_scenarioPath >> m_movingTnId >> m_destinationTnId
-                >> m_serializedTimeNode >> cmd;
+                >> m_serializedTimeNode >> cmd >> m_targetTrigger >> m_targetTriggerActive;
 
             m_moveCommand = new MoveEvent<GoodOldDisplacementPolicy>{};
             m_moveCommand->deserialize(cmd);
@@ -157,7 +159,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ProcessModel> : public iscore
         Id<TimeNodeModel> m_destinationTnId;
 
         QByteArray m_serializedTimeNode;
-        MoveEvent<GoodOldDisplacementPolicy>* m_moveCommand;
+        MoveEvent<GoodOldDisplacementPolicy>* m_moveCommand{};
         State::Trigger m_targetTrigger;
         bool m_targetTriggerActive;
 };

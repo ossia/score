@@ -3,13 +3,18 @@
 #include <QLabel>
 #include <QLineEdit>
 
+#include <QPushButton>
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
-
+#include <QAction>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include "MinuitProtocolSettingsWidget.hpp"
 #include "MinuitSpecificSettings.hpp"
+
+#if defined(ISCORE_ZEROCONF)
+#include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
+#endif
 
 class QWidget;
 
@@ -31,6 +36,20 @@ MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
     m_localHostEdit = new QLineEdit(this);
 
     QFormLayout* layout = new QFormLayout;
+
+#if defined(ISCORE_ZEROCONF)
+    m_browser = new ZeroconfBrowser{"_minuit._tcp", this};
+    auto pb = new QPushButton{tr("Find devices..."), this};
+    connect(pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
+    connect(m_browser, &ZeroconfBrowser::sessionSelected,
+            this, [=] (QString ip, int port, QMap<QString, QByteArray> txt) {
+      m_deviceNameEdit->setText(txt["LocalName"]);
+      m_portInputSBox->setValue(txt["LocalPort"].toInt());
+      m_portOutputSBox->setValue(txt["RemotePort"].toInt());
+      m_localHostEdit->setText(ip);
+    });
+    layout->addWidget(pb);
+#endif
 
     layout->addRow(tr("Device Name"), m_deviceNameEdit);
     layout->addRow(tr("Device listening port"), m_portInputSBox);

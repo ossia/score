@@ -11,7 +11,7 @@
 struct DataStreamInput;
 struct DataStreamOutput;
 namespace Process {
-class ProcessFactory;
+class ProcessModelFactory; class LayerFactory;
 class ProcessModel;
 }
 
@@ -26,11 +26,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public is
     public:
         AddOnlyProcessToConstraint(
             Path<ConstraintModel>&& constraint,
-            UuidKey<Process::ProcessFactory> process);
+            UuidKey<Process::ProcessModelFactory> process);
         AddOnlyProcessToConstraint(
             Path<ConstraintModel>&& constraint,
             Id<Process::ProcessModel> idToUse,
-            UuidKey<Process::ProcessFactory> process);
+            UuidKey<Process::ProcessModelFactory> process);
 
         void undo() const override;
         void redo() const override;
@@ -44,7 +44,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public is
         const Id<Process::ProcessModel>& processId() const
         { return m_createdProcessId; }
 
-        const UuidKey<Process::ProcessFactory>& processKey() const
+        const UuidKey<Process::ProcessModelFactory>& processKey() const
         { return m_processName; }
 
     protected:
@@ -53,7 +53,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final : public is
 
     private:
         Path<ConstraintModel> m_path;
-        UuidKey<Process::ProcessFactory>m_processName;
+        UuidKey<Process::ProcessModelFactory>m_processName;
 
         Id<Process::ProcessModel> m_createdProcessId {};
 };

@@ -57,7 +57,7 @@ ConstraintActions::ConstraintActions(
     m_parent{parent}
 {
     const auto& appContext = parent->context;
-    auto& fact = appContext.components.factory<Process::ProcessList>();
+    auto& fact = appContext.components.factory<Process::ProcessFactoryList>();
     m_addProcessDialog = new AddProcessDialog{fact, qApp->activeWindow()};
 
     connect(m_addProcessDialog, &AddProcessDialog::okPressed,
@@ -192,7 +192,8 @@ void ConstraintActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
     ctxm.insert(std::move(cm));
 }
 
-void ConstraintActions::addProcessInConstraint(const UuidKey<Process::ProcessFactory>& processName)
+void ConstraintActions::addProcessInConstraint(
+        const UuidKey<Process::ProcessModelFactory>& processName)
 {
     auto selectedConstraints = selectedConstraintsInCurrentDocument(m_parent->context);
     if(selectedConstraints.isEmpty())

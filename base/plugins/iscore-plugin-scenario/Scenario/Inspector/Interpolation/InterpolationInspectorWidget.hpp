@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
-#include <Explorer/Widgets/AddressEditWidget.hpp>
+#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
@@ -25,8 +25,8 @@ class InspectorWidget final :
                 QWidget* parent);
 
     private:
-        void on_addressChange(const ::State::Address& newText);
-        Explorer::AddressEditWidget* m_lineEdit{};
+        void on_addressChange(const ::State::AddressAccessor& newText);
+        Explorer::AddressAccessorEditWidget* m_lineEdit{};
 
         CommandDispatcher<> m_dispatcher;
 };

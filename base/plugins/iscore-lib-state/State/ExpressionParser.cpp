@@ -8,10 +8,13 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_real.hpp>
 #include <boost/spirit/include/qi_lit.hpp>
+#include <boost/spirit/include/qi_eoi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/fusion/adapted.hpp>
+#include <ossia/network/base/name_validation.hpp>
+#include <ossia/editor/dataspace/dataspace_parse.hpp>
 #include <iscore/prefix.hpp>
 #endif
 /*
@@ -26,6 +29,10 @@ path_element 	:= fragment;
 path 			:= ('/', path_element)+ | '/';
 
 Address 		:= device, ‘:’, path;
+Dataspace   := 'color' || 'distance' || ...;
+UnitQualifier: Dataspace, '.', Unit, ('.', UnitAccessor)?; // e.g. color.rgb or color.rgb.r ; we make a static table with them precomputed.
+AddressAccessor 	:= Address, (('[', [:int:], ']')* || ('[', UnitQualifier, ']'));
+
 
 
 # Values
@@ -108,9 +115,15 @@ BOOST_FUSION_ADAPT_STRUCT(
         )
 
 BOOST_FUSION_ADAPT_STRUCT(
+        ossia::destination_qualifiers,
+        (ossia::destination_index, accessors)
+        (ossia::unit_t, unit)
+        )
+
+BOOST_FUSION_ADAPT_STRUCT(
         State::AddressAccessor,
         (State::Address, address)
-        (std::vector<int32_t>, accessors)
+        (ossia::destination_qualifiers, qualifiers)
         )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -143,8 +156,10 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
     Address_parser() : Address_parser::base_type(start)
     {
         using qi::alnum;
-        dev = +qi::char_("a-zA-Z0-9_~().-");
-        member_elt = +qi::char_("a-zA-Z0-9_~().-");
+        // OPTIMIZEME
+        auto str = ossia::net::name_characters().to_string();
+        dev = +qi::char_(str);
+        member_elt = +qi::char_(str);
         path %= (
                     +("/" >> member_elt)
                     | "/"
@@ -160,7 +175,7 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
 };
 
 template <typename Iterator>
-struct AccessorList_parser : qi::grammar<Iterator, std::vector<int32_t>()>
+struct AccessorList_parser : qi::grammar<Iterator, ossia::destination_index()>
 {
     AccessorList_parser() : AccessorList_parser::base_type(start)
     {
@@ -173,10 +188,28 @@ struct AccessorList_parser : qi::grammar<Iterator, std::vector<int32_t>()>
         start %= skip(space) [ +(index) ];
     }
 
-    qi::rule<Iterator, std::vector<int32_t>()> start;
-    qi::rule<Iterator, int32_t()> index;
+    qi::rule<Iterator, ossia::destination_index()> start;
+    qi::rule<Iterator, uint8_t()> index;
 };
 
+template <typename Iterator>
+struct AddressQualifiers_parser : qi::grammar<Iterator, ossia::destination_qualifiers()>
+{
+    AddressQualifiers_parser() : AddressQualifiers_parser::base_type(start)
+    {
+        using qi::alnum;
+        using boost::spirit::qi::skip;
+        using boost::spirit::standard::space;
+        using boost::spirit::int_;
+
+        unit %= boost::spirit::eoi;
+        start %= ( (accessors >> -unit) | ("[" >> ossia::get_unit_parser() >> "]") );
+    }
+
+    qi::rule<Iterator, ossia::destination_qualifiers()> start;
+    AccessorList_parser<Iterator> accessors;
+    qi::rule<Iterator, ossia::unit_t()> unit;
+};
 
 template <typename Iterator>
 struct AddressAccessor_parser : qi::grammar<Iterator, State::AddressAccessor()>
@@ -188,12 +221,12 @@ struct AddressAccessor_parser : qi::grammar<Iterator, State::AddressAccessor()>
         using boost::spirit::standard::space;
         using boost::spirit::int_;
 
-        start %= skip(space) [ address >> accessors ];
+        start %= skip(space) [ address >> qualifiers ];
     }
 
     qi::rule<Iterator, State::AddressAccessor()> start;
     Address_parser<Iterator> address;
-    AccessorList_parser<Iterator> accessors;
+    AddressQualifiers_parser<Iterator> qualifiers;
 };
 
 
@@ -550,7 +583,7 @@ struct Expression_builder : boost::static_visitor<void>
                 if(res)
                 {
                     result.address = (*res);
-                    result.accessors.clear();
+                    result.qualifiers.accessors.clear();
 
                     return result;
                 }

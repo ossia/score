@@ -60,7 +60,7 @@ void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
     devModel.list().removeDevice(dev.name);
 
     const auto& rootNode = devModel.rootNode();
-    auto it = find_if(rootNode, [&] (const Device::Node& val) {
+    auto it = ossia::find_if(rootNode, [&] (const Device::Node& val) {
         return val.is<Device::DeviceSettings>() && val.get<Device::DeviceSettings>().name == dev.name;
     });
     ISCORE_ASSERT(it != rootNode.end());
@@ -141,8 +141,8 @@ void NodeUpdateProxy::updateAddress(
     // Update in the device implementation
     devModel
             .list()
-            .device(addr.device)
-            .updateAddress(addr, full);
+            .device(addr.address.device)
+            .updateAddress(addr.address, full);
 
     // Update in the device explorer
     devModel.explorer().updateAddress(
@@ -158,7 +158,7 @@ void NodeUpdateProxy::removeNode(
     if(!parentnode)
         return;
 
-    auto addr = Device::address(*parentnode);
+    auto addr = Device::address(*parentnode).address;
     addr.path.append(settings.name);
 
     // Remove from the device implementation
@@ -189,10 +189,10 @@ void NodeUpdateProxy::addLocalAddress(
 }
 
 void NodeUpdateProxy::updateLocalValue(
-        const State::Address& addr,
+        const State::AddressAccessor& addr,
         const State::Value& v)
 {
-    auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr);
+    auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr.address);
     if(!n)
         return;
 
@@ -202,7 +202,7 @@ void NodeUpdateProxy::updateLocalValue(
         return;
     }
 
-    devModel.explorer().updateValue(n, v);
+    devModel.explorer().updateValue(n, addr, v);
 }
 
 void NodeUpdateProxy::updateLocalSettings(
@@ -223,11 +223,11 @@ void NodeUpdateProxy::updateLocalSettings(
 }
 
 void NodeUpdateProxy::updateRemoteValue(
-        const State::Address& addr,
+        const State::AddressAccessor& addr,
         const State::Value& val)
 {
     // TODO add these checks everywhere.
-    if(auto dev = devModel.list().findDevice(addr.device))
+    if(auto dev = devModel.list().findDevice(addr.address.device))
     {
         // Update in the device implementation
         dev->sendMessage({addr, val});
@@ -288,7 +288,7 @@ optional<State::Value> NodeUpdateProxy::try_refreshRemoteValue(const State::Addr
 static void rec_refreshRemoteValues(Device::Node& n, Device::DeviceInterface& dev)
 {
     // OPTIMIZEME
-    auto val = dev.refresh(Device::address(n));
+    auto val = dev.refresh(Device::address(n).address);
     if(val)
         n.template get<Device::AddressSettings>().value = *val;
 
@@ -318,7 +318,7 @@ void NodeUpdateProxy::refreshRemoteValues(const Device::NodeList& nodes)
         else
         {
             auto addr = Device::address(*n);
-            auto& dev = devModel.list().device(addr.device);
+            auto& dev = devModel.list().device(addr.address.device);
             if(!dev.capabilities().canRefreshValue)
                 continue;
 
@@ -351,7 +351,7 @@ void NodeUpdateProxy::removeLocalNode(const State::Address& addr)
                            parentAddr);
     if(parentNode)
     {
-        auto it = find_if(*parentNode,
+        auto it = ossia::find_if(*parentNode,
                           [&] (const Device::Node& n) { return n.get<Device::AddressSettings>().name == nodeName; });
         if(it != parentNode->end())
         {

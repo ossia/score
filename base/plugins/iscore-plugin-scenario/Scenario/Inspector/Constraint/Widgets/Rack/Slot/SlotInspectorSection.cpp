@@ -26,7 +26,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
@@ -121,7 +121,7 @@ void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
 
     auto row = m_lmGridLayout->rowCount();
 
-    auto label = new QLabel {QString{name + ".%1"} .arg(*id.val()), this};
+    auto label = new QLabel {QString{name + ".%1"} .arg(id.val()), this};
     m_lmGridLayout->addWidget(label, row ,0);
 
     // To front button

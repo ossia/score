@@ -36,11 +36,12 @@ static void populateTypeCb(QComboBox& cb)
 {
     auto& arr = State::convert::ValuePrettyTypesArray();
     const int n = arr.size();
-    for(int i = 0; i < n; i++)
+    for(int i = 0; i < n - 1; i++)
     {
         auto t = static_cast<State::ValueType>(i);
         cb.addItem(arr[i], QVariant::fromValue(t));
     }
+    cb.addItem(arr[n - 1], QVariant::fromValue(State::ValueType::NoValue));
 }
 
 AddressEditDialog::AddressEditDialog(
@@ -49,6 +50,7 @@ AddressEditDialog::AddressEditDialog(
     : QDialog{parent},
       m_originalSettings{addr}
 {
+    this->setMinimumWidth(500);
     m_layout = new QFormLayout;
     setLayout(m_layout);
 
@@ -93,11 +95,17 @@ void AddressEditDialog::updateType()
 {
     const auto valueType = m_valueTypeCBox->currentData().value<State::ValueType>();
     auto widg = AddressSettingsFactory::instance().getValueTypeWidget(valueType);
+
     m_addressWidget->setWidget(widg);
+
     if(m_originalSettings.ioType == Device::IOType::Invalid)
         m_originalSettings.ioType = Device::IOType::InOut;
     if(widg)
+    {
+        if(!m_originalSettings.domain)
+            m_originalSettings.domain = widg->getDefaultSettings().domain;
         widg->setSettings(m_originalSettings);
+    }
 }
 
 
@@ -122,18 +130,11 @@ Device::AddressSettings AddressEditDialog::getSettings() const
 
 Device::AddressSettings AddressEditDialog::makeDefaultSettings()
 {
-    static Device::AddressSettings defaultSettings
-            = [] () {
-        Device::AddressSettings s;
-        s.value = State::Value::fromValue(State::no_value_t{});
-        s.domain.min = State::Value::fromValue(0);
-        s.domain.max = State::Value::fromValue(100);
-        s.ioType = Device::IOType::InOut;
-        s.clipMode = Device::ClipMode::Free;
-        return s;
-    }();
+    Device::AddressSettings s;
+    s.ioType = Device::IOType::InOut;
+    s.clipMode = Device::ClipMode::Free;
 
-    return defaultSettings;
+    return s;
 }
 
 void AddressEditDialog::setNodeSettings()

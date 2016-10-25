@@ -32,7 +32,6 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
         else {
             m_address = State::AddressAccessor{};
         }
-
         emit addressChanged(m_address);
     });
 
@@ -48,10 +47,10 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
     lay->addWidget(m_lineEdit);
 }
 
-void AddressAccessorEditWidget::setAddress(const State::Address& addr)
+void AddressAccessorEditWidget::setOnlyAddress(const State::Address& addr)
 {
     m_address.address = addr;
-    m_address.accessors.clear();
+    m_address.qualifiers.accessors.clear();
     m_lineEdit->setText(m_address.toString());
 }
 

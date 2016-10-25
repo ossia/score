@@ -34,7 +34,7 @@
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <Explorer/Explorer/ListeningManager.hpp>
@@ -128,7 +128,7 @@ bool MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
         addr_vec.reserve(vec.size());
         std::transform(vec.begin(), vec.end(),
                        std::back_inserter(addr_vec),
-                       [] (const auto& e ) { return Device::address(*e); });
+                       [] (const auto& e ) { return Device::address(*e).address; });
         dev.addToListening(addr_vec);
 
         // Add a custom callback.
@@ -142,7 +142,7 @@ bool MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
 
                 m_records.append(RecordedMessages::RecordedMessage{
                                      msecs,
-                                     State::Message{addr, val}});
+                                     State::Message{State::AddressAccessor{addr}, val}});
 
                 m_createdProcess->setDuration(TimeValue::fromMsecs(msecs));
             }
@@ -153,7 +153,7 @@ bool MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
 
                 m_records.append(RecordedMessages::RecordedMessage{
                                      0.,
-                                     State::Message{addr, val}});
+                                     State::Message{State::AddressAccessor{addr}, val}});
             }
         }));
     }

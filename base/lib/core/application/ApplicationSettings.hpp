@@ -9,7 +9,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationSettings
         bool tryToRestore = true;
         bool gui = true;
         bool autoplay = false;
-        iscore::Version saveFormatVersion{1};
+        iscore::Version saveFormatVersion{2};
         QStringList loadList;
 
         void parse();

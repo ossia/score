@@ -8,6 +8,7 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <QByteArray>
 #include <QCryptographicHash>
 #include <QDataStream>
@@ -74,6 +75,7 @@ QJsonObject Document::saveAsJson()
 
     complete["Plugins"] = json_plugins;
     complete["Document"] = saveDocumentModelAsJson();
+    complete["Version"] = context().app.applicationSettings.saveFormatVersion.value();
 
     // Indicate in the stack that the current position is saved
     m_commandStack.markCurrentIndexAsSaved();
@@ -119,7 +121,7 @@ Document::Document(const QVariant& data,
                    DocumentDelegateFactory& factory,
                    QWidget* parentview,
                    QObject* parent):
-    NamedObject {"Document", parent},
+    QObject {parent},
     m_commandStack{*this},
     m_objectLocker{this},
     m_context{*this}
@@ -173,7 +175,7 @@ void DocumentModel::loadDocumentAsByteArray(
         Id<DocumentModel> doc_id;
         doc_writer.writeTo(doc_id);
 
-        if(any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
+        if(ossia::any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
             throw std::runtime_error(tr("The document is already loaded").toStdString());
 
         this->setId(std::move(doc_id));
@@ -198,6 +200,10 @@ void DocumentModel::loadDocumentAsByteArray(
         {
             this->addPluginModel(plug);
         }
+        else
+        {
+            ISCORE_TODO;
+        }
     });
 
     // Load the document model
@@ -216,7 +222,7 @@ void DocumentModel::loadDocumentAsJson(
     const auto& doc = (*doc_obj).toObject();
     auto doc_id = fromJsonValue<Id<DocumentModel>>(doc["DocumentId"]);
 
-    if(any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
+    if(ossia::any_of(ctx.app.documents.documents(), [=] (auto doc) { return doc->id() == doc_id; }))
         throw std::runtime_error(tr("The document is already loaded").toStdString());
 
     this->setId(doc_id);
@@ -236,6 +242,10 @@ void DocumentModel::loadDocumentAsJson(
         if(plug)
         {
             this->addPluginModel(plug);
+        }
+        else
+        {
+            ISCORE_TODO;
         }
     });
 

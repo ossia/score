@@ -10,26 +10,26 @@
 
 namespace Mapping
 {
-class MappingPresenter :
+class LayerPresenter :
         public Curve::CurveProcessPresenter<
             Layer,
-            MappingView>
+            LayerView>
 {
     public:
-        MappingPresenter(
+        LayerPresenter(
                 const Curve::Style& style,
                 const Layer& layer,
-                MappingView* view,
+                LayerView* view,
                 const Process::ProcessPresenterContext& context,
                 QObject* parent):
             CurveProcessPresenter{style, layer, view, context, parent}
         {
             con(m_layer.processModel(), &ProcessModel::sourceAddressChanged,
-                this, &MappingPresenter::on_nameChanges);
+                this, &LayerPresenter::on_nameChanges);
             con(m_layer.processModel(), &ProcessModel::targetAddressChanged,
-                this, &MappingPresenter::on_nameChanges);
+                this, &LayerPresenter::on_nameChanges);
             con(m_layer.processModel().metadata(), &iscore::ModelMetadata::NameChanged,
-                this, &MappingPresenter::on_nameChanges);
+                this, &LayerPresenter::on_nameChanges);
 
             m_view->setDisplayedName(m_layer.processModel().prettyName());
             m_view->showName(true);

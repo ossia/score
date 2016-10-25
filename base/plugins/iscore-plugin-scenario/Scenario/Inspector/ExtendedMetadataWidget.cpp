@@ -2,6 +2,7 @@
 
 #include <iscore/widgets/ClearLayout.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/tools/QMapHelper.hpp>
 
 #include <QAction>
 #include <QLabel>
@@ -110,12 +111,12 @@ void ExtendedMetadataWidget::on_rowRemoved(int i)
 void ExtendedMetadataWidget::setup_impl(const QVariantMap &map)
 {
     int i = 0;
-    auto end = map.keyEnd();
-    for(auto it = map.keyBegin(); it != end; ++it, ++i)
+    for(auto& k : QMap_keys(map))
     {
-        auto row = makeRow(*it, map[*it].toString(), i);
+        auto row = makeRow(k, map[k].toString(), i);
         m_layout->insertRow(0, row.first, row.second);
         m_widgets.push_back(row);
+        ++i;
     }
 }
 

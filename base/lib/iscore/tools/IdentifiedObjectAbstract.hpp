@@ -1,8 +1,10 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
+#include <QObject>
 #include <cinttypes>
+#include <iscore_lib_base_export.h>
 
-class ISCORE_LIB_BASE_EXPORT IdentifiedObjectAbstract : public NamedObject
+class ISCORE_LIB_BASE_EXPORT IdentifiedObjectAbstract :
+        public QObject
 {
         Q_OBJECT
     public:
@@ -10,8 +12,17 @@ class ISCORE_LIB_BASE_EXPORT IdentifiedObjectAbstract : public NamedObject
         virtual ~IdentifiedObjectAbstract();
 
     signals:
+        // To be called by subclasses
+        void identified_object_destroying(IdentifiedObjectAbstract*);
+
+        // Will be called in the IdentifiedObjectAbstract destructor.
         void identified_object_destroyed(IdentifiedObjectAbstract*);
 
     protected:
-        using NamedObject::NamedObject;
+        using QObject::QObject;
+        IdentifiedObjectAbstract(const QString& name, QObject* parent)
+        {
+            QObject::setObjectName(name);
+            QObject::setParent(parent);
+        }
 };

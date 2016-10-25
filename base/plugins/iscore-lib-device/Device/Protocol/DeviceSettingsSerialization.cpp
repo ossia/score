@@ -29,7 +29,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const Device
     // TODO try to see if this pattern is refactorable with the similar thing
     // usef for CurveSegmentData.
 
-    auto& pl = context.components.factory<Device::DynamicProtocolList>();
+    auto& pl = components.factory<Device::DynamicProtocolList>();
     auto prot = pl.get(n.protocol);
     if(prot)
     {
@@ -49,7 +49,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<DataStream>>::writeTo(Device::Devic
     m_stream >> n.name
              >> n.protocol;
 
-    auto& pl = context.components.factory<Device::DynamicProtocolList>();
+    auto& pl = components.factory<Device::DynamicProtocolList>();
     auto prot = pl.get(n.protocol);
     if(prot)
     {
@@ -68,7 +68,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const Device
     m_obj[strings.Name] = n.name;
     m_obj[strings.Protocol] = toJsonValue(n.protocol);
 
-    auto& pl = context.components.factory<Device::DynamicProtocolList>();
+    auto& pl = components.factory<Device::DynamicProtocolList>();
     auto prot = pl.get(n.protocol);
     if(prot)
     {
@@ -86,7 +86,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::Devic
     n.name = m_obj[strings.Name].toString();
     n.protocol = fromJsonValue<UuidKey<Device::ProtocolFactory>>(m_obj[strings.Protocol]);
 
-    auto& pl = context.components.factory<Device::DynamicProtocolList>();
+    auto& pl = components.factory<Device::DynamicProtocolList>();
     auto prot = pl.get(n.protocol);
     if(prot)
     {

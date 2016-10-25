@@ -115,20 +115,22 @@ MIDIProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
 
 void MIDIProtocolSettingsWidget::updateDevices(ossia::net::midi::midi_info::Type t)
 {
-    try {
-    auto prot = std::make_unique<ossia::net::midi::midi_protocol>();
-    auto vec = prot->scan();
-
     m_deviceCBox->clear();
-    for(auto& elt : vec)
-    {
-        if(elt.type == t)
+
+    try {
+        auto prot = std::make_unique<ossia::net::midi::midi_protocol>();
+        auto vec = prot->scan();
+
+        for(auto& elt : vec)
         {
-            m_deviceCBox->addItem(QString::fromStdString(elt.device), QVariant::fromValue(elt.port));
+            if(elt.type == t)
+            {
+                m_deviceCBox->addItem(QString::fromStdString(elt.device), QVariant::fromValue(elt.port));
+            }
         }
-    }
-    m_deviceCBox->setCurrentIndex(0);
-    qDebug() << m_deviceCBox->count();
+        if(m_deviceCBox->count() > 0)
+            m_deviceCBox->setCurrentIndex(0);
+        qDebug() << m_deviceCBox->count();
     }
     catch( std::exception& e)
     {

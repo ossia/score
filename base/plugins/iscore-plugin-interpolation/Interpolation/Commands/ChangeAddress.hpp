@@ -14,7 +14,7 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ChangeAddress final : public iscore::Se
     public:
         ChangeAddress(
                 const ProcessModel& proc,
-                const State::Address& addr,
+                const State::AddressAccessor& addr,
                 const State::Value& start,
                 const State::Value& end);
 
@@ -28,7 +28,7 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ChangeAddress final : public iscore::Se
 
     private:
         Path<ProcessModel> m_path;
-        State::Address m_oldAddr, m_newAddr;
+        State::AddressAccessor m_oldAddr, m_newAddr;
         State::Value m_oldStart, m_newStart;
         State::Value m_oldEnd, m_newEnd;
 };

@@ -78,12 +78,12 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
         Curve::Point end() const
         { return m_end; }
 
-        void setPrevious(const Id<SegmentModel>& previous);
-        const Id<SegmentModel>& previous() const
+        void setPrevious(const OptionalId<SegmentModel>& previous);
+        const OptionalId<SegmentModel>& previous() const
         { return m_previous; }
 
-        void setFollowing(const Id<SegmentModel>& following);
-        const Id<SegmentModel>& following() const
+        void setFollowing(const OptionalId<SegmentModel>& following);
+        const OptionalId<SegmentModel>& following() const
         { return m_following; }
 
         // Between -1 and 1, to map to the real parameter.
@@ -125,7 +125,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel :
         Curve::Point m_start, m_end;
 
     private:
-        Id<SegmentModel> m_previous, m_following;
+        OptionalId<SegmentModel> m_previous, m_following;
 };
 
 class PowerSegment;

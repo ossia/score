@@ -12,19 +12,6 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-struct VisitorVariant;
-template <typename T> class Reader;
-template <typename T> class Writer;
-
-namespace Loop
-{
-void Layer::serialize_impl(
-        const VisitorVariant& vis) const
-{
-    serialize_dyn(vis, *this);
-}
-}
-
 template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(const Loop::Layer& lm)
 {

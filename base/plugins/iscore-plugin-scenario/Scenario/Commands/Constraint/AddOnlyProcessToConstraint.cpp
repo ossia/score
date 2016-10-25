@@ -22,7 +22,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 
@@ -32,7 +32,7 @@ namespace Command
 {
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
-        UuidKey<Process::ProcessFactory> process) :
+        UuidKey<Process::ProcessModelFactory> process) :
     AddOnlyProcessToConstraint{
         std::move(constraintPath),
         getStrongId(constraintPath.find().processes),
@@ -44,7 +44,7 @@ AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
         Id<Process::ProcessModel> processId,
-        UuidKey<Process::ProcessFactory> process):
+        UuidKey<Process::ProcessModelFactory> process):
     m_path{std::move(constraintPath)},
     m_processName{process},
     m_createdProcessId{std::move(processId)}
@@ -69,7 +69,7 @@ void AddOnlyProcessToConstraint::undo(ConstraintModel& constraint) const
 Process::ProcessModel& AddOnlyProcessToConstraint::redo(ConstraintModel& constraint) const
 {
     // Create process model
-    auto fac = context.components.factory<Process::ProcessList>().get(m_processName);
+    auto fac = context.components.factory<Process::ProcessFactoryList>().get(m_processName);
     ISCORE_ASSERT(fac);
     auto proc = fac->make(
                 constraint.duration.defaultDuration(), // TODO should maybe be max ?

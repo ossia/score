@@ -49,7 +49,7 @@ struct Visitor<Reader<Mime<Device::NodeList>>> : public MimeDataReader
             for(const auto& elt : lst)
             {
                 auto node_obj = toJsonObject(*elt);
-                node_obj.insert("Address", toJsonObject(Device::address(*elt)));
+                node_obj.insert("Address", toJsonObject(Device::address(*elt).address));
                 arr.append(std::move(node_obj));
             }
 

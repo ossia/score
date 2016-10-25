@@ -6,7 +6,11 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 class JSONObject;
-
+#if defined(__GNUC__) && __GNUC__ < 6
+// GCC 5.x isn't happy with throw in constexpr...
+#undef Q_DECL_RELAXED_CONSTEXPR
+#define Q_DECL_RELAXED_CONSTEXPR
+#endif
 namespace iscore
 {
 namespace uuids
@@ -135,22 +139,22 @@ Q_DECL_RELAXED_CONSTEXPR inline bool operator< (uuid const& lhs, uuid const& rhs
      return true;
 }
 
-Q_DECL_CONSTEXPR inline bool operator!=(uuid const& lhs, uuid const& rhs) noexcept
+Q_DECL_RELAXED_CONSTEXPR inline bool operator!=(uuid const& lhs, uuid const& rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
-Q_DECL_CONSTEXPR inline bool operator>(uuid const& lhs, uuid const& rhs) noexcept
+Q_DECL_RELAXED_CONSTEXPR inline bool operator>(uuid const& lhs, uuid const& rhs) noexcept
 {
     return rhs < lhs;
 }
 
-Q_DECL_CONSTEXPR inline bool operator<=(uuid const& lhs, uuid const& rhs) noexcept
+Q_DECL_RELAXED_CONSTEXPR inline bool operator<=(uuid const& lhs, uuid const& rhs) noexcept
 {
     return !(rhs < lhs);
 }
 
-Q_DECL_CONSTEXPR inline bool operator>=(uuid const& lhs, uuid const& rhs) noexcept
+Q_DECL_RELAXED_CONSTEXPR inline bool operator>=(uuid const& lhs, uuid const& rhs) noexcept
 {
     return !(lhs < rhs);
 }
@@ -247,6 +251,7 @@ struct string_generator {
                 if(digits_begin[i] == c)
                 {
                     found = true;
+                    (void) found; // to prevent warnings with static analyzers
                     return values[i];
                 }
             }
@@ -258,7 +263,7 @@ struct string_generator {
             return -1;
         }
 
-        static Q_DECL_CONSTEXPR unsigned char get_value(QChar c) {
+        static Q_DECL_RELAXED_CONSTEXPR unsigned char get_value(QChar c) {
             return get_value(c.toLatin1());
         }
 
@@ -286,55 +291,55 @@ class UuidKey : iscore::uuid_t
         friend struct std::hash<this_type>;
         friend struct boost::hash<this_type>;
         friend struct boost::hash<const this_type>;
-        friend Q_DECL_CONSTEXPR bool operator==(const this_type& lhs, const this_type& rhs) {
+        friend Q_DECL_RELAXED_CONSTEXPR bool operator==(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) == static_cast<const iscore::uuid_t&>(rhs);
         }
-        friend Q_DECL_CONSTEXPR bool operator!=(const this_type& lhs, const this_type& rhs) {
+        friend Q_DECL_RELAXED_CONSTEXPR bool operator!=(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) != static_cast<const iscore::uuid_t&>(rhs);
         }
-        friend Q_DECL_CONSTEXPR bool operator<(const this_type& lhs, const this_type& rhs) {
+        friend Q_DECL_RELAXED_CONSTEXPR bool operator<(const this_type& lhs, const this_type& rhs) {
             return static_cast<const iscore::uuid_t&>(lhs) < static_cast<const iscore::uuid_t&>(rhs);
         }
 
     public:
-        Q_DECL_CONSTEXPR UuidKey() noexcept = default;
-        Q_DECL_CONSTEXPR UuidKey(const UuidKey& other) noexcept = default;
-        Q_DECL_CONSTEXPR UuidKey(UuidKey&& other) noexcept = default;
-        Q_DECL_CONSTEXPR UuidKey& operator=(const UuidKey& other) noexcept = default;
-        Q_DECL_CONSTEXPR UuidKey& operator=(UuidKey&& other) noexcept = default;
+        Q_DECL_RELAXED_CONSTEXPR UuidKey() noexcept = default;
+        Q_DECL_RELAXED_CONSTEXPR UuidKey(const UuidKey& other) noexcept = default;
+        Q_DECL_RELAXED_CONSTEXPR UuidKey(UuidKey&& other) noexcept = default;
+        Q_DECL_RELAXED_CONSTEXPR UuidKey& operator=(const UuidKey& other) noexcept = default;
+        Q_DECL_RELAXED_CONSTEXPR UuidKey& operator=(UuidKey&& other) noexcept = default;
 
-        Q_DECL_CONSTEXPR UuidKey(iscore::uuid_t other) noexcept :
+        Q_DECL_RELAXED_CONSTEXPR UuidKey(iscore::uuid_t other) noexcept :
             iscore::uuid_t(other)
         {
 
         }
 
         template<int N>
-        explicit Q_DECL_CONSTEXPR UuidKey(const char (&txt)[N]) :
+        explicit Q_DECL_RELAXED_CONSTEXPR UuidKey(const char (&txt)[N]) :
             iscore::uuid_t(iscore::uuids::string_generator::compute<N>(txt))
         {
 
         }
 
         template<typename Iterator>
-        Q_DECL_CONSTEXPR UuidKey(Iterator beg_it, Iterator end_it) :
+        Q_DECL_RELAXED_CONSTEXPR UuidKey(Iterator beg_it, Iterator end_it) :
             iscore::uuid_t(iscore::uuids::string_generator::compute(beg_it, end_it))
         {
 
         }
 
-        Q_DECL_CONSTEXPR static UuidKey fromString(const std::string& str)
+        Q_DECL_RELAXED_CONSTEXPR static UuidKey fromString(const std::string& str)
         {
             return UuidKey{str.begin(), str.end()};
         }
 
-        Q_DECL_CONSTEXPR static UuidKey fromString(const QString& str)
+        Q_DECL_RELAXED_CONSTEXPR static UuidKey fromString(const QString& str)
         {
             return UuidKey{str.begin(), str.end()};
         }
 
-        Q_DECL_CONSTEXPR const iscore::uuid_t& impl() const { return *this; }
-        Q_DECL_CONSTEXPR iscore::uuid_t& impl() { return *this; }
+        Q_DECL_RELAXED_CONSTEXPR const iscore::uuid_t& impl() const { return *this; }
+        Q_DECL_RELAXED_CONSTEXPR iscore::uuid_t& impl() { return *this; }
 };
 
 namespace std

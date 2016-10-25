@@ -26,9 +26,10 @@ EventModel::EventModel(
     Entity{id, Metadata<ObjectKey_k, EventModel>::get(), parent},
     m_timeNode{timenode},
     m_extent{extent},
-    m_date{date}
+    m_date{date},
+    m_offset{OffsetBehavior::True}
 {
-    metadata().setName(QString("Event.%1").arg(*this->id().val()));
+    metadata().setInstanceName(*this);
     metadata().setColor(ScenarioStyle::instance().EventDefault);
 }
 
@@ -40,14 +41,11 @@ EventModel::EventModel(const EventModel& source,
     m_states(source.m_states),
     m_condition{source.m_condition},
     m_extent{source.m_extent},
-    m_date{source.m_date}
+    m_date{source.m_date},
+    m_offset{source.m_offset}
 {
+    metadata().setInstanceName(*this);
 }
-
-
-
-
-
 
 VerticalExtent EventModel::extent() const
 {
@@ -94,6 +92,15 @@ void EventModel::setStatus(ExecutionStatus status)
     }
 }
 
+void EventModel::setOffsetBehavior(OffsetBehavior f)
+{
+  if(m_offset != f)
+  {
+    m_offset = f;
+    emit offsetBehaviorChanged(f);
+  }
+}
+
 void EventModel::translate(const TimeValue& deltaTime)
 {
     setDate(m_date + deltaTime);
@@ -136,11 +143,14 @@ const QVector<Id<StateModel> > &EventModel::states() const
     return m_states;
 }
 
-
-
 const State::Condition& EventModel::condition() const
 {
-    return m_condition;
+  return m_condition;
+}
+
+OffsetBehavior EventModel::offsetBehavior() const
+{
+  return m_offset;
 }
 
 void EventModel::setCondition(const State::Condition& arg)

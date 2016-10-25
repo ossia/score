@@ -12,7 +12,7 @@
 #include <iscore/tools/std/Algorithms.hpp>
 
 template class IdentifiedObject<Process::ProcessModel>;
-template class iscore::SerializableInterface<Process::ProcessFactory>;
+template class iscore::SerializableInterface<Process::ProcessModelFactory>;
 namespace Process
 {
 ProcessModel::ProcessModel(
@@ -23,7 +23,6 @@ ProcessModel::ProcessModel(
     Entity{id, name, parent},
     m_duration{std::move(duration)}
 {
-    metadata().setName(QString("Process.%1").arg(*this->id().val()));
 }
 
 ProcessModel::~ProcessModel() = default;
@@ -37,7 +36,6 @@ ProcessModel::ProcessModel(
     Entity{source, id, name, parent},
     m_duration{source.duration()}
 {
-    metadata().setName(QString("Process.%1").arg(*this->id().val()));
 }
 
 ProcessModel::ProcessModel(Deserializer<DataStream>& vis, QObject* parent) :
@@ -98,10 +96,38 @@ const TimeValue& ProcessModel::duration() const
     return m_duration;
 }
 
+int32_t ProcessModel::priority() const
+{
+    return m_priority;
+}
+
+void ProcessModel::setPriority(int32_t i)
+{
+    if(m_priority != i)
+    {
+        m_priority = i;
+        emit priorityChanged(i);
+    }
+}
+
+bool ProcessModel::priorityOverride() const
+{
+    return m_priorityOverride;
+}
+
+void ProcessModel::setPriorityOverride(bool o)
+{
+  if(m_priorityOverride != o)
+  {
+      m_priorityOverride = o;
+      emit priorityOverrideChanged(o);
+  }
+}
+
 
 void ProcessModel::addLayer(LayerModel* m)
 {
-    connect(m, &LayerModel::destroyed,
+  connect(m, &LayerModel::destroyed,
             this, [=] () { removeLayer(m); });
     m_layers.push_back(m);
 }
@@ -109,7 +135,7 @@ void ProcessModel::addLayer(LayerModel* m)
 
 void ProcessModel::removeLayer(LayerModel* m)
 {
-    auto it = find(m_layers, m);
+    auto it = ossia::find(m_layers, m);
     if(it != m_layers.end())
     {
         m_layers.erase(it);

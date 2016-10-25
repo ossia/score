@@ -14,9 +14,10 @@
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
+#include <string>
 namespace iscore
 {
-struct ApplicationContext;
+class ApplicationComponents;
 }
 
 template<typename T>
@@ -37,7 +38,11 @@ struct is_QDataStreamSerializable : std::false_type {};
 template <class T>
 struct is_QDataStreamSerializable<T, enable_if_QDataStreamSerializable<typename std::decay<T>::type> > : std::true_type {};
 
+ISCORE_LIB_BASE_EXPORT QDataStream& operator<<(QDataStream& s, char c);
+ISCORE_LIB_BASE_EXPORT QDataStream& operator>>(QDataStream& s, char& c);
 
+ISCORE_LIB_BASE_EXPORT QDataStream& operator<< (QDataStream& stream, const std::string& obj);
+ISCORE_LIB_BASE_EXPORT QDataStream& operator>> (QDataStream& stream, std::string& obj);
 
 class QIODevice;
 class QStringList;
@@ -50,7 +55,7 @@ struct DataStreamInput
         template<typename T>
         friend DataStreamInput& operator<<(DataStreamInput& s, T&& obj)
         {
-            s.stream << obj;
+            s.stream << std::forward<T>(obj);
             return s;
         }
 };
@@ -124,7 +129,8 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> : public AbstractVisito
 
         template<typename T,
                  std::enable_if_t<
-                     is_abstract_base<T>::value
+                     is_abstract_base<T>::value &&
+                     !is_concrete<T>::value
                      >* = nullptr>
         void readFrom(const T& obj)
         {
@@ -166,7 +172,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>> : public AbstractVisito
         QDataStream m_stream_impl;
 
     public:
-        const iscore::ApplicationContext& context;
+        const iscore::ApplicationComponents& components;
         DataStreamInput m_stream{m_stream_impl};
 };
 
@@ -175,6 +181,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisito
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
+        using is_deserializer_tag = std::integral_constant<bool, true>;
 
         VisitorVariant toVariant() { return {*this, DataStream::type()}; }
 
@@ -241,7 +248,7 @@ class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>> : public AbstractVisito
         QDataStream m_stream_impl;
 
     public:
-        const iscore::ApplicationContext& context;
+        const iscore::ApplicationComponents& components;
         DataStreamOutput m_stream{m_stream_impl};
 };
 
@@ -277,31 +284,16 @@ struct TSerializer<DataStream, void, Id<U>>
             DataStream::Serializer& s,
             const Id<U>& obj)
     {
-        s.stream() << bool (obj.val());
-
-        if(obj.val())
-        {
-            s.stream() << *obj.val();
-        }
+        s.stream() << obj.val();
     }
 
     static void writeTo(
             DataStream::Deserializer& s,
             Id<U>& obj)
     {
-        bool init {};
         int32_t val {};
-        s.stream() >> init;
-
-        if(init)
-        {
-            s.stream() >> val;
-            obj.setVal(val);
-        }
-        else
-        {
-            obj.unset();
-        }
+        s.stream() >> val;
+        obj.setVal(val);
     }
 };
 
@@ -313,7 +305,7 @@ struct TSerializer<DataStream, void, IdentifiedObject<T>>
                 DataStream::Serializer& s,
                 const IdentifiedObject<T>& obj)
         {
-            s.readFrom(static_cast<const NamedObject&>(obj));
+            s.stream() << obj.objectName();
             s.readFrom(obj.id());
         }
 
@@ -321,7 +313,10 @@ struct TSerializer<DataStream, void, IdentifiedObject<T>>
                 DataStream::Deserializer& s,
                 IdentifiedObject<T>& obj)
         {
+            QString name;
             Id<T> id;
+            s.stream() >> name;
+            obj.setObjectName(name);
             s.writeTo(id);
             obj.setId(std::move(id));
         }

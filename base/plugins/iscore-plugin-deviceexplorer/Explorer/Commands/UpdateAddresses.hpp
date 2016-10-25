@@ -14,7 +14,7 @@ struct DataStreamOutput;
 
 namespace Explorer
 {
-class DeviceExplorerModel;
+class DeviceDocumentPlugin;
 namespace Command
 {
 // TODO Moveme
@@ -22,7 +22,7 @@ class UpdateAddressesValues final : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateAddressesValues, "Update addresses values")
         public:
-            UpdateAddressesValues(Path<DeviceExplorerModel>&& device_tree,
+            UpdateAddressesValues(Path<DeviceDocumentPlugin>&& device_tree,
                                   const QList<QPair<const Device::Node*, State::Value>>& nodes);
 
         void undo() const override;
@@ -33,16 +33,16 @@ class UpdateAddressesValues final : public iscore::SerializableCommand
         void deserializeImpl(DataStreamOutput&) override;
 
     private:
-        Path<DeviceExplorerModel> m_deviceTree;
+        Path<DeviceDocumentPlugin> m_deviceTree;
 
         QList<
-        QPair<
-        Device::NodePath,
-        QPair< // First is old, second is new
-        State::Value,
-        State::Value
-        >
-        >
+          QPair<
+            Device::NodePath,
+            QPair< // First is old, second is new
+              State::Value,
+              State::Value
+            >
+          >
         > m_data;
 };
 }

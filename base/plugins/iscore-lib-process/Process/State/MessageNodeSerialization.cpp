@@ -181,7 +181,7 @@ template<>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
         const Process::StateNodeData& node)
 {
-    m_obj[strings.Name] = node.name;
+    readFrom(node.name);
     readFrom(node.values);
 }
 
@@ -189,6 +189,6 @@ template<>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
         Process::StateNodeData& node)
 {
-    node.name = m_obj[strings.Name].toString();
+    writeTo(node.name);
     writeTo(node.values);
 }

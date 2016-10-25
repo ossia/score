@@ -4,7 +4,7 @@
 #include <qnamespace.h>
 #include <QObject>
 #include <QString>
-
+#include <iscore/tools/Metadata.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore_lib_base_export.h>
@@ -56,6 +56,14 @@ class ISCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
         ColorRef getColor() const;
         const QString& getLabel() const;
         const QVariantMap& getExtendedMetadata() const;
+
+        template<typename T>
+        void setInstanceName(const T& t)
+        {
+          setName(QString("%1.%2")
+                  .arg(Metadata<PrettyName_k, T>::get())
+                  .arg(t.id().val()));
+        }
 
         void setName(const QString&);
         void setComment(const QString&);

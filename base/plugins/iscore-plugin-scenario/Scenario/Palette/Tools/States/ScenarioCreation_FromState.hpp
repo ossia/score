@@ -102,10 +102,15 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
                 // MoveOnEvent -> MoveOnState
                 this->add_transition(move_event, move_state,
                                [&] () {
-                    if(this->m_parentSM.model().state(this->clickedState).eventId() != this->m_parentSM.model().state(this->hoveredState).eventId())
+
+                    if(this->clickedState && this->hoveredState)
                     {
-                        this->rollback();
-                        createToState();
+                        if(this->m_parentSM.model().state(*this->clickedState).eventId()
+                                != this->m_parentSM.model().state(*this->hoveredState).eventId())
+                        {
+                            this->rollback();
+                            createToState();
+                        }
                     }
                 });
 
@@ -180,8 +185,11 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
                     auto sequence = this->m_parentSM.editionSettings().sequence();
                     if(sequence)
                     {
-                        const auto& st = this->m_parentSM.model().state(this->clickedState);
-                        this->currentPoint.y = st.heightPercentage();
+                        if(this->clickedState)
+                        {
+                            const auto& st = this->m_parentSM.model().state(*this->clickedState);
+                            this->currentPoint.y = st.heightPercentage();
+                        }
                     }
 
                     if(this->currentPoint.date <= this->m_clickedPoint.date)
@@ -260,12 +268,15 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
         void creationCheck(Fun&& fun)
         {
             const auto& scenar = this->m_parentSM.model();
+            if(!this->clickedState)
+                return;
+            auto& st = scenar.state(*this->clickedState);
             if(!this->m_parentSM.editionSettings().sequence())
             {
                 // Create new state at the beginning
                 auto cmd = new Scenario::Command::CreateState{
                         this->m_scenarioPath,
-                        scenar.state(this->clickedState).eventId(),
+                        st.eventId(),
                         this->currentPoint.y};
                 this->m_dispatcher.submitCommand(cmd);
 
@@ -274,11 +285,10 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
             }
             else
             {
-                const auto& st = scenar.states.at(this->clickedState);
                 if(!st.nextConstraint()) // TODO & deltaY < deltaX
                 {
                     this->currentPoint.y = st.heightPercentage();
-                    fun(this->clickedState);
+                    fun(*this->clickedState);
                 }
                 else
                 {
@@ -301,28 +311,35 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
 
         void createToEvent()
         {
-            if(this->hoveredEvent == this->m_parentSM.model().state(this->clickedState).eventId())
+            if(this->clickedState)
             {
-                creationCheck([&] (const Id<StateModel>& id) { });
-            }
-            else
-            {
-                creationCheck([&] (const Id<StateModel>& id) { this->createToEvent_base(id); });
+                if(this->hoveredEvent == this->m_parentSM.model().state(*this->clickedState).eventId())
+                {
+                    creationCheck([&] (const Id<StateModel>& id) { });
+                }
+                else
+                {
+                    creationCheck([&] (const Id<StateModel>& id) { this->createToEvent_base(id); });
+                }
             }
         }
 
         void createToState()
         {
-            if(!this->m_parentSM.model().states.at(this->hoveredState).previousConstraint())
+            if(this->hoveredState)
             {
-                // No previous constraint -> we create a new constraint and link it to this state
-                creationCheck([&] (const Id<StateModel>& id) { this->createToState_base(id); });
-            }
-            else
-            {
-                // Previous constraint -> we add a new state to the event and link to it.
-                this->hoveredEvent = this->m_parentSM.model().states.at(this->hoveredState).eventId();
-                creationCheck([&] (const Id<StateModel>& id) { this->createToEvent_base(id); });
+                auto& st = this->m_parentSM.model().states.at(*this->hoveredState);
+                if(!st.previousConstraint())
+                {
+                    // No previous constraint -> we create a new constraint and link it to this state
+                    creationCheck([&] (const Id<StateModel>& id) { this->createToState_base(id); });
+                }
+                else
+                {
+                    // Previous constraint -> we add a new state to the event and link to it.
+                    this->hoveredEvent = st.eventId();
+                    creationCheck([&] (const Id<StateModel>& id) { this->createToEvent_base(id); });
+                }
             }
         }
 

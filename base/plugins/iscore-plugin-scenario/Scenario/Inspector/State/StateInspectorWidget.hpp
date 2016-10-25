@@ -19,6 +19,7 @@ class StateProcess;
 }
 namespace Scenario
 {
+class AddStateProcessDialog;
 class StateModel;
 class StateInspectorWidget final :
         public QWidget,
@@ -52,5 +53,6 @@ class StateInspectorWidget final :
         std::list<QWidget*> m_properties;
 
         Inspector::InspectorSectionWidget* m_stateSection{};
+        AddStateProcessDialog* m_addProcess{};
 };
 }

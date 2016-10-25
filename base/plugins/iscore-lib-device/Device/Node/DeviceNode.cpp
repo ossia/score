@@ -60,19 +60,19 @@ Device::Node& getNodeFromAddress(
     return *theN;
 }
 
-State::Address address(const Node &treeNode)
+State::AddressAccessor address(const Node &treeNode)
 {
-    State::Address addr;
+    State::AddressAccessor addr;
     const Node* n = &treeNode;
     while(n->parent() && !n->is<DeviceSettings>())
     {
-        addr.path.prepend(n->get<AddressSettings>().name);
+        addr.address.path.prepend(n->get<AddressSettings>().name);
         n = n->parent();
     }
 
     ISCORE_ASSERT(n);
     ISCORE_ASSERT(n->is<DeviceSettings>());
-    addr.device = n->get<DeviceSettings>().name;
+    addr.address.device = n->get<DeviceSettings>().name;
 
     return addr;
 }
@@ -120,8 +120,8 @@ void merge(
 {
     using Device::Node;
 
-    QStringList path = message.address.path;
-    path.prepend(message.address.device);
+    QStringList path = message.address.address.path;
+    path.prepend(message.address.address.device);
 
     ptr<Node> node = &base;
     for(int i = 0; i < path.size(); i++)

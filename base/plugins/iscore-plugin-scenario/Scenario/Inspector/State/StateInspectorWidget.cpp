@@ -30,7 +30,7 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <iscore/document/DocumentContext.hpp>
@@ -91,7 +91,7 @@ void StateInspectorWidget::updateDisplayedValues()
     {
         auto btn = SelectionButton::make(
                     tr("Prev. Constraint"),
-                &scenar->constraint(m_model.previousConstraint()),
+                &scenar->constraint(*m_model.previousConstraint()),
                 m_selectionDispatcher,
                 this);
 
@@ -101,7 +101,7 @@ void StateInspectorWidget::updateDisplayedValues()
     {
         auto btn = SelectionButton::make(
                     tr("Next Constraint"),
-                &scenar->constraint(m_model.nextConstraint()),
+                &scenar->constraint(*m_model.nextConstraint()),
                 m_selectionDispatcher,
                 this);
 
@@ -125,15 +125,16 @@ void StateInspectorWidget::updateDisplayedValues()
         procLay->addWidget(addProcText);
 
         // add new process dialog
-        auto addProcess = new AddStateProcessDialog {
+        delete m_addProcess;
+        m_addProcess = new AddStateProcessDialog {
                 m_context.app.components.factory<Process::StateProcessList>(),
                 this};
 
         // CONNECTIONS
         connect(addProcButton,  &QPushButton::pressed,
-            addProcess, &AddStateProcessDialog::launchWindow);
+            m_addProcess, &AddStateProcessDialog::launchWindow);
 
-        connect(addProcess, &AddStateProcessDialog::okPressed,
+        connect(m_addProcess, &AddStateProcessDialog::okPressed,
             this, &StateInspectorWidget::createStateProcess);
 
         for(auto& proc : m_model.stateProcesses)

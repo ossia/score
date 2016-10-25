@@ -3,8 +3,8 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <QPoint>
 #include <QString>
+#include <QRectF>
 
-class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
 
 

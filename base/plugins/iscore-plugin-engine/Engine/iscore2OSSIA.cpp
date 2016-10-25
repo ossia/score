@@ -3,6 +3,7 @@
 #include <ossia/editor/expression/expression_composition.hpp>
 #include <ossia/editor/expression/expression_not.hpp>
 #include <ossia/editor/expression/expression_pulse.hpp>
+#include <ossia/editor/dataspace/dataspace_visitors.hpp> // REMOVEME
 #include <Process/State/MessageNode.hpp>
 #include <boost/concept/usage.hpp>
 
@@ -49,20 +50,15 @@
 #include <Engine/Executor/ProcessElement.hpp>
 
 #include <boost/call_traits.hpp>
-class NodeNotFoundException : public std::exception
+class NodeNotFoundException : public std::runtime_error
 {
         State::Address m_addr;
     public:
         NodeNotFoundException(const State::Address& n):
+            std::runtime_error{QString("Address: %1 not found in actual tree.").arg(m_addr.toString()).toStdString()},
             m_addr(n)
         {
 
-        }
-
-        const char* what() const noexcept override
-        {
-            return QString("Address: %1 not found in actual tree.")
-                    .arg(m_addr.toString()).toUtf8().constData();
         }
 };
 
@@ -81,7 +77,7 @@ ossia::net::node_base *createNodeFromPath(
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
-        auto it = ::find_if(children,
+        auto it = ossia::find_if(children,
                             [&] (const auto& ossia_node) { return ossia_node->getName() == path[i].toStdString(); });
 
         if(it == children.end())
@@ -130,7 +126,7 @@ ossia::net::node_base* findNodeFromPath(
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
-        auto it = ::find_if(children,
+        auto it = ossia::find_if(children,
                           [&] (const auto& ossia_node)
         {
             return ossia_node->getName() == path[i].toStdString();
@@ -158,7 +154,7 @@ ossia::net::node_base* getNodeFromPath(
     {
         const auto& children = node->children();
 
-        auto it = ::find_if(children, [&] (const auto& ossia_node)
+        auto it = ossia::find_if(children, [&] (const auto& ossia_node)
         {
             return ossia_node->getName() == path[i].toStdString();
         });
@@ -220,30 +216,30 @@ void updateOSSIAAddress(
 
     addr.setValue(Engine::iscore_to_ossia::toOSSIAValue(settings.value));
 
-    addr.setDomain(
-                ossia::net::make_domain(
-                    toOSSIAValue(settings.domain.min),
-                    toOSSIAValue(settings.domain.max)));
+    addr.setDomain(settings.domain);
 
+    addr.setUnit(settings.unit);
 }
 
 void createOSSIAAddress(
         const Device::FullAddressSettings &settings,
         ossia::net::node_base& node)
 {
-    if(settings.value.val.is<State::no_value_t>())
+    if(!settings.value.val.impl())
         return;
 
     struct {
         public:
             using return_type = ossia::val_type;
-            return_type operator()(const State::no_value_t&) const { ISCORE_ABORT; return ossia::val_type::IMPULSE; }
+            return_type operator()() const { ISCORE_ABORT; return ossia::val_type::IMPULSE; }
             return_type operator()(const State::impulse_t&) const { return ossia::val_type::IMPULSE; }
             return_type operator()(int) const { return ossia::val_type::INT; }
             return_type operator()(float) const { return ossia::val_type::FLOAT; }
             return_type operator()(bool) const { return ossia::val_type::BOOL; }
             return_type operator()(const QString&) const { return ossia::val_type::STRING; }
             return_type operator()(QChar) const { return ossia::val_type::CHAR; }
+            return_type operator()(const std::string&) const { return ossia::val_type::STRING; }
+            return_type operator()(char) const { return ossia::val_type::CHAR; }
             return_type operator()(const State::vec2f&) const { return ossia::val_type::VEC2F; }
             return_type operator()(const State::vec3f&) const { return ossia::val_type::VEC3F; }
             return_type operator()(const State::vec4f&) const { return ossia::val_type::VEC4F; }
@@ -260,22 +256,20 @@ void updateOSSIAValue(const State::ValueImpl& iscore_data, ossia::value& val)
     struct {
             const State::ValueImpl& data;
             void operator()(const ossia::Destination&) const { }
-            void operator()(const ossia::Behavior&) const { }
             void operator()(ossia::Impulse) const { }
             void operator()(ossia::Int& v) const { v = data.get<int>(); }
             void operator()(ossia::Float& v) const { v = data.get<float>(); }
             void operator()(ossia::Bool& v) const { v = data.get<bool>(); }
-            void operator()(ossia::Char& v) const { v = data.get<QChar>().toLatin1(); }
-            void operator()(ossia::String& v) const { v = data.get<QString>().toStdString(); }
-            void operator()(ossia::Vec2f& v) const { v.value = data.get<State::vec2f>(); }
-            void operator()(ossia::Vec3f& v) const { v.value = data.get<State::vec3f>(); }
-            void operator()(ossia::Vec4f& v) const { v.value = data.get<State::vec4f>(); }
-            void operator()(ossia::Tuple& v) const
+            void operator()(ossia::Char& v) const { v = data.get<char>(); }
+            void operator()(ossia::String& v) const { v = data.get<std::string>(); }
+            void operator()(ossia::Vec2f& v) const { v = data.get<State::vec2f>(); }
+            void operator()(ossia::Vec3f& v) const { v = data.get<State::vec3f>(); }
+            void operator()(ossia::Vec4f& v) const { v = data.get<State::vec4f>(); }
+            void operator()(ossia::Tuple& vec) const
             {
                 State::tuple_t tuple = data.get<State::tuple_t>();
-                auto& vec = v.value;
                 ISCORE_ASSERT(tuple.size() == vec.size());
-                int n = vec.size();
+                const int n = vec.size();
                 for(int i = 0; i < n; i++)
                 {
                     updateOSSIAValue(tuple[i], vec[i]);
@@ -286,47 +280,17 @@ void updateOSSIAValue(const State::ValueImpl& iscore_data, ossia::value& val)
     return eggs::variants::apply(visitor, val.v);
 }
 
-static ossia::value toOSSIAValue(const State::ValueImpl& val)
-{
-    struct {
-            using return_type = ossia::value;
-            return_type operator()(const State::no_value_t&) const { return ossia::value{}; }
-            return_type operator()(const State::impulse_t&) const { return ossia::Impulse{}; }
-            return_type operator()(int v) const { return ossia::Int{v}; }
-            return_type operator()(float v) const { return ossia::Float{v}; }
-            return_type operator()(bool v) const { return ossia::Bool{v}; }
-            return_type operator()(const QString& v) const { return ossia::String{v.toStdString()}; }
-            return_type operator()(QChar v) const { return ossia::Char{v.toLatin1()}; }
-            return_type operator()(const State::vec2f& v) const { return ossia::Vec2f{v}; }
-            return_type operator()(const State::vec3f& v) const { return ossia::Vec3f{v}; }
-            return_type operator()(const State::vec4f& v) const { return ossia::Vec4f{v}; }
-            return_type operator()(const State::tuple_t& v) const
-            {
-                ossia::Tuple ossia_tuple;
-                ossia_tuple.value.reserve(v.size());
-                for(const auto& tuple_elt : v)
-                {
-                    ossia_tuple.value.push_back(eggs::variants::apply(*this, tuple_elt.impl()));
-                }
-
-                return ossia_tuple;
-            }
-    } visitor{};
-
-    return eggs::variants::apply(visitor, val.impl());
-}
-
 ossia::value toOSSIAValue(
         const State::Value& value)
 {
-    return toOSSIAValue(value.val);
+    return State::toOSSIAValue(value.val);
 }
 
 optional<ossia::message> message(
         const State::Message& mess,
         const Device::DeviceList& deviceList)
 {
-    auto dev_p = deviceList.findDevice(mess.address.device);
+    auto dev_p = deviceList.findDevice(mess.address.address.device);
     if(!dev_p)
         return {};
 
@@ -343,7 +307,7 @@ optional<ossia::message> message(
             return {};
 
         auto ossia_node = Engine::iscore_to_ossia::findNodeFromPath(
-                    mess.address.path,
+                    mess.address.address.path,
                     *dev);
 
         if(!ossia_node)
@@ -356,7 +320,7 @@ optional<ossia::message> message(
         if(!val.valid())
             return {};
 
-        return ossia::message{*ossia_addr, std::move(val)};
+        return ossia::message{{*ossia_addr, mess.address.qualifiers.accessors}, std::move(val), mess.address.qualifiers.unit};
     }
 
     return {};
@@ -391,7 +355,7 @@ void state(
         const auto& val = n.value();
         if(val)
         {
-            elts.add(message(State::Message{address(n), *val}, dl));
+            elts.add(message(State::Message{Process::address(n), *val}, dl));
         }
     });
 
@@ -476,9 +440,7 @@ static ossia::value expressionOperand(
 
             return_type operator()(const State::AddressAccessor& acc) const {
                 auto dest = expressionAddress(acc.address, devlist);
-
-                transform(acc.accessors, std::back_inserter(dest.index), [] (auto i) { return i;});
-
+                dest.index = acc.qualifiers.accessors;
                 return dest;
             }
     } visitor{list};
@@ -619,6 +581,25 @@ ossia::net::address_base* findAddress(
         }
     }
     return {};
+}
+
+optional<ossia::Destination> makeDestination(
+    const Device::DeviceList& devices,
+    const State::AddressAccessor& addr)
+{
+  auto ossia_addr = Engine::iscore_to_ossia::findAddress(
+        devices,
+        addr.address);
+
+  if(ossia_addr)
+  {
+    return ossia::Destination{
+      *ossia_addr,
+      addr.qualifiers.accessors,
+      addr.qualifiers.unit};
+  }
+
+  return {};
 }
 
 }

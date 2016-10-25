@@ -98,7 +98,8 @@ const ConstraintModel& previousConstraint(
         const StateModel& st,
         const Scenario_T& scenario)
 {
-    return scenario.constraint(st.previousConstraint());
+    ISCORE_ASSERT(st.previousConstraint());
+    return scenario.constraint(*st.previousConstraint());
 }
 
 template<typename Scenario_T>
@@ -106,7 +107,8 @@ const ConstraintModel& nextConstraint(
         const StateModel& st,
         const Scenario_T& scenario)
 {
-    return scenario.constraint(st.nextConstraint());
+    ISCORE_ASSERT(st.nextConstraint());
+    return scenario.constraint(*st.nextConstraint());
 }
 
 
@@ -120,7 +122,7 @@ auto nextConstraints(
     {
         const StateModel& st = scenario.state(state);
         if(const auto& cst_id = st.nextConstraint())
-            constraints.push_back(cst_id);
+            constraints.push_back(*cst_id);
     }
     return constraints;
 }
@@ -134,7 +136,7 @@ auto previousConstraints(
     {
         const StateModel& st = scenario.state(state);
         if(const auto& cst_id = st.previousConstraint())
-            constraints.push_back(cst_id);
+            constraints.push_back(*cst_id);
     }
     return constraints;
 }
@@ -201,6 +203,6 @@ const auto& date(
 template<typename Element_T>
 Scenario::ScenarioInterface& parentScenario(Element_T&& e)
 {
-    return *safe_cast<Scenario::ScenarioInterface*>(e.parent());
+    return *dynamic_cast<Scenario::ScenarioInterface*>(e.parent());
 }
 }

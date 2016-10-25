@@ -9,7 +9,7 @@
 
 #include "DuplicateRack.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 namespace Scenario
 {

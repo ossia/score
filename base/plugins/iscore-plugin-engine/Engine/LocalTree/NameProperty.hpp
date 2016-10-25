@@ -37,6 +37,8 @@ class MetadataNamePropertyWrapper
                 {
                     node.setName(newName);
                     auto real_newName = node.getName();
+                    if(real_newName != newName)
+                      qDebug() << "ERROR (old/new)" << real_newName << newName;
 
                     if(real_newName != newName)
                     {

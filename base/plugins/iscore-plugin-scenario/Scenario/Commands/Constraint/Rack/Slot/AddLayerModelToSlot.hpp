@@ -9,7 +9,7 @@
 #include <iscore_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
-namespace Process { class LayerModel; }
+namespace Process { class LayerModel; class LayerFactory; }
 namespace Process { class ProcessModel; }
 
 namespace Scenario
@@ -26,12 +26,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final : public iscore::S
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "Add a layer to a slot")
         public:
-            // Use this constructor when the process already exists
-        /*
-        AddLayerModelToSlot(
-                Path<SlotModel>&& slot,
-                Path<Process::ProcessModel>&& process);
-                    */
         AddLayerModelToSlot(
                 const SlotModel& slot,
                 const Process::ProcessModel& process);
@@ -39,13 +33,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final : public iscore::S
         // Use this constructor when the process isn't created yet
         AddLayerModelToSlot(
                 Path<SlotModel>&& slot,
-                Path<Process::ProcessModel>&& process,
+                const Process::ProcessModel& process,
                 QByteArray processConstructionData);
 
         AddLayerModelToSlot(
                 Path<SlotModel>&& slot,
                 Id<Process::LayerModel> layerid,
-                Path<Process::ProcessModel>&& process,
+                Path<Process::ProcessModel> process,
+                UuidKey<Process::LayerFactory> uid,
                 QByteArray processConstructionData);
 
         void undo() const override;
@@ -58,6 +53,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final : public iscore::S
     private:
         Path<SlotModel> m_slotPath;
         Path<Process::ProcessModel> m_processPath;
+        UuidKey<Process::LayerFactory> m_layerFactory;
 
         QByteArray m_processData;
 

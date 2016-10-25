@@ -12,7 +12,7 @@ namespace Automation
 {
 InitAutomation::InitAutomation(
         Path<ProcessModel>&& path,
-        const ::State::Address& newaddr,
+        const ::State::AddressAccessor& newaddr,
         double newmin,
         double newmax,
         std::vector<Curve::SegmentData>&& segments):
@@ -26,7 +26,7 @@ InitAutomation::InitAutomation(
 
 InitAutomation::InitAutomation(
         Path<ProcessModel>&& path,
-        const ::State::Address& newaddr,
+        const ::State::AddressAccessor& newaddr,
         double newmin,
         double newmax):
     InitAutomation(std::move(path), newaddr, newmin, newmax, { })

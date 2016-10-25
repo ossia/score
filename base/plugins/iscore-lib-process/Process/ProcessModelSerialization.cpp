@@ -20,12 +20,10 @@ template<>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom_impl(const Process::ProcessModel& process)
 {
     // To allow recration using createProcess
-    readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
+    readFrom(static_cast<const iscore::Entity<Process::ProcessModel>&>(process));
 
     readFrom(process.duration());
     //m_stream << process.useParentDuration();
-
-    readFrom(process.metadata());
 }
 
 // We only load the members of the process here.
@@ -34,7 +32,6 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(Process::Pro
 {
     writeTo(process.m_duration);
     //m_stream >> process.m_useParentDuration;
-    writeTo(process.metadata());
 
     // Delimiter checked on createProcess
 }
@@ -43,11 +40,10 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<DataStream>>::writeTo(Process::Pro
 template<>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom_impl(const Process::ProcessModel& process)
 {
-    readFrom(static_cast<const IdentifiedObject<Process::ProcessModel>&>(process));
+    readFrom(static_cast<const iscore::Entity<Process::ProcessModel>&>(process));
 
     m_obj[strings.Duration] = toJsonValue(process.duration());
     //m_obj["UseParentDuration"] = process.useParentDuration();
-    m_obj[strings.Metadata] = toJsonObject(process.metadata());
 }
 
 template<>
@@ -55,5 +51,4 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Process::Pro
 {
     process.m_duration = fromJsonValue<TimeValue>(m_obj[strings.Duration]);
     //process.m_useParentDuration = m_obj["UseParentDuration"].toBool();
-    process.metadata() = fromJsonObject<iscore::ModelMetadata>(m_obj[strings.Metadata]);
 }

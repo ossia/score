@@ -52,6 +52,7 @@ class Application final :
         { return m_settings; }
 
         const iscore::ApplicationContext& context() const override;
+        const iscore::ApplicationComponents& components() const override;
         void init(); // m_applicationSettings has to be set.
 
     private:
