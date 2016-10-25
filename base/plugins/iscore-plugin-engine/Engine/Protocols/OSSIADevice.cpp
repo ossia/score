@@ -72,15 +72,12 @@ void OSSIADevice::updateSettings(const Device::DeviceSettings& newsettings)
 
 void OSSIADevice::disconnect()
 {
+    m_callbacks.clear();
     if(auto dev = getDevice())
     {
         auto& root = dev->getRootNode();
-        removeListening_impl(root, State::Address{m_settings.name, {}});
-
         root.clearChildren();
     }
-
-    m_callbacks.clear();
 }
 
 void OSSIADevice::addAddress(const Device::FullAddressSettings &settings)
@@ -150,7 +147,7 @@ void OSSIADevice::removeListening_impl(
     {
         State::Address sub_addr = addr;
         sub_addr.path += QString::fromStdString(child->getName());
-        removeListening_impl(*child.get(), sub_addr);
+        removeListening_impl(*child.get(), std::move(sub_addr));
     }
 }
 

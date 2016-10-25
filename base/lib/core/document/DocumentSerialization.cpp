@@ -200,6 +200,10 @@ void DocumentModel::loadDocumentAsByteArray(
         {
             this->addPluginModel(plug);
         }
+        else
+        {
+            ISCORE_TODO;
+        }
     });
 
     // Load the document model
@@ -238,6 +242,10 @@ void DocumentModel::loadDocumentAsJson(
         if(plug)
         {
             this->addPluginModel(plug);
+        }
+        else
+        {
+            ISCORE_TODO;
         }
     });
 

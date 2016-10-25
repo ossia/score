@@ -78,8 +78,16 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(Scenario
     auto& pl = components.factory<Process::ProcessFactoryList>();
     for(; process_count -- > 0;)
     {
-        // TODO why isn't AddProcess used here ?!
-        constraint.processes.add(deserialize_interface(pl, *this, &constraint));
+        auto proc = deserialize_interface(pl, *this, &constraint);
+        if(proc)
+        {
+            // TODO why isn't AddProcess used here ?!
+            constraint.processes.add(proc);
+        }
+        else
+        {
+            ISCORE_TODO;
+        }
     }
 
     // Rackes
@@ -151,6 +159,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Scenario
         auto proc = deserialize_interface(pl, deserializer, &constraint);
         if(proc)
             constraint.processes.add(proc);
+        else
+            ISCORE_TODO;
     }
 
     QJsonArray rack_array = m_obj["Rackes"].toArray();

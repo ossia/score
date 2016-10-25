@@ -44,7 +44,11 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
     auto& csl = components.factory<Curve::SegmentList>();
     for(; size --> 0;)
     {
-        curve.addSegment(deserialize_interface(csl, *this, &curve));
+        auto seg = deserialize_interface(csl, *this, &curve);
+        if(seg)
+            curve.addSegment(seg);
+        else
+            ISCORE_TODO;
     }
 
     curve.changed();
@@ -71,6 +75,8 @@ ISCORE_PLUGIN_CURVE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
         auto seg = deserialize_interface(csl, segment_deser, &curve);
         if(seg)
             curve.addSegment(seg);
+        else
+            ISCORE_TODO;
     }
 
     curve.changed();

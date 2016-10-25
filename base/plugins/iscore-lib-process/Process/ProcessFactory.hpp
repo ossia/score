@@ -114,15 +114,15 @@ class ISCORE_LIB_PROCESS_EXPORT LayerFactory:
                 Process::ProcessModel&,
                 const Id<Process::LayerModel>& viewModelId,
                 const QByteArray& constructionData,
-                QObject* parent);
+                QObject* parent) = 0;
         virtual LayerModel* loadLayer_impl(
                 Process::ProcessModel&,
                 const VisitorVariant&,
-                QObject* parent);
+                QObject* parent) = 0;
         virtual LayerModel* cloneLayer_impl(
                 Process::ProcessModel&,
                 const Id<Process::LayerModel>& newId,
                 const Process::LayerModel& source,
-                QObject* parent);
+                QObject* parent) = 0;
 };
 }

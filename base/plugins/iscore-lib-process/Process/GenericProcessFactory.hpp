@@ -190,8 +190,11 @@ LayerPanel_T* GenericLayerFactory<Model_T, LayerModel_T, LayerPresenter_T, Layer
     return new LayerPanel_T{static_cast<const LayerModel_T&>(viewmodel), parent};
 }
 
+// TODO we could just pass the Model_T since
+// LayerModel_T has to be Process::LayerModel_T<Model_T> here
+
 template<typename Model_T, typename LayerModel_T>
-class GenericLayerFactory<Model_T, LayerModel_T, default_t, default_t, default_t> final :
+class GenericLayerFactory<Model_T, LayerModel_T, default_t, default_t, default_t> : //final :
         public Process::LayerFactory
 {
     public:
@@ -206,6 +209,47 @@ class GenericLayerFactory<Model_T, LayerModel_T, default_t, default_t, default_t
         {
             return p == Metadata<ConcreteFactoryKey_k, Model_T>::get();
         }
+
+        LayerModel_T* makeLayer_impl(
+                Process::ProcessModel& proc,
+                const Id<Process::LayerModel>& viewModelId,
+                const QByteArray& constructionData,
+                QObject* parent) final override
+        {
+            return new LayerModel_T{
+                         static_cast<Model_T&>(proc),
+                        viewModelId,
+                        parent};
+        }
+
+        LayerModel_T* loadLayer_impl(
+                Process::ProcessModel& p,
+                const VisitorVariant& vis,
+                QObject* parent) final override
+        {
+            return deserialize_dyn(vis, [&] (auto&& deserializer)
+            {
+                auto autom = new LayerModel_T{
+                        deserializer, p, parent};
+
+                return autom;
+            });
+        }
+
+        LayerModel_T* cloneLayer_impl(
+                Process::ProcessModel& p,
+                const Id<Process::LayerModel>& newId,
+                const Process::LayerModel& source,
+                QObject* parent) final override
+        {
+            return new LayerModel_T{
+                safe_cast<const LayerModel_T&>(source),
+                        p,
+                        newId,
+                        parent};
+
+        }
+
 };
 
 template<typename LayerModel_T>

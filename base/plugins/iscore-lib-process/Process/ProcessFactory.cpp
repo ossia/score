@@ -129,43 +129,6 @@ bool LayerFactory::matches(const UuidKey<Process::ProcessModelFactory>& p) const
     return false;
 }
 
-LayerModel*LayerFactory::makeLayer_impl(
-        ProcessModel& p,
-        const Id<LayerModel>& viewModelId,
-        const QByteArray& constructionData,
-        QObject* parent)
-{
-    return new Dummy::Layer{p, viewModelId, parent};
-}
-
-LayerModel*LayerFactory::loadLayer_impl(
-        ProcessModel& p ,
-        const VisitorVariant& vis,
-        QObject* parent)
-{
-    return deserialize_dyn(vis, [&] (auto&& deserializer)
-    {
-        auto autom = new Dummy::Layer{
-                deserializer, p, parent};
-
-        return autom;
-    });
-}
-
-LayerModel*LayerFactory::cloneLayer_impl(
-        ProcessModel& p,
-        const Id<LayerModel>& newId,
-        const LayerModel& source,
-        QObject* parent)
-{
-    return new Dummy::Layer{
-        safe_cast<const Dummy::Layer&>(source),
-                p,
-                newId,
-                parent};
-}
-
-
 ProcessFactoryList::object_type*ProcessFactoryList::loadMissing(
         const VisitorVariant& vis,
         QObject* parent) const
