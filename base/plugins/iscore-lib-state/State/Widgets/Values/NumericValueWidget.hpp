@@ -130,7 +130,7 @@ class NumericValueSetDialog final : public QDialog
 };
 
 template<typename T>
-class ISCORE_LIB_STATE_EXPORT NumericDomainWidget final : public QWidget
+class NumericDomainWidget final : public QWidget
 {
     public:
         using domain_type = ossia::net::domain_base<T>;

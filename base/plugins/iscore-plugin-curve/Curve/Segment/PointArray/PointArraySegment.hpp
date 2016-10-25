@@ -43,7 +43,9 @@ class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final :
         MODEL_METADATA_IMPL(PointArraySegment)
     public:
         using data_type = PointArraySegmentData;
-        using SegmentModel::SegmentModel;
+        PointArraySegment(
+            const Id<SegmentModel>& id,
+            QObject* parent): SegmentModel{id, parent} { }
         PointArraySegment(
                 const SegmentData& dat,
                 QObject* parent);
