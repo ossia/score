@@ -62,6 +62,7 @@ function(iscore_set_msvc_compile_options theTarget)
     "/MP"
     )
 
+    target_compile_options(${theTarget} PUBLIC "$<$<CONFIG:Release>:/GL>")
     target_compile_definitions(${theTarget} PUBLIC
         "NOMINMAX"
         )
