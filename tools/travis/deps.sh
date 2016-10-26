@@ -41,11 +41,11 @@ case "$TRAVIS_OS_NAME" in
   osx)
     set +e
 
+    brew remove boost
     ARCHIVE=homebrew-cache.tar.xz
     brew install wget gnu-tar xz
     wget https://github.com/OSSIA/iscore-sdk/releases/download/6.0-osx/$ARCHIVE -O $ARCHIVE
     gtar xhaf $ARCHIVE --directory /usr/local/Cellar
-    brew unlink boost
     brew unlink cmake
     brew link --force boost cmake ninja qt5 wget
     
