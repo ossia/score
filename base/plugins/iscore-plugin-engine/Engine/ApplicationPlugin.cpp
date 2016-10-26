@@ -200,8 +200,8 @@ void ApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, TimeValu
 
             connect(plugmodel->baseScenario(), &Engine::Execution::BaseScenarioElement::finished,
                     this, [=] () {
-                // TODO change the action icon state
-                on_stop();
+                auto& stop_action = context.actions.action<Actions::Stop>();
+                stop_action.action()->trigger();
             }, Qt::QueuedConnection);
             m_clock->play(t);
             m_paused = false;
