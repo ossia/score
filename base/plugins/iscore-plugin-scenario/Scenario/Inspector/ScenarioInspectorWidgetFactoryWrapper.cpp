@@ -17,10 +17,10 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
         const iscore::DocumentContext& doc,
         QWidget* parent) const
 {
-    std::vector<const ConstraintModel*> constraints;
-    std::vector<const TimeNodeModel*> timenodes;
-    std::vector<const EventModel*> events;
-    std::vector<const StateModel*> states;
+    std::set<const ConstraintModel*> constraints;
+    std::set<const TimeNodeModel*> timenodes;
+    std::set<const EventModel*> events;
+    std::set<const StateModel*> states;
 
     if(sourceElements.empty())
         return nullptr;
@@ -38,9 +38,9 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
                 auto tn = scenar->findTimeNode(ev->timeNode());
                 if(!tn)
                     continue;
-                states.push_back(st);
-                events.push_back(ev);
-                timenodes.push_back(tn);
+                states.insert(st);
+                events.insert(ev);
+                timenodes.insert(tn);
             }
         }
         else if (auto ev = dynamic_cast<const EventModel*>(elt))
@@ -48,16 +48,16 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
             auto tn = scenar->findTimeNode(ev->timeNode());
             if(!tn)
                 continue;
-            events.push_back(ev);
-            timenodes.push_back(tn);
+            events.insert(ev);
+            timenodes.insert(tn);
         }
         else if (auto tn = dynamic_cast<const TimeNodeModel*>(elt))
         {
-            timenodes.push_back(tn);
+            timenodes.insert(tn);
         }
         else if (auto cstr = dynamic_cast<const ConstraintModel*>(elt))
         {
-            constraints.push_back(cstr);
+            constraints.insert(cstr);
         }
     }
 

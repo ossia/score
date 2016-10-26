@@ -2,32 +2,32 @@
     "Document": {
         "BaseScenario": {
             "Constraint": {
-                "DefaultDuration": 10000,
+                "DefaultDuration": 70000,
                 "EndState": 1,
                 "FullView": {
                     "CenterOn": [
+                        100,
                         0,
-                        108,
-                        734,
-                        726
+                        761,
+                        653
                     ],
                     "ConstraintId": 0,
                     "ObjectName": "FullViewConstraintViewModel",
                     "ShownRack": 1,
-                    "Zoom": 12.705303673310675,
+                    "Zoom": 17.345000580134037,
                     "id": 0
                 },
                 "HeightPercentage": 0,
                 "Looping": false,
-                "MaxDuration": 10000,
-                "MaxInf": false,
+                "MaxDuration": "inf",
+                "MaxInf": true,
                 "Metadata": {
                     "Color": "Transparent1",
                     "Comment": "",
                     "Label": "",
                     "ScriptingName": "dataspace_score"
                 },
-                "MinDuration": 10000,
+                "MinDuration": 70000,
                 "MinNull": false,
                 "ObjectName": "Scenario::ConstraintModel",
                 "Processes": [
@@ -103,7 +103,7 @@
                                     "Zoom": -1,
                                     "id": 3
                                 },
-                                "HeightPercentage": 0.13894455577822312,
+                                "HeightPercentage": 0.13894455134868622,
                                 "Looping": false,
                                 "MaxDuration": 4317.559087956528,
                                 "MaxInf": false,
@@ -788,7 +788,7 @@
                                     "Zoom": -1,
                                     "id": 7
                                 },
-                                "HeightPercentage": 0.35470941883767537,
+                                "HeightPercentage": 0.34802940487861633,
                                 "Looping": false,
                                 "MaxDuration": 2210.7089488162287,
                                 "MaxInf": false,
@@ -931,7 +931,7 @@
                                 "id": 6
                             },
                             {
-                                "DefaultDuration": 2997.068507791129,
+                                "DefaultDuration": 1252.9200112855265,
                                 "EndState": 13,
                                 "FullView": {
                                     "CenterOn": [
@@ -946,9 +946,9 @@
                                     "Zoom": -1,
                                     "id": 8
                                 },
-                                "HeightPercentage": 0.35470941883767537,
+                                "HeightPercentage": 0.34802940487861633,
                                 "Looping": false,
-                                "MaxDuration": 2997.068507791129,
+                                "MaxDuration": 1252.9200112855265,
                                 "MaxInf": false,
                                 "Metadata": {
                                     "Color": "Transparent1",
@@ -956,7 +956,7 @@
                                     "Label": "",
                                     "ScriptingName": "pill52peep15"
                                 },
-                                "MinDuration": 2997.068507791129,
+                                "MinDuration": 1252.9200112855265,
                                 "MinNull": false,
                                 "ObjectName": "Scenario::ConstraintModel",
                                 "Processes": [
@@ -1134,7 +1134,7 @@
                                             "StartState": 0,
                                             "id": 0
                                         },
-                                        "Duration": 2997.068507791129,
+                                        "Duration": 1252.9200112855265,
                                         "EndEvent": {
                                             "Condition": {
                                                 "Children": [
@@ -1527,9 +1527,217 @@
                                 "StartDate": 3427.340719305697,
                                 "StartState": 12,
                                 "id": 7
+                            },
+                            {
+                                "DefaultDuration": 9469.342531548225,
+                                "EndState": 15,
+                                "FullView": {
+                                    "CenterOn": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                    ],
+                                    "ConstraintId": 8,
+                                    "ObjectName": "FullViewConstraintViewModel",
+                                    "ShownRack": null,
+                                    "Zoom": -1,
+                                    "id": 9
+                                },
+                                "HeightPercentage": 0.058116231113672256,
+                                "Looping": false,
+                                "MaxDuration": 9469.342531548225,
+                                "MaxInf": false,
+                                "Metadata": {
+                                    "Color": "Transparent1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "dolt34sana51"
+                                },
+                                "MinDuration": 9469.342531548225,
+                                "MinNull": false,
+                                "ObjectName": "Scenario::ConstraintModel",
+                                "Processes": [
+                                ],
+                                "Rackes": [
+                                ],
+                                "Rigidity": true,
+                                "StartDate": 0,
+                                "StartState": 14,
+                                "id": 8
+                            },
+                            {
+                                "DefaultDuration": 5046.847393187789,
+                                "EndState": 17,
+                                "FullView": {
+                                    "CenterOn": [
+                                        0,
+                                        0,
+                                        0,
+                                        0
+                                    ],
+                                    "ConstraintId": 9,
+                                    "ObjectName": "FullViewConstraintViewModel",
+                                    "ShownRack": 1,
+                                    "Zoom": -1,
+                                    "id": 10
+                                },
+                                "HeightPercentage": 0.08817635476589203,
+                                "Looping": false,
+                                "MaxDuration": 5046.847393187789,
+                                "MaxInf": true,
+                                "Metadata": {
+                                    "Color": "Transparent1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "aqua61ouch35"
+                                },
+                                "MinDuration": 5046.847393187789,
+                                "MinNull": true,
+                                "ObjectName": "Scenario::ConstraintModel",
+                                "Processes": [
+                                    {
+                                        "Curve": {
+                                            "ObjectName": "CurveModel",
+                                            "Segments": [
+                                                {
+                                                    "End": [
+                                                        0.30607876888093777,
+                                                        0.8041237431395915
+                                                    ],
+                                                    "Following": 1374798359,
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 8.452061855670104,
+                                                    "Previous": null,
+                                                    "Start": [
+                                                        0,
+                                                        0
+                                                    ],
+                                                    "id": -1994867775,
+                                                    "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991"
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.6050802906048803,
+                                                        0.11340209365505538
+                                                    ],
+                                                    "Following": 1,
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 8.452061855670104,
+                                                    "Previous": -1994867775,
+                                                    "Start": [
+                                                        0.30607876888093777,
+                                                        0.8041237431395915
+                                                    ],
+                                                    "id": 1374798359,
+                                                    "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991"
+                                                },
+                                                {
+                                                    "End": [
+                                                        1,
+                                                        1
+                                                    ],
+                                                    "Following": null,
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 8.452061855670104,
+                                                    "Previous": 1374798359,
+                                                    "Start": [
+                                                        0.6050802906048803,
+                                                        0.11340209365505538
+                                                    ],
+                                                    "id": 1,
+                                                    "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991"
+                                                }
+                                            ],
+                                            "id": 45345
+                                        },
+                                        "Duration": 5046.847393187789,
+                                        "Metadata": {
+                                            "Color": "",
+                                            "Comment": "",
+                                            "Label": "",
+                                            "ScriptingName": "Mapping.1"
+                                        },
+                                        "ObjectName": "Mapping",
+                                        "SourceAddress": {
+                                            "Accessors": [
+                                                1
+                                            ],
+                                            "Unit": "position.polar",
+                                            "address": {
+                                                "Device": "triangles",
+                                                "Path": "mouse/move"
+                                            }
+                                        },
+                                        "SourceMax": 1000,
+                                        "SourceMin": 0,
+                                        "TargetAddress": {
+                                            "Accessors": [
+                                            ],
+                                            "Unit": "none",
+                                            "address": {
+                                                "Device": "triangles",
+                                                "Path": "particle/density"
+                                            }
+                                        },
+                                        "TargetMax": 200,
+                                        "TargetMin": 50,
+                                        "id": 1,
+                                        "uuid": "12a5d9b8-823e-4303-99f8-34db37c448b4"
+                                    }
+                                ],
+                                "Rackes": [
+                                    {
+                                        "Metadata": {
+                                            "Color": "",
+                                            "Comment": "",
+                                            "Label": "",
+                                            "ScriptingName": "Rack.1"
+                                        },
+                                        "ObjectName": "Scenario::RackModel",
+                                        "Slots": [
+                                            {
+                                                "EditedProcess": 1,
+                                                "Height": 100,
+                                                "LayerModels": [
+                                                    {
+                                                        "ObjectName": "MappingLayer",
+                                                        "SharedProcess": {
+                                                            "Identifiers": [
+                                                                {
+                                                                    "ObjectId": 1,
+                                                                    "ObjectName": "Mapping"
+                                                                }
+                                                            ],
+                                                            "Parents": 2
+                                                        },
+                                                        "id": 1,
+                                                        "uuid": "a4834de8-f89d-46a5-b744-48761d91e6e6"
+                                                    }
+                                                ],
+                                                "Metadata": {
+                                                    "Color": "",
+                                                    "Comment": "",
+                                                    "Label": "",
+                                                    "ScriptingName": "Slot.1"
+                                                },
+                                                "ObjectName": "Scenario::SlotModel",
+                                                "id": 1
+                                            }
+                                        ],
+                                        "SlotsPositions": [
+                                            1
+                                        ],
+                                        "id": 1
+                                    }
+                                ],
+                                "Rigidity": false,
+                                "StartDate": 9469.342531548225,
+                                "StartState": 16,
+                                "id": 9
                             }
                         ],
-                        "Duration": 10000,
+                        "Duration": 70000,
                         "EndEventId": 1,
                         "EndTimeNodeId": 1,
                         "Events": [
@@ -1556,7 +1764,8 @@
                                 "States": [
                                     0,
                                     1,
-                                    10
+                                    10,
+                                    14
                                 ],
                                 "TimeNode": 0,
                                 "id": 0
@@ -1568,7 +1777,7 @@
                                     "RootNode": {
                                     }
                                 },
-                                "Date": 10000,
+                                "Date": 70000,
                                 "Extent": [
                                     0,
                                     0
@@ -1703,7 +1912,7 @@
                                 "Date": 1216.6317704894682,
                                 "Extent": [
                                     0.3199732798931196,
-                                    0.35470941883767537
+                                    0.34802939211756845
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -1729,8 +1938,8 @@
                                 },
                                 "Date": 3427.340719305697,
                                 "Extent": [
-                                    0.35470941883767537,
-                                    0.35470941883767537
+                                    0.34802939211756845,
+                                    0.34802939211756845
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -1753,10 +1962,10 @@
                                     "RootNode": {
                                     }
                                 },
-                                "Date": 6424.409227096826,
+                                "Date": 4680.260730591223,
                                 "Extent": [
-                                    0.35470941883767537,
-                                    0.35470941883767537
+                                    0.34802939211756845,
+                                    0.34802939211756845
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -1771,6 +1980,59 @@
                                 ],
                                 "TimeNode": 8,
                                 "id": 8
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 9469.342531548225,
+                                "Extent": [
+                                    0.05811623246492986,
+                                    0.08817635476589203
+                                ],
+                                "Metadata": {
+                                    "Color": "Emphasis4",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "swum48pegs71"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "Offset": 0,
+                                "States": [
+                                    15,
+                                    16
+                                ],
+                                "TimeNode": 9,
+                                "id": 9
+                            },
+                            {
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 14516.189924736014,
+                                "Extent": [
+                                    0.08817635476589203,
+                                    0.08817635476589203
+                                ],
+                                "Metadata": {
+                                    "Color": "Emphasis4",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "kahn58vier96"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "Offset": 0,
+                                "States": [
+                                    17
+                                ],
+                                "TimeNode": 10,
+                                "id": 10
                             }
                         ],
                         "Metadata": {
@@ -2470,7 +2732,7 @@
                             },
                             {
                                 "Event": 6,
-                                "HeightPercentage": 0.35470941883767537,
+                                "HeightPercentage": 0.34802939211756845,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -2520,7 +2782,7 @@
                             },
                             {
                                 "Event": 7,
-                                "HeightPercentage": 0.35470941883767537,
+                                "HeightPercentage": 0.34802939211756845,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -2611,7 +2873,7 @@
                             },
                             {
                                 "Event": 8,
-                                "HeightPercentage": 0.35470941883767537,
+                                "HeightPercentage": 0.34802939211756845,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -2641,6 +2903,138 @@
                                 "StateProcesses": [
                                 ],
                                 "id": 13
+                            },
+                            {
+                                "Event": 0,
+                                "HeightPercentage": 0.05811623246492986,
+                                "Messages": {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                "Metadata": {
+                                    "Color": "",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.14"
+                                },
+                                "NextConstraint": 8,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": null,
+                                "StateProcesses": [
+                                ],
+                                "id": 14
+                            },
+                            {
+                                "Event": 9,
+                                "HeightPercentage": 0.05811623246492986,
+                                "Messages": {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                "Metadata": {
+                                    "Color": "",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.15"
+                                },
+                                "NextConstraint": null,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": 8,
+                                "StateProcesses": [
+                                ],
+                                "id": 15
+                            },
+                            {
+                                "Event": 9,
+                                "HeightPercentage": 0.08817635476589203,
+                                "Messages": {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                "Metadata": {
+                                    "Color": "",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.16"
+                                },
+                                "NextConstraint": 9,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": null,
+                                "StateProcesses": [
+                                ],
+                                "id": 16
+                            },
+                            {
+                                "Event": 10,
+                                "HeightPercentage": 0.08817635476589203,
+                                "Messages": {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                "Metadata": {
+                                    "Color": "",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.17"
+                                },
+                                "NextConstraint": null,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": 9,
+                                "StateProcesses": [
+                                ],
+                                "id": 17
                             }
                         ],
                         "TimeNodes": [
@@ -2691,7 +3085,7 @@
                                 "id": 0
                             },
                             {
-                                "Date": 10000,
+                                "Date": 70000,
                                 "Events": [
                                     1
                                 ],
@@ -2927,7 +3321,7 @@
                                 ],
                                 "Extent": [
                                     0.3199732798931196,
-                                    0.35470941883767537
+                                    0.34802939211756845
                                 ],
                                 "Metadata": {
                                     "Color": "HalfDark",
@@ -2972,8 +3366,8 @@
                                     7
                                 ],
                                 "Extent": [
-                                    0.35470941883767537,
-                                    0.35470941883767537
+                                    0.34802939211756845,
+                                    0.34802939211756845
                                 ],
                                 "Metadata": {
                                     "Color": "HalfDark",
@@ -3013,13 +3407,13 @@
                                 "id": 7
                             },
                             {
-                                "Date": 6424.409227096826,
+                                "Date": 4680.260730591223,
                                 "Events": [
                                     8
                                 ],
                                 "Extent": [
-                                    0.35470941883767537,
-                                    0.35470941883767537
+                                    0.34802939211756845,
+                                    0.34802939211756845
                                 ],
                                 "Metadata": {
                                     "Color": "HalfDark",
@@ -3057,6 +3451,98 @@
                                     }
                                 },
                                 "id": 8
+                            },
+                            {
+                                "Date": 9469.342531548225,
+                                "Events": [
+                                    9
+                                ],
+                                "Extent": [
+                                    0.05811623246492986,
+                                    0.08817635476589203
+                                ],
+                                "Metadata": {
+                                    "Color": "HalfDark",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "tick12olin74"
+                                },
+                                "ObjectName": "Scenario::TimeNodeModel",
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                            {
+                                                "Children": [
+                                                ],
+                                                "Relation": {
+                                                    "LHS": {
+                                                        "Value": {
+                                                            "Type": "Bool",
+                                                            "Value": true
+                                                        }
+                                                    },
+                                                    "Op": 0,
+                                                    "RHS": {
+                                                        "Value": {
+                                                            "Type": "Bool",
+                                                            "Value": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 9
+                            },
+                            {
+                                "Date": 14516.189924736014,
+                                "Events": [
+                                    10
+                                ],
+                                "Extent": [
+                                    0.08817635476589203,
+                                    0.08817635476589203
+                                ],
+                                "Metadata": {
+                                    "Color": "HalfDark",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "mush80jade20"
+                                },
+                                "ObjectName": "Scenario::TimeNodeModel",
+                                "Trigger": {
+                                    "Active": true,
+                                    "Expression": {
+                                        "Children": [
+                                            {
+                                                "Children": [
+                                                ],
+                                                "Relation": {
+                                                    "LHS": {
+                                                        "Value": {
+                                                            "Type": "Bool",
+                                                            "Value": true
+                                                        }
+                                                    },
+                                                    "Op": 0,
+                                                    "RHS": {
+                                                        "Value": {
+                                                            "Type": "Bool",
+                                                            "Value": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 10
                             }
                         ],
                         "id": 1,
@@ -3120,6 +3606,18 @@
                                                 "ObjectName": "TemporalConstraintViewModel",
                                                 "ShownRack": 1,
                                                 "id": 7
+                                            },
+                                            {
+                                                "ConstraintId": 8,
+                                                "ObjectName": "TemporalConstraintViewModel",
+                                                "ShownRack": null,
+                                                "id": 8
+                                            },
+                                            {
+                                                "ConstraintId": 9,
+                                                "ObjectName": "TemporalConstraintViewModel",
+                                                "ShownRack": 1,
+                                                "id": 9
                                             }
                                         ],
                                         "ObjectName": "TemporalScenarioLayer",
@@ -3164,7 +3662,7 @@
                     "RootNode": {
                     }
                 },
-                "Date": 10000,
+                "Date": 70000,
                 "Extent": [
                     0.4,
                     0.6
@@ -3217,7 +3715,7 @@
                 "id": 1
             },
             "EndTimeNode": {
-                "Date": 10000,
+                "Date": 70000,
                 "Events": [
                     1
                 ],
@@ -3384,6 +3882,125 @@
                                 "ClipMode": "Clip",
                                 "Description": "",
                                 "Domain": {
+                                },
+                                "Name": "mouse",
+                                "Priority": 0,
+                                "RefreshRate": 0,
+                                "RepetitionFilter": false,
+                                "Tags": [
+                                ],
+                                "Type": "None",
+                                "Unit": "none",
+                                "Value": null,
+                                "ioType": ""
+                            },
+                            "Children": [
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Description": "",
+                                        "Domain": {
+                                            "Vec2f": {
+                                                "Max": [
+                                                    1,
+                                                    1
+                                                ],
+                                                "Min": [
+                                                    0,
+                                                    0
+                                                ]
+                                            }
+                                        },
+                                        "Name": "release",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Vec2f",
+                                        "Unit": "position.cart2D",
+                                        "Value": [
+                                            554,
+                                            749
+                                        ],
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Description": "",
+                                        "Domain": {
+                                            "Vec2f": {
+                                                "Max": [
+                                                    1,
+                                                    1
+                                                ],
+                                                "Min": [
+                                                    0,
+                                                    0
+                                                ]
+                                            }
+                                        },
+                                        "Name": "move",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Vec2f",
+                                        "Unit": "position.cart2D",
+                                        "Value": [
+                                            406,
+                                            0
+                                        ],
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Description": "",
+                                        "Domain": {
+                                            "Vec2f": {
+                                                "Max": [
+                                                    1,
+                                                    1
+                                                ],
+                                                "Min": [
+                                                    0,
+                                                    0
+                                                ]
+                                            }
+                                        },
+                                        "Name": "press",
+                                        "Priority": 0,
+                                        "RefreshRate": 0,
+                                        "RepetitionFilter": false,
+                                        "Tags": [
+                                        ],
+                                        "Type": "Vec2f",
+                                        "Unit": "position.cart2D",
+                                        "Value": [
+                                            0,
+                                            0
+                                        ],
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Clip",
+                                "Description": "",
+                                "Domain": {
                                     "Vec3f": {
                                         "Max": [
                                             1,
@@ -3406,9 +4023,9 @@
                                 "Type": "Vec3f",
                                 "Unit": "color.rgb",
                                 "Value": [
-                                    0.11328602582216263,
-                                    0.8697485327720642,
-                                    0.5138960480690002
+                                    0.0021414002403616905,
+                                    0.9978539943695068,
+                                    0.4127439558506012
                                 ],
                                 "ioType": "<->"
                             },
@@ -3451,7 +4068,7 @@
                                         ],
                                         "Type": "Float",
                                         "Unit": "none",
-                                        "Value": 53.75101089477539,
+                                        "Value": 51.91304016113281,
                                         "ioType": "<->"
                                     },
                                     "Children": [
@@ -3459,12 +4076,12 @@
                                 },
                                 {
                                     "AddressSettings": {
-                                        "ClipMode": "Free",
+                                        "ClipMode": "Clip",
                                         "Description": "",
                                         "Domain": {
                                             "Float": {
-                                                "Max": 100,
-                                                "Min": 10
+                                                "Max": 200,
+                                                "Min": 100
                                             }
                                         },
                                         "Name": "density",
@@ -3475,7 +4092,7 @@
                                         ],
                                         "Type": "Float",
                                         "Unit": "none",
-                                        "Value": 1,
+                                        "Value": 168.6107635498047,
                                         "ioType": "<->"
                                     },
                                     "Children": [
