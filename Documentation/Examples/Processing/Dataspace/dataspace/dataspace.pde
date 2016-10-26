@@ -129,23 +129,24 @@ void addTriangles(ArrayList<Particle> p_neighboors)
 void mousePressed()
 {
   OscMessage osc_msg = new OscMessage("/mouse/click");
-  osc_msg.add(width);
-  osc_msg.add(height);
+  osc_msg.add(mouseX);
+  osc_msg.add(mouseY);
   osc_in.send(osc_msg, osc_out);
+  println("### " + osc_msg.addrPattern());
 }
 
 void mouseMoved()
 {
   OscMessage osc_msg = new OscMessage("/mouse/move");
-  osc_msg.add(width);
-  osc_msg.add(height);
+  osc_msg.add(mouseX);
+  osc_msg.add(mouseY);
   osc_in.send(osc_msg, osc_out);
 }
 void mouseReleased()
 {
   OscMessage osc_msg = new OscMessage("/mouse/release");
-  osc_msg.add(width);
-  osc_msg.add(height);
+  osc_msg.add(mouseX);
+  osc_msg.add(mouseY);
   osc_in.send(osc_msg, osc_out);
 }
 
