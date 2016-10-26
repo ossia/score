@@ -1,7 +1,6 @@
 environment:
   QTDIR: C:\Qt\5.7\msvc2015
-  BOOST_ROOT: c:\Libraries\boost_1_60_0
-  JAMOMA_ROOT: c:\projects\i-score\iscore-windows-sdk\jamoma
+  BOOST_ROOT: c:\Libraries\boost_1_62_0
 
 configuration: Release
 
