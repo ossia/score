@@ -15,9 +15,8 @@ build_script:
   - git submodule update --init --recursive
   - mkdir build
   - cd build
-  - cmake -DISCORE_CONFIGURATION=release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" ..
+  - cmake -DISCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" ..
   - msbuild PACKAGE.vcxproj /p:Configuration=Release /m
-  - cmake --build . --target package
 
 artifacts:
   - name: Installer
