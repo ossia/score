@@ -44,6 +44,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsItem
 
         void setExtent(const VerticalExtent& extent);
         void setExtent(VerticalExtent&& extent);
+        void setTriggerActive(bool);
         void addPoint(int newY);
 
         void setMoving(bool);
@@ -72,4 +73,5 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsItem
 
         SimpleTextItem* m_text{};
 };
+
 }

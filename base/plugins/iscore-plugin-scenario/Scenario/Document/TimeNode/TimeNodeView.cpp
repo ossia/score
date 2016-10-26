@@ -29,14 +29,15 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     this->setAcceptHoverEvents(true);
     this->setCursor(Qt::CrossCursor);
 
+    auto& skin = iscore::Skin::instance();
+
     m_text = new SimpleTextItem{this};
     m_color = presenter.model().metadata().getColor();
 
-    auto f = iscore::Skin::instance().SansFont;
-    f.setPointSize(8);
+    auto f = skin.SansFont;
+    f.setPointSize(10);
     m_text->setFont(f);
-    m_text->setPos(-m_text->boundingRect().width() / 2, -15);
-
+    m_text->setColor(iscore::ColorRef{&skin.Gray});
 }
 
 TimeNodeView::~TimeNodeView()
@@ -88,6 +89,14 @@ void TimeNodeView::setMoving(bool arg)
     update();
 }
 
+void TimeNodeView::setTriggerActive(bool b)
+{
+    if(b)
+        m_text->setPos(-m_text->boundingRect().width() / 2, -40);
+    else
+        m_text->setPos(-m_text->boundingRect().width() / 2, -20);
+}
+
 void TimeNodeView::setSelected(bool selected)
 {
     m_selected = selected;
@@ -103,6 +112,9 @@ void TimeNodeView::changeColor(iscore::ColorRef newColor)
 void TimeNodeView::setLabel(const QString& s)
 {
     m_text->setText(s);
+
+    // Used to re-set the text position
+    setTriggerActive(m_text->pos().y() == -40);
 }
 
 
