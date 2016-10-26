@@ -249,6 +249,38 @@ static void rec_updateTree(
     cleanupNode(node);
 }
 
+static bool match(const State::AddressAccessorHead& cur_node, const State::AddressAccessor& mess, int i)
+{
+    if(i == 0)
+    {
+        return mess.address.device == cur_node.name;
+    }
+    else if(i < mess.address.path.size())
+    {
+        return mess.address.path[i - 1] == cur_node.name;
+    }
+    else
+    {
+        return mess.address.path.back() == cur_node.name && mess.qualifiers == cur_node.qualifiers;
+    }
+}
+
+static State::AddressAccessorHead get_at(const State::AddressAccessor& mess, int i)
+{
+    if(i == 0)
+    {
+        return {mess.address.device};
+    }
+    else if(i < mess.address.path.size())
+    {
+        return {mess.address.path[i - 1]};
+    }
+    else
+    {
+        return {mess.address.path.back(), mess.qualifiers};
+    }
+}
+
 // TODO another one to refactor with merges
 // MergeFun takes a state node value and modifies it.
 template<typename MergeFun>
@@ -257,15 +289,14 @@ static void merge_impl(
         const State::AddressAccessor& addr,
         MergeFun merge)
 {
-    QStringList path = Process::toStringList(addr);
-    const auto path_n = path.size();
+    const auto path_n = addr.address.path.size() + 1;
 
     ptr<Process::MessageNode> node = &base;
     for(int i = 0; i < path_n; i++)
     {
         auto it = ossia::find_if(*node,
                     [&] (const auto& cur_node) {
-            return cur_node.displayName() == path[i];
+            return match(cur_node.name, addr, i);
         });
 
         if(it == node->end())
@@ -279,7 +310,7 @@ static void merge_impl(
                 {
                     newNode = &parentnode->emplace_back(
                                 Process::StateNodeData{
-                                    {path[k], {}},
+                                    get_at(addr, k),
                                     {}},
                                 nullptr);
                 }
@@ -289,7 +320,7 @@ static void merge_impl(
                     merge(v);
                     newNode = &parentnode->emplace_back(
                                 Process::StateNodeData{
-                                    {path[k], addr.qualifiers},
+                                    get_at(addr, k),
                                     std::move(v)},
                                 nullptr);
                 }
@@ -303,7 +334,7 @@ static void merge_impl(
         {
             node = &*it;
 
-            if(i == path.size() - 1)
+            if(i == path_n - 1)
             {
                 // We replace the value by the one in the message
                 merge(node->values);

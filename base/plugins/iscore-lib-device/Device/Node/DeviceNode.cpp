@@ -102,9 +102,12 @@ State::Message message(const Node& node)
     if(!node.is<Device::AddressSettings>())
         return {};
 
+    auto& s = node.get<Device::AddressSettings>();
+
     State::Message mess;
     mess.address = address(node);
-    mess.value = node.get<Device::AddressSettings>().value;
+    mess.address.qualifiers.unit = s.unit;
+    mess.value = s.value;
 
     return mess;
 }

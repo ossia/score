@@ -15,6 +15,7 @@
 #include <core/document/Document.hpp>
 
 #include <ossia/ossia.hpp>
+#include <ossia/editor/value/value_conversion.hpp>
 
 namespace Interpolation
 {
@@ -49,7 +50,7 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
         if(start < end)
         {
             return Engine::iscore_to_ossia::curve<double, Y_T>(
-                  scale_x, [=] (double val) -> Y_T { return min + val * (max - min); }, segt_data, {});
+                  scale_x, [=] (double val) -> Y_T { return ossia::easing::ease{}(min, max, val); }, segt_data, {});
         }
         else if(start == end)
         {
@@ -60,7 +61,7 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
         }
         else // start > end
         {
-            return Engine::iscore_to_ossia::curve<double, Y_T>(
+            return Engine::iscore_to_ossia::curve<double, Y_T>( // ossia::easing::ease
                   scale_x, [=] (double val) -> Y_T { return max - val * (max - min); }, segt_data, {});
         }
     }
@@ -74,50 +75,58 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
 
 ossia::behavior Component::on_curveChanged(ossia::val_type type)
 {
-    const auto start = process().start();
-    const auto end = process().end();
+    auto start = Engine::iscore_to_ossia::toOSSIAValue(process().start());
+    auto end = Engine::iscore_to_ossia::toOSSIAValue(process().end());
+
+    auto source_unit = process().sourceUnit();
+    auto dest_unit = process().address().qualifiers.unit;
+    if(source_unit != dest_unit)
+    {
+        start = ossia::convert(start, source_unit, dest_unit);
+        end = ossia::convert(end, source_unit, dest_unit);
+    }
 
     switch(type)
     {
         case ossia::val_type::INT:
         {
-            const auto start_v = State::convert::value<double>(start);
-            const auto end_v = State::convert::value<double>(end);
+            const auto start_v = ossia::convert<double>(start);
+            const auto end_v = ossia::convert<double>(end);
             return on_curveChanged_impl<int>(std::min(start_v, end_v), std::max(start_v, end_v), start_v, end_v);
         }
         case ossia::val_type::FLOAT:
         {
-            const auto start_v = State::convert::value<double>(start);
-            const auto end_v = State::convert::value<double>(end);
+            const auto start_v = ossia::convert<double>(start);
+            const auto end_v = ossia::convert<double>(end);
             return on_curveChanged_impl<float>(std::min(start_v, end_v), std::max(start_v, end_v), start_v, end_v);
         }
         case ossia::val_type::TUPLE:
         {
             // First check the number of curves.
-            const auto& start_v = State::convert::value<State::tuple_t>(start);
-            const auto& end_v = State::convert::value<State::tuple_t>(end);
+            const auto& start_v = ossia::convert<ossia::Tuple>(start);
+            const auto& end_v = ossia::convert<ossia::Tuple>(end);
 
-            int n_curves = std::min(start_v.size(), end_v.size());
+            const int n_curves = std::min(start_v.size(), end_v.size());
             std::vector<ossia::behavior> t;
             for(int i = 0; i < n_curves; i++)
             {
                 // Take the type of the value of the start state.
-                switch(start_v[i].which())
+                switch(start_v[i].getType())
                 {
-                    case State::ValueType::Int:
+                    case ossia::val_type::INT:
                     {
-                        int start_v_i = State::convert::value<int>(start_v[i]);
-                        int end_v_i = State::convert::value<int>(end_v[i]);
+                        int start_v_i = ossia::convert<int>(start_v[i]);
+                        int end_v_i = ossia::convert<int>(end_v[i]);
                         t.push_back(
                               on_curveChanged_impl<int>(
                                       std::min(start_v_i, end_v_i), std::max(start_v_i, end_v_i),
                                       start_v_i, end_v_i));
                         break;
                     }
-                    case State::ValueType::Float:
+                    case ossia::val_type::FLOAT:
                     {
-                        float start_v_i = State::convert::value<float>(start_v[i]);
-                        float end_v_i = State::convert::value<float>(end_v[i]);
+                        float start_v_i = ossia::convert<float>(start_v[i]);
+                        float end_v_i = ossia::convert<float>(end_v[i]);
                         t.push_back(
                               on_curveChanged_impl<float>(
                                 std::min(start_v_i, end_v_i), std::max(start_v_i, end_v_i),
@@ -127,8 +136,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
                     default:
                         // Default case : we use a constant value.
                         t.push_back(
-                                std::make_shared<ossia::constant_curve>(
-                                  Engine::iscore_to_ossia::toOSSIAValue(start)));
+                                std::make_shared<ossia::constant_curve>(start));
                 }
 
             }
@@ -139,8 +147,8 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
         {
             // First check the number of curves.
             const constexpr int n_curves = 2;
-            const auto& start_v = State::convert::value<std::array<float, n_curves>>(start);
-            const auto& end_v = State::convert::value<std::array<float, n_curves>>(end);
+            const auto& start_v = ossia::convert<std::array<float, n_curves>>(start);
+            const auto& end_v = ossia::convert<std::array<float, n_curves>>(end);
 
             std::vector<ossia::behavior> t;
 
@@ -160,8 +168,8 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
         {
             // First check the number of curves.
             const constexpr int n_curves = 3;
-            const auto& start_v = State::convert::value<std::array<float, n_curves>>(start);
-            const auto& end_v = State::convert::value<std::array<float, n_curves>>(end);
+            const auto& start_v = ossia::convert<std::array<float, n_curves>>(start);
+            const auto& end_v = ossia::convert<std::array<float, n_curves>>(end);
 
             std::vector<ossia::behavior> t;
 
@@ -181,8 +189,8 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
         {
             // First check the number of curves.
             const constexpr int n_curves = 4;
-            const auto& start_v = State::convert::value<std::array<float, n_curves>>(start);
-            const auto& end_v = State::convert::value<std::array<float, n_curves>>(end);
+            const auto& start_v = ossia::convert<std::array<float, n_curves>>(start);
+            const auto& end_v = ossia::convert<std::array<float, n_curves>>(end);
 
             std::vector<ossia::behavior> t;
 
@@ -199,8 +207,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
             return t;
         }
         default:
-            return std::make_shared<ossia::constant_curve>(
-                      Engine::iscore_to_ossia::toOSSIAValue(start));
+            return std::make_shared<ossia::constant_curve>(start);
     }
 }
 }

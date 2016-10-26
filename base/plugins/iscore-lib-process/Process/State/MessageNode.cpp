@@ -184,6 +184,60 @@ State::MessageList getUserMessages(const MessageNode& n)
 }
 
 
+std::vector<Process::MessageNode*> try_getNodesFromAddress(
+        Process::MessageNode& root,
+        const State::AddressAccessor& addr)
+{
+    std::vector<Process::MessageNode*> vec;
+    if(addr.address.device.isEmpty())
+        return vec;
+
+    // Find first node
+    auto first_node_it = ossia::find_if(root, [&] (const auto& cld) {
+        return cld.displayName() == addr.address.device;
+    });
+    if(first_node_it == root.end())
+        return vec;
+
+    Process::MessageNode* node = &*first_node_it;
+
+    // The n-1 first elements are just checked against the name
+    const int n = addr.address.path.size();
+    for(int i = 0; i < n - 1; i++)
+    {
+        const QString& node_name{addr.address.path[i]};
+
+        auto& n = *node;
+        auto child_it = ossia::find_if(n, [&] (const Process::MessageNode& cld) {
+            return cld.name.name == node_name;
+        });
+
+        if(child_it != n.end())
+        {
+            node = &*child_it;
+        }
+        else
+        {
+            return vec;
+        }
+    }
+
+    // We return all the elements that match, without caring about the qualifiers.
+    {
+        const QString& node_name{addr.address.path.back()};
+        auto& n = *node;
+        for(Process::MessageNode& cld : n)
+        {
+            if(cld.name.name == node_name)
+            {
+                vec.push_back(&cld);
+            }
+        }
+    }
+
+    return vec;
+}
+
 Process::MessageNode* try_getNodeFromAddress(
         Process::MessageNode& root,
         const State::AddressAccessor& addr)
