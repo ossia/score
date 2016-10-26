@@ -51,8 +51,8 @@ matrix:
       env: CONF=linux-debug CAN_DEPLOY=False
     - os: linux
       env: CONF=linux-static-debug CAN_DEPLOY=False
-    - os: linux
-      env: CONF=linux-release CAN_DEPLOY=False
+# FIXME    - os: linux
+#      env: CONF=linux-release CAN_DEPLOY=False
 
 # Coverity
 #    - os: linux
