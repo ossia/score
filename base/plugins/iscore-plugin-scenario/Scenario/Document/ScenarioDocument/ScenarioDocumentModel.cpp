@@ -9,6 +9,7 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <iscore/tools/std/Optional.hpp>
@@ -31,6 +32,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/EntityMap.hpp>
@@ -79,6 +81,12 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
     initializeNewDocument(m_baseScenario->constraint().fullView());
     init();
+
+    // Select the first state
+    iscore::SelectionDispatcher d{ctx.selectionStack};
+    auto scenar = dynamic_cast<Scenario::ProcessModel*>(&*m_baseScenario->constraint().processes.begin());
+    if(scenar)
+        d.setAndCommit({&scenar->startEvent()});
 }
 
 void ScenarioDocumentModel::init()
@@ -133,6 +141,7 @@ void ScenarioDocumentModel::initializeNewDocument(const FullViewConstraintViewMo
         *m_baseScenario->constraint().processes.begin()
     };
     cmd6.redo();
+
 }
 
 ConstraintModel& ScenarioDocumentModel::baseConstraint() const

@@ -1,5 +1,6 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
+#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerPresenter.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
@@ -33,10 +34,12 @@ TimeNodePresenter::TimeNodePresenter(
     con(m_model.metadata(), &iscore::ModelMetadata::ColorChanged,
         this, [=] (const iscore::ColorRef& c) { m_view->changeColor(c); });
     con(m_model.metadata(), &iscore::ModelMetadata::LabelChanged,
-        this, [=] (const QString& l) { m_view->setLabel(l); });
+        this, [=] (const auto& t) { m_view->setLabel(t); });
+    connect(m_model.trigger(), &TriggerModel::activeChanged,
+            this, [=] { m_view->setTriggerActive(m_model.trigger()->active()); });
     m_view->changeColor(m_model.metadata().getColor());
     m_view->setLabel(m_model.metadata().getLabel());
-
+    m_view->setTriggerActive(m_model.trigger()->active());
     // TODO find a correct way to handle validity of model elements.
     // extentChanged is updated in scenario.
 }
