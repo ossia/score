@@ -627,8 +627,11 @@ DeviceExplorerWidget::addDevice()
             {
                 Device::Node n{deviceSettings, nullptr};
                 if(Device::loadDeviceFromJSON(path, n))
+                {
+                    n.get<Device::DeviceSettings>() = deviceSettings;
                     m_cmdDispatcher->submitCommand(
                                 new Command::LoadDevice{std::move(devplug_path), std::move(n)});
+                }
             }
         }
 
