@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QIODevice>
 
+#include <QJsonDocument>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/Domain.hpp>
@@ -194,7 +195,7 @@ static void convertFromDomElement(const QDomElement& dom_element, Device::Node &
     return;
 }
 
-void loadDeviceFromXML(const QString &filePath, Device::Node &node)
+bool loadDeviceFromXML(const QString &filePath, Device::Node &node)
 {
     // ouverture d'un xml
     QFile doc_xml(filePath);
@@ -202,7 +203,7 @@ void loadDeviceFromXML(const QString &filePath, Device::Node &node)
     {
         qDebug() << "Erreur : Impossible d'ouvrir le ficher XML";
         doc_xml.close();
-        return;
+        return false;
     }
 
     QDomDocument domDoc;
@@ -210,7 +211,7 @@ void loadDeviceFromXML(const QString &filePath, Device::Node &node)
     {
         qDebug() << "Erreur : Impossible de charger le ficher XML";
         doc_xml.close();
-        return;
+        return false;
     }
 
     doc_xml.close();
@@ -226,5 +227,35 @@ void loadDeviceFromXML(const QString &filePath, Device::Node &node)
         convertFromDomElement(dom_node, node);
         dom_node = dom_node.nextSiblingElement("");
     }
+
+    return true;
+}
+
+
+bool loadDeviceFromJSON(const QString &filePath, Device::Node &node)
+{
+    QFile doc{filePath};
+    if(!doc.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Erreur : Impossible d'ouvrir le ficher Device";
+        doc.close();
+        return false;
+    }
+
+    auto json = QJsonDocument::fromJson(doc.readAll());
+    if(!json.isObject())
+    {
+        qDebug() << "Erreur : Impossible de charger le ficher Device";
+        doc.close();
+        return false;
+    }
+
+    doc.close();
+
+    auto obj = json.object();
+    JSONObject::Deserializer des{obj};
+    des.writeTo(node);
+
+    return true;
 }
 }

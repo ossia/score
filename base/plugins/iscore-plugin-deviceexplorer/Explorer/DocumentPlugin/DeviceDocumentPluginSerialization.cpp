@@ -23,7 +23,7 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
 
     m_obj["RootNode"] = QJsonObject{};
     QJsonArray children;
-    for(auto& node : plug.rootNode().children())
+    for(const Device::Node& node : plug.rootNode().children())
     {
         QJsonObject this_node;
 

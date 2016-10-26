@@ -36,6 +36,8 @@
 #include <QTreeView>
 #include <algorithm>
 #include <stdexcept>
+#include <QJsonDocument>
+#include <QFileDialog>
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
@@ -108,6 +110,8 @@ DeviceExplorerWidget::buildGUI()
     m_refreshValueAction = new QAction(tr("Refresh value"), this);
 
     m_removeNodeAction = new QAction(tr("Remove"), this);
+    m_exportDeviceAction = new QAction{tr("Export device"), this};
+
 #ifdef __APPLE__
     m_removeNodeAction->setShortcut(QKeySequence(tr("Ctrl+Backspace")));
 #else
@@ -120,6 +124,7 @@ DeviceExplorerWidget::buildGUI()
     m_removeNodeAction->setEnabled(false);
     m_disconnect->setEnabled(false);
     m_reconnect->setEnabled(false);
+    m_exportDeviceAction->setEnabled(false);
 
     m_editAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_refreshAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
@@ -127,6 +132,7 @@ DeviceExplorerWidget::buildGUI()
     m_removeNodeAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_disconnect->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_reconnect->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_exportDeviceAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     connect(m_editAction, &QAction::triggered, this, &DeviceExplorerWidget::edit);
     connect(m_refreshAction, &QAction::triggered, this, &DeviceExplorerWidget::refresh);
@@ -134,6 +140,7 @@ DeviceExplorerWidget::buildGUI()
     connect(m_disconnect, &QAction::triggered, this, &DeviceExplorerWidget::disconnect);
     connect(m_reconnect, &QAction::triggered, this, &DeviceExplorerWidget::reconnect);
     connect(m_removeNodeAction, &QAction::triggered, this, &DeviceExplorerWidget::removeNodes);
+    connect(m_exportDeviceAction, &QAction::triggered, this, &DeviceExplorerWidget::exportDevice);
 
 
     QPushButton* addButton = new QPushButton(this);
@@ -166,6 +173,7 @@ DeviceExplorerWidget::buildGUI()
     addMenu->addAction(m_addDeviceAction);
     addMenu->addAction(m_addSiblingAction);
     addMenu->addAction(m_addChildAction);
+    addMenu->addAction(m_exportDeviceAction);
     addMenu->addSeparator();
     addMenu->addAction(m_removeNodeAction);
 
@@ -191,6 +199,7 @@ DeviceExplorerWidget::buildGUI()
         this->addAction(m_addDeviceAction);
         this->addAction(m_addSiblingAction);
         this->addAction(m_addChildAction);
+        this->addAction(m_exportDeviceAction);
 
         this->addAction(m_refreshAction);
         this->addAction(m_refreshValueAction);
@@ -293,6 +302,7 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
     contextMenu->addAction(m_addDeviceAction);
     contextMenu->addAction(m_addSiblingAction);
     contextMenu->addAction(m_addChildAction);
+    contextMenu->addAction(m_exportDeviceAction);
     contextMenu->addSeparator();
     contextMenu->addAction(m_removeNodeAction);
 
@@ -345,6 +355,9 @@ DeviceExplorerWidget::updateActions()
     auto m = model();
     if(!m)
         return;
+
+    m_exportDeviceAction->setEnabled(false);
+
     if(! m->isEmpty())
     {
 
@@ -385,6 +398,7 @@ DeviceExplorerWidget::updateActions()
             {
                 m_reconnect->setEnabled(true);
                 m_disconnect->setEnabled(true);
+                m_exportDeviceAction->setEnabled(true);
                 m_addSiblingAction->setEnabled(false);
                 m_removeNodeAction->setEnabled(false);
             }
@@ -602,9 +616,20 @@ DeviceExplorerWidget::addDevice()
         }
         else
         {
-            Device::Node n{deviceSettings, nullptr};
-            loadDeviceFromXML(path, n);
-            m_cmdDispatcher->submitCommand(new Command::LoadDevice{std::move(devplug_path), std::move(n)});
+            if(path.contains(".xml"))
+            {
+                Device::Node n{deviceSettings, nullptr};
+                if(Device::loadDeviceFromXML(path, n))
+                    m_cmdDispatcher->submitCommand(
+                                new Command::LoadDevice{std::move(devplug_path), std::move(n)});
+            }
+            else if(path.contains(".device"))
+            {
+                Device::Node n{deviceSettings, nullptr};
+                if(Device::loadDeviceFromJSON(path, n))
+                    m_cmdDispatcher->submitCommand(
+                                new Command::LoadDevice{std::move(devplug_path), std::move(n)});
+            }
         }
 
         blockGUI(false);
@@ -613,6 +638,25 @@ DeviceExplorerWidget::addDevice()
     updateActions();
     delete m_deviceDialog;
     m_deviceDialog = nullptr;
+}
+void DeviceExplorerWidget::exportDevice()
+{
+    auto indexes = m_ntView->selectedIndexes();
+
+    if(indexes.size() != 1)
+        return;
+    Device::Node& n = model()->nodeFromModelIndex(sourceIndex(indexes.first()));
+    if(!n.is<Device::DeviceSettings>())
+        return;
+
+    auto obj = toJsonObject(n);
+    auto txt = QJsonDocument(obj).toJson();
+
+    QFile f{QFileDialog::getSaveFileName(this, tr("Device file"), QString{}, tr("Device file (*.device)"))};
+    if(f.open(QIODevice::WriteOnly))
+    {
+        f.write(txt);
+    }
 }
 
 void

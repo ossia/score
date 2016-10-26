@@ -110,7 +110,7 @@ OSCProtocolSettingsWidget::setSettings(const Device::DeviceSettings &settings)
 void
 OSCProtocolSettingsWidget::openFileDialog()
 {
-    const QString fileName = QFileDialog::getOpenFileName();
+    const QString fileName = QFileDialog::getOpenFileName(this, tr("Open Device file"), QString{}, tr("Device file (*.xml *.device)"));
 
     if(! fileName.isEmpty())
     {
