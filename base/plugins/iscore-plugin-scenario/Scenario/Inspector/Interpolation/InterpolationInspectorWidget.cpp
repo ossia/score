@@ -61,7 +61,7 @@ void InspectorWidget::on_addressChange(const ::State::AddressAccessor& addr)
 
     if(addr == State::AddressAccessor{})
     {
-        m_dispatcher.submitCommand(new ChangeAddress{process(), {}, {}, {}});
+        m_dispatcher.submitCommand(new ChangeAddress{process(), {}, {}, {}, {}});
     }
     else
     {
@@ -74,22 +74,35 @@ void InspectorWidget::on_addressChange(const ::State::AddressAccessor& addr)
             return;
 
         State::Value sv, ev;
+        ossia::unit_t source_u;
 
+        auto& ss = Scenario::startState(*cst, *parent_scenario);
+        auto& es = Scenario::endState(*cst, *parent_scenario);
+        const auto snodes = Process::try_getNodesFromAddress(ss.messages().rootNode(), addr);
+        const auto enodes = Process::try_getNodesFromAddress(es.messages().rootNode(), addr);
+
+        for(auto lhs : snodes)
         {
-            auto& ss = Scenario::startState(*cst, *parent_scenario);
-            Process::MessageNode* snode = Process::try_getNodeFromAddress(ss.messages().rootNode(), addr);
-            if(snode && snode->hasValue())
-                sv = *snode->value();
+            if(!lhs->hasValue())
+                continue;
+            if(lhs->name.qualifiers.accessors != addr.qualifiers.accessors)
+                continue;
+
+            auto it = ossia::find_if(enodes, [&] (auto rhs) {
+                return (lhs->name.qualifiers == rhs->name.qualifiers) && rhs->hasValue();
+            });
+
+            if(it != enodes.end())
+            {
+                sv = *lhs->value();
+                ev = *(*it)->value();
+                source_u = lhs->name.qualifiers.unit;
+
+                break; // or maybe not break ? the latest should replace maybe ?
+            }
         }
 
-        {
-            auto& es = Scenario::endState(*cst, *parent_scenario);
-            Process::MessageNode* enode = Process::try_getNodeFromAddress(es.messages().rootNode(), addr);
-            if(enode && enode->hasValue())
-                ev = *enode->value();
-        }
-
-        m_dispatcher.submitCommand(new ChangeAddress{process(), addr, sv, ev});
+        m_dispatcher.submitCommand(new ChangeAddress{process(), addr, sv, ev, source_u});
     }
 }
 
@@ -115,7 +128,13 @@ StateInspectorWidget::StateInspectorWidget(
 
 void StateInspectorWidget::on_stateChanged()
 {
-    m_label->setText(State::convert::toPrettyString(m_state.message().value));
+    QString txt = State::convert::toPrettyString(m_state.message().value);
+    if(auto u = m_state.process().sourceUnit())
+    {
+        txt += " " + QString::fromStdString(ossia::get_pretty_unit_text(u));
+    }
+
+    m_label->setText(txt);
 }
 
 StateInspectorFactory::StateInspectorFactory() :

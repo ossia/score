@@ -49,19 +49,22 @@ ProcessState*ProcessState::clone(QObject* parent) const
 std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
 {
     // TODO have a better check of "address validity"
-    if(!process().address().address.device.isEmpty())
-        return {process().address()};
+    auto addr = process().address();
+    if(!addr.address.device.isEmpty())
+        return {std::move(addr)};
     return {};
 }
 
 State::MessageList ProcessState::messages() const
 {
+    /*
     if(!process().address().address.device.isEmpty())
     {
         auto mess = message();
         if(!mess.address.address.device.isEmpty())
             return {mess};
     }
+    */
 
     return {};
 }
@@ -71,8 +74,11 @@ State::MessageList ProcessState::setMessages(
         const Process::MessageNode&)
 {
     auto& proc = process();
+    State::AddressAccessor cur_address = proc.address();
     auto it = ossia::find_if(received, [&] (const auto& mess) {
-        return mess.address == proc.address();
+        return mess.address.address == cur_address.address &&
+               mess.address.qualifiers.accessors == cur_address.qualifiers.accessors;
+        // The unit is handled later.
     });
     if(it != received.end())
     {
@@ -84,6 +90,7 @@ State::MessageList ProcessState::setMessages(
         {
             proc.setEnd(it->value);
         }
+        proc.setSourceUnit(it->address.qualifiers.unit);
     }
     return messages();
 }
@@ -112,6 +119,11 @@ State::AddressAccessor ProcessModel::address() const
     return m_address;
 }
 
+ossia::unit_t ProcessModel::sourceUnit() const
+{
+    return m_sourceUnit;
+}
+
 State::Value ProcessModel::start() const
 {
     return m_start;
@@ -132,6 +144,11 @@ void ProcessModel::setAddress(const State::AddressAccessor& arg)
     m_address = arg;
     emit addressChanged(arg);
     emit m_curve->changed();
+}
+
+void ProcessModel::setSourceUnit(ossia::unit_t u)
+{
+    m_sourceUnit = u;
 }
 
 void ProcessModel::setStart(State::Value arg)
@@ -193,6 +210,7 @@ ProcessState*ProcessModel::endStateData() const
 ProcessModel::ProcessModel(const ProcessModel& source, const Id<Process::ProcessModel>& id, QObject* parent):
     Curve::CurveProcessModel{source, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent},
     m_address(source.address()),
+    m_sourceUnit(source.m_sourceUnit),
     m_start{source.start()},
     m_end{source.end()},
     m_startState{new ProcessState{*this, ProcessState::Point::Start, this}},
@@ -213,9 +231,7 @@ ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Reader<DataStream>>::readFrom_im
 {
     readFrom(interp.curve());
 
-    m_stream << interp.address();
-    m_stream << interp.start();
-    m_stream << interp.end();
+    m_stream << interp.address() << interp.sourceUnit() << interp.start() << interp.end();
 
     insertDelimiter();
 }
@@ -227,11 +243,13 @@ ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Writer<DataStream>>::writeTo(
     interp.setCurve(new Curve::Model{*this, &interp});
 
     State::AddressAccessor address;
+    ossia::unit_t u;
     State::Value start, end;
 
-    m_stream >> address >> start >> end;
+    m_stream >> address >> u >> start >> end;
 
     interp.setAddress(address);
+    interp.setSourceUnit(u);
     interp.setStart(start);
     interp.setEnd(end);
 
@@ -247,6 +265,7 @@ ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Reader<JSONObject>>::readFrom_im
 {
     m_obj["Curve"] = toJsonObject(interp.curve());
     m_obj[strings.Address] = toJsonObject(interp.address());
+    m_obj[strings.Unit] = QString::fromStdString(ossia::get_pretty_unit_text(interp.sourceUnit()));
     m_obj[strings.Start] = toJsonObject(interp.start());
     m_obj[strings.End] = toJsonObject(interp.end());
 }
@@ -259,6 +278,7 @@ ISCORE_PLUGIN_INTERPOLATION_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
     interp.setCurve(new Curve::Model{curve_deser, &interp});
 
     interp.setAddress(fromJsonObject<State::AddressAccessor>(m_obj[strings.Address]));
+    interp.setSourceUnit(ossia::parse_pretty_unit(m_obj[strings.Unit].toString().toStdString()));
     interp.setStart(fromJsonObject<State::Value>(m_obj[strings.Start]));
     interp.setEnd(fromJsonObject<State::Value>(m_obj[strings.End]));
 }
