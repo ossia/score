@@ -67,7 +67,7 @@ struct PropertyWrapper : public BaseCallbackWrapper
             property{prop}
         {
             callbackIt = addr.add_callback([=] (const ossia::value& v) {
-                    property.set(Engine::ossia_to_iscore::ToValue(v));
+                    property.set(State::fromOSSIAValue(v));
             });
 
             QObject::connect(&property.object(), property.changed_property(),
@@ -75,7 +75,7 @@ struct PropertyWrapper : public BaseCallbackWrapper
                 auto newVal = ::State::Value::fromValue(property.get());
                 try
                 {
-                    auto res = Engine::ossia_to_iscore::ToValue( addr.cloneValue());
+                    auto res = State::fromOSSIAValue( addr.cloneValue());
 
                     if(newVal != res)
                     {

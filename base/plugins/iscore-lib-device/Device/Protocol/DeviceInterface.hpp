@@ -9,6 +9,9 @@
 
 #include <State/Value.hpp>
 #include <iscore_lib_device_export.h>
+#include <ossia/editor/value/value.hpp>
+
+Q_DECLARE_METATYPE(ossia::value)
 
 namespace State
 {
@@ -84,7 +87,7 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
                 const Device::AddressSettings&); // new data
         void pathRemoved(const State::Address&);
 
-        void valueUpdated(const State::Address&, const State::Value&);
+        void valueUpdated(const State::Address&, const ossia::value&);
 
         // In case the whole namespace changed?
         void namespaceUpdated();

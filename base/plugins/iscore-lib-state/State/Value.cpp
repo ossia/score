@@ -112,4 +112,37 @@ ossia::value toOSSIAValue(const State::ValueImpl& val)
     return ossia::apply(visitor, val.impl());
 }
 
+Value fromOSSIAValue(const ossia::value& val)
+{
+    struct {
+            using return_type = State::Value;
+            return_type operator()(ossia::Destination) const { return {}; }
+            return_type operator()(ossia::Impulse) const { return State::Value::fromValue(State::impulse_t{}); }
+            return_type operator()(ossia::Int v) const { return State::Value::fromValue(v); }
+            return_type operator()(ossia::Float v) const { return State::Value::fromValue(v); }
+            return_type operator()(ossia::Bool v) const { return State::Value::fromValue(v); }
+            return_type operator()(ossia::Char v) const { return State::Value::fromValue(v); }
+            return_type operator()(const ossia::String& v) const { return State::Value::fromValue(QString::fromStdString(v)); }
+            return_type operator()(ossia::Vec2f v) const { return State::Value::fromValue(v); }
+            return_type operator()(ossia::Vec3f v) const { return State::Value::fromValue(v); }
+            return_type operator()(ossia::Vec4f v) const { return State::Value::fromValue(v); }
+            return_type operator()(const ossia::Tuple& v) const
+            {
+                State::tuple_t tuple;
+
+                tuple.reserve(v.size());
+                for (const auto & e : v)
+                {
+                    tuple.push_back(fromOSSIAValue(e).val); // TODO REVIEW THIS
+                }
+
+                return State::Value::fromValue(std::move(tuple));
+            }
+    } visitor{};
+
+    if(val.valid())
+        return eggs::variants::apply(visitor, val.v);
+    return {};
+}
+
 }

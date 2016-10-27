@@ -107,7 +107,6 @@ template<> struct MatchingType<::TimeValue> {
 ISCORE_PLUGIN_ENGINE_EXPORT Device::IOType ToIOType(ossia::access_mode t);
 ISCORE_PLUGIN_ENGINE_EXPORT Device::ClipMode ToClipMode(ossia::bounding_mode b);
 
-ISCORE_PLUGIN_ENGINE_EXPORT State::Value ToValue(const ossia::value& val);
 ISCORE_PLUGIN_ENGINE_EXPORT State::Value ToValue(ossia::val_type);
 
 ISCORE_PLUGIN_ENGINE_EXPORT State::Address ToAddress(const ossia::net::node_base& node);

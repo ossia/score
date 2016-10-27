@@ -174,8 +174,8 @@ ListeningHandler &DeviceDocumentPlugin::listening() const
 void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
 {
     con(newdev, &Device::DeviceInterface::valueUpdated,
-        this, [&] (const State::Address& addr, const State::Value& v) {
-        updateProxy.updateLocalValue(State::AddressAccessor{addr}, v);
+        this, [&] (const State::Address& addr, const ossia::value& v) {
+        updateProxy.updateLocalValue(State::AddressAccessor{addr}, State::fromOSSIAValue(v));
     });
 
     con(newdev, &Device::DeviceInterface::pathAdded,

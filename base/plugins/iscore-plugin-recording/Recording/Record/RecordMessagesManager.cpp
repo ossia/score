@@ -134,7 +134,8 @@ bool MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
         // Add a custom callback.
         m_recordCallbackConnections.push_back(
                     connect(&dev, &Device::DeviceInterface::valueUpdated,
-                this, [=] (const State::Address& addr, const State::Value& val) {
+                this, [=] (const State::Address& addr, const ossia::value& val)
+        {
             if(context.started())
             {
                 // Move end event by the current duration.
@@ -142,7 +143,7 @@ bool MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
 
                 m_records.append(RecordedMessages::RecordedMessage{
                                      msecs,
-                                     State::Message{State::AddressAccessor{addr}, val}});
+                                     State::Message{State::AddressAccessor{addr}, State::fromOSSIAValue(val)}});
 
                 m_createdProcess->setDuration(TimeValue::fromMsecs(msecs));
             }
@@ -153,7 +154,7 @@ bool MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
 
                 m_records.append(RecordedMessages::RecordedMessage{
                                      0.,
-                                     State::Message{State::AddressAccessor{addr}, val}});
+                                     State::Message{State::AddressAccessor{addr}, State::fromOSSIAValue(val)}});
             }
         }));
     }

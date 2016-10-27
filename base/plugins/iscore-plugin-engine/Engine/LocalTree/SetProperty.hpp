@@ -21,7 +21,7 @@ struct SetPropertyWrapper : public BaseCallbackWrapper
             setFun{prop}
         {
             callbackIt = addr.add_callback([=] (const ossia::value& v) {
-                setFun(Engine::ossia_to_iscore::ToValue(v));
+                setFun(State::fromOSSIAValue(v));
             });
 
             addr.setValue(typename Engine::ossia_to_iscore::MatchingType<T>::type{});
