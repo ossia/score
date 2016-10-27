@@ -29,6 +29,9 @@ class ProcessWidgetArea final : public Inspector::InspectorSectionWidget
             connect(this, &ProcessWidgetArea::sig_putAtEnd,
                     this, &ProcessWidgetArea::putAtEnd,
                     Qt::QueuedConnection);
+
+            connect(this, &ProcessWidgetArea::sig_handleSwap,
+                    this, &ProcessWidgetArea::handleSwap);
         }
 
     private:
@@ -38,6 +41,7 @@ class ProcessWidgetArea final : public Inspector::InspectorSectionWidget
         void dropEvent(QDropEvent* event) override;
 
     signals:
+        void sig_handleSwap(Path<Process::ProcessModel> cst, double center, double y);
         void sig_performSwap(Path<Scenario::ConstraintModel> cst,
                              const Id<Process::ProcessModel>& id1,
                              const Id<Process::ProcessModel>& id2);
@@ -50,6 +54,11 @@ class ProcessWidgetArea final : public Inspector::InspectorSectionWidget
                          const Id<Process::ProcessModel>& id2);
         void putAtEnd(Path<Scenario::ConstraintModel> cst,
                          const Id<Process::ProcessModel>& id1);
+
+        void handleSwap(
+                Path<Process::ProcessModel> cst,
+                double center,
+                double y);
 
     private:
         const Process::ProcessModel& m_proc;
