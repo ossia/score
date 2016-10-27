@@ -163,13 +163,13 @@ QDebug operator<<(QDebug dbg, const State::ExprData& v)
 
 QDebug operator<<(QDebug dbg, const State::Expression& v)
 {
-    dbg << "(";
+    dbg << "{";
     dbg << static_cast<const State::ExprData&>(v);
     for(auto& child : v.children())
     {
         dbg << child;
     }
-    dbg << ")";
+    dbg << "}";
     return dbg;
 }
 
@@ -200,7 +200,7 @@ class ExpressionParsingTests: public QObject
             }
 
             {
-                std::string str("(minuit:/device/lol impulse)");
+                std::string str("{minuit:/device/lol impulse}");
 
 
                 typedef std::string::const_iterator iterator_type;
@@ -221,7 +221,7 @@ class ExpressionParsingTests: public QObject
             }
 
             {
-                QString str("(minuit:/device/lol impulse)");
+                QString str("{minuit:/device/lol impulse}");
 
                 auto expr = State::parseExpression(str);
 
@@ -267,7 +267,7 @@ class ExpressionParsingTests: public QObject
             }
 
             {
-                QString str("(minuit:/device/lol[1][2] < 3.14)");
+                QString str("{minuit:/device/lol[1][2] < 3.14}");
 
                 auto expr = State::parseExpression(str);
 
@@ -314,7 +314,7 @@ class ExpressionParsingTests: public QObject
 
 
           {
-              QString str("(minuit:/device/lol[color.rgb] < 3.14)");
+              QString str("{minuit:/device/lol[color.rgb] < 3.14}");
 
               auto expr = State::parseExpression(str);
 
@@ -441,7 +441,7 @@ class ExpressionParsingTests: public QObject
         void test_parse_expr_full()
         {
             for (auto& input : std::list<std::string> {
-                 "(dev:/minuit != [1, 2, 3.12, 'c']) and not (a:/b >= c:/d/e/f);"
+                 "{dev:/minuit != [1, 2, 3.12, 'c']) and not (a:/b >= c:/d/e/f}"
         })
             {
                 auto f(std::begin(input)), l(std::end(input));
@@ -464,16 +464,33 @@ class ExpressionParsingTests: public QObject
                     boost::apply_visitor(bldr, result);
                     qDebug() << e;
 
+                    std::cout << std::flush;
+
                 }
                 catch (const qi::expectation_failure<decltype(f)>& e)
                 {
-                    //std::cerr << "expectation_failure at '" << std::string(e.first, e.last) << "'\n";
+                    using namespace std::literals;
+                    QVERIFY(false);
+                    std::cerr << "expectation_failure at '"s << std::string(e.first, e.last) << "'\n"s;
                 }
 
                 //if (f!=l) std::cerr << "unparsed: '" << std::string(f,l) << "'\n";
             }
 
             //return 0;
+        }
+
+        void test_parse_random()
+        {
+            QVERIFY(bool(State::parseExpression("{myapp:/score > 2}")));
+            QVERIFY(bool(State::parseExpression("{2 > myapp:/stagescore}")));
+            QVERIFY(bool(State::parseExpression("{myapp:/score > myapp:/stagescore}")));
+            QVERIFY(bool(State::parseExpression("{myapp:/score >= myapp:/stagescore}")));
+            QVERIFY(bool(State::parseExpression("{my_app:/score > my_app:/stagescore}")));
+            QVERIFY(bool(State::parseExpression("{my_app:/score > my_app:/stage_score}")));
+            QVERIFY(bool(State::parseExpression("{my_app:/score > my_app:/stage_score}")));
+            QVERIFY(bool(State::parseExpression("{{A:/B > c:/D} and {e:/f > g:/h}}")));
+
         }
 };
 
