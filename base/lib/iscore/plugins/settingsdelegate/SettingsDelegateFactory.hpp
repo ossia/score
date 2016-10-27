@@ -5,7 +5,7 @@
 class QSettings;
 namespace iscore
 {
-class ApplicationContext;
+struct ApplicationContext;
 class SettingsPresenter;
 class SettingsDelegatePresenter;
 class SettingsDelegateModel;

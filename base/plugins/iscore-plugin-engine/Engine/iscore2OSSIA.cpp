@@ -52,11 +52,9 @@
 #include <boost/call_traits.hpp>
 class NodeNotFoundException : public std::runtime_error
 {
-        State::Address m_addr;
     public:
         NodeNotFoundException(const State::Address& n):
-            std::runtime_error{QString("Address: %1 not found in actual tree.").arg(m_addr.toString()).toStdString()},
-            m_addr(n)
+            std::runtime_error{"Address: " + n.toString().toStdString() + "not found in actual tree."}
         {
 
         }

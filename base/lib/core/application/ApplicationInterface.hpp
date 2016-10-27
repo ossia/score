@@ -6,7 +6,7 @@ namespace iscore
 class Settings;
 class Presenter;
 class ApplicationRegistrar;
-class GUIApplicationContext;
+struct GUIApplicationContext;
 class ISCORE_LIB_BASE_EXPORT ApplicationInterface
 {
 public:
