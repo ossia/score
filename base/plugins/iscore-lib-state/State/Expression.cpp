@@ -52,7 +52,7 @@ QString TreeNode<State::ExprData>::toString() const
         }
         else
         {
-            s = "(" + exprstr + ")";
+            s = "{" + exprstr + "}";
         }
     }
     else if(m_children.size() == 1) // unop
@@ -63,7 +63,7 @@ QString TreeNode<State::ExprData>::toString() const
         }
         else
         {
-            s = "(" + exprstr + " " + m_children.at(0).toString() + ")";
+            s = "{" + exprstr + " " + m_children.at(0).toString() + "}";
         }
     }
     else // binop

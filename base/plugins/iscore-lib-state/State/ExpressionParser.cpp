@@ -14,6 +14,8 @@
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/fusion/adapted.hpp>
 #include <ossia/network/base/name_validation.hpp>
+#include <boost/spirit/repository/include/qi_confix.hpp>
+
 #include <ossia/editor/dataspace/dataspace_parse.hpp>
 #include <iscore/prefix.hpp>
 #endif
@@ -63,7 +65,7 @@ Xor				:= (And, 'xor', Xor) | And;
 And				:= (Not, 'and', And) | Not;
 Not				:= ('not', Simple) | Simple;
 
-Simple			:= ('(', Expr, ')') | Relation;
+Simple			:= ('{', Expr, '}') | Relation;
 */
 
 // Taken from boost doc, necessary to have support of QString
@@ -313,12 +315,13 @@ struct Relation_parser : qi::grammar<Iterator, State::Relation()>
     {
         using boost::spirit::qi::skip;
         start %= skip(boost::spirit::standard::space) [
-                 (rm_parser >> op_map >> rm_parser)
+                 (rm_parser >> op_map >> rm2_parser)
         ];
 
     }
 
     RelationMember_parser<Iterator> rm_parser;
+    RelationMember_parser<Iterator> rm2_parser;
     RelationOperation_map op_map;
     qi::rule<Iterator, State::Relation()> start;
 };
@@ -333,7 +336,9 @@ struct Pulse_parser : qi::grammar<Iterator, State::Pulse()>
         using boost::spirit::standard::string;
         start %= skip(boost::spirit::standard::space) [
                 addr >> "impulse"
-        ];
+        ] | skip(boost::spirit::standard::space) [
+                        '{' >> addr >> "impulse" >> '}'
+                ];
     }
 
     Address_parser<Iterator> addr;
@@ -399,7 +404,7 @@ template <typename It, typename Skipper = qi::space_type>
         and_ = (not_ >> "and" >> and_) [ _val = phx::construct<binop<op_and>>(bsi::_1, bsi::_2) ] | not_   [ _val = bsi::_1 ];
         not_ = ("not" > simple       ) [ _val = phx::construct<unop <op_not>>(bsi::_1)     ] | simple [ _val = bsi::_1 ];
 
-        simple = (('(' > (expr_) > ')') | relation_ | pulse_);
+        simple = (('{' >> expr_ >> '}' ) | relation_ | pulse_  );
     }
 
   private:
