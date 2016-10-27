@@ -66,7 +66,7 @@ struct GetPropertyWrapper : public BaseProperty
                 auto newVal = converter_t::convert(property.get());
                 try
                 {
-                    auto res = Engine::ossia_to_iscore::ToValue(addr.cloneValue());
+                    auto res = State::fromOSSIAValue(addr.cloneValue());
 
                     if(newVal != res)
                     {

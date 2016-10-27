@@ -271,7 +271,7 @@ optional<State::Value> OSSIADevice::refresh(const State::Address& address)
             if(auto addr = node->getAddress())
             {
                 addr->pullValue();
-                return Engine::ossia_to_iscore::ToValue(addr->cloneValue());
+                return State::fromOSSIAValue(addr->cloneValue());
             }
         }
     }
@@ -329,7 +329,7 @@ void OSSIADevice::setListening(
         if(b)
         {
             ossia_addr->pullValue();
-            emit valueUpdated(addr, Engine::ossia_to_iscore::ToValue(ossia_addr->cloneValue()));
+            emit valueUpdated(addr, ossia_addr->cloneValue());
 
             if(cb_it == m_callbacks.end())
             {
@@ -340,7 +340,7 @@ void OSSIADevice::setListening(
                          ossia_addr,
                          ossia_addr->add_callback([=] (const ossia::value& val)
                           {
-                              emit valueUpdated(addr, Engine::ossia_to_iscore::ToValue(val));
+                              emit valueUpdated(addr, val);
                           })
                     }
                 });

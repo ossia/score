@@ -20,6 +20,9 @@ class AutomationRecorder :
         public RecordProvider
 {
         Q_OBJECT
+        friend struct autom_record_creation_visitor;
+        friend struct automation_parameter_callback_visitor;
+        friend struct automation_parameter_first_callback_visitor;
     public:
         RecordContext& context;
         AutomationRecorder(RecordContext& ctx);
@@ -33,16 +36,19 @@ class AutomationRecorder :
         void firstMessageReceived();
 
     private:
-        void messageCallback(const State::Address& addr, const State::Value& val);
-        void parameterCallback(const State::Address& addr, const State::Value& val);
+        void messageCallback(const State::Address& addr, const ossia::value& val);
+        void parameterCallback(const State::Address& addr, const ossia::value& val);
 
         const Curve::Settings::Model& m_settings;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
 
 
-        std::unordered_map<
-            State::Address,
-            RecordData> records;
+        std::unordered_map<State::Address, RecordData> numeric_records;
+        std::unordered_map<State::Address, std::array<RecordData, 2>> vec2_records;
+        std::unordered_map<State::Address, std::array<RecordData, 3>> vec3_records;
+        std::unordered_map<State::Address, std::array<RecordData, 4>> vec4_records;
+        std::unordered_map<State::Address, std::vector<RecordData>> tuple_records;
+
         // TODO see this : http://stackoverflow.com/questions/34596768/stdunordered-mapfind-using-a-type-different-than-the-key-type
 };
 

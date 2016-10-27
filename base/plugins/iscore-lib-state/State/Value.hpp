@@ -146,6 +146,7 @@ ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m);
 
 // Hopefully we won't need this for much longer.
 ISCORE_LIB_STATE_EXPORT ossia::value toOSSIAValue(const State::ValueImpl& val);
+ISCORE_LIB_STATE_EXPORT State::Value fromOSSIAValue(const ossia::value& val);
 
 }
 
@@ -157,4 +158,3 @@ Q_DECLARE_METATYPE(State::ValueType)
 Q_DECLARE_METATYPE(State::vec2f)
 Q_DECLARE_METATYPE(State::vec3f)
 Q_DECLARE_METATYPE(State::vec4f)
-
