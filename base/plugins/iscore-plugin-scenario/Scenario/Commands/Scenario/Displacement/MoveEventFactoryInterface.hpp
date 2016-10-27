@@ -9,7 +9,7 @@
 
 namespace iscore
 {
-class ApplicationContext;
+struct ApplicationContext;
 }
 template <typename Object> class Path;
 namespace Scenario

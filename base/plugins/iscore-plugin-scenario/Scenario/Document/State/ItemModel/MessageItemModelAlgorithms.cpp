@@ -269,11 +269,11 @@ static State::AddressAccessorHead get_at(const State::AddressAccessor& mess, int
 {
     if(i == 0)
     {
-        return {mess.address.device};
+        return {mess.address.device, {}};
     }
     else if(i < mess.address.path.size())
     {
-        return {mess.address.path[i - 1]};
+        return {mess.address.path[i - 1], {}};
     }
     else
     {
