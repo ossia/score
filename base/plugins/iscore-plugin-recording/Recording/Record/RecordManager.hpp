@@ -20,9 +20,9 @@ class AutomationRecorder :
         public RecordProvider
 {
         Q_OBJECT
-        friend struct autom_record_creation_visitor;
-        friend struct automation_parameter_callback_visitor;
-        friend struct automation_parameter_first_callback_visitor;
+        friend struct RecordAutomationCreationVisitor;
+        friend struct RecordAutomationFirstParameterCallbackVisitor;
+        friend struct RecordAutomationParameterCallbackVisitor;
     public:
         RecordContext& context;
         AutomationRecorder(RecordContext& ctx);
@@ -39,6 +39,7 @@ class AutomationRecorder :
         void messageCallback(const State::Address& addr, const ossia::value& val);
         void parameterCallback(const State::Address& addr, const ossia::value& val);
 
+        void finish(const State::Address& addr, const RecordData& dat, const TimeValue& msecs, bool, int);
         const Curve::Settings::Model& m_settings;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
 

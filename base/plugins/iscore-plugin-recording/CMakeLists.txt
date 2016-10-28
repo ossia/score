@@ -29,6 +29,12 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordMessagesManager.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordAutomations/RecordAutomationCreationVisitor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordAutomations/RecordAutomationFirstMessageCallbackVisitor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordAutomations/RecordAutomationFirstParameterCallbackVisitor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordAutomations/RecordAutomationMessageCallbackVisitor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordAutomations/RecordAutomationParameterCallbackVisitor.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/ApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_recording.cpp"
 )
