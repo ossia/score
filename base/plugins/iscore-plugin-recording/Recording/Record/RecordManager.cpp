@@ -68,15 +68,6 @@ AutomationRecorder::AutomationRecorder(
 {
 }
 
-static auto toAddresses(const std::vector<State::AddressAccessor>& addr)
-{
-    std::vector<State::Address> v;
-    v.reserve(addr.size());
-    for(auto& e : addr)
-        v.push_back(e.address);
-    return v;
-}
-
 bool AutomationRecorder::setup(const Box& box, const RecordListening& recordListening)
 {
     std::vector<std::vector<State::Address>> addresses;
@@ -173,38 +164,19 @@ void AutomationRecorder::stop()
     }
 }
 
-
 void AutomationRecorder::messageCallback(const State::Address &addr, const ossia::value &val)
-{/*
+{
     using namespace std::chrono;
     if(context.started())
     {
-        auto msecs = context.time();
-
-        auto newval = State::convert::value<float>(val.val);
-
-        auto it = numeric_records.find(addr);
-        ISCORE_ASSERT(it != numeric_records.end());
-
-        const auto& proc_data = it->second;
-
-        proc_data.segment.addPoint(msecs.msec(), newval);
-
-        static_cast<Automation::ProcessModel*>(proc_data.curveModel.parent())->setDuration(msecs);
+        val.apply(RecordAutomationSubsequentCallbackVisitor<MessagePolicy>{*this, addr, context.time()});
     }
     else
     {
         emit firstMessageReceived();
         context.start();
-
-        auto newval = State::convert::value<float>(val.val);
-
-        auto it = numeric_records.find(addr);
-        ISCORE_ASSERT(it != numeric_records.end());
-
-        const auto& proc_data = it->second;
-        proc_data.segment.addPoint(0, newval);
-    }*/
+        val.apply(RecordAutomationFirstCallbackVisitor{*this, addr});
+    }
 }
 
 
@@ -213,13 +185,13 @@ void AutomationRecorder::parameterCallback(const State::Address &addr, const oss
     using namespace std::chrono;
     if(context.started())
     {
-        val.apply(RecordAutomationParameterCallbackVisitor{*this, addr, context.time()});
+        val.apply(RecordAutomationSubsequentCallbackVisitor<ParameterPolicy>{*this, addr, context.time()});
     }
     else
     {
         emit firstMessageReceived();
         context.start();
-        val.apply(RecordAutomationFirstParameterCallbackVisitor{*this, addr, context.time()});
+        val.apply(RecordAutomationFirstCallbackVisitor{*this, addr});
     }
 }
 

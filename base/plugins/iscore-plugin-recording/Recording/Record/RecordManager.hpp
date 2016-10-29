@@ -56,9 +56,6 @@ class AutomationRecorder :
         public RecordProvider
 {
         Q_OBJECT
-        friend struct RecordAutomationCreationVisitor;
-        friend struct RecordAutomationFirstParameterCallbackVisitor;
-        friend struct RecordAutomationParameterCallbackVisitor;
     public:
         RecordContext& context;
         AutomationRecorder(RecordContext& ctx);
@@ -67,6 +64,13 @@ class AutomationRecorder :
         void stop() override;
 
         void commit();
+
+
+        std::unordered_map<State::Address, RecordData> numeric_records;
+        std::unordered_map<State::Address, std::array<RecordData, 2>> vec2_records;
+        std::unordered_map<State::Address, std::array<RecordData, 3>> vec3_records;
+        std::unordered_map<State::Address, std::array<RecordData, 4>> vec4_records;
+        std::unordered_map<State::Address, std::vector<RecordData>> tuple_records;
 
     signals:
         void firstMessageReceived();
@@ -78,13 +82,6 @@ class AutomationRecorder :
         void finish(State::AddressAccessor addr, const RecordData& dat, const TimeValue& msecs, bool, int);
         const Curve::Settings::Model& m_settings;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
-
-
-        std::unordered_map<State::Address, RecordData> numeric_records;
-        std::unordered_map<State::Address, std::array<RecordData, 2>> vec2_records;
-        std::unordered_map<State::Address, std::array<RecordData, 3>> vec3_records;
-        std::unordered_map<State::Address, std::array<RecordData, 4>> vec4_records;
-        std::unordered_map<State::Address, std::vector<RecordData>> tuple_records;
 
         // TODO see this : http://stackoverflow.com/questions/34596768/stdunordered-mapfind-using-a-type-different-than-the-key-type
 };
