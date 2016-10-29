@@ -26,6 +26,20 @@ InitAutomation::InitAutomation(
 
 InitAutomation::InitAutomation(
         Path<ProcessModel>&& path,
+        State::AddressAccessor&& newaddr,
+        double newmin,
+        double newmax,
+        std::vector<Curve::SegmentData>&& segments):
+    m_path{std::move(path)},
+    m_addr(std::move(newaddr)),
+    m_newMin{newmin},
+    m_newMax{newmax},
+    m_segments{std::move(segments)}
+{
+}
+
+InitAutomation::InitAutomation(
+        Path<ProcessModel>&& path,
         const ::State::AddressAccessor& newaddr,
         double newmin,
         double newmax):

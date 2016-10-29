@@ -64,6 +64,9 @@ State::AddressAccessor address(const Node &treeNode)
 {
     State::AddressAccessor addr;
     const Node* n = &treeNode;
+    ISCORE_ASSERT(n->is<Device::AddressSettings>());
+    addr.qualifiers.unit = n->get<Device::AddressSettings>().unit;
+
     while(n->parent() && !n->is<DeviceSettings>())
     {
         addr.address.path.prepend(n->get<AddressSettings>().name);

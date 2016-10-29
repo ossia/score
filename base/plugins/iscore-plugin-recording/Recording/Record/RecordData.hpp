@@ -1,5 +1,5 @@
 #pragma once
-
+#include <ossia/editor/dataspace/dataspace.hpp>
 namespace Scenario
 {
 class ProcessModel;
@@ -27,11 +27,13 @@ struct RecordData
                 Scenario::Command::AddOnlyProcessToConstraint* cmd_proc,
                 Scenario::Command::AddLayerModelToSlot* cmd_lay,
                 Curve::Model& cm,
-                Curve::PointArraySegment& seg):
+                Curve::PointArraySegment& seg,
+                ossia::unit_t u):
             addProcCmd{cmd_proc},
             addLayCmd{cmd_lay},
             curveModel{cm},
-            segment{seg}
+            segment{seg},
+            unit{u}
         { }
 
         Scenario::Command::AddOnlyProcessToConstraint* addProcCmd{};
@@ -39,5 +41,7 @@ struct RecordData
 
         Curve::Model& curveModel;
         Curve::PointArraySegment& segment;
+
+        ossia::unit_t unit;
 };
 }

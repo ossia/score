@@ -153,6 +153,13 @@ AddressAccessor::AddressAccessor(Address a, const AccessorVector& v) noexcept :
 
 }
 
+AddressAccessor::AddressAccessor(Address a, const AccessorVector& v, ossia::unit_t u) noexcept:
+    address{std::move(a)},
+    qualifiers{v, u}
+{
+
+}
+
 AddressAccessor& AddressAccessor::operator=(const Address& a)
 {
     address = a;

@@ -5,6 +5,8 @@
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 
+
+
 namespace Recording
 {
 
@@ -50,7 +52,8 @@ RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
         cmd_proc,
                 cmd_layer,
                 autom.curve(),
-                *segt};
+                *segt,
+                addr.unit};
 }
 
 void RecordAutomationCreationVisitor::handle_numeric(float val)
