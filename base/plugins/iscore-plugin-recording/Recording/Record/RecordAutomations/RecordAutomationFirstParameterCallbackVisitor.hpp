@@ -3,11 +3,10 @@
 
 namespace Recording
 {
-struct RecordAutomationFirstParameterCallbackVisitor
+struct RecordAutomationFirstCallbackVisitor
 {
         AutomationRecorder& recorder;
         const State::Address& addr;
-        TimeValue msecs;
 
         void operator()(std::array<float, 2> val);
         void operator()(std::array<float, 3> val);

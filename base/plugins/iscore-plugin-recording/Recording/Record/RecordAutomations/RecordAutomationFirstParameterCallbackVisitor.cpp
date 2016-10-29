@@ -5,7 +5,7 @@
 namespace Recording
 {
 
-void RecordAutomationFirstParameterCallbackVisitor::operator()(std::array<float, 2> val)
+void RecordAutomationFirstCallbackVisitor::operator()(std::array<float, 2> val)
 {
     auto it = recorder.vec2_records.find(addr);
     ISCORE_ASSERT(it != recorder.vec2_records.end());
@@ -17,7 +17,7 @@ void RecordAutomationFirstParameterCallbackVisitor::operator()(std::array<float,
         proc_data[i].segment.addPoint(0, val[i]);
 }
 
-void RecordAutomationFirstParameterCallbackVisitor::operator()(std::array<float, 3> val)
+void RecordAutomationFirstCallbackVisitor::operator()(std::array<float, 3> val)
 {
     auto it = recorder.vec3_records.find(addr);
     ISCORE_ASSERT(it != recorder.vec3_records.end());
@@ -30,7 +30,7 @@ void RecordAutomationFirstParameterCallbackVisitor::operator()(std::array<float,
 
 }
 
-void RecordAutomationFirstParameterCallbackVisitor::operator()(std::array<float, 4> val)
+void RecordAutomationFirstCallbackVisitor::operator()(std::array<float, 4> val)
 {
     auto it = recorder.vec4_records.find(addr);
     ISCORE_ASSERT(it != recorder.vec4_records.end());
@@ -42,7 +42,7 @@ void RecordAutomationFirstParameterCallbackVisitor::operator()(std::array<float,
         proc_data[i].segment.addPoint(0, val[i]);
 }
 
-void RecordAutomationFirstParameterCallbackVisitor::handle_numeric(float newval)
+void RecordAutomationFirstCallbackVisitor::handle_numeric(float newval)
 {
     auto it = recorder.numeric_records.find(addr);
     ISCORE_ASSERT(it != recorder.numeric_records.end());
@@ -51,12 +51,12 @@ void RecordAutomationFirstParameterCallbackVisitor::handle_numeric(float newval)
     proc_data.segment.addPoint(0, newval);
 }
 
-void RecordAutomationFirstParameterCallbackVisitor::operator()(float f) { handle_numeric(f); }
+void RecordAutomationFirstCallbackVisitor::operator()(float f) { handle_numeric(f); }
 
-void RecordAutomationFirstParameterCallbackVisitor::operator()(int f) { handle_numeric(f); }
+void RecordAutomationFirstCallbackVisitor::operator()(int f) { handle_numeric(f); }
 
-void RecordAutomationFirstParameterCallbackVisitor::operator()(char f) { handle_numeric(f); }
+void RecordAutomationFirstCallbackVisitor::operator()(char f) { handle_numeric(f); }
 
-void RecordAutomationFirstParameterCallbackVisitor::operator()(bool f) { handle_numeric(f); }
+void RecordAutomationFirstCallbackVisitor::operator()(bool f) { handle_numeric(f); }
 
 }
