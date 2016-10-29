@@ -6,7 +6,7 @@ namespace Recording
 struct RecordAutomationFirstParameterCallbackVisitor
 {
         AutomationRecorder& recorder;
-        const State::Address &addr;
+        const State::Address& addr;
         TimeValue msecs;
 
         void operator()(std::array<float, 2> val);

@@ -27,6 +27,12 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final : public iscore::Seri
                 std::vector<Curve::SegmentData>&& segments);
         InitAutomation(
                 Path<ProcessModel>&& path,
+                State::AddressAccessor&& newaddr,
+                double newmin,
+                double newmax,
+                std::vector<Curve::SegmentData>&& segments);
+        InitAutomation(
+                Path<ProcessModel>&& path,
                 const State::AddressAccessor& newaddr,
                 double newmin,
                 double newmax);
