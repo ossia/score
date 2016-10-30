@@ -87,11 +87,11 @@ struct MessagePairs
                         numericMessages.emplace_back(message, *it);
                     }
                 }
-                else if(message.value.val.is<State::tuple_t>())
+                else if(message.value.val.isArray())
                 {
                     auto it = ossia::find_if(endMessages, [&] (const State::Message& arg) {
                         return message.address == arg.address
-                                && arg.value.val.is<State::tuple_t>()
+                                && arg.value.val.which() == message.value.val.which()
                                 && message.value != arg.value; });
 
                     if(it != endMessages.end())
