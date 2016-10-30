@@ -37,7 +37,7 @@ static std::vector<Device::FullAddressSettings> getSelectedAddresses(
         if(node.is<Device::AddressSettings>())
         {
             const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
-            if(addr.value.val.isNumeric())
+            if(addr.value.val.isNumeric() || addr.value.val.isArray())
             {
                 Device::FullAddressSettings as;
                 static_cast<Device::AddressSettingsCommon&>(as) = addr;
@@ -107,22 +107,19 @@ void CreateCurvesFromAddresses(
         int i = 0;
         for(const Device::FullAddressSettings& as : addresses)
         {
+            State::AddressAccessor addr{as.address, {}, as.unit};
             // First, we skip the curve if there is already a curve
             // with this address in the constraint.
-            if(ossia::contains(existing_automations, State::AddressAccessor{as.address}))
+            if(ossia::contains(existing_automations, addr))
                 continue;
 
             // Then we set-up all the necessary values
             // min / max
             auto min_v = as.domain.get_min();
             auto max_v = as.domain.get_max();
-            double min = ossia::is_numeric(min_v)
-                    ? ossia::convert<double>(min_v)
-                    : 0;
 
-            double max = ossia::is_numeric(max_v)
-                    ? ossia::convert<double>(max_v)
-                    : 1;
+            double min = ossia::convert<double>(min_v);
+            double max = ossia::convert<double>(max_v);
 
             // start value / end value
             double start = std::min(min, max);
@@ -158,7 +155,7 @@ void CreateCurvesFromAddresses(
                                   constraint,
                                   bigLayerVec[i],
                                   process_ids[i],
-                                  State::AddressAccessor{as.address},
+                                  addr,
                                   start, end, min, max
                               });
 
