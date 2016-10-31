@@ -4,6 +4,8 @@ i-score
 
 i-score is an interactive intermedia sequencer - read more on http://i-score.org/ or come chat with us ! [![join the chat at https://gitter.im/OSSIA/i-score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OSSIA/i-score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+With i-score you can sequence OSC, MIDI, etc. parameters between multiple software and hardware, to create **i**nteractive **score**s.
+
 #### Download the [latest release here](https://github.com/OSSIA/i-score/releases/) and read the Releases section in this README.
 
 ![i-score screenshot](/Documentation/iscore.png?raw=true)
