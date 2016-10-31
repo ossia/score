@@ -1,6 +1,6 @@
 #pragma once
 #include <State/Value.hpp>
-
+#include <QFormLayout>
 #include <iscore/widgets/SignalUtils.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <iscore/widgets/MarginLess.hpp>
@@ -84,7 +84,7 @@ class VecDomainWidget : public QWidget
         VecDomainWidget(QWidget* parent):
             QWidget{parent}
         {
-            auto lay = new iscore::MarginLess<QVBoxLayout>{this};
+            auto lay = new iscore::MarginLess<QFormLayout>{this};
             this->setLayout(lay);
 
             auto min_l = new QLabel{tr("Min"), this};

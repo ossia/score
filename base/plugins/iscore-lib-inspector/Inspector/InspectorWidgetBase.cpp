@@ -78,7 +78,7 @@ void InspectorWidgetBase::updateAreaLayout(std::list<QWidget*>& contents)
         delete item;
     }
 
-    for(auto& section : contents)
+    for(auto section : contents)
     {
         m_scrollAreaLayout->addWidget(section);
     }

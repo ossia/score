@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QFormLayout>
+#include <iscore/widgets/MarginLess.hpp>
 
 #include <QPushButton>
 #include <QSpinBox>
@@ -40,13 +41,17 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
 
 
     auto layout = new QFormLayout;
+    auto sublay = new iscore::MarginLess<QHBoxLayout>;
+    sublay->addWidget(loadNamespaceButton);
+    sublay->addWidget(m_namespaceFilePathEdit);
+    auto load_label = new QLabel{tr("Namespace file"), this};
+    load_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     layout->addRow(tr("Device name"), m_deviceNameEdit);
     layout->addRow(tr("i-score listening port"), m_portOutputSBox);
     layout->addRow(tr("Device listening port"), m_portInputSBox);
-    layout->addRow(tr("Host"), m_localHostEdit);
-    layout->addRow(tr("Load..."), loadNamespaceButton);
-    layout->addWidget(m_namespaceFilePathEdit);
+    layout->addRow(tr("Device host"), m_localHostEdit);
+    layout->addRow(load_label, sublay);
 
     connect(loadNamespaceButton, &QAbstractButton::clicked,
             this, &OSCProtocolSettingsWidget::openFileDialog);

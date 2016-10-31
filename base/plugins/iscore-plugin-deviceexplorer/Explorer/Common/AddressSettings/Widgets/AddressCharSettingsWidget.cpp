@@ -18,8 +18,8 @@ AddressCharSettingsWidget::AddressCharSettingsWidget(QWidget* parent)
 {
     m_valueEdit = new State::CharValueWidget{QChar('-'), this};
     m_domainEdit = new State::CharDomainWidget{this};
-    m_layout->insertRow(0, tr("Character"), m_valueEdit);
-    m_layout->insertRow(1, tr("Domain"), m_domainEdit);
+    m_layout->insertRow(0, makeLabel(tr("Character"), this), m_valueEdit);
+    m_layout->insertRow(1, makeLabel(tr("Domain"), this), m_domainEdit);
 }
 
 Device::AddressSettings AddressCharSettingsWidget::getSettings() const

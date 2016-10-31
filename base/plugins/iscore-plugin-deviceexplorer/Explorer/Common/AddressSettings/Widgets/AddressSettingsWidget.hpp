@@ -3,9 +3,11 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
 #include <QWidget>
+#include <QLabel>
 
 class QComboBox;
 class QCheckBox;
+class QLineEdit;
 class QLabel;
 class QFormLayout;
 
@@ -31,6 +33,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget : public QWidget
     protected:
         Device::AddressSettings getCommonSettings() const;
         void setCommonSettings(const Device::AddressSettings&);
+
         QFormLayout* m_layout;
 
     private:
@@ -39,8 +42,15 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget : public QWidget
         QComboBox* m_clipModeCBox{};
         QCheckBox* m_repetition{};
         QComboBox* m_tagsEdit{};
-        QLabel* m_description{};
+        QLineEdit* m_description{};
         State::UnitWidget* m_unit{};
 };
+
+inline QLabel* makeLabel(QString text, QWidget* parent)
+{
+  auto label = new QLabel{std::move(text), parent};
+  label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  return label;
+}
 }
 

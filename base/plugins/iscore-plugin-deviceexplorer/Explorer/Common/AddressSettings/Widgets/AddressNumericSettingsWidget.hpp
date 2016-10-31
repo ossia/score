@@ -25,8 +25,8 @@ class AddressNumericSettingsWidget final : public AddressSettingsWidget
             m_valueSBox = new SpinBox<T>(this);
             m_domainEdit = new State::NumericDomainWidget<T>{this};
 
-            m_layout->insertRow(0, tr("Value"), m_valueSBox);
-            m_layout->insertRow(1, tr("Domain"), m_domainEdit);
+            m_layout->insertRow(0, makeLabel(tr("Value"), this), m_valueSBox);
+            m_layout->insertRow(1, makeLabel(tr("Domain"), this), m_domainEdit);
 
             m_valueSBox->setValue(0);
             m_domainEdit->setDomain(ossia::net::make_domain(T{0}, T{100}));
