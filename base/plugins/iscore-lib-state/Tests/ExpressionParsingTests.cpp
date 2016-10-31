@@ -116,8 +116,6 @@ QDebug operator<<(QDebug dbg, const State::Relation::Comparator& v)
             dbg << "<"; break;
         case State::Relation::Comparator::LowerEqual:
             dbg << "<="; break;
-        case State::Relation::Comparator::None:
-            dbg << "none"; break;
     }
     return dbg;
 }

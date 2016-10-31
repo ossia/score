@@ -27,7 +27,6 @@ enum ExpressionEditorComparator
     Lower,
     GreaterEqual,
     LowerEqual,
-    None,
 
     // Additional ones
     Pulse,

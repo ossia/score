@@ -22,8 +22,7 @@ struct ISCORE_LIB_STATE_EXPORT Relation
             Greater,
             Lower,
             GreaterEqual,
-            LowerEqual,
-            None
+            LowerEqual
         } ;
 
         Relation() noexcept = default;

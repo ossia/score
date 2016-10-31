@@ -123,13 +123,16 @@ EventInspectorWidget::EventInspectorWidget(
 
         con(m_menu, &ExpressionMenu::expressionChanged,
             this, [=] (const QString& str) {
-            if(auto cond = State::parseExpression(str))
+            auto cond = State::parseExpression(str);
+            if(!cond)
             {
-                if(*cond != m_model.condition())
-                {
-                    auto cmd = new Scenario::Command::SetCondition{m_model, std::move(*cond)};
-                    m_commandDispatcher.submitCommand(cmd);
-                }
+                cond = State::defaultTrueExpression();
+            }
+
+            if(*cond != m_model.condition())
+            {
+              auto cmd = new Scenario::Command::SetCondition{m_model, *std::move(cond)};
+              m_commandDispatcher.submitCommand(cmd);
             }
         });
 

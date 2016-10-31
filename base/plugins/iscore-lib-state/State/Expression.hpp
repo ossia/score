@@ -275,6 +275,9 @@ ISCORE_LIB_STATE_EXPORT optional<State::Expression> parseExpression(const QStrin
 ISCORE_LIB_STATE_EXPORT optional<State::Value> parseValue(const QString& str);
 ISCORE_LIB_STATE_EXPORT optional<State::Address> parseAddress(const QString& str);
 ISCORE_LIB_STATE_EXPORT optional<State::AddressAccessor> parseAddressAccessor(const QString& str);
+
+ISCORE_LIB_STATE_EXPORT State::Expression defaultTrueExpression();
+ISCORE_LIB_STATE_EXPORT State::Expression defaultFalseExpression();
 }
 
 JSON_METADATA(State::Address, "Address")

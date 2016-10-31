@@ -149,14 +149,20 @@ class EditionGrid : public QWidget
         void on_modelMinNullChanged(bool b)
         {
             m_minNull->setVisible(b);
-            m_minNonNullBox->setChecked(!b);
+            {
+              QSignalBlocker block{m_minNonNullBox};
+              m_minNonNullBox->setChecked(!b);
+            }
             m_minSpin->setVisible(!b);
         }
 
         void on_modelMaxInfiniteChanged(bool b)
         {
             m_maxInfinity->setVisible(b);
-            m_maxFiniteBox->setChecked(!b);
+            {
+              QSignalBlocker block{m_maxFiniteBox};
+              m_maxFiniteBox->setChecked(!b);
+            }
             m_maxSpin->setVisible(!b);
         }
 
@@ -174,6 +180,7 @@ class EditionGrid : public QWidget
                 return;
 
             m_minSpin->setTime(dur.toQTime());
+            m_min = dur;
         }
 
         void on_modelMaxDurationChanged(const TimeValue& dur)
@@ -182,6 +189,7 @@ class EditionGrid : public QWidget
                 return;
 
             m_maxSpin->setTime(dur.toQTime());
+            m_max = dur;
         }
 
         void on_durationsChanged()

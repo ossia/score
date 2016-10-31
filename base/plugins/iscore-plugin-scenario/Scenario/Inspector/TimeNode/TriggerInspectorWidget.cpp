@@ -59,14 +59,17 @@ TriggerInspectorWidget::TriggerInspectorWidget(
             this, &TriggerInspectorWidget::removeTrigger);
     con(m_menu, &ExpressionMenu::expressionChanged,
             this, [=] (const QString& str) {
-        if(auto trig = State::parseExpression(str))
-        {
-            if(*trig != m_model.trigger()->expression())
-            {
-                auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
-                m_parent->commandDispatcher()->submitCommand(cmd);
-            }
-        }
+      auto trig = State::parseExpression(str);
+      if(!trig)
+      {
+          trig = State::defaultTrueExpression();
+      }
+
+      if(*trig != m_model.trigger()->expression())
+      {
+        auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
+        m_parent->commandDispatcher()->submitCommand(cmd);
+      }
     });
     connect(m_model.trigger(), &TriggerModel::activeChanged,
             this, &TriggerInspectorWidget::on_triggerActiveChanged);
