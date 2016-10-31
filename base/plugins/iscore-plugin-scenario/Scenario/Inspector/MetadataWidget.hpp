@@ -101,7 +101,7 @@ class MetadataWidget final : public QWidget
 
         QLineEdit* m_scriptingNameLine {};
         QLineEdit* m_labelLine {};
-        QPushButton* m_colorButton {};
+        QToolButton* m_colorButton {};
         CommentEdit* m_comments {};
         ExtendedMetadataWidget* m_meta{};
         QPixmap m_colorButtonPixmap {4 * m_colorIconSize / 3, 4 * m_colorIconSize / 3};

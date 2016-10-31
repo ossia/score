@@ -23,10 +23,11 @@ class AddressVecSettingsWidget final : public AddressSettingsWidget
 
             m_domainFloatEdit = new State::NumericDomainWidget<float>{this};
             m_domainVecEdit = new State::VecDomainWidget<N>{this};
+            m_domainVecEdit->setHidden(true);
 
-            m_layout->insertRow(0, tr("Value"), m_valueEdit);
-            m_layout->insertRow(1, tr("Domain Type"), m_domainSelector);
-            m_layout->insertRow(2, tr("Domain"), m_domainFloatEdit);
+            m_layout->insertRow(0, makeLabel(tr("Value"), this), m_valueEdit);
+            m_layout->insertRow(1, makeLabel(tr("Domain Type"), this), m_domainSelector);
+            m_layout->insertRow(2, makeLabel(tr("Domain"), this), m_domainFloatEdit);
 
             m_domainSelector->setCurrentIndex(0);
         }
@@ -73,17 +74,21 @@ class AddressVecSettingsWidget final : public AddressSettingsWidget
                 // Float
                 case 0:
                 {
-                    m_domainVecEdit->setHidden(true);
-                    m_domainFloatEdit->setHidden(false);
                     m_layout->replaceWidget(m_domainVecEdit, m_domainFloatEdit, Qt::FindDirectChildrenOnly);
+                    m_domainVecEdit->setHidden(true);
+                    m_domainVecEdit->setDisabled(true);
+                    m_domainFloatEdit->setHidden(false);
+                    m_domainFloatEdit->setDisabled(false);
                     break;
                 }
                     // Vec
                 case 1:
                 {
-                    m_domainVecEdit->setHidden(false);
-                    m_domainFloatEdit->setHidden(true);
                     m_layout->replaceWidget(m_domainFloatEdit, m_domainVecEdit, Qt::FindDirectChildrenOnly);
+                    m_domainVecEdit->setHidden(false);
+                    m_domainVecEdit->setDisabled(false);
+                    m_domainFloatEdit->setHidden(true);
+                    m_domainFloatEdit->setDisabled(true);
                     break;
                 }
             }

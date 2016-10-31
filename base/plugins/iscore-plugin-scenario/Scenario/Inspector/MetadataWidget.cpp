@@ -55,12 +55,10 @@ MetadataWidget::MetadataWidget(
     descriptionWidget->setObjectName("Description");
 
      // color
-    m_colorButton = new QPushButton{this};
-    m_colorButton->setMaximumSize(QSize(1.5 * m_colorIconSize, 1.5 * m_colorIconSize));
-    m_colorButton->setIconSize(QSize(m_colorIconSize, m_colorIconSize));
-    m_colorButtonPixmap.fill(metadata.getColor().getColor());
-    m_colorButton->setIcon(QIcon(m_colorButtonPixmap));
-
+    m_colorButton = new QToolButton{this};
+    m_colorButton->setArrowType(Qt::NoArrow);
+    m_colorButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    m_colorButton->setPopupMode(QToolButton::InstantPopup);
 
     // comments
     m_comments = new CommentEdit{metadata.getComment(), this};
@@ -133,12 +131,15 @@ MetadataWidget::MetadataWidget(
         connect(palette_widget, static_cast<void (ColorPaletteWidget::*)(int)>(&ColorPaletteWidget::currentColorChanged),
                 this, [=] (int idx) {
             auto colors = m_palette->palette(0).colors();
-            if(colors.size() <= idx)
-                return;
 
-            auto col = iscore::ColorRef::ColorFromString(colors.at(idx).second);
-            if(col)
-                emit colorChanged(*col);
+            if(idx >= 0 && idx < colors.size())
+            {
+              auto col_1 = colors.at(idx).second;
+              auto col = iscore::ColorRef::ColorFromString(col_1);
+              if(col)
+                  emit colorChanged(*col);
+            }
+
         } );
 
         auto colorMenu = new QMenu{this};
@@ -146,6 +147,13 @@ MetadataWidget::MetadataWidget(
         act->setDefaultWidget(palette_widget);
         colorMenu->insertAction(nullptr, act);
         m_colorButton->setMenu(colorMenu);
+        m_colorButton->setMaximumSize(QSize(1.5 * m_colorIconSize, 1.5 * m_colorIconSize));
+
+        m_colorButtonPixmap = QPixmap(m_colorIconSize, m_colorIconSize);
+        m_colorButtonPixmap.fill(metadata.getColor().getColor());
+        m_colorButton->setIcon(QIcon(m_colorButtonPixmap));
+        m_colorButton->setIconSize(QSize(m_colorIconSize, m_colorIconSize));
+
     }
 
     con(metadata,   &iscore::ModelMetadata::metadataChanged,

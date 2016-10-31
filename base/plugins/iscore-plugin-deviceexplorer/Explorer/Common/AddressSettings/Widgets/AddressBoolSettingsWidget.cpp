@@ -22,7 +22,7 @@ AddressBoolSettingsWidget::AddressBoolSettingsWidget(QWidget* parent)
     // The order is important because then
     // setting the index from a bool is a one-liner in setSettings.
 
-    m_layout->insertRow(0, tr("Value"), m_cb);
+    m_layout->insertRow(0, makeLabel(tr("Value"), this), m_cb);
 }
 
 Device::AddressSettings AddressBoolSettingsWidget::getSettings() const

@@ -24,7 +24,7 @@
 #include <QWidget>
 #include <algorithm>
 #include <QMenu>
-
+#include <QFormLayout>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
@@ -52,13 +52,11 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     // default date
     auto dateWid = new QWidget{this};
-    auto dateLay = new QHBoxLayout{dateWid};
+    auto dateLay = new QFormLayout{dateWid};
+    m_date = new QLabel{m_model.date().toString(), dateWid};
 
-    auto dateTitle = new QLabel{"Default date"};
-    m_date = new QLabel{m_model.date().toString() };
-
-    dateLay->addWidget(dateTitle);
-    dateLay->addWidget(m_date);
+    dateLay->addRow(tr("Default date"), m_date);
+    dateWid->setLayout(dateLay);
 
     // Trigger
     auto trigSec = new Inspector::InspectorSectionWidget{tr("Trigger"), false, this};
@@ -76,7 +74,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     m_properties.push_back(dateWid);
     m_properties.push_back(trigSec);
-    m_properties.push_back(new QLabel{tr("Events")});
+    m_properties.push_back(new QLabel{tr("Events"), this});
     m_properties.push_back(m_events);
 
     updateAreaLayout(m_properties);
@@ -121,7 +119,6 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
 
     m_properties.push_back(evSection);
     m_events->layout()->addWidget(evSection);
-    m_properties.push_back(new Inspector::HSeparator {this});
 
     con(event.selection, &Selectable::changed,
         this, [&] (bool b)

@@ -17,11 +17,12 @@ AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
     m_valueEdit = new QLineEdit(this);
-    m_values = new State::StringValueSetDialog{this};
-    m_layout->insertRow(0, tr("Text"), m_valueEdit);
 
+    m_values = new State::StringValueSetDialog{this};
     auto pb = new QPushButton{tr("Values"), this};
-    m_layout->insertRow(1, tr("Domain"), pb);
+
+    m_layout->insertRow(0, makeLabel(tr("Text"), this), m_valueEdit);
+    m_layout->insertRow(1, makeLabel(tr("Domain"), this), pb);
 
     connect(pb, &QPushButton::clicked,
             this, [=] {

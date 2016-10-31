@@ -1,6 +1,7 @@
 #include "UnitWidget.hpp"
 #include <brigand/algorithms/for_each.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 #include <QComboBox>
 #include <QHBoxLayout>
 
@@ -10,8 +11,7 @@ namespace State
 UnitWidget::UnitWidget(ossia::unit_t u, QWidget* parent):
     QWidget{parent}
 {
-    m_layout = new QHBoxLayout;
-    this->setLayout(m_layout);
+    m_layout = new iscore::MarginLess<QHBoxLayout>{this};
 
     m_dataspace = new QComboBox{this};
     m_unit = new QComboBox{this};
