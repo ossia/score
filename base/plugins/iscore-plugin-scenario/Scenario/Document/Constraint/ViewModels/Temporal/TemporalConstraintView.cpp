@@ -113,11 +113,6 @@ void TemporalConstraintView::paint(
             solidPath.lineTo(min_w, 0);
 
             m_leftBrace->show();
-            m_leftBrace->setOpacity(1.);
-        }
-        else
-        {
-            m_leftBrace->setOpacity(0.1);
         }
         m_rightBrace->hide();
 
@@ -141,7 +136,6 @@ void TemporalConstraintView::paint(
 
         m_leftBrace->show();
         m_rightBrace->show();
-
     }
 
     QPainterPath playedPath;

@@ -58,7 +58,6 @@ const QMap<State::Relation::Comparator, QString> State::opToString()
         {State::Relation::Comparator::Lower,         "<"},
         {State::Relation::Comparator::Greater,       ">"},
         {State::Relation::Comparator::Different,     "!="},
-        {State::Relation::Comparator::Equal,         "=="},
-        {State::Relation::Comparator::None,          ""}
+        {State::Relation::Comparator::Equal,         "=="}
     };
 }

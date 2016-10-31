@@ -35,12 +35,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SetRigidity final : public iscore::Serializa
 
     private:
         Path<ConstraintModel> m_path;
-
-        bool m_rigidity {};
-
         // Unused if the constraint was rigid // NOTE Why ??
         TimeValue m_oldMinDuration;
         TimeValue m_oldMaxDuration;
+
+
+        bool m_rigidity {}, m_oldIsNull{}, m_oldIsInfinite{};
+
 };
 }
 }

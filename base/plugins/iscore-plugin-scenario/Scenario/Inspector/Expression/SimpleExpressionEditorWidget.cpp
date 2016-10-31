@@ -264,7 +264,6 @@ void SimpleExpressionEditorWidget::on_comparatorChanged(int i)
             m_value->setEnabled(true);
             break;
 
-        case ExpressionEditorComparator::None:
         case ExpressionEditorComparator::Pulse:
             m_address->setEnabled(true);
             m_value->setEnabled(false);
@@ -275,6 +274,10 @@ void SimpleExpressionEditorWidget::on_comparatorChanged(int i)
             m_address->setEnabled(false);
             m_value->setEnabled(false);
             break;
+
+        default:
+          m_address->setEnabled(false);
+          m_value->setEnabled(false);
     }
 }
 
@@ -304,9 +307,6 @@ QString SimpleExpressionEditorWidget::currentRelation()
     case ExpressionEditorComparator::Different:
         return addr + " != " + m_value->text();
 
-    case ExpressionEditorComparator::None:
-        return "";
-
     case ExpressionEditorComparator::Pulse:
     {
         QString expr = m_address->addressString() + " impulse";
@@ -314,11 +314,11 @@ QString SimpleExpressionEditorWidget::currentRelation()
     }
     case ExpressionEditorComparator::AlwaysTrue:
     {
-        return "true == true"; // TODO berk
+        return State::defaultTrueExpression().toString();
     }
     case ExpressionEditorComparator::AlwaysFalse:
     {
-        return "true == false"; // TODO berk
+        return State::defaultFalseExpression().toString();
     }
     }
 
@@ -339,7 +339,6 @@ const std::map<ExpressionEditorComparator, QString>&ExpressionEditorComparators(
         { ExpressionEditorComparator::Lower, "<" },
         { ExpressionEditorComparator::GreaterEqual, QString::fromUtf8("\u2265") },
         { ExpressionEditorComparator::LowerEqual, QString::fromUtf8("\u2264") },
-        { ExpressionEditorComparator::None, "" },
         { ExpressionEditorComparator::Pulse, "Pulse" },
         { ExpressionEditorComparator::AlwaysTrue, "True" },
         { ExpressionEditorComparator::AlwaysFalse, "False" }

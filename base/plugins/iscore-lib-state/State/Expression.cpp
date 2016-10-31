@@ -85,3 +85,16 @@ QString TreeNode<State::ExprData>::toString() const
     return s;
 }
 
+
+State::Expression State::defaultTrueExpression()
+{
+  static const auto expr = *State::parseExpression("true == true");
+  return expr;
+}
+
+State::Expression State::defaultFalseExpression()
+{
+  static const auto expr = *State::parseExpression("true == false");
+  return expr;
+}
+

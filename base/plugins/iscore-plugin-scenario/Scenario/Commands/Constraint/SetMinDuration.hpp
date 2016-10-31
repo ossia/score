@@ -46,15 +46,15 @@ class SetMinDuration final : public iscore::SerializableCommand
         void undo() const override
         {
             auto& cstrDuration = m_path.find().duration;
-            cstrDuration.setMinDuration(m_oldVal);
             cstrDuration.setMinNull(m_oldMinNull);
+            cstrDuration.setMinDuration(m_oldVal);
         }
 
         void redo() const override
         {
             auto& cstrDuration = m_path.find().duration;
-            cstrDuration.setMinDuration(m_newVal);
             cstrDuration.setMinNull(m_newMinNull);
+            cstrDuration.setMinDuration(m_newVal);
         }
 
     protected:
