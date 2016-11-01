@@ -131,7 +131,7 @@ EventInspectorWidget::EventInspectorWidget(
 
             if(*cond != m_model.condition())
             {
-              auto cmd = new Scenario::Command::SetCondition{m_model, *std::move(cond)};
+              auto cmd = new Scenario::Command::SetCondition{m_model, std::move(*cond)};
               m_commandDispatcher.submitCommand(cmd);
             }
         });
