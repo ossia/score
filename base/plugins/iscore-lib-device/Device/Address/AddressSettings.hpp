@@ -195,3 +195,6 @@ struct FullAddressAccessorSettings
 }
 
 JSON_METADATA(Device::AddressSettings, "AddressSettings")
+Q_DECLARE_METATYPE(Device::AddressSettings)
+Q_DECLARE_METATYPE(Device::FullAddressSettings)
+Q_DECLARE_METATYPE(Device::FullAddressAccessorSettings)

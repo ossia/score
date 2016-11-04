@@ -18,6 +18,7 @@ OSCDevice::OSCDevice(const Device::DeviceSettings &settings):
     OwningOSSIADevice{settings}
 {
     using namespace ossia;
+    m_capas.canLearn = true;
 
     reconnect();
 }
@@ -43,6 +44,37 @@ bool OSCDevice::reconnect()
     }
 
     return connected();
+}
+
+bool OSCDevice::isLearning() const
+{
+    auto& proto = static_cast<ossia::net::osc_protocol&>(m_dev->getProtocol());
+    return proto.getLearningStatus();
+}
+
+void OSCDevice::setLearning(bool b)
+{
+  auto& proto = static_cast<ossia::net::osc_protocol&>(m_dev->getProtocol());
+  auto& dev = *m_dev;
+  if(b)
+  {
+    dev.onNodeCreated.connect<OSSIADevice, &OSSIADevice::nodeCreated>((OSSIADevice*)this);
+    dev.onNodeRemoving.connect<OSSIADevice, &OSSIADevice::nodeRemoving>((OSSIADevice*)this);
+    dev.onNodeRenamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>((OSSIADevice*)this);
+    dev.onAddressCreated.connect<OSSIADevice, &OSSIADevice::addressCreated>((OSSIADevice*)this);
+    dev.onAddressModified.connect<OSSIADevice, &OSSIADevice::addressUpdated>((OSSIADevice*)this);
+  }
+  else
+  {
+    dev.onNodeCreated.disconnect<OSSIADevice, &OSSIADevice::nodeCreated>((OSSIADevice*)this);
+    dev.onNodeRemoving.disconnect<OSSIADevice, &OSSIADevice::nodeRemoving>((OSSIADevice*)this);
+    dev.onNodeRenamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>((OSSIADevice*)this);
+    dev.onAddressCreated.disconnect<OSSIADevice, &OSSIADevice::addressCreated>((OSSIADevice*)this);
+    dev.onAddressModified.disconnect<OSSIADevice, &OSSIADevice::addressUpdated>((OSSIADevice*)this);
+
+  }
+
+  proto.setLearningStatus(b);
 }
 }
 }

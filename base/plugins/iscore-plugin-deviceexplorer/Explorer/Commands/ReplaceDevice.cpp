@@ -31,6 +31,17 @@ ReplaceDevice::ReplaceDevice(Path<DeviceDocumentPlugin>&& device_tree,
     m_savedNode = explorer.nodeFromModelIndex(explorer.index(m_deviceIndex, 0, QModelIndex()));
 }
 
+ReplaceDevice::ReplaceDevice(Path<DeviceDocumentPlugin>&& device_tree,
+                             int deviceIndex,
+                             Device::Node&& oldRootNode,
+                             Device::Node&& newRootNode):
+    m_deviceTree{device_tree},
+    m_deviceIndex(deviceIndex),
+    m_deviceNode{std::move(newRootNode)},
+    m_savedNode{std::move(oldRootNode)}
+{
+}
+
 void ReplaceDevice::undo() const
 {
     auto& explorer = m_deviceTree.find().explorer();

@@ -43,6 +43,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT OSSIADevice :
         optional<State::Value> refresh(const State::Address&) final override;
 
         Device::Node getNode(const State::Address&) final override;
+        Device::Node getNodeWithoutChildren(const State::Address&) final override;
 
         void setListening(const State::Address&, bool) final override;
 

@@ -33,5 +33,28 @@ class LoadDevice final : public iscore::SerializableCommand
         Path<DeviceDocumentPlugin> m_devicesModel;
         Device::Node m_deviceNode;
 };
+
+class ReloadWholeDevice final : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), ReloadWholeDevice, "Reload a device")
+        public:
+          ReloadWholeDevice(
+            Path<DeviceDocumentPlugin>&& device_tree,
+            Device::Node&& oldnode,
+            Device::Node&& newnode);
+
+
+        void undo() const override;
+        void redo() const override;
+
+    protected:
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
+
+    private:
+        Path<DeviceDocumentPlugin> m_devicesModel;
+        Device::Node m_oldNode;
+        Device::Node m_newNode;
+};
 }
 }

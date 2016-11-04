@@ -32,6 +32,7 @@ struct ISCORE_LIB_DEVICE_EXPORT DeviceCapas
         bool canRefreshTree{false};
         bool canListen{true};
         bool canSerialize{true};
+        bool canLearn{false};
 };
 
 class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
@@ -75,9 +76,13 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 
         // Make a node from an inside path, if it has been added for instance.
         virtual Device::Node getNode(const State::Address&) = 0;
+        virtual Device::Node getNodeWithoutChildren(const State::Address&) = 0;
 
         virtual bool isLogging() const = 0;
         virtual void setLogging(bool) = 0;
+
+        virtual bool isLearning() const { return false; }
+        virtual void setLearning(bool) { }
 
     signals:
         // These signals are emitted if a device changes from the inside

@@ -67,6 +67,7 @@ class DeviceExplorerWidget final : public QWidget
         void addSibling();
 
         void removeNodes();
+        void learn();
 
         // Answer to user interaction
         void filterChanged();
@@ -100,6 +101,7 @@ class DeviceExplorerWidget final : public QWidget
         QAction* m_exportDeviceAction{};
 
         QAction* m_removeNodeAction{};
+        QAction* m_learnAction{};
 
         QComboBox* m_columnCBox{};
         QLineEdit* m_nameLEdit{};

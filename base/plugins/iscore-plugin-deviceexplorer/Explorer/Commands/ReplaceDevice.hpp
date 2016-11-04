@@ -21,6 +21,10 @@ class ReplaceDevice final : public iscore::SerializableCommand
             ReplaceDevice(Path<DeviceDocumentPlugin>&& device_tree,
                           int deviceIndex,
                           Device::Node&& rootNode);
+        ReplaceDevice(Path<DeviceDocumentPlugin>&& device_tree,
+                      int deviceIndex,
+                      Device::Node&& oldDevice,
+                      Device::Node&& newDevice);
 
         void undo() const override;
         void redo() const override;
