@@ -23,6 +23,12 @@ class PanelFactory;
 iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer()
 {
     QMetaType::registerComparators<UuidKey<Device::ProtocolFactory>>();
+    qRegisterMetaType<Device::AddressSettings>();
+    qRegisterMetaType<Device::FullAddressSettings>();
+    qRegisterMetaType<Device::FullAddressAccessorSettings>();
+    qRegisterMetaTypeStreamOperators<Device::AddressSettings>();
+    qRegisterMetaTypeStreamOperators<Device::FullAddressSettings>();
+    qRegisterMetaTypeStreamOperators<Device::FullAddressAccessorSettings>();
 }
 
 iscore_plugin_deviceexplorer::~iscore_plugin_deviceexplorer()

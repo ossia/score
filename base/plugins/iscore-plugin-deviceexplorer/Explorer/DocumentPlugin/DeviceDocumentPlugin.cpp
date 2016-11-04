@@ -188,7 +188,7 @@ void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
         {
             updateProxy.addLocalNode(
                         *parent,
-                        newdev.getNode(newaddr));
+                        newdev.getNodeWithoutChildren(newaddr));
         }
     });
 

@@ -46,5 +46,40 @@ void LoadDevice::deserializeImpl(DataStreamOutput& d)
     d >> m_devicesModel;
     d >> m_deviceNode;
 }
+
+
+ReloadWholeDevice::ReloadWholeDevice(
+        Path<DeviceDocumentPlugin>&& device_tree,
+        Device::Node&& oldNode,
+        Device::Node&& newNode):
+    m_devicesModel{std::move(device_tree)},
+    m_oldNode(std::move(oldNode)),
+    m_newNode(std::move(newNode))
+{
+}
+
+void ReloadWholeDevice::undo() const
+{
+    auto& devplug = m_devicesModel.find();
+    devplug.updateProxy.removeDevice(m_newNode.get<Device::DeviceSettings>());
+    devplug.updateProxy.loadDevice(m_oldNode);
+}
+
+void ReloadWholeDevice::redo() const
+{
+    auto& devplug = m_devicesModel.find();
+    devplug.updateProxy.removeDevice(m_oldNode.get<Device::DeviceSettings>());
+    devplug.updateProxy.loadDevice(m_newNode);
+}
+
+void ReloadWholeDevice::serializeImpl(DataStreamInput& d) const
+{
+    d << m_devicesModel << m_oldNode << m_newNode;
+}
+
+void ReloadWholeDevice::deserializeImpl(DataStreamOutput& d)
+{
+  d >> m_devicesModel >> m_oldNode >> m_newNode;
+}
 }
 }

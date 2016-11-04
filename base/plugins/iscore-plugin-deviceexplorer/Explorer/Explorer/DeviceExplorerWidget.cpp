@@ -38,6 +38,7 @@
 #include <stdexcept>
 #include <QJsonDocument>
 #include <QFileDialog>
+#include <QDialogButtonBox>
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
@@ -64,9 +65,48 @@
 #include <iscore/widgets/SignalUtils.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 
-
+#include <QLabel>
 namespace Explorer
 {
+
+class LearnDialog : public QDialog
+{
+public:
+  LearnDialog(Device::DeviceInterface& dev, QWidget* w):
+    QDialog{w},
+    m_dev{dev}
+  {
+    this->setWindowTitle(tr("OSC learning"));
+    auto lay = new QVBoxLayout{this};
+
+    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
+            | QDialogButtonBox::Cancel, Qt::Horizontal, this);
+    connect(buttonBox, &QDialogButtonBox::accepted,
+            this, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected,
+            this, &QDialog::reject);
+
+    m_addressArea = new QLabel{tr("New addresses: \n\n"), this};
+    lay->addWidget(m_addressArea);
+    lay->addWidget(buttonBox);
+
+    con(dev, &Device::DeviceInterface::pathAdded,
+            this, [=] (const State::Address& a) {
+      m_addressArea->setText(m_addressArea->text() + "\n" + a.toString());
+    });
+
+    m_dev.setLearning(true);
+  }
+
+  ~LearnDialog()
+  {
+    m_dev.setLearning(false);
+  }
+
+  Device::DeviceInterface& m_dev;
+  QLabel* m_addressArea{};
+};
+
 DeviceExplorerWidget::DeviceExplorerWidget(
         const Device::DynamicProtocolList& pl,
         QWidget* parent)
@@ -111,6 +151,7 @@ DeviceExplorerWidget::buildGUI()
 
     m_removeNodeAction = new QAction(tr("Remove"), this);
     m_exportDeviceAction = new QAction{tr("Export device"), this};
+    m_learnAction = new QAction{tr("Learn"), this};
 
 #ifdef __APPLE__
     m_removeNodeAction->setShortcut(QKeySequence(tr("Ctrl+Backspace")));
@@ -125,6 +166,7 @@ DeviceExplorerWidget::buildGUI()
     m_disconnect->setEnabled(false);
     m_reconnect->setEnabled(false);
     m_exportDeviceAction->setEnabled(false);
+    m_learnAction->setEnabled(false);
 
     m_editAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_refreshAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
@@ -133,6 +175,7 @@ DeviceExplorerWidget::buildGUI()
     m_disconnect->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_reconnect->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_exportDeviceAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_learnAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     connect(m_editAction, &QAction::triggered, this, &DeviceExplorerWidget::edit);
     connect(m_refreshAction, &QAction::triggered, this, &DeviceExplorerWidget::refresh);
@@ -141,6 +184,7 @@ DeviceExplorerWidget::buildGUI()
     connect(m_reconnect, &QAction::triggered, this, &DeviceExplorerWidget::reconnect);
     connect(m_removeNodeAction, &QAction::triggered, this, &DeviceExplorerWidget::removeNodes);
     connect(m_exportDeviceAction, &QAction::triggered, this, &DeviceExplorerWidget::exportDevice);
+    connect(m_learnAction, &QAction::triggered, this, &DeviceExplorerWidget::learn);
 
 
     QPushButton* addButton = new QPushButton(this);
@@ -203,6 +247,7 @@ DeviceExplorerWidget::buildGUI()
 
         this->addAction(m_refreshAction);
         this->addAction(m_refreshValueAction);
+        this->addAction(m_learnAction);
 
         this->addAction(m_removeNodeAction);
     }
@@ -303,6 +348,7 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
     contextMenu->addAction(m_addSiblingAction);
     contextMenu->addAction(m_addChildAction);
     contextMenu->addAction(m_exportDeviceAction);
+    contextMenu->addAction(m_learnAction);
     contextMenu->addSeparator();
     contextMenu->addAction(m_removeNodeAction);
 
@@ -357,6 +403,7 @@ DeviceExplorerWidget::updateActions()
         return;
 
     m_exportDeviceAction->setEnabled(false);
+    m_learnAction->setEnabled(false);
 
     if(! m->isEmpty())
     {
@@ -401,6 +448,7 @@ DeviceExplorerWidget::updateActions()
                 m_exportDeviceAction->setEnabled(true);
                 m_addSiblingAction->setEnabled(false);
                 m_removeNodeAction->setEnabled(false);
+                m_learnAction->setEnabled(true);
             }
             m_removeNodeAction->setEnabled(true);
             m_editAction->setEnabled(true);
@@ -777,6 +825,66 @@ void DeviceExplorerWidget::removeNodes()
     }
 
     m_cmdDispatcher->submitCommand(cmd);
+}
+
+
+void DeviceExplorerWidget::learn()
+{
+  // Get the device
+  auto indexes = m_ntView->selectedIndexes();
+
+  if(indexes.size() != 1)
+      return;
+
+  auto m = model();
+  Device::Node& n = m->nodeFromModelIndex(sourceIndex(indexes.first()));
+  if(!n.is<Device::DeviceSettings>())
+      return;
+  auto di = m->deviceModel().list().findDevice(n.get<Device::DeviceSettings>().name);
+  if(!di)
+    return;
+
+  if(!di->capabilities().canLearn)
+    return;
+
+  // Make a copy of the node
+  Device::Node oldDevice = n;
+  // Show a dialog for as long as there is learn status active
+  auto d = new LearnDialog{*di, this};
+
+  auto res = d->exec();
+  delete d; // Stops learning
+
+  // Create a command and push it if we agree, undo it and don't push it if we refuse
+  Device::Node newDevice = n;
+  if(res)
+  {
+    // Create a command with the current state of the device
+    auto cmd = new Explorer::Command::ReloadWholeDevice{
+          m->deviceModel(),
+          std::move(oldDevice),
+          std::move(newDevice)
+    };
+
+    // Push it without redoing it since the device already has the nodes
+    CommandDispatcher<SendStrategy::Quiet> disp{m_cmdDispatcher->stack()};
+    disp.submitCommand(cmd);
+
+    // This way we're able to undo the learn operation
+  }
+  else
+  {
+    // We still have to rollback the messages that may have been received
+    Explorer::Command::ReloadWholeDevice cmd{
+          m->deviceModel(),
+          std::move(oldDevice),
+          std::move(newDevice)
+    };
+
+    // No need to push anything
+    cmd.undo();
+  }
+
 }
 
 void

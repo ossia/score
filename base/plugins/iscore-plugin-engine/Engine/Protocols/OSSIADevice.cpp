@@ -291,6 +291,20 @@ Device::Node OSSIADevice::getNode(const State::Address& address)
     return {};
 }
 
+Device::Node OSSIADevice::getNodeWithoutChildren(const State::Address& address)
+{
+  if(auto dev = getDevice())
+  {
+      auto ossia_node = Engine::iscore_to_ossia::findNodeFromPath(address.path, *dev);
+      if(ossia_node)
+      {
+        return Device::Node{Engine::ossia_to_iscore::ToAddressSettings(*ossia_node), nullptr};
+      }
+  }
+
+  return {};
+}
+
 void OSSIADevice::setListening(
         const State::Address& addr,
         bool b)
