@@ -13,11 +13,13 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include "ScenarioGlobalCommandManager.hpp"
 #include <iscore/selection/Selection.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/EntityMap.hpp>
-
+#include <iscore/document/DocumentContext.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeNodes.hpp>
+#include <iscore/selection/SelectionStack.hpp>
 namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
@@ -55,6 +57,10 @@ void Scenario::removeSelection(
 {
     Selection sel = scenario.selectedChildren();
 
+    auto&ctx = iscore::IDocument::documentContext(scenario);
+    iscore::SelectionDispatcher s{ctx.selectionStack};
+    s.setAndCommit({});
+    ctx.selectionStack.clear();
     // We have to remove the first / last timenodes / events from the selection.
     erase_if(sel, [&] (auto&& elt) {
         return elt->id_val() == startId_val();
