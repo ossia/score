@@ -45,7 +45,7 @@ void TemporalConstraintHeader::paint(
         QWidget *widget)
 {
     painter->setRenderHint(QPainter::Antialiasing, false);
-    if(m_state == State::RackHidden)
+    //if(m_state == State::RackHidden)
     {
         auto rect = boundingRect();
         painter->fillRect(rect, ScenarioStyle::instance().ConstraintHeaderRackHidden.getBrush());
