@@ -109,6 +109,7 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
     auto splitAct = evSection->menu()->addAction("Put in new Timenode");
     connect(splitAct, &QAction::triggered,
             this, [&] () {
+        selectionDispatcher().setAndCommit({});
         auto cmd = new Command::SplitTimeNode{m_model,
                                                 {event.id()}};
 
