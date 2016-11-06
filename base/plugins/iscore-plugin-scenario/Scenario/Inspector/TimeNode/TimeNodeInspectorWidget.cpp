@@ -17,7 +17,7 @@
 #include <QBoxLayout>
 #include <QColor>
 #include <QLabel>
-
+#include <QApplication>
 #include <QPushButton>
 #include <QString>
 #include <QVector>
@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <QMenu>
 #include <QFormLayout>
+#include <QTimer>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
@@ -37,6 +38,30 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+
+struct FunctionEvent : public QEvent
+{
+  const std::function<void()> fun;
+
+  template<typename Fun>
+  FunctionEvent(Fun&& f): fun(std::move(f)) { }
+};
+
+// TODO put me in app context
+class FunctionEventReceiver : public QObject
+{
+  virtual bool event(QEvent *event)
+  {
+    if(auto e = dynamic_cast<FunctionEvent*>(event))
+    {
+      if(e->fun)
+      {
+        e->fun();
+      }
+    }
+    return true;
+  }
+};
 
 namespace Scenario
 {
@@ -109,11 +134,20 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
     auto splitAct = evSection->menu()->addAction("Put in new Timenode");
     connect(splitAct, &QAction::triggered,
             this, [&] () {
+        // TODO all this machinery is ugly but it crashes for some reason if
+        // we just send the command directly...
+        auto tn = &m_model;
+        auto id = event.id();
+        auto st = &commandDispatcher()->stack();
         selectionDispatcher().setAndCommit({});
-        auto cmd = new Command::SplitTimeNode{m_model,
-                                                {event.id()}};
 
-        commandDispatcher()->submitCommand(cmd);
+        qApp->processEvents();
+        QTimer::singleShot(0, [=] {
+          auto cmd = new Command::SplitTimeNode{*tn, {id}};
+
+          CommandDispatcher<> s{*st};
+          s.submitCommand(cmd);
+        });
     } );
 
     m_eventList[event.id()] = evSection;
