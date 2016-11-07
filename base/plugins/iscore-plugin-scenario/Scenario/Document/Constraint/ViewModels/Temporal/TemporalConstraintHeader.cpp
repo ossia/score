@@ -45,7 +45,7 @@ void TemporalConstraintHeader::paint(
         QWidget *widget)
 {
     painter->setRenderHint(QPainter::Antialiasing, false);
-    //if(m_state == State::RackHidden)
+    if(m_state == State::RackHidden)
     {
         auto rect = boundingRect();
         painter->fillRect(rect, ScenarioStyle::instance().ConstraintHeaderRackHidden.getBrush());
@@ -97,14 +97,6 @@ void TemporalConstraintHeader::paint(
     font.setBold(true);
     painter->setFont(font);
     painter->drawText(m_previous_x,y,w,h, Qt::AlignLeft, m_text);
-
-    if(m_width > 20)
-    {
-        painter->setPen(ScenarioStyle::instance().ConstraintHeaderBottomLine.getColor());
-        painter->drawLine(
-                    boundingRect().bottomLeft(),
-                    boundingRect().bottomRight());
-    }
 }
 
 void TemporalConstraintHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)

@@ -25,7 +25,7 @@ SlotHandle::SlotHandle(const SlotView &slotView, QGraphicsItem *parent):
 
 QRectF SlotHandle::boundingRect() const
 {
-    return {0, 0, m_width, handleHeight()};
+    return {0, -handleHeight() / 2., m_width, handleHeight()};
 }
 
 void SlotHandle::paint(
@@ -36,7 +36,8 @@ void SlotHandle::paint(
     m_pen.setColor(ScenarioStyle::instance().ProcessViewBorder.getColor());
     painter->setPen(m_pen);
     painter->setBrush(m_pen.color());
-    painter->drawRect(boundingRect());
+
+    painter->drawLine(0, -handleHeight() / 2., m_width, -handleHeight() / 2.);
 }
 
 void SlotHandle::setWidth(qreal width)
