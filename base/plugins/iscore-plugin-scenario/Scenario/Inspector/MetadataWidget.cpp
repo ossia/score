@@ -161,6 +161,11 @@ MetadataWidget::MetadataWidget(
     updateAsked();
 }
 
+MetadataWidget::~MetadataWidget()
+{
+    delete m_palette;
+}
+
 QString MetadataWidget::scriptingName() const
 {
     return m_scriptingNameLine->text();

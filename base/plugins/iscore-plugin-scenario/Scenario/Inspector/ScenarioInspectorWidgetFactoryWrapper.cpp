@@ -66,8 +66,7 @@ Inspector::InspectorWidgetBase* ScenarioInspectorWidgetFactoryWrapper::makeWidge
 
     if(constraints.size() == 1 && timenodes.empty())
     {
-        auto f = new ConstraintInspectorFactory{};
-        return f->makeWidget({*constraints.begin()}, doc, parent);
+        return ConstraintInspectorFactory{}.makeWidget({*constraints.begin()}, doc, parent);
     }
 
     return new SummaryInspectorWidget{

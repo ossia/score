@@ -42,6 +42,8 @@ class MetadataWidget final : public QWidget
                 const QObject* docObject,
                 QWidget* parent = nullptr);
 
+        ~MetadataWidget();
+
         QString scriptingName() const;
 
         template<typename T>
