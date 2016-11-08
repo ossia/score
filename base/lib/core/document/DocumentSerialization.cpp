@@ -35,7 +35,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <core/presenter/DocumentManager.hpp>
 

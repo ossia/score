@@ -31,7 +31,7 @@
 #include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/selection/Selection.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>

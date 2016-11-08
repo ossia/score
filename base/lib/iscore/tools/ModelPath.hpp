@@ -201,3 +201,10 @@ Path<T> make_path(const T& t)
     return t;
 }
 
+template<typename T>
+QDebug operator<<(QDebug d, Path<T> path)
+{
+    auto& unsafe = path.unsafePath();
+    d << unsafe.toString();
+    return d;
+}

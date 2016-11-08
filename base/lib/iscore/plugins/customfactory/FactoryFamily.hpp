@@ -2,7 +2,7 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/tools/ForEachType.hpp>
 #include <iscore/tools/std/Pointer.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <iscore/tools/std/IndirectContainer.hpp>
 #include <iscore/tools/Todo.hpp>
 

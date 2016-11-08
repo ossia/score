@@ -1,6 +1,5 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/utilsCPP11.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
 /**

@@ -20,7 +20,7 @@
 #include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 namespace Scenario
 {
 template<typename Selected_T>

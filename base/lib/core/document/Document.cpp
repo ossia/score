@@ -11,7 +11,7 @@
 #include <core/document/DocumentBackupManager.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/selection/SelectionStack.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/tools/Todo.hpp>
 
 class QWidget;

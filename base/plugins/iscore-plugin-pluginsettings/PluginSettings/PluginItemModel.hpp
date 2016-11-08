@@ -1,6 +1,6 @@
 #pragma once
 #include <QAbstractItemModel>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <iscore/plugins/Addon.hpp>
 #include <boost/iterator/filter_iterator.hpp>
 #include <QUrl>

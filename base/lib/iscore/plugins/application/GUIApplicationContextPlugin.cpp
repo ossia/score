@@ -5,7 +5,7 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/document/Document.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/widgets/OrderedToolbar.hpp>
 
 class QAction;

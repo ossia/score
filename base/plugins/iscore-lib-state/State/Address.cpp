@@ -5,7 +5,7 @@
 #include <QStringBuilder>
 #include <State/Expression.hpp>
 #include <ossia/network/base/name_validation.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
 namespace State
 {

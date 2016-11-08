@@ -1,7 +1,6 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <algorithm>
 
-#include "DummyLayerModel.hpp"
 #include "DummyModel.hpp"
 #include "DummyState.hpp"
 #include <Process/Process.hpp>

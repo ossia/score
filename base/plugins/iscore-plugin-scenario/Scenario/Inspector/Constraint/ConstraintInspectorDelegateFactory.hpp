@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <iscore_plugin_scenario_export.h>
 
 namespace Scenario

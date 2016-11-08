@@ -43,7 +43,7 @@
 #include <Engine/OSSIA2iscore.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/StateProcessComponent.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>

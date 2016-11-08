@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iterator>
 
+#include <boost/range/algorithm_ext/erase.hpp>
 #include "AbstractScenarioLayerModel.hpp"
 #include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
@@ -34,11 +35,11 @@ QVector<ConstraintViewModel*> AbstractScenarioLayer::constraints() const
     return m_constraints;
 }
 
-
+// MOVEME
 template <typename Vector, typename id_T>
 void removeById(Vector& c, const id_T& id)
 {
-    vec_erase_remove_if(c,
+    boost::remove_erase_if(c,
                         [=](typename Vector::value_type model)
     {
         bool to_delete = model->id() == id;

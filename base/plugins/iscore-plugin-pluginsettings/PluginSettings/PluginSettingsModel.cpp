@@ -7,7 +7,7 @@
 #include <QStringList>
 #include <QVariant>
 
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include "PluginSettingsModel.hpp"
 #include "commands/BlacklistCommand.hpp"
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>

@@ -46,7 +46,6 @@ endif()
 set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/VerticalExtentSerialization.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/LayerModelLoader.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModelSerialization.cpp"
@@ -311,7 +310,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Interpolation/InterpolationInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/ExpressionEditorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/SimpleExpressionEditorWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/ExpressionMenu.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Summary/SummaryInspectorWidget.cpp"
 

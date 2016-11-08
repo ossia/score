@@ -16,12 +16,12 @@
 
 #include <boost/range.hpp>
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 
 ObjectPath ObjectPath::pathBetweenObjects(

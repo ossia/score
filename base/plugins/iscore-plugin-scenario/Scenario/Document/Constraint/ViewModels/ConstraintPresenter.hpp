@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <nano_signal_slot.hpp>
 #include <QPoint>
 #include <QString>

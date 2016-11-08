@@ -7,7 +7,7 @@
 #include <iscore/model/ModelMetadata.hpp>
 #include "TimeNodePresenter.hpp"
 #include <iscore/selection/Selectable.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/tools/Todo.hpp>
 
 class QObject;

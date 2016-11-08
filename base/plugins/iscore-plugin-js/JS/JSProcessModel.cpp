@@ -1,4 +1,4 @@
-#include <Process/Dummy/DummyLayerModel.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <algorithm>

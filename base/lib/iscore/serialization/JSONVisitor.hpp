@@ -329,6 +329,12 @@ QJsonArray toJsonArray_sub(const Container& array, std::true_type)
     return arr;
 }
 
+template<typename Container>
+using return_type_of_iterator =
+    typename std::remove_reference<
+        decltype(*std::declval<Container>().begin())
+    >::type;
+
 template<class Container>
 QJsonArray toJsonArray(const Container& array)
 {

@@ -2,7 +2,6 @@
 #include "StateProcessFactoryList.hpp"
 #include "ProcessList.hpp"
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <Process/Dummy/DummyLayerModel.hpp>
 #include <Process/Dummy/DummyLayerPresenter.hpp>
 #include <Process/Dummy/DummyLayerView.hpp>
 #include <Process/LayerModelPanelProxy.hpp>

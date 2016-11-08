@@ -11,7 +11,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 #include <boost/container/static_vector.hpp>

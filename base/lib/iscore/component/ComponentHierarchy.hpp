@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <vector>
 #include <nano_observer.hpp>
 

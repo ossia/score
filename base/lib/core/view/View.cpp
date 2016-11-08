@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <iterator>
 #include <set>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <iscore/widgets/QmlContainerPanel.hpp>
 #include <iscore_git_info.hpp>
 

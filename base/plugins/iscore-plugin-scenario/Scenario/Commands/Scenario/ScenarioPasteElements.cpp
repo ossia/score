@@ -39,7 +39,7 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <core/document/Document.hpp>
 // Needed for copy since we want to generate IDs that are neither
 // in the scenario in which we are copying into, nor in the elements

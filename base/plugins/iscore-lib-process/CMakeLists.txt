@@ -41,7 +41,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyModel.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerModel.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerPresenter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyState.hpp"

@@ -1,5 +1,4 @@
 #include <Process/LayerModel.hpp>
-#include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
 

@@ -15,7 +15,7 @@
 #include "NodeUpdateProxy.hpp"
 #include <State/Address.hpp>
 #include <iscore/tools/TreeNode.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 
 namespace Explorer

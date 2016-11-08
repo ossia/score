@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore_lib_process_export.h>
 
 #include <iscore/tools/SettableIdentifier.hpp>
