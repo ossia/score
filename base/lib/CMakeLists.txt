@@ -74,10 +74,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/DataStreamVisitor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/JSONObjectVisitor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/QtTypesJsonVisitors.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/NamedObjectSerialization.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectIdentifierSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/IdentifiedObjectAbstract.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/NamedObject.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectPath.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/RelativePath.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/RandomNameProvider.cpp"

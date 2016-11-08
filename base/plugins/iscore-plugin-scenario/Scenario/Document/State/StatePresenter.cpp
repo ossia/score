@@ -17,7 +17,7 @@
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/MimeVisitor.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/tools/Todo.hpp>
 
 class QObject;

@@ -1,5 +1,5 @@
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include "DeviceList.hpp"
 
 namespace Device

@@ -4,7 +4,7 @@
 #include <iscore/locking/ObjectLocker.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/selection/FocusManager.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <core/document/DocumentMetadata.hpp>
 #include <QByteArray>
 #include <QJsonObject>

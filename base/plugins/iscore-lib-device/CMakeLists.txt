@@ -11,7 +11,6 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml)
 file(GLOB_RECURSE HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/Device/*.hpp")
 
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/DomainSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/AddressSettingsSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/IOType.cpp"

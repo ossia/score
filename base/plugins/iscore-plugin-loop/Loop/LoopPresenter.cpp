@@ -20,7 +20,7 @@
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>

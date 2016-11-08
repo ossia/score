@@ -2,7 +2,7 @@
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QtGlobal>
 #include <QPoint>

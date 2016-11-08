@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 namespace iscore
 {

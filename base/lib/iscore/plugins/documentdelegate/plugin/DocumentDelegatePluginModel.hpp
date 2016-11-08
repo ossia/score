@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <QString>

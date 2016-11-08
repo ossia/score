@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
 

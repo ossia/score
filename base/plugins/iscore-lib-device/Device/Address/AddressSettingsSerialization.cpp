@@ -14,11 +14,7 @@
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/Domain.hpp>
 #include <Device/Address/IOType.hpp>
-#include "DomainSerialization.hpp"
 #include <State/Value.hpp>
-
-template <typename T> class Reader;
-template <typename T> class Writer;
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Device::AddressSettingsCommon& n)

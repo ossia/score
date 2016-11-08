@@ -10,7 +10,7 @@
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 namespace Scenario
 {

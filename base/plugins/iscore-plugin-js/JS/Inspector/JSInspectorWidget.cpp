@@ -1,6 +1,5 @@
 #include <JS/JSProcessModel.hpp>
 #include <JS/JSStateProcess.hpp>
-#include "NotifyingPlainTextEdit.hpp"
 #include <algorithm>
 
 #include <Inspector/InspectorWidgetBase.hpp>

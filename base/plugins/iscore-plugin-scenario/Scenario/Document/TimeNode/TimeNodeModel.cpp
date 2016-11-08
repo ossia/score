@@ -109,9 +109,11 @@ const VerticalExtent& TimeNodeModel::extent() const
 
 void TimeNodeModel::setExtent(const VerticalExtent &extent)
 {
-    // TODO if extent != ...
-    m_extent = extent;
-    emit extentChanged(m_extent);
+    if(extent != m_extent)
+    {
+        m_extent = extent;
+        emit extentChanged(m_extent);
+    }
 }
 
 bool TimeNodeModel::hasTrigger() const

@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
+
 #include <QObject>
 
 namespace iscore

@@ -6,7 +6,7 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 namespace Scenario
 {
 static void AddProcessBeforeState(

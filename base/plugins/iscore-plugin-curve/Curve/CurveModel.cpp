@@ -22,7 +22,7 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/MapCopy.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 class QObject;
 namespace Curve

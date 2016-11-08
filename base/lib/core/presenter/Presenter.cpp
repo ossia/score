@@ -29,7 +29,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>

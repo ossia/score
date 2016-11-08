@@ -50,6 +50,14 @@ void Scenario::clearContentFromSelection(
     cleaner.commit();
 }
 
+template<typename Range, typename Fun>
+void erase_if(Range& r, Fun f)
+{
+    for(auto it = std::begin(r); it != std::end(r); )
+    {
+        it = f(*it) ? r.erase(it) : ++it;
+    }
+}
 
 void Scenario::removeSelection(
         const Scenario::ProcessModel& scenario,
@@ -91,10 +99,10 @@ void Scenario::clearContentFromSelection(
 template<typename T>
 struct DateComparator
 {
-        const Scenario::ProcessModel* scenario;
+        const Scenario::ProcessModel& scenario;
         bool operator()(const T* lhs, const T* rhs)
         {
-            return Scenario::date(*lhs, *scenario) < Scenario::date(*rhs, *scenario);
+            return Scenario::date(*lhs, scenario) < Scenario::date(*rhs, scenario);
         }
 };
 
@@ -104,7 +112,7 @@ auto make_ordered(const Scenario::ProcessModel& scenario)
     using comp_t = DateComparator<T>;
     using set_t = std::set<const T*, comp_t>;
 
-    set_t the_set(comp_t{&scenario});
+    set_t the_set(comp_t{scenario});
 
     auto cont = Scenario::ScenarioElementTraits<Scenario::ProcessModel, T>::accessor;
     for(auto& tn : selectedElements(cont(scenario)))

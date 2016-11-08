@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/std/Optional.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/std/ArrayView.hpp>
 #include <sys/types.h>

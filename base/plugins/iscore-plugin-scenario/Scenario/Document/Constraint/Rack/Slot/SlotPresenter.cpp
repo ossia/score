@@ -13,7 +13,7 @@
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QMenu>
 #include <algorithm>
-
+#include <boost/range/algorithm_ext/erase.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
@@ -24,7 +24,7 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
@@ -160,7 +160,7 @@ void SlotPresenter::on_layerModelCreated(
 void SlotPresenter::on_layerModelRemoved(
         const Process::LayerModel& layerModel)
 {
-    vec_erase_remove_if(m_processes,
+    boost::remove_erase_if(m_processes,
                         [&](auto& elt)
     {
         bool to_delete = elt.model->id() == layerModel.id();

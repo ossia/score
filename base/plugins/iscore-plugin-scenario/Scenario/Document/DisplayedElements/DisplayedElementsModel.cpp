@@ -8,7 +8,7 @@
 #include "DisplayedElementsModel.hpp"
 #include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 #include <iscore/selection/Selection.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 namespace Scenario
 {

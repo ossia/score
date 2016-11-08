@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <QPoint>
 #include <utility>
 #include <vector>

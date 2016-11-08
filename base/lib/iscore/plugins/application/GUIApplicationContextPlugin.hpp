@@ -1,5 +1,4 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
 #include <qnamespace.h>
 #include <QString>
 #include <vector>

@@ -86,16 +86,6 @@ void PanelDelegate::cleanup()
     m_proxy = nullptr;
 }
 
-
-// MOVEME in Path.cpp
-template<typename T>
-QDebug operator<<(QDebug d, Path<T> path)
-{
-    auto& unsafe = path.unsafePath();
-    d << unsafe.toString();
-    return d;
-}
-
 // TODO could go in some utility library
 static bool isInFullView(const Process::LayerModel& theLM)
 {

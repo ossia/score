@@ -1,5 +1,3 @@
-#include <Scenario/Document/Constraint/LayerModelLoader.hpp>
-
 #include <iscore/tools/std/Optional.hpp>
 #include <QtGlobal>
 #include <QJsonArray>

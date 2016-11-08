@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QPoint>

@@ -61,7 +61,7 @@
 #include <iscore/tools/InvisibleRootNode.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/TreeNode.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 

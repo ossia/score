@@ -12,7 +12,7 @@
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 class QObject;
 

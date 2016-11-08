@@ -3,7 +3,7 @@
 #include <core/application/ApplicationSettings.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <core/plugin/PluginManager.hpp>
-#include <iscore/tools/NamedObject.hpp>
+
 #include <core/settings/Settings.hpp>
 #include <QApplication>
 #include <memory>

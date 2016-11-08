@@ -6,6 +6,9 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 
 #include <iscore_plugin_scenario_export.h>
+
+// RENAMEME
+
 namespace Process
 {
 class StateProcess;
@@ -16,7 +19,6 @@ namespace Scenario
 class StateModel;
 namespace Command
 {
-// MOVEME
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final :
         public iscore::SerializableCommand
 {

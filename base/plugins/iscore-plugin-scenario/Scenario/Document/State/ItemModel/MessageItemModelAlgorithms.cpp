@@ -18,7 +18,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/TreeNode.hpp>
-#include <iscore/tools/std/Algorithms.hpp>
+#include <ossia/detail/algorithms.hpp>
 namespace Process
 {
 static QStringList toStringList(const State::AddressAccessor& addr)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iscore/tools/NamedObject.hpp>
+
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QPoint>
 #include <Process/TimeValue.hpp>
