@@ -77,8 +77,6 @@ InsertContentInConstraint::InsertContentInConstraint(
 
 void InsertContentInConstraint::undo() const
 {
-    ISCORE_TODO;
-    /*
     // We just have to remove what we added
     auto& trg_constraint = m_target.find();
 
@@ -91,14 +89,11 @@ void InsertContentInConstraint::undo() const
     {
         trg_constraint.racks.remove(rack_id);
     }
-    */
 }
 
 
 void InsertContentInConstraint::redo() const
 {
-    ISCORE_TODO;
-    /*
     auto& trg_constraint = m_target.find();
     ConstraintModel src_constraint{
             Deserializer<JSONObject>{m_source},
@@ -127,7 +122,7 @@ void InsertContentInConstraint::redo() const
     }
 
     // Clone the rackes
-    auto& procs = components.factory<Process::LayerFactoryList>();
+    auto& procs = context.components.factory<Process::LayerFactoryList>();
 
     const auto& src_racks = src_constraint.racks;
     for(const auto& sourcerack: src_racks)
@@ -154,7 +149,6 @@ void InsertContentInConstraint::redo() const
                 &trg_constraint};
         trg_constraint.racks.add(newrack);
     }
-    */
 }
 
 void InsertContentInConstraint::serializeImpl(DataStreamInput& s) const
