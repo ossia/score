@@ -27,6 +27,7 @@
 #include <Scenario/Application/Menus/ObjectsActions/ConstraintActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
+#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <QMenu>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
@@ -200,6 +201,15 @@ void LayerPresenter::fillContextMenu(
         }
     }
     */
+}
+
+void clearContentFromSelection(
+        const ProcessModel& model,
+        const iscore::CommandStackFacade& stack)
+{
+    clearContentFromSelection(
+                static_cast<const Scenario::BaseScenarioContainer&>(model),
+                stack);
 }
 
 }

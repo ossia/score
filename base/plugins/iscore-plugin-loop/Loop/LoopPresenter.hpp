@@ -37,11 +37,7 @@ inline void removeSelection(const Loop::ProcessModel& model, const iscore::Comma
 {
 
 }
-
-inline void clearContentFromSelection(const Loop::ProcessModel& model, const iscore::CommandStackFacade& )
-{
-    ISCORE_TODO;
-}
+void clearContentFromSelection(const Loop::ProcessModel& model, const iscore::CommandStackFacade&);
 }
 
 namespace Loop

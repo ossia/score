@@ -1,8 +1,6 @@
 #pragma once
 #include <iscore/actions/Action.hpp>
 #include <Process/Actions/ProcessActions.hpp>
-
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
@@ -10,76 +8,23 @@
 
 namespace Scenario
 {
-
-inline const Scenario::ScenarioInterface* focusedScenarioInterface(const iscore::DocumentContext& ctx)
-{
-    if(auto layer = dynamic_cast<const Process::LayerModel*>(ctx.document.focusManager().get()))
-    {
-        return dynamic_cast<Scenario::ScenarioInterface*>(&layer->processModel());
-    }
-    return nullptr;
-}
-inline const Scenario::ProcessModel* focusedScenarioModel(const iscore::DocumentContext& ctx)
-{
-    if(auto layer = dynamic_cast<const Process::LayerModel*>(ctx.document.focusManager().get()))
-    {
-        return dynamic_cast<Scenario::ProcessModel*>(&layer->processModel());
-    }
-    return nullptr;
-}
+class ScenarioInterface;
+class ScenarioDocumentModel;
+class ProcessModel;
+class TemporalScenarioLayer;
+const Scenario::ScenarioInterface* focusedScenarioInterface(const iscore::DocumentContext& ctx);
+const Scenario::ProcessModel* focusedScenarioModel(const iscore::DocumentContext& ctx);
 
 class EnableWhenScenarioModelObject final :
         public iscore::ActionCondition
 {
     public:
-        EnableWhenScenarioModelObject():
-            iscore::ActionCondition{static_key()} { }
+        EnableWhenScenarioModelObject();
 
-        static iscore::ActionConditionKey static_key()
-        { return iscore::ActionConditionKey{ "ScenarioModelObject" }; }
+        static iscore::ActionConditionKey static_key();
 
     private:
-        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override
-        {
-            if(!doc)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            auto focus = doc->focus.get();
-            if(!focus)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            auto lm = dynamic_cast<const Process::LayerModel*>(focus);
-            if(!lm)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            auto proc = dynamic_cast<const Scenario::ProcessModel*>(&lm->processModel());
-            if(!proc)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            const auto& sel = doc->selectionStack.currentSelection();
-            auto res = ossia::any_of(sel, [] (auto obj) {
-                auto ptr = obj.data();
-                return bool(dynamic_cast<const Scenario::ConstraintModel*>(ptr))
-                    || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
-                    || bool(dynamic_cast<const Scenario::StateModel*>(ptr))
-                    || bool(dynamic_cast<const Scenario::CommentBlockModel*>(ptr))
-                        ;
-            });
-
-            setEnabled(mgr, res);
-        }
+        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override;
 };
 
 
@@ -87,52 +32,12 @@ class EnableWhenScenarioInterfaceObject final :
         public iscore::ActionCondition
 {
     public:
-        EnableWhenScenarioInterfaceObject():
-            iscore::ActionCondition{static_key()} { }
+        EnableWhenScenarioInterfaceObject();
 
-        static iscore::ActionConditionKey static_key()
-        { return iscore::ActionConditionKey{ "ScenarioInterfaceObject" }; }
+        static iscore::ActionConditionKey static_key();
 
     private:
-        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override
-        {
-            if(!doc)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            auto focus = doc->focus.get();
-            if(!focus)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            auto lm = dynamic_cast<const Process::LayerModel*>(focus);
-            if(!lm)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            auto proc = dynamic_cast<const Scenario::ScenarioInterface*>(&lm->processModel());
-            if(!proc)
-            {
-                setEnabled(mgr, false);
-                return;
-            }
-
-            const auto& sel = doc->selectionStack.currentSelection();
-            auto res = ossia::any_of(sel, [] (auto obj) {
-                auto ptr = obj.data();
-                return bool(dynamic_cast<const Scenario::ConstraintModel*>(ptr))
-                    || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
-                    || bool(dynamic_cast<const Scenario::StateModel*>(ptr));
-            });
-
-            setEnabled(mgr, res);
-        }
+        void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override;
 };
 }
 

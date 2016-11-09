@@ -31,6 +31,7 @@ void SelectionStack::clear()
     m_unselectable.clear();
     m_reselectable.clear();
     m_unselectable.push(Selection{});
+    emit currentSelectionChanged(m_unselectable.top());
 }
 
 void SelectionStack::push(const Selection& selection)
@@ -48,7 +49,8 @@ void SelectionStack::push(const Selection& selection)
 
         Foreach(s, [&] (auto obj) {
             connect(obj,  &IdentifiedObjectAbstract::identified_object_destroyed,
-                    this, &SelectionStack::prune);
+                    this, &SelectionStack::prune,
+                    Qt::UniqueConnection);
         });
 
         m_unselectable.push(s);

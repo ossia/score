@@ -39,6 +39,19 @@ Selection BaseScenario::selectedChildren() const
     return s;
 }
 
+bool BaseScenario::focused() const
+{
+    bool res = false;
+    ossia::for_each_in_tuple(elements(), [&] (auto elt) {
+        if(elt->selection.get())
+        {
+            res = true;
+        }
+    });
+
+    return res;
+}
+
 
 const QVector<Id<ConstraintModel> > constraintsBeforeTimeNode(
         const BaseScenario& scen,
