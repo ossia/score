@@ -90,7 +90,7 @@ static void RemoveProcessBeforeState(StateModel& statemodel, const Process::Proc
     statemodel.messages() = std::move(node);
 
     auto it = ossia::find_if(statemodel.previousProcesses(), [&] (const auto& elt) {
-        return state->id() == elt.process().id();
+        return state == &elt.process();
     });
 
     // TODO debug the need for this check
@@ -109,7 +109,7 @@ static void RemoveProcessAfterState(StateModel& statemodel, const Process::Proce
     statemodel.messages() = std::move(node);
 
     auto it = ossia::find_if(statemodel.followingProcesses(), [&] (const auto& elt) {
-        return state->id() == elt.process().id();
+        return state == &elt.process();
     });
 
     // TODO debug the need for this check
