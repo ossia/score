@@ -64,6 +64,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter :
         void on_rackHidden();
         void on_noRacks();
 
+        void on_racksChanged(const RackModel&);
+        void on_racksChanged();
+
         void updateHeight();
 
     signals:

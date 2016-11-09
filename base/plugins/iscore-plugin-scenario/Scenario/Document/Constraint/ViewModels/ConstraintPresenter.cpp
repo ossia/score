@@ -40,26 +40,27 @@ ConstraintPresenter::ConstraintPresenter(
     m_header{header},
     m_context{ctx}
 {
+    auto& constraint = m_viewModel.model();
     m_header->setParentItem(m_view);
     m_header->setConstraintView(m_view);
     m_header->hide();
 
-    con(m_viewModel.model().selection, &Selectable::changed,
+    con(constraint.selection, &Selectable::changed,
             m_view, &ConstraintView::setSelected);
 
-    con(m_viewModel.model().duration, &ConstraintDurations::minDurationChanged,
+    con(constraint.duration, &ConstraintDurations::minDurationChanged,
             this, [&] (const TimeValue& val)
     {
         on_minDurationChanged(val);
         updateChildren();
     });
-    con(m_viewModel.model().duration, &ConstraintDurations::defaultDurationChanged,
+    con(constraint.duration, &ConstraintDurations::defaultDurationChanged,
             this,[&] (const TimeValue& val)
     {
         on_defaultDurationChanged(val);
         updateChildren();
     });
-    con(m_viewModel.model().duration, &ConstraintDurations::maxDurationChanged,
+    con(constraint.duration, &ConstraintDurations::maxDurationChanged,
             this, [&] (const TimeValue& val)
     {
         on_maxDurationChanged(val);
@@ -68,10 +69,10 @@ ConstraintPresenter::ConstraintPresenter(
 
     // As an optimization, this has been replaced
     // by a timer in the parent processes, scenario and loop.
-    // con(m_viewModel.model().duration, &ConstraintDurations::playPercentageChanged,
+    // con(constraint.duration, &ConstraintDurations::playPercentageChanged,
    //         this, &ConstraintPresenter::on_playPercentageChanged, Qt::QueuedConnection);
 
-    con(m_viewModel.model(), &ConstraintModel::heightPercentageChanged,
+    con(constraint, &ConstraintModel::heightPercentageChanged,
             this, &ConstraintPresenter::heightPercentageChanged);
 
     con(m_viewModel, &ConstraintViewModel::rackShown,
@@ -84,30 +85,14 @@ ConstraintPresenter::ConstraintPresenter(
         this, &ConstraintPresenter::on_noRacks);
 
 
-    con(m_viewModel.model().consistency, &ModelConsistency::validChanged,
+    con(constraint.consistency, &ModelConsistency::validChanged,
             m_view, &ConstraintView::setValid);
-    con(m_viewModel.model().consistency,   &ModelConsistency::warningChanged,
+    con(constraint.consistency,   &ModelConsistency::warningChanged,
             m_view, &ConstraintView::setWarning);
 
-    if(!m_viewModel.model().racks.empty())
-    {
-        if(m_viewModel.isRackShown())
-        {
-            on_rackShown(*m_viewModel.shownRack());
-        }
-        else if(!m_viewModel.model().processes.empty()) // TODO why isn't this when there are racks but hidden ?
-        {
-            on_rackHidden();
-        }
-        else
-        {
-            on_noRacks();
-        }
-    }
-    else
-    {
-        on_noRacks();
-    }
+    constraint.racks.added.connect<ConstraintPresenter, &ConstraintPresenter::on_racksChanged>(this);
+    constraint.racks.removed.connect<ConstraintPresenter, &ConstraintPresenter::on_racksChanged>(this);
+    on_racksChanged();
 }
 
 ConstraintPresenter::~ConstraintPresenter()
@@ -262,6 +247,35 @@ void ConstraintPresenter::on_noRacks()
 
     m_header->setState(ConstraintHeader::State::Hidden);
     updateHeight();
+}
+
+void ConstraintPresenter::on_racksChanged(const RackModel&)
+{
+    on_racksChanged();
+}
+
+void ConstraintPresenter::on_racksChanged()
+{
+    auto& constraint = m_viewModel.model();
+    if(!constraint.racks.empty())
+    {
+        if(m_viewModel.isRackShown())
+        {
+            on_rackShown(*m_viewModel.shownRack());
+        }
+        else if(!constraint.processes.empty()) // TODO why isn't this when there are racks but hidden ?
+        {
+            on_rackHidden();
+        }
+        else
+        {
+            on_noRacks();
+        }
+    }
+    else
+    {
+        on_noRacks();
+    }
 }
 
 void ConstraintPresenter::clearRackPresenter()
