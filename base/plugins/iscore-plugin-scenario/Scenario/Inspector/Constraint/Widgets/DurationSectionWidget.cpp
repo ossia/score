@@ -13,6 +13,13 @@
 #include <QStackedLayout>
 #include <QWidget>
 #include <chrono>
+#include <iscore/document/DocumentContext.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 
 #include "DurationSectionWidget.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
@@ -35,15 +42,15 @@ class EditionGrid : public QWidget
 {
     public:
         EditionGrid(const ConstraintModel& m,
-                    const iscore::CommandStackFacade& fac,
+                    const iscore::DocumentContext& fac,
                     const Scenario::EditionSettings& set,
                     const ConstraintInspectorDelegate& delegate):
             m_model{m},
             m_dur{m.duration},
             m_editionSettings{set},
             m_delegate{delegate},
-            m_dispatcher{fac},
-            m_simpleDispatcher{fac}
+            m_dispatcher{fac.commandStack},
+            m_simpleDispatcher{fac.commandStack}
         {
             using namespace iscore;
             auto editableGrid = new iscore::MarginLess<QGridLayout>{this};
@@ -120,7 +127,11 @@ class EditionGrid : public QWidget
             on_modelRigidityChanged(m_model.duration.isRigid());
 
 
-            if(m_model.fullView()->isActive() && m_model.id().val() != 0)
+            // We disable changing duration for the full view unless
+            // it is the top-level one, because else
+            // it may cause unexpected changes in parent scenarios.
+            auto mod_del = dynamic_cast<Scenario::ScenarioDocumentModel*>(&fac.document.model().modelDelegate());
+            if(m_model.fullView()->isActive() && &m_model != &mod_del->baseConstraint())
             {
                 m_valueSpin->setEnabled(false);
             }
@@ -363,13 +374,12 @@ DurationWidget::DurationWidget(
         const ConstraintInspectorDelegate& delegate,
         ConstraintInspectorWidget* parent):
     QWidget{parent},
-    m_editingWidget{new EditionGrid{parent->model(), parent->commandDispatcher()->stack(), set, delegate}},
+    m_editingWidget{new EditionGrid{parent->model(), parent->context(), set, delegate}},
     m_playingWidget{new PlayGrid{parent->model().duration}}
 {
     using namespace iscore;
     auto mainWidg = this;
     auto mainLay = new iscore::MarginLess<QStackedLayout>{mainWidg};
-
     auto& model = parent->model();
     auto& dur = model.duration;
 

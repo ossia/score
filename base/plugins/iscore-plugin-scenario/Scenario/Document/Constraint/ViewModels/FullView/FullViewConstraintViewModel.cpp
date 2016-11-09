@@ -68,6 +68,6 @@ bool FullViewConstraintViewModel::isActive()
     auto& ctx = iscore::IDocument::documentContext(model());
     auto& baseElt = iscore::IDocument::get<ScenarioDocumentModel>(ctx.document);
 
-    return (this->model().id() == baseElt.displayedElements.constraint().id());
+    return (&this->model() == &baseElt.displayedElements.constraint());
 }
 }
