@@ -12,8 +12,8 @@ class ScenarioInterface;
 class ScenarioDocumentModel;
 class ProcessModel;
 class TemporalScenarioLayer;
-const Scenario::ScenarioInterface* focusedScenarioInterface(const iscore::DocumentContext& ctx);
-const Scenario::ProcessModel* focusedScenarioModel(const iscore::DocumentContext& ctx);
+ISCORE_PLUGIN_SCENARIO_EXPORT const Scenario::ScenarioInterface* focusedScenarioInterface(const iscore::DocumentContext& ctx);
+ISCORE_PLUGIN_SCENARIO_EXPORT const Scenario::ProcessModel* focusedScenarioModel(const iscore::DocumentContext& ctx);
 
 class EnableWhenScenarioModelObject final :
         public iscore::ActionCondition
