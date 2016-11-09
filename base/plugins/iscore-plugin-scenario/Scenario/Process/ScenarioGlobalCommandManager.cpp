@@ -99,6 +99,13 @@ void Scenario::clearContentFromSelection(
 template<typename T>
 struct DateComparator
 {
+        DateComparator(const Scenario::ProcessModel& s): scenario{s} { }
+        DateComparator() = default;
+        DateComparator(const DateComparator&) = default;
+        DateComparator(DateComparator&&) = default;
+        DateComparator& operator=(const DateComparator&) = default;
+        DateComparator& operator=(DateComparator&&) = default;
+
         const Scenario::ProcessModel& scenario;
         bool operator()(const T* lhs, const T* rhs)
         {
