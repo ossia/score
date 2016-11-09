@@ -27,8 +27,10 @@ namespace Scenario
 {
 TemporalConstraintView::TemporalConstraintView(
         TemporalConstraintPresenter &presenter,
+        const ConstraintDurations& dur,
         QGraphicsItem* parent) :
     ConstraintView {presenter, parent},
+    m_durations{dur},
     m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground},
     m_labelItem{new SimpleTextItem{this}},
     m_counterItem{new SimpleTextItem{this}}
@@ -106,13 +108,12 @@ void TemporalConstraintView::paint(
     QPainterPath solidPath, dashedPath, leftBrace, rightBrace;
 
     // Paths
+    m_leftBrace->setVisible(!m_durations.isMinNul());
     if(infinite())
     {
         if(min_w != 0.)
         {
             solidPath.lineTo(min_w, 0);
-
-            m_leftBrace->show();
         }
         m_rightBrace->hide();
 
