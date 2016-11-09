@@ -22,7 +22,7 @@ class QWidget;
 namespace Scenario
 {
 class TemporalConstraintPresenter;
-
+class ConstraintDurations;
 class LeftBraceView;
 class RightBraceView;
 
@@ -34,6 +34,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
     public:
         TemporalConstraintView(
                 TemporalConstraintPresenter& presenter,
+                const ConstraintDurations& dur,
                 QGraphicsItem* parent);
 
         QRectF boundingRect() const override
@@ -83,6 +84,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
         void dropEvent(QGraphicsSceneDragDropEvent *event) override;
 
     private:
+        const ConstraintDurations& m_durations;
         QPointF m_clickedPoint {};
 
         QString m_label{};

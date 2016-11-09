@@ -29,7 +29,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
         QGraphicsItem *parentobject,
         QObject* parent) :
     ConstraintPresenter {cstr_model,
-                         new TemporalConstraintView{*this, parentobject},
+                         new TemporalConstraintView{*this, cstr_model.model().duration, parentobject},
                          new TemporalConstraintHeader,
                          ctx,
                          parent}
