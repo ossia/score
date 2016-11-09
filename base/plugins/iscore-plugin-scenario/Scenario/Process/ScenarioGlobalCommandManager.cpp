@@ -157,7 +157,8 @@ auto make_ordered(const Scenario::ProcessModel& scenario)
     using comp_t = DateComparator<T>;
     using set_t = std::set<const T*, comp_t>;
 
-    set_t the_set(comp_t{scenario});
+    comp_t comparator{scenario};
+    set_t the_set(comparator);
 
     auto cont = Scenario::ScenarioElementTraits<Scenario::ProcessModel, T>::accessor;
     for(auto& tn : selectedElements(cont(scenario)))
