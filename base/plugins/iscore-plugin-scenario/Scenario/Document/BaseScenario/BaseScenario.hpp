@@ -37,6 +37,7 @@ class BaseScenario final :
         ~BaseScenario();
 
         Selection selectedChildren() const;
+        bool focused() const;
 
         using BaseScenarioContainer::event;
         using QObject::event;

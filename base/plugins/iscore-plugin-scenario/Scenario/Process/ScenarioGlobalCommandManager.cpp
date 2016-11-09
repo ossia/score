@@ -20,6 +20,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeNodes.hpp>
 #include <iscore/selection/SelectionStack.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 namespace iscore {
 class CommandStackFacade;
 }  // namespace iscore
@@ -27,16 +28,13 @@ class CommandStackFacade;
 using namespace Scenario::Command;
 using namespace iscore::IDocument; // for ::path
 void Scenario::clearContentFromSelection(
-        const Scenario::ProcessModel& scenario,
+        const QList<const ConstraintModel*>& constraintsToRemove,
+        const QList<const StateModel*>& statesToRemove,
         const iscore::CommandStackFacade& stack)
 {
-    // 1. Select items
-    auto constraintsToRemove = selectedElements(scenario.constraints);
-    auto statesToRemove = selectedElements(scenario.states);
-
     MacroCommandDispatcher<ClearSelection> cleaner{stack};
 
-    // 2. Create a Clear command for each.
+    // Create a Clear command for each.
     for(auto& constraint : constraintsToRemove)
     {
         cleaner.submitCommand(new ClearConstraint(*constraint));
@@ -48,6 +46,16 @@ void Scenario::clearContentFromSelection(
     }
 
     cleaner.commit();
+}
+
+void Scenario::clearContentFromSelection(
+        const Scenario::ProcessModel& scenario,
+        const iscore::CommandStackFacade& stack)
+{
+    clearContentFromSelection(
+                selectedElements(scenario.constraints),
+                selectedElements(scenario.states),
+                stack);
 }
 
 template<typename Range, typename Fun>
@@ -89,22 +97,52 @@ void Scenario::removeSelection(
 }
 
 void Scenario::clearContentFromSelection(
-        const BaseScenario&,
-        const iscore::CommandStackFacade&)
+        const BaseScenarioContainer& scenario,
+        const iscore::CommandStackFacade& stack)
 {
-    ISCORE_TODO;
+    QList<const Scenario::ConstraintModel*> cst;
+    QList<const Scenario::StateModel*> states;
+    if(scenario.constraint().selection.get())
+        cst.push_back(&scenario.constraint());
+    if(scenario.startState().selection.get())
+        states.push_back(&scenario.startState());
+    if(scenario.endState().selection.get())
+        states.push_back(&scenario.endState());
+
+    clearContentFromSelection(cst, states, stack);
 }
+
+void Scenario::clearContentFromSelection(
+        const BaseScenario& scenario,
+        const iscore::CommandStackFacade& stack)
+{
+    clearContentFromSelection(
+                static_cast<const BaseScenarioContainer&>(scenario),
+                stack);
+}
+
+void Scenario::clearContentFromSelection(
+        const Scenario::ScenarioInterface& scenario,
+        const iscore::CommandStackFacade& stack)
+{
+    clearContentFromSelection(
+                selectedElements(scenario.getConstraints()),
+                selectedElements(scenario.getStates()),
+                stack);
+}
+
+
 
 // MOVEME : these are useful.
 template<typename T>
 struct DateComparator
 {
         DateComparator(const Scenario::ProcessModel& s): scenario{s} { }
-        DateComparator() = default;
         DateComparator(const DateComparator&) = default;
         DateComparator(DateComparator&&) = default;
-        DateComparator& operator=(const DateComparator&) = default;
-        DateComparator& operator=(DateComparator&&) = default;
+        DateComparator() = delete;
+        DateComparator& operator=(const DateComparator&) = delete;
+        DateComparator& operator=(DateComparator&&) = delete;
 
         const Scenario::ProcessModel& scenario;
         bool operator()(const T* lhs, const T* rhs)

@@ -70,11 +70,12 @@ ObjectMenuActions::ObjectMenuActions(
     connect(m_removeElements, &QAction::triggered,
             [this]()
     {
+        auto& ctx = m_parent->currentDocument()->context();
 
-        auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
+        auto sm = focusedScenarioModel(ctx);
         if (sm)
         {
-            Scenario::removeSelection(*sm, m_parent->currentDocument()->context().commandStack);
+            Scenario::removeSelection(*sm, ctx.commandStack);
         }
     });
 
@@ -84,10 +85,15 @@ ObjectMenuActions::ObjectMenuActions(
     connect(m_clearElements, &QAction::triggered,
             [this]()
     {
-        auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
-        if (sm)
+        auto& ctx = m_parent->currentDocument()->context();
+
+        if (auto sm = focusedScenarioModel(ctx))
         {
-            Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->context().commandStack);
+            Scenario::clearContentFromSelection(*sm, ctx.commandStack);
+        }
+        else if(auto si = focusedScenarioInterface(ctx))
+        {
+            Scenario::clearContentFromSelection(*si, ctx.commandStack);
         }
     });
 
@@ -290,10 +296,15 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
     if(obj.empty())
         return {};
 
-    auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
-    if (sm)
+    auto& ctx = m_parent->currentDocument()->context();
+
+    if (auto sm = focusedScenarioModel(ctx))
     {
-        Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->context().commandStack);
+        Scenario::removeSelection(*sm, ctx.commandStack);
+    }
+    else if(auto si = focusedScenarioInterface(ctx))
+    {
+        Scenario::clearContentFromSelection(*si, ctx.commandStack);
     }
 
     return obj;
