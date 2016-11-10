@@ -64,17 +64,22 @@ get_target_property(QT_LIBRARY_DIR Qt5::Core LOCATION)
 get_filename_component(QT_LIBRARY_DIR ${QT_LIBRARY_DIR} PATH)
 get_filename_component(QT_LIBRARY_DIR "${QT_LIBRARY_DIR}/.." ABSOLUTE)
 set(QT_PLUGINS_DIR "${Qt5Widgets_DIR}/../../../plugins")
+set(QT_QML_PLUGINS_DIR "${Qt5Widgets_DIR}/../../../qml")
 
 set(plugin_dest_dir "${APPNAME}.app/Contents/PlugIns")
 set(qtconf_dest_dir "${APPNAME}.app/Contents/Resources")
+set(qml_dest_dir "${APPNAME}.app/Contents/Resources/qml")
 
 install(FILES "${QT_PLUGINS_DIR}/platforms/libqcocoa.dylib" DESTINATION "${plugin_dest_dir}/platforms")
 install(FILES "${QT_PLUGINS_DIR}/imageformats/libqsvg.dylib" DESTINATION "${plugin_dest_dir}/imagesformats")
 install(FILES "${QT_PLUGINS_DIR}/iconengines/libqsvgicon.dylib" DESTINATION "${plugin_dest_dir}/iconengines")
+install(FILES "${QT_QML_PLUGINS_DIR}/QtQuick.2/libqtquick2plugin.dylib" DESTINATION "${plugin_dest_dir}/quick")
+install(DIRECTORY "${QT_QML_PLUGINS_DIR}/QtQuick" "${QT_QML_PLUGINS_DIR}/QtQuick.2" DESTINATION "${qml_dest_dir}")
 
 install(CODE "
     file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]
 Plugins = PlugIns
+Qml2Imports = Resources/qml
 \")
 " )
 #Translations = Resources/translations
@@ -84,11 +89,13 @@ if(ISCORE_STATIC_PLUGINS)
     install(CODE "
         file(GLOB_RECURSE QTPLUGINS
             \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*.dylib\")
+        file(GLOB_RECURSE QMLPLUGINS
+            \"\${CMAKE_INSTALL_PREFIX}/${qml_plugin_dest_dir}/*.dylib\")
         set(BU_CHMOD_BUNDLE_ITEMS ON)
         include(BundleUtilities)
         fixup_bundle(
           \"\${CMAKE_INSTALL_PREFIX}/${APPNAME}.app\"
-          \"\${QTPLUGINS}\"
+          \"\${QTPLUGINS};${QMLPLUGINS}\"
           \"${QT_LIBRARY_DIR}\")
         " COMPONENT Runtime)
 else()
