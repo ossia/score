@@ -108,18 +108,20 @@ else()
       message(${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins)
         file(GLOB_RECURSE QTPLUGINS
             \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*.dylib\")
+        file(GLOB_RECURSE QMLPLUGINS
+            \"\${CMAKE_INSTALL_PREFIX}/${qml_plugin_dest_dir}/*.dylib\")
         set(BU_CHMOD_BUNDLE_ITEMS ON)
         include(BundleUtilities)
         fixup_bundle(
            \"${CMAKE_INSTALL_PREFIX}/i-score.app\"
-           \"\${QTPLUGINS};${ISCORE_BUNDLE_INSTALLED_PLUGINS}\"
+           \"\${QTPLUGINS};${QMLPLUGINS};${ISCORE_BUNDLE_INSTALLED_PLUGINS}\"
        \"${QT_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/API/OSSIA;${CMAKE_BINARY_DIR}/base/lib;${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/\"
         )
 message(\"${ISCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\"
-          \"${CMAKE_INSTALL_PREFIX}/i-score.app/Contents/MacOS/plugins\")
+          \"${CMAKE_INSTALL_PREFIX}/i-score.app/Contents\")
 execute_process(COMMAND
           \"${ISCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\"
-          \"${CMAKE_INSTALL_PREFIX}/i-score.app/Contents/MacOS/plugins\")
+          \"${CMAKE_INSTALL_PREFIX}/i-score.app/Contents\")
       ")
 endif()
 

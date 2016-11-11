@@ -1,6 +1,6 @@
 #!/bin/bash 
-
-for PLUGIN in $1/*.dylib; 
+PLUGIN_FOLDER=$1/MacOS/plugins
+for PLUGIN in $PLUGIN_FOLDER/*.dylib; 
 do
   OTOOL_OUTPUT=$(otool -L "$PLUGIN")
   LIBS=$(echo "$OTOOL_OUTPUT" | grep 'libiscore_plugin' | grep -v ':' | awk '{print $1}')
@@ -16,4 +16,8 @@ do
         install_name_tool -change "$LIB" "$FIXED_LIB" "$PLUGIN"
   done   
 done
-install_name_tool -add_rpath @executable_path/plugins "$1/../i-score"
+install_name_tool -add_rpath @executable_path/plugins "$1/MacOS/i-score"
+
+# Also fixup for the QtQuick dylibs
+find "$1/Resources/qml" -name '*.dylib' -exec rm {} \;
+ln -s "$1/PlugIns/quick/libqtquick2plugin.dylib" "$1/Resources/qml/QtQuick.2"
