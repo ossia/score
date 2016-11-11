@@ -57,7 +57,14 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     cp ../../AppImageKit/AppRun .
     chmod a+x AppRun
     mkdir -p ./usr/lib/qt5/
-    cp -rf "$QTDIR/plugins/"  ./usr/lib/qt5/plugins
+    mkdir -p ./usr/lib/qt5/plugins/platforms
+    mkdir -p ./usr/lib/qt5/plugins/imageformats
+    mkdir -p ./usr/lib/qt5/plugins/iconengines
+    mkdir -p ./usr/lib/qt5/plugins/quick
+    cp -rf "$QTDIR/plugins/platforms/libqxcb.so"  ./usr/lib/qt5/plugins/platforms
+    cp -rf "$QTDIR/plugins/imageformats/libqsvg.so"  ./usr/lib/qt5/plugins/imageformats
+    cp -rf "$QTDIR/plugins/iconengines/libqsvgicon.so"  ./usr/lib/qt5/plugins/iconengines
+    cp -rf "$QTDIR/qml/QtQuick.2/libqtquick2plugin.so"  ./usr/lib/qt5/plugins/quick
     
     # Dependencies of plugins and i-score
     for lib in usr/lib/libiscore_lib_*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
@@ -70,6 +77,10 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     
     # Dependencies of qt
     ldd usr/lib/qt5/plugins/platforms/libqxcb.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+    ldd usr/lib/qt5/plugins/imageformats/libqsvg.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+    ldd usr/lib/qt5/plugins/iconengines/libqsvgicon.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+    ldd usr/lib/qt5/plugins/quick/libqtquick2plugin.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+
     cp -v $QTDIR/lib/libQt5XcbQpa.so.5 ./usr/lib || true
     ldd ./usr/lib/libQt5XcbQpa.so.5 | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     cp -v $QTDIR/lib/libQt5DBus.so.5 ./usr/lib || true
