@@ -40,7 +40,7 @@ DisplayedElementsContainer BaseScenarioDisplayedElementsProvider::make(
 DisplayedElementsPresenterContainer BaseScenarioDisplayedElementsProvider::make_presenters(
         const ConstraintModel& m,
         const Process::ProcessPresenterContext& ctx,
-        QGraphicsObject* view_parent,
+        QGraphicsItem* view_parent,
         QObject* parent) const
 {
     if(auto bs = dynamic_cast<BaseScenario*>(m.parent()))

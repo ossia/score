@@ -14,9 +14,9 @@
 #include <QScrollBar>
 #include <iscore_plugin_curve_export.h>
 #include <Process/Tools/ProcessGraphicsView.hpp>
-#include <Process/Tools/ProcessPanelGraphicsProxy.hpp>
 #include <iscore/widgets/DoubleSlider.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
+#include <QGraphicsLineItem>
 
 namespace Curve
 {
@@ -64,14 +64,14 @@ class CurvePanelProxy :
             m_widget{new QWidget},
             m_scene{new QGraphicsScene{this}},
             m_view{new ProcessGraphicsView{m_scene}},
-            m_obj{new ProcessPanelGraphicsProxy{}},
-            m_curveView{new Curve::View{m_obj}},
+            m_processEnd{new QGraphicsLineItem{}},
+            m_curveView{new Curve::View{nullptr}},
             m_curvePresenter{
                 [this] () {
 
             // Add the items to the scene early because
             // the presenters might call scene() in their ctor.
-            m_scene->addItem(m_obj);
+            m_scene->addItem(m_curveView);
 
             // Setup the model
             auto fact = iscore::AppContext()
@@ -100,6 +100,12 @@ class CurvePanelProxy :
         {
             // Setup the view
             m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
+
+            QPen p{Qt::DashLine};
+            p.setWidth(2);
+            p.setColor(QColor::fromRgba(qRgba(100, 100, 100, 100)));
+            m_processEnd->setPen(p);
+            m_scene->addItem(m_processEnd);
 
 
             m_widget->setLayout(new QVBoxLayout);
@@ -133,19 +139,12 @@ class CurvePanelProxy :
             on_sizeChanged(m_view->size());
 
             on_zoomChanged(0.03);
-
-
         }
 
         virtual ~CurvePanelProxy()
         {
-            if(m_curvePresenter)
-            {
-                delete m_curvePresenter;
-                m_curveView = nullptr;
-            }
-
-            delete m_obj;
+            delete m_curvePresenter;
+            delete m_curveView;
             delete m_widget;
         }
 
@@ -208,10 +207,11 @@ class CurvePanelProxy :
             if(m_currentCurveMax > 1)
                 fullWidth *= m_currentCurveMax;
 
+            m_processEnd->setLine(fullWidth, 0, fullWidth, m_height);
+
             auto maxWidth = std::max(fullWidth * 1.2, m_width) * 1.5;
             m_view->setSceneRect({0, 0, maxWidth, m_height});
 
-            m_obj->setRect(QSizeF{maxWidth, m_height});
             m_curveView->setRect({0, 0, maxWidth, m_height});
             m_curvePresenter->setRect(QRectF{0, 0, fullWidth * 1.2,  m_height});
 
@@ -226,9 +226,9 @@ class CurvePanelProxy :
 
         QGraphicsScene* m_scene{};
         ProcessGraphicsView* m_view{};
-        ProcessPanelGraphicsProxy* m_obj{};
         iscore::DoubleSlider* m_zoomSlider{};
 
+        QGraphicsLineItem* m_processEnd{};
         Curve::View* m_curveView{};
         Curve::Presenter* m_curvePresenter{};
 

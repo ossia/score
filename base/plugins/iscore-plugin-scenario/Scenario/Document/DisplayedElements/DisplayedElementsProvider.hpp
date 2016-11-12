@@ -2,7 +2,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
-class QGraphicsObject;
+class QGraphicsItem;
 namespace Process
 {
 struct ProcessPresenterContext;
@@ -20,7 +20,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsProvider :
         virtual bool matches(const ConstraintModel& cst) const = 0;
         bool matches(const ConstraintModel& cst,
                      const Process::ProcessPresenterContext& ctx,
-                     QGraphicsObject* view_parent,
+                     QGraphicsItem* view_parent,
                      QObject* parent) const
         { return matches(cst); }
 
@@ -28,7 +28,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsProvider :
         virtual DisplayedElementsPresenterContainer make_presenters(
                 const ConstraintModel& m,
                 const Process::ProcessPresenterContext& ctx,
-                QGraphicsObject* view_parent,
+                QGraphicsItem* view_parent,
                 QObject* parent) const = 0;
 };
 }

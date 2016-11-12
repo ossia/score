@@ -8,10 +8,10 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
-class ProgressBar final : public QGraphicsObject
+class ProgressBar final :  public QGraphicsItem
 {
     public:
-        using QGraphicsObject::QGraphicsObject;
+        using QGraphicsItem::QGraphicsItem;
         void setHeight(qreal newHeight);
 
         QRectF boundingRect() const override;

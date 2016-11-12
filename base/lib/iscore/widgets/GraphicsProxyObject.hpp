@@ -1,13 +1,16 @@
 #pragma once
-#include <QGraphicsObject>
+#include <QGraphicsItem>
+#include <QObject>
 #include <QDebug>
 #include <QBrush>
 #include <QPainter>
-class BaseGraphicsObject final : public QGraphicsObject
+class BaseGraphicsObject final :
+    public QObject,
+    public QGraphicsItem
 {
     public:
-        BaseGraphicsObject(QGraphicsObject* parent = nullptr):
-            QGraphicsObject{parent}
+        BaseGraphicsObject(QGraphicsItem* parent = nullptr):
+            QGraphicsItem{parent}
         {
             this->setFlag(QGraphicsItem::ItemHasNoContents, true);
         }

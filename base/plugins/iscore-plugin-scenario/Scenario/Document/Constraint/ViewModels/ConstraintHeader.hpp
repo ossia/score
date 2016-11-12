@@ -8,7 +8,9 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 class ConstraintView;
-class ConstraintHeader : public QGraphicsObject
+class ConstraintHeader :
+    public QObject,
+    public QGraphicsItem
 {
     public:
         enum class State {
@@ -17,7 +19,7 @@ class ConstraintHeader : public QGraphicsObject
             RackShown // There is a rack currently shown
         };
 
-        using QGraphicsObject::QGraphicsObject;
+        using QGraphicsItem::QGraphicsItem;
 
         static constexpr int static_type()
         { return QGraphicsItem::UserType + ItemType::ConstraintHeader; }

@@ -35,7 +35,7 @@ Scenario::DisplayedElementsContainer DisplayedElementsProvider::make(
 Scenario::DisplayedElementsPresenterContainer DisplayedElementsProvider::make_presenters(
         const Scenario::ConstraintModel& m,
         const Process::ProcessPresenterContext& ctx,
-        QGraphicsObject* view_parent,
+        QGraphicsItem* view_parent,
         QObject* parent) const
 {
     if(auto bs = dynamic_cast<Loop::ProcessModel*>(m.parent()))
