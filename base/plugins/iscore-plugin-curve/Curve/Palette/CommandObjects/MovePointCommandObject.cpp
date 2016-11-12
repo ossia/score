@@ -73,6 +73,10 @@ void MovePointCommandObject::on_press()
         {
             m_xmax = pt_x;
         }
+        if(pt_x >= m_xLastPoint)
+        {
+            m_xLastPoint = pt_x;
+        }
     }
 }
 

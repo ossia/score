@@ -2,6 +2,8 @@
 #include <Process/ProcessFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/LayerModel.hpp>
+#include <Curve/CurveStyle.hpp>
+#include <Curve/Panel/CurvePanel.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore_plugin_curve_export.h>
 
@@ -14,8 +16,9 @@ template<
         typename LayerPresenter_T,
         typename LayerView_T,
         typename CurveColors_T>
-class CurveLayerFactory_T :
-        public Process::LayerFactory
+class CurveLayerFactory_T final :
+        public Process::LayerFactory,
+        public StyleInterface
 {
     public:
         virtual ~CurveLayerFactory_T() = default;
@@ -82,6 +85,16 @@ class CurveLayerFactory_T :
                 parent};
         }
 
+
+        Process::LayerModelPanelProxy* makePanel(
+                const Process::LayerModel& layer,
+                QObject* parent) override
+        {
+            return new CurvePanelProxy<LayerModel_T>{
+                safe_cast<const LayerModel_T&>(layer),
+                parent};
+        }
+
         UuidKey<Process::LayerFactory> concreteFactoryKey() const override
         { return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get(); }
 
@@ -90,6 +103,12 @@ class CurveLayerFactory_T :
         {
             return p == Metadata<ConcreteFactoryKey_k, Model_T>::get();
         }
+
+        const Curve::Style& style() const override
+        {
+            return m_colors.style();
+        }
+
     private:
         CurveColors_T m_colors;
 };

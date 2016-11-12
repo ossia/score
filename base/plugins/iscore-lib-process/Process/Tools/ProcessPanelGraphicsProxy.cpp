@@ -23,10 +23,12 @@ void ProcessPanelGraphicsProxy::paint(
 {
     painter->setRenderHint(QPainter::Antialiasing, false);
     painter->setBrush(ScenarioStyle::instance().ProcessPanelBackground.getBrush());
-    painter->drawRect(boundingRect());
+    auto rect = boundingRect();
+    painter->setPen(Qt::DashLine);
+    painter->drawLine(rect.width(), 0, rect.width(), rect.height());
 }
 
-void ProcessPanelGraphicsProxy::setSize(const QSizeF& size)
+void ProcessPanelGraphicsProxy::setRect(const QSizeF& size)
 {
     prepareGeometryChange();
     m_size = size;

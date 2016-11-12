@@ -71,9 +71,9 @@ void EditionToolForCreate::on_released(QPointF scenePoint, Curve::Point curvePoi
 }
 
 
-SetSegmentTool::SetSegmentTool(Curve::ToolPalette &sm):
+SetSegmentTool::SetSegmentTool(Curve::ToolPalette &sm, const iscore::DocumentContext& context):
     EditionToolForCreate{sm},
-    m_co{sm.model(), sm.context().context.commandStack}
+    m_co{sm.model(), context.commandStack}
 {
     QState* waitState = new QState{&localSM()};
 
@@ -88,9 +88,9 @@ SetSegmentTool::SetSegmentTool(Curve::ToolPalette &sm):
 }
 
 
-CreateTool::CreateTool(Curve::ToolPalette &sm):
+CreateTool::CreateTool(Curve::ToolPalette &sm, const iscore::DocumentContext& context):
     EditionToolForCreate{sm},
-    m_co{&sm.presenter(), sm.context().context.commandStack}
+    m_co{&sm.presenter(), context.commandStack}
 {
     localSM().setObjectName("CreateToolLocalSM");
     QState* waitState = new QState{&localSM()};

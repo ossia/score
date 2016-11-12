@@ -211,7 +211,7 @@ void ObjectMenuActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
     scenario_model.functions.push_back(
                 [this] (QMenu& menu, QPoint, QPointF scenePoint, const LayerContext& ctx)
     {
-        auto& scenario = *safe_cast<const TemporalScenarioPresenter*>(&ctx.layerPresenter);
+        auto& scenario = *safe_cast<const TemporalScenarioPresenter*>(&ctx.presenter);
         auto sel = ctx.context.selectionStack.currentSelection();
         if(!sel.empty())
         {

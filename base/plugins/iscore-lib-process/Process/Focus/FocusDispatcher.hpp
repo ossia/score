@@ -9,9 +9,14 @@ namespace iscore
     class Document;
     class DocumentDelegateModelInterface;
 }
+// TODO this is ugly :'(
 namespace Scenario
 {
 class ScenarioDocumentPresenter;
+}
+namespace Curve
+{
+class Presenter;
 }
 // Sets the focus on a scenario document.
 class ISCORE_LIB_PROCESS_EXPORT FocusDispatcher : public QObject
@@ -21,6 +26,7 @@ class ISCORE_LIB_PROCESS_EXPORT FocusDispatcher : public QObject
     signals:
         void focus(Scenario::ScenarioDocumentPresenter*);
         void focus(QPointer<Process::LayerPresenter>);
+        void focus(Curve::Presenter*);
 };
 
 Q_DECLARE_METATYPE(QPointer<Process::LayerPresenter>)

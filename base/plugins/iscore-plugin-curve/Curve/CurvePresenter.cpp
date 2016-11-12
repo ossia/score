@@ -84,8 +84,7 @@ Presenter::~Presenter()
 
 void Presenter::setRect(const QRectF& rect)
 {
-    m_view->setRect(rect);
-
+    m_localRect = rect;
     // Positions
     for(auto& curve_pt : m_points)
     {
@@ -100,20 +99,19 @@ void Presenter::setRect(const QRectF& rect)
 
 void Presenter::setPos(PointView& point)
 {
-    point.setPos(myscale(point.model().pos(),  m_view->boundingRect().size()));
+    point.setPos(myscale(point.model().pos(), m_localRect.size()));
 }
 
 void Presenter::setPos(SegmentView& segment)
 {
-    auto rect = m_view->boundingRect();
     // Pos is the top-left corner of the segment
     // Width is from begin to end
     // Height is the height of the curve since the segment can do anything in-between.
     double startx, endx;
-    startx = segment.model().start().x() * rect.width();
-    endx = segment.model().end().x() * rect.width();
+    startx = segment.model().start().x() * m_localRect.width();
+    endx = segment.model().end().x() * m_localRect.width();
     segment.setPos({startx, 0});
-    segment.setRect({0., 0., endx - startx, rect.height()});
+    segment.setRect({0., 0., endx - startx, m_localRect.height()});
 }
 
 void Presenter::setupSignals()
@@ -186,10 +184,12 @@ void Presenter::setupView()
 
     auto shiftact = new QAction{m_actions};
     shiftact->setCheckable(true);
+    shiftact->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_actions->addAction(shiftact);
 
     auto ctrlact = new QAction{m_actions};
     ctrlact->setCheckable(true);
+    ctrlact->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_actions->addAction(ctrlact);
 
     m_actions->setEnabled(true);
@@ -232,12 +232,10 @@ void Presenter::setupView()
         if(key == Qt::Key_Shift)
         {
             shiftact->setChecked(false);
-            editionSettings().setTool(Curve::Tool::Select);
         }
         if(key == Qt::Key_Control)
         {
             ctrlact->setChecked(false);
-            editionSettings().setTool(Curve::Tool::Select);
         }
     });
 }

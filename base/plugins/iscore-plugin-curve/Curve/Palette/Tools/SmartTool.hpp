@@ -14,7 +14,7 @@ class SelectionState;
 class SmartTool final : public Curve::CurveTool
 {
     public:
-        explicit SmartTool(Curve::ToolPalette& sm);
+        explicit SmartTool(Curve::ToolPalette& sm, const iscore::DocumentContext& context);
 
         void on_pressed(QPointF scene, Curve::Point sp);
         void on_moved(QPointF scene, Curve::Point sp);

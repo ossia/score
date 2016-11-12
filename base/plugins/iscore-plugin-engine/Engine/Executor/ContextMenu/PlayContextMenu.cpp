@@ -211,7 +211,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager &ctxm)
     scenario_cm.functions.push_back(
     [this] (QMenu& menu, QPoint, QPointF scenept, const Process::LayerContext& ctx)
     {
-        auto& pres = safe_cast<Scenario::TemporalScenarioPresenter&>(ctx.layerPresenter);
+        auto& pres = safe_cast<Scenario::TemporalScenarioPresenter&>(ctx.presenter);
         auto scenPoint = Scenario::ConvertToScenarioPoint(scenept, pres.zoomRatio(), pres.view().height());
         m_playFromHere->setData(QVariant::fromValue(scenPoint.date));
         menu.addAction(m_playFromHere);

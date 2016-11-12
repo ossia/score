@@ -66,11 +66,14 @@ class CurveProcessPresenter :
         void on_focusChanged() override
         {
             bool b = focused();
+            if(b)
+                m_view->setFocus();
+
             // TODO Same for Scenario please.
             m_curvepresenter->enableActions(b);
+
             // TODO if playing() ?
-            m_curvepresenter->editionSettings().setTool(b ? Curve::Tool::Select
-                                                          : Curve::Tool::Disabled);
+            m_curvepresenter->editionSettings().setTool(Curve::Tool::Select);
         }
 
         void setWidth(qreal width) override
@@ -110,6 +113,7 @@ class CurveProcessPresenter :
 
             rect.setWidth(m_layer.processModel().duration().toPixels(m_zoomRatio));
 
+            m_curvepresenter->view().setRect(rect);
             m_curvepresenter->setRect(rect);
         }
 
@@ -142,7 +146,7 @@ class CurveProcessPresenter :
 
         ZoomRatio m_zoomRatio {};
 
-        Curve::ToolPalette m_sm;
+        Curve::ToolPalette_T<Process::LayerContext> m_sm;
 };
 }
 

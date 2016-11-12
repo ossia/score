@@ -10,6 +10,12 @@ namespace Process
 LayerView::~LayerView() = default;
 
 
+LayerView::LayerView(QGraphicsItem* parent):
+    QGraphicsItem{parent}
+{
+
+}
+
 QRectF LayerView::boundingRect() const
 {
     return {0, 0, m_width, m_height};

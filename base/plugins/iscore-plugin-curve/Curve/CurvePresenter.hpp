@@ -66,6 +66,16 @@ class ISCORE_PLUGIN_CURVE_EXPORT Presenter : public QObject
                 const QPointF&);
 
         void removeSelection();
+        QActionGroup& actions() const { return *m_actions; }
+
+        // Used to allow moving outside [0; 1] when in the panel view.
+        bool boundedMove() const
+        { return m_boundedMove; }
+        void setBoundedMove(bool b)
+        { m_boundedMove = b; }
+
+        QRectF rect() const
+        { return m_localRect; }
 
     signals:
         void contextMenuRequested(const QPoint&, const QPointF&);
@@ -95,6 +105,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT Presenter : public QObject
 
         const SegmentList& m_curveSegments;
         Curve::EditionSettings m_editionSettings;
+        QRectF m_localRect;
 
         const Model& m_model;
         graphics_item_ptr<View> m_view;
@@ -111,5 +122,6 @@ class ISCORE_PLUGIN_CURVE_EXPORT Presenter : public QObject
         QActionGroup* m_actions{};
 
         bool m_enabled = true;
+        bool m_boundedMove = true;
 };
 }

@@ -56,3 +56,5 @@ class ISCORE_PLUGIN_CURVE_EXPORT  EditionSettings : public QObject
         void toolChanged(Curve::Tool tool);
 };
 }
+
+Q_DECLARE_METATYPE(Curve::Tool)

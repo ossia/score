@@ -44,6 +44,7 @@ set(OSSIA_NO_INSTALL ON CACHE INTERNAL "" FORCE)
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" )
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Qml WebSockets)
 
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
