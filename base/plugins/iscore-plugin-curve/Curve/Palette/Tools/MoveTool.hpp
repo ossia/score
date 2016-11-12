@@ -23,7 +23,7 @@ class EditionToolForCreate : public CurveTool
 class CreateTool final : public Curve::EditionToolForCreate
 {
     public:
-        explicit CreateTool(Curve::ToolPalette& sm);
+        explicit CreateTool(Curve::ToolPalette& sm, const iscore::DocumentContext& context);
 
     private:
         CreatePointCommandObject m_co;
@@ -32,7 +32,7 @@ class CreateTool final : public Curve::EditionToolForCreate
 class SetSegmentTool final : public Curve::EditionToolForCreate
 {
     public:
-        explicit SetSegmentTool(Curve::ToolPalette& sm);
+        explicit SetSegmentTool(Curve::ToolPalette& sm, const iscore::DocumentContext& context);
 
     private:
         SetSegmentParametersCommandObject m_co;

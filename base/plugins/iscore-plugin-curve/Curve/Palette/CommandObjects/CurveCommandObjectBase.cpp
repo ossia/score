@@ -38,6 +38,7 @@ void CommandObjectBase::press()
     // To prevent behind locked at 0.000001 or 0.9999
     m_xmin = -1;
     m_xmax = 2;
+    m_xLastPoint = -1;
 
     on_press();
 }
@@ -47,14 +48,19 @@ void CommandObjectBase::handleLocking()
     double current_x = m_state->currentPoint.x();
     double current_y = m_state->currentPoint.y();
 
-    // In any case we lock between O - 1 in both axes.
-    if(current_x < 0.)
-        m_state->currentPoint.setX(0.);
-    if(current_x > 1.)
-        m_state->currentPoint.setX(1.);
+    const bool bounded = m_presenter->boundedMove();
+    // We lock between O - 1 in both axes.
+    if(bounded)
+    {
+        if(current_x < 0.)
+            m_state->currentPoint.setX(0.);
+        else if(current_x > 1.)
+            m_state->currentPoint.setX(1.);
+    }
+
     if(current_y < 0.)
         m_state->currentPoint.setY(0.);
-    if(current_y > 1.)
+    else if(current_y > 1.)
         m_state->currentPoint.setY(1.);
 
     // And more specifically...
@@ -64,7 +70,12 @@ void CommandObjectBase::handleLocking()
             m_state->currentPoint.setX(m_xmin + 0.000001);
 
         if(current_x >= m_xmax)
-            m_state->currentPoint.setX(m_xmax - 0.000001);
+        {
+            // If xmax is the max of the whole curve and we are not bounded,
+            // we ignore.
+            if(!(!bounded && current_x >= m_xLastPoint))
+                m_state->currentPoint.setX(m_xmax - 0.000001);
+        }
     }
 }
 

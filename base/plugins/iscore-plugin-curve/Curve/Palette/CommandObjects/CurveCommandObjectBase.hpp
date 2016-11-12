@@ -95,6 +95,6 @@ class CommandObjectBase
         std::vector<SegmentData> m_startSegments;
 
         // To prevent behind locked at 0.000001 or 0.9999
-        double m_xmin{-1}, m_xmax{2};
+        double m_xmin{-1}, m_xmax{2}, m_xLastPoint{2};
 };
 }

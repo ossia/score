@@ -9,7 +9,6 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 # Files & main target
 file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Curve/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/CurvePlugin.hpp"
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentModelSerialization.cpp"
@@ -28,6 +27,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/MovePoint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Point/CurvePointModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Point/CurvePointView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Panel/CurvePanel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentView.cpp"

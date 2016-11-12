@@ -23,6 +23,6 @@ struct ProcessPresenterContext : public iscore::DocumentContext
 struct LayerContext
 {
         const ProcessPresenterContext& context;
-        Process::LayerPresenter& layerPresenter;
+        Process::LayerPresenter& presenter;
 };
 }

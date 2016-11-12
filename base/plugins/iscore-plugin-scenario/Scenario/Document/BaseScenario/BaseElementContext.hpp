@@ -9,6 +9,6 @@ class BaseElementContext
 {
     public:
         const Process::ProcessPresenterContext& context;
-        ScenarioDocumentPresenter& layerPresenter;
+        ScenarioDocumentPresenter& presenter;
 };
 }

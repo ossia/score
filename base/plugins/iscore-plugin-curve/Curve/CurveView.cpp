@@ -78,5 +78,6 @@ void View::setRect(const QRectF& theRect)
 {
     prepareGeometryChange();
     m_rect = theRect;
+    update();
 }
 }

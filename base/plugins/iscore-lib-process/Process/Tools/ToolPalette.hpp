@@ -35,8 +35,8 @@ class ToolPaletteInputDispatcher : public QObject
                 this, &ToolPaletteInputDispatcher::on_released);
             con(input, &Input_T::escPressed,
                 this, &ToolPaletteInputDispatcher::on_cancel);
-            con(m_elapsedTimer, &QTimer::timeout,
-                this, &ToolPaletteInputDispatcher::on_moved_from_timer);
+            //con(m_elapsedTimer, &QTimer::timeout,
+            //    this, &ToolPaletteInputDispatcher::on_moved_from_timer);
         }
 
         void on_toolChanged(Tool_T t)
@@ -54,7 +54,7 @@ class ToolPaletteInputDispatcher : public QObject
 
         void on_pressed(QPointF p)
         {
-            m_context.context.focusDispatcher.focus(&m_context.layerPresenter);
+            m_context.context.focusDispatcher.focus(&m_context.presenter);
             m_currentPoint = p;
             m_prev = std::chrono::steady_clock::now();
             m_palette.on_pressed(p);
@@ -91,7 +91,7 @@ class ToolPaletteInputDispatcher : public QObject
         void on_released(QPointF p)
         {
             m_running = false;
-            m_elapsedTimer.stop();
+            //m_elapsedTimer.stop();
 
             m_currentPoint = p;
             m_palette.on_released(p);
@@ -100,7 +100,7 @@ class ToolPaletteInputDispatcher : public QObject
         void on_cancel()
         {
             m_running = false;
-            m_elapsedTimer.stop();
+            //m_elapsedTimer.stop();
 
             m_palette.on_cancel();
         }
@@ -113,7 +113,7 @@ class ToolPaletteInputDispatcher : public QObject
         Tool_T m_currentTool;
 
         std::chrono::steady_clock::time_point m_prev;
-        QTimer m_elapsedTimer;
+        //QTimer m_elapsedTimer;
         QPointF m_elapsedPoint;
 
         qreal m_frameTime{16666}; // In microseconds

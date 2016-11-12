@@ -151,7 +151,7 @@ void ConstraintActions::setupContextMenu(Process::LayerContextMenuManager &ctxm)
                 auto rackMenu = menu.addMenu(tr("Racks"));
 
                 // We have to find the constraint view model of this layer.
-                auto& vm = dynamic_cast<const TemporalScenarioLayer*>(&ctx.layerPresenter.layerModel())->constraint(cst.id());
+                auto& vm = dynamic_cast<const TemporalScenarioLayer*>(&ctx.presenter.layerModel())->constraint(cst.id());
 
                 for(const RackModel& rack : cst.racks)
                 {

@@ -27,6 +27,7 @@ class ISCORE_LIB_PROCESS_EXPORT LayerModelPanelProxy : public QObject
         virtual const LayerModel& layer() = 0;
         virtual QWidget* widget() const = 0;
 };
+
 class ISCORE_LIB_PROCESS_EXPORT GraphicsViewLayerModelPanelProxy : public LayerModelPanelProxy
 {
     public:

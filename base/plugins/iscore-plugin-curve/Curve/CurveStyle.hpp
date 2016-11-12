@@ -11,4 +11,11 @@ struct Style
         const QColor& SegmentSelected;//{216, 178, 24}; // Tender2
         const QColor& SegmentDisabled;//{127, 127, 127}; // Gray
 };
+
+struct StyleInterface
+{
+        virtual ~StyleInterface() = default;
+        virtual const Curve::Style& style() const = 0;
+};
+
 }

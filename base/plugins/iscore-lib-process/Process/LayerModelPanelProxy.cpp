@@ -65,6 +65,7 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
                                              this);
 
 
+    m_layerView->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
 
     // Have a zoom here too. For now the process should be the size of the window.
     on_sizeChanged(m_view->size());
@@ -135,7 +136,7 @@ void Process::GraphicsViewLayerModelPanelProxy::recompute()
     {
         m_processPresenter->on_zoomRatioChanged(m_zoomRatio);
 
-        m_obj->setSize(QSizeF{(double)fullWidth, m_height});
+        m_obj->setRect(QSizeF{(double)fullWidth, m_height});
         m_processPresenter->setWidth(fullWidth);
         m_processPresenter->setHeight(m_height);
         m_processPresenter->parentGeometryChanged();
