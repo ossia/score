@@ -36,8 +36,8 @@ void CommandObjectBase::press()
     m_startSegments = current.toCurveData();
 
     // To prevent behind locked at 0.000001 or 0.9999
-    m_xmin = -1;
-    m_xmax = 2;
+    m_xmin = std::numeric_limits<decltype(m_xmax)>::lowest();
+    m_xmax = std::numeric_limits<decltype(m_xmax)>::max();
     m_xLastPoint = -1;
 
     on_press();
