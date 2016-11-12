@@ -65,15 +65,21 @@ install(
 
 # Qt plug-ins
 set(QT_PLUGINS_DIR "${QT_DLL_DIR}/../plugins")
+set(QT_QML_PLUGINS_DIR "${QT_DLL_DIR}/../qml")
 set(plugin_dest_dir "${ISCORE_BIN_INSTALL_DIR}/plugins")
 
 install(FILES "${QT_PLUGINS_DIR}/platforms/qwindows${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/platforms")
 install(FILES "${QT_PLUGINS_DIR}/imageformats/qsvg${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/imagesformats")
 install(FILES "${QT_PLUGINS_DIR}/iconengines/qsvgicon${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/iconengines")
-install(FILES "${QT_QML_PLUGINS_DIR}/QtQuick.2/qtquick2plugin${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/quick")
 install(DIRECTORY "${QT_QML_PLUGINS_DIR}/QtQuick" "${QT_QML_PLUGINS_DIR}/QtQuick.2" DESTINATION "${ISCORE_BIN_INSTALL_DIR}/qml")
 
+install(CODE "
+    file(GLOB_RECURSE DLLS_TO_REMOVE \"*.dll\")
+    list(FILTER DLLS_TO_REMOVE INCLUDE REGEX \"qml/.*/*dll\")
+    file(REMOVE \${DLLS_TO_REMOVE})
+    ")
 
+install(FILES "${QT_QML_PLUGINS_DIR}/QtQuick.2/qtquick2plugin${DEBUG_CHAR}.dll" DESTINATION "${ISCORE_BIN_INSTALL_DIR}/qml/QtQuick.2")
 # NSIS metadata
 set(CPACK_GENERATOR "NSIS")
 set(CPACK_PACKAGE_EXECUTABLES "i-score.exe;i-score")

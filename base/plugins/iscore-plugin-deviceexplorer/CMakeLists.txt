@@ -119,9 +119,6 @@ set(SRCS
 )
 qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceExplorer.qrc")
 
-set(ZEROCONF_SRCS
-)
-
 add_library(${PROJECT_NAME}
       ${SRCS} ${HDRS}
       ${EXPLORER_RESOURCES_RCC})

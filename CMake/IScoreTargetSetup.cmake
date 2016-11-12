@@ -61,8 +61,7 @@ function(iscore_set_msvc_compile_options theTarget)
     "/wd4503" # decorated name length exceeded
     "/MP"
     )
-
-    target_compile_options(${theTarget} PUBLIC "$<$<CONFIG:Release>:/GL>")
+    
     target_compile_definitions(${theTarget} PUBLIC
         "NOMINMAX"
         )

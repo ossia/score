@@ -125,7 +125,7 @@ void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
         pt.setX(pt.x() * scale);
         segment.setEnd(pt);
     }
-
+/*
     // Since we shrink, scale > 1. so we have to cut.
     // Note:  this will certainly change how some functions do look.
     auto segments = shallow_copy(m_curve->segments());// Make a copy since we will change the map.
@@ -143,7 +143,7 @@ void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
             segment->setEnd(end);
         }
     }
-
+*/
     setDuration(newDuration);
     m_curve->changed();
 }
