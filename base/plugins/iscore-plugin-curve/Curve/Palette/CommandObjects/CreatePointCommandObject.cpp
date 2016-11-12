@@ -94,13 +94,14 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData> &segments)
     SegmentData* middle = nullptr;
     SegmentData* exactBefore = nullptr;
     SegmentData* exactAfter = nullptr;
+    const auto current_x = m_state->currentPoint.x();
     for(auto& segment : segments)
     {
-        if(segment.start.x() < m_state->currentPoint.x() && m_state->currentPoint.x() < segment.end.x())
+        if(segment.start.x() < current_x && current_x < segment.end.x())
             middle = &segment;
-        if(segment.end.x() == m_state->currentPoint.x())
+        if(segment.end.x() == current_x)
             exactBefore = &segment;
-        if(segment.start.x() == m_state->currentPoint.x())
+        if(segment.start.x() == current_x)
             exactAfter = &segment;
 
         if(middle && exactBefore && exactAfter)
@@ -158,14 +159,14 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData> &segments)
         for(SegmentData& segment : segments)
         {
             auto seg_start_x = segment.start.x();
-            if(seg_start_x > m_state->currentPoint.x() && seg_start_x < seg_closest_from_right_x)
+            if(seg_start_x > current_x && seg_start_x < seg_closest_from_right_x)
             {
                 seg_closest_from_right_x = seg_start_x;
                 seg_closest_from_right = &segment;
             }
 
             auto seg_end_x = segment.end.x();
-            if(seg_end_x < m_state->currentPoint.x() && seg_end_x > seg_closest_from_left_x)
+            if(seg_end_x < current_x && seg_end_x > seg_closest_from_left_x)
             {
                 seg_closest_from_left_x = seg_end_x;
                 seg_closest_from_left = &segment;
@@ -185,20 +186,6 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData> &segments)
         newLeftSegment.start = {seg_closest_from_left_x, 0.};
         newLeftSegment.end = m_state->currentPoint;
 
-        {
-            SegmentData newRightSegment;
-            newRightSegment.id = getSegmentId(segments);
-            segments.push_back(newRightSegment);
-        }
-        SegmentData& newRightSegment = segments.back();
-        newRightSegment.type = Metadata<ConcreteFactoryKey_k, PowerSegment>::get();
-        newRightSegment.specificSegmentData = QVariant::fromValue(PowerSegmentData{0});
-        newRightSegment.start = m_state->currentPoint;
-        newRightSegment.end = {seg_closest_from_right_x, 0.};
-
-        newLeftSegment.following = newRightSegment.id;
-        newRightSegment.previous = newLeftSegment.id;
-
         if(seg_closest_from_left)
         {
             newLeftSegment.start = seg_closest_from_left->end;
@@ -206,13 +193,33 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData> &segments)
 
             seg_closest_from_left->following = newLeftSegment.id;
         }
-
-        if(seg_closest_from_right)
+        
+        // Create a curve segment for the right
+        // If we are before 1.0 we wrap to 1.0.
+        if(current_x <= 1.0 || seg_closest_from_right)
         {
-            newRightSegment.end = seg_closest_from_right->start;
-            newRightSegment.following = seg_closest_from_right->id;
-
-            seg_closest_from_right->previous = newRightSegment.id;
+            {
+                SegmentData newRightSegment;
+                newRightSegment.id = getSegmentId(segments);
+                segments.push_back(newRightSegment);
+            }
+            SegmentData& newRightSegment = segments.back();
+            newRightSegment.type = Metadata<ConcreteFactoryKey_k, PowerSegment>::get();
+            newRightSegment.specificSegmentData = QVariant::fromValue(PowerSegmentData{0});
+            newRightSegment.start = m_state->currentPoint;
+            newRightSegment.end = {seg_closest_from_right_x, 0.};
+    
+            newLeftSegment.following = newRightSegment.id;
+            newRightSegment.previous = newLeftSegment.id;
+    
+    
+            if(seg_closest_from_right)
+            {
+                newRightSegment.end = seg_closest_from_right->start;
+                newRightSegment.following = seg_closest_from_right->id;
+    
+                seg_closest_from_right->previous = newRightSegment.id;
+            }
         }
 
     }
