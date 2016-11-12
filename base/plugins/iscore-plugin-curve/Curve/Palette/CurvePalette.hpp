@@ -24,108 +24,23 @@ class Model;
 class Presenter;
 class View;
 
-class ToolPalette : public GraphicsSceneToolPalette
+class ISCORE_PLUGIN_CURVE_EXPORT ToolPalette : public GraphicsSceneToolPalette
 {
     public:
-        ToolPalette(const iscore::DocumentContext& ctx, Presenter& pres):
-            GraphicsSceneToolPalette{*pres.view().scene()},
-            m_presenter{pres},
-            m_selectTool{*this, ctx},
-            m_createTool{*this, ctx},
-            m_setSegmentTool{*this, ctx}
-        {
-        }
+        ToolPalette(const iscore::DocumentContext& ctx, Presenter& pres);
+        Presenter& presenter() const;
 
-        Presenter& presenter() const
-        {
-            return m_presenter;
-        }
+        Curve::EditionSettings& editionSettings() const;
 
-        Curve::EditionSettings& editionSettings() const
-        {
-            return m_presenter.editionSettings();
-        }
+        const Model& model() const;
+        void on_pressed(QPointF point);
+        void on_moved(QPointF point);
+        void on_released(QPointF point);
 
-        const Model& model() const
-        {
-            return m_presenter.model();
-        }
+        void on_cancel();
 
-        void on_pressed(QPointF point)
-        {
-            scenePoint = point;
-            auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-            switch(editionSettings().tool())
-            {
-                case Curve::Tool::Create:
-                    m_createTool.on_pressed(point, curvePoint);
-                    break;
-                case Curve::Tool::Select:
-                    m_selectTool.on_pressed(point, curvePoint);
-                    break;
-                case Curve::Tool::SetSegment:
-                    m_setSegmentTool.on_pressed(point, curvePoint);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void on_moved(QPointF point)
-        {
-            scenePoint = point;
-            auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-            switch(editionSettings().tool())
-            {
-                case Curve::Tool::Create:
-                    m_createTool.on_moved(point, curvePoint);
-                    break;
-                case Curve::Tool::Select:
-                    m_selectTool.on_moved(point, curvePoint);
-                    break;
-                case Curve::Tool::SetSegment:
-                    m_setSegmentTool.on_moved(point, curvePoint);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void on_released(QPointF point)
-        {
-            scenePoint = point;
-            auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-            switch(editionSettings().tool())
-            {
-                case Curve::Tool::Create:
-                    m_createTool.on_released(point, curvePoint);
-                    break;
-                case Curve::Tool::Select:
-                    m_selectTool.on_released(point, curvePoint);
-                    break;
-                case Curve::Tool::SetSegment:
-                    m_setSegmentTool.on_released(point, curvePoint);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        void on_cancel()
-        {
-            m_createTool.on_cancel();
-            m_selectTool.on_cancel();
-            m_setSegmentTool.on_cancel();
-        }
-
-        void activate(Curve::Tool)
-        {
-
-        }
-        void desactivate(Curve::Tool)
-        {
-
-        }
+        void activate(Curve::Tool);
+        void desactivate(Curve::Tool);
 
     private:
         Curve::Point ScenePointToCurvePoint(const QPointF& point)
