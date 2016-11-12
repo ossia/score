@@ -7,9 +7,7 @@ namespace Process { class LayerModel; }
 class QStyleOptionGraphicsItem;
 class QWidget;
 
-ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy()
-{
-}
+ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy() = default;
 
 QRectF ProcessPanelGraphicsProxy::boundingRect() const
 {

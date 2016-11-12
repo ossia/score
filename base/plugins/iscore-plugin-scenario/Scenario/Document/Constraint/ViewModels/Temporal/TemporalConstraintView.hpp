@@ -12,7 +12,6 @@
 #include <QPainter>
 
 class QMimeData;
-class QGraphicsObject;
 class QGraphicsSceneHoverEvent;
 class QGraphicsSceneDragDropEvent;
 class QPainter;

@@ -1,6 +1,6 @@
 #pragma once
-
-#include <QGraphicsObject>
+#include <QObject>
+#include <QGraphicsItem>
 
 #include <QPointF>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>

@@ -9,7 +9,7 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
-class ProcessPanelGraphicsProxy final : public QGraphicsObject
+class ProcessPanelGraphicsProxy final : public QGraphicsItem
 {
         QSizeF m_size;
 

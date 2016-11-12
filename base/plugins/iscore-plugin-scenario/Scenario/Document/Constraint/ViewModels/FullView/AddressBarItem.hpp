@@ -13,7 +13,9 @@ namespace Scenario
 {
 class ConstraintModel;
 class ClickableLabelItem;
-class AddressBarItem final : public QGraphicsObject
+class AddressBarItem final :
+    public QObject,
+    public QGraphicsItem
 {
         Q_OBJECT
     public:

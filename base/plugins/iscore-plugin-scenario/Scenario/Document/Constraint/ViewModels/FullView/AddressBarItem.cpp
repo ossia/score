@@ -21,7 +21,7 @@ class QWidget;
 namespace Scenario
 {
 AddressBarItem::AddressBarItem(QGraphicsItem *parent):
-    QGraphicsObject{parent}
+    QGraphicsItem{parent}
 {
     this->setFlag(QGraphicsItem::ItemHasNoContents, true);
 }
