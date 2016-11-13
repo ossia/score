@@ -57,11 +57,6 @@ ConstraintActions::ConstraintActions(
     m_parent{parent}
 {
     const auto& appContext = parent->context;
-    auto& fact = appContext.components.factory<Process::ProcessFactoryList>();
-    m_addProcessDialog = new AddProcessDialog{fact, qApp->activeWindow()};
-
-    connect(m_addProcessDialog, &AddProcessDialog::okPressed,
-        this, &ConstraintActions::addProcessInConstraint);
 
     m_addProcess = new QAction{tr("Add Process in constraint"), this};
     connect(m_addProcess, &QAction::triggered,
@@ -69,7 +64,14 @@ ConstraintActions::ConstraintActions(
     {
         if(selectedConstraintsInCurrentDocument(appContext).isEmpty())
             return;
-        m_addProcessDialog->launchWindow();
+
+        auto& fact = appContext.components.factory<Process::ProcessFactoryList>();
+        auto dialog = new AddProcessDialog{fact, qApp->activeWindow()};
+
+        connect(dialog, &AddProcessDialog::okPressed,
+                this, &ConstraintActions::addProcessInConstraint);
+        dialog->launchWindow();
+        dialog->deleteLater();
     });
 
     m_interp = new QAction {tr("Interpolate states"), this};
@@ -100,7 +102,6 @@ ConstraintActions::ConstraintActions(
 
 ConstraintActions::~ConstraintActions()
 {
-    delete m_addProcessDialog;
 }
 
 void ConstraintActions::makeGUIElements(iscore::GUIElements& ref)

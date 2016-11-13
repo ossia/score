@@ -24,7 +24,7 @@ class AddProcessDialog final : public QWidget
         void launchWindow();
 
     signals:
-        void okPressed(const UuidKey<Process::ProcessModelFactory>&);
+        void okPressed(UuidKey<Process::ProcessModelFactory>);
 
     private:
         const Process::ProcessFactoryList& m_factoryList;
