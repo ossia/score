@@ -15,6 +15,7 @@
 #include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
 
 #include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <QApplication>
@@ -161,28 +162,29 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
                     //
                     // Else, if we're < 0.005, we switch to "sequence"
                     // Else, we keep the normal state.
+                    Scenario::EditionSettings& settings = this->m_parentSM.editionSettings();
                     bool manual_sequence = qApp->keyboardModifiers() & Qt::ShiftModifier;
                     if(!manual_sequence)
                     {
-                        auto sequence = this->m_parentSM.editionSettings().sequence();
+                        auto sequence = settings.sequence();
                         auto magnetism_distance = std::abs(this->currentPoint.y - this->m_clickedPoint.y) < 0.005;
                         if(!sequence && magnetism_distance)
                         {
-                            this->m_parentSM.editionSettings().setSequence(true);
+                            settings.setSequence(true);
                             this->rollback();
                             createToNothing();
                             return;
                         }
                         else if(sequence && !magnetism_distance)
                         {
-                            this->m_parentSM.editionSettings().setSequence(false);
+                            settings.setSequence(false);
                             this->rollback();
                             createToNothing();
                             return;
                         }
                     }
 
-                    auto sequence = this->m_parentSM.editionSettings().sequence();
+                    auto sequence = settings.sequence();
                     if(sequence)
                     {
                         if(this->clickedState)
@@ -204,7 +206,6 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
                                 this->currentPoint.date,
                                 this->currentPoint.y,
                                 sequence);
-
                 });
 
                 QObject::connect(move_event, &QState::entered, [&] ()
@@ -245,21 +246,14 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
                                 this->currentPoint.y);
                 });
 
-                QObject::connect(released, &QState::entered, [&] ()
-                {
-                    this->makeSnapshot();
-                    this->m_dispatcher.template commit<Scenario::Command::CreationMetaCommand>();
-                });
+                QObject::connect(released, &QState::entered, this, &Creation_FromState::commit);
             }
 
             auto rollbackState = new QState{this};
             iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
-            QObject::connect(rollbackState, &QState::entered, [&] ()
-            {
-                this->rollback();
-            });
 
+            QObject::connect(rollbackState, &QState::entered, this, &Creation_FromState::rollback);
             this->setInitialState(mainState);
         }
 
@@ -273,7 +267,7 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
             auto& st = scenar.state(*this->clickedState);
             if(!this->m_parentSM.editionSettings().sequence())
             {
-                // Create new state at the beginning
+              // Create new state on the event
                 auto cmd = new Scenario::Command::CreateState{
                         this->m_scenarioPath,
                         st.eventId(),
@@ -292,7 +286,15 @@ class Creation_FromState final : public CreationState<Scenario_T, ToolPalette_T>
                 }
                 else
                 {
-                    ISCORE_TODO;
+                  // Create new state on the event
+                  auto cmd = new Scenario::Command::CreateState{
+                          this->m_scenarioPath,
+                          st.eventId(),
+                          this->currentPoint.y};
+                  this->m_dispatcher.submitCommand(cmd);
+
+                  this->createdStates.append(cmd->createdState());
+                  fun(this->createdStates.first());
                     // create a single state on the same event (deltaY > deltaX)
                 }
             }
