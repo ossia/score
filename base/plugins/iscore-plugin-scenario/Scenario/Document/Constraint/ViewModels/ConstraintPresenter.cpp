@@ -13,6 +13,7 @@
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/LeftBrace.hpp>
 #include <iscore/selection/Selectable.hpp>
 
 #include <iscore/tools/EntityMap.hpp>
@@ -48,6 +49,11 @@ ConstraintPresenter::ConstraintPresenter(
     con(constraint.selection, &Selectable::changed,
             m_view, &ConstraintView::setSelected);
 
+    con(constraint.duration, &ConstraintDurations::minNullChanged,
+            this, [&] (bool b)
+    {
+        updateBraces();
+    });
     con(constraint.duration, &ConstraintDurations::minDurationChanged,
             this, [&] (const TimeValue& val)
     {
@@ -140,17 +146,24 @@ void ConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
     {
         rack()->setWidth(m_view->defaultWidth());
     }
+    updateBraces();
 }
 
 void ConstraintPresenter::on_minDurationChanged(const TimeValue& min)
 {
-    m_view->setMinWidth(min.toPixels(m_zoomRatio));
+    auto x = min.toPixels(m_zoomRatio);
+    m_view->setMinWidth(x);
+    m_view->leftBrace().setX(x);
+    updateBraces();
 }
 
 void ConstraintPresenter::on_maxDurationChanged(const TimeValue& max)
 {
+    auto x = max.toPixels(m_zoomRatio);
     m_view->setMaxWidth(max.isInfinite(),
-                        max.isInfinite()? -1 : max.toPixels(m_zoomRatio));
+                        max.isInfinite()? -1 : x);
+    m_view->rightBrace().setX(x);
+    updateBraces();
 }
 
 void ConstraintPresenter::on_playPercentageChanged(double t)
@@ -286,6 +299,17 @@ void ConstraintPresenter::clearRackPresenter()
         m_rack->deleteLater();
         m_rack = nullptr;
     }
+}
+
+void ConstraintPresenter::updateBraces()
+{
+    const auto& dur = m_viewModel.model().duration;
+    auto& lb = m_view->leftBrace();
+    auto& rb = m_view->rightBrace();
+    const bool rigid = dur.isRigid();
+
+    lb.setVisible(!dur.isMinNul() && !rigid);
+    rb.setVisible(!dur.isMaxInfinite() && !rigid);
 }
 
 void ConstraintPresenter::createRackPresenter(const RackModel& rackModel)

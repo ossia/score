@@ -16,7 +16,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace :
 {
     public:
         ConstraintBrace(
-                const TemporalConstraintView& parentCstr,
+                const ConstraintView& parentCstr,
                 QGraphicsItem* parent);
 
         QRectF boundingRect() const override;
@@ -30,7 +30,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace :
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) final override;
 
     protected:
-        const TemporalConstraintView& m_parent;
+        const ConstraintView& m_parent;
         QPainterPath m_path;
 
     private:

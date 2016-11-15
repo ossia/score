@@ -10,9 +10,9 @@
 using namespace Scenario;
 
 ConstraintBrace::ConstraintBrace(
-        const TemporalConstraintView& parentCstr,
+        const ConstraintView& parentCstr,
         QGraphicsItem* parent):
-    QGraphicsItem(parent),
+    QGraphicsItem(),
     m_parent{parentCstr}
 {
     this->setCacheMode(QGraphicsItem::NoCache);
@@ -21,6 +21,8 @@ ConstraintBrace::ConstraintBrace(
 
     m_path.moveTo(10, -10);
     m_path.arcTo(0, -10, 20, 20, 90, 180);
+
+    this->setParentItem(parent);
 }
 
 QRectF ConstraintBrace::boundingRect() const
@@ -32,27 +34,28 @@ void ConstraintBrace::paint(QPainter* painter,
                             const QStyleOptionGraphicsItem* option,
                             QWidget* widget)
 {
-    QColor constraintColor;
-    // TODO make a switch instead
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    QPen pen{{}, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+    // TODO make a switch instead and transform these to use Q_FLAGS or something
     if(m_parent.isSelected())
     {
-        constraintColor = ScenarioStyle::instance().ConstraintSelected.getColor();
+        pen.setColor(ScenarioStyle::instance().ConstraintSelected.getColor());
     }
     else if(m_parent.warning())
     {
-        constraintColor = ScenarioStyle::instance().ConstraintWarning.getColor();
+        pen.setColor(ScenarioStyle::instance().ConstraintWarning.getColor());
     }
     else
     {
-        constraintColor = ScenarioStyle::instance().ConstraintBase.getColor();
+        pen.setColor(ScenarioStyle::instance().ConstraintBase.getColor());
     }
+
     if(! m_parent.isValid())
     {
-        constraintColor = ScenarioStyle::instance().ConstraintInvalid.getColor();
+        pen.setColor(ScenarioStyle::instance().ConstraintInvalid.getColor());
     }
 
 
-    QPen pen{constraintColor, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
 
     painter->drawPath(m_path);

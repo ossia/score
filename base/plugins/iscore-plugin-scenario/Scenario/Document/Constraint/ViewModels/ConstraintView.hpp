@@ -10,6 +10,8 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 class ConstraintPresenter;
+class LeftBraceView;
+class RightBraceView;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView :
         public QObject,
         public QGraphicsItem
@@ -31,7 +33,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView :
         { return m_presenter;}
 
 
-        virtual void setInfinite(bool);
+        void setInfinite(bool);
         bool infinite() const
         { return m_infinite; }
 
@@ -93,10 +95,17 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView :
         void mousePressEvent(QGraphicsSceneMouseEvent *event) final override;
         void mouseMoveEvent(QGraphicsSceneMouseEvent *event) final override;
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) final override;
+
+        LeftBraceView& leftBrace() const
+        { return *m_leftBrace; }
+        RightBraceView& rightBrace() const
+        { return *m_rightBrace; }
     protected:
 
     private:
         ConstraintPresenter& m_presenter;
+        LeftBraceView* m_leftBrace{};
+        RightBraceView* m_rightBrace{};
         double m_defaultWidth {};
         double m_maxWidth {};
         double m_minWidth {};
