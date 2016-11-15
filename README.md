@@ -40,9 +40,9 @@ Some useful and easy potential contributions are listed [on the website](http://
 
 There are also many fixable areas in the code : 
 
-* **TODO** : https://github.com/OSSIA/i-score/search?q=TODO for general problems. Some are [five-minute fixes](https://github.com/OSSIA/i-score/blob/2e393a1786154c11d766e6c6476cc2bd5faa95d0/base/plugins/iscore-lib-process/Process/Style/ScenarioStyle.cpp#L3), other are [a multiple-day quest](https://github.com/OSSIA/i-score/blob/2e393a1786154c11d766e6c6476cc2bd5faa95d0/base/lib/core/plugin/PluginDependencyGraph.hpp#L67)
-* **FIXME** : https://github.com/OSSIA/i-score/search?q=FIXME for critical bugs / problems.
-* **MOVEME** : https://github.com/OSSIA/i-score/search?q=REMOVEME when something is not where it should be.
-* **REMOVEME** : https://github.com/OSSIA/i-score/search?q=REMOVEME when something is redundant.
-* **RENAMEME** : https://github.com/OSSIA/i-score/search?q=RENAMEME when the class does not match with the file it's in.
-* **OPTIMIZEME** : https://github.com/OSSIA/i-score/search?q=OPTIMIZEME when an easy-to-write-but-suboptimal algorithm is used.
+* [**TODO**](https://github.com/OSSIA/i-score/search?q=TODO) : for general problems. Some are [five-minute fixes](https://github.com/OSSIA/i-score/blob/2e393a1786154c11d766e6c6476cc2bd5faa95d0/base/plugins/iscore-lib-process/Process/Style/ScenarioStyle.cpp#L3), other are [a multiple-day quest](https://github.com/OSSIA/i-score/blob/2e393a1786154c11d766e6c6476cc2bd5faa95d0/base/lib/core/plugin/PluginDependencyGraph.hpp#L67)
+* [**FIXME**](https://github.com/OSSIA/i-score/search?q=FIXME) : for critical bugs / problems.
+* [**MOVEME**](https://github.com/OSSIA/i-score/search?q=REMOVEME) : when something is not where it should be.
+* [**REMOVEME**](https://github.com/OSSIA/i-score/search?q=REMOVEME) : when something is redundant.
+* [**RENAMEME**](https://github.com/OSSIA/i-score/search?q=RENAMEME) : when the class does not match with the file it's in.
+* [**OPTIMIZEME**](https://github.com/OSSIA/i-score/search?q=OPTIMIZEME) : when an easy-to-write-but-suboptimal algorithm is used.
