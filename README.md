@@ -27,3 +27,22 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 
 In order to build i-score, follow the [instructions](https://github.com/OSSIA/i-score/wiki/Build-and-install).
 Current builds tested on Mac OS X, Ubuntu 14.04, ArchLinux, Windows 8.1.
+
+## Contributing
+
+When updating the i-score repository through the command line, don't forget to update the submodules, they change often.
+
+    cd i-score
+    git pull
+    git submodule update --init --recursive
+    
+Some useful and easy potential contributions are listed [on the website](http://i-score.org/contributing/).
+
+There are also many fixable areas in the code : 
+
+* TODO : https://github.com/OSSIA/i-score/search?q=TODO for general problems. Some are [five-minute fixes](https://github.com/OSSIA/i-score/blob/2e393a1786154c11d766e6c6476cc2bd5faa95d0/base/plugins/iscore-lib-process/Process/Style/ScenarioStyle.cpp#L3), other are [a multiple-day quest](https://github.com/OSSIA/i-score/blob/2e393a1786154c11d766e6c6476cc2bd5faa95d0/base/lib/core/plugin/PluginDependencyGraph.hpp#L67)
+* FIXME : https://github.com/OSSIA/i-score/search?q=FIXME for critical bugs / problems.
+* MOVEME : https://github.com/OSSIA/i-score/search?q=REMOVEME when something is not where it should be.
+* REMOVEME : https://github.com/OSSIA/i-score/search?q=REMOVEME when something is redundant.
+* RENAMEME : https://github.com/OSSIA/i-score/search?q=RENAMEME when the class does not match with the file it's in.
+* OPTIMIZEME : https://github.com/OSSIA/i-score/search?q=OPTIMIZEME when an easy-to-write-but-suboptimal algorithm is used.
