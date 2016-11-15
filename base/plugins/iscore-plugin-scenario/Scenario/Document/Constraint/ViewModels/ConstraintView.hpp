@@ -12,6 +12,7 @@ namespace Scenario
 class ConstraintPresenter;
 class LeftBraceView;
 class RightBraceView;
+class SimpleTextItem;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView :
         public QObject,
         public QGraphicsItem
@@ -92,6 +93,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView :
         bool warning() const;
         void setWarning(bool warning);
 
+        void updateLabelPos();
+        void updateCounterPos();
+
         void mousePressEvent(QGraphicsSceneMouseEvent *event) final override;
         void mouseMoveEvent(QGraphicsSceneMouseEvent *event) final override;
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) final override;
@@ -101,11 +105,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView :
         RightBraceView& rightBrace() const
         { return *m_rightBrace; }
     protected:
+        LeftBraceView* m_leftBrace{};
+        RightBraceView* m_rightBrace{};
+        SimpleTextItem* m_labelItem{};
+        SimpleTextItem* m_counterItem{};
 
     private:
         ConstraintPresenter& m_presenter;
-        LeftBraceView* m_leftBrace{};
-        RightBraceView* m_rightBrace{};
         double m_defaultWidth {};
         double m_maxWidth {};
         double m_minWidth {};

@@ -140,6 +140,8 @@ void ConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
 {
     auto width = val.toPixels(m_zoomRatio);
     m_view->setDefaultWidth(width);
+    m_view->updateLabelPos();
+    m_view->updateCounterPos();
     m_header->setWidth(width);
 
     if(rack())
