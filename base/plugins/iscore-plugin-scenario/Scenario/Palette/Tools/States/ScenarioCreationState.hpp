@@ -218,6 +218,14 @@ class CreationState : public CreationStateBase<Scenario_T>
                              this, fun);
         }
 
+        void commit()
+        {
+            this->makeSnapshot();
+            this->m_dispatcher.template commit<Scenario::Command::CreationMetaCommand>();
+            this->clearCreatedIds();
+            this->m_parentSM.editionSettings().setSequence(false);
+        }
+
         void rollback()
         {
             m_dispatcher.template rollback<ScenarioRollbackStrategy>();

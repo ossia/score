@@ -226,20 +226,13 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
                                 stateMachine.editionSettings().expandMode());
                 });
 
-                QObject::connect(released, &QState::entered, [&] ()
-                {
-                    this->makeSnapshot();
-                    this->m_dispatcher.template commit<Scenario::Command::CreationMetaCommand>();
-                });
+                QObject::connect(released, &QState::entered, this, &Creation_FromTimeNode::commit);
             }
 
             auto rollbackState = new QState{this};
             iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
-            QObject::connect(rollbackState, &QState::entered, [&] ()
-            {
-                this->rollback();
-            });
+            QObject::connect(rollbackState, &QState::entered, this, &Creation_FromTimeNode::rollback);
 
             this->setInitialState(mainState);
         }

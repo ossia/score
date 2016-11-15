@@ -202,21 +202,15 @@ class Creation_FromNothing final : public CreationState<Scenario_T, ToolPalette_
                                 this->currentPoint.y);
                 });
 
-                QObject::connect(released, &QState::entered, [&] ()
-                {
-                    this->makeSnapshot();
-                    this->m_dispatcher.template commit<Scenario::Command::CreationMetaCommand>();
-                });
+                QObject::connect(released, &QState::entered, this, &Creation_FromNothing::commit);
             }
 
             auto rollbackState = new QState{this};
             rollbackState->setObjectName("Rollback");
             iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
-            QObject::connect(rollbackState, &QState::entered, [&] ()
-            {
-                this->rollback();
-            });
+
+            QObject::connect(rollbackState, &QState::entered, this, &Creation_FromNothing::rollback);
 
             this->setInitialState(mainState);
         }
