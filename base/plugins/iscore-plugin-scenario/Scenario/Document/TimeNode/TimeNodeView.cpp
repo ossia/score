@@ -24,6 +24,7 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     QGraphicsItem {parent},
     m_presenter{presenter}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     this->setParentItem(parent);
     this->setZValue(ZPos::TimeNode);
     this->setAcceptHoverEvents(true);
@@ -48,21 +49,24 @@ void TimeNodeView::paint(QPainter* painter,
                          const QStyleOptionGraphicsItem* option,
                          QWidget* widget)
 {
+    auto& skin = ScenarioStyle::instance();
     painter->setRenderHint(QPainter::Antialiasing, false);
     QColor pen_color;
     if(isSelected())
     {
-        pen_color = ScenarioStyle::instance().TimenodeSelected.getColor();
+        pen_color = skin.TimenodeSelected.getColor();
     }
     else
     {
         pen_color = m_color.getColor();
     }
 
-    QPen pen{QBrush(pen_color), 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-    painter->setPen(pen);
+    skin.TimenodeBrush.setColor(pen_color);
+    skin.TimenodePen.setBrush(skin.TimenodeBrush);
+    painter->setPen(skin.TimenodePen);
 
-    painter->fillRect(QRectF(QPointF(-1, 0), QPointF(1, m_extent.bottom() - m_extent.top())), QBrush(pen_color));
+    painter->fillRect(QRectF(QPointF(-1, 0), QPointF(1, m_extent.bottom() - m_extent.top())),
+                      skin.TimenodeBrush);
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setPen(Qt::darkMagenta);

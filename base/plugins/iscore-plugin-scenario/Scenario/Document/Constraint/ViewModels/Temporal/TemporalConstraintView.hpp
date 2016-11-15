@@ -66,7 +66,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
             update();
         }
 
-        void setHeightScale(double);
         void setExecutionState(ConstraintExecutionState);
         void setExecutionDuration(const TimeValue& progress);
 
@@ -87,16 +86,16 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
         QPointF m_clickedPoint {};
 
         QString m_label{};
-        iscore::ColorRef m_bgColor;
 
+        iscore::ColorRef m_bgColor;
         LeftBraceView* m_leftBrace{};
         RightBraceView* m_rightBrace{};
+        SimpleTextItem* m_labelItem{};
+        SimpleTextItem* m_counterItem{};
 
         bool m_shadow {false};
         bool m_hasFocus{};
         ConstraintExecutionState m_state{};
 
-        SimpleTextItem* m_labelItem{};
-        SimpleTextItem* m_counterItem{};
 };
 }

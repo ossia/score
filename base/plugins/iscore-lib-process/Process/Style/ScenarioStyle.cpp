@@ -54,11 +54,54 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept:
     TimeRuler{&s.Base1},
     LocalTimeRuler{&s.Gray}
 {
+  initPens();
+}
 
+void ScenarioStyle::setConstraintWidth(double w)
+{
+  ConstraintSolidPen.setWidth(3 * w);
+  ConstraintDashPen.setWidth(3 * w);
+  ConstraintPlayPen.setWidth(3 * w);
 }
 
 ScenarioStyle& ScenarioStyle::instance()
 {
     static ScenarioStyle s(iscore::Skin::instance());
     return s;
+}
+
+ScenarioStyle::ScenarioStyle() noexcept
+{
+  initPens();
+}
+
+void ScenarioStyle::initPens()
+{
+  ConstraintSolidPen = QPen{
+      QBrush{Qt::black},
+      3,
+      Qt::SolidLine,
+      Qt::SquareCap,
+      Qt::RoundJoin
+};
+  ConstraintDashPen = [] {
+    QPen pen{
+      QBrush{Qt::black},
+      3,
+          Qt::CustomDashLine,
+          Qt::SquareCap,
+          Qt::RoundJoin
+    };
+
+    pen.setDashPattern({2., 4.});
+    return pen;
+  }() ;
+  ConstraintRackPen = QPen{Qt::black, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  ConstraintPlayPen = QPen{Qt::black, 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  TimenodePen = QPen{Qt::black, 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  TimenodeBrush = QBrush{Qt::black};
+  StateTemporalPointBrush = QBrush{Qt::black};
+  StateBrush = QBrush{Qt::black};
+  EventPen = QPen{Qt::black, 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  EventBrush = QBrush{Qt::black};
 }

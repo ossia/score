@@ -17,6 +17,8 @@
 #include <QSize>
 #include <QString>
 #include <QWidget>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 
 #include <Process/LayerPresenter.hpp>
 #include <Process/TimeValue.hpp>
@@ -76,6 +78,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 {
     using namespace iscore;
 
+    auto& ctx = iscore::IDocument::documentContext(model());
     // Setup the connections
     con((m_selectionDispatcher.stack()), &SelectionStack::currentSelectionChanged,
         this,                            &ScenarioDocumentPresenter::on_newSelection);
@@ -110,6 +113,16 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     con(model(), &ScenarioDocumentModel::displayedConstraintChanged,
         this, &ScenarioDocumentPresenter::on_displayedConstraintChanged);
 
+
+    con(ctx.app.settings<Settings::Model>(), &Settings::Model::GraphicZoomChanged,
+        this, [&] (double d) {
+      auto& skin = ScenarioStyle::instance();
+      skin.setConstraintWidth(d);
+    });
+
+
+    QGraphicsView& v = view().view();
+    connect(&ctx.updateTimer, &QTimer::timeout, this, [&vp=*v.viewport()] { vp.update();} );
     emit requestDisplayedConstraintChange(model().baseConstraint());
 }
 

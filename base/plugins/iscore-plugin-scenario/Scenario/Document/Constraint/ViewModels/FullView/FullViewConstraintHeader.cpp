@@ -19,6 +19,7 @@ FullViewConstraintHeader::FullViewConstraintHeader(QGraphicsItem * parent):
     ConstraintHeader{parent},
     m_bar{new AddressBarItem(this)}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     m_bar->setPos(10, 5);
     connect(m_bar, &AddressBarItem::needRedraw,
             this, [&] () { update(); });

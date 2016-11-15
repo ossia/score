@@ -10,21 +10,26 @@
 #include <QScrollBar>
 #include "ProcessGraphicsView.hpp"
 
-ProcessGraphicsView::ProcessGraphicsView(QGraphicsScene* parent):
-    QGraphicsView{parent}
+ProcessGraphicsView::ProcessGraphicsView(QGraphicsScene* scene, QWidget* parent):
+    QGraphicsView{scene, parent}
 {
-    setFrameStyle(0);
-    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
-    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
+
+
+    setFrameStyle(0);
     setCacheMode(QGraphicsView::CacheBackground);
-    setAttribute(Qt::WA_PaintOnScreen, true);
-    setAttribute(Qt::WA_OpaquePaintEvent, true);
+#if !defined(ISCORE_OPENGL)
+    // setAttribute(Qt::WA_PaintOnScreen, true);
+    // setAttribute(Qt::WA_OpaquePaintEvent, true);
+#endif
 
 #if defined(__APPLE__)
     setRenderHints(0);
     setOptimizationFlags(QGraphicsView::IndirectPainting);
 #endif
+
 
 
 

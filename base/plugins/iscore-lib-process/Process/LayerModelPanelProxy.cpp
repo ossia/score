@@ -11,6 +11,7 @@
 
 #include <QScrollBar>
 #include <QLayout>
+#include <QTimer>
 
 Process::LayerModelPanelProxy::~LayerModelPanelProxy() = default;
 
@@ -27,7 +28,7 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
     m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
 
     m_widget->setLayout(new QVBoxLayout);
-    m_view = new ProcessGraphicsView{m_scene};
+    m_view = new ProcessGraphicsView{m_scene, m_widget};
 
     m_widget->layout()->addWidget(m_view);
 
@@ -67,6 +68,7 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
 
     m_layerView->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
 
+    connect(&m_context.updateTimer, &QTimer::timeout, this, [&vp=*m_view->viewport()] { vp.update();} );
     // Have a zoom here too. For now the process should be the size of the window.
     on_sizeChanged(m_view->size());
 

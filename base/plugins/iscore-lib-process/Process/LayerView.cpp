@@ -13,6 +13,7 @@ LayerView::~LayerView() = default;
 LayerView::LayerView(QGraphicsItem* parent):
     QGraphicsItem{parent}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
 
 }
 

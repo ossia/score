@@ -35,15 +35,18 @@ TemporalConstraintView::TemporalConstraintView(
     m_labelItem{new SimpleTextItem{this}},
     m_counterItem{new SimpleTextItem{this}}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     this->setParentItem(parent);
     this->setAcceptDrops(true);
 
     this->setZValue(ZPos::Constraint);
     m_leftBrace = new LeftBraceView{*this, this};
     m_leftBrace->setX(minWidth());
+    m_leftBrace->hide();
 
     m_rightBrace = new RightBraceView{*this, this};
     m_rightBrace->setX(maxWidth());
+    m_rightBrace->hide();
 
     const int fontSize = 12;
     auto f = iscore::Skin::instance().SansFont;
@@ -65,12 +68,12 @@ TemporalConstraintView::TemporalConstraintView(
 
 
 
-
 void TemporalConstraintView::paint(
         QPainter* painter,
         const QStyleOptionGraphicsItem*,
         QWidget*)
 {
+    QPainterPath solidPath, dashedPath, playedPath;
     painter->setRenderHint(QPainter::Antialiasing, false);
     auto& skin = ScenarioStyle::instance();
 
@@ -97,25 +100,23 @@ void TemporalConstraintView::paint(
         painter->fillRect(rect, bgColor);
 
         // Fake timenode continuation
-        auto color = skin.RackSideBorder.getColor();
-        QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-        painter->setPen(pen);
+        skin.ConstraintRackPen.setColor(skin.RackSideBorder.getColor());
+        painter->setPen(skin.ConstraintRackPen);
         painter->drawLine(rect.topLeft(), rect.bottomLeft());
         painter->drawLine(rect.topRight(), rect.bottomRight());
     }
 
 
-    QPainterPath solidPath, dashedPath, leftBrace, rightBrace;
 
     // Paths
-    m_leftBrace->setVisible(!m_durations.isMinNul());
+    //m_leftBrace->setVisible(!m_durations.isMinNul());
     if(infinite())
     {
         if(min_w != 0.)
         {
             solidPath.lineTo(min_w, 0);
         }
-        m_rightBrace->hide();
+        //m_rightBrace->hide();
 
         // TODO end state should be hidden
         dashedPath.moveTo(min_w, 0);
@@ -124,22 +125,23 @@ void TemporalConstraintView::paint(
     else if(min_w == max_w) // TODO rigid()
     {
         solidPath.lineTo(def_w, 0);
-        m_leftBrace->hide();
-        m_rightBrace->hide();
+        //m_leftBrace->hide();
+        //m_rightBrace->hide();
     }
     else
     {
         if(min_w != 0.)
+        {
             solidPath.lineTo(min_w, 0);
+        }
 
         dashedPath.moveTo(min_w, 0);
         dashedPath.lineTo(max_w, 0);
 
-        m_leftBrace->show();
-        m_rightBrace->show();
+        //m_leftBrace->show();
+        //m_rightBrace->show();
     }
 
-    QPainterPath playedPath;
     if(play_w != 0.)
     {
         playedPath.lineTo(std::min(play_w, std::max(def_w, max_w)), 0);
@@ -169,39 +171,28 @@ void TemporalConstraintView::paint(
         constraintColor = constraintColor.lighter();
 
 
-    m_solidPen.setColor(constraintColor);
-    m_dashPen.setColor(constraintColor);
+    skin.ConstraintSolidPen.setColor(constraintColor);
+    skin.ConstraintDashPen.setColor(constraintColor);
 
     // Drawing
-    painter->setPen(m_solidPen);
     if(!solidPath.isEmpty())
+    {
+        painter->setPen(skin.ConstraintSolidPen);
         painter->drawPath(solidPath);
+    }
 
-    painter->setPen(m_dashPen);
     if(!dashedPath.isEmpty())
+    {
+        painter->setPen(skin.ConstraintDashPen);
         painter->drawPath(dashedPath);
+    }
 
-    leftBrace.closeSubpath();
-    rightBrace.closeSubpath();
-
-    QPen anotherPen(Qt::transparent, 4);
-    painter->setPen(anotherPen);
-    QColor blueish = m_solidPen.color().lighter();
-    blueish.setAlphaF(0.3);
-    painter->setBrush(blueish);
-
-
-    const QPen playedPen{
-        skin.ConstraintPlayFill.getColor(),
-        4,
-        Qt::SolidLine,
-                Qt::RoundCap,
-                Qt::RoundJoin
-    };
-
-    painter->setPen(playedPen);
     if(!playedPath.isEmpty())
+    {
+        skin.ConstraintPlayPen.setColor(skin.ConstraintPlayFill.getColor());
+        painter->setPen(skin.ConstraintPlayPen);
         painter->drawPath(playedPath);
+    }
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setPen(Qt::darkRed);
@@ -256,11 +247,6 @@ void TemporalConstraintView::setLabel(const QString &label)
     update();
 }
 
-void TemporalConstraintView::setHeightScale(double d)
-{
-    this->m_solidPen.setWidth(m_constraintLineWidth * d);
-    this->m_dashPen.setWidth(m_constraintLineWidth * d);
-}
 void TemporalConstraintView::setExecutionState(ConstraintExecutionState s)
 {
     m_state = s;

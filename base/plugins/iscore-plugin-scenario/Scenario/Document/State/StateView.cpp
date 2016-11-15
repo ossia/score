@@ -16,6 +16,7 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     QGraphicsItem(parent),
     m_presenter{pres}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     this->setParentItem(parent);
 
     this->setZValue(ZPos::State);
@@ -26,23 +27,24 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
 
 void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QBrush temporalPointBrush = m_selected
-            ? ScenarioStyle::instance().StateSelected.getColor()
-            : ScenarioStyle::instance().StateDot.getColor();
-    QBrush stateBrush = m_color.getColor();
+    auto& skin = ScenarioStyle::instance();
+    skin.StateTemporalPointBrush.setColor(m_selected
+            ? skin.StateSelected.getColor()
+            : skin.StateDot.getColor());
 
     auto status = m_status.get();
     if(status != ExecutionStatus::Editing)
-        temporalPointBrush = m_status.stateStatusColor().getColor();
+        skin.StateTemporalPointBrush.setColor(m_status.stateStatusColor().getColor());
 
     if(m_containMessage)
     {
-        painter->setBrush(stateBrush);
+        skin.StateBrush.setColor(m_color.getColor());
+        painter->setBrush(skin.StateBrush);
         painter->drawEllipse({0., 0.}, m_radiusFull * m_dilatationFactor, m_radiusFull * m_dilatationFactor);
     }
 
     painter->setPen(Qt::NoPen);
-    painter->setBrush(temporalPointBrush);
+    painter->setBrush(skin.StateTemporalPointBrush);
     qreal r = m_radiusPoint * m_dilatationFactor;
     painter->drawEllipse({0., 0.}, r, r);
 

@@ -12,6 +12,8 @@ namespace Scenario
 RackView::RackView(QGraphicsItem* parent) :
     QGraphicsItem{parent}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    this->setFlag(QGraphicsItem::ItemHasNoContents);
     this->setZValue(ZPos::Rack);
 }
 

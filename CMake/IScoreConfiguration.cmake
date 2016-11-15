@@ -22,7 +22,7 @@ option(INTEGRATION_TESTING "Run integration tests" OFF)
 
 option(ISCORE_BUILD_FOR_PACKAGE_MANAGER "Set FHS-friendly install paths" OFF)
 
-option(ISCORE_OPENGL "Use OpenGL for rendering" OFF)
+option(ISCORE_OPENGL "Use OpenGL for rendering" ON)
 option(ISCORE_IEEE "Use a graphical skin adapted to publication" OFF)
 option(ISCORE_WEBSOCKETS "Run a websocket server in the scenario" OFF)
 option(ISCORE_TESTBED "Enable the testbed. See Tests/testbed/README" OFF)

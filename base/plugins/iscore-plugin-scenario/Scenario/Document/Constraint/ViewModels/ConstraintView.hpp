@@ -94,24 +94,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView :
         void mouseMoveEvent(QGraphicsSceneMouseEvent *event) final override;
         void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) final override;
     protected:
-        qreal m_constraintLineWidth{3};
-
-        QPen m_solidPen
-        {
-            QBrush{Qt::black},
-            m_constraintLineWidth,
-                    Qt::SolidLine,
-                    Qt::SquareCap,
-                    Qt::RoundJoin
-        };
-        QPen m_dashPen
-        {
-            QBrush{Qt::black},
-            m_constraintLineWidth,
-                    Qt::CustomDashLine,
-                    Qt::SquareCap,
-                    Qt::RoundJoin
-        };
 
     private:
         ConstraintPresenter& m_presenter;

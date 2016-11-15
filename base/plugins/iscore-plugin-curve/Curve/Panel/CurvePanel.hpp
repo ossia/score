@@ -63,7 +63,7 @@ class CurvePanelProxy :
             m_layer{layermodel},
             m_widget{new QWidget},
             m_scene{new QGraphicsScene{this}},
-            m_view{new ProcessGraphicsView{m_scene}},
+            m_view{new ProcessGraphicsView{m_scene, m_widget}},
             m_processEnd{new QGraphicsLineItem{}},
             m_curveView{new Curve::View{nullptr}},
             m_curvePresenter{
@@ -134,6 +134,8 @@ class CurvePanelProxy :
             con(m_layer.processModel().curve(), &Curve::Model::changed,
                     this, &CurvePanelProxy::on_curveChanged);
 
+            connect(&m_context.context.updateTimer, &QTimer::timeout, this, [&vp=*m_view->viewport()] { vp.update(); } );
+
             on_curveChanged();
             // Have a zoom here too. For now the process should be the size of the window.
             on_sizeChanged(m_view->size());
@@ -144,7 +146,6 @@ class CurvePanelProxy :
         virtual ~CurvePanelProxy()
         {
             delete m_curvePresenter;
-            delete m_curveView;
             delete m_widget;
         }
 

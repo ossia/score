@@ -90,7 +90,7 @@ void Document::init()
                 m_model->setNewSelection(s);
             });
 
-    m_documentUpdateTimer.setInterval(33); // 30 hz
+    m_documentUpdateTimer.setInterval(16); // 30 hz
     m_documentUpdateTimer.start();
 }
 

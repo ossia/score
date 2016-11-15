@@ -10,6 +10,7 @@ namespace Scenario
 TimeRulerView::TimeRulerView() :
     AbstractTimeRulerView{}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     m_height = -3 * m_graduationHeight;
     m_textPosition = 1.15 * m_graduationHeight;
     m_color = ScenarioStyle::instance().TimeRuler;
