@@ -82,8 +82,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final :
         QString m_label{};
 
         iscore::ColorRef m_bgColor;
-        SimpleTextItem* m_labelItem{};
-        SimpleTextItem* m_counterItem{};
 
         bool m_shadow {false};
         bool m_hasFocus{};

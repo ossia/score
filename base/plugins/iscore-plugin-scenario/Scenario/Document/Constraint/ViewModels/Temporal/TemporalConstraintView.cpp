@@ -27,32 +27,13 @@ TemporalConstraintView::TemporalConstraintView(
         TemporalConstraintPresenter &presenter,
         QGraphicsItem* parent) :
     ConstraintView {presenter, parent},
-    m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground},
-    m_labelItem{new SimpleTextItem{this}},
-    m_counterItem{new SimpleTextItem{this}}
+    m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground}
 {
     this->setCacheMode(QGraphicsItem::NoCache);
     this->setParentItem(parent);
     this->setAcceptDrops(true);
 
     this->setZValue(ZPos::Constraint);
-
-    const int fontSize = 12;
-    auto f = iscore::Skin::instance().SansFont;
-    f.setBold(false);
-    f.setPointSize(fontSize);
-    f.setStyleStrategy(QFont::NoAntialias);
-    m_labelItem->setFont(f);
-    m_labelItem->setPos(0, -16);
-    m_labelItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
-    m_labelItem->setAcceptHoverEvents(false);
-    f.setPointSize(7);
-    f.setStyleStrategy(QFont::NoAntialias);
-    f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
-    m_counterItem->setFont(f);
-    m_counterItem->setColor(iscore::ColorRef(&iscore::Skin::Light));
-    m_counterItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
-    m_counterItem->setAcceptHoverEvents(false);
 }
 
 
@@ -67,13 +48,10 @@ void TemporalConstraintView::paint(
     painter.setRenderHint(QPainter::Antialiasing, false);
     auto& skin = ScenarioStyle::instance();
 
-    qreal min_w = minWidth();
-    qreal max_w = maxWidth();
-    qreal def_w = defaultWidth();
-    qreal play_w = playWidth();
-
-    m_labelItem->setPos(def_w / 2. - m_labelItem->boundingRect().width() / 2., -17);
-    m_counterItem->setPos(def_w - m_counterItem->boundingRect().width() - 5, 5);
+    const qreal min_w = minWidth();
+    const qreal max_w = maxWidth();
+    const qreal def_w = defaultWidth();
+    const qreal play_w = playWidth();
 
     // Draw the stuff present if there is a rack *in the model* ?
     if(presenter().rack())
@@ -81,7 +59,7 @@ void TemporalConstraintView::paint(
         // Background
         auto rect = boundingRect();
         rect.adjust(0,4,0,-10);
-        rect.setWidth(this->defaultWidth());
+        rect.setWidth(def_w);
 
         QColor bgColor = m_bgColor.getColor();
         bgColor.setAlpha(m_hasFocus ? 84 : 76);
@@ -93,8 +71,6 @@ void TemporalConstraintView::paint(
         painter.drawLine(rect.topLeft(), rect.bottomLeft());
         painter.drawLine(rect.topRight(), rect.bottomRight());
     }
-
-
 
     // Paths
     if(infinite())
@@ -225,7 +201,7 @@ void TemporalConstraintView::dropEvent(QGraphicsSceneDragDropEvent *event)
 void TemporalConstraintView::setLabel(const QString &label)
 {
     m_labelItem->setText(label);
-    update();
+    updateLabelPos();
 }
 
 void TemporalConstraintView::setExecutionState(ConstraintExecutionState s)
@@ -240,7 +216,10 @@ void TemporalConstraintView::setExecutionDuration(const TimeValue& progress)
     // Also make a setting to disable it since it may take a lot of time
     if(!qFuzzyCompare(progress.msec(), 0))
     {
-        m_counterItem->setVisible(true);
+        if(!m_counterItem->isVisible())
+            m_counterItem->setVisible(true);
+        updateCounterPos();
+
         m_counterItem->setText(progress.toString());
     }
     else
