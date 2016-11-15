@@ -30,6 +30,7 @@ SegmentView::SegmentView(
     QGraphicsItem{parent},
     m_style{style}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     this->setZValue(1);
     this->setFlag(ItemIsFocusable, false);
 

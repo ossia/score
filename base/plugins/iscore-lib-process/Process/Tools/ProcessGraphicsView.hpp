@@ -16,7 +16,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessGraphicsView final : public QGraphicsView
 {
         Q_OBJECT
     public:
-        ProcessGraphicsView(QGraphicsScene* parent);
+        ProcessGraphicsView(QGraphicsScene* scene, QWidget* parent);
 
         void setGrid(QPainterPath&& newGrid);
         void scrollHorizontal(double dx);

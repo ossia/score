@@ -7,7 +7,10 @@ namespace Process { class LayerModel; }
 class QStyleOptionGraphicsItem;
 class QWidget;
 
-ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy() = default;
+ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy()
+{
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+}
 
 QRectF ProcessPanelGraphicsProxy::boundingRect() const
 {

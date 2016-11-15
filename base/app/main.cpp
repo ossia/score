@@ -1,5 +1,6 @@
 #include "Application.hpp"
 #include <QApplication>
+#include <QPixmapCache>
 #include <qnamespace.h>
 
 #if defined(ISCORE_STATIC_PLUGINS)
@@ -14,9 +15,8 @@
   #endif
 #endif
 
-#if defined(ISCORE_OPENGL)
+
 #include <QSurfaceFormat>
-#endif
 
 static void init_plugins()
 {
@@ -34,13 +34,18 @@ static void init_plugins()
 int main(int argc, char** argv)
 {
     init_plugins();
-#if defined(ISCORE_OPENGL)
-    QSurfaceFormat fmt;
+
+    QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+    fmt.setMajorVersion(4);
+    fmt.setMinorVersion(1);
     fmt.setSamples(2);
+    fmt.setSwapBehavior(QSurfaceFormat::SingleBuffer);
+    fmt.setSwapInterval(0);
     QSurfaceFormat::setDefaultFormat(fmt);
-#endif
+
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
+    QPixmapCache::setCacheLimit(102400);
     Application app(argc, argv);
     app.init();
     return app.exec();

@@ -458,8 +458,6 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
     m_constraints.insert(cst_pres);
     cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
-    auto& cst_view = ::Scenario::view(*cst_pres);
-    cst_view.setHeightScale(m_graphicalScale);
     m_viewInterface.on_constraintMoved(*cst_pres);
 
     connect(cst_pres, &TemporalConstraintPresenter::heightPercentageChanged,

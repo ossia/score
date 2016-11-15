@@ -1,5 +1,7 @@
 #pragma once
 #include <QColor>
+#include <QBrush>
+#include <QPen>
 #include <qnamespace.h>
 #include <iscore_lib_process_export.h>
 
@@ -17,6 +19,8 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
         ScenarioStyle(ScenarioStyle&&) = delete;
         ScenarioStyle& operator=(const ScenarioStyle&) = delete;
         ScenarioStyle& operator=(ScenarioStyle&&) = delete;
+
+        void setConstraintWidth(double w);
 
         static ScenarioStyle& instance();
 
@@ -71,6 +75,21 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
         iscore::ColorRef TimeRuler;
         iscore::ColorRef LocalTimeRuler;
 
+        QPen ConstraintSolidPen;
+        QPen ConstraintDashPen;
+        QPen ConstraintRackPen;
+        QPen ConstraintPlayPen;
+
+        QPen TimenodePen;
+        QBrush TimenodeBrush;
+
+        QBrush StateTemporalPointBrush;
+        QBrush StateBrush;
+
+        QPen EventPen;
+        QBrush EventBrush;
+
     private:
-        ScenarioStyle() noexcept = default;
+        ScenarioStyle() noexcept;
+        void initPens();
 };

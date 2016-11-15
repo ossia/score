@@ -26,6 +26,7 @@ EventView::EventView(EventPresenter& presenter,
     QGraphicsItem {parent},
     m_presenter{presenter}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     setAcceptDrops(true);
 
     m_color = presenter.model().metadata().getColor();
@@ -76,23 +77,24 @@ void EventView::paint(QPainter* painter,
                       const QStyleOptionGraphicsItem* option,
                       QWidget* widget)
 {
+    auto& skin = ScenarioStyle::instance();
     painter->setRenderHint(QPainter::Antialiasing, false);
-    QPen eventPen;
+
     if(m_status.get() == ExecutionStatus::Editing)
-        eventPen = QPen(m_color.getColor());
+        skin.EventPen.setColor(m_color.getColor());
     else
-        eventPen = QPen(m_status.eventStatusColor().getColor());
+        skin.EventPen.setColor(m_status.eventStatusColor().getColor());
 
     if(isSelected())
     {
-        eventPen = QPen(ScenarioStyle::instance().EventSelected.getColor());
+        skin.EventPen.setColor(skin.EventSelected.getColor());
     }
+    skin.EventBrush.setColor(skin.EventPen.color());
 
-    QPen pen{QBrush(eventPen.color()), 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-    painter->setPen(pen);
-    painter->setBrush(eventPen.color());
-
-    painter->fillRect(QRectF(QPointF(-1.3, 0), QPointF(1.3, m_extent.bottom() - m_extent.top())), QBrush(eventPen.color()));
+    painter->setPen(skin.EventPen);
+    painter->fillRect(
+          QRectF(QPointF(-1.3, 0), QPointF(1.3, m_extent.bottom() - m_extent.top())),
+          skin.EventBrush);
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setPen(Qt::cyan);

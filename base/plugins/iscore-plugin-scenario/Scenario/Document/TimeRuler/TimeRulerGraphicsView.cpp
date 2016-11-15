@@ -10,8 +10,10 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene):
     QGraphicsView{scene}
 {
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+#if !defined(ISCORE_OPENGL)
     setAttribute(Qt::WA_OpaquePaintEvent, true);
     setAttribute(Qt::WA_PaintOnScreen, true);
+#endif
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setFocusPolicy(Qt::NoFocus);

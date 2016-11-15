@@ -55,6 +55,7 @@ View::View(QObject* parent) :
     this->setWindowIconText(title);
     this->setWindowTitle(title);
     m_tabWidget->setObjectName("Documents");
+    //setAttribute(Qt::WA_PaintOnScreen, true);
     //setUnifiedTitleAndToolBarOnMac(true);
 
     setDockOptions(QMainWindow::ForceTabbedDocks | QMainWindow::VerticalTabs);
@@ -101,7 +102,8 @@ void View::setupPanel(PanelDelegate* v)
 {
     using namespace std;
     auto dial = new QDockWidget {v->defaultPanelStatus().prettyName, this};
-    dial->setWidget(v->widget());
+    auto w = v->widget();
+    dial->setWidget(w);
     dial->toggleViewAction()->setShortcut(v->defaultPanelStatus().shortcut);
 
     auto& mw = v->context().menus.get().at(iscore::Menus::Windows());

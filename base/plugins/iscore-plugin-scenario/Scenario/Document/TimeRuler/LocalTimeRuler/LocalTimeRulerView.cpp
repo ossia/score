@@ -11,6 +11,7 @@ namespace Scenario
 LocalTimeRulerView::LocalTimeRulerView():
     AbstractTimeRulerView()
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     m_graduationHeight = 10;
     m_textPosition = 1.75 * m_graduationHeight;
     m_height = 3 * m_graduationHeight;

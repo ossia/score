@@ -13,7 +13,6 @@ ConstraintView::ConstraintView(
     m_presenter{presenter}
 {
     setAcceptHoverEvents(true);
-    m_dashPen.setDashPattern({2., 4.});
 }
 
 ConstraintView::~ConstraintView() = default;

@@ -18,6 +18,7 @@ SlotView::SlotView(const SlotPresenter &pres, QGraphicsItem* parent) :
     presenter{pres},
     m_handle{new SlotHandle{*this, this}}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     this->setFlag(ItemClipsChildrenToShape, true);
     this->setZValue(1);
     m_handle->setPos(0, this->boundingRect().height() - SlotHandle::handleHeight());

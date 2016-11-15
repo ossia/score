@@ -163,11 +163,6 @@ void ScenarioViewInterface::on_graphicalScaleChanged(double scale)
     {
         s.view()->setScale(scale);
     }
-    for(auto& c : m_presenter.getConstraints())
-    {
-        auto& cstr_view = view(c);
-        cstr_view.setHeightScale(scale);
-    }
 
     m_presenter.m_view->update();
 }

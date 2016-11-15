@@ -20,6 +20,7 @@ FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& pres
                                                QGraphicsItem *parent) :
     ConstraintView {presenter, parent}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     this->setParentItem(parent);
     this->setFlag(ItemIsSelectable);
 
@@ -37,12 +38,12 @@ void FullViewConstraintView::paint(QPainter* painter,
                                    QWidget* widget)
 {
     auto& skin = ScenarioStyle::instance();
+    const qreal min_w = minWidth();
+    const qreal max_w = maxWidth();
+    const qreal def_w = defaultWidth();
+    const qreal play_w = playWidth();
 
     painter->setRenderHint(QPainter::Antialiasing, false);
-    qreal min_w = minWidth();
-    qreal max_w = maxWidth();
-    qreal def_w = defaultWidth();
-    qreal play_w = playWidth();
 
     QColor c;
     if(isSelected())
@@ -58,18 +59,17 @@ void FullViewConstraintView::paint(QPainter* painter,
         c = skin.ConstraintBase.getColor();
     }
 
-    m_solidPen.setColor(c);
-    m_dashPen.setColor(c);
+    skin.ConstraintSolidPen.setColor(c);
 
     if(min_w == max_w)
     {
-        painter->setPen(m_solidPen);
+        painter->setPen(skin.ConstraintSolidPen);
         painter->drawLine(0, 0, def_w, 0);
     }
     else
     {
-        // Firs the line going from 0 to the min
-        painter->setPen(m_solidPen);
+        // First the line going from 0 to the min
+        painter->setPen(skin.ConstraintSolidPen);
         painter->drawLine(0, 0, min_w, 0);
 
         // The little hat
@@ -78,22 +78,16 @@ void FullViewConstraintView::paint(QPainter* painter,
         painter->drawLine(max_w, -5, max_w, -15);
 
         // Finally the dashed line
-        painter->setPen(m_dashPen);
+        skin.ConstraintDashPen.setColor(c);
+        painter->setPen(skin.ConstraintDashPen);
         painter->drawLine(min_w, 0, max_w, 0);
     }
 
     auto pw = playWidth();
     if(pw != 0.)
     {
-
-        const QPen playedPen{
-            skin.ConstraintPlayFill.getColor(),
-            4,
-            Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin
-        };
-
-        painter->setPen(playedPen);
-
+        skin.ConstraintPlayPen.setColor(skin.ConstraintPlayFill.getColor());
+        painter->setPen(skin.ConstraintPlayPen);
         painter->drawLine(0, 0, std::min(play_w, std::max(def_w, max_w)), 0);
     }
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)

@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QGraphicsSvgItem>
 #include <QRect>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
@@ -12,18 +12,13 @@ class QWidget;
 namespace Scenario
 {
 class TriggerView final :
-        public QObject,
-        public QGraphicsItem
+        public QGraphicsSvgItem
 {
         Q_OBJECT
         Q_INTERFACES(QGraphicsItem)
 
     public:
         TriggerView(QGraphicsItem* parent);
-        QRectF boundingRect() const override;
-        void paint(QPainter *painter,
-                   const QStyleOptionGraphicsItem *option,
-                   QWidget *widget) override;
 
         static constexpr int static_type()
         { return QGraphicsItem::UserType + ItemType::Trigger; }

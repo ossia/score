@@ -15,6 +15,7 @@ ConstraintBrace::ConstraintBrace(
     QGraphicsItem(parent),
     m_parent{parentCstr}
 {
+    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     this->setCursor(Qt::SizeHorCursor);
     this->setZValue(ZPos::Brace);
 

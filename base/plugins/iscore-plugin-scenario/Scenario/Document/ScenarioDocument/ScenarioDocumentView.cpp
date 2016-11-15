@@ -35,7 +35,6 @@
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <QScrollBar>
-class QObject;
 
 #if defined(ISCORE_OPENGL)
 #include <QOpenGLWidget>
@@ -53,7 +52,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget},
     m_scene {new ScenarioScene{m_widget}},
-    m_view {new ProcessGraphicsView{m_scene}},
+    m_view {new ProcessGraphicsView{m_scene, m_widget}},
     m_baseObject {new BaseGraphicsObject},
     m_timeRulersView {new TimeRulerGraphicsView{m_scene}},
     m_timeRuler {new TimeRulerView}
@@ -61,19 +60,16 @@ ScenarioDocumentView::ScenarioDocumentView(
 #if defined(ISCORE_WEBSOCKETS)
     auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif
+
 #if defined(ISCORE_OPENGL)
-    QSurfaceFormat f;
-    f.setSamples(8);
     auto vp1 = new QOpenGLWidget;
-    vp1->setFormat(f);
     m_view->setViewport(vp1);
     auto vp2 = new QOpenGLWidget;
-    vp2->setFormat(f);
     m_timeRulersView->setViewport(vp2);
-#endif
-
+#else
     m_view->setAttribute(Qt::WA_PaintOnScreen, true);
     m_timeRulersView->setAttribute(Qt::WA_PaintOnScreen, true);
+#endif
     m_widget->addAction(new SnapshotAction{*m_scene, m_widget});
 
     // Transport
