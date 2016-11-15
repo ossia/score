@@ -45,6 +45,6 @@ class TemporalConstraintHeader final : public ConstraintHeader
         int m_previous_x{};
 
         int m_textWidthCache;
-        QTextLayout m_textCache;
+        // QTextLayout m_textCache;
 };
 }

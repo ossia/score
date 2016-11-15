@@ -20,7 +20,7 @@ FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& pres
                                                QGraphicsItem *parent) :
     ConstraintView {presenter, parent}
 {
-    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    this->setCacheMode(QGraphicsItem::NoCache);
     this->setParentItem(parent);
     this->setFlag(ItemIsSelectable);
 
@@ -43,7 +43,9 @@ void FullViewConstraintView::paint(QPainter* painter,
     const qreal def_w = defaultWidth();
     const qreal play_w = playWidth();
 
-    painter->setRenderHint(QPainter::Antialiasing, false);
+    auto& p = *painter;
+
+    p.setRenderHint(QPainter::Antialiasing, false);
 
     QColor c;
     if(isSelected())
@@ -63,36 +65,36 @@ void FullViewConstraintView::paint(QPainter* painter,
 
     if(min_w == max_w)
     {
-        painter->setPen(skin.ConstraintSolidPen);
-        painter->drawLine(0, 0, def_w, 0);
+        p.setPen(skin.ConstraintSolidPen);
+        p.drawLine(0, 0, def_w, 0);
     }
     else
     {
         // First the line going from 0 to the min
-        painter->setPen(skin.ConstraintSolidPen);
-        painter->drawLine(0, 0, min_w, 0);
+        p.setPen(skin.ConstraintSolidPen);
+        p.drawLine(0, 0, min_w, 0);
 
         // The little hat
-        painter->drawLine(min_w, -5, min_w, -15);
-        painter->drawLine(min_w, -15, max_w, -15);
-        painter->drawLine(max_w, -5, max_w, -15);
+        p.drawLine(min_w, -5, min_w, -15);
+        p.drawLine(min_w, -15, max_w, -15);
+        p.drawLine(max_w, -5, max_w, -15);
 
         // Finally the dashed line
         skin.ConstraintDashPen.setColor(c);
-        painter->setPen(skin.ConstraintDashPen);
-        painter->drawLine(min_w, 0, max_w, 0);
+        p.setPen(skin.ConstraintDashPen);
+        p.drawLine(min_w, 0, max_w, 0);
     }
 
     auto pw = playWidth();
     if(pw != 0.)
     {
         skin.ConstraintPlayPen.setColor(skin.ConstraintPlayFill.getColor());
-        painter->setPen(skin.ConstraintPlayPen);
-        painter->drawLine(0, 0, std::min(play_w, std::max(def_w, max_w)), 0);
+        p.setPen(skin.ConstraintPlayPen);
+        p.drawLine(0, 0, std::min(play_w, std::max(def_w, max_w)), 0);
     }
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
-    painter->setPen(Qt::red);
-    painter->drawRect(boundingRect());
+    p.setPen(Qt::red);
+    p.drawRect(boundingRect());
 #endif
 }
 }

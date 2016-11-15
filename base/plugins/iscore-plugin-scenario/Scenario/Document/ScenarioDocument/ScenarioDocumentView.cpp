@@ -72,6 +72,7 @@ ScenarioDocumentView::ScenarioDocumentView(
 #endif
     m_widget->addAction(new SnapshotAction{*m_scene, m_widget});
 
+
     // Transport
     auto transportWidget = new QWidget{m_widget};
     transportWidget->setObjectName("ScenarioTransportWidget");

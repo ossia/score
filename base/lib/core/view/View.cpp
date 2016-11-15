@@ -55,7 +55,7 @@ View::View(QObject* parent) :
     this->setWindowIconText(title);
     this->setWindowTitle(title);
     m_tabWidget->setObjectName("Documents");
-    //setAttribute(Qt::WA_PaintOnScreen, true);
+
     //setUnifiedTitleAndToolBarOnMac(true);
 
     setDockOptions(QMainWindow::ForceTabbedDocks | QMainWindow::VerticalTabs);

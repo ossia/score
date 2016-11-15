@@ -26,23 +26,26 @@ AbstractTimeRulerView::AbstractTimeRulerView() :
     setY(-25);
 }
 
-void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void AbstractTimeRulerView::paint(QPainter *p, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing, false);
-    const auto brush = m_color.getBrush();
-    painter->setPen(QPen(brush, 2, Qt::SolidLine));
-    painter->drawLine(0, 0, m_width, 0);
+    auto& painter = *p;
+    painter.setRenderHint(QPainter::Antialiasing, false);
 
-    painter->setPen(QPen(brush, 1, Qt::SolidLine));
-    painter->drawPath(m_path);
+    QPen pen{m_color.getBrush(), 2, Qt::SolidLine};
+    painter.setPen(pen);
+    painter.drawLine(0, 0, m_width, 0);
 
-    painter->setFont(iscore::Skin::instance().MonoFont);
+    pen.setWidth(1);
+    painter.setPen(pen);
+    painter.drawPath(m_path);
+
+    painter.setFont(iscore::Skin::instance().MonoFont);
 
     if (m_width > 0)
     {
-        for (const auto& mark : m_marks)
+        for (const Mark& mark : m_marks)
         {
-            painter->drawText(m_marks.key(mark) + 6 , m_textPosition, mark.toString(m_timeFormat));
+            painter.drawText(mark.pos + 6 , m_textPosition, mark.text);
         }
     }
 }
@@ -65,14 +68,18 @@ void AbstractTimeRulerView::setGraduationsStyle(double size, int delta, QString 
     prepareGeometryChange();
     m_graduationsSpacing = size;
     m_graduationDelta = delta;
-    m_timeFormat = format;
+    setFormat(std::move(format));
     m_intervalsBetweenMark = mark;
     createRulerPath();
 }
 
 void AbstractTimeRulerView::setFormat(QString format)
 {
-    m_timeFormat = format;
+    m_timeFormat = std::move(format);
+    for(Mark& mark : m_marks)
+    {
+      mark.text = mark.time.toString(m_timeFormat);
+    }
 }
 
 void AbstractTimeRulerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
@@ -119,7 +126,7 @@ void AbstractTimeRulerView::createRulerPath()
         uint32_t res = (i % m_intervalsBetweenMark);
         if (res == 0)
         {
-            m_marks[t] = time;
+            m_marks.push_back({t, time, time.toString(m_timeFormat)});
             gradSize = 3;
             path.addRect(t, 0, 1, m_graduationHeight * gradSize);
         }

@@ -65,7 +65,7 @@ void AbstractTimeRuler::computeGraduationSpacing()
     int loop = 5;
 
     int i = 0;
-    int n = m_graduationsSpacing.size();
+    const int n = m_graduationsSpacing.size();
     for (i = 0; i < n - 1; i++ )
     {
         if (pixPerSec > m_graduationsSpacing[i].first && pixPerSec < m_graduationsSpacing[i+1].first)
@@ -81,7 +81,7 @@ void AbstractTimeRuler::computeGraduationSpacing()
         loop = 10;
     }
 
-    m_view->setGraduationsStyle(gradSpace, deltaTime, format, loop );
+    m_view->setGraduationsStyle(gradSpace, deltaTime, std::move(format), loop );
 }
 
 const QVector<QPair<double, TimeValue> >& AbstractTimeRuler::graduationsSpacing() const

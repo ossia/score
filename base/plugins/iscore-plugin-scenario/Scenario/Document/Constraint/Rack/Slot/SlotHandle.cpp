@@ -19,7 +19,7 @@ SlotHandle::SlotHandle(const SlotView &slotView, QGraphicsItem *parent):
     m_slotView{slotView},
     m_width{slotView.boundingRect().width()}
 {
-    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    this->setCacheMode(QGraphicsItem::NoCache);
     this->setCursor(Qt::SizeVerCursor);
     m_pen.setWidth(0);
 }

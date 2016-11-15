@@ -35,6 +35,7 @@ int main(int argc, char** argv)
 {
     init_plugins();
 
+#if defined(ISCORE_OPENGL)
     QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
     fmt.setMajorVersion(4);
     fmt.setMinorVersion(1);
@@ -42,10 +43,11 @@ int main(int argc, char** argv)
     fmt.setSwapBehavior(QSurfaceFormat::SingleBuffer);
     fmt.setSwapInterval(0);
     QSurfaceFormat::setDefaultFormat(fmt);
+#endif
 
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
-    QPixmapCache::setCacheLimit(102400);
+    QPixmapCache::setCacheLimit(819200);
     Application app(argc, argv);
     app.init();
     return app.exec();

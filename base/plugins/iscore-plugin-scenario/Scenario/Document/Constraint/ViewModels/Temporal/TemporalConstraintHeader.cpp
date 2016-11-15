@@ -26,13 +26,13 @@ namespace Scenario
 TemporalConstraintHeader::TemporalConstraintHeader():
     ConstraintHeader{}
 {
-    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    this->setCacheMode(QGraphicsItem::NoCache);
     this->setAcceptDrops(true);
     this->setAcceptedMouseButtons(Qt::LeftButton);  // needs to be enabled for dblclick
     this->setFlags(QGraphicsItem::ItemIsSelectable);// needs to be enabled for dblclick
     this->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
 
-    m_textCache.setCacheEnabled(true);
+    // m_textCache.setCacheEnabled(true);
 }
 
 QRectF TemporalConstraintHeader::boundingRect() const

@@ -23,7 +23,6 @@ namespace Scenario
 AddressBarItem::AddressBarItem(QGraphicsItem *parent):
     QGraphicsItem{parent}
 {
-    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
     this->setFlag(QGraphicsItem::ItemHasNoContents, true);
 }
 
