@@ -60,7 +60,6 @@ ScenarioDocumentView::ScenarioDocumentView(
 #if defined(ISCORE_WEBSOCKETS)
     auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif
-
 #if defined(ISCORE_OPENGL)
     auto vp1 = new QOpenGLWidget;
     m_view->setViewport(vp1);
