@@ -12,7 +12,6 @@ class BaseGraphicsObject final :
         BaseGraphicsObject(QGraphicsItem* parent = nullptr):
             QGraphicsItem{parent}
         {
-            this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
             this->setFlag(QGraphicsItem::ItemHasNoContents, true);
         }
 

@@ -134,7 +134,7 @@ class CurvePanelProxy :
             con(m_layer.processModel().curve(), &Curve::Model::changed,
                     this, &CurvePanelProxy::on_curveChanged);
 
-            connect(&m_context.context.updateTimer, &QTimer::timeout, this, [&vp=*m_view->viewport()] { vp.update(); } );
+            // connect(&m_context.context.updateTimer, &QTimer::timeout, this, [&vp=*m_view->viewport()] { vp.update(); } );
 
             on_curveChanged();
             // Have a zoom here too. For now the process should be the size of the window.

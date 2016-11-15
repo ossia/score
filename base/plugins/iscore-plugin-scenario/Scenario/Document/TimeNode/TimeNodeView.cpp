@@ -24,7 +24,7 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     QGraphicsItem {parent},
     m_presenter{presenter}
 {
-    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    this->setCacheMode(QGraphicsItem::NoCache);
     this->setParentItem(parent);
     this->setZValue(ZPos::TimeNode);
     this->setAcceptHoverEvents(true);

@@ -68,7 +68,7 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
 
     m_layerView->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
 
-    connect(&m_context.updateTimer, &QTimer::timeout, this, [&vp=*m_view->viewport()] { vp.update();} );
+    // connect(&m_context.updateTimer, &QTimer::timeout, this, [&vp=*m_view->viewport()] { vp.update();} );
     // Have a zoom here too. For now the process should be the size of the window.
     on_sizeChanged(m_view->size());
 

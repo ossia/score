@@ -121,8 +121,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     });
 
 
-    QGraphicsView& v = view().view();
-    connect(&ctx.updateTimer, &QTimer::timeout, this, [&vp=*v.viewport()] { vp.update();} );
+    // QGraphicsView& v = view().view();
+    // connect(&ctx.updateTimer, &QTimer::timeout, this, [&vp=*v.viewport()] { vp.update();} );
     emit requestDisplayedConstraintChange(model().baseConstraint());
 }
 

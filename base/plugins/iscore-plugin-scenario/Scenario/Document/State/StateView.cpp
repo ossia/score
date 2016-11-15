@@ -16,7 +16,7 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     QGraphicsItem(parent),
     m_presenter{pres}
 {
-    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    this->setCacheMode(QGraphicsItem::NoCache);
     this->setParentItem(parent);
 
     this->setZValue(ZPos::State);

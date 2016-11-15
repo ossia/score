@@ -15,7 +15,7 @@ SlotOverlay::SlotOverlay(SlotView *parent):
     QGraphicsItem{parent},
     m_slotView{*parent}
 {
-    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    this->setCacheMode(QGraphicsItem::NoCache);
     this->setZValue(1500);
     this->setPos(0, 0);
 }

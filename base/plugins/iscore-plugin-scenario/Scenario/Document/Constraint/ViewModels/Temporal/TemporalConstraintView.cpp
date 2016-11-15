@@ -35,7 +35,7 @@ TemporalConstraintView::TemporalConstraintView(
     m_labelItem{new SimpleTextItem{this}},
     m_counterItem{new SimpleTextItem{this}}
 {
-    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    this->setCacheMode(QGraphicsItem::NoCache);
     this->setParentItem(parent);
     this->setAcceptDrops(true);
 
@@ -69,12 +69,13 @@ TemporalConstraintView::TemporalConstraintView(
 
 
 void TemporalConstraintView::paint(
-        QPainter* painter,
+        QPainter* p,
         const QStyleOptionGraphicsItem*,
         QWidget*)
 {
     QPainterPath solidPath, dashedPath, playedPath;
-    painter->setRenderHint(QPainter::Antialiasing, false);
+    auto& painter = *p;
+    painter.setRenderHint(QPainter::Antialiasing, false);
     auto& skin = ScenarioStyle::instance();
 
     qreal min_w = minWidth();
@@ -97,13 +98,13 @@ void TemporalConstraintView::paint(
 
         QColor bgColor = m_bgColor.getColor();
         bgColor.setAlpha(m_hasFocus ? 84 : 76);
-        painter->fillRect(rect, bgColor);
+        painter.fillRect(rect, bgColor);
 
         // Fake timenode continuation
         skin.ConstraintRackPen.setColor(skin.RackSideBorder.getColor());
-        painter->setPen(skin.ConstraintRackPen);
-        painter->drawLine(rect.topLeft(), rect.bottomLeft());
-        painter->drawLine(rect.topRight(), rect.bottomRight());
+        painter.setPen(skin.ConstraintRackPen);
+        painter.drawLine(rect.topLeft(), rect.bottomLeft());
+        painter.drawLine(rect.topRight(), rect.bottomRight());
     }
 
 
@@ -177,27 +178,27 @@ void TemporalConstraintView::paint(
     // Drawing
     if(!solidPath.isEmpty())
     {
-        painter->setPen(skin.ConstraintSolidPen);
-        painter->drawPath(solidPath);
+        painter.setPen(skin.ConstraintSolidPen);
+        painter.drawPath(solidPath);
     }
 
     if(!dashedPath.isEmpty())
     {
-        painter->setPen(skin.ConstraintDashPen);
-        painter->drawPath(dashedPath);
+        painter.setPen(skin.ConstraintDashPen);
+        painter.drawPath(dashedPath);
     }
 
     if(!playedPath.isEmpty())
     {
         skin.ConstraintPlayPen.setColor(skin.ConstraintPlayFill.getColor());
-        painter->setPen(skin.ConstraintPlayPen);
-        painter->drawPath(playedPath);
+        painter.setPen(skin.ConstraintPlayPen);
+        painter.drawPath(playedPath);
     }
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
-    painter->setPen(Qt::darkRed);
-    painter->setBrush(Qt::NoBrush);
-    painter->drawRect(boundingRect());
+    painter.setPen(Qt::darkRed);
+    painter.setBrush(Qt::NoBrush);
+    painter.drawRect(boundingRect());
 #endif
 }
 

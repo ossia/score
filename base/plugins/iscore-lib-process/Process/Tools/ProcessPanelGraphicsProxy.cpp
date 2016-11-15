@@ -9,7 +9,7 @@ class QWidget;
 
 ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy()
 {
-    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    this->setCacheMode(QGraphicsItem::NoCache);
 }
 
 QRectF ProcessPanelGraphicsProxy::boundingRect() const

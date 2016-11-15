@@ -183,6 +183,7 @@ void ConstraintPresenter::updateHeight()
 void ConstraintPresenter::updateChildren()
 {
     emit askUpdate();
+
     m_view->update();
     m_header->update();
 }

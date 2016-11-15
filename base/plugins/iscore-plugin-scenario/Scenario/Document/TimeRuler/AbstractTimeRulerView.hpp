@@ -68,6 +68,13 @@ class AbstractTimeRulerView :
         iscore::ColorRef m_color;
         QPainterPath m_path;
 
-        QMap<double, QTime> m_marks;
+        struct Mark
+        {
+          double pos;
+          QTime time;
+          QString text;
+        };
+
+        std::vector<Mark> m_marks;
 };
 }

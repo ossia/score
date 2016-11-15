@@ -26,7 +26,7 @@ EventView::EventView(EventPresenter& presenter,
     QGraphicsItem {parent},
     m_presenter{presenter}
 {
-    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    this->setCacheMode(QGraphicsItem::NoCache);
     setAcceptDrops(true);
 
     m_color = presenter.model().metadata().getColor();

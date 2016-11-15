@@ -21,7 +21,7 @@ ConditionView::ConditionView(
     QGraphicsItem{parent},
     m_color{color}
 {
-    this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    this->setCacheMode(QGraphicsItem::NoCache);
     setFlag(ItemStacksBehindParent, true);
 
     changeHeight(0);

@@ -9,7 +9,7 @@ namespace Scenario
 TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene):
     QGraphicsView{scene}
 {
-    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
 #if !defined(ISCORE_OPENGL)
     setAttribute(Qt::WA_OpaquePaintEvent, true);
     setAttribute(Qt::WA_PaintOnScreen, true);
@@ -24,9 +24,10 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene):
 
     setBackgroundBrush(ScenarioStyle::instance().TimeRulerBackground.getBrush());
 
+    setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
 #if defined(__APPLE__)
     setRenderHints(0);
-    setOptimizationFlags(QGraphicsView::IndirectPainting);
+    setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif
 }
 
