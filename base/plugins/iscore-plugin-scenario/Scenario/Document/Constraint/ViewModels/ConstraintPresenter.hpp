@@ -93,6 +93,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter :
         void clearRackPresenter();
         void on_rackRemoved(const RackModel&);
 
+        void updateBraces();
+
         ZoomRatio m_zoomRatio {};
         RackPresenter* m_rack {};
 };

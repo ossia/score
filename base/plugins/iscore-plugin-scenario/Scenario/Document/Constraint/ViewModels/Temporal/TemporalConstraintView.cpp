@@ -15,8 +15,6 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include "TemporalConstraintPresenter.hpp"
 #include "TemporalConstraintView.hpp"
-#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/LeftBrace.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/RightBrace.hpp>
 
 class QGraphicsSceneHoverEvent;
 class QStyleOptionGraphicsItem;
@@ -27,10 +25,8 @@ namespace Scenario
 {
 TemporalConstraintView::TemporalConstraintView(
         TemporalConstraintPresenter &presenter,
-        const ConstraintDurations& dur,
         QGraphicsItem* parent) :
     ConstraintView {presenter, parent},
-    m_durations{dur},
     m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground},
     m_labelItem{new SimpleTextItem{this}},
     m_counterItem{new SimpleTextItem{this}}
@@ -40,13 +36,6 @@ TemporalConstraintView::TemporalConstraintView(
     this->setAcceptDrops(true);
 
     this->setZValue(ZPos::Constraint);
-    m_leftBrace = new LeftBraceView{*this, this};
-    m_leftBrace->setX(minWidth());
-    m_leftBrace->hide();
-
-    m_rightBrace = new RightBraceView{*this, this};
-    m_rightBrace->setX(maxWidth());
-    m_rightBrace->hide();
 
     const int fontSize = 12;
     auto f = iscore::Skin::instance().SansFont;
@@ -85,8 +74,6 @@ void TemporalConstraintView::paint(
 
     m_labelItem->setPos(def_w / 2. - m_labelItem->boundingRect().width() / 2., -17);
     m_counterItem->setPos(def_w - m_counterItem->boundingRect().width() - 5, 5);
-    m_leftBrace->setX(min_w);
-    m_rightBrace->setX(max_w);
 
     // Draw the stuff present if there is a rack *in the model* ?
     if(presenter().rack())
@@ -110,14 +97,12 @@ void TemporalConstraintView::paint(
 
 
     // Paths
-    //m_leftBrace->setVisible(!m_durations.isMinNul());
     if(infinite())
     {
         if(min_w != 0.)
         {
             solidPath.lineTo(min_w, 0);
         }
-        //m_rightBrace->hide();
 
         // TODO end state should be hidden
         dashedPath.moveTo(min_w, 0);
@@ -126,8 +111,6 @@ void TemporalConstraintView::paint(
     else if(min_w == max_w) // TODO rigid()
     {
         solidPath.lineTo(def_w, 0);
-        //m_leftBrace->hide();
-        //m_rightBrace->hide();
     }
     else
     {
@@ -138,9 +121,6 @@ void TemporalConstraintView::paint(
 
         dashedPath.moveTo(min_w, 0);
         dashedPath.lineTo(max_w, 0);
-
-        //m_leftBrace->show();
-        //m_rightBrace->show();
     }
 
     if(play_w != 0.)

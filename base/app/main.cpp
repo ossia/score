@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
     fmt.setMajorVersion(4);
     fmt.setMinorVersion(1);
-    fmt.setSamples(2);
+    fmt.setSamples(4);
     fmt.setSwapBehavior(QSurfaceFormat::SingleBuffer);
     fmt.setSwapInterval(0);
     QSurfaceFormat::setDefaultFormat(fmt);

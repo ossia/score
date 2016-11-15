@@ -3,6 +3,7 @@
 
 #include "ConstraintPresenter.hpp"
 #include "ConstraintView.hpp"
+#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/LeftBrace.hpp>
 
 namespace Scenario
 {
@@ -13,6 +14,13 @@ ConstraintView::ConstraintView(
     m_presenter{presenter}
 {
     setAcceptHoverEvents(true);
+    m_leftBrace = new LeftBraceView{*this, this};
+    m_leftBrace->setX(minWidth());
+    m_leftBrace->hide();
+
+    m_rightBrace = new RightBraceView{*this, this};
+    m_rightBrace->setX(maxWidth());
+    m_rightBrace->hide();
 }
 
 ConstraintView::~ConstraintView() = default;
