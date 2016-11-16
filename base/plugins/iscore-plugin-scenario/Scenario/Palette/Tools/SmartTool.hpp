@@ -243,6 +243,9 @@ class SmartTool final : public ToolBase<ToolPalette_T>
           GraphicsSceneTool<Point>::on_cancel();
 
         }
+
+        auto& selectionState() const
+        { return *m_state; }
     private:
         SelectionState<ToolPalette_T, View_T>* m_state{};
 

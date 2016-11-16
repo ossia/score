@@ -21,6 +21,7 @@ namespace iscore
  */
 class ISCORE_LIB_BASE_EXPORT CommonSelectionState : public QState
 {
+        Q_OBJECT
     public:
         iscore::SelectionDispatcher dispatcher;
 
@@ -33,10 +34,7 @@ class ISCORE_LIB_BASE_EXPORT CommonSelectionState : public QState
         virtual void on_delete() = 0;
         virtual void on_deleteContent() = 0;
 
-        bool multiSelection() const
-        {
-            return isStateActive(m_multiSelection);
-        }
+        bool multiSelection() const;
 
     protected:
         CommonSelectionState(
@@ -45,7 +43,5 @@ class ISCORE_LIB_BASE_EXPORT CommonSelectionState : public QState
                 QState* parent);
 
     private:
-        QState* m_singleSelection{};
-        QState* m_multiSelection{};
         QState* m_waitState{};
 };
