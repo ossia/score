@@ -16,6 +16,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <iscore/command/AggregateCommand.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
@@ -476,6 +477,12 @@ inline Scenario::Command::AddProcessToConstraintBase* make_AddProcessToConstrain
 
     return cmd;
 }
+
+
+class AddProcessInNewBoxMacro final : public iscore::AggregateCommand
+{
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddProcessInNewBoxMacro, "Add a process in a new box")
+};
 
 // To make the preprocessor happy
 using AddProcessDelegate_HasNoSlots_HasRacks_NotBaseConstraint = AddProcessDelegate<HasNoSlots,  HasRacks, NotBaseConstraint>;

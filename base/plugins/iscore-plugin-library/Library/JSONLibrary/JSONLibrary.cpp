@@ -7,7 +7,7 @@
 #include <State/MessageListSerialization.hpp>
 #include <State/StateMimeTypes.hpp>
 #include <Explorer/Explorer/DeviceExplorerMimeTypes.hpp>
-
+#include <Process/ProcessMimeSerialization.hpp>
 #include <iostream>
 namespace Library
 {
@@ -19,7 +19,14 @@ enum class LibraryColumns
 
 JSONModel::JSONModel()
 {
-    elements.append(LibraryElement{"dada", Category::StateNode, {"da di do", "yada"}, {}});
+    //elements.append(LibraryElement{"dada", Category::StateNode, {"da di do", "yada"}, {}});
+}
+
+void JSONModel::addElement(const LibraryElement& e)
+{
+    beginInsertRows({}, elements.size(), elements.size());
+    elements.push_back(e);
+    endInsertRows();
 }
 
 QModelIndex JSONModel::index(int row, int column, const QModelIndex &parent) const
@@ -143,12 +150,11 @@ bool JSONModel::moveRows(
 
 // TODO refactor with device explorer
 static const QString MimeTypeScenarioData = "application/x-iscore-scenariodata";
-static const QString MimeTypeProcess = "application/x-iscore-processdata";
 static const QMap<Category, QString> mimeTypeMap{
     {Category::StateNode, iscore::mime::state()},
     {Category::MessageList, iscore::mime::messagelist()},
     {Category::ScenarioData, MimeTypeScenarioData},
-    {Category::Process, MimeTypeProcess},
+    {Category::Process, iscore::mime::processdata()},
     {Category::Device, iscore::mime::device()},
     {Category::Address, iscore::mime::address()}
 };
@@ -164,7 +170,7 @@ QStringList JSONModel::mimeTypes() const
         iscore::mime::state(),
         iscore::mime::messagelist(),
         MimeTypeScenarioData,
-        MimeTypeProcess,
+        iscore::mime::processdata(),
         iscore::mime::device(),
         iscore::mime::address()
     };

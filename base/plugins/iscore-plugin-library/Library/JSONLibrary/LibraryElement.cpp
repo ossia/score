@@ -1,6 +1,7 @@
 #include "LibraryElement.hpp"
 #include <QObject>
-
+namespace Library
+{
 static const QMap<Category, QString> map{
     {Category::StateNode, QObject::tr("State")},
     {Category::MessageList, QObject::tr("MessageList")},
@@ -13,4 +14,5 @@ static const QMap<Category, QString> map{
 const QMap<Category, QString>& categoryPrettyName()
 {
     return map;
+}
 }
