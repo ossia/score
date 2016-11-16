@@ -66,6 +66,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
     m_baseScenario->constraint().duration.setRigid(false);
     ConstraintDurations::Algorithms::changeAllDurations(m_baseScenario->constraint(), dur);
+    m_baseScenario->constraint().duration.setMaxInfinite(true);
     m_baseScenario->endEvent().setDate(m_baseScenario->constraint().duration.defaultDuration());
     m_baseScenario->endTimeNode().setDate(m_baseScenario->constraint().duration.defaultDuration());
 

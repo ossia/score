@@ -169,7 +169,6 @@ ScenarioDocumentView::ScenarioDocumentView(
                break;
        }
     });
-
 }
 
 QWidget* ScenarioDocumentView::getWidget()

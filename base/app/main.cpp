@@ -37,9 +37,11 @@ int main(int argc, char** argv)
 
 #if defined(ISCORE_OPENGL)
     QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+#if defined(__APPLE__)
     fmt.setMajorVersion(4);
     fmt.setMinorVersion(1);
     fmt.setSamples(4);
+#endif
     fmt.setSwapBehavior(QSurfaceFormat::SingleBuffer);
     fmt.setSwapInterval(0);
     QSurfaceFormat::setDefaultFormat(fmt);
