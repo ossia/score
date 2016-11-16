@@ -1,10 +1,110 @@
 #include "AutomationDropHandler.hpp"
+#include <Process/ProcessMimeSerialization.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <iscore/document/DocumentContext.hpp>
+#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+
 namespace Scenario
 {
+
+
+
+bool DropProcessInScenario::handle(
+        const TemporalScenarioPresenter& pres,
+        QPointF pos,
+        const QMimeData* mime)
+{
+    if(mime->formats().contains(iscore::mime::processdata()))
+    {
+        Mime<Process::ProcessData>::Deserializer des{*mime};
+        Process::ProcessData p = des.deserialize();
+
+        RedoMacroCommandDispatcher<Scenario::Command::AddProcessInNewBoxMacro> m{
+            pres.context().context.commandStack};
+
+        // Create a box.
+        const Scenario::ProcessModel& scenar = pres.processModel();
+        Scenario::Point pt = pres.toScenarioPoint(pos);
+
+        // 5 seconds.
+        // TODO instead use a percentage of the currently displayed view
+        TimeValue t = std::chrono::seconds{5};
+
+        // Create the beginning
+        auto start_cmd = new Scenario::Command::CreateTimeNode_Event_State{scenar, pt.date, pt.y};
+        m.submitCommand(start_cmd);
+
+        // Create a box with the duration of the longest song
+        auto box_cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+                scenar, start_cmd->createdState(), pt.date + t, pt.y};
+        m.submitCommand(box_cmd);
+        auto& constraint = scenar.constraint(box_cmd->createdConstraint());
+
+        auto cmd3 = new Scenario::Command::AddRackToConstraint{constraint};
+        m.submitCommand(cmd3);
+
+        auto& rack = constraint.racks.at(cmd3->createdRack());
+
+        // Create process
+        auto process_cmd = new Scenario::Command::AddOnlyProcessToConstraint{
+                    constraint, p.key};
+        m.submitCommand(process_cmd);
+
+        // Create a new slot
+        auto slot_cmd = new Scenario::Command::AddSlotToRack{rack};
+        m.submitCommand(slot_cmd);
+
+        // Add a new layer in this slot.
+        auto& slot = rack.slotmodels.at(slot_cmd->createdSlot());
+
+        auto& proc = constraint.processes.at(process_cmd->processId());
+        auto layer_cmd = new Scenario::Command::AddLayerModelToSlot{slot, proc};
+        m.submitCommand(layer_cmd);
+        // Finally we show the newly created rack
+        auto show_cmd = new Scenario::Command::ShowRackInAllViewModels{constraint, rack.id()};
+        m.submitCommand(show_cmd);
+
+        m.commit();
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool DropProcessInConstraint::handle(
+        const ConstraintModel& cst,
+        const QMimeData* mime)
+{
+    if(mime->formats().contains(iscore::mime::processdata()))
+    {
+        Mime<Process::ProcessData>::Deserializer des{*mime};
+        Process::ProcessData p = des.deserialize();
+
+        auto& doc = iscore::IDocument::documentContext(cst);
+
+        auto cmd = Scenario::Command::make_AddProcessToConstraint(cst, p.key);
+        if(cmd)
+        {
+            CommandDispatcher<> d{doc.commandStack};
+            d.submitCommand(cmd);
+        }
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 
 static void getAddressesRecursively(
         const Device::Node& node,

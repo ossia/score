@@ -28,6 +28,6 @@ add_library(iscore_plugin_library ${SRCS} ${HDRS})
 target_link_libraries(iscore_plugin_library
   PUBLIC
       Qt5::Core Qt5::Widgets
-      iscore_lib_base iscore_lib_state iscore_plugin_deviceexplorer)
+      iscore_lib_base iscore_lib_state iscore_plugin_deviceexplorer iscore_lib_process)
 
 setup_iscore_plugin(iscore_plugin_library)

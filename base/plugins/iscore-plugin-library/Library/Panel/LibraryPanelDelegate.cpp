@@ -1,5 +1,8 @@
 #include "LibraryPanelDelegate.hpp"
 #include <Library/JSONLibrary/LibraryWidget.hpp>
+#include <Process/ProcessList.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 #include <QTabWidget>
 
 namespace Library
@@ -8,10 +11,24 @@ PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx):
     iscore::PanelDelegate{ctx},
     m_widget{new QTabWidget}
 {
-    auto projectLib = new LibraryWidget{m_widget};
+    auto projectModel = new JSONModel;
+    auto projectLib = new LibraryWidget{projectModel, m_widget};
     m_widget->addTab(projectLib, QObject::tr("Project"));
 
-    auto systemLib = new LibraryWidget{m_widget};
+    auto systemModel = new JSONModel;
+    auto& procs = ctx.components.factory<Process::ProcessFactoryList>();
+    for(Process::ProcessModelFactory& proc : procs)
+    {
+        LibraryElement e;
+        e.category = Category::Process;
+        e.name = proc.prettyName();
+        e.obj["Type"] = "Process";
+        e.obj["uuid"] =  toJsonValue(proc.concreteFactoryKey().impl());
+        systemModel->addElement(e);
+
+    }
+
+    auto systemLib = new LibraryWidget{systemModel, m_widget};
     m_widget->addTab(systemLib, QObject::tr("System"));
 
     m_widget->setObjectName("LibraryExplorer");

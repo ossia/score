@@ -4,7 +4,9 @@
 #include <QMap>
 
 
-enum Category
+namespace Library
+{
+enum class Category
 {
     StateNode, MessageList, ScenarioData, Process, Device, Address
 };
@@ -18,3 +20,4 @@ struct LibraryElement
         QStringList tags;
         QJsonObject obj;
 };
+}

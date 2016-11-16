@@ -11,7 +11,7 @@ class LibraryWidget : public QWidget
         QTableView m_tbl;
 
     public:
-        LibraryWidget(QWidget* parent);
+        LibraryWidget(JSONModel* model, QWidget* parent);
         ~LibraryWidget();
 
 };

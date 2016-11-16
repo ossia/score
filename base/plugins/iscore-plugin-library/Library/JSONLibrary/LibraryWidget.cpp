@@ -4,7 +4,7 @@
 
 namespace Library
 {
-LibraryWidget::LibraryWidget(QWidget* parent):
+LibraryWidget::LibraryWidget(JSONModel* model, QWidget* parent):
     QWidget{parent}
 {
     auto lay = new QVBoxLayout;
@@ -14,7 +14,7 @@ LibraryWidget::LibraryWidget(QWidget* parent):
     this->setLayout(lay);
 
     lay->addWidget(&m_tbl);
-    m_tbl.setModel(new JSONModel);
+    m_tbl.setModel(model);
     m_tbl.setDragEnabled(true);
     m_tbl.setAcceptDrops(true);
     m_tbl.setDropIndicatorShown(true);
