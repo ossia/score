@@ -31,6 +31,10 @@ class GraphicsSceneTool
             QApplication::processEvents();
         }
 
+
+        const QGraphicsScene& scene() const { return m_scene; }
+        QStateMachine& localSM() { return m_localSM; }
+
     protected:
         GraphicsSceneTool(const QGraphicsScene& scene):
             m_scene{scene}
@@ -40,9 +44,6 @@ class GraphicsSceneTool
 
         QGraphicsItem* itemUnderMouse(const QPointF& point) const
         { return m_scene.itemAt(point, QTransform()); }
-
-        const QGraphicsScene& scene() const { return m_scene; }
-        QStateMachine& localSM() { return m_localSM; }
 
     private:
         const QGraphicsScene& m_scene;

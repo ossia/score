@@ -71,9 +71,9 @@ template<typename ToolPalette_T>
 class ToolBase : public GraphicsSceneTool<Scenario::Point>
 {
     public:
-        ToolBase(const ToolPalette_T& sm) :
-            GraphicsSceneTool<Scenario::Point>{sm.scene()},
-            m_parentSM{sm}
+        ToolBase(const ToolPalette_T& palette) :
+            GraphicsSceneTool<Scenario::Point>{palette.scene()},
+            m_palette{palette}
         {
         }
 
@@ -81,21 +81,21 @@ class ToolBase : public GraphicsSceneTool<Scenario::Point>
         OptionalId<EventModel> itemToEventId(const QGraphicsItem* pressedItem) const
         {
             const auto& event = static_cast<const EventView*>(pressedItem)->presenter().model();
-            return event.parent() == &this->m_parentSM.model()
+            return event.parent() == &this->m_palette.model()
                     ? event.id()
                     : OptionalId<EventModel>{};
         }
         OptionalId<TimeNodeModel> itemToTimeNodeId(const QGraphicsItem* pressedItem) const
         {
             const auto& timenode = static_cast<const TimeNodeView*>(pressedItem)->presenter().model();
-            return timenode.parent() == &this->m_parentSM.model()
+            return timenode.parent() == &this->m_palette.model()
                     ? timenode.id()
                     : OptionalId<TimeNodeModel>{};
         }
         OptionalId<ConstraintModel> itemToConstraintId(const QGraphicsItem* pressedItem) const
         {
             const auto& constraint = static_cast<const ConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel().model();
-            return constraint.parent() == &this->m_parentSM.model()
+            return constraint.parent() == &this->m_palette.model()
                     ? constraint.id()
                     : OptionalId<ConstraintModel>{};
         }
@@ -103,7 +103,7 @@ class ToolBase : public GraphicsSceneTool<Scenario::Point>
         {
             const auto& state = static_cast<const StateView*>(pressedItem)->presenter().model();
 
-            return state.parent() == &this->m_parentSM.model()
+            return state.parent() == &this->m_palette.model()
                     ? state.id()
                     : OptionalId<StateModel>{};
         }
@@ -111,7 +111,7 @@ class ToolBase : public GraphicsSceneTool<Scenario::Point>
         {
             const auto& slot = static_cast<const SlotHandle*>(pressedItem)->slotView().presenter.model();
 
-            return slot.parentConstraint().parent() == &this->m_parentSM.model()
+            return slot.parentConstraint().parent() == &this->m_palette.model()
                     ? &slot
                     : nullptr;
         }
@@ -205,6 +205,6 @@ class ToolBase : public GraphicsSceneTool<Scenario::Point>
             }
         }
 
-        const ToolPalette_T& m_parentSM;
+        const ToolPalette_T& m_palette;
 };
 }

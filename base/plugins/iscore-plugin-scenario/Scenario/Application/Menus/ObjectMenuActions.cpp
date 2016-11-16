@@ -21,6 +21,7 @@
 #include <QMenu>
 #include <qnamespace.h>
 #include <QObject>
+#include <QGraphicsView>
 
 #include <QRect>
 #include <QString>
@@ -136,6 +137,37 @@ ObjectMenuActions::ObjectMenuActions(
                         QApplication::clipboard()->text().toUtf8()).object());
     });
 
+    m_pasteElements = new QAction{tr("Paste elements"), this};
+    m_pasteElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    connect(m_pasteElements, &QAction::triggered,
+            [this]()
+    {
+        auto pres = m_parent->focusedPresenter();
+        if(!pres)
+            return;
+        auto views = pres->view().scene()->views();
+        if(views.empty())
+            return;
+
+        auto view = views.front();
+
+        QPoint pos = QCursor::pos();
+
+
+        auto scene_pt = view->mapToScene(view->mapFromGlobal(pos));
+        TemporalScenarioView& sv = pres->view();
+        auto sv_pt = sv.mapFromScene(scene_pt);
+        if(!sv.contains(sv_pt))
+        {
+            sv_pt = sv.mapToScene(sv.boundingRect().center());
+        }
+        auto pt = pres->toScenarioPoint(sv_pt);
+        pasteElements(
+              QJsonDocument::fromJson(
+                  QApplication::clipboard()->text().toUtf8()).object()
+              , pt);
+    });
+
     // DISPLAY JSON
     m_elementsToJson = new QAction{tr("Convert selection to JSON"), this};
     connect(m_elementsToJson, &QAction::triggered,
@@ -147,7 +179,7 @@ ObjectMenuActions::ObjectMenuActions(
         s.exec();
     });
 
-    // DISPLAY JSON
+    // MERGE TIMENODES
     m_mergeTimeNodes = new QAction{this};
     connect(m_mergeTimeNodes, &QAction::triggered,
             [this]()
@@ -160,7 +192,6 @@ ObjectMenuActions::ObjectMenuActions(
 
     parent->context.mainWindow.addAction(m_removeElements);
     parent->context.mainWindow.addAction(m_clearElements);
-
 }
 
 void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
@@ -168,6 +199,7 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
     using namespace iscore;
     auto& actions = ref.actions;
 
+    auto& scenariofocus_cond = m_parent->context.actions.condition<Process::EnableWhenFocusedProcessIs<Scenario::ProcessModel>>();
     auto& scenariomodel_cond = m_parent->context.actions.condition<EnableWhenScenarioModelObject>();
     auto& scenarioiface_cond = m_parent->context.actions.condition<EnableWhenScenarioInterfaceObject>();
     actions.add<Actions::RemoveElements>(m_removeElements);
@@ -175,11 +207,14 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
     actions.add<Actions::CopyContent>(m_copyContent);
     actions.add<Actions::CutContent>(m_cutContent);
     actions.add<Actions::PasteContent>(m_pasteContent);
+    actions.add<Actions::PasteElements>(m_pasteElements);
     actions.add<Actions::ElementsToJson>(m_elementsToJson);
     actions.add<Actions::MergeTimeNodes>(m_mergeTimeNodes);
 
     scenariomodel_cond.add<Actions::RemoveElements>();
     scenariomodel_cond.add<Actions::MergeTimeNodes>();
+    scenariofocus_cond.add<Actions::PasteElements>();
+
     scenarioiface_cond.add<Actions::ClearElements>();
     scenarioiface_cond.add<Actions::CopyContent>();
     scenarioiface_cond.add<Actions::CutContent>();
@@ -194,6 +229,7 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
     object.menu()->addAction(m_copyContent);
     object.menu()->addAction(m_cutContent);
     object.menu()->addAction(m_pasteContent);
+    object.menu()->addAction(m_pasteElements);
     object.menu()->addSeparator();
     object.menu()->addAction(m_mergeTimeNodes);
     m_eventActions.makeGUIElements(ref);

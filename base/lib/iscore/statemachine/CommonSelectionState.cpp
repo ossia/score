@@ -27,6 +27,16 @@ CommonSelectionState::CommonSelectionState(
 
             selectionModeState->setInitialState(m_singleSelection);
             m_multiSelection = new QState{selectionModeState};
+            /*
+            connect(m_singleSelection, &QState::entered,
+                    this, [] {
+              qDebug("out");
+            });
+            connect(m_multiSelection, &QState::entered,
+                    this, [] {
+              qDebug("in");
+            });
+            */
 
             auto trans1 = new QKeyEventTransition(obj,
                                                   QEvent::KeyPress, Qt::Key_Control, m_singleSelection);
