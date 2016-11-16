@@ -357,13 +357,11 @@ void TemporalScenarioPresenter::on_askUpdate()
 
 void TemporalScenarioPresenter::on_keyPressed(int k)
 {
-    m_sm.on_keyPressed(k);
     emit keyPressed(k);
 }
 
 void TemporalScenarioPresenter::on_keyReleased(int k)
 {
-    m_sm.on_keyReleased(k);
     emit keyReleased(k);
 }
 
