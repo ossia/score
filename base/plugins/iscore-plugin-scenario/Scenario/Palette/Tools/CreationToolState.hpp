@@ -40,13 +40,13 @@ class CreationTool final : public ToolBase<ToolPalette_T>
             this->localSM().addState(m_waitState);
             this->localSM().setInitialState(m_waitState);
 
-            Path<Scenario_T> scenarioPath = this->m_parentSM.model();
+            Path<Scenario_T> scenarioPath = this->m_palette.model();
 
             //// Create from nothing ////
             m_createFromNothingState = new Creation_FromNothing<Scenario_T, ToolPalette_T>{
-                    this->m_parentSM,
+                    this->m_palette,
                     scenarioPath,
-                    this->m_parentSM.context().context.commandStack, nullptr};
+                    this->m_palette.context().context.commandStack, nullptr};
 
             iscore::make_transition<ClickOnNothing_Transition<Scenario_T>>(m_waitState, m_createFromNothingState, *m_createFromNothingState);
             m_createFromNothingState->addTransition(m_createFromNothingState, finishedState(), m_waitState);
@@ -56,9 +56,9 @@ class CreationTool final : public ToolBase<ToolPalette_T>
 
             //// Create from an event ////
             m_createFromEventState = new Creation_FromEvent<Scenario_T, ToolPalette_T>{
-                    this->m_parentSM,
+                    this->m_palette,
                     scenarioPath,
-                    this->m_parentSM.context().context.commandStack, nullptr};
+                    this->m_palette.context().context.commandStack, nullptr};
 
             iscore::make_transition<ClickOnEvent_Transition<Scenario_T>>(m_waitState, m_createFromEventState, *m_createFromEventState);
             m_createFromEventState->addTransition(m_createFromEventState, finishedState(), m_waitState);
@@ -68,9 +68,9 @@ class CreationTool final : public ToolBase<ToolPalette_T>
 
             //// Create from a timenode ////
             m_createFromTimeNodeState = new Creation_FromTimeNode<Scenario_T, ToolPalette_T>{
-                    this->m_parentSM,
+                    this->m_palette,
                     scenarioPath,
-                    this->m_parentSM.context().context.commandStack, nullptr};
+                    this->m_palette.context().context.commandStack, nullptr};
 
             iscore::make_transition<ClickOnTimeNode_Transition<Scenario_T>>(m_waitState,
                                                                 m_createFromTimeNodeState,
@@ -82,9 +82,9 @@ class CreationTool final : public ToolBase<ToolPalette_T>
 
             //// Create from a State ////
             m_createFromStateState = new Creation_FromState<Scenario_T, ToolPalette_T>{
-                    this->m_parentSM,
+                    this->m_palette,
                     scenarioPath,
-                    this->m_parentSM.context().context.commandStack, nullptr};
+                    this->m_palette.context().context.commandStack, nullptr};
 
             iscore::make_transition<ClickOnState_Transition<Scenario_T>>(m_waitState,
                                                              m_createFromStateState,
@@ -133,9 +133,9 @@ class CreationTool final : public ToolBase<ToolPalette_T>
 
                 // Here we have the logic for the creation in nothing
                 // where we instead choose the latest state if selected
-                if(auto state = furthestSelectedState(this->m_parentSM.model()))
+                if(auto state = furthestSelectedState(this->m_palette.model()))
                 {
-                    if(this->m_parentSM.model().events.at(state->eventId()).date() < sp.date)
+                    if(this->m_palette.model().events.at(state->eventId()).date() < sp.date)
                     {
                         this->localSM().postEvent(new ClickOnState_Event{
                                                 state->id(),
@@ -190,21 +190,21 @@ class CreationTool final : public ToolBase<ToolPalette_T>
         QList<Id<StateModel>> getCollidingStates(QPointF point, const QVector<Id<StateModel>>& createdStates)
         {
             return getCollidingModels(
-                        this->m_parentSM.presenter().getStates(),
+                        this->m_palette.presenter().getStates(),
                         createdStates,
                         point);
         }
         QList<Id<EventModel>> getCollidingEvents(QPointF point, const QVector<Id<EventModel>>& createdEvents)
         {
             return getCollidingModels(
-                        this->m_parentSM.presenter().getEvents(),
+                        this->m_palette.presenter().getEvents(),
                         createdEvents,
                         point);
         }
         QList<Id<TimeNodeModel>> getCollidingTimeNodes(QPointF point, const QVector<Id<TimeNodeModel>>& createdTimeNodes)
         {
             return getCollidingModels(
-                        this->m_parentSM.presenter().getTimeNodes(),
+                        this->m_palette.presenter().getTimeNodes(),
                         createdTimeNodes,
                         point);
         }

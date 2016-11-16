@@ -119,9 +119,9 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         this, &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
     connect(m_view, &TemporalScenarioView::keyPressed,
-            this,   &TemporalScenarioPresenter::keyPressed);
+            this,   &TemporalScenarioPresenter::on_keyPressed);
     connect(m_view, &TemporalScenarioView::keyReleased,
-            this,   &TemporalScenarioPresenter::keyReleased);
+            this,   &TemporalScenarioPresenter::on_keyReleased);
 
     connect(m_view, &TemporalScenarioView::doubleClick,
             this,   &TemporalScenarioPresenter::doubleClick);
@@ -353,6 +353,18 @@ void TemporalScenarioPresenter::on_commentBlockRemoved(
 void TemporalScenarioPresenter::on_askUpdate()
 {
     m_view->update();
+}
+
+void TemporalScenarioPresenter::on_keyPressed(int k)
+{
+    m_sm.on_keyPressed(k);
+    emit keyPressed(k);
+}
+
+void TemporalScenarioPresenter::on_keyReleased(int k)
+{
+    m_sm.on_keyReleased(k);
+    emit keyReleased(k);
 }
 
 void TemporalScenarioPresenter::on_constraintExecutionTimer()

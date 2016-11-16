@@ -49,6 +49,9 @@ class ToolPalette final : public GraphicsSceneToolPalette
         void on_released(QPointF);
         void on_cancel();
 
+        void on_keyPressed(int);
+        void on_keyReleased(int);
+
         void activate(Scenario::Tool);
         void desactivate(Scenario::Tool);
 

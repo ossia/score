@@ -155,6 +155,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final :
 
         void on_askUpdate();
 
+        void on_keyPressed(int);
+        void on_keyReleased(int);
 
         void on_constraintExecutionTimer();
     private:

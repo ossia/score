@@ -81,7 +81,8 @@ ISCORE_DECLARE_ACTION(RemoveElements, "&Remove elements", Scenario, Qt::Key_Back
 ISCORE_DECLARE_ACTION(ClearElements, "C&lear elements", Scenario, Qt::Key_Delete)
 ISCORE_DECLARE_ACTION(CopyContent, "C&opy", Scenario, QKeySequence::Copy)
 ISCORE_DECLARE_ACTION(CutContent, "C&ut", Scenario, QKeySequence::Cut)
-ISCORE_DECLARE_ACTION(PasteContent, "&Paste (content)", Scenario, QKeySequence::Paste)
+ISCORE_DECLARE_ACTION(PasteContent, "&Paste (content)", Scenario, QKeySequence::Print)
+ISCORE_DECLARE_ACTION(PasteElements, "&Paste (elements)", Scenario, QKeySequence::Paste)
 ISCORE_DECLARE_ACTION(ElementsToJson, "Convert to &JSON", Scenario, QKeySequence::UnknownKey)
 
 // Event

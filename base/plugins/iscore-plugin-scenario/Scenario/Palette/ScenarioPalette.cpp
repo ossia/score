@@ -114,6 +114,18 @@ void ToolPalette::on_cancel()
     m_presenter.editionSettings().setTool(Scenario::Tool::Select);
 }
 
+void ToolPalette::on_keyPressed(int k)
+{
+    m_selectTool.localSM().postEvent(
+          new QKeyEvent(QEvent::KeyPress, k, Qt::KeyboardModifier::NoModifier));
+}
+
+void ToolPalette::on_keyReleased(int k)
+{
+    m_selectTool.localSM().postEvent(
+          new QKeyEvent(QEvent::KeyRelease, k, Qt::KeyboardModifier::NoModifier));
+}
+
 void ToolPalette::activate(Tool t)
 {
 }

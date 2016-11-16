@@ -32,9 +32,9 @@ class SmartTool final : public ToolBase<ToolPalette_T>
         {
             // Selection
             m_state = new SelectionState<ToolPalette_T, View_T>{
-                      this->m_parentSM.context().context.selectionStack,
-                      this->m_parentSM,
-                      this->m_parentSM.presenter().view(),
+                      this->m_palette.context().context.selectionStack,
+                      this->m_palette,
+                      this->m_palette.presenter().view(),
                       &this->localSM()};
 
             //this->localSM().setInitialState(m_state);
@@ -45,16 +45,16 @@ class SmartTool final : public ToolBase<ToolPalette_T>
                 auto waitState = new QState(actionsState);
                 actionsState->setInitialState(waitState);
 
-                MoveConstraintWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
-                MoveLeftBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
-                MoveRightBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
-                MoveEventWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
-                MoveTimeNodeWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, waitState, *actionsState);
+                MoveConstraintWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_palette, waitState, *actionsState);
+                MoveLeftBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_palette, waitState, *actionsState);
+                MoveRightBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_palette, waitState, *actionsState);
+                MoveEventWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_palette, waitState, *actionsState);
+                MoveTimeNodeWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_palette, waitState, *actionsState);
 
                 /// Slot resize
                 auto resizeSlot = new ResizeSlotState<Scenario_T, ToolPalette_T>{
-                        this->m_parentSM.context().context.commandStack,
-                        this->m_parentSM,
+                        this->m_palette.context().context.commandStack,
+                        this->m_palette,
                         actionsState};
 
                 iscore::make_transition<ClickOnSlotHandle_Transition>(
@@ -169,60 +169,60 @@ class SmartTool final : public ToolBase<ToolPalette_T>
             this->mapTopItem(this->itemUnderMouse(scene),
                        [&] (const Id<StateModel>& id) // State
             {
-                const auto& elt = this->m_parentSM.presenter().state(id);
+                const auto& elt = this->m_palette.presenter().state(id);
 
                 m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
-                                                                  this->m_parentSM.model().selectedChildren(),
+                                                                  this->m_palette.model().selectedChildren(),
                                                                   m_state->multiSelection()));
 
                 this->localSM().postEvent(new ReleaseOnState_Event{id, sp});
             },
             [&] (const Id<EventModel>& id) // Event
             {
-                const auto& elt = this->m_parentSM.presenter().event(id);
+                const auto& elt = this->m_palette.presenter().event(id);
 
                 m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
-                                                                  this->m_parentSM.model().selectedChildren(),
+                                                                  this->m_palette.model().selectedChildren(),
                                                                   m_state->multiSelection()));
 
                 this->localSM().postEvent(new ReleaseOnEvent_Event{id, sp});
             },
             [&] (const Id<TimeNodeModel>& id) // TimeNode
             {
-                const auto& elt = this->m_parentSM.presenter().timeNode(id);
+                const auto& elt = this->m_palette.presenter().timeNode(id);
 
                 m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
-                                                                  this->m_parentSM.model().selectedChildren(),
+                                                                  this->m_palette.model().selectedChildren(),
                                                                   m_state->multiSelection()));
 
                 this->localSM().postEvent(new ReleaseOnTimeNode_Event{id, sp});
             },
             [&] (const Id<ConstraintModel>& id) // Constraint
             {
-                const auto& elt = this->m_parentSM.presenter().constraint(id);
+                const auto& elt = this->m_palette.presenter().constraint(id);
 
                 m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
-                                                                  this->m_parentSM.model().selectedChildren(),
+                                                                  this->m_palette.model().selectedChildren(),
                                                                   m_state->multiSelection()));
 
                 this->localSM().postEvent(new ReleaseOnConstraint_Event{id, sp});
             },
             [&] (const Id<ConstraintModel>& id) // LeftBrace
             {
-                const auto& elt = this->m_parentSM.presenter().constraint(id);
+                const auto& elt = this->m_palette.presenter().constraint(id);
 
                 m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
-                                                                  this->m_parentSM.model().selectedChildren(),
+                                                                  this->m_palette.model().selectedChildren(),
                                                                   m_state->multiSelection()));
 
                 this->localSM().postEvent(new ReleaseOnLeftBrace_Event{id, sp});
             },
             [&] (const Id<ConstraintModel>& id) // RightBrace
             {
-                const auto& elt = this->m_parentSM.presenter().constraint(id);
+                const auto& elt = this->m_palette.presenter().constraint(id);
 
                 m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
-                                                                  this->m_parentSM.model().selectedChildren(),
+                                                                  this->m_palette.model().selectedChildren(),
                                                                   m_state->multiSelection()));
 
                 this->localSM().postEvent(new ReleaseOnRightBrace_Event{id, sp});
