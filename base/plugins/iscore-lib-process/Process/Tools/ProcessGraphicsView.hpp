@@ -20,7 +20,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessGraphicsView final : public QGraphicsView
 
         void setGrid(QPainterPath&& newGrid);
         void scrollHorizontal(double dx);
-
     signals:
         void sizeChanged(const QSize&);
         void scrolled(int);
@@ -34,6 +33,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessGraphicsView final : public QGraphicsView
         void keyReleaseEvent(QKeyEvent* event) override;
         void focusOutEvent(QFocusEvent* event) override;
 
-        bool m_zoomModifier{false};
         SceneGraduations* m_graduations{};
+        bool m_zoomModifier{false};
 };
