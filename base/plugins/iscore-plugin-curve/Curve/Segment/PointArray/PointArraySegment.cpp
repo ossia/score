@@ -125,6 +125,28 @@ void PointArraySegment::addPoint(double x, double y)
 void PointArraySegment::addPointUnscaled(double x, double y)
 {
     m_points[x] = y;
+    if(m_lastX != -1)
+    {
+        if(x > m_lastX)
+        {
+            auto it1 = m_points.find(m_lastX);
+            auto it2 = m_points.lower_bound(x);
+            if(it1 != m_points.end() && it2 != m_points.end() && it1 != it2)
+            {
+                m_points.erase(it1 + 1, it2);
+            }
+        }
+        else if(x < m_lastX)
+        {
+            auto it1 = m_points.find(x);
+            auto it2 = m_points.lower_bound(m_lastX);
+            if(it1 != m_points.end() && it2 != m_points.end() && it1 != it2)
+            {
+                m_points.erase(it1 + 1, it2);
+            }
+        }
+    }
+    m_lastX = x;
 
     m_valid = false;
     emit dataChanged();
@@ -228,6 +250,7 @@ void PointArraySegment::reset()
     max_x = 0;
     min_y = 0;
     max_y = 0;
+    m_lastX = -1;
     m_points.clear();
     emit dataChanged();
 }

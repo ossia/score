@@ -118,7 +118,10 @@ class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final :
         double min_x{}, max_x{};
         double min_y{}, max_y{};
 
+        double m_lastX{-1};
+
         boost::container::flat_map<double, double> m_points;
+
 };
 }
 

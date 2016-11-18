@@ -241,18 +241,18 @@ std::tuple<
         auto start_x = segt.start.x();
         auto end_x = segt.end.x();
         bool to_delete = false;
-        if(start_x > m_minPress.x() && end_x < m_maxPress.x())
+        if(start_x >= m_minPress.x() && end_x <= m_maxPress.x())
         {
             to_delete = true;
         }
         else
         {
-            if(start_x < m_minPress.x() && end_x > m_minPress.x())
+            if(start_x <= m_minPress.x() && end_x >= m_minPress.x())
             {
                 middleBegin = segt;
                 to_delete = true;
             }
-            if(start_x < m_maxPress.x() && end_x > m_maxPress.x())
+            if(start_x <= m_maxPress.x() && end_x >= m_maxPress.x())
             {
                 middleEnd = segt;
                 to_delete = true;
