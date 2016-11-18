@@ -122,6 +122,14 @@ void PointArraySegment::addPoint(double x, double y)
     emit dataChanged();
 }
 
+void PointArraySegment::addPointUnscaled(double x, double y)
+{
+    m_points[x] = y;
+
+    m_valid = false;
+    emit dataChanged();
+}
+
 void PointArraySegment::simplify(double ratio)
 {
     double tolerance = (max_y - min_y) / ratio;
@@ -153,26 +161,28 @@ void PointArraySegment::simplify(double ratio)
 
 std::vector<SegmentData> PointArraySegment::toLinearSegments() const
 {
+    std::vector<SegmentData> vec;
     m_valid = false;
     updateData(0);
     const auto& pts = data();
-    std::vector<SegmentData> vec;
     vec.reserve(pts.size() - 1);
 
-    vec.emplace_back(Id<SegmentModel>{0},
+    int N0 = 10000;
+    vec.emplace_back(Id<SegmentModel>{N0},
                      pts[0], pts[1],
-                     OptionalId<SegmentModel>{}, OptionalId<SegmentModel>{},
+                     iscore::none, iscore::none,
                      Metadata<ConcreteFactoryKey_k, LinearSegment>::get(),
                      QVariant::fromValue(LinearSegmentData{}));
 
     int size = pts.size();
     for(int i = 1; i < size - 1; i++)
     {
-        vec.back().following = Id<SegmentModel>{i};
+        const int k = i + N0;
+        vec.back().following = Id<SegmentModel>{k};
 
-        vec.emplace_back(Id<SegmentModel>{i},
+        vec.emplace_back(Id<SegmentModel>{k},
                          pts[i], pts[i+1],
-                         Id<SegmentModel>{i-1}, OptionalId<SegmentModel>{},
+                         Id<SegmentModel>{k - 1}, iscore::none,
                          Metadata<ConcreteFactoryKey_k, LinearSegment>::get(),
                          QVariant::fromValue(LinearSegmentData()));
     }
@@ -183,30 +193,42 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
 
 std::vector<SegmentData> PointArraySegment::toPowerSegments() const
 {
+    std::vector<SegmentData> vec;
     m_valid = false;
     updateData(0);
     const auto& pts = data();
-    std::vector<SegmentData> vec;
     vec.reserve(pts.size() - 1);
 
-    vec.emplace_back(Id<SegmentModel>{0},
+    int N0 = 10000;
+    vec.emplace_back(Id<SegmentModel>{N0},
                      pts[0], pts[1],
-                     OptionalId<SegmentModel>{}, OptionalId<SegmentModel>{},
+                     iscore::none, iscore::none,
                      Metadata<ConcreteFactoryKey_k, PowerSegment>::get(),
                      QVariant::fromValue(PowerSegmentData{}));
 
     int size = pts.size();
     for(int i = 1; i < size - 1; i++)
     {
-        vec.back().following = Id<SegmentModel>{i};
+        const int k = i + N0;
+        vec.back().following = Id<SegmentModel>{k};
 
-        vec.emplace_back(Id<SegmentModel>{i},
+        vec.emplace_back(Id<SegmentModel>{k},
                          pts[i], pts[i+1],
-                         Id<SegmentModel>{i-1}, OptionalId<SegmentModel>{},
+                         Id<SegmentModel>{k-1}, OptionalId<SegmentModel>{},
                          Metadata<ConcreteFactoryKey_k, PowerSegment>::get(),
                          QVariant::fromValue(PowerSegmentData()));
     }
 
     return vec;
+}
+
+void PointArraySegment::reset()
+{
+    min_x = 0;
+    max_x = 0;
+    min_y = 0;
+    max_y = 0;
+    m_points.clear();
+    emit dataChanged();
 }
 }

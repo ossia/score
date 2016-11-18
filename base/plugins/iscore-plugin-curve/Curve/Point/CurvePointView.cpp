@@ -29,6 +29,7 @@ PointView::PointView(
 {
     this->setZValue(2);
     this->setCursor(Qt::CrossCursor);
+    this->setFlag(ItemIsFocusable, false);
 
     setModel(model);
 }
@@ -64,21 +65,14 @@ void PointView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
-    if(!m_enabled)
-        return;
+    const QColor c = m_selected
+                     ? m_style.PointSelected
+                     : m_style.Point;
 
-    QPen pen;
-    QColor c = m_selected
-               ? m_style.PointSelected
-               : m_style.Point;
-
-    pen.setColor(c);
-    pen.setWidth(1);
-    painter->setPen(pen);
+    QPen pen{c, 1};
     painter->setBrush(c);
 
     pen.setCosmetic(true);
-    pen.setWidth(1);
 
     painter->setPen(pen);
     painter->drawEllipse(ellipse);
@@ -92,14 +86,12 @@ void PointView::setSelected(bool selected)
 
 void PointView::enable()
 {
-    m_enabled = true;
-    update();
+    this->setVisible(true);
 }
 
 void PointView::disable()
 {
-    m_enabled = false;
-    update();
+    this->setVisible(false);
 }
 
 void PointView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)

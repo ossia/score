@@ -107,4 +107,24 @@ CreateTool::CreateTool(Curve::ToolPalette &sm, const iscore::DocumentContext& co
     localSM().start();
 }
 
+
+CreatePenTool::CreatePenTool(Curve::ToolPalette &sm, const iscore::DocumentContext& context):
+    EditionToolForCreate{sm},
+    m_co{&sm.presenter(), context.commandStack}
+{
+    localSM().setObjectName("CreatePenToolLocalSM");
+    QState* waitState = new QState{&localSM()};
+    waitState->setObjectName("WaitState");
+
+    auto state = new OngoingState(m_co, &localSM());
+    state->setObjectName("CreatePointFromNothingState");
+    iscore::make_transition<ClickOnSegment_Transition>(waitState, state, *state);
+    iscore::make_transition<ClickOnNothing_Transition>(waitState, state, *state);
+    state->addTransition(state, finishedState(), waitState);
+
+    localSM().setInitialState(waitState);
+
+    localSM().start();
+}
+
 }

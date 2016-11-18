@@ -14,6 +14,7 @@
 #include <QMenu>
 #include <qnamespace.h>
 
+#include <QApplication>
 #include <QPointer>
 #include <QSet>
 #include <QSize>
@@ -192,8 +193,24 @@ void Presenter::setupView()
     ctrlact->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_actions->addAction(ctrlact);
 
+    auto altact = new QAction{m_actions};
+    altact->setCheckable(true);
+    altact->setChecked(false);
+    altact->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_actions->addAction(altact);
+
     m_actions->setEnabled(true);
 
+    connect(altact, &QAction::toggled, this, [&] (bool b) {
+        if(b)
+        {
+            editionSettings().setTool(Curve::Tool::CreatePen);
+        }
+        else
+        {
+            editionSettings().setTool(Curve::Tool::Select);
+        }
+    });
     connect(shiftact, &QAction::toggled, this, [&] (bool b) {
         if(b)
         {
@@ -225,6 +242,10 @@ void Presenter::setupView()
         {
             ctrlact->setChecked(true);
         }
+        if(key == Qt::Key_Alt)
+        {
+            altact->setChecked(!altact->isChecked());
+        }
     });
 
     connect(m_view, &View::keyReleased, this, [=] (int key)
@@ -236,6 +257,10 @@ void Presenter::setupView()
         if(key == Qt::Key_Control)
         {
             ctrlact->setChecked(false);
+        }
+        if(key == Qt::Key_Alt)
+        {
+            altact->setChecked(!altact->isChecked());
         }
     });
 }
@@ -424,6 +449,7 @@ void Presenter::modelReset()
 void Presenter::enableActions(bool b)
 {
     m_actions->setEnabled(b);
+    m_view->setFocus();
 }
 
 void Presenter::enable()

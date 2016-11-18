@@ -2,6 +2,7 @@
 #include <Curve/Palette/Tools/CurveTool.hpp>
 #include <Curve/Palette/CommandObjects/CreatePointCommandObject.hpp>
 #include <Curve/Palette/CommandObjects/SetSegmentParametersCommandObject.hpp>
+#include <Curve/Palette/CommandObjects/PenCommandObject.hpp>
 #include <QPoint>
 
 #include <Curve/Palette/CurvePoint.hpp>
@@ -36,6 +37,15 @@ class SetSegmentTool final : public Curve::EditionToolForCreate
 
     private:
         SetSegmentParametersCommandObject m_co;
+};
+
+class CreatePenTool final : public Curve::EditionToolForCreate
+{
+    public:
+        explicit CreatePenTool(Curve::ToolPalette& sm, const iscore::DocumentContext& context);
+
+    private:
+        PenCommandObject m_co;
 };
 
 }

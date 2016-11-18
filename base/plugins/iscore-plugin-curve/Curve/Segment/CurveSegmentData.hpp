@@ -140,6 +140,20 @@ inline Id<SegmentModel> getSegmentId(const std::vector<SegmentData>& ids)
     return id;
 }
 
+inline Id<SegmentModel> getSegmentId(const std::vector<Id<SegmentModel>>& ids)
+{
+    Id<SegmentModel> id {};
+
+    auto end = ids.end();
+    do
+    {
+        id = Id<SegmentModel>{iscore::random_id_generator::getRandomId()};
+    }
+    while(ossia::find_if(ids, [&] (const auto& other) { return other == id; }) != end);
+
+    return id;
+}
+
 
 // We don't want crashes on invalid ids search
 class CurveDataHash
