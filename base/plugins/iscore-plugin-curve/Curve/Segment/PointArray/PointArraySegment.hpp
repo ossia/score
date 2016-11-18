@@ -69,12 +69,18 @@ class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final :
         double valueAt(double x) const override;
 
         void addPoint(double, double);
+        void addPointUnscaled(double, double);
         void simplify(double ratio); // 10 is a good ratio
         std::vector<SegmentData> toLinearSegments() const;
         std::vector<SegmentData> toPowerSegments() const;
 
         double min() { return min_y; }
         double max() { return max_y; }
+
+        void setMinX(double y) { min_x = y; }
+        void setMinY(double y) { min_y = y; }
+        void setMaxX(double y) { max_x = y; }
+        void setMaxY(double y) { max_y = y; }
 
 
         const boost::container::flat_map<double, double>& points() const
@@ -100,6 +106,8 @@ class ISCORE_PLUGIN_CURVE_EXPORT PointArraySegment final :
         { return {}; }
         std::function<bool(double, bool, bool)> makeBoolFunction() const override
         { return {}; }
+
+        void reset();
 
     signals:
         void minChanged(double);

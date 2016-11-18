@@ -81,8 +81,7 @@ void CommandObjectBase::handleLocking()
 
 void CommandObjectBase::submit(std::vector<SegmentData>&& segments)
 {
-    // TODO std::move
-    m_dispatcher.submitCommand(Path<Model>(m_modelPath),
+    m_dispatcher.submitCommand(m_presenter->model(),
                                std::move(segments));
 }
 

@@ -22,8 +22,11 @@ class UpdateCurve final : public iscore::SerializableCommand
         void undo() const override;
         void redo() const override;
 
-        void update(const Path<Model>&,
-                    std::vector<SegmentData>&&);
+        void update(unused_t,
+                    std::vector<SegmentData>&& segments)
+        {
+            m_newCurveData = std::move(segments);
+        }
 
     protected:
         void serializeImpl(DataStreamInput & s) const override;

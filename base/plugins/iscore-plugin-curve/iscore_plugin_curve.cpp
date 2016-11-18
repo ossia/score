@@ -5,6 +5,7 @@
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
+#include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/Segment/Sin/SinSegment.hpp>
 #include <Curve/Settings/CurveSettingsFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
@@ -28,7 +29,9 @@ std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_curve::
        TL<
          FW<Curve::SegmentFactory,
             Curve::SegmentFactory_T<Curve::LinearSegment>,
-            Curve::SegmentFactory_T<Curve::PowerSegment>>,
+            Curve::SegmentFactory_T<Curve::PowerSegment>,
+            Curve::SegmentFactory_T<Curve::PointArraySegment>
+            >,
         FW<iscore::SettingsDelegateFactory,
              Curve::Settings::Factory>>>(ctx, factoryName);
 }

@@ -31,15 +31,6 @@ void UpdateCurve::redo() const
     curve.fromCurveData(m_newCurveData);
 }
 
-void UpdateCurve::update(
-        const Path<Model>& model,
-        std::vector<SegmentData>&& segments)
-{
-    m_newCurveData = std::move(segments);
-}
-
-
-
 void UpdateCurve::serializeImpl(DataStreamInput& s) const
 {
     s << m_model

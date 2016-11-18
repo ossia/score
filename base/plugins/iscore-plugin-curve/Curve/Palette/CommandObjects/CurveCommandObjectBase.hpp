@@ -42,7 +42,7 @@ class Presenter;
 class StateBase;
 class SegmentModel;
 
-class CommandObjectBase
+class ISCORE_PLUGIN_CURVE_EXPORT CommandObjectBase
 {
     public:
         CommandObjectBase(Presenter* pres, const iscore::CommandStackFacade&);

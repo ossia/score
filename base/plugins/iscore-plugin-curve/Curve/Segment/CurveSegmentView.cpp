@@ -72,10 +72,11 @@ void SegmentView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
+    painter->setRenderHint(QPainter::RenderHint::Antialiasing, m_enabled);
+
     QPen pen;
     pen.setWidth(m_enabled ? 2 : 1);
     pen.setStyle(m_tween ? Qt::PenStyle::DashLine : Qt::PenStyle::SolidLine);
-    painter->setRenderHint(QPainter::RenderHint::Antialiasing, m_enabled);
     pen.setColor(m_enabled
                     ? (m_selected
                         ? m_style.SegmentSelected

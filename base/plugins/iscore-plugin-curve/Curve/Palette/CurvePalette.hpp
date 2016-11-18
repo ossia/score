@@ -55,6 +55,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT ToolPalette : public GraphicsSceneToolPalette
         SmartTool m_selectTool;
         CreateTool m_createTool;
         SetSegmentTool m_setSegmentTool;
+        CreatePenTool m_createPenTool;
 };
 
 template<typename Context_T>

@@ -42,6 +42,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/MovePointCommandObject.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/CurveCommandObjectBase.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/SetSegmentParametersCommandObject.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/PenCommandObject.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/Tools/CurveTool.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/Tools/MoveTool.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/Tools/SmartTool.cpp"
