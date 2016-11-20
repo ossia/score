@@ -1113,6 +1113,13 @@ QSlider::groove:horizontal {
     margin: 2px 0;
     border-radius: 2px;
 }
+QSlider::groove:horizontal:disabled {
+   /* border: 1px solid #3A3939;*/
+    height: 8px;
+    background: #3A3939;
+    margin: 2px 0;
+    border-radius: 2px;
+}
 
 QSlider::handle:horizontal {
     background: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1,
@@ -1122,6 +1129,15 @@ QSlider::handle:horizontal {
     height: 14px;
     margin: -4px 0;
     border-radius: 2px;
+}
+
+QSlider::handle:horizontal:disabled {
+    background: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1,
+      stop: 0.0 silver, stop: 0.2 #a8a8a8, stop: 1 #727272);
+    /*border: 1px solid #3A3939;*/
+    width: 7px;
+    height: 3px;
+    border-radius: 1px;
 }
 
 QSlider::groove:vertical {
