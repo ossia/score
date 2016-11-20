@@ -7,7 +7,7 @@ cache:
   directories:
   - $HOME/travis-cache
 
-osx_image: xcode8
+osx_image: xcode8.2
 
 dist: trusty
 sudo: required
