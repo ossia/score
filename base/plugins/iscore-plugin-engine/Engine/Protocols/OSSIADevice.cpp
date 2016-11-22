@@ -342,8 +342,7 @@ void OSSIADevice::setListening(
         // and the address wasn't already listening
         if(b)
         {
-            ossia_addr->pullValue();
-            emit valueUpdated(addr, ossia_addr->cloneValue());
+            ossia_addr->requestValue();
 
             if(cb_it == m_callbacks.end())
             {
@@ -359,6 +358,8 @@ void OSSIADevice::setListening(
                     }
                 });
             }
+
+            emit valueUpdated(addr, ossia_addr->cloneValue());
         }
         else
         {

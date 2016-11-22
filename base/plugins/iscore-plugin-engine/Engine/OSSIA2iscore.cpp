@@ -27,7 +27,17 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base &node)
 
     if(addr)
     {
-        addr->pullValue();
+        auto value_future = addr->pullValueAsync();
+
+        s.ioType = ToIOType(addr->getAccessMode());
+        s.clipMode = ToClipMode(addr->getBoundingMode());
+        s.repetitionFilter = bool(addr->getRepetitionFilter());
+        s.unit = addr->getUnit();
+        s.description = QString::fromStdString(addr->getDescription());
+        s.domain = addr->getDomain();
+
+        if(value_future.valid())
+          value_future.wait_for(std::chrono::milliseconds(25));
 
         try {
             s.value = State::fromOSSIAValue(addr->cloneValue());
@@ -36,13 +46,6 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base &node)
         {
             s.value = ToValue(addr->getValueType());
         }
-
-        s.ioType = ToIOType(addr->getAccessMode());
-        s.clipMode = ToClipMode(addr->getBoundingMode());
-        s.repetitionFilter = bool(addr->getRepetitionFilter());
-        s.unit = addr->getUnit();
-        s.description = QString::fromStdString(addr->getDescription());
-        s.domain = addr->getDomain();
     }
     return s;
 }
