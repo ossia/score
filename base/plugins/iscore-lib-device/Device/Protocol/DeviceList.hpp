@@ -40,6 +40,7 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceList : public QObject
     signals:
         void logInbound(const QString&) const;
         void logOutbound(const QString&) const;
+        void logError(const QString&) const;
 
     private:
         const std::vector<DeviceInterface*>& devices() const;

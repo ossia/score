@@ -55,6 +55,8 @@ void DeviceList::addDevice(DeviceInterface *dev)
             this, &DeviceList::logInbound);
     connect(dev, &DeviceInterface::logOutbound,
             this, &DeviceList::logOutbound);
+    connect(dev, &DeviceInterface::logError,
+            this, &DeviceList::logError);
 
     dev->setLogging(m_logging);
 }

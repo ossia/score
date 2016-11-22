@@ -179,6 +179,19 @@ struct out_sink final : public spdlog::sinks::sink
         {
         }
 };
+struct err_sink final : public spdlog::sinks::sink
+{
+        const OSSIADevice& m_dev;
+        err_sink(const OSSIADevice& dev): m_dev{dev} { }
+        void log(const spdlog::details::log_msg& msg) override
+        {
+            m_dev.logError(QString::fromLatin1(msg.formatted.data(), msg.formatted.size()));
+        }
+
+        void flush() override
+        {
+        }
+};
 }
 void OSSIADevice::setLogging_impl(bool b) const
 {
@@ -189,11 +202,14 @@ void OSSIADevice::setLogging_impl(bool b) const
             ossia::net::network_logger logger;
             logger.inbound_logger = std::make_shared<spdlog::logger>("in_logger", std::make_shared<in_sink>(*this));
             logger.outbound_logger = std::make_shared<spdlog::logger>("out_logger", std::make_shared<out_sink>(*this));
+            logger.error_logger = std::make_shared<spdlog::logger>("err_logger", std::make_shared<err_sink>(*this));
 
             logger.inbound_logger->set_pattern("%v");
             logger.inbound_logger->set_level(spdlog::level::info);
             logger.outbound_logger->set_pattern("%v");
             logger.outbound_logger->set_level(spdlog::level::info);
+            logger.error_logger->set_pattern("%v");
+            logger.error_logger->set_level(spdlog::level::err);
             dev->getProtocol().setLogger(std::move(logger));
         }
         else
