@@ -82,7 +82,7 @@ class LogMessagesItemModel final : public QAbstractItemModel
 
         QVariant data(const QModelIndex& index, int role) const override
         {
-            if(index.row() < m_buffer.size())
+            if(index.row() < (int32_t)m_buffer.size())
             {
                 switch(role)
                 {

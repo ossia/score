@@ -61,7 +61,7 @@ function(iscore_set_msvc_compile_options theTarget)
     "/wd4503" # decorated name length exceeded
     "/MP"
     )
-    
+
     target_compile_definitions(${theTarget} PUBLIC
         "NOMINMAX"
         )
@@ -93,13 +93,18 @@ function(iscore_set_gcc_compile_options theTarget)
           "$<$<CONFIG:Release>:-Wl,--gc-sections>"
           "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-fvar-tracking-assignments>"
           "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-Wl,--gdb-index>"
-
           "$<$<CONFIG:Debug>:-O0>"
-          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
-          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
-          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
-          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
+      )
+
+      get_target_property(NO_LTO ${theTarget} ISCORE_TARGET_NO_LTO)
+      if(NOT ${NO_LTO})
+          target_compile_options(${theTarget} PUBLIC
+            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
+            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
+            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
+            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
           )
+      endif()
       target_link_libraries(${theTarget} PUBLIC
           "$<$<CONFIG:Release>:-ffunction-sections>"
           "$<$<CONFIG:Release>:-fdata-sections>"
