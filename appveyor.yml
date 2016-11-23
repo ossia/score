@@ -1,11 +1,11 @@
 environment:
-  QTDIR: C:\Qt\5.7\msvc2015
+  QTDIR: C:\Qt\5.7\msvc2015_64
   BOOST_ROOT: c:\Libraries\boost_1_62_0
 
 configuration: Release
 
 image: Visual Studio 2015
-platform: x86
+platform: x64
 
 install:
   - appveyor DownloadFile "https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/unsis/nsis-2.46.5-Unicode-setup.exe" -FileName nsis.exe
@@ -15,7 +15,7 @@ build_script:
   - git submodule update --init --recursive
   - mkdir build
   - cd build
-  - cmake -DISCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" ..
+  - cmake -A Win64 -DISCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" ..
   - msbuild PACKAGE.vcxproj /p:Configuration=Release /m
 
 artifacts:
