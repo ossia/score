@@ -136,8 +136,8 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
                   OUTPUT_VARIABLE GCC_VERSION)
 
-  if (GCC_VERSION VERSION_LESS 4.9)
-    message(FATAL_ERROR "i-score requires at least g++-4.9 to build")
+  if (GCC_VERSION VERSION_LESS 5.1)
+    message(FATAL_ERROR "i-score requires at least g++-5.1 to build. ")
   endif()
 
   # Note : http://stackoverflow.com/questions/31355692/cmake-support-for-gccs-link-time-optimization-lto

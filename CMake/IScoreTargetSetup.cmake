@@ -72,8 +72,6 @@ endfunction()
 
 function(iscore_set_gcc_compile_options theTarget)
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-error=shadow -Wno-error=switch -Wno-error=switch-enum -Wno-error=empty-body -Wno-error=overloaded-virtual -Wno-error=suggest-final-methods -Wno-error=suggest-final-types -Wno-error=suggest-override -Wno-error=maybe-uninitialized")
-
-    if (GCC_VERSION VERSION_GREATER 5.2 OR GCC_VERSION VERSION_EQUAL 5.2)
         target_compile_options(${theTarget} PUBLIC
           -Wno-div-by-zero
           -Wsuggest-final-types
@@ -91,8 +89,10 @@ function(iscore_set_gcc_compile_options theTarget)
           "$<$<CONFIG:Release>:-ffunction-sections>"
           "$<$<CONFIG:Release>:-fdata-sections>"
           "$<$<CONFIG:Release>:-Wl,--gc-sections>"
-          "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-fvar-tracking-assignments>"
-          "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-Wl,--gdb-index>"
+          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections"
+          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib"
+          "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
+          "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
           "$<$<CONFIG:Debug>:-O0>"
       )
 
@@ -109,8 +109,10 @@ function(iscore_set_gcc_compile_options theTarget)
           "$<$<CONFIG:Release>:-ffunction-sections>"
           "$<$<CONFIG:Release>:-fdata-sections>"
           "$<$<CONFIG:Release>:-Wl,--gc-sections>"
-          "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-fvar-tracking-assignments>"
-          "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-Wl,--gdb-index>"
+          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections"
+          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib"
+          "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
+          "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
 
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
           "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
@@ -120,7 +122,6 @@ function(iscore_set_gcc_compile_options theTarget)
       # -Wcast-qual is nice but requires more work...
       # -Wzero-as-null-pointer-constant  is garbage
       # Too much clutter :set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum -Wshadow  -Wsuggest-attribute=const  -Wsuggest-attribute=pure ")
-    endif()
 endfunction()
 
 function(iscore_set_clang_compile_options theTarget)
@@ -161,9 +162,8 @@ function(iscore_set_unix_compile_options theTarget)
     -Werror=trigraphs
 
     # Debug options
-    "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-gsplit-dwarf>"
-    "$<$<AND:$<CONFIG:Debug>,$<NOT:$<PLATFORM_ID:Windows>>>:-gdwarf-4>"
-    "$<$<AND:$<CONFIG:Debug>,$<PLATFORM_ID:Windows>>:-Os>"
+    "$<$<CONFIG:Debug>:-gsplit-dwarf>"
+    "$<$<CONFIG:Debug>:-gdwarf-4>"
 
     # Release options
     "$<$<AND:$<CONFIG:Release>,$<BOOL:${NACL}>>:-O3>"
