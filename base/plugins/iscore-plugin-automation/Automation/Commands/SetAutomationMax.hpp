@@ -37,7 +37,7 @@ class SetUnit final : public iscore::PropertyCommand
         ISCORE_COMMAND_DECL(CommandFactoryName(), SetUnit, "Set automation unit")
         public:
 
-        SetUnit(Path<ProcessModel>&& path, ossia::unit_t newval):
+        SetUnit(Path<ProcessModel>&& path, const State::Unit& newval):
             iscore::PropertyCommand{std::move(path), "unit", QVariant::fromValue(newval)}
         {
 

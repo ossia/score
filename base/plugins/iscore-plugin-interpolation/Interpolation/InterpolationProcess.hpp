@@ -85,13 +85,13 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
         }
 
         State::AddressAccessor address() const;
-        ossia::unit_t sourceUnit() const;
+        const State::Unit& sourceUnit() const;
 
         State::Value start() const;
         State::Value end() const;
 
         void setAddress(const ::State::AddressAccessor& arg);
-        void setSourceUnit(ossia::unit_t);
+        void setSourceUnit(const State::Unit&);
         void setStart(State::Value arg);
         void setEnd(State::Value arg);
 
@@ -119,7 +119,7 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
                      QObject* parent);
 
         ::State::AddressAccessor m_address;
-        ossia::unit_t m_sourceUnit;
+        State::Unit m_sourceUnit;
 
         State::Value m_start{};
         State::Value m_end{};

@@ -19,33 +19,54 @@ using Node = TreeNode<DeviceExplorerNode>;
 
 using RefreshRate = int;
 using RepetitionFilter = bool;
-struct AddressSettingsCommon
+struct ISCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
 {
-    State::Value value;
-    ossia::net::domain domain;
+        AddressSettingsCommon();
+        AddressSettingsCommon(const AddressSettingsCommon& );
+        AddressSettingsCommon(AddressSettingsCommon&& );
+        AddressSettingsCommon& operator=(const AddressSettingsCommon& );
+        AddressSettingsCommon& operator=(AddressSettingsCommon&& );
+        ~AddressSettingsCommon();
 
-    Device::IOType ioType{};
-    Device::ClipMode clipMode{};
-    ossia::unit_t unit;
+        State::Value value;
+        ossia::net::domain domain;
 
-    Device::RepetitionFilter repetitionFilter{};
-    Device::RefreshRate rate{};
+        Device::IOType ioType{};
+        Device::ClipMode clipMode{};
+        State::Unit unit;
 
-    int priority{};
+        Device::RepetitionFilter repetitionFilter{};
+        Device::RefreshRate rate{};
 
-    QStringList tags;
-    QString description;
+        int priority{};
+
+        QStringList tags;
+        QString description;
 };
 
 // this one has only the name of the current node (e.g. 'a' for dev:/azazd/a)
-struct AddressSettings : public Device::AddressSettingsCommon
+struct ISCORE_LIB_DEVICE_EXPORT AddressSettings : public Device::AddressSettingsCommon
 {
+        AddressSettings();
+        AddressSettings(const AddressSettings& );
+        AddressSettings(AddressSettings&& );
+        AddressSettings& operator=(const AddressSettings& );
+        AddressSettings& operator=(AddressSettings&& );
+        ~AddressSettings();
+
         QString name;
 };
 
 // This one has the whole path of the node in address
-struct FullAddressSettings : public Device::AddressSettingsCommon
+struct ISCORE_LIB_DEVICE_EXPORT FullAddressSettings : public Device::AddressSettingsCommon
 {
+        FullAddressSettings();
+        FullAddressSettings(const FullAddressSettings& );
+        FullAddressSettings(FullAddressSettings&& );
+        FullAddressSettings& operator=(const FullAddressSettings& );
+        FullAddressSettings& operator=(FullAddressSettings&& );
+        ~FullAddressSettings();
+
         // Maybe we should just use FullAddressSettings behind a flyweight
         // pattern everywhere... (see mnmlstc/flyweight)
         struct as_parent;
@@ -70,21 +91,9 @@ struct FullAddressSettings : public Device::AddressSettingsCommon
         // Specializations are in FullAddressSettings.cpp
 };
 
-inline bool operator==(
+ISCORE_LIB_DEVICE_EXPORT bool operator==(
         const Device::AddressSettingsCommon& lhs,
-        const Device::AddressSettingsCommon& rhs)
-{
-    return
-            lhs.value == rhs.value
-            && lhs.domain == rhs.domain
-            && lhs.ioType == rhs.ioType
-            && lhs.clipMode == rhs.clipMode
-            && lhs.unit == rhs.unit
-            && lhs.repetitionFilter == rhs.repetitionFilter
-            && lhs.rate == rhs.rate
-            && lhs.priority == rhs.priority
-            && lhs.tags == rhs.tags;
-}
+        const Device::AddressSettingsCommon& rhs);
 
 inline bool operator!=(
         const Device::AddressSettingsCommon& lhs,
@@ -121,75 +130,43 @@ inline bool operator!=(
     return !(lhs == rhs);
 }
 
-struct FullAddressAccessorSettings
+struct ISCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
 {
-  State::Value value;
-  ossia::net::domain domain;
+        FullAddressAccessorSettings();
+        FullAddressAccessorSettings(const FullAddressAccessorSettings& );
+        FullAddressAccessorSettings(FullAddressAccessorSettings&& );
+        FullAddressAccessorSettings& operator=(const FullAddressAccessorSettings& );
+        FullAddressAccessorSettings& operator=(FullAddressAccessorSettings&& );
+        ~FullAddressAccessorSettings();
 
-  Device::IOType ioType{};
-  Device::ClipMode clipMode{};
+        FullAddressAccessorSettings(
+                const State::AddressAccessor& addr,
+                const AddressSettingsCommon& f);
 
-  Device::RepetitionFilter repetitionFilter{};
-  Device::RefreshRate rate{};
+        FullAddressAccessorSettings(
+                State::AddressAccessor&& addr,
+                AddressSettingsCommon&& f);
 
-  int priority{};
+        FullAddressAccessorSettings(
+                const State::AddressAccessor& addr,
+                const ossia::value& min,
+                const ossia::value& max);
 
-  QStringList tags;
-  QString description;
+        State::Value value;
+        ossia::net::domain domain;
 
-  State::AddressAccessor address;
+        Device::IOType ioType{};
+        Device::ClipMode clipMode{};
 
-  FullAddressAccessorSettings() = default;
-  FullAddressAccessorSettings(const FullAddressAccessorSettings&) = default;
-  FullAddressAccessorSettings(FullAddressAccessorSettings&&) = default;
-  FullAddressAccessorSettings& operator=(const FullAddressAccessorSettings&) = default;
-  FullAddressAccessorSettings& operator=(FullAddressAccessorSettings&&) = default;
+        Device::RepetitionFilter repetitionFilter{};
+        Device::RefreshRate rate{};
 
-  FullAddressAccessorSettings(
-      const State::AddressAccessor& addr,
-      const AddressSettingsCommon& f):
-    value{f.value},
-    domain{f.domain},
-    ioType{f.ioType},
-    clipMode{f.clipMode},
-    repetitionFilter{f.repetitionFilter},
-    rate{f.rate},
-    priority{f.priority},
-    tags{f.tags},
-    description{f.description},
-    address{addr}
-  {
-      if(!address.qualifiers.unit)
-          address.qualifiers.unit = f.unit;
-  }
+        int priority{};
 
-  FullAddressAccessorSettings(
-      State::AddressAccessor&& addr,
-      AddressSettingsCommon&& f):
-    value{std::move(f.value)},
-    domain{std::move(f.domain)},
-    ioType{f.ioType},
-    clipMode{f.clipMode},
-    repetitionFilter{f.repetitionFilter},
-    rate{f.rate},
-    priority{f.priority},
-    tags{std::move(f.tags)},
-    description{std::move(f.description)},
-    address{std::move(addr)}
-  {
-      if(!address.qualifiers.unit)
-          address.qualifiers.unit = f.unit;
-  }
+        QStringList tags;
+        QString description;
 
-  FullAddressAccessorSettings(
-      const State::AddressAccessor& addr,
-      const ossia::value& min,
-      const ossia::value& max):
-      domain{ossia::net::make_domain(min, max)},
-      address{addr}
-  {
-
-  }
+        State::AddressAccessor address;
 
 };
 }

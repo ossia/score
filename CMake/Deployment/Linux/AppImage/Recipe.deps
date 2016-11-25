@@ -5,7 +5,7 @@ set -o pipefail
 # Minimal stuff
 yum -y install epel-release
 yum -y update
-yum -y install libmpc gcc  wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 libXrender fontconfig freetype xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm libXi alsa-lib-devel
+yum -y install libmpc gcc sudo wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 libXrender fontconfig freetype xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm libXi alsa-lib-devel
 
 
 git_pull_rebase_helper()
@@ -52,8 +52,9 @@ export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
         git clone https://github.com/probonopd/AppImageKit.git
     fi
     cd AppImageKit/
-    git_pull_rebase_helper
-    cmake .
-    make clean
-    make
-) 
+    ls
+
+    bash -ex ./install-build-deps.sh
+    bash -ex ./build.sh
+)
+

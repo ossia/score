@@ -1,6 +1,5 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
-#include <ossia/editor/curve/curve_segment/linear.hpp>
 
 namespace Curve { class LinearSegment; }
 
@@ -28,10 +27,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT LinearSegment final :
         LinearSegment(
                 const LinearSegment& other,
                 const id_type& id,
-                QObject* parent):
-            SegmentModel{other.start(), other.end(), id, parent}
-        {
-        }
+                QObject* parent);
 
         template<typename Impl>
         LinearSegment(Deserializer<Impl>& vis, QObject* parent) :
@@ -48,12 +44,9 @@ class ISCORE_PLUGIN_CURVE_EXPORT LinearSegment final :
 
         QVariant toSegmentSpecificData() const override;
 
-        std::function<float(double, float, float)> makeFloatFunction() const override
-        { return ossia::curve_segment_linear<float>{}; }
-        std::function<int(double, int, int)> makeIntFunction() const override
-        { return ossia::curve_segment_linear<int>{}; }
-        std::function<bool(double, bool, bool)> makeBoolFunction() const override
-        { return ossia::curve_segment_linear<bool>{}; }
+        std::function<float(double, float, float)> makeFloatFunction() const override;
+        std::function<int(double, int, int)> makeIntFunction() const override;
+        std::function<bool(double, bool, bool)> makeBoolFunction() const override;
 };
 }
 

@@ -218,12 +218,12 @@ void ProcessModel::setMax(double arg)
     emit m_curve->changed();
 }
 
-ossia::unit_t ProcessModel::unit() const
+State::Unit ProcessModel::unit() const
 {
     return m_address.qualifiers.unit;
 }
 
-void ProcessModel::setUnit(ossia::unit_t u)
+void ProcessModel::setUnit(const State::Unit& u)
 {
     if(u != unit())
     {
