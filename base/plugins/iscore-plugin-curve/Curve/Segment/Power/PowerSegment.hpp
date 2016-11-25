@@ -5,7 +5,6 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <ossia/editor/curve/curve_segment/linear.hpp>
 
 namespace Curve
 {
@@ -51,11 +50,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final :
         PowerSegment(
                 const PowerSegment& other,
                 const id_type& id,
-                QObject* parent):
-            SegmentModel{other.start(), other.end(), id, parent},
-            gamma{other.gamma}
-        {
-        }
+                QObject* parent);
 
         template<typename Impl>
         PowerSegment(Deserializer<Impl>& vis, QObject* parent) :
@@ -75,33 +70,14 @@ class ISCORE_PLUGIN_CURVE_EXPORT PowerSegment final :
         optional<double> verticalParameter() const override;
         void setVerticalParameter(double p) override;
 
-        QVariant toSegmentSpecificData() const override
-        {
-            return QVariant::fromValue(PowerSegmentData(gamma));
-        }
+        QVariant toSegmentSpecificData() const override;
 
         template<typename Y>
-        std::function<Y(double, Y, Y)> makeFunction() const
-        {
-            if(gamma == Curve::PowerSegmentData::linearGamma)
-            {
-                // We just return the linear one
-                return ossia::curve_segment_linear<Y>{};
-            }
-            else
-            {
-                double thepow = Curve::PowerSegmentData::linearGamma + 1 - gamma;
-                return [=] (double ratio, Y start, Y end) {
-                    return ossia::easing::ease{}(start, end, std::pow(ratio, thepow));
-                };
-            }
-        }
-        std::function<float(double, float, float)> makeFloatFunction() const override
-        { return makeFunction<float>(); }
-        std::function<int(double, int, int)> makeIntFunction() const override
-        { return makeFunction<int>(); }
-        std::function<bool(double, bool, bool)> makeBoolFunction() const override
-        { return makeFunction<bool>(); }
+        std::function<Y(double, Y, Y)> makeFunction() const;
+
+        std::function<float(double, float, float)> makeFloatFunction() const override;
+        std::function<int(double, int, int)> makeIntFunction() const override;
+        std::function<bool(double, bool, bool)> makeBoolFunction() const override;
 };
 }
 

@@ -7,6 +7,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <iscore/widgets/ReactiveLabel.hpp>
+#include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QLabel>
@@ -129,7 +130,8 @@ StateInspectorWidget::StateInspectorWidget(
 void StateInspectorWidget::on_stateChanged()
 {
     QString txt = State::convert::toPrettyString(m_state.message().value);
-    if(auto u = m_state.process().sourceUnit())
+    auto unit = m_state.process().sourceUnit();
+    if(auto& u = unit.get())
     {
         txt += " " + QString::fromStdString(ossia::get_pretty_unit_text(u));
     }
