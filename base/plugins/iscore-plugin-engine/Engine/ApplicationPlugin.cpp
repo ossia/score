@@ -28,10 +28,10 @@
 #include <vector>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <ossia/context.hpp>
+#include <ossia/editor/scenario/time_constraint.hpp>
 
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
-
-#include <ossia/ossia.hpp>
 
 #include <QAction>
 #include <QVariant>
@@ -178,7 +178,7 @@ void ApplicationPlugin::on_play(Scenario::ConstraintModel& cst, bool b, TimeValu
         {
             ISCORE_ASSERT(bool(m_clock));
             auto bs = plugmodel->baseScenario();
-            auto& cstr = *bs->baseConstraint()->OSSIAConstraint();
+            ossia::time_constraint& cstr = *bs->baseConstraint()->OSSIAConstraint();
             if(cstr.paused())
             {
                 m_clock->resume();
