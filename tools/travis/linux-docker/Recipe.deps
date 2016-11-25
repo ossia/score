@@ -16,7 +16,7 @@ git_pull_rebase_helper()
 }
 
 # Install required libs
-wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/5.0-linux/i-score-sdk-linux-5.0.txz -O i-score-sdk.txz
+wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/6.0-osx/i-score-sdk-linux.txz -O i-score-sdk.txz
 tar -xaf i-score-sdk.txz --directory /
 cp -rf /usr/local/lib64/* /usr/lib64/
 
