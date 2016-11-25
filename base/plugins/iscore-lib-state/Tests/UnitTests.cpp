@@ -2,6 +2,7 @@
 #include <State/Unit.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <core/application/MockApplication.hpp>
+#include <ossia/editor/dataspace/dataspace.hpp>
 
 class UnitTests: public QObject
 {

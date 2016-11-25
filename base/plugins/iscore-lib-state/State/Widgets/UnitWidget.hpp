@@ -12,16 +12,16 @@ class ISCORE_LIB_STATE_EXPORT UnitWidget : public QWidget
 {
         Q_OBJECT
     public:
-        UnitWidget(ossia::unit_t u, QWidget* parent);
+        UnitWidget(const State::Unit& u, QWidget* parent);
 
-        ossia::unit_t unit() const;
-        void setUnit(ossia::unit_t);
+        State::Unit unit() const;
+        void setUnit(const State::Unit&);
 
     signals:
-        void unitChanged(ossia::unit_t);
+        void unitChanged(const State::Unit&);
 
     private:
-        void on_dataspaceChanged(ossia::unit_t);
+        void on_dataspaceChanged(const State::Unit&);
 
         QHBoxLayout* m_layout{};
         QComboBox* m_dataspace{};

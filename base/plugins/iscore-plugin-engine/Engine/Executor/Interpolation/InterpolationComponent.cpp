@@ -13,8 +13,8 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
-
-#include <ossia/ossia.hpp>
+#include <ossia/editor/curve/curve_segment/easing.hpp>
+#include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <ossia/editor/value/value_conversion.hpp>
 
 namespace Interpolation

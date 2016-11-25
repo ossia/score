@@ -1,6 +1,9 @@
+#include "Unit.hpp"
 #include "Value.hpp"
 #include <State/ValueConversion.hpp>
 #include <ossia/editor/value/value.hpp>
+#include <ossia/editor/dataspace/dataspace.hpp>
+#include <ossia/editor/dataspace/dataspace_visitors.hpp>
 
 namespace State {
 bool Value::operator==(const Value& m) const
@@ -145,4 +148,134 @@ Value fromOSSIAValue(const ossia::value& val)
     return {};
 }
 
+
+
+
+Unit::Unit():
+    unit{std::make_unique<ossia::unit_t>()}
+{
+
+}
+
+
+Unit::Unit(const Unit &other):
+    unit{std::make_unique<ossia::unit_t>(*other.unit)}
+{
+
+}
+
+
+Unit::Unit(Unit &&other): unit{std::move(other.unit)}
+{
+    other.unit = std::make_unique<ossia::unit_t>();
+}
+
+
+Unit& Unit::operator=(const Unit &other)
+{
+    *unit = *other.unit;
+    return *this;
+}
+
+
+Unit& Unit::operator=(Unit &&other)
+{
+    *unit = std::move(*other.unit);
+    return *this;
+}
+
+
+Unit::~Unit()
+{
+
+}
+
+Unit::Unit(const ossia::unit_t & other)
+{
+    *unit = other;
+}
+
+Unit& Unit::operator=(const ossia::unit_t& other)
+{
+    *unit = other;
+    return *this;
+}
+
+bool Unit::operator==(const Unit &other) const
+{
+    return *unit == *other.unit;
+}
+
+bool Unit::operator!=(const Unit &other) const
+{
+    return *unit != *other.unit;
+}
+
+const ossia::unit_t& Unit::get() const
+{
+    return *unit;
+}
+
+ossia::unit_t& Unit::get()
+{
+    return *unit;
+}
+
+
+Unit::operator const ossia::unit_t &() const
+{
+    return *unit;
+}
+
+
+Unit::operator ossia::unit_t &()
+{
+    return *unit;
+}
+
+}
+
+void TSerializer<DataStream, void, ossia::unit_t>::readFrom(
+        DataStream::Serializer &s,
+        const ossia::unit_t& var)
+{
+    s.stream() << (quint64)var.which();
+
+    if(var)
+    {
+        eggs::variants::apply([&] (auto unit) {
+            s.stream() << (quint64) unit.which();
+        }, var);
+    }
+
+    s.insertDelimiter();
+}
+
+void TSerializer<DataStream, void, ossia::unit_t>::writeTo(
+        DataStream::Deserializer &s, ossia::unit_t& var)
+{
+    quint64 ds_which;
+    s.stream() >> ds_which;
+
+    if(ds_which != (quint64)var.npos)
+    {
+        quint64 unit_which;
+        s.stream() >> unit_which;
+        var = ossia::make_unit(ds_which, unit_which);
+    }
+    s.checkDelimiter();
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+        const State::Unit& var)
+{
+    TSerializer<DataStream, void, ossia::unit_t>::readFrom(*this, var.get());
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+        State::Unit& var)
+{
+    TSerializer<DataStream, void, ossia::unit_t>::writeTo(*this, var.get());
 }

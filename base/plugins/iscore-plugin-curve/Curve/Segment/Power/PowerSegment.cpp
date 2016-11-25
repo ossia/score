@@ -8,6 +8,7 @@
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
+#include <ossia/editor/curve/curve_segment/linear.hpp>
 #include "PowerSegment.hpp"
 
 class QObject;
@@ -24,19 +25,25 @@ PowerSegment::PowerSegment(
 
 }
 
+PowerSegment::PowerSegment(const PowerSegment& other, const IdentifiedObject::id_type& id, QObject* parent):
+  SegmentModel{other.start(), other.end(), id, parent},
+  gamma{other.gamma}
+{
+}
+
 void PowerSegment::on_startChanged()
 {
-    emit dataChanged();
+  emit dataChanged();
 }
 
 void PowerSegment::on_endChanged()
 {
-    emit dataChanged();
+  emit dataChanged();
 }
 
 void PowerSegment::updateData(int numInterp) const
 {
-    if(std::size_t(numInterp + 1) != m_data.size())
+  if(std::size_t(numInterp + 1) != m_data.size())
         m_valid = false;
     if(!m_valid)
     {
@@ -105,13 +112,43 @@ void PowerSegment::setVerticalParameter(double p)
     emit dataChanged();
 }
 
+QVariant PowerSegment::toSegmentSpecificData() const
+{
+  return QVariant::fromValue(PowerSegmentData(gamma));
+}
+
+template<typename Y>
+std::function<Y(double, Y, Y)> PowerSegment::makeFunction() const
+{
+    if(gamma == Curve::PowerSegmentData::linearGamma)
+    {
+        // We just return the linear one
+        return ossia::curve_segment_linear<Y>{};
+    }
+    else
+    {
+        double thepow = Curve::PowerSegmentData::linearGamma + 1 - gamma;
+        return [=] (double ratio, Y start, Y end) {
+            return ossia::easing::ease{}(start, end, std::pow(ratio, thepow));
+        };
+    }
+}
+std::function<float (double, float, float)> PowerSegment::makeFloatFunction() const
+{ return makeFunction<float>(); }
+
+std::function<int (double, int, int)> PowerSegment::makeIntFunction() const
+{ return makeFunction<int>(); }
+
+std::function<bool (double, bool, bool)> PowerSegment::makeBoolFunction() const
+{ return makeFunction<bool>(); }
+
 
 optional<double> PowerSegment::verticalParameter() const
 {
 
-    if(start().y() < end().y())
-        return gamma / 6. - 1;
-    else
-        return -(gamma / 6. - 1);
+  if(start().y() < end().y())
+    return gamma / 6. - 1;
+  else
+    return -(gamma / 6. - 1);
 }
 }

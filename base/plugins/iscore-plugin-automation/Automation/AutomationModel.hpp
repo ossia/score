@@ -61,8 +61,8 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         void setMin(double arg);
         void setMax(double arg);
 
-        ossia::unit_t unit() const;
-        void setUnit(ossia::unit_t);
+        State::Unit unit() const;
+        void setUnit(const State::Unit&);
 
         bool tween() const
         {
@@ -84,7 +84,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         void minChanged(double);
         void maxChanged(double);
         void tweenChanged(bool tween);
-        void unitChanged(ossia::unit_t);
+        void unitChanged(const State::Unit&);
 
     private:
         //// ProcessModel ////

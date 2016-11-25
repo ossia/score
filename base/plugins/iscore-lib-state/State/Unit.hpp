@@ -1,48 +1,63 @@
 #pragma once
 #include <QMetaType>
-#include <ossia/editor/dataspace/dataspace.hpp>
-#include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/editor/dataspace/dataspace_base_fwd.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
-#include <brigand/algorithms.hpp>
-Q_DECLARE_METATYPE(ossia::unit_t)
+#include <memory>
+#include <iscore_lib_state_export.h>
+namespace State
+{
+struct ISCORE_LIB_STATE_EXPORT Unit
+{
+        Q_GADGET
+    public:
+        Unit();
+        Unit(const Unit& other);
+        Unit(Unit&& other);
+        Unit& operator=(const Unit& other);
+        Unit& operator=(Unit&& other);
+        ~Unit();
+
+        Unit(const ossia::unit_t&);
+        Unit& operator=(const ossia::unit_t&);
+
+        operator const ossia::unit_t&() const;
+        operator ossia::unit_t&();
+
+        bool operator==(const State::Unit& other) const;
+        bool operator!=(const State::Unit& other) const;
+
+        const ossia::unit_t& get() const;
+        ossia::unit_t& get();
+
+    private:
+        std::unique_ptr<ossia::unit_t> unit;
+};
+}
 
 template<>
-struct TSerializer<DataStream, void, ossia::unit_t>
+struct ISCORE_LIB_STATE_EXPORT TSerializer<DataStream, void, ossia::unit_t>
 {
-        using var_t = ossia::unit_t;
-
         static void readFrom(
                 DataStream::Serializer& s,
-                const var_t& var)
-        {
-            s.stream() << (quint64)var.which();
-
-            if(var)
-            {
-              eggs::variants::apply([&] (auto unit) {
-                s.stream() << (quint64) unit.which();
-              }, var);
-            }
-
-            s.insertDelimiter();
-        }
+                const ossia::unit_t& var);
 
         static void writeTo(
                 DataStream::Deserializer& s,
-                var_t& var)
-        {
-            quint64 ds_which;
-            s.stream() >> ds_which;
-
-            if(ds_which != (quint64)var.npos)
-            {
-                quint64 unit_which;
-                s.stream() >> unit_which;
-                var = ossia::make_unit(ds_which, unit_which);
-            }
-            s.checkDelimiter();
-        }
+                ossia::unit_t& var);
 };
 
+template<>
+struct ISCORE_LIB_STATE_EXPORT TSerializer<DataStream, void, State::Unit>
+{
+        static void readFrom(
+                DataStream::Serializer& s,
+                const State::Unit& var);
+
+        static void writeTo(
+                DataStream::Deserializer& s,
+                State::Unit& var);
+};
+
+Q_DECLARE_METATYPE(State::Unit)

@@ -1,6 +1,8 @@
 #include "InterpolationProcess.hpp"
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
+#include <ossia/editor/dataspace/dataspace_visitors.hpp>
+
 namespace Interpolation
 {
 ProcessModel::~ProcessModel() = default;
@@ -119,7 +121,7 @@ State::AddressAccessor ProcessModel::address() const
     return m_address;
 }
 
-ossia::unit_t ProcessModel::sourceUnit() const
+ const State::Unit& ProcessModel::sourceUnit() const
 {
     return m_sourceUnit;
 }
@@ -146,7 +148,7 @@ void ProcessModel::setAddress(const State::AddressAccessor& arg)
     emit m_curve->changed();
 }
 
-void ProcessModel::setSourceUnit(ossia::unit_t u)
+void ProcessModel::setSourceUnit(const State::Unit& u)
 {
     m_sourceUnit = u;
 }
