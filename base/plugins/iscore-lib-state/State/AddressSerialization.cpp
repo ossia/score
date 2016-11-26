@@ -2,6 +2,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/VariantSerialization.hpp>
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 #include <QDataStream>
 #include <QtGlobal>
 #include <QJsonObject>
@@ -102,6 +103,30 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ossia::destina
         a.accessors.push_back(v.toInt());
     }
     a.unit = ossia::parse_pretty_unit(m_obj[strings.Unit].toString().toStdString());
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const State::DestinationQualifiers& a)
+{
+    readFrom(a.get());
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const State::DestinationQualifiers& a)
+{
+    readFrom(a.get());
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(State::DestinationQualifiers& a)
+{
+    writeTo(a.get());
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(State::DestinationQualifiers& a)
+{
+    writeTo(a.get());
 }
 
 

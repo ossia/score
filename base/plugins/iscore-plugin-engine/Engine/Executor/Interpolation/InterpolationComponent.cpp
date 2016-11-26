@@ -79,7 +79,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
     auto end = Engine::iscore_to_ossia::toOSSIAValue(process().end());
 
     auto source_unit = process().sourceUnit();
-    auto dest_unit = process().address().qualifiers.unit;
+    auto dest_unit = process().address().qualifiers.get().unit;
     if(source_unit != dest_unit)
     {
         start = ossia::convert(start, source_unit, dest_unit);
@@ -103,8 +103,8 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
         case ossia::val_type::TUPLE:
         {
             // First check the number of curves.
-            const auto& start_v = ossia::convert<ossia::Tuple>(start);
-            const auto& end_v = ossia::convert<ossia::Tuple>(end);
+            const auto& start_v = ossia::convert<std::vector<ossia::value>>(start);
+            const auto& end_v = ossia::convert<std::vector<ossia::value>>(end);
 
             const int n_curves = std::min(start_v.size(), end_v.size());
             std::vector<ossia::behavior> t;

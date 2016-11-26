@@ -5,7 +5,8 @@
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <Device/Node/DeviceNode.hpp>
-
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 namespace Device
 {
 
@@ -102,8 +103,8 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(const State::AddressAcc
     description{f.description},
     address{addr}
 {
-    if(!address.qualifiers.unit)
-        address.qualifiers.unit = f.unit;
+    if(!address.qualifiers.get().unit)
+        address.qualifiers.get().unit = f.unit;
 }
 
 FullAddressAccessorSettings::FullAddressAccessorSettings(const State::AddressAccessor &addr, const ossia::value &min, const ossia::value &max):
@@ -125,8 +126,8 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(State::AddressAccessor 
     description{std::move(f.description)},
     address{std::move(addr)}
 {
-    if(!address.qualifiers.unit)
-        address.qualifiers.unit = f.unit;
+    if(!address.qualifiers.get().unit)
+        address.qualifiers.get().unit = f.unit;
 }
 
 bool operator==(const AddressSettingsCommon &lhs, const AddressSettingsCommon &rhs)

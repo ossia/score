@@ -102,7 +102,7 @@ class Recorder
 
 // Sets-up the recording of a single class.
 template<typename T>
-class SingleRecorder :
+class SingleRecorder final :
         public QObject
 {
     public:

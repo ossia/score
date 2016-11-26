@@ -10,6 +10,7 @@
 #include <Device/Address/Domain.hpp>
 #include <Device/Address/IOType.hpp>
 #include <State/Value.hpp>
+#include <ossia/network/domain/domain.hpp>
 #include "XMLDeviceLoader.hpp"
 
 

@@ -8,7 +8,7 @@ ChangeAddress::ChangeAddress(
         const State::AddressAccessor& addr,
         const State::Value& start,
         const State::Value& end,
-        ossia::unit_t u):
+        const State::Unit& u):
     m_path{proc},
     m_oldAddr{proc.address()},
     m_newAddr{addr},

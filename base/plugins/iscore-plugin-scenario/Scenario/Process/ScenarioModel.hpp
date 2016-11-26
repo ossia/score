@@ -64,60 +64,60 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final :
         //// ScenarioModel specifics ////
 
         // Accessors
-        ElementContainer<ConstraintModel> getConstraints() const override
+        ElementContainer<ConstraintModel> getConstraints() const final override
         {
             auto& map = constraints.map().get();
             return {map.begin(), map.end()};
         }
 
-        ElementContainer<StateModel> getStates() const override
+        ElementContainer<StateModel> getStates() const final override
         {
             auto& map = states.map().get();
             return {map.begin(), map.end()};
         }
 
-        ElementContainer<EventModel> getEvents() const override
+        ElementContainer<EventModel> getEvents() const final override
         {
             auto& map = events.map().get();
             return {map.begin(), map.end()};
         }
 
-        ElementContainer<TimeNodeModel> getTimeNodes() const override
+        ElementContainer<TimeNodeModel> getTimeNodes() const final override
         {
             auto& map = timeNodes.map().get();
             return {map.begin(), map.end()};
         }
 
-        ConstraintModel* findConstraint(const Id<ConstraintModel>& id) const override
+        ConstraintModel* findConstraint(const Id<ConstraintModel>& id) const final override
         {
             return ossia::ptr_find(constraints, id);
         }
-        EventModel* findEvent(const Id<EventModel>& id) const override
+        EventModel* findEvent(const Id<EventModel>& id) const final override
         {
             return ossia::ptr_find(events, id);
         }
-        TimeNodeModel* findTimeNode(const Id<TimeNodeModel>& id) const override
+        TimeNodeModel* findTimeNode(const Id<TimeNodeModel>& id) const final override
         {
             return ossia::ptr_find(timeNodes, id);
         }
-        StateModel* findState(const Id<StateModel>& id) const override
+        StateModel* findState(const Id<StateModel>& id) const final override
         {
             return ossia::ptr_find(states, id);
         }
 
-        ConstraintModel& constraint(const Id<ConstraintModel>& constraintId) const override
+        ConstraintModel& constraint(const Id<ConstraintModel>& constraintId) const final override
         {
             return constraints.at(constraintId);
         }
-        EventModel& event(const Id<EventModel>& eventId) const override
+        EventModel& event(const Id<EventModel>& eventId) const final override
         {
             return events.at(eventId);
         }
-        TimeNodeModel& timeNode(const Id<TimeNodeModel>& timeNodeId) const override
+        TimeNodeModel& timeNode(const Id<TimeNodeModel>& timeNodeId) const final override
         {
             return timeNodes.at(timeNodeId);
         }
-        StateModel& state(const Id<StateModel>& stId) const override
+        StateModel& state(const Id<StateModel>& stId) const final override
         {
             return states.at(stId);
         }
@@ -126,7 +126,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final :
             return comments.at(cmtId);
         }
 
-        TimeNodeModel& startTimeNode() const override
+        TimeNodeModel& startTimeNode() const final override
         {
             return timeNodes.at(m_startTimeNodeId);
         }

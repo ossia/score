@@ -18,6 +18,7 @@ class AddressBarItem final :
     public QGraphicsItem
 {
         Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
     public:
         AddressBarItem(QGraphicsItem* parent);
 

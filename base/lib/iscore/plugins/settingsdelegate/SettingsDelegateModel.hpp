@@ -56,7 +56,7 @@ namespace iscore
 }
 
 #define ISCORE_SETTINGS_COMMAND(ModelType, Name) \
-    struct Set ## ModelType ## Name : public iscore::SettingsCommand<ModelType ## Name ## Parameter> \
+    struct Set ## ModelType ## Name final : public iscore::SettingsCommand<ModelType ## Name ## Parameter> \
 { \
  static constexpr const bool is_deferred = false; \
  ISCORE_SETTINGS_COMMAND_DECL(Set ## ModelType ## Name) \
@@ -69,7 +69,7 @@ namespace iscore
 
 
 #define ISCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name) \
-    struct Set ## ModelType ## Name : public iscore::SettingsCommand<ModelType ## Name ## Parameter> \
+    struct Set ## ModelType ## Name final : public iscore::SettingsCommand<ModelType ## Name ## Parameter> \
 { \
  static constexpr const bool is_deferred = true; \
  ISCORE_SETTINGS_COMMAND_DECL(Set ## ModelType ## Name) \

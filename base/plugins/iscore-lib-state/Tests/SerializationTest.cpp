@@ -87,17 +87,17 @@ class SerializationTest: public QObject
                 QCOMPARE(unmarshall<ossia::value>(marshall<DataStream>(v)), v);
             }
             {
-                ossia::value v(ossia::Tuple{});
+                ossia::value v(std::vector<ossia::value>{});
                 QCOMPARE(unmarshall<ossia::value>(marshall<JSONObject>(v)), v);
                 QCOMPARE(unmarshall<ossia::value>(marshall<DataStream>(v)), v);
             }
             {
-                ossia::value v(ossia::Tuple{1, 2, 3});
+                ossia::value v(std::vector<ossia::value>{1, 2, 3});
                 QCOMPARE(unmarshall<ossia::value>(marshall<JSONObject>(v)), v);
                 QCOMPARE(unmarshall<ossia::value>(marshall<DataStream>(v)), v);
             }
             {
-                ossia::value v(ossia::Tuple{1, "boo"s, 3, ossia::Tuple{"Banana"s, "Carrot"s, 'c'}});
+                ossia::value v(std::vector<ossia::value>{1, "boo"s, 3, std::vector<ossia::value>{"Banana"s, "Carrot"s, 'c'}});
                 QCOMPARE(unmarshall<ossia::value>(marshall<JSONObject>(v)), v);
             }
 
@@ -154,7 +154,7 @@ class SerializationTest: public QObject
             }
 
             {
-                ossia::net::domain d = ossia::net::make_domain(ossia::Tuple{0, 'x'}, ossia::Tuple{1, 'y'});
+                ossia::net::domain d = ossia::net::make_domain(std::vector<ossia::value>{0, 'x'}, std::vector<ossia::value>{1, 'y'});
                 QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
                 QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
             }

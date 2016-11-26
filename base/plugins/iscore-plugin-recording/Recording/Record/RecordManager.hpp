@@ -3,42 +3,6 @@
 #include <Recording/Record/RecordData.hpp>
 #include <Recording/Record/RecordProviderFactory.hpp>
 
-namespace boost
-{
-template<typename... U>
-struct hash<eggs::variant<U...>>
-{
-        std::size_t operator()(const eggs::variant<U...>& k) const
-        {
-            return std::hash<eggs::variant<U...>>{}(k);
-        }
-};
-
-template<>
-struct hash<State::Address>
-{
-        std::size_t operator()(const State::Address& k) const
-        {
-            return std::hash<State::Address>{}(k);
-        }
-};
-}
-namespace std
-{
-  template <>
-  struct hash<State::AddressAccessor>
-  {
-    std::size_t operator()(const State::AddressAccessor& k) const
-    {
-        std::size_t seed = 0;
-        boost::hash_combine(seed, k.address);
-        boost::hash_range(seed, k.qualifiers.accessors.begin(), k.qualifiers.accessors.end());
-        boost::hash_combine(seed, k.qualifiers.unit);
-        return seed;
-    }
-  };
-}
-
 namespace Curve
 {
 namespace Settings

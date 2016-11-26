@@ -311,8 +311,8 @@ void PluginLoader::loadPlugins(
             auto ctrl_plugin = dynamic_cast<GUIApplicationContextPlugin_QtInterface*> (plugin);
             if(ctrl_plugin)
             {
-                auto plug = ctrl_plugin->make_applicationPlugin(*gui_ctx);
-                registrar.registerApplicationContextPlugin(plug);
+                if(auto plug = ctrl_plugin->make_applicationPlugin(*gui_ctx))
+                    registrar.registerApplicationContextPlugin(plug);
             }
         });
     }

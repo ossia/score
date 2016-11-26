@@ -10,6 +10,7 @@
 #include <QStringList>
 
 #include "AddressSettings.hpp"
+#include <ossia/editor/dataspace/dataspace.hpp>
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/Domain.hpp>
@@ -92,7 +93,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettingsCommon& n)
     n.description = m_obj[strings.Description].toString();
 
     writeTo(n.value);
-    n.domain = fromJsonObject<ossia::net::domain>(m_obj[strings.Domain].toObject());
+    n.domain = fromJsonObject<Device::Domain>(m_obj[strings.Domain].toObject());
 }
 
 
@@ -238,7 +239,7 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(Device::FullA
 
     writeTo(n.value);
 
-    n.domain = fromJsonObject<ossia::net::domain>(m_obj[strings.Domain].toObject());
+    n.domain = fromJsonObject<Device::Domain>(m_obj[strings.Domain].toObject());
 
     n.address = fromJsonObject<State::AddressAccessor>(m_obj[strings.Address]);
 }

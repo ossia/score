@@ -588,7 +588,7 @@ struct Expression_builder : boost::static_visitor<void>
                 if(res)
                 {
                     result.address = (*res);
-                    result.qualifiers.accessors.clear();
+                    result.qualifiers.get().accessors.clear();
 
                     return result;
                 }

@@ -10,7 +10,7 @@ class QToolButton;
 
 namespace InspectorPanel
 {
-class SelectionStackWidget : public QWidget
+class SelectionStackWidget final : public QWidget
 {
     public:
         SelectionStackWidget(iscore::SelectionStack& s, QWidget* parent);

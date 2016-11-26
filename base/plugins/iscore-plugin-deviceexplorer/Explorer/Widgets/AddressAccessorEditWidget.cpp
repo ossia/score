@@ -6,6 +6,7 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <Device/QMenuView/qmenuview.h>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 
 #include <QHBoxLayout>
 
@@ -50,7 +51,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 void AddressAccessorEditWidget::setOnlyAddress(const State::Address& addr)
 {
     m_address.address = addr;
-    m_address.qualifiers.accessors.clear();
+    m_address.qualifiers.get().accessors.clear();
     m_lineEdit->setText(m_address.toString());
 }
 

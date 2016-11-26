@@ -17,6 +17,7 @@
 #include <iscore/tools/MapCopy.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 
 namespace Process { class LayerModel; }
 namespace Process { class ProcessModel; }
@@ -194,7 +195,7 @@ void ProcessModel::setAddress(const ::State::AddressAccessor &arg)
 
     m_address = arg;
     emit addressChanged(arg);
-    emit unitChanged(arg.qualifiers.unit);
+    emit unitChanged(arg.qualifiers.get().unit);
     emit m_curve->changed();
 }
 
@@ -220,14 +221,14 @@ void ProcessModel::setMax(double arg)
 
 State::Unit ProcessModel::unit() const
 {
-    return m_address.qualifiers.unit;
+    return m_address.qualifiers.get().unit;
 }
 
 void ProcessModel::setUnit(const State::Unit& u)
 {
     if(u != unit())
     {
-        m_address.qualifiers.unit = u;
+        m_address.qualifiers.get().unit = u;
         emit addressChanged(m_address);
         emit unitChanged(u);
     }

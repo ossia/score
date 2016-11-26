@@ -32,7 +32,7 @@ namespace Scenario
 class EventModel;
 class ConstraintModel;
 class MessageItemModel;
-class ProcessStateWrapper : public QObject
+class ProcessStateWrapper final : public QObject
 {
     private:
         ProcessStateDataInterface* m_proc;

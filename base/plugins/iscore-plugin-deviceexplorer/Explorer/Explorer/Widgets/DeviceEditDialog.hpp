@@ -12,7 +12,7 @@ class QWidget;
 
 namespace Device
 {
-class DynamicProtocolList;
+class ProtocolFactoryList;
 class ProtocolSettingsWidget;
 }
 namespace Explorer
@@ -23,7 +23,7 @@ class DeviceEditDialog final : public QDialog
 
     public:
         explicit DeviceEditDialog(
-                const Device::DynamicProtocolList& pl,
+                const Device::ProtocolFactoryList& pl,
                 QWidget* parent);
         ~DeviceEditDialog();
 
@@ -48,7 +48,7 @@ class DeviceEditDialog final : public QDialog
         void initAvailableProtocols();
 
     protected:
-        const Device::DynamicProtocolList& m_protocolList;
+        const Device::ProtocolFactoryList& m_protocolList;
 
         QComboBox* m_protocolCBox;
         Device::ProtocolSettingsWidget* m_protocolWidget;

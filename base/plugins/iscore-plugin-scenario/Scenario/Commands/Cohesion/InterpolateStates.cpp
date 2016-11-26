@@ -39,6 +39,7 @@
 #include <Interpolation/InterpolationProcess.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <ossia/editor/value/value_conversion.hpp>
+#include <ossia/network/domain/domain.hpp>
 
 namespace Scenario
 {
@@ -168,8 +169,9 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
             {
                 const Device::AddressSettings& as = node->get<Device::AddressSettings>();
 
-                auto min_v = as.domain.get_min();
-                auto max_v = as.domain.get_max();
+                auto& dom = as.domain.get();
+                auto min_v = dom.get_min();
+                auto max_v = dom.get_max();
 
                 if(ossia::is_numeric(min_v))
                     min = std::min(min, ossia::convert<double>(min_v));

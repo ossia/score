@@ -39,7 +39,7 @@ iscore_plugin_deviceexplorer::~iscore_plugin_deviceexplorer()
 std::vector<std::unique_ptr<iscore::FactoryListInterface>> iscore_plugin_deviceexplorer::factoryFamilies()
 {
     return make_ptr_vector<iscore::FactoryListInterface,
-            Device::DynamicProtocolList,
+            Device::ProtocolFactoryList,
             Explorer::ListeningHandlerFactoryList>();
 }
 

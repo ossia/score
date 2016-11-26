@@ -47,7 +47,7 @@ class AddressVecSettingsWidget final : public AddressSettingsWidget
         {
             setCommonSettings(settings);
             m_valueEdit->setValue(State::convert::value<std::array<float, N>>(settings.value));
-            if(settings.domain.target<ossia::net::domain_base<float>>())
+            if(settings.domain.get().target<ossia::net::domain_base<float>>())
             {
                 m_domainFloatEdit->setDomain(settings.domain);
                 m_domainSelector->setCurrentIndex(0);
@@ -63,7 +63,7 @@ class AddressVecSettingsWidget final : public AddressSettingsWidget
         {
             Device::AddressSettings s;
             s.value.val = std::array<float, N>{};
-            s.domain = ossia::net::make_domain(ossia::Float{0}, ossia::Float{1});
+            s.domain = ossia::net::make_domain(float{0}, float{1});
             return {};
         }
 

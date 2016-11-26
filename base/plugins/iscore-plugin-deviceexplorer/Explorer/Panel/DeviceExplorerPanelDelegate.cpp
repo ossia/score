@@ -8,7 +8,7 @@ namespace Explorer
 PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx):
     iscore::PanelDelegate{ctx},
     m_widget{new DeviceExplorerWidget{
-             ctx.components.factory<Device::DynamicProtocolList>(),
+             ctx.components.factory<Device::ProtocolFactoryList>(),
              nullptr}}
 {
 }

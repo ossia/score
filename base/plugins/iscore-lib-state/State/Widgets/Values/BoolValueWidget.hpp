@@ -7,7 +7,7 @@ class QWidget;
 
 namespace State
 {
-class ISCORE_LIB_STATE_EXPORT  BoolValueWidget : public State::ValueWidget
+class ISCORE_LIB_STATE_EXPORT BoolValueWidget final : public State::ValueWidget
 {
     public:
         BoolValueWidget(bool value, QWidget* parent = nullptr);

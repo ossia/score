@@ -27,7 +27,7 @@ struct NoteData
  * Allocate the Notes on a vector<Note> and allow them to be copied.
  * Don't allow signals in some way.
  */
-class Note : public IdentifiedObject<Note>
+class Note final : public IdentifiedObject<Note>
 {
         Q_OBJECT
 

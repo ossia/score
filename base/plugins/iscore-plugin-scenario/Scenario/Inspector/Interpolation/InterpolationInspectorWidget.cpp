@@ -8,6 +8,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <iscore/widgets/ReactiveLabel.hpp>
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QLabel>
@@ -82,11 +83,11 @@ void InspectorWidget::on_addressChange(const ::State::AddressAccessor& addr)
         const auto snodes = Process::try_getNodesFromAddress(ss.messages().rootNode(), addr);
         const auto enodes = Process::try_getNodesFromAddress(es.messages().rootNode(), addr);
 
-        for(auto lhs : snodes)
+        for(const Process::MessageNode* lhs : snodes)
         {
             if(!lhs->hasValue())
                 continue;
-            if(lhs->name.qualifiers.accessors != addr.qualifiers.accessors)
+            if(lhs->name.qualifiers.get().accessors != addr.qualifiers.get().accessors)
                 continue;
 
             auto it = ossia::find_if(enodes, [&] (auto rhs) {
@@ -97,7 +98,7 @@ void InspectorWidget::on_addressChange(const ::State::AddressAccessor& addr)
             {
                 sv = *lhs->value();
                 ev = *(*it)->value();
-                source_u = lhs->name.qualifiers.unit;
+                source_u = lhs->name.qualifiers.get().unit;
 
                 break; // or maybe not break ? the latest should replace maybe ?
             }

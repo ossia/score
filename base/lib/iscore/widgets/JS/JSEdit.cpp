@@ -634,7 +634,7 @@ static int findOpeningMatch(const QTextDocument *doc, int cursorPosition)
     return -1;
 }
 
-class JSDocLayout: public QPlainTextDocumentLayout
+class JSDocLayout final : public QPlainTextDocumentLayout
 {
 public:
     JSDocLayout(QTextDocument *doc);

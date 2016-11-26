@@ -20,7 +20,7 @@ class QLineEdit;
 
 namespace Device
 {
-class DynamicProtocolList;
+class ProtocolFactoryList;
 }
 
 namespace Explorer
@@ -36,7 +36,7 @@ class DeviceExplorerWidget final : public QWidget
 
     public:
         explicit DeviceExplorerWidget(
-                const Device::DynamicProtocolList&,
+                const Device::ProtocolFactoryList&,
                 QWidget* parent);
 
         void setModel(DeviceExplorerModel* model);
@@ -83,7 +83,7 @@ class DeviceExplorerWidget final : public QWidget
         void contextMenuEvent(QContextMenuEvent* event) override;
 
 
-        const Device::DynamicProtocolList& m_protocolList;
+        const Device::ProtocolFactoryList& m_protocolList;
 
         DeviceExplorerView* m_ntView{};
         DeviceExplorerFilterProxyModel* m_proxyModel{};

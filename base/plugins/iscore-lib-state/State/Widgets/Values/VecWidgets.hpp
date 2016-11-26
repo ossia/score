@@ -22,7 +22,7 @@ struct ISCORE_LIB_STATE_EXPORT VecEditBase : public QWidget
 };
 
 template<std::size_t N>
-class VecWidget :
+class VecWidget final :
         public VecEditBase
 {
     public:
@@ -75,11 +75,11 @@ using Vec4DEdit = VecWidget<4>;
 
 
 template<std::size_t N>
-class VecDomainWidget : public QWidget
+class VecDomainWidget final : public QWidget
 {
     public:
-        using domain_type = ossia::net::domain_base<ossia::Vec<float, N>>;
-        using set_type = boost::container::flat_set<ossia::Vec<float, N>>;
+        using domain_type = ossia::net::domain_base<std::array<float, N>>;
+        using set_type = boost::container::flat_set<std::array<float, N>>;
 
         VecDomainWidget(QWidget* parent):
             QWidget{parent}

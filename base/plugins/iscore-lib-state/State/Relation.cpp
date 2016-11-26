@@ -1,4 +1,5 @@
 #include <State/ValueConversion.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 #include <QMap>
 
 #include "Relation.hpp"
@@ -29,7 +30,7 @@ QString State::toString(const State::RelationMember& m)
 
             return_type operator()(const State::AddressAccessor& acc) const {
                 auto addr = acc.address.toString();
-                for(auto val : acc.qualifiers.accessors)
+                for(auto val : acc.qualifiers.get().accessors)
                 {
                     addr += QString("[%1]").arg(val);
                 }

@@ -12,6 +12,7 @@
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 #include <ossia/editor/value/value_conversion.hpp>
+#include <ossia/network/domain/domain.hpp>
 
 namespace ossia
 {
@@ -33,7 +34,7 @@ QVariant convert(const ossia::value& val)
             return_type operator()(ossia::Vec2f t) const { return QVector2D{t[0], t[1]}; }
             return_type operator()(ossia::Vec3f t) const { return QVector3D{t[0], t[1], t[2]}; }
             return_type operator()(ossia::Vec4f t) const { return QVector4D{t[0], t[1], t[2], t[3]}; }
-            return_type operator()(const ossia::Tuple& t) const
+            return_type operator()(const std::vector<ossia::value>& t) const
             {
                 QVariantList arr;
                 arr.reserve(t.size());
@@ -228,7 +229,7 @@ QVariant minColumnData(const Device::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return node.get<AddressSettings>().domain.convert_min<QVariant>();
+        return node.get<AddressSettings>().domain.get().convert_min<QVariant>();
     }
 
     return {};
@@ -242,7 +243,7 @@ QVariant maxColumnData(const Device::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-      return node.get<AddressSettings>().domain.convert_max<QVariant>();
+      return node.get<AddressSettings>().domain.get().convert_max<QVariant>();
     }
 
     return {};

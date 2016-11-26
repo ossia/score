@@ -8,7 +8,7 @@ namespace Engine
 namespace LocalTree
 {
 template<typename T, typename SetFun>
-struct SetPropertyWrapper : public BaseCallbackWrapper
+struct SetPropertyWrapper final : public BaseCallbackWrapper
 {
         SetFun setFun;
 

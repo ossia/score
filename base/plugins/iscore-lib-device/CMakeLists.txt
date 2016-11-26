@@ -15,6 +15,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/IOType.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/ClipMode.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/Domain.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/AddressSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Node/DeviceNode.cpp"

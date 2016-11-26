@@ -10,6 +10,7 @@ class NoteView final :
         public QGraphicsItem
 {
         Q_OBJECT
+        Q_INTERFACES(QGraphicsItem)
     public:
         const Note& note;
 

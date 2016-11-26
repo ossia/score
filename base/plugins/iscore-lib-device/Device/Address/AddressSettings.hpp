@@ -2,9 +2,9 @@
 #include <QString>
 #include <QVariant>
 #include <QVariantList>
-#include "IOType.hpp"
-#include "ClipMode.hpp"
-#include "Domain.hpp"
+#include <Device/Address/IOType.hpp>
+#include <Device/Address/ClipMode.hpp>
+#include <Device/Address/Domain.hpp>
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
 #include <iscore/tools/Metadata.hpp>
@@ -29,7 +29,7 @@ struct ISCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
         ~AddressSettingsCommon();
 
         State::Value value;
-        ossia::net::domain domain;
+        Device::Domain domain;
 
         Device::IOType ioType{};
         Device::ClipMode clipMode{};
@@ -153,7 +153,7 @@ struct ISCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
                 const ossia::value& max);
 
         State::Value value;
-        ossia::net::domain domain;
+        Device::Domain domain;
 
         Device::IOType ioType{};
         Device::ClipMode clipMode{};

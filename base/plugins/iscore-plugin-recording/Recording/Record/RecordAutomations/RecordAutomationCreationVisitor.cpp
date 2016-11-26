@@ -5,6 +5,7 @@
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 
+#include <ossia/network/domain/domain.hpp>
 
 
 namespace Recording
@@ -29,8 +30,9 @@ RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
     autom.curve().clear();
 
     // TODO handle other domain types for vec.
-    auto min = addr.domain.convert_min<float>();
-    auto max = addr.domain.convert_max<float>();
+    auto& dom = addr.domain.get();
+    auto min = dom.convert_min<float>();
+    auto max = dom.convert_max<float>();
 
     Curve::SegmentData seg;
     seg.id = Id<Curve::SegmentModel>{0};

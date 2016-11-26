@@ -66,7 +66,7 @@ State::AddressAccessor address(const Node &treeNode)
     const Node* n = &treeNode;
 
     if(n->is<Device::AddressSettings>())
-      addr.qualifiers.unit = n->get<Device::AddressSettings>().unit;
+      addr.qualifiers.get().unit = n->get<Device::AddressSettings>().unit;
 
     while(n->parent() && !n->is<DeviceSettings>())
     {
@@ -110,7 +110,7 @@ State::Message message(const Node& node)
 
     State::Message mess;
     mess.address = address(node);
-    mess.address.qualifiers.unit = s.unit;
+    mess.address.qualifiers.get().unit = s.unit;
     mess.value = s.value;
 
     return mess;

@@ -43,6 +43,7 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <ossia/editor/value/value_conversion.hpp>
 
+#include <ossia/network/domain/domain.hpp>
 namespace Scenario
 {
 namespace Command
@@ -155,8 +156,9 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
         auto start = State::convert::value<double>(elt.first.value);
         auto end = State::convert::value<double>(elt.second.value);
-        auto min_v = elt.second.domain.get_min();
-        auto max_v = elt.second.domain.get_max();
+        auto& dom = elt.second.domain.get();
+        auto min_v = dom.get_min();
+        auto max_v = dom.get_max();
         double min = (min_v.valid())
                 ? std::min(ossia::convert<double>(min_v), std::min(start, end))
                 : std::min(start, end);

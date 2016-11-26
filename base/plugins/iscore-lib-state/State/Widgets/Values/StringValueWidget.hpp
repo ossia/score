@@ -10,7 +10,7 @@ class QWidget;
 
 namespace State
 {
-class ISCORE_LIB_STATE_EXPORT StringValueWidget : public State::ValueWidget
+class ISCORE_LIB_STATE_EXPORT StringValueWidget final : public State::ValueWidget
 {
     public:
         StringValueWidget(const std::string& value, QWidget* parent = nullptr);

@@ -22,6 +22,8 @@
 #include <State/ValueConversion.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
 
+#include <ossia/network/domain/domain.hpp>
+
 class QWidget;
 
 namespace Explorer
@@ -102,8 +104,9 @@ void AddressEditDialog::updateType()
         m_originalSettings.ioType = Device::IOType::InOut;
     if(widg)
     {
-        if(!m_originalSettings.domain)
-            m_originalSettings.domain = widg->getDefaultSettings().domain;
+        auto& dom = m_originalSettings.domain.get();
+        if(!dom)
+            dom = widg->getDefaultSettings().domain.get();
         widg->setSettings(m_originalSettings);
     }
 }
