@@ -14,6 +14,7 @@
 #include <iterator>
 
 #include <State/Value.hpp>
+#include <ossia/editor/value/value.hpp>
 #include "ValueConversion.hpp"
 #include "Expression.hpp"
 

@@ -50,7 +50,7 @@ struct FunctionEvent : public QEvent
 // TODO put me in app context
 class FunctionEventReceiver : public QObject
 {
-  virtual bool event(QEvent *event)
+  bool event(QEvent *event) final override
   {
     if(auto e = dynamic_cast<FunctionEvent*>(event))
     {
