@@ -3,6 +3,7 @@
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 #include <State/Message.hpp>
+#include <State/Unit.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <Process/ProcessMetadata.hpp>

@@ -101,7 +101,7 @@ ossia::value toOSSIAValue(const State::ValueImpl& val)
             return_type operator()(const State::vec4f& v) const { return v; }
             return_type operator()(const State::tuple_t& v) const
             {
-                ossia::Tuple ossia_tuple;
+                std::vector<ossia::value> ossia_tuple;
                 ossia_tuple.reserve(v.size());
                 for(const auto& tuple_elt : v)
                 {
@@ -121,15 +121,15 @@ Value fromOSSIAValue(const ossia::value& val)
             using return_type = State::Value;
             return_type operator()(ossia::Destination) const { return {}; }
             return_type operator()(ossia::Impulse) const { return State::Value::fromValue(State::impulse_t{}); }
-            return_type operator()(ossia::Int v) const { return State::Value::fromValue(v); }
-            return_type operator()(ossia::Float v) const { return State::Value::fromValue(v); }
-            return_type operator()(ossia::Bool v) const { return State::Value::fromValue(v); }
-            return_type operator()(ossia::Char v) const { return State::Value::fromValue(v); }
-            return_type operator()(const ossia::String& v) const { return State::Value::fromValue(QString::fromStdString(v)); }
+            return_type operator()(int32_t v) const { return State::Value::fromValue(v); }
+            return_type operator()(float v) const { return State::Value::fromValue(v); }
+            return_type operator()(bool v) const { return State::Value::fromValue(v); }
+            return_type operator()(char v) const { return State::Value::fromValue(v); }
+            return_type operator()(const std::string& v) const { return State::Value::fromValue(QString::fromStdString(v)); }
             return_type operator()(ossia::Vec2f v) const { return State::Value::fromValue(v); }
             return_type operator()(ossia::Vec3f v) const { return State::Value::fromValue(v); }
             return_type operator()(ossia::Vec4f v) const { return State::Value::fromValue(v); }
-            return_type operator()(const ossia::Tuple& v) const
+            return_type operator()(const std::vector<ossia::value>& v) const
             {
                 State::tuple_t tuple;
 
@@ -190,9 +190,9 @@ Unit::~Unit()
 
 }
 
-Unit::Unit(const ossia::unit_t & other)
+Unit::Unit(const ossia::unit_t & other):
+    unit{std::make_unique<ossia::unit_t>(other)}
 {
-    *unit = other;
 }
 
 Unit& Unit::operator=(const ossia::unit_t& other)
@@ -221,12 +221,10 @@ ossia::unit_t& Unit::get()
     return *unit;
 }
 
-
 Unit::operator const ossia::unit_t &() const
 {
     return *unit;
 }
-
 
 Unit::operator ossia::unit_t &()
 {
@@ -278,4 +276,18 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
         State::Unit& var)
 {
     TSerializer<DataStream, void, ossia::unit_t>::writeTo(*this, var.get());
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+        const ossia::unit_t& var)
+{
+    TSerializer<DataStream, void, ossia::unit_t>::readFrom(*this, var);
+}
+
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+        ossia::unit_t& var)
+{
+    TSerializer<DataStream, void, ossia::unit_t>::writeTo(*this, var);
 }

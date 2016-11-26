@@ -17,7 +17,7 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ChangeAddress final : public iscore::Se
                 const State::AddressAccessor& addr,
                 const State::Value& start,
                 const State::Value& end,
-                ossia::unit_t u);
+                const State::Unit& u);
 
     public:
         void undo() const override;
@@ -30,7 +30,7 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ChangeAddress final : public iscore::Se
     private:
         Path<ProcessModel> m_path;
         State::AddressAccessor m_oldAddr, m_newAddr;
-        ossia::unit_t m_oldUnit, m_newUnit;
+        State::Unit m_oldUnit, m_newUnit;
         State::Value m_oldStart, m_newStart;
         State::Value m_oldEnd, m_newEnd;
 };

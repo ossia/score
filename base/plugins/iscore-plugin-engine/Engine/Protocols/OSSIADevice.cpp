@@ -422,7 +422,7 @@ void OSSIADevice::sendMessage(const State::Message& mess)
 {
     if(auto dev = getDevice())
     {
-        if(mess.address.qualifiers.accessors.empty())
+        if(mess.address.qualifiers.get().accessors.empty())
         {
             auto node = Engine::iscore_to_ossia::getNodeFromPath(mess.address.address.path, *dev);
 

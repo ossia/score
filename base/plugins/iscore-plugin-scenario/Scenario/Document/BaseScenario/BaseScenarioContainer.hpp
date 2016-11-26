@@ -34,13 +34,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer :
 
         QObject& parentObject() const { return *m_parent; }
 
-        ElementContainer<ConstraintModel> getConstraints() const override
+        ElementContainer<ConstraintModel> getConstraints() const final override
         { return {m_constraint}; }
-        ElementContainer<StateModel> getStates() const override
+        ElementContainer<StateModel> getStates() const final override
         { return {m_startState, m_endState}; }
-        ElementContainer<EventModel> getEvents() const override
+        ElementContainer<EventModel> getEvents() const final override
         { return {m_startEvent, m_endEvent}; }
-        ElementContainer<TimeNodeModel> getTimeNodes() const override
+        ElementContainer<TimeNodeModel> getTimeNodes() const final override
         { return {m_startNode, m_endNode}; }
 
         ConstraintModel* findConstraint(

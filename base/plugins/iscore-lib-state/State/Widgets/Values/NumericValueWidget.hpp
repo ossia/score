@@ -19,7 +19,7 @@ template<typename T>
 using MatchingSpinbox = typename iscore::TemplatedSpinBox<T>::spinbox_type;
 
 template<typename T>
-class NumericValueWidget : public State::ValueWidget
+class NumericValueWidget final : public State::ValueWidget
 {
     public:
         NumericValueWidget(

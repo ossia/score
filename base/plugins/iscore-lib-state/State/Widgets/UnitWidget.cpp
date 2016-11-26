@@ -3,6 +3,7 @@
 #include <iscore/widgets/SignalUtils.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/editor/dataspace/dataspace.hpp>
 #include <QComboBox>
 #include <QHBoxLayout>
 
@@ -21,7 +22,7 @@ UnitWidget::UnitWidget(const State::Unit& u, QWidget* parent):
 
     // Fill dataspace. Unit is filled each time the dataspace changes
     m_dataspace->addItem(tr("None"), QVariant::fromValue(State::Unit{}));
-    brigand::for_each<ossia::unit_t>([=] (auto d)
+    brigand::for_each<ossia::unit_variant>([=] (auto d)
     {
         // For each dataspace, add its text to the combo box
         using dataspace_type = typename decltype(d)::type;

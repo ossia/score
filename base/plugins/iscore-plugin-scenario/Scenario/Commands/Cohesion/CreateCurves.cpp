@@ -22,6 +22,7 @@
 
 #include <Automation/AutomationModel.hpp>
 #include <ossia/editor/value/value_conversion.hpp>
+#include <ossia/network/domain/domain.hpp>
 namespace Scenario
 {
 static std::vector<Device::FullAddressSettings> getSelectedAddresses(
@@ -115,8 +116,9 @@ void CreateCurvesFromAddresses(
 
             // Then we set-up all the necessary values
             // min / max
-            auto min_v = as.domain.get_min();
-            auto max_v = as.domain.get_max();
+            auto& dom = as.domain.get();
+            auto min_v = dom.get_min();
+            auto max_v = dom.get_max();
 
             double min = ossia::convert<double>(min_v);
             double max = ossia::convert<double>(max_v);

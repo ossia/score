@@ -25,10 +25,10 @@ namespace Scenario
 namespace Command
 {
 template < typename Scenario_T>
-class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents : std::false_type { };
+class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final : std::false_type { };
 
 template<>
-class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ProcessModel> : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ProcessModel> final : public iscore::SerializableCommand
 {
     // No ISCORE_COMMAND here since it's a template.
     public:

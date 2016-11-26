@@ -60,7 +60,7 @@ struct print_node_rec
 Device::Node DeviceDocumentPlugin::createDeviceFromNode(const Device::Node & node)
 {
     try {
-        auto& fact = m_context.app.components.factory<Device::DynamicProtocolList>();
+        auto& fact = m_context.app.components.factory<Device::ProtocolFactoryList>();
 
         // Instantiate a real device.
         auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
@@ -98,7 +98,7 @@ optional<Device::Node> DeviceDocumentPlugin::loadDeviceFromNode(const Device::No
 {
     try {
         // Instantiate a real device.
-        auto& fact = m_context.app.components.factory<Device::DynamicProtocolList>();
+        auto& fact = m_context.app.components.factory<Device::ProtocolFactoryList>();
         auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
         Device::DeviceInterface* newdev = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
 

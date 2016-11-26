@@ -33,7 +33,7 @@ namespace InspectorPanel
  */
 
 // TODO rename file
-class InspectorPanelWidget : public QWidget
+class InspectorPanelWidget final : public QWidget
 {
         Q_OBJECT
 

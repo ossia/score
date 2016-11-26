@@ -30,22 +30,22 @@ namespace ossia_to_iscore
 template<typename> struct MatchingType;
 template<> struct MatchingType<float> {
         static constexpr const auto val = ossia::val_type::FLOAT;
-        using type = ossia::Float;
+        using type = float;
         static auto convert(float f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<double> {
         static constexpr const auto val = ossia::val_type::FLOAT;
-        using type = ossia::Float;
+        using type = float;
         static auto convert(double f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<int> {
         static constexpr const auto val = ossia::val_type::INT;
-        using type = ossia::Int;
+        using type = int32_t;
         static auto convert(int f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<bool> {
         static constexpr const auto val = ossia::val_type::BOOL;
-        using type = ossia::Bool;
+        using type = bool;
         static auto convert(bool f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<State::impulse_t> {
@@ -55,24 +55,24 @@ template<> struct MatchingType<State::impulse_t> {
 };
 template<> struct MatchingType<std::string> {
         static constexpr const auto val = ossia::val_type::STRING;
-        using type = ossia::String;
+        using type = std::string;
         static auto convert(const std::string& f) { return State::Value::fromValue(QString::fromStdString(f)); }
         static auto convert(std::string&& f) { return State::Value::fromValue(QString::fromStdString(std::move(f))); }
 };
 template<> struct MatchingType<QString> {
         static constexpr const auto val = ossia::val_type::STRING;
-        using type = ossia::String;
+        using type = std::string;
         static auto convert(const QString& f) { return State::Value::fromValue(f); }
         static auto convert(QString&& f) { return State::Value::fromValue(std::move(f)); }
 };
 template<> struct MatchingType<char> {
         static constexpr const auto val = ossia::val_type::CHAR;
-        using type = ossia::Char;
+        using type = char;
         static auto convert(char f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<QChar> {
         static constexpr const auto val = ossia::val_type::CHAR;
-        using type = ossia::Char;
+        using type = char;
         static auto convert(QChar f) { return State::Value::fromValue(f); }
 };
 template<> struct MatchingType<State::vec2f> {
@@ -92,13 +92,13 @@ template<> struct MatchingType<State::vec4f> {
 };
 template<> struct MatchingType<State::tuple_t> {
         static constexpr const auto val = ossia::val_type::TUPLE;
-        using type = ossia::Tuple;
+        using type = std::vector<ossia::value>;
         static auto convert(const State::tuple_t& t) { return State::Value::fromValue(t); }
         static auto convert(State::tuple_t&& t) { return State::Value::fromValue(std::move(t)); }
 };
 template<> struct MatchingType<::TimeValue> {
         static constexpr const auto val = ossia::val_type::FLOAT;
-        using type = ossia::Float;
+        using type = float;
         static auto convert(::TimeValue&& t) { return State::Value::fromValue(t.msec()); }
 };
 

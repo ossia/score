@@ -89,8 +89,8 @@ function(iscore_set_gcc_compile_options theTarget)
           "$<$<CONFIG:Release>:-ffunction-sections>"
           "$<$<CONFIG:Release>:-fdata-sections>"
           "$<$<CONFIG:Release>:-Wl,--gc-sections>"
-#          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
-#          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
+          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
+          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
           "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
           "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
           "$<$<CONFIG:Debug>:-O0>"
@@ -99,25 +99,25 @@ function(iscore_set_gcc_compile_options theTarget)
       get_target_property(NO_LTO ${theTarget} ISCORE_TARGET_NO_LTO)
       if(NOT ${NO_LTO})
           target_compile_options(${theTarget} PUBLIC
-            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
-            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
-            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
-            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
+#            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
+#            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
+#            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
+#            "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
           )
       endif()
       target_link_libraries(${theTarget} PUBLIC
           "$<$<CONFIG:Release>:-ffunction-sections>"
           "$<$<CONFIG:Release>:-fdata-sections>"
           "$<$<CONFIG:Release>:-Wl,--gc-sections>"
-#          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
-#          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
+          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
+          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
           "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
           "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
 
-          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
-          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
-          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
-          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
+#          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
+#          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
+#          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
+#          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
           )
       # -Wcast-qual is nice but requires more work...
       # -Wzero-as-null-pointer-constant  is garbage

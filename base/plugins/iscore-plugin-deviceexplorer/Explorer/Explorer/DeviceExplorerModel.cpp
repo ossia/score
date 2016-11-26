@@ -50,6 +50,8 @@
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 
+#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/domain/domain.hpp>
 
 
 namespace Explorer
@@ -225,7 +227,7 @@ void DeviceExplorerModel::updateValue(
         const State::AddressAccessor& addr,
         const State::Value& v)
 {
-    if(!addr.qualifiers.accessors.empty())
+    if(!addr.qualifiers.get().accessors.empty())
     {
         ISCORE_TODO;
     }
@@ -246,7 +248,7 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
     // Request from the protocol factory the protocol to see
     // if it is compatible.
     auto& context = m_devicePlugin.context().app.components;
-    auto prot = context.factory<Device::DynamicProtocolList>().get(n.protocol);
+    auto prot = context.factory<Device::ProtocolFactoryList>().get(n.protocol);
     if(!prot)
         return false;
 
@@ -932,7 +934,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
             {
                 // We ask the user to fix the incompatibilities by himself.
                 DeviceEditDialog dial{
-                    m_devicePlugin.context().app.components.factory<Device::DynamicProtocolList>(),
+                    m_devicePlugin.context().app.components.factory<Device::ProtocolFactoryList>(),
                             QApplication::activeWindow()};
                 if(!tryDeviceInstantiation(n.get<Device::DeviceSettings>(), dial))
                     return false;

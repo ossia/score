@@ -16,7 +16,7 @@
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <ossia/editor/value/value_conversion.hpp>
-
+#include <ossia/network/domain/domain.hpp>
 namespace Mapping
 {
 ChangeSourceAddress::ChangeSourceAddress(
@@ -36,8 +36,9 @@ void ChangeSourceAddress::undo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setSourceMin(m_old.domain.convert_min<double>());
-    mapping.setSourceMax(m_old.domain.convert_max<double>());
+    auto& dom = m_old.domain.get();
+    mapping.setSourceMin(dom.convert_min<double>());
+    mapping.setSourceMax(dom.convert_max<double>());
 
     mapping.setSourceAddress(m_old.address);
 }
@@ -46,8 +47,9 @@ void ChangeSourceAddress::redo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setSourceMin(m_new.domain.convert_min<double>());
-    mapping.setSourceMax(m_new.domain.convert_max<double>());
+    auto& dom = m_new.domain.get();
+    mapping.setSourceMin(dom.convert_min<double>());
+    mapping.setSourceMax(dom.convert_max<double>());
 
     mapping.setSourceAddress(m_new.address);
 }
@@ -81,8 +83,9 @@ void ChangeTargetAddress::undo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setTargetMin(m_old.domain.convert_min<double>());
-    mapping.setTargetMax(m_old.domain.convert_max<double>());
+    auto& dom = m_old.domain.get();
+    mapping.setTargetMin(dom.convert_min<double>());
+    mapping.setTargetMax(dom.convert_max<double>());
 
     mapping.setTargetAddress(m_old.address);
 }
@@ -91,8 +94,9 @@ void ChangeTargetAddress::redo() const
 {
     auto& mapping = m_path.find();
 
-    mapping.setTargetMin(m_new.domain.convert_min<double>());
-    mapping.setTargetMax(m_new.domain.convert_max<double>());
+    auto& dom = m_new.domain.get();
+    mapping.setTargetMin(dom.convert_min<double>());
+    mapping.setTargetMax(dom.convert_max<double>());
 
     mapping.setTargetAddress(m_new.address);
 }

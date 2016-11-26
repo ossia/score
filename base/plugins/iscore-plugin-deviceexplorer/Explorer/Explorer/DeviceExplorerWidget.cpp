@@ -69,7 +69,7 @@
 namespace Explorer
 {
 
-class LearnDialog : public QDialog
+class LearnDialog final : public QDialog
 {
 public:
   LearnDialog(Device::DeviceInterface& dev, QWidget* w):
@@ -108,7 +108,7 @@ public:
 };
 
 DeviceExplorerWidget::DeviceExplorerWidget(
-        const Device::DynamicProtocolList& pl,
+        const Device::ProtocolFactoryList& pl,
         QWidget* parent)
     : QWidget(parent),
       m_protocolList{pl},

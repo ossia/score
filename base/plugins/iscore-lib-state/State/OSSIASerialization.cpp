@@ -4,6 +4,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/VariantSerialization.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/editor/dataspace/dataspace.hpp>
 #include <QDataStream>
 #include <QtGlobal>
 #include <QJsonArray>
@@ -12,26 +13,26 @@
 #include <iscore_lib_state_export.h>
 #include <State/Value.hpp>
 JSON_METADATA(ossia::Impulse, "Impulse")
-JSON_METADATA(ossia::Int, "Int")
-JSON_METADATA(ossia::Char, "Char")
-JSON_METADATA(ossia::Bool, "Bool")
-JSON_METADATA(ossia::Float, "Float")
+JSON_METADATA(int32_t, "Int")
+JSON_METADATA(char, "Char")
+JSON_METADATA(bool, "Bool")
+JSON_METADATA(float, "Float")
 JSON_METADATA(ossia::Vec2f, "Vec2f")
 JSON_METADATA(ossia::Vec3f, "Vec3f")
 JSON_METADATA(ossia::Vec4f, "Vec4f")
-JSON_METADATA(ossia::Tuple, "Tuple")
-JSON_METADATA(ossia::String, "String")
+JSON_METADATA(std::vector<ossia::value>, "Tuple")
+JSON_METADATA(std::string, "String")
 JSON_METADATA(ossia::value, "Generic")
 JSON_METADATA(ossia::net::domain_base<ossia::Impulse>, "Impulse")
-JSON_METADATA(ossia::net::domain_base<ossia::Int>, "Int")
-JSON_METADATA(ossia::net::domain_base<ossia::Char>, "Char")
-JSON_METADATA(ossia::net::domain_base<ossia::Bool>, "Bool")
-JSON_METADATA(ossia::net::domain_base<ossia::Float>, "Float")
+JSON_METADATA(ossia::net::domain_base<int32_t>, "Int")
+JSON_METADATA(ossia::net::domain_base<char>, "Char")
+JSON_METADATA(ossia::net::domain_base<bool>, "Bool")
+JSON_METADATA(ossia::net::domain_base<float>, "Float")
 JSON_METADATA(ossia::net::domain_base<ossia::Vec2f>, "Vec2f")
 JSON_METADATA(ossia::net::domain_base<ossia::Vec3f>, "Vec3f")
 JSON_METADATA(ossia::net::domain_base<ossia::Vec4f>, "Vec4f")
-JSON_METADATA(ossia::net::domain_base<ossia::Tuple>, "Tuple")
-JSON_METADATA(ossia::net::domain_base<ossia::String>, "String")
+JSON_METADATA(ossia::net::domain_base<std::vector<ossia::value>>, "Tuple")
+JSON_METADATA(ossia::net::domain_base<std::string>, "String")
 JSON_METADATA(ossia::net::domain_base<ossia::value>, "Generic")
 
 ISCORE_DECL_VALUE_TYPE(int)
@@ -236,16 +237,28 @@ struct TSerializer<DataStream, void, ossia::net::domain_base<ossia::Impulse>>
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ossia::net::domain& n)
 {
-    m_stream << (const ossia::net::domain_base_variant&)n;
+    readFrom((const ossia::net::domain_base_variant&)n);
 }
 
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(ossia::net::domain& n)
 {
-    m_stream >> (ossia::net::domain_base_variant&)n;
+    writeTo((ossia::net::domain_base_variant&)n);
 }
 
+/*
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const ossia::unit_t& n)
+{
+    readFrom((const ossia::unit_variant&)n);
+}
 
+template<>
+ISCORE_LIB_STATE_EXPORT void Visitor<Writer<DataStream>>::writeTo(ossia::unit_t& n)
+{
+    writeTo((ossia::unit_variant&)n);
+}
+*/
 
 /// JSON ///
 
@@ -614,7 +627,6 @@ ISCORE_LIB_STATE_EXPORT void Visitor<Writer<JSONObject>>::writeTo(ossia::net::do
 {
     writeTo((ossia::net::domain_base_variant&) n);
 }
-
 
 template<>
 ISCORE_LIB_STATE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(const ossia::value& n)

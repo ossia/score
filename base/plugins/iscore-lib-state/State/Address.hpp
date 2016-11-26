@@ -8,14 +8,46 @@
 #include <unordered_map>
 #include <QMetaType>
 #include <QMetaObject>
+#include <memory>
+#include <boost/functional/hash.hpp>
 #include <iscore/tools/std/Optional.hpp>
-#include <State/Unit.hpp>
 #include <ossia/detail/destination_index.hpp>
-#include <ossia/editor/state/message.hpp>
 #include <iscore_lib_state_export.h>
+
+namespace ossia
+{
+struct destination_qualifiers;
+struct unit_t;
+}
 
 namespace State
 {
+struct ISCORE_LIB_STATE_EXPORT DestinationQualifiers
+{
+        Q_GADGET
+    public:
+        DestinationQualifiers();
+        DestinationQualifiers(const DestinationQualifiers& other);
+        DestinationQualifiers(DestinationQualifiers&& other);
+        DestinationQualifiers& operator=(const DestinationQualifiers& other);
+        DestinationQualifiers& operator=(DestinationQualifiers&& other);
+        ~DestinationQualifiers();
+
+        DestinationQualifiers(const ossia::destination_qualifiers&);
+        DestinationQualifiers& operator=(const ossia::destination_qualifiers&);
+
+        operator const ossia::destination_qualifiers&() const;
+        operator ossia::destination_qualifiers&();
+
+        bool operator==(const State::DestinationQualifiers& other) const;
+        bool operator!=(const State::DestinationQualifiers& other) const;
+
+        const ossia::destination_qualifiers& get() const;
+        ossia::destination_qualifiers& get();
+
+    private:
+        std::unique_ptr<ossia::destination_qualifiers> qualifiers;
+};
 /**
  * @brief The Address struct
  *
@@ -26,9 +58,9 @@ namespace State
  */
 struct ISCORE_LIB_STATE_EXPORT Address
 {
-        Address() noexcept = default;
+        Address() noexcept;
         Address(const Address& other) noexcept;
-        Address(Address&&) noexcept = default;
+        Address(Address&&) noexcept;
         Address& operator=(const Address& other) noexcept;
         Address& operator=(Address&& other) noexcept;
         Address(QString d, QStringList p) noexcept;
@@ -46,7 +78,6 @@ struct ISCORE_LIB_STATE_EXPORT Address
 
         // Make an address from a valid address string
         static Address fromString(const QString& str); // TODO return optional
-        static Address rootAddress();
 
         /**
          * @brief toString
@@ -70,7 +101,7 @@ QString toString(const ossia::destination_qualifiers& d);
 
 struct ISCORE_LIB_STATE_EXPORT AddressAccessor
 {
-        AddressAccessor() noexcept = default;
+        AddressAccessor() noexcept;
         AddressAccessor(const AddressAccessor& other) noexcept;
         AddressAccessor(AddressAccessor&& other) noexcept;
         AddressAccessor& operator=(const AddressAccessor& other) noexcept;
@@ -78,13 +109,13 @@ struct ISCORE_LIB_STATE_EXPORT AddressAccessor
 
         explicit AddressAccessor(State::Address a) noexcept;
         AddressAccessor(State::Address a, const AccessorVector& v) noexcept;
-        AddressAccessor(State::Address a, const AccessorVector& v, ossia::unit_t) noexcept;
+        AddressAccessor(State::Address a, const AccessorVector& v, const ossia::unit_t&) noexcept;
 
         AddressAccessor& operator=(const Address& a);
         AddressAccessor& operator=(Address&& a);
 
         State::Address address;
-        ossia::destination_qualifiers qualifiers;
+        DestinationQualifiers qualifiers;
 
         // Utility
         QString toString() const;
@@ -104,14 +135,14 @@ struct ISCORE_LIB_STATE_EXPORT AddressAccessor
 struct ISCORE_LIB_STATE_EXPORT AddressAccessorHead
 {
         QString name;
-        ossia::destination_qualifiers qualifiers;
+        DestinationQualifiers qualifiers;
 
         QString toString() const;
 };
 
 
 ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::Address& a);
-ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const ossia::destination_qualifiers& a);
+ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const DestinationQualifiers& a);
 ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AccessorVector& a);
 ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AddressAccessorHead& a);
 ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AddressAccessor& a);
@@ -123,29 +154,26 @@ namespace std {
   template <>
   struct hash<State::Address>
   {
-    std::size_t operator()(const State::Address& k) const
-    {
-      using std::size_t;
-      using std::hash;
-      using std::string;
-
-      // Compute individual hash values for first,
-      // second and third and combine them using XOR
-      // and bit shifting:
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
-      return ((qHash(k.device)
-               ^ (qHashRange(k.path.begin(), k.path.end()) << 1)) >> 1);
-#else
-        auto h = qHash(k.device);
-        for(const auto& elt : k.path)
-        {
-            h = (h ^ (qHash(elt) << 1)) >> 1;
-        }
-        return h;
-#endif
-    }
+    std::size_t operator()(const State::Address& k) const;
   };
 
+  template <>
+  struct hash<State::AddressAccessor>
+  {
+    std::size_t operator()(const State::AddressAccessor& k) const;
+  };
 }
+
+
+namespace boost
+{
+template<>
+struct hash<State::Address>
+{
+        std::size_t operator()(const State::Address& k) const;
+};
+}
+
+Q_DECLARE_METATYPE(State::DestinationQualifiers)
 Q_DECLARE_METATYPE(State::Address)
 Q_DECLARE_METATYPE(State::AddressAccessor)

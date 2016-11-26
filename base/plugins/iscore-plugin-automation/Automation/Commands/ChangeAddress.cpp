@@ -18,6 +18,9 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <ossia/editor/value/value_conversion.hpp>
 
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
+
 namespace Automation
 {
 ChangeAddress::ChangeAddress(
@@ -40,7 +43,7 @@ ChangeAddress::ChangeAddress(
 {
     m_new.address = newval.address;
     m_new.domain = newval.domain;
-    m_new.address.qualifiers.unit = newval.unit;
+    m_new.address.qualifiers.get().unit = newval.unit;
 
     m_old.address = autom.address();
     m_old.domain = ossia::net::make_domain(autom.min(), autom.max());
@@ -53,8 +56,9 @@ void ChangeAddress::undo() const
 
     {
         //QSignalBlocker blck{autom.curve()};
-        autom.setMin(m_old.domain.convert_min<double>());
-        autom.setMax(m_old.domain.convert_max<double>());
+        auto& dom = m_old.domain.get();
+        autom.setMin(dom.convert_min<double>());
+        autom.setMax(dom.convert_max<double>());
 
         autom.setAddress(m_old.address);
     }
@@ -68,8 +72,9 @@ void ChangeAddress::redo() const
 
     {
         //QSignalBlocker blck{autom.curve()};
-        autom.setMin(m_new.domain.convert_min<double>());
-        autom.setMax(m_new.domain.convert_max<double>());
+        auto& dom = m_new.domain.get();
+        autom.setMin(dom.convert_min<double>());
+        autom.setMax(dom.convert_max<double>());
         autom.setAddress(m_new.address);
     }
     // autom.curve().changed();

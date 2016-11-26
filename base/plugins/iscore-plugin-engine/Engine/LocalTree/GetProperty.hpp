@@ -46,7 +46,7 @@ class QtGetProperty
 };
 
 template<typename GetProperty>
-struct GetPropertyWrapper : public BaseProperty
+struct GetPropertyWrapper final : public BaseProperty
 {
         GetProperty property;
         using converter_t = Engine::ossia_to_iscore::MatchingType<typename GetProperty::value_type>;

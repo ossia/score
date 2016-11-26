@@ -255,15 +255,15 @@ void updateOSSIAValue(const State::ValueImpl& iscore_data, ossia::value& val)
             const State::ValueImpl& data;
             void operator()(const ossia::Destination&) const { }
             void operator()(ossia::Impulse) const { }
-            void operator()(ossia::Int& v) const { v = data.get<int>(); }
-            void operator()(ossia::Float& v) const { v = data.get<float>(); }
-            void operator()(ossia::Bool& v) const { v = data.get<bool>(); }
-            void operator()(ossia::Char& v) const { v = data.get<char>(); }
-            void operator()(ossia::String& v) const { v = data.get<std::string>(); }
+            void operator()(int32_t& v) const { v = data.get<int>(); }
+            void operator()(float& v) const { v = data.get<float>(); }
+            void operator()(bool& v) const { v = data.get<bool>(); }
+            void operator()(char& v) const { v = data.get<char>(); }
+            void operator()(std::string& v) const { v = data.get<std::string>(); }
             void operator()(ossia::Vec2f& v) const { v = data.get<State::vec2f>(); }
             void operator()(ossia::Vec3f& v) const { v = data.get<State::vec3f>(); }
             void operator()(ossia::Vec4f& v) const { v = data.get<State::vec4f>(); }
-            void operator()(ossia::Tuple& vec) const
+            void operator()(std::vector<ossia::value>& vec) const
             {
                 State::tuple_t tuple = data.get<State::tuple_t>();
                 ISCORE_ASSERT(tuple.size() == vec.size());
@@ -318,7 +318,7 @@ optional<ossia::message> message(
         if(!val.valid())
             return {};
 
-        return ossia::message{{*ossia_addr, mess.address.qualifiers.accessors}, std::move(val), mess.address.qualifiers.unit};
+        return ossia::message{{*ossia_addr, mess.address.qualifiers.get().accessors}, std::move(val), mess.address.qualifiers.get().unit};
     }
 
     return {};
@@ -438,7 +438,7 @@ static ossia::value expressionOperand(
 
             return_type operator()(const State::AddressAccessor& acc) const {
                 auto dest = expressionAddress(acc.address, devlist);
-                dest.index = acc.qualifiers.accessors;
+                dest.index = acc.qualifiers.get().accessors;
                 return dest;
             }
     } visitor{list};
@@ -591,10 +591,11 @@ optional<ossia::Destination> makeDestination(
 
   if(ossia_addr)
   {
+    auto& qual = addr.qualifiers.get();
     return ossia::Destination{
       *ossia_addr,
-      addr.qualifiers.accessors,
-      addr.qualifiers.unit};
+      qual.accessors,
+      qual.unit};
   }
 
   return {};

@@ -2,6 +2,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 
 namespace Interpolation
 {
@@ -79,7 +80,7 @@ State::MessageList ProcessState::setMessages(
     State::AddressAccessor cur_address = proc.address();
     auto it = ossia::find_if(received, [&] (const auto& mess) {
         return mess.address.address == cur_address.address &&
-               mess.address.qualifiers.accessors == cur_address.qualifiers.accessors;
+               mess.address.qualifiers.get().accessors == cur_address.qualifiers.get().accessors;
         // The unit is handled later.
     });
     if(it != received.end())
@@ -92,7 +93,7 @@ State::MessageList ProcessState::setMessages(
         {
             proc.setEnd(it->value);
         }
-        proc.setSourceUnit(it->address.qualifiers.unit);
+        proc.setSourceUnit(it->address.qualifiers.get().unit);
     }
     return messages();
 }

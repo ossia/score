@@ -1,11 +1,15 @@
 #pragma once
 #include <QMetaType>
-#include <ossia/editor/dataspace/dataspace_base_fwd.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
 #include <memory>
 #include <iscore_lib_state_export.h>
+
+namespace ossia
+{
+struct unit_t;
+}
 namespace State
 {
 struct ISCORE_LIB_STATE_EXPORT Unit

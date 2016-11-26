@@ -23,7 +23,7 @@
 namespace Explorer
 {
 DeviceEditDialog::DeviceEditDialog(
-        const Device::DynamicProtocolList& pl,
+        const Device::ProtocolFactoryList& pl,
         QWidget* parent)
     : QDialog(parent),
       m_protocolList{pl},

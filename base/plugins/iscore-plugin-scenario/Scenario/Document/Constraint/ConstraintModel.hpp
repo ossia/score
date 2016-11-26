@@ -28,7 +28,7 @@ class StateModel;
 class ConstraintViewModel;
 class FullViewConstraintViewModel;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel :
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final :
         public iscore::Entity<ConstraintModel>,
         public Nano::Observer
 {

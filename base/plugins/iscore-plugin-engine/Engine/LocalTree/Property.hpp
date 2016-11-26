@@ -53,7 +53,7 @@ class QtProperty
 };
 
 template<typename Property>
-struct PropertyWrapper : public BaseCallbackWrapper
+struct PropertyWrapper final : public BaseCallbackWrapper
 {
         Property property;
 

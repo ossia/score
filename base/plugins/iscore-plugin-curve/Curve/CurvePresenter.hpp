@@ -24,7 +24,7 @@ struct Style;
 class View;
 class Model;
 
-class ISCORE_PLUGIN_CURVE_EXPORT Presenter : public QObject
+class ISCORE_PLUGIN_CURVE_EXPORT Presenter final : public QObject
 {
         Q_OBJECT
     public:
