@@ -40,7 +40,6 @@
 iscore_plugin_engine::iscore_plugin_engine() :
     QObject {}
 {
-    qRegisterMetaType<ossia::value>();
     qRegisterMetaType<Engine::Execution::ClockManagerFactory::ConcreteFactoryKey>("ClockManagerKey");
     qRegisterMetaTypeStreamOperators<Engine::Execution::ClockManagerFactory::ConcreteFactoryKey>("ClockManagerKey");
 }

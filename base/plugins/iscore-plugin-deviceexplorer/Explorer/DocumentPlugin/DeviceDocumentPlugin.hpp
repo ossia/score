@@ -14,7 +14,8 @@
 namespace Explorer
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
-        public iscore::SerializableDocumentPlugin
+        public iscore::SerializableDocumentPlugin,
+        public Nano::Observer
 {
         Q_OBJECT
         ISCORE_SERIALIZE_FRIENDS(DeviceDocumentPlugin, DataStream)
@@ -66,6 +67,8 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final :
 
     private:
         void initDevice(Device::DeviceInterface&);
+        void on_valueUpdated(const State::Address& addr, const ossia::value& v);
+
         Device::Node m_rootNode;
         Device::DeviceList m_list;
 

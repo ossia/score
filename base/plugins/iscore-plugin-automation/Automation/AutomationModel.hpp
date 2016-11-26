@@ -34,7 +34,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final : public Curve::CurvePr
         Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
         Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
         Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
-        Q_PROPERTY(ossia::unit_t unit READ unit WRITE setUnit NOTIFY unitChanged)
+        Q_PROPERTY(State::Unit unit READ unit WRITE setUnit NOTIFY unitChanged)
 
     public:
         ProcessModel(const TimeValue& duration,

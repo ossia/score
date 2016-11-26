@@ -21,12 +21,12 @@ using RefreshRate = int;
 using RepetitionFilter = bool;
 struct ISCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
 {
-        AddressSettingsCommon();
-        AddressSettingsCommon(const AddressSettingsCommon& );
-        AddressSettingsCommon(AddressSettingsCommon&& );
-        AddressSettingsCommon& operator=(const AddressSettingsCommon& );
-        AddressSettingsCommon& operator=(AddressSettingsCommon&& );
-        ~AddressSettingsCommon();
+        AddressSettingsCommon() noexcept;
+        AddressSettingsCommon(const AddressSettingsCommon& ) noexcept;
+        AddressSettingsCommon(AddressSettingsCommon&& ) noexcept;
+        AddressSettingsCommon& operator=(const AddressSettingsCommon& ) noexcept;
+        AddressSettingsCommon& operator=(AddressSettingsCommon&& ) noexcept;
+        ~AddressSettingsCommon() noexcept;
 
         State::Value value;
         Device::Domain domain;
@@ -47,12 +47,12 @@ struct ISCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
 // this one has only the name of the current node (e.g. 'a' for dev:/azazd/a)
 struct ISCORE_LIB_DEVICE_EXPORT AddressSettings : public Device::AddressSettingsCommon
 {
-        AddressSettings();
-        AddressSettings(const AddressSettings& );
-        AddressSettings(AddressSettings&& );
-        AddressSettings& operator=(const AddressSettings& );
-        AddressSettings& operator=(AddressSettings&& );
-        ~AddressSettings();
+        AddressSettings() noexcept;
+        AddressSettings(const AddressSettings& ) noexcept;
+        AddressSettings(AddressSettings&& ) noexcept;
+        AddressSettings& operator=(const AddressSettings& ) noexcept;
+        AddressSettings& operator=(AddressSettings&& ) noexcept;
+        ~AddressSettings() noexcept;
 
         QString name;
 };
@@ -60,12 +60,12 @@ struct ISCORE_LIB_DEVICE_EXPORT AddressSettings : public Device::AddressSettings
 // This one has the whole path of the node in address
 struct ISCORE_LIB_DEVICE_EXPORT FullAddressSettings : public Device::AddressSettingsCommon
 {
-        FullAddressSettings();
-        FullAddressSettings(const FullAddressSettings& );
-        FullAddressSettings(FullAddressSettings&& );
-        FullAddressSettings& operator=(const FullAddressSettings& );
-        FullAddressSettings& operator=(FullAddressSettings&& );
-        ~FullAddressSettings();
+        FullAddressSettings() noexcept;
+        FullAddressSettings(const FullAddressSettings& ) noexcept;
+        FullAddressSettings(FullAddressSettings&& ) noexcept;
+        FullAddressSettings& operator=(const FullAddressSettings& ) noexcept;
+        FullAddressSettings& operator=(FullAddressSettings&& ) noexcept;
+        ~FullAddressSettings() noexcept;
 
         // Maybe we should just use FullAddressSettings behind a flyweight
         // pattern everywhere... (see mnmlstc/flyweight)
@@ -132,12 +132,12 @@ inline bool operator!=(
 
 struct ISCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
 {
-        FullAddressAccessorSettings();
-        FullAddressAccessorSettings(const FullAddressAccessorSettings& );
-        FullAddressAccessorSettings(FullAddressAccessorSettings&& );
-        FullAddressAccessorSettings& operator=(const FullAddressAccessorSettings& );
-        FullAddressAccessorSettings& operator=(FullAddressAccessorSettings&& );
-        ~FullAddressAccessorSettings();
+        FullAddressAccessorSettings() noexcept;
+        FullAddressAccessorSettings(const FullAddressAccessorSettings& ) noexcept;
+        FullAddressAccessorSettings(FullAddressAccessorSettings&& ) noexcept;
+        FullAddressAccessorSettings& operator=(const FullAddressAccessorSettings& ) noexcept;
+        FullAddressAccessorSettings& operator=(FullAddressAccessorSettings&& ) noexcept;
+        ~FullAddressAccessorSettings() noexcept;
 
         FullAddressAccessorSettings(
                 const State::AddressAccessor& addr,

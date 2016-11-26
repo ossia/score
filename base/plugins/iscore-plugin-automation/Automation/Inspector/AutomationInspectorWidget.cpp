@@ -96,7 +96,7 @@ InspectorWidget::InspectorWidget(
     connect(m_maxsb, &QAbstractSpinBox::editingFinished,
             this, &InspectorWidget::on_maxValueChanged);
     connect(m_uw, &State::UnitWidget::unitChanged,
-            this, [=] (ossia::unit_t) { on_unitChanged(); });
+            this, [=] (const State::Unit&) { on_unitChanged(); });
 
     this->setLayout(vlay);
 }

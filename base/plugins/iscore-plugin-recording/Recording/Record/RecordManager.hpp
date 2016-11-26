@@ -2,7 +2,8 @@
 #include <Recording/Record/RecordTools.hpp>
 #include <Recording/Record/RecordData.hpp>
 #include <Recording/Record/RecordProviderFactory.hpp>
-
+#include <Curve/Settings/CurveSettingsModel.hpp>
+#include <unordered_map>
 namespace Curve
 {
 namespace Settings
@@ -17,7 +18,8 @@ struct RecordContext;
 // to be able to send the curve at execution. Investigate why.
 class AutomationRecorder :
         public QObject,
-        public RecordProvider
+        public RecordProvider,
+        public Nano::Observer
 {
         Q_OBJECT
     public:
@@ -45,7 +47,8 @@ class AutomationRecorder :
 
         void finish(State::AddressAccessor addr, const RecordData& dat, const TimeValue& msecs, bool, int);
         const Curve::Settings::Model& m_settings;
-        std::vector<QMetaObject::Connection> m_recordCallbackConnections;
+        Curve::Settings::Mode m_recordingMode{};
+        std::vector<QPointer<Device::DeviceInterface>> m_recordCallbackConnections;
 
         // TODO see this : http://stackoverflow.com/questions/34596768/stdunordered-mapfind-using-a-type-different-than-the-key-type
 };

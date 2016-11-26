@@ -9,7 +9,8 @@ struct RecordMessagesData
 };
 class MessageRecorder :
         public QObject,
-        public RecordProvider
+        public RecordProvider,
+        public Nano::Observer
 {
         Q_OBJECT
     public:
@@ -24,7 +25,8 @@ class MessageRecorder :
         void firstMessageReceived();
 
     private:
-        std::vector<QMetaObject::Connection> m_recordCallbackConnections;
+        void on_valueUpdated(const State::Address& addr, const ossia::value& val);
+        std::vector<QPointer<Device::DeviceInterface>> m_recordCallbackConnections;
 
         RecordedMessages::ProcessModel* m_createdProcess{};
         QList<RecordedMessages::RecordedMessage> m_records;

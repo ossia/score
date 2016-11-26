@@ -60,9 +60,10 @@ void MessageRecorder::stop()
 {
     // Stop all the recording machinery
     auto msecs = context.timeInDouble();
-    for(const auto& con : m_recordCallbackConnections)
+    for(const auto& dev : m_recordCallbackConnections)
     {
-        QObject::disconnect(con);
+        if(dev)
+            (*dev).valueUpdated.disconnect<MessageRecorder, &MessageRecorder::on_valueUpdated>(*this);
     }
     m_recordCallbackConnections.clear();
 
@@ -88,6 +89,32 @@ void MessageRecorder::stop()
     // Commit
     cmd->redo();
     context.dispatcher.submitCommand(cmd);
+}
+
+void MessageRecorder::on_valueUpdated(
+        const State::Address& addr,
+        const ossia::value& val)
+{
+    if(context.started())
+    {
+        // Move end event by the current duration.
+        auto msecs = context.timeInDouble();
+
+        m_records.append(RecordedMessages::RecordedMessage{
+                             msecs,
+                             State::Message{State::AddressAccessor{addr}, State::fromOSSIAValue(val)}});
+
+        m_createdProcess->setDuration(TimeValue::fromMsecs(msecs));
+    }
+    else
+    {
+        emit firstMessageReceived();
+        context.start();
+
+        m_records.append(RecordedMessages::RecordedMessage{
+                             0.,
+                             State::Message{State::AddressAccessor{addr}, State::fromOSSIAValue(val)}});
+    }
 }
 
 bool MessageRecorder::setup(const Box& box, const RecordListening& recordListening)
@@ -132,31 +159,9 @@ bool MessageRecorder::setup(const Box& box, const RecordListening& recordListeni
         dev.addToListening(addr_vec);
 
         // Add a custom callback.
-        m_recordCallbackConnections.push_back(
-                    connect(&dev, &Device::DeviceInterface::valueUpdated,
-                this, [=] (const State::Address& addr, const ossia::value& val)
-        {
-            if(context.started())
-            {
-                // Move end event by the current duration.
-                auto msecs = context.timeInDouble();
+        dev.valueUpdated.connect<MessageRecorder, &MessageRecorder::on_valueUpdated>(*this);
 
-                m_records.append(RecordedMessages::RecordedMessage{
-                                     msecs,
-                                     State::Message{State::AddressAccessor{addr}, State::fromOSSIAValue(val)}});
-
-                m_createdProcess->setDuration(TimeValue::fromMsecs(msecs));
-            }
-            else
-            {
-                emit firstMessageReceived();
-                context.start();
-
-                m_records.append(RecordedMessages::RecordedMessage{
-                                     0.,
-                                     State::Message{State::AddressAccessor{addr}, State::fromOSSIAValue(val)}});
-            }
-        }));
+        m_recordCallbackConnections.push_back(&dev);
     }
 
     return true;

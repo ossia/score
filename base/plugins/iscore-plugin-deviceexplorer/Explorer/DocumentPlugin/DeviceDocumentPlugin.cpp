@@ -173,10 +173,7 @@ ListeningHandler &DeviceDocumentPlugin::listening() const
 
 void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
 {
-    con(newdev, &Device::DeviceInterface::valueUpdated,
-        this, [&] (const State::Address& addr, const ossia::value& v) {
-        updateProxy.updateLocalValue(State::AddressAccessor{addr}, State::fromOSSIAValue(v));
-    });
+    newdev.valueUpdated.connect<DeviceDocumentPlugin, &DeviceDocumentPlugin::on_valueUpdated>(*this);
 
     con(newdev, &Device::DeviceInterface::pathAdded,
         this, [&] (const State::Address& newaddr) {
@@ -206,5 +203,10 @@ void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
 
     m_list.addDevice(&newdev);
     newdev.setParent(this);
+}
+
+void DeviceDocumentPlugin::on_valueUpdated(const State::Address& addr, const ossia::value& v)
+{
+    updateProxy.updateLocalValue(State::AddressAccessor{addr}, State::fromOSSIAValue(v));
 }
 }

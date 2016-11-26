@@ -369,13 +369,13 @@ void OSSIADevice::setListening(
                          ossia_addr,
                          ossia_addr->add_callback([=] (const ossia::value& val)
                           {
-                              emit valueUpdated(addr, val);
+                              valueUpdated(addr, val);
                           })
                     }
                 });
             }
 
-            emit valueUpdated(addr, ossia_addr->cloneValue());
+            valueUpdated(addr, ossia_addr->cloneValue());
         }
         else
         {

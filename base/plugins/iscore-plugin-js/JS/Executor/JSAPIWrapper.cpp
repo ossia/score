@@ -2,6 +2,7 @@
 
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include "JSAPIWrapper.hpp"
+#include <ossia/editor/value/value.hpp>
 
 namespace JS
 {
