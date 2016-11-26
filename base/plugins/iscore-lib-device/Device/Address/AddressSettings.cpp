@@ -10,34 +10,159 @@
 namespace Device
 {
 
-AddressSettingsCommon::AddressSettingsCommon() = default;
-AddressSettingsCommon::AddressSettingsCommon(const AddressSettingsCommon& ) = default;
-AddressSettingsCommon::AddressSettingsCommon(AddressSettingsCommon&& ) = default;
-AddressSettingsCommon& AddressSettingsCommon::operator=(const AddressSettingsCommon& ) = default;
-AddressSettingsCommon& AddressSettingsCommon::operator=(AddressSettingsCommon&& ) = default;
-AddressSettingsCommon::~AddressSettingsCommon() = default;
+AddressSettingsCommon::AddressSettingsCommon() noexcept
+{
 
-AddressSettings::AddressSettings() = default;
-AddressSettings::AddressSettings(const AddressSettings& ) = default;
-AddressSettings::AddressSettings(AddressSettings&& ) = default;
-AddressSettings& AddressSettings::operator=(const AddressSettings& ) = default;
-AddressSettings& AddressSettings::operator=(AddressSettings&& ) = default;
-AddressSettings::~AddressSettings() = default;
+}
 
-FullAddressSettings::FullAddressSettings() = default;
-FullAddressSettings::FullAddressSettings(const FullAddressSettings& ) = default;
-FullAddressSettings::FullAddressSettings(FullAddressSettings&& ) = default;
-FullAddressSettings& FullAddressSettings::operator=(const FullAddressSettings& ) = default;
-FullAddressSettings& FullAddressSettings::operator=(FullAddressSettings&& ) = default;
-FullAddressSettings::~FullAddressSettings() = default;
+AddressSettingsCommon::AddressSettingsCommon(const AddressSettingsCommon& other ) noexcept:
+    value{other.value},
+    domain{other.domain},
+    ioType{other.ioType},
+    clipMode{other.clipMode},
+    unit{other.unit},
+    repetitionFilter{other.repetitionFilter},
+    rate{other.rate},
+    priority{other.priority},
+    tags{other.tags},
+    description{other.description}
+{
 
-FullAddressAccessorSettings::FullAddressAccessorSettings() = default;
-FullAddressAccessorSettings::FullAddressAccessorSettings(const FullAddressAccessorSettings& ) = default;
-FullAddressAccessorSettings::FullAddressAccessorSettings(FullAddressAccessorSettings&& ) = default;
-FullAddressAccessorSettings& FullAddressAccessorSettings::operator=(const FullAddressAccessorSettings& ) = default;
-FullAddressAccessorSettings& FullAddressAccessorSettings::operator=(FullAddressAccessorSettings&& ) = default;
-FullAddressAccessorSettings::~FullAddressAccessorSettings() = default;
+}
 
+AddressSettingsCommon::AddressSettingsCommon(AddressSettingsCommon&& other) noexcept:
+    value{std::move(other.value)},
+    domain{std::move(other.domain)},
+    ioType{other.ioType},
+    clipMode{other.clipMode},
+    unit{std::move(other.unit)},
+    repetitionFilter{other.repetitionFilter},
+    rate{other.rate},
+    priority{other.priority},
+    tags{std::move(other.tags)},
+    description{std::move(other.description)}
+{
+
+}
+
+AddressSettingsCommon& AddressSettingsCommon::operator=(const AddressSettingsCommon& other) noexcept
+{
+    value = other.value;
+    domain = other.domain;
+    ioType = other.ioType;
+    clipMode = other.clipMode;
+    unit = other.unit;
+    repetitionFilter = other.repetitionFilter;
+    rate = other.rate;
+    priority = other.priority;
+    tags = other.tags;
+    description = other.description;
+    return *this;
+}
+
+AddressSettingsCommon& AddressSettingsCommon::operator=(AddressSettingsCommon&& other) noexcept
+{
+    value = std::move(other.value);
+    domain = std::move(other.domain);
+    ioType = other.ioType;
+    clipMode = other.clipMode;
+    unit = std::move(other.unit);
+    repetitionFilter = other.repetitionFilter;
+    rate = other.rate;
+    priority = other.priority;
+    tags = std::move(other.tags);
+    description = std::move(other.description);
+    return *this;
+}
+
+AddressSettingsCommon::~AddressSettingsCommon() noexcept
+{
+
+}
+
+AddressSettings::AddressSettings() noexcept = default;
+AddressSettings::AddressSettings(const AddressSettings& ) noexcept = default;
+AddressSettings::AddressSettings(AddressSettings&& ) noexcept = default;
+AddressSettings& AddressSettings::operator=(const AddressSettings& ) noexcept = default;
+AddressSettings& AddressSettings::operator=(AddressSettings&& ) noexcept = default;
+AddressSettings::~AddressSettings() noexcept = default;
+
+FullAddressSettings::FullAddressSettings() noexcept = default;
+FullAddressSettings::FullAddressSettings(const FullAddressSettings& ) noexcept = default;
+FullAddressSettings::FullAddressSettings(FullAddressSettings&& ) noexcept = default;
+FullAddressSettings& FullAddressSettings::operator=(const FullAddressSettings& ) noexcept = default;
+FullAddressSettings& FullAddressSettings::operator=(FullAddressSettings&& ) noexcept = default;
+FullAddressSettings::~FullAddressSettings() noexcept = default;
+
+FullAddressAccessorSettings::FullAddressAccessorSettings() noexcept
+{
+
+}
+
+FullAddressAccessorSettings::FullAddressAccessorSettings(const FullAddressAccessorSettings& other ) noexcept:
+    value{other.value},
+    domain{other.domain},
+    ioType{other.ioType},
+    clipMode{other.clipMode},
+    repetitionFilter{other.repetitionFilter},
+    rate{other.rate},
+    priority{other.priority},
+    tags{other.tags},
+    description{other.description},
+    address{other.address}
+{
+
+}
+
+FullAddressAccessorSettings::FullAddressAccessorSettings(FullAddressAccessorSettings&& other) noexcept:
+    value{std::move(other.value)},
+    domain{std::move(other.domain)},
+    ioType{other.ioType},
+    clipMode{other.clipMode},
+    repetitionFilter{other.repetitionFilter},
+    rate{other.rate},
+    priority{other.priority},
+    tags{std::move(other.tags)},
+    description{std::move(other.description)},
+    address{std::move(other.address)}
+{
+
+}
+
+FullAddressAccessorSettings& FullAddressAccessorSettings::operator=(const FullAddressAccessorSettings& other) noexcept
+{
+    value = other.value;
+    domain = other.domain;
+    ioType = other.ioType;
+    clipMode = other.clipMode;
+    repetitionFilter = other.repetitionFilter;
+    rate = other.rate;
+    priority = other.priority;
+    tags = other.tags;
+    description = other.description;
+    address = other.address;
+    return *this;
+}
+
+FullAddressAccessorSettings& FullAddressAccessorSettings::operator=(FullAddressAccessorSettings&& other) noexcept
+{
+    value = std::move(other.value);
+    domain = std::move(other.domain);
+    ioType = other.ioType;
+    clipMode = other.clipMode;
+    repetitionFilter = other.repetitionFilter;
+    rate = other.rate;
+    priority = other.priority;
+    tags = std::move(other.tags);
+    description = std::move(other.description);
+    address = std::move(other.address);
+    return *this;
+}
+
+FullAddressAccessorSettings::~FullAddressAccessorSettings() noexcept
+{
+
+}
 // Second argument should be the address of the parent.
 template<>
 ISCORE_LIB_DEVICE_EXPORT FullAddressSettings FullAddressSettings::make<FullAddressSettings::as_parent>(

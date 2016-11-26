@@ -136,9 +136,7 @@ function(iscore_set_clang_compile_options theTarget)
 endfunction()
 
 function(iscore_set_linux_compile_options theTarget)
-  if(NOT ISCORE_SANITIZE)
     use_gold(${theTarget})
-  endif()
 endfunction()
 
 function(iscore_set_unix_compile_options theTarget)

@@ -54,6 +54,7 @@
 #include <Recording/Record/RecordAutomations/RecordAutomationCreationVisitor.hpp>
 #include <Recording/Record/RecordAutomations/RecordAutomationFirstParameterCallbackVisitor.hpp>
 #include <Recording/Record/RecordAutomations/RecordAutomationParameterCallbackVisitor.hpp>
+#include <ossia/editor/value/value.hpp>
 namespace Curve
 {
 class SegmentModel;
@@ -86,12 +87,15 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
     }
 
     const auto& devicelist = context.explorer.deviceModel().list();
+
     //// Setup listening on the curves ////
     auto callback_to_use =
             m_settings.getCurveMode() == Curve::Settings::Mode::Parameter
             ? &AutomationRecorder::parameterCallback
             : &AutomationRecorder::messageCallback;
 
+    const auto curve_mode = m_settings.getCurveMode();
+    m_recordingMode = curve_mode;
     int i = 0;
     for(const auto& vec : recordListening)
     {
@@ -101,8 +105,16 @@ bool AutomationRecorder::setup(const Box& box, const RecordListening& recordList
 
         dev.addToListening(addresses[i]);
         // Add a custom callback.
-        m_recordCallbackConnections.push_back(
-                    connect(&dev, &Device::DeviceInterface::valueUpdated, this, callback_to_use));
+        if(curve_mode == Curve::Settings::Mode::Parameter)
+        {
+            dev.valueUpdated.connect<AutomationRecorder, &AutomationRecorder::parameterCallback>(*this);
+        }
+        else
+        {
+            dev.valueUpdated.connect<AutomationRecorder, &AutomationRecorder::messageCallback>(*this);
+        }
+
+        m_recordCallbackConnections.push_back(&dev);
 
         i++;
     }
@@ -114,9 +126,20 @@ void AutomationRecorder::stop()
 {
     // Stop all the recording machinery
     auto msecs = context.time();
-    for(const auto& con : m_recordCallbackConnections)
+    const auto curve_mode = m_recordingMode;
+    for(const auto& dev : m_recordCallbackConnections)
     {
-        QObject::disconnect(con);
+        if(dev)
+        {
+            if(curve_mode == Curve::Settings::Mode::Parameter)
+            {
+                dev->valueUpdated.disconnect<AutomationRecorder, &AutomationRecorder::parameterCallback>(*this);
+            }
+            else
+            {
+                dev->valueUpdated.disconnect<AutomationRecorder, &AutomationRecorder::messageCallback>(*this);
+            }
+        }
     }
     m_recordCallbackConnections.clear();
 

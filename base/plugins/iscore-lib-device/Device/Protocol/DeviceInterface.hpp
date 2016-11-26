@@ -9,9 +9,11 @@
 
 #include <State/Value.hpp>
 #include <iscore_lib_device_export.h>
-#include <ossia/editor/value/value.hpp>
-
-Q_DECLARE_METATYPE(ossia::value)
+#include <nano_signal_slot.hpp>
+namespace ossia
+{
+class value;
+}
 
 namespace State
 {
@@ -84,6 +86,8 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
         virtual bool isLearning() const { return false; }
         virtual void setLearning(bool) { }
 
+        Nano::Signal<void(const State::Address&, const ossia::value&)> valueUpdated;
+
     signals:
         // These signals are emitted if a device changes from the inside
         void pathAdded(const State::Address&);
@@ -91,8 +95,6 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
                 const State::Address&, // current address
                 const Device::AddressSettings&); // new data
         void pathRemoved(const State::Address&);
-
-        void valueUpdated(const State::Address&, const ossia::value&);
 
         // In case the whole namespace changed?
         void namespaceUpdated();
