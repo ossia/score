@@ -11,6 +11,7 @@
 #include <State/Value.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/TreeNode.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 
 namespace Device
 {
