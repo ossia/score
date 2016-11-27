@@ -149,26 +149,26 @@ ISCORE_LIB_STATE_EXPORT QDebug operator<<(QDebug d, const State::AddressAccessor
 ISCORE_LIB_STATE_EXPORT QStringList stringList(const State::Address& addr);
 }
 
-namespace std {
+namespace std
+{
+template <>
+struct ISCORE_LIB_STATE_EXPORT hash<State::Address>
+{
+        std::size_t operator()(const State::Address& k) const;
+};
 
-  template <>
-  struct hash<State::Address>
-  {
-    std::size_t operator()(const State::Address& k) const;
-  };
-
-  template <>
-  struct hash<State::AddressAccessor>
-  {
-    std::size_t operator()(const State::AddressAccessor& k) const;
-  };
+template <>
+struct ISCORE_LIB_STATE_EXPORT hash<State::AddressAccessor>
+{
+        std::size_t operator()(const State::AddressAccessor& k) const;
+};
 }
 
 
 namespace boost
 {
 template<>
-struct hash<State::Address>
+struct ISCORE_LIB_STATE_EXPORT hash<State::Address>
 {
         std::size_t operator()(const State::Address& k) const;
 };
