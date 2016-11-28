@@ -32,7 +32,7 @@ struct ISCORE_LIB_BASE_EXPORT PanelStatus
         const bool shown; // Controls if it is shown by default.
         const Qt::DockWidgetArea dock; // Which dock.
         const int priority;  // Higher priority will come up first.
-        const QString prettyName; // Used in the headeer.
+        const QString prettyName; // Used in the header.
         const QKeySequence shortcut; // Keyboard shortcut to show or hide the panel.
 };
 
