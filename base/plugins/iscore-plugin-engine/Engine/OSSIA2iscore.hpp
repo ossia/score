@@ -1,5 +1,4 @@
 #pragma once
-#include <ossia/editor/value/value.hpp>
 #include <ossia/network/common/address_properties.hpp>
 #include <ossia/network/domain/domain_fwd.hpp>
 #include <Process/TimeValue.hpp>
@@ -11,10 +10,11 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <State/Value.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
-
+#include <ossia/editor/value/vec.hpp>
 #include <iscore_plugin_engine_export.h>
 
 namespace ossia {
+class value;
 namespace net {
 class node_base;
 }

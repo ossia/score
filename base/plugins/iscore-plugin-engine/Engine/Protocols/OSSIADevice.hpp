@@ -1,6 +1,5 @@
 #pragma once
-#include <ossia/network/base/address.hpp>
-#include <ossia/network/base/device.hpp>
+#include <ossia/network/base/value_callback.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <ossia/detail/callback_container.hpp>
@@ -14,6 +13,16 @@
 #include <utility>
 #include <vector>
 #include <functional>
+namespace ossia
+{
+namespace net
+{
+class node_base;
+class address_base;
+class device_base;
+}
+}
+
 
 namespace Engine
 {
@@ -70,7 +79,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT OSSIADevice :
             State::Address,
             std::pair<
                 ossia::net::address_base*,
-                ossia::callback_container<ossia::net::value_callback>::iterator
+                ossia::callback_container<ossia::value_callback>::iterator
             >
         > m_callbacks;
 
