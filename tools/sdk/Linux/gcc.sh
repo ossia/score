@@ -6,9 +6,9 @@ NPROC=$(nproc)
 mkdir gcc-build
 (
   cd gcc-build
-  ../combined/configure --enable-languages=c,c++,lto --enable-gold --enable-plugins --enable-plugin --disable-multilib --disable-nls --enable-werror=no
-  make
-  make install -j8
+  ../combined/configure --enable-languages=c,c++,lto --enable-gold --enable-plugins --enable-plugin --disable-multilib --disable-nls --enable-werror=no --with-build-config=bootstrap-lto --enable-checking=none
+  make BOOT_CFLAGS="-O3 -g0" -j$NPROC
+  make install-strip
   cp -nrf /usr/local/* /usr/
 )
 
