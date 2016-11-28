@@ -6,9 +6,6 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom_impl(
         const Explorer::DeviceDocumentPlugin& dev)
 {
-    insertDelimiter();
-    insertDelimiter();
-    insertDelimiter();
     readFrom(dev.rootNode());
     insertDelimiter();
 }
@@ -51,9 +48,6 @@ void Visitor<Writer<DataStream>>::writeTo(
         Explorer::DeviceDocumentPlugin& plug)
 {
     Device::Node n;
-    checkDelimiter();
-    checkDelimiter();
-    checkDelimiter();
     writeTo(n);
     checkDelimiter();
 

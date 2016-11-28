@@ -28,7 +28,7 @@ class ConstraintBase :
         ProcessComponent* make(
                 const Id<iscore::Component> & id,
                 ProcessComponentFactory& factory,
-                Process::ProcessModel &process);
+                Process::ProcessModel& process);
 
         void removing(const Process::ProcessModel& cst, const ProcessComponent& comp);
 
