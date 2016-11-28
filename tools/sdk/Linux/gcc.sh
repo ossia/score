@@ -11,3 +11,10 @@ mkdir gcc-build
   make install -j8
   cp -nrf /usr/local/* /usr/
 )
+
+# Alternative, optimized : 
+
+
+# ../combined/configure --enable-languages=c,c++,lto --enable-gold --enable-plugins --enable-plugin --disable-multilib --disable-nls --enable-werror=no --prefix=/usr --with-build-config=bootstrap-lto --enable-checking=none
+# make BOOT_CFLAGS="-O3 -g0" -j8
+# make install-strip
