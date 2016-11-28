@@ -3,10 +3,22 @@ set -o pipefail
  
 
 # Minimal stuff
-yum -y install epel-release
 yum -y update
-yum -y install libmpc gcc sudo wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 libXrender fontconfig freetype xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm libXi alsa-lib-devel
+yum -y install epel-release centos-release-scl-rh
+yum -y update
+yum -y install libmpc gcc sudo wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 libXrender fontconfig freetype xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm libXi alsa-lib-devel git wget make binutils fuse glibc-devel glib2-devel libarchive3-devel fuse-devel zlib-devel patch openssl-static openssl-devel vim-common 
+rpm -ivh https://www.softwarecollections.org/en/scls/praiskup/autotools/epel-6-x86_64/download/praiskup-autotools-epel-6-x86_64.noarch.rpm
+yum -y install autotools-latest
 
+. /opt/rh/autotools-latest/enable
+
+wget http://tukaani.org/xz/xz-5.2.2.tar.gz
+tar xzfv xz-5.2.2.tar.gz
+(
+cd xz-5.2.2
+./configure --enable-static && make && make install
+)
+rpm -ivh http://miroir.univ-paris13.fr/repoforge/redhat/el6/en/x86_64/rpmforge/RPMS/zsync-0.6.2-1.el6.rf.x86_64.rpm
 
 git_pull_rebase_helper()
 {
@@ -16,7 +28,7 @@ git_pull_rebase_helper()
 }
 
 # Install required libs
-wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/5.0-linux/i-score-sdk-linux-5.0.txz -O i-score-sdk.txz
+wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/6.0-osx/i-score-sdk-linux.txz -O i-score-sdk.txz
 tar -xaf i-score-sdk.txz --directory /
 cp -rf /usr/local/lib64/* /usr/lib64/
 
@@ -54,7 +66,7 @@ export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
     cd AppImageKit/
     ls
 
-    bash -ex ./install-build-deps.sh
     bash -ex ./build.sh
 )
+rm /usr/local/lib/liblzma.so* /usr/*/liblzma.so || true # Don't want the dynamic one
 
