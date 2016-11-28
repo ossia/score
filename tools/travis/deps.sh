@@ -21,8 +21,6 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-get update -qq
     sudo apt-get install -qq libasound-dev ninja-build gcovr lcov
     
-    wget https://github.com/OSSIA/iscore-sdk/releases/download/6.0-osx/gcc.deb -O gcc.deb
-    sudo dpkg --force-all -i gcc.deb
 
     sudo wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.bz2 -O /opt/boost.tar.bz2
     (cd /opt; sudo tar xaf boost.tar.bz2; sudo mv boost_* boost ; sudo chmod -R a+rwx boost)
@@ -35,6 +33,9 @@ case "$TRAVIS_OS_NAME" in
     else
       sudo apt-get install -qq qt57-meta-full
     fi
+    
+    wget https://github.com/OSSIA/iscore-sdk/releases/download/6.0-osx/gcc.deb -O gcc.deb
+    sudo dpkg --force-all -i gcc.deb
 
     wget https://cmake.org/files/v3.6/cmake-3.6.2-Linux-x86_64.tar.gz -O cmake-linux.tgz
     tar xaf cmake-linux.tgz
