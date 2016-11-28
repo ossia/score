@@ -12,7 +12,6 @@ fi
 case "$TRAVIS_OS_NAME" in
   linux)
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
-    sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
 
     if [[ "$CONF" != "linux-package" ]];
     then
@@ -20,7 +19,10 @@ case "$TRAVIS_OS_NAME" in
     fi
 
     sudo apt-get update -qq
-    sudo apt-get install -qq g++-6 libasound-dev ninja-build gcovr lcov
+    sudo apt-get install -qq libasound-dev ninja-build gcovr lcov
+    
+    wget https://github.com/OSSIA/iscore-sdk/releases/download/6.0-osx/gcc.deb -O gcc.deb
+    sudo dpkg --force-all -i gcc.deb
 
     sudo wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.bz2 -O /opt/boost.tar.bz2
     (cd /opt; sudo tar xaf boost.tar.bz2; sudo mv boost_* boost ; sudo chmod -R a+rwx boost)
