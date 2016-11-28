@@ -22,6 +22,12 @@ class CommandDispatcher final : public ICommandDispatcher
             SendStrategy::send(stack(), cmd);
         }
 
+        template<typename T, typename... Args>
+        void submitCommand(Args&&... args) const
+        {
+            SendStrategy::send(stack(), new T{std::forward<Args>(args)...});
+        }
+
         void submitCommand(std::unique_ptr<iscore::SerializableCommand> cmd) const
         {
             SendStrategy::send(stack(), cmd.release());
