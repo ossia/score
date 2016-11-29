@@ -12,6 +12,6 @@ chmod a+rwx i-score.AppDir/AppRun
 wget "https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
 chmod a+x appimagetool-x86_64.AppImage
 
-./appimagetool-x86_64.AppImage "$APP.AppDir" "i-score.AppImage"
+./appimagetool-x86_64.AppImage "i-score.AppDir" "i-score.AppImage"
 
 chmod a+rwx i-score.AppImage
