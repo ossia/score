@@ -60,7 +60,7 @@ void ApplicationPlugin::record(
         return;
 
     m_stopAction->trigger();
-    QApplication::processEvents();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
     m_currentContext = std::make_unique<Recording::RecordContext>(scenar, pt);
     m_recManager = std::make_unique<SingleRecorder<AutomationRecorder>>(*m_currentContext);
@@ -86,7 +86,7 @@ void ApplicationPlugin::recordMessages(
         return;
 
     m_stopAction->trigger();
-    QApplication::processEvents();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
     m_currentContext = std::make_unique<Recording::RecordContext>(scenar, pt);
     m_recMessagesManager = std::make_unique<SingleRecorder<MessageRecorder>>(*m_currentContext);

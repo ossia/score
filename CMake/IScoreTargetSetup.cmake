@@ -193,7 +193,10 @@ function(iscore_set_compile_options theTarget)
       )
 
   if(ISCORE_SANITIZE)
-      sanitize_build(${theTarget})
+      get_target_property(NO_SANITIZE ${theTarget} ISCORE_TARGET_NO_SANITIZE)
+      if(NOT "${NO_SANITIZE}")
+          sanitize_build(${theTarget})
+      endif()
       # debugmode_build(${theTarget})
   endif()
 

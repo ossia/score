@@ -89,7 +89,7 @@ void MoveSlotTool::on_released()
 void MoveSlotTool::on_cancel()
 {
     m_localSM.postEvent(new iscore::Cancel_Event);
-    QApplication::processEvents();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 }
 
 void MoveSlotTool::activate()
