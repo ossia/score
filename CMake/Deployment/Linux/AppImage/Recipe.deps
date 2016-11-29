@@ -7,18 +7,6 @@ yum -y update
 yum -y install epel-release centos-release-scl-rh
 yum -y update
 yum -y install libmpc gcc sudo wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 libXrender fontconfig freetype xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm libXi alsa-lib-devel git wget make binutils fuse glibc-devel glib2-devel libarchive3-devel fuse-devel zlib-devel patch openssl-static openssl-devel vim-common 
-rpm -ivh https://www.softwarecollections.org/en/scls/praiskup/autotools/epel-6-x86_64/download/praiskup-autotools-epel-6-x86_64.noarch.rpm
-yum -y install autotools-latest
-
-. /opt/rh/autotools-latest/enable
-
-wget http://tukaani.org/xz/xz-5.2.2.tar.gz
-tar xzfv xz-5.2.2.tar.gz
-(
-cd xz-5.2.2
-./configure --enable-static && make && make install
-)
-rpm -ivh http://miroir.univ-paris13.fr/repoforge/redhat/el6/en/x86_64/rpmforge/RPMS/zsync-0.6.2-1.el6.rf.x86_64.rpm
 
 git_pull_rebase_helper()
 {
@@ -37,16 +25,6 @@ wget -nv "http://downloads.sourceforge.net/project/boost/boost/1.${BOOST_VER}.0/
 tar -xaf "boost_1_${BOOST_VER}_0.tar.bz2"
 mv "boost_1_${BOOST_VER}_0" boost
 
-# Build AppImage
-(
-    if [ ! -d AppImages ] ; then
-        git clone https://github.com/probonopd/AppImages.git
-    fi
-    
-    cd AppImages/
-    git_pull_rebase_helper
-)
-
 # Download CMake
 (
     wget -nv --no-check-certificate -c https://cmake.org/files/v3.7/cmake-3.7.0-Linux-x86_64.tar.gz
@@ -57,16 +35,4 @@ mv "boost_1_${BOOST_VER}_0" boost
 export CMAKE_PATH=$(find $PWD/cmake-*/ -type d | head -n 1)bin
 export LD_LIBRARY_PATH=/usr/local/lib64:$LD_LIBRARY_PATH
 export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
-
-# Build AppImageKit
-(
-    if [ ! -d AppImageKit ] ; then
-        git clone https://github.com/probonopd/AppImageKit.git
-    fi
-    cd AppImageKit/
-    ls
-
-    bash -ex ./build.sh
-)
-rm /usr/local/lib/liblzma.so* /usr/*/liblzma.so || true # Don't want the dynamic one
 
