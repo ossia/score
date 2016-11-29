@@ -242,7 +242,7 @@ void DocumentManager::forceCloseDocument(
         Document& doc)
 {
     emit doc.aboutToClose();
-    qApp->processEvents();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
     m_view.closeDocument(&doc.view());
     ossia::remove_one(m_documents, &doc);

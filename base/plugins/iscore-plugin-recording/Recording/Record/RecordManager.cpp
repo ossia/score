@@ -143,7 +143,7 @@ void AutomationRecorder::stop()
     }
     m_recordCallbackConnections.clear();
 
-    qApp->processEvents();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
     // Record and then stop
     if(!context.started())

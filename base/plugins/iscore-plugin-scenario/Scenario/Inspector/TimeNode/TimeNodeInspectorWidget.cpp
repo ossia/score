@@ -141,7 +141,7 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
         auto st = &commandDispatcher()->stack();
         selectionDispatcher().setAndCommit({});
 
-        qApp->processEvents();
+        QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
         QTimer::singleShot(0, [=] {
           auto cmd = new Command::SplitTimeNode{*tn, {id}};
 

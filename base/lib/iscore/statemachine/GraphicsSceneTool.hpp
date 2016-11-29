@@ -28,7 +28,7 @@ class GraphicsSceneTool
         virtual void on_cancel()
         {
             localSM().postEvent(new iscore::Cancel_Event);
-            QApplication::processEvents();
+            QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
         }
 
 
