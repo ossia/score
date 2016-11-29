@@ -26,6 +26,27 @@ find_package_handle_standard_args(
 if(FAUST_FOUND)
     set(FAUST_LIBRARIES ${FAUST_LIBRARY})
     set(FAUST_INCLUDE_DIRS ${FAUST_INCLUDE_DIR})
+
+    if("${FAUST_LIBRARY}" MATCHES ".*\.a")
+        # This is a static build of faust, hence
+        # we have to add all the LLVM flags...
+
+        find_program(LLVM_CONFIG llvm-config HINTS /usr/bin /usr/local/bin /usr/local/opt/llvm/bin)
+        if(NOT LLVM_CONFIG)
+            message(FATAL_ERROR "Using a static Faust library requires LLVM tooling to be present in the path")
+        endif()
+
+        exec_program(${LLVM_CONFIG} ARGS --includedir OUTPUT_VARIABLE LLVM_DIR)
+        exec_program(${LLVM_CONFIG} ARGS --libs OUTPUT_VARIABLE LLVM_LIBS)
+        exec_program(${LLVM_CONFIG} ARGS --version OUTPUT_VARIABLE LLVM_VERSION)
+        exec_program(${LLVM_CONFIG} ARGS --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS)
+
+        set(LLVM_VERSION LLVM_${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
+
+        find_package(OpenSSL REQUIRED)
+        set(FAUST_LIBRARIES ${FAUST_LIBRARIES} dl ${OPENSSL_LIBRARIES} curses z ${LLVM_LDFLAGS} ${LLVM_LIBS} )
+
+    endif()
 else()
     set(FAUST_LIBRARIES)
     set(FAUST_INCLUDE_DIRS)

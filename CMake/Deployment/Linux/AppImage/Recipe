@@ -54,8 +54,6 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
 # Copy needed libraries and remove system ones
 (
     cd $APP.AppDir
-    cp ../../AppImageKit/AppRun .
-    chmod a+x AppRun
     mkdir -p ./usr/lib/qt5/
     mkdir -p ./usr/lib/qt5/plugins/platforms
     mkdir -p ./usr/lib/qt5/plugins/imageformats
@@ -139,10 +137,5 @@ export APPIMAGE=i-score.AppImage
 rm -rf out || true
 mkdir -p out
 
-# Convert the AppDir into an AppImage
-../AppImageKit/AppImageAssistant.AppDir/package ./$APP.AppDir/ ./out/$APPIMAGE
-
-chmod a+rwx out/$APPIMAGE
-ls -lh out/$APPIMAGE
-mv ./out/$APPIMAGE /$APPIMAGE
-
+tar caf i-score.AppDir.txz "$APP.AppDir"
+mv i-score.AppDir.txz /i-score.AppDir.txz
