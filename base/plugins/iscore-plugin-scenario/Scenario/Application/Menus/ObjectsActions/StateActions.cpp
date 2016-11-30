@@ -5,6 +5,7 @@
 #include <Scenario/Commands/Cohesion/RefreshStates.hpp>
 
 
+#include <iscore/actions/ActionManager.hpp>
 #include <core/document/Document.hpp>
 
 #include <Scenario/Application/ScenarioActions.hpp>

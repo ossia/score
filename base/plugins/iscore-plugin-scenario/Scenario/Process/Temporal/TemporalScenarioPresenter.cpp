@@ -9,6 +9,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 
 #include <iscore/widgets/GraphicsItem.hpp>
+#include <iscore/actions/ActionManager.hpp>
 #include <Process/LayerModel.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>

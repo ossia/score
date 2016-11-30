@@ -42,6 +42,7 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
 
+#include <iscore/actions/ActionManager.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

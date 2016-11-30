@@ -16,7 +16,7 @@ build_script:
   - mkdir build
   - cd build
   - cmake -G "Visual Studio 14 Win64" -DISCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" ..
-  - msbuild PACKAGE.vcxproj /p:Configuration=Release /m
+  - msbuild PACKAGE.vcxproj /p:Configuration=Release /p:PreferredToolArchitecture=x64 /m
 
 artifacts:
   - name: Installer

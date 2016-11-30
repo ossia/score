@@ -16,6 +16,7 @@
 #include <core/document/Document.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
+#include <iscore/actions/ActionManager.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
 #include <Engine/ApplicationPlugin.hpp>
