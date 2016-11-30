@@ -5,6 +5,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 
+#include <iscore/actions/ActionManager.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include "LocalDevice.hpp"
 #include <ossia/network/local/local.hpp>

@@ -12,6 +12,7 @@
 
 
 #include <core/document/Document.hpp>
+#include <iscore/actions/ActionManager.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 

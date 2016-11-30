@@ -15,6 +15,7 @@
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include "ToolMenuActions.hpp"
+#include <iscore/actions/ActionManager.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 
 

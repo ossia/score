@@ -1,4 +1,5 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <iscore/actions/ActionManager.hpp>
 #include <QAction>
 #include <qnamespace.h>
 

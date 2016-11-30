@@ -15,6 +15,7 @@
 #include <iscore/tools/Todo.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 
+#include <iscore/actions/ActionManager.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Engine/Executor/ContextMenu/PlayContextMenu.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
