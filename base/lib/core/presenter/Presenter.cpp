@@ -31,7 +31,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/widgets/OrderedToolbar.hpp>
+
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include "iscore_git_info.hpp"
 
@@ -140,6 +140,8 @@ void Presenter::setupGUI()
 
 void Presenter::optimize()
 {
+    m_components.commands.reserve(m_components.commands.size());
+    m_components.factories.reserve(m_components.factories.size());
 
 }
 

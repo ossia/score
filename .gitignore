@@ -7,6 +7,8 @@ nohup.out
 build
 Trash
 Doxygen/html
+Documentation/Doxygen/output
+Documentation/Doxygen/dox.error
 bin
 libs
 #files

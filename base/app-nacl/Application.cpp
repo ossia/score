@@ -40,7 +40,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
-#include <iscore/widgets/OrderedToolbar.hpp>
+
 #include <core/document/DocumentModel.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include "iscore_git_info.hpp"

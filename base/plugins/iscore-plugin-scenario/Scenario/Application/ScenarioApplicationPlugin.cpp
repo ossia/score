@@ -60,7 +60,7 @@
 #include <iscore/tools/EntityMap.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/widgets/OrderedToolbar.hpp>
+
 #include <algorithm>
 #include <core/presenter/Presenter.hpp>
 #include <iscore/document/DocumentInterface.hpp>

@@ -37,6 +37,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationComponents.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/Action.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/ActionManager.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/document/DocumentInterface.cpp"
 
