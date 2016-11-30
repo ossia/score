@@ -254,10 +254,10 @@ class IndirectUnorderedMap
         Map_T map;
 
     private:
-		IndirectUnorderedMap(const IndirectUnorderedMap&) = delete;
-		IndirectUnorderedMap(IndirectUnorderedMap&&) = delete;
-		IndirectUnorderedMap& operator=(const IndirectUnorderedMap&) = delete;
-		IndirectUnorderedMap& operator=(IndirectUnorderedMap&&) = delete;
+        IndirectUnorderedMap(const IndirectUnorderedMap&) = delete;
+        IndirectUnorderedMap(IndirectUnorderedMap&&) = delete;
+        IndirectUnorderedMap& operator=(const IndirectUnorderedMap&) = delete;
+        IndirectUnorderedMap& operator=(IndirectUnorderedMap&&) = delete;
 };
 
 }

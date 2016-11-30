@@ -45,6 +45,9 @@ void ApplicationInterface::loadPluginData(
 
     iscore::PluginLoader::loadPlugins(registrar, ctx);
 
+    // Now rehash our various hash tables
+    presenter.optimize();
+
     // Load the settings
     QSettings s;
     for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
