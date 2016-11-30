@@ -13,10 +13,14 @@ ActionManager::ActionManager()
 
 void ActionManager::insert(Action val)
 {
-    m_container.insert(
-                std::make_pair(
-                    val.key(),
-                    std::move(val)));
+    auto it = m_container.find(val);
+    if(it != m_container.end())
+    {
+        m_container.insert(
+                    std::make_pair(
+                        val.key(),
+                        std::move(val)));
+    }
 }
 
 void ActionManager::insert(std::vector<Action> vals)

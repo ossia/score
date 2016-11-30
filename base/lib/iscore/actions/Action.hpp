@@ -7,12 +7,21 @@
 #include <unordered_map>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+
 class IdentifiedObjectAbstract;
 namespace iscore
 {
 struct DocumentContext;
 class ActionGroup;
 using ActionGroupKey = StringKey<ActionGroup>;
+
+/**
+ * @brief The ActionGroup class
+ * A semantic group of actions : for instance, all
+ * the actions related to audio recording, etc.
+ * This is to be used for documentation purposes, for instance
+ * on a potential keyboard shortcut widget.
+ */
 class ISCORE_LIB_BASE_EXPORT ActionGroup
 {
     public:
@@ -20,6 +29,10 @@ class ISCORE_LIB_BASE_EXPORT ActionGroup
                 QString prettyName,
                 ActionGroupKey key);
 
+        /**
+         * @brief prettyName
+         * @return A name shown to the user in the UI.
+         */
         QString prettyName() const;
 
         ActionGroupKey key() const;
@@ -31,6 +44,24 @@ class ISCORE_LIB_BASE_EXPORT ActionGroup
 class Action;
 using ActionKey = StringKey<Action>;
 
+/**
+ * @brief The Action class
+ *
+ * An action is a wrapper class for QAction, which
+ * adds informations that will be useful to allow to change
+ * the keyboard shortcuts :
+ * - Default shortcuts
+ * - Group
+ *
+ * Actions should be part of the type systems as much as possible
+ * to prevent errors.
+ *
+ * To allow this, the \ref iscore::MetaAction template shall be
+ * specialized. The macro \ref ISCORE_DECLARE_ACTION is provided to
+ * do this easily.
+ *
+ * The ActionKey should be unique across the whole software.
+ */
 class ISCORE_LIB_BASE_EXPORT Action
 {
     public:
@@ -76,10 +107,22 @@ class ISCORE_LIB_BASE_EXPORT Action
 template<typename Action_T>
 struct MetaAction
 {
-        // static iscore::Action make(QAction* ptr);
-        // static ActionKey key();
 };
 
+/**
+ * @brief The ActionContainer struct
+ *
+ * Where the actions will be registered.
+ * Mainly used while creating \ref iscore::GUIElements :
+ *
+ * \code
+ * auto act = new QAction{...};
+ * connect(act, &QAction::toggled, ...);
+ *
+ * iscore::GUIElements e;
+ * e.actions.add<MyActionType>(act);
+ * \endcode
+ */
 struct ActionContainer
 {
     public:

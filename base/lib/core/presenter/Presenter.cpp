@@ -138,6 +138,11 @@ void Presenter::setupGUI()
     }
 }
 
+void Presenter::optimize()
+{
+
+}
+
 }
 
 

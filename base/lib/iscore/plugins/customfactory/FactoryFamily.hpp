@@ -33,6 +33,8 @@ class ISCORE_LIB_BASE_EXPORT FactoryListInterface
         // This function is called whenever a new factory interface
         // is added to this family.
         virtual void insert(std::unique_ptr<iscore::FactoryInterfaceBase>) = 0;
+
+        virtual void optimize() = 0;
 };
 
 template<typename FactoryType>
@@ -86,6 +88,7 @@ class ConcreteFactoryList :
         { return this->map; }
 
     private:
+        void optimize() override { this->map.reserve(this->map.size()); }
         ConcreteFactoryList(const ConcreteFactoryList&) = delete;
         ConcreteFactoryList(ConcreteFactoryList&&) = delete;
         ConcreteFactoryList& operator=(const ConcreteFactoryList&) = delete;

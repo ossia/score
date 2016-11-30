@@ -68,6 +68,17 @@ namespace iscore
 
             virtual ~GUIApplicationContextPlugin();
 
+            /**
+             * @brief makeGUIElements
+             *
+             * This function allows a plug-in to provide custom elements
+             * to put in toolbars, menus, etc.
+             *
+             * When returned here, they will afterwards be available through an
+             * \ref iscore::ApplicationContext.
+             *
+             * @see \ref iscore::GUIElements
+             */
             virtual GUIElements makeGUIElements();
 
             const GUIApplicationContext& context;

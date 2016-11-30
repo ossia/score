@@ -80,9 +80,11 @@ function(iscore_set_gcc_compile_options theTarget)
           -Wpointer-arith
           -Wsuggest-attribute=noreturn
           -Wno-missing-braces
+          -Wmissing-field-initializers
           -Wformat=2
           -Wno-format-nonliteral
           -Wpedantic
+          -Werror=return-local-addr
           )
 
       target_compile_options(${theTarget} PUBLIC
@@ -127,6 +129,9 @@ endfunction()
 function(iscore_set_clang_compile_options theTarget)
     target_compile_options(${theTarget} PUBLIC
         -Wno-gnu-string-literal-operator-template
+        -Wno-missing-braces
+        -Werror=return-stack-address
+        -Wmissing-field-initializers
         -ftemplate-backtrace-limit=0
         "$<$<CONFIG:Debug>:-O0>"
         )
@@ -200,6 +205,10 @@ function(iscore_set_compile_options theTarget)
       # debugmode_build(${theTarget})
   endif()
 
+  if (CXX_IS_GCC OR CXX_IS_CLANG)
+    iscore_set_unix_compile_options(${theTarget})
+  endif()
+
   if (CXX_IS_CLANG)
       iscore_set_clang_compile_options(${theTarget})
   endif()
@@ -210,10 +219,6 @@ function(iscore_set_compile_options theTarget)
 
   if(CXX_IS_GCC)
       iscore_set_gcc_compile_options(${theTarget})
-  endif()
-
-  if (CXX_IS_GCC OR CXX_IS_CLANG)
-    iscore_set_unix_compile_options(${theTarget})
   endif()
 
   # OS X

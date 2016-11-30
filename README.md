@@ -46,3 +46,6 @@ There are also many fixable areas in the code :
 * [**REMOVEME**](https://github.com/OSSIA/i-score/search?q=REMOVEME) : when something is redundant.
 * [**RENAMEME**](https://github.com/OSSIA/i-score/search?q=RENAMEME) : when the class does not match with the file it's in.
 * [**OPTIMIZEME**](https://github.com/OSSIA/i-score/search?q=OPTIMIZEME) : when an easy-to-write-but-suboptimal algorithm is used.
+
+Finally, one can write its own i-score plug-ins to add custom features to the software.
+An example plug-in with the most common classes reimplemented is provided [here](https://github.com/OSSIA/iscore-addon-tutorial).

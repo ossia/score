@@ -64,6 +64,9 @@ class ISCORE_LIB_BASE_EXPORT Presenter final :
 
         auto& components()
         { return m_components; }
+
+        void optimize();
+
     private:
         void setupMenus();
         View* m_view {};
