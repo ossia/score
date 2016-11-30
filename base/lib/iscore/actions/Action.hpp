@@ -8,6 +8,20 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
+/**
+ * \file Action.hpp
+ *
+ * - Conditions
+ * - Integration with menus, toolbars, etc.
+ * - TODO solve the problem of a "single" action used in multiple contexts
+ * e.g. copy-paste.
+ * - Steps :
+ *   * declaring the conditions
+ *   * declaring the action types
+ *   * instantiating the conditions
+ *   * instantiating the action types
+ */
+
 class IdentifiedObjectAbstract;
 namespace iscore
 {
@@ -136,35 +150,61 @@ struct ActionContainer
         }
 };
 
-struct ActionKeyContainer
-{
-    public:
-        std::vector<ActionKey> actions;
-
-        template<typename Action_T>
-        void add()
-        {
-            ISCORE_ASSERT(ossia::find_if(actions, [] (auto ac) { return ac == MetaAction<Action_T>::key(); }) == actions.end());
-            actions.emplace_back(MetaAction<Action_T>::key());
-        }
-};
-
-
-struct ISCORE_LIB_BASE_EXPORT ActionCondition :
-        public ActionKeyContainer
+/**
+ * @brief The ActionCondition struct
+ *
+ * Base class for conditions on actions.
+ * This mechanism allows to enable / disable a set of actions
+ * when a specific event occurs in the software.
+ *
+ * For instance, some actions should be enabled only when some particular
+ * group of elements are enabled.
+ *
+ * \see iscore::ActionManager
+ */
+struct ISCORE_LIB_BASE_EXPORT ActionCondition
 {
         ActionCondition(StringKey<ActionCondition> k);
 
         virtual ~ActionCondition();
 
+        /**
+         * @brief action This function will be called whenever a particular event happen.
+         *
+         * The default implementation does nothing.
+         */
         virtual void action(ActionManager& mgr, MaybeDocument);
+
+        /**
+         * @brief setEnabled Sets the state of all the matching actions
+         *
+         * This function should be called by implementations of the
+         * \ref ActionCondition::action function.
+         *
+         * It will enable or disable all the actions registered for this condition.
+         */
+        void setEnabled(iscore::ActionManager& mgr, bool b);
+
+        /**
+         * @brief add Register an action for this condition.
+         *
+         * \see \ref ISCORE_DECLARE_ACTION
+         */
+        template<typename Action_T>
+        void add()
+        {
+            ISCORE_ASSERT(ossia::find_if(m_actions, [] (auto ac) {
+                return ac == MetaAction<Action_T>::key();
+            }) == m_actions.end());
+
+            m_actions.emplace_back(MetaAction<Action_T>::key());
+        }
 
         StringKey<ActionCondition> key() const;
 
-        void setEnabled(iscore::ActionManager& mgr, bool b);
-
     private:
         StringKey<ActionCondition> m_key;
+        std::vector<ActionKey> m_actions;
 };
 
 /**
@@ -177,6 +217,11 @@ struct ISCORE_LIB_BASE_EXPORT DocumentActionCondition : public ActionCondition
         using ActionCondition::ActionCondition;
 };
 
+/**
+ * @brief The EnableActionIfDocument struct
+ *
+ * Enables its actions if there is an active document.
+ */
 struct ISCORE_LIB_BASE_EXPORT EnableActionIfDocument final :
         public DocumentActionCondition
 {
@@ -195,7 +240,7 @@ struct ISCORE_LIB_BASE_EXPORT EnableActionIfDocument final :
 /**
  * @brief The FocusActionCondition struct
  *
- * Will be checked when the focus changes
+ * Will be checked when the focused object changes
  */
 struct ISCORE_LIB_BASE_EXPORT FocusActionCondition : public ActionCondition
 {
@@ -215,7 +260,7 @@ struct ISCORE_LIB_BASE_EXPORT SelectionActionCondition : public ActionCondition
 /**
  * @brief The CustomActionCondition struct
  *
- * Will be checked when the changed signal is emitted
+ * Will be checked when the \ref CustomActionCondition::changed signal is emitted
  */
 struct ISCORE_LIB_BASE_EXPORT CustomActionCondition :
         public QObject,
@@ -235,7 +280,23 @@ using ActionConditionKey = StringKey<iscore::ActionCondition>;
 
 template<typename T>
 class EnableWhenSelectionContains;
+template<typename T>
+class EnableWhenFocusedObjectIs;
+template<typename T>
+class EnableWhenDocumentIs;
 
+/**
+ * \macro ISCORE_DECLARE_SELECTED_OBJECT_CONDITION
+ *
+ * Use this macro to declare a new condition that will be enabled
+ * whenever an object of the given type is selected.
+ *
+ * e.g. ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Foo) will
+ * declare a condition that will enable its actions whenever an object of type Foo is
+ * selected.
+ *
+ * \warning This macro must be used outside of any namespace.
+ */
 #define ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Type) \
 namespace iscore { template<> \
 class EnableWhenSelectionContains<Type> final : \
@@ -264,10 +325,18 @@ class EnableWhenSelectionContains<Type> final : \
         } \
 }; }
 
-template<typename T>
-class EnableWhenFocusedObjectIs;
-template<typename T>
-class EnableWhenDocumentIs;
+/**
+ * \macro ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION
+ *
+ * Use this macro to declare a new condition that will be enabled
+ * whenever an object of the given type is focused.
+ *
+ * e.g. ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Foo) will
+ * declare a condition that will enable its actions whenever an object of type Foo is
+ * focused.
+ *
+ * \warning This macro must be used outside of any namespace.
+ */
 #define ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Type) \
 namespace iscore { template<> \
 class EnableWhenFocusedObjectIs<Type> final : public iscore::FocusActionCondition   \
@@ -304,6 +373,18 @@ class EnableWhenFocusedObjectIs<Type> final : public iscore::FocusActionConditio
         }                                                                           \
 }; }
 
+/**
+ * \macro ISCORE_DECLARE_DOCUMENT_CONDITION
+ *
+ * Use this macro to declare a new condition that will be enabled
+ * whenever a document of the given type is brought forward, or open.
+ *
+ * e.g. ISCORE_DECLARE_DOCUMENT_CONDITION(Foo) will
+ * declare a condition that will enable its actions whenever a document of type Foo is
+ * opened (by clicking in its name on the document tab for instance).
+ *
+ * \warning This macro must be used outside of any namespace.
+ */
 #define ISCORE_DECLARE_DOCUMENT_CONDITION(Type) \
 namespace iscore { template<> \
 class EnableWhenDocumentIs<Type> final : public iscore::DocumentActionCondition            \
@@ -328,85 +409,6 @@ class EnableWhenDocumentIs<Type> final : public iscore::DocumentActionCondition 
             setEnabled(mgr, bool(model));                                            \
         }                                                                            \
 }; }
-
-class ISCORE_LIB_BASE_EXPORT ActionManager :
-        public QObject
-{
-    public:
-        ActionManager();
-
-        void insert(Action val);
-
-        void insert(std::vector<Action> vals);
-
-        auto& get() const { return m_container; }
-        template<typename T>
-        auto& action()
-        { return m_container.at(MetaAction<T>::key()); }
-        template<typename T>
-        auto& action() const
-        { return m_container.at(MetaAction<T>::key()); }
-
-        void reset(Document* doc);
-
-        void onDocumentChange(std::shared_ptr<ActionCondition> cond);
-        void onFocusChange(std::shared_ptr<ActionCondition> cond);
-        void onSelectionChange(std::shared_ptr<ActionCondition> cond);
-        void onCustomChange(std::shared_ptr<ActionCondition> cond);
-
-        const auto& documentConditions() const { return m_docConditions; }
-        const auto& focusConditions() const { return m_focusConditions; }
-        const auto& selectionConditions() const { return m_selectionConditions; }
-        const auto& customConditions() const { return m_customConditions; }
-
-        template<typename Condition_T, typename std::enable_if_t<std::is_base_of<DocumentActionCondition, Condition_T>::value, void*> = nullptr>
-        auto& condition() const
-        {
-            return *m_docConditions.at(Condition_T::static_key());
-        }
-        template<typename Condition_T, typename std::enable_if_t<std::is_base_of<FocusActionCondition, Condition_T>::value, void*> = nullptr>
-        auto& condition() const
-        {
-            return *m_focusConditions.at(Condition_T::static_key());
-        }
-        template<typename Condition_T, typename std::enable_if_t<std::is_base_of<SelectionActionCondition, Condition_T>::value, void*> = nullptr>
-        auto& condition() const
-        {
-            return *m_selectionConditions.at(Condition_T::static_key());
-        }
-        template<typename Condition_T, typename std::enable_if_t<std::is_base_of<CustomActionCondition, Condition_T>::value, void*> = nullptr>
-        auto& condition() const
-        {
-            return *m_customConditions.at(Condition_T::static_key());
-        }
-
-        template<typename Condition_T, typename std::enable_if_t<
-                     !std::is_base_of<DocumentActionCondition, Condition_T>::value &&
-                     !std::is_base_of<FocusActionCondition, Condition_T>::value &&
-                     !std::is_base_of<SelectionActionCondition, Condition_T>::value &&
-                     !std::is_base_of<CustomActionCondition, Condition_T>::value &&
-                     std::is_base_of<ActionCondition, Condition_T>::value, void*> = nullptr>
-        auto& condition() const
-        {
-            return *m_conditions.at(Condition_T::static_key());
-        }
-    private:
-        void documentChanged(MaybeDocument doc);
-        void focusChanged(MaybeDocument doc);
-        void selectionChanged(MaybeDocument doc);
-        void resetCustomActions(MaybeDocument doc);
-        std::unordered_map<ActionKey, Action> m_container;
-
-        // Conditions for the enablement of the actions
-        std::unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_docConditions;
-        std::unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_focusConditions;
-        std::unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_selectionConditions;
-        std::unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_customConditions;
-        std::unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>> m_conditions;
-
-        QMetaObject::Connection focusConnection;
-        QMetaObject::Connection selectionConnection;
-};
 
 class ISCORE_LIB_BASE_EXPORT Menu
 {
@@ -460,37 +462,6 @@ class ISCORE_LIB_BASE_EXPORT Toolbar
 
         int m_defaultRow = 0;
         int m_defaultCol = 0;
-};
-
-class ISCORE_LIB_BASE_EXPORT MenuManager
-{
-    public:
-        void insert(Menu val);
-
-        void insert(std::vector<Menu> vals);
-
-
-        auto& get()
-        { return m_container; }
-        auto& get() const
-        { return m_container; }
-
-    private:
-        std::unordered_map<StringKey<Menu>, Menu> m_container;
-};
-
-class ISCORE_LIB_BASE_EXPORT ToolbarManager
-{
-    public:
-        void insert(Toolbar val);
-
-        void insert(std::vector<Toolbar> vals);
-
-        auto& get() { return m_container; }
-        auto& get() const { return m_container; }
-
-    private:
-        std::unordered_map<StringKey<Toolbar>, Toolbar> m_container;
 };
 
 

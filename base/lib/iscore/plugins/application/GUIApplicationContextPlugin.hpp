@@ -9,7 +9,6 @@ class QAction;
 class QObject;
 namespace iscore {
 class Document;
-struct OrderedToolbar;
 }  // namespace iscore
 struct VisitorVariant;
 

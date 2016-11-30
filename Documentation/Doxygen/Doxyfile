@@ -26,7 +26,7 @@ DOXYFILE_ENCODING      = UTF-8
 # identify the project. Note that if you do not use Doxywizard you need 
 # to put quotes around the project name if it contains spaces.
 
-PROJECT_NAME           = OSSIA
+PROJECT_NAME           = i-score
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. 
 # This could be handy for archiving the generated documentation or 
@@ -38,21 +38,21 @@ PROJECT_NUMBER         =
 # for a project that appears at the top of each page and should give viewer 
 # a quick idea about the purpose of the project. Keep the description short.
 
-PROJECT_BRIEF          = "Open Scenario System for Interactive Application"
+PROJECT_BRIEF          = "i-score : an interactive sequencer for intermedia applications"
 
 # With the PROJECT_LOGO tag one can specify an logo or icon that is 
 # included in the documentation. The maximum height of the logo should not 
 # exceed 55 pixels and the maximum width should not exceed 200 pixels. 
 # Doxygen will copy the logo to the output directory.
 
-PROJECT_LOGO           = /Users/WALL-E/Dropbox/OSSIA/Documents/Présentations/OSSIA.jpg
+# PROJECT_LOGO           = /Users/WALL-E/Dropbox/OSSIA/Documents/Présentations/OSSIA.jpg
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
 # If a relative path is entered, it will be relative to the location 
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = "/Users/WALL-E/Documents/i-score0.3/API OSSIA/Documentation/Doxygen"
+OUTPUT_DIRECTORY       = "output"
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create 
 # 4096 sub-directories (in 2 levels) under the output directory of each output 
@@ -171,7 +171,7 @@ JAVADOC_AUTOBRIEF      = NO
 # will behave just like regular Qt-style comments (thus requiring 
 # an explicit \brief command for a brief description.)
 
-QT_AUTOBRIEF           = NO
+QT_AUTOBRIEF           = YES
 
 # The MULTILINE_CPP_IS_BRIEF tag can be set to YES to make Doxygen 
 # treat a multi-line C++ special comment block (i.e. a block of //! or /// 
@@ -276,7 +276,7 @@ AUTOLINK_SUPPORT       = YES
 # func(std::string) {}). This also makes the inheritance and collaboration 
 # diagrams that involve STL classes more complete and accurate.
 
-BUILTIN_STL_SUPPORT    = NO
+BUILTIN_STL_SUPPORT    = YES
 
 # If you use Microsoft's C++/CLI language, you should set this option to YES to 
 # enable parsing support.
@@ -517,7 +517,7 @@ STRICT_PROTO_MATCHING  = NO
 # disable (NO) the todo list. This list is created by putting \todo 
 # commands in the documentation.
 
-GENERATE_TODOLIST      = NO
+GENERATE_TODOLIST      = YES
 
 # The GENERATE_TESTLIST tag can be used to enable (YES) or 
 # disable (NO) the test list. This list is created by putting \test 
@@ -529,7 +529,7 @@ GENERATE_TESTLIST      = YES
 # disable (NO) the bug list. This list is created by putting \bug 
 # commands in the documentation.
 
-GENERATE_BUGLIST       = NO
+GENERATE_BUGLIST       = YES
 
 # The GENERATE_DEPRECATEDLIST tag can be used to enable (YES) or 
 # disable (NO) the deprecated list. This list is created by putting 
@@ -569,7 +569,7 @@ SHOW_FILES             = YES
 # Namespaces page.  This will remove the Namespaces entry from the Quick Index 
 # and from the Folder Tree View (if specified). The default is YES.
 
-SHOW_NAMESPACES        = NO
+SHOW_NAMESPACES        = YES
 
 # The FILE_VERSION_FILTER tag can be used to specify a program or script that 
 # doxygen should invoke to get the current version for each file (typically from 
@@ -620,7 +620,7 @@ WARNINGS               = YES
 # for undocumented members. If EXTRACT_ALL is set to YES then this flag will 
 # automatically be disabled.
 
-WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_UNDOCUMENTED   = NO
 
 # If WARN_IF_DOC_ERROR is set to YES, doxygen will generate warnings for 
 # potential errors in the documentation, such as not documenting some 
@@ -661,7 +661,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = "/Users/WALL-E/Documents/i-score0.3/API OSSIA/Headers"
+INPUT                  = ../../base/app ../../base/lib ../../base/plugins
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 
@@ -740,7 +740,7 @@ EXCLUDE_SYMLINKS       = NO
 # against the file with absolute path, so to exclude all test directories 
 # for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = 
+EXCLUDE_PATTERNS       = */psimpl.h
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names 
 # (namespaces, classes, functions, etc.) that should be excluded from the 
@@ -878,14 +878,14 @@ VERBATIM_HEADERS       = YES
 # particularly helpful with template rich C++ code for which doxygen's built-in 
 # parser lacks the necessairy type information.
 
-CLANG_ASSISTED_PARSING = NO
+CLANG_ASSISTED_PARSING = YES
 
 # If clang assisted parsing is enabled you can provide the compiler with command 
 # line options that you would normally use when invoking the compiler. Note that 
 # the include paths will already be set by doxygen for the files and directories 
 # specified at INPUT and INCLUDE_PATH.
 
-CLANG_OPTIONS          = 
+CLANG_OPTIONS          = -std=c++14
 
 #---------------------------------------------------------------------------
 # configuration options related to the alphabetical class index
@@ -942,13 +942,13 @@ HTML_FILE_EXTENSION    = .html
 # have to redo this when upgrading to a newer version of doxygen or when 
 # changing the value of configuration settings such as GENERATE_TREEVIEW!
 
-HTML_HEADER            = 
+HTML_HEADER            = header.html
 
 # The HTML_FOOTER tag can be used to specify a personal HTML footer for 
 # each generated HTML page. If it is left blank doxygen will generate a 
 # standard footer.
 
-HTML_FOOTER            = 
+HTML_FOOTER            = footer.html
 
 # The HTML_STYLESHEET tag can be used to specify a user-defined cascading 
 # style sheet that is used by each HTML page. It can be used to 
@@ -967,7 +967,7 @@ HTML_STYLESHEET        =
 # robust against future updates. Doxygen will copy the style sheet file to 
 # the output directory.
 
-HTML_EXTRA_STYLESHEET  = 
+HTML_EXTRA_STYLESHEET  = doxygen-bootstrapped/customdoxygen.css
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or 
 # other source files which should be copied to the HTML output directory. Note 
@@ -976,7 +976,7 @@ HTML_EXTRA_STYLESHEET  =
 # files. In the HTML_STYLESHEET file, use the file name only. Also note that 
 # the files will be copied as-is; there are no commands or markers available.
 
-HTML_EXTRA_FILES       = 
+HTML_EXTRA_FILES       = doxygen-bootstrapped/doxy-boot.js
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. 
 # Doxygen will adjust the colors in the style sheet and background images 

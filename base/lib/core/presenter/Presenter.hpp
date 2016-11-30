@@ -1,12 +1,11 @@
 #pragma once
 #include <iscore/application/ApplicationComponents.hpp>
 #include <iscore/application/GUIApplicationContext.hpp>
-#include <iscore/actions/Action.hpp>
 
+#include <iscore/actions/ActionManager.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
 
-#include <iscore/widgets/OrderedToolbar.hpp>
 #include <vector>
 #include <QMenuBar>
 #include <iscore_lib_base_export.h>

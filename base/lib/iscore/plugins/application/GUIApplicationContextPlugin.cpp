@@ -6,7 +6,7 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/document/Document.hpp>
 
-#include <iscore/widgets/OrderedToolbar.hpp>
+
 
 class QAction;
 class QObject;

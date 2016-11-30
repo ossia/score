@@ -19,7 +19,6 @@ class ProcessFocusManager;
 }
 namespace iscore {
 class Document;
-struct OrderedToolbar;
 }  // namespace iscore
 
 class QAction;

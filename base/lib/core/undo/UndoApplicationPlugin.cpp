@@ -8,7 +8,7 @@
 
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <iscore/widgets/OrderedToolbar.hpp>
+
 #include <core/presenter/CoreActions.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
 #include <iscore/widgets/SetIcons.hpp>

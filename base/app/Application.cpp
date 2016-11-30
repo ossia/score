@@ -36,7 +36,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/command/Validity/ValidityChecker.hpp>
-#include <iscore/widgets/OrderedToolbar.hpp>
+
 #include <core/document/DocumentModel.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
