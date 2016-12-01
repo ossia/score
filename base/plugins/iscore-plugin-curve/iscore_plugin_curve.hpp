@@ -12,10 +12,21 @@
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-
-namespace iscore {
-class FactoryListInterface;
-}  // namespace iscore
+/**
+ * \namespace Curve
+ * \brief Utilities and base classes for 1D curves.
+ *
+ * This plug-in contains the tools used in i-score to create
+ * and edit curves.
+ *
+ * * The triplet Curve::CurveModel, Curve::CurvePresenter, Curve::CurveView represents an editable curve.
+ * * For processes that only use a single curve, base classes are provided for convenience : Curve::CurveProcessModel and Curve::CurveProcessPresenter.
+ * * Common curve segments types are provided.
+ *
+ * \todo Put the easing segments defined in the engine library in this library.
+ *
+ * A way to skin curves differently according to the curve type is given through Curve::Style.
+ */
 
 class iscore_plugin_curve final :
         public QObject,

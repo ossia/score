@@ -11,9 +11,44 @@
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
-namespace iscore {
+/**
+ * \namespace Engine
+ * \brief Link of i-score with the OSSIA API execution engine.
+ *
+ * This namespace provides the tools that are used when going from
+ * the i-score model, with purely serializable data structures, to
+ * the OSSIA API model.
+ *
+ * OSSIA implementations of the protocolsare also provided.
+ *
+ * There are three main parts :
+ *
+ * * \ref Engine::LocalTree handles the conversion from i-score's data structures to
+ * the Local protocol.
+ * * \ref Engine::Execution handles the conversion from i-score's data structures to
+ * the OSSIA classes responsible for the execution (ossia::time_process, ossia::clock, etc.)
+ * * \ref Engine::Network wraps the various OSSIA protocols (Minuit, OSC, etc.)
+ *   behind Device::DeviceInterface, and provides edition widgets for these protocols.
+ * * Classes used to handle the various node listening strategies are provided.
+ *
+ * Two files, \ref iscore2OSSIA.hpp and \ref OSSIA2iscore.hpp contain tools
+ * to convert the various data structures of each environment into each other.
+ */
 
-}  // namespace iscore
+/**
+ * \namespace Engine::LocalTree
+ * \brief Local tree
+ */
+
+/**
+ * \namespace Engine::Execution
+ * \brief Components used for the execution of a score.
+ */
+
+/**
+ * \namespace Engine::Network
+ * \brief OSSIA protocols wrapped into i-score
+ */
 
 class iscore_plugin_engine final :
         public QObject,

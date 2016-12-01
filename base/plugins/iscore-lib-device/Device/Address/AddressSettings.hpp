@@ -15,6 +15,14 @@ class TreeNode;
 namespace Device
 {
 class DeviceExplorerNode;
+
+/** A data-only tree of nodes.
+ *
+ * By opposition to ossia::net::node_base, these nodes
+ * contain pure data, no callbacks or complicated data structures.
+ * They can be serialized very easily and are used as the data model of
+ * Explorer::DeviceExplorerModel, as well as for serialization of devices.
+ */
 using Node = TreeNode<DeviceExplorerNode>;
 
 using RefreshRate = int;

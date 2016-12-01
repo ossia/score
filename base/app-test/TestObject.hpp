@@ -3,7 +3,7 @@
 #include <core/document/Document.hpp>
 #include <core/command/CommandStack.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-
+#include <iscore/actions/ActionManager.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
