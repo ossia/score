@@ -114,9 +114,6 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
                 const iscore::ApplicationContext& ctx,
                 const QString& filename);
 
-        void prepareNewDocument(
-                const iscore::ApplicationContext& ctx);
-
         bool closeAllDocuments(
                 const iscore::ApplicationContext& ctx);
 
@@ -126,6 +123,9 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
         void documentChanged(iscore::Document*);
 
     private:
+        void prepareNewDocument(
+                const iscore::ApplicationContext& ctx);
+
         /**
          * @brief checkAndUpdateJson
          * @return boolean indicating if the document is loadable
@@ -153,6 +153,7 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
 
 
 };
-}
 
 Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v);
+}
+

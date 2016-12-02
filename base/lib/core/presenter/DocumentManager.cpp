@@ -616,9 +616,6 @@ void DocumentManager::restoreDocuments(
     }
 }
 
-}
-
-// MOVEME
 Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v)
 {
     using namespace std;
@@ -634,3 +631,5 @@ Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v)
 
     return Id<iscore::DocumentModel>{iscore::random_id_generator::getNextId(ids)};
 }
+}
+
