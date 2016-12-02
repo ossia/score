@@ -42,5 +42,10 @@
  * * Utility classes to display a process in the process panel (provided with Scenario::PanelDelegate).
  * * The implementation of a tree of messages, with Process::MessageNode, to be used in Scenario::StateModel.
  *
+ * i-score provides extensions for processes through \ref iscore::Component%s.
+ * Available extensions are :
+ * * Execution of the process, given through Engine::Execution::ProcessComponent.
+ * * Local tree, given through Engine::LocalTree::ProcessComponent.
+ *
  */
 

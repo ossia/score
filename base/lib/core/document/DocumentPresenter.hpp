@@ -10,9 +10,7 @@ namespace iscore
     class DocumentView;
 
     /**
-     * @brief The DocumentPresenter class
-     *
-     * A wrapper between the model and the view.
+     * @brief Interface between the DocumentModel and the DocumentView.
      */
     class DocumentPresenter final : public QObject
     {

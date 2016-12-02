@@ -28,11 +28,16 @@ class DocumentPresenter;
 class DocumentView;
 
 /**
-     * @brief The Document class is the central part of the software.
-     *
-     * It is similar to the opened file in Word for instance, this is the
-     * data on which i-score operates, further defined by the plugins.
-     */
+ * @brief The Document class is the central part of the software.
+ *
+ * It is similar to the opened file in Word for instance, this is the
+ * data on which i-score operates, further defined by the plugins.
+ *
+ * It has ownership on the useful classes for document edition and display :
+ * * Selection handling
+ * * Command stack
+ * * etc...
+ */
 class ISCORE_LIB_BASE_EXPORT Document final : public QObject
 {
         Q_OBJECT
@@ -83,10 +88,12 @@ class ISCORE_LIB_BASE_EXPORT Document final : public QObject
 
         void setBackupMgr(DocumentBackupManager* backupMgr);
 
+        //! Indicates if the document has just been created and can be safely discarded.
         bool virgin() const
         { return m_virgin && !m_commandStack.canUndo() && !m_commandStack.canRedo(); }
 
     signals:
+        //! Used to warn plug-ins that they are going to be deleted soon.
         void aboutToClose();
 
     private:

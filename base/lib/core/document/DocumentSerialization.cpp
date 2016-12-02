@@ -1,4 +1,3 @@
-
 #include <iscore/tools/std/Optional.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>

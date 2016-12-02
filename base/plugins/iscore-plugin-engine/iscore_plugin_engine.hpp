@@ -37,17 +37,40 @@
 
 /**
  * \namespace Engine::LocalTree
- * \brief Local tree
+ * \brief Local tree provides a way to extend the tree given through the \ref Engine::Network::LocalDevice.
+ *
+ * It is a device tree used to access to i-score's internal data structures from the outside,
+ * or use it in automations, etc.
+ *
+ * For instance, it allows to do conditions based on the advancement of each Scenario::ConstraintModel.
+ *
+ * It is possible to extend the tree for Process::ProcessModel%s, or other polymorphic types.
  */
 
 /**
  * \namespace Engine::Execution
  * \brief Components used for the execution of a score.
+ *
+ * This hierarchy of types is used to create the OSSIA structures for the execution behind
+ * iscore::Component%s.
+ *
+ * Currently, all the execution structures are recreated from scratch when
+ * doing "play".
+ *
+ * The classes inheriting from Engine::Execution::ProcessComponent
+ * are first created, then the Engine::Execution::ConstraintComponent will ask
+ * them for their ossia::time_process which it gives to the matching ossia::time_constraint.
+ *
+ * \todo This should be updated in order to allow live edition of scores.
+ *
  */
 
 /**
  * \namespace Engine::Network
  * \brief OSSIA protocols wrapped into i-score
+ *
+ * This namespace provides the implementations in i-score for
+ * various protocols: OSC, MIDI, Minuit, HTTP, WebSocket...
  */
 
 class iscore_plugin_engine final :

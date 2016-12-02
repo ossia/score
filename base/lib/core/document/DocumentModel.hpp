@@ -21,11 +21,11 @@ class DocumentPlugin;
 struct ApplicationContext;
 
 /**
-     * @brief The DocumentModel class
-     *
-     * Drawbridge between the application and a model given by a plugin.
-     * Contains all the "saveable" data.
-     */
+ * @brief Model part of a document.
+ *
+ * Drawbridge between the application and a model given by a plugin.
+ * Contains all the "saveable" data.
+ */
 class ISCORE_LIB_BASE_EXPORT DocumentModel final :
         public IdentifiedObject<DocumentModel>
 {

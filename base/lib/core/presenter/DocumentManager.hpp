@@ -17,6 +17,9 @@ class View;
 
 namespace iscore
 {
+/**
+ * @brief Owns the documents
+ */
 class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
 {
         Q_OBJECT

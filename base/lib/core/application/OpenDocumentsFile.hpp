@@ -5,7 +5,7 @@
 namespace iscore
 {
 /**
- * @brief The OpenDocumentsFile struct
+ * @brief File used for crash restore
  *
  * This file contains the list of the documents backup files
  * that are currently open,

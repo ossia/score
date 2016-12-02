@@ -9,13 +9,18 @@
 namespace iscore
 {
 class Document;
+
 /**
-     * @brief The CommandStack class
-     *
-     * Mostly equivalent to QUndoStack, but has added signals / slots.
-     * They are used to send & receive the commands to the network, for instance.
-     */
-class ISCORE_LIB_BASE_EXPORT CommandStack final : public QObject
+ * \class iscore::CommandStack
+ *
+ * Mostly equivalent to QUndoStack, but has added signals / slots.
+ * They are used to send & receive the commands to the network, for instance.
+ *
+ * This class should never be used directly to send commands.
+ * Instead, the various command dispatchers, in iscore/command/Dispatchers should be used.
+ */
+class ISCORE_LIB_BASE_EXPORT CommandStack final :
+        public QObject
 {
         Q_OBJECT
 
@@ -27,13 +32,23 @@ class ISCORE_LIB_BASE_EXPORT CommandStack final : public QObject
                 QObject* parent = nullptr);
         ~CommandStack();
 
-        // Allows blocking of undo and redo.
+        /**
+         * @brief Enable the "undo" and "redo" user actions.
+         *
+         * Allows blocking of undo and redo.
+         * Used in ongoing command classes, to prevent doing undo-redo
+         * while performing an ongoing action (moving something for instance).
+         */
         void enableActions()
         {
             canUndoChanged(canUndo());
             canRedoChanged(canRedo());
         }
 
+        /**
+         * @brief Disable the "undo" and "redo" user actions.
+         * @see enableActions
+         */
         void disableActions()
         {
             canUndoChanged(false);
@@ -50,11 +65,13 @@ class ISCORE_LIB_BASE_EXPORT CommandStack final : public QObject
             return !m_redoable.empty();
         }
 
+        //! Text shown currently in the undo action
         QString undoText() const
         {
             return canUndo() ? m_undoable.top()->description() : tr("Nothing to undo");
         }
 
+        //! Text shown currently in the redo action
         QString redoText() const
         {
             return canRedo() ? m_redoable.top()->description() : tr("Nothing to redo");
@@ -89,20 +106,20 @@ class ISCORE_LIB_BASE_EXPORT CommandStack final : public QObject
 
     signals:
         /**
-             * @brief push_start Is emitted when a command was pushed on the stack
-             * @param cmd the command that was pushed
-             */
+         * @brief Emitted when a command was pushed on the stack
+         * @param cmd the command that was pushed
+         */
         void localCommand(iscore::SerializableCommand* cmd);
 
 
         /**
-             * @brief onUndo Is emitted when the user calls "Undo"
-             */
+         * @brief Emitted when the user calls "Undo"
+         */
         void localUndo();
 
         /**
-             * @brief onRedo Is emitted when the user calls "Redo"
-             */
+         * @brief Emitted when the user calls "Redo"
+         */
         void localRedo();
 
         void localIndexChanged(int);
@@ -131,26 +148,26 @@ class ISCORE_LIB_BASE_EXPORT CommandStack final : public QObject
         void redoQuiet();
 
         /**
-             * @brief push Pushes a command on the stack
-             * @param cmd The command
-             *
-             * Calls cmd::redo()
-             */
+         * @brief push Pushes a command on the stack
+         * @param cmd The command
+         *
+         * Calls cmd::redo()
+         */
         void redoAndPush(iscore::SerializableCommand* cmd);
 
 
         /**
-             * @brief quietPush Pushes a command on the stack
-             * @param cmd The command
-             *
-             * Does NOT call cmd::redo()
-             */
+         * @brief quietPush Pushes a command on the stack
+         * @param cmd The command
+         *
+         * Does NOT call cmd::redo()
+         */
         void push(iscore::SerializableCommand* cmd);
 
         /**
-             * @brief pushAndEmit Pushes a command on the stack and emit relevant signals
-             * @param cmd The command
-             */
+         * @brief pushAndEmit Pushes a command on the stack and emit relevant signals
+         * @param cmd The command
+         */
         void redoAndPushQuiet(iscore::SerializableCommand* cmd);
         void pushQuiet(iscore::SerializableCommand* cmd);
 

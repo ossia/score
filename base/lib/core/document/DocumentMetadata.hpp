@@ -6,6 +6,9 @@
 #include <iscore_lib_base_export.h>
 namespace iscore
 {
+/**
+ * @brief Document-wide metadata
+ */
 struct ISCORE_LIB_BASE_EXPORT DocumentMetadata : public QObject
 {
         Q_OBJECT

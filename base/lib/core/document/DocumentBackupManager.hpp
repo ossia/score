@@ -9,7 +9,7 @@ class CommandBackupFile;
 class Document;
 
 /**
- * @brief The DocumentBackupManager class
+ * @brief Handles document backup to allow restoring if there is a crash.
  *
  * Manages on-the-fly backup of documents to be able to restore gracefully in
  * case of a crash.
@@ -23,6 +23,10 @@ class Document;
  * his "saved" point in the undo / redo list.
  * Maybe we should keep the previous document saves somewhere and reload from the
  * correct document save according to our position in the command stack.
+ *
+ * \see iscore::OpenDocumentsFile
+ * \see iscore::CommandBackupFile
+ * \see iscore::DocumentBackups
  */
 class DocumentBackupManager final : public QObject
 {

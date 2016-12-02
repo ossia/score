@@ -22,6 +22,12 @@ class View;
 class Settings;
 class Plugin_QtInterface;
 
+/**
+ * @brief Registers the plug-in elements.
+ *
+ * Used at the plug-in loading time : stores the
+ * classes of the plug-in and performs minor initialization steps.
+ */
 class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
 {
     public:

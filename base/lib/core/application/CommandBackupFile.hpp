@@ -11,6 +11,9 @@
 namespace iscore
 {
     class CommandStack;
+    /**
+     * @brief Serialized command stack data for backup / restore
+     */
     struct CommandStackBackup
     {
             CommandStackBackup(const iscore::CommandStack& stack);
@@ -20,7 +23,7 @@ namespace iscore
     };
 
     /**
-     * @brief The CommandBackupFile class
+     * @brief Abstraction over the backup of commands
      *
      * Synchronizes the commands of a document to an on-disk file,
      * by maintaining serialized stacks of commands at each new command.
@@ -40,14 +43,12 @@ namespace iscore
             void on_redo();
             void on_indexChanged();
 
-            // Writes the current buffers to disk.
+            //! Writes the current buffers to disk.
             void commit();
 
             const iscore::CommandStack& m_stack;
             CommandStackBackup m_backup;
 
             QTemporaryFile m_file;
-
-            //int m_previousIndex{};
     };
 }
