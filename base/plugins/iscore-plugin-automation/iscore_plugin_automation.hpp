@@ -11,7 +11,17 @@
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-
+/**
+ * @namespace Automation
+ * @brief Namespace related to the Automation process
+ *
+ * This namespace contains the Automation process, layer, and related edition commands.
+ *
+ * The Automation is a process that sets the value of a parameter across time.
+ * It is related to the \ref ossia::automation process.
+ *
+ *
+ */
 class iscore_plugin_automation final :
         public QObject,
         public iscore::Plugin_QtInterface,

@@ -4,6 +4,11 @@
 namespace iscore
 {
 class Presenter;
+/**
+ * @brief Base actions for the i-score software
+ *
+ * New document, load, open settings, etc.
+ */
 class ISCORE_LIB_BASE_EXPORT CoreApplicationPlugin final :
         public QObject,
         public iscore::GUIApplicationContextPlugin

@@ -12,6 +12,10 @@ class ApplicationRegistrar;
 class Plugin_QtInterface;
 struct Addon;
 
+/**
+ * \namespace PluginLoader
+ * \brief Classes and functions used at the plug-in loading step.
+ */
 namespace PluginLoader
 {
 /**

@@ -6,6 +6,12 @@ namespace iscore
 namespace testing
 {
 
+/**
+ * @brief Application class for tests
+ *
+ * Used to setup a small application context for unit & integration tests where
+ * serialization is required without needing the data from other plug-ins.
+ */
 struct MockApplication final :
         public iscore::ApplicationInterface
 {

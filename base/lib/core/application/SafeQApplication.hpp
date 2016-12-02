@@ -10,24 +10,31 @@
 #include <iscore/tools/Todo.hpp>
 #include <iscore_lib_base_export.h>
 
+/**
+ * @brief C++ abstraction over fopen/fclose.
+ *
+ * Used to save std::cerr / std::cout to a file in Windows
+ * which does not have a console for GUI programs.
+ */
 class ISCORE_LIB_BASE_EXPORT LogFile
 {
 public:
-	LogFile():
-		fd{ fopen("i-score.log", "a") }
-	{
-	}
+    LogFile():
+        fd{ fopen("i-score.log", "a") }
+    {
+    }
 
-	FILE* desc() const { return fd; }
-	~LogFile()
-	{
-		fclose(fd);
-	}
+    FILE* desc() const { return fd; }
+    ~LogFile()
+    {
+        fclose(fd);
+    }
 private:
-	FILE* fd{};
+    FILE* fd{};
 };
+
 /**
- * @brief The SafeQApplication class
+ * @brief Wrapper over QApplication
  *
  * Prevents an app crash in case of an internal error.
  * Disabled for debugging, because it makes getting the stack
@@ -47,17 +54,17 @@ class ISCORE_LIB_BASE_EXPORT SafeQApplication final : public QApplication
 
         ~SafeQApplication();
 #if defined(ISCORE_DEBUG)
-		static void DebugOutput(
-			QtMsgType type,
-			const QMessageLogContext &context,
-			const QString &msg)
-		{
-			auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
-			auto basename = basename_arr.constData();
-			FILE* out_file = stderr;
+        static void DebugOutput(
+            QtMsgType type,
+            const QMessageLogContext &context,
+            const QString &msg)
+        {
+            auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
+            auto basename = basename_arr.constData();
+            FILE* out_file = stderr;
 #if defined(_MSC_VER)
-			static LogFile logger;
-			out_file = logger.desc();
+            static LogFile logger;
+            out_file = logger.desc();
 #endif
             QByteArray localMsg = msg.toLocal8Bit();
             switch (type) {

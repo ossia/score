@@ -9,6 +9,11 @@
 namespace iscore
 {
 
+namespace PluginLoader
+{
+/**
+ * @brief Node of the plug-in dependency graph for loading.
+ */
 struct PluginDependencyNode
 {
         bool mark = false;
@@ -64,8 +69,12 @@ struct PluginDependencyNode
 };
 
 // TESTME
-// TODO boost.graph instead...
-// TODO use the link order and some cmake-fu to generate the dependencies automatically.
+/**
+ * @brief Organizes the plug-ins in a dependency graph according to their requirements
+ *
+ * \todo Use Boost.Graph instead.
+ * \todo Use the link order and some cmake-fu to generate the dependencies automatically.
+ */
 struct PluginDependencyGraph
 {
     private:
@@ -211,6 +220,5 @@ struct PluginDependencyGraph
             ptr->mark = true;
         }
 };
-
-
+}
 }

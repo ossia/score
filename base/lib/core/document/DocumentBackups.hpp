@@ -8,9 +8,7 @@ class QByteArray;
 namespace iscore
 {
 /**
- * @brief The DocumentBackups struct
- *
- * Manages the list of documents that can be restored after a crash.
+ * @brief Manages the list of documents that can be restored after a crash.
  *
  * There are multiple files, all located in the system's temp folder :
  * * The OpenDocumentsFile which contains a list of the file corresponding

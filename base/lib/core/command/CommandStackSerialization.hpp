@@ -3,7 +3,8 @@
 #include <iscore/command/CommandData.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
-
+namespace iscore
+{
 template<typename RedoFun>
 void loadCommandStack(
         const iscore::ApplicationComponents& components,
@@ -39,4 +40,5 @@ void loadCommandStack(
             stack.redoable().push(cmd);
         }
     });
+}
 }

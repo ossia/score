@@ -12,9 +12,9 @@ class DocumentModel;
 struct ApplicationContext;
 
 /**
- * @brief The DocumentBuilder class
+ * @brief Methods to set-up documents.
  *
- * Facility to construct a document according to different cases :
+ * Facility to construct a Document according to different cases :
  * - Creating a blank, new document.
  * - Loading a document.
  * - Restoring a document after a crash.
