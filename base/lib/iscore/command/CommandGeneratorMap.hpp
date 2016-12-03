@@ -64,7 +64,7 @@ public:
  * A map between command names and corresponding factories.
  */
 using CommandGeneratorMap
-    = iscore::hash_map<CommandFactoryKey, std::unique_ptr<CommandFactory>>;
+    = iscore::hash_map<CommandFactoryKey, CommandFactory*>;
 
 namespace iscore
 {
@@ -78,10 +78,8 @@ struct FactoryInserter
   void perform() const
   {
     fact.insert(
-        std::pair<const CommandFactoryKey, std::unique_ptr<CommandFactory>>{
-            TheCommand::static_key(),
-            std::unique_ptr<CommandFactory>(
-                new GenericCommandFactory<TheCommand>)});
+        std::pair<const CommandFactoryKey, CommandFactory*>{
+            TheCommand::static_key(), new GenericCommandFactory<TheCommand>});
   }
 };
 }

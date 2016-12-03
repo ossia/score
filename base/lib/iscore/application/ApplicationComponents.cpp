@@ -11,7 +11,11 @@ namespace iscore
 {
 ApplicationComponentsData::ApplicationComponentsData() = default;
 ApplicationComponentsData::~ApplicationComponentsData()
-{ /*
+{
+  for(auto& sub_map : commands) 
+    for(auto& pr : sub_map.second)
+      delete pr.second;
+    /*
      for(auto& elt : settings)
      {
          delete elt;
