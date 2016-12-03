@@ -1,4 +1,4 @@
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 
 #include "iscore_plugin_curve.hpp"
 #include <Curve/Commands/CurveCommandFactory.hpp>

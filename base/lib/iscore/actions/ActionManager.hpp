@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/actions/Action.hpp>
+#include <iscore/tools/std/HashMap.hpp>
 
 namespace iscore
 {
@@ -24,6 +25,10 @@ public:
 
   void insert(std::vector<Action> vals);
 
+  auto& get()
+  {
+    return m_container;
+  }
   auto& get() const
   {
     return m_container;
@@ -112,23 +117,18 @@ private:
   void selectionChanged(MaybeDocument doc);
   void resetCustomActions(MaybeDocument doc);
 
-  std::unordered_map<ActionKey, Action> m_container;
+  iscore::hash_map<ActionKey, Action> m_container;
 
   // Conditions for the enablement of the actions
-  std::
-      unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
+  iscore::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
           m_docConditions;
-  std::
-      unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
+  iscore::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
           m_focusConditions;
-  std::
-      unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
+  iscore::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
           m_selectionConditions;
-  std::
-      unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
+  iscore::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
           m_customConditions;
-  std::
-      unordered_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
+  iscore::hash_map<StringKey<ActionCondition>, std::shared_ptr<ActionCondition>>
           m_conditions;
 
   QMetaObject::Connection focusConnection;
@@ -159,7 +159,7 @@ public:
   }
 
 private:
-  std::unordered_map<StringKey<Menu>, Menu> m_container;
+  iscore::hash_map<StringKey<Menu>, Menu> m_container;
 };
 
 /**
@@ -186,6 +186,6 @@ public:
   }
 
 private:
-  std::unordered_map<StringKey<Toolbar>, Toolbar> m_container;
+  iscore::hash_map<StringKey<Toolbar>, Toolbar> m_container;
 };
 }

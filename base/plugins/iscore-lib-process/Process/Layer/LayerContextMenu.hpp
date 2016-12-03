@@ -2,7 +2,7 @@
 #include <functional>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore_lib_process_export.h>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 
 #include <QPoint>
 #include <QPointF>
@@ -50,7 +50,7 @@ public:
   {
     using meta_t = MetaContextMenu<T>;
     ISCORE_ASSERT(m_container.find(meta_t::static_key()) != m_container.end());
-    return m_container.find(meta_t::static_key())->second;
+    return m_container.find(meta_t::static_key()).value();
   }
 
   template <typename T>
@@ -58,7 +58,7 @@ public:
   {
     using meta_t = MetaContextMenu<T>;
     ISCORE_ASSERT(m_container.find(meta_t::static_key()) != m_container.end());
-    return m_container.find(meta_t::static_key())->second;
+    return m_container.find(meta_t::static_key()).value();
   }
 
   auto& get()
@@ -71,7 +71,7 @@ public:
   }
 
 private:
-  std::unordered_map<StringKey<LayerContextMenu>, LayerContextMenu>
+  iscore::hash_map<StringKey<LayerContextMenu>, LayerContextMenu>
       m_container;
 };
 }

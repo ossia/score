@@ -6,7 +6,6 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <memory>
-#include <unordered_map>
 
 /**
  * \file Action.hpp

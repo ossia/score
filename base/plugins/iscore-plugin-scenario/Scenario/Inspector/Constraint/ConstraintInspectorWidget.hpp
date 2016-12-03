@@ -8,7 +8,7 @@
 #include <list>
 #include <memory>
 #include <nano_signal_slot.hpp>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 #include <vector>
 
 #include <iscore/tools/SettableIdentifier.hpp>

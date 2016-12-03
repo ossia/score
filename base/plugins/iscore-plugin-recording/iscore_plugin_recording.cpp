@@ -2,7 +2,7 @@
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Commands/RecordingCommandFactory.hpp>
 #include <iscore/tools/ForEachType.hpp>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 
 #include <Recording/RecordedMessages/Commands/RecordedMessagesCommandFactory.hpp>
 #include <Recording/RecordedMessages/Inspector/RecordedMessagesInspectorFactory.hpp>

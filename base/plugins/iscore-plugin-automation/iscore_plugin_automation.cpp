@@ -3,7 +3,7 @@
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationPresenter.hpp>
 #include <Automation/AutomationView.hpp>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 
 #include "iscore_plugin_automation.hpp"
 #include <Automation/AutomationProcessMetadata.hpp>

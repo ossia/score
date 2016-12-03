@@ -6,7 +6,7 @@
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <string.h>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 
 #include "iscore_plugin_loop.hpp"
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>

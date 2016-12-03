@@ -788,8 +788,8 @@ std::array<float, N> string_to_vec(const std::string& s, const Vis& visitor)
   {
     const auto& val = (*v).val;
 
-    if(val.is<tuple_t>())
-      return visitor(val.get<tuple_t>());
+    if(auto t = val.target<tuple_t>())
+      return visitor(*t);
   }
 
   return {};
@@ -1016,8 +1016,11 @@ tuple_t value(const State::Value& val)
     {
       auto v = parseValue(s);
 
-      if (v && v->val.is<tuple_t>())
-        return v->val.get<State::tuple_t>();
+      if (v)
+      {
+        if(auto t = v->val.target<tuple_t>())
+          return *t;
+      }
 
       return {s};
     }

@@ -17,7 +17,6 @@
 #include <QPluginLoader>
 #include <QSettings>
 #include <QVariant>
-#include <unordered_map>
 #include <utility>
 
 #include "PluginDependencyGraph.hpp"

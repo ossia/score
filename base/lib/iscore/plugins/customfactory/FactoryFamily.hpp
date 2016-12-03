@@ -6,7 +6,7 @@
 #include <iscore/tools/std/IndirectContainer.hpp>
 #include <iscore/tools/std/Pointer.hpp>
 
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 
 #include <QMetaType>
 #include <iscore_lib_base_export.h>
@@ -39,7 +39,7 @@ public:
 
 template <typename FactoryType>
 class ConcreteFactoryList : public iscore::FactoryListInterface,
-                            public IndirectUnorderedMap<std::unordered_map<
+                            public IndirectUnorderedMap<iscore::hash_map<
                                 typename FactoryType::ConcreteFactoryKey,
                                 std::unique_ptr<FactoryType>>>
 {
@@ -91,8 +91,9 @@ public:
 private:
   void optimize() override
   {
-    this->map.reserve(this->map.size());
+    iscore::optimize_hash_map(this->map);
   }
+
   ConcreteFactoryList(const ConcreteFactoryList&) = delete;
   ConcreteFactoryList(ConcreteFactoryList&&) = delete;
   ConcreteFactoryList& operator=(const ConcreteFactoryList&) = delete;

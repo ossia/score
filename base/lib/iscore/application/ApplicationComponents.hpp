@@ -12,7 +12,7 @@
 #include <QByteArray>
 #include <algorithm>
 #include <iterator>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 #include <utility>
 #include <vector>
 
@@ -38,10 +38,9 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
   std::vector<iscore::Addon> addons;
   std::vector<GUIApplicationContextPlugin*> appPlugins;
 
-  std::
-      unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>
+  iscore::hash_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>
           factories;
-  std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> commands;
+  iscore::hash_map<CommandParentFactoryKey, CommandGeneratorMap> commands;
   std::vector<std::unique_ptr<PanelDelegate>> panels;
 };
 

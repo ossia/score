@@ -2,7 +2,7 @@
 #include <QObject>
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/plugins/Addon.hpp>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 #include <utility>
 
 #include <iscore/command/SerializableCommand.hpp>
@@ -44,12 +44,11 @@ public:
   void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
   void registerPanel(PanelDelegateFactory&);
   void registerCommands(
-      std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
+      iscore::hash_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
   void registerCommands(
       std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
   void registerFactories(
-      std::
-          unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&&
+      iscore::hash_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&&
               cmds);
   void registerFactory(std::unique_ptr<FactoryListInterface> cmds);
 

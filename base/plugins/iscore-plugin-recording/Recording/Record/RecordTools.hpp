@@ -13,7 +13,7 @@
 #include <QTimer>
 #include <chrono>
 #include <memory>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 #include <vector>
 
 namespace RedoStrategy
