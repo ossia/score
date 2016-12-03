@@ -15,7 +15,7 @@ build_script:
   - git submodule update --init --recursive
   - mkdir build
   - cd build
-  - cmake -G "Visual Studio 14 Win64" -DISCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" ..
+  - cmake -G "Visual Studio 14 Win64" -DISCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" -DISCORE_ENABLE_LTO=0 ..
   - msbuild PACKAGE.vcxproj /p:Configuration=Release /p:PreferredToolArchitecture=x64 /m
 
 artifacts:
