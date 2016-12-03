@@ -168,14 +168,14 @@ function(iscore_generate_command_list_file TheTarget Headers)
     # First look for the ISCORE_COMMAND_DECL(...) ones
     foreach(sourceFile ${Headers})
         file(READ "${sourceFile}" fileContent)
-        string(REGEX MATCHALL "ISCORE_COMMAND_DECL\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\(\\)[A-Za-z_0-9\,\"\:<>\r\n\t ]*\\)"
+        string(REGEX MATCHALL "ISCORE_COMMAND_DECL\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\(\\)[A-Za-z_0-9\,\"'\:<>\r\n\t ]*\\)"
                defaultCommands "${fileContent}")
 
         foreach(fileLine ${defaultCommands})
             string(REPLACE "\n" "" fileLine "${fileLine}")
             string(REPLACE "\r" "" fileLine "${fileLine}")
-
             string(STRIP ${fileLine} strippedLine)
+
             string(REPLACE "," ";" lineAsList ${strippedLine})
             list(GET lineAsList 1 commandName)
             string(STRIP ${commandName} strippedCommandName)
@@ -195,8 +195,8 @@ function(iscore_generate_command_list_file TheTarget Headers)
         foreach(fileLine ${templateCommands})
             string(REPLACE "\n" "" fileLine "${fileLine}")
             string(REPLACE "\r" "" fileLine "${fileLine}")
-
             string(STRIP ${fileLine} strippedLine)
+
             string(REPLACE "ISCORE_COMMAND_DECL_T(" "" filtered1 ${strippedLine})
             string(REPLACE ")" "" commandName ${filtered1})
             string(STRIP ${commandName} strippedCommandName)
