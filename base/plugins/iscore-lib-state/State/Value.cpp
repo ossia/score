@@ -32,15 +32,10 @@ ValueImpl::ValueImpl(double v) : m_variant{(float)v}
 ValueImpl::ValueImpl(bool v) : m_variant{v}
 {
 }
-ValueImpl::ValueImpl(const QString& v) : m_variant{v.toStdString()}
-{
-}
 ValueImpl::ValueImpl(std::string v) : m_variant{std::move(v)}
 {
 }
-ValueImpl::ValueImpl(QChar v) : m_variant{v.toLatin1()}
-{
-}
+
 ValueImpl::ValueImpl(char v) : m_variant{v}
 {
 }
@@ -82,16 +77,7 @@ ValueImpl& ValueImpl::operator=(bool v)
   m_variant = v;
   return *this;
 }
-ValueImpl& ValueImpl::operator=(const QString& v)
-{
-  m_variant = v.toStdString();
-  return *this;
-}
-ValueImpl& ValueImpl::operator=(QString&& v)
-{
-  m_variant = std::move(v).toStdString();
-  return *this;
-}
+
 ValueImpl& ValueImpl::operator=(const std::string& v)
 {
   m_variant = v;
@@ -102,11 +88,7 @@ ValueImpl& ValueImpl::operator=(std::string&& v)
   m_variant = std::move(v);
   return *this;
 }
-ValueImpl& ValueImpl::operator=(QChar v)
-{
-  m_variant = v.toLatin1();
-  return *this;
-}
+
 ValueImpl& ValueImpl::operator=(char v)
 {
   m_variant = v;
@@ -270,7 +252,7 @@ Value fromOSSIAValue(const ossia::value& val)
     }
     return_type operator()(const std::string& v) const
     {
-      return State::Value::fromValue(QString::fromStdString(v));
+      return State::Value::fromValue(v);
     }
     return_type operator()(ossia::Vec2f v) const
     {
@@ -303,27 +285,27 @@ Value fromOSSIAValue(const ossia::value& val)
   return {};
 }
 
-Unit::Unit() : unit{std::make_unique<ossia::unit_t>()}
+Unit::Unit() noexcept : unit{std::make_unique<ossia::unit_t>()}
 {
 }
 
-Unit::Unit(const Unit& other)
+Unit::Unit(const Unit& other) noexcept
     : unit{std::make_unique<ossia::unit_t>(*other.unit)}
 {
 }
 
-Unit::Unit(Unit&& other) : unit{std::move(other.unit)}
+Unit::Unit(Unit&& other) noexcept : unit{std::move(other.unit)}
 {
   other.unit = std::make_unique<ossia::unit_t>();
 }
 
-Unit& Unit::operator=(const Unit& other)
+Unit& Unit::operator=(const Unit& other) noexcept
 {
   *unit = *other.unit;
   return *this;
 }
 
-Unit& Unit::operator=(Unit&& other)
+Unit& Unit::operator=(Unit&& other) noexcept
 {
   *unit = std::move(*other.unit);
   return *this;
@@ -333,43 +315,43 @@ Unit::~Unit()
 {
 }
 
-Unit::Unit(const ossia::unit_t& other)
+Unit::Unit(const ossia::unit_t& other) noexcept
     : unit{std::make_unique<ossia::unit_t>(other)}
 {
 }
 
-Unit& Unit::operator=(const ossia::unit_t& other)
+Unit& Unit::operator=(const ossia::unit_t& other) noexcept
 {
   *unit = other;
   return *this;
 }
 
-bool Unit::operator==(const Unit& other) const
+bool Unit::operator==(const Unit& other) const noexcept
 {
   return *unit == *other.unit;
 }
 
-bool Unit::operator!=(const Unit& other) const
+bool Unit::operator!=(const Unit& other) const noexcept
 {
   return *unit != *other.unit;
 }
 
-const ossia::unit_t& Unit::get() const
+const ossia::unit_t& Unit::get() const noexcept
 {
   return *unit;
 }
 
-ossia::unit_t& Unit::get()
+ossia::unit_t& Unit::get() noexcept
 {
   return *unit;
 }
 
-Unit::operator const ossia::unit_t&() const
+Unit::operator const ossia::unit_t&() const noexcept
 {
   return *unit;
 }
 
-Unit::operator ossia::unit_t&()
+Unit::operator ossia::unit_t&() noexcept
 {
   return *unit;
 }

@@ -16,24 +16,24 @@ struct ISCORE_LIB_STATE_EXPORT Unit
 {
   Q_GADGET
 public:
-  Unit();
-  Unit(const Unit& other);
-  Unit(Unit&& other);
-  Unit& operator=(const Unit& other);
-  Unit& operator=(Unit&& other);
+  Unit() noexcept;
+  Unit(const Unit& other) noexcept;
+  Unit(Unit&& other) noexcept;
+  Unit& operator=(const Unit& other) noexcept;
+  Unit& operator=(Unit&& other) noexcept;
   ~Unit();
 
-  Unit(const ossia::unit_t&);
-  Unit& operator=(const ossia::unit_t&);
+  Unit(const ossia::unit_t&) noexcept;
+  Unit& operator=(const ossia::unit_t&) noexcept;
 
-  operator const ossia::unit_t&() const;
-  operator ossia::unit_t&();
+  operator const ossia::unit_t&() const noexcept;
+  operator ossia::unit_t&() noexcept;
 
-  bool operator==(const State::Unit& other) const;
-  bool operator!=(const State::Unit& other) const;
+  bool operator==(const State::Unit& other) const noexcept;
+  bool operator!=(const State::Unit& other) const noexcept;
 
-  const ossia::unit_t& get() const;
-  ossia::unit_t& get();
+  const ossia::unit_t& get() const noexcept;
+  ossia::unit_t& get() noexcept;
 
 private:
   std::unique_ptr<ossia::unit_t> unit;

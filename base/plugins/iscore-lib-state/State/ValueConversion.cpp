@@ -292,7 +292,7 @@ static State::ValueImpl fromQJsonValueImpl(const QJsonValue& val)
     case QJsonValue::Type::Double:
       return val.toDouble();
     case QJsonValue::Type::String:
-      return val.toString();
+      return val.toString().toStdString();
     case QJsonValue::Type::Array:
     {
       const auto& arr = val.toArray();
@@ -343,7 +343,7 @@ fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
     case ValueType::Bool:
       return State::ValueImpl{val.toBool()};
     case ValueType::String:
-      return State::ValueImpl{val.toString()};
+      return State::ValueImpl{val.toString().toStdString()};
     case ValueType::Char:
     {
       auto str = val.toString();
@@ -779,6 +779,22 @@ QString value(const State::Value& val)
   return ossia::apply(visitor, val.val.impl());
 }
 
+template<int N, typename Vis>
+std::array<float, N> string_to_vec(const std::string& s, const Vis& visitor)
+{
+  auto v = parseValue(s);
+
+  if (v)
+  {
+    const auto& val = (*v).val;
+
+    if(val.is<tuple_t>())
+      return visitor(val.get<tuple_t>());
+  }
+
+  return {};
+}
+
 template <>
 vec2f value(const State::Value& val)
 {
@@ -805,18 +821,9 @@ vec2f value(const State::Value& val)
     {
       return {{float(b)}};
     }
-    return_type operator()(const QString& s) const
-    {
-      auto v = parseValue(s);
-
-      if (v && v->val.is<tuple_t>())
-        return this->operator()(v->val.get<State::tuple_t>());
-
-      return {};
-    }
     return_type operator()(const std::string& s) const
     {
-      return operator()(QString::fromStdString(s));
+      return string_to_vec<2>(s, *this);
     }
     return_type operator()(QChar c) const
     {
@@ -880,22 +887,10 @@ vec3f value(const State::Value& val)
     {
       return {{float(b)}};
     }
-    return_type operator()(const QString& s) const
-    {
-      auto v = parseValue(s);
 
-      if (v && v->val.is<tuple_t>())
-        return this->operator()(v->val.get<State::tuple_t>());
-
-      return {};
-    }
     return_type operator()(const std::string& s) const
     {
-      return operator()(QString::fromStdString(s));
-    }
-    return_type operator()(QChar c) const
-    {
-      return {};
+      return string_to_vec<3>(s, *this);
     }
     return_type operator()(char c) const
     {
@@ -955,22 +950,9 @@ vec4f value(const State::Value& val)
     {
       return {{float(b)}};
     }
-    return_type operator()(const QString& s) const
-    {
-      auto v = parseValue(s);
-
-      if (v && v->val.is<tuple_t>())
-        return this->operator()(v->val.get<State::tuple_t>());
-
-      return {};
-    }
     return_type operator()(const std::string& s) const
     {
-      return operator()(QString::fromStdString(s));
-    }
-    return_type operator()(QChar c) const
-    {
-      return {};
+      return string_to_vec<4>(s, *this);
     }
     return_type operator()(char c) const
     {
@@ -1030,7 +1012,7 @@ tuple_t value(const State::Value& val)
     {
       return {b};
     }
-    return_type operator()(const QString& s) const
+    return_type operator()(const std::string& s) const
     {
       auto v = parseValue(s);
 
@@ -1038,14 +1020,6 @@ tuple_t value(const State::Value& val)
         return v->val.get<State::tuple_t>();
 
       return {s};
-    }
-    return_type operator()(const std::string& s) const
-    {
-      return operator()(QString::fromStdString(s));
-    }
-    return_type operator()(QChar c) const
-    {
-      return {};
     }
     return_type operator()(char c) const
     {
@@ -1258,11 +1232,11 @@ static State::ValueImpl fromQVariantImpl(const QVariant& val)
     case QMetaType::Bool:
       return State::ValueImpl{val.toBool()};
     case QMetaType::QString:
-      return State::ValueImpl{val.toString()};
+      return State::ValueImpl{val.toString().toStdString()};
     case QMetaType::Char:
-      return State::ValueImpl{(QChar)val.value<char>()};
+      return State::ValueImpl{val.value<char>()};
     case QMetaType::QChar:
-      return State::ValueImpl{val.toChar()};
+      return State::ValueImpl{val.toChar().toLatin1()};
     case QMetaType::QVariantList:
     {
       auto list = val.value<QVariantList>();

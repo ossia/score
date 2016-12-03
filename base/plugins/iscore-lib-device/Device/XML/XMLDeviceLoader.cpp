@@ -33,7 +33,7 @@ static State::Value stringToVal(const QString& str, const QString& type)
   }
   else if (type == "string")
   {
-    val.val = str;
+    val.val = str.toStdString();
     ok = true;
   }
   else

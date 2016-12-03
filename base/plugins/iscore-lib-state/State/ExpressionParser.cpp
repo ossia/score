@@ -260,8 +260,8 @@ struct Value_parser : qi::grammar<Iterator, State::Value()>
   BoolParse_map bool_parser;
 
   qi::rule<Iterator, State::tuple_t()> tuple_parser;
-  qi::rule<Iterator, QChar()> char_parser;
-  qi::rule<Iterator, QString()> str_parser;
+  qi::rule<Iterator, char()> char_parser;
+  qi::rule<Iterator, std::string()> str_parser;
   qi::rule<Iterator, State::Value::value_type()> variant;
   qi::rule<Iterator, State::Value()> start;
 };
@@ -497,9 +497,8 @@ iscore::optional<State::Expression> State::parseExpression(const QString& str)
   }
 }
 
-iscore::optional<State::Value> State::parseValue(const QString& str)
+iscore::optional<State::Value> State::parseValue(const std::string& input)
 {
-  auto input = str.toUtf8().toStdString();
   auto f(std::begin(input)), l(std::end(input));
   Value_parser<decltype(f)> p;
   try

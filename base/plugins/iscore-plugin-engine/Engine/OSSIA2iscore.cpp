@@ -144,9 +144,9 @@ State::Value ToValue(ossia::val_type t)
     case ossia::val_type::BOOL:
       return State::Value::fromValue(bool{});
     case ossia::val_type::CHAR:
-      return State::Value::fromValue(QChar{});
+      return State::Value::fromValue(char{});
     case ossia::val_type::STRING:
-      return State::Value::fromValue(QString{});
+      return State::Value::fromValue(std::string{});
     case ossia::val_type::TUPLE:
       return State::Value::fromValue(State::tuple_t{});
     case ossia::val_type::VEC2F:
