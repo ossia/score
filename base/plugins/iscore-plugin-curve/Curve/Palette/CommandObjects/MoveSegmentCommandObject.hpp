@@ -1,14 +1,15 @@
 #pragma once
-namespace iscore {
+namespace iscore
+{
 class CommandStackFacade;
-}  // namespace iscore
+} // namespace iscore
 // To simplify :
 // Take the current state of the curve
 // Compute the state we have to be in
 // Make a command that sets a new state for the curve.
 
-
-// Will move the segment and potentially the start point of the next segment and the end point of the previous segment.
+// Will move the segment and potentially the start point of the next segment
+// and the end point of the previous segment.
 // Or does the command do this ?
 // How to find the previous - next segments ? They have to be linked...
 // How to prevent overlapping segments ?
@@ -17,18 +18,18 @@ namespace Curve
 {
 class MoveSegmentCommandObject
 {
-    public:
-        explicit MoveSegmentCommandObject(const iscore::CommandStackFacade& stack);
+public:
+  explicit MoveSegmentCommandObject(const iscore::CommandStackFacade& stack);
 
-        void press();
+  void press();
 
-        void move();
+  void move();
 
-        void release();
+  void release();
 
-        void cancel();
+  void cancel();
 
-    private:
-        //SingleOngoingCommandDispatcher m_dispatcher;
+private:
+  // SingleOngoingCommandDispatcher m_dispatcher;
 };
 }

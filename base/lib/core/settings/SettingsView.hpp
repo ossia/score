@@ -8,31 +8,29 @@
 #include <set>
 
 class QWidget;
-namespace iscore {
+namespace iscore
+{
 class SettingsDelegateView;
-}  // namespace iscore
+} // namespace iscore
 
 namespace iscore
 {
-    class SettingsView final : public QDialog
-    {
-            Q_OBJECT
-        public:
-            SettingsView(QWidget* parent);
-            void addSettingsView(SettingsDelegateView* view);
+class SettingsView final : public QDialog
+{
+  Q_OBJECT
+public:
+  SettingsView(QWidget* parent);
+  void addSettingsView(SettingsDelegateView* view);
 
-        private:
-            std::set<SettingsDelegateView*> m_pluginViews;
+private:
+  std::set<SettingsDelegateView*> m_pluginViews;
 
-            QVBoxLayout* m_vertLayout {new QVBoxLayout{}};
-            QHBoxLayout* m_hboxLayout {new QHBoxLayout{}};
-            QListWidget* m_settingsList {new QListWidget{this}};
-            QStackedWidget* m_stackedWidget {new QStackedWidget{this}};
+  QVBoxLayout* m_vertLayout{new QVBoxLayout{}};
+  QHBoxLayout* m_hboxLayout{new QHBoxLayout{}};
+  QListWidget* m_settingsList{new QListWidget{this}};
+  QStackedWidget* m_stackedWidget{new QStackedWidget{this}};
 
-            QDialogButtonBox* m_buttons {new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
-                        this
-                                                                 }
-            };
-
-    };
+  QDialogButtonBox* m_buttons{new QDialogButtonBox{
+      QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this}};
+};
 }

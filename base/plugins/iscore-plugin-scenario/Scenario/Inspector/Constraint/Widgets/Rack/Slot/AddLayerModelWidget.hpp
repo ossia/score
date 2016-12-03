@@ -7,10 +7,9 @@ class SlotInspectorSection;
 
 class AddLayerModelWidget final : public QWidget
 {
-    public:
-        AddLayerModelWidget(SlotInspectorSection* parent);
+public:
+  AddLayerModelWidget(SlotInspectorSection* parent);
 
-    private:
-
+private:
 };
 }

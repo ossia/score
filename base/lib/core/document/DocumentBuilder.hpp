@@ -22,32 +22,29 @@ struct ApplicationContext;
  */
 class ISCORE_LIB_BASE_EXPORT DocumentBuilder
 {
-    public:
-        explicit DocumentBuilder(
-            QObject* parentPresenter,
-            QWidget* parentView);
+public:
+  explicit DocumentBuilder(QObject* parentPresenter, QWidget* parentView);
 
-        Document* newDocument(
-                const iscore::ApplicationContext& ctx,
-                const Id<DocumentModel>& id,
-                iscore::DocumentDelegateFactory& doctype);
-        Document* loadDocument(
-                const iscore::ApplicationContext& ctx,
-                const QVariant &data,
-                iscore::DocumentDelegateFactory& doctype);
-        Document* restoreDocument(
-                const iscore::ApplicationContext& ctx,
-                const QByteArray &docData,
-                const QByteArray &cmdData,
-                iscore::DocumentDelegateFactory& doctype);
+  Document* newDocument(
+      const iscore::ApplicationContext& ctx,
+      const Id<DocumentModel>& id,
+      iscore::DocumentDelegateFactory& doctype);
+  Document* loadDocument(
+      const iscore::ApplicationContext& ctx,
+      const QVariant& data,
+      iscore::DocumentDelegateFactory& doctype);
+  Document* restoreDocument(
+      const iscore::ApplicationContext& ctx,
+      const QByteArray& docData,
+      const QByteArray& cmdData,
+      iscore::DocumentDelegateFactory& doctype);
 
-    private:
-        void setBackupManager(Document* doc);
+private:
+  void setBackupManager(Document* doc);
 
-        QObject* m_parentPresenter{};
-        QWidget* m_parentView{};
+  QObject* m_parentPresenter{};
+  QWidget* m_parentView{};
 
-        DocumentBackupManager* m_backupManager{};
+  DocumentBackupManager* m_backupManager{};
 };
-
 }

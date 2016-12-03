@@ -2,12 +2,14 @@
 
 /**
  * \namespace Inspector
- * \brief Classes used for making and extending the inspector (default right panel).
+ * \brief Classes used for making and extending the inspector (default right
+ * panel).
  *
  * It is split in two :
  * * The library iscore_lib_inspector contains the interface that is used
  *   in other plugins to provide the inspector for each element.
- * * The plug-in iscore_plugin_inspector contains the actual inspector panel definition.
+ * * The plug-in iscore_plugin_inspector contains the actual inspector panel
+ * definition.
  *
  * \see Inspector::InspectorWidgetBase
  */

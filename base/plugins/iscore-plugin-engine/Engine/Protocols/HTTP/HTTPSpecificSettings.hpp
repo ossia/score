@@ -1,6 +1,6 @@
 #pragma once
-#include <QString>
 #include <QMetaType>
+#include <QString>
 
 namespace Engine
 {
@@ -8,7 +8,7 @@ namespace Network
 {
 struct HTTPSpecificSettings
 {
-    QString text;
+  QString text;
 };
 }
 }

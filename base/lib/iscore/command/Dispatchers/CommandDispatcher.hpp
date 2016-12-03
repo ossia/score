@@ -2,7 +2,7 @@
 #include <iscore/command/Dispatchers/ICommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/SendStrategy.hpp>
 
-template<typename SendStrategy = SendStrategy::Simple>
+template <typename SendStrategy = SendStrategy::Simple>
 /**
  * @brief The CommandDispatcher class
  *
@@ -10,26 +10,26 @@ template<typename SendStrategy = SendStrategy::Simple>
  */
 class CommandDispatcher final : public ICommandDispatcher
 {
-    public:
-        template<typename... Args>
-        CommandDispatcher(Args&&... args):
-            ICommandDispatcher{std::forward<Args&&>(args)...}
-        {
-        }
+public:
+  template <typename... Args>
+  CommandDispatcher(Args&&... args)
+      : ICommandDispatcher{std::forward<Args&&>(args)...}
+  {
+  }
 
-        void submitCommand(iscore::SerializableCommand* cmd) const
-        {
-            SendStrategy::send(stack(), cmd);
-        }
+  void submitCommand(iscore::SerializableCommand* cmd) const
+  {
+    SendStrategy::send(stack(), cmd);
+  }
 
-        template<typename T, typename... Args>
-        void submitCommand(Args&&... args) const
-        {
-            SendStrategy::send(stack(), new T{std::forward<Args>(args)...});
-        }
+  template <typename T, typename... Args>
+  void submitCommand(Args&&... args) const
+  {
+    SendStrategy::send(stack(), new T{std::forward<Args>(args)...});
+  }
 
-        void submitCommand(std::unique_ptr<iscore::SerializableCommand> cmd) const
-        {
-            SendStrategy::send(stack(), cmd.release());
-        }
+  void submitCommand(std::unique_ptr<iscore::SerializableCommand> cmd) const
+  {
+    SendStrategy::send(stack(), cmd.release());
+  }
 };

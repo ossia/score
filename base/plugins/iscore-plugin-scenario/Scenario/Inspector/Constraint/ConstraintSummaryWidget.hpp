@@ -14,10 +14,12 @@ namespace Scenario
 class ConstraintModel;
 class ConstraintSummaryWidget : public QWidget
 {
-    public:
-    explicit ConstraintSummaryWidget(const ConstraintModel& object, const iscore::DocumentContext& doc, QWidget *parent = nullptr);
+public:
+  explicit ConstraintSummaryWidget(
+      const ConstraintModel& object, const iscore::DocumentContext& doc,
+      QWidget* parent = nullptr);
 
-    private:
-    std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
+private:
+  std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
 };
 }

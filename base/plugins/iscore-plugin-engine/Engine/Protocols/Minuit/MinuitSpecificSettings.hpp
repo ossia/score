@@ -1,6 +1,6 @@
 #pragma once
-#include <QString>
 #include <QMetaType>
+#include <QString>
 
 namespace Engine
 {
@@ -8,9 +8,9 @@ namespace Network
 {
 struct MinuitSpecificSettings
 {
-    int inputPort{};
-    int outputPort{};
-    QString host;
+  int inputPort{};
+  int outputPort{};
+  QString host;
 };
 }
 }

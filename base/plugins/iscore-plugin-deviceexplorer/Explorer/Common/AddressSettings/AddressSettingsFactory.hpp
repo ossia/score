@@ -2,35 +2,35 @@
 #include <QList>
 #include <QMap>
 #include <QString>
-#include <memory>
 #include <State/Value.hpp>
+#include <memory>
 namespace Explorer
 {
 class AddressSettingsWidget;
 
 class AddressSettingsWidgetFactoryMethod
 {
-    public:
-        virtual ~AddressSettingsWidgetFactoryMethod();
-        virtual AddressSettingsWidget* create() const
-        {
-            return nullptr;
-        }
+public:
+  virtual ~AddressSettingsWidgetFactoryMethod();
+  virtual AddressSettingsWidget* create() const
+  {
+    return nullptr;
+  }
 };
 
 class AddressSettingsFactory
 {
-    public:
-        static AddressSettingsFactory& instance();
+public:
+  static AddressSettingsFactory& instance();
 
-        AddressSettingsWidget* getValueTypeWidget(State::ValueType valueType) const;
+  AddressSettingsWidget* getValueTypeWidget(State::ValueType valueType) const;
 
-    private:
-        AddressSettingsFactory();
+private:
+  AddressSettingsFactory();
 
-        std::map<
-            State::ValueType,
-            std::unique_ptr<AddressSettingsWidgetFactoryMethod>
-        > m_addressSettingsWidgetFactory;
+  std::
+      map<State::ValueType,
+          std::unique_ptr<AddressSettingsWidgetFactoryMethod>>
+          m_addressSettingsWidgetFactory;
 };
 }

@@ -4,46 +4,46 @@
 #pragma GCC system_header
 #pragma clang system_header
 
-///////////////
-#include <QSize>
-#include <QComboBox>
+////////////////
 #include <QAbstractItemModel>
-#include <QMenu>
-#include <QFormLayout>
-#include <QLayout>
-#include <QPen>
-#include <QPointer>
-#include <QIODevice>
-#include <QFlags>
-#include <QMetaType>
-#include <QPair>
 #include <QAction>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QColor>
-#include <QGridLayout>
-#include <QLabel>
 #include <QApplication>
-#include <QPainter>
-#include <QJsonArray>
-#include <QMap>
 #include <QBoxLayout>
-#include <QRect>
-#include <QGraphicsItem>
-#include <QVector>
+#include <QByteArray>
+#include <QColor>
+#include <QComboBox>
 #include <QDataStream>
+#include <QDebug>
+#include <QFlags>
+#include <QFormLayout>
+#include <QGraphicsItem>
+#include <QGridLayout>
+#include <QIODevice>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QLabel>
+#include <QLayout>
+#include <QLineEdit>
+#include <QList>
+#include <QMap>
+#include <QMenu>
+#include <QMetaType>
+#include <QObject>
+#include <QPainter>
+#include <QPair>
+#include <QPen>
+#include <QPoint>
+#include <QPointer>
+#include <QPushButton>
+#include <QRect>
+#include <QSize>
+#include <QString>
 #include <QStringList>
 #include <QVariant>
+#include <QVector>
 #include <QWidget>
 #include <QtGlobal>
-#include <QPoint>
-#include <QDebug>
-#include <QJsonValue>
-#include <QJsonObject>
-#include <QList>
-#include <QByteArray>
-#include <QObject>
-#include <QString>
 
 #include <algorithm>
 #include <array>
@@ -69,12 +69,12 @@
 
 #include <iscore/command/AggregateCommand.hpp>
 
-#include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <iscore/tools/TreeNode.hpp>
-#include <iscore/tools/VariantBasedNode.hpp>
 #include <iscore/tools/TreePath.hpp>
+#include <iscore/tools/VariantBasedNode.hpp>
 
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>

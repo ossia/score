@@ -1,64 +1,62 @@
 #include <QtTest/QtTest>
 
-#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventData.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 
 #include <Scenario/Process/ScenarioModel.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
 
-class MoveEventTest: public QObject
+class MoveEventTest : public QObject
 {
-        Q_OBJECT
-    public:
+  Q_OBJECT
+public:
+private slots:
 
-    private slots:
+  void MoveCommandTest()
+  {
+    Scenario::ProcessModel* scenar = new ScenarioModel(
+        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+    // 1. Create a new event (the first one cannot move since it does not have
+    // predecessors ?)
 
-        void MoveCommandTest()
+    EventData data{};
+    data.dDate.setMSecs(56);
+    data.relativeY = 0.1;
+
+    CreateEvent create_ev_cmd({{"ScenarioModel", {}}}, data);
+
+    create_ev_cmd.redo();
+    auto eventid = create_ev_cmd.m_cmd->m_createdEventId;
+
+    MoveEvent cmd(
         {
-            Scenario::ProcessModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
-            // 1. Create a new event (the first one cannot move since it does not have
-            // predecessors ?)
+            {"ScenarioModel", {}},
+        },
+        eventid,
+        data.dDate,
+        data.relativeY);
 
-            EventData data {};
-            data.dDate.setMSecs(56);
-            data.relativeY = 0.1;
+    cmd.redo();
+    QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);
 
-            CreateEvent create_ev_cmd(
-            {{"ScenarioModel", {}}},
-            data);
+    cmd.undo();
+    QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.5);
 
-            create_ev_cmd.redo();
-            auto eventid = create_ev_cmd.m_cmd->m_createdEventId;
+    cmd.redo();
+    QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);
 
-            MoveEvent cmd(
-            {
-                {"ScenarioModel", {}},
-            }, eventid, data.dDate, data.relativeY);
+    // TODO test an horizontal displacement.
 
-            cmd.redo();
-            QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);
+    // Delete them else they stay in qApp !
 
-            cmd.undo();
-            QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.5);
-
-            cmd.redo();
-            QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);
-
-            // TODO test an horizontal displacement.
-
-            // Delete them else they stay in qApp !
-
-            delete scenar;
-        }
+    delete scenar;
+  }
 };
 
 QTEST_MAIN(MoveEventTest)
 #include "MoveEventTest.moc"
-
-
-

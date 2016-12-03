@@ -1,22 +1,22 @@
 #pragma once
-#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <Device/Address/AddressSettings.hpp>
-#include <State/Widgets/Values/VecWidgets.hpp>
-#include <State/ValueConversion.hpp>
-#include <State/Widgets/Values/NumericValueWidget.hpp>
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <QComboBox>
 #include <QFormLayout>
+#include <State/ValueConversion.hpp>
+#include <State/Widgets/Values/NumericValueWidget.hpp>
+#include <State/Widgets/Values/VecWidgets.hpp>
 
 namespace Explorer
 {
 class AddressTupleSettingsWidget final : public AddressSettingsWidget
 {
-    public:
-        explicit AddressTupleSettingsWidget(QWidget* parent = nullptr);
+public:
+  explicit AddressTupleSettingsWidget(QWidget* parent = nullptr);
 
-        Device::AddressSettings getSettings() const override;
-        void setSettings(const Device::AddressSettings& settings) override;
+  Device::AddressSettings getSettings() const override;
+  void setSettings(const Device::AddressSettings& settings) override;
 
-        Device::AddressSettings getDefaultSettings() const override;
+  Device::AddressSettings getDefaultSettings() const override;
 };
 }

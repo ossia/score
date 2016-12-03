@@ -5,6 +5,9 @@
 const CommandParentFactoryKey& LoopCommandFactoryName();
 
 namespace Loop
-{ class ProcessModel; }
-template<>
-ISCORE_PLUGIN_LOOP_EXPORT const CommandParentFactoryKey& CommandFactoryName<Loop::ProcessModel>();
+{
+class ProcessModel;
+}
+template <>
+ISCORE_PLUGIN_LOOP_EXPORT const CommandParentFactoryKey&
+CommandFactoryName<Loop::ProcessModel>();

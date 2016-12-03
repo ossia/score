@@ -1,8 +1,7 @@
 #pragma once
 
-
-#include <iscore/menu/MenuInterface.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/menu/MenuInterface.hpp>
 
 #include <QAction>
 #include <QToolBar>
@@ -11,7 +10,8 @@
 namespace Process
 {
 class LayerContextMenuManager;
-class ProcessModelFactory; class LayerFactory;
+class ProcessModelFactory;
+class LayerFactory;
 }
 namespace Scenario
 {
@@ -21,22 +21,21 @@ class ConstraintViewModel;
 class AddProcessDialog;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions : public QObject
 {
-    public:
-        ConstraintActions(ScenarioApplicationPlugin* parent);
-        ~ConstraintActions();
+public:
+  ConstraintActions(ScenarioApplicationPlugin* parent);
+  ~ConstraintActions();
 
-        void makeGUIElements(iscore::GUIElements& ref);
-        void setupContextMenu(Process::LayerContextMenuManager& ctxm);
+  void makeGUIElements(iscore::GUIElements& ref);
+  void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
-    private:
-        void addProcessInConstraint(const UuidKey<Process::ProcessModelFactory>&);
+private:
+  void addProcessInConstraint(const UuidKey<Process::ProcessModelFactory>&);
 
-        CommandDispatcher<> dispatcher();
+  CommandDispatcher<> dispatcher();
 
-        ScenarioApplicationPlugin* m_parent{};
-        QAction *m_addProcess{};
-        QAction *m_interp{};
-        QAction* m_curves{};
-
+  ScenarioApplicationPlugin* m_parent{};
+  QAction* m_addProcess{};
+  QAction* m_interp{};
+  QAction* m_curves{};
 };
 }

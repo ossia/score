@@ -1,6 +1,6 @@
 #pragma once
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
 class QLineEdit;
 class QSpinBox;
@@ -10,31 +10,30 @@ namespace Engine
 {
 namespace Network
 {
-class OSCProtocolSettingsWidget final :
-        public Device::ProtocolSettingsWidget
+class OSCProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
-        OSCProtocolSettingsWidget(QWidget* parent = nullptr);
+public:
+  OSCProtocolSettingsWidget(QWidget* parent = nullptr);
 
-        Device::DeviceSettings getSettings() const override;
-        QString getPath() const override;
+  Device::DeviceSettings getSettings() const override;
+  QString getPath() const override;
 
-        void setSettings(const Device::DeviceSettings& settings) override;
+  void setSettings(const Device::DeviceSettings& settings) override;
 
-    protected slots:
-        void openFileDialog();
+protected slots:
+  void openFileDialog();
 
-    protected:
-        void setDefaults();
+protected:
+  void setDefaults();
 
-    protected:
-        QLineEdit* m_deviceNameEdit;
-        QSpinBox* m_portOutputSBox;
-        QSpinBox* m_portInputSBox;
-        QLineEdit* m_localHostEdit;
-        QLineEdit* m_namespaceFilePathEdit;
+protected:
+  QLineEdit* m_deviceNameEdit;
+  QSpinBox* m_portOutputSBox;
+  QSpinBox* m_portInputSBox;
+  QLineEdit* m_localHostEdit;
+  QLineEdit* m_namespaceFilePathEdit;
 };
 }
 }

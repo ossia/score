@@ -4,5 +4,6 @@
 
 namespace Interpolation
 {
-ISCORE_PLUGIN_INTERPOLATION_EXPORT const CommandParentFactoryKey& CommandFactoryName();
+ISCORE_PLUGIN_INTERPOLATION_EXPORT const CommandParentFactoryKey&
+CommandFactoryName();
 }

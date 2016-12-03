@@ -4,245 +4,237 @@
 #include <QFont>
 #include <QGraphicsItem>
 #include <QGraphicsSceneEvent>
-#include <qnamespace.h>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPen>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <qnamespace.h>
 
-#include <iscore/model/Skin.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include "TemporalConstraintPresenter.hpp"
 #include "TemporalConstraintView.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
+#include <iscore/model/Skin.hpp>
 
 class QGraphicsSceneHoverEvent;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
-
 namespace Scenario
 {
 TemporalConstraintView::TemporalConstraintView(
-        TemporalConstraintPresenter &presenter,
-        QGraphicsItem* parent) :
-    ConstraintView {presenter, parent},
-    m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground}
+    TemporalConstraintPresenter& presenter, QGraphicsItem* parent)
+    : ConstraintView{presenter, parent}
+    , m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground}
 {
-    this->setCacheMode(QGraphicsItem::NoCache);
-    this->setParentItem(parent);
-    this->setAcceptDrops(true);
+  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setParentItem(parent);
+  this->setAcceptDrops(true);
 
-    this->setZValue(ZPos::Constraint);
+  this->setZValue(ZPos::Constraint);
 }
 
-
-
 void TemporalConstraintView::paint(
-        QPainter* p,
-        const QStyleOptionGraphicsItem*,
-        QWidget*)
+    QPainter* p, const QStyleOptionGraphicsItem*, QWidget*)
 {
-    QPainterPath solidPath, dashedPath, playedPath;
-    auto& painter = *p;
-    painter.setRenderHint(QPainter::Antialiasing, false);
-    auto& skin = ScenarioStyle::instance();
+  QPainterPath solidPath, dashedPath, playedPath;
+  auto& painter = *p;
+  painter.setRenderHint(QPainter::Antialiasing, false);
+  auto& skin = ScenarioStyle::instance();
 
-    const qreal min_w = minWidth();
-    const qreal max_w = maxWidth();
-    const qreal def_w = defaultWidth();
-    const qreal play_w = playWidth();
+  const qreal min_w = minWidth();
+  const qreal max_w = maxWidth();
+  const qreal def_w = defaultWidth();
+  const qreal play_w = playWidth();
 
-    // Draw the stuff present if there is a rack *in the model* ?
-    if(presenter().rack())
+  // Draw the stuff present if there is a rack *in the model* ?
+  if (presenter().rack())
+  {
+    // Background
+    auto rect = boundingRect();
+    rect.adjust(0, 4, 0, -10);
+    rect.setWidth(def_w);
+
+    QColor bgColor = m_bgColor.getColor();
+    bgColor.setAlpha(m_hasFocus ? 84 : 76);
+    painter.fillRect(rect, bgColor);
+
+    // Fake timenode continuation
+    skin.ConstraintRackPen.setColor(skin.RackSideBorder.getColor());
+    painter.setPen(skin.ConstraintRackPen);
+    painter.drawLine(rect.topLeft(), rect.bottomLeft());
+    painter.drawLine(rect.topRight(), rect.bottomRight());
+  }
+
+  // Paths
+  if (infinite())
+  {
+    if (min_w != 0.)
     {
-        // Background
-        auto rect = boundingRect();
-        rect.adjust(0,4,0,-10);
-        rect.setWidth(def_w);
-
-        QColor bgColor = m_bgColor.getColor();
-        bgColor.setAlpha(m_hasFocus ? 84 : 76);
-        painter.fillRect(rect, bgColor);
-
-        // Fake timenode continuation
-        skin.ConstraintRackPen.setColor(skin.RackSideBorder.getColor());
-        painter.setPen(skin.ConstraintRackPen);
-        painter.drawLine(rect.topLeft(), rect.bottomLeft());
-        painter.drawLine(rect.topRight(), rect.bottomRight());
+      solidPath.lineTo(min_w, 0);
     }
 
-    // Paths
-    if(infinite())
+    // TODO end state should be hidden
+    dashedPath.moveTo(min_w, 0);
+    dashedPath.lineTo(def_w, 0);
+  }
+  else if (min_w == max_w) // TODO rigid()
+  {
+    solidPath.lineTo(def_w, 0);
+  }
+  else
+  {
+    if (min_w != 0.)
     {
-        if(min_w != 0.)
-        {
-            solidPath.lineTo(min_w, 0);
-        }
-
-        // TODO end state should be hidden
-        dashedPath.moveTo(min_w, 0);
-        dashedPath.lineTo(def_w, 0);
-    }
-    else if(min_w == max_w) // TODO rigid()
-    {
-        solidPath.lineTo(def_w, 0);
-    }
-    else
-    {
-        if(min_w != 0.)
-        {
-            solidPath.lineTo(min_w, 0);
-        }
-
-        dashedPath.moveTo(min_w, 0);
-        dashedPath.lineTo(max_w, 0);
+      solidPath.lineTo(min_w, 0);
     }
 
-    if(play_w != 0.)
-    {
-        playedPath.lineTo(std::min(play_w, std::max(def_w, max_w)), 0);
-    }
+    dashedPath.moveTo(min_w, 0);
+    dashedPath.lineTo(max_w, 0);
+  }
 
-    // Colors
-    QColor constraintColor;
-    // TODO make a switch instead
-    if(isSelected())
-    {
-        constraintColor = skin.ConstraintSelected.getColor();
-    }
-    else if(warning())
-    {
-        constraintColor = skin.ConstraintWarning.getColor();
-    }
-    else
-    {
-        constraintColor = skin.ConstraintBase.getColor();
-    }
-    if(! isValid() || m_state == ConstraintExecutionState::Disabled)
-    {
-        constraintColor = skin.ConstraintInvalid.getColor();
-    }
+  if (play_w != 0.)
+  {
+    playedPath.lineTo(std::min(play_w, std::max(def_w, max_w)), 0);
+  }
 
-    if(m_shadow)
-        constraintColor = constraintColor.lighter();
+  // Colors
+  QColor constraintColor;
+  // TODO make a switch instead
+  if (isSelected())
+  {
+    constraintColor = skin.ConstraintSelected.getColor();
+  }
+  else if (warning())
+  {
+    constraintColor = skin.ConstraintWarning.getColor();
+  }
+  else
+  {
+    constraintColor = skin.ConstraintBase.getColor();
+  }
+  if (!isValid() || m_state == ConstraintExecutionState::Disabled)
+  {
+    constraintColor = skin.ConstraintInvalid.getColor();
+  }
 
+  if (m_shadow)
+    constraintColor = constraintColor.lighter();
 
-    skin.ConstraintSolidPen.setColor(constraintColor);
-    skin.ConstraintDashPen.setColor(constraintColor);
+  skin.ConstraintSolidPen.setColor(constraintColor);
+  skin.ConstraintDashPen.setColor(constraintColor);
 
-    // Drawing
-    if(!solidPath.isEmpty())
-    {
-        painter.setPen(skin.ConstraintSolidPen);
-        painter.drawPath(solidPath);
-    }
+  // Drawing
+  if (!solidPath.isEmpty())
+  {
+    painter.setPen(skin.ConstraintSolidPen);
+    painter.drawPath(solidPath);
+  }
 
-    if(!dashedPath.isEmpty())
-    {
-        painter.setPen(skin.ConstraintDashPen);
-        painter.drawPath(dashedPath);
-    }
+  if (!dashedPath.isEmpty())
+  {
+    painter.setPen(skin.ConstraintDashPen);
+    painter.drawPath(dashedPath);
+  }
 
-    if(!playedPath.isEmpty())
-    {
-        skin.ConstraintPlayPen.setColor(skin.ConstraintPlayFill.getColor());
-        painter.setPen(skin.ConstraintPlayPen);
-        painter.drawPath(playedPath);
-    }
+  if (!playedPath.isEmpty())
+  {
+    skin.ConstraintPlayPen.setColor(skin.ConstraintPlayFill.getColor());
+    painter.setPen(skin.ConstraintPlayPen);
+    painter.drawPath(playedPath);
+  }
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
-    painter.setPen(Qt::darkRed);
-    painter.setBrush(Qt::NoBrush);
-    painter.drawRect(boundingRect());
+  painter.setPen(Qt::darkRed);
+  painter.setBrush(Qt::NoBrush);
+  painter.drawRect(boundingRect());
 #endif
 }
 
-void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)
+void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
-    QGraphicsItem::hoverEnterEvent(h);
-    m_shadow = true;
-    update();
-    emit constraintHoverEnter();
+  QGraphicsItem::hoverEnterEvent(h);
+  m_shadow = true;
+  update();
+  emit constraintHoverEnter();
 }
 
-void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
+void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
-    QGraphicsItem::hoverLeaveEvent(h);
-    m_shadow = false;
-    update();
-    emit constraintHoverLeave();
+  QGraphicsItem::hoverLeaveEvent(h);
+  m_shadow = false;
+  update();
+  emit constraintHoverLeave();
 }
 
 void TemporalConstraintView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-    QGraphicsItem::dragEnterEvent(event);
-    m_shadow = true;
-    update();
-    event->accept();
-
+  QGraphicsItem::dragEnterEvent(event);
+  m_shadow = true;
+  update();
+  event->accept();
 }
 
 void TemporalConstraintView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
-    QGraphicsItem::dragLeaveEvent(event);
-    m_shadow = false;
-    update();
-    event->accept();
+  QGraphicsItem::dragLeaveEvent(event);
+  m_shadow = false;
+  update();
+  event->accept();
 }
 
-void TemporalConstraintView::dropEvent(QGraphicsSceneDragDropEvent *event)
+void TemporalConstraintView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-    emit dropReceived(event->pos(), event->mimeData());
+  emit dropReceived(event->pos(), event->mimeData());
 
-    event->accept();
+  event->accept();
 }
 
-void TemporalConstraintView::setLabel(const QString &label)
+void TemporalConstraintView::setLabel(const QString& label)
 {
-    m_labelItem->setText(label);
-    updateLabelPos();
+  m_labelItem->setText(label);
+  updateLabelPos();
 }
 
 void TemporalConstraintView::setExecutionState(ConstraintExecutionState s)
 {
-    m_state = s;
-    update();
+  m_state = s;
+  update();
 }
 
 void TemporalConstraintView::setExecutionDuration(const TimeValue& progress)
 {
-    // FIXME this should be merged with the slot in ConstraintPresenter!!!
-    // Also make a setting to disable it since it may take a lot of time
-    if(!qFuzzyCompare(progress.msec(), 0))
-    {
-        if(!m_counterItem->isVisible())
-            m_counterItem->setVisible(true);
-        updateCounterPos();
+  // FIXME this should be merged with the slot in ConstraintPresenter!!!
+  // Also make a setting to disable it since it may take a lot of time
+  if (!qFuzzyCompare(progress.msec(), 0))
+  {
+    if (!m_counterItem->isVisible())
+      m_counterItem->setVisible(true);
+    updateCounterPos();
 
-        m_counterItem->setText(progress.toString());
-    }
-    else
-    {
-        m_counterItem->setVisible(false);
-    }
-    update();
+    m_counterItem->setText(progress.toString());
+  }
+  else
+  {
+    m_counterItem->setVisible(false);
+  }
+  update();
 }
 
 void TemporalConstraintView::setLabelColor(iscore::ColorRef labelColor)
 {
-    m_labelItem->setColor(labelColor);
-    update();
+  m_labelItem->setColor(labelColor);
+  update();
 }
 
 bool TemporalConstraintView::shadow() const
 {
-    return m_shadow;
+  return m_shadow;
 }
 
 void TemporalConstraintView::setShadow(bool shadow)
 {
-    m_shadow = shadow;
-    update();
+  m_shadow = shadow;
+  update();
 }
 }

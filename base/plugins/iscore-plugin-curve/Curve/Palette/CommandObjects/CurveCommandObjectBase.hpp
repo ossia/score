@@ -1,11 +1,11 @@
 #pragma once
-#include <iscore/tools/std/Optional.hpp>
-#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QByteArray>
 #include <QPoint>
 #include <QVector>
 #include <algorithm>
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <vector>
 
 #include <Curve/Segment/CurveSegmentData.hpp>
@@ -13,9 +13,10 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_curve_export.h>
 
-namespace iscore {
+namespace iscore
+{
 class CommandStackFacade;
-}  // namespace iscore
+} // namespace iscore
 
 /*
 concept CommandObject
@@ -44,57 +45,57 @@ class SegmentModel;
 
 class ISCORE_PLUGIN_CURVE_EXPORT CommandObjectBase
 {
-    public:
-        CommandObjectBase(Presenter* pres, const iscore::CommandStackFacade&);
-        virtual ~CommandObjectBase();
+public:
+  CommandObjectBase(Presenter* pres, const iscore::CommandStackFacade&);
+  virtual ~CommandObjectBase();
 
-        void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
-        void press();
+  void setCurveState(Curve::StateBase* stateBase)
+  {
+    m_state = stateBase;
+  }
+  void press();
 
+  void handleLocking();
 
-        void handleLocking();
+  // Creates and pushes an UpdateCurve command
+  // from a vector of segments.
+  // They are removed afterwards
+  void submit(std::vector<SegmentData>&&);
 
-        // Creates and pushes an UpdateCurve command
-        // from a vector of segments.
-        // They are removed afterwards
-        void submit(std::vector<SegmentData>&&);
+protected:
+  auto
+  find(std::vector<SegmentData>& segments, const OptionalId<SegmentModel>& id)
+  {
+    return std::find_if(
+        segments.begin(), segments.end(), [&](const auto& seg) {
+          return seg.id == id;
+        });
+  }
+  auto find(
+      const std::vector<SegmentData>& segments,
+      const OptionalId<SegmentModel>& id)
+  {
+    return std::find_if(
+        segments.cbegin(), segments.cend(), [&](const auto& seg) {
+          return seg.id == id;
+        });
+  }
 
-    protected:
+  virtual void on_press() = 0;
 
-        auto find(
-                std::vector<SegmentData>& segments,
-                const OptionalId<SegmentModel>& id)
-        {
-            return std::find_if(
-                        segments.begin(),
-                        segments.end(),
-                        [&] (const auto& seg) { return seg.id == id; });
-        }
-        auto find(
-                const std::vector<SegmentData>& segments,
-                const OptionalId<SegmentModel>& id)
-        {
-            return std::find_if(
-                        segments.cbegin(),
-                        segments.cend(),
-                        [&] (const auto& seg) { return seg.id == id; });
-        }
+  QVector<QByteArray> m_oldCurveData;
+  QPointF m_originalPress; // Note : there should be only one per curve...
 
-        virtual void on_press() = 0;
+  Presenter* m_presenter{};
 
-        QVector<QByteArray> m_oldCurveData;
-        QPointF m_originalPress; // Note : there should be only one per curve...
+  Curve::StateBase* m_state{};
 
-        Presenter* m_presenter{};
+  SingleOngoingCommandDispatcher<UpdateCurve> m_dispatcher;
+  Path<Model> m_modelPath;
 
-        Curve::StateBase* m_state{};
+  std::vector<SegmentData> m_startSegments;
 
-        SingleOngoingCommandDispatcher<UpdateCurve> m_dispatcher;
-        Path<Model> m_modelPath;
-
-        std::vector<SegmentData> m_startSegments;
-
-        // To prevent behind locked at 0.000001 or 0.9999
-        double m_xmin{-1}, m_xmax{2}, m_xLastPoint{2};
+  // To prevent behind locked at 0.000001 or 0.9999
+  double m_xmin{-1}, m_xmax{2}, m_xLastPoint{2};
 };
 }

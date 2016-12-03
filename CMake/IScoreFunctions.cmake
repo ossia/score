@@ -58,7 +58,6 @@ function(iscore_add_component Name Sources Headers Dependencies Version Uuid)
   endif()
 endfunction()
 
-
 function(iscore_parse_components TargetName Headers)
   # Initialize our lists
   set(ComponentAbstractFactoryList)
@@ -67,16 +66,15 @@ function(iscore_parse_components TargetName Headers)
 
   # First look for the ISCORE_CONCRETE_COMPONENT_FACTORY(...) ones
   foreach(header ${Headers})
-      file(STRINGS "${header}" fileContent REGEX "ISCORE_CONCRETE_COMPONENT_FACTORY\\(")
-
-      # If there are matching strings, we add the file to our include list
-      list(LENGTH fileContent matchingLines)
-      if(${matchingLines} GREATER 0)
-          list(APPEND ComponentFactoryFileList "${header}")
-      endif()
+      file(READ "${header}" fileContent)
+      string(REGEX MATCHALL "ISCORE_CONCRETE_COMPONENT_FACTORY\\([A-Za-z_0-9\,\:\r\n\t ]*\\)" fileContent "${fileContent}")
 
       foreach(fileLine ${fileContent})
-          string(STRIP ${fileLine} strippedLine)
+          string(REPLACE "\n" "" fileLine "${fileLine}")
+          string(REPLACE "\r" "" fileLine "${fileLine}")
+
+          string(STRIP "${fileLine}" strippedLine)
+
           string(REPLACE "ISCORE_CONCRETE_COMPONENT_FACTORY(" "" strippedLine ${strippedLine})
           string(REPLACE ")" "" strippedLine ${strippedLine})
           string(REPLACE "," ";" lineAsList ${strippedLine})
@@ -90,6 +88,13 @@ function(iscore_parse_components TargetName Headers)
           # second contains its abstract parent class. Then we iterate on the list to add
           # the childs to the parent correctly in the generated code.
       endforeach()
+
+      # If there are matching strings, we add the file to our include list
+      list(LENGTH fileContent matchingLines)
+      if(${matchingLines} GREATER 0)
+          list(APPEND ComponentFactoryFileList "${header}")
+      endif()
+
   endforeach()
 
   set_property(GLOBAL PROPERTY ISCORE_${TargetName}_AbstractFactoryList ${ComponentAbstractFactoryList})
@@ -162,38 +167,48 @@ function(iscore_generate_command_list_file TheTarget Headers)
 
     # First look for the ISCORE_COMMAND_DECL(...) ones
     foreach(sourceFile ${Headers})
-        file(STRINGS "${sourceFile}" fileContent REGEX "ISCORE_COMMAND_DECL\\(")
+        file(READ "${sourceFile}" fileContent)
+        string(REGEX MATCHALL "ISCORE_COMMAND_DECL\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\(\\)[A-Za-z_0-9\,\"\:<>\r\n\t ]*\\)"
+               defaultCommands "${fileContent}")
 
-        # If there are matching strings, we add the file to our include list
-        list(LENGTH fileContent matchingLines)
-        if(${matchingLines} GREATER 0)
-            list(APPEND commandFileList "${sourceFile}")
-        endif()
+        foreach(fileLine ${defaultCommands})
+            string(REPLACE "\n" "" fileLine "${fileLine}")
+            string(REPLACE "\r" "" fileLine "${fileLine}")
 
-        foreach(fileLine ${fileContent})
             string(STRIP ${fileLine} strippedLine)
             string(REPLACE "," ";" lineAsList ${strippedLine})
             list(GET lineAsList 1 commandName)
             string(STRIP ${commandName} strippedCommandName)
             list(APPEND commandNameList "${strippedCommandName}")
         endforeach()
-    endforeach()
 
-    # Then look for the ISCORE_COMMAND_DECL_T(...) ones
-    foreach(sourceFile ${Headers})
-        file(STRINGS ${sourceFile} fileContent REGEX "ISCORE_COMMAND_DECL_T\\(")
-
-        list(LENGTH fileContent matchingLines)
+        # If there are matching strings, we add the file to our include list
+        list(LENGTH defaultCommands matchingLines)
         if(${matchingLines} GREATER 0)
             list(APPEND commandFileList "${sourceFile}")
         endif()
 
-        foreach(fileLine ${fileContent})
+
+        # Then look for the ISCORE_COMMAND_DECL_T(...) ones
+        string(REGEX MATCHALL "ISCORE_COMMAND_DECL_T\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\)"
+               templateCommands "${fileContent}")
+        foreach(fileLine ${templateCommands})
+            string(REPLACE "\n" "" fileLine "${fileLine}")
+            string(REPLACE "\r" "" fileLine "${fileLine}")
+
             string(STRIP ${fileLine} strippedLine)
             string(REPLACE "ISCORE_COMMAND_DECL_T(" "" filtered1 ${strippedLine})
-            string(REPLACE ")" "" strippedCommandName ${filtered1})
+            string(REPLACE ")" "" commandName ${filtered1})
+            string(STRIP ${commandName} strippedCommandName)
+
             list(APPEND commandNameList "${strippedCommandName}")
         endforeach()
+
+        list(LENGTH templateCommands matchingLines)
+        if(${matchingLines} GREATER 0)
+            list(APPEND commandFileList "${sourceFile}")
+        endif()
+
     endforeach()
 
     # Generate a file with the list of includes

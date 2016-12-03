@@ -1,7 +1,7 @@
 #pragma once
-#include <iscore/tools/ObjectPath.hpp>
 #include <QByteArray>
 #include <QObject>
+#include <iscore/tools/ObjectPath.hpp>
 #include <vector>
 
 namespace iscore
@@ -17,26 +17,26 @@ namespace iscore
  */
 class ISCORE_LIB_BASE_EXPORT ObjectLocker : public QObject
 {
-        Q_OBJECT
-    public:
-        explicit ObjectLocker(QObject* parent);
+  Q_OBJECT
+public:
+  explicit ObjectLocker(QObject* parent);
 
-    signals:
-        // To the network
-        void lock(QByteArray);
-        void unlock(QByteArray);
+signals:
+  // To the network
+  void lock(QByteArray);
+  void unlock(QByteArray);
 
-    public slots:
-        // From the network
-        void on_lock(QByteArray);
-        void on_unlock(QByteArray);
+public slots:
+  // From the network
+  void on_lock(QByteArray);
+  void on_unlock(QByteArray);
 
-    private:
-        // In the commands
-        void lock_impl();
-        void unlock_impl();
+private:
+  // In the commands
+  void lock_impl();
+  void unlock_impl();
 
-        std::vector<ObjectPath> m_lockedObjects;
+  std::vector<ObjectPath> m_lockedObjects;
 };
 
 /**
@@ -47,23 +47,21 @@ class ISCORE_LIB_BASE_EXPORT ObjectLocker : public QObject
  */
 class LockHelper
 {
-    public:
-        LockHelper(QObject& model, ObjectLocker& locker);
+public:
+  LockHelper(QObject& model, ObjectLocker& locker);
 
-        LockHelper(ObjectPath&& path, ObjectLocker& locker);
+  LockHelper(ObjectPath&& path, ObjectLocker& locker);
 
-        ~LockHelper();
+  ~LockHelper();
 
-        void lock();
+  void lock();
 
-        void unlock();
+  void unlock();
 
-    private:
-        ObjectPath m_path;
-        QByteArray m_serializedPath;
-        ObjectLocker& m_locker;
-        bool m_locked{false};
-
+private:
+  ObjectPath m_path;
+  QByteArray m_serializedPath;
+  ObjectLocker& m_locker;
+  bool m_locked{false};
 };
-
 }

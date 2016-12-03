@@ -6,12 +6,11 @@ namespace iscore
 class SerializableCommand;
 struct ISCORE_LIB_BASE_EXPORT CommandData
 {
-        CommandData() = default;
-        explicit CommandData(const iscore::SerializableCommand& cmd);
+  CommandData() = default;
+  explicit CommandData(const iscore::SerializableCommand& cmd);
 
-        CommandParentFactoryKey parentKey;
-        CommandFactoryKey commandKey;
-        QByteArray data;
+  CommandParentFactoryKey parentKey;
+  CommandFactoryKey commandKey;
+  QByteArray data;
 };
-
 }

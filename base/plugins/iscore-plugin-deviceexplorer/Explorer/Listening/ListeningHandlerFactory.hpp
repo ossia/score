@@ -9,16 +9,16 @@ struct DocumentContext;
 namespace Explorer
 {
 class DeviceDocumentPlugin;
-class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactory :
-        public iscore::AbstractFactory<ListeningHandlerFactory>
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactory
+    : public iscore::AbstractFactory<ListeningHandlerFactory>
 {
-        ISCORE_ABSTRACT_FACTORY("42828393-b8de-45a6-b79f-811eea2e1a40")
+  ISCORE_ABSTRACT_FACTORY("42828393-b8de-45a6-b79f-811eea2e1a40")
 
-    public:
-        virtual ~ListeningHandlerFactory();
+public:
+  virtual ~ListeningHandlerFactory();
 
-        virtual std::unique_ptr<Explorer::ListeningHandler> make(
-                const DeviceDocumentPlugin& plug,
-                const iscore::DocumentContext& ctx) = 0;
+  virtual std::unique_ptr<Explorer::ListeningHandler>
+  make(const DeviceDocumentPlugin& plug, const iscore::DocumentContext& ctx)
+      = 0;
 };
 }

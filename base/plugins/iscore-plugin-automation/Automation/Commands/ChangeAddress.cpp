@@ -4,89 +4,82 @@
 #include <QStringList>
 #include <algorithm>
 
-#include <Automation/AutomationModel.hpp>
 #include "ChangeAddress.hpp"
+#include <ossia/editor/value/value_conversion.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/Domain.hpp>
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
-#include <Curve/Point/CurvePointModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/TreeNode.hpp>
-#include <ossia/editor/value/value_conversion.hpp>
 
-#include <ossia/network/domain/domain.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/domain/domain.hpp>
 
 namespace Automation
 {
 ChangeAddress::ChangeAddress(
-        const ProcessModel& autom,
-        const State::AddressAccessor &newval):
-    m_path{autom},
-    m_old{autom.address(),
-          autom.min(),
-          autom.max()},
-    m_new(Explorer::makeFullAddressAccessorSettings(
-              newval,
-              iscore::IDocument::documentContext(autom), 0., 1.))
+    const ProcessModel& autom, const State::AddressAccessor& newval)
+    : m_path{autom}
+    , m_old{autom.address(), autom.min(), autom.max()}
+    , m_new(Explorer::makeFullAddressAccessorSettings(
+          newval, iscore::IDocument::documentContext(autom), 0., 1.))
 {
 }
 
 ChangeAddress::ChangeAddress(
-        const ProcessModel& autom,
-        const Device::FullAddressSettings& newval):
-    m_path{autom}
+    const ProcessModel& autom, const Device::FullAddressSettings& newval)
+    : m_path{autom}
 {
-    m_new.address = newval.address;
-    m_new.domain = newval.domain;
-    m_new.address.qualifiers.get().unit = newval.unit;
+  m_new.address = newval.address;
+  m_new.domain = newval.domain;
+  m_new.address.qualifiers.get().unit = newval.unit;
 
-    m_old.address = autom.address();
-    m_old.domain = ossia::net::make_domain(autom.min(), autom.max());
+  m_old.address = autom.address();
+  m_old.domain = ossia::net::make_domain(autom.min(), autom.max());
 }
-
 
 void ChangeAddress::undo() const
 {
-    auto& autom = m_path.find();
+  auto& autom = m_path.find();
 
-    {
-        //QSignalBlocker blck{autom.curve()};
-        auto& dom = m_old.domain.get();
-        autom.setMin(dom.convert_min<double>());
-        autom.setMax(dom.convert_max<double>());
+  {
+    // QSignalBlocker blck{autom.curve()};
+    auto& dom = m_old.domain.get();
+    autom.setMin(dom.convert_min<double>());
+    autom.setMax(dom.convert_max<double>());
 
-        autom.setAddress(m_old.address);
-    }
-    // autom.curve().changed();
-
+    autom.setAddress(m_old.address);
+  }
+  // autom.curve().changed();
 }
 
 void ChangeAddress::redo() const
 {
-    auto& autom = m_path.find();
+  auto& autom = m_path.find();
 
-    {
-        //QSignalBlocker blck{autom.curve()};
-        auto& dom = m_new.domain.get();
-        autom.setMin(dom.convert_min<double>());
-        autom.setMax(dom.convert_max<double>());
-        autom.setAddress(m_new.address);
-    }
-    // autom.curve().changed();
+  {
+    // QSignalBlocker blck{autom.curve()};
+    auto& dom = m_new.domain.get();
+    autom.setMin(dom.convert_min<double>());
+    autom.setMax(dom.convert_max<double>());
+    autom.setAddress(m_new.address);
+  }
+  // autom.curve().changed();
 }
 
-void ChangeAddress::serializeImpl(DataStreamInput & s) const
+void ChangeAddress::serializeImpl(DataStreamInput& s) const
 {
-    s << m_path << m_old << m_new;
+  s << m_path << m_old << m_new;
 }
 
-void ChangeAddress::deserializeImpl(DataStreamOutput & s)
+void ChangeAddress::deserializeImpl(DataStreamOutput& s)
 {
-    s >> m_path >> m_old >> m_new;
+  s >> m_path >> m_old >> m_new;
 }
 }

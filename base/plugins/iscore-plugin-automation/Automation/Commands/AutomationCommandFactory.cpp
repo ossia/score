@@ -3,8 +3,9 @@
 
 namespace Automation
 {
-const CommandParentFactoryKey& CommandFactoryName() {
-    static const CommandParentFactoryKey key{"Automation"};
-    return key;
+const CommandParentFactoryKey& CommandFactoryName()
+{
+  static const CommandParentFactoryKey key{"Automation"};
+  return key;
 }
 }

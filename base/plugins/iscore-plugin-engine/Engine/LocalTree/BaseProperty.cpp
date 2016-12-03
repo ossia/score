@@ -1,6 +1,5 @@
 #include "BaseProperty.hpp"
 
-
 namespace Engine
 {
 namespace LocalTree

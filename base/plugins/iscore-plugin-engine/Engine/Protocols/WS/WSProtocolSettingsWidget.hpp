@@ -12,24 +12,22 @@ namespace Engine
 {
 namespace Network
 {
-class WSProtocolSettingsWidget :
-        public Device::ProtocolSettingsWidget
+class WSProtocolSettingsWidget : public Device::ProtocolSettingsWidget
 {
-    public:
-        WSProtocolSettingsWidget(QWidget* parent = nullptr);
+public:
+  WSProtocolSettingsWidget(QWidget* parent = nullptr);
 
-        Device::DeviceSettings getSettings() const override;
+  Device::DeviceSettings getSettings() const override;
 
-        void setSettings(const Device::DeviceSettings& settings) override;
+  void setSettings(const Device::DeviceSettings& settings) override;
 
-    protected:
-        void setDefaults();
+protected:
+  void setDefaults();
 
-    protected:
-        QLineEdit* m_deviceNameEdit{};
-        QLineEdit* m_addressNameEdit{};
-        JSEdit* m_codeEdit{};
-
+protected:
+  QLineEdit* m_deviceNameEdit{};
+  QLineEdit* m_addressNameEdit{};
+  JSEdit* m_codeEdit{};
 };
 }
 }

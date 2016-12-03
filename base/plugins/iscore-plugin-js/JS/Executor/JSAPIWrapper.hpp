@@ -1,13 +1,13 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <State/Message.hpp>
-#include <eggs/variant/variant.hpp>
 #include <QChar>
+#include <QObject>
+#include <QString>
 #include <QtQml/QJSEngine>
 #include <QtQml/QJSValue>
 #include <QtQml/QJSValueIterator>
-#include <QObject>
-#include <QString>
+#include <State/Message.hpp>
+#include <eggs/variant/variant.hpp>
 
 #include <State/Address.hpp>
 #include <State/Value.hpp>
@@ -25,48 +25,36 @@ namespace convert
 {
 QJSValue makeImpulse(QJSEngine& engine);
 
-QJSValue value(
-        QJSEngine& engine,
-        const State::Value& val);
+QJSValue value(QJSEngine& engine, const State::Value& val);
 
 QJSValue address(const State::AddressAccessor& val);
 
-QJSValue message(
-        QJSEngine& engine,
-        const State::Message& mess);
+QJSValue message(QJSEngine& engine, const State::Message& mess);
 
 QJSValue time(const TimeValue& val);
 
 // TODO vector instead of MessageList.
-QJSValue messages(
-        QJSEngine& engine,
-        const State::MessageList& messages);
+QJSValue messages(QJSEngine& engine, const State::MessageList& messages);
 
 State::ValueImpl value(const QJSValue& val);
 State::Message message(const QJSValue& val);
 State::MessageList messages(const QJSValue& val);
-
 }
 
 class APIWrapper : public QObject
 {
-        Q_OBJECT
-    public:
-        APIWrapper(
-                QJSEngine& engine,
-                const Explorer::DeviceDocumentPlugin& devs):
-            m_engine{engine},
-            devices{devs}
-        {
+  Q_OBJECT
+public:
+  APIWrapper(QJSEngine& engine, const Explorer::DeviceDocumentPlugin& devs)
+      : m_engine{engine}, devices{devs}
+  {
+  }
 
-        }
+public slots:
+  QJSValue value(QJSValue address);
 
-    public slots:
-        QJSValue value(QJSValue address);
-
-    private:
-        QJSEngine& m_engine;
-        const Explorer::DeviceDocumentPlugin& devices;
-
+private:
+  QJSEngine& m_engine;
+  const Explorer::DeviceDocumentPlugin& devices;
 };
 }

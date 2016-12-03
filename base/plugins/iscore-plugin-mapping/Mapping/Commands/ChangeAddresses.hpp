@@ -6,52 +6,52 @@
 
 struct DataStreamInput;
 struct DataStreamOutput;
-namespace State {
+namespace State
+{
 struct Address;
-}  // namespace iscore
+} // namespace iscore
 
 namespace Mapping
 {
 class ProcessModel;
 class ChangeSourceAddress final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(MappingCommandFactoryName(), ChangeSourceAddress, "ChangeSourceAddress")
-    public:
-        ChangeSourceAddress(
-                const ProcessModel&,
-                const State::AddressAccessor& newval);
+  ISCORE_COMMAND_DECL(
+      MappingCommandFactoryName(), ChangeSourceAddress, "ChangeSourceAddress")
+public:
+  ChangeSourceAddress(
+      const ProcessModel&, const State::AddressAccessor& newval);
 
-    public:
-        void undo() const override;
-        void redo() const override;
+public:
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput &) const override;
-        void deserializeImpl(DataStreamOutput &) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<ProcessModel> m_path;
-        Device::FullAddressAccessorSettings m_old, m_new;
+private:
+  Path<ProcessModel> m_path;
+  Device::FullAddressAccessorSettings m_old, m_new;
 };
 
 class ChangeTargetAddress final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(MappingCommandFactoryName(), ChangeTargetAddress, "ChangeTargetAddress")
-    public:
-        ChangeTargetAddress(
-                const ProcessModel&,
-                const State::AddressAccessor&);
+  ISCORE_COMMAND_DECL(
+      MappingCommandFactoryName(), ChangeTargetAddress, "ChangeTargetAddress")
+public:
+  ChangeTargetAddress(const ProcessModel&, const State::AddressAccessor&);
 
-    public:
-        void undo() const override;
-        void redo() const override;
+public:
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput &) const override;
-        void deserializeImpl(DataStreamOutput &) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<ProcessModel> m_path;
-        Device::FullAddressAccessorSettings m_old, m_new;
+private:
+  Path<ProcessModel> m_path;
+  Device::FullAddressAccessorSettings m_old, m_new;
 };
 }

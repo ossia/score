@@ -9,21 +9,21 @@ namespace Loop
 {
 class LayerView final : public Process::LayerView
 {
-        Q_OBJECT
-    public:
-        LayerView(QGraphicsItem* parent);
+  Q_OBJECT
+public:
+  LayerView(QGraphicsItem* parent);
 
-        ~LayerView();
+  ~LayerView();
 
-        void setSelectionArea(QRectF);
+  void setSelectionArea(QRectF);
 
-    signals:
-        void askContextMenu(const QPoint&, const QPointF&);
-        void pressed();
+signals:
+  void askContextMenu(const QPoint&, const QPointF&);
+  void pressed();
 
-    protected:
-        void paint_impl(QPainter*) const override;
-        void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
-        void mousePressEvent(QGraphicsSceneMouseEvent*) override;
+protected:
+  void paint_impl(QPainter*) const override;
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
 };
 }

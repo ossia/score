@@ -5,23 +5,24 @@
 namespace Scenario
 {
 
-TextItem::TextItem(QString text, QGraphicsItem* parent):
-    QGraphicsTextItem{text, parent}
+TextItem::TextItem(QString text, QGraphicsItem* parent)
+    : QGraphicsTextItem{text, parent}
 {
-    this->setFlag(QGraphicsItem::ItemIsFocusable);
-    this->setDefaultTextColor(Qt::white);
+  this->setFlag(QGraphicsItem::ItemIsFocusable);
+  this->setDefaultTextColor(Qt::white);
 }
 
 void TextItem::focusOutEvent(QFocusEvent* event)
 {
-    emit focusOut();
+  emit focusOut();
 }
 
-void SimpleTextItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void SimpleTextItem::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-//    setPen(m_color.getColor()); -> if enabled, there will be undesirable antialiasing
-    setBrush(m_color.getBrush());
-    QGraphicsSimpleTextItem::paint(painter, option, widget);
+  //    setPen(m_color.getColor()); -> if enabled, there will be undesirable
+  //    antialiasing
+  setBrush(m_color.getBrush());
+  QGraphicsSimpleTextItem::paint(painter, option, widget);
 }
-
 }

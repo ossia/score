@@ -1,10 +1,9 @@
 #pragma once
 
-
-#include <iscore/menu/MenuInterface.hpp>
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <iscore_plugin_scenario_export.h>
 #include <iscore/actions/Action.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 namespace Process
 {
@@ -21,22 +20,22 @@ class TriggerCommandFactoryList;
 }
 class ISCORE_PLUGIN_SCENARIO_EXPORT EventActions : public QObject
 {
-    public:
-        EventActions(ScenarioApplicationPlugin* parent);
+public:
+  EventActions(ScenarioApplicationPlugin* parent);
 
-        void makeGUIElements(iscore::GUIElements& ref);
-        void setupContextMenu(Process::LayerContextMenuManager& ctxm);
+  void makeGUIElements(iscore::GUIElements& ref);
+  void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
-    private:
-        void addTriggerToTimeNode();
-        void removeTriggerFromTimeNode();
+private:
+  void addTriggerToTimeNode();
+  void removeTriggerFromTimeNode();
 
-        CommandDispatcher<> dispatcher();
+  CommandDispatcher<> dispatcher();
 
-        ScenarioApplicationPlugin* m_parent{};
-        QAction *m_addTrigger{};
-        QAction *m_removeTrigger{};
+  ScenarioApplicationPlugin* m_parent{};
+  QAction* m_addTrigger{};
+  QAction* m_removeTrigger{};
 
-        const Command::TriggerCommandFactoryList& m_triggerCommandFactory;
+  const Command::TriggerCommandFactoryList& m_triggerCommandFactory;
 };
 }

@@ -25,61 +25,73 @@ namespace Command
 
 class CreateSequence final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateSequence, "CreateSequence")
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), CreateSequence, "CreateSequence")
 
-        public:
-            static CreateSequence* make(
-                const Scenario::ProcessModel& scenario,
-                const Id<StateModel>& start,
-                const TimeValue& date,
-                double endStateY);
+public:
+  static CreateSequence* make(
+      const Scenario::ProcessModel& scenario,
+      const Id<StateModel>& start,
+      const TimeValue& date,
+      double endStateY);
 
-        void undo() const override
-        {
-            m_cmds.front()->undo();
-        }
+  void undo() const override
+  {
+    m_cmds.front()->undo();
+  }
 
-        const Id<ConstraintModel>& createdConstraint() const
-        { return m_newConstraint; }
+  const Id<ConstraintModel>& createdConstraint() const
+  {
+    return m_newConstraint;
+  }
 
-        const Id<StateModel>& createdState() const
-        { return m_newState; }
+  const Id<StateModel>& createdState() const
+  {
+    return m_newState;
+  }
 
-        const Id<EventModel>& createdEvent() const
-        { return m_newEvent; }
+  const Id<EventModel>& createdEvent() const
+  {
+    return m_newEvent;
+  }
 
-        const Id<TimeNodeModel>& createdTimeNode() const
-        { return m_newTimeNode; }
+  const Id<TimeNodeModel>& createdTimeNode() const
+  {
+    return m_newTimeNode;
+  }
 
-    private:
-        Id<ConstraintModel> m_newConstraint;
-        Id<StateModel> m_newState;
-        Id<EventModel> m_newEvent;
-        Id<TimeNodeModel> m_newTimeNode;
+private:
+  Id<ConstraintModel> m_newConstraint;
+  Id<StateModel> m_newState;
+  Id<EventModel> m_newEvent;
+  Id<TimeNodeModel> m_newTimeNode;
 };
 
 class CreateSequenceProcesses final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateSequenceProcesses, "CreateSequenceData")
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(),
+      CreateSequenceProcesses,
+      "CreateSequenceData")
 
-    public:
-        CreateSequenceProcesses(
-                const Scenario::ProcessModel& scenario,
-                const Scenario::ConstraintModel& constraint);
+public:
+  CreateSequenceProcesses(
+      const Scenario::ProcessModel& scenario,
+      const Scenario::ConstraintModel& constraint);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<Scenario::ProcessModel> m_scenario;
-        AddMultipleProcessesToConstraintMacro m_interpolations;
-        Process::MessageNode m_stateData;
-        Id<StateModel> m_endState;
-        int m_addedProcessCount{};
+private:
+  Path<Scenario::ProcessModel> m_scenario;
+  AddMultipleProcessesToConstraintMacro m_interpolations;
+  Process::MessageNode m_stateData;
+  Id<StateModel> m_endState;
+  int m_addedProcessCount{};
 };
 }
 }

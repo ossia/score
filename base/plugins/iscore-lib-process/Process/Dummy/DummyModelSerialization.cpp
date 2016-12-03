@@ -6,31 +6,29 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-template <typename T> class Reader;
-template <typename T> class Writer;
+template <typename T>
+class Reader;
+template <typename T>
+class Writer;
 
-template<>
-void Visitor<Reader<DataStream>>::readFrom_impl(
-        const Dummy::DummyModel& proc)
+template <>
+void Visitor<Reader<DataStream>>::readFrom_impl(const Dummy::DummyModel& proc)
 {
-    insertDelimiter();
+  insertDelimiter();
 }
 
-template<>
-void Visitor<Writer<DataStream>>::writeTo(
-        Dummy::DummyModel& proc)
+template <>
+void Visitor<Writer<DataStream>>::writeTo(Dummy::DummyModel& proc)
 {
-    checkDelimiter();
+  checkDelimiter();
 }
 
-template<>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Dummy::DummyModel& proc)
+template <>
+void Visitor<Reader<JSONObject>>::readFrom_impl(const Dummy::DummyModel& proc)
 {
 }
 
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(
-        Dummy::DummyModel& proc)
+template <>
+void Visitor<Writer<JSONObject>>::writeTo(Dummy::DummyModel& proc)
 {
 }

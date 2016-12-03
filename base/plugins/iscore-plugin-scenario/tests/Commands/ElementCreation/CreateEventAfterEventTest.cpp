@@ -2,57 +2,56 @@
 
 #include <Scenario/Commands/Scenario/Creations/CreateEventAfterEvent.hpp>
 
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventData.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 
 #include <Scenario/Process/ScenarioModel.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
 
-
-class CreateEventAfterEventTest: public QObject
+class CreateEventAfterEventTest : public QObject
 {
-        Q_OBJECT
-    public:
+  Q_OBJECT
+public:
+private slots:
+  void CreateTest()
+  {
+    Scenario::ProcessModel* scenar = new ScenarioModel(
+        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
 
-    private slots:
-        void CreateTest()
+    CreateEventAfterEvent cmd(
         {
-            Scenario::ProcessModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
+            {"ScenarioModel", {0}},
+        },
+        scenar->startEvent()->id(), TimeValue::fromMsecs(10), 0.5);
 
-            CreateEventAfterEvent cmd(
-            {
-                {"ScenarioModel", {0}},
-            }, scenar->startEvent()->id(), TimeValue::fromMsecs(10), 0.5);
+    cmd.redo();
+    QCOMPARE((int)scenar->events().size(), 2);
+    QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
 
-            cmd.redo();
-            QCOMPARE((int) scenar->events().size(), 2);
-            QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
+    cmd.undo();
+    QCOMPARE((int)scenar->events().size(), 1);
 
-            cmd.undo();
-            QCOMPARE((int) scenar->events().size(), 1);
+    try
+    {
+      scenar->event(cmd.m_createdEventId);
+      QFAIL("Event call did not throw!");
+    }
+    catch (...)
+    {
+    }
 
-            try
-            {
-                scenar->event(cmd.m_createdEventId);
-                QFAIL("Event call did not throw!");
-            }
-            catch(...) { }
+    cmd.redo();
 
-            cmd.redo();
+    QCOMPARE((int)scenar->events().size(), 2);
+    QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
 
-            QCOMPARE((int) scenar->events().size(), 2);
-            QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
+    // Delete them else they stay in qApp !
 
-
-            // Delete them else they stay in qApp !
-
-            delete scenar;
-        }
+    delete scenar;
+  }
 };
 
 QTEST_MAIN(CreateEventAfterEventTest)
 #include "CreateEventAfterEventTest.moc"
-
-

@@ -6,7 +6,6 @@
 class QModelIndex;
 class QObject;
 
-
 namespace Explorer
 {
 
@@ -20,10 +19,10 @@ class DeviceExplorerModel;
  */
 class DeviceCompleter final : public QCompleter
 {
-    public:
-        DeviceCompleter(DeviceExplorerModel* model, QObject* parent);
+public:
+  DeviceCompleter(DeviceExplorerModel* model, QObject* parent);
 
-        QString pathFromIndex(const QModelIndex& index) const override;
-        QStringList splitPath(const QString& path) const override;
+  QString pathFromIndex(const QModelIndex& index) const override;
+  QStringList splitPath(const QString& path) const override;
 };
 }

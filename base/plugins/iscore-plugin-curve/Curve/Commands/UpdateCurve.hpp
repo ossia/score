@@ -13,28 +13,25 @@ namespace Curve
 class Model;
 class UpdateCurve final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(CommandFactoryName(), UpdateCurve, "Update Curve")
-    public:
-        UpdateCurve(
-          Path<Model>&& model,
-          std::vector<SegmentData>&& segments);
+  ISCORE_COMMAND_DECL(CommandFactoryName(), UpdateCurve, "Update Curve")
+public:
+  UpdateCurve(Path<Model>&& model, std::vector<SegmentData>&& segments);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-        void update(unused_t,
-                    std::vector<SegmentData>&& segments)
-        {
-            m_newCurveData = std::move(segments);
-        }
+  void update(unused_t, std::vector<SegmentData>&& segments)
+  {
+    m_newCurveData = std::move(segments);
+  }
 
-    protected:
-        void serializeImpl(DataStreamInput & s) const override;
-        void deserializeImpl(DataStreamOutput & s) override;
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
 
-    private:
-        Path<Model> m_model;
-        std::vector<SegmentData> m_oldCurveData;
-        std::vector<SegmentData> m_newCurveData;
+private:
+  Path<Model> m_model;
+  std::vector<SegmentData> m_oldCurveData;
+  std::vector<SegmentData> m_newCurveData;
 };
 }

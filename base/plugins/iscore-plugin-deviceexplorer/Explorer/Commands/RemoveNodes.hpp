@@ -9,7 +9,8 @@ namespace Command
 {
 class RemoveNodes final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveNodes, "Remove Explorer nodes")
+  ISCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(), RemoveNodes, "Remove Explorer nodes")
 };
 }
 }

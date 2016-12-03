@@ -4,6 +4,5 @@ namespace Scenario
 namespace Command
 {
 MoveEventFactoryInterface::~MoveEventFactoryInterface() = default;
-
 }
 }

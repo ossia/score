@@ -2,9 +2,9 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
 
-#include <iscore/tools/std/Optional.hpp>
 #include <QString>
 #include <algorithm>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -21,21 +21,19 @@ namespace Command
 class SerializableMoveEvent;
 
 std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make(
-        Path<Scenario::ProcessModel>&& scenarioPath,
-        Id<EventModel> eventId,
-        TimeValue newDate,
-        ExpandMode mode)
+    Path<Scenario::ProcessModel>&& scenarioPath,
+    Id<EventModel>
+        eventId,
+    TimeValue newDate,
+    ExpandMode mode)
 {
-    return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>(
-                std::move(scenarioPath),
-                std::move(eventId),
-                std::move(newDate),
-                mode);
+  return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>(
+      std::move(scenarioPath), std::move(eventId), std::move(newDate), mode);
 }
 
 std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make()
 {
-    return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>();
+  return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>();
 }
 }
 }

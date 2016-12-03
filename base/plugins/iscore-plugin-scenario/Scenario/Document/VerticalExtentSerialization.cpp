@@ -1,31 +1,31 @@
+#include <QPoint>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
-#include <QPoint>
 
 #include "VerticalExtent.hpp"
 
-template<>
+template <>
 void Visitor<Reader<DataStream>>::readFrom(const Scenario::VerticalExtent& ve)
 {
-    m_stream << static_cast<QPointF>(ve);
-    insertDelimiter();
+  m_stream << static_cast<QPointF>(ve);
+  insertDelimiter();
 }
 
-template<>
+template <>
 void Visitor<Writer<DataStream>>::writeTo(Scenario::VerticalExtent& ve)
 {
-    m_stream >> static_cast<QPointF&>(ve);
-    checkDelimiter();
+  m_stream >> static_cast<QPointF&>(ve);
+  checkDelimiter();
 }
 
-template<>
+template <>
 void Visitor<Reader<JSONValue>>::readFrom(const Scenario::VerticalExtent& ve)
 {
-    readFrom(static_cast<QPointF>(ve));
+  readFrom(static_cast<QPointF>(ve));
 }
 
-template<>
+template <>
 void Visitor<Writer<JSONValue>>::writeTo(Scenario::VerticalExtent& ve)
 {
-    writeTo(static_cast<QPointF&>(ve));
+  writeTo(static_cast<QPointF&>(ve));
 }

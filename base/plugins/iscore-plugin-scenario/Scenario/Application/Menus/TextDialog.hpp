@@ -10,7 +10,7 @@ namespace Scenario
 // Has a big selectable text area.
 class ISCORE_PLUGIN_SCENARIO_EXPORT TextDialog final : public QDialog
 {
-    public:
-        TextDialog(const QString& s, QWidget* parent);
+public:
+  TextDialog(const QString& s, QWidget* parent);
 };
 }

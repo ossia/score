@@ -3,18 +3,16 @@
 class QTabWidget;
 namespace Library
 {
-class PanelDelegate final :
-        public iscore::PanelDelegate
+class PanelDelegate final : public iscore::PanelDelegate
 {
-    public:
-        PanelDelegate(
-                const iscore::ApplicationContext& ctx);
+public:
+  PanelDelegate(const iscore::ApplicationContext& ctx);
 
-    private:
-        QWidget *widget() override;
+private:
+  QWidget* widget() override;
 
-        const iscore::PanelStatus& defaultPanelStatus() const override;
+  const iscore::PanelStatus& defaultPanelStatus() const override;
 
-        QTabWidget *m_widget{};
+  QTabWidget* m_widget{};
 };
 }

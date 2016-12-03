@@ -3,10 +3,8 @@
 namespace Scenario
 {
 
-ScenarioScene::ScenarioScene(QWidget* parent):
-    QGraphicsScene{parent}
+ScenarioScene::ScenarioScene(QWidget* parent) : QGraphicsScene{parent}
 {
-    setItemIndexMethod(QGraphicsScene::NoIndex);
+  setItemIndexMethod(QGraphicsScene::NoIndex);
 }
-
 }

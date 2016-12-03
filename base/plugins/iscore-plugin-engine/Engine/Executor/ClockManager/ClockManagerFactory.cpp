@@ -1,7 +1,9 @@
 #include "ClockManagerFactory.hpp"
-#include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
-namespace Engine { namespace Execution
+#include <Engine/Executor/ExecutorContext.hpp>
+namespace Engine
+{
+namespace Execution
 {
 
 ClockManager::~ClockManager() = default;
@@ -9,38 +11,38 @@ ClockManagerFactory::~ClockManagerFactory() = default;
 
 void ClockManager::play(const TimeValue& t)
 {
-    auto bs = context.sys.baseScenario();
-    if(!bs)
-        return;
+  auto bs = context.sys.baseScenario();
+  if (!bs)
+    return;
 
-    play_impl(t, *bs);
+  play_impl(t, *bs);
 }
 
 void ClockManager::pause()
 {
-    auto bs = context.sys.baseScenario();
-    if(!bs)
-        return;
+  auto bs = context.sys.baseScenario();
+  if (!bs)
+    return;
 
-    pause_impl(*bs);
+  pause_impl(*bs);
 }
 
 void ClockManager::resume()
 {
-    auto bs = context.sys.baseScenario();
-    if(!bs)
-        return;
+  auto bs = context.sys.baseScenario();
+  if (!bs)
+    return;
 
-    resume_impl(*bs);
+  resume_impl(*bs);
 }
 
 void ClockManager::stop()
 {
-    auto bs = context.sys.baseScenario();
-    if(!bs)
-        return;
+  auto bs = context.sys.baseScenario();
+  if (!bs)
+    return;
 
-    stop_impl(*bs);
+  stop_impl(*bs);
 }
-
-} }
+}
+}

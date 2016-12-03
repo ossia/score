@@ -9,51 +9,43 @@ namespace Process
 {
 LayerView::~LayerView() = default;
 
-
-LayerView::LayerView(QGraphicsItem* parent):
-    QGraphicsItem{parent}
+LayerView::LayerView(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
-    this->setCacheMode(QGraphicsItem::NoCache);
-
+  this->setCacheMode(QGraphicsItem::NoCache);
 }
 
 QRectF LayerView::boundingRect() const
 {
-    return {0, 0, m_width, m_height};
+  return {0, 0, m_width, m_height};
 }
 
-void LayerView::paint(QPainter* painter,
-                      const QStyleOptionGraphicsItem* option,
-                      QWidget* widget)
+void LayerView::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-    paint_impl(painter);
+  paint_impl(painter);
 }
-
 
 void LayerView::setHeight(qreal height)
 {
-    prepareGeometryChange();
-    m_height = height;
-    emit heightChanged();
+  prepareGeometryChange();
+  m_height = height;
+  emit heightChanged();
 }
-
 
 qreal LayerView::height() const
 {
-    return m_height;
+  return m_height;
 }
-
 
 void LayerView::setWidth(qreal width)
 {
-    prepareGeometryChange();
-    m_width = width;
-    emit widthChanged();
+  prepareGeometryChange();
+  m_width = width;
+  emit widthChanged();
 }
-
 
 qreal LayerView::width() const
 {
-    return m_width;
+  return m_width;
 }
 }

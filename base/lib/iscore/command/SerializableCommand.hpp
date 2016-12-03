@@ -1,8 +1,8 @@
 #pragma once
-#include <iscore/command/Command.hpp>
-#include <iscore/command/CommandFactoryKey.hpp>
 #include <QByteArray>
 #include <QString>
+#include <iscore/command/Command.hpp>
+#include <iscore/command/CommandFactoryKey.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -17,18 +17,18 @@ namespace iscore
  */
 class ISCORE_LIB_BASE_EXPORT SerializableCommand : public Command
 {
-    public:
-        SerializableCommand() = default;
-        ~SerializableCommand();
+public:
+  SerializableCommand() = default;
+  ~SerializableCommand();
 
-        QByteArray serialize() const;
-        void deserialize(const QByteArray&);
+  QByteArray serialize() const;
+  void deserialize(const QByteArray&);
 
-        virtual const CommandParentFactoryKey& parentKey() const = 0;
-        virtual QString description() const = 0;
+  virtual const CommandParentFactoryKey& parentKey() const = 0;
+  virtual QString description() const = 0;
 
-    protected:
-        virtual void serializeImpl(DataStreamInput&) const = 0;
-        virtual void deserializeImpl(DataStreamOutput&) = 0;
+protected:
+  virtual void serializeImpl(DataStreamInput&) const = 0;
+  virtual void deserializeImpl(DataStreamOutput&) = 0;
 };
 }

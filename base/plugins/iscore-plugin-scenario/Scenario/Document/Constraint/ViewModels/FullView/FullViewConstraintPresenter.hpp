@@ -18,24 +18,28 @@ namespace Scenario
  * @brief The FullViewConstraintPresenter class
  *
  * Présenteur : reçoit signaux depuis modèle et vue et présenteurs enfants.
- * Exemple : cas d'un process ajouté : le modèle reçoit la commande addprocess, émet un signal, qui est capturé par le présenteur qui va instancier le présenteur nécessaire en appelant la factory.
+ * Exemple : cas d'un process ajouté : le modèle reçoit la commande addprocess,
+ * émet un signal, qui est capturé par le présenteur qui va instancier le
+ * présenteur nécessaire en appelant la factory.
  */
-class ISCORE_PLUGIN_SCENARIO_EXPORT FullViewConstraintPresenter final : public ConstraintPresenter
+class ISCORE_PLUGIN_SCENARIO_EXPORT FullViewConstraintPresenter final
+    : public ConstraintPresenter
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
-        using viewmodel_type = FullViewConstraintViewModel;
-        using view_type = FullViewConstraintView;
+public:
+  using viewmodel_type = FullViewConstraintViewModel;
+  using view_type = FullViewConstraintView;
 
-        FullViewConstraintPresenter(const FullViewConstraintViewModel& viewModel,
-                                    const Process::ProcessPresenterContext& ctx,
-                                    QGraphicsItem* parentobject,
-                                    QObject* parent);
+  FullViewConstraintPresenter(
+      const FullViewConstraintViewModel& viewModel,
+      const Process::ProcessPresenterContext& ctx,
+      QGraphicsItem* parentobject,
+      QObject* parent);
 
-        virtual ~FullViewConstraintPresenter();
+  virtual ~FullViewConstraintPresenter();
 
-    signals:
-        void constraintSelected(ConstraintModel&);
+signals:
+  void constraintSelected(ConstraintModel&);
 };
 }

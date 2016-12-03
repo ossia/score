@@ -18,23 +18,25 @@ namespace Command
 {
 class SetProcessUseParentDuration final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetProcessUseParentDuration, "Set process use parent duration")
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(),
+      SetProcessUseParentDuration,
+      "Set process use parent duration")
 
-    public:
-        SetProcessUseParentDuration(
-                Path<Process::ProcessModel>&& constraintPath,
-                bool dur);
+public:
+  SetProcessUseParentDuration(
+      Path<Process::ProcessModel>&& constraintPath, bool dur);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput& s) const override;
-        void deserializeImpl(DataStreamOutput& s) override;
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
 
-    private:
-        Path<Process::ProcessModel> m_path;
-        bool m_useParentDuration{};
+private:
+  Path<Process::ProcessModel> m_path;
+  bool m_useParentDuration{};
 };
 }
 }

@@ -40,85 +40,87 @@ class JSEditPrivate;
 
 class ISCORE_LIB_BASE_EXPORT JSEdit final : public QPlainTextEdit
 {
-        Q_OBJECT
-        Q_PROPERTY(bool bracketsMatchingEnabled READ isBracketsMatchingEnabled WRITE setBracketsMatchingEnabled)
-        Q_PROPERTY(bool codeFoldingEnabled READ isCodeFoldingEnabled WRITE setCodeFoldingEnabled)
-        Q_PROPERTY(bool lineNumbersVisible READ isLineNumbersVisible WRITE setLineNumbersVisible)
-        Q_PROPERTY(bool textWrapEnabled READ isTextWrapEnabled WRITE setTextWrapEnabled)
+  Q_OBJECT
+  Q_PROPERTY(bool bracketsMatchingEnabled READ isBracketsMatchingEnabled WRITE
+                 setBracketsMatchingEnabled)
+  Q_PROPERTY(bool codeFoldingEnabled READ isCodeFoldingEnabled WRITE
+                 setCodeFoldingEnabled)
+  Q_PROPERTY(bool lineNumbersVisible READ isLineNumbersVisible WRITE
+                 setLineNumbersVisible)
+  Q_PROPERTY(
+      bool textWrapEnabled READ isTextWrapEnabled WRITE setTextWrapEnabled)
 
-    public:
+public:
+  typedef enum {
+    Background,
+    Normal,
+    Comment,
+    Number,
+    String,
+    Operator,
+    Identifier,
+    Keyword,
+    BuiltIn,
+    Sidebar,
+    LineNumber,
+    Cursor,
+    Marker,
+    BracketMatch,
+    BracketError,
+    FoldIndicator
+  } ColorComponent;
 
-        typedef enum {
-            Background,
-            Normal,
-            Comment,
-            Number,
-            String,
-            Operator,
-            Identifier,
-            Keyword,
-            BuiltIn,
-            Sidebar,
-            LineNumber,
-            Cursor,
-            Marker,
-            BracketMatch,
-            BracketError,
-            FoldIndicator
-        } ColorComponent;
+  JSEdit(QWidget* parent = 0);
+  ~JSEdit();
 
-        JSEdit(QWidget *parent = 0);
-        ~JSEdit();
+  void setColor(ColorComponent component, const QColor& color);
 
-        void setColor(ColorComponent component, const QColor &color);
+  QStringList keywords() const;
+  void setKeywords(const QStringList& keywords);
 
-        QStringList keywords() const;
-        void setKeywords(const QStringList &keywords);
+  bool isBracketsMatchingEnabled() const;
+  bool isCodeFoldingEnabled() const;
+  bool isLineNumbersVisible() const;
+  bool isTextWrapEnabled() const;
 
-        bool isBracketsMatchingEnabled() const;
-        bool isCodeFoldingEnabled() const;
-        bool isLineNumbersVisible() const;
-        bool isTextWrapEnabled() const;
+  bool isFoldable(int line) const;
+  bool isFolded(int line) const;
 
-        bool isFoldable(int line) const;
-        bool isFolded(int line) const;
+signals:
+  void editingFinished(QString);
+  void focused();
 
-    signals:
-        void editingFinished(QString);
-        void focused();
+public slots:
+  void updateSidebar();
+  void
+  mark(const QString& str, Qt::CaseSensitivity sens = Qt::CaseInsensitive);
+  void setBracketsMatchingEnabled(bool enable);
+  void setCodeFoldingEnabled(bool enable);
+  void setLineNumbersVisible(bool visible);
+  void setTextWrapEnabled(bool enable);
 
-    public slots:
-        void updateSidebar();
-        void mark(const QString &str, Qt::CaseSensitivity sens = Qt::CaseInsensitive);
-        void setBracketsMatchingEnabled(bool enable);
-        void setCodeFoldingEnabled(bool enable);
-        void setLineNumbersVisible(bool visible);
-        void setTextWrapEnabled(bool enable);
+  void fold(int line);
+  void unfold(int line);
+  void toggleFold(int line);
 
-        void fold(int line);
-        void unfold(int line);
-        void toggleFold(int line);
+protected:
+  void resizeEvent(QResizeEvent* e) override;
+  void wheelEvent(QWheelEvent* e) override;
+  void focusOutEvent(QFocusEvent* event) override
+  {
+    emit editingFinished(this->toPlainText());
+    event->ignore();
+  }
 
-    protected:
-        void resizeEvent(QResizeEvent *e) override;
-        void wheelEvent(QWheelEvent *e) override;
-        void focusOutEvent(QFocusEvent* event) override
-        {
-            emit editingFinished(this->toPlainText());
-            event->ignore();
-        }
+private slots:
+  void updateCursor();
+  void updateSidebar(const QRect& rect, int d);
 
-
-    private slots:
-        void updateCursor();
-        void updateSidebar(const QRect &rect, int d);
-
-    private:
-
-        void focusInEvent(QFocusEvent *event) override;
-        QScopedPointer<JSEditPrivate> d_ptr;
-        Q_DECLARE_PRIVATE(JSEdit)
-        Q_DISABLE_COPY(JSEdit)
+private:
+  void focusInEvent(QFocusEvent* event) override;
+  QScopedPointer<JSEditPrivate> d_ptr;
+  Q_DECLARE_PRIVATE(JSEdit)
+  Q_DISABLE_COPY(JSEdit)
 };
 
 #endif // OFILABS_JSEDIT

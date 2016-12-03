@@ -6,6 +6,5 @@ namespace iscore
 {
 DocumentDelegateModelInterface::~DocumentDelegateModelInterface()
 {
-
 }
 }

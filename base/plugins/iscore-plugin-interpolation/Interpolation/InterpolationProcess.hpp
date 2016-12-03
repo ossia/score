@@ -1,12 +1,12 @@
 #pragma once
 #include <Curve/Process/CurveProcessModel.hpp>
-#include <State/Address.hpp>
-#include <State/Value.hpp>
-#include <State/Message.hpp>
-#include <State/Unit.hpp>
+#include <Process/ProcessMetadata.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <Process/ProcessMetadata.hpp>
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Unit.hpp>
+#include <State/Value.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore_plugin_interpolation_export.h>
@@ -17,115 +17,115 @@ class ProcessModel;
 }
 
 PROCESS_METADATA(
-        ,
-        Interpolation::ProcessModel,
-        "aa569e11-03a9-4023-92c2-b590e88fec90",
-        "Interpolation",
-        "Interpolation"
-        )
+    ,
+    Interpolation::ProcessModel,
+    "aa569e11-03a9-4023-92c2-b590e88fec90",
+    "Interpolation",
+    "Interpolation")
 namespace Interpolation
 {
-class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessState final :
-        public ProcessStateDataInterface
+class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessState final
+    : public ProcessStateDataInterface
 {
-    public:
-        enum Point { Start, End };
-        // watchedPoint : something between 0 and 1
-        ProcessState(
-                ProcessModel& process,
-                Point watchedPoint,
-                QObject* parent);
+public:
+  enum Point
+  {
+    Start,
+    End
+  };
+  // watchedPoint : something between 0 and 1
+  ProcessState(ProcessModel& process, Point watchedPoint, QObject* parent);
 
-        ProcessModel& process() const;
+  ProcessModel& process() const;
 
+  State::Message message() const;
+  Point point() const;
 
-        State::Message message() const;
-        Point point() const;
+  ProcessState* clone(QObject* parent) const override;
 
-        ProcessState* clone(QObject* parent) const override;
+  std::vector<State::AddressAccessor> matchingAddresses() override;
 
+  ::State::MessageList messages() const override;
 
-        std::vector<State::AddressAccessor> matchingAddresses() override;
+  ::State::MessageList setMessages(
+      const ::State::MessageList&, const Process::MessageNode&) override;
 
-        ::State::MessageList messages() const override;
-
-        ::State::MessageList setMessages(
-                const ::State::MessageList&,
-                const Process::MessageNode&) override;
-
-    private:
-        Point m_point{};
+private:
+  Point m_point{};
 };
 
-class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final :
-        public Curve::CurveProcessModel
+class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final
+    : public Curve::CurveProcessModel
 {
-        ISCORE_SERIALIZE_FRIENDS(Interpolation::ProcessModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Interpolation::ProcessModel, JSONObject)
-        MODEL_METADATA_IMPL(Interpolation::ProcessModel)
+  ISCORE_SERIALIZE_FRIENDS(Interpolation::ProcessModel, DataStream)
+  ISCORE_SERIALIZE_FRIENDS(Interpolation::ProcessModel, JSONObject)
+  MODEL_METADATA_IMPL(Interpolation::ProcessModel)
 
-        Q_OBJECT
-        Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress NOTIFY addressChanged)
-        Q_PROPERTY(State::Value start READ start WRITE setStart NOTIFY startChanged)
-        Q_PROPERTY(State::Value end READ end WRITE setEnd NOTIFY endChanged)
+  Q_OBJECT
+  Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress
+                 NOTIFY addressChanged)
+  Q_PROPERTY(State::Value start READ start WRITE setStart NOTIFY startChanged)
+  Q_PROPERTY(State::Value end READ end WRITE setEnd NOTIFY endChanged)
 
-    public:
-        ProcessModel(const TimeValue& duration,
-                     const Id<Process::ProcessModel>& id,
-                     QObject* parent);
+public:
+  ProcessModel(
+      const TimeValue& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
 
-        ~ProcessModel();
+  ~ProcessModel();
 
-        template<typename Impl>
-        ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
-            CurveProcessModel{vis, parent},
-            m_startState{new ProcessState{*this, ProcessState::Start, this}},
-            m_endState{new ProcessState{*this, ProcessState::End, this}}
-        {
-            vis.writeTo(*this);
-        }
+  template <typename Impl>
+  ProcessModel(Deserializer<Impl>& vis, QObject* parent)
+      : CurveProcessModel{vis, parent}
+      , m_startState{new ProcessState{*this, ProcessState::Start, this}}
+      , m_endState{new ProcessState{*this, ProcessState::End, this}}
+  {
+    vis.writeTo(*this);
+  }
 
-        State::AddressAccessor address() const;
-        const State::Unit& sourceUnit() const;
+  State::AddressAccessor address() const;
+  const State::Unit& sourceUnit() const;
 
-        State::Value start() const;
-        State::Value end() const;
+  State::Value start() const;
+  State::Value end() const;
 
-        void setAddress(const ::State::AddressAccessor& arg);
-        void setSourceUnit(const State::Unit&);
-        void setStart(State::Value arg);
-        void setEnd(State::Value arg);
+  void setAddress(const ::State::AddressAccessor& arg);
+  void setSourceUnit(const State::Unit&);
+  void setStart(State::Value arg);
+  void setEnd(State::Value arg);
 
-        QString prettyName() const override;
+  QString prettyName() const override;
 
-    signals:
-        void addressChanged(const ::State::AddressAccessor&);
-        void startChanged(const State::Value&);
-        void endChanged(const State::Value&);
-        void tweenChanged(bool tween);
+signals:
+  void addressChanged(const ::State::AddressAccessor&);
+  void startChanged(const State::Value&);
+  void endChanged(const State::Value&);
+  void tweenChanged(bool tween);
 
-    private:
-        //// ProcessModel ////
-        void setDurationAndScale(const TimeValue& newDuration) override;
-        void setDurationAndGrow(const TimeValue& newDuration) override;
-        void setDurationAndShrink(const TimeValue& newDuration) override;
+private:
+  //// ProcessModel ////
+  void setDurationAndScale(const TimeValue& newDuration) override;
+  void setDurationAndGrow(const TimeValue& newDuration) override;
+  void setDurationAndShrink(const TimeValue& newDuration) override;
 
-        /// States
-        ProcessState* startStateData() const override;
+  /// States
+  ProcessState* startStateData() const override;
 
-        ProcessState* endStateData() const override;
+  ProcessState* endStateData() const override;
 
-        ProcessModel(const ProcessModel& source,
-                     const Id<Process::ProcessModel>& id,
-                     QObject* parent);
+  ProcessModel(
+      const ProcessModel& source,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
 
-        ::State::AddressAccessor m_address;
-        State::Unit m_sourceUnit;
+  ::State::AddressAccessor m_address;
+  State::Unit m_sourceUnit;
 
-        State::Value m_start{};
-        State::Value m_end{};
+  State::Value m_start{};
+  State::Value m_end{};
 
-        ProcessState* m_startState{};
-        ProcessState* m_endState{};
+  ProcessState* m_startState{};
+  ProcessState* m_endState{};
 };
 }

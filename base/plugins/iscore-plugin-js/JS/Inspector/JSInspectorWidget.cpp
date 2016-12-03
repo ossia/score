@@ -2,109 +2,106 @@
 #include <JS/JSStateProcess.hpp>
 #include <algorithm>
 
-#include <Inspector/InspectorWidgetBase.hpp>
 #include "JS/Commands/EditScript.hpp"
 #include "JSInspectorWidget.hpp"
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/document/DocumentContext.hpp>
+#include <Inspector/InspectorWidgetBase.hpp>
 #include <QVBoxLayout>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <iscore/widgets/JS/JSEdit.hpp>
 class QVBoxLayout;
 class QWidget;
-namespace iscore {
+namespace iscore
+{
 class Document;
-}  // namespace iscore
+} // namespace iscore
 namespace JS
 {
 
 InspectorWidget::InspectorWidget(
-        const JS::ProcessModel& JSModel,
-        const iscore::DocumentContext& doc,
-        QWidget* parent) :
-    InspectorWidgetDelegate_T {JSModel, parent},
-    m_dispatcher{doc.commandStack}
+    const JS::ProcessModel& JSModel,
+    const iscore::DocumentContext& doc,
+    QWidget* parent)
+    : InspectorWidgetDelegate_T{JSModel, parent}
+    , m_dispatcher{doc.commandStack}
 {
-    setObjectName("JSInspectorWidget");
-    setParent(parent);
-    auto lay = new QVBoxLayout;
+  setObjectName("JSInspectorWidget");
+  setParent(parent);
+  auto lay = new QVBoxLayout;
 
-    m_edit = new JSEdit;
-    m_edit->setPlainText(JSModel.script());
-    connect(m_edit, &JSEdit::editingFinished,
-            this, &InspectorWidget::on_textChange);
-    connect(m_edit, &JSEdit::focused,
-            this, &InspectorWidget::pressed);
+  m_edit = new JSEdit;
+  m_edit->setPlainText(JSModel.script());
+  connect(
+      m_edit, &JSEdit::editingFinished, this, &InspectorWidget::on_textChange);
+  connect(m_edit, &JSEdit::focused, this, &InspectorWidget::pressed);
 
-    con(process(), &JS::ProcessModel::scriptChanged,
-            this, &InspectorWidget::on_modelChanged);
+  con(process(), &JS::ProcessModel::scriptChanged, this,
+      &InspectorWidget::on_modelChanged);
 
-    on_modelChanged(JSModel.script());
-    m_script = m_edit->toPlainText();
+  on_modelChanged(JSModel.script());
+  m_script = m_edit->toPlainText();
 
-    lay->addWidget(m_edit);
-    this->setLayout(lay);
+  lay->addWidget(m_edit);
+  this->setLayout(lay);
 }
 
 void InspectorWidget::on_modelChanged(const QString& script)
 {
-    m_script = script;
-    m_edit->setPlainText(script);
+  m_script = script;
+  m_edit->setPlainText(script);
 }
 
 void InspectorWidget::on_textChange(const QString& newTxt)
 {
-    if(newTxt == m_script)
-        return;
+  if (newTxt == m_script)
+    return;
 
-    auto cmd = new JS::EditScript{process(), newTxt};
+  auto cmd = new JS::EditScript{process(), newTxt};
 
-    m_dispatcher.submitCommand(cmd);
+  m_dispatcher.submitCommand(cmd);
 }
 
-
-
-
 StateInspectorWidget::StateInspectorWidget(
-        const JS::StateProcess& JSModel,
-        const iscore::DocumentContext& doc,
-        QWidget* parent) :
-    StateProcessInspectorWidgetDelegate_T {JSModel, parent},
-    m_dispatcher{doc.commandStack}
+    const JS::StateProcess& JSModel,
+    const iscore::DocumentContext& doc,
+    QWidget* parent)
+    : StateProcessInspectorWidgetDelegate_T{JSModel, parent}
+    , m_dispatcher{doc.commandStack}
 {
-    setObjectName("JSInspectorWidget");
-    setParent(parent);
-    auto lay = new QVBoxLayout;
+  setObjectName("JSInspectorWidget");
+  setParent(parent);
+  auto lay = new QVBoxLayout;
 
-    m_edit = new JSEdit;
-    m_edit->setPlainText(JSModel.script());
-    connect(m_edit, &JSEdit::editingFinished,
-            this, &StateInspectorWidget::on_textChange);
+  m_edit = new JSEdit;
+  m_edit->setPlainText(JSModel.script());
+  connect(
+      m_edit, &JSEdit::editingFinished, this,
+      &StateInspectorWidget::on_textChange);
 
-    con(process(), &JS::StateProcess::scriptChanged,
-            this, &StateInspectorWidget::on_modelChanged);
+  con(process(), &JS::StateProcess::scriptChanged, this,
+      &StateInspectorWidget::on_modelChanged);
 
-    m_script = m_edit->toPlainText();
+  m_script = m_edit->toPlainText();
 
-    lay->addWidget(m_edit);
-    this->setLayout(lay);
+  lay->addWidget(m_edit);
+  this->setLayout(lay);
 }
 
 void StateInspectorWidget::on_modelChanged(const QString& script)
 {
-    m_script = script;
-    m_edit->setPlainText(script);
+  m_script = script;
+  m_edit->setPlainText(script);
 }
 
 void StateInspectorWidget::on_textChange(const QString& newTxt)
 {
-    if(newTxt == m_script)
-        return;
+  if (newTxt == m_script)
+    return;
 
-    auto cmd = new JS::EditStateScript{process(), newTxt};
+  auto cmd = new JS::EditStateScript{process(), newTxt};
 
-    m_dispatcher.submitCommand(cmd);
+  m_dispatcher.submitCommand(cmd);
 }
-
 }

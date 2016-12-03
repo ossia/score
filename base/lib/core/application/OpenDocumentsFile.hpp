@@ -13,8 +13,7 @@ namespace iscore
  */
 struct OpenDocumentsFile
 {
-        static bool exists();
-        static QString path();
+  static bool exists();
+  static QString path();
 };
-
 }

@@ -6,23 +6,26 @@
 #include <Scenario/Application/Menus/ToolMenuActions.hpp>
 #include <Scenario/Application/Menus/TransportActions.hpp>
 
-#include <QVector>
-#include <vector>
 #include <Process/Layer/LayerContextMenu.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <QVector>
 #include <Scenario/Execution/ScenarioExecution.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <iscore_plugin_scenario_export.h>
+#include <vector>
 
-namespace Process {
+namespace Process
+{
 class LayerPresenter;
 class ProcessFocusManager;
 }
-namespace iscore {
+namespace iscore
+{
 class Document;
-}  // namespace iscore
+} // namespace iscore
 
 class QAction;
-namespace Scenario {
+namespace Scenario
+{
 class ObjectMenuActions;
 class ScenarioActions;
 class TemporalScenarioPresenter;
@@ -31,62 +34,70 @@ class ProcessModel;
 class ScenarioInterface;
 class StateModel;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final :
-        public QObject,
-        public iscore::GUIApplicationContextPlugin
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final
+    : public QObject,
+      public iscore::GUIApplicationContextPlugin
 {
-        Q_OBJECT
-        friend class ScenarioContextMenuManager;
-    public:
-        ScenarioApplicationPlugin(
-                const iscore::GUIApplicationContext& app);
-        ~ScenarioApplicationPlugin();
+  Q_OBJECT
+  friend class ScenarioContextMenuManager;
 
-        GUIElements makeGUIElements() override;
+public:
+  ScenarioApplicationPlugin(const iscore::GUIApplicationContext& app);
+  ~ScenarioApplicationPlugin();
 
-        TemporalScenarioPresenter* focusedPresenter() const;
+  GUIElements makeGUIElements() override;
 
-        void reinit_tools();
+  TemporalScenarioPresenter* focusedPresenter() const;
 
-        Scenario::EditionSettings& editionSettings()
-        { return m_editionSettings; }
+  void reinit_tools();
 
-        Process::ProcessFocusManager* processFocusManager() const;
-        Process::LayerContextMenuManager& layerContextMenuRegistrar()
-        { return m_layerCtxMenuManager; }
-        const Process::LayerContextMenuManager& layerContextMenuRegistrar() const
-        { return m_layerCtxMenuManager; }
+  Scenario::EditionSettings& editionSettings()
+  {
+    return m_editionSettings;
+  }
 
-        Scenario::ScenarioExecution& execution()
-        { return m_execution; }
+  Process::ProcessFocusManager* processFocusManager() const;
+  Process::LayerContextMenuManager& layerContextMenuRegistrar()
+  {
+    return m_layerCtxMenuManager;
+  }
+  const Process::LayerContextMenuManager& layerContextMenuRegistrar() const
+  {
+    return m_layerCtxMenuManager;
+  }
 
-    signals:
-        void keyPressed(int);
-        void keyReleased(int);
+  Scenario::ScenarioExecution& execution()
+  {
+    return m_execution;
+  }
 
-    protected:
-        void prepareNewDocument() override;
+signals:
+  void keyPressed(int);
+  void keyReleased(int);
 
-        void on_documentChanged(
-                iscore::Document* olddoc,
-                iscore::Document* newdoc) override;
+protected:
+  void prepareNewDocument() override;
 
-        void on_activeWindowChanged() override;
+  void on_documentChanged(
+      iscore::Document* olddoc, iscore::Document* newdoc) override;
 
-    private:
-        QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
-        Scenario::EditionSettings m_editionSettings;
-        Process::LayerContextMenuManager m_layerCtxMenuManager;
-        ScenarioExecution m_execution;
+  void on_activeWindowChanged() override;
 
-        ObjectMenuActions m_objectActions{this};
-        ToolMenuActions m_toolActions{this};
-        TransportActions m_transportActions{context};
+private:
+  QMetaObject::Connection m_focusConnection, m_defocusConnection,
+      m_contextMenuConnection;
+  Scenario::EditionSettings m_editionSettings;
+  Process::LayerContextMenuManager m_layerCtxMenuManager;
+  ScenarioExecution m_execution;
 
-        QAction *m_selectAll{};
-        QAction *m_deselectAll{};
+  ObjectMenuActions m_objectActions{this};
+  ToolMenuActions m_toolActions{this};
+  TransportActions m_transportActions{context};
 
-        void on_presenterFocused(Process::LayerPresenter* lm);
-        void on_presenterDefocused(Process::LayerPresenter* lm);
+  QAction* m_selectAll{};
+  QAction* m_deselectAll{};
+
+  void on_presenterFocused(Process::LayerPresenter* lm);
+  void on_presenterDefocused(Process::LayerPresenter* lm);
 };
 }

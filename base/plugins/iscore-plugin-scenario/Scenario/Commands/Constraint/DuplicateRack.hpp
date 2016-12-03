@@ -1,7 +1,7 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -16,21 +16,22 @@ namespace Command
 {
 class DuplicateRack final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), DuplicateRack, "Duplicate a rack")
-        public:
-            DuplicateRack(const RackModel&);
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), DuplicateRack, "Duplicate a rack")
+public:
+  DuplicateRack(const RackModel&);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<RackModel> m_rackPath;
+private:
+  Path<RackModel> m_rackPath;
 
-        Id<RackModel> m_newRackId;
+  Id<RackModel> m_newRackId;
 };
 }
 }

@@ -13,45 +13,46 @@ class ActionManager;
 
 struct ISCORE_LIB_BASE_EXPORT ApplicationContext
 {
-        explicit ApplicationContext(
-                const iscore::ApplicationSettings&,
-                const ApplicationComponents&,
-                DocumentManager&,
-                iscore::MenuManager&,
-                iscore::ToolbarManager&,
-                iscore::ActionManager&,
-                const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>&);
-        ApplicationContext(const ApplicationContext&) = delete;
-        ApplicationContext(ApplicationContext&&) = delete;
-        ApplicationContext& operator=(const ApplicationContext&) = delete;
+  explicit ApplicationContext(
+      const iscore::ApplicationSettings&,
+      const ApplicationComponents&,
+      DocumentManager&,
+      iscore::MenuManager&,
+      iscore::ToolbarManager&,
+      iscore::ActionManager&,
+      const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>&);
+  ApplicationContext(const ApplicationContext&) = delete;
+  ApplicationContext(ApplicationContext&&) = delete;
+  ApplicationContext& operator=(const ApplicationContext&) = delete;
 
-        virtual ~ApplicationContext();
+  virtual ~ApplicationContext();
 
-        template<typename T>
-        T& settings() const
-        {
-            for(auto& elt : this->m_settings)
-            {
-                if(auto c = dynamic_cast<T*>(elt.get()))
-                {
-                    return *c;
-                }
-            }
+  template <typename T>
+  T& settings() const
+  {
+    for (auto& elt : this->m_settings)
+    {
+      if (auto c = dynamic_cast<T*>(elt.get()))
+      {
+        return *c;
+      }
+    }
 
-            ISCORE_ABORT;
-            throw;
-        }
+    ISCORE_ABORT;
+    throw;
+  }
 
-        const iscore::ApplicationSettings& applicationSettings;
-        const iscore::ApplicationComponents& components;
-        DocumentManager& documents;
+  const iscore::ApplicationSettings& applicationSettings;
+  const iscore::ApplicationComponents& components;
+  DocumentManager& documents;
 
-        MenuManager& menus;
-        ToolbarManager& toolbars;
-        ActionManager& actions;
+  MenuManager& menus;
+  ToolbarManager& toolbars;
+  ActionManager& actions;
 
-    private:
-        const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>& m_settings;
+private:
+  const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>&
+      m_settings;
 };
 
 // By default this is defined in iscore::Application

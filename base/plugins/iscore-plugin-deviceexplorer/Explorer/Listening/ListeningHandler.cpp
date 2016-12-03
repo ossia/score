@@ -4,6 +4,5 @@ namespace Explorer
 {
 ListeningHandler::~ListeningHandler()
 {
-
 }
 }

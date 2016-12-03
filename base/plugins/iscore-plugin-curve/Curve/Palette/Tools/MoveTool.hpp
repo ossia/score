@@ -1,8 +1,8 @@
 #pragma once
-#include <Curve/Palette/Tools/CurveTool.hpp>
 #include <Curve/Palette/CommandObjects/CreatePointCommandObject.hpp>
-#include <Curve/Palette/CommandObjects/SetSegmentParametersCommandObject.hpp>
 #include <Curve/Palette/CommandObjects/PenCommandObject.hpp>
+#include <Curve/Palette/CommandObjects/SetSegmentParametersCommandObject.hpp>
+#include <Curve/Palette/Tools/CurveTool.hpp>
 #include <QPoint>
 
 #include <Curve/Palette/CurvePoint.hpp>
@@ -13,39 +13,41 @@ class ToolPalette;
 
 class EditionToolForCreate : public CurveTool
 {
-    public:
-        explicit EditionToolForCreate(Curve::ToolPalette& sm);
+public:
+  explicit EditionToolForCreate(Curve::ToolPalette& sm);
 
-        void on_pressed(QPointF, Curve::Point);
-        void on_moved(QPointF, Curve::Point);
-        void on_released(QPointF, Curve::Point);
+  void on_pressed(QPointF, Curve::Point);
+  void on_moved(QPointF, Curve::Point);
+  void on_released(QPointF, Curve::Point);
 };
 
 class CreateTool final : public Curve::EditionToolForCreate
 {
-    public:
-        explicit CreateTool(Curve::ToolPalette& sm, const iscore::DocumentContext& context);
+public:
+  explicit CreateTool(
+      Curve::ToolPalette& sm, const iscore::DocumentContext& context);
 
-    private:
-        CreatePointCommandObject m_co;
+private:
+  CreatePointCommandObject m_co;
 };
 
 class SetSegmentTool final : public Curve::EditionToolForCreate
 {
-    public:
-        explicit SetSegmentTool(Curve::ToolPalette& sm, const iscore::DocumentContext& context);
+public:
+  explicit SetSegmentTool(
+      Curve::ToolPalette& sm, const iscore::DocumentContext& context);
 
-    private:
-        SetSegmentParametersCommandObject m_co;
+private:
+  SetSegmentParametersCommandObject m_co;
 };
 
 class CreatePenTool final : public Curve::EditionToolForCreate
 {
-    public:
-        explicit CreatePenTool(Curve::ToolPalette& sm, const iscore::DocumentContext& context);
+public:
+  explicit CreatePenTool(
+      Curve::ToolPalette& sm, const iscore::DocumentContext& context);
 
-    private:
-        PenCommandObject m_co;
+private:
+  PenCommandObject m_co;
 };
-
 }

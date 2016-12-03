@@ -7,7 +7,6 @@
 struct DataStreamInput;
 struct DataStreamOutput;
 
-
 namespace Explorer
 {
 class DeviceDocumentPlugin;
@@ -16,30 +15,31 @@ namespace Command
 // Replaces all the nodes of a device by new nodes.
 class ReplaceDevice final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), ReplaceDevice, "Replace a device")
-        public:
-            ReplaceDevice(Path<DeviceDocumentPlugin>&& device_tree,
-                          int deviceIndex,
-                          Device::Node&& rootNode);
-        ReplaceDevice(Path<DeviceDocumentPlugin>&& device_tree,
-                      int deviceIndex,
-                      Device::Node&& oldDevice,
-                      Device::Node&& newDevice);
+  ISCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(), ReplaceDevice, "Replace a device")
+public:
+  ReplaceDevice(
+      Path<DeviceDocumentPlugin>&& device_tree,
+      int deviceIndex,
+      Device::Node&& rootNode);
+  ReplaceDevice(
+      Path<DeviceDocumentPlugin>&& device_tree,
+      int deviceIndex,
+      Device::Node&& oldDevice,
+      Device::Node&& newDevice);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<DeviceDocumentPlugin> m_deviceTree;
-        int m_deviceIndex{};
-        Device::Node m_deviceNode;
-        Device::Node m_savedNode;
-
+private:
+  Path<DeviceDocumentPlugin> m_deviceTree;
+  int m_deviceIndex{};
+  Device::Node m_deviceNode;
+  Device::Node m_savedNode;
 };
 }
 }
-

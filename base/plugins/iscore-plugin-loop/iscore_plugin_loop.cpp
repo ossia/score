@@ -8,70 +8,56 @@
 #include <string.h>
 #include <unordered_map>
 
+#include "iscore_plugin_loop.hpp"
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Loop/LoopDisplayedElements.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include "iscore_plugin_loop.hpp"
-#include <Loop/LoopDisplayedElements.hpp>
 #include <iscore_plugin_loop_commands_files.hpp>
 
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
-iscore_plugin_loop::iscore_plugin_loop() :
-    QObject {}
+iscore_plugin_loop::iscore_plugin_loop() : QObject{}
 {
 }
 
 iscore_plugin_loop::~iscore_plugin_loop()
 {
-
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> iscore_plugin_loop::factories(
-        const iscore::ApplicationContext& ctx,
-        const iscore::AbstractFactoryKey& key) const
+std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+iscore_plugin_loop::factories(
+    const iscore::ApplicationContext& ctx,
+    const iscore::AbstractFactoryKey& key) const
 {
-    using namespace Scenario;
-    using namespace Scenario::Command;
-    return instantiate_factories<
-            iscore::ApplicationContext,
-            TL<
-            FW<Process::ProcessModelFactory,
-                Loop::ProcessFactory>,
-            FW<Process::LayerFactory,
-                Loop::LayerFactory>,
-            FW<Process::InspectorWidgetDelegateFactory,
-                Loop::InspectorFactory>,
-            FW<ConstraintInspectorDelegateFactory,
-                Loop::ConstraintInspectorDelegateFactory>,
-            FW<TriggerCommandFactory,
-                LoopTriggerCommandFactory>,
-            FW<Scenario::DisplayedElementsProvider,
-                Loop::DisplayedElementsProvider>
-            >>(ctx, key);
+  using namespace Scenario;
+  using namespace Scenario::Command;
+  return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, Loop::ProcessFactory>, FW<Process::LayerFactory, Loop::LayerFactory>, FW<Process::InspectorWidgetDelegateFactory, Loop::InspectorFactory>, FW<ConstraintInspectorDelegateFactory, Loop::ConstraintInspectorDelegateFactory>, FW<TriggerCommandFactory, LoopTriggerCommandFactory>, FW<Scenario::DisplayedElementsProvider, Loop::DisplayedElementsProvider>>>(
+      ctx, key);
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_loop::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+iscore_plugin_loop::make_commands()
 {
-    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{LoopCommandFactoryName(), CommandGeneratorMap{}};
+  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+      LoopCommandFactoryName(), CommandGeneratorMap{}};
 
-    using Types = TypeList<
+  using Types = TypeList<
 #include <iscore_plugin_loop_commands.hpp>
       >;
-    for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
+  for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
-
-    return cmds;
+  return cmds;
 }
 
 iscore::Version iscore_plugin_loop::version() const
 {
-    return iscore::Version{1};
+  return iscore::Version{1};
 }
 
 UuidKey<iscore::Plugin> iscore_plugin_loop::key() const
 {
-    return_uuid("db40e6eb-add3-4b6d-8957-13690aec290b");
+  return_uuid("db40e6eb-add3-4b6d-8957-13690aec290b");
 }

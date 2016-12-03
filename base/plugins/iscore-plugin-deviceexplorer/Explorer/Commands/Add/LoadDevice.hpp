@@ -15,46 +15,44 @@ namespace Command
 // Note : could also be used for loading from the library
 class LoadDevice final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), LoadDevice, "Load a device")
-        public:
-          LoadDevice(
-            Path<DeviceDocumentPlugin>&& device_tree,
-            Device::Node&& node);
+  ISCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(), LoadDevice, "Load a device")
+public:
+  LoadDevice(Path<DeviceDocumentPlugin>&& device_tree, Device::Node&& node);
 
+  void undo() const override;
+  void redo() const override;
 
-        void undo() const override;
-        void redo() const override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
-
-    private:
-        Path<DeviceDocumentPlugin> m_devicesModel;
-        Device::Node m_deviceNode;
+private:
+  Path<DeviceDocumentPlugin> m_devicesModel;
+  Device::Node m_deviceNode;
 };
 
 class ReloadWholeDevice final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), ReloadWholeDevice, "Reload a device")
-        public:
-          ReloadWholeDevice(
-            Path<DeviceDocumentPlugin>&& device_tree,
-            Device::Node&& oldnode,
-            Device::Node&& newnode);
+  ISCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(), ReloadWholeDevice, "Reload a device")
+public:
+  ReloadWholeDevice(
+      Path<DeviceDocumentPlugin>&& device_tree,
+      Device::Node&& oldnode,
+      Device::Node&& newnode);
 
+  void undo() const override;
+  void redo() const override;
 
-        void undo() const override;
-        void redo() const override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
-
-    private:
-        Path<DeviceDocumentPlugin> m_devicesModel;
-        Device::Node m_oldNode;
-        Device::Node m_newNode;
+private:
+  Path<DeviceDocumentPlugin> m_devicesModel;
+  Device::Node m_oldNode;
+  Device::Node m_newNode;
 };
 }
 }

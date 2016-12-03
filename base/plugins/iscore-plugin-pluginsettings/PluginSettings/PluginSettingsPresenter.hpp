@@ -1,15 +1,16 @@
 #pragma once
-#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include <QIcon>
+#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
 #include <QString>
 
-namespace iscore {
+namespace iscore
+{
 class Command;
 class SettingsDelegateModel;
 class SettingsDelegateView;
 class SettingsPresenter;
-}  // namespace iscore
+} // namespace iscore
 
 namespace PluginSettings
 {
@@ -18,21 +19,19 @@ class PluginSettingsModel;
 class PluginSettingsView;
 class PluginSettingsPresenter : public iscore::SettingsDelegatePresenter
 {
-        Q_OBJECT
-    public:
-        PluginSettingsPresenter(
-                iscore::SettingsDelegateModel& model,
-                iscore::SettingsDelegateView& view,
-                QObject* parent);
+  Q_OBJECT
+public:
+  PluginSettingsPresenter(
+      iscore::SettingsDelegateModel& model,
+      iscore::SettingsDelegateView& view,
+      QObject* parent);
 
-    private:
-        QString settingsName() override
-        {
-            return tr("Plugin");
-        }
+private:
+  QString settingsName() override
+  {
+    return tr("Plugin");
+  }
 
-        QIcon settingsIcon() override;
-
-
+  QIcon settingsIcon() override;
 };
 }

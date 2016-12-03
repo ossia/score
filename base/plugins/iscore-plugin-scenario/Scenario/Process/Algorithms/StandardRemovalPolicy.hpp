@@ -10,20 +10,14 @@ class ProcessModel;
 class CommentBlockModel;
 namespace StandardRemovalPolicy
 {
-    void removeConstraint(
-            Scenario::ProcessModel& scenario,
-            const Id<ConstraintModel>& constraintId);
+void removeConstraint(
+    Scenario::ProcessModel& scenario, const Id<ConstraintModel>& constraintId);
 
-    void removeState(
-            Scenario::ProcessModel& scenario,
-            StateModel& state);
+void removeState(Scenario::ProcessModel& scenario, StateModel& state);
 
-    void removeComment(
-            Scenario::ProcessModel& scenario,
-            CommentBlockModel& cmt);
+void removeComment(Scenario::ProcessModel& scenario, CommentBlockModel& cmt);
 
-    void removeEventStatesAndConstraints(
-            Scenario::ProcessModel& scenario,
-            const Id<EventModel>& eventId);
+void removeEventStatesAndConstraints(
+    Scenario::ProcessModel& scenario, const Id<EventModel>& eventId);
 }
 }

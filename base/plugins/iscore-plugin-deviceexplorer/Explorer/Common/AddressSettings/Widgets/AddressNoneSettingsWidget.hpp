@@ -6,12 +6,12 @@ namespace Explorer
 {
 class AddressNoneSettingsWidget final : public AddressSettingsWidget
 {
-    public:
-        explicit AddressNoneSettingsWidget(QWidget* parent = nullptr);
+public:
+  explicit AddressNoneSettingsWidget(QWidget* parent = nullptr);
 
-        Device::AddressSettings getSettings() const override;
+  Device::AddressSettings getSettings() const override;
 
-        void setSettings(const Device::AddressSettings& settings) override;
-        Device::AddressSettings getDefaultSettings() const override;
+  void setSettings(const Device::AddressSettings& settings) override;
+  Device::AddressSettings getDefaultSettings() const override;
 };
 }

@@ -12,35 +12,36 @@
 struct DataStreamInput;
 struct DataStreamOutput;
 
-
 namespace Explorer
 {
 class DeviceDocumentPlugin;
 namespace Command
 {
-class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddAddress final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddAddress final
+    : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddAddress, "Add an address")
-        public:
-            AddAddress(Path<DeviceDocumentPlugin>&& device_tree,
-                       const Device::NodePath &nodePath,
-                       InsertMode insert,
-                       const Device::AddressSettings& addressSettings);
+  ISCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(), AddAddress, "Add an address")
+public:
+  AddAddress(
+      Path<DeviceDocumentPlugin>&& device_tree,
+      const Device::NodePath& nodePath,
+      InsertMode insert,
+      const Device::AddressSettings& addressSettings);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-        int createdNodeIndex() const;
+  int createdNodeIndex() const;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<DeviceDocumentPlugin> m_devicesModel;
-        Device::NodePath m_parentNodePath;
-        Device::AddressSettings m_addressSettings;
-
+private:
+  Path<DeviceDocumentPlugin> m_devicesModel;
+  Device::NodePath m_parentNodePath;
+  Device::AddressSettings m_addressSettings;
 };
 }
 }

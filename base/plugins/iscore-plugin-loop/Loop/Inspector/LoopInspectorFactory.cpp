@@ -9,22 +9,22 @@
 
 #include <QByteArray>
 #include <QDataStream>
-#include <QtGlobal>
 #include <QObject>
+#include <QtGlobal>
 #include <algorithm>
 #include <list>
 
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include "LoopInspectorFactory.hpp"
 #include "LoopInspectorWidget.hpp"
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <iscore/application/ApplicationContext.hpp>
-#include <iscore/document/DocumentContext.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
@@ -35,25 +35,29 @@ class QWidget;
 // TODO cleanup this file
 namespace Loop
 {
-class ConstraintInspectorDelegate final : public Scenario::ConstraintInspectorDelegate
+class ConstraintInspectorDelegate final
+    : public Scenario::ConstraintInspectorDelegate
 {
-    public:
-        ConstraintInspectorDelegate(const Scenario::ConstraintModel& cst);
+public:
+  ConstraintInspectorDelegate(const Scenario::ConstraintModel& cst);
 
-        void updateElements() override;
-        void addWidgets_pre(std::list<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent) override;
-        void addWidgets_post(std::list<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent) override;
+  void updateElements() override;
+  void addWidgets_pre(
+      std::list<QWidget*>& widgets,
+      Scenario::ConstraintInspectorWidget* parent) override;
+  void addWidgets_post(
+      std::list<QWidget*>& widgets,
+      Scenario::ConstraintInspectorWidget* parent) override;
 
-        void on_defaultDurationChanged(
-                OngoingCommandDispatcher& dispatcher,
-                const TimeValue& val,
-                ExpandMode) const override;
+  void on_defaultDurationChanged(
+      OngoingCommandDispatcher& dispatcher,
+      const TimeValue& val,
+      ExpandMode) const override;
 };
 
-
 ConstraintInspectorDelegate::ConstraintInspectorDelegate(
-        const Scenario::ConstraintModel& cst):
-    Scenario::ConstraintInspectorDelegate{cst}
+    const Scenario::ConstraintModel& cst)
+    : Scenario::ConstraintInspectorDelegate{cst}
 {
 }
 
@@ -62,47 +66,44 @@ void ConstraintInspectorDelegate::updateElements()
 }
 
 void ConstraintInspectorDelegate::addWidgets_pre(
-        std::list<QWidget*>& widgets,
-        Scenario::ConstraintInspectorWidget* parent)
+    std::list<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent)
 {
 }
 
 void ConstraintInspectorDelegate::addWidgets_post(
-        std::list<QWidget*>& widgets,
-        Scenario::ConstraintInspectorWidget* parent)
+    std::list<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent)
 {
 }
 
 void ConstraintInspectorDelegate::on_defaultDurationChanged(
-        OngoingCommandDispatcher& dispatcher,
-        const TimeValue& val,
-        ExpandMode expandmode) const
+    OngoingCommandDispatcher& dispatcher,
+    const TimeValue& val,
+    ExpandMode expandmode) const
 {
-    auto& loop = *safe_cast<Loop::ProcessModel*>(m_model.parent());
-    dispatcher.submitCommand<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>>(
-            loop,
-            loop.state(m_model.endState()).eventId(),
-            m_model.startDate() + val,
-            0,
-            expandmode);
+  auto& loop = *safe_cast<Loop::ProcessModel*>(m_model.parent());
+  dispatcher
+      .submitCommand<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>>(
+          loop,
+          loop.state(m_model.endState()).eventId(),
+          m_model.startDate() + val,
+          0,
+          expandmode);
 }
-
-
 
 ConstraintInspectorDelegateFactory::~ConstraintInspectorDelegateFactory()
 {
-
 }
 
-std::unique_ptr<Scenario::ConstraintInspectorDelegate> ConstraintInspectorDelegateFactory::make(
-        const Scenario::ConstraintModel& constraint)
+std::unique_ptr<Scenario::ConstraintInspectorDelegate>
+ConstraintInspectorDelegateFactory::make(
+    const Scenario::ConstraintModel& constraint)
 {
-    return std::make_unique<Loop::ConstraintInspectorDelegate>(constraint);
+  return std::make_unique<Loop::ConstraintInspectorDelegate>(constraint);
 }
 
 bool ConstraintInspectorDelegateFactory::matches(
-        const Scenario::ConstraintModel& constraint) const
+    const Scenario::ConstraintModel& constraint) const
 {
-    return dynamic_cast<Loop::ProcessModel*>(constraint.parent());
+  return dynamic_cast<Loop::ProcessModel*>(constraint.parent());
 }
 }

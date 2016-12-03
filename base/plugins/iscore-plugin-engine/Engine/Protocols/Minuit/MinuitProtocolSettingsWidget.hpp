@@ -13,27 +13,26 @@ namespace Engine
 {
 namespace Network
 {
-class MinuitProtocolSettingsWidget final :
-        public Device::ProtocolSettingsWidget
+class MinuitProtocolSettingsWidget final
+    : public Device::ProtocolSettingsWidget
 {
-    public:
-        MinuitProtocolSettingsWidget(QWidget* parent = nullptr);
+public:
+  MinuitProtocolSettingsWidget(QWidget* parent = nullptr);
 
-        Device::DeviceSettings getSettings() const override;
+  Device::DeviceSettings getSettings() const override;
 
-        void setSettings(const Device::DeviceSettings& settings) override;
+  void setSettings(const Device::DeviceSettings& settings) override;
 
-    protected:
-        void setDefaults();
+protected:
+  void setDefaults();
 
-    protected:
-        QLineEdit* m_deviceNameEdit{};
-        QSpinBox* m_portInputSBox{};
-        QSpinBox* m_portOutputSBox{};
-        QLineEdit* m_localHostEdit{};
+protected:
+  QLineEdit* m_deviceNameEdit{};
+  QSpinBox* m_portInputSBox{};
+  QSpinBox* m_portOutputSBox{};
+  QLineEdit* m_localHostEdit{};
 
-        ZeroconfBrowser* m_browser{};
-
+  ZeroconfBrowser* m_browser{};
 };
 }
 }

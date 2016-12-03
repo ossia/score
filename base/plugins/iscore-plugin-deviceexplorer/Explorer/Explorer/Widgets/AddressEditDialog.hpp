@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
-#include <iscore/widgets/WidgetWrapper.hpp>
 #include <QDialog>
+#include <iscore/widgets/WidgetWrapper.hpp>
 
 class QComboBox;
 class QFormLayout;
@@ -14,31 +14,29 @@ namespace Explorer
 class AddressSettingsWidget;
 class AddressEditDialog final : public QDialog
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
-        // Creation of an address
-        explicit AddressEditDialog(
-                QWidget* parent);
+public:
+  // Creation of an address
+  explicit AddressEditDialog(QWidget* parent);
 
-        // Edition of an address
-        explicit AddressEditDialog(
-                const Device::AddressSettings& addr,
-                QWidget* parent);
-        ~AddressEditDialog();
+  // Edition of an address
+  explicit AddressEditDialog(
+      const Device::AddressSettings& addr, QWidget* parent);
+  ~AddressEditDialog();
 
-        Device::AddressSettings getSettings() const;
-        static Device::AddressSettings makeDefaultSettings();
+  Device::AddressSettings getSettings() const;
+  static Device::AddressSettings makeDefaultSettings();
 
-    protected:
-        void setNodeSettings();
-        void setValueSettings();
-        void updateType();
+protected:
+  void setNodeSettings();
+  void setValueSettings();
+  void updateType();
 
-        Device::AddressSettings m_originalSettings;
-        QLineEdit* m_nameEdit{};
-        QComboBox* m_valueTypeCBox{};
-        WidgetWrapper<AddressSettingsWidget>* m_addressWidget{};
-        QFormLayout* m_layout{};
+  Device::AddressSettings m_originalSettings;
+  QLineEdit* m_nameEdit{};
+  QComboBox* m_valueTypeCBox{};
+  WidgetWrapper<AddressSettingsWidget>* m_addressWidget{};
+  QFormLayout* m_layout{};
 };
 }

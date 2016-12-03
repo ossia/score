@@ -1,6 +1,6 @@
 #pragma once
-#include <QString>
 #include <QMetaType>
+#include <QString>
 
 namespace Engine
 {
@@ -8,10 +8,10 @@ namespace Network
 {
 struct LocalSpecificSettings
 {
-QString remoteName;
-QString host;
-int remotePort{};
-int localPort{};
+  QString remoteName;
+  QString host;
+  int remotePort{};
+  int localPort{};
 };
 }
 }

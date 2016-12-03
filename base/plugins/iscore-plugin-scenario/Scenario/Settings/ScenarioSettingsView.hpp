@@ -1,6 +1,6 @@
 #pragma once
-#include <iscore/plugins/settingsdelegate/SettingsDelegateView.hpp>
 #include <Process/TimeValue.hpp>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateView.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 
 class QComboBox;
@@ -11,39 +11,37 @@ namespace Scenario
 namespace Settings
 {
 
-class View :
-        public iscore::SettingsDelegateView
+class View : public iscore::SettingsDelegateView
 {
-        Q_OBJECT
-    public:
-        View();
+  Q_OBJECT
+public:
+  View();
 
-        void setSkin(const QString&);
-        void setZoom(const int); // zoom percentage
-        void setSlotHeight(const qreal);
-        void setDefaultDuration(const TimeValue& t);
-        void setSnapshot(bool);
-        void setSequence(bool);
+  void setSkin(const QString&);
+  void setZoom(const int); // zoom percentage
+  void setSlotHeight(const qreal);
+  void setDefaultDuration(const TimeValue& t);
+  void setSnapshot(bool);
+  void setSequence(bool);
 
-    signals:
-        void skinChanged(const QString&);
-        void zoomChanged(int);
-        void slotHeightChanged(qreal);
-        void defaultDurationChanged(const TimeValue& t);
-        void snapshotChanged(bool);
-        void sequenceChanged(bool);
+signals:
+  void skinChanged(const QString&);
+  void zoomChanged(int);
+  void slotHeightChanged(qreal);
+  void defaultDurationChanged(const TimeValue& t);
+  void snapshotChanged(bool);
+  void sequenceChanged(bool);
 
-    private:
-        QWidget* getWidget() override;
-        QWidget* m_widg{};
+private:
+  QWidget* getWidget() override;
+  QWidget* m_widg{};
 
-        QComboBox* m_skin{};
-        QSpinBox* m_zoomSpinBox{};
-        QSpinBox* m_slotHeightBox{};
-        iscore::TimeSpinBox* m_defaultDur{};
-        QCheckBox* m_snapshot{};
-        QCheckBox* m_sequence{};
+  QComboBox* m_skin{};
+  QSpinBox* m_zoomSpinBox{};
+  QSpinBox* m_slotHeightBox{};
+  iscore::TimeSpinBox* m_defaultDur{};
+  QCheckBox* m_snapshot{};
+  QCheckBox* m_sequence{};
 };
-
 }
 }

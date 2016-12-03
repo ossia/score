@@ -13,7 +13,7 @@ class StateModel;
 namespace Command
 {
 void RefreshStates(const iscore::DocumentContext& doc);
-void RefreshStates(const QList<const StateModel*>&,
-                   const iscore::CommandStackFacade&);
+void RefreshStates(
+    const QList<const StateModel*>&, const iscore::CommandStackFacade&);
 }
 }

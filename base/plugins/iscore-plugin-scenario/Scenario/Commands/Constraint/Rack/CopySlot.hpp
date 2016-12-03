@@ -1,8 +1,8 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -24,23 +24,22 @@ namespace Command
          */
 class CopySlot final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CopySlot, "Copy a slot")
-        public:
-            CopySlot(Path<SlotModel>&& slotToCopy,
-                     Path<RackModel>&& targetRackPath);
+  ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CopySlot, "Copy a slot")
+public:
+  CopySlot(Path<SlotModel>&& slotToCopy, Path<RackModel>&& targetRackPath);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<SlotModel> m_slotPath;
-        Path<RackModel> m_targetRackPath;
+private:
+  Path<SlotModel> m_slotPath;
+  Path<RackModel> m_targetRackPath;
 
-        Id<SlotModel> m_newSlotId;
+  Id<SlotModel> m_newSlotId;
 };
 }
 }

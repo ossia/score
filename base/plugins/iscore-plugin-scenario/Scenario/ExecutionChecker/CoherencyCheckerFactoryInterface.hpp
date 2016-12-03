@@ -8,17 +8,17 @@
 
 namespace Scenario
 {
-class ISCORE_PLUGIN_SCENARIO_EXPORT CoherencyCheckerFactoryInterface :
-         public iscore::AbstractFactory<CoherencyCheckerFactoryInterface>
+class ISCORE_PLUGIN_SCENARIO_EXPORT CoherencyCheckerFactoryInterface
+    : public iscore::AbstractFactory<CoherencyCheckerFactoryInterface>
 {
-        ISCORE_ABSTRACT_FACTORY("e9942ad6-1e39-4bdf-bb93-f31962e3cf79")
+  ISCORE_ABSTRACT_FACTORY("e9942ad6-1e39-4bdf-bb93-f31962e3cf79")
 
-    public:
-        virtual CSPCoherencyCheckerInterface* make(
-                    Scenario::ProcessModel& scenario,
-                    const iscore::ApplicationContext& ctx,
-                    Scenario::ElementsProperties& elementsProperties) = 0;
-        virtual ~CoherencyCheckerFactoryInterface();
+public:
+  virtual CSPCoherencyCheckerInterface* make(
+      Scenario::ProcessModel& scenario,
+      const iscore::ApplicationContext& ctx,
+      Scenario::ElementsProperties& elementsProperties)
+      = 0;
+  virtual ~CoherencyCheckerFactoryInterface();
 };
-
 }

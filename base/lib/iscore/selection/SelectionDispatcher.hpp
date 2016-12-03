@@ -13,17 +13,16 @@ class SelectionStack;
  */
 class ISCORE_LIB_BASE_EXPORT SelectionDispatcher
 {
-    public:
-        explicit SelectionDispatcher(SelectionStack& s):
-            m_stack{s}
-        {
-        }
+public:
+  explicit SelectionDispatcher(SelectionStack& s) : m_stack{s}
+  {
+  }
 
-        void setAndCommit(const Selection&);
+  void setAndCommit(const Selection&);
 
-        iscore::SelectionStack& stack() const;
+  iscore::SelectionStack& stack() const;
 
-    private:
-        iscore::SelectionStack& m_stack;
+private:
+  iscore::SelectionStack& m_stack;
 };
 }

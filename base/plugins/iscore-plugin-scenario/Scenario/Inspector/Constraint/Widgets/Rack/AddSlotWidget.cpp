@@ -10,29 +10,25 @@
 
 namespace Scenario
 {
-AddSlotWidget::AddSlotWidget(RackInspectorSection* parent) :
-    QWidget {parent}
+AddSlotWidget::AddSlotWidget(RackInspectorSection* parent) : QWidget{parent}
 {
-    auto layout = new iscore::MarginLess<QHBoxLayout>(this);
+  auto layout = new iscore::MarginLess<QHBoxLayout>(this);
 
-    // Button
-    auto addButton = new QToolButton;
-    addButton->setText("+");
-    addButton->setObjectName("addAutom");
-    auto addIcon = makeIcons(":/icons/condition_add_on.png", ":/icons/condition_add_off.png");
-    addButton->setIcon(addIcon);
+  // Button
+  auto addButton = new QToolButton;
+  addButton->setText("+");
+  addButton->setObjectName("addAutom");
+  auto addIcon = makeIcons(
+      ":/icons/condition_add_on.png", ":/icons/condition_add_off.png");
+  addButton->setIcon(addIcon);
 
-    // Text
-    auto text = new QLabel("Add Slot");
-    text->setStyleSheet(QString("text-align : left;"));
+  // Text
+  auto text = new QLabel("Add Slot");
+  text->setStyleSheet(QString("text-align : left;"));
 
-    layout->addWidget(addButton);
-    layout->addWidget(text);
+  layout->addWidget(addButton);
+  layout->addWidget(text);
 
-    connect(addButton, &QToolButton::pressed,
-    [ = ]()
-    {
-        parent->createSlot();
-    });
+  connect(addButton, &QToolButton::pressed, [=]() { parent->createSlot(); });
 }
 }

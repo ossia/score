@@ -14,36 +14,34 @@ namespace Scenario
 namespace Command
 {
 
-SetTrigger::SetTrigger(Path<TimeNodeModel>&& timeNodePath,
-                       State::Trigger trigger) :
-m_path {std::move(timeNodePath) },
-m_trigger(std::move(trigger))
+SetTrigger::SetTrigger(
+    Path<TimeNodeModel>&& timeNodePath, State::Trigger trigger)
+    : m_path{std::move(timeNodePath)}, m_trigger(std::move(trigger))
 {
-    auto& tn = m_path.find();
-    m_previousTrigger = tn.trigger()->expression();
+  auto& tn = m_path.find();
+  m_previousTrigger = tn.trigger()->expression();
 }
 
 void SetTrigger::undo() const
 {
-    auto& tn = m_path.find();
-    tn.trigger()->setExpression(m_previousTrigger);
+  auto& tn = m_path.find();
+  tn.trigger()->setExpression(m_previousTrigger);
 }
 
 void SetTrigger::redo() const
 {
-    auto& tn = m_path.find();
-    tn.trigger()->setExpression(m_trigger);
+  auto& tn = m_path.find();
+  tn.trigger()->setExpression(m_trigger);
 }
 
 void SetTrigger::serializeImpl(DataStreamInput& s) const
 {
-    s << m_path << m_trigger << m_previousTrigger;
+  s << m_path << m_trigger << m_previousTrigger;
 }
 
 void SetTrigger::deserializeImpl(DataStreamOutput& s)
 {
-    s >> m_path >> m_trigger >> m_previousTrigger;
+  s >> m_path >> m_trigger >> m_previousTrigger;
 }
-
 }
 }

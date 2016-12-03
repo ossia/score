@@ -2,5 +2,5 @@
 
 IdentifiedObjectAbstract::~IdentifiedObjectAbstract()
 {
-    emit identified_object_destroyed(this);
+  emit identified_object_destroyed(this);
 }

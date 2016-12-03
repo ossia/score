@@ -7,36 +7,31 @@
 
 namespace Scenario
 {
-EventShortCut::EventShortCut(QString eventId, QWidget* parent) :
-    QWidget {parent}
+EventShortCut::EventShortCut(QString eventId, QWidget* parent)
+    : QWidget{parent}
 {
-    auto groupLay = new iscore::MarginLess<QHBoxLayout>{this};
+  auto groupLay = new iscore::MarginLess<QHBoxLayout>{this};
 
-    // browser button
-    m_eventBtn = new QPushButton{this};
-    m_eventBtn->setText(eventId);
-    m_eventBtn->setFlat(true);
+  // browser button
+  m_eventBtn = new QPushButton{this};
+  m_eventBtn->setText(eventId);
+  m_eventBtn->setFlat(true);
 
-    m_box = new QCheckBox{};
+  m_box = new QCheckBox{};
 
-    groupLay->addWidget(m_eventBtn);
-    groupLay->addWidget(m_box);
+  groupLay->addWidget(m_eventBtn);
+  groupLay->addWidget(m_box);
 
-    connect(m_eventBtn,   &QPushButton::clicked,
-            [ = ]()
-    {
-        emit eventSelected();
-    });
-
+  connect(m_eventBtn, &QPushButton::clicked, [=]() { emit eventSelected(); });
 }
 
 bool EventShortCut::isChecked()
 {
-    return m_box->isChecked();
+  return m_box->isChecked();
 }
 
 QString EventShortCut::eventName()
 {
-    return m_eventBtn->text();
+  return m_eventBtn->text();
 }
 }

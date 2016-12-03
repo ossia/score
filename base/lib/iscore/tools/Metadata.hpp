@@ -2,7 +2,7 @@
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 #define EMPTY_MACRO
 
-template<typename Metadata_T, typename Object>
+template <typename Metadata_T, typename Object>
 struct Metadata;
 
 class ObjectKey_k;
@@ -13,72 +13,60 @@ class ConcreteFactoryKey_k;
 class Json_k;
 
 #define AUTO_METADATA(Export, Model, Key, Text) \
-    template<> \
-    struct Export Metadata< \
-            Key, \
-            Model> \
-    { \
-            static auto get() \
-            { \
-                return Text; \
-            } \
-    };
-
+  template <>                                   \
+  struct Export Metadata<Key, Model>            \
+  {                                             \
+    static auto get()                           \
+    {                                           \
+      return Text;                              \
+    }                                           \
+  };
 
 #define TYPED_METADATA(Export, Model, Key, Type, Value) \
-    template<> \
-    struct Export Metadata< \
-            Key, \
-            Model> \
-    { \
-            static Type get() \
-            { \
-                return Value; \
-            } \
-    };
-
+  template <>                                           \
+  struct Export Metadata<Key, Model>                    \
+  {                                                     \
+    static Type get()                                   \
+    {                                                   \
+      return Value;                                     \
+    }                                                   \
+  };
 
 #define TR_TEXT_METADATA(Export, Model, Key, Text) \
-    AUTO_METADATA(Export, Model, Key, QObject::tr(Text))
+  AUTO_METADATA(Export, Model, Key, QObject::tr(Text))
 #define LIT_TEXT_METADATA(Export, Model, Key, Text) \
-    AUTO_METADATA(Export, Model, Key, QStringLiteral(Text))
-
+  AUTO_METADATA(Export, Model, Key, QStringLiteral(Text))
 
 #define OBJECTKEY_METADATA(Export, Model, ObjectKey) \
-    LIT_TEXT_METADATA(Export, Model, ObjectKey_k, ObjectKey)
+  LIT_TEXT_METADATA(Export, Model, ObjectKey_k, ObjectKey)
 
 #define DESCRIPTION_METADATA(Export, Model, Text) \
-    TR_TEXT_METADATA(Export, Model, Description_k, Text)
+  TR_TEXT_METADATA(Export, Model, Description_k, Text)
 
 #define UNDO_NAME_METADATA(Export, Model, Text) \
-    TR_TEXT_METADATA(Export, Model, UndoName_k, Text)
-
+  TR_TEXT_METADATA(Export, Model, UndoName_k, Text)
 
 #define DEFAULT_MODEL_METADATA(Model, Description) \
-    OBJECTKEY_METADATA(EMPTY_MACRO, Model, #Model) \
-    DESCRIPTION_METADATA(EMPTY_MACRO, Model, Description)
+  OBJECTKEY_METADATA(EMPTY_MACRO, Model, #Model)   \
+  DESCRIPTION_METADATA(EMPTY_MACRO, Model, Description)
 
-#define JSON_METADATA(Type, Text) \
-    LIT_TEXT_METADATA(, Type, Json_k, Text)
+#define JSON_METADATA(Type, Text) LIT_TEXT_METADATA(, Type, Json_k, Text)
 
 #define STATIC_METADATA(Export, Model, Key, Type, Value) \
-    template<> \
-    struct Export Metadata< \
-            Key, \
-            Model> \
-    { \
-            static Q_DECL_RELAXED_CONSTEXPR Type get() \
-            { \
-                const Q_DECL_RELAXED_CONSTEXPR Type k{Value}; \
-                return k; \
-            } \
-    };
+  template <>                                            \
+  struct Export Metadata<Key, Model>                     \
+  {                                                      \
+    static Q_DECL_RELAXED_CONSTEXPR Type get()           \
+    {                                                    \
+      const Q_DECL_RELAXED_CONSTEXPR Type k{Value};      \
+      return k;                                          \
+    }                                                    \
+  };
 
 #define UUID_METADATA(Export, Factory, Model, Uuid) \
-    STATIC_METADATA(Export, Model, ConcreteFactoryKey_k, UuidKey<Factory>, Uuid)
-
+  STATIC_METADATA(Export, Model, ConcreteFactoryKey_k, UuidKey<Factory>, Uuid)
 
 #define MODEL_METADATA(Export, Factory, Model, Uuid, ObjectKey, PrettyName) \
-    OBJECTKEY_METADATA(Export, Model, ObjectKey) \
-    UUID_METADATA(Export, Factory, Model, Uuid) \
-    TR_TEXT_METADATA(Export, Model, PrettyName_k, PrettyName)
+  OBJECTKEY_METADATA(Export, Model, ObjectKey)                              \
+  UUID_METADATA(Export, Factory, Model, Uuid)                               \
+  TR_TEXT_METADATA(Export, Model, PrettyName_k, PrettyName)

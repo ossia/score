@@ -1,8 +1,8 @@
 #include <Process/Style/ProcessFonts.hpp>
-#include <QFont>
-#include <qnamespace.h>
-#include <algorithm>
 #include <QBrush>
+#include <QFont>
+#include <algorithm>
+#include <qnamespace.h>
 
 #include "ClickableLabelItem.hpp"
 #include <iscore/model/ModelMetadata.hpp>
@@ -14,67 +14,63 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 
-SeparatorItem::SeparatorItem(QGraphicsItem *parent):
-    QGraphicsSimpleTextItem{"/", parent}
+SeparatorItem::SeparatorItem(QGraphicsItem* parent)
+    : QGraphicsSimpleTextItem{"/", parent}
 {
-    auto font = iscore::Skin::instance().SansFont;
-    font.setPointSize(10);
-    font.setBold(true);
-    this->setFont(font);
-    this->setBrush(Qt::white);
+  auto font = iscore::Skin::instance().SansFont;
+  font.setPointSize(10);
+  font.setBold(true);
+  this->setFont(font);
+  this->setBrush(Qt::white);
 }
-
 
 ClickableLabelItem::ClickableLabelItem(
-        iscore::ModelMetadata& metadata,
-        ClickHandler&& onClick,
-        const QString &text,
-        QGraphicsItem *parent):
-    QGraphicsSimpleTextItem{text, parent},
-    m_onClick{std::move(onClick)}
+    iscore::ModelMetadata& metadata,
+    ClickHandler&& onClick,
+    const QString& text,
+    QGraphicsItem* parent)
+    : QGraphicsSimpleTextItem{text, parent}, m_onClick{std::move(onClick)}
 {
-    connect(&metadata, &iscore::ModelMetadata::NameChanged,
-            this, [&] (const QString& name) {
+  connect(
+      &metadata, &iscore::ModelMetadata::NameChanged, this,
+      [&](const QString& name) {
         setText(name);
         emit textChanged();
-    });
+      });
 
-    auto font = iscore::Skin::instance().SansFont;
-    font.setPointSize(10);
-    font.setBold(true);
-    this->setFont(font);
-    this->setBrush(Qt::white);
+  auto font = iscore::Skin::instance().SansFont;
+  font.setPointSize(10);
+  font.setBold(true);
+  this->setFont(font);
+  this->setBrush(Qt::white);
 
-    this->setAcceptHoverEvents(true);
+  this->setAcceptHoverEvents(true);
 }
 
-
-void ClickableLabelItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void ClickableLabelItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    m_onClick(this);
+  m_onClick(this);
 }
 
-
-void ClickableLabelItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void ClickableLabelItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-    this->setBrush(Qt::blue);
-    update();
+  this->setBrush(Qt::blue);
+  update();
 }
 
-void ClickableLabelItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void ClickableLabelItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-    this->setBrush(Qt::white);
-    update();
+  this->setBrush(Qt::white);
+  update();
 }
 
 int ClickableLabelItem::index() const
 {
-    return m_index;
+  return m_index;
 }
 
 void ClickableLabelItem::setIndex(int index)
 {
-    m_index = index;
+  m_index = index;
 }
-
 }

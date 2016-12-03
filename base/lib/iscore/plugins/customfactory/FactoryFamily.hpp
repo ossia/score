@@ -1,15 +1,15 @@
 #pragma once
+#include <ossia/detail/algorithms.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/tools/ForEachType.hpp>
-#include <iscore/tools/std/Pointer.hpp>
-#include <ossia/detail/algorithms.hpp>
-#include <iscore/tools/std/IndirectContainer.hpp>
 #include <iscore/tools/Todo.hpp>
+#include <iscore/tools/std/IndirectContainer.hpp>
+#include <iscore/tools/std/Pointer.hpp>
 
 #include <unordered_map>
 
-#include <iscore_lib_base_export.h>
 #include <QMetaType>
+#include <iscore_lib_base_export.h>
 
 namespace iscore
 {
@@ -20,125 +20,125 @@ namespace iscore
  */
 class ISCORE_LIB_BASE_EXPORT FactoryListInterface
 {
-    public:
-        static constexpr bool factory_list_tag = true;
-        FactoryListInterface() = default;
-        FactoryListInterface(const FactoryListInterface&) = delete;
-        FactoryListInterface& operator=(const FactoryListInterface&) = delete;
-        virtual ~FactoryListInterface();
+public:
+  static constexpr bool factory_list_tag = true;
+  FactoryListInterface() = default;
+  FactoryListInterface(const FactoryListInterface&) = delete;
+  FactoryListInterface& operator=(const FactoryListInterface&) = delete;
+  virtual ~FactoryListInterface();
 
-        // Example : InspectorWidgetFactory
-        virtual iscore::AbstractFactoryKey abstractFactoryKey() const = 0;
+  // Example : InspectorWidgetFactory
+  virtual iscore::AbstractFactoryKey abstractFactoryKey() const = 0;
 
-        // This function is called whenever a new factory interface
-        // is added to this family.
-        virtual void insert(std::unique_ptr<iscore::FactoryInterfaceBase>) = 0;
+  // This function is called whenever a new factory interface
+  // is added to this family.
+  virtual void insert(std::unique_ptr<iscore::FactoryInterfaceBase>) = 0;
 
-        virtual void optimize() = 0;
+  virtual void optimize() = 0;
 };
 
-template<typename FactoryType>
-class ConcreteFactoryList :
-        public iscore::FactoryListInterface,
-        public IndirectUnorderedMap<
-            std::unordered_map<
-                typename FactoryType::ConcreteFactoryKey,
-                std::unique_ptr<FactoryType>
-        >>
+template <typename FactoryType>
+class ConcreteFactoryList : public iscore::FactoryListInterface,
+                            public IndirectUnorderedMap<std::unordered_map<
+                                typename FactoryType::ConcreteFactoryKey,
+                                std::unique_ptr<FactoryType>>>
 {
-    public:
-        using factory_type = FactoryType;
-        using key_type = typename FactoryType::ConcreteFactoryKey;
-        ConcreteFactoryList()
-        {
+public:
+  using factory_type = FactoryType;
+  using key_type = typename FactoryType::ConcreteFactoryKey;
+  ConcreteFactoryList()
+  {
+  }
 
-        }
+  ~ConcreteFactoryList() noexcept override = default;
 
-        ~ConcreteFactoryList() noexcept override = default;
+  static const constexpr iscore::AbstractFactoryKey static_abstractFactoryKey()
+  {
+    return FactoryType::static_abstractFactoryKey();
+  }
 
-        static const constexpr iscore::AbstractFactoryKey static_abstractFactoryKey() {
-            return FactoryType::static_abstractFactoryKey();
-        }
+  iscore::AbstractFactoryKey abstractFactoryKey() const final override
+  {
+    return FactoryType::static_abstractFactoryKey();
+  }
 
-        iscore::AbstractFactoryKey abstractFactoryKey() const final override {
-            return FactoryType::static_abstractFactoryKey();
-        }
+  void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
+  {
+    if (auto result = dynamic_cast<factory_type*>(e.get()))
+    {
+      e.release();
+      std::unique_ptr<factory_type> pf{result};
 
-        void insert(std::unique_ptr<iscore::FactoryInterfaceBase> e) final override
-        {
-            if (auto result = dynamic_cast<factory_type *>(e.get())) {
-                e.release();
-                std::unique_ptr<factory_type> pf{ result };
+      auto k = pf->concreteFactoryKey();
+      auto it = this->map.find(k);
+      ISCORE_ASSERT(it == this->map.end());
 
-                auto k = pf->concreteFactoryKey();
-                auto it = this->map.find(k);
-                ISCORE_ASSERT(it == this->map.end());
+      this->map.emplace(std::make_pair(k, std::move(pf)));
+    }
+  }
 
-                this->map.emplace(std::make_pair(k, std::move(pf)));
-            }
-        }
+  FactoryType* get(const key_type& k) const
+  {
+    auto it = this->map.find(k);
+    return (it != this->map.end()) ? it->second.get() : nullptr;
+  }
 
-        FactoryType* get(const key_type& k) const
-        {
-            auto it = this->map.find(k);
-            return (it != this->map.end()) ? it->second.get() : nullptr;
-        }
+  const auto& ptr_list() const
+  {
+    return this->map;
+  }
 
-        const auto& ptr_list() const
-        { return this->map; }
-
-    private:
-        void optimize() override { this->map.reserve(this->map.size()); }
-        ConcreteFactoryList(const ConcreteFactoryList&) = delete;
-        ConcreteFactoryList(ConcreteFactoryList&&) = delete;
-        ConcreteFactoryList& operator=(const ConcreteFactoryList&) = delete;
-        ConcreteFactoryList& operator=(ConcreteFactoryList&&) = delete;
+private:
+  void optimize() override
+  {
+    this->map.reserve(this->map.size());
+  }
+  ConcreteFactoryList(const ConcreteFactoryList&) = delete;
+  ConcreteFactoryList(ConcreteFactoryList&&) = delete;
+  ConcreteFactoryList& operator=(const ConcreteFactoryList&) = delete;
+  ConcreteFactoryList& operator=(ConcreteFactoryList&&) = delete;
 };
 
-template<typename T>
+template <typename T>
 class MatchingFactory : public iscore::ConcreteFactoryList<T>
 {
-    public:
-        template<typename Fun, typename... Args>
-        auto make(Fun f, Args&&... args) const
-        {
-            using val_t = decltype(*this->begin());
-            auto it = ossia::find_if(
-                          *this,
-                          [&] (const val_t& elt)
-            { return elt.matches(std::forward<Args>(args)...); });
+public:
+  template <typename Fun, typename... Args>
+  auto make(Fun f, Args&&... args) const
+  {
+    using val_t = decltype(*this->begin());
+    auto it = ossia::find_if(*this, [&](const val_t& elt) {
+      return elt.matches(std::forward<Args>(args)...);
+    });
 
-            return (it != this->end())
-                    ? ((*it).*f)(std::forward<Args>(args)...)
-                    : decltype(((*it).*f)(std::forward<Args>(args)...)){};
-        }
+    return (it != this->end())
+               ? ((*it).*f)(std::forward<Args>(args)...)
+               : decltype(((*it).*f)(std::forward<Args>(args)...)){};
+  }
 };
-
 }
 
-
-template<typename Base_T,
-         typename... Args>
+template <typename Base_T, typename... Args>
 struct GenericFactoryInserter
 {
-        std::vector<std::unique_ptr<Base_T>> vec;
-        GenericFactoryInserter()
-        {
-            vec.reserve(sizeof...(Args));
-            for_each_type<TypeList<Args...>>(*this);
-        }
+  std::vector<std::unique_ptr<Base_T>> vec;
+  GenericFactoryInserter()
+  {
+    vec.reserve(sizeof...(Args));
+    for_each_type<TypeList<Args...>>(*this);
+  }
 
-        template<typename TheClass>
-        void perform()
-        {
-            vec.push_back(std::make_unique<TheClass>());
-        }
+  template <typename TheClass>
+  void perform()
+  {
+    vec.push_back(std::make_unique<TheClass>());
+  }
 };
 
-template<typename... Args>
+template <typename... Args>
 auto make_ptr_vector()
 {
-    return GenericFactoryInserter<Args...>{}.vec;
+  return GenericFactoryInserter<Args...>{}.vec;
 }
 
 /**
@@ -148,40 +148,38 @@ auto make_ptr_vector()
  * creation of the factory by specializing it with the actual
  * factory type. An example is in iscore_plugin_scenario.cpp.
  */
-template<typename Context_T,
-         typename Factory_T>
+template <
+    typename Context_T,
+    typename Factory_T>
 struct FactoryBuilder // sorry padre for I have sinned
 {
-        static auto make(const Context_T&)
-        {
-            return std::make_unique<Factory_T>();
-        }
+  static auto make(const Context_T&)
+  {
+    return std::make_unique<Factory_T>();
+  }
 };
 
-template<typename Context_T,
-         typename Base_T,
-         typename... Args>
+template <typename Context_T, typename Base_T, typename... Args>
 struct ContextualGenericFactoryInserter
 {
-        const Context_T& context;
-        std::vector<std::unique_ptr<Base_T>> vec;
-        ContextualGenericFactoryInserter(const Context_T& ctx):
-            context{ctx}
-        {
-            vec.reserve(sizeof...(Args));
-            for_each_type<TypeList<Args...>>(*this);
-        }
+  const Context_T& context;
+  std::vector<std::unique_ptr<Base_T>> vec;
+  ContextualGenericFactoryInserter(const Context_T& ctx) : context{ctx}
+  {
+    vec.reserve(sizeof...(Args));
+    for_each_type<TypeList<Args...>>(*this);
+  }
 
-        template<typename TheClass>
-        void perform()
-        {
-            vec.push_back(FactoryBuilder<Context_T, TheClass>::make(context));
-        }
+  template <typename TheClass>
+  void perform()
+  {
+    vec.push_back(FactoryBuilder<Context_T, TheClass>::make(context));
+  }
 };
 
-
-template<typename Context_T, typename Base_T, typename... Args>
+template <typename Context_T, typename Base_T, typename... Args>
 auto make_ptr_vector(const Context_T& context)
 {
-    return ContextualGenericFactoryInserter<Context_T, Base_T, Args...>{context}.vec;
+  return ContextualGenericFactoryInserter<Context_T, Base_T, Args...>{context}
+      .vec;
 }

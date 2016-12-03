@@ -15,41 +15,38 @@ namespace Scenario
 {
 namespace Command
 {
-DuplicateRack::DuplicateRack(const RackModel& rack) :
-    m_rackPath {rack}
+DuplicateRack::DuplicateRack(const RackModel& rack) : m_rackPath{rack}
 {
-    const auto& constraint = rack.constraint();
+  const auto& constraint = rack.constraint();
 
-    m_newRackId = getStrongId(constraint.racks);
+  m_newRackId = getStrongId(constraint.racks);
 }
 
 void DuplicateRack::undo() const
 {
-    auto& rack = m_rackPath.find();
-    auto& constraint = rack.constraint();
+  auto& rack = m_rackPath.find();
+  auto& constraint = rack.constraint();
 
-    constraint.racks.remove(m_newRackId);
+  constraint.racks.remove(m_newRackId);
 }
 
 void DuplicateRack::redo() const
 {
-    auto& rack = m_rackPath.find();
-    auto& constraint = rack.constraint();
-    constraint.racks.add(new RackModel {rack,
-                                    m_newRackId,
-                                    &SlotModel::copyViewModelsInSameConstraint,
-                                    &constraint});
+  auto& rack = m_rackPath.find();
+  auto& constraint = rack.constraint();
+  constraint.racks.add(
+      new RackModel{rack, m_newRackId,
+                    &SlotModel::copyViewModelsInSameConstraint, &constraint});
 }
 
 void DuplicateRack::serializeImpl(DataStreamInput& s) const
 {
-    s << m_rackPath << m_newRackId;
+  s << m_rackPath << m_newRackId;
 }
 
 void DuplicateRack::deserializeImpl(DataStreamOutput& s)
 {
-    s >> m_rackPath >> m_newRackId;
+  s >> m_rackPath >> m_newRackId;
 }
-
 }
 }

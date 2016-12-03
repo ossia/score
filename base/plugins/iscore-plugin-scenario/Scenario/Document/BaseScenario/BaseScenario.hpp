@@ -1,8 +1,8 @@
 #pragma once
-#include <iscore/tools/Metadata.hpp>
+#include <QVector>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <iscore/selection/Selection.hpp>
-#include <QVector>
+#include <iscore/tools/Metadata.hpp>
 
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
@@ -15,37 +15,36 @@ namespace Scenario
 {
 class ConstraintModel;
 class TimeNodeModel;
-class BaseScenario final :
-        public IdentifiedObject<BaseScenario>,
-        public BaseScenarioContainer
+class BaseScenario final : public IdentifiedObject<BaseScenario>,
+                           public BaseScenarioContainer
 {
-        ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, DataStream)
+  ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, JSONObject)
 
-    public:
-        BaseScenario(const Id<BaseScenario>& id, QObject* parentObject);
+public:
+  BaseScenario(const Id<BaseScenario>& id, QObject* parentObject);
 
-        template<typename DeserializerVisitor,
-                 enable_if_deserializer<DeserializerVisitor>* = nullptr>
-        BaseScenario(DeserializerVisitor&& vis, QObject* parent) :
-            IdentifiedObject{vis, parent},
-            BaseScenarioContainer{BaseScenarioContainer::no_init{}, this}
-        {
-            vis.writeTo(*this);
-        }
+  template <
+      typename DeserializerVisitor,
+      enable_if_deserializer<DeserializerVisitor>* = nullptr>
+  BaseScenario(DeserializerVisitor&& vis, QObject* parent)
+      : IdentifiedObject{vis, parent}
+      , BaseScenarioContainer{BaseScenarioContainer::no_init{}, this}
+  {
+    vis.writeTo(*this);
+  }
 
-        ~BaseScenario();
+  ~BaseScenario();
 
-        Selection selectedChildren() const;
-        bool focused() const;
+  Selection selectedChildren() const;
+  bool focused() const;
 
-        using BaseScenarioContainer::event;
-        using QObject::event;
+  using BaseScenarioContainer::event;
+  using QObject::event;
 };
 
 const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
-        const BaseScenario&,
-        const Id<TimeNodeModel>& timeNodeId);
+    const BaseScenario&, const Id<TimeNodeModel>& timeNodeId);
 }
 
 DEFAULT_MODEL_METADATA(Scenario::BaseScenario, "Base Scenario")

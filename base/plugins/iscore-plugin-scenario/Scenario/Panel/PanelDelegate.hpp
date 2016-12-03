@@ -9,37 +9,28 @@ class LayerModelPanelProxy;
 
 namespace Scenario
 {
-class PanelDelegate final :
-        public QObject,
-        public iscore::PanelDelegate
+class PanelDelegate final : public QObject, public iscore::PanelDelegate
 {
-    public:
-        PanelDelegate(
-                const iscore::ApplicationContext& ctx);
+public:
+  PanelDelegate(const iscore::ApplicationContext& ctx);
 
-    private:
-        QWidget *widget() override;
+private:
+  QWidget* widget() override;
 
-        const iscore::PanelStatus& defaultPanelStatus() const override;
+  const iscore::PanelStatus& defaultPanelStatus() const override;
 
-        void on_modelChanged(
-                iscore::MaybeDocument oldm,
-                iscore::MaybeDocument newm) override;
+  void on_modelChanged(
+      iscore::MaybeDocument oldm, iscore::MaybeDocument newm) override;
 
-        void on_focusedViewModelChanged(
-                const Process::LayerModel* theLM);
-        void on_focusedViewModelRemoved(
-                const Process::LayerModel* theLM);
+  void on_focusedViewModelChanged(const Process::LayerModel* theLM);
+  void on_focusedViewModelRemoved(const Process::LayerModel* theLM);
 
+  void cleanup();
 
-        void cleanup();
+  QWidget* m_widget{};
+  QPointer<const Process::LayerModel> m_layerModel{};
+  Process::LayerModelPanelProxy* m_proxy{};
 
-        QWidget* m_widget{};
-        QPointer<const Process::LayerModel> m_layerModel{};
-        Process::LayerModelPanelProxy* m_proxy{};
-
-        std::vector<QMetaObject::Connection> m_connections;
+  std::vector<QMetaObject::Connection> m_connections;
 };
-
 }
-

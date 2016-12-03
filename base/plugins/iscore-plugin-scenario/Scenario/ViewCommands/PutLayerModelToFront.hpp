@@ -1,7 +1,10 @@
 #pragma once
 #include <iscore/tools/ModelPath.hpp>
 
-namespace Process { class LayerModel; }
+namespace Process
+{
+class LayerModel;
+}
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario
@@ -9,15 +12,14 @@ namespace Scenario
 class SlotModel;
 class PutLayerModelToFront
 {
-    public:
-        PutLayerModelToFront(
-                Path<SlotModel>&& slotPath,
-                const Id<Process::LayerModel>& pid);
+public:
+  PutLayerModelToFront(
+      Path<SlotModel>&& slotPath, const Id<Process::LayerModel>& pid);
 
-        void redo() const;
+  void redo() const;
 
-    private:
-        Path<SlotModel> m_slotPath;
-        const Id<Process::LayerModel>& m_pid;
+private:
+  Path<SlotModel> m_slotPath;
+  const Id<Process::LayerModel>& m_pid;
 };
 }

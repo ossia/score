@@ -4,7 +4,7 @@ namespace Scenario
 {
 class TimeRulerGraphicsView : public QGraphicsView
 {
-    public:
-        TimeRulerGraphicsView(QGraphicsScene*);
+public:
+  TimeRulerGraphicsView(QGraphicsScene*);
 };
 }

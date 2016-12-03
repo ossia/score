@@ -1,7 +1,7 @@
 #pragma once
-#include <iscore/selection/Selection.hpp>
 #include <QObject>
 #include <QStack>
+#include <iscore/selection/Selection.hpp>
 
 class IdentifiedObjectAbstract;
 
@@ -17,39 +17,38 @@ namespace iscore
  */
 class ISCORE_LIB_BASE_EXPORT SelectionStack final : public QObject
 {
-        Q_OBJECT
-    public:
-        SelectionStack();
+  Q_OBJECT
+public:
+  SelectionStack();
 
-        bool canUnselect() const;
-        bool canReselect() const;
-        void clear();
+  bool canUnselect() const;
+  bool canReselect() const;
+  void clear();
 
+  // Go to the previous set of selections
+  void unselect();
 
-        // Go to the previous set of selections
-        void unselect();
+  // Go to the next set of selections
+  void reselect();
 
-        // Go to the next set of selections
-        void reselect();
+  // Push a new set of empty selection.
+  void deselect();
 
-        // Push a new set of empty selection.
-        void deselect();
+  Selection currentSelection() const;
 
-        Selection currentSelection() const;
+signals:
+  void pushNewSelection(const Selection& s);
+  void currentSelectionChanged(const Selection&);
 
-    signals:
-        void pushNewSelection(const Selection& s);
-        void currentSelectionChanged(const Selection&);
+private slots:
+  void prune(IdentifiedObjectAbstract* p);
 
-    private slots:
-        void prune(IdentifiedObjectAbstract* p);
+private:
+  // Select new objects
+  void push(const Selection& s);
 
-    private:
-        // Select new objects
-        void push(const Selection& s);
-
-        // m_unselectable always contains the empty set at the beginning
-        QStack<Selection> m_unselectable;
-        QStack<Selection> m_reselectable;
+  // m_unselectable always contains the empty set at the beginning
+  QStack<Selection> m_unselectable;
+  QStack<Selection> m_reselectable;
 };
 }

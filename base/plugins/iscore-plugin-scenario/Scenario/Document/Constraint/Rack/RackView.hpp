@@ -9,37 +9,35 @@ class QWidget;
 
 namespace Scenario
 {
-class RackView final :
-        public QObject,
-        public QGraphicsItem
+class RackView final : public QObject, public QGraphicsItem
 {
-        Q_OBJECT
-        Q_INTERFACES(QGraphicsItem)
+  Q_OBJECT
+  Q_INTERFACES(QGraphicsItem)
 
-    public:
-        RackView(QGraphicsItem* parent);
-        virtual ~RackView() = default;
+public:
+  RackView(QGraphicsItem* parent);
+  virtual ~RackView() = default;
 
+  QRectF boundingRect() const override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
-        QRectF boundingRect() const override;
-        void paint(QPainter* painter,
-                           const QStyleOptionGraphicsItem* option,
-                           QWidget* widget) override;
+  void setHeight(qreal height)
+  {
+    prepareGeometryChange();
+    m_height = height;
+  }
 
-        void setHeight(qreal height)
-        {
-            prepareGeometryChange();
-            m_height = height;
-        }
+  void setWidth(qreal width)
+  {
+    prepareGeometryChange();
+    m_width = width;
+  }
 
-        void setWidth(qreal width)
-        {
-            prepareGeometryChange();
-            m_width = width;
-        }
-
-    private:
-        qreal m_height {};
-        qreal m_width {};
+private:
+  qreal m_height{};
+  qreal m_width{};
 };
 }

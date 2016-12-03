@@ -5,11 +5,11 @@
 //#include <State/Address.hpp>
 //#include <State/Value.hpp>
 
-//class QWidget;
+// class QWidget;
 
-//namespace Explorer
+// namespace Explorer
 //{
-//MessageWidget::MessageWidget(
+// MessageWidget::MessageWidget(
 //        State::Message& mess,
 //        DeviceExplorerModel* model,
 //        QWidget* parent):
@@ -21,7 +21,7 @@
 //    connect(this, &QPushButton::clicked, this, &MessageWidget::on_clicked);
 //}
 
-//void MessageWidget::on_clicked()
+// void MessageWidget::on_clicked()
 //{
 //    MessageEditDialog dial(m_message, m_model, this);
 //    int res = dial.exec();

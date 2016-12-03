@@ -1,187 +1,192 @@
 #include "ProcessPolicy.hpp"
+#include <ossia/detail/algorithms.hpp>
+#include <Process/State/ProcessStateDataInterface.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Process/State/ProcessStateDataInterface.hpp>
-#include <ossia/detail/algorithms.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 namespace Scenario
 {
 static void AddProcessBeforeState(
-        StateModel& statemodel,
-        const Process::ProcessModel& proc)
+    StateModel& statemodel, const Process::ProcessModel& proc)
 {
-    // TODO this should be fused with the notion of State Process.
-    ProcessStateDataInterface* state = proc.endStateData();
-    if(!state)
-        return;
+  // TODO this should be fused with the notion of State Process.
+  ProcessStateDataInterface* state = proc.endStateData();
+  if (!state)
+    return;
 
+  auto prev_proc_fun = [&](const State::MessageList& ml) {
+    // TODO have some collapsing between all the processes of a state
+    // NOTE how to prevent these states from being played
+    // twice ? mark them ?
+    // TODO which one should be sent ? the ones
+    // from the process ?
+    auto& messages = statemodel.messages();
 
-    auto prev_proc_fun = [&] (const State::MessageList& ml) {
-        // TODO have some collapsing between all the processes of a state
-        // NOTE how to prevent these states from being played
-        // twice ? mark them ?
-        // TODO which one should be sent ? the ones
-        // from the process ?
-        auto& messages = statemodel.messages();
+    auto node = messages.rootNode();
+    updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Previous);
+    messages = std::move(node);
 
-        auto node = messages.rootNode();
-        updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Previous);
-        messages = std::move(node);
+    for (const ProcessStateWrapper& next_proc :
+         statemodel.followingProcesses())
+    {
+      next_proc.process().setMessages(ml, messages.rootNode());
+    }
+  };
 
-        for(const ProcessStateWrapper& next_proc : statemodel.followingProcesses())
-        {
-            next_proc.process().setMessages(ml, messages.rootNode());
-        }
-    };
+  statemodel.previousProcesses().emplace_back(state);
+  auto& wrapper = statemodel.previousProcesses().back();
+  QObject::connect(
+      state, &ProcessStateDataInterface::messagesChanged, &wrapper,
+      prev_proc_fun);
 
-    statemodel.previousProcesses().emplace_back(state);
-    auto& wrapper = statemodel.previousProcesses().back();
-    QObject::connect(state, &ProcessStateDataInterface::messagesChanged,
-                     &wrapper, prev_proc_fun);
+  prev_proc_fun(state->messages());
 
-    prev_proc_fun(state->messages());
-
-    emit statemodel.sig_statesUpdated();
+  emit statemodel.sig_statesUpdated();
 }
 
-static void AddProcessAfterState(
-        StateModel& statemodel,
-        const Process::ProcessModel& proc)
+static void
+AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
 {
-    ProcessStateDataInterface* state = proc.startStateData();
-    if(!state)
-        return;
+  ProcessStateDataInterface* state = proc.startStateData();
+  if (!state)
+    return;
 
-    auto next_proc_fun = [&] (const State::MessageList& ml) {
-        auto& messages = statemodel.messages();
+  auto next_proc_fun = [&](const State::MessageList& ml) {
+    auto& messages = statemodel.messages();
 
-        auto node = messages.rootNode();
-        updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Following);
-        messages = std::move(node);
+    auto node = messages.rootNode();
+    updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Following);
+    messages = std::move(node);
 
-        for(const ProcessStateWrapper& prev_proc : statemodel.previousProcesses())
-        {
-            prev_proc.process().setMessages(ml, messages.rootNode());
-        }
-    };
+    for (const ProcessStateWrapper& prev_proc : statemodel.previousProcesses())
+    {
+      prev_proc.process().setMessages(ml, messages.rootNode());
+    }
+  };
 
-    statemodel.followingProcesses().emplace_back(state);
-    auto& wrapper = statemodel.followingProcesses().back();
-    QObject::connect(state, &ProcessStateDataInterface::messagesChanged,
-                     &wrapper, next_proc_fun);
+  statemodel.followingProcesses().emplace_back(state);
+  auto& wrapper = statemodel.followingProcesses().back();
+  QObject::connect(
+      state, &ProcessStateDataInterface::messagesChanged, &wrapper,
+      next_proc_fun);
 
-    next_proc_fun(state->messages());
+  next_proc_fun(state->messages());
 
-    emit statemodel.sig_statesUpdated();
-
+  emit statemodel.sig_statesUpdated();
 }
 
-static void RemoveProcessBeforeState(StateModel& statemodel, const Process::ProcessModel& proc)
+static void RemoveProcessBeforeState(
+    StateModel& statemodel, const Process::ProcessModel& proc)
 {
-    ProcessStateDataInterface* state = proc.endStateData();
-    if(!state)
-        return;
+  ProcessStateDataInterface* state = proc.endStateData();
+  if (!state)
+    return;
 
-    auto node = statemodel.messages().rootNode();
-    updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Previous);
-    statemodel.messages() = std::move(node);
+  auto node = statemodel.messages().rootNode();
+  updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Previous);
+  statemodel.messages() = std::move(node);
 
-    auto it = ossia::find_if(statemodel.previousProcesses(), [&] (const auto& elt) {
-        return state == &elt.process();
-    });
+  auto it
+      = ossia::find_if(statemodel.previousProcesses(), [&](const auto& elt) {
+          return state == &elt.process();
+        });
 
-    // TODO debug the need for this check
-    if(it != statemodel.previousProcesses().end())
-        statemodel.previousProcesses().erase(it);
+  // TODO debug the need for this check
+  if (it != statemodel.previousProcesses().end())
+    statemodel.previousProcesses().erase(it);
 }
 
-static void RemoveProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
+static void RemoveProcessAfterState(
+    StateModel& statemodel, const Process::ProcessModel& proc)
 {
-    ProcessStateDataInterface* state = proc.startStateData();
-    if(!state)
-        return;
+  ProcessStateDataInterface* state = proc.startStateData();
+  if (!state)
+    return;
 
-    auto node = statemodel.messages().rootNode();
-    updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Following);
-    statemodel.messages() = std::move(node);
+  auto node = statemodel.messages().rootNode();
+  updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Following);
+  statemodel.messages() = std::move(node);
 
-    auto it = ossia::find_if(statemodel.followingProcesses(), [&] (const auto& elt) {
-        return state == &elt.process();
-    });
+  auto it
+      = ossia::find_if(statemodel.followingProcesses(), [&](const auto& elt) {
+          return state == &elt.process();
+        });
 
-    // TODO debug the need for this check
-    if(it != statemodel.followingProcesses().end())
-        statemodel.followingProcesses().erase(it);
+  // TODO debug the need for this check
+  if (it != statemodel.followingProcesses().end())
+    statemodel.followingProcesses().erase(it);
 }
 
 void AddProcess(ConstraintModel& constraint, Process::ProcessModel* proc)
 {
-    constraint.processes.add(proc);
+  constraint.processes.add(proc);
 
-    const auto& scenar = *dynamic_cast<ScenarioInterface*>(constraint.parent());
-    AddProcessAfterState(startState(constraint, scenar), *proc);
-    AddProcessBeforeState(endState(constraint, scenar), *proc);
+  const auto& scenar = *dynamic_cast<ScenarioInterface*>(constraint.parent());
+  AddProcessAfterState(startState(constraint, scenar), *proc);
+  AddProcessBeforeState(endState(constraint, scenar), *proc);
 }
 
-void RemoveProcess(ConstraintModel& constraint, const Id<Process::ProcessModel>& proc_id)
+void RemoveProcess(
+    ConstraintModel& constraint, const Id<Process::ProcessModel>& proc_id)
 {
-    const auto& proc = constraint.processes.at(proc_id);
-    const auto& scenar = *dynamic_cast<ScenarioInterface*>(constraint.parent());
+  const auto& proc = constraint.processes.at(proc_id);
+  const auto& scenar = *dynamic_cast<ScenarioInterface*>(constraint.parent());
 
-    RemoveProcessAfterState(startState(constraint, scenar), proc);
-    RemoveProcessBeforeState(endState(constraint, scenar), proc);
+  RemoveProcessAfterState(startState(constraint, scenar), proc);
+  RemoveProcessBeforeState(endState(constraint, scenar), proc);
 
-    constraint.processes.remove(proc_id);
+  constraint.processes.remove(proc_id);
 }
 
-void SetPreviousConstraint(StateModel& state, const ConstraintModel& constraint)
+void SetPreviousConstraint(
+    StateModel& state, const ConstraintModel& constraint)
 {
-    SetNoPreviousConstraint(state);
+  SetNoPreviousConstraint(state);
 
-    state.setPreviousConstraint(constraint.id());
-    for(const auto& proc : constraint.processes)
-    {
-        AddProcessBeforeState(state, proc);
-    }
+  state.setPreviousConstraint(constraint.id());
+  for (const auto& proc : constraint.processes)
+  {
+    AddProcessBeforeState(state, proc);
+  }
 }
 
 void SetNextConstraint(StateModel& state, const ConstraintModel& constraint)
 {
-    SetNoNextConstraint(state);
+  SetNoNextConstraint(state);
 
-    state.setNextConstraint(constraint.id());
-    for(const auto& proc : constraint.processes)
-    {
-        AddProcessAfterState(state, proc);
-    }
+  state.setNextConstraint(constraint.id());
+  for (const auto& proc : constraint.processes)
+  {
+    AddProcessAfterState(state, proc);
+  }
 }
 
 void SetNoPreviousConstraint(StateModel& state)
 {
-    if(state.previousConstraint())
-    {
-        auto node = state.messages().rootNode();
-        updateTreeWithRemovedConstraint(node, ProcessPosition::Previous);
-        state.messages() = std::move(node);
+  if (state.previousConstraint())
+  {
+    auto node = state.messages().rootNode();
+    updateTreeWithRemovedConstraint(node, ProcessPosition::Previous);
+    state.messages() = std::move(node);
 
-        state.previousProcesses().clear();
-        state.setPreviousConstraint(OptionalId<ConstraintModel>{});
-    }
+    state.previousProcesses().clear();
+    state.setPreviousConstraint(OptionalId<ConstraintModel>{});
+  }
 }
 
 void SetNoNextConstraint(StateModel& state)
 {
-    if(state.nextConstraint())
-    {
-        auto node = state.messages().rootNode();
-        updateTreeWithRemovedConstraint(node, ProcessPosition::Following);
-        state.messages() = std::move(node);
+  if (state.nextConstraint())
+  {
+    auto node = state.messages().rootNode();
+    updateTreeWithRemovedConstraint(node, ProcessPosition::Following);
+    state.messages() = std::move(node);
 
-        state.followingProcesses().clear();
-        state.setNextConstraint(OptionalId<ConstraintModel>{});
-    }
+    state.followingProcesses().clear();
+    state.setNextConstraint(OptionalId<ConstraintModel>{});
+  }
 }
 }

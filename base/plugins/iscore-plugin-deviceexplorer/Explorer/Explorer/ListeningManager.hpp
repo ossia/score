@@ -10,50 +10,41 @@ namespace Explorer
 class DeviceExplorerModel;
 class DeviceExplorerWidget;
 class ListeningHandler;
-class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningManager :
-        public QObject
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningManager : public QObject
 {
-        DeviceExplorerModel& m_model;
-        const DeviceExplorerWidget& m_widget;
+  DeviceExplorerModel& m_model;
+  const DeviceExplorerWidget& m_widget;
 
-    public:
-        ListeningManager(
-                DeviceExplorerModel&,
-                const DeviceExplorerWidget&
-                );
+public:
+  ListeningManager(DeviceExplorerModel&, const DeviceExplorerWidget&);
 
-        void enableListening(Device::Node& node);
-        void setListening(const QModelIndex& idx, bool b);
-        void resetListening(Device::Node& idx);
+  void enableListening(Device::Node& node);
+  void setListening(const QModelIndex& idx, bool b);
+  void resetListening(Device::Node& idx);
 
-        // Will do it for all devices
-        void stopListening();
+  // Will do it for all devices
+  void stopListening();
 
-        // Sets the listening state with the expanded nodes
-        void setDeviceWidgetListening();
+  // Sets the listening state with the expanded nodes
+  void setDeviceWidgetListening();
 
-    private:
-        void disableListening_rec(
-                const Device::Node& node,
-                Device::DeviceInterface&,
-                ListeningHandler& lm);
-        void enableListening_rec(
-                const QModelIndex& index,
-                Device::DeviceInterface&,
-                ListeningHandler& lm);
+private:
+  void disableListening_rec(
+      const Device::Node& node,
+      Device::DeviceInterface&,
+      ListeningHandler& lm);
+  void enableListening_rec(
+      const QModelIndex& index,
+      Device::DeviceInterface&,
+      ListeningHandler& lm);
 
-        Device::DeviceInterface& deviceFromNode(
-                const Device::Node&);
-        Device::DeviceInterface& deviceFromProxyModelIndex(
-                const QModelIndex&);
-        Device::DeviceInterface& deviceFromModelIndex(
-                const QModelIndex& idx);
+  Device::DeviceInterface& deviceFromNode(const Device::Node&);
+  Device::DeviceInterface& deviceFromProxyModelIndex(const QModelIndex&);
+  Device::DeviceInterface& deviceFromModelIndex(const QModelIndex& idx);
 
-        Device::Node& nodeFromProxyModelIndex(
-                const QModelIndex&);
-        Device::Node& nodeFromModelIndex(
-                const QModelIndex&);
+  Device::Node& nodeFromProxyModelIndex(const QModelIndex&);
+  Device::Node& nodeFromModelIndex(const QModelIndex&);
 
-        ListeningHandler& m_handler;
+  ListeningHandler& m_handler;
 };
 }

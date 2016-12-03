@@ -3,9 +3,9 @@
 #include <QList>
 #include <QPoint>
 
+#include <iscore/actions/Action.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/selection/Selection.hpp>
-#include <iscore/actions/Action.hpp>
 
 class QAction;
 class QActionGroup;
@@ -17,29 +17,27 @@ class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
 class ToolMenuActions : public QObject
 {
-    public:
-        ToolMenuActions(ScenarioApplicationPlugin* parent);
+public:
+  ToolMenuActions(ScenarioApplicationPlugin* parent);
 
-        void makeGUIElements(iscore::GUIElements& ref);
+  void makeGUIElements(iscore::GUIElements& ref);
 
-    private:
-        void keyPressed(int key);
-        void keyReleased(int key);
+private:
+  void keyPressed(int key);
+  void keyReleased(int key);
 
-        ScenarioApplicationPlugin* m_parent{};
+  ScenarioApplicationPlugin* m_parent{};
 
-        QActionGroup* m_scenarioScaleModeActionGroup{};
-        QActionGroup* m_scenarioToolActionGroup{};
+  QActionGroup* m_scenarioScaleModeActionGroup{};
+  QActionGroup* m_scenarioToolActionGroup{};
 
-        QAction* m_scale{};
-        QAction* m_grow{};
+  QAction* m_scale{};
+  QAction* m_grow{};
 
+  QAction* m_shiftAction{};
 
-        QAction* m_shiftAction{};
-
-        QAction* m_selecttool{};
-        QAction* m_createtool{};
-        QAction* m_playtool{};
+  QAction* m_selecttool{};
+  QAction* m_createtool{};
+  QAction* m_playtool{};
 };
 }
-

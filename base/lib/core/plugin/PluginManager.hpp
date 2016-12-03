@@ -24,8 +24,8 @@ namespace PluginLoader
  * Reloads all the plug-ins.
  * Note: for now this is unsafe after the first loading.
  */
-ISCORE_LIB_BASE_EXPORT void loadPlugins(iscore::ApplicationRegistrar&,
-                 const iscore::ApplicationContext& context);
+ISCORE_LIB_BASE_EXPORT void loadPlugins(
+    iscore::ApplicationRegistrar&, const iscore::ApplicationContext& context);
 
 QStringList pluginsBlacklist();
 }

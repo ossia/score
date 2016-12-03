@@ -12,28 +12,28 @@ namespace Automation
 {
 class LayerView final : public Process::LayerView
 {
-        Q_OBJECT
-    public:
-        explicit LayerView(QGraphicsItem *parent);
-        virtual ~LayerView();
+  Q_OBJECT
+public:
+  explicit LayerView(QGraphicsItem* parent);
+  virtual ~LayerView();
 
-        void setDisplayedName(const QString& s);
-        void showName(bool b)
-        {
-            m_showName = b;
-            update();
-        }
+  void setDisplayedName(const QString& s);
+  void showName(bool b)
+  {
+    m_showName = b;
+    update();
+  }
 
-    signals:
-        void dropReceived(const QMimeData& mime);
+signals:
+  void dropReceived(const QMimeData& mime);
 
-    protected:
-        void paint_impl(QPainter* painter) const override;
-        void dropEvent(QGraphicsSceneDragDropEvent *event) override;
+protected:
+  void paint_impl(QPainter* painter) const override;
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
-    private:
-        bool m_showName{true};
+private:
+  bool m_showName{true};
 
-        QTextLayout m_textcache;
+  QTextLayout m_textcache;
 };
 }

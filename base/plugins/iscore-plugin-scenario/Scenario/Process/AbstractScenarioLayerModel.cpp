@@ -1,130 +1,120 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <iscore/tools/std/Optional.hpp>
 #include <algorithm>
+#include <iscore/tools/std/Optional.hpp>
 #include <iterator>
 
-#include <boost/range/algorithm_ext/erase.hpp>
 #include "AbstractScenarioLayerModel.hpp"
 #include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
 namespace Scenario
 {
-ConstraintViewModel& AbstractScenarioLayer::constraint(
-        const Id<ConstraintViewModel>& id) const
+ConstraintViewModel&
+AbstractScenarioLayer::constraint(const Id<ConstraintViewModel>& id) const
 {
-    auto it = std::find(
-                std::begin(m_constraints),
-                std::end(m_constraints),
-                id);
-    if(it != std::end(m_constraints))
-    {
-        return **it;
-    }
+  auto it = std::find(std::begin(m_constraints), std::end(m_constraints), id);
+  if (it != std::end(m_constraints))
+  {
+    return **it;
+  }
 
-    ISCORE_ABORT;
+  ISCORE_ABORT;
 }
 
 QVector<ConstraintViewModel*> AbstractScenarioLayer::constraints() const
 {
-    return m_constraints;
+  return m_constraints;
 }
 
 // MOVEME
 template <typename Vector, typename id_T>
 void removeById(Vector& c, const id_T& id)
 {
-    boost::remove_erase_if(c,
-                        [=](typename Vector::value_type model)
+  boost::remove_erase_if(c, [=](typename Vector::value_type model) {
+    bool to_delete = model->id() == id;
+
+    if (to_delete)
     {
-        bool to_delete = model->id() == id;
+      delete model;
+    }
 
-        if(to_delete)
-        {
-            delete model;
-        }
-
-        return to_delete;
-    });
+    return to_delete;
+  });
 }
 
 void AbstractScenarioLayer::removeConstraintViewModel(
-        const Id<ConstraintViewModel>& constraintViewModelId)
+    const Id<ConstraintViewModel>& constraintViewModelId)
 {
-    // We have to emit before, because on removal,
-    // some other stuff might use the now-removed model id
-    // to do the comparison in vec_erase_remove_if
-    using namespace std;
-    auto it = find_if(begin(m_constraints),
-                      end(m_constraints),
-                      [&] (ConstraintViewModel* vm)
-    {
+  // We have to emit before, because on removal,
+  // some other stuff might use the now-removed model id
+  // to do the comparison in vec_erase_remove_if
+  using namespace std;
+  auto it = find_if(
+      begin(m_constraints), end(m_constraints), [&](ConstraintViewModel* vm) {
         return vm->id() == constraintViewModelId;
-    });
-    ISCORE_ASSERT(it != end(m_constraints));
+      });
+  ISCORE_ASSERT(it != end(m_constraints));
 
-    emit constraintViewModelRemoved(**it);
-    removeById(m_constraints, constraintViewModelId);
-
+  emit constraintViewModelRemoved(**it);
+  removeById(m_constraints, constraintViewModelId);
 }
 
 ConstraintViewModel& AbstractScenarioLayer::constraint(
-        const Id<ConstraintModel>& constraintModelId) const
+    const Id<ConstraintModel>& constraintModelId) const
 {
-    using namespace std;
-    auto it = find_if(begin(m_constraints),
-                      end(m_constraints),
-                      [&] (ConstraintViewModel* vm)
-    {
+  using namespace std;
+  auto it = find_if(
+      begin(m_constraints), end(m_constraints), [&](ConstraintViewModel* vm) {
         return vm->model().id() == constraintModelId;
-    });
+      });
 
-    ISCORE_ASSERT(it != end(m_constraints));
-    return **it;
+  ISCORE_ASSERT(it != end(m_constraints));
+  return **it;
 }
 
-void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
-                                const Id<ConstraintModel>& constraintId,
-                                const Scenario::ProcessModel& scenario)
+void createConstraintViewModels(
+    const ConstraintViewModelIdMap& idMap,
+    const Id<ConstraintModel>& constraintId,
+    const Scenario::ProcessModel& scenario)
 {
-    // Creation of all the constraint view models
-    for(auto& viewModel : layers(scenario))
-    {
-        auto lm_id = iscore::IDocument::path(*viewModel);
+  // Creation of all the constraint view models
+  for (auto& viewModel : layers(scenario))
+  {
+    auto lm_id = iscore::IDocument::path(*viewModel);
 
-        auto it = idMap.constFind(lm_id);
-        if(it != idMap.constEnd())
-        {
-            viewModel->makeConstraintViewModel(constraintId,
-                                               *it);
-        }
-        else
-        {
-           ISCORE_ABORT;
-        }
+    auto it = idMap.constFind(lm_id);
+    if (it != idMap.constEnd())
+    {
+      viewModel->makeConstraintViewModel(constraintId, *it);
     }
+    else
+    {
+      ISCORE_ABORT;
+    }
+  }
 }
 
 std::vector<ConstraintViewModel*> getConstraintViewModels(
-        const Id<ConstraintModel>& constraintId,
-        const Scenario::ProcessModel& scenario)
+    const Id<ConstraintModel>& constraintId,
+    const Scenario::ProcessModel& scenario)
 {
-    const auto& lays = layers(scenario);
+  const auto& lays = layers(scenario);
 
-    std::vector<ConstraintViewModel*> vec;
-    vec.reserve(lays.size());
+  std::vector<ConstraintViewModel*> vec;
+  vec.reserve(lays.size());
 
-    // Creation of all the constraint view models
-    for(auto viewModel : lays)
-    {
-        vec.push_back(&viewModel->constraint(constraintId));
-    }
+  // Creation of all the constraint view models
+  for (auto viewModel : lays)
+  {
+    vec.push_back(&viewModel->constraint(constraintId));
+  }
 
-    return vec;
+  return vec;
 }
 }

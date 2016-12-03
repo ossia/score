@@ -6,36 +6,36 @@
 namespace Scenario
 {
 
-template<typename Component_T>
-class ConstraintComponent :
-        public Component_T
+template <typename Component_T>
+class ConstraintComponent : public Component_T
 {
-    public:
-        template<typename... Args>
-        ConstraintComponent(Scenario::ConstraintModel& cst, Args&&... args):
-            Component_T{std::forward<Args>(args)...},
-            m_constraint{cst}
-        {
+public:
+  template <typename... Args>
+  ConstraintComponent(Scenario::ConstraintModel& cst, Args&&... args)
+      : Component_T{std::forward<Args>(args)...}, m_constraint{cst}
+  {
+  }
 
-        }
+  Scenario::ConstraintModel& constraint() const
+  {
+    return m_constraint;
+  }
 
-        Scenario::ConstraintModel& constraint() const
-        { return m_constraint; }
+  template <typename Models>
+  auto& models() const
+  {
+    static_assert(
+        std::is_same<Models, Process::ProcessModel>::value,
+        "Constraint component must be passed Process::ProcessModel as child.");
 
-        template<typename Models>
-        auto& models() const
-        {
-            static_assert(std::is_same<Models, Process::ProcessModel>::value,
-                          "Constraint component must be passed Process::ProcessModel as child.");
+    return m_constraint.processes;
+  }
 
-            return m_constraint.processes;
-        }
-
-    private:
-        Scenario::ConstraintModel& m_constraint;
+private:
+  Scenario::ConstraintModel& m_constraint;
 };
 
-template<typename System_T>
-using GenericConstraintComponent =
-    Scenario::ConstraintComponent<iscore::GenericComponent<System_T>>;
+template <typename System_T>
+using GenericConstraintComponent
+    = Scenario::ConstraintComponent<iscore::GenericComponent<System_T>>;
 }

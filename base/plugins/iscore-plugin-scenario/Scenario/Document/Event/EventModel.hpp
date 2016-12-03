@@ -1,18 +1,18 @@
 #pragma once
-#include <iscore/tools/Metadata.hpp>
-#include <iscore/model/Entity.hpp>
 #include <Process/TimeValue.hpp>
+#include <QString>
+#include <QVector>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
-#include <iscore/tools/std/Optional.hpp>
+#include <iscore/component/Component.hpp>
+#include <iscore/model/Entity.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/Metadata.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <QString>
-#include <QVector>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore_plugin_scenario_export.h>
-#include <iscore/component/Component.hpp>
 class DataStream;
 class JSONObject;
 class QObject;
@@ -23,99 +23,99 @@ class StateModel;
 class ScenarioInterface;
 class TimeNodeModel;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final :
-        public iscore::Entity<EventModel>
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final
+    : public iscore::Entity<EventModel>
 {
-        Q_OBJECT
+  Q_OBJECT
 
-        ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, DataStream)
+  ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, JSONObject)
 
-        Q_PROPERTY(Scenario::OffsetBehavior offsetBehavior READ offsetBehavior WRITE setOffsetBehavior NOTIFY offsetBehaviorChanged FINAL)
+  Q_PROPERTY(Scenario::OffsetBehavior offsetBehavior READ offsetBehavior WRITE
+                 setOffsetBehavior NOTIFY offsetBehaviorChanged FINAL)
 
-    public:
-        /** Public properties of the class **/
-        Selectable selection;
+public:
+  /** Public properties of the class **/
+  Selectable selection;
 
-        /** The class **/
-        EventModel(const Id<EventModel>&,
-                   const Id<TimeNodeModel>& timenode,
-                   const VerticalExtent& extent,
-                   const TimeValue& date,
-                   QObject* parent);
+  /** The class **/
+  EventModel(
+      const Id<EventModel>&,
+      const Id<TimeNodeModel>& timenode,
+      const VerticalExtent& extent,
+      const TimeValue& date,
+      QObject* parent);
 
-        // Copy
-        EventModel(const EventModel& source,
-                   const Id<EventModel>&,
-                   QObject* parent);
+  // Copy
+  EventModel(const EventModel& source, const Id<EventModel>&, QObject* parent);
 
-        template<typename DeserializerVisitor>
-        EventModel(DeserializerVisitor&& vis, QObject* parent) :
-            Entity{vis, parent}
-        {
-            vis.writeTo(*this);
-        }
+  template <typename DeserializerVisitor>
+  EventModel(DeserializerVisitor&& vis, QObject* parent) : Entity{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
 
-        // Timenode
-        void changeTimeNode(const Id<TimeNodeModel>& elt)
-        { m_timeNode = elt; }
-        const auto& timeNode() const
-        { return m_timeNode; }
+  // Timenode
+  void changeTimeNode(const Id<TimeNodeModel>& elt)
+  {
+    m_timeNode = elt;
+  }
+  const auto& timeNode() const
+  {
+    return m_timeNode;
+  }
 
-        // States
-        void addState(const Id<StateModel>& ds);
-        void removeState(const Id<StateModel>& ds);
-        const QVector<Id<StateModel>>& states() const;
+  // States
+  void addState(const Id<StateModel>& ds);
+  void removeState(const Id<StateModel>& ds);
+  const QVector<Id<StateModel>>& states() const;
 
+  // Other properties
+  const State::Condition& condition() const;
+  OffsetBehavior offsetBehavior() const;
 
-        // Other properties
-        const State::Condition& condition() const;
-        OffsetBehavior offsetBehavior() const;
+  VerticalExtent extent() const;
 
-        VerticalExtent extent() const;
+  const TimeValue& date() const;
+  void translate(const TimeValue& deltaTime);
 
-        const TimeValue& date() const;
-        void translate(const TimeValue& deltaTime);
+  ExecutionStatus status() const;
+  void reset();
 
-        ExecutionStatus status() const;
-        void reset();
+  void setCondition(const State::Condition& arg);
 
+  void setExtent(const VerticalExtent& extent);
+  void setDate(const TimeValue& date);
 
-        void setCondition(const State::Condition& arg);
+  void setStatus(ExecutionStatus status);
+  void setOffsetBehavior(OffsetBehavior);
 
-        void setExtent(const VerticalExtent &extent);
-        void setDate(const TimeValue& date);
+signals:
+  void extentChanged(const VerticalExtent&);
+  void dateChanged(const TimeValue&);
 
-        void setStatus(ExecutionStatus status);
-        void setOffsetBehavior(OffsetBehavior);
+  void conditionChanged(const State::Condition&);
 
-    signals:
-        void extentChanged(const VerticalExtent&);
-        void dateChanged(const TimeValue&);
+  void statesChanged();
 
-        void conditionChanged(const State::Condition&);
+  void statusChanged(Scenario::ExecutionStatus status);
 
-        void statesChanged();
+  void offsetBehaviorChanged(OffsetBehavior);
 
-        void statusChanged(Scenario::ExecutionStatus status);
+private:
+  Id<TimeNodeModel> m_timeNode;
 
-        void offsetBehaviorChanged(OffsetBehavior);
+  QVector<Id<StateModel>> m_states;
 
-    private:
-        Id<TimeNodeModel> m_timeNode;
+  State::Condition m_condition;
 
-        QVector<Id<StateModel>> m_states;
+  VerticalExtent m_extent;
+  TimeValue m_date{TimeValue::zero()};
 
-        State::Condition m_condition;
-
-        VerticalExtent m_extent;
-        TimeValue m_date{TimeValue::zero()};
-
-        ExecutionStatusProperty m_status{};
-        OffsetBehavior m_offset{};
+  ExecutionStatusProperty m_status{};
+  OffsetBehavior m_offset{};
 };
 }
 
 DEFAULT_MODEL_METADATA(Scenario::EventModel, "Event")
 TR_TEXT_METADATA(, Scenario::EventModel, PrettyName_k, "Event")
-

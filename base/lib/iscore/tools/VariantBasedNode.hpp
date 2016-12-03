@@ -18,52 +18,66 @@ namespace iscore
  * Additionally, a special tag InvisibleRootNodeTag is added to serve as root
  * element, since this is necessary in the case of QAbstractItemModel.
  *
- * For instance, VariantBasedNode<int, QString> will have three possible data types.
+ * For instance, VariantBasedNode<int, QString> will have three possible data
+ * types.
  */
-template<typename... Args>
+template <typename... Args>
 class VariantBasedNode
 {
-    public:
-        VariantBasedNode(const VariantBasedNode& t) = default;
-        VariantBasedNode(VariantBasedNode&& t) noexcept = default;
-        VariantBasedNode& operator=(const VariantBasedNode& t) = default;
+public:
+  VariantBasedNode(const VariantBasedNode& t) = default;
+  VariantBasedNode(VariantBasedNode&& t) noexcept = default;
+  VariantBasedNode& operator=(const VariantBasedNode& t) = default;
 
-        VariantBasedNode():
-            m_data{InvisibleRootNodeTag{}}
-        {
+  VariantBasedNode() : m_data{InvisibleRootNodeTag{}}
+  {
+  }
 
-        }
+  template <typename T>
+  VariantBasedNode(const T& t) : m_data{t}
+  {
+  }
 
-        template<typename T>
-        VariantBasedNode(const T& t):
-            m_data{t}
-        {
+  /**
+   * @brief is Checks the type of the node.
+   *
+   * @return true if T is the currently stored type.
+   */
+  template <typename T>
+  bool is() const
+  {
+    return m_data.template target<T>() != nullptr;
+  }
 
-        }
+  template <typename T>
+  void set(const T& t)
+  {
+    m_data = t;
+  }
 
-        /**
-         * @brief is Checks the type of the node.
-         *
-         * @return true if T is the currently stored type.
-         */
-        template<typename T>
-        bool is() const { return m_data.template target<T>() != nullptr; }
+  template <typename T>
+  const T& get() const
+  {
+    return *m_data.template target<T>();
+  }
 
-        template<typename T>
-        void set(const T& t) { m_data = t; }
+  template <typename T>
+  T& get()
+  {
+    return *m_data.template target<T>();
+  }
 
-        template<typename T>
-        const T& get() const { return *m_data.template target<T>(); }
+  auto which() const
+  {
+    return m_data.which();
+  }
 
-        template<typename T>
-        T& get() { return *m_data.template target<T>(); }
+  auto& impl() const
+  {
+    return m_data;
+  }
 
-        auto which() const
-        { return m_data.which(); }
-
-        auto& impl() const { return m_data; }
-    protected:
-        eggs::variant<InvisibleRootNodeTag, Args...> m_data;
+protected:
+  eggs::variant<InvisibleRootNodeTag, Args...> m_data;
 };
 }
-

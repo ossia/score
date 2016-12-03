@@ -1,10 +1,10 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/std/Optional.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
 #include <QByteArray>
 #include <QMap>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -25,28 +25,27 @@ namespace Command
          */
 class RemoveRackFromConstraint final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveRackFromConstraint, "Remove a rack")
-        public:
-            RemoveRackFromConstraint(
-                Path<RackModel>&& rackPath);
-        RemoveRackFromConstraint(
-                Path<ConstraintModel>&& constraintPath,
-                Id<RackModel> rackId);
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), RemoveRackFromConstraint, "Remove a rack")
+public:
+  RemoveRackFromConstraint(Path<RackModel>&& rackPath);
+  RemoveRackFromConstraint(
+      Path<ConstraintModel>&& constraintPath, Id<RackModel> rackId);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<ConstraintModel> m_path;
-        Id<RackModel> m_rackId {};
+private:
+  Path<ConstraintModel> m_path;
+  Id<RackModel> m_rackId{};
 
-        QByteArray m_serializedRackData; // Should be done in the constructor
+  QByteArray m_serializedRackData; // Should be done in the constructor
 
-        QMap<Id<ConstraintViewModel>, bool> m_rackMappings;
+  QMap<Id<ConstraintViewModel>, bool> m_rackMappings;
 };
 }
 }

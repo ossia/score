@@ -1,15 +1,14 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/std/Optional.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
 #include <QByteArray>
 #include <QMap>
 #include <QVector>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <iscore_plugin_scenario_export.h>
-
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -25,20 +24,22 @@ namespace Command
          *
          * Removes all the processes and the rackes of a constraint.
          */
-class ISCORE_PLUGIN_SCENARIO_EXPORT ClearConstraint final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT ClearConstraint final
+    : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "Clear a constraint")
-        public:
-            ClearConstraint(const ConstraintModel& constraintPath);
-        void undo() const override;
-        void redo() const override;
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), ClearConstraint, "Clear a constraint")
+public:
+  ClearConstraint(const ConstraintModel& constraintPath);
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        ConstraintSaveData m_constraintSaveData;
+private:
+  ConstraintSaveData m_constraintSaveData;
 };
 }
 }

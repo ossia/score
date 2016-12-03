@@ -7,7 +7,10 @@
 
 struct DataStreamInput;
 struct DataStreamOutput;
-namespace Process { class ProcessModel; }
+namespace Process
+{
+class ProcessModel;
+}
 
 namespace Scenario
 {
@@ -15,26 +18,25 @@ namespace Command
 {
 class SetProcessDuration final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetProcessDuration, "Change a process duration")
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(),
+      SetProcessDuration,
+      "Change a process duration")
 
-    public:
+public:
+  SetProcessDuration(Path<Process::ProcessModel>&& path, TimeValue newVal);
 
-        SetProcessDuration(
-                Path<Process::ProcessModel>&& path,
-                TimeValue newVal);
+  void undo() const override;
+  void redo() const override;
 
-        void undo() const override;
-        void redo() const override;
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
 
-    protected:
-        void serializeImpl(DataStreamInput& s) const override;
-        void deserializeImpl(DataStreamOutput& s) override;
-
-    private:
-        Path<Process::ProcessModel> m_path;
-        TimeValue m_old;
-        TimeValue m_new;
+private:
+  Path<Process::ProcessModel> m_path;
+  TimeValue m_old;
+  TimeValue m_new;
 };
-
 }
 }

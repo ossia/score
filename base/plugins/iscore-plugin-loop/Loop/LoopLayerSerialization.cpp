@@ -1,8 +1,8 @@
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
-#include <iscore/tools/std/Optional.hpp>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <algorithm>
+#include <iscore/tools/std/Optional.hpp>
 
 #include "LoopLayer.hpp"
 #include "LoopProcessModel.hpp"
@@ -12,64 +12,58 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-template<>
+template <>
 void Visitor<Reader<DataStream>>::readFrom_impl(const Loop::Layer& lm)
 {
-    readFrom(*lm.m_constraint);
+  readFrom(*lm.m_constraint);
 
-    insertDelimiter();
+  insertDelimiter();
 }
 
-template<>
+template <>
 void Visitor<Writer<DataStream>>::writeTo(Loop::Layer& lm)
 {
-    // Note : keep in sync with loadConstraintViewModel, or try to refactor them.
+  // Note : keep in sync with loadConstraintViewModel, or try to refactor them.
 
-    // Deserialize the identifier - it's not required since
-    // we know the constraint but we have to advance the stream
-    Id<Scenario::ConstraintModel> constraint_model_id;
-    m_stream >> constraint_model_id;
-    auto& constraint = lm.model().constraint();
+  // Deserialize the identifier - it's not required since
+  // we know the constraint but we have to advance the stream
+  Id<Scenario::ConstraintModel> constraint_model_id;
+  m_stream >> constraint_model_id;
+  auto& constraint = lm.model().constraint();
 
-    // Make it
-    auto viewmodel =  new Scenario::TemporalConstraintViewModel{
-            *this,
-            constraint,
-            &lm};
+  // Make it
+  auto viewmodel
+      = new Scenario::TemporalConstraintViewModel{*this, constraint, &lm};
 
-    // Make the required connections with the parent constraint
-    constraint.setupConstraintViewModel(viewmodel);
+  // Make the required connections with the parent constraint
+  constraint.setupConstraintViewModel(viewmodel);
 
-    lm.m_constraint = viewmodel;
+  lm.m_constraint = viewmodel;
 
-    checkDelimiter();
+  checkDelimiter();
 }
 
-
-
-template<>
+template <>
 void Visitor<Reader<JSONObject>>::readFrom_impl(const Loop::Layer& lm)
 {
-    m_obj["Constraint"] = toJsonObject(*lm.m_constraint);
+  m_obj["Constraint"] = toJsonObject(*lm.m_constraint);
 }
 
-template<>
+template <>
 void Visitor<Writer<JSONObject>>::writeTo(Loop::Layer& lm)
 {
-    Deserializer<JSONObject> deserializer {m_obj["Constraint"].toObject() };
+  Deserializer<JSONObject> deserializer{m_obj["Constraint"].toObject()};
 
-    // Deserialize the required identifier
-    // We don't need to read the constraint id
-    auto& constraint = lm.model().constraint();
+  // Deserialize the required identifier
+  // We don't need to read the constraint id
+  auto& constraint = lm.model().constraint();
 
-    // Make it
-    auto viewmodel = new Scenario::TemporalConstraintViewModel{
-            deserializer,
-            constraint,
-            &lm};
+  // Make it
+  auto viewmodel = new Scenario::TemporalConstraintViewModel{deserializer,
+                                                             constraint, &lm};
 
-    // Make the required connections with the parent constraint
-    constraint.setupConstraintViewModel(viewmodel);
+  // Make the required connections with the parent constraint
+  constraint.setupConstraintViewModel(viewmodel);
 
-    lm.m_constraint = viewmodel;
+  lm.m_constraint = viewmodel;
 }

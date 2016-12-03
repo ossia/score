@@ -11,11 +11,11 @@
 //#include "MessageWidget.hpp"
 //#include <State/Message.hpp>
 
-//class QWidget;
+// class QWidget;
 
-//namespace Explorer
+// namespace Explorer
 //{
-//MessageListEditor::MessageListEditor(
+// MessageListEditor::MessageListEditor(
 //        const State::MessageList& m,
 //        DeviceExplorerModel* model,
 //        QWidget* parent):
@@ -33,7 +33,8 @@
 //    connect(addButton, &QPushButton::clicked,
 //            this, &MessageListEditor::addMessage);
 
-//    auto buttons = new QDialogButtonBox(QDialogButtonBox::StandardButton::Ok |
+//    auto buttons = new QDialogButtonBox(QDialogButtonBox::StandardButton::Ok
+//    |
 //                                        QDialogButtonBox::StandardButton::Cancel);
 //    connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
 //    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -43,7 +44,7 @@
 //    this->setLayout(lay);
 //}
 
-//void MessageListEditor::addMessage()
+// void MessageListEditor::addMessage()
 //{
 //    MessageEditDialog dial(State::Message(), m_model, this);
 //    int res = dial.exec();
@@ -56,19 +57,20 @@
 //    updateLayout();
 //}
 
-//void MessageListEditor::removeMessage(int i)
+// void MessageListEditor::removeMessage(int i)
 //{
 //    m_messages.removeAt(i);
 //    updateLayout();
 //}
 
-//void MessageListEditor::updateLayout()
+// void MessageListEditor::updateLayout()
 //{
 //    iscore::clearLayout(m_messageListLayout);
 //    int i = 0;
 //    for(auto& mess : m_messages)
 //    {
-//        m_messageListLayout->addWidget(new MessageWidget{mess, m_model, this}, i, 0);
+//        m_messageListLayout->addWidget(new MessageWidget{mess, m_model,
+//        this}, i, 0);
 
 //        auto removeButton = new QPushButton(tr("Remove"));
 //        m_messageListLayout->addWidget(removeButton, i, 1);

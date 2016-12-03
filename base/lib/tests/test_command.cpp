@@ -1,8 +1,8 @@
 /*
 #include <QtTest/QtTest>
-#include <iscore/command/Command.hpp>
-#include <core/command/CommandStack.hpp>
 #include <core/QNamedObject>
+#include <core/command/CommandStack.hpp>
+#include <iscore/command/Command.hpp>
 using namespace iscore;
 
 
@@ -33,7 +33,8 @@ class FakeCommand : public SerializableCommand
 
         virtual void undo()
         {
-            auto children = m_globalParent.findChildren<FakeModel*> ("FakeModel");
+            auto children = m_globalParent.findChildren<FakeModel*>
+("FakeModel");
 
             for(auto& model : children)
             {
@@ -46,7 +47,8 @@ class FakeCommand : public SerializableCommand
 
         virtual void redo()
         {
-            auto children = m_globalParent.findChildren<FakeModel*> ("FakeModel");
+            auto children = m_globalParent.findChildren<FakeModel*>
+("FakeModel");
 
             for(auto& model : children)
             {

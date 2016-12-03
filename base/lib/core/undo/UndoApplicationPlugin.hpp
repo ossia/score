@@ -1,16 +1,17 @@
 #pragma once
 
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <QAction>
 #include <QList>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
-#include <vector>
 #include <iscore_lib_base_export.h>
+#include <vector>
 
 class QObject;
-namespace iscore {
+namespace iscore
+{
 class Document;
-}  // namespace iscore
+} // namespace iscore
 
 namespace iscore
 {
@@ -20,24 +21,23 @@ namespace iscore
  * Base class for the "fake" undo plugin,
  * which provides a undo panel.
  */
-class ISCORE_LIB_BASE_EXPORT UndoApplicationPlugin final :
-        public iscore::GUIApplicationContextPlugin
+class ISCORE_LIB_BASE_EXPORT UndoApplicationPlugin final
+    : public iscore::GUIApplicationContextPlugin
 {
-    public:
-        UndoApplicationPlugin(const iscore::GUIApplicationContext& app);
-        ~UndoApplicationPlugin();
+public:
+  UndoApplicationPlugin(const iscore::GUIApplicationContext& app);
+  ~UndoApplicationPlugin();
 
-    private:
-        void on_documentChanged(
-                iscore::Document* olddoc,
-                iscore::Document* newdoc) override;
+private:
+  void on_documentChanged(
+      iscore::Document* olddoc, iscore::Document* newdoc) override;
 
-        GUIElements makeGUIElements() override;
+  GUIElements makeGUIElements() override;
 
-        // Connections to keep for the running document.
-        QList<QMetaObject::Connection> m_connections;
+  // Connections to keep for the running document.
+  QList<QMetaObject::Connection> m_connections;
 
-        QAction m_undoAction;
-        QAction m_redoAction;
+  QAction m_undoAction;
+  QAction m_redoAction;
 };
 }

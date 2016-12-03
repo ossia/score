@@ -2,7 +2,6 @@
 class QJsonObject;
 class QObject;
 
-
 namespace Scenario
 {
 class ConstraintModel;
@@ -21,14 +20,15 @@ QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm);
  *
  * TODO instead we should follow the second
  * part of this article : https://doc.qt.io/archives/qq/qq25-undo.html
- * which explains how to use a proxy model to perform the undo - redo operations.
- * This proxy model should be owned by the presenters where there is an easy and
+ * which explains how to use a proxy model to perform the undo - redo
+ * operations.
+ * This proxy model should be owned by the presenters where there is an easy
+ * and
  * sensical access to the command stack
  */
-//QJsonObject copySelectedScenarioElements(
+// QJsonObject copySelectedScenarioElements(
 //        const BaseScenario& sm,
 //        QObject* parent);
-QJsonObject copySelectedScenarioElements(
-        const BaseScenarioContainer& sm,
-        QObject* parent);
+QJsonObject
+copySelectedScenarioElements(const BaseScenarioContainer& sm, QObject* parent);
 }

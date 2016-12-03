@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
-#include <memory>
 #include <iscore_plugin_engine_export.h>
+#include <memory>
 
 namespace Device
 {
@@ -9,35 +9,40 @@ class DeviceList;
 }
 namespace ossia
 {
-    class time_event;
+class time_event;
 }
 namespace Scenario
 {
 class EventModel;
 }
 
-namespace Engine { namespace Execution
+namespace Engine
+{
+namespace Execution
 {
 class ISCORE_PLUGIN_ENGINE_EXPORT EventElement final : public QObject
 {
-        Q_OBJECT
-    public:
-        EventElement(
-                std::shared_ptr<ossia::time_event> event,
-                const Scenario::EventModel& element,
-                const Device::DeviceList& deviceList,
-                QObject* parent);
+  Q_OBJECT
+public:
+  EventElement(
+      std::shared_ptr<ossia::time_event> event,
+      const Scenario::EventModel& element,
+      const Device::DeviceList& deviceList,
+      QObject* parent);
 
-        std::shared_ptr<ossia::time_event> OSSIAEvent() const;
-        const Scenario::EventModel& iscoreEvent() const
-        { return m_iscore_event; }
+  std::shared_ptr<ossia::time_event> OSSIAEvent() const;
+  const Scenario::EventModel& iscoreEvent() const
+  {
+    return m_iscore_event;
+  }
 
-    signals:
-        void happened();
+signals:
+  void happened();
 
-    private:
-        const Scenario::EventModel& m_iscore_event;
-        std::shared_ptr<ossia::time_event> m_ossia_event;
-        const Device::DeviceList& m_deviceList;
+private:
+  const Scenario::EventModel& m_iscore_event;
+  std::shared_ptr<ossia::time_event> m_ossia_event;
+  const Device::DeviceList& m_deviceList;
 };
-} }
+}
+}

@@ -12,31 +12,43 @@ class AbstractTimeRulerView;
 
 class AbstractTimeRuler : public QObject
 {
-        Q_OBJECT
-    public:
-        explicit AbstractTimeRuler(AbstractTimeRulerView* view, QObject *parent = nullptr);
-        virtual ~AbstractTimeRuler();
+  Q_OBJECT
+public:
+  explicit AbstractTimeRuler(
+      AbstractTimeRulerView* view, QObject* parent = nullptr);
+  virtual ~AbstractTimeRuler();
 
-        AbstractTimeRulerView* view() { return m_view; }
-        int totalScroll() {return m_totalScroll;}
-        TimeValue startPoint() const {return m_startPoint;}
-        double pixelsPerMillis() const
-        { return m_pixelPerMillis; }
-        const QVector<QPair<double, TimeValue>>& graduationsSpacing() const;
+  AbstractTimeRulerView* view()
+  {
+    return m_view;
+  }
+  int totalScroll()
+  {
+    return m_totalScroll;
+  }
+  TimeValue startPoint() const
+  {
+    return m_startPoint;
+  }
+  double pixelsPerMillis() const
+  {
+    return m_pixelPerMillis;
+  }
+  const QVector<QPair<double, TimeValue>>& graduationsSpacing() const;
 
-        virtual void setStartPoint(TimeValue dur);
-        void setPixelPerMillis(double factor);
+  virtual void setStartPoint(TimeValue dur);
+  void setPixelPerMillis(double factor);
 
-    protected:
-        void computeGraduationSpacing();
+protected:
+  void computeGraduationSpacing();
 
-        AbstractTimeRulerView* m_view;
+  AbstractTimeRulerView* m_view;
 
-        TimeValue m_startPoint {};
+  TimeValue m_startPoint{};
 
-        QVector< QPair<double, TimeValue> > m_graduationsSpacing;
+  QVector<QPair<double, TimeValue>> m_graduationsSpacing;
 
-        double m_pixelPerMillis {0.01};
-        int m_totalScroll{};
+  double m_pixelPerMillis{0.01};
+  int m_totalScroll{};
 };
 }

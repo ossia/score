@@ -16,16 +16,14 @@ namespace Command
          */
 class MoveSlot final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveSlot, "Move a slot")
-        public:
-
-            MoveSlot(const Path<SlotModel>& slotToMove,
-                     Path<RackModel>&& targetRack) :
-          AggregateCommand {new CopySlot{Path<SlotModel>{slotToMove}, std::move(targetRack) },
-                            new RemoveSlotFromRack{Path<SlotModel>{slotToMove}}}
-{
-
-}
+  ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveSlot, "Move a slot")
+public:
+  MoveSlot(const Path<SlotModel>& slotToMove, Path<RackModel>&& targetRack)
+      : AggregateCommand{
+            new CopySlot{Path<SlotModel>{slotToMove}, std::move(targetRack)},
+            new RemoveSlotFromRack{Path<SlotModel>{slotToMove}}}
+  {
+  }
 };
 }
 }

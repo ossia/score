@@ -1,79 +1,76 @@
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QVector>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
 #include <algorithm>
 
-#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include "TemporalScenarioLayerModel.hpp"
+#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
 struct VisitorVariant;
-template <typename T> class Reader;
-template <typename T> class Writer;
+template <typename T>
+class Reader;
+template <typename T>
+class Writer;
 
-template<>
+template <>
 void Visitor<Reader<DataStream>>::readFrom_impl(
-        const Scenario::TemporalScenarioLayer& lm)
+    const Scenario::TemporalScenarioLayer& lm)
 {
-    auto constraints = constraintsViewModels(lm);
+  auto constraints = constraintsViewModels(lm);
 
-    m_stream << constraints.size();
+  m_stream << constraints.size();
 
-    for(auto constraint : constraints)
-    {
-        readFrom(*constraint);
-    }
+  for (auto constraint : constraints)
+  {
+    readFrom(*constraint);
+  }
 
-    insertDelimiter();
+  insertDelimiter();
 }
 
-template<>
-void Visitor<Writer<DataStream>>::writeTo(
-        Scenario::TemporalScenarioLayer& lm)
+template <>
+void Visitor<Writer<DataStream>>::writeTo(Scenario::TemporalScenarioLayer& lm)
 {
-    int count;
-    m_stream >> count;
+  int count;
+  m_stream >> count;
 
-    for(; count -- > 0;)
-    {
-        auto cstr = loadConstraintViewModel(*this, &lm);
-        lm.addConstraintViewModel(cstr);
-    }
+  for (; count-- > 0;)
+  {
+    auto cstr = loadConstraintViewModel(*this, &lm);
+    lm.addConstraintViewModel(cstr);
+  }
 
-    checkDelimiter();
+  checkDelimiter();
 }
 
-
-
-template<>
+template <>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Scenario::TemporalScenarioLayer& lm)
+    const Scenario::TemporalScenarioLayer& lm)
 {
-    QJsonArray arr;
+  QJsonArray arr;
 
-    for(auto cstrvm : constraintsViewModels(lm))
-    {
-        arr.push_back(toJsonObject(*cstrvm));
-    }
+  for (auto cstrvm : constraintsViewModels(lm))
+  {
+    arr.push_back(toJsonObject(*cstrvm));
+  }
 
-    m_obj["Constraints"] = arr;
+  m_obj["Constraints"] = arr;
 }
 
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(
-        Scenario::TemporalScenarioLayer& lm)
+template <>
+void Visitor<Writer<JSONObject>>::writeTo(Scenario::TemporalScenarioLayer& lm)
 {
-    QJsonArray arr = m_obj["Constraints"].toArray();
+  QJsonArray arr = m_obj["Constraints"].toArray();
 
-    for(const auto& json_vref : arr)
-    {
-        Deserializer<JSONObject> deserializer {json_vref.toObject() };
-        auto cstrvm = loadConstraintViewModel(deserializer,
-                                                &lm);
-        lm.addConstraintViewModel(cstrvm);
-    }
+  for (const auto& json_vref : arr)
+  {
+    Deserializer<JSONObject> deserializer{json_vref.toObject()};
+    auto cstrvm = loadConstraintViewModel(deserializer, &lm);
+    lm.addConstraintViewModel(cstrvm);
+  }
 }

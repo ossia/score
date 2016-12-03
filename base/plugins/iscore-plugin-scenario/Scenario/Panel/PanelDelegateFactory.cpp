@@ -4,10 +4,9 @@
 namespace Scenario
 {
 
-std::unique_ptr<iscore::PanelDelegate> PanelDelegateFactory::make(
-        const iscore::ApplicationContext& ctx)
+std::unique_ptr<iscore::PanelDelegate>
+PanelDelegateFactory::make(const iscore::ApplicationContext& ctx)
 {
-    return std::make_unique<PanelDelegate>(ctx);
+  return std::make_unique<PanelDelegate>(ctx);
 }
-
 }

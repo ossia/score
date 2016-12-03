@@ -1,9 +1,9 @@
 #pragma once
+#include <QByteArray>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <QByteArray>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -22,24 +22,25 @@ namespace Command
          */
 class RemoveSlotFromRack final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSlotFromRack, "Remove a slot")
-        public:
-            RemoveSlotFromRack(Path<SlotModel>&& slotPath);
-        RemoveSlotFromRack(Path<RackModel>&& rackPath, Id<SlotModel> slotId);
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), RemoveSlotFromRack, "Remove a slot")
+public:
+  RemoveSlotFromRack(Path<SlotModel>&& slotPath);
+  RemoveSlotFromRack(Path<RackModel>&& rackPath, Id<SlotModel> slotId);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<RackModel> m_path;
-        Id<SlotModel> m_slotId {};
-        int m_position {};
+private:
+  Path<RackModel> m_path;
+  Id<SlotModel> m_slotId{};
+  int m_position{};
 
-        QByteArray m_serializedSlotData; // Should be done in the constructor
+  QByteArray m_serializedSlotData; // Should be done in the constructor
 };
 }
 }

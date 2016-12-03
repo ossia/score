@@ -3,8 +3,10 @@
 
 namespace Scenario
 {
-enum class ConstraintExecutionState {
-    Enabled, Disabled
+enum class ConstraintExecutionState
+{
+  Enabled,
+  Disabled
 };
 }
 Q_DECLARE_METATYPE(Scenario::ConstraintExecutionState)

@@ -1,9 +1,9 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QBrush>
 #include <QGraphicsSceneEvent>
-#include <qnamespace.h>
 #include <QPainter>
 #include <QPen>
+#include <qnamespace.h>
 
 #include "StatePresenter.hpp"
 #include "StateView.hpp"
@@ -12,128 +12,127 @@ class QStyleOptionGraphicsItem;
 class QWidget;
 namespace Scenario
 {
-StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
-    QGraphicsItem(parent),
-    m_presenter{pres}
+StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
+    : QGraphicsItem(parent), m_presenter{pres}
 {
-    this->setCacheMode(QGraphicsItem::NoCache);
-    this->setParentItem(parent);
+  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setParentItem(parent);
 
-    this->setZValue(ZPos::State);
-    this->setAcceptDrops(true);
-    this->setAcceptHoverEvents(true);
-    m_color = ScenarioStyle::instance().StateOutline;
+  this->setZValue(ZPos::State);
+  this->setAcceptDrops(true);
+  this->setAcceptHoverEvents(true);
+  m_color = ScenarioStyle::instance().StateOutline;
 }
 
-void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void StateView::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-    painter->setRenderHint(QPainter::Antialiasing, true);
-    auto& skin = ScenarioStyle::instance();
-    skin.StateTemporalPointBrush.setColor(m_selected
-            ? skin.StateSelected.getColor()
-            : skin.StateDot.getColor());
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  auto& skin = ScenarioStyle::instance();
+  skin.StateTemporalPointBrush.setColor(
+      m_selected ? skin.StateSelected.getColor() : skin.StateDot.getColor());
 
-    auto status = m_status.get();
-    if(status != ExecutionStatus::Editing)
-        skin.StateTemporalPointBrush.setColor(m_status.stateStatusColor().getColor());
+  auto status = m_status.get();
+  if (status != ExecutionStatus::Editing)
+    skin.StateTemporalPointBrush.setColor(
+        m_status.stateStatusColor().getColor());
 
-    if(m_containMessage)
-    {
-        skin.StateBrush.setColor(m_color.getColor());
-        painter->setBrush(skin.StateBrush);
-        painter->drawEllipse({0., 0.}, m_radiusFull * m_dilatationFactor, m_radiusFull * m_dilatationFactor);
-    }
+  if (m_containMessage)
+  {
+    skin.StateBrush.setColor(m_color.getColor());
+    painter->setBrush(skin.StateBrush);
+    painter->drawEllipse(
+        {0., 0.},
+        m_radiusFull * m_dilatationFactor,
+        m_radiusFull * m_dilatationFactor);
+  }
 
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(skin.StateTemporalPointBrush);
-    qreal r = m_radiusPoint * m_dilatationFactor;
-    painter->drawEllipse({0., 0.}, r, r);
-
-
-
+  painter->setPen(Qt::NoPen);
+  painter->setBrush(skin.StateTemporalPointBrush);
+  qreal r = m_radiusPoint * m_dilatationFactor;
+  painter->drawEllipse({0., 0.}, r, r);
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
-    painter->setBrush(Qt::NoBrush);
-    painter->setPen(Qt::darkYellow);
-    painter->drawRect(boundingRect());
+  painter->setBrush(Qt::NoBrush);
+  painter->setPen(Qt::darkYellow);
+  painter->drawRect(boundingRect());
 #endif
 }
 
 void StateView::setContainMessage(bool arg)
 {
-    m_containMessage = arg;
-    update();
+  m_containMessage = arg;
+  update();
 }
 
 void StateView::setSelected(bool arg)
 {
-    m_selected = arg;
-    setDilatation(m_selected ? 1.5 : 1);
+  m_selected = arg;
+  setDilatation(m_selected ? 1.5 : 1);
 }
 
 void StateView::changeColor(iscore::ColorRef c)
 {
-    m_color = c;
-    update();
+  m_color = c;
+  update();
 }
 
 void StateView::setStatus(ExecutionStatus status)
 {
-    if(m_status.get() == status)
-        return;
-    m_status.set(status);
-    update();
+  if (m_status.get() == status)
+    return;
+  m_status.set(status);
+  update();
 }
 
-void StateView::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void StateView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    if(event->button() == Qt::MouseButton::LeftButton)
-        emit m_presenter.pressed(event->scenePos());
+  if (event->button() == Qt::MouseButton::LeftButton)
+    emit m_presenter.pressed(event->scenePos());
 }
 
-void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit m_presenter.moved(event->scenePos());
+  emit m_presenter.moved(event->scenePos());
 }
 
-void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit m_presenter.released(event->scenePos());
+  emit m_presenter.released(event->scenePos());
 }
 
 void StateView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-//   m_dilatationFactor = 1.5;
-//   update();
+  //   m_dilatationFactor = 1.5;
+  //   update();
 }
 
 void StateView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-//    m_dilatationFactor = m_selected ? 1.5 : 1;
-//    update();
+  //    m_dilatationFactor = m_selected ? 1.5 : 1;
+  //    update();
 }
 void StateView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-    setDilatation(1.5);
+  setDilatation(1.5);
 }
 
 void StateView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
-    setDilatation(m_selected ? 1.5 : 1);
+  setDilatation(m_selected ? 1.5 : 1);
 }
 
-
-void StateView::dropEvent(QGraphicsSceneDragDropEvent *event)
+void StateView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-    emit dropReceived(event->mimeData());
+  emit dropReceived(event->mimeData());
 }
 
 void StateView::setDilatation(double val)
 {
-    prepareGeometryChange();
-    m_dilatationFactor = val;
-//    this->setScale(m_dilatationFactor);
-//    emit m_presenter.askUpdate();
-    this->update();
+  prepareGeometryChange();
+  m_dilatationFactor = val;
+  //    this->setScale(m_dilatationFactor);
+  //    emit m_presenter.askUpdate();
+  this->update();
 }
 }

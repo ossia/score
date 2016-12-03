@@ -1,12 +1,11 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <QPoint>
-#include <QString>
 #include <QRectF>
+#include <QString>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
-
 
 namespace Scenario
 {
@@ -21,47 +20,45 @@ class ConstraintModel;
  */
 class FullViewConstraintViewModel final : public ConstraintViewModel
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
+public:
+  /**
+   * @brief FullViewConstraintViewModel
+   * @param id identifier
+   * @param model Pointer to the corresponding model object
+   * @param parent Parent object (most certainly ScenarioViewModel)
+   */
+  FullViewConstraintViewModel(
+      const Id<ConstraintViewModel>& id,
+      ConstraintModel& model,
+      QObject* parent);
 
-        /**
-         * @brief FullViewConstraintViewModel
-         * @param id identifier
-         * @param model Pointer to the corresponding model object
-         * @param parent Parent object (most certainly ScenarioViewModel)
-         */
-        FullViewConstraintViewModel(
-                const Id<ConstraintViewModel>& id,
-                ConstraintModel& model,
-                QObject* parent);
+  virtual FullViewConstraintViewModel* clone(
+      const Id<ConstraintViewModel>& id,
+      ConstraintModel& cm,
+      QObject* parent) override;
 
-        virtual FullViewConstraintViewModel* clone(
-                const Id<ConstraintViewModel>& id,
-                ConstraintModel& cm,
-                QObject* parent) override;
+  template <typename DeserializerVisitor>
+  FullViewConstraintViewModel(
+      DeserializerVisitor&& vis, ConstraintModel& model, QObject* parent)
+      : ConstraintViewModel{vis, model, parent}
+  {
+    vis.writeTo(*this);
+  }
 
-        template<typename DeserializerVisitor>
-        FullViewConstraintViewModel(DeserializerVisitor&& vis,
-                                    ConstraintModel& model,
-                                    QObject* parent) :
-            ConstraintViewModel {vis, model, parent}
-        {
-            vis.writeTo(*this);
-        }
+  QString type() const override;
 
-        QString type() const override;
+  ZoomRatio zoom() const;
+  void setZoom(const ZoomRatio& zoom);
 
-        ZoomRatio zoom() const;
-        void setZoom(const ZoomRatio& zoom);
+  QRectF visibleRect() const;
+  void setVisibleRect(const QRectF& value);
 
-        QRectF visibleRect() const;
-        void setVisibleRect(const QRectF& value);
+  bool isActive();
 
-        bool isActive();
-
-    private:
-        ZoomRatio m_zoom{-1};
-        QRectF m_center{};
+private:
+  ZoomRatio m_zoom{-1};
+  QRectF m_center{};
 };
 }

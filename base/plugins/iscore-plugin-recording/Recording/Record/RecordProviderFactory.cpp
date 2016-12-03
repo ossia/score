@@ -8,17 +8,13 @@ RecordProvider::~RecordProvider() = default;
 RecorderFactory::~RecorderFactory() = default;
 
 RecordContext::RecordContext(
-        const Scenario::ProcessModel& scenar,
-        Scenario::Point pt):
-    context{iscore::IDocument::documentContext(scenar)},
-    scenario{scenar},
-    explorer{Explorer::deviceExplorerFromContext(context)},
-    dispatcher{
-        context.commandStack},
-    point{pt}
+    const Scenario::ProcessModel& scenar, Scenario::Point pt)
+    : context{iscore::IDocument::documentContext(scenar)}
+    , scenario{scenar}
+    , explorer{Explorer::deviceExplorerFromContext(context)}
+    , dispatcher{context.commandStack}
+    , point{pt}
 
 {
-
 }
-
 }

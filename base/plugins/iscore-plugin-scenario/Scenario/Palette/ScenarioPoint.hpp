@@ -6,16 +6,13 @@ namespace Scenario
 {
 struct Point
 {
-TimeValue date;
-double y;
+  TimeValue date;
+  double y;
 };
 
-inline Point ConvertToScenarioPoint(
-        const QPointF& point,
-        ZoomRatio zoom,
-        double height)
+inline Point
+ConvertToScenarioPoint(const QPointF& point, ZoomRatio zoom, double height)
 {
-    return {TimeValue::fromMsecs(point.x() * zoom),
-                point.y() / height};
+  return {TimeValue::fromMsecs(point.x() * zoom), point.y() / height};
 }
 }

@@ -1,13 +1,13 @@
 #pragma once
-#include <iscore/model/ColorReference.hpp>
 #include <QColor>
-#include <QtGlobal>
 #include <QGraphicsItem>
 #include <QRect>
+#include <QtGlobal>
+#include <iscore/model/ColorReference.hpp>
 
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <iscore_plugin_scenario_export.h>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneMouseEvent;
@@ -20,66 +20,73 @@ namespace Scenario
 {
 class StatePresenter;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT  StateView final :
-        public QObject,
-        public QGraphicsItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject,
+                                                      public QGraphicsItem
 {
-        Q_OBJECT
-        Q_INTERFACES(QGraphicsItem)
-    public:
-        StateView(StatePresenter &presenter, QGraphicsItem *parent = nullptr);
-        virtual ~StateView() = default;
+  Q_OBJECT
+  Q_INTERFACES(QGraphicsItem)
+public:
+  StateView(StatePresenter& presenter, QGraphicsItem* parent = nullptr);
+  virtual ~StateView() = default;
 
-        static constexpr int static_type()
-        { return QGraphicsItem::UserType + ItemType::State; }
-        int type() const override
-        { return static_type(); }
+  static constexpr int static_type()
+  {
+    return QGraphicsItem::UserType + ItemType::State;
+  }
+  int type() const override
+  {
+    return static_type();
+  }
 
-        const StatePresenter& presenter() const
-        { return m_presenter; }
+  const StatePresenter& presenter() const
+  {
+    return m_presenter;
+  }
 
-        QRectF boundingRect() const override
-        {
-            auto radius = m_radiusFull * m_dilatationFactor;
-            return {-radius, -radius, 2*radius, 2*radius };
-        }
+  QRectF boundingRect() const override
+  {
+    auto radius = m_radiusFull * m_dilatationFactor;
+    return {-radius, -radius, 2 * radius, 2 * radius};
+  }
 
-        void paint(QPainter* painter,
-               const QStyleOptionGraphicsItem* option,
-               QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
-        void setContainMessage(bool);
-        void setSelected(bool arg);
+  void setContainMessage(bool);
+  void setSelected(bool arg);
 
-        void changeColor(iscore::ColorRef);
-        void setStatus(ExecutionStatus);
+  void changeColor(iscore::ColorRef);
+  void setStatus(ExecutionStatus);
 
-    signals:
-        void dropReceived(const QMimeData*);
+signals:
+  void dropReceived(const QMimeData*);
 
-    protected:
-        void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-        void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-        void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-        void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
-        void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
-        void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
-        void dragLeaveEvent(QGraphicsSceneDragDropEvent *event) override;
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
 
-        void dropEvent(QGraphicsSceneDragDropEvent *event) override;
-    private:
-        void setDilatation(double);
-        StatePresenter& m_presenter;
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
-        bool m_containMessage{false};
-        bool m_selected{false};
+private:
+  void setDilatation(double);
+  StatePresenter& m_presenter;
 
-        iscore::ColorRef m_color;
+  bool m_containMessage{false};
+  bool m_selected{false};
 
-        ExecutionStatusProperty m_status{};
+  iscore::ColorRef m_color;
 
-        static const constexpr qreal m_radiusFull = 6.;
-        static const constexpr qreal m_radiusPoint = 3.5;
-        qreal m_dilatationFactor = 1;
+  ExecutionStatusProperty m_status{};
+
+  static const constexpr qreal m_radiusFull = 6.;
+  static const constexpr qreal m_radiusPoint = 3.5;
+  qreal m_dilatationFactor = 1;
 };
 }

@@ -1,33 +1,33 @@
 #pragma once
 
-#include <QtCore/QObject>
-#include <QtCore/QList>
 #include <QtCore/QByteArray>
+#include <QtCore/QList>
+#include <QtCore/QObject>
 
+#include <QGraphicsScene>
 #include <QtWebSockets/QWebSocket>
 #include <QtWebSockets/QWebSocketServer>
-#include <QGraphicsScene>
-
 
 class WebSocketView final : public QObject
 {
-        Q_OBJECT
-    public:
-        explicit WebSocketView(QGraphicsScene* s, quint16 port, QObject *parent = Q_NULLPTR);
-        ~WebSocketView();
+  Q_OBJECT
+public:
+  explicit WebSocketView(
+      QGraphicsScene* s, quint16 port, QObject* parent = Q_NULLPTR);
+  ~WebSocketView();
 
-    signals:
-        void closed();
+signals:
+  void closed();
 
-    public slots:
-        void onNewConnection();
-        void processTextMessage(QString message);
-        void processBinaryMessage(QByteArray message);
-        void socketDisconnected();
+public slots:
+  void onNewConnection();
+  void processTextMessage(QString message);
+  void processBinaryMessage(QByteArray message);
+  void socketDisconnected();
 
-    private:
-        QWebSocketServer *m_pWebSocketServer;
-        QGraphicsScene* m_scene{};
-        QList<QWebSocket *> m_clients;
-        bool m_debug;
+private:
+  QWebSocketServer* m_pWebSocketServer;
+  QGraphicsScene* m_scene{};
+  QList<QWebSocket*> m_clients;
+  bool m_debug;
 };

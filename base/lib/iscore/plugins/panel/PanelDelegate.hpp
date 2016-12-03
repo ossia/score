@@ -22,18 +22,18 @@ class PanelView;
  */
 struct ISCORE_LIB_BASE_EXPORT PanelStatus
 {
-        PanelStatus(
-                bool isShown,
-                Qt::DockWidgetArea d,
-                int prio,
-                QString name,
-                const QKeySequence& sc);
+  PanelStatus(
+      bool isShown,
+      Qt::DockWidgetArea d,
+      int prio,
+      QString name,
+      const QKeySequence& sc);
 
-        const bool shown; // Controls if it is shown by default.
-        const Qt::DockWidgetArea dock; // Which dock.
-        const int priority;  // Higher priority will come up first.
-        const QString prettyName; // Used in the header.
-        const QKeySequence shortcut; // Keyboard shortcut to show or hide the panel.
+  const bool shown;              // Controls if it is shown by default.
+  const Qt::DockWidgetArea dock; // Which dock.
+  const int priority;            // Higher priority will come up first.
+  const QString prettyName;      // Used in the header.
+  const QKeySequence shortcut; // Keyboard shortcut to show or hide the panel.
 };
 
 /**
@@ -49,53 +49,53 @@ struct ISCORE_LIB_BASE_EXPORT PanelStatus
  */
 class ISCORE_LIB_BASE_EXPORT PanelDelegate
 {
-    public:
-        PanelDelegate(const iscore::ApplicationContext& ctx);
-        virtual ~PanelDelegate();
+public:
+  PanelDelegate(const iscore::ApplicationContext& ctx);
+  virtual ~PanelDelegate();
 
-        const iscore::ApplicationContext& context() const;
+  const iscore::ApplicationContext& context() const;
 
-        void setModel(const iscore::DocumentContext& model);
-        void setModel(none_t n);
+  void setModel(const iscore::DocumentContext& model);
+  void setModel(none_t n);
 
-        /**
-         * @brief document The optional current document
-         * @return The document if there is a current document in i-score, else nothing.
-         */
-        MaybeDocument document() const;
+  /**
+   * @brief document The optional current document
+   * @return The document if there is a current document in i-score, else
+   * nothing.
+   */
+  MaybeDocument document() const;
 
-        /**
-         * @brief widget The widget of the panel.
-         * @note The \ref View class takes ownership of it.
-         */
-        virtual QWidget* widget() = 0;
+  /**
+   * @brief widget The widget of the panel.
+   * @note The \ref View class takes ownership of it.
+   */
+  virtual QWidget* widget() = 0;
 
-        /**
-         * @brief defaultPanelStatus Metadata of the panel.
-         */
-        virtual const PanelStatus& defaultPanelStatus() const = 0;
+  /**
+   * @brief defaultPanelStatus Metadata of the panel.
+   */
+  virtual const PanelStatus& defaultPanelStatus() const = 0;
 
-        /**
-         * @brief setNewSelection This function will be called if the selected objects
-         * change in i-score
-         *
-         * @param s The new selection.
-         */
-        virtual void setNewSelection(const Selection& s);
+  /**
+   * @brief setNewSelection This function will be called if the selected
+   * objects
+   * change in i-score
+   *
+   * @param s The new selection.
+   */
+  virtual void setNewSelection(const Selection& s);
 
-    protected:
-        /**
-         * @brief on_modelChanged This function is called when the visible
-         * document changes.
-         * @param oldm The previous (actual) document or nothing if there was none.
-         * @param newm The new document (or nothing if the user closed everything).
-         */
-        virtual void on_modelChanged(
-                MaybeDocument oldm,
-                MaybeDocument newm);
+protected:
+  /**
+   * @brief on_modelChanged This function is called when the visible
+   * document changes.
+   * @param oldm The previous (actual) document or nothing if there was none.
+   * @param newm The new document (or nothing if the user closed everything).
+   */
+  virtual void on_modelChanged(MaybeDocument oldm, MaybeDocument newm);
 
-    private:
-        const iscore::ApplicationContext& m_context;
-        MaybeDocument m_model;
+private:
+  const iscore::ApplicationContext& m_context;
+  MaybeDocument m_model;
 };
 }

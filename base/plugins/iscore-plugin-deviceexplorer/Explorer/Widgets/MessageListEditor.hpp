@@ -2,13 +2,12 @@
 //#include <State/Message.hpp>
 //#include <QDialog>
 
-//class QGridLayout;
-//class QWidget;
+// class QGridLayout;
+// class QWidget;
 
-
-//namespace Explorer
+// namespace Explorer
 //{
-//class DeviceExplorerModel;
+// class DeviceExplorerModel;
 ///**
 // * @brief The MessageListEditor class
 // *
@@ -19,7 +18,7 @@
 // * the modified messages are in m_messages and can be
 // * used for a Command for instance.
 // */
-//class MessageListEditor final : public QDialog
+// class MessageListEditor final : public QDialog
 //{
 //    public:
 //        MessageListEditor(

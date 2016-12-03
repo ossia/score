@@ -13,22 +13,22 @@ namespace Loop
 class LayerPresenter;
 class ViewUpdater
 {
-    public:
-        ViewUpdater(LayerPresenter& presenter);
+public:
+  ViewUpdater(LayerPresenter& presenter);
 
-        void updateEvent(const Scenario::EventPresenter &event);
+  void updateEvent(const Scenario::EventPresenter& event);
 
-        void updateConstraint(const Scenario::TemporalConstraintPresenter &pres);
+  void updateConstraint(const Scenario::TemporalConstraintPresenter& pres);
 
-        void updateTimeNode(const Scenario::TimeNodePresenter &timenode);
+  void updateTimeNode(const Scenario::TimeNodePresenter& timenode);
 
-        void updateState(const Scenario::StatePresenter &state);
+  void updateState(const Scenario::StatePresenter& state);
 
-        LayerPresenter& m_presenter;
+  LayerPresenter& m_presenter;
 
-        static const Scenario::VerticalExtent extent() {
-            return {30., 50. };
-        }
+  static const Scenario::VerticalExtent extent()
+  {
+    return {30., 50.};
+  }
 };
-
 }

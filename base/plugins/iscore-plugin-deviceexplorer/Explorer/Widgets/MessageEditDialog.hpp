@@ -1,6 +1,6 @@
 #pragma once
-#include <State/Value.hpp>
 #include <QDialog>
+#include <State/Value.hpp>
 #include <iscore/widgets/WidgetWrapper.hpp>
 
 class QWidget;
@@ -30,26 +30,24 @@ class DeviceExplorerModel;
  */
 class MessageEditDialog final : public QDialog
 {
-    public:
-        MessageEditDialog(
-                const State::Message& mess,
-                DeviceExplorerModel* model,
-                QWidget* parent);
+public:
+  MessageEditDialog(
+      const State::Message& mess, DeviceExplorerModel* model, QWidget* parent);
 
-        const State::Address& address() const;
+  const State::Address& address() const;
 
-        State::Value value() const;
+  State::Value value() const;
 
-    private:
-        void initTypeCombo();
-        void on_typeChanged(int t);
+private:
+  void initTypeCombo();
+  void on_typeChanged(int t);
 
-        const State::Message& m_message;
+  const State::Message& m_message;
 
-        AddressEditWidget* m_addr{};
+  AddressEditWidget* m_addr{};
 
-        QFormLayout* m_lay{};
-        QComboBox* m_typeCombo{};
-        WidgetWrapper<State::ValueWidget>* m_val{};
+  QFormLayout* m_lay{};
+  QComboBox* m_typeCombo{};
+  WidgetWrapper<State::ValueWidget>* m_val{};
 };
 }

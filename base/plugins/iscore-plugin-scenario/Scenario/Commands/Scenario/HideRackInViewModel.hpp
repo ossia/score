@@ -1,8 +1,8 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -23,30 +23,32 @@ namespace Command
          */
 class HideRackInViewModel final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), HideRackInViewModel, "Hide a rack")
-        public:
-            HideRackInViewModel(Path<ConstraintViewModel>&& path);
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), HideRackInViewModel, "Hide a rack")
+public:
+  HideRackInViewModel(Path<ConstraintViewModel>&& path);
 
-        /**
-                 * @brief HideRackInViewModel
-                 * @param constraint A constraint view model.
-                 *
-                 * Note : this will search it and make a path from an object named "BaseConstraintModel"
-                 * Hence this constructor has to be used in a Scenario.
-                 */
-        HideRackInViewModel(const ConstraintViewModel& constraint);
+  /**
+           * @brief HideRackInViewModel
+           * @param constraint A constraint view model.
+           *
+           * Note : this will search it and make a path from an object named
+   * "BaseConstraintModel"
+           * Hence this constructor has to be used in a Scenario.
+           */
+  HideRackInViewModel(const ConstraintViewModel& constraint);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<ConstraintViewModel> m_constraintViewPath;
+private:
+  Path<ConstraintViewModel> m_constraintViewPath;
 
-        OptionalId<RackModel> m_constraintPreviousId {};
+  OptionalId<RackModel> m_constraintPreviousId{};
 };
 }
 }

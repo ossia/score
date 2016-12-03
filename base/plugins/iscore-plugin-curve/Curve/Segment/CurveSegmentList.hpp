@@ -4,16 +4,12 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 namespace Curve
 {
-class SegmentList final :
-        public iscore::ConcreteFactoryList<SegmentFactory>
+class SegmentList final : public iscore::ConcreteFactoryList<SegmentFactory>
 {
-    public:
-        using object_type = Curve::SegmentModel;
-        virtual ~SegmentList();
+public:
+  using object_type = Curve::SegmentModel;
+  virtual ~SegmentList();
 
-        object_type* loadMissing(
-                const VisitorVariant& vis,
-                QObject* parent) const;
+  object_type* loadMissing(const VisitorVariant& vis, QObject* parent) const;
 };
-
 }

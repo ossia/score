@@ -4,6 +4,5 @@ namespace Curve
 {
 CurveProcessModel::~CurveProcessModel()
 {
-
 }
 }

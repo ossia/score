@@ -1,23 +1,26 @@
 #pragma once
 #include <QJsonObject>
-#include <QStringList>
 #include <QMap>
-
+#include <QStringList>
 
 namespace Library
 {
 enum class Category
 {
-    StateNode, MessageList, ScenarioData, Process, Device, Address
+  StateNode,
+  MessageList,
+  ScenarioData,
+  Process,
+  Device,
+  Address
 };
 const QMap<Category, QString>& categoryPrettyName();
 
-
 struct LibraryElement
 {
-        QString name;
-        Category category;
-        QStringList tags;
-        QJsonObject obj;
+  QString name;
+  Category category;
+  QStringList tags;
+  QJsonObject obj;
 };
 }

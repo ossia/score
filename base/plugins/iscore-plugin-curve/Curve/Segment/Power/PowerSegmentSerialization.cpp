@@ -1,66 +1,63 @@
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 #include "PowerSegment.hpp"
 
-template <typename T> class Reader;
-template <typename T> class Writer;
+template <typename T>
+class Reader;
+template <typename T>
+class Writer;
 
-template<>
+template <>
 void Visitor<Reader<DataStream>>::readFrom_impl(
-        const Curve::PowerSegment& segmt)
+    const Curve::PowerSegment& segmt)
 {
-    m_stream << segmt.gamma;
+  m_stream << segmt.gamma;
 }
 
-template<>
-void Visitor<Writer<DataStream>>::writeTo(
-        Curve::PowerSegment& segmt)
+template <>
+void Visitor<Writer<DataStream>>::writeTo(Curve::PowerSegment& segmt)
 {
-    m_stream >> segmt.gamma;
+  m_stream >> segmt.gamma;
 }
 
-template<>
+template <>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Curve::PowerSegment& segmt)
+    const Curve::PowerSegment& segmt)
 {
-    m_obj["Power"] = segmt.gamma;
+  m_obj["Power"] = segmt.gamma;
 }
 
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(
-        Curve::PowerSegment& segmt)
+template <>
+void Visitor<Writer<JSONObject>>::writeTo(Curve::PowerSegment& segmt)
 {
-    segmt.gamma = m_obj["Power"].toDouble();
+  segmt.gamma = m_obj["Power"].toDouble();
 }
 
-
-template<>
+template <>
 void Visitor<Reader<DataStream>>::readFrom_impl(
-        const Curve::PowerSegmentData& segmt)
+    const Curve::PowerSegmentData& segmt)
 {
-    m_stream << segmt.gamma;
+  m_stream << segmt.gamma;
 }
 
-template<>
-void Visitor<Writer<DataStream>>::writeTo(
-        Curve::PowerSegmentData& segmt)
+template <>
+void Visitor<Writer<DataStream>>::writeTo(Curve::PowerSegmentData& segmt)
 {
-    m_stream >> segmt.gamma;
+  m_stream >> segmt.gamma;
 }
 
-template<>
+template <>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Curve::PowerSegmentData& segmt)
+    const Curve::PowerSegmentData& segmt)
 {
-    m_obj["Power"] = segmt.gamma;
+  m_obj["Power"] = segmt.gamma;
 }
 
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(
-        Curve::PowerSegmentData& segmt)
+template <>
+void Visitor<Writer<JSONObject>>::writeTo(Curve::PowerSegmentData& segmt)
 {
-    segmt.gamma = m_obj["Power"].toDouble();
+  segmt.gamma = m_obj["Power"].toDouble();
 }

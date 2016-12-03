@@ -9,20 +9,16 @@ namespace LocalTree
 {
 class ISCORE_PLUGIN_ENGINE_EXPORT BaseProperty
 {
-    public:
-        ossia::net::node_base& node;
-        ossia::net::address_base& addr;
+public:
+  ossia::net::node_base& node;
+  ossia::net::address_base& addr;
 
-        BaseProperty(
-                ossia::net::node_base& n,
-                ossia::net::address_base& a):
-            node{n},
-            addr{a}
-        {
+  BaseProperty(ossia::net::node_base& n, ossia::net::address_base& a)
+      : node{n}, addr{a}
+  {
+  }
 
-        }
-
-        virtual ~BaseProperty();
+  virtual ~BaseProperty();
 };
 }
 }
