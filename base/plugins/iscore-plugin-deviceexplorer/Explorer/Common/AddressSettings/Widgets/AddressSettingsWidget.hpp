@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Device/Address/AddressSettings.hpp>
-#include <iscore_plugin_deviceexplorer_export.h>
-#include <QWidget>
 #include <QLabel>
+#include <QWidget>
+#include <iscore_plugin_deviceexplorer_export.h>
 
 class QComboBox;
 class QCheckBox;
@@ -17,33 +17,36 @@ class UnitWidget;
 }
 namespace Explorer
 {
-class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget : public QWidget
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget
+    : public QWidget
 {
-    public:
-        struct no_widgets_t {};
-        explicit AddressSettingsWidget(QWidget* parent = nullptr);
-        explicit AddressSettingsWidget(no_widgets_t, QWidget* parent = nullptr);
+public:
+  struct no_widgets_t
+  {
+  };
+  explicit AddressSettingsWidget(QWidget* parent = nullptr);
+  explicit AddressSettingsWidget(no_widgets_t, QWidget* parent = nullptr);
 
-        virtual ~AddressSettingsWidget();
+  virtual ~AddressSettingsWidget();
 
-        virtual Device::AddressSettings getSettings() const = 0;
-        virtual Device::AddressSettings getDefaultSettings() const = 0;
-        virtual void setSettings(const Device::AddressSettings& settings) = 0;
+  virtual Device::AddressSettings getSettings() const = 0;
+  virtual Device::AddressSettings getDefaultSettings() const = 0;
+  virtual void setSettings(const Device::AddressSettings& settings) = 0;
 
-    protected:
-        Device::AddressSettings getCommonSettings() const;
-        void setCommonSettings(const Device::AddressSettings&);
+protected:
+  Device::AddressSettings getCommonSettings() const;
+  void setCommonSettings(const Device::AddressSettings&);
 
-        QFormLayout* m_layout;
+  QFormLayout* m_layout;
 
-    private:
-        bool m_none_type{false};
-        QComboBox* m_ioTypeCBox{};
-        QComboBox* m_clipModeCBox{};
-        QCheckBox* m_repetition{};
-        QComboBox* m_tagsEdit{};
-        QLineEdit* m_description{};
-        State::UnitWidget* m_unit{};
+private:
+  bool m_none_type{false};
+  QComboBox* m_ioTypeCBox{};
+  QComboBox* m_clipModeCBox{};
+  QCheckBox* m_repetition{};
+  QComboBox* m_tagsEdit{};
+  QLineEdit* m_description{};
+  State::UnitWidget* m_unit{};
 };
 
 inline QLabel* makeLabel(QString text, QWidget* parent)
@@ -53,4 +56,3 @@ inline QLabel* makeLabel(QString text, QWidget* parent)
   return label;
 }
 }
-

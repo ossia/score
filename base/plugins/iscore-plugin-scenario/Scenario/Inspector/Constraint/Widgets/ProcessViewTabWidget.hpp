@@ -3,55 +3,52 @@
 #include <QWidget>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 
-namespace Inspector {
-    class InspectorSectionWidget;
+namespace Inspector
+{
+class InspectorSectionWidget;
 }
 
-
-namespace Scenario {
+namespace Scenario
+{
 class RackWidget;
 class RackInspectorSection;
 
-class ProcessViewTabWidget :
-        public QWidget,
-        public Nano::Observer
+class ProcessViewTabWidget : public QWidget, public Nano::Observer
 {
-        Q_OBJECT
-    public:
-        explicit ProcessViewTabWidget(
-            const ConstraintInspectorWidget& parentCstr,
-            QWidget *parent = nullptr);
+  Q_OBJECT
+public:
+  explicit ProcessViewTabWidget(
+      const ConstraintInspectorWidget& parentCstr, QWidget* parent = nullptr);
 
-        void updateDisplayedValues();
+  void updateDisplayedValues();
 
-        void activeRackChanged(
-                OptionalId<RackModel> rack,
-                ConstraintViewModel* vm);
-        void createRack();
+  void activeRackChanged(OptionalId<RackModel> rack, ConstraintViewModel* vm);
+  void createRack();
 
+  RackWidget* rackWidget()
+  {
+    return m_rackWidget;
+  }
+  const ConstraintInspectorWidget& parentConstraint()
+  {
+    return m_constraintWidget;
+  }
 
-        RackWidget* rackWidget()
-        { return m_rackWidget; }
-        const ConstraintInspectorWidget& parentConstraint()
-        { return m_constraintWidget; }
+signals:
 
-    signals:
+public slots:
 
-    public slots:
+  void setupRack(const RackModel&);
+  void on_rackCreated(const RackModel&);
+  void on_rackRemoved(const RackModel&);
 
-        void setupRack(const RackModel&);
-        void on_rackCreated(const RackModel&);
-        void on_rackRemoved(const RackModel&);
+private:
+  const ConstraintInspectorWidget& m_constraintWidget;
+  CommandDispatcher<>* m_commandDispatcher{};
 
-    private:
-
-        const ConstraintInspectorWidget& m_constraintWidget;
-        CommandDispatcher<>* m_commandDispatcher{};
-
-        Inspector::InspectorSectionWidget* m_rackSection {};
-        RackWidget* m_rackWidget {};
-        std::unordered_map<Id<RackModel>, RackInspectorSection*> m_rackesSectionWidgets;
-
+  Inspector::InspectorSectionWidget* m_rackSection{};
+  RackWidget* m_rackWidget{};
+  std::unordered_map<Id<RackModel>, RackInspectorSection*>
+      m_rackesSectionWidgets;
 };
-
 }

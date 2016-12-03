@@ -1,7 +1,7 @@
 #pragma once
-#include <iscore/tools/std/Optional.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
 #include <QString>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <nano_signal_slot.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -12,58 +12,56 @@ namespace Scenario
 {
 class RackModel;
 class ConstraintModel;
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel :
-        public IdentifiedObject<ConstraintViewModel>,
-        public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintViewModel
+    : public IdentifiedObject<ConstraintViewModel>,
+      public Nano::Observer
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
-        ConstraintViewModel(const Id<ConstraintViewModel>& id,
-                            const QString& name,
-                            ConstraintModel& model,
-                            QObject* parent);
+public:
+  ConstraintViewModel(
+      const Id<ConstraintViewModel>& id,
+      const QString& name,
+      ConstraintModel& model,
+      QObject* parent);
 
-        virtual ~ConstraintViewModel();
+  virtual ~ConstraintViewModel();
 
-        template<typename DeserializerVisitor>
-        ConstraintViewModel(DeserializerVisitor&& vis,
-                            ConstraintModel& model,
-                            QObject* parent) :
-            IdentifiedObject{vis, parent},
-            m_model {model}
-        {
-            vis.writeTo(*this);
-        }
+  template <typename DeserializerVisitor>
+  ConstraintViewModel(
+      DeserializerVisitor&& vis, ConstraintModel& model, QObject* parent)
+      : IdentifiedObject{vis, parent}, m_model{model}
+  {
+    vis.writeTo(*this);
+  }
 
-        virtual ConstraintViewModel* clone(
-                const Id<ConstraintViewModel>& id,
-                ConstraintModel& cm,
-                QObject* parent) = 0;
+  virtual ConstraintViewModel* clone(
+      const Id<ConstraintViewModel>& id, ConstraintModel& cm, QObject* parent)
+      = 0;
 
-        virtual QString type() const = 0;
-        ConstraintModel& model() const;
+  virtual QString type() const = 0;
+  ConstraintModel& model() const;
 
-        bool isRackShown() const;
-        const OptionalId<RackModel>& shownRack() const;
+  bool isRackShown() const;
+  const OptionalId<RackModel>& shownRack() const;
 
-        void hideRack();
-        void showRack(const OptionalId<RackModel>& rackId);
+  void hideRack();
+  void showRack(const OptionalId<RackModel>& rackId);
 
-        virtual void on_rackRemoval(const RackModel&);
+  virtual void on_rackRemoval(const RackModel&);
 
-    signals:
-        void lastRackRemoved();
-        void rackHidden();
-        void rackShown(const OptionalId<RackModel>&);
+signals:
+  void lastRackRemoved();
+  void rackHidden();
+  void rackShown(const OptionalId<RackModel>&);
 
-        void aboutToBeDeleted(ConstraintViewModel*);
+  void aboutToBeDeleted(ConstraintViewModel*);
 
-    private:
-        // A view model cannot be constructed without a model
-        // hence we are safe with a pointer
-        ConstraintModel& m_model;
+private:
+  // A view model cannot be constructed without a model
+  // hence we are safe with a pointer
+  ConstraintModel& m_model;
 
-        OptionalId<RackModel> m_shownRack {};
+  OptionalId<RackModel> m_shownRack{};
 };
 }

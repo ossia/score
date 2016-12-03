@@ -1,15 +1,16 @@
 #pragma once
 #include <Process/Tools/ToolPalette.hpp>
+#include <QPoint>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-#include <QPoint>
 
 #include <Scenario/Palette/Tool.hpp>
 
-namespace Scenario {
+namespace Scenario
+{
 class EditionSettings;
-}  // namespace Scenario
+} // namespace Scenario
 namespace Process
 {
 struct LayerContext;
@@ -31,52 +32,41 @@ class LayerView;
 
 class ToolPalette final : public GraphicsSceneToolPalette
 {
-    public:
-        ToolPalette(
-                const Loop::ProcessModel& model,
-                LayerPresenter& presenter,
-                Process::LayerContext& ctx,
-                LayerView& view);
+public:
+  ToolPalette(
+      const Loop::ProcessModel& model,
+      LayerPresenter& presenter,
+      Process::LayerContext& ctx,
+      LayerView& view);
 
-        LayerView& view() const;
+  LayerView& view() const;
 
-        const LayerPresenter& presenter() const;
-        const Loop::ProcessModel& model() const;
-        const Process::LayerContext& context() const;
-        const Scenario::EditionSettings& editionSettings() const;
+  const LayerPresenter& presenter() const;
+  const Loop::ProcessModel& model() const;
+  const Process::LayerContext& context() const;
+  const Scenario::EditionSettings& editionSettings() const;
 
-        void activate(Scenario::Tool);
-        void desactivate(Scenario::Tool);
-        void on_pressed(QPointF point);
-        void on_moved(QPointF point);
-        void on_released(QPointF point);
-        void on_cancel();
+  void activate(Scenario::Tool);
+  void desactivate(Scenario::Tool);
+  void on_pressed(QPointF point);
+  void on_moved(QPointF point);
+  void on_released(QPointF point);
+  void on_cancel();
 
-    private:
-        Scenario::Point ScenePointToScenarioPoint(QPointF point);
+private:
+  Scenario::Point ScenePointToScenarioPoint(QPointF point);
 
-        const Loop::ProcessModel& m_model;
-        LayerPresenter& m_presenter;
-        Process::LayerContext& m_context;
-        LayerView& m_view;
-        const Scenario::EditionSettings& m_editionSettings;
+  const Loop::ProcessModel& m_model;
+  LayerPresenter& m_presenter;
+  Process::LayerContext& m_context;
+  LayerView& m_view;
+  const Scenario::EditionSettings& m_editionSettings;
 
-        Scenario::SmartTool<
-            Loop::ProcessModel,
-            ToolPalette,
-            LayerView,
-            Scenario::MoveConstraintInBaseScenario_StateWrapper,
-            Scenario::MoveLeftBraceInBaseScenario_StateWrapper,
-            Scenario::MoveRightBraceInBaseScenario_StateWrapper,
-            Scenario::MoveEventInBaseScenario_StateWrapper,
-            Scenario::MoveTimeNodeInBaseScenario_StateWrapper
-        >  m_state;
+  Scenario::
+      SmartTool<Loop::ProcessModel, ToolPalette, LayerView, Scenario::MoveConstraintInBaseScenario_StateWrapper, Scenario::MoveLeftBraceInBaseScenario_StateWrapper, Scenario::MoveRightBraceInBaseScenario_StateWrapper, Scenario::MoveEventInBaseScenario_StateWrapper, Scenario::MoveTimeNodeInBaseScenario_StateWrapper>
+          m_state;
 
-        ToolPaletteInputDispatcher<
-               Scenario::Tool,
-               ToolPalette,
-               Process::LayerContext,
-               LayerPresenter
-            > m_inputDisp;
+  ToolPaletteInputDispatcher<Scenario::Tool, ToolPalette, Process::LayerContext, LayerPresenter>
+      m_inputDisp;
 };
 }

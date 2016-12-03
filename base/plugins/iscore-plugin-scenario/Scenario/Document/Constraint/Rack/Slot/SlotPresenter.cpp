@@ -10,18 +10,18 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <iscore/widgets/GraphicsItem.hpp>
-#include <QMenu>
-#include <algorithm>
-#include <boost/range/algorithm_ext/erase.hpp>
-#include <Process/TimeValue.hpp>
-#include <Process/ZoomHelper.hpp>
-#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include "SlotHandle.hpp"
 #include "SlotPresenter.hpp"
 #include <Process/ProcessContext.hpp>
+#include <Process/TimeValue.hpp>
+#include <Process/ZoomHelper.hpp>
+#include <QMenu>
+#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
+#include <algorithm>
+#include <boost/range/algorithm_ext/erase.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
 
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
@@ -34,357 +34,365 @@ class QObject;
 namespace Scenario
 {
 SlotPresenter::SlotPresenter(
-        const SlotModel& model,
-        RackView *view,
-        const Process::ProcessPresenterContext& ctx,
-        QObject* par) :
-    QObject {par},
-    m_processList{ctx.app.components.factory<Process::LayerFactoryList>()},
-    m_model {model},
-    m_view {new SlotView{*this, view}},
-    m_context{ctx}
+    const SlotModel& model,
+    RackView* view,
+    const Process::ProcessPresenterContext& ctx,
+    QObject* par)
+    : QObject{par}
+    , m_processList{ctx.app.components.factory<Process::LayerFactoryList>()}
+    , m_model{model}
+    , m_view{new SlotView{*this, view}}
+    , m_context{ctx}
 {
-    m_view->setPos(0, 0);
+  m_view->setPos(0, 0);
 
-    for(const auto& proc_vm : m_model.layers)
-    {
-        on_layerModelCreated_impl(proc_vm);
-    }
+  for (const auto& proc_vm : m_model.layers)
+  {
+    on_layerModelCreated_impl(proc_vm);
+  }
 
-    m_model.layers.added.connect<SlotPresenter, &SlotPresenter::on_layerModelCreated>(this);
-    m_model.layers.removed.connect<SlotPresenter, &SlotPresenter::on_layerModelRemoved>(this);
+  m_model.layers.added
+      .connect<SlotPresenter, &SlotPresenter::on_layerModelCreated>(this);
+  m_model.layers.removed
+      .connect<SlotPresenter, &SlotPresenter::on_layerModelRemoved>(this);
 
-    con(m_model, &SlotModel::layerModelPutToFront,
-        this, &SlotPresenter::on_layerModelPutToFront);
+  con(m_model, &SlotModel::layerModelPutToFront, this,
+      &SlotPresenter::on_layerModelPutToFront);
 
-    con(m_model, &SlotModel::HeightChanged,
-        this, &SlotPresenter::on_heightChanged);
+  con(m_model, &SlotModel::HeightChanged, this,
+      &SlotPresenter::on_heightChanged);
 
-    con(m_model, &SlotModel::focusChanged,
-            m_view,  &SlotView::setFocus);
-    m_view->setHeight(m_model.getHeight());
+  con(m_model, &SlotModel::focusChanged, m_view, &SlotView::setFocus);
+  m_view->setHeight(m_model.getHeight());
 
-    m_looping = m_model.parentConstraint().looping();
-    con(m_model.parentConstraint(), &ConstraintModel::loopingChanged,
-        this, &SlotPresenter::on_loopingChanged);
+  m_looping = m_model.parentConstraint().looping();
+  con(m_model.parentConstraint(), &ConstraintModel::loopingChanged, this,
+      &SlotPresenter::on_loopingChanged);
 
-    connect(m_view, &SlotView::askContextMenu,
-            this, [&] (const QPoint& pos, const QPointF& scenept) {
+  connect(
+      m_view, &SlotView::askContextMenu, this,
+      [&](const QPoint& pos, const QPointF& scenept) {
         QMenu* menu = new QMenu;
         ScenarioContextMenuManager::createSlotContextMenu(ctx, *menu, *this);
         menu->exec(pos);
         menu->close();
         menu->deleteLater();
-    });
+      });
 
-    if(auto frontLayer = m_model.frontLayerModel())
-        on_layerModelPutToFront(*frontLayer);
+  if (auto frontLayer = m_model.frontLayerModel())
+    on_layerModelPutToFront(*frontLayer);
 }
 
 SlotPresenter::~SlotPresenter()
 {
-    for(auto& proc : m_processes)
-        for(auto& sub : proc.processes)
-            delete sub.first;
+  for (auto& proc : m_processes)
+    for (auto& sub : proc.processes)
+      delete sub.first;
 }
 
 const Id<SlotModel>& SlotPresenter::id() const
 {
-    return m_model.id();
+  return m_model.id();
 }
 
 const SlotModel& SlotPresenter::model() const
-{ return m_model; }
+{
+  return m_model;
+}
 
 int SlotPresenter::height() const
 {
-    return m_view->height();
+  return m_view->height();
 }
 
 void SlotPresenter::setWidth(qreal w)
 {
-    m_view->setWidth(w);
+  m_view->setWidth(w);
 
-    updateProcesses();
+  updateProcesses();
 }
 
 void SlotPresenter::setVerticalPosition(double pos)
 {
-    auto view_pos = m_view->pos();
+  auto view_pos = m_view->pos();
 
-    if(view_pos.y() != pos)
-    {
-        m_view->setPos(view_pos.x(), pos);
-        m_view->update();
-    }
+  if (view_pos.y() != pos)
+  {
+    m_view->setPos(view_pos.x(), pos);
+    m_view->update();
+  }
 }
 
 void SlotPresenter::enable()
 {
-    m_view->enable();
-    for(auto& elt : m_processes)
-    {
-        for(auto& pair : elt.processes)
-            pair.first->parentGeometryChanged();
-    }
+  m_view->enable();
+  for (auto& elt : m_processes)
+  {
+    for (auto& pair : elt.processes)
+      pair.first->parentGeometryChanged();
+  }
 
-    if(auto frontLayer = m_model.frontLayerModel())
-        on_layerModelPutToFront(*frontLayer);
+  if (auto frontLayer = m_model.frontLayerModel())
+    on_layerModelPutToFront(*frontLayer);
 
-    m_enabled = true;
+  m_enabled = true;
 }
 
 void SlotPresenter::disable()
 {
-    m_view->disable();
+  m_view->disable();
 
-    for(auto& elt : m_processes)
+  for (auto& elt : m_processes)
+  {
+    for (auto& pair : elt.processes)
     {
-        for(auto& pair : elt.processes)
-        {
-            pair.first->parentGeometryChanged();
-            pair.first->putBehind();
-        }
+      pair.first->parentGeometryChanged();
+      pair.first->putBehind();
+    }
+  }
+
+  m_enabled = false;
+}
+
+void SlotPresenter::on_layerModelCreated(const Process::LayerModel& layerModel)
+{
+  on_layerModelCreated_impl(layerModel);
+}
+
+void SlotPresenter::on_layerModelRemoved(const Process::LayerModel& layerModel)
+{
+  boost::remove_erase_if(m_processes, [&](auto& elt) {
+    bool to_delete = elt.model->id() == layerModel.id();
+
+    if (to_delete)
+    {
+      // No need to delete the view, the process presenters already do it.
+
+      for (const auto& pair : elt.processes)
+      {
+        QPointer<Process::LayerView> view_p{pair.second};
+        delete pair.first;
+        if (view_p)
+          deleteGraphicsItem(pair.second);
+      }
     }
 
-    m_enabled = false;
+    return to_delete;
+  });
+
+  updateProcessesShape();
+  emit askUpdate();
 }
 
-
-void SlotPresenter::on_layerModelCreated(
-        const Process::LayerModel& layerModel)
+void SlotPresenter::on_layerModelPutToFront(const Process::LayerModel& layer)
 {
-    on_layerModelCreated_impl(layerModel);
-}
-
-void SlotPresenter::on_layerModelRemoved(
-        const Process::LayerModel& layerModel)
-{
-    boost::remove_erase_if(m_processes,
-                        [&](auto& elt)
+  // Put the selected one at z+1 and the others at -z; set "disabled" graphics
+  // mode.
+  // OPTIMIZEME by saving the previous to front and just switching...
+  for (auto& elt : m_processes)
+  {
+    if (elt.model->id() == layer.id())
     {
-        bool to_delete = elt.model->id() == layerModel.id();
-
-        if(to_delete)
-        {
-            // No need to delete the view, the process presenters already do it.
-
-            for(const auto& pair : elt.processes)
-            {
-                QPointer<Process::LayerView> view_p{pair.second};
-                delete pair.first;
-                if(view_p)
-                    deleteGraphicsItem(pair.second);
-            }
-        }
-
-        return to_delete;
-    });
-
-
-    updateProcessesShape();
-    emit askUpdate();
-}
-
-void SlotPresenter::on_layerModelPutToFront(
-        const Process::LayerModel& layer)
-{
-    // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
-    // OPTIMIZEME by saving the previous to front and just switching...
-    for(auto& elt : m_processes)
-    {
-        if(elt.model->id() == layer.id())
-        {
-            for(SlotProcessData::ProcessPair& pair : elt.processes)
-            {
-                pair.first->putToFront();
-            }
-        }
-        else
-        {
-            for(SlotProcessData::ProcessPair& pair : elt.processes)
-            {
-                pair.first->putBehind();
-            }
-        }
+      for (SlotProcessData::ProcessPair& pair : elt.processes)
+      {
+        pair.first->putToFront();
+      }
     }
+    else
+    {
+      for (SlotProcessData::ProcessPair& pair : elt.processes)
+      {
+        pair.first->putBehind();
+      }
+    }
+  }
 }
 
 void SlotPresenter::on_heightChanged(double height)
 {
-    m_view->setHeight(height);
-    updateProcessesShape();
+  m_view->setHeight(height);
+  updateProcessesShape();
 
-    emit askUpdate();
+  emit askUpdate();
 }
 
 void SlotPresenter::on_parentGeometryChanged()
 {
-    updateProcessesShape();
+  updateProcessesShape();
 }
 
 void SlotPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
-    m_zoomRatio = val;
+  m_zoomRatio = val;
 
-    for(auto& elt: m_processes)
+  for (auto& elt : m_processes)
+  {
+    for (SlotProcessData::ProcessPair& pair : elt.processes)
     {
-        for(SlotProcessData::ProcessPair& pair : elt.processes)
-        {
-            pair.first->on_zoomRatioChanged(m_zoomRatio);
-        }
+      pair.first->on_zoomRatioChanged(m_zoomRatio);
     }
+  }
 
-    updateProcessesShape();
+  updateProcessesShape();
 }
 
 void SlotPresenter::on_loopingChanged(bool b)
 {
-    m_looping = b;
-    updateProcesses();
+  m_looping = b;
+  updateProcesses();
 }
 
 void SlotPresenter::on_layerModelCreated_impl(
-        const Process::LayerModel& proc_vm)
+    const Process::LayerModel& proc_vm)
 {
-    const auto& procKey = proc_vm.processModel().concreteFactoryKey();
+  const auto& procKey = proc_vm.processModel().concreteFactoryKey();
 
-    auto factory = m_processList.findDefaultFactory(procKey);
-    ISCORE_ASSERT(factory);
+  auto factory = m_processList.findDefaultFactory(procKey);
+  ISCORE_ASSERT(factory);
 
-    int numproc = m_looping
-                  ? m_view->width() / proc_vm.processModel().duration().toPixels(m_zoomRatio) + 1
-                  : 1;
+  int numproc
+      = m_looping
+            ? m_view->width()
+                      / proc_vm.processModel().duration().toPixels(m_zoomRatio)
+                  + 1
+            : 1;
 
-    std::vector<SlotProcessData::ProcessPair> vec;
-    for(int i = 0; i < numproc; i++)
-    {
-        auto proc_view = factory->makeLayerView(proc_vm, m_view);
-        auto proc_pres = factory->makeLayerPresenter(proc_vm, proc_view, m_context, this);
+  std::vector<SlotProcessData::ProcessPair> vec;
+  for (int i = 0; i < numproc; i++)
+  {
+    auto proc_view = factory->makeLayerView(proc_vm, m_view);
+    auto proc_pres
+        = factory->makeLayerPresenter(proc_vm, proc_view, m_context, this);
 
-        vec.push_back({proc_pres, proc_view});
-    }
+    vec.push_back({proc_pres, proc_view});
+  }
 
-    m_processes.push_back(SlotProcessData(&proc_vm, std::move(vec)));
+  m_processes.push_back(SlotProcessData(&proc_vm, std::move(vec)));
 
-    auto con_id = con(proc_vm.processModel(), &Process::ProcessModel::durationChanged,
-        this, [&] (const TimeValue&) {
+  auto con_id = con(
+      proc_vm.processModel(), &Process::ProcessModel::durationChanged, this,
+      [&](const TimeValue&) {
         // TODO index instead
-        auto it = std::find_if(m_processes.begin(), m_processes.end(), [&] (const auto& elt) {
-            return elt.model->processModel().id() == proc_vm.processModel().id();
-        });
+        auto it = std::find_if(
+            m_processes.begin(), m_processes.end(), [&](const auto& elt) {
+              return elt.model->processModel().id()
+                     == proc_vm.processModel().id();
+            });
 
         // TODO this should be an assert but it sometimes causes crashes.
-        if(it != m_processes.end())
-            updateProcessShape(*it);
-    });
-    con(proc_vm, &IdentifiedObjectAbstract::identified_object_destroying,
-        this, [=] {
-        QObject::disconnect(con_id);
-    });
+        if (it != m_processes.end())
+          updateProcessShape(*it);
+      });
+  con(proc_vm, &IdentifiedObjectAbstract::identified_object_destroying, this,
+      [=] { QObject::disconnect(con_id); });
 
-    if(m_enabled)
-        m_view->enable();
-    else
-        m_view->disable();
+  if (m_enabled)
+    m_view->enable();
+  else
+    m_view->disable();
 
-    auto frontLayer = m_model.frontLayerModel();
-    if(frontLayer && (frontLayer->id() == proc_vm.id()))
-    {
-        on_layerModelPutToFront(proc_vm);
-    }
+  auto frontLayer = m_model.frontLayerModel();
+  if (frontLayer && (frontLayer->id() == proc_vm.id()))
+  {
+    on_layerModelPutToFront(proc_vm);
+  }
 
-    for(SlotProcessData::ProcessPair& pair : m_processes.back().processes)
-    {
-        pair.first->on_zoomRatioChanged(m_zoomRatio);
-    }
+  for (SlotProcessData::ProcessPair& pair : m_processes.back().processes)
+  {
+    pair.first->on_zoomRatioChanged(m_zoomRatio);
+  }
 
-    updateProcessesShape();
+  updateProcessesShape();
 }
 
 void SlotPresenter::updateProcesses()
 {
-    for(SlotProcessData& proc : m_processes)
+  for (SlotProcessData& proc : m_processes)
+  {
+    int numproc
+        = m_looping
+              ? m_view->width()
+                        / proc.model->processModel().duration().toPixels(
+                              m_zoomRatio)
+                    + 1
+              : 1;
+
+    int proc_size = proc.processes.size();
+
+    if (numproc > 0)
     {
-        int numproc = m_looping
-                      ? m_view->width() / proc.model->processModel().duration().toPixels(m_zoomRatio) + 1
-                      : 1;
+      if (proc_size < numproc)
+      {
+        auto procKey = proc.model->processModel().concreteFactoryKey();
+        auto factory = m_processList.findDefaultFactory(procKey);
+        ISCORE_ASSERT(factory);
 
-        int proc_size = proc.processes.size();
-
-        if(numproc > 0)
+        for (int i = proc_size; i < numproc; i++)
         {
-            if(proc_size < numproc)
-            {
-                auto procKey = proc.model->processModel().concreteFactoryKey();
-                auto factory = m_processList.findDefaultFactory(procKey);
-                ISCORE_ASSERT(factory);
+          auto proc_view = factory->makeLayerView(*proc.model, m_view);
+          auto proc_pres = factory->makeLayerPresenter(
+              *proc.model, proc_view, m_context, this);
 
-                for(int i = proc_size; i < numproc; i++)
-                {
-                    auto proc_view = factory->makeLayerView(*proc.model, m_view);
-                    auto proc_pres = factory->makeLayerPresenter(*proc.model, proc_view, m_context, this);
-
-                    proc.processes.push_back(std::make_pair(proc_pres, proc_view));
-                }
-
-                for(SlotProcessData::ProcessPair& pair : proc.processes)
-                {
-                    pair.first->on_zoomRatioChanged(m_zoomRatio);
-                }
-
-                auto frontLayer = m_model.frontLayerModel();
-                if(frontLayer && (frontLayer->id() == proc.model->id()))
-                {
-                    on_layerModelPutToFront(*proc.model);
-                }
-            }
-            else if(proc_size == numproc)
-            {
-                // Do nothing
-            }
-            else if(proc_size > numproc)
-            {
-                for(int i = proc_size- 1; i >= numproc; i--)
-                {
-                    delete proc.processes[i].first;
-                }
-                proc.processes.resize(numproc);
-            }
+          proc.processes.push_back(std::make_pair(proc_pres, proc_view));
         }
-        else
+
+        for (SlotProcessData::ProcessPair& pair : proc.processes)
         {
-            for(int i = 0; i < proc_size; i++)
-            {
-                delete proc.processes[i].first;
-            }
-            proc.processes.resize(0);
+          pair.first->on_zoomRatioChanged(m_zoomRatio);
         }
+
+        auto frontLayer = m_model.frontLayerModel();
+        if (frontLayer && (frontLayer->id() == proc.model->id()))
+        {
+          on_layerModelPutToFront(*proc.model);
+        }
+      }
+      else if (proc_size == numproc)
+      {
+        // Do nothing
+      }
+      else if (proc_size > numproc)
+      {
+        for (int i = proc_size - 1; i >= numproc; i--)
+        {
+          delete proc.processes[i].first;
+        }
+        proc.processes.resize(numproc);
+      }
     }
+    else
+    {
+      for (int i = 0; i < proc_size; i++)
+      {
+        delete proc.processes[i].first;
+      }
+      proc.processes.resize(0);
+    }
+  }
 
-    updateProcessesShape();
+  updateProcessesShape();
 }
 
 void SlotPresenter::updateProcessShape(const SlotProcessData& data)
 {
-    double pos = 0;
-    for(const SlotProcessData::ProcessPair& pair : data.processes)
-    {
-        pair.first->setHeight(height() - SlotHandle::handleHeight());
+  double pos = 0;
+  for (const SlotProcessData::ProcessPair& pair : data.processes)
+  {
+    pair.first->setHeight(height() - SlotHandle::handleHeight());
 
-        auto width = data.model->processModel().duration().toPixels(m_zoomRatio);
-        pair.first->setWidth(width);
-        pair.second->setPos(pos, 0);
-        pair.first->parentGeometryChanged();
-        pos += width;
-    }
+    auto width = data.model->processModel().duration().toPixels(m_zoomRatio);
+    pair.first->setWidth(width);
+    pair.second->setPos(pos, 0);
+    pair.first->parentGeometryChanged();
+    pos += width;
+  }
 }
 
 void SlotPresenter::updateProcessesShape()
 {
-    for(auto& elt : m_processes)
-    {
-        updateProcessShape(elt);
-    }
+  for (auto& elt : m_processes)
+  {
+    updateProcessShape(elt);
+  }
 }
 }

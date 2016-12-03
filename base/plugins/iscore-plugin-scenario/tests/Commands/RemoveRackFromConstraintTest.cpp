@@ -9,45 +9,35 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-class RemoveRackFromConstraintTest: public QObject
+class RemoveRackFromConstraintTest : public QObject
 {
-        Q_OBJECT
-    public:
+  Q_OBJECT
+public:
+private slots:
+  void test()
+  {
+    ConstraintModel* constraint = new ConstraintModel{
+        Id<ConstraintModel>{0}, Id<ConstraintViewModel>{0}, qApp};
 
-    private slots:
-        void test()
-        {
-            ConstraintModel* constraint  = new ConstraintModel {Id<ConstraintModel>{0}, Id<ConstraintViewModel>{0}, qApp};
+    AddRackToConstraint cmd{ObjectPath{{"ConstraintModel", {}}}};
 
-            AddRackToConstraint cmd
-            {
-                ObjectPath{ {"ConstraintModel", {}} }
-            };
+    auto id = cmd.m_createdRackId;
+    cmd.redo();
 
-            auto id = cmd.m_createdRackId;
-            cmd.redo();
+    RemoveRackFromConstraint cmd2{ObjectPath{{"ConstraintModel", {}}}, id};
+    cmd2.redo();
+    QCOMPARE((int)constraint->rackes().size(), 0);
+    cmd2.undo();
+    QCOMPARE((int)constraint->rackes().size(), 1);
+    cmd.undo();
+    QCOMPARE((int)constraint->rackes().size(), 0);
+    cmd.redo();
+    cmd2.redo();
 
-
-            RemoveRackFromConstraint cmd2
-            {
-                ObjectPath{ {"ConstraintModel", {}} },
-                id
-            };
-            cmd2.redo();
-            QCOMPARE((int) constraint->rackes().size(), 0);
-            cmd2.undo();
-            QCOMPARE((int) constraint->rackes().size(), 1);
-            cmd.undo();
-            QCOMPARE((int) constraint->rackes().size(), 0);
-            cmd.redo();
-            cmd2.redo();
-
-            // Delete them else they stay in qApp !
-            delete constraint;
-        }
+    // Delete them else they stay in qApp !
+    delete constraint;
+  }
 };
 
 QTEST_MAIN(RemoveRackFromConstraintTest)
 #include "RemoveRackFromConstraintTest.moc"
-
-

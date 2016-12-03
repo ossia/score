@@ -7,45 +7,43 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-class AddSlotToRackTest: public QObject
+class AddSlotToRackTest : public QObject
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    private slots:
-        void CreateSlotTest()
-        {
-            RackModel* rack  = new RackModel {Id<RackModel>{0}, qApp};
+private slots:
+  void CreateSlotTest()
+  {
+    RackModel* rack = new RackModel{Id<RackModel>{0}, qApp};
 
-            QCOMPARE((int) rack->getSlots().size(), 0);
-            AddSlotToRack cmd(
-            ObjectPath { {"RackModel", {0}} });
-            auto slotId = cmd.m_createdSlotId;
+    QCOMPARE((int)rack->getSlots().size(), 0);
+    AddSlotToRack cmd(ObjectPath{{"RackModel", {0}}});
+    auto slotId = cmd.m_createdSlotId;
 
-            cmd.redo();
-            QCOMPARE((int) rack->getSlots().size(), 1);
-            QCOMPARE(rack->slot(slotId)->parent(), rack);
+    cmd.redo();
+    QCOMPARE((int)rack->getSlots().size(), 1);
+    QCOMPARE(rack->slot(slotId)->parent(), rack);
 
-            cmd.undo();
-            QCOMPARE((int) rack->getSlots().size(), 0);
+    cmd.undo();
+    QCOMPARE((int)rack->getSlots().size(), 0);
 
-            cmd.redo();
-            QCOMPARE((int) rack->getSlots().size(), 1);
-            QCOMPARE(rack->slot(slotId)->parent(), rack);
+    cmd.redo();
+    QCOMPARE((int)rack->getSlots().size(), 1);
+    QCOMPARE(rack->slot(slotId)->parent(), rack);
 
-            try
-            {
-                rack->slot(slotId);
-            }
-            catch(std::runtime_error& e)
-            {
-                QFAIL(e.what());
-            }
+    try
+    {
+      rack->slot(slotId);
+    }
+    catch (std::runtime_error& e)
+    {
+      QFAIL(e.what());
+    }
 
-            // Delete them else they stay in qApp !
-            delete rack;
-        }
+    // Delete them else they stay in qApp !
+    delete rack;
+  }
 };
 
 QTEST_MAIN(AddSlotToRackTest)
 #include "AddSlotToRackTest.moc"
-

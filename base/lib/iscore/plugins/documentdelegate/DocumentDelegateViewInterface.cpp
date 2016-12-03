@@ -1,2 +1,3 @@
 #include "DocumentDelegateViewInterface.hpp"
-iscore::DocumentDelegateViewInterface::~DocumentDelegateViewInterface() = default;
+iscore::DocumentDelegateViewInterface::~DocumentDelegateViewInterface()
+    = default;

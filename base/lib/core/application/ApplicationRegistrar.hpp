@@ -1,7 +1,7 @@
 #pragma once
-#include <iscore/plugins/Addon.hpp>
-#include <iscore/command/CommandGeneratorMap.hpp>
 #include <QObject>
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/plugins/Addon.hpp>
 #include <unordered_map>
 #include <utility>
 
@@ -30,34 +30,41 @@ class Plugin_QtInterface;
  */
 class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
 {
-    public:
-        ApplicationRegistrar(
-                ApplicationComponentsData&,
-                const iscore::ApplicationContext&,
-                iscore::View&,
-                MenuManager&,
-                ToolbarManager&,
-                ActionManager&);
+public:
+  ApplicationRegistrar(
+      ApplicationComponentsData&,
+      const iscore::ApplicationContext&,
+      iscore::View&,
+      MenuManager&,
+      ToolbarManager&,
+      ActionManager&);
 
-        // Register data from plugins
-        void registerAddons(std::vector<iscore::Addon> vec);
-        void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
-        void registerPanel(PanelDelegateFactory&);
-        void registerCommands(std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
-        void registerCommands(std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
-        void registerFactories(std::unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&& cmds);
-        void registerFactory(std::unique_ptr<FactoryListInterface> cmds);
+  // Register data from plugins
+  void registerAddons(std::vector<iscore::Addon> vec);
+  void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
+  void registerPanel(PanelDelegateFactory&);
+  void registerCommands(
+      std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
+  void registerCommands(
+      std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
+  void registerFactories(
+      std::
+          unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&&
+              cmds);
+  void registerFactory(std::unique_ptr<FactoryListInterface> cmds);
 
-        ApplicationComponentsData& components() const
-        { return m_components; }
+  ApplicationComponentsData& components() const
+  {
+    return m_components;
+  }
 
-    private:
-        ApplicationComponentsData& m_components;
-        const iscore::ApplicationContext& m_context;
-        iscore::View& m_view;
+private:
+  ApplicationComponentsData& m_components;
+  const iscore::ApplicationContext& m_context;
+  iscore::View& m_view;
 
-        MenuManager& m_menuManager;
-        ToolbarManager& m_toolbarManager;
-        ActionManager& m_actionManager;
+  MenuManager& m_menuManager;
+  ToolbarManager& m_toolbarManager;
+  ActionManager& m_actionManager;
 };
 }

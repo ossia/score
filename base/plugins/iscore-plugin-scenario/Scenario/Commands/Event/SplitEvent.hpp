@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/std/Optional.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
 #include <QString>
 #include <QVector>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -22,28 +22,31 @@ namespace Command
 {
 class SplitEvent final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitEvent, "Split an event")
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), SplitEvent, "Split an event")
 
-    public:
-            SplitEvent(
-                const Path<Scenario::ProcessModel>& scenario,
-                Id<EventModel> event,
-                QVector<Id<StateModel>> movingstates);
+public:
+  SplitEvent(
+      const Path<Scenario::ProcessModel>& scenario,
+      Id<EventModel>
+          event,
+      QVector<Id<StateModel>>
+          movingstates);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<Scenario::ProcessModel> m_scenarioPath;
+private:
+  Path<Scenario::ProcessModel> m_scenarioPath;
 
-        Id<EventModel> m_originalEvent;
-        Id<EventModel> m_newEvent;
-        QString m_createdName;
-        QVector<Id<StateModel>> m_movingStates;
+  Id<EventModel> m_originalEvent;
+  Id<EventModel> m_newEvent;
+  QString m_createdName;
+  QVector<Id<StateModel>> m_movingStates;
 };
 }
 }

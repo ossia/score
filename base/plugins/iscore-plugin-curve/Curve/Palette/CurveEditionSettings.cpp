@@ -1,89 +1,91 @@
 #include "CurveEditionSettings.hpp"
 
-namespace Curve {
+namespace Curve
+{
 
 bool EditionSettings::lockBetweenPoints() const
 {
-    return m_lockBetweenPoints;
+  return m_lockBetweenPoints;
 }
 
 void EditionSettings::setLockBetweenPoints(bool lockBetweenPoints)
 {
-    if (m_lockBetweenPoints == lockBetweenPoints)
-        return;
+  if (m_lockBetweenPoints == lockBetweenPoints)
+    return;
 
-    m_lockBetweenPoints = lockBetweenPoints;
-    emit lockBetweenPointsChanged(lockBetweenPoints);
+  m_lockBetweenPoints = lockBetweenPoints;
+  emit lockBetweenPointsChanged(lockBetweenPoints);
 }
 
 bool EditionSettings::suppressOnOverlap() const
 {
-    return m_suppressOnOverlap;
+  return m_suppressOnOverlap;
 }
 
 bool EditionSettings::stretchBothBounds() const
 {
-    return m_stretchBothBounds;
+  return m_stretchBothBounds;
 }
 
 AddPointBehaviour EditionSettings::addPointBehaviour() const
 {
-    return m_addPointBehaviour;
+  return m_addPointBehaviour;
 }
 
 void EditionSettings::setSuppressOnOverlap(bool suppressOnOverlap)
 {
-    if (m_suppressOnOverlap == suppressOnOverlap)
-        return;
+  if (m_suppressOnOverlap == suppressOnOverlap)
+    return;
 
-    m_suppressOnOverlap = suppressOnOverlap;
-    emit suppressOnOverlapChanged(suppressOnOverlap);
+  m_suppressOnOverlap = suppressOnOverlap;
+  emit suppressOnOverlapChanged(suppressOnOverlap);
 }
 
 void EditionSettings::setStretchBothBounds(bool stretchBothBounds)
 {
-    if (m_stretchBothBounds == stretchBothBounds)
-        return;
+  if (m_stretchBothBounds == stretchBothBounds)
+    return;
 
-    m_stretchBothBounds = stretchBothBounds;
-    emit stretchBothBoundsChanged(stretchBothBounds);
+  m_stretchBothBounds = stretchBothBounds;
+  emit stretchBothBoundsChanged(stretchBothBounds);
 }
 
-void EditionSettings::setAddPointBehaviour(Curve::AddPointBehaviour AddPointBehaviour)
+void EditionSettings::setAddPointBehaviour(
+    Curve::AddPointBehaviour AddPointBehaviour)
 {
-    if (m_addPointBehaviour == AddPointBehaviour)
-        return;
+  if (m_addPointBehaviour == AddPointBehaviour)
+    return;
 
-    m_addPointBehaviour = AddPointBehaviour;
-    emit addPointBehaviourChanged(AddPointBehaviour);
+  m_addPointBehaviour = AddPointBehaviour;
+  emit addPointBehaviourChanged(AddPointBehaviour);
 }
 
 void EditionSettings::setTool(Tool tool)
 {
-    if (m_tool == tool)
-        return;
+  if (m_tool == tool)
+    return;
 
-    m_tool = tool;
-    emit toolChanged(tool);
+  m_tool = tool;
+  emit toolChanged(tool);
 }
 
 RemovePointBehaviour EditionSettings::removePointBehaviour() const
 {
-    return m_removePointBehaviour;
+  return m_removePointBehaviour;
 }
 
-void EditionSettings::setRemovePointBehaviour(RemovePointBehaviour removePointBehaviour)
+void EditionSettings::setRemovePointBehaviour(
+    RemovePointBehaviour removePointBehaviour)
 {
-    if (m_removePointBehaviour == removePointBehaviour)
-        return;
+  if (m_removePointBehaviour == removePointBehaviour)
+    return;
 
-    m_removePointBehaviour = removePointBehaviour;
-    emit removePointBehaviourChanged(removePointBehaviour);
+  m_removePointBehaviour = removePointBehaviour;
+  emit removePointBehaviourChanged(removePointBehaviour);
 }
 
 Tool EditionSettings::tool() const
 {
-    return m_tool;
+  return m_tool;
 }
-
 }

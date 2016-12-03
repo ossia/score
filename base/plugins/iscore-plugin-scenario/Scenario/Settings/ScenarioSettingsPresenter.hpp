@@ -7,18 +7,16 @@ namespace Settings
 {
 class Model;
 class View;
-class Presenter :
-        public iscore::SettingsDelegatePresenter
+class Presenter : public iscore::SettingsDelegatePresenter
 {
-    public:
-        using model_type = Model;
-        using view_type = View;
-        Presenter(Model&, View&, QObject* parent);
+public:
+  using model_type = Model;
+  using view_type = View;
+  Presenter(Model&, View&, QObject* parent);
 
-    private:
-        QString settingsName() override;
-        QIcon settingsIcon() override;
+private:
+  QString settingsName() override;
+  QIcon settingsIcon() override;
 };
-
 }
 }

@@ -1,44 +1,40 @@
 #pragma once
 
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <State/Message.hpp>
 #include <QString>
+#include <State/Message.hpp>
 #include <vector>
 
 #include <Process/State/MessageNode.hpp>
 
 class QObject;
-namespace State {
+namespace State
+{
 struct Address;
-}  // namespace iscore
+} // namespace iscore
 
 namespace Automation
 {
 class ProcessModel;
 class ProcessState final : public ProcessStateDataInterface
 {
-    public:
-        // watchedPoint : something between 0 and 1
-        ProcessState(
-                ProcessModel& process,
-                double watchedPoint,
-                QObject* parent);
+public:
+  // watchedPoint : something between 0 and 1
+  ProcessState(ProcessModel& process, double watchedPoint, QObject* parent);
 
-        ProcessModel& process() const;
+  ProcessModel& process() const;
 
-        ::State::Message message() const;
-        double point() const;
+  ::State::Message message() const;
+  double point() const;
 
-        ProcessState* clone(QObject* parent) const override;
+  ProcessState* clone(QObject* parent) const override;
 
-        std::vector<State::AddressAccessor> matchingAddresses() override;
-        ::State::MessageList messages() const override;
-        ::State::MessageList setMessages(
-                const ::State::MessageList&,
-                const Process::MessageNode&) override;
+  std::vector<State::AddressAccessor> matchingAddresses() override;
+  ::State::MessageList messages() const override;
+  ::State::MessageList setMessages(
+      const ::State::MessageList&, const Process::MessageNode&) override;
 
-    private:
-        double m_point{};
+private:
+  double m_point{};
 };
-
 }

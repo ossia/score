@@ -7,14 +7,13 @@ namespace Network
 {
 class OSCDevice final : public OwningOSSIADevice
 {
-    public:
-        OSCDevice(const Device::DeviceSettings& stngs);
+public:
+  OSCDevice(const Device::DeviceSettings& stngs);
 
-        bool reconnect() override;
+  bool reconnect() override;
 
-        bool isLearning() const final override;
-        void setLearning(bool) final override;
-
+  bool isLearning() const final override;
+  void setLearning(bool) final override;
 };
 }
 }

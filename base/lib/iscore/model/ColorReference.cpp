@@ -3,18 +3,19 @@
 
 namespace iscore
 {
-optional<ColorRef> ColorRef::ColorFromString(const QString & txt)
+optional<ColorRef> ColorRef::ColorFromString(const QString& txt)
 {
-    auto res = iscore::Skin::instance().fromString(txt);;
-    if(res)
-        return ColorRef(res);
-    else
-        return {};
+  auto res = iscore::Skin::instance().fromString(txt);
+  ;
+  if (res)
+    return ColorRef(res);
+  else
+    return {};
 }
 
 optional<ColorRef> ColorRef::SimilarColor(QColor other)
 {
-    ISCORE_TODO_("Load similar colors");
-    return {};
+  ISCORE_TODO_("Load similar colors");
+  return {};
 }
 }

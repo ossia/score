@@ -2,16 +2,16 @@
 
 //#include <QPushButton>
 
-//class QWidget;
+// class QWidget;
 
-//namespace State
+// namespace State
 //{
-//struct Message;
+// struct Message;
 //}
 
-//namespace Explorer
+// namespace Explorer
 //{
-//class DeviceExplorerModel;
+// class DeviceExplorerModel;
 
 ///**
 // * @brief The MessageWidget class
@@ -19,7 +19,7 @@
 // * A button with a message. When clicked, opens a MessageEditDialog
 // * that allows editing of the message.
 // */
-//class MessageWidget final : public QPushButton
+// class MessageWidget final : public QPushButton
 //{
 //    public:
 //        MessageWidget(

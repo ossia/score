@@ -8,10 +8,9 @@ struct DataStreamOutput;
 
 namespace PluginSettings
 {
-BlacklistCommand::BlacklistCommand(QString name, bool value) :
-m_blacklistedState {{name, value}}
+BlacklistCommand::BlacklistCommand(QString name, bool value)
+    : m_blacklistedState{{name, value}}
 {
-
 }
 
 void BlacklistCommand::undo() const
@@ -20,44 +19,50 @@ void BlacklistCommand::undo() const
 
 void BlacklistCommand::redo() const
 {
-    ISCORE_TODO;
-    /*
-    QSettings s;
+  ISCORE_TODO;
+  /*
+  QSettings s;
 
-    auto currentList = s.value("PluginSettings/Blacklist", QStringList {}).toStringList();
+  auto currentList = s.value("PluginSettings/Blacklist", QStringList
+  {}).toStringList();
 
-    for(auto& elt : currentList)
-    {
-        if(!m_blacklistedState.contains(elt))
-        {
-            m_blacklistedState[elt] = true;
-        }
-    }
+  for(auto& elt : currentList)
+  {
+      if(!m_blacklistedState.contains(elt))
+      {
+          m_blacklistedState[elt] = true;
+      }
+  }
 
-    QStringList newList;
+  QStringList newList;
 
-    for(auto& key : m_blacklistedState.keys())
-    {
-        if(m_blacklistedState[key] == true)
-        {
-            newList.push_back(key);
-        }
-    }
+  for(auto& key : m_blacklistedState.keys())
+  {
+      if(m_blacklistedState[key] == true)
+      {
+          newList.push_back(key);
+      }
+  }
 
-    s.setValue("PluginSettings/Blacklist", newList);
-    */
+  s.setValue("PluginSettings/Blacklist", newList);
+  */
 }
 
-void BlacklistCommand::serializeImpl(DataStreamInput&) const { }
+void BlacklistCommand::serializeImpl(DataStreamInput&) const
+{
+}
 
-void BlacklistCommand::deserializeImpl(DataStreamOutput&) { }
+void BlacklistCommand::deserializeImpl(DataStreamOutput&)
+{
+}
 
 /*
 bool BlacklistCommand::mergeWith(const Command* other)
 {
     // TODO
 
-    //if(other->uid() != uid())   // make sure other is also an AppendText command
+    //if(other->uid() != uid())   // make sure other is also an AppendText
+command
     //{
     //    return false;
     //}
@@ -73,24 +78,23 @@ bool BlacklistCommand::mergeWith(const Command* other)
 }
 */
 
-
 const CommandParentFactoryKey& BlacklistCommand::parentKey() const
 {
-    static CommandParentFactoryKey p;
-    ISCORE_TODO;
-    return p;
+  static CommandParentFactoryKey p;
+  ISCORE_TODO;
+  return p;
 }
 
 const CommandFactoryKey& BlacklistCommand::key() const
 {
-    static CommandFactoryKey p;
-    ISCORE_TODO;
-    return p;
+  static CommandFactoryKey p;
+  ISCORE_TODO;
+  return p;
 }
 
 QString BlacklistCommand::description() const
 {
-    ISCORE_TODO;
-    return {};
+  ISCORE_TODO;
+  return {};
 }
 }

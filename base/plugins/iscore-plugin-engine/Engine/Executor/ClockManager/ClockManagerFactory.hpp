@@ -1,11 +1,13 @@
 #pragma once
-#include <iscore_plugin_engine_export.h>
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore_plugin_engine_export.h>
 
 #include <Process/TimeValue.hpp>
 
-namespace Engine { namespace Execution
+namespace Engine
+{
+namespace Execution
 {
 struct Context;
 class BaseScenarioElement;
@@ -29,44 +31,45 @@ class BaseScenarioElement;
  */
 class ISCORE_PLUGIN_ENGINE_EXPORT ClockManager
 {
-    public:
-        ClockManager(const Engine::Execution::Context& ctx): context{ctx} { }
-        virtual ~ClockManager();
+public:
+  ClockManager(const Engine::Execution::Context& ctx) : context{ctx}
+  {
+  }
+  virtual ~ClockManager();
 
-        const Context& context;
+  const Context& context;
 
-        void play(const TimeValue& t);
-        void pause();
-        void resume();
-        void stop();
+  void play(const TimeValue& t);
+  void pause();
+  void resume();
+  void stop();
 
-    protected:
-        virtual void play_impl(
-                const TimeValue& t,
-                BaseScenarioElement&) = 0;
-        virtual void pause_impl(BaseScenarioElement&) = 0;
-        virtual void resume_impl(BaseScenarioElement&) = 0;
-        virtual void stop_impl(BaseScenarioElement&) = 0;
+protected:
+  virtual void play_impl(const TimeValue& t, BaseScenarioElement&) = 0;
+  virtual void pause_impl(BaseScenarioElement&) = 0;
+  virtual void resume_impl(BaseScenarioElement&) = 0;
+  virtual void stop_impl(BaseScenarioElement&) = 0;
 };
 
-class ISCORE_PLUGIN_ENGINE_EXPORT ClockManagerFactory :
-        public iscore::AbstractFactory<ClockManagerFactory>
+class ISCORE_PLUGIN_ENGINE_EXPORT ClockManagerFactory
+    : public iscore::AbstractFactory<ClockManagerFactory>
 {
-        ISCORE_ABSTRACT_FACTORY("fb2b3624-ee6f-4e9a-901a-a096bb5fec0a")
-        public:
-            virtual ~ClockManagerFactory();
+  ISCORE_ABSTRACT_FACTORY("fb2b3624-ee6f-4e9a-901a-a096bb5fec0a")
+public:
+  virtual ~ClockManagerFactory();
 
-            virtual QString prettyName() const = 0;
-            virtual std::unique_ptr<ClockManager> make(
-                const Engine::Execution::Context& ctx) = 0;
+  virtual QString prettyName() const = 0;
+  virtual std::unique_ptr<ClockManager>
+  make(const Engine::Execution::Context& ctx) = 0;
 };
 
-class ISCORE_PLUGIN_ENGINE_EXPORT ClockManagerFactoryList final :
-        public iscore::ConcreteFactoryList<ClockManagerFactory>
+class ISCORE_PLUGIN_ENGINE_EXPORT ClockManagerFactoryList final
+    : public iscore::ConcreteFactoryList<ClockManagerFactory>
 {
-    public:
-        using object_type = ClockManager;
+public:
+  using object_type = ClockManager;
 };
-} }
+}
+}
 
 Q_DECLARE_METATYPE(Engine::Execution::ClockManagerFactory::ConcreteFactoryKey)

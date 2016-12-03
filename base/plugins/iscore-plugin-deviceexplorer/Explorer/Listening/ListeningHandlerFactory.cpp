@@ -2,5 +2,4 @@
 
 Explorer::ListeningHandlerFactory::~ListeningHandlerFactory()
 {
-
 }

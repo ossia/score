@@ -5,15 +5,12 @@
 
 namespace Process
 {
-class ISCORE_LIB_PROCESS_EXPORT StateProcessList final :
-        public iscore::ConcreteFactoryList<StateProcessFactory>
+class ISCORE_LIB_PROCESS_EXPORT StateProcessList final
+    : public iscore::ConcreteFactoryList<StateProcessFactory>
 {
-    public:
-        using object_type = Process::StateProcess;
-        ~StateProcessList();
-        object_type* loadMissing(
-                const VisitorVariant& vis,
-                QObject* parent) const;
+public:
+  using object_type = Process::StateProcess;
+  ~StateProcessList();
+  object_type* loadMissing(const VisitorVariant& vis, QObject* parent) const;
 };
-
 }

@@ -8,16 +8,15 @@
 class QWidget;
 namespace Scenario
 {
-TextDialog::TextDialog(const QString &s, QWidget *parent):
-    QDialog{parent}
+TextDialog::TextDialog(const QString& s, QWidget* parent) : QDialog{parent}
 {
-    this->setLayout(new QGridLayout);
-    auto textEdit = new QTextEdit;
-    textEdit->setPlainText(s);
-    layout()->addWidget(textEdit);
-    auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
-    layout()->addWidget(buttonBox);
+  this->setLayout(new QGridLayout);
+  auto textEdit = new QTextEdit;
+  textEdit->setPlainText(s);
+  layout()->addWidget(textEdit);
+  auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
+  layout()->addWidget(buttonBox);
 
-    connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+  connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
 }
 }

@@ -7,13 +7,11 @@ namespace Automation
 class ProcessModel;
 class SetMin final : public iscore::PropertyCommand
 {
-        ISCORE_COMMAND_DECL(CommandFactoryName(), SetMin, "Set automation minimum")
-    public:
-
-        SetMin(Path<ProcessModel>&& path, double newval):
-            iscore::PropertyCommand{std::move(path), "min", newval}
-        {
-
-        }
+  ISCORE_COMMAND_DECL(CommandFactoryName(), SetMin, "Set automation minimum")
+public:
+  SetMin(Path<ProcessModel>&& path, double newval)
+      : iscore::PropertyCommand{std::move(path), "min", newval}
+  {
+  }
 };
 }

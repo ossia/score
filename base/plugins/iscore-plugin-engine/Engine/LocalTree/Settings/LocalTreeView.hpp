@@ -9,25 +9,22 @@ namespace LocalTree
 namespace Settings
 {
 
-class View :
-        public iscore::SettingsDelegateView
+class View : public iscore::SettingsDelegateView
 {
-        Q_OBJECT
-    public:
-        View();
+  Q_OBJECT
+public:
+  View();
 
-        void setLocalTree(bool);
-    signals:
-        void localTreeChanged(bool);
+  void setLocalTree(bool);
+signals:
+  void localTreeChanged(bool);
 
-    private:
-        QWidget* getWidget() override;
-        QWidget* m_widg{};
+private:
+  QWidget* getWidget() override;
+  QWidget* m_widg{};
 
-        QCheckBox* m_cb{};
-
+  QCheckBox* m_cb{};
 };
-
 }
 }
 }

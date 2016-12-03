@@ -1,9 +1,8 @@
 #pragma once
 
-
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <QPoint>
 #include <Process/TimeValue.hpp>
+#include <QPoint>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
 class QGraphicsItem;
@@ -13,39 +12,44 @@ namespace Scenario
 {
 class CommentBlockView;
 class CommentBlockModel;
-class CommentBlockPresenter final :  public QObject
+class CommentBlockPresenter final : public QObject
 {
-        Q_OBJECT
-    public:
-        CommentBlockPresenter(const CommentBlockModel& model,
-                              QGraphicsItem* parentView,
-                              QObject* parent);
+  Q_OBJECT
+public:
+  CommentBlockPresenter(
+      const CommentBlockModel& model,
+      QGraphicsItem* parentView,
+      QObject* parent);
 
-        ~CommentBlockPresenter();
+  ~CommentBlockPresenter();
 
-        const Id<CommentBlockModel>& id() const;
-        int32_t id_val() const
-        { return id().val(); }
+  const Id<CommentBlockModel>& id() const;
+  int32_t id_val() const
+  {
+    return id().val();
+  }
 
-        const CommentBlockModel& model() const
-        {return m_model; }
+  const CommentBlockModel& model() const
+  {
+    return m_model;
+  }
 
-        CommentBlockView* view() const
-        {return m_view; }
+  CommentBlockView* view() const
+  {
+    return m_view;
+  }
 
-        const TimeValue& date() const;
+  const TimeValue& date() const;
 
-        void on_zoomRatioChanged(ZoomRatio newRatio);
-    signals:
-        void moved(const QPointF&);
-        void released(const QPointF&);
-        void selected();
-        void editFinished(QString);
+  void on_zoomRatioChanged(ZoomRatio newRatio);
+signals:
+  void moved(const QPointF&);
+  void released(const QPointF&);
+  void selected();
+  void editFinished(QString);
 
-    private:
-        const CommentBlockModel& m_model;
-        graphics_item_ptr<CommentBlockView> m_view;
-
+private:
+  const CommentBlockModel& m_model;
+  graphics_item_ptr<CommentBlockView> m_view;
 };
-
 }

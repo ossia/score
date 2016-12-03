@@ -12,32 +12,28 @@
 namespace Loop
 {
 Layer::Layer(
-        Loop::ProcessModel& model,
-        const Id<LayerModel>& id,
-        QObject* parent) :
-    LayerModel {id, Metadata<ObjectKey_k, Layer>::get(), model, parent}
+    Loop::ProcessModel& model, const Id<LayerModel>& id, QObject* parent)
+    : LayerModel{id, Metadata<ObjectKey_k, Layer>::get(), model, parent}
 {
-    m_constraint = model.constraint().makeConstraintViewModel<Scenario::TemporalConstraintViewModel>(
-                Id<Scenario::ConstraintViewModel>{0},
-                this);
+  m_constraint
+      = model.constraint()
+            .makeConstraintViewModel<Scenario::TemporalConstraintViewModel>(
+                Id<Scenario::ConstraintViewModel>{0}, this);
 }
 
 Layer::Layer(
-        const Layer& source,
-        Loop::ProcessModel& model,
-        const Id<LayerModel>& id,
-        QObject* parent) :
-    LayerModel {id, Metadata<ObjectKey_k, Layer>::get(), model, parent}
+    const Layer& source,
+    Loop::ProcessModel& model,
+    const Id<LayerModel>& id,
+    QObject* parent)
+    : LayerModel{id, Metadata<ObjectKey_k, Layer>::get(), model, parent}
 {
-    m_constraint = source.m_constraint->clone(
-                source.constraint().id(),
-                model.constraint(),
-                this);
+  m_constraint = source.m_constraint->clone(
+      source.constraint().id(), model.constraint(), this);
 }
 
 const Loop::ProcessModel& Layer::model() const
 {
-    return static_cast<const Loop::ProcessModel&>(processModel());
+  return static_cast<const Loop::ProcessModel&>(processModel());
 }
-
 }

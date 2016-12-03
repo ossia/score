@@ -2,15 +2,13 @@
 #include <iscore/application/ApplicationComponents.hpp>
 #include <iscore/application/GUIApplicationContext.hpp>
 
-#include <iscore/actions/ActionManager.hpp>
 #include <core/presenter/DocumentManager.hpp>
+#include <iscore/actions/ActionManager.hpp>
 
-
-#include <vector>
 #include <QMenuBar>
 #include <iscore_lib_base_export.h>
+#include <vector>
 class QObject;
-
 
 namespace iscore
 {
@@ -28,59 +26,74 @@ class Settings;
      * It is also able to instantiate a Command from serialized Undo/Redo data.
      * (this should go in the DocumentPresenter maybe ?)
      */
-class ISCORE_LIB_BASE_EXPORT Presenter final :
-        public QObject
+class ISCORE_LIB_BASE_EXPORT Presenter final : public QObject
 {
-        Q_OBJECT
-        friend class iscore::CoreApplicationPlugin;
-    public:
-        Presenter(
-                const iscore::ApplicationSettings& app,
-                const iscore::Settings& set,
-                iscore::View* view,
-                QObject* parent);
+  Q_OBJECT
+  friend class iscore::CoreApplicationPlugin;
 
-        // Exit i-score
-        bool exit();
+public:
+  Presenter(
+      const iscore::ApplicationSettings& app,
+      const iscore::Settings& set,
+      iscore::View* view,
+      QObject* parent);
 
-        View* view() const;
+  // Exit i-score
+  bool exit();
 
-        auto& menuManager() { return m_menus; }
-        auto& toolbarManager() { return m_toolbars; }
-        auto& actionManager() { return m_actions; }
+  View* view() const;
 
-        // Called after all the classes
-        // have been loaded from plug-ins.
-        void setupGUI();
+  auto& menuManager()
+  {
+    return m_menus;
+  }
+  auto& toolbarManager()
+  {
+    return m_toolbars;
+  }
+  auto& actionManager()
+  {
+    return m_actions;
+  }
 
+  // Called after all the classes
+  // have been loaded from plug-ins.
+  void setupGUI();
 
-        auto& documentManager()
-        { return m_docManager; }
-        const ApplicationComponents& applicationComponents()
-        { return m_components_readonly; }
-        const GUIApplicationContext& applicationContext()
-        { return m_context; }
+  auto& documentManager()
+  {
+    return m_docManager;
+  }
+  const ApplicationComponents& applicationComponents()
+  {
+    return m_components_readonly;
+  }
+  const GUIApplicationContext& applicationContext()
+  {
+    return m_context;
+  }
 
-        auto& components()
-        { return m_components; }
+  auto& components()
+  {
+    return m_components;
+  }
 
-        void optimize();
+  void optimize();
 
-    private:
-        void setupMenus();
-        View* m_view {};
-        const Settings& m_settings;
+private:
+  void setupMenus();
+  View* m_view{};
+  const Settings& m_settings;
 
-        DocumentManager m_docManager;
-        ApplicationComponentsData m_components;
-        ApplicationComponents m_components_readonly;
+  DocumentManager m_docManager;
+  ApplicationComponentsData m_components;
+  ApplicationComponents m_components_readonly;
 
-        QMenuBar* m_menubar{};
-        GUIApplicationContext m_context;
+  QMenuBar* m_menubar{};
+  GUIApplicationContext m_context;
 
-        MenuManager m_menus;
-        ToolbarManager m_toolbars;
-        ActionManager m_actions;
-
+  MenuManager m_menus;
+  ToolbarManager m_toolbars;
+  ActionManager m_actions;
 };
 }

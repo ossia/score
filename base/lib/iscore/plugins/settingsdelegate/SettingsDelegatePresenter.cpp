@@ -3,5 +3,4 @@
 namespace iscore
 {
 SettingsDelegatePresenter::~SettingsDelegatePresenter() = default;
-
 }

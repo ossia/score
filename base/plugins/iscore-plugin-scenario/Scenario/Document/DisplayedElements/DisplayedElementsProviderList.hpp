@@ -1,13 +1,12 @@
 #pragma once
+#include <ossia/detail/algorithms.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProvider.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <ossia/detail/algorithms.hpp>
-
 
 namespace Scenario
 {
-class DisplayedElementsProviderList final :
-        public iscore::MatchingFactory<DisplayedElementsProvider>
+class DisplayedElementsProviderList final
+    : public iscore::MatchingFactory<DisplayedElementsProvider>
 {
 };
 }

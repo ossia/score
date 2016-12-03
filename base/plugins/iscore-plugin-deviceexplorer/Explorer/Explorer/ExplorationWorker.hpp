@@ -18,15 +18,15 @@ namespace Explorer
  */
 class ExplorationWorker final : public QObject
 {
-        Q_OBJECT
-    public:
-        Device::DeviceInterface& dev;
-        Device::Node node; // Result
+  Q_OBJECT
+public:
+  Device::DeviceInterface& dev;
+  Device::Node node; // Result
 
-        explicit ExplorationWorker(Device::DeviceInterface& dev);
+  explicit ExplorationWorker(Device::DeviceInterface& dev);
 
-    signals:
-        void finished();
-        void failed(QString);
+signals:
+  void finished();
+  void failed(QString);
 };
 }

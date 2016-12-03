@@ -1,7 +1,6 @@
 #pragma once
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
-
 namespace Engine
 {
 namespace LocalTree
@@ -9,21 +8,21 @@ namespace LocalTree
 namespace Settings
 {
 
-class Model :
-        public iscore::SettingsDelegateModel
+class Model : public iscore::SettingsDelegateModel
 {
-        Q_OBJECT
-        Q_PROPERTY(bool LocalTree READ getLocalTree WRITE setLocalTree NOTIFY LocalTreeChanged)
+  Q_OBJECT
+  Q_PROPERTY(bool LocalTree READ getLocalTree WRITE setLocalTree NOTIFY
+                 LocalTreeChanged)
 
-        bool m_LocalTree = false;
-    public:
-        Model(QSettings& set, const iscore::ApplicationContext& ctx);
+  bool m_LocalTree = false;
 
-        ISCORE_SETTINGS_PARAMETER_HPP(bool, LocalTree)
+public:
+  Model(QSettings& set, const iscore::ApplicationContext& ctx);
+
+  ISCORE_SETTINGS_PARAMETER_HPP(bool, LocalTree)
 };
 
 ISCORE_SETTINGS_DEFERRED_PARAMETER(Model, LocalTree)
-
 }
 }
 }

@@ -1,6 +1,6 @@
 #pragma once
-#include <QString>
 #include <QMetaType>
+#include <QString>
 
 namespace Engine
 {
@@ -8,8 +8,8 @@ namespace Network
 {
 struct WSSpecificSettings
 {
-    QString address;
-    QString text;
+  QString address;
+  QString text;
 };
 }
 }

@@ -1,21 +1,23 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/selection/Selectable.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
 
 namespace Midi
 {
 using midi_size_t = uint8_t;
 struct NoteData
 {
-        NoteData() = default;
-        NoteData(double s, double d, midi_size_t p, midi_size_t v):
-            start{s}, duration{d}, pitch{p}, velocity{v} { }
+  NoteData() = default;
+  NoteData(double s, double d, midi_size_t p, midi_size_t v)
+      : start{s}, duration{d}, pitch{p}, velocity{v}
+  {
+  }
 
-        double start{};
-        double duration{};
+  double start{};
+  double duration{};
 
-        midi_size_t pitch{};
-        midi_size_t velocity{};
+  midi_size_t pitch{};
+  midi_size_t velocity{};
 };
 
 /**
@@ -29,54 +31,54 @@ struct NoteData
  */
 class Note final : public IdentifiedObject<Note>
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
-        Selectable selection;
+public:
+  Selectable selection;
 
-        Note(const Id<Note>& id, QObject* parent);
-        Note(const Id<Note>& id, NoteData n, QObject* parent);
+  Note(const Id<Note>& id, QObject* parent);
+  Note(const Id<Note>& id, NoteData n, QObject* parent);
 
-        template<typename DeserializerVisitor,
-                 enable_if_deserializer<DeserializerVisitor>* = nullptr>
-        Note(DeserializerVisitor&& vis,
-             QObject* parent) :
-            IdentifiedObject<Note>{vis, parent}
-        {
-            vis.writeTo(*this);
-        }
+  template <
+      typename DeserializerVisitor,
+      enable_if_deserializer<DeserializerVisitor>* = nullptr>
+  Note(DeserializerVisitor&& vis, QObject* parent)
+      : IdentifiedObject<Note>{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
 
-        Note* clone(const Id<Note>& id, QObject* parent);
+  Note* clone(const Id<Note>& id, QObject* parent);
 
-        // Both are between 0 - 1, 1 being the process duration.
-        double start() const;
-        double duration() const;
-        double end() const;
-        midi_size_t pitch() const;
-        midi_size_t velocity() const;
+  // Both are between 0 - 1, 1 being the process duration.
+  double start() const;
+  double duration() const;
+  double end() const;
+  midi_size_t pitch() const;
+  midi_size_t velocity() const;
 
-        void scale(double s);
+  void scale(double s);
 
-        void setStart(double s);
+  void setStart(double s);
 
-        void setDuration(double s);
+  void setDuration(double s);
 
-        void setPitch(midi_size_t s);
+  void setPitch(midi_size_t s);
 
-        void setVelocity(midi_size_t s);
+  void setVelocity(midi_size_t s);
 
-        NoteData noteData() const;
+  NoteData noteData() const;
 
-        void setData(NoteData d);
+  void setData(NoteData d);
 
-    signals:
-        void noteChanged();
+signals:
+  void noteChanged();
 
-    private:
-        double m_start{};
-        double m_duration{};
+private:
+  double m_start{};
+  double m_duration{};
 
-        midi_size_t m_pitch{};
-        midi_size_t m_velocity{64};
+  midi_size_t m_pitch{};
+  midi_size_t m_velocity{64};
 };
 }

@@ -58,5 +58,4 @@ void DocumentMetadata::setLastEdition(QDateTime lastEdition)
   m_lastEdition = lastEdition;
   emit lastEditionChanged(lastEdition);
 }
-
 }

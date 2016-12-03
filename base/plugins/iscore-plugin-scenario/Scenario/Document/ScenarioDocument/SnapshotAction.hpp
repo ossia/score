@@ -5,11 +5,10 @@ namespace Scenario
 {
 struct SnapshotAction : public QAction
 {
-    public:
-        SnapshotAction(QGraphicsScene& scene, QWidget* parent);
+public:
+  SnapshotAction(QGraphicsScene& scene, QWidget* parent);
 
-    private:
-        void takeScreenshot(QGraphicsScene& scene);
+private:
+  void takeScreenshot(QGraphicsScene& scene);
 };
-
 }

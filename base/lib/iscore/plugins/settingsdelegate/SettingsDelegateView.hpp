@@ -4,26 +4,27 @@
 
 namespace iscore
 {
-    class SettingsDelegatePresenter;
+class SettingsDelegatePresenter;
 
-    class ISCORE_LIB_BASE_EXPORT SettingsDelegateView : public QObject
-    {
-        public:
-            using QObject::QObject;
-            virtual ~SettingsDelegateView();
-            virtual void setPresenter(SettingsDelegatePresenter* presenter)
-            {
-                m_presenter = presenter;
-            }
+class ISCORE_LIB_BASE_EXPORT SettingsDelegateView : public QObject
+{
+public:
+  using QObject::QObject;
+  virtual ~SettingsDelegateView();
+  virtual void setPresenter(SettingsDelegatePresenter* presenter)
+  {
+    m_presenter = presenter;
+  }
 
-            SettingsDelegatePresenter* getPresenter()
-            {
-                return m_presenter;
-            }
+  SettingsDelegatePresenter* getPresenter()
+  {
+    return m_presenter;
+  }
 
-            virtual QWidget* getWidget() = 0; // QML? ownership transfer ? ? ? what about "this" case ?
+  virtual QWidget* getWidget()
+      = 0; // QML? ownership transfer ? ? ? what about "this" case ?
 
-        protected:
-            SettingsDelegatePresenter* m_presenter{};
-    };
+protected:
+  SettingsDelegatePresenter* m_presenter{};
+};
 }

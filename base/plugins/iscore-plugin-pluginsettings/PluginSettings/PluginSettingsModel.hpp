@@ -1,7 +1,7 @@
 #pragma once
-#include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
-#include <QItemSelectionModel>
 #include <PluginSettings/PluginItemModel.hpp>
+#include <QItemSelectionModel>
+#include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
 class QAbstractItemModel;
 
@@ -11,11 +11,11 @@ class BlacklistCommand;
 
 class PluginSettingsModel : public iscore::SettingsDelegateModel
 {
-    public:
-        PluginSettingsModel(QSettings& set, const iscore::ApplicationContext& ctx);
+public:
+  PluginSettingsModel(QSettings& set, const iscore::ApplicationContext& ctx);
 
-        LocalPluginItemModel localPlugins;
-        RemotePluginItemModel remotePlugins;
-        QItemSelectionModel remoteSelection;
+  LocalPluginItemModel localPlugins;
+  RemotePluginItemModel remotePlugins;
+  QItemSelectionModel remoteSelection;
 };
 }

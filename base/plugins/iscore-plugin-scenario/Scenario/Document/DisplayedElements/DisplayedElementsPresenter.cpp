@@ -7,10 +7,8 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <tuple>
-#include <type_traits>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include "DisplayedElementsPresenter.hpp"
+#include <ossia/detail/algorithms.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
@@ -21,185 +19,201 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
-#include <iscore/widgets/GraphicsProxyObject.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/State/StateView.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/EntityMap.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <ossia/detail/algorithms.hpp>
+#include <iscore/widgets/GraphicsProxyObject.hpp>
+#include <tuple>
+#include <type_traits>
 
 namespace Scenario
 {
 class DisplayedElementsModel;
 
-DisplayedElementsPresenter::DisplayedElementsPresenter(ScenarioDocumentPresenter *parent):
-    QObject{parent},
-    BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>{parent->model().displayedElements},
-    m_model{parent}
+DisplayedElementsPresenter::DisplayedElementsPresenter(
+    ScenarioDocumentPresenter* parent)
+    : QObject{parent}
+    , BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>{parent
+                                                                                     ->model()
+                                                                                     .displayedElements}
+    , m_model{parent}
 {
-
 }
 
 DisplayedElementsPresenter::~DisplayedElementsPresenter()
 {
-    disconnect(&m_model->context().updateTimer, &QTimer::timeout,
-               this, &DisplayedElementsPresenter::on_constraintExecutionTimer);
+  disconnect(
+      &m_model->context().updateTimer, &QTimer::timeout, this,
+      &DisplayedElementsPresenter::on_constraintExecutionTimer);
 
-    // TODO use directly displayedelementspresentercontainer
-    delete m_constraintPresenter;
-    delete m_startStatePresenter;
-    delete m_endStatePresenter;
-    delete m_startEventPresenter;
-    delete m_endEventPresenter;
-    delete m_startNodePresenter;
-    delete m_endNodePresenter;
+  // TODO use directly displayedelementspresentercontainer
+  delete m_constraintPresenter;
+  delete m_startStatePresenter;
+  delete m_endStatePresenter;
+  delete m_startEventPresenter;
+  delete m_endEventPresenter;
+  delete m_startNodePresenter;
+  delete m_endNodePresenter;
 }
 
-BaseGraphicsObject&DisplayedElementsPresenter::view() const
+BaseGraphicsObject& DisplayedElementsPresenter::view() const
 {
-    return *m_model->view().baseItem();
+  return *m_model->view().baseItem();
 }
 
-void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintModel& m)
+void DisplayedElementsPresenter::on_displayedConstraintChanged(
+    const ConstraintModel& m)
 {
-    disconnect(&m_model->context().updateTimer, &QTimer::timeout,
-               this, &DisplayedElementsPresenter::on_constraintExecutionTimer);
+  disconnect(
+      &m_model->context().updateTimer, &QTimer::timeout, this,
+      &DisplayedElementsPresenter::on_constraintExecutionTimer);
 
-    for(auto& con : m_connections)
-        QObject::disconnect(con);
+  for (auto& con : m_connections)
+    QObject::disconnect(con);
 
-    m_connections.clear();
-    // TODO use directly displayedelementspresentercontainer
-    delete m_constraintPresenter;
-    delete m_startStatePresenter;
-    delete m_endStatePresenter;
-    delete m_startEventPresenter;
-    delete m_endEventPresenter;
-    delete m_startNodePresenter;
-    delete m_endNodePresenter;
+  m_connections.clear();
+  // TODO use directly displayedelementspresentercontainer
+  delete m_constraintPresenter;
+  delete m_startStatePresenter;
+  delete m_endStatePresenter;
+  delete m_startEventPresenter;
+  delete m_endEventPresenter;
+  delete m_startNodePresenter;
+  delete m_endNodePresenter;
 
+  // Create states / events
+  auto& ctx = m_model->context();
+  auto& provider = ctx.app.components.factory<DisplayedElementsProviderList>();
+  DisplayedElementsPresenterContainer elts = provider.make(
+      &DisplayedElementsProvider::make_presenters, m, ctx,
+      m_model->view().baseItem(), this);
+  m_constraintPresenter = elts.constraint;
+  m_startStatePresenter = elts.startState;
+  m_endStatePresenter = elts.endState;
+  m_startEventPresenter = elts.startEvent;
+  m_endEventPresenter = elts.endEvent;
+  m_startNodePresenter = elts.startNode;
+  m_endNodePresenter = elts.endNode;
 
-    // Create states / events
-    auto& ctx = m_model->context();
-    auto& provider = ctx.app.components.factory<DisplayedElementsProviderList>();
-    DisplayedElementsPresenterContainer elts = provider.make(
-                    &DisplayedElementsProvider::make_presenters,
-                    m, ctx, m_model->view().baseItem(), this);
-    m_constraintPresenter = elts.constraint;
-    m_startStatePresenter = elts.startState;
-    m_endStatePresenter = elts.endState;
-    m_startEventPresenter = elts.startEvent;
-    m_endEventPresenter = elts.endEvent;
-    m_startNodePresenter = elts.startNode;
-    m_endNodePresenter = elts.endNode;
+  m_connections.push_back(
+      con(m_constraintPresenter->model().duration,
+          &ConstraintDurations::defaultDurationChanged, this,
+          &DisplayedElementsPresenter::on_displayedConstraintDurationChanged));
+  m_connections.push_back(connect(
+      m_constraintPresenter, &FullViewConstraintPresenter::askUpdate, m_model,
+      &ScenarioDocumentPresenter::on_askUpdate));
+  m_connections.push_back(connect(
+      m_constraintPresenter, &FullViewConstraintPresenter::heightChanged, this,
+      [&]() {
+        on_displayedConstraintHeightChanged(
+            m_constraintPresenter->view()->height());
+      }));
 
+  auto elements = std::make_tuple(
+      m_constraintPresenter,
+      m_startStatePresenter,
+      m_endStatePresenter,
+      m_startEventPresenter,
+      m_endEventPresenter,
+      m_startNodePresenter,
+      m_endNodePresenter);
 
-    m_connections.push_back(con(m_constraintPresenter->model().duration, &ConstraintDurations::defaultDurationChanged,
-        this, &DisplayedElementsPresenter::on_displayedConstraintDurationChanged));
-    m_connections.push_back(connect(m_constraintPresenter, &FullViewConstraintPresenter::askUpdate,
-            m_model,              &ScenarioDocumentPresenter::on_askUpdate));
-    m_connections.push_back(connect(m_constraintPresenter, &FullViewConstraintPresenter::heightChanged,
-            this, [&] () {
-        on_displayedConstraintHeightChanged(m_constraintPresenter->view()->height());
-    }));
+  ossia::for_each_in_tuple(elements, [&](auto elt) {
+    using elt_t = std::remove_reference_t<decltype(*elt)>;
+    m_connections.push_back(connect(
+        elt, &elt_t::pressed, m_model, &ScenarioDocumentPresenter::pressed));
+    m_connections.push_back(connect(
+        elt, &elt_t::moved, m_model, &ScenarioDocumentPresenter::moved));
+    m_connections.push_back(connect(
+        elt, &elt_t::released, m_model, &ScenarioDocumentPresenter::released));
+  });
 
-    auto elements = std::make_tuple(
-                m_constraintPresenter,
-                m_startStatePresenter,
-                m_endStatePresenter,
-                m_startEventPresenter,
-                m_endEventPresenter,
-                m_startNodePresenter,
-                m_endNodePresenter);
+  showConstraint();
 
-    ossia::for_each_in_tuple(elements, [&] (auto elt) {
-        using elt_t = std::remove_reference_t<decltype(*elt)>;
-        m_connections.push_back(connect(elt, &elt_t::pressed,  m_model, &ScenarioDocumentPresenter::pressed));
-        m_connections.push_back(connect(elt, &elt_t::moved,    m_model, &ScenarioDocumentPresenter::moved));
-        m_connections.push_back(connect(elt, &elt_t::released, m_model, &ScenarioDocumentPresenter::released));
-    });
+  on_zoomRatioChanged(m_constraintPresenter->zoomRatio());
 
-    showConstraint();
-
-    on_zoomRatioChanged(m_constraintPresenter->zoomRatio());
-
-    con(ctx.updateTimer, &QTimer::timeout,
-        this, &DisplayedElementsPresenter::on_constraintExecutionTimer);
+  con(ctx.updateTimer, &QTimer::timeout, this,
+      &DisplayedElementsPresenter::on_constraintExecutionTimer);
 }
 
 void DisplayedElementsPresenter::showConstraint()
 {
-    // We set the focus on the main scenario.
-    if(m_constraintPresenter->rack() && !m_constraintPresenter->rack()->getSlots().empty())
+  // We set the focus on the main scenario.
+  if (m_constraintPresenter->rack()
+      && !m_constraintPresenter->rack()->getSlots().empty())
+  {
+    const auto& slot = *m_constraintPresenter->rack()->getSlots().begin();
+    if (!slot.processes().empty())
     {
-        const auto& slot = *m_constraintPresenter->rack()->getSlots().begin();
-        if(!slot.processes().empty())
-        {
-            const auto& slot_process = slot.processes().front().processes;
-            if(!slot_process.empty())
-                emit requestFocusedPresenterChange(slot_process.front().first);
-        }
+      const auto& slot_process = slot.processes().front().processes;
+      if (!slot_process.empty())
+        emit requestFocusedPresenterChange(slot_process.front().first);
     }
+  }
 
-    m_constraintPresenter->updateHeight();
+  m_constraintPresenter->updateHeight();
 }
 
 void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 {
-    if(!m_constraintPresenter)
-        return;
-    updateLength(m_constraintPresenter->abstractConstraintViewModel().model().duration.defaultDuration().toPixels(r));
+  if (!m_constraintPresenter)
+    return;
+  updateLength(m_constraintPresenter->abstractConstraintViewModel()
+                   .model()
+                   .duration.defaultDuration()
+                   .toPixels(r));
 
-    m_constraintPresenter->on_zoomRatioChanged(r);
+  m_constraintPresenter->on_zoomRatioChanged(r);
 }
 
 void DisplayedElementsPresenter::on_elementsScaleChanged(double s)
 {
-
 }
 
-void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(TimeValue t)
+void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(
+    TimeValue t)
 {
-    updateLength(t.toPixels(m_model->zoomRatio()));
+  updateLength(t.toPixels(m_model->zoomRatio()));
 }
 
-void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(double size)
+void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
+    double size)
 {
-    m_model->updateRect(
-    {
-        qreal(ScenarioLeftSpace),
-        0,
-        m_constraintPresenter->abstractConstraintViewModel().model().duration.defaultDuration().toPixels(m_constraintPresenter->zoomRatio()),
-        size
-    });
+  m_model->updateRect({qreal(ScenarioLeftSpace), 0,
+                       m_constraintPresenter->abstractConstraintViewModel()
+                           .model()
+                           .duration.defaultDuration()
+                           .toPixels(m_constraintPresenter->zoomRatio()),
+                       size});
 
-    m_startEventPresenter->view()->setExtent({0, 1});
-    m_startNodePresenter->view()->setExtent({0, size* .4});
-    m_endEventPresenter->view()->setExtent({0, 1});
-    m_endNodePresenter->view()->setExtent({0, size* .4});
+  m_startEventPresenter->view()->setExtent({0, 1});
+  m_startNodePresenter->view()->setExtent({0, size * .4});
+  m_endEventPresenter->view()->setExtent({0, 1});
+  m_endNodePresenter->view()->setExtent({0, size * .4});
 }
 
 void DisplayedElementsPresenter::updateLength(double length)
 {
-    m_endStatePresenter->view()->setPos({length, 0});
-    m_endEventPresenter->view()->setPos({length, 0});
-    m_endNodePresenter->view()->setPos({length, 0});
+  m_endStatePresenter->view()->setPos({length, 0});
+  m_endEventPresenter->view()->setPos({length, 0});
+  m_endNodePresenter->view()->setPos({length, 0});
 }
 
 void DisplayedElementsPresenter::on_constraintExecutionTimer()
 {
-    m_constraintPresenter->on_playPercentageChanged(
-                m_constraintPresenter->model().duration.playPercentage());
+  m_constraintPresenter->on_playPercentageChanged(
+      m_constraintPresenter->model().duration.playPercentage());
 }
-
 }

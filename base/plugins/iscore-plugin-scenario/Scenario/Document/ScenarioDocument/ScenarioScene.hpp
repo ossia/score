@@ -5,8 +5,8 @@ namespace Scenario
 {
 class ScenarioScene final : public QGraphicsScene
 {
-        Q_OBJECT
-    public:
-        ScenarioScene(QWidget* parent);
+  Q_OBJECT
+public:
+  ScenarioScene(QWidget* parent);
 };
 }

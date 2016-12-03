@@ -2,29 +2,33 @@
 #include <Process/ExpandMode.hpp>
 
 #include <Process/TimeValue.hpp>
-#include <iscore/selection/Selection.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/model/Entity.hpp>
 #include <QByteArray>
 #include <QString>
+#include <iscore/model/Entity.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 #include <vector>
 
 #include <iscore/component/Component.hpp>
-#include <iscore/tools/Metadata.hpp>
 #include <iscore/model/ModelMetadata.hpp>
-#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/plugins/customfactory/SerializableInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/Metadata.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/plugins/customfactory/SerializableInterface.hpp>
 #include <iscore_lib_process_export.h>
 
-namespace Process { class LayerModel; }
+namespace Process
+{
+class LayerModel;
+}
 class ProcessStateDataInterface;
 
 namespace Process
 {
-class ProcessModelFactory; class LayerFactory;
+class ProcessModelFactory;
+class LayerFactory;
 class ProcessModel;
 class LayerFactory;
 
@@ -33,147 +37,176 @@ class LayerFactory;
  *
  * Interface to implement to make a process.
  */
-class ISCORE_LIB_PROCESS_EXPORT ProcessModel:
-        public iscore::Entity<ProcessModel>,
-        public iscore::SerializableInterface<ProcessModelFactory>
+class ISCORE_LIB_PROCESS_EXPORT ProcessModel
+    : public iscore::Entity<ProcessModel>,
+      public iscore::SerializableInterface<ProcessModelFactory>
 {
-        Q_OBJECT
+  Q_OBJECT
 
-        ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, DataStream)
+  ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, JSONObject)
 
-        Q_PROPERTY(int32_t priority READ priority WRITE setPriority NOTIFY priorityChanged)
-        Q_PROPERTY(bool priorityOverride READ priorityOverride WRITE setPriorityOverride NOTIFY priorityOverrideChanged)
-        friend class Process::LayerFactory; // to register layers
+  Q_PROPERTY(
+      int32_t priority READ priority WRITE setPriority NOTIFY priorityChanged)
+  Q_PROPERTY(bool priorityOverride READ priorityOverride WRITE
+                 setPriorityOverride NOTIFY priorityOverrideChanged)
+  friend class Process::LayerFactory; // to register layers
 
-    public:
-        ProcessModel(
-                TimeValue duration,
-                const Id<ProcessModel>& id,
-                const QString& name,
-                QObject* parent);
+public:
+  ProcessModel(
+      TimeValue duration,
+      const Id<ProcessModel>& id,
+      const QString& name,
+      QObject* parent);
 
-        ProcessModel(Deserializer<DataStream>& vis, QObject* parent);
-        ProcessModel(Deserializer<JSONObject>& vis, QObject* parent);
+  ProcessModel(Deserializer<DataStream>& vis, QObject* parent);
+  ProcessModel(Deserializer<JSONObject>& vis, QObject* parent);
 
-        virtual ~ProcessModel();
+  virtual ~ProcessModel();
 
-        virtual ProcessModel* clone(
-                const Id<Process::ProcessModel>& newId,
-                QObject* newParent) const = 0;
+  virtual ProcessModel*
+  clone(const Id<Process::ProcessModel>& newId, QObject* newParent) const = 0;
 
-        // A user-friendly text to show to the users
-        virtual QString prettyName() const
-        { return metadata().getName(); }
+  // A user-friendly text to show to the users
+  virtual QString prettyName() const
+  {
+    return metadata().getName();
+  }
 
+  // Do a copy.
+  std::vector<LayerModel*> layers() const;
 
-        // Do a copy.
-        std::vector<LayerModel*> layers() const;
+  //// Features of a process
+  /// Duration
+  void setParentDuration(ExpandMode mode, const TimeValue& t);
 
-        //// Features of a process
-        /// Duration
-        void setParentDuration(ExpandMode mode, const TimeValue& t);
+  void setUseParentDuration(bool b)
+  {
+    if (m_useParentDuration != b)
+    {
+      m_useParentDuration = b;
+      emit useParentDurationChanged(b);
+    }
+  }
 
-        void setUseParentDuration(bool b)
-        {
-            if(m_useParentDuration != b)
-            {
-                m_useParentDuration = b;
-                emit useParentDurationChanged(b);
-            }
-        }
+  bool useParentDuration() const
+  {
+    return m_useParentDuration;
+  }
 
-        bool useParentDuration() const
-        {
-            return m_useParentDuration;
-        }
+  // TODO might not be useful... put in protected ?
+  // Constructor needs it, too.
+  void setDuration(const TimeValue& other);
+  const TimeValue& duration() const;
 
-        // TODO might not be useful... put in protected ?
-        // Constructor needs it, too.
-        void setDuration(const TimeValue& other);
-        const TimeValue& duration() const;
+  /// Execution
+  virtual void startExecution()
+  {
+  }
+  virtual void stopExecution()
+  {
+  }
+  virtual void reset()
+  {
+  }
 
-        /// Execution
-        virtual void startExecution() { }
-        virtual void stopExecution() { }
-        virtual void reset() { }
+  /// States. The process has ownership.
+  virtual ProcessStateDataInterface* startStateData() const
+  {
+    return nullptr;
+  }
+  virtual ProcessStateDataInterface* endStateData() const
+  {
+    return nullptr;
+  }
 
-        /// States. The process has ownership.
-        virtual ProcessStateDataInterface* startStateData() const { return nullptr; }
-        virtual ProcessStateDataInterface* endStateData() const { return nullptr; }
+  /// Selection
+  virtual Selection selectableChildren() const
+  {
+    return {};
+  }
+  virtual Selection selectedChildren() const
+  {
+    return {};
+  }
+  virtual void setSelection(const Selection& s) const
+  {
+  }
 
-        /// Selection
-        virtual Selection selectableChildren() const { return {}; }
-        virtual Selection selectedChildren() const { return {}; }
-        virtual void setSelection(const Selection& s) const { }
+  int32_t priority() const;
+  void setPriority(int32_t);
 
-        int32_t priority() const;
-        void setPriority(int32_t);
+  bool priorityOverride() const;
+  void setPriorityOverride(bool);
 
-        bool priorityOverride() const;
-        void setPriorityOverride(bool);
+signals:
+  // True if the execution is running.
+  void execution(bool);
+  void durationChanged(const TimeValue&);
+  void useParentDurationChanged(bool);
+  void priorityChanged(int32_t);
+  void priorityOverrideChanged(bool);
 
-    signals:
-        // True if the execution is running.
-        void execution(bool);
-        void durationChanged(const TimeValue&);
-        void useParentDurationChanged(bool);
-        void priorityChanged(int32_t);
-        void priorityOverrideChanged(bool);
+protected:
+  // Clone
+  ProcessModel(
+      const ProcessModel& other,
+      const Id<ProcessModel>& id,
+      const QString& name,
+      QObject* parent);
 
-    protected:
-        // Clone
-        ProcessModel(
-                const ProcessModel& other,
-                const Id<ProcessModel>& id,
-                const QString& name,
-                QObject* parent);
+  // Used to scale the process.
+  // This should be commutative :
+  //   setDurationWithScale(2); setDurationWithScale(3);
+  // yields the same result as :
+  //   setDurationWithScale(3); setDurationWithScale(2);
+  virtual void setDurationAndScale(const TimeValue& newDuration)
+  {
+    setDuration(newDuration);
+  }
 
-        // Used to scale the process.
-        // This should be commutative :
-        //   setDurationWithScale(2); setDurationWithScale(3);
-        // yields the same result as :
-        //   setDurationWithScale(3); setDurationWithScale(2);
-        virtual void setDurationAndScale(const TimeValue& newDuration)
-        { setDuration(newDuration); }
+  // Does nothing if newDuration < currentDuration
+  virtual void setDurationAndGrow(const TimeValue& newDuration)
+  {
+    setDuration(newDuration);
+  }
 
-        // Does nothing if newDuration < currentDuration
-        virtual void setDurationAndGrow(const TimeValue& newDuration)
-        { setDuration(newDuration); }
+  // Does nothing if newDuration > currentDuration
+  virtual void setDurationAndShrink(const TimeValue& newDuration)
+  {
+    setDuration(newDuration);
+  }
 
-        // Does nothing if newDuration > currentDuration
-        virtual void setDurationAndShrink(const TimeValue& newDuration)
-        { setDuration(newDuration); }
+private:
+  void addLayer(LayerModel* m);
+  void removeLayer(LayerModel* m);
 
-    private:
-        void addLayer(LayerModel* m);
-        void removeLayer(LayerModel* m);
+  // Ownership : the parent is the Slot or another widget, not the process.
+  // A process view is never displayed alone, it is always in a view, which is
+  // in a rack.
+  std::vector<LayerModel*> m_layers;
+  TimeValue m_duration;
+  bool m_useParentDuration{true};
 
-        // Ownership : the parent is the Slot or another widget, not the process.
-        // A process view is never displayed alone, it is always in a view, which is in a rack.
-        std::vector<LayerModel*> m_layers;
-        TimeValue m_duration;
-        bool m_useParentDuration{true};
-
-        int32_t m_priority = 0;
-        bool m_priorityOverride = 0;
+  int32_t m_priority = 0;
+  bool m_priorityOverride = 0;
 };
 
 ISCORE_LIB_PROCESS_EXPORT ProcessModel* parentProcess(QObject* obj);
-ISCORE_LIB_PROCESS_EXPORT const ProcessModel* parentProcess(const QObject* obj);
-
+ISCORE_LIB_PROCESS_EXPORT const ProcessModel*
+parentProcess(const QObject* obj);
 }
-template<typename T>
+template <typename T>
 std::vector<typename T::layer_type*> layers(const T& processModel)
 {
-    std::vector<typename T::layer_type*> v;
+  std::vector<typename T::layer_type*> v;
 
-    for(auto& elt : processModel.layers())
-    {
-        v.push_back(safe_cast<typename T::layer_type*>(elt));
-    }
+  for (auto& elt : processModel.layers())
+  {
+    v.push_back(safe_cast<typename T::layer_type*>(elt));
+  }
 
-    return v;
+  return v;
 }
 
 DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")

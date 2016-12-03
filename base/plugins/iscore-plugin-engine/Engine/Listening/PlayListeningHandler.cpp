@@ -7,31 +7,27 @@ namespace Engine
 namespace Execution
 {
 PlayListeningHandler::PlayListeningHandler(
-        const Engine::Execution::DocumentPlugin &docpl):
-    m_executor{docpl}
+    const Engine::Execution::DocumentPlugin& docpl)
+    : m_executor{docpl}
 {
-
 }
 
 void PlayListeningHandler::setListening(
-        Device::DeviceInterface& dev,
-        const State::Address& addr,
-        bool b)
+    Device::DeviceInterface& dev, const State::Address& addr, bool b)
 {
-    if(!m_executor.isPlaying())
-    {
-        dev.setListening(addr, b);
-    }
+  if (!m_executor.isPlaying())
+  {
+    dev.setListening(addr, b);
+  }
 }
 
 void PlayListeningHandler::addToListening(
-        Device::DeviceInterface& dev,
-        const std::vector<State::Address>& v)
+    Device::DeviceInterface& dev, const std::vector<State::Address>& v)
 {
-    if(!m_executor.isPlaying())
-    {
-        dev.addToListening(v);
-    }
+  if (!m_executor.isPlaying())
+  {
+    dev.addToListening(v);
+  }
 }
 }
 }

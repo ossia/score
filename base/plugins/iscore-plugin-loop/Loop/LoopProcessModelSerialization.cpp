@@ -6,33 +6,35 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-template <typename T> class Reader;
-template <typename T> class Writer;
+template <typename T>
+class Reader;
+template <typename T>
+class Writer;
 
-template<>
+template <>
 void Visitor<Reader<DataStream>>::readFrom_impl(const Loop::ProcessModel& proc)
 {
-    readFrom(static_cast<const Scenario::BaseScenarioContainer&>(proc));
+  readFrom(static_cast<const Scenario::BaseScenarioContainer&>(proc));
 
-    insertDelimiter();
+  insertDelimiter();
 }
 
-template<>
+template <>
 void Visitor<Writer<DataStream>>::writeTo(Loop::ProcessModel& proc)
 {
-    writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
+  writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
 
-    checkDelimiter();
+  checkDelimiter();
 }
 
-template<>
+template <>
 void Visitor<Reader<JSONObject>>::readFrom_impl(const Loop::ProcessModel& proc)
 {
-    readFrom(static_cast<const Scenario::BaseScenarioContainer&>(proc));
+  readFrom(static_cast<const Scenario::BaseScenarioContainer&>(proc));
 }
 
-template<>
+template <>
 void Visitor<Writer<JSONObject>>::writeTo(Loop::ProcessModel& proc)
 {
-    writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
+  writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
 }

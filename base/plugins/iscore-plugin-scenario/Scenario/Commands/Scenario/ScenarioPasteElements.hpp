@@ -1,11 +1,11 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
-#include <iscore/tools/std/Optional.hpp>
-#include <iscore/command/SerializableCommand.hpp>
 #include <QJsonObject>
 #include <QMap>
 #include <QVector>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -26,36 +26,39 @@ namespace Command
 
 class ScenarioPasteElements final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ScenarioPasteElements, "Paste elements in scenario")
-    public:
-        ScenarioPasteElements(
-                Path<TemporalScenarioLayer>&& path,
-                const QJsonObject& obj,
-                const Scenario::Point& pt);
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(),
+      ScenarioPasteElements,
+      "Paste elements in scenario")
+public:
+  ScenarioPasteElements(
+      Path<TemporalScenarioLayer>&& path,
+      const QJsonObject& obj,
+      const Scenario::Point& pt);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<TemporalScenarioLayer> m_ts;
+private:
+  Path<TemporalScenarioLayer> m_ts;
 
-        // TODO std::vector...
-        QVector<Id<TimeNodeModel>> m_ids_timenodes;
-        QVector<Id<ConstraintModel>> m_ids_constraints;
-        QVector<Id<EventModel>> m_ids_events;
-        QVector<Id<StateModel>> m_ids_states;
+  // TODO std::vector...
+  QVector<Id<TimeNodeModel>> m_ids_timenodes;
+  QVector<Id<ConstraintModel>> m_ids_constraints;
+  QVector<Id<EventModel>> m_ids_events;
+  QVector<Id<StateModel>> m_ids_states;
 
-        QVector<QJsonObject> m_json_timenodes;
-        QVector<QJsonObject> m_json_constraints;
-        QVector<QJsonObject> m_json_events;
-        QVector<QJsonObject> m_json_states;
+  QVector<QJsonObject> m_json_timenodes;
+  QVector<QJsonObject> m_json_constraints;
+  QVector<QJsonObject> m_json_events;
+  QVector<QJsonObject> m_json_states;
 
-        // TODO std::map...
-        QMap<Id<ConstraintModel>, ConstraintViewModelIdMap> m_constraintViewModels;
+  // TODO std::map...
+  QMap<Id<ConstraintModel>, ConstraintViewModelIdMap> m_constraintViewModels;
 };
 }
 }

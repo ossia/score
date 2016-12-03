@@ -8,11 +8,10 @@ static const QMap<Category, QString> map{
     {Category::ScenarioData, QObject::tr("ScenarioData")},
     {Category::Process, QObject::tr("Process")},
     {Category::Device, QObject::tr("Device")},
-    {Category::Address, QObject::tr("Address")}
-};
+    {Category::Address, QObject::tr("Address")}};
 
 const QMap<Category, QString>& categoryPrettyName()
 {
-    return map;
+  return map;
 }
 }

@@ -13,30 +13,30 @@ namespace Scenario
 {
 class ConstraintModel;
 class ClickableLabelItem;
-class AddressBarItem final :
-    public QObject,
-    public QGraphicsItem
+class AddressBarItem final : public QObject, public QGraphicsItem
 {
-        Q_OBJECT
-        Q_INTERFACES(QGraphicsItem)
-    public:
-        AddressBarItem(QGraphicsItem* parent);
+  Q_OBJECT
+  Q_INTERFACES(QGraphicsItem)
+public:
+  AddressBarItem(QGraphicsItem* parent);
 
-        double width() const;
-        void setTargetObject(ObjectPath&&);
+  double width() const;
+  void setTargetObject(ObjectPath&&);
 
-        QRectF boundingRect() const override;
-        void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+  QRectF boundingRect() const override;
+  void paint(
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
-    signals:
-        void needRedraw();
-        void constraintSelected(ConstraintModel& cst);
+signals:
+  void needRedraw();
+  void constraintSelected(ConstraintModel& cst);
 
-    private:
-        void redraw();
-        QList<QGraphicsItem*> m_items;
-        ObjectPath m_currentPath;
+private:
+  void redraw();
+  QList<QGraphicsItem*> m_items;
+  ObjectPath m_currentPath;
 
-        double m_width{};
+  double m_width{};
 };
 }

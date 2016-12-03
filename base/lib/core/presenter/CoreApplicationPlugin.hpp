@@ -1,6 +1,6 @@
 #pragma once
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <core/presenter/Presenter.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 namespace iscore
 {
 class Presenter;
@@ -9,35 +9,34 @@ class Presenter;
  *
  * New document, load, open settings, etc.
  */
-class ISCORE_LIB_BASE_EXPORT CoreApplicationPlugin final :
-        public QObject,
-        public iscore::GUIApplicationContextPlugin
+class ISCORE_LIB_BASE_EXPORT CoreApplicationPlugin final
+    : public QObject,
+      public iscore::GUIApplicationContextPlugin
 {
-    public:
-        CoreApplicationPlugin(
-                const iscore::GUIApplicationContext& app,
-                Presenter& pres);
+public:
+  CoreApplicationPlugin(
+      const iscore::GUIApplicationContext& app, Presenter& pres);
 
-    private:
-        Presenter& m_presenter;
+private:
+  Presenter& m_presenter;
 
-        void newDocument();
+  void newDocument();
 
-        void load();
-        void save();
-        void saveAs();
+  void load();
+  void save();
+  void saveAs();
 
-        void close();
-        void quit();
+  void close();
+  void quit();
 
-        void restoreLayout();
+  void restoreLayout();
 
-        void openSettings();
-        void about();
+  void openSettings();
+  void about();
 
-        void loadStack();
-        void saveStack();
+  void loadStack();
+  void saveStack();
 
-        GUIElements makeGUIElements() override;
+  GUIElements makeGUIElements() override;
 };
 }

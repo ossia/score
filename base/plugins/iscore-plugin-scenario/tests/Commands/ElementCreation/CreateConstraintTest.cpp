@@ -3,83 +3,90 @@
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventData.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
 
 using namespace iscore;
 using namespace Scenario::Command;
 
-class CreateConstraintTest: public QObject
+class CreateConstraintTest : public QObject
 {
-        Q_OBJECT
-    private slots:
-        void RemoveTest()
+  Q_OBJECT
+private slots:
+  void RemoveTest()
+  {
+    Scenario::ProcessModel* scenar = new ScenarioModel(
+        std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
+
+    EventData data{};
+    data.dDate.setMSecs(10);
+    data.relativeY = 0.8;
+    data.endTimeNodeId = Id<TimeNodeModel>(-1);
+
+    CreateEventAfterEvent eventCmd(
         {
-            Scenario::ProcessModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
+            {"ScenarioModel", {0}},
+        },
+        data);
+    eventCmd.redo();
 
-            EventData data {};
-            data.dDate.setMSecs(10);
-            data.relativeY = 0.8;
-            data.endTimeNodeId = Id<TimeNodeModel>(-1);
+    data.dDate.setMSecs(30);
+    data.relativeY = 0.4;
 
-            CreateEventAfterEvent eventCmd(
-            {
-                {"ScenarioModel", {0}},
-            }, data);
-            eventCmd.redo();
+    CreateEvent event2Cmd(
+        {
+            {"ScenarioModel", {0}},
+        },
+        data);
+    event2Cmd.redo();
 
-            data.dDate.setMSecs(30);
-            data.relativeY = 0.4;
+    auto firstEvent_id = eventCmd.createdEvent();
+    auto lastEvent_id = event2Cmd.createdEvent();
 
-            CreateEvent event2Cmd(
-            {
-                {"ScenarioModel", {0}},
-            }, data);
-            event2Cmd.redo();
+    auto firstEvent = scenar->event(firstEvent_id);
+    auto lastEvent = scenar->event(lastEvent_id);
 
-            auto firstEvent_id = eventCmd.createdEvent();
-            auto lastEvent_id = event2Cmd.createdEvent();
+    CreateConstraint cstrCmd(
+        {
+            {"ScenarioModel", {0}},
+        },
+        firstEvent_id, lastEvent_id);
 
-            auto firstEvent = scenar->event(firstEvent_id);
-            auto lastEvent = scenar->event(lastEvent_id);
+    cstrCmd.redo();
 
-            CreateConstraint cstrCmd (
-            {
-                {"ScenarioModel", {0}},
-            }, firstEvent_id,
-                lastEvent_id);
+    QCOMPARE(firstEvent->nextConstraints().size(), 1);
+    QCOMPARE(lastEvent->previousConstraints().size(), 2);
 
-            cstrCmd.redo();
+    QCOMPARE(firstEvent->nextConstraints().at(0), cstrCmd.createdConstraint());
 
-            QCOMPARE(firstEvent->nextConstraints().size(), 1);
-            QCOMPARE(lastEvent->previousConstraints().size(), 2);
+    cstrCmd.undo();
 
-            QCOMPARE(firstEvent->nextConstraints().at(0), cstrCmd.createdConstraint());
+    QCOMPARE(firstEvent->nextConstraints().size(), 0);
+    QCOMPARE(lastEvent->previousConstraints().size(), 1);
 
-            cstrCmd.undo();
+    QCOMPARE(
+        lastEvent->previousConstraints().indexOf(cstrCmd.createdConstraint()),
+        -1);
+    QCOMPARE(
+        firstEvent->nextConstraints().indexOf(cstrCmd.createdConstraint()),
+        -1);
 
-            QCOMPARE(firstEvent->nextConstraints().size(), 0);
-            QCOMPARE(lastEvent->previousConstraints().size(), 1);
+    try
+    {
+      scenar->constraint(cstrCmd.createdConstraint());
+      QFAIL("Constraint call did not throw !");
+    }
+    catch (...)
+    {
+    }
+    cstrCmd.redo();
 
-            QCOMPARE(lastEvent->previousConstraints().indexOf(cstrCmd.createdConstraint()), -1);
-            QCOMPARE(firstEvent->nextConstraints().indexOf(cstrCmd.createdConstraint()), -1);
+    QCOMPARE(firstEvent->nextConstraints().size(), 1);
+    QCOMPARE(lastEvent->previousConstraints().size(), 2);
 
-            try
-            {
-                scenar->constraint(cstrCmd.createdConstraint());
-                QFAIL("Constraint call did not throw !");
-            }
-            catch (...) { }
-            cstrCmd.redo();
-
-            QCOMPARE(firstEvent->nextConstraints().size(), 1);
-            QCOMPARE(lastEvent->previousConstraints().size(), 2);
-
-            QCOMPARE(firstEvent->nextConstraints().at(0), cstrCmd.createdConstraint());
-
-        }
+    QCOMPARE(firstEvent->nextConstraints().at(0), cstrCmd.createdConstraint());
+  }
 };
 
 QTEST_MAIN(CreateConstraintTest)

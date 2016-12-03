@@ -1,6 +1,6 @@
 #pragma once
-#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <QRect>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 
 class QGraphicsItem;
 class QPainter;
@@ -12,17 +12,18 @@ namespace Scenario
 class FullViewConstraintPresenter;
 class FullViewConstraintView final : public ConstraintView
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
-        FullViewConstraintView(FullViewConstraintPresenter &presenter,
-                               QGraphicsItem* parent);
+public:
+  FullViewConstraintView(
+      FullViewConstraintPresenter& presenter, QGraphicsItem* parent);
 
-        virtual ~FullViewConstraintView() = default;
+  virtual ~FullViewConstraintView() = default;
 
-        QRectF boundingRect() const override;
-        void paint(QPainter* painter,
-                           const QStyleOptionGraphicsItem* option,
-                           QWidget* widget) override;
+  QRectF boundingRect() const override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 };
 }

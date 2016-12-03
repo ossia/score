@@ -3,38 +3,53 @@
 namespace Midi
 {
 
-Note::Note(const Id<Note>& id, QObject* parent):
-  IdentifiedObject<Note>(id, "Note", parent)
+Note::Note(const Id<Note>& id, QObject* parent)
+    : IdentifiedObject<Note>(id, "Note", parent)
 {
 }
 
-Note::Note(const Id<Note>& id, NoteData n, QObject* parent):
-  IdentifiedObject<Note>(id, "Note", parent),
-  m_start{n.start},
-  m_duration{n.duration},
-  m_pitch{n.pitch},
-  m_velocity{n.velocity}
+Note::Note(const Id<Note>& id, NoteData n, QObject* parent)
+    : IdentifiedObject<Note>(id, "Note", parent)
+    , m_start{n.start}
+    , m_duration{n.duration}
+    , m_pitch{n.pitch}
+    , m_velocity{n.velocity}
 {
 }
 
-Note*Note::clone(const Id<Note>& id, QObject* parent)
+Note* Note::clone(const Id<Note>& id, QObject* parent)
 {
   return new Note{id, this->noteData(), parent};
 }
 
-double Note::start() const { return m_start; }
+double Note::start() const
+{
+  return m_start;
+}
 
-double Note::duration() const { return m_duration; }
+double Note::duration() const
+{
+  return m_duration;
+}
 
-double Note::end() const { return m_start + m_duration; }
+double Note::end() const
+{
+  return m_start + m_duration;
+}
 
-midi_size_t Note::pitch() const { return m_pitch; }
+midi_size_t Note::pitch() const
+{
+  return m_pitch;
+}
 
-midi_size_t Note::velocity() const { return m_velocity; }
+midi_size_t Note::velocity() const
+{
+  return m_velocity;
+}
 
 void Note::scale(double s)
 {
-  if(s != 1.)
+  if (s != 1.)
   {
     m_start *= s;
     m_duration *= s;
@@ -44,7 +59,7 @@ void Note::scale(double s)
 
 void Note::setStart(double s)
 {
-  if(m_start != s)
+  if (m_start != s)
   {
     m_start = s;
     emit noteChanged();
@@ -53,7 +68,7 @@ void Note::setStart(double s)
 
 void Note::setDuration(double s)
 {
-  if(m_duration != s)
+  if (m_duration != s)
   {
     m_duration = s;
     emit noteChanged();
@@ -62,7 +77,7 @@ void Note::setDuration(double s)
 
 void Note::setPitch(midi_size_t s)
 {
-  if(m_pitch != s)
+  if (m_pitch != s)
   {
     m_pitch = s;
     emit noteChanged();
@@ -71,7 +86,7 @@ void Note::setPitch(midi_size_t s)
 
 void Note::setVelocity(midi_size_t s)
 {
-  if(m_velocity != s)
+  if (m_velocity != s)
   {
     m_velocity = s;
     emit noteChanged();
@@ -80,9 +95,7 @@ void Note::setVelocity(midi_size_t s)
 
 NoteData Note::noteData() const
 {
-  return NoteData{
-    m_start, m_duration,
-        m_pitch, m_velocity};
+  return NoteData{m_start, m_duration, m_pitch, m_velocity};
 }
 
 void Note::setData(NoteData d)
@@ -94,5 +107,4 @@ void Note::setData(NoteData d)
 
   emit noteChanged();
 }
-
 }

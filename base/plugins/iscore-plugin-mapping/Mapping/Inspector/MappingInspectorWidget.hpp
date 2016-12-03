@@ -1,9 +1,11 @@
 #pragma once
+#include <Mapping/MappingModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 class QWidget;
 
-namespace iscore{
+namespace iscore
+{
 class Document;
 struct DocumentContext;
 }
@@ -22,30 +24,30 @@ class QDoubleSpinBox;
 namespace Mapping
 {
 class ProcessModel;
-class InspectorWidget :
-        public Process::InspectorWidgetDelegate_T<ProcessModel>
+class InspectorWidget : public Process::InspectorWidgetDelegate_T<ProcessModel>
 {
-    public:
-        explicit InspectorWidget(
-                const ProcessModel& object,
-                const iscore::DocumentContext& context,
-                QWidget* parent);
+public:
+  explicit InspectorWidget(
+      const ProcessModel& object,
+      const iscore::DocumentContext& context,
+      QWidget* parent);
 
-    public slots:
-        void on_sourceAddressChange(const State::AddressAccessor& newText);
-        void on_sourceMinValueChanged();
-        void on_sourceMaxValueChanged();
+public slots:
+  void on_sourceAddressChange(const State::AddressAccessor& newText);
+  void on_sourceMinValueChanged();
+  void on_sourceMaxValueChanged();
 
-        void on_targetAddressChange(const State::AddressAccessor& newText);
-        void on_targetMinValueChanged();
-        void on_targetMaxValueChanged();
-    private:
-        Explorer::AddressAccessorEditWidget* m_sourceLineEdit{};
-        QDoubleSpinBox* m_sourceMin{}, *m_sourceMax{};
+  void on_targetAddressChange(const State::AddressAccessor& newText);
+  void on_targetMinValueChanged();
+  void on_targetMaxValueChanged();
 
-        Explorer::AddressAccessorEditWidget* m_targetLineEdit{};
-        QDoubleSpinBox* m_targetMin{}, *m_targetMax{};
+private:
+  Explorer::AddressAccessorEditWidget* m_sourceLineEdit{};
+  QDoubleSpinBox *m_sourceMin{}, *m_sourceMax{};
 
-        CommandDispatcher<> m_dispatcher;
+  Explorer::AddressAccessorEditWidget* m_targetLineEdit{};
+  QDoubleSpinBox *m_targetMin{}, *m_targetMax{};
+
+  CommandDispatcher<> m_dispatcher;
 };
 }

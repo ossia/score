@@ -7,7 +7,7 @@ class RackInspectorSection;
 
 class AddSlotWidget final : public QWidget
 {
-    public:
-        AddSlotWidget(RackInspectorSection* parent);
+public:
+  AddSlotWidget(RackInspectorSection* parent);
 };
 }

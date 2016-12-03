@@ -4,17 +4,16 @@ namespace Curve
 {
 SegmentFactory::~SegmentFactory()
 {
-
 }
 
 SegmentList::~SegmentList()
 {
-
 }
 
-SegmentList::object_type* SegmentList::loadMissing(const VisitorVariant& vis, QObject* parent) const
+SegmentList::object_type*
+SegmentList::loadMissing(const VisitorVariant& vis, QObject* parent) const
 {
-    ISCORE_TODO;
-    return nullptr;
+  ISCORE_TODO;
+  return nullptr;
 }
 }

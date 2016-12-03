@@ -1,65 +1,67 @@
 #pragma once
-#include <iscore/tools/IdentifiedObjectAbstract.hpp>
 #include <QPointer>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
 
 /**
  * A selection is a set of objects.
  */
 class Selection final : private QList<QPointer<const IdentifiedObjectAbstract>>
 {
-        using base_type = QList<QPointer<const IdentifiedObjectAbstract>>;
-    public:
-        using base_type::base_type;
-        using base_type::begin;
-        using base_type::end;
-        using base_type::cbegin;
-        using base_type::cend;
-        using base_type::constBegin;
-        using base_type::constEnd;
-        using base_type::erase;
-        using base_type::empty;
-        using base_type::clear;
-        using base_type::size;
-        using base_type::at;
-        using base_type::contains;
-        using base_type::removeAll;
+  using base_type = QList<QPointer<const IdentifiedObjectAbstract>>;
 
-        static Selection fromList(const QList<const IdentifiedObjectAbstract*> & other)
-        {
-            Selection s;
-            for(auto elt : other)
-            {
-                s.base_type::append(elt);
-            }
-            return s;
-        }
+public:
+  using base_type::base_type;
+  using base_type::begin;
+  using base_type::end;
+  using base_type::cbegin;
+  using base_type::cend;
+  using base_type::constBegin;
+  using base_type::constEnd;
+  using base_type::erase;
+  using base_type::empty;
+  using base_type::clear;
+  using base_type::size;
+  using base_type::at;
+  using base_type::contains;
+  using base_type::removeAll;
 
-        void append(base_type::value_type obj)
-        {
-            if(!contains(obj))
-                base_type::append(obj);
-        }
+  static Selection
+  fromList(const QList<const IdentifiedObjectAbstract*>& other)
+  {
+    Selection s;
+    for (auto elt : other)
+    {
+      s.base_type::append(elt);
+    }
+    return s;
+  }
 
-        bool operator==(const Selection& other) const
-        {
-            return base_type::operator !=(static_cast<const base_type&>(other));
-        }
+  void append(base_type::value_type obj)
+  {
+    if (!contains(obj))
+      base_type::append(obj);
+  }
 
-        bool operator!=(const Selection& other) const
-        {
-            return base_type::operator !=(static_cast<const base_type&>(other));
-        }
+  bool operator==(const Selection& other) const
+  {
+    return base_type::operator!=(static_cast<const base_type&>(other));
+  }
 
-        QList<const IdentifiedObjectAbstract*> toList() const
-        {
-            QList<const IdentifiedObjectAbstract*> l;
-            for(const auto& elt : *this)
-                l.push_back(elt);
-            return l;
-        }
+  bool operator!=(const Selection& other) const
+  {
+    return base_type::operator!=(static_cast<const base_type&>(other));
+  }
+
+  QList<const IdentifiedObjectAbstract*> toList() const
+  {
+    QList<const IdentifiedObjectAbstract*> l;
+    for (const auto& elt : *this)
+      l.push_back(elt);
+    return l;
+  }
 };
 
-template<typename T>
+template <typename T>
 /**
  * @brief filterSelections Filter selections in the standard GUI way
  * @param pressedModel The latest pressed item
@@ -73,34 +75,31 @@ template<typename T>
  *     - if the item was selected it is deselected
  *     - else it is added to the current selection
  */
-Selection filterSelections(
-        T* pressedModel,
-        Selection sel,
-        bool cumulation)
+Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
 {
-    if(!cumulation)
-    {
-        sel.clear();
-    }
+  if (!cumulation)
+  {
+    sel.clear();
+  }
 
-    // If the pressed element is selected
-    if(pressedModel->selection.get())
+  // If the pressed element is selected
+  if (pressedModel->selection.get())
+  {
+    if (cumulation)
     {
-        if(cumulation)
-        {
-            sel.removeAll(pressedModel);
-        }
-        else
-        {
-            sel.append(pressedModel);
-        }
+      sel.removeAll(pressedModel);
     }
     else
     {
-        sel.append(pressedModel);
+      sel.append(pressedModel);
     }
+  }
+  else
+  {
+    sel.append(pressedModel);
+  }
 
-    return sel;
+  return sel;
 }
 
 /**
@@ -110,15 +109,15 @@ Selection filterSelections(
  * with ctrl pressed.
  */
 inline Selection filterSelections(
-        Selection& newSelection,
-        const Selection& currentSelection,
-        bool cumulation)
+    Selection& newSelection,
+    const Selection& currentSelection,
+    bool cumulation)
 {
-    if(cumulation)
-    {
-        for(auto& elt : currentSelection)
-            newSelection.append(elt);
-    }
+  if (cumulation)
+  {
+    for (auto& elt : currentSelection)
+      newSelection.append(elt);
+  }
 
-    return newSelection;
+  return newSelection;
 }

@@ -1,56 +1,49 @@
 #include "DataStreamVisitor.hpp"
-#include <iscore/application/ApplicationContext.hpp>
 #include <QIODevice>
+#include <iscore/application/ApplicationContext.hpp>
 
-template <typename T> class Reader;
-template <typename T> class Writer;
+template <typename T>
+class Reader;
+template <typename T>
+class Writer;
 
-Visitor<Reader<DataStream>>::Visitor():
-    components{iscore::AppComponents()}
+Visitor<Reader<DataStream>>::Visitor() : components{iscore::AppComponents()}
 {
 }
 
-Visitor<Reader<DataStream>>::Visitor(QByteArray* array):
-    m_stream_impl{array, QIODevice::WriteOnly},
-    components{iscore::AppComponents()}
+Visitor<Reader<DataStream>>::Visitor(QByteArray* array)
+    : m_stream_impl{array, QIODevice::WriteOnly}
+    , components{iscore::AppComponents()}
 {
-    m_stream_impl.setVersion(QDataStream::Qt_5_3);
+  m_stream_impl.setVersion(QDataStream::Qt_5_3);
 }
 
-Visitor<Reader<DataStream>>::Visitor(QIODevice* dev):
-    m_stream_impl {dev},
-    components{iscore::AppComponents()}
-{
-}
-
-
-
-
-Visitor<Writer<DataStream>>::Visitor():
-    components{iscore::AppComponents()}
-{
-
-}
-
-Visitor<Writer<DataStream>>::Visitor(const QByteArray& array):
-    m_stream_impl{array},
-    components{iscore::AppComponents()}
-{
-    m_stream_impl.setVersion(QDataStream::Qt_5_3);
-}
-
-Visitor<Writer<DataStream>>::Visitor(QIODevice* dev):
-    m_stream_impl{dev},
-    components{iscore::AppComponents()}
+Visitor<Reader<DataStream>>::Visitor(QIODevice* dev)
+    : m_stream_impl{dev}, components{iscore::AppComponents()}
 {
 }
 
-QDataStream&operator<<(QDataStream& s, char c)
+Visitor<Writer<DataStream>>::Visitor() : components{iscore::AppComponents()}
+{
+}
+
+Visitor<Writer<DataStream>>::Visitor(const QByteArray& array)
+    : m_stream_impl{array}, components{iscore::AppComponents()}
+{
+  m_stream_impl.setVersion(QDataStream::Qt_5_3);
+}
+
+Visitor<Writer<DataStream>>::Visitor(QIODevice* dev)
+    : m_stream_impl{dev}, components{iscore::AppComponents()}
+{
+}
+
+QDataStream& operator<<(QDataStream& s, char c)
 {
   return s << QChar(c);
 }
 
-QDataStream&operator>>(QDataStream& s, char& c)
+QDataStream& operator>>(QDataStream& s, char& c)
 {
   QChar r;
   s >> r;
@@ -58,7 +51,7 @@ QDataStream&operator>>(QDataStream& s, char& c)
   return s;
 }
 
-QDataStream&operator<<(QDataStream& stream, const std::string& obj)
+QDataStream& operator<<(QDataStream& stream, const std::string& obj)
 {
   uint32_t size = obj.size();
   stream << size;
@@ -67,7 +60,7 @@ QDataStream&operator<<(QDataStream& stream, const std::string& obj)
   return stream;
 }
 
-QDataStream&operator>>(QDataStream& stream, std::string& obj)
+QDataStream& operator>>(QDataStream& stream, std::string& obj)
 {
   uint32_t n = 0;
   stream >> n;

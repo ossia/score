@@ -4,13 +4,13 @@ namespace Explorer
 {
 enum class Column : int
 {
-    Name = 0,
-    Value,
-    Get,
-    Set,
-    Min,
-    Max,
+  Name = 0,
+  Value,
+  Get,
+  Set,
+  Min,
+  Max,
 
-    Count //column count, always last
+  Count // column count, always last
 };
 }

@@ -1,6 +1,6 @@
 #pragma once
-#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 #include <QRect>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 
 class QGraphicsItem;
 class QPainter;
@@ -12,20 +12,21 @@ namespace Scenario
 class AddressBarItem;
 class FullViewConstraintHeader final : public ConstraintHeader
 {
-    public:
-        FullViewConstraintHeader(QGraphicsItem*);
+public:
+  FullViewConstraintHeader(QGraphicsItem*);
 
-        AddressBarItem* bar() const;
+  AddressBarItem* bar() const;
 
-        void setState(State s) override
-        {
+  void setState(State s) override
+  {
+  }
 
-        }
+  QRectF boundingRect() const override;
+  void paint(
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
-        QRectF boundingRect() const override;
-        void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-
-    private:
-        AddressBarItem* m_bar{};
+private:
+  AddressBarItem* m_bar{};
 };
 }

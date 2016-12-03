@@ -1,6 +1,6 @@
 #pragma once
-#include <stdexcept>
 #include <iscore/command/SerializableCommand.hpp>
+#include <stdexcept>
 
 namespace iscore
 {
@@ -11,11 +11,13 @@ namespace iscore
  */
 class MissingCommandException : public std::runtime_error
 {
-    public:
-        MissingCommandException(const CommandParentFactoryKey& parent, const CommandFactoryKey& command):
-            std::runtime_error{("Could not find " + command.toString() + " in " + parent.toString())}
-        {
-
-        }
+public:
+  MissingCommandException(
+      const CommandParentFactoryKey& parent, const CommandFactoryKey& command)
+      : std::runtime_error{
+            ("Could not find " + command.toString() + " in "
+             + parent.toString())}
+  {
+  }
 };
 }

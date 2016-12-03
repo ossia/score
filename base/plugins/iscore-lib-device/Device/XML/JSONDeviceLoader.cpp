@@ -1,8 +1,8 @@
 /*#include "JSONDeviceLoader.hpp"
 #include <QFile>
+#include <QJsonDocument>
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
-#include <QJsonDocument>
 
 namespace rapidjson
 {
@@ -93,4 +93,6 @@ void loadDeviceFromJSON(
 }
 */
 // static Device::Node node;
-//  static int f = (loadDeviceFromJSON("/home/jcelerier/Téléchargements/exemple_preset.json", node), 1);
+//  static int f =
+//  (loadDeviceFromJSON("/home/jcelerier/Téléchargements/exemple_preset.json",
+//  node), 1);

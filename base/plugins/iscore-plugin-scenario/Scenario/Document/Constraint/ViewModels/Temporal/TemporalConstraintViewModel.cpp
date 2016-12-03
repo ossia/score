@@ -1,5 +1,5 @@
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include "TemporalConstraintViewModel.hpp"
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
 class QObject;
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -7,31 +7,22 @@ class QObject;
 namespace Scenario
 {
 TemporalConstraintViewModel::TemporalConstraintViewModel(
-        const Id<ConstraintViewModel>& id,
-        ConstraintModel& model,
-        QObject* parent) :
-    ConstraintViewModel {id,
-                         "TemporalConstraintViewModel",
-                         model,
-                         parent
-                         }
+    const Id<ConstraintViewModel>& id, ConstraintModel& model, QObject* parent)
+    : ConstraintViewModel{id, "TemporalConstraintViewModel", model, parent}
 {
-
 }
 
 TemporalConstraintViewModel* TemporalConstraintViewModel::clone(
-        const Id<ConstraintViewModel>& id,
-        ConstraintModel& cm,
-        QObject* parent)
+    const Id<ConstraintViewModel>& id, ConstraintModel& cm, QObject* parent)
 {
-    auto cstr = new TemporalConstraintViewModel {id, cm, parent};
-    cstr->showRack(this->shownRack());
+  auto cstr = new TemporalConstraintViewModel{id, cm, parent};
+  cstr->showRack(this->shownRack());
 
-    return cstr;
+  return cstr;
 }
 
 QString TemporalConstraintViewModel::type() const
 {
-    return "Temporal";
+  return "Temporal";
 }
 }

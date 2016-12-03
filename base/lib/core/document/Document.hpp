@@ -2,21 +2,22 @@
 #include <core/command/CommandStack.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/locking/ObjectLocker.hpp>
-#include <iscore/selection/SelectionStack.hpp>
 #include <iscore/selection/FocusManager.hpp>
+#include <iscore/selection/SelectionStack.hpp>
 
-#include <core/document/DocumentMetadata.hpp>
 #include <QByteArray>
 #include <QJsonObject>
 #include <QString>
 #include <QTimer>
 #include <QVariant>
+#include <core/document/DocumentMetadata.hpp>
 
 class QObject;
 class QWidget;
-namespace iscore {
+namespace iscore
+{
 class DocumentBackupManager;
-}  // namespace iscore
+} // namespace iscore
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_lib_base_export.h>
 
@@ -40,99 +41,122 @@ class DocumentView;
  */
 class ISCORE_LIB_BASE_EXPORT Document final : public QObject
 {
-        Q_OBJECT
-        friend class DocumentBuilder;
-        friend struct DocumentContext;
-    public:
+  Q_OBJECT
+  friend class DocumentBuilder;
+  friend struct DocumentContext;
 
-        ~Document();
+public:
+  ~Document();
 
-        const DocumentMetadata& metadata() const { return m_metadata; }
-        DocumentMetadata& metadata() { return m_metadata; }
+  const DocumentMetadata& metadata() const
+  {
+    return m_metadata;
+  }
+  DocumentMetadata& metadata()
+  {
+    return m_metadata;
+  }
 
-        const Id<DocumentModel>& id() const;
+  const Id<DocumentModel>& id() const;
 
-        CommandStack& commandStack()
-        { return m_commandStack; }
+  CommandStack& commandStack()
+  {
+    return m_commandStack;
+  }
 
-        SelectionStack& selectionStack()
-        { return m_selectionStack; }
+  SelectionStack& selectionStack()
+  {
+    return m_selectionStack;
+  }
 
-        FocusManager& focusManager()
-        { return m_focus; }
+  FocusManager& focusManager()
+  {
+    return m_focus;
+  }
 
+  ObjectLocker& locker()
+  {
+    return m_objectLocker;
+  }
 
-        ObjectLocker& locker()
-        { return m_objectLocker; }
+  const DocumentContext& context() const
+  {
+    return m_context;
+  }
 
-        const DocumentContext& context() const
-        { return m_context; }
+  DocumentModel& model() const
+  {
+    return *m_model;
+  }
 
-        DocumentModel& model() const
-        { return *m_model; }
+  DocumentPresenter& presenter() const
+  {
+    return *m_presenter;
+  }
 
-        DocumentPresenter& presenter() const
-        { return *m_presenter; }
+  DocumentView& view() const
+  {
+    return *m_view;
+  }
 
-        DocumentView& view() const
-        { return *m_view; }
+  QJsonObject saveDocumentModelAsJson();
+  QByteArray saveDocumentModelAsByteArray();
 
-        QJsonObject saveDocumentModelAsJson();
-        QByteArray saveDocumentModelAsByteArray();
+  QJsonObject saveAsJson();
+  QByteArray saveAsByteArray();
 
-        QJsonObject saveAsJson();
-        QByteArray saveAsByteArray();
+  DocumentBackupManager* backupManager() const
+  {
+    return m_backupMgr;
+  }
 
-        DocumentBackupManager* backupManager() const
-        { return m_backupMgr; }
+  void setBackupMgr(DocumentBackupManager* backupMgr);
 
-        void setBackupMgr(DocumentBackupManager* backupMgr);
+  //! Indicates if the document has just been created and can be safely
+  //! discarded.
+  bool virgin() const
+  {
+    return m_virgin && !m_commandStack.canUndo() && !m_commandStack.canRedo();
+  }
 
-        //! Indicates if the document has just been created and can be safely discarded.
-        bool virgin() const
-        { return m_virgin && !m_commandStack.canUndo() && !m_commandStack.canRedo(); }
+signals:
+  //! Used to warn plug-ins that they are going to be deleted soon.
+  void aboutToClose();
 
-    signals:
-        //! Used to warn plug-ins that they are going to be deleted soon.
-        void aboutToClose();
+private:
+  // These are to be constructed by DocumentBuilder.
+  Document(
+      const QString& name,
+      const Id<DocumentModel>& id,
+      DocumentDelegateFactory& type,
+      QWidget* parentview,
+      QObject* parent);
 
-    private:
-        // These are to be constructed by DocumentBuilder.
-        Document(
-                const QString& name,
-                const Id<DocumentModel>& id,
-                DocumentDelegateFactory& type,
-                QWidget* parentview,
-                QObject* parent);
+  Document(
+      const QVariant& data,
+      DocumentDelegateFactory& type,
+      QWidget* parentview,
+      QObject* parent);
 
-        Document(
-                const QVariant& data,
-                DocumentDelegateFactory& type,
-                QWidget* parentview,
-                QObject* parent);
+  void init();
 
-        void init();
+  DocumentMetadata m_metadata;
+  CommandStack m_commandStack;
 
-        DocumentMetadata m_metadata;
-        CommandStack m_commandStack;
+  SelectionStack m_selectionStack;
+  ObjectLocker m_objectLocker;
+  FocusManager m_focus;
+  QTimer m_documentUpdateTimer;
 
-        SelectionStack m_selectionStack;
-        ObjectLocker m_objectLocker;
-        FocusManager m_focus;
-        QTimer m_documentUpdateTimer;
+  DocumentModel* m_model{};
+  DocumentView* m_view{};
+  DocumentPresenter* m_presenter{};
 
-        DocumentModel* m_model{};
-        DocumentView* m_view{};
-        DocumentPresenter* m_presenter{};
+  DocumentBackupManager* m_backupMgr{};
 
-        DocumentBackupManager* m_backupMgr{};
+  DocumentContext m_context;
 
-        DocumentContext m_context;
-
-        bool m_virgin{false}; // Used to check if we can safely close it
-        // if we want to load a document instead upon opening i-score.
+  bool m_virgin{false}; // Used to check if we can safely close it
+  // if we want to load a document instead upon opening i-score.
 };
-
-
-
 }

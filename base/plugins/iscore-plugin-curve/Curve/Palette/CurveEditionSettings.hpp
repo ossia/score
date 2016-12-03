@@ -5,55 +5,77 @@
 
 namespace Curve
 {
-enum class Tool {
-    Disabled, Select, Create, SetSegment, CreatePen, RemovePen, Playing
-};
-enum class AddPointBehaviour {
-    LinearBefore, LinearAfter, DuplicateSegment
-};
-enum class RemovePointBehaviour {
-    Remove, RemoveAndAddSegment
-};
-
-class ISCORE_PLUGIN_CURVE_EXPORT  EditionSettings : public QObject
+enum class Tool
 {
-        Q_OBJECT
-        Q_PROPERTY(bool lockBetweenPoints READ lockBetweenPoints WRITE setLockBetweenPoints NOTIFY lockBetweenPointsChanged)
-        Q_PROPERTY(bool suppressOnOverlap READ suppressOnOverlap WRITE setSuppressOnOverlap NOTIFY suppressOnOverlapChanged)
-        Q_PROPERTY(bool stretchBothBounds READ stretchBothBounds WRITE setStretchBothBounds NOTIFY stretchBothBoundsChanged)
-        Q_PROPERTY(Curve::AddPointBehaviour addPointBehaviour READ addPointBehaviour WRITE setAddPointBehaviour NOTIFY addPointBehaviourChanged)
-        Q_PROPERTY(Curve::RemovePointBehaviour removePointBehaviour READ removePointBehaviour WRITE setRemovePointBehaviour NOTIFY removePointBehaviourChanged)
-        Q_PROPERTY(Curve::Tool tool READ tool WRITE setTool NOTIFY toolChanged)
+  Disabled,
+  Select,
+  Create,
+  SetSegment,
+  CreatePen,
+  RemovePen,
+  Playing
+};
+enum class AddPointBehaviour
+{
+  LinearBefore,
+  LinearAfter,
+  DuplicateSegment
+};
+enum class RemovePointBehaviour
+{
+  Remove,
+  RemoveAndAddSegment
+};
 
-        bool m_lockBetweenPoints{true};
-        bool m_suppressOnOverlap{true};
-        bool m_stretchBothBounds{false};
-        Curve::AddPointBehaviour m_addPointBehaviour{AddPointBehaviour::DuplicateSegment};
-        Curve::RemovePointBehaviour m_removePointBehaviour{RemovePointBehaviour::RemoveAndAddSegment};
-        Curve::Tool m_tool{Curve::Tool::Disabled};
+class ISCORE_PLUGIN_CURVE_EXPORT EditionSettings : public QObject
+{
+  Q_OBJECT
+  Q_PROPERTY(bool lockBetweenPoints READ lockBetweenPoints WRITE
+                 setLockBetweenPoints NOTIFY lockBetweenPointsChanged)
+  Q_PROPERTY(bool suppressOnOverlap READ suppressOnOverlap WRITE
+                 setSuppressOnOverlap NOTIFY suppressOnOverlapChanged)
+  Q_PROPERTY(bool stretchBothBounds READ stretchBothBounds WRITE
+                 setStretchBothBounds NOTIFY stretchBothBoundsChanged)
+  Q_PROPERTY(Curve::AddPointBehaviour addPointBehaviour READ addPointBehaviour
+                 WRITE setAddPointBehaviour NOTIFY addPointBehaviourChanged)
+  Q_PROPERTY(Curve::RemovePointBehaviour removePointBehaviour READ
+                 removePointBehaviour WRITE setRemovePointBehaviour NOTIFY
+                     removePointBehaviourChanged)
+  Q_PROPERTY(Curve::Tool tool READ tool WRITE setTool NOTIFY toolChanged)
 
-    public:
-        bool lockBetweenPoints() const;
-        bool suppressOnOverlap() const;
-        bool stretchBothBounds() const;
-        Curve::AddPointBehaviour addPointBehaviour() const;
-        Curve::RemovePointBehaviour removePointBehaviour() const;
-        Curve::Tool tool() const;
+  bool m_lockBetweenPoints{true};
+  bool m_suppressOnOverlap{true};
+  bool m_stretchBothBounds{false};
+  Curve::AddPointBehaviour m_addPointBehaviour{
+      AddPointBehaviour::DuplicateSegment};
+  Curve::RemovePointBehaviour m_removePointBehaviour{
+      RemovePointBehaviour::RemoveAndAddSegment};
+  Curve::Tool m_tool{Curve::Tool::Disabled};
 
-        void setLockBetweenPoints(bool);
-        void setSuppressOnOverlap(bool);
-        void setStretchBothBounds(bool);
-        void setAddPointBehaviour(Curve::AddPointBehaviour);
-        void setRemovePointBehaviour(Curve::RemovePointBehaviour removePointBehaviour);
-        void setTool(Curve::Tool tool);
+public:
+  bool lockBetweenPoints() const;
+  bool suppressOnOverlap() const;
+  bool stretchBothBounds() const;
+  Curve::AddPointBehaviour addPointBehaviour() const;
+  Curve::RemovePointBehaviour removePointBehaviour() const;
+  Curve::Tool tool() const;
 
-    signals:
-        void lockBetweenPointsChanged(bool);
-        void suppressOnOverlapChanged(bool);
-        void stretchBothBoundsChanged(bool);
-        void addPointBehaviourChanged(Curve::AddPointBehaviour);
-        void removePointBehaviourChanged(Curve::RemovePointBehaviour removePointBehaviour);
-        void toolChanged(Curve::Tool tool);
+  void setLockBetweenPoints(bool);
+  void setSuppressOnOverlap(bool);
+  void setStretchBothBounds(bool);
+  void setAddPointBehaviour(Curve::AddPointBehaviour);
+  void
+  setRemovePointBehaviour(Curve::RemovePointBehaviour removePointBehaviour);
+  void setTool(Curve::Tool tool);
+
+signals:
+  void lockBetweenPointsChanged(bool);
+  void suppressOnOverlapChanged(bool);
+  void stretchBothBoundsChanged(bool);
+  void addPointBehaviourChanged(Curve::AddPointBehaviour);
+  void removePointBehaviourChanged(
+      Curve::RemovePointBehaviour removePointBehaviour);
+  void toolChanged(Curve::Tool tool);
 };
 }
 

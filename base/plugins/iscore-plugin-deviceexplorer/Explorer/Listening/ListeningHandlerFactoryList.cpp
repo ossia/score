@@ -4,27 +4,25 @@ namespace Explorer
 {
 ListeningHandlerFactoryList::~ListeningHandlerFactoryList()
 {
-
 }
 
-std::unique_ptr<Explorer::ListeningHandler>
-ListeningHandlerFactoryList::make(
-        const Explorer::DeviceDocumentPlugin& plug,
-        const iscore::DocumentContext &ctx) const
+std::unique_ptr<Explorer::ListeningHandler> ListeningHandlerFactoryList::make(
+    const Explorer::DeviceDocumentPlugin& plug,
+    const iscore::DocumentContext& ctx) const
 {
-    if(empty())
+  if (empty())
+  {
+    DefaultListeningHandlerFactory fact;
+    return fact.make(plug, ctx);
+  }
+  else
+  {
+    for (auto& fact : *this)
     {
-        DefaultListeningHandlerFactory fact;
-        return fact.make(plug, ctx);
+      if (auto res = fact.make(plug, ctx))
+        return res;
     }
-    else
-    {
-        for(auto& fact : *this)
-        {
-            if(auto res = fact.make(plug, ctx))
-                return res;
-        }
-        return nullptr;
-    }
+    return nullptr;
+  }
 }
 }

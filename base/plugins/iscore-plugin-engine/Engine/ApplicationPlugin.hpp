@@ -1,31 +1,37 @@
 #pragma once
 
 #include <Process/TimeValue.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <QString>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <memory>
 
 #include <Engine/Executor/ContextMenu/PlayContextMenu.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore_plugin_engine_export.h>
-namespace iscore {
+namespace iscore
+{
 
 class Document;
-}  // namespace iscore
+} // namespace iscore
 struct VisitorVariant;
 
 namespace Scenario
-{ class ConstraintModel; }
+{
+class ConstraintModel;
+}
 namespace ossia
 {
-    class Device;
+class Device;
 }
-namespace Engine { namespace Execution
+namespace Engine
+{
+namespace Execution
 {
 class ClockManager;
 struct Context;
 class ConstraintElement;
-} }
+}
+}
 // TODO this should have "OSSIA Policies" : one would be the
 // "basic" that corresponds to the default scenario.
 // One would be the "distributed" policy which provides the
@@ -33,42 +39,46 @@ class ConstraintElement;
 
 namespace Engine
 {
-class ISCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final :
-        public QObject,
-        public iscore::GUIApplicationContextPlugin
+class ISCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
+    : public QObject,
+      public iscore::GUIApplicationContextPlugin
 {
-    public:
-        ApplicationPlugin(
-                const iscore::GUIApplicationContext& app);
-        ~ApplicationPlugin();
+public:
+  ApplicationPlugin(const iscore::GUIApplicationContext& app);
+  ~ApplicationPlugin();
 
-        bool handleStartup() override;
+  bool handleStartup() override;
 
-        void on_initDocument(iscore::Document& doc) override;
-        void on_createdDocument(iscore::Document& doc) override;
+  void on_initDocument(iscore::Document& doc) override;
+  void on_createdDocument(iscore::Document& doc) override;
 
-        void on_documentChanged(
-                iscore::Document* olddoc,
-                iscore::Document* newdoc) override;
+  void on_documentChanged(
+      iscore::Document* olddoc, iscore::Document* newdoc) override;
 
-        void on_play(bool, ::TimeValue t = ::TimeValue::zero() );
-        void on_play(Scenario::ConstraintModel&, bool, ::TimeValue t = ::TimeValue::zero() );
-        void on_record(::TimeValue t);
+  void on_play(bool, ::TimeValue t = ::TimeValue::zero());
+  void on_play(
+      Scenario::ConstraintModel&, bool, ::TimeValue t = ::TimeValue::zero());
+  void on_record(::TimeValue t);
 
-        bool playing() const
-        { return m_playing; }
-        bool paused() const
-        { return m_paused; }
+  bool playing() const
+  {
+    return m_playing;
+  }
+  bool paused() const
+  {
+    return m_paused;
+  }
 
-    private:
-        void on_stop();
-        void on_init();
+private:
+  void on_stop();
+  void on_init();
 
-        std::unique_ptr<Engine::Execution::ClockManager> makeClock(const Engine::Execution::Context&);
+  std::unique_ptr<Engine::Execution::ClockManager>
+  makeClock(const Engine::Execution::Context&);
 
-        Engine::Execution::PlayContextMenu m_playActions;
+  Engine::Execution::PlayContextMenu m_playActions;
 
-        std::unique_ptr<Engine::Execution::ClockManager> m_clock;
-        bool m_playing{false}, m_paused{false};
+  std::unique_ptr<Engine::Execution::ClockManager> m_clock;
+  bool m_playing{false}, m_paused{false};
 };
 }

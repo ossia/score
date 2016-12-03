@@ -10,74 +10,76 @@
 class QComboBox;
 class QLabel;
 class QLineEdit;
-namespace Explorer {
+namespace Explorer
+{
 class AddressAccessorEditWidget;
 }
-
 
 namespace Scenario
 {
 
 enum ExpressionEditorComparator
 {
-    // Same as in Relation
-    Equal,
-    Different,
-    Greater,
-    Lower,
-    GreaterEqual,
-    LowerEqual,
+  // Same as in Relation
+  Equal,
+  Different,
+  Greater,
+  Lower,
+  GreaterEqual,
+  LowerEqual,
 
-    // Additional ones
-    Pulse,
-    AlwaysTrue,
-    AlwaysFalse
+  // Additional ones
+  Pulse,
+  AlwaysTrue,
+  AlwaysFalse
 };
 
-inline const std::map<ExpressionEditorComparator, QString>& ExpressionEditorComparators();
+inline const std::map<ExpressionEditorComparator, QString>&
+ExpressionEditorComparators();
 
 // TODO move in plugin state
 class SimpleExpressionEditorWidget final : public QWidget
 {
-    Q_OBJECT
-    public:
-        SimpleExpressionEditorWidget(const iscore::DocumentContext&, int index, QWidget* parent = nullptr);
+  Q_OBJECT
+public:
+  SimpleExpressionEditorWidget(
+      const iscore::DocumentContext&, int index, QWidget* parent = nullptr);
 
-        State::Expression relation();
-        State::BinaryOperator binOperator();
+  State::Expression relation();
+  State::BinaryOperator binOperator();
 
-        int id;
+  int id;
 
-        void setRelation(State::Relation r);
-        void setPulse(State::Pulse r);
-        void setOperator(State::BinaryOperator o);
-        void setOperator(State::UnaryOperator u);
+  void setRelation(State::Relation r);
+  void setPulse(State::Pulse r);
+  void setOperator(State::BinaryOperator o);
+  void setOperator(State::UnaryOperator u);
 
-        QString currentRelation();
-        QString currentOperator();
+  QString currentRelation();
+  QString currentOperator();
 
-    signals:
-        void editingFinished();
-        void addTerm();
-        void removeTerm(int index);
+signals:
+  void editingFinished();
+  void addTerm();
+  void removeTerm(int index);
 
-    private:
-        void on_editFinished();
-        void on_comparatorChanged(int i);
-// TODO on_modelChanged() -> done in parent inspector (i.e. event), no ?
+private:
+  void on_editFinished();
+  void on_comparatorChanged(int i);
+  // TODO on_modelChanged() -> done in parent inspector (i.e. event), no ?
 
-        QLabel* m_ok{};
+  QLabel* m_ok{};
 
-        Explorer::AddressAccessorEditWidget* m_address{};
-        QComboBox* m_comparator{};
-        QLineEdit * m_value{};
-        QComboBox* m_binOperator{};
+  Explorer::AddressAccessorEditWidget* m_address{};
+  QComboBox* m_comparator{};
+  QLineEdit* m_value{};
+  QComboBox* m_binOperator{};
 
-        ExpressionValidator<State::Expression> m_validator;
-        QString m_relation{};
-        QString m_op{};
+  ExpressionValidator<State::Expression> m_validator;
+  QString m_relation{};
+  QString m_op{};
 
-        QWidget* m_wrapper{};
+  QWidget* m_wrapper{};
 };
 }
 

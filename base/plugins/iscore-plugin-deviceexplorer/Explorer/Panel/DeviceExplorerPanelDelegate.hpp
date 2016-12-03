@@ -3,22 +3,19 @@
 namespace Explorer
 {
 class DeviceExplorerWidget;
-class PanelDelegate final :
-        public iscore::PanelDelegate
+class PanelDelegate final : public iscore::PanelDelegate
 {
-    public:
-        PanelDelegate(
-                const iscore::ApplicationContext& ctx);
+public:
+  PanelDelegate(const iscore::ApplicationContext& ctx);
 
-    private:
-        QWidget *widget() override;
+private:
+  QWidget* widget() override;
 
-        const iscore::PanelStatus& defaultPanelStatus() const override;
+  const iscore::PanelStatus& defaultPanelStatus() const override;
 
-        void on_modelChanged(
-                iscore::MaybeDocument oldm,
-                iscore::MaybeDocument newm) override;
+  void on_modelChanged(
+      iscore::MaybeDocument oldm, iscore::MaybeDocument newm) override;
 
-        DeviceExplorerWidget* m_widget{};
+  DeviceExplorerWidget* m_widget{};
 };
 }

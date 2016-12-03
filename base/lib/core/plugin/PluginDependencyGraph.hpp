@@ -1,10 +1,10 @@
 #pragma once
 #include <QObject>
-#include <memory>
-#include <set>
 #include <exception>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <memory>
+#include <set>
 
 namespace iscore
 {
@@ -16,209 +16,209 @@ namespace PluginLoader
  */
 struct PluginDependencyNode
 {
-        bool mark = false;
+  bool mark = false;
 
-        QObject* plug{};
-        PluginDependencyNode(QObject* obj): plug{obj} {}
+  QObject* plug{};
+  PluginDependencyNode(QObject* obj) : plug{obj}
+  {
+  }
 
-        std::set<
-            std::weak_ptr<PluginDependencyNode>,
-            std::owner_less<std::weak_ptr<PluginDependencyNode>>
-        > found_dependencies;
+  std::
+      set<std::weak_ptr<PluginDependencyNode>,
+          std::owner_less<std::weak_ptr<PluginDependencyNode>>>
+          found_dependencies;
 
-        Plugin_QtInterface*
-        requirements() const
-        { return dynamic_cast<Plugin_QtInterface*> (plug); }
-        GUIApplicationContextPlugin_QtInterface*
-        applicationPlugin() const
-        { return dynamic_cast<GUIApplicationContextPlugin_QtInterface*> (plug); }
+  Plugin_QtInterface* requirements() const
+  {
+    return dynamic_cast<Plugin_QtInterface*>(plug);
+  }
+  GUIApplicationContextPlugin_QtInterface* applicationPlugin() const
+  {
+    return dynamic_cast<GUIApplicationContextPlugin_QtInterface*>(plug);
+  }
 
-        bool checkDependencies()
-        {
-            auto reqs = requirements();
-            if(!reqs)
-                return true;
-            // For some reason there is a crash if
-            // doing all_of on an empty QStringList.
-            auto required = reqs->required();
+  bool checkDependencies()
+  {
+    auto reqs = requirements();
+    if (!reqs)
+      return true;
+    // For some reason there is a crash if
+    // doing all_of on an empty QStringList.
+    auto required = reqs->required();
 
-            return std::all_of(
-                        required.begin(),
-                        required.end(),
-                        [&] (QString req) { return checkDependency(req); });
-        }
+    return std::all_of(required.begin(), required.end(), [&](QString req) {
+      return checkDependency(req);
+    });
+  }
 
-        bool checkDependency(QString req)
-        {
-            auto found_it = std::find_if(
-                        found_dependencies.begin(),
-                        found_dependencies.end(),
-                        [&] (const auto& other_node) {
+  bool checkDependency(QString req)
+  {
+    auto found_it = std::find_if(
+        found_dependencies.begin(),
+        found_dependencies.end(),
+        [&](const auto& other_node) {
 
-                auto lock = other_node.lock();
-                auto other_reqs = lock->requirements();
-                if(!other_reqs)
-                    return false;
+          auto lock = other_node.lock();
+          auto other_reqs = lock->requirements();
+          if (!other_reqs)
+            return false;
 
-                auto offered = other_reqs->offered();
-                return offered.contains(req);
-            });
+          auto offered = other_reqs->offered();
+          return offered.contains(req);
+        });
 
-            return found_it != found_dependencies.end();
-        }
+    return found_it != found_dependencies.end();
+  }
 };
 
 // TESTME
 /**
- * @brief Organizes the plug-ins in a dependency graph according to their requirements
+ * @brief Organizes the plug-ins in a dependency graph according to their
+ * requirements
  *
  * \todo Use Boost.Graph instead.
- * \todo Use the link order and some cmake-fu to generate the dependencies automatically.
+ * \todo Use the link order and some cmake-fu to generate the dependencies
+ * automatically.
  */
 struct PluginDependencyGraph
 {
-    private:
-        using NodePtr = std::shared_ptr<PluginDependencyNode>;
-        QList<NodePtr> nodes;
+private:
+  using NodePtr = std::shared_ptr<PluginDependencyNode>;
+  QList<NodePtr> nodes;
 
-        QList<NodePtr> nodes_with_missing_deps;
+  QList<NodePtr> nodes_with_missing_deps;
 
-        class CircularDependency : public std::logic_error
+  class CircularDependency : public std::logic_error
+  {
+  public:
+    NodePtr source;
+    // Source, target
+    CircularDependency(NodePtr src)
+        : std::logic_error{"Circular dependency"}, source{src}
+    {
+    }
+  };
+
+public:
+  void addNode(QObject* plug)
+  {
+    auto n = std::make_shared<PluginDependencyNode>(plug);
+    if (n->requirements())
+    {
+      auto reqs = n->requirements()->required();
+      if (!reqs.empty())
+      {
+        for (const auto& req : reqs)
         {
-            public:
-                NodePtr source;
-                // Source, target
-                CircularDependency(NodePtr src):
-                    std::logic_error{"Circular dependency"},
-                    source{src}
-                {
-
-                }
-
-        };
-
-    public:
-        void addNode(QObject* plug)
-        {
-            auto n = std::make_shared<PluginDependencyNode>(plug);
-            if(n->requirements())
+          for (const auto& other : nodes)
+          {
+            auto other_reqs = other->requirements();
+            if (other_reqs && other_reqs->offered().contains(req))
             {
-                auto reqs = n->requirements()->required();
-                if(!reqs.empty())
-                {
-                    for(const auto& req : reqs)
-                    {
-                        for(const auto& other : nodes)
-                        {
-                            auto other_reqs = other->requirements();
-                            if(other_reqs && other_reqs->offered().contains(req))
-                            {
-                                n->found_dependencies.insert(other);
-                            }
-                        }
-                    }
-                }
-
-
-                auto offers = n->requirements()->offered();
-                if(!offers.empty())
-                {
-                    for(const auto& offer : offers)
-                    {
-                        for(const auto& other : nodes)
-                        {
-                            auto other_reqs = other->requirements();
-                            if(other_reqs && other_reqs->required().contains(offer))
-                            {
-                                other->found_dependencies.insert(n);
-                            }
-                        }
-                    }
-                }
+              n->found_dependencies.insert(other);
             }
-
-            nodes.append(n);
+          }
         }
+      }
 
-        template<typename Fun>
-        /**
-         * @brief visit Will visit the graph in dependency order,
-         * without visiting a node twice.
-         * @param f a function to apply. void(GUIApplicationContextPlugin*).
-         */
-        void visit(Fun f)
+      auto offers = n->requirements()->offered();
+      if (!offers.empty())
+      {
+        for (const auto& offer : offers)
         {
-            auto apply = [&] (auto&& node) {
-                if(!node->mark)
-                    f(node->plug);
-                node->mark = true;
-            };
-
-            // First get rid of the plug-ins that don't have all their dependencies
-            for(const auto& node : nodes)
+          for (const auto& other : nodes)
+          {
+            auto other_reqs = other->requirements();
+            if (other_reqs && other_reqs->required().contains(offer))
             {
-                // Check that all the requirements are satisfied.
-                if(!node->checkDependencies())
-                {
-                    nodes.removeOne(node);
-                    nodes_with_missing_deps.append(node);
-                }
+              other->found_dependencies.insert(n);
             }
-
-            for(const auto& node : nodes)
-            {
-                if(node->found_dependencies.empty())
-                {
-                    apply(node);
-                }
-                else
-                {
-                    try
-                    {
-                        for(const auto& dep : node->found_dependencies)
-                        {
-                            apply_parents_rec(f, dep.lock(), node);
-                        }
-
-                        apply(node);
-                    }
-                    catch(CircularDependency& e)
-                    {
-                        // Recursively remove all those
-                        // depending on the element.
-                        fix_circular_dep(e.source);
-                        qDebug() << "A plug-in was removed due to a dependency loop.";
-                        continue;
-                    }
-                }
-            }
-            qDebug() << nodes_with_missing_deps.size() << "plugins were not loaded.";
-
+          }
         }
+      }
+    }
 
-        void fix_circular_dep(NodePtr e)
+    nodes.append(n);
+  }
+
+  template <typename Fun>
+  /**
+   * @brief visit Will visit the graph in dependency order,
+   * without visiting a node twice.
+   * @param f a function to apply. void(GUIApplicationContextPlugin*).
+   */
+  void visit(Fun f)
+  {
+    auto apply = [&](auto&& node) {
+      if (!node->mark)
+        f(node->plug);
+      node->mark = true;
+    };
+
+    // First get rid of the plug-ins that don't have all their dependencies
+    for (const auto& node : nodes)
+    {
+      // Check that all the requirements are satisfied.
+      if (!node->checkDependencies())
+      {
+        nodes.removeOne(node);
+        nodes_with_missing_deps.append(node);
+      }
+    }
+
+    for (const auto& node : nodes)
+    {
+      if (node->found_dependencies.empty())
+      {
+        apply(node);
+      }
+      else
+      {
+        try
         {
-            ISCORE_TODO;
-        }
+          for (const auto& dep : node->found_dependencies)
+          {
+            apply_parents_rec(f, dep.lock(), node);
+          }
 
-        template<typename Fun>
-        void apply_parents_rec(Fun f, NodePtr ptr, NodePtr orig)
+          apply(node);
+        }
+        catch (CircularDependency& e)
         {
-            if(ptr->mark)
-                return;
-
-            for(const auto& weak_dep : ptr->found_dependencies)
-            {
-                auto dep = weak_dep.lock();
-                if(dep == orig)
-                    throw CircularDependency(orig);
-
-                apply_parents_rec(f, dep, orig);
-            }
-
-            f(ptr->plug);
-            ptr->mark = true;
+          // Recursively remove all those
+          // depending on the element.
+          fix_circular_dep(e.source);
+          qDebug() << "A plug-in was removed due to a dependency loop.";
+          continue;
         }
+      }
+    }
+    qDebug() << nodes_with_missing_deps.size() << "plugins were not loaded.";
+  }
+
+  void fix_circular_dep(NodePtr e)
+  {
+    ISCORE_TODO;
+  }
+
+  template <typename Fun>
+  void apply_parents_rec(Fun f, NodePtr ptr, NodePtr orig)
+  {
+    if (ptr->mark)
+      return;
+
+    for (const auto& weak_dep : ptr->found_dependencies)
+    {
+      auto dep = weak_dep.lock();
+      if (dep == orig)
+        throw CircularDependency(orig);
+
+      apply_parents_rec(f, dep, orig);
+    }
+
+    f(ptr->plug);
+    ptr->mark = true;
+  }
 };
 }
 }

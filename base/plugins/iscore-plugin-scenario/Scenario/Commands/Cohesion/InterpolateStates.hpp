@@ -12,7 +12,7 @@ namespace Scenario
 class ConstraintModel;
 namespace Command
 {
-void InterpolateStates(const QList<const ConstraintModel*>&,
-                       const iscore::CommandStackFacade&);
+void InterpolateStates(
+    const QList<const ConstraintModel*>&, const iscore::CommandStackFacade&);
 }
 }

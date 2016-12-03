@@ -24,37 +24,37 @@ class SimpleExpressionEditorWidget;
 // TODO move in State lib
 class ExpressionEditorWidget : public QWidget
 {
-        Q_OBJECT
-    public:
-        explicit ExpressionEditorWidget(const iscore::DocumentContext&doc, QWidget *parent = nullptr);
+  Q_OBJECT
+public:
+  explicit ExpressionEditorWidget(
+      const iscore::DocumentContext& doc, QWidget* parent = nullptr);
 
-        State::Expression expression();
-        void setExpression(State::Expression e);
+  State::Expression expression();
+  void setExpression(State::Expression e);
 
-        void addNewTerm();
-        void on_editFinished();
+  void addNewTerm();
+  void on_editFinished();
 
-    signals:
-        void editingFinished();
-        void resetExpression();
+signals:
+  void editingFinished();
+  void resetExpression();
 
+private:
+  //	void on_operatorChanged(int i);
+  // TODO on_modelChanged()
 
-    private:
-//	void on_operatorChanged(int i);
-// TODO on_modelChanged()
+  void exploreExpression(State::Expression e);
 
-        void exploreExpression(State::Expression e);
+  QString currentExpr();
+  void removeTerm(int index);
 
-        QString currentExpr();
-        void removeTerm(int index);
+  const iscore::DocumentContext& m_context;
+  QVector<SimpleExpressionEditorWidget*> m_relations;
 
-        const iscore::DocumentContext& m_context;
-        QVector<SimpleExpressionEditorWidget*> m_relations;
+  QVBoxLayout* m_mainLayout{};
 
-        QVBoxLayout* m_mainLayout{};
+  ExpressionValidator<State::Expression> m_validator;
 
-        ExpressionValidator<State::Expression> m_validator;
-
-        QString m_expression{};
+  QString m_expression{};
 };
 }

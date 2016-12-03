@@ -1,13 +1,14 @@
 #pragma once
-#include <iscore/tools/std/Optional.hpp>
-#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <QPoint>
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <Curve/Commands/SetSegmentParameters.hpp>
 
-namespace iscore {
+namespace iscore
+{
 class CommandStackFacade;
-}  // namespace iscore
+} // namespace iscore
 
 namespace Curve
 {
@@ -16,27 +17,29 @@ class Presenter;
 class StateBase;
 class SetSegmentParametersCommandObject
 {
-    public:
-        SetSegmentParametersCommandObject(
-                const Model&,
-                const iscore::CommandStackFacade&);
+public:
+  SetSegmentParametersCommandObject(
+      const Model&, const iscore::CommandStackFacade&);
 
-        void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
+  void setCurveState(Curve::StateBase* stateBase)
+  {
+    m_state = stateBase;
+  }
 
-        void press();
+  void press();
 
-        void move();
+  void move();
 
-        void release();
+  void release();
 
-        void cancel();
+  void cancel();
 
-    private:
-        const Model& m_model;
-        SingleOngoingCommandDispatcher<SetSegmentParameters> m_dispatcher;
+private:
+  const Model& m_model;
+  SingleOngoingCommandDispatcher<SetSegmentParameters> m_dispatcher;
 
-        Curve::StateBase* m_state{};
-        QPointF m_originalPress;
-        optional<double> m_verticalOrig, m_horizontalOrig;
+  Curve::StateBase* m_state{};
+  QPointF m_originalPress;
+  optional<double> m_verticalOrig, m_horizontalOrig;
 };
 }

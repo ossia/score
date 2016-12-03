@@ -7,65 +7,67 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-template <typename T> class Reader;
-template <typename T> class Writer;
+template <typename T>
+class Reader;
+template <typename T>
+class Writer;
 
-template<>
+template <>
 void Visitor<Reader<DataStream>>::readFrom(
-        const RecordedMessages::RecordedMessage& rm)
+    const RecordedMessages::RecordedMessage& rm)
 {
-    m_stream << rm.percentage << rm.message;
+  m_stream << rm.percentage << rm.message;
 }
 
-template<>
+template <>
 void Visitor<Writer<DataStream>>::writeTo(
-        RecordedMessages::RecordedMessage& rm)
+    RecordedMessages::RecordedMessage& rm)
 {
-    m_stream >> rm.percentage >> rm.message;
+  m_stream >> rm.percentage >> rm.message;
 }
 
-template<>
+template <>
 void Visitor<Reader<JSONObject>>::readFrom(
-        const RecordedMessages::RecordedMessage& rm)
+    const RecordedMessages::RecordedMessage& rm)
 {
-    m_obj["Percentage"] = rm.percentage;
-    m_obj[strings.Message] = toJsonObject(rm.message);
+  m_obj["Percentage"] = rm.percentage;
+  m_obj[strings.Message] = toJsonObject(rm.message);
 }
 
-template<>
+template <>
 void Visitor<Writer<JSONObject>>::writeTo(
-        RecordedMessages::RecordedMessage& rm)
+    RecordedMessages::RecordedMessage& rm)
 {
-    rm.percentage = m_obj["Percentage"].toDouble();
-    rm.message = fromJsonObject<State::Message>(m_obj[strings.Message]);
+  rm.percentage = m_obj["Percentage"].toDouble();
+  rm.message = fromJsonObject<State::Message>(m_obj[strings.Message]);
 }
 
-
-
-template<>
-void Visitor<Reader<DataStream>>::readFrom_impl(const RecordedMessages::ProcessModel& proc)
+template <>
+void Visitor<Reader<DataStream>>::readFrom_impl(
+    const RecordedMessages::ProcessModel& proc)
 {
-    m_stream << proc.m_messages;
+  m_stream << proc.m_messages;
 
-    insertDelimiter();
+  insertDelimiter();
 }
 
-template<>
+template <>
 void Visitor<Writer<DataStream>>::writeTo(RecordedMessages::ProcessModel& proc)
 {
-    m_stream >> proc.m_messages;
+  m_stream >> proc.m_messages;
 
-    checkDelimiter();
+  checkDelimiter();
 }
 
-template<>
-void Visitor<Reader<JSONObject>>::readFrom_impl(const RecordedMessages::ProcessModel& proc)
+template <>
+void Visitor<Reader<JSONObject>>::readFrom_impl(
+    const RecordedMessages::ProcessModel& proc)
 {
-    m_obj["Messages"] = toJsonArray(proc.messages());
+  m_obj["Messages"] = toJsonArray(proc.messages());
 }
 
-template<>
+template <>
 void Visitor<Writer<JSONObject>>::writeTo(RecordedMessages::ProcessModel& proc)
 {
-    fromJsonArray(m_obj["Messages"].toArray(), proc.m_messages);
+  fromJsonArray(m_obj["Messages"].toArray(), proc.m_messages);
 }

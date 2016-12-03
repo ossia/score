@@ -9,65 +9,55 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-
 #include <iscore/document/DocumentContext.hpp>
 class QObject;
 namespace Scenario
 {
 FullViewConstraintViewModel::FullViewConstraintViewModel(
-        const Id<ConstraintViewModel>& id,
-        ConstraintModel& model,
-        QObject* parent) :
-    ConstraintViewModel {id,
-                         "FullViewConstraintViewModel",
-                         model,
-                         parent
-}
+    const Id<ConstraintViewModel>& id, ConstraintModel& model, QObject* parent)
+    : ConstraintViewModel{id, "FullViewConstraintViewModel", model, parent}
 {
-
 }
 
 FullViewConstraintViewModel* FullViewConstraintViewModel::clone(
-        const Id<ConstraintViewModel>& id,
-        ConstraintModel& cm,
-        QObject* parent)
+    const Id<ConstraintViewModel>& id, ConstraintModel& cm, QObject* parent)
 {
-    auto cstr = new FullViewConstraintViewModel {id, cm, parent};
-    cstr->showRack(this->shownRack());
+  auto cstr = new FullViewConstraintViewModel{id, cm, parent};
+  cstr->showRack(this->shownRack());
 
-    return cstr;
+  return cstr;
 }
 
 QString FullViewConstraintViewModel::type() const
 {
-    return "FullView";
+  return "FullView";
 }
 
 ZoomRatio FullViewConstraintViewModel::zoom() const
 {
-    return m_zoom;
+  return m_zoom;
 }
 
 void FullViewConstraintViewModel::setZoom(const ZoomRatio& zoom)
 {
-    m_zoom = zoom;
+  m_zoom = zoom;
 }
 
 QRectF FullViewConstraintViewModel::visibleRect() const
 {
-    return m_center;
+  return m_center;
 }
 
 void FullViewConstraintViewModel::setVisibleRect(const QRectF& value)
 {
-    m_center = value;
+  m_center = value;
 }
 
 bool FullViewConstraintViewModel::isActive()
 {
-    auto& ctx = iscore::IDocument::documentContext(model());
-    auto& baseElt = iscore::IDocument::get<ScenarioDocumentModel>(ctx.document);
+  auto& ctx = iscore::IDocument::documentContext(model());
+  auto& baseElt = iscore::IDocument::get<ScenarioDocumentModel>(ctx.document);
 
-    return (&this->model() == &baseElt.displayedElements.constraint());
+  return (&this->model() == &baseElt.displayedElements.constraint());
 }
 }

@@ -10,30 +10,27 @@ namespace LocalTree
 namespace Settings
 {
 
-View::View():
-    m_widg{new QWidget}
+View::View() : m_widg{new QWidget}
 {
-    auto lay = new QFormLayout;
-    m_widg->setLayout(lay);
+  auto lay = new QFormLayout;
+  m_widg->setLayout(lay);
 
-    m_cb = new QCheckBox;
-    lay->addRow(tr("Enable local tree"), m_cb);
+  m_cb = new QCheckBox;
+  lay->addRow(tr("Enable local tree"), m_cb);
 
-    connect(m_cb, &QCheckBox::stateChanged,
-            this, &View::localTreeChanged);
+  connect(m_cb, &QCheckBox::stateChanged, this, &View::localTreeChanged);
 }
 
 void View::setLocalTree(bool val)
 {
-    if(val != m_cb->checkState())
-        m_cb->setCheckState(val ? Qt::Checked : Qt::Unchecked);
+  if (val != m_cb->checkState())
+    m_cb->setCheckState(val ? Qt::Checked : Qt::Unchecked);
 }
 
-QWidget *View::getWidget()
+QWidget* View::getWidget()
 {
-    return m_widg;
+  return m_widg;
 }
-
 }
 }
 }

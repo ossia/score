@@ -7,26 +7,30 @@
 class QGraphicsItem;
 class QObject;
 
-
 namespace Scenario
 {
-class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final : public ConstraintPresenter
+class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final
+    : public ConstraintPresenter
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
-        using viewmodel_type = TemporalConstraintViewModel;
-        using view_type = TemporalConstraintView;
-        const auto& id() const { return ConstraintPresenter::id(); } // To please boost::const_mem_fun
+public:
+  using viewmodel_type = TemporalConstraintViewModel;
+  using view_type = TemporalConstraintView;
+  const auto& id() const
+  {
+    return ConstraintPresenter::id();
+  } // To please boost::const_mem_fun
 
-        TemporalConstraintPresenter(const TemporalConstraintViewModel& viewModel,
-                                    const Process::ProcessPresenterContext& ctx,
-                                    QGraphicsItem* parentobject,
-                                    QObject* parent);
-        virtual ~TemporalConstraintPresenter();
+  TemporalConstraintPresenter(
+      const TemporalConstraintViewModel& viewModel,
+      const Process::ProcessPresenterContext& ctx,
+      QGraphicsItem* parentobject,
+      QObject* parent);
+  virtual ~TemporalConstraintPresenter();
 
-    signals:
-        void constraintHoverEnter();
-        void constraintHoverLeave();
+signals:
+  void constraintHoverEnter();
+  void constraintHoverLeave();
 };
 }

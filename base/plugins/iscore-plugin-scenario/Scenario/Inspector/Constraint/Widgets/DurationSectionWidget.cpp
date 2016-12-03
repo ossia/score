@@ -1,25 +1,25 @@
-#include <Scenario/Commands/Constraint/SetMaxDuration.hpp>
-#include <Scenario/Commands/Constraint/SetMinDuration.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
-#include <iscore/tools/std/Optional.hpp>
 #include <QCheckBox>
 #include <QDateTime>
 #include <QGridLayout>
 #include <QLabel>
-#include <qnamespace.h>
-#include <QString>
 #include <QStackedLayout>
+#include <QString>
 #include <QWidget>
+#include <Scenario/Commands/Constraint/SetMaxDuration.hpp>
+#include <Scenario/Commands/Constraint/SetMinDuration.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 #include <chrono>
-#include <iscore/document/DocumentContext.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/tools/std/Optional.hpp>
+#include <qnamespace.h>
 
 #include "DurationSectionWidget.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
@@ -30,395 +30,381 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/widgets/SpinBoxes.hpp>
 #include <iscore/widgets/MarginLess.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/widgets/SpinBoxes.hpp>
 
 namespace Scenario
 {
 class EditionGrid : public QWidget
 {
-    public:
-        EditionGrid(const ConstraintModel& m,
-                    const iscore::DocumentContext& fac,
-                    const Scenario::EditionSettings& set,
-                    const ConstraintInspectorDelegate& delegate):
-            m_model{m},
-            m_dur{m.duration},
-            m_editionSettings{set},
-            m_delegate{delegate},
-            m_dispatcher{fac.commandStack},
-            m_simpleDispatcher{fac.commandStack}
-        {
-            using namespace iscore;
-            auto editableGrid = new iscore::MarginLess<QGridLayout>{this};
+public:
+  EditionGrid(
+      const ConstraintModel& m,
+      const iscore::DocumentContext& fac,
+      const Scenario::EditionSettings& set,
+      const ConstraintInspectorDelegate& delegate)
+      : m_model{m}
+      , m_dur{m.duration}
+      , m_editionSettings{set}
+      , m_delegate{delegate}
+      , m_dispatcher{fac.commandStack}
+      , m_simpleDispatcher{fac.commandStack}
+  {
+    using namespace iscore;
+    auto editableGrid = new iscore::MarginLess<QGridLayout>{this};
 
-            // SPINBOXES
-            m_minSpin = new TimeSpinBox{this};
-            m_maxSpin = new TimeSpinBox{this};
-            m_valueSpin = new TimeSpinBox{this};
-            m_maxSpin->setTime(m_dur.maxDuration().toQTime());
-            m_minSpin->setTime(m_dur.minDuration().toQTime());
-            m_valueSpin->setTime(m_dur.defaultDuration().toQTime());
+    // SPINBOXES
+    m_minSpin = new TimeSpinBox{this};
+    m_maxSpin = new TimeSpinBox{this};
+    m_valueSpin = new TimeSpinBox{this};
+    m_maxSpin->setTime(m_dur.maxDuration().toQTime());
+    m_minSpin->setTime(m_dur.minDuration().toQTime());
+    m_valueSpin->setTime(m_dur.defaultDuration().toQTime());
 
+    // CHECKBOXES
+    m_minNonNullBox = new QCheckBox{};
+    m_maxFiniteBox = new QCheckBox{};
 
-            // CHECKBOXES
-            m_minNonNullBox = new QCheckBox{};
-            m_maxFiniteBox = new QCheckBox{};
+    m_minNonNullBox->setChecked(!m_dur.isMinNul());
+    m_maxFiniteBox->setChecked(!m_dur.isMaxInfinite());
 
-            m_minNonNullBox->setChecked(!m_dur.isMinNul());
-            m_maxFiniteBox->setChecked(!m_dur.isMaxInfinite());
+    connect(
+        m_minNonNullBox, &QCheckBox::toggled, this,
+        &EditionGrid::on_minNonNullToggled);
 
-            connect(m_minNonNullBox, &QCheckBox::toggled,
-                    this, &EditionGrid::on_minNonNullToggled);
+    connect(
+        m_maxFiniteBox, &QCheckBox::toggled, this,
+        &EditionGrid::on_maxFiniteToggled);
 
-            connect(m_maxFiniteBox, &QCheckBox::toggled,
-                    this, &EditionGrid::on_maxFiniteToggled);
+    // DISPLAY
+    m_minNull = new QLabel{tr("Null")};
+    m_minNull->hide();
+    m_maxInfinity = new QLabel{tr("Infinity")};
+    m_maxInfinity->hide();
 
-            // DISPLAY
-            m_minNull = new QLabel{tr("Null")};
-            m_minNull->hide();
-            m_maxInfinity = new QLabel{tr("Infinity")};
-            m_maxInfinity->hide();
+    editableGrid->addWidget(new QLabel(tr("Default Duration")), 0, 1, 1, 1);
+    editableGrid->addWidget(m_valueSpin, 0, 2, 1, 1);
 
-            editableGrid->addWidget(new QLabel(tr("Default Duration")), 0,1,1,1);
-            editableGrid->addWidget(m_valueSpin, 0, 2, 1, 1);
+    m_minTitle = new QLabel(tr("Min Duration"));
+    editableGrid->addWidget(m_minNonNullBox, 1, 0, 1, 1);
+    editableGrid->addWidget(m_minTitle, 1, 1, 1, 1);
+    editableGrid->addWidget(m_minSpin, 1, 2, 1, 1);
+    editableGrid->addWidget(m_minNull, 1, 2, 1, 1);
 
-            m_minTitle = new QLabel(tr("Min Duration"));
-            editableGrid->addWidget(m_minNonNullBox, 1, 0, 1, 1);
-            editableGrid->addWidget(m_minTitle, 1, 1, 1, 1);
-            editableGrid->addWidget(m_minSpin, 1, 2, 1, 1);
-            editableGrid->addWidget(m_minNull, 1, 2, 1, 1);
+    m_maxTitle = new QLabel(tr("Max Duration"));
+    editableGrid->addWidget(m_maxFiniteBox, 2, 0, 1, 1);
+    editableGrid->addWidget(m_maxTitle, 2, 1, 1, 1);
+    editableGrid->addWidget(m_maxSpin, 2, 2, 1, 1);
+    editableGrid->addWidget(m_maxInfinity, 2, 2, 1, 1);
 
+    editableGrid->setColumnStretch(0, 0);
+    editableGrid->setColumnStretch(1, 1);
+    editableGrid->setColumnStretch(2, 2);
 
-            m_maxTitle = new QLabel(tr("Max Duration"));
-            editableGrid->addWidget(m_maxFiniteBox, 2, 0, 1, 1);
-            editableGrid->addWidget(m_maxTitle, 2, 1, 1,1);
-            editableGrid->addWidget(m_maxSpin, 2, 2, 1, 1);
-            editableGrid->addWidget(m_maxInfinity, 2, 2, 1, 1);
+    connect(
+        m_valueSpin, &TimeSpinBox::editingFinished, this,
+        &EditionGrid::on_durationsChanged);
+    connect(
+        m_minSpin, &TimeSpinBox::editingFinished, this,
+        &EditionGrid::on_durationsChanged);
+    connect(
+        m_maxSpin, &TimeSpinBox::editingFinished, this,
+        &EditionGrid::on_durationsChanged);
 
-            editableGrid->setColumnStretch(0,0);
-            editableGrid->setColumnStretch(1,1);
-            editableGrid->setColumnStretch(2,2);
+    m_min = m_model.duration.minDuration();
+    m_max = m_model.duration.maxDuration();
 
-            connect(m_valueSpin,    &TimeSpinBox::editingFinished,
-                    this,   &EditionGrid::on_durationsChanged);
-            connect(m_minSpin,  &TimeSpinBox::editingFinished,
-                    this,   &EditionGrid::on_durationsChanged);
-            connect(m_maxSpin,  &TimeSpinBox::editingFinished,
-                    this,   &EditionGrid::on_durationsChanged);
+    con(m_dur, &ConstraintDurations::minNullChanged, this,
+        &EditionGrid::on_modelMinNullChanged);
+    con(m_dur, &ConstraintDurations::maxInfiniteChanged, this,
+        &EditionGrid::on_modelMaxInfiniteChanged);
 
-            m_min = m_model.duration.minDuration();
-            m_max = m_model.duration.maxDuration();
+    m_minNull->setVisible(m_model.duration.isMinNul());
+    m_minSpin->setVisible(!m_model.duration.isMinNul());
 
-            con(m_dur, &ConstraintDurations::minNullChanged,
-                this, &EditionGrid::on_modelMinNullChanged);
-            con(m_dur, &ConstraintDurations::maxInfiniteChanged,
-                this, &EditionGrid::on_modelMaxInfiniteChanged);
+    m_maxInfinity->setVisible(m_model.duration.isMaxInfinite());
+    m_maxSpin->setVisible(!m_model.duration.isMaxInfinite());
 
-            m_minNull->setVisible(m_model.duration.isMinNul());
-            m_minSpin->setVisible(!m_model.duration.isMinNul());
+    on_modelRigidityChanged(m_model.duration.isRigid());
 
-            m_maxInfinity->setVisible(m_model.duration.isMaxInfinite());
-            m_maxSpin->setVisible(!m_model.duration.isMaxInfinite());
+    // We disable changing duration for the full view unless
+    // it is the top-level one, because else
+    // it may cause unexpected changes in parent scenarios.
+    auto mod_del = dynamic_cast<Scenario::ScenarioDocumentModel*>(
+        &fac.document.model().modelDelegate());
+    if (m_model.fullView()->isActive()
+        && &m_model != &mod_del->baseConstraint())
+    {
+      m_valueSpin->setEnabled(false);
+    }
+  }
 
-            on_modelRigidityChanged(m_model.duration.isRigid());
+  void defaultDurationSpinboxChanged(int val)
+  {
+    m_delegate.on_defaultDurationChanged(
+        m_dispatcher,
+        TimeValue::fromMsecs(val),
+        m_editionSettings.expandMode());
+  }
 
+  void on_modelRigidityChanged(bool b)
+  {
+    m_minNonNullBox->setHidden(b);
+    m_minSpin->setHidden(b);
+    m_minTitle->setHidden(b);
 
-            // We disable changing duration for the full view unless
-            // it is the top-level one, because else
-            // it may cause unexpected changes in parent scenarios.
-            auto mod_del = dynamic_cast<Scenario::ScenarioDocumentModel*>(&fac.document.model().modelDelegate());
-            if(m_model.fullView()->isActive() && &m_model != &mod_del->baseConstraint())
-            {
-                m_valueSpin->setEnabled(false);
-            }
+    m_maxSpin->setHidden(b);
+    m_maxFiniteBox->setHidden(b);
+    m_maxTitle->setHidden(b);
+  }
 
-        }
+  void on_modelMinNullChanged(bool b)
+  {
+    m_minNull->setVisible(b);
+    {
+      QSignalBlocker block{m_minNonNullBox};
+      m_minNonNullBox->setChecked(!b);
+    }
+    m_minSpin->setVisible(!b);
+  }
 
-        void defaultDurationSpinboxChanged(int val)
-        {
-            m_delegate.on_defaultDurationChanged(
-                        m_dispatcher,
-                        TimeValue::fromMsecs(val),
-                        m_editionSettings.expandMode());
-        }
+  void on_modelMaxInfiniteChanged(bool b)
+  {
+    m_maxInfinity->setVisible(b);
+    {
+      QSignalBlocker block{m_maxFiniteBox};
+      m_maxFiniteBox->setChecked(!b);
+    }
+    m_maxSpin->setVisible(!b);
+  }
 
-        void on_modelRigidityChanged(bool b)
-        {
-            m_minNonNullBox->setHidden(b);
-            m_minSpin->setHidden(b);
-            m_minTitle->setHidden(b);
+  void on_modelDefaultDurationChanged(const TimeValue& dur)
+  {
+    if (dur.toQTime() == m_valueSpin->time())
+      return;
 
-            m_maxSpin->setHidden(b);
-            m_maxFiniteBox->setHidden(b);
-            m_maxTitle->setHidden(b);
-        }
+    m_valueSpin->setTime(dur.toQTime());
+  }
 
-        void on_modelMinNullChanged(bool b)
-        {
-            m_minNull->setVisible(b);
-            {
-              QSignalBlocker block{m_minNonNullBox};
-              m_minNonNullBox->setChecked(!b);
-            }
-            m_minSpin->setVisible(!b);
-        }
+  void on_modelMinDurationChanged(const TimeValue& dur)
+  {
+    if (dur.toQTime() == m_minSpin->time())
+      return;
 
-        void on_modelMaxInfiniteChanged(bool b)
-        {
-            m_maxInfinity->setVisible(b);
-            {
-              QSignalBlocker block{m_maxFiniteBox};
-              m_maxFiniteBox->setChecked(!b);
-            }
-            m_maxSpin->setVisible(!b);
-        }
+    m_minSpin->setTime(dur.toQTime());
+    m_min = dur;
+  }
 
-        void on_modelDefaultDurationChanged(const TimeValue& dur)
-        {
-            if (dur.toQTime() == m_valueSpin->time())
-                return;
+  void on_modelMaxDurationChanged(const TimeValue& dur)
+  {
+    if (dur.toQTime() == m_maxSpin->time())
+      return;
 
-            m_valueSpin->setTime(dur.toQTime());
-        }
+    m_maxSpin->setTime(dur.toQTime());
+    m_max = dur;
+  }
 
-        void on_modelMinDurationChanged(const TimeValue& dur)
-        {
-            if (dur.toQTime() == m_minSpin->time())
-                return;
+  void on_durationsChanged()
+  {
+    if (m_dur.defaultDuration().toQTime() != m_valueSpin->time())
+    {
+      defaultDurationSpinboxChanged(
+          m_valueSpin->time().msecsSinceStartOfDay());
+      m_dispatcher.commit();
+    }
 
-            m_minSpin->setTime(dur.toQTime());
-            m_min = dur;
-        }
+    if (m_dur.minDuration().toQTime() != m_minSpin->time())
+    {
+      minDurationSpinboxChanged(m_minSpin->time().msecsSinceStartOfDay());
+      m_dispatcher.commit();
+    }
+    if (m_dur.maxDuration().toQTime() != m_maxSpin->time())
+    {
+      maxDurationSpinboxChanged(m_maxSpin->time().msecsSinceStartOfDay());
+      m_dispatcher.commit();
+    }
+  }
 
-        void on_modelMaxDurationChanged(const TimeValue& dur)
-        {
-            if (dur.toQTime() == m_maxSpin->time())
-                return;
+  void on_minNonNullToggled(bool val)
+  {
+    m_minSpin->setVisible(val);
+    m_minNull->setVisible(!val);
 
-            m_maxSpin->setTime(dur.toQTime());
-            m_max = dur;
-        }
+    m_min = !val ? m_dur.minDuration() : m_min;
 
-        void on_durationsChanged()
-        {
-            if (m_dur.defaultDuration().toQTime() != m_valueSpin->time())
-            {
-                defaultDurationSpinboxChanged(m_valueSpin->time().msecsSinceStartOfDay());
-                m_dispatcher.commit();
-            }
+    auto cmd = new Scenario::Command::SetMinDuration(m_model, m_min, !val);
 
-            if (m_dur.minDuration().toQTime() != m_minSpin->time())
-            {
-                minDurationSpinboxChanged(m_minSpin->time().msecsSinceStartOfDay());
-                m_dispatcher.commit();
+    m_simpleDispatcher.submitCommand(cmd);
+  }
 
-            }if (m_dur.maxDuration().toQTime() != m_maxSpin->time())
-            {
-                maxDurationSpinboxChanged(m_maxSpin->time().msecsSinceStartOfDay());
-                m_dispatcher.commit();
-            }
+  void on_maxFiniteToggled(bool val)
+  {
+    m_maxSpin->setVisible(val);
+    m_maxInfinity->setVisible(!val);
 
-        }
+    m_max = !val ? m_dur.maxDuration() : m_dur.defaultDuration() * 1.2;
 
-        void on_minNonNullToggled(bool val)
-        {
-            m_minSpin->setVisible(val);
-            m_minNull->setVisible(!val);
+    auto cmd = new Scenario::Command::SetMaxDuration(m_model, m_max, !val);
 
-            m_min = !val ? m_dur.minDuration() : m_min;
+    m_simpleDispatcher.submitCommand(cmd);
+  }
 
-            auto cmd = new Scenario::Command::SetMinDuration(
-                           m_model,
-                           m_min,
-                           !val);
+  void minDurationSpinboxChanged(int val)
+  {
+    using namespace Scenario::Command;
+    m_dispatcher.submitCommand<SetMinDuration>(
+        m_model,
+        TimeValue{std::chrono::milliseconds{val}},
+        !m_minNonNullBox->isChecked());
+  }
 
+  void maxDurationSpinboxChanged(int val)
+  {
+    using namespace Scenario::Command;
+    m_dispatcher.submitCommand<SetMaxDuration>(
+        m_model,
+        TimeValue{std::chrono::milliseconds{val}},
+        !m_maxFiniteBox->isChecked());
+  }
 
-            m_simpleDispatcher.submitCommand(cmd);
-        }
+  const ConstraintModel& m_model;
+  const ConstraintDurations& m_dur;
+  const Scenario::EditionSettings& m_editionSettings;
+  const ConstraintInspectorDelegate& m_delegate;
 
-        void on_maxFiniteToggled(bool val)
-        {
-            m_maxSpin->setVisible(val);
-            m_maxInfinity->setVisible(!val);
+  QLabel* m_maxTitle{};
+  QLabel* m_minTitle{};
+  QLabel* m_maxInfinity{};
+  QLabel* m_minNull{};
 
-            m_max = !val ? m_dur.maxDuration() : m_dur.defaultDuration() * 1.2;
+  iscore::TimeSpinBox* m_minSpin{};
+  iscore::TimeSpinBox* m_valueSpin{};
+  iscore::TimeSpinBox* m_maxSpin{};
 
+  QCheckBox* m_minNonNullBox{};
+  QCheckBox* m_maxFiniteBox{};
 
-            auto cmd = new Scenario::Command::SetMaxDuration(
-                           m_model,
-                           m_max,
-                           !val);
+  TimeValue m_max;
+  TimeValue m_min;
 
-
-            m_simpleDispatcher.submitCommand(cmd);
-        }
-
-
-        void minDurationSpinboxChanged(int val)
-        {
-            using namespace Scenario::Command;
-            m_dispatcher.submitCommand<SetMinDuration>(
-                        m_model,
-                        TimeValue{std::chrono::milliseconds{val}},
-                        !m_minNonNullBox->isChecked());
-        }
-
-        void maxDurationSpinboxChanged(int val)
-        {
-            using namespace Scenario::Command;
-            m_dispatcher.submitCommand<SetMaxDuration>(
-                        m_model,
-                        TimeValue{std::chrono::milliseconds {val}},
-                        !m_maxFiniteBox->isChecked());
-        }
-
-        const ConstraintModel& m_model;
-        const ConstraintDurations& m_dur;
-        const Scenario::EditionSettings& m_editionSettings;
-        const ConstraintInspectorDelegate& m_delegate;
-
-        QLabel* m_maxTitle{};
-        QLabel* m_minTitle{};
-        QLabel* m_maxInfinity{};
-        QLabel* m_minNull{};
-
-        iscore::TimeSpinBox* m_minSpin{};
-        iscore::TimeSpinBox* m_valueSpin{};
-        iscore::TimeSpinBox* m_maxSpin{};
-
-        QCheckBox* m_minNonNullBox{};
-        QCheckBox* m_maxFiniteBox{};
-
-        TimeValue m_max;
-        TimeValue m_min;
-
-        OngoingCommandDispatcher m_dispatcher;
-        CommandDispatcher<> m_simpleDispatcher;
-
+  OngoingCommandDispatcher m_dispatcher;
+  CommandDispatcher<> m_simpleDispatcher;
 };
 
 class PlayGrid : public QWidget
 {
-    public:
-        PlayGrid(const ConstraintDurations& dur):
-            m_dur{dur}
-        {
-            auto playingGrid = new iscore::MarginLess<QGridLayout>(this);
+public:
+  PlayGrid(const ConstraintDurations& dur) : m_dur{dur}
+  {
+    auto playingGrid = new iscore::MarginLess<QGridLayout>(this);
 
-            m_minLab = new QLabel{m_dur.minDuration().toString(), this};
-            m_maxLab = new QLabel{m_dur.maxDuration().toString(), this};
-            m_defaultLab = new QLabel{m_dur.defaultDuration().toString(), this};
-            m_currentPosLab = new QLabel{this};
+    m_minLab = new QLabel{m_dur.minDuration().toString(), this};
+    m_maxLab = new QLabel{m_dur.maxDuration().toString(), this};
+    m_defaultLab = new QLabel{m_dur.defaultDuration().toString(), this};
+    m_currentPosLab = new QLabel{this};
 
-            on_progress(m_dur.playPercentage());
+    on_progress(m_dur.playPercentage());
 
-            playingGrid->addWidget(new QLabel(tr("Default Duration")), 0, 0, 1, 1);
-            playingGrid->addWidget(m_defaultLab, 0, 1, 1, 1);
-            playingGrid->addWidget(new QLabel(tr("Min Duration")), 1, 0, 1, 1);
-            playingGrid->addWidget(m_minLab, 1, 1, 1, 1);
-            playingGrid->addWidget(new QLabel(tr("Max Duration")), 2, 0, 1, 1);
-            playingGrid->addWidget(m_maxLab, 2, 1, 1, 1);
-            playingGrid->addWidget(new QLabel{tr("Progress")}, 3, 0, 1, 1);
-            playingGrid->addWidget(m_currentPosLab, 3, 1, 1, 1);
+    playingGrid->addWidget(new QLabel(tr("Default Duration")), 0, 0, 1, 1);
+    playingGrid->addWidget(m_defaultLab, 0, 1, 1, 1);
+    playingGrid->addWidget(new QLabel(tr("Min Duration")), 1, 0, 1, 1);
+    playingGrid->addWidget(m_minLab, 1, 1, 1, 1);
+    playingGrid->addWidget(new QLabel(tr("Max Duration")), 2, 0, 1, 1);
+    playingGrid->addWidget(m_maxLab, 2, 1, 1, 1);
+    playingGrid->addWidget(new QLabel{tr("Progress")}, 3, 0, 1, 1);
+    playingGrid->addWidget(m_currentPosLab, 3, 1, 1, 1);
 
-            con(m_dur, &ConstraintDurations::playPercentageChanged,
-                this, &PlayGrid::on_progress);
-        }
+    con(m_dur, &ConstraintDurations::playPercentageChanged, this,
+        &PlayGrid::on_progress);
+  }
 
-        void on_progress(double p)
-        {
-            auto coeff = m_dur.isMaxInfinite() ?
-                             m_dur.defaultDuration().msec() :
-                             m_dur.maxDuration().msec();
-            m_currentPosLab->setText(QString::number((p * coeff / 1000)) + QString(" s"));
-        }
+  void on_progress(double p)
+  {
+    auto coeff = m_dur.isMaxInfinite() ? m_dur.defaultDuration().msec()
+                                       : m_dur.maxDuration().msec();
+    m_currentPosLab->setText(
+        QString::number((p * coeff / 1000)) + QString(" s"));
+  }
 
-        void on_modelRigidityChanged(bool b)
-        {
+  void on_modelRigidityChanged(bool b)
+  {
 
-            m_minLab->setHidden(b);
-            m_maxLab->setHidden(b);
+    m_minLab->setHidden(b);
+    m_maxLab->setHidden(b);
+  }
 
-        }
+  void on_modelDefaultDurationChanged(const TimeValue& dur)
+  {
+    m_defaultLab->setText(dur.toString());
+  }
 
-        void on_modelDefaultDurationChanged(const TimeValue& dur)
-        {
-            m_defaultLab->setText(dur.toString());
-        }
+  void on_modelMinDurationChanged(const TimeValue& dur)
+  {
+    m_minLab->setText(dur.toString());
+  }
 
-        void on_modelMinDurationChanged(const TimeValue& dur)
-        {
-            m_minLab->setText(dur.toString());
-        }
+  void on_modelMaxDurationChanged(const TimeValue& dur)
+  {
+    m_maxLab->setText(dur.toString());
+  }
 
-        void on_modelMaxDurationChanged(const TimeValue& dur)
-        {
-            m_maxLab->setText(dur.toString());
-        }
+private:
+  const ConstraintDurations& m_dur;
 
-    private:
-        const ConstraintDurations& m_dur;
-
-        QLabel* m_maxLab{};
-        QLabel* m_minLab{};
-        QLabel* m_defaultLab{};
-        QLabel* m_currentPosLab{};
+  QLabel* m_maxLab{};
+  QLabel* m_minLab{};
+  QLabel* m_defaultLab{};
+  QLabel* m_currentPosLab{};
 };
 
 DurationWidget::DurationWidget(
-        const Scenario::EditionSettings& set,
-        const ConstraintInspectorDelegate& delegate,
-        ConstraintInspectorWidget* parent):
-    QWidget{parent},
-    m_editingWidget{new EditionGrid{parent->model(), parent->context(), set, delegate}},
-    m_playingWidget{new PlayGrid{parent->model().duration}}
+    const Scenario::EditionSettings& set,
+    const ConstraintInspectorDelegate& delegate,
+    ConstraintInspectorWidget* parent)
+    : QWidget{parent}
+    , m_editingWidget{new EditionGrid{parent->model(), parent->context(), set,
+                                      delegate}}
+    , m_playingWidget{new PlayGrid{parent->model().duration}}
 {
-    using namespace iscore;
-    auto mainWidg = this;
-    auto mainLay = new iscore::MarginLess<QStackedLayout>{mainWidg};
-    auto& model = parent->model();
-    auto& dur = model.duration;
+  using namespace iscore;
+  auto mainWidg = this;
+  auto mainLay = new iscore::MarginLess<QStackedLayout>{mainWidg};
+  auto& model = parent->model();
+  auto& dur = model.duration;
 
-    // CONNECTIONS FROM MODEL
-    // TODO these need to be updated when the default duration changes
-    con(dur, &ConstraintDurations::defaultDurationChanged,
-        this, [] (const TimeValue& t) {
+  // CONNECTIONS FROM MODEL
+  // TODO these need to be updated when the default duration changes
+  con(dur, &ConstraintDurations::defaultDurationChanged, this,
+      [](const TimeValue& t) {
 
-    });
-    con(dur, &ConstraintDurations::minDurationChanged,
-        this, [this] (auto v) {
-        m_playingWidget->on_modelMinDurationChanged(v);
-        m_editingWidget->on_modelMinDurationChanged(v);
-    });
-    con(dur, &ConstraintDurations::maxDurationChanged,
-            this, [this] (auto v) {
-        m_playingWidget->on_modelMaxDurationChanged(v);
-        m_editingWidget->on_modelMaxDurationChanged(v);
-    });
-    con(dur, &ConstraintDurations::rigidityChanged,
-            this, [this] (auto v) {
-        m_playingWidget->on_modelRigidityChanged(v);
-        m_editingWidget->on_modelRigidityChanged(v);
-    });
+      });
+  con(dur, &ConstraintDurations::minDurationChanged, this, [this](auto v) {
+    m_playingWidget->on_modelMinDurationChanged(v);
+    m_editingWidget->on_modelMinDurationChanged(v);
+  });
+  con(dur, &ConstraintDurations::maxDurationChanged, this, [this](auto v) {
+    m_playingWidget->on_modelMaxDurationChanged(v);
+    m_editingWidget->on_modelMaxDurationChanged(v);
+  });
+  con(dur, &ConstraintDurations::rigidityChanged, this, [this](auto v) {
+    m_playingWidget->on_modelRigidityChanged(v);
+    m_editingWidget->on_modelRigidityChanged(v);
+  });
 
-    con(set, &EditionSettings::toolChanged,
-        this, [=] (Scenario::Tool t) {
-        mainLay->setCurrentWidget(
-                    t == Tool::Playing
-                    ? (QWidget*) m_playingWidget
-                    : (QWidget*) m_editingWidget);
-    });
-
-    mainLay->addWidget(m_playingWidget);
-    mainLay->addWidget(m_editingWidget);
-
+  con(set, &EditionSettings::toolChanged, this, [=](Scenario::Tool t) {
     mainLay->setCurrentWidget(
-                set.tool() == Tool::Playing
-                ? (QWidget*) m_playingWidget
-                : (QWidget*) m_editingWidget);
+        t == Tool::Playing ? (QWidget*)m_playingWidget
+                           : (QWidget*)m_editingWidget);
+  });
+
+  mainLay->addWidget(m_playingWidget);
+  mainLay->addWidget(m_editingWidget);
+
+  mainLay->setCurrentWidget(
+      set.tool() == Tool::Playing ? (QWidget*)m_playingWidget
+                                  : (QWidget*)m_editingWidget);
 }
 }

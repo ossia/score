@@ -1,11 +1,10 @@
 #pragma once
 #include <Loop/LoopProcessMetadata.hpp>
 #include <Process/Process.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <QByteArray>
 #include <QString>
 #include <QVector>
-
+#include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 
 #include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
@@ -15,7 +14,10 @@
 
 class DataStream;
 class JSONObject;
-namespace Process { class LayerModel; }
+namespace Process
+{
+class LayerModel;
+}
 class QObject;
 namespace Scenario
 {
@@ -25,76 +27,81 @@ class ConstraintModel;
 
 namespace Loop
 {
-class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final :
-        public Process::ProcessModel,
-        public Scenario::BaseScenarioContainer
+class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final
+    : public Process::ProcessModel,
+      public Scenario::BaseScenarioContainer
 {
-        ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, JSONObject)
-        MODEL_METADATA_IMPL(Loop::ProcessModel)
+  ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, DataStream)
+  ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, JSONObject)
+  MODEL_METADATA_IMPL(Loop::ProcessModel)
 
-    public:
-        explicit ProcessModel(
-                const TimeValue& duration,
-                const Id<Process::ProcessModel>& id,
-                QObject* parentObject);
+public:
+  explicit ProcessModel(
+      const TimeValue& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parentObject);
 
-        explicit ProcessModel(
-                const Loop::ProcessModel& source,
-                const Id<Process::ProcessModel>& id,
-                QObject* parentObject);
+  explicit ProcessModel(
+      const Loop::ProcessModel& source,
+      const Id<Process::ProcessModel>& id,
+      QObject* parentObject);
 
-        template<typename Impl>
-        explicit ProcessModel(
-                Deserializer<Impl>& vis,
-                QObject* parent) :
-            Process::ProcessModel{vis, parent},
-            BaseScenarioContainer{BaseScenarioContainer::no_init{}, this}
-        {
-            vis.writeTo(*this);
-        }
+  template <typename Impl>
+  explicit ProcessModel(Deserializer<Impl>& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
+      , BaseScenarioContainer{BaseScenarioContainer::no_init{}, this}
+  {
+    vis.writeTo(*this);
+  }
 
-        using BaseScenarioContainer::event;
-        using QObject::event;
+  using BaseScenarioContainer::event;
+  using QObject::event;
 
-        // Process interface
-        void startExecution() override;
-        void stopExecution() override;
-        void reset() override;
+  // Process interface
+  void startExecution() override;
+  void stopExecution() override;
+  void reset() override;
 
-        Selection selectableChildren() const override;
-        Selection selectedChildren() const override;
-        void setSelection(const Selection& s) const override;
+  Selection selectableChildren() const override;
+  Selection selectedChildren() const override;
+  void setSelection(const Selection& s) const override;
 
-        ~ProcessModel();
+  ~ProcessModel();
 };
 
-
-ISCORE_PLUGIN_LOOP_EXPORT const QVector<Id<Scenario::ConstraintModel> > constraintsBeforeTimeNode(
-        const Loop::ProcessModel& scen,
-        const Id<Scenario::TimeNodeModel>& timeNodeId);
-
+ISCORE_PLUGIN_LOOP_EXPORT const QVector<Id<Scenario::ConstraintModel>>
+constraintsBeforeTimeNode(
+    const Loop::ProcessModel& scen,
+    const Id<Scenario::TimeNodeModel>& timeNodeId);
 }
 namespace Scenario
 {
-template<>
+template <>
 struct ScenarioElementTraits<Loop::ProcessModel, Scenario::ConstraintModel>
 {
-        static const constexpr auto accessor = static_cast<iscore::IndirectArray<Scenario::ConstraintModel, 1> (*) (const Scenario::BaseScenarioContainer&)>(&Scenario::constraints);
+  static const constexpr auto accessor
+      = static_cast<iscore::IndirectArray<Scenario::ConstraintModel, 1> (*)(
+          const Scenario::BaseScenarioContainer&)>(&Scenario::constraints);
 };
-template<>
+template <>
 struct ScenarioElementTraits<Loop::ProcessModel, Scenario::EventModel>
 {
-        static const constexpr auto accessor = static_cast<iscore::IndirectArray<Scenario::EventModel, 2> (*) (const Scenario::BaseScenarioContainer&)>(&Scenario::events);
+  static const constexpr auto accessor
+      = static_cast<iscore::IndirectArray<Scenario::EventModel, 2> (*)(
+          const Scenario::BaseScenarioContainer&)>(&Scenario::events);
 };
-template<>
+template <>
 struct ScenarioElementTraits<Loop::ProcessModel, Scenario::TimeNodeModel>
 {
-        static const constexpr auto accessor = static_cast<iscore::IndirectArray<Scenario::TimeNodeModel, 2> (*) (const Scenario::BaseScenarioContainer&)>(&Scenario::timeNodes);
+  static const constexpr auto accessor
+      = static_cast<iscore::IndirectArray<Scenario::TimeNodeModel, 2> (*)(
+          const Scenario::BaseScenarioContainer&)>(&Scenario::timeNodes);
 };
-template<>
+template <>
 struct ScenarioElementTraits<Loop::ProcessModel, Scenario::StateModel>
 {
-        static const constexpr auto accessor = static_cast<iscore::IndirectArray<Scenario::StateModel, 2> (*) (const Scenario::BaseScenarioContainer&)>(&Scenario::states);
+  static const constexpr auto accessor
+      = static_cast<iscore::IndirectArray<Scenario::StateModel, 2> (*)(
+          const Scenario::BaseScenarioContainer&)>(&Scenario::states);
 };
 }

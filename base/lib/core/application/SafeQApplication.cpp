@@ -2,5 +2,4 @@
 
 SafeQApplication::~SafeQApplication()
 {
-
 }

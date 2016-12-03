@@ -1,24 +1,24 @@
 #pragma once
-#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
-#include <iscore/selection/SelectionDispatcher.hpp>
 #include <QPoint>
 #include <QRect>
+#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 #include <memory>
 
-#include <Process/ZoomHelper.hpp>
-#include <iscore/selection/Selection.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
+#include <Process/ZoomHelper.hpp>
+#include <iscore/selection/Selection.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 
 class ObjectPath;
 class QSize;
-namespace iscore {
+namespace iscore
+{
 class DocumentDelegateModelInterface;
 class DocumentDelegateViewInterface;
 class DocumentPresenter;
-}  // namespace iscore
-
+} // namespace iscore
 
 namespace Scenario
 {
@@ -34,74 +34,80 @@ class TimeRulerPresenter;
  * A bit special because we connect it to the presenter of the content model
  * inside the constraint model of the base element model.
  */
-class ScenarioDocumentPresenter final : public iscore::DocumentDelegatePresenterInterface
+class ScenarioDocumentPresenter final
+    : public iscore::DocumentDelegatePresenterInterface
 {
-        Q_OBJECT
-    friend class DisplayedElementsPresenter;
-    public:
-        ScenarioDocumentPresenter(iscore::DocumentPresenter* parent_presenter,
-                             const iscore::DocumentDelegateModelInterface& model,
-                             iscore::DocumentDelegateViewInterface& view);
-        virtual ~ScenarioDocumentPresenter();
+  Q_OBJECT
+  friend class DisplayedElementsPresenter;
 
-        const ConstraintModel& displayedConstraint() const;
-        const DisplayedElementsPresenter& presenters() const
-        { return *m_scenarioPresenter; }
+public:
+  ScenarioDocumentPresenter(
+      iscore::DocumentPresenter* parent_presenter,
+      const iscore::DocumentDelegateModelInterface& model,
+      iscore::DocumentDelegateViewInterface& view);
+  virtual ~ScenarioDocumentPresenter();
 
-        const ScenarioDocumentModel& model() const;
-        ScenarioDocumentView& view() const;
+  const ConstraintModel& displayedConstraint() const;
+  const DisplayedElementsPresenter& presenters() const
+  {
+    return *m_scenarioPresenter;
+  }
 
-        // The height in pixels of the displayed constraint with its rack.
-        //double height() const;
-        ZoomRatio zoomRatio() const;
+  const ScenarioDocumentModel& model() const;
+  ScenarioDocumentView& view() const;
 
-        void on_askUpdate();
+  // The height in pixels of the displayed constraint with its rack.
+  // double height() const;
+  ZoomRatio zoomRatio() const;
 
-        void selectAll();
-        void deselectAll();
+  void on_askUpdate();
 
-        void setMillisPerPixel(ZoomRatio newFactor);
+  void selectAll();
+  void deselectAll();
 
-        void on_newSelection(const Selection &);
+  void setMillisPerPixel(ZoomRatio newFactor);
 
-        void updateRect(const QRectF& rect);
+  void on_newSelection(const Selection&);
 
-        const Process::ProcessPresenterContext& context() const
-        { return m_context; }
+  void updateRect(const QRectF& rect);
 
-    signals:
-        void pressed(QPointF);
-        void moved(QPointF);
-        void released(QPointF);
-        void escPressed();
+  const Process::ProcessPresenterContext& context() const
+  {
+    return m_context;
+  }
 
-        void requestDisplayedConstraintChange(ConstraintModel&);
+signals:
+  void pressed(QPointF);
+  void moved(QPointF);
+  void released(QPointF);
+  void escPressed();
 
-    private:
-        void on_displayedConstraintChanged();
-        void on_zoomSliderChanged(double);
-        void on_zoomOnWheelEvent(QPointF, QPointF);
-        void on_timeRulerScrollEvent(QPointF, QPointF);
-        void on_viewSizeChanged(const QSize& s);
-        void on_horizontalPositionChanged(int dx);
-        void on_elementsScaleChanged(double s);
+  void requestDisplayedConstraintChange(ConstraintModel&);
 
-        //void updateGrid();
-        void updateZoom(ZoomRatio newZoom, QPointF focus);
+private:
+  void on_displayedConstraintChanged();
+  void on_zoomSliderChanged(double);
+  void on_zoomOnWheelEvent(QPointF, QPointF);
+  void on_timeRulerScrollEvent(QPointF, QPointF);
+  void on_viewSizeChanged(const QSize& s);
+  void on_horizontalPositionChanged(int dx);
+  void on_elementsScaleChanged(double s);
 
-        DisplayedElementsPresenter* m_scenarioPresenter{};
+  // void updateGrid();
+  void updateZoom(ZoomRatio newZoom, QPointF focus);
 
-        iscore::SelectionDispatcher m_selectionDispatcher;
-        FocusDispatcher m_focusDispatcher;
-        Process::ProcessPresenterContext m_context;
+  DisplayedElementsPresenter* m_scenarioPresenter{};
 
-        // State machine
-        std::unique_ptr<GraphicsSceneToolPalette> m_stateMachine;
+  iscore::SelectionDispatcher m_selectionDispatcher;
+  FocusDispatcher m_focusDispatcher;
+  Process::ProcessPresenterContext m_context;
 
-        // Various widgets
-        TimeRulerPresenter* m_mainTimeRuler{};
+  // State machine
+  std::unique_ptr<GraphicsSceneToolPalette> m_stateMachine;
 
-        ZoomRatio m_zoomRatio;
+  // Various widgets
+  TimeRulerPresenter* m_mainTimeRuler{};
 
+  ZoomRatio m_zoomRatio;
 };
 }

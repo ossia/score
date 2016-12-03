@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include "CreateEvent_State.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
@@ -18,45 +18,54 @@ class StateModel;
 class TimeNodeModel;
 namespace Command
 {
-class ISCORE_PLUGIN_SCENARIO_EXPORT CreateTimeNode_Event_State final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_SCENARIO_EXPORT CreateTimeNode_Event_State final
+    : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateTimeNode_Event_State,"Create a timenode, an event and a state")
-        public:
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(),
+      CreateTimeNode_Event_State,
+      "Create a timenode, an event and a state")
+public:
+  CreateTimeNode_Event_State(
+      const Scenario::ProcessModel& scenario, TimeValue date, double stateY);
 
-          CreateTimeNode_Event_State(
-            const Scenario::ProcessModel& scenario,
-            TimeValue date,
-            double stateY);
+  CreateTimeNode_Event_State(
+      const Path<Scenario::ProcessModel>& scenario,
+      TimeValue date,
+      double stateY);
 
-        CreateTimeNode_Event_State(
-          const Path<Scenario::ProcessModel>& scenario,
-          TimeValue date,
-          double stateY);
+  const Path<Scenario::ProcessModel>& scenarioPath() const
+  {
+    return m_command.scenarioPath();
+  }
 
-        const Path<Scenario::ProcessModel>& scenarioPath() const
-        { return m_command.scenarioPath(); }
+  const Id<StateModel>& createdState() const
+  {
+    return m_command.createdState();
+  }
 
-        const Id<StateModel>& createdState() const
-        { return m_command.createdState(); }
+  const Id<EventModel>& createdEvent() const
+  {
+    return m_command.createdEvent();
+  }
 
-        const Id<EventModel>& createdEvent() const
-        { return m_command.createdEvent(); }
+  const Id<TimeNodeModel>& createdTimeNode() const
+  {
+    return m_newTimeNode;
+  }
 
-        const Id<TimeNodeModel>& createdTimeNode() const
-        { return m_newTimeNode; }
+  void undo() const override;
+  void redo() const override;
 
-        void undo() const override;
-        void redo() const override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+private:
+  Id<TimeNodeModel> m_newTimeNode;
+  TimeValue m_date;
 
-    private:
-        Id<TimeNodeModel> m_newTimeNode;
-        TimeValue m_date;
-
-        CreateEvent_State m_command;
+  CreateEvent_State m_command;
 };
 }
 }

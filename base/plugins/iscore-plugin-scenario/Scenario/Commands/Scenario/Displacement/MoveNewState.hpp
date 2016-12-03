@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -23,35 +23,37 @@ namespace Command
 
 class MoveNewState final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveNewState, "Move a new state")
-        public:
-            MoveNewState(
-                Path<Scenario::ProcessModel>&& scenarioPath,
-                Id<StateModel> stateId,
-                double y);
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), MoveNewState, "Move a new state")
+public:
+  MoveNewState(
+      Path<Scenario::ProcessModel>&& scenarioPath,
+      Id<StateModel>
+          stateId,
+      double y);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-        void update(
-                const Path<Scenario::ProcessModel>&,
-                const Id<StateModel>&,
-                double y)
-        {
-            m_y = y;
-        }
+  void
+  update(const Path<Scenario::ProcessModel>&, const Id<StateModel>&, double y)
+  {
+    m_y = y;
+  }
 
-        const Path<Scenario::ProcessModel>& path() const
-        { return m_path; }
+  const Path<Scenario::ProcessModel>& path() const
+  {
+    return m_path;
+  }
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<Scenario::ProcessModel> m_path;
-        Id<StateModel> m_stateId;
-        double m_y{}, m_oldy{};
+private:
+  Path<Scenario::ProcessModel> m_path;
+  Id<StateModel> m_stateId;
+  double m_y{}, m_oldy{};
 };
 }
 }

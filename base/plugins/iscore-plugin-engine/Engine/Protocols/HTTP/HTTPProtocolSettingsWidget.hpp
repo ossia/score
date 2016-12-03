@@ -12,23 +12,21 @@ namespace Engine
 {
 namespace Network
 {
-class HTTPProtocolSettingsWidget :
-        public Device::ProtocolSettingsWidget
+class HTTPProtocolSettingsWidget : public Device::ProtocolSettingsWidget
 {
-    public:
-        HTTPProtocolSettingsWidget(QWidget* parent = nullptr);
+public:
+  HTTPProtocolSettingsWidget(QWidget* parent = nullptr);
 
-        Device::DeviceSettings getSettings() const override;
+  Device::DeviceSettings getSettings() const override;
 
-        void setSettings(const Device::DeviceSettings& settings) override;
+  void setSettings(const Device::DeviceSettings& settings) override;
 
-    protected:
-        void setDefaults();
+protected:
+  void setDefaults();
 
-    protected:
-        QLineEdit* m_deviceNameEdit{};
-        JSEdit* m_codeEdit{};
-
+protected:
+  QLineEdit* m_deviceNameEdit{};
+  JSEdit* m_codeEdit{};
 };
 }
 }

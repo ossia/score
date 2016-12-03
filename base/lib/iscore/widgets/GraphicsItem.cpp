@@ -5,30 +5,30 @@
 
 void deleteGraphicsObject(QGraphicsObject* item)
 {
-    if(item)
+  if (item)
+  {
+    auto sc = item->scene();
+
+    if (sc)
     {
-        auto sc = item->scene();
-
-        if(sc)
-        {
-            sc->removeItem(item);
-        }
-
-        item->deleteLater();
+      sc->removeItem(item);
     }
+
+    item->deleteLater();
+  }
 }
 
 void deleteGraphicsItem(QGraphicsItem* item)
 {
-    if(item)
+  if (item)
+  {
+    auto sc = item->scene();
+
+    if (sc)
     {
-        auto sc = item->scene();
-
-        if(sc)
-        {
-            sc->removeItem(item);
-        }
-
-        delete item;
+      sc->removeItem(item);
     }
+
+    delete item;
+  }
 }

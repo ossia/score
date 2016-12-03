@@ -19,33 +19,42 @@ class ProcessModel;
 namespace Command
 {
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final : public SerializableMoveEvent
+class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final
+    : public SerializableMoveEvent
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventOnCreationMeta, "Move an event on creation")
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(),
+      MoveEventOnCreationMeta,
+      "Move an event on creation")
 public:
-    MoveEventOnCreationMeta(
-            Path<Scenario::ProcessModel>&& scenarioPath,
-            Id<EventModel> eventId,
-            TimeValue newDate,
-            ExpandMode mode);
-    ~MoveEventOnCreationMeta();
+  MoveEventOnCreationMeta(
+      Path<Scenario::ProcessModel>&& scenarioPath,
+      Id<EventModel>
+          eventId,
+      TimeValue newDate,
+      ExpandMode mode);
+  ~MoveEventOnCreationMeta();
 
-    void undo() const override;
-    void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    const Path<Scenario::ProcessModel>& path() const override;
+  const Path<Scenario::ProcessModel>& path() const override;
 
-    // SerializableCommand interface
+  // SerializableCommand interface
 protected:
-    void serializeImpl(DataStreamInput&) const override;
-    void deserializeImpl(DataStreamOutput&) override;
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
 private:
-    std::unique_ptr<SerializableMoveEvent> m_moveEventImplementation;
+  std::unique_ptr<SerializableMoveEvent> m_moveEventImplementation;
 
-    // SerializableMoveEvent interface
+  // SerializableMoveEvent interface
 public:
-    void update(const Id<EventModel>& eventId, const TimeValue& newDate, double, ExpandMode mode) override;
+  void update(
+      const Id<EventModel>& eventId,
+      const TimeValue& newDate,
+      double,
+      ExpandMode mode) override;
 };
 }
 }

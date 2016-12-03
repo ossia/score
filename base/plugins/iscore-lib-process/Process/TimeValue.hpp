@@ -1,239 +1,257 @@
 #pragma once
-#include <QTime>
-#include <iscore/tools/std/Optional.hpp>
-#include <chrono>
-#include <QStringBuilder>
 #include "ZoomHelper.hpp"
+#include <QStringBuilder>
+#include <QTime>
+#include <chrono>
+#include <iscore/tools/std/Optional.hpp>
 
-//using namespace std::literals::chrono_literals;
+// using namespace std::literals::chrono_literals;
 
-class ZeroTime {};
-class PositiveInfinity {};
-template<typename T>
+class ZeroTime
+{
+};
+class PositiveInfinity
+{
+};
+template <typename T>
 class TimeValue_T
 {
-    public:
-        static constexpr TimeValue_T zero() {return ZeroTime{}; }
-        static constexpr TimeValue_T infinite() {return PositiveInfinity{}; }
-        static TimeValue_T fromMsecs(T msecs)
-        {
-            TimeValue_T time;
-            time.m_impl = msecs;
-            return time;
-        }
+public:
+  static constexpr TimeValue_T zero()
+  {
+    return ZeroTime{};
+  }
+  static constexpr TimeValue_T infinite()
+  {
+    return PositiveInfinity{};
+  }
+  static TimeValue_T fromMsecs(T msecs)
+  {
+    TimeValue_T time;
+    time.m_impl = msecs;
+    return time;
+  }
 
-        constexpr TimeValue_T() = default;
-        constexpr TimeValue_T(PositiveInfinity) :
-            m_impl {}
-        { }
+  constexpr TimeValue_T() = default;
+  constexpr TimeValue_T(PositiveInfinity) : m_impl{}
+  {
+  }
 
-        constexpr TimeValue_T(ZeroTime) :
-            m_impl {T(0)}
-        { }
+  constexpr TimeValue_T(ZeroTime) : m_impl{T(0)}
+  {
+  }
 
-        TimeValue_T(QTime t):
-            m_impl{T(t.msec() + 1000 * t.second() + 60000 * t.minute() + 3600000 * t.hour())}
-        { }
+  TimeValue_T(QTime t)
+      : m_impl{
+            T(t.msec() + 1000 * t.second() + 60000 * t.minute()
+              + 3600000 * t.hour())}
+  {
+  }
 
+  // These two overloads are here to please coverity...
+  constexpr TimeValue_T(std::chrono::seconds&& dur)
+      : m_impl{T(std::chrono::duration_cast<std::chrono::milliseconds>(dur)
+                     .count())}
+  {
+  }
+  constexpr TimeValue_T(std::chrono::milliseconds&& dur)
+      : m_impl{T(dur.count())}
+  {
+  }
 
-        // These two overloads are here to please coverity...
-        constexpr TimeValue_T(std::chrono::seconds&& dur) :
-            m_impl {T(std::chrono::duration_cast<std::chrono::milliseconds> (dur).count())}
-        { }
-        constexpr TimeValue_T(std::chrono::milliseconds&& dur) :
-            m_impl {T(dur.count())}
-        { }
+  template <
+      typename Duration, std::enable_if_t<std::is_class<
+                             typename Duration::period>::value>* = nullptr>
+  constexpr TimeValue_T(Duration&& dur)
+      : m_impl{T(std::chrono::duration_cast<std::chrono::milliseconds>(dur)
+                     .count())}
+  {
+  }
 
-        template<typename Duration,
-                 std::enable_if_t<std::is_class<typename Duration::period>::value>* = nullptr>
-        constexpr TimeValue_T(Duration && dur) :
-            m_impl {T(std::chrono::duration_cast<std::chrono::milliseconds> (dur).count()) }
-        { }
+  bool isInfinite() const
+  {
+    return !bool(m_impl);
+  }
 
+  bool isZero() const
+  {
+    return !isInfinite() && (msec() == 0);
+  }
 
+  T msec() const
+  {
+    if (!isInfinite())
+      return *m_impl;
 
-        bool isInfinite() const
-        {
-            return !bool (m_impl);
-        }
+    return 0;
+  }
 
-        bool isZero() const
-        {
-            return !isInfinite() && (msec() == 0);
-        }
+  T sec() const
+  {
+    return double(*m_impl) / 1000;
+  }
 
-        T msec() const
-        {
-            if(!isInfinite())
-                return *m_impl;
+  double toPixels(ZoomRatio ratio) const
+  {
+    return ratio > 0 ? *m_impl / ratio : 0;
+  }
 
-            return 0;
-        }
+  QTime toQTime() const
+  {
+    if (isInfinite())
+      return QTime(23, 59, 59, 999);
+    else
+      return QTime(0, 0, 0, 0).addMSecs(static_cast<int>(*m_impl));
+  }
 
-        T sec() const
-        {
-            return double(*m_impl)/1000;
-        }
+  QString toString() const
+  {
+    auto qT = this->toQTime();
+    return QString("%1%2%3 s %4 ms")
+        .arg(
+            qT.hour() != 0 ? QString::number(qT.hour()) % QStringLiteral(" h ")
+                           : QString(),
+            qT.minute() != 0
+                ? QString::number(qT.minute()) % QStringLiteral(" min ")
+                : QString(),
+            QString::number(qT.second()), QString::number(qT.msec()));
+  }
 
-        double toPixels(ZoomRatio ratio) const
-        {
-            return ratio > 0
-                    ? *m_impl / ratio
-                    : 0;
-        }
+  void addMSecs(T msecs)
+  {
+    if (m_impl)
+    {
+      *m_impl += msecs;
+    }
+  }
 
-        QTime toQTime() const
-        {
-            if (isInfinite())
-                return QTime(23,59,59,999);
-            else
-                return QTime(0,0,0,0).addMSecs(static_cast<int>(*m_impl));
-        }
+  void setMSecs(T msecs)
+  {
+    m_impl = msecs;
+  }
 
-        QString toString() const
-        {
-            auto qT = this->toQTime();
-            return QString("%1%2%3 s %4 ms")
-                    .arg(qT.hour() != 0 ? QString::number(qT.hour()) % QStringLiteral(" h ") : QString(),
-                         qT.minute() != 0 ? QString::number(qT.minute()) % QStringLiteral(" min ") : QString(),
-                         QString::number(qT.second()), QString::number(qT.msec()) );
-        }
+  bool operator==(const TimeValue_T& other) const
+  {
+    return other.m_impl == m_impl;
+  }
 
-        void addMSecs(T msecs)
-        {
-            if(m_impl)
-            {
-                *m_impl += msecs;
-            }
-        }
+  bool operator!=(const TimeValue_T& other) const
+  {
+    return other.m_impl != m_impl;
+  }
 
-        void setMSecs(T msecs)
-        {
-            m_impl = msecs;
-        }
+  bool operator>(const TimeValue_T& other) const
+  {
+    if (isInfinite() && other.isInfinite())
+    {
+      return false;
+    }
+    else if (isInfinite() && !other.isInfinite())
+    {
+      return true;
+    }
+    else if (!isInfinite() && other.isInfinite())
+    {
+      return false;
+    }
+    else
+    {
+      return msec() > other.msec();
+    }
+  }
 
-        bool operator== (const TimeValue_T& other) const
-        {
-            return other.m_impl == m_impl;
-        }
+  bool operator>=(const TimeValue_T& other) const
+  {
+    return *this > other || *this == other;
+  }
 
-        bool operator!= (const TimeValue_T& other) const
-        {
-            return other.m_impl != m_impl;
-        }
+  bool operator<(const TimeValue_T& other) const
+  {
+    if (isInfinite() && other.isInfinite())
+    {
+      return false;
+    }
+    else if (!isInfinite() && other.isInfinite())
+    {
+      return true;
+    }
+    else if (isInfinite() && !other.isInfinite())
+    {
+      return false;
+    }
+    else
+    {
+      return msec() < other.msec();
+    }
+  }
 
-        bool operator> (const TimeValue_T& other) const
-        {
-            if(isInfinite() && other.isInfinite())
-            {
-                return false;
-            }
-            else if(isInfinite() && !other.isInfinite())
-            {
-                return true;
-            }
-            else if(!isInfinite() && other.isInfinite())
-            {
-                return false;
-            }
-            else
-            {
-                return msec() > other.msec();
-            }
-        }
+  bool operator<=(const TimeValue_T& other) const
+  {
+    return *this < other || *this == other;
+  }
 
-        bool operator>= (const TimeValue_T& other) const
-        {
-            return *this > other || *this == other;
-        }
+  TimeValue_T operator+(const TimeValue_T& other) const
+  {
+    TimeValue_T res{PositiveInfinity{}};
 
-        bool operator< (const TimeValue_T& other) const
-        {
-            if(isInfinite() && other.isInfinite())
-            {
-                return false;
-            }
-            else if(!isInfinite() && other.isInfinite())
-            {
-                return true;
-            }
-            else if(isInfinite() && !other.isInfinite())
-            {
-                return false;
-            }
-            else
-            {
-                return msec() < other.msec();
-            }
-        }
+    if (isInfinite() || other.isInfinite())
+    {
+      return res;
+    }
 
-        bool operator<= (const TimeValue_T& other) const
-        {
-            return *this < other || *this == other;
-        }
+    res.m_impl = *m_impl + *other.m_impl;
+    return res;
+  }
 
-        TimeValue_T operator+ (const TimeValue_T& other) const
-        {
-            TimeValue_T res {PositiveInfinity{}};
+  TimeValue_T operator*(double other) const
+  {
+    TimeValue_T res{PositiveInfinity{}};
 
-            if(isInfinite() || other.isInfinite())
-            {
-                return res;
-            }
+    if (isInfinite())
+    {
+      return res;
+    }
 
-            res.m_impl = *m_impl + *other.m_impl;
-            return res;
-        }
+    res.m_impl = *m_impl * other;
+    return res;
+  }
 
-        TimeValue_T operator* (double other) const
-        {
-            TimeValue_T res {PositiveInfinity{}};
+  double operator/(const TimeValue_T& other) const
+  {
+    return double(*m_impl) / double(*other.m_impl);
+  }
 
-            if(isInfinite())
-            {
-                return res;
-            }
+  TimeValue_T operator-(const TimeValue_T& other) const
+  {
+    TimeValue_T res{PositiveInfinity{}};
 
-            res.m_impl = *m_impl * other;
-            return res;
-        }
+    if (isInfinite() || other.isInfinite())
+    {
+      return res;
+    }
 
-        double operator/ (const TimeValue_T& other) const
-        {
-            return double(*m_impl) / double(*other.m_impl);
-        }
+    res.m_impl = *m_impl - *other.m_impl;
+    return res;
+  }
 
-        TimeValue_T operator- (const TimeValue_T& other) const
-        {
-            TimeValue_T res {PositiveInfinity{}};
+  TimeValue_T operator-() const
+  {
+    TimeValue_T res{ZeroTime{}};
+    TimeValue_T zero{ZeroTime{}};
 
-            if(isInfinite() || other.isInfinite())
-            {
-                return res;
-            }
+    res.m_impl = *zero.m_impl - *m_impl;
 
-            res.m_impl = *m_impl - *other.m_impl;
-            return res;
-        }
+    return res;
+  }
 
-        TimeValue_T operator- () const
-        {
-            TimeValue_T res{ZeroTime{}};
-            TimeValue_T zero{ZeroTime{}};
+  TimeValue_T operator+=(const TimeValue_T& other)
+  {
+    *this = *this + other;
+    return *this;
+  }
 
-            res.m_impl = *zero.m_impl - *m_impl;
-
-            return res;
-        }
-
-        TimeValue_T operator+= (const TimeValue_T& other)
-        {
-            *this = *this + other;
-            return *this;
-        }
-
-    private:
-        optional<T> m_impl {T(0)}; // TODO std::isinf instead.
+private:
+  optional<T> m_impl{T(0)}; // TODO std::isinf instead.
 };
 
 /*
@@ -264,97 +282,87 @@ class TimeValue_T<QTime>
 */
 #include <QDebug>
 using TimeValue = TimeValue_T<double>;
-inline QDebug operator<< (QDebug d, const TimeValue& tv)
+inline QDebug operator<<(QDebug d, const TimeValue& tv)
 {
-    if(!tv.isInfinite())
-    {
-        d << tv.msec() << "ms";
-    }
-    else
-    {
-        d << "infinite";
-    }
+  if (!tv.isInfinite())
+  {
+    d << tv.msec() << "ms";
+  }
+  else
+  {
+    d << "infinite";
+  }
 
-    return d;
+  return d;
 }
 inline const TimeValue& max(const TimeValue& lhs, const TimeValue& rhs)
 {
-    if(lhs < rhs)
-        return rhs;
-    else
-        return lhs;
+  if (lhs < rhs)
+    return rhs;
+  else
+    return lhs;
 }
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
-template<>
+template <>
 struct TSerializer<DataStream, void, TimeValue>
 {
-        static void readFrom(
-                DataStream::Serializer& s,
-                const TimeValue& tv)
-        {
-            s.stream() << tv.isInfinite();
+  static void readFrom(DataStream::Serializer& s, const TimeValue& tv)
+  {
+    s.stream() << tv.isInfinite();
 
-            if(!tv.isInfinite())
-            {
-                s.stream() << tv.msec();
-            }
-        }
+    if (!tv.isInfinite())
+    {
+      s.stream() << tv.msec();
+    }
+  }
 
-        static void writeTo(
-                DataStream::Deserializer& s,
-                TimeValue& tv)
-        {
-            bool inf;
-            s.stream() >> inf;
+  static void writeTo(DataStream::Deserializer& s, TimeValue& tv)
+  {
+    bool inf;
+    s.stream() >> inf;
 
-            if(!inf)
-            {
-                double msec;
-                s.stream() >> msec;
-                tv.setMSecs(msec);
-            }
-            else
-            {
-                tv = TimeValue {PositiveInfinity{}};
-            }
-        }
+    if (!inf)
+    {
+      double msec;
+      s.stream() >> msec;
+      tv.setMSecs(msec);
+    }
+    else
+    {
+      tv = TimeValue{PositiveInfinity{}};
+    }
+  }
 };
 
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
-
-template<>
+template <>
 struct TSerializer<JSONValue, TimeValue>
 {
-    static void readFrom(
-            JSONValue::Serializer& s,
-            const TimeValue& tv)
+  static void readFrom(JSONValue::Serializer& s, const TimeValue& tv)
+  {
+    if (tv.isInfinite())
     {
-        if(tv.isInfinite())
-        {
-            s.val = "inf";
-        }
-        else
-        {
-            s.val = tv.msec();
-        }
+      s.val = "inf";
     }
+    else
+    {
+      s.val = tv.msec();
+    }
+  }
 
-    static void writeTo(
-            JSONValue::Deserializer& s,
-            TimeValue& tv)
+  static void writeTo(JSONValue::Deserializer& s, TimeValue& tv)
+  {
+    if (s.val.toString() == "inf")
     {
-        if(s.val.toString() == "inf")
-        {
-            tv = TimeValue {PositiveInfinity{}};
-        }
-        else
-        {
-            tv.setMSecs(s.val.toDouble());
-        }
+      tv = TimeValue{PositiveInfinity{}};
     }
+    else
+    {
+      tv.setMSecs(s.val.toDouble());
+    }
+  }
 };
-
 
 Q_DECLARE_METATYPE(TimeValue)

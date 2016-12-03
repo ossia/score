@@ -1,14 +1,14 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <QList>
+#include <QWidget>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/identity_fwd.hpp>
 #include <boost/multi_index/indexed_by.hpp>
-#include <boost/multi_index_container.hpp>
 #include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index_container.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
-#include <QList>
-#include <QWidget>
 
 #include <iscore/selection/Selection.hpp>
 
@@ -20,9 +20,10 @@ class InspectorWidgetList;
 
 class QTabWidget;
 class QVBoxLayout;
-namespace iscore {
+namespace iscore
+{
 class SelectionStack;
-}  // namespace iscore
+} // namespace iscore
 
 namespace InspectorPanel
 {
@@ -35,33 +36,33 @@ namespace InspectorPanel
 // TODO rename file
 class InspectorPanelWidget final : public QWidget
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
-        explicit InspectorPanelWidget(
-                const Inspector::InspectorWidgetList& list,
-                iscore::SelectionStack& s,
-                QWidget* parent);
+public:
+  explicit InspectorPanelWidget(
+      const Inspector::InspectorWidgetList& list,
+      iscore::SelectionStack& s,
+      QWidget* parent);
 
-    public slots:
-        /*!
-         * \brief newItemInspected load the view for the selected object
-         *
-         *  It's called when the user selects a new item
-         * \param object The selected objet.
-         */
-        void newItemsInspected(const Selection&);
+public slots:
+  /*!
+   * \brief newItemInspected load the view for the selected object
+   *
+   *  It's called when the user selects a new item
+   * \param object The selected objet.
+   */
+  void newItemsInspected(const Selection&);
 
-        void on_tabClose(int index);
+  void on_tabClose(int index);
 
-    private:
-        QVBoxLayout* m_layout{};
-        QTabWidget* m_tabWidget{};
+private:
+  QVBoxLayout* m_layout{};
+  QTabWidget* m_tabWidget{};
 
-        Inspector::InspectorWidgetBase* m_currentInspector{};
+  Inspector::InspectorWidgetBase* m_currentInspector{};
 
-        const Inspector::InspectorWidgetList& m_list;
-        iscore::SelectionDispatcher m_selectionDispatcher;
-        QList<const IdentifiedObjectAbstract*> m_currentSel;
+  const Inspector::InspectorWidgetList& m_list;
+  iscore::SelectionDispatcher m_selectionDispatcher;
+  QList<const IdentifiedObjectAbstract*> m_currentSel;
 };
 }

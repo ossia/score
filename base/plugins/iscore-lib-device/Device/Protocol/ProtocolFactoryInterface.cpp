@@ -6,7 +6,6 @@ ProtocolFactory::~ProtocolFactory() = default;
 
 int ProtocolFactory::visualPriority() const
 {
-    return 0;
+  return 0;
 }
-
 }

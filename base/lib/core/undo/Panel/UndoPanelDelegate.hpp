@@ -4,24 +4,19 @@
 namespace iscore
 {
 class UndoListWidget;
-class UndoPanelDelegate final :
-        public iscore::PanelDelegate
+class UndoPanelDelegate final : public iscore::PanelDelegate
 {
-    public:
-        UndoPanelDelegate(
-                const iscore::ApplicationContext& ctx);
+public:
+  UndoPanelDelegate(const iscore::ApplicationContext& ctx);
 
-    private:
-        QWidget *widget() override;
+private:
+  QWidget* widget() override;
 
-        const PanelStatus& defaultPanelStatus() const override;
+  const PanelStatus& defaultPanelStatus() const override;
 
-        void on_modelChanged(
-                MaybeDocument oldm,
-                MaybeDocument newm) override;
+  void on_modelChanged(MaybeDocument oldm, MaybeDocument newm) override;
 
-        iscore::UndoListWidget *m_list{};
-        QWidget *m_widget{};
+  iscore::UndoListWidget* m_list{};
+  QWidget* m_widget{};
 };
-
 }

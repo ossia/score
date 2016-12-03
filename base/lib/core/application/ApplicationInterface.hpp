@@ -1,6 +1,6 @@
 #pragma once
-#include <iscore_lib_base_export.h>
 #include <iscore/application/ApplicationContext.hpp>
+#include <iscore_lib_base_export.h>
 namespace iscore
 {
 class Settings;
@@ -21,33 +21,35 @@ struct GUIApplicationContext;
 class ISCORE_LIB_BASE_EXPORT ApplicationInterface
 {
 public:
-    ApplicationInterface();
-    virtual ~ApplicationInterface();
+  ApplicationInterface();
+  virtual ~ApplicationInterface();
 
-    virtual const ApplicationContext& context() const = 0;
+  virtual const ApplicationContext& context() const = 0;
 
-    virtual const ApplicationComponents& components() const = 0;
+  virtual const ApplicationComponents& components() const = 0;
 
-    static ApplicationInterface& instance();
+  static ApplicationInterface& instance();
 
-    /**
-     * @brief loadPluginData Utility method to load the minimal required data for plug-ins.
-     *
-     * For instance, the command system and the serialization system both require
-     * all the datas in the plug-ins to work correctly (else, a command may crash
-     * since a factory was not provided, or a file may not be able to be reloaded).
-     *
-     * This function takes care of loading the minimal set of elements from plugins so that
-     * all the base functions of the software will work correctly.
-     */
-    void loadPluginData(
-            const iscore::GUIApplicationContext& ctx,
-            iscore::ApplicationRegistrar&,
-            iscore::Settings& m_settings,
-            iscore::Presenter& m_presenter);
+  /**
+   * @brief loadPluginData Utility method to load the minimal required data for
+   * plug-ins.
+   *
+   * For instance, the command system and the serialization system both require
+   * all the datas in the plug-ins to work correctly (else, a command may crash
+   * since a factory was not provided, or a file may not be able to be
+   * reloaded).
+   *
+   * This function takes care of loading the minimal set of elements from
+   * plugins so that
+   * all the base functions of the software will work correctly.
+   */
+  void loadPluginData(
+      const iscore::GUIApplicationContext& ctx,
+      iscore::ApplicationRegistrar&,
+      iscore::Settings& m_settings,
+      iscore::Presenter& m_presenter);
 
-    protected:
-        static ApplicationInterface* m_instance;
+protected:
+  static ApplicationInterface* m_instance;
 };
-
 }

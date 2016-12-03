@@ -11,16 +11,15 @@ struct Point;
 
 class PlayToolState
 {
-    public:
-        PlayToolState(const Scenario::ToolPalette &sm);
+public:
+  PlayToolState(const Scenario::ToolPalette& sm);
 
-        void on_pressed(QPointF scenePoint, Scenario::Point scenarioPoint);
-        void on_moved();
-        void on_released();
+  void on_pressed(QPointF scenePoint, Scenario::Point scenarioPoint);
+  void on_moved();
+  void on_released();
 
-    private:
-        const Scenario::ToolPalette &m_sm;
-        const ScenarioExecution& m_exec;
+private:
+  const Scenario::ToolPalette& m_sm;
+  const ScenarioExecution& m_exec;
 };
-
 }

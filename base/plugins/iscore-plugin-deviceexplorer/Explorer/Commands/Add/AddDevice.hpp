@@ -14,24 +14,26 @@ namespace Explorer
 class DeviceDocumentPlugin;
 namespace Command
 {
-class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddDevice final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddDevice final
+    : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddDevice, "Add a device")
-        public:
-        AddDevice(Path<DeviceDocumentPlugin>&& device_tree,
-                  const Device::DeviceSettings& parameters);
+  ISCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(), AddDevice, "Add a device")
+public:
+  AddDevice(
+      Path<DeviceDocumentPlugin>&& device_tree,
+      const Device::DeviceSettings& parameters);
 
+  void undo() const override;
+  void redo() const override;
 
-        void undo() const override;
-        void redo() const override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
-
-    private:
-        Path<DeviceDocumentPlugin> m_devicesModel;
-        Device::DeviceSettings m_parameters;
+private:
+  Path<DeviceDocumentPlugin> m_devicesModel;
+  Device::DeviceSettings m_parameters;
 };
 }
 }

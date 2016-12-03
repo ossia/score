@@ -1,24 +1,24 @@
 #pragma once
-#include <iscore/tools/Metadata.hpp>
-#include <iscore/model/Entity.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
+#include <QObject>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Constraint/ExecutionState.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
-#include <iscore/tools/std/Optional.hpp>
+#include <iscore/model/Entity.hpp>
 #include <iscore/selection/Selectable.hpp>
-#include <QObject>
+#include <iscore/tools/Metadata.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <nano_signal_slot.hpp>
-#include <Scenario/Document/Constraint/ExecutionState.hpp>
 
 #include <QString>
 #include <QVector>
 
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/component/Component.hpp>
+#include <iscore/tools/EntityMap.hpp>
+#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 class DataStream;
 class JSONObject;
 
@@ -28,141 +28,142 @@ class StateModel;
 class ConstraintViewModel;
 class FullViewConstraintViewModel;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final :
-        public iscore::Entity<ConstraintModel>,
-        public Nano::Observer
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
+    : public iscore::Entity<ConstraintModel>,
+      public Nano::Observer
 {
-        Q_OBJECT
+  Q_OBJECT
 
-        ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, DataStream)
+  ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, JSONObject)
 
-        // TODO must go in view model
-        Q_PROPERTY(double heightPercentage
-                   READ heightPercentage
-                   WRITE setHeightPercentage
-                   NOTIFY heightPercentageChanged)
+  // TODO must go in view model
+  Q_PROPERTY(double heightPercentage READ heightPercentage WRITE
+                 setHeightPercentage NOTIFY heightPercentageChanged)
 
-    public:
-        /** Properties of the class **/
-        EntityMap<Process::ProcessModel> processes;
-        EntityMap<RackModel> racks;
+public:
+  /** Properties of the class **/
+  EntityMap<Process::ProcessModel> processes;
+  EntityMap<RackModel> racks;
 
-        Selectable selection;
-        ModelConsistency consistency{nullptr};
-        ConstraintDurations duration{*this};
+  Selectable selection;
+  ModelConsistency consistency{nullptr};
+  ConstraintDurations duration{*this};
 
-        /** The class **/
-        ConstraintModel(const Id<ConstraintModel>&,
-                        const Id<ConstraintViewModel>& fullViewId,
-                        double yPos,
-                        QObject* parent);
+  /** The class **/
+  ConstraintModel(
+      const Id<ConstraintModel>&,
+      const Id<ConstraintViewModel>& fullViewId,
+      double yPos,
+      QObject* parent);
 
-        ~ConstraintModel();
+  ~ConstraintModel();
 
-        // Copy
-        ConstraintModel(const ConstraintModel &source,
-                        const Id<ConstraintModel>& id,
-                        QObject* parent);
+  // Copy
+  ConstraintModel(
+      const ConstraintModel& source,
+      const Id<ConstraintModel>& id,
+      QObject* parent);
 
-        // Serialization
-        template<typename Deserializer>
-        ConstraintModel(Deserializer&& vis, QObject* parent) :
-            Entity{vis, parent}
-        {
-            initConnections();
-            vis.writeTo(*this);
-        }
+  // Serialization
+  template <typename Deserializer>
+  ConstraintModel(Deserializer&& vis, QObject* parent) : Entity{vis, parent}
+  {
+    initConnections();
+    vis.writeTo(*this);
+  }
 
-        // Factories for the view models.
-        template<typename ViewModelType> // Arg might be an id or a datastream [
-        ViewModelType* makeConstraintViewModel(
-                const Id<ConstraintViewModel>& id,
-                QObject* parent)
-        {
-            auto viewmodel = new ViewModelType {id, *this, parent};
-            setupConstraintViewModel(viewmodel);
-            return viewmodel;
-        }
+  // Factories for the view models.
+  template <typename ViewModelType> // Arg might be an id or a datastream [
+  ViewModelType*
+  makeConstraintViewModel(const Id<ConstraintViewModel>& id, QObject* parent)
+  {
+    auto viewmodel = new ViewModelType{id, *this, parent};
+    setupConstraintViewModel(viewmodel);
+    return viewmodel;
+  }
 
-        // Note : the Constraint does not have ownership (it's generally the Slot)
-        void setupConstraintViewModel(ConstraintViewModel* viewmodel);
+  // Note : the Constraint does not have ownership (it's generally the Slot)
+  void setupConstraintViewModel(ConstraintViewModel* viewmodel);
 
-        const Id<StateModel>& startState() const;
-        void setStartState(const Id<StateModel>& eventId);
+  const Id<StateModel>& startState() const;
+  void setStartState(const Id<StateModel>& eventId);
 
-        const Id<StateModel>& endState() const;
-        void setEndState(const Id<StateModel> &endState);
+  const Id<StateModel>& endState() const;
+  void setEndState(const Id<StateModel>& endState);
 
-        // Here we won't remove / add things from the outside so it is safe to
-        // return a reference
-        const QVector<ConstraintViewModel*>& viewModels() const
-        { return m_constraintViewModels; }
+  // Here we won't remove / add things from the outside so it is safe to
+  // return a reference
+  const QVector<ConstraintViewModel*>& viewModels() const
+  {
+    return m_constraintViewModels;
+  }
 
-        const TimeValue& startDate() const;
-        void setStartDate(const TimeValue& start);
-        void translate(const TimeValue& deltaTime);
+  const TimeValue& startDate() const;
+  void setStartDate(const TimeValue& start);
+  void translate(const TimeValue& deltaTime);
 
-        double heightPercentage() const;
+  double heightPercentage() const;
 
+  FullViewConstraintViewModel* fullView() const
+  {
+    return m_fullViewModel;
+  }
 
-        FullViewConstraintViewModel* fullView() const
-        {
-            return m_fullViewModel;
-        }
+  void setFullView(FullViewConstraintViewModel* fv);
 
-        void setFullView(FullViewConstraintViewModel* fv);
+  void startExecution();
+  void stopExecution();
+  // Resets the execution display recursively
+  void reset();
 
+  bool looping() const;
+  void setLooping(bool looping);
 
-        void startExecution();
-        void stopExecution();
-        // Resets the execution display recursively
-        void reset();
+  void setHeightPercentage(double arg);
+  void setExecutionState(ConstraintExecutionState);
+  ConstraintExecutionState executionState() const
+  {
+    return m_executionState;
+  }
+signals:
+  void viewModelCreated(const ConstraintViewModel&);
+  void viewModelRemoved(const QObject*);
 
-        bool looping() const;
-        void setLooping(bool looping);
+  void heightPercentageChanged(double);
 
-        void setHeightPercentage(double arg);
-        void setExecutionState(ConstraintExecutionState);
-        ConstraintExecutionState executionState() const
-        { return m_executionState; }
-    signals:
-        void viewModelCreated(const ConstraintViewModel&);
-        void viewModelRemoved(const QObject*);
+  void startDateChanged(const TimeValue&);
 
-        void heightPercentageChanged(double);
+  void focusChanged(bool);
+  void loopingChanged(bool);
+  void executionStateChanged(Scenario::ConstraintExecutionState);
+  void executionStarted();
+  void executionStopped();
 
-        void startDateChanged(const TimeValue&);
+private:
+  void on_destroyedViewModel(ConstraintViewModel* obj);
+  void initConnections();
+  void on_rackAdded(const RackModel& rack);
 
-        void focusChanged(bool);
-        void loopingChanged(bool);
-        void executionStateChanged(Scenario::ConstraintExecutionState);
-        void executionStarted();
-        void executionStopped();
+  // The small view constraint view models that show this constraint
+  // The constraint does not have ownership of these: their parent (in the Qt
+  // sense) are
+  // the scenario view models
+  QVector<ConstraintViewModel*> m_constraintViewModels;
 
-    private:
-        void on_destroyedViewModel(ConstraintViewModel* obj);
-        void initConnections();
-        void on_rackAdded(const RackModel& rack);
+  // Model for the full view.
+  // Note : it is also present in m_constraintViewModels.
+  FullViewConstraintViewModel* m_fullViewModel{};
 
-        // The small view constraint view models that show this constraint
-        // The constraint does not have ownership of these: their parent (in the Qt sense) are
-        // the scenario view models
-        QVector<ConstraintViewModel*> m_constraintViewModels;
+  Id<StateModel> m_startState;
+  Id<StateModel> m_endState;
 
-        // Model for the full view.
-        // Note : it is also present in m_constraintViewModels.
-        FullViewConstraintViewModel* m_fullViewModel {};
+  TimeValue m_startDate; // origin
 
-        Id<StateModel> m_startState;
-        Id<StateModel> m_endState;
+  double m_heightPercentage{0.5};
 
-        TimeValue m_startDate; // origin
-
-        double m_heightPercentage {0.5};
-
-        bool m_looping{false};
-        ConstraintExecutionState m_executionState{};
+  bool m_looping{false};
+  ConstraintExecutionState m_executionState{};
 };
 }
 

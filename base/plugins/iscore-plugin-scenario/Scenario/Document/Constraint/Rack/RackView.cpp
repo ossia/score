@@ -6,28 +6,20 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
-
 namespace Scenario
 {
-RackView::RackView(QGraphicsItem* parent) :
-    QGraphicsItem{parent}
+RackView::RackView(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
-    this->setFlag(QGraphicsItem::ItemHasNoContents);
-    this->setZValue(ZPos::Rack);
+  this->setFlag(QGraphicsItem::ItemHasNoContents);
+  this->setZValue(ZPos::Rack);
 }
 
 QRectF RackView::boundingRect() const
 {
-    return {0,
-            0,
-            m_width,
-            m_height
-           };
+  return {0, 0, m_width, m_height};
 }
 
-void RackView::paint(QPainter* ,
-                    const QStyleOptionGraphicsItem* ,
-                    QWidget* )
+void RackView::paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget*)
 {
 }
 }

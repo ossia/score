@@ -7,13 +7,13 @@ namespace LocalTree
 {
 class ISCORE_PLUGIN_ENGINE_EXPORT BaseCallbackWrapper : public BaseProperty
 {
-    public:
-        using BaseProperty::BaseProperty;
-        ~BaseCallbackWrapper()
-        {
-        }
+public:
+  using BaseProperty::BaseProperty;
+  ~BaseCallbackWrapper()
+  {
+  }
 
-        ossia::net::address_base::callback_index callbackIt{};
+  ossia::net::address_base::callback_index callbackIt{};
 };
 }
 }

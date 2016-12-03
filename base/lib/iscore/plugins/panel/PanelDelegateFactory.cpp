@@ -3,5 +3,4 @@
 namespace iscore
 {
 PanelDelegateFactory::~PanelDelegateFactory() = default;
-
 }

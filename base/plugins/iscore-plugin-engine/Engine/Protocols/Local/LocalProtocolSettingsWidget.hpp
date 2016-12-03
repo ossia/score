@@ -12,21 +12,19 @@ namespace Engine
 {
 namespace Network
 {
-class LocalProtocolSettingsWidget final :
-        public Device::ProtocolSettingsWidget
+class LocalProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
-    public:
-        LocalProtocolSettingsWidget(QWidget* parent = nullptr);
+public:
+  LocalProtocolSettingsWidget(QWidget* parent = nullptr);
 
-    private:
-        Device::DeviceSettings getSettings() const override;
-        void setSettings(const Device::DeviceSettings& settings) override;
+private:
+  Device::DeviceSettings getSettings() const override;
+  void setSettings(const Device::DeviceSettings& settings) override;
 
-        QLineEdit* m_remoteNameEdit{};
-        QLineEdit* m_localHostEdit{};
-        QSpinBox* m_localPort{};
-        QSpinBox* m_remotePort{};
+  QLineEdit* m_remoteNameEdit{};
+  QLineEdit* m_localHostEdit{};
+  QSpinBox* m_localPort{};
+  QSpinBox* m_remotePort{};
 };
-
 }
 }

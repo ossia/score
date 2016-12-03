@@ -9,17 +9,19 @@ AddressImpulseSettingsWidget::AddressImpulseSettingsWidget(QWidget* parent)
 
 Device::AddressSettings AddressImpulseSettingsWidget::getSettings() const
 {
-    auto set = getCommonSettings();
-    set.value = State::ValueImpl{State::impulse_t{}};
-    return set;
+  auto set = getCommonSettings();
+  set.value = State::ValueImpl{State::impulse_t{}};
+  return set;
 }
 
-void AddressImpulseSettingsWidget::setSettings(const Device::AddressSettings& settings)
+void AddressImpulseSettingsWidget::setSettings(
+    const Device::AddressSettings& settings)
 {
-    setCommonSettings(settings);
+  setCommonSettings(settings);
 }
 
-Device::AddressSettings AddressImpulseSettingsWidget::getDefaultSettings() const
+Device::AddressSettings
+AddressImpulseSettingsWidget::getDefaultSettings() const
 {
   return {};
 }

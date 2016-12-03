@@ -9,9 +9,9 @@
 
 #include "RemoveRackFromConstraint.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/ObjectIdentifier.hpp>
 
 namespace Scenario
@@ -19,74 +19,71 @@ namespace Scenario
 namespace Command
 {
 
-RemoveRackFromConstraint::RemoveRackFromConstraint(
-        Path<RackModel>&& rackPath)
+RemoveRackFromConstraint::RemoveRackFromConstraint(Path<RackModel>&& rackPath)
 {
-    auto trimmedRackPath = std::move(rackPath).splitLast<ConstraintModel>();
+  auto trimmedRackPath = std::move(rackPath).splitLast<ConstraintModel>();
 
-    m_path = std::move(trimmedRackPath.first);
-    m_rackId = Id<RackModel>{trimmedRackPath.second.id()};
+  m_path = std::move(trimmedRackPath.first);
+  m_rackId = Id<RackModel>{trimmedRackPath.second.id()};
 
-    auto& constraint = m_path.find();
-    // Save the rack
-    Serializer<DataStream> s{&m_serializedRackData};
-    s.readFrom(constraint.racks.at(m_rackId));
+  auto& constraint = m_path.find();
+  // Save the rack
+  Serializer<DataStream> s{&m_serializedRackData};
+  s.readFrom(constraint.racks.at(m_rackId));
 
-    // Save for each view model of this constraint
-    // a bool indicating if the rack being deleted
-    // was displayed
-    for(const ConstraintViewModel* vm : constraint.viewModels())
-    {
-        m_rackMappings[vm->id()] = vm->shownRack() == m_rackId;
-    }
+  // Save for each view model of this constraint
+  // a bool indicating if the rack being deleted
+  // was displayed
+  for (const ConstraintViewModel* vm : constraint.viewModels())
+  {
+    m_rackMappings[vm->id()] = vm->shownRack() == m_rackId;
+  }
 }
 
 RemoveRackFromConstraint::RemoveRackFromConstraint(
-        Path<ConstraintModel>&& constraintPath,
-        Id<RackModel> rackId) :
-    m_path {constraintPath},
-    m_rackId {std::move(rackId)}
+    Path<ConstraintModel>&& constraintPath, Id<RackModel> rackId)
+    : m_path{constraintPath}, m_rackId{std::move(rackId)}
 {
-    auto& constraint = m_path.find();
+  auto& constraint = m_path.find();
 
-    Serializer<DataStream> s{&m_serializedRackData};
-    s.readFrom(constraint.racks.at(m_rackId));
+  Serializer<DataStream> s{&m_serializedRackData};
+  s.readFrom(constraint.racks.at(m_rackId));
 
-    for(const ConstraintViewModel* vm : constraint.viewModels())
-    {
-        m_rackMappings[vm->id()] = vm->shownRack() == m_rackId;
-    }
+  for (const ConstraintViewModel* vm : constraint.viewModels())
+  {
+    m_rackMappings[vm->id()] = vm->shownRack() == m_rackId;
+  }
 }
 
 void RemoveRackFromConstraint::undo() const
 {
-    auto& constraint = m_path.find();
-    Deserializer<DataStream> s {m_serializedRackData};
-    constraint.racks.add(new RackModel {s, &constraint});
+  auto& constraint = m_path.find();
+  Deserializer<DataStream> s{m_serializedRackData};
+  constraint.racks.add(new RackModel{s, &constraint});
 
-    for(ConstraintViewModel* vm : constraint.viewModels())
+  for (ConstraintViewModel* vm : constraint.viewModels())
+  {
+    if (m_rackMappings[vm->id()])
     {
-        if(m_rackMappings[vm->id()])
-        {
-            vm->showRack(m_rackId);
-        }
+      vm->showRack(m_rackId);
     }
+  }
 }
 
 void RemoveRackFromConstraint::redo() const
 {
-    auto& constraint = m_path.find();
-    constraint.racks.remove(m_rackId);
+  auto& constraint = m_path.find();
+  constraint.racks.remove(m_rackId);
 }
 
 void RemoveRackFromConstraint::serializeImpl(DataStreamInput& s) const
 {
-    s << m_path << m_rackId << m_serializedRackData << m_rackMappings;
+  s << m_path << m_rackId << m_serializedRackData << m_rackMappings;
 }
 
 void RemoveRackFromConstraint::deserializeImpl(DataStreamOutput& s)
 {
-    s >> m_path >> m_rackId >> m_serializedRackData >> m_rackMappings;
+  s >> m_path >> m_rackId >> m_serializedRackData >> m_rackMappings;
 }
 }
 }

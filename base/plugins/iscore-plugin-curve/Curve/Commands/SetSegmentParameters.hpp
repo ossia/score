@@ -1,10 +1,10 @@
 #pragma once
 #include <Curve/Commands/CurveCommandFactory.hpp>
-#include <iscore/tools/std/Optional.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
 #include <QMap>
 #include <QPair>
+#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore_plugin_curve_export.h>
@@ -17,33 +17,29 @@ namespace Curve
 class Model;
 class SegmentModel;
 using SegmentParameterMap = QMap<Id<SegmentModel>, QPair<double, double>>;
-class ISCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final : public iscore::SerializableCommand
+class ISCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final
+    : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(CommandFactoryName(), SetSegmentParameters, "Set segment parameters")
-    public:
-        SetSegmentParameters(const Model& model, SegmentParameterMap&& parameters);
+  ISCORE_COMMAND_DECL(
+      CommandFactoryName(), SetSegmentParameters, "Set segment parameters")
+public:
+  SetSegmentParameters(const Model& model, SegmentParameterMap&& parameters);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-        void update(unused_t, SegmentParameterMap&& segments)
-        {
-            m_new = std::move(segments);
-        }
+  void update(unused_t, SegmentParameterMap&& segments)
+  {
+    m_new = std::move(segments);
+  }
 
-    protected:
-        void serializeImpl(DataStreamInput & s) const override;
-        void deserializeImpl(DataStreamOutput & s) override;
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
 
-    private:
-        Path<Model> m_model;
-        SegmentParameterMap m_new;
-        QMap<
-            Id<SegmentModel>,
-            QPair<
-                optional<double>,
-                optional<double>
-            >
-        > m_old;
+private:
+  Path<Model> m_model;
+  SegmentParameterMap m_new;
+  QMap<Id<SegmentModel>, QPair<optional<double>, optional<double>>> m_old;
 };
 }

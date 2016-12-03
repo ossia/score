@@ -15,28 +15,30 @@ namespace Command
 {
 class UpdateAddressSettings final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateAddressSettings, "Update an address")
-        public:
-          UpdateAddressSettings(
-            Path<DeviceDocumentPlugin>&& device_tree,
-            const Device::NodePath &node,
-            const Device::AddressSettings& parameters);
+  ISCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(),
+      UpdateAddressSettings,
+      "Update an address")
+public:
+  UpdateAddressSettings(
+      Path<DeviceDocumentPlugin>&& device_tree,
+      const Device::NodePath& node,
+      const Device::AddressSettings& parameters);
 
+  void undo() const override;
+  void redo() const override;
 
-        void undo() const override;
-        void redo() const override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+private:
+  Path<DeviceDocumentPlugin> m_devicesModel;
 
-    private:
-        Path<DeviceDocumentPlugin> m_devicesModel;
+  Device::NodePath m_node;
 
-        Device::NodePath m_node;
-
-        Device::AddressSettings m_oldParameters;
-        Device::AddressSettings m_newParameters;
+  Device::AddressSettings m_oldParameters;
+  Device::AddressSettings m_newParameters;
 };
 }
 }

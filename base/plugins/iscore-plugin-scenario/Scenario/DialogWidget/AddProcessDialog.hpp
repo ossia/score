@@ -6,7 +6,8 @@ namespace Process
 {
 class ProcessFactoryList;
 class StateProcessList;
-class ProcessModelFactory; class LayerFactory;
+class ProcessModelFactory;
+class LayerFactory;
 class StateProcessFactory;
 }
 namespace Scenario
@@ -14,37 +15,34 @@ namespace Scenario
 
 class AddProcessDialog final : public QWidget
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
-        AddProcessDialog(
-                const Process::ProcessFactoryList& plist,
-                QWidget* parent);
+public:
+  AddProcessDialog(const Process::ProcessFactoryList& plist, QWidget* parent);
 
-        void launchWindow();
+  void launchWindow();
 
-    signals:
-        void okPressed(UuidKey<Process::ProcessModelFactory>);
+signals:
+  void okPressed(UuidKey<Process::ProcessModelFactory>);
 
-    private:
-        const Process::ProcessFactoryList& m_factoryList;
+private:
+  const Process::ProcessFactoryList& m_factoryList;
 };
 
 class AddStateProcessDialog final : public QWidget
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
-        AddStateProcessDialog(
-                const Process::StateProcessList& plist,
-                QWidget* parent);
+public:
+  AddStateProcessDialog(
+      const Process::StateProcessList& plist, QWidget* parent);
 
-        void launchWindow();
+  void launchWindow();
 
-    signals:
-        void okPressed(const UuidKey<Process::StateProcessFactory>&);
+signals:
+  void okPressed(const UuidKey<Process::StateProcessFactory>&);
 
-    private:
-        const Process::StateProcessList& m_factoryList;
+private:
+  const Process::StateProcessList& m_factoryList;
 };
 }

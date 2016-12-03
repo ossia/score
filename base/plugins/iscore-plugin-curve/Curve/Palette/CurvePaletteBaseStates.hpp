@@ -1,7 +1,7 @@
 #pragma once
 #include "CurvePoint.hpp"
-#include <iscore/tools/SettableIdentifier.hpp>
 #include <QState>
+#include <iscore/tools/SettableIdentifier.hpp>
 class QGraphicsItem;
 
 namespace Curve
@@ -10,20 +10,20 @@ class SegmentModel;
 
 struct PointId
 {
-        OptionalId<SegmentModel> previous;
-        OptionalId<SegmentModel> following;
+  OptionalId<SegmentModel> previous;
+  OptionalId<SegmentModel> following;
 };
 
 class StateBase : public QState
 {
-    public:
-        using QState::QState;
-        Id<SegmentModel> clickedSegmentId;
-        PointId clickedPointId;
+public:
+  using QState::QState;
+  Id<SegmentModel> clickedSegmentId;
+  PointId clickedPointId;
 
-        Id<SegmentModel> hoveredSegmentId;
-        PointId hoveredPointId;
+  Id<SegmentModel> hoveredSegmentId;
+  PointId hoveredPointId;
 
-        Curve::Point currentPoint;
+  Curve::Point currentPoint;
 };
 }

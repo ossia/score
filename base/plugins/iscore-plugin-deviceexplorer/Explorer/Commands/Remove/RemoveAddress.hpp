@@ -19,23 +19,24 @@ namespace Command
  */
 class RemoveAddress final : public iscore::SerializableCommand
 {
-    ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveAddress, "Remove an address")
-    public:
-        RemoveAddress(
-                   Path<DeviceDocumentPlugin>&& device_tree,
-                   const Device::NodePath &nodePath);
+  ISCORE_COMMAND_DECL(
+      DeviceExplorerCommandFactoryName(), RemoveAddress, "Remove an address")
+public:
+  RemoveAddress(
+      Path<DeviceDocumentPlugin>&& device_tree,
+      const Device::NodePath& nodePath);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<DeviceDocumentPlugin> m_devicesModel;
-        Device::NodePath m_nodePath;
-        Device::Node m_savedNode;
+private:
+  Path<DeviceDocumentPlugin> m_devicesModel;
+  Device::NodePath m_nodePath;
+  Device::Node m_savedNode;
 };
 }
 }

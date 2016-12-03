@@ -1,12 +1,15 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 #include <QObject>
+#include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 
 #include <vector>
 
-namespace Process { class LayerPresenter; }
+namespace Process
+{
+class LayerPresenter;
+}
 
 class BaseGraphicsObject;
 namespace Scenario
@@ -17,37 +20,38 @@ class ConstraintModel;
 class DisplayedElementsModel;
 // Contains the elements that are shown (not necessarily the ones in
 // BaseScenarioModel)
-class DisplayedElementsPresenter final :
-        public QObject,
-        public BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>
+class DisplayedElementsPresenter final
+    : public QObject,
+      public BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>
 {
-        Q_OBJECT
-    public:
-        DisplayedElementsPresenter(ScenarioDocumentPresenter* parent);
-        ~DisplayedElementsPresenter();
-        using QObject::event;
-        using BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>::event;
+  Q_OBJECT
+public:
+  DisplayedElementsPresenter(ScenarioDocumentPresenter* parent);
+  ~DisplayedElementsPresenter();
+  using QObject::event;
+  using BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>::
+      event;
 
-        BaseGraphicsObject& view() const;
+  BaseGraphicsObject& view() const;
 
-        void on_displayedConstraintChanged(const ConstraintModel &m);
-        void showConstraint();
+  void on_displayedConstraintChanged(const ConstraintModel& m);
+  void showConstraint();
 
-        void on_zoomRatioChanged(ZoomRatio r);
-        void on_elementsScaleChanged(double s);
+  void on_zoomRatioChanged(ZoomRatio r);
+  void on_elementsScaleChanged(double s);
 
-        void on_displayedConstraintDurationChanged(TimeValue);
-        void on_displayedConstraintHeightChanged(double);
+  void on_displayedConstraintDurationChanged(TimeValue);
+  void on_displayedConstraintHeightChanged(double);
 
-    signals:
-        void requestFocusedPresenterChange(Process::LayerPresenter*);
+signals:
+  void requestFocusedPresenterChange(Process::LayerPresenter*);
 
-    private:
-        void on_constraintExecutionTimer();
-        void updateLength(double);
+private:
+  void on_constraintExecutionTimer();
+  void updateLength(double);
 
-        ScenarioDocumentPresenter* m_model{};
+  ScenarioDocumentPresenter* m_model{};
 
-        std::vector<QMetaObject::Connection> m_connections;
+  std::vector<QMetaObject::Connection> m_connections;
 };
 }

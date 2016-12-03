@@ -1,8 +1,8 @@
 #pragma once
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <list>
-#include <vector>
 #include <set>
+#include <vector>
 
 namespace Scenario
 {
@@ -12,22 +12,23 @@ class EventModel;
 class StateModel;
 class SummaryInspectorWidget final : public Inspector::InspectorWidgetBase
 {
-    public:
-        SummaryInspectorWidget(
-                const IdentifiedObjectAbstract* obj,
-                std::set<const ConstraintModel*> constraints,
-                std::set<const TimeNodeModel*> timenodes,
-                std::set<const EventModel*> events,
-                std::set<const StateModel*> states,
-                const iscore::DocumentContext& context,
-                QWidget* parent = nullptr);
+public:
+  SummaryInspectorWidget(
+      const IdentifiedObjectAbstract* obj,
+      std::set<const ConstraintModel*>
+          constraints,
+      std::set<const TimeNodeModel*>
+          timenodes,
+      std::set<const EventModel*>
+          events,
+      std::set<const StateModel*>
+          states,
+      const iscore::DocumentContext& context,
+      QWidget* parent = nullptr);
 
-        QString tabName() override;
+  QString tabName() override;
 
-    private:
-
-        std::list<QWidget*> m_properties;
-
+private:
+  std::list<QWidget*> m_properties;
 };
-
 }

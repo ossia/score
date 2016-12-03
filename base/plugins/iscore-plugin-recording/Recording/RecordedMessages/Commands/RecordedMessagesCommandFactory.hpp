@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 
-namespace RecordedMessages {
+namespace RecordedMessages
+{
 const CommandParentFactoryKey& CommandFactoryName();
 }

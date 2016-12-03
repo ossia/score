@@ -3,39 +3,45 @@
 
 #include <QJsonObject>
 #include <QJsonValue>
-#include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/RelativePath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-template <typename T> class Reader;
-template <typename model> class IdentifiedObject;
+template <typename T>
+class Reader;
+template <typename model>
+class IdentifiedObject;
 
-template<>
+template <>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom_impl(
-        const Process::LayerModel& layerModel)
+    const Process::LayerModel& layerModel)
 {
-    // To allow recreation.
-    // This supposes that the process is stored inside a Constraint.
-    // We save the relative path coming from the layer's parent, since when
-    // recreating the layer does not exist yet.
-    m_stream << iscore::RelativePath(*layerModel.parent(), layerModel.processModel());
+  // To allow recreation.
+  // This supposes that the process is stored inside a Constraint.
+  // We save the relative path coming from the layer's parent, since when
+  // recreating the layer does not exist yet.
+  m_stream << iscore::RelativePath(
+      *layerModel.parent(), layerModel.processModel());
 
-    readFrom(static_cast<const IdentifiedObject<Process::LayerModel>&>(layerModel));
+  readFrom(
+      static_cast<const IdentifiedObject<Process::LayerModel>&>(layerModel));
 
-    // LayerModel doesn't have any particular data to save
+  // LayerModel doesn't have any particular data to save
 }
 
-template<>
+template <>
 ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Process::LayerModel& layerModel)
+    const Process::LayerModel& layerModel)
 {
-    // See above.
-    m_obj["SharedProcess"] = toJsonObject(iscore::RelativePath(*layerModel.parent(), layerModel.processModel()));
+  // See above.
+  m_obj["SharedProcess"] = toJsonObject(
+      iscore::RelativePath(*layerModel.parent(), layerModel.processModel()));
 
-    readFrom(static_cast<const IdentifiedObject<Process::LayerModel>&>(layerModel));
+  readFrom(
+      static_cast<const IdentifiedObject<Process::LayerModel>&>(layerModel));
 
-    // LayerModel doesn't have any particular data to save
+  // LayerModel doesn't have any particular data to save
 }

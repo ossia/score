@@ -10,25 +10,24 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
-
-void ScenarioRollbackStrategy::rollback(const std::vector<iscore::SerializableCommand *> &cmds)
+void ScenarioRollbackStrategy::rollback(
+    const std::vector<iscore::SerializableCommand*>& cmds)
 {
-    // TODO UPDATE THIS ELSE ROLLBACK WON'T WORK.
-    // REFACTOR THIS IN A LIST SOMEWHERE.
-    using namespace Scenario::Command;
-    for(int i = cmds.size() - 1; i >= 0; --i)
+  // TODO UPDATE THIS ELSE ROLLBACK WON'T WORK.
+  // REFACTOR THIS IN A LIST SOMEWHERE.
+  using namespace Scenario::Command;
+  for (int i = cmds.size() - 1; i >= 0; --i)
+  {
+    if (cmds[i]->key() == CreateConstraint::static_key()
+        || cmds[i]->key() == CreateState::static_key()
+        || cmds[i]->key() == CreateEvent_State::static_key()
+        || cmds[i]->key() == CreateConstraint_State::static_key()
+        || cmds[i]->key() == CreateConstraint_State_Event::static_key()
+        || cmds[i]->key()
+               == CreateConstraint_State_Event_TimeNode::static_key()
+        || cmds[i]->key() == CreateSequence::static_key())
     {
-        if(
-                cmds[i]->key() == CreateConstraint::static_key()
-                || cmds[i]->key() == CreateState::static_key()
-                || cmds[i]->key() == CreateEvent_State::static_key()
-                || cmds[i]->key() == CreateConstraint_State::static_key()
-                || cmds[i]->key() == CreateConstraint_State_Event::static_key()
-                || cmds[i]->key() == CreateConstraint_State_Event_TimeNode::static_key()
-                || cmds[i]->key() == CreateSequence::static_key()
-                )
-        {
-            cmds[i]->undo();
-        }
+      cmds[i]->undo();
     }
+  }
 }

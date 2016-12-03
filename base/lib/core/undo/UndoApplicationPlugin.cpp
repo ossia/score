@@ -9,121 +9,119 @@
 #include <iscore/menu/MenuInterface.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
+#include <QIcon>
 #include <core/presenter/CoreActions.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
 #include <iscore/widgets/SetIcons.hpp>
-#include <QIcon>
 
 class QObject;
 
 iscore::UndoApplicationPlugin::UndoApplicationPlugin(
-        const iscore::GUIApplicationContext& app):
-    iscore::GUIApplicationContextPlugin{app},
-    m_undoAction{"Undo", nullptr},
-    m_redoAction{"Redo", nullptr}
+    const iscore::GUIApplicationContext& app)
+    : iscore::GUIApplicationContextPlugin{app}
+    , m_undoAction{"Undo", nullptr}
+    , m_redoAction{"Redo", nullptr}
 {
-    m_undoAction.setShortcut(QKeySequence::Undo);
-    m_undoAction.setEnabled(false);
-    m_undoAction.setText(QObject::tr("Nothing to undo"));
-    m_undoAction.setToolTip(QObject::tr("Undo (Ctrl+Z)"));
+  m_undoAction.setShortcut(QKeySequence::Undo);
+  m_undoAction.setEnabled(false);
+  m_undoAction.setText(QObject::tr("Nothing to undo"));
+  m_undoAction.setToolTip(QObject::tr("Undo (Ctrl+Z)"));
 
-    setIcons(&m_undoAction, QString(":/icons/prev_on.png"), QString(":/icons/prev_off.png"));
+  setIcons(
+      &m_undoAction, QString(":/icons/prev_on.png"),
+      QString(":/icons/prev_off.png"));
 
-    con(m_undoAction, &QAction::triggered,
-            [&] ()
-    {
-        currentDocument()->commandStack().undo();
-    });
+  con(m_undoAction, &QAction::triggered,
+      [&]() { currentDocument()->commandStack().undo(); });
 
-    m_redoAction.setShortcut(QKeySequence::Redo);
-    m_redoAction.setEnabled(false);
-    m_redoAction.setText(QObject::tr("Nothing to redo"));
-    m_redoAction.setToolTip(QObject::tr("Redo (Ctrl+Shift+Z)"));
+  m_redoAction.setShortcut(QKeySequence::Redo);
+  m_redoAction.setEnabled(false);
+  m_redoAction.setText(QObject::tr("Nothing to redo"));
+  m_redoAction.setToolTip(QObject::tr("Redo (Ctrl+Shift+Z)"));
 
-    setIcons(&m_redoAction, QString(":/icons/next_on.png"), QString(":/icons/next_off.png"));
+  setIcons(
+      &m_redoAction, QString(":/icons/next_on.png"),
+      QString(":/icons/next_off.png"));
 
-    con(m_redoAction, &QAction::triggered,
-            [&] ()
-    {
-        currentDocument()->commandStack().redo();
-    });
+  con(m_redoAction, &QAction::triggered,
+      [&]() { currentDocument()->commandStack().redo(); });
 }
 
 iscore::UndoApplicationPlugin::~UndoApplicationPlugin()
 {
-    Foreach(m_connections, [] (auto connection)
-    {
-        QObject::disconnect(connection);
-    });
+  Foreach(
+      m_connections, [](auto connection) { QObject::disconnect(connection); });
 }
 
 void iscore::UndoApplicationPlugin::on_documentChanged(
-        iscore::Document* olddoc,
-        iscore::Document* newDoc)
+    iscore::Document* olddoc, iscore::Document* newDoc)
 {
-    using namespace iscore;
+  using namespace iscore;
 
-    // Cleanup
-    Foreach(m_connections, [] (auto connection) {
-        QObject::disconnect(connection);
-    });
-    m_connections.clear();
+  // Cleanup
+  Foreach(
+      m_connections, [](auto connection) { QObject::disconnect(connection); });
+  m_connections.clear();
 
-    if(!newDoc)
-    {
-        m_undoAction.setEnabled(false);
-        m_undoAction.setText(QObject::tr("Nothing to undo"));
-        m_redoAction.setEnabled(false);
-        m_redoAction.setText(QObject::tr("Nothing to redo"));
-        return;
-    }
+  if (!newDoc)
+  {
+    m_undoAction.setEnabled(false);
+    m_undoAction.setText(QObject::tr("Nothing to undo"));
+    m_redoAction.setEnabled(false);
+    m_redoAction.setText(QObject::tr("Nothing to redo"));
+    return;
+  }
 
-    // Redo the connections
-    // TODO maybe use conditions for this ?
-    auto stack = &newDoc->commandStack();
-    m_connections.push_back(
-                QObject::connect(stack, &CommandStack::canUndoChanged,
-                        [&] (bool b) { m_undoAction.setEnabled(b); }));
-    m_connections.push_back(
-                QObject::connect(stack, &CommandStack::canRedoChanged,
-                        [&] (bool b) { m_redoAction.setEnabled(b); }));
+  // Redo the connections
+  // TODO maybe use conditions for this ?
+  auto stack = &newDoc->commandStack();
+  m_connections.push_back(
+      QObject::connect(stack, &CommandStack::canUndoChanged, [&](bool b) {
+        m_undoAction.setEnabled(b);
+      }));
+  m_connections.push_back(
+      QObject::connect(stack, &CommandStack::canRedoChanged, [&](bool b) {
+        m_redoAction.setEnabled(b);
+      }));
 
-    m_connections.push_back(
-                QObject::connect(stack, &CommandStack::undoTextChanged,
-                        [&] (const QString& s) { m_undoAction.setText(QObject::tr("Undo ") + s);}));
-    m_connections.push_back(
-                QObject::connect(stack, &CommandStack::redoTextChanged,
-                        [&] (const QString& s) { m_redoAction.setText(QObject::tr("Redo ") + s);}));
+  m_connections.push_back(QObject::connect(
+      stack, &CommandStack::undoTextChanged, [&](const QString& s) {
+        m_undoAction.setText(QObject::tr("Undo ") + s);
+      }));
+  m_connections.push_back(QObject::connect(
+      stack, &CommandStack::redoTextChanged, [&](const QString& s) {
+        m_redoAction.setText(QObject::tr("Redo ") + s);
+      }));
 
-    // Set the correct values for the current document.
-    m_undoAction.setEnabled(stack->canUndo());
-    m_redoAction.setEnabled(stack->canRedo());
+  // Set the correct values for the current document.
+  m_undoAction.setEnabled(stack->canUndo());
+  m_redoAction.setEnabled(stack->canRedo());
 
-    m_undoAction.setText(stack->undoText());
-    m_redoAction.setText(stack->redoText());
+  m_undoAction.setText(stack->undoText());
+  m_redoAction.setText(stack->redoText());
 }
 
 auto iscore::UndoApplicationPlugin::makeGUIElements() -> GUIElements
 {
-    GUIElements e;
-    auto& toolbars = e.toolbars;
+  GUIElements e;
+  auto& toolbars = e.toolbars;
 
-    toolbars.reserve(1);
+  toolbars.reserve(1);
 
-    {
-        auto bar = new QToolBar;
-        bar->addAction(&m_undoAction);
-        bar->addAction(&m_redoAction);
-        toolbars.emplace_back(bar, StringKey<Toolbar>("Undo"), 0, 3);
-    }
+  {
+    auto bar = new QToolBar;
+    bar->addAction(&m_undoAction);
+    bar->addAction(&m_redoAction);
+    toolbars.emplace_back(bar, StringKey<Toolbar>("Undo"), 0, 3);
+  }
 
-    Menu& edit = context.menus.get().at(Menus::Edit());
-    edit.menu()->addAction(&m_undoAction);
-    edit.menu()->addAction(&m_redoAction);
+  Menu& edit = context.menus.get().at(Menus::Edit());
+  edit.menu()->addAction(&m_undoAction);
+  edit.menu()->addAction(&m_redoAction);
 
-    e.actions.container.reserve(2);
-    e.actions.add<Actions::Undo>(&m_undoAction);
-    e.actions.add<Actions::Redo>(&m_redoAction);
+  e.actions.container.reserve(2);
+  e.actions.add<Actions::Undo>(&m_undoAction);
+  e.actions.add<Actions::Redo>(&m_redoAction);
 
-    return e;
+  return e;
 }

@@ -7,10 +7,10 @@ namespace Network
 {
 class MinuitDevice final : public OwningOSSIADevice
 {
-    public:
-        MinuitDevice(const Device::DeviceSettings& settings);
+public:
+  MinuitDevice(const Device::DeviceSettings& settings);
 
-        bool reconnect() override;
+  bool reconnect() override;
 };
 }
 }

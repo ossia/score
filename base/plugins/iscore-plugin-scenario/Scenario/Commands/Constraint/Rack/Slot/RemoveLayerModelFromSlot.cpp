@@ -1,13 +1,12 @@
 #include <Process/LayerModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
-
-#include <Process/ProcessList.hpp>
 #include "RemoveLayerModelFromSlot.hpp"
+#include <Process/ProcessList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/EntityMap.hpp>
 
 namespace Scenario
 {
@@ -15,44 +14,42 @@ namespace Command
 {
 
 RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
-        Path<SlotModel>&& rackPath,
-        Id<Process::LayerModel> layerId) :
-    m_path {rackPath},
-    m_layerId {std::move(layerId)}
+    Path<SlotModel>&& rackPath, Id<Process::LayerModel> layerId)
+    : m_path{rackPath}, m_layerId{std::move(layerId)}
 {
-    auto& slot = m_path.find();
+  auto& slot = m_path.find();
 
-    Serializer<DataStream> s{&m_serializedLayerData};
-    s.readFrom(slot.layers.at(m_layerId));
+  Serializer<DataStream> s{&m_serializedLayerData};
+  s.readFrom(slot.layers.at(m_layerId));
 }
 
 void RemoveLayerModelFromSlot::undo() const
 {
-    auto& slot = m_path.find();
-    Deserializer<DataStream> s {m_serializedLayerData};
+  auto& slot = m_path.find();
+  Deserializer<DataStream> s{m_serializedLayerData};
 
-    auto lm = deserialize_interface(this->context.components.factory<Process::LayerFactoryList>(), s, &slot);
-    if(lm)
-        slot.layers.add(lm);
-    else
-        ISCORE_TODO;
+  auto lm = deserialize_interface(
+      this->context.components.factory<Process::LayerFactoryList>(), s, &slot);
+  if (lm)
+    slot.layers.add(lm);
+  else
+    ISCORE_TODO;
 }
 
 void RemoveLayerModelFromSlot::redo() const
 {
-    auto& slot = m_path.find();
-    slot.layers.remove(m_layerId);
+  auto& slot = m_path.find();
+  slot.layers.remove(m_layerId);
 }
 
 void RemoveLayerModelFromSlot::serializeImpl(DataStreamInput& s) const
 {
-    s << m_path << m_layerId << m_serializedLayerData;
+  s << m_path << m_layerId << m_serializedLayerData;
 }
 
 void RemoveLayerModelFromSlot::deserializeImpl(DataStreamOutput& s)
 {
-    s >> m_path >> m_layerId >> m_serializedLayerData;
+  s >> m_path >> m_layerId >> m_serializedLayerData;
 }
-
 }
 }

@@ -1,34 +1,35 @@
 #pragma once
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <QString>
 #include <QTableWidget>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 namespace RecordedMessages
 {
 class ProcessModel;
 }
 class QWidget;
-namespace iscore {
+namespace iscore
+{
 class Document;
 struct DocumentContext;
-}  // namespace iscore
+} // namespace iscore
 
 namespace RecordedMessages
 {
-class InspectorWidget final :
-        public Process::InspectorWidgetDelegate_T<RecordedMessages::ProcessModel>
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<RecordedMessages::ProcessModel>
 {
-    public:
-        explicit InspectorWidget(
-                const RecordedMessages::ProcessModel& object,
-                const iscore::DocumentContext& context,
-                QWidget* parent);
+public:
+  explicit InspectorWidget(
+      const RecordedMessages::ProcessModel& object,
+      const iscore::DocumentContext& context,
+      QWidget* parent);
 
-    private:
-        void on_modelChanged();
+private:
+  void on_modelChanged();
 
-        CommandDispatcher<> m_dispatcher;
-        QTableWidget* m_list{};
+  CommandDispatcher<> m_dispatcher;
+  QTableWidget* m_list{};
 };
 }

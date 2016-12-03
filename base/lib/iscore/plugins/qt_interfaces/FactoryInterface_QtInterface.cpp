@@ -1,2 +1,3 @@
 #include "FactoryInterface_QtInterface.hpp"
-iscore::FactoryInterface_QtInterface::~FactoryInterface_QtInterface() = default;
+iscore::FactoryInterface_QtInterface::~FactoryInterface_QtInterface()
+    = default;

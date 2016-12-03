@@ -1,9 +1,9 @@
 #pragma once
 
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <QAbstractItemModel>
-#include <QWidget>
 #include <QGroupBox>
+#include <QWidget>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <memory>
 
 #include <Device/Node/DeviceNode.hpp>
@@ -32,85 +32,86 @@ class DeviceExplorerModel;
 class DeviceExplorerView;
 class DeviceExplorerWidget final : public QWidget
 {
-        Q_OBJECT
+  Q_OBJECT
 
-    public:
-        explicit DeviceExplorerWidget(
-                const Device::ProtocolFactoryList&,
-                QWidget* parent);
+public:
+  explicit DeviceExplorerWidget(
+      const Device::ProtocolFactoryList&, QWidget* parent);
 
-        void setModel(DeviceExplorerModel* model);
-        DeviceExplorerModel* model() const;
-        DeviceExplorerView* view() const;
+  void setModel(DeviceExplorerModel* model);
+  DeviceExplorerModel* model() const;
+  DeviceExplorerView* view() const;
 
-        // Will block the GUI when refreshing.
-        void blockGUI(bool);
+  // Will block the GUI when refreshing.
+  void blockGUI(bool);
 
-        QModelIndex sourceIndex(QModelIndex) const;
-        QModelIndex proxyIndex(QModelIndex) const;
+  QModelIndex sourceIndex(QModelIndex) const;
+  QModelIndex proxyIndex(QModelIndex) const;
 
-        ListeningManager& listeningManager() const
-        { return *m_listeningManager; }
-    private:
-        // User commands
-        void edit();
-        void refresh();
-        void refreshValue();
+  ListeningManager& listeningManager() const
+  {
+    return *m_listeningManager;
+  }
 
-        void disconnect();
-        void reconnect();
+private:
+  // User commands
+  void edit();
+  void refresh();
+  void refreshValue();
 
-        void addAddress(InsertMode insertType);
-        void addDevice();
-        void exportDevice();
-        void addChild();
-        void addSibling();
+  void disconnect();
+  void reconnect();
 
-        void removeNodes();
-        void learn();
+  void addAddress(InsertMode insertType);
+  void addDevice();
+  void exportDevice();
+  void addChild();
+  void addSibling();
 
-        // Answer to user interaction
-        void filterChanged();
+  void removeNodes();
+  void learn();
 
-        void updateActions();
+  // Answer to user interaction
+  void filterChanged();
 
-        // Utilities
-        DeviceExplorerFilterProxyModel* proxyModel();
+  void updateActions();
 
-        void buildGUI();
-        void populateColumnCBox();
+  // Utilities
+  DeviceExplorerFilterProxyModel* proxyModel();
 
-        void contextMenuEvent(QContextMenuEvent* event) override;
+  void buildGUI();
+  void populateColumnCBox();
 
+  void contextMenuEvent(QContextMenuEvent* event) override;
 
-        const Device::ProtocolFactoryList& m_protocolList;
+  const Device::ProtocolFactoryList& m_protocolList;
 
-        DeviceExplorerView* m_ntView{};
-        DeviceExplorerFilterProxyModel* m_proxyModel{};
-        DeviceEditDialog* m_deviceDialog{};
+  DeviceExplorerView* m_ntView{};
+  DeviceExplorerFilterProxyModel* m_proxyModel{};
+  DeviceEditDialog* m_deviceDialog{};
 
-        QAction* m_disconnect{};
-        QAction* m_reconnect{};
+  QAction* m_disconnect{};
+  QAction* m_reconnect{};
 
-        QAction* m_editAction{};
-        QAction* m_refreshAction{};
-        QAction* m_refreshValueAction{};
-        QAction* m_addDeviceAction{};
-        QAction* m_addSiblingAction{};
-        QAction* m_addChildAction{};
-        QAction* m_exportDeviceAction{};
+  QAction* m_editAction{};
+  QAction* m_refreshAction{};
+  QAction* m_refreshValueAction{};
+  QAction* m_addDeviceAction{};
+  QAction* m_addSiblingAction{};
+  QAction* m_addChildAction{};
+  QAction* m_exportDeviceAction{};
 
-        QAction* m_removeNodeAction{};
-        QAction* m_learnAction{};
+  QAction* m_removeNodeAction{};
+  QAction* m_learnAction{};
 
-        QComboBox* m_columnCBox{};
-        QLineEdit* m_nameLEdit{};
+  QComboBox* m_columnCBox{};
+  QLineEdit* m_nameLEdit{};
 
-        std::unique_ptr<CommandDispatcher<>> m_cmdDispatcher;
+  std::unique_ptr<CommandDispatcher<>> m_cmdDispatcher;
 
-        QProgressIndicator* m_refreshIndicator{};
-        QStackedLayout* m_lay{};
+  QProgressIndicator* m_refreshIndicator{};
+  QStackedLayout* m_lay{};
 
-        std::unique_ptr<ListeningManager> m_listeningManager;
+  std::unique_ptr<ListeningManager> m_listeningManager;
 };
 }

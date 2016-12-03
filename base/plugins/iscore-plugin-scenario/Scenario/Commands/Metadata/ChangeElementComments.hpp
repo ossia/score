@@ -9,67 +9,68 @@ namespace Scenario
 {
 namespace Command
 {
-template<class T>
+template <class T>
 class ChangeElementComments final : public iscore::SerializableCommand
 {
-        // No ISCORE_COMMAND here since it's a template.
-    public:
-        const CommandParentFactoryKey& parentKey() const override
-        {
-            return ScenarioCommandFactoryName();
-        }
-        static const CommandFactoryKey& static_key()
-        {
-            auto name = QString("ChangeElementComments_")  + Metadata<ObjectKey_k, T>::get();
-            static const CommandFactoryKey kagi{std::move(name)};
-            return kagi;
-        }
-        const CommandFactoryKey& key() const override
-        {
-            return static_key();
-        }
-        QString description() const override
-        {
-            return QObject::tr("Change %1 comments").arg(Metadata<Description_k, T>::get());
-        }
+  // No ISCORE_COMMAND here since it's a template.
+public:
+  const CommandParentFactoryKey& parentKey() const override
+  {
+    return ScenarioCommandFactoryName();
+  }
+  static const CommandFactoryKey& static_key()
+  {
+    auto name
+        = QString("ChangeElementComments_") + Metadata<ObjectKey_k, T>::get();
+    static const CommandFactoryKey kagi{std::move(name)};
+    return kagi;
+  }
+  const CommandFactoryKey& key() const override
+  {
+    return static_key();
+  }
+  QString description() const override
+  {
+    return QObject::tr("Change %1 comments")
+        .arg(Metadata<Description_k, T>::get());
+  }
 
-        ChangeElementComments() = default;
+  ChangeElementComments() = default;
 
-        ChangeElementComments(Path<T>&& path, QString newComments) :
-            m_path{std::move(path)},
-            m_newComments {std::move(newComments)}
-        {
-            auto& obj = m_path.find();
-            m_oldComments = obj.metadata().getComment();
-        }
+  ChangeElementComments(Path<T>&& path, QString newComments)
+      : m_path{std::move(path)}, m_newComments{std::move(newComments)}
+  {
+    auto& obj = m_path.find();
+    m_oldComments = obj.metadata().getComment();
+  }
 
-        void undo() const override
-        {
-            auto& obj = m_path.find();
-            obj.metadata().setComment(m_oldComments);
-        }
+  void undo() const override
+  {
+    auto& obj = m_path.find();
+    obj.metadata().setComment(m_oldComments);
+  }
 
-        void redo() const override
-        {
-            auto& obj = m_path.find();
-            obj.metadata().setComment(m_newComments);
-        }
+  void redo() const override
+  {
+    auto& obj = m_path.find();
+    obj.metadata().setComment(m_newComments);
+  }
 
-    protected:
-        void serializeImpl(DataStreamInput& s) const override
-        {
-            s << m_path << m_oldComments << m_newComments;
-        }
+protected:
+  void serializeImpl(DataStreamInput& s) const override
+  {
+    s << m_path << m_oldComments << m_newComments;
+  }
 
-        void deserializeImpl(DataStreamOutput& s) override
-        {
-            s >> m_path >> m_oldComments >> m_newComments;
-        }
+  void deserializeImpl(DataStreamOutput& s) override
+  {
+    s >> m_path >> m_oldComments >> m_newComments;
+  }
 
-    private:
-        Path<T> m_path;
-        QString m_oldComments;
-        QString m_newComments;
+private:
+  Path<T> m_path;
+  QString m_oldComments;
+  QString m_newComments;
 };
 }
 }

@@ -13,18 +13,20 @@ class ProcessGraphicsView;
 
 class SceneGraduations final : public QGraphicsItem
 {
-    private:
-        QPen m_lines;
-        QPainterPath m_grid;
-        QSizeF m_size;
-        void setSize(const QSizeF& s);
+private:
+  QPen m_lines;
+  QPainterPath m_grid;
+  QSizeF m_size;
+  void setSize(const QSizeF& s);
 
-    public:
-        SceneGraduations(ProcessGraphicsView* view);
+public:
+  SceneGraduations(ProcessGraphicsView* view);
 
-        QRectF boundingRect() const override;
-        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  QRectF boundingRect() const override;
+  void paint(
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
-        void setGrid(QPainterPath&& newGrid);
-        void setColor(const QColor& col);
+  void setGrid(QPainterPath&& newGrid);
+  void setColor(const QColor& col);
 };

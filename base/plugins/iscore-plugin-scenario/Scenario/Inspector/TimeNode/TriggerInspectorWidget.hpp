@@ -2,8 +2,8 @@
 
 #include <QWidget>
 
-#include <State/Expression.hpp>
 #include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
+#include <State/Expression.hpp>
 
 namespace Inspector
 {
@@ -22,33 +22,33 @@ class TriggerCommandFactoryList;
 }
 class TriggerInspectorWidget final : public QWidget
 {
-    public:
-        TriggerInspectorWidget(
-                const iscore::DocumentContext&,
-                const Command::TriggerCommandFactoryList& fact,
-                const TimeNodeModel& object,
-                Inspector::InspectorWidgetBase* parent);
+public:
+  TriggerInspectorWidget(
+      const iscore::DocumentContext&,
+      const Command::TriggerCommandFactoryList& fact,
+      const TimeNodeModel& object,
+      Inspector::InspectorWidgetBase* parent);
 
-        void on_triggerChanged();
+  void on_triggerChanged();
 
-        void createTrigger();
-        void removeTrigger();
+  void createTrigger();
+  void removeTrigger();
 
-        void on_triggerActiveChanged();
-        void HideRmButton();
+  void on_triggerActiveChanged();
+  void HideRmButton();
 
-        void updateExpression(const State::Trigger&);
+  void updateExpression(const State::Trigger&);
 
-    private:
-        const Command::TriggerCommandFactoryList& m_triggerCommandFactory;
-        const TimeNodeModel& m_model;
+private:
+  const Command::TriggerCommandFactoryList& m_triggerCommandFactory;
+  const TimeNodeModel& m_model;
 
-        Inspector::InspectorWidgetBase* m_parent{};
+  Inspector::InspectorWidgetBase* m_parent{};
 
-        QPushButton* m_addTrigBtn{};
-        QPushButton* m_menuButton{};
-        ExpressionMenu m_menu;
+  QPushButton* m_addTrigBtn{};
+  QPushButton* m_menuButton{};
+  ExpressionMenu m_menu;
 
-        ExpressionEditorWidget* m_exprEditor{};
+  ExpressionEditorWidget* m_exprEditor{};
 };
 }

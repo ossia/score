@@ -8,21 +8,18 @@ class LayerPresenter;
 
 struct ProcessPresenterContext : public iscore::DocumentContext
 {
-        ProcessPresenterContext(
-                const iscore::DocumentContext& doc,
-                FocusDispatcher& d):
-            iscore::DocumentContext{doc},
-            focusDispatcher{d}
-        {
+  ProcessPresenterContext(
+      const iscore::DocumentContext& doc, FocusDispatcher& d)
+      : iscore::DocumentContext{doc}, focusDispatcher{d}
+  {
+  }
 
-        }
-
-        FocusDispatcher& focusDispatcher;
+  FocusDispatcher& focusDispatcher;
 };
 
 struct LayerContext
 {
-        const ProcessPresenterContext& context;
-        Process::LayerPresenter& presenter;
+  const ProcessPresenterContext& context;
+  Process::LayerPresenter& presenter;
 };
 }

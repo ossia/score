@@ -9,12 +9,12 @@
 
 #include <iscore/tools/std/Optional.hpp>
 
-#include <iscore/application/ApplicationContext.hpp>
 #include <QByteArray>
 #include <QDataStream>
-#include <QtGlobal>
 #include <QLabel>
 #include <QObject>
+#include <QtGlobal>
+#include <iscore/application/ApplicationContext.hpp>
 
 #include <QString>
 
@@ -23,62 +23,53 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/document/DocumentContext.hpp>
 class QWidget;
 
 namespace Scenario
 {
 BaseConstraintInspectorDelegate::BaseConstraintInspectorDelegate(
-        const ConstraintModel& cst):
-    ConstraintInspectorDelegate{cst}
+    const ConstraintModel& cst)
+    : ConstraintInspectorDelegate{cst}
 {
 }
 
 void BaseConstraintInspectorDelegate::updateElements()
 {
-    auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
-    auto& tn = endTimeNode(m_model, scenario);
-    m_triggerLine->updateExpression(tn.trigger()->expression());
+  auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
+  auto& tn = endTimeNode(m_model, scenario);
+  m_triggerLine->updateExpression(tn.trigger()->expression());
 }
 
 void BaseConstraintInspectorDelegate::addWidgets_pre(
-        std::list<QWidget*>& widgets,
-        ConstraintInspectorWidget* parent)
+    std::list<QWidget*>& widgets, ConstraintInspectorWidget* parent)
 {
-    auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
-    auto& ctx = iscore::IDocument::documentContext(scenario);
-    auto& tn = endTimeNode(m_model, scenario);
-    m_triggerLine = new TriggerInspectorWidget{
-                    ctx,
-                    ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
-                    tn,
-                    parent};
-    m_triggerLine->HideRmButton();
-    widgets.push_back(new QLabel(QObject::tr("Trigger")));
-    widgets.push_back(m_triggerLine);
+  auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
+  auto& ctx = iscore::IDocument::documentContext(scenario);
+  auto& tn = endTimeNode(m_model, scenario);
+  m_triggerLine = new TriggerInspectorWidget{
+      ctx, ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
+      tn, parent};
+  m_triggerLine->HideRmButton();
+  widgets.push_back(new QLabel(QObject::tr("Trigger")));
+  widgets.push_back(m_triggerLine);
 }
 
 void BaseConstraintInspectorDelegate::addWidgets_post(
-        std::list<QWidget*>& widgets,
-        ConstraintInspectorWidget* parent)
+    std::list<QWidget*>& widgets, ConstraintInspectorWidget* parent)
 {
-
 }
 
 void BaseConstraintInspectorDelegate::on_defaultDurationChanged(
-        OngoingCommandDispatcher& dispatcher,
-        const TimeValue& val,
-        ExpandMode expandmode) const
+    OngoingCommandDispatcher& dispatcher,
+    const TimeValue& val,
+    ExpandMode expandmode) const
 {
-    auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
-    dispatcher.submitCommand<Command::MoveBaseEvent<BaseScenario>>(
-                scenario,
-                scenario.endEvent().id(),
-                val,
-                0.,
-                expandmode);
+  auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
+  dispatcher.submitCommand<Command::MoveBaseEvent<BaseScenario>>(
+      scenario, scenario.endEvent().id(), val, 0., expandmode);
 }
 }

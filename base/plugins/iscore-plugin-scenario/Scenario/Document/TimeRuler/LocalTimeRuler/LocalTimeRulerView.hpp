@@ -1,17 +1,16 @@
 #pragma once
 
-#include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
 #include <QRect>
+#include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
 
 namespace Scenario
 {
 class LocalTimeRulerView final : public AbstractTimeRulerView
 {
-    public:
-        LocalTimeRulerView();
-        ~LocalTimeRulerView();
+public:
+  LocalTimeRulerView();
+  ~LocalTimeRulerView();
 
-        QRectF boundingRect() const override;
-
+  QRectF boundingRect() const override;
 };
 }

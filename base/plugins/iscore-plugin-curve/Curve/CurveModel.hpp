@@ -1,8 +1,8 @@
 #pragma once
-#include <iscore/tools/std/Optional.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <vector>
 
 #include "Segment/CurveSegmentModel.hpp"
@@ -19,66 +19,76 @@ class PointModel;
 struct SegmentData;
 class ISCORE_PLUGIN_CURVE_EXPORT Model final : public IdentifiedObject<Model>
 {
-        ISCORE_SERIALIZE_FRIENDS(Curve::Model, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Curve::Model, JSONObject)
-        Q_OBJECT
-    public:
-        Model(const Id<Model>&, QObject* parent);
+  ISCORE_SERIALIZE_FRIENDS(Curve::Model, DataStream)
+  ISCORE_SERIALIZE_FRIENDS(Curve::Model, JSONObject)
+  Q_OBJECT
+public:
+  Model(const Id<Model>&, QObject* parent);
 
-        template<typename Impl>
-        Model(Deserializer<Impl>& vis, QObject* parent) :
-            IdentifiedObject{vis, parent}
-        {
-            vis.writeTo(*this);
-        }
+  template <typename Impl>
+  Model(Deserializer<Impl>& vis, QObject* parent)
+      : IdentifiedObject{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
 
-        Model* clone(const Id<Model>&, QObject* parent);
+  Model* clone(const Id<Model>&, QObject* parent);
 
-        // These two will create points
-        void addSegment(SegmentModel* m);
-        void addSortedSegment(SegmentModel* m);
+  // These two will create points
+  void addSegment(SegmentModel* m);
+  void addSortedSegment(SegmentModel* m);
 
-        // Won't create points, plain insertion.
-        void insertSegment(SegmentModel*);
+  // Won't create points, plain insertion.
+  void insertSegment(SegmentModel*);
 
-        // Here we don't pass an id because it's more efficient
-        void removeSegment(SegmentModel* m);
+  // Here we don't pass an id because it's more efficient
+  void removeSegment(SegmentModel* m);
 
-        std::vector<SegmentModel*> sortedSegments() const;
-        std::vector<SegmentData> toCurveData() const;
-        void fromCurveData(const std::vector<SegmentData>& curve);
+  std::vector<SegmentModel*> sortedSegments() const;
+  std::vector<SegmentData> toCurveData() const;
+  void fromCurveData(const std::vector<SegmentData>& curve);
 
+  Selection selectedChildren() const;
+  void setSelection(const Selection& s);
 
-        Selection selectedChildren() const;
-        void setSelection(const Selection& s);
+  void clear();
 
-        void clear();
+  const auto& segments() const
+  {
+    return m_segments;
+  }
+  auto& segments()
+  {
+    return m_segments;
+  }
 
-        const auto& segments() const { return m_segments;}
-        auto& segments() { return m_segments;}
+  const std::vector<PointModel*>& points() const;
+  std::vector<PointModel*>& points()
+  {
+    return m_points;
+  }
 
-        const std::vector<PointModel*>& points() const;
-        std::vector<PointModel*>& points() {return m_points;}
+signals:
+  void segmentAdded(const SegmentModel&);
+  void segmentRemoved(const Id<SegmentModel>&); // dangerous if async
+  void pointAdded(const PointModel&);
+  void pointRemoved(const Id<PointModel>&); // dangerous if async
 
-    signals:
-        void segmentAdded(const SegmentModel&);
-        void segmentRemoved(const Id<SegmentModel>&); // dangerous if async
-        void pointAdded(const PointModel&);
-        void pointRemoved(const Id<PointModel>&); // dangerous if async
+  // This signal has to be emitted after big modifications.
+  // (it's an optimization to prevent updating the OSSIA API each time a
+  // segment moves).
+  void changed();
+  void curveReset(); // like changed() but for the presenter
+  void cleared();
 
-        // This signal has to be emitted after big modifications.
-        // (it's an optimization to prevent updating the OSSIA API each time a segment moves).
-        void changed();
-        void curveReset(); // like changed() but for the presenter
-        void cleared();
+private:
+  void addPoint(PointModel* pt);
+  void removePoint(PointModel* pt);
 
-    private:
-        void addPoint(PointModel* pt);
-        void removePoint(PointModel* pt);
-
-        IdContainer<SegmentModel> m_segments; // TODO why not notifying
-        std::vector<PointModel*> m_points; // Each between 0, 1
+  IdContainer<SegmentModel> m_segments; // TODO why not notifying
+  std::vector<PointModel*> m_points;    // Each between 0, 1
 };
 
-std::vector<SegmentData> ISCORE_PLUGIN_CURVE_EXPORT orderedSegments(const Model& curve);
+std::vector<SegmentData>
+    ISCORE_PLUGIN_CURVE_EXPORT orderedSegments(const Model& curve);
 }

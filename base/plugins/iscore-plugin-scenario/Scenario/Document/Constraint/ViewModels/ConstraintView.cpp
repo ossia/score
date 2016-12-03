@@ -1,5 +1,5 @@
-#include <QtGlobal>
 #include <QGraphicsSceneEvent>
+#include <QtGlobal>
 
 #include "ConstraintPresenter.hpp"
 #include "ConstraintView.hpp"
@@ -8,129 +8,129 @@
 namespace Scenario
 {
 ConstraintView::ConstraintView(
-        ConstraintPresenter& presenter,
-        QGraphicsItem *parent) :
-    QGraphicsItem{parent},
-    m_labelItem{new SimpleTextItem{this}},
-    m_counterItem{new SimpleTextItem{this}},
-    m_presenter{presenter}
+    ConstraintPresenter& presenter, QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+    , m_labelItem{new SimpleTextItem{this}}
+    , m_counterItem{new SimpleTextItem{this}}
+    , m_presenter{presenter}
 {
-    setAcceptHoverEvents(true);
-    m_leftBrace = new LeftBraceView{*this, this};
-    m_leftBrace->setX(minWidth());
-    m_leftBrace->hide();
+  setAcceptHoverEvents(true);
+  m_leftBrace = new LeftBraceView{*this, this};
+  m_leftBrace->setX(minWidth());
+  m_leftBrace->hide();
 
-    m_rightBrace = new RightBraceView{*this, this};
-    m_rightBrace->setX(maxWidth());
-    m_rightBrace->hide();
+  m_rightBrace = new RightBraceView{*this, this};
+  m_rightBrace->setX(maxWidth());
+  m_rightBrace->hide();
 
-    const int fontSize = 12;
-    auto f = iscore::Skin::instance().SansFont;
-    f.setBold(false);
-    f.setPointSize(fontSize);
-    f.setStyleStrategy(QFont::NoAntialias);
-    m_labelItem->setFont(f);
-    m_labelItem->setPos(0, -16);
-    m_labelItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
-    m_labelItem->setAcceptHoverEvents(false);
+  const int fontSize = 12;
+  auto f = iscore::Skin::instance().SansFont;
+  f.setBold(false);
+  f.setPointSize(fontSize);
+  f.setStyleStrategy(QFont::NoAntialias);
+  m_labelItem->setFont(f);
+  m_labelItem->setPos(0, -16);
+  m_labelItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
+  m_labelItem->setAcceptHoverEvents(false);
 
-    f.setPointSize(7);
-    f.setStyleStrategy(QFont::NoAntialias);
-    f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
-    m_counterItem->setFont(f);
-    m_counterItem->setColor(iscore::ColorRef(&iscore::Skin::Light));
-    m_counterItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
-    m_counterItem->setAcceptHoverEvents(false);
+  f.setPointSize(7);
+  f.setStyleStrategy(QFont::NoAntialias);
+  f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
+  m_counterItem->setFont(f);
+  m_counterItem->setColor(iscore::ColorRef(&iscore::Skin::Light));
+  m_counterItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
+  m_counterItem->setAcceptHoverEvents(false);
 }
 
 ConstraintView::~ConstraintView() = default;
 
 void ConstraintView::setInfinite(bool infinite)
 {
-    prepareGeometryChange();
+  prepareGeometryChange();
 
-    m_infinite = infinite;
-    update();
+  m_infinite = infinite;
+  update();
 }
 
 void ConstraintView::setDefaultWidth(double width)
 {
-    prepareGeometryChange();
-    m_defaultWidth = width;
-    update();
+  prepareGeometryChange();
+  m_defaultWidth = width;
+  update();
 }
 
 void ConstraintView::setMaxWidth(bool infinite, double max)
 {
-    prepareGeometryChange();
+  prepareGeometryChange();
 
-    setInfinite(infinite);
-    if(!infinite)
-    {
-        m_maxWidth = max;
-    }
-    update();
+  setInfinite(infinite);
+  if (!infinite)
+  {
+    m_maxWidth = max;
+  }
+  update();
 }
 
 void ConstraintView::setMinWidth(double min)
 {
-    prepareGeometryChange();
-    m_minWidth = min;
-    update();
+  prepareGeometryChange();
+  m_minWidth = min;
+  update();
 }
 
 void ConstraintView::setHeight(double height)
 {
-    prepareGeometryChange();
-    m_height = height;
-    update();
+  prepareGeometryChange();
+  m_height = height;
+  update();
 }
 
 void ConstraintView::setPlayWidth(double width)
 {
-    m_playWidth = width;
-    update();
+  m_playWidth = width;
+  update();
 }
 
 void ConstraintView::setValid(bool val)
 {
-    m_validConstraint = val;
+  m_validConstraint = val;
 }
 
 void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    if(event->button() == Qt::MouseButton::LeftButton)
-        emit m_presenter.pressed(event->scenePos());
+  if (event->button() == Qt::MouseButton::LeftButton)
+    emit m_presenter.pressed(event->scenePos());
 }
 
 void ConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit m_presenter.moved(event->scenePos());
+  emit m_presenter.moved(event->scenePos());
 }
 
 void ConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit m_presenter.released(event->scenePos());
+  emit m_presenter.released(event->scenePos());
 }
 
 bool ConstraintView::warning() const
 {
-    return m_warning;
+  return m_warning;
 }
 
 void ConstraintView::setWarning(bool warning)
 {
-    m_warning = warning;
+  m_warning = warning;
 }
 
 void ConstraintView::updateLabelPos()
 {
-    m_labelItem->setPos(defaultWidth() / 2. - m_labelItem->boundingRect().width() / 2., -17);
+  m_labelItem->setPos(
+      defaultWidth() / 2. - m_labelItem->boundingRect().width() / 2., -17);
 }
 
 void ConstraintView::updateCounterPos()
 {
-    m_counterItem->setPos(defaultWidth() - m_counterItem->boundingRect().width() - 5, 5);
+  m_counterItem->setPos(
+      defaultWidth() - m_counterItem->boundingRect().width() - 5, 5);
 }
 }
-

@@ -1,99 +1,89 @@
 #pragma once
 
-#include <eggs/variant/variant.hpp>
 #include <QString>
 #include <State/Address.hpp>
 #include <State/Value.hpp>
+#include <eggs/variant/variant.hpp>
 
 namespace State
 {
-using RelationMember = eggs::variant<
-    State::Address,
-    State::AddressAccessor,
-    State::Value>;
+using RelationMember
+    = eggs::variant<State::Address, State::AddressAccessor, State::Value>;
 
 ISCORE_LIB_STATE_EXPORT QString toString(const RelationMember&);
 
 struct ISCORE_LIB_STATE_EXPORT Relation
 {
-        enum Comparator {
-            Equal,
-            Different,
-            Greater,
-            Lower,
-            GreaterEqual,
-            LowerEqual
-        } ;
+  enum Comparator
+  {
+    Equal,
+    Different,
+    Greater,
+    Lower,
+    GreaterEqual,
+    LowerEqual
+  };
 
-        Relation() noexcept = default;
-        Relation(const Relation& other) noexcept:
-            lhs{other.lhs},
-            op{other.op},
-            rhs{other.rhs}
-        {
+  Relation() noexcept = default;
+  Relation(const Relation& other) noexcept
+      : lhs{other.lhs}, op{other.op}, rhs{other.rhs}
+  {
+  }
 
-        }
+  Relation(Relation&& other) noexcept
+      : lhs{std::move(other.lhs)}, op{other.op}, rhs{std::move(other.rhs)}
+  {
+  }
 
-        Relation(Relation&& other) noexcept:
-            lhs{std::move(other.lhs)},
-            op{other.op},
-            rhs{std::move(other.rhs)}
-        {
+  Relation& operator=(const Relation& other) noexcept
+  {
+    lhs = other.lhs;
+    op = other.op;
+    rhs = other.rhs;
+    return *this;
+  }
+  Relation& operator=(Relation&& other) noexcept
+  {
+    lhs = std::move(other.lhs);
+    op = other.op;
+    rhs = std::move(other.rhs);
+    return *this;
+  }
 
-        }
+  Relation(RelationMember l, Comparator o, RelationMember r)
+      : lhs{std::move(l)}, op{o}, rhs{std::move(r)}
+  {
+  }
 
-        Relation& operator=(const Relation& other) noexcept
-        {
-            lhs = other.lhs;
-            op = other.op;
-            rhs = other.rhs;
-            return *this;
-        }
-        Relation& operator=(Relation&& other) noexcept
-        {
-            lhs = std::move(other.lhs);
-            op = other.op;
-            rhs = std::move(other.rhs);
-            return *this;
-        }
+  RelationMember lhs;
+  Comparator op;
+  RelationMember rhs;
 
-        Relation(RelationMember l, Comparator o, RelationMember r):
-            lhs{std::move(l)},
-            op{o},
-            rhs{std::move(r)}
-        {
-
-        }
-
-        RelationMember lhs;
-        Comparator op;
-        RelationMember rhs;
-
-        friend bool operator==(const Relation& eq_lhs, const Relation& eq_rhs)
-        {
-            return eq_lhs.lhs == eq_rhs.lhs && eq_lhs.rhs == eq_rhs.rhs && eq_lhs.op == eq_rhs.op;
-        }
+  friend bool operator==(const Relation& eq_lhs, const Relation& eq_rhs)
+  {
+    return eq_lhs.lhs == eq_rhs.lhs && eq_lhs.rhs == eq_rhs.rhs
+           && eq_lhs.op == eq_rhs.op;
+  }
 };
 
 ISCORE_LIB_STATE_EXPORT QString toString(const Relation&);
 
 struct ISCORE_LIB_STATE_EXPORT Pulse
 {
-        Pulse() noexcept = default;
-        Pulse(const Pulse&) noexcept = default;
-        Pulse(Pulse&&) noexcept = default;
-        Pulse& operator=(const Pulse&) noexcept = default;
-        Pulse& operator=(Pulse&&) noexcept = default;
+  Pulse() noexcept = default;
+  Pulse(const Pulse&) noexcept = default;
+  Pulse(Pulse&&) noexcept = default;
+  Pulse& operator=(const Pulse&) noexcept = default;
+  Pulse& operator=(Pulse&&) noexcept = default;
 
-        State::Address address;
+  State::Address address;
 
-        friend bool operator==(const Pulse& lhs, const Pulse& rhs)
-        {
-            return lhs.address == rhs.address;
-        }
-
+  friend bool operator==(const Pulse& lhs, const Pulse& rhs)
+  {
+    return lhs.address == rhs.address;
+  }
 };
 ISCORE_LIB_STATE_EXPORT QString toString(const Pulse&);
-ISCORE_LIB_STATE_EXPORT const QMap<State::Relation::Comparator, QString> opToString();
-
+ISCORE_LIB_STATE_EXPORT const QMap<State::Relation::Comparator, QString>
+opToString();
 }

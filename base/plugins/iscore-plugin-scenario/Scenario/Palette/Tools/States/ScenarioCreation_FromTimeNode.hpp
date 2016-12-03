@@ -1,7 +1,6 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
 
-
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
@@ -9,270 +8,277 @@
 
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
 
-#include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
-#include <Scenario/Palette/Transitions/EventTransitions.hpp>
-#include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
+#include <Scenario/Palette/Transitions/EventTransitions.hpp>
+#include <Scenario/Palette/Transitions/NothingTransitions.hpp>
+#include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
 
-#include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <QFinalState>
+#include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 
 namespace Scenario
 {
-template<typename Scenario_T, typename ToolPalette_T>
-class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette_T>
+template <typename Scenario_T, typename ToolPalette_T>
+class Creation_FromTimeNode final
+    : public CreationState<Scenario_T, ToolPalette_T>
 {
-    public:
-        Creation_FromTimeNode(
-                const ToolPalette_T& stateMachine,
-                const Path<Scenario_T>& scenarioPath,
-                const iscore::CommandStackFacade& stack,
-                QState* parent):
-            CreationState<Scenario_T, ToolPalette_T>{stateMachine, stack, std::move(scenarioPath), parent}
+public:
+  Creation_FromTimeNode(
+      const ToolPalette_T& stateMachine,
+      const Path<Scenario_T>& scenarioPath,
+      const iscore::CommandStackFacade& stack,
+      QState* parent)
+      : CreationState<Scenario_T, ToolPalette_T>{
+            stateMachine, stack, std::move(scenarioPath), parent}
+  {
+    using namespace Scenario::Command;
+    auto finalState = new QFinalState{this};
+    QObject::connect(
+        finalState, &QState::entered, [&]() { this->clearCreatedIds(); });
+
+    auto mainState = new QState{this};
+    {
+      auto pressed = new QState{mainState};
+      auto released = new QState{mainState};
+      auto move_nothing = new StrongQState<MoveOnNothing>{mainState};
+      auto move_state = new StrongQState<MoveOnState>{mainState};
+      auto move_event = new StrongQState<MoveOnEvent>{mainState};
+      auto move_timenode = new StrongQState<MoveOnTimeNode>{mainState};
+
+      // General setup
+      mainState->setInitialState(pressed);
+      released->addTransition(finalState);
+
+      // Release
+      iscore::make_transition<ReleaseOnAnything_Transition>(
+          mainState, released);
+
+      // Pressed -> ...
+      auto t_pressed_moving_nothing
+          = iscore::make_transition<MoveOnNothing_Transition<Scenario_T>>(
+              pressed, move_nothing, *this);
+
+      QObject::connect(
+          t_pressed_moving_nothing, &QAbstractTransition::triggered, [&]() {
+            this->rollback();
+            createToNothing();
+          });
+
+      /// MoveOnNothing -> ...
+      // MoveOnNothing -> MoveOnNothing.
+      iscore::make_transition<MoveOnNothing_Transition<Scenario_T>>(
+          move_nothing, move_nothing, *this);
+
+      // MoveOnNothing -> MoveOnState.
+      this->add_transition(move_nothing, move_state, [&]() {
+        this->rollback();
+        ISCORE_TODO;
+      });
+
+      // MoveOnNothing -> MoveOnEvent.
+      this->add_transition(move_nothing, move_event, [&]() {
+        if (this->hoveredEvent
+            && this->createdEvents.contains(*this->hoveredEvent))
         {
-            using namespace Scenario::Command;
-            auto finalState = new QFinalState{this};
-            QObject::connect(finalState, &QState::entered, [&] ()
-            {
-                this->clearCreatedIds();
-            });
+          return;
+        }
+        this->rollback();
 
-            auto mainState = new QState{this};
-            {
-                auto pressed = new QState{mainState};
-                auto released = new QState{mainState};
-                auto move_nothing = new StrongQState<MoveOnNothing>{mainState};
-                auto move_state = new StrongQState<MoveOnState>{mainState};
-                auto move_event = new StrongQState<MoveOnEvent>{mainState};
-                auto move_timenode = new StrongQState<MoveOnTimeNode>{mainState};
+        createToEvent();
+      });
 
-                // General setup
-                mainState->setInitialState(pressed);
-                released->addTransition(finalState);
+      // MoveOnNothing -> MoveOnTimeNode
+      this->add_transition(move_nothing, move_timenode, [&]() {
+        if (this->hoveredTimeNode
+            && this->createdTimeNodes.contains(*this->hoveredTimeNode))
+        {
+          return;
+        }
+        this->rollback();
+        createToTimeNode();
+      });
 
-                // Release
-                iscore::make_transition<ReleaseOnAnything_Transition>(mainState, released);
+      /// MoveOnState -> ...
+      // MoveOnState -> MoveOnNothing
+      this->add_transition(move_state, move_nothing, [&]() {
+        this->rollback();
+        ISCORE_TODO;
+      });
 
-                // Pressed -> ...
-                auto t_pressed_moving_nothing =
-                        iscore::make_transition<MoveOnNothing_Transition<Scenario_T>>(
-                            pressed, move_nothing, *this);
+      // MoveOnState -> MoveOnState
+      // We don't do anything, the constraint should not move.
 
-                QObject::connect(t_pressed_moving_nothing, &QAbstractTransition::triggered,
-                        [&] ()
-                {
-                    this->rollback();
-                    createToNothing();
-                });
+      // MoveOnState -> MoveOnEvent
+      this->add_transition(move_state, move_event, [&]() {
+        this->rollback();
+        ISCORE_TODO;
+      });
 
+      // MoveOnState -> MoveOnTimeNode
+      this->add_transition(move_state, move_timenode, [&]() {
+        this->rollback();
+        ISCORE_TODO;
+      });
 
-                /// MoveOnNothing -> ...
-                // MoveOnNothing -> MoveOnNothing.
-                iscore::make_transition<MoveOnNothing_Transition<Scenario_T>>(move_nothing, move_nothing, *this);
+      /// MoveOnEvent -> ...
+      // MoveOnEvent -> MoveOnNothing
+      this->add_transition(move_event, move_nothing, [&]() {
+        this->rollback();
+        createToNothing();
+      });
 
-                // MoveOnNothing -> MoveOnState.
-                this->add_transition(move_nothing, move_state,
-                               [&] () { this->rollback(); ISCORE_TODO; });
+      // MoveOnEvent -> MoveOnState
+      this->add_transition(move_event, move_state, [&]() {
+        this->rollback();
+        ISCORE_TODO;
+      });
 
-                // MoveOnNothing -> MoveOnEvent.
-                this->add_transition(move_nothing, move_event,
-                               [&] () {
-                    if(this->hoveredEvent && this->createdEvents.contains(*this->hoveredEvent))
-                    {
-                        return;
-                    }
-                    this->rollback();
+      // MoveOnEvent -> MoveOnEvent
+      iscore::make_transition<MoveOnEvent_Transition<Scenario_T>>(
+          move_event, move_event, *this);
 
-                    createToEvent();
-                });
+      // MoveOnEvent -> MoveOnTimeNode
+      this->add_transition(move_event, move_timenode, [&]() {
 
-                // MoveOnNothing -> MoveOnTimeNode
-                this->add_transition(move_nothing, move_timenode,
-                               [&] () {
-                    if(this->hoveredTimeNode && this->createdTimeNodes.contains(*this->hoveredTimeNode))
-                    {
-                        return;
-                    }
-                    this->rollback();
-                    createToTimeNode();
-                });
+        if (this->hoveredTimeNode
+            && this->createdTimeNodes.contains(*this->hoveredTimeNode))
+        {
+          return;
+        }
+        this->rollback();
+        createToTimeNode();
+      });
 
+      /// MoveOnTimeNode -> ...
+      // MoveOnTimeNode -> MoveOnNothing
+      this->add_transition(move_timenode, move_nothing, [&]() {
+        this->rollback();
+        createToNothing();
+      });
 
-                /// MoveOnState -> ...
-                // MoveOnState -> MoveOnNothing
-                this->add_transition(move_state, move_nothing,
-                               [&] () { this->rollback(); ISCORE_TODO; });
+      // MoveOnTimeNode -> MoveOnState
+      this->add_transition(move_timenode, move_state, [&]() {
+        this->rollback();
+        ISCORE_TODO;
+      });
 
-                // MoveOnState -> MoveOnState
-                // We don't do anything, the constraint should not move.
+      // MoveOnTimeNode -> MoveOnEvent
+      this->add_transition(move_timenode, move_event, [&]() {
+        if (this->hoveredEvent
+            && this->createdEvents.contains(*this->hoveredEvent))
+        {
+          this->rollback();
+          return;
+        }
+        this->rollback();
+        createToEvent();
+      });
 
-                // MoveOnState -> MoveOnEvent
-                this->add_transition(move_state, move_event,
-                               [&] () { this->rollback(); ISCORE_TODO; });
+      // MoveOnTimeNode -> MoveOnTimeNode
+      iscore::make_transition<MoveOnTimeNode_Transition<Scenario_T>>(
+          move_timenode, move_timenode, *this);
 
-                // MoveOnState -> MoveOnTimeNode
-                this->add_transition(move_state, move_timenode,
-                               [&] () { this->rollback(); ISCORE_TODO; });
+      // What happens in each state.
+      QObject::connect(pressed, &QState::entered, [&]() {
+        this->m_clickedPoint = this->currentPoint;
+        createInitialEventAndState();
+      });
 
-
-                /// MoveOnEvent -> ...
-                // MoveOnEvent -> MoveOnNothing
-                this->add_transition(move_event, move_nothing,
-                               [&] () {
-                    this->rollback();
-                    createToNothing();
-                });
-
-                // MoveOnEvent -> MoveOnState
-                this->add_transition(move_event, move_state,
-                               [&] () { this->rollback(); ISCORE_TODO; });
-
-                // MoveOnEvent -> MoveOnEvent
-                iscore::make_transition<MoveOnEvent_Transition<Scenario_T>>(move_event, move_event, *this);
-
-                // MoveOnEvent -> MoveOnTimeNode
-                this->add_transition(move_event, move_timenode,
-                               [&] () {
-
-                    if(this->hoveredTimeNode && this->createdTimeNodes.contains(*this->hoveredTimeNode))
-                    {
-                        return;
-                    }
-                    this->rollback();
-                    createToTimeNode();
-                });
-
-
-                /// MoveOnTimeNode -> ...
-                // MoveOnTimeNode -> MoveOnNothing
-                this->add_transition(move_timenode, move_nothing,
-                               [&] () {
-                    this->rollback();
-                    createToNothing();
-                });
-
-                // MoveOnTimeNode -> MoveOnState
-                this->add_transition(move_timenode, move_state,
-                               [&] () { this->rollback(); ISCORE_TODO; });
-
-                // MoveOnTimeNode -> MoveOnEvent
-                this->add_transition(move_timenode, move_event,
-                               [&] () {
-                    if(this->hoveredEvent && this->createdEvents.contains(*this->hoveredEvent))
-                    {
-                        this->rollback();
-                        return;
-                    }
-                    this->rollback();
-                    createToEvent();
-                });
-
-                // MoveOnTimeNode -> MoveOnTimeNode
-                iscore::make_transition<MoveOnTimeNode_Transition<Scenario_T>>(move_timenode , move_timenode , *this);
-
-
-
-                // What happens in each state.
-                QObject::connect(pressed, &QState::entered,
-                                 [&] ()
-                {
-                    this->m_clickedPoint = this->currentPoint;
-                    createInitialEventAndState();
-                });
-
-                QObject::connect(move_nothing, &QState::entered, [&] ()
-                {
-                    if(this->createdEvents.empty() || this->createdConstraints.empty())
-                    {
-                        this->rollback();
-                        return;
-                    }
-
-                    if(this->currentPoint.date <= this->m_clickedPoint.date)
-                    {
-                        this->currentPoint.date = this->m_clickedPoint.date + TimeValue::fromMsecs(10);;
-                    }
-
-                    // Move the timenode
-                    this->m_dispatcher.template submitCommand<MoveNewEvent>(
-                                Path<Scenario_T>{this->m_scenarioPath},
-                                this->createdConstraints.last(),
-                                this->createdEvents.last(),
-                                this->currentPoint.date,
-                                this->currentPoint.y,
-                                stateMachine.editionSettings().sequence());
-                });
-
-                QObject::connect(move_timenode, &QState::entered, [&] ()
-                {
-                    if(this->createdEvents.empty())
-                    {
-                        this->rollback();
-                        return;
-                    }
-
-                    if(this->currentPoint.date <= this->m_clickedPoint.date)
-                    {
-                        return;
-                    }
-
-                    this->m_dispatcher.template submitCommand<MoveEventMeta>(
-                                Path<Scenario_T>{this->m_scenarioPath},
-                                this->createdEvents.last(),
-                                TimeValue::zero(),
-                                0.,
-                                stateMachine.editionSettings().expandMode());
-                });
-
-                QObject::connect(released, &QState::entered, this, &Creation_FromTimeNode::commit);
-            }
-
-            auto rollbackState = new QState{this};
-            iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
-            rollbackState->addTransition(finalState);
-            QObject::connect(rollbackState, &QState::entered, this, &Creation_FromTimeNode::rollback);
-
-            this->setInitialState(mainState);
+      QObject::connect(move_nothing, &QState::entered, [&]() {
+        if (this->createdEvents.empty() || this->createdConstraints.empty())
+        {
+          this->rollback();
+          return;
         }
 
-    private:
-        void createInitialEventAndState()
+        if (this->currentPoint.date <= this->m_clickedPoint.date)
         {
-            if(this->clickedTimeNode)
-            {
-                auto cmd = new Command::CreateEvent_State{
-                        this->m_scenarioPath,
-                        *this->clickedTimeNode,
-                        this->currentPoint.y};
-                this->m_dispatcher.submitCommand(cmd);
-
-                this->createdStates.append(cmd->createdState());
-                this->createdEvents.append(cmd->createdEvent());
-            }
+          this->currentPoint.date
+              = this->m_clickedPoint.date + TimeValue::fromMsecs(10);
+          ;
         }
 
-        void createToNothing()
+        // Move the timenode
+        this->m_dispatcher.template submitCommand<MoveNewEvent>(
+            Path<Scenario_T>{this->m_scenarioPath},
+            this->createdConstraints.last(),
+            this->createdEvents.last(),
+            this->currentPoint.date,
+            this->currentPoint.y,
+            stateMachine.editionSettings().sequence());
+      });
+
+      QObject::connect(move_timenode, &QState::entered, [&]() {
+        if (this->createdEvents.empty())
         {
-            createInitialEventAndState();
-            this->createToNothing_base(this->createdStates.first());
+          this->rollback();
+          return;
         }
-        void createToState()
+
+        if (this->currentPoint.date <= this->m_clickedPoint.date)
         {
-            createInitialEventAndState();
-            this->createToState_base(this->createdStates.first());
+          return;
         }
-        void createToEvent()
-        {
-            createInitialEventAndState();
-            this->createToEvent_base(this->createdStates.first());
-        }
-        void createToTimeNode()
-        {
-            // TODO "if hoveredTimeNode != clickedTimeNode"
-            createInitialEventAndState();
-            this->createToTimeNode_base(this->createdStates.first());
-        }
+
+        this->m_dispatcher.template submitCommand<MoveEventMeta>(
+            Path<Scenario_T>{this->m_scenarioPath},
+            this->createdEvents.last(),
+            TimeValue::zero(),
+            0.,
+            stateMachine.editionSettings().expandMode());
+      });
+
+      QObject::connect(
+          released, &QState::entered, this, &Creation_FromTimeNode::commit);
+    }
+
+    auto rollbackState = new QState{this};
+    iscore::make_transition<iscore::Cancel_Transition>(
+        mainState, rollbackState);
+    rollbackState->addTransition(finalState);
+    QObject::connect(
+        rollbackState, &QState::entered, this,
+        &Creation_FromTimeNode::rollback);
+
+    this->setInitialState(mainState);
+  }
+
+private:
+  void createInitialEventAndState()
+  {
+    if (this->clickedTimeNode)
+    {
+      auto cmd = new Command::CreateEvent_State{
+          this->m_scenarioPath, *this->clickedTimeNode, this->currentPoint.y};
+      this->m_dispatcher.submitCommand(cmd);
+
+      this->createdStates.append(cmd->createdState());
+      this->createdEvents.append(cmd->createdEvent());
+    }
+  }
+
+  void createToNothing()
+  {
+    createInitialEventAndState();
+    this->createToNothing_base(this->createdStates.first());
+  }
+  void createToState()
+  {
+    createInitialEventAndState();
+    this->createToState_base(this->createdStates.first());
+  }
+  void createToEvent()
+  {
+    createInitialEventAndState();
+    this->createToEvent_base(this->createdStates.first());
+  }
+  void createToTimeNode()
+  {
+    // TODO "if hoveredTimeNode != clickedTimeNode"
+    createInitialEventAndState();
+    this->createToTimeNode_base(this->createdStates.first());
+  }
 };
 }

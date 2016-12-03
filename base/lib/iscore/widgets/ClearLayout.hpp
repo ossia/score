@@ -1,6 +1,6 @@
 #pragma once
-#include <qnamespace.h>
 #include <iscore_lib_base_export.h>
+#include <qnamespace.h>
 class QLayout;
 
 namespace iscore

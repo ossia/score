@@ -1,8 +1,8 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/std/Optional.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/tools/std/Optional.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -17,23 +17,20 @@ namespace Command
 {
 class SwapSlots final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapSlots, "Swap slots")
-        public:
-            SwapSlots(
-                Path<RackModel>&& rack,
-                Id<SlotModel> first,
-                Id<SlotModel> second);
+  ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapSlots, "Swap slots")
+public:
+  SwapSlots(Path<RackModel>&& rack, Id<SlotModel> first, Id<SlotModel> second);
 
-        void undo() const override;
-        void redo() const override;
+  void undo() const override;
+  void redo() const override;
 
-    protected:
-        void serializeImpl(DataStreamInput&) const override;
-        void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-    private:
-        Path<RackModel> m_rackPath;
-        Id<SlotModel> m_first, m_second;
+private:
+  Path<RackModel> m_rackPath;
+  Id<SlotModel> m_first, m_second;
 };
 }
 }

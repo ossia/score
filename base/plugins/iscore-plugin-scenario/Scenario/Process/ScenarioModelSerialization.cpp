@@ -1,256 +1,257 @@
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
-#include <Scenario/Application/ScenarioValidity.hpp>
-#include <iscore/tools/std/Optional.hpp>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
-#include <sys/types.h>
+#include <Scenario/Application/ScenarioValidity.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <algorithm>
+#include <iscore/tools/std/Optional.hpp>
+#include <sys/types.h>
 
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <iscore/model/ModelMetadata.hpp>
+#include "ScenarioFactory.hpp"
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include "ScenarioFactory.hpp"
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <iscore/model/ModelMetadata.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/document/DocumentContext.hpp>
 #include <iscore_plugin_scenario_export.h>
-namespace Process { class LayerModel; }
-namespace Process { class ProcessModel; }
+namespace Process
+{
+class LayerModel;
+}
+namespace Process
+{
+class ProcessModel;
+}
 class QObject;
 struct VisitorVariant;
-template <typename T> class Reader;
-template <typename T> class Writer;
+template <typename T>
+class Reader;
+template <typename T>
+class Writer;
 
-template<>
+template <>
 void Visitor<Reader<DataStream>>::readFrom_impl(
-        const Scenario::ProcessModel& scenario)
+    const Scenario::ProcessModel& scenario)
 {
-    m_stream << scenario.m_startTimeNodeId
-             << scenario.m_endTimeNodeId;
-    m_stream << scenario.m_startEventId
-             << scenario.m_endEventId;
-    m_stream << scenario.m_startStateId;
+  m_stream << scenario.m_startTimeNodeId << scenario.m_endTimeNodeId;
+  m_stream << scenario.m_startEventId << scenario.m_endEventId;
+  m_stream << scenario.m_startStateId;
 
-    // Constraints
-    const auto& constraints = scenario.constraints;
-    m_stream << (int32_t) constraints.size();
+  // Constraints
+  const auto& constraints = scenario.constraints;
+  m_stream << (int32_t)constraints.size();
 
-    for(const auto& constraint : constraints)
-    {
-        readFrom(constraint);
-    }
+  for (const auto& constraint : constraints)
+  {
+    readFrom(constraint);
+  }
 
-    // Timenodes
-    const auto& timenodes = scenario.timeNodes;
-    m_stream << (int32_t) timenodes.size();
+  // Timenodes
+  const auto& timenodes = scenario.timeNodes;
+  m_stream << (int32_t)timenodes.size();
 
-    for(const auto& timenode : timenodes)
-    {
-        readFrom(timenode);
-    }
+  for (const auto& timenode : timenodes)
+  {
+    readFrom(timenode);
+  }
 
-    // Events
-    const auto& events = scenario.events;
-    m_stream << (int32_t) events.size();
+  // Events
+  const auto& events = scenario.events;
+  m_stream << (int32_t)events.size();
 
-    for(const auto& event : events)
-    {
-        readFrom(event);
-    }
+  for (const auto& event : events)
+  {
+    readFrom(event);
+  }
 
-    // States
-    const auto& states = scenario.states;
-    m_stream << (int32_t) states.size();
+  // States
+  const auto& states = scenario.states;
+  m_stream << (int32_t)states.size();
 
-    for(const auto& state : states)
-    {
-        readFrom(state);
-    }
+  for (const auto& state : states)
+  {
+    readFrom(state);
+  }
 
-    // Comments
-    const auto& comments = scenario.comments;
-    m_stream << (int32_t) comments.size();
+  // Comments
+  const auto& comments = scenario.comments;
+  m_stream << (int32_t)comments.size();
 
-    for(const auto& cmt : comments)
-    {
-        readFrom(cmt);
-    }
+  for (const auto& cmt : comments)
+  {
+    readFrom(cmt);
+  }
 
-    insertDelimiter();
+  insertDelimiter();
 }
 
-template<>
-void Visitor<Writer<DataStream>>::writeTo(
-        Scenario::ProcessModel& scenario)
+template <>
+void Visitor<Writer<DataStream>>::writeTo(Scenario::ProcessModel& scenario)
 {
-    m_stream >> scenario.m_startTimeNodeId
-             >> scenario.m_endTimeNodeId;
-    m_stream >> scenario.m_startEventId
-             >> scenario.m_endEventId;
-    m_stream >> scenario.m_startStateId;
+  m_stream >> scenario.m_startTimeNodeId >> scenario.m_endTimeNodeId;
+  m_stream >> scenario.m_startEventId >> scenario.m_endEventId;
+  m_stream >> scenario.m_startStateId;
 
-    // Constraints
-    int32_t constraint_count;
-    m_stream >> constraint_count;
+  // Constraints
+  int32_t constraint_count;
+  m_stream >> constraint_count;
 
-    for(; constraint_count -- > 0;)
-    {
-        auto constraint = new Scenario::ConstraintModel {*this, &scenario};
-        scenario.constraints.add(constraint);
-    }
+  for (; constraint_count-- > 0;)
+  {
+    auto constraint = new Scenario::ConstraintModel{*this, &scenario};
+    scenario.constraints.add(constraint);
+  }
 
-    // Timenodes
-    int32_t timenode_count;
-    m_stream >> timenode_count;
+  // Timenodes
+  int32_t timenode_count;
+  m_stream >> timenode_count;
 
-    for(; timenode_count -- > 0;)
-    {
-        auto tnmodel = new Scenario::TimeNodeModel {*this, &scenario};
-        scenario.timeNodes.add(tnmodel);
-    }
+  for (; timenode_count-- > 0;)
+  {
+    auto tnmodel = new Scenario::TimeNodeModel{*this, &scenario};
+    scenario.timeNodes.add(tnmodel);
+  }
 
-    // Events
-    int32_t event_count;
-    m_stream >> event_count;
+  // Events
+  int32_t event_count;
+  m_stream >> event_count;
 
-    for(; event_count -- > 0;)
-    {
-        auto evmodel = new Scenario::EventModel {*this, &scenario};
-        scenario.events.add(evmodel);
-    }
+  for (; event_count-- > 0;)
+  {
+    auto evmodel = new Scenario::EventModel{*this, &scenario};
+    scenario.events.add(evmodel);
+  }
 
-    // States
-    int32_t state_count;
-    m_stream >> state_count;
+  // States
+  int32_t state_count;
+  m_stream >> state_count;
 
-    auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
-    for(; state_count -- > 0;)
-    {
-        auto stmodel = new Scenario::StateModel {*this, stack, &scenario};
-        scenario.states.add(stmodel);
-    }
+  auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
+  for (; state_count-- > 0;)
+  {
+    auto stmodel = new Scenario::StateModel{*this, stack, &scenario};
+    scenario.states.add(stmodel);
+  }
 
-    int32_t cmt_count;
-    m_stream >> cmt_count;
+  int32_t cmt_count;
+  m_stream >> cmt_count;
 
-    for(; cmt_count -- > 0 ;)
-    {
-        auto cmtModel = new Scenario::CommentBlockModel {*this, &scenario};
-        scenario.comments.add(cmtModel);
-    }
+  for (; cmt_count-- > 0;)
+  {
+    auto cmtModel = new Scenario::CommentBlockModel{*this, &scenario};
+    scenario.comments.add(cmtModel);
+  }
 
-    // Finally, we re-set the constraints before and after the states
-    for(const Scenario::ConstraintModel& constraint : scenario.constraints)
-    {
-        Scenario::SetPreviousConstraint(scenario.states.at(constraint.endState()), constraint);
-        Scenario::SetNextConstraint(scenario.states.at(constraint.startState()), constraint);
-    }
+  // Finally, we re-set the constraints before and after the states
+  for (const Scenario::ConstraintModel& constraint : scenario.constraints)
+  {
+    Scenario::SetPreviousConstraint(
+        scenario.states.at(constraint.endState()), constraint);
+    Scenario::SetNextConstraint(
+        scenario.states.at(constraint.startState()), constraint);
+  }
 
-    //Scenario::ScenarioValidityChecker::checkValidity(scenario);
-    checkDelimiter();
+  // Scenario::ScenarioValidityChecker::checkValidity(scenario);
+  checkDelimiter();
 }
 
-
-
-
-template<>
+template <>
 void Visitor<Reader<JSONObject>>::readFrom_impl(
-        const Scenario::ProcessModel& scenario)
+    const Scenario::ProcessModel& scenario)
 {
-    m_obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);
-    m_obj["EndTimeNodeId"] = toJsonValue(scenario.m_endTimeNodeId);
-    m_obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
-    m_obj["EndEventId"] = toJsonValue(scenario.m_endEventId);
-    m_obj["StartStateId"] = toJsonValue(scenario.m_startStateId);
+  m_obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);
+  m_obj["EndTimeNodeId"] = toJsonValue(scenario.m_endTimeNodeId);
+  m_obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
+  m_obj["EndEventId"] = toJsonValue(scenario.m_endEventId);
+  m_obj["StartStateId"] = toJsonValue(scenario.m_startStateId);
 
-    m_obj["TimeNodes"] = toJsonArray(scenario.timeNodes);
-    m_obj["Events"] = toJsonArray(scenario.events);
-    m_obj["States"] = toJsonArray(scenario.states);
-    m_obj["Constraints"] = toJsonArray(scenario.constraints);
-    m_obj["Comments"] = toJsonArray(scenario.comments);
+  m_obj["TimeNodes"] = toJsonArray(scenario.timeNodes);
+  m_obj["Events"] = toJsonArray(scenario.events);
+  m_obj["States"] = toJsonArray(scenario.states);
+  m_obj["Constraints"] = toJsonArray(scenario.constraints);
+  m_obj["Comments"] = toJsonArray(scenario.comments);
 }
 
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(
-        Scenario::ProcessModel& scenario)
+template <>
+void Visitor<Writer<JSONObject>>::writeTo(Scenario::ProcessModel& scenario)
 {
-    scenario.m_startTimeNodeId = fromJsonValue<Id<Scenario::TimeNodeModel>> (m_obj["StartTimeNodeId"]);
-    scenario.m_endTimeNodeId = fromJsonValue<Id<Scenario::TimeNodeModel>> (m_obj["EndTimeNodeId"]);
-    scenario.m_startEventId = fromJsonValue<Id<Scenario::EventModel>> (m_obj["StartEventId"]);
-    scenario.m_endEventId = fromJsonValue<Id<Scenario::EventModel>> (m_obj["EndEventId"]);
-    scenario.m_startStateId = fromJsonValue<Id<Scenario::StateModel>> (m_obj["StartStateId"]);
+  scenario.m_startTimeNodeId
+      = fromJsonValue<Id<Scenario::TimeNodeModel>>(m_obj["StartTimeNodeId"]);
+  scenario.m_endTimeNodeId
+      = fromJsonValue<Id<Scenario::TimeNodeModel>>(m_obj["EndTimeNodeId"]);
+  scenario.m_startEventId
+      = fromJsonValue<Id<Scenario::EventModel>>(m_obj["StartEventId"]);
+  scenario.m_endEventId
+      = fromJsonValue<Id<Scenario::EventModel>>(m_obj["EndEventId"]);
+  scenario.m_startStateId
+      = fromJsonValue<Id<Scenario::StateModel>>(m_obj["StartStateId"]);
 
-    for(const auto& json_vref : m_obj["Constraints"].toArray())
-    {
-        auto constraint = new Scenario::ConstraintModel{
-                Deserializer<JSONObject>{json_vref.toObject() },
-                &scenario};
-        scenario.constraints.add(constraint);
-    }
+  for (const auto& json_vref : m_obj["Constraints"].toArray())
+  {
+    auto constraint = new Scenario::ConstraintModel{
+        Deserializer<JSONObject>{json_vref.toObject()}, &scenario};
+    scenario.constraints.add(constraint);
+  }
 
-    for(const auto& json_vref : m_obj["TimeNodes"].toArray())
-    {
-        auto tnmodel = new Scenario::TimeNodeModel {
-                       Deserializer<JSONObject>{json_vref.toObject() },
-                       &scenario};
+  for (const auto& json_vref : m_obj["TimeNodes"].toArray())
+  {
+    auto tnmodel = new Scenario::TimeNodeModel{
+        Deserializer<JSONObject>{json_vref.toObject()}, &scenario};
 
-        scenario.timeNodes.add(tnmodel);
-    }
+    scenario.timeNodes.add(tnmodel);
+  }
 
-    for(const auto& json_vref : m_obj["Events"].toArray())
-    {
-        auto evmodel = new Scenario::EventModel {
-                       Deserializer<JSONObject>{json_vref.toObject() },
-                       &scenario};
+  for (const auto& json_vref : m_obj["Events"].toArray())
+  {
+    auto evmodel = new Scenario::EventModel{
+        Deserializer<JSONObject>{json_vref.toObject()}, &scenario};
 
-        scenario.events.add(evmodel);
-    }
+    scenario.events.add(evmodel);
+  }
 
-    for(const auto& json_vref : m_obj["Comments"].toArray())
-    {
-        auto cmtmodel = new Scenario::CommentBlockModel {
-                       Deserializer<JSONObject>{json_vref.toObject() },
-                       &scenario};
+  for (const auto& json_vref : m_obj["Comments"].toArray())
+  {
+    auto cmtmodel = new Scenario::CommentBlockModel{
+        Deserializer<JSONObject>{json_vref.toObject()}, &scenario};
 
-        scenario.comments.add(cmtmodel);
-    }
+    scenario.comments.add(cmtmodel);
+  }
 
-    auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
-    for(const auto& json_vref : m_obj["States"].toArray())
-    {
-        auto stmodel = new Scenario::StateModel {
-                       Deserializer<JSONObject>{json_vref.toObject() },
-                       stack,
-                       &scenario};
+  auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
+  for (const auto& json_vref : m_obj["States"].toArray())
+  {
+    auto stmodel = new Scenario::StateModel{
+        Deserializer<JSONObject>{json_vref.toObject()}, stack, &scenario};
 
-        scenario.states.add(stmodel);
-    }
+    scenario.states.add(stmodel);
+  }
 
-    // Finally, we re-set the constraints before and after the states
-    for(const Scenario::ConstraintModel& constraint : scenario.constraints)
-    {
-        Scenario::SetPreviousConstraint(scenario.states.at(constraint.endState()), constraint);
-        Scenario::SetNextConstraint(scenario.states.at(constraint.startState()), constraint);
-    }
+  // Finally, we re-set the constraints before and after the states
+  for (const Scenario::ConstraintModel& constraint : scenario.constraints)
+  {
+    Scenario::SetPreviousConstraint(
+        scenario.states.at(constraint.endState()), constraint);
+    Scenario::SetNextConstraint(
+        scenario.states.at(constraint.startState()), constraint);
+  }
 
-    //Scenario::ScenarioValidityChecker::checkValidity(scenario);
+  // Scenario::ScenarioValidityChecker::checkValidity(scenario);
 }
 
-Process::ProcessModel* Scenario::ScenarioFactory::load(
-        const VisitorVariant& vis,
-        QObject* parent)
+Process::ProcessModel*
+Scenario::ScenarioFactory::load(const VisitorVariant& vis, QObject* parent)
 {
-    return deserialize_dyn(vis, [&] (auto&& deserializer)
-    { return new Scenario::ProcessModel{deserializer, parent};});
+  return deserialize_dyn(vis, [&](auto&& deserializer) {
+    return new Scenario::ProcessModel{deserializer, parent};
+  });
 }
-
