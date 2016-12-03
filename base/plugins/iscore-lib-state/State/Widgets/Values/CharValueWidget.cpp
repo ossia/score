@@ -35,7 +35,7 @@ void CharValueWidget::setValue(Value v) const
 State::Value CharValueWidget::value() const
 {
   auto txt = m_value->text();
-  return State::Value{txt.length() > 0 ? txt[0] : QChar{}};
+  return State::Value{txt.length() > 0 ? txt[0].toLatin1() : char{}};
 }
 
 CharValueSetDialog::CharValueSetDialog(QWidget* parent) : QDialog{parent}

@@ -87,11 +87,11 @@ struct MatchingType<std::string>
   using type = std::string;
   static auto convert(const std::string& f)
   {
-    return State::Value::fromValue(QString::fromStdString(f));
+    return State::Value::fromValue(f);
   }
   static auto convert(std::string&& f)
   {
-    return State::Value::fromValue(QString::fromStdString(std::move(f)));
+    return State::Value::fromValue(std::move(f));
   }
 };
 template <>
@@ -101,11 +101,11 @@ struct MatchingType<QString>
   using type = std::string;
   static auto convert(const QString& f)
   {
-    return State::Value::fromValue(f);
+    return State::Value::fromValue(f.toStdString());
   }
   static auto convert(QString&& f)
   {
-    return State::Value::fromValue(std::move(f));
+    return State::Value::fromValue(f.toStdString());
   }
 };
 template <>
@@ -125,7 +125,7 @@ struct MatchingType<QChar>
   using type = char;
   static auto convert(QChar f)
   {
-    return State::Value::fromValue(f);
+    return State::Value::fromValue(f.toLatin1());
   }
 };
 template <>

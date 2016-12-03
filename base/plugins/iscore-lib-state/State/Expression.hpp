@@ -314,7 +314,7 @@ using Trigger = Expression;
 
 ISCORE_LIB_STATE_EXPORT optional<State::Expression>
 parseExpression(const QString& str);
-ISCORE_LIB_STATE_EXPORT optional<State::Value> parseValue(const QString& str);
+ISCORE_LIB_STATE_EXPORT optional<State::Value> parseValue(const std::string& str);
 ISCORE_LIB_STATE_EXPORT optional<State::Address>
 parseAddress(const QString& str);
 ISCORE_LIB_STATE_EXPORT optional<State::AddressAccessor>

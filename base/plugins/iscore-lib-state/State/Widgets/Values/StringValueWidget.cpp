@@ -24,7 +24,7 @@ StringValueWidget::StringValueWidget(const std::string& value, QWidget* parent)
 
 State::Value StringValueWidget::value() const
 {
-  return State::Value{m_value->text()};
+  return State::Value{m_value->text().toStdString()};
 }
 
 StringValueSetDialog::StringValueSetDialog(QWidget* parent) : QDialog{parent}

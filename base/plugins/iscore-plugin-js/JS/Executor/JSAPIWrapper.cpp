@@ -176,7 +176,7 @@ State::ValueImpl value(const QJSValue& val)
   else if (val.isNumber())
     return val.toNumber();
   else if (val.isString())
-    return val.toString();
+    return val.toString().toStdString();
   else if (val.isArray())
   {
     State::tuple_t arr;

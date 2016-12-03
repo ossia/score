@@ -59,9 +59,7 @@ public:
   ValueImpl(float v);
   ValueImpl(double v);
   ValueImpl(bool v);
-  ValueImpl(const QString& v);
   ValueImpl(std::string v);
-  ValueImpl(QChar v);
   ValueImpl(char v);
   ValueImpl(vec2f v);
   ValueImpl(vec3f v);
@@ -73,11 +71,8 @@ public:
   ValueImpl& operator=(float v);
   ValueImpl& operator=(double v);
   ValueImpl& operator=(bool v);
-  ValueImpl& operator=(const QString& v);
-  ValueImpl& operator=(QString&& v);
   ValueImpl& operator=(const std::string& v);
   ValueImpl& operator=(std::string&& v);
-  ValueImpl& operator=(QChar v);
   ValueImpl& operator=(char v);
   ValueImpl& operator=(vec2f v);
   ValueImpl& operator=(vec3f v);
@@ -156,6 +151,16 @@ struct ISCORE_LIB_STATE_EXPORT Value
     return State::Value{std::forward<Val>(val)};
   }
 
+  static Value fromValue(const QString& val)
+  {
+    return State::Value{val.toStdString()};
+  }
+
+  static Value fromValue(QString&& val)
+  {
+    return State::Value{val.toStdString()};
+  }
+
   Value() = default;
   Value(value_type v) : val(std::move(v))
   {
@@ -167,7 +172,6 @@ struct ISCORE_LIB_STATE_EXPORT Value
 
   bool operator==(const Value& m) const;
   bool operator!=(const Value& m) const;
-  // bool operator<(const Value& m) const;
 };
 
 using ValueList = QList<Value>;
