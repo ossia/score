@@ -132,7 +132,7 @@ bool ValueImpl::operator!=(const ValueImpl& other) const
 
 bool ValueImpl::isNumeric() const
 {
-  auto t = m_variant.which();
+  const auto t = m_variant.which();
   return t == 1 || t == 2;
 }
 
@@ -143,7 +143,9 @@ bool ValueImpl::isValid() const
 
 bool ValueImpl::isArray() const
 {
-  return is<tuple_t>() || is<vec2f>() || is<vec3f>() || is<vec4f>();
+  const auto t = m_variant.which();
+
+  return t >= 6 && t <= 9;
 }
 
 ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m)

@@ -7,7 +7,7 @@
 
 #include <Device/Protocol/ProtocolList.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 
 #include "DeviceExplorerApplicationPlugin.hpp"
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>

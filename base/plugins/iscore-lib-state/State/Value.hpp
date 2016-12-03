@@ -100,7 +100,13 @@ public:
   template <typename TheType>
   bool is() const
   {
-    return m_variant.target<TheType>() != nullptr;
+    return m_variant.target<TheType>();
+  }
+
+  template <typename TheType>
+  auto target() const
+  {
+    return m_variant.target<TheType>();
   }
 
   template <typename TheType>

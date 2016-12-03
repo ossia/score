@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/SettingsCommand.hpp>
 #include <memory>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 namespace iscore
 {
 class SettingsCommandDispatcher
@@ -66,9 +66,9 @@ public:
   }
 
 private:
-  std::unordered_map<CommandFactoryKey, std::unique_ptr<iscore::Command>>
+  iscore::hash_map<CommandFactoryKey, std::unique_ptr<iscore::Command>>
       commands;
-  std::unordered_map<CommandFactoryKey, std::unique_ptr<iscore::Command>>
+  iscore::hash_map<CommandFactoryKey, std::unique_ptr<iscore::Command>>
       deferred;
 };
 }

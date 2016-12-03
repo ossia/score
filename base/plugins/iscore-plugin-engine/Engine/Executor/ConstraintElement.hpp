@@ -5,7 +5,6 @@
 #include <QObject>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <memory>
-#include <unordered_map>
 
 #include <Engine/Executor/ProcessElement.hpp>
 #include <iscore_plugin_engine_export.h>

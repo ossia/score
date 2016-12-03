@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <utility>
 #include <vector>
+#include <QApplication>
 
 #include "QRecentFilesMenu.h"
 #include <core/document/Document.hpp>
@@ -145,9 +146,25 @@ void Presenter::setupGUI()
   }
 }
 
+
 void Presenter::optimize()
 {
-  m_components.commands.reserve(m_components.commands.size());
-  m_components.factories.reserve(m_components.factories.size());
+  iscore::optimize_hash_map(m_components.commands);
+  auto& com = m_components.commands;
+  auto com_end = com.end();
+  for(auto it = com.begin(); it != com_end; ++it)
+  {
+    iscore::optimize_hash_map(it.value());
+  }
+
+  iscore::optimize_hash_map(m_components.factories);
+  for(auto& fact : m_components.factories)
+  {
+    fact.second->optimize();
+  }
+
+  iscore::optimize_hash_map(m_menus.get());
+  iscore::optimize_hash_map(m_actions.get());
+  iscore::optimize_hash_map(m_toolbars.get());
 }
 }

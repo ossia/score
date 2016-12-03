@@ -1,7 +1,7 @@
 #pragma once
 #include <QByteArray>
+#include <iscore/tools/std/HashMap.hpp>
 #include <memory>
-#include <unordered_map>
 #include <utility>
 
 #include <iscore/command/CommandFactoryKey.hpp>
@@ -64,7 +64,7 @@ public:
  * A map between command names and corresponding factories.
  */
 using CommandGeneratorMap
-    = std::unordered_map<CommandFactoryKey, std::unique_ptr<CommandFactory>>;
+    = iscore::hash_map<CommandFactoryKey, std::unique_ptr<CommandFactory>>;
 
 namespace iscore
 {

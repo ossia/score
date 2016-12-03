@@ -3,7 +3,7 @@
 #include <JS/Inspector/JSInspectorFactory.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <JS/JSStateProcess.hpp>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 
 #include "JS/Commands/JSCommandFactory.hpp"
 #include "iscore_plugin_js.hpp"

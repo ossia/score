@@ -127,7 +127,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
         matchingNumericMessages.emplace_back(message, *addr_it);
       }
     }
-    else if (message.value.val.is<State::tuple_t>())
+    else if (message.value.val.isArray())
     {
       auto addr_it = ossia::find_if(
           endAddresses, [&](const Device::FullAddressSettings& arg) {

@@ -12,7 +12,7 @@
 #include <iscore_lib_state_export.h>
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 
 namespace ossia
 {

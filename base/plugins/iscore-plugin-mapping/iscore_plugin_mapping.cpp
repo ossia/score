@@ -4,7 +4,7 @@
 #include <Mapping/MappingPresenter.hpp>
 #include <Mapping/MappingView.hpp>
 
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 
 #include "iscore_plugin_mapping.hpp"
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>

@@ -10,7 +10,7 @@
 #include <QString>
 #include <functional>
 #include <memory>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 #include <utility>
 #include <vector>
 namespace ossia
@@ -73,8 +73,7 @@ public:
 protected:
   using DeviceInterface::DeviceInterface;
 
-  std::
-      unordered_map<State::Address, std::pair<ossia::net::address_base*, ossia::callback_container<ossia::value_callback>::iterator>>
+  iscore::hash_map<State::Address, std::pair<ossia::net::address_base*, ossia::callback_container<ossia::value_callback>::iterator>>
           m_callbacks;
 
   void removeListening_impl(ossia::net::node_base& node, State::Address addr);

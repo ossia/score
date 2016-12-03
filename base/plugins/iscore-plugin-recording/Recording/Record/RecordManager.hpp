@@ -3,7 +3,7 @@
 #include <Recording/Record/RecordData.hpp>
 #include <Recording/Record/RecordProviderFactory.hpp>
 #include <Recording/Record/RecordTools.hpp>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 namespace Curve
 {
 namespace Settings
@@ -30,11 +30,11 @@ public:
 
   void commit();
 
-  std::unordered_map<State::Address, RecordData> numeric_records;
-  std::unordered_map<State::Address, std::array<RecordData, 2>> vec2_records;
-  std::unordered_map<State::Address, std::array<RecordData, 3>> vec3_records;
-  std::unordered_map<State::Address, std::array<RecordData, 4>> vec4_records;
-  std::unordered_map<State::Address, std::vector<RecordData>> tuple_records;
+  iscore::hash_map<State::Address, RecordData> numeric_records;
+  iscore::hash_map<State::Address, std::array<RecordData, 2>> vec2_records;
+  iscore::hash_map<State::Address, std::array<RecordData, 3>> vec3_records;
+  iscore::hash_map<State::Address, std::array<RecordData, 4>> vec4_records;
+  iscore::hash_map<State::Address, std::vector<RecordData>> tuple_records;
 
 signals:
   void firstMessageReceived();

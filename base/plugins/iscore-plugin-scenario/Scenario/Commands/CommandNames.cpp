@@ -1,5 +1,5 @@
 #include <Scenario/iscore_plugin_scenario.hpp>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 #include <utility>
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>

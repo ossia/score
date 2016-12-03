@@ -48,7 +48,7 @@ private:
 
   Inspector::InspectorSectionWidget* m_rackSection{};
   RackWidget* m_rackWidget{};
-  std::unordered_map<Id<RackModel>, RackInspectorSection*>
+  iscore::hash_map<Id<RackModel>, RackInspectorSection*>
       m_rackesSectionWidgets;
 };
 }

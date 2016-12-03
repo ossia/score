@@ -101,15 +101,15 @@ private:
       Engine::Execution::TimeNodeElement* tn, ossia::time_value date);
 
 private:
-  std::unordered_map<Id<Scenario::ConstraintModel>, ConstraintElement*>
+  iscore::hash_map<Id<Scenario::ConstraintModel>, ConstraintElement*>
       m_ossia_constraints;
-  std::unordered_map<Id<Scenario::StateModel>, StateElement*> m_ossia_states;
-  std::unordered_map<Id<Scenario::TimeNodeModel>, TimeNodeElement*>
+  iscore::hash_map<Id<Scenario::StateModel>, StateElement*> m_ossia_states;
+  iscore::hash_map<Id<Scenario::TimeNodeModel>, TimeNodeElement*>
       m_ossia_timenodes;
-  std::unordered_map<Id<Scenario::EventModel>, EventElement*>
+  iscore::hash_map<Id<Scenario::EventModel>, EventElement*>
       m_ossia_timeevents;
 
-  std::unordered_map<Id<Scenario::ConstraintModel>, Scenario::ConstraintModel*>
+  iscore::hash_map<Id<Scenario::ConstraintModel>, Scenario::ConstraintModel*>
       m_executingConstraints;
 
   const Context& m_ctx;

@@ -3,7 +3,7 @@
 #include <QString>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <nano_signal_slot.hpp>
-#include <unordered_map>
+#include <iscore/tools/std/HashMap.hpp>
 
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 
@@ -46,7 +46,7 @@ private:
   InspectorSectionWidget* m_slotSection{};
   AddSlotWidget* m_slotWidget{};
 
-  std::unordered_map<Id<SlotModel>, SlotInspectorSection*>
+  iscore::hash_map<Id<SlotModel>, SlotInspectorSection*>
       slotmodelsSectionWidgets;
 };
 }

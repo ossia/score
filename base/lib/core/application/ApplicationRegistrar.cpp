@@ -68,7 +68,7 @@ void ApplicationRegistrar::registerPanel(PanelDelegateFactory& factory)
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerCommands(
-    std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds)
+    iscore::hash_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds)
 {
   m_components.commands = std::move(cmds);
 }
@@ -82,8 +82,7 @@ void ApplicationRegistrar::registerCommands(
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactories(
-    std::
-        unordered_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&&
+    iscore::hash_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&&
             facts)
 {
   m_components.factories = std::move(facts);
