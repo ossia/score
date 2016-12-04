@@ -16,7 +16,7 @@ SettingsPresenter::SettingsPresenter(SettingsView* view, QObject* parent)
 void SettingsPresenter::addSettingsPresenter(
     SettingsDelegatePresenter* presenter)
 {
-  ISCORE_ASSERT(m_pluginPresenters.find(presenter) == m_pluginPresenters.end());
+  ISCORE_ASSERT(ossia::find(m_pluginPresenters, presenter) == m_pluginPresenters.end());
 
   m_pluginPresenters.push_back(presenter);
 }
