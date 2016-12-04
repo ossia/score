@@ -27,7 +27,7 @@ cd ./$BUILD_DIR
     if [ ! -d i-score ] ; then
         git clone https://github.com/OSSIA/i-score
     fi
-    
+
     cd i-score/
     git_pull_rebase_helper
 )
@@ -38,10 +38,10 @@ mkdir -p $APP.AppDir/usr
 (
     export INSTALL_ROOT=$(cd $APP.AppDir/usr; pwd)
     mkdir -p build
-    
+
     cd build
     cmake ../i-score -DISCORE_CONFIGURATION=release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON
-    
+
     cmake --build . -- -j$NPROC
     cmake --build . --target install -- -j$NPROC
 )
@@ -59,20 +59,22 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     mkdir -p ./usr/lib/qt5/plugins/imageformats
     mkdir -p ./usr/lib/qt5/plugins/iconengines
     mkdir -p ./usr/lib/qt5/plugins/quick
+    mkdir -p ./usr/lib/qt5/qml
     cp -rf "$QTDIR/plugins/platforms/libqxcb.so"  ./usr/lib/qt5/plugins/platforms
     cp -rf "$QTDIR/plugins/imageformats/libqsvg.so"  ./usr/lib/qt5/plugins/imageformats
     cp -rf "$QTDIR/plugins/iconengines/libqsvgicon.so"  ./usr/lib/qt5/plugins/iconengines
     cp -rf "$QTDIR/qml/QtQuick.2/libqtquick2plugin.so"  ./usr/lib/qt5/plugins/quick
-    
+    cp -rf "$QTDIR/qml/QtQuick.2"  ./usr/lib/qt5/qml
+
     # Dependencies of plugins and i-score
     for lib in usr/lib/libiscore_lib_*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
     for lib in usr/lib/i-score/*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
     ldd usr/bin/i-score | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
-    
+
     # libossia
     cp -v ../build/API/OSSIA/*.so* usr/lib/
-    
-    
+
+
     # Dependencies of qt
     ldd usr/lib/qt5/plugins/platforms/libqxcb.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     ldd usr/lib/qt5/plugins/imageformats/libqsvg.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
@@ -82,7 +84,7 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     cp -v $QTDIR/lib/libQt5XcbQpa.so.5 ./usr/lib || true
     ldd ./usr/lib/libQt5XcbQpa.so.5 | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     cp -v $QTDIR/lib/libQt5DBus.so.5 ./usr/lib || true
-    
+
     # Taken from Subsurface appimage
     # The following are assumed to be part of the base system
     rm -f usr/lib/libcom_err.so.2 || true
@@ -119,7 +121,7 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     rm -f usr/lib/libuuid.so.1 || true
     rm -f usr/lib/libwind.so.0 || true
     rm -f usr/lib/libz.so.1 || true
-    
+
     # Delete potentially dangerous libraries
     rm -f usr/lib/libgobject* usr/lib/libc.so.* || true
 
