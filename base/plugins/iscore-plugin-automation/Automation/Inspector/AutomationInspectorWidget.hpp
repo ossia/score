@@ -17,6 +17,10 @@ namespace State
 struct Address;
 class UnitWidget;
 }
+namespace Device
+{
+class FullAddressAccessorSettings;
+}
 namespace Explorer
 {
 class AddressAccessorEditWidget;
@@ -37,7 +41,7 @@ public:
       QWidget* parent);
 
 private:
-  void on_addressChange(const ::State::AddressAccessor& newText);
+  void on_addressChange(const Device::FullAddressAccessorSettings& newText);
   void on_minValueChanged();
   void on_maxValueChanged();
   void on_tweenChanged();

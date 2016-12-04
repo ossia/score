@@ -13,7 +13,10 @@ namespace State
 {
 struct AddressAccessor;
 }
-
+namespace Device
+{
+class FullAddressAccessorSettings;
+}
 namespace Explorer
 {
 class AddressAccessorEditWidget;
@@ -32,16 +35,16 @@ public:
       const iscore::DocumentContext& context,
       QWidget* parent);
 
-public slots:
-  void on_sourceAddressChange(const State::AddressAccessor& newText);
+private:
+  void on_sourceAddressChange(const Device::FullAddressAccessorSettings& newText);
   void on_sourceMinValueChanged();
   void on_sourceMaxValueChanged();
 
-  void on_targetAddressChange(const State::AddressAccessor& newText);
+  void on_targetAddressChange(const Device::FullAddressAccessorSettings& newText);
   void on_targetMinValueChanged();
   void on_targetMaxValueChanged();
 
-private:
+
   Explorer::AddressAccessorEditWidget* m_sourceLineEdit{};
   QDoubleSpinBox *m_sourceMin{}, *m_sourceMax{};
 

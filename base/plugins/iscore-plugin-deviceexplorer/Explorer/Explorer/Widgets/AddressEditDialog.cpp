@@ -7,7 +7,7 @@
 #include <QFormLayout>
 #include <QLineEdit>
 #include <State/ValueConversion.hpp>
-#include <State/Widgets/AddressLineEdit.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <State/Widgets/AddressValidator.hpp>
 #include <qnamespace.h>
 

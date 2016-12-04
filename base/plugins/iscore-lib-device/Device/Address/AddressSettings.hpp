@@ -85,34 +85,34 @@ struct ISCORE_LIB_DEVICE_EXPORT FullAddressSettings
 
   template <typename T>
   ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings
-  make(const Device::AddressSettings& other, const State::Address& addr);
+  make(const Device::AddressSettings& other, const State::Address& addr) noexcept;
   template <typename T>
   static FullAddressSettings make(
-      const Device::AddressSettings& other, const State::AddressAccessor& addr)
+      const Device::AddressSettings& other, const State::AddressAccessor& addr) noexcept
   {
     return make<T>(other, addr.address);
   }
 
   ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings
-  make(const State::Message& mess);
+  make(const State::Message& mess) noexcept;
 
   ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings
-  make(const Device::Node& node);
+  make(const Device::Node& node) noexcept;
   // Specializations are in FullAddressSettings.cpp
 };
 
 ISCORE_LIB_DEVICE_EXPORT bool operator==(
     const Device::AddressSettingsCommon& lhs,
-    const Device::AddressSettingsCommon& rhs);
+    const Device::AddressSettingsCommon& rhs) noexcept;
 
 inline bool operator!=(
     const Device::AddressSettingsCommon& lhs,
-    const Device::AddressSettingsCommon& rhs)
+    const Device::AddressSettingsCommon& rhs) noexcept
 {
   return !(lhs == rhs);
 }
 inline bool operator==(
-    const Device::AddressSettings& lhs, const Device::AddressSettings& rhs)
+    const Device::AddressSettings& lhs, const Device::AddressSettings& rhs) noexcept
 {
   return static_cast<const Device::AddressSettingsCommon&>(lhs)
              == static_cast<const Device::AddressSettingsCommon&>(rhs)
@@ -120,13 +120,13 @@ inline bool operator==(
 }
 
 inline bool operator!=(
-    const Device::AddressSettings& lhs, const Device::AddressSettings& rhs)
+    const Device::AddressSettings& lhs, const Device::AddressSettings& rhs) noexcept
 {
   return !(lhs == rhs);
 }
 inline bool operator==(
     const Device::FullAddressSettings& lhs,
-    const Device::FullAddressSettings& rhs)
+    const Device::FullAddressSettings& rhs) noexcept
 {
   return static_cast<const Device::AddressSettingsCommon&>(lhs)
              == static_cast<const Device::AddressSettingsCommon&>(rhs)
@@ -135,7 +135,7 @@ inline bool operator==(
 
 inline bool operator!=(
     const Device::FullAddressSettings& lhs,
-    const Device::FullAddressSettings& rhs)
+    const Device::FullAddressSettings& rhs) noexcept
 {
   return !(lhs == rhs);
 }
@@ -152,15 +152,18 @@ struct ISCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
   ~FullAddressAccessorSettings() noexcept;
 
   FullAddressAccessorSettings(
-      const State::AddressAccessor& addr, const AddressSettingsCommon& f);
+      const State::AddressAccessor& addr, const AddressSettingsCommon& f) noexcept;
+
+  explicit FullAddressAccessorSettings(
+      FullAddressSettings&& f) noexcept;
 
   FullAddressAccessorSettings(
-      State::AddressAccessor&& addr, AddressSettingsCommon&& f);
+      State::AddressAccessor&& addr, AddressSettingsCommon&& f) noexcept;
 
   FullAddressAccessorSettings(
       const State::AddressAccessor& addr,
       const ossia::value& min,
-      const ossia::value& max);
+      const ossia::value& max) noexcept;
 
   State::Value value;
   Device::Domain domain;

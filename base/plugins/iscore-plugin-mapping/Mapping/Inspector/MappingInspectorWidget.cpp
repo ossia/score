@@ -40,13 +40,9 @@ InspectorWidget::InspectorWidget(
   setParent(parent);
 
   auto lay = new QVBoxLayout;
-  // LineEdit
-  // If there is a DeviceExplorer in the current document, use it
-  // to make a widget.
-  auto plug = doc.findPlugin<DeviceDocumentPlugin>();
-  DeviceExplorerModel* explorer{};
-  if (plug)
-    explorer = &plug->explorer();
+
+  auto& explorer = doc.plugin<DeviceDocumentPlugin>().explorer();
+
   {
     // Source
     auto widg = new QWidget;
@@ -151,16 +147,15 @@ InspectorWidget::InspectorWidget(
 }
 
 void InspectorWidget::on_sourceAddressChange(
-    const State::AddressAccessor& newAddr)
+    const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
-  if (newAddr == process().sourceAddress())
+  if (newAddr.address == process().sourceAddress())
     return;
 
-  if (newAddr.address.path.isEmpty())
+  if (newAddr.address.address.path.isEmpty())
     return;
 
-  qDebug() << newAddr;
   auto cmd = new ChangeSourceAddress{process(), newAddr};
 
   m_dispatcher.submitCommand(cmd);
@@ -189,13 +184,13 @@ void InspectorWidget::on_sourceMaxValueChanged()
 }
 
 void InspectorWidget::on_targetAddressChange(
-    const State::AddressAccessor& newAddr)
+    const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
-  if (newAddr == process().targetAddress())
+  if (newAddr.address == process().targetAddress())
     return;
 
-  if (newAddr.address.path.isEmpty())
+  if (newAddr.address.address.path.isEmpty())
     return;
 
   auto cmd = new ChangeTargetAddress{process(), newAddr};

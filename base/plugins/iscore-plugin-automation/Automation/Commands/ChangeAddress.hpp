@@ -22,6 +22,8 @@ public:
   ChangeAddress(
       const ProcessModel& autom, const State::AddressAccessor& newval);
   ChangeAddress(
+      const ProcessModel& autom, Device::FullAddressAccessorSettings newval);
+  ChangeAddress(
       const ProcessModel& autom, const Device::FullAddressSettings& newval);
 
 public:

@@ -221,4 +221,14 @@ makeFullAddressAccessorSettings(
     const iscore::DocumentContext& ctx,
     ossia::value min,
     ossia::value max);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT Device::FullAddressAccessorSettings
+makeFullAddressAccessorSettings(
+    const State::AddressAccessor& mess,
+    const Explorer::DeviceExplorerModel& ctx,
+    ossia::value min,
+    ossia::value max);
+ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT Device::FullAddressAccessorSettings
+makeFullAddressAccessorSettings(
+    const Device::Node& mess,
+    const Explorer::DeviceExplorerModel& ctx);
 }

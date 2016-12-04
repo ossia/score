@@ -26,14 +26,17 @@ void Scenario::EditionSettings::setTool(Scenario::Tool tool)
   if (m_execution)
     return;
 
-  if (m_tool != Scenario::Tool::Playing)
-    m_previousTool = m_tool;
+  if(tool != m_tool)
+  {
+    if (m_tool != Scenario::Tool::Playing)
+      m_previousTool = m_tool;
 
-  if (m_tool != Scenario::Tool::Create)
-    setSequence(false);
+    if (m_tool != Scenario::Tool::Create)
+      setSequence(false);
 
-  m_tool = tool;
-  emit toolChanged(tool);
+    m_tool = tool;
+    emit toolChanged(tool);
+  }
 }
 
 bool Scenario::EditionSettings::sequence() const

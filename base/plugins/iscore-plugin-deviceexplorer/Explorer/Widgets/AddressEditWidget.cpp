@@ -17,13 +17,13 @@
 namespace Explorer
 {
 AddressEditWidget::AddressEditWidget(
-    DeviceExplorerModel* model, QWidget* parent)
+    DeviceExplorerModel& model, QWidget* parent)
     : QWidget{parent}, m_model{model}
 {
   setAcceptDrops(true);
   auto lay = new iscore::MarginLess<QHBoxLayout>{this};
 
-  m_lineEdit = new State::AddressLineEdit{this};
+  m_lineEdit = new State::AddressLineEdit<AddressEditWidget>{this};
 
   connect(m_lineEdit, &QLineEdit::editingFinished, [&]() {
     m_address = State::Address::fromString(m_lineEdit->text());
@@ -34,12 +34,8 @@ AddressEditWidget::AddressEditWidget(
   connect(
       m_lineEdit, &QLineEdit::customContextMenuRequested, this,
       &AddressEditWidget::customContextMenuEvent);
-  if (model)
-  {
     // LineEdit completion
-    m_lineEdit->setCompleter(new DeviceCompleter{model, this});
-  }
-
+  m_lineEdit->setCompleter(new DeviceCompleter{model, this});
   lay->addWidget(m_lineEdit);
 }
 
@@ -49,19 +45,28 @@ void AddressEditWidget::setAddress(const State::Address& addr)
   m_lineEdit->setText(m_address.toString());
 }
 
-void AddressEditWidget::setAddressString(const QString s)
+void AddressEditWidget::setAddressString(QString s)
 {
-  m_lineEdit->setText(s);
+  m_lineEdit->setText(std::move(s));
   State::Address addr;
   m_address = addr.fromString(s);
+}
+
+void AddressEditWidget::dragEnterEvent(QDragEnterEvent* event)
+{
+  const auto& formats = event->mimeData()->formats();
+  if (formats.contains(iscore::mime::messagelist()))
+  {
+    event->accept();
+  }
 }
 
 void AddressEditWidget::customContextMenuEvent(const QPoint& p)
 {
   auto device_menu = new QMenuView{m_lineEdit};
-  device_menu->setModel(reinterpret_cast<QAbstractItemModel*>(m_model));
+  device_menu->setModel(&m_model);
   connect(device_menu, &QMenuView::triggered, this, [&](const QModelIndex& m) {
-    auto addr = Device::address(m_model->nodeFromModelIndex(m)).address;
+    auto addr = Device::address(m_model.nodeFromModelIndex(m)).address;
     setAddress(addr);
     emit addressChanged(addr);
   });

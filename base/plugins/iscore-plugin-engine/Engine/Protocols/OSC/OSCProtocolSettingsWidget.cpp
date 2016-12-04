@@ -3,7 +3,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <State/Widgets/AddressLineEdit.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 
 #include <QPushButton>
