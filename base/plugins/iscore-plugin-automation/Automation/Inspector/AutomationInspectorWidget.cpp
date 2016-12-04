@@ -46,15 +46,8 @@ InspectorWidget::InspectorWidget(
   vlay->setMargin(2);
   vlay->setContentsMargins(0, 0, 0, 0);
 
-  // LineEdit
-  // If there is a DeviceExplorer in the current document, use it
-  // to make a widget.
-  // TODO instead of doing this, just make an address line edit factory.
-  auto plug = doc.findPlugin<DeviceDocumentPlugin>();
-  DeviceExplorerModel* explorer{};
-  if (plug)
-    explorer = &plug->explorer();
-  m_lineEdit = new AddressAccessorEditWidget{explorer, this};
+  m_lineEdit = new AddressAccessorEditWidget{
+      doc.plugin<DeviceDocumentPlugin>().explorer(), this};
 
   m_lineEdit->setAddress(process().address());
   con(process(), &ProcessModel::addressChanged, m_lineEdit,
@@ -107,13 +100,13 @@ InspectorWidget::InspectorWidget(
   this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(const ::State::AddressAccessor& newAddr)
+void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
-  if (newAddr == process().address())
+  if (newAddr.address == process().address())
     return;
 
-  if (newAddr.address.path.isEmpty())
+  if (newAddr.address.address.path.isEmpty())
     return;
 
   auto cmd = new ChangeAddress{process(), newAddr};

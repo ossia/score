@@ -14,10 +14,10 @@ class QObject;
 namespace Explorer
 {
 DeviceCompleter::DeviceCompleter(
-    DeviceExplorerModel* treemodel, QObject* parent)
+    DeviceExplorerModel& treemodel, QObject* parent)
     : QCompleter{parent}
 {
-  setModel(treemodel);
+  setModel(&treemodel);
 
   setCompletionColumn(0);
   setCompletionRole(Qt::DisplayRole);

@@ -20,7 +20,7 @@ class ChangeSourceAddress final : public iscore::SerializableCommand
       MappingCommandFactoryName(), ChangeSourceAddress, "ChangeSourceAddress")
 public:
   ChangeSourceAddress(
-      const ProcessModel&, const State::AddressAccessor& newval);
+      const ProcessModel&, Device::FullAddressAccessorSettings newval);
 
 public:
   void undo() const override;
@@ -40,7 +40,7 @@ class ChangeTargetAddress final : public iscore::SerializableCommand
   ISCORE_COMMAND_DECL(
       MappingCommandFactoryName(), ChangeTargetAddress, "ChangeTargetAddress")
 public:
-  ChangeTargetAddress(const ProcessModel&, const State::AddressAccessor&);
+  ChangeTargetAddress(const ProcessModel&, Device::FullAddressAccessorSettings);
 
 public:
   void undo() const override;

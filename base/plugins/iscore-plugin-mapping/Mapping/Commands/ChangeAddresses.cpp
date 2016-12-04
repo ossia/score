@@ -20,11 +20,10 @@
 namespace Mapping
 {
 ChangeSourceAddress::ChangeSourceAddress(
-    const ProcessModel& mapping, const State::AddressAccessor& newval)
+    const ProcessModel& mapping, Device::FullAddressAccessorSettings newval)
     : m_path{mapping}
     , m_old{mapping.sourceAddress(), mapping.sourceMin(), mapping.sourceMax()}
-    , m_new{Explorer::makeFullAddressAccessorSettings(
-          newval, iscore::IDocument::documentContext(mapping), 0., 1.)}
+    , m_new{std::move(newval)}
 {
 }
 
@@ -61,11 +60,10 @@ void ChangeSourceAddress::deserializeImpl(DataStreamOutput& s)
 }
 
 ChangeTargetAddress::ChangeTargetAddress(
-    const ProcessModel& mapping, const State::AddressAccessor& newval)
+    const ProcessModel& mapping, Device::FullAddressAccessorSettings newval)
     : m_path{mapping}
     , m_old{mapping.targetAddress(), mapping.targetMin(), mapping.targetMax()}
-    , m_new{Explorer::makeFullAddressAccessorSettings(
-          newval, iscore::IDocument::documentContext(mapping), 0., 1.)}
+    , m_new{std::move(newval)}
 {
 }
 

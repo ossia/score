@@ -1,13 +1,9 @@
 #pragma once
 #include <QWidget>
-#include <State/Address.hpp>
+#include <Device/Address/AddressSettings.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
 
-namespace State
-{
-class AddressAccessorLineEdit;
-}
-
+class QLineEdit;
 namespace Explorer
 {
 class DeviceExplorerModel;
@@ -16,30 +12,25 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressAccessorEditWidget final
 {
   Q_OBJECT
 public:
-  AddressAccessorEditWidget(DeviceExplorerModel* model, QWidget* parent);
+  AddressAccessorEditWidget(DeviceExplorerModel& model, QWidget* parent);
 
-  void setOnlyAddress(const State::Address& addr);
   void setAddress(const State::AddressAccessor& addr);
+  void setFullAddress(Device::FullAddressAccessorSettings&& addr);
 
-  const State::AddressAccessor& address() const
-  {
-    return m_address;
-  }
+  const Device::FullAddressAccessorSettings& address() const;
 
-  QString addressString() const
-  {
-    return m_address.toString();
-  }
+  QString addressString() const;
 
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dropEvent(QDropEvent*) override;
 signals:
-  void addressChanged(const State::AddressAccessor&);
+  void addressChanged(const Device::FullAddressAccessorSettings&);
 
 private:
   void customContextMenuEvent(const QPoint& p);
-  void dropEvent(QDropEvent*) override;
 
-  State::AddressAccessorLineEdit* m_lineEdit{};
-  State::AddressAccessor m_address;
-  DeviceExplorerModel* m_model;
+  QLineEdit* m_lineEdit{};
+  Device::FullAddressAccessorSettings m_address;
+  DeviceExplorerModel& m_model;
 };
 }

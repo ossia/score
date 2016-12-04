@@ -33,6 +33,14 @@ ChangeAddress::ChangeAddress(
 }
 
 ChangeAddress::ChangeAddress(
+    const ProcessModel& autom, Device::FullAddressAccessorSettings newval)
+    : m_path{autom}
+    , m_old{autom.address(), autom.min(), autom.max()}
+    , m_new{std::move(newval)}
+{
+}
+
+ChangeAddress::ChangeAddress(
     const ProcessModel& autom, const Device::FullAddressSettings& newval)
     : m_path{autom}
 {

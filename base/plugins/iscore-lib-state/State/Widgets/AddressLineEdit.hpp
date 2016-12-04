@@ -14,11 +14,12 @@ namespace State
  *
  * Used to input an address. Changes colors to red-ish if it is invalid.
  */
-template <class Validator_T>
+template <class Validator_T, class Parent_T>
 class AddressLineEditBase : public QLineEdit
 {
 public:
-  explicit AddressLineEditBase(QWidget* parent) : QLineEdit{parent}
+  explicit AddressLineEditBase(Parent_T* parent) :
+    QLineEdit{parent}
   {
     setAcceptDrops(true);
     connect(this, &QLineEdit::textChanged, this, [&](const QString& str) {
@@ -36,56 +37,33 @@ public:
   }
 
 private:
-  void dragEnterEvent(QDragEnterEvent* event) override
-  {
-    const auto& formats = event->mimeData()->formats();
-    if (formats.contains(iscore::mime::messagelist()))
-    {
-      event->accept();
-    }
-  }
 
+  void dragEnterEvent(QDragEnterEvent* ev) override
+  {
+    static_cast<Parent_T*>(parent())->dragEnterEvent(ev);
+  }
   void dropEvent(QDropEvent* ev) override
   {
-    auto mime = ev->mimeData();
-
-    if (mime->formats().contains(iscore::mime::messagelist()))
-    {
-      Mime<State::MessageList>::Deserializer des{*mime};
-      State::MessageList ml = des.deserialize();
-      if (!ml.empty())
-      {
-        this->setText(ml[0].address.toString());
-        emit editingFinished();
-      }
-    }
+    static_cast<Parent_T*>(parent())->dropEvent(ev);
   }
+
   Validator_T m_validator;
 };
 
-class ISCORE_LIB_STATE_EXPORT AddressLineEdit final
-    : public AddressLineEditBase<AddressValidator>
+template<typename Parent_T>
+class AddressLineEdit final
+    : public AddressLineEditBase<AddressValidator, Parent_T>
 {
 public:
-  using AddressLineEditBase<AddressValidator>::AddressLineEditBase;
-  virtual ~AddressLineEdit();
-};
-class ISCORE_LIB_STATE_EXPORT AddressAccessorLineEdit final
-    : public AddressLineEditBase<AddressAccessorValidator>
-{
-public:
-  using AddressLineEditBase<AddressAccessorValidator>::AddressLineEditBase;
-  virtual ~AddressAccessorLineEdit();
+  using AddressLineEditBase<AddressValidator, Parent_T>::AddressLineEditBase;
 };
 
-class ISCORE_LIB_STATE_EXPORT AddressFragmentLineEdit final : public QLineEdit
+template<typename Parent_T>
+class AddressAccessorLineEdit final
+    : public AddressLineEditBase<AddressAccessorValidator, Parent_T>
 {
 public:
-  AddressFragmentLineEdit(QWidget* parent) : QLineEdit{parent}
-  {
-    setValidator(new AddressFragmentValidator{this});
-  }
-
-  virtual ~AddressFragmentLineEdit();
+  using AddressLineEditBase<AddressAccessorValidator, Parent_T>::AddressLineEditBase;
 };
+
 }

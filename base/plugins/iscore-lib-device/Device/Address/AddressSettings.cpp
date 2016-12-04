@@ -175,7 +175,7 @@ FullAddressAccessorSettings::~FullAddressAccessorSettings() noexcept
 template <>
 ISCORE_LIB_DEVICE_EXPORT FullAddressSettings
 FullAddressSettings::make<FullAddressSettings::as_parent>(
-    const Device::AddressSettings& other, const State::Address& addr)
+    const Device::AddressSettings& other, const State::Address& addr) noexcept
 {
   FullAddressSettings as;
   static_cast<AddressSettingsCommon&>(as) = other;
@@ -190,7 +190,7 @@ FullAddressSettings::make<FullAddressSettings::as_parent>(
 template <>
 ISCORE_LIB_DEVICE_EXPORT FullAddressSettings
 FullAddressSettings::make<FullAddressSettings::as_child>(
-    const Device::AddressSettings& other, const State::Address& addr)
+    const Device::AddressSettings& other, const State::Address& addr) noexcept
 {
   FullAddressSettings as;
   static_cast<AddressSettingsCommon&>(as) = other;
@@ -201,7 +201,7 @@ FullAddressSettings::make<FullAddressSettings::as_child>(
 }
 
 ISCORE_LIB_DEVICE_EXPORT FullAddressSettings
-FullAddressSettings::make(const State::Message& mess)
+FullAddressSettings::make(const State::Message& mess) noexcept
 {
   FullAddressSettings as;
 
@@ -212,7 +212,7 @@ FullAddressSettings::make(const State::Message& mess)
 }
 
 ISCORE_LIB_DEVICE_EXPORT FullAddressSettings
-FullAddressSettings::make(const Node& node)
+FullAddressSettings::make(const Node& node) noexcept
 {
   ISCORE_ASSERT(node.is<Device::AddressSettings>());
   auto& other = node.get<Device::AddressSettings>();
@@ -225,7 +225,7 @@ FullAddressSettings::make(const Node& node)
 }
 
 FullAddressAccessorSettings::FullAddressAccessorSettings(
-    const State::AddressAccessor& addr, const AddressSettingsCommon& f)
+    const State::AddressAccessor& addr, const AddressSettingsCommon& f) noexcept
     : value{f.value}
     , domain{f.domain}
     , ioType{f.ioType}
@@ -241,16 +241,17 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
     address.qualifiers.get().unit = f.unit;
 }
 
+
 FullAddressAccessorSettings::FullAddressAccessorSettings(
     const State::AddressAccessor& addr,
     const ossia::value& min,
-    const ossia::value& max)
+    const ossia::value& max) noexcept
     : domain{ossia::net::make_domain(min, max)}, address{addr}
 {
 }
 
 FullAddressAccessorSettings::FullAddressAccessorSettings(
-    State::AddressAccessor&& addr, AddressSettingsCommon&& f)
+    State::AddressAccessor&& addr, AddressSettingsCommon&& f) noexcept
     : value{std::move(f.value)}
     , domain{std::move(f.domain)}
     , ioType{f.ioType}
@@ -266,8 +267,17 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
     address.qualifiers.get().unit = f.unit;
 }
 
+FullAddressAccessorSettings::FullAddressAccessorSettings(
+    FullAddressSettings&& f) noexcept
+  : FullAddressAccessorSettings{
+      State::AddressAccessor{std::move(f.address)},
+      std::move(static_cast<AddressSettingsCommon&&>(f))}
+{
+
+}
+
 bool operator==(
-    const AddressSettingsCommon& lhs, const AddressSettingsCommon& rhs)
+    const AddressSettingsCommon& lhs, const AddressSettingsCommon& rhs) noexcept
 {
   return lhs.value == rhs.value && lhs.domain == rhs.domain
          && lhs.ioType == rhs.ioType && lhs.clipMode == rhs.clipMode

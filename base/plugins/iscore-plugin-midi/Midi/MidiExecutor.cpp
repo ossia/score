@@ -62,6 +62,8 @@ ossia::state_element ProcessExecutor::state(double t)
     auto max_pos = cur_pos + diff;
 
     // Look for all the messages
+    // TODO do something more intelligent, by
+    // sorting them and only taking the current & next ones for instance
     for (Note& note : m_process.notes)
     {
       auto start_time = note.start();

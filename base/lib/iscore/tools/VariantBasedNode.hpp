@@ -50,6 +50,18 @@ public:
   }
 
   template <typename T>
+  const T* target() const
+  {
+    return m_data.template target<T>();
+  }
+
+  template <typename T>
+  T* target()
+  {
+    return m_data.template target<T>();
+  }
+
+  template <typename T>
   void set(const T& t)
   {
     m_data = t;

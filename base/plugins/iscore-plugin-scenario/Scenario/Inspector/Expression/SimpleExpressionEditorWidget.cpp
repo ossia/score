@@ -29,12 +29,9 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   m_binOperator = new QComboBox{this};
 
-  auto plug = doc.findPlugin<Explorer::DeviceDocumentPlugin>();
-  Explorer::DeviceExplorerModel* explorer{};
-  if (plug)
-    explorer = &plug->explorer();
-
-  m_address = new Explorer::AddressAccessorEditWidget{explorer, this};
+  m_address = new Explorer::AddressAccessorEditWidget{
+      doc.plugin<Explorer::DeviceDocumentPlugin>().explorer(),
+      this};
   m_ok = new QLabel{"/!\\ ", this};
 
   m_comparator = new QComboBox{this};

@@ -22,6 +22,10 @@ class node_base;
 }
 }
 
+namespace Device
+{
+class DeviceList;
+}
 // Utility functions to convert from one node to another.
 namespace Engine
 {
@@ -195,6 +199,10 @@ ISCORE_PLUGIN_ENGINE_EXPORT Device::AddressSettings
 ToAddressSettings(const ossia::net::node_base& node);
 ISCORE_PLUGIN_ENGINE_EXPORT Device::FullAddressSettings
 ToFullAddressSettings(const ossia::net::node_base& node);
+
+ISCORE_PLUGIN_ENGINE_EXPORT Device::FullAddressSettings
+ToFullAddressSettings(const State::Address& addr, const Device::DeviceList&);
+
 ISCORE_PLUGIN_ENGINE_EXPORT Device::Node
 ToDeviceExplorer(const ossia::net::node_base& node);
 

@@ -1,7 +1,7 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <State/Widgets/AddressLineEdit.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include "MinuitProtocolSettingsWidget.hpp"
 #include "MinuitSpecificSettings.hpp"
