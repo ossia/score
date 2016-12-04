@@ -34,11 +34,16 @@ set(ISCORE_VERSION "${ISCORE_VERSION_MAJOR}.${ISCORE_VERSION_MINOR}.${ISCORE_VER
 enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
+
+# OSSIA API-specific configuration
 if(ISCORE_SANITIZE)
     set(OSSIA_SANITIZE True CACHE INTERNAL "" FORCE)
 endif()
 if(ISCORE_STATIC_PLUGINS)
     set(OSSIA_STATIC ON CACHE INTERNAL "" FORCE)
+endif()
+if(ISCORE_ENABLE_LTO)
+    set(OSSIA_LTO ON CACHE INTERNAL "" FORCE)
 endif()
 set(OSSIA_NO_INSTALL ON CACHE INTERNAL "" FORCE)
 
