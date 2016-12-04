@@ -90,11 +90,6 @@ bool AutomationRecorder::setup(
   const auto& devicelist = context.explorer.deviceModel().list();
 
   //// Setup listening on the curves ////
-  auto callback_to_use
-      = m_settings.getCurveMode() == Curve::Settings::Mode::Parameter
-            ? &AutomationRecorder::parameterCallback
-            : &AutomationRecorder::messageCallback;
-
   const auto curve_mode = m_settings.getCurveMode();
   m_recordingMode = curve_mode;
   int i = 0;

@@ -38,7 +38,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 
 #include <core/document/DocumentModel.hpp>

@@ -2,6 +2,73 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <type_traits>
 
+
+template <typename Base_T, typename... Args>
+struct GenericFactoryInserter
+{
+  std::vector<std::unique_ptr<Base_T>> vec;
+  GenericFactoryInserter()
+  {
+    vec.reserve(sizeof...(Args));
+    for_each_type<TypeList<Args...>>(*this);
+  }
+
+  template <typename TheClass>
+  void perform()
+  {
+    vec.push_back(std::make_unique<TheClass>());
+  }
+};
+
+template <typename... Args>
+auto make_ptr_vector()
+{
+  return GenericFactoryInserter<Args...>{}.vec;
+}
+
+/**
+ * @brief FactoryBuilder
+ *
+ * This class allows the user to customize the
+ * creation of the factory by specializing it with the actual
+ * factory type. An example is in iscore_plugin_scenario.cpp.
+ */
+template <
+    typename Context_T,
+    typename Factory_T>
+struct FactoryBuilder // sorry padre for I have sinned
+{
+  static auto make(const Context_T&)
+  {
+    return std::make_unique<Factory_T>();
+  }
+};
+
+template <typename Context_T, typename Base_T, typename... Args>
+struct ContextualGenericFactoryInserter
+{
+  const Context_T& context;
+  std::vector<std::unique_ptr<Base_T>> vec;
+  ContextualGenericFactoryInserter(const Context_T& ctx) : context{ctx}
+  {
+    vec.reserve(sizeof...(Args));
+    for_each_type<TypeList<Args...>>(*this);
+  }
+
+  template <typename TheClass>
+  void perform()
+  {
+    vec.push_back(FactoryBuilder<Context_T, TheClass>::make(context));
+  }
+};
+
+template <typename Context_T, typename Base_T, typename... Args>
+auto make_ptr_vector(const Context_T& context)
+{
+  return ContextualGenericFactoryInserter<Context_T, Base_T, Args...>{context}
+      .vec;
+}
+
 template <typename Factory_T, typename... Types_T>
 struct FW_T
 {

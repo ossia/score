@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <set>
+#include <vector>
 
 namespace iscore
 {
@@ -20,13 +20,11 @@ public:
 
   void addSettingsPresenter(SettingsDelegatePresenter* presenter);
 
-private slots:
+private:
   void on_accept();
   void on_reject();
-
-private:
   SettingsView* m_view;
 
-  std::set<SettingsDelegatePresenter*> m_pluginPresenters;
+  std::vector<SettingsDelegatePresenter*> m_pluginPresenters;
 };
 }

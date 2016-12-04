@@ -1,4 +1,4 @@
-#include "DocumentDelegatePluginModel.hpp"
+#include "DocumentPlugin.hpp"
 
 class QObject;
 namespace iscore

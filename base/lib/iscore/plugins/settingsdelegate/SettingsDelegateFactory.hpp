@@ -12,10 +12,10 @@ class SettingsDelegateModel;
 class SettingsDelegateView;
 
 /**
-     * @brief The SettingsDelegateFactory class
-     *
-     * Reimplement in order to provide custom settings for the plug-in.
-     */
+ * @brief The SettingsDelegateFactory class
+ *
+ * Reimplement in order to provide custom settings for the plug-in.
+ */
 class ISCORE_LIB_BASE_EXPORT SettingsDelegateFactory
     : public iscore::AbstractFactory<SettingsDelegateFactory>
 {
@@ -41,12 +41,7 @@ protected:
       = 0;
 };
 
-class ISCORE_LIB_BASE_EXPORT SettingsDelegateFactoryList final
-    : public ConcreteFactoryList<iscore::SettingsDelegateFactory>
-{
-public:
-  using object_type = SettingsDelegateFactory;
-};
+using SettingsDelegateFactoryList = ConcreteFactoryList<iscore::SettingsDelegateFactory>;
 
 template <typename Model_T, typename Presenter_T, typename View_T>
 class SettingsDelegateFactory_T : public SettingsDelegateFactory

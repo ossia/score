@@ -10,13 +10,14 @@ class QWidget;
 namespace iscore
 {
 class Document;
-} // namespace iscore
-struct VisitorVariant;
+}
 
-// TODO rename file
 // TODO DocumentPlugin -> system
 namespace iscore
 {
+/**
+ * @brief Extend a document with custom data and systems.
+ */
 class ISCORE_LIB_BASE_EXPORT DocumentPlugin
     : public IdentifiedObject<DocumentPlugin>
 {
@@ -50,6 +51,10 @@ protected:
 };
 
 class DocumentPluginFactory;
+
+/**
+ * @brief Document plug-in with serializable data.
+ */
 class ISCORE_LIB_BASE_EXPORT SerializableDocumentPlugin
     : public DocumentPlugin,
       public SerializableInterface<DocumentPluginFactory>
@@ -61,6 +66,9 @@ protected:
   virtual ~SerializableDocumentPlugin();
 };
 
+/**
+ * @brief Reimplement to instantiate document plug-ins.
+ */
 class ISCORE_LIB_BASE_EXPORT DocumentPluginFactory
     : public iscore::AbstractFactory<DocumentPluginFactory>
 {

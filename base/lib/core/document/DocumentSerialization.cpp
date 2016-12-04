@@ -17,7 +17,7 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <iscore/tools/std/Optional.hpp>

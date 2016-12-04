@@ -42,7 +42,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/EntityMap.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>

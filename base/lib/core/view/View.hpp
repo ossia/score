@@ -23,9 +23,7 @@ class PanelDelegate;
 class Presenter;
 struct ApplicationContext;
 /**
- * @brief The View class
- *
- * The main display of the application.
+ * @brief The main display of the application.
  */
 class ISCORE_LIB_BASE_EXPORT View final : public QMainWindow
 {

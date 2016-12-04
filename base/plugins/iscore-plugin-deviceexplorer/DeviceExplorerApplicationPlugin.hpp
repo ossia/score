@@ -2,7 +2,7 @@
 #include <QString>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
 namespace iscore
 {

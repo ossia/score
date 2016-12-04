@@ -16,11 +16,11 @@ struct ApplicationContext;
 struct DocumentContext;
 
 /**
-     * @brief The DocumentDelegateFactoryInterface class
-     *
-     * The interface required to create a custom main document (like MS Word's
+ * @brief Used to provide custom document types
+ *
+ * The interface required to create a custom main document (like MS Word's
  * main page)
-     */
+ */
 class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactory
     : public iscore::AbstractFactory<DocumentDelegateFactory>
 {

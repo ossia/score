@@ -16,12 +16,14 @@ SettingsPresenter::SettingsPresenter(SettingsView* view, QObject* parent)
 void SettingsPresenter::addSettingsPresenter(
     SettingsDelegatePresenter* presenter)
 {
-  m_pluginPresenters.insert(presenter);
+  ISCORE_ASSERT(m_pluginPresenters.find(presenter) == m_pluginPresenters.end());
+
+  m_pluginPresenters.push_back(presenter);
 }
 
 void SettingsPresenter::on_accept()
 {
-  for (auto& presenter : m_pluginPresenters)
+  for (auto presenter : m_pluginPresenters)
   {
     presenter->on_accept();
   }
@@ -29,7 +31,7 @@ void SettingsPresenter::on_accept()
 
 void SettingsPresenter::on_reject()
 {
-  for (auto& presenter : m_pluginPresenters)
+  for (auto presenter : m_pluginPresenters)
   {
     presenter->on_reject();
   }

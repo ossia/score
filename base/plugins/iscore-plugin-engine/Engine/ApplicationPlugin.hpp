@@ -6,7 +6,7 @@
 #include <memory>
 
 #include <Engine/Executor/ContextMenu/PlayContextMenu.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore_plugin_engine_export.h>
 namespace iscore
 {

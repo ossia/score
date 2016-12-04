@@ -8,7 +8,7 @@ class ProjectSettingsModel;
 class ProjectSettingsView;
 
 /**
- * @brief The SettingsDelegateFactory class
+ * @brief The ProjectSettingsFactory class
  *
  * Reimplement in order to provide custom settings for the plug-in.
  */
