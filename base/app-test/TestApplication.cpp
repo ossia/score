@@ -12,7 +12,7 @@
 
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
 #include <core/document/DocumentModel.hpp>
 TestApplication::TestApplication(int &argc, char **argv):

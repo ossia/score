@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
 namespace Explorer
 {

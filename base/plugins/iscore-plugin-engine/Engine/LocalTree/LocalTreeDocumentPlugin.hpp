@@ -1,7 +1,7 @@
 #pragma once
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/tools/Metadata.hpp>
 
 #include <Engine/Protocols/Local/LocalDevice.hpp>

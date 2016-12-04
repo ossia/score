@@ -17,16 +17,19 @@ struct ApplicationContext;
 namespace iscore
 {
 /**
- * @brief The Settings class
+ * @brief Application-wide user settings registering and handling.
  *
- * They do not fit in the other MVP parts of the software due to the
+ * Settings do not fit in the other MVP parts of the software due to the
  * command application difference.
  *
- * When "ok" is pressed the plug-ins are required to commit their changes to
- * their respective models.
+ * When "ok" is pressed in the settings panel, the plug-ins are required
+ * to commit their changes to their respective models.
  * Else they discard them.
  *
- * An exemple is given in the network plugin.
+ * A plug-in wishing to add user settings must :
+ *
+ * * Implement iscore::SettingsDelegateModel, iscore::SettingsDelegatePresenter, iscore::SettingsDelegateView
+ * * Register them with ISCORE_DECLARE_SETTINGS_FACTORY.
  *
  */
 class ISCORE_LIB_BASE_EXPORT Settings final

@@ -8,7 +8,7 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 class QObject;
 namespace iscore
 {

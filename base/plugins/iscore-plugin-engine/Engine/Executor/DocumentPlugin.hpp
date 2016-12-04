@@ -1,6 +1,6 @@
 #pragma once
 #include <Engine/Executor/ExecutorContext.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/tools/Metadata.hpp>
 #include <iscore_plugin_engine_export.h>
 #include <memory>

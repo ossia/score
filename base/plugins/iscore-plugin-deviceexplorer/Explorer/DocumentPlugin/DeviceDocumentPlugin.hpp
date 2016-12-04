@@ -7,7 +7,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Listening/ListeningHandler.hpp>
 #include <core/document/Document.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>

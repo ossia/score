@@ -4,7 +4,7 @@
 namespace iscore
 {
 
-class ISCORE_LIB_BASE_EXPORT UndoPanelDelegateFactory final
+class UndoPanelDelegateFactory final
     : public PanelDelegateFactory
 {
   ISCORE_CONCRETE_FACTORY("293c0f8b-fcb4-4554-8425-4bc03d803c75")

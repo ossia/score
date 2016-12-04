@@ -28,7 +28,7 @@
 
 #include <iostream>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/TreeNode.hpp>
 

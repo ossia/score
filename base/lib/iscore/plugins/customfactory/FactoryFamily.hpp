@@ -14,30 +14,47 @@
 namespace iscore
 {
 /**
- * @brief The FactoryFamily class
+ * @brief Interface to access factories.
  *
- * Keeps the factories, so that they can be found easily.
+ * Actual instances are available through iscore::ApplicationContext:
+ *
+ * @code
+ * auto& factories = context.components.factory<MyConcreteFactoryList>();
+ * @endcode
  */
 class ISCORE_LIB_BASE_EXPORT FactoryListInterface
 {
 public:
   static constexpr bool factory_list_tag = true;
-  FactoryListInterface() = default;
+  FactoryListInterface() noexcept { }
   FactoryListInterface(const FactoryListInterface&) = delete;
   FactoryListInterface& operator=(const FactoryListInterface&) = delete;
   virtual ~FactoryListInterface();
 
-  // Example : InspectorWidgetFactory
-  virtual iscore::AbstractFactoryKey abstractFactoryKey() const = 0;
+  //! A key that uniquely identifies this family of factories.
+  virtual iscore::AbstractFactoryKey abstractFactoryKey() const noexcept = 0;
 
-  // This function is called whenever a new factory interface
-  // is added to this family.
+  /**
+   * @brief insert Register a new factory.
+   *
+   * All the factories are registered upon loading.
+   */
   virtual void insert(std::unique_ptr<iscore::FactoryInterfaceBase>) = 0;
 
-  virtual void optimize() = 0;
+  /**
+   * @brief optimize Called when all the factories are loaded.
+   *
+   * Optimize a bit the containers in which our factories are stored.
+   */
+  virtual void optimize() noexcept = 0;
 };
 
 template <typename FactoryType>
+/**
+ * @brief Default implementation of FactoryListInterface
+ *
+ * The factories are stored in a hash_map. Keys should be UUIDs.
+ */
 class ConcreteFactoryList : public iscore::FactoryListInterface,
                             public IndirectUnorderedMap<iscore::hash_map<
                                 typename FactoryType::ConcreteFactoryKey,
@@ -46,18 +63,18 @@ class ConcreteFactoryList : public iscore::FactoryListInterface,
 public:
   using factory_type = FactoryType;
   using key_type = typename FactoryType::ConcreteFactoryKey;
-  ConcreteFactoryList()
+  ConcreteFactoryList() noexcept
   {
   }
 
   ~ConcreteFactoryList() noexcept override = default;
 
-  static const constexpr iscore::AbstractFactoryKey static_abstractFactoryKey()
+  static const constexpr iscore::AbstractFactoryKey static_abstractFactoryKey() noexcept
   {
     return FactoryType::static_abstractFactoryKey();
   }
 
-  iscore::AbstractFactoryKey abstractFactoryKey() const final override
+  iscore::AbstractFactoryKey abstractFactoryKey() const noexcept final override
   {
     return FactoryType::static_abstractFactoryKey();
   }
@@ -77,19 +94,19 @@ public:
     }
   }
 
-  FactoryType* get(const key_type& k) const
+  FactoryType* get(const key_type& k) const noexcept
   {
     auto it = this->map.find(k);
     return (it != this->map.end()) ? it->second.get() : nullptr;
   }
 
-  const auto& ptr_list() const
+  const auto& ptr_list() const noexcept
   {
     return this->map;
   }
 
 private:
-  void optimize() override
+  void optimize() noexcept final override
   {
     iscore::optimize_hash_map(this->map);
   }
@@ -105,7 +122,7 @@ class MatchingFactory : public iscore::ConcreteFactoryList<T>
 {
 public:
   template <typename Fun, typename... Args>
-  auto make(Fun f, Args&&... args) const
+  auto make(Fun f, Args&&... args) const noexcept
   {
     using val_t = decltype(*this->begin());
     auto it = ossia::find_if(*this, [&](const val_t& elt) {
@@ -117,70 +134,4 @@ public:
                : decltype(((*it).*f)(std::forward<Args>(args)...)){};
   }
 };
-}
-
-template <typename Base_T, typename... Args>
-struct GenericFactoryInserter
-{
-  std::vector<std::unique_ptr<Base_T>> vec;
-  GenericFactoryInserter()
-  {
-    vec.reserve(sizeof...(Args));
-    for_each_type<TypeList<Args...>>(*this);
-  }
-
-  template <typename TheClass>
-  void perform()
-  {
-    vec.push_back(std::make_unique<TheClass>());
-  }
-};
-
-template <typename... Args>
-auto make_ptr_vector()
-{
-  return GenericFactoryInserter<Args...>{}.vec;
-}
-
-/**
- * @brief FactoryBuilder
- *
- * This class allows the user to customize the
- * creation of the factory by specializing it with the actual
- * factory type. An example is in iscore_plugin_scenario.cpp.
- */
-template <
-    typename Context_T,
-    typename Factory_T>
-struct FactoryBuilder // sorry padre for I have sinned
-{
-  static auto make(const Context_T&)
-  {
-    return std::make_unique<Factory_T>();
-  }
-};
-
-template <typename Context_T, typename Base_T, typename... Args>
-struct ContextualGenericFactoryInserter
-{
-  const Context_T& context;
-  std::vector<std::unique_ptr<Base_T>> vec;
-  ContextualGenericFactoryInserter(const Context_T& ctx) : context{ctx}
-  {
-    vec.reserve(sizeof...(Args));
-    for_each_type<TypeList<Args...>>(*this);
-  }
-
-  template <typename TheClass>
-  void perform()
-  {
-    vec.push_back(FactoryBuilder<Context_T, TheClass>::make(context));
-  }
-};
-
-template <typename Context_T, typename Base_T, typename... Args>
-auto make_ptr_vector(const Context_T& context)
-{
-  return ContextualGenericFactoryInserter<Context_T, Base_T, Args...>{context}
-      .vec;
 }

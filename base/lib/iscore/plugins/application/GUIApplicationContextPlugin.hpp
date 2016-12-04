@@ -18,7 +18,7 @@ namespace iscore
 class DocumentPlugin;
 
 /**
- * @brief The GUIApplicationContextPlugin class
+ * @brief Used to extend the software with application-wide data.
  *
  * This class's goal is to :
  * * Instantiate some elements that are deeply intertwined with Qt : menus,
