@@ -100,6 +100,7 @@ endif()
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
 
 # Settings
+include(ProcessorCount)
 include(GenerateExportHeader)
 
 if(UNIX AND NOT APPLE AND NOT ISCORE_STATIC_PLUGINS AND DEPLOYMENT_BUILD)
@@ -125,7 +126,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
     set(CXX_IS_MSVC True)
     set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} runtimeobject.lib")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
-    
+
     if(ISCORE_ENABLE_LTO)
       set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL /Gw /Gy")
       set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /LTCG /OPT:REF /OPT:ICF")
