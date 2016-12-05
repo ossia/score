@@ -40,6 +40,7 @@ void PlayToolState::on_pressed(
         emit m_exec.playState(m_sm.model(), *id);
       break;
     }
+      // TODO Play constraint ? the code is already here.
     default:
       emit m_exec.playAtDate(scenarioPoint.date);
       break;
