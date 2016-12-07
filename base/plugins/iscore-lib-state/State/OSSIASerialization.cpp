@@ -118,7 +118,7 @@ struct TSerializer<DataStream, void, ossia::net::domain_base<T>>
       bool min_b{domain.min};
       s.stream() << min_b;
       if (min_b)
-        s.stream() << domain.min.get();
+        s.stream() << *domain.min;
     }
 
     // Max
@@ -126,7 +126,7 @@ struct TSerializer<DataStream, void, ossia::net::domain_base<T>>
       bool max_b{domain.max};
       s.stream() << max_b;
       if (max_b)
-        s.stream() << domain.max.get();
+        s.stream() << *domain.max;
     }
 
     // Values
@@ -543,9 +543,9 @@ struct TSerializer<JSONObject, ossia::net::domain_base<T>>
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
     if (domain.min)
-      s.m_obj[s.strings.Min] = toJsonValue(domain.min.get());
+      s.m_obj[s.strings.Min] = toJsonValue(*domain.min);
     if (domain.max)
-      s.m_obj[s.strings.Max] = toJsonValue(domain.max.get());
+      s.m_obj[s.strings.Max] = toJsonValue(*domain.max);
     if (!domain.values.empty())
       s.m_obj[s.strings.Values] = toJsonArray(domain.values);
   }

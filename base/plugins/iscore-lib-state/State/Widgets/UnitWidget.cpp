@@ -24,7 +24,7 @@ UnitWidget::UnitWidget(const State::Unit& u, QWidget* parent) : QWidget{parent}
   brigand::for_each<ossia::unit_variant>([=](auto d) {
     // For each dataspace, add its text to the combo box
     using dataspace_type = typename decltype(d)::type;
-    boost::string_view text
+    ossia::string_view text
         = ossia::dataspace_traits<dataspace_type>::text()[0];
 
     m_dataspace->addItem(
@@ -96,7 +96,7 @@ void UnitWidget::on_dataspaceChanged(const State::Unit& unit)
             // combobox.
             brigand::for_each<decltype(dataspace)>([=](auto u) {
               using unit_type = typename decltype(u)::type;
-              boost::string_view text
+              ossia::string_view text
                   = ossia::unit_traits<unit_type>::text()[0];
 
               m_unit->addItem(
