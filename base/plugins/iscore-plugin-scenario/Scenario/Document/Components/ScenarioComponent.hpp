@@ -14,8 +14,6 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
-#include <boost/container/static_vector.hpp>
-
 template <
     typename Component_T,
     typename Scenario_T,

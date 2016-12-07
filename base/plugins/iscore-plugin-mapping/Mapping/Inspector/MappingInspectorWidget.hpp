@@ -15,7 +15,7 @@ struct AddressAccessor;
 }
 namespace Device
 {
-class FullAddressAccessorSettings;
+struct FullAddressAccessorSettings;
 }
 namespace Explorer
 {
