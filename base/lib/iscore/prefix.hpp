@@ -4,7 +4,7 @@
 #pragma GCC system_header
 #pragma clang system_header
 
-/////////////////////////////////
+///
 #include <QAbstractItemModel>
 #include <QAction>
 #include <QApplication>
@@ -60,7 +60,7 @@
 #include <typeinfo>
 #include <utility>
 #include <vector>
-/*
+
 #include <iscore/tools/std/Optional.hpp>
 
 
@@ -79,5 +79,5 @@
 
 #include <iscore/selection/Selection.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
-*/
+
 #endif
