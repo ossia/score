@@ -5,6 +5,7 @@
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 
 #include "dataStructures.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -45,7 +46,7 @@ ConstraintSaveData::ConstraintSaveData(
 void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
 {
   auto& comps = iscore::AppContext().components;
-  auto& procsfactories = comps.factory<Process::ProcessFactoryList>();
+  auto& procsfactories = comps.interfaces<Process::ProcessFactoryList>();
   for (auto& sourceproc : processes)
   {
     Deserializer<DataStream> des{sourceproc};

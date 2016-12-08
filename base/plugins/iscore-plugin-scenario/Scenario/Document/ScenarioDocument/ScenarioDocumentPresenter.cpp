@@ -170,7 +170,7 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
   // Setup of the state machine.
   auto& ctx = iscore::IDocument::documentContext(model());
   const auto& fact
-      = ctx.app.components.factory<DisplayedElementsToolPaletteFactoryList>();
+      = ctx.app.interfaces<DisplayedElementsToolPaletteFactoryList>();
   m_stateMachine
       = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, cst);
   m_scenarioPresenter->on_displayedConstraintChanged(cst);

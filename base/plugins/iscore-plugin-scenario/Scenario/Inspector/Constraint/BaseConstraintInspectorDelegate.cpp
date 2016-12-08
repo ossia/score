@@ -51,7 +51,7 @@ void BaseConstraintInspectorDelegate::addWidgets_pre(
   auto& ctx = iscore::IDocument::documentContext(scenario);
   auto& tn = endTimeNode(m_model, scenario);
   m_triggerLine = new TriggerInspectorWidget{
-      ctx, ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
+      ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       tn, parent};
   m_triggerLine->HideRmButton();
   widgets.push_back(new QLabel(QObject::tr("Trigger")));

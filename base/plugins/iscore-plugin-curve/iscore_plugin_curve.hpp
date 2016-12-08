@@ -48,11 +48,11 @@ public:
   virtual ~iscore_plugin_curve() = default;
 
 private:
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
-  std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+  std::vector<std::unique_ptr<iscore::InterfaceListBase>>
   factoryFamilies() override;
 
   std::pair<const CommandParentFactoryKey, CommandGeneratorMap>

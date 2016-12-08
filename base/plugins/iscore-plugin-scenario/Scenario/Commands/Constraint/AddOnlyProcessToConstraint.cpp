@@ -70,7 +70,7 @@ Process::ProcessModel&
 AddOnlyProcessToConstraint::redo(ConstraintModel& constraint) const
 {
   // Create process model
-  auto fac = context.components.factory<Process::ProcessFactoryList>().get(
+  auto fac = context.interfaces<Process::ProcessFactoryList>().get(
       m_processName);
   ISCORE_ASSERT(fac);
   auto proc = fac->make(

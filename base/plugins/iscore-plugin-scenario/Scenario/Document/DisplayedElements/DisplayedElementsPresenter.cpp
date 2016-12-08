@@ -95,7 +95,7 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
 
   // Create states / events
   auto& ctx = m_model->context();
-  auto& provider = ctx.app.components.factory<DisplayedElementsProviderList>();
+  auto& provider = ctx.app.interfaces<DisplayedElementsProviderList>();
   DisplayedElementsPresenterContainer elts = provider.make(
       &DisplayedElementsProvider::make_presenters, m, ctx,
       m_model->view().baseItem(), this);

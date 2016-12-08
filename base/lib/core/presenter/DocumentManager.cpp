@@ -158,20 +158,20 @@ void DocumentManager::setCurrentDocument(
 
   if (doc)
   {
-    for (auto& panel : ctx.components.panels())
+    for (auto& panel : ctx.panels())
     {
       panel.setModel(doc->context());
     }
   }
   else
   {
-    for (auto& panel : ctx.components.panels())
+    for (auto& panel : ctx.panels())
     {
       panel.setModel(iscore::none);
     }
   }
 
-  for (auto& ctrl : ctx.components.applicationPlugins())
+  for (auto& ctrl : ctx.applicationPlugins())
   {
     ctrl->on_documentChanged(old, m_currentDocument);
   }
@@ -368,7 +368,7 @@ Document* DocumentManager::loadStack(
 
     prepareNewDocument(ctx);
     auto doc = m_builder.newDocument(
-        ctx, id, *ctx.components.factory<DocumentDelegateList>().begin());
+        ctx, id, *ctx.interfaces<DocumentDelegateList>().begin());
     setupDocument(ctx, doc);
 
     loadCommandStack(
@@ -406,7 +406,7 @@ Document* DocumentManager::loadFile(
       {
         doc = loadDocument(
             ctx, f.readAll(),
-            *ctx.components.factory<DocumentDelegateList>().begin());
+            *ctx.interfaces<DocumentDelegateList>().begin());
       }
       else if (fileName.indexOf(".scorejson") != -1)
       {
@@ -416,7 +416,7 @@ Document* DocumentManager::loadFile(
         {
           doc = loadDocument(
               ctx, json.object(),
-              *ctx.components.factory<DocumentDelegateList>().begin());
+              *ctx.interfaces<DocumentDelegateList>().begin());
         }
         else
         {
@@ -446,7 +446,7 @@ void DocumentManager::prepareNewDocument(const iscore::ApplicationContext& ctx)
 {
   m_preparingNewDocument = true;
   for (GUIApplicationContextPlugin* appPlugin :
-       ctx.components.applicationPlugins())
+       ctx.applicationPlugins())
   {
     appPlugin->prepareNewDocument();
   }
@@ -484,7 +484,7 @@ bool DocumentManager::checkAndUpdateJson(
     loaded_version = Version{(*it).toInt()};
 
   LocalPluginVersionsMap local_plugins;
-  for (const auto& plug : ctx.components.addons())
+  for (const auto& plug : ctx.addons())
   {
     local_plugins.insert(plug.plugin);
   }
@@ -584,7 +584,7 @@ void DocumentManager::restoreDocuments(const iscore::ApplicationContext& ctx)
   {
     restoreDocument(
         ctx, backup.first, backup.second,
-        *ctx.components.factory<DocumentDelegateList>().begin());
+        *ctx.interfaces<DocumentDelegateList>().begin());
   }
 }
 

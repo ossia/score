@@ -37,10 +37,10 @@ iscore_plugin_mapping::~iscore_plugin_mapping()
 {
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_mapping::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   using namespace Mapping;
   return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, Mapping::MappingFactory>, FW<Process::LayerFactory, Mapping::MappingLayerFactory>, FW<Process::InspectorWidgetDelegateFactory, MappingInspectorFactory>>>(

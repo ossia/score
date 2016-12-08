@@ -27,7 +27,7 @@ LoopInspectorWidget::LoopInspectorWidget(
   // inherits from a virtual.
   auto& appContext = doc.app.components;
   auto& constraintWidgetFactory
-      = appContext.factory<Scenario::ConstraintInspectorDelegateFactoryList>();
+      = appContext.interfaces<Scenario::ConstraintInspectorDelegateFactoryList>();
 
   auto& constraint = object.constraint();
 
@@ -38,8 +38,8 @@ LoopInspectorWidget::LoopInspectorWidget(
 
   auto lay = new QVBoxLayout;
   this->setLayout(lay);
-  auto& widgetFact = appContext.factory<Inspector::InspectorWidgetList>();
-  auto& processFact = appContext.factory<Process::ProcessFactoryList>();
+  auto& widgetFact = appContext.interfaces<Inspector::InspectorWidgetList>();
+  auto& processFact = appContext.interfaces<Process::ProcessFactoryList>();
   lay->addWidget(new Scenario::ConstraintInspectorWidget{
       widgetFact, processFact, constraint, std::move(delegate), doc, this});
 }

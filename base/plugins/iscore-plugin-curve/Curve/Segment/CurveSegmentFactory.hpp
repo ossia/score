@@ -15,9 +15,9 @@ namespace Curve
 class SegmentModel;
 struct SegmentData;
 class ISCORE_PLUGIN_CURVE_EXPORT SegmentFactory
-    : public iscore::AbstractFactory<SegmentFactory>
+    : public iscore::Interface<SegmentFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
+  ISCORE_INTERFACE("608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
 public:
   virtual ~SegmentFactory();
 
@@ -76,9 +76,9 @@ public:
     return QVariant::fromValue(deserialize_dyn<typename T::data_type>(vis));
   }
 
-  UuidKey<Curve::SegmentFactory> concreteFactoryKey() const override
+  UuidKey<Curve::SegmentFactory> concreteKey() const noexcept override
   {
-    return Metadata<ConcreteFactoryKey_k, T>::get();
+    return Metadata<ConcreteKey_k, T>::get();
   }
 
   QString prettyName() const override

@@ -114,7 +114,7 @@ LayerFactory::makePanel(const LayerModel& layer, QObject* parent)
 
 bool LayerFactory::matches(const ProcessModel& p) const
 {
-  return matches(p.concreteFactoryKey());
+  return matches(p.concreteKey());
 }
 
 bool LayerFactory::matches(
@@ -147,7 +147,7 @@ LayerFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent) const
 LayerFactory*
 LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 {
-  return findDefaultFactory(proc.concreteFactoryKey());
+  return findDefaultFactory(proc.concreteKey());
 }
 
 LayerFactory* LayerFactoryList::findDefaultFactory(

@@ -23,7 +23,7 @@ void CoreApplicationPlugin::newDocument()
   m_presenter.m_docManager.newDocument(
       context,
       getStrongId(m_presenter.m_docManager.documents()),
-      *context.components.factory<iscore::DocumentDelegateList>().begin());
+      *context.interfaces<iscore::DocumentDelegateList>().begin());
 }
 
 void CoreApplicationPlugin::load()

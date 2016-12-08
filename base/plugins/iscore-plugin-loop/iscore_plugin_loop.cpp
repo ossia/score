@@ -27,10 +27,10 @@ iscore_plugin_loop::~iscore_plugin_loop()
 {
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_loop::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   using namespace Scenario;
   using namespace Scenario::Command;

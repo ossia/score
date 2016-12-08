@@ -14,7 +14,7 @@ namespace Inspector
 {
 class InspectorWidgetBase;
 class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final
-    : public iscore::ConcreteFactoryList<InspectorWidgetFactory>
+    : public iscore::InterfaceList<InspectorWidgetFactory>
 {
 public:
   QList<InspectorWidgetBase*> make(

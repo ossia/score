@@ -126,7 +126,7 @@ void InsertContentInConstraint::redo() const
   }
 
   // Clone the rackes
-  auto& procs = context.components.factory<Process::LayerFactoryList>();
+  auto& procs = context.interfaces<Process::LayerFactoryList>();
 
   const auto& src_racks = src_constraint.racks;
   for (const auto& sourcerack : src_racks)

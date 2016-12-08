@@ -22,9 +22,9 @@ namespace Command
 {
 class SerializableMoveEvent;
 class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface
-    : public iscore::AbstractFactory<MoveEventFactoryInterface>
+    : public iscore::Interface<MoveEventFactoryInterface>
 {
-  ISCORE_ABSTRACT_FACTORY("69dc1f79-5cb9-4a36-b382-8c099f7abf57")
+  ISCORE_INTERFACE("69dc1f79-5cb9-4a36-b382-8c099f7abf57")
 public:
   enum Strategy
   {

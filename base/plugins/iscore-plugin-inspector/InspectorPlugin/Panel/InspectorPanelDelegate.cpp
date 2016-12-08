@@ -42,7 +42,7 @@ void PanelDelegate::on_modelChanged(
   if (newm)
   {
     auto& fact
-        = newm->app.components.factory<Inspector::InspectorWidgetList>();
+        = newm->app.interfaces<Inspector::InspectorWidgetList>();
     SelectionStack& stack = newm->selectionStack;
     m_stack = new SelectionStackWidget{stack, m_widget};
     m_inspectorPanel = new InspectorPanelWidget{fact, stack, m_widget};

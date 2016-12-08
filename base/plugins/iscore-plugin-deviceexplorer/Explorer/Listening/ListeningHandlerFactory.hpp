@@ -10,9 +10,9 @@ namespace Explorer
 {
 class DeviceDocumentPlugin;
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactory
-    : public iscore::AbstractFactory<ListeningHandlerFactory>
+    : public iscore::Interface<ListeningHandlerFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("42828393-b8de-45a6-b79f-811eea2e1a40")
+  ISCORE_INTERFACE("42828393-b8de-45a6-b79f-811eea2e1a40")
 
 public:
   virtual ~ListeningHandlerFactory();

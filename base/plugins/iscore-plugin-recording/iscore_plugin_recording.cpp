@@ -28,10 +28,10 @@ iscore_plugin_recording::make_applicationPlugin(
   return new Recording::ApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_recording::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, RecordedMessages::ProcessFactory>, FW<Process::LayerFactory, RecordedMessages::LayerFactory>, FW<Process::InspectorWidgetDelegateFactory, RecordedMessages::InspectorFactory>, FW<Engine::Execution::ProcessComponentFactory, RecordedMessages::Executor::ComponentFactory>>>(
       ctx, key);

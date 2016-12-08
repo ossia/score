@@ -122,9 +122,9 @@ void PanelDelegate::on_focusedViewModelChanged(
       return;
 
     auto fact = context()
-                    .components.factory<Process::LayerFactoryList>()
+                    .interfaces<Process::LayerFactoryList>()
                     .findDefaultFactory(
-                        m_layerModel->processModel().concreteFactoryKey());
+                        m_layerModel->processModel().concreteKey());
 
     m_proxy = fact->makePanel(*m_layerModel, this);
     if (m_proxy)

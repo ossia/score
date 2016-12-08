@@ -13,7 +13,7 @@ namespace Scenario
 {
 class EventInspectorFactory final : public Inspector::InspectorWidgetFactory
 {
-  ISCORE_CONCRETE_FACTORY("f71c6643-cf85-4e35-a76a-b1d365416f33")
+  ISCORE_CONCRETE("f71c6643-cf85-4e35-a76a-b1d365416f33")
 public:
   EventInspectorFactory() : InspectorWidgetFactory{}
   {

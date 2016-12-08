@@ -40,9 +40,9 @@
 iscore_plugin_engine::iscore_plugin_engine() : QObject{}
 {
   qRegisterMetaType<Engine::Execution::ClockManagerFactory::
-                        ConcreteFactoryKey>("ClockManagerKey");
+                        ConcreteKey>("ClockManagerKey");
   qRegisterMetaTypeStreamOperators<Engine::Execution::ClockManagerFactory::
-                                       ConcreteFactoryKey>("ClockManagerKey");
+                                       ConcreteKey>("ClockManagerKey");
 }
 
 iscore_plugin_engine::~iscore_plugin_engine()
@@ -56,16 +56,16 @@ iscore_plugin_engine::make_applicationPlugin(
   return new Engine::ApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+std::vector<std::unique_ptr<iscore::InterfaceListBase>>
 iscore_plugin_engine::factoryFamilies()
 {
-  return make_ptr_vector<iscore::FactoryListInterface, Engine::LocalTree::ProcessComponentFactoryList, Engine::Execution::ProcessComponentFactoryList, Engine::Execution::StateProcessComponentFactoryList, Engine::Execution::ClockManagerFactoryList>();
+  return make_ptr_vector<iscore::InterfaceListBase, Engine::LocalTree::ProcessComponentFactoryList, Engine::Execution::ProcessComponentFactoryList, Engine::Execution::StateProcessComponentFactoryList, Engine::Execution::ClockManagerFactoryList>();
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_engine::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   using namespace Scenario;
   using namespace Engine;

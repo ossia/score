@@ -6,7 +6,7 @@ namespace Scenario
 
 class DropProcessInScenario final : public DropHandler
 {
-  ISCORE_CONCRETE_FACTORY("9a094988-b05f-4e10-8e0d-56e8d46e084d")
+  ISCORE_CONCRETE("9a094988-b05f-4e10-8e0d-56e8d46e084d")
 
   bool handle(
       const Scenario::TemporalScenarioPresenter&,
@@ -20,7 +20,7 @@ class DropProcessInScenario final : public DropHandler
  */
 class DropProcessInConstraint final : public ConstraintDropHandler
 {
-  ISCORE_CONCRETE_FACTORY("08f5aec5-3a42-45c8-b3db-aa45a851dd09")
+  ISCORE_CONCRETE("08f5aec5-3a42-45c8-b3db-aa45a851dd09")
 
   bool
   handle(const Scenario::ConstraintModel&, const QMimeData* mime) override;
@@ -32,7 +32,7 @@ class DropProcessInConstraint final : public ConstraintDropHandler
  */
 class AutomationDropHandler final : public ConstraintDropHandler
 {
-  ISCORE_CONCRETE_FACTORY("851c98e1-4bcb-407b-9a72-8288d83c9f38")
+  ISCORE_CONCRETE("851c98e1-4bcb-407b-9a72-8288d83c9f38")
 
   bool
   handle(const Scenario::ConstraintModel&, const QMimeData* mime) override;

@@ -42,7 +42,7 @@ const Device::DeviceSettings& LocalProtocolFactory::static_defaultSettings()
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
     s.protocol
-        = static_concreteFactoryKey(); // Todo check for un-set protocol.
+        = static_concreteKey(); // Todo check for un-set protocol.
     s.name = "i-score";
     Network::LocalSpecificSettings specif;
     specif.host = "127.0.0.1";

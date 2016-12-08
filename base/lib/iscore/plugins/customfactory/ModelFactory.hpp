@@ -47,21 +47,21 @@ class GenericComponentFactoryImpl : public ComponentFactoryBase_T
   using base_model_type = typename ComponentFactoryBase_T::base_model_type;
   using system_type = typename ComponentFactoryBase_T::system_type;
   using component_type = Component_T;
-  using ConcreteFactoryKey =
-      typename ComponentFactoryBase_T::ConcreteFactoryKey;
+  using ConcreteKey =
+      typename ComponentFactoryBase_T::ConcreteKey;
   using ComponentFactoryBase_T::ComponentFactoryBase_T;
 
-  static auto static_concreteFactoryKey()
+  static auto static_concreteKey()
   {
     return Component_T::static_key().impl();
   }
 
-  ConcreteFactoryKey concreteFactoryKey() const final override
+  ConcreteKey concreteKey() const noexcept final override
   {
     return Component_T::static_key().impl(); // Note : here there is a
                                              // conversion between
                                              // UuidKey<Component> and
-                                             // ConcreteFactoryKey
+                                             // ConcreteKey
   }
 
   bool matches(const base_model_type& p) const final override

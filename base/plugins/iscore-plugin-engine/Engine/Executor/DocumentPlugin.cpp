@@ -26,9 +26,9 @@ DocumentPlugin::DocumentPlugin(
     , m_ctx{
           doc.context(), *this,
           doc.context().plugin<Explorer::DeviceDocumentPlugin>(),
-          doc.context().app.components.factory<ProcessComponentFactoryList>(),
+          doc.context().app.interfaces<ProcessComponentFactoryList>(),
           doc.context()
-              .app.components.factory<StateProcessComponentFactoryList>(),
+              .app.interfaces<StateProcessComponentFactoryList>(),
       }
 {
   con(doc, &iscore::Document::aboutToClose, this, [&] {

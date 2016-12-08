@@ -7,7 +7,7 @@ namespace Network
 {
 class WSProtocolFactory final : public Device::ProtocolFactory
 {
-  ISCORE_CONCRETE_FACTORY("59e81303-af24-4559-b33d-1c6f59f0f017")
+  ISCORE_CONCRETE("59e81303-af24-4559-b33d-1c6f59f0f017")
   // Implement with OSSIA::Device
   QString prettyName() const override;
 

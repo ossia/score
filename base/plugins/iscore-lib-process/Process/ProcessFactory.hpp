@@ -30,9 +30,9 @@ struct ProcessPresenterContext;
      */
 
 class ISCORE_LIB_PROCESS_EXPORT ProcessModelFactory
-    : public iscore::AbstractFactory<ProcessModelFactory>
+    : public iscore::Interface<ProcessModelFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
+  ISCORE_INTERFACE("507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
 public:
   virtual ~ProcessModelFactory();
 
@@ -47,9 +47,9 @@ public:
 };
 
 class ISCORE_LIB_PROCESS_EXPORT LayerFactory
-    : public iscore::AbstractFactory<LayerFactory>
+    : public iscore::Interface<LayerFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("aeee61e4-89aa-42ec-aa33-bf4522ed710b")
+  ISCORE_INTERFACE("aeee61e4-89aa-42ec-aa33-bf4522ed710b")
 public:
   virtual ~LayerFactory();
 

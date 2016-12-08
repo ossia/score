@@ -56,7 +56,7 @@ void ApplicationInterface::loadPluginData(
   // Load the settings
   QSettings s;
   for (auto& elt :
-       ctx.components.factory<iscore::SettingsDelegateFactoryList>())
+       ctx.interfaces<iscore::SettingsDelegateFactoryList>())
   {
     settings.setupSettingsPlugin(s, ctx, elt);
   }
@@ -64,13 +64,13 @@ void ApplicationInterface::loadPluginData(
   presenter.setupGUI();
 
   for (iscore::GUIApplicationContextPlugin* app_plug :
-       ctx.components.applicationPlugins())
+       ctx.applicationPlugins())
   {
     app_plug->initialize();
   }
 
   for (auto& panel_fac :
-       context().components.factory<iscore::PanelDelegateFactoryList>())
+       context().interfaces<iscore::PanelDelegateFactoryList>())
   {
     registrar.registerPanel(panel_fac);
   }

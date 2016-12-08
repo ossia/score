@@ -13,9 +13,9 @@ namespace Scenario
 class ConstraintModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintInspectorDelegateFactory
-    : public iscore::AbstractFactory<ConstraintInspectorDelegateFactory>
+    : public iscore::Interface<ConstraintInspectorDelegateFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("e9ae0303-b616-4953-b148-88d2dda5ac45")
+  ISCORE_INTERFACE("e9ae0303-b616-4953-b148-88d2dda5ac45")
 public:
   virtual ~ConstraintInspectorDelegateFactory();
   virtual std::unique_ptr<ConstraintInspectorDelegate>

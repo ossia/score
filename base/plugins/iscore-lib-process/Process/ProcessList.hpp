@@ -6,7 +6,7 @@
 namespace Process
 {
 class ISCORE_LIB_PROCESS_EXPORT ProcessFactoryList final
-    : public iscore::ConcreteFactoryList<ProcessModelFactory>
+    : public iscore::InterfaceList<ProcessModelFactory>
 {
 public:
   using object_type = Process::ProcessModel;
@@ -16,7 +16,7 @@ public:
 };
 
 class ISCORE_LIB_PROCESS_EXPORT LayerFactoryList final
-    : public iscore::ConcreteFactoryList<LayerFactory>
+    : public iscore::InterfaceList<LayerFactory>
 {
 public:
   using object_type = Process::LayerModel;

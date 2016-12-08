@@ -26,7 +26,7 @@ namespace Loop
 class ConstraintInspectorDelegateFactory
     : public Scenario::ConstraintInspectorDelegateFactory
 {
-  ISCORE_CONCRETE_FACTORY("295245d4-2019-4849-9d49-10c1e21c209c")
+  ISCORE_CONCRETE("295245d4-2019-4849-9d49-10c1e21c209c")
 public:
   virtual ~ConstraintInspectorDelegateFactory();
 
@@ -41,6 +41,6 @@ class InspectorFactory final
     : public Process::
           InspectorWidgetDelegateFactory_T<ProcessModel, LoopInspectorWidget>
 {
-  ISCORE_CONCRETE_FACTORY("f45f98f2-f721-4ffa-9219-114832fe06bd")
+  ISCORE_CONCRETE("f45f98f2-f721-4ffa-9219-114832fe06bd")
 };
 }

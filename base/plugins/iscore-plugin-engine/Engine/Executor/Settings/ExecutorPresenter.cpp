@@ -28,11 +28,11 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   v.setRate(m.getRate());
 
   // Clock used
-  std::map<QString, ClockManagerFactory::ConcreteFactoryKey> clockMap;
+  std::map<QString, ClockManagerFactory::ConcreteKey> clockMap;
   for (auto& fact : m.clockFactories())
   {
     clockMap.insert(
-        std::make_pair(fact.prettyName(), fact.concreteFactoryKey()));
+        std::make_pair(fact.prettyName(), fact.concreteKey()));
   }
   v.populateClocks(clockMap);
 

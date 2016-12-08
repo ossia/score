@@ -61,7 +61,7 @@ class ISCORE_LIB_BASE_EXPORT SerializableDocumentPlugin
 {
 protected:
   using DocumentPlugin::DocumentPlugin;
-  using ConcreteFactoryKey = UuidKey<DocumentPluginFactory>;
+  using ConcreteKey = UuidKey<DocumentPluginFactory>;
 
   virtual ~SerializableDocumentPlugin();
 };
@@ -70,9 +70,9 @@ protected:
  * @brief Reimplement to instantiate document plug-ins.
  */
 class ISCORE_LIB_BASE_EXPORT DocumentPluginFactory
-    : public iscore::AbstractFactory<DocumentPluginFactory>
+    : public iscore::Interface<DocumentPluginFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("570faa0b-f100-4039-a2f0-b60347c4e581")
+  ISCORE_INTERFACE("570faa0b-f100-4039-a2f0-b60347c4e581")
 public:
   virtual ~DocumentPluginFactory();
 
@@ -81,7 +81,7 @@ public:
       = 0;
 };
 class ISCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final
-    : public iscore::ConcreteFactoryList<iscore::DocumentPluginFactory>
+    : public iscore::InterfaceList<iscore::DocumentPluginFactory>
 {
 public:
   using object_type = DocumentPlugin;
@@ -105,15 +105,15 @@ public:
     });
   }
 
-  static UuidKey<iscore::DocumentPluginFactory> static_concreteFactoryKey()
+  static UuidKey<iscore::DocumentPluginFactory> static_concreteKey()
   {
-    return Metadata<ConcreteFactoryKey_k, T>::get();
+    return Metadata<ConcreteKey_k, T>::get();
   }
 
   UuidKey<iscore::DocumentPluginFactory>
-  concreteFactoryKey() const final override
+  concreteKey() const noexcept final override
   {
-    return Metadata<ConcreteFactoryKey_k, T>::get();
+    return Metadata<ConcreteKey_k, T>::get();
   }
 };
 }

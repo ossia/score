@@ -13,7 +13,7 @@
 namespace iscore
 {
 class DocumentDelegateFactory;
-class FactoryListInterface;
+class InterfaceListBase;
 class GUIApplicationContextPlugin;
 class PanelDelegateFactory;
 class SettingsDelegateFactory;
@@ -48,9 +48,9 @@ public:
   void registerCommands(
       std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
   void registerFactories(
-      iscore::hash_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&&
+      iscore::hash_map<iscore::InterfaceKey, std::unique_ptr<InterfaceListBase>>&&
               cmds);
-  void registerFactory(std::unique_ptr<FactoryListInterface> cmds);
+  void registerFactory(std::unique_ptr<InterfaceListBase> cmds);
 
   ApplicationComponentsData& components() const
   {

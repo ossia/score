@@ -131,7 +131,7 @@ void StateInspectorWidget::updateDisplayedValues()
     // add new process dialog
     delete m_addProcess;
     m_addProcess = new AddStateProcessDialog{
-        m_context.app.components.factory<Process::StateProcessList>(), this};
+        m_context.app.interfaces<Process::StateProcessList>(), this};
 
     // CONNECTIONS
     connect(
@@ -202,7 +202,7 @@ StateInspectorWidget::displayStateProcess(const Process::StateProcess& process)
 
   const auto& fact
       = m_context.app.components
-            .factory<Process::
+            .interfaces<Process::
                          StateProcessInspectorWidgetDelegateFactoryList>();
   if (auto widg = fact.make(
           &Process::StateProcessInspectorWidgetDelegateFactory::make, process,

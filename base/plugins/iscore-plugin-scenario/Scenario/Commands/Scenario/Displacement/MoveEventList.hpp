@@ -11,7 +11,7 @@ namespace Command
 {
 
 class MoveEventList final
-    : public iscore::ConcreteFactoryList<MoveEventFactoryInterface>
+    : public iscore::InterfaceList<MoveEventFactoryInterface>
 {
 public:
   /**

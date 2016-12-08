@@ -12,9 +12,9 @@ namespace Command
 {
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerCommandFactory
-    : public iscore::AbstractFactory<TriggerCommandFactory>
+    : public iscore::Interface<TriggerCommandFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("d6b7385e-b6c4-4cc2-8fc6-1041a43d98fa")
+  ISCORE_INTERFACE("d6b7385e-b6c4-4cc2-8fc6-1041a43d98fa")
 public:
   virtual ~TriggerCommandFactory();
   virtual bool matches(const TimeNodeModel& tn) const = 0;

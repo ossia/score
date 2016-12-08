@@ -6,7 +6,7 @@
 namespace Device
 {
 class ISCORE_LIB_DEVICE_EXPORT ProtocolFactoryList final
-    : public iscore::ConcreteFactoryList<ProtocolFactory>
+    : public iscore::InterfaceList<ProtocolFactory>
 {
 };
 }

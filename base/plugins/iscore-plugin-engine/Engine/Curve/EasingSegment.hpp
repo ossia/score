@@ -44,9 +44,9 @@ template <typename Easing_T>
 class EasingSegment final : public ::Curve::SegmentModel
 {
 public:
-  key_type concreteFactoryKey() const final override
+  key_type concreteKey() const final override
   {
-    return Metadata<ConcreteFactoryKey_k, EasingSegment>::get();
+    return Metadata<ConcreteKey_k, EasingSegment>::get();
   }
 
   EasingSegment*

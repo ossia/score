@@ -7,7 +7,7 @@
 
 namespace iscore
 {
-class FactoryListInterface;
+class InterfaceListBase;
 class PanelFactory;
 } // namespace iscore
 
@@ -27,12 +27,12 @@ public:
   ~iscore_plugin_inspector();
 
   // Panel interface
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext&,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
   // Factory for inspector widgets
-  std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+  std::vector<std::unique_ptr<iscore::InterfaceListBase>>
   factoryFamilies() override;
 
   iscore::Version version() const override;

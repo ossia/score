@@ -11,7 +11,7 @@ namespace Loop
 class DisplayedElementsProvider final
     : public Scenario::DisplayedElementsProvider
 {
-  ISCORE_CONCRETE_FACTORY("abf6965a-8e36-472a-a728-50b316c900a4")
+  ISCORE_CONCRETE("abf6965a-8e36-472a-a728-50b316c900a4")
 
 public:
   bool matches(const Scenario::ConstraintModel& cst) const override;

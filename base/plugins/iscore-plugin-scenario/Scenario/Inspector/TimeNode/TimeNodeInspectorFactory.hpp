@@ -15,7 +15,7 @@ namespace Scenario
 {
 class TimeNodeInspectorFactory final : public Inspector::InspectorWidgetFactory
 {
-  ISCORE_CONCRETE_FACTORY("ff1d130b-caaa-4217-868b-cf09bf75823a")
+  ISCORE_CONCRETE("ff1d130b-caaa-4217-868b-cf09bf75823a")
 public:
   TimeNodeInspectorFactory() : InspectorWidgetFactory{}
   {

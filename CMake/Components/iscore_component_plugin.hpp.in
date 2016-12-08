@@ -23,9 +23,9 @@ class ${PLUGIN_NAME} final:
         ${PLUGIN_NAME}();
         virtual ~${PLUGIN_NAME}();
 
-        std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+        std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
-                const iscore::AbstractFactoryKey& factoryName) const override;
+                const iscore::InterfaceKey& factoryName) const override;
 
         iscore::Version version() const override;
         UuidKey<iscore::Plugin> key() const override;

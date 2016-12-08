@@ -4,7 +4,7 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 namespace Curve
 {
-class SegmentList final : public iscore::ConcreteFactoryList<SegmentFactory>
+class SegmentList final : public iscore::InterfaceList<SegmentFactory>
 {
 public:
   using object_type = Curve::SegmentModel;

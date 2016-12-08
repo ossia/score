@@ -61,7 +61,7 @@ DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
   try
   {
     auto& fact
-        = m_context.app.components.factory<Device::ProtocolFactoryList>();
+        = m_context.app.interfaces<Device::ProtocolFactoryList>();
 
     // Instantiate a real device.
     auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
@@ -105,7 +105,7 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
   {
     // Instantiate a real device.
     auto& fact
-        = m_context.app.components.factory<Device::ProtocolFactoryList>();
+        = m_context.app.interfaces<Device::ProtocolFactoryList>();
     auto proto = fact.get(node.get<Device::DeviceSettings>().protocol);
     Device::DeviceInterface* newdev
         = proto->makeDevice(node.get<Device::DeviceSettings>(), context());
@@ -178,7 +178,7 @@ ListeningHandler& DeviceDocumentPlugin::listening() const
     return *m_listening;
 
   m_listening
-      = context().app.components.factory<ListeningHandlerFactoryList>().make(
+      = context().app.interfaces<ListeningHandlerFactoryList>().make(
           *this, context());
   return *m_listening;
 }

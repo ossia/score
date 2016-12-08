@@ -16,7 +16,7 @@
 namespace iscore
 {
 
-class FactoryListInterface;
+class InterfaceListBase;
 class PanelFactory;
 } // namespace iscore
 
@@ -41,12 +41,12 @@ public:
 
 private:
   // Factory for protocols
-  std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+  std::vector<std::unique_ptr<iscore::InterfaceListBase>>
   factoryFamilies() override;
 
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
   // application plugin
   iscore::GUIApplicationContextPlugin*

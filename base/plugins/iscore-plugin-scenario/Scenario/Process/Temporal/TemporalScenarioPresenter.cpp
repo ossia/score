@@ -137,7 +137,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
       [=](const QPointF& pos, const QMimeData* mime) {
         try
         {
-          m_context.context.app.components.factory<Scenario::DropHandlerList>()
+          m_context.context.app.interfaces<Scenario::DropHandlerList>()
               .handle(*this, pos, mime);
         }
         catch (std::exception& e)

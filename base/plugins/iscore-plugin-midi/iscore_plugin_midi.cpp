@@ -15,10 +15,10 @@ iscore_plugin_midi::~iscore_plugin_midi()
 {
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_midi::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, Midi::ProcessFactory>, FW<Process::LayerFactory, Midi::LayerFactory>, FW<Engine::Execution::ProcessComponentFactory, Midi::Executor::ComponentFactory>, FW<Process::InspectorWidgetDelegateFactory, Midi::InspectorFactory>>>(
       ctx, key);

@@ -34,7 +34,7 @@ ApplicationPlugin::ApplicationPlugin(const iscore::GUIApplicationContext& ctx)
   // Since we have declared the dependency, we can assume
   // that ScenarioApplicationPlugin is instantiated already.
   auto& scenario_plugin
-      = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+      = ctx.applicationPlugin<ScenarioApplicationPlugin>();
   connect(
       &scenario_plugin.execution(), &ScenarioExecution::startRecording, this,
       &ApplicationPlugin::record);
@@ -46,7 +46,7 @@ ApplicationPlugin::ApplicationPlugin(const iscore::GUIApplicationContext& ctx)
       &ScenarioExecution::stopRecording, // TODO this seems useless
       this, &ApplicationPlugin::stopRecord);
 
-  m_ossiaplug = &ctx.components.applicationPlugin<Engine::ApplicationPlugin>();
+  m_ossiaplug = &ctx.applicationPlugin<Engine::ApplicationPlugin>();
 
   auto& stop_action = ctx.actions.action<Actions::Stop>();
   m_stopAction = stop_action.action();

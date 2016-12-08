@@ -32,7 +32,7 @@ private:
 class ISCORE_PLUGIN_ENGINE_EXPORT DefaultClockManagerFactory final
     : public ClockManagerFactory
 {
-  ISCORE_CONCRETE_FACTORY("583e9c52-e136-46b6-852f-7eef2993e9eb")
+  ISCORE_CONCRETE("583e9c52-e136-46b6-852f-7eef2993e9eb")
 
 public:
   virtual ~DefaultClockManagerFactory();

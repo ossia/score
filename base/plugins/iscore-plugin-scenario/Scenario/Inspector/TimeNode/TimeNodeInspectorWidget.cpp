@@ -88,7 +88,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
   auto trigSec
       = new Inspector::InspectorSectionWidget{tr("Trigger"), false, this};
   m_trigwidg = new TriggerInspectorWidget{
-      ctx, ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
+      ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       m_model, this};
   trigSec->addContent(m_trigwidg);
   trigSec->expand(!m_model.trigger()->expression().toString().isEmpty());

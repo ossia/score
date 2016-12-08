@@ -7,9 +7,9 @@ namespace iscore
 class Document;
 struct DocumentContext;
 class ISCORE_LIB_BASE_EXPORT ValidityChecker
-    : public iscore::AbstractFactory<ValidityChecker>
+    : public iscore::Interface<ValidityChecker>
 {
-  ISCORE_ABSTRACT_FACTORY("08d4e533-e212-41ba-b0c1-643cc2c98cae")
+  ISCORE_INTERFACE("08d4e533-e212-41ba-b0c1-643cc2c98cae")
 public:
   virtual ~ValidityChecker();
 
@@ -30,7 +30,7 @@ private:
 };
 
 class ISCORE_LIB_BASE_EXPORT ValidityCheckerList final
-    : public ConcreteFactoryList<iscore::ValidityChecker>
+    : public InterfaceList<iscore::ValidityChecker>
 {
   DocumentValidator make(const iscore::Document& ctx);
 };

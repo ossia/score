@@ -83,9 +83,9 @@ public:
     return static_cast<Process_T&>(LayerModel::processModel());
   }
 
-  key_type concreteFactoryKey() const final override
+  key_type concreteKey() const final override
   {
-    return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get();
+    return Metadata<ConcreteKey_k, LayerModel_T>::get();
   }
 
 protected:

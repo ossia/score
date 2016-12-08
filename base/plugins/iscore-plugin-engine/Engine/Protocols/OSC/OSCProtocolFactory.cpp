@@ -32,7 +32,7 @@ const Device::DeviceSettings& OSCProtocolFactory::defaultSettings() const
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
-    s.protocol = concreteFactoryKey();
+    s.protocol = concreteKey();
     s.name = "OSC";
     OSCSpecificSettings specif;
     s.deviceSpecificSettings = QVariant::fromValue(specif);

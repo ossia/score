@@ -103,7 +103,7 @@ public:
       const UuidKey<Process::ProcessModelFactory>& process)
       : AddProcessToConstraintBase{constraint, process}
   {
-    auto& fact = context.components.factory<Process::LayerFactoryList>();
+    auto& fact = context.interfaces<Process::LayerFactoryList>();
     m_delegate.init(fact, constraint);
   }
 
@@ -226,8 +226,8 @@ public:
 
     // Process View
     auto& procs
-        = m_cmd.context.components.factory<Process::LayerFactoryList>();
-    auto fact = procs.findDefaultFactory(proc.concreteFactoryKey());
+        = m_cmd.context.interfaces<Process::LayerFactoryList>();
+    auto fact = procs.findDefaultFactory(proc.concreteKey());
     slot->layers.add(
         fact->make(proc, m_createdLayerId, m_layerConstructionData, slot));
   }
@@ -305,8 +305,8 @@ public:
 
     // Layer
     auto& procs
-        = m_cmd.context.components.factory<Process::LayerFactoryList>();
-    auto fact = procs.findDefaultFactory(proc.concreteFactoryKey());
+        = m_cmd.context.interfaces<Process::LayerFactoryList>();
+    auto fact = procs.findDefaultFactory(proc.concreteKey());
     slot->layers.add(
         fact->make(proc, m_createdLayerId, m_layerConstructionData, slot));
   }
@@ -383,8 +383,8 @@ public:
     auto& firstSlot = *firstRack.slotmodels.begin();
 
     auto& procs
-        = m_cmd.context.components.factory<Process::LayerFactoryList>();
-    auto fact = procs.findDefaultFactory(proc.concreteFactoryKey());
+        = m_cmd.context.interfaces<Process::LayerFactoryList>();
+    auto fact = procs.findDefaultFactory(proc.concreteKey());
     firstSlot.layers.add(fact->make(
         proc, m_createdLayerId, m_layerConstructionData, &firstSlot));
   }

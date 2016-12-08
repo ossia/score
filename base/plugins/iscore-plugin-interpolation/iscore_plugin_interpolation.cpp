@@ -14,10 +14,10 @@ iscore_plugin_interpolation::~iscore_plugin_interpolation()
 {
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_interpolation::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, Interpolation::InterpolationFactory>, FW<Process::LayerFactory, Interpolation::InterpolationLayerFactory>>>(
       ctx, key);

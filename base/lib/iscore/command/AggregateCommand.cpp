@@ -60,7 +60,7 @@ void AggregateCommand::deserializeImpl(DataStreamOutput& s)
 
   for (const auto& cmd_pack : serializedCommands)
   {
-    auto cmd = context.components.instantiateUndoCommand(cmd_pack);
+    auto cmd = context.instantiateUndoCommand(cmd_pack);
     m_cmds.push_back(cmd);
   }
 }

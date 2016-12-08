@@ -20,9 +20,9 @@ public:
 
 private:
   // Process & inspector
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
   // CommandFactory_QtInterface interface
   std::pair<const CommandParentFactoryKey, CommandGeneratorMap>

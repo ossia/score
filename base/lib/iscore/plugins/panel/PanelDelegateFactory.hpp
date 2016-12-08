@@ -6,9 +6,9 @@
 namespace iscore
 {
 class ISCORE_LIB_BASE_EXPORT PanelDelegateFactory
-    : public iscore::AbstractFactory<PanelDelegateFactory>
+    : public iscore::Interface<PanelDelegateFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("8d6211f7-5244-44f9-94dd-f3e32255c43e")
+  ISCORE_INTERFACE("8d6211f7-5244-44f9-94dd-f3e32255c43e")
 public:
   virtual ~PanelDelegateFactory();
 
@@ -17,7 +17,7 @@ public:
 };
 
 class ISCORE_LIB_BASE_EXPORT PanelDelegateFactoryList final
-    : public ConcreteFactoryList<iscore::PanelDelegateFactory>
+    : public InterfaceList<iscore::PanelDelegateFactory>
 {
 public:
   using object_type = PanelDelegate;
