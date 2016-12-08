@@ -160,7 +160,7 @@ void Application::initDocuments()
     }
 
     // The plug-ins have the ability to override the boot process.
-    for(auto plug : ctx.components.applicationPlugins())
+    for(auto plug : ctx.applicationPlugins())
     {
         if(plug->handleStartup())
         {
@@ -175,13 +175,13 @@ void Application::initDocuments()
     }
     else
     {
-        auto& documentKinds = m_presenter->applicationComponents().factory<iscore::DocumentDelegateList>();
+        auto& documentKinds = m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>();
         if(!documentKinds.empty() && m_presenter->documentManager().documents().empty())
         {
             m_presenter->documentManager().newDocument(
                         ctx,
                         Id<iscore::DocumentModel>{iscore::random_id_generator::getRandomId()},
-                        *m_presenter->applicationComponents().factory<iscore::DocumentDelegateList>().begin());
+                        *m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>().begin());
         }
     }
 

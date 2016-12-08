@@ -108,7 +108,7 @@ public:
             end(),
             previous(),
             following(),
-            concreteFactoryKey(),
+            concreteKey(),
             toSegmentSpecificData()};
   }
 

@@ -12,7 +12,7 @@ class ScenarioDocumentPresenter;
 class ScenarioDisplayedElementsToolPaletteFactory final
     : public DisplayedElementsToolPaletteFactory
 {
-  ISCORE_CONCRETE_FACTORY("d3cbf795-6e95-49bf-b727-f3a9531cf099")
+  ISCORE_CONCRETE("d3cbf795-6e95-49bf-b727-f3a9531cf099")
 public:
   bool matches(const ConstraintModel& constraint) const override;
 

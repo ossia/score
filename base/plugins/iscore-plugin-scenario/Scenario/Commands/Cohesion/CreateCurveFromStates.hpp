@@ -44,16 +44,16 @@ public:
       Id<Process::ProcessModel>
           procId)
       : m_addProcessCmd{std::move(constraint), std::move(procId),
-                        Metadata<ConcreteFactoryKey_k, ProcessModel_T>::get()}
+                        Metadata<ConcreteKey_k, ProcessModel_T>::get()}
   {
     auto proc = m_addProcessCmd.constraintPath().extend(
         Metadata<ObjectKey_k, ProcessModel_T>::get(), procId);
 
     m_slotsCmd.reserve(slotList.size());
 
-    auto fact = context.components.factory<Process::LayerFactoryList>()
+    auto fact = context.interfaces<Process::LayerFactoryList>()
                     .findDefaultFactory(
-                        Metadata<ConcreteFactoryKey_k, ProcessModel_T>::get());
+                        Metadata<ConcreteKey_k, ProcessModel_T>::get());
     ISCORE_ASSERT(fact);
     auto procData = fact->makeStaticLayerConstructionData();
 
@@ -63,7 +63,7 @@ public:
           Path<SlotModel>(elt.first),
           elt.second,
           Path<Process::ProcessModel>{proc},
-          fact->concreteFactoryKey(),
+          fact->concreteKey(),
           procData);
     }
   }

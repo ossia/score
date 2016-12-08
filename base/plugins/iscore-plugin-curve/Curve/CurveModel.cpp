@@ -266,7 +266,7 @@ void Model::fromCurveData(const std::vector<SegmentData>& curve)
   clear();
 
   auto& context = iscore::IDocument::documentContext(*this).app;
-  auto& csl = context.components.factory<SegmentList>();
+  auto& csl = context.interfaces<SegmentList>();
   CurveSegmentOrderedMap map(curve.begin(), curve.end());
   for (const auto& elt : map.get<Segments::Ordered>())
   {

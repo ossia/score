@@ -121,7 +121,7 @@ public:
             ParentComponent_T::system()
                 .context()
                 .app.components
-                .template factory<ChildComponentFactoryList_T>()}
+                .template interfaces<ChildComponentFactoryList_T>()}
   {
     auto& child_models = ParentComponent_T::template models<ChildModel_T>();
     for (auto& child_model : child_models)

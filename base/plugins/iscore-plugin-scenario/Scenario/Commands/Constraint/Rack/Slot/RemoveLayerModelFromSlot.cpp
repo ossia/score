@@ -29,7 +29,7 @@ void RemoveLayerModelFromSlot::undo() const
   Deserializer<DataStream> s{m_serializedLayerData};
 
   auto lm = deserialize_interface(
-      this->context.components.factory<Process::LayerFactoryList>(), s, &slot);
+      this->context.interfaces<Process::LayerFactoryList>(), s, &slot);
   if (lm)
     slot.layers.add(lm);
   else

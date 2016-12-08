@@ -93,12 +93,12 @@ iscore_plugin_scenario::make_applicationPlugin(
   return new ScenarioApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+std::vector<std::unique_ptr<iscore::InterfaceListBase>>
 iscore_plugin_scenario::factoryFamilies()
 {
   using namespace Scenario;
   using namespace Scenario::Command;
-  return make_ptr_vector<iscore::FactoryListInterface, Process::ProcessFactoryList, Process::StateProcessList, Process::LayerFactoryList, MoveEventList, CSPCoherencyCheckerList, ConstraintInspectorDelegateFactoryList, DisplayedElementsToolPaletteFactoryList, TriggerCommandFactoryList, DisplayedElementsProviderList, Process::InspectorWidgetDelegateFactoryList, Process::StateProcessInspectorWidgetDelegateFactoryList, DropHandlerList, ConstraintDropHandlerList>();
+  return make_ptr_vector<iscore::InterfaceListBase, Process::ProcessFactoryList, Process::StateProcessList, Process::LayerFactoryList, MoveEventList, CSPCoherencyCheckerList, ConstraintInspectorDelegateFactoryList, DisplayedElementsToolPaletteFactoryList, TriggerCommandFactoryList, DisplayedElementsProviderList, Process::InspectorWidgetDelegateFactoryList, Process::StateProcessInspectorWidgetDelegateFactoryList, DropHandlerList, ConstraintDropHandlerList>();
 }
 
 template <>
@@ -109,16 +109,16 @@ struct
   {
     using namespace Scenario;
     auto& appPlugin
-        = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+        = ctx.applicationPlugin<ScenarioApplicationPlugin>();
     return std::make_unique<ScenarioTemporalLayerFactory>(
         appPlugin.editionSettings());
   }
 };
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_scenario::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   using namespace Scenario;
   using namespace Scenario::Command;

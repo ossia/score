@@ -17,7 +17,7 @@
 namespace iscore
 {
 
-class FactoryListInterface;
+class InterfaceListBase;
 class PanelFactory;
 } // namespace iscore
 
@@ -36,16 +36,16 @@ iscore_plugin_deviceexplorer::~iscore_plugin_deviceexplorer()
 {
 }
 
-std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+std::vector<std::unique_ptr<iscore::InterfaceListBase>>
 iscore_plugin_deviceexplorer::factoryFamilies()
 {
-  return make_ptr_vector<iscore::FactoryListInterface, Device::ProtocolFactoryList, Explorer::ListeningHandlerFactoryList>();
+  return make_ptr_vector<iscore::InterfaceListBase, Device::ProtocolFactoryList, Explorer::ListeningHandlerFactoryList>();
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_deviceexplorer::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   return instantiate_factories<iscore::ApplicationContext, TL<FW<iscore::DocumentPluginFactory, Explorer::DocumentPluginFactory>, FW<iscore::PanelDelegateFactory, Explorer::PanelDelegateFactory>>>(
       ctx, key);

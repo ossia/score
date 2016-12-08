@@ -170,9 +170,9 @@ private:
 };
 
 class ISCORE_PLUGIN_RECORDING_EXPORT RecorderFactory
-    : public iscore::AbstractFactory<RecorderFactory>
+    : public iscore::Interface<RecorderFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("64999184-a705-4686-b967-14e8f79692f1")
+  ISCORE_INTERFACE("64999184-a705-4686-b967-14e8f79692f1")
 public:
   virtual ~RecorderFactory();
 

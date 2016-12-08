@@ -32,7 +32,7 @@ View::View() : m_widg{new QWidget}
       [this](int i) {
         emit clockChanged(
             m_cb->itemData(i)
-                .value<ClockManagerFactory::ConcreteFactoryKey>());
+                .value<ClockManagerFactory::ConcreteKey>());
       });
 }
 
@@ -42,7 +42,7 @@ void View::setRate(int val)
     m_sb->setValue(val);
 }
 
-void View::setClock(ClockManagerFactory::ConcreteFactoryKey k)
+void View::setClock(ClockManagerFactory::ConcreteKey k)
 {
   int idx = m_cb->findData(QVariant::fromValue(k));
   if (idx != m_cb->currentIndex())
@@ -50,7 +50,7 @@ void View::setClock(ClockManagerFactory::ConcreteFactoryKey k)
 }
 
 void View::populateClocks(
-    const std::map<QString, ClockManagerFactory::ConcreteFactoryKey>& map)
+    const std::map<QString, ClockManagerFactory::ConcreteKey>& map)
 {
   for (auto& elt : map)
   {

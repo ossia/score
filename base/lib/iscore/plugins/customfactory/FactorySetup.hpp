@@ -7,21 +7,21 @@ template <typename Base_T, typename... Args>
 struct GenericFactoryInserter
 {
   std::vector<std::unique_ptr<Base_T>> vec;
-  GenericFactoryInserter()
+  GenericFactoryInserter() noexcept
   {
     vec.reserve(sizeof...(Args));
     for_each_type<TypeList<Args...>>(*this);
   }
 
   template <typename TheClass>
-  void perform()
+  void perform() noexcept
   {
     vec.push_back(std::make_unique<TheClass>());
   }
 };
 
 template <typename... Args>
-auto make_ptr_vector()
+auto make_ptr_vector() noexcept
 {
   return GenericFactoryInserter<Args...>{}.vec;
 }
@@ -49,21 +49,21 @@ struct ContextualGenericFactoryInserter
 {
   const Context_T& context;
   std::vector<std::unique_ptr<Base_T>> vec;
-  ContextualGenericFactoryInserter(const Context_T& ctx) : context{ctx}
+  ContextualGenericFactoryInserter(const Context_T& ctx) noexcept : context{ctx}
   {
     vec.reserve(sizeof...(Args));
     for_each_type<TypeList<Args...>>(*this);
   }
 
   template <typename TheClass>
-  void perform()
+  void perform() noexcept
   {
     vec.push_back(FactoryBuilder<Context_T, TheClass>::make(context));
   }
 };
 
 template <typename Context_T, typename Base_T, typename... Args>
-auto make_ptr_vector(const Context_T& context)
+auto make_ptr_vector(const Context_T& context) noexcept
 {
   return ContextualGenericFactoryInserter<Context_T, Base_T, Args...>{context}
       .vec;
@@ -75,28 +75,28 @@ struct FW_T
   static constexpr const auto size = sizeof...(Types_T);
 
   template <typename Base>
-  static constexpr bool assert_baseof()
+  static constexpr bool assert_baseof() noexcept
   {
     return true;
   }
   template <typename Base, typename Child, typename... Children>
-  static constexpr bool assert_baseof()
+  static constexpr bool assert_baseof() noexcept
   {
     return std::is_base_of<Base, Child>::value
            && assert_baseof<Base, Children...>();
   }
 
   template <typename Matcher_T>
-  static bool visit(Matcher_T& matcher)
+  static bool visit(Matcher_T& matcher) noexcept
   {
     static_assert(
         assert_baseof<Factory_T, Types_T...>(),
         "A type is not child of the parent.");
-    if (matcher.fact == Factory_T::static_abstractFactoryKey())
+    if (matcher.fact == Factory_T::static_interfaceKey())
     {
       matcher.vec = make_ptr_vector<
                         std::remove_const_t<std::remove_reference_t<decltype(matcher.ctx)>>,
-                        iscore::FactoryInterfaceBase,
+                        iscore::InterfaceBase,
                         Types_T...>(matcher.ctx);
       return true;
     }
@@ -124,7 +124,7 @@ struct TL : public TypeList<Args...>
 {
 public:
   // Returns number total number of concrete factories.
-  static constexpr auto count()
+  static constexpr auto count() noexcept
   {
     return counter<Args...>::size;
   }
@@ -138,11 +138,11 @@ struct ApplicationContext;
 struct FactoryMatcher
 {
   const iscore::ApplicationContext& ctx;
-  const iscore::AbstractFactoryKey& fact;
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>& vec;
+  const iscore::InterfaceKey& fact;
+  std::vector<std::unique_ptr<iscore::InterfaceBase>>& vec;
 
   template <typename FactoryList_T>
-  bool visit_if() const
+  bool visit_if() const noexcept
   {
     return FactoryList_T::visit(*this);
   }
@@ -150,9 +150,9 @@ struct FactoryMatcher
 
 template <typename Context_T, typename Factories_T>
 auto instantiate_factories(
-    const Context_T& ctx, const iscore::AbstractFactoryKey& key)
+    const Context_T& ctx, const iscore::InterfaceKey& key) noexcept
 {
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> vec;
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> vec;
   vec.reserve(Factories_T::count());
 
   for_each_type_if<Factories_T>(FactoryMatcher{ctx, key, vec});

@@ -39,7 +39,7 @@ void AddStateProcessToState::redo() const
 {
   auto& state = m_path.find();
   // Create process model
-  auto proc = context.components.factory<Process::StateProcessList>()
+  auto proc = context.interfaces<Process::StateProcessList>()
                   .get(m_processName)
                   ->make(m_createdProcessId, &state);
 

@@ -124,7 +124,7 @@ void ScenarioDocumentModel::initializeNewDocument(
 
   AddOnlyProcessToConstraint cmd1{
       iscore::IDocument::path(m_baseScenario->constraint()),
-      Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get()};
+      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
   cmd1.redo();
 
   AddRackToConstraint cmd2{
@@ -277,7 +277,7 @@ void ScenarioDocumentModel::setDisplayedConstraint(ConstraintModel& constraint)
 
   auto& provider
       = iscore::IDocument::documentContext(*this)
-            .app.components.factory<DisplayedElementsProviderList>();
+            .app.interfaces<DisplayedElementsProviderList>();
   displayedElements.setDisplayedElements(
       provider.make(&DisplayedElementsProvider::make, constraint));
 

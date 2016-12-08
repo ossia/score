@@ -5,6 +5,7 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <map>
 #include <utility>
 
@@ -74,7 +75,7 @@ ConstraintModel::ConstraintModel(
   }
 
   auto& procs
-      = iscore::AppContext().components.factory<Process::LayerFactoryList>();
+      = iscore::AppContext().interfaces<Process::LayerFactoryList>();
   for (const auto& rack : source.racks)
   {
     racks.add(new RackModel{
@@ -84,7 +85,7 @@ ConstraintModel::ConstraintModel(
           {
             // We can safely reuse the same id since it's in a different slot.
             auto proc = processPairs[&lm.processModel()];
-            auto fact = procs.findDefaultFactory(proc->concreteFactoryKey());
+            auto fact = procs.findDefaultFactory(proc->concreteKey());
             // TODO harmonize the order of parameters (source first, then new
             // id)
             target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));

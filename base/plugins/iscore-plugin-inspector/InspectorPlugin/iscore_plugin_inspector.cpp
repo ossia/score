@@ -5,7 +5,7 @@
 
 namespace iscore
 {
-class FactoryListInterface;
+class InterfaceListBase;
 class PanelFactory;
 } // namespace iscore
 
@@ -19,19 +19,19 @@ iscore_plugin_inspector::~iscore_plugin_inspector()
 {
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_inspector::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   return instantiate_factories<iscore::ApplicationContext, TL<FW<iscore::PanelDelegateFactory, InspectorPanel::PanelDelegateFactory>>>(
       ctx, key);
 }
 
-std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+std::vector<std::unique_ptr<iscore::InterfaceListBase>>
 iscore_plugin_inspector::factoryFamilies()
 {
-  return make_ptr_vector<iscore::FactoryListInterface, Inspector::InspectorWidgetList>();
+  return make_ptr_vector<iscore::InterfaceListBase, Inspector::InspectorWidgetList>();
 }
 
 iscore::Version iscore_plugin_inspector::version() const

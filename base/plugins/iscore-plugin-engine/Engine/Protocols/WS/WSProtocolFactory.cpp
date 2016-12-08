@@ -33,7 +33,7 @@ const Device::DeviceSettings& WSProtocolFactory::defaultSettings() const
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
-    s.protocol = concreteFactoryKey();
+    s.protocol = concreteKey();
     s.name = "WS";
     WSSpecificSettings specif;
     s.deviceSpecificSettings = QVariant::fromValue(specif);

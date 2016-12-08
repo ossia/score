@@ -19,19 +19,19 @@ iscore_plugin_curve::iscore_plugin_curve() : QObject{}
   qRegisterMetaTypeStreamOperators<Curve::Settings::Mode>();
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_curve::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& factoryName) const
+    const iscore::InterfaceKey& factoryName) const
 {
   return instantiate_factories<iscore::ApplicationContext, TL<FW<Curve::SegmentFactory, Curve::SegmentFactory_T<Curve::LinearSegment>, Curve::SegmentFactory_T<Curve::PowerSegment>, Curve::SegmentFactory_T<Curve::PointArraySegment>>, FW<iscore::SettingsDelegateFactory, Curve::Settings::Factory>>>(
       ctx, factoryName);
 }
 
-std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+std::vector<std::unique_ptr<iscore::InterfaceListBase>>
 iscore_plugin_curve::factoryFamilies()
 {
-  return make_ptr_vector<iscore::FactoryListInterface, Curve::SegmentList>();
+  return make_ptr_vector<iscore::InterfaceListBase, Curve::SegmentList>();
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap>

@@ -19,7 +19,7 @@ DocumentModel::DocumentModel(
     : IdentifiedObject{id, "DocumentModel", parent}
     , m_model{fact.make(ctx, this)}
 {
-  for (auto& appPlug : ctx.app.components.applicationPlugins())
+  for (auto& appPlug : ctx.app.applicationPlugins())
   {
     appPlug->on_initDocument(ctx.document);
   }

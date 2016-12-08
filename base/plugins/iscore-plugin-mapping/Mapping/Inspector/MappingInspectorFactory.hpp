@@ -9,6 +9,6 @@ class MappingInspectorFactory final
     : public Process::
           InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
 {
-  ISCORE_CONCRETE_FACTORY("14b3dc85-6152-4526-8d61-6b038ec5d676")
+  ISCORE_CONCRETE("14b3dc85-6152-4526-8d61-6b038ec5d676")
 };
 }

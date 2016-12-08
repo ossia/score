@@ -9,7 +9,7 @@ class ObjectKey_k;
 class PrettyName_k;
 class UndoName_k;
 class Description_k;
-class ConcreteFactoryKey_k;
+class ConcreteKey_k;
 class Json_k;
 
 #define AUTO_METADATA(Export, Model, Key, Text) \
@@ -64,7 +64,7 @@ class Json_k;
   };
 
 #define UUID_METADATA(Export, Factory, Model, Uuid) \
-  STATIC_METADATA(Export, Model, ConcreteFactoryKey_k, UuidKey<Factory>, Uuid)
+  STATIC_METADATA(Export, Model, ConcreteKey_k, UuidKey<Factory>, Uuid)
 
 #define MODEL_METADATA(Export, Factory, Model, Uuid, ObjectKey, PrettyName) \
   OBJECTKEY_METADATA(Export, Model, ObjectKey)                              \

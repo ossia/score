@@ -24,8 +24,8 @@ namespace Scenario
 EventActions::EventActions(ScenarioApplicationPlugin* parent)
     : m_parent{parent}
     , m_triggerCommandFactory{
-          parent->context.components
-              .factory<Command::TriggerCommandFactoryList>()}
+          parent->context
+              .interfaces<Command::TriggerCommandFactoryList>()}
 {
   using namespace iscore;
   m_addTrigger = new QAction{tr("Add Trigger"), this};

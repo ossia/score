@@ -39,7 +39,7 @@ Visitor<Reader<DataStream>>::readFrom(const Curve::SegmentData& segmt)
   m_stream << segmt.id << segmt.start << segmt.end << segmt.previous
            << segmt.following << segmt.type;
 
-  auto& csl = components.factory<Curve::SegmentList>();
+  auto& csl = components.interfaces<Curve::SegmentList>();
   auto segmt_fact = csl.get(segmt.type);
 
   ISCORE_ASSERT(segmt_fact);
@@ -56,7 +56,7 @@ Visitor<Writer<DataStream>>::writeTo(Curve::SegmentData& segmt)
   m_stream >> segmt.id >> segmt.start >> segmt.end >> segmt.previous
       >> segmt.following >> segmt.type;
 
-  auto& csl = components.factory<Curve::SegmentList>();
+  auto& csl = components.interfaces<Curve::SegmentList>();
   auto segmt_fact = csl.get(segmt.type);
   ISCORE_ASSERT(segmt_fact);
   segmt.specificSegmentData

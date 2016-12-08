@@ -185,7 +185,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
   // Durations
   auto& ctrl
-      = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
+      = ctx.app.applicationPlugin<ScenarioApplicationPlugin>();
   m_durationSection
       = new DurationWidget{ctrl.editionSettings(), *m_delegate, this};
   m_properties.push_back(m_durationSection);

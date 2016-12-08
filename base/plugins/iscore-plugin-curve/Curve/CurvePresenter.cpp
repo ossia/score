@@ -64,7 +64,7 @@ Presenter::Presenter(
     View* view,
     QObject* parent)
     : QObject{parent}
-    , m_curveSegments{context.app.components.factory<SegmentList>()}
+    , m_curveSegments{context.app.interfaces<SegmentList>()}
     , m_model{model}
     , m_view{view}
     , m_commandDispatcher{context.commandStack}
@@ -268,7 +268,7 @@ void Presenter::fillContextMenu(
   {
     auto act = typeMenu->addAction(seg.prettyName());
     connect(act, &QAction::triggered, this, [
-      this, key = seg.concreteFactoryKey()
+      this, key = seg.concreteKey()
     ]() { updateSegmentsType(key); });
   }
 
@@ -554,7 +554,7 @@ void Presenter::removeSelection()
       d.start = QPointF{0, y0};
       d.end = QPointF{1, y1};
       d.id = getSegmentId(newSegments);
-      d.type = Metadata<ConcreteFactoryKey_k, DefaultCurveSegmentModel>::get();
+      d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
       d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
       newSegments.push_back(d);
     }
@@ -572,7 +572,7 @@ void Presenter::removeSelection()
         d.following = it->id;
         d.id = getSegmentId(newSegments);
         d.type
-            = Metadata<ConcreteFactoryKey_k, DefaultCurveSegmentModel>::get();
+            = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
         d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
         it->previous = d.id;
 
@@ -591,7 +591,7 @@ void Presenter::removeSelection()
         d.previous = it->id;
         d.id = getSegmentId(newSegments);
         d.type
-            = Metadata<ConcreteFactoryKey_k, DefaultCurveSegmentModel>::get();
+            = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
         d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
         it->following = d.id;
 
@@ -622,7 +622,7 @@ void Presenter::removeSelection()
         d.following = next->id;
         d.id = getSegmentId(newSegments);
         d.type
-            = Metadata<ConcreteFactoryKey_k, DefaultCurveSegmentModel>::get();
+            = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
         d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
         it->following = d.id;
         next->previous = d.id;

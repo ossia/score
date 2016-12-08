@@ -213,7 +213,7 @@ Q_DECLARE_METATYPE(Curve::SegmentData)
 
 #define CURVE_SEGMENT_FACTORY_METADATA(Export, Model, Uuid) \
   template <>                                               \
-  struct Export Metadata<ConcreteFactoryKey_k, Model>       \
+  struct Export Metadata<ConcreteKey_k, Model>       \
   {                                                         \
     static const auto& get()                                \
     {                                                       \

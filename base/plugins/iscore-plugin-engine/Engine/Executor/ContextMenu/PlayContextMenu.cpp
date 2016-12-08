@@ -160,7 +160,7 @@ PlayContextMenu::PlayContextMenu(
   });
 
   auto& exec_ctx
-      = m_ctx.components.applicationPlugin<ScenarioApplicationPlugin>()
+      = m_ctx.applicationPlugin<ScenarioApplicationPlugin>()
             .execution();
   m_playFromHere = new QAction{tr("Play from here"), this};
   connect(m_playFromHere, &QAction::triggered, this, [&]() {

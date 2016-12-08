@@ -119,7 +119,7 @@ void ProcessTabWidget::displaySharedProcess(
   const auto& fact
       = m_constraintWidget.context()
             .app.components
-            .factory<Process::InspectorWidgetDelegateFactoryList>();
+            .interfaces<Process::InspectorWidgetDelegateFactoryList>();
   if (auto widg = fact.make(
           &Process::InspectorWidgetDelegateFactory::make, process,
           m_constraintWidget.context(), newProc))

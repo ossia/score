@@ -105,13 +105,13 @@ private:
   iscore::GUIApplicationContextPlugin*
   make_applicationPlugin(const iscore::GUIApplicationContext& app) override;
 
-  std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+  std::vector<std::unique_ptr<iscore::InterfaceListBase>>
   factoryFamilies() override;
 
   // Contains the OSC, MIDI, Minuit factories
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext&,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
   QStringList required() const override;
   QStringList offered() const override;

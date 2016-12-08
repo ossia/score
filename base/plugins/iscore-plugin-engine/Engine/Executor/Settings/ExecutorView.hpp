@@ -17,14 +17,14 @@ public:
   View();
 
   void setRate(int);
-  void setClock(ClockManagerFactory::ConcreteFactoryKey k);
+  void setClock(ClockManagerFactory::ConcreteKey k);
 
   void populateClocks(
-      const std::map<QString, ClockManagerFactory::ConcreteFactoryKey>&);
+      const std::map<QString, ClockManagerFactory::ConcreteKey>&);
 
 signals:
   void rateChanged(int);
-  void clockChanged(ClockManagerFactory::ConcreteFactoryKey);
+  void clockChanged(ClockManagerFactory::ConcreteKey);
 
 private:
   QWidget* getWidget() override;

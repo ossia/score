@@ -78,7 +78,7 @@ void Document::init()
 {
   con(m_selectionStack, &SelectionStack::currentSelectionChanged, this,
       [&](const Selection& s) {
-        for (auto& panel : m_context.app.components.panels())
+        for (auto& panel : m_context.app.panels())
         {
           panel.setNewSelection(s);
         }

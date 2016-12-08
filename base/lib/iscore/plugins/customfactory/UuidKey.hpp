@@ -5,6 +5,8 @@
 #include <iscore_lib_base_export.h>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
+
 class JSONObject;
 #if defined(__GNUC__) && __GNUC__ < 6
 // GCC 5.x isn't happy with throw in constexpr...
@@ -490,7 +492,6 @@ struct TSerializer<DataStream, void, UuidKey<U>>
   }
 };
 
-#include <iscore/serialization/JSONValueVisitor.hpp>
 template <typename U>
 struct TSerializer<JSONValue, UuidKey<U>>
 {

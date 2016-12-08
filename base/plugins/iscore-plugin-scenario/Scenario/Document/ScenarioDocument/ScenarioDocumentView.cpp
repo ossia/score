@@ -142,7 +142,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->setObjectName("ScenarioViewer");
 
   // Cursors
-  auto& es = ctx.components.applicationPlugin<ScenarioApplicationPlugin>()
+  auto& es = ctx.applicationPlugin<ScenarioApplicationPlugin>()
                  .editionSettings();
   con(es, &EditionSettings::toolChanged, this, [=](Scenario::Tool t) {
     switch (t)

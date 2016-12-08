@@ -15,9 +15,9 @@ public:
   virtual ~GenericProcessModelFactory() = default;
 
 private:
-  UuidKey<Process::ProcessModelFactory> concreteFactoryKey() const override
+  UuidKey<Process::ProcessModelFactory> concreteKey() const noexcept override
   {
-    return Metadata<ConcreteFactoryKey_k, Model_T>::get();
+    return Metadata<ConcreteKey_k, Model_T>::get();
   }
 
   QString prettyName() const override
@@ -60,9 +60,9 @@ public:
   virtual ~GenericLayerFactory() = default;
 
 private:
-  UuidKey<Process::LayerFactory> concreteFactoryKey() const override
+  UuidKey<Process::LayerFactory> concreteKey() const noexcept override
   {
-    return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get();
+    return Metadata<ConcreteKey_k, LayerModel_T>::get();
   }
 
   LayerModel_T* makeLayer_impl(
@@ -104,7 +104,7 @@ private:
 
   bool matches(const UuidKey<Process::ProcessModelFactory>& p) const override
   {
-    return p == Metadata<ConcreteFactoryKey_k, Model_T>::get();
+    return p == Metadata<ConcreteKey_k, Model_T>::get();
   }
 };
 
@@ -178,14 +178,14 @@ public:
   virtual ~GenericLayerFactory() = default;
 
 private:
-  UuidKey<Process::LayerFactory> concreteFactoryKey() const override
+  UuidKey<Process::LayerFactory> concreteKey() const noexcept override
   {
-    return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get();
+    return Metadata<ConcreteKey_k, LayerModel_T>::get();
   }
 
   bool matches(const UuidKey<Process::ProcessModelFactory>& p) const override
   {
-    return p == Metadata<ConcreteFactoryKey_k, Model_T>::get();
+    return p == Metadata<ConcreteKey_k, Model_T>::get();
   }
 
   LayerModel_T* makeLayer_impl(

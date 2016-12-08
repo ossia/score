@@ -33,7 +33,7 @@ MoveEventMeta::MoveEventMeta(
     , m_eventId{std::move(eventId)}
     , m_newY{y}
     , m_moveEventImplementation(
-          context.components.factory<MoveEventList>()
+          context.interfaces<MoveEventList>()
               .get(context, MoveEventFactoryInterface::Strategy::MOVE)
               .make(
                   std::move(scenarioPath), m_eventId, std::move(newDate),
@@ -104,7 +104,7 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
   s >> m_scenario >> m_eventId >> m_oldY >> m_newY >> cmdData;
 
   m_moveEventImplementation
-      = context.components.factory<MoveEventList>()
+      = context.interfaces<MoveEventList>()
             .get(context, MoveEventFactoryInterface::Strategy::MOVE)
             .make();
 

@@ -90,7 +90,7 @@ ScenarioComponent::ScenarioComponent(
   }
 
   if (auto fact
-      = ctx.doc.app.components.factory<Scenario::CSPCoherencyCheckerList>()
+      = ctx.doc.app.interfaces<Scenario::CSPCoherencyCheckerList>()
             .get())
   {
     m_checker = fact->make(element, ctx.doc.app, m_properties);

@@ -124,7 +124,7 @@ bool MessageRecorder::setup(
   // about their generation.
   auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
       Path<Scenario::ConstraintModel>(box.constraint),
-      Metadata<ConcreteFactoryKey_k, RecordedMessages::ProcessModel>::get()};
+      Metadata<ConcreteKey_k, RecordedMessages::ProcessModel>::get()};
 
   cmd_proc->redo();
   context.dispatcher.submitCommand(cmd_proc);

@@ -31,7 +31,7 @@ class DocumentPlugin;
  * iscore::ApplicationContext :
  *
  * @code
- * auto& plugin = context.components.applicationPlugin<MyApplicationPlugin>();
+ * auto& plugin = context.applicationPlugin<MyApplicationPlugin>();
  * @endcode
  *
  * The loading procedure is as follows :

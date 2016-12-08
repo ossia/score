@@ -17,9 +17,9 @@ class SettingsDelegateView;
  * Reimplement in order to provide custom settings for the plug-in.
  */
 class ISCORE_LIB_BASE_EXPORT SettingsDelegateFactory
-    : public iscore::AbstractFactory<SettingsDelegateFactory>
+    : public iscore::Interface<SettingsDelegateFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("f18653bc-7ca9-44aa-a08b-4188d086b46e")
+  ISCORE_INTERFACE("f18653bc-7ca9-44aa-a08b-4188d086b46e")
 
 public:
   virtual ~SettingsDelegateFactory();
@@ -41,7 +41,7 @@ protected:
       = 0;
 };
 
-using SettingsDelegateFactoryList = ConcreteFactoryList<iscore::SettingsDelegateFactory>;
+using SettingsDelegateFactoryList = InterfaceList<iscore::SettingsDelegateFactory>;
 
 template <typename Model_T, typename Presenter_T, typename View_T>
 class SettingsDelegateFactory_T : public SettingsDelegateFactory
@@ -72,6 +72,6 @@ class SettingsDelegateFactory_T : public SettingsDelegateFactory
   class Factory final                                                    \
       : public iscore::SettingsDelegateFactory_T<Model, Presenter, View> \
   {                                                                      \
-    ISCORE_CONCRETE_FACTORY(Uuid)                                        \
+    ISCORE_CONCRETE(Uuid)                                        \
   };
 }

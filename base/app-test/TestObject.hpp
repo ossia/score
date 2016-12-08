@@ -73,7 +73,7 @@ class TestObject : public QObject
                 m_context.documents.forceCloseDocument(m_context, *doc);
                 QApplication::processEvents();
 
-                auto& doctype = *m_context.components.factory<iscore::DocumentDelegateList>().begin();
+                auto& doctype = *m_context.interfaces<iscore::DocumentDelegateList>().begin();
 
                 auto ba_doc = m_context.documents.loadDocument(m_context, byte_arr, doctype);
                 QApplication::processEvents();

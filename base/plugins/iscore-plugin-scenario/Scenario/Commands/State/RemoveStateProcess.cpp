@@ -17,14 +17,14 @@ RemoveStateProcess::RemoveStateProcess(
 {
   auto& state = m_path.find();
   auto& p = state.stateProcesses.at(m_processId);
-  m_processUuid = p.concreteFactoryKey();
+  m_processUuid = p.concreteKey();
 }
 
 void RemoveStateProcess::undo() const
 {
   auto& state = m_path.find();
   // Create process model
-  auto proc = context.components.factory<Process::StateProcessList>()
+  auto proc = context.interfaces<Process::StateProcessList>()
                   .get(m_processUuid)
                   ->make(m_processId, &state);
 

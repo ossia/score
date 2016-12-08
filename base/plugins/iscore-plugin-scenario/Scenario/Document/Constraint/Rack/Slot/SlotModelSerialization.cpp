@@ -54,7 +54,7 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
   int32_t lm_size;
   m_stream >> lm_size;
 
-  auto& layers = components.factory<Process::LayerFactoryList>();
+  auto& layers = components.interfaces<Process::LayerFactoryList>();
   for (int i = 0; i < lm_size; i++)
   {
     auto lm = deserialize_interface(layers, *this, &slot);
@@ -97,7 +97,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
 {
   QJsonArray arr = m_obj["LayerModels"].toArray();
 
-  auto& layers = components.factory<Process::LayerFactoryList>();
+  auto& layers = components.interfaces<Process::LayerFactoryList>();
   for (const auto& json_vref : arr)
   {
     Deserializer<JSONObject> deserializer{json_vref.toObject()};

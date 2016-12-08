@@ -6,16 +6,16 @@
 
 #define ISCORE_ABSTRACT_COMPONENT_FACTORY(Type)                        \
 public:                                                                \
-  static Q_DECL_RELAXED_CONSTEXPR iscore::AbstractFactoryKey           \
-  static_abstractFactoryKey()                                          \
+  static Q_DECL_RELAXED_CONSTEXPR iscore::InterfaceKey           \
+  static_interfaceKey() noexcept                                          \
   {                                                                    \
-    return static_cast<iscore::AbstractFactoryKey>(                    \
+    return static_cast<iscore::InterfaceKey>(                    \
         Type::static_key().impl());                                    \
   }                                                                    \
                                                                        \
-  iscore::AbstractFactoryKey abstractFactoryKey() const final override \
+  iscore::InterfaceKey interfaceKey() const noexcept final override \
   {                                                                    \
-    return static_abstractFactoryKey();                                \
+    return interfaceKey();                                \
   }                                                                    \
                                                                        \
 private:
@@ -28,7 +28,7 @@ template <
     typename System_T,           // e.g. LocalTree::DocumentPlugin
     typename ComponentFactory_T> // e.g. ProcessComponent
 class GenericComponentFactory
-    : public iscore::AbstractFactory<ComponentFactory_T>
+    : public iscore::Interface<ComponentFactory_T>
 {
 public:
   using base_model_type = Model_T;
@@ -43,7 +43,7 @@ template <
     typename System_T,  // e.g. LocalTree::DocumentPlugin
     typename Factory_T> // e.g. ProcessComponentFactory
 class GenericComponentFactoryList final
-    : public iscore::ConcreteFactoryList<Factory_T>
+    : public iscore::InterfaceList<Factory_T>
 {
 public:
   template <typename... Args>
@@ -67,7 +67,7 @@ template <
     typename Factory_T, // e.g. ProcessComponentFactory
     typename DefaultFactory_T>
 class DefaultedGenericComponentFactoryList final
-    : public iscore::ConcreteFactoryList<Factory_T>
+    : public iscore::InterfaceList<Factory_T>
 {
 public:
   template <typename... Args>

@@ -9,9 +9,9 @@ class ConstraintModel;
 class ScenarioDocumentPresenter;
 
 class DisplayedElementsToolPaletteFactory
-    : public iscore::AbstractFactory<DisplayedElementsToolPaletteFactory>
+    : public iscore::Interface<DisplayedElementsToolPaletteFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("0884edb9-81e4-44ff-856f-fbc772f6d683")
+  ISCORE_INTERFACE("0884edb9-81e4-44ff-856f-fbc772f6d683")
 public:
   virtual ~DisplayedElementsToolPaletteFactory();
 

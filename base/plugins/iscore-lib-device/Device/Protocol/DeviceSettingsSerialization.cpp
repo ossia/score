@@ -31,7 +31,7 @@ Visitor<Reader<DataStream>>::readFrom(const Device::DeviceSettings& n)
   // TODO try to see if this pattern is refactorable with the similar thing
   // usef for CurveSegmentData.
 
-  auto& pl = components.factory<Device::ProtocolFactoryList>();
+  auto& pl = components.interfaces<Device::ProtocolFactoryList>();
   auto prot = pl.get(n.protocol);
   if (prot)
   {
@@ -52,7 +52,7 @@ Visitor<Writer<DataStream>>::writeTo(Device::DeviceSettings& n)
 {
   m_stream >> n.name >> n.protocol;
 
-  auto& pl = components.factory<Device::ProtocolFactoryList>();
+  auto& pl = components.interfaces<Device::ProtocolFactoryList>();
   auto prot = pl.get(n.protocol);
   if (prot)
   {
@@ -73,7 +73,7 @@ Visitor<Reader<JSONObject>>::readFrom(const Device::DeviceSettings& n)
   m_obj[strings.Name] = n.name;
   m_obj[strings.Protocol] = toJsonValue(n.protocol);
 
-  auto& pl = components.factory<Device::ProtocolFactoryList>();
+  auto& pl = components.interfaces<Device::ProtocolFactoryList>();
   auto prot = pl.get(n.protocol);
   if (prot)
   {
@@ -94,7 +94,7 @@ Visitor<Writer<JSONObject>>::writeTo(Device::DeviceSettings& n)
   n.protocol = fromJsonValue<UuidKey<Device::ProtocolFactory>>(
       m_obj[strings.Protocol]);
 
-  auto& pl = components.factory<Device::ProtocolFactoryList>();
+  auto& pl = components.interfaces<Device::ProtocolFactoryList>();
   auto prot = pl.get(n.protocol);
   if (prot)
   {

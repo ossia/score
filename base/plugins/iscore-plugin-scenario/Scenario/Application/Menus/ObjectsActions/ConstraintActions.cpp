@@ -67,7 +67,7 @@ ConstraintActions::ConstraintActions(ScenarioApplicationPlugin* parent)
     if (selectedConstraintsInCurrentDocument(appContext).isEmpty())
       return;
 
-    auto& fact = appContext.components.factory<Process::ProcessFactoryList>();
+    auto& fact = appContext.interfaces<Process::ProcessFactoryList>();
     auto dialog = new AddProcessDialog{fact, qApp->activeWindow()};
 
     connect(

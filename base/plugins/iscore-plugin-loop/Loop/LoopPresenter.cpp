@@ -206,7 +206,7 @@ void LayerPresenter::fillContextMenu(
   auto selected = layerModel().processModel().selectedChildren();
 
   auto& appPlug =
-  m_context.context.app.components.applicationPlugin<Scenario::ScenarioApplicationPlugin>();
+  m_context.context.app.applicationPlugin<Scenario::ScenarioApplicationPlugin>();
   for(auto elt : appPlug.pluginActions())
   {
       if(auto oma = dynamic_cast<Scenario::ObjectMenuActions*>(elt))

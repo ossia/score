@@ -39,9 +39,9 @@ public:
   virtual ~iscore_plugin_automation();
 
 private:
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
   std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
   make_commands() override;
 

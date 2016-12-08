@@ -16,9 +16,9 @@ public:
   virtual ~iscore_plugin_pluginsettings();
 
 private:
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
   iscore::Version version() const override;
   UuidKey<iscore::Plugin> key() const override;

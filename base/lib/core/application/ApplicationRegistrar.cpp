@@ -82,7 +82,7 @@ void ApplicationRegistrar::registerCommands(
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactories(
-    iscore::hash_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&&
+    iscore::hash_map<iscore::InterfaceKey, std::unique_ptr<InterfaceListBase>>&&
             facts)
 {
   m_components.factories = std::move(facts);
@@ -90,9 +90,9 @@ void ApplicationRegistrar::registerFactories(
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactory(
-    std::unique_ptr<FactoryListInterface> cmds)
+    std::unique_ptr<InterfaceListBase> cmds)
 {
   m_components.factories.insert(
-      std::make_pair(cmds->abstractFactoryKey(), std::move(cmds)));
+      std::make_pair(cmds->interfaceKey(), std::move(cmds)));
 }
 }

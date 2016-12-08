@@ -19,7 +19,7 @@ namespace iscore
 {
 
 class DocumentDelegateFactory;
-class FactoryListInterface;
+class InterfaceListBase;
 class PanelFactory;
 } // namespace iscore
 
@@ -52,14 +52,14 @@ private:
   make_commands() override;
 
   // Offre la factory de Process
-  std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+  std::vector<std::unique_ptr<iscore::InterfaceListBase>>
   factoryFamilies() override;
 
   // Crée les objets correspondant aux factories passées en argument.
   // ex. si QString = Process, renvoie un vecteur avec ScenarioFactory.
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext&,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
   QStringList required() const override;
   QStringList offered() const override;

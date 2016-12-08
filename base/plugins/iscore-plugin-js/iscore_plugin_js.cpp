@@ -23,10 +23,10 @@ iscore_plugin_js::~iscore_plugin_js()
 {
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_js::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, JS::ProcessFactory>, FW<Process::LayerFactory, JS::LayerFactory>, FW<Process::StateProcessFactory, JS::StateProcessFactory>, FW<Process::InspectorWidgetDelegateFactory, JS::InspectorFactory>, FW<Process::StateProcessInspectorWidgetDelegateFactory, JS::StateInspectorFactory>, FW<Engine::Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>, FW<Engine::Execution::StateProcessComponentFactory, JS::Executor::StateProcessComponentFactory>>>(
       ctx, key);

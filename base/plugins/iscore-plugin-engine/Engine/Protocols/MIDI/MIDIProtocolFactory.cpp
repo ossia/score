@@ -33,7 +33,7 @@ const Device::DeviceSettings& MIDIProtocolFactory::defaultSettings() const
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
-    s.protocol = concreteFactoryKey();
+    s.protocol = concreteKey();
     s.name = "Midi";
     MIDISpecificSettings specif;
     s.deviceSpecificSettings = QVariant::fromValue(specif);
