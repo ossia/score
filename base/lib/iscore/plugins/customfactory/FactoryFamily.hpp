@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿#ifndef FACTORY_FAMILY_HPP_2016_12_08_18_31
+#define FACTORY_FAMILY_HPP_2016_12_08_18_31
+
 #include <ossia/detail/algorithms.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/tools/ForEachType.hpp>
@@ -14,7 +16,7 @@
 namespace iscore
 {
 /**
- * @brief Interface to access factories.
+ * @brief InterfaceListBase Interface to access factories.
  *
  * Actual instances are available through iscore::ApplicationContext:
  *
@@ -53,8 +55,7 @@ public:
 };
 
 /**
- * @class InterfaceList
- * @brief Default implementation of InterfaceListBase
+ * @brief InterfaceList Default implementation of InterfaceListBase
  *
  * The factories are stored in a hash_map. Keys shall be UUIDs.
  * This class can be used in range-based loops :
@@ -209,3 +210,4 @@ public:
   }
 };
 }
+#endif
