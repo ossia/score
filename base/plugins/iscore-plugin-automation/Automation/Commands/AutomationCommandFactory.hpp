@@ -3,5 +3,5 @@
 
 namespace Automation
 {
-const CommandParentFactoryKey& CommandFactoryName();
+const CommandGroupKey& CommandFactoryName();
 }

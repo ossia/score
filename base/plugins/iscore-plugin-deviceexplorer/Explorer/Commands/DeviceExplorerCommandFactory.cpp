@@ -5,9 +5,9 @@ namespace Explorer
 {
 namespace Command
 {
-const CommandParentFactoryKey& DeviceExplorerCommandFactoryName()
+const CommandGroupKey& DeviceExplorerCommandFactoryName()
 {
-  static const CommandParentFactoryKey key{"DeviceExplorerApplicationPlugin"};
+  static const CommandGroupKey key{"DeviceExplorerApplicationPlugin"};
   return key;
 }
 }

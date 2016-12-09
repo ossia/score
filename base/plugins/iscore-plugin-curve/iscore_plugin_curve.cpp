@@ -34,11 +34,11 @@ iscore_plugin_curve::factoryFamilies()
   return make_ptr_vector<iscore::InterfaceListBase, Curve::SegmentList>();
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_curve::make_commands()
 {
   using namespace Curve;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Curve::CommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<

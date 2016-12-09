@@ -79,11 +79,11 @@ class AddProcessToConstraint final : public AddProcessToConstraintBase
   friend AddProcessDelegate;
 
 public:
-  const CommandParentFactoryKey& parentKey() const noexcept override
+  const CommandGroupKey& parentKey() const noexcept override
   {
     return ScenarioCommandFactoryName();
   }
-  const CommandFactoryKey& key() const noexcept override
+  const CommandKey& key() const noexcept override
   {
     return static_key();
   }
@@ -91,7 +91,7 @@ public:
   {
     return QObject::tr("Add a process to a constraint");
   }
-  static const CommandFactoryKey& static_key() noexcept
+  static const CommandKey& static_key() noexcept
   {
     return AddProcessDelegate::static_key();
   }
@@ -172,9 +172,9 @@ private:
   proc_t& m_cmd;
 
 public:
-  static const CommandFactoryKey& static_key()
+  static const CommandKey& static_key()
   {
-    static const CommandFactoryKey var{"AddProcessDelegate_NoRacks"};
+    static const CommandKey var{"AddProcessDelegate_NoRacks"};
     return var;
   }
 
@@ -260,9 +260,9 @@ private:
   proc_t& m_cmd;
 
 public:
-  static const CommandFactoryKey& static_key()
+  static const CommandKey& static_key()
   {
-    static const CommandFactoryKey var{
+    static const CommandKey var{
         "AddProcessDelegate_HasNoSlots_HasRacks_NotBaseConstraint"};
     return var;
   }
@@ -336,9 +336,9 @@ private:
   proc_t& m_cmd;
 
 public:
-  static const CommandFactoryKey& static_key()
+  static const CommandKey& static_key()
   {
-    static const CommandFactoryKey var{
+    static const CommandKey var{
         "AddProcessDelegate_HasSlots_HasRacks_NotBaseConstraint"};
     return var;
   }
@@ -412,9 +412,9 @@ class AddProcessDelegate<HasRacks, IsBaseConstraint>
       = AddProcessToConstraint<AddProcessDelegate<HasRacks, IsBaseConstraint>>;
 
 public:
-  static const CommandFactoryKey& static_key()
+  static const CommandKey& static_key()
   {
-    static const CommandFactoryKey var{
+    static const CommandKey var{
         "AddProcessDelegateWhenRacksAndBaseConstraint"};
     return var;
   }

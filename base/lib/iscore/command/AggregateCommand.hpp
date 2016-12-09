@@ -40,8 +40,10 @@ public:
   void undo() const override;
   void redo() const override;
 
+  //! Add a command to be redone after the others.
   void addCommand(iscore::Command* cmd);
 
+  //! Number of commands in this aggregate
   int count() const;
 
   const auto& commands() const

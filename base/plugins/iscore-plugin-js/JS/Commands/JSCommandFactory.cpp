@@ -1,8 +1,8 @@
 #include "JSCommandFactory.hpp"
 #include <iscore/command/Command.hpp>
 
-const CommandParentFactoryKey& JS::CommandFactoryName()
+const CommandGroupKey& JS::CommandFactoryName()
 {
-  static const CommandParentFactoryKey key{"JS"};
+  static const CommandGroupKey key{"JS"};
   return key;
 }

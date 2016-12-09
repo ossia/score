@@ -13,8 +13,8 @@ struct ISCORE_LIB_BASE_EXPORT CommandData
   CommandData() = default;
   explicit CommandData(const iscore::Command& cmd);
 
-  CommandParentFactoryKey parentKey;
-  CommandFactoryKey commandKey;
+  CommandGroupKey parentKey;
+  CommandKey commandKey;
   QByteArray data;
 };
 }

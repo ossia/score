@@ -44,9 +44,9 @@ public:
   void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
   void registerPanel(PanelDelegateFactory&);
   void registerCommands(
-      iscore::hash_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
+      iscore::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds);
   void registerCommands(
-      std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
+      std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds);
   void registerFactories(
       iscore::hash_map<iscore::InterfaceKey, std::unique_ptr<InterfaceListBase>>&&
               cmds);

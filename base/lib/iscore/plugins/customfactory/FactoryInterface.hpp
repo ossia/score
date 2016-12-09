@@ -78,7 +78,7 @@ public:
 }
 
 /**
- * \macro ISCORE_ABSTRACT
+ * \macro ISCORE_INTERFACE
  * \brief Default implementation code for InterfaceBase.
  *
  * Use this macro in the class definition of classes inheriting from
@@ -97,7 +97,7 @@ public:                                                                \
                                                                        \
   iscore::InterfaceKey interfaceKey() const noexcept final override \
   {                                                                    \
-    return interfaceKey();                                \
+    return static_interfaceKey();                                \
   }                                                                    \
 private: \
 

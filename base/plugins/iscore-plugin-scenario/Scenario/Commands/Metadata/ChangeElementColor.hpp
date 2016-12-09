@@ -15,18 +15,18 @@ class ChangeElementColor final : public iscore::Command
 {
   // No ISCORE_COMMAND here since it's a template.
 public:
-  const CommandParentFactoryKey& parentKey() const noexcept override
+  const CommandGroupKey& parentKey() const noexcept override
   {
     return ScenarioCommandFactoryName();
   }
-  static const CommandFactoryKey& static_key() noexcept
+  static const CommandKey& static_key() noexcept
   {
     auto name
         = QString("ChangeElementColor_") + Metadata<ObjectKey_k, T>::get();
-    static const CommandFactoryKey kagi{std::move(name)};
+    static const CommandKey kagi{std::move(name)};
     return kagi;
   }
-  const CommandFactoryKey& key() const noexcept override
+  const CommandKey& key() const noexcept override
   {
     return static_key();
   }

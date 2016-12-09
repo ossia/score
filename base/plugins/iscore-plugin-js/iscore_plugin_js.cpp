@@ -32,11 +32,11 @@ iscore_plugin_js::factories(
       ctx, key);
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_js::make_commands()
 {
   using namespace JS;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       JS::CommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<

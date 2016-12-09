@@ -1,8 +1,8 @@
 #include "MappingCommandFactory.hpp"
 #include <iscore/command/Command.hpp>
 
-const CommandParentFactoryKey& MappingCommandFactoryName()
+const CommandGroupKey& MappingCommandFactoryName()
 {
-  static const CommandParentFactoryKey key{"Mapping"};
+  static const CommandGroupKey key{"Mapping"};
   return key;
 }

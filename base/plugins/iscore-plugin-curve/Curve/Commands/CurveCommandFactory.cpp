@@ -3,9 +3,9 @@
 
 namespace Curve
 {
-const CommandParentFactoryKey& CommandFactoryName()
+const CommandGroupKey& CommandFactoryName()
 {
-  static const CommandParentFactoryKey key{"Curve"};
+  static const CommandGroupKey key{"Curve"};
   return key;
 }
 }

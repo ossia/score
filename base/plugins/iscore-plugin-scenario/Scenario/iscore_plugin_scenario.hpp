@@ -48,7 +48,7 @@ private:
   make_applicationPlugin(const iscore::GUIApplicationContext& app) override;
 
   // NOTE : implementation is in CommandNames.cpp
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
   // Offre la factory de Process

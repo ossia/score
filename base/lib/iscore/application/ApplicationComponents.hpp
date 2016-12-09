@@ -40,7 +40,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
 
   iscore::hash_map<iscore::InterfaceKey, std::unique_ptr<InterfaceListBase>>
           factories;
-  iscore::hash_map<CommandParentFactoryKey, CommandGeneratorMap> commands;
+  iscore::hash_map<CommandGroupKey, CommandGeneratorMap> commands;
   std::vector<std::unique_ptr<PanelDelegate>> panels;
 };
 

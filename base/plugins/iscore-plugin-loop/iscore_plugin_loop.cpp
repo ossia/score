@@ -38,10 +38,10 @@ iscore_plugin_loop::factories(
       ctx, key);
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_loop::make_commands()
 {
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       LoopCommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<

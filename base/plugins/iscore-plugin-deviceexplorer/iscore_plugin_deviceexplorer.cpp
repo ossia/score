@@ -58,11 +58,11 @@ iscore_plugin_deviceexplorer::make_applicationPlugin(
   return new Explorer::ApplicationPlugin{app};
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_deviceexplorer::make_commands()
 {
   using namespace Explorer::Command;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       DeviceExplorerCommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<

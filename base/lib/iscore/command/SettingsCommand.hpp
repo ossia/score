@@ -3,6 +3,12 @@
 #include <iscore/command/Command.hpp>
 namespace iscore
 {
+/**
+ * @brief Base class for commands to be used with the Settings system.
+ *
+ * It should not be necessary to use these classes in user code.
+ * Instead, use the macro \ref ISCORE_SETTINGS_COMMAND or \ref ISCORE_SETTINGS_DEFERRED_COMMAND
+ */
 class ISCORE_LIB_BASE_EXPORT SettingsCommandBase
 {
     public:
@@ -12,6 +18,12 @@ class ISCORE_LIB_BASE_EXPORT SettingsCommandBase
 };
 
 template <typename T>
+/**
+ * @brief A Command class that modifies a parameter given its trait class.
+ *
+ * This is used to have a very fast application of many settings.
+ * @see iscore::SettingsParameterMetadata
+ */
 class SettingsCommand : public SettingsCommandBase
 {
 public:
@@ -27,12 +39,12 @@ public:
 
   virtual ~SettingsCommand() = default;
 
-  void undo() const override
+  void undo() const final override
   {
     (m_model.*T::set())(m_old);
   }
 
-  void redo() const override
+  void redo() const final override
   {
     (m_model.*T::set())(m_new);
   }
@@ -48,13 +60,17 @@ private:
 };
 }
 
+/**
+ * \macro ISCORE_SETTINGS_COMMAND_DECL
+ * \brief Content of a Settings command.
+ */
 #define ISCORE_SETTINGS_COMMAND_DECL(name)                     \
 public:                                                        \
   using iscore::SettingsCommand<parameter_t>::SettingsCommand; \
   name() = default;                                            \
-  static const CommandFactoryKey& static_key()                 \
+  static const CommandKey& static_key()                 \
   {                                                            \
-    static const CommandFactoryKey var{#name};                 \
+    static const CommandKey var{#name};                 \
     return var;                                                \
   }                                                            \
                                                                \

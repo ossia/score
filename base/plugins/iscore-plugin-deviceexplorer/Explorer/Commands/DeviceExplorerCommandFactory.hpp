@@ -5,6 +5,6 @@ namespace Explorer
 {
 namespace Command
 {
-const CommandParentFactoryKey& DeviceExplorerCommandFactoryName();
+const CommandGroupKey& DeviceExplorerCommandFactoryName();
 }
 }

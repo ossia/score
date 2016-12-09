@@ -42,12 +42,12 @@ QStringList iscore_plugin_recording::required() const
   return {"Scenario", "Engine"};
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_recording::make_commands()
 {
   using namespace Recording;
   using namespace RecordedMessages;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       RecordingCommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<

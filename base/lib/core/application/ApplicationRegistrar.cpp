@@ -68,14 +68,14 @@ void ApplicationRegistrar::registerPanel(PanelDelegateFactory& factory)
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerCommands(
-    iscore::hash_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds)
+    iscore::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds)
 {
   m_components.commands = std::move(cmds);
 }
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerCommands(
-    std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds)
+    std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds)
 {
   m_components.commands.insert(std::move(cmds));
 }

@@ -2,9 +2,9 @@
 
 namespace Midi
 {
-const CommandParentFactoryKey& CommandFactoryName()
+const CommandGroupKey& CommandFactoryName()
 {
-  static const CommandParentFactoryKey key{"Midi"};
+  static const CommandGroupKey key{"Midi"};
   return key;
 }
 }

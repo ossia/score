@@ -23,11 +23,11 @@ iscore_plugin_interpolation::factories(
       ctx, key);
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_interpolation::make_commands()
 {
   using namespace Interpolation;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Interpolation::CommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<

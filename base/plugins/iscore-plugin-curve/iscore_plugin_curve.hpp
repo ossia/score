@@ -55,7 +55,7 @@ private:
   std::vector<std::unique_ptr<iscore::InterfaceListBase>>
   factoryFamilies() override;
 
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
   iscore::Version version() const override;

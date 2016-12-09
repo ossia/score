@@ -52,7 +52,7 @@ private:
   iscore::GUIApplicationContextPlugin*
   make_applicationPlugin(const iscore::GUIApplicationContext& app) override;
 
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
   QStringList offered() const override;
