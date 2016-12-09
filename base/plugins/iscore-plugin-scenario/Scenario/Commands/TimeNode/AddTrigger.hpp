@@ -18,7 +18,7 @@ class TimeNodeModel;
 namespace Command
 {
 template <typename Scenario_T>
-class AddTrigger final : public iscore::SerializableCommand
+class AddTrigger final : public iscore::Command
 {
 public:
   const CommandParentFactoryKey& parentKey() const override

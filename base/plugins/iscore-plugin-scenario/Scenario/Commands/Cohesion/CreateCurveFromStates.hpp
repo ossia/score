@@ -33,7 +33,7 @@ namespace Command
 {
 template <typename ProcessModel_T>
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
 public:
   CreateProcessAndLayers() = default;

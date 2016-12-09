@@ -11,7 +11,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 void ScenarioRollbackStrategy::rollback(
-    const std::vector<iscore::SerializableCommand*>& cmds)
+    const std::vector<iscore::Command*>& cmds)
 {
   // TODO UPDATE THIS ELSE ROLLBACK WON'T WORK.
   // REFACTOR THIS IN A LIST SOMEWHERE.

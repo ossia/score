@@ -7,7 +7,7 @@ namespace Midi
 {
 class ProcessModel;
 
-class ScaleNotes final : public iscore::SerializableCommand
+class ScaleNotes final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(Midi::CommandFactoryName(), ScaleNotes, "Scale notes")
 public:

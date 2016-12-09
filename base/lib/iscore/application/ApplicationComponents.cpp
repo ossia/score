@@ -38,7 +38,7 @@ ApplicationComponentsData::~ApplicationComponentsData()
   }
 }
 
-SerializableCommand*
+Command*
 ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) const
 {
   auto it = m_data.commands.find(cmd.parentKey);

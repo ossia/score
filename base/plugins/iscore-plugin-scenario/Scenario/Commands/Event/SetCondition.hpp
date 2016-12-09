@@ -14,7 +14,7 @@ namespace Scenario
 class EventModel;
 namespace Command
 {
-class SetCondition final : public iscore::SerializableCommand
+class SetCondition final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetCondition, "Set an Event's condition")

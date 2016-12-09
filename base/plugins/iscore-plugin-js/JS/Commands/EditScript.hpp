@@ -12,7 +12,7 @@ namespace JS
 class ProcessModel;
 class StateProcess;
 
-class EditScript final : public iscore::SerializableCommand
+class EditScript final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(JS::CommandFactoryName(), EditScript, "Edit a JS script")
 public:
@@ -30,7 +30,7 @@ private:
   QString m_old, m_new;
 };
 
-class EditStateScript final : public iscore::SerializableCommand
+class EditStateScript final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       JS::CommandFactoryName(), EditStateScript, "Edit a JS state script")

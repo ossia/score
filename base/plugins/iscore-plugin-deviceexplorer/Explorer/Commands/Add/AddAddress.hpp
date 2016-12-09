@@ -18,7 +18,7 @@ class DeviceDocumentPlugin;
 namespace Command
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddAddress final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), AddAddress, "Add an address")

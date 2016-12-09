@@ -30,7 +30,7 @@ namespace Command
          * Adds a process view to a slot.
          */
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

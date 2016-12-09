@@ -21,7 +21,7 @@ class ConstraintModel;
 
 namespace Command
 {
-class InsertContentInConstraint final : public iscore::SerializableCommand
+class InsertContentInConstraint final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

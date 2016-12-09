@@ -22,7 +22,7 @@ namespace Command
          * The process view models are recursively copied.
          * The Slot is put at the end.
          */
-class CopySlot final : public iscore::SerializableCommand
+class CopySlot final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CopySlot, "Copy a slot")
 public:

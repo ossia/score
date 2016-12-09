@@ -13,7 +13,7 @@ class DeviceDocumentPlugin;
 namespace Command
 {
 // Replaces all the nodes of a device by new nodes.
-class ReplaceDevice final : public iscore::SerializableCommand
+class ReplaceDevice final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), ReplaceDevice, "Replace a device")

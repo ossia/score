@@ -15,7 +15,7 @@ class StateModel;
 
 namespace Command
 {
-class RemoveMessageNodes final : public iscore::SerializableCommand
+class RemoveMessageNodes final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), RemoveMessageNodes, "Remove user messages")

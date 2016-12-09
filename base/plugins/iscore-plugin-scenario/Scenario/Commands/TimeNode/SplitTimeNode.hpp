@@ -17,7 +17,7 @@ class EventModel;
 class TimeNodeModel;
 namespace Command
 {
-class SplitTimeNode final : public iscore::SerializableCommand
+class SplitTimeNode final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SplitTimeNode, "Split a timenode")

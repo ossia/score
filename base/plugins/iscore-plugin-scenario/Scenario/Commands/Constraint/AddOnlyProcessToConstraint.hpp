@@ -22,7 +22,7 @@ class ConstraintModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

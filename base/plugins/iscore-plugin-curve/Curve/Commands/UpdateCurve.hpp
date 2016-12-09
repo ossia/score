@@ -11,7 +11,7 @@ struct DataStreamOutput;
 namespace Curve
 {
 class Model;
-class UpdateCurve final : public iscore::SerializableCommand
+class UpdateCurve final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(CommandFactoryName(), UpdateCurve, "Update Curve")
 public:

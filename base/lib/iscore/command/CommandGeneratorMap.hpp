@@ -9,7 +9,7 @@
 
 namespace iscore
 {
-class SerializableCommand;
+class Command;
 }
 /**
  * This file contains utility classes to instantiate commands
@@ -36,7 +36,7 @@ class ISCORE_LIB_BASE_EXPORT CommandFactory
 {
 public:
   virtual ~CommandFactory();
-  virtual iscore::SerializableCommand*
+  virtual iscore::Command*
   operator()(const QByteArray& data) const = 0;
 };
 
@@ -49,7 +49,7 @@ template <typename T>
 class GenericCommandFactory : public CommandFactory
 {
 public:
-  iscore::SerializableCommand*
+  iscore::Command*
   operator()(const QByteArray& data) const override
   {
     auto t = new T;

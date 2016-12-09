@@ -14,7 +14,7 @@ class ProcessModel;
 
 namespace Command
 {
-class SerializableMoveEvent : public iscore::SerializableCommand
+class SerializableMoveEvent : public iscore::Command
 {
 public:
   virtual void update(

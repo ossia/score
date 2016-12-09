@@ -18,7 +18,7 @@ namespace Command
  *
  * Sets the Min duration of a Constraint
  */
-class SetMinDuration final : public iscore::SerializableCommand
+class SetMinDuration final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetMinDuration, "Set constraint minimum")

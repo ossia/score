@@ -12,12 +12,12 @@ public:
   {
   }
 
-  void push(iscore::SerializableCommand* cmd) const
+  void push(iscore::Command* cmd) const
   {
     m_stack.push(cmd);
   }
 
-  void redoAndPush(iscore::SerializableCommand* cmd) const
+  void redoAndPush(iscore::Command* cmd) const
   {
     m_stack.redoAndPush(cmd);
   }

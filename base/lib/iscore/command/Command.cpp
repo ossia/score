@@ -1,7 +1,11 @@
 #include "Command.hpp"
 
 #include <iscore/application/ApplicationContext.hpp>
-iscore::Command::Command() : context{iscore::AppContext()}
+iscore::Command::Command() :
+    context{iscore::AppContext()},
+    m_timestamp{
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::high_resolution_clock::now().time_since_epoch())}
 {
 }
 

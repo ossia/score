@@ -20,7 +20,7 @@ bool BaseScenarioTriggerCommandFactory::matches(const TimeNodeModel& tn) const
   return dynamic_cast<BaseScenario*>(tn.parent());
 }
 
-iscore::SerializableCommand*
+iscore::Command*
 BaseScenarioTriggerCommandFactory::make_addTriggerCommand(
     const TimeNodeModel& tn) const
 {
@@ -31,7 +31,7 @@ BaseScenarioTriggerCommandFactory::make_addTriggerCommand(
   return nullptr;
 }
 
-iscore::SerializableCommand*
+iscore::Command*
 BaseScenarioTriggerCommandFactory::make_removeTriggerCommand(
     const TimeNodeModel& tn) const
 {

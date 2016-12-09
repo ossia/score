@@ -43,7 +43,7 @@ namespace Scenario
 {
 namespace Command
 {
-class AddProcessToConstraintBase : public iscore::SerializableCommand
+class AddProcessToConstraintBase : public iscore::Command
 {
 public:
   AddProcessToConstraintBase() = default;

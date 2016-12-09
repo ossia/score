@@ -9,7 +9,7 @@ namespace iscore
 {
 SerializableCommand::~SerializableCommand() = default;
 
-QByteArray SerializableCommand::serialize() const
+QByteArray Command::serialize() const
 {
   QByteArray arr;
   {
@@ -24,7 +24,7 @@ QByteArray SerializableCommand::serialize() const
   return arr;
 }
 
-void SerializableCommand::deserialize(const QByteArray& arr)
+void Command::deserialize(const QByteArray& arr)
 {
   QDataStream s(arr);
   s.setVersion(QDataStream::Qt_5_3);

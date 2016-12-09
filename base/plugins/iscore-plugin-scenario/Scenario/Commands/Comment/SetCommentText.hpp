@@ -12,7 +12,7 @@ namespace Scenario
 class CommentBlockModel;
 namespace Command
 {
-class SetCommentText final : public iscore::SerializableCommand
+class SetCommentText final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetCommentText,

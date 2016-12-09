@@ -21,7 +21,7 @@ namespace Command
          * Adds an empty rack, with no slots, to a constraint.
          */
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddRackToConstraint final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), AddRackToConstraint, "Add a rack")

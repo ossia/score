@@ -16,7 +16,7 @@ namespace Scenario
 class ConstraintModel;
 namespace Command
 {
-class PutProcessBefore final : public iscore::SerializableCommand
+class PutProcessBefore final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), PutProcessBefore, "Set process position")
@@ -42,7 +42,7 @@ private:
   Id<Process::ProcessModel> m_proc, m_proc2;
 };
 
-class PutProcessToEnd final : public iscore::SerializableCommand
+class PutProcessToEnd final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), PutProcessToEnd, "Set process position")
@@ -64,7 +64,7 @@ private:
   Id<Process::ProcessModel> m_proc, m_proc_after;
 };
 
-class SwapProcessPosition final : public iscore::SerializableCommand
+class SwapProcessPosition final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

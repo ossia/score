@@ -15,7 +15,7 @@ namespace Curve
 class Model;
 class PointModel;
 class ISCORE_PLUGIN_CURVE_EXPORT MovePoint final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(CommandFactoryName(), MovePoint, "Move a point")
 public:

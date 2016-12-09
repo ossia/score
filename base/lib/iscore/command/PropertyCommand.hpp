@@ -17,10 +17,10 @@ namespace iscore
  * It will save the current state and switch between the current and new
  * state upon undo / redo.
  */
-class ISCORE_LIB_BASE_EXPORT PropertyCommand : public SerializableCommand
+class ISCORE_LIB_BASE_EXPORT PropertyCommand : public Command
 {
 public:
-  using SerializableCommand::SerializableCommand;
+  using Command::Command;
   PropertyCommand() = default;
 
   template <typename Path_T, typename... Args>

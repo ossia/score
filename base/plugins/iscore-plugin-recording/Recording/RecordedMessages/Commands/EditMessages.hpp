@@ -13,7 +13,7 @@ namespace RecordedMessages
 class ProcessModel;
 
 class ISCORE_PLUGIN_RECORDING_EXPORT EditMessages final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       RecordedMessages::CommandFactoryName(), EditMessages, "Change messages")

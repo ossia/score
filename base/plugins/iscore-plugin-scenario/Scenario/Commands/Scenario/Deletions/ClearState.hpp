@@ -12,7 +12,7 @@ class StateModel;
 
 namespace Command
 {
-class ClearState final : public iscore::SerializableCommand
+class ClearState final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), ClearState, "Clear a state")

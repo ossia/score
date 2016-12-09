@@ -7,7 +7,7 @@ namespace Midi
 {
 class ProcessModel;
 
-class AddNote final : public iscore::SerializableCommand
+class AddNote final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(Midi::CommandFactoryName(), AddNote, "Add a note")
 public:

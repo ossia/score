@@ -16,7 +16,7 @@ namespace Scenario
 {
 namespace Command
 {
-class SetProcessDuration final : public iscore::SerializableCommand
+class SetProcessDuration final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

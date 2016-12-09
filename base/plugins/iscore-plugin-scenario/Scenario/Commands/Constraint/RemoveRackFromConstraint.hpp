@@ -23,7 +23,7 @@ namespace Command
          *
          * Removes a rack : all the slots and function views will be removed.
          */
-class RemoveRackFromConstraint final : public iscore::SerializableCommand
+class RemoveRackFromConstraint final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), RemoveRackFromConstraint, "Remove a rack")

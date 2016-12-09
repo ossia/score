@@ -18,7 +18,7 @@ namespace Command
          * Sets the rigidity of a constraint
          */
 class ISCORE_PLUGIN_SCENARIO_EXPORT SetRigidity final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetRigidity, "Change constraint rigidity")

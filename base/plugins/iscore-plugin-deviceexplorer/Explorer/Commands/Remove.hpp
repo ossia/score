@@ -13,7 +13,7 @@ class DeviceDocumentPlugin;
 namespace Command
 {
 // TODO split this command.
-class Remove final : public iscore::SerializableCommand
+class Remove final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), Remove, "Remove an Explorer node")
@@ -35,7 +35,7 @@ protected:
 
 protected:
   bool m_device{};
-  iscore::SerializableCommand* m_cmd{};
+  iscore::Command* m_cmd{};
 };
 }
 }

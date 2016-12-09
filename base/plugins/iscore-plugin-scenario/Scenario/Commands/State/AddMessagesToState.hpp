@@ -22,7 +22,7 @@ class StateModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

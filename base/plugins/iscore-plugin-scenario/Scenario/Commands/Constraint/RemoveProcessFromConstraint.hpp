@@ -25,7 +25,7 @@ namespace Scenario
 class ConstraintModel;
 namespace Command
 {
-class RemoveProcessFromConstraint final : public iscore::SerializableCommand
+class RemoveProcessFromConstraint final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

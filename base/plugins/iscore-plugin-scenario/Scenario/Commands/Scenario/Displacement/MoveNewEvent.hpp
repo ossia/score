@@ -28,7 +28,7 @@ class ProcessModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), MoveNewEvent, "Move a new event")
