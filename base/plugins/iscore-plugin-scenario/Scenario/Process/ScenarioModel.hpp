@@ -35,16 +35,12 @@ class LayerModel;
 
 class QEvent;
 
-/**
- * @brief The ScenarioModel class
- *
- * Creation methods return tuples with the identifiers of the objects in their
- * temporal order.
- * (first to last)
- */
 namespace Scenario
 {
 class ScenarioFactory;
+/**
+ * @brief The core hierarchical and temporal process of i-score
+ */
 class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
     : public Process::ProcessModel,
       public ScenarioInterface

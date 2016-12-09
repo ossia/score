@@ -14,7 +14,37 @@
 #include <iscore/command/Command.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-
+/*!
+ * \namespace Scenario
+ * \brief Main plug-in of i-score.
+ *
+ * This plug-in introduces the central logic of i-score :
+ * a hierarchical model of objects in a timeline.
+ *
+ * It also has the core graphics logic of i-score based on QGraphicsScene
+ * and QGraphicsView.
+ *
+ * As such, it is quite complex and provides a lot of classes.
+ *
+ * We have :
+ * * The Scenario::ProcessModel process.
+ * * The Scenario::PanelDelegate used to display elements.
+ * * The Scenario::ScenarioDocumentModel, Scenario::ScenarioDocumentPresenter, Scenario::ScenarioDocumentView classes
+ *   which set-up and displays the central part of an i-score document.
+ * * The Scenario::ScenarioApplicationPlugin which handles tools, Action%s, and process focus.
+ * * Model-view-presenter classes for the major i-score concepts :
+ *   * Scenario::ConstraintModel,
+ *   * Scenario::EventModel,
+ *   * Scenario::TimeNodeModel,
+ *   * Scenario::StateModel,
+ *   * Scenario::RackModel,
+ *   * Scenario::SlotModel
+ *
+ * * Scenario::BaseScenario is a minimalist, fixed scenario with a single constraint, a start state and an end state.
+ * * Inspector elements for all these objects
+ * * Scenario::Palette handles user input, movements, etc.
+ *
+ */
 namespace iscore
 {
 
