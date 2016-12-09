@@ -1,7 +1,7 @@
 #pragma once
 #include <QList>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
 #include <Process/State/MessageNode.hpp>

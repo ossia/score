@@ -3,7 +3,7 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <iscore/command/CommandStackFacade.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 #include "CreateConstraint_State_Event_TimeNode.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>

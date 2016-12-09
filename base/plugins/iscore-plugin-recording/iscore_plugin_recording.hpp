@@ -8,7 +8,7 @@
 #include <utility>
 
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 namespace iscore

@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
 #include <iscore_plugin_deviceexplorer_export.h>

@@ -18,7 +18,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/command/AggregateCommand.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <iscore/tools/std/Optional.hpp>
@@ -79,11 +79,11 @@ class AddProcessToConstraint final : public AddProcessToConstraintBase
   friend AddProcessDelegate;
 
 public:
-  const CommandParentFactoryKey& parentKey() const override
+  const CommandParentFactoryKey& parentKey() const noexcept override
   {
     return ScenarioCommandFactoryName();
   }
-  const CommandFactoryKey& key() const override
+  const CommandFactoryKey& key() const noexcept override
   {
     return static_key();
   }
@@ -91,7 +91,7 @@ public:
   {
     return QObject::tr("Add a process to a constraint");
   }
-  static const CommandFactoryKey& static_key()
+  static const CommandFactoryKey& static_key() noexcept
   {
     return AddProcessDelegate::static_key();
   }

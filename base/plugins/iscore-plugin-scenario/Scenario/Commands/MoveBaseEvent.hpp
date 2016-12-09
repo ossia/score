@@ -10,7 +10,7 @@
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -47,11 +47,11 @@ private:
   }
 
 public:
-  const CommandParentFactoryKey& parentKey() const override
+  const CommandParentFactoryKey& parentKey() const noexcept override
   {
     return CommandFactoryName<SimpleScenario_T>();
   }
-  const CommandFactoryKey& key() const override
+  const CommandFactoryKey& key() const noexcept override
   {
     return static_key();
   }
@@ -60,7 +60,7 @@ public:
     return QObject::tr("Move a %1 event")
         .arg(Metadata<UndoName_k, SimpleScenario_T>::get());
   }
-  static const CommandFactoryKey& static_key()
+  static const CommandFactoryKey& static_key() noexcept
   {
     static const CommandFactoryKey kagi{
         QString("MoveBaseEvent_")

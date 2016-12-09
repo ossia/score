@@ -1,5 +1,5 @@
 #include "ScenarioCommandFactory.hpp"
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 namespace Scenario
 {

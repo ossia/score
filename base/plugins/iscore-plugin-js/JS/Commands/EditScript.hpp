@@ -1,7 +1,7 @@
 #pragma once
 #include <JS/Commands/JSCommandFactory.hpp>
 #include <QString>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
 

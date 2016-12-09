@@ -10,7 +10,7 @@
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
@@ -30,21 +30,21 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final : std::false_type
 
 template <>
 class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ProcessModel> final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   // No ISCORE_COMMAND here since it's a template.
 public:
-  const CommandParentFactoryKey& parentKey() const override
+  const CommandParentFactoryKey& parentKey() const noexcept override
   {
     return ScenarioCommandFactoryName();
   }
-  static const CommandFactoryKey& static_key()
+  static const CommandFactoryKey& static_key() noexcept
   {
     auto name = QString("MergeEvents");
     static const CommandFactoryKey kagi{std::move(name)};
     return kagi;
   }
-  const CommandFactoryKey& key() const override
+  const CommandFactoryKey& key() const noexcept override
   {
     return static_key();
   }

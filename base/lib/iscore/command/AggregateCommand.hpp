@@ -1,6 +1,6 @@
 #pragma once
 #include <algorithm>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <list>
 #include <memory>
 

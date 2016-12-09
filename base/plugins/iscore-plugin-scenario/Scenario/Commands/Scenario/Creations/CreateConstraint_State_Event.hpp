@@ -1,6 +1,6 @@
 #pragma once
 #include <QString>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include "CreateConstraint_State.hpp"

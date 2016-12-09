@@ -3,7 +3,7 @@
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <QList>
 #include <QPair>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
 #include <State/Value.hpp>

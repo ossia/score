@@ -40,7 +40,7 @@ public:
 
   const Path<Scenario::ProcessModel>& path() const override;
 
-  // SerializableCommand interface
+  // Command interface
 protected:
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;

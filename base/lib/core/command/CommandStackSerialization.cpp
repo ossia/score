@@ -9,7 +9,7 @@
 #include "CommandStack.hpp"
 #include <iscore/application/ApplicationComponents.hpp>
 #include <iscore/application/ApplicationContext.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 

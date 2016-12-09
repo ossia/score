@@ -2,7 +2,7 @@
 #include <QString>
 #include <Recording/RecordedMessages/Commands/RecordedMessagesCommandFactory.hpp>
 #include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore_plugin_recording_export.h>
