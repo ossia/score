@@ -3,5 +3,5 @@
 
 namespace Midi
 {
-const CommandParentFactoryKey& CommandFactoryName();
+const CommandGroupKey& CommandFactoryName();
 }

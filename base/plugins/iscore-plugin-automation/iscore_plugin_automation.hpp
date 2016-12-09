@@ -42,7 +42,7 @@ private:
   std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
       const iscore::InterfaceKey& factoryName) const override;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
   iscore::Version version() const override;

@@ -66,9 +66,9 @@ public:
   }
 
 private:
-  iscore::hash_map<CommandFactoryKey, std::unique_ptr<iscore::SettingsCommandBase>>
+  iscore::hash_map<CommandKey, std::unique_ptr<iscore::SettingsCommandBase>>
       commands;
-  iscore::hash_map<CommandFactoryKey, std::unique_ptr<iscore::SettingsCommandBase>>
+  iscore::hash_map<CommandKey, std::unique_ptr<iscore::SettingsCommandBase>>
       deferred;
 };
 }

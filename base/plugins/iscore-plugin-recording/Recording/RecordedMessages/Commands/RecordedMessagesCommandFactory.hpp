@@ -3,5 +3,5 @@
 
 namespace RecordedMessages
 {
-const CommandParentFactoryKey& CommandFactoryName();
+const CommandGroupKey& CommandFactoryName();
 }

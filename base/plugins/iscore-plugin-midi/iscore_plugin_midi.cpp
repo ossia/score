@@ -24,11 +24,11 @@ iscore_plugin_midi::factories(
       ctx, key);
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_midi::make_commands()
 {
   using namespace Midi;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Midi::CommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<

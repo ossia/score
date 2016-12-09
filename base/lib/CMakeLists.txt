@@ -28,7 +28,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandData.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandGeneratorMap.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/PropertyCommand.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/Command.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/Validity/ValidityChecker.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/component/Component.cpp"

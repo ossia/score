@@ -51,7 +51,7 @@ private:
       const iscore::ApplicationContext& ctx,
       const iscore::InterfaceKey& key) const override;
 
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
   QStringList required() const override;

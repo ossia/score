@@ -1,8 +1,8 @@
 #include "RecordingCommandFactory.hpp"
 #include <iscore/command/Command.hpp>
 
-const CommandParentFactoryKey& RecordingCommandFactoryName()
+const CommandGroupKey& RecordingCommandFactoryName()
 {
-  static const CommandParentFactoryKey key{"Cohesion"};
+  static const CommandGroupKey key{"Cohesion"};
   return key;
 }

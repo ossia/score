@@ -36,15 +36,15 @@ class MoveEvent final : public SerializableMoveEvent
   // No ISCORE_COMMAND here since it's a template.
 
 public:
-  const CommandParentFactoryKey& parentKey() const noexcept override
+  const CommandGroupKey& parentKey() const noexcept override
   {
     return ScenarioCommandFactoryName();
   }
-  const CommandFactoryKey& key() const noexcept override
+  const CommandKey& key() const noexcept override
   {
     static const QByteArray name
         = QString{"MoveEvent_%1"}.arg(DisplacementPolicy::name()).toLatin1();
-    static const CommandFactoryKey kagi{name.constData()};
+    static const CommandKey kagi{name.constData()};
     return kagi;
   }
   QString description() const override

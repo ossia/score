@@ -32,8 +32,8 @@ public:
   virtual void undo() const = 0;
   virtual void redo() const = 0;
 
-  virtual const CommandParentFactoryKey& parentKey() const noexcept = 0;
-  virtual const CommandFactoryKey& key() const noexcept = 0;
+  virtual const CommandGroupKey& parentKey() const noexcept = 0;
+  virtual const CommandKey& key() const noexcept = 0;
 
   QByteArray serialize() const;
   void deserialize(const QByteArray&);
@@ -76,11 +76,11 @@ private:
 #define ISCORE_COMMAND_DECL(parentNameFun, name, desc)              \
 public:                                                             \
   name() noexcept { }                                               \
-  const CommandParentFactoryKey& parentKey() const noexcept override\
+  const CommandGroupKey& parentKey() const noexcept override\
   {                                                                 \
     return parentNameFun;                                           \
   }                                                                 \
-  const CommandFactoryKey& key() const noexcept override            \
+  const CommandKey& key() const noexcept override            \
   {                                                                 \
     return static_key();                                            \
   }                                                                 \
@@ -88,9 +88,9 @@ public:                                                             \
   {                                                                 \
     return QObject::tr(desc);                                       \
   }                                                                 \
-  static const CommandFactoryKey& static_key() noexcept                    \
+  static const CommandKey& static_key() noexcept                    \
   {                                                                 \
-    static const CommandFactoryKey var{#name};                      \
+    static const CommandKey var{#name};                      \
     return var;                                                     \
   }                                                                 \
                                                                     \

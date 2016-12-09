@@ -47,11 +47,11 @@ iscore_plugin_mapping::factories(
       ctx, key);
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_mapping::make_commands()
 {
   using namespace Mapping;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       MappingCommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<

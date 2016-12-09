@@ -47,11 +47,11 @@ private:
   }
 
 public:
-  const CommandParentFactoryKey& parentKey() const noexcept override
+  const CommandGroupKey& parentKey() const noexcept override
   {
     return CommandFactoryName<SimpleScenario_T>();
   }
-  const CommandFactoryKey& key() const noexcept override
+  const CommandKey& key() const noexcept override
   {
     return static_key();
   }
@@ -60,9 +60,9 @@ public:
     return QObject::tr("Move a %1 event")
         .arg(Metadata<UndoName_k, SimpleScenario_T>::get());
   }
-  static const CommandFactoryKey& static_key() noexcept
+  static const CommandKey& static_key() noexcept
   {
-    static const CommandFactoryKey kagi{
+    static const CommandKey kagi{
         QString("MoveBaseEvent_")
         + Metadata<ObjectKey_k, SimpleScenario_T>::get()};
     return kagi;

@@ -40,11 +40,11 @@ iscore_plugin_automation::factories(
       ctx, key);
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_automation::make_commands()
 {
   using namespace Automation;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       CommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<

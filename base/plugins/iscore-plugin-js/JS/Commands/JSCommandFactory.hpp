@@ -3,5 +3,5 @@
 
 namespace JS
 {
-const CommandParentFactoryKey& CommandFactoryName();
+const CommandGroupKey& CommandFactoryName();
 }
