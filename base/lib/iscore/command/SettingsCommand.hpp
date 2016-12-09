@@ -3,9 +3,16 @@
 #include <iscore/command/Command.hpp>
 namespace iscore
 {
+class ISCORE_LIB_BASE_EXPORT SettingsCommandBase
+{
+    public:
+        virtual ~SettingsCommandBase();
+        virtual void undo() const = 0;
+        virtual void redo() const = 0;
+};
 
 template <typename T>
-class SettingsCommand
+class SettingsCommand : public SettingsCommandBase
 {
 public:
   using parameter_t = T;
@@ -20,12 +27,12 @@ public:
 
   virtual ~SettingsCommand() = default;
 
-  void undo() const
+  void undo() const override
   {
     (m_model.*T::set())(m_old);
   }
 
-  void redo() const
+  void redo() const override
   {
     (m_model.*T::set())(m_new);
   }

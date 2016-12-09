@@ -3,7 +3,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
 #include <Scenario/Commands/Constraint/SetRigidity.hpp>
@@ -19,11 +19,11 @@ template <typename Scenario_T>
 class RemoveTrigger final : public iscore::Command
 {
 public:
-  const CommandParentFactoryKey& parentKey() const override
+  const CommandParentFactoryKey& parentKey() const noexcept override
   {
     return CommandFactoryName<Scenario_T>();
   }
-  const CommandFactoryKey& key() const override
+  const CommandFactoryKey& key() const noexcept override
   {
     return static_key();
   }

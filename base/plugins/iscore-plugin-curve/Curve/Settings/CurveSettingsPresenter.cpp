@@ -4,7 +4,7 @@
 #include <QApplication>
 #include <QStyle>
 #include <iscore/command/Dispatchers/ICommandDispatcher.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/command/SettingsCommand.hpp>
 
 namespace Curve

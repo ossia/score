@@ -6,7 +6,7 @@
 
 #include "ScenarioTriggerCommandFactory.hpp"
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>

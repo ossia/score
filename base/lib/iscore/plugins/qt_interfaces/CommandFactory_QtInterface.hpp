@@ -3,7 +3,7 @@
 #include <iscore_lib_base_export.h>
 #include <utility>
 
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 namespace iscore
 {

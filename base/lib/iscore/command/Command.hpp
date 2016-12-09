@@ -32,7 +32,7 @@ public:
   virtual void undo() const = 0;
   virtual void redo() const = 0;
 
-  virtual const CommandParentFactoryKey& parentKey() const = 0;
+  virtual const CommandParentFactoryKey& parentKey() const noexcept = 0;
   virtual const CommandFactoryKey& key() const noexcept = 0;
 
   QByteArray serialize() const;
@@ -76,7 +76,7 @@ private:
 #define ISCORE_COMMAND_DECL(parentNameFun, name, desc)              \
 public:                                                             \
   name() noexcept { }                                               \
-  const CommandParentFactoryKey& parentKey() const override         \
+  const CommandParentFactoryKey& parentKey() const noexcept override\
   {                                                                 \
     return parentNameFun;                                           \
   }                                                                 \
@@ -88,7 +88,7 @@ public:                                                             \
   {                                                                 \
     return QObject::tr(desc);                                       \
   }                                                                 \
-  const CommandFactoryKey& static_key() noexcept                    \
+  static const CommandFactoryKey& static_key() noexcept                    \
   {                                                                 \
     static const CommandFactoryKey var{#name};                      \
     return var;                                                     \

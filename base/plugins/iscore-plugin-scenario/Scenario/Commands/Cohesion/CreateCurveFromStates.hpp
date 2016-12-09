@@ -3,7 +3,7 @@
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <State/Address.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <utility>
 #include <vector>

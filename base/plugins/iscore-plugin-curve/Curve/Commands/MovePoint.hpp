@@ -1,6 +1,6 @@
 #pragma once
 #include <Curve/Commands/CurveCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/std/Optional.hpp>
 

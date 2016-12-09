@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
 #include <Scenario/Commands/Constraint/SetRigidity.hpp>
@@ -21,11 +21,11 @@ template <typename Scenario_T>
 class AddTrigger final : public iscore::Command
 {
 public:
-  const CommandParentFactoryKey& parentKey() const override
+  const CommandParentFactoryKey& parentKey() const noexcept override
   {
     return CommandFactoryName<Scenario_T>();
   }
-  const CommandFactoryKey& key() const override
+  const CommandFactoryKey& key() const noexcept override
   {
     return static_key();
   }
@@ -33,7 +33,7 @@ public:
   {
     return QObject::tr("Add a trigger");
   }
-  static const CommandFactoryKey& static_key()
+  static const CommandFactoryKey& static_key() noexcept
   {
     static const CommandFactoryKey kagi{
         QString("AddTrigger_") + Metadata<ObjectKey_k, Scenario_T>::get()};

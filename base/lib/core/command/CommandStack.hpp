@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/command/Validity/ValidityChecker.hpp>
 
 #include <QStack>

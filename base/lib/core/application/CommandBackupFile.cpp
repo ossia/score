@@ -3,7 +3,7 @@
 #include <iscore/tools/Todo.hpp>
 
 #include "CommandBackupFile.hpp"
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 namespace iscore
 {

@@ -2,7 +2,7 @@
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <State/Address.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore_plugin_automation_export.h>
 #include <vector>

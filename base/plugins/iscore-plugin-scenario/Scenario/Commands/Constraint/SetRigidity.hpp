@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore_plugin_scenario_export.h>
 struct DataStreamInput;

@@ -1,7 +1,8 @@
+/*
 #include <QDebug>
 
 #include "BlacklistCommand.hpp"
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -20,7 +21,6 @@ void BlacklistCommand::undo() const
 void BlacklistCommand::redo() const
 {
   ISCORE_TODO;
-  /*
   QSettings s;
 
   auto currentList = s.value("PluginSettings/Blacklist", QStringList
@@ -45,7 +45,7 @@ void BlacklistCommand::redo() const
   }
 
   s.setValue("PluginSettings/Blacklist", newList);
-  */
+
 }
 
 void BlacklistCommand::serializeImpl(DataStreamInput&) const
@@ -56,7 +56,7 @@ void BlacklistCommand::deserializeImpl(DataStreamOutput&)
 {
 }
 
-/*
+
 bool BlacklistCommand::mergeWith(const Command* other)
 {
     // TODO
@@ -76,7 +76,7 @@ command
 
     return true;
 }
-*/
+
 
 const CommandParentFactoryKey& BlacklistCommand::parentKey() const
 {
@@ -98,3 +98,4 @@ QString BlacklistCommand::description() const
   return {};
 }
 }
+*/

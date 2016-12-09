@@ -1,5 +1,5 @@
 #include "JSCommandFactory.hpp"
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 const CommandParentFactoryKey& JS::CommandFactoryName()
 {

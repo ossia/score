@@ -2,7 +2,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <QString>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
 struct DataStreamInput;

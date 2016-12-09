@@ -9,7 +9,7 @@
 
 #include "AggregateCommand.hpp"
 #include <iscore/application/ApplicationContext.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
@@ -38,7 +38,7 @@ void AggregateCommand::redo() const
 
 void AggregateCommand::addCommand(Command* cmd)
 {
-    m_cmds.push_back(cmd);
+    m_cmds.push_back(command_ptr{cmd});
 }
 
 int AggregateCommand::count() const
@@ -69,7 +69,7 @@ void AggregateCommand::deserializeImpl(DataStreamOutput& s)
   for (const auto& cmd_pack : serializedCommands)
   {
     auto cmd = context.instantiateUndoCommand(cmd_pack);
-    m_cmds.push_back(cmd);
+    m_cmds.push_back(command_ptr{cmd});
   }
 }
 }

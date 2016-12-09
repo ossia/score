@@ -4,7 +4,7 @@
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <iscore_plugin_scenario_commands_files.hpp>
 

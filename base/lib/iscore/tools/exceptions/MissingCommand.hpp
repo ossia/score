@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <stdexcept>
 
 namespace iscore

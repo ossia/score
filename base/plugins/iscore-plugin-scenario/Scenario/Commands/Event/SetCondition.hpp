@@ -3,7 +3,7 @@
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <State/Expression.hpp>
 #include <iscore/command/PropertyCommand.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
 struct DataStreamInput;

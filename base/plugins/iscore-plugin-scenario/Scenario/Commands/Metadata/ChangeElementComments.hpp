@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
@@ -14,18 +14,18 @@ class ChangeElementComments final : public iscore::Command
 {
   // No ISCORE_COMMAND here since it's a template.
 public:
-  const CommandParentFactoryKey& parentKey() const override
+  const CommandParentFactoryKey& parentKey() const noexcept override
   {
     return ScenarioCommandFactoryName();
   }
-  static const CommandFactoryKey& static_key()
+  static const CommandFactoryKey& static_key() noexcept
   {
     auto name
         = QString("ChangeElementComments_") + Metadata<ObjectKey_k, T>::get();
     static const CommandFactoryKey kagi{std::move(name)};
     return kagi;
   }
-  const CommandFactoryKey& key() const override
+  const CommandFactoryKey& key() const noexcept override
   {
     return static_key();
   }
