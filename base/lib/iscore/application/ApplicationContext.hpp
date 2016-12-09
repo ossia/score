@@ -11,6 +11,14 @@ class MenuManager;
 class ToolbarManager;
 class ActionManager;
 
+/**
+ * @brief Used to access all the application-wide state and structures
+ *
+ * For instance : menus, toolbars, registered factories, etc.
+ *
+ * Accessible through \ref iscore::AppContext() ; however,
+ * it is better to try to get a reference to it by constructor injection.
+ */
 struct ISCORE_LIB_BASE_EXPORT ApplicationContext
 {
   explicit ApplicationContext(

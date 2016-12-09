@@ -48,6 +48,6 @@ public:
   }
 
 private:
-  std::unique_ptr<iscore::SerializableCommand> m_cmd;
+  std::unique_ptr<iscore::Command> m_cmd;
 };
 }

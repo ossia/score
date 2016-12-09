@@ -16,7 +16,7 @@ class TimeNodeModel;
 namespace Command
 {
 template <typename Scenario_T>
-class RemoveTrigger final : public iscore::SerializableCommand
+class RemoveTrigger final : public iscore::Command
 {
 public:
   const CommandParentFactoryKey& parentKey() const override

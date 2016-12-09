@@ -17,7 +17,7 @@ class DeviceDocumentPlugin;
 namespace Command
 {
 // TODO Moveme
-class UpdateAddressesValues final : public iscore::SerializableCommand
+class UpdateAddressesValues final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(),

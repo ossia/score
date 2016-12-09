@@ -24,7 +24,7 @@ class ConstraintModel;
 namespace Command
 {
 
-class ScenarioPasteElements final : public iscore::SerializableCommand
+class ScenarioPasteElements final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

@@ -14,7 +14,7 @@ namespace Scenario
 class RackModel;
 namespace Command
 {
-class DuplicateRack final : public iscore::SerializableCommand
+class DuplicateRack final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), DuplicateRack, "Duplicate a rack")

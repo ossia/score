@@ -5,7 +5,7 @@ namespace iscore
 {
 
 template <typename T>
-class SettingsCommand : public iscore::Command
+class SettingsCommand
 {
 public:
   using parameter_t = T;
@@ -20,12 +20,12 @@ public:
 
   virtual ~SettingsCommand() = default;
 
-  void undo() const final override
+  void undo() const
   {
     (m_model.*T::set())(m_old);
   }
 
-  void redo() const final override
+  void redo() const
   {
     (m_model.*T::set())(m_new);
   }
@@ -45,10 +45,6 @@ private:
 public:                                                        \
   using iscore::SettingsCommand<parameter_t>::SettingsCommand; \
   name() = default;                                            \
-  virtual const CommandFactoryKey& key() const override        \
-  {                                                            \
-    return static_key();                                       \
-  }                                                            \
   static const CommandFactoryKey& static_key()                 \
   {                                                            \
     static const CommandFactoryKey var{#name};                 \

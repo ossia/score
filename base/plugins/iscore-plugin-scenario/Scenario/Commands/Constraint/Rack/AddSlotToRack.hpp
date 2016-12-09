@@ -22,7 +22,7 @@ namespace Command
          * Adds an empty slot at the end of a Rack.
          */
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddSlotToRack final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), AddSlotToRack, "Create a slot")

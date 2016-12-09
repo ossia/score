@@ -25,7 +25,7 @@ namespace Command
          * Removes all the processes and the rackes of a constraint.
          */
 class ISCORE_PLUGIN_SCENARIO_EXPORT ClearConstraint final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), ClearConstraint, "Clear a constraint")

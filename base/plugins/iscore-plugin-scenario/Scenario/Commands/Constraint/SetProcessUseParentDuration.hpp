@@ -16,7 +16,7 @@ namespace Scenario
 class ConstraintModel;
 namespace Command
 {
-class SetProcessUseParentDuration final : public iscore::SerializableCommand
+class SetProcessUseParentDuration final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

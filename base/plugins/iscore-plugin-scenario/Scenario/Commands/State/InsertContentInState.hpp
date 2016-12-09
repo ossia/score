@@ -15,7 +15,7 @@ class StateModel;
 namespace Command
 {
 
-class InsertContentInState final : public iscore::SerializableCommand
+class InsertContentInState final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

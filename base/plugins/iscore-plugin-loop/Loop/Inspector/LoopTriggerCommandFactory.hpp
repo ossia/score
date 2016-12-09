@@ -7,7 +7,7 @@ class TimeNodeModel;
 }
 namespace iscore
 {
-class SerializableCommand;
+class Command;
 } // namespace iscore
 
 class LoopTriggerCommandFactory
@@ -17,9 +17,9 @@ class LoopTriggerCommandFactory
 public:
   bool matches(const Scenario::TimeNodeModel& tn) const override;
 
-  iscore::SerializableCommand*
+  iscore::Command*
   make_addTriggerCommand(const Scenario::TimeNodeModel& tn) const override;
 
-  iscore::SerializableCommand*
+  iscore::Command*
   make_removeTriggerCommand(const Scenario::TimeNodeModel& tn) const override;
 };

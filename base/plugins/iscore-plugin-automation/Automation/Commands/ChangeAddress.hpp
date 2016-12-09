@@ -15,7 +15,7 @@ struct Address;
 namespace Automation
 {
 class ProcessModel;
-class ChangeAddress final : public iscore::SerializableCommand
+class ChangeAddress final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(CommandFactoryName(), ChangeAddress, "ChangeAddress")
 public:

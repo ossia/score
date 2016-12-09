@@ -13,7 +13,7 @@ namespace Scenario
 class CommentBlockModel;
 namespace Command
 {
-class MoveCommentBlock final : public iscore::SerializableCommand
+class MoveCommentBlock final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), MoveCommentBlock, "Move a comment block")

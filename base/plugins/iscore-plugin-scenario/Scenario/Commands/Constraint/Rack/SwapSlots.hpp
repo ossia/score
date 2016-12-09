@@ -15,7 +15,7 @@ class RackModel;
 class SlotModel;
 namespace Command
 {
-class SwapSlots final : public iscore::SerializableCommand
+class SwapSlots final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapSlots, "Swap slots")
 public:

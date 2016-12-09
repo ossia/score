@@ -29,7 +29,7 @@ namespace Command
         *
         * Tries to remove what is selected in a scenario.
         */
-class RemoveSelection final : public iscore::SerializableCommand
+class RemoveSelection final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), RemoveSelection,

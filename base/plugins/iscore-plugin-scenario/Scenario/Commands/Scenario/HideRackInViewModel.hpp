@@ -21,7 +21,7 @@ namespace Command
          * For a given constraint view model, hides the rack.
          * Can only be called if a rack was being displayed.
          */
-class HideRackInViewModel final : public iscore::SerializableCommand
+class HideRackInViewModel final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), HideRackInViewModel, "Hide a rack")

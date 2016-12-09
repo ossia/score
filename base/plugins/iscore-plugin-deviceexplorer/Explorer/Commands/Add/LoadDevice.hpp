@@ -13,7 +13,7 @@ class DeviceDocumentPlugin;
 namespace Command
 {
 // Note : could also be used for loading from the library
-class LoadDevice final : public iscore::SerializableCommand
+class LoadDevice final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), LoadDevice, "Load a device")
@@ -32,7 +32,7 @@ private:
   Device::Node m_deviceNode;
 };
 
-class ReloadWholeDevice final : public iscore::SerializableCommand
+class ReloadWholeDevice final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), ReloadWholeDevice, "Reload a device")

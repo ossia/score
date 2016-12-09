@@ -16,7 +16,7 @@ class CommentBlockModel;
 
 namespace Command
 {
-class CreateCommentBlock final : public iscore::SerializableCommand
+class CreateCommentBlock final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

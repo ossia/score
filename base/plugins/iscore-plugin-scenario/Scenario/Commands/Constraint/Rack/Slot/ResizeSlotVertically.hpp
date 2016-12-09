@@ -17,7 +17,7 @@ namespace Command
          * Changes a slot's vertical size
          */
 class ISCORE_PLUGIN_SCENARIO_EXPORT ResizeSlotVertically final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), ResizeSlotVertically, "Resize a slot")

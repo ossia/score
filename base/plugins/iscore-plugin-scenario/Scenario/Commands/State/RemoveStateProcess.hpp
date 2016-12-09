@@ -18,7 +18,7 @@ namespace Command
 {
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT RemoveStateProcess final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

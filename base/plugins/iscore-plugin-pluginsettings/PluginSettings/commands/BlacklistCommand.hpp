@@ -9,7 +9,7 @@ struct DataStreamOutput;
 
 namespace PluginSettings
 {
-class BlacklistCommand : public iscore::SerializableCommand
+class BlacklistCommand : public iscore::Command
 {
   // QUndoCommand interface
 public:

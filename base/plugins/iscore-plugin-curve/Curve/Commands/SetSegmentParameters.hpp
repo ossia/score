@@ -18,7 +18,7 @@ class Model;
 class SegmentModel;
 using SegmentParameterMap = QMap<Id<SegmentModel>, QPair<double, double>>;
 class ISCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       CommandFactoryName(), SetSegmentParameters, "Set segment parameters")

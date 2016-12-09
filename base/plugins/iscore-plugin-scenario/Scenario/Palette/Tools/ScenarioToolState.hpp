@@ -37,7 +37,7 @@
 
 namespace iscore
 {
-class SerializableCommand;
+class Command;
 }
 
 template <typename Element>

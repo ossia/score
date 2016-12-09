@@ -67,7 +67,7 @@ private:
   Id<TimeNodeModel> m_newTimeNode;
 };
 
-class CreateSequenceProcesses final : public iscore::SerializableCommand
+class CreateSequenceProcesses final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

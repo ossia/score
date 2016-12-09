@@ -12,7 +12,7 @@ namespace Scenario
 class ConstraintModel;
 namespace Command
 {
-class SetLooping final : public iscore::SerializableCommand
+class SetLooping final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetLooping, "Change looping status")

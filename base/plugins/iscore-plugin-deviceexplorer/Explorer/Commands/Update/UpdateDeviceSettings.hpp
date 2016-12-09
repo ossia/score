@@ -13,7 +13,7 @@ namespace Explorer
 class DeviceDocumentPlugin;
 namespace Command
 {
-class UpdateDeviceSettings final : public iscore::SerializableCommand
+class UpdateDeviceSettings final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(),

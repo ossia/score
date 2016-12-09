@@ -9,7 +9,7 @@ namespace Interpolation
 {
 class ProcessModel;
 class ISCORE_PLUGIN_INTERPOLATION_EXPORT ChangeAddress final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       CommandFactoryName(), ChangeAddress, "Change Interpolation Address")

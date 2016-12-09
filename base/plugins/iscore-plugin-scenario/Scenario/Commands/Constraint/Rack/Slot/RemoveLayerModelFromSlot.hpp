@@ -24,7 +24,7 @@ namespace Command
          *
          * Removes a process view from a slot.
          */
-class RemoveLayerModelFromSlot final : public iscore::SerializableCommand
+class RemoveLayerModelFromSlot final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

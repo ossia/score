@@ -7,7 +7,7 @@ namespace Midi
 {
 class ProcessModel;
 
-class RemoveNotes final : public iscore::SerializableCommand
+class RemoveNotes final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(Midi::CommandFactoryName(), RemoveNotes, "Remove notes")
 public:

@@ -15,7 +15,7 @@ namespace Automation
 class ProcessModel;
 
 class ISCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(CommandFactoryName(), InitAutomation, "InitAutomation")
 public:

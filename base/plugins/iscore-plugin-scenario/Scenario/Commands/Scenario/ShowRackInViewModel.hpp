@@ -22,7 +22,7 @@ namespace Command
          * select the rack that is to be shown, and show it.
          */
 class ISCORE_PLUGIN_SCENARIO_EXPORT ShowRackInViewModel final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), ShowRackInViewModel, "Show a rack")

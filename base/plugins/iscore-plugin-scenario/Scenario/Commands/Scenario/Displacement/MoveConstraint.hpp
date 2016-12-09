@@ -19,7 +19,7 @@ class ConstraintModel;
 class ProcessModel;
 namespace Command
 {
-class MoveConstraint final : public iscore::SerializableCommand
+class MoveConstraint final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), MoveConstraint, "Move a constraint")

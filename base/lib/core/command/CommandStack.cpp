@@ -22,7 +22,7 @@ CommandStack::~CommandStack()
   qDeleteAll(m_redoable);
 }
 
-const SerializableCommand* CommandStack::command(int index) const
+const Command* CommandStack::command(int index) const
 {
   if (index < m_undoable.size())
   {
@@ -83,13 +83,13 @@ void CommandStack::redoQuiet()
   });
 }
 
-void CommandStack::redoAndPush(SerializableCommand* cmd)
+void CommandStack::redoAndPush(Command* cmd)
 {
   cmd->redo();
   push(cmd);
 }
 
-void CommandStack::push(SerializableCommand* cmd)
+void CommandStack::push(Command* cmd)
 {
   emit localCommand(cmd);
   updateStack([&]() {
@@ -110,13 +110,13 @@ void CommandStack::push(SerializableCommand* cmd)
   });
 }
 
-void CommandStack::redoAndPushQuiet(SerializableCommand* cmd)
+void CommandStack::redoAndPushQuiet(Command* cmd)
 {
   cmd->redo();
   pushQuiet(cmd);
 }
 
-void CommandStack::pushQuiet(SerializableCommand* cmd)
+void CommandStack::pushQuiet(Command* cmd)
 {
   updateStack([&]() {
     // We lose the state we saved

@@ -14,7 +14,7 @@ struct Address;
 namespace Mapping
 {
 class ProcessModel;
-class ChangeSourceAddress final : public iscore::SerializableCommand
+class ChangeSourceAddress final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       MappingCommandFactoryName(), ChangeSourceAddress, "ChangeSourceAddress")
@@ -35,7 +35,7 @@ private:
   Device::FullAddressAccessorSettings m_old, m_new;
 };
 
-class ChangeTargetAddress final : public iscore::SerializableCommand
+class ChangeTargetAddress final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       MappingCommandFactoryName(), ChangeTargetAddress, "ChangeTargetAddress")

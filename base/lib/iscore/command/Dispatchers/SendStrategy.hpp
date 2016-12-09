@@ -7,7 +7,7 @@ struct Simple
 {
   static void send(
       const iscore::CommandStackFacade& stack,
-      iscore::SerializableCommand* other)
+      iscore::Command* other)
   {
     stack.redoAndPush(other);
   }
@@ -17,7 +17,7 @@ struct Quiet
 {
   static void send(
       const iscore::CommandStackFacade& stack,
-      iscore::SerializableCommand* other)
+      iscore::Command* other)
   {
     stack.push(other);
   }
@@ -27,7 +27,7 @@ struct UndoRedo
 {
   static void send(
       const iscore::CommandStackFacade& stack,
-      iscore::SerializableCommand* other)
+      iscore::Command* other)
   {
     other->undo();
     stack.redoAndPush(other);
@@ -38,7 +38,7 @@ namespace RedoStrategy
 {
 struct Redo
 {
-  static void redo(iscore::SerializableCommand& cmd)
+  static void redo(iscore::Command& cmd)
   {
     cmd.redo();
   }
@@ -46,7 +46,7 @@ struct Redo
 
 struct Quiet
 {
-  static void redo(iscore::SerializableCommand& cmd)
+  static void redo(iscore::Command& cmd)
   {
   }
 };

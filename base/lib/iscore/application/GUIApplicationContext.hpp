@@ -4,6 +4,13 @@
 class QMainWindow;
 namespace iscore
 {
+/**
+ * @brief Specializes ApplicationContext with the QMainWindow
+ *
+ * We want to keep it separate in case we do a completely different UI
+ * not based on Qt widgets in a few years, but instead on QQuickWindow or even
+ * a web ui if it has gotten fast enough.
+ */
 struct GUIApplicationContext : public iscore::ApplicationContext
 {
   explicit GUIApplicationContext(

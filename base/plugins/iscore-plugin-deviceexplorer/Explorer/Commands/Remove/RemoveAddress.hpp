@@ -17,7 +17,7 @@ namespace Command
  *
  * Removes an address and its child in the device explorer.
  */
-class RemoveAddress final : public iscore::SerializableCommand
+class RemoveAddress final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), RemoveAddress, "Remove an address")

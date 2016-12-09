@@ -97,7 +97,7 @@ public:
     throw;
   }
 
-  iscore::SerializableCommand*
+  iscore::Command*
   instantiateUndoCommand(const CommandData& cmd) const;
 
 private:

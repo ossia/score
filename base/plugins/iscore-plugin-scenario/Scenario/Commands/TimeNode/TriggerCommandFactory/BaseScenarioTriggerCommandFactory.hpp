@@ -3,7 +3,7 @@
 
 namespace iscore
 {
-class SerializableCommand;
+class Command;
 } // namespace iscore
 
 namespace Scenario
@@ -17,10 +17,10 @@ class BaseScenarioTriggerCommandFactory : public TriggerCommandFactory
 public:
   bool matches(const TimeNodeModel& tn) const override;
 
-  iscore::SerializableCommand*
+  iscore::Command*
   make_addTriggerCommand(const TimeNodeModel& tn) const override;
 
-  iscore::SerializableCommand*
+  iscore::Command*
   make_removeTriggerCommand(const TimeNodeModel& tn) const override;
 };
 }

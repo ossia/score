@@ -25,7 +25,7 @@ class BaseScenario;
 namespace Command
 {
 template <typename SimpleScenario_T>
-class MoveBaseEvent final : public iscore::SerializableCommand
+class MoveBaseEvent final : public iscore::Command
 {
 private:
   template <typename ScaleFun>

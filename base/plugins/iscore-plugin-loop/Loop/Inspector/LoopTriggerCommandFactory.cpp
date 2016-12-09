@@ -17,7 +17,7 @@ bool LoopTriggerCommandFactory::matches(
   return dynamic_cast<Loop::ProcessModel*>(tn.parent());
 }
 
-iscore::SerializableCommand* LoopTriggerCommandFactory::make_addTriggerCommand(
+iscore::Command* LoopTriggerCommandFactory::make_addTriggerCommand(
     const Scenario::TimeNodeModel& tn) const
 {
   if (dynamic_cast<Loop::ProcessModel*>(tn.parent()))
@@ -27,7 +27,7 @@ iscore::SerializableCommand* LoopTriggerCommandFactory::make_addTriggerCommand(
   return nullptr;
 }
 
-iscore::SerializableCommand*
+iscore::Command*
 LoopTriggerCommandFactory::make_removeTriggerCommand(
     const Scenario::TimeNodeModel& tn) const
 {

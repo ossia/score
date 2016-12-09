@@ -15,7 +15,7 @@ class DeviceDocumentPlugin;
 namespace Command
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddDevice final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), AddDevice, "Add a device")

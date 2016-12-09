@@ -20,7 +20,7 @@ class StateModel;
 
 namespace Command
 {
-class SplitEvent final : public iscore::SerializableCommand
+class SplitEvent final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SplitEvent, "Split an event")

@@ -22,7 +22,7 @@ class TimeNodeModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint_State_Event_TimeNode final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

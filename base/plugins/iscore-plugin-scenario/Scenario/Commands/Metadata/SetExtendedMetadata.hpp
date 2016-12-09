@@ -10,7 +10,7 @@ namespace Scenario
 namespace Command
 {
 template <typename T>
-class SetExtendedMetadata final : public iscore::SerializableCommand
+class SetExtendedMetadata final : public iscore::Command
 {
   // No ISCORE_COMMAND here since it's a template.
 public:
