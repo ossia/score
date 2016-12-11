@@ -3,21 +3,9 @@
 #include <QQmlComponent>
 #include <QQmlApplicationEngine>
 #include <QDebug>
+#include <WidgetKind.hpp>
 namespace RemoteUI
 {
-
-enum WidgetKind
-{
-  HSlider,
-  VSlider,
-  CheckBox,
-  LineEdit,
-  Label,
-  PushButton,
-
-  Missing = -1
-};
-
 class WidgetListData : public QObject
 {
   Q_OBJECT

@@ -6,14 +6,18 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Models/CentralItemModel.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Models/NodeModel.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Models/WidgetListModel.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Models/WidgetAddressSetup.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Models/GUIItem.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteApplication.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteContext.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/WebSocketClient.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/WidgetKind.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Models/CentralItemModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Models/NodeModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Models/WidgetListModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Models/GUIItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteApplication.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/WebSocketClient.cpp"
 

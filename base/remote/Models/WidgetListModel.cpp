@@ -25,15 +25,15 @@ WidgetListModel::WidgetListModel(QQmlApplicationEngine& engine)
   componentList.push_back(
         new RemoteUI::WidgetListData{
           WidgetKind::CheckBox, "CheckBox", "CheckBox",
-          QUrl("qrc:///qml/widgets/UICheckBox.ui.qml"),
-          QUrl("qrc:///qml/widgets/UICheckBox.ui.qml"),
+          QUrl("qrc:///qml/widgets/UICheckBox.qml"),
+          QUrl("qrc:///qml/widgets/UICheckBox.qml"),
           engine
         });
   componentList.push_back(
         new RemoteUI::WidgetListData{
           WidgetKind::LineEdit, "LineEdit", "LineEdit",
-          QUrl("qrc:///qml/widgets/UILineEdit.ui.qml"),
-          QUrl("qrc:///qml/widgets/UILineEdit.ui.qml"),
+          QUrl("qrc:///qml/widgets/UILineEdit.qml"),
+          QUrl("qrc:///qml/widgets/UILineEdit.qml"),
           engine
         });
   componentList.push_back(

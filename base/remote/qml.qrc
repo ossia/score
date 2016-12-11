@@ -10,10 +10,12 @@
         <file>qml/WidgetListForm.ui.qml</file>
         <file>qml/widgets/HSliderForm.ui.qml</file>
         <file>qml/widgets/TextLabel.ui.qml</file>
-        <file>qml/widgets/UICheckBox.ui.qml</file>
-        <file>qml/widgets/UILineEdit.ui.qml</file>
+        <file>qml/widgets/UILineEdit.qml</file>
         <file>qml/widgets/VSlider.ui.qml</file>
         <file>qml/widgets/UIButton.ui.qml</file>
         <file>qml/widgets/HSlider.qml</file>
+        <file>qml/widgets/UILineEditForm.ui.qml</file>
+        <file>qml/widgets/UICheckBox.qml</file>
+        <file>qml/widgets/UICheckBoxForm.ui.qml</file>
     </qresource>
 </RCC>
