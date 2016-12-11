@@ -2,10 +2,11 @@
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
+#include <iscore/application/GUIApplicationContext.hpp>
 
 namespace Explorer
 {
-PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx)
+PanelDelegate::PanelDelegate(const iscore::GUIApplicationContext& ctx)
     : iscore::PanelDelegate{ctx}
     , m_widget{new DeviceExplorerWidget{
           ctx.interfaces<Device::ProtocolFactoryList>(), nullptr}}

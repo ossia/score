@@ -9,7 +9,7 @@ class Document;
 class DocumentBackupManager;
 class DocumentDelegateFactory;
 class DocumentModel;
-struct ApplicationContext;
+struct GUIApplicationContext;
 
 /**
  * @brief Methods to set-up documents.
@@ -26,15 +26,15 @@ public:
   explicit DocumentBuilder(QObject* parentPresenter, QWidget* parentView);
 
   Document* newDocument(
-      const iscore::ApplicationContext& ctx,
+      const iscore::GUIApplicationContext& ctx,
       const Id<DocumentModel>& id,
       iscore::DocumentDelegateFactory& doctype);
   Document* loadDocument(
-      const iscore::ApplicationContext& ctx,
+      const iscore::GUIApplicationContext& ctx,
       const QVariant& data,
       iscore::DocumentDelegateFactory& doctype);
   Document* restoreDocument(
-      const iscore::ApplicationContext& ctx,
+      const iscore::GUIApplicationContext& ctx,
       const QByteArray& docData,
       const QByteArray& cmdData,
       iscore::DocumentDelegateFactory& doctype);

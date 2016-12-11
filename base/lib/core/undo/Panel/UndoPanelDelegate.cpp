@@ -6,7 +6,7 @@
 
 namespace iscore
 {
-UndoPanelDelegate::UndoPanelDelegate(const ApplicationContext& ctx)
+UndoPanelDelegate::UndoPanelDelegate(const GUIApplicationContext& ctx)
     : PanelDelegate{ctx}, m_widget{new QWidget}
 {
   m_widget->setLayout(new QVBoxLayout);

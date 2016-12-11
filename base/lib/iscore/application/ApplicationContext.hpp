@@ -24,10 +24,6 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   explicit ApplicationContext(
       const iscore::ApplicationSettings&,
       const ApplicationComponents&,
-      DocumentManager&,
-      iscore::MenuManager&,
-      iscore::ToolbarManager&,
-      iscore::ActionManager&,
       const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>&);
   ApplicationContext(const ApplicationContext&) = delete;
   ApplicationContext(ApplicationContext&&) = delete;
@@ -127,11 +123,6 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   const iscore::ApplicationSettings& applicationSettings;
 
   const iscore::ApplicationComponents& components;
-
-  DocumentManager& documents;
-  MenuManager& menus;
-  ToolbarManager& toolbars;
-  ActionManager& actions;
 
 private:
   const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>&

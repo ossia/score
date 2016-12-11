@@ -14,6 +14,7 @@ namespace iscore
 {
 class DocumentDelegateFactory;
 class InterfaceListBase;
+struct GUIApplicationContext;
 class GUIApplicationContextPlugin;
 class PanelDelegateFactory;
 class SettingsDelegateFactory;
@@ -33,7 +34,7 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
 public:
   ApplicationRegistrar(
       ApplicationComponentsData&,
-      const iscore::ApplicationContext&,
+      const iscore::GUIApplicationContext&,
       iscore::View&,
       MenuManager&,
       ToolbarManager&,
@@ -59,7 +60,7 @@ public:
 
 private:
   ApplicationComponentsData& m_components;
-  const iscore::ApplicationContext& m_context;
+  const iscore::GUIApplicationContext& m_context;
   iscore::View& m_view;
 
   MenuManager& m_menuManager;

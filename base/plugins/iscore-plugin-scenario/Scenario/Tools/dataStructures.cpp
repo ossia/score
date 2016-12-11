@@ -45,7 +45,7 @@ ConstraintSaveData::ConstraintSaveData(
 
 void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
 {
-  auto& comps = iscore::AppContext().components;
+  auto& comps = iscore::AppComponents();
   auto& procsfactories = comps.interfaces<Process::ProcessFactoryList>();
   for (auto& sourceproc : processes)
   {

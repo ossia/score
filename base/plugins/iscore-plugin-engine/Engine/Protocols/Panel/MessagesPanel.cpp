@@ -100,7 +100,7 @@ public:
   QTimer m_updateScheduler;
 };
 
-PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx)
+PanelDelegate::PanelDelegate(const iscore::GUIApplicationContext& ctx)
     : iscore::PanelDelegate{ctx}
     , m_itemModel{new LogMessagesItemModel{this}}
     , m_widget{new QListView}
@@ -216,7 +216,7 @@ Device::DeviceList* PanelDelegate::getDeviceList(iscore::MaybeDocument newm)
 }
 
 std::unique_ptr<iscore::PanelDelegate>
-PanelDelegateFactory::make(const iscore::ApplicationContext& ctx)
+PanelDelegateFactory::make(const iscore::GUIApplicationContext& ctx)
 {
   return std::make_unique<PanelDelegate>(ctx);
 }

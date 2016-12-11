@@ -75,7 +75,7 @@ ConstraintModel::ConstraintModel(
   }
 
   auto& procs
-      = iscore::AppContext().interfaces<Process::LayerFactoryList>();
+      = iscore::AppComponents().interfaces<Process::LayerFactoryList>();
   for (const auto& rack : source.racks)
   {
     racks.add(new RackModel{

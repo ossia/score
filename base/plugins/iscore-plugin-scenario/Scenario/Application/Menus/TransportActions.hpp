@@ -25,7 +25,7 @@ public:
   void makeGUIElements(iscore::GUIElements& ref);
 
 private:
-  const iscore::ApplicationContext& m_context;
+  const iscore::GUIApplicationContext& m_context;
 
   QAction* m_play{};
   QAction* m_stop{};

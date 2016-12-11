@@ -10,7 +10,7 @@
 
 namespace InspectorPanel
 {
-PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx)
+PanelDelegate::PanelDelegate(const iscore::GUIApplicationContext& ctx)
     : iscore::PanelDelegate{ctx}, m_widget{new QWidget}
 {
   new iscore::MarginLess<QVBoxLayout>{m_widget};

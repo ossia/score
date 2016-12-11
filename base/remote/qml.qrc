@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qml/MainPage.qml</file>
+        <file>qml/MainPageForm.ui.qml</file>
+        <file>qml/WidgetList.qml</file>
+        <file>qml/CentralArea.qml</file>
+        <file>qml/NodeTree.qml</file>
+        <file>qml/CentralAreaForm.ui.qml</file>
+        <file>qml/WidgetListForm.ui.qml</file>
+        <file>qml/widgets/HSliderForm.ui.qml</file>
+        <file>qml/widgets/TextLabel.ui.qml</file>
+        <file>qml/widgets/UICheckBox.ui.qml</file>
+        <file>qml/widgets/UILineEdit.ui.qml</file>
+        <file>qml/widgets/VSlider.ui.qml</file>
+        <file>qml/widgets/UIButton.ui.qml</file>
+        <file>qml/widgets/HSlider.qml</file>
+    </qresource>
+</RCC>

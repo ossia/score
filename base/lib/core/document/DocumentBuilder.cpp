@@ -28,7 +28,7 @@ DocumentBuilder::DocumentBuilder(QObject* parentPresenter, QWidget* parentView)
 
 ISCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::newDocument(
-    const iscore::ApplicationContext& ctx,
+    const iscore::GUIApplicationContext& ctx,
     const Id<DocumentModel>& id,
     DocumentDelegateFactory& doctype)
 {
@@ -55,7 +55,7 @@ Document* DocumentBuilder::newDocument(
 
 ISCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::loadDocument(
-    const iscore::ApplicationContext& ctx,
+    const iscore::GUIApplicationContext& ctx,
     const QVariant& docData,
     DocumentDelegateFactory& doctype)
 {
@@ -95,7 +95,7 @@ Document* DocumentBuilder::loadDocument(
 }
 ISCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::restoreDocument(
-    const iscore::ApplicationContext& ctx,
+    const iscore::GUIApplicationContext& ctx,
     const QByteArray& docData,
     const QByteArray& cmdData,
     DocumentDelegateFactory& doctype)

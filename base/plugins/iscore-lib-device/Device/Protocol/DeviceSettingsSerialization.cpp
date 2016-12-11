@@ -94,15 +94,17 @@ Visitor<Writer<JSONObject>>::writeTo(Device::DeviceSettings& n)
   n.protocol = fromJsonValue<UuidKey<Device::ProtocolFactory>>(
       m_obj[strings.Protocol]);
 
-  auto& pl = components.interfaces<Device::ProtocolFactoryList>();
-  auto prot = pl.get(n.protocol);
-  if (prot)
+  auto pl = components.findInterfaces<Device::ProtocolFactoryList>();
+  if(pl)
   {
-    n.deviceSpecificSettings
-        = prot->makeProtocolSpecificSettings(this->toVariant());
-  }
-  else
-  {
-    qDebug() << "Warning: could not load device " << n.name;
+    if (auto prot = pl->get(n.protocol))
+    {
+      n.deviceSpecificSettings
+          = prot->makeProtocolSpecificSettings(this->toVariant());
+    }
+    else
+    {
+      qDebug() << "Warning: could not load device " << n.name;
+    }
   }
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/application/GUIApplicationContext.hpp>
 #include <iscore_lib_base_export.h>
 namespace iscore
 {
@@ -30,6 +30,20 @@ public:
 
   static ApplicationInterface& instance();
 
+
+protected:
+  static ApplicationInterface* m_instance;
+};
+
+
+class ISCORE_LIB_BASE_EXPORT GUIApplicationInterface : public ApplicationInterface
+{
+public:
+  using ApplicationInterface::ApplicationInterface;
+  virtual const GUIApplicationContext& context() const override = 0;
+
+  static GUIApplicationInterface& instance();
+
   /**
    * @brief loadPluginData Utility method to load the minimal required data for
    * plug-ins.
@@ -48,8 +62,5 @@ public:
       iscore::ApplicationRegistrar&,
       iscore::Settings& m_settings,
       iscore::Presenter& m_presenter);
-
-protected:
-  static ApplicationInterface* m_instance;
 };
 }

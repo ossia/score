@@ -97,7 +97,7 @@ QObject* ObjectPath::find_impl() const
   using namespace iscore;
   QObject* obj{};
 
-  const auto& docs = iscore::AppContext().documents.documents();
+  const auto& docs = iscore::GUIAppContext().documents.documents();
   auto parent_doc_it = ossia::find_if(
       docs,
       [root_id_val
@@ -134,7 +134,7 @@ QObject* ObjectPath::find_impl_unsafe() const
   using namespace iscore;
   QObject* obj{};
 
-  const auto& docs = iscore::AppContext().documents.documents();
+  const auto& docs = iscore::GUIAppContext().documents.documents();
   auto parent_doc_it = ossia::find_if(docs, [&](iscore::Document* doc) {
     return doc->model().id().val() == m_objectIdentifiers.at(0).id();
   });
