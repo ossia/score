@@ -27,7 +27,12 @@ ApplicationInterface& ApplicationInterface::instance()
   return *m_instance;
 }
 
-void ApplicationInterface::loadPluginData(
+GUIApplicationInterface& GUIApplicationInterface::instance()
+{
+  return *static_cast<GUIApplicationInterface*>(ApplicationInterface::m_instance);
+}
+
+void GUIApplicationInterface::loadPluginData(
     const iscore::GUIApplicationContext& ctx,
     iscore::ApplicationRegistrar& registrar,
     iscore::Settings& settings,
@@ -70,7 +75,7 @@ void ApplicationInterface::loadPluginData(
   }
 
   for (auto& panel_fac :
-       context().interfaces<iscore::PanelDelegateFactoryList>())
+       ctx.interfaces<iscore::PanelDelegateFactoryList>())
   {
     registrar.registerPanel(panel_fac);
   }
@@ -81,8 +86,14 @@ ISCORE_LIB_BASE_EXPORT const ApplicationContext& AppContext()
   return ApplicationInterface::instance().context();
 }
 
+ISCORE_LIB_BASE_EXPORT const GUIApplicationContext& GUIAppContext()
+{
+  return GUIApplicationInterface::instance().context();
+}
+
 ISCORE_LIB_BASE_EXPORT const ApplicationComponents& AppComponents()
 {
   return ApplicationInterface::instance().components();
 }
+
 }

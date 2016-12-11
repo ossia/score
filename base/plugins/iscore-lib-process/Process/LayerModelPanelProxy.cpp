@@ -47,7 +47,7 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
   m_view->show();
 
   // Setup the model
-  auto fact = iscore::AppContext().interfaces<LayerFactoryList>().get(
+  auto fact = iscore::AppComponents().interfaces<LayerFactoryList>().get(
       m_layer.concreteKey());
 
   if (!fact)

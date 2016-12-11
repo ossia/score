@@ -364,7 +364,7 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
         {
           auto& dev_set = n.get<Device::DeviceSettings>();
           return Device::deviceNameColumnData(
-              n, deviceModel().list().device(dev_set.name), role);
+              n, deviceModel().list().device(dev_set.name).connected(), role);
         }
         return {};
       }

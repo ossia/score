@@ -46,7 +46,7 @@ namespace Engine
 namespace Execution
 {
 PlayContextMenu::PlayContextMenu(
-    ApplicationPlugin& plug, const iscore::ApplicationContext& ctx)
+    ApplicationPlugin& plug, const iscore::GUIApplicationContext& ctx)
     : m_ctx{ctx}
 {
   auto& exec_signals

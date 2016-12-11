@@ -73,7 +73,7 @@ DocumentManager::DocumentManager(iscore::View& view, QObject* parentPresenter)
 {
 }
 
-void DocumentManager::init(const ApplicationContext& ctx)
+void DocumentManager::init(const iscore::GUIApplicationContext& ctx)
 {
   con(m_view, &View::activeDocumentChanged, this,
       [&](const Id<DocumentModel>& doc) {
@@ -122,7 +122,7 @@ DocumentManager::~DocumentManager()
 
 ISCORE_LIB_BASE_EXPORT
 Document* DocumentManager::setupDocument(
-    const iscore::ApplicationContext& ctx, Document* doc)
+    const iscore::GUIApplicationContext& ctx, Document* doc)
 {
   if (doc)
   {
@@ -151,7 +151,7 @@ Document* DocumentManager::currentDocument() const
 }
 
 void DocumentManager::setCurrentDocument(
-    const iscore::ApplicationContext& ctx, Document* doc)
+    const iscore::GUIApplicationContext& ctx, Document* doc)
 {
   auto old = m_currentDocument;
   m_currentDocument = doc;
@@ -179,7 +179,7 @@ void DocumentManager::setCurrentDocument(
 }
 
 bool DocumentManager::closeDocument(
-    const iscore::ApplicationContext& ctx, Document& doc)
+    const iscore::GUIApplicationContext& ctx, Document& doc)
 {
   // Warn the user if he might loose data
   if (!doc.commandStack().isAtSavedIndex())
@@ -215,7 +215,7 @@ bool DocumentManager::closeDocument(
 }
 
 void DocumentManager::forceCloseDocument(
-    const ApplicationContext& ctx, Document& doc)
+    const iscore::GUIApplicationContext& ctx, Document& doc)
 {
   emit doc.aboutToClose();
   QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
@@ -339,7 +339,7 @@ bool DocumentManager::saveStack()
   return false;
 }
 
-Document* DocumentManager::loadStack(const iscore::ApplicationContext& ctx)
+Document* DocumentManager::loadStack(const iscore::GUIApplicationContext& ctx)
 {
   QString loadname = QFileDialog::getOpenFileName(
       &m_view, tr("Open Stack"), QString(), "*.stack");
@@ -352,7 +352,7 @@ Document* DocumentManager::loadStack(const iscore::ApplicationContext& ctx)
 }
 
 Document* DocumentManager::loadStack(
-    const ApplicationContext& ctx, const QString& loadname)
+    const iscore::GUIApplicationContext& ctx, const QString& loadname)
 {
   QFile cmdF{loadname};
 
@@ -382,7 +382,7 @@ Document* DocumentManager::loadStack(
 }
 
 ISCORE_LIB_BASE_EXPORT
-Document* DocumentManager::loadFile(const iscore::ApplicationContext& ctx)
+Document* DocumentManager::loadFile(const iscore::GUIApplicationContext& ctx)
 {
   QString loadname = QFileDialog::getOpenFileName(
       &m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
@@ -390,7 +390,7 @@ Document* DocumentManager::loadFile(const iscore::ApplicationContext& ctx)
 }
 
 Document* DocumentManager::loadFile(
-    const iscore::ApplicationContext& ctx, const QString& fileName)
+    const iscore::GUIApplicationContext& ctx, const QString& fileName)
 {
   Document* doc{};
   if (!fileName.isEmpty() && (fileName.indexOf(".scorebin") != -1
@@ -442,7 +442,7 @@ Document* DocumentManager::loadFile(
 }
 
 ISCORE_LIB_BASE_EXPORT
-void DocumentManager::prepareNewDocument(const iscore::ApplicationContext& ctx)
+void DocumentManager::prepareNewDocument(const iscore::GUIApplicationContext& ctx)
 {
   m_preparingNewDocument = true;
   for (GUIApplicationContextPlugin* appPlugin :
@@ -453,7 +453,7 @@ void DocumentManager::prepareNewDocument(const iscore::ApplicationContext& ctx)
   m_preparingNewDocument = false;
 }
 
-bool DocumentManager::closeAllDocuments(const iscore::ApplicationContext& ctx)
+bool DocumentManager::closeAllDocuments(const iscore::GUIApplicationContext& ctx)
 {
   while (!m_documents.empty())
   {
@@ -471,7 +471,7 @@ bool DocumentManager::preparingNewDocument() const
 }
 
 bool DocumentManager::checkAndUpdateJson(
-    QJsonDocument& json, const iscore::ApplicationContext& ctx)
+    QJsonDocument& json, const iscore::GUIApplicationContext& ctx)
 {
   if (!json.isObject())
     return false;
@@ -578,7 +578,7 @@ void DocumentManager::saveRecentFilesState()
 }
 
 ISCORE_LIB_BASE_EXPORT
-void DocumentManager::restoreDocuments(const iscore::ApplicationContext& ctx)
+void DocumentManager::restoreDocuments(const iscore::GUIApplicationContext& ctx)
 {
   for (const auto& backup : DocumentBackups::restorableDocuments())
   {

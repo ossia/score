@@ -12,7 +12,7 @@ class QApplication;
 
 class TestApplication final :
         public QObject,
-        public iscore::ApplicationInterface
+        public iscore::GUIApplicationInterface
 {
     public:
         TestApplication(int& argc, char** argv);

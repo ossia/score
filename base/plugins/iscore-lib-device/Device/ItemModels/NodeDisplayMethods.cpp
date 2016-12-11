@@ -128,7 +128,7 @@ QVariant nameColumnData(const Device::Node& node, int role)
 }
 
 QVariant
-deviceNameColumnData(const Device::Node& node, DeviceInterface& dev, int role)
+deviceNameColumnData(const Device::Node& node, bool connected, int role)
 {
   static const QFont italicFont{[]() {
     QFont f;
@@ -145,7 +145,7 @@ deviceNameColumnData(const Device::Node& node, DeviceInterface& dev, int role)
       return node.get<DeviceSettings>().name;
     case Qt::FontRole:
     {
-      if (!dev.connected())
+      if (!connected)
         return italicFont;
     }
     default:

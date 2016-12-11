@@ -22,10 +22,22 @@ struct GUIApplicationContext : public iscore::ApplicationContext
       iscore::ActionManager& f,
       const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>& g,
       QMainWindow& mw)
-      : iscore::ApplicationContext{a, b, c, d, e, f, g}, mainWindow{mw}
+      : iscore::ApplicationContext{a, b, g},
+        documents{c},
+        menus{d},
+        toolbars{e},
+        actions{f},
+        mainWindow{mw}
   {
   }
 
+  DocumentManager& documents;
+
+  MenuManager& menus;
+  ToolbarManager& toolbars;
+  ActionManager& actions;
   QMainWindow& mainWindow;
 };
+
+ISCORE_LIB_BASE_EXPORT const GUIApplicationContext& GUIAppContext();
 }

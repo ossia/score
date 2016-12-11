@@ -6,7 +6,7 @@ namespace Library
 class PanelDelegate final : public iscore::PanelDelegate
 {
 public:
-  PanelDelegate(const iscore::ApplicationContext& ctx);
+  PanelDelegate(const iscore::GUIApplicationContext& ctx);
 
 private:
   QWidget* widget() override;

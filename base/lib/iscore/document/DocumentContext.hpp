@@ -1,6 +1,6 @@
 #pragma once
 #include <boost/optional.hpp>
-#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/application/GUIApplicationContext.hpp>
 #include <iscore/command/CommandStackFacade.hpp>
 #include <iscore/selection/FocusManager.hpp>
 class IdentifiedObjectAbstract;
@@ -16,7 +16,7 @@ struct ISCORE_LIB_BASE_EXPORT DocumentContext
   friend class iscore::Document;
   static DocumentContext fromDocument(iscore::Document& d);
 
-  const iscore::ApplicationContext& app;
+  const iscore::GUIApplicationContext& app;
   iscore::Document& document;
   const iscore::CommandStackFacade commandStack;
   iscore::SelectionStack& selectionStack;

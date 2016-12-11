@@ -8,11 +8,12 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <iscore/application/GUIApplicationContext.hpp>
 #include <iscore/widgets/ClearLayout.hpp>
 
 namespace Scenario
 {
-PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx)
+PanelDelegate::PanelDelegate(const iscore::GUIApplicationContext& ctx)
     : iscore::PanelDelegate{ctx}, m_widget{new QWidget}
 {
   m_widget->setLayout(new QVBoxLayout);

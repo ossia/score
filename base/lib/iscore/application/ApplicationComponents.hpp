@@ -82,6 +82,21 @@ public:
   }
 
   template <typename T>
+  const T* findInterfaces() const
+  {
+    static_assert(
+        T::factory_list_tag,
+        "This needs to be called with a factory list class");
+    auto it = m_data.factories.find(T::static_interfaceKey());
+    if (it != m_data.factories.end())
+    {
+      return safe_cast<T*>(it->second.get());
+    }
+
+    return nullptr;
+  }
+
+  template <typename T>
   const T& interfaces() const
   {
     static_assert(

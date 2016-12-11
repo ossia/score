@@ -7,33 +7,26 @@
 #include <core/plugin/PluginManager.hpp>
 #include <iscore/application/ApplicationComponents.hpp>
 #include <iscore/application/GUIApplicationContext.hpp>
-#include <iscore/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-
 #include <QJsonDocument>
 #include <QPluginLoader>
 #include <QSettings>
 #include <QVariant>
 #include <utility>
 
-#include "PluginDependencyGraph.hpp"
 #include <ossia/detail/algorithms.hpp>
 #include <QStandardPaths>
 #include <iscore/application/ApplicationContext.hpp>
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 namespace iscore
 {
-
+namespace PluginLoader
+{
 /**
  * @brief pluginsDir
  * @return The folder where i-score should look for plug-ins, static for now.
  */
-static QStringList pluginsDir()
+QStringList pluginsDir()
 {
   QStringList l;
 #if defined(_WIN32)
@@ -52,7 +45,7 @@ static QStringList pluginsDir()
   return l;
 }
 
-static QStringList addonsDir()
+QStringList addonsDir()
 {
   QStringList l;
 
@@ -65,16 +58,8 @@ static QStringList addonsDir()
   qDebug() << l;
   return l;
 }
-enum class PluginLoadingError
-{
-  NoError,
-  Blacklisted,
-  NotAPlugin,
-  AlreadyLoaded,
-  UnknownError
-};
 
-static std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
+std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     const QString& fileName,
     const std::vector<iscore::Addon>& availablePlugins)
 {
@@ -136,7 +121,7 @@ static std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
   return std::make_pair(nullptr, PluginLoadingError::UnknownError);
 }
 
-static void
+void
 loadPluginsInAllFolders(std::vector<iscore::Addon>& availablePlugins)
 {
   using namespace iscore::PluginLoader;
@@ -170,7 +155,7 @@ loadPluginsInAllFolders(std::vector<iscore::Addon>& availablePlugins)
 #endif
 }
 
-static optional<iscore::Addon> makeAddon(
+optional<iscore::Addon> makeAddon(
     const QString& addon_path,
     const QJsonObject& json_addon,
     const std::vector<iscore::Addon>& availablePlugins)
@@ -231,7 +216,7 @@ static optional<iscore::Addon> makeAddon(
   return add;
 }
 
-static void
+void
 loadAddonsInAllFolders(std::vector<iscore::Addon>& availablePlugins)
 {
   using namespace iscore::PluginLoader;
@@ -262,100 +247,10 @@ loadAddonsInAllFolders(std::vector<iscore::Addon>& availablePlugins)
   }
 }
 
-void PluginLoader::loadPlugins(
-    iscore::ApplicationRegistrar& registrar,
-    const iscore::ApplicationContext& context)
-{
-  // Here, the plug-ins that are effectively loaded.
-  std::vector<iscore::Addon> availablePlugins;
-
-  // Load static plug-ins
-  for (QObject* plugin : QPluginLoader::staticInstances())
-  {
-    if (auto iscore_plug = dynamic_cast<iscore::Plugin_QtInterface*>(plugin))
-    {
-      iscore::Addon addon;
-      addon.corePlugin = true;
-      addon.plugin = iscore_plug;
-      availablePlugins.push_back(std::move(addon));
-    }
-  }
-
-  loadPluginsInAllFolders(availablePlugins);
-  loadAddonsInAllFolders(availablePlugins);
-
-  // First bring in the plugin objects
-  registrar.registerAddons(availablePlugins);
-
-  // Here, it is important not to collapse all the for-loops
-  // because for instance a ApplicationPlugin from plugin B might require the
-  // factory
-  // from plugin A to be loaded prior.
-  // Load all the factories.
-  for (const iscore::Addon& addon : availablePlugins)
-  {
-    auto facfam_interface
-        = dynamic_cast<FactoryList_QtInterface*>(addon.plugin);
-
-    if (facfam_interface)
-    {
-      for (auto&& elt : facfam_interface->factoryFamilies())
-      {
-        registrar.registerFactory(std::move(elt));
-      }
-    }
-  }
-
-  // Load all the application context plugins.
-  // We have to order them according to their dependencies
-  PluginDependencyGraph graph;
-  for (const iscore::Addon& addon : availablePlugins)
-  {
-    graph.addNode(dynamic_cast<QObject*>(addon.plugin));
-  }
-
-  if (auto gui_ctx
-      = dynamic_cast<const iscore::GUIApplicationContext*>(&context))
-  {
-    graph.visit([&](QObject* plugin) {
-      auto ctrl_plugin
-          = dynamic_cast<GUIApplicationContextPlugin_QtInterface*>(plugin);
-      if (ctrl_plugin)
-      {
-        if (auto plug = ctrl_plugin->make_applicationPlugin(*gui_ctx))
-          registrar.registerApplicationContextPlugin(plug);
-      }
-    });
-  }
-  // Load what the plug-ins have to offer.
-  for (const iscore::Addon& addon : availablePlugins)
-  {
-    auto commands_plugin
-        = dynamic_cast<CommandFactory_QtInterface*>(addon.plugin);
-    if (commands_plugin)
-    {
-      registrar.registerCommands(commands_plugin->make_commands());
-    }
-
-    auto factories_plugin
-        = dynamic_cast<FactoryInterface_QtInterface*>(addon.plugin);
-    if (factories_plugin)
-    {
-      for (auto& factory_family : registrar.components().factories)
-      {
-        for (auto&& new_factory :
-             factories_plugin->factories(context, factory_family.first))
-        {
-          factory_family.second->insert(std::move(new_factory));
-        }
-      }
-    }
-  }
-}
-
-QStringList PluginLoader::pluginsBlacklist()
+QStringList pluginsBlacklist()
 {
   QSettings s;
   return s.value("PluginSettings/Blacklist", QStringList{}).toStringList();
+}
 }
 }

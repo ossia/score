@@ -26,7 +26,7 @@ DocumentContext DocumentContext::fromDocument(Document& d)
 }
 
 DocumentContext::DocumentContext(Document& d)
-    : app{iscore::AppContext()}
+    : app{iscore::GUIAppContext()}
     , document{d}
     , commandStack{d.m_commandStack}
     , selectionStack{d.selectionStack()}

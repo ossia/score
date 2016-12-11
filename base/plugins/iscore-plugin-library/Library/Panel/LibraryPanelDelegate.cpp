@@ -4,10 +4,11 @@
 #include <QTabWidget>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/application/GUIApplicationContext.hpp>
 
 namespace Library
 {
-PanelDelegate::PanelDelegate(const iscore::ApplicationContext& ctx)
+PanelDelegate::PanelDelegate(const iscore::GUIApplicationContext& ctx)
     : iscore::PanelDelegate{ctx}, m_widget{new QTabWidget}
 {
   auto projectModel = new JSONModel;

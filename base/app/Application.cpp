@@ -103,7 +103,7 @@ Application::~Application()
     delete m_app;
 }
 
-const iscore::ApplicationContext& Application::context() const
+const iscore::GUIApplicationContext& Application::context() const
 {
   return m_presenter->applicationContext();
 }
@@ -203,7 +203,7 @@ void Application::loadPluginData()
                 m_presenter->toolbarManager(),
                 m_presenter->actionManager()};
 
-    ApplicationInterface::loadPluginData(ctx, registrar, m_settings, *m_presenter);
+    GUIApplicationInterface::loadPluginData(ctx, registrar, m_settings, *m_presenter);
 }
 
 int Application::exec()

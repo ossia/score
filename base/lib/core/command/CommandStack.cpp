@@ -9,7 +9,7 @@
 namespace iscore
 {
 CommandStack::CommandStack(const iscore::Document& ctx, QObject* parent)
-    : m_checker{iscore::AppContext().interfaces<ValidityCheckerList>(),
+    : m_checker{iscore::AppComponents().interfaces<ValidityCheckerList>(),
                 ctx}
 {
   this->setObjectName("CommandStack");

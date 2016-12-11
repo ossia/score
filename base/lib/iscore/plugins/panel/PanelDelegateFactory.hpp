@@ -13,7 +13,7 @@ public:
   virtual ~PanelDelegateFactory();
 
   virtual std::unique_ptr<PanelDelegate>
-  make(const iscore::ApplicationContext& ctx) = 0;
+  make(const iscore::GUIApplicationContext& ctx) = 0;
 };
 
 class ISCORE_LIB_BASE_EXPORT PanelDelegateFactoryList final

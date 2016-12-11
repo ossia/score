@@ -20,7 +20,7 @@ namespace iscore
 ISCORE_LIB_BASE_EXPORT
 ApplicationRegistrar::ApplicationRegistrar(
     ApplicationComponentsData& comp,
-    const iscore::ApplicationContext& ctx,
+    const iscore::GUIApplicationContext& ctx,
     iscore::View& view,
     MenuManager& m,
     ToolbarManager& t,

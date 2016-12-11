@@ -16,7 +16,7 @@ namespace Device
 ISCORE_LIB_DEVICE_EXPORT QVariant
 nameColumnData(const Device::Node& node, int role);
 ISCORE_LIB_DEVICE_EXPORT QVariant deviceNameColumnData(
-    const Device::Node& node, Device::DeviceInterface& dev, int role);
+    const Device::Node& node, bool connected, int role);
 ISCORE_LIB_DEVICE_EXPORT QVariant
 valueColumnData(const Device::Node& node, int role);
 ISCORE_LIB_DEVICE_EXPORT QVariant
