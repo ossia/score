@@ -52,6 +52,7 @@ public:
     painter->setPen(p);
     painter->drawLine(l1);
     painter->drawLine(l2);
+    painter->setBrush(QBrush());
   }
 
 protected:

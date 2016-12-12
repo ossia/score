@@ -31,6 +31,7 @@ TemporalConstraintView::TemporalConstraintView(
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
   this->setAcceptDrops(true);
+  this->setCursor(QCursor(Qt::SizeVerCursor));
 
   this->setZValue(ZPos::Constraint);
 }

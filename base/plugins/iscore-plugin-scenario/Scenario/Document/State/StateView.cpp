@@ -1,5 +1,6 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QBrush>
+#include <QCursor>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPen>
@@ -19,6 +20,7 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
 
+  this->setCursor(QCursor(Qt::SizeAllCursor));
   this->setZValue(ZPos::State);
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
