@@ -4,15 +4,18 @@
 #include <QPen>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <iscore_plugin_scenario_export.h>
+#include <Scenario/Document/Constraint/ExecutionState.hpp>
 #include <qnamespace.h>
 class QGraphicsSceneMouseEvent;
 
+class ScenarioStyle;
 namespace Scenario
 {
 class ConstraintPresenter;
 class LeftBraceView;
 class RightBraceView;
 class SimpleTextItem;
+class ConstraintMenuOverlay;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QObject,
                                                      public QGraphicsItem
 {
@@ -55,11 +58,8 @@ public:
     return m_height;
   }
 
-  void setSelected(bool selected)
-  {
-    m_selected = selected;
-    update();
-  }
+  void setSelected(bool selected);
+  virtual void enableOverlay(bool selected);
 
   bool isSelected() const
   {
@@ -96,11 +96,24 @@ public:
     return m_validConstraint;
   }
 
+  void setFocused(bool b)
+  {
+    m_hasFocus = b;
+    update();
+  }
+
+  bool shadow() const;
+  void setShadow(bool shadow);
+
   bool warning() const;
   void setWarning(bool warning);
 
+  void setExecutionState(ConstraintExecutionState);
+  QColor constraintColor(const ScenarioStyle& skin) const;
+
   void updateLabelPos();
   void updateCounterPos();
+  void updateOverlayPos();
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
@@ -121,7 +134,8 @@ protected:
   SimpleTextItem* m_labelItem{};
   SimpleTextItem* m_counterItem{};
 
-private:
+  ConstraintMenuOverlay* m_overlay{};
+
   ConstraintPresenter& m_presenter;
   double m_defaultWidth{};
   double m_maxWidth{};
@@ -134,5 +148,8 @@ private:
   bool m_infinite{};
   bool m_validConstraint{true};
   bool m_warning{false};
+  bool m_shadow{false};
+  bool m_hasFocus{};
+  ConstraintExecutionState m_state{};
 };
 }
