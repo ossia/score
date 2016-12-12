@@ -18,6 +18,7 @@ class QWidget;
 
 namespace Scenario
 {
+class StateMenuOverlay;
 class StatePresenter;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject,
@@ -62,6 +63,7 @@ public:
 
 signals:
   void dropReceived(const QMimeData*);
+  void startCreateMode();
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -77,6 +79,7 @@ protected:
 private:
   void setDilatation(double);
   StatePresenter& m_presenter;
+  StateMenuOverlay* m_overlay{};
 
   bool m_containMessage{false};
   bool m_selected{false};
