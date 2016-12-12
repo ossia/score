@@ -21,11 +21,12 @@ public:
 
   QRectF boundingRect() const override
   {
-    return {0, 0, 20, 20};
+    return {0, -10, 20, 20};
   }
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
   {
+
     auto& skin = ScenarioStyle::instance();
     auto cst = static_cast<ConstraintView*>(parentItem());
     auto col = cst->constraintColor(skin);
@@ -33,15 +34,22 @@ public:
     painter->setBrush(col);
 
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->drawChord(boundingRect(), 5760 / 2, -5760 / 2);
+    painter->drawChord(0, 0, 20, 20, 5760 / 2, -5760 / 2);
 
     painter->setBrush(skin.EventPending.getColor());
-    QPen p{skin.EventPending.getColor()};
+    const auto bright = skin.EventPending.getColor();
+    QPen p{bright.darker(300)};
     p.setWidth(2);
     painter->setPen(p);
 
-    painter->drawLine(QPointF{10, 2}, QPointF{10, 8});
-    painter->drawLine(QPointF{7, 5}, QPointF{13, 5});
+    const QLineF l1{QPointF{10, 2}, QPointF{10, 8}};
+    const QLineF l2{QPointF{7, 5}, QPointF{13, 5}};
+    painter->drawLine(l1.translated(1,1));
+    painter->drawLine(l2.translated(1,1));
+    p.setColor(bright);
+    painter->setPen(p);
+    painter->drawLine(l1);
+    painter->drawLine(l2);
   }
 
 protected:
