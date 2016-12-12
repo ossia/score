@@ -1,10 +1,15 @@
+#include <Process/ProcessList.hpp>
 #include <QGraphicsScene>
 #include <QList>
+#include <QApplication>
+#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 #include "TemporalConstraintHeader.hpp"
 #include "TemporalConstraintPresenter.hpp"
@@ -38,6 +43,9 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 
   con(v, &TemporalConstraintView::constraintHoverLeave, this,
       &TemporalConstraintPresenter::constraintHoverLeave);
+
+  con(v, &ConstraintView::requestOverlayMenu,
+      this, &TemporalConstraintPresenter::on_requestOverlayMenu);
 
   con(cstr_model.model(), &ConstraintModel::executionStateChanged, &v,
       &TemporalConstraintView::setExecutionState);
@@ -119,4 +127,24 @@ TemporalConstraintPresenter::~TemporalConstraintPresenter()
     view->deleteLater();
   }
 }
+
+void TemporalConstraintPresenter::on_requestOverlayMenu(QPointF)
+{
+  auto& fact = m_context.app.interfaces<Process::ProcessFactoryList>();
+  auto dialog = new AddProcessDialog{fact, QApplication::activeWindow()};
+
+  connect(
+      dialog, &AddProcessDialog::okPressed, this,
+        [&] (const auto& key) {
+    auto cmd
+        = Scenario::Command::make_AddProcessToConstraint(this->model(), key);
+
+    CommandDispatcher<> d{m_context.commandStack};
+    emit d.submitCommand(cmd);
+  });
+
+  dialog->launchWindow();
+  dialog->deleteLater();
+}
+
 }

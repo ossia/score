@@ -5,11 +5,13 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QPen>
 #include <QBrush>
+#include <QGraphicsSceneMouseEvent>
 
 namespace Scenario
 {
 
-struct ConstraintMenuOverlay final : public QGraphicsItem
+struct ConstraintMenuOverlay final :
+    public QGraphicsItem
 {
 
 public:
@@ -55,6 +57,9 @@ public:
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
+    auto cst = static_cast<ConstraintView*>(parentItem());
+    emit cst->requestOverlayMenu(event->pos());
+    event->accept();
   }
 };
 

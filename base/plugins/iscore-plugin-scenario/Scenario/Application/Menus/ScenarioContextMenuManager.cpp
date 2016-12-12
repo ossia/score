@@ -158,26 +158,10 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
     QObject::connect(
         &dialog, &AddProcessDialog::okPressed, [&](const auto& proc) {
-          auto& constraint = slotm.parentConstraint();
-          QuietMacroCommandDispatcher<Scenario::Command::
-                                          CreateProcessInNewSlot>
-              disp{ctx.commandStack};
+          using cmd = Scenario::Command::CreateProcessInNewSlot;
+          QuietMacroCommandDispatcher<cmd> disp{ctx.commandStack};
 
-          auto cmd1 = new Scenario::Command::AddOnlyProcessToConstraint(
-              constraint, proc);
-          cmd1->redo();
-          disp.submitCommand(cmd1);
-
-          auto& rack = slotm.rack();
-          auto cmd2 = new Scenario::Command::AddSlotToRack(rack);
-          cmd2->redo();
-          disp.submitCommand(cmd2);
-
-          auto cmd3 = new Scenario::Command::AddLayerModelToSlot(
-              rack.slotmodels.at(cmd2->createdSlot()),
-              constraint.processes.at(cmd1->processId()));
-          cmd3->redo();
-          disp.submitCommand(cmd3);
+          cmd::create(disp, slotm.parentConstraint(), slotm.rack(), proc);
 
           disp.commit();
         });

@@ -128,6 +128,9 @@ public:
     return *m_rightBrace;
   }
 
+signals:
+  void requestOverlayMenu(QPointF);
+
 protected:
   LeftBraceView* m_leftBrace{};
   RightBraceView* m_rightBrace{};
