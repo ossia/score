@@ -1,5 +1,6 @@
 #include <QMimeData>
 #include <QStringList>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -17,6 +18,7 @@
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/MimeVisitor.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <QApplication>
 
 #include <iscore/tools/Todo.hpp>
 
@@ -45,6 +47,11 @@ StatePresenter::StatePresenter(
   con(m_model, &StateModel::statusChanged, m_view, &StateView::setStatus);
   m_view->setStatus(m_model.status());
 
+
+  connect(m_view, &StateView::startCreateMode, this, [=] {
+    auto& plug = iscore::AppContext().applicationPlugin<Scenario::ScenarioApplicationPlugin>();
+    plug.editionSettings().setTool(Scenario::Tool::Create);
+  });
   connect(m_view, &StateView::dropReceived, this, &StatePresenter::handleDrop);
 
   updateStateView();

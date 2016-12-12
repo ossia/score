@@ -5,6 +5,7 @@
 #include <QPen>
 #include <qnamespace.h>
 
+#include "StateMenuOverlay.hpp"
 #include "StatePresenter.hpp"
 #include "StateView.hpp"
 
@@ -65,10 +66,21 @@ void StateView::setContainMessage(bool arg)
   update();
 }
 
-void StateView::setSelected(bool arg)
+void StateView::setSelected(bool b)
 {
-  m_selected = arg;
+  m_selected = b;
   setDilatation(m_selected ? 1.5 : 1);
+
+  if(b)
+  {
+    m_overlay = new StateMenuOverlay{this};
+    m_overlay->setPos(10, -10);
+  }
+  else
+  {
+    delete m_overlay;
+    m_overlay = nullptr;
+  }
 }
 
 void StateView::changeColor(iscore::ColorRef c)
