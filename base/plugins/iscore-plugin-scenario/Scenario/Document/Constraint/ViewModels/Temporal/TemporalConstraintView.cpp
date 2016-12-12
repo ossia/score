@@ -10,6 +10,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <qnamespace.h>
 
+#include <Scenario/Document/Constraint/ViewModels/ConstraintMenuOverlay.hpp>
 #include "TemporalConstraintPresenter.hpp"
 #include "TemporalConstraintView.hpp"
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
@@ -24,8 +25,8 @@ namespace Scenario
 {
 TemporalConstraintView::TemporalConstraintView(
     TemporalConstraintPresenter& presenter, QGraphicsItem* parent)
-    : ConstraintView{presenter, parent}
-    , m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground}
+  : ConstraintView{presenter, parent}
+  , m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
@@ -99,30 +100,10 @@ void TemporalConstraintView::paint(
   }
 
   // Colors
-  QColor constraintColor;
-  // TODO make a switch instead
-  if (isSelected())
-  {
-    constraintColor = skin.ConstraintSelected.getColor();
-  }
-  else if (warning())
-  {
-    constraintColor = skin.ConstraintWarning.getColor();
-  }
-  else
-  {
-    constraintColor = skin.ConstraintBase.getColor();
-  }
-  if (!isValid() || m_state == ConstraintExecutionState::Disabled)
-  {
-    constraintColor = skin.ConstraintInvalid.getColor();
-  }
+  auto defaultColor = this->constraintColor(skin);
 
-  if (m_shadow)
-    constraintColor = constraintColor.lighter();
-
-  skin.ConstraintSolidPen.setColor(constraintColor);
-  skin.ConstraintDashPen.setColor(constraintColor);
+  skin.ConstraintSolidPen.setColor(defaultColor);
+  skin.ConstraintDashPen.setColor(defaultColor);
 
   // Drawing
   if (!solidPath.isEmpty())
@@ -196,10 +177,18 @@ void TemporalConstraintView::setLabel(const QString& label)
   updateLabelPos();
 }
 
-void TemporalConstraintView::setExecutionState(ConstraintExecutionState s)
+void TemporalConstraintView::enableOverlay(bool b)
 {
-  m_state = s;
-  update();
+  if(b)
+  {
+    m_overlay = new ConstraintMenuOverlay{this};
+    updateOverlayPos();
+  }
+  else
+  {
+    delete m_overlay;
+    m_overlay = nullptr;
+  }
 }
 
 void TemporalConstraintView::setExecutionDuration(const TimeValue& progress)
@@ -227,14 +216,4 @@ void TemporalConstraintView::setLabelColor(iscore::ColorRef labelColor)
   update();
 }
 
-bool TemporalConstraintView::shadow() const
-{
-  return m_shadow;
-}
-
-void TemporalConstraintView::setShadow(bool shadow)
-{
-  m_shadow = shadow;
-  update();
-}
 }
