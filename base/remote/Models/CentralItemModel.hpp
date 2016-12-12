@@ -21,6 +21,9 @@ public slots:
   void on_itemCreated(QString data, qreal x, qreal y);
   void on_addressCreated(QString data, qreal x, qreal y);
 
+  void addItem(GUIItem* item);
+  void removeItem(GUIItem* item);
+
 private:
   Context& m_ctx;
   QList<GUIItem*> m_guiItems;

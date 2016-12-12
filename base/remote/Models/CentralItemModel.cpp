@@ -33,10 +33,10 @@ struct AddressItemFactory
 
   template<std::size_t N>
   auto operator()(std::array<float, N> c)
-  { return WidgetKind::Missing; }
+  { return WidgetKind::Label; }
 
   auto operator()(const State::tuple_t& c)
-  { return WidgetKind::Missing; }
+  { return WidgetKind::Label; }
 };
 
 
@@ -74,8 +74,7 @@ void CentralItemModel::on_itemCreated(QString data, qreal x, qreal y)
       QQmlProperty(obj, "x").write(x - obj->width() / 2.);
       QQmlProperty(obj, "y").write(y - obj->height() / 2.);
 
-      m_guiItems.push_back(
-            new GUIItem{m_ctx, widget.widgetKind(), obj});
+      addItem(new GUIItem{m_ctx, widget.widgetKind(), obj});
     }
     else
     {
@@ -115,10 +114,27 @@ void CentralItemModel::on_addressCreated(QString data, qreal x, qreal y)
         QQmlProperty(obj, "x").write(x - obj->width() / 2.);
         QQmlProperty(obj, "y").write(y - obj->height() / 2.);
 
-        m_guiItems.push_back(item);
+        addItem(item);
       }
     }
   }
+}
+
+void CentralItemModel::addItem(GUIItem* item)
+{
+  m_guiItems.push_back(item);
+
+  connect(item, &GUIItem::removeMe,
+          this, [=] {
+    m_guiItems.removeOne(item);
+    item->deleteLater();
+  }, Qt::QueuedConnection);
+
+}
+
+void CentralItemModel::removeItem(GUIItem* item)
+{
+
 }
 
 }

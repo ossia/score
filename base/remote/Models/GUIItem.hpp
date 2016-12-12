@@ -24,9 +24,20 @@ class GUIItem : public QObject
 
 public:
   GUIItem(Context& ctx, WidgetKind c, QQuickItem* it);
+  ~GUIItem();
+
 
   auto item() const { return m_item; }
   void setAddress(const Device::FullAddressSettings&);
+  void setValue(const State::Message& m);
+
+  void enableListening(const Device::FullAddressSettings&);
+  void disableListening(const Device::FullAddressSettings&);
+  qreal x() const;
+  qreal y() const;
+
+signals:
+  void removeMe();
 
 private slots:
   void setAddress(QString);

@@ -10,7 +10,7 @@ QtObject
 
     function stopDragging(drag)
     {
-        item.color = "#f8fbfc"
+        item.color = "#00000000"
     }
 
     function dragging(drag)

@@ -4,10 +4,8 @@ import QtQuick.Layouts 1.3
 
 Rectangle
 {
-    property alias slider: slider
+    property alias text: text
     property alias label: label
-    property alias color: widg.color
-
     id: widg
     width: 212
     height: 86
@@ -21,13 +19,13 @@ Rectangle
             Layout.preferredHeight: 18
             Layout.preferredWidth: 212
         }
-        Switch {
-            id: slider
-            checked: false
-            implicitWidth: 150
-            implicitHeight: 40
-        }
 
+        Text
+        {
+            id: text
+            font.bold: true
+            font.pointSize: 12
+        }
     }
 
 }

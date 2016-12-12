@@ -21,10 +21,10 @@ struct SetSliderAddress
   }
   void operator()(bool c)
   {
-    QQmlProperty(item.item(), "from").write(0.);
-    QQmlProperty(item.item(), "to").write(1.);
-    QQmlProperty(item.item(), "stepSize").write(1);
-    QQmlProperty(item.item(), "value").write((qreal)c);
+    QQmlProperty(item.item(), "slider.from").write(0.);
+    QQmlProperty(item.item(), "slider.to").write(1.);
+    QQmlProperty(item.item(), "slider.stepSize").write(1);
+    QQmlProperty(item.item(), "slider.value").write((qreal)c);
     item.m_connection = QObject::connect(item.item(), SIGNAL(toggled()),
                      &item, SLOT(on_impulse()));
   }
@@ -34,10 +34,10 @@ struct SetSliderAddress
     auto min = ossia::convert<int>(ossia::net::get_min(address.domain.get()));
     auto max = ossia::convert<int>(ossia::net::get_max(address.domain.get()));
 
-    QQmlProperty(item.item(), "from").write((qreal)min);
-    QQmlProperty(item.item(), "to").write((qreal)max);
-    QQmlProperty(item.item(), "stepSize").write(1);
-    QQmlProperty(item.item(), "value").write((qreal)i);
+    QQmlProperty(item.item(), "slider.from").write((qreal)min);
+    QQmlProperty(item.item(), "slider.to").write((qreal)max);
+    QQmlProperty(item.item(), "slider.stepSize").write(1);
+    QQmlProperty(item.item(), "slider.value").write((qreal)i);
 
     item.m_connection = QObject::connect(item.item(), SIGNAL(valueChange(qreal)),
                      &item, SLOT(on_intValueChanged(qreal)));
@@ -48,9 +48,9 @@ struct SetSliderAddress
     auto min = ossia::convert<float>(ossia::net::get_min(address.domain.get()));
     auto max = ossia::convert<float>(ossia::net::get_max(address.domain.get()));
 
-    QQmlProperty(item.item(), "from").write((qreal)min);
-    QQmlProperty(item.item(), "to").write((qreal)max);
-    QQmlProperty(item.item(), "value").write((qreal)f);
+    QQmlProperty(item.item(), "slider.from").write((qreal)min);
+    QQmlProperty(item.item(), "slider.to").write((qreal)max);
+    QQmlProperty(item.item(), "slider.value").write((qreal)f);
 
     item.m_connection = QObject::connect(item.item(), SIGNAL(valueChange(qreal)),
                      &item, SLOT(on_floatValueChanged(qreal)));
@@ -186,6 +186,61 @@ struct SetLineEditAddress
   {
     item.m_connection = QObject::connect(item.item(), SIGNAL(textChange(QString)),
                      &item, SLOT(on_parsableValueChanged(QString)));
+  }
+};
+
+
+struct SetLabelAddress
+{
+  GUIItem& item;
+  const Device::FullAddressSettings& address;
+
+  void operator()(State::impulse_t)
+  {
+    // Do nothing
+    QQmlProperty(item.item(), "text.text")
+        .write("Impulse");
+  }
+  void operator()(bool b)
+  {
+    QQmlProperty(item.item(), "text.text")
+        .write(QString("Bool: ") + (b ? "true" : "false"));
+  }
+
+  void operator()(int i)
+  {
+    QQmlProperty(item.item(), "text.text")
+        .write(QString("Int: ") + QString::number(i));
+  }
+
+  void operator()(float f)
+  {
+    QQmlProperty(item.item(), "text.text")
+        .write(QString("Float: ") + QString::number(f));
+  }
+
+  void operator()(char c)
+  {
+    QQmlProperty(item.item(), "text.text")
+        .write(QString("Char: ") + QChar(c));
+  }
+  void operator()(const std::string& s)
+  {
+    QQmlProperty(item.item(), "text.text")
+        .write("String: " + QString::fromStdString(s));
+  }
+
+  template<std::size_t N>
+  void operator()(std::array<float, N> c)
+  {
+    QQmlProperty(item.item(), "text.text")
+        .write("Array" + QString::fromStdString(ossia::convert<std::string>(c)));
+  }
+
+  void operator()(const State::tuple_t& c)
+  {
+    QQmlProperty(item.item(), "text.text")
+        .write("Tuple" + State::convert::value<QString>(State::Value::fromValue(c)));
   }
 };
 
