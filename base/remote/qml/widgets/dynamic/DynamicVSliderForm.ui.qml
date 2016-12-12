@@ -10,33 +10,29 @@ Rectangle
     property alias color: widg.color
     width: 154
     height: 231
+    color: "#00000000"
+
+    Drag.dragType: Drag.Internal
 
     ColumnLayout {
         width: 154
         height: 231
-    Text
-    {
-        id: label
-        x: 0
-        y: 0
-        width: 212
-        height: 18
-        text: "default"
-        Layout.fillWidth: true
-        font.pointSize: 12
-        textFormat: Text.PlainText
-        verticalAlignment: Text.AlignBottom
-    }
+        AddressLabel
+        {
+            id: label
+            Layout.preferredHeight: 18
+            Layout.preferredWidth: 212
+        }
 
-    Slider
-    {
-        id: slider
-        x: 86
-        y: 24
-        width: 40
-        height: 162
-        Layout.fillWidth: true
-        orientation: Qt.Vertical
-    }
+        Slider
+        {
+            id: slider
+            x: 86
+            y: 24
+            width: 40
+            height: 162
+            Layout.fillWidth: true
+            orientation: Qt.Vertical
+        }
     }
 }

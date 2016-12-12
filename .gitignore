@@ -30,4 +30,4 @@ Makefile
 cppcheck-html
 
 base/addons/*
-i-score-srcs.pri
+i-score*.pri

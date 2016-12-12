@@ -40,7 +40,7 @@ Item {
                 Text {
                     id: text
                     anchors.verticalCenter: parent.verticalCenter
-                    color: styleData.textColor
+                    color: "#000000"
                     elide: styleData.elideMode
                     text: styleData.value
                     font.pointSize:  12

@@ -10,6 +10,9 @@
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <core/plugin/PluginManager.hpp>
+#include <Device/Address/AddressSettings.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <Models/GUIItem.hpp>
 namespace RemoteUI
 {
 
@@ -17,7 +20,7 @@ RemoteApplication::RemoteApplication(int& argc, char** argv):
   m_app{argc, argv},
   m_engine{},
   m_appContext{m_applicationSettings, m_components, m_settings},
-  m_context{m_engine, m_widgets.componentList, m_nodes, m_ws, [&] {
+  m_context{m_engine, m_widgets.componentList, m_nodes, m_ws, *this, [&] {
 
     m_engine.rootContext()->setContextProperty(
                "factoriesModel", QVariant::fromValue(m_widgets.objectList));
@@ -45,7 +48,15 @@ RemoteApplication::RemoteApplication(int& argc, char** argv):
     m_nodes.replace(n);
   }}));
 
-  loadPlugins();
+  m_ws.actions.insert(
+        std::make_pair(
+          "Message"s,
+          json_fun{[this] (const QJsonObject& json) {
+  auto m = unmarshall<State::Message>(json);
+  auto it = m_listening.find(m.address.address);
+  if(it != m_listening.end())
+    it->second->setValue(m);
+  }}));
 
   m_ws.open(QUrl("ws://127.0.0.1:10212"));
 }
@@ -68,48 +79,31 @@ int RemoteApplication::exec()
   return m_app.exec();
 }
 
-struct RemoteRegistrar
+void RemoteApplication::enableListening(const Device::FullAddressSettings& a, GUIItem* i)
 {
-
-  RemoteRegistrar(
-      iscore::ApplicationComponentsData& c): m_components{c} { }
-
-  // Register data from plugins
-  void registerAddons(std::vector<iscore::Addon> vec) { }
-  void registerApplicationContextPlugin(iscore::GUIApplicationContextPlugin*) { }
-  void registerPanel(iscore::PanelDelegateFactory&) { }
-  void registerCommands(
-      iscore::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds) { }
-  void registerCommands(
-      std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds) { }
-  void registerFactories(
-      iscore::hash_map<iscore::InterfaceKey, std::unique_ptr<iscore::InterfaceListBase>>&&
-              facts)
+  if(!a.address.path.empty())
   {
-    m_components.factories = std::move(facts);
+    QJsonObject obj;
+    obj[iscore::StringConstant().Message] = "EnableListening";
+    obj[iscore::StringConstant().Address] = marshall<JSONObject>(a.address);
+    m_ws.socket().sendTextMessage(QJsonDocument(obj).toJson());
+
+    m_listening[a.address] = i;
   }
-
-  void registerFactory(std::unique_ptr<iscore::InterfaceListBase> cmds)
-  {
-    m_components.factories.insert(
-        std::make_pair(cmds->interfaceKey(), std::move(cmds)));
-  }
-
-  auto& components() const { return m_components; }
-
-
-private:
-  iscore::ApplicationComponentsData& m_components;
-};
-
-void RemoteApplication::loadPlugins()
-{
-  RemoteRegistrar registrar{m_compData};
-  registrar.registerFactory(
-      std::make_unique<iscore::DocumentPluginFactoryList>());
-  registrar.registerFactory(
-      std::make_unique<iscore::SettingsDelegateFactoryList>());
-
 }
 
+void RemoteApplication::disableListening(const Device::FullAddressSettings& a, GUIItem* i)
+{
+  if(!a.address.path.empty())
+  {
+    QJsonObject obj;
+    obj[iscore::StringConstant().Message] = "DisableListening";
+    obj[iscore::StringConstant().Address] = marshall<JSONObject>(a.address);
+    m_ws.socket().sendTextMessage(QJsonDocument(obj).toJson());
+  }
+
+  auto it = m_listening.find(a.address);
+  if(it != m_listening.end())
+    m_listening.erase(it);
+}
 }

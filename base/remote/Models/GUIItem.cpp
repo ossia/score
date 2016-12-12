@@ -5,6 +5,7 @@
 #include <Models/NodeModel.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <State/Expression.hpp>
+#include <RemoteApplication.hpp>
 namespace RemoteUI
 {
 
@@ -16,11 +17,26 @@ GUIItem::GUIItem(Context& ctx, WidgetKind c, QQuickItem* it):
   connect(m_item, SIGNAL(addressChanged(QString)),
           this, SLOT(setAddress(QString)));
 
+  auto obj = m_item->findChild<QObject*>("addressLabel");
+  if(obj)
+  {
+    connect(obj, SIGNAL(removeMe()),
+            this, SIGNAL(removeMe()));
+  }
+}
+
+GUIItem::~GUIItem()
+{
+  QObject::disconnect(m_connection);
+  m_ctx.application.disableListening(m_addr, this);
+
+  m_item->deleteLater();
 }
 
 void GUIItem::setAddress(
     const Device::FullAddressSettings& addr)
 {
+  m_ctx.application.disableListening(m_addr, this);
   m_addr = addr;
 
   QObject::disconnect(m_connection);
@@ -48,6 +64,8 @@ void GUIItem::setAddress(
     }
     case WidgetKind::Label:
     {
+      eggs::variants::apply(SetLabelAddress{*this, addr}, addr.value.val.impl());
+      m_ctx.application.enableListening(m_addr, this);
       // Not editable
       break;
     }
@@ -63,6 +81,17 @@ void GUIItem::setAddress(
   }
 
   QQmlProperty(m_item, "label.text").write(addr.address.toString());
+}
+
+
+qreal GUIItem::x() const
+{
+  return QQmlProperty(m_item, "x").read().toReal();
+}
+
+qreal GUIItem::y() const
+{
+  return QQmlProperty(m_item, "y").read().toReal();
 }
 
 void GUIItem::setAddress(QString data)
@@ -128,6 +157,12 @@ void GUIItem::on_intValueChanged(qreal r)
         State::Message{
           State::AddressAccessor{m_addr.address},
           State::Value::fromValue((int) r)});
+}
+
+void GUIItem::setValue(const State::Message& m)
+{
+  if(m_compType == WidgetKind::Label)
+      eggs::variants::apply(SetLabelAddress{*this, m_addr}, m.value.val.impl());
 }
 
 

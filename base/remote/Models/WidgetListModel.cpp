@@ -43,7 +43,7 @@ WidgetListModel::WidgetListModel(QQmlApplicationEngine& engine)
   componentList.push_back(
         new RemoteUI::WidgetListData{
           WidgetKind::Label, "Label", "Label",
-          QUrl("qrc:///qml/widgets/dynamic/DynamicLabel.ui.qml"),
+          QUrl("qrc:///qml/widgets/dynamic/DynamicLabel.qml"),
           QUrl("qrc:///qml/widgets/static/StaticLabel.qml"),
           engine
         });

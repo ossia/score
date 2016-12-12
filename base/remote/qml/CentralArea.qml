@@ -52,7 +52,7 @@ CentralAreaForm {
                 centralItem.color = "#f8fbfc"
                 if(item !== draggedItem)
                 {
-                    if(draggedItem !== null)
+                    if(draggedItem != null)
                     {
                         draggedItem.dropper.stopDragging(drag)
                     }
@@ -68,7 +68,7 @@ CentralAreaForm {
             else
             {
                 centralItem.color = "#FCC"
-                if(draggedItem !== null)
+                if(draggedItem != null)
                 {
                     draggedItem.dropper.stopDragging(drag)
                 }
@@ -78,10 +78,11 @@ CentralAreaForm {
 
         onExited: {
             centralItem.color = "#f8fbfc"
+            draggedItem = null;
         }
         onDropped: {
             // Create a component
-            if(draggedItem !== null)
+            if(draggedItem != null)
             {
                 var res = draggedItem.dropper.dropping(drop);
                 if(res)
@@ -103,6 +104,7 @@ CentralAreaForm {
                 }
 
             }
+            draggedItem = null;
             centralItem.color = "#f8fbfc"
         }
     }

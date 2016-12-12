@@ -6,20 +6,18 @@ Rectangle
 {
     property alias slider: slider
     property alias label: label
-    property alias color: widg.color
     id: widg
     width: 212
     height: 86
+    color: "#00000000"
+    Drag.dragType: Drag.Internal
+
     ColumnLayout {
-        Text
+        AddressLabel
         {
             id: label
-            text: "default"
             Layout.preferredHeight: 18
             Layout.preferredWidth: 212
-            font.pointSize: 12
-            textFormat: Text.PlainText
-            verticalAlignment: Text.AlignBottom
         }
 
         Slider

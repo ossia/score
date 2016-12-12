@@ -30,6 +30,9 @@ public:
 
   int exec();
 
+  void enableListening(const Device::FullAddressSettings& a, GUIItem*);
+  void disableListening(const Device::FullAddressSettings& a, GUIItem*);
+
 private:
   void loadPlugins();
   // Base stuff.
@@ -49,6 +52,8 @@ private:
 
   RemoteUI::Context m_context;
   RemoteUI::CentralItemModel m_centralItemModel;
+
+  std::unordered_map<State::Address, GUIItem*> m_listening;
 };
 
 }
