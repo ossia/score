@@ -65,15 +65,22 @@ void CentralItemModel::on_itemCreated(QString data, qreal x, qreal y)
 
     // Create the object
     auto obj = (QQuickItem*)comp.create(m_ctx.engine.rootContext());
-    QQmlProperty(obj, "parent").write(
-          QVariant::fromValue((QObject*)m_ctx.centralItem));
+    if(obj)
+    {
+      QQmlProperty(obj, "parent").write(
+            QVariant::fromValue((QObject*)m_ctx.centralItem));
 
-    // Put its center where the mouse is
-    QQmlProperty(obj, "x").write(x - obj->width() / 2.);
-    QQmlProperty(obj, "y").write(y - obj->height() / 2.);
+      // Put its center where the mouse is
+      QQmlProperty(obj, "x").write(x - obj->width() / 2.);
+      QQmlProperty(obj, "y").write(y - obj->height() / 2.);
 
-    m_guiItems.push_back(
-          new GUIItem{m_ctx, widget.widgetKind(), obj});
+      m_guiItems.push_back(
+            new GUIItem{m_ctx, widget.widgetKind(), obj});
+    }
+    else
+    {
+      qDebug() << "Error: object " << data << "could not be created";
+    }
   }
 }
 

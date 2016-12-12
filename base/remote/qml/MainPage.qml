@@ -8,10 +8,10 @@ MainPageForm {
         anchors.fill: parent
 
         NodeTree {
-            Layout.preferredWidth: 100;
+            Layout.preferredWidth: 210;
             implicitHeight: parent.height
-            implicitWidth:100
-            width: 100
+            implicitWidth: 210
+            width: 210
         }
 
         WidgetList { Layout.preferredWidth: 200; implicitHeight: parent.height}

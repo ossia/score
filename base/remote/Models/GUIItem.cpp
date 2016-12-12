@@ -2,15 +2,19 @@
 #include <Models/WidgetAddressSetup.hpp>
 #include <RemoteContext.hpp>
 #include <WebSocketClient.hpp>
+#include <Models/NodeModel.hpp>
+#include <Device/Node/DeviceNode.hpp>
 #include <State/Expression.hpp>
 namespace RemoteUI
 {
 
 GUIItem::GUIItem(Context& ctx, WidgetKind c, QQuickItem* it):
-  m_context{ctx},
+  m_ctx{ctx},
   m_compType{c},
   m_item{it}
 {
+  connect(m_item, SIGNAL(addressChanged(QString)),
+          this, SLOT(setAddress(QString)));
 
 }
 
@@ -56,6 +60,22 @@ void GUIItem::setAddress(
     }
     default:
       break;
+  }
+
+  QQmlProperty(m_item, "label.text").write(addr.address.toString());
+}
+
+void GUIItem::setAddress(QString data)
+{
+  auto address = State::Address::fromString(data);
+  auto n = Device::try_getNodeFromAddress(m_ctx.nodes.rootNode(), address);
+  if(n)
+  {
+    auto as = n->target<Device::AddressSettings>();
+    if(as && as->value.val.isValid())
+    {
+      setAddress(Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(*as, address));
+    }
   }
 }
 
@@ -117,7 +137,7 @@ void GUIItem::sendMessage(const State::Message& m)
   s.readFrom(m);
 
   s.m_obj[iscore::StringConstant().Message] = iscore::StringConstant().Message;
-  m_context.websocket.socket().sendTextMessage(QJsonDocument(s.m_obj).toJson());
+  m_ctx.websocket.socket().sendTextMessage(QJsonDocument(s.m_obj).toJson());
 }
 
 }
