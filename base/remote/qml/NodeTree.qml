@@ -9,21 +9,24 @@ Item {
         objectName: "nodeView"
         anchors.fill: parent
 
+
         TableViewColumn {
             title: "Address"
             role: "address"
-            width: 60
+            width: 150
         }
+        /*
         TableViewColumn {
             title: "Value"
             role: "value"
             width: 60
         }
+        */
 
         Component {
             id: treeDelegate
 
-            ColumnLayout
+            Item
             {
                 height:70
                 id: delegateLayout
@@ -40,6 +43,7 @@ Item {
                     color: styleData.textColor
                     elide: styleData.elideMode
                     text: styleData.value
+                    font.pointSize:  12
 
                     Item {
                         id: draggable
@@ -51,7 +55,9 @@ Item {
                         Drag.hotSpot.x: 0
                         Drag.hotSpot.y: 0
 
-                        Drag.mimeData: { "iscore/x-remote-address": nodesModel.nodeToAddressString(styleData.index) }
+                        Drag.mimeData: {
+                            "iscore/x-remote-address": nodesModel.nodeToAddressString(styleData.index)
+                        }
                         Drag.dragType: Drag.Automatic
                     }
                 }
@@ -61,6 +67,10 @@ Item {
 
         itemDelegate: treeDelegate
 
+        rowDelegate: Rectangle {
+            color: ( styleData.alternate ) ? "#ffffff" : "#fafaff"
+            height: 25
+        }
     }
 
 }

@@ -30,6 +30,8 @@ public:
     m_component{&eng, comp},
     m_exampleComponent{&eng, exampleComp}
   {
+    auto e = m_component.errorString();
+    if(!e.isEmpty()) qDebug() << "Error while creating" << name << ": " << e;
   }
 
   ~WidgetListData();

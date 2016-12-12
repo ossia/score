@@ -22,6 +22,11 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/WebSocketClient.cpp"
 
 )
+
+# These two lines are used to display the QMLs in the project view of IDEs
+file(GLOB_RECURSE QMLS "qml/*.qml")
+add_custom_target(iscore_remote_ui_qml SOURCES ${QMLS})
+
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/qml.qrc")
 add_executable(iscore_remote_ui ${SRCS} ${QRCS})
 

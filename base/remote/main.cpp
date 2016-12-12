@@ -6,7 +6,8 @@
 #include <Models/NodeModel.hpp>
 
 #if defined(ISCORE_STATIC_PLUGINS)
-  #include <iscore_static_plugins.hpp>
+#include <QtPlugin>
+Q_IMPORT_PLUGIN(iscore_plugin_deviceexplorer)
 #endif
 
 int main(int argc, char *argv[])

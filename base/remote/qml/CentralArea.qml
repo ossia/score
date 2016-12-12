@@ -9,6 +9,8 @@ CentralAreaForm {
 
     ScrollView
     {
+        id: scrollView
+
         anchors.fill: parent
         frameVisible: true
         horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOn
@@ -21,15 +23,21 @@ CentralAreaForm {
             signal createObject(string objname, real x, real y)
             signal createAddress(string objname, real x, real y)
 
-            width:1000
-            height:1000
-            implicitWidth:1000
-            implicitHeight:1000
+            width:2000
+            height:2000
+            implicitWidth:2000
+            implicitHeight:2000
+
+            border.color: "darkBlue"
+            border.width: 2
+            color: "#f8fbfc"
         }
 
         width:2000
         height:2000
     }
+
+    property var draggedItem : null;
 
     DropArea {
         anchors.fill: parent
@@ -37,23 +45,65 @@ CentralAreaForm {
         onEntered: {
             centralItem.color = "#FCC"
         }
+        onPositionChanged: {
+            var item = centralItem.childAt(drag.x, drag.y);
+            if(item !== null)
+            {
+                centralItem.color = "#f8fbfc"
+                if(item !== draggedItem)
+                {
+                    if(draggedItem !== null)
+                    {
+                        draggedItem.dropper.stopDragging(drag)
+                    }
+                    draggedItem = item
+                    draggedItem.dropper.startDragging(drag)
+                }
+                else
+                {
+                    draggedItem.dropper.dragging(drag)
+                }
+
+            }
+            else
+            {
+                centralItem.color = "#FCC"
+                if(draggedItem !== null)
+                {
+                    draggedItem.dropper.stopDragging(drag)
+                }
+                draggedItem = null
+            }
+        }
+
         onExited: {
-            centralItem.color = "#EEE"
+            centralItem.color = "#f8fbfc"
         }
         onDropped: {
             // Create a component
-            var drop_fmt = drop.formats[0];
-            var drop_text = drop.getDataAsString(drop_fmt);
-            if(drop_fmt === "iscore/x-remote-widget")
+            if(draggedItem !== null)
             {
-                centralItem.createObject(drop_text, drop.x, drop.y);
+                var res = draggedItem.dropper.dropping(drop);
+                if(res)
+                    drop.acceptProposedAction();
             }
-            else if(drop_fmt === "iscore/x-remote-address")
+            else
             {
-                centralItem.createAddress(drop_text, drop.x, drop.y);
-            }
+                var drop_fmt = drop.formats[0];
+                var drop_text = drop.getDataAsString(drop_fmt);
+                if(drop_fmt === "iscore/x-remote-widget")
+                {
+                    centralItem.createObject(drop_text, drop.x, drop.y);
+                    drop.acceptProposedAction();
+                }
+                else if(drop_fmt === "iscore/x-remote-address")
+                {
+                    centralItem.createAddress(drop_text, drop.x, drop.y);
+                    drop.acceptProposedAction();
+                }
 
-            drop.acceptProposedAction();
+            }
+            centralItem.color = "#f8fbfc"
         }
     }
 }

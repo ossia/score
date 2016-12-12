@@ -29,6 +29,8 @@ public:
   void setAddress(const Device::FullAddressSettings&);
 
 private slots:
+  void setAddress(QString);
+
   void on_impulse();
   void on_boolValueChanged(bool);
   void on_intValueChanged(qreal);
@@ -38,7 +40,7 @@ private slots:
 
 private:
   void sendMessage(const State::Message& m);
-  Context& m_context;
+  Context& m_ctx;
 
   WidgetKind m_compType;
   QQuickItem* m_item;
