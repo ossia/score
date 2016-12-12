@@ -148,16 +148,16 @@ ScenarioDocumentView::ScenarioDocumentView(
     switch (t)
     {
       case Scenario::Tool::Select:
-        m_view->setCursor(QCursor(Qt::ArrowCursor));
+        m_view->viewport()->unsetCursor();
         break;
       case Scenario::Tool::Create:
-        m_view->setCursor(QCursor(Qt::PointingHandCursor));
+        m_view->viewport()->setCursor(QCursor(Qt::CrossCursor));
         break;
       case Scenario::Tool::Play:
-        m_view->setCursor(QCursor(Qt::CrossCursor));
+        m_view->viewport()->setCursor(QCursor(Qt::PointingHandCursor));
         break;
       default:
-        m_view->setCursor(QCursor(Qt::ArrowCursor));
+        m_view->viewport()->unsetCursor();
         break;
     }
   });
