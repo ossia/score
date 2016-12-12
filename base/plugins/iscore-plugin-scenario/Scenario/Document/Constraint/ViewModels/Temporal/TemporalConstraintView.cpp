@@ -135,32 +135,28 @@ void TemporalConstraintView::paint(
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverEnterEvent(h);
-  m_shadow = true;
-  update();
+  setShadow(true);
   emit constraintHoverEnter();
 }
 
 void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverLeaveEvent(h);
-  m_shadow = false;
-  update();
+  setShadow(false);
   emit constraintHoverLeave();
 }
 
 void TemporalConstraintView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   QGraphicsItem::dragEnterEvent(event);
-  m_shadow = true;
-  update();
+  setShadow(true);
   event->accept();
 }
 
 void TemporalConstraintView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
   QGraphicsItem::dragLeaveEvent(event);
-  m_shadow = false;
-  update();
+  setShadow(false);
   event->accept();
 }
 

@@ -176,6 +176,7 @@ bool ConstraintView::shadow() const
 void ConstraintView::setShadow(bool shadow)
 {
   m_shadow = shadow;
+  if(m_overlay) m_overlay->update();
   update();
 }
 void ConstraintView::updateLabelPos()
