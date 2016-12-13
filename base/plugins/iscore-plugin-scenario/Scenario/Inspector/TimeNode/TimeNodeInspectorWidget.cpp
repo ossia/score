@@ -144,10 +144,14 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
 
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     QTimer::singleShot(0, [=] {
-      auto cmd = new Command::SplitTimeNode{*tn, {id}};
+      // TODO we should instead not show the option in the menu
+      if(tn->events().size() >= 2)
+      {
+        auto cmd = new Command::SplitTimeNode{*tn, {id}};
 
-      CommandDispatcher<> s{*st};
-      s.submitCommand(cmd);
+        CommandDispatcher<> s{*st};
+        s.submitCommand(cmd);
+      }
     });
   });
 
