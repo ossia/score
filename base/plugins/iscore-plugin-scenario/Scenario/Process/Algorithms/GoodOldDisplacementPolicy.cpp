@@ -138,8 +138,7 @@ void GoodOldDisplacementPolicy::getRelatedTimeNodes(
     const Id<TimeNodeModel>& firstTimeNodeMovedId,
     std::vector<Id<TimeNodeModel>>& translatedTimeNodes)
 {
-  if (firstTimeNodeMovedId.val() == Scenario::startId_val()
-      || firstTimeNodeMovedId.val() == Scenario::endId_val())
+  if (firstTimeNodeMovedId.val() == Scenario::startId_val())
     return;
 
   auto it = std::find(

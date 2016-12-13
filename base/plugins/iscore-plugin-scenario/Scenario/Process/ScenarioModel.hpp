@@ -138,10 +138,6 @@ public:
   {
     return events.at(m_startEventId);
   }
-  EventModel& endEvent() const
-  {
-    return events.at(m_endEventId);
-  }
 
   EntityMap<ConstraintModel> constraints;
   EntityMap<EventModel> events;
@@ -216,10 +212,8 @@ private:
   void setupLayer(AbstractScenarioLayer*);
 
   Id<TimeNodeModel> m_startTimeNodeId{};
-  Id<TimeNodeModel> m_endTimeNodeId{};
 
   Id<EventModel> m_startEventId{};
-  Id<EventModel> m_endEventId{};
 
   Id<StateModel> m_startStateId{};
   // By default, creation in the void will make a constraint
