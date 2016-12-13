@@ -104,7 +104,7 @@ void ConstraintView::setValid(bool val)
 void ConstraintView::setSelected(bool selected)
 {
   m_selected = selected;
-
+  setZValue(m_selected ? ZPos::SelectedConstraint : ZPos::Constraint);
   enableOverlay(selected);
   update();
 }

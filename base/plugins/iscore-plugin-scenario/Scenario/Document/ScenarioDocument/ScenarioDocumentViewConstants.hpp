@@ -34,6 +34,7 @@ public:
     TimeNode,
     Event,
     Constraint,
+    SelectedConstraint,
     State
   };
   enum ConstraintItemZPos
