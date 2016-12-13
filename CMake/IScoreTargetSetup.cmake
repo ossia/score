@@ -91,11 +91,12 @@ function(iscore_set_gcc_compile_options theTarget)
           "$<$<CONFIG:Release>:-ffunction-sections>"
           "$<$<CONFIG:Release>:-fdata-sections>"
           "$<$<CONFIG:Release>:-Wl,--gc-sections>"
-          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
-          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
+#          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
+#          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
           "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
           "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
           "$<$<CONFIG:Debug>:-O0>"
+          "$<$<CONFIG:Debug>:-ggdb>"
       )
 
       get_target_property(NO_LTO ${theTarget} ISCORE_TARGET_NO_LTO)
@@ -111,10 +112,15 @@ function(iscore_set_gcc_compile_options theTarget)
           "$<$<CONFIG:Release>:-ffunction-sections>"
           "$<$<CONFIG:Release>:-fdata-sections>"
           "$<$<CONFIG:Release>:-Wl,--gc-sections>"
-          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
-          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
+#          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
+#          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
           "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
           "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
+          "$<$<CONFIG:Debug>:-O0>"
+          "$<$<CONFIG:Debug>:-ggdb>"
+          "$<$<CONFIG:Debug>:-gsplit-dwarf>"
+          "$<$<CONFIG:Debug>:-ggnu-pubnames>"
+          "$<$<CONFIG:Debug>:-fdebug-types-section>"
 
 #          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
 #          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
@@ -166,7 +172,7 @@ function(iscore_set_unix_compile_options theTarget)
 
     # Debug options
     "$<$<CONFIG:Debug>:-gsplit-dwarf>"
-    "$<$<CONFIG:Debug>:-gdwarf-4>"
+    "$<$<CONFIG:Debug>:-gdwarf-5>"
 
     # Release options
     "$<$<AND:$<CONFIG:Release>,$<BOOL:${NACL}>>:-O3>"
