@@ -4,23 +4,23 @@
 #include <QObject>
 namespace State
 {
-class Message;
+struct Message;
 }
 class QQuickItem;
 namespace Device
 {
-class FullAddressSettings;
+struct FullAddressSettings;
 }
 namespace RemoteUI
 {
-class Context;
+struct Context;
 
 class GUIItem : public QObject
 {
   Q_OBJECT
-  friend class SetSliderAddress;
-  friend class SetCheckboxAddress;
-  friend class SetLineEditAddress;
+  friend struct SetSliderAddress;
+  friend struct SetCheckboxAddress;
+  friend struct SetLineEditAddress;
 
 public:
   GUIItem(Context& ctx, WidgetKind c, QQuickItem* it);

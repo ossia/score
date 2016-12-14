@@ -10,7 +10,7 @@
 namespace Scenario
 {
 
-struct ConstraintMenuOverlay final :
+class ConstraintMenuOverlay final :
     public QGraphicsItem
 {
 
