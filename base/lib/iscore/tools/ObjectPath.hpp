@@ -16,10 +16,10 @@ class QObject;
  * @brief The ObjectPath class
  *
  * A path in the QObject hierarchy, using names and identifiers.
- * See @c{NamedObject} and @c{IdentifiedObject}.
+ * See @c{IdentifiedObject}.
  *
  * If the object id is not known at compile time a path may be created using
- *ObjectPath::pathFromObject.
+ * ObjectPath::pathFromObject.
  *
  * Example:
  * @code
