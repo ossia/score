@@ -71,7 +71,7 @@ public:
   const QVector<Id<StateModel>>& states() const;
 
   // Other properties
-  const State::Condition& condition() const;
+  const State::Expression& condition() const;
   OffsetBehavior offsetBehavior() const;
 
   VerticalExtent extent() const;
@@ -82,7 +82,7 @@ public:
   ExecutionStatus status() const;
   void reset();
 
-  void setCondition(const State::Condition& arg);
+  void setCondition(const State::Expression& arg);
 
   void setExtent(const VerticalExtent& extent);
   void setDate(const TimeValue& date);
@@ -94,7 +94,7 @@ signals:
   void extentChanged(const VerticalExtent&);
   void dateChanged(const TimeValue&);
 
-  void conditionChanged(const State::Condition&);
+  void conditionChanged(const State::Expression&);
 
   void statesChanged();
 
@@ -107,7 +107,7 @@ private:
 
   QVector<Id<StateModel>> m_states;
 
-  State::Condition m_condition;
+  State::Expression m_condition;
 
   VerticalExtent m_extent;
   TimeValue m_date{TimeValue::zero()};

@@ -20,7 +20,7 @@ TriggerPresenter::TriggerPresenter(
 
   m_view->setToolTip(m_model.expression().toString());
   con(m_model, &TriggerModel::triggerChanged, this,
-      [&](const State::Trigger& t) { m_view->setToolTip(t.toString()); });
+      [&](const State::Expression& t) { m_view->setToolTip(t.toString()); });
 
   connect(
       m_view, &TriggerView::pressed, &m_model, &TriggerModel::triggeredByGui);

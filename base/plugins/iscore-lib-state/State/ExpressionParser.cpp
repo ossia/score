@@ -463,9 +463,8 @@ struct Expression_builder : boost::static_visitor<void>
 };
 }
 
-iscore::optional<State::Expression> State::parseExpression(const QString& str)
+iscore::optional<State::Expression> State::parseExpression(const std::string& input)
 {
-  auto input = str.toStdString();
   auto f(std::begin(input)), l(std::end(input));
   Expression_parser<decltype(f)> p;
   try
@@ -495,6 +494,11 @@ iscore::optional<State::Expression> State::parseExpression(const QString& str)
     // ISCORE_BREAKPOINT;
     return {};
   }
+}
+
+iscore::optional<State::Expression> State::parseExpression(const QString& str)
+{
+  return parseExpression(str.toStdString());
 }
 
 iscore::optional<State::Value> State::parseValue(const std::string& input)

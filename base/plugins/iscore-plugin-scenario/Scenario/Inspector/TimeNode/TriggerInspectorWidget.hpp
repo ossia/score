@@ -37,7 +37,7 @@ public:
   void on_triggerActiveChanged();
   void HideRmButton();
 
-  void updateExpression(const State::Trigger&);
+  void updateExpression(const State::Expression&);
 
 private:
   const Command::TriggerCommandFactoryList& m_triggerCommandFactory;

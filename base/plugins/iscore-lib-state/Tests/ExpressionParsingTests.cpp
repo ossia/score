@@ -467,19 +467,20 @@ private slots:
 
   void test_parse_random()
   {
-    QVERIFY(bool(State::parseExpression("{myapp:/score > 2}")));
-    QVERIFY(bool(State::parseExpression("{2 > myapp:/stagescore}")));
+    using namespace std::literals;
+    QVERIFY(bool(State::parseExpression("{myapp:/score > 2}"s)));
+    QVERIFY(bool(State::parseExpression("{2 > myapp:/stagescore}"s)));
     QVERIFY(
-        bool(State::parseExpression("{myapp:/score > myapp:/stagescore}")));
+        bool(State::parseExpression("{myapp:/score > myapp:/stagescore}"s)));
     QVERIFY(
-        bool(State::parseExpression("{myapp:/score >= myapp:/stagescore}")));
+        bool(State::parseExpression("{myapp:/score >= myapp:/stagescore}"s)));
     QVERIFY(
-        bool(State::parseExpression("{my_app:/score > my_app:/stagescore}")));
+        bool(State::parseExpression("{my_app:/score > my_app:/stagescore}"s)));
     QVERIFY(
-        bool(State::parseExpression("{my_app:/score > my_app:/stage_score}")));
+        bool(State::parseExpression("{my_app:/score > my_app:/stage_score}"s)));
     QVERIFY(
-        bool(State::parseExpression("{my_app:/score > my_app:/stage_score}")));
-    QVERIFY(bool(State::parseExpression("{{A:/B > c:/D} and {e:/f > g:/h}}")));
+        bool(State::parseExpression("{my_app:/score > my_app:/stage_score}"s)));
+    QVERIFY(bool(State::parseExpression("{{A:/B > c:/D} and {e:/f > g:/h}}"s)));
   }
 };
 

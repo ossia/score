@@ -307,7 +307,7 @@ void EventInspectorWidget::on_conditionChanged()
 void EventInspectorWidget::on_conditionReset()
 {
   auto cmd
-      = new Scenario::Command::SetCondition{path(m_model), State::Condition{}};
+      = new Scenario::Command::SetCondition{path(m_model), State::Expression{}};
   emit m_commandDispatcher.submitCommand(cmd);
 }
 }

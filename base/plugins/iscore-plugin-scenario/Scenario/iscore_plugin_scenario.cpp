@@ -59,11 +59,13 @@ iscore_plugin_scenario::iscore_plugin_scenario()
   QMetaType::registerComparators<State::Message>();
   QMetaType::registerComparators<State::MessageList>();
 
+  qRegisterMetaType<State::Expression>();
   qRegisterMetaTypeStreamOperators<State::Message>();
   qRegisterMetaTypeStreamOperators<State::MessageList>();
   qRegisterMetaTypeStreamOperators<State::Address>();
   qRegisterMetaTypeStreamOperators<State::Value>();
   qRegisterMetaTypeStreamOperators<State::ValueList>();
+  qRegisterMetaTypeStreamOperators<State::Expression>();
 
   qRegisterMetaTypeStreamOperators<TimeValue>();
   qRegisterMetaType<ExecutionStatus>();

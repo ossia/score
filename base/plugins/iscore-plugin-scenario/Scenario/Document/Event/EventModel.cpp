@@ -142,7 +142,7 @@ const QVector<Id<StateModel>>& EventModel::states() const
   return m_states;
 }
 
-const State::Condition& EventModel::condition() const
+const State::Expression& EventModel::condition() const
 {
   return m_condition;
 }
@@ -152,7 +152,7 @@ OffsetBehavior EventModel::offsetBehavior() const
   return m_offset;
 }
 
-void EventModel::setCondition(const State::Condition& arg)
+void EventModel::setCondition(const State::Expression& arg)
 {
   if (m_condition != arg)
   {

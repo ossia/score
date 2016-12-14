@@ -45,7 +45,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void
 Visitor<Writer<DataStream>>::writeTo(Scenario::TimeNodeModel& timenode)
 {
   bool a;
-  State::Trigger t;
+  State::Expression t;
   m_stream >> timenode.m_date >> timenode.m_events >> timenode.m_extent >> a
       >> t;
 
@@ -89,7 +89,7 @@ Visitor<Writer<JSONObject>>::writeTo(Scenario::TimeNodeModel& timenode)
   timenode.m_trigger
       = new Scenario::TriggerModel{Id<Scenario::TriggerModel>(0), &timenode};
 
-  State::Trigger t;
+  State::Expression t;
   fromJsonObject(m_obj["Trigger"].toObject()["Expression"], t);
   timenode.m_trigger->setExpression(t);
   timenode.m_trigger->setActive(
