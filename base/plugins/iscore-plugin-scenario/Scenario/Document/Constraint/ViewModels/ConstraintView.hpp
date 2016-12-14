@@ -8,7 +8,7 @@
 #include <qnamespace.h>
 class QGraphicsSceneMouseEvent;
 
-class ScenarioStyle;
+struct ScenarioStyle;
 namespace Scenario
 {
 class ConstraintPresenter;

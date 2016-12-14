@@ -10,7 +10,7 @@
 namespace Scenario
 {
 
-struct StateMenuOverlay final :
+class StateMenuOverlay final :
     public QGraphicsItem
 {
   static const constexpr auto radius = 4;

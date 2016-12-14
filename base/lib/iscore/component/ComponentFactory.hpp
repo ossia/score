@@ -15,7 +15,7 @@ public:                                                                \
                                                                        \
   iscore::InterfaceKey interfaceKey() const noexcept final override \
   {                                                                    \
-    return interfaceKey();                                \
+    return static_interfaceKey();                                \
   }                                                                    \
                                                                        \
 private:
