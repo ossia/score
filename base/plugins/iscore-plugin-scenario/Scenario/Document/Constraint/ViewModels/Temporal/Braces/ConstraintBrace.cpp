@@ -31,6 +31,7 @@ QRectF ConstraintBrace::boundingRect() const
 void ConstraintBrace::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  painter->setBrush({});
   painter->setRenderHint(QPainter::Antialiasing, true);
   QPen pen{{}, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   // TODO make a switch instead and transform these to use Q_FLAGS or something

@@ -18,7 +18,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SetTrigger final
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetTrigger, "Change a trigger")
 public:
-  SetTrigger(Path<TimeNodeModel>&& timeNodePath, State::Trigger trigger);
+  SetTrigger(Path<TimeNodeModel>&& timeNodePath, State::Expression trigger);
 
   void undo() const override;
   void redo() const override;
@@ -29,8 +29,8 @@ protected:
 
 private:
   Path<TimeNodeModel> m_path;
-  State::Trigger m_trigger;
-  State::Trigger m_previousTrigger;
+  State::Expression m_trigger;
+  State::Expression m_previousTrigger;
 };
 }
 }

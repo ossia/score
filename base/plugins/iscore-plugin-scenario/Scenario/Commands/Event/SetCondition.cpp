@@ -13,7 +13,7 @@ namespace Scenario
 namespace Command
 {
 SetCondition::SetCondition(
-    Path<EventModel>&& eventPath, State::Condition&& cond)
+    Path<EventModel>&& eventPath, State::Expression&& cond)
     : m_path{std::move(eventPath)}, m_condition(std::move(cond))
 {
 

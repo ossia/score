@@ -128,7 +128,7 @@ void TriggerInspectorWidget::HideRmButton()
   m_menuButton->setVisible(false);
 }
 
-void TriggerInspectorWidget::updateExpression(const State::Trigger& expr)
+void TriggerInspectorWidget::updateExpression(const State::Expression& expr)
 {
   m_exprEditor->setExpression(expr);
 }

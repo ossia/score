@@ -168,7 +168,7 @@ private:
 
   QByteArray m_serializedTimeNode;
   MoveEvent<GoodOldDisplacementPolicy>* m_moveCommand{};
-  State::Trigger m_targetTrigger;
+  State::Expression m_targetTrigger;
   bool m_targetTriggerActive;
 };
 }

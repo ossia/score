@@ -15,7 +15,7 @@ namespace Command
 {
 
 SetTrigger::SetTrigger(
-    Path<TimeNodeModel>&& timeNodePath, State::Trigger trigger)
+    Path<TimeNodeModel>&& timeNodePath, State::Expression trigger)
     : m_path{std::move(timeNodePath)}, m_trigger(std::move(trigger))
 {
   auto& tn = m_path.find();

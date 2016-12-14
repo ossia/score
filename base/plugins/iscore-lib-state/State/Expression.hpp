@@ -309,11 +309,11 @@ protected:
 namespace State
 {
 using Expression = TreeNode<ExprData>;
-using Condition = Expression;
-using Trigger = Expression;
 
 ISCORE_LIB_STATE_EXPORT optional<State::Expression>
 parseExpression(const QString& str);
+ISCORE_LIB_STATE_EXPORT optional<State::Expression>
+parseExpression(const std::string& str);
 ISCORE_LIB_STATE_EXPORT optional<State::Value> parseValue(const std::string& str);
 ISCORE_LIB_STATE_EXPORT optional<State::Address>
 parseAddress(const QString& str);
@@ -331,3 +331,5 @@ JSON_METADATA(State::Relation, "Relation")
 JSON_METADATA(State::Pulse, "Pulse")
 JSON_METADATA(State::UnaryOperator, "UnOp")
 JSON_METADATA(State::BinaryOperator, "BinOp")
+
+Q_DECLARE_METATYPE(State::Expression)
