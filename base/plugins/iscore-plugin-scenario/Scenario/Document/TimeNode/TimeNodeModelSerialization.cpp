@@ -16,8 +16,8 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/Identifier.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 template <typename T>
 class Reader;

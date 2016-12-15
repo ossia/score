@@ -6,8 +6,8 @@
 
 #include "CreateConstraint_State_Event.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;

@@ -1,7 +1,7 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/VariantSerialization.hpp>
+#include <iscore/serialization/VariantSerialization.hpp>
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void

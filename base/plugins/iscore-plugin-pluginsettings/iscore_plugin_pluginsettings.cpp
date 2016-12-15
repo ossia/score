@@ -15,7 +15,7 @@ iscore_plugin_pluginsettings::factories(
     const iscore::ApplicationContext& ctx,
     const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<iscore::SettingsDelegateFactory, PluginSettings::Factory>>>(
+  return instantiate_factories<iscore::ApplicationContext, FW<iscore::SettingsDelegateFactory, PluginSettings::Factory>>(
       ctx, key);
 }
 

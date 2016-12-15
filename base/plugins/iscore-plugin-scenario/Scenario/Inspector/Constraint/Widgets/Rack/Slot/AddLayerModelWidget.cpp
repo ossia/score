@@ -19,8 +19,8 @@
 
 #include "AddLayerModelWidget.hpp"
 #include "SlotInspectorSection.hpp"
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 

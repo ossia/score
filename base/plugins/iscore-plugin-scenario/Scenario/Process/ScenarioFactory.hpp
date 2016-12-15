@@ -15,7 +15,7 @@ class ProcessModel;
 class QGraphicsItem;
 class QObject;
 struct VisitorVariant;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

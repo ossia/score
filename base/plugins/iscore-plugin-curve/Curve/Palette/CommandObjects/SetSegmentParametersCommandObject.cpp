@@ -8,8 +8,8 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
+#include <iscore/model/path/Path.hpp>
 
 namespace iscore
 {

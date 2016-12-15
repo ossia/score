@@ -22,7 +22,7 @@ namespace Process
 class ProcessModel;
 }
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_automation_export.h>
 
 namespace Automation

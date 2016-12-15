@@ -11,9 +11,9 @@
 #include <Scenario/Tools/dataStructures.hpp>
 
 #include <iscore/command/Command.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/Identifier.hpp>
 
 /*
  * Command to change a constraint duration by moving event. Vertical move is

@@ -47,7 +47,7 @@ iscore_plugin_deviceexplorer::factories(
     const iscore::ApplicationContext& ctx,
     const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<iscore::DocumentPluginFactory, Explorer::DocumentPluginFactory>, FW<iscore::PanelDelegateFactory, Explorer::PanelDelegateFactory>>>(
+  return instantiate_factories<iscore::ApplicationContext, FW<iscore::DocumentPluginFactory, Explorer::DocumentPluginFactory>, FW<iscore::PanelDelegateFactory, Explorer::PanelDelegateFactory>>(
       ctx, key);
 }
 

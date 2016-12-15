@@ -16,7 +16,7 @@ iscore_plugin_library::factories(
     const iscore::ApplicationContext& ctx,
     const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<iscore::PanelDelegateFactory, Library::PanelDelegateFactory>>>(
+  return instantiate_factories<iscore::ApplicationContext, FW<iscore::PanelDelegateFactory, Library::PanelDelegateFactory>>(
       ctx, key);
 }
 

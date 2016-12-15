@@ -3,7 +3,7 @@
 #include <QModelIndex>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/InvisibleRootNode.hpp>
+#include <iscore/model/tree/InvisibleRootNode.hpp>
 template <typename T>
 using ref = T&;
 template <typename T>

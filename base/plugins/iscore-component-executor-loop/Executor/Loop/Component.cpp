@@ -32,7 +32,7 @@ namespace ossia
 {
 class time_process;
 } // namespace OSSIA
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Loop
 {

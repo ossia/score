@@ -6,7 +6,7 @@
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 #include <QIcon>

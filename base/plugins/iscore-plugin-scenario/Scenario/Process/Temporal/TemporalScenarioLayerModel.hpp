@@ -6,7 +6,7 @@
 #include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

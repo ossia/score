@@ -8,7 +8,7 @@
 
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Explorer/ListeningManager.hpp>
-#include <iscore/tools/TreePath.hpp>
+#include <iscore/model/tree/TreePath.hpp>
 
 class QAction;
 class QContextMenuEvent;

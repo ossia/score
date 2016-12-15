@@ -4,7 +4,7 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Curve
 {

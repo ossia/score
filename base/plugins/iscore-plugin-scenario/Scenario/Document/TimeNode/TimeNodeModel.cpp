@@ -9,8 +9,8 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/model/ModelMetadata.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

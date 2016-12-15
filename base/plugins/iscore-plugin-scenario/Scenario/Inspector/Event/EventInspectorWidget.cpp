@@ -41,9 +41,9 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
 

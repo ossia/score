@@ -8,7 +8,7 @@
 #include <QVBoxLayout>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 #include <iscore/widgets/JS/JSEdit.hpp>
 class QVBoxLayout;

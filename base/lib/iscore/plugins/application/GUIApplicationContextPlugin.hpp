@@ -4,6 +4,8 @@
 #include <vector>
 
 #include <iscore/actions/Action.hpp>
+#include <iscore/actions/Menu.hpp>
+#include <iscore/actions/Toolbar.hpp>
 #include <iscore/application/GUIApplicationContext.hpp>
 class QAction;
 class QObject;
@@ -16,6 +18,13 @@ struct VisitorVariant;
 namespace iscore
 {
 class DocumentPlugin;
+
+struct GUIElements
+{
+  ActionContainer actions;
+  std::vector<Menu> menus;
+  std::vector<Toolbar> toolbars;
+};
 
 /**
  * @brief Used to extend the software with application-wide data.

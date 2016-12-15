@@ -3,7 +3,7 @@
 #include <State/ValueConversion.hpp>
 
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 #include <QStringBuilder>
 #include <algorithm>

@@ -19,9 +19,8 @@ std::vector<std::unique_ptr<iscore::InterfaceBase>>
 {
     return instantiate_factories<
             iscore::ApplicationContext,
-    TL<
         ${FactoryCode}
-    >>(ctx, key);
+    >(ctx, key);
 }
 
 iscore::Version ${PLUGIN_NAME}::version() const

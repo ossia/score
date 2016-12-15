@@ -5,7 +5,7 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <chrono>
 #include <iscore/statemachine/GraphicsSceneTool.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 #include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
 

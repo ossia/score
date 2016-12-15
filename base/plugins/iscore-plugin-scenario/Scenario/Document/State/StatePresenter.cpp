@@ -17,13 +17,13 @@
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/MimeVisitor.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 #include <QApplication>
 
 #include <iscore/tools/Todo.hpp>
 
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

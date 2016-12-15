@@ -32,18 +32,18 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-#include <iscore/tools/ObjectIdentifier.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/model/path/ObjectIdentifier.hpp>
+#include <iscore/model/path/ObjectPath.hpp>
 #include <iscore/tools/Todo.hpp>
 
 namespace iscore
 {
-class DocumentDelegateModelInterface;
-class DocumentDelegateViewInterface;
+class DocumentDelegateModel;
+class DocumentDelegateView;
 class DocumentPresenter;
 } // namespace iscore
 
@@ -66,9 +66,9 @@ ScenarioDocumentView& ScenarioDocumentPresenter::view() const
 
 ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     iscore::DocumentPresenter* parent_presenter,
-    const iscore::DocumentDelegateModelInterface& delegate_model,
-    iscore::DocumentDelegateViewInterface& delegate_view)
-    : DocumentDelegatePresenterInterface{parent_presenter, delegate_model,
+    const iscore::DocumentDelegateModel& delegate_model,
+    iscore::DocumentDelegateView& delegate_view)
+    : DocumentDelegatePresenter{parent_presenter, delegate_model,
                                          delegate_view}
     , m_scenarioPresenter{new DisplayedElementsPresenter{this}}
     , m_selectionDispatcher{iscore::IDocument::documentContext(model())

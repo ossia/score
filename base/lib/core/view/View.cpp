@@ -15,7 +15,7 @@
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/widgets/QmlContainerPanel.hpp>
 #include <iscore_git_info.hpp>

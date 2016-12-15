@@ -5,12 +5,12 @@
 #include <iscore/tools/Metadata.hpp>
 
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 class DataStream;
 class JSONObject;
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 namespace Scenario
 {
 class ConstraintModel;

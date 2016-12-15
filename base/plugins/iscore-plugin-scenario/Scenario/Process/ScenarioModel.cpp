@@ -5,7 +5,7 @@
 #include <QIODevice>
 #include <QMap>
 #include <QtGlobal>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <vector>
 
 #include "Algorithms/StandardCreationPolicy.hpp"
@@ -25,7 +25,7 @@
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
+#include <iscore/model/EntityMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
 namespace Process

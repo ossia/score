@@ -24,7 +24,7 @@ iscore_plugin_inspector::factories(
     const iscore::ApplicationContext& ctx,
     const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<iscore::PanelDelegateFactory, InspectorPanel::PanelDelegateFactory>>>(
+  return instantiate_factories<iscore::ApplicationContext, FW<iscore::PanelDelegateFactory, InspectorPanel::PanelDelegateFactory>>(
       ctx, key);
 }
 

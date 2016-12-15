@@ -8,7 +8,7 @@
 #include <State/ValueSerialization.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/tools/VariantSerialization.hpp>
+#include <iscore/serialization/VariantSerialization.hpp>
 
 #include <State/Value.hpp>
 #include <iscore_lib_state_export.h>

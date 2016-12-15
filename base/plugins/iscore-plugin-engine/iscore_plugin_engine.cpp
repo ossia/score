@@ -74,7 +74,6 @@ iscore_plugin_engine::factories(
 
   return instantiate_factories<
             iscore::ApplicationContext,
-            TL<
             FW<Device::ProtocolFactory,
                  Network::LocalProtocolFactory,
                  Network::OSCProtocolFactory,
@@ -136,7 +135,7 @@ iscore_plugin_engine::factories(
             Curve::SegmentFactory_T<Segment_elasticOut>,
             Curve::SegmentFactory_T<Segment_elasticInOut>,
             Curve::SegmentFactory_T<Segment_perlinInOut>
-            >>
+            >
                >(ctx, key);
 }
 

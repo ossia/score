@@ -4,7 +4,7 @@
 
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 template <typename Object>
 class Path;

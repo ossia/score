@@ -3,7 +3,7 @@
 #include <QList>
 #include <QRect>
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/model/path/ObjectPath.hpp>
 
 class QPainter;
 class QStyleOptionGraphicsItem;

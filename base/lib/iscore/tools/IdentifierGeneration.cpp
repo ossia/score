@@ -2,7 +2,7 @@
 #include <limits>
 #include <random>
 
-#include "SettableIdentifierGeneration.hpp"
+#include "IdentifierGeneration.hpp"
 
 namespace iscore
 {

@@ -17,8 +17,8 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/model/Identifier.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 
 namespace Engine
 {

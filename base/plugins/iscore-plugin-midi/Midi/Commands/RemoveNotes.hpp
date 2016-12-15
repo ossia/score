@@ -1,7 +1,7 @@
 #pragma once
 #include <Midi/Commands/CommandFactory.hpp>
 #include <Midi/MidiNote.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 namespace Midi
 {

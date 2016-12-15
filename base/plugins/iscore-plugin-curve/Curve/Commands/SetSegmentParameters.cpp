@@ -7,9 +7,9 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Curve
 {

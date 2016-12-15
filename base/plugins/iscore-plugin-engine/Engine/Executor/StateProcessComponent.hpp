@@ -1,8 +1,8 @@
 #pragma once
 #include <Process/StateProcess.hpp>
 
-#include <iscore/component/Component.hpp>
-#include <iscore/component/ComponentFactory.hpp>
+#include <iscore/model/Component.hpp>
+#include <iscore/model/ComponentFactory.hpp>
 
 #include <iscore_plugin_engine_export.h>
 

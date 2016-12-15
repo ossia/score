@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 
 #include "CurveModel.hpp"
 #include <ossia/detail/algorithms.hpp>
@@ -19,10 +19,10 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/selection/Selection.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 #include <iscore/tools/MapCopy.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 class QObject;
 namespace Curve

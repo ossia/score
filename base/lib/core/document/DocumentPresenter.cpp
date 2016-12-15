@@ -1,8 +1,8 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <core/document/DocumentPresenter.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 
-#include "DocumentPresenter.hpp"
 
 class QObject;
 

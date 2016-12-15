@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include <iostream>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 #include <nano_signal_slot.hpp>
 #include <utility>
 

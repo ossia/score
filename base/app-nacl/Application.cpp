@@ -23,7 +23,7 @@
 #include <QStyleFactory>
 #include <QFileInfo>
 
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <algorithm>
 #include <vector>
 
@@ -34,10 +34,10 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/selection/Selection.hpp>
 
-#include <iscore/tools/ObjectIdentifier.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/ObjectIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 

@@ -5,7 +5,7 @@
 #include <QString>
 #include <algorithm>
 #include <initializer_list>
-#include <iscore/tools/ObjectIdentifier.hpp>
+#include <iscore/model/path/ObjectIdentifier.hpp>
 #include <iscore_lib_base_export.h>
 #include <type_traits>
 #include <vector>

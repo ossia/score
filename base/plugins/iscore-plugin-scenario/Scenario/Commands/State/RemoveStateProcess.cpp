@@ -3,8 +3,8 @@
 #include <Process/StateProcessFactory.hpp>
 #include <Process/StateProcessFactoryList.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 
 namespace Scenario
 {

@@ -34,7 +34,7 @@
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <iscore/application/ApplicationContext.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
 
 #if defined(ISCORE_OPENGL)
 #include <QOpenGLWidget>
@@ -48,7 +48,7 @@ namespace Scenario
 {
 ScenarioDocumentView::ScenarioDocumentView(
     const iscore::ApplicationContext& ctx, QObject* parent)
-    : iscore::DocumentDelegateViewInterface{parent}
+    : iscore::DocumentDelegateView{parent}
     , m_widget{new QWidget}
     , m_scene{new ScenarioScene{m_widget}}
     , m_view{new ProcessGraphicsView{m_scene, m_widget}}

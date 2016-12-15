@@ -7,7 +7,7 @@
 #include "MoveNewEvent.hpp"
 #include <Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {

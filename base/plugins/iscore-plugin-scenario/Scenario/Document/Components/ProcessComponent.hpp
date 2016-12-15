@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/Process.hpp>
 #include <Process/StateProcess.hpp>
-#include <iscore/component/Component.hpp>
+#include <iscore/model/Component.hpp>
 
 namespace Scenario
 {

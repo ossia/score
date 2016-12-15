@@ -1,7 +1,7 @@
 #pragma once
 class QByteArray;
 class QVariant;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_lib_base_export.h>
 namespace iscore
 {

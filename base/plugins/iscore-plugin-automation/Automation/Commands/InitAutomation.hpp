@@ -3,7 +3,7 @@
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <State/Address.hpp>
 #include <iscore/command/Command.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <iscore_plugin_automation_export.h>
 #include <vector>
 struct DataStreamInput;

@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 /**
  * @brief The ObjectIdentifier class

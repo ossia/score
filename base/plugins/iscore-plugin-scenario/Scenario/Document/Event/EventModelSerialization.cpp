@@ -14,8 +14,8 @@
 #include <State/Expression.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/Identifier.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void

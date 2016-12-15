@@ -2,7 +2,7 @@
 #include <ossia/detail/algorithms.hpp>
 #include <algorithm>
 #include <cstddef>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/std/ArrayView.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iterator>

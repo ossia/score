@@ -17,8 +17,9 @@
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 #include <iscore/widgets/SetIcons.hpp>
+#include <iscore/actions/MenuManager.hpp>
 
 #include <QAction>
 #include <QApplication>

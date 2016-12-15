@@ -2,7 +2,7 @@
 
 #include "ConstraintViewModel.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 class QObject;
 

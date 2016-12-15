@@ -21,6 +21,7 @@
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <iscore/actions/MenuManager.hpp>
 #include <qnamespace.h>
 
 #include <QRect>
@@ -47,12 +48,12 @@
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <iscore/actions/ActionManager.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {

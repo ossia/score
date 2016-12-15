@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QPoint>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <iscore_plugin_scenario_export.h>
 #include <sys/types.h>

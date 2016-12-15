@@ -5,8 +5,8 @@
 #include <Process/Dummy/DummyLayerView.hpp>
 #include <Process/LayerModelPanelProxy.hpp>
 #include <Process/Process.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/RelativePath.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/path/RelativePath.hpp>
 
 namespace Process
 {

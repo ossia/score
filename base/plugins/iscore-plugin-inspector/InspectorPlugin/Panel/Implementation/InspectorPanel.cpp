@@ -9,7 +9,7 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
-#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/model/IdentifiedObjectAbstract.hpp>
 
 namespace iscore
 {

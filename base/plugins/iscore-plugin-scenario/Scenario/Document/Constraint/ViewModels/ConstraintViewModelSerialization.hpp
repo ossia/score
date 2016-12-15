@@ -7,7 +7,7 @@
 #include <iscore/tools/std/Optional.hpp>
 
 #include <Process/LayerModel.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
 template <typename VisitorType>

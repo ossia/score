@@ -14,7 +14,7 @@ class SettingsDelegateView;
 /**
  * @brief The SettingsDelegateFactory class
  *
- * Reimplement in order to provide custom settings for the plug-in.
+ * Reimplement in order to provide custom user settings for the plug-in.
  */
 class ISCORE_LIB_BASE_EXPORT SettingsDelegateFactory
     : public iscore::Interface<SettingsDelegateFactory>

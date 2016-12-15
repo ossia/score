@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 
 #include <QPoint>
 #include <QtGlobal>
@@ -12,7 +12,7 @@
 #include <nano_signal_slot.hpp>
 
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

@@ -3,7 +3,7 @@
 #include <QAbstractItemModel>
 #include <QStringList>
 #include <QVariant>
-#include <iscore/tools/TreeNodeItemModel.hpp>
+#include <iscore/model/tree/TreeNodeItemModel.hpp>
 #include <iscore_plugin_scenario_export.h>
 #include <qnamespace.h>
 

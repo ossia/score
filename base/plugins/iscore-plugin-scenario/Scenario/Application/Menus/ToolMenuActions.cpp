@@ -2,7 +2,7 @@
 #include <QActionGroup>
 #include <QMenu>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 #include <qnamespace.h>
 
 #include <QString>
@@ -10,13 +10,14 @@
 #include <QVariant>
 
 #include <Process/ExpandMode.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 
 #include "ToolMenuActions.hpp"
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <iscore/actions/ActionManager.hpp>
+#include <iscore/actions/MenuManager.hpp>
 
 #include <iscore/widgets/SetIcons.hpp>
 

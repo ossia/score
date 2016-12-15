@@ -14,9 +14,9 @@ qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/iscore.qrc")
 set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/StringConstants.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/InvisibleRootNodeSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectPathSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/SettableIdentifierGeneration.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/tree/InvisibleRootNodeSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/ObjectPathSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/IdentifierGeneration.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandDataSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryInterface.cpp"
@@ -30,22 +30,24 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/PropertyCommand.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/Validity/ValidityChecker.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/component/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/Component.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationComponents.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/Action.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/ActionManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/MenuManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/ToolbarManager.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/document/DocumentInterface.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/locking/ObjectLocker.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateModelInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateViewInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegatePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/DocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/application/GUIApplicationContextPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelDelegate.cpp"
@@ -75,11 +77,11 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/JSONObjectVisitor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/QtTypesJsonVisitors.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectIdentifierSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/IdentifiedObjectAbstract.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/ObjectIdentifierSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/IdentifiedObjectAbstract.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/ObjectPath.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/RelativePath.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/ObjectPath.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/RelativePath.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/RandomNameProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/ModelMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/Skin.cpp"

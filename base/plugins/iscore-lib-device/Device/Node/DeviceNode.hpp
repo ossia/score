@@ -6,9 +6,9 @@
 #include <QStringList>
 #include <State/Message.hpp>
 #include <algorithm>
-#include <iscore/tools/TreeNode.hpp>
-#include <iscore/tools/TreePath.hpp>
-#include <iscore/tools/VariantBasedNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
+#include <iscore/model/tree/TreePath.hpp>
+#include <iscore/model/tree/VariantBasedNode.hpp>
 
 #include <State/Address.hpp>
 #include <iscore_lib_device_export.h>

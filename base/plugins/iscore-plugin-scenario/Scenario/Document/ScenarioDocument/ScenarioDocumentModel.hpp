@@ -1,7 +1,7 @@
 #pragma once
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
 
 #include <QPointer>
 #include <core/document/Document.hpp>
@@ -26,7 +26,7 @@ class BaseScenario;
 class ConstraintModel;
 class FullViewConstraintViewModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final
-    : public iscore::DocumentDelegateModelInterface
+    : public iscore::DocumentDelegateModel
 {
   Q_OBJECT
   ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioDocumentModel, DataStream)
@@ -39,7 +39,7 @@ public:
       Deserializer<Impl>& vis,
       const iscore::DocumentContext& ctx,
       QObject* parent)
-      : iscore::DocumentDelegateModelInterface{vis, parent}
+      : iscore::DocumentDelegateModel{vis, parent}
       , m_focusManager{ctx.document.focusManager()}
   {
     vis.writeTo(*this);

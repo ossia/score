@@ -7,8 +7,8 @@
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include <iscore/plugins/customfactory/UuidKey.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 
 namespace Curve
 {

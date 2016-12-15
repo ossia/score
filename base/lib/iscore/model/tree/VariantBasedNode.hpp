@@ -4,7 +4,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-#include <iscore/tools/InvisibleRootNode.hpp>
+#include <iscore/model/tree/InvisibleRootNode.hpp>
 
 namespace iscore
 {

@@ -1,7 +1,7 @@
 #include "AddNote.hpp"
 #include <Midi/MidiProcess.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 
 namespace Midi
 {

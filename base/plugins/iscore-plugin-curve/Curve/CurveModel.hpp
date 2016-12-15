@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/selection/Selection.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <vector>
 
@@ -11,7 +11,7 @@
 class DataStream;
 class JSONObject;
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_curve_export.h>
 namespace Curve
 {

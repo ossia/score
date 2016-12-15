@@ -8,13 +8,13 @@
 
 #include "TransportActions.hpp"
 
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/MenuManager.hpp>
 
 #include <QApplication>
 #include <QMainWindow>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 class QMenu;
 

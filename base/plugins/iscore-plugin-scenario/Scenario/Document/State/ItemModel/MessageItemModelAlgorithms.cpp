@@ -16,9 +16,9 @@
 #include <State/Address.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 namespace Process
 {
 static QStringList toStringList(const State::AddressAccessor& addr)

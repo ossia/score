@@ -4,8 +4,8 @@
 #include <iscore/tools/std/Optional.hpp>
 
 #include "CreateConstraint.hpp"
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;

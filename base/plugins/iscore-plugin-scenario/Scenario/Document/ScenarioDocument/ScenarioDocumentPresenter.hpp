@@ -1,7 +1,7 @@
 #pragma once
 #include <QPoint>
 #include <QRect>
-#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <memory>
 
@@ -15,8 +15,8 @@ class ObjectPath;
 class QSize;
 namespace iscore
 {
-class DocumentDelegateModelInterface;
-class DocumentDelegateViewInterface;
+class DocumentDelegateModel;
+class DocumentDelegateView;
 class DocumentPresenter;
 } // namespace iscore
 
@@ -35,7 +35,7 @@ class TimeRulerPresenter;
  * inside the constraint model of the base element model.
  */
 class ScenarioDocumentPresenter final
-    : public iscore::DocumentDelegatePresenterInterface
+    : public iscore::DocumentDelegatePresenter
 {
   Q_OBJECT
   friend class DisplayedElementsPresenter;
@@ -43,8 +43,8 @@ class ScenarioDocumentPresenter final
 public:
   ScenarioDocumentPresenter(
       iscore::DocumentPresenter* parent_presenter,
-      const iscore::DocumentDelegateModelInterface& model,
-      iscore::DocumentDelegateViewInterface& view);
+      const iscore::DocumentDelegateModel& model,
+      iscore::DocumentDelegateView& view);
   virtual ~ScenarioDocumentPresenter();
 
   const ConstraintModel& displayedConstraint() const;

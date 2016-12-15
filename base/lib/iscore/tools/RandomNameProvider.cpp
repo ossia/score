@@ -5,7 +5,7 @@
 #include <QIODevice>
 #include <QStringList>
 #include <cstdlib>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 
 struct WordList : public QStringList
 {

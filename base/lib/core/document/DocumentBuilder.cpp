@@ -17,7 +17,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
 #include <iscore/tools/RandomNameProvider.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace iscore
 {

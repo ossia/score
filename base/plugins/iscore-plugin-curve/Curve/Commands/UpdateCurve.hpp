@@ -2,7 +2,7 @@
 #include <Curve/Commands/CurveCommandFactory.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <iscore/command/Command.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <vector>
 
 struct DataStreamInput;

@@ -19,7 +19,7 @@
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/model/Skin.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Process
 {

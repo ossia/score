@@ -1,6 +1,7 @@
 #pragma once
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/IdentifiedObjectAbstract.hpp>
+#include <iscore/model/Identifier.hpp>
 
 /**
  * @brief The IdentifiedObject class

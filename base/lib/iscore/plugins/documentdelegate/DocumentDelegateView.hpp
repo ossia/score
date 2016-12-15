@@ -5,11 +5,11 @@ class QWidget;
 
 namespace iscore
 {
-class ISCORE_LIB_BASE_EXPORT DocumentDelegateViewInterface : public QObject
+class ISCORE_LIB_BASE_EXPORT DocumentDelegateView : public QObject
 {
 public:
   using QObject::QObject;
-  virtual ~DocumentDelegateViewInterface();
+  virtual ~DocumentDelegateView();
 
   virtual QWidget* getWidget() = 0;
 };

@@ -1,4 +1,4 @@
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/tools/exceptions/MissingCommand.hpp>
 
 #include "ApplicationComponents.hpp"

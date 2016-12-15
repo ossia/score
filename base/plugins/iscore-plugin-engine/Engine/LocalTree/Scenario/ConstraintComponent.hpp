@@ -2,7 +2,7 @@
 #include <Engine/LocalTree/LocalTreeComponent.hpp>
 #include <Engine/LocalTree/Scenario/ProcessComponent.hpp>
 #include <Scenario/Document/Components/ConstraintComponent.hpp>
-#include <iscore/component/ComponentHierarchy.hpp>
+#include <iscore/model/ComponentHierarchy.hpp>
 namespace Engine
 {
 namespace LocalTree

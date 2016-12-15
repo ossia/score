@@ -11,7 +11,7 @@
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 namespace Device
 {
