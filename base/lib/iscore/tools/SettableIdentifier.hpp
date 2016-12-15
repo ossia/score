@@ -12,10 +12,39 @@ template <typename T>
 class IdentifiedObject;
 /**
  * @brief The id_base_t class
+ * @tparam tag Type of the object identified.
+ * @tparam impl Underlying implementation of id_base_t.
  *
- * The base identifier type.
+ * The base identifier type. Classes should not have
+ * to use this directly; instead the identifier type is Id<T>.
+ *
+ * A class wishing to be identified like this should inherit from
+ * IdentifiedObject<T> or Entity<T>, like this :
+ *
+ * \code
+ * class MyModel :
+ *  public iscore::Entity<MyModel>
+ * {
+ * };
+ * \endcode
+ *
+ * This ensures that one cannot mistakenly use the identifier of an object
+ * in another object, e.g. one cannot do :
+ *
+ * \code
+ * void myFunction(Id<OtherModel> id);
+ * // ...
+ * myFunction(myModel.id());
+ * \endcode
+ *
+ * The compiler will rightfully prevent this incorrect code from working.
+ *
+ * @see Id
+ * @see IdentifiedObject
+ * @see IdentifiedObjectMap
+ * @see Entity
+ * @see EntityMap
  */
-
 template <typename tag, typename impl>
 class id_base_t
 {
@@ -85,12 +114,7 @@ public:
   {
     return lhs.val() < rhs.val();
   }
-  /*
-          explicit operator bool() const
-          {
-              return bool(m_id);
-          }
-  */
+
   explicit operator value_type() const
   {
     return m_id;
@@ -111,17 +135,18 @@ private:
   value_type m_id{};
 };
 
-template <typename tag, typename impl>
-using optional_tagged_id = id_base_t<tag, optional<impl>>;
-
-template <typename tag>
-using optional_tagged_int32_id = optional_tagged_id<tag, int32_t>;
-
+/**
+ * @typedef Id identifier for an object
+ */
 template <typename tag>
 using Id = id_base_t<tag, int32_t>;
 
+/**
+ * @typedef OptionalId identifier for an object that may not exist
+ */
 template <typename tag>
 using OptionalId = optional<Id<tag>>;
+
 namespace std
 {
 template <typename tag>
