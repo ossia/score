@@ -2,7 +2,9 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <type_traits>
 
-
+/**
+ * @brief Create a vector filled with pointers to new instances of the template arguments
+ */
 template <typename Base_T, typename... Args>
 struct GenericFactoryInserter
 {
@@ -27,7 +29,7 @@ auto make_ptr_vector() noexcept
 }
 
 /**
- * @brief FactoryBuilder
+ * @class FactoryBuilder
  *
  * This class allows the user to customize the
  * creation of the factory by specializing it with the actual
@@ -44,12 +46,17 @@ struct FactoryBuilder // sorry padre for I have sinned
   }
 };
 
+/**
+ * @brief Fills an existing vector with factories instantiations
+ */
 template <typename Context_T, typename Base_T, typename... Args>
-struct ContextualGenericFactoryInserter
+struct ContextualGenericFactoryFiller
 {
   const Context_T& context;
-  std::vector<std::unique_ptr<Base_T>> vec;
-  ContextualGenericFactoryInserter(const Context_T& ctx) noexcept : context{ctx}
+  std::vector<std::unique_ptr<Base_T>>& vec;
+  ContextualGenericFactoryFiller(const Context_T& ctx, std::vector<std::unique_ptr<Base_T>>& v) noexcept :
+    context{ctx},
+    vec{v}
   {
     vec.reserve(sizeof...(Args));
     for_each_type<TypeList<Args...>>(*this);
@@ -63,12 +70,15 @@ struct ContextualGenericFactoryInserter
 };
 
 template <typename Context_T, typename Base_T, typename... Args>
-auto make_ptr_vector(const Context_T& context) noexcept
+void fill_ptr_vector(const Context_T& context, std::vector<std::unique_ptr<Base_T>>& vec) noexcept
 {
-  return ContextualGenericFactoryInserter<Context_T, Base_T, Args...>{context}
-      .vec;
+  ContextualGenericFactoryFiller<Context_T, Base_T, Args...>{context, vec};
 }
 
+/**
+ * \class FW_T
+ * \brief Used to group base classes and concrete classes in a single argument list.
+ */
 template <typename Factory_T, typename... Types_T>
 struct FW_T
 {
@@ -94,26 +104,14 @@ struct FW_T
         "A type is not child of the parent.");
     if (matcher.fact == Factory_T::static_interfaceKey())
     {
-      matcher.vec = make_ptr_vector<
-                        std::remove_const_t<std::remove_reference_t<decltype(matcher.ctx)>>,
-                        iscore::InterfaceBase,
-                        Types_T...>(matcher.ctx);
+      fill_ptr_vector<std::remove_const_t<std::remove_reference_t<decltype(matcher.ctx)>>,
+                      iscore::InterfaceBase,
+                      Types_T...>(matcher.ctx, matcher.vec);
       return true;
     }
 
     return false;
   }
-};
-
-template <typename... Args>
-struct counter
-{
-  static const constexpr auto size = 0;
-};
-template <typename Arg, typename... Args>
-struct counter<Arg, Args...>
-{
-  static const constexpr auto size = Arg::size + counter<Args...>::size;
 };
 
 template <typename Factory_T, typename... Args>
@@ -122,12 +120,6 @@ using FW = FW_T<Factory_T, Args...>;
 template <typename... Args>
 struct TL : public TypeList<Args...>
 {
-public:
-  // Returns number total number of concrete factories.
-  static constexpr auto count() noexcept
-  {
-    return counter<Args...>::size;
-  }
 };
 
 namespace iscore
@@ -148,12 +140,30 @@ struct FactoryMatcher
   }
 };
 
+
+/**
+ * @brief instantiate_factories Given a type list of factories, instantiate the ones corresponding to the key
+ *
+ * e.g.
+ * \code
+ * instantiate_factories<
+ *  Context,
+ *  TL<
+ *    FW<AbstractType1, ConcreteType1_1, ConcreteType1_2>,
+ *    FW<AbstractType2, ConcreteType2_1>
+ *  >>(context, KeyOfAbstractType1, vec);
+ * \endcode
+ *
+ * would return a vector such as :
+ * \code
+ * { std::make_unique<ConcreteType1_1>(), std::make_unique<ConcreteType1_2>() }
+ * \endcode
+ */
 template <typename Context_T, typename Factories_T>
 auto instantiate_factories(
     const Context_T& ctx, const iscore::InterfaceKey& key) noexcept
 {
   std::vector<std::unique_ptr<iscore::InterfaceBase>> vec;
-  vec.reserve(Factories_T::count());
 
   for_each_type_if<Factories_T>(FactoryMatcher{ctx, key, vec});
 
