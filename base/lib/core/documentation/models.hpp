@@ -23,10 +23,6 @@
  * domain (Process::ProcessModel, Scenario::ConstraintModel, Automation::ProcessModel, etc).
  * <br>
  * We call these the "model" objects.
- * <br><br>
- * It does not apply however to the "small" objects in the various \ref QAbstractItemModel child classes,
- * such as the nodes in the tree (Device::Node), mostly for performance & memory usage reasons, and because
- * it would not be really useful for these cases.
  * <br>
  * Model objects are all identified uniquely across the children of their parents.
  * <br>
@@ -80,11 +76,28 @@
  * * The second command is redone : since it had a Path to the object and not a pointer, it is able to
  *   find it instead of crashing, even though memory-wise, it is not the **same** object that was created initially.
  *
- * \section Creating models
+ * \section CreatingModels Creating models
  *
  * Base classes for custom model objects are provided :
  * * IdentifiedObject : provides identification.
- * * Entity<> : provides identification, \ref Components and \ref Metadata.
+ * * Entity<> : provides identification, \ref Components and \ref iscore::ModelMetadata.
+ *
+ * \section ItemModel Relationship to Qt's item models
+ * The previous information is separate from Qt's model-view paradigm which is more useful
+ * when one wants to see a tree of objects in a tree widget.
+ * <br>
+ * This means that it does not apply to the "small" objects in the various \ref QAbstractItemModel
+ * child classes, such as the nodes in the tree (Device::Node).
+ * <br>
+ * This is done mostly for performance & memory usage reasons, and because
+ * it would not be really useful for these cases.
+ * <br>
+ * For these objects, paths can still be saved with the TreePath class which is a simpler list
+ * of integers.
+ * <br>
+ * A base "Tree" QAbstractItemModel implementation is provided with TreeNodeItemModel, with the
+ * nodes of the tree are based on TreeNode.
+ *
  *
  * \see Serialization
  */

@@ -6,6 +6,7 @@
 
 namespace iscore
 {
+// Older valgrind versions would crash with random number generation
 #ifdef ISCORE_VALGRIND_IDS
 int32_t random_id_generator::getRandomId()
 {

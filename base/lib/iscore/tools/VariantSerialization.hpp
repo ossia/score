@@ -4,6 +4,36 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
+/**
+ * @file VariantSerialization
+ *
+ * @brief Used for serialization of eggs::variant classes.
+ *
+ * This saves the index and the current element, for both JSON and QDataStream,
+ * by iterating at compile time up to the "right" point in the variant.
+ *
+ */
+
+/**
+ * @class VariantDataStreamSerializer
+ * @see VariantSerialization
+ */
+
+/**
+ * @class VariantDataStreamDeserializer
+ * @see VariantSerialization
+ */
+
+/**
+ * @class VariantJSONSerializer
+ * @see VariantSerialization
+ */
+
+/**
+ * @class VariantJSONDeserializer
+ * @see VariantSerialization
+ */
+
 template <typename T>
 struct VariantDataStreamSerializer
 {

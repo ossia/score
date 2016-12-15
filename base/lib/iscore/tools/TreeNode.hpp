@@ -2,8 +2,8 @@
 #include <boost/container/stable_vector.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-/*
- * @brief The TreeNode class
+/**
+ * @brief Base type for a tree data structure.
  *
  * This class adds a tree structure around a data type.
  * It can then be used in abstract item models easily.

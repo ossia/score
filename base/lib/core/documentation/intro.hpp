@@ -18,6 +18,7 @@
  * * \ref Actions
  * * \ref CodingStyle
  * * \ref BuildSystem
+ * * \ref Metadata
  * * \ref PluginSystem
  * * \ref ModelViewPresenter
  *<br><br>
@@ -109,6 +110,10 @@
  */
 
 /*! \page Documents
+ *
+ */
+
+/*! \page Metadata
  *
  */
 

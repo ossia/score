@@ -13,7 +13,7 @@ private slots:
   {
     Device::Node root;
 
-    ISCORE_ASSERT(root.is<InvisibleRootNodeTag>());
+    ISCORE_ASSERT(root.is<InvisibleRootNode>());
 
     {
       Device::Node child(Device::AddressSettings{}, nullptr);

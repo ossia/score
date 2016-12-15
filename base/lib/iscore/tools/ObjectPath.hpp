@@ -23,7 +23,7 @@ class QObject;
  *
  * Example:
  * @code
- *	ObjectPath p{ {"MyObject", {}}, {"SomeSubObjectInACollection", 27} };
+ *	ObjectPath p{ {"MyObject", 0}, {"SomeSubObjectInACollection", 27} };
  * @endcode
  *
  * Note : this class is mostly superseded by Path<T> which adds type-safety.
@@ -117,7 +117,7 @@ public:
   }
 
   /**
-   * @brief try_find Tries to find an object
+   * @brief Tries to find an object
    *
    * @return null if the object does not exist.
    */

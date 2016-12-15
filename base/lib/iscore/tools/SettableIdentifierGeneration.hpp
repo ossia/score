@@ -12,6 +12,9 @@
 
 namespace iscore
 {
+/**
+ * @brief Generates random identifiers for new objects.
+ */
 struct ISCORE_LIB_BASE_EXPORT random_id_generator
 {
   /**
@@ -45,6 +48,9 @@ struct ISCORE_LIB_BASE_EXPORT random_id_generator
   }
 };
 
+/**
+ * @brief Generates identifiers for new objects, starting from 1.
+ */
 struct ISCORE_LIB_BASE_EXPORT linear_id_generator
 {
   static int32_t getFirstId()

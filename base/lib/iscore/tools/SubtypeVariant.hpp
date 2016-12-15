@@ -7,6 +7,10 @@ namespace iscore
 {
 namespace detail
 {
+/**
+ * @class dereference_visitor
+ * @brief Proxy visitor that dereferences before calling the actual visitor.
+ */
 template <typename T>
 struct dereference_visitor
 {
@@ -44,6 +48,15 @@ Variant make_subtype_variant(const Base& base)
 }
 }
 
+/**
+ * \class SubtypeVariant
+ * \brief Tools to build a variant type from classes in a same hierarchy.
+ *
+ * This allows to restrict and optimize polymorphism for the case where
+ * we already have a base class hierarchy, but we know that we will
+ * be applying a particular algorithm only to specific types of
+ * this hierarchy.
+ */
 template <typename Base, typename... Args>
 class SubtypeVariant
 {

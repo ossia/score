@@ -4,7 +4,7 @@
 namespace iscore
 {
 
-// Relative path between two objects
+//! Relative path between two objects
 struct ISCORE_LIB_BASE_EXPORT RelativePath
 {
   // Path to go to obj2 given obj1

@@ -2,7 +2,7 @@
 #include <QAbstractItemModel>
 #include <iscore/tools/Todo.hpp>
 /**
- * @brief The TreeNodeBasedItemModel class
+ * @brief Base implementation of a tree for QAbstractItemModel
  *
  * Provides basic tree-like functionality
  * shared between item models that uses the NodeType.

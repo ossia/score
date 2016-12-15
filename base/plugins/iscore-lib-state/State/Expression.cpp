@@ -35,7 +35,7 @@ QString State::ExprData::toString() const
     {
       return unopMap[rel];
     }
-    return_type operator()(const InvisibleRootNodeTag rel) const
+    return_type operator()(const InvisibleRootNode rel) const
     {
       return "";
     }
@@ -51,7 +51,7 @@ QString TreeNode<State::ExprData>::toString() const
   auto exprstr = static_cast<const State::ExprData&>(*this).toString();
   if (m_children.empty()) // Relation
   {
-    if (this->is<InvisibleRootNodeTag>())
+    if (this->is<InvisibleRootNode>())
     {
       ;
     }
@@ -62,7 +62,7 @@ QString TreeNode<State::ExprData>::toString() const
   }
   else if (m_children.size() == 1) // unop
   {
-    if (this->is<InvisibleRootNodeTag>())
+    if (this->is<InvisibleRootNode>())
     {
       s = m_children.at(0).toString();
     }

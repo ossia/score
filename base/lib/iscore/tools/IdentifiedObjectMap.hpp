@@ -12,6 +12,9 @@
 
 namespace bmi = boost::multi_index;
 
+/**
+ * @brief A map to access child objects through their id.
+ */
 template <class Element, class Model = Element, class Enable = void>
 class IdContainer
 {
@@ -95,8 +98,15 @@ protected:
 // We have to write two implementations since const_mem_fun does not handle
 // inheritance.
 
-// This map is for classes which directly inherit from
-// IdentifiedObject<T> and don't have an id() method by themselves.
+/** This map is for classes which inherit from
+ * IdentifiedObject<T> and don't have an id() method by themselves, e.g. all the model objects.
+ *
+ * Additionnally, items are ordered; iteration occurs on the ordered iterators.
+ *
+ * In the implementation :
+ * * `get<0>()` gets the hashed (like std::unordered_map) iterator.
+ * * `get<1>()` gets the ordered (like std::vector) iterator.
+ */
 template <typename Element, typename Model>
 class
     IdContainer<Element, Model, std::enable_if_t<std::is_base_of<IdentifiedObject<Model>, Element>::value>>
@@ -226,8 +236,9 @@ public:
   }
 };
 
-// This map is for classes which directly have an id() method
-// like a Presenter whose id() would return its model's.
+/** This specialization is for classes which directly have an id() method
+ * like a Presenter whose id() would return its model's.
+ */
 template <typename Element, typename Model>
 class
     IdContainer<Element, Model, std::enable_if_t<!std::is_base_of<IdentifiedObject<Model>, Element>::value>>

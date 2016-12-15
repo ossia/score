@@ -2,16 +2,84 @@
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 #define EMPTY_MACRO
 
+/**
+ * \class Metadata
+ * \brief Static metadata implementation
+ *
+ * This class is used to provide various kind of
+ * metadata on the classes in the software.
+ * It is akin to a compile-time `map<key, value>`.
+ *
+ * The usage looks like :
+ * \code
+ * QString name = Metadata<PrettyName_k, MyType>::get();
+ * \endcode
+ *
+ * The metadata has to be registered, either by hand :
+ * \code
+ * template<>
+ * struct Metadata<PrettyName_k, MyType>
+ * {
+ *   static auto get() { return "some name"; }
+ * };
+ * \endcode
+ *
+ * Or by using one of the various macros provided. Custom types
+ * are encouraged to provide macros to easily aggregate all the metadata required
+ * for them.
+ *
+ * \note Since the mechanism works by template specialization,
+ * it is necessary to put the macros or implementation outside of any namespace.
+ */
 template <typename Metadata_T, typename Object>
 struct Metadata;
 
+/**
+ * \class ObjectKey_k
+ * \brief Metadata to get the key part of ObjectIdentifier.
+ */
 class ObjectKey_k;
+
+/**
+ * \class PrettyName_k
+ * \brief Metadata to get the name that will be shown in the user interface.
+ */
 class PrettyName_k;
+
+/**
+ * \class PrettyName_k
+ * \brief Metadata to get the name that will be shown in the undo-redo panel.
+ */
 class UndoName_k;
+
+/**
+ * \class Description_k
+ * \brief Metadata to get the description that will be shown in the undo-redo panel.
+ */
 class Description_k;
+
+/**
+ * \class Description_k
+ * \brief Metadata to identify a type for factories.
+ */
 class ConcreteKey_k;
+
+/**
+ * \class Json_k
+ * \brief Metadata to give the JSON key that matches a given type.
+ *
+ * It is used by the \ref VariantSerialization mechanism.
+ */
 class Json_k;
 
+/**
+ * \macro AUTO_METADATA
+ * \brief Easily generate a generic metadata type.
+ * \param Export The export macro (e.g. ISCORE_LIB_BASE_EXPORT) if the metadata is to be accessed across plug-ins.
+ * \param Model The type on which the metadata applies.
+ * \param Key The metadata key.
+ * \param Text The metadata value.
+ */
 #define AUTO_METADATA(Export, Model, Key, Text) \
   template <>                                   \
   struct Export Metadata<Key, Model>            \

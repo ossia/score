@@ -19,7 +19,7 @@ namespace iscore
  * element, since this is necessary in the case of QAbstractItemModel.
  *
  * For instance, VariantBasedNode<int, QString> will have three possible data
- * types.
+ * types: InvisibleRootNode, int, QString.
  */
 template <typename... Args>
 class VariantBasedNode
@@ -29,7 +29,7 @@ public:
   VariantBasedNode(VariantBasedNode&& t) noexcept = default;
   VariantBasedNode& operator=(const VariantBasedNode& t) = default;
 
-  VariantBasedNode() : m_data{InvisibleRootNodeTag{}}
+  VariantBasedNode() : m_data{InvisibleRootNode{}}
   {
   }
 
@@ -90,6 +90,6 @@ public:
   }
 
 protected:
-  eggs::variant<InvisibleRootNodeTag, Args...> m_data;
+  eggs::variant<InvisibleRootNode, Args...> m_data;
 };
 }

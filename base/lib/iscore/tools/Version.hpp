@@ -3,6 +3,11 @@
 
 namespace iscore
 {
+/**
+ * @brief Represents the version of a plug-in.
+ *
+ * Used for save file updating.
+ */
 class Version
 {
 public:

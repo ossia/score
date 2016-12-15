@@ -39,6 +39,8 @@ class IdentifiedObject;
  *
  * The compiler will rightfully prevent this incorrect code from working.
  *
+ * The class has a cache to allow for fast access to the object it is identifying.
+ *
  * @see Id
  * @see IdentifiedObject
  * @see IdentifiedObjectMap
