@@ -23,14 +23,14 @@ Event::Event(
     auto expr = v.target<std::string>();
     if(expr)
     {
-      auto expr_p = State::parseExpression(*expr);
+      auto expr_p = ::State::parseExpression(*expr);
       if(expr_p)
         event.setCondition(*std::move(expr_p));
     }
   });
 
   QObject::connect(&event, &Scenario::EventModel::conditionChanged, this,
-      [=] (const State::Expression& cond) {
+      [=] (const ::State::Expression& cond) {
         // TODO try to simplify the other get / set properties like this
         ossia::value newVal = cond.toString().toStdString();
         try
