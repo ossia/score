@@ -604,7 +604,7 @@ expression(const State::Expression& e, const Device::DeviceList& list)
       return ossia::expressions::make_expression_not(
           expression(expr.childAt(0), devlist));
     }
-    return_type operator()(const InvisibleRootNodeTag) const
+    return_type operator()(const InvisibleRootNode) const
     {
       if (expr.childCount() == 0)
       {

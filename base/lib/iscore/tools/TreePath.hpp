@@ -15,11 +15,9 @@ enum class InsertMode
   AsChild
 };
 
-// Sadly we can't have a non-const interface
-// because of QList<Node*> in Node::children...
-template <typename T>
 /**
- * @brief The TreePath class
+ * @class TreePath
+ * @brief Path in a tree of QAbstractItemModel objects
  *
  * Represents a path in a tree made with TreeNode.
  * This allows sending path in commands and over the network.
@@ -27,6 +25,10 @@ template <typename T>
  * TODO : it should be feasible to add the caching of a QModelIndex or
  * something like this here.
  */
+
+// Sadly we can't have a non-const interface
+// because of QList<Node*> in Node::children...
+template <typename T>
 class TreePath : public QList<int>
 {
 private:

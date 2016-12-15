@@ -282,7 +282,7 @@ bool DeviceExplorerModel::tryDeviceInstantiation(
 bool DeviceExplorerModel::checkAddressInstantiatable(
     Device::Node& parent, const Device::AddressSettings& addr)
 {
-  ISCORE_ASSERT(!parent.is<InvisibleRootNodeTag>());
+  ISCORE_ASSERT(!parent.is<InvisibleRootNode>());
 
   if (addr.name.isEmpty())
     return false;
@@ -298,7 +298,7 @@ bool DeviceExplorerModel::checkAddressEditable(
     const Device::AddressSettings& before,
     const Device::AddressSettings& after)
 {
-  ISCORE_ASSERT(!parent.is<InvisibleRootNodeTag>());
+  ISCORE_ASSERT(!parent.is<InvisibleRootNode>());
 
   if (after.name.isEmpty())
     return false;

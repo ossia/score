@@ -160,7 +160,7 @@ void ExpressionEditorWidget::exploreExpression(State::Expression expr)
       widg.exploreExpression(e.childAt(0));
     }
 
-    return_type operator()(const InvisibleRootNodeTag) const
+    return_type operator()(const InvisibleRootNode) const
     {
       if (e.childCount() > 0)
         widg.exploreExpression(e.childAt(0));

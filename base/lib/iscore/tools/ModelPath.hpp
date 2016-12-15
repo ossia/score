@@ -4,6 +4,9 @@
 #include <iscore/tools/IdentifiedObjectAbstract.hpp>
 #include <iscore/tools/Metadata.hpp>
 
+/**
+ * @brief Used to know if two types are in an inheritance relationship.
+ */
 template <typename T, typename U>
 struct in_relationship
 {
@@ -31,6 +34,19 @@ Path<T> path(const IdentifiedObject<T>& obj);
 
 /**
  * @brief The Path class is a typesafe wrapper around ObjectPath.
+ *
+ * The wrapper is compatible through inheritance. Given the type tree :
+ *
+ * \code
+ *      A
+ *    /  \
+ *   B    C
+ *   |
+ *  B1
+ * \endcode
+ *
+ * A `Path<B1>` will be converted automatically in `Path<B>` or `Path<A>` but not `Path<C>`.
+ *
  */
 template <typename Object>
 class Path
@@ -55,8 +71,11 @@ class Path
   friend class ObjectPath;
 
 public:
-  // Use this if it is not possible to get a path
-  // (for instance because the object does not exist yet)
+  /**
+   * @brief Use this if it is not possible to get a path
+   *
+   * (for instance because the object does not exist yet)
+   */
   struct UnsafeDynamicCreation
   {
     UnsafeDynamicCreation() = default;
@@ -72,6 +91,7 @@ public:
   {
   }
 
+  //! Add a new ObjectIdentifier at the end of the path and return a new path
   template <typename U>
   auto extend(const QString& name, const Id<U>& id) const &
   {
@@ -80,6 +100,7 @@ public:
     return p;
   }
 
+  //! Add a new ObjectIdentifier at the end of the path and return a new path. The previous path is now empty.
   template <typename U>
   auto extend(const QString& name, const Id<U>& id) &&
   {
@@ -88,6 +109,7 @@ public:
     return p;
   }
 
+  //! Add a new ObjectIdentifier at the end of the path and return a new path
   template <typename U>
   auto extend(const Id<U>& id) const &
   {
@@ -96,6 +118,7 @@ public:
     return p;
   }
 
+  //! Add a new ObjectIdentifier at the end of the path and return a new path. The previous path is now empty.
   template <typename U>
   auto extend(const Id<U>& id) &&
   {
@@ -104,6 +127,7 @@ public:
     return p;
   }
 
+  //! Return a new path without the last element of this one.
   template <typename U>
   auto splitLast() const &
   {
@@ -114,6 +138,7 @@ public:
     return std::make_pair(Path<U>{std::move(vec)}, std::move(last));
   }
 
+  //! Return a new path without the last element of this one. The previous path is now empty.
   template <typename U>
   auto splitLast() &&
   {

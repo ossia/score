@@ -21,7 +21,7 @@ public:
 
   QModelIndex modelIndexFromNode(node_type& n, int column) const
   {
-    if (n.is<InvisibleRootNodeTag>())
+    if (n.is<InvisibleRootNode>())
     {
       return QModelIndex();
     }
@@ -53,7 +53,7 @@ public:
 
   auto removeNode(node_type::const_iterator node)
   {
-    ISCORE_ASSERT(!node->is<InvisibleRootNodeTag>());
+    ISCORE_ASSERT(!node->is<InvisibleRootNode>());
 
     if (node->is<Device::AddressSettings>())
     {

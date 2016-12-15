@@ -11,10 +11,10 @@ public:
   virtual ~IdentifiedObjectAbstract();
 
 signals:
-  // To be called by subclasses
+  //! To be called by subclasses
   void identified_object_destroying(IdentifiedObjectAbstract*);
 
-  // Will be called in the IdentifiedObjectAbstract destructor.
+  //! Will be called in the IdentifiedObjectAbstract destructor.
   void identified_object_destroyed(IdentifiedObjectAbstract*);
 
 protected:

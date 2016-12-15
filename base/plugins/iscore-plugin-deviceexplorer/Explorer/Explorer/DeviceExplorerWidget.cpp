@@ -756,7 +756,7 @@ void DeviceExplorerWidget::removeNodes()
   for (auto index : indexes)
   {
     auto& n = model()->nodeFromModelIndex(sourceIndex(index));
-    if (!n.is<InvisibleRootNodeTag>())
+    if (!n.is<InvisibleRootNode>())
       nodes.append(&n);
   }
 
