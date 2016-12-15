@@ -4,6 +4,8 @@
 
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/actions/ActionManager.hpp>
+#include <iscore/actions/MenuManager.hpp>
+#include <iscore/actions/ToolbarManager.hpp>
 
 #include <QMenuBar>
 #include <iscore_lib_base_export.h>

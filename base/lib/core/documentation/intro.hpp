@@ -41,6 +41,12 @@
  *
  * This namespace contains only non-domain specific classes
  * and utilities : serialization, model-view, documents, etc.
+ *
+ * It is split in two folders :
+ *
+ * * `core` is the internal mechanic to set-up the software : the actual widget classes,
+ *   the plug-in loading code, etc.
+ * * `iscore` is the "public" part of the i-score API : this code can be used by plug-ins.
  */
 
 /*! \page CodingStyle Coding Style
@@ -95,6 +101,7 @@
 
 /*! \page Factories
  *
+ * Triad : abstract interface, interface list, template interface wrapper.
  */
 
 /*! \page Contexts
@@ -115,6 +122,7 @@
 
 /*! \page Metadata
  *
+ * Static, dynamic, Qt...
  */
 
 /*! \page Actions
@@ -127,6 +135,9 @@
 
  /*! \page PluginSystem Plug-in system
  *
+ * * qt plug-ins
+ * * _qtplugin classes
+ * * actual plug-in interfaces
  */
 
 /*! \page ModelViewPresenter Model-View-Presenter separation

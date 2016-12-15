@@ -3,8 +3,8 @@
 #include <iscore/command/Command.hpp>
 
 #include <iscore/model/ColorReference.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {

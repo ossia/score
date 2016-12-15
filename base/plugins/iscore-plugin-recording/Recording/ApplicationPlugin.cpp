@@ -2,7 +2,7 @@
 
 #include <QAction>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 #include <qnamespace.h>
 
 #include <QString>

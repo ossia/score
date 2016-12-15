@@ -3,13 +3,12 @@
 #include <QList>
 #include <QPoint>
 
-#include <iscore/actions/Action.hpp>
-#include <iscore/menu/MenuInterface.hpp>
 #include <iscore/selection/Selection.hpp>
 
 namespace iscore
 {
 struct GUIApplicationContext;
+struct GUIElements;
 }
 class QAction;
 class QMenu;

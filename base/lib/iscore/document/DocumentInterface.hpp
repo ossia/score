@@ -1,17 +1,15 @@
 #pragma once
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/model/path/ObjectPath.hpp>
 #include <type_traits>
 #include <vector>
 
 class QObject;
-//#include <iscore/tools/ModelPath.hpp>
-
 namespace iscore
 {
 class CommandStack;
 class Document;
-class DocumentDelegateModelInterface;
-class DocumentDelegatePresenterInterface;
+class DocumentDelegateModel;
+class DocumentDelegatePresenter;
 struct DocumentContext;
 
 namespace IDocument
@@ -42,7 +40,7 @@ ISCORE_LIB_BASE_EXPORT ObjectPath unsafe_path(const QObject& obj);
 //// Various getters ////
 
 // Presenter of a document plugin.
-ISCORE_LIB_BASE_EXPORT DocumentDelegatePresenterInterface&
+ISCORE_LIB_BASE_EXPORT DocumentDelegatePresenter&
 presenterDelegate_generic(const Document& d);
 
 template <typename T>
@@ -53,7 +51,7 @@ T& presenterDelegate(const Document& d)
 
 template <
     typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegatePresenterInterface, T>::
+    std::enable_if_t<std::is_base_of<DocumentDelegatePresenter, T>::
                          value>* = nullptr>
 T& get(const Document& d)
 {
@@ -68,7 +66,7 @@ T* try_presenterDelegate(const Document& d)
 
 template <
     typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegatePresenterInterface, T>::
+    std::enable_if_t<std::is_base_of<DocumentDelegatePresenter, T>::
                          value>* = nullptr>
 T* try_get(const Document& d)
 {
@@ -77,7 +75,7 @@ T* try_get(const Document& d)
 
 // Model of a document plugin
 // First if we are sure
-ISCORE_LIB_BASE_EXPORT DocumentDelegateModelInterface&
+ISCORE_LIB_BASE_EXPORT DocumentDelegateModel&
 modelDelegate_generic(const Document& d);
 
 template <typename T>
@@ -88,7 +86,7 @@ T& modelDelegate(const Document& d)
 
 template <
     typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegateModelInterface, T>::
+    std::enable_if_t<std::is_base_of<DocumentDelegateModel, T>::
                          value>* = nullptr>
 T& get(const Document& d)
 {
@@ -105,7 +103,7 @@ T* try_modelDelegate(const Document& d)
 
 template <
     typename T,
-    std::enable_if_t<std::is_base_of<DocumentDelegateModelInterface, T>::
+    std::enable_if_t<std::is_base_of<DocumentDelegateModel, T>::
                          value>* = nullptr>
 T* try_get(const Document& d)
 {

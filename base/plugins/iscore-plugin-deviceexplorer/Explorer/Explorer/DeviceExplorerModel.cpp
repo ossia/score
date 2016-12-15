@@ -47,8 +47,8 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/MimeVisitor.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>

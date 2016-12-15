@@ -4,7 +4,7 @@
 #include <QVector>
 #include <algorithm>
 #include <iscore/selection/Selection.hpp>
-#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/model/IdentifiedObjectAbstract.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <qnamespace.h>
 

@@ -42,10 +42,10 @@
 
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/selection/Selectable.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/IdentifiedObjectAbstract.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObjectAbstract.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
 namespace Curve

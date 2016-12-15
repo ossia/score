@@ -8,7 +8,7 @@
 #include <QString>
 #include <QtGlobal>
 #include <algorithm>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iterator>
 #include <list>
@@ -34,10 +34,10 @@
 #include <State/ValueConversion.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 #include <ossia/editor/value/value_conversion.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>

@@ -16,9 +16,9 @@
 #include <iscore/model/ModelMetadata.hpp>
 
 #include <iscore/serialization/JSONValueVisitor.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 namespace Scenario
 {

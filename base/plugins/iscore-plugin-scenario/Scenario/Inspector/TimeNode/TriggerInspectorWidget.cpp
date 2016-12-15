@@ -12,7 +12,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 namespace Scenario
 {

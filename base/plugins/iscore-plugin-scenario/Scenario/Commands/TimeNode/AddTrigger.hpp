@@ -2,7 +2,7 @@
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/Command.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 #include <Scenario/Commands/Constraint/SetRigidity.hpp>
 

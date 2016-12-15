@@ -4,7 +4,7 @@
 #include <iscore_lib_process_export.h>
 
 #include <Process/ProcessContext.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 class QMenu;
 class QPoint;
 class QPointF;

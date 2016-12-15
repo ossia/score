@@ -1,9 +1,9 @@
 #include "LayerModel.hpp"
 #include <Process/LayerModelPanelProxy.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 namespace Process
 {
 LayerModel::~LayerModel()

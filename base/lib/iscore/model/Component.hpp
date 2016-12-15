@@ -1,7 +1,7 @@
 #pragma once
 #include <ossia/detail/algorithms.hpp>
 #include <iscore/plugins/customfactory/UuidKey.hpp>
-#include <iscore/tools/EntityMap.hpp>
+#include <iscore/model/EntityMap.hpp>
 namespace iscore
 {
 #define ABSTRACT_COMPONENT_METADATA(Type, Uuid)                             \

@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <vector>
 
 #include "CreateConstraint.hpp"
@@ -21,11 +21,11 @@
 #include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/ObjectPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/path/ObjectPath.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

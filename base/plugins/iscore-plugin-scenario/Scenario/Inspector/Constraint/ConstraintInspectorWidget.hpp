@@ -11,7 +11,7 @@
 #include <iscore/tools/std/HashMap.hpp>
 #include <vector>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 namespace Inspector
 {

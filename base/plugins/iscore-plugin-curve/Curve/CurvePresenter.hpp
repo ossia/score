@@ -9,7 +9,7 @@
 #include <QRect>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
 #include <iscore/document/DocumentContext.hpp>

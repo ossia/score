@@ -6,8 +6,8 @@
 #include <QList>
 #include <QObject>
 #include <QStringBuilder>
-#include <iscore/tools/ObjectPath.hpp>
-#include <iscore/tools/RelativePath.hpp>
+#include <iscore/model/path/ObjectPath.hpp>
+#include <iscore/model/path/RelativePath.hpp>
 #include <iterator>
 #include <qnamespace.h>
 #include <stdexcept>
@@ -15,14 +15,14 @@
 #include <typeinfo>
 
 #include <boost/range.hpp>
-#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/model/IdentifiedObjectAbstract.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/application/ApplicationContext.hpp>
-#include <iscore/tools/ObjectIdentifier.hpp>
+#include <iscore/model/path/ObjectIdentifier.hpp>
 
 ObjectPath ObjectPath::pathBetweenObjects(
     const QObject* const parent_obj, const QObject* target_object)

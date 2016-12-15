@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/tools/EntityMap.hpp>
+#include <iscore/model/EntityMap.hpp>
 #include <vector>
 
 template <typename T>

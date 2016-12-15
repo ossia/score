@@ -5,7 +5,7 @@
 namespace iscore
 {
 class DocumentDelegateFactory;
-class DocumentDelegatePresenterInterface;
+class DocumentDelegatePresenter;
 class DocumentModel;
 class DocumentView;
 
@@ -22,13 +22,13 @@ public:
       DocumentView&,
       QObject* parent);
 
-  DocumentDelegatePresenterInterface* presenterDelegate() const
+  DocumentDelegatePresenter* presenterDelegate() const
   {
     return m_presenter;
   }
 
   DocumentView& m_view;
   const DocumentModel& m_model;
-  DocumentDelegatePresenterInterface* m_presenter{};
+  DocumentDelegatePresenter* m_presenter{};
 };
 }

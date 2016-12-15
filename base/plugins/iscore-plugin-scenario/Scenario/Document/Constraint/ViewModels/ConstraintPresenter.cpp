@@ -16,8 +16,8 @@
 #include <Scenario/Document/ModelConsistency.hpp>
 #include <iscore/selection/Selectable.hpp>
 
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
 class QObject;

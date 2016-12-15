@@ -19,7 +19,7 @@
 #include <Scenario/Palette/ScenarioPaletteBaseEvents.hpp>
 #include <Scenario/Palette/Transitions/SlotTransitions.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

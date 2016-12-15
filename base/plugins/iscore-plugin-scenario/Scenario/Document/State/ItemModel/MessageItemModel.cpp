@@ -19,9 +19,9 @@
 #include <State/ValueConversion.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/TreeNode.hpp>
-#include <iscore/tools/TreeNodeItemModel.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
+#include <iscore/model/tree/TreeNodeItemModel.hpp>
 
 namespace iscore
 {

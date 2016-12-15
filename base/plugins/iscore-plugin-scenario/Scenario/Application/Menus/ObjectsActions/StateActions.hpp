@@ -1,12 +1,15 @@
 #pragma once
 
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 
 #include <Process/Layer/LayerContextMenu.hpp>
 #include <QAction>
-#include <iscore/actions/Action.hpp>
 #include <iscore_plugin_scenario_export.h>
+namespace iscore
+{
+struct GUIElements;
+}
 namespace Scenario
 {
 class ScenarioApplicationPlugin;

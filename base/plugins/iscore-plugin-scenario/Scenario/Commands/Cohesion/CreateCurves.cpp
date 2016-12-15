@@ -18,7 +18,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/selection/SelectionStack.hpp>
-#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/model/IdentifiedObjectAbstract.hpp>
 
 #include <ossia/editor/value/value_conversion.hpp>
 #include <ossia/network/domain/domain.hpp>

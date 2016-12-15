@@ -133,29 +133,5 @@ void ActionManager::resetCustomActions(MaybeDocument doc)
   }
 }
 
-void MenuManager::insert(Menu val)
-{
-  m_container.insert(std::make_pair(val.key(), std::move(val)));
-}
 
-void MenuManager::insert(std::vector<Menu> vals)
-{
-  for (auto& val : vals)
-  {
-    insert(std::move(val));
-  }
-}
-
-void ToolbarManager::insert(Toolbar val)
-{
-  m_container.insert(std::make_pair(val.key(), std::move(val)));
-}
-
-void ToolbarManager::insert(std::vector<Toolbar> vals)
-{
-  for (auto& val : vals)
-  {
-    insert(std::move(val));
-  }
-}
 }

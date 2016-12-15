@@ -4,7 +4,7 @@
 #include <QList>
 #include <QPair>
 #include <iscore/command/Command.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 #include <State/Value.hpp>
 

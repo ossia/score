@@ -10,7 +10,6 @@ class Plugin_QtInterface;
  *
  * Metadata for i-score addons
  */
-
 struct ISCORE_LIB_BASE_EXPORT Addon
 {
   iscore::Plugin_QtInterface* plugin{};

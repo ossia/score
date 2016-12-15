@@ -16,7 +16,7 @@
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <cstddef>
 #include <iscore/tools/Clamp.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <iterator>
 #include <limits>
 #include <vector>
@@ -38,9 +38,9 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/path/ObjectPath.hpp>
 // Needed for copy since we want to generate IDs that are neither
 // in the scenario in which we are copying into, nor in the elements
 // that we copied because it may cause conflicts.

@@ -19,7 +19,7 @@
 #include <iscore/widgets/GraphicsProxyObject.hpp>
 
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

@@ -6,10 +6,10 @@
 #include <QString>
 #include <algorithm>
 #include <cstddef>
-#include <iscore/tools/VariantBasedNode.hpp>
+#include <iscore/model/tree/VariantBasedNode.hpp>
 #include <vector>
 
-#include <iscore/tools/InvisibleRootNode.hpp>
+#include <iscore/model/tree/InvisibleRootNode.hpp>
 
 class DataStream;
 class JSONObject;

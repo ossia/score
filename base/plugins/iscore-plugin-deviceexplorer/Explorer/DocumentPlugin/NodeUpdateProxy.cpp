@@ -15,7 +15,7 @@
 #include <Device/Protocol/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <State/Address.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 namespace Explorer
 {

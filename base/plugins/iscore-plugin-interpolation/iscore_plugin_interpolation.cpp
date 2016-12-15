@@ -19,7 +19,7 @@ iscore_plugin_interpolation::factories(
     const iscore::ApplicationContext& ctx,
     const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, Interpolation::InterpolationFactory>, FW<Process::LayerFactory, Interpolation::InterpolationLayerFactory>>>(
+  return instantiate_factories<iscore::ApplicationContext, FW<Process::ProcessModelFactory, Interpolation::InterpolationFactory>, FW<Process::LayerFactory, Interpolation::InterpolationLayerFactory>>(
       ctx, key);
 }
 

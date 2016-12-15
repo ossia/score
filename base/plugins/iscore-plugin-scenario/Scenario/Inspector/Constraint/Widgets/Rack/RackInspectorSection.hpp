@@ -1,7 +1,7 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <QString>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <nano_signal_slot.hpp>
 #include <iscore/tools/std/HashMap.hpp>
 

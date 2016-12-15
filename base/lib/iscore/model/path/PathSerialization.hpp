@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 template <typename Object>
 QDataStream& operator<<(QDataStream& stream, const Path<Object>& obj)

@@ -12,7 +12,7 @@
 
 #include <ossia/detail/algorithms.hpp>
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 
 template <
     typename Component_T,

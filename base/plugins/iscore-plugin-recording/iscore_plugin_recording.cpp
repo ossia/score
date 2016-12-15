@@ -33,7 +33,7 @@ iscore_plugin_recording::factories(
     const iscore::ApplicationContext& ctx,
     const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, RecordedMessages::ProcessFactory>, FW<Process::LayerFactory, RecordedMessages::LayerFactory>, FW<Process::InspectorWidgetDelegateFactory, RecordedMessages::InspectorFactory>, FW<Engine::Execution::ProcessComponentFactory, RecordedMessages::Executor::ComponentFactory>>>(
+  return instantiate_factories<iscore::ApplicationContext, FW<Process::ProcessModelFactory, RecordedMessages::ProcessFactory>, FW<Process::LayerFactory, RecordedMessages::LayerFactory>, FW<Process::InspectorWidgetDelegateFactory, RecordedMessages::InspectorFactory>, FW<Engine::Execution::ProcessComponentFactory, RecordedMessages::Executor::ComponentFactory>>(
       ctx, key);
 }
 

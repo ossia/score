@@ -11,7 +11,7 @@
 #include "CurveModel.hpp"
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 
 template <typename T>
 class Reader;

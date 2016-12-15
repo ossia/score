@@ -6,7 +6,7 @@ namespace Process
 {
 class ProcessModel;
 }
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 // An enum that says if a process is before or after the state.
 enum class ProcessPosition

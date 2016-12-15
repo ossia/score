@@ -1,9 +1,9 @@
 #pragma once
 
 #include <ossia/network/base/name_validation.hpp>
-#include <iscore/component/Component.hpp>
+#include <iscore/model/Component.hpp>
 #include <iscore/model/ModelMetadata.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 template <typename T>
 class EntityMapInserter;

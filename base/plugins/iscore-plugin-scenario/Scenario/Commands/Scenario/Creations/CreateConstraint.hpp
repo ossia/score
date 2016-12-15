@@ -3,8 +3,8 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <iscore/command/Command.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <iscore_plugin_scenario_export.h>

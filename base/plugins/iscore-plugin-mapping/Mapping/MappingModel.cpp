@@ -10,7 +10,7 @@
 #include <Mapping/MappingProcessMetadata.hpp>
 #include <State/Address.hpp>
 #include <iscore/model/ModelMetadata.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Process
 {

@@ -12,8 +12,9 @@
 
 #include <core/document/Document.hpp>
 #include <iscore/actions/ActionManager.hpp>
+#include <iscore/actions/MenuManager.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 #include <QAction>
 #include <QMenu>

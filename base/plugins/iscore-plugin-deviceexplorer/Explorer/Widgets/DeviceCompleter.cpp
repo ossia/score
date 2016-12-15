@@ -7,7 +7,7 @@
 
 #include "DeviceCompleter.hpp"
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 class QObject;
 

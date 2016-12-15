@@ -2,7 +2,7 @@
 #include <QJsonValue>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/VariantSerialization.hpp>
+#include <iscore/serialization/VariantSerialization.hpp>
 
 #include "Expression.hpp"
 #include "Relation.hpp"

@@ -7,8 +7,8 @@
 #include "MoveConstraint.hpp"
 #include <Process/TimeValue.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {

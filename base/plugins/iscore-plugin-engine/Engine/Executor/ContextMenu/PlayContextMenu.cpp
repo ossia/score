@@ -38,8 +38,8 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioRecordInitData.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <iscore/menu/MenuInterface.hpp>
-#include <iscore/tools/EntityMap.hpp>
+#include <iscore/actions/Menu.hpp>
+#include <iscore/model/EntityMap.hpp>
 
 namespace Engine
 {

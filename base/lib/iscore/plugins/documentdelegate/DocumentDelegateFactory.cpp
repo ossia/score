@@ -1,2 +1,2 @@
-#include "DocumentDelegateFactoryInterface.hpp"
+#include "DocumentDelegateFactory.hpp"
 iscore::DocumentDelegateFactory::~DocumentDelegateFactory() = default;

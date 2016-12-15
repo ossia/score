@@ -1,7 +1,7 @@
 #pragma once
 #include "CurvePoint.hpp"
 #include <QState>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 class QGraphicsItem;
 
 namespace Curve

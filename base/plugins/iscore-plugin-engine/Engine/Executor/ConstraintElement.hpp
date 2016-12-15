@@ -3,7 +3,7 @@
 #include <ossia/editor/state/state_element.hpp>
 #include <Process/TimeValue.hpp>
 #include <QObject>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <memory>
 
 #include <Engine/Executor/ProcessElement.hpp>

@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <QVector2D>

@@ -4,7 +4,7 @@
 #include <QVariant>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_curve_export.h>
 
 class QObject;

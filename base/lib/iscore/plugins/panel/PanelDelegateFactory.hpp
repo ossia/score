@@ -5,6 +5,9 @@
 
 namespace iscore
 {
+/**
+ * @brief Interface that provides new panels.
+ */
 class ISCORE_LIB_BASE_EXPORT PanelDelegateFactory
     : public iscore::Interface<PanelDelegateFactory>
 {

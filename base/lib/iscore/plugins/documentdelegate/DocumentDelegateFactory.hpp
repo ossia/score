@@ -6,9 +6,9 @@ struct VisitorVariant;
 class QObject;
 namespace iscore
 {
-class DocumentDelegateModelInterface;
-class DocumentDelegatePresenterInterface;
-class DocumentDelegateViewInterface;
+class DocumentDelegateModel;
+class DocumentDelegatePresenter;
+class DocumentDelegateView;
 class DocumentModel;
 class DocumentPresenter;
 class DocumentView;
@@ -28,20 +28,20 @@ class ISCORE_LIB_BASE_EXPORT DocumentDelegateFactory
 public:
   virtual ~DocumentDelegateFactory();
 
-  virtual DocumentDelegateViewInterface*
+  virtual DocumentDelegateView*
   makeView(const iscore::ApplicationContext& ctx, QObject* parent)
       = 0;
 
-  virtual DocumentDelegatePresenterInterface* makePresenter(
+  virtual DocumentDelegatePresenter* makePresenter(
       DocumentPresenter* parent_presenter,
-      const DocumentDelegateModelInterface& model,
-      DocumentDelegateViewInterface& view)
+      const DocumentDelegateModel& model,
+      DocumentDelegateView& view)
       = 0;
 
-  virtual DocumentDelegateModelInterface*
+  virtual DocumentDelegateModel*
   make(const iscore::DocumentContext& ctx, DocumentModel* parent)
       = 0;
-  virtual DocumentDelegateModelInterface* load(
+  virtual DocumentDelegateModel* load(
       const VisitorVariant&,
       const iscore::DocumentContext& ctx,
       DocumentModel* parent)
@@ -56,6 +56,6 @@ public:
   {
   }
 
-  using object_type = DocumentDelegateModelInterface;
+  using object_type = DocumentDelegateModel;
 };
 }

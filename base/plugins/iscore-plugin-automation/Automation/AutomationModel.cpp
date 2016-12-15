@@ -15,9 +15,9 @@
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <State/Address.hpp>
 #include <iscore/model/ModelMetadata.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 #include <iscore/tools/MapCopy.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Process
 {

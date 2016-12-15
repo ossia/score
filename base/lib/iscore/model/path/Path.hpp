@@ -1,7 +1,6 @@
 #pragma once
 #include <QDataStream>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/IdentifiedObjectAbstract.hpp>
 #include <iscore/tools/Metadata.hpp>
 
 /**

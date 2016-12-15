@@ -5,7 +5,7 @@
 #include <QString>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

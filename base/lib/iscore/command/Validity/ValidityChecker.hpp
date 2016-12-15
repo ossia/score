@@ -6,6 +6,15 @@ namespace iscore
 {
 class Document;
 struct DocumentContext;
+
+/**
+ * @brief Implement validation checks on the document.
+ *
+ * This is useful for debugging, to check that an action did not break some core invariant of the software.
+ * Such checks are called in CommandStack::updateStack.
+ *
+ * @todo Do these checks when loading something.
+ */
 class ISCORE_LIB_BASE_EXPORT ValidityChecker
     : public iscore::Interface<ValidityChecker>
 {
@@ -17,11 +26,16 @@ public:
 };
 
 class ValidityCheckerList;
+
+/**
+ * @brief Checks that a document is valid according to a list of checks to run.
+ */
 class ISCORE_LIB_BASE_EXPORT DocumentValidator
 {
 public:
   DocumentValidator(const ValidityCheckerList& l, const iscore::Document& doc);
 
+  //! This function will run all the registered checks on the document.
   bool operator()() const;
 
 private:

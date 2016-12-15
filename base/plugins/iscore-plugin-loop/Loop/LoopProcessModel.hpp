@@ -9,7 +9,7 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_loop_export.h>
 
 class DataStream;

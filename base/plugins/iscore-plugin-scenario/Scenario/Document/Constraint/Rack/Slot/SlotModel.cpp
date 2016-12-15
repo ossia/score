@@ -12,7 +12,7 @@
 
 #include "SlotModel.hpp"
 #include <iscore/model/ModelMetadata.hpp>
-#include <iscore/tools/EntityMap.hpp>
+#include <iscore/model/EntityMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>

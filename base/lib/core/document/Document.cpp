@@ -16,7 +16,7 @@
 
 class QWidget;
 class Selection;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace iscore
 {

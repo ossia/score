@@ -3,6 +3,12 @@
 #include <cinttypes>
 #include <iscore_lib_base_export.h>
 
+/**
+ * @brief Base class for IdentifiedObject.
+ *
+ * Is only necessary because one cannot have signals in template classes, but
+ * we cannot switch to woboq/verdigris yet due to MSVC2015...
+ */
 class ISCORE_LIB_BASE_EXPORT IdentifiedObjectAbstract : public QObject
 {
   Q_OBJECT
@@ -25,3 +31,4 @@ protected:
     QObject::setParent(parent);
   }
 };
+

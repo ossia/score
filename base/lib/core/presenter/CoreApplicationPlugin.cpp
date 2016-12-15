@@ -7,8 +7,8 @@
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>
 #include <core/view/View.hpp>
-#include <iscore/menu/MenuInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/actions/Menu.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 namespace iscore
 {
 

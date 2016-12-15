@@ -47,7 +47,7 @@
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
 #include <State/Relation.hpp>
-#include <iscore/tools/InvisibleRootNode.hpp>
+#include <iscore/model/tree/InvisibleRootNode.hpp>
 
 #include <boost/call_traits.hpp>
 class NodeNotFoundException : public std::runtime_error

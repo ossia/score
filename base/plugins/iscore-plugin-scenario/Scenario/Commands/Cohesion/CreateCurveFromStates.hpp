@@ -4,7 +4,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <State/Address.hpp>
 #include <iscore/command/Command.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <utility>
 #include <vector>
 

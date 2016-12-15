@@ -4,7 +4,7 @@
 #include <QByteArray>
 #include <QString>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_lib_process_export.h>
 
 class QGraphicsItem;

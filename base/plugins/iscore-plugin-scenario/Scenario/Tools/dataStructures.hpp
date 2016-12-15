@@ -10,8 +10,8 @@ needed
 #include <QMap>
 #include <QPair>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
 namespace Scenario

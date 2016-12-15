@@ -3,7 +3,7 @@
 #include "InspectorWidgetBase.hpp"
 #include "InspectorWidgetList.hpp"
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/model/IdentifiedObjectAbstract.hpp>
 
 class QWidget;
 

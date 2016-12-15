@@ -1,7 +1,7 @@
 #include "DeviceDocumentPlugin.hpp"
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <iscore/tools/VariantSerialization.hpp>
+#include <iscore/serialization/VariantSerialization.hpp>
 template <>
 void Visitor<Reader<DataStream>>::readFrom_impl(
     const Explorer::DeviceDocumentPlugin& dev)

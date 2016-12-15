@@ -5,12 +5,12 @@
 #include <QStringList>
 #include <QVector>
 #include <array>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <State/Address.hpp>
 #include <State/Value.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_lib_process_export.h>
 
 namespace Process

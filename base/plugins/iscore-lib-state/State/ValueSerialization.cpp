@@ -9,7 +9,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/StringConstants.hpp>
-#include <iscore/tools/VariantSerialization.hpp>
+#include <iscore/serialization/VariantSerialization.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include "Value.hpp"

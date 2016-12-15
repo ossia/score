@@ -19,8 +19,8 @@
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/command/AggregateCommand.hpp>
 #include <iscore/command/Command.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <QString>
@@ -35,9 +35,9 @@
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

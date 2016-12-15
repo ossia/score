@@ -36,7 +36,8 @@ iscore_plugin_automation::factories(
     const iscore::ApplicationContext& ctx,
     const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, Automation::AutomationFactory>, FW<Process::LayerFactory, Automation::AutomationLayerFactory>, FW<Inspector::InspectorWidgetFactory, Automation::StateInspectorFactory, Automation::PointInspectorFactory>, FW<Process::InspectorWidgetDelegateFactory, Automation::InspectorFactory>>>(
+  return instantiate_factories<iscore::ApplicationContext,
+      FW<Process::ProcessModelFactory, Automation::AutomationFactory>, FW<Process::LayerFactory, Automation::AutomationLayerFactory>, FW<Inspector::InspectorWidgetFactory, Automation::StateInspectorFactory, Automation::PointInspectorFactory>, FW<Process::InspectorWidgetDelegateFactory, Automation::InspectorFactory>>(
       ctx, key);
 }
 

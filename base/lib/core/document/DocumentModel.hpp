@@ -2,7 +2,7 @@
 #include <QByteArray>
 #include <QJsonObject>
 #include <iscore/selection/Selection.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 #include <QString>
 #include <QVariant>
@@ -11,12 +11,12 @@
 #include <vector>
 
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace iscore
 {
 class DocumentDelegateFactory;
-class DocumentDelegateModelInterface;
+class DocumentDelegateModel;
 class DocumentPlugin;
 struct ApplicationContext;
 
@@ -43,7 +43,7 @@ public:
       QObject* parent);
   ~DocumentModel();
 
-  DocumentDelegateModelInterface& modelDelegate() const
+  DocumentDelegateModel& modelDelegate() const
   {
     return *m_model;
   }
@@ -72,7 +72,7 @@ private:
       DocumentDelegateFactory& fact);
 
   std::vector<DocumentPlugin*> m_pluginModels;
-  DocumentDelegateModelInterface*
+  DocumentDelegateModel*
       m_model{}; // note : this *has* to be last due to init order
 };
 }

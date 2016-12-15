@@ -1,10 +1,10 @@
 #pragma once
 #include <iscore/selection/Selectable.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <Curve/Palette/CurvePoint.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_curve_export.h>
 
 class QObject;

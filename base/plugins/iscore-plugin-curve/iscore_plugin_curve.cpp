@@ -24,7 +24,7 @@ iscore_plugin_curve::factories(
     const iscore::ApplicationContext& ctx,
     const iscore::InterfaceKey& factoryName) const
 {
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<Curve::SegmentFactory, Curve::SegmentFactory_T<Curve::LinearSegment>, Curve::SegmentFactory_T<Curve::PowerSegment>, Curve::SegmentFactory_T<Curve::PointArraySegment>>, FW<iscore::SettingsDelegateFactory, Curve::Settings::Factory>>>(
+  return instantiate_factories<iscore::ApplicationContext, FW<Curve::SegmentFactory, Curve::SegmentFactory_T<Curve::LinearSegment>, Curve::SegmentFactory_T<Curve::PowerSegment>, Curve::SegmentFactory_T<Curve::PointArraySegment>>, FW<iscore::SettingsDelegateFactory, Curve::Settings::Factory>>(
       ctx, factoryName);
 }
 

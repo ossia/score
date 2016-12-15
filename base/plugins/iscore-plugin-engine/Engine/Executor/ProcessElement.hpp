@@ -1,8 +1,8 @@
 #pragma once
 #include <Process/Process.hpp>
 #include <QObject>
-#include <iscore/component/Component.hpp>
-#include <iscore/component/ComponentFactory.hpp>
+#include <iscore/model/Component.hpp>
+#include <iscore/model/ComponentFactory.hpp>
 #include <memory>
 
 #include <ossia/editor/scenario/time_process.hpp>

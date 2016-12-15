@@ -16,8 +16,8 @@
 #include <State/Message.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/selection/SelectionStack.hpp>
-#include <iscore/tools/IdentifiedObjectAbstract.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/IdentifiedObjectAbstract.hpp>
+#include <iscore/model/path/Path.hpp>
 
 namespace Scenario
 {

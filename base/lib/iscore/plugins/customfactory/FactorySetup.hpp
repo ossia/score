@@ -159,13 +159,13 @@ struct FactoryMatcher
  * { std::make_unique<ConcreteType1_1>(), std::make_unique<ConcreteType1_2>() }
  * \endcode
  */
-template <typename Context_T, typename Factories_T>
+template <typename Context_T, typename... Args>
 auto instantiate_factories(
     const Context_T& ctx, const iscore::InterfaceKey& key) noexcept
 {
   std::vector<std::unique_ptr<iscore::InterfaceBase>> vec;
 
-  for_each_type_if<Factories_T>(FactoryMatcher{ctx, key, vec});
+  for_each_type_if<TL<Args...>>(FactoryMatcher{ctx, key, vec});
 
   return vec;
 }

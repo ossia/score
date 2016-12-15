@@ -1,5 +1,5 @@
 #include "CurvePointModel.hpp"
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 class QObject;
 

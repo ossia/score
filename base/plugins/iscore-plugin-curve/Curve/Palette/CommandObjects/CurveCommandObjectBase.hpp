@@ -4,13 +4,13 @@
 #include <QVector>
 #include <algorithm>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <vector>
 
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_curve_export.h>
 
 namespace iscore
