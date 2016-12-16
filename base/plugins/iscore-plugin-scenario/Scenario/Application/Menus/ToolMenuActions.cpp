@@ -264,7 +264,6 @@ void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
     bar->addAction(m_selecttool);
     bar->addAction(m_createtool);
     bar->addAction(m_playtool);
-    bar->addAction(m_shiftAction);
 
     ref.toolbars.emplace_back(bar, StringKey<iscore::Toolbar>("Tools"), 0, 1);
 
@@ -272,7 +271,6 @@ void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
     menu.menu()->addAction(m_selecttool);
     menu.menu()->addAction(m_createtool);
     menu.menu()->addAction(m_playtool);
-    menu.menu()->addAction(m_shiftAction);
 
     ref.actions.add<Actions::SelectTool>(m_selecttool);
     ref.actions.add<Actions::CreateTool>(m_createtool);
