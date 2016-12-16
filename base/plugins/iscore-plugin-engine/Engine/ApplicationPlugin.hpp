@@ -57,7 +57,11 @@ public:
 
   void on_play(bool, ::TimeValue t = ::TimeValue::zero());
   void on_play(
-      Scenario::ConstraintModel&, bool, ::TimeValue t = ::TimeValue::zero());
+      Scenario::ConstraintModel&,
+      bool,
+      std::function<void(const Engine::Execution::Context&)> setup = {},
+      ::TimeValue t = ::TimeValue::zero());
+
   void on_record(::TimeValue t);
 
   bool playing() const

@@ -148,12 +148,14 @@ void ApplicationPlugin::on_play(bool b, ::TimeValue t)
         &doc->model().modelDelegate());
     if (!scenar)
       return;
-    on_play(scenar->displayedElements.constraint(), b, t);
+    on_play(scenar->displayedElements.constraint(), b, {}, t);
   }
 }
 
 void ApplicationPlugin::on_play(
-    Scenario::ConstraintModel& cst, bool b, TimeValue t)
+    Scenario::ConstraintModel& cst, bool b,
+    std::function<void(const Engine::Execution::Context&)> setup_fun,
+    TimeValue t)
 {
   auto doc = currentDocument();
   ISCORE_ASSERT(doc);
@@ -197,6 +199,12 @@ void ApplicationPlugin::on_play(
             stop_action.action()->trigger();
           },
           Qt::QueuedConnection);
+
+      if(setup_fun)
+      {
+        setup_fun(plugmodel->context());
+      }
+
       m_clock->play(t);
       m_paused = false;
     }
