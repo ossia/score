@@ -32,6 +32,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Document/Graph.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Engine/iscore2OSSIA.hpp>
@@ -41,52 +42,12 @@
 #include <iscore/actions/Menu.hpp>
 #include <iscore/model/EntityMap.hpp>
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/breadth_first_search.hpp>
-#include <boost/graph/labeled_graph.hpp>
-#include <boost/graph/topological_sort.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/range/iterator_range.hpp>
+#include <boost/graph/depth_first_search.hpp>
 
 namespace Engine
 {
 namespace Execution
 {
-
-using GraphNode = Scenario::TimeNodeModel*;
-
-using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, GraphNode> ;
-using AudioGraphVertice = decltype(boost::add_vertex(GraphNode{}, std::declval<Graph&>()));
-struct ConstraintTimenodeGraphBuilder
-{
-  Graph graph;
-  ConstraintTimenodeGraphBuilder(const Scenario::ScenarioInterface& scenar)
-  {
-    auto constraints = scenar.getConstraints();
-    auto timenodes = scenar.getTimeNodes();
-    iscore::hash_map<const Scenario::ConstraintModel*, int> cmap;
-    iscore::hash_map<const Scenario::TimeNodeModel*, int> tmap;
-
-    for(auto& tn : timenodes)
-      tmap[&tn] = boost::add_vertex(&tn, graph);
-
-    for(auto& cst : constraints)
-    {
-      boost::add_edge(tmap[&Scenario::startTimeNode(cst, scenar)], tmap[&Scenario::endTimeNode(cst, scenar)], graph);
-    }
-
-    auto get_name = [] (auto* elt) { return elt->metadata().getName().toStdString(); };
-
-    std::stringstream s;
-    boost::write_graphviz(s, graph, [&] (auto& out, const auto& v) {
-        out << "[label=\"" << get_name(this->graph[v]) << "\"]";
-    },
-    [] (auto&&...) {});
-
-    std::cout << s.str() << std::endl << std::flush;
-  }
-
-};
 
 /**
  * @brief Sets the execution engine to play only the required parts.
@@ -109,19 +70,48 @@ struct PlayFromConstraintScenarioPruner
     qDebug("yay");
   }
 
-  std::vector<Id<Scenario::ConstraintModel>> constraintsToKeep()
+  struct dfs_visitor_state
   {
-    // Start from our constraint.
-    auto scenar_constraints = scenar.getConstraints();
+    tsl::hopscotch_set<Scenario::ConstraintModel*> constraints;
+    tsl::hopscotch_set<Scenario::TimeNodeModel*> nodes;
+  };
 
-    std::vector<Id<Scenario::ConstraintModel>> constraints;
-    constraints.reserve(scenar_constraints.size());
+  struct dfs_visitor : public boost::default_dfs_visitor
+  {
+    // because these geniuses of boost decided to pass the visitor by value...
+    std::shared_ptr<dfs_visitor_state> state{std::make_shared<dfs_visitor_state>()};
 
-    auto cur_cst = &constraint;
-    Scenario::TimeNodeModel* cur_tn{};
-    return constraints;
+    void discover_vertex(Scenario::Graph::vertex_descriptor i, const Scenario::Graph& g)
+    {
+      state->nodes.insert(g[i]);
+    }
+    void examine_edge(Scenario::Graph::edge_descriptor i, const Scenario::Graph& g)
+    {
+      state->constraints.insert(g[i]);
+    }
 
+  };
 
+  auto constraintsToKeep()
+  {
+    Scenario::TimenodeGraph g{scenar};
+
+    // First find the vertex matching the time node after our constraint
+    auto vertex = g.vertices().at(&Scenario::endTimeNode(constraint, scenar));
+
+    // Do a depth-first search from where we're starting
+    dfs_visitor vis;
+    std::vector<boost::default_color_type> color_map(boost::num_vertices(g.graph()));
+
+    boost::depth_first_visit(g.graph(), vertex, vis,
+                             boost::make_iterator_property_map(
+                               color_map.begin(),
+                               boost::get(boost::vertex_index, g.graph()),
+                               color_map[0]));
+
+    // Add the first constraint
+    vis.state->constraints.insert(&constraint);
+    return vis.state->constraints;
   }
 };
 
@@ -189,7 +179,6 @@ PlayContextMenu::PlayContextMenu(
   con(exec_signals, &Scenario::ScenarioExecution::playState, this,
       [=](const Scenario::ScenarioInterface& scenar,
           const Id<StateModel>& id) {
-    ConstraintTimenodeGraphBuilder g{scenar};
         const auto& ctx = m_ctx.documents.currentDocument()->context();
         auto& r_ctx
             = ctx.plugin<Engine::Execution::DocumentPlugin>().context();
