@@ -5,11 +5,15 @@ NPROC=$(nproc)
 
 export PATH=/opt/gcc-6/bin:/opt/gcc-6-temp/bin:$PATH
 
+export LIBRARY_PATH=/usr/lib/arm-linux-gnueabihf
+export C_INCLUDE_PATH=/usr/include/arm-linux-gnueabihf
+export CPLUS_INCLUDE_PATH=/usr/include/arm-linux-gnueabihf
+
 mkdir -p /opt/gcc-6-temp
 mkdir -p gcc-build
 (
   cd gcc-build
-  ../combined/configure --enable-languages=c,c++,lto --enable-gold --enable-plugins --enable-plugin --disable-nls --enable-werror=no --prefix=/opt/gcc-6-temp
+  ../combined/configure --enable-languages=c,c++,lto --enable-gold --enable-plugins --enable-plugin --disable-nls --enable-werror=no --with-float=hard --prefix=/opt/gcc-6-temp
   make -j$NPROC && make install-strip
 )
 rm -rf gcc-build
@@ -23,7 +27,7 @@ mkdir gcc-build-2
   export CC=/opt/gcc-6-temp/bin/gcc
   export CXX=/opt/gcc-6-temp/bin/g++
 
-  ../combined/configure --enable-languages=c,c++,lto --enable-gold --enable-plugins --enable-plugin --disable-nls --enable-werror=no --with-build-config=bootstrap-lto --enable-checking=none --prefix=/opt/gcc-6 --sysroot=/opt/gcc-6-temp
+  ../combined/configure --enable-languages=c,c++,lto --enable-gold --enable-plugins --enable-plugin --disable-nls --enable-werror=no --with-build-config=bootstrap-lto --enable-checking=none --with-float=hard --prefix=/opt/gcc-6 --sysroot=/opt/gcc-6-temp
   make BOOT_CFLAGS="-O3 -g0" -j$NPROC && make install-strip
 )
 
