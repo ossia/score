@@ -28,6 +28,47 @@ void setup()
   }
 }
 
+void dumpOSC()
+{
+  {
+  OscMessage osc_msg = new OscMessage("/mouse/click");
+  osc_msg.add(mouseX);
+  osc_msg.add(mouseY);
+  osc_in.send(osc_msg, osc_out);
+  }
+  {
+  OscMessage osc_msg = new OscMessage("/mouse/move");
+  osc_msg.add(mouseX);
+  osc_msg.add(mouseY);
+  osc_in.send(osc_msg, osc_out);
+  }
+  {
+  OscMessage osc_msg = new OscMessage("/mouse/release");
+  osc_msg.add(mouseX);
+  osc_msg.add(mouseY);
+  osc_in.send(osc_msg, osc_out);
+  }
+  {
+  OscMessage osc_msg = new OscMessage("/particle/density");
+  osc_msg.add(0.f);
+  osc_in.send(osc_msg, osc_out);
+  }
+  
+  {
+  OscMessage osc_msg = new OscMessage("/particle/radius");
+  osc_msg.add(0.f);
+  osc_in.send(osc_msg, osc_out);
+  }
+  {
+  OscMessage osc_msg = new OscMessage("/color");
+  osc_msg.add(0.f);
+  osc_msg.add(0.f);
+  osc_msg.add(0.f);
+  osc_in.send(osc_msg, osc_out);
+  }
+  
+}
+
 void oscEvent(OscMessage osc_msg)
 {
   if (osc_msg.checkAddrPattern("/particle/density")) 
@@ -128,9 +169,10 @@ void addTriangles(ArrayList<Particle> p_neighboors)
 
 void mousePressed()
 {
+  if(mouseY < 50) dumpOSC();
   OscMessage osc_msg = new OscMessage("/mouse/click");
-  osc_msg.add(mouseX);
-  osc_msg.add(mouseY);
+  osc_msg.add((float)mouseX);
+  osc_msg.add((float)mouseY);
   osc_in.send(osc_msg, osc_out);
   println("### " + osc_msg.addrPattern());
 }
@@ -138,15 +180,15 @@ void mousePressed()
 void mouseMoved()
 {
   OscMessage osc_msg = new OscMessage("/mouse/move");
-  osc_msg.add(mouseX);
-  osc_msg.add(mouseY);
+  osc_msg.add((float)mouseX);
+  osc_msg.add((float)mouseY);
   osc_in.send(osc_msg, osc_out);
 }
 void mouseReleased()
 {
   OscMessage osc_msg = new OscMessage("/mouse/release");
-  osc_msg.add(mouseX);
-  osc_msg.add(mouseY);
+  osc_msg.add((float)mouseX);
+  osc_msg.add((float)mouseY);
   osc_in.send(osc_msg, osc_out);
 }
 

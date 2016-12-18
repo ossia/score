@@ -13,7 +13,7 @@ class iscore_plugin_interpolation final
   Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
   Q_INTERFACES(iscore::Plugin_QtInterface iscore::FactoryInterface_QtInterface
                    iscore::CommandFactory_QtInterface)
-
+  ISCORE_PLUGIN_METADATA(1, "95fc1f7c-9ffd-4c2d-bb7f-bd43341dee8c")
 public:
   iscore_plugin_interpolation();
   virtual ~iscore_plugin_interpolation();
@@ -28,6 +28,4 @@ private:
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
 };

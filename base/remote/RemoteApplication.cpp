@@ -53,6 +53,7 @@ RemoteApplication::RemoteApplication(int& argc, char** argv):
           "Message"s,
           json_fun{[this] (const QJsonObject& json) {
   auto m = unmarshall<State::Message>(json);
+                     qDebug() << m;
   auto it = m_listening.find(m.address.address);
   if(it != m_listening.end())
     it->second->setValue(m);

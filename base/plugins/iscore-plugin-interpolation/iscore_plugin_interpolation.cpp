@@ -37,13 +37,3 @@ iscore_plugin_interpolation::make_commands()
 
   return cmds;
 }
-
-iscore::Version iscore_plugin_interpolation::version() const
-{
-  return iscore::Version{1};
-}
-
-UuidKey<iscore::Plugin> iscore_plugin_interpolation::key() const
-{
-  return_uuid("95fc1f7c-9ffd-4c2d-bb7f-bd43341dee8c");
-}

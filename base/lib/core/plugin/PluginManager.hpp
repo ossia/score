@@ -62,7 +62,6 @@ iscore::optional<iscore::Addon> makeAddon(
 template<typename Registrar_T, typename Context_T>
 ISCORE_LIB_BASE_EXPORT void registerPlugins(
     const std::vector<iscore::Addon>& availablePlugins,
-    PluginDependencyGraph& graph,
     Registrar_T& registrar,
     const Context_T& context)
 {
@@ -96,21 +95,20 @@ ISCORE_LIB_BASE_EXPORT void registerPlugins(
 template<typename Registrar_T>
 ISCORE_LIB_BASE_EXPORT void registerPlugins(
     const std::vector<iscore::Addon>& availablePlugins,
-    PluginDependencyGraph& graph,
     Registrar_T& registrar,
     const iscore::GUIApplicationContext& context)
 {
-  graph.visit([&](QObject* plugin) {
+  for(const iscore::Addon& addon : availablePlugins)
+  {
     auto ctrl_plugin
-        = dynamic_cast<GUIApplicationContextPlugin_QtInterface*>(plugin);
+        = dynamic_cast<GUIApplicationContextPlugin_QtInterface*>(addon.plugin);
     if (ctrl_plugin)
     {
       if (auto plug = ctrl_plugin->make_applicationPlugin(context))
         registrar.registerApplicationContextPlugin(plug);
     }
-  });
-
-  registerPlugins(availablePlugins, graph, registrar, (const iscore::ApplicationContext&) context);
+  }
+  registerPlugins(availablePlugins, registrar, (const iscore::ApplicationContext&) context);
 }
 
 /**
@@ -166,13 +164,12 @@ ISCORE_LIB_BASE_EXPORT void loadPlugins(
 
   // Load all the application context plugins.
   // We have to order them according to their dependencies
-  PluginDependencyGraph graph;
-  for (const iscore::Addon& addon : availablePlugins)
+  PluginDependencyGraph graph{availablePlugins};
+  const auto& add = graph.sortedAddons();
+  if(!add.empty())
   {
-    graph.addNode(dynamic_cast<QObject*>(addon.plugin));
+    registerPlugins(add, registrar, context);
   }
-
-  registerPlugins(availablePlugins, graph, registrar, context);
 }
 
 QStringList pluginsBlacklist();

@@ -9,7 +9,7 @@ class iscore_plugin_library : public QObject,
   Q_OBJECT
   Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
   Q_INTERFACES(iscore::Plugin_QtInterface iscore::FactoryInterface_QtInterface)
-
+  ISCORE_PLUGIN_METADATA(1, "f019a413-0ffd-417f-966a-a824548aca79")
 public:
   iscore_plugin_library();
   virtual ~iscore_plugin_library();
@@ -18,7 +18,4 @@ private:
   std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext&,
       const iscore::InterfaceKey& factoryName) const override;
-
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
 };

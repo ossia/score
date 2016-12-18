@@ -39,6 +39,7 @@ class iscore_plugin_recording final
                        iscore::CommandFactory_QtInterface
                            iscore::FactoryInterface_QtInterface)
 
+  ISCORE_PLUGIN_METADATA(1, "659ba25e-97e5-40d9-8db8-f7a8537035ad")
 public:
   iscore_plugin_recording();
   virtual ~iscore_plugin_recording();
@@ -54,7 +55,5 @@ private:
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
-  QStringList required() const override;
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
+  std::vector<iscore::PluginKey> required() const override;
 };

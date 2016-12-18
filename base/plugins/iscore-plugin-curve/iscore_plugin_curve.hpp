@@ -43,6 +43,7 @@ class iscore_plugin_curve final : public QObject,
       iscore::Plugin_QtInterface iscore::FactoryInterface_QtInterface
           iscore::CommandFactory_QtInterface iscore::FactoryList_QtInterface)
 
+  ISCORE_PLUGIN_METADATA(1, "49837ed7-dbc5-4330-9890-a130a2718b5e")
 public:
   iscore_plugin_curve();
   virtual ~iscore_plugin_curve() = default;
@@ -58,6 +59,4 @@ private:
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
 };

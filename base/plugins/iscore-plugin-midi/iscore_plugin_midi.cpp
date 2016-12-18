@@ -37,13 +37,3 @@ iscore_plugin_midi::make_commands()
 
   return cmds;
 }
-
-iscore::Version iscore_plugin_midi::version() const
-{
-  return iscore::Version{1};
-}
-
-UuidKey<iscore::Plugin> iscore_plugin_midi::key() const
-{
-  return_uuid("0a964c0f-dd69-4e5a-9577-0ec5695690b0");
-}

@@ -127,23 +127,3 @@ iscore_plugin_scenario::factories(
   return instantiate_factories<iscore::ApplicationContext, FW<Process::ProcessModelFactory, ScenarioFactory>, FW<Process::LayerFactory, ScenarioTemporalLayerFactory>, FW<MoveEventFactoryInterface, MoveEventClassicFactory>, FW<Process::InspectorWidgetDelegateFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>, FW<DisplayedElementsToolPaletteFactory, BaseScenarioDisplayedElementsToolPaletteFactory, ScenarioDisplayedElementsToolPaletteFactory>, FW<TriggerCommandFactory, ScenarioTriggerCommandFactory, BaseScenarioTriggerCommandFactory>, FW<DisplayedElementsProvider, ScenarioDisplayedElementsProvider, BaseScenarioDisplayedElementsProvider>, FW<iscore::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>, FW<iscore::SettingsDelegateFactory, Scenario::Settings::Factory>, FW<iscore::PanelDelegateFactory, Scenario::PanelDelegateFactory>, FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario>, FW<Scenario::ConstraintDropHandler, Scenario::DropProcessInConstraint, Scenario::AutomationDropHandler>, FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory>, FW<ConstraintInspectorDelegateFactory, ScenarioConstraintInspectorDelegateFactory, BaseConstraintInspectorDelegateFactory>, FW<iscore::ValidityChecker, ScenarioValidityChecker>>(
       ctx, key);
 }
-
-QStringList iscore_plugin_scenario::required() const
-{
-  return {};
-}
-
-QStringList iscore_plugin_scenario::offered() const
-{
-  return {"Scenario"};
-}
-
-iscore::Version iscore_plugin_scenario::version() const
-{
-  return iscore::Version{1};
-}
-
-UuidKey<iscore::Plugin> iscore_plugin_scenario::key() const
-{
-  return_uuid("8439ef6c-90c3-4e08-8185-6a0f3c87f8b4");
-}

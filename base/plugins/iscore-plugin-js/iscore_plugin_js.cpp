@@ -46,13 +46,3 @@ iscore_plugin_js::make_commands()
 
   return cmds;
 }
-
-iscore::Version iscore_plugin_js::version() const
-{
-  return iscore::Version{1};
-}
-
-UuidKey<iscore::Plugin> iscore_plugin_js::key() const
-{
-  return_uuid("0eb1db4b-a532-4961-ba1c-d9edbf08ef07");
-}
