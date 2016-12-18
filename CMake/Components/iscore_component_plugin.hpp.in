@@ -18,7 +18,7 @@ class ${PLUGIN_NAME} final:
                 iscore::FactoryInterface_QtInterface
                 iscore::Plugin_QtInterface
                 )
-
+        ISCORE_PLUGIN_METADATA(${ISCORE_COMPONENT_Version}, "${ISCORE_COMPONENT_Uuid}")
     public:
         ${PLUGIN_NAME}();
         virtual ~${PLUGIN_NAME}();
@@ -26,7 +26,4 @@ class ${PLUGIN_NAME} final:
         std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
                 const iscore::ApplicationContext& ctx,
                 const iscore::InterfaceKey& factoryName) const override;
-
-        iscore::Version version() const override;
-        UuidKey<iscore::Plugin> key() const override;
 };

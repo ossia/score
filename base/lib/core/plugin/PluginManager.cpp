@@ -7,6 +7,7 @@
 #include <core/plugin/PluginManager.hpp>
 #include <iscore/application/ApplicationComponents.hpp>
 #include <iscore/application/GUIApplicationContext.hpp>
+#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <QJsonDocument>
 #include <QPluginLoader>
 #include <QSettings>
@@ -143,6 +144,7 @@ loadPluginsInAllFolders(std::vector<iscore::Addon>& availablePlugins)
           iscore::Addon addon;
           addon.path = path;
           addon.plugin = plug.first;
+          addon.key = safe_cast<iscore::Plugin_QtInterface*>(plug.first)->key();
           addon.corePlugin = true;
           availablePlugins.push_back(std::move(addon));
           break;
@@ -196,7 +198,7 @@ optional<iscore::Addon> makeAddon(
       {"long", [&](QJsonValue v) { add.longDescription = v.toString(); }},
       {"key",
        [&](QJsonValue v) {
-         add.key = UuidKey<Addon>::fromString(v.toString());
+         add.key = UuidKey<Plugin>::fromString(v.toString());
        }},
       {"small", [&](QJsonValue v) { add.smallImage = QImage{v.toString()}; }},
       {"large", [&](QJsonValue v) { add.largeImage = QImage{v.toString()}; }}};

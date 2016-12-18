@@ -2,6 +2,8 @@
 #include <QImage>
 #include <QObject>
 #include <iscore/plugins/customfactory/UuidKey.hpp>
+#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
 namespace iscore
 {
 class Plugin_QtInterface;
@@ -13,7 +15,7 @@ class Plugin_QtInterface;
 struct ISCORE_LIB_BASE_EXPORT Addon
 {
   iscore::Plugin_QtInterface* plugin{};
-  UuidKey<Addon> key; // Can be the same as plug-in's
+  UuidKey<Plugin> key; // Can be the same as plug-in's
   QString path;       // Path to the addon folder
 
   QString name;

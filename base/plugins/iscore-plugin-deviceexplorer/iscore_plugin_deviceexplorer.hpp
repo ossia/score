@@ -35,6 +35,7 @@ class iscore_plugin_deviceexplorer final
                        iscore::GUIApplicationContextPlugin_QtInterface
                            iscore::CommandFactory_QtInterface)
 
+  ISCORE_PLUGIN_METADATA(1, "3c2a0e25-ab14-4c06-a1ba-033d721a520f")
 public:
   iscore_plugin_deviceexplorer();
   virtual ~iscore_plugin_deviceexplorer();
@@ -54,8 +55,4 @@ private:
 
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
-
-  QStringList offered() const override;
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
 };

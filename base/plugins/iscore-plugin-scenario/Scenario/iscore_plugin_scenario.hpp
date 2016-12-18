@@ -68,6 +68,7 @@ class iscore_plugin_scenario final
           iscore::CommandFactory_QtInterface iscore::FactoryList_QtInterface
               iscore::FactoryInterface_QtInterface iscore::Plugin_QtInterface)
 
+  ISCORE_PLUGIN_METADATA(1, "8439ef6c-90c3-4e08-8185-6a0f3c87f8b4")
 public:
   iscore_plugin_scenario();
   virtual ~iscore_plugin_scenario();
@@ -90,10 +91,4 @@ private:
   std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext&,
       const iscore::InterfaceKey& factoryName) const override;
-
-  QStringList required() const override;
-  QStringList offered() const override;
-
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
 };

@@ -37,6 +37,10 @@
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
 #include <Engine/Protocols/WS/WSProtocolFactory.hpp>
 #endif
+
+#include <Scenario/iscore_plugin_scenario.hpp>
+#include <iscore_plugin_deviceexplorer.hpp>
+
 iscore_plugin_engine::iscore_plugin_engine() : QObject{}
 {
   qRegisterMetaType<Engine::Execution::ClockManagerFactory::
@@ -139,22 +143,11 @@ iscore_plugin_engine::factories(
                >(ctx, key);
 }
 
-QStringList iscore_plugin_engine::required() const
+auto iscore_plugin_engine::required() const
+  -> std::vector<iscore::PluginKey>
 {
-  return {"Scenario", "DeviceExplorer"};
-}
-
-QStringList iscore_plugin_engine::offered() const
-{
-  return {"Engine"};
-}
-
-iscore::Version iscore_plugin_engine::version() const
-{
-  return iscore::Version{1};
-}
-
-UuidKey<iscore::Plugin> iscore_plugin_engine::key() const
-{
-  return_uuid("d4758f8d-64ac-41b4-8aaf-1cbd6f3feb91");
+    return {
+      iscore_plugin_scenario::static_key(),
+      iscore_plugin_deviceexplorer::static_key()
+    };
 }

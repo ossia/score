@@ -21,7 +21,7 @@ class iscore_plugin_js final : public QObject,
   Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
   Q_INTERFACES(iscore::Plugin_QtInterface iscore::FactoryInterface_QtInterface
                    iscore::CommandFactory_QtInterface)
-
+  ISCORE_PLUGIN_METADATA(1, "0eb1db4b-a532-4961-ba1c-d9edbf08ef07")
 public:
   iscore_plugin_js();
   virtual ~iscore_plugin_js();
@@ -35,7 +35,4 @@ private:
   // CommandFactory_QtInterface interface
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
-
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
 };

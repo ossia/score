@@ -72,18 +72,3 @@ iscore_plugin_deviceexplorer::make_commands()
 
   return cmds;
 }
-
-QStringList iscore_plugin_deviceexplorer::offered() const
-{
-  return {"DeviceExplorer"};
-}
-
-iscore::Version iscore_plugin_deviceexplorer::version() const
-{
-  return iscore::Version{1};
-}
-
-UuidKey<iscore::Plugin> iscore_plugin_deviceexplorer::key() const
-{
-  return_uuid("3c2a0e25-ab14-4c06-a1ba-033d721a520f");
-}
