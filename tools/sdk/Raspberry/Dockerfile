@@ -14,3 +14,8 @@ RUN /image/gcc.sh
 ADD qt.sh /image/qt.sh
 RUN /image/qt.sh
 
+ADD cmake.sh /image/cmake.sh
+RUN /image/cmake.sh
+
+RUN rm -rf /image
+
