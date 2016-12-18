@@ -26,8 +26,9 @@ mkdir gcc-build-2
   cd gcc-build-2
   export CC=/opt/gcc-6-temp/bin/gcc
   export CXX=/opt/gcc-6-temp/bin/g++
+  export LD_LIBRARY_PATH=/opt/gcc-6-temp/lib
 
-  ../combined/configure --enable-languages=c,c++,lto --enable-gold --enable-plugins --enable-plugin --disable-nls --enable-werror=no --with-build-config=bootstrap-lto --enable-checking=none --with-float=hard --prefix=/opt/gcc-6 --sysroot=/opt/gcc-6-temp
+  ../combined/configure --enable-languages=c,c++,lto --enable-gold --enable-plugins --enable-plugin --disable-nls --enable-werror=no --with-build-config=bootstrap-lto --enable-checking=none --with-float=hard --prefix=/opt/gcc-6 --with-build-time-tools=/opt/gcc-6-temp/bin
   make BOOT_CFLAGS="-O3 -g0" -j$NPROC && make install-strip
 )
 
