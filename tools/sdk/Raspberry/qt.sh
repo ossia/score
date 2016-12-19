@@ -5,7 +5,7 @@ cd /image
 export PATH=/opt/gcc-6/bin:$PATH
 NPROC=$(nproc)
 
-apt-get install "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev flex bison gperf libicu-dev libxslt-dev ruby perl python  libasound2-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libfontconfig1-dev libfreetype6-dev libx11-dev libxext-dev libxfixes-dev libxi-dev libxrender-dev libxcb1-dev libx11-xcb-dev libxcb-glx0-dev 
+apt-get -y install "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev flex bison gperf libicu-dev libxslt-dev ruby perl python  libasound2-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libfontconfig1-dev libfreetype6-dev libx11-dev libxext-dev libxfixes-dev libxi-dev libxrender-dev libxcb1-dev libx11-xcb-dev libxcb-glx0-dev libdbus-1-dev libssl-dev openssl
 
 git clone https://code.qt.io/qt/qt5.git
 
@@ -17,6 +17,7 @@ git clone https://code.qt.io/qt/qt5.git
 
 export CC=/opt/gcc-6/bin/gcc
 export CXX=/opt/gcc-6/bin/g++
+export LD_LIBRARY_PATH=/opt/gcc-6/lib
 
 mkdir qt5-build
 (
