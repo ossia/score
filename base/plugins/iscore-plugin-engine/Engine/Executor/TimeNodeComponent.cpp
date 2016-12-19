@@ -5,8 +5,8 @@
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <exception>
 
-#include "ConstraintElement.hpp"
-#include "TimeNodeElement.hpp"
+#include "ConstraintComponent.hpp"
+#include "TimeNodeComponent.hpp"
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/state/state.hpp>
 

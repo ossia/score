@@ -16,11 +16,11 @@
 #include <map>
 #include <memory>
 
-#include <Engine/Executor/ConstraintElement.hpp>
-#include <Engine/Executor/EventElement.hpp>
-#include <Engine/Executor/ScenarioElement.hpp>
-#include <Engine/Executor/StateElement.hpp>
-#include <Engine/Executor/StateElement.hpp>
+#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/EventComponent.hpp>
+#include <Engine/Executor/ScenarioComponent.hpp>
+#include <Engine/Executor/StateComponent.hpp>
+#include <Engine/Executor/StateComponent.hpp>
 
 #include "PlayContextMenu.hpp"
 #include <ossia/editor/scenario/time_event.hpp>
@@ -41,7 +41,7 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/actions/Menu.hpp>
 #include <iscore/model/EntityMap.hpp>
-
+#include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <boost/graph/depth_first_search.hpp>
 
 namespace Engine
@@ -57,18 +57,6 @@ struct PlayFromConstraintScenarioPruner
   const Scenario::ScenarioInterface& scenar;
   Scenario::ConstraintModel& constraint;
   TimeValue time;
-
-  void operator()(const Context& exec_ctx)
-  {
-    // We prune all the superfluous components of the scenario, ie the one that aren't either
-    // the started constraint, or the ones following it.
-
-    // First build a vector with all the constraints that we want to keep.
-
-    // Then we add a constraint from the beginning of the scenario to this one,
-    // and we do an offset.
-    qDebug("yay");
-  }
 
   struct dfs_visitor_state
   {
@@ -92,7 +80,7 @@ struct PlayFromConstraintScenarioPruner
 
   };
 
-  auto constraintsToKeep()
+  auto constraintsToKeep() const
   {
     Scenario::TimenodeGraph g{scenar};
 
@@ -113,6 +101,24 @@ struct PlayFromConstraintScenarioPruner
     vis.state->constraints.insert(&constraint);
     return vis.state->constraints;
   }
+
+
+  void operator()(const Context& exec_ctx)
+  {
+    // We prune all the superfluous components of the scenario, ie the one that aren't either
+    // the started constraint, or the ones following it.
+
+    // First build a vector with all the constraints that we want to keep.
+    auto toKeep = constraintsToKeep();
+
+    // Get the constraints in the scenario execution
+    exec_ctx.sys.baseScenario()->baseConstraint()->processes();
+
+    // Then we add a constraint from the beginning of the scenario to this one,
+    // and we do an offset.
+
+  }
+
 };
 
 PlayContextMenu::PlayContextMenu(

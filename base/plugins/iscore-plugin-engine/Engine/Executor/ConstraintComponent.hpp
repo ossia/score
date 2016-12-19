@@ -6,7 +6,7 @@
 #include <iscore/model/Identifier.hpp>
 #include <memory>
 
-#include <Engine/Executor/ProcessElement.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
 #include <iscore_plugin_engine_export.h>
 
 namespace Process
@@ -45,6 +45,8 @@ public:
 
   std::shared_ptr<ossia::time_constraint> OSSIAConstraint() const;
   Scenario::ConstraintModel& iscoreConstraint() const;
+
+  const auto& processes() const { return m_processes; }
 
   void play(TimeValue t = TimeValue::zero());
   void pause();

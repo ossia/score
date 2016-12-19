@@ -2,12 +2,12 @@
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
-#include <Engine/Executor/BaseScenarioElement.hpp>
+#include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
-#include <Engine/Executor/ConstraintElement.hpp>
-#include <Engine/Executor/StateElement.hpp>
+#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/StateComponent.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <Scenario/Application/ScenarioActions.hpp>

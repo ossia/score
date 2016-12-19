@@ -1,7 +1,7 @@
 #pragma once
 #include <ossia/editor/automation/automation.hpp>
 #include <ossia/network/domain/domain.hpp>
-#include <Engine/Executor/ProcessElement.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
 
 namespace ossia

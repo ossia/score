@@ -11,11 +11,11 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <vector>
 
-#include "BaseScenarioElement.hpp"
-#include <Engine/Executor/ConstraintElement.hpp>
-#include <Engine/Executor/EventElement.hpp>
-#include <Engine/Executor/StateElement.hpp>
-#include <Engine/Executor/TimeNodeElement.hpp>
+#include "BaseScenarioComponent.hpp"
+#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/EventComponent.hpp>
+#include <Engine/Executor/StateComponent.hpp>
+#include <Engine/Executor/TimeNodeComponent.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
