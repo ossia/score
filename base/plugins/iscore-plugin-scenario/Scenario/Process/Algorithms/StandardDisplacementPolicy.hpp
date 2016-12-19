@@ -54,19 +54,13 @@ public:
     }
 
     // update affected constraints
-    QMapIterator<Id<ConstraintModel>, ConstraintProperties>
-        constraintPropertiesIterator(propsToUpdate.constraints);
-    while (constraintPropertiesIterator.hasNext())
+    for(auto& e : propsToUpdate.constraints)
     {
-      constraintPropertiesIterator.next();
-
-      auto curConstraintPropertiesToUpdate_id
-          = constraintPropertiesIterator.key();
+      auto curConstraintPropertiesToUpdate_id = e.first;
 
       auto& curConstraintToUpdate
           = scenario.constraints.at(curConstraintPropertiesToUpdate_id);
-      auto& curConstraintPropertiesToUpdate
-          = constraintPropertiesIterator.value();
+      auto& curConstraintPropertiesToUpdate = e.second;
 
       // compute default duration here
       const auto& startDate
@@ -127,19 +121,13 @@ public:
     }
 
     // update affected constraints with old values and restor processes
-    QMapIterator<Id<ConstraintModel>, ConstraintProperties>
-        constraintPropertiesIterator(propsToUpdate.constraints);
-    while (constraintPropertiesIterator.hasNext())
+    for(auto& e : propsToUpdate.constraints)
     {
-      constraintPropertiesIterator.next();
-
-      auto curConstraintPropertiesToUpdate_id
-          = constraintPropertiesIterator.key();
+      auto curConstraintPropertiesToUpdate_id = e.first;
 
       auto& curConstraintToUpdate
           = scenario.constraints.at(curConstraintPropertiesToUpdate_id);
-      auto& curConstraintPropertiesToUpdate
-          = constraintPropertiesIterator.value();
+      auto& curConstraintPropertiesToUpdate = e.second;
 
       // compute default duration here
       const auto& startDate

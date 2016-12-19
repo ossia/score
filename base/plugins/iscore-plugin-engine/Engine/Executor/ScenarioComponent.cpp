@@ -108,6 +108,20 @@ void ScenarioComponent::stop()
   ProcessComponent::stop();
 }
 
+void ScenarioComponent::removeConstraint(
+    const Id<Scenario::ConstraintModel>& id)
+{
+  auto it = m_ossia_constraints.find(id);
+  if(it != m_ossia_constraints.end())
+  {
+    ConstraintElement* e = it->second;
+    OSSIAProcess().removeTimeConstraint(e->OSSIAConstraint());
+    delete e;
+
+    m_ossia_constraints.erase(it);
+  }
+}
+
 static void ScenarioConstraintCallback(
     ossia::time_value, ossia::time_value, const ossia::state& element)
 {
@@ -211,7 +225,9 @@ void ScenarioComponent::startConstraintExecution(
   if (m_executingConstraints.find(id) == m_executingConstraints.end())
     m_executingConstraints.insert(std::make_pair(cst.id(), &cst));
 
-  m_ossia_constraints.at(id)->executionStarted();
+  auto it = m_ossia_constraints.find(id);
+  if(it != m_ossia_constraints.end())
+    it->second->executionStarted();
 }
 
 void ScenarioComponent::disableConstraintExecution(
@@ -225,7 +241,9 @@ void ScenarioComponent::stopConstraintExecution(
     const Id<Scenario::ConstraintModel>& id)
 {
   m_executingConstraints.erase(id);
-  m_ossia_constraints.at(id)->executionStopped();
+  auto it = m_ossia_constraints.find(id);
+  if(it != m_ossia_constraints.end())
+    it->second->executionStopped();
 }
 
 void ScenarioComponent::eventCallback(

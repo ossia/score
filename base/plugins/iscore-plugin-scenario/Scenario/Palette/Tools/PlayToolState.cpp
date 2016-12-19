@@ -7,7 +7,8 @@
 #include <Scenario/Document/State/StatePresenter.hpp>
 
 #include <Scenario/Palette/ScenarioPoint.hpp>
-
+#include <QKeyEvent>
+#include <QApplication>
 namespace Scenario
 {
 PlayToolState::PlayToolState(const Scenario::ToolPalette& sm)
@@ -49,7 +50,19 @@ void PlayToolState::on_pressed(
                     ? cst.id()
                     : OptionalId<ConstraintModel>{};
       if (id)
-        emit m_exec.playConstraint(m_sm.model(), *id);
+      {
+        if(QApplication::keyboardModifiers() & Qt::AltModifier)
+        {
+          emit m_exec.playFromConstraintAtDate(
+                m_sm.model(),
+                *id,
+                scenarioPoint.date);
+        }
+        else
+        {
+          emit m_exec.playConstraint(m_sm.model(), *id);
+        }
+      }
       break;
     }
       // TODO Play constraint ? the code is already here.

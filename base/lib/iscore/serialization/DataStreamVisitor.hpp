@@ -119,13 +119,13 @@ public:
     return arr;
   }
 
-  template <template <class...> class T, typename... Args>
+  template <typename T>
   void readFrom(
-      const T<Args...>& obj,
+      const T& obj,
       typename std::
-          enable_if_t<is_template<T<Args...>>::value && !is_abstract_base<T<Args...>>::value>* = nullptr)
+          enable_if_t<is_template<T>::value && !is_abstract_base<T>::value>* = nullptr)
   {
-    TSerializer<DataStream, void, T<Args...>>::readFrom(*this, obj);
+    TSerializer<DataStream, void, T>::readFrom(*this, obj);
   }
 
   template <
@@ -207,13 +207,12 @@ public:
     return data;
   }
 
-  template <template <class...> class T, typename... Args>
+  template <typename T>
   void writeTo(
-      T<Args...>& obj,
-      typename std::enable_if<is_template<T<Args...>>::value, void>::
-          type* = nullptr)
+      T& obj,
+      typename std::enable_if<is_template<T>::value, void>::type* = nullptr)
   {
-    TSerializer<DataStream, void, T<Args...>>::writeTo(*this, obj);
+    TSerializer<DataStream, void, T>::writeTo(*this, obj);
   }
 
   template <

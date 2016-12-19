@@ -1,5 +1,5 @@
 #pragma once
-#include <type_traits>
+#include <iscore/serialization/IsTemplate.hpp>
 /**
  *
  * This file contains the base types for the serialization mechanism
@@ -92,15 +92,6 @@ struct is_value_t
                                     || is_value_tag<T>::value};
 };
 
-template <class>
-struct is_template : std::false_type
-{
-};
-
-template <template <class...> class T, typename... Args>
-struct is_template<T<Args...>> : std::true_type
-{
-};
 
 // see SerializableInterface
 template <typename T>

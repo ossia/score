@@ -43,12 +43,17 @@
 #include <iscore/model/EntityMap.hpp>
 #include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <boost/graph/depth_first_search.hpp>
+#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/scenario/scenario.hpp>
+#include <ossia/editor/scenario/time_event.hpp>
+#include <ossia/editor/scenario/time_node.hpp>
 
 namespace Engine
 {
 namespace Execution
 {
 
+//MOVEME
 /**
  * @brief Sets the execution engine to play only the required parts.
  */
@@ -102,6 +107,14 @@ struct PlayFromConstraintScenarioPruner
     return vis.state->constraints;
   }
 
+  bool toRemove(
+      const tsl::hopscotch_set<Scenario::ConstraintModel*>& toKeep,
+      Scenario::ConstraintModel& cst) const
+  {
+      auto c_addr = &cst;
+      return (toKeep.find(c_addr) == toKeep.end()) && (c_addr != &constraint);
+  }
+
 
   void operator()(const Context& exec_ctx)
   {
@@ -112,10 +125,42 @@ struct PlayFromConstraintScenarioPruner
     auto toKeep = constraintsToKeep();
 
     // Get the constraints in the scenario execution
-    exec_ctx.sys.baseScenario()->baseConstraint()->processes();
+    auto process_ptr = dynamic_cast<const Process::ProcessModel*>(&scenar);
+    auto& source_procs = exec_ctx.sys.baseScenario()->baseConstraint()->processes();
+    auto scenar_proc_it = ossia::find_if(source_procs, [=] (ProcessComponent* process) {
+      return &process->process() == process_ptr;
+    });
+    ISCORE_ASSERT(scenar_proc_it != source_procs.end());
+
+    auto e = dynamic_cast<ScenarioComponent*>(*scenar_proc_it);
+    auto scenar_constraints = e->constraints();
+    ConstraintElement* other_cst{};
+    for(auto elt : scenar_constraints)
+    {
+      auto& is = elt.second->iscoreConstraint();
+      if(toRemove(toKeep, is))
+      {
+        e->removeConstraint(elt.first);
+      }
+      else if(&is == &constraint)
+      {
+        other_cst = elt.second;
+      }
+    }
+
+    // Get the time_constraint element of the constraint we're starting from.
+    auto& new_end_e = other_cst->OSSIAConstraint()->getStartEvent();
+    auto end_date = new_end_e.getTimeNode().getDate();
+    auto new_cst = ossia::time_constraint::create(
+                     ossia::time_constraint::ExecutionCallback{},
+                     *e->OSSIAProcess().getStartTimeNode()->timeEvents()[0],
+                     new_end_e, end_date, end_date, end_date);
+    e->OSSIAProcess().addTimeConstraint(new_cst);
 
     // Then we add a constraint from the beginning of the scenario to this one,
     // and we do an offset.
+
+    // TODO how to remove also the states ? for instance if there is a state on the first timenode ?
 
   }
 
@@ -213,7 +258,13 @@ PlayContextMenu::PlayContextMenu(
     // this is what needs executing.
     auto parent_constraint = safe_cast<Scenario::ConstraintModel*>(safe_cast<const QObject*>(&scenar)->parent());
 
-    plug.on_play(*parent_constraint, true, PlayFromConstraintScenarioPruner{scenar, cst_to_play,t}, t);
+    // We start playing the parent scenario.
+    // TODO: this also plays the other processes of the constraint? Maybe remove them, too ?
+    plug.on_play(
+          *parent_constraint,
+          true,
+          PlayFromConstraintScenarioPruner{scenar, cst_to_play, t},
+          t);
   });
 
 

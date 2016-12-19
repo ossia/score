@@ -67,6 +67,7 @@ ConstraintElement::ConstraintElement(
 
 ConstraintElement::~ConstraintElement()
 {
+  OSSIAConstraint()->setCallback(ossia::time_constraint::ExecutionCallback{});
   executionStopped();
 }
 
