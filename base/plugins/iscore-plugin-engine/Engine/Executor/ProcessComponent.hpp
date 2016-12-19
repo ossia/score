@@ -43,6 +43,8 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponent
       "d0f714de-c832-42d8-a605-60f5ffd0b7af")
 
 public:
+    static constexpr bool is_unique = true;
+
   ProcessComponent(
       ConstraintElement& cst,
       Process::ProcessModel& proc,
@@ -84,7 +86,7 @@ struct ProcessComponent_T
   using Scenario::GenericProcessComponent_T<ProcessComponent, Process_T>::
       GenericProcessComponent_T;
 
-  auto& OSSIAProcess() const
+  OSSIA_Process_T& OSSIAProcess() const
   {
     return static_cast<OSSIA_Process_T&>(ProcessComponent::OSSIAProcess());
   }

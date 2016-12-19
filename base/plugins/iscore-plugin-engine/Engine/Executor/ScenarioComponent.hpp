@@ -58,6 +58,7 @@ class ScenarioComponent final
     : public ProcessComponent_T<Scenario::ProcessModel, ossia::scenario>
 {
   COMPONENT_METADATA("4e4b1c1a-1a2a-4ae6-a1a1-38d0900e74e8")
+
 public:
   ScenarioComponent(
       ConstraintElement& cst,
@@ -84,6 +85,8 @@ public:
   }
 
   void stop() override;
+
+  void removeConstraint(const Id<Scenario::ConstraintModel>& id);
 
 private:
   void on_constraintCreated(const Scenario::ConstraintModel&);

@@ -58,11 +58,12 @@ void GoodOldDisplacementPolicy::computeDisplacement(
       {
         TimenodeProperties t;
         t.oldDate = curTimeNode.date();
-        tn_it = elementsProperties.timenodes.insert(curTimeNodeId, t);
+        tn_it = elementsProperties.timenodes.emplace(curTimeNodeId, std::move(t)).first;
       }
 
       // put the new date
-      tn_it->newDate = tn_it->oldDate + deltaTime;
+      auto& val = tn_it.value();
+      val.newDate = val.oldDate + deltaTime;
     }
 
     // Make a list of the constraints that need to be resized
@@ -91,8 +92,9 @@ void GoodOldDisplacementPolicy::computeDisplacement(
               ConstraintProperties c{curConstraint};
               c.oldMin = curConstraint.duration.minDuration();
               c.oldMax = curConstraint.duration.maxDuration();
+
               cur_constraint_it
-                  = elementsProperties.constraints.insert(curConstraintId, c);
+                  = elementsProperties.constraints.emplace(curConstraintId, std::move(c)).first;
             }
 
             auto& curConstraintStartEvent
@@ -103,10 +105,10 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             TimeValue startDate;
 
             // if prev tnode has moved take updated value else take existing
-            auto it = elementsProperties.timenodes.constFind(startTnodeId);
-            if (it != elementsProperties.timenodes.constEnd())
+            auto it = elementsProperties.timenodes.find(startTnodeId);
+            if (it != elementsProperties.timenodes.cend())
             {
-              startDate = it->newDate;
+              startDate = it.value().newDate;
             }
             else
             {
@@ -120,10 +122,9 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             TimeValue deltaBounds = newDefaultDuration
                                     - curConstraint.duration.defaultDuration();
 
-            cur_constraint_it->newMin
-                = curConstraint.duration.minDuration() + deltaBounds;
-            cur_constraint_it->newMax
-                = curConstraint.duration.maxDuration() + deltaBounds;
+            auto& val = cur_constraint_it.value();
+            val.newMin = curConstraint.duration.minDuration() + deltaBounds;
+            val.newMax = curConstraint.duration.maxDuration() + deltaBounds;
 
             // nothing to do for now
           }
