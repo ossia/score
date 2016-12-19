@@ -6,7 +6,7 @@
 #include <map>
 #include <memory>
 
-#include "ProcessElement.hpp"
+#include "ProcessComponent.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 

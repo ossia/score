@@ -2,7 +2,7 @@
 #include <ossia/editor/scenario/time_process.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
-#include <Engine/Executor/ProcessElement.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
 #include <QString>
 #include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
 #include <iscore/document/DocumentContext.hpp>

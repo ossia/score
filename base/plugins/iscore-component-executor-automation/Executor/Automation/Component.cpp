@@ -18,7 +18,7 @@
 #include <ossia/network/base/address.hpp>
 #include <ossia/network/base/node.hpp>
 #include <Engine/CurveConversion.hpp>
-#include <Engine/Executor/ProcessElement.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <Engine/iscore2OSSIA.hpp>
 #include <State/Address.hpp>

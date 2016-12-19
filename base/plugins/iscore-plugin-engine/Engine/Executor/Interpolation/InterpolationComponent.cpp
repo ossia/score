@@ -2,7 +2,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Engine/CurveConversion.hpp>
-#include <Engine/Executor/ConstraintElement.hpp>
+#include <Engine/Executor/ConstraintComponent.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>

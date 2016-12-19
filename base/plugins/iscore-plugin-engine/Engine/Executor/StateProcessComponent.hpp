@@ -8,7 +8,7 @@
 
 #include <ossia/editor/state/state_element.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/StateElement.hpp>
+#include <Engine/Executor/StateComponent.hpp>
 #include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <iscore/plugins/customfactory/ModelFactory.hpp>
 namespace Engine

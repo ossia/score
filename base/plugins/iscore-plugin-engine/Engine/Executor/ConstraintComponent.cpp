@@ -6,13 +6,13 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <utility>
 
-#include "ConstraintElement.hpp"
+#include "ConstraintComponent.hpp"
 #include "Loop/LoopProcessModel.hpp"
-#include "ScenarioElement.hpp"
+#include "ScenarioComponent.hpp"
 #include <ossia/editor/scenario/time_value.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
-#include <Engine/Executor/ProcessElement.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>

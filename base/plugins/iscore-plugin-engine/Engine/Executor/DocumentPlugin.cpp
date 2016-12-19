@@ -1,8 +1,8 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
-#include "BaseScenarioElement.hpp"
+#include "BaseScenarioComponent.hpp"
 #include "DocumentPlugin.hpp"
-#include <Engine/Executor/ConstraintElement.hpp>
+#include <Engine/Executor/ConstraintComponent.hpp>
 #include <Engine/Executor/StateProcessComponent.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>

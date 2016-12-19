@@ -4,7 +4,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <exception>
 
-#include "EventElement.hpp"
+#include "EventComponent.hpp"
 #include <ossia/editor/expression/expression.hpp>
 
 namespace Engine

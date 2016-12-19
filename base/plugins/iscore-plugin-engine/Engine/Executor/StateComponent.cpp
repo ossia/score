@@ -1,7 +1,7 @@
 #include <Engine/iscore2OSSIA.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 
-#include "StateElement.hpp"
+#include "StateComponent.hpp"
 #include <ossia/editor/scenario/time_event.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 namespace Engine

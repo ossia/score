@@ -10,8 +10,8 @@
 #include <Engine/ApplicationPlugin.hpp>
 
 #include "iscore_plugin_engine.hpp"
-#include <Engine/Executor/ProcessElement.hpp>
-#include <Engine/Executor/ScenarioElement.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
+#include <Engine/Executor/ScenarioComponent.hpp>
 #include <Engine/LocalTree/Scenario/LoopComponent.hpp>
 #include <Engine/LocalTree/Scenario/ScenarioComponent.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>

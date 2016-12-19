@@ -14,11 +14,17 @@ namespace iscore
 {
 namespace PluginLoader
 {
+/**
+ * @brief Allows to load plug-ins in the order they all require each other.
+ *
+ * \todo generalize this to make it usable for all kinf of plug-ins,
+ * and if possible DocumentPlugin.
+ */
 struct PluginDependencyGraph
 {
   struct GraphVertex
   {
-    const iscore::Addon* addon;
+    const iscore::Addon* addon{};
   };
 
   using Graph = boost::adjacency_list<
@@ -55,7 +61,6 @@ public:
         }
         else
         {
-          qDebug() << "failed: " << typeid(addon.plugin).name();
           boost::remove_vertex(addon_k, m_graph);
           not_loaded.push_back(&addon);
           break;
