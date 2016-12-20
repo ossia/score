@@ -53,14 +53,14 @@ void PlayToolState::on_pressed(
       {
         if(QApplication::keyboardModifiers() & Qt::AltModifier)
         {
+          emit m_exec.playConstraint(m_sm.model(), *id);
+        }
+        else
+        {
           emit m_exec.playFromConstraintAtDate(
                 m_sm.model(),
                 *id,
                 scenarioPoint.date);
-        }
-        else
-        {
-          emit m_exec.playConstraint(m_sm.model(), *id);
         }
       }
       break;
