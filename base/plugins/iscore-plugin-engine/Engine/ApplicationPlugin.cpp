@@ -106,7 +106,7 @@ void ApplicationPlugin::on_initDocument(iscore::Document& doc)
 
 void ApplicationPlugin::on_createdDocument(iscore::Document& doc)
 {
-  auto lt = doc.context().findPlugin<LocalTree::DocumentPlugin>();
+  LocalTree::DocumentPlugin* lt = doc.context().findPlugin<LocalTree::DocumentPlugin>();
   if (lt)
   {
     lt->init();
