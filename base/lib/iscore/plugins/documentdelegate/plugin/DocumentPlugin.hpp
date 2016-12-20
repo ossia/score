@@ -54,11 +54,27 @@ class DocumentPluginFactory;
 
 /**
  * @brief Document plug-in with serializable data.
+ *
+ * A difference with other class is that this class has two points
+ * at which it can save and reload data :
+ *
+ * * The pre-document point : the object information, etc.
+ *   Saved and loaded **before** the DocumentModel.
+ *   Uses the default mechanism.
+ *
+ * * The post-document point.
+ *   If there are informations that need to be reloaded **after**
+ *   the DocumentModel was loaded. For instance components.
+ *   This happens after the object has been constructed.
  */
 class ISCORE_LIB_BASE_EXPORT SerializableDocumentPlugin
     : public DocumentPlugin,
       public SerializableInterface<DocumentPluginFactory>
 {
+public:
+  virtual void serializeAfterDocument(const VisitorVariant& vis) const;
+  virtual void reloadAfterDocument(const VisitorVariant& vis);
+
 protected:
   using DocumentPlugin::DocumentPlugin;
   using ConcreteKey = UuidKey<DocumentPluginFactory>;
