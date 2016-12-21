@@ -17,6 +17,7 @@ namespace iscore
 {
 AggregateCommand::~AggregateCommand()
 {
+  qDeleteAll(m_cmds);
   m_cmds.clear();
 }
 
@@ -69,7 +70,7 @@ void AggregateCommand::deserializeImpl(DataStreamOutput& s)
   for (const auto& cmd_pack : serializedCommands)
   {
     auto cmd = context.instantiateUndoCommand(cmd_pack);
-    m_cmds.push_back(command_ptr{cmd});
+    m_cmds.push_back(cmd);
   }
 }
 }

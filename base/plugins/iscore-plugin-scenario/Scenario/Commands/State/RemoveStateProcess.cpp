@@ -5,7 +5,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/model/path/PathSerialization.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
-
+#include <iscore/application/ApplicationContext.hpp>
 namespace Scenario
 {
 namespace Command

@@ -60,7 +60,7 @@ iscore::optional<iscore::Addon> makeAddon(
 
 
 template<typename Registrar_T, typename Context_T>
-ISCORE_LIB_BASE_EXPORT void registerPlugins(
+void registerPlugins(
     const std::vector<iscore::Addon>& availablePlugins,
     Registrar_T& registrar,
     const Context_T& context)
@@ -93,7 +93,7 @@ ISCORE_LIB_BASE_EXPORT void registerPlugins(
 
 
 template<typename Registrar_T>
-ISCORE_LIB_BASE_EXPORT void registerPlugins(
+void registerPlugins(
     const std::vector<iscore::Addon>& availablePlugins,
     Registrar_T& registrar,
     const iscore::GUIApplicationContext& context)
@@ -119,7 +119,7 @@ ISCORE_LIB_BASE_EXPORT void registerPlugins(
  * Note: for now this is unsafe after the first loading.
  */
 template<typename Registrar_T, typename Context_T>
-ISCORE_LIB_BASE_EXPORT void loadPlugins(
+void loadPlugins(
     Registrar_T& registrar, const Context_T& context)
 {
   // Here, the plug-ins that are effectively loaded.

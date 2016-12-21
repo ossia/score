@@ -1,4 +1,5 @@
 #include "StringConstants.hpp"
+#include <iscore/command/Command.hpp>
 
 namespace iscore
 {

@@ -11,6 +11,7 @@
 #include "commands/BlacklistCommand.hpp"
 #include <ossia/detail/algorithms.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 namespace PluginSettings
 {
 PluginSettingsModel::PluginSettingsModel(

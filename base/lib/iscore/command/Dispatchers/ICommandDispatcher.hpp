@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/command/Command.hpp>
 namespace iscore
 {
 class CommandStackFacade;
