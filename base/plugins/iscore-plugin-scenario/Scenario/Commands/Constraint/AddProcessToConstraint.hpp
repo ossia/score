@@ -18,9 +18,9 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/command/AggregateCommand.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <QString>
@@ -35,15 +35,15 @@
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
-class AddProcessToConstraintBase : public iscore::SerializableCommand
+class AddProcessToConstraintBase : public iscore::Command
 {
 public:
   AddProcessToConstraintBase() = default;
@@ -79,11 +79,11 @@ class AddProcessToConstraint final : public AddProcessToConstraintBase
   friend AddProcessDelegate;
 
 public:
-  const CommandParentFactoryKey& parentKey() const override
+  const CommandGroupKey& parentKey() const noexcept override
   {
     return ScenarioCommandFactoryName();
   }
-  const CommandFactoryKey& key() const override
+  const CommandKey& key() const noexcept override
   {
     return static_key();
   }
@@ -91,7 +91,7 @@ public:
   {
     return QObject::tr("Add a process to a constraint");
   }
-  static const CommandFactoryKey& static_key()
+  static const CommandKey& static_key() noexcept
   {
     return AddProcessDelegate::static_key();
   }
@@ -103,7 +103,7 @@ public:
       const UuidKey<Process::ProcessModelFactory>& process)
       : AddProcessToConstraintBase{constraint, process}
   {
-    auto& fact = context.components.factory<Process::LayerFactoryList>();
+    auto& fact = context.interfaces<Process::LayerFactoryList>();
     m_delegate.init(fact, constraint);
   }
 
@@ -172,9 +172,9 @@ private:
   proc_t& m_cmd;
 
 public:
-  static const CommandFactoryKey& static_key()
+  static const CommandKey& static_key()
   {
-    static const CommandFactoryKey var{"AddProcessDelegate_NoRacks"};
+    static const CommandKey var{"AddProcessDelegate_NoRacks"};
     return var;
   }
 
@@ -226,8 +226,8 @@ public:
 
     // Process View
     auto& procs
-        = m_cmd.context.components.factory<Process::LayerFactoryList>();
-    auto fact = procs.findDefaultFactory(proc.concreteFactoryKey());
+        = m_cmd.context.interfaces<Process::LayerFactoryList>();
+    auto fact = procs.findDefaultFactory(proc.concreteKey());
     slot->layers.add(
         fact->make(proc, m_createdLayerId, m_layerConstructionData, slot));
   }
@@ -260,9 +260,9 @@ private:
   proc_t& m_cmd;
 
 public:
-  static const CommandFactoryKey& static_key()
+  static const CommandKey& static_key()
   {
-    static const CommandFactoryKey var{
+    static const CommandKey var{
         "AddProcessDelegate_HasNoSlots_HasRacks_NotBaseConstraint"};
     return var;
   }
@@ -305,8 +305,8 @@ public:
 
     // Layer
     auto& procs
-        = m_cmd.context.components.factory<Process::LayerFactoryList>();
-    auto fact = procs.findDefaultFactory(proc.concreteFactoryKey());
+        = m_cmd.context.interfaces<Process::LayerFactoryList>();
+    auto fact = procs.findDefaultFactory(proc.concreteKey());
     slot->layers.add(
         fact->make(proc, m_createdLayerId, m_layerConstructionData, slot));
   }
@@ -336,9 +336,9 @@ private:
   proc_t& m_cmd;
 
 public:
-  static const CommandFactoryKey& static_key()
+  static const CommandKey& static_key()
   {
-    static const CommandFactoryKey var{
+    static const CommandKey var{
         "AddProcessDelegate_HasSlots_HasRacks_NotBaseConstraint"};
     return var;
   }
@@ -383,8 +383,8 @@ public:
     auto& firstSlot = *firstRack.slotmodels.begin();
 
     auto& procs
-        = m_cmd.context.components.factory<Process::LayerFactoryList>();
-    auto fact = procs.findDefaultFactory(proc.concreteFactoryKey());
+        = m_cmd.context.interfaces<Process::LayerFactoryList>();
+    auto fact = procs.findDefaultFactory(proc.concreteKey());
     firstSlot.layers.add(fact->make(
         proc, m_createdLayerId, m_layerConstructionData, &firstSlot));
   }
@@ -412,9 +412,9 @@ class AddProcessDelegate<HasRacks, IsBaseConstraint>
       = AddProcessToConstraint<AddProcessDelegate<HasRacks, IsBaseConstraint>>;
 
 public:
-  static const CommandFactoryKey& static_key()
+  static const CommandKey& static_key()
   {
-    static const CommandFactoryKey var{
+    static const CommandKey var{
         "AddProcessDelegateWhenRacksAndBaseConstraint"};
     return var;
   }

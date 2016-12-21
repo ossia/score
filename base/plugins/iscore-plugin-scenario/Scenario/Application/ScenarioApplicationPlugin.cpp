@@ -9,7 +9,7 @@
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
 #include <QAction>
@@ -54,12 +54,12 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
+#include <iscore/model/Identifier.hpp>
 
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <algorithm>

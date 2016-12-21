@@ -33,7 +33,7 @@ LocalDevice::LocalDevice(
   m_capas.canSerialize = false;
 
   auto& appplug
-      = ctx.app.components.applicationPlugin<Engine::ApplicationPlugin>();
+      = ctx.app.applicationPlugin<Engine::ApplicationPlugin>();
 
   auto& proto = safe_cast<ossia::net::local_protocol&>(dev.getProtocol());
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <QPointer>
-#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/model/IdentifiedObjectAbstract.hpp>
 
 /**
  * A selection is a set of objects.

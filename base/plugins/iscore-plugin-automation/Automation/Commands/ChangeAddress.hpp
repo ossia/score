@@ -2,8 +2,8 @@
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Device/Address/AddressSettings.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -15,7 +15,7 @@ struct Address;
 namespace Automation
 {
 class ProcessModel;
-class ChangeAddress final : public iscore::SerializableCommand
+class ChangeAddress final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(CommandFactoryName(), ChangeAddress, "ChangeAddress")
 public:

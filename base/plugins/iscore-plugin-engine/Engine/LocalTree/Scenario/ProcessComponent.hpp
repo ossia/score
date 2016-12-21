@@ -2,8 +2,8 @@
 #include <Engine/LocalTree/LocalTreeComponent.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Scenario/Document/Components/ProcessComponent.hpp>
-#include <iscore/component/Component.hpp>
-#include <iscore/component/ComponentFactory.hpp>
+#include <iscore/model/Component.hpp>
+#include <iscore/model/ComponentFactory.hpp>
 #include <iscore/plugins/customfactory/ModelFactory.hpp>
 
 // TODO clean me up

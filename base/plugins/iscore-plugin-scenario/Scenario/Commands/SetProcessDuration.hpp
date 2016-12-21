@@ -1,9 +1,9 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -16,7 +16,7 @@ namespace Scenario
 {
 namespace Command
 {
-class SetProcessDuration final : public iscore::SerializableCommand
+class SetProcessDuration final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

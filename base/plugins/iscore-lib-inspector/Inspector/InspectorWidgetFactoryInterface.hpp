@@ -27,9 +27,9 @@ class InspectorWidgetBase;
      *
      */
 class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory
-    : public iscore::AbstractFactory<InspectorWidgetFactory>
+    : public iscore::Interface<InspectorWidgetFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("e7098592-7e2f-400d-9b71-2628d7276f99")
+  ISCORE_INTERFACE("e7098592-7e2f-400d-9b71-2628d7276f99")
 public:
   virtual ~InspectorWidgetFactory();
 

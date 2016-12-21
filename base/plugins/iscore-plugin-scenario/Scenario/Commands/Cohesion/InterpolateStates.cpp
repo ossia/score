@@ -12,7 +12,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <iterator>
 #include <utility>
 #include <vector>
@@ -36,10 +36,10 @@
 #include <State/ValueConversion.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionStack.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 namespace Scenario
 {

@@ -30,4 +30,6 @@ Makefile
 cppcheck-html
 
 base/addons/*
-i-score-srcs.pri
+i-score*.pri
+tools/sdk/Raspberry/qemu-arm-static
+

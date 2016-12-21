@@ -9,8 +9,8 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 namespace Scenario
 {

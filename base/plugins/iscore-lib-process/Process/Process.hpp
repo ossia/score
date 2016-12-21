@@ -9,14 +9,14 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <vector>
 
-#include <iscore/component/Component.hpp>
+#include <iscore/model/Component.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/Metadata.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_lib_process_export.h>
 
 namespace Process

@@ -17,7 +17,7 @@
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 #include <iscore/tools/Todo.hpp>
 class QObject;
 namespace Automation

@@ -3,9 +3,28 @@
 #include <iscore/command/Command.hpp>
 namespace iscore
 {
+/**
+ * @brief Base class for commands to be used with the Settings system.
+ *
+ * It should not be necessary to use these classes in user code.
+ * Instead, use the macro \ref ISCORE_SETTINGS_COMMAND or \ref ISCORE_SETTINGS_DEFERRED_COMMAND
+ */
+class ISCORE_LIB_BASE_EXPORT SettingsCommandBase
+{
+    public:
+        virtual ~SettingsCommandBase();
+        virtual void undo() const = 0;
+        virtual void redo() const = 0;
+};
 
 template <typename T>
-class SettingsCommand : public iscore::Command
+/**
+ * @brief A Command class that modifies a parameter given its trait class.
+ *
+ * This is used to have a very fast application of many settings.
+ * @see iscore::SettingsParameterMetadata
+ */
+class SettingsCommand : public SettingsCommandBase
 {
 public:
   using parameter_t = T;
@@ -41,17 +60,17 @@ private:
 };
 }
 
+/**
+ * \macro ISCORE_SETTINGS_COMMAND_DECL
+ * \brief Content of a Settings command.
+ */
 #define ISCORE_SETTINGS_COMMAND_DECL(name)                     \
 public:                                                        \
   using iscore::SettingsCommand<parameter_t>::SettingsCommand; \
   name() = default;                                            \
-  virtual const CommandFactoryKey& key() const override        \
+  static const CommandKey& static_key()                 \
   {                                                            \
-    return static_key();                                       \
-  }                                                            \
-  static const CommandFactoryKey& static_key()                 \
-  {                                                            \
-    static const CommandFactoryKey var{#name};                 \
+    static const CommandKey var{#name};                 \
     return var;                                                \
   }                                                            \
                                                                \

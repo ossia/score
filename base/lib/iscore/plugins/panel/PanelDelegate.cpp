@@ -17,7 +17,7 @@ PanelStatus::PanelStatus(
 {
 }
 
-PanelDelegate::PanelDelegate(const ApplicationContext& ctx) : m_context{ctx}
+PanelDelegate::PanelDelegate(const GUIApplicationContext& ctx) : m_context{ctx}
 {
 }
 
@@ -42,7 +42,7 @@ MaybeDocument PanelDelegate::document() const
   return m_model;
 }
 
-const ApplicationContext& PanelDelegate::context() const
+const GUIApplicationContext& PanelDelegate::context() const
 {
   return m_context;
 }

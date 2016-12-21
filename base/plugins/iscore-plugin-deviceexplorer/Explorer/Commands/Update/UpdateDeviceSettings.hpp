@@ -2,8 +2,8 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <QString>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -13,7 +13,7 @@ namespace Explorer
 class DeviceDocumentPlugin;
 namespace Command
 {
-class UpdateDeviceSettings final : public iscore::SerializableCommand
+class UpdateDeviceSettings final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(),

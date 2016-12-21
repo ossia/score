@@ -13,7 +13,7 @@
 #include <ossia/network/domain/domain.hpp>
 #include <Engine/OSSIA2iscore.hpp>
 #include <Engine/iscore2OSSIA.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 namespace Engine
 {

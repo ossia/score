@@ -5,13 +5,16 @@
 #include <iscore_plugin_scenario_export.h>
 
 #include "CSPCoherencyCheckerInterface.hpp"
-
+namespace iscore
+{
+struct ApplicationContext;
+}
 namespace Scenario
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT CoherencyCheckerFactoryInterface
-    : public iscore::AbstractFactory<CoherencyCheckerFactoryInterface>
+    : public iscore::Interface<CoherencyCheckerFactoryInterface>
 {
-  ISCORE_ABSTRACT_FACTORY("e9942ad6-1e39-4bdf-bb93-f31962e3cf79")
+  ISCORE_INTERFACE("e9942ad6-1e39-4bdf-bb93-f31962e3cf79")
 
 public:
   virtual CSPCoherencyCheckerInterface* make(

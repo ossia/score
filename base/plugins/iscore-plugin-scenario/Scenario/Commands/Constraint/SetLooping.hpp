@@ -1,8 +1,8 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -12,7 +12,7 @@ namespace Scenario
 class ConstraintModel;
 namespace Command
 {
-class SetLooping final : public iscore::SerializableCommand
+class SetLooping final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetLooping, "Change looping status")

@@ -1,11 +1,11 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include "CreateConstraint.hpp"
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -20,7 +20,7 @@ class ConstraintModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint_State final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

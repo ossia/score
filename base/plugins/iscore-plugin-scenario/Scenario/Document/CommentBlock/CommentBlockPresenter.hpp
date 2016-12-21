@@ -2,7 +2,7 @@
 
 #include <Process/TimeValue.hpp>
 #include <QPoint>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
 class QGraphicsItem;

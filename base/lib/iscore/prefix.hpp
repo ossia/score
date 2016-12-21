@@ -4,7 +4,7 @@
 #pragma GCC system_header
 #pragma clang system_header
 
-////////////////////////////////
+//
 #include <QAbstractItemModel>
 #include <QAction>
 #include <QApplication>
@@ -63,22 +63,21 @@
 
 #include <iscore/tools/std/Optional.hpp>
 
+
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
 #include <iscore/command/AggregateCommand.hpp>
 
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
+#include <iscore/model/path/Path.hpp>
 
-#include <iscore/tools/TreeNode.hpp>
-#include <iscore/tools/TreePath.hpp>
-#include <iscore/tools/VariantBasedNode.hpp>
-
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
+#include <iscore/model/tree/TreePath.hpp>
+#include <iscore/model/tree/VariantBasedNode.hpp>
 
 #include <iscore/selection/Selection.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
+
 #endif

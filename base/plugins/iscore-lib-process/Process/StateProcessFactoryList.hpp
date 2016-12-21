@@ -6,7 +6,7 @@
 namespace Process
 {
 class ISCORE_LIB_PROCESS_EXPORT StateProcessList final
-    : public iscore::ConcreteFactoryList<StateProcessFactory>
+    : public iscore::InterfaceList<StateProcessFactory>
 {
 public:
   using object_type = Process::StateProcess;

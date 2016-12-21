@@ -11,7 +11,7 @@
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 namespace Device
 {
@@ -31,7 +31,7 @@ QString DeviceExplorerNode::displayName() const
       return addr.name;
     }
 
-    return_type operator()(InvisibleRootNodeTag) const
+    return_type operator()(InvisibleRootNode) const
     {
       return "Invisible Root DeviceExplorerNode";
     }
@@ -204,7 +204,7 @@ Device::Node merge(Device::Node base, const State::MessageList& other)
   // base, we replace its data
   // Else, we insert it.
 
-  ISCORE_ASSERT(base.is<InvisibleRootNodeTag>());
+  ISCORE_ASSERT(base.is<InvisibleRootNode>());
 
   for (const auto& message : other)
   {

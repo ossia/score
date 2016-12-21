@@ -18,8 +18,8 @@
 #include <iscore/selection/Selection.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/selection/SelectionStack.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 #include <iscore/tools/std/Optional.hpp>
 namespace iscore
 {

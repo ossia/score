@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/component/Component.hpp>
+#include <iscore/model/Component.hpp>
 namespace iscore
 {
 /**

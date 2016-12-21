@@ -1,9 +1,9 @@
 #include "CommandFactory.hpp"
 namespace Interpolation
 {
-const CommandParentFactoryKey& CommandFactoryName()
+const CommandGroupKey& CommandFactoryName()
 {
-  static const CommandParentFactoryKey key{"Interpolation"};
+  static const CommandGroupKey key{"Interpolation"};
   return key;
 }
 }

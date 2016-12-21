@@ -22,9 +22,9 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 class QWidget;
 namespace Scenario

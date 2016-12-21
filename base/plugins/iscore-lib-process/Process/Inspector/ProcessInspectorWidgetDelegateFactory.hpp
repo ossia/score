@@ -16,9 +16,9 @@ struct DocumentContext;
 namespace Process
 {
 class ISCORE_LIB_PROCESS_EXPORT InspectorWidgetDelegateFactory
-    : public iscore::AbstractFactory<InspectorWidgetDelegateFactory>
+    : public iscore::Interface<InspectorWidgetDelegateFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("75a45c5e-24ab-4ebb-ba57-195254a6847f")
+  ISCORE_INTERFACE("75a45c5e-24ab-4ebb-ba57-195254a6847f")
 public:
   virtual ~InspectorWidgetDelegateFactory();
   virtual Process::InspectorWidgetDelegate* make(
@@ -57,9 +57,9 @@ private:
 
 class ISCORE_LIB_PROCESS_EXPORT StateProcessInspectorWidgetDelegateFactory
     : public iscore::
-          AbstractFactory<StateProcessInspectorWidgetDelegateFactory>
+          Interface<StateProcessInspectorWidgetDelegateFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("707f7d38-7897-4b8f-81eb-737976b05ea6")
+  ISCORE_INTERFACE("707f7d38-7897-4b8f-81eb-737976b05ea6")
 public:
   virtual ~StateProcessInspectorWidgetDelegateFactory();
   virtual Process::StateProcessInspectorWidgetDelegate* make(

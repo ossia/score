@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 #include "DocumentInterface.hpp"
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/model/path/ObjectPath.hpp>
 
 iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
 {
@@ -45,13 +45,13 @@ ObjectPath iscore::IDocument::unsafe_path(const QObject& obj)
   return unsafe_path(&obj);
 }
 
-iscore::DocumentDelegatePresenterInterface&
+iscore::DocumentDelegatePresenter&
 iscore::IDocument::presenterDelegate_generic(const iscore::Document& d)
 {
   return *d.presenter().presenterDelegate();
 }
 
-iscore::DocumentDelegateModelInterface&
+iscore::DocumentDelegateModel&
 iscore::IDocument::modelDelegate_generic(const Document& d)
 {
   return d.model().modelDelegate();

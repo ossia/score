@@ -31,7 +31,7 @@ void AddProcessDialog::launchWindow()
   for (const auto& factory : m_factoryList)
   {
     sortedFactoryList.push_back(
-        std::make_pair(factory.prettyName(), factory.concreteFactoryKey()));
+        std::make_pair(factory.prettyName(), factory.concreteKey()));
   }
 
   std::sort(
@@ -81,7 +81,7 @@ void AddStateProcessDialog::launchWindow()
   for (const auto& factory : m_factoryList)
   {
     sortedFactoryList.push_back(
-        std::make_pair(factory.prettyName(), factory.concreteFactoryKey()));
+        std::make_pair(factory.prettyName(), factory.concreteKey()));
   }
 
   std::sort(

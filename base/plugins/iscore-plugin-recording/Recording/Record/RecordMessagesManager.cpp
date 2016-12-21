@@ -34,10 +34,10 @@
 #include <core/document/Document.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <QApplication>
@@ -124,7 +124,7 @@ bool MessageRecorder::setup(
   // about their generation.
   auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
       Path<Scenario::ConstraintModel>(box.constraint),
-      Metadata<ConcreteFactoryKey_k, RecordedMessages::ProcessModel>::get()};
+      Metadata<ConcreteKey_k, RecordedMessages::ProcessModel>::get()};
 
   cmd_proc->redo();
   context.dispatcher.submitCommand(cmd_proc);

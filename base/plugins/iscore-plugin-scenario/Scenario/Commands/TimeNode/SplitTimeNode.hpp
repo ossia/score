@@ -2,11 +2,11 @@
 
 #include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -17,7 +17,7 @@ class EventModel;
 class TimeNodeModel;
 namespace Command
 {
-class SplitTimeNode final : public iscore::SerializableCommand
+class SplitTimeNode final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SplitTimeNode, "Split a timenode")

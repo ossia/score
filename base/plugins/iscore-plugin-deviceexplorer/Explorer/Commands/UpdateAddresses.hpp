@@ -3,8 +3,8 @@
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <QList>
 #include <QPair>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 
 #include <State/Value.hpp>
 
@@ -17,7 +17,7 @@ class DeviceDocumentPlugin;
 namespace Command
 {
 // TODO Moveme
-class UpdateAddressesValues final : public iscore::SerializableCommand
+class UpdateAddressesValues final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(),

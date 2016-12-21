@@ -5,7 +5,7 @@
 #include "LinearSegment.hpp"
 #include <Curve/Palette/CurvePoint.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 #include <ossia/editor/curve/curve_segment/linear.hpp>
 

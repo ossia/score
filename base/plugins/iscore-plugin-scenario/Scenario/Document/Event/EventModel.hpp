@@ -5,12 +5,12 @@
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
-#include <iscore/component/Component.hpp>
+#include <iscore/model/Component.hpp>
 #include <iscore/model/Entity.hpp>
 #include <iscore/selection/Selectable.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 #include <iscore/tools/Metadata.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore_plugin_scenario_export.h>
 class DataStream;
@@ -71,7 +71,7 @@ public:
   const QVector<Id<StateModel>>& states() const;
 
   // Other properties
-  const State::Condition& condition() const;
+  const State::Expression& condition() const;
   OffsetBehavior offsetBehavior() const;
 
   VerticalExtent extent() const;
@@ -82,7 +82,7 @@ public:
   ExecutionStatus status() const;
   void reset();
 
-  void setCondition(const State::Condition& arg);
+  void setCondition(const State::Expression& arg);
 
   void setExtent(const VerticalExtent& extent);
   void setDate(const TimeValue& date);
@@ -94,7 +94,7 @@ signals:
   void extentChanged(const VerticalExtent&);
   void dateChanged(const TimeValue&);
 
-  void conditionChanged(const State::Condition&);
+  void conditionChanged(const State::Expression&);
 
   void statesChanged();
 
@@ -107,7 +107,7 @@ private:
 
   QVector<Id<StateModel>> m_states;
 
-  State::Condition m_condition;
+  State::Expression m_condition;
 
   VerticalExtent m_extent;
   TimeValue m_date{TimeValue::zero()};

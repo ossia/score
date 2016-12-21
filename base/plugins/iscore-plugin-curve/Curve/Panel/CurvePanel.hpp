@@ -73,8 +73,8 @@ public:
             // Setup the model
             auto fact = iscore::AppContext()
                     .components
-                    .factory<Process::LayerFactoryList>()
-                    .get(m_layer.concreteFactoryKey());
+                    .interfaces<Process::LayerFactoryList>()
+                    .get(m_layer.concreteKey());
 
             if(!fact)
                 throw;

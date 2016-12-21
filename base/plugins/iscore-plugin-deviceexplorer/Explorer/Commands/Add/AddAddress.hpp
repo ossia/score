@@ -1,11 +1,11 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 
 #include <Device/Address/AddressSettings.hpp>
-#include <iscore/tools/TreePath.hpp>
+#include <iscore/model/tree/TreePath.hpp>
 
 #include <iscore_plugin_deviceexplorer_export.h>
 
@@ -18,7 +18,7 @@ class DeviceDocumentPlugin;
 namespace Command
 {
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddAddress final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), AddAddress, "Add an address")

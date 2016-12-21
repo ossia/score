@@ -6,7 +6,7 @@ namespace iscore
 {
 class Document;
 class DocumentDelegateFactory;
-class DocumentDelegateViewInterface;
+class DocumentDelegateView;
 class PanelView;
 
 /**
@@ -23,7 +23,7 @@ public:
       const Document& doc,
       QWidget* parent);
 
-  DocumentDelegateViewInterface& viewDelegate() const
+  DocumentDelegateView& viewDelegate() const
   {
     return *m_view;
   }
@@ -37,6 +37,6 @@ public:
 
 private:
   const Document& m_document;
-  DocumentDelegateViewInterface* m_view{};
+  DocumentDelegateView* m_view{};
 };
 }

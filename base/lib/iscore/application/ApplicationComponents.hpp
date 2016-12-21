@@ -20,7 +20,7 @@ namespace iscore
 {
 class DocumentDelegateFactory;
 class DocumentPluginFactory;
-class FactoryListInterface;
+class InterfaceListBase;
 class Plugin_QtInterface;
 class GUIApplicationContextPlugin;
 class PanelDelegate;
@@ -38,9 +38,9 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
   std::vector<iscore::Addon> addons;
   std::vector<GUIApplicationContextPlugin*> appPlugins;
 
-  iscore::hash_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>
+  iscore::hash_map<iscore::InterfaceKey, std::unique_ptr<InterfaceListBase>>
           factories;
-  iscore::hash_map<CommandParentFactoryKey, CommandGeneratorMap> commands;
+  iscore::hash_map<CommandGroupKey, CommandGeneratorMap> commands;
   std::vector<std::unique_ptr<PanelDelegate>> panels;
 };
 
@@ -82,12 +82,27 @@ public:
   }
 
   template <typename T>
-  const T& factory() const
+  const T* findInterfaces() const
   {
     static_assert(
         T::factory_list_tag,
         "This needs to be called with a factory list class");
-    auto it = m_data.factories.find(T::static_abstractFactoryKey());
+    auto it = m_data.factories.find(T::static_interfaceKey());
+    if (it != m_data.factories.end())
+    {
+      return safe_cast<T*>(it->second.get());
+    }
+
+    return nullptr;
+  }
+
+  template <typename T>
+  const T& interfaces() const
+  {
+    static_assert(
+        T::factory_list_tag,
+        "This needs to be called with a factory list class");
+    auto it = m_data.factories.find(T::static_interfaceKey());
     if (it != m_data.factories.end())
     {
       return *safe_cast<T*>(it->second.get());
@@ -97,18 +112,7 @@ public:
     throw;
   }
 
-  /**
-   * @brief instantiateUndoCommand Is used to generate a Command from its
-   * serialized data.
-   * @param parent_name The name of the object able to generate the command.
-   * Must be a CustomCommand.
-   * @param name The name of the command to generate.
-   * @param data The data of the command.
-   *
-   * Ownership of the command is transferred to the caller, and he must delete
-   * it.
-   */
-  iscore::SerializableCommand*
+  iscore::Command*
   instantiateUndoCommand(const CommandData& cmd) const;
 
 private:

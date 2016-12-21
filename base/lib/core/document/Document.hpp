@@ -18,7 +18,7 @@ namespace iscore
 {
 class DocumentBackupManager;
 } // namespace iscore
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_lib_base_export.h>
 
 namespace iscore

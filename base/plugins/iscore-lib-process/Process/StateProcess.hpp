@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
 #include <iscore/tools/Metadata.hpp>

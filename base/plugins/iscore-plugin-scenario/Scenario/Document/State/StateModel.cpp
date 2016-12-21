@@ -13,8 +13,8 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Message.hpp>
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

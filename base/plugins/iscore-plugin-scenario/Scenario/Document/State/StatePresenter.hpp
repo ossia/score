@@ -2,7 +2,7 @@
 #include <Scenario/Document/State/StateView.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <iscore_plugin_scenario_export.h>
 

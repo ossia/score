@@ -44,10 +44,10 @@
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
@@ -185,7 +185,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
   // Durations
   auto& ctrl
-      = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
+      = ctx.app.applicationPlugin<ScenarioApplicationPlugin>();
   m_durationSection
       = new DurationWidget{ctrl.editionSettings(), *m_delegate, this};
   m_properties.push_back(m_durationSection);

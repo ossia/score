@@ -3,8 +3,8 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 
 namespace Scenario
 {
@@ -14,7 +14,7 @@ class ProcessModel;
 
 namespace Command
 {
-class SerializableMoveEvent : public iscore::SerializableCommand
+class SerializableMoveEvent : public iscore::Command
 {
 public:
   virtual void update(

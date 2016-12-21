@@ -16,12 +16,12 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 
-#include <iscore/tools/EntityMap.hpp>
+#include <iscore/model/EntityMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 static const constexpr int slotSpacing = 10;
 

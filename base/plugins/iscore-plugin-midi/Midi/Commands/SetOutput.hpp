@@ -1,12 +1,12 @@
 #pragma once
 #include <Midi/Commands/CommandFactory.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 namespace Midi
 {
 class ProcessModel;
 
-class SetOutput final : public iscore::SerializableCommand
+class SetOutput final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(Midi::CommandFactoryName(), SetOutput, "Set Midi output")
 public:
@@ -24,7 +24,7 @@ private:
   QString m_old, m_new;
 };
 
-class SetChannel final : public iscore::SerializableCommand
+class SetChannel final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       Midi::CommandFactoryName(), SetChannel, "Set Midi channel")

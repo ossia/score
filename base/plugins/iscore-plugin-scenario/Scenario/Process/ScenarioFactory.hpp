@@ -15,7 +15,7 @@ class ProcessModel;
 class QGraphicsItem;
 class QObject;
 struct VisitorVariant;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {
@@ -24,7 +24,7 @@ class EditionSettings;
 class ScenarioFactory final : public Process::ProcessModelFactory
 {
 public:
-  UuidKey<Process::ProcessModelFactory> concreteFactoryKey() const override;
+  UuidKey<Process::ProcessModelFactory> concreteKey() const noexcept override;
   QString prettyName() const override;
 
   Process::ProcessModel* make(
@@ -71,7 +71,7 @@ public:
       const Process::LayerModel& viewmodel, QGraphicsItem* parent) override;
 
   bool matches(const UuidKey<Process::ProcessModelFactory>& p) const override;
-  UuidKey<Process::LayerFactory> concreteFactoryKey() const override;
+  UuidKey<Process::LayerFactory> concreteKey() const noexcept override;
 
 private:
   Scenario::EditionSettings& m_editionSettings;

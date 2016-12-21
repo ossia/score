@@ -9,9 +9,9 @@
 #include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/ObjectPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/path/ObjectPath.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

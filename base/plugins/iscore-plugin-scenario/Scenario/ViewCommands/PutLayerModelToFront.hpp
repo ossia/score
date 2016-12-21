@@ -1,11 +1,11 @@
 #pragma once
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 namespace Process
 {
 class LayerModel;
 }
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

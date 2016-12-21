@@ -25,8 +25,8 @@
 
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
 class QObject;
@@ -39,7 +39,7 @@ SlotPresenter::SlotPresenter(
     const Process::ProcessPresenterContext& ctx,
     QObject* par)
     : QObject{par}
-    , m_processList{ctx.app.components.factory<Process::LayerFactoryList>()}
+    , m_processList{ctx.app.interfaces<Process::LayerFactoryList>()}
     , m_model{model}
     , m_view{new SlotView{*this, view}}
     , m_context{ctx}
@@ -245,7 +245,7 @@ void SlotPresenter::on_loopingChanged(bool b)
 void SlotPresenter::on_layerModelCreated_impl(
     const Process::LayerModel& proc_vm)
 {
-  const auto& procKey = proc_vm.processModel().concreteFactoryKey();
+  const auto& procKey = proc_vm.processModel().concreteKey();
 
   auto factory = m_processList.findDefaultFactory(procKey);
   ISCORE_ASSERT(factory);
@@ -323,7 +323,7 @@ void SlotPresenter::updateProcesses()
     {
       if (proc_size < numproc)
       {
-        auto procKey = proc.model->processModel().concreteFactoryKey();
+        auto procKey = proc.model->processModel().concreteKey();
         auto factory = m_processList.findDefaultFactory(procKey);
         ISCORE_ASSERT(factory);
 

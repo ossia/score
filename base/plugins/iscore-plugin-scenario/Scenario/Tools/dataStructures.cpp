@@ -4,10 +4,11 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 
 #include "dataStructures.hpp"
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
 namespace Scenario
@@ -44,8 +45,8 @@ ConstraintSaveData::ConstraintSaveData(
 
 void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
 {
-  auto& comps = iscore::AppContext().components;
-  auto& procsfactories = comps.factory<Process::ProcessFactoryList>();
+  auto& comps = iscore::AppComponents();
+  auto& procsfactories = comps.interfaces<Process::ProcessFactoryList>();
   for (auto& sourceproc : processes)
   {
     Deserializer<DataStream> des{sourceproc};

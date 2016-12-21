@@ -1,6 +1,6 @@
 #include "SetProcessPosition.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {

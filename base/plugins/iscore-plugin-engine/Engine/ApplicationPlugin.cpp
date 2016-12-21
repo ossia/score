@@ -2,12 +2,12 @@
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
-#include <Engine/Executor/BaseScenarioElement.hpp>
+#include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
-#include <Engine/Executor/ConstraintElement.hpp>
-#include <Engine/Executor/StateElement.hpp>
+#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/StateComponent.hpp>
 #include <Process/TimeValue.hpp>
 
 #include <Scenario/Application/ScenarioActions.hpp>
@@ -29,7 +29,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/actions/ActionManager.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <vector>
 
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
@@ -106,7 +106,7 @@ void ApplicationPlugin::on_initDocument(iscore::Document& doc)
 
 void ApplicationPlugin::on_createdDocument(iscore::Document& doc)
 {
-  auto lt = doc.context().findPlugin<LocalTree::DocumentPlugin>();
+  LocalTree::DocumentPlugin* lt = doc.context().findPlugin<LocalTree::DocumentPlugin>();
   if (lt)
   {
     lt->init();
@@ -148,12 +148,14 @@ void ApplicationPlugin::on_play(bool b, ::TimeValue t)
         &doc->model().modelDelegate());
     if (!scenar)
       return;
-    on_play(scenar->displayedElements.constraint(), b, t);
+    on_play(scenar->displayedElements.constraint(), b, {}, t);
   }
 }
 
 void ApplicationPlugin::on_play(
-    Scenario::ConstraintModel& cst, bool b, TimeValue t)
+    Scenario::ConstraintModel& cst, bool b,
+    std::function<void(const Engine::Execution::Context&)> setup_fun,
+    TimeValue t)
 {
   auto doc = currentDocument();
   ISCORE_ASSERT(doc);
@@ -197,6 +199,12 @@ void ApplicationPlugin::on_play(
             stop_action.action()->trigger();
           },
           Qt::QueuedConnection);
+
+      if(setup_fun)
+      {
+        setup_fun(plugmodel->context());
+      }
+
       m_clock->play(t);
       m_paused = false;
     }

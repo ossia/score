@@ -3,8 +3,8 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 
 #include <Scenario/Commands/Constraint/SetRigidity.hpp>
 
@@ -16,14 +16,14 @@ class TimeNodeModel;
 namespace Command
 {
 template <typename Scenario_T>
-class RemoveTrigger final : public iscore::SerializableCommand
+class RemoveTrigger final : public iscore::Command
 {
 public:
-  const CommandParentFactoryKey& parentKey() const override
+  const CommandGroupKey& parentKey() const noexcept override
   {
     return CommandFactoryName<Scenario_T>();
   }
-  const CommandFactoryKey& key() const override
+  const CommandKey& key() const noexcept override
   {
     return static_key();
   }
@@ -31,9 +31,9 @@ public:
   {
     return QObject::tr("Remove a trigger");
   }
-  static const CommandFactoryKey& static_key()
+  static const CommandKey& static_key()
   {
-    static const CommandFactoryKey kagi{
+    static const CommandKey kagi{
         QString("RemoveTrigger_") + Metadata<ObjectKey_k, Scenario_T>::get()};
     return kagi;
   }

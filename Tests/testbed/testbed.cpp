@@ -1,30 +1,10 @@
 #include <type_traits>
-
-struct Foo
-{
-        Foo(int) { }
-};
-struct Bar
-{
-        Bar() { }
-};
-
-struct Blah
-{
-        template<typename std::enable_if_t<Foo(1)> * = nullptr>
-        Blah(int i)
-        {
-            Foo f(i);
-        }
-        template<typename std::enable_if_t<Foo(1)> * = nullptr>
-        Blah(int i)
-        {
-            Foo f(i);
-        }
-};
+#include <brigand/algorithms/for_each.hpp>
 
 int main()
 {
+  // 1. Find a "type iterator" to the element we are looking for.
+  // 2. When it is found, apply the function we want on it.
     //Serializer<DataStream>::marshall(RealNode{});
     return 0;
 }

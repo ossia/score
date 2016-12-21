@@ -15,7 +15,7 @@ namespace Scenario
 class ConstraintInspectorFactory final
     : public Inspector::InspectorWidgetFactory
 {
-  ISCORE_CONCRETE_FACTORY("1ca16c0a-6c01-4054-a646-d860a3886e81")
+  ISCORE_CONCRETE("1ca16c0a-6c01-4054-a646-d860a3886e81")
 public:
   ConstraintInspectorFactory() : InspectorWidgetFactory{}
   {

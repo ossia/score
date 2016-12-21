@@ -1,7 +1,7 @@
 #pragma once
-#include <Engine/Executor/ProcessElement.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
 #include <Loop/LoopProcessModel.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <memory>
 
 class DeviceList;

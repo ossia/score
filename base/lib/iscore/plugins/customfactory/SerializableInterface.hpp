@@ -32,7 +32,7 @@ struct AbstractSerializer<DataStream, T>
     QByteArray b;
     DataStream::Serializer sub{&b};
 
-    sub.readFrom(obj.concreteFactoryKey().impl());
+    sub.readFrom(obj.concreteKey().impl());
     sub.readFrom_impl(obj);
     obj.serialize_impl(sub.toVariant());
     sub.insertDelimiter();
@@ -46,7 +46,7 @@ struct AbstractSerializer<JSONObject, T>
 {
   static void readFrom(JSONObject::Serializer& s, const T& obj)
   {
-    s.m_obj[s.strings.uuid] = toJsonValue(obj.concreteFactoryKey().impl());
+    s.m_obj[s.strings.uuid] = toJsonValue(obj.concreteKey().impl());
     s.readFrom_impl(obj);
     obj.serialize_impl(s.toVariant());
   }
@@ -72,7 +72,7 @@ public:
 
   SerializableInterface() = default;
   virtual ~SerializableInterface() = default;
-  virtual UuidKey<T> concreteFactoryKey() const = 0;
+  virtual UuidKey<T> concreteKey() const = 0;
 
   virtual void serialize_impl(const VisitorVariant& vis) const
   {
@@ -116,7 +116,7 @@ auto deserialize_interface(
   try
   {
     auto k = deserialize_key<
-        typename FactoryList_T::factory_type::ConcreteFactoryKey>(sub);
+        typename FactoryList_T::factory_type::ConcreteKey>(sub);
 
     // Get the factory
     if (auto concrete_factory = factories.get(k))
@@ -149,7 +149,7 @@ auto deserialize_interface(
   try
   {
     auto k = deserialize_key<
-        typename FactoryList_T::factory_type::ConcreteFactoryKey>(des);
+        typename FactoryList_T::factory_type::ConcreteKey>(des);
 
     // Get the factory
     if (auto concrete_factory = factories.get(k))
@@ -174,13 +174,13 @@ auto deserialize_interface(
  * If the class is clonable, use MODEL_METADATA_IMPL.
  */
 #define SERIALIZABLE_MODEL_METADATA_IMPL(Model_T)                     \
-  static key_type static_concreteFactoryKey()                         \
+  static key_type static_concreteKey()                         \
   {                                                                   \
-    return Metadata<ConcreteFactoryKey_k, Model_T>::get();            \
+    return Metadata<ConcreteKey_k, Model_T>::get();            \
   }                                                                   \
-  key_type concreteFactoryKey() const final override                  \
+  key_type concreteKey() const final override                  \
   {                                                                   \
-    return static_concreteFactoryKey();                               \
+    return static_concreteKey();                               \
   }                                                                   \
                                                                       \
   void serialize_impl(const VisitorVariant& vis) const final override \

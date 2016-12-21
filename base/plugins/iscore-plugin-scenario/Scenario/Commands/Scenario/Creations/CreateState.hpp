@@ -1,10 +1,10 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -17,7 +17,7 @@ class StateModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateState final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), CreateState, "Create a state")

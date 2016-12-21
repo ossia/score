@@ -2,9 +2,9 @@
 #include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <iscore_plugin_scenario_export.h>
@@ -27,7 +27,7 @@ namespace Command
         * starting from an event selected by the user.
         */
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), CreateConstraint, "Create a constraint")

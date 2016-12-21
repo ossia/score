@@ -6,7 +6,6 @@
 #include <iscore_plugin_scenario_export.h>
 class QGraphicsItem;
 class QObject;
-
 namespace Scenario
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final
@@ -27,7 +26,10 @@ public:
       const Process::ProcessPresenterContext& ctx,
       QGraphicsItem* parentobject,
       QObject* parent);
+
+
   virtual ~TemporalConstraintPresenter();
+  void on_requestOverlayMenu(QPointF);
 
 signals:
   void constraintHoverEnter();

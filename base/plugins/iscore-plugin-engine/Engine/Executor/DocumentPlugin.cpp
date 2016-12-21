@@ -1,8 +1,8 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
-#include "BaseScenarioElement.hpp"
+#include "BaseScenarioComponent.hpp"
 #include "DocumentPlugin.hpp"
-#include <Engine/Executor/ConstraintElement.hpp>
+#include <Engine/Executor/ConstraintComponent.hpp>
 #include <Engine/Executor/StateProcessComponent.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
@@ -26,9 +26,9 @@ DocumentPlugin::DocumentPlugin(
     , m_ctx{
           doc.context(), *this,
           doc.context().plugin<Explorer::DeviceDocumentPlugin>(),
-          doc.context().app.components.factory<ProcessComponentFactoryList>(),
+          doc.context().app.interfaces<ProcessComponentFactoryList>(),
           doc.context()
-              .app.components.factory<StateProcessComponentFactoryList>(),
+              .app.interfaces<StateProcessComponentFactoryList>(),
       }
 {
   con(doc, &iscore::Document::aboutToClose, this, [&] {

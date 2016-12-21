@@ -49,8 +49,7 @@ public:
     };
 
     QObject::connect(
-        &metadata, &iscore::ModelMetadata::NameChanged, context, setNameFun,
-        Qt::QueuedConnection);
+        &metadata, &iscore::ModelMetadata::NameChanged, context, setNameFun);
 
     setNameFun(metadata.getName());
   }

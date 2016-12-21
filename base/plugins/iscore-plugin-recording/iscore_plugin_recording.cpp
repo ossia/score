@@ -12,6 +12,8 @@
 #include "iscore_plugin_recording.hpp"
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
 #include <iscore_plugin_recording_commands_files.hpp>
+#include <Scenario/iscore_plugin_scenario.hpp>
+#include <iscore_plugin_engine.hpp>
 
 iscore_plugin_recording::iscore_plugin_recording() : QObject{}
 {
@@ -28,26 +30,30 @@ iscore_plugin_recording::make_applicationPlugin(
   return new Recording::ApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_recording::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, RecordedMessages::ProcessFactory>, FW<Process::LayerFactory, RecordedMessages::LayerFactory>, FW<Process::InspectorWidgetDelegateFactory, RecordedMessages::InspectorFactory>, FW<Engine::Execution::ProcessComponentFactory, RecordedMessages::Executor::ComponentFactory>>>(
+  return instantiate_factories<iscore::ApplicationContext, FW<Process::ProcessModelFactory, RecordedMessages::ProcessFactory>, FW<Process::LayerFactory, RecordedMessages::LayerFactory>, FW<Process::InspectorWidgetDelegateFactory, RecordedMessages::InspectorFactory>, FW<Engine::Execution::ProcessComponentFactory, RecordedMessages::Executor::ComponentFactory>>(
       ctx, key);
 }
 
-QStringList iscore_plugin_recording::required() const
+auto iscore_plugin_recording::required() const
+  -> std::vector<iscore::PluginKey>
 {
-  return {"Scenario", "Engine"};
+    return {
+      iscore_plugin_scenario::static_key(),
+      iscore_plugin_engine::static_key()
+    };
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_recording::make_commands()
 {
   using namespace Recording;
   using namespace RecordedMessages;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       RecordingCommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<
@@ -56,14 +62,4 @@ iscore_plugin_recording::make_commands()
   for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
   return cmds;
-}
-
-iscore::Version iscore_plugin_recording::version() const
-{
-  return iscore::Version{1};
-}
-
-UuidKey<iscore::Plugin> iscore_plugin_recording::key() const
-{
-  return_uuid("659ba25e-97e5-40d9-8db8-f7a8537035ad");
 }

@@ -4,7 +4,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 #include <QDrag>
 #include <QDragEnterEvent>

@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 #include <QAbstractTransition>
 #include <QEvent>

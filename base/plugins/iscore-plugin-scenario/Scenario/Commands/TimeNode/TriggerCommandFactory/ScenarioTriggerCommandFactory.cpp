@@ -6,10 +6,10 @@
 
 #include "ScenarioTriggerCommandFactory.hpp"
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 namespace Scenario
 {
 namespace Command
@@ -20,7 +20,7 @@ bool ScenarioTriggerCommandFactory::matches(const TimeNodeModel& tn) const
   return dynamic_cast<Scenario::ProcessModel*>(tn.parent());
 }
 
-iscore::SerializableCommand*
+iscore::Command*
 ScenarioTriggerCommandFactory::make_addTriggerCommand(
     const TimeNodeModel& tn) const
 {
@@ -31,7 +31,7 @@ ScenarioTriggerCommandFactory::make_addTriggerCommand(
   return nullptr;
 }
 
-iscore::SerializableCommand*
+iscore::Command*
 ScenarioTriggerCommandFactory::make_removeTriggerCommand(
     const TimeNodeModel& tn) const
 {

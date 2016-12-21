@@ -1,8 +1,8 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <iscore_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -18,7 +18,7 @@ namespace Command
          * Sets the rigidity of a constraint
          */
 class ISCORE_PLUGIN_SCENARIO_EXPORT SetRigidity final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetRigidity, "Change constraint rigidity")

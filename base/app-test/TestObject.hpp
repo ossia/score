@@ -2,7 +2,7 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <core/document/Document.hpp>
 #include <core/command/CommandStack.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/actions/ActionManager.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -73,7 +73,7 @@ class TestObject : public QObject
                 m_context.documents.forceCloseDocument(m_context, *doc);
                 QApplication::processEvents();
 
-                auto& doctype = *m_context.components.factory<iscore::DocumentDelegateList>().begin();
+                auto& doctype = *m_context.interfaces<iscore::DocumentDelegateList>().begin();
 
                 auto ba_doc = m_context.documents.loadDocument(m_context, byte_arr, doctype);
                 QApplication::processEvents();

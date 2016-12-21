@@ -1,12 +1,12 @@
 #pragma once
 #include <QString>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 #include <iscore/tools/Metadata.hpp>
 #include <iscore_lib_process_export.h>
 
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 class QObject;
 namespace Process
@@ -83,9 +83,9 @@ public:
     return static_cast<Process_T&>(LayerModel::processModel());
   }
 
-  key_type concreteFactoryKey() const final override
+  key_type concreteKey() const final override
   {
-    return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get();
+    return Metadata<ConcreteKey_k, LayerModel_T>::get();
   }
 
 protected:

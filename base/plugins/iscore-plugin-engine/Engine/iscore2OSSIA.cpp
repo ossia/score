@@ -34,7 +34,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
-#include <Engine/Executor/ProcessElement.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/Executor/StateProcessComponent.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Engine/OSSIA2iscore.hpp>
@@ -47,7 +47,7 @@
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
 #include <State/Relation.hpp>
-#include <iscore/tools/InvisibleRootNode.hpp>
+#include <iscore/model/tree/InvisibleRootNode.hpp>
 
 #include <boost/call_traits.hpp>
 class NodeNotFoundException : public std::runtime_error
@@ -604,7 +604,7 @@ expression(const State::Expression& e, const Device::DeviceList& list)
       return ossia::expressions::make_expression_not(
           expression(expr.childAt(0), devlist));
     }
-    return_type operator()(const InvisibleRootNodeTag) const
+    return_type operator()(const InvisibleRootNode) const
     {
       if (expr.childCount() == 0)
       {

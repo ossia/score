@@ -17,7 +17,7 @@ class QGraphicsSceneDragDropEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
-
+class ConstraintMenuOverlay;
 namespace Scenario
 {
 class TemporalConstraintPresenter;
@@ -45,17 +45,10 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
-  bool shadow() const;
-  void setShadow(bool shadow);
+  void enableOverlay(bool b) override;
 
   void setLabelColor(iscore::ColorRef labelColor);
   void setLabel(const QString& label);
-
-  void setFocused(bool b)
-  {
-    m_hasFocus = b;
-    update();
-  }
 
   void setColor(iscore::ColorRef c)
   {
@@ -63,7 +56,6 @@ public:
     update();
   }
 
-  void setExecutionState(ConstraintExecutionState);
   void setExecutionDuration(const TimeValue& progress);
 
 signals:
@@ -79,12 +71,6 @@ protected:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
 private:
-  QString m_label{};
-
   iscore::ColorRef m_bgColor;
-
-  bool m_shadow{false};
-  bool m_hasFocus{};
-  ConstraintExecutionState m_state{};
 };
 }

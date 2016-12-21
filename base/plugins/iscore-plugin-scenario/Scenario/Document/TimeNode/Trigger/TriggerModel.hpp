@@ -1,11 +1,11 @@
 #pragma once
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <State/Expression.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 #include <iscore/tools/Metadata.hpp>
 
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
 namespace Scenario
@@ -18,8 +18,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TriggerModel final
 public:
   TriggerModel(const Id<TriggerModel>& id, QObject* parent);
 
-  State::Trigger expression() const;
-  void setExpression(const State::Trigger& expression);
+  State::Expression expression() const;
+  void setExpression(const State::Expression& expression);
 
   bool active() const;
   void setActive(bool active);
@@ -29,13 +29,13 @@ public:
   ExecutionStatusProperty executionStatus; // TODO serialize me ?
 
 signals:
-  void triggerChanged(const State::Trigger&);
+  void triggerChanged(const State::Expression&);
   void activeChanged();
 
   void triggeredByGui() const;
 
 private:
-  State::Trigger m_expression;
+  State::Expression m_expression;
   bool m_active{false};
 };
 }

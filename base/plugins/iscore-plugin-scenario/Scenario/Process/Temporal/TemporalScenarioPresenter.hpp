@@ -7,7 +7,7 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <Process/ZoomHelper.hpp>
@@ -21,7 +21,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
 namespace Process

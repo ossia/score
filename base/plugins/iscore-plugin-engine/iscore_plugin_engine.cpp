@@ -10,8 +10,8 @@
 #include <Engine/ApplicationPlugin.hpp>
 
 #include "iscore_plugin_engine.hpp"
-#include <Engine/Executor/ProcessElement.hpp>
-#include <Engine/Executor/ScenarioElement.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
+#include <Engine/Executor/ScenarioComponent.hpp>
 #include <Engine/LocalTree/Scenario/LoopComponent.hpp>
 #include <Engine/LocalTree/Scenario/ScenarioComponent.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
@@ -37,12 +37,16 @@
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
 #include <Engine/Protocols/WS/WSProtocolFactory.hpp>
 #endif
+
+#include <Scenario/iscore_plugin_scenario.hpp>
+#include <iscore_plugin_deviceexplorer.hpp>
+
 iscore_plugin_engine::iscore_plugin_engine() : QObject{}
 {
   qRegisterMetaType<Engine::Execution::ClockManagerFactory::
-                        ConcreteFactoryKey>("ClockManagerKey");
+                        ConcreteKey>("ClockManagerKey");
   qRegisterMetaTypeStreamOperators<Engine::Execution::ClockManagerFactory::
-                                       ConcreteFactoryKey>("ClockManagerKey");
+                                       ConcreteKey>("ClockManagerKey");
 }
 
 iscore_plugin_engine::~iscore_plugin_engine()
@@ -56,16 +60,16 @@ iscore_plugin_engine::make_applicationPlugin(
   return new Engine::ApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+std::vector<std::unique_ptr<iscore::InterfaceListBase>>
 iscore_plugin_engine::factoryFamilies()
 {
-  return make_ptr_vector<iscore::FactoryListInterface, Engine::LocalTree::ProcessComponentFactoryList, Engine::Execution::ProcessComponentFactoryList, Engine::Execution::StateProcessComponentFactoryList, Engine::Execution::ClockManagerFactoryList>();
+  return make_ptr_vector<iscore::InterfaceListBase, Engine::LocalTree::ProcessComponentFactoryList, Engine::Execution::ProcessComponentFactoryList, Engine::Execution::StateProcessComponentFactoryList, Engine::Execution::ClockManagerFactoryList>();
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_engine::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   using namespace Scenario;
   using namespace Engine;
@@ -74,7 +78,6 @@ iscore_plugin_engine::factories(
 
   return instantiate_factories<
             iscore::ApplicationContext,
-            TL<
             FW<Device::ProtocolFactory,
                  Network::LocalProtocolFactory,
                  Network::OSCProtocolFactory,
@@ -136,26 +139,15 @@ iscore_plugin_engine::factories(
             Curve::SegmentFactory_T<Segment_elasticOut>,
             Curve::SegmentFactory_T<Segment_elasticInOut>,
             Curve::SegmentFactory_T<Segment_perlinInOut>
-            >>
+            >
                >(ctx, key);
 }
 
-QStringList iscore_plugin_engine::required() const
+auto iscore_plugin_engine::required() const
+  -> std::vector<iscore::PluginKey>
 {
-  return {"Scenario", "DeviceExplorer"};
-}
-
-QStringList iscore_plugin_engine::offered() const
-{
-  return {"Engine"};
-}
-
-iscore::Version iscore_plugin_engine::version() const
-{
-  return iscore::Version{1};
-}
-
-UuidKey<iscore::Plugin> iscore_plugin_engine::key() const
-{
-  return_uuid("d4758f8d-64ac-41b4-8aaf-1cbd6f3feb91");
+    return {
+      iscore_plugin_scenario::static_key(),
+      iscore_plugin_deviceexplorer::static_key()
+    };
 }

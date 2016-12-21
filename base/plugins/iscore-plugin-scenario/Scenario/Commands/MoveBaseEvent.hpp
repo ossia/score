@@ -10,10 +10,10 @@
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/Identifier.hpp>
 
 /*
  * Command to change a constraint duration by moving event. Vertical move is
@@ -25,7 +25,7 @@ class BaseScenario;
 namespace Command
 {
 template <typename SimpleScenario_T>
-class MoveBaseEvent final : public iscore::SerializableCommand
+class MoveBaseEvent final : public iscore::Command
 {
 private:
   template <typename ScaleFun>
@@ -47,11 +47,11 @@ private:
   }
 
 public:
-  const CommandParentFactoryKey& parentKey() const override
+  const CommandGroupKey& parentKey() const noexcept override
   {
     return CommandFactoryName<SimpleScenario_T>();
   }
-  const CommandFactoryKey& key() const override
+  const CommandKey& key() const noexcept override
   {
     return static_key();
   }
@@ -60,9 +60,9 @@ public:
     return QObject::tr("Move a %1 event")
         .arg(Metadata<UndoName_k, SimpleScenario_T>::get());
   }
-  static const CommandFactoryKey& static_key()
+  static const CommandKey& static_key() noexcept
   {
-    static const CommandFactoryKey kagi{
+    static const CommandKey kagi{
         QString("MoveBaseEvent_")
         + Metadata<ObjectKey_k, SimpleScenario_T>::get()};
     return kagi;

@@ -9,7 +9,7 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {
@@ -26,7 +26,7 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
     ExpandMode mode)
     : SerializableMoveEvent{}
     , m_moveEventImplementation(
-          context.components.factory<MoveEventList>()
+          context.interfaces<MoveEventList>()
               .get(context, MoveEventFactoryInterface::Strategy::CREATION)
               .make(
                   std::move(scenarioPath), std::move(eventId),
@@ -65,7 +65,7 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
   qDataStream >> cmdData;
 
   m_moveEventImplementation
-      = context.components.factory<MoveEventList>()
+      = context.interfaces<MoveEventList>()
             .get(context, MoveEventFactoryInterface::Strategy::CREATION)
             .make();
 

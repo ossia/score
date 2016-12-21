@@ -2,7 +2,7 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 
 #include <iscore/statemachine/StateMachineUtils.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 #include <QAbstractTransition>
 #include <QPointF>

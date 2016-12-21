@@ -2,8 +2,8 @@
 #include <QLayout>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
 
 #include <iscore/document/DocumentContext.hpp>
 

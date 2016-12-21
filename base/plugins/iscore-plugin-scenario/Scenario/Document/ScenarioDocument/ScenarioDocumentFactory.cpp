@@ -15,28 +15,28 @@ struct VisitorVariant;
 
 namespace Scenario
 {
-iscore::DocumentDelegateViewInterface* ScenarioDocumentFactory::makeView(
+iscore::DocumentDelegateView* ScenarioDocumentFactory::makeView(
     const iscore::ApplicationContext& ctx, QObject* parent)
 {
   return new ScenarioDocumentView{ctx, parent};
 }
 
-iscore::DocumentDelegatePresenterInterface*
+iscore::DocumentDelegatePresenter*
 ScenarioDocumentFactory::makePresenter(
     iscore::DocumentPresenter* parent_presenter,
-    const iscore::DocumentDelegateModelInterface& model,
-    iscore::DocumentDelegateViewInterface& view)
+    const iscore::DocumentDelegateModel& model,
+    iscore::DocumentDelegateView& view)
 {
   return new ScenarioDocumentPresenter{parent_presenter, model, view};
 }
 
-iscore::DocumentDelegateModelInterface* ScenarioDocumentFactory::make(
+iscore::DocumentDelegateModel* ScenarioDocumentFactory::make(
     const iscore::DocumentContext& ctx, iscore::DocumentModel* parent)
 {
   return new ScenarioDocumentModel{ctx, parent};
 }
 
-iscore::DocumentDelegateModelInterface* ScenarioDocumentFactory::load(
+iscore::DocumentDelegateModel* ScenarioDocumentFactory::load(
     const VisitorVariant& vis,
     const iscore::DocumentContext& ctx,
     iscore::DocumentModel* parent)

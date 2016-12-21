@@ -31,12 +31,12 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/selection/SelectionStack.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
 #include <Process/LayerPresenter.hpp>
@@ -46,7 +46,7 @@
 #include <algorithm>
 #include <chrono>
 #include <core/document/Document.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 
 namespace Process
 {
@@ -57,8 +57,8 @@ namespace Scenario
 ScenarioDocumentModel::ScenarioDocumentModel(
     const iscore::DocumentContext& ctx, QObject* parent)
     : iscore::
-          DocumentDelegateModelInterface{Id<iscore::
-                                                DocumentDelegateModelInterface>(
+          DocumentDelegateModel{Id<iscore::
+                                                DocumentDelegateModel>(
                                              iscore::id_generator::
                                                  getFirstId()),
                                          "Scenario::ScenarioDocumentModel",
@@ -124,7 +124,7 @@ void ScenarioDocumentModel::initializeNewDocument(
 
   AddOnlyProcessToConstraint cmd1{
       iscore::IDocument::path(m_baseScenario->constraint()),
-      Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get()};
+      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
   cmd1.redo();
 
   AddRackToConstraint cmd2{
@@ -277,7 +277,7 @@ void ScenarioDocumentModel::setDisplayedConstraint(ConstraintModel& constraint)
 
   auto& provider
       = iscore::IDocument::documentContext(*this)
-            .app.components.factory<DisplayedElementsProviderList>();
+            .app.interfaces<DisplayedElementsProviderList>();
   displayedElements.setDisplayedElements(
       provider.make(&DisplayedElementsProvider::make, constraint));
 

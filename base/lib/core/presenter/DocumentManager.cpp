@@ -12,7 +12,7 @@
 #include <core/view/View.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <QSaveFile>
@@ -29,9 +29,9 @@
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/application/ApplicationComponents.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/identity.hpp>
@@ -73,7 +73,7 @@ DocumentManager::DocumentManager(iscore::View& view, QObject* parentPresenter)
 {
 }
 
-void DocumentManager::init(const ApplicationContext& ctx)
+void DocumentManager::init(const iscore::GUIApplicationContext& ctx)
 {
   con(m_view, &View::activeDocumentChanged, this,
       [&](const Id<DocumentModel>& doc) {
@@ -122,7 +122,7 @@ DocumentManager::~DocumentManager()
 
 ISCORE_LIB_BASE_EXPORT
 Document* DocumentManager::setupDocument(
-    const iscore::ApplicationContext& ctx, Document* doc)
+    const iscore::GUIApplicationContext& ctx, Document* doc)
 {
   if (doc)
   {
@@ -151,27 +151,27 @@ Document* DocumentManager::currentDocument() const
 }
 
 void DocumentManager::setCurrentDocument(
-    const iscore::ApplicationContext& ctx, Document* doc)
+    const iscore::GUIApplicationContext& ctx, Document* doc)
 {
   auto old = m_currentDocument;
   m_currentDocument = doc;
 
   if (doc)
   {
-    for (auto& panel : ctx.components.panels())
+    for (auto& panel : ctx.panels())
     {
       panel.setModel(doc->context());
     }
   }
   else
   {
-    for (auto& panel : ctx.components.panels())
+    for (auto& panel : ctx.panels())
     {
       panel.setModel(iscore::none);
     }
   }
 
-  for (auto& ctrl : ctx.components.applicationPlugins())
+  for (auto& ctrl : ctx.applicationPlugins())
   {
     ctrl->on_documentChanged(old, m_currentDocument);
   }
@@ -179,7 +179,7 @@ void DocumentManager::setCurrentDocument(
 }
 
 bool DocumentManager::closeDocument(
-    const iscore::ApplicationContext& ctx, Document& doc)
+    const iscore::GUIApplicationContext& ctx, Document& doc)
 {
   // Warn the user if he might loose data
   if (!doc.commandStack().isAtSavedIndex())
@@ -215,7 +215,7 @@ bool DocumentManager::closeDocument(
 }
 
 void DocumentManager::forceCloseDocument(
-    const ApplicationContext& ctx, Document& doc)
+    const iscore::GUIApplicationContext& ctx, Document& doc)
 {
   emit doc.aboutToClose();
   QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
@@ -339,7 +339,7 @@ bool DocumentManager::saveStack()
   return false;
 }
 
-Document* DocumentManager::loadStack(const iscore::ApplicationContext& ctx)
+Document* DocumentManager::loadStack(const iscore::GUIApplicationContext& ctx)
 {
   QString loadname = QFileDialog::getOpenFileName(
       &m_view, tr("Open Stack"), QString(), "*.stack");
@@ -352,7 +352,7 @@ Document* DocumentManager::loadStack(const iscore::ApplicationContext& ctx)
 }
 
 Document* DocumentManager::loadStack(
-    const ApplicationContext& ctx, const QString& loadname)
+    const iscore::GUIApplicationContext& ctx, const QString& loadname)
 {
   QFile cmdF{loadname};
 
@@ -368,7 +368,7 @@ Document* DocumentManager::loadStack(
 
     prepareNewDocument(ctx);
     auto doc = m_builder.newDocument(
-        ctx, id, *ctx.components.factory<DocumentDelegateList>().begin());
+        ctx, id, *ctx.interfaces<DocumentDelegateList>().begin());
     setupDocument(ctx, doc);
 
     loadCommandStack(
@@ -382,7 +382,7 @@ Document* DocumentManager::loadStack(
 }
 
 ISCORE_LIB_BASE_EXPORT
-Document* DocumentManager::loadFile(const iscore::ApplicationContext& ctx)
+Document* DocumentManager::loadFile(const iscore::GUIApplicationContext& ctx)
 {
   QString loadname = QFileDialog::getOpenFileName(
       &m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
@@ -390,7 +390,7 @@ Document* DocumentManager::loadFile(const iscore::ApplicationContext& ctx)
 }
 
 Document* DocumentManager::loadFile(
-    const iscore::ApplicationContext& ctx, const QString& fileName)
+    const iscore::GUIApplicationContext& ctx, const QString& fileName)
 {
   Document* doc{};
   if (!fileName.isEmpty() && (fileName.indexOf(".scorebin") != -1
@@ -406,7 +406,7 @@ Document* DocumentManager::loadFile(
       {
         doc = loadDocument(
             ctx, f.readAll(),
-            *ctx.components.factory<DocumentDelegateList>().begin());
+            *ctx.interfaces<DocumentDelegateList>().begin());
       }
       else if (fileName.indexOf(".scorejson") != -1)
       {
@@ -416,7 +416,7 @@ Document* DocumentManager::loadFile(
         {
           doc = loadDocument(
               ctx, json.object(),
-              *ctx.components.factory<DocumentDelegateList>().begin());
+              *ctx.interfaces<DocumentDelegateList>().begin());
         }
         else
         {
@@ -442,18 +442,18 @@ Document* DocumentManager::loadFile(
 }
 
 ISCORE_LIB_BASE_EXPORT
-void DocumentManager::prepareNewDocument(const iscore::ApplicationContext& ctx)
+void DocumentManager::prepareNewDocument(const iscore::GUIApplicationContext& ctx)
 {
   m_preparingNewDocument = true;
   for (GUIApplicationContextPlugin* appPlugin :
-       ctx.components.applicationPlugins())
+       ctx.applicationPlugins())
   {
     appPlugin->prepareNewDocument();
   }
   m_preparingNewDocument = false;
 }
 
-bool DocumentManager::closeAllDocuments(const iscore::ApplicationContext& ctx)
+bool DocumentManager::closeAllDocuments(const iscore::GUIApplicationContext& ctx)
 {
   while (!m_documents.empty())
   {
@@ -471,7 +471,7 @@ bool DocumentManager::preparingNewDocument() const
 }
 
 bool DocumentManager::checkAndUpdateJson(
-    QJsonDocument& json, const iscore::ApplicationContext& ctx)
+    QJsonDocument& json, const iscore::GUIApplicationContext& ctx)
 {
   if (!json.isObject())
     return false;
@@ -484,7 +484,7 @@ bool DocumentManager::checkAndUpdateJson(
     loaded_version = Version{(*it).toInt()};
 
   LocalPluginVersionsMap local_plugins;
-  for (const auto& plug : ctx.components.addons())
+  for (const auto& plug : ctx.addons())
   {
     local_plugins.insert(plug.plugin);
   }
@@ -578,13 +578,13 @@ void DocumentManager::saveRecentFilesState()
 }
 
 ISCORE_LIB_BASE_EXPORT
-void DocumentManager::restoreDocuments(const iscore::ApplicationContext& ctx)
+void DocumentManager::restoreDocuments(const iscore::GUIApplicationContext& ctx)
 {
   for (const auto& backup : DocumentBackups::restorableDocuments())
   {
     restoreDocument(
         ctx, backup.first, backup.second,
-        *ctx.components.factory<DocumentDelegateList>().begin());
+        *ctx.interfaces<DocumentDelegateList>().begin());
   }
 }
 

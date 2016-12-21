@@ -4,8 +4,8 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {

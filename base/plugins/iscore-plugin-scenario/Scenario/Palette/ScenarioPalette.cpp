@@ -17,10 +17,10 @@
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {

@@ -1,13 +1,13 @@
 #pragma once
 #include <Midi/Commands/CommandFactory.hpp>
 #include <Midi/MidiNote.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 namespace Midi
 {
 class ProcessModel;
 
-class MoveNotes final : public iscore::SerializableCommand
+class MoveNotes final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(Midi::CommandFactoryName(), MoveNotes, "Move notes")
 public:

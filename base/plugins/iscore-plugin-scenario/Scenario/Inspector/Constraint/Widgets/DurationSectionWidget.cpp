@@ -29,9 +29,9 @@
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>

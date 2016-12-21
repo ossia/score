@@ -1,7 +1,7 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
@@ -17,7 +17,7 @@ namespace Command
  *
  * Sets the Max duration of a Constraint
 */
-class SetMaxDuration final : public iscore::SerializableCommand
+class SetMaxDuration final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetMaxDuration, "Set constraint maximum")

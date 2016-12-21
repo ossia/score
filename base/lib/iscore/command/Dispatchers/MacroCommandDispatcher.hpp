@@ -26,7 +26,7 @@ public:
         "MacroCommandDispatcher: Command_T must be AggregateCommand-derived");
   }
 
-  void submitCommand(iscore::SerializableCommand* cmd)
+  void submitCommand(iscore::Command* cmd)
   {
     RedoStrategy_T::redo(*cmd);
     m_aggregateCommand->addCommand(cmd);

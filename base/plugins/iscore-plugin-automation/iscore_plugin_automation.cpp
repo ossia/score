@@ -31,20 +31,21 @@ using AutomationLayerFactory = Curve::
 iscore_plugin_automation::iscore_plugin_automation() = default;
 iscore_plugin_automation::~iscore_plugin_automation() = default;
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_automation::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, Automation::AutomationFactory>, FW<Process::LayerFactory, Automation::AutomationLayerFactory>, FW<Inspector::InspectorWidgetFactory, Automation::StateInspectorFactory, Automation::PointInspectorFactory>, FW<Process::InspectorWidgetDelegateFactory, Automation::InspectorFactory>>>(
+  return instantiate_factories<iscore::ApplicationContext,
+      FW<Process::ProcessModelFactory, Automation::AutomationFactory>, FW<Process::LayerFactory, Automation::AutomationLayerFactory>, FW<Inspector::InspectorWidgetFactory, Automation::StateInspectorFactory, Automation::PointInspectorFactory>, FW<Process::InspectorWidgetDelegateFactory, Automation::InspectorFactory>>(
       ctx, key);
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_automation::make_commands()
 {
   using namespace Automation;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       CommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<
@@ -53,14 +54,4 @@ iscore_plugin_automation::make_commands()
   for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
   return cmds;
-}
-
-iscore::Version iscore_plugin_automation::version() const
-{
-  return iscore::Version{1};
-}
-
-UuidKey<iscore::Plugin> iscore_plugin_automation::key() const
-{
-  return_uuid("255cbc40-c7e9-4bb2-87ea-8ad803fb9f2b");
 }

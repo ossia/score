@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 
 #include <QTextDocument>
 
@@ -12,7 +12,7 @@ namespace Scenario
 class CommentBlockModel;
 namespace Command
 {
-class SetCommentText final : public iscore::SerializableCommand
+class SetCommentText final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetCommentText,
@@ -23,7 +23,7 @@ public:
   void undo() const override;
   void redo() const override;
 
-  // SerializableCommand interface
+  // Command interface
 protected:
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;

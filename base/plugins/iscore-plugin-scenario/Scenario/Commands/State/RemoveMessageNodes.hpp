@@ -1,8 +1,8 @@
 #pragma once
 #include <QList>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 
 #include <Process/State/MessageNode.hpp>
 
@@ -15,7 +15,7 @@ class StateModel;
 
 namespace Command
 {
-class RemoveMessageNodes final : public iscore::SerializableCommand
+class RemoveMessageNodes final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), RemoveMessageNodes, "Remove user messages")

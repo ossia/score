@@ -9,7 +9,7 @@
 
 #include "AggregateCommand.hpp"
 #include <iscore/application/ApplicationContext.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
@@ -17,14 +17,12 @@ namespace iscore
 {
 AggregateCommand::~AggregateCommand()
 {
-  for (auto cmd : m_cmds)
-    delete cmd;
   m_cmds.clear();
 }
 
 void AggregateCommand::undo() const
 {
-  for (auto cmd : boost::adaptors::reverse(m_cmds))
+  for (const auto& cmd : boost::adaptors::reverse(m_cmds))
   {
     cmd->undo();
   }
@@ -32,15 +30,25 @@ void AggregateCommand::undo() const
 
 void AggregateCommand::redo() const
 {
-  for (auto cmd : m_cmds)
+  for (const auto& cmd : m_cmds)
   {
     cmd->redo();
   }
 }
 
+void AggregateCommand::addCommand(Command* cmd)
+{
+    m_cmds.push_back(command_ptr{cmd});
+}
+
+int AggregateCommand::count() const
+{
+    return m_cmds.size();
+}
+
 void AggregateCommand::serializeImpl(DataStreamInput& s) const
 {
-  std::vector<CommandData> serializedCommands;
+    std::vector<CommandData> serializedCommands;
   serializedCommands.reserve(m_cmds.size());
 
   for (auto& cmd : m_cmds)
@@ -60,8 +68,8 @@ void AggregateCommand::deserializeImpl(DataStreamOutput& s)
 
   for (const auto& cmd_pack : serializedCommands)
   {
-    auto cmd = context.components.instantiateUndoCommand(cmd_pack);
-    m_cmds.push_back(cmd);
+    auto cmd = context.instantiateUndoCommand(cmd_pack);
+    m_cmds.push_back(command_ptr{cmd});
   }
 }
 }

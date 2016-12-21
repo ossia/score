@@ -6,7 +6,7 @@
 #include "InspectorWidgetBase.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
-#include <iscore/tools/IdentifiedObjectAbstract.hpp>
+#include <iscore/model/IdentifiedObjectAbstract.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 
 namespace Inspector

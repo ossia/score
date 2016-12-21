@@ -1,4 +1,26 @@
 #pragma once
+/**
+ * \file ForEachType
+ * \brief Algorithms to iterate on a type list.
+ *
+ * There are two variants :
+ *
+ * `for_each_type` and `for_each_type_if`.
+ *
+ * Example:
+ *
+ * \code
+ * struct foo {
+ *  void perform(int) { ... }
+ *  void perform(float) { ... }
+ *  void perform(MyType) { ... }
+ * };
+ * for_each_type<TL<int, float, MyType>>(foo{});
+ * for_each_type<TL<int, float, MyType>>(foo{});
+ * \endcode
+ *
+ * Note : the brigand library seems to have a better implementation of this.
+ */
 
 // Courtesy of Daniel J-H
 // https://gist.github.com/daniel-j-h

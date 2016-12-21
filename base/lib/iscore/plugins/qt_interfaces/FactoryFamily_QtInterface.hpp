@@ -14,7 +14,7 @@ class ISCORE_LIB_BASE_EXPORT FactoryList_QtInterface
 {
 public:
   virtual ~FactoryList_QtInterface();
-  virtual std::vector<std::unique_ptr<FactoryListInterface>> factoryFamilies()
+  virtual std::vector<std::unique_ptr<InterfaceListBase>> factoryFamilies()
       = 0;
 };
 }

@@ -10,7 +10,7 @@
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 /**
  * \namespace Curve
@@ -43,21 +43,20 @@ class iscore_plugin_curve final : public QObject,
       iscore::Plugin_QtInterface iscore::FactoryInterface_QtInterface
           iscore::CommandFactory_QtInterface iscore::FactoryList_QtInterface)
 
+  ISCORE_PLUGIN_METADATA(1, "49837ed7-dbc5-4330-9890-a130a2718b5e")
 public:
   iscore_plugin_curve();
   virtual ~iscore_plugin_curve() = default;
 
 private:
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
-  std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+  std::vector<std::unique_ptr<iscore::InterfaceListBase>>
   factoryFamilies() override;
 
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
 };

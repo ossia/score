@@ -6,7 +6,7 @@
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <iscore/application/ApplicationContext.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 namespace iscore
@@ -27,7 +27,12 @@ ApplicationInterface& ApplicationInterface::instance()
   return *m_instance;
 }
 
-void ApplicationInterface::loadPluginData(
+GUIApplicationInterface& GUIApplicationInterface::instance()
+{
+  return *static_cast<GUIApplicationInterface*>(ApplicationInterface::m_instance);
+}
+
+void GUIApplicationInterface::loadPluginData(
     const iscore::GUIApplicationContext& ctx,
     iscore::ApplicationRegistrar& registrar,
     iscore::Settings& settings,
@@ -56,7 +61,7 @@ void ApplicationInterface::loadPluginData(
   // Load the settings
   QSettings s;
   for (auto& elt :
-       ctx.components.factory<iscore::SettingsDelegateFactoryList>())
+       ctx.interfaces<iscore::SettingsDelegateFactoryList>())
   {
     settings.setupSettingsPlugin(s, ctx, elt);
   }
@@ -64,13 +69,13 @@ void ApplicationInterface::loadPluginData(
   presenter.setupGUI();
 
   for (iscore::GUIApplicationContextPlugin* app_plug :
-       ctx.components.applicationPlugins())
+       ctx.applicationPlugins())
   {
     app_plug->initialize();
   }
 
   for (auto& panel_fac :
-       context().components.factory<iscore::PanelDelegateFactoryList>())
+       ctx.interfaces<iscore::PanelDelegateFactoryList>())
   {
     registrar.registerPanel(panel_fac);
   }
@@ -81,8 +86,14 @@ ISCORE_LIB_BASE_EXPORT const ApplicationContext& AppContext()
   return ApplicationInterface::instance().context();
 }
 
+ISCORE_LIB_BASE_EXPORT const GUIApplicationContext& GUIAppContext()
+{
+  return GUIApplicationInterface::instance().context();
+}
+
 ISCORE_LIB_BASE_EXPORT const ApplicationComponents& AppComponents()
 {
   return ApplicationInterface::instance().components();
 }
+
 }

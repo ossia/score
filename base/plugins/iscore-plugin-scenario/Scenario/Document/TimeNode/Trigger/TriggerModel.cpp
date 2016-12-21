@@ -1,9 +1,9 @@
 #include "TriggerModel.hpp"
 #include <State/Expression.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {
@@ -18,12 +18,12 @@ TriggerModel::TriggerModel(const Id<TriggerModel>& id, QObject* parent)
       &m_expression});
 }
 
-State::Trigger TriggerModel::expression() const
+State::Expression TriggerModel::expression() const
 {
   return m_expression;
 }
 
-void TriggerModel::setExpression(const State::Trigger& expression)
+void TriggerModel::setExpression(const State::Expression& expression)
 {
   if (m_expression == expression)
     return;

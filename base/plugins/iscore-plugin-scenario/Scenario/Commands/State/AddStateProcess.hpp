@@ -1,9 +1,9 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 
 #include <iscore_plugin_scenario_export.h>
 
@@ -20,7 +20,7 @@ class StateModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

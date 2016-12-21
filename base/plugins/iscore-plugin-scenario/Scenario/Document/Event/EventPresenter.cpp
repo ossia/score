@@ -25,7 +25,7 @@
 #include <iscore/tools/Todo.hpp>
 
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {
@@ -62,7 +62,7 @@ EventPresenter::EventPresenter(
   m_view->setToolTip(m_model.metadata().getComment());
 
   con(m_model, &EventModel::conditionChanged, this,
-      [&](const State::Condition& c) { m_view->setCondition(c.toString()); });
+      [&](const State::Expression& c) { m_view->setCondition(c.toString()); });
 }
 
 EventPresenter::~EventPresenter()

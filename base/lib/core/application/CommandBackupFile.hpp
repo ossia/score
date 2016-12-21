@@ -6,7 +6,7 @@
 #include <QString>
 #include <QTemporaryFile>
 #include <iscore/command/CommandData.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 namespace iscore
 {

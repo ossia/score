@@ -1,11 +1,11 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 #include <tests/helpers/ForwardDeclaration.hpp>
 
 namespace Scenario
@@ -18,7 +18,7 @@ namespace Command
  *
  * Sets the Min duration of a Constraint
  */
-class SetMinDuration final : public iscore::SerializableCommand
+class SetMinDuration final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetMinDuration, "Set constraint minimum")

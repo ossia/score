@@ -2,8 +2,8 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <iscore/model/ModelMetadata.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
 namespace Scenario

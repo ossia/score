@@ -12,7 +12,7 @@
 
 #include "SlotModel.hpp"
 #include <iscore/model/ModelMetadata.hpp>
-#include <iscore/tools/EntityMap.hpp>
+#include <iscore/model/EntityMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
@@ -61,13 +61,13 @@ void SlotModel::copyViewModelsInSameConstraint(
     const SlotModel& source, SlotModel& target)
 {
   auto& procs
-      = iscore::AppContext().components.factory<Process::LayerFactoryList>();
+      = iscore::AppComponents().interfaces<Process::LayerFactoryList>();
 
   for (const auto& lm : source.layers)
   {
     // We can safely reuse the same id since it's in a different slot.
     auto& proc = lm.processModel();
-    auto fact = procs.findDefaultFactory(proc.concreteFactoryKey());
+    auto fact = procs.findDefaultFactory(proc.concreteKey());
 
     target.layers.add(fact->cloneLayer(proc, lm.id(), lm, &target));
   }

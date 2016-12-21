@@ -58,10 +58,10 @@
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/InvisibleRootNode.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/tree/InvisibleRootNode.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
 
@@ -756,7 +756,7 @@ void DeviceExplorerWidget::removeNodes()
   for (auto index : indexes)
   {
     auto& n = model()->nodeFromModelIndex(sourceIndex(index));
-    if (!n.is<InvisibleRootNodeTag>())
+    if (!n.is<InvisibleRootNode>())
       nodes.append(&n);
   }
 

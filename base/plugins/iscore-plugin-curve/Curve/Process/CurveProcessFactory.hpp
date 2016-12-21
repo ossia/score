@@ -79,14 +79,14 @@ public:
         safe_cast<const LayerModel_T&>(layer), parent};
   }
 
-  UuidKey<Process::LayerFactory> concreteFactoryKey() const override
+  UuidKey<Process::LayerFactory> concreteKey() const noexcept override
   {
-    return Metadata<ConcreteFactoryKey_k, LayerModel_T>::get();
+    return Metadata<ConcreteKey_k, LayerModel_T>::get();
   }
 
   bool matches(const UuidKey<Process::ProcessModelFactory>& p) const override
   {
-    return p == Metadata<ConcreteFactoryKey_k, Model_T>::get();
+    return p == Metadata<ConcreteKey_k, Model_T>::get();
   }
 
   const Curve::Style& style() const override

@@ -1,8 +1,8 @@
 #pragma once
 #include <Curve/Commands/CurveCommandFactory.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <vector>
 
 struct DataStreamInput;
@@ -11,7 +11,7 @@ struct DataStreamOutput;
 namespace Curve
 {
 class Model;
-class UpdateCurve final : public iscore::SerializableCommand
+class UpdateCurve final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(CommandFactoryName(), UpdateCurve, "Update Curve")
 public:

@@ -16,7 +16,7 @@
 
 class QWidget;
 class Selection;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace iscore
 {
@@ -26,7 +26,7 @@ DocumentContext DocumentContext::fromDocument(Document& d)
 }
 
 DocumentContext::DocumentContext(Document& d)
-    : app{iscore::AppContext()}
+    : app{iscore::GUIAppContext()}
     , document{d}
     , commandStack{d.m_commandStack}
     , selectionStack{d.selectionStack()}
@@ -78,7 +78,7 @@ void Document::init()
 {
   con(m_selectionStack, &SelectionStack::currentSelectionChanged, this,
       [&](const Selection& s) {
-        for (auto& panel : m_context.app.components.panels())
+        for (auto& panel : m_context.app.panels())
         {
           panel.setNewSelection(s);
         }

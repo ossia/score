@@ -15,11 +15,11 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iterator>
 #include <stdexcept>
@@ -33,10 +33,10 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace iscore
 {
@@ -67,9 +67,14 @@ QJsonObject Document::saveAsJson()
     if (auto serializable_plugin
         = dynamic_cast<SerializableDocumentPlugin*>(plugin))
     {
-      Serializer<JSONObject> s;
-      s.readFrom(*serializable_plugin);
-      json_plugins[serializable_plugin->objectName()] = s.m_obj;
+      Serializer<JSONObject> s_before;
+      s_before.readFrom(*serializable_plugin);
+
+      Serializer<JSONObject> s_after;
+      serializable_plugin->serializeAfterDocument(s_after.toVariant());
+
+      s_before.m_obj["DocumentPostModelPart"] = std::move(s_after.m_obj);
+      json_plugins[serializable_plugin->objectName()] = std::move(s_before.m_obj);
     }
   }
 
@@ -93,17 +98,19 @@ QByteArray Document::saveAsByteArray()
   auto docByteArray = saveDocumentModelAsByteArray();
 
   // Save the document plug-ins
-  QVector<QPair<QString, QByteArray>> documentPluginModels;
+  QVector<QPair<QByteArray, QByteArray>> documentPluginModels;
 
   for (const auto& plugin : model().pluginModels())
   {
     if (auto serializable_plugin
         = dynamic_cast<SerializableDocumentPlugin*>(plugin))
     {
-      QByteArray arr;
-      Serializer<DataStream> s{&arr};
-      s.readFrom(*serializable_plugin);
-      documentPluginModels.push_back({plugin->objectName(), arr});
+      QByteArray arr_before, arr_after;
+      Serializer<DataStream> s_before{&arr_before};
+      Serializer<DataStream> s_after{&arr_after};
+      s_before.readFrom(*serializable_plugin);
+      serializable_plugin->serializeAfterDocument(s_after.toVariant());
+      documentPluginModels.push_back({std::move(arr_before), std::move(arr_after)});
     }
   }
 
@@ -153,7 +160,7 @@ void DocumentModel::loadDocumentAsByteArray(
 {
   // Deserialize the first parts
   QByteArray doc;
-  QVector<QPair<QString, QByteArray>> documentPluginModels;
+  QVector<QPair<QByteArray, QByteArray>> documentPluginModels;
   QByteArray hash;
 
   QDataStream wr{data};
@@ -191,13 +198,22 @@ void DocumentModel::loadDocumentAsByteArray(
   // document that requires the plugin models to be loaded
   // in order to be deserialized. (e.g. the groups for the network)
   // First load the plugin models
+
+  const auto plug_n = documentPluginModels.size();
+
   auto& plugin_factories
-      = ctx.app.components.factory<DocumentPluginFactoryList>();
-  Foreach(documentPluginModels, [&](const auto& plugin_raw) {
-    DataStream::Deserializer plug_writer{plugin_raw.second};
+      = ctx.app.interfaces<DocumentPluginFactoryList>();
+  std::vector<iscore::DocumentPlugin*> docs(plug_n, nullptr);
+
+  for(int i = 0; i < plug_n; i++)
+  {
+    const auto& plugin_raw = documentPluginModels[i];
+
+    DataStream::Deserializer plug_writer{plugin_raw.first};
     auto plug
         = deserialize_interface(plugin_factories, plug_writer, ctx, this);
 
+    docs[i] = plug;
     if (plug)
     {
       this->addPluginModel(plug);
@@ -206,10 +222,19 @@ void DocumentModel::loadDocumentAsByteArray(
     {
       ISCORE_TODO;
     }
-  });
+  }
 
   // Load the document model
   m_model = fact.load(doc_writer.toVariant(), ctx, this);
+
+  for(int i = 0; i < plug_n; i++)
+  {
+    if(auto plug = dynamic_cast<iscore::SerializableDocumentPlugin*>(docs[i]))
+    {
+      DataStream::Deserializer plug_writer{documentPluginModels[i].second};
+      plug->reloadAfterDocument(plug_writer.toVariant());
+    }
+  }
 }
 
 void DocumentModel::loadDocumentAsJson(
@@ -232,10 +257,11 @@ void DocumentModel::loadDocumentAsJson(
 
   this->setId(doc_id);
 
+  iscore::hash_map<iscore::SerializableDocumentPlugin*, QJsonObject> docs;
   // Load the plug-in models
   auto json_plugins = json["Plugins"].toObject();
   auto& plugin_factories
-      = ctx.app.components.factory<DocumentPluginFactoryList>();
+      = ctx.app.interfaces<DocumentPluginFactoryList>();
   Foreach(json_plugins.keys(), [&](const auto& key) {
     JSONObject::Deserializer plug_writer{json_plugins[key].toObject()};
     auto plug
@@ -243,6 +269,14 @@ void DocumentModel::loadDocumentAsJson(
 
     if (plug)
     {
+      if(auto ser = dynamic_cast<iscore::SerializableDocumentPlugin*>(plug))
+      {
+        auto it = plug_writer.m_obj.find("DocumentPostModelPart");
+        if((it != plug_writer.m_obj.end()) && it->isObject())
+        {
+          docs.insert({ser, it->toObject()});
+        }
+      }
       this->addPluginModel(plug);
     }
     else
@@ -254,6 +288,13 @@ void DocumentModel::loadDocumentAsJson(
   // Load the model
   JSONObject::Deserializer doc_writer{doc};
   m_model = fact.load(doc_writer.toVariant(), ctx, this);
+
+  auto it_end = docs.end();
+  for(auto it = docs.begin(); it != it_end; ++it)
+  {
+    JSONObject::Deserializer des{it.value()};
+    it->first->reloadAfterDocument(des.toVariant());
+  }
 }
 
 // Load document model
@@ -267,7 +308,7 @@ DocumentModel::DocumentModel(
 {
   using namespace std;
 
-  for (auto& appPlug : ctx.app.components.applicationPlugins())
+  for (auto& appPlug : ctx.app.applicationPlugins())
   {
     appPlug->on_initDocument(ctx.document);
   }

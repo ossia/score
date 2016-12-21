@@ -7,12 +7,12 @@
 #include <functional>
 #include <iscore/plugins/customfactory/SerializableInterface.hpp>
 #include <iscore/selection/Selectable.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <vector>
 
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -108,7 +108,7 @@ public:
             end(),
             previous(),
             following(),
-            concreteFactoryKey(),
+            concreteKey(),
             toSegmentSpecificData()};
   }
 

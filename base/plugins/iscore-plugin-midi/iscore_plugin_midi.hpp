@@ -13,20 +13,19 @@ class iscore_plugin_midi final : public QObject,
   Q_INTERFACES(iscore::Plugin_QtInterface iscore::FactoryInterface_QtInterface
                    iscore::CommandFactory_QtInterface)
 
+  ISCORE_PLUGIN_METADATA(1, "0a964c0f-dd69-4e5a-9577-0ec5695690b0")
 public:
   iscore_plugin_midi();
   virtual ~iscore_plugin_midi();
 
 private:
   // Process & inspector
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
   // CommandFactory_QtInterface interface
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
 };

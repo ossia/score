@@ -10,9 +10,9 @@
 /**
  * \file Action.hpp
  *
- * - Conditions
- * - Integration with menus, toolbars, etc.
- * - TODO solve the problem of a "single" action used in multiple contexts
+ * * Conditions
+ * * Integration with menus, toolbars, etc.
+ * * TODO solve the problem of a "single" action used in multiple contexts
  * e.g. copy-paste.
  * - Steps :
  *   * declaring the conditions
@@ -440,68 +440,6 @@ class EnableWhenDocumentIs;
   };                                                                       \
   }
 
-class ISCORE_LIB_BASE_EXPORT Menu
-{
-public:
-  struct is_toplevel
-  {
-  };
-  Menu(QMenu* menu, StringKey<Menu> m);
-
-  Menu(
-      QMenu* menu,
-      StringKey<Menu>
-          m,
-      is_toplevel,
-      int column = std::numeric_limits<int>::max() - 1);
-
-  StringKey<Menu> key() const;
-
-  QMenu* menu() const;
-
-  int column() const;
-
-  bool toplevel() const;
-
-private:
-  QMenu* m_impl{};
-  StringKey<Menu> m_key;
-  int m_col = std::numeric_limits<int>::max() - 1;
-  bool m_toplevel{};
-};
-
-class ISCORE_LIB_BASE_EXPORT Toolbar
-{
-public:
-  Toolbar(
-      QToolBar* tb, StringKey<Toolbar> key, int defaultRow, int defaultCol);
-
-  QToolBar* toolbar() const;
-
-  StringKey<Toolbar> key() const;
-
-  int row() const;
-  int column() const;
-
-private:
-  QToolBar* m_impl{};
-  StringKey<Toolbar> m_key;
-
-  // If a row is used, it goes next
-  // Maybe it should be a list instead ?
-  int m_row = 0;
-  int m_col = 0;
-
-  int m_defaultRow = 0;
-  int m_defaultCol = 0;
-};
-
-struct GUIElements
-{
-  ActionContainer actions;
-  std::vector<Menu> menus;
-  std::vector<Toolbar> toolbars;
-};
 }
 
 #define ISCORE_DECLARE_ACTION(ActionName, Text, Group, Shortcut)       \

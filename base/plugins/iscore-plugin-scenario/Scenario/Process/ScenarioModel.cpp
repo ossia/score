@@ -5,7 +5,7 @@
 #include <QIODevice>
 #include <QMap>
 #include <QtGlobal>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <vector>
 
 #include "Algorithms/StandardCreationPolicy.hpp"
@@ -25,7 +25,7 @@
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
+#include <iscore/model/EntityMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
 namespace Process
@@ -45,19 +45,14 @@ ProcessModel::ProcessModel(
                        Metadata<ObjectKey_k, Scenario::ProcessModel>::get(),
                        parent}
     , m_startTimeNodeId{Scenario::startId<TimeNodeModel>()}
-    , m_endTimeNodeId{Scenario::endId<TimeNodeModel>()}
     , m_startEventId{Scenario::startId<EventModel>()}
-    , m_endEventId{Scenario::endId<EventModel>()}
     , m_startStateId{Scenario::startId<StateModel>()}
 {
   auto& start_tn = ScenarioCreate<TimeNodeModel>::redo(
       m_startTimeNodeId, {0., 0.1}, TimeValue::zero(), *this);
-  auto& end_tn = ScenarioCreate<TimeNodeModel>::redo(
-      m_endTimeNodeId, {0., 0.1}, duration, *this);
 
   auto& start_ev = ScenarioCreate<EventModel>::redo(
       m_startEventId, start_tn, {0., 0.0}, *this);
-  ScenarioCreate<EventModel>::redo(m_endEventId, end_tn, {0., 0.}, *this);
 
   ScenarioCreate<StateModel>::redo(m_startStateId, start_ev, 0.02, *this);
 
@@ -75,9 +70,7 @@ ProcessModel::ProcessModel(
                        Metadata<ObjectKey_k, Scenario::ProcessModel>::get(),
                        parent}
     , m_startTimeNodeId{source.m_startTimeNodeId}
-    , m_endTimeNodeId{source.m_endTimeNodeId}
     , m_startEventId{source.m_startEventId}
-    , m_endEventId{source.m_endEventId}
 {
   metadata().setInstanceName(*this);
   // This almost terrifying piece of code will simply clone
@@ -158,12 +151,6 @@ void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
 
 void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
 {
-  // TODO what happens when there are constraints linked here ?
-  auto& eev = endEvent();
-
-  eev.setDate(newDuration);
-  timeNode(eev.timeNode()).setDate(newDuration);
-  emit eventMoved(eev);
   this->setDuration(newDuration);
 }
 

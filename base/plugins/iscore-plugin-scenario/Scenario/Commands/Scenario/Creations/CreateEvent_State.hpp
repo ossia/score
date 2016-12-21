@@ -1,12 +1,12 @@
 #pragma once
 #include <QString>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include "CreateState.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -20,7 +20,7 @@ class TimeNodeModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

@@ -59,11 +59,13 @@ iscore_plugin_scenario::iscore_plugin_scenario()
   QMetaType::registerComparators<State::Message>();
   QMetaType::registerComparators<State::MessageList>();
 
+  qRegisterMetaType<State::Expression>();
   qRegisterMetaTypeStreamOperators<State::Message>();
   qRegisterMetaTypeStreamOperators<State::MessageList>();
   qRegisterMetaTypeStreamOperators<State::Address>();
   qRegisterMetaTypeStreamOperators<State::Value>();
   qRegisterMetaTypeStreamOperators<State::ValueList>();
+  qRegisterMetaTypeStreamOperators<State::Expression>();
 
   qRegisterMetaTypeStreamOperators<TimeValue>();
   qRegisterMetaType<ExecutionStatus>();
@@ -93,12 +95,12 @@ iscore_plugin_scenario::make_applicationPlugin(
   return new ScenarioApplicationPlugin{app};
 }
 
-std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+std::vector<std::unique_ptr<iscore::InterfaceListBase>>
 iscore_plugin_scenario::factoryFamilies()
 {
   using namespace Scenario;
   using namespace Scenario::Command;
-  return make_ptr_vector<iscore::FactoryListInterface, Process::ProcessFactoryList, Process::StateProcessList, Process::LayerFactoryList, MoveEventList, CSPCoherencyCheckerList, ConstraintInspectorDelegateFactoryList, DisplayedElementsToolPaletteFactoryList, TriggerCommandFactoryList, DisplayedElementsProviderList, Process::InspectorWidgetDelegateFactoryList, Process::StateProcessInspectorWidgetDelegateFactoryList, DropHandlerList, ConstraintDropHandlerList>();
+  return make_ptr_vector<iscore::InterfaceListBase, Process::ProcessFactoryList, Process::StateProcessList, Process::LayerFactoryList, MoveEventList, CSPCoherencyCheckerList, ConstraintInspectorDelegateFactoryList, DisplayedElementsToolPaletteFactoryList, TriggerCommandFactoryList, DisplayedElementsProviderList, Process::InspectorWidgetDelegateFactoryList, Process::StateProcessInspectorWidgetDelegateFactoryList, DropHandlerList, ConstraintDropHandlerList>();
 }
 
 template <>
@@ -109,39 +111,19 @@ struct
   {
     using namespace Scenario;
     auto& appPlugin
-        = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+        = ctx.applicationPlugin<ScenarioApplicationPlugin>();
     return std::make_unique<ScenarioTemporalLayerFactory>(
         appPlugin.editionSettings());
   }
 };
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_scenario::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
   using namespace Scenario;
   using namespace Scenario::Command;
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, ScenarioFactory>, FW<Process::LayerFactory, ScenarioTemporalLayerFactory>, FW<MoveEventFactoryInterface, MoveEventClassicFactory>, FW<Process::InspectorWidgetDelegateFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>, FW<DisplayedElementsToolPaletteFactory, BaseScenarioDisplayedElementsToolPaletteFactory, ScenarioDisplayedElementsToolPaletteFactory>, FW<TriggerCommandFactory, ScenarioTriggerCommandFactory, BaseScenarioTriggerCommandFactory>, FW<DisplayedElementsProvider, ScenarioDisplayedElementsProvider, BaseScenarioDisplayedElementsProvider>, FW<iscore::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>, FW<iscore::SettingsDelegateFactory, Scenario::Settings::Factory>, FW<iscore::PanelDelegateFactory, Scenario::PanelDelegateFactory>, FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario>, FW<Scenario::ConstraintDropHandler, Scenario::DropProcessInConstraint, Scenario::AutomationDropHandler>, FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory>, FW<ConstraintInspectorDelegateFactory, ScenarioConstraintInspectorDelegateFactory, BaseConstraintInspectorDelegateFactory>, FW<iscore::ValidityChecker, ScenarioValidityChecker>>>(
+  return instantiate_factories<iscore::ApplicationContext, FW<Process::ProcessModelFactory, ScenarioFactory>, FW<Process::LayerFactory, ScenarioTemporalLayerFactory>, FW<MoveEventFactoryInterface, MoveEventClassicFactory>, FW<Process::InspectorWidgetDelegateFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>, FW<DisplayedElementsToolPaletteFactory, BaseScenarioDisplayedElementsToolPaletteFactory, ScenarioDisplayedElementsToolPaletteFactory>, FW<TriggerCommandFactory, ScenarioTriggerCommandFactory, BaseScenarioTriggerCommandFactory>, FW<DisplayedElementsProvider, ScenarioDisplayedElementsProvider, BaseScenarioDisplayedElementsProvider>, FW<iscore::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>, FW<iscore::SettingsDelegateFactory, Scenario::Settings::Factory>, FW<iscore::PanelDelegateFactory, Scenario::PanelDelegateFactory>, FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario>, FW<Scenario::ConstraintDropHandler, Scenario::DropProcessInConstraint, Scenario::AutomationDropHandler>, FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory>, FW<ConstraintInspectorDelegateFactory, ScenarioConstraintInspectorDelegateFactory, BaseConstraintInspectorDelegateFactory>, FW<iscore::ValidityChecker, ScenarioValidityChecker>>(
       ctx, key);
-}
-
-QStringList iscore_plugin_scenario::required() const
-{
-  return {};
-}
-
-QStringList iscore_plugin_scenario::offered() const
-{
-  return {"Scenario"};
-}
-
-iscore::Version iscore_plugin_scenario::version() const
-{
-  return iscore::Version{1};
-}
-
-UuidKey<iscore::Plugin> iscore_plugin_scenario::key() const
-{
-  return_uuid("8439ef6c-90c3-4e08-8185-6a0f3c87f8b4");
 }

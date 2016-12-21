@@ -1,11 +1,11 @@
 #pragma once
 #include <Curve/Commands/CurveCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <Curve/Palette/CurvePoint.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_curve_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -15,7 +15,7 @@ namespace Curve
 class Model;
 class PointModel;
 class ISCORE_PLUGIN_CURVE_EXPORT MovePoint final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(CommandFactoryName(), MovePoint, "Move a point")
 public:

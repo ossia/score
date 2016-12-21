@@ -52,9 +52,9 @@ protected:
 };
 
 class ISCORE_PLUGIN_ENGINE_EXPORT ClockManagerFactory
-    : public iscore::AbstractFactory<ClockManagerFactory>
+    : public iscore::Interface<ClockManagerFactory>
 {
-  ISCORE_ABSTRACT_FACTORY("fb2b3624-ee6f-4e9a-901a-a096bb5fec0a")
+  ISCORE_INTERFACE("fb2b3624-ee6f-4e9a-901a-a096bb5fec0a")
 public:
   virtual ~ClockManagerFactory();
 
@@ -64,7 +64,7 @@ public:
 };
 
 class ISCORE_PLUGIN_ENGINE_EXPORT ClockManagerFactoryList final
-    : public iscore::ConcreteFactoryList<ClockManagerFactory>
+    : public iscore::InterfaceList<ClockManagerFactory>
 {
 public:
   using object_type = ClockManager;
@@ -72,4 +72,4 @@ public:
 }
 }
 
-Q_DECLARE_METATYPE(Engine::Execution::ClockManagerFactory::ConcreteFactoryKey)
+Q_DECLARE_METATYPE(Engine::Execution::ClockManagerFactory::ConcreteKey)

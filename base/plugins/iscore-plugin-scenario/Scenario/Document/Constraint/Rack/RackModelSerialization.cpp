@@ -12,8 +12,8 @@
 
 #include "RackModel.hpp"
 #include "Slot/SlotModel.hpp"
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/Identifier.hpp>
 
 template <typename T>
 class Reader;

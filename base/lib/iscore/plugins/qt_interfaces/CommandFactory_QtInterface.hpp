@@ -3,7 +3,7 @@
 #include <iscore_lib_base_export.h>
 #include <utility>
 
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 namespace iscore
 {
@@ -12,7 +12,7 @@ class ISCORE_LIB_BASE_EXPORT CommandFactory_QtInterface
 public:
   virtual ~CommandFactory_QtInterface();
 
-  virtual std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+  virtual std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() = 0;
 };
 }

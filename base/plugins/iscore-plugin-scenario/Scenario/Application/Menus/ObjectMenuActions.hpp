@@ -8,7 +8,7 @@
 #include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
 #include <iscore/actions/Action.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 #include <iscore/selection/Selection.hpp>
 class QAction;
 class QMenu;

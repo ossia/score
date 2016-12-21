@@ -36,7 +36,7 @@ class InspectorFactory final
     : public Process::
           InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
 {
-  ISCORE_CONCRETE_FACTORY("5159eabc-cd5c-4a00-a790-bd58936aace0")
+  ISCORE_CONCRETE("5159eabc-cd5c-4a00-a790-bd58936aace0")
 };
 
 class StateInspectorWidget final : public Inspector::InspectorWidgetBase
@@ -56,7 +56,7 @@ private:
 
 class StateInspectorFactory final : public Inspector::InspectorWidgetFactory
 {
-  ISCORE_CONCRETE_FACTORY("ea035d49-1897-4413-94e4-e5d6c90b21e6")
+  ISCORE_CONCRETE("ea035d49-1897-4413-94e4-e5d6c90b21e6")
 public:
   StateInspectorFactory();
 

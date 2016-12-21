@@ -17,7 +17,7 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace iscore
 {

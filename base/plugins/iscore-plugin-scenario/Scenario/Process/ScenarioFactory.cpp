@@ -15,7 +15,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Process
 {
@@ -31,9 +31,9 @@ class ConstraintModel;
 class ConstraintViewModel;
 
 UuidKey<Process::ProcessModelFactory>
-ScenarioFactory::concreteFactoryKey() const
+ScenarioFactory::concreteKey() const noexcept
 {
-  return Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get();
+  return Metadata<ConcreteKey_k, Scenario::ProcessModel>::get();
 }
 
 QString ScenarioFactory::prettyName() const
@@ -69,13 +69,13 @@ Process::LayerView* ScenarioTemporalLayerFactory::makeLayerView(
 bool ScenarioTemporalLayerFactory::matches(
     const UuidKey<Process::ProcessModelFactory>& p) const
 {
-  return p == Metadata<ConcreteFactoryKey_k, Scenario::ProcessModel>::get();
+  return p == Metadata<ConcreteKey_k, Scenario::ProcessModel>::get();
 }
 
 UuidKey<Process::LayerFactory>
-ScenarioTemporalLayerFactory::concreteFactoryKey() const
+ScenarioTemporalLayerFactory::concreteKey() const noexcept
 {
-  return Metadata<ConcreteFactoryKey_k, Scenario::TemporalScenarioLayer>::
+  return Metadata<ConcreteKey_k, Scenario::TemporalScenarioLayer>::
       get();
 }
 

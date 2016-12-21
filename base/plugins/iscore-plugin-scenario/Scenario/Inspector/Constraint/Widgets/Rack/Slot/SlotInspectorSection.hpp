@@ -3,7 +3,7 @@
 #include <QString>
 #include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/widgets/CommandSpinBox.hpp>
 
 #include <nano_signal_slot.hpp>

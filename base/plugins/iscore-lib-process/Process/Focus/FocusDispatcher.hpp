@@ -7,7 +7,7 @@
 namespace iscore
 {
 class Document;
-class DocumentDelegateModelInterface;
+class DocumentDelegateModel;
 }
 // TODO this is ugly :'(
 namespace Scenario

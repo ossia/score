@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/command/Validity/ValidityChecker.hpp>
 
 #include <QStack>
@@ -82,7 +82,7 @@ public:
     return m_undoable.size() + m_redoable.size();
   }
 
-  const iscore::SerializableCommand* command(int index) const;
+  const iscore::Command* command(int index) const;
   int currentIndex() const
   {
     return m_undoable.size();
@@ -120,7 +120,7 @@ signals:
    * @brief Emitted when a command was pushed on the stack
    * @param cmd the command that was pushed
    */
-  void localCommand(iscore::SerializableCommand* cmd);
+  void localCommand(iscore::Command* cmd);
 
   /**
    * @brief Emitted when the user calls "Undo"
@@ -164,7 +164,7 @@ public slots:
    *
    * Calls cmd::redo()
    */
-  void redoAndPush(iscore::SerializableCommand* cmd);
+  void redoAndPush(iscore::Command* cmd);
 
   /**
    * @brief quietPush Pushes a command on the stack
@@ -172,14 +172,14 @@ public slots:
    *
    * Does NOT call cmd::redo()
    */
-  void push(iscore::SerializableCommand* cmd);
+  void push(iscore::Command* cmd);
 
   /**
    * @brief pushAndEmit Pushes a command on the stack and emit relevant signals
    * @param cmd The command
    */
-  void redoAndPushQuiet(iscore::SerializableCommand* cmd);
-  void pushQuiet(iscore::SerializableCommand* cmd);
+  void redoAndPushQuiet(iscore::Command* cmd);
+  void pushQuiet(iscore::Command* cmd);
 
   void undo()
   {
@@ -233,8 +233,8 @@ public:
   void setSavedIndex(int index);
 
 private:
-  QStack<iscore::SerializableCommand*> m_undoable;
-  QStack<iscore::SerializableCommand*> m_redoable;
+  QStack<iscore::Command*> m_undoable;
+  QStack<iscore::Command*> m_redoable;
 
   int m_savedIndex{};
 

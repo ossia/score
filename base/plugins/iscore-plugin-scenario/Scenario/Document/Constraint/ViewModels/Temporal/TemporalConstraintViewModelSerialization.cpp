@@ -16,9 +16,9 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/ObjectPath.hpp>
 
 template <typename T>
 class Reader;

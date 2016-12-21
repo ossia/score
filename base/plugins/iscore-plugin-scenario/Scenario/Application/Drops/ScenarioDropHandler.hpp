@@ -9,9 +9,9 @@ namespace Scenario
 {
 class TemporalScenarioPresenter;
 class ISCORE_PLUGIN_SCENARIO_EXPORT DropHandler
-    : public iscore::AbstractFactory<DropHandler>
+    : public iscore::Interface<DropHandler>
 {
-  ISCORE_ABSTRACT_FACTORY("ce1c5b6c-fe4c-416f-877c-eae642a1413a")
+  ISCORE_INTERFACE("ce1c5b6c-fe4c-416f-877c-eae642a1413a")
 public:
   virtual ~DropHandler();
 
@@ -23,7 +23,7 @@ public:
       = 0;
 };
 
-class DropHandlerList final : public iscore::ConcreteFactoryList<DropHandler>
+class DropHandlerList final : public iscore::InterfaceList<DropHandler>
 {
 public:
   virtual ~DropHandlerList();
@@ -36,9 +36,9 @@ public:
 
 class ConstraintModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDropHandler
-    : public iscore::AbstractFactory<ConstraintDropHandler>
+    : public iscore::Interface<ConstraintDropHandler>
 {
-  ISCORE_ABSTRACT_FACTORY("b9f3efc0-b906-487a-ac49-87924edd2cff")
+  ISCORE_INTERFACE("b9f3efc0-b906-487a-ac49-87924edd2cff")
 public:
   virtual ~ConstraintDropHandler();
 
@@ -48,7 +48,7 @@ public:
 };
 
 class ConstraintDropHandlerList final
-    : public iscore::ConcreteFactoryList<ConstraintDropHandler>
+    : public iscore::InterfaceList<ConstraintDropHandler>
 {
 public:
   virtual ~ConstraintDropHandlerList();

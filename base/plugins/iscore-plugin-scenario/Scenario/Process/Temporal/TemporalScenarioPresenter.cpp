@@ -36,10 +36,10 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/MimeVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 class MessageItemModel;
@@ -137,7 +137,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
       [=](const QPointF& pos, const QMimeData* mime) {
         try
         {
-          m_context.context.app.components.factory<Scenario::DropHandlerList>()
+          m_context.context.app.interfaces<Scenario::DropHandlerList>()
               .handle(*this, pos, mime);
         }
         catch (std::exception& e)

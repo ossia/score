@@ -12,7 +12,7 @@
 #include "psimpl.h"
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 class QObject;
 namespace Curve
@@ -188,7 +188,7 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
   int N0 = 10000;
   vec.emplace_back(
       Id<SegmentModel>{N0}, pts[0], pts[1], iscore::none, iscore::none,
-      Metadata<ConcreteFactoryKey_k, LinearSegment>::get(),
+      Metadata<ConcreteKey_k, LinearSegment>::get(),
       QVariant::fromValue(LinearSegmentData{}));
 
   int size = pts.size();
@@ -199,7 +199,7 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
 
     vec.emplace_back(
         Id<SegmentModel>{k}, pts[i], pts[i + 1], Id<SegmentModel>{k - 1},
-        iscore::none, Metadata<ConcreteFactoryKey_k, LinearSegment>::get(),
+        iscore::none, Metadata<ConcreteKey_k, LinearSegment>::get(),
         QVariant::fromValue(LinearSegmentData()));
   }
 
@@ -217,7 +217,7 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
   int N0 = 10000;
   vec.emplace_back(
       Id<SegmentModel>{N0}, pts[0], pts[1], iscore::none, iscore::none,
-      Metadata<ConcreteFactoryKey_k, PowerSegment>::get(),
+      Metadata<ConcreteKey_k, PowerSegment>::get(),
       QVariant::fromValue(PowerSegmentData{}));
 
   int size = pts.size();
@@ -229,7 +229,7 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
     vec.emplace_back(
         Id<SegmentModel>{k}, pts[i], pts[i + 1], Id<SegmentModel>{k - 1},
         OptionalId<SegmentModel>{},
-        Metadata<ConcreteFactoryKey_k, PowerSegment>::get(),
+        Metadata<ConcreteKey_k, PowerSegment>::get(),
         QVariant::fromValue(PowerSegmentData()));
   }
 

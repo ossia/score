@@ -4,9 +4,9 @@
 #include <QObject>
 #include <iscore/model/Entity.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/EntityMap.hpp>
+#include <iscore/model/EntityMap.hpp>
 #include <iscore/tools/Metadata.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <nano_signal_slot.hpp>
 
@@ -14,7 +14,7 @@
 #include <functional>
 
 #include "Slot/SlotModel.hpp"
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 #include <iscore_plugin_scenario_export.h>
 namespace Process
 {

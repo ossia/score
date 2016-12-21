@@ -12,7 +12,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 namespace Scenario
 {
@@ -128,7 +128,7 @@ void TriggerInspectorWidget::HideRmButton()
   m_menuButton->setVisible(false);
 }
 
-void TriggerInspectorWidget::updateExpression(const State::Trigger& expr)
+void TriggerInspectorWidget::updateExpression(const State::Expression& expr)
 {
   m_exprEditor->setExpression(expr);
 }

@@ -1,5 +1,5 @@
 #include <Interpolation/Commands/ChangeAddress.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Interpolation
 {
