@@ -2,6 +2,7 @@
 #include <QObject>
 #include <QSettings>
 #include <iscore/command/SettingsCommand.hpp>
+#include <ossia/detail/algorithms.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore_lib_base_export.h>
 
