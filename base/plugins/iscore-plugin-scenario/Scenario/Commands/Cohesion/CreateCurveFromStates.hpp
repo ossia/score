@@ -10,6 +10,7 @@
 
 #include <Automation/AutomationProcessMetadata.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 #include <Process/ProcessList.hpp>
 
 struct DataStreamInput;
