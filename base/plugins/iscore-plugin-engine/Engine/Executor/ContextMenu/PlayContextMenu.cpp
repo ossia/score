@@ -37,6 +37,7 @@
 #include <Engine/ApplicationPlugin.hpp>
 #include <Engine/iscore2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Application/ScenarioRecordInitData.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/actions/Menu.hpp>
@@ -256,7 +257,9 @@ PlayContextMenu::PlayContextMenu(
 
     // and the parent constraint of this scenario;
     // this is what needs executing.
-    auto parent_constraint = safe_cast<Scenario::ConstraintModel*>(safe_cast<const QObject*>(&scenar)->parent());
+    auto parent_constraint =
+        safe_cast<Scenario::ConstraintModel*>(
+          dynamic_cast<const QObject*>(&scenar)->parent());
 
     // We start playing the parent scenario.
     // TODO: this also plays the other processes of the constraint? Maybe remove them, too ?
