@@ -93,10 +93,10 @@ struct ISCORE_LIB_DEVICE_EXPORT FullAddressSettings
     return make<T>(other, addr.address);
   }
 
-  ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings
+  static FullAddressSettings
   make(const State::Message& mess) noexcept;
 
-  ISCORE_LIB_DEVICE_EXPORT static FullAddressSettings
+  static FullAddressSettings
   make(const Device::Node& node) noexcept;
   // Specializations are in FullAddressSettings.cpp
 };

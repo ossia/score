@@ -5,6 +5,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp>
 #include <Engine/Protocols/Minuit/MinuitSpecificSettings.hpp>
+#include <ossia/network/base/device.hpp>
 
 namespace Device
 {

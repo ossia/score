@@ -7,6 +7,7 @@
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <Engine/iscore2OSSIA.hpp>
+#include <ossia/network/base/device.hpp>
 
 #include <Curve/CurveModel.hpp>
 
