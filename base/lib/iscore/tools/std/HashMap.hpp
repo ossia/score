@@ -9,7 +9,7 @@ using hash_map = tsl::hopscotch_map<Args...>;
 template<typename Map>
 void optimize_hash_map(Map& map)
 {
-  map.max_load_factor(0.1);
+  map.max_load_factor(0.1f);
   map.reserve(map.size());
 }
 

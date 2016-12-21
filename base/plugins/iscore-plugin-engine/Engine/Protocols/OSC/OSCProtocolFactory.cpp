@@ -5,6 +5,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/OSC/OSCProtocolSettingsWidget.hpp>
 #include <Engine/Protocols/OSC/OSCSpecificSettings.hpp>
+#include <ossia/network/base/device.hpp>
 
 namespace Device
 {

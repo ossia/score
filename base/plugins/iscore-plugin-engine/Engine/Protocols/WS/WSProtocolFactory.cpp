@@ -5,6 +5,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/WS/WSProtocolSettingsWidget.hpp>
 #include <Engine/Protocols/WS/WSSpecificSettings.hpp>
+#include <ossia/network/base/device.hpp>
 
 namespace Device
 {

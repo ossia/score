@@ -5,6 +5,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/HTTP/HTTPProtocolSettingsWidget.hpp>
 #include <Engine/Protocols/HTTP/HTTPSpecificSettings.hpp>
+#include <ossia/network/base/device.hpp>
 
 namespace Device
 {
