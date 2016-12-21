@@ -3,10 +3,10 @@
 #include <QByteArray>
 #include <QString>
 #include <iscore/command/CommandFactoryKey.hpp>
-#include <iscore/application/ApplicationContext.hpp>
 
 namespace iscore
 {
+struct ApplicationContext;
 /**
  * @brief The Command class
  *

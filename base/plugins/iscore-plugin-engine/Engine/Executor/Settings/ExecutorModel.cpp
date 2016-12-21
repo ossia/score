@@ -1,5 +1,6 @@
 #include "ExecutorModel.hpp"
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 namespace Engine
 {
 namespace Execution

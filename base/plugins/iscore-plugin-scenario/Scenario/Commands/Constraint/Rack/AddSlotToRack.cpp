@@ -12,6 +12,7 @@
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/path/Path.hpp>
 #include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/application/ApplicationContext.hpp>
 
 namespace Scenario
 {

@@ -24,6 +24,8 @@ struct PluginDependencyGraph
 {
   struct GraphVertex
   {
+    GraphVertex(): addon{} { }
+    GraphVertex(const iscore::Addon* add): addon{add} { }
     const iscore::Addon* addon{};
   };
 

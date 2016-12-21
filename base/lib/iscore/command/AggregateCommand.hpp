@@ -14,7 +14,7 @@ namespace iscore
 class ISCORE_LIB_BASE_EXPORT AggregateCommand
     : public iscore::Command
 {
-        using command_ptr = std::unique_ptr<iscore::Command>;
+        using command_ptr = iscore::Command*;
 public:
   AggregateCommand() = default;
   virtual ~AggregateCommand();
@@ -22,7 +22,7 @@ public:
   template <typename T>
   AggregateCommand(T* cmd) : AggregateCommand{}
   {
-      m_cmds.push_front(command_ptr{cmd});
+      m_cmds.push_front(cmd);
   }
 
   /**
@@ -34,7 +34,7 @@ public:
   AggregateCommand(T* cmd, Args&&... remaining)
       : AggregateCommand{std::forward<Args>(remaining)...}
   {
-    m_cmds.push_front(command_ptr{cmd});
+    m_cmds.push_front(cmd);
   }
 
   void undo() const override;
@@ -55,6 +55,6 @@ protected:
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;
 
-  std::list<std::unique_ptr<iscore::Command>> m_cmds;
+  std::list<iscore::Command*> m_cmds;
 };
 }
