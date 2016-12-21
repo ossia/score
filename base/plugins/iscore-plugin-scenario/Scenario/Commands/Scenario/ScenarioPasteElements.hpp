@@ -4,11 +4,11 @@
 #include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -24,7 +24,7 @@ class ConstraintModel;
 namespace Command
 {
 
-class ScenarioPasteElements final : public iscore::SerializableCommand
+class ScenarioPasteElements final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

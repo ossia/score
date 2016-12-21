@@ -9,7 +9,7 @@
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 class iscore_plugin_loop final : public QObject,
@@ -21,6 +21,7 @@ class iscore_plugin_loop final : public QObject,
   Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
   Q_INTERFACES(iscore::Plugin_QtInterface iscore::FactoryInterface_QtInterface
                    iscore::CommandFactory_QtInterface)
+  ISCORE_PLUGIN_METADATA(1, "db40e6eb-add3-4b6d-8957-13690aec290b")
 
 public:
   iscore_plugin_loop();
@@ -28,14 +29,11 @@ public:
 
 private:
   // Process & inspector
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
   // CommandFactory_QtInterface interface
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
-
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
 };

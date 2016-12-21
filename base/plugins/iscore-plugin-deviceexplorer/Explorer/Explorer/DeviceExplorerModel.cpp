@@ -47,8 +47,8 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/MimeVisitor.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
@@ -239,7 +239,7 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(Device::DeviceSettings& n)
   // Request from the protocol factory the protocol to see
   // if it is compatible.
   auto& context = m_devicePlugin.context().app.components;
-  auto prot = context.factory<Device::ProtocolFactoryList>().get(n.protocol);
+  auto prot = context.interfaces<Device::ProtocolFactoryList>().get(n.protocol);
   if (!prot)
     return false;
 
@@ -282,7 +282,7 @@ bool DeviceExplorerModel::tryDeviceInstantiation(
 bool DeviceExplorerModel::checkAddressInstantiatable(
     Device::Node& parent, const Device::AddressSettings& addr)
 {
-  ISCORE_ASSERT(!parent.is<InvisibleRootNodeTag>());
+  ISCORE_ASSERT(!parent.is<InvisibleRootNode>());
 
   if (addr.name.isEmpty())
     return false;
@@ -298,7 +298,7 @@ bool DeviceExplorerModel::checkAddressEditable(
     const Device::AddressSettings& before,
     const Device::AddressSettings& after)
 {
-  ISCORE_ASSERT(!parent.is<InvisibleRootNodeTag>());
+  ISCORE_ASSERT(!parent.is<InvisibleRootNode>());
 
   if (after.name.isEmpty())
     return false;
@@ -364,7 +364,7 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
         {
           auto& dev_set = n.get<Device::DeviceSettings>();
           return Device::deviceNameColumnData(
-              n, deviceModel().list().device(dev_set.name), role);
+              n, deviceModel().list().device(dev_set.name).connected(), role);
         }
         return {};
       }
@@ -905,7 +905,7 @@ bool DeviceExplorerModel::dropMimeData(
         // We ask the user to fix the incompatibilities by himself.
         DeviceEditDialog dial{
             m_devicePlugin.context()
-                .app.components.factory<Device::ProtocolFactoryList>(),
+                .app.interfaces<Device::ProtocolFactoryList>(),
             QApplication::activeWindow()};
         if (!tryDeviceInstantiation(n.get<Device::DeviceSettings>(), dial))
           return false;

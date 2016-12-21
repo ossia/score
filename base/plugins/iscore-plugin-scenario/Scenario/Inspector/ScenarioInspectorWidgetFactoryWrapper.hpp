@@ -7,7 +7,7 @@ namespace Scenario
 class ScenarioInspectorWidgetFactoryWrapper final
     : public Inspector::InspectorWidgetFactory
 {
-  ISCORE_CONCRETE_FACTORY("066fffc1-c82c-4ffd-ad7c-55a65bfa067f")
+  ISCORE_CONCRETE("066fffc1-c82c-4ffd-ad7c-55a65bfa067f")
 public:
   ScenarioInspectorWidgetFactoryWrapper() : InspectorWidgetFactory{}
   {

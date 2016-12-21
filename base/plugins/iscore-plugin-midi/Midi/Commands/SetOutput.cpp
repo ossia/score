@@ -1,6 +1,6 @@
 #include "SetOutput.hpp"
 #include <Midi/MidiProcess.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Midi
 {

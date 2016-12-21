@@ -23,20 +23,20 @@ iscore_plugin_js::~iscore_plugin_js()
 {
 }
 
-std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>>
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_js::factories(
     const iscore::ApplicationContext& ctx,
-    const iscore::AbstractFactoryKey& key) const
+    const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, TL<FW<Process::ProcessModelFactory, JS::ProcessFactory>, FW<Process::LayerFactory, JS::LayerFactory>, FW<Process::StateProcessFactory, JS::StateProcessFactory>, FW<Process::InspectorWidgetDelegateFactory, JS::InspectorFactory>, FW<Process::StateProcessInspectorWidgetDelegateFactory, JS::StateInspectorFactory>, FW<Engine::Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>, FW<Engine::Execution::StateProcessComponentFactory, JS::Executor::StateProcessComponentFactory>>>(
+  return instantiate_factories<iscore::ApplicationContext, FW<Process::ProcessModelFactory, JS::ProcessFactory>, FW<Process::LayerFactory, JS::LayerFactory>, FW<Process::StateProcessFactory, JS::StateProcessFactory>, FW<Process::InspectorWidgetDelegateFactory, JS::InspectorFactory>, FW<Process::StateProcessInspectorWidgetDelegateFactory, JS::StateInspectorFactory>, FW<Engine::Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>, FW<Engine::Execution::StateProcessComponentFactory, JS::Executor::StateProcessComponentFactory>>(
       ctx, key);
 }
 
-std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+std::pair<const CommandGroupKey, CommandGeneratorMap>
 iscore_plugin_js::make_commands()
 {
   using namespace JS;
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       JS::CommandFactoryName(), CommandGeneratorMap{}};
 
   using Types = TypeList<
@@ -45,14 +45,4 @@ iscore_plugin_js::make_commands()
   for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
 
   return cmds;
-}
-
-iscore::Version iscore_plugin_js::version() const
-{
-  return iscore::Version{1};
-}
-
-UuidKey<iscore::Plugin> iscore_plugin_js::key() const
-{
-  return_uuid("0eb1db4b-a532-4961-ba1c-d9edbf08ef07");
 }

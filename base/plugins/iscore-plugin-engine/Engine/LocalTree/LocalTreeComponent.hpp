@@ -2,7 +2,7 @@
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Engine/LocalTree/NameProperty.hpp>
 #include <Engine/LocalTree/Scenario/MetadataParameters.hpp>
-#include <iscore/component/Component.hpp>
+#include <iscore/model/Component.hpp>
 namespace Engine
 {
 namespace LocalTree

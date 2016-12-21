@@ -97,6 +97,7 @@ class iscore_plugin_engine final
           iscore::FactoryList_QtInterface iscore::FactoryInterface_QtInterface
               iscore::Plugin_QtInterface)
 
+  ISCORE_PLUGIN_METADATA(1, "d4758f8d-64ac-41b4-8aaf-1cbd6f3feb91")
 public:
   iscore_plugin_engine();
   virtual ~iscore_plugin_engine();
@@ -105,16 +106,13 @@ private:
   iscore::GUIApplicationContextPlugin*
   make_applicationPlugin(const iscore::GUIApplicationContext& app) override;
 
-  std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+  std::vector<std::unique_ptr<iscore::InterfaceListBase>>
   factoryFamilies() override;
 
   // Contains the OSC, MIDI, Minuit factories
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext&,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
-  QStringList required() const override;
-  QStringList offered() const override;
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
+  std::vector<iscore::PluginKey> required() const override;
 };

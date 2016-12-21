@@ -34,7 +34,7 @@
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <iscore/application/ApplicationContext.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
 
 #if defined(ISCORE_OPENGL)
 #include <QOpenGLWidget>
@@ -48,7 +48,7 @@ namespace Scenario
 {
 ScenarioDocumentView::ScenarioDocumentView(
     const iscore::ApplicationContext& ctx, QObject* parent)
-    : iscore::DocumentDelegateViewInterface{parent}
+    : iscore::DocumentDelegateView{parent}
     , m_widget{new QWidget}
     , m_scene{new ScenarioScene{m_widget}}
     , m_view{new ProcessGraphicsView{m_scene, m_widget}}
@@ -142,22 +142,22 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->setObjectName("ScenarioViewer");
 
   // Cursors
-  auto& es = ctx.components.applicationPlugin<ScenarioApplicationPlugin>()
+  auto& es = ctx.applicationPlugin<ScenarioApplicationPlugin>()
                  .editionSettings();
   con(es, &EditionSettings::toolChanged, this, [=](Scenario::Tool t) {
     switch (t)
     {
       case Scenario::Tool::Select:
-        m_view->setCursor(QCursor(Qt::ArrowCursor));
+        m_view->viewport()->unsetCursor();
         break;
       case Scenario::Tool::Create:
-        m_view->setCursor(QCursor(Qt::PointingHandCursor));
+        m_view->viewport()->setCursor(QCursor(Qt::CrossCursor));
         break;
       case Scenario::Tool::Play:
-        m_view->setCursor(QCursor(Qt::CrossCursor));
+        m_view->viewport()->setCursor(QCursor(Qt::PointingHandCursor));
         break;
       default:
-        m_view->setCursor(QCursor(Qt::ArrowCursor));
+        m_view->viewport()->unsetCursor();
         break;
     }
   });

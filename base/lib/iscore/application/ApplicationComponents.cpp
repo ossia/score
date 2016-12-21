@@ -1,4 +1,4 @@
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/tools/exceptions/MissingCommand.hpp>
 
 #include "ApplicationComponents.hpp"
@@ -38,7 +38,7 @@ ApplicationComponentsData::~ApplicationComponentsData()
   }
 }
 
-SerializableCommand*
+Command*
 ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) const
 {
   auto it = m_data.commands.find(cmd.parentKey);

@@ -1,12 +1,12 @@
 #pragma once
 
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <iscore/menu/MenuInterface.hpp>
-
-#include <QAction>
-#include <QToolBar>
-#include <iscore/actions/Action.hpp>
 #include <iscore_plugin_scenario_export.h>
+class QAction;
+namespace iscore
+{
+struct GUIElements;
+}
 namespace Process
 {
 class LayerContextMenuManager;

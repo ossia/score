@@ -4,7 +4,7 @@
 #include <QPoint>
 
 #include <iscore/actions/Action.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 #include <iscore/selection/Selection.hpp>
 
 class QAction;

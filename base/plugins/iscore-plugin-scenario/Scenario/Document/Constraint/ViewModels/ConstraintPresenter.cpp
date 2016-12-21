@@ -16,8 +16,8 @@
 #include <Scenario/Document/ModelConsistency.hpp>
 #include <iscore/selection/Selectable.hpp>
 
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
 
 class QObject;
@@ -141,6 +141,7 @@ void ConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
   m_view->setDefaultWidth(width);
   m_view->updateLabelPos();
   m_view->updateCounterPos();
+  m_view->updateOverlayPos();
   m_header->setWidth(width);
 
   if (rack())

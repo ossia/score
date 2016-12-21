@@ -1,7 +1,7 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore_plugin_curve_export.h>
 namespace Curve
 {
-ISCORE_PLUGIN_CURVE_EXPORT const CommandParentFactoryKey& CommandFactoryName();
+ISCORE_PLUGIN_CURVE_EXPORT const CommandGroupKey& CommandFactoryName();
 }

@@ -12,6 +12,7 @@ RackView::RackView(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setFlag(QGraphicsItem::ItemHasNoContents);
   this->setZValue(ZPos::Rack);
+  this->setCursor(QCursor(Qt::ArrowCursor));
 }
 
 QRectF RackView::boundingRect() const

@@ -16,9 +16,9 @@
 #include <iscore/model/ModelMetadata.hpp>
 
 #include <iscore/serialization/JSONValueVisitor.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 namespace Scenario
 {
@@ -70,7 +70,7 @@ Visitor<Writer<DataStream>>::writeTo(Scenario::StateModel& s)
   // Processes plugins
   int32_t process_count;
   m_stream >> process_count;
-  auto& pl = components.factory<Process::StateProcessList>();
+  auto& pl = components.interfaces<Process::StateProcessList>();
   for (; process_count-- > 0;)
   {
     auto proc = deserialize_interface(pl, *this, &s);
@@ -118,7 +118,7 @@ Visitor<Writer<JSONObject>>::writeTo(Scenario::StateModel& s)
   s.messages() = fromJsonObject<Process::MessageNode>(m_obj["Messages"]);
 
   // Processes plugins
-  auto& pl = components.factory<Process::StateProcessList>();
+  auto& pl = components.interfaces<Process::StateProcessList>();
 
   QJsonArray process_array = m_obj["StateProcesses"].toArray();
   for (const auto& json_vref : process_array)

@@ -1,11 +1,11 @@
 #include "AutomationCommandFactory.hpp"
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 namespace Automation
 {
-const CommandParentFactoryKey& CommandFactoryName()
+const CommandGroupKey& CommandFactoryName()
 {
-  static const CommandParentFactoryKey key{"Automation"};
+  static const CommandGroupKey key{"Automation"};
   return key;
 }
 }

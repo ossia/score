@@ -4,9 +4,9 @@
 #include "RemoveLayerModelFromSlot.hpp"
 #include <Process/ProcessList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {
@@ -29,7 +29,7 @@ void RemoveLayerModelFromSlot::undo() const
   Deserializer<DataStream> s{m_serializedLayerData};
 
   auto lm = deserialize_interface(
-      this->context.components.factory<Process::LayerFactoryList>(), s, &slot);
+      this->context.interfaces<Process::LayerFactoryList>(), s, &slot);
   if (lm)
     slot.layers.add(lm);
   else

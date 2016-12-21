@@ -23,7 +23,7 @@
 #include <QStyleFactory>
 #include <QFileInfo>
 
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <algorithm>
 #include <vector>
 
@@ -34,10 +34,10 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/selection/Selection.hpp>
 
-#include <iscore/tools/ObjectIdentifier.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/ObjectIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 
@@ -157,7 +157,7 @@ void Application::initDocuments()
     }
 
     // The plug-ins have the ability to override the boot process.
-    for(auto plug : ctx.components.applicationPlugins())
+    for(auto plug : ctx.applicationPlugins())
     {
         if(plug->handleStartup())
         {
@@ -172,11 +172,11 @@ void Application::initDocuments()
     }
     else
     {
-        if(!m_presenter->applicationComponents().factory<iscore::DocumentDelegateList>().empty())
+        if(!m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>().empty())
             m_presenter->documentManager().newDocument(
                         ctx,
                         Id<iscore::DocumentModel>{iscore::random_id_generator::getRandomId()},
-                        *m_presenter->applicationComponents().factory<iscore::DocumentDelegateList>().begin());
+                        *m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>().begin());
     }
 
     connect(m_app, &SafeQApplication::fileOpened,
@@ -210,19 +210,19 @@ void Application::loadPluginData()
     iscore::PluginLoader::loadPlugins(registrar, ctx);
     // Load the settings
     QSettings s;
-    for(auto& elt : ctx.components.factory<iscore::SettingsDelegateFactoryList>())
+    for(auto& elt : ctx.interfaces<iscore::SettingsDelegateFactoryList>())
     {
         m_settings.setupSettingsPlugin(s, ctx, elt);
     }
 
     m_presenter->setupGUI();
 
-    for(iscore::GUIApplicationContextPlugin* app_plug : ctx.components.applicationPlugins())
+    for(iscore::GUIApplicationContextPlugin* app_plug : ctx.applicationPlugins())
     {
         app_plug->initialize();
     }
 
-    for(auto& panel_fac : context().components.factory<iscore::PanelDelegateFactoryList>())
+    for(auto& panel_fac : context().interfaces<iscore::PanelDelegateFactoryList>())
     {
         registrar.registerPanel(panel_fac);
     }

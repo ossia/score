@@ -7,7 +7,7 @@
 
 namespace iscore
 {
-class FactoryListInterface;
+class InterfaceListBase;
 class PanelFactory;
 } // namespace iscore
 
@@ -22,19 +22,17 @@ class iscore_plugin_inspector : public QObject,
   Q_INTERFACES(iscore::Plugin_QtInterface iscore::FactoryInterface_QtInterface
                    iscore::FactoryList_QtInterface)
 
+  ISCORE_PLUGIN_METADATA(1, "0ed1520f-e120-458e-a5a8-b3f05f3b6b6c")
 public:
   iscore_plugin_inspector();
   ~iscore_plugin_inspector();
 
   // Panel interface
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext&,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
   // Factory for inspector widgets
-  std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+  std::vector<std::unique_ptr<iscore::InterfaceListBase>>
   factoryFamilies() override;
-
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
 };

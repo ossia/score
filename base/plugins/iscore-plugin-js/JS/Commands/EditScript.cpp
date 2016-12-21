@@ -4,7 +4,7 @@
 
 #include "EditScript.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 namespace JS
 {
 EditScript::EditScript(Path<ProcessModel>&& model, const QString& text)

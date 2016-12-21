@@ -6,10 +6,10 @@
 
 #include "LoopTriggerCommandFactory.hpp"
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 bool LoopTriggerCommandFactory::matches(
     const Scenario::TimeNodeModel& tn) const
@@ -17,7 +17,7 @@ bool LoopTriggerCommandFactory::matches(
   return dynamic_cast<Loop::ProcessModel*>(tn.parent());
 }
 
-iscore::SerializableCommand* LoopTriggerCommandFactory::make_addTriggerCommand(
+iscore::Command* LoopTriggerCommandFactory::make_addTriggerCommand(
     const Scenario::TimeNodeModel& tn) const
 {
   if (dynamic_cast<Loop::ProcessModel*>(tn.parent()))
@@ -27,7 +27,7 @@ iscore::SerializableCommand* LoopTriggerCommandFactory::make_addTriggerCommand(
   return nullptr;
 }
 
-iscore::SerializableCommand*
+iscore::Command*
 LoopTriggerCommandFactory::make_removeTriggerCommand(
     const Scenario::TimeNodeModel& tn) const
 {

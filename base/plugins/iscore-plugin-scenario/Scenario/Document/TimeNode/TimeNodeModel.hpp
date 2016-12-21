@@ -4,15 +4,15 @@
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <iscore/model/Entity.hpp>
 #include <iscore/selection/Selectable.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 #include <iscore/tools/Metadata.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <QString>
 #include <QVector>
 #include <chrono>
-#include <iscore/component/Component.hpp>
+#include <iscore/model/Component.hpp>
 #include <iscore_plugin_scenario_export.h>
 class DataStream;
 class JSONObject;

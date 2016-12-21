@@ -11,7 +11,7 @@
 #include <iscore/selection/Selection.hpp>
 
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
 #include <core/document/DocumentModel.hpp>

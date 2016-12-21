@@ -4,16 +4,16 @@
 #include "SetCondition.hpp"
 #include <State/Expression.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
 SetCondition::SetCondition(
-    Path<EventModel>&& eventPath, State::Condition&& cond)
+    Path<EventModel>&& eventPath, State::Expression&& cond)
     : m_path{std::move(eventPath)}, m_condition(std::move(cond))
 {
 

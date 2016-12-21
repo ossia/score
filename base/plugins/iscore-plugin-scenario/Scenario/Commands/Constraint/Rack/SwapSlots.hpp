@@ -1,10 +1,10 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -15,7 +15,7 @@ class RackModel;
 class SlotModel;
 namespace Command
 {
-class SwapSlots final : public iscore::SerializableCommand
+class SwapSlots final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapSlots, "Swap slots")
 public:

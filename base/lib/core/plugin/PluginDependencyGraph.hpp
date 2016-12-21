@@ -5,220 +5,94 @@
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <memory>
 #include <set>
-
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/topological_sort.hpp>
+#include <iscore/plugins/Addon.hpp>
+#include <iscore/tools/std/HashMap.hpp>
+#include <chrono>
 namespace iscore
 {
-
 namespace PluginLoader
 {
 /**
- * @brief Node of the plug-in dependency graph for loading.
- */
-struct PluginDependencyNode
-{
-  bool mark = false;
-
-  QObject* plug{};
-  PluginDependencyNode(QObject* obj) : plug{obj}
-  {
-  }
-
-  std::
-      set<std::weak_ptr<PluginDependencyNode>,
-          std::owner_less<std::weak_ptr<PluginDependencyNode>>>
-          found_dependencies;
-
-  Plugin_QtInterface* requirements() const
-  {
-    return dynamic_cast<Plugin_QtInterface*>(plug);
-  }
-  GUIApplicationContextPlugin_QtInterface* applicationPlugin() const
-  {
-    return dynamic_cast<GUIApplicationContextPlugin_QtInterface*>(plug);
-  }
-
-  bool checkDependencies()
-  {
-    auto reqs = requirements();
-    if (!reqs)
-      return true;
-    // For some reason there is a crash if
-    // doing all_of on an empty QStringList.
-    auto required = reqs->required();
-
-    return std::all_of(required.begin(), required.end(), [&](QString req) {
-      return checkDependency(req);
-    });
-  }
-
-  bool checkDependency(QString req)
-  {
-    auto found_it = std::find_if(
-        found_dependencies.begin(),
-        found_dependencies.end(),
-        [&](const auto& other_node) {
-
-          auto lock = other_node.lock();
-          auto other_reqs = lock->requirements();
-          if (!other_reqs)
-            return false;
-
-          auto offered = other_reqs->offered();
-          return offered.contains(req);
-        });
-
-    return found_it != found_dependencies.end();
-  }
-};
-
-// TESTME
-/**
- * @brief Organizes the plug-ins in a dependency graph according to their
- * requirements
+ * @brief Allows to load plug-ins in the order they all require each other.
  *
- * \todo Use Boost.Graph instead.
- * \todo Use the link order and some cmake-fu to generate the dependencies
- * automatically.
+ * \todo generalize this to make it usable for all kinf of plug-ins,
+ * and if possible DocumentPlugin.
  */
 struct PluginDependencyGraph
 {
-private:
-  using NodePtr = std::shared_ptr<PluginDependencyNode>;
-  QList<NodePtr> nodes;
-
-  QList<NodePtr> nodes_with_missing_deps;
-
-  class CircularDependency : public std::logic_error
+  struct GraphVertex
   {
-  public:
-    NodePtr source;
-    // Source, target
-    CircularDependency(NodePtr src)
-        : std::logic_error{"Circular dependency"}, source{src}
-    {
-    }
+    const iscore::Addon* addon{};
   };
 
+  using Graph = boost::adjacency_list<
+    boost::vecS,
+    boost::vecS,
+    boost::directedS,
+    GraphVertex>;
+
 public:
-  void addNode(QObject* plug)
+  PluginDependencyGraph(const std::vector<iscore::Addon>& addons)
   {
-    auto n = std::make_shared<PluginDependencyNode>(plug);
-    if (n->requirements())
-    {
-      auto reqs = n->requirements()->required();
-      if (!reqs.empty())
-      {
-        for (const auto& req : reqs)
-        {
-          for (const auto& other : nodes)
-          {
-            auto other_reqs = other->requirements();
-            if (other_reqs && other_reqs->offered().contains(req))
-            {
-              n->found_dependencies.insert(other);
-            }
-          }
-        }
-      }
-
-      auto offers = n->requirements()->offered();
-      if (!offers.empty())
-      {
-        for (const auto& offer : offers)
-        {
-          for (const auto& other : nodes)
-          {
-            auto other_reqs = other->requirements();
-            if (other_reqs && other_reqs->required().contains(offer))
-            {
-              other->found_dependencies.insert(n);
-            }
-          }
-        }
-      }
-    }
-
-    nodes.append(n);
-  }
-
-  template <typename Fun>
-  /**
-   * @brief visit Will visit the graph in dependency order,
-   * without visiting a node twice.
-   * @param f a function to apply. void(GUIApplicationContextPlugin*).
-   */
-  void visit(Fun f)
-  {
-    auto apply = [&](auto&& node) {
-      if (!node->mark)
-        f(node->plug);
-      node->mark = true;
-    };
-
-    // First get rid of the plug-ins that don't have all their dependencies
-    for (const auto& node : nodes)
-    {
-      // Check that all the requirements are satisfied.
-      if (!node->checkDependencies())
-      {
-        nodes.removeOne(node);
-        nodes_with_missing_deps.append(node);
-      }
-    }
-
-    for (const auto& node : nodes)
-    {
-      if (node->found_dependencies.empty())
-      {
-        apply(node);
-      }
-      else
-      {
-        try
-        {
-          for (const auto& dep : node->found_dependencies)
-          {
-            apply_parents_rec(f, dep.lock(), node);
-          }
-
-          apply(node);
-        }
-        catch (CircularDependency& e)
-        {
-          // Recursively remove all those
-          // depending on the element.
-          fix_circular_dep(e.source);
-          qDebug() << "A plug-in was removed due to a dependency loop.";
-          continue;
-        }
-      }
-    }
-    qDebug() << nodes_with_missing_deps.size() << "plugins were not loaded.";
-  }
-
-  void fix_circular_dep(NodePtr e)
-  {
-    ISCORE_TODO;
-  }
-
-  template <typename Fun>
-  void apply_parents_rec(Fun f, NodePtr ptr, NodePtr orig)
-  {
-    if (ptr->mark)
+    if(addons.empty())
       return;
 
-    for (const auto& weak_dep : ptr->found_dependencies)
-    {
-      auto dep = weak_dep.lock();
-      if (dep == orig)
-        throw CircularDependency(orig);
+    iscore::hash_map<PluginKey, int32_t> keys;
+    std::vector<const iscore::Addon*> not_loaded;
 
-      apply_parents_rec(f, dep, orig);
+    // First add all the vertices to the graph
+    for(const iscore::Addon& addon : addons)
+    {
+      keys[addon.key] = boost::add_vertex(GraphVertex{&addon}, m_graph);
     }
 
-    f(ptr->plug);
-    ptr->mark = true;
+    // If A depends on B, then there is an edge from B to A.
+    for(const iscore::Addon& addon : addons)
+    {
+      auto addon_k = keys[addon.key];
+      for(const auto& k : addon.plugin->required())
+      {
+        auto it = keys.find(k);
+        if(it != keys.end())
+        {
+          boost::add_edge(addon_k, it->second, m_graph);
+        }
+        else
+        {
+          boost::remove_vertex(addon_k, m_graph);
+          not_loaded.push_back(&addon);
+          break;
+        }
+      }
+    }
+
+    if(!not_loaded.empty())
+      qDebug() << not_loaded.size() << "plugins were not loaded due to a dependency problem.";
+
+    // Then do a topological sort, to detect cycles and to be able to iterate easily afterwards.
+    std::vector<int> topo_order;
+    topo_order.reserve(addons.size() - not_loaded.size());
+
+    try {
+        boost::topological_sort(m_graph, std::back_inserter(topo_order));
+        for(auto e : topo_order)
+          m_sorted.push_back(*m_graph[e].addon);
+    }
+    catch(const std::exception& e) {
+      qDebug() << "Invalid plug-in graph: " << e.what();
+      m_graph.clear();
+    }
   }
+
+  auto& sortedAddons() const
+  { return m_sorted; }
+
+private:
+  Graph m_graph;
+  std::vector<iscore::Addon> m_sorted;
+
 };
 }
 }

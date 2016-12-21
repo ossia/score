@@ -8,7 +8,7 @@
 namespace Scenario
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT CSPCoherencyCheckerList final
-    : public iscore::ConcreteFactoryList<CoherencyCheckerFactoryInterface>
+    : public iscore::InterfaceList<CoherencyCheckerFactoryInterface>
 {
 public:
   CoherencyCheckerFactoryInterface* get() const;

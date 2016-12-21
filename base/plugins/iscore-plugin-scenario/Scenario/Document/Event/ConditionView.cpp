@@ -35,6 +35,7 @@ QRectF ConditionView::boundingRect() const
 void ConditionView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  painter->setRenderHint(QPainter::Antialiasing, true);
   QPen pen{m_color.getColor()};
 
   pen.setWidth(2);

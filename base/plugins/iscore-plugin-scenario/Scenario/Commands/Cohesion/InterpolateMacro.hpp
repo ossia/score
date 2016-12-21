@@ -10,7 +10,7 @@
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 
 #include <ossia/detail/algorithms.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 
 namespace Scenario
 {

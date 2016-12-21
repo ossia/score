@@ -20,7 +20,7 @@ namespace iscore
 ISCORE_LIB_BASE_EXPORT
 ApplicationRegistrar::ApplicationRegistrar(
     ApplicationComponentsData& comp,
-    const iscore::ApplicationContext& ctx,
+    const iscore::GUIApplicationContext& ctx,
     iscore::View& view,
     MenuManager& m,
     ToolbarManager& t,
@@ -68,21 +68,21 @@ void ApplicationRegistrar::registerPanel(PanelDelegateFactory& factory)
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerCommands(
-    iscore::hash_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds)
+    iscore::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds)
 {
   m_components.commands = std::move(cmds);
 }
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerCommands(
-    std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds)
+    std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds)
 {
   m_components.commands.insert(std::move(cmds));
 }
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactories(
-    iscore::hash_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&&
+    iscore::hash_map<iscore::InterfaceKey, std::unique_ptr<InterfaceListBase>>&&
             facts)
 {
   m_components.factories = std::move(facts);
@@ -90,9 +90,9 @@ void ApplicationRegistrar::registerFactories(
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactory(
-    std::unique_ptr<FactoryListInterface> cmds)
+    std::unique_ptr<InterfaceListBase> cmds)
 {
   m_components.factories.insert(
-      std::make_pair(cmds->abstractFactoryKey(), std::move(cmds)));
+      std::make_pair(cmds->interfaceKey(), std::move(cmds)));
 }
 }

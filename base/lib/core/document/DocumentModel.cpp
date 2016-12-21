@@ -1,13 +1,13 @@
 #include <core/document/DocumentModel.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/selection/Selection.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace iscore
 {
@@ -19,7 +19,7 @@ DocumentModel::DocumentModel(
     : IdentifiedObject{id, "DocumentModel", parent}
     , m_model{fact.make(ctx, this)}
 {
-  for (auto& appPlug : ctx.app.components.applicationPlugins())
+  for (auto& appPlug : ctx.app.applicationPlugins())
   {
     appPlug->on_initDocument(ctx.document);
   }

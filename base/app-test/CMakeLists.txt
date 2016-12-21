@@ -15,7 +15,7 @@ set(SRCS
 
 add_executable(iscore_testapp ${SRCS})
 
-target_link_libraries(iscore_testapp PRIVATE iscore_lib_base   ${ISCORE_PLUGINS_LIST}
+target_link_libraries(iscore_testapp PRIVATE iscore_lib_base ${ISCORE_PLUGINS_LIST}
     Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::Svg Qt5::Test)
 
 if(ISCORE_STATIC_PLUGINS)

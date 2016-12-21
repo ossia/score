@@ -1,5 +1,5 @@
 #pragma once
-#include <Engine/Executor/ProcessElement.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
 
 #include <ossia/editor/mapper/mapper.hpp>
 #include <ossia/editor/value/value.hpp>

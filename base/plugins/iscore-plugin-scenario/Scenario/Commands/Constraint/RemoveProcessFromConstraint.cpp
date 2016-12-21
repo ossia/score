@@ -15,10 +15,10 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/path/ObjectPath.hpp>
 
 namespace Scenario
 {
@@ -53,7 +53,7 @@ void RemoveProcessFromConstraint::undo() const
 {
   auto& constraint = m_path.find();
   Deserializer<DataStream> s{m_serializedProcessData};
-  auto& fact = context.components.factory<Process::ProcessFactoryList>();
+  auto& fact = context.interfaces<Process::ProcessFactoryList>();
   auto proc = deserialize_interface(fact, s, &constraint);
   if (proc)
   {
@@ -65,7 +65,7 @@ void RemoveProcessFromConstraint::undo() const
     return;
   }
   // Restore the view models
-  auto& layers = context.components.factory<Process::LayerFactoryList>();
+  auto& layers = context.interfaces<Process::LayerFactoryList>();
   for (const auto& it : m_serializedViewModels)
   {
     const auto& path = it.first.unsafePath().vec();

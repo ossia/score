@@ -27,7 +27,7 @@ public:
     // since the move ones perform unnecessary serialization / etc in this case
     // and don't bring anything to the table.
     // TODO REFACTOR WITH SCENARIOROLLBACKSTRATEGY
-    for (auto cmd : boost::adaptors::reverse(m_cmds))
+    for (auto& cmd : boost::adaptors::reverse(m_cmds))
     {
       if (cmd->key() == CreateConstraint::static_key()
           || cmd->key() == CreateState::static_key()

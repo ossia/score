@@ -12,8 +12,9 @@
 
 #include <core/document/Document.hpp>
 #include <iscore/actions/ActionManager.hpp>
+#include <iscore/actions/MenuManager.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 #include <QAction>
 #include <QMenu>
@@ -24,8 +25,8 @@ namespace Scenario
 EventActions::EventActions(ScenarioApplicationPlugin* parent)
     : m_parent{parent}
     , m_triggerCommandFactory{
-          parent->context.components
-              .factory<Command::TriggerCommandFactoryList>()}
+          parent->context
+              .interfaces<Command::TriggerCommandFactoryList>()}
 {
   using namespace iscore;
   m_addTrigger = new QAction{tr("Add Trigger"), this};

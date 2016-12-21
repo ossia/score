@@ -1,8 +1,8 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -13,7 +13,7 @@ class DeviceDocumentPlugin;
 namespace Command
 {
 // Replaces all the nodes of a device by new nodes.
-class ReplaceDevice final : public iscore::SerializableCommand
+class ReplaceDevice final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), ReplaceDevice, "Replace a device")

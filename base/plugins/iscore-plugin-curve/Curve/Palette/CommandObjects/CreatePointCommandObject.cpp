@@ -13,7 +13,7 @@
 
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace iscore
 {
@@ -181,7 +181,7 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
       segments.push_back(newLeftSegment);
     }
     SegmentData& newLeftSegment = segments.back();
-    newLeftSegment.type = Metadata<ConcreteFactoryKey_k, PowerSegment>::get();
+    newLeftSegment.type = Metadata<ConcreteKey_k, PowerSegment>::get();
     newLeftSegment.specificSegmentData
         = QVariant::fromValue(PowerSegmentData{0});
     newLeftSegment.start = {seg_closest_from_left_x, 0.};
@@ -206,7 +206,7 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
       }
       SegmentData& newRightSegment = segments.back();
       newRightSegment.type
-          = Metadata<ConcreteFactoryKey_k, PowerSegment>::get();
+          = Metadata<ConcreteKey_k, PowerSegment>::get();
       newRightSegment.specificSegmentData
           = QVariant::fromValue(PowerSegmentData{0});
       newRightSegment.start = m_state->currentPoint;

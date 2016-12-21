@@ -16,7 +16,7 @@ namespace PluginSettings
 PluginSettingsModel::PluginSettingsModel(
     QSettings& set, const iscore::ApplicationContext& ctx)
     : iscore::SettingsDelegateModel{}
-    , localPlugins{ctx.components.addons()}
+    , localPlugins{ctx.addons()}
     , remoteSelection{&remotePlugins}
 {
 }

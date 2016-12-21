@@ -27,7 +27,7 @@ class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
 public:
   DocumentManager(iscore::View& view, QObject* parentPresenter);
 
-  void init(const iscore::ApplicationContext& ctx);
+  void init(const iscore::GUIApplicationContext& ctx);
 
   ~DocumentManager();
 
@@ -38,10 +38,10 @@ public:
 
   // Document management
   Document*
-  setupDocument(const iscore::ApplicationContext& ctx, iscore::Document* doc);
+  setupDocument(const iscore::GUIApplicationContext& ctx, iscore::Document* doc);
 
   template <typename... Args>
-  void newDocument(const iscore::ApplicationContext& ctx, Args&&... args)
+  void newDocument(const iscore::GUIApplicationContext& ctx, Args&&... args)
   {
     prepareNewDocument(ctx);
     setupDocument(
@@ -49,7 +49,7 @@ public:
   }
 
   template <typename... Args>
-  Document* loadDocument(const iscore::ApplicationContext& ctx, Args&&... args)
+  Document* loadDocument(const iscore::GUIApplicationContext& ctx, Args&&... args)
   {
     auto cur = currentDocument();
     if (cur && cur->virgin())
@@ -62,7 +62,7 @@ public:
   }
 
   template <typename... Args>
-  void restoreDocument(const iscore::ApplicationContext& ctx, Args&&... args)
+  void restoreDocument(const iscore::GUIApplicationContext& ctx, Args&&... args)
   {
     prepareNewDocument(ctx);
     setupDocument(
@@ -70,7 +70,7 @@ public:
   }
 
   // Restore documents after a crash
-  void restoreDocuments(const iscore::ApplicationContext& ctx);
+  void restoreDocuments(const iscore::GUIApplicationContext& ctx);
 
   const std::vector<Document*>& documents() const
   {
@@ -83,25 +83,25 @@ public:
 
   Document* currentDocument() const;
   void
-  setCurrentDocument(const iscore::ApplicationContext& ctx, Document* doc);
+  setCurrentDocument(const iscore::GUIApplicationContext& ctx, Document* doc);
 
   // Returns true if the document was closed.
-  bool closeDocument(const iscore::ApplicationContext& ctx, Document&);
-  void forceCloseDocument(const iscore::ApplicationContext& ctx, Document&);
+  bool closeDocument(const iscore::GUIApplicationContext& ctx, Document&);
+  void forceCloseDocument(const iscore::GUIApplicationContext& ctx, Document&);
 
   // Methods to save and load
   bool saveDocument(Document&);
   bool saveDocumentAs(Document&);
 
   bool saveStack();
-  Document* loadStack(const iscore::ApplicationContext& ctx);
-  Document* loadStack(const iscore::ApplicationContext& ctx, const QString&);
+  Document* loadStack(const iscore::GUIApplicationContext& ctx);
+  Document* loadStack(const iscore::GUIApplicationContext& ctx, const QString&);
 
-  Document* loadFile(const iscore::ApplicationContext& ctx);
+  Document* loadFile(const iscore::GUIApplicationContext& ctx);
   Document*
-  loadFile(const iscore::ApplicationContext& ctx, const QString& filename);
+  loadFile(const iscore::GUIApplicationContext& ctx, const QString& filename);
 
-  bool closeAllDocuments(const iscore::ApplicationContext& ctx);
+  bool closeAllDocuments(const iscore::GUIApplicationContext& ctx);
 
   bool preparingNewDocument() const;
 
@@ -109,14 +109,14 @@ signals:
   void documentChanged(iscore::Document*);
 
 private:
-  void prepareNewDocument(const iscore::ApplicationContext& ctx);
+  void prepareNewDocument(const iscore::GUIApplicationContext& ctx);
 
   /**
    * @brief checkAndUpdateJson
    * @return boolean indicating if the document is loadable
    */
   bool
-  checkAndUpdateJson(QJsonDocument&, const iscore::ApplicationContext& ctx);
+  checkAndUpdateJson(QJsonDocument&, const iscore::GUIApplicationContext& ctx);
 
   bool updateJson(
       QJsonObject& object,

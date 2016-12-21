@@ -7,8 +7,8 @@
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>
 #include <core/view/View.hpp>
-#include <iscore/menu/MenuInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/actions/Menu.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 namespace iscore
 {
 
@@ -23,7 +23,7 @@ void CoreApplicationPlugin::newDocument()
   m_presenter.m_docManager.newDocument(
       context,
       getStrongId(m_presenter.m_docManager.documents()),
-      *context.components.factory<iscore::DocumentDelegateList>().begin());
+      *context.interfaces<iscore::DocumentDelegateList>().begin());
 }
 
 void CoreApplicationPlugin::load()

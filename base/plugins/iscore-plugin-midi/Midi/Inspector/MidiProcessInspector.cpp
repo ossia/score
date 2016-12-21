@@ -30,7 +30,7 @@ InspectorWidget::InspectorWidget(
   {
     Device::DeviceSettings set = device.get<Device::DeviceSettings>();
     if (set.protocol
-        == Engine::Network::MIDIProtocolFactory::static_concreteFactoryKey())
+        == Engine::Network::MIDIProtocolFactory::static_concreteKey())
     {
       m_devices->addItem(set.name);
     }

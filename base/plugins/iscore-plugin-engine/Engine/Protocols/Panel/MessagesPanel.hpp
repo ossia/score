@@ -13,7 +13,7 @@ class LogMessagesItemModel;
 class PanelDelegate final : public QObject, public iscore::PanelDelegate
 {
 public:
-  PanelDelegate(const iscore::ApplicationContext& ctx);
+  PanelDelegate(const iscore::GUIApplicationContext& ctx);
 
 private:
   QWidget* widget() override;
@@ -34,9 +34,9 @@ private:
 
 class PanelDelegateFactory final : public iscore::PanelDelegateFactory
 {
-  ISCORE_CONCRETE_FACTORY("84a66cbe-aee3-496a-b7f4-0ea0d699deac")
+  ISCORE_CONCRETE("84a66cbe-aee3-496a-b7f4-0ea0d699deac")
 
   std::unique_ptr<iscore::PanelDelegate>
-  make(const iscore::ApplicationContext& ctx) override;
+  make(const iscore::GUIApplicationContext& ctx) override;
 };
 }

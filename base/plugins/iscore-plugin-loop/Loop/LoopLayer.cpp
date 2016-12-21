@@ -7,7 +7,7 @@
 
 #include "LoopLayer.hpp"
 #include <Process/LayerModel.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Loop
 {

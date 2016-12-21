@@ -28,7 +28,7 @@ namespace iscore
      */
 class Application final :
         public QObject,
-        public iscore::ApplicationInterface
+        public iscore::GUIApplicationInterface
 {
         Q_OBJECT
         friend class ChildEventFilter;
@@ -51,7 +51,7 @@ class Application final :
         const iscore::Settings& settings() const
         { return m_settings; }
 
-        const iscore::ApplicationContext& context() const override;
+        const iscore::GUIApplicationContext& context() const override;
         const iscore::ApplicationComponents& components() const override;
         void init(); // m_applicationSettings has to be set.
 

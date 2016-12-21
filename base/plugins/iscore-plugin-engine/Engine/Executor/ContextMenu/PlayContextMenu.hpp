@@ -2,7 +2,7 @@
 #include <QPoint>
 
 #include <iscore/actions/Action.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 #include <iscore/selection/Selection.hpp>
 class QAction;
 class QMenu;
@@ -25,13 +25,13 @@ class PlayContextMenu final : public QObject
 {
 public:
   PlayContextMenu(
-      ApplicationPlugin& plug, const iscore::ApplicationContext& ctx);
+      ApplicationPlugin& plug, const iscore::GUIApplicationContext& ctx);
   void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
   void setEnabled(bool);
 
 private:
-  const iscore::ApplicationContext& m_ctx;
+  const iscore::GUIApplicationContext& m_ctx;
 
   QAction* m_recordAutomations{};
   QAction* m_recordMessages{};

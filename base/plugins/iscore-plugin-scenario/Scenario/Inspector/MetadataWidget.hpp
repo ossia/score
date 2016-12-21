@@ -11,7 +11,7 @@
 #include <Scenario/Commands/Metadata/SetExtendedMetadata.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 namespace iscore
 {

@@ -33,9 +33,9 @@
 #include <iscore/selection/Selection.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 
@@ -88,7 +88,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
   auto trigSec
       = new Inspector::InspectorSectionWidget{tr("Trigger"), false, this};
   m_trigwidg = new TriggerInspectorWidget{
-      ctx, ctx.app.components.factory<Command::TriggerCommandFactoryList>(),
+      ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       m_model, this};
   trigSec->addContent(m_trigwidg);
   trigSec->expand(!m_model.trigger()->expression().toString().isEmpty());
@@ -144,10 +144,14 @@ void TimeNodeInspectorWidget::addEvent(const EventModel& event)
 
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     QTimer::singleShot(0, [=] {
-      auto cmd = new Command::SplitTimeNode{*tn, {id}};
+      // TODO we should instead not show the option in the menu
+      if(tn->events().size() >= 2)
+      {
+        auto cmd = new Command::SplitTimeNode{*tn, {id}};
 
-      CommandDispatcher<> s{*st};
-      s.submitCommand(cmd);
+        CommandDispatcher<> s{*st};
+        s.submitCommand(cmd);
+      }
     });
   });
 

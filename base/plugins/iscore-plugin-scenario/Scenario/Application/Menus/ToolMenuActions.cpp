@@ -2,7 +2,7 @@
 #include <QActionGroup>
 #include <QMenu>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 #include <qnamespace.h>
 
 #include <QString>
@@ -10,13 +10,14 @@
 #include <QVariant>
 
 #include <Process/ExpandMode.hpp>
-#include <iscore/menu/MenuInterface.hpp>
+#include <iscore/actions/Menu.hpp>
 
 #include "ToolMenuActions.hpp"
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <iscore/actions/ActionManager.hpp>
+#include <iscore/actions/MenuManager.hpp>
 
 #include <iscore/widgets/SetIcons.hpp>
 
@@ -263,7 +264,6 @@ void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
     bar->addAction(m_selecttool);
     bar->addAction(m_createtool);
     bar->addAction(m_playtool);
-    bar->addAction(m_shiftAction);
 
     ref.toolbars.emplace_back(bar, StringKey<iscore::Toolbar>("Tools"), 0, 1);
 
@@ -271,7 +271,6 @@ void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
     menu.menu()->addAction(m_selecttool);
     menu.menu()->addAction(m_createtool);
     menu.menu()->addAction(m_playtool);
-    menu.menu()->addAction(m_shiftAction);
 
     ref.actions.add<Actions::SelectTool>(m_selecttool);
     ref.actions.add<Actions::CreateTool>(m_createtool);

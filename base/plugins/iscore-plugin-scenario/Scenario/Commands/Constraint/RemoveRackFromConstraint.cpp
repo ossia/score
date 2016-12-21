@@ -9,10 +9,10 @@
 
 #include "RemoveRackFromConstraint.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/ObjectIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/path/ObjectIdentifier.hpp>
 
 namespace Scenario
 {

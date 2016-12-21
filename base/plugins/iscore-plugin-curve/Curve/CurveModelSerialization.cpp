@@ -11,7 +11,7 @@
 #include "CurveModel.hpp"
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 
 template <typename T>
 class Reader;
@@ -43,7 +43,7 @@ Visitor<Writer<DataStream>>::writeTo(Curve::Model& curve)
   int32_t size;
   m_stream >> size;
 
-  auto& csl = components.factory<Curve::SegmentList>();
+  auto& csl = components.interfaces<Curve::SegmentList>();
   for (; size-- > 0;)
   {
     auto seg = deserialize_interface(csl, *this, &curve);
@@ -70,7 +70,7 @@ template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
 Visitor<Writer<JSONObject>>::writeTo(Curve::Model& curve)
 {
-  auto& csl = components.factory<Curve::SegmentList>();
+  auto& csl = components.interfaces<Curve::SegmentList>();
   for (const auto& segment : m_obj["Segments"].toArray())
   {
     Deserializer<JSONObject> segment_deser{segment.toObject()};

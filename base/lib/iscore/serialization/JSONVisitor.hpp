@@ -4,9 +4,9 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMap>
-#include <iscore/application/ApplicationContext.hpp>
+#include <iscore/application/ApplicationComponents.hpp>
 #include <iscore/serialization/StringConstants.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 
 /**
  * This file contains facilities

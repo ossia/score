@@ -1,11 +1,11 @@
 #pragma once
 #include <QByteArray>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -29,7 +29,7 @@ namespace Command
         * @brief The AddLayerInNewSlot class
         */
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerInNewSlot final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), AddLayerInNewSlot, "Add a new layer")

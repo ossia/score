@@ -17,7 +17,7 @@
 #include <QToolButton>
 
 #include "RackWidget.hpp"
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 #include <iscore/widgets/SignalUtils.hpp>

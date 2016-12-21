@@ -3,7 +3,7 @@
 #include <QPainterPath>
 #include <QPoint>
 #include <QRect>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_curve_export.h>
 class QGraphicsSceneContextMenuEvent;
 class QPainter;

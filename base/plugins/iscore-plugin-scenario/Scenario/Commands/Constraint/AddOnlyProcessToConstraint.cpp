@@ -12,7 +12,7 @@
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 
 #include <algorithm>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <vector>
 
 #include "AddOnlyProcessToConstraint.hpp"
@@ -22,8 +22,8 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {
@@ -70,7 +70,7 @@ Process::ProcessModel&
 AddOnlyProcessToConstraint::redo(ConstraintModel& constraint) const
 {
   // Create process model
-  auto fac = context.components.factory<Process::ProcessFactoryList>().get(
+  auto fac = context.interfaces<Process::ProcessFactoryList>().get(
       m_processName);
   ISCORE_ASSERT(fac);
   auto proc = fac->make(

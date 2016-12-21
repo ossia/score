@@ -13,7 +13,7 @@
 
 class QStyleOptionGraphicsItem;
 class QWidget;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 namespace Curve
 {
 const QPainterPathStroker CurveSegmentStroker{[]() {

@@ -2,7 +2,7 @@
 
 #include "SlotTransitions.hpp"
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 class QEvent;
 

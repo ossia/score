@@ -29,11 +29,11 @@ public:
   {
   }
 
-  explicit OpaqueString(const OpaqueString& str) = default;
-  explicit OpaqueString(OpaqueString&& str) noexcept = default;
+  explicit OpaqueString(const OpaqueString& str) noexcept: impl{str.impl} { }
+  explicit OpaqueString(OpaqueString&& str) noexcept: impl{std::move(str.impl)} { }
 
-  OpaqueString& operator=(const OpaqueString& str) = default;
-  OpaqueString& operator=(OpaqueString&& str) noexcept = default;
+  OpaqueString& operator=(const OpaqueString& str) noexcept { impl = str.impl; return *this; }
+  OpaqueString& operator=(OpaqueString&& str) noexcept { impl = std::move(str.impl); return *this; }
 
 protected:
   std::string impl;

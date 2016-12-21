@@ -8,6 +8,12 @@
 
 namespace iscore
 {
+/**
+ * @brief A reference to a color. Used for skinning.
+ *
+ * This allows easy skinning : by using these classes instead of directly QColor,
+ * we can change a color in a whole graphics scene instantly on the next redraw.
+ */
 struct ISCORE_LIB_BASE_EXPORT ColorRef
 {
   friend bool operator==(ColorRef lhs, ColorRef rhs)

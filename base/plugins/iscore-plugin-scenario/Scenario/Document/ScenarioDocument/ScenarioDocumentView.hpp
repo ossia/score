@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
 
 class BaseGraphicsObject;
 class QGraphicsView;
@@ -17,7 +17,7 @@ namespace Scenario
 {
 class ScenarioScene;
 class TimeRulerView;
-class ScenarioDocumentView final : public iscore::DocumentDelegateViewInterface
+class ScenarioDocumentView final : public iscore::DocumentDelegateView
 {
   Q_OBJECT
 

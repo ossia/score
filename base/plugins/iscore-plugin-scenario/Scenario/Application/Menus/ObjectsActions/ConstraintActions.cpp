@@ -17,8 +17,9 @@
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 #include <iscore/widgets/SetIcons.hpp>
+#include <iscore/actions/MenuManager.hpp>
 
 #include <QAction>
 #include <QApplication>
@@ -37,9 +38,9 @@ namespace Scenario
 {
 // TODO you're better than this
 auto selectedConstraintsInCurrentDocument(
-    const iscore::ApplicationContext& appContext);
+    const iscore::GUIApplicationContext& appContext);
 auto selectedConstraintsInCurrentDocument(
-    const iscore::ApplicationContext& appContext)
+    const iscore::GUIApplicationContext& appContext)
 {
   auto sel = appContext.documents.currentDocument()
                  ->selectionStack()
@@ -67,7 +68,7 @@ ConstraintActions::ConstraintActions(ScenarioApplicationPlugin* parent)
     if (selectedConstraintsInCurrentDocument(appContext).isEmpty())
       return;
 
-    auto& fact = appContext.components.factory<Process::ProcessFactoryList>();
+    auto& fact = appContext.interfaces<Process::ProcessFactoryList>();
     auto dialog = new AddProcessDialog{fact, qApp->activeWindow()};
 
     connect(

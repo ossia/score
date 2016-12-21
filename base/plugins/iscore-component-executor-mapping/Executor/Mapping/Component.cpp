@@ -5,7 +5,7 @@
 #include <ossia/editor/value/value.hpp>
 #include <ossia/network/base/node.hpp>
 
-#include <Engine/Executor/ConstraintElement.hpp>
+#include <Engine/Executor/ConstraintComponent.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>

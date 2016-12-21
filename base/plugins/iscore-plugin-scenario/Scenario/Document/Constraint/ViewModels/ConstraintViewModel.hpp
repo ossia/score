@@ -1,10 +1,10 @@
 #pragma once
 #include <QString>
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <nano_signal_slot.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
 class QObject;

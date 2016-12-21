@@ -5,7 +5,7 @@
 #include <iscore/tools/std/HashMap.hpp>
 #include <utility>
 
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 #include <iscore/actions/Action.hpp>
@@ -13,7 +13,8 @@
 namespace iscore
 {
 class DocumentDelegateFactory;
-class FactoryListInterface;
+class InterfaceListBase;
+struct GUIApplicationContext;
 class GUIApplicationContextPlugin;
 class PanelDelegateFactory;
 class SettingsDelegateFactory;
@@ -33,7 +34,7 @@ class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
 public:
   ApplicationRegistrar(
       ApplicationComponentsData&,
-      const iscore::ApplicationContext&,
+      const iscore::GUIApplicationContext&,
       iscore::View&,
       MenuManager&,
       ToolbarManager&,
@@ -44,13 +45,13 @@ public:
   void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
   void registerPanel(PanelDelegateFactory&);
   void registerCommands(
-      iscore::hash_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
+      iscore::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds);
   void registerCommands(
-      std::pair<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);
+      std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds);
   void registerFactories(
-      iscore::hash_map<iscore::AbstractFactoryKey, std::unique_ptr<FactoryListInterface>>&&
+      iscore::hash_map<iscore::InterfaceKey, std::unique_ptr<InterfaceListBase>>&&
               cmds);
-  void registerFactory(std::unique_ptr<FactoryListInterface> cmds);
+  void registerFactory(std::unique_ptr<InterfaceListBase> cmds);
 
   ApplicationComponentsData& components() const
   {
@@ -59,7 +60,7 @@ public:
 
 private:
   ApplicationComponentsData& m_components;
-  const iscore::ApplicationContext& m_context;
+  const iscore::GUIApplicationContext& m_context;
   iscore::View& m_view;
 
   MenuManager& m_menuManager;

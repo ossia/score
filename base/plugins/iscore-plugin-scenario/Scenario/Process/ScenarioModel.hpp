@@ -17,14 +17,14 @@
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/IdentifiedObjectMap.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 class DataStream;
 class JSONObject;
@@ -35,16 +35,12 @@ class LayerModel;
 
 class QEvent;
 
-/**
- * @brief The ScenarioModel class
- *
- * Creation methods return tuples with the identifiers of the objects in their
- * temporal order.
- * (first to last)
- */
 namespace Scenario
 {
 class ScenarioFactory;
+/**
+ * @brief The core hierarchical and temporal process of i-score
+ */
 class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
     : public Process::ProcessModel,
       public ScenarioInterface
@@ -142,10 +138,6 @@ public:
   {
     return events.at(m_startEventId);
   }
-  EventModel& endEvent() const
-  {
-    return events.at(m_endEventId);
-  }
 
   EntityMap<ConstraintModel> constraints;
   EntityMap<EventModel> events;
@@ -220,10 +212,8 @@ private:
   void setupLayer(AbstractScenarioLayer*);
 
   Id<TimeNodeModel> m_startTimeNodeId{};
-  Id<TimeNodeModel> m_endTimeNodeId{};
 
   Id<EventModel> m_startEventId{};
-  Id<EventModel> m_endEventId{};
 
   Id<StateModel> m_startStateId{};
   // By default, creation in the void will make a constraint

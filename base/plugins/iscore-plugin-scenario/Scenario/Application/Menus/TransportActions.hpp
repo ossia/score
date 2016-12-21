@@ -3,13 +3,12 @@
 #include <QList>
 #include <QPoint>
 
-#include <iscore/actions/Action.hpp>
-#include <iscore/menu/MenuInterface.hpp>
 #include <iscore/selection/Selection.hpp>
 
 namespace iscore
 {
 struct GUIApplicationContext;
+struct GUIElements;
 }
 class QAction;
 class QMenu;
@@ -25,7 +24,7 @@ public:
   void makeGUIElements(iscore::GUIElements& ref);
 
 private:
-  const iscore::ApplicationContext& m_context;
+  const iscore::GUIApplicationContext& m_context;
 
   QAction* m_play{};
   QAction* m_stop{};

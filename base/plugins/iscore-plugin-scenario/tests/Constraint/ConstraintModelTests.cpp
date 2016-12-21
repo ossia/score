@@ -8,7 +8,7 @@
 
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 class ConstraintModelTests : public QObject
 {

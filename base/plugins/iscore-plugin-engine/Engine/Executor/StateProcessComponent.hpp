@@ -1,14 +1,14 @@
 #pragma once
 #include <Process/StateProcess.hpp>
 
-#include <iscore/component/Component.hpp>
-#include <iscore/component/ComponentFactory.hpp>
+#include <iscore/model/Component.hpp>
+#include <iscore/model/ComponentFactory.hpp>
 
 #include <iscore_plugin_engine_export.h>
 
 #include <ossia/editor/state/state_element.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/StateElement.hpp>
+#include <Engine/Executor/StateComponent.hpp>
 #include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <iscore/plugins/customfactory/ModelFactory.hpp>
 namespace Engine

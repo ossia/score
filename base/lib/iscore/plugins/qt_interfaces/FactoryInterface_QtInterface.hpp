@@ -16,9 +16,9 @@ class ISCORE_LIB_BASE_EXPORT FactoryInterface_QtInterface
 {
 public:
   virtual ~FactoryInterface_QtInterface();
-  virtual std::vector<std::unique_ptr<FactoryInterfaceBase>> factories(
+  virtual std::vector<std::unique_ptr<InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::AbstractFactoryKey& key) const = 0;
+      const iscore::InterfaceKey& key) const = 0;
 };
 }
 

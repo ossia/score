@@ -1,10 +1,10 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -22,7 +22,7 @@ namespace Command
          * The process view models are recursively copied.
          * The Slot is put at the end.
          */
-class CopySlot final : public iscore::SerializableCommand
+class CopySlot final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CopySlot, "Copy a slot")
 public:

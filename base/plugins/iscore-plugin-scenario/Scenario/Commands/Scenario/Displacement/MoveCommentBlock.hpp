@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <Process/TimeValue.hpp>
@@ -13,7 +13,7 @@ namespace Scenario
 class CommentBlockModel;
 namespace Command
 {
-class MoveCommentBlock final : public iscore::SerializableCommand
+class MoveCommentBlock final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), MoveCommentBlock, "Move a comment block")

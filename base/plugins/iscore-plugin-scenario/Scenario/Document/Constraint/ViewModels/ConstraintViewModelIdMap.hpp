@@ -1,8 +1,8 @@
 #pragma once
 #include <QHash>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 namespace Process
 {
 class LayerModel;

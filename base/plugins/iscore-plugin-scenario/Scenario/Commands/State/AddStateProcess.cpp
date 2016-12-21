@@ -3,8 +3,8 @@
 #include <Process/StateProcessFactory.hpp>
 #include <Process/StateProcessFactoryList.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 namespace Scenario
 {
 namespace Command
@@ -39,7 +39,7 @@ void AddStateProcessToState::redo() const
 {
   auto& state = m_path.find();
   // Create process model
-  auto proc = context.components.factory<Process::StateProcessList>()
+  auto proc = context.interfaces<Process::StateProcessList>()
                   .get(m_processName)
                   ->make(m_createdProcessId, &state);
 

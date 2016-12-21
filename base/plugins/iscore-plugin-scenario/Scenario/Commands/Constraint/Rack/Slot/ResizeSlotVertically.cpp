@@ -3,8 +3,8 @@
 #include "ResizeSlotVertically.hpp"
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {

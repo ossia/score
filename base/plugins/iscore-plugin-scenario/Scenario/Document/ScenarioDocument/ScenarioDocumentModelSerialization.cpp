@@ -12,7 +12,7 @@
 
 namespace iscore
 {
-class DocumentDelegateModelInterface;
+class DocumentDelegateModel;
 } // namespace iscore
 struct VisitorVariant;
 template <typename T>
@@ -28,7 +28,7 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
 {
   readFrom(
       static_cast<const IdentifiedObject<iscore::
-                                             DocumentDelegateModelInterface>&>(
+                                             DocumentDelegateModel>&>(
           obj));
   readFrom(*obj.m_baseScenario);
 
@@ -49,7 +49,7 @@ void Visitor<Reader<JSONObject>>::readFrom_impl(
 {
   readFrom(
       static_cast<const IdentifiedObject<iscore::
-                                             DocumentDelegateModelInterface>&>(
+                                             DocumentDelegateModel>&>(
           obj));
   m_obj["BaseScenario"] = toJsonObject(*obj.m_baseScenario);
 }
@@ -58,7 +58,7 @@ template <>
 void Visitor<Writer<JSONObject>>::writeTo(Scenario::ScenarioDocumentModel& obj)
 {
   writeTo(
-      static_cast<IdentifiedObject<iscore::DocumentDelegateModelInterface>&>(
+      static_cast<IdentifiedObject<iscore::DocumentDelegateModel>&>(
           obj));
   obj.m_baseScenario = new Scenario::BaseScenario{
       Deserializer<JSONObject>{m_obj["BaseScenario"].toObject()}, &obj};

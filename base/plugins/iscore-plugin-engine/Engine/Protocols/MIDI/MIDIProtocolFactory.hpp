@@ -20,7 +20,7 @@ namespace Network
 {
 class MIDIProtocolFactory final : public Device::ProtocolFactory
 {
-  ISCORE_CONCRETE_FACTORY("94a362a1-9411-4ee9-b94d-4bc79b1427cf")
+  ISCORE_CONCRETE("94a362a1-9411-4ee9-b94d-4bc79b1427cf")
 
   // Implement with OSSIA::Device
   QString prettyName() const override;

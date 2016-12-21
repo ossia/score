@@ -4,7 +4,7 @@
 
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_lib_process_export.h>
 
 namespace Process

@@ -20,8 +20,8 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/Identifier.hpp>
 
 namespace Scenario
 {
@@ -80,7 +80,7 @@ Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintModel& constraint)
   int32_t process_count;
   m_stream >> process_count;
 
-  auto& pl = components.factory<Process::ProcessFactoryList>();
+  auto& pl = components.interfaces<Process::ProcessFactoryList>();
   for (; process_count-- > 0;)
   {
     auto proc = deserialize_interface(pl, *this, &constraint);
@@ -155,7 +155,7 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintModel& constraint)
 {
-  auto& pl = components.factory<Process::ProcessFactoryList>();
+  auto& pl = components.interfaces<Process::ProcessFactoryList>();
 
   QJsonArray process_array = m_obj["Processes"].toArray();
   for (const auto& json_vref : process_array)

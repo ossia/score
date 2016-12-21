@@ -3,9 +3,9 @@
 #include <QPair>
 #include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
@@ -29,7 +29,7 @@ namespace Command
         *
         * Tries to remove what is selected in a scenario.
         */
-class RemoveSelection final : public iscore::SerializableCommand
+class RemoveSelection final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), RemoveSelection,

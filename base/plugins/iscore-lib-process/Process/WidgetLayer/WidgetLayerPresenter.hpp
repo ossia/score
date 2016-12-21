@@ -5,7 +5,7 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Process.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_lib_process_export.h>
 
 #include <Process/LayerPresenter.hpp>

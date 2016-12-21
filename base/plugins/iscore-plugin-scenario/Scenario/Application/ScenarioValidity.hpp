@@ -10,7 +10,7 @@ namespace Scenario
 
 class ScenarioValidityChecker final : public iscore::ValidityChecker
 {
-  ISCORE_CONCRETE_FACTORY("f2dd8bec-a81b-4b3b-a57c-535001fde131")
+  ISCORE_CONCRETE("f2dd8bec-a81b-4b3b-a57c-535001fde131")
 public:
   virtual ~ScenarioValidityChecker();
 

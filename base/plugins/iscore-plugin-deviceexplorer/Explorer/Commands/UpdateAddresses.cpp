@@ -8,10 +8,10 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
-#include <iscore/tools/TreeNode.hpp>
-#include <iscore/tools/TreePath.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
+#include <iscore/model/tree/TreePath.hpp>
 
 namespace Explorer
 {

@@ -18,8 +18,8 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/Identifier.hpp>
 namespace Scenario
 {
 template <typename Selected_T>

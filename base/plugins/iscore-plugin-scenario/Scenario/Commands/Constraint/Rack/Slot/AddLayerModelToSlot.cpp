@@ -5,14 +5,14 @@
 #include <algorithm>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <vector>
 
 #include "AddLayerModelToSlot.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {
@@ -26,10 +26,10 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 {
   // Without further precision, we should take the first layer model that comes
   // up when looking for the matching process.
-  auto& procs = this->context.components.factory<Process::LayerFactoryList>();
+  auto& procs = this->context.interfaces<Process::LayerFactoryList>();
   auto fact = procs.findDefaultFactory(process);
   ISCORE_ASSERT(fact);
-  m_layerFactory = fact->concreteFactoryKey();
+  m_layerFactory = fact->concreteKey();
   m_processData = fact->makeLayerConstructionData(process);
 }
 
@@ -42,10 +42,10 @@ AddLayerModelToSlot::AddLayerModelToSlot(
     , m_processData{std::move(processData)}
     , m_createdLayerId{getStrongId(m_slotPath.find().layers)}
 {
-  auto& procs = this->context.components.factory<Process::LayerFactoryList>();
+  auto& procs = this->context.interfaces<Process::LayerFactoryList>();
   auto fact = procs.findDefaultFactory(process);
   ISCORE_ASSERT(fact);
-  m_layerFactory = fact->concreteFactoryKey();
+  m_layerFactory = fact->concreteKey();
 }
 
 AddLayerModelToSlot::AddLayerModelToSlot(
@@ -77,7 +77,7 @@ void AddLayerModelToSlot::redo() const
   auto& slot = m_slotPath.find();
   auto& process = m_processPath.find();
 
-  auto& procs = this->context.components.factory<Process::LayerFactoryList>();
+  auto& procs = this->context.interfaces<Process::LayerFactoryList>();
 
   auto fact = procs.get(m_layerFactory);
   slot.layers.add(fact->make(process, m_createdLayerId, m_processData, &slot));

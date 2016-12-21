@@ -1,7 +1,7 @@
 #pragma once
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 
 namespace Scenario
 {

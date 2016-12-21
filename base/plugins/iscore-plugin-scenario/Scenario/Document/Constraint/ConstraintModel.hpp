@@ -15,10 +15,10 @@
 #include <QString>
 #include <QVector>
 
-#include <iscore/component/Component.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Component.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/Identifier.hpp>
 class DataStream;
 class JSONObject;
 

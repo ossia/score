@@ -1,13 +1,13 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <QAbstractItemModel>
-#include <iscore/tools/TreeNodeItemModel.hpp>
+#include <iscore/model/tree/TreeNodeItemModel.hpp>
 #include <vector>
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <iscore/tools/InvisibleRootNode.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/InvisibleRootNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>
 #include <iscore_lib_device_export.h>
 
 namespace Device
@@ -21,7 +21,7 @@ public:
 
   QModelIndex modelIndexFromNode(node_type& n, int column) const
   {
-    if (n.is<InvisibleRootNodeTag>())
+    if (n.is<InvisibleRootNode>())
     {
       return QModelIndex();
     }
@@ -53,7 +53,7 @@ public:
 
   auto removeNode(node_type::const_iterator node)
   {
-    ISCORE_ASSERT(!node->is<InvisibleRootNodeTag>());
+    ISCORE_ASSERT(!node->is<InvisibleRootNode>());
 
     if (node->is<Device::AddressSettings>())
     {

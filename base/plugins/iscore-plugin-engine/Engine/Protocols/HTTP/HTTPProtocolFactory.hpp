@@ -7,7 +7,7 @@ namespace Network
 {
 class HTTPProtocolFactory final : public Device::ProtocolFactory
 {
-  ISCORE_CONCRETE_FACTORY("171095cd-6815-4930-be40-5ffe131eb775")
+  ISCORE_CONCRETE("171095cd-6815-4930-be40-5ffe131eb775")
   // Implement with OSSIA::Device
   QString prettyName() const override;
 

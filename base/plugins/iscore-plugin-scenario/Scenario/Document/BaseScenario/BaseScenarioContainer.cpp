@@ -11,7 +11,7 @@
 #include "BaseScenarioContainer.hpp"
 #include <Process/TimeValue.hpp>
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 namespace Scenario
 {
 class ConstraintViewModel;

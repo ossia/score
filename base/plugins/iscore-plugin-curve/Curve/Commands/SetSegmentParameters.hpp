@@ -2,11 +2,11 @@
 #include <Curve/Commands/CurveCommandFactory.hpp>
 #include <QMap>
 #include <QPair>
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/model/path/Path.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_curve_export.h>
 
 struct DataStreamInput;
@@ -18,7 +18,7 @@ class Model;
 class SegmentModel;
 using SegmentParameterMap = QMap<Id<SegmentModel>, QPair<double, double>>;
 class ISCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final
-    : public iscore::SerializableCommand
+    : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       CommandFactoryName(), SetSegmentParameters, "Set segment parameters")

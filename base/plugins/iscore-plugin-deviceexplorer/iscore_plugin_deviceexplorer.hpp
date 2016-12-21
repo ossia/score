@@ -10,13 +10,13 @@
 #include <vector>
 
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 namespace iscore
 {
 
-class FactoryListInterface;
+class InterfaceListBase;
 class PanelFactory;
 } // namespace iscore
 
@@ -35,27 +35,24 @@ class iscore_plugin_deviceexplorer final
                        iscore::GUIApplicationContextPlugin_QtInterface
                            iscore::CommandFactory_QtInterface)
 
+  ISCORE_PLUGIN_METADATA(1, "3c2a0e25-ab14-4c06-a1ba-033d721a520f")
 public:
   iscore_plugin_deviceexplorer();
   virtual ~iscore_plugin_deviceexplorer();
 
 private:
   // Factory for protocols
-  std::vector<std::unique_ptr<iscore::FactoryListInterface>>
+  std::vector<std::unique_ptr<iscore::InterfaceListBase>>
   factoryFamilies() override;
 
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::AbstractFactoryKey& factoryName) const override;
+      const iscore::InterfaceKey& factoryName) const override;
 
   // application plugin
   iscore::GUIApplicationContextPlugin*
   make_applicationPlugin(const iscore::GUIApplicationContext& app) override;
 
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
-
-  QStringList offered() const override;
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
 };

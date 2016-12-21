@@ -9,7 +9,7 @@ namespace RollbackStrategy
 {
 struct Simple
 {
-  static void rollback(const std::vector<iscore::SerializableCommand*>& cmds)
+  static void rollback(const std::vector<iscore::Command*>& cmds)
   {
     for (int i = cmds.size() - 1; i >= 0; --i)
     {
@@ -42,14 +42,14 @@ public:
     cleanup();
   }
 
-  void submitCommand(iscore::SerializableCommand* cmd)
+  void submitCommand(iscore::Command* cmd)
   {
     stack().disableActions();
     cmd->redo();
     m_cmds.push_back(cmd);
   }
 
-  void submitCommandQuiet(iscore::SerializableCommand* cmd)
+  void submitCommandQuiet(iscore::Command* cmd)
   {
     stack().disableActions();
     m_cmds.push_back(cmd);
@@ -67,7 +67,7 @@ public:
     }
     else
     {
-      iscore::SerializableCommand* last = m_cmds.back();
+      iscore::Command* last = m_cmds.back();
       if (last->key() == TheCommand::static_key())
       {
         safe_cast<TheCommand*>(last)->update(std::forward<Args>(args)...);
@@ -119,5 +119,5 @@ private:
         m_cmds.rbegin(), m_cmds.rend(), [](auto cmd) { delete cmd; });
   }
 
-  std::vector<iscore::SerializableCommand*> m_cmds;
+  std::vector<iscore::Command*> m_cmds;
 };

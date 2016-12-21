@@ -13,7 +13,7 @@ private slots:
   {
     Device::Node root;
 
-    ISCORE_ASSERT(root.is<InvisibleRootNodeTag>());
+    ISCORE_ASSERT(root.is<InvisibleRootNode>());
 
     {
       Device::Node child(Device::AddressSettings{}, nullptr);
@@ -174,4 +174,4 @@ QTEST_MAIN(NodeTest)
 #include "NodeTest.moc"
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <iscore/tools/TreeNode.hpp>
+#include <iscore/model/tree/TreeNode.hpp>

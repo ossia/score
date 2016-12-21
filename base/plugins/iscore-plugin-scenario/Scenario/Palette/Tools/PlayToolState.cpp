@@ -7,7 +7,8 @@
 #include <Scenario/Document/State/StatePresenter.hpp>
 
 #include <Scenario/Palette/ScenarioPoint.hpp>
-
+#include <QKeyEvent>
+#include <QApplication>
 namespace Scenario
 {
 PlayToolState::PlayToolState(const Scenario::ToolPalette& sm)
@@ -31,13 +32,37 @@ void PlayToolState::on_pressed(
     case StateView::static_type():
     {
       const auto& state
-          = static_cast<const StateView*>(item)->presenter().model();
+          = safe_cast<const StateView*>(item)->presenter().model();
 
       auto id = state.parent() == &this->m_sm.model()
                     ? state.id()
                     : OptionalId<StateModel>{};
       if (id)
         emit m_exec.playState(m_sm.model(), *id);
+      break;
+    }
+    case ConstraintView::static_type():
+    {
+      const auto& cst
+          = safe_cast<const ConstraintView*>(item)->presenter().model();
+
+      auto id = cst.parent() == &this->m_sm.model()
+                    ? cst.id()
+                    : OptionalId<ConstraintModel>{};
+      if (id)
+      {
+        if(QApplication::keyboardModifiers() & Qt::AltModifier)
+        {
+          emit m_exec.playConstraint(m_sm.model(), *id);
+        }
+        else
+        {
+          emit m_exec.playFromConstraintAtDate(
+                m_sm.model(),
+                *id,
+                scenarioPoint.date);
+        }
+      }
       break;
     }
       // TODO Play constraint ? the code is already here.

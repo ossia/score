@@ -13,7 +13,7 @@ const iscore::sp<ModelRateParameter> Rate{
     QStringLiteral("iscore_plugin_engine/ExecutionRate"), 50};
 const iscore::sp<ModelClockParameter> Clock{
     QStringLiteral("iscore_plugin_engine/Clock"),
-    DefaultClockManagerFactory::static_concreteFactoryKey()};
+    DefaultClockManagerFactory::static_concreteKey()};
 
 static auto list()
 {
@@ -22,7 +22,7 @@ static auto list()
 }
 
 Model::Model(QSettings& set, const iscore::ApplicationContext& ctx)
-    : m_clockFactories{ctx.components.factory<ClockManagerFactoryList>()}
+    : m_clockFactories{ctx.interfaces<ClockManagerFactoryList>()}
 {
   iscore::setupDefaultSettings(set, Parameters::list(), *this);
 }
@@ -38,7 +38,7 @@ Model::makeClock(const Engine::Execution::Context& ctx) const
 
 ISCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
 ISCORE_SETTINGS_PARAMETER_CPP(
-    ClockManagerFactory::ConcreteFactoryKey, Model, Clock)
+    ClockManagerFactory::ConcreteKey, Model, Clock)
 }
 }
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 
 namespace Process

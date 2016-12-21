@@ -13,7 +13,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <functional>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <iterator>
 #include <map>
 #include <utility>
@@ -24,9 +24,9 @@
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/EntityMap.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/ModelPathSerialization.hpp>
+#include <iscore/model/EntityMap.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {
@@ -126,7 +126,7 @@ void InsertContentInConstraint::redo() const
   }
 
   // Clone the rackes
-  auto& procs = context.components.factory<Process::LayerFactoryList>();
+  auto& procs = context.interfaces<Process::LayerFactoryList>();
 
   const auto& src_racks = src_constraint.racks;
   for (const auto& sourcerack : src_racks)

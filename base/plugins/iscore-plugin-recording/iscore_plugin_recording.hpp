@@ -8,7 +8,7 @@
 #include <utility>
 
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 namespace iscore
@@ -39,6 +39,7 @@ class iscore_plugin_recording final
                        iscore::CommandFactory_QtInterface
                            iscore::FactoryInterface_QtInterface)
 
+  ISCORE_PLUGIN_METADATA(1, "659ba25e-97e5-40d9-8db8-f7a8537035ad")
 public:
   iscore_plugin_recording();
   virtual ~iscore_plugin_recording();
@@ -47,14 +48,12 @@ private:
   iscore::GUIApplicationContextPlugin*
   make_applicationPlugin(const iscore::GUIApplicationContext& app) override;
 
-  std::vector<std::unique_ptr<iscore::FactoryInterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::AbstractFactoryKey& key) const override;
+      const iscore::InterfaceKey& key) const override;
 
-  std::pair<const CommandParentFactoryKey, CommandGeneratorMap>
+  std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
-  QStringList required() const override;
-  iscore::Version version() const override;
-  UuidKey<iscore::Plugin> key() const override;
+  std::vector<iscore::PluginKey> required() const override;
 };

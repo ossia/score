@@ -20,7 +20,7 @@
 #include <QStyleFactory>
 #include <QFileInfo>
 #include <QDir>
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <algorithm>
 #include <vector>
 
@@ -32,13 +32,13 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/selection/Selection.hpp>
 
-#include <iscore/tools/ObjectIdentifier.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/ObjectIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/command/Validity/ValidityChecker.hpp>
 
 #include <core/document/DocumentModel.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 
 #include "iscore_git_info.hpp"
 
@@ -103,7 +103,7 @@ Application::~Application()
     delete m_app;
 }
 
-const iscore::ApplicationContext& Application::context() const
+const iscore::GUIApplicationContext& Application::context() const
 {
   return m_presenter->applicationContext();
 }
@@ -160,7 +160,7 @@ void Application::initDocuments()
     }
 
     // The plug-ins have the ability to override the boot process.
-    for(auto plug : ctx.components.applicationPlugins())
+    for(auto plug : ctx.applicationPlugins())
     {
         if(plug->handleStartup())
         {
@@ -175,13 +175,13 @@ void Application::initDocuments()
     }
     else
     {
-        auto& documentKinds = m_presenter->applicationComponents().factory<iscore::DocumentDelegateList>();
+        auto& documentKinds = m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>();
         if(!documentKinds.empty() && m_presenter->documentManager().documents().empty())
         {
             m_presenter->documentManager().newDocument(
                         ctx,
                         Id<iscore::DocumentModel>{iscore::random_id_generator::getRandomId()},
-                        *m_presenter->applicationComponents().factory<iscore::DocumentDelegateList>().begin());
+                        *m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>().begin());
         }
     }
 
@@ -203,7 +203,7 @@ void Application::loadPluginData()
                 m_presenter->toolbarManager(),
                 m_presenter->actionManager()};
 
-    ApplicationInterface::loadPluginData(ctx, registrar, m_settings, *m_presenter);
+    GUIApplicationInterface::loadPluginData(ctx, registrar, m_settings, *m_presenter);
 }
 
 int Application::exec()

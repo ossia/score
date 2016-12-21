@@ -18,7 +18,7 @@ class LayerModel;
 }
 
 class QObject;
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_recording_export.h>
 namespace RecordedMessages
 {

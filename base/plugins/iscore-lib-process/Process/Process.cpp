@@ -8,8 +8,8 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 #include <iscore/model/ModelMetadata.hpp>
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/IdentifiedObject.hpp>
+#include <iscore/model/Identifier.hpp>
 
 template class IdentifiedObject<Process::ProcessModel>;
 template class iscore::SerializableInterface<Process::ProcessModelFactory>;

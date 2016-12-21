@@ -1,0 +1,31 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qml/MainPage.qml</file>
+        <file>qml/MainPageForm.ui.qml</file>
+        <file>qml/WidgetList.qml</file>
+        <file>qml/CentralArea.qml</file>
+        <file>qml/NodeTree.qml</file>
+        <file>qml/CentralAreaForm.ui.qml</file>
+        <file>qml/WidgetListForm.ui.qml</file>
+        <file>qml/widgets/static/StaticButton.qml</file>
+        <file>qml/widgets/static/StaticLabel.qml</file>
+        <file>qml/widgets/static/StaticLineEdit.qml</file>
+        <file>qml/widgets/static/StaticSlider.qml</file>
+        <file>qml/widgets/static/StaticSwitch.qml</file>
+        <file>qml/widgets/dynamic/DynamicButton.qml</file>
+        <file>qml/widgets/dynamic/DynamicButtonForm.ui.qml</file>
+        <file>qml/widgets/dynamic/DynamicHSlider.qml</file>
+        <file>qml/widgets/dynamic/DynamicHSliderForm.ui.qml</file>
+        <file>qml/widgets/dynamic/DynamicLineEdit.qml</file>
+        <file>qml/widgets/dynamic/DynamicLineEditForm.ui.qml</file>
+        <file>qml/widgets/dynamic/DynamicSwitch.qml</file>
+        <file>qml/widgets/dynamic/DynamicSwitchForm.ui.qml</file>
+        <file>qml/widgets/dynamic/DynamicVSlider.qml</file>
+        <file>qml/widgets/dynamic/DynamicVSliderForm.ui.qml</file>
+        <file>qml/widgets/dynamic/AddressDrop.qml</file>
+        <file>qml/widgets/dynamic/AddressLabel.qml</file>
+        <file>qml/widgets/dynamic/DynamicLabel.qml</file>
+        <file>qml/widgets/dynamic/DynamicLabelForm.ui.qml</file>
+    </qresource>
+</RCC>

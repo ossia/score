@@ -3,12 +3,12 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <iscore/command/CommandStackFacade.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 #include "CreateConstraint_State_Event_TimeNode.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/tools/ModelPath.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/model/path/Path.hpp>
+#include <iscore/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -67,7 +67,7 @@ private:
   Id<TimeNodeModel> m_newTimeNode;
 };
 
-class CreateSequenceProcesses final : public iscore::SerializableCommand
+class CreateSequenceProcesses final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

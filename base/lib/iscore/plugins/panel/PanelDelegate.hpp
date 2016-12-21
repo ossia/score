@@ -9,7 +9,7 @@
 class Selection;
 namespace iscore
 {
-struct ApplicationContext;
+struct GUIApplicationContext;
 struct DocumentContext;
 class PanelModel;
 class PanelView;
@@ -50,10 +50,10 @@ struct ISCORE_LIB_BASE_EXPORT PanelStatus
 class ISCORE_LIB_BASE_EXPORT PanelDelegate
 {
 public:
-  PanelDelegate(const iscore::ApplicationContext& ctx);
+  PanelDelegate(const iscore::GUIApplicationContext& ctx);
   virtual ~PanelDelegate();
 
-  const iscore::ApplicationContext& context() const;
+  const iscore::GUIApplicationContext& context() const;
 
   void setModel(const iscore::DocumentContext& model);
   void setModel(none_t n);
@@ -95,7 +95,7 @@ protected:
   virtual void on_modelChanged(MaybeDocument oldm, MaybeDocument newm);
 
 private:
-  const iscore::ApplicationContext& m_context;
+  const iscore::GUIApplicationContext& m_context;
   MaybeDocument m_model;
 };
 }

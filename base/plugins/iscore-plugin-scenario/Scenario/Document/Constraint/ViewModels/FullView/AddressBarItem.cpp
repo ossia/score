@@ -12,7 +12,7 @@
 #include "AddressBarItem.hpp"
 #include "ClickableLabelItem.hpp"
 #include <iscore/model/ModelMetadata.hpp>
-#include <iscore/tools/ObjectIdentifier.hpp>
+#include <iscore/model/path/ObjectIdentifier.hpp>
 
 class QPainter;
 class QStyleOptionGraphicsItem;

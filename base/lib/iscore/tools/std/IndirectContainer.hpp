@@ -201,6 +201,10 @@ public:
   {
     return make_indirect_ptr_iterator(ctnr_t::cend());
   }
+  auto size() const
+  {
+    return ctnr_t::size();
+  }
 };
 
 template <class Container>

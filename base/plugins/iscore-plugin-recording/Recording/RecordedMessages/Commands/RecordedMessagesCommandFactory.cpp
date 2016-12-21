@@ -1,8 +1,8 @@
 #include "RecordedMessagesCommandFactory.hpp"
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
-const CommandParentFactoryKey& RecordedMessages::CommandFactoryName()
+const CommandGroupKey& RecordedMessages::CommandFactoryName()
 {
-  static const CommandParentFactoryKey key{"RecordedMessages"};
+  static const CommandGroupKey key{"RecordedMessages"};
   return key;
 }

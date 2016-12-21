@@ -2,9 +2,9 @@
 #include <Process/State/MessageNode.hpp>
 #include <QJsonObject>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
-#include <iscore/tools/ModelPath.hpp>
+#include <iscore/model/path/Path.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -15,7 +15,7 @@ class StateModel;
 namespace Command
 {
 
-class InsertContentInState final : public iscore::SerializableCommand
+class InsertContentInState final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

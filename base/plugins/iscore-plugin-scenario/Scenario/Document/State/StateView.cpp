@@ -1,10 +1,12 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QBrush>
+#include <QCursor>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPen>
 #include <qnamespace.h>
 
+#include "StateMenuOverlay.hpp"
 #include "StatePresenter.hpp"
 #include "StateView.hpp"
 
@@ -18,6 +20,7 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
 
+  this->setCursor(QCursor(Qt::SizeAllCursor));
   this->setZValue(ZPos::State);
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
@@ -65,10 +68,21 @@ void StateView::setContainMessage(bool arg)
   update();
 }
 
-void StateView::setSelected(bool arg)
+void StateView::setSelected(bool b)
 {
-  m_selected = arg;
+  m_selected = b;
   setDilatation(m_selected ? 1.5 : 1);
+
+  if(b)
+  {
+    m_overlay = new StateMenuOverlay{this};
+    m_overlay->setPos(10, -10);
+  }
+  else
+  {
+    delete m_overlay;
+    m_overlay = nullptr;
+  }
 }
 
 void StateView::changeColor(iscore::ColorRef c)

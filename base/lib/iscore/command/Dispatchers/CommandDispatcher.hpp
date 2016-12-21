@@ -17,7 +17,7 @@ public:
   {
   }
 
-  void submitCommand(iscore::SerializableCommand* cmd) const
+  void submitCommand(iscore::Command* cmd) const
   {
     SendStrategy::send(stack(), cmd);
   }
@@ -28,7 +28,7 @@ public:
     SendStrategy::send(stack(), new T{std::forward<Args>(args)...});
   }
 
-  void submitCommand(std::unique_ptr<iscore::SerializableCommand> cmd) const
+  void submitCommand(std::unique_ptr<iscore::Command> cmd) const
   {
     SendStrategy::send(stack(), cmd.release());
   }

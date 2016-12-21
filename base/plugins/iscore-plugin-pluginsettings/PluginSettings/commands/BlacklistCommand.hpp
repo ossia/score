@@ -1,15 +1,15 @@
 #pragma once
-
+/*
 #include <QMap>
 #include <QString>
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/Command.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
 
 namespace PluginSettings
 {
-class BlacklistCommand : public iscore::SerializableCommand
+class BlacklistCommand : public iscore::Command
 {
   // QUndoCommand interface
 public:
@@ -25,10 +25,11 @@ protected:
 
   QMap<QString, bool> m_blacklistedState;
 
-  // SerializableCommand interface
+  // Command interface
 public:
-  const CommandParentFactoryKey& parentKey() const override;
-  const CommandFactoryKey& key() const override;
+  const CommandParentFactoryKey& parentKey() const noexcept override;
+  const CommandFactoryKey& key() const noexcept override;
   QString description() const override;
 };
 }
+*/
