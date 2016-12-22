@@ -208,7 +208,7 @@ private slots:
     }
 
     {
-      std::string str("{minuit:/device/lol impulse}");
+      std::string str("{ minuit:/device/lol impulse }");
 
       typedef std::string::const_iterator iterator_type;
       Pulse_parser<iterator_type> parser;
@@ -228,7 +228,7 @@ private slots:
     }
 
     {
-      QString str("{minuit:/device/lol impulse}");
+      QString str("{ minuit:/device/lol impulse }");
 
       auto expr = State::parseExpression(str);
 
@@ -240,7 +240,7 @@ private slots:
   {
 
     {
-      std::string str("minuit:/device/lol[7]");
+      std::string str("minuit:/device/lol@[7]");
 
       typedef std::string::const_iterator iterator_type;
       AddressAccessor_parser<iterator_type> parser;
@@ -255,7 +255,7 @@ private slots:
     }
 
     {
-      std::string str("minuit:/device/lol[7]");
+      std::string str("minuit:/device/lol@[7]");
 
       typedef std::string::const_iterator iterator_type;
       RelationMember_parser<iterator_type> parser;
@@ -272,7 +272,7 @@ private slots:
     }
 
     {
-      QString str("{minuit:/device/lol[1][2] < 3.14}");
+      QString str("{ minuit:/device/lol@[1][2] < 3.14 }");
 
       auto expr = State::parseExpression(str);
 
@@ -283,7 +283,7 @@ private slots:
   void test_parse_dataspace()
   {
     {
-      std::string str("minuit:/device/lol[color.rgb]");
+      std::string str("minuit:/device/lol@[color.rgb]");
 
       typedef std::string::const_iterator iterator_type;
       AddressAccessor_parser<iterator_type> parser;
@@ -298,7 +298,7 @@ private slots:
     }
 
     {
-      std::string str("minuit:/device/lol[color.hsv.s]");
+      std::string str("minuit:/device/lol@[color.hsv.s]");
 
       typedef std::string::const_iterator iterator_type;
       AddressAccessor_parser<iterator_type> parser;
@@ -316,7 +316,7 @@ private slots:
     }
 
     {
-      QString str("{minuit:/device/lol[color.rgb] < 3.14}");
+      QString str("{minuit:/device/lol@[color.rgb] < 3.14}");
 
       auto expr = State::parseExpression(str);
 
@@ -427,7 +427,13 @@ private slots:
   void test_parse_expr_full()
   {
     for (auto& input : std::list<std::string>{
-             "{dev:/minuit != [1, 2, 3.12, 'c']) and not (a:/b >= c:/d/e/f}"})
+         "dev:/minuit != [1, 2, 3.12, 'c'];",
+         "{ dev:/minuit != [1, 2, 3.12, 'c'] };",
+         "a:/b >= c:/d/e/f;",
+         "{ a:/b >= c:/d/e/f };",
+         "{ dev:/minuit != [1, 2, 3.12, 'c']} and not { a:/b >= c:/d/e/f };",
+         "{ { dev:/minuit != [1, 2, 3.12, 'c'] } and not { a:/b >= c:/d/e/f } };"
+  })
     {
       auto f(std::begin(input)), l(std::end(input));
       Expression_parser<decltype(f)> p;
@@ -440,7 +446,7 @@ private slots:
         if (!ok)
         {
           qDebug() << "invalid input\n";
-          return;
+          continue;
         }
 
         State::Expression e;
@@ -454,9 +460,9 @@ private slots:
       catch (const qi::expectation_failure<decltype(f)>& e)
       {
         using namespace std::literals;
+        std::cerr << input << std::string(" : expectation_failure at '")
+                  << std::string(e.first, e.last) << std::string("'\n");
         QVERIFY(false);
-        std::cerr << "expectation_failure at '"s
-                  << std::string(e.first, e.last) << "'\n"s;
       }
 
       // if (f!=l) std::cerr << "unparsed: '" << std::string(f,l) << "'\n";
@@ -468,19 +474,19 @@ private slots:
   void test_parse_random()
   {
     using namespace std::literals;
-    QVERIFY(bool(State::parseExpression("{myapp:/score > 2}"s)));
-    QVERIFY(bool(State::parseExpression("{2 > myapp:/stagescore}"s)));
+    QVERIFY(bool(State::parseExpression("{ myapp:/score > 2}"s)));
+    QVERIFY(bool(State::parseExpression("{2 > myapp:/stagescore }"s)));
     QVERIFY(
-        bool(State::parseExpression("{myapp:/score > myapp:/stagescore}"s)));
+        bool(State::parseExpression("{ myapp:/score > myapp:/stagescore }"s)));
     QVERIFY(
-        bool(State::parseExpression("{myapp:/score >= myapp:/stagescore}"s)));
+        bool(State::parseExpression("{ myapp:/score >= myapp:/stagescore }"s)));
     QVERIFY(
-        bool(State::parseExpression("{my_app:/score > my_app:/stagescore}"s)));
+        bool(State::parseExpression("{ my_app:/score > my_app:/stagescore }"s)));
     QVERIFY(
-        bool(State::parseExpression("{my_app:/score > my_app:/stage_score}"s)));
+        bool(State::parseExpression("{ my_app:/score > my_app:/stage_score }"s)));
     QVERIFY(
-        bool(State::parseExpression("{my_app:/score > my_app:/stage_score}"s)));
-    QVERIFY(bool(State::parseExpression("{{A:/B > c:/D} and {e:/f > g:/h}}"s)));
+        bool(State::parseExpression("{ my_app:/score > my_app:/stage_score }"s)));
+    QVERIFY(bool(State::parseExpression("{ { A:/B > c:/D } and { e:/f > g:/h } }"s)));
   }
 };
 

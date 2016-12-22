@@ -34,7 +34,7 @@ Address 		:= device, ‘:’, path;
 Dataspace   := 'color' || 'distance' || ...;
 UnitQualifier: Dataspace, '.', Unit, ('.', UnitAccessor)?; // e.g. color.rgb or
 color.rgb.r ; we make a static table with them precomputed.
-AddressAccessor 	:= Address, (('[', [:int:], ']')* || ('[', UnitQualifier,
+AddressAccessor 	:= Address, '@', (('[', [:int:], ']')* || ('[', UnitQualifier,
 ']'));
 
 
@@ -157,7 +157,7 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
   {
     using qi::alnum;
     // OPTIMIZEME
-    auto str = ossia::net::name_characters().to_string();
+    auto str = ossia::net::pattern_match_characters().to_string();
     dev = +qi::char_(str);
     member_elt = +qi::char_(str);
     path %= (+("/" >> member_elt) | "/");
@@ -200,7 +200,7 @@ struct AddressQualifiers_parser
     using boost::spirit::int_;
 
     unit %= boost::spirit::eoi;
-    start %= ((accessors >> -unit) | ("[" >> ossia::get_unit_parser() >> "]"));
+    start %= "@" >> ((accessors >> -unit) | ("[" >> ossia::get_unit_parser() >> "]"));
   }
 
   qi::rule<Iterator, ossia::destination_qualifiers()> start;

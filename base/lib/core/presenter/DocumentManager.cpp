@@ -566,7 +566,28 @@ bool DocumentManager::checkAndUpdateJson(
 bool DocumentManager::updateJson(
     QJsonObject& object, Version json_ver, Version iscore_ver)
 {
-  ISCORE_TODO;
+  iscore::hash_map<
+      Version,
+      std::pair<Version, std::function<void(QJsonObject&)>>
+  > conversions;
+/*
+  conversions.insert(
+    {Version{2}, {Version{3}, [] (const QJsonObject& obj)
+     {
+       // Add '@' between address and accessor
+
+     }}});
+
+  // For now just do from n to n+1
+  // TODO do the algorithm that does n..n+1..n+2..etc.
+
+  auto it = conversions.find(json_ver);
+  if(it != conversions.end())
+  {
+    it.value().second(object);
+    return true;
+  }
+  */
   return false;
 }
 

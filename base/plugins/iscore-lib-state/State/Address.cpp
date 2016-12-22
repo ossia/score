@@ -344,13 +344,17 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
       }
     }
 
-    str += "[" % std::move(unit_text) % "]";
+    str += "@[" % std::move(unit_text) % "]";
   }
   else
   {
-    for (auto acc : qualifiers.accessors)
+    if(!qualifiers.accessors.empty())
     {
-      str += "[" % QString::number(acc) % "]";
+      str += '@';
+      for (auto acc : qualifiers.accessors)
+      {
+        str += "[" % QString::number(acc) % "]";
+      }
     }
   }
   return str;
