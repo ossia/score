@@ -53,3 +53,15 @@ private:
   int32_t m_impl = 0;
 };
 }
+
+namespace std
+{
+template<>
+struct hash<iscore::Version> {
+public:
+    auto operator()(const iscore::Version& s) const
+    {
+      return s.value();
+    }
+};
+}

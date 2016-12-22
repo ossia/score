@@ -1,5 +1,5 @@
 #include <QMap>
-
+#include <QStringBuilder>
 #include "Expression.hpp"
 #include <State/Relation.hpp>
 
@@ -57,7 +57,7 @@ QString TreeNode<State::ExprData>::toString() const
     }
     else
     {
-      s = "{" + exprstr + "}";
+      s = " { " % exprstr % " } ";
     }
   }
   else if (m_children.size() == 1) // unop
@@ -68,7 +68,7 @@ QString TreeNode<State::ExprData>::toString() const
     }
     else
     {
-      s = "{" + exprstr + " " + m_children.at(0).toString() + "}";
+      s = " { " % exprstr % " " % m_children.at(0).toString() % " } ";
     }
   }
   else // binop
@@ -78,10 +78,10 @@ QString TreeNode<State::ExprData>::toString() const
     int max_n = m_children.size() - 1;
     for (const auto& child : m_children)
     {
-      s += child.toString() + " ";
+      s += child.toString() % " ";
       if (n < max_n)
       {
-        s += exprstr + " ";
+        s += exprstr % " ";
         n++;
       }
     }

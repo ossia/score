@@ -47,7 +47,7 @@ void EventView::setCondition(const QString& cond)
     return;
   m_condition = cond;
   m_conditionItem->setVisible(
-      !(cond.isEmpty() || cond == "{true == true}" || cond == "true == true"));
+      !(cond.isEmpty() || cond == " { true == true } " || cond == "true == true"));
   m_conditionItem->setToolTip(m_condition);
 }
 
