@@ -8,6 +8,7 @@
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
 #include <iscore/tools/Metadata.hpp>
+#include <boost/any.hpp>
 #include <iscore_lib_device_export.h>
 
 template <typename T>
@@ -50,6 +51,8 @@ struct ISCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
 
   QStringList tags;
   QString description;
+
+  iscore::hash_map<std::string, boost::any> extendedAttributes;
 };
 
 // this one has only the name of the current node (e.g. 'a' for dev:/azazd/a)

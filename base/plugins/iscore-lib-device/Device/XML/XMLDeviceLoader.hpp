@@ -9,5 +9,5 @@ namespace Device
 ISCORE_LIB_DEVICE_EXPORT bool
 loadDeviceFromXML(const QString& filePath, Device::Node& node);
 ISCORE_LIB_DEVICE_EXPORT bool
-loadDeviceFromJSON(const QString& filePath, Device::Node& node);
+loadDeviceFromIScoreJSON(const QString& filePath, Device::Node& node);
 }

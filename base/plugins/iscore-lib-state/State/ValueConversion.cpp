@@ -409,12 +409,11 @@ fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
       return State::ValueImpl{tuple};
     }
     default:
-      ISCORE_ABORT;
-      throw;
+      return State::ValueImpl{};
   }
 }
 
-static State::Value fromQJsonValue(const QJsonValue& val, ValueType which)
+State::Value fromQJsonValue(const QJsonValue& val, ValueType which)
 {
   return State::Value{fromQJsonValueImpl(val, which)};
 }
