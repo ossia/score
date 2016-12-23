@@ -44,6 +44,10 @@ public:
   DeviceExplorerNode(const T& t) : VariantBasedNode{t}
   {
   }
+  template <typename T>
+  DeviceExplorerNode(T&& t) : VariantBasedNode{std::move(t)}
+  {
+  }
 
   //- accessors
   QString displayName() const;

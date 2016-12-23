@@ -228,7 +228,7 @@ bool loadDeviceFromXML(const QString& filePath, Device::Node& node)
   return true;
 }
 
-bool loadDeviceFromJSON(const QString& filePath, Device::Node& node)
+bool loadDeviceFromIScoreJSON(const QString& filePath, Device::Node& node)
 {
   QFile doc{filePath};
   if (!doc.open(QIODevice::ReadOnly))

@@ -65,6 +65,8 @@ ISCORE_LIB_STATE_EXPORT State::Value fromQVariant(const QVariant& val);
 ISCORE_LIB_STATE_EXPORT State::Value
 fromQJsonValue(const QJsonValue& val); // Best effort
 ISCORE_LIB_STATE_EXPORT State::Value
+fromQJsonValue(const QJsonValue& val, State::ValueType type);
+ISCORE_LIB_STATE_EXPORT State::Value
 fromQJsonValue(const QJsonValue& val, const QString& type);
 
 ISCORE_LIB_STATE_EXPORT QString

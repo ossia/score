@@ -701,7 +701,7 @@ void DeviceExplorerWidget::addDevice()
       else if (path.contains(".device"))
       {
         Device::Node n{deviceSettings, nullptr};
-        if (Device::loadDeviceFromJSON(path, n))
+        if (Device::loadDeviceFromIScoreJSON(path, n))
         {
           n.get<Device::DeviceSettings>() = deviceSettings;
           m_cmdDispatcher->submitCommand(
