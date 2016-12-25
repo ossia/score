@@ -34,7 +34,7 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node)
     s.clipMode = ToClipMode(addr->getBoundingMode());
     s.repetitionFilter = bool(addr->getRepetitionFilter());
     s.unit = addr->getUnit();
-    s.description = QString::fromStdString(addr->getDescription());
+    s.description = QString::fromStdString(node.getDescription());
     s.domain = addr->getDomain();
 
     if (value_future.valid())

@@ -174,7 +174,7 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
     addr.value = read_valueDefault(dom_element, type);
     addr.ioType = read_service(dom_element);
 
-    addr.priority = dom_element.attribute("priority").toInt();
+    addr.extendedAttributes["priority"] = dom_element.attribute("priority").toInt();
     addr.repetitionFilter = dom_element.attribute("repetitionsFilter").toInt();
 
     addr.domain = read_rangeBounds(dom_element, type);

@@ -146,7 +146,7 @@ static const json_actions_t& actions()
                   QStringLiteral("description"),
                   [&] (Device::Node& node, const QJsonValue& val) {
                     Device::AddressSettings& addr = node.get<Device::AddressSettings>();
-                    addr.description = val.toString();
+                    addr.extendedAttributes["description"] = val.toString();
                   }});
       a.emplace(json_actions_t::value_type{
                   QStringLiteral("valueDefault"),
@@ -158,7 +158,7 @@ static const json_actions_t& actions()
                   QStringLiteral("priority"),
                   [&] (Device::Node& node, const QJsonValue& val) {
                     Device::AddressSettings& addr = node.get<Device::AddressSettings>();
-                    addr.priority = val.toVariant().toInt();
+                    addr.extendedAttributes["priority"] = val.toVariant().toInt();
                   }});
       a.emplace(json_actions_t::value_type{
                   QStringLiteral("rangeBounds"),
@@ -170,7 +170,7 @@ static const json_actions_t& actions()
                   QStringLiteral("valueStepSize"),
                   [&] (Device::Node& node, const QJsonValue& val) {
                     Device::AddressSettings& addr = node.get<Device::AddressSettings>();
-                    // TODO extended
+                    addr.extendedAttributes["valueStepSize"] = val.toVariant().toInt();
                   }});
       a.emplace(json_actions_t::value_type{
                   QStringLiteral("readonly"),

@@ -45,12 +45,6 @@ struct ISCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
   State::Unit unit;
 
   Device::RepetitionFilter repetitionFilter{};
-  Device::RefreshRate rate{};
-
-  int priority{};
-
-  QStringList tags;
-  QString description;
 
   iscore::hash_map<std::string, boost::any> extendedAttributes;
 };
@@ -175,12 +169,8 @@ struct ISCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
   Device::ClipMode clipMode{};
 
   Device::RepetitionFilter repetitionFilter{};
-  Device::RefreshRate rate{};
 
-  int priority{};
-
-  QStringList tags;
-  QString description;
+  iscore::hash_map<std::string, boost::any> extendedAttributes;
 
   State::AddressAccessor address;
 };

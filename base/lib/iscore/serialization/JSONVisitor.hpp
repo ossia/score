@@ -75,13 +75,13 @@ public:
     return reader.m_obj;
   }
 
-  template <template <class...> class T, typename... Args>
+  template <typename T, typename... Args>
   void readFrom(
-      const T<Args...>& obj,
+      const T& obj,
       typename std::
-          enable_if_t<is_template<T<Args...>>::value && !is_abstract_base<T<Args...>>::value>* = nullptr)
+          enable_if_t<is_template<T>::value && !is_abstract_base<T>::value>* = nullptr)
   {
-    TSerializer<JSONObject, T<Args...>>::readFrom(*this, obj);
+    TSerializer<JSONObject, T>::readFrom(*this, obj);
   }
 
   template <
@@ -141,13 +141,12 @@ public:
       typename T, std::enable_if_t<!is_template<T>::value, void>* = nullptr>
   void writeTo(T&);
 
-  template <template <class...> class T, typename... Args>
+  template <typename T>
   void writeTo(
-      T<Args...>& obj,
-      typename std::enable_if<is_template<T<Args...>>::value, void>::
-          type* = nullptr)
+      T& obj,
+      typename std::enable_if<is_template<T>::value, void>::type* = nullptr)
   {
-    TSerializer<JSONObject, T<Args...>>::writeTo(*this, obj);
+    TSerializer<JSONObject, T>::writeTo(*this, obj);
   }
 
   template <typename T>
