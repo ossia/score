@@ -8,7 +8,7 @@
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
 #include <iscore/tools/Metadata.hpp>
-#include <boost/any.hpp>
+#include <ossia/network/base/node_attributes.hpp>
 #include <iscore_lib_device_export.h>
 
 template <typename T>
@@ -46,7 +46,11 @@ struct ISCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
 
   Device::RepetitionFilter repetitionFilter{};
 
-  iscore::hash_map<std::string, boost::any> extendedAttributes;
+  ossia::net::extended_attributes extendedAttributes;
+
+  operator const ossia::net::extended_attributes&() const { return extendedAttributes; }
+  operator ossia::net::extended_attributes&() { return extendedAttributes; }
+
 };
 
 // this one has only the name of the current node (e.g. 'a' for dev:/azazd/a)

@@ -215,6 +215,8 @@ void updateOSSIAAddress(
   addr.setDomain(settings.domain);
 
   addr.setUnit(settings.unit);
+
+  addr.getNode().setExtendedAttributes(settings.extendedAttributes);
 }
 
 void createOSSIAAddress(
