@@ -22,10 +22,7 @@ AddressSettingsCommon::AddressSettingsCommon(
     , clipMode{other.clipMode}
     , unit{other.unit}
     , repetitionFilter{other.repetitionFilter}
-    , rate{other.rate}
-    , priority{other.priority}
-    , tags{other.tags}
-    , description{other.description}
+    , extendedAttributes{other.extendedAttributes}
 {
 }
 
@@ -37,10 +34,7 @@ AddressSettingsCommon::AddressSettingsCommon(
     , clipMode{other.clipMode}
     , unit{std::move(other.unit)}
     , repetitionFilter{other.repetitionFilter}
-    , rate{other.rate}
-    , priority{other.priority}
-    , tags{std::move(other.tags)}
-    , description{std::move(other.description)}
+    , extendedAttributes{std::move(other.extendedAttributes)}
 {
 }
 
@@ -53,10 +47,7 @@ operator=(const AddressSettingsCommon& other) noexcept
   clipMode = other.clipMode;
   unit = other.unit;
   repetitionFilter = other.repetitionFilter;
-  rate = other.rate;
-  priority = other.priority;
-  tags = other.tags;
-  description = other.description;
+  extendedAttributes = other.extendedAttributes;
   return *this;
 }
 
@@ -69,10 +60,7 @@ operator=(AddressSettingsCommon&& other) noexcept
   clipMode = other.clipMode;
   unit = std::move(other.unit);
   repetitionFilter = other.repetitionFilter;
-  rate = other.rate;
-  priority = other.priority;
-  tags = std::move(other.tags);
-  description = std::move(other.description);
+  extendedAttributes = std::move(other.extendedAttributes);
   return *this;
 }
 
@@ -113,10 +101,7 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
     , ioType{other.ioType}
     , clipMode{other.clipMode}
     , repetitionFilter{other.repetitionFilter}
-    , rate{other.rate}
-    , priority{other.priority}
-    , tags{other.tags}
-    , description{other.description}
+    , extendedAttributes{other.extendedAttributes}
     , address{other.address}
 {
 }
@@ -128,10 +113,7 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
     , ioType{other.ioType}
     , clipMode{other.clipMode}
     , repetitionFilter{other.repetitionFilter}
-    , rate{other.rate}
-    , priority{other.priority}
-    , tags{std::move(other.tags)}
-    , description{std::move(other.description)}
+    , extendedAttributes{std::move(other.extendedAttributes)}
     , address{std::move(other.address)}
 {
 }
@@ -144,10 +126,7 @@ operator=(const FullAddressAccessorSettings& other) noexcept
   ioType = other.ioType;
   clipMode = other.clipMode;
   repetitionFilter = other.repetitionFilter;
-  rate = other.rate;
-  priority = other.priority;
-  tags = other.tags;
-  description = other.description;
+  extendedAttributes = other.extendedAttributes;
   address = other.address;
   return *this;
 }
@@ -160,10 +139,7 @@ operator=(FullAddressAccessorSettings&& other) noexcept
   ioType = other.ioType;
   clipMode = other.clipMode;
   repetitionFilter = other.repetitionFilter;
-  rate = other.rate;
-  priority = other.priority;
-  tags = std::move(other.tags);
-  description = std::move(other.description);
+  extendedAttributes = std::move(other.extendedAttributes);
   address = std::move(other.address);
   return *this;
 }
@@ -231,10 +207,7 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
     , ioType{f.ioType}
     , clipMode{f.clipMode}
     , repetitionFilter{f.repetitionFilter}
-    , rate{f.rate}
-    , priority{f.priority}
-    , tags{f.tags}
-    , description{f.description}
+    , extendedAttributes{f.extendedAttributes}
     , address{addr}
 {
   if (!address.qualifiers.get().unit)
@@ -257,10 +230,7 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
     , ioType{f.ioType}
     , clipMode{f.clipMode}
     , repetitionFilter{f.repetitionFilter}
-    , rate{f.rate}
-    , priority{f.priority}
-    , tags{std::move(f.tags)}
-    , description{std::move(f.description)}
+    , extendedAttributes{std::move(f.extendedAttributes)}
     , address{std::move(addr)}
 {
   if (!address.qualifiers.get().unit)
@@ -279,11 +249,11 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
 bool operator==(
     const AddressSettingsCommon& lhs, const AddressSettingsCommon& rhs) noexcept
 {
-  return lhs.value == rhs.value && lhs.domain == rhs.domain
+  return    lhs.value == rhs.value && lhs.domain == rhs.domain
          && lhs.ioType == rhs.ioType && lhs.clipMode == rhs.clipMode
          && lhs.unit == rhs.unit
          && lhs.repetitionFilter == rhs.repetitionFilter
-         && lhs.rate == rhs.rate && lhs.priority == rhs.priority
-         && lhs.tags == rhs.tags;
+      // TODO we cannot compare "any" values...   && lhs.extendedAttributes == rhs.extendedAttributes
+      ;
 }
 }
