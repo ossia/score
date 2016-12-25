@@ -396,7 +396,8 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
     if (n.is<Device::AddressSettings>())
     {
       auto& addr_set = n.get<Device::AddressSettings>();
-      return addr_set.description;
+      if(const auto& desc = ossia::net::get_description(addr_set))
+        return QString::fromStdString(*desc);
     }
     else
     {
