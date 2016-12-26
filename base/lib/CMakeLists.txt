@@ -14,6 +14,7 @@ qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/iscore.qrc")
 set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/StringConstants.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/AnySerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/tree/InvisibleRootNodeSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/ObjectPathSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/IdentifierGeneration.cpp"

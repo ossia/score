@@ -1,4 +1,5 @@
-#include <Device/XML/XMLDeviceLoader.hpp>
+#include <Device/Loading/JamomaDeviceLoader.hpp>
+#include <Device/Loading/IScoreDeviceLoader.hpp>
 #include <Explorer/Commands/Add/AddAddress.hpp>
 #include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
@@ -702,6 +703,16 @@ void DeviceExplorerWidget::addDevice()
       {
         Device::Node n{deviceSettings, nullptr};
         if (Device::loadDeviceFromIScoreJSON(path, n))
+        {
+          n.get<Device::DeviceSettings>() = deviceSettings;
+          m_cmdDispatcher->submitCommand(
+              new Command::LoadDevice{std::move(devplug_path), std::move(n)});
+        }
+      }
+      else if (path.contains(".json"))
+      {
+        Device::Node n{deviceSettings, nullptr};
+        if (Device::loadDeviceFromJamomaJSON(path, n))
         {
           n.get<Device::DeviceSettings>() = deviceSettings;
           m_cmdDispatcher->submitCommand(

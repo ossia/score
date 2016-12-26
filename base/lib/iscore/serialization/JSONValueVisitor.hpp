@@ -333,3 +333,124 @@ Container fromJsonValueArray(const QJsonArray& json_arr)
 
   return c;
 }
+
+
+
+inline QJsonValue toJsonValue(int obj)
+{
+  return obj;
+}
+inline QJsonValue toJsonValue(float obj)
+{
+  return obj;
+}
+inline QJsonValue toJsonValue(char obj)
+{
+  return QString(QChar(obj));
+}
+inline QJsonValue toJsonValue(bool obj)
+{
+  return obj;
+}
+template <>
+inline QJsonValue toJsonValue<int>(const int& obj)
+{
+  return obj;
+}
+template <>
+inline QJsonValue toJsonValue<float>(const float& obj)
+{
+  return obj;
+}
+template <>
+inline QJsonValue toJsonValue<char>(const char& obj)
+{
+  return QString(QChar(obj));
+}
+template <>
+inline QJsonValue toJsonValue<bool>(const bool& obj)
+{
+  return obj;
+}
+template <>
+inline QJsonValue toJsonValue<std::array<float, 2>>(const std::array<float, 2>& obj)
+{
+  QJsonArray arr;
+  for (std::size_t i = 0; i < 2; i++)
+    arr.push_back(obj[i]);
+  return arr;
+}
+template <>
+inline QJsonValue toJsonValue<std::array<float, 3>>(const std::array<float, 3>& obj)
+{
+  QJsonArray arr;
+  for (std::size_t i = 0; i < 3; i++)
+    arr.push_back(obj[i]);
+  return arr;
+}
+template <>
+inline QJsonValue toJsonValue<std::array<float, 4>>(const std::array<float, 4>& obj)
+{
+  QJsonArray arr;
+  for (std::size_t i = 0; i < 4; i++)
+    arr.push_back(obj[i]);
+  return arr;
+}
+inline QJsonValue toJsonValue(const std::string& obj)
+{
+  return QString::fromStdString(obj);
+}
+
+template <>
+inline int fromJsonValue<int>(const QJsonValue& obj)
+{
+  return obj.toInt();
+}
+template <>
+inline float fromJsonValue<float>(const QJsonValue& obj)
+{
+  return obj.toDouble();
+}
+template <>
+inline char fromJsonValue<char>(const QJsonValue& obj)
+{
+  auto s = obj.toString();
+  return s.isEmpty() ? (char)0 : s[0].toLatin1();
+}
+template <>
+inline bool fromJsonValue<bool>(const QJsonValue& obj)
+{
+  return obj.toBool();
+}
+template <>
+inline std::string fromJsonValue<std::string>(const QJsonValue& obj)
+{
+  return obj.toString().toStdString();
+}
+
+template <>
+inline int fromJsonValue<int>(const QJsonValueRef& obj)
+{
+  return obj.toInt();
+}
+template <>
+inline float fromJsonValue<float>(const QJsonValueRef& obj)
+{
+  return obj.toDouble();
+}
+template <>
+inline char fromJsonValue<char>(const QJsonValueRef& obj)
+{
+  auto s = obj.toString();
+  return s.isEmpty() ? (char)0 : s[0].toLatin1();
+}
+template <>
+inline bool fromJsonValue<bool>(const QJsonValueRef& obj)
+{
+  return obj.toBool();
+}
+template <>
+inline std::string fromJsonValue<std::string>(const QJsonValueRef& obj)
+{
+  return obj.toString().toStdString();
+}

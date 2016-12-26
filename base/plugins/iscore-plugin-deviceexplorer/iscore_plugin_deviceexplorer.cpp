@@ -14,6 +14,8 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 #include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
 
+#include <iscore/serialization/AnySerialization.hpp>
+#include <brigand/brigand.hpp>
 namespace iscore
 {
 
@@ -30,6 +32,9 @@ iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer()
   qRegisterMetaTypeStreamOperators<Device::AddressSettings>();
   qRegisterMetaTypeStreamOperators<Device::FullAddressSettings>();
   qRegisterMetaTypeStreamOperators<Device::FullAddressAccessorSettings>();
+
+  auto& anySer = iscore::anySerializers();
+  anySer.emplace(std::string("instanceBounds"), new iscore::any_serializer_t<ossia::net::instance_bounds>);
 }
 
 iscore_plugin_deviceexplorer::~iscore_plugin_deviceexplorer()

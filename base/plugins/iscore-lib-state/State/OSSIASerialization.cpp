@@ -1,5 +1,6 @@
 #include <ossia/editor/dataspace/dataspace.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/network/base/node_attributes.hpp>
 #include <QDataStream>
 #include <QJsonArray>
 #include <QJsonValue>
@@ -240,143 +241,7 @@ Visitor<Writer<DataStream>>::writeTo(ossia::net::domain& n)
   writeTo((ossia::net::domain_base_variant&)n);
 }
 
-/*
-template<>
-ISCORE_LIB_STATE_EXPORT void Visitor<Reader<DataStream>>::readFrom(const
-ossia::unit_t& n)
-{
-    readFrom((const ossia::unit_variant&)n);
-}
-
-template<>
-ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(ossia::unit_t& n)
-{
-    writeTo((ossia::unit_variant&)n);
-}
-*/
-
 /// JSON ///
-
-QJsonValue toJsonValue(int obj)
-{
-  return obj;
-}
-QJsonValue toJsonValue(float obj)
-{
-  return obj;
-}
-QJsonValue toJsonValue(char obj)
-{
-  return QString(QChar(obj));
-}
-QJsonValue toJsonValue(bool obj)
-{
-  return obj;
-}
-template <>
-QJsonValue toJsonValue<int>(const int& obj)
-{
-  return obj;
-}
-template <>
-QJsonValue toJsonValue<float>(const float& obj)
-{
-  return obj;
-}
-template <>
-QJsonValue toJsonValue<char>(const char& obj)
-{
-  return QString(QChar(obj));
-}
-template <>
-QJsonValue toJsonValue<bool>(const bool& obj)
-{
-  return obj;
-}
-template <>
-QJsonValue toJsonValue<std::array<float, 2>>(const std::array<float, 2>& obj)
-{
-  QJsonArray arr;
-  for (std::size_t i = 0; i < 2; i++)
-    arr.push_back(obj[i]);
-  return arr;
-}
-template <>
-QJsonValue toJsonValue<std::array<float, 3>>(const std::array<float, 3>& obj)
-{
-  QJsonArray arr;
-  for (std::size_t i = 0; i < 3; i++)
-    arr.push_back(obj[i]);
-  return arr;
-}
-template <>
-QJsonValue toJsonValue<std::array<float, 4>>(const std::array<float, 4>& obj)
-{
-  QJsonArray arr;
-  for (std::size_t i = 0; i < 4; i++)
-    arr.push_back(obj[i]);
-  return arr;
-}
-QJsonValue toJsonValue(const std::string& obj)
-{
-  return QString::fromStdString(obj);
-}
-
-template <>
-std::string fromJsonValue<std::string>(const QJsonValue& obj)
-{
-  return obj.toString().toStdString();
-}
-template <>
-int fromJsonValue<int>(const QJsonValue& obj)
-{
-  return obj.toInt();
-}
-template <>
-float fromJsonValue<float>(const QJsonValue& obj)
-{
-  return obj.toDouble();
-}
-template <>
-char fromJsonValue<char>(const QJsonValue& obj)
-{
-  auto s = obj.toString();
-  return s.isEmpty() ? (char)0 : s[0].toLatin1();
-}
-template <>
-bool fromJsonValue<bool>(const QJsonValue& obj)
-{
-  return obj.toBool();
-}
-
-template <>
-std::string fromJsonValue<std::string>(const QJsonValueRef& obj)
-{
-  return obj.toString().toStdString();
-}
-
-template <>
-int fromJsonValue<int>(const QJsonValueRef& obj)
-{
-  return obj.toInt();
-}
-template <>
-float fromJsonValue<float>(const QJsonValueRef& obj)
-{
-  return obj.toDouble();
-}
-template <>
-char fromJsonValue<char>(const QJsonValueRef& obj)
-{
-  auto s = obj.toString();
-  return s.isEmpty() ? (char)0 : s[0].toLatin1();
-}
-template <>
-bool fromJsonValue<bool>(const QJsonValueRef& obj)
-{
-  return obj.toBool();
-}
 template <>
 ossia::Impulse fromJsonValue<ossia::Impulse>(const QJsonValueRef& obj)
 {
@@ -704,4 +569,39 @@ ISCORE_LIB_STATE_EXPORT void
 Visitor<Writer<JSONValue>>::writeTo(std::array<float, 4>& n)
 {
   fromJsonValue(val, n);
+}
+
+
+/// Instance bounds ///
+template <>
+ISCORE_LIB_STATE_EXPORT void
+Visitor<Reader<DataStream>>::readFrom(const ossia::net::instance_bounds& n)
+{
+  m_stream << n.min_instances << n.max_instances;
+}
+
+template <>
+ISCORE_LIB_STATE_EXPORT void
+Visitor<Writer<DataStream>>::writeTo(ossia::net::instance_bounds& n)
+{
+  m_stream >> n.min_instances >> n.max_instances;
+}
+
+template <>
+ISCORE_LIB_STATE_EXPORT void
+Visitor<Reader<JSONValue>>::readFrom(const ossia::net::instance_bounds& b)
+{
+  QJsonObject obj;
+  obj[strings.Min] = b.min_instances;
+  obj[strings.Max] = b.max_instances;
+  val = std::move(obj);
+}
+
+template <>
+ISCORE_LIB_STATE_EXPORT void
+Visitor<Writer<JSONValue>>::writeTo(ossia::net::instance_bounds& n)
+{
+  const auto& obj = val.toObject();
+  n.min_instances = obj[strings.Min].toInt();
+  n.max_instances = obj[strings.Max].toInt();
 }
