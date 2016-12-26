@@ -47,6 +47,8 @@ iscore_plugin_engine::iscore_plugin_engine() : QObject{}
                         ConcreteKey>("ClockManagerKey");
   qRegisterMetaTypeStreamOperators<Engine::Execution::ClockManagerFactory::
                                        ConcreteKey>("ClockManagerKey");
+
+
 }
 
 iscore_plugin_engine::~iscore_plugin_engine()

@@ -30,9 +30,26 @@ static void init_plugins()
 #endif
 #endif
 }
-
+#if defined(__SSE3__)
+#include <pmmintrin.h>
+#endif
 int main(int argc, char** argv)
 {
+#if defined(__SSE3__)
+  // See https://en.wikipedia.org/wiki/Denormal_number
+  // and http://stackoverflow.com/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x
+  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+  _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+#elif defined(__arm__)
+  int x;
+  asm(
+      "vmrs %[result],FPSCR \r\n"
+      "bic %[result],%[result],#16777216 \r\n"
+      "vmsr FPSCR,%[result]"
+      :[result] "=r" (x) : :
+  );
+  printf("ARM FPSCR: %08x\n",x);
+#endif
     init_plugins();
 
 #if defined(ISCORE_OPENGL)
