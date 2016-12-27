@@ -17,7 +17,7 @@ class EasingSegment;
 }
 }
 template <typename T>
-struct TSerializer<DataStream, void, Engine::EasingCurve::EasingSegment<T>>
+struct TSerializer<DataStream, Engine::EasingCurve::EasingSegment<T>>
 {
   static void readFrom(
       DataStream::Serializer& s,
@@ -195,7 +195,7 @@ using Segment_perlinInOut = EasingSegment<ossia::easing::perlinInOut>;
 }
 
 template <>
-inline void Visitor<Reader<DataStream>>::readFrom_impl(
+inline void Visitor<Reader<DataStream>>::read(
     const Engine::EasingCurve::EasingData& segmt)
 {
 }
@@ -207,7 +207,7 @@ Visitor<Writer<DataStream>>::writeTo(Engine::EasingCurve::EasingData& segmt)
 }
 
 template <>
-inline void Visitor<Reader<JSONObject>>::readFrom_impl(
+inline void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Engine::EasingCurve::EasingData& segmt)
 {
 }
@@ -219,14 +219,14 @@ Visitor<Writer<JSONObject>>::writeTo(Engine::EasingCurve::EasingData& segmt)
 }
 
 template <typename T>
-void TSerializer<DataStream, void, Engine::EasingCurve::EasingSegment<T>>::
+void TSerializer<DataStream, Engine::EasingCurve::EasingSegment<T>>::
     readFrom(
         DataStream::Serializer& s,
         const Engine::EasingCurve::EasingSegment<T>& obj)
 {
 }
 template <typename T>
-void TSerializer<DataStream, void, Engine::EasingCurve::EasingSegment<T>>::
+void TSerializer<DataStream, Engine::EasingCurve::EasingSegment<T>>::
     writeTo(
         DataStream::Deserializer& s,
         Engine::EasingCurve::EasingSegment<T>& obj)

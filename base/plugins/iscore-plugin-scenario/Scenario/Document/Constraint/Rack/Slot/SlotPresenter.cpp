@@ -30,7 +30,6 @@
 #include <iscore/tools/Todo.hpp>
 
 class QObject;
-
 namespace Scenario
 {
 SlotPresenter::SlotPresenter(
@@ -64,10 +63,6 @@ SlotPresenter::SlotPresenter(
 
   con(m_model, &SlotModel::focusChanged, m_view, &SlotView::setFocus);
   m_view->setHeight(m_model.getHeight());
-
-  m_looping = m_model.parentConstraint().looping();
-  con(m_model.parentConstraint(), &ConstraintModel::loopingChanged, this,
-      &SlotPresenter::on_loopingChanged);
 
   connect(
       m_view, &SlotView::askContextMenu, this,
@@ -236,12 +231,6 @@ void SlotPresenter::on_zoomRatioChanged(ZoomRatio val)
   updateProcessesShape();
 }
 
-void SlotPresenter::on_loopingChanged(bool b)
-{
-  m_looping = b;
-  updateProcesses();
-}
-
 void SlotPresenter::on_layerModelCreated_impl(
     const Process::LayerModel& proc_vm)
 {
@@ -250,13 +239,13 @@ void SlotPresenter::on_layerModelCreated_impl(
   auto factory = m_processList.findDefaultFactory(procKey);
   ISCORE_ASSERT(factory);
 
+  const bool m_looping = false;
   int numproc
       = m_looping
             ? m_view->width()
                       / proc_vm.processModel().duration().toPixels(m_zoomRatio)
                   + 1
             : 1;
-
   std::vector<SlotProcessData::ProcessPair> vec;
   for (int i = 0; i < numproc; i++)
   {
@@ -309,6 +298,7 @@ void SlotPresenter::updateProcesses()
 {
   for (SlotProcessData& proc : m_processes)
   {
+    const bool m_looping = false;
     int numproc
         = m_looping
               ? m_view->width()

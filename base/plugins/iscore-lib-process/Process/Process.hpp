@@ -43,8 +43,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel
 {
   Q_OBJECT
 
-  ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Process::ProcessModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
   Q_PROPERTY(
       int32_t priority READ priority WRITE setPriority NOTIFY priorityChanged)

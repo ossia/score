@@ -88,7 +88,7 @@ void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const Midi::NoteData& n)
+void Visitor<Reader<DataStream>>::read(const Midi::NoteData& n)
 {
   m_stream << n.start << n.duration << n.pitch << n.velocity;
 }
@@ -118,10 +118,8 @@ void Visitor<Writer<JSONObject>>::writeTo(Midi::NoteData& n)
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const Midi::Note& n)
+void Visitor<Reader<DataStream>>::read(const Midi::Note& n)
 {
-  readFrom(static_cast<const IdentifiedObject<Midi::Note>&>(n));
-
   m_stream << n.noteData();
   insertDelimiter();
 }
@@ -151,7 +149,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Midi::Note& n)
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(const Midi::ProcessModel& proc)
+void Visitor<Reader<DataStream>>::read(const Midi::ProcessModel& proc)
 {
   m_stream << proc.device() << proc.channel();
 
@@ -180,7 +178,7 @@ void Visitor<Writer<DataStream>>::writeTo(Midi::ProcessModel& proc)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(const Midi::ProcessModel& proc)
+void Visitor<Reader<JSONObject>>::readFromConcrete(const Midi::ProcessModel& proc)
 {
   m_obj["Device"] = proc.device();
   m_obj["Channel"] = proc.channel();

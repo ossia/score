@@ -11,7 +11,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const iscore::CommandData& d)
+void Visitor<Reader<DataStream>>::read(const iscore::CommandData& d)
 {
   m_stream << d.parentKey << d.commandKey << d.data;
   insertDelimiter();

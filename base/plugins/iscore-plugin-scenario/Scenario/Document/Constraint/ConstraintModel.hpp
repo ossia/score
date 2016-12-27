@@ -34,8 +34,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
 {
   Q_OBJECT
 
-  ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Scenario::ConstraintModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
   // TODO must go in view model
   Q_PROPERTY(double heightPercentage READ heightPercentage WRITE
@@ -117,9 +116,6 @@ public:
   // Resets the execution display recursively
   void reset();
 
-  bool looping() const;
-  void setLooping(bool looping);
-
   void setHeightPercentage(double arg);
   void setExecutionState(ConstraintExecutionState);
   ConstraintExecutionState executionState() const
@@ -135,7 +131,6 @@ signals:
   void startDateChanged(const TimeValue&);
 
   void focusChanged(bool);
-  void loopingChanged(bool);
   void executionStateChanged(Scenario::ConstraintExecutionState);
   void executionStarted();
   void executionStopped();

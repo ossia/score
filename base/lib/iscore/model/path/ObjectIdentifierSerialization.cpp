@@ -9,7 +9,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const ObjectIdentifier& obj)
+void Visitor<Reader<DataStream>>::read(const ObjectIdentifier& obj)
 {
   m_stream << obj.objectName() << obj.id();
 }

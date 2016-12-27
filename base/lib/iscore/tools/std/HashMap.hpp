@@ -22,7 +22,7 @@ struct is_template<iscore::hash_map<T, U>> : std::true_type
 };
 
 template<typename T, typename U>
-struct TSerializer<DataStream, void, iscore::hash_map<T, U>>
+struct TSerializer<DataStream, iscore::hash_map<T, U>>
 {
   static void readFrom(
       DataStream::Serializer& s,

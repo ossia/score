@@ -22,18 +22,8 @@ class IdentifiedObject;
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Scenario::ConstraintViewModel& cvm)
+Visitor<Reader<DataStream>>::read(const Scenario::ConstraintViewModel& cvm)
 {
-  // Add the constraint id since we need it for construction
-  m_stream << cvm.model().id();
-
-  // We happily do not require a way to save the derived type, since it is
-  // known
-  // at compile time and calls this function.
-  readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintViewModel>&>(
-      cvm));
-
-  // Save the ConstraintViewModelData
   m_stream << cvm.shownRack();
   insertDelimiter();
 }
@@ -61,8 +51,6 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintViewModel& cvm)
 {
-  m_obj["ConstraintId"] = toJsonValue(cvm.model().id());
-
   readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintViewModel>&>(
       cvm));
 

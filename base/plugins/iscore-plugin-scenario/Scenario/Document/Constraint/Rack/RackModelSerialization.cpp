@@ -23,10 +23,8 @@ template <typename model>
 class IdentifiedObject;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const Scenario::RackModel& rack)
+void Visitor<Reader<DataStream>>::read(const Scenario::RackModel& rack)
 {
-  readFrom(static_cast<const iscore::Entity<Scenario::RackModel>&>(rack));
-
   m_stream << rack.slotsPositions();
 
   const auto& theSlots = rack.slotmodels;

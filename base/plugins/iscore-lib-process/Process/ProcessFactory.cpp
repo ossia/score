@@ -28,16 +28,15 @@ LayerModel* LayerFactory::make(
   return lm;
 }
 
-LayerModel* LayerFactory::load(const VisitorVariant& v, QObject* parent)
+LayerModel* LayerFactory::load(
+    const VisitorVariant& v,
+    const iscore::RelativePath& process,
+    QObject* parent)
 {
   switch (v.identifier)
   {
     case DataStream::type():
     {
-      auto& des = static_cast<DataStream::Deserializer&>(v.visitor);
-
-      iscore::RelativePath process;
-      des.m_stream >> process;
       auto& proc = process.find<Process::ProcessModel>(parent);
 
       // Note : we pass a reference to the stream,
@@ -49,11 +48,7 @@ LayerModel* LayerFactory::load(const VisitorVariant& v, QObject* parent)
     }
     case JSONObject::type():
     {
-      auto& des = static_cast<JSONObject::Deserializer&>(v.visitor);
-      auto proc
-          = fromJsonObject<iscore::RelativePath>(des.m_obj["SharedProcess"]);
-
-      if (auto p = proc.try_find<Process::ProcessModel>(parent))
+      if (auto p = process.try_find<Process::ProcessModel>(parent))
       {
         auto& proc = *p;
         auto lm = loadLayer_impl(proc, v, parent);
@@ -138,7 +133,7 @@ StateProcessList::loadMissing(const VisitorVariant& vis, QObject* parent) const
 }
 
 LayerFactoryList::object_type*
-LayerFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent) const
+LayerFactoryList::loadMissing(const VisitorVariant& vis, const iscore::RelativePath&, QObject* parent) const
 {
   ISCORE_TODO;
   return nullptr;

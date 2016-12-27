@@ -39,12 +39,9 @@ class Writer;
 // sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
     const Scenario::ConstraintModel& constraint)
 {
-  readFrom(static_cast<const iscore::Entity<Scenario::ConstraintModel>&>(
-      constraint));
-
   // Processes
   m_stream << (int32_t)constraint.processes.size();
   for (const auto& process : constraint.processes)
@@ -104,11 +101,6 @@ Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintModel& constraint)
     constraint.racks.add(new Scenario::RackModel(*this, &constraint));
   }
 
-  // Full view
-  Id<Scenario::ConstraintModel> savedConstraintId;
-  m_stream >> savedConstraintId; // Necessary because it is saved; however it
-                                 // is not required here.
-  //(todo how to fix this ?)
   constraint.setFullView(new Scenario::FullViewConstraintViewModel{
       *this, constraint, &constraint});
 

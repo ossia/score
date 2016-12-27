@@ -35,8 +35,7 @@ struct ISCORE_LIB_STATE_EXPORT ExprData
     : public iscore::
           VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator>
 {
-  ISCORE_SERIALIZE_FRIENDS(ExprData, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(ExprData, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
   ExprData() = default;
   template <typename T>
@@ -66,7 +65,7 @@ template <>
 class ISCORE_LIB_STATE_EXPORT TreeNode<State::ExprData> final
     : public State::ExprData
 {
-  friend struct TSerializer<DataStream, void, TreeNode<State::ExprData>>;
+  friend struct TSerializer<DataStream, TreeNode<State::ExprData>>;
   friend struct TSerializer<JSONObject, void, TreeNode<State::ExprData>>;
 
   friend bool operator!=(

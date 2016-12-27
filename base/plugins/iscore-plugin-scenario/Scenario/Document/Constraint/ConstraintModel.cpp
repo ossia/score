@@ -39,6 +39,7 @@ ConstraintModel::ConstraintModel(
 
 ConstraintModel::~ConstraintModel()
 {
+  static_assert(std::is_same<serialization_tag<ConstraintModel>::type, visitor_entity_tag>::value, "");
 }
 
 ConstraintModel::ConstraintModel(
@@ -141,21 +142,6 @@ void ConstraintModel::on_rackAdded(const RackModel& rack)
           const_cast<RackModel&>(rack));
   con(duration, &ConstraintDurations::defaultDurationChanged, &rack,
       &RackModel::on_durationChanged);
-}
-
-bool ConstraintModel::looping() const
-{
-  return m_looping;
-}
-
-void ConstraintModel::setLooping(bool looping)
-{
-  if (looping != m_looping)
-  {
-    m_looping = looping;
-
-    emit loopingChanged(m_looping);
-  }
 }
 
 const Id<StateModel>& ConstraintModel::startState() const

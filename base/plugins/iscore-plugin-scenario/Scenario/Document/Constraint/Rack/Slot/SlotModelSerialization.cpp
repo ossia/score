@@ -7,12 +7,15 @@
 #include <sys/types.h>
 
 #include "SlotModel.hpp"
+#include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/Identifier.hpp>
+#include <iscore/model/path/RelativePath.hpp>
+
 
 namespace Process
 {
@@ -26,17 +29,21 @@ template <typename model>
 class IdentifiedObject;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const Scenario::SlotModel& slot)
+void Visitor<Reader<DataStream>>::read(const Scenario::SlotModel& slot)
 {
-  readFrom(static_cast<const iscore::Entity<Scenario::SlotModel>&>(slot));
-
   m_stream << slot.m_frontLayerModelId;
 
   const auto& lms = slot.layers;
   m_stream << (int32_t)lms.size();
 
-  for (const auto& lm : lms)
+  for (const Process::LayerModel& lm : lms)
   {
+    // To allow recreation.
+    // This supposes that the process is stored inside a Constraint.
+    // We save the relative path coming from the layer's parent, since when
+    // recreating the layer does not exist yet.
+    m_stream << iscore::RelativePath(*lm.parent(), lm.processModel());
+
     readFrom(lm);
   }
 
@@ -57,7 +64,9 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
   auto& layers = components.interfaces<Process::LayerFactoryList>();
   for (int i = 0; i < lm_size; i++)
   {
-    auto lm = deserialize_interface(layers, *this, &slot);
+    iscore::RelativePath process;
+    m_stream >> process;
+    auto lm = deserialize_interface(layers, *this, process, &slot);
     if (lm)
       slot.layers.add(lm);
     else
@@ -84,9 +93,15 @@ void Visitor<Reader<JSONObject>>::readFrom(const Scenario::SlotModel& slot)
   // TODO toJsonArray
   QJsonArray arr;
 
-  for (const auto& lm : slot.layers)
+  for (const Process::LayerModel& lm : slot.layers)
   {
-    arr.push_back(toJsonObject(lm));
+    // See above.
+    auto obj = toJsonObject(lm);
+    obj["SharedProcess"] =
+        toJsonObject(
+          iscore::RelativePath(*lm.parent(), lm.processModel()));
+
+    arr.push_back(std::move(obj));
   }
 
   m_obj["LayerModels"] = arr;
@@ -100,8 +115,11 @@ void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
   auto& layers = components.interfaces<Process::LayerFactoryList>();
   for (const auto& json_vref : arr)
   {
-    Deserializer<JSONObject> deserializer{json_vref.toObject()};
-    auto lm = deserialize_interface(layers, deserializer, &slot);
+    Deserializer<JSONObject> des{json_vref.toObject()};
+    auto process
+        = fromJsonObject<iscore::RelativePath>(des.m_obj["SharedProcess"]);
+
+    auto lm = deserialize_interface(layers, des, process, &slot);
     if (lm)
       slot.layers.add(lm);
     else

@@ -28,11 +28,8 @@ class IdentifiedObject;
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Scenario::TimeNodeModel& timenode)
+Visitor<Reader<DataStream>>::read(const Scenario::TimeNodeModel& timenode)
 {
-  readFrom(
-      static_cast<const iscore::Entity<Scenario::TimeNodeModel>&>(timenode));
-
   m_stream << timenode.m_date << timenode.m_events << timenode.m_extent;
 
   m_stream << timenode.trigger()->active() << timenode.trigger()->expression();

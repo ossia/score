@@ -46,7 +46,7 @@ static QByteArray toByteArray(uuid const& u)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const iscore::uuid_t& obj)
+Visitor<Reader<DataStream>>::read(const iscore::uuid_t& obj)
 {
   m_stream << iscore::uuids::toByteArray(obj);
 }

@@ -4,6 +4,7 @@
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <iscore/model/path/RelativePath.hpp>
 
 #include <QDataStream>
 #include <QtGlobal>
@@ -39,13 +40,14 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
   s1.readFrom(proc);
 
   // Save ALL the view models!
-  for (const auto& layer : proc.layers())
+  for (const auto& lm : proc.layers())
   {
     QByteArray vm_arr;
     Serializer<DataStream> s{&vm_arr};
-    s.readFrom(*layer);
+    s.readFrom(iscore::RelativePath(*lm->parent(), lm->processModel()));
+    s.readFrom(*lm);
 
-    m_serializedViewModels.append({*layer, vm_arr});
+    m_serializedViewModels.append({*lm, vm_arr});
   }
 }
 
@@ -75,7 +77,9 @@ void RemoveProcessFromConstraint::undo() const
               .slotmodels.at(Id<SlotModel>(path.at(path.size() - 2).id()));
 
     Deserializer<DataStream> stream{it.second};
-    auto lm = deserialize_interface(layers, stream, &slot);
+    iscore::RelativePath process;
+    stream.writeTo(process);
+    auto lm = deserialize_interface(layers, stream, process, &slot);
     if (lm)
       slot.layers.add(lm);
     else

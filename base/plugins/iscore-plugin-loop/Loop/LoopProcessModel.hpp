@@ -31,8 +31,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final
     : public Process::ProcessModel,
       public Scenario::BaseScenarioContainer
 {
-  ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Loop::ProcessModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
   MODEL_METADATA_IMPL(Loop::ProcessModel)
 
 public:

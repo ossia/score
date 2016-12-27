@@ -18,7 +18,7 @@ template <typename T>
 class Writer;
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
     const Scenario::BaseScenarioContainer& base_scenario)
 {
   readFrom(*base_scenario.m_constraint);

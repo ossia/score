@@ -2,11 +2,9 @@
 #include <Process/StateProcess.hpp>
 
 template <>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom_impl(
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::read(
     const Process::StateProcess& process)
 {
-  readFrom(
-      static_cast<const IdentifiedObject<Process::StateProcess>&>(process));
 }
 
 template <>
@@ -17,7 +15,7 @@ Visitor<Writer<DataStream>>::writeTo(Process::StateProcess&)
 }
 
 template <>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom_impl(
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Process::StateProcess& process)
 {
   readFrom(

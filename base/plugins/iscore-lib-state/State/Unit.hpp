@@ -41,7 +41,7 @@ private:
 }
 
 template <>
-struct ISCORE_LIB_STATE_EXPORT TSerializer<DataStream, void, ossia::unit_t>
+struct ISCORE_LIB_STATE_EXPORT TSerializer<DataStream, ossia::unit_t>
 {
   static void readFrom(DataStream::Serializer& s, const ossia::unit_t& var);
 
@@ -49,7 +49,7 @@ struct ISCORE_LIB_STATE_EXPORT TSerializer<DataStream, void, ossia::unit_t>
 };
 
 template <>
-struct ISCORE_LIB_STATE_EXPORT TSerializer<DataStream, void, State::Unit>
+struct ISCORE_LIB_STATE_EXPORT TSerializer<DataStream, State::Unit>
 {
   static void readFrom(DataStream::Serializer& s, const State::Unit& var);
 

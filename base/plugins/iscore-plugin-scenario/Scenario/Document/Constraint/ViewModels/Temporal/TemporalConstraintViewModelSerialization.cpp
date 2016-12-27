@@ -24,10 +24,10 @@ template <typename T>
 class Reader;
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
     const Scenario::TemporalConstraintViewModel& constraint)
 {
-  readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
+  read(static_cast<const Scenario::ConstraintViewModel&>(constraint));
 }
 
 template <>
@@ -52,10 +52,11 @@ serializeConstraintViewModels(
     auto lm_id = iscore::IDocument::path(*viewModel);
     QByteArray arr;
 
-    if (const auto& temporalCstrVM
+    if (auto temporalCstrVM
         = dynamic_cast<const Scenario::TemporalConstraintViewModel*>(&cstrVM))
     {
       Serializer<DataStream> cvmReader{&arr};
+      cvmReader.readFrom(temporalCstrVM->model().id());
       cvmReader.readFrom(*temporalCstrVM);
     }
     else
@@ -88,7 +89,9 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void deserializeConstraintViewModels(
       if (it != end(vms))
       {
         Deserializer<DataStream> d{((*it).second.second)};
-        auto cvm = loadConstraintViewModel(d, temporalSVM);
+        Id<ConstraintModel> cst_id;
+        d.writeTo(cst_id);
+        auto cvm = loadConstraintViewModel(d, temporalSVM, cst_id);
         temporalSVM->addConstraintViewModel(cvm);
       }
       else

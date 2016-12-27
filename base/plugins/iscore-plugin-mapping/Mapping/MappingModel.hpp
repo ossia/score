@@ -23,8 +23,7 @@ namespace Mapping
 class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel final
     : public Curve::CurveProcessModel
 {
-  ISCORE_SERIALIZE_FRIENDS(Mapping::ProcessModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Mapping::ProcessModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
   MODEL_METADATA_IMPL(Mapping::ProcessModel)
 
   Q_OBJECT

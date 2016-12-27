@@ -58,8 +58,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final
 {
   Q_OBJECT
 
-  ISCORE_SERIALIZE_FRIENDS(Scenario::StateModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Scenario::StateModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 public:
   using ProcessVector = std::list<ProcessStateWrapper>;
 

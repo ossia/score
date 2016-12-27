@@ -19,8 +19,7 @@ class CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
 {
   Q_OBJECT
 
-  ISCORE_SERIALIZE_FRIENDS(Scenario::CommentBlockModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Scenario::CommentBlockModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
 public:
   Selectable selection;

@@ -1,45 +1,9 @@
 #pragma once
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 
+#include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-
-
-/**
- * @brief Generic serialization method for abstract classes.
- *
- * This class and AbstractSerializer<JSONObject, T> are used
- * for serializing classes that are part of a polymorphic hierarchy.
- *
- * The problem is reloading polymorphic classes : we have to save
- * the identifier of the factory used to instantiate them.
- *
- * Base classes should provide only serialization code for their own data
- * in Visitor<Reader<...>> and Visitor<Writer<...>>.
- *
- * Likewise, subclasses should only save their own data.
- * These classes ensure that everything will be saved in the correct order.
- *
- */
-template <typename T>
-struct AbstractSerializer<DataStream, T>
-{
-  static void readFrom(DataStream::Serializer& s, const T& obj)
-  {
-    // We save in a byte array so that
-    // we have a chance to save it as-is and reload it later
-    // if the plug-in is not found on the system.
-    QByteArray b;
-    DataStream::Serializer sub{&b};
-
-    sub.readFrom(obj.concreteKey().impl());
-    sub.readFrom_impl(obj);
-    obj.serialize_impl(sub.toVariant());
-    sub.insertDelimiter();
-
-    s.stream() << std::move(b);
-  }
-};
 
 template <typename T>
 struct AbstractSerializer<JSONObject, T>
@@ -47,21 +11,26 @@ struct AbstractSerializer<JSONObject, T>
   static void readFrom(JSONObject::Serializer& s, const T& obj)
   {
     s.m_obj[s.strings.uuid] = toJsonValue(obj.concreteKey().impl());
-    s.readFrom_impl(obj);
+    s.readFromConcrete(obj);
     obj.serialize_impl(s.toVariant());
   }
 };
 
 namespace iscore
 {
-// FIXME why is this not used everywhere
-struct concrete
-{
-  using is_concrete_tag = std::integral_constant<bool, true>;
-};
-
 /**
- * @brief Provides a common serialization mechanism to abstract types.
+ * @brief Generic serialization method for abstract classes.
+ *
+ * The problem is reloading polymorphic classes : we have to save
+ * the identifier of the factory used to instantiate them.
+ * <br>
+ * Base classes should inherit from SerializableInterface, and provide only serialization code for their own data
+ * in Visitor<Reader<...>> and Visitor<Writer<...>>.
+ * <br>
+ * Likewise, subclasses should only save their own data.
+ * These classes ensure that everything will be saved in the correct order.
+ * <br>
+ * See visitor_abstract_tag
  */
 template <typename T>
 class SerializableInterface
@@ -115,9 +84,11 @@ auto deserialize_interface(
   // Deserialize the interface identifier
   try
   {
+    ISCORE_DEBUG_CHECK_DELIMITER2(sub);
     auto k = deserialize_key<
         typename FactoryList_T::factory_type::ConcreteKey>(sub);
 
+    ISCORE_DEBUG_CHECK_DELIMITER2(sub);
     // Get the factory
     if (auto concrete_factory = factories.get(k))
     {
@@ -125,7 +96,7 @@ auto deserialize_interface(
       auto obj = concrete_factory->load(
           sub.toVariant(), std::forward<Args>(args)...);
 
-      sub.checkDelimiter();
+      ISCORE_DEBUG_CHECK_DELIMITER2(sub);
 
       return obj;
     }

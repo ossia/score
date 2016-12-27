@@ -13,6 +13,7 @@ struct VisitorVariant;
 namespace iscore
 {
 struct DocumentContext;
+struct RelativePath;
 }
 namespace Process
 {
@@ -71,7 +72,7 @@ public:
       QObject* parent);
 
   // Load
-  Process::LayerModel* load(const VisitorVariant& v, QObject* parent);
+  Process::LayerModel* load(const VisitorVariant& v, const iscore::RelativePath& process, QObject* parent);
 
   // Clone
   Process::LayerModel* cloneLayer(

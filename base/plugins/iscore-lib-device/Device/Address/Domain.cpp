@@ -79,7 +79,7 @@ Domain::operator ossia::net::domain&() noexcept
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Device::Domain& var)
+Visitor<Reader<DataStream>>::read(const Device::Domain& var)
 {
   readFrom(var.get());
 }

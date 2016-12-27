@@ -305,7 +305,7 @@ inline const TimeValue& max(const TimeValue& lhs, const TimeValue& rhs)
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 template <>
-struct TSerializer<DataStream, void, TimeValue>
+struct TSerializer<DataStream, TimeValue>
 {
   static void readFrom(DataStream::Serializer& s, const TimeValue& tv)
   {

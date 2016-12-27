@@ -80,7 +80,7 @@ void apply(Vis& s, const std::string& key, Any& v)
 }
 
 template<>
-struct ISCORE_LIB_BASE_EXPORT TSerializer<DataStream, void, iscore::any_map>
+struct ISCORE_LIB_BASE_EXPORT TSerializer<DataStream, iscore::any_map>
 {
   static void readFrom(
       DataStream::Serializer& s,

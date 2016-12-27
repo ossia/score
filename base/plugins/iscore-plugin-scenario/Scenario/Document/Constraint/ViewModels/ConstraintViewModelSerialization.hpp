@@ -20,11 +20,10 @@ class ConstraintModel;
 // Load a single constraint view model.
 template <typename ScenarioViewModelType>
 typename ScenarioViewModelType::constraint_layer_type* loadConstraintViewModel(
-    Deserializer<DataStream>& deserializer, ScenarioViewModelType* svm)
+    Deserializer<DataStream>& deserializer,
+    ScenarioViewModelType* svm,
+    const Id<ConstraintModel>& constraint_model_id)
 {
-  // Deserialize the required identifier
-  Id<ConstraintModel> constraint_model_id;
-  deserializer.m_stream >> constraint_model_id;
   auto& constraint = model(*svm).constraint(constraint_model_id);
 
   // Make it
@@ -39,11 +38,10 @@ typename ScenarioViewModelType::constraint_layer_type* loadConstraintViewModel(
 
 template <typename ScenarioViewModelType>
 typename ScenarioViewModelType::constraint_layer_type* loadConstraintViewModel(
-    Deserializer<JSONObject>& deserializer, ScenarioViewModelType* svm)
+    Deserializer<JSONObject>& deserializer,
+    ScenarioViewModelType* svm,
+    const Id<ConstraintModel>& constraint_model_id)
 {
-  // Deserialize the required identifier
-  auto constraint_model_id
-      = fromJsonValue<Id<ConstraintModel>>(deserializer.m_obj["ConstraintId"]);
   auto& constraint = model(*svm).constraint(constraint_model_id);
 
   // Make it

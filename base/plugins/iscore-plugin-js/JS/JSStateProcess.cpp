@@ -1,7 +1,7 @@
 #include "JSStateProcess.hpp"
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(const JS::StateProcess& proc)
+void Visitor<Reader<DataStream>>::read(const JS::StateProcess& proc)
 {
   m_stream << proc.m_script;
   insertDelimiter();
@@ -15,7 +15,7 @@ void Visitor<Writer<DataStream>>::writeTo(JS::StateProcess& proc)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(const JS::StateProcess& proc)
+void Visitor<Reader<JSONObject>>::readFromConcrete(const JS::StateProcess& proc)
 {
   m_obj["Script"] = proc.m_script;
 }

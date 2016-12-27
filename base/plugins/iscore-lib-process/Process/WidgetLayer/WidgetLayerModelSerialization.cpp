@@ -14,7 +14,7 @@ class Writer;
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-Visitor<Reader<DataStream>>::readFrom_impl(const WidgetLayer::Layer& lm)
+Visitor<Reader<DataStream>>::read(const WidgetLayer::Layer& lm)
 {
 }
 
@@ -26,7 +26,7 @@ Visitor<Writer<DataStream>>::writeTo(WidgetLayer::Layer& lm)
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom_impl(const WidgetLayer::Layer& lm)
+Visitor<Reader<JSONObject>>::readFromConcrete(const WidgetLayer::Layer& lm)
 {
 }
 

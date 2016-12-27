@@ -81,7 +81,7 @@ void VariantJSONDeserializer<ossia::value_variant_type>::
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const ossia::value& n)
+Visitor<Reader<DataStream>>::read(const ossia::value& n)
 {
   readFrom((const ossia::value_variant_type&)n.v);
 }
@@ -109,7 +109,7 @@ DataStreamOutput& operator>>(DataStreamOutput& stream, ossia::value& obj)
 }
 
 template <typename T>
-struct TSerializer<DataStream, void, ossia::net::domain_base<T>>
+struct TSerializer<DataStream, ossia::net::domain_base<T>>
 {
   using domain_t = ossia::net::domain_base<T>;
   static void readFrom(DataStream::Serializer& s, const domain_t& domain)
@@ -180,7 +180,7 @@ struct TSerializer<DataStream, void, ossia::net::domain_base<T>>
 };
 
 template <>
-struct TSerializer<DataStream, void, ossia::net::domain_base<std::string>>
+struct TSerializer<DataStream, ossia::net::domain_base<std::string>>
 {
   using domain_t = ossia::net::domain_base<std::string>;
   static void readFrom(DataStream::Serializer& s, const domain_t& domain)
@@ -213,7 +213,7 @@ struct TSerializer<DataStream, void, ossia::net::domain_base<std::string>>
 };
 
 template <>
-struct TSerializer<DataStream, void, ossia::net::domain_base<ossia::Impulse>>
+struct TSerializer<DataStream, ossia::net::domain_base<ossia::Impulse>>
 {
   using domain_t = ossia::net::domain_base<ossia::Impulse>;
   static void readFrom(DataStream::Serializer& s, const domain_t& domain)
@@ -229,7 +229,7 @@ struct TSerializer<DataStream, void, ossia::net::domain_base<ossia::Impulse>>
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const ossia::net::domain& n)
+Visitor<Reader<DataStream>>::read(const ossia::net::domain& n)
 {
   readFrom((const ossia::net::domain_base_variant&)n);
 }
@@ -575,7 +575,7 @@ Visitor<Writer<JSONValue>>::writeTo(std::array<float, 4>& n)
 /// Instance bounds ///
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const ossia::net::instance_bounds& n)
+Visitor<Reader<DataStream>>::read(const ossia::net::instance_bounds& n)
 {
   m_stream << n.min_instances << n.max_instances;
 }

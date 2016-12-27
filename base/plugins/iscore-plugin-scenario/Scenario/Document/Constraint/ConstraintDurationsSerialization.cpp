@@ -13,7 +13,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::read(
     const Scenario::ConstraintDurations& durs)
 {
   m_stream << durs.m_defaultDuration << durs.m_minDuration

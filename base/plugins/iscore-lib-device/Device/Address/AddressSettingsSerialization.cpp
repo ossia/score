@@ -20,7 +20,7 @@
 
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::read(
     const Device::AddressSettingsCommon& n)
 {
   m_stream << n.value << n.domain << n.ioType << n.clipMode << n.unit
@@ -72,7 +72,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettingsCommon& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Device::AddressSettings& n)
+Visitor<Reader<DataStream>>::read(const Device::AddressSettings& n)
 {
   readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
   m_stream << n.name;
@@ -107,7 +107,7 @@ Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Device::FullAddressSettings& n)
+Visitor<Reader<DataStream>>::read(const Device::FullAddressSettings& n)
 {
   readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
   m_stream << n.address;
@@ -141,7 +141,7 @@ Visitor<Writer<JSONObject>>::writeTo(Device::FullAddressSettings& n)
 }
 
 template <>
-ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::read(
     const Device::FullAddressAccessorSettings& n)
 {
   m_stream << n.value << n.domain << n.ioType << n.clipMode

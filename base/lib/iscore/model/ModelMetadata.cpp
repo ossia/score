@@ -139,7 +139,7 @@ void ModelMetadata::setExtendedMetadata(const QVariantMap& arg)
 // MOVEME
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const iscore::ColorRef& md)
+Visitor<Reader<DataStream>>::read(const iscore::ColorRef& md)
 {
   m_stream << md.name();
 }
@@ -158,7 +158,7 @@ Visitor<Writer<DataStream>>::writeTo(iscore::ColorRef& md)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const iscore::ModelMetadata& md)
+Visitor<Reader<DataStream>>::read(const iscore::ModelMetadata& md)
 {
   m_stream << md.m_scriptingName << md.m_comment << md.m_color << md.m_label
            << md.m_extendedMetadata;
@@ -171,7 +171,7 @@ ISCORE_LIB_BASE_EXPORT void
 Visitor<Writer<DataStream>>::writeTo(iscore::ModelMetadata& md)
 {
   m_stream >> md.m_scriptingName >> md.m_comment >> md.m_color >> md.m_label
-      >> md.m_extendedMetadata;
+           >> md.m_extendedMetadata;
 
   checkDelimiter();
 }

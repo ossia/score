@@ -29,8 +29,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT SegmentModel
 {
   Q_OBJECT
 
-  ISCORE_SERIALIZE_FRIENDS(Curve::SegmentModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Curve::SegmentModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 public:
   using data_vector = std::
       vector<QPointF, boost::alignment::aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;

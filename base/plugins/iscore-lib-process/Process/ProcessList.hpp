@@ -22,7 +22,7 @@ public:
   using object_type = Process::LayerModel;
   ~LayerFactoryList();
 
-  object_type* loadMissing(const VisitorVariant& vis, QObject* parent) const;
+  object_type* loadMissing(const VisitorVariant& vis, const iscore::RelativePath&, QObject* parent) const;
   LayerFactory* findDefaultFactory(const Process::ProcessModel& proc) const;
   LayerFactory*
   findDefaultFactory(const UuidKey<Process::ProcessModelFactory>& proc) const;

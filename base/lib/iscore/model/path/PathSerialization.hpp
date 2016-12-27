@@ -21,7 +21,7 @@ QDataStream& operator>>(QDataStream& stream, Path<Object>& obj)
 }
 
 template <typename T>
-struct TSerializer<DataStream, void, Path<T>>
+struct TSerializer<DataStream, Path<T>>
 {
   static void readFrom(DataStream::Serializer& s, const Path<T>& path)
   {

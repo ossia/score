@@ -42,9 +42,14 @@ namespace iscore
 {
 QByteArray Document::saveDocumentModelAsByteArray()
 {
+  // TODO refactor this
+
   QByteArray arr;
+
   Serializer<DataStream> s{&arr};
+
   s.readFrom(model().id());
+  TSerializer<DataStream, IdentifiedObject<DocumentDelegateModel>>::readFrom(s, m_model->modelDelegate());
   m_model->modelDelegate().serialize(s.toVariant());
   return arr;
 }
@@ -105,6 +110,11 @@ QByteArray Document::saveAsByteArray()
     if (auto serializable_plugin
         = dynamic_cast<SerializableDocumentPlugin*>(plugin))
     {
+      static_assert(iscore::is_object<SerializableDocumentPlugin>::value, "");
+      static_assert(
+            std::is_same<
+              serialization_tag<SerializableDocumentPlugin>::type,
+            visitor_abstract_object_tag>::value, "");
       QByteArray arr_before, arr_after;
       Serializer<DataStream> s_before{&arr_before};
       Serializer<DataStream> s_after{&arr_after};

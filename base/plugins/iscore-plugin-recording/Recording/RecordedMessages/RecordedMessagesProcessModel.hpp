@@ -32,8 +32,7 @@ using RecordedMessagesList = QList<RecordedMessage>;
 class ISCORE_PLUGIN_RECORDING_EXPORT ProcessModel final
     : public Process::ProcessModel
 {
-  ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
   MODEL_METADATA_IMPL(RecordedMessages::ProcessModel)
   Q_OBJECT
 public:

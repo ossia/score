@@ -359,7 +359,7 @@ Unit::operator ossia::unit_t&() noexcept
 }
 }
 
-void TSerializer<DataStream, void, ossia::unit_t>::readFrom(
+void TSerializer<DataStream, ossia::unit_t>::readFrom(
     DataStream::Serializer& s, const ossia::unit_t& var)
 {
   s.stream() << (quint64)var.which();
@@ -373,7 +373,7 @@ void TSerializer<DataStream, void, ossia::unit_t>::readFrom(
   s.insertDelimiter();
 }
 
-void TSerializer<DataStream, void, ossia::unit_t>::writeTo(
+void TSerializer<DataStream, ossia::unit_t>::writeTo(
     DataStream::Deserializer& s, ossia::unit_t& var)
 {
   quint64 ds_which;
@@ -390,28 +390,28 @@ void TSerializer<DataStream, void, ossia::unit_t>::writeTo(
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const State::Unit& var)
+Visitor<Reader<DataStream>>::read(const State::Unit& var)
 {
-  TSerializer<DataStream, void, ossia::unit_t>::readFrom(*this, var.get());
+  TSerializer<DataStream, ossia::unit_t>::readFrom(*this, var.get());
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
 Visitor<Writer<DataStream>>::writeTo(State::Unit& var)
 {
-  TSerializer<DataStream, void, ossia::unit_t>::writeTo(*this, var.get());
+  TSerializer<DataStream, ossia::unit_t>::writeTo(*this, var.get());
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const ossia::unit_t& var)
+Visitor<Reader<DataStream>>::read(const ossia::unit_t& var)
 {
-  TSerializer<DataStream, void, ossia::unit_t>::readFrom(*this, var);
+  TSerializer<DataStream, ossia::unit_t>::readFrom(*this, var);
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
 Visitor<Writer<DataStream>>::writeTo(ossia::unit_t& var)
 {
-  TSerializer<DataStream, void, ossia::unit_t>::writeTo(*this, var);
+  TSerializer<DataStream, ossia::unit_t>::writeTo(*this, var);
 }

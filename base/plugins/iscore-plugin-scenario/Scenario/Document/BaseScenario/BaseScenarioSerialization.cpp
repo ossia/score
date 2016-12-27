@@ -19,11 +19,9 @@ template <typename model>
 class IdentifiedObject;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::read(
     const Scenario::BaseScenario& base_scenario)
 {
-  readFrom(static_cast<const IdentifiedObject<Scenario::BaseScenario>&>(
-      base_scenario));
   readFrom(static_cast<const Scenario::BaseScenarioContainer&>(base_scenario));
 
   insertDelimiter();

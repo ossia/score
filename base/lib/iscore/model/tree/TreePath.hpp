@@ -86,7 +86,7 @@ public:
 };
 
 template <typename T>
-struct TSerializer<DataStream, void, TreePath<T>>
+struct TSerializer<DataStream, TreePath<T>>
 {
   static void readFrom(DataStream::Serializer& s, const TreePath<T>& path)
   {

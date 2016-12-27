@@ -98,7 +98,7 @@ void VariantDataStreamDeserializer<T>::perform()
 }
 
 template <typename... Args>
-struct TSerializer<DataStream, void, eggs::variant<Args...>>
+struct TSerializer<DataStream, eggs::variant<Args...>>
 {
   using var_t = eggs::variant<Args...>;
   static void readFrom(DataStream::Serializer& s, const var_t& var)

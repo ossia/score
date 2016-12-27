@@ -26,6 +26,8 @@ template <typename T>
 class Entity : public IdentifiedObject<T>
 {
 public:
+  static const constexpr bool entity_tag = true;
+
   Entity(Id<T> id, const QString& name, QObject* parent)
       : IdentifiedObject<T>{std::move(id), name, parent}
   {
@@ -39,14 +41,8 @@ public:
     m_metadata.setParent(this);
   }
 
-  Entity(Deserializer<DataStream>& vis, QObject* parent)
-      : IdentifiedObject<T>{vis, parent}
-  {
-    m_metadata.setParent(this);
-    vis.writeTo(*this);
-  }
-
-  Entity(Deserializer<JSONObject>& vis, QObject* parent)
+  template<typename Visitor>
+  Entity(Visitor& vis, QObject* parent)
       : IdentifiedObject<T>{vis, parent}
   {
     m_metadata.setParent(this);
@@ -74,38 +70,33 @@ private:
   iscore::Components m_components;
   ModelMetadata m_metadata;
 };
+
+template <typename T>
+using enable_if_object = typename std::enable_if_t<T::identified_object_tag>;
+
+template <class, class Enable = void>
+struct is_object : std::false_type
+{
+};
+
+template <class T>
+struct is_object<T, enable_if_object<T>> : std::true_type
+{
+};
+
+template <typename T>
+using enable_if_entity = typename std::enable_if_t<T::entity_tag>;
+
+template <class, class Enable = void>
+struct is_entity : std::false_type
+{
+};
+
+template <class T>
+struct is_entity<T, enable_if_entity<T>> : std::true_type
+{
+};
 }
-
-template <typename T>
-struct TSerializer<DataStream, void, iscore::Entity<T>>
-{
-  static void readFrom(DataStream::Serializer& s, const iscore::Entity<T>& obj)
-  {
-    s.readFrom(static_cast<const IdentifiedObject<T>&>(obj));
-    s.readFrom(obj.metadata());
-  }
-
-  static void writeTo(DataStream::Deserializer& s, iscore::Entity<T>& obj)
-  {
-    s.writeTo(obj.metadata());
-  }
-};
-
-template <typename T>
-struct TSerializer<JSONObject, iscore::Entity<T>>
-{
-  static void readFrom(JSONObject::Serializer& s, const iscore::Entity<T>& obj)
-  {
-    s.readFrom(static_cast<const IdentifiedObject<T>&>(obj));
-    s.m_obj[s.strings.Metadata] = toJsonObject(obj.metadata());
-  }
-
-  static void writeTo(JSONObject::Deserializer& s, iscore::Entity<T>& obj)
-  {
-    obj.metadata()
-        = fromJsonObject<iscore::ModelMetadata>(s.m_obj[s.strings.Metadata]);
-  }
-};
 
 template <typename T>
 class EntityMapInserter<iscore::Entity<T>>
@@ -132,3 +123,7 @@ class EntityMapInserter<iscore::Entity<T>>
     map.added(*t);
   }
 };
+
+class DataStream;
+template <typename T>
+struct TSerializer<DataStream, iscore::Entity<T>>;

@@ -18,15 +18,16 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const Scenario::TemporalScenarioLayer& lm)
 {
-  auto constraints = constraintsViewModels(lm);
+  auto constraints = Scenario::constraintsViewModels(lm);
 
-  m_stream << constraints.size();
+  m_stream << (int32_t)constraints.size();
 
   for (auto constraint : constraints)
   {
+    m_stream << constraint->model().id();
     readFrom(*constraint);
   }
 
@@ -36,12 +37,14 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
 template <>
 void Visitor<Writer<DataStream>>::writeTo(Scenario::TemporalScenarioLayer& lm)
 {
-  int count;
+  int32_t count;
   m_stream >> count;
 
   for (; count-- > 0;)
   {
-    auto cstr = loadConstraintViewModel(*this, &lm);
+    Id<Scenario::ConstraintModel> id;
+    m_stream >> id;
+    auto cstr = Scenario::loadConstraintViewModel(*this, &lm, id);
     lm.addConstraintViewModel(cstr);
   }
 
@@ -49,17 +52,19 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::TemporalScenarioLayer& lm)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Scenario::TemporalScenarioLayer& lm)
 {
   QJsonArray arr;
 
-  for (auto cstrvm : constraintsViewModels(lm))
+  for (auto cstrvm : Scenario::constraintsViewModels(lm))
   {
-    arr.push_back(toJsonObject(*cstrvm));
+    auto obj = toJsonObject(*cstrvm);
+    obj["ConstraintId"] = toJsonValue(cstrvm->model().id());
+    arr.push_back(std::move(obj));
   }
 
-  m_obj["Constraints"] = arr;
+  m_obj["Constraints"] = std::move(arr);
 }
 
 template <>
@@ -70,7 +75,9 @@ void Visitor<Writer<JSONObject>>::writeTo(Scenario::TemporalScenarioLayer& lm)
   for (const auto& json_vref : arr)
   {
     Deserializer<JSONObject> deserializer{json_vref.toObject()};
-    auto cstrvm = loadConstraintViewModel(deserializer, &lm);
+
+    auto id = fromJsonValue<Id<Scenario::ConstraintModel>>(deserializer.m_obj["ConstraintId"]);
+    auto cstrvm = Scenario::loadConstraintViewModel(deserializer, &lm, id);
     lm.addConstraintViewModel(cstrvm);
   }
 }

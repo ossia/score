@@ -7,8 +7,7 @@ namespace JS
 class StateProcess : public Process::StateProcess
 {
   Q_OBJECT
-  ISCORE_SERIALIZE_FRIENDS(JS::StateProcess, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(JS::StateProcess, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
   MODEL_METADATA_IMPL(StateProcess)
 public:
   explicit StateProcess(const Id<Process::StateProcess>& id, QObject* parent);

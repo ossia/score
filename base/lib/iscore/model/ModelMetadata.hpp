@@ -2,13 +2,11 @@
 #include <QColor>
 #include <QObject>
 #include <QString>
+#include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/model/ColorReference.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/Metadata.hpp>
 #include <iscore_lib_base_export.h>
 #include <qnamespace.h>
-
 namespace iscore
 {
 /**
@@ -16,8 +14,7 @@ namespace iscore
  */
 class ISCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
 {
-  ISCORE_SERIALIZE_FRIENDS(ModelMetadata, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(ModelMetadata, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
   Q_OBJECT
   Q_PROPERTY(QString Name READ getName WRITE setName NOTIFY NameChanged)

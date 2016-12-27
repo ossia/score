@@ -83,7 +83,7 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QTransform& pt)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const std::array<float, 2>& obj)
+Visitor<Reader<DataStream>>::read(const std::array<float, 2>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream << obj[i];
@@ -101,7 +101,7 @@ Visitor<Writer<DataStream>>::writeTo(std::array<float, 2>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const std::array<float, 3>& obj)
+Visitor<Reader<DataStream>>::read(const std::array<float, 3>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream << obj[i];
@@ -119,7 +119,7 @@ Visitor<Writer<DataStream>>::writeTo(std::array<float, 3>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const std::array<float, 4>& obj)
+Visitor<Reader<DataStream>>::read(const std::array<float, 4>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream << obj[i];
@@ -137,7 +137,7 @@ Visitor<Writer<DataStream>>::writeTo(std::array<float, 4>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const QJsonObject& obj)
+Visitor<Reader<DataStream>>::read(const QJsonObject& obj)
 {
   QJsonDocument doc{obj};
   m_stream << doc.toBinaryData();
