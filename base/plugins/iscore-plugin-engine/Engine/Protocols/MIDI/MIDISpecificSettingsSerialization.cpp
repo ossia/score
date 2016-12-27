@@ -7,41 +7,40 @@
 #include "MIDISpecificSettings.hpp"
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Engine::Network::MIDISpecificSettings& n)
 {
   m_stream << n.io << n.endpoint << n.port;
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(
+void DataStreamWriter::writeTo(
     Engine::Network::MIDISpecificSettings& n)
 {
   m_stream >> n.io >> n.endpoint >> n.port;
   checkDelimiter();
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
-    const Engine::Network::MIDISpecificSettings& n)
-{
-  m_obj["IO"] = toJsonValue(n.io);
-  m_obj["Endpoint"] = n.endpoint;
-  m_obj["Port"] = (int)n.port;
-}
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(
+void JSONObjectReader::readFromConcrete(
+    const Engine::Network::MIDISpecificSettings& n)
+{
+  obj["IO"] = toJsonValue(n.io);
+  obj["Endpoint"] = n.endpoint;
+  obj["Port"] = (int)n.port;
+}
+
+
+template <>
+void JSONObjectWriter::writeTo(
     Engine::Network::MIDISpecificSettings& n)
 {
-  fromJsonValue(m_obj["IO"], n.io);
-  n.endpoint = m_obj["Endpoint"].toString();
-  n.port = m_obj["Port"].toInt();
+  fromJsonValue(obj["IO"], n.io);
+  n.endpoint = obj["Endpoint"].toString();
+  n.port = obj["Port"].toInt();
 }

@@ -3,25 +3,25 @@
 
 #include "JSONVisitor.hpp"
 
-Visitor<Reader<JSONObject>>::Visitor()
+JSONObjectReader::JSONObjectReader()
     : components{iscore::AppComponents()}, strings{iscore::StringConstant()}
 {
 }
 
-Visitor<Writer<JSONObject>>::Visitor()
+JSONObjectWriter::JSONObjectWriter()
     : components{iscore::AppComponents()}, strings{iscore::StringConstant()}
 {
 }
 
-Visitor<Writer<JSONObject>>::Visitor(const QJsonObject& obj)
-    : m_obj{obj}
+JSONObjectWriter::JSONObjectWriter(const QJsonObject& o)
+    : obj{o}
     , components{iscore::AppComponents()}
     , strings{iscore::StringConstant()}
 {
 }
 
-Visitor<Writer<JSONObject>>::Visitor(QJsonObject&& obj)
-    : m_obj{std::move(obj)}
+JSONObjectWriter::JSONObjectWriter(QJsonObject&& o)
+    : obj{std::move(o)}
     , components{iscore::AppComponents()}
     , strings{iscore::StringConstant()}
 {

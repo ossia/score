@@ -32,9 +32,10 @@ class Writer;
 template <typename model>
 class IdentifiedObject;
 
+
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Reader<DataStream>>::read(const Scenario::StateModel& s)
+DataStreamReader::read(const Scenario::StateModel& s)
 {
   m_stream << s.m_eventId << s.m_previousConstraint << s.m_nextConstraint
            << s.m_heightPercentage;
@@ -52,9 +53,10 @@ Visitor<Reader<DataStream>>::read(const Scenario::StateModel& s)
   insertDelimiter();
 }
 
+
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Scenario::StateModel& s)
+DataStreamWriter::writeTo(Scenario::StateModel& s)
 {
   m_stream >> s.m_eventId >> s.m_previousConstraint >> s.m_nextConstraint
       >> s.m_heightPercentage;
@@ -81,47 +83,49 @@ Visitor<Writer<DataStream>>::writeTo(Scenario::StateModel& s)
   checkDelimiter();
 }
 
+
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const Scenario::StateModel& s)
+JSONObjectReader::readFrom(const Scenario::StateModel& s)
 {
   readFrom(static_cast<const iscore::Entity<Scenario::StateModel>&>(s));
 
-  m_obj["Event"] = toJsonValue(s.m_eventId);
-  m_obj["PreviousConstraint"] = toJsonValue(s.m_previousConstraint);
-  m_obj["NextConstraint"] = toJsonValue(s.m_nextConstraint);
-  m_obj["HeightPercentage"] = s.m_heightPercentage;
+  obj["Event"] = toJsonValue(s.m_eventId);
+  obj["PreviousConstraint"] = toJsonValue(s.m_previousConstraint);
+  obj["NextConstraint"] = toJsonValue(s.m_nextConstraint);
+  obj["HeightPercentage"] = s.m_heightPercentage;
 
   // Message tree
-  m_obj["Messages"] = toJsonObject(s.m_messageItemModel->rootNode());
+  obj["Messages"] = toJsonObject(s.m_messageItemModel->rootNode());
 
   // Processes plugins
-  m_obj["StateProcesses"] = toJsonArray(s.stateProcesses);
+  obj["StateProcesses"] = toJsonArray(s.stateProcesses);
 }
+
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Scenario::StateModel& s)
+JSONObjectWriter::writeTo(Scenario::StateModel& s)
 {
-  s.m_eventId = fromJsonValue<Id<Scenario::EventModel>>(m_obj["Event"]);
+  s.m_eventId = fromJsonValue<Id<Scenario::EventModel>>(obj["Event"]);
   s.m_previousConstraint
       = fromJsonValue<OptionalId<Scenario::ConstraintModel>>(
-          m_obj["PreviousConstraint"]);
+          obj["PreviousConstraint"]);
   s.m_nextConstraint = fromJsonValue<OptionalId<Scenario::ConstraintModel>>(
-      m_obj["NextConstraint"]);
-  s.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
+      obj["NextConstraint"]);
+  s.m_heightPercentage = obj["HeightPercentage"].toDouble();
 
   // Message tree
   s.m_messageItemModel = new Scenario::MessageItemModel{s.m_stack, s, &s};
-  s.messages() = fromJsonObject<Process::MessageNode>(m_obj["Messages"]);
+  s.messages() = fromJsonObject<Process::MessageNode>(obj["Messages"]);
 
   // Processes plugins
   auto& pl = components.interfaces<Process::StateProcessList>();
 
-  QJsonArray process_array = m_obj["StateProcesses"].toArray();
+  QJsonArray process_array = obj["StateProcesses"].toArray();
   for (const auto& json_vref : process_array)
   {
-    Deserializer<JSONObject> deserializer{json_vref.toObject()};
+    JSONObject::Deserializer deserializer{json_vref.toObject()};
     auto proc = deserialize_interface(pl, deserializer, &s);
     if (proc)
       s.stateProcesses.add(proc);

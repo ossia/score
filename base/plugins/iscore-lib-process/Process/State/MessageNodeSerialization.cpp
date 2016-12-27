@@ -27,10 +27,6 @@ namespace boost
 template <class T>
 class optional;
 } // namespace boost
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <typename T>
 void toJsonValue(
@@ -79,7 +75,7 @@ void fromJsonValue(
 }
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const std::array<Process::PriorityPolicy, 3>& val)
 {
   for (int i = 0; i < 3; i++)
@@ -87,7 +83,7 @@ void Visitor<Reader<DataStream>>::read(
 }
 
 template <>
-void Visitor<Writer<DataStream>>::writeTo(
+void DataStreamWriter::writeTo(
     std::array<Process::PriorityPolicy, 3>& val)
 {
   for (int i = 0; i < 3; i++)
@@ -95,70 +91,70 @@ void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Process::ProcessStateData& val)
 {
   m_stream << val.process << val.value;
 }
 
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Process::ProcessStateData& val)
+void DataStreamWriter::writeTo(Process::ProcessStateData& val)
 {
   m_stream >> val.process >> val.value;
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom(
+void JSONObjectReader::readFrom(
     const Process::ProcessStateData& val)
 {
-  m_obj[strings.Process] = toJsonValue(val.process);
-  toJsonValue(m_obj, strings.Value, val.value);
+  obj[strings.Process] = toJsonValue(val.process);
+  toJsonValue(obj, strings.Value, val.value);
 }
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Process::ProcessStateData& val)
+void JSONObjectWriter::writeTo(Process::ProcessStateData& val)
 {
   val.process
-      = fromJsonValue<Id<Process::ProcessModel>>(m_obj[strings.Process]);
-  fromJsonValue(m_obj, strings.Value, val.value);
+      = fromJsonValue<Id<Process::ProcessModel>>(obj[strings.Process]);
+  fromJsonValue(obj, strings.Value, val.value);
 }
 
 template <>
-void Visitor<Reader<DataStream>>::read(const Process::StateNodeValues& val)
+void DataStreamReader::read(const Process::StateNodeValues& val)
 {
   m_stream << val.previousProcessValues << val.followingProcessValues
            << val.userValue << val.priorities;
 }
 
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Process::StateNodeValues& val)
+void DataStreamWriter::writeTo(Process::StateNodeValues& val)
 {
   m_stream >> val.previousProcessValues >> val.followingProcessValues
       >> val.userValue >> val.priorities;
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom(const Process::StateNodeValues& val)
+void JSONObjectReader::readFrom(const Process::StateNodeValues& val)
 {
-  m_obj[strings.Previous] = toJsonArray(val.previousProcessValues);
-  m_obj[strings.Following] = toJsonArray(val.followingProcessValues);
-  toJsonValue(m_obj, strings.User, val.userValue);
-  m_obj[strings.Priorities] = toJsonArray(val.priorities);
+  obj[strings.Previous] = toJsonArray(val.previousProcessValues);
+  obj[strings.Following] = toJsonArray(val.followingProcessValues);
+  toJsonValue(obj, strings.User, val.userValue);
+  obj[strings.Priorities] = toJsonArray(val.priorities);
 }
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Process::StateNodeValues& val)
+void JSONObjectWriter::writeTo(Process::StateNodeValues& val)
 {
-  fromJsonArray(m_obj[strings.Previous].toArray(), val.previousProcessValues);
+  fromJsonArray(obj[strings.Previous].toArray(), val.previousProcessValues);
   fromJsonArray(
-      m_obj[strings.Following].toArray(), val.followingProcessValues);
-  fromJsonValue(m_obj, strings.User, val.userValue);
-  fromJsonArray(m_obj[strings.Priorities].toArray(), val.priorities);
+      obj[strings.Following].toArray(), val.followingProcessValues);
+  fromJsonValue(obj, strings.User, val.userValue);
+  fromJsonArray(obj[strings.Priorities].toArray(), val.priorities);
 }
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-Visitor<Reader<DataStream>>::read(const Process::StateNodeData& node)
+DataStreamReader::read(const Process::StateNodeData& node)
 {
   m_stream << node.name << node.values;
   insertDelimiter();
@@ -166,7 +162,7 @@ Visitor<Reader<DataStream>>::read(const Process::StateNodeData& node)
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Process::StateNodeData& node)
+DataStreamWriter::writeTo(Process::StateNodeData& node)
 {
   m_stream >> node.name >> node.values;
   checkDelimiter();
@@ -174,7 +170,7 @@ Visitor<Writer<DataStream>>::writeTo(Process::StateNodeData& node)
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const Process::StateNodeData& node)
+JSONObjectReader::readFrom(const Process::StateNodeData& node)
 {
   readFrom(node.name);
   readFrom(node.values);
@@ -182,7 +178,7 @@ Visitor<Reader<JSONObject>>::readFrom(const Process::StateNodeData& node)
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Process::StateNodeData& node)
+JSONObjectWriter::writeTo(Process::StateNodeData& node)
 {
   writeTo(node.name);
   writeTo(node.values);

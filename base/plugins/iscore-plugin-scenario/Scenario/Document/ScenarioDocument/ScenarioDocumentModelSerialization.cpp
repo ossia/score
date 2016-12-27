@@ -22,8 +22,9 @@ class Writer;
 template <typename model>
 class IdentifiedObject;
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Scenario::ScenarioDocumentModel& obj)
 {
   readFrom(*obj.m_baseScenario);
@@ -31,33 +32,36 @@ void Visitor<Reader<DataStream>>::read(
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Scenario::ScenarioDocumentModel& obj)
+void DataStreamWriter::writeTo(Scenario::ScenarioDocumentModel& obj)
 {
   obj.m_baseScenario = new Scenario::BaseScenario{*this, &obj};
 
   checkDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
-    const Scenario::ScenarioDocumentModel& obj)
+void JSONObjectReader::readFromConcrete(
+    const Scenario::ScenarioDocumentModel& doc)
 {
   readFrom(
       static_cast<const IdentifiedObject<iscore::
                                              DocumentDelegateModel>&>(
-          obj));
-  m_obj["BaseScenario"] = toJsonObject(*obj.m_baseScenario);
+          doc));
+  obj["BaseScenario"] = toJsonObject(*doc.m_baseScenario);
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Scenario::ScenarioDocumentModel& obj)
+void JSONObjectWriter::writeTo(Scenario::ScenarioDocumentModel& doc)
 {
   writeTo(
       static_cast<IdentifiedObject<iscore::DocumentDelegateModel>&>(
-          obj));
-  obj.m_baseScenario = new Scenario::BaseScenario{
-      Deserializer<JSONObject>{m_obj["BaseScenario"].toObject()}, &obj};
+          doc));
+  doc.m_baseScenario = new Scenario::BaseScenario{
+      JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &doc};
 }
 
 void Scenario::ScenarioDocumentModel::serialize(

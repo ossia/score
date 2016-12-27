@@ -10,11 +10,11 @@ class SerializationTest : public QObject
 private slots:
   void JSONTest()
   {
-    Visitor<Reader<JSONObject>> reader;
+    JSONObjectReader reader;
     reader.readFrom(test_path);
 
     ObjectPath path;
-    Visitor<Writer<JSONObject>> writer(reader.m_obj);
+    JSONObjectWriter writer(reader.m_obj);
     writer.writeTo(path);
 
     QVERIFY(path == test_path);
@@ -23,11 +23,11 @@ private slots:
   void DataStreamTest()
   {
     QByteArray arr;
-    Visitor<Reader<DataStream>> reader(&arr);
+    DataStreamReader reader(&arr);
     reader.readFrom(test_path);
 
     ObjectPath path;
-    Visitor<Writer<DataStream>> writer(&arr);
+    DataStreamWriter writer(&arr);
     writer.writeTo(path);
 
     QVERIFY(path == test_path);

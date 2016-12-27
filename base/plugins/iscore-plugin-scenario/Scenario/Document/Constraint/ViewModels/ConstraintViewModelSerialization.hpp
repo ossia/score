@@ -20,7 +20,7 @@ class ConstraintModel;
 // Load a single constraint view model.
 template <typename ScenarioViewModelType>
 typename ScenarioViewModelType::constraint_layer_type* loadConstraintViewModel(
-    Deserializer<DataStream>& deserializer,
+    DataStream::Deserializer& deserializer,
     ScenarioViewModelType* svm,
     const Id<ConstraintModel>& constraint_model_id)
 {
@@ -38,7 +38,7 @@ typename ScenarioViewModelType::constraint_layer_type* loadConstraintViewModel(
 
 template <typename ScenarioViewModelType>
 typename ScenarioViewModelType::constraint_layer_type* loadConstraintViewModel(
-    Deserializer<JSONObject>& deserializer,
+    JSONObject::Deserializer& deserializer,
     ScenarioViewModelType* svm,
     const Id<ConstraintModel>& constraint_model_id)
 {

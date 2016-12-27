@@ -1,29 +1,33 @@
 #include "JSStateProcess.hpp"
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(const JS::StateProcess& proc)
+void DataStreamReader::read(const JS::StateProcess& proc)
 {
   m_stream << proc.m_script;
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(JS::StateProcess& proc)
+void DataStreamWriter::writeTo(JS::StateProcess& proc)
 {
   m_stream >> proc.m_script;
   checkDelimiter();
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(const JS::StateProcess& proc)
-{
-  m_obj["Script"] = proc.m_script;
-}
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(JS::StateProcess& proc)
+void JSONObjectReader::readFromConcrete(const JS::StateProcess& proc)
 {
-  proc.m_script = m_obj["Script"].toString();
+  obj["Script"] = proc.m_script;
+}
+
+
+template <>
+void JSONObjectWriter::writeTo(JS::StateProcess& proc)
+{
+  proc.m_script = obj["Script"].toString();
 }
 
 namespace JS

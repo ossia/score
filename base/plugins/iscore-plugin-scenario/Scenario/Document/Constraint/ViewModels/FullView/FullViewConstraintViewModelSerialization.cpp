@@ -13,25 +13,28 @@ class Reader;
 template <typename T>
 class Writer;
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Scenario::FullViewConstraintViewModel& constraint)
 {
   this->read(static_cast<const Scenario::ConstraintViewModel&>(constraint));
   m_stream << constraint.zoom() << constraint.visibleRect();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFrom(
+void JSONObjectReader::readFrom(
     const Scenario::FullViewConstraintViewModel& constraint)
 {
   readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
-  m_obj["Zoom"] = constraint.zoom();
-  m_obj["CenterOn"] = toJsonValue(constraint.visibleRect());
+  obj["Zoom"] = constraint.zoom();
+  obj["CenterOn"] = toJsonValue(constraint.visibleRect());
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(
+void DataStreamWriter::writeTo(
     Scenario::FullViewConstraintViewModel& cvm)
 {
   double z;
@@ -41,12 +44,13 @@ void Visitor<Writer<DataStream>>::writeTo(
   cvm.setZoom(z);
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(
+void JSONObjectWriter::writeTo(
     Scenario::FullViewConstraintViewModel& cvm)
 {
-  auto z = m_obj["Zoom"].toDouble();
-  auto c = m_obj["CenterOn"].toArray();
+  auto z = obj["Zoom"].toDouble();
+  auto c = obj["CenterOn"].toArray();
 
   if (c.size() == 4)
     cvm.setVisibleRect(

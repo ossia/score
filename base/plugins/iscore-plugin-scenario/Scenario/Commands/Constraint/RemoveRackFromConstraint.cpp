@@ -28,7 +28,7 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(Path<RackModel>&& rackPath)
 
   auto& constraint = m_path.find();
   // Save the rack
-  Serializer<DataStream> s{&m_serializedRackData};
+  DataStream::Serializer s{&m_serializedRackData};
   s.readFrom(constraint.racks.at(m_rackId));
 
   // Save for each view model of this constraint
@@ -46,7 +46,7 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(
 {
   auto& constraint = m_path.find();
 
-  Serializer<DataStream> s{&m_serializedRackData};
+  DataStream::Serializer s{&m_serializedRackData};
   s.readFrom(constraint.racks.at(m_rackId));
 
   for (const ConstraintViewModel* vm : constraint.viewModels())
@@ -58,7 +58,7 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(
 void RemoveRackFromConstraint::undo() const
 {
   auto& constraint = m_path.find();
-  Deserializer<DataStream> s{m_serializedRackData};
+  DataStream::Deserializer s{m_serializedRackData};
   constraint.racks.add(new RackModel{s, &constraint});
 
   for (ConstraintViewModel* vm : constraint.viewModels())

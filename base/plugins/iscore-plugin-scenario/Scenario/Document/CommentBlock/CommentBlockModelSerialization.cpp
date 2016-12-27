@@ -21,8 +21,9 @@ class Writer;
 template <typename model>
 class IdentifiedObject;
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Scenario::CommentBlockModel& comment)
 {
   m_stream << comment.m_date << comment.m_yposition << comment.m_HTMLcontent;
@@ -30,29 +31,32 @@ void Visitor<Reader<DataStream>>::read(
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Scenario::CommentBlockModel& comment)
+void DataStreamWriter::writeTo(Scenario::CommentBlockModel& comment)
 {
   m_stream >> comment.m_date >> comment.m_yposition >> comment.m_HTMLcontent;
   checkDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFrom(
+void JSONObjectReader::readFrom(
     const Scenario::CommentBlockModel& comment)
 {
   readFrom(static_cast<const IdentifiedObject<Scenario::CommentBlockModel>&>(
       comment));
 
-  m_obj["Date"] = toJsonValue(comment.m_date);
-  m_obj["HeightPercentage"] = comment.m_yposition;
-  m_obj["HTMLContent"] = comment.m_HTMLcontent;
+  obj["Date"] = toJsonValue(comment.m_date);
+  obj["HeightPercentage"] = comment.m_yposition;
+  obj["HTMLContent"] = comment.m_HTMLcontent;
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Scenario::CommentBlockModel& comment)
+void JSONObjectWriter::writeTo(Scenario::CommentBlockModel& comment)
 {
-  comment.m_date = fromJsonValue<TimeValue>(m_obj["Date"]);
-  comment.m_yposition = m_obj["HeightPercentage"].toDouble();
-  comment.m_HTMLcontent = m_obj["HTMLContent"].toString();
+  comment.m_date = fromJsonValue<TimeValue>(obj["Date"]);
+  comment.m_yposition = obj["HeightPercentage"].toDouble();
+  comment.m_HTMLcontent = obj["HTMLContent"].toString();
 }

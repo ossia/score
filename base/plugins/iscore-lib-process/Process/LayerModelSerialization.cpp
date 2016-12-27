@@ -9,20 +9,16 @@
 #include <iscore/model/path/PathSerialization.hpp>
 #include <iscore/model/Identifier.hpp>
 
-template <typename T>
-class Reader;
-template <typename model>
-class IdentifiedObject;
 
 template <>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::read(
+ISCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(
     const Process::LayerModel& layerModel)
 {
   // LayerModel doesn't have any particular data to save
 }
 
 template <>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFromConcrete(
+ISCORE_LIB_PROCESS_EXPORT void JSONObjectReader::readFromConcrete(
     const Process::LayerModel& layerModel)
 {
   readFrom(

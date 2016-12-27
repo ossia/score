@@ -6,59 +6,62 @@ namespace Curve
 class PointArraySegment;
 struct PointArraySegmentData;
 }
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Curve::PointArraySegment& segmt)
 {
   ISCORE_TODO;
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Curve::PointArraySegment& segmt)
+void DataStreamWriter::writeTo(Curve::PointArraySegment& segmt)
 {
   ISCORE_TODO;
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
+void JSONObjectReader::readFromConcrete(
     const Curve::PointArraySegment& segmt)
 {
   ISCORE_TODO;
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Curve::PointArraySegment& segmt)
+void JSONObjectWriter::writeTo(Curve::PointArraySegment& segmt)
 {
   ISCORE_TODO;
 }
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Curve::PointArraySegmentData& segmt)
 {
   ISCORE_TODO;
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Curve::PointArraySegmentData& segmt)
+void DataStreamWriter::writeTo(Curve::PointArraySegmentData& segmt)
 {
   ISCORE_TODO;
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
+void JSONObjectReader::readFromConcrete(
     const Curve::PointArraySegmentData& segmt)
 {
   ISCORE_TODO;
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Curve::PointArraySegmentData& segmt)
+void JSONObjectWriter::writeTo(Curve::PointArraySegmentData& segmt)
 {
   ISCORE_TODO;
 }

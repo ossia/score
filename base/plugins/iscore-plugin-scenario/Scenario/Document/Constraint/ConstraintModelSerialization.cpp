@@ -38,8 +38,9 @@ class Writer;
 // Note : comment gérer le cas d'un process shared model qui ne sait se
 // sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
+
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::ConstraintModel& constraint)
 {
   // Processes
@@ -69,9 +70,10 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
   insertDelimiter();
 }
 
+
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintModel& constraint)
+DataStreamWriter::writeTo(Scenario::ConstraintModel& constraint)
 {
   // Processes
   int32_t process_count;
@@ -114,45 +116,47 @@ Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintModel& constraint)
   checkDelimiter();
 }
 
+
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::readFrom(
     const Scenario::ConstraintModel& constraint)
 {
   readFrom(static_cast<const iscore::Entity<Scenario::ConstraintModel>&>(
       constraint));
 
   // Processes
-  m_obj["Processes"] = toJsonArray(constraint.processes);
+  obj["Processes"] = toJsonArray(constraint.processes);
 
   // Rackes
-  m_obj["Rackes"] = toJsonArray(constraint.racks);
+  obj["Rackes"] = toJsonArray(constraint.racks);
 
   // Full view
-  m_obj["FullView"] = toJsonObject(*constraint.fullView());
+  obj["FullView"] = toJsonObject(*constraint.fullView());
 
   // Common data
   // The fields will go in the same level as the
   // rest of the constraint
   readFrom(constraint.duration);
 
-  m_obj["StartState"] = toJsonValue(constraint.m_startState);
-  m_obj["EndState"] = toJsonValue(constraint.m_endState);
+  obj["StartState"] = toJsonValue(constraint.m_startState);
+  obj["EndState"] = toJsonValue(constraint.m_endState);
 
-  m_obj["StartDate"] = toJsonValue(constraint.m_startDate);
-  m_obj["HeightPercentage"] = constraint.m_heightPercentage;
-  m_obj["Looping"] = constraint.m_looping;
+  obj["StartDate"] = toJsonValue(constraint.m_startDate);
+  obj["HeightPercentage"] = constraint.m_heightPercentage;
+  obj["Looping"] = constraint.m_looping;
 }
+
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintModel& constraint)
+JSONObjectWriter::writeTo(Scenario::ConstraintModel& constraint)
 {
   auto& pl = components.interfaces<Process::ProcessFactoryList>();
 
-  QJsonArray process_array = m_obj["Processes"].toArray();
+  QJsonArray process_array = obj["Processes"].toArray();
   for (const auto& json_vref : process_array)
   {
-    Deserializer<JSONObject> deserializer{json_vref.toObject()};
+    JSONObject::Deserializer deserializer{json_vref.toObject()};
     auto proc = deserialize_interface(pl, deserializer, &constraint);
     if (proc)
       constraint.processes.add(proc);
@@ -160,24 +164,24 @@ Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintModel& constraint)
       ISCORE_TODO;
   }
 
-  QJsonArray rack_array = m_obj["Rackes"].toArray();
+  QJsonArray rack_array = obj["Rackes"].toArray();
   for (const auto& json_vref : rack_array)
   {
-    Deserializer<JSONObject> deserializer{json_vref.toObject()};
+    JSONObject::Deserializer deserializer{json_vref.toObject()};
     constraint.racks.add(new Scenario::RackModel(deserializer, &constraint));
   }
 
   constraint.setFullView(new Scenario::FullViewConstraintViewModel{
-      Deserializer<JSONObject>{m_obj["FullView"].toObject()}, constraint,
+      JSONObject::Deserializer{obj["FullView"].toObject()}, constraint,
       &constraint});
 
   writeTo(constraint.duration);
   constraint.m_startState
-      = fromJsonValue<Id<Scenario::StateModel>>(m_obj["StartState"]);
+      = fromJsonValue<Id<Scenario::StateModel>>(obj["StartState"]);
   constraint.m_endState
-      = fromJsonValue<Id<Scenario::StateModel>>(m_obj["EndState"]);
+      = fromJsonValue<Id<Scenario::StateModel>>(obj["EndState"]);
 
-  constraint.m_startDate = fromJsonValue<TimeValue>(m_obj["StartDate"]);
-  constraint.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
-  constraint.m_looping = m_obj["Looping"].toBool();
+  constraint.m_startDate = fromJsonValue<TimeValue>(obj["StartDate"]);
+  constraint.m_heightPercentage = obj["HeightPercentage"].toDouble();
+  constraint.m_looping = obj["Looping"].toBool();
 }

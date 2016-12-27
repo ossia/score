@@ -5,7 +5,7 @@
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<DataStream>>::read(const Device::DeviceExplorerNode& n)
+DataStreamReader::read(const Device::DeviceExplorerNode& n)
 {
   readFrom(n.m_data);
   insertDelimiter();
@@ -13,7 +13,7 @@ Visitor<Reader<DataStream>>::read(const Device::DeviceExplorerNode& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Device::DeviceExplorerNode& n)
+DataStreamWriter::writeTo(Device::DeviceExplorerNode& n)
 {
   writeTo(n.m_data);
   checkDelimiter();
@@ -21,14 +21,14 @@ Visitor<Writer<DataStream>>::writeTo(Device::DeviceExplorerNode& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const Device::DeviceExplorerNode& n)
+JSONObjectReader::readFrom(const Device::DeviceExplorerNode& n)
 {
   readFrom(n.m_data);
 }
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Device::DeviceExplorerNode& n)
+JSONObjectWriter::writeTo(Device::DeviceExplorerNode& n)
 {
   writeTo(n.m_data);
 }

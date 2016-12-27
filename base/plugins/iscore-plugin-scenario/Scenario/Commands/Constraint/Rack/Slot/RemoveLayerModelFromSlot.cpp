@@ -23,7 +23,7 @@ RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
   auto& slot = m_path.find();
   auto& lm = slot.layers.at(m_layerId);
 
-  Serializer<DataStream> s{&m_serializedLayerData};
+  DataStream::Serializer s{&m_serializedLayerData};
 
   s.readFrom(iscore::RelativePath(*lm.parent(), lm.processModel()));
   s.readFrom(lm);
@@ -32,7 +32,7 @@ RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
 void RemoveLayerModelFromSlot::undo() const
 {
   auto& slot = m_path.find();
-  Deserializer<DataStream> s{m_serializedLayerData};
+  DataStream::Deserializer s{m_serializedLayerData};
 
   iscore::RelativePath p;
   s.writeTo(p);

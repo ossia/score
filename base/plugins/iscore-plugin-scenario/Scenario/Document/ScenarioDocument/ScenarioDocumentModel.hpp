@@ -35,7 +35,7 @@ public:
 
   template <typename Impl>
   ScenarioDocumentModel(
-      Deserializer<Impl>& vis,
+      Impl& vis,
       const iscore::DocumentContext& ctx,
       QObject* parent)
       : iscore::DocumentDelegateModel{vis, parent}

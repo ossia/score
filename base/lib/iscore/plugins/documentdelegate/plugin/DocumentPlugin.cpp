@@ -37,13 +37,13 @@ void SerializableDocumentPlugin::reloadAfterDocument(const VisitorVariant& vis)
 }
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const iscore::SerializableDocumentPlugin& dpm)
 {
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
+void JSONObjectReader::readFromConcrete(
     const iscore::SerializableDocumentPlugin& dpm)
 {
   readFrom(static_cast<const IdentifiedObject<iscore::DocumentPlugin>&>(dpm));

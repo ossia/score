@@ -20,7 +20,7 @@
 
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Device::AddressSettingsCommon& n)
 {
   m_stream << n.value << n.domain << n.ioType << n.clipMode << n.unit
@@ -28,60 +28,61 @@ void Visitor<Reader<DataStream>>::read(
 }
 
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Device::AddressSettingsCommon& n)
+void DataStreamWriter::writeTo(Device::AddressSettingsCommon& n)
 {
   m_stream >> n.value >> n.domain >> n.ioType >> n.clipMode >> n.unit
            >> n.repetitionFilter >> n.extendedAttributes;
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom(
+void JSONObjectReader::readFrom(
     const Device::AddressSettingsCommon& n)
 {
   // Metadata
-  m_obj[strings.ioType] = Device::IOTypeStringMap()[n.ioType];
-  m_obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
-  m_obj[strings.Unit]
+  obj[strings.ioType] = Device::IOTypeStringMap()[n.ioType];
+  obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
+  obj[strings.Unit]
       = QString::fromStdString(ossia::get_pretty_unit_text(n.unit));
 
-  m_obj[strings.RepetitionFilter] = n.repetitionFilter;
+  obj[strings.RepetitionFilter] = n.repetitionFilter;
 
   // Value, domain and type
   readFrom(n.value);
-  m_obj[strings.Domain] = toJsonObject(n.domain);
+  obj[strings.Domain] = toJsonObject(n.domain);
 
-  m_obj[strings.Extended] = toJsonObject(n.extendedAttributes);
+  obj[strings.Extended] = toJsonObject(n.extendedAttributes);
 }
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettingsCommon& n)
+void JSONObjectWriter::writeTo(Device::AddressSettingsCommon& n)
 {
-  n.ioType = Device::IOTypeStringMap().key(m_obj[strings.ioType].toString());
+  n.ioType = Device::IOTypeStringMap().key(obj[strings.ioType].toString());
   n.clipMode
-      = Device::ClipModeStringMap().key(m_obj[strings.ClipMode].toString());
+      = Device::ClipModeStringMap().key(obj[strings.ClipMode].toString());
   n.unit
-      = ossia::parse_pretty_unit(m_obj[strings.Unit].toString().toStdString());
+      = ossia::parse_pretty_unit(obj[strings.Unit].toString().toStdString());
 
-  n.repetitionFilter = m_obj[strings.RepetitionFilter].toBool();
+  n.repetitionFilter = obj[strings.RepetitionFilter].toBool();
 
   writeTo(n.value);
-  n.domain = fromJsonObject<Device::Domain>(m_obj[strings.Domain].toObject());
+  n.domain = fromJsonObject<Device::Domain>(obj[strings.Domain].toObject());
 
-  n.extendedAttributes = fromJsonObject<iscore::any_map>(m_obj[strings.Extended]);
+  n.extendedAttributes = fromJsonObject<iscore::any_map>(obj[strings.Extended]);
 }
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<DataStream>>::read(const Device::AddressSettings& n)
+DataStreamReader::read(const Device::AddressSettings& n)
 {
   readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
   m_stream << n.name;
 
   insertDelimiter();
 }
+
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Device::AddressSettings& n)
+DataStreamWriter::writeTo(Device::AddressSettings& n)
 {
   writeTo(static_cast<Device::AddressSettingsCommon&>(n));
   m_stream >> n.name;
@@ -91,32 +92,33 @@ Visitor<Writer<DataStream>>::writeTo(Device::AddressSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const Device::AddressSettings& n)
+JSONObjectReader::readFrom(const Device::AddressSettings& n)
 {
   readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
-  m_obj[strings.Name] = n.name;
+  obj[strings.Name] = n.name;
 }
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Device::AddressSettings& n)
+JSONObjectWriter::writeTo(Device::AddressSettings& n)
 {
   writeTo(static_cast<Device::AddressSettingsCommon&>(n));
-  n.name = m_obj[strings.Name].toString();
+  n.name = obj[strings.Name].toString();
 }
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<DataStream>>::read(const Device::FullAddressSettings& n)
+DataStreamReader::read(const Device::FullAddressSettings& n)
 {
   readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
   m_stream << n.address;
 
   insertDelimiter();
 }
+
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Device::FullAddressSettings& n)
+DataStreamWriter::writeTo(Device::FullAddressSettings& n)
 {
   writeTo(static_cast<Device::AddressSettingsCommon&>(n));
   m_stream >> n.address;
@@ -126,22 +128,22 @@ Visitor<Writer<DataStream>>::writeTo(Device::FullAddressSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const Device::FullAddressSettings& n)
+JSONObjectReader::readFrom(const Device::FullAddressSettings& n)
 {
   readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
-  m_obj[strings.Address] = toJsonObject(n.address);
+  obj[strings.Address] = toJsonObject(n.address);
 }
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Device::FullAddressSettings& n)
+JSONObjectWriter::writeTo(Device::FullAddressSettings& n)
 {
   writeTo(static_cast<Device::AddressSettingsCommon&>(n));
-  n.address = fromJsonObject<State::Address>(m_obj[strings.Address]);
+  n.address = fromJsonObject<State::Address>(obj[strings.Address]);
 }
 
 template <>
-ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::read(
+ISCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(
     const Device::FullAddressAccessorSettings& n)
 {
   m_stream << n.value << n.domain << n.ioType << n.clipMode
@@ -150,47 +152,47 @@ ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<DataStream>>::read(
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Device::FullAddressAccessorSettings& n)
+DataStreamWriter::writeTo(Device::FullAddressAccessorSettings& n)
 {
   m_stream >> n.value >> n.domain >> n.ioType >> n.clipMode
       >> n.repetitionFilter >> n.extendedAttributes >> n.address;
 }
 
 template <>
-ISCORE_LIB_DEVICE_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
+ISCORE_LIB_DEVICE_EXPORT void JSONObjectReader::readFrom(
     const Device::FullAddressAccessorSettings& n)
 {
   // Metadata
-  m_obj[strings.ioType] = Device::IOTypeStringMap()[n.ioType];
-  m_obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
+  obj[strings.ioType] = Device::IOTypeStringMap()[n.ioType];
+  obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
 
-  m_obj[strings.RepetitionFilter] = n.repetitionFilter;
+  obj[strings.RepetitionFilter] = n.repetitionFilter;
 
   // Value, domain and type
   readFrom(n.value);
-  m_obj[strings.Domain] = toJsonObject(n.domain);
-  m_obj[strings.Extended] = toJsonObject(n.extendedAttributes);
+  obj[strings.Domain] = toJsonObject(n.domain);
+  obj[strings.Extended] = toJsonObject(n.extendedAttributes);
 
-  m_obj[strings.Address] = toJsonObject(n.address);
+  obj[strings.Address] = toJsonObject(n.address);
 }
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Device::FullAddressAccessorSettings& n)
+JSONObjectWriter::writeTo(Device::FullAddressAccessorSettings& n)
 {
-  n.ioType = Device::IOTypeStringMap().key(m_obj[strings.ioType].toString());
+  n.ioType = Device::IOTypeStringMap().key(obj[strings.ioType].toString());
   n.clipMode
-      = Device::ClipModeStringMap().key(m_obj[strings.ClipMode].toString());
+      = Device::ClipModeStringMap().key(obj[strings.ClipMode].toString());
 
-  n.repetitionFilter = m_obj[strings.RepetitionFilter].toBool();
+  n.repetitionFilter = obj[strings.RepetitionFilter].toBool();
 
 
   writeTo(n.value);
 
-  n.domain = fromJsonObject<Device::Domain>(m_obj[strings.Domain].toObject());
-  n.extendedAttributes = fromJsonObject<iscore::any_map>(m_obj[strings.Extended]);
+  n.domain = fromJsonObject<Device::Domain>(obj[strings.Domain].toObject());
+  n.extendedAttributes = fromJsonObject<iscore::any_map>(obj[strings.Extended]);
 
 
-  n.address = fromJsonObject<State::AddressAccessor>(m_obj[strings.Address]);
+  n.address = fromJsonObject<State::AddressAccessor>(obj[strings.Address]);
 }
 

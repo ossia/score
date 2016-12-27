@@ -25,7 +25,7 @@ public:
   Model(const Id<Model>&, QObject* parent);
 
   template <typename Impl>
-  Model(Deserializer<Impl>& vis, QObject* parent)
+  Model(Impl& vis, QObject* parent)
       : IdentifiedObject{vis, parent}
   {
     vis.writeTo(*this);

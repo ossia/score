@@ -39,7 +39,7 @@ protected:
 
   template <typename Impl>
   LayerModel(
-      Deserializer<Impl>& vis, ProcessModel& sharedProcess, QObject* parent)
+      Impl& vis, ProcessModel& sharedProcess, QObject* parent)
       : IdentifiedObject{vis, parent}, m_sharedProcessModel{sharedProcess}
   {
     // Nothing else to load
@@ -72,7 +72,7 @@ public:
 
   template <typename Impl>
   explicit LayerModel_T(
-      Deserializer<Impl>& vis, ProcessModel& model, QObject* parent)
+      Impl& vis, ProcessModel& model, QObject* parent)
       : Process::LayerModel{vis, model, parent}
   {
     // Nothing to load

@@ -890,7 +890,7 @@ bool DeviceExplorerModel::dropMimeData(
     // if there is an existing device that would use the same ports, etc.
     // we have to open a dialog to change the device settings.
 
-    Deserializer<JSONObject> deser{
+    JSONObject::Deserializer deser{
         QJsonDocument::fromJson(mimeData->data(mimeType)).object()};
     Device::Node n;
     deser.writeTo(n);

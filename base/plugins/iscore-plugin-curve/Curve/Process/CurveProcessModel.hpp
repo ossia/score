@@ -24,13 +24,13 @@ public:
   {
   }
 
-  CurveProcessModel(Deserializer<DataStream>& vis, QObject* p)
+  CurveProcessModel(DataStream::Deserializer& vis, QObject* p)
       : Process::ProcessModel(vis, p)
   {
     // Nothing to do
   }
 
-  CurveProcessModel(Deserializer<JSONObject>& vis, QObject* p)
+  CurveProcessModel(JSONObject::Deserializer& vis, QObject* p)
       : Process::ProcessModel(vis, p)
   {
     // Nothing to do

@@ -6,37 +6,36 @@
 
 #include "HTTPSpecificSettings.hpp"
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Engine::Network::HTTPSpecificSettings& n)
 {
   m_stream << n.text;
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(
+void DataStreamWriter::writeTo(
     Engine::Network::HTTPSpecificSettings& n)
 {
   m_stream >> n.text;
   checkDelimiter();
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
-    const Engine::Network::HTTPSpecificSettings& n)
-{
-  m_obj["Text"] = n.text;
-}
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(
+void JSONObjectReader::readFromConcrete(
+    const Engine::Network::HTTPSpecificSettings& n)
+{
+  obj["Text"] = n.text;
+}
+
+
+template <>
+void JSONObjectWriter::writeTo(
     Engine::Network::HTTPSpecificSettings& n)
 {
-  n.text = m_obj["Text"].toString();
+  n.text = obj["Text"].toString();
 }

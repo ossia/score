@@ -35,13 +35,13 @@ ProcessModel::ProcessModel(
 {
 }
 
-ProcessModel::ProcessModel(Deserializer<DataStream>& vis, QObject* parent)
+ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
     : Entity(vis, parent)
 {
   vis.writeTo(*this);
 }
 
-ProcessModel::ProcessModel(Deserializer<JSONObject>& vis, QObject* parent)
+ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
     : Entity(vis, parent)
 {
   vis.writeTo(*this);

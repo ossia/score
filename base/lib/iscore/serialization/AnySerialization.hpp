@@ -22,26 +22,26 @@ using any_map = iscore::hash_map<std::string, boost::any>;
 struct ISCORE_LIB_BASE_EXPORT any_serializer
 {
   virtual ~any_serializer();
-  virtual void apply(Serializer<DataStream>&, const boost::any&) = 0;
-  virtual void apply(Serializer<JSONValue>&, const boost::any&) = 0;
-  virtual void apply(Deserializer<DataStream>&, boost::any&) = 0;
-  virtual void apply(Deserializer<JSONValue>&, boost::any&) = 0;
+  virtual void apply(DataStream::Serializer&, const boost::any&) = 0;
+  virtual void apply(JSONValue::Serializer&, const boost::any&) = 0;
+  virtual void apply(DataStream::Deserializer&, boost::any&) = 0;
+  virtual void apply(JSONValue::Deserializer&, boost::any&) = 0;
 };
 
 template<typename T>
 struct any_serializer_t final : public any_serializer
 {
-  void apply(Serializer<DataStream>& s, const boost::any& val) override
+  void apply(DataStream::Serializer& s, const boost::any& val) override
   { s.stream() << boost::any_cast<T>(val); }
-  void apply(Serializer<JSONValue>& s, const boost::any& val) override
+  void apply(JSONValue::Serializer& s, const boost::any& val) override
   { s.val = toJsonValue(boost::any_cast<T>(val)); }
-  void apply(Deserializer<DataStream>& s, boost::any& val) override
+  void apply(DataStream::Deserializer& s, boost::any& val) override
   {
     T t;
     s.stream() >> t;
     val = std::move(t);
   }
-  void apply(Deserializer<JSONValue>& s, boost::any& val) override
+  void apply(JSONValue::Deserializer& s, boost::any& val) override
   {
     val = fromJsonValue<T>(s.val);
   }
@@ -124,9 +124,9 @@ struct ISCORE_LIB_BASE_EXPORT TSerializer<JSONObject, iscore::any_map>
   {
     for(const auto& e : obj)
     {
-      Serializer<JSONValue> v{};
+      JSONValue::Serializer v{};
       apply(v, e.first, e.second);
-      s.m_obj[QString::fromStdString(e.first)] = v.val;
+      s.obj[QString::fromStdString(e.first)] = v.val;
     }
   }
 
@@ -135,10 +135,10 @@ struct ISCORE_LIB_BASE_EXPORT TSerializer<JSONObject, iscore::any_map>
       JSONObject::Deserializer& s,
       iscore::any_map& obj)
   {
-    const QJsonObject& extended = s.m_obj;
+    const QJsonObject& extended = s.obj;
     for(const auto& k : extended.keys())
     {
-      Deserializer<JSONValue> v{extended[k]};
+      JSONValue::Deserializer v{extended[k]};
       auto key = k.toStdString();
       boost::any val;
       apply(v, key, val);

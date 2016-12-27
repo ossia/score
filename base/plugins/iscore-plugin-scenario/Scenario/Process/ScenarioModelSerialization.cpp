@@ -39,8 +39,9 @@ class Reader;
 template <typename T>
 class Writer;
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Scenario::ProcessModel& scenario)
 {
   m_stream << scenario.m_startTimeNodeId;
@@ -95,8 +96,9 @@ void Visitor<Reader<DataStream>>::read(
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Scenario::ProcessModel& scenario)
+void DataStreamWriter::writeTo(Scenario::ProcessModel& scenario)
 {
   m_stream >> scenario.m_startTimeNodeId;
   m_stream >> scenario.m_startEventId;
@@ -165,67 +167,69 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::ProcessModel& scenario)
   checkDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
+void JSONObjectReader::readFromConcrete(
     const Scenario::ProcessModel& scenario)
 {
-  m_obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);
-  m_obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
-  m_obj["StartStateId"] = toJsonValue(scenario.m_startStateId);
+  obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);
+  obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
+  obj["StartStateId"] = toJsonValue(scenario.m_startStateId);
 
-  m_obj["TimeNodes"] = toJsonArray(scenario.timeNodes);
-  m_obj["Events"] = toJsonArray(scenario.events);
-  m_obj["States"] = toJsonArray(scenario.states);
-  m_obj["Constraints"] = toJsonArray(scenario.constraints);
-  m_obj["Comments"] = toJsonArray(scenario.comments);
+  obj["TimeNodes"] = toJsonArray(scenario.timeNodes);
+  obj["Events"] = toJsonArray(scenario.events);
+  obj["States"] = toJsonArray(scenario.states);
+  obj["Constraints"] = toJsonArray(scenario.constraints);
+  obj["Comments"] = toJsonArray(scenario.comments);
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Scenario::ProcessModel& scenario)
+void JSONObjectWriter::writeTo(Scenario::ProcessModel& scenario)
 {
   scenario.m_startTimeNodeId
-      = fromJsonValue<Id<Scenario::TimeNodeModel>>(m_obj["StartTimeNodeId"]);
+      = fromJsonValue<Id<Scenario::TimeNodeModel>>(obj["StartTimeNodeId"]);
   scenario.m_startEventId
-      = fromJsonValue<Id<Scenario::EventModel>>(m_obj["StartEventId"]);
+      = fromJsonValue<Id<Scenario::EventModel>>(obj["StartEventId"]);
   scenario.m_startStateId
-      = fromJsonValue<Id<Scenario::StateModel>>(m_obj["StartStateId"]);
+      = fromJsonValue<Id<Scenario::StateModel>>(obj["StartStateId"]);
 
-  for (const auto& json_vref : m_obj["Constraints"].toArray())
+  for (const auto& json_vref : obj["Constraints"].toArray())
   {
     auto constraint = new Scenario::ConstraintModel{
-        Deserializer<JSONObject>{json_vref.toObject()}, &scenario};
+        JSONObject::Deserializer{json_vref.toObject()}, &scenario};
     scenario.constraints.add(constraint);
   }
 
-  for (const auto& json_vref : m_obj["TimeNodes"].toArray())
+  for (const auto& json_vref : obj["TimeNodes"].toArray())
   {
     auto tnmodel = new Scenario::TimeNodeModel{
-        Deserializer<JSONObject>{json_vref.toObject()}, &scenario};
+        JSONObject::Deserializer{json_vref.toObject()}, &scenario};
 
     scenario.timeNodes.add(tnmodel);
   }
 
-  for (const auto& json_vref : m_obj["Events"].toArray())
+  for (const auto& json_vref : obj["Events"].toArray())
   {
     auto evmodel = new Scenario::EventModel{
-        Deserializer<JSONObject>{json_vref.toObject()}, &scenario};
+        JSONObject::Deserializer{json_vref.toObject()}, &scenario};
 
     scenario.events.add(evmodel);
   }
 
-  for (const auto& json_vref : m_obj["Comments"].toArray())
+  for (const auto& json_vref : obj["Comments"].toArray())
   {
     auto cmtmodel = new Scenario::CommentBlockModel{
-        Deserializer<JSONObject>{json_vref.toObject()}, &scenario};
+        JSONObject::Deserializer{json_vref.toObject()}, &scenario};
 
     scenario.comments.add(cmtmodel);
   }
 
   auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
-  for (const auto& json_vref : m_obj["States"].toArray())
+  for (const auto& json_vref : obj["States"].toArray())
   {
     auto stmodel = new Scenario::StateModel{
-        Deserializer<JSONObject>{json_vref.toObject()}, stack, &scenario};
+        JSONObject::Deserializer{json_vref.toObject()}, stack, &scenario};
 
     scenario.states.add(stmodel);
   }

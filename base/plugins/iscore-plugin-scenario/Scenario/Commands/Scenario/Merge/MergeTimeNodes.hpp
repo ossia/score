@@ -71,7 +71,7 @@ public:
     auto& destinantionTn = scenario.timeNode(m_destinationTnId);
 
     QByteArray arr;
-    Serializer<DataStream> s{&arr};
+    DataStream::Serializer s{&arr};
     s.readFrom(tn);
     m_serializedTimeNode = arr;
 
@@ -88,7 +88,7 @@ public:
     auto& scenar = m_scenarioPath.find();
     auto& globalTn = scenar.timeNode(m_destinationTnId);
 
-    Deserializer<DataStream> s{m_serializedTimeNode};
+    DataStream::Deserializer s{m_serializedTimeNode};
     auto recreatedTn = new TimeNodeModel{s, &scenar};
 
     auto events_in_timenode = recreatedTn->events();

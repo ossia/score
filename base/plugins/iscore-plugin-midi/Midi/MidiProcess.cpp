@@ -87,45 +87,51 @@ void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
 }
 }
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(const Midi::NoteData& n)
+void DataStreamReader::read(const Midi::NoteData& n)
 {
   m_stream << n.start << n.duration << n.pitch << n.velocity;
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Midi::NoteData& n)
+void DataStreamWriter::writeTo(Midi::NoteData& n)
 {
   m_stream >> n.start >> n.duration >> n.pitch >> n.velocity;
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFrom(const Midi::NoteData& n)
-{
-  m_obj["Start"] = n.start;
-  m_obj["Duration"] = n.duration;
-  m_obj["Pitch"] = n.pitch;
-  m_obj["Velocity"] = n.velocity;
-}
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Midi::NoteData& n)
+void JSONObjectReader::readFrom(const Midi::NoteData& n)
 {
-  n.start = m_obj["Start"].toDouble();
-  n.duration = m_obj["Duration"].toDouble();
-  n.pitch = m_obj["Pitch"].toInt();
-  n.velocity = m_obj["Velocity"].toInt();
+  obj["Start"] = n.start;
+  obj["Duration"] = n.duration;
+  obj["Pitch"] = n.pitch;
+  obj["Velocity"] = n.velocity;
 }
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(const Midi::Note& n)
+void JSONObjectWriter::writeTo(Midi::NoteData& n)
+{
+  n.start = obj["Start"].toDouble();
+  n.duration = obj["Duration"].toDouble();
+  n.pitch = obj["Pitch"].toInt();
+  n.velocity = obj["Velocity"].toInt();
+}
+
+
+template <>
+void DataStreamReader::read(const Midi::Note& n)
 {
   m_stream << n.noteData();
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Midi::Note& n)
+void DataStreamWriter::writeTo(Midi::Note& n)
 {
   Midi::NoteData d;
   m_stream >> d;
@@ -133,23 +139,26 @@ void Visitor<Writer<DataStream>>::writeTo(Midi::Note& n)
   checkDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFrom(const Midi::Note& n)
+void JSONObjectReader::readFrom(const Midi::Note& n)
 {
   readFrom(static_cast<const IdentifiedObject<Midi::Note>&>(n));
   readFrom(n.noteData());
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Midi::Note& n)
+void JSONObjectWriter::writeTo(Midi::Note& n)
 {
   Midi::NoteData d;
   writeTo(d);
   n.setData(d);
 }
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(const Midi::ProcessModel& proc)
+void DataStreamReader::read(const Midi::ProcessModel& proc)
 {
   m_stream << proc.device() << proc.channel();
 
@@ -164,8 +173,9 @@ void Visitor<Reader<DataStream>>::read(const Midi::ProcessModel& proc)
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Midi::ProcessModel& proc)
+void DataStreamWriter::writeTo(Midi::ProcessModel& proc)
 {
   m_stream >> proc.m_device >> proc.m_channel;
   int n;
@@ -177,23 +187,25 @@ void Visitor<Writer<DataStream>>::writeTo(Midi::ProcessModel& proc)
   checkDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(const Midi::ProcessModel& proc)
+void JSONObjectReader::readFromConcrete(const Midi::ProcessModel& proc)
 {
-  m_obj["Device"] = proc.device();
-  m_obj["Channel"] = proc.channel();
-  m_obj["Notes"] = toJsonArray(proc.notes);
+  obj["Device"] = proc.device();
+  obj["Channel"] = proc.channel();
+  obj["Notes"] = toJsonArray(proc.notes);
 }
 
-template <>
-void Visitor<Writer<JSONObject>>::writeTo(Midi::ProcessModel& proc)
-{
-  proc.setDevice(m_obj["Device"].toString());
-  proc.setChannel(m_obj["Channel"].toInt());
 
-  for (const auto& json_vref : m_obj["Notes"].toArray())
+template <>
+void JSONObjectWriter::writeTo(Midi::ProcessModel& proc)
+{
+  proc.setDevice(obj["Device"].toString());
+  proc.setChannel(obj["Channel"].toInt());
+
+  for (const auto& json_vref : obj["Notes"].toArray())
   {
-    auto note = new Midi::Note{Deserializer<JSONObject>{json_vref.toObject()},
+    auto note = new Midi::Note{JSONObject::Deserializer{json_vref.toObject()},
                                &proc};
     proc.notes.add(note);
   }

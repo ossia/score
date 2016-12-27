@@ -22,19 +22,10 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/model/Identifier.hpp>
 
-class QObject;
-template <typename T>
-class IdentifiedObject;
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-template <typename VisitorType>
-class Visitor;
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Reader<DataStream>>::read(const Curve::SegmentData& segmt)
+DataStreamReader::read(const Curve::SegmentData& segmt)
 {
   m_stream << segmt.id << segmt.start << segmt.end << segmt.previous
            << segmt.following << segmt.type;
@@ -49,9 +40,10 @@ Visitor<Reader<DataStream>>::read(const Curve::SegmentData& segmt)
   insertDelimiter();
 }
 
+
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Curve::SegmentData& segmt)
+DataStreamWriter::writeTo(Curve::SegmentData& segmt)
 {
   m_stream >> segmt.id >> segmt.start >> segmt.end >> segmt.previous
       >> segmt.following >> segmt.type;
@@ -65,9 +57,10 @@ Visitor<Writer<DataStream>>::writeTo(Curve::SegmentData& segmt)
   checkDelimiter();
 }
 
+
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Reader<DataStream>>::read(const Curve::SegmentModel& segmt)
+DataStreamReader::read(const Curve::SegmentModel& segmt)
 {
   // Save this class (this will be loaded by writeTo(*this) in
   // CurveSegmentModel ctor
@@ -75,9 +68,10 @@ Visitor<Reader<DataStream>>::read(const Curve::SegmentModel& segmt)
            << segmt.end();
 }
 
+
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Curve::SegmentModel& segmt)
+DataStreamWriter::writeTo(Curve::SegmentModel& segmt)
 {
   m_stream >> segmt.m_previous >> segmt.m_following >> segmt.m_start
       >> segmt.m_end;
@@ -87,9 +81,10 @@ Visitor<Writer<DataStream>>::writeTo(Curve::SegmentModel& segmt)
   // CurveSegmentModel's constructor.
 }
 
+
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Reader<JSONObject>>::readFromConcrete(const Curve::SegmentModel& segmt)
+JSONObjectReader::readFromConcrete(const Curve::SegmentModel& segmt)
 {
   using namespace Curve;
 
@@ -98,23 +93,24 @@ Visitor<Reader<JSONObject>>::readFromConcrete(const Curve::SegmentModel& segmt)
 
   // Save this class (this will be loaded by writeTo(*this) in
   // CurveSegmentModel ctor
-  m_obj[strings.Previous] = toJsonValue(segmt.previous());
-  m_obj[strings.Following] = toJsonValue(segmt.following());
-  m_obj[strings.Start] = toJsonValue(segmt.start());
-  m_obj[strings.End] = toJsonValue(segmt.end());
+  obj[strings.Previous] = toJsonValue(segmt.previous());
+  obj[strings.Following] = toJsonValue(segmt.following());
+  obj[strings.Start] = toJsonValue(segmt.start());
+  obj[strings.End] = toJsonValue(segmt.end());
 }
+
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Curve::SegmentModel& segmt)
+JSONObjectWriter::writeTo(Curve::SegmentModel& segmt)
 {
   using namespace Curve;
   segmt.m_previous
-      = fromJsonValue<OptionalId<SegmentModel>>(m_obj[strings.Previous]);
+      = fromJsonValue<OptionalId<SegmentModel>>(obj[strings.Previous]);
   segmt.m_following
-      = fromJsonValue<OptionalId<SegmentModel>>(m_obj[strings.Following]);
-  segmt.m_start = fromJsonValue<Curve::Point>(m_obj[strings.Start]);
-  segmt.m_end = fromJsonValue<Curve::Point>(m_obj[strings.End]);
+      = fromJsonValue<OptionalId<SegmentModel>>(obj[strings.Following]);
+  segmt.m_start = fromJsonValue<Curve::Point>(obj[strings.Start]);
+  segmt.m_end = fromJsonValue<Curve::Point>(obj[strings.End]);
 }
 
 namespace Curve

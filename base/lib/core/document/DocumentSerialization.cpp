@@ -46,7 +46,7 @@ QByteArray Document::saveDocumentModelAsByteArray()
 
   QByteArray arr;
 
-  Serializer<DataStream> s{&arr};
+  DataStream::Serializer s{&arr};
 
   s.readFrom(model().id());
   TSerializer<DataStream, IdentifiedObject<DocumentDelegateModel>>::readFrom(s, m_model->modelDelegate());
@@ -56,10 +56,10 @@ QByteArray Document::saveDocumentModelAsByteArray()
 
 QJsonObject Document::saveDocumentModelAsJson()
 {
-  Serializer<JSONObject> s;
-  s.m_obj["DocumentId"] = toJsonValue(model().id());
+  JSONObject::Serializer s;
+  s.obj["DocumentId"] = toJsonValue(model().id());
   m_model->modelDelegate().serialize(s.toVariant());
-  return s.m_obj;
+  return s.obj;
 }
 
 QJsonObject Document::saveAsJson()
@@ -72,14 +72,14 @@ QJsonObject Document::saveAsJson()
     if (auto serializable_plugin
         = dynamic_cast<SerializableDocumentPlugin*>(plugin))
     {
-      Serializer<JSONObject> s_before;
+      JSONObject::Serializer s_before;
       s_before.readFrom(*serializable_plugin);
 
-      Serializer<JSONObject> s_after;
+      JSONObject::Serializer s_after;
       serializable_plugin->serializeAfterDocument(s_after.toVariant());
 
-      s_before.m_obj["DocumentPostModelPart"] = std::move(s_after.m_obj);
-      json_plugins[serializable_plugin->objectName()] = std::move(s_before.m_obj);
+      s_before.obj["DocumentPostModelPart"] = std::move(s_after.obj);
+      json_plugins[serializable_plugin->objectName()] = std::move(s_before.obj);
     }
   }
 
@@ -116,8 +116,8 @@ QByteArray Document::saveAsByteArray()
               serialization_tag<SerializableDocumentPlugin>::type,
             visitor_abstract_object_tag>::value, "");
       QByteArray arr_before, arr_after;
-      Serializer<DataStream> s_before{&arr_before};
-      Serializer<DataStream> s_after{&arr_after};
+      DataStream::Serializer s_before{&arr_before};
+      DataStream::Serializer s_after{&arr_after};
       s_before.readFrom(*serializable_plugin);
       serializable_plugin->serializeAfterDocument(s_after.toVariant());
       documentPluginModels.push_back({std::move(arr_before), std::move(arr_after)});
@@ -281,8 +281,8 @@ void DocumentModel::loadDocumentAsJson(
     {
       if(auto ser = dynamic_cast<iscore::SerializableDocumentPlugin*>(plug))
       {
-        auto it = plug_writer.m_obj.find("DocumentPostModelPart");
-        if((it != plug_writer.m_obj.end()) && it->isObject())
+        auto it = plug_writer.obj.find("DocumentPostModelPart");
+        if((it != plug_writer.obj.end()) && it->isObject())
         {
           docs.insert({ser, it->toObject()});
         }

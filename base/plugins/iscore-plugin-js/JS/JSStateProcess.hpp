@@ -23,7 +23,7 @@ public:
   }
 
   template <typename Impl>
-  explicit StateProcess(Deserializer<Impl>& vis, QObject* parent)
+  explicit StateProcess(Impl& vis, QObject* parent)
       : Process::StateProcess{vis, parent}
   {
     vis.writeTo(*this);

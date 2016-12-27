@@ -33,13 +33,13 @@ auto makeJsonArray(std::initializer_list<QJsonValue> lst)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<JSONValue>>::readFrom(const QPointF& pt)
+JSONValueReader::readFrom(const QPointF& pt)
 {
   val = makeJsonArray({pt.x(), pt.y()});
 }
 
 template <>
-ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QPointF& pt)
+ISCORE_LIB_BASE_EXPORT void JSONValueWriter::writeTo(QPointF& pt)
 {
   auto arr = val.toArray();
   pt.setX(arr[0].toDouble());
@@ -48,13 +48,13 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QPointF& pt)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<JSONValue>>::readFrom(const QRectF& pt)
+JSONValueReader::readFrom(const QRectF& pt)
 {
   val = makeJsonArray({pt.x(), pt.y(), pt.width(), pt.height()});
 }
 
 template <>
-ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QRectF& pt)
+ISCORE_LIB_BASE_EXPORT void JSONValueWriter::writeTo(QRectF& pt)
 {
   auto arr = val.toArray();
   pt.setX(arr[0].toDouble());
@@ -65,14 +65,14 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QRectF& pt)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<JSONValue>>::readFrom(const QTransform& pt)
+JSONValueReader::readFrom(const QTransform& pt)
 {
   val = makeJsonArray({pt.m11(), pt.m12(), pt.m13(), pt.m21(), pt.m22(),
                        pt.m23(), pt.m31(), pt.m32(), pt.m33()});
 }
 
 template <>
-ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QTransform& pt)
+ISCORE_LIB_BASE_EXPORT void JSONValueWriter::writeTo(QTransform& pt)
 {
   auto arr = val.toArray();
   pt.setMatrix(
@@ -83,7 +83,7 @@ ISCORE_LIB_BASE_EXPORT void Visitor<Writer<JSONValue>>::writeTo(QTransform& pt)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::read(const std::array<float, 2>& obj)
+DataStreamReader::read(const std::array<float, 2>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream << obj[i];
@@ -92,7 +92,7 @@ Visitor<Reader<DataStream>>::read(const std::array<float, 2>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(std::array<float, 2>& obj)
+DataStreamWriter::writeTo(std::array<float, 2>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream >> obj[i];
@@ -101,7 +101,7 @@ Visitor<Writer<DataStream>>::writeTo(std::array<float, 2>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::read(const std::array<float, 3>& obj)
+DataStreamReader::read(const std::array<float, 3>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream << obj[i];
@@ -110,7 +110,7 @@ Visitor<Reader<DataStream>>::read(const std::array<float, 3>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(std::array<float, 3>& obj)
+DataStreamWriter::writeTo(std::array<float, 3>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream >> obj[i];
@@ -119,7 +119,7 @@ Visitor<Writer<DataStream>>::writeTo(std::array<float, 3>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::read(const std::array<float, 4>& obj)
+DataStreamReader::read(const std::array<float, 4>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream << obj[i];
@@ -128,7 +128,7 @@ Visitor<Reader<DataStream>>::read(const std::array<float, 4>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(std::array<float, 4>& obj)
+DataStreamWriter::writeTo(std::array<float, 4>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream >> obj[i];
@@ -137,7 +137,7 @@ Visitor<Writer<DataStream>>::writeTo(std::array<float, 4>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::read(const QJsonObject& obj)
+DataStreamReader::read(const QJsonObject& obj)
 {
   QJsonDocument doc{obj};
   m_stream << doc.toBinaryData();
@@ -146,7 +146,7 @@ Visitor<Reader<DataStream>>::read(const QJsonObject& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(QJsonObject& obj)
+DataStreamWriter::writeTo(QJsonObject& obj)
 {
   QByteArray arr;
   m_stream >> arr;

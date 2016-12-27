@@ -168,11 +168,11 @@ void GUIItem::setValue(const State::Message& m)
 
 void GUIItem::sendMessage(const State::Message& m)
 {
-  Serializer<JSONObject> s;
+  JSONObject::Serializer s;
   s.readFrom(m);
 
-  s.m_obj[iscore::StringConstant().Message] = iscore::StringConstant().Message;
-  m_ctx.websocket.socket().sendTextMessage(QJsonDocument(s.m_obj).toJson());
+  s.obj[iscore::StringConstant().Message] = iscore::StringConstant().Message;
+  m_ctx.websocket.socket().sendTextMessage(QJsonDocument(s.obj).toJson());
 }
 
 }

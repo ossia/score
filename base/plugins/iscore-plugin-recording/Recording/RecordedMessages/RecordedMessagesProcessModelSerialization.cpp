@@ -12,38 +12,43 @@ class Reader;
 template <typename T>
 class Writer;
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const RecordedMessages::RecordedMessage& rm)
 {
   m_stream << rm.percentage << rm.message;
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(
+void DataStreamWriter::writeTo(
     RecordedMessages::RecordedMessage& rm)
 {
   m_stream >> rm.percentage >> rm.message;
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFrom(
+void JSONObjectReader::readFrom(
     const RecordedMessages::RecordedMessage& rm)
 {
-  m_obj["Percentage"] = rm.percentage;
-  m_obj[strings.Message] = toJsonObject(rm.message);
+  obj["Percentage"] = rm.percentage;
+  obj[strings.Message] = toJsonObject(rm.message);
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(
+void JSONObjectWriter::writeTo(
     RecordedMessages::RecordedMessage& rm)
 {
-  rm.percentage = m_obj["Percentage"].toDouble();
-  rm.message = fromJsonObject<State::Message>(m_obj[strings.Message]);
+  rm.percentage = obj["Percentage"].toDouble();
+  rm.message = fromJsonObject<State::Message>(obj[strings.Message]);
 }
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const RecordedMessages::ProcessModel& proc)
 {
   m_stream << proc.m_messages;
@@ -51,23 +56,26 @@ void Visitor<Reader<DataStream>>::read(
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(RecordedMessages::ProcessModel& proc)
+void DataStreamWriter::writeTo(RecordedMessages::ProcessModel& proc)
 {
   m_stream >> proc.m_messages;
 
   checkDelimiter();
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
-    const RecordedMessages::ProcessModel& proc)
-{
-  m_obj["Messages"] = toJsonArray(proc.messages());
-}
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(RecordedMessages::ProcessModel& proc)
+void JSONObjectReader::readFromConcrete(
+    const RecordedMessages::ProcessModel& proc)
 {
-  fromJsonArray(m_obj["Messages"].toArray(), proc.m_messages);
+  obj["Messages"] = toJsonArray(proc.messages());
+}
+
+
+template <>
+void JSONObjectWriter::writeTo(RecordedMessages::ProcessModel& proc)
+{
+  fromJsonArray(obj["Messages"].toArray(), proc.m_messages);
 }

@@ -17,7 +17,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 template <>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::read(
+ISCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(
     const Process::ProcessModel& process)
 {
   readFrom(process.duration());
@@ -27,7 +27,7 @@ ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::read(
 // We only load the members of the process here.
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Process::ProcessModel& process)
+DataStreamWriter::writeTo(Process::ProcessModel& process)
 {
   writeTo(process.m_duration);
   // m_stream >> process.m_useParentDuration;
@@ -36,19 +36,19 @@ Visitor<Writer<DataStream>>::writeTo(Process::ProcessModel& process)
 }
 
 template <>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFromConcrete(
+ISCORE_LIB_PROCESS_EXPORT void JSONObjectReader::readFromConcrete(
     const Process::ProcessModel& process)
 {
   readFrom(static_cast<const iscore::Entity<Process::ProcessModel>&>(process));
 
-  m_obj[strings.Duration] = toJsonValue(process.duration());
-  // m_obj["UseParentDuration"] = process.useParentDuration();
+  obj[strings.Duration] = toJsonValue(process.duration());
+  // obj["UseParentDuration"] = process.useParentDuration();
 }
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Process::ProcessModel& process)
+JSONObjectWriter::writeTo(Process::ProcessModel& process)
 {
-  process.m_duration = fromJsonValue<TimeValue>(m_obj[strings.Duration]);
-  // process.m_useParentDuration = m_obj["UseParentDuration"].toBool();
+  process.m_duration = fromJsonValue<TimeValue>(obj[strings.Duration]);
+  // process.m_useParentDuration = obj["UseParentDuration"].toBool();
 }

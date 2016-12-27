@@ -20,17 +20,13 @@ T fromJsonObject(QJsonValue&& json);
 template <typename T>
 T fromJsonObject(QJsonValueRef json);
 
-class JSONObject;
-template <>
-class Visitor<Reader<JSONObject>>;
-template <>
-class Visitor<Writer<JSONObject>>;
-
+class JSONObjectReader;
+class JSONObjectWriter;
 class JSONObject
 {
 public:
-  using Serializer = Visitor<Reader<JSONObject>>;
-  using Deserializer = Visitor<Writer<JSONObject>>;
+  using Serializer = JSONObjectReader;
+  using Deserializer = JSONObjectWriter;
   static constexpr SerializationIdentifier type()
   {
     return 1;
@@ -51,16 +47,15 @@ class variant;
 }
 }
 
-template <>
-class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONObject>>
+class ISCORE_LIB_BASE_EXPORT JSONObjectReader
     : public AbstractVisitor
 {
 public:
   using is_visitor_tag = std::integral_constant<bool, true>;
 
-  Visitor();
-  Visitor(const Visitor&) = delete;
-  Visitor& operator=(const Visitor&) = delete;
+  JSONObjectReader();
+  JSONObjectReader(const JSONObjectReader&) = delete;
+  JSONObjectReader& operator=(const JSONObjectReader&) = delete;
 
   VisitorVariant toVariant()
   {
@@ -70,9 +65,9 @@ public:
   template <typename T>
   static auto marshall(const T& t)
   {
-    Visitor reader;
+    JSONObjectReader reader;
     reader.readFrom(t);
-    return reader.m_obj;
+    return reader.obj;
   }
 
   template <typename T, typename... Args>
@@ -102,14 +97,13 @@ public:
           enable_if_t<!is_template<T>::value && !is_abstract_base<T>::value>* = nullptr>
   void readFrom(const T&);
 
-  QJsonObject m_obj;
+  QJsonObject obj;
 
   const iscore::ApplicationComponents& components;
   const iscore::StringConstants& strings;
 };
 
-template <>
-class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONObject>>
+class ISCORE_LIB_BASE_EXPORT JSONObjectWriter
     : public AbstractVisitor
 {
 public:
@@ -121,18 +115,18 @@ public:
     return {*this, JSONObject::type()};
   }
 
-  Visitor();
-  Visitor(const Visitor&) = delete;
-  Visitor& operator=(const Visitor&) = delete;
+  JSONObjectWriter();
+  JSONObjectWriter(const JSONObjectWriter&) = delete;
+  JSONObjectWriter& operator=(const JSONObjectWriter&) = delete;
 
-  Visitor(const QJsonObject& obj);
-  Visitor(QJsonObject&& obj);
+  JSONObjectWriter(const QJsonObject& obj);
+  JSONObjectWriter(QJsonObject&& obj);
 
   template <typename T>
   static auto unmarshall(const QJsonObject& obj)
   {
     T data;
-    Visitor wrt{obj};
+    JSONObjectWriter wrt{obj};
     wrt.writeTo(data);
     return data;
   }
@@ -157,7 +151,7 @@ public:
     return val;
   }
 
-  const QJsonObject m_obj;
+  const QJsonObject obj;
   const iscore::ApplicationComponents& components;
   const iscore::StringConstants& strings;
 };
@@ -168,14 +162,14 @@ struct TSerializer<JSONObject, IdentifiedObject<T>>
   static void
   readFrom(JSONObject::Serializer& s, const IdentifiedObject<T>& obj)
   {
-    s.m_obj[s.strings.ObjectName] = obj.objectName();
-    s.m_obj[s.strings.id] = obj.id().val();
+    s.obj[s.strings.ObjectName] = obj.objectName();
+    s.obj[s.strings.id] = obj.id().val();
   }
 
   static void writeTo(JSONObject::Deserializer& s, IdentifiedObject<T>& obj)
   {
-    obj.setObjectName(s.m_obj[s.strings.ObjectName].toString());
-    obj.setId(Id<T>{s.m_obj[s.strings.id].toInt()});
+    obj.setObjectName(s.obj[s.strings.ObjectName].toString());
+    obj.setId(Id<T>{s.obj[s.strings.id].toInt()});
   }
 };
 
@@ -188,23 +182,23 @@ struct TSerializer<JSONObject, optional<int32_t>>
   {
     if (obj)
     {
-      s.m_obj[s.strings.id] = *obj;
+      s.obj[s.strings.id] = *obj;
     }
     else
     {
-      s.m_obj[s.strings.id] = s.strings.none;
+      s.obj[s.strings.id] = s.strings.none;
     }
   }
 
   static void writeTo(JSONObject::Deserializer& s, optional<int32_t>& obj)
   {
-    if (s.m_obj[s.strings.id].toString() == s.strings.none)
+    if (s.obj[s.strings.id].toString() == s.strings.none)
     {
       obj = iscore::none;
     }
     else
     {
-      obj = s.m_obj[s.strings.id].toInt();
+      obj = s.obj[s.strings.id].toInt();
     }
   }
 };
@@ -215,13 +209,13 @@ struct TSerializer<JSONObject, iscore::Entity<T>>
   static void readFrom(JSONObject::Serializer& s, const iscore::Entity<T>& obj)
   {
     s.readFrom(static_cast<const IdentifiedObject<T>&>(obj));
-    s.m_obj[s.strings.Metadata] = toJsonObject(obj.metadata());
+    s.obj[s.strings.Metadata] = toJsonObject(obj.metadata());
   }
 
   static void writeTo(JSONObject::Deserializer& s, iscore::Entity<T>& obj)
   {
     obj.metadata()
-        = fromJsonObject<iscore::ModelMetadata>(s.m_obj[s.strings.Metadata]);
+        = fromJsonObject<iscore::ModelMetadata>(s.obj[s.strings.Metadata]);
   }
 };
 
@@ -229,30 +223,30 @@ struct TSerializer<JSONObject, iscore::Entity<T>>
 template <typename T>
 QJsonObject toJsonObject(const T& obj)
 {
-  Visitor<Reader<JSONObject>> reader;
+  JSONObjectReader reader;
   reader.readFrom(obj);
 
-  return reader.m_obj;
+  return reader.obj;
 }
 
 template <typename T>
 void fromJsonObject(QJsonObject&& json, T& obj)
 {
-  Visitor<Writer<JSONObject>> writer{json};
+  JSONObjectWriter writer{json};
   writer.writeTo(obj);
 }
 
 template <typename T>
 void fromJsonObject(QJsonValue&& json, T& obj)
 {
-  Visitor<Writer<JSONObject>> writer{json.toObject()};
+  JSONObjectWriter writer{json.toObject()};
   writer.writeTo(obj);
 }
 
 template <typename T>
 void fromJsonObject(QJsonValueRef json, T& obj)
 {
-  Visitor<Writer<JSONObject>> writer{json.toObject()};
+  JSONObjectWriter writer{json.toObject()};
   writer.writeTo(obj);
 }
 
@@ -260,7 +254,7 @@ template <typename T>
 T fromJsonObject(QJsonObject&& json)
 {
   T obj;
-  Visitor<Writer<JSONObject>> writer{json};
+  JSONObjectWriter writer{json};
   writer.writeTo(obj);
 
   return obj;
@@ -534,5 +528,5 @@ inline void fromJsonArray(QJsonArray&& json_arr, QStringList& list)
   }
 }
 
-Q_DECLARE_METATYPE(Visitor<Reader<JSONObject>>*)
-Q_DECLARE_METATYPE(Visitor<Writer<JSONObject>>*)
+Q_DECLARE_METATYPE(JSONObjectReader*)
+Q_DECLARE_METATYPE(JSONObjectWriter*)

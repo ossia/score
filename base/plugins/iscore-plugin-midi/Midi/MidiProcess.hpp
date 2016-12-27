@@ -27,7 +27,7 @@ public:
       QObject* parent);
 
   template <typename Impl>
-  explicit ProcessModel(Deserializer<Impl>& vis, QObject* parent)
+  explicit ProcessModel(Impl& vis, QObject* parent)
       : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);

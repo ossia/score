@@ -21,7 +21,7 @@ ConstraintSaveData::ConstraintSaveData(
   for (const auto& process : constraint.processes)
   {
     QByteArray arr;
-    Serializer<DataStream> s{&arr};
+    DataStream::Serializer s{&arr};
     s.readFrom(process);
     processes.push_back(std::move(arr));
   }
@@ -30,7 +30,7 @@ ConstraintSaveData::ConstraintSaveData(
   for (const auto& rack : constraint.racks)
   {
     QByteArray arr;
-    Serializer<DataStream> s{&arr};
+    DataStream::Serializer s{&arr};
     s.readFrom(rack);
     racks.push_back(std::move(arr));
   }
@@ -49,7 +49,7 @@ void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
   auto& procsfactories = comps.interfaces<Process::ProcessFactoryList>();
   for (auto& sourceproc : processes)
   {
-    Deserializer<DataStream> des{sourceproc};
+    DataStream::Deserializer des{sourceproc};
     auto proc = deserialize_interface(procsfactories, des, &constraint);
     if (proc)
       AddProcess(constraint, proc);
@@ -60,7 +60,7 @@ void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
   // Restore the rackes
   for (auto& sourcerack : racks)
   {
-    Deserializer<DataStream> des{sourcerack};
+    DataStream::Deserializer des{sourcerack};
     constraint.racks.add(new RackModel{des, &constraint});
   }
 
@@ -84,7 +84,7 @@ template <typename T>
 class Writer;
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::TimenodeProperties& timenodeProperties)
 {
   m_stream << timenodeProperties.oldDate << timenodeProperties.newDate;
@@ -93,7 +93,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::writeTo(
     Scenario::TimenodeProperties& timenodeProperties)
 {
 
@@ -105,7 +105,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 //----------
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::ConstraintSaveData& constraintProperties)
 {
   m_stream << constraintProperties.constraintPath
@@ -115,7 +115,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::writeTo(
     Scenario::ConstraintSaveData& constraintProperties)
 {
   m_stream >> constraintProperties.constraintPath
@@ -126,7 +126,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::ConstraintProperties& constraintProperties)
 {
   m_stream << constraintProperties.oldMin << constraintProperties.newMin
@@ -139,7 +139,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::writeTo(
     Scenario::ConstraintProperties& constraintProperties)
 {
   m_stream >> constraintProperties.oldMin >> constraintProperties.newMin
@@ -151,7 +151,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 
 //----------
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::ElementsProperties& elementsProperties)
 {
   m_stream << elementsProperties.timenodes << elementsProperties.constraints;
@@ -160,7 +160,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::writeTo(
     Scenario::ElementsProperties& elementsProperties)
 {
 

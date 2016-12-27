@@ -46,7 +46,7 @@ public:
       const DummyModel& source, const Id<ProcessModel>& id, QObject* parent);
 
   template <typename Impl>
-  explicit DummyModel(Deserializer<Impl>& vis, QObject* parent)
+  explicit DummyModel(Impl& vis, QObject* parent)
       : ProcessModel{vis, parent}
   {
     vis.writeTo(*this);

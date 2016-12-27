@@ -25,7 +25,7 @@ RemoveSlotFromRack::RemoveSlotFromRack(Path<SlotModel>&& slotPath)
   auto& rack = m_path.find();
   m_position = rack.slotPosition(m_slotId);
 
-  Serializer<DataStream> s{&m_serializedSlotData};
+  DataStream::Serializer s{&m_serializedSlotData};
   s.readFrom(rack.slotmodels.at(m_slotId));
 }
 
@@ -34,7 +34,7 @@ RemoveSlotFromRack::RemoveSlotFromRack(
     : m_path{rackPath}, m_slotId{std::move(slotId)}
 {
   auto& rack = m_path.find();
-  Serializer<DataStream> s{&m_serializedSlotData};
+  DataStream::Serializer s{&m_serializedSlotData};
 
   s.readFrom(rack.slotmodels.at(m_slotId));
   m_position = rack.slotPosition(m_slotId);
@@ -43,7 +43,7 @@ RemoveSlotFromRack::RemoveSlotFromRack(
 void RemoveSlotFromRack::undo() const
 {
   auto& rack = m_path.find();
-  Deserializer<DataStream> s{m_serializedSlotData};
+  DataStream::Deserializer s{m_serializedSlotData};
   rack.addSlot(new SlotModel{s, &rack}, m_position);
 }
 

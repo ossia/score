@@ -47,7 +47,7 @@ public:
   // Load
   template <typename Impl>
   TemporalScenarioLayer(
-      Deserializer<Impl>& vis, Scenario::ProcessModel& model, QObject* parent)
+      Impl& vis, Scenario::ProcessModel& model, QObject* parent)
       : AbstractScenarioLayer{vis, model, parent}
   {
     vis.writeTo(*this);

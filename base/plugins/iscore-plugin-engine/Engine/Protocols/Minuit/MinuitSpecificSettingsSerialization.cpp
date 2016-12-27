@@ -6,41 +6,40 @@
 
 #include "MinuitSpecificSettings.hpp"
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Engine::Network::MinuitSpecificSettings& n)
 {
   m_stream << n.host << n.inputPort << n.outputPort;
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(
+void DataStreamWriter::writeTo(
     Engine::Network::MinuitSpecificSettings& n)
 {
   m_stream >> n.host >> n.inputPort >> n.outputPort;
   checkDelimiter();
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
-    const Engine::Network::MinuitSpecificSettings& n)
-{
-  m_obj["InPort"] = n.inputPort;
-  m_obj["OutPort"] = n.outputPort;
-  m_obj["Host"] = n.host;
-}
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(
+void JSONObjectReader::readFromConcrete(
+    const Engine::Network::MinuitSpecificSettings& n)
+{
+  obj["InPort"] = n.inputPort;
+  obj["OutPort"] = n.outputPort;
+  obj["Host"] = n.host;
+}
+
+
+template <>
+void JSONObjectWriter::writeTo(
     Engine::Network::MinuitSpecificSettings& n)
 {
-  n.inputPort = m_obj["InPort"].toInt();
-  n.outputPort = m_obj["OutPort"].toInt();
-  n.host = m_obj["Host"].toString();
+  n.inputPort = obj["InPort"].toInt();
+  n.outputPort = obj["OutPort"].toInt();
+  n.host = obj["Host"].toString();
 }

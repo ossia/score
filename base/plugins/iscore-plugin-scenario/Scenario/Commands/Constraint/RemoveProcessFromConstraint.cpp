@@ -35,7 +35,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
   auto& constraint = m_path.find();
 
   // Save the process
-  Serializer<DataStream> s1{&m_serializedProcessData};
+  DataStream::Serializer s1{&m_serializedProcessData};
   auto& proc = constraint.processes.at(m_processId);
   s1.readFrom(proc);
 
@@ -43,7 +43,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
   for (const auto& lm : proc.layers())
   {
     QByteArray vm_arr;
-    Serializer<DataStream> s{&vm_arr};
+    DataStream::Serializer s{&vm_arr};
     s.readFrom(iscore::RelativePath(*lm->parent(), lm->processModel()));
     s.readFrom(*lm);
 
@@ -54,7 +54,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
 void RemoveProcessFromConstraint::undo() const
 {
   auto& constraint = m_path.find();
-  Deserializer<DataStream> s{m_serializedProcessData};
+  DataStream::Deserializer s{m_serializedProcessData};
   auto& fact = context.interfaces<Process::ProcessFactoryList>();
   auto proc = deserialize_interface(fact, s, &constraint);
   if (proc)
@@ -76,7 +76,7 @@ void RemoveProcessFromConstraint::undo() const
         = constraint.racks.at(Id<RackModel>(path.at(path.size() - 3).id()))
               .slotmodels.at(Id<SlotModel>(path.at(path.size() - 2).id()));
 
-    Deserializer<DataStream> stream{it.second};
+    DataStream::Deserializer stream{it.second};
     iscore::RelativePath process;
     stream.writeTo(process);
     auto lm = deserialize_interface(layers, stream, process, &slot);

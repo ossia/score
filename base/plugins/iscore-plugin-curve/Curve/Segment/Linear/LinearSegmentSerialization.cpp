@@ -6,51 +6,53 @@ namespace Curve
 class LinearSegment;
 struct LinearSegmentData;
 }
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Curve::LinearSegment& segmt)
 {
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Curve::LinearSegment& segmt)
+void DataStreamWriter::writeTo(Curve::LinearSegment& segmt)
 {
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
+void JSONObjectReader::readFromConcrete(
     const Curve::LinearSegment& segmt)
 {
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Curve::LinearSegment& segmt)
+void JSONObjectWriter::writeTo(Curve::LinearSegment& segmt)
 {
 }
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
+    const Curve::LinearSegmentData& segmt)
+{
+}
+
+
+template <>
+void DataStreamWriter::writeTo(Curve::LinearSegmentData& segmt)
+{
+}
+
+
+template <>
+void JSONObjectReader::readFromConcrete(
     const Curve::LinearSegmentData& segmt)
 {
 }
 
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Curve::LinearSegmentData& segmt)
-{
-}
-
-template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
-    const Curve::LinearSegmentData& segmt)
-{
-}
-
-template <>
-void Visitor<Writer<JSONObject>>::writeTo(Curve::LinearSegmentData& segmt)
+void JSONObjectWriter::writeTo(Curve::LinearSegmentData& segmt)
 {
 }

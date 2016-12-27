@@ -81,28 +81,28 @@ void VariantJSONDeserializer<ossia::value_variant_type>::
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::read(const ossia::value& n)
+DataStreamReader::read(const ossia::value& n)
 {
   readFrom((const ossia::value_variant_type&)n.v);
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(ossia::value& n)
+DataStreamWriter::writeTo(ossia::value& n)
 {
   writeTo((ossia::value_variant_type&)n.v);
 }
 
 DataStreamInput& operator<<(DataStreamInput& stream, const ossia::value& obj)
 {
-  Visitor<Reader<DataStream>> reader{stream.stream.device()};
+  DataStreamReader reader{stream.stream.device()};
   reader.readFrom(obj);
   return stream;
 }
 
 DataStreamOutput& operator>>(DataStreamOutput& stream, ossia::value& obj)
 {
-  Visitor<Writer<DataStream>> writer{stream.stream.device()};
+  DataStreamWriter writer{stream.stream.device()};
   writer.writeTo(obj);
 
   return stream;
@@ -227,16 +227,18 @@ struct TSerializer<DataStream, ossia::net::domain_base<ossia::Impulse>>
   }
 };
 
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::read(const ossia::net::domain& n)
+DataStreamReader::read(const ossia::net::domain& n)
 {
   readFrom((const ossia::net::domain_base_variant&)n);
 }
 
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(ossia::net::domain& n)
+DataStreamWriter::writeTo(ossia::net::domain& n)
 {
   writeTo((ossia::net::domain_base_variant&)n);
 }
@@ -344,16 +346,18 @@ void fromJsonArray(const QJsonArray& arr, std::vector<ossia::value>& array)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const ossia::value& n);
+JSONObjectReader::readFrom(const ossia::value& n);
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(ossia::value& n);
+JSONObjectWriter::writeTo(ossia::value& n);
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONValue>>::readFrom(const ossia::value& n);
+JSONValueReader::readFrom(const ossia::value& n);
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONValue>>::writeTo(ossia::value& n);
+JSONValueWriter::writeTo(ossia::value& n);
 
 template <>
 struct TSerializer<JSONObject, std::vector<ossia::value>>
@@ -361,13 +365,13 @@ struct TSerializer<JSONObject, std::vector<ossia::value>>
   static void
   readFrom(JSONObject::Serializer& s, const std::vector<ossia::value>& vec)
   {
-    s.m_obj[s.strings.Values] = toJsonArray(vec);
+    s.obj[s.strings.Values] = toJsonArray(vec);
   }
 
   static void
   writeTo(JSONObject::Deserializer& s, std::vector<ossia::value>& vec)
   {
-    fromJsonArray(s.m_obj[s.strings.Values].toArray(), vec);
+    fromJsonArray(s.obj[s.strings.Values].toArray(), vec);
   }
 };
 
@@ -408,11 +412,11 @@ struct TSerializer<JSONObject, ossia::net::domain_base<T>>
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
     if (domain.min)
-      s.m_obj[s.strings.Min] = toJsonValue(*domain.min);
+      s.obj[s.strings.Min] = toJsonValue(*domain.min);
     if (domain.max)
-      s.m_obj[s.strings.Max] = toJsonValue(*domain.max);
+      s.obj[s.strings.Max] = toJsonValue(*domain.max);
     if (!domain.values.empty())
-      s.m_obj[s.strings.Values] = toJsonArray(domain.values);
+      s.obj[s.strings.Values] = toJsonArray(domain.values);
   }
 
   static void writeTo(const JSONObject::Deserializer& s, domain_t& domain)
@@ -420,18 +424,18 @@ struct TSerializer<JSONObject, ossia::net::domain_base<T>>
     using val_t = typename domain_t::value_type;
     // OPTIMIZEME there should be something in boost
     // to get multiple iterators from multiple keys in one pass...
-    auto it_min = s.m_obj.constFind(s.strings.Min);
-    auto it_max = s.m_obj.constFind(s.strings.Max);
-    auto it_values = s.m_obj.constFind(s.strings.Values);
-    if (it_min != s.m_obj.constEnd())
+    auto it_min = s.obj.constFind(s.strings.Min);
+    auto it_max = s.obj.constFind(s.strings.Max);
+    auto it_values = s.obj.constFind(s.strings.Values);
+    if (it_min != s.obj.constEnd())
     {
       domain.min = fromJsonValue<val_t>(*it_min);
     }
-    if (it_max != s.m_obj.constEnd())
+    if (it_max != s.obj.constEnd())
     {
       domain.max = fromJsonValue<val_t>(*it_max);
     }
-    if (it_values != s.m_obj.constEnd())
+    if (it_values != s.obj.constEnd())
     {
       const auto arr = it_values->toArray();
       for (const auto& v : arr)
@@ -449,13 +453,13 @@ struct TSerializer<JSONObject, ossia::net::domain_base<std::string>>
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
     if (!domain.values.empty())
-      s.m_obj[s.strings.Values] = toJsonArray(domain.values);
+      s.obj[s.strings.Values] = toJsonArray(domain.values);
   }
 
   static void writeTo(JSONObject::Deserializer& s, domain_t& domain)
   {
-    auto it_values = s.m_obj.constFind(s.strings.Values);
-    if (it_values != s.m_obj.constEnd())
+    auto it_values = s.obj.constFind(s.strings.Values);
+    if (it_values != s.obj.constEnd())
     {
       const auto arr = it_values->toArray();
       for (const auto& v : arr)
@@ -479,117 +483,123 @@ struct TSerializer<JSONObject, ossia::net::domain_base<ossia::Impulse>>
   }
 };
 
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const ossia::net::domain& n)
+JSONObjectReader::readFrom(const ossia::net::domain& n)
 {
   readFrom((const ossia::net::domain_base_variant&)n);
 }
 
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(ossia::net::domain& n)
+JSONObjectWriter::writeTo(ossia::net::domain& n)
 {
   writeTo((ossia::net::domain_base_variant&)n);
 }
 
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const ossia::value& n)
+JSONObjectReader::readFrom(const ossia::value& n)
 {
   readFrom((const ossia::value_variant_type&)n.v);
 }
 
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(ossia::value& n)
+JSONObjectWriter::writeTo(ossia::value& n)
 {
   writeTo((ossia::value_variant_type&)n.v);
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONValue>>::readFrom(const ossia::value& n)
+JSONValueReader::readFrom(const ossia::value& n)
 {
   val = marshall<JSONObject>(n);
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONValue>>::writeTo(ossia::value& n)
+JSONValueWriter::writeTo(ossia::value& n)
 {
   n = unmarshall<ossia::value>(val.toObject());
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONValue>>::readFrom(const ossia::Impulse& n)
+JSONValueReader::readFrom(const ossia::Impulse& n)
 {
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONValue>>::writeTo(ossia::Impulse& n)
+JSONValueWriter::writeTo(ossia::Impulse& n)
 {
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONValue>>::readFrom(const std::array<float, 2>& n)
+JSONValueReader::readFrom(const std::array<float, 2>& n)
 {
   val = toJsonValue(n);
 }
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONValue>>::readFrom(const std::array<float, 3>& n)
+JSONValueReader::readFrom(const std::array<float, 3>& n)
 {
   val = toJsonValue(n);
 }
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONValue>>::readFrom(const std::array<float, 4>& n)
+JSONValueReader::readFrom(const std::array<float, 4>& n)
 {
   val = toJsonValue(n);
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONValue>>::writeTo(std::array<float, 2>& n)
+JSONValueWriter::writeTo(std::array<float, 2>& n)
 {
   fromJsonValue(val, n);
 }
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONValue>>::writeTo(std::array<float, 3>& n)
+JSONValueWriter::writeTo(std::array<float, 3>& n)
 {
   fromJsonValue(val, n);
 }
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONValue>>::writeTo(std::array<float, 4>& n)
+JSONValueWriter::writeTo(std::array<float, 4>& n)
 {
   fromJsonValue(val, n);
 }
 
 
 /// Instance bounds ///
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::read(const ossia::net::instance_bounds& n)
+DataStreamReader::read(const ossia::net::instance_bounds& n)
 {
   m_stream << n.min_instances << n.max_instances;
 }
 
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(ossia::net::instance_bounds& n)
+DataStreamWriter::writeTo(ossia::net::instance_bounds& n)
 {
   m_stream >> n.min_instances >> n.max_instances;
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONValue>>::readFrom(const ossia::net::instance_bounds& b)
+JSONValueReader::readFrom(const ossia::net::instance_bounds& b)
 {
   QJsonObject obj;
   obj[strings.Min] = b.min_instances;
@@ -599,7 +609,7 @@ Visitor<Reader<JSONValue>>::readFrom(const ossia::net::instance_bounds& b)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONValue>>::writeTo(ossia::net::instance_bounds& n)
+JSONValueWriter::writeTo(ossia::net::instance_bounds& n)
 {
   const auto& obj = val.toObject();
   n.min_instances = obj[strings.Min].toInt();

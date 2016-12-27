@@ -98,7 +98,7 @@ void InsertContentInConstraint::undo() const
 void InsertContentInConstraint::redo() const
 {
   auto& trg_constraint = m_target.find();
-  ConstraintModel src_constraint{Deserializer<JSONObject>{m_source},
+  ConstraintModel src_constraint{JSONObject::Deserializer{m_source},
                                  &trg_constraint}; // Temporary parent
 
   std::map<const Process::ProcessModel*, Process::ProcessModel*> processPairs;

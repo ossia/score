@@ -55,7 +55,7 @@ public:
   static void copyViewModelsInSameConstraint(const SlotModel&, SlotModel&);
 
   template <typename Impl>
-  SlotModel(Deserializer<Impl>& vis, QObject* parent) : Entity{vis, parent}
+  SlotModel(Impl& vis, QObject* parent) : Entity{vis, parent}
   {
     initConnections();
     vis.writeTo(*this);

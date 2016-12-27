@@ -38,7 +38,7 @@ public:
 
   // Load
   template <typename Impl>
-  Layer(Deserializer<Impl>& vis, Loop::ProcessModel& model, QObject* parent)
+  Layer(Impl& vis, Loop::ProcessModel& model, QObject* parent)
       : LayerModel{vis, model, parent}
   {
     vis.writeTo(*this);

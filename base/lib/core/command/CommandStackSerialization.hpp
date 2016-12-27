@@ -8,7 +8,7 @@ namespace iscore
 template <typename RedoFun>
 void loadCommandStack(
     const iscore::ApplicationComponents& components,
-    Visitor<Writer<DataStream>>& writer,
+    DataStreamWriter& writer,
     iscore::CommandStack& stack,
     RedoFun redo_fun)
 {

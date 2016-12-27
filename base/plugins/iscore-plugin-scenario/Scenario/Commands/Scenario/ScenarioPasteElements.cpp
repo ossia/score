@@ -119,7 +119,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     for (const auto& element : json_arr)
     {
       constraints.emplace_back(new ConstraintModel{
-          Deserializer<JSONObject>{element.toObject()}, &scenario});
+          JSONObject::Deserializer{element.toObject()}, &scenario});
     }
   }
   {
@@ -128,7 +128,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     for (const auto& element : json_arr)
     {
       timenodes.emplace_back(new TimeNodeModel{
-          Deserializer<JSONObject>{element.toObject()}, nullptr});
+          JSONObject::Deserializer{element.toObject()}, nullptr});
     }
   }
   {
@@ -137,7 +137,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     for (const auto& element : json_arr)
     {
       events.emplace_back(new EventModel{
-          Deserializer<JSONObject>{element.toObject()}, nullptr});
+          JSONObject::Deserializer{element.toObject()}, nullptr});
     }
   }
   {
@@ -146,7 +146,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     for (const auto& element : json_arr)
     {
       states.emplace_back(new StateModel{
-          Deserializer<JSONObject>{element.toObject()}, stack, nullptr});
+          JSONObject::Deserializer{element.toObject()}, stack, nullptr});
     }
   }
 
@@ -422,14 +422,14 @@ void ScenarioPasteElements::redo() const
   addedEvents.reserve(m_json_events.size());
   for (const auto& timenode : m_json_timenodes)
   {
-    auto tn = new TimeNodeModel(Deserializer<JSONObject>{timenode}, &scenario);
+    auto tn = new TimeNodeModel(JSONObject::Deserializer{timenode}, &scenario);
     scenario.timeNodes.add(tn);
     addedTimeNodes.push_back(tn);
   }
 
   for (const auto& event : m_json_events)
   {
-    auto ev = new EventModel(Deserializer<JSONObject>{event}, &scenario);
+    auto ev = new EventModel(JSONObject::Deserializer{event}, &scenario);
     scenario.events.add(ev);
     addedEvents.push_back(ev);
   }
@@ -438,13 +438,13 @@ void ScenarioPasteElements::redo() const
   for (const auto& state : m_json_states)
   {
     scenario.states.add(
-        new StateModel(Deserializer<JSONObject>{state}, stack, &scenario));
+        new StateModel(JSONObject::Deserializer{state}, stack, &scenario));
   }
 
   for (const auto& constraint : m_json_constraints)
   {
     auto cst
-        = new ConstraintModel(Deserializer<JSONObject>{constraint}, &scenario);
+        = new ConstraintModel(JSONObject::Deserializer{constraint}, &scenario);
     scenario.constraints.add(cst);
 
     createConstraintViewModels(

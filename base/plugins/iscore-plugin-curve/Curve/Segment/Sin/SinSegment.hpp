@@ -31,7 +31,7 @@ public:
   SinSegment(const SinSegment& other, const id_type& id, QObject* parent);
 
   template <typename Impl>
-  SinSegment(Deserializer<Impl>& vis, QObject* parent)
+  SinSegment(Impl& vis, QObject* parent)
       : SegmentModel{vis, parent}
   {
     vis.writeTo(*this);

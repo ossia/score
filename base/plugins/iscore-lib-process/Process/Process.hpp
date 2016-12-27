@@ -58,8 +58,8 @@ public:
       const QString& name,
       QObject* parent);
 
-  ProcessModel(Deserializer<DataStream>& vis, QObject* parent);
-  ProcessModel(Deserializer<JSONObject>& vis, QObject* parent);
+  ProcessModel(DataStream::Deserializer& vis, QObject* parent);
+  ProcessModel(JSONObject::Deserializer& vis, QObject* parent);
 
   virtual ~ProcessModel();
 

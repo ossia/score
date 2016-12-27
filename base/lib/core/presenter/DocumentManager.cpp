@@ -329,7 +329,7 @@ bool DocumentManager::saveStack()
       f.open(QIODevice::WriteOnly);
 
       f.reset();
-      Serializer<DataStream> ser(&f);
+      DataStream::Serializer ser(&f);
       ser.readFrom(currentDocument()->id());
       ser.readFrom(currentDocument()->commandStack());
       f.commit();
@@ -361,7 +361,7 @@ Document* DocumentManager::loadStack(
     QByteArray cmdArr{cmdF.readAll()};
     cmdF.close();
 
-    Deserializer<DataStream> writer(cmdArr);
+    DataStream::Deserializer writer(cmdArr);
 
     Id<DocumentModel> id;
     writer.writeTo(id);

@@ -6,43 +6,42 @@
 
 #include "LocalSpecificSettings.hpp"
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Engine::Network::LocalSpecificSettings& n)
 {
   m_stream << n.remoteName << n.host << n.remotePort << n.localPort;
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(
+void DataStreamWriter::writeTo(
     Engine::Network::LocalSpecificSettings& n)
 {
   m_stream >> n.remoteName >> n.host >> n.remotePort >> n.localPort;
   checkDelimiter();
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
-    const Engine::Network::LocalSpecificSettings& n)
-{
-  m_obj["RemoteName"] = n.remoteName;
-  m_obj["Host"] = n.host;
-  m_obj["InPort"] = n.remotePort;
-  m_obj["OutPort"] = n.localPort;
-}
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(
+void JSONObjectReader::readFromConcrete(
+    const Engine::Network::LocalSpecificSettings& n)
+{
+  obj["RemoteName"] = n.remoteName;
+  obj["Host"] = n.host;
+  obj["InPort"] = n.remotePort;
+  obj["OutPort"] = n.localPort;
+}
+
+
+template <>
+void JSONObjectWriter::writeTo(
     Engine::Network::LocalSpecificSettings& n)
 {
-  n.remoteName = m_obj["RemoteName"].toString();
-  n.host = m_obj["Host"].toString();
-  n.remotePort = m_obj["InPort"].toInt();
-  n.localPort = m_obj["OutPort"].toInt();
+  n.remoteName = obj["RemoteName"].toString();
+  n.host = obj["Host"].toString();
+  n.remotePort = obj["InPort"].toInt();
+  n.localPort = obj["OutPort"].toInt();
 }

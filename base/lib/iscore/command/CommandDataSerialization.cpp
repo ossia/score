@@ -11,14 +11,14 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::read(const iscore::CommandData& d)
+void DataStreamReader::read(const iscore::CommandData& d)
 {
   m_stream << d.parentKey << d.commandKey << d.data;
   insertDelimiter();
 }
 
 template <>
-void Visitor<Writer<DataStream>>::writeTo(iscore::CommandData& d)
+void DataStreamWriter::writeTo(iscore::CommandData& d)
 {
   m_stream >> d.parentKey >> d.commandKey >> d.data;
   checkDelimiter();

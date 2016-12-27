@@ -19,7 +19,7 @@ void ObjectLocker::on_lock(QByteArray arr)
   /*
   ObjectPath objectToLock;
 
-  Deserializer<DataStream> s {&arr};
+  DataStream::Deserializer s {&arr};
   s.writeTo(objectToLock);
 
   auto obj = objectToLock.find<QObject>();
@@ -35,7 +35,7 @@ void ObjectLocker::on_unlock(QByteArray arr)
   /*
   ObjectPath objectToUnlock;
 
-  Deserializer<DataStream> s {&arr};
+  DataStream::Deserializer s {&arr};
   s.writeTo(objectToUnlock);
 
   auto obj = objectToUnlock.find<QObject>();
@@ -47,7 +47,7 @@ void ObjectLocker::lock_impl()
 {
   /*
   QByteArray arr;
-  Serializer<DataStream> ser {&arr};
+  DataStream::Serializer ser {&arr};
   ser.readFrom(m_lockedObject);
   emit lock(arr);
   */
@@ -57,7 +57,7 @@ void ObjectLocker::unlock_impl()
 {
   /*
   QByteArray arr;
-  Serializer<DataStream> ser {&arr};
+  DataStream::Serializer ser {&arr};
   ser.readFrom(m_lockedObject);
   emit unlock(arr);
   m_lockedObject = ObjectPath();
@@ -67,14 +67,14 @@ void ObjectLocker::unlock_impl()
 LockHelper::LockHelper(QObject& model, ObjectLocker& locker)
     : m_path{IDocument::unsafe_path(model)}, m_locker{locker}
 {
-  Serializer<DataStream> ser{&m_serializedPath};
+  DataStream::Serializer ser{&m_serializedPath};
   ser.readFrom(m_path);
 }
 
 LockHelper::LockHelper(ObjectPath&& path, ObjectLocker& locker)
     : m_path{std::move(path)}, m_locker{locker}
 {
-  Serializer<DataStream> ser{&m_serializedPath};
+  DataStream::Serializer ser{&m_serializedPath};
   ser.readFrom(m_path);
 }
 

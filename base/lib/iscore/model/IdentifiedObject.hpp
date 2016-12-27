@@ -28,8 +28,8 @@ public:
     m_id.m_ptr = this;
   }
 
-  template <typename ReaderImpl>
-  IdentifiedObject(Deserializer<ReaderImpl>& v, QObject* parent)
+  template <typename Visitor>
+  IdentifiedObject(Visitor& v, QObject* parent)
       : IdentifiedObjectAbstract{parent}
   {
     v.writeTo(*this);
