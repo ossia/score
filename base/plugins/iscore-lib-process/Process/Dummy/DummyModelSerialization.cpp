@@ -19,7 +19,7 @@ void DataStreamWriter::writeTo(Dummy::DummyModel& proc)
 }
 
 template <>
-void JSONObjectReader::readFromConcrete(const Dummy::DummyModel& proc)
+void JSONObjectReader::read(const Dummy::DummyModel& proc)
 {
 }
 

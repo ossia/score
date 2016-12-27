@@ -103,7 +103,7 @@ void DataStreamWriter::writeTo(Midi::NoteData& n)
 
 
 template <>
-void JSONObjectReader::readFrom(const Midi::NoteData& n)
+void JSONObjectReader::read(const Midi::NoteData& n)
 {
   obj["Start"] = n.start;
   obj["Duration"] = n.duration;
@@ -141,9 +141,8 @@ void DataStreamWriter::writeTo(Midi::Note& n)
 
 
 template <>
-void JSONObjectReader::readFrom(const Midi::Note& n)
+void JSONObjectReader::read(const Midi::Note& n)
 {
-  readFrom(static_cast<const IdentifiedObject<Midi::Note>&>(n));
   readFrom(n.noteData());
 }
 
@@ -189,7 +188,7 @@ void DataStreamWriter::writeTo(Midi::ProcessModel& proc)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(const Midi::ProcessModel& proc)
+void JSONObjectReader::read(const Midi::ProcessModel& proc)
 {
   obj["Device"] = proc.device();
   obj["Channel"] = proc.channel();

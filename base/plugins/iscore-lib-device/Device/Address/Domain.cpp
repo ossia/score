@@ -93,7 +93,7 @@ DataStreamWriter::writeTo(Device::Domain& var)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-JSONObjectReader::readFrom(const Device::Domain& var)
+JSONObjectReader::read(const Device::Domain& var)
 {
   readFrom(var.get());
 }

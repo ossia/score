@@ -206,7 +206,7 @@ DataStreamWriter::writeTo(Engine::EasingCurve::EasingData& segmt)
 }
 
 template <>
-inline void JSONObjectReader::readFromConcrete(
+inline void JSONObjectReader::read(
     const Engine::EasingCurve::EasingData& segmt)
 {
 }

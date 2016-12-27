@@ -34,7 +34,7 @@ void DataStreamWriter::writeTo(JS::ProcessModel& proc)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(const JS::ProcessModel& proc)
+void JSONObjectReader::read(const JS::ProcessModel& proc)
 {
   obj["Script"] = proc.script();
 }

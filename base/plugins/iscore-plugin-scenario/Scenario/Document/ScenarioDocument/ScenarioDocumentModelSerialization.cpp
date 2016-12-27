@@ -43,13 +43,9 @@ void DataStreamWriter::writeTo(Scenario::ScenarioDocumentModel& obj)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Scenario::ScenarioDocumentModel& doc)
 {
-  readFrom(
-      static_cast<const IdentifiedObject<iscore::
-                                             DocumentDelegateModel>&>(
-          doc));
   obj["BaseScenario"] = toJsonObject(*doc.m_baseScenario);
 }
 
@@ -57,9 +53,6 @@ void JSONObjectReader::readFromConcrete(
 template <>
 void JSONObjectWriter::writeTo(Scenario::ScenarioDocumentModel& doc)
 {
-  writeTo(
-      static_cast<IdentifiedObject<iscore::DocumentDelegateModel>&>(
-          doc));
   doc.m_baseScenario = new Scenario::BaseScenario{
       JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &doc};
 }

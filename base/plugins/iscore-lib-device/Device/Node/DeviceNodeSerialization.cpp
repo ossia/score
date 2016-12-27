@@ -21,7 +21,7 @@ DataStreamWriter::writeTo(Device::DeviceExplorerNode& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-JSONObjectReader::readFrom(const Device::DeviceExplorerNode& n)
+JSONObjectReader::read(const Device::DeviceExplorerNode& n)
 {
   readFrom(n.m_data);
 }

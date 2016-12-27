@@ -43,7 +43,6 @@ namespace iscore
 QByteArray Document::saveDocumentModelAsByteArray()
 {
   // TODO refactor this
-
   QByteArray arr;
 
   DataStream::Serializer s{&arr};
@@ -58,6 +57,7 @@ QJsonObject Document::saveDocumentModelAsJson()
 {
   JSONObject::Serializer s;
   s.obj["DocumentId"] = toJsonValue(model().id());
+  TSerializer<JSONObject, IdentifiedObject<DocumentDelegateModel>>::readFrom(s, m_model->modelDelegate());
   m_model->modelDelegate().serialize(s.toVariant());
   return s.obj;
 }

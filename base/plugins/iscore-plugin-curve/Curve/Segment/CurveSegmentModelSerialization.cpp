@@ -84,12 +84,9 @@ DataStreamWriter::writeTo(Curve::SegmentModel& segmt)
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-JSONObjectReader::readFromConcrete(const Curve::SegmentModel& segmt)
+JSONObjectReader::read(const Curve::SegmentModel& segmt)
 {
   using namespace Curve;
-
-  // Save the parent class
-  readFrom(static_cast<const IdentifiedObject<SegmentModel>&>(segmt));
 
   // Save this class (this will be loaded by writeTo(*this) in
   // CurveSegmentModel ctor

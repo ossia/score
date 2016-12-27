@@ -267,7 +267,7 @@ DataStreamWriter::writeTo(Interpolation::ProcessModel& interp)
 
 template <>
 ISCORE_PLUGIN_INTERPOLATION_EXPORT void
-JSONObjectReader::readFromConcrete(
+JSONObjectReader::read(
     const Interpolation::ProcessModel& interp)
 {
   obj["Curve"] = toJsonObject(interp.curve());

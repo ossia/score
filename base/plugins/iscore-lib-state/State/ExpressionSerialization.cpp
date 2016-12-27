@@ -19,7 +19,7 @@ void DataStreamReader::read(const State::Pulse& rel)
 
 
 template <>
-void JSONObjectReader::readFrom(const State::Pulse& rel)
+void JSONObjectReader::read(const State::Pulse& rel)
 {
   obj[strings.address] = toJsonObject(rel.address);
 }
@@ -51,7 +51,7 @@ void DataStreamReader::read(const State::Relation& rel)
 
 
 template <>
-void JSONObjectReader::readFrom(const State::Relation& rel)
+void JSONObjectReader::read(const State::Relation& rel)
 {
   // TODO harmonize from... with marshall(..) in VisitorCommon.hpp
   obj[strings.LHS] = toJsonObject(rel.lhs);
@@ -89,7 +89,7 @@ DataStreamReader::read(const State::ExprData& expr)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::readFrom(const State::ExprData& expr)
+JSONObjectReader::read(const State::ExprData& expr)
 {
   readFrom(expr.m_data);
 }

@@ -29,7 +29,7 @@ void DataStreamWriter::writeTo(
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Engine::Network::OSCSpecificSettings& n)
 {
   obj["OutputPort"] = n.outputPort;

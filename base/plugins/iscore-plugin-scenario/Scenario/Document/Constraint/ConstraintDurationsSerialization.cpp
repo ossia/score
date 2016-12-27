@@ -33,7 +33,7 @@ void DataStreamWriter::writeTo(Scenario::ConstraintDurations& durs)
 
 
 template <>
-void JSONObjectReader::readFrom(
+void JSONObjectReader::read(
     const Scenario::ConstraintDurations& durs)
 {
   obj["DefaultDuration"] = toJsonValue(durs.m_defaultDuration);

@@ -45,11 +45,8 @@ DataStreamWriter::writeTo(Scenario::ConstraintViewModel& cvm)
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectReader::readFrom(const Scenario::ConstraintViewModel& cvm)
+JSONObjectReader::read(const Scenario::ConstraintViewModel& cvm)
 {
-  readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintViewModel>&>(
-      cvm));
-
   obj["ShownRack"] = toJsonValue(cvm.shownRack());
 }
 

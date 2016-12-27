@@ -70,37 +70,92 @@ public:
     return reader.obj;
   }
 
-  template <typename T, typename... Args>
-  void readFrom(
-      const T& obj,
-      typename std::
-          enable_if_t<is_template<T>::value && !is_abstract_base<T>::value>* = nullptr)
-  {
-    TSerializer<JSONObject, T>::readFrom(*this, obj);
-  }
-
-  template <
-      typename T,
-      std::
-          enable_if_t<is_abstract_base<T>::value>* = nullptr>
+  //! Called by code that wants to serialize.
+  template<typename T>
   void readFrom(const T& obj)
   {
-    AbstractSerializer<JSONObject, T>::readFrom(*this, obj);
+    readFrom_impl(obj, typename serialization_tag<T>::type{});
   }
 
+  //! Serializable types should reimplement this method
+  //! It is not to be called by user code.
   template <typename T>
-  void readFromConcrete(const T&);
-
-  template <
-      typename T,
-      std::
-          enable_if_t<!is_template<T>::value && !is_abstract_base<T>::value>* = nullptr>
-  void readFrom(const T&);
+  void read(const T&);
 
   QJsonObject obj;
 
   const iscore::ApplicationComponents& components;
   const iscore::StringConstants& strings;
+
+private:
+
+  template <typename T>
+  void readFrom_impl(
+      const T& obj, visitor_template_tag)
+  {
+    TSerializer<JSONObject, T>::readFrom(*this, obj);
+  }
+
+  template <typename T>
+  void readFrom_impl(
+      const T& obj, visitor_object_tag)
+  {
+    TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(*this, obj);
+    read(obj);
+  }
+
+  template <typename T>
+  void readFrom_impl(
+      const T& obj, visitor_entity_tag)
+  {
+    TSerializer<JSONObject, iscore::Entity<T>>::readFrom(*this, obj);
+    read(obj);
+  }
+
+  template<typename T, typename Fun>
+  void readFromAbstract(const T& in, Fun f)
+  {
+    obj[strings.uuid] = toJsonValue(in.concreteKey().impl());
+    f(*this);
+    in.serialize_impl(this->toVariant());
+  }
+
+  template <typename T>
+  void readFrom_impl(
+      const T& obj, visitor_abstract_tag)
+  {
+    readFromAbstract(
+          obj,
+          [&] (JSONObjectReader& sub){ sub.read(obj); });
+  }
+
+  template <typename T>
+  void readFrom_impl(
+      const T& obj, visitor_abstract_object_tag)
+  {
+    readFromAbstract(
+          obj,
+          [&] (JSONObjectReader& sub){ sub.readFrom_impl(obj, visitor_object_tag{}); });
+  }
+
+  template <typename T>
+  void readFrom_impl(
+      const T& obj, visitor_abstract_entity_tag)
+  {
+    readFromAbstract(
+          obj,
+          [&] (JSONObjectReader& sub){ sub.readFrom_impl(obj, visitor_entity_tag{}); });
+  }
+
+  //! Used to serialize general objects that won't fit in the other categories
+  template <typename T>
+  void readFrom_impl(
+      const T& obj, visitor_default_tag)
+  {
+    read(obj);
+  }
+
+
 };
 
 class ISCORE_LIB_BASE_EXPORT JSONObjectWriter
@@ -159,14 +214,16 @@ public:
 template <typename T>
 struct TSerializer<JSONObject, IdentifiedObject<T>>
 {
+  template<typename U>
   static void
-  readFrom(JSONObject::Serializer& s, const IdentifiedObject<T>& obj)
+  readFrom(JSONObject::Serializer& s, const IdentifiedObject<U>& obj)
   {
     s.obj[s.strings.ObjectName] = obj.objectName();
     s.obj[s.strings.id] = obj.id().val();
   }
 
-  static void writeTo(JSONObject::Deserializer& s, IdentifiedObject<T>& obj)
+  template<typename U>
+  static void writeTo(JSONObject::Deserializer& s, IdentifiedObject<U>& obj)
   {
     obj.setObjectName(s.obj[s.strings.ObjectName].toString());
     obj.setId(Id<T>{s.obj[s.strings.id].toInt()});
@@ -208,7 +265,7 @@ struct TSerializer<JSONObject, iscore::Entity<T>>
 {
   static void readFrom(JSONObject::Serializer& s, const iscore::Entity<T>& obj)
   {
-    s.readFrom(static_cast<const IdentifiedObject<T>&>(obj));
+    TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(s, obj);
     s.obj[s.strings.Metadata] = toJsonObject(obj.metadata());
   }
 

@@ -346,7 +346,7 @@ void fromJsonArray(const QJsonArray& arr, std::vector<ossia::value>& array)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::readFrom(const ossia::value& n);
+JSONObjectReader::read(const ossia::value& n);
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
@@ -486,7 +486,7 @@ struct TSerializer<JSONObject, ossia::net::domain_base<ossia::Impulse>>
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::readFrom(const ossia::net::domain& n)
+JSONObjectReader::read(const ossia::net::domain& n)
 {
   readFrom((const ossia::net::domain_base_variant&)n);
 }
@@ -502,7 +502,7 @@ JSONObjectWriter::writeTo(ossia::net::domain& n)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::readFrom(const ossia::value& n)
+JSONObjectReader::read(const ossia::value& n)
 {
   readFrom((const ossia::value_variant_type&)n.v);
 }

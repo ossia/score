@@ -18,7 +18,7 @@ void DataStreamWriter::writeTo(JS::StateProcess& proc)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(const JS::StateProcess& proc)
+void JSONObjectReader::read(const JS::StateProcess& proc)
 {
   obj["Script"] = proc.m_script;
 }

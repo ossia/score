@@ -42,10 +42,8 @@ DataStreamWriter::writeTo(Scenario::EventModel& ev)
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectReader::readFrom(const Scenario::EventModel& ev)
+JSONObjectReader::read(const Scenario::EventModel& ev)
 {
-  readFrom(static_cast<const iscore::Entity<Scenario::EventModel>&>(ev));
-
   obj["TimeNode"] = toJsonValue(ev.m_timeNode);
   obj["States"] = toJsonArray(ev.m_states);
 

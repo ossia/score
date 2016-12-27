@@ -18,7 +18,7 @@ DataStreamWriter::writeTo(InvisibleRootNode&)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-JSONObjectReader::readFrom(const InvisibleRootNode&)
+JSONObjectReader::read(const InvisibleRootNode&)
 {
 }
 

@@ -169,7 +169,7 @@ void DataStreamWriter::writeTo(Scenario::ProcessModel& scenario)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Scenario::ProcessModel& scenario)
 {
   obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);

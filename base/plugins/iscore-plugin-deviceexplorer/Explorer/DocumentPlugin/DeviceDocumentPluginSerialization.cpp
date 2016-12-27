@@ -13,7 +13,7 @@ void DataStreamReader::read(
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Explorer::DeviceDocumentPlugin& plug)
 {
   // Childrens of the root node are the devices

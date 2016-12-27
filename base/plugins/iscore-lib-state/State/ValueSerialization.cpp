@@ -71,7 +71,7 @@ ISCORE_LIB_STATE_EXPORT QJsonValue ValueToJson(const State::Value& value)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::readFrom(const State::Value& val)
+JSONObjectReader::read(const State::Value& val)
 {
   obj[strings.Type] = State::convert::textualType(val);
   obj[strings.Value] = ValueToJson(val);

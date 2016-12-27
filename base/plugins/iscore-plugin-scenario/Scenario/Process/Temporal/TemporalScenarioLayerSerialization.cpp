@@ -55,7 +55,7 @@ void DataStreamWriter::writeTo(Scenario::TemporalScenarioLayer& lm)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Scenario::TemporalScenarioLayer& lm)
 {
   QJsonArray arr;

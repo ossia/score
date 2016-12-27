@@ -22,7 +22,7 @@ DataStreamWriter::writeTo(WidgetLayer::Layer& lm)
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::readFromConcrete(const WidgetLayer::Layer& lm)
+JSONObjectReader::read(const WidgetLayer::Layer& lm)
 {
 }
 

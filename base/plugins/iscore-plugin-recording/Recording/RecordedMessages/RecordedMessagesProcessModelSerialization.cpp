@@ -30,7 +30,7 @@ void DataStreamWriter::writeTo(
 
 
 template <>
-void JSONObjectReader::readFrom(
+void JSONObjectReader::read(
     const RecordedMessages::RecordedMessage& rm)
 {
   obj["Percentage"] = rm.percentage;
@@ -67,7 +67,7 @@ void DataStreamWriter::writeTo(RecordedMessages::ProcessModel& proc)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const RecordedMessages::ProcessModel& proc)
 {
   obj["Messages"] = toJsonArray(proc.messages());

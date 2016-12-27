@@ -40,11 +40,9 @@ void DataStreamWriter::writeTo(
 
 
 template <>
-void JSONObjectReader::readFrom(
+void JSONObjectReader::read(
     const Scenario::BaseScenario& base_scenario)
 {
-  readFrom(static_cast<const IdentifiedObject<Scenario::BaseScenario>&>(
-      base_scenario));
   readFrom(static_cast<const Scenario::BaseScenarioContainer&>(base_scenario));
 }
 

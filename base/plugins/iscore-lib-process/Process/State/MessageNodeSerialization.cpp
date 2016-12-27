@@ -104,7 +104,7 @@ void DataStreamWriter::writeTo(Process::ProcessStateData& val)
 }
 
 template <>
-void JSONObjectReader::readFrom(
+void JSONObjectReader::read(
     const Process::ProcessStateData& val)
 {
   obj[strings.Process] = toJsonValue(val.process);
@@ -134,7 +134,7 @@ void DataStreamWriter::writeTo(Process::StateNodeValues& val)
 }
 
 template <>
-void JSONObjectReader::readFrom(const Process::StateNodeValues& val)
+void JSONObjectReader::read(const Process::StateNodeValues& val)
 {
   obj[strings.Previous] = toJsonArray(val.previousProcessValues);
   obj[strings.Following] = toJsonArray(val.followingProcessValues);
@@ -170,7 +170,7 @@ DataStreamWriter::writeTo(Process::StateNodeData& node)
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::readFrom(const Process::StateNodeData& node)
+JSONObjectReader::read(const Process::StateNodeData& node)
 {
   readFrom(node.name);
   readFrom(node.values);

@@ -23,7 +23,7 @@ void DataStreamWriter::writeTo(Curve::PointArraySegment& segmt)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Curve::PointArraySegment& segmt)
 {
   ISCORE_TODO;
@@ -53,7 +53,7 @@ void DataStreamWriter::writeTo(Curve::PointArraySegmentData& segmt)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Curve::PointArraySegmentData& segmt)
 {
   ISCORE_TODO;

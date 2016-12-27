@@ -17,7 +17,7 @@ void serialize_dyn(const VisitorVariant& vis, const TheClass& s)
   }
   else if (vis.identifier == JSONObject::type())
   {
-    static_cast<JSONObject::Serializer&>(vis.visitor).readFromConcrete(s);
+    static_cast<JSONObject::Serializer&>(vis.visitor).read(s);
     return;
   }
 

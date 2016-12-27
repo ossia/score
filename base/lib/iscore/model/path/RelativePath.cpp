@@ -74,7 +74,7 @@ DataStreamWriter::writeTo(iscore::RelativePath& path)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-JSONObjectReader::readFrom(const iscore::RelativePath& path)
+JSONObjectReader::read(const iscore::RelativePath& path)
 {
   obj["Parents"] = path.m_parents;
   readFrom(path.m_remainder);

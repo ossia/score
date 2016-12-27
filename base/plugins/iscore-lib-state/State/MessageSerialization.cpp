@@ -24,7 +24,7 @@ DataStreamReader::read(const State::Message& mess)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::readFrom(const State::Message& mess)
+JSONObjectReader::read(const State::Message& mess)
 {
   obj[strings.Address] = toJsonObject(mess.address);
   obj[strings.Type] = State::convert::textualType(mess.value);

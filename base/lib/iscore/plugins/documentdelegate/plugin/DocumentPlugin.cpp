@@ -43,8 +43,7 @@ void DataStreamReader::read(
 }
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const iscore::SerializableDocumentPlugin& dpm)
 {
-  readFrom(static_cast<const IdentifiedObject<iscore::DocumentPlugin>&>(dpm));
 }
