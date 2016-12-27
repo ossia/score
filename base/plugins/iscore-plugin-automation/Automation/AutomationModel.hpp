@@ -50,7 +50,7 @@ public:
   ~ProcessModel();
 
   template <typename Impl>
-  ProcessModel(Deserializer<Impl>& vis, QObject* parent)
+  ProcessModel(Impl& vis, QObject* parent)
       : CurveProcessModel{vis, parent}
       , m_startState{new ProcessState{*this, 0., this}}
       , m_endState{new ProcessState{*this, 1., this}}

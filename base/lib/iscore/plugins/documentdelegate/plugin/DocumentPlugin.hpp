@@ -40,7 +40,7 @@ public:
   template <typename Impl>
   explicit DocumentPlugin(
       const iscore::DocumentContext& ctx,
-      Deserializer<Impl>& vis,
+      Impl& vis,
       QObject* parent)
       : IdentifiedObject{vis, parent}, m_context{ctx}
   {

@@ -9,13 +9,13 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 template <>
-void Visitor<Reader<DataStream>>::read(const ObjectIdentifier& obj)
+void DataStreamReader::read(const ObjectIdentifier& obj)
 {
   m_stream << obj.objectName() << obj.id();
 }
 
 template <>
-void Visitor<Writer<DataStream>>::writeTo(ObjectIdentifier& obj)
+void DataStreamWriter::writeTo(ObjectIdentifier& obj)
 {
   QString name;
   int32_t id;
@@ -23,16 +23,16 @@ void Visitor<Writer<DataStream>>::writeTo(ObjectIdentifier& obj)
   obj = ObjectIdentifier{name, id};
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFrom(const ObjectIdentifier& obj)
+template<>
+void JSONObjectReader::readFrom(const ObjectIdentifier& id)
 {
-  m_obj[strings.ObjectName] = obj.objectName();
-  m_obj[strings.ObjectId] = obj.id();
+  obj[strings.ObjectName] = id.objectName();
+  obj[strings.ObjectId] = id.id();
 }
 
-template <>
-void Visitor<Writer<JSONObject>>::writeTo(ObjectIdentifier& obj)
+template<>
+void JSONObjectWriter::writeTo(ObjectIdentifier& id)
 {
-  obj = ObjectIdentifier{m_obj[strings.ObjectName].toString(),
-                         m_obj[strings.ObjectId].toInt()};
+  id = ObjectIdentifier{obj[strings.ObjectName].toString(),
+                         obj[strings.ObjectId].toInt()};
 }

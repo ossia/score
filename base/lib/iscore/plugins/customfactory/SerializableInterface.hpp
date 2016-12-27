@@ -10,7 +10,7 @@ struct AbstractSerializer<JSONObject, T>
 {
   static void readFrom(JSONObject::Serializer& s, const T& obj)
   {
-    s.m_obj[s.strings.uuid] = toJsonValue(obj.concreteKey().impl());
+    s.obj[s.strings.uuid] = toJsonValue(obj.concreteKey().impl());
     s.readFromConcrete(obj);
     obj.serialize_impl(s.toVariant());
   }
@@ -50,13 +50,13 @@ public:
 }
 
 template <typename Type>
-Type deserialize_key(Deserializer<JSONObject>& des)
+Type deserialize_key(JSONObject::Deserializer& des)
 {
-  return fromJsonValue<iscore::uuid_t>(des.m_obj[des.strings.uuid]);
+  return fromJsonValue<iscore::uuid_t>(des.obj[des.strings.uuid]);
 }
 
 template <typename Type>
-Type deserialize_key(Deserializer<DataStream>& des)
+Type deserialize_key(DataStream::Deserializer& des)
 {
   iscore::uuid_t uid;
   des.writeTo(uid);

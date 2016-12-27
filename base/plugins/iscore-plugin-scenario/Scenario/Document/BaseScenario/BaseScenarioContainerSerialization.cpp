@@ -17,8 +17,9 @@ class Reader;
 template <typename T>
 class Writer;
 
+
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::BaseScenarioContainer& base_scenario)
 {
   readFrom(*base_scenario.m_constraint);
@@ -33,8 +34,9 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
   readFrom(*base_scenario.m_endState);
 }
 
+
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::writeTo(
     Scenario::BaseScenarioContainer& base_scenario)
 {
   using namespace Scenario;
@@ -61,53 +63,55 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
       *base_scenario.m_startState, *base_scenario.m_constraint);
 }
 
+
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::readFrom(
     const Scenario::BaseScenarioContainer& base_scenario)
 {
-  m_obj["Constraint"] = toJsonObject(*base_scenario.m_constraint);
+  obj["Constraint"] = toJsonObject(*base_scenario.m_constraint);
 
-  m_obj["StartTimeNode"] = toJsonObject(*base_scenario.m_startNode);
-  m_obj["EndTimeNode"] = toJsonObject(*base_scenario.m_endNode);
+  obj["StartTimeNode"] = toJsonObject(*base_scenario.m_startNode);
+  obj["EndTimeNode"] = toJsonObject(*base_scenario.m_endNode);
 
-  m_obj["StartEvent"] = toJsonObject(*base_scenario.m_startEvent);
-  m_obj["EndEvent"] = toJsonObject(*base_scenario.m_endEvent);
+  obj["StartEvent"] = toJsonObject(*base_scenario.m_startEvent);
+  obj["EndEvent"] = toJsonObject(*base_scenario.m_endEvent);
 
-  m_obj["StartState"] = toJsonObject(*base_scenario.m_startState);
-  m_obj["EndState"] = toJsonObject(*base_scenario.m_endState);
+  obj["StartState"] = toJsonObject(*base_scenario.m_startState);
+  obj["EndState"] = toJsonObject(*base_scenario.m_endState);
 }
 
+
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<JSONObject>>::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::writeTo(
     Scenario::BaseScenarioContainer& base_scenario)
 {
   using namespace Scenario;
   base_scenario.m_constraint = new ConstraintModel{
-      Deserializer<JSONObject>{m_obj["Constraint"].toObject()},
+      JSONObject::Deserializer{obj["Constraint"].toObject()},
       base_scenario.m_parent};
 
   base_scenario.m_startNode = new TimeNodeModel{
-      Deserializer<JSONObject>{m_obj["StartTimeNode"].toObject()},
+      JSONObject::Deserializer{obj["StartTimeNode"].toObject()},
       base_scenario.m_parent};
   base_scenario.m_endNode = new TimeNodeModel{
-      Deserializer<JSONObject>{m_obj["EndTimeNode"].toObject()},
+      JSONObject::Deserializer{obj["EndTimeNode"].toObject()},
       base_scenario.m_parent};
 
   base_scenario.m_startEvent = new EventModel{
-      Deserializer<JSONObject>{m_obj["StartEvent"].toObject()},
+      JSONObject::Deserializer{obj["StartEvent"].toObject()},
       base_scenario.m_parent};
   base_scenario.m_endEvent
-      = new EventModel{Deserializer<JSONObject>{m_obj["EndEvent"].toObject()},
+      = new EventModel{JSONObject::Deserializer{obj["EndEvent"].toObject()},
                        base_scenario.m_parent};
 
   auto& stack
       = iscore::IDocument::documentContext(base_scenario.parentObject())
             .commandStack;
   base_scenario.m_startState = new StateModel{
-      Deserializer<JSONObject>{m_obj["StartState"].toObject()}, stack,
+      JSONObject::Deserializer{obj["StartState"].toObject()}, stack,
       base_scenario.m_parent};
   base_scenario.m_endState
-      = new StateModel{Deserializer<JSONObject>{m_obj["EndState"].toObject()},
+      = new StateModel{JSONObject::Deserializer{obj["EndState"].toObject()},
                        stack, base_scenario.m_parent};
 
   Scenario::SetPreviousConstraint(

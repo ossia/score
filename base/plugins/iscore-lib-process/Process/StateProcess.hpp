@@ -22,8 +22,8 @@ public:
   StateProcess(
       const Id<StateProcess>& id, const QString& name, QObject* parent);
 
-  StateProcess(Deserializer<DataStream>& vis, QObject* parent);
-  StateProcess(Deserializer<JSONObject>& vis, QObject* parent);
+  StateProcess(DataStream::Deserializer& vis, QObject* parent);
+  StateProcess(JSONObject::Deserializer& vis, QObject* parent);
 
   virtual ~StateProcess();
 

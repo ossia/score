@@ -84,7 +84,7 @@ struct Visitor<Writer<Mime<Device::FreeNodeList>>> : public MimeDataWriter
       auto obj = elt.toObject();
       n.first = fromJsonObject<State::Address>(obj[strings.Address]);
 
-      Deserializer<JSONObject> des{obj};
+      JSONObject::Deserializer des{obj};
       des.writeTo(n.second);
       ml.push_back(n);
     }

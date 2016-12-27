@@ -22,8 +22,9 @@ class Writer;
 template <typename model>
 class IdentifiedObject;
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(const Scenario::RackModel& rack)
+void DataStreamReader::read(const Scenario::RackModel& rack)
 {
   m_stream << rack.slotsPositions();
 
@@ -38,8 +39,9 @@ void Visitor<Reader<DataStream>>::read(const Scenario::RackModel& rack)
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Scenario::RackModel& rack)
+void DataStreamWriter::writeTo(Scenario::RackModel& rack)
 {
   int32_t slots_size;
   QList<Id<Scenario::SlotModel>> positions;
@@ -56,8 +58,9 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::RackModel& rack)
   checkDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFrom(const Scenario::RackModel& rack)
+void JSONObjectReader::readFrom(const Scenario::RackModel& rack)
 {
   readFrom(static_cast<const iscore::Entity<Scenario::RackModel>&>(rack));
 
@@ -67,7 +70,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Scenario::RackModel& rack)
     arr.push_back(toJsonObject(slot));
   }
 
-  m_obj["Slots"] = arr;
+  obj["Slots"] = arr;
 
   QJsonArray positions;
 
@@ -76,14 +79,15 @@ void Visitor<Reader<JSONObject>>::readFrom(const Scenario::RackModel& rack)
     positions.append(id.val());
   }
 
-  m_obj["SlotsPositions"] = positions;
+  obj["SlotsPositions"] = positions;
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Scenario::RackModel& rack)
+void JSONObjectWriter::writeTo(Scenario::RackModel& rack)
 {
-  QJsonArray theSlots = m_obj["Slots"].toArray();
-  QJsonArray slotsPositions = m_obj["SlotsPositions"].toArray();
+  QJsonArray theSlots = obj["Slots"].toArray();
+  QJsonArray slotsPositions = obj["SlotsPositions"].toArray();
   QMap<Id<Scenario::SlotModel>, int> list;
 
   int i = 0;
@@ -95,7 +99,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Scenario::RackModel& rack)
 
   for (const auto& json_slot : theSlots)
   {
-    Deserializer<JSONObject> deserializer{json_slot.toObject()};
+    JSONObject::Deserializer deserializer{json_slot.toObject()};
     auto slot = new Scenario::SlotModel{deserializer, &rack};
     rack.addSlot(slot, list[slot->id()]);
   }

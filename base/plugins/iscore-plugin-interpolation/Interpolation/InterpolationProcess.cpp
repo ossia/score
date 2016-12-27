@@ -229,9 +229,10 @@ ProcessModel::ProcessModel(
 }
 }
 
+
 template <>
 ISCORE_PLUGIN_INTERPOLATION_EXPORT void
-Visitor<Reader<DataStream>>::read(
+DataStreamReader::read(
     const Interpolation::ProcessModel& interp)
 {
   readFrom(interp.curve());
@@ -242,9 +243,10 @@ Visitor<Reader<DataStream>>::read(
   insertDelimiter();
 }
 
+
 template <>
 ISCORE_PLUGIN_INTERPOLATION_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Interpolation::ProcessModel& interp)
+DataStreamWriter::writeTo(Interpolation::ProcessModel& interp)
 {
   interp.setCurve(new Curve::Model{*this, &interp});
 
@@ -262,30 +264,32 @@ Visitor<Writer<DataStream>>::writeTo(Interpolation::ProcessModel& interp)
   checkDelimiter();
 }
 
-template <>
-ISCORE_PLUGIN_INTERPOLATION_EXPORT void
-Visitor<Reader<JSONObject>>::readFromConcrete(
-    const Interpolation::ProcessModel& interp)
-{
-  m_obj["Curve"] = toJsonObject(interp.curve());
-  m_obj[strings.Address] = toJsonObject(interp.address());
-  m_obj[strings.Unit] = QString::fromStdString(
-      ossia::get_pretty_unit_text(interp.sourceUnit()));
-  m_obj[strings.Start] = toJsonObject(interp.start());
-  m_obj[strings.End] = toJsonObject(interp.end());
-}
 
 template <>
 ISCORE_PLUGIN_INTERPOLATION_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Interpolation::ProcessModel& interp)
+JSONObjectReader::readFromConcrete(
+    const Interpolation::ProcessModel& interp)
 {
-  Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
+  obj["Curve"] = toJsonObject(interp.curve());
+  obj[strings.Address] = toJsonObject(interp.address());
+  obj[strings.Unit] = QString::fromStdString(
+      ossia::get_pretty_unit_text(interp.sourceUnit()));
+  obj[strings.Start] = toJsonObject(interp.start());
+  obj[strings.End] = toJsonObject(interp.end());
+}
+
+
+template <>
+ISCORE_PLUGIN_INTERPOLATION_EXPORT void
+JSONObjectWriter::writeTo(Interpolation::ProcessModel& interp)
+{
+  JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   interp.setCurve(new Curve::Model{curve_deser, &interp});
 
   interp.setAddress(
-      fromJsonObject<State::AddressAccessor>(m_obj[strings.Address]));
+      fromJsonObject<State::AddressAccessor>(obj[strings.Address]));
   interp.setSourceUnit(
-      ossia::parse_pretty_unit(m_obj[strings.Unit].toString().toStdString()));
-  interp.setStart(fromJsonObject<State::Value>(m_obj[strings.Start]));
-  interp.setEnd(fromJsonObject<State::Value>(m_obj[strings.End]));
+      ossia::parse_pretty_unit(obj[strings.Unit].toString().toStdString()));
+  interp.setStart(fromJsonObject<State::Value>(obj[strings.Start]));
+  interp.setEnd(fromJsonObject<State::Value>(obj[strings.End]));
 }

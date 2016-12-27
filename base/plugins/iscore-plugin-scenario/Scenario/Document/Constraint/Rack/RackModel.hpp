@@ -48,7 +48,7 @@ public:
       QObject* parent);
 
   template <typename Impl>
-  RackModel(Deserializer<Impl>& vis, QObject* parent) : Entity{vis, parent}
+  RackModel(Impl& vis, QObject* parent) : Entity{vis, parent}
   {
     initConnections();
     vis.writeTo(*this);

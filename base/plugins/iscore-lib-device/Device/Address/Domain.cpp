@@ -79,28 +79,28 @@ Domain::operator ossia::net::domain&() noexcept
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<DataStream>>::read(const Device::Domain& var)
+DataStreamReader::read(const Device::Domain& var)
 {
   readFrom(var.get());
 }
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Device::Domain& var)
+DataStreamWriter::writeTo(Device::Domain& var)
 {
   writeTo(var.get());
 }
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const Device::Domain& var)
+JSONObjectReader::readFrom(const Device::Domain& var)
 {
   readFrom(var.get());
 }
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Device::Domain& var)
+JSONObjectWriter::writeTo(Device::Domain& var)
 {
   writeTo(var.get());
 }

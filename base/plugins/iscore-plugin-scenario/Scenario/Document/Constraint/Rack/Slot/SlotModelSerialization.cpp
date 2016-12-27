@@ -28,8 +28,9 @@ class Writer;
 template <typename model>
 class IdentifiedObject;
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(const Scenario::SlotModel& slot)
+void DataStreamReader::read(const Scenario::SlotModel& slot)
 {
   m_stream << slot.m_frontLayerModelId;
 
@@ -52,8 +53,9 @@ void Visitor<Reader<DataStream>>::read(const Scenario::SlotModel& slot)
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
+void DataStreamWriter::writeTo(Scenario::SlotModel& slot)
 {
   OptionalId<Process::LayerModel> editedProcessId;
   m_stream >> editedProcessId;
@@ -82,13 +84,14 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::SlotModel& slot)
   checkDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFrom(const Scenario::SlotModel& slot)
+void JSONObjectReader::readFrom(const Scenario::SlotModel& slot)
 {
   readFrom(static_cast<const iscore::Entity<Scenario::SlotModel>&>(slot));
 
-  m_obj["EditedProcess"] = toJsonValue(slot.m_frontLayerModelId);
-  m_obj["Height"] = slot.getHeight();
+  obj["EditedProcess"] = toJsonValue(slot.m_frontLayerModelId);
+  obj["Height"] = slot.getHeight();
 
   // TODO toJsonArray
   QJsonArray arr;
@@ -104,20 +107,21 @@ void Visitor<Reader<JSONObject>>::readFrom(const Scenario::SlotModel& slot)
     arr.push_back(std::move(obj));
   }
 
-  m_obj["LayerModels"] = arr;
+  obj["LayerModels"] = arr;
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
+void JSONObjectWriter::writeTo(Scenario::SlotModel& slot)
 {
-  QJsonArray arr = m_obj["LayerModels"].toArray();
+  QJsonArray arr = obj["LayerModels"].toArray();
 
   auto& layers = components.interfaces<Process::LayerFactoryList>();
   for (const auto& json_vref : arr)
   {
-    Deserializer<JSONObject> des{json_vref.toObject()};
+    JSONObject::Deserializer des{json_vref.toObject()};
     auto process
-        = fromJsonObject<iscore::RelativePath>(des.m_obj["SharedProcess"]);
+        = fromJsonObject<iscore::RelativePath>(des.obj["SharedProcess"]);
 
     auto lm = deserialize_interface(layers, des, process, &slot);
     if (lm)
@@ -126,8 +130,8 @@ void Visitor<Writer<JSONObject>>::writeTo(Scenario::SlotModel& slot)
       ISCORE_TODO;
   }
 
-  slot.setHeight(static_cast<qreal>(m_obj["Height"].toDouble()));
+  slot.setHeight(static_cast<qreal>(obj["Height"].toDouble()));
   auto editedProc
-      = fromJsonValue<OptionalId<Process::LayerModel>>(m_obj["EditedProcess"]);
+      = fromJsonValue<OptionalId<Process::LayerModel>>(obj["EditedProcess"]);
   slot.putToFront(editedProc);
 }

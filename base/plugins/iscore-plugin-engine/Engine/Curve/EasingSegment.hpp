@@ -3,7 +3,6 @@
 #include <Curve/Segment/CurveSegmentFactory.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <iscore_plugin_engine_export.h>
-
 namespace Engine
 {
 namespace EasingCurve
@@ -74,8 +73,8 @@ public:
   {
   }
 
-  template <typename Impl>
-  EasingSegment(Deserializer<Impl>& vis, QObject* parent)
+  template <typename Impl, typename = ossia::void_t<decltype(Impl::writeTo)>>
+  EasingSegment(Impl& vis, QObject* parent)
       : Curve::SegmentModel{vis, parent}
   {
     vis.writeTo(*this);
@@ -195,26 +194,26 @@ using Segment_perlinInOut = EasingSegment<ossia::easing::perlinInOut>;
 }
 
 template <>
-inline void Visitor<Reader<DataStream>>::read(
+inline void DataStreamReader::read(
     const Engine::EasingCurve::EasingData& segmt)
 {
 }
 
 template <>
 inline void
-Visitor<Writer<DataStream>>::writeTo(Engine::EasingCurve::EasingData& segmt)
+DataStreamWriter::writeTo(Engine::EasingCurve::EasingData& segmt)
 {
 }
 
 template <>
-inline void Visitor<Reader<JSONObject>>::readFromConcrete(
+inline void JSONObjectReader::readFromConcrete(
     const Engine::EasingCurve::EasingData& segmt)
 {
 }
 
 template <>
 inline void
-Visitor<Writer<JSONObject>>::writeTo(Engine::EasingCurve::EasingData& segmt)
+JSONObjectWriter::writeTo(Engine::EasingCurve::EasingData& segmt)
 {
 }
 

@@ -17,14 +17,10 @@
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<DataStream>>::read(const Device::DeviceSettings& n)
+DataStreamReader::read(const Device::DeviceSettings& n)
 {
   m_stream << n.name << n.protocol;
 
@@ -48,7 +44,7 @@ Visitor<Reader<DataStream>>::read(const Device::DeviceSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Device::DeviceSettings& n)
+DataStreamWriter::writeTo(Device::DeviceSettings& n)
 {
   m_stream >> n.name >> n.protocol;
 
@@ -66,12 +62,13 @@ Visitor<Writer<DataStream>>::writeTo(Device::DeviceSettings& n)
 
   checkDelimiter();
 }
+
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const Device::DeviceSettings& n)
+JSONObjectReader::readFrom(const Device::DeviceSettings& n)
 {
-  m_obj[strings.Name] = n.name;
-  m_obj[strings.Protocol] = toJsonValue(n.protocol);
+  obj[strings.Name] = n.name;
+  obj[strings.Protocol] = toJsonValue(n.protocol);
 
   auto& pl = components.interfaces<Device::ProtocolFactoryList>();
   auto prot = pl.get(n.protocol);
@@ -88,11 +85,11 @@ Visitor<Reader<JSONObject>>::readFrom(const Device::DeviceSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Device::DeviceSettings& n)
+JSONObjectWriter::writeTo(Device::DeviceSettings& n)
 {
-  n.name = m_obj[strings.Name].toString();
+  n.name = obj[strings.Name].toString();
   n.protocol = fromJsonValue<UuidKey<Device::ProtocolFactory>>(
-      m_obj[strings.Protocol]);
+      obj[strings.Protocol]);
 
   auto pl = components.findInterfaces<Device::ProtocolFactoryList>();
   if(pl)

@@ -137,16 +137,16 @@ void ModelMetadata::setExtendedMetadata(const QVariantMap& arg)
 }
 
 // MOVEME
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::read(const iscore::ColorRef& md)
+DataStreamReader::read(const iscore::ColorRef& md)
 {
   m_stream << md.name();
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(iscore::ColorRef& md)
+DataStreamWriter::writeTo(iscore::ColorRef& md)
 {
   QString col_name;
   m_stream >> col_name;
@@ -156,9 +156,9 @@ Visitor<Writer<DataStream>>::writeTo(iscore::ColorRef& md)
     md = *col;
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::read(const iscore::ModelMetadata& md)
+DataStreamReader::read(const iscore::ModelMetadata& md)
 {
   m_stream << md.m_scriptingName << md.m_comment << md.m_color << md.m_label
            << md.m_extendedMetadata;
@@ -166,9 +166,9 @@ Visitor<Reader<DataStream>>::read(const iscore::ModelMetadata& md)
   insertDelimiter();
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(iscore::ModelMetadata& md)
+DataStreamWriter::writeTo(iscore::ModelMetadata& md)
 {
   m_stream >> md.m_scriptingName >> md.m_comment >> md.m_color >> md.m_label
            >> md.m_extendedMetadata;
@@ -176,29 +176,29 @@ Visitor<Writer<DataStream>>::writeTo(iscore::ModelMetadata& md)
   checkDelimiter();
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const iscore::ModelMetadata& md)
+JSONObjectReader::readFrom(const iscore::ModelMetadata& md)
 {
-  m_obj[strings.ScriptingName] = md.m_scriptingName;
-  m_obj[strings.Comment] = md.m_comment;
-  m_obj[strings.Color] = md.m_color.name();
-  m_obj[strings.Label] = md.m_label;
+  obj[strings.ScriptingName] = md.m_scriptingName;
+  obj[strings.Comment] = md.m_comment;
+  obj[strings.Color] = md.m_color.name();
+  obj[strings.Label] = md.m_label;
   if (!md.m_extendedMetadata.empty())
   {
-    m_obj.insert(
+    obj.insert(
         strings.Extended, QJsonObject::fromVariantMap(md.m_extendedMetadata));
   }
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(iscore::ModelMetadata& md)
+JSONObjectWriter::writeTo(iscore::ModelMetadata& md)
 {
-  md.m_scriptingName = m_obj[strings.ScriptingName].toString();
-  md.m_comment = m_obj[strings.Comment].toString();
+  md.m_scriptingName = obj[strings.ScriptingName].toString();
+  md.m_comment = obj[strings.Comment].toString();
 
-  QJsonValue color_val = m_obj[strings.Color];
+  QJsonValue color_val = obj[strings.Color];
   if (color_val.isArray())
   {
     // Old save format
@@ -216,11 +216,11 @@ Visitor<Writer<JSONObject>>::writeTo(iscore::ModelMetadata& md)
       md.m_color = *col;
   }
 
-  md.m_label = m_obj[strings.Label].toString();
+  md.m_label = obj[strings.Label].toString();
 
   {
-    auto it = m_obj.find(strings.Extended);
-    if (it != m_obj.end())
+    auto it = obj.find(strings.Extended);
+    if (it != obj.end())
     {
       md.m_extendedMetadata = it->toObject().toVariantMap();
     }

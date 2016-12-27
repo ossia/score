@@ -2,22 +2,24 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <iscore/serialization/VariantSerialization.hpp>
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Explorer::DeviceDocumentPlugin& dev)
 {
   readFrom(dev.rootNode());
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
+void JSONObjectReader::readFromConcrete(
     const Explorer::DeviceDocumentPlugin& plug)
 {
   // Childrens of the root node are the devices
   // We don't save their children if they don't have canSerialize().
 
-  m_obj["RootNode"] = QJsonObject{};
+  obj["RootNode"] = QJsonObject{};
   QJsonArray children;
   for (const Device::Node& node : plug.rootNode().children())
   {
@@ -38,11 +40,12 @@ void Visitor<Reader<JSONObject>>::readFromConcrete(
 
     children.push_back(std::move(this_node));
   }
-  m_obj["Children"] = children;
+  obj["Children"] = children;
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Explorer::DeviceDocumentPlugin& plug)
+void DataStreamWriter::writeTo(Explorer::DeviceDocumentPlugin& plug)
 {
   Device::Node n;
   writeTo(n);
@@ -59,8 +62,9 @@ void Visitor<Writer<DataStream>>::writeTo(Explorer::DeviceDocumentPlugin& plug)
   }
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Explorer::DeviceDocumentPlugin& plug)
+void JSONObjectWriter::writeTo(Explorer::DeviceDocumentPlugin& plug)
 {
   Device::Node n;
   writeTo(n);

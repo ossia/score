@@ -13,16 +13,10 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/model/IdentifiedObjectMap.hpp>
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-template <typename model>
-class IdentifiedObject;
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Reader<DataStream>>::read(const Curve::Model& curve)
+DataStreamReader::read(const Curve::Model& curve)
 {
   const auto& segments = curve.segments();
 
@@ -34,9 +28,10 @@ Visitor<Reader<DataStream>>::read(const Curve::Model& curve)
   insertDelimiter();
 }
 
+
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Curve::Model& curve)
+DataStreamWriter::writeTo(Curve::Model& curve)
 {
   int32_t size;
   m_stream >> size;
@@ -55,23 +50,25 @@ Visitor<Writer<DataStream>>::writeTo(Curve::Model& curve)
   checkDelimiter();
 }
 
+
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const Curve::Model& curve)
+JSONObjectReader::readFrom(const Curve::Model& curve)
 {
   readFrom(static_cast<const IdentifiedObject<Curve::Model>&>(curve));
 
-  m_obj["Segments"] = toJsonArray(curve.segments());
+  obj["Segments"] = toJsonArray(curve.segments());
 }
+
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Curve::Model& curve)
+JSONObjectWriter::writeTo(Curve::Model& curve)
 {
   auto& csl = components.interfaces<Curve::SegmentList>();
-  for (const auto& segment : m_obj["Segments"].toArray())
+  for (const auto& segment : obj["Segments"].toArray())
   {
-    Deserializer<JSONObject> segment_deser{segment.toObject()};
+    JSONObject::Deserializer segment_deser{segment.toObject()};
     auto seg = deserialize_interface(csl, segment_deser, &curve);
     if (seg)
       curve.addSegment(seg);

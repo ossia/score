@@ -24,14 +24,14 @@ template <typename T>
 class Reader;
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::TemporalConstraintViewModel& constraint)
 {
   read(static_cast<const Scenario::ConstraintViewModel&>(constraint));
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<JSONObject>>::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::readFrom(
     const Scenario::TemporalConstraintViewModel& constraint)
 {
   readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
@@ -55,7 +55,7 @@ serializeConstraintViewModels(
     if (auto temporalCstrVM
         = dynamic_cast<const Scenario::TemporalConstraintViewModel*>(&cstrVM))
     {
-      Serializer<DataStream> cvmReader{&arr};
+      DataStream::Serializer cvmReader{&arr};
       cvmReader.readFrom(temporalCstrVM->model().id());
       cvmReader.readFrom(*temporalCstrVM);
     }
@@ -88,7 +88,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void deserializeConstraintViewModels(
       });
       if (it != end(vms))
       {
-        Deserializer<DataStream> d{((*it).second.second)};
+        DataStream::Deserializer d{((*it).second.second)};
         Id<ConstraintModel> cst_id;
         d.writeTo(cst_id);
         auto cvm = loadConstraintViewModel(d, temporalSVM, cst_id);

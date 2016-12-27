@@ -11,32 +11,30 @@
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::read(const State::Message& mess)
+DataStreamReader::read(const State::Message& mess)
 {
   readFrom(mess.address);
   readFrom(mess.value);
   insertDelimiter();
 }
 
-template <>
-ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const State::Message& mess)
-{
-  m_obj[strings.Address] = toJsonObject(mess.address);
-  m_obj[strings.Type] = State::convert::textualType(mess.value);
-  m_obj[strings.Value] = ValueToJson(mess.value);
-}
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(State::Message& mess)
+JSONObjectReader::readFrom(const State::Message& mess)
+{
+  obj[strings.Address] = toJsonObject(mess.address);
+  obj[strings.Type] = State::convert::textualType(mess.value);
+  obj[strings.Value] = ValueToJson(mess.value);
+}
+
+
+template <>
+ISCORE_LIB_STATE_EXPORT void
+DataStreamWriter::writeTo(State::Message& mess)
 {
   writeTo(mess.address);
   writeTo(mess.value);
@@ -46,10 +44,10 @@ Visitor<Writer<DataStream>>::writeTo(State::Message& mess)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(State::Message& mess)
+JSONObjectWriter::writeTo(State::Message& mess)
 {
   mess.address
-      = fromJsonObject<State::AddressAccessor>(m_obj[strings.Address]);
+      = fromJsonObject<State::AddressAccessor>(obj[strings.Address]);
   mess.value = State::convert::fromQJsonValue(
-      m_obj[strings.Value], m_obj[strings.Type].toString());
+      obj[strings.Value], obj[strings.Type].toString());
 }

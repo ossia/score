@@ -7,13 +7,13 @@ StateProcess::StateProcess(
 {
 }
 
-StateProcess::StateProcess(Deserializer<JSONObject>& vis, QObject* parent)
+StateProcess::StateProcess(JSONObject::Deserializer& vis, QObject* parent)
     : IdentifiedObject(vis, parent)
 {
   vis.writeTo(*this);
 }
 
-StateProcess::StateProcess(Deserializer<DataStream>& vis, QObject* parent)
+StateProcess::StateProcess(DataStream::Deserializer& vis, QObject* parent)
     : IdentifiedObject(vis, parent)
 {
   vis.writeTo(*this);

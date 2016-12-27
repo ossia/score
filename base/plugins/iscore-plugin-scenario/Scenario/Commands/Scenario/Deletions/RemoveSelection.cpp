@@ -120,7 +120,7 @@ RemoveSelection::RemoveSelection(
     if (auto state = dynamic_cast<const StateModel*>(obj))
     {
       QByteArray arr;
-      Serializer<DataStream> s{&arr};
+      DataStream::Serializer s{&arr};
       s.readFrom(*state);
       m_removedStates.push_back({state->id(), arr});
     }
@@ -130,7 +130,7 @@ RemoveSelection::RemoveSelection(
       if (event->id() != Id<EventModel>{0})
       {
         QByteArray arr;
-        Serializer<DataStream> s{&arr};
+        DataStream::Serializer s{&arr};
         s.readFrom(*event);
         m_removedEvents.push_back({event->id(), arr});
       }
@@ -141,7 +141,7 @@ RemoveSelection::RemoveSelection(
       if (tn->id() != Id<TimeNodeModel>{0})
       {
         QByteArray arr;
-        Serializer<DataStream> s2{&arr};
+        DataStream::Serializer s2{&arr};
         s2.readFrom(*tn);
         m_removedTimeNodes.push_back({tn->id(), arr});
       }
@@ -150,7 +150,7 @@ RemoveSelection::RemoveSelection(
     if (auto cmt = dynamic_cast<const CommentBlockModel*>(obj))
     {
       QByteArray arr;
-      Serializer<DataStream> s{&arr};
+      DataStream::Serializer s{&arr};
       s.readFrom(*cmt);
       m_removedComments.push_back({cmt->id(), arr});
     }
@@ -158,7 +158,7 @@ RemoveSelection::RemoveSelection(
     if (auto constraint = dynamic_cast<const ConstraintModel*>(obj))
     {
       QByteArray arr;
-      Serializer<DataStream> s{&arr};
+      DataStream::Serializer s{&arr};
       s.readFrom(*constraint);
       m_removedConstraints.push_back(
           {{constraint->id(), arr},
@@ -175,7 +175,7 @@ RemoveSelection::RemoveSelection(
     if (tn->id() != Id<TimeNodeModel>{0})
     {
       QByteArray arr;
-      Serializer<DataStream> s2{&arr};
+      DataStream::Serializer s2{&arr};
       s2.readFrom(*tn);
       m_maybeRemovedTimeNodes.push_back({tn->id(), arr});
     }
@@ -195,7 +195,7 @@ void RemoveSelection::undo() const
       m_removedStates.end(),
       std::back_inserter(states),
       [&](const auto& data) {
-        Deserializer<DataStream> s{data.second};
+        DataStream::Deserializer s{data.second};
         return new StateModel{s, stack, &scenar};
       });
 
@@ -205,7 +205,7 @@ void RemoveSelection::undo() const
       m_removedEvents.end(),
       std::back_inserter(events),
       [&](const auto& eventdata) {
-        Deserializer<DataStream> s{eventdata.second};
+        DataStream::Deserializer s{eventdata.second};
         return new EventModel{s, &scenar};
       });
 
@@ -215,7 +215,7 @@ void RemoveSelection::undo() const
       m_removedTimeNodes.end(),
       std::back_inserter(timenodes),
       [&](const auto& tndata) {
-        Deserializer<DataStream> s{tndata.second};
+        DataStream::Deserializer s{tndata.second};
         return new TimeNodeModel{s, &scenar};
       });
 
@@ -225,7 +225,7 @@ void RemoveSelection::undo() const
       m_removedComments.end(),
       std::back_inserter(comments),
       [&](const auto& cmtdata) {
-        Deserializer<DataStream> s{cmtdata.second};
+        DataStream::Deserializer s{cmtdata.second};
         return new CommentBlockModel(s, &scenar);
       });
 
@@ -235,7 +235,7 @@ void RemoveSelection::undo() const
       m_maybeRemovedTimeNodes.end(),
       std::back_inserter(maybeTimenodes),
       [&](const auto& tndata) {
-        Deserializer<DataStream> s{tndata.second};
+        DataStream::Deserializer s{tndata.second};
         return new TimeNodeModel{s, &scenar};
       });
 
@@ -323,7 +323,7 @@ void RemoveSelection::undo() const
   // And then all the constraints.
   for (const auto& constraintdata : m_removedConstraints)
   {
-    Deserializer<DataStream> s{constraintdata.first.second};
+    DataStream::Deserializer s{constraintdata.first.second};
     auto cstr = new ConstraintModel{s, &scenar};
 
     scenar.constraints.add(cstr);

@@ -19,7 +19,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::read(const iscore::CommandStack& stack)
+void DataStreamReader::read(const iscore::CommandStack& stack)
 {
   std::vector<iscore::CommandData> undoStack, redoStack;
   for (const auto& cmd : stack.undoable())

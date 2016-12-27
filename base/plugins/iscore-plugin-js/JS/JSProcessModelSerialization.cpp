@@ -12,16 +12,18 @@ class Reader;
 template <typename T>
 class Writer;
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(const JS::ProcessModel& proc)
+void DataStreamReader::read(const JS::ProcessModel& proc)
 {
   m_stream << proc.m_script;
 
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(JS::ProcessModel& proc)
+void DataStreamWriter::writeTo(JS::ProcessModel& proc)
 {
   QString str;
   m_stream >> str;
@@ -30,14 +32,16 @@ void Visitor<Writer<DataStream>>::writeTo(JS::ProcessModel& proc)
   checkDelimiter();
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(const JS::ProcessModel& proc)
-{
-  m_obj["Script"] = proc.script();
-}
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(JS::ProcessModel& proc)
+void JSONObjectReader::readFromConcrete(const JS::ProcessModel& proc)
 {
-  proc.setScript(m_obj["Script"].toString());
+  obj["Script"] = proc.script();
+}
+
+
+template <>
+void JSONObjectWriter::writeTo(JS::ProcessModel& proc)
+{
+  proc.setScript(obj["Script"].toString());
 }

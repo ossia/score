@@ -12,16 +12,18 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/model/Identifier.hpp>
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(const Loop::Layer& lm)
+void DataStreamReader::read(const Loop::Layer& lm)
 {
   readFrom(*lm.m_constraint);
 
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Loop::Layer& lm)
+void DataStreamWriter::writeTo(Loop::Layer& lm)
 {
   // Note : keep in sync with loadConstraintViewModel, or try to refactor them.
 
@@ -44,15 +46,17 @@ void Visitor<Writer<DataStream>>::writeTo(Loop::Layer& lm)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(const Loop::Layer& lm)
+
+void JSONObjectReader::readFromConcrete(const Loop::Layer& lm)
 {
-  m_obj["Constraint"] = toJsonObject(*lm.m_constraint);
+  obj["Constraint"] = toJsonObject(*lm.m_constraint);
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Loop::Layer& lm)
+void JSONObjectWriter::writeTo(Loop::Layer& lm)
 {
-  Deserializer<JSONObject> deserializer{m_obj["Constraint"].toObject()};
+  JSONObject::Deserializer deserializer{obj["Constraint"].toObject()};
 
   // Deserialize the required identifier
   // We don't need to read the constraint id

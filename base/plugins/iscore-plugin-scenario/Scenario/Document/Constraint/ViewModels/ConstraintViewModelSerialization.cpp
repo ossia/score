@@ -13,24 +13,19 @@ namespace Scenario
 {
 class RackModel;
 }
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-template <typename model>
-class IdentifiedObject;
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Reader<DataStream>>::read(const Scenario::ConstraintViewModel& cvm)
+DataStreamReader::read(const Scenario::ConstraintViewModel& cvm)
 {
   m_stream << cvm.shownRack();
   insertDelimiter();
 }
 
+
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintViewModel& cvm)
+DataStreamWriter::writeTo(Scenario::ConstraintViewModel& cvm)
 {
   OptionalId<Scenario::RackModel> id;
   m_stream >> id;
@@ -47,21 +42,23 @@ Visitor<Writer<DataStream>>::writeTo(Scenario::ConstraintViewModel& cvm)
   checkDelimiter();
 }
 
+
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const Scenario::ConstraintViewModel& cvm)
+JSONObjectReader::readFrom(const Scenario::ConstraintViewModel& cvm)
 {
   readFrom(static_cast<const IdentifiedObject<Scenario::ConstraintViewModel>&>(
       cvm));
 
-  m_obj["ShownRack"] = toJsonValue(cvm.shownRack());
+  obj["ShownRack"] = toJsonValue(cvm.shownRack());
 }
+
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(Scenario::ConstraintViewModel& cvm)
+JSONObjectWriter::writeTo(Scenario::ConstraintViewModel& cvm)
 {
-  auto id = fromJsonValue<OptionalId<Scenario::RackModel>>(m_obj["ShownRack"]);
+  auto id = fromJsonValue<OptionalId<Scenario::RackModel>>(obj["ShownRack"]);
 
   if (id)
   {

@@ -6,35 +6,30 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::read(const ObjectPath& path)
+DataStreamReader::read(const ObjectPath& path)
 {
   readFrom(path.vec());
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(ObjectPath& path)
+DataStreamWriter::writeTo(ObjectPath& path)
 {
   writeTo(path.vec());
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const ObjectPath& path)
+JSONObjectReader::readFrom(const ObjectPath& path)
 {
-  m_obj[strings.Identifiers] = toJsonArray(path.vec());
+  obj[strings.Identifiers] = toJsonArray(path.vec());
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(ObjectPath& path)
+JSONObjectWriter::writeTo(ObjectPath& path)
 {
-  fromJsonArray(m_obj[strings.Identifiers].toArray(), path.vec());
+  fromJsonArray(obj[strings.Identifiers].toArray(), path.vec());
 }

@@ -46,7 +46,7 @@ public:
       QObject* parent);
 
   template <typename Impl>
-  SegmentModel(Deserializer<Impl>& vis, QObject* parent)
+  SegmentModel(Impl& vis, QObject* parent)
       : IdentifiedObject{vis, parent}
   {
     vis.writeTo(*this);

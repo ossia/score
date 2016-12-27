@@ -42,7 +42,7 @@ RemoteApplication::RemoteApplication(int& argc, char** argv):
         std::make_pair(
           "DeviceTree"s,
           json_fun{[this] (const QJsonObject& json) {
-    Deserializer<JSONObject> wr{json["Nodes"].toObject()};
+    JSONObject::Deserializer wr{json["Nodes"].toObject()};
     Device::Node n;
     wr.writeTo(n);
     m_nodes.replace(n);

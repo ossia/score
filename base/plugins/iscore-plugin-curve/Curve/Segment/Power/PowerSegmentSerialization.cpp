@@ -5,59 +5,63 @@
 
 #include "PowerSegment.hpp"
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
+
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Curve::PowerSegment& segmt)
 {
   m_stream << segmt.gamma;
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Curve::PowerSegment& segmt)
+void DataStreamWriter::writeTo(Curve::PowerSegment& segmt)
 {
   m_stream >> segmt.gamma;
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
+void JSONObjectReader::readFromConcrete(
     const Curve::PowerSegment& segmt)
 {
-  m_obj["Power"] = segmt.gamma;
+  obj["Power"] = segmt.gamma;
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Curve::PowerSegment& segmt)
+void JSONObjectWriter::writeTo(Curve::PowerSegment& segmt)
 {
-  segmt.gamma = m_obj["Power"].toDouble();
+  segmt.gamma = obj["Power"].toDouble();
 }
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Curve::PowerSegmentData& segmt)
 {
   m_stream << segmt.gamma;
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Curve::PowerSegmentData& segmt)
+void DataStreamWriter::writeTo(Curve::PowerSegmentData& segmt)
 {
   m_stream >> segmt.gamma;
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
-    const Curve::PowerSegmentData& segmt)
-{
-  m_obj["Power"] = segmt.gamma;
-}
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Curve::PowerSegmentData& segmt)
+void JSONObjectReader::readFromConcrete(
+    const Curve::PowerSegmentData& segmt)
 {
-  segmt.gamma = m_obj["Power"].toDouble();
+  obj["Power"] = segmt.gamma;
+}
+
+
+template <>
+void JSONObjectWriter::writeTo(Curve::PowerSegmentData& segmt)
+{
+  segmt.gamma = obj["Power"].toDouble();
 }

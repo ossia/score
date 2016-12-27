@@ -57,14 +57,14 @@ void AggregateCommand::serializeImpl(DataStreamInput& s) const
     serializedCommands.emplace_back(*cmd);
   }
 
-  Visitor<Reader<DataStream>> reader{s.stream.device()};
+  DataStreamReader reader{s.stream.device()};
   reader.readFrom(serializedCommands);
 }
 
 void AggregateCommand::deserializeImpl(DataStreamOutput& s)
 {
   std::vector<CommandData> serializedCommands;
-  Visitor<Writer<DataStream>> writer{s.stream.device()};
+  DataStreamWriter writer{s.stream.device()};
   writer.writeTo(serializedCommands);
 
   for (const auto& cmd_pack : serializedCommands)

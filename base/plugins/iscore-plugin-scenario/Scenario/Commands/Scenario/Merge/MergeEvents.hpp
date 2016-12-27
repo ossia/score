@@ -70,7 +70,7 @@ public:
     auto& destinantionEvent = scenario.event(m_destinationEventId);
 
     QByteArray arr;
-    Serializer<DataStream> s{&arr};
+    DataStream::Serializer s{&arr};
     s.readFrom(event);
     m_serializedEvent = arr;
 
@@ -84,7 +84,7 @@ public:
     auto& scenar = m_scenarioPath.find();
     auto& globalEvent = scenar.event(m_destinationEventId);
 
-    Deserializer<DataStream> s{m_serializedEvent};
+    DataStream::Deserializer s{m_serializedEvent};
     auto recreatedEvent = new EventModel{s, &scenar};
 
     auto states_in_event = recreatedEvent->states();

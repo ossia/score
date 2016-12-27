@@ -89,19 +89,20 @@ struct DataStreamOutput
   }
 };
 
+class DataStreamReader;
+class DataStreamWriter;
 class DataStream
 {
 public:
-  using Serializer = Visitor<Reader<DataStream>>;
-  using Deserializer = Visitor<Writer<DataStream>>;
+  using Serializer = DataStreamReader;
+  using Deserializer = DataStreamWriter;
   static constexpr SerializationIdentifier type()
   {
     return 2;
   }
 };
 
-template <>
-class ISCORE_LIB_BASE_EXPORT Visitor<Reader<DataStream>>
+class ISCORE_LIB_BASE_EXPORT DataStreamReader
     : public AbstractVisitor
 {
 public:
@@ -113,18 +114,18 @@ public:
     return {*this, DataStream::type()};
   }
 
-  Visitor();
-  Visitor(QByteArray* array);
-  Visitor(QIODevice* dev);
+  DataStreamReader();
+  DataStreamReader(QByteArray* array);
+  DataStreamReader(QIODevice* dev);
 
-  Visitor(const Visitor&) = delete;
-  Visitor& operator=(const Visitor&) = delete;
+  DataStreamReader(const DataStreamReader&) = delete;
+  DataStreamReader& operator=(const DataStreamReader&) = delete;
 
   template <typename T>
   static auto marshall(const T& t)
   {
     QByteArray arr;
-    Visitor<Reader<DataStream>> reader{&arr};
+    DataStreamReader reader{&arr};
     reader.readFrom(t);
     return arr;
   }
@@ -213,7 +214,7 @@ private:
   {
     readFromAbstract(
           obj,
-          [&] (Visitor& sub){ sub.read(obj); });
+          [&] (DataStreamReader& sub){ sub.read(obj); });
   }
 
   template <typename T>
@@ -222,7 +223,7 @@ private:
   {
     readFromAbstract(
           obj,
-          [&] (Visitor& sub){ sub.readFrom_impl(obj, visitor_object_tag{}); });
+          [&] (DataStreamReader& sub){ sub.readFrom_impl(obj, visitor_object_tag{}); });
   }
 
   template <typename T>
@@ -231,7 +232,7 @@ private:
   {
     readFromAbstract(
           obj,
-          [&] (Visitor& sub){ sub.readFrom_impl(obj, visitor_entity_tag{}); });
+          [&] (DataStreamReader& sub){ sub.readFrom_impl(obj, visitor_entity_tag{}); });
   }
 
   //! Used to serialize general objects that won't fit in the other categories
@@ -257,9 +258,7 @@ public:
 };
 
 
-
-template <>
-class ISCORE_LIB_BASE_EXPORT Visitor<Writer<DataStream>>
+class ISCORE_LIB_BASE_EXPORT DataStreamWriter
     : public AbstractVisitor
 {
 public:
@@ -271,18 +270,18 @@ public:
     return {*this, DataStream::type()};
   }
 
-  Visitor();
-  Visitor(const Visitor&) = delete;
-  Visitor& operator=(const Visitor&) = delete;
+  DataStreamWriter();
+  DataStreamWriter(const DataStreamWriter&) = delete;
+  DataStreamWriter& operator=(const DataStreamWriter&) = delete;
 
-  Visitor(const QByteArray& array);
-  Visitor(QIODevice* dev);
+  DataStreamWriter(const QByteArray& array);
+  DataStreamWriter(QIODevice* dev);
 
   template <typename T>
   static auto unmarshall(const QByteArray& arr)
   {
     T data;
-    Visitor<Writer<DataStream>> wrt{arr};
+    DataStreamWriter wrt{arr};
     wrt.writeTo(data);
     return data;
   }
@@ -350,7 +349,7 @@ template <
         enable_if_t<!std::is_arithmetic<T>::value && !std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator<<(QDataStream& stream, const T& obj)
 {
-  Visitor<Reader<DataStream>> reader{stream.device()};
+  DataStreamReader reader{stream.device()};
   reader.readFrom(obj);
   return stream;
 }
@@ -361,7 +360,7 @@ template <
         enable_if_t<!std::is_arithmetic<T>::value && !std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator>>(QDataStream& stream, T& obj)
 {
-  Visitor<Writer<DataStream>> writer{stream.device()};
+  DataStreamWriter writer{stream.device()};
   writer.writeTo(obj);
 
   return stream;
@@ -588,5 +587,5 @@ struct TSerializer<DataStream, iscore::Entity<T>>
   }
 };
 
-Q_DECLARE_METATYPE(Visitor<Reader<DataStream>>*)
-Q_DECLARE_METATYPE(Visitor<Writer<DataStream>>*)
+Q_DECLARE_METATYPE(DataStreamReader*)
+Q_DECLARE_METATYPE(DataStreamWriter*)

@@ -46,7 +46,7 @@ public:
       QObject* parentObject);
 
   template <typename Impl>
-  explicit ProcessModel(Deserializer<Impl>& vis, QObject* parent)
+  explicit ProcessModel(Impl& vis, QObject* parent)
       : Process::ProcessModel{vis, parent}
       , BaseScenarioContainer{BaseScenarioContainer::no_init{}, this}
   {

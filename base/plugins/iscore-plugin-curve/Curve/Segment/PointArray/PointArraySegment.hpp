@@ -50,8 +50,8 @@ public:
   PointArraySegment(
       const PointArraySegment& other, const id_type& id, QObject* parent);
 
-  template <typename Impl>
-  PointArraySegment(Deserializer<Impl>& vis, QObject* parent)
+  template <typename Impl, typename = ossia::void_t<typename Impl::is_visitor_tag>>
+  PointArraySegment(Impl& vis, QObject* parent)
       : SegmentModel{vis, parent}
   {
     vis.writeTo(*this);

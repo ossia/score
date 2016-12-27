@@ -18,13 +18,10 @@ class LayerModel;
 }
 class QObject;
 struct VisitorVariant;
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
+
 
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Automation::ProcessModel& autom)
 {
   readFrom(autom.curve());
@@ -37,8 +34,9 @@ void Visitor<Reader<DataStream>>::read(
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Automation::ProcessModel& autom)
+void DataStreamWriter::writeTo(Automation::ProcessModel& autom)
 {
   autom.setCurve(new Curve::Model{*this, &autom});
 
@@ -56,26 +54,28 @@ void Visitor<Writer<DataStream>>::writeTo(Automation::ProcessModel& autom)
   checkDelimiter();
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
-    const Automation::ProcessModel& autom)
-{
-  m_obj["Curve"] = toJsonObject(autom.curve());
-  m_obj[strings.Address] = toJsonObject(autom.address());
-  m_obj[strings.Min] = autom.min();
-  m_obj[strings.Max] = autom.max();
-  m_obj["Tween"] = autom.tween();
-}
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Automation::ProcessModel& autom)
+void JSONObjectReader::readFromConcrete(
+    const Automation::ProcessModel& autom)
 {
-  Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
+  obj["Curve"] = toJsonObject(autom.curve());
+  obj[strings.Address] = toJsonObject(autom.address());
+  obj[strings.Min] = autom.min();
+  obj[strings.Max] = autom.max();
+  obj["Tween"] = autom.tween();
+}
+
+
+template <>
+void JSONObjectWriter::writeTo(Automation::ProcessModel& autom)
+{
+  JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 
   autom.setAddress(
-      fromJsonObject<State::AddressAccessor>(m_obj[strings.Address]));
-  autom.setMin(m_obj[strings.Min].toDouble());
-  autom.setMax(m_obj[strings.Max].toDouble());
-  autom.setTween(m_obj["Tween"].toBool());
+      fromJsonObject<State::AddressAccessor>(obj[strings.Address]));
+  autom.setMin(obj[strings.Min].toDouble());
+  autom.setMax(obj[strings.Max].toDouble());
+  autom.setTween(obj["Tween"].toBool());
 }

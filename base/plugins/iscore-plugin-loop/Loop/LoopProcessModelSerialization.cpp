@@ -11,30 +11,34 @@ class Reader;
 template <typename T>
 class Writer;
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(const Loop::ProcessModel& proc)
+void DataStreamReader::read(const Loop::ProcessModel& proc)
 {
   readFrom(static_cast<const Scenario::BaseScenarioContainer&>(proc));
 
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Loop::ProcessModel& proc)
+void DataStreamWriter::writeTo(Loop::ProcessModel& proc)
 {
   writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
 
   checkDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(const Loop::ProcessModel& proc)
+void JSONObjectReader::readFromConcrete(const Loop::ProcessModel& proc)
 {
   readFrom(static_cast<const Scenario::BaseScenarioContainer&>(proc));
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Loop::ProcessModel& proc)
+void JSONObjectWriter::writeTo(Loop::ProcessModel& proc)
 {
   writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
 }

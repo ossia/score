@@ -121,7 +121,7 @@ Document* DocumentBuilder::restoreDocument(
     ctx.documents.documents().push_back(doc);
 
     // We restore the pre-crash command stack.
-    Deserializer<DataStream> writer(cmdData);
+    DataStream::Deserializer writer(cmdData);
     loadCommandStack(
         ctx.components, writer, doc->commandStack(), [](auto cmd) {
           cmd->redo();

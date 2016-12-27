@@ -22,8 +22,9 @@ class Reader;
 template <typename T>
 class Writer;
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Mapping::ProcessModel& autom)
 {
   readFrom(autom.curve());
@@ -35,8 +36,9 @@ void Visitor<Reader<DataStream>>::read(
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Mapping::ProcessModel& autom)
+void DataStreamWriter::writeTo(Mapping::ProcessModel& autom)
 {
   autom.setCurve(new Curve::Model{*this, &autom});
   { // Source
@@ -62,34 +64,36 @@ void Visitor<Writer<DataStream>>::writeTo(Mapping::ProcessModel& autom)
   checkDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
+void JSONObjectReader::readFromConcrete(
     const Mapping::ProcessModel& autom)
 {
-  m_obj["Curve"] = toJsonObject(autom.curve());
+  obj["Curve"] = toJsonObject(autom.curve());
 
-  m_obj["SourceAddress"] = toJsonObject(autom.sourceAddress());
-  m_obj["SourceMin"] = autom.sourceMin();
-  m_obj["SourceMax"] = autom.sourceMax();
+  obj["SourceAddress"] = toJsonObject(autom.sourceAddress());
+  obj["SourceMin"] = autom.sourceMin();
+  obj["SourceMax"] = autom.sourceMax();
 
-  m_obj["TargetAddress"] = toJsonObject(autom.targetAddress());
-  m_obj["TargetMin"] = autom.targetMin();
-  m_obj["TargetMax"] = autom.targetMax();
+  obj["TargetAddress"] = toJsonObject(autom.targetAddress());
+  obj["TargetMin"] = autom.targetMin();
+  obj["TargetMax"] = autom.targetMax();
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Mapping::ProcessModel& autom)
+void JSONObjectWriter::writeTo(Mapping::ProcessModel& autom)
 {
-  Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
+  JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 
   autom.setSourceAddress(
-      fromJsonObject<State::AddressAccessor>(m_obj["SourceAddress"]));
-  autom.setSourceMin(m_obj["SourceMin"].toDouble());
-  autom.setSourceMax(m_obj["SourceMax"].toDouble());
+      fromJsonObject<State::AddressAccessor>(obj["SourceAddress"]));
+  autom.setSourceMin(obj["SourceMin"].toDouble());
+  autom.setSourceMax(obj["SourceMax"].toDouble());
 
   autom.setTargetAddress(
-      fromJsonObject<State::AddressAccessor>(m_obj["TargetAddress"]));
-  autom.setTargetMin(m_obj["TargetMin"].toDouble());
-  autom.setTargetMax(m_obj["TargetMax"].toDouble());
+      fromJsonObject<State::AddressAccessor>(obj["TargetAddress"]));
+  autom.setTargetMin(obj["TargetMin"].toDouble());
+  autom.setTargetMax(obj["TargetMax"].toDouble());
 }

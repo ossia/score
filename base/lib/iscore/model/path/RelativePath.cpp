@@ -56,34 +56,34 @@ QObject* RelativePath::find_impl(QObject* source) const
 }
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::read(const iscore::RelativePath& path)
+DataStreamReader::read(const iscore::RelativePath& path)
 {
   m_stream << path.m_parents;
   readFrom(path.m_remainder);
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(iscore::RelativePath& path)
+DataStreamWriter::writeTo(iscore::RelativePath& path)
 {
   m_stream >> path.m_parents;
   writeTo(path.m_remainder);
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const iscore::RelativePath& path)
+JSONObjectReader::readFrom(const iscore::RelativePath& path)
 {
-  m_obj["Parents"] = path.m_parents;
+  obj["Parents"] = path.m_parents;
   readFrom(path.m_remainder);
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(iscore::RelativePath& path)
+JSONObjectWriter::writeTo(iscore::RelativePath& path)
 {
-  path.m_parents = m_obj["Parents"].toInt();
+  path.m_parents = obj["Parents"].toInt();
   writeTo(path.m_remainder);
 }

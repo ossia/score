@@ -1,34 +1,29 @@
+#include <iscore/model/tree/InvisibleRootNode.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-struct InvisibleRootNode;
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::read(const InvisibleRootNode&)
+DataStreamReader::read(const InvisibleRootNode&)
 {
   insertDelimiter();
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(InvisibleRootNode&)
+DataStreamWriter::writeTo(InvisibleRootNode&)
 {
   checkDelimiter();
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const InvisibleRootNode&)
+JSONObjectReader::readFrom(const InvisibleRootNode&)
 {
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(InvisibleRootNode&)
+JSONObjectWriter::writeTo(InvisibleRootNode&)
 {
 }

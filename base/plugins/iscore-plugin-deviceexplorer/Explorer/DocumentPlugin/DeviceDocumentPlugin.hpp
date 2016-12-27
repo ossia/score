@@ -31,7 +31,7 @@ public:
   template <typename Impl>
   DeviceDocumentPlugin(
       const iscore::DocumentContext& ctx,
-      Deserializer<Impl>& vis,
+      Impl& vis,
       QObject* parent)
       : iscore::SerializableDocumentPlugin{ctx, vis, parent}
   {

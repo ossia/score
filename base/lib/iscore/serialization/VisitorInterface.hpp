@@ -64,7 +64,11 @@ using enable_if_deserializer = typename std::
     enable_if_t<std::decay<DeserializerVisitor>::type::is_visitor_tag::value>;
 
 // Declaration of common friends for classes that serialize themselves
-#define ISCORE_SERIALIZE_FRIENDS template<typename T> friend class ::Visitor;
+#define ISCORE_SERIALIZE_FRIENDS \
+  friend class ::DataStreamReader; \
+  friend class ::DataStreamWriter; \
+  friend class ::JSONObjectReader; \
+  friend class ::JSONObjectWriter;
 
 // Inherit from this to have
 // the type treated as a value in the serialization context. Useful
@@ -104,3 +108,11 @@ template <class T>
 struct is_abstract_base<T, enable_if_abstract_base<T>> : std::true_type
 {
 };
+
+
+class DataStreamReader;
+class DataStreamWriter;
+class JSONObjectReader;
+class JSONObjectWriter;
+class JSONValueReader;
+class JSONValueWriter;

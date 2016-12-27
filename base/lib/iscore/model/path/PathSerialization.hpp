@@ -6,7 +6,7 @@
 template <typename Object>
 QDataStream& operator<<(QDataStream& stream, const Path<Object>& obj)
 {
-  Visitor<Reader<DataStream>> reader(stream.device());
+  DataStreamReader reader(stream.device());
   reader.readFrom(obj.unsafePath());
   return stream;
 }
@@ -14,7 +14,7 @@ QDataStream& operator<<(QDataStream& stream, const Path<Object>& obj)
 template <typename Object>
 QDataStream& operator>>(QDataStream& stream, Path<Object>& obj)
 {
-  Visitor<Writer<DataStream>> writer(stream.device());
+  DataStreamWriter writer(stream.device());
   writer.writeTo(obj.unsafePath_ref());
 
   return stream;

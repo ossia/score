@@ -94,7 +94,7 @@ protected:
   // Load
   template <typename Impl>
   AbstractScenarioLayer(
-      Deserializer<Impl>& vis,
+      Impl& vis,
       Process::ProcessModel& sharedProcess,
       QObject* parent)
       : LayerModel{vis, sharedProcess, parent}

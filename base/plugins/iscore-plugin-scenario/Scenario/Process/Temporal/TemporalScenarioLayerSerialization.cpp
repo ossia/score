@@ -17,8 +17,9 @@ class Reader;
 template <typename T>
 class Writer;
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Scenario::TemporalScenarioLayer& lm)
 {
   auto constraints = Scenario::constraintsViewModels(lm);
@@ -34,8 +35,9 @@ void Visitor<Reader<DataStream>>::read(
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(Scenario::TemporalScenarioLayer& lm)
+void DataStreamWriter::writeTo(Scenario::TemporalScenarioLayer& lm)
 {
   int32_t count;
   m_stream >> count;
@@ -51,8 +53,9 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::TemporalScenarioLayer& lm)
   checkDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
+void JSONObjectReader::readFromConcrete(
     const Scenario::TemporalScenarioLayer& lm)
 {
   QJsonArray arr;
@@ -64,19 +67,20 @@ void Visitor<Reader<JSONObject>>::readFromConcrete(
     arr.push_back(std::move(obj));
   }
 
-  m_obj["Constraints"] = std::move(arr);
+  obj["Constraints"] = std::move(arr);
 }
 
+
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(Scenario::TemporalScenarioLayer& lm)
+void JSONObjectWriter::writeTo(Scenario::TemporalScenarioLayer& lm)
 {
-  QJsonArray arr = m_obj["Constraints"].toArray();
+  QJsonArray arr = obj["Constraints"].toArray();
 
   for (const auto& json_vref : arr)
   {
-    Deserializer<JSONObject> deserializer{json_vref.toObject()};
+    JSONObject::Deserializer deserializer{json_vref.toObject()};
 
-    auto id = fromJsonValue<Id<Scenario::ConstraintModel>>(deserializer.m_obj["ConstraintId"]);
+    auto id = fromJsonValue<Id<Scenario::ConstraintModel>>(deserializer.obj["ConstraintId"]);
     auto cstrvm = Scenario::loadConstraintViewModel(deserializer, &lm, id);
     lm.addConstraintViewModel(cstrvm);
   }

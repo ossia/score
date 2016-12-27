@@ -115,7 +115,7 @@ void CommandBackupFile::commit()
   m_file.resize(0);
   m_file.reset();
 
-  Serializer<DataStream> ser(&m_file);
+  DataStream::Serializer ser(&m_file);
   ser.readFrom(m_stack);
 
   m_file.flush();

@@ -197,7 +197,7 @@ void VariantJSONSerializer<T>::perform()
 
   if (auto res = var.template target<TheClass>())
   {
-    s.m_obj[Metadata<Json_k, TheClass>::get()] = readFrom_eggs_impl(*res);
+    s.obj[Metadata<Json_k, TheClass>::get()] = readFrom_eggs_impl(*res);
     done = true;
   }
 }
@@ -224,8 +224,8 @@ void VariantJSONDeserializer<T>::perform()
   if (done)
     return;
 
-  auto it = s.m_obj.constFind(Metadata<Json_k, TheClass>::get());
-  if (it != s.m_obj.constEnd())
+  auto it = s.obj.constFind(Metadata<Json_k, TheClass>::get());
+  if (it != s.obj.constEnd())
   {
     var = writeTo_eggs_impl<TheClass>(*it);
     done = true;

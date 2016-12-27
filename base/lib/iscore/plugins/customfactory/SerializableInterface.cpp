@@ -44,32 +44,32 @@ static QByteArray toByteArray(uuid const& u)
 }
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::read(const iscore::uuid_t& obj)
+DataStreamReader::read(const iscore::uuid_t& obj)
 {
   m_stream << iscore::uuids::toByteArray(obj);
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(iscore::uuid_t& obj)
+DataStreamWriter::writeTo(iscore::uuid_t& obj)
 {
   QByteArray s;
   m_stream >> s;
   obj = iscore::uuids::string_generator::compute(s.begin(), s.end());
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<JSONValue>>::readFrom(const iscore::uuid_t& obj)
+JSONValueReader::readFrom(const iscore::uuid_t& obj)
 {
   val = QString(iscore::uuids::toByteArray(obj));
 }
 
-template <>
+template<>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Writer<JSONValue>>::writeTo(iscore::uuid_t& obj)
+JSONValueWriter::writeTo(iscore::uuid_t& obj)
 {
   auto str = val.toString();
   obj = iscore::uuids::string_generator::compute(str.begin(), str.end());

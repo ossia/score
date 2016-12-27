@@ -44,7 +44,7 @@ public:
   PowerSegment(const PowerSegment& other, const id_type& id, QObject* parent);
 
   template <typename Impl>
-  PowerSegment(Deserializer<Impl>& vis, QObject* parent)
+  PowerSegment(Impl& vis, QObject* parent)
       : SegmentModel{vis, parent}
   {
     vis.writeTo(*this);

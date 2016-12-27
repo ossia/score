@@ -11,32 +11,32 @@ template <class>
 class StringKey;
 
 class JSONValue;
-template <>
-class Visitor<Reader<JSONValue>>;
-template <>
-class Visitor<Writer<JSONValue>>;
+class JSONValueReader;
+class JSONValueWriter;
+
 
 class JSONValue
 {
 public:
-  using Serializer = Visitor<Reader<JSONValue>>;
-  using Deserializer = Visitor<Writer<JSONValue>>;
+  using Serializer = JSONValueReader;
+  using Deserializer = JSONValueWriter;
+
+  // TODO this one isn't part of serialize_dyn, etc.
   static constexpr SerializationIdentifier type()
   {
     return 3;
   }
 };
 
-template <>
-class ISCORE_LIB_BASE_EXPORT Visitor<Reader<JSONValue>>
+class ISCORE_LIB_BASE_EXPORT JSONValueReader
     : public AbstractVisitor
 {
 public:
   using is_visitor_tag = std::integral_constant<bool, true>;
 
-  Visitor<Reader<JSONValue>>() = default;
-  Visitor<Reader<JSONValue>>(const Visitor<Reader<JSONValue>>&) = delete;
-  Visitor<Reader<JSONValue>>& operator=(const Visitor<Reader<JSONValue>>&)
+  JSONValueReader() = default;
+  JSONValueReader(const JSONValueReader&) = delete;
+  JSONValueReader& operator=(const JSONValueReader&)
       = delete;
 
   VisitorVariant toVariant()
@@ -72,8 +72,7 @@ public:
   const iscore::StringConstants& strings{iscore::StringConstant()};
 };
 
-template <>
-class ISCORE_LIB_BASE_EXPORT Visitor<Writer<JSONValue>>
+class ISCORE_LIB_BASE_EXPORT JSONValueWriter
     : public AbstractVisitor
 {
 public:
@@ -85,16 +84,16 @@ public:
     return {*this, JSONValue::type()};
   }
 
-  Visitor<Writer<JSONValue>>() = default;
-  Visitor<Writer<JSONValue>>(const Visitor<Reader<JSONValue>>&) = delete;
-  Visitor<Writer<JSONValue>>& operator=(const Visitor<Writer<JSONValue>>&)
+  JSONValueWriter() = default;
+  JSONValueWriter(const JSONValueReader&) = delete;
+  JSONValueWriter& operator=(const JSONValueWriter&)
       = delete;
 
-  Visitor<Writer<JSONValue>>(const QJsonValue& obj) : val{obj}
+  JSONValueWriter(const QJsonValue& obj) : val{obj}
   {
   }
 
-  Visitor<Writer<JSONValue>>(QJsonValue&& obj) : val{std::move(obj)}
+  JSONValueWriter(QJsonValue&& obj) : val{std::move(obj)}
   {
   }
 
@@ -218,7 +217,7 @@ struct TSerializer<JSONValue, OptionalId<U>>
 template <typename T>
 QJsonValue toJsonValue(const T& obj)
 {
-  Visitor<Reader<JSONValue>> reader;
+  JSONValueReader reader;
   reader.readFrom(obj);
 
   return reader.val;
@@ -227,14 +226,14 @@ QJsonValue toJsonValue(const T& obj)
 template <typename T>
 void fromJsonValue(QJsonValue&& json, T& val)
 {
-  Visitor<Writer<JSONValue>> writer{json};
+  JSONValueWriter writer{json};
   writer.writeTo(val);
 }
 
 template <typename T>
 void fromJsonValue(QJsonValue& json, T& val)
 {
-  Visitor<Writer<JSONValue>> writer{json};
+  JSONValueWriter writer{json};
   writer.writeTo(val);
 }
 
@@ -242,7 +241,7 @@ template <typename T>
 T fromJsonValue(const QJsonValue& json)
 {
   T val;
-  Visitor<Writer<JSONValue>> writer{json};
+  JSONValueWriter writer{json};
   writer.writeTo(val);
   return val;
 }
@@ -250,14 +249,14 @@ T fromJsonValue(const QJsonValue& json)
 template <typename T>
 void fromJsonValue(QJsonValueRef&& json, T& val)
 {
-  Visitor<Writer<JSONValue>> writer{static_cast<QJsonValue>(json)};
+  JSONValueWriter writer{static_cast<QJsonValue>(json)};
   writer.writeTo(val);
 }
 
 template <typename T>
 void fromJsonValue(const QJsonValueRef& json, T& val)
 {
-  Visitor<Writer<JSONValue>> writer{static_cast<const QJsonValue&>(json)};
+  JSONValueWriter writer{static_cast<const QJsonValue&>(json)};
   writer.writeTo(val);
 }
 
@@ -265,7 +264,7 @@ template <typename T>
 T fromJsonValue(QJsonValueRef&& json)
 {
   T val;
-  Visitor<Writer<JSONValue>> writer{static_cast<QJsonValue>(json)};
+  JSONValueWriter writer{static_cast<QJsonValue>(json)};
   writer.writeTo(val);
   return val;
 }
@@ -274,7 +273,7 @@ template <typename T>
 T fromJsonValue(const QJsonValueRef& json)
 {
   T val;
-  Visitor<Writer<JSONValue>> writer{static_cast<const QJsonValue&>(json)};
+  JSONValueWriter writer{static_cast<const QJsonValue&>(json)};
   writer.writeTo(val);
   return val;
 }

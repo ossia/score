@@ -30,7 +30,7 @@ public:
       const LinearSegment& other, const id_type& id, QObject* parent);
 
   template <typename Impl>
-  LinearSegment(Deserializer<Impl>& vis, QObject* parent)
+  LinearSegment(Impl& vis, QObject* parent)
       : SegmentModel{vis, parent}
   {
     vis.writeTo(*this);

@@ -182,7 +182,7 @@ private:
   void setSelection(const Selection& s) const override;
 
   template <typename Impl>
-  ProcessModel(Deserializer<Impl>& vis, QObject* parent)
+  ProcessModel(Impl& vis, QObject* parent)
       : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);

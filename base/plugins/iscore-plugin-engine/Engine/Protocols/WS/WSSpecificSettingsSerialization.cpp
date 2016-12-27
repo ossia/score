@@ -6,34 +6,38 @@
 
 #include "WSSpecificSettings.hpp"
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(
+void DataStreamReader::read(
     const Engine::Network::WSSpecificSettings& n)
 {
   m_stream << n.address << n.text;
   insertDelimiter();
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(
+void DataStreamWriter::writeTo(
     Engine::Network::WSSpecificSettings& n)
 {
   m_stream >> n.address >> n.text;
   checkDelimiter();
 }
 
-template <>
-void Visitor<Reader<JSONObject>>::readFromConcrete(
-    const Engine::Network::WSSpecificSettings& n)
-{
-  m_obj[strings.Address] = n.address;
-  m_obj["Text"] = n.text;
-}
 
 template <>
-void Visitor<Writer<JSONObject>>::writeTo(
+void JSONObjectReader::readFromConcrete(
+    const Engine::Network::WSSpecificSettings& n)
+{
+  obj[strings.Address] = n.address;
+  obj["Text"] = n.text;
+}
+
+
+template <>
+void JSONObjectWriter::writeTo(
     Engine::Network::WSSpecificSettings& n)
 {
-  n.address = m_obj[strings.Address].toString();
-  n.text = m_obj["Text"].toString();
+  n.address = obj[strings.Address].toString();
+  n.text = obj["Text"].toString();
 }

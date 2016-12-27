@@ -14,50 +14,50 @@
 
 #include "Value.hpp"
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-
 // TODO clean this file
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::read(const State::ValueImpl& value)
+DataStreamReader::read(const State::ValueImpl& value)
 {
   readFrom(value.m_variant);
   insertDelimiter();
 }
 
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(State::ValueImpl& value)
+DataStreamWriter::writeTo(State::ValueImpl& value)
 {
   writeTo(value.m_variant);
   checkDelimiter();
 }
 
+
 template <>
-void Visitor<Reader<DataStream>>::read(const State::impulse_t& value)
+void DataStreamReader::read(const State::impulse_t& value)
 {
 }
 
+
 template <>
-void Visitor<Writer<DataStream>>::writeTo(State::impulse_t& value)
+void DataStreamWriter::writeTo(State::impulse_t& value)
 {
 }
+
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::read(const State::Value& value)
+DataStreamReader::read(const State::Value& value)
 {
   readFrom(value.val);
   insertDelimiter();
 }
 
+
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<DataStream>>::writeTo(State::Value& value)
+DataStreamWriter::writeTo(State::Value& value)
 {
   writeTo(value.val);
   checkDelimiter();
@@ -68,18 +68,20 @@ ISCORE_LIB_STATE_EXPORT QJsonValue ValueToJson(const State::Value& value)
   return State::convert::value<QJsonValue>(value);
 }
 
-template <>
-ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom(const State::Value& val)
-{
-  m_obj[strings.Type] = State::convert::textualType(val);
-  m_obj[strings.Value] = ValueToJson(val);
-}
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Writer<JSONObject>>::writeTo(State::Value& val)
+JSONObjectReader::readFrom(const State::Value& val)
+{
+  obj[strings.Type] = State::convert::textualType(val);
+  obj[strings.Value] = ValueToJson(val);
+}
+
+
+template <>
+ISCORE_LIB_STATE_EXPORT void
+JSONObjectWriter::writeTo(State::Value& val)
 {
   val = State::convert::fromQJsonValue(
-      m_obj[strings.Value], m_obj[strings.Type].toString());
+      obj[strings.Value], obj[strings.Type].toString());
 }
