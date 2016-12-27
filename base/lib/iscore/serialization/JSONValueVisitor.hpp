@@ -5,7 +5,7 @@
 #include <QMap>
 #include <iscore/serialization/StringConstants.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/model/Identifier.hpp>
+#include <iscore/model/Entity.hpp>
 
 template <class>
 class StringKey;
@@ -454,3 +454,19 @@ inline std::string fromJsonValue<std::string>(const QJsonValueRef& obj)
 {
   return obj.toString().toStdString();
 }
+
+
+template <typename U>
+struct TSerializer<JSONValue, UuidKey<U>>
+{
+  static void readFrom(JSONValue::Serializer& s, const UuidKey<U>& uid)
+  {
+    s.readFrom(uid.impl());
+  }
+
+  static void writeTo(JSONValue::Deserializer& s, UuidKey<U>& uid)
+  {
+    s.writeTo(uid.impl());
+  }
+};
+

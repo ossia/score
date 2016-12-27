@@ -18,8 +18,7 @@ class TimeNodeModel;
 class BaseScenario final : public IdentifiedObject<BaseScenario>,
                            public BaseScenarioContainer
 {
-  ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Scenario::BaseScenario, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
 public:
   BaseScenario(const Id<BaseScenario>& id, QObject* parentObject);

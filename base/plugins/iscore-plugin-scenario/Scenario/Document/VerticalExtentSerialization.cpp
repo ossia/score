@@ -5,7 +5,7 @@
 #include "VerticalExtent.hpp"
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const Scenario::VerticalExtent& ve)
+void Visitor<Reader<DataStream>>::read(const Scenario::VerticalExtent& ve)
 {
   m_stream << static_cast<QPointF>(ve);
   insertDelimiter();

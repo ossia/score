@@ -7,7 +7,7 @@
 #include "WSSpecificSettings.hpp"
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const Engine::Network::WSSpecificSettings& n)
 {
   m_stream << n.address << n.text;
@@ -23,7 +23,7 @@ void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Engine::Network::WSSpecificSettings& n)
 {
   m_obj[strings.Address] = n.address;

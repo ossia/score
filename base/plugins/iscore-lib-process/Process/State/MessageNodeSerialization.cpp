@@ -79,7 +79,7 @@ void fromJsonValue(
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::read(
     const std::array<Process::PriorityPolicy, 3>& val)
 {
   for (int i = 0; i < 3; i++)
@@ -95,7 +95,7 @@ void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::read(
     const Process::ProcessStateData& val)
 {
   m_stream << val.process << val.value;
@@ -124,7 +124,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Process::ProcessStateData& val)
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const Process::StateNodeValues& val)
+void Visitor<Reader<DataStream>>::read(const Process::StateNodeValues& val)
 {
   m_stream << val.previousProcessValues << val.followingProcessValues
            << val.userValue << val.priorities;
@@ -158,7 +158,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Process::StateNodeValues& val)
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Process::StateNodeData& node)
+Visitor<Reader<DataStream>>::read(const Process::StateNodeData& node)
 {
   m_stream << node.name << node.values;
   insertDelimiter();

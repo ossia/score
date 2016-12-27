@@ -22,10 +22,8 @@ class IdentifiedObject;
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Curve::Model& curve)
+Visitor<Reader<DataStream>>::read(const Curve::Model& curve)
 {
-  readFrom(static_cast<const IdentifiedObject<Curve::Model>&>(curve));
-
   const auto& segments = curve.segments();
 
   m_stream << (int32_t)segments.size();

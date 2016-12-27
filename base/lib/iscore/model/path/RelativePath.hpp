@@ -19,12 +19,12 @@ struct ISCORE_LIB_BASE_EXPORT RelativePath
   QObject* find_impl(QObject* source) const;
 
   template <typename T>
-  T& find(QObject* source)
+  T& find(QObject* source) const
   {
     return *safe_cast<T*>(find_impl(source));
   }
   template <typename T>
-  T* try_find(QObject* source)
+  T* try_find(QObject* source) const
   {
     return dynamic_cast<T*>(find_impl(source));
   }

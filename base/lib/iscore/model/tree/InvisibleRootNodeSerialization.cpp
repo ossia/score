@@ -9,7 +9,7 @@ class Writer;
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const InvisibleRootNode&)
+Visitor<Reader<DataStream>>::read(const InvisibleRootNode&)
 {
   insertDelimiter();
 }

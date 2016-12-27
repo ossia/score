@@ -17,12 +17,9 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 template <>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::readFrom_impl(
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<DataStream>>::read(
     const Process::ProcessModel& process)
 {
-  // To allow recration using createProcess
-  readFrom(static_cast<const iscore::Entity<Process::ProcessModel>&>(process));
-
   readFrom(process.duration());
   // m_stream << process.useParentDuration();
 }
@@ -39,7 +36,7 @@ Visitor<Writer<DataStream>>::writeTo(Process::ProcessModel& process)
 }
 
 template <>
-ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFrom_impl(
+ISCORE_LIB_PROCESS_EXPORT void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Process::ProcessModel& process)
 {
   readFrom(static_cast<const iscore::Entity<Process::ProcessModel>&>(process));

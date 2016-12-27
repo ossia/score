@@ -32,8 +32,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SlotModel final
       public Nano::Observer
 {
   Q_OBJECT
-  ISCORE_SERIALIZE_FRIENDS(SlotModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(SlotModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
   Q_PROPERTY(
       qreal getHeight READ getHeight WRITE setHeight NOTIFY HeightChanged)

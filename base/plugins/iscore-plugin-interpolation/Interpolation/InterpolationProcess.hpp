@@ -57,8 +57,7 @@ private:
 class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final
     : public Curve::CurveProcessModel
 {
-  ISCORE_SERIALIZE_FRIENDS(Interpolation::ProcessModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Interpolation::ProcessModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
   MODEL_METADATA_IMPL(Interpolation::ProcessModel)
 
   Q_OBJECT

@@ -231,7 +231,7 @@ ProcessModel::ProcessModel(
 
 template <>
 ISCORE_PLUGIN_INTERPOLATION_EXPORT void
-Visitor<Reader<DataStream>>::readFrom_impl(
+Visitor<Reader<DataStream>>::read(
     const Interpolation::ProcessModel& interp)
 {
   readFrom(interp.curve());
@@ -264,7 +264,7 @@ Visitor<Writer<DataStream>>::writeTo(Interpolation::ProcessModel& interp)
 
 template <>
 ISCORE_PLUGIN_INTERPOLATION_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom_impl(
+Visitor<Reader<JSONObject>>::readFromConcrete(
     const Interpolation::ProcessModel& interp)
 {
   m_obj["Curve"] = toJsonObject(interp.curve());

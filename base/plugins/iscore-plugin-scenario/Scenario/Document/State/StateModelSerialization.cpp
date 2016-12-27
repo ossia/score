@@ -34,10 +34,8 @@ class IdentifiedObject;
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Scenario::StateModel& s)
+Visitor<Reader<DataStream>>::read(const Scenario::StateModel& s)
 {
-  readFrom(static_cast<const iscore::Entity<Scenario::StateModel>&>(s));
-
   m_stream << s.m_eventId << s.m_previousConstraint << s.m_nextConstraint
            << s.m_heightPercentage;
 

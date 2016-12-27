@@ -37,14 +37,13 @@ void SerializableDocumentPlugin::reloadAfterDocument(const VisitorVariant& vis)
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const iscore::SerializableDocumentPlugin& dpm)
 {
-  readFrom(static_cast<const IdentifiedObject<iscore::DocumentPlugin>&>(dpm));
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const iscore::SerializableDocumentPlugin& dpm)
 {
   readFrom(static_cast<const IdentifiedObject<iscore::DocumentPlugin>&>(dpm));

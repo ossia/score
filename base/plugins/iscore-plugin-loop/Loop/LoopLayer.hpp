@@ -23,8 +23,7 @@ namespace Loop
 class Layer final : public Process::LayerModel
 {
   SERIALIZABLE_MODEL_METADATA_IMPL(Loop::Layer)
-  ISCORE_SERIALIZE_FRIENDS(Layer, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Layer, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
   Q_OBJECT
 public:

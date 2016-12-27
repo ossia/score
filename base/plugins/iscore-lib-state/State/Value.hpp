@@ -41,8 +41,7 @@ enum class ValueType : std::size_t
 
 class ISCORE_LIB_STATE_EXPORT ValueImpl
 {
-  ISCORE_SERIALIZE_FRIENDS(ValueImpl, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(ValueImpl, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
 public:
   using variant_t = eggs::

@@ -11,8 +11,7 @@ namespace Midi
 class ISCORE_PLUGIN_MIDI_EXPORT ProcessModel final
     : public Process::ProcessModel
 {
-  ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
   MODEL_METADATA_IMPL(Midi::ProcessModel)
   Q_OBJECT
 

@@ -3,7 +3,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <iscore/serialization/VariantSerialization.hpp>
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const Explorer::DeviceDocumentPlugin& dev)
 {
   readFrom(dev.rootNode());
@@ -11,7 +11,7 @@ void Visitor<Reader<DataStream>>::readFrom_impl(
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Explorer::DeviceDocumentPlugin& plug)
 {
   // Childrens of the root node are the devices

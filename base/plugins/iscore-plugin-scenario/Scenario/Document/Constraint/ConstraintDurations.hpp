@@ -34,8 +34,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
   Q_PROPERTY(double executionSpeed READ executionSpeed WRITE setExecutionSpeed
                  NOTIFY executionSpeedChanged)
 
-  ISCORE_SERIALIZE_FRIENDS(ConstraintDurations, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(ConstraintDurations, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
   Q_OBJECT
 public:

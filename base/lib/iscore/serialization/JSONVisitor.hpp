@@ -87,14 +87,14 @@ public:
   template <
       typename T,
       std::
-          enable_if_t<is_abstract_base<T>::value && !is_concrete<T>::value>* = nullptr>
+          enable_if_t<is_abstract_base<T>::value>* = nullptr>
   void readFrom(const T& obj)
   {
     AbstractSerializer<JSONObject, T>::readFrom(*this, obj);
   }
 
   template <typename T>
-  void readFrom_impl(const T&);
+  void readFromConcrete(const T&);
 
   template <
       typename T,
@@ -208,6 +208,23 @@ struct TSerializer<JSONObject, optional<int32_t>>
     }
   }
 };
+
+template <typename T>
+struct TSerializer<JSONObject, iscore::Entity<T>>
+{
+  static void readFrom(JSONObject::Serializer& s, const iscore::Entity<T>& obj)
+  {
+    s.readFrom(static_cast<const IdentifiedObject<T>&>(obj));
+    s.m_obj[s.strings.Metadata] = toJsonObject(obj.metadata());
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, iscore::Entity<T>& obj)
+  {
+    obj.metadata()
+        = fromJsonObject<iscore::ModelMetadata>(s.m_obj[s.strings.Metadata]);
+  }
+};
+
 
 template <typename T>
 QJsonObject toJsonObject(const T& obj)

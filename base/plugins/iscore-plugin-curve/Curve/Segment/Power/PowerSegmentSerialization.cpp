@@ -11,7 +11,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const Curve::PowerSegment& segmt)
 {
   m_stream << segmt.gamma;
@@ -24,7 +24,7 @@ void Visitor<Writer<DataStream>>::writeTo(Curve::PowerSegment& segmt)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Curve::PowerSegment& segmt)
 {
   m_obj["Power"] = segmt.gamma;
@@ -37,7 +37,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Curve::PowerSegment& segmt)
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const Curve::PowerSegmentData& segmt)
 {
   m_stream << segmt.gamma;
@@ -50,7 +50,7 @@ void Visitor<Writer<DataStream>>::writeTo(Curve::PowerSegmentData& segmt)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Curve::PowerSegmentData& segmt)
 {
   m_obj["Power"] = segmt.gamma;

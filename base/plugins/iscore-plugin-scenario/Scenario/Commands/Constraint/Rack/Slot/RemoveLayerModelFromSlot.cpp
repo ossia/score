@@ -1,8 +1,10 @@
 #include <Process/LayerModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <iscore/model/path/RelativePath.hpp>
 
 #include "RemoveLayerModelFromSlot.hpp"
 #include <Process/ProcessList.hpp>
+#include <Process/Process.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/path/Path.hpp>
@@ -19,9 +21,12 @@ RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
     : m_path{rackPath}, m_layerId{std::move(layerId)}
 {
   auto& slot = m_path.find();
+  auto& lm = slot.layers.at(m_layerId);
 
   Serializer<DataStream> s{&m_serializedLayerData};
-  s.readFrom(slot.layers.at(m_layerId));
+
+  s.readFrom(iscore::RelativePath(*lm.parent(), lm.processModel()));
+  s.readFrom(lm);
 }
 
 void RemoveLayerModelFromSlot::undo() const
@@ -29,8 +34,11 @@ void RemoveLayerModelFromSlot::undo() const
   auto& slot = m_path.find();
   Deserializer<DataStream> s{m_serializedLayerData};
 
+  iscore::RelativePath p;
+  s.writeTo(p);
+
   auto lm = deserialize_interface(
-      this->context.interfaces<Process::LayerFactoryList>(), s, &slot);
+      this->context.interfaces<Process::LayerFactoryList>(), s, p, &slot);
   if (lm)
     slot.layers.add(lm);
   else

@@ -19,8 +19,7 @@ class PointModel;
 struct SegmentData;
 class ISCORE_PLUGIN_CURVE_EXPORT Model final : public IdentifiedObject<Model>
 {
-  ISCORE_SERIALIZE_FRIENDS(Curve::Model, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Curve::Model, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
   Q_OBJECT
 public:
   Model(const Id<Model>&, QObject* parent);

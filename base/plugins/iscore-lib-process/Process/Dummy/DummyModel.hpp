@@ -35,8 +35,7 @@ namespace Dummy
 {
 class ISCORE_LIB_PROCESS_EXPORT DummyModel final : public Process::ProcessModel
 {
-  ISCORE_SERIALIZE_FRIENDS(DummyModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(DummyModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
   MODEL_METADATA_IMPL(Dummy::DummyModel)
 
 public:

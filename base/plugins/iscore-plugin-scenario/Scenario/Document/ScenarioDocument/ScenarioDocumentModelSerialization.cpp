@@ -23,13 +23,9 @@ template <typename model>
 class IdentifiedObject;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const Scenario::ScenarioDocumentModel& obj)
 {
-  readFrom(
-      static_cast<const IdentifiedObject<iscore::
-                                             DocumentDelegateModel>&>(
-          obj));
   readFrom(*obj.m_baseScenario);
 
   insertDelimiter();
@@ -44,7 +40,7 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::ScenarioDocumentModel& obj)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Scenario::ScenarioDocumentModel& obj)
 {
   readFrom(

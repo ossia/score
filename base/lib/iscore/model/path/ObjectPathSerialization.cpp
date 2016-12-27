@@ -13,7 +13,7 @@ class Writer;
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const ObjectPath& path)
+Visitor<Reader<DataStream>>::read(const ObjectPath& path)
 {
   readFrom(path.vec());
 }

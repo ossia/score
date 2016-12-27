@@ -15,7 +15,7 @@
 /// AccessorVector ///
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const State::AccessorVector& a)
+Visitor<Reader<DataStream>>::read(const State::AccessorVector& a)
 {
   int32_t n = a.size();
   m_stream << n;
@@ -44,7 +44,7 @@ Visitor<Writer<DataStream>>::writeTo(State::AccessorVector& a)
 /// Address ///
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const State::Address& a)
+Visitor<Reader<DataStream>>::read(const State::Address& a)
 {
   m_stream << a.device << a.path;
   insertDelimiter();
@@ -81,7 +81,7 @@ Visitor<Writer<JSONObject>>::writeTo(State::Address& a)
 /// AddressQualifiers ///
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const ossia::destination_qualifiers& a)
+Visitor<Reader<DataStream>>::read(const ossia::destination_qualifiers& a)
 {
   m_stream << a.accessors << a.unit;
 }
@@ -117,7 +117,7 @@ Visitor<Writer<JSONObject>>::writeTo(ossia::destination_qualifiers& a)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const State::DestinationQualifiers& a)
+Visitor<Reader<DataStream>>::read(const State::DestinationQualifiers& a)
 {
   readFrom(a.get());
 }
@@ -146,7 +146,7 @@ Visitor<Writer<JSONObject>>::writeTo(State::DestinationQualifiers& a)
 /// AddressAccessor ///
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const State::AddressAccessor& rel)
+Visitor<Reader<DataStream>>::read(const State::AddressAccessor& rel)
 {
   m_stream << rel.address << rel.qualifiers;
 
@@ -181,7 +181,7 @@ Visitor<Writer<JSONObject>>::writeTo(State::AddressAccessor& rel)
 /// AddressAccessorHead ///
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const State::AddressAccessorHead& rel)
+Visitor<Reader<DataStream>>::read(const State::AddressAccessorHead& rel)
 {
   m_stream << rel.name << rel.qualifiers;
 

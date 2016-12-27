@@ -11,7 +11,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(const Curve::SinSegment& segmt)
+void Visitor<Reader<DataStream>>::read(const Curve::SinSegment& segmt)
 {
   m_stream << segmt.freq << segmt.ampl;
 }
@@ -23,7 +23,7 @@ void Visitor<Writer<DataStream>>::writeTo(Curve::SinSegment& segmt)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(const Curve::SinSegment& segmt)
+void Visitor<Reader<JSONObject>>::readFromConcrete(const Curve::SinSegment& segmt)
 {
   m_obj["Freq"] = segmt.freq;
   m_obj["Ampl"] = segmt.ampl;
@@ -37,7 +37,7 @@ void Visitor<Writer<JSONObject>>::writeTo(Curve::SinSegment& segmt)
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const Curve::SinSegmentData& segmt)
+void Visitor<Reader<DataStream>>::read(const Curve::SinSegmentData& segmt)
 {
   m_stream << segmt.freq << segmt.ampl;
 }

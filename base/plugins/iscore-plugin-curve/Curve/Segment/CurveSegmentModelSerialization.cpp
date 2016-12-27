@@ -34,7 +34,7 @@ class Visitor;
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Curve::SegmentData& segmt)
+Visitor<Reader<DataStream>>::read(const Curve::SegmentData& segmt)
 {
   m_stream << segmt.id << segmt.start << segmt.end << segmt.previous
            << segmt.following << segmt.type;
@@ -67,11 +67,8 @@ Visitor<Writer<DataStream>>::writeTo(Curve::SegmentData& segmt)
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom_impl(const Curve::SegmentModel& segmt)
+Visitor<Reader<DataStream>>::read(const Curve::SegmentModel& segmt)
 {
-  // Save the parent class
-  readFrom(static_cast<const IdentifiedObject<Curve::SegmentModel>&>(segmt));
-
   // Save this class (this will be loaded by writeTo(*this) in
   // CurveSegmentModel ctor
   m_stream << segmt.previous() << segmt.following() << segmt.start()
@@ -92,7 +89,7 @@ Visitor<Writer<DataStream>>::writeTo(Curve::SegmentModel& segmt)
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-Visitor<Reader<JSONObject>>::readFrom_impl(const Curve::SegmentModel& segmt)
+Visitor<Reader<JSONObject>>::readFromConcrete(const Curve::SegmentModel& segmt)
 {
   using namespace Curve;
 

@@ -23,7 +23,7 @@ class Writer;
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const State::ValueImpl& value)
+Visitor<Reader<DataStream>>::read(const State::ValueImpl& value)
 {
   readFrom(value.m_variant);
   insertDelimiter();
@@ -38,7 +38,7 @@ Visitor<Writer<DataStream>>::writeTo(State::ValueImpl& value)
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const State::impulse_t& value)
+void Visitor<Reader<DataStream>>::read(const State::impulse_t& value)
 {
 }
 
@@ -49,7 +49,7 @@ void Visitor<Writer<DataStream>>::writeTo(State::impulse_t& value)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const State::Value& value)
+Visitor<Reader<DataStream>>::read(const State::Value& value)
 {
   readFrom(value.val);
   insertDelimiter();

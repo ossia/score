@@ -9,7 +9,7 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const State::Pulse& rel)
+void Visitor<Reader<DataStream>>::read(const State::Pulse& rel)
 {
   m_stream << rel.address;
 
@@ -37,7 +37,7 @@ void Visitor<Writer<JSONObject>>::writeTo(State::Pulse& rel)
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(const State::Relation& rel)
+void Visitor<Reader<DataStream>>::read(const State::Relation& rel)
 {
   m_stream << rel.lhs << rel.op << rel.rhs;
 
@@ -71,7 +71,7 @@ void Visitor<Writer<JSONObject>>::writeTo(State::Relation& rel)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const State::ExprData& expr)
+Visitor<Reader<DataStream>>::read(const State::ExprData& expr)
 {
   readFrom(expr.m_data);
   insertDelimiter();

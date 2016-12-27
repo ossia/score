@@ -4,8 +4,6 @@
 #include <iscore/tools/Todo.hpp>
 #include <iscore_lib_base_export.h>
 
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONValueVisitor.hpp>
 
 class JSONObject;
 #if defined(__GNUC__) && __GNUC__ < 6
@@ -475,33 +473,3 @@ struct hash<const UuidKey<T>>
   }
 };
 }
-
-template <typename U>
-struct TSerializer<DataStream, void, UuidKey<U>>
-{
-  static void readFrom(DataStream::Serializer& s, const UuidKey<U>& uid)
-  {
-    s.stream().stream.writeRawData(
-        (const char*)uid.impl().data, sizeof(uid.impl().data));
-  }
-
-  static void writeTo(DataStream::Deserializer& s, UuidKey<U>& uid)
-  {
-    s.stream().stream.readRawData(
-        (char*)uid.impl().data, sizeof(uid.impl().data));
-  }
-};
-
-template <typename U>
-struct TSerializer<JSONValue, UuidKey<U>>
-{
-  static void readFrom(JSONValue::Serializer& s, const UuidKey<U>& uid)
-  {
-    s.readFrom(uid.impl());
-  }
-
-  static void writeTo(JSONValue::Deserializer& s, UuidKey<U>& uid)
-  {
-    s.writeTo(uid.impl());
-  }
-};

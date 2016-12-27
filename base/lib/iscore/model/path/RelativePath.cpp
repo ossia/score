@@ -58,7 +58,7 @@ QObject* RelativePath::find_impl(QObject* source) const
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const iscore::RelativePath& path)
+Visitor<Reader<DataStream>>::read(const iscore::RelativePath& path)
 {
   m_stream << path.m_parents;
   readFrom(path.m_remainder);

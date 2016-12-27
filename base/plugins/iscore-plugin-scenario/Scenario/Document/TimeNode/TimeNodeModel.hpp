@@ -28,8 +28,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final
 {
   Q_OBJECT
 
-  ISCORE_SERIALIZE_FRIENDS(Scenario::TimeNodeModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Scenario::TimeNodeModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
 public:
   /** Properties of the class **/

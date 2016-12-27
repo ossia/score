@@ -14,10 +14,10 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::read(
     const Scenario::FullViewConstraintViewModel& constraint)
 {
-  readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
+  this->read(static_cast<const Scenario::ConstraintViewModel&>(constraint));
   m_stream << constraint.zoom() << constraint.visibleRect();
 }
 

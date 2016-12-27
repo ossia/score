@@ -30,8 +30,7 @@ namespace Automation
 class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
     : public Curve::CurveProcessModel
 {
-  ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
   MODEL_METADATA_IMPL(Automation::ProcessModel)
 
   Q_OBJECT

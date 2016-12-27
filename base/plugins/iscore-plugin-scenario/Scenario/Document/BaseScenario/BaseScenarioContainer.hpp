@@ -22,8 +22,7 @@ class TimeNodeModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer
     : public ScenarioInterface
 {
-  ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(BaseScenarioContainer, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 public:
   struct no_init
   {

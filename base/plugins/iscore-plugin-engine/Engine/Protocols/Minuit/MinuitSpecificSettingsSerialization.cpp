@@ -12,7 +12,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const Engine::Network::MinuitSpecificSettings& n)
 {
   m_stream << n.host << n.inputPort << n.outputPort;
@@ -28,7 +28,7 @@ void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Engine::Network::MinuitSpecificSettings& n)
 {
   m_obj["InPort"] = n.inputPort;

@@ -29,8 +29,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final
     : public iscore::DocumentDelegateModel
 {
   Q_OBJECT
-  ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioDocumentModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Scenario::ScenarioDocumentModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 public:
   ScenarioDocumentModel(const iscore::DocumentContext& ctx, QObject* parent);
 

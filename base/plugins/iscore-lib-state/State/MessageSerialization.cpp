@@ -18,7 +18,7 @@ class Writer;
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const State::Message& mess)
+Visitor<Reader<DataStream>>::read(const State::Message& mess)
 {
   readFrom(mess.address);
   readFrom(mess.value);

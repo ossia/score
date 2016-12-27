@@ -40,7 +40,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const Scenario::ProcessModel& scenario)
 {
   m_stream << scenario.m_startTimeNodeId;
@@ -166,7 +166,7 @@ void Visitor<Writer<DataStream>>::writeTo(Scenario::ProcessModel& scenario)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Scenario::ProcessModel& scenario)
 {
   m_obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);

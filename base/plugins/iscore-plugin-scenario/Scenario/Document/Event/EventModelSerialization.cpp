@@ -19,10 +19,8 @@
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Scenario::EventModel& ev)
+Visitor<Reader<DataStream>>::read(const Scenario::EventModel& ev)
 {
-  readFrom(static_cast<const iscore::Entity<Scenario::EventModel>&>(ev));
-
   m_stream << ev.m_timeNode << ev.m_states << ev.m_condition << ev.m_extent
            << ev.m_date << ev.m_offset;
 

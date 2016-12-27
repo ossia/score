@@ -84,7 +84,7 @@ template <typename T>
 class Writer;
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
     const Scenario::TimenodeProperties& timenodeProperties)
 {
   m_stream << timenodeProperties.oldDate << timenodeProperties.newDate;
@@ -105,7 +105,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 //----------
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
     const Scenario::ConstraintSaveData& constraintProperties)
 {
   m_stream << constraintProperties.constraintPath
@@ -126,7 +126,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
     const Scenario::ConstraintProperties& constraintProperties)
 {
   m_stream << constraintProperties.oldMin << constraintProperties.newMin
@@ -151,7 +151,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Writer<DataStream>>::writeTo(
 
 //----------
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void Visitor<Reader<DataStream>>::read(
     const Scenario::ElementsProperties& elementsProperties)
 {
   m_stream << elementsProperties.timenodes << elementsProperties.constraints;

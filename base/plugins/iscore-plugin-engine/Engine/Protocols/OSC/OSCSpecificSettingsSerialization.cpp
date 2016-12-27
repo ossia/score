@@ -12,7 +12,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const Engine::Network::OSCSpecificSettings& n)
 {
   // TODO put it in the right order before 1.0 final.
@@ -30,7 +30,7 @@ void Visitor<Writer<DataStream>>::writeTo(
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Engine::Network::OSCSpecificSettings& n)
 {
   m_obj["OutputPort"] = n.outputPort;

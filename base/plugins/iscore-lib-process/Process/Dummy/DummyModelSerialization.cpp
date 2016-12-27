@@ -12,7 +12,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(const Dummy::DummyModel& proc)
+void Visitor<Reader<DataStream>>::read(const Dummy::DummyModel& proc)
 {
   insertDelimiter();
 }
@@ -24,7 +24,7 @@ void Visitor<Writer<DataStream>>::writeTo(Dummy::DummyModel& proc)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(const Dummy::DummyModel& proc)
+void Visitor<Reader<JSONObject>>::readFromConcrete(const Dummy::DummyModel& proc)
 {
 }
 

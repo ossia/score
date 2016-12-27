@@ -13,7 +13,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(const JS::ProcessModel& proc)
+void Visitor<Reader<DataStream>>::read(const JS::ProcessModel& proc)
 {
   m_stream << proc.m_script;
 
@@ -31,7 +31,7 @@ void Visitor<Writer<DataStream>>::writeTo(JS::ProcessModel& proc)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(const JS::ProcessModel& proc)
+void Visitor<Reader<JSONObject>>::readFromConcrete(const JS::ProcessModel& proc)
 {
   m_obj["Script"] = proc.script();
 }

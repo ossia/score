@@ -13,7 +13,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::read(
     const RecordedMessages::RecordedMessage& rm)
 {
   m_stream << rm.percentage << rm.message;
@@ -43,7 +43,7 @@ void Visitor<Writer<JSONObject>>::writeTo(
 }
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const RecordedMessages::ProcessModel& proc)
 {
   m_stream << proc.m_messages;
@@ -60,7 +60,7 @@ void Visitor<Writer<DataStream>>::writeTo(RecordedMessages::ProcessModel& proc)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const RecordedMessages::ProcessModel& proc)
 {
   m_obj["Messages"] = toJsonArray(proc.messages());

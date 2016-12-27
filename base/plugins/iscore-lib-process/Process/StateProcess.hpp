@@ -16,8 +16,7 @@ class ISCORE_LIB_PROCESS_EXPORT StateProcess
 {
   Q_OBJECT
 
-  ISCORE_SERIALIZE_FRIENDS(StateProcess, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(StateProcess, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
 public:
   StateProcess(

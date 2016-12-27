@@ -28,8 +28,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final
 {
   Q_OBJECT
 
-  ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(Scenario::EventModel, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
   Q_PROPERTY(Scenario::OffsetBehavior offsetBehavior READ offsetBehavior WRITE
                  setOffsetBehavior NOTIFY offsetBehaviorChanged FINAL)

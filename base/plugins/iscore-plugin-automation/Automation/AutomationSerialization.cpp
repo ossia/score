@@ -24,7 +24,7 @@ template <typename T>
 class Writer;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(
+void Visitor<Reader<DataStream>>::read(
     const Automation::ProcessModel& autom)
 {
   readFrom(autom.curve());
@@ -57,7 +57,7 @@ void Visitor<Writer<DataStream>>::writeTo(Automation::ProcessModel& autom)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(
+void Visitor<Reader<JSONObject>>::readFromConcrete(
     const Automation::ProcessModel& autom)
 {
   m_obj["Curve"] = toJsonObject(autom.curve());

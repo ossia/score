@@ -22,12 +22,9 @@ template <typename model>
 class IdentifiedObject;
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom(
+void Visitor<Reader<DataStream>>::read(
     const Scenario::CommentBlockModel& comment)
 {
-  readFrom(static_cast<const IdentifiedObject<Scenario::CommentBlockModel>&>(
-      comment));
-
   m_stream << comment.m_date << comment.m_yposition << comment.m_HTMLcontent;
 
   insertDelimiter();

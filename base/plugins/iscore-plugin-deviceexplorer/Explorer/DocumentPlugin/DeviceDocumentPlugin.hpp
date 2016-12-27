@@ -18,8 +18,7 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
       public Nano::Observer
 {
   Q_OBJECT
-  ISCORE_SERIALIZE_FRIENDS(DeviceDocumentPlugin, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(DeviceDocumentPlugin, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
   SERIALIZABLE_MODEL_METADATA_IMPL(DeviceDocumentPlugin)
 public:

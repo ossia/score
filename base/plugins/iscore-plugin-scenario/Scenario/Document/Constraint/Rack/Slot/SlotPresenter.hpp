@@ -80,7 +80,6 @@ public:
   void on_parentGeometryChanged();
 
   void on_zoomRatioChanged(ZoomRatio);
-  void on_loopingChanged(bool);
 
 signals:
   void askUpdate();
@@ -114,6 +113,5 @@ private:
   ZoomRatio m_zoomRatio{};
 
   bool m_enabled{true};
-  bool m_looping{false};
 };
 }

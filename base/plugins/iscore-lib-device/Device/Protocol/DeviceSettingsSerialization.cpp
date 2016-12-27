@@ -24,7 +24,7 @@ class Writer;
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Device::DeviceSettings& n)
+Visitor<Reader<DataStream>>::read(const Device::DeviceSettings& n)
 {
   m_stream << n.name << n.protocol;
 

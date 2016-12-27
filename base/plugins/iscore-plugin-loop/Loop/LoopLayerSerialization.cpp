@@ -13,7 +13,7 @@
 #include <iscore/model/Identifier.hpp>
 
 template <>
-void Visitor<Reader<DataStream>>::readFrom_impl(const Loop::Layer& lm)
+void Visitor<Reader<DataStream>>::read(const Loop::Layer& lm)
 {
   readFrom(*lm.m_constraint);
 
@@ -44,7 +44,7 @@ void Visitor<Writer<DataStream>>::writeTo(Loop::Layer& lm)
 }
 
 template <>
-void Visitor<Reader<JSONObject>>::readFrom_impl(const Loop::Layer& lm)
+void Visitor<Reader<JSONObject>>::readFromConcrete(const Loop::Layer& lm)
 {
   m_obj["Constraint"] = toJsonObject(*lm.m_constraint);
 }

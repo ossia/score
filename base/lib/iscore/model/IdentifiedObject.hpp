@@ -18,6 +18,7 @@ template <typename model>
 class IdentifiedObject : public IdentifiedObjectAbstract
 {
 public:
+  static const constexpr bool identified_object_tag = true;
   using model_type = model;
   using id_type = Id<model>;
 

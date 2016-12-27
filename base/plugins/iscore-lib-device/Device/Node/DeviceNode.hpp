@@ -25,8 +25,7 @@ class ISCORE_LIB_DEVICE_EXPORT DeviceExplorerNode
     : public iscore::
           VariantBasedNode<Device::DeviceSettings, Device::AddressSettings>
 {
-  ISCORE_SERIALIZE_FRIENDS(DeviceExplorerNode, DataStream)
-  ISCORE_SERIALIZE_FRIENDS(DeviceExplorerNode, JSONObject)
+  ISCORE_SERIALIZE_FRIENDS
 
 public:
   enum class Type

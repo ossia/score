@@ -5,7 +5,7 @@
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-Visitor<Reader<DataStream>>::readFrom(const Device::DeviceExplorerNode& n)
+Visitor<Reader<DataStream>>::read(const Device::DeviceExplorerNode& n)
 {
   readFrom(n.m_data);
   insertDelimiter();
