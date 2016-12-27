@@ -86,10 +86,8 @@ DataStreamWriter::writeTo(Scenario::StateModel& s)
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectReader::readFrom(const Scenario::StateModel& s)
+JSONObjectReader::read(const Scenario::StateModel& s)
 {
-  readFrom(static_cast<const iscore::Entity<Scenario::StateModel>&>(s));
-
   obj["Event"] = toJsonValue(s.m_eventId);
   obj["PreviousConstraint"] = toJsonValue(s.m_previousConstraint);
   obj["NextConstraint"] = toJsonValue(s.m_nextConstraint);

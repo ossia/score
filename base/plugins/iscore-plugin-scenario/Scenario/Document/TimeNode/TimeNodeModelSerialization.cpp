@@ -59,11 +59,8 @@ DataStreamWriter::writeTo(Scenario::TimeNodeModel& timenode)
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectReader::readFrom(const Scenario::TimeNodeModel& timenode)
+JSONObjectReader::read(const Scenario::TimeNodeModel& timenode)
 {
-  readFrom(
-      static_cast<const iscore::Entity<Scenario::TimeNodeModel>&>(timenode));
-
   obj["Date"] = toJsonValue(timenode.date());
   obj["Events"] = toJsonArray(timenode.m_events);
   obj["Extent"] = toJsonValue(timenode.m_extent);

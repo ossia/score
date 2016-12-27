@@ -35,7 +35,7 @@ void DataStreamWriter::writeTo(Device::AddressSettingsCommon& n)
 }
 
 template <>
-void JSONObjectReader::readFrom(
+void JSONObjectReader::read(
     const Device::AddressSettingsCommon& n)
 {
   // Metadata
@@ -92,7 +92,7 @@ DataStreamWriter::writeTo(Device::AddressSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-JSONObjectReader::readFrom(const Device::AddressSettings& n)
+JSONObjectReader::read(const Device::AddressSettings& n)
 {
   readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
   obj[strings.Name] = n.name;
@@ -128,7 +128,7 @@ DataStreamWriter::writeTo(Device::FullAddressSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-JSONObjectReader::readFrom(const Device::FullAddressSettings& n)
+JSONObjectReader::read(const Device::FullAddressSettings& n)
 {
   readFrom(static_cast<const Device::AddressSettingsCommon&>(n));
   obj[strings.Address] = toJsonObject(n.address);
@@ -159,7 +159,7 @@ DataStreamWriter::writeTo(Device::FullAddressAccessorSettings& n)
 }
 
 template <>
-ISCORE_LIB_DEVICE_EXPORT void JSONObjectReader::readFrom(
+ISCORE_LIB_DEVICE_EXPORT void JSONObjectReader::read(
     const Device::FullAddressAccessorSettings& n)
 {
   // Metadata

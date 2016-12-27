@@ -21,7 +21,7 @@ void DataStreamWriter::writeTo(Curve::LinearSegment& segmt)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Curve::LinearSegment& segmt)
 {
 }
@@ -47,7 +47,7 @@ void DataStreamWriter::writeTo(Curve::LinearSegmentData& segmt)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Curve::LinearSegmentData& segmt)
 {
 }

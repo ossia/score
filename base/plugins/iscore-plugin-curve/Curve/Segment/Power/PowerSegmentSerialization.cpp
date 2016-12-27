@@ -23,7 +23,7 @@ void DataStreamWriter::writeTo(Curve::PowerSegment& segmt)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Curve::PowerSegment& segmt)
 {
   obj["Power"] = segmt.gamma;
@@ -53,7 +53,7 @@ void DataStreamWriter::writeTo(Curve::PowerSegmentData& segmt)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Curve::PowerSegmentData& segmt)
 {
   obj["Power"] = segmt.gamma;

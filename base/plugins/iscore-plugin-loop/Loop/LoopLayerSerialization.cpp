@@ -47,7 +47,7 @@ void DataStreamWriter::writeTo(Loop::Layer& lm)
 
 template <>
 
-void JSONObjectReader::readFromConcrete(const Loop::Layer& lm)
+void JSONObjectReader::read(const Loop::Layer& lm)
 {
   obj["Constraint"] = toJsonObject(*lm.m_constraint);
 }

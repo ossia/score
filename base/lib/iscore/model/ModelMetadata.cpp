@@ -178,7 +178,7 @@ DataStreamWriter::writeTo(iscore::ModelMetadata& md)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-JSONObjectReader::readFrom(const iscore::ModelMetadata& md)
+JSONObjectReader::read(const iscore::ModelMetadata& md)
 {
   obj[strings.ScriptingName] = md.m_scriptingName;
   obj[strings.Comment] = md.m_comment;

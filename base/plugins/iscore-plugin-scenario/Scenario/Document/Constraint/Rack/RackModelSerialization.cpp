@@ -60,10 +60,8 @@ void DataStreamWriter::writeTo(Scenario::RackModel& rack)
 
 
 template <>
-void JSONObjectReader::readFrom(const Scenario::RackModel& rack)
+void JSONObjectReader::read(const Scenario::RackModel& rack)
 {
-  readFrom(static_cast<const iscore::Entity<Scenario::RackModel>&>(rack));
-
   QJsonArray arr;
   for (const auto& slot : rack.slotmodels)
   {

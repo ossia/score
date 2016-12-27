@@ -52,7 +52,7 @@ DataStreamReader::read(const State::Address& a)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::readFrom(const State::Address& a)
+JSONObjectReader::read(const State::Address& a)
 {
   obj[strings.Device] = a.device;
   obj[strings.Path] = a.path.join('/');
@@ -88,7 +88,7 @@ DataStreamReader::read(const ossia::destination_qualifiers& a)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::readFrom(const ossia::destination_qualifiers& a)
+JSONObjectReader::read(const ossia::destination_qualifiers& a)
 {
   obj["Accessors"] = toJsonValueArray(a.accessors);
   obj[strings.Unit]
@@ -124,7 +124,7 @@ DataStreamReader::read(const State::DestinationQualifiers& a)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::readFrom(const State::DestinationQualifiers& a)
+JSONObjectReader::read(const State::DestinationQualifiers& a)
 {
   readFrom(a.get());
 }
@@ -155,7 +155,7 @@ DataStreamReader::read(const State::AddressAccessor& rel)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::readFrom(const State::AddressAccessor& rel)
+JSONObjectReader::read(const State::AddressAccessor& rel)
 {
   obj[strings.address] = toJsonObject(rel.address);
   readFrom(rel.qualifiers);
@@ -190,7 +190,7 @@ DataStreamReader::read(const State::AddressAccessorHead& rel)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::readFrom(const State::AddressAccessorHead& rel)
+JSONObjectReader::read(const State::AddressAccessorHead& rel)
 {
   obj[strings.Name] = rel.name;
   readFrom(rel.qualifiers);

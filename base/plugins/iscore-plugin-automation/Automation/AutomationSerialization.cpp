@@ -56,7 +56,7 @@ void DataStreamWriter::writeTo(Automation::ProcessModel& autom)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Automation::ProcessModel& autom)
 {
   obj["Curve"] = toJsonObject(autom.curve());

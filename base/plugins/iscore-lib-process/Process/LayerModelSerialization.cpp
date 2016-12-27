@@ -18,11 +18,8 @@ ISCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(
 }
 
 template <>
-ISCORE_LIB_PROCESS_EXPORT void JSONObjectReader::readFromConcrete(
+ISCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read(
     const Process::LayerModel& layerModel)
 {
-  readFrom(
-      static_cast<const IdentifiedObject<Process::LayerModel>&>(layerModel));
-
   // LayerModel doesn't have any particular data to save
 }

@@ -574,14 +574,12 @@ struct TSerializer<DataStream, iscore::Entity<T>>
   static void readFrom(DataStream::Serializer& s, const iscore::Entity<T>& obj)
   {
     TSerializer<DataStream, IdentifiedObject<T>>::readFrom(s, obj);
-    ISCORE_DEBUG_INSERT_DELIMITER2(s);
     s.readFrom(obj.metadata());
     ISCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
   static void writeTo(DataStream::Deserializer& s, iscore::Entity<T>& obj)
   {
-    ISCORE_DEBUG_CHECK_DELIMITER2(s);
     s.writeTo(obj.metadata());
     ISCORE_DEBUG_CHECK_DELIMITER2(s);
   }

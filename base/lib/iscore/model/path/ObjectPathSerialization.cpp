@@ -22,7 +22,7 @@ DataStreamWriter::writeTo(ObjectPath& path)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-JSONObjectReader::readFrom(const ObjectPath& path)
+JSONObjectReader::read(const ObjectPath& path)
 {
   obj[strings.Identifiers] = toJsonArray(path.vec());
 }

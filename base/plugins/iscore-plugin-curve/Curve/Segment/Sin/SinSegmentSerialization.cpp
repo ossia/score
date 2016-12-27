@@ -21,7 +21,7 @@ void DataStreamWriter::writeTo(Curve::SinSegment& segmt)
 
 
 template <>
-void JSONObjectReader::readFromConcrete(const Curve::SinSegment& segmt)
+void JSONObjectReader::read(const Curve::SinSegment& segmt)
 {
   obj["Freq"] = segmt.freq;
   obj["Ampl"] = segmt.ampl;
@@ -51,7 +51,7 @@ void DataStreamWriter::writeTo(Curve::SinSegmentData& segmt)
 
 
 template <>
-void JSONObjectReader::readFrom(const Curve::SinSegmentData& segmt)
+void JSONObjectReader::read(const Curve::SinSegmentData& segmt)
 {
   obj["Freq"] = segmt.freq;
   obj["Ampl"] = segmt.ampl;

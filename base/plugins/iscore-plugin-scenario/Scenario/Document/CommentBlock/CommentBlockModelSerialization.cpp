@@ -41,12 +41,9 @@ void DataStreamWriter::writeTo(Scenario::CommentBlockModel& comment)
 
 
 template <>
-void JSONObjectReader::readFrom(
+void JSONObjectReader::read(
     const Scenario::CommentBlockModel& comment)
 {
-  readFrom(static_cast<const IdentifiedObject<Scenario::CommentBlockModel>&>(
-      comment));
-
   obj["Date"] = toJsonValue(comment.m_date);
   obj["HeightPercentage"] = comment.m_yposition;
   obj["HTMLContent"] = comment.m_HTMLcontent;

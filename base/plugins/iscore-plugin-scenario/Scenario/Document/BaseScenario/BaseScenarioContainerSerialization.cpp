@@ -65,7 +65,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::writeTo(
 
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
     const Scenario::BaseScenarioContainer& base_scenario)
 {
   obj["Constraint"] = toJsonObject(*base_scenario.m_constraint);

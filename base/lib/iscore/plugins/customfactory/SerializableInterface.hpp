@@ -5,17 +5,6 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
-template <typename T>
-struct AbstractSerializer<JSONObject, T>
-{
-  static void readFrom(JSONObject::Serializer& s, const T& obj)
-  {
-    s.obj[s.strings.uuid] = toJsonValue(obj.concreteKey().impl());
-    s.readFromConcrete(obj);
-    obj.serialize_impl(s.toVariant());
-  }
-};
-
 namespace iscore
 {
 /**

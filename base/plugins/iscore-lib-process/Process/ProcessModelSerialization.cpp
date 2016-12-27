@@ -36,11 +36,9 @@ DataStreamWriter::writeTo(Process::ProcessModel& process)
 }
 
 template <>
-ISCORE_LIB_PROCESS_EXPORT void JSONObjectReader::readFromConcrete(
+ISCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read(
     const Process::ProcessModel& process)
 {
-  readFrom(static_cast<const iscore::Entity<Process::ProcessModel>&>(process));
-
   obj[strings.Duration] = toJsonValue(process.duration());
   // obj["UseParentDuration"] = process.useParentDuration();
 }

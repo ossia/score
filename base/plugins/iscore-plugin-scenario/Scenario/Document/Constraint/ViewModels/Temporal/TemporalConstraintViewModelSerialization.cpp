@@ -31,10 +31,10 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
     const Scenario::TemporalConstraintViewModel& constraint)
 {
-  readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
+  this->read(static_cast<const Scenario::ConstraintViewModel&>(constraint));
 }
 namespace Scenario
 {

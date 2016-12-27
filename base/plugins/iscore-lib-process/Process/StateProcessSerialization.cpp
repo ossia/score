@@ -15,11 +15,9 @@ DataStreamWriter::writeTo(Process::StateProcess&)
 }
 
 template <>
-ISCORE_LIB_PROCESS_EXPORT void JSONObjectReader::readFromConcrete(
+ISCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read(
     const Process::StateProcess& process)
 {
-  readFrom(
-      static_cast<const IdentifiedObject<Process::StateProcess>&>(process));
 }
 
 template <>

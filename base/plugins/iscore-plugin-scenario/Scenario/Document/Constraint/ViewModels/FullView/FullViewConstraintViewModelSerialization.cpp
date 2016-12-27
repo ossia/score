@@ -24,10 +24,10 @@ void DataStreamReader::read(
 
 
 template <>
-void JSONObjectReader::readFrom(
+void JSONObjectReader::read(
     const Scenario::FullViewConstraintViewModel& constraint)
 {
-  readFrom(static_cast<const Scenario::ConstraintViewModel&>(constraint));
+  this->read(static_cast<const Scenario::ConstraintViewModel&>(constraint));
   obj["Zoom"] = constraint.zoom();
   obj["CenterOn"] = toJsonValue(constraint.visibleRect());
 }

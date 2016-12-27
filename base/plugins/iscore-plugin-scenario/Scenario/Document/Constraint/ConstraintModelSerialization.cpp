@@ -118,12 +118,9 @@ DataStreamWriter::writeTo(Scenario::ConstraintModel& constraint)
 
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::readFrom(
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
     const Scenario::ConstraintModel& constraint)
 {
-  readFrom(static_cast<const iscore::Entity<Scenario::ConstraintModel>&>(
-      constraint));
-
   // Processes
   obj["Processes"] = toJsonArray(constraint.processes);
 

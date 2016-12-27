@@ -26,7 +26,7 @@ void DataStreamWriter::writeTo(
 
 
 template <>
-void JSONObjectReader::readFromConcrete(
+void JSONObjectReader::read(
     const Engine::Network::MinuitSpecificSettings& n)
 {
   obj["InPort"] = n.inputPort;

@@ -53,10 +53,8 @@ DataStreamWriter::writeTo(Curve::Model& curve)
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-JSONObjectReader::readFrom(const Curve::Model& curve)
+JSONObjectReader::read(const Curve::Model& curve)
 {
-  readFrom(static_cast<const IdentifiedObject<Curve::Model>&>(curve));
-
   obj["Segments"] = toJsonArray(curve.segments());
 }
 

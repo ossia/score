@@ -86,10 +86,8 @@ void DataStreamWriter::writeTo(Scenario::SlotModel& slot)
 
 
 template <>
-void JSONObjectReader::readFrom(const Scenario::SlotModel& slot)
+void JSONObjectReader::read(const Scenario::SlotModel& slot)
 {
-  readFrom(static_cast<const iscore::Entity<Scenario::SlotModel>&>(slot));
-
   obj["EditedProcess"] = toJsonValue(slot.m_frontLayerModelId);
   obj["Height"] = slot.getHeight();
 
