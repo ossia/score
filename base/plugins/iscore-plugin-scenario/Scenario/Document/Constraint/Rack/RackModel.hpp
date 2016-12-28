@@ -73,7 +73,7 @@ public:
     return m_positions;
   }
 
-  EntityMap<SlotModel> slotmodels;
+  iscore::EntityMap<SlotModel> slotmodels;
 signals:
   void slotPositionsChanged();
 

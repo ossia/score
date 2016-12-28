@@ -44,7 +44,7 @@ DataStreamReader::read(const Device::DeviceSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-DataStreamWriter::writeTo(Device::DeviceSettings& n)
+DataStreamWriter::write(Device::DeviceSettings& n)
 {
   m_stream >> n.name >> n.protocol;
 
@@ -85,7 +85,7 @@ JSONObjectReader::read(const Device::DeviceSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-JSONObjectWriter::writeTo(Device::DeviceSettings& n)
+JSONObjectWriter::write(Device::DeviceSettings& n)
 {
   n.name = obj[strings.Name].toString();
   n.protocol = fromJsonValue<UuidKey<Device::ProtocolFactory>>(

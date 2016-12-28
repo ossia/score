@@ -146,7 +146,7 @@ DataStreamReader::read(const iscore::ColorRef& md)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-DataStreamWriter::writeTo(iscore::ColorRef& md)
+DataStreamWriter::write(iscore::ColorRef& md)
 {
   QString col_name;
   m_stream >> col_name;
@@ -168,7 +168,7 @@ DataStreamReader::read(const iscore::ModelMetadata& md)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-DataStreamWriter::writeTo(iscore::ModelMetadata& md)
+DataStreamWriter::write(iscore::ModelMetadata& md)
 {
   m_stream >> md.m_scriptingName >> md.m_comment >> md.m_color >> md.m_label
            >> md.m_extendedMetadata;
@@ -193,7 +193,7 @@ JSONObjectReader::read(const iscore::ModelMetadata& md)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-JSONObjectWriter::writeTo(iscore::ModelMetadata& md)
+JSONObjectWriter::write(iscore::ModelMetadata& md)
 {
   md.m_scriptingName = obj[strings.ScriptingName].toString();
   md.m_comment = obj[strings.Comment].toString();

@@ -1,7 +1,6 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-
 /**
  * This file contains usefule functions
  * for simple serialization / deserialization of the common types

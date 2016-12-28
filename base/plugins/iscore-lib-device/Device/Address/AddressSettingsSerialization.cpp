@@ -28,7 +28,7 @@ void DataStreamReader::read(
 }
 
 template <>
-void DataStreamWriter::writeTo(Device::AddressSettingsCommon& n)
+void DataStreamWriter::write(Device::AddressSettingsCommon& n)
 {
   m_stream >> n.value >> n.domain >> n.ioType >> n.clipMode >> n.unit
            >> n.repetitionFilter >> n.extendedAttributes;
@@ -54,7 +54,7 @@ void JSONObjectReader::read(
 }
 
 template <>
-void JSONObjectWriter::writeTo(Device::AddressSettingsCommon& n)
+void JSONObjectWriter::write(Device::AddressSettingsCommon& n)
 {
   n.ioType = Device::IOTypeStringMap().key(obj[strings.ioType].toString());
   n.clipMode
@@ -82,7 +82,7 @@ DataStreamReader::read(const Device::AddressSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-DataStreamWriter::writeTo(Device::AddressSettings& n)
+DataStreamWriter::write(Device::AddressSettings& n)
 {
   writeTo(static_cast<Device::AddressSettingsCommon&>(n));
   m_stream >> n.name;
@@ -100,7 +100,7 @@ JSONObjectReader::read(const Device::AddressSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-JSONObjectWriter::writeTo(Device::AddressSettings& n)
+JSONObjectWriter::write(Device::AddressSettings& n)
 {
   writeTo(static_cast<Device::AddressSettingsCommon&>(n));
   n.name = obj[strings.Name].toString();
@@ -118,7 +118,7 @@ DataStreamReader::read(const Device::FullAddressSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-DataStreamWriter::writeTo(Device::FullAddressSettings& n)
+DataStreamWriter::write(Device::FullAddressSettings& n)
 {
   writeTo(static_cast<Device::AddressSettingsCommon&>(n));
   m_stream >> n.address;
@@ -136,7 +136,7 @@ JSONObjectReader::read(const Device::FullAddressSettings& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-JSONObjectWriter::writeTo(Device::FullAddressSettings& n)
+JSONObjectWriter::write(Device::FullAddressSettings& n)
 {
   writeTo(static_cast<Device::AddressSettingsCommon&>(n));
   n.address = fromJsonObject<State::Address>(obj[strings.Address]);
@@ -152,7 +152,7 @@ ISCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-DataStreamWriter::writeTo(Device::FullAddressAccessorSettings& n)
+DataStreamWriter::write(Device::FullAddressAccessorSettings& n)
 {
   m_stream >> n.value >> n.domain >> n.ioType >> n.clipMode
       >> n.repetitionFilter >> n.extendedAttributes >> n.address;
@@ -178,7 +178,7 @@ ISCORE_LIB_DEVICE_EXPORT void JSONObjectReader::read(
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-JSONObjectWriter::writeTo(Device::FullAddressAccessorSettings& n)
+JSONObjectWriter::write(Device::FullAddressAccessorSettings& n)
 {
   n.ioType = Device::IOTypeStringMap().key(obj[strings.ioType].toString());
   n.clipMode

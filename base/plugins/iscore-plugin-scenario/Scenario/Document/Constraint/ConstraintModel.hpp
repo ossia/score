@@ -42,8 +42,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
 
 public:
   /** Properties of the class **/
-  EntityMap<Process::ProcessModel> processes;
-  EntityMap<RackModel> racks;
+  iscore::EntityMap<Process::ProcessModel> processes;
+  iscore::EntityMap<RackModel> racks;
 
   Selectable selection;
   ModelConsistency consistency{nullptr};

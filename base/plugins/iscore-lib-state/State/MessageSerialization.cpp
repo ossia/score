@@ -34,7 +34,7 @@ JSONObjectReader::read(const State::Message& mess)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(State::Message& mess)
+DataStreamWriter::write(State::Message& mess)
 {
   writeTo(mess.address);
   writeTo(mess.value);
@@ -44,7 +44,7 @@ DataStreamWriter::writeTo(State::Message& mess)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::writeTo(State::Message& mess)
+JSONObjectWriter::write(State::Message& mess)
 {
   mess.address
       = fromJsonObject<State::AddressAccessor>(obj[strings.Address]);

@@ -13,7 +13,7 @@ void DataStreamReader::read(const Dummy::DummyModel& proc)
 }
 
 template <>
-void DataStreamWriter::writeTo(Dummy::DummyModel& proc)
+void DataStreamWriter::write(Dummy::DummyModel& proc)
 {
   checkDelimiter();
 }
@@ -24,6 +24,6 @@ void JSONObjectReader::read(const Dummy::DummyModel& proc)
 }
 
 template <>
-void JSONObjectWriter::writeTo(Dummy::DummyModel& proc)
+void JSONObjectWriter::write(Dummy::DummyModel& proc)
 {
 }

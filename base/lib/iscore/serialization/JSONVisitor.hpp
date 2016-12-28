@@ -162,6 +162,7 @@ class ISCORE_LIB_BASE_EXPORT JSONObjectWriter
     : public AbstractVisitor
 {
 public:
+  using type = JSONObject;
   using is_visitor_tag = std::integral_constant<bool, true>;
   using is_deserializer_tag = std::integral_constant<bool, true>;
 
@@ -186,16 +187,13 @@ public:
     return data;
   }
 
-  template <
-      typename T, std::enable_if_t<!is_template<T>::value, void>* = nullptr>
-  void writeTo(T&);
-
   template <typename T>
-  void writeTo(
-      T& obj,
-      typename std::enable_if<is_template<T>::value, void>::type* = nullptr)
+  void write(T&);
+
+  template<typename T>
+  void writeTo(T& obj)
   {
-    TSerializer<JSONObject, T>::writeTo(*this, obj);
+    writeTo_impl(obj, typename serialization_tag<T>::type{});
   }
 
   template <typename T>
@@ -209,6 +207,21 @@ public:
   const QJsonObject obj;
   const iscore::ApplicationComponents& components;
   const iscore::StringConstants& strings;
+
+
+private:
+  template <typename T>
+  void writeTo_impl(T& obj, visitor_template_tag)
+  {
+    TSerializer<JSONObject, T>::writeTo(*this, obj);
+  }
+
+  template <typename T, typename OtherTag>
+  void writeTo_impl(T& obj, OtherTag)
+  {
+    write(obj);
+  }
+
 };
 
 template <typename T>
@@ -257,22 +270,6 @@ struct TSerializer<JSONObject, optional<int32_t>>
     {
       obj = s.obj[s.strings.id].toInt();
     }
-  }
-};
-
-template <typename T>
-struct TSerializer<JSONObject, iscore::Entity<T>>
-{
-  static void readFrom(JSONObject::Serializer& s, const iscore::Entity<T>& obj)
-  {
-    TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(s, obj);
-    s.obj[s.strings.Metadata] = toJsonObject(obj.metadata());
-  }
-
-  static void writeTo(JSONObject::Deserializer& s, iscore::Entity<T>& obj)
-  {
-    obj.metadata()
-        = fromJsonObject<iscore::ModelMetadata>(s.obj[s.strings.Metadata]);
   }
 };
 

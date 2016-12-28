@@ -35,7 +35,7 @@ public:
 
   virtual ~ProcessModel();
 
-  EntityMap<Note> notes;
+  iscore::EntityMap<Note> notes;
 
   void setDevice(const QString& dev)
   {

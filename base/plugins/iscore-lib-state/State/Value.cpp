@@ -397,7 +397,7 @@ DataStreamReader::read(const State::Unit& var)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(State::Unit& var)
+DataStreamWriter::write(State::Unit& var)
 {
   TSerializer<DataStream, ossia::unit_t>::writeTo(*this, var.get());
 }
@@ -411,7 +411,7 @@ DataStreamReader::read(const ossia::unit_t& var)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(ossia::unit_t& var)
+DataStreamWriter::write(ossia::unit_t& var)
 {
   TSerializer<DataStream, ossia::unit_t>::writeTo(*this, var);
 }

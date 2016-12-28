@@ -56,7 +56,7 @@ DataStreamReader::read(const Scenario::StateModel& s)
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-DataStreamWriter::writeTo(Scenario::StateModel& s)
+DataStreamWriter::write(Scenario::StateModel& s)
 {
   m_stream >> s.m_eventId >> s.m_previousConstraint >> s.m_nextConstraint
       >> s.m_heightPercentage;
@@ -88,39 +88,39 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectReader::read(const Scenario::StateModel& s)
 {
-  obj["Event"] = toJsonValue(s.m_eventId);
-  obj["PreviousConstraint"] = toJsonValue(s.m_previousConstraint);
-  obj["NextConstraint"] = toJsonValue(s.m_nextConstraint);
-  obj["HeightPercentage"] = s.m_heightPercentage;
+  obj[strings.Event] = toJsonValue(s.m_eventId);
+  obj[strings.PreviousConstraint] = toJsonValue(s.m_previousConstraint);
+  obj[strings.NextConstraint] = toJsonValue(s.m_nextConstraint);
+  obj[strings.HeightPercentage] = s.m_heightPercentage;
 
   // Message tree
-  obj["Messages"] = toJsonObject(s.m_messageItemModel->rootNode());
+  obj[strings.Messages] = toJsonObject(s.m_messageItemModel->rootNode());
 
   // Processes plugins
-  obj["StateProcesses"] = toJsonArray(s.stateProcesses);
+  obj[strings.StateProcesses] = toJsonArray(s.stateProcesses);
 }
 
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectWriter::writeTo(Scenario::StateModel& s)
+JSONObjectWriter::write(Scenario::StateModel& s)
 {
-  s.m_eventId = fromJsonValue<Id<Scenario::EventModel>>(obj["Event"]);
+  s.m_eventId = fromJsonValue<Id<Scenario::EventModel>>(obj[strings.Event]);
   s.m_previousConstraint
       = fromJsonValue<OptionalId<Scenario::ConstraintModel>>(
-          obj["PreviousConstraint"]);
+          obj[strings.PreviousConstraint]);
   s.m_nextConstraint = fromJsonValue<OptionalId<Scenario::ConstraintModel>>(
-      obj["NextConstraint"]);
-  s.m_heightPercentage = obj["HeightPercentage"].toDouble();
+      obj[strings.NextConstraint]);
+  s.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
 
   // Message tree
   s.m_messageItemModel = new Scenario::MessageItemModel{s.m_stack, s, &s};
-  s.messages() = fromJsonObject<Process::MessageNode>(obj["Messages"]);
+  s.messages() = fromJsonObject<Process::MessageNode>(obj[strings.Messages]);
 
   // Processes plugins
   auto& pl = components.interfaces<Process::StateProcessList>();
 
-  QJsonArray process_array = obj["StateProcesses"].toArray();
+  QJsonArray process_array = obj[strings.StateProcesses].toArray();
   for (const auto& json_vref : process_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};

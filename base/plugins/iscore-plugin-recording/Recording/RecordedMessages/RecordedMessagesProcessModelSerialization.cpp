@@ -22,7 +22,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(
+void DataStreamWriter::write(
     RecordedMessages::RecordedMessage& rm)
 {
   m_stream >> rm.percentage >> rm.message;
@@ -39,7 +39,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(
+void JSONObjectWriter::write(
     RecordedMessages::RecordedMessage& rm)
 {
   rm.percentage = obj["Percentage"].toDouble();
@@ -58,7 +58,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(RecordedMessages::ProcessModel& proc)
+void DataStreamWriter::write(RecordedMessages::ProcessModel& proc)
 {
   m_stream >> proc.m_messages;
 
@@ -75,7 +75,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(RecordedMessages::ProcessModel& proc)
+void JSONObjectWriter::write(RecordedMessages::ProcessModel& proc)
 {
   fromJsonArray(obj["Messages"].toArray(), proc.m_messages);
 }

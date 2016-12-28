@@ -37,7 +37,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(Scenario::TemporalScenarioLayer& lm)
+void DataStreamWriter::write(Scenario::TemporalScenarioLayer& lm)
 {
   int32_t count;
   m_stream >> count;
@@ -72,7 +72,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(Scenario::TemporalScenarioLayer& lm)
+void JSONObjectWriter::write(Scenario::TemporalScenarioLayer& lm)
 {
   QJsonArray arr = obj["Constraints"].toArray();
 

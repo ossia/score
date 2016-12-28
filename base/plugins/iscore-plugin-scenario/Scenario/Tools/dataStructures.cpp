@@ -93,7 +93,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::TimenodeProperties& timenodeProperties)
 {
 
@@ -115,7 +115,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::ConstraintSaveData& constraintProperties)
 {
   m_stream >> constraintProperties.constraintPath
@@ -139,7 +139,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::ConstraintProperties& constraintProperties)
 {
   m_stream >> constraintProperties.oldMin >> constraintProperties.newMin
@@ -160,7 +160,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
 }
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::ElementsProperties& elementsProperties)
 {
 

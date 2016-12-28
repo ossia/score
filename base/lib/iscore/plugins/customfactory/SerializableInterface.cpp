@@ -53,7 +53,7 @@ DataStreamReader::read(const iscore::uuid_t& obj)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-DataStreamWriter::writeTo(iscore::uuid_t& obj)
+DataStreamWriter::write(iscore::uuid_t& obj)
 {
   QByteArray s;
   m_stream >> s;

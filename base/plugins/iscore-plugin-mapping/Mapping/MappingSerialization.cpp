@@ -38,7 +38,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(Mapping::ProcessModel& autom)
+void DataStreamWriter::write(Mapping::ProcessModel& autom)
 {
   autom.setCurve(new Curve::Model{*this, &autom});
   { // Source
@@ -82,7 +82,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(Mapping::ProcessModel& autom)
+void JSONObjectWriter::write(Mapping::ProcessModel& autom)
 {
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   autom.setCurve(new Curve::Model{curve_deser, &autom});

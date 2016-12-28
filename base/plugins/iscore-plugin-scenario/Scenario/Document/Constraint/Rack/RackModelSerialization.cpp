@@ -41,7 +41,7 @@ void DataStreamReader::read(const Scenario::RackModel& rack)
 
 
 template <>
-void DataStreamWriter::writeTo(Scenario::RackModel& rack)
+void DataStreamWriter::write(Scenario::RackModel& rack)
 {
   int32_t slots_size;
   QList<Id<Scenario::SlotModel>> positions;
@@ -82,7 +82,7 @@ void JSONObjectReader::read(const Scenario::RackModel& rack)
 
 
 template <>
-void JSONObjectWriter::writeTo(Scenario::RackModel& rack)
+void JSONObjectWriter::write(Scenario::RackModel& rack)
 {
   QJsonArray theSlots = obj["Slots"].toArray();
   QJsonArray slotsPositions = obj["SlotsPositions"].toArray();

@@ -15,7 +15,7 @@ void DataStreamReader::read(const ObjectIdentifier& obj)
 }
 
 template <>
-void DataStreamWriter::writeTo(ObjectIdentifier& obj)
+void DataStreamWriter::write(ObjectIdentifier& obj)
 {
   QString name;
   int32_t id;
@@ -31,7 +31,7 @@ void JSONObjectReader::read(const ObjectIdentifier& id)
 }
 
 template<>
-void JSONObjectWriter::writeTo(ObjectIdentifier& id)
+void JSONObjectWriter::write(ObjectIdentifier& id)
 {
   id = ObjectIdentifier{obj[strings.ObjectName].toString(),
                          obj[strings.ObjectId].toInt()};

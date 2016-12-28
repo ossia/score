@@ -92,7 +92,7 @@ DataStreamReader::read(const std::array<float, 2>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-DataStreamWriter::writeTo(std::array<float, 2>& obj)
+DataStreamWriter::write(std::array<float, 2>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream >> obj[i];
@@ -110,7 +110,7 @@ DataStreamReader::read(const std::array<float, 3>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-DataStreamWriter::writeTo(std::array<float, 3>& obj)
+DataStreamWriter::write(std::array<float, 3>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream >> obj[i];
@@ -128,7 +128,7 @@ DataStreamReader::read(const std::array<float, 4>& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-DataStreamWriter::writeTo(std::array<float, 4>& obj)
+DataStreamWriter::write(std::array<float, 4>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream >> obj[i];
@@ -146,7 +146,7 @@ DataStreamReader::read(const QJsonObject& obj)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-DataStreamWriter::writeTo(QJsonObject& obj)
+DataStreamWriter::write(QJsonObject& obj)
 {
   QByteArray arr;
   m_stream >> arr;

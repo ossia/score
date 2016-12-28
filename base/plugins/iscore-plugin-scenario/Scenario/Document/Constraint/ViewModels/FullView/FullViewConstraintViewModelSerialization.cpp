@@ -34,7 +34,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(
+void DataStreamWriter::write(
     Scenario::FullViewConstraintViewModel& cvm)
 {
   double z;
@@ -46,7 +46,7 @@ void DataStreamWriter::writeTo(
 
 
 template <>
-void JSONObjectWriter::writeTo(
+void JSONObjectWriter::write(
     Scenario::FullViewConstraintViewModel& cvm)
 {
   auto z = obj["Zoom"].toDouble();

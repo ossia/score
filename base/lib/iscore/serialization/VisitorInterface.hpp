@@ -70,45 +70,6 @@ using enable_if_deserializer = typename std::
   friend class ::JSONObjectReader; \
   friend class ::JSONObjectWriter;
 
-// Inherit from this to have
-// the type treated as a value in the serialization context. Useful
-// for choice between JSONObject / JSONValue
-template <typename T>
-struct is_value_tag
-{
-  static const constexpr bool value = false;
-};
-#define ISCORE_DECL_VALUE_TYPE(Type)          \
-  template <>                                 \
-  struct is_value_tag<Type>                   \
-  {                                           \
-    static const constexpr bool value = true; \
-  };
-
-template <typename T>
-struct is_value_t
-{
-  static const constexpr bool value{std::is_arithmetic<T>::value
-                                    || std::is_enum<T>::value
-                                    || is_value_tag<T>::value};
-};
-
-
-// see SerializableInterface
-template <typename T>
-using enable_if_abstract_base = typename std::
-    enable_if_t<std::decay<T>::type::is_abstract_base_tag::value>;
-
-template <class, class Enable = void>
-struct is_abstract_base : std::false_type
-{
-};
-
-template <class T>
-struct is_abstract_base<T, enable_if_abstract_base<T>> : std::true_type
-{
-};
-
 
 class DataStreamReader;
 class DataStreamWriter;

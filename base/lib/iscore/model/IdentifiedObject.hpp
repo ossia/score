@@ -32,7 +32,7 @@ public:
   IdentifiedObject(Visitor& v, QObject* parent)
       : IdentifiedObjectAbstract{parent}
   {
-    v.writeTo(*this);
+    TSerializer<typename Visitor::type, IdentifiedObject<model>>::writeTo(v, *this);
     m_id.m_ptr = this;
   }
 

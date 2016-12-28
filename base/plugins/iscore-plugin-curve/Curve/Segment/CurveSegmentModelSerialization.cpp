@@ -43,7 +43,7 @@ DataStreamReader::read(const Curve::SegmentData& segmt)
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-DataStreamWriter::writeTo(Curve::SegmentData& segmt)
+DataStreamWriter::write(Curve::SegmentData& segmt)
 {
   m_stream >> segmt.id >> segmt.start >> segmt.end >> segmt.previous
       >> segmt.following >> segmt.type;
@@ -71,7 +71,7 @@ DataStreamReader::read(const Curve::SegmentModel& segmt)
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-DataStreamWriter::writeTo(Curve::SegmentModel& segmt)
+DataStreamWriter::write(Curve::SegmentModel& segmt)
 {
   m_stream >> segmt.m_previous >> segmt.m_following >> segmt.m_start
       >> segmt.m_end;
@@ -99,7 +99,7 @@ JSONObjectReader::read(const Curve::SegmentModel& segmt)
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-JSONObjectWriter::writeTo(Curve::SegmentModel& segmt)
+JSONObjectWriter::write(Curve::SegmentModel& segmt)
 {
   using namespace Curve;
   segmt.m_previous

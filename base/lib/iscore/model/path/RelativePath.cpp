@@ -66,7 +66,7 @@ DataStreamReader::read(const iscore::RelativePath& path)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-DataStreamWriter::writeTo(iscore::RelativePath& path)
+DataStreamWriter::write(iscore::RelativePath& path)
 {
   m_stream >> path.m_parents;
   writeTo(path.m_remainder);
@@ -76,14 +76,14 @@ template<>
 ISCORE_LIB_BASE_EXPORT void
 JSONObjectReader::read(const iscore::RelativePath& path)
 {
-  obj["Parents"] = path.m_parents;
+  obj[strings.Parents] = path.m_parents;
   readFrom(path.m_remainder);
 }
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-JSONObjectWriter::writeTo(iscore::RelativePath& path)
+JSONObjectWriter::write(iscore::RelativePath& path)
 {
-  path.m_parents = obj["Parents"].toInt();
+  path.m_parents = obj[strings.Parents].toInt();
   writeTo(path.m_remainder);
 }

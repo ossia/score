@@ -110,7 +110,7 @@ QByteArray Document::saveAsByteArray()
     if (auto serializable_plugin
         = dynamic_cast<SerializableDocumentPlugin*>(plugin))
     {
-      static_assert(iscore::is_object<SerializableDocumentPlugin>::value, "");
+      static_assert(is_identified_object<SerializableDocumentPlugin>::value, "");
       static_assert(
             std::is_same<
               serialization_tag<SerializableDocumentPlugin>::type,

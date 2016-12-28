@@ -83,7 +83,7 @@ void DataStreamReader::read(
 }
 
 template <>
-void DataStreamWriter::writeTo(
+void DataStreamWriter::write(
     std::array<Process::PriorityPolicy, 3>& val)
 {
   for (int i = 0; i < 3; i++)
@@ -98,7 +98,7 @@ void DataStreamReader::read(
 }
 
 template <>
-void DataStreamWriter::writeTo(Process::ProcessStateData& val)
+void DataStreamWriter::write(Process::ProcessStateData& val)
 {
   m_stream >> val.process >> val.value;
 }
@@ -112,7 +112,7 @@ void JSONObjectReader::read(
 }
 
 template <>
-void JSONObjectWriter::writeTo(Process::ProcessStateData& val)
+void JSONObjectWriter::write(Process::ProcessStateData& val)
 {
   val.process
       = fromJsonValue<Id<Process::ProcessModel>>(obj[strings.Process]);
@@ -127,7 +127,7 @@ void DataStreamReader::read(const Process::StateNodeValues& val)
 }
 
 template <>
-void DataStreamWriter::writeTo(Process::StateNodeValues& val)
+void DataStreamWriter::write(Process::StateNodeValues& val)
 {
   m_stream >> val.previousProcessValues >> val.followingProcessValues
       >> val.userValue >> val.priorities;
@@ -143,7 +143,7 @@ void JSONObjectReader::read(const Process::StateNodeValues& val)
 }
 
 template <>
-void JSONObjectWriter::writeTo(Process::StateNodeValues& val)
+void JSONObjectWriter::write(Process::StateNodeValues& val)
 {
   fromJsonArray(obj[strings.Previous].toArray(), val.previousProcessValues);
   fromJsonArray(
@@ -162,7 +162,7 @@ DataStreamReader::read(const Process::StateNodeData& node)
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::writeTo(Process::StateNodeData& node)
+DataStreamWriter::write(Process::StateNodeData& node)
 {
   m_stream >> node.name >> node.values;
   checkDelimiter();
@@ -178,7 +178,7 @@ JSONObjectReader::read(const Process::StateNodeData& node)
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::writeTo(Process::StateNodeData& node)
+JSONObjectWriter::write(Process::StateNodeData& node)
 {
   writeTo(node.name);
   writeTo(node.values);

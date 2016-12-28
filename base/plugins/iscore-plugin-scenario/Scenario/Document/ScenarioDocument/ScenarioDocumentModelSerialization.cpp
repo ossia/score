@@ -34,7 +34,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(Scenario::ScenarioDocumentModel& obj)
+void DataStreamWriter::write(Scenario::ScenarioDocumentModel& obj)
 {
   obj.m_baseScenario = new Scenario::BaseScenario{*this, &obj};
 
@@ -51,7 +51,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(Scenario::ScenarioDocumentModel& doc)
+void JSONObjectWriter::write(Scenario::ScenarioDocumentModel& doc)
 {
   doc.m_baseScenario = new Scenario::BaseScenario{
       JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &doc};

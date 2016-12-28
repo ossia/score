@@ -201,7 +201,7 @@ inline void DataStreamReader::read(
 
 template <>
 inline void
-DataStreamWriter::writeTo(Engine::EasingCurve::EasingData& segmt)
+DataStreamWriter::write(Engine::EasingCurve::EasingData& segmt)
 {
 }
 
@@ -213,7 +213,7 @@ inline void JSONObjectReader::read(
 
 template <>
 inline void
-JSONObjectWriter::writeTo(Engine::EasingCurve::EasingData& segmt)
+JSONObjectWriter::write(Engine::EasingCurve::EasingData& segmt)
 {
 }
 

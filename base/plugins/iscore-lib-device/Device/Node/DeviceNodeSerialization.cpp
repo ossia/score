@@ -13,7 +13,7 @@ DataStreamReader::read(const Device::DeviceExplorerNode& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-DataStreamWriter::writeTo(Device::DeviceExplorerNode& n)
+DataStreamWriter::write(Device::DeviceExplorerNode& n)
 {
   writeTo(n.m_data);
   checkDelimiter();
@@ -28,7 +28,7 @@ JSONObjectReader::read(const Device::DeviceExplorerNode& n)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-JSONObjectWriter::writeTo(Device::DeviceExplorerNode& n)
+JSONObjectWriter::write(Device::DeviceExplorerNode& n)
 {
   writeTo(n.m_data);
 }

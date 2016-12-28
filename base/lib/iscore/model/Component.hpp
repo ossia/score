@@ -2,8 +2,10 @@
 #include <ossia/detail/algorithms.hpp>
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <iscore/model/EntityMap.hpp>
+#include <iscore/tools/std/HashMap.hpp>
 namespace iscore
 {
+
 /**
  * @brief A component adds custom data to an Entity.
  *
@@ -64,7 +66,7 @@ using Components = EntityMap<iscore::Component>;
  * This guarantees that there will be a single component of a given type in the Components.
  */
 template <typename T>
-auto& component(const iscore::Components& c)
+T& component(const iscore::Components& c)
 {
   static_assert(T::is_unique, "Components must be unique to use getComponent");
 
@@ -83,7 +85,7 @@ auto& component(const iscore::Components& c)
  * @see \ref components
  */
 template <typename T>
-auto findComponent(const iscore::Components& c)
+T* findComponent(const iscore::Components& c)
 {
   static_assert(T::is_unique, "Components must be unique to use getComponent");
 
@@ -99,6 +101,10 @@ auto findComponent(const iscore::Components& c)
     return (T*)nullptr;
   }
 }
+
+class SerializableComponent;
+using DataStreamComponents = iscore::hash_map<UuidKey<iscore::SerializableComponent>, QByteArray>;
+using JSONComponents = iscore::hash_map<UuidKey<iscore::SerializableComponent>, QJsonObject>;
 }
 
 /**

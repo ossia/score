@@ -18,7 +18,7 @@ void DataStreamReader::read(const iscore::CommandData& d)
 }
 
 template <>
-void DataStreamWriter::writeTo(iscore::CommandData& d)
+void DataStreamWriter::write(iscore::CommandData& d)
 {
   m_stream >> d.parentKey >> d.commandKey >> d.data;
   checkDelimiter();

@@ -55,7 +55,7 @@ void DataStreamReader::read(const Scenario::SlotModel& slot)
 
 
 template <>
-void DataStreamWriter::writeTo(Scenario::SlotModel& slot)
+void DataStreamWriter::write(Scenario::SlotModel& slot)
 {
   OptionalId<Process::LayerModel> editedProcessId;
   m_stream >> editedProcessId;
@@ -110,7 +110,7 @@ void JSONObjectReader::read(const Scenario::SlotModel& slot)
 
 
 template <>
-void JSONObjectWriter::writeTo(Scenario::SlotModel& slot)
+void JSONObjectWriter::write(Scenario::SlotModel& slot)
 {
   QJsonArray arr = obj["LayerModels"].toArray();
 

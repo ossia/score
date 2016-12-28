@@ -25,7 +25,7 @@ DataStreamReader::read(const Scenario::ConstraintViewModel& cvm)
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-DataStreamWriter::writeTo(Scenario::ConstraintViewModel& cvm)
+DataStreamWriter::write(Scenario::ConstraintViewModel& cvm)
 {
   OptionalId<Scenario::RackModel> id;
   m_stream >> id;
@@ -53,7 +53,7 @@ JSONObjectReader::read(const Scenario::ConstraintViewModel& cvm)
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectWriter::writeTo(Scenario::ConstraintViewModel& cvm)
+JSONObjectWriter::write(Scenario::ConstraintViewModel& cvm)
 {
   auto id = fromJsonValue<OptionalId<Scenario::RackModel>>(obj["ShownRack"]);
 

@@ -11,7 +11,7 @@ DataStreamReader::read(const InvisibleRootNode&)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-DataStreamWriter::writeTo(InvisibleRootNode&)
+DataStreamWriter::write(InvisibleRootNode&)
 {
   checkDelimiter();
 }
@@ -24,6 +24,6 @@ JSONObjectReader::read(const InvisibleRootNode&)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-JSONObjectWriter::writeTo(InvisibleRootNode&)
+JSONObjectWriter::write(InvisibleRootNode&)
 {
 }

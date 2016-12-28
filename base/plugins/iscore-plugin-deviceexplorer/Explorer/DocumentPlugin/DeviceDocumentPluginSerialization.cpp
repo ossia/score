@@ -45,7 +45,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(Explorer::DeviceDocumentPlugin& plug)
+void DataStreamWriter::write(Explorer::DeviceDocumentPlugin& plug)
 {
   Device::Node n;
   writeTo(n);
@@ -64,7 +64,7 @@ void DataStreamWriter::writeTo(Explorer::DeviceDocumentPlugin& plug)
 
 
 template <>
-void JSONObjectWriter::writeTo(Explorer::DeviceDocumentPlugin& plug)
+void JSONObjectWriter::write(Explorer::DeviceDocumentPlugin& plug)
 {
   Device::Node n;
   writeTo(n);

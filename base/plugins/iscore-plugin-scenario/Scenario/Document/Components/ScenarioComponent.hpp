@@ -13,6 +13,7 @@
 #include <ossia/detail/algorithms.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
+#include <iscore/model/ComponentSerialization.hpp>
 
 template <
     typename Component_T,
@@ -132,6 +133,46 @@ private:
   template <typename elt_t>
   void add(elt_t& element)
   {
+    add(element,
+        typename iscore::is_component_serializable<
+          typename MatchingComponent<elt_t, true>::type
+        >::type{});
+  }
+
+  template <typename elt_t>
+  void add(elt_t& element, iscore::serializable_tag)
+  {
+    using map_t = MatchingComponent<elt_t, true>;
+    using component_t = typename map_t::type;
+
+    // Since the component may be serializable, we first look if
+    // we can deserialize it.
+    auto comp = iscore::deserialize_component<component_t>(
+          element.components(),
+          [&] (auto&& deserializer) {
+      Component_T::template load<component_t>(deserializer, element);
+    });
+
+    // Maybe we could not deserialize it
+    if(!comp)
+    {
+      comp = Component_T::template make<component_t>(
+            getStrongId(element.components()), element);
+    }
+
+    // We try to add it
+    if (comp)
+    {
+      element.components().add(comp);
+      (this->*map_t::local_container)
+          .emplace_back(typename map_t::pair_type{element, *comp});
+    }
+  }
+
+  template <typename elt_t>
+  void add(elt_t& element, iscore::not_serializable_tag)
+  {
+    // We can just create a new component directly
     using map_t = MatchingComponent<elt_t, true>;
     auto comp = Component_T::template make<typename map_t::type>(
         getStrongId(element.components()), element);
@@ -142,6 +183,7 @@ private:
           .emplace_back(typename map_t::pair_type{element, *comp});
     }
   }
+
 
   template <typename elt_t>
   void remove(const elt_t& element)

@@ -71,13 +71,13 @@ struct TSerializer<JSONObject, State::MessageList>
   static void
   readFrom(JSONObject::Serializer& s, const State::MessageList& obj)
   {
-    s.obj["Data"] = toJsonArray(obj);
+    s.obj[s.strings.Data] = toJsonArray(obj);
   }
 
   static void writeTo(JSONObject::Deserializer& s, State::MessageList& obj)
   {
     State::MessageList t;
-    fromJsonArray(s.obj["Data"].toArray(), t);
+    fromJsonArray(s.obj[s.strings.Data].toArray(), t);
     obj = t;
   }
 };

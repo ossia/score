@@ -17,7 +17,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(
+void DataStreamWriter::write(
     Engine::Network::LocalSpecificSettings& n)
 {
   m_stream >> n.remoteName >> n.host >> n.remotePort >> n.localPort;
@@ -37,7 +37,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(
+void JSONObjectWriter::write(
     Engine::Network::LocalSpecificSettings& n)
 {
   n.remoteName = obj["RemoteName"].toString();
