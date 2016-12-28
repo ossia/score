@@ -14,102 +14,108 @@ namespace iscore
  */
 class ISCORE_LIB_BASE_EXPORT DataStreamSerializedComponents : public iscore::Component
 {
-    COMMON_COMPONENT_METADATA("a0c8de61-c18f-4aca-8b21-cf71451f4970")
-public:
+  COMMON_COMPONENT_METADATA("a0c8de61-c18f-4aca-8b21-cf71451f4970")
+  public:
     static const constexpr bool is_unique = true;
-    DataStreamSerializedComponents(
-            const Id<iscore::Component>& id,
-            DataStreamComponents obj,
-            QObject* parent);
-    virtual ~DataStreamSerializedComponents();
+  DataStreamSerializedComponents(
+      const Id<iscore::Component>& id,
+      DataStreamComponents obj,
+      QObject* parent);
+  virtual ~DataStreamSerializedComponents();
 
 
-    //! Returns true if all components could be loaded
-    bool deserializeRemaining(iscore::Components& comps, QObject* entity);
+  //! Returns true if all components could be loaded
+  bool deserializeRemaining(iscore::Components& comps, QObject* entity);
 
-    bool finished() const
-    { return data.empty(); }
+  bool finished() const
+  { return data.empty(); }
 
-    DataStreamComponents data;
+  DataStreamComponents data;
 };
 
 
 class ISCORE_LIB_BASE_EXPORT JSONSerializedComponents : public iscore::Component
 {
-    COMMON_COMPONENT_METADATA("37939615-7165-4bb0-9cdd-e7426153d222")
-public:
+  COMMON_COMPONENT_METADATA("37939615-7165-4bb0-9cdd-e7426153d222")
+  public:
     static const constexpr bool is_unique = true;
-    JSONSerializedComponents(
-            const Id<iscore::Component>& id,
-            JSONComponents obj,
-            QObject* parent);
+  JSONSerializedComponents(
+      const Id<iscore::Component>& id,
+      JSONComponents obj,
+      QObject* parent);
 
-    virtual ~JSONSerializedComponents();
+  virtual ~JSONSerializedComponents();
 
-    //! Returns true if all components could be loaded
-    bool deserializeRemaining(iscore::Components& comps, QObject* entity);
+  //! Returns true if all components could be loaded
+  bool deserializeRemaining(iscore::Components& comps, QObject* entity);
 
-    bool finished() const
-    { return data.empty(); }
+  bool finished() const
+  { return data.empty(); }
 
-    JSONComponents data;
+  JSONComponents data;
 };
 
 
 class ISCORE_LIB_BASE_EXPORT SerializableComponent :
-        public iscore::Component,
-        public iscore::SerializableInterface<iscore::SerializableComponent>
+    public iscore::Component,
+    public iscore::SerializableInterface<iscore::SerializableComponent>
 {
 public:
-    using iscore::Component::Component;
+  using iscore::Component::Component;
 
-    template<typename Vis>
-    SerializableComponent(Vis& vis, QObject* parent):
-        iscore::Component{vis, parent}
-    {
-    }
+  template<typename Vis>
+  SerializableComponent(Vis& vis, QObject* parent):
+    iscore::Component{vis, parent}
+  {
+  }
 
-    virtual InterfaceKey interfaceKey() const = 0;
+  virtual InterfaceKey interfaceKey() const = 0;
 };
 
-class SerializableComponentFactory :
-        public iscore::Interface<iscore::SerializableComponent>
+struct ISCORE_LIB_BASE_EXPORT SerializableComponentFactory :
+    public iscore::Interface<iscore::SerializableComponent>
 {
+  ISCORE_INTERFACE("ffafadc2-0ce7-45d8-b673-d9238c37d018")
+  public:
     virtual iscore::SerializableComponent* make(
-            const Id<iscore::Component>& id,
-            const iscore::DocumentContext& ctx,
-            QObject* parent) = 0;
+              const Id<iscore::Component>& id,
+              const iscore::DocumentContext& ctx,
+              QObject* parent) = 0;
 
-    virtual iscore::SerializableComponent* load(
-            const VisitorVariant& vis,
-            const iscore::DocumentContext& ctx,
-            QObject* parent) = 0;
+  virtual iscore::SerializableComponent* load(
+      const VisitorVariant& vis,
+      const iscore::DocumentContext& ctx,
+      QObject* parent) = 0;
 };
 
-class SerializableComponentFactoryList :
-        public iscore::InterfaceList<SerializableComponentFactory>
+struct ISCORE_LIB_BASE_EXPORT SerializableComponentFactoryList :
+    public iscore::InterfaceList<SerializableComponentFactory>
 {
-
+  using object_type = iscore::SerializableComponent;
+  iscore::SerializableComponent* loadMissing(
+      const VisitorVariant& vis,
+      const iscore::DocumentContext& ctx,
+      QObject* parent) const;
 };
 
 template <typename System_T>
 class GenericSerializableComponent : public iscore::SerializableComponent
 {
 public:
-    template <typename... Args>
-    GenericSerializableComponent(System_T& sys, Args&&... args)
-        : iscore::SerializableComponent{std::forward<Args>(args)...}
-        , m_system{sys}
-    {
-    }
+  template <typename... Args>
+  GenericSerializableComponent(System_T& sys, Args&&... args)
+    : iscore::SerializableComponent{std::forward<Args>(args)...}
+    , m_system{sys}
+  {
+  }
 
-    System_T& system() const
-    {
-        return m_system;
-    }
+  System_T& system() const
+  {
+    return m_system;
+  }
 
 private:
-    System_T& m_system;
+  System_T& m_system;
 };
 
 
@@ -124,10 +130,10 @@ struct is_component_serializable
 
 template<typename T>
 struct is_component_serializable<T,
-      std::enable_if_t<
-        std::is_base_of<iscore::SerializableComponent, T>::value
-      >
->
+    std::enable_if_t<
+    std::is_base_of<iscore::SerializableComponent, T>::value
+    >
+    >
 {
   using type = iscore::serializable_tag;
 };
