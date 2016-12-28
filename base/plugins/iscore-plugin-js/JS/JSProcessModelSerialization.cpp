@@ -23,7 +23,7 @@ void DataStreamReader::read(const JS::ProcessModel& proc)
 
 
 template <>
-void DataStreamWriter::writeTo(JS::ProcessModel& proc)
+void DataStreamWriter::write(JS::ProcessModel& proc)
 {
   QString str;
   m_stream >> str;
@@ -41,7 +41,7 @@ void JSONObjectReader::read(const JS::ProcessModel& proc)
 
 
 template <>
-void JSONObjectWriter::writeTo(JS::ProcessModel& proc)
+void JSONObjectWriter::write(JS::ProcessModel& proc)
 {
   proc.setScript(obj["Script"].toString());
 }

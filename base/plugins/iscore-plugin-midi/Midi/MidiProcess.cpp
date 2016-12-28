@@ -96,7 +96,7 @@ void DataStreamReader::read(const Midi::NoteData& n)
 
 
 template <>
-void DataStreamWriter::writeTo(Midi::NoteData& n)
+void DataStreamWriter::write(Midi::NoteData& n)
 {
   m_stream >> n.start >> n.duration >> n.pitch >> n.velocity;
 }
@@ -113,7 +113,7 @@ void JSONObjectReader::read(const Midi::NoteData& n)
 
 
 template <>
-void JSONObjectWriter::writeTo(Midi::NoteData& n)
+void JSONObjectWriter::write(Midi::NoteData& n)
 {
   n.start = obj["Start"].toDouble();
   n.duration = obj["Duration"].toDouble();
@@ -131,7 +131,7 @@ void DataStreamReader::read(const Midi::Note& n)
 
 
 template <>
-void DataStreamWriter::writeTo(Midi::Note& n)
+void DataStreamWriter::write(Midi::Note& n)
 {
   Midi::NoteData d;
   m_stream >> d;
@@ -148,7 +148,7 @@ void JSONObjectReader::read(const Midi::Note& n)
 
 
 template <>
-void JSONObjectWriter::writeTo(Midi::Note& n)
+void JSONObjectWriter::write(Midi::Note& n)
 {
   Midi::NoteData d;
   writeTo(d);
@@ -174,7 +174,7 @@ void DataStreamReader::read(const Midi::ProcessModel& proc)
 
 
 template <>
-void DataStreamWriter::writeTo(Midi::ProcessModel& proc)
+void DataStreamWriter::write(Midi::ProcessModel& proc)
 {
   m_stream >> proc.m_device >> proc.m_channel;
   int n;
@@ -197,7 +197,7 @@ void JSONObjectReader::read(const Midi::ProcessModel& proc)
 
 
 template <>
-void JSONObjectWriter::writeTo(Midi::ProcessModel& proc)
+void JSONObjectWriter::write(Midi::ProcessModel& proc)
 {
   proc.setDevice(obj["Device"].toString());
   proc.setChannel(obj["Channel"].toInt());

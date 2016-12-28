@@ -62,7 +62,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateModel final
 public:
   using ProcessVector = std::list<ProcessStateWrapper>;
 
-  EntityMap<Process::StateProcess> stateProcesses;
+  iscore::EntityMap<Process::StateProcess> stateProcesses;
   Selectable selection;
 
   StateModel(

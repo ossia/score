@@ -24,7 +24,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(Scenario::ConstraintDurations& durs)
+void DataStreamWriter::write(Scenario::ConstraintDurations& durs)
 {
   m_stream >> durs.m_defaultDuration >> durs.m_minDuration
       >> durs.m_maxDuration >> durs.m_rigidity >> durs.m_isMinNull
@@ -36,22 +36,22 @@ template <>
 void JSONObjectReader::read(
     const Scenario::ConstraintDurations& durs)
 {
-  obj["DefaultDuration"] = toJsonValue(durs.m_defaultDuration);
-  obj["MinDuration"] = toJsonValue(durs.m_minDuration);
-  obj["MaxDuration"] = toJsonValue(durs.m_maxDuration);
-  obj["Rigidity"] = durs.m_rigidity;
-  obj["MinNull"] = durs.m_isMinNull;
-  obj["MaxInf"] = durs.m_isMaxInfinite;
+  obj[strings.DefaultDuration] = toJsonValue(durs.m_defaultDuration);
+  obj[strings.MinDuration] = toJsonValue(durs.m_minDuration);
+  obj[strings.MaxDuration] = toJsonValue(durs.m_maxDuration);
+  obj[strings.Rigidity] = durs.m_rigidity;
+  obj[strings.MinNull] = durs.m_isMinNull;
+  obj[strings.MaxInf] = durs.m_isMaxInfinite;
 }
 
 
 template <>
-void JSONObjectWriter::writeTo(Scenario::ConstraintDurations& durs)
+void JSONObjectWriter::write(Scenario::ConstraintDurations& durs)
 {
-  durs.m_defaultDuration = fromJsonValue<TimeValue>(obj["DefaultDuration"]);
-  durs.m_minDuration = fromJsonValue<TimeValue>(obj["MinDuration"]);
-  durs.m_maxDuration = fromJsonValue<TimeValue>(obj["MaxDuration"]);
-  durs.m_rigidity = obj["Rigidity"].toBool();
-  durs.m_isMinNull = obj["MinNull"].toBool();
-  durs.m_isMaxInfinite = obj["MaxInf"].toBool();
+  durs.m_defaultDuration = fromJsonValue<TimeValue>(obj[strings.DefaultDuration]);
+  durs.m_minDuration = fromJsonValue<TimeValue>(obj[strings.MinDuration]);
+  durs.m_maxDuration = fromJsonValue<TimeValue>(obj[strings.MaxDuration]);
+  durs.m_rigidity = obj[strings.Rigidity].toBool();
+  durs.m_isMinNull = obj[strings.MinNull].toBool();
+  durs.m_isMaxInfinite = obj[strings.MaxInf].toBool();
 }

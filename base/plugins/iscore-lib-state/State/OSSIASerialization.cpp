@@ -88,7 +88,7 @@ DataStreamReader::read(const ossia::value& n)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(ossia::value& n)
+DataStreamWriter::write(ossia::value& n)
 {
   writeTo((ossia::value_variant_type&)n.v);
 }
@@ -238,7 +238,7 @@ DataStreamReader::read(const ossia::net::domain& n)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(ossia::net::domain& n)
+DataStreamWriter::write(ossia::net::domain& n)
 {
   writeTo((ossia::net::domain_base_variant&)n);
 }
@@ -350,7 +350,7 @@ JSONObjectReader::read(const ossia::value& n);
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::writeTo(ossia::value& n);
+JSONObjectWriter::write(ossia::value& n);
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
@@ -494,7 +494,7 @@ JSONObjectReader::read(const ossia::net::domain& n)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::writeTo(ossia::net::domain& n)
+JSONObjectWriter::write(ossia::net::domain& n)
 {
   writeTo((ossia::net::domain_base_variant&)n);
 }
@@ -510,7 +510,7 @@ JSONObjectReader::read(const ossia::value& n)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::writeTo(ossia::value& n)
+JSONObjectWriter::write(ossia::value& n)
 {
   writeTo((ossia::value_variant_type&)n.v);
 }
@@ -592,7 +592,7 @@ DataStreamReader::read(const ossia::net::instance_bounds& n)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(ossia::net::instance_bounds& n)
+DataStreamWriter::write(ossia::net::instance_bounds& n)
 {
   m_stream >> n.min_instances >> n.max_instances;
 }

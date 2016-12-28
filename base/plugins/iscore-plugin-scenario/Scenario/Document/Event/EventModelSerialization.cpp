@@ -31,7 +31,7 @@ DataStreamReader::read(const Scenario::EventModel& ev)
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-DataStreamWriter::writeTo(Scenario::EventModel& ev)
+DataStreamWriter::write(Scenario::EventModel& ev)
 {
   m_stream >> ev.m_timeNode >> ev.m_states >> ev.m_condition >> ev.m_extent
       >> ev.m_date >> ev.m_offset;
@@ -44,28 +44,28 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectReader::read(const Scenario::EventModel& ev)
 {
-  obj["TimeNode"] = toJsonValue(ev.m_timeNode);
-  obj["States"] = toJsonArray(ev.m_states);
+  obj[strings.TimeNode] = toJsonValue(ev.m_timeNode);
+  obj[strings.States] = toJsonArray(ev.m_states);
 
-  obj["Condition"] = toJsonObject(ev.m_condition);
+  obj[strings.Condition] = toJsonObject(ev.m_condition);
 
-  obj["Extent"] = toJsonValue(ev.m_extent);
-  obj["Date"] = toJsonValue(ev.m_date);
-  obj["Offset"] = (int32_t)ev.m_offset;
+  obj[strings.Extent] = toJsonValue(ev.m_extent);
+  obj[strings.Date] = toJsonValue(ev.m_date);
+  obj[strings.Offset] = (int32_t)ev.m_offset;
 }
 
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectWriter::writeTo(Scenario::EventModel& ev)
+JSONObjectWriter::write(Scenario::EventModel& ev)
 {
   ev.m_timeNode
-      = fromJsonValue<Id<Scenario::TimeNodeModel>>(obj["TimeNode"]);
-  fromJsonValueArray(obj["States"].toArray(), ev.m_states);
+      = fromJsonValue<Id<Scenario::TimeNodeModel>>(obj[strings.TimeNode]);
+  fromJsonValueArray(obj[strings.States].toArray(), ev.m_states);
 
-  fromJsonObject(obj["Condition"], ev.m_condition);
+  fromJsonObject(obj[strings.Condition], ev.m_condition);
 
-  ev.m_extent = fromJsonValue<Scenario::VerticalExtent>(obj["Extent"]);
-  ev.m_date = fromJsonValue<TimeValue>(obj["Date"]);
-  ev.m_offset = static_cast<Scenario::OffsetBehavior>(obj["Offset"].toInt());
+  ev.m_extent = fromJsonValue<Scenario::VerticalExtent>(obj[strings.Extent]);
+  ev.m_date = fromJsonValue<TimeValue>(obj[strings.Date]);
+  ev.m_offset = static_cast<Scenario::OffsetBehavior>(obj[strings.Offset].toInt());
 }

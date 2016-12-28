@@ -12,7 +12,7 @@ void DataStreamReader::read(const Scenario::VerticalExtent& ve)
 }
 
 template <>
-void DataStreamWriter::writeTo(Scenario::VerticalExtent& ve)
+void DataStreamWriter::write(Scenario::VerticalExtent& ve)
 {
   m_stream >> static_cast<QPointF&>(ve);
   checkDelimiter();

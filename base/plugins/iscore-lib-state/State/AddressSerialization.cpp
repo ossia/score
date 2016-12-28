@@ -27,7 +27,7 @@ DataStreamReader::read(const State::AccessorVector& a)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(State::AccessorVector& a)
+DataStreamWriter::write(State::AccessorVector& a)
 {
   int32_t size;
   m_stream >> size;
@@ -60,7 +60,7 @@ JSONObjectReader::read(const State::Address& a)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(State::Address& a)
+DataStreamWriter::write(State::Address& a)
 {
   m_stream >> a.device >> a.path;
   checkDelimiter();
@@ -68,7 +68,7 @@ DataStreamWriter::writeTo(State::Address& a)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::writeTo(State::Address& a)
+JSONObjectWriter::write(State::Address& a)
 {
   a.device = obj[strings.Device].toString();
 
@@ -90,23 +90,23 @@ template <>
 ISCORE_LIB_STATE_EXPORT void
 JSONObjectReader::read(const ossia::destination_qualifiers& a)
 {
-  obj["Accessors"] = toJsonValueArray(a.accessors);
+  obj[strings.Accessors] = toJsonValueArray(a.accessors);
   obj[strings.Unit]
       = QString::fromStdString(ossia::get_pretty_unit_text(a.unit));
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(ossia::destination_qualifiers& a)
+DataStreamWriter::write(ossia::destination_qualifiers& a)
 {
   m_stream >> a.accessors >> a.unit;
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::writeTo(ossia::destination_qualifiers& a)
+JSONObjectWriter::write(ossia::destination_qualifiers& a)
 {
-  auto arr = obj["Accessors"].toArray();
+  auto arr = obj[strings.Accessors].toArray();
   for (auto v : arr)
   {
     a.accessors.push_back(v.toInt());
@@ -131,14 +131,14 @@ JSONObjectReader::read(const State::DestinationQualifiers& a)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(State::DestinationQualifiers& a)
+DataStreamWriter::write(State::DestinationQualifiers& a)
 {
   writeTo(a.get());
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::writeTo(State::DestinationQualifiers& a)
+JSONObjectWriter::write(State::DestinationQualifiers& a)
 {
   writeTo(a.get());
 }
@@ -163,7 +163,7 @@ JSONObjectReader::read(const State::AddressAccessor& rel)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(State::AddressAccessor& rel)
+DataStreamWriter::write(State::AddressAccessor& rel)
 {
   m_stream >> rel.address >> rel.qualifiers;
 
@@ -172,7 +172,7 @@ DataStreamWriter::writeTo(State::AddressAccessor& rel)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::writeTo(State::AddressAccessor& rel)
+JSONObjectWriter::write(State::AddressAccessor& rel)
 {
   fromJsonObject(obj[strings.address], rel.address);
   writeTo(rel.qualifiers);
@@ -198,7 +198,7 @@ JSONObjectReader::read(const State::AddressAccessorHead& rel)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(State::AddressAccessorHead& rel)
+DataStreamWriter::write(State::AddressAccessorHead& rel)
 {
   m_stream >> rel.name >> rel.qualifiers;
 
@@ -207,7 +207,7 @@ DataStreamWriter::writeTo(State::AddressAccessorHead& rel)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::writeTo(State::AddressAccessorHead& rel)
+JSONObjectWriter::write(State::AddressAccessorHead& rel)
 {
   rel.name = obj[strings.Name].toString();
   writeTo(rel.qualifiers);

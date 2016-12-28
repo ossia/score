@@ -31,7 +31,7 @@ DataStreamReader::read(const Curve::Model& curve)
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-DataStreamWriter::writeTo(Curve::Model& curve)
+DataStreamWriter::write(Curve::Model& curve)
 {
   int32_t size;
   m_stream >> size;
@@ -55,16 +55,16 @@ template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
 JSONObjectReader::read(const Curve::Model& curve)
 {
-  obj["Segments"] = toJsonArray(curve.segments());
+  obj[strings.Segments] = toJsonArray(curve.segments());
 }
 
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
-JSONObjectWriter::writeTo(Curve::Model& curve)
+JSONObjectWriter::write(Curve::Model& curve)
 {
   auto& csl = components.interfaces<Curve::SegmentList>();
-  for (const auto& segment : obj["Segments"].toArray())
+  for (const auto& segment : obj[strings.Segments].toArray())
   {
     JSONObject::Deserializer segment_deser{segment.toObject()};
     auto seg = deserialize_interface(csl, segment_deser, &curve);

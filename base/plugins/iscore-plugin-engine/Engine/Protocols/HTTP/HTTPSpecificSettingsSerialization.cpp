@@ -17,7 +17,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(
+void DataStreamWriter::write(
     Engine::Network::HTTPSpecificSettings& n)
 {
   m_stream >> n.text;
@@ -34,7 +34,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(
+void JSONObjectWriter::write(
     Engine::Network::HTTPSpecificSettings& n)
 {
   n.text = obj["Text"].toString();

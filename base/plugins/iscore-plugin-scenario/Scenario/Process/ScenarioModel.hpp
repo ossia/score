@@ -138,11 +138,11 @@ public:
     return events.at(m_startEventId);
   }
 
-  EntityMap<ConstraintModel> constraints;
-  EntityMap<EventModel> events;
-  EntityMap<TimeNodeModel> timeNodes;
-  EntityMap<StateModel> states;
-  EntityMap<CommentBlockModel> comments;
+  iscore::EntityMap<ConstraintModel> constraints;
+  iscore::EntityMap<EventModel> events;
+  iscore::EntityMap<TimeNodeModel> timeNodes;
+  iscore::EntityMap<StateModel> states;
+  iscore::EntityMap<CommentBlockModel> comments;
 
 signals:
   void stateMoved(const StateModel&);
@@ -284,7 +284,7 @@ template <>
 struct ScenarioElementTraits<Scenario::ProcessModel, ConstraintModel>
 {
   static const constexpr auto accessor
-      = static_cast<const EntityMap<ConstraintModel>& (*)(const Scenario::
+      = static_cast<const iscore::EntityMap<ConstraintModel>& (*)(const Scenario::
                                                               ProcessModel&)>(
           &constraints);
 };
@@ -292,7 +292,7 @@ template <>
 struct ScenarioElementTraits<Scenario::ProcessModel, EventModel>
 {
   static const constexpr auto accessor
-      = static_cast<const EntityMap<EventModel>& (*)(const Scenario::
+      = static_cast<const iscore::EntityMap<EventModel>& (*)(const Scenario::
                                                          ProcessModel&)>(
           &events);
 };
@@ -300,7 +300,7 @@ template <>
 struct ScenarioElementTraits<Scenario::ProcessModel, TimeNodeModel>
 {
   static const constexpr auto accessor
-      = static_cast<const EntityMap<TimeNodeModel>& (*)(const Scenario::
+      = static_cast<const iscore::EntityMap<TimeNodeModel>& (*)(const Scenario::
                                                             ProcessModel&)>(
           &timeNodes);
 };
@@ -308,7 +308,7 @@ template <>
 struct ScenarioElementTraits<Scenario::ProcessModel, StateModel>
 {
   static const constexpr auto accessor
-      = static_cast<const EntityMap<StateModel>& (*)(const Scenario::
+      = static_cast<const iscore::EntityMap<StateModel>& (*)(const Scenario::
                                                          ProcessModel&)>(
           &states);
 };

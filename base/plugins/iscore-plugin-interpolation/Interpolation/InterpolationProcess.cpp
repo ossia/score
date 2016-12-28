@@ -246,7 +246,7 @@ DataStreamReader::read(
 
 template <>
 ISCORE_PLUGIN_INTERPOLATION_EXPORT void
-DataStreamWriter::writeTo(Interpolation::ProcessModel& interp)
+DataStreamWriter::write(Interpolation::ProcessModel& interp)
 {
   interp.setCurve(new Curve::Model{*this, &interp});
 
@@ -281,7 +281,7 @@ JSONObjectReader::read(
 
 template <>
 ISCORE_PLUGIN_INTERPOLATION_EXPORT void
-JSONObjectWriter::writeTo(Interpolation::ProcessModel& interp)
+JSONObjectWriter::write(Interpolation::ProcessModel& interp)
 {
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   interp.setCurve(new Curve::Model{curve_deser, &interp});

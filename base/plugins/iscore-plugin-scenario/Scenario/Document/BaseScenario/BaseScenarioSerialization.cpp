@@ -30,7 +30,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(
+void DataStreamWriter::write(
     Scenario::BaseScenario& base_scenario)
 {
   writeTo(static_cast<Scenario::BaseScenarioContainer&>(base_scenario));
@@ -48,7 +48,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(
+void JSONObjectWriter::write(
     Scenario::BaseScenario& base_scenario)
 {
   writeTo(static_cast<Scenario::BaseScenarioContainer&>(base_scenario));

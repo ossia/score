@@ -74,7 +74,7 @@ public:
   qreal getHeight() const;
   bool focus() const;
 
-  EntityMap<Process::LayerModel> layers;
+  iscore::EntityMap<Process::LayerModel> layers;
 
   void
   on_deleteSharedProcessModel(const Process::ProcessModel& sharedProcessId);

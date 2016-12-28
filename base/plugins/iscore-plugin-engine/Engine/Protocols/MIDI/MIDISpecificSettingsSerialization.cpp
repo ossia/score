@@ -18,7 +18,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(
+void DataStreamWriter::write(
     Engine::Network::MIDISpecificSettings& n)
 {
   m_stream >> n.io >> n.endpoint >> n.port;
@@ -37,7 +37,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(
+void JSONObjectWriter::write(
     Engine::Network::MIDISpecificSettings& n)
 {
   fromJsonValue(obj["IO"], n.io);

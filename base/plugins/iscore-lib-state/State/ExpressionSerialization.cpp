@@ -26,7 +26,7 @@ void JSONObjectReader::read(const State::Pulse& rel)
 
 
 template <>
-void DataStreamWriter::writeTo(State::Pulse& rel)
+void DataStreamWriter::write(State::Pulse& rel)
 {
   m_stream >> rel.address;
 
@@ -35,7 +35,7 @@ void DataStreamWriter::writeTo(State::Pulse& rel)
 
 
 template <>
-void JSONObjectWriter::writeTo(State::Pulse& rel)
+void JSONObjectWriter::write(State::Pulse& rel)
 {
   fromJsonObject(obj[strings.address], rel.address);
 }
@@ -61,7 +61,7 @@ void JSONObjectReader::read(const State::Relation& rel)
 
 
 template <>
-void DataStreamWriter::writeTo(State::Relation& rel)
+void DataStreamWriter::write(State::Relation& rel)
 {
   m_stream >> rel.lhs >> rel.op >> rel.rhs;
 
@@ -70,7 +70,7 @@ void DataStreamWriter::writeTo(State::Relation& rel)
 
 
 template <>
-void JSONObjectWriter::writeTo(State::Relation& rel)
+void JSONObjectWriter::write(State::Relation& rel)
 {
   fromJsonObject(obj[strings.LHS], rel.lhs);
   fromJsonValue(obj[strings.Op], rel.op);
@@ -97,7 +97,7 @@ JSONObjectReader::read(const State::ExprData& expr)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(State::ExprData& expr)
+DataStreamWriter::write(State::ExprData& expr)
 {
   writeTo(expr.m_data);
   checkDelimiter();
@@ -106,7 +106,7 @@ DataStreamWriter::writeTo(State::ExprData& expr)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::writeTo(State::ExprData& expr)
+JSONObjectWriter::write(State::ExprData& expr)
 {
   writeTo(expr.m_data);
 }

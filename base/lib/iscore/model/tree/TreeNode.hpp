@@ -281,13 +281,13 @@ struct TSerializer<JSONObject, TreeNode<T>>
   static void readFrom(JSONObject::Serializer& s, const TreeNode<T>& n)
   {
     s.readFrom(static_cast<const T&>(n));
-    s.obj["Children"] = toJsonArray(n);
+    s.obj[s.strings.Children] = toJsonArray(n);
   }
 
   static void writeTo(JSONObject::Deserializer& s, TreeNode<T>& n)
   {
     s.writeTo(static_cast<T&>(n));
-    auto children = s.obj["Children"].toArray();
+    auto children = s.obj[s.strings.Children].toArray();
     for (const auto& val : children)
     {
       TreeNode<T> child;

@@ -17,7 +17,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(
+void DataStreamWriter::write(
     Engine::Network::WSSpecificSettings& n)
 {
   m_stream >> n.address >> n.text;
@@ -35,7 +35,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(
+void JSONObjectWriter::write(
     Engine::Network::WSSpecificSettings& n)
 {
   n.address = obj[strings.Address].toString();

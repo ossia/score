@@ -15,7 +15,7 @@ DataStreamReader::read(const ObjectPath& path)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-DataStreamWriter::writeTo(ObjectPath& path)
+DataStreamWriter::write(ObjectPath& path)
 {
   writeTo(path.vec());
 }
@@ -29,7 +29,7 @@ JSONObjectReader::read(const ObjectPath& path)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-JSONObjectWriter::writeTo(ObjectPath& path)
+JSONObjectWriter::write(ObjectPath& path)
 {
   fromJsonArray(obj[strings.Identifiers].toArray(), path.vec());
 }

@@ -27,7 +27,7 @@ ISCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(
 // We only load the members of the process here.
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::writeTo(Process::ProcessModel& process)
+DataStreamWriter::write(Process::ProcessModel& process)
 {
   writeTo(process.m_duration);
   // m_stream >> process.m_useParentDuration;
@@ -45,7 +45,7 @@ ISCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read(
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::writeTo(Process::ProcessModel& process)
+JSONObjectWriter::write(Process::ProcessModel& process)
 {
   process.m_duration = fromJsonValue<TimeValue>(obj[strings.Duration]);
   // process.m_useParentDuration = obj["UseParentDuration"].toBool();

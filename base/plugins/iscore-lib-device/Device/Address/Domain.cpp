@@ -86,7 +86,7 @@ DataStreamReader::read(const Device::Domain& var)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-DataStreamWriter::writeTo(Device::Domain& var)
+DataStreamWriter::write(Device::Domain& var)
 {
   writeTo(var.get());
 }
@@ -100,7 +100,7 @@ JSONObjectReader::read(const Device::Domain& var)
 
 template <>
 ISCORE_LIB_DEVICE_EXPORT void
-JSONObjectWriter::writeTo(Device::Domain& var)
+JSONObjectWriter::write(Device::Domain& var)
 {
   writeTo(var.get());
 }

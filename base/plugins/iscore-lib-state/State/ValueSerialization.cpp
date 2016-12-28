@@ -27,7 +27,7 @@ DataStreamReader::read(const State::ValueImpl& value)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(State::ValueImpl& value)
+DataStreamWriter::write(State::ValueImpl& value)
 {
   writeTo(value.m_variant);
   checkDelimiter();
@@ -41,7 +41,7 @@ void DataStreamReader::read(const State::impulse_t& value)
 
 
 template <>
-void DataStreamWriter::writeTo(State::impulse_t& value)
+void DataStreamWriter::write(State::impulse_t& value)
 {
 }
 
@@ -57,7 +57,7 @@ DataStreamReader::read(const State::Value& value)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::writeTo(State::Value& value)
+DataStreamWriter::write(State::Value& value)
 {
   writeTo(value.val);
   checkDelimiter();
@@ -80,7 +80,7 @@ JSONObjectReader::read(const State::Value& val)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::writeTo(State::Value& val)
+JSONObjectWriter::write(State::Value& val)
 {
   val = State::convert::fromQJsonValue(
       obj[strings.Value], obj[strings.Type].toString());

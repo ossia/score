@@ -23,7 +23,7 @@ void DataStreamReader::read(const Loop::Layer& lm)
 
 
 template <>
-void DataStreamWriter::writeTo(Loop::Layer& lm)
+void DataStreamWriter::write(Loop::Layer& lm)
 {
   // Note : keep in sync with loadConstraintViewModel, or try to refactor them.
 
@@ -54,7 +54,7 @@ void JSONObjectReader::read(const Loop::Layer& lm)
 
 
 template <>
-void JSONObjectWriter::writeTo(Loop::Layer& lm)
+void JSONObjectWriter::write(Loop::Layer& lm)
 {
   JSONObject::Deserializer deserializer{obj["Constraint"].toObject()};
 

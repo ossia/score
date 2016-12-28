@@ -33,7 +33,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(Scenario::CommentBlockModel& comment)
+void DataStreamWriter::write(Scenario::CommentBlockModel& comment)
 {
   m_stream >> comment.m_date >> comment.m_yposition >> comment.m_HTMLcontent;
   checkDelimiter();
@@ -51,7 +51,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(Scenario::CommentBlockModel& comment)
+void JSONObjectWriter::write(Scenario::CommentBlockModel& comment)
 {
   comment.m_date = fromJsonValue<TimeValue>(obj["Date"]);
   comment.m_yposition = obj["HeightPercentage"].toDouble();

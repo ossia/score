@@ -17,7 +17,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(
+void DataStreamWriter::write(
     Engine::Network::MinuitSpecificSettings& n)
 {
   m_stream >> n.host >> n.inputPort >> n.outputPort;
@@ -36,7 +36,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(
+void JSONObjectWriter::write(
     Engine::Network::MinuitSpecificSettings& n)
 {
   n.inputPort = obj["InPort"].toInt();

@@ -16,7 +16,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(Curve::PointArraySegment& segmt)
+void DataStreamWriter::write(Curve::PointArraySegment& segmt)
 {
   ISCORE_TODO;
 }
@@ -31,7 +31,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(Curve::PointArraySegment& segmt)
+void JSONObjectWriter::write(Curve::PointArraySegment& segmt)
 {
   ISCORE_TODO;
 }
@@ -46,7 +46,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(Curve::PointArraySegmentData& segmt)
+void DataStreamWriter::write(Curve::PointArraySegmentData& segmt)
 {
   ISCORE_TODO;
 }
@@ -61,7 +61,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(Curve::PointArraySegmentData& segmt)
+void JSONObjectWriter::write(Curve::PointArraySegmentData& segmt)
 {
   ISCORE_TODO;
 }

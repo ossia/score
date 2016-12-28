@@ -36,7 +36,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
 
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::BaseScenarioContainer& base_scenario)
 {
   using namespace Scenario;
@@ -82,7 +82,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
 
 
 template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::writeTo(
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
     Scenario::BaseScenarioContainer& base_scenario)
 {
   using namespace Scenario;

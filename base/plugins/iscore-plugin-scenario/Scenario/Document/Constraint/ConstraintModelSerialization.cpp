@@ -73,7 +73,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-DataStreamWriter::writeTo(Scenario::ConstraintModel& constraint)
+DataStreamWriter::write(Scenario::ConstraintModel& constraint)
 {
   // Processes
   int32_t process_count;
@@ -110,8 +110,7 @@ DataStreamWriter::writeTo(Scenario::ConstraintModel& constraint)
   m_stream >> constraint.duration >> constraint.m_startState
       >> constraint.m_endState
 
-      >> constraint.m_startDate >> constraint.m_heightPercentage
-      >> constraint.m_looping;
+      >> constraint.m_startDate >> constraint.m_heightPercentage;
 
   checkDelimiter();
 }
@@ -122,35 +121,34 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
     const Scenario::ConstraintModel& constraint)
 {
   // Processes
-  obj["Processes"] = toJsonArray(constraint.processes);
+  obj[strings.Processes] = toJsonArray(constraint.processes);
 
   // Rackes
-  obj["Rackes"] = toJsonArray(constraint.racks);
+  obj[strings.Racks] = toJsonArray(constraint.racks);
 
   // Full view
-  obj["FullView"] = toJsonObject(*constraint.fullView());
+  obj[strings.FullView] = toJsonObject(*constraint.fullView());
 
   // Common data
   // The fields will go in the same level as the
   // rest of the constraint
   readFrom(constraint.duration);
 
-  obj["StartState"] = toJsonValue(constraint.m_startState);
-  obj["EndState"] = toJsonValue(constraint.m_endState);
+  obj[strings.StartState] = toJsonValue(constraint.m_startState);
+  obj[strings.EndState] = toJsonValue(constraint.m_endState);
 
-  obj["StartDate"] = toJsonValue(constraint.m_startDate);
-  obj["HeightPercentage"] = constraint.m_heightPercentage;
-  obj["Looping"] = constraint.m_looping;
+  obj[strings.StartDate] = toJsonValue(constraint.m_startDate);
+  obj[strings.HeightPercentage] = constraint.m_heightPercentage;
 }
 
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectWriter::writeTo(Scenario::ConstraintModel& constraint)
+JSONObjectWriter::write(Scenario::ConstraintModel& constraint)
 {
   auto& pl = components.interfaces<Process::ProcessFactoryList>();
 
-  QJsonArray process_array = obj["Processes"].toArray();
+  QJsonArray process_array = obj[strings.Processes].toArray();
   for (const auto& json_vref : process_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};
@@ -161,7 +159,7 @@ JSONObjectWriter::writeTo(Scenario::ConstraintModel& constraint)
       ISCORE_TODO;
   }
 
-  QJsonArray rack_array = obj["Rackes"].toArray();
+  QJsonArray rack_array = obj[strings.Racks].toArray();
   for (const auto& json_vref : rack_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};
@@ -169,16 +167,15 @@ JSONObjectWriter::writeTo(Scenario::ConstraintModel& constraint)
   }
 
   constraint.setFullView(new Scenario::FullViewConstraintViewModel{
-      JSONObject::Deserializer{obj["FullView"].toObject()}, constraint,
+      JSONObject::Deserializer{obj[strings.FullView].toObject()}, constraint,
       &constraint});
 
   writeTo(constraint.duration);
   constraint.m_startState
-      = fromJsonValue<Id<Scenario::StateModel>>(obj["StartState"]);
+      = fromJsonValue<Id<Scenario::StateModel>>(obj[strings.StartState]);
   constraint.m_endState
-      = fromJsonValue<Id<Scenario::StateModel>>(obj["EndState"]);
+      = fromJsonValue<Id<Scenario::StateModel>>(obj[strings.EndState]);
 
-  constraint.m_startDate = fromJsonValue<TimeValue>(obj["StartDate"]);
-  constraint.m_heightPercentage = obj["HeightPercentage"].toDouble();
-  constraint.m_looping = obj["Looping"].toBool();
+  constraint.m_startDate = fromJsonValue<TimeValue>(obj[strings.StartDate]);
+  constraint.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
 }

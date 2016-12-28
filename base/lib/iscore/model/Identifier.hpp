@@ -4,8 +4,10 @@
 #include <iscore/tools/Todo.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
+namespace iscore {
 template <typename T>
 class EntityMap;
+}
 template <typename Element, typename Model, typename Map>
 class IdContainer;
 template <typename T>
@@ -51,7 +53,7 @@ template <typename tag, typename impl>
 class id_base_t
 {
   friend tag;
-  friend class EntityMap<tag>;
+  friend class iscore::EntityMap<tag>;
   friend class IdentifiedObject<tag>;
 
   // TODO Try to only have Map as a template type here

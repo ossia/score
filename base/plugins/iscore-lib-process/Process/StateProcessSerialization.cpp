@@ -9,7 +9,7 @@ ISCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::writeTo(Process::StateProcess&)
+DataStreamWriter::write(Process::StateProcess&)
 {
   // Delimiter checked on createProcess
 }
@@ -22,6 +22,6 @@ ISCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read(
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::writeTo(Process::StateProcess& process)
+JSONObjectWriter::write(Process::StateProcess& process)
 {
 }

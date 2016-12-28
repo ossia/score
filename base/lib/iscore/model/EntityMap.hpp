@@ -5,6 +5,10 @@
 #include <nano_signal_slot.hpp>
 #include <utility>
 
+namespace iscore
+{
+template <typename T>
+class Entity;
 template <typename T>
 class EntityMap;
 template <typename T>
@@ -94,13 +98,6 @@ public:
     EntityMapInserter<T>{}.add(*this, t);
   }
 
-  template<typename Visitor>
-  void load(Visitor& v, T* t)
-  {
-    EntityMapInserter<T>{}.load(*this, v, t);
-  }
-
-
   void remove(T& elt)
   {
     removing(elt);
@@ -170,4 +167,5 @@ void EntityMapInserter<T>::add(EntityMap<T>& map, T* t)
 
   map.mutable_added(*t);
   map.added(*t);
+}
 }

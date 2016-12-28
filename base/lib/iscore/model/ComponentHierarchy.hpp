@@ -1,11 +1,21 @@
 #pragma once
 #include <ossia/detail/algorithms.hpp>
+#include <iscore/model/ComponentSerialization.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <nano_observer.hpp>
 #include <vector>
 
 namespace iscore
 {
-
+/**
+ * \class ComponentHierarchyManager
+ * \brief Manages simple hierarchies of components
+ *
+ * For instance, if the object Foo is a container for Bar elements,
+ * this class can be used so that every time a new Bar is created, a matching component
+ * will be added to Bar.
+ *
+ */
 template <
     typename ParentComponent_T, typename ChildModel_T,
     typename ChildComponent_T>
@@ -46,7 +56,39 @@ public:
     return m_children;
   }
 
-  void add(ChildModel_T& model)
+
+  void add(ChildModel_T& element)
+  {
+    add(element,
+        typename iscore::is_component_serializable<ChildComponent_T>::type{});
+  }
+
+  void add(ChildModel_T& element, iscore::serializable_tag)
+  {
+    // Since the component may be serializable, we first look if
+    // we can deserialize it.
+    auto comp = iscore::deserialize_component<ChildComponent_T>(
+          element.components(),
+          [&] (auto&& deserializer) {
+      ParentComponent_T::template load<ChildComponent_T>(deserializer, element);
+    });
+
+    // Maybe we could not deserialize it
+    if(!comp)
+    {
+      comp = ParentComponent_T::template make<ChildComponent_T>(
+            getStrongId(element.components()), element);
+    }
+
+    // We try to add it
+    if (comp)
+    {
+      element.components().add(comp);
+      m_children.emplace_back(ChildPair{&element, comp});
+    }
+  }
+
+  void add(ChildModel_T& model, iscore::not_serializable_tag)
   {
     // The subclass should provide this function to construct
     // the correct component relative to this process.
@@ -96,6 +138,14 @@ private:
                                      // of the component and of the process ?
 };
 
+/**
+ * \class PolymorphicComponentHierarchyManager
+ * \brief Manages polymorphic hierarchies of components
+ *
+ * Like ComponentHierarchyManager, but used when the components of the child class are polymorphic.
+ * For instance, if we have a Process, we want to create components that will be specific to
+ * each Process type. But then we have to source them from a factory somehow.
+ */
 template <
     typename ParentComponent_T, typename ChildModel_T,
     typename ChildComponent_T, typename ChildComponentFactoryList_T>
@@ -141,7 +191,41 @@ public:
     return m_children;
   }
 
-  void add(ChildModel_T& model)
+  void add(ChildModel_T& element)
+  {
+    add(element,
+        typename iscore::is_component_serializable<ChildComponent_T>::type{});
+  }
+
+  void add(ChildModel_T& element, iscore::serializable_tag)
+  {
+    // Will return a factory for the given process if available
+    if (auto factory = m_componentFactory.factory(model))
+    {
+      // Since the component may be serializable, we first look if
+      // we can deserialize it.
+      auto comp = iscore::deserialize_component<ChildComponent_T>(
+            element.components(),
+            [&] (auto&& deserializer) {
+        ParentComponent_T::template load<ChildComponent_T>(deserializer, *factory, element);
+      });
+
+      // Maybe we could not deserialize it
+      if(!comp)
+      {
+        comp = ParentComponent_T::template make<ChildComponent_T>(
+              getStrongId(element.components()), *factory, element);
+      }
+
+      // We try to add it
+      if (comp)
+      {
+        element.components().add(comp);
+        m_children.emplace_back(ChildPair{&element, comp});
+      }
+    }
+  }
+  void add(ChildModel_T& model, iscore::not_serializable_tag)
   {
     // Will return a factory for the given process if available
     if (auto factory = m_componentFactory.factory(model))

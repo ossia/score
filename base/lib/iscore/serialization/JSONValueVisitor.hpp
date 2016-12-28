@@ -5,7 +5,7 @@
 #include <QMap>
 #include <iscore/serialization/StringConstants.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <iscore/model/Entity.hpp>
+#include <iscore/model/EntityBase.hpp>
 
 template <class>
 class StringKey;

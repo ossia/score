@@ -22,7 +22,7 @@ void DataStreamReader::read(const Loop::ProcessModel& proc)
 
 
 template <>
-void DataStreamWriter::writeTo(Loop::ProcessModel& proc)
+void DataStreamWriter::write(Loop::ProcessModel& proc)
 {
   writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
 
@@ -38,7 +38,7 @@ void JSONObjectReader::read(const Loop::ProcessModel& proc)
 
 
 template <>
-void JSONObjectWriter::writeTo(Loop::ProcessModel& proc)
+void JSONObjectWriter::write(Loop::ProcessModel& proc)
 {
   writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
 }

@@ -98,7 +98,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(Scenario::ProcessModel& scenario)
+void DataStreamWriter::write(Scenario::ProcessModel& scenario)
 {
   m_stream >> scenario.m_startTimeNodeId;
   m_stream >> scenario.m_startEventId;
@@ -185,7 +185,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(Scenario::ProcessModel& scenario)
+void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
 {
   scenario.m_startTimeNodeId
       = fromJsonValue<Id<Scenario::TimeNodeModel>>(obj["StartTimeNodeId"]);

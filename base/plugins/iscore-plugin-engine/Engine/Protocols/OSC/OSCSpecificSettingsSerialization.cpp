@@ -20,7 +20,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(
+void DataStreamWriter::write(
     Engine::Network::OSCSpecificSettings& n)
 {
   m_stream >> n.outputPort >> n.inputPort >> n.host;
@@ -39,7 +39,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(
+void JSONObjectWriter::write(
     Engine::Network::OSCSpecificSettings& n)
 {
   n.outputPort = obj["OutputPort"].toInt();

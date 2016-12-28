@@ -16,7 +16,7 @@ DataStreamReader::read(const WidgetLayer::Layer& lm)
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-DataStreamWriter::writeTo(WidgetLayer::Layer& lm)
+DataStreamWriter::write(WidgetLayer::Layer& lm)
 {
 }
 
@@ -28,6 +28,6 @@ JSONObjectReader::read(const WidgetLayer::Layer& lm)
 
 template <>
 ISCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::writeTo(WidgetLayer::Layer& lm)
+JSONObjectWriter::write(WidgetLayer::Layer& lm)
 {
 }

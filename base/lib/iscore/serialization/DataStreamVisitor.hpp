@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/Todo.hpp>
 #include <QByteArray>
 #include <QDataStream>
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -9,11 +10,13 @@
 
 #include <iscore/serialization/VisitorTags.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <iscore/model/EntityBase.hpp>
 
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
 #include <string>
+
 namespace iscore
 {
 class ApplicationComponents;
@@ -195,11 +198,8 @@ private:
     sub.readFrom(obj.concreteKey().impl());
     ISCORE_DEBUG_INSERT_DELIMITER2(sub);
 
-    // Read the implementation of the abstract object
+    // Read our object
     f(sub);
-
-    // Read the implementation of the derived class, through a virtual function.
-    obj.serialize_impl(sub.toVariant());
 
     // Finish our object
     ISCORE_DEBUG_INSERT_DELIMITER2(sub);
@@ -214,7 +214,14 @@ private:
   {
     readFromAbstract(
           obj,
-          [&] (DataStreamReader& sub){ sub.read(obj); });
+          [&] (DataStreamReader& sub)
+    {
+      // Read the implementation of the base object
+      sub.read(obj);
+
+      // Read the implementation of the derived class, through a virtual function.
+      obj.serialize_impl(sub.toVariant());
+    });
   }
 
   template <typename T>
@@ -223,7 +230,12 @@ private:
   {
     readFromAbstract(
           obj,
-          [&] (DataStreamReader& sub){ sub.readFrom_impl(obj, visitor_object_tag{}); });
+          [&] (DataStreamReader& sub)
+    {
+      sub.readFrom_impl(obj, visitor_object_tag{});
+
+      obj.serialize_impl(sub.toVariant());
+    });
   }
 
   template <typename T>
@@ -232,7 +244,14 @@ private:
   {
     readFromAbstract(
           obj,
-          [&] (DataStreamReader& sub){ sub.readFrom_impl(obj, visitor_entity_tag{}); });
+          [&] (DataStreamReader& sub)
+    {
+      TSerializer<DataStream, iscore::Entity<T>>::readFrom(*this, obj);
+
+      read(obj);
+
+      obj.serialize_impl(sub.toVariant());
+    });
   }
 
   //! Used to serialize general objects that won't fit in the other categories
@@ -262,6 +281,7 @@ class ISCORE_LIB_BASE_EXPORT DataStreamWriter
     : public AbstractVisitor
 {
 public:
+  using type = DataStream;
   using is_visitor_tag = std::integral_constant<bool, true>;
   using is_deserializer_tag = std::integral_constant<bool, true>;
 
@@ -286,29 +306,15 @@ public:
     return data;
   }
 
+  //! Serializable types should reimplement this method
+  //! It is not to be called by user code.
   template <typename T>
-  void writeTo(
-      T& obj,
-      typename std::enable_if<is_template<T>::value, void>::type* = nullptr)
-  {
-    TSerializer<DataStream, T>::writeTo(*this, obj);
-  }
+  void write(T&);
 
-  template <
-      typename T,
-      std::
-          enable_if_t<!std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
-  void writeTo(T&);
-
-  template <
-      typename T,
-      std::
-          enable_if_t<std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
-  void writeTo(T& elt)
+  template<typename T>
+  void writeTo(T& obj)
   {
-    int32_t e;
-    m_stream >> e;
-    elt = static_cast<T>(e);
+    writeTo_impl(obj, typename serialization_tag<T>::type{});
   }
 
   /**
@@ -335,6 +341,26 @@ public:
   }
 
 private:
+  template <typename T>
+  void writeTo_impl(T& obj, visitor_template_tag)
+  {
+    TSerializer<DataStream, T>::writeTo(*this, obj);
+  }
+
+  template <typename T, typename OtherTag>
+  void writeTo_impl(T& obj, OtherTag)
+  {
+    write(obj);
+  }
+
+  template <typename T>
+  void writeTo_impl(T& elt, visitor_enum_tag)
+  {
+    int32_t e;
+    m_stream >> e;
+    elt = static_cast<T>(e);
+  }
+
   QDataStream m_stream_impl;
 
 public:
@@ -567,23 +593,38 @@ struct TSerializer<DataStream, UuidKey<U>>
   }
 };
 
-
-template <typename T>
-struct TSerializer<DataStream, iscore::Entity<T>>
+template<typename T, typename U>
+struct TSerializer<DataStream, iscore::hash_map<T, U>>
 {
-  static void readFrom(DataStream::Serializer& s, const iscore::Entity<T>& obj)
+  static void readFrom(
+      DataStream::Serializer& s,
+      const iscore::hash_map<T, U>& obj)
   {
-    TSerializer<DataStream, IdentifiedObject<T>>::readFrom(s, obj);
-    s.readFrom(obj.metadata());
-    ISCORE_DEBUG_INSERT_DELIMITER2(s);
+    auto& st = s.stream();
+    st << (int32_t) obj.size();
+    for(const auto& e : obj)
+    {
+      st << e.first << e.second;
+    }
   }
 
-  static void writeTo(DataStream::Deserializer& s, iscore::Entity<T>& obj)
+  static void writeTo(
+      DataStream::Deserializer& s,
+      iscore::hash_map<T, U>& obj)
   {
-    s.writeTo(obj.metadata());
-    ISCORE_DEBUG_CHECK_DELIMITER2(s);
+    auto& st = s.stream();
+    int32_t n;
+    st >> n;
+    for(int i = 0; i < n; i++)
+    {
+      T key;
+      U value;
+      st >> key >> value;
+      obj.emplace(std::move(key), std::move(value));
+    }
   }
 };
+
 
 Q_DECLARE_METATYPE(DataStreamReader*)
 Q_DECLARE_METATYPE(DataStreamWriter*)

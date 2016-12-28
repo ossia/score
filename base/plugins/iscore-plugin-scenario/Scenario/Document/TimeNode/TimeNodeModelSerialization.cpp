@@ -41,7 +41,7 @@ DataStreamReader::read(const Scenario::TimeNodeModel& timenode)
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-DataStreamWriter::writeTo(Scenario::TimeNodeModel& timenode)
+DataStreamWriter::write(Scenario::TimeNodeModel& timenode)
 {
   bool a;
   State::Expression t;
@@ -61,35 +61,36 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectReader::read(const Scenario::TimeNodeModel& timenode)
 {
-  obj["Date"] = toJsonValue(timenode.date());
-  obj["Events"] = toJsonArray(timenode.m_events);
-  obj["Extent"] = toJsonValue(timenode.m_extent);
+  obj[strings.Date] = toJsonValue(timenode.date());
+  obj[strings.Events] = toJsonArray(timenode.m_events);
+  obj[strings.Extent] = toJsonValue(timenode.m_extent);
 
   QJsonObject trig;
-  trig["Active"] = timenode.m_trigger->active();
-  trig["Expression"] = toJsonObject(timenode.m_trigger->expression());
-  obj["Trigger"] = trig;
+  trig[strings.Active] = timenode.m_trigger->active();
+  trig[strings.Expression] = toJsonObject(timenode.m_trigger->expression());
+  obj[strings.Trigger] = trig;
 }
 
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectWriter::writeTo(Scenario::TimeNodeModel& timenode)
+JSONObjectWriter::write(Scenario::TimeNodeModel& timenode)
 {
   if (timenode.metadata().getLabel() == QStringLiteral("TimeNode"))
     timenode.metadata().setLabel("");
 
-  timenode.m_date = fromJsonValue<TimeValue>(obj["Date"]);
-  timenode.m_extent = fromJsonValue<Scenario::VerticalExtent>(obj["Extent"]);
+  timenode.m_date = fromJsonValue<TimeValue>(obj[strings.Date]);
+  timenode.m_extent = fromJsonValue<Scenario::VerticalExtent>(obj[strings.Extent]);
 
-  fromJsonValueArray(obj["Events"].toArray(), timenode.m_events);
+  fromJsonValueArray(obj[strings.Events].toArray(), timenode.m_events);
 
   timenode.m_trigger
       = new Scenario::TriggerModel{Id<Scenario::TriggerModel>(0), &timenode};
 
   State::Expression t;
-  fromJsonObject(obj["Trigger"].toObject()["Expression"], t);
+  const auto& trig_obj = obj[strings.Trigger].toObject();
+  fromJsonObject(trig_obj[strings.Expression], t);
   timenode.m_trigger->setExpression(t);
   timenode.m_trigger->setActive(
-      obj["Trigger"].toObject()["Active"].toBool());
+      trig_obj[strings.Active].toBool());
 }

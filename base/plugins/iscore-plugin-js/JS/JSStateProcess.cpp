@@ -10,7 +10,7 @@ void DataStreamReader::read(const JS::StateProcess& proc)
 
 
 template <>
-void DataStreamWriter::writeTo(JS::StateProcess& proc)
+void DataStreamWriter::write(JS::StateProcess& proc)
 {
   m_stream >> proc.m_script;
   checkDelimiter();
@@ -25,7 +25,7 @@ void JSONObjectReader::read(const JS::StateProcess& proc)
 
 
 template <>
-void JSONObjectWriter::writeTo(JS::StateProcess& proc)
+void JSONObjectWriter::write(JS::StateProcess& proc)
 {
   proc.m_script = obj["Script"].toString();
 }

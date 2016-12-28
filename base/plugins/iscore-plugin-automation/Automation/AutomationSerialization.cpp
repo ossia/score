@@ -36,7 +36,7 @@ void DataStreamReader::read(
 
 
 template <>
-void DataStreamWriter::writeTo(Automation::ProcessModel& autom)
+void DataStreamWriter::write(Automation::ProcessModel& autom)
 {
   autom.setCurve(new Curve::Model{*this, &autom});
 
@@ -68,7 +68,7 @@ void JSONObjectReader::read(
 
 
 template <>
-void JSONObjectWriter::writeTo(Automation::ProcessModel& autom)
+void JSONObjectWriter::write(Automation::ProcessModel& autom)
 {
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
