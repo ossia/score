@@ -1,5 +1,6 @@
 #include "Component.hpp"
 #include "ComponentSerialization.hpp"
+#include <iscore/document/DocumentContext.hpp>
 namespace iscore
 {
 Component::~Component() = default;
@@ -33,18 +34,16 @@ bool JSONSerializedComponents::deserializeRemaining(
     Components& comps,
     QObject* entity)
 {
-  /*
   auto& ctx = iscore::IDocument::documentContext(*entity);
-  auto& comps = ctx.app.factories<iscore::SerializableComponentList>();
-  for(auto it = v.begin(); it != v.end(); )
+  auto& comp_factory = ctx.app.interfaces<iscore::SerializableComponentFactoryList>();
+  for(auto it = data.begin(); it != data.end(); )
   {
-    auto& arr = *it;
-    JSONObject::Deserializer s{arr};
-    auto res = deserialize_interface(comps, s, entity);
+    JSONObject::Deserializer s{it->second};
+    auto res = deserialize_interface(comp_factory, s, ctx, entity);
     if(res)
     {
-      components.add(res);
-      it = v.erase(it);
+      comps.add(res);
+      it = data.erase(it);
     }
     else
     {
@@ -52,7 +51,6 @@ bool JSONSerializedComponents::deserializeRemaining(
     }
   }
 
-*/
   return data.empty();
 }
 
@@ -60,13 +58,12 @@ bool DataStreamSerializedComponents::deserializeRemaining(
     Components& components,
     QObject* entity)
 {
-  /*
   auto& ctx = iscore::IDocument::documentContext(*entity);
-  auto& comps = ctx.app.factories<iscore::SerializableComponentList>();
+  auto& comp_factory = ctx.app.interfaces<iscore::SerializableComponentFactoryList>();
   for(auto it = data.begin(); it != data.end(); )
   {
     DataStream::Deserializer s{it->second};
-    auto res = deserialize_interface(comps, s, entity);
+    auto res = deserialize_interface(comp_factory, s, ctx, entity);
     if(res)
     {
       components.add(res);
@@ -77,8 +74,17 @@ bool DataStreamSerializedComponents::deserializeRemaining(
       ++it;
     }
   }
-*/
   return data.empty();
+}
+
+iscore::SerializableComponent*
+SerializableComponentFactoryList::loadMissing(
+    const VisitorVariant& vis,
+    const DocumentContext& ctx,
+    QObject* parent)  const
+{
+  ISCORE_TODO;
+  return nullptr;
 }
 
 
