@@ -150,7 +150,7 @@ auto make_ordered(const Scenario::ProcessModel& scenario)
   set_t the_set(comp_t{&scenario});
 
   auto cont
-      = Scenario::ScenarioElementTraits<Scenario::ProcessModel, T>::accessor;
+      = Scenario::ElementTraits<Scenario::ProcessModel, T>::accessor;
   for (auto& tn : selectedElements(cont(scenario)))
   {
     the_set.insert(tn);

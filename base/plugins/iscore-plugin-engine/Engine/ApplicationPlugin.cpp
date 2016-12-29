@@ -31,7 +31,7 @@
 #include <iscore/actions/ActionManager.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <vector>
-
+#include <Engine/OssiaLogger.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 
 #include <QAction>
@@ -42,7 +42,11 @@ namespace Engine
 ApplicationPlugin::ApplicationPlugin(const iscore::GUIApplicationContext& ctx)
     : iscore::GUIApplicationContextPlugin{ctx}, m_playActions{*this, ctx}
 {
-  ossia::context context;
+  std::vector<spdlog::sink_ptr> v{
+    spdlog::sinks::stderr_sink_mt::instance(),
+    std::make_shared<OssiaLogger>()};
+
+  ossia::context context{v};
   // Two parts :
   // One that maintains the devices for each document
   // (and disconnects / reconnects them when the current document changes)

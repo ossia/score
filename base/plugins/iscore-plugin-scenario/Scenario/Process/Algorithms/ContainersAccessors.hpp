@@ -44,4 +44,42 @@ inline static auto getTimeNodes(const BaseScenarioContainer& target)
 {
   return target.timeNodes();
 }
+
+/**
+ * \class ScenarioRecursiveFind
+ *
+ * Will find recursively all the elements of a given type in an i-score
+ * process hierarchy.
+ *
+ */
+template<typename T>
+class ScenarioRecursiveFind
+{
+public:
+  std::vector<T*> elements;
+
+  void visit(Scenario::ScenarioInterface& s)
+  {
+    using type = Scenario::ElementTraits<Scenario::ScenarioInterface, T>;
+    const auto& sc = (s.*type::accessor)();
+    elements.reserve(elements.size() + sc.size());
+    for(auto& e : sc)
+    {
+      elements.push_back(&e);
+      visit(e);
+    }
+  }
+
+  void visit(Scenario::ConstraintModel& c)
+  {
+    for(auto& proc : c.processes)
+    {
+      if(auto scenario = dynamic_cast<Scenario::ScenarioInterface*>(&proc))
+      {
+        visit(*scenario);
+      }
+    }
+  }
+};
+
 }

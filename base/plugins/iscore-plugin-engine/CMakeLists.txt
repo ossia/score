@@ -10,6 +10,7 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/CurveConversion.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/OSSIA2iscore.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/OssiaLogger.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitDevice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitSpecificSettings.hpp"
@@ -30,6 +31,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/iscore2OSSIA.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayContextMenu.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayFromConstraintInScenario.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ExecutorContext.hpp"
 
@@ -100,6 +102,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayContextMenu.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayFromConstraintInScenario.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateProcessComponent.cpp"

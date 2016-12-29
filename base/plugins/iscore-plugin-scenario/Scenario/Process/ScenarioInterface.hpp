@@ -58,6 +58,27 @@ static auto endId()
 }
 
 template <typename Scenario_T, typename Element_T>
-struct ScenarioElementTraits;
+struct ElementTraits;
 // { auto container_accessor = &constraints; etc... }
+
+template <>
+struct ElementTraits<Scenario::ScenarioInterface, ConstraintModel>
+{
+  static const constexpr auto accessor = &ScenarioInterface::getConstraints;
+};
+template <>
+struct ElementTraits<Scenario::ScenarioInterface, EventModel>
+{
+  static const constexpr auto accessor = &ScenarioInterface::getEvents;
+};
+template <>
+struct ElementTraits<Scenario::ScenarioInterface, TimeNodeModel>
+{
+  static const constexpr auto accessor = &ScenarioInterface::getTimeNodes;
+};
+template <>
+struct ElementTraits<Scenario::ScenarioInterface, StateModel>
+{
+  static const constexpr auto accessor = &ScenarioInterface::getStates;
+};
 }

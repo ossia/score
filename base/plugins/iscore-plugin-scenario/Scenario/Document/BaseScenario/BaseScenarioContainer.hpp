@@ -145,28 +145,28 @@ inline auto states(const BaseScenarioContainer& scenar)
 }
 
 template <>
-struct ScenarioElementTraits<BaseScenarioContainer, ConstraintModel>
+struct ElementTraits<BaseScenarioContainer, ConstraintModel>
 {
   static const constexpr auto accessor
       = static_cast<iscore::IndirectArray<ConstraintModel, 1> (*)(
           const BaseScenarioContainer&)>(&constraints);
 };
 template <>
-struct ScenarioElementTraits<BaseScenarioContainer, EventModel>
+struct ElementTraits<BaseScenarioContainer, EventModel>
 {
   static const constexpr auto accessor
       = static_cast<iscore::IndirectArray<EventModel, 2> (*)(
           const BaseScenarioContainer&)>(&events);
 };
 template <>
-struct ScenarioElementTraits<BaseScenarioContainer, TimeNodeModel>
+struct ElementTraits<BaseScenarioContainer, TimeNodeModel>
 {
   static const constexpr auto accessor
       = static_cast<iscore::IndirectArray<TimeNodeModel, 2> (*)(
           const BaseScenarioContainer&)>(&timeNodes);
 };
 template <>
-struct ScenarioElementTraits<BaseScenarioContainer, StateModel>
+struct ElementTraits<BaseScenarioContainer, StateModel>
 {
   static const constexpr auto accessor
       = static_cast<iscore::IndirectArray<StateModel, 2> (*)(

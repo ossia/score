@@ -128,7 +128,6 @@ signals:
    * when something happens */
   void logInbound(const QString&) const;
   void logOutbound(const QString&) const;
-  void logError(const QString&) const;
 
 protected:
   Device::DeviceSettings m_settings;
