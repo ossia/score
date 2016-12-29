@@ -45,8 +45,13 @@ public:
       const Id<SegmentModel>& id,
       QObject* parent);
 
-  template <typename Impl>
-  SegmentModel(Impl& vis, QObject* parent)
+  SegmentModel(DataStream::Deserializer& vis, QObject* parent)
+      : IdentifiedObject{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
+
+  SegmentModel(JSONObject::Deserializer& vis, QObject* parent)
       : IdentifiedObject{vis, parent}
   {
     vis.writeTo(*this);

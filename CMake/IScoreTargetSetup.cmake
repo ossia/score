@@ -148,6 +148,10 @@ endfunction()
 
 function(iscore_set_linux_compile_options theTarget)
     use_gold(${theTarget})
+    target_compile_options(${theTarget} PUBLIC
+        # Debug options
+        "$<$<CONFIG:Debug>:-gsplit-dwarf>"
+        "$<$<CONFIG:Debug>:-gdwarf-5>")
 endfunction()
 
 function(iscore_set_unix_compile_options theTarget)
@@ -169,10 +173,6 @@ function(iscore_set_unix_compile_options theTarget)
     -Werror=redundant-decls
     -Werror=return-type
     -Werror=trigraphs
-
-    # Debug options
-    "$<$<CONFIG:Debug>:-gsplit-dwarf>"
-    "$<$<CONFIG:Debug>:-gdwarf-5>"
 
     # Release options
     "$<$<AND:$<CONFIG:Release>,$<BOOL:${NACL}>>:-O3>"
