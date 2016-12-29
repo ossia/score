@@ -34,7 +34,7 @@ iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer()
   qRegisterMetaTypeStreamOperators<Device::FullAddressAccessorSettings>();
 
   auto& anySer = iscore::anySerializers();
-  anySer.emplace(std::string("instanceBounds"), new iscore::any_serializer_t<ossia::net::instance_bounds>);
+  anySer.emplace(std::string("instanceBounds"), std::make_unique<iscore::any_serializer_t<ossia::net::instance_bounds>>());
 }
 
 iscore_plugin_deviceexplorer::~iscore_plugin_deviceexplorer()

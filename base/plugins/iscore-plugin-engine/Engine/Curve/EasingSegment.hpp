@@ -15,6 +15,10 @@ template <typename T>
 class EasingSegment;
 }
 }
+
+template<typename T>
+struct is_custom_serialized<Engine::EasingCurve::EasingSegment<T>> : public std::true_type {};
+
 template <typename T>
 struct TSerializer<DataStream, Engine::EasingCurve::EasingSegment<T>>
 {
@@ -73,12 +77,8 @@ public:
   {
   }
 
-  template <typename Impl, typename = ossia::void_t<decltype(Impl::writeTo)>>
-  EasingSegment(Impl& vis, QObject* parent)
-      : Curve::SegmentModel{vis, parent}
-  {
-    vis.writeTo(*this);
-  }
+  EasingSegment(DataStream::Deserializer& vis, QObject* parent);
+  EasingSegment(JSONObject::Deserializer& vis, QObject* parent);
 
   void on_startChanged() override
   {
@@ -243,6 +243,24 @@ void TSerializer<JSONObject, Engine::EasingCurve::EasingSegment<T>>::writeTo(
     JSONObject::Deserializer& s, Engine::EasingCurve::EasingSegment<T>& obj)
 {
 }
+
+namespace Engine
+{
+namespace EasingCurve
+{
+template<typename T>
+inline EasingSegment<T>::EasingSegment(DataStream::Deserializer& vis, QObject* parent)
+    : Curve::SegmentModel{vis, parent}
+{
+  vis.writeTo(*this);
+}
+template<typename T>
+inline EasingSegment<T>::EasingSegment(JSONObject::Deserializer& vis, QObject* parent)
+    : Curve::SegmentModel{vis, parent}
+{
+  vis.writeTo(*this);
+}
+}}
 
 Q_DECLARE_METATYPE(Engine::EasingCurve::EasingData)
 

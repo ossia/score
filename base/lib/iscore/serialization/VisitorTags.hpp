@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/serialization/IsTemplate.hpp>
 #include <type_traits>
 
 // Inherit from this to have
@@ -102,7 +103,8 @@ template<typename T>
 struct serialization_tag<T,
       std::enable_if_t<
         !is_identified_object<T>::value
-      && is_abstract_base<T>::value>>
+      && is_abstract_base<T>::value
+     && !is_custom_serialized<T>::value>>
 {
   using type = visitor_abstract_tag;
 };
@@ -112,7 +114,8 @@ struct serialization_tag<T,
       std::enable_if_t<
         is_identified_object<T>::value
     && !is_entity<T>::value
-    && !is_abstract_base<T>::value>>
+    && !is_abstract_base<T>::value
+    && !is_custom_serialized<T>::value>>
 {
   using type = visitor_object_tag;
 };
@@ -122,7 +125,8 @@ struct serialization_tag<T,
       std::enable_if_t<
         is_identified_object<T>::value
     && !is_entity<T>::value
-     && is_abstract_base<T>::value>>
+     && is_abstract_base<T>::value
+    && !is_custom_serialized<T>::value>>
 {
   using type = visitor_abstract_object_tag;
 };
@@ -132,7 +136,8 @@ template<typename T>
 struct serialization_tag<T,
       std::enable_if_t<
         is_entity<T>::value
-    && !is_abstract_base<T>::value>>
+    && !is_abstract_base<T>::value
+    && !is_custom_serialized<T>::value>>
 {
   using type = visitor_entity_tag;
 };
@@ -141,7 +146,8 @@ template<typename T>
 struct serialization_tag<T,
       std::enable_if_t<
         is_entity<T>::value
-     && is_abstract_base<T>::value>>
+     && is_abstract_base<T>::value
+    && !is_custom_serialized<T>::value>>
 {
   using type = visitor_abstract_entity_tag;
 };
@@ -152,10 +158,19 @@ struct serialization_tag<T,
         is_template<T>::value
     && !is_abstract_base<T>::value
     && !is_identified_object<T>::value
+    && !is_custom_serialized<T>::value
     >>
 {
   using type = visitor_template_tag;
 };
+
+template<typename T>
+struct serialization_tag<T,
+      std::enable_if_t<is_custom_serialized<T>::value>>
+{
+  using type = visitor_template_tag;
+};
+
 
 template<typename T>
 struct serialization_tag<T,
