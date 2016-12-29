@@ -53,7 +53,9 @@ ossia::state_element ProcessExecutor::state(double t)
   }
 
   // 3. Convert our value back
-  return st;
+  if(unmuted())
+    return st;
+  return {};
 }
 
 ossia::state_element ProcessExecutor::offset(ossia::time_value off)

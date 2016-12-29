@@ -4,6 +4,8 @@
 #include <QDockWidget>
 #include <QListWidget>
 #include <QMenu>
+#include <ossia/detail/logger.hpp>
+#include <Engine/OssiaLogger.hpp>
 #include <deque>
 //#include <boost/circular_buffer.hpp>
 namespace Engine
@@ -137,8 +139,7 @@ const iscore::PanelStatus& PanelDelegate::defaultPanelStatus() const
 void PanelDelegate::on_modelChanged(
     iscore::MaybeDocument oldm, iscore::MaybeDocument newm)
 {
-  QObject::disconnect(m_inbound);
-  QObject::disconnect(m_outbound);
+  disableConnections();
   QObject::disconnect(m_visible);
 
   if (!newm)
@@ -146,36 +147,27 @@ void PanelDelegate::on_modelChanged(
 
   if (auto qw = qobject_cast<QDockWidget*>(m_widget->parent()))
   {
-    m_visible = QObject::connect(
-        qw, &QDockWidget::visibilityChanged, [=](bool visible) {
-          if (auto devices = getDeviceList(newm))
-          {
-            if (visible)
-            {
-              setupConnections(*devices);
-            }
-
-            devices->setLogging(visible);
-          }
-        });
-
-    if (auto devices = getDeviceList(newm))
+    auto func = [=] (bool visible)
     {
-      if (qw->isVisible())
+      disableConnections();
+      if (auto devices = getDeviceList(newm))
       {
-        setupConnections(*devices);
+        if (visible)
+        {
+          setupConnections(*devices);
+        }
+        devices->setLogging(visible);
       }
-      devices->setLogging(qw->isVisible());
-    }
+    };
+
+    m_visible = QObject::connect(qw, &QDockWidget::visibilityChanged, this, func);
+
+    func(qw->isVisible());
   }
 }
 
 void PanelDelegate::setupConnections(Device::DeviceList& devices)
 {
-  QObject::disconnect(m_inbound);
-  QObject::disconnect(m_outbound);
-  QObject::disconnect(m_error);
-
   const auto dark1 = QColor(Qt::darkGray).darker();
   const auto dark2 = dark1.darker(); // almost darker than black
   const auto dark3 = QColor(Qt::darkRed).darker();
@@ -195,13 +187,23 @@ void PanelDelegate::setupConnections(Device::DeviceList& devices)
       },
       Qt::QueuedConnection);
 
-  m_error = QObject::connect(
-      &devices, &Device::DeviceList::logError, m_widget,
-      [=](const QString& str) {
-        m_itemModel->push({str, dark3});
-        m_widget->scrollToBottom();
-      },
-      Qt::QueuedConnection);
+  auto qt_sink = dynamic_cast<OssiaLogger*>(&*ossia::logger().sinks()[1]);
+  if(qt_sink)
+  {
+    m_error = QObject::connect(qt_sink, &OssiaLogger::l,
+                               this, [=] (Engine::level l, const QString& m) {
+      m_itemModel->push({m, dark3});
+
+      m_widget->scrollToBottom();
+    }, Qt::QueuedConnection);
+  }
+}
+
+void PanelDelegate::disableConnections()
+{
+  QObject::disconnect(m_inbound);
+  QObject::disconnect(m_outbound);
+  QObject::disconnect(m_error);
 }
 
 Device::DeviceList* PanelDelegate::getDeviceList(iscore::MaybeDocument newm)

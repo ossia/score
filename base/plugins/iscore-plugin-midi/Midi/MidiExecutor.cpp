@@ -92,7 +92,9 @@ ossia::state_element ProcessExecutor::state(double t)
     m_lastState = std::move(st);
   }
 
-  return m_lastState;
+  if(unmuted())
+    return m_lastState;
+  return {};
 }
 
 ossia::state_element ProcessExecutor::offset(ossia::time_value off)

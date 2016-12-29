@@ -12,6 +12,7 @@ namespace Engine
 class LogMessagesItemModel;
 class PanelDelegate final : public QObject, public iscore::PanelDelegate
 {
+  friend class err_sink;
 public:
   PanelDelegate(const iscore::GUIApplicationContext& ctx);
 
@@ -24,6 +25,7 @@ private:
       iscore::MaybeDocument oldm, iscore::MaybeDocument newm) override;
 
   void setupConnections(Device::DeviceList&);
+  void disableConnections();
   Device::DeviceList* getDeviceList(iscore::MaybeDocument);
 
   LogMessagesItemModel* m_itemModel{};

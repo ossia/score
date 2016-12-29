@@ -281,7 +281,7 @@ inline auto& states(const Scenario::ProcessModel& scenar)
 }
 
 template <>
-struct ScenarioElementTraits<Scenario::ProcessModel, ConstraintModel>
+struct ElementTraits<Scenario::ProcessModel, ConstraintModel>
 {
   static const constexpr auto accessor
       = static_cast<const iscore::EntityMap<ConstraintModel>& (*)(const Scenario::
@@ -289,7 +289,7 @@ struct ScenarioElementTraits<Scenario::ProcessModel, ConstraintModel>
           &constraints);
 };
 template <>
-struct ScenarioElementTraits<Scenario::ProcessModel, EventModel>
+struct ElementTraits<Scenario::ProcessModel, EventModel>
 {
   static const constexpr auto accessor
       = static_cast<const iscore::EntityMap<EventModel>& (*)(const Scenario::
@@ -297,7 +297,7 @@ struct ScenarioElementTraits<Scenario::ProcessModel, EventModel>
           &events);
 };
 template <>
-struct ScenarioElementTraits<Scenario::ProcessModel, TimeNodeModel>
+struct ElementTraits<Scenario::ProcessModel, TimeNodeModel>
 {
   static const constexpr auto accessor
       = static_cast<const iscore::EntityMap<TimeNodeModel>& (*)(const Scenario::
@@ -305,7 +305,7 @@ struct ScenarioElementTraits<Scenario::ProcessModel, TimeNodeModel>
           &timeNodes);
 };
 template <>
-struct ScenarioElementTraits<Scenario::ProcessModel, StateModel>
+struct ElementTraits<Scenario::ProcessModel, StateModel>
 {
   static const constexpr auto accessor
       = static_cast<const iscore::EntityMap<StateModel>& (*)(const Scenario::

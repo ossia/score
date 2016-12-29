@@ -214,7 +214,7 @@ private:
     static const constexpr auto local_container
         = &HierarchicalScenarioComponent::m_constraints;
     static const constexpr auto scenario_container = Scenario::
-        ScenarioElementTraits<Scenario_T, Scenario::ConstraintModel>::accessor;
+        ElementTraits<Scenario_T, Scenario::ConstraintModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::EventModel, dummy>
@@ -224,7 +224,7 @@ private:
     static const constexpr auto local_container
         = &HierarchicalScenarioComponent::m_events;
     static const constexpr auto scenario_container = Scenario::
-        ScenarioElementTraits<Scenario_T, Scenario::EventModel>::accessor;
+        ElementTraits<Scenario_T, Scenario::EventModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::TimeNodeModel, dummy>
@@ -234,7 +234,7 @@ private:
     static const constexpr auto local_container
         = &HierarchicalScenarioComponent::m_timeNodes;
     static const constexpr auto scenario_container = Scenario::
-        ScenarioElementTraits<Scenario_T, Scenario::TimeNodeModel>::accessor;
+        ElementTraits<Scenario_T, Scenario::TimeNodeModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::StateModel, dummy>
@@ -244,7 +244,7 @@ private:
     static const constexpr auto local_container
         = &HierarchicalScenarioComponent::m_states;
     static const constexpr auto scenario_container = Scenario::
-        ScenarioElementTraits<Scenario_T, Scenario::StateModel>::accessor;
+        ElementTraits<Scenario_T, Scenario::StateModel>::accessor;
   };
 };
 
@@ -396,7 +396,7 @@ private:
     static const constexpr auto local_container
         = &HierarchicalBaseScenario::m_constraints;
     static const constexpr auto scenario_container = Scenario::
-        ScenarioElementTraits<BaseScenario_T, Scenario::ConstraintModel>::
+        ElementTraits<BaseScenario_T, Scenario::ConstraintModel>::
             accessor;
   };
   template <bool dummy>
@@ -407,7 +407,7 @@ private:
     static const constexpr auto local_container
         = &HierarchicalBaseScenario::m_events;
     static const constexpr auto scenario_container = Scenario::
-        ScenarioElementTraits<BaseScenario_T, Scenario::EventModel>::accessor;
+        ElementTraits<BaseScenario_T, Scenario::EventModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::TimeNodeModel, dummy>
@@ -417,7 +417,7 @@ private:
     static const constexpr auto local_container
         = &HierarchicalBaseScenario::m_timeNodes;
     static const constexpr auto scenario_container = Scenario::
-        ScenarioElementTraits<BaseScenario_T, Scenario::TimeNodeModel>::
+        ElementTraits<BaseScenario_T, Scenario::TimeNodeModel>::
             accessor;
   };
   template <bool dummy>
@@ -428,6 +428,6 @@ private:
     static const constexpr auto local_container
         = &HierarchicalBaseScenario::m_states;
     static const constexpr auto scenario_container = Scenario::
-        ScenarioElementTraits<BaseScenario_T, Scenario::StateModel>::accessor;
+        ElementTraits<BaseScenario_T, Scenario::StateModel>::accessor;
   };
 };
