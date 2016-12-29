@@ -157,7 +157,6 @@ private:
 
   double m_heightPercentage{0.5};
 
-  bool m_looping{false};
   ConstraintExecutionState m_executionState{};
 };
 }

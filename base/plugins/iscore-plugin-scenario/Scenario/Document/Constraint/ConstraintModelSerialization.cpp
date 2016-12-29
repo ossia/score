@@ -64,8 +64,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
   m_stream << constraint.duration << constraint.m_startState
            << constraint.m_endState
 
-           << constraint.m_startDate << constraint.m_heightPercentage
-           << constraint.m_looping;
+           << constraint.m_startDate << constraint.m_heightPercentage;
 
   insertDelimiter();
 }

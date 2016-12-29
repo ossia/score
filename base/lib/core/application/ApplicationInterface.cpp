@@ -9,6 +9,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+#include <iscore/model/ComponentSerialization.hpp>
 namespace iscore
 {
 ApplicationInterface* ApplicationInterface::m_instance;
@@ -40,6 +41,7 @@ void GUIApplicationInterface::loadPluginData(
 {
   registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
   registrar.registerFactory(std::make_unique<iscore::ValidityCheckerList>());
+  registrar.registerFactory(std::make_unique<iscore::SerializableComponentFactoryList>());
   auto panels = std::make_unique<iscore::PanelDelegateFactoryList>();
   panels->insert(std::make_unique<iscore::UndoPanelDelegateFactory>());
   registrar.registerFactory(std::move(panels));
