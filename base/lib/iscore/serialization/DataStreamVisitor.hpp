@@ -201,6 +201,9 @@ private:
     // Read our object
     f(sub);
 
+    // Read the implementation of the derived class, through a virtual function.
+    obj.serialize_impl(sub.toVariant());
+
     // Finish our object
     ISCORE_DEBUG_INSERT_DELIMITER2(sub);
 
@@ -218,9 +221,6 @@ private:
     {
       // Read the implementation of the base object
       sub.read(obj);
-
-      // Read the implementation of the derived class, through a virtual function.
-      obj.serialize_impl(sub.toVariant());
     });
   }
 
@@ -233,8 +233,6 @@ private:
           [&] (DataStreamReader& sub)
     {
       sub.readFrom_impl(obj, visitor_object_tag{});
-
-      obj.serialize_impl(sub.toVariant());
     });
   }
 
@@ -246,11 +244,7 @@ private:
           obj,
           [&] (DataStreamReader& sub)
     {
-      TSerializer<DataStream, iscore::Entity<T>>::readFrom(*this, obj);
-
-      read(obj);
-
-      obj.serialize_impl(sub.toVariant());
+      sub.readFrom_impl(obj, visitor_entity_tag{});
     });
   }
 
