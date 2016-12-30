@@ -21,7 +21,7 @@ namespace Engine
 {
 namespace Execution
 {
-class ConstraintElement;
+class ConstraintComponent;
 }
 }
 
@@ -53,7 +53,7 @@ class Component final
   COMPONENT_METADATA("bfcdcd2a-be3c-4bb1-bcca-240a6435b06b")
 public:
   Component(
-      Engine::Execution::ConstraintElement& parentConstraint,
+      Engine::Execution::ConstraintComponent& parentConstraint,
       RecordedMessages::ProcessModel& element,
       const Engine::Execution::Context& ctx,
       const Id<iscore::Component>& id,

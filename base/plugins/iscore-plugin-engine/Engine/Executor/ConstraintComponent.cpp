@@ -24,15 +24,15 @@ namespace Engine
 {
 namespace Execution
 {
-ConstraintElement::ConstraintElement(
+ConstraintComponent::ConstraintComponent(
     std::shared_ptr<ossia::time_constraint> ossia_cst,
     Scenario::ConstraintModel& iscore_cst,
     const Context& ctx,
+    const Id<iscore::Component>& id,
     QObject* parent)
-    : QObject{parent}
+    : Execution::Component{ctx, id, "Executor::Constraint", nullptr}
     , m_iscore_constraint{iscore_cst}
-    , m_ossia_constraint{ossia_cst}
-    , m_ctx{ctx}
+    , m_ossia_constraint{std::move(ossia_cst)}
 {
   ossia::time_value min_duration(Engine::iscore_to_ossia::time(
       m_iscore_constraint.duration.minDuration()));
@@ -51,7 +51,7 @@ ConstraintElement::ConstraintElement(
   if (dynamic_cast<Scenario::ProcessModel*>(iscore_cst.parent())
       || dynamic_cast<Loop::ProcessModel*>(iscore_cst.parent()))
   {
-    ossia_cst->setCallback(
+    m_ossia_constraint->setCallback(
         [&](ossia::time_value position,
             ossia::time_value date,
             const ossia::state& state) {
@@ -65,30 +65,29 @@ ConstraintElement::ConstraintElement(
   }
 }
 
-ConstraintElement::~ConstraintElement()
+ConstraintComponent::~ConstraintComponent()
 {
   OSSIAConstraint()->setCallback(ossia::time_constraint::ExecutionCallback{});
   executionStopped();
 }
 
 std::shared_ptr<ossia::time_constraint>
-ConstraintElement::OSSIAConstraint() const
+ConstraintComponent::OSSIAConstraint() const
 {
   return m_ossia_constraint;
 }
 
-Scenario::ConstraintModel& ConstraintElement::iscoreConstraint() const
+Scenario::ConstraintModel& ConstraintComponent::iscoreConstraint() const
 {
   return m_iscore_constraint;
 }
 
-void ConstraintElement::play(TimeValue t)
+void ConstraintComponent::play(TimeValue t)
 {
-  m_offset = Engine::iscore_to_ossia::time(t);
   m_iscore_constraint.duration.setPlayPercentage(0);
 
   auto start_state = m_ossia_constraint->getStartEvent().getState();
-  auto offset_state = m_ossia_constraint->offset(m_offset);
+  auto offset_state = m_ossia_constraint->offset(Engine::iscore_to_ossia::time(t));
 
   ossia::state accumulator;
   ossia::flatten_and_filter(accumulator, start_state);
@@ -106,17 +105,17 @@ void ConstraintElement::play(TimeValue t)
   }
 }
 
-void ConstraintElement::pause()
+void ConstraintComponent::pause()
 {
   m_ossia_constraint->pause();
 }
 
-void ConstraintElement::resume()
+void ConstraintComponent::resume()
 {
   m_ossia_constraint->resume();
 }
 
-void ConstraintElement::stop()
+void ConstraintComponent::stop()
 {
   m_ossia_constraint->stop();
   auto st = m_ossia_constraint->getEndEvent().getState();
@@ -131,7 +130,7 @@ void ConstraintElement::stop()
   executionStopped();
 }
 
-void ConstraintElement::executionStarted()
+void ConstraintComponent::executionStarted()
 {
   m_iscore_constraint.duration.setPlayPercentage(0);
   m_iscore_constraint.executionStarted();
@@ -141,7 +140,7 @@ void ConstraintElement::executionStarted()
   }
 }
 
-void ConstraintElement::executionStopped()
+void ConstraintComponent::executionStopped()
 {
   m_iscore_constraint.executionStopped();
   for (Process::ProcessModel& proc : m_iscore_constraint.processes)
@@ -150,20 +149,22 @@ void ConstraintElement::executionStopped()
   }
 }
 
-void ConstraintElement::on_processAdded(
+void ConstraintComponent::on_processAdded(
     const Process::ProcessModel& iscore_proc) // TODO ProcessExecutionView
 {
   // The DocumentPlugin creates the elements in the processes.
   // TODO maybe have an execution_view template on processes, that
   // gives correct const / non_const access ?
   auto proc = const_cast<Process::ProcessModel*>(&iscore_proc);
-  auto fac = m_ctx.processes.factory(*proc);
+  auto fac = system().processes.factory(*proc);
   if (fac)
   {
     try
     {
-      auto plug = fac->make(
-          *this, *proc, m_ctx, getStrongId(iscore_proc.components()), this);
+      // TODO this shall go in the factory interface instead later
+      // to allow the diminution of fragmentation.
+      QSharedPointer<ProcessComponent> plug{fac->make(
+          *this, *proc, system(), getStrongId(iscore_proc.components()), this)};
       if (plug)
       {
         m_processes.push_back(plug);
@@ -181,7 +182,7 @@ void ConstraintElement::on_processAdded(
   }
 }
 
-void ConstraintElement::constraintCallback(
+void ConstraintComponent::constraintCallback(
     ossia::time_value position,
     ossia::time_value date,
     const ossia::state& state)

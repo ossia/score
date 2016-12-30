@@ -23,7 +23,6 @@ namespace Engine
 {
 namespace Execution
 {
-
 class BaseScenarioElement;
 
 class ISCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
@@ -46,7 +45,10 @@ public:
     return m_ctx;
   }
 
+  void runAllCommands();
+
 private:
+  ExecutionCommandQueue m_editionQueue;
   Context m_ctx;
   std::unique_ptr<BaseScenarioElement> m_base;
 };

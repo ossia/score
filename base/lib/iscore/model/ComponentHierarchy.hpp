@@ -15,6 +15,8 @@ namespace iscore
  * this class can be used so that every time a new Bar is created, a matching component
  * will be added to Bar.
  *
+ * \todo If the number of such hierarchies grows, it may be interesting instead to
+ * store them in a single hierarchy manager part of the original element.
  */
 template <
     typename ParentComponent_T, typename ChildModel_T,

@@ -1,12 +1,6 @@
 #pragma once
-#include <QObject>
-#include <iscore_plugin_engine_export.h>
-#include <memory>
+#include <Engine/Executor/Component.hpp>
 
-namespace Device
-{
-class DeviceList;
-}
 namespace ossia
 {
 class time_event;
@@ -20,14 +14,17 @@ namespace Engine
 {
 namespace Execution
 {
-class ISCORE_PLUGIN_ENGINE_EXPORT EventElement final : public QObject
+class ISCORE_PLUGIN_ENGINE_EXPORT EventComponent final :
+    public Execution::Component
 {
   Q_OBJECT
+  COMMON_COMPONENT_METADATA("02c41de0-3a8c-44da-ae03-68a0ca26a7d0")
 public:
-  EventElement(
+  EventComponent(
       std::shared_ptr<ossia::time_event> event,
       const Scenario::EventModel& element,
-      const Device::DeviceList& deviceList,
+      const Engine::Execution::Context& ctx,
+      const Id<iscore::Component>& id,
       QObject* parent);
 
   std::shared_ptr<ossia::time_event> OSSIAEvent() const;
@@ -42,7 +39,6 @@ signals:
 private:
   const Scenario::EventModel& m_iscore_event;
   std::shared_ptr<ossia::time_event> m_ossia_event;
-  const Device::DeviceList& m_deviceList;
 };
 }
 }

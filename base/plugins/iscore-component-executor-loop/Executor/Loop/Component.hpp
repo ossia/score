@@ -23,9 +23,9 @@ namespace Engine
 {
 namespace Execution
 {
-class EventElement;
-class StateElement;
-class TimeNodeElement;
+class EventComponent;
+class StateComponent;
+class TimeNodeComponent;
 }
 }
 namespace Scenario
@@ -44,7 +44,7 @@ class Component final : public ::Engine::Execution::
   COMPONENT_METADATA("77b987ae-7bc8-4273-aa9c-9e4ba53a053d")
 public:
   Component(
-      ::Engine::Execution::ConstraintElement& parentConstraint,
+      ::Engine::Execution::ConstraintComponent& parentConstraint,
       ::Loop::ProcessModel& element,
       const ::Engine::Execution::Context& ctx,
       const Id<iscore::Component>& id,
@@ -59,16 +59,16 @@ private:
   void stopConstraintExecution(const Id<Scenario::ConstraintModel>&);
 
 private:
-  ::Engine::Execution::ConstraintElement* m_ossia_constraint{};
+  ::Engine::Execution::ConstraintComponent* m_ossia_constraint{};
 
-  ::Engine::Execution::TimeNodeElement* m_ossia_startTimeNode{};
-  ::Engine::Execution::TimeNodeElement* m_ossia_endTimeNode{};
+  ::Engine::Execution::TimeNodeComponent* m_ossia_startTimeNode{};
+  ::Engine::Execution::TimeNodeComponent* m_ossia_endTimeNode{};
 
-  ::Engine::Execution::EventElement* m_ossia_startEvent{};
-  ::Engine::Execution::EventElement* m_ossia_endEvent{};
+  ::Engine::Execution::EventComponent* m_ossia_startEvent{};
+  ::Engine::Execution::EventComponent* m_ossia_endEvent{};
 
-  ::Engine::Execution::StateElement* m_ossia_startState{};
-  ::Engine::Execution::StateElement* m_ossia_endState{};
+  ::Engine::Execution::StateComponent* m_ossia_startState{};
+  ::Engine::Execution::StateComponent* m_ossia_endState{};
 };
 
 using ComponentFactory

@@ -5,6 +5,11 @@
 #include <iscore/tools/std/Optional.hpp>
 #include <map>
 #include <memory>
+#include <Scenario/Document/Components/ScenarioComponent.hpp>
+#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/EventComponent.hpp>
+#include <Engine/Executor/StateComponent.hpp>
+#include <Engine/Executor/TimeNodeComponent.hpp>
 
 #include "ProcessComponent.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
@@ -28,9 +33,9 @@ namespace Engine
 {
 namespace Execution
 {
-class EventElement;
-class StateElement;
-class TimeNodeElement;
+class EventComponent;
+class StateComponent;
+class TimeNodeComponent;
 }
 } // namespace RecreateOnPlay
 namespace Scenario
@@ -51,17 +56,17 @@ namespace Engine
 {
 namespace Execution
 {
-class ConstraintElement;
+class ConstraintComponent;
 
 // TODO see if this can be used for the base scenario model too.
-class ScenarioComponent final
+class ScenarioComponentBase
     : public ProcessComponent_T<Scenario::ProcessModel, ossia::scenario>
 {
   COMPONENT_METADATA("4e4b1c1a-1a2a-4ae6-a1a1-38d0900e74e8")
 
 public:
-  ScenarioComponent(
-      ConstraintElement& cst,
+  ScenarioComponentBase(
+      ConstraintComponent& cst,
       Scenario::ProcessModel& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,
@@ -71,7 +76,7 @@ public:
   {
     return m_ossia_states;
   }
-  const auto& constraints() const
+  const iscore::hash_map<Id<Scenario::ConstraintModel>, QSharedPointer<ConstraintComponent>>& constraints() const
   {
     return m_ossia_constraints;
   }
@@ -84,32 +89,35 @@ public:
     return m_ossia_timenodes;
   }
 
+
   void stop() override;
 
-  void removeConstraint(const Id<Scenario::ConstraintModel>& id);
+  void removeConstraint(const Id<Scenario::ConstraintModel>&);
 
-private:
-  void on_constraintCreated(const Scenario::ConstraintModel&);
-  void on_stateCreated(const Scenario::StateModel&);
-  void on_eventCreated(const Scenario::EventModel&);
-  void on_timeNodeCreated(const Scenario::TimeNodeModel&);
+  template <typename Component_T, typename Element>
+  Component_T* make(const Id<iscore::Component>& id, Element& elt);
 
+  template <typename Component_T, typename Element>
+  void removing(const Element& elt, const Component_T& comp);
+
+
+protected:
   void startConstraintExecution(const Id<Scenario::ConstraintModel>&);
   void stopConstraintExecution(const Id<Scenario::ConstraintModel>&);
   void disableConstraintExecution(const Id<Scenario::ConstraintModel>& id);
 
-  void eventCallback(EventElement& ev, ossia::time_event::Status newStatus);
+  void eventCallback(EventComponent& ev, ossia::time_event::Status newStatus);
 
   void timeNodeCallback(
-      Engine::Execution::TimeNodeElement* tn, ossia::time_value date);
+      Engine::Execution::TimeNodeComponent* tn, ossia::time_value date);
 
-private:
-  iscore::hash_map<Id<Scenario::ConstraintModel>, ConstraintElement*>
+  iscore::hash_map<Id<Scenario::ConstraintModel>, QSharedPointer<ConstraintComponent>>
       m_ossia_constraints;
-  iscore::hash_map<Id<Scenario::StateModel>, StateElement*> m_ossia_states;
-  iscore::hash_map<Id<Scenario::TimeNodeModel>, TimeNodeElement*>
+  iscore::hash_map<Id<Scenario::StateModel>, QSharedPointer<StateComponent>>
+      m_ossia_states;
+  iscore::hash_map<Id<Scenario::TimeNodeModel>, QSharedPointer<TimeNodeComponent>>
       m_ossia_timenodes;
-  iscore::hash_map<Id<Scenario::EventModel>, EventElement*>
+  iscore::hash_map<Id<Scenario::EventModel>, QSharedPointer<EventComponent>>
       m_ossia_timeevents;
 
   iscore::hash_map<Id<Scenario::ConstraintModel>, Scenario::ConstraintModel*>
@@ -120,6 +128,21 @@ private:
   Scenario::CSPCoherencyCheckerInterface* m_checker{};
   QVector<Id<Scenario::TimeNodeModel>> m_pastTn{};
   Scenario::ElementsProperties m_properties{};
+};
+
+using ScenarioComponentHierarchy
+    = HierarchicalScenarioComponent<
+        ScenarioComponentBase,
+        Scenario::ProcessModel, ConstraintComponent, EventComponent, TimeNodeComponent, StateComponent>;
+
+struct ScenarioComponent final : public ScenarioComponentHierarchy
+{
+  ScenarioComponent(
+      ConstraintComponent& cst,
+      Scenario::ProcessModel& proc,
+      const Context& ctx,
+      const Id<iscore::Component>& id,
+      QObject* parent);
 };
 
 using ScenarioComponentFactory

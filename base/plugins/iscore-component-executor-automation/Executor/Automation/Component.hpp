@@ -25,7 +25,7 @@ class Component final
   COMPONENT_METADATA("f759eacd-5a67-4627-bbe8-c649e0f9b6c5")
 public:
   Component(
-      ::Engine::Execution::ConstraintElement& parentConstraint,
+      ::Engine::Execution::ConstraintComponent& parentConstraint,
       Automation::ProcessModel& element,
       const ::Engine::Execution::Context& ctx,
       const Id<iscore::Component>& id,

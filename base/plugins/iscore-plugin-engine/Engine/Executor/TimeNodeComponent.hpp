@@ -1,12 +1,5 @@
 #pragma once
-#include <QObject>
-#include <iscore_plugin_engine_export.h>
-#include <memory>
-
-namespace Device
-{
-class DeviceList;
-}
+#include <Engine/Executor/Component.hpp>
 namespace ossia
 {
 class time_node;
@@ -21,14 +14,18 @@ namespace Engine
 {
 namespace Execution
 {
-class ISCORE_PLUGIN_ENGINE_EXPORT TimeNodeElement final : public QObject
+class ISCORE_PLUGIN_ENGINE_EXPORT TimeNodeComponent final :
+    public Execution::Component
 {
+  COMMON_COMPONENT_METADATA("eca86942-002e-4af5-ad3d-cb1615e0552c")
 public:
-  TimeNodeElement(
-      std::shared_ptr<ossia::time_node> ossia_tn,
+  TimeNodeComponent(
       const Scenario::TimeNodeModel& element,
-      const Device::DeviceList& devlist,
+      const Engine::Execution::Context& ctx,
+      const Id<iscore::Component>& id,
       QObject* parent);
+
+  void onSetup(std::shared_ptr<ossia::time_node> ptr);
 
   std::shared_ptr<ossia::time_node> OSSIATimeNode() const;
   const Scenario::TimeNodeModel& iscoreTimeNode() const;
@@ -36,8 +33,6 @@ public:
 private:
   std::shared_ptr<ossia::time_node> m_ossia_node;
   const Scenario::TimeNodeModel& m_iscore_node;
-
-  const Device::DeviceList& m_deviceList;
 };
 }
 }

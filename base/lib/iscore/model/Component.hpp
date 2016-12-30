@@ -55,7 +55,6 @@ private:
  */
 using Components = EntityMap<iscore::Component>;
 
-
 /**
  * @brief component Fetch a Component from Components by type
  * @return The component.

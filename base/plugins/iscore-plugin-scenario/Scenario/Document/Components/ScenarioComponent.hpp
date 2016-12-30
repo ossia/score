@@ -54,10 +54,10 @@ public:
   HierarchicalScenarioComponent(Args&&... args)
       : Component_T{std::forward<Args>(args)...}
   {
-    setup<Scenario::ConstraintModel>();
-    setup<Scenario::EventModel>();
     setup<Scenario::TimeNodeModel>();
+    setup<Scenario::EventModel>();
     setup<Scenario::StateModel>();
+    setup<Scenario::ConstraintModel>();
   }
 
   const std::list<ConstraintPair>& constraints() const
@@ -81,16 +81,16 @@ public:
   {
     for (auto element : m_constraints)
       cleanup(element);
-    for (auto element : m_events)
-      cleanup(element);
     for (auto element : m_states)
+      cleanup(element);
+    for (auto element : m_events)
       cleanup(element);
     for (auto element : m_timeNodes)
       cleanup(element);
 
     m_constraints.clear();
-    m_events.clear();
     m_states.clear();
+    m_events.clear();
     m_timeNodes.clear();
   }
 
@@ -201,10 +201,10 @@ private:
     }
   }
 
-  std::list<ConstraintPair> m_constraints;
-  std::list<EventPair> m_events;
   std::list<TimeNodePair> m_timeNodes;
+  std::list<EventPair> m_events;
   std::list<StatePair> m_states;
+  std::list<ConstraintPair> m_constraints;
 
   template <bool dummy>
   struct MatchingComponent<Scenario::ConstraintModel, dummy>
@@ -286,13 +286,13 @@ public:
   template <typename... Args>
   HierarchicalBaseScenario(Args&&... args)
       : Component_T{std::forward<Args>(args)...}
-      , m_constraints{setup<Scenario::ConstraintModel>(0)}
-      , m_events{setup<Scenario::EventModel>(0),
-                 setup<Scenario::EventModel>(1)}
       , m_timeNodes{setup<Scenario::TimeNodeModel>(0),
                     setup<Scenario::TimeNodeModel>(1)}
+      , m_events{setup<Scenario::EventModel>(0),
+                 setup<Scenario::EventModel>(1)}
       , m_states{setup<Scenario::StateModel>(0),
                  setup<Scenario::StateModel>(1)}
+      , m_constraints{setup<Scenario::ConstraintModel>(0)}
   {
   }
 
@@ -317,16 +317,16 @@ public:
   {
     for (auto element : m_constraints)
       cleanup(element);
-    for (auto element : m_events)
-      cleanup(element);
     for (auto element : m_states)
+      cleanup(element);
+    for (auto element : m_events)
       cleanup(element);
     for (auto element : m_timeNodes)
       cleanup(element);
 
     m_constraints.clear();
-    m_events.clear();
     m_states.clear();
+    m_events.clear();
     m_timeNodes.clear();
   }
 
@@ -383,10 +383,10 @@ private:
     }
   }
 
-  std::list<ConstraintPair> m_constraints;
-  std::list<EventPair> m_events;
   std::list<TimeNodePair> m_timeNodes;
+  std::list<EventPair> m_events;
   std::list<StatePair> m_states;
+  std::list<ConstraintPair> m_constraints;
 
   template <bool dummy>
   struct MatchingComponent<Scenario::ConstraintModel, dummy>

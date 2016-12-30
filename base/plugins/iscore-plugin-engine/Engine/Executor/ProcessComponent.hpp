@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/Process.hpp>
 #include <QObject>
-#include <iscore/model/Component.hpp>
+#include <Engine/Executor/Component.hpp>
 #include <iscore/model/ComponentFactory.hpp>
 #include <memory>
 
@@ -22,7 +22,7 @@ namespace Engine
 namespace Execution
 {
 struct Context;
-class ConstraintElement;
+class ConstraintComponent;
 
 template <typename T>
 class InvalidProcessException : public std::runtime_error
@@ -36,7 +36,8 @@ public:
 };
 
 class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponent
-    : public Scenario::GenericProcessComponent<const Context>
+    : public Scenario::GenericProcessComponent<const Context>,
+      public QEnableSharedFromThis<ProcessComponent>
 {
   ABSTRACT_COMPONENT_METADATA(
       Engine::Execution::ProcessComponent,
@@ -46,7 +47,7 @@ public:
     static constexpr bool is_unique = true;
 
   ProcessComponent(
-      ConstraintElement& cst,
+      ConstraintComponent& cst,
       Process::ProcessModel& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,
@@ -75,7 +76,7 @@ public:
   }
 
 protected:
-  ConstraintElement& m_parent_constraint;
+  ConstraintComponent& m_parent_constraint;
   ossia::time_process* m_ossia_process{};
 };
 
@@ -100,7 +101,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory
 public:
   virtual ~ProcessComponentFactory();
   virtual ProcessComponent* make(
-      ConstraintElement& cst,
+      ConstraintComponent& cst,
       Process::ProcessModel& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,
@@ -115,7 +116,7 @@ class ProcessComponentFactory_T
 public:
   using model_type = typename ProcessComponent_T::model_type;
   ProcessComponent* make(
-      ConstraintElement& cst,
+      ConstraintComponent& cst,
       Process::ProcessModel& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,

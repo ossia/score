@@ -116,7 +116,7 @@ void ProcessExecutor::stop()
 }
 
 Component::Component(
-    Engine::Execution::ConstraintElement& parentConstraint,
+    Engine::Execution::ConstraintComponent& parentConstraint,
     Midi::ProcessModel& element,
     const Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,

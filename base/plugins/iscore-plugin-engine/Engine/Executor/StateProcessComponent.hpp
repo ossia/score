@@ -22,14 +22,14 @@ class ISCORE_PLUGIN_ENGINE_EXPORT StateProcessComponent
       StateProcessComponent, "cef1b394-84b2-4241-b4eb-72b1fb504f92")
 public:
   StateProcessComponent(
-      StateElement& state,
+      StateComponent& state,
       Process::StateProcess& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,
       const QString& name,
       QObject* parent)
       : Scenario::GenericStateProcessComponent<const Context>{proc, ctx, id,
-                                                              name, parent}
+                                                              name, nullptr}
       , m_parent_state{state}
   {
   }
@@ -42,7 +42,7 @@ public:
   }
 
 protected:
-  StateElement& m_parent_state;
+  StateComponent& m_parent_state;
   ossia::state_element m_ossia_state;
 };
 
@@ -59,7 +59,7 @@ public:
   virtual ~StateProcessComponentFactory();
 
   virtual StateProcessComponent* make(
-      StateElement& cst,
+      StateComponent& cst,
       Process::StateProcess& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,
@@ -77,7 +77,7 @@ class StateProcessComponentFactory_T
 public:
   using model_type = typename StateProcessComponent_T::model_type;
   StateProcessComponent_T* make(
-      StateElement& st,
+      StateComponent& st,
       Process::StateProcess& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,

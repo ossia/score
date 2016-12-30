@@ -33,7 +33,7 @@ namespace Automation
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Engine::Execution::ConstraintElement& parentConstraint,
+    ::Engine::Execution::ConstraintComponent& parentConstraint,
     ::Automation::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,

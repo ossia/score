@@ -1,12 +1,7 @@
 #pragma once
-#include <QObject>
-#include <iscore_plugin_engine_export.h>
-#include <memory>
+#include <Engine/Executor/Component.hpp>
 
-namespace Device
-{
-class DeviceList;
-}
+#include <ossia/editor/state/state.hpp>
 
 namespace ossia
 {
@@ -16,27 +11,28 @@ namespace Scenario
 {
 class StateModel;
 }
+
 namespace Engine
 {
 namespace Execution
 {
-struct Context;
-class ISCORE_PLUGIN_ENGINE_EXPORT StateElement final : public QObject
+class ISCORE_PLUGIN_ENGINE_EXPORT StateComponent final :
+    public Execution::Component
 {
+  COMMON_COMPONENT_METADATA("b3905e79-2bd0-48bd-8654-8666455ceedd")
 public:
-  StateElement(
+  StateComponent(
       const Scenario::StateModel& element,
-      ossia::time_event& root,
-      const Engine::Execution::Context& deviceList,
+      const Engine::Execution::Context& ctx,
+      const Id<iscore::Component>& id,
       QObject* parent);
 
-  const Scenario::StateModel& iscoreState() const;
-
+  void onSetup(
+      const std::shared_ptr<ossia::time_event>& root);
+  void onDelete() const;
 private:
-  const Scenario::StateModel& m_iscore_state;
-  ossia::time_event& m_root;
-
-  const Engine::Execution::Context& m_context;
+  std::shared_ptr<ossia::time_event> m_ev;
+  ossia::state m_state;
 };
 }
 }

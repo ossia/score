@@ -70,4 +70,6 @@ private:
   iscore::Components m_components;
   ModelMetadata m_metadata;
 };
+
+
 }

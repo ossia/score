@@ -22,7 +22,7 @@ namespace Engine
 {
 namespace Execution
 {
-class ConstraintElement;
+class ConstraintComponent;
 }
 }
 namespace JS
@@ -54,7 +54,7 @@ class Component final
   COMPONENT_METADATA("c2737929-231e-4d57-9088-a2a3a8d3c24e")
 public:
   Component(
-      Engine::Execution::ConstraintElement& parentConstraint,
+      Engine::Execution::ConstraintComponent& parentConstraint,
       JS::ProcessModel& element,
       const Engine::Execution::Context& ctx,
       const Id<iscore::Component>& id,
