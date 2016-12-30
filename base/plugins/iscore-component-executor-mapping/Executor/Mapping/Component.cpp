@@ -28,7 +28,7 @@ namespace Mapping
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Engine::Execution::ConstraintElement& parentConstraint,
+    ::Engine::Execution::ConstraintComponent& parentConstraint,
     ::Mapping::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,

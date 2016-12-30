@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <Engine/Executor/ExecutorContext.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <exception>
 
 #include "ConstraintComponent.hpp"
@@ -14,22 +16,26 @@ namespace Engine
 {
 namespace Execution
 {
-TimeNodeElement::TimeNodeElement(
-    std::shared_ptr<ossia::time_node> ossia_tn,
+TimeNodeComponent::TimeNodeComponent(
     const Scenario::TimeNodeModel& element,
-    const Device::DeviceList& devlist,
+    const Engine::Execution::Context& ctx,
+    const Id<iscore::Component>& id,
     QObject* parent)
-    : QObject{parent}
-    , m_ossia_node{ossia_tn}
+    :  Execution::Component{ctx, id, "Executor::Event", nullptr}
     , m_iscore_node{element}
-    , m_deviceList{devlist}
 {
+}
+
+void TimeNodeComponent::onSetup(std::shared_ptr<ossia::time_node> ptr)
+{
+  m_ossia_node = ptr;
+  auto& element = m_iscore_node;
   if (element.trigger() && element.trigger()->active())
   {
     try
     {
       auto expr = Engine::iscore_to_ossia::expression(
-          element.trigger()->expression(), m_deviceList);
+          element.trigger()->expression(), system().devices.list());
 
       m_ossia_node->setExpression(std::move(expr));
     }
@@ -57,15 +63,15 @@ TimeNodeElement::TimeNodeElement(
         catch (...)
         {
         }
-      });
+  });
 }
 
-std::shared_ptr<ossia::time_node> TimeNodeElement::OSSIATimeNode() const
+std::shared_ptr<ossia::time_node> TimeNodeComponent::OSSIATimeNode() const
 {
   return m_ossia_node;
 }
 
-const Scenario::TimeNodeModel& TimeNodeElement::iscoreTimeNode() const
+const Scenario::TimeNodeModel& TimeNodeComponent::iscoreTimeNode() const
 {
   return m_iscore_node;
 }

@@ -29,6 +29,7 @@ DocumentPlugin::DocumentPlugin(
           doc.context().app.interfaces<ProcessComponentFactoryList>(),
           doc.context()
               .app.interfaces<StateProcessComponentFactoryList>(),
+          m_editionQueue
       }
 {
   con(doc, &iscore::Document::aboutToClose, this, [&] {
@@ -58,6 +59,8 @@ void DocumentPlugin::reload(Scenario::ConstraintModel& cst)
   ISCORE_ASSERT(parent);
   m_base = std::make_unique<BaseScenarioElement>(
       BaseScenarioRefContainer{cst, *parent}, m_ctx, this);
+
+  runAllCommands();
 }
 
 void DocumentPlugin::clear()
@@ -73,6 +76,17 @@ BaseScenarioElement* DocumentPlugin::baseScenario() const
 bool DocumentPlugin::isPlaying() const
 {
   return m_base.get();
+}
+
+void DocumentPlugin::runAllCommands()
+{
+  bool ok = false;
+  ExecutionCommand com;
+  do {
+    ok = m_editionQueue.try_dequeue(com);
+    if(ok && com)
+      com();
+  } while(ok);
 }
 }
 }

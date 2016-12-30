@@ -54,7 +54,7 @@ class Component final
   COMPONENT_METADATA("6d5334a5-7b8c-45df-9805-11d1b4472cdf")
 public:
   Component(
-      Engine::Execution::ConstraintElement& parentConstraint,
+      Engine::Execution::ConstraintComponent& parentConstraint,
       Midi::ProcessModel& element,
       const Engine::Execution::Context& ctx,
       const Id<iscore::Component>& id,

@@ -22,7 +22,7 @@ namespace Engine
 {
 namespace Execution
 {
-class ConstraintElement;
+class ConstraintComponent;
 }
 }
 namespace ossia
@@ -53,7 +53,7 @@ class StateProcessComponent final
   COMPONENT_METADATA("068c116f-9d1f-47d0-bd43-335792ba1a6a")
 public:
   StateProcessComponent(
-      Engine::Execution::StateElement& parentState,
+      Engine::Execution::StateComponent& parentState,
       JS::StateProcess& element,
       const Engine::Execution::Context& ctx,
       const Id<iscore::Component>& id,

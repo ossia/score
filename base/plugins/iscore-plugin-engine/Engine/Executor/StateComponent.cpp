@@ -1,26 +1,37 @@
-#include <Engine/iscore2OSSIA.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-
 #include "StateComponent.hpp"
+#include <Engine/iscore2OSSIA.hpp>
+#include <Engine/Executor/ExecutorContext.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+
 namespace Engine
 {
 namespace Execution
 {
-StateElement::StateElement(
+StateComponent::StateComponent(
     const Scenario::StateModel& element,
-    ossia::time_event& root,
     const Engine::Execution::Context& ctx,
+    const Id<iscore::Component>& id,
     QObject* parent)
-    : QObject{parent}, m_iscore_state{element}, m_root{root}, m_context{ctx}
+    : Execution::Component{ctx, id, "Executor::State", nullptr}
+    , m_state{Engine::iscore_to_ossia::state(element, ctx)}
 {
-  m_root.addState(Engine::iscore_to_ossia::state(m_iscore_state, m_context));
 }
 
-const Scenario::StateModel& StateElement::iscoreState() const
+void StateComponent::onSetup(
+    const std::shared_ptr<ossia::time_event>& root)
 {
-  return m_iscore_state;
+  m_ev = root;
+  system().executionQueue.enqueue([ev=m_ev,st=m_state] {
+    ev->addState(st);
+  });
 }
+
+void StateComponent::onDelete() const
+{
+  system().executionQueue.enqueue([ev=m_ev,st=m_state] {
+    ev->removeState(st);
+  });
+}
+
 }
 }

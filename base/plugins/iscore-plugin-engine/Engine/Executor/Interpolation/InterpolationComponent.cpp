@@ -23,7 +23,7 @@ namespace Interpolation
 namespace Executor
 {
 Component::Component(
-    ::Engine::Execution::ConstraintElement& parentConstraint,
+    ::Engine::Execution::ConstraintComponent& parentConstraint,
     ::Interpolation::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,

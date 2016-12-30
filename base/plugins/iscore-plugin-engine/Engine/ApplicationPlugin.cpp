@@ -193,7 +193,8 @@ void ApplicationPlugin::on_play(
 
       plugmodel->reload(cst);
 
-      m_clock = makeClock(plugmodel->context());
+      auto& c = plugmodel->context();
+      m_clock = makeClock(c);
 
       connect(
           plugmodel->baseScenario(),
@@ -206,7 +207,8 @@ void ApplicationPlugin::on_play(
 
       if(setup_fun)
       {
-        setup_fun(plugmodel->context());
+        setup_fun(c);
+        plugmodel->runAllCommands();
       }
 
       m_clock->play(t);

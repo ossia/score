@@ -29,7 +29,7 @@ namespace Execution
 {
 class ClockManager;
 struct Context;
-class ConstraintElement;
+class ConstraintComponent;
 }
 }
 // TODO this should have "OSSIA Policies" : one would be the

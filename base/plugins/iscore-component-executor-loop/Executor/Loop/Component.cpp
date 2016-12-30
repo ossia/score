@@ -4,6 +4,8 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <algorithm>
 #include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -19,7 +21,7 @@
 #include <Engine/Executor/StateComponent.hpp>
 #include <Engine/Executor/TimeNodeComponent.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 
@@ -39,7 +41,7 @@ namespace Loop
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Engine::Execution::ConstraintElement& parentConstraint,
+    ::Engine::Execution::ConstraintComponent& parentConstraint,
     ::Loop::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
@@ -107,23 +109,27 @@ Component::Component(
   auto endEV = *endTN->timeEvents().begin();
 
   using namespace Engine::Execution;
-  m_ossia_startTimeNode = new TimeNodeElement{startTN, element.startTimeNode(),
-                                              system().devices.list(), this};
-  m_ossia_endTimeNode = new TimeNodeElement{endTN, element.endTimeNode(),
-                                            system().devices.list(), this};
+  m_ossia_startTimeNode = new TimeNodeComponent{element.startTimeNode(),
+                                              system(), iscore::newId(element.startTimeNode()), this};
+  m_ossia_endTimeNode = new TimeNodeComponent{element.endTimeNode(),
+                                            system(), iscore::newId(element.endTimeNode()), this};
+  m_ossia_startTimeNode->onSetup(startTN);
+  m_ossia_endTimeNode->onSetup(endTN);
 
-  m_ossia_startEvent = new EventElement{startEV, element.startEvent(),
-                                        system().devices.list(), this};
-  m_ossia_endEvent = new EventElement{endEV, element.endEvent(),
-                                      system().devices.list(), this};
+  m_ossia_startEvent = new EventComponent{startEV, element.startEvent(),
+                                        system(), iscore::newId(element.startEvent()), this};
+  m_ossia_endEvent = new EventComponent{endEV, element.endEvent(),
+                                      system(), iscore::newId(element.endEvent()), this};
 
   m_ossia_startState
-      = new StateElement{element.startState(), *startEV, system(), this};
+      = new StateComponent{element.startState(), system(), iscore::newId(element.startState()), this};
   m_ossia_endState
-      = new StateElement{element.endState(), *endEV, system(), this};
+      = new StateComponent{element.endState(), system(), iscore::newId(element.endState()), this};
+  m_ossia_startState->onSetup(startEV);
+  m_ossia_endState->onSetup(endEV);
 
-  m_ossia_constraint = new ConstraintElement{
-      loop->getPatternTimeConstraint(), element.constraint(), system(), this};
+  m_ossia_constraint = new ConstraintComponent{
+      loop->getPatternTimeConstraint(), element.constraint(), system(), iscore::newId(element.constraint()), this};
 }
 
 Component::~Component()

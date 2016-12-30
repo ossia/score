@@ -4,6 +4,13 @@
 
 namespace iscore
 {
+
+template<typename T>
+Id<iscore::Component> newId(const iscore::Entity<T>& e)
+{
+  return getStrongId(e.components());
+}
+
 template <typename T>
 class EntityMapInserter<iscore::Entity<T>>
 {

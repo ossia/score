@@ -32,7 +32,7 @@ DefaultClockManager::makeDefaultCallback(
     Engine::Execution::BaseScenarioElement& bs)
 {
   auto& cst = *bs.baseConstraint();
-  return [&bs, &iscore_cst = cst.iscoreConstraint() ](
+  return [this, &bs, &iscore_cst = cst.iscoreConstraint() ](
       ossia::time_value position,
       ossia::time_value date,
       const ossia::state_element& state)
@@ -48,6 +48,21 @@ DefaultClockManager::makeDefaultCallback(
       cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
     else
       cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
+
+    // Run some commands if they have been submitted.
+    for(int i = 0; i < 4; i++)
+    {
+      ExecutionCommand c;
+      context.executionQueue.try_dequeue(c);
+      if(c)
+      {
+        c();
+      }
+      else
+      {
+        break;
+      }
+    }
   };
 }
 

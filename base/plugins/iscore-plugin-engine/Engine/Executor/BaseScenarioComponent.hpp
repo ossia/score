@@ -24,10 +24,10 @@ namespace Engine
 {
 namespace Execution
 {
-class ConstraintElement;
-class EventElement;
-class StateElement;
-class TimeNodeElement;
+class ConstraintComponent;
+class EventComponent;
+class StateComponent;
+class TimeNodeComponent;
 }
 }
 
@@ -113,32 +113,32 @@ public:
       BaseScenarioRefContainer element, const Context&, QObject* parent);
   ~BaseScenarioElement();
 
-  ConstraintElement* baseConstraint() const;
+  ConstraintComponent* baseConstraint() const;
 
-  TimeNodeElement* startTimeNode() const;
-  TimeNodeElement* endTimeNode() const;
+  TimeNodeComponent* startTimeNode() const;
+  TimeNodeComponent* endTimeNode() const;
 
-  EventElement* startEvent() const;
-  EventElement* endEvent() const;
+  EventComponent* startEvent() const;
+  EventComponent* endEvent() const;
 
-  StateElement* startState() const;
-  StateElement* endState() const;
+  StateComponent* startState() const;
+  StateComponent* endState() const;
 
 signals:
   void finished();
 
 private:
   const Context& m_ctx;
-  ConstraintElement* m_ossia_constraint{};
+  ConstraintComponent* m_ossia_constraint{};
 
-  TimeNodeElement* m_ossia_startTimeNode{};
-  TimeNodeElement* m_ossia_endTimeNode{};
+  TimeNodeComponent* m_ossia_startTimeNode{};
+  TimeNodeComponent* m_ossia_endTimeNode{};
 
-  EventElement* m_ossia_startEvent{};
-  EventElement* m_ossia_endEvent{};
+  EventComponent* m_ossia_startEvent{};
+  EventComponent* m_ossia_endEvent{};
 
-  StateElement* m_ossia_startState{};
-  StateElement* m_ossia_endState{};
+  StateComponent* m_ossia_startState{};
+  StateComponent* m_ossia_endState{};
 };
 }
 }

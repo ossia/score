@@ -44,7 +44,7 @@ void State::operator()()
 
 //// Component ////
 StateProcessComponent::StateProcessComponent(
-    Engine::Execution::StateElement& parentConstraint,
+    Engine::Execution::StateComponent& parentConstraint,
     JS::StateProcess& element,
     const Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,

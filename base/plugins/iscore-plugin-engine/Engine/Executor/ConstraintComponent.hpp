@@ -33,15 +33,20 @@ namespace Execution
 {
 struct Context;
 class DocumentPlugin;
-class ISCORE_PLUGIN_ENGINE_EXPORT ConstraintElement final : public QObject
+class ISCORE_PLUGIN_ENGINE_EXPORT ConstraintComponent final :
+    public Component
 {
+  COMMON_COMPONENT_METADATA("4d644678-1924-49bf-8c82-89841581d23f")
 public:
-  ConstraintElement(
+  static const constexpr bool is_unique = true;
+  ConstraintComponent(
       std::shared_ptr<ossia::time_constraint> ossia_cst,
       Scenario::ConstraintModel& iscore_cst,
       const Context& ctx,
+      const Id<iscore::Component>& id,
       QObject* parent);
-  ~ConstraintElement();
+  ~ConstraintComponent();
+
 
   std::shared_ptr<ossia::time_constraint> OSSIAConstraint() const;
   Scenario::ConstraintModel& iscoreConstraint() const;
@@ -66,13 +71,7 @@ private:
   Scenario::ConstraintModel& m_iscore_constraint;
   std::shared_ptr<ossia::time_constraint> m_ossia_constraint;
 
-  std::vector<ProcessComponent*> m_processes;
-
-  std::shared_ptr<ossia::loop> m_loop;
-
-  ossia::time_value m_offset;
-
-  const Engine::Execution::Context& m_ctx;
+  std::vector<QSharedPointer<ProcessComponent>> m_processes;
 };
 }
 }
