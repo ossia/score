@@ -82,7 +82,7 @@ ScenarioComponent::ScenarioComponent(
     const Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent):
-  ScenarioComponentHierarchy{lazy_init_t{}, cst, proc, ctx, id, parent}
+  ScenarioComponentHierarchy{iscore::lazy_init_t{}, cst, proc, ctx, id, parent}
 {
 }
 
@@ -190,6 +190,10 @@ std::function<void ()> ScenarioComponentBase::removing(
   auto it = m_ossia_timeevents.find(e.id());
   if(it != m_ossia_timeevents.end())
   {
+    m_ctx.executionQueue.enqueue([&proc=OSSIAProcess(),ev=c.OSSIAEvent()] {
+      ev->getTimeNode().remove(ev);
+    });
+
     return [=] { m_ossia_timeevents.erase(it); };
   }
   return {};

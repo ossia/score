@@ -21,6 +21,8 @@ public:
     return m_constraint;
   }
 
+  auto& context() const { return this->system().context(); }
+
   template <typename Models>
   auto& models() const
   {

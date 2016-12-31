@@ -32,8 +32,10 @@ public:
       ProcessComponentFactory& factory,
       Process::ProcessModel& process);
 
-  void
+  bool
   removing(const Process::ProcessModel& cst, const ProcessComponent& comp);
+  template<typename... Args>
+  void removed(Args&&...) { }
 
 private:
   ossia::net::node_base& m_processesNode;

@@ -57,9 +57,10 @@ ProcessComponent* ConstraintBase::make(
   return factory.make(id, m_processesNode, process, system(), this);
 }
 
-void ConstraintBase::removing(
+bool ConstraintBase::removing(
     const Process::ProcessModel& cst, const ProcessComponent& comp)
 {
+  return true;
 }
 }
 }

@@ -40,6 +40,17 @@ public:
   ComponentHierarchyManager(Args&&... args)
       : ParentComponent_T{std::forward<Args>(args)...}
   {
+    init();
+  }
+
+  template <typename... Args>
+  ComponentHierarchyManager(iscore::lazy_init_t, Args&&... args)
+      : ParentComponent_T{std::forward<Args>(args)...}
+  {
+  }
+
+  void init()
+  {
     auto& child_models = ParentComponent_T::template models<ChildModel_T>();
     for (auto& child_model : child_models)
     {
@@ -110,12 +121,12 @@ public:
 
     if (it != m_children.end())
     {
-      remove(*it);
+      cleanup(*it);
       m_children.erase(it);
     }
   }
 
-  void remove(const ChildPair& pair)
+  void cleanup(const ChildPair& pair)
   {
     ParentComponent_T::removing(*pair.model, *pair.component);
     pair.model->components().remove(*pair.component);
@@ -125,7 +136,7 @@ public:
   {
     for (const auto& element : m_children)
     {
-      remove(element);
+      cleanup(element);
     }
     m_children.clear();
   }
@@ -150,7 +161,8 @@ private:
  */
 template <
     typename ParentComponent_T, typename ChildModel_T,
-    typename ChildComponent_T, typename ChildComponentFactoryList_T>
+    typename ChildComponent_T, typename ChildComponentFactoryList_T,
+    bool HasOwnership = true>
 class PolymorphicComponentHierarchyManager : public ParentComponent_T,
                                              public Nano::Observer
 {
@@ -169,11 +181,19 @@ public:
   template <typename... Args>
   PolymorphicComponentHierarchyManager(Args&&... args)
       : ParentComponent_T{std::forward<Args>(args)...}
-      , m_componentFactory{
-            ParentComponent_T::system()
-                .context()
-                .app.components
-                .template interfaces<ChildComponentFactoryList_T>()}
+      , m_componentFactory{iscore::AppComponents().template interfaces<ChildComponentFactoryList_T>()}
+  {
+    init();
+  }
+
+  template <typename... Args>
+  PolymorphicComponentHierarchyManager(lazy_init_t, Args&&... args)
+      : ParentComponent_T{std::forward<Args>(args)...}
+      , m_componentFactory{iscore::AppComponents().template interfaces<ChildComponentFactoryList_T>()}
+  {
+  }
+
+  void init()
   {
     auto& child_models = ParentComponent_T::template models<ChildModel_T>();
     for (auto& child_model : child_models)
@@ -187,7 +207,6 @@ public:
     child_models.removing.template connect<hierarchy_t, &hierarchy_t::remove>(
         this);
   }
-
   const auto& children() const
   {
     return m_children;
@@ -199,7 +218,7 @@ public:
         typename iscore::is_component_serializable<ChildComponent_T>::type{});
   }
 
-  void add(ChildModel_T& element, iscore::serializable_tag)
+  void add(ChildModel_T& model, iscore::serializable_tag)
   {
     // Will return a factory for the given process if available
     if (auto factory = m_componentFactory.factory(model))
@@ -207,26 +226,27 @@ public:
       // Since the component may be serializable, we first look if
       // we can deserialize it.
       auto comp = iscore::deserialize_component<ChildComponent_T>(
-            element.components(),
+            model.components(),
             [&] (auto&& deserializer) {
-        ParentComponent_T::template load<ChildComponent_T>(deserializer, *factory, element);
+        ParentComponent_T::template load<ChildComponent_T>(deserializer, *factory, model);
       });
 
       // Maybe we could not deserialize it
       if(!comp)
       {
         comp = ParentComponent_T::template make<ChildComponent_T>(
-              getStrongId(element.components()), *factory, element);
+              getStrongId(model.components()), *factory, model);
       }
 
       // We try to add it
       if (comp)
       {
-        element.components().add(comp);
-        m_children.emplace_back(ChildPair{&element, comp});
+        model.components().add(comp);
+        m_children.emplace_back(ChildPair{&model, comp});
       }
     }
   }
+
   void add(ChildModel_T& model, iscore::not_serializable_tag)
   {
     // Will return a factory for the given process if available
@@ -251,22 +271,16 @@ public:
 
     if (it != m_children.end())
     {
-      remove(*it);
+      do_cleanup(*it);
       m_children.erase(it);
     }
-  }
-
-  void remove(const ChildPair& pair)
-  {
-    ParentComponent_T::removing(*pair.model, *pair.component);
-    pair.model->components().remove(*pair.component);
   }
 
   void clear()
   {
     for (const auto& element : m_children)
     {
-      remove(element);
+      do_cleanup(element);
     }
     m_children.clear();
   }
@@ -277,6 +291,22 @@ public:
   }
 
 private:
+  void do_cleanup(const ChildPair& pair)
+  {
+    // TODO constexpr-if
+    if(HasOwnership)
+    {
+      ParentComponent_T::removing(*pair.model, *pair.component);
+      pair.model->components().remove(*pair.component);
+    }
+    else
+    {
+      auto t = ParentComponent_T::removing(*pair.model, *pair.component);
+      pair.model->components().erase(*pair.component);
+      ParentComponent_T::removed(*pair.model, *pair.component, std::move(t));
+    }
+  }
+
   const ChildComponentFactoryList_T& m_componentFactory;
 
   std::vector<ChildPair> m_children; // todo map ? multi_index with both index
