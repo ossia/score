@@ -5,6 +5,7 @@
 #include <iscore/tools/std/HashMap.hpp>
 namespace iscore
 {
+struct lazy_init_t { };
 
 /**
  * @brief A component adds custom data to an Entity.

@@ -45,6 +45,8 @@ struct ISCORE_PLUGIN_ENGINE_EXPORT Context
   const Engine::Execution::ProcessComponentFactoryList& processes;
   const Engine::Execution::StateProcessComponentFactoryList& stateProcesses;
   ExecutionCommandQueue& executionQueue;
+
+  auto& context() const { return *this; }
 };
 }
 }

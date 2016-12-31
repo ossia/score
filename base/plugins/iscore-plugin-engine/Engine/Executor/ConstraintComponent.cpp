@@ -24,30 +24,29 @@ namespace Engine
 {
 namespace Execution
 {
-ConstraintComponent::ConstraintComponent(
+ConstraintComponentBase::ConstraintComponentBase(
     Scenario::ConstraintModel& iscore_cst,
     const Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
-    : Execution::Component{ctx, id, "Executor::Constraint", nullptr}
-    , m_iscore_constraint{iscore_cst}
+    : Scenario::GenericConstraintComponent<const Context>{iscore_cst, ctx, id, "Executor::Constraint", nullptr}
 {
-  con(m_iscore_constraint.duration,
+  con(constraint().duration,
       &Scenario::ConstraintDurations::executionSpeedChanged, this,
       [&](double sp) { m_ossia_constraint->setSpeed(sp); });
-  con(m_iscore_constraint.duration,
+  con(constraint().duration,
       &Scenario::ConstraintDurations::defaultDurationChanged, this,
       [&](TimeValue sp) {
     system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
       { cst->setDurationNominal(iscore_to_ossia::time(sp)); });
   });
-  con(m_iscore_constraint.duration,
+  con(constraint().duration,
       &Scenario::ConstraintDurations::minDurationChanged, this,
       [&](TimeValue sp) {
     system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
       { cst->setDurationMin(iscore_to_ossia::time(sp)); });
   });
-  con(m_iscore_constraint.duration,
+  con(constraint().duration,
       &Scenario::ConstraintDurations::maxDurationChanged, this,
       [&](TimeValue sp) {
     system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
@@ -56,7 +55,7 @@ ConstraintComponent::ConstraintComponent(
 
 }
 
-ConstraintComponent::~ConstraintComponent()
+ConstraintComponentBase::~ConstraintComponentBase()
 {
   if(m_ossia_constraint)
     m_ossia_constraint->setCallback(ossia::time_constraint::ExecutionCallback{});
@@ -68,10 +67,7 @@ ConstraintComponent::~ConstraintComponent()
 
 void ConstraintComponent::init()
 {
-  for (auto& process : m_iscore_constraint.processes)
-  {
-    on_processAdded(process);
-  }
+  iscore::PolymorphicComponentHierarchy<ConstraintComponentBase>::init();
 }
 
 void ConstraintComponent::cleanup()
@@ -84,13 +80,13 @@ void ConstraintComponent::cleanup()
   m_ossia_constraint.reset();
 }
 
-ConstraintComponent::constraint_duration_data ConstraintComponent::makeDurations() const
+ConstraintComponentBase::constraint_duration_data ConstraintComponentBase::makeDurations() const
 {
   return {
-        iscore_to_ossia::time(m_iscore_constraint.duration.defaultDuration()),
-        iscore_to_ossia::time(m_iscore_constraint.duration.minDuration()),
-        iscore_to_ossia::time(m_iscore_constraint.duration.maxDuration()),
-        m_iscore_constraint.duration.executionSpeed()
+        iscore_to_ossia::time(constraint().duration.defaultDuration()),
+        iscore_to_ossia::time(constraint().duration.minDuration()),
+        iscore_to_ossia::time(constraint().duration.maxDuration()),
+        constraint().duration.executionSpeed()
   };
 }
 
@@ -120,19 +116,19 @@ void ConstraintComponent::onSetup(
 }
 
 std::shared_ptr<ossia::time_constraint>
-ConstraintComponent::OSSIAConstraint() const
+ConstraintComponentBase::OSSIAConstraint() const
 {
   return m_ossia_constraint;
 }
 
-Scenario::ConstraintModel& ConstraintComponent::iscoreConstraint() const
+Scenario::ConstraintModel& ConstraintComponentBase::iscoreConstraint() const
 {
-  return m_iscore_constraint;
+  return constraint();
 }
 
-void ConstraintComponent::play(TimeValue t)
+void ConstraintComponentBase::play(TimeValue t)
 {
-  m_iscore_constraint.duration.setPlayPercentage(0);
+  constraint().duration.setPlayPercentage(0);
 
   auto start_state = m_ossia_constraint->getStartEvent().getState();
   auto offset_state = m_ossia_constraint->offset(Engine::iscore_to_ossia::time(t));
@@ -153,17 +149,17 @@ void ConstraintComponent::play(TimeValue t)
   }
 }
 
-void ConstraintComponent::pause()
+void ConstraintComponentBase::pause()
 {
   m_ossia_constraint->pause();
 }
 
-void ConstraintComponent::resume()
+void ConstraintComponentBase::resume()
 {
   m_ossia_constraint->resume();
 }
 
-void ConstraintComponent::stop()
+void ConstraintComponentBase::stop()
 {
   m_ossia_constraint->stop();
   auto st = m_ossia_constraint->getEndEvent().getState();
@@ -173,68 +169,78 @@ void ConstraintComponent::stop()
   {
     process->stop();
   }
-  m_iscore_constraint.reset();
+  constraint().reset();
 
   executionStopped();
 }
 
-void ConstraintComponent::executionStarted()
+void ConstraintComponentBase::executionStarted()
 {
-  m_iscore_constraint.duration.setPlayPercentage(0);
-  m_iscore_constraint.executionStarted();
-  for (Process::ProcessModel& proc : m_iscore_constraint.processes)
+  constraint().duration.setPlayPercentage(0);
+  constraint().executionStarted();
+  for (Process::ProcessModel& proc : constraint().processes)
   {
     proc.startExecution();
   }
 }
 
-void ConstraintComponent::executionStopped()
+void ConstraintComponentBase::executionStopped()
 {
-  m_iscore_constraint.executionStopped();
-  for (Process::ProcessModel& proc : m_iscore_constraint.processes)
+  constraint().executionStopped();
+  for (Process::ProcessModel& proc : constraint().processes)
   {
     proc.stopExecution();
   }
 }
 
-void ConstraintComponent::on_processAdded(
-    Process::ProcessModel& proc)
+ProcessComponent* ConstraintComponentBase::make(
+    const Id<iscore::Component> & id,
+    ProcessComponentFactory& fac,
+    Process::ProcessModel &proc)
 {
-  auto fac = system().processes.factory(proc);
-  if (fac)
+  try
   {
-    try
+    auto& self = static_cast<Engine::Execution::ConstraintComponent&>(*this);
+    const Engine::Execution::Context& ctx = system();
+    auto plug = fac.make(self, proc, ctx, id, nullptr);
+    if (plug)
     {
-      auto plug = fac->make(
-          *this, proc, system(), iscore::newId(proc), this);
-      if (plug)
-      {
-        m_processes.push_back(plug);
+      m_processes.push_back(plug);
 
-        system().executionQueue.enqueue([cst=m_ossia_constraint,proc=plug] {
-          cst->addTimeProcess(proc->OSSIAProcessPtr());
-        });
-      }
+      system().executionQueue.enqueue(
+            [=,cst=m_ossia_constraint] {
+        cst->addTimeProcess(plug->OSSIAProcessPtr());
+      });
     }
-    catch (const std::exception& e)
-    {
-      qDebug() << "Error while creating a process: " << e.what();
-    }
-    catch (...)
-    {
-      qDebug() << "Error while creating a process";
-    }
+    return plug.get();
   }
+  catch (const std::exception& e)
+  {
+    qDebug() << "Error while creating a process: " << e.what();
+  }
+  catch (...)
+  {
+    qDebug() << "Error while creating a process";
+  }
+  return nullptr;
 }
 
-void ConstraintComponent::constraintCallback(
+std::function<void ()> ConstraintComponentBase::removing(
+    const Process::ProcessModel& e,
+    ProcessComponent& c)
+{
+
+  return {};
+}
+
+void ConstraintComponentBase::constraintCallback(
     ossia::time_value position,
     ossia::time_value date,
     const ossia::state& state)
 {
   auto currentTime = Engine::ossia_to_iscore::time(date);
 
-  auto& cstdur = m_iscore_constraint.duration;
+  auto& cstdur = constraint().duration;
   const auto& maxdur = cstdur.maxDuration();
 
   if (!maxdur.isInfinite())

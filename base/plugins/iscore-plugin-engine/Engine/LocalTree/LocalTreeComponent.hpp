@@ -23,6 +23,8 @@ public:
     return m_thisNode.node;
   }
 
+  auto& context() const { return this->system().context(); }
+
 protected:
   MetadataNamePropertyWrapper m_thisNode;
   std::vector<std::unique_ptr<BaseProperty>> m_properties;

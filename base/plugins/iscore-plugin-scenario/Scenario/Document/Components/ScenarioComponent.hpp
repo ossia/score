@@ -9,13 +9,12 @@
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
+#include <iscore/model/Component.hpp>
 #include <ossia/detail/algorithms.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/model/ComponentSerialization.hpp>
 
-struct lazy_init_t { };
 template <
     typename Component_T,
     typename Scenario_T,
@@ -57,16 +56,13 @@ public:
   HierarchicalScenarioComponent(Args&&... args)
       : Component_T{std::forward<Args>(args)...}
   {
-    setup<Scenario::TimeNodeModel>();
-    setup<Scenario::EventModel>();
-    setup<Scenario::StateModel>();
-    setup<Scenario::ConstraintModel>();
+    init();
   }
 
 
   //! This constructor allows for initializing the children later. Useful for std::enable_shared_from_this.
   template <typename... Args>
-  HierarchicalScenarioComponent(lazy_init_t, Args&&... args)
+  HierarchicalScenarioComponent(iscore::lazy_init_t, Args&&... args)
       : Component_T{std::forward<Args>(args)...}
   {
   }
@@ -126,7 +122,6 @@ private:
   template <typename Pair_T>
   void cleanup(const Pair_T& pair)
   {
-
     // TODO constexpr-if
     if(HasOwnership)
     {
@@ -137,7 +132,7 @@ private:
     {
       auto t = Component_T::removing(pair.element, pair.component);
       pair.element.components().erase(pair.component);
-      Component_T::removed(pair.element, pair.component, t);
+      Component_T::removed(pair.element, pair.component, std::move(t));
     }
   }
 
