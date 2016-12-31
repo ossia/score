@@ -50,7 +50,7 @@ public:
 private:
   ExecutionCommandQueue m_editionQueue;
   Context m_ctx;
-  std::unique_ptr<BaseScenarioElement> m_base;
+  std::shared_ptr<BaseScenarioElement> m_base;
 };
 }
 }

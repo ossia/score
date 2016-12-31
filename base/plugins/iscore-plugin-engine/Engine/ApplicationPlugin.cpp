@@ -175,7 +175,7 @@ void ApplicationPlugin::on_play(
     {
       ISCORE_ASSERT(bool(m_clock));
       auto bs = plugmodel->baseScenario();
-      ossia::time_constraint& cstr = *bs->baseConstraint()->OSSIAConstraint();
+      ossia::time_constraint& cstr = *bs->baseConstraint().OSSIAConstraint();
       if (cstr.paused())
       {
         m_clock->resume();

@@ -98,11 +98,16 @@ public:
     EntityMapInserter<T>{}.add(*this, t);
   }
 
-  void remove(T& elt)
+  void erase(T& elt)
   {
     removing(elt);
     m_map.remove(elt.id());
     removed(elt);
+  }
+
+  void remove(T& elt)
+  {
+    erase(elt);
     delete &elt;
   }
 

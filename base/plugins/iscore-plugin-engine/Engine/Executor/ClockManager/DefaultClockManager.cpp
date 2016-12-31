@@ -20,7 +20,7 @@ DefaultClockManager::DefaultClockManager(const Context& ctx)
     : ClockManager{ctx}
 {
   auto& bs = *ctx.sys.baseScenario();
-  ossia::time_constraint& ossia_cst = *bs.baseConstraint()->OSSIAConstraint();
+  ossia::time_constraint& ossia_cst = *bs.baseConstraint().OSSIAConstraint();
 
   ossia_cst.setDriveMode(ossia::clock::DriveMode::INTERNAL);
   ossia_cst.setGranularity(ossia::time_value(
@@ -31,7 +31,7 @@ ossia::time_constraint::ExecutionCallback
 DefaultClockManager::makeDefaultCallback(
     Engine::Execution::BaseScenarioElement& bs)
 {
-  auto& cst = *bs.baseConstraint();
+  auto& cst = bs.baseConstraint();
   return [this, &bs, &iscore_cst = cst.iscoreConstraint() ](
       ossia::time_value position,
       ossia::time_value date,
@@ -69,22 +69,22 @@ DefaultClockManager::makeDefaultCallback(
 void DefaultClockManager::play_impl(
     const TimeValue& t, BaseScenarioElement& bs)
 {
-  bs.baseConstraint()->play(t);
+  bs.baseConstraint().play(t);
 }
 
 void DefaultClockManager::pause_impl(BaseScenarioElement& bs)
 {
-  bs.baseConstraint()->pause();
+  bs.baseConstraint().pause();
 }
 
 void DefaultClockManager::resume_impl(BaseScenarioElement& bs)
 {
-  bs.baseConstraint()->resume();
+  bs.baseConstraint().resume();
 }
 
 void DefaultClockManager::stop_impl(BaseScenarioElement& bs)
 {
-  bs.baseConstraint()->stop();
+  bs.baseConstraint().stop();
 }
 
 DefaultClockManagerFactory::~DefaultClockManagerFactory() = default;

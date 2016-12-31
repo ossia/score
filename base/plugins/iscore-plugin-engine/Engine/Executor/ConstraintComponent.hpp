@@ -40,20 +40,39 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ConstraintComponent final :
 public:
   static const constexpr bool is_unique = true;
   ConstraintComponent(
-      std::shared_ptr<ossia::time_constraint> ossia_cst,
       Scenario::ConstraintModel& iscore_cst,
       const Context& ctx,
       const Id<iscore::Component>& id,
       QObject* parent);
   ~ConstraintComponent();
 
+  void init();
+  void cleanup();
+
+  struct constraint_duration_data
+  {
+    ossia::time_value defaultDuration;
+    ossia::time_value minDuration;
+    ossia::time_value maxDuration;
+    double speed;
+  };
+
+  //! To be called from the GUI thread
+  void play(TimeValue t = TimeValue::zero());
+
+  //! To be called from the GUI thread
+  constraint_duration_data makeDurations() const;
+
+  //! To be called from the API edition thread
+  void onSetup(std::shared_ptr<ossia::time_constraint> ossia_cst,
+               constraint_duration_data dur,
+               bool parent_is_base_scenario);
 
   std::shared_ptr<ossia::time_constraint> OSSIAConstraint() const;
   Scenario::ConstraintModel& iscoreConstraint() const;
 
   const auto& processes() const { return m_processes; }
 
-  void play(TimeValue t = TimeValue::zero());
   void pause();
   void resume();
   void stop();
@@ -62,7 +81,7 @@ public:
   void executionStopped();
 
 private:
-  void on_processAdded(const Process::ProcessModel& iscore_proc);
+  void on_processAdded(Process::ProcessModel& iscore_proc);
   void constraintCallback(
       ossia::time_value position,
       ossia::time_value date,
@@ -71,7 +90,7 @@ private:
   Scenario::ConstraintModel& m_iscore_constraint;
   std::shared_ptr<ossia::time_constraint> m_ossia_constraint;
 
-  std::vector<QSharedPointer<ProcessComponent>> m_processes;
+  std::vector<std::shared_ptr<ProcessComponent>> m_processes;
 };
 }
 }

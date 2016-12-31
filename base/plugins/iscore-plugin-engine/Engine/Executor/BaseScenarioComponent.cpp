@@ -59,28 +59,27 @@ BaseScenarioElement::BaseScenarioElement(
       Engine::iscore_to_ossia::time(
           element.constraint().duration.maxDuration()));
 
-  m_ossia_startTimeNode = new TimeNodeComponent{
-      element.startTimeNode(), m_ctx, newId(element.startTimeNode()), this};
-  m_ossia_endTimeNode = new TimeNodeComponent{
-      element.endTimeNode(), m_ctx, newId(element.endTimeNode()), this};
-  m_ossia_startTimeNode->onSetup(main_start_node);
-  m_ossia_endTimeNode->onSetup(main_end_node);
+  m_ossia_startTimeNode = std::make_shared<TimeNodeComponent>(
+      element.startTimeNode(), m_ctx, newId(element.startTimeNode()), this);
+  m_ossia_endTimeNode = std::make_shared<TimeNodeComponent>(
+      element.endTimeNode(), m_ctx, newId(element.endTimeNode()), this);
 
-  m_ossia_startEvent = new EventComponent{main_start_event, element.startEvent(),
-                                        m_ctx, newId(element.startEvent()), this};
-  m_ossia_endEvent = new EventComponent{main_end_event, element.endEvent(),
-                                      m_ctx, newId(element.endEvent()), this};
+  m_ossia_startEvent = std::make_shared<EventComponent>(element.startEvent(), m_ctx, newId(element.startEvent()), this);
+  m_ossia_endEvent = std::make_shared<EventComponent>(element.endEvent(), m_ctx, newId(element.endEvent()), this);
 
-  m_ossia_startState
-      = new StateComponent{element.startState(), m_ctx, newId(element.startState()), this};
-  m_ossia_endState
-      = new StateComponent{element.endState(), m_ctx, newId(element.endState()), this};
+  m_ossia_startState = std::make_shared<StateComponent>(element.startState(), m_ctx, newId(element.startState()), this);
+  m_ossia_endState =  std::make_shared<StateComponent>(element.endState(), m_ctx, newId(element.endState()), this);
 
+  m_ossia_constraint = std::make_shared<ConstraintComponent>(
+      element.constraint(), m_ctx, newId(element.constraint()), this);
+
+  m_ossia_startTimeNode->onSetup(main_start_node, m_ossia_startTimeNode->makeTrigger());
+  m_ossia_endTimeNode->onSetup(main_end_node, m_ossia_endTimeNode->makeTrigger());
+  m_ossia_startEvent->onSetup(main_start_event, m_ossia_startEvent->makeExpression(), (ossia::time_event::OffsetBehavior)element.startEvent().offsetBehavior());
+  m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::OffsetBehavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
-  m_ossia_startState->onSetup(main_end_event);
-
-  m_ossia_constraint = new ConstraintComponent{
-      main_constraint, element.constraint(), m_ctx, newId(element.constraint()), this};
+  m_ossia_endState->onSetup(main_end_event);
+  m_ossia_constraint->onSetup(main_constraint, m_ossia_constraint->makeDurations(), true);
 
   main_constraint->setExecutionStatusCallback(
       [=](ossia::clock::ClockExecutionStatus c) {
@@ -97,43 +96,73 @@ BaseScenarioElement::BaseScenarioElement(
 
 BaseScenarioElement::~BaseScenarioElement()
 {
-  m_ossia_startTimeNode->OSSIATimeNode()->cleanup();
-  m_ossia_endTimeNode->OSSIATimeNode()->cleanup();
 }
 
-ConstraintComponent* BaseScenarioElement::baseConstraint() const
+void BaseScenarioElement::cleanup()
 {
-  return m_ossia_constraint;
+  if(m_ossia_constraint)
+    m_ossia_constraint->cleanup();
+  if(m_ossia_startState)
+    m_ossia_startState->cleanup();
+  if(m_ossia_endState)
+    m_ossia_endState->cleanup();
+  if(m_ossia_startEvent)
+    m_ossia_startEvent->cleanup();
+  if(m_ossia_endEvent)
+    m_ossia_endEvent->cleanup();
+  if(m_ossia_startTimeNode)
+  {
+    m_ossia_startTimeNode->OSSIATimeNode()->cleanup();
+    m_ossia_startTimeNode->cleanup();
+  }
+  if(m_ossia_endTimeNode)
+  {
+    m_ossia_endTimeNode->OSSIATimeNode()->cleanup();
+    m_ossia_endTimeNode->cleanup();
+  }
+
+  m_ossia_constraint.reset();
+  m_ossia_startState.reset();
+  m_ossia_endState.reset();
+  m_ossia_startEvent.reset();
+  m_ossia_endEvent.reset();
+  m_ossia_startTimeNode.reset();
+  m_ossia_endTimeNode.reset();
 }
 
-TimeNodeComponent* BaseScenarioElement::startTimeNode() const
+ConstraintComponent& BaseScenarioElement::baseConstraint() const
 {
-  return m_ossia_startTimeNode;
+  return *m_ossia_constraint;
 }
 
-TimeNodeComponent* BaseScenarioElement::endTimeNode() const
+TimeNodeComponent& BaseScenarioElement::startTimeNode() const
 {
-  return m_ossia_endTimeNode;
+  return *m_ossia_startTimeNode;
 }
 
-EventComponent* BaseScenarioElement::startEvent() const
+TimeNodeComponent& BaseScenarioElement::endTimeNode() const
 {
-  return m_ossia_startEvent;
+  return *m_ossia_endTimeNode;
 }
 
-EventComponent* BaseScenarioElement::endEvent() const
+EventComponent& BaseScenarioElement::startEvent() const
 {
-  return m_ossia_endEvent;
+  return *m_ossia_startEvent;
 }
 
-StateComponent* BaseScenarioElement::startState() const
+EventComponent& BaseScenarioElement::endEvent() const
 {
-  return m_ossia_startState;
+  return *m_ossia_endEvent;
 }
 
-StateComponent* BaseScenarioElement::endState() const
+StateComponent& BaseScenarioElement::startState() const
 {
-  return m_ossia_endState;
+  return *m_ossia_startState;
+}
+
+StateComponent& BaseScenarioElement::endState() const
+{
+  return *m_ossia_endState;
 }
 }
 }

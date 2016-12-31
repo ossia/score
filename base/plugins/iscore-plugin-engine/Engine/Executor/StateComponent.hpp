@@ -27,8 +27,13 @@ public:
       const Id<iscore::Component>& id,
       QObject* parent);
 
+  void cleanup();
+
+  //! To be called from the API edition queue
   void onSetup(
       const std::shared_ptr<ossia::time_event>& root);
+
+  //! To be called from the GUI thread
   void onDelete() const;
 private:
   std::shared_ptr<ossia::time_event> m_ev;

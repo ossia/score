@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Executor/Component.hpp>
+#include <ossia/editor/expression/expression.hpp>
 namespace ossia
 {
 class time_node;
@@ -25,12 +26,20 @@ public:
       const Id<iscore::Component>& id,
       QObject* parent);
 
-  void onSetup(std::shared_ptr<ossia::time_node> ptr);
+  void cleanup();
+
+  //! To be called from the GUI thread
+  ossia::expression_ptr makeTrigger() const;
+
+  //! To be called from the API edition queue
+  void onSetup(std::shared_ptr<ossia::time_node> ptr,
+               ossia::expression_ptr exp);
 
   std::shared_ptr<ossia::time_node> OSSIATimeNode() const;
   const Scenario::TimeNodeModel& iscoreTimeNode() const;
 
 private:
+  void on_GUITrigger();
   std::shared_ptr<ossia::time_node> m_ossia_node;
   const Scenario::TimeNodeModel& m_iscore_node;
 };

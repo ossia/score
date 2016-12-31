@@ -49,9 +49,9 @@ public:
   using model_type = Process_T;
   using ProcessComponentBase_T::ProcessComponentBase_T;
 
-  const Process_T& process() const
+  Process_T& process() const
   {
-    return static_cast<const Process_T&>(ProcessComponentBase_T::process());
+    return static_cast<Process_T&>(ProcessComponentBase_T::process());
   }
 };
 }

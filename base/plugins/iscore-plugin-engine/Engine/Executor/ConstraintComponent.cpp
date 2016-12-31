@@ -25,31 +25,70 @@ namespace Engine
 namespace Execution
 {
 ConstraintComponent::ConstraintComponent(
-    std::shared_ptr<ossia::time_constraint> ossia_cst,
     Scenario::ConstraintModel& iscore_cst,
     const Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
     : Execution::Component{ctx, id, "Executor::Constraint", nullptr}
     , m_iscore_constraint{iscore_cst}
-    , m_ossia_constraint{std::move(ossia_cst)}
 {
-  ossia::time_value min_duration(Engine::iscore_to_ossia::time(
-      m_iscore_constraint.duration.minDuration()));
-  ossia::time_value max_duration(Engine::iscore_to_ossia::time(
-      m_iscore_constraint.duration.maxDuration()));
-
-  m_ossia_constraint->setDurationMin(min_duration);
-  m_ossia_constraint->setDurationMax(max_duration);
-  m_ossia_constraint->setSpeed(iscore_cst.duration.executionSpeed());
-
-  con(iscore_cst.duration,
+  con(m_iscore_constraint.duration,
       &Scenario::ConstraintDurations::executionSpeedChanged, this,
       [&](double sp) { m_ossia_constraint->setSpeed(sp); });
 
+}
+
+ConstraintComponent::~ConstraintComponent()
+{
+  if(m_ossia_constraint)
+    m_ossia_constraint->setCallback(ossia::time_constraint::ExecutionCallback{});
+
+  for(auto& proc : m_processes)
+    proc->cleanup();
+  executionStopped();
+}
+
+void ConstraintComponent::init()
+{
+  for (auto& process : m_iscore_constraint.processes)
+  {
+    on_processAdded(process);
+  }
+}
+
+void ConstraintComponent::cleanup()
+{
+  m_ossia_constraint->setCallback(ossia::time_constraint::ExecutionCallback{});
+  for(auto& proc : m_processes)
+    proc->cleanup();
+
+  m_processes.clear();
+  m_ossia_constraint.reset();
+}
+
+ConstraintComponent::constraint_duration_data ConstraintComponent::makeDurations() const
+{
+  return {
+        iscore_to_ossia::time(m_iscore_constraint.duration.defaultDuration()),
+        iscore_to_ossia::time(m_iscore_constraint.duration.minDuration()),
+        iscore_to_ossia::time(m_iscore_constraint.duration.maxDuration()),
+        m_iscore_constraint.duration.executionSpeed()
+  };
+}
+
+void ConstraintComponent::onSetup(
+    std::shared_ptr<ossia::time_constraint> ossia_cst,
+    constraint_duration_data dur,
+    bool parent_is_base_scenario)
+{
+  m_ossia_constraint = ossia_cst;
+
+  m_ossia_constraint->setDurationMin(dur.minDuration);
+  m_ossia_constraint->setDurationMax(dur.maxDuration);
+  m_ossia_constraint->setSpeed(dur.speed);
+
   // BaseScenario needs a special callback.
-  if (dynamic_cast<Scenario::ProcessModel*>(iscore_cst.parent())
-      || dynamic_cast<Loop::ProcessModel*>(iscore_cst.parent()))
+  if (!parent_is_base_scenario)
   {
     m_ossia_constraint->setCallback(
         [&](ossia::time_value position,
@@ -59,16 +98,7 @@ ConstraintComponent::ConstraintComponent(
         });
   }
 
-  for (const auto& process : iscore_cst.processes)
-  {
-    on_processAdded(process);
-  }
-}
-
-ConstraintComponent::~ConstraintComponent()
-{
-  OSSIAConstraint()->setCallback(ossia::time_constraint::ExecutionCallback{});
-  executionStopped();
+  init();
 }
 
 std::shared_ptr<ossia::time_constraint>
@@ -150,25 +180,22 @@ void ConstraintComponent::executionStopped()
 }
 
 void ConstraintComponent::on_processAdded(
-    const Process::ProcessModel& iscore_proc) // TODO ProcessExecutionView
+    Process::ProcessModel& proc)
 {
-  // The DocumentPlugin creates the elements in the processes.
-  // TODO maybe have an execution_view template on processes, that
-  // gives correct const / non_const access ?
-  auto proc = const_cast<Process::ProcessModel*>(&iscore_proc);
-  auto fac = system().processes.factory(*proc);
+  auto fac = system().processes.factory(proc);
   if (fac)
   {
     try
     {
-      // TODO this shall go in the factory interface instead later
-      // to allow the diminution of fragmentation.
-      QSharedPointer<ProcessComponent> plug{fac->make(
-          *this, *proc, system(), getStrongId(iscore_proc.components()), this)};
+      auto plug = fac->make(
+          *this, proc, system(), iscore::newId(proc), this);
       if (plug)
       {
         m_processes.push_back(plug);
-        m_ossia_constraint->addTimeProcess(plug->give_OSSIAProcess());
+
+        system().executionQueue.enqueue([cst=m_ossia_constraint,proc=plug] {
+          cst->addTimeProcess(proc->give_OSSIAProcess());
+        });
       }
     }
     catch (const std::exception& e)
