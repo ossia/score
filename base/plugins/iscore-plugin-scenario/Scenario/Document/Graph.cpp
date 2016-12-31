@@ -1,3 +1,10 @@
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/labeled_graph.hpp>
+#include <boost/graph/topological_sort.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <boost/range/iterator_range.hpp>
+
 #include "Graph.hpp"
 
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
@@ -6,12 +13,6 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <iscore/model/ModelMetadata.hpp>
-
-#include <boost/graph/breadth_first_search.hpp>
-#include <boost/graph/labeled_graph.hpp>
-#include <boost/graph/topological_sort.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/range/iterator_range.hpp>
 
 namespace Scenario
 {

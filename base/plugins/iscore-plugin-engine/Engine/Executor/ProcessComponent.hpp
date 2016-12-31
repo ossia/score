@@ -67,9 +67,9 @@ public:
     process().stopExecution();
   }
 
-  std::unique_ptr<ossia::time_process> give_OSSIAProcess()
+  std::shared_ptr<ossia::time_process> OSSIAProcessPtr()
   {
-    return std::unique_ptr<ossia::time_process>(m_ossia_process);
+    return m_ossia_process;
   }
   auto& OSSIAProcess() const
   {
@@ -78,7 +78,7 @@ public:
 
 protected:
   ConstraintComponent& m_parent_constraint;
-  ossia::time_process* m_ossia_process{};
+  std::shared_ptr<ossia::time_process> m_ossia_process;
 };
 
 template <typename Process_T, typename OSSIA_Process_T>

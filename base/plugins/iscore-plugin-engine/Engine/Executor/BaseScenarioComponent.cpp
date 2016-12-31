@@ -128,6 +128,8 @@ void BaseScenarioElement::cleanup()
   m_ossia_endEvent.reset();
   m_ossia_startTimeNode.reset();
   m_ossia_endTimeNode.reset();
+
+  m_ctx.sys.runAllCommands();
 }
 
 ConstraintComponent& BaseScenarioElement::baseConstraint() const

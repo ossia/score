@@ -73,7 +73,7 @@ Component::Component(
           ProcessComponent_T<JS::ProcessModel, ProcessExecutor>{
               parentConstraint, element, ctx, id, "JSComponent", parent}
 {
-  m_ossia_process = new ProcessExecutor{ctx.devices};
+  m_ossia_process = std::make_shared<ProcessExecutor>(ctx.devices);
   OSSIAProcess().setTickFun(element.script());
 }
 }

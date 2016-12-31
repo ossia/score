@@ -35,6 +35,24 @@ ConstraintComponent::ConstraintComponent(
   con(m_iscore_constraint.duration,
       &Scenario::ConstraintDurations::executionSpeedChanged, this,
       [&](double sp) { m_ossia_constraint->setSpeed(sp); });
+  con(m_iscore_constraint.duration,
+      &Scenario::ConstraintDurations::defaultDurationChanged, this,
+      [&](TimeValue sp) {
+    system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
+      { cst->setDurationNominal(iscore_to_ossia::time(sp)); });
+  });
+  con(m_iscore_constraint.duration,
+      &Scenario::ConstraintDurations::minDurationChanged, this,
+      [&](TimeValue sp) {
+    system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
+      { cst->setDurationMin(iscore_to_ossia::time(sp)); });
+  });
+  con(m_iscore_constraint.duration,
+      &Scenario::ConstraintDurations::maxDurationChanged, this,
+      [&](TimeValue sp) {
+    system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
+      { cst->setDurationMax(iscore_to_ossia::time(sp)); });
+  });
 
 }
 
@@ -194,7 +212,7 @@ void ConstraintComponent::on_processAdded(
         m_processes.push_back(plug);
 
         system().executionQueue.enqueue([cst=m_ossia_constraint,proc=plug] {
-          cst->addTimeProcess(proc->give_OSSIAProcess());
+          cst->addTimeProcess(proc->OSSIAProcessPtr());
         });
       }
     }

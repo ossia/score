@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPen>
+#include <QCursor>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <qnamespace.h>
 

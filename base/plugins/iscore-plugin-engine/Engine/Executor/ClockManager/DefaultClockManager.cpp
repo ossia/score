@@ -50,7 +50,7 @@ DefaultClockManager::makeDefaultCallback(
       cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
 
     // Run some commands if they have been submitted.
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < 64; i++)
     {
       ExecutionCommand c;
       context.executionQueue.try_dequeue(c);

@@ -60,7 +60,7 @@ Component::Component(
 
   if (m_ossia_curve)
   {
-    m_ossia_process = new ossia::mapper(
+    m_ossia_process = std::make_shared<ossia::mapper>(
         *ossia_source_addr, *ossia_target_addr, m_ossia_curve);
   }
 }

@@ -69,7 +69,11 @@ void DocumentPlugin::reload(Scenario::ConstraintModel& cst)
 void DocumentPlugin::clear()
 {
   if(m_base)
+  {
+    runAllCommands();
     m_base->cleanup();
+    runAllCommands();
+  }
   m_base.reset();
 }
 
@@ -83,7 +87,7 @@ bool DocumentPlugin::isPlaying() const
   return m_base.get();
 }
 
-void DocumentPlugin::runAllCommands()
+void DocumentPlugin::runAllCommands() const
 {
   bool ok = false;
   ExecutionCommand com;

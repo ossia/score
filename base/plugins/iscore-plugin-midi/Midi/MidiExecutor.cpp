@@ -125,7 +125,7 @@ Component::Component(
           ProcessComponent_T<Midi::ProcessModel, ProcessExecutor>{
               parentConstraint, element, ctx, id, "MidiComponent", parent}
 {
-  m_ossia_process = new ProcessExecutor{element, ctx.devices.list()};
+  m_ossia_process = std::make_shared<ProcessExecutor>(element, ctx.devices.list());
 }
 }
 }

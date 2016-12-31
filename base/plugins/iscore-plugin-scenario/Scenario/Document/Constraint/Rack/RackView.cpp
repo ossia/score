@@ -1,5 +1,5 @@
 #include <QtGlobal>
-
+#include <QCursor>
 #include "RackView.hpp"
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 class QPainter;

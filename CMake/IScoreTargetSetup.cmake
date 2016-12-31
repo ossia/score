@@ -87,6 +87,7 @@ function(iscore_set_gcc_compile_options theTarget)
           -Werror=return-local-addr
           )
 
+      if(NOT ISCORE_SANITIZE)
       target_compile_options(${theTarget} PUBLIC
           "$<$<CONFIG:Release>:-ffunction-sections>"
           "$<$<CONFIG:Release>:-fdata-sections>"
@@ -127,6 +128,8 @@ function(iscore_set_gcc_compile_options theTarget)
 #          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
 #          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
           )
+
+      endif()
       # -Wcast-qual is nice but requires more work...
       # -Wzero-as-null-pointer-constant  is garbage
       # Too much clutter :set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum -Wshadow  -Wsuggest-attribute=const  -Wsuggest-attribute=pure ")
@@ -148,10 +151,20 @@ endfunction()
 
 function(iscore_set_linux_compile_options theTarget)
     use_gold(${theTarget})
+
+    if(NOT ISCORE_SANITIZE)
+        target_compile_options(${theTarget} PUBLIC
+            # Debug options
+            "$<$<CONFIG:Debug>:-gsplit-dwarf>")
+    endif()
     target_compile_options(${theTarget} PUBLIC
         # Debug options
-        "$<$<CONFIG:Debug>:-gsplit-dwarf>"
-        "$<$<CONFIG:Debug>:-gdwarf-5>")
+        "$<$<CONFIG:Debug>:-ggdb>"
+        "$<$<CONFIG:Debug>:-O0>")
+    target_link_libraries(${theTarget} PUBLIC
+        # Debug options
+        "$<$<CONFIG:Debug>:-ggdb>"
+        "$<$<CONFIG:Debug>:-O0>")
 endfunction()
 
 function(iscore_set_unix_compile_options theTarget)

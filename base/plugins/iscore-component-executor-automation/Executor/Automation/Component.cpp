@@ -72,7 +72,7 @@ Component::Component(
 
     if (m_ossia_curve)
     {
-      m_ossia_process = new ossia::automation{std::move(d), m_ossia_curve};
+      m_ossia_process = std::make_shared<ossia::automation>(std::move(d), m_ossia_curve);
     }
   }
 }

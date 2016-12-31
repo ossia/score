@@ -45,10 +45,10 @@ public:
     return m_ctx;
   }
 
-  void runAllCommands();
+  void runAllCommands() const;
 
 private:
-  ExecutionCommandQueue m_editionQueue;
+  mutable ExecutionCommandQueue m_editionQueue;
   Context m_ctx;
   std::shared_ptr<BaseScenarioElement> m_base;
 };
