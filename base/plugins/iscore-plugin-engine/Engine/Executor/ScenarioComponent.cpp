@@ -68,7 +68,7 @@ ScenarioComponentBase::ScenarioComponentBase(
   this->setObjectName("OSSIAScenarioElement");
 
   // Setup of the OSSIA API Part
-  m_ossia_process = new ossia::scenario;
+  m_ossia_process = std::make_shared<ossia::scenario>();
 
   // Note : the hierarchical scenario shall create the time nodes first.
   // A better way would be :
@@ -143,15 +143,20 @@ std::function<void ()> ScenarioComponentBase::removing(
   if(it != m_ossia_constraints.end())
   {
     m_ctx.executionQueue.enqueue([&proc=OSSIAProcess(),cstr=c.OSSIAConstraint()] {
-      auto& next = cstr->getStartEvent().nextTimeConstraints();
-      auto next_it = ossia::find(next, cstr);
-      next.erase(next_it);
+      if(cstr)
+      {
+        auto& next = cstr->getStartEvent().nextTimeConstraints();
+        auto next_it = ossia::find(next, cstr);
+        if(next_it != next.end())
+          next.erase(next_it);
 
-      auto& prev = cstr->getEndEvent().previousTimeConstraints();
-      auto prev_it = ossia::find(prev, cstr);
-      prev.erase(prev_it);
+        auto& prev = cstr->getEndEvent().previousTimeConstraints();
+        auto prev_it = ossia::find(prev, cstr);
+        if(prev_it != prev.end())
+          prev.erase(prev_it);
 
-      proc.removeTimeConstraint(cstr);
+        proc.removeTimeConstraint(cstr);
+      }
     });
 
     c.cleanup();
@@ -296,10 +301,11 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
 
   // The event is inserted in the API edition thread
   m_ctx.executionQueue.enqueue(
-        [event=elt,time_node=tn]
+        [event=ossia_ev,time_node=tn->OSSIATimeNode()]
   {
-    ossia::time_node& ossia_tn = *time_node->OSSIATimeNode();
-    ossia_tn.insert(ossia_tn.timeEvents().begin(), event->OSSIAEvent());
+    ISCORE_ASSERT(event);
+    ISCORE_ASSERT(time_node);
+    time_node->insert(time_node->timeEvents().begin(), event);
   });
 
   return elt.get();

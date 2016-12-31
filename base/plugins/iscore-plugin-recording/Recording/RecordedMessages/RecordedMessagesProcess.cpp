@@ -78,7 +78,7 @@ Component::Component(
               "RecordedMessagesComponent",
               parent}
 {
-  m_ossia_process = new ProcessExecutor{ctx.devices, element.messages()};
+  m_ossia_process = std::make_shared<ProcessExecutor>(ctx.devices, element.messages());
 }
 }
 }

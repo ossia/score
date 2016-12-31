@@ -52,7 +52,7 @@ Component::Component(
   ossia::time_value main_duration(Engine::iscore_to_ossia::time(
       element.constraint().duration.defaultDuration()));
 
-  auto loop = new ossia::loop(
+  auto loop = std::make_shared<ossia::loop>(
       main_duration,
       [](ossia::time_value, ossia::time_value, const ossia::state_element&) {},
       [this, &element](ossia::time_event::Status newStatus) {

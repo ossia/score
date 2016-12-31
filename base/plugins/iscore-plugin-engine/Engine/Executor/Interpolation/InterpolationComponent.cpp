@@ -40,8 +40,8 @@ Component::Component(
   if (auto dest = Engine::iscore_to_ossia::makeDestination(
           m_deviceList, process().address()))
   {
-    m_ossia_process = new ossia::automation{
-        *dest, on_curveChanged(dest->value.get().getValueType())};
+    m_ossia_process = std::make_shared<ossia::automation>(
+        *dest, on_curveChanged(dest->value.get().getValueType()));
   }
 }
 

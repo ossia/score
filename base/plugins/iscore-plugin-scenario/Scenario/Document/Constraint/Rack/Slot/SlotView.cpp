@@ -1,6 +1,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
+#include <QCursor>
 #include <QPen>
 #include <qnamespace.h>
 

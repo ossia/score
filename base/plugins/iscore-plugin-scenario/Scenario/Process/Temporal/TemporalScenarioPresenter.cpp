@@ -150,7 +150,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
       &TemporalScenarioView::lock);
   con(model(m_layer), &Scenario::ProcessModel::unlocked, m_view,
       &TemporalScenarioView::unlock);
-
+/*
   connect(
       &layerModel().processModel(), &Process::ProcessModel::execution, this,
       [&](bool b) {
@@ -166,7 +166,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         }
 
       });
-
+*/
   m_graphicalScale = context.app.settings<Settings::Model>().getGraphicZoom();
 
   con(context.app.settings<Settings::Model>(),

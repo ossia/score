@@ -32,7 +32,8 @@ void StateComponent::onSetup(
 void StateComponent::onDelete() const
 {
   system().executionQueue.enqueue([ev=m_ev,st=m_state] {
-    ev->removeState(st);
+    if(ev)
+      ev->removeState(st);
   });
 }
 
