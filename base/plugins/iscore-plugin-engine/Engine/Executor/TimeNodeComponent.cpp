@@ -27,6 +27,17 @@ TimeNodeComponent::TimeNodeComponent(
 {
   connect(m_iscore_node.trigger(), &Scenario::TriggerModel::triggeredByGui,
           this, &TimeNodeComponent::on_GUITrigger);
+
+  connect(element.trigger(), &Scenario::TriggerModel::triggerChanged,
+      this, [this] (const auto& expr)
+  {
+    auto exp_ptr = std::make_shared<ossia::expression_ptr>( this->makeTrigger() );
+    this->system().executionQueue.enqueue(
+          [e = m_ossia_node, exp_ptr]
+    {
+      e->setExpression(std::move(*exp_ptr));
+    });
+  });
 }
 
 void TimeNodeComponent::cleanup()

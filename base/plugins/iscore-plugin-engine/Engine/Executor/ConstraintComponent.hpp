@@ -114,7 +114,7 @@ protected:
 
 
 class ISCORE_PLUGIN_ENGINE_EXPORT ConstraintComponent final :
-        public iscore::PolymorphicComponentHierarchy<ConstraintComponentBase>
+        public iscore::PolymorphicComponentHierarchy<ConstraintComponentBase, false>
 {
     public:
   template<typename... Args>

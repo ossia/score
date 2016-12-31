@@ -52,7 +52,7 @@ public:
 
   ~ProcessModel();
 signals:
-  void scriptChanged(QString);
+  void scriptChanged(const QString&);
 
 private:
   QString m_script;

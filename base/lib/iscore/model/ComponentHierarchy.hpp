@@ -317,7 +317,7 @@ template <typename Component>
 using ComponentHierarchy
     = ComponentHierarchyManager<Component, typename Component::model_t, typename Component::component_t>;
 
-template <typename Component>
+template <typename Component, bool HasOwnership = true>
 using PolymorphicComponentHierarchy
-    = PolymorphicComponentHierarchyManager<Component, typename Component::model_t, typename Component::component_t, typename Component::component_factory_list_t>;
+    = PolymorphicComponentHierarchyManager<Component, typename Component::model_t, typename Component::component_t, typename Component::component_factory_list_t, HasOwnership>;
 }

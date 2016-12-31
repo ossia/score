@@ -75,6 +75,14 @@ Component::Component(
 {
   m_ossia_process = std::make_shared<ProcessExecutor>(ctx.devices);
   OSSIAProcess().setTickFun(element.script());
+
+  con(element, &JS::ProcessModel::scriptChanged,
+      this, [=] (const QString& str) {
+    system().executionQueue.enqueue(
+          [proc=std::dynamic_pointer_cast<ProcessExecutor>(m_ossia_process),
+           &str]
+      { proc->setTickFun(str); });
+  });
 }
 }
 }

@@ -19,9 +19,19 @@ EventComponent::EventComponent(
     const Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
-    : Execution::Component{ctx, id, "Executor::Event", nullptr}
-    , m_iscore_event{element}
+  : Execution::Component{ctx, id, "Executor::Event", nullptr}
+  , m_iscore_event{element}
 {
+  con(element, &Scenario::EventModel::conditionChanged,
+      this, [this] (const auto& expr)
+  {
+    auto exp_ptr = std::make_shared<ossia::expression_ptr>( this->makeExpression() );
+    this->system().executionQueue.enqueue(
+          [e = m_ossia_event, exp_ptr]
+    {
+      e->setExpression(std::move(*exp_ptr));
+    });
+  });
 }
 
 void EventComponent::cleanup()
@@ -31,8 +41,16 @@ void EventComponent::cleanup()
 
 ossia::expression_ptr EventComponent::makeExpression() const
 {
-  return Engine::iscore_to_ossia::expression(
+  try
+  {
+    return Engine::iscore_to_ossia::expression(
           m_iscore_event.condition(), system().devices.list());
+  }
+  catch (std::exception& e)
+  {
+    ossia::logger().error(e.what());
+    return ossia::expressions::make_expression_true();
+  }
 }
 
 void EventComponent::onSetup(
@@ -41,16 +59,8 @@ void EventComponent::onSetup(
     ossia::time_event::OffsetBehavior b)
 {
   m_ossia_event = event;
-  try
-  {
-    m_ossia_event->setExpression(std::move(expr));
-    m_ossia_event->setOffsetBehavior(b);
-  }
-  catch (std::exception& e)
-  {
-    ossia::logger().error(e.what());
-    m_ossia_event->setExpression(ossia::expressions::make_expression_true());
-  }
+  m_ossia_event->setExpression(std::move(expr));
+  m_ossia_event->setOffsetBehavior(b);
 }
 
 std::shared_ptr<ossia::time_event> EventComponent::OSSIAEvent() const
