@@ -67,7 +67,7 @@ ConstraintComponentBase::~ConstraintComponentBase()
 
 void ConstraintComponent::init()
 {
-  iscore::PolymorphicComponentHierarchy<ConstraintComponentBase>::init();
+  iscore::PolymorphicComponentHierarchy<ConstraintComponentBase, false>::init();
 }
 
 void ConstraintComponent::cleanup()

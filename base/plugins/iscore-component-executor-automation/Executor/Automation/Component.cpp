@@ -57,6 +57,21 @@ Component::Component(
                                                                           parent}
     , m_deviceList{ctx.devices.list()}
 {
+
+  con(element, &Automation::ProcessModel::addressChanged,
+      this, [this] (const auto&) { this->recompute(); });
+  con(element, &Automation::ProcessModel::minChanged,
+      this, [this] (const auto&) { this->recompute(); });
+  con(element, &Automation::ProcessModel::maxChanged,
+      this, [this] (const auto&) { this->recompute(); });
+  con(element, &Automation::ProcessModel::curveChanged,
+      this, [this] () { this->recompute(); });
+
+  recompute();
+}
+
+void Component::recompute()
+{
   auto dest = Engine::iscore_to_ossia::makeDestination(
       m_deviceList, process().address());
 
@@ -72,7 +87,43 @@ Component::Component(
 
     if (m_ossia_curve)
     {
-      m_ossia_process = std::make_shared<ossia::automation>(std::move(d), m_ossia_curve);
+      if(!m_ossia_process)
+      {
+        m_ossia_process = std::make_shared<ossia::automation>(std::move(d), m_ossia_curve);
+      }
+      else
+      {
+        system().executionQueue.enqueue(
+              [proc=std::dynamic_pointer_cast<ossia::automation>(m_ossia_process)
+              ,curve=m_ossia_curve
+              ,d_=d]
+        {
+          proc->setDestination(std::move(d_));
+          proc->setBehavior(curve);
+        });
+      }
+    }
+    else
+    {
+      if(m_ossia_process)
+      {
+        system().executionQueue.enqueue(
+              [proc=std::dynamic_pointer_cast<ossia::automation>(m_ossia_process)]
+        {
+          proc->clean();
+        });
+      }
+    }
+  }
+  else
+  {
+    if(m_ossia_process)
+    {
+      system().executionQueue.enqueue(
+            [proc=std::dynamic_pointer_cast<ossia::automation>(m_ossia_process)]
+      {
+        proc->clean();
+      });
     }
   }
 }
