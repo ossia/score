@@ -64,6 +64,7 @@ class ScenarioComponentBase
 {
   COMPONENT_METADATA("4e4b1c1a-1a2a-4ae6-a1a1-38d0900e74e8")
 
+  friend class EventInitCommand;
 public:
   ScenarioComponentBase(
       ConstraintComponent& cst,
@@ -76,7 +77,7 @@ public:
   {
     return m_ossia_states;
   }
-  const iscore::hash_map<Id<Scenario::ConstraintModel>, QSharedPointer<ConstraintComponent>>& constraints() const
+  const iscore::hash_map<Id<Scenario::ConstraintModel>, std::shared_ptr<ConstraintComponent>>& constraints() const
   {
     return m_ossia_constraints;
   }
@@ -89,7 +90,6 @@ public:
     return m_ossia_timenodes;
   }
 
-
   void stop() override;
 
   void removeConstraint(const Id<Scenario::ConstraintModel>&);
@@ -97,10 +97,21 @@ public:
   template <typename Component_T, typename Element>
   Component_T* make(const Id<iscore::Component>& id, Element& elt);
 
-  template <typename Component_T, typename Element>
-  void removing(const Element& elt, const Component_T& comp);
+  template <typename Component_T, typename Element, typename Fun>
+  void removed(const Element& elt, const Component_T& comp, Fun f)
+  {
+    if(f)
+      f();
+  }
 
 
+  std::function<void()> removing(const Scenario::ConstraintModel& e, ConstraintComponent& c);
+
+  std::function<void()> removing(const Scenario::TimeNodeModel& e, TimeNodeComponent& c);
+
+  std::function<void()> removing(const Scenario::EventModel& e, EventComponent& c);
+
+  std::function<void()> removing(const Scenario::StateModel& e, StateComponent& c);
 protected:
   void startConstraintExecution(const Id<Scenario::ConstraintModel>&);
   void stopConstraintExecution(const Id<Scenario::ConstraintModel>&);
@@ -111,13 +122,13 @@ protected:
   void timeNodeCallback(
       Engine::Execution::TimeNodeComponent* tn, ossia::time_value date);
 
-  iscore::hash_map<Id<Scenario::ConstraintModel>, QSharedPointer<ConstraintComponent>>
+  iscore::hash_map<Id<Scenario::ConstraintModel>, std::shared_ptr<ConstraintComponent>>
       m_ossia_constraints;
-  iscore::hash_map<Id<Scenario::StateModel>, QSharedPointer<StateComponent>>
+  iscore::hash_map<Id<Scenario::StateModel>, std::shared_ptr<StateComponent>>
       m_ossia_states;
-  iscore::hash_map<Id<Scenario::TimeNodeModel>, QSharedPointer<TimeNodeComponent>>
+  iscore::hash_map<Id<Scenario::TimeNodeModel>, std::shared_ptr<TimeNodeComponent>>
       m_ossia_timenodes;
-  iscore::hash_map<Id<Scenario::EventModel>, QSharedPointer<EventComponent>>
+  iscore::hash_map<Id<Scenario::EventModel>, std::shared_ptr<EventComponent>>
       m_ossia_timeevents;
 
   iscore::hash_map<Id<Scenario::ConstraintModel>, Scenario::ConstraintModel*>
@@ -133,7 +144,7 @@ protected:
 using ScenarioComponentHierarchy
     = HierarchicalScenarioComponent<
         ScenarioComponentBase,
-        Scenario::ProcessModel, ConstraintComponent, EventComponent, TimeNodeComponent, StateComponent>;
+        Scenario::ProcessModel, ConstraintComponent, EventComponent, TimeNodeComponent, StateComponent, false>;
 
 struct ScenarioComponent final : public ScenarioComponentHierarchy
 {
@@ -143,9 +154,22 @@ struct ScenarioComponent final : public ScenarioComponentHierarchy
       const Context& ctx,
       const Id<iscore::Component>& id,
       QObject* parent);
+
+  void init();
+
+  void cleanup() override;
 };
 
-using ScenarioComponentFactory
-    = ::Engine::Execution::ProcessComponentFactory_T<ScenarioComponent>;
-}
-}
+struct ScenarioComponentFactory final :
+    public ::Engine::Execution::ProcessComponentFactory_T<ScenarioComponent>
+{
+  void init(ProcessComponent* comp) const override
+  {
+    if(comp)
+    {
+      auto s = static_cast<ScenarioComponent*>(comp);
+      s->init();
+    }
+  }
+};
+}}

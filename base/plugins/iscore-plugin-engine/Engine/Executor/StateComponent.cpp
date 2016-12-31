@@ -17,13 +17,16 @@ StateComponent::StateComponent(
 {
 }
 
+void StateComponent::cleanup()
+{
+  m_ev.reset();
+}
+
 void StateComponent::onSetup(
     const std::shared_ptr<ossia::time_event>& root)
 {
   m_ev = root;
-  system().executionQueue.enqueue([ev=m_ev,st=m_state] {
-    ev->addState(st);
-  });
+  m_ev->addState(m_state);
 }
 
 void StateComponent::onDelete() const

@@ -37,7 +37,7 @@ public:
 
 class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponent
     : public Scenario::GenericProcessComponent<const Context>,
-      public QEnableSharedFromThis<ProcessComponent>
+      public std::enable_shared_from_this<ProcessComponent>
 {
   ABSTRACT_COMPONENT_METADATA(
       Engine::Execution::ProcessComponent,
@@ -61,6 +61,7 @@ public:
 
   virtual ~ProcessComponent();
 
+  virtual void cleanup() { }
   virtual void stop()
   {
     process().stopExecution();
@@ -100,12 +101,15 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory
   ISCORE_ABSTRACT_COMPONENT_FACTORY(Engine::Execution::ProcessComponent)
 public:
   virtual ~ProcessComponentFactory();
-  virtual ProcessComponent* make(
+  virtual std::shared_ptr<ProcessComponent> make(
       ConstraintComponent& cst,
       Process::ProcessModel& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,
       QObject* parent) const = 0;
+
+  //! Reimplement this if the element needs two-phase initialization.
+  virtual void init(ProcessComponent* comp) const;
 };
 
 template <typename ProcessComponent_T>
@@ -115,15 +119,17 @@ class ProcessComponentFactory_T
 {
 public:
   using model_type = typename ProcessComponent_T::model_type;
-  ProcessComponent* make(
+  std::shared_ptr<ProcessComponent> make(
       ConstraintComponent& cst,
       Process::ProcessModel& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,
       QObject* parent) const final override
   {
-    return new ProcessComponent_T{cst, static_cast<model_type&>(proc), ctx, id,
-                                  parent};
+    auto comp = std::make_shared<ProcessComponent_T>(cst, static_cast<model_type&>(proc), ctx, id,
+                                  parent);
+    this->init(comp.get());
+    return comp;
   }
 };
 using ProcessComponentFactoryList = iscore::

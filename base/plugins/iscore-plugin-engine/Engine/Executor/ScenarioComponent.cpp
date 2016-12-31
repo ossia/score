@@ -58,12 +58,12 @@ ScenarioComponentBase::ScenarioComponentBase(
     const Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
-    : ProcessComponent_T<Scenario::ProcessModel, ossia::scenario>{parentConstraint,
-                                                                  element, ctx,
-                                                                  id,
-                                                                  "ScenarioComponent",
-                                                                  nullptr}
-    , m_ctx{ctx}
+  : ProcessComponent_T<Scenario::ProcessModel, ossia::scenario>{parentConstraint,
+                                                                element, ctx,
+                                                                id,
+                                                                "ScenarioComponent",
+                                                                nullptr}
+  , m_ctx{ctx}
 {
   this->setObjectName("OSSIAScenarioElement");
 
@@ -82,19 +82,29 @@ ScenarioComponent::ScenarioComponent(
     const Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent):
-  ScenarioComponentHierarchy{cst, proc, ctx, id, parent}
+  ScenarioComponentHierarchy{lazy_init_t{}, cst, proc, ctx, id, parent}
 {
-  if (auto fact
-      = ctx.doc.app.interfaces<Scenario::CSPCoherencyCheckerList>()
-            .get())
+}
+
+void ScenarioComponent::init()
+{
+  ScenarioComponentHierarchy::init();
+
+  const Context& ctx = system();
+  if (auto fact = ctx.doc.app.interfaces<Scenario::CSPCoherencyCheckerList>().get())
   {
-    m_checker = fact->make(proc, ctx.doc.app, m_properties);
+    m_checker = fact->make(process(), ctx.doc.app, m_properties);
     if (m_checker)
     {
       m_properties.timenodes[Id<Scenario::TimeNodeModel>(0)].date = 0;
       m_checker->computeDisplacement(m_pastTn, m_properties);
     }
   }
+}
+
+void ScenarioComponent::cleanup()
+{
+  clear();
 }
 
 void ScenarioComponentBase::stop()
@@ -109,57 +119,87 @@ void ScenarioComponentBase::removeConstraint(const Id<Scenario::ConstraintModel>
   if(it != m_ossia_constraints.end())
   {
     m_ctx.executionQueue.enqueue([&proc=OSSIAProcess(),cstr=it.value()->OSSIAConstraint()] {
+      auto& next = cstr->getStartEvent().nextTimeConstraints();
+      auto next_it = ossia::find(next, cstr);
+      next.erase(next_it);
+
+      auto& prev = cstr->getEndEvent().previousTimeConstraints();
+      auto prev_it = ossia::find(prev, cstr);
+      prev.erase(prev_it);
+
       proc.removeTimeConstraint(cstr);
     });
+
+    it->second->cleanup();
+
     m_ossia_constraints.erase(it);
   }
 }
 
-template<>
-void ScenarioComponentBase::removing(
-    const Scenario::ConstraintModel& e, const ConstraintComponent& c)
+std::function<void ()> ScenarioComponentBase::removing(
+    const Scenario::ConstraintModel& e, ConstraintComponent& c)
 {
   auto it = m_ossia_constraints.find(e.id());
   if(it != m_ossia_constraints.end())
   {
     m_ctx.executionQueue.enqueue([&proc=OSSIAProcess(),cstr=c.OSSIAConstraint()] {
+      auto& next = cstr->getStartEvent().nextTimeConstraints();
+      auto next_it = ossia::find(next, cstr);
+      next.erase(next_it);
+
+      auto& prev = cstr->getEndEvent().previousTimeConstraints();
+      auto prev_it = ossia::find(prev, cstr);
+      prev.erase(prev_it);
+
       proc.removeTimeConstraint(cstr);
     });
-    m_ossia_constraints.erase(it);
+
+    c.cleanup();
+
+    return [=] { m_ossia_constraints.erase(it); };
   }
+  return {};
 }
 
-template<>
-void ScenarioComponentBase::removing(
-    const Scenario::TimeNodeModel& e, const TimeNodeComponent& c)
+std::function<void ()> ScenarioComponentBase::removing(
+    const Scenario::TimeNodeModel& e, TimeNodeComponent& c)
 {
   // FIXME this will certainly break stuff WRT member variables, coherency checker, etc.
   auto it = m_ossia_timenodes.find(e.id());
   if(it != m_ossia_timenodes.end())
   {
-    m_ossia_timenodes.erase(it);
+    m_ctx.executionQueue.enqueue([&proc=OSSIAProcess(),tn=c.OSSIATimeNode()] {
+      proc.removeTimeNode(tn);
+    });
+
+    it->second->cleanup();
+
+    return [=] { m_ossia_timenodes.erase(it); };
   }
+  return {};
 }
-template<>
-void ScenarioComponentBase::removing(
-    const Scenario::EventModel& e, const EventComponent& c)
+
+std::function<void ()> ScenarioComponentBase::removing(
+    const Scenario::EventModel& e, EventComponent& c)
 {
   auto it = m_ossia_timeevents.find(e.id());
   if(it != m_ossia_timeevents.end())
   {
-    m_ossia_timeevents.erase(it);
+    return [=] { m_ossia_timeevents.erase(it); };
   }
+  return {};
 }
-template<>
-void ScenarioComponentBase::removing(
-    const Scenario::StateModel& e, const StateComponent& c)
+
+std::function<void ()> ScenarioComponentBase::removing(
+    const Scenario::StateModel& e, StateComponent& c)
 {
   auto it = m_ossia_states.find(e.id());
   if(it != m_ossia_states.end())
   {
     c.onDelete();
-    m_ossia_states.erase(it);
+    return [=] { m_ossia_states.erase(it); };
   }
+  return {};
 }
 
 static void ScenarioConstraintCallback(
@@ -172,34 +212,43 @@ ConstraintComponent* ScenarioComponentBase::make<ConstraintComponent, Scenario::
     const Id<iscore::Component>& id,
     Scenario::ConstraintModel& cst)
 {
-  ISCORE_ASSERT(
-      m_ossia_timeevents.find(process().state(cst.startState()).eventId())
-      != m_ossia_timeevents.end());
-  auto& ossia_sev
-      = m_ossia_timeevents.at(process().state(cst.startState()).eventId());
-  ISCORE_ASSERT(
-      m_ossia_timeevents.find(process().state(cst.endState()).eventId())
-      != m_ossia_timeevents.end());
-  auto& ossia_eev
-      = m_ossia_timeevents.at(process().state(cst.endState()).eventId());
-
-  auto ossia_cst = ossia::time_constraint::create(
-      ScenarioConstraintCallback,
-      *ossia_sev->OSSIAEvent(),
-      *ossia_eev->OSSIAEvent(),
-      Engine::iscore_to_ossia::time(cst.duration.defaultDuration()),
-      Engine::iscore_to_ossia::time(cst.duration.minDuration()),
-      Engine::iscore_to_ossia::time(cst.duration.maxDuration()));
-
-  m_ctx.executionQueue.enqueue([&proc=OSSIAProcess(),cstr=ossia_cst] {
-    proc.addTimeConstraint(cstr);
-  });
-
   // Create the mapping object
-  auto elt = QSharedPointer<ConstraintComponent>::create(ossia_cst, cst, m_ctx, id, this);
+  std::shared_ptr<ConstraintComponent> elt = std::make_shared<ConstraintComponent>(cst, m_ctx, id, this);
   m_ossia_constraints.insert({cst.id(), elt});
 
-  return elt.data();
+  // Find the elements related to this constraint.
+  auto& te = m_ossia_timeevents;
+
+  ISCORE_ASSERT(te.find(process().state(cst.startState()).eventId()) != te.end());
+  ISCORE_ASSERT(te.find(process().state(cst.endState()).eventId()) != te.end());
+  auto ossia_sev = te.at(process().state(cst.startState()).eventId());
+  auto ossia_eev = te.at(process().state(cst.endState()).eventId());
+
+  // Create the time_constraint
+  auto dur = elt->makeDurations();
+  auto ossia_cst = std::make_shared<ossia::time_constraint>(
+        ScenarioConstraintCallback,
+        *ossia_sev->OSSIAEvent(),
+        *ossia_eev->OSSIAEvent(),
+        dur.defaultDuration,
+        dur.minDuration,
+        dur.maxDuration);
+
+  elt->onSetup(ossia_cst, dur, false);
+
+  // The adding of the time_constraint has to be done in the edition thread.
+  m_ctx.executionQueue.enqueue(
+        [thisP=shared_from_this()
+        ,ossia_sev,ossia_eev,ossia_cst
+        ] {
+    auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
+
+    ossia_sev->OSSIAEvent()->nextTimeConstraints().push_back(ossia_cst);
+    ossia_eev->OSSIAEvent()->previousTimeConstraints().push_back(ossia_cst);
+
+    sub.OSSIAProcess().addTimeConstraint(ossia_cst);
+  });
+  return elt.get();
 }
 
 template<>
@@ -207,48 +256,53 @@ StateComponent* ScenarioComponentBase::make<StateComponent, Scenario::StateModel
     const Id<iscore::Component>& id,
     Scenario::StateModel& iscore_state)
 {
-  auto elt = QSharedPointer<StateComponent>::create(iscore_state, m_ctx, id, this);
+  auto elt = std::make_shared<StateComponent>(iscore_state, m_ctx, id, this);
 
-  m_ctx.executionQueue.enqueue([thisP=sharedFromThis(),elt,ev_id=iscore_state.eventId()] {
-    auto sub = thisP.dynamicCast<ScenarioComponentBase>();
-      auto& events = sub->m_ossia_timeevents;
+  auto& events = m_ossia_timeevents;
 
-      ISCORE_ASSERT(events.find(ev_id) != events.end());
-      auto ossia_ev = events.at(ev_id);
+  ISCORE_ASSERT(events.find(iscore_state.eventId()) != events.end());
+  auto ossia_ev = events.at(iscore_state.eventId());
 
-      elt->onSetup(ossia_ev->OSSIAEvent());
-    });
+  m_ctx.executionQueue.enqueue([elt,ev=ossia_ev] {
+    elt->onSetup(ev->OSSIAEvent());
+  });
 
   m_ossia_states.insert({iscore_state.id(), elt});
 
-  return elt.data();
+  return elt.get();
 }
 
 template<>
 EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel>(
     const Id<iscore::Component>& id,
-    Scenario::EventModel& const_ev)
+    Scenario::EventModel& ev)
 {
-  // TODO have a EventPlayAspect too
-  auto& ev = const_cast<Scenario::EventModel&>(const_ev);
-  ISCORE_ASSERT(
-      m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
-  auto ossia_tn = m_ossia_timenodes.at(ev.timeNode());
-
-  std::shared_ptr<ossia::time_event> ossia_ev
-      = *ossia_tn->OSSIATimeNode()->emplace(
-          ossia_tn->OSSIATimeNode()->timeEvents().begin(),
-          ossia::time_event::ExecutionCallback{},
-          ossia::expressions::make_expression_true());
-
-  // Create the mapping object
-  auto elt = QSharedPointer<EventComponent>::create(ossia_ev, ev, m_ctx, id, this);
+  // Create the component
+  auto elt = std::make_shared<EventComponent>(ev, m_ctx, id, this);
   m_ossia_timeevents.insert({ev.id(), elt});
 
-  elt->OSSIAEvent()->setCallback(
-      [=](ossia::time_event::Status st) { return eventCallback(*elt, st); });
+  // Find the parent time node for the new event
+  auto& nodes = m_ossia_timenodes;
+  ISCORE_ASSERT(nodes.find(ev.timeNode()) != nodes.end());
+  auto tn = nodes.at(ev.timeNode());
 
-  return elt.data();
+  // Create the event
+  auto ossia_ev = std::make_shared<ossia::time_event>(
+        [=](ossia::time_event::Status st) { return eventCallback(*elt, st); },
+        *tn->OSSIATimeNode(),
+        ossia::expression_ptr{});
+
+  elt->onSetup(ossia_ev, elt->makeExpression(), (ossia::time_event::OffsetBehavior) (ev.offsetBehavior()));
+
+  // The event is inserted in the API edition thread
+  m_ctx.executionQueue.enqueue(
+        [event=elt,time_node=tn]
+  {
+    ossia::time_node& ossia_tn = *time_node->OSSIATimeNode();
+    ossia_tn.insert(ossia_tn.timeEvents().begin(), event->OSSIAEvent());
+  });
+
+  return elt.get();
 }
 
 template<>
@@ -256,33 +310,47 @@ TimeNodeComponent* ScenarioComponentBase::make<TimeNodeComponent, Scenario::Time
     const Id<iscore::Component>& id,
     Scenario::TimeNodeModel& tn)
 {
-  // Create the mapping object
-  auto elt = QSharedPointer<TimeNodeComponent>::create(tn, m_ctx, id, this);
+  // Create the object
+  auto elt = std::make_shared<TimeNodeComponent>(tn, m_ctx, id, this);
   m_ossia_timenodes.insert({tn.id(), elt});
 
-  bool isStart = tn.id() ==  Scenario::startId<Scenario::TimeNodeModel>();
-  m_ctx.executionQueue.enqueue([thisP=sharedFromThis(),elt,isStart] {
-    auto sub = thisP.dynamicCast<ScenarioComponentBase>();
-      std::shared_ptr<ossia::time_node> ossia_tn;
-      if (isStart)
-      {
-        ossia_tn = sub->OSSIAProcess().getStartTimeNode();
-      }
-      else
-      {
-        ossia_tn = std::make_shared<ossia::time_node>();
-        sub->OSSIAProcess().addTimeNode(ossia_tn);
-      }
+  bool must_add = false;
+  // The OSSIA API already creates the start time node so we must use it if available
+  std::shared_ptr<ossia::time_node> ossia_tn;
+  if (tn.id() ==  Scenario::startId<Scenario::TimeNodeModel>())
+  {
+    ossia_tn = OSSIAProcess().getStartTimeNode();
+  }
+  else
+  {
+    ossia_tn = std::make_shared<ossia::time_node>();
+    must_add = true;
+  }
 
-      elt->onSetup(ossia_tn);
-      elt->OSSIATimeNode()->setCallback([=]() {
-        return sub->timeNodeCallback(
-            elt.data(), sub->m_parent_constraint.OSSIAConstraint()->getDate());
-      });
+  // Setup the object
+  elt->onSetup(ossia_tn, elt->makeTrigger());
 
+  // What happens when a time node's status change
+  ossia_tn->setCallback([thisP=shared_from_this(),elt]() {
+    auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
+    return sub.timeNodeCallback(
+          elt.get(), sub.m_parent_constraint.OSSIAConstraint()->getDate());
   });
 
-  return elt.data();
+  // Changing the running API structures
+  m_ctx.executionQueue.enqueue(
+        [
+        thisP=shared_from_this()
+        ,ossia_tn
+        ,must_add]
+  {
+    auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
+
+    if(must_add)
+      sub.OSSIAProcess().addTimeNode(ossia_tn);
+  });
+
+  return elt.get();
 }
 
 void ScenarioComponentBase::startConstraintExecution(
@@ -392,7 +460,7 @@ void ScenarioComponentBase::timeNodeCallback(
       auto& cstrProp = m_properties.constraints[cstrId];
 
       cstrProp.newMin.setMSecs(
-          curTnProp.date - m_properties.timenodes[startTn.id()].date);
+            curTnProp.date - m_properties.timenodes[startTn.id()].date);
       cstrProp.newMax = cstrProp.newMin;
 
       cstrProp.status = Scenario::ExecutionStatus::Happened;

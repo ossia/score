@@ -103,33 +103,37 @@ Component::Component(
 
   // TODO also states in BasEelement
   // TODO put graphical settings somewhere.
-  auto startTN = loop->getPatternStartTimeNode();
-  auto endTN = loop->getPatternEndTimeNode();
-  auto startEV = *startTN->timeEvents().begin();
-  auto endEV = *endTN->timeEvents().begin();
+  auto main_start_node = loop->getPatternStartTimeNode();
+  auto main_end_node = loop->getPatternEndTimeNode();
+  auto main_start_event = *main_start_node->timeEvents().begin();
+  auto main_end_event = *main_end_node->timeEvents().begin();
 
   using namespace Engine::Execution;
   m_ossia_startTimeNode = new TimeNodeComponent{element.startTimeNode(),
                                               system(), iscore::newId(element.startTimeNode()), this};
   m_ossia_endTimeNode = new TimeNodeComponent{element.endTimeNode(),
                                             system(), iscore::newId(element.endTimeNode()), this};
-  m_ossia_startTimeNode->onSetup(startTN);
-  m_ossia_endTimeNode->onSetup(endTN);
 
-  m_ossia_startEvent = new EventComponent{startEV, element.startEvent(),
+  m_ossia_startEvent = new EventComponent{element.startEvent(),
                                         system(), iscore::newId(element.startEvent()), this};
-  m_ossia_endEvent = new EventComponent{endEV, element.endEvent(),
+  m_ossia_endEvent = new EventComponent{element.endEvent(),
                                       system(), iscore::newId(element.endEvent()), this};
 
   m_ossia_startState
       = new StateComponent{element.startState(), system(), iscore::newId(element.startState()), this};
   m_ossia_endState
       = new StateComponent{element.endState(), system(), iscore::newId(element.endState()), this};
-  m_ossia_startState->onSetup(startEV);
-  m_ossia_endState->onSetup(endEV);
 
-  m_ossia_constraint = new ConstraintComponent{
-      loop->getPatternTimeConstraint(), element.constraint(), system(), iscore::newId(element.constraint()), this};
+
+  m_ossia_constraint = new ConstraintComponent{element.constraint(), system(), iscore::newId(element.constraint()), this};
+
+  m_ossia_startTimeNode->onSetup(main_start_node, m_ossia_startTimeNode->makeTrigger());
+  m_ossia_endTimeNode->onSetup(main_end_node, m_ossia_endTimeNode->makeTrigger());
+  m_ossia_startEvent->onSetup(main_start_event, m_ossia_startEvent->makeExpression(), (ossia::time_event::OffsetBehavior)element.startEvent().offsetBehavior());
+  m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::OffsetBehavior)element.endEvent().offsetBehavior());
+  m_ossia_startState->onSetup(main_start_event);
+  m_ossia_endState->onSetup(main_end_event);
+  m_ossia_constraint->onSetup(loop->getPatternTimeConstraint(), m_ossia_constraint->makeDurations(), true);
 }
 
 Component::~Component()

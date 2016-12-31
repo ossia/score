@@ -35,7 +35,7 @@ DocumentPlugin::DocumentPlugin(
   con(doc, &iscore::Document::aboutToClose, this, [&] {
     if (m_base)
     {
-      m_base->baseConstraint()->stop();
+      m_base->baseConstraint().stop();
     }
     m_base.reset();
   });
@@ -45,7 +45,8 @@ DocumentPlugin::~DocumentPlugin()
 {
   if (m_base)
   {
-    m_base->baseConstraint()->stop();
+    m_base->baseConstraint().stop();
+    clear();
   }
 }
 
@@ -53,11 +54,13 @@ void DocumentPlugin::reload(Scenario::ConstraintModel& cst)
 {
   if (m_base)
   {
-    m_base->baseConstraint()->stop();
+    m_base->baseConstraint().stop();
   }
+  clear();
+
   auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
   ISCORE_ASSERT(parent);
-  m_base = std::make_unique<BaseScenarioElement>(
+  m_base = std::make_shared<BaseScenarioElement>(
       BaseScenarioRefContainer{cst, *parent}, m_ctx, this);
 
   runAllCommands();
@@ -65,6 +68,8 @@ void DocumentPlugin::reload(Scenario::ConstraintModel& cst)
 
 void DocumentPlugin::clear()
 {
+  if(m_base)
+    m_base->cleanup();
   m_base.reset();
 }
 

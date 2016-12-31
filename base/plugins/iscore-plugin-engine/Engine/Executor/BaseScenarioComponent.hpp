@@ -113,32 +113,34 @@ public:
       BaseScenarioRefContainer element, const Context&, QObject* parent);
   ~BaseScenarioElement();
 
-  ConstraintComponent* baseConstraint() const;
+  void cleanup();
 
-  TimeNodeComponent* startTimeNode() const;
-  TimeNodeComponent* endTimeNode() const;
+  ConstraintComponent& baseConstraint() const;
 
-  EventComponent* startEvent() const;
-  EventComponent* endEvent() const;
+  TimeNodeComponent& startTimeNode() const;
+  TimeNodeComponent& endTimeNode() const;
 
-  StateComponent* startState() const;
-  StateComponent* endState() const;
+  EventComponent& startEvent() const;
+  EventComponent& endEvent() const;
+
+  StateComponent& startState() const;
+  StateComponent& endState() const;
 
 signals:
   void finished();
 
 private:
   const Context& m_ctx;
-  ConstraintComponent* m_ossia_constraint{};
+  std::shared_ptr<ConstraintComponent> m_ossia_constraint{};
 
-  TimeNodeComponent* m_ossia_startTimeNode{};
-  TimeNodeComponent* m_ossia_endTimeNode{};
+  std::shared_ptr<TimeNodeComponent> m_ossia_startTimeNode{};
+  std::shared_ptr<TimeNodeComponent> m_ossia_endTimeNode{};
 
-  EventComponent* m_ossia_startEvent{};
-  EventComponent* m_ossia_endEvent{};
+  std::shared_ptr<EventComponent> m_ossia_startEvent{};
+  std::shared_ptr<EventComponent> m_ossia_endEvent{};
 
-  StateComponent* m_ossia_startState{};
-  StateComponent* m_ossia_endState{};
+  std::shared_ptr<StateComponent> m_ossia_startState{};
+  std::shared_ptr<StateComponent> m_ossia_endState{};
 };
 }
 }

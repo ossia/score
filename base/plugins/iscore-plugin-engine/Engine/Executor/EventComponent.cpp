@@ -8,32 +8,47 @@
 
 #include "EventComponent.hpp"
 #include <ossia/editor/expression/expression.hpp>
+#include <ossia/detail/logger.hpp>
 
 namespace Engine
 {
 namespace Execution
 {
 EventComponent::EventComponent(
-    std::shared_ptr<ossia::time_event> event,
     const Scenario::EventModel& element,
     const Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
     : Execution::Component{ctx, id, "Executor::Event", nullptr}
     , m_iscore_event{element}
-    , m_ossia_event{event}
 {
+}
+
+void EventComponent::cleanup()
+{
+  m_ossia_event.reset();
+}
+
+ossia::expression_ptr EventComponent::makeExpression() const
+{
+  return Engine::iscore_to_ossia::expression(
+          m_iscore_event.condition(), system().devices.list());
+}
+
+void EventComponent::onSetup(
+    std::shared_ptr<ossia::time_event> event,
+    ossia::expression_ptr expr,
+    ossia::time_event::OffsetBehavior b)
+{
+  m_ossia_event = event;
   try
   {
-    auto expr = Engine::iscore_to_ossia::expression(
-        m_iscore_event.condition(), system().devices.list());
     m_ossia_event->setExpression(std::move(expr));
-    m_ossia_event->setOffsetBehavior(
-        (ossia::time_event::OffsetBehavior)element.offsetBehavior());
+    m_ossia_event->setOffsetBehavior(b);
   }
   catch (std::exception& e)
   {
-    qDebug() << e.what();
+    ossia::logger().error(e.what());
     m_ossia_event->setExpression(ossia::expressions::make_expression_true());
   }
 }

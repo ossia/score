@@ -24,10 +24,10 @@ public:
   template <typename Component_T, typename Element>
   Component_T* make(const Id<iscore::Component>& id, Element& elt);
 
-  template <typename Component_T, typename Element>
-  void removing(const Element& elt, const Component_T& comp)
-  {
-  }
+  template<typename... Args>
+  bool removing(Args&&...) { return true; }
+  template<typename... Args>
+  void removed(Args&&...) { }
 
 private:
   ossia::net::node_base& m_constraintsNode;

@@ -15,13 +15,15 @@
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/model/ComponentSerialization.hpp>
 
+struct lazy_init_t { };
 template <
     typename Component_T,
     typename Scenario_T,
     typename ConstraintComponent_T,
     typename EventComponent_T,
     typename TimeNodeComponent_T,
-    typename StateComponent_T>
+    typename StateComponent_T,
+    bool HasOwnership = true>
 class HierarchicalScenarioComponent : public Component_T, public Nano::Observer
 {
 public:
@@ -50,9 +52,27 @@ public:
     StateComponent_T& component;
   };
 
+  //! The default constructor will also initialize the children
   template <typename... Args>
   HierarchicalScenarioComponent(Args&&... args)
       : Component_T{std::forward<Args>(args)...}
+  {
+    setup<Scenario::TimeNodeModel>();
+    setup<Scenario::EventModel>();
+    setup<Scenario::StateModel>();
+    setup<Scenario::ConstraintModel>();
+  }
+
+
+  //! This constructor allows for initializing the children later. Useful for std::enable_shared_from_this.
+  template <typename... Args>
+  HierarchicalScenarioComponent(lazy_init_t, Args&&... args)
+      : Component_T{std::forward<Args>(args)...}
+  {
+  }
+
+  //! Do not forget to call this when using the lazy constructor.
+  void init()
   {
     setup<Scenario::TimeNodeModel>();
     setup<Scenario::EventModel>();
@@ -106,8 +126,19 @@ private:
   template <typename Pair_T>
   void cleanup(const Pair_T& pair)
   {
-    Component_T::removing(pair.element, pair.component);
-    pair.element.components().remove(pair.component);
+
+    // TODO constexpr-if
+    if(HasOwnership)
+    {
+      Component_T::removing(pair.element, pair.component);
+      pair.element.components().remove(pair.component);
+    }
+    else
+    {
+      auto t = Component_T::removing(pair.element, pair.component);
+      pair.element.components().erase(pair.component);
+      Component_T::removed(pair.element, pair.component, t);
+    }
   }
 
   template <typename elt_t>

@@ -79,13 +79,13 @@ void PlayFromConstraintScenarioPruner::operator()(const Context& exec_ctx)
 
   // Get the constraints in the scenario execution
   auto process_ptr = dynamic_cast<const Process::ProcessModel*>(&scenar);
-  auto& source_procs = exec_ctx.sys.baseScenario()->baseConstraint()->processes();
+  auto& source_procs = exec_ctx.sys.baseScenario()->baseConstraint().processes();
   auto scenar_proc_it = ossia::find_if(source_procs, [=] (const auto& process) {
     return &process->process() == process_ptr;
   });
   ISCORE_ASSERT(scenar_proc_it != source_procs.end());
 
-  auto e = dynamic_cast<ScenarioComponentBase*>(scenar_proc_it->data());
+  auto e = dynamic_cast<ScenarioComponentBase*>(scenar_proc_it->get());
   auto scenar_constraints = e->constraints();
   ConstraintComponent* other_cst{};
   for(auto elt : scenar_constraints)
@@ -97,7 +97,7 @@ void PlayFromConstraintScenarioPruner::operator()(const Context& exec_ctx)
     }
     else if(&is == &constraint)
     {
-      other_cst = elt.second.data();
+      other_cst = elt.second.get();
     }
   }
 
