@@ -37,6 +37,7 @@ using StateProcessComponentFactoryList = iscore::
 using ExecutionCommand = std::function<void()>;
 using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand>;
 
+//! Useful structures when creating the execution elements.
 struct ISCORE_PLUGIN_ENGINE_EXPORT Context
 {
   const iscore::DocumentContext& doc;
@@ -44,6 +45,8 @@ struct ISCORE_PLUGIN_ENGINE_EXPORT Context
   const Explorer::DeviceDocumentPlugin& devices;
   const Engine::Execution::ProcessComponentFactoryList& processes;
   const Engine::Execution::StateProcessComponentFactoryList& stateProcesses;
+
+  //! \see LiveModification
   ExecutionCommandQueue& executionQueue;
 
   auto& context() const { return *this; }
