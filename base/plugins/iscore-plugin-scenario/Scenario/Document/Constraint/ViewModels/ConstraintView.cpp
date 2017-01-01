@@ -161,6 +161,10 @@ QColor ConstraintView::constraintColor(const ScenarioStyle& skin) const
   {
     constraintColor = skin.ConstraintInvalid.getColor();
   }
+  else if (m_state == ConstraintExecutionState::Muted)
+  {
+    constraintColor = skin.ConstraintMuted.getColor();
+  }
 
   if (shadow())
     constraintColor = constraintColor.lighter();

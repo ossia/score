@@ -34,18 +34,21 @@ ConstraintComponentBase::ConstraintComponentBase(
   con(constraint().duration,
       &Scenario::ConstraintDurations::executionSpeedChanged, this,
       [&](double sp) { m_ossia_constraint->setSpeed(sp); });
+
   con(constraint().duration,
       &Scenario::ConstraintDurations::defaultDurationChanged, this,
       [&](TimeValue sp) {
     system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
       { cst->setDurationNominal(iscore_to_ossia::time(sp)); });
   });
+
   con(constraint().duration,
       &Scenario::ConstraintDurations::minDurationChanged, this,
       [&](TimeValue sp) {
     system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
       { cst->setDurationMin(iscore_to_ossia::time(sp)); });
   });
+
   con(constraint().duration,
       &Scenario::ConstraintDurations::maxDurationChanged, this,
       [&](TimeValue sp) {
@@ -101,15 +104,23 @@ void ConstraintComponent::onSetup(
   m_ossia_constraint->setDurationMax(dur.maxDuration);
   m_ossia_constraint->setSpeed(dur.speed);
 
-  // BaseScenario needs a special callback.
+  // BaseScenario needs a special callback. It is given in DefaultClockManager.
   if (!parent_is_base_scenario)
   {
     m_ossia_constraint->setCallback(
         [&](ossia::time_value position,
             ossia::time_value date,
             const ossia::state& state) {
-          constraintCallback(position, date, state);
-        });
+      auto currentTime = Engine::ossia_to_iscore::time(date);
+
+      auto& cstdur = constraint().duration;
+      const auto& maxdur = cstdur.maxDuration();
+
+      if (!maxdur.isInfinite())
+        cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
+      else
+        cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
+    });
   }
 
   init();
@@ -233,20 +244,5 @@ std::function<void ()> ConstraintComponentBase::removing(
   return {};
 }
 
-void ConstraintComponentBase::constraintCallback(
-    ossia::time_value position,
-    ossia::time_value date,
-    const ossia::state& state)
-{
-  auto currentTime = Engine::ossia_to_iscore::time(date);
-
-  auto& cstdur = constraint().duration;
-  const auto& maxdur = cstdur.maxDuration();
-
-  if (!maxdur.isInfinite())
-    cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
-  else
-    cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
-}
 }
 }

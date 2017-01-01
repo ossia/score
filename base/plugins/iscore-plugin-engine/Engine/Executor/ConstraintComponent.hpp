@@ -102,13 +102,8 @@ public:
   auto& context() { return system(); }
 protected:
   void on_processAdded(Process::ProcessModel& iscore_proc);
-  void constraintCallback(
-      ossia::time_value position,
-      ossia::time_value date,
-      const ossia::state& state);
 
   std::shared_ptr<ossia::time_constraint> m_ossia_constraint;
-
   std::vector<std::shared_ptr<ProcessComponent>> m_processes;
 };
 
