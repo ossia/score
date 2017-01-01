@@ -144,10 +144,10 @@ bool Address::validateFragment(const QString& s)
   return ossia::all_of(s, &ossia::net::is_valid_character_for_name<QChar>);
 }
 
-Address Address::fromString(const QString& str)
+optional<Address> Address::fromString(const QString& str)
 {
   if (!validateString(str))
-    return {"", {""}};
+    return {};
 
   QStringList path = str.split("/");
   ISCORE_ASSERT(path.size() > 0);
@@ -156,10 +156,10 @@ Address Address::fromString(const QString& str)
   path.removeFirst();         // Remove the device.
   if (path.first().isEmpty()) // case "device:/"
   {
-    return {device, {}};
+    return State::Address{device, {}};
   }
 
-  return {device, path};
+  return State::Address{device, path};
 }
 
 QString Address::toString() const

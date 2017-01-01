@@ -68,7 +68,9 @@ using enable_if_deserializer = typename std::
   friend class ::DataStreamReader; \
   friend class ::DataStreamWriter; \
   friend class ::JSONObjectReader; \
-  friend class ::JSONObjectWriter;
+  friend class ::JSONObjectWriter; \
+  friend class ::JSONValueReader; \
+  friend class ::JSONValueWriter;
 
 
 class DataStreamReader;

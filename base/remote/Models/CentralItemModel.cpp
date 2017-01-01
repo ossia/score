@@ -94,27 +94,29 @@ QQuickItem* CentralItemModel::create(WidgetKind c)
 
 void CentralItemModel::on_addressCreated(QString data, qreal x, qreal y)
 {
-  auto address = State::Address::fromString(data);
-  auto n = Device::try_getNodeFromAddress(m_ctx.nodes.rootNode(), address);
-  if(n)
+  if(auto address = State::Address::fromString(data))
   {
-    auto as = n->target<Device::AddressSettings>();
-    if(as && as->value.val.isValid())
+    auto n = Device::try_getNodeFromAddress(m_ctx.nodes.rootNode(), *address);
+    if(n)
     {
-      // We try to create a relevant component according to the type of the value.
-      auto comp_type = eggs::variants::apply(AddressItemFactory{}, as->value.val.impl());
-
-      if(auto obj = create(comp_type))
+      auto as = n->target<Device::AddressSettings>();
+      if(as && as->value.val.isValid())
       {
-        auto item = new GUIItem{m_ctx, comp_type, obj};
+        // We try to create a relevant component according to the type of the value.
+        auto comp_type = eggs::variants::apply(AddressItemFactory{}, as->value.val.impl());
 
-        item->setAddress(Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(*as, address));
+        if(auto obj = create(comp_type))
+        {
+          auto item = new GUIItem{m_ctx, comp_type, obj};
 
-        // Put its center where the mouse is
-        QQmlProperty(obj, "x").write(x - obj->width() / 2.);
-        QQmlProperty(obj, "y").write(y - obj->height() / 2.);
+          item->setAddress(Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(*as, *address));
 
-        addItem(item);
+          // Put its center where the mouse is
+          QQmlProperty(obj, "x").write(x - obj->width() / 2.);
+          QQmlProperty(obj, "y").write(y - obj->height() / 2.);
+
+          addItem(item);
+        }
       }
     }
   }
