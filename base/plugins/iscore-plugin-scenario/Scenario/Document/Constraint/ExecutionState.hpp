@@ -6,7 +6,8 @@ namespace Scenario
 enum class ConstraintExecutionState
 {
   Enabled,
-  Disabled
+  Disabled,
+  Muted
 };
 }
 Q_DECLARE_METATYPE(Scenario::ConstraintExecutionState)

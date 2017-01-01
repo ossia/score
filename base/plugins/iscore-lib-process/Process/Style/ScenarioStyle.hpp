@@ -29,6 +29,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   iscore::ColorRef ConstraintPlayFill;
   iscore::ColorRef ConstraintWarning;
   iscore::ColorRef ConstraintInvalid;
+  iscore::ColorRef ConstraintMuted;
   iscore::ColorRef ConstraintDefaultLabel;
   iscore::ColorRef ConstraintDefaultBackground;
 

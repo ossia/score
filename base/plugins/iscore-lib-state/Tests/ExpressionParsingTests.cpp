@@ -488,6 +488,20 @@ private slots:
         bool(State::parseExpression("{ my_app:/score > my_app:/stage_score }"s)));
     QVERIFY(bool(State::parseExpression("{ { A:/B > c:/D } and { e:/f > g:/h } }"s)));
   }
+
+
+  void test_parse_patternmatch()
+  {
+    using namespace std::literals;
+
+    QVERIFY(bool(State::parseAddressAccessor("myapp:/score")));
+    QVERIFY(bool(State::parseAddressAccessor("myapp:/score.")));
+    QVERIFY(bool(State::parseAddressAccessor("myapp:/score.*")));
+    QVERIFY(bool(State::parseAddressAccessor("//score")));
+    QVERIFY(bool(State::parseAddressAccessor("//score/blop")));
+    QVERIFY(bool(State::parseAddressAccessor("../score/blop")));
+    QVERIFY(bool(State::parseAddressAccessor("myapp:/score.*/[a-z]*/{blurg}")));
+  }
 };
 
 QTEST_APPLESS_MAIN(ExpressionParsingTests)

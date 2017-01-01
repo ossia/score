@@ -9,6 +9,7 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     , ConstraintPlayFill{&s.Base3}
     , ConstraintWarning{&s.Warn2}
     , ConstraintInvalid{&s.Warn3}
+    , ConstraintMuted{&s.Tender2}
     , ConstraintDefaultLabel{&s.Gray}
     , ConstraintDefaultBackground{&s.Transparent1}
     ,
