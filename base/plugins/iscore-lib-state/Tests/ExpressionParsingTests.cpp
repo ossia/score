@@ -30,6 +30,7 @@ bool validate(const State::Expression& expr)
 #include <QStringList>
 #include <QtTest/QtTest>
 #include <State/Expression.hpp>
+#include <State/TraversalPath.hpp>
 #include <boost/proto/operators.hpp>
 #include <boost/spirit/home/qi/detail/parse_auto.hpp>
 #include <boost/spirit/home/qi/operator/expect.hpp>
@@ -494,13 +495,13 @@ private slots:
   {
     using namespace std::literals;
 
-    QVERIFY(bool(State::parseAddressAccessor("myapp:/score")));
-    QVERIFY(bool(State::parseAddressAccessor("myapp:/score.")));
-    QVERIFY(bool(State::parseAddressAccessor("myapp:/score.*")));
-    QVERIFY(bool(State::parseAddressAccessor("//score")));
-    QVERIFY(bool(State::parseAddressAccessor("//score/blop")));
-    QVERIFY(bool(State::parseAddressAccessor("../score/blop")));
-    QVERIFY(bool(State::parseAddressAccessor("myapp:/score.*/[a-z]*/{blurg}")));
+    QVERIFY(bool(State::TraversalPath::make_path("myapp:/score")));
+    QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.")));
+    QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.*")));
+    QVERIFY(bool(State::TraversalPath::make_path("../score/blop")));
+    QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.*/[a-z]*/{blurg}")));
+    QVERIFY(bool(State::TraversalPath::make_path("//score")));
+    QVERIFY(bool(State::TraversalPath::make_path("//score/blop")));
   }
 };
 

@@ -96,14 +96,16 @@ qreal GUIItem::y() const
 
 void GUIItem::setAddress(QString data)
 {
-  auto address = State::Address::fromString(data);
-  auto n = Device::try_getNodeFromAddress(m_ctx.nodes.rootNode(), address);
-  if(n)
+  if(auto address = State::Address::fromString(data))
   {
-    auto as = n->target<Device::AddressSettings>();
-    if(as && as->value.val.isValid())
+    auto n = Device::try_getNodeFromAddress(m_ctx.nodes.rootNode(), *address);
+    if(n)
     {
-      setAddress(Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(*as, address));
+      auto as = n->target<Device::AddressSettings>();
+      if(as && as->value.val.isValid())
+      {
+        setAddress(Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(*as, *address));
+      }
     }
   }
 }

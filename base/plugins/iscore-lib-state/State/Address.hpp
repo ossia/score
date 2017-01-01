@@ -77,7 +77,7 @@ struct ISCORE_LIB_STATE_EXPORT Address
   static bool validateFragment(const QString& s);
 
   // Make an address from a valid address string
-  static Address fromString(const QString& str); // TODO return optional
+  static optional<Address> fromString(const QString& str); // TODO return optional
 
   /**
    * @brief toString
