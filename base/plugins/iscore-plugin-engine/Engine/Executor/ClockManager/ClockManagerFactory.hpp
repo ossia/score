@@ -13,7 +13,7 @@ struct Context;
 class BaseScenarioElement;
 
 /**
- * @brief The ClockManager class
+ * @brief Sets-up and manages the main execution clock
  *
  * This class allows to create control mechanisms
  * for the i-score execution clock.
