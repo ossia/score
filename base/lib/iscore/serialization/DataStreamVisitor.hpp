@@ -43,7 +43,15 @@ class ApplicationComponents;
  */
 template <typename T>
 using enable_if_QDataStreamSerializable =
-    typename std::enable_if_t<std::is_arithmetic<T>::value || std::is_same<T, QStringList>::value || std::is_same<T, QVector2D>::value || std::is_same<T, QVector3D>::value || std::is_same<T, QVector4D>::value || std::is_same<T, QPointF>::value || std::is_same<T, QPoint>::value>;
+    typename std::enable_if_t<
+      std::is_arithmetic<T>::value
+   || std::is_same<T, QStringList>::value
+   || std::is_same<T, QVector2D>::value
+   || std::is_same<T, QVector3D>::value
+   || std::is_same<T, QVector4D>::value
+   || std::is_same<T, QPointF>::value
+   || std::is_same<T, QPoint>::value
+   || std::is_same<T, std::string>::value>;
 
 template <class, class Enable = void>
 struct is_QDataStreamSerializable : std::false_type
@@ -618,7 +626,6 @@ struct TSerializer<DataStream, iscore::hash_map<T, U>>
     }
   }
 };
-
 
 Q_DECLARE_METATYPE(DataStreamReader*)
 Q_DECLARE_METATYPE(DataStreamWriter*)

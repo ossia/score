@@ -41,7 +41,7 @@ Engine::LocalTree::DocumentPlugin::DocumentPlugin(
     iscore::Document& doc, Id<iscore::DocumentPlugin> id, QObject* parent)
     : iscore::DocumentPlugin{doc.context(), std::move(id),
                              "LocalTree::DocumentPlugin", parent}
-    , m_localDevice{std::make_unique<ossia::net::local_protocol>(), "i-score"}
+    , m_localDevice{std::make_unique<ossia::net::local_protocol>(), "iscore"}
     , m_localDeviceWrapper{
           m_localDevice, doc.context(),
           Network::LocalProtocolFactory::static_defaultSettings()}
@@ -98,6 +98,7 @@ void Engine::LocalTree::DocumentPlugin::create()
       *this,
       this);
   cstr.components().add(m_root);
+  m_root->node().setName("root");
 }
 
 void Engine::LocalTree::DocumentPlugin::cleanup()

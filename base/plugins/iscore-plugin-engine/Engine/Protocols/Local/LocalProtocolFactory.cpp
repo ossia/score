@@ -43,7 +43,7 @@ const Device::DeviceSettings& LocalProtocolFactory::static_defaultSettings()
     Device::DeviceSettings s;
     s.protocol
         = static_concreteKey(); // Todo check for un-set protocol.
-    s.name = "i-score";
+    s.name = "iscore";
     Network::LocalSpecificSettings specif;
     specif.host = "127.0.0.1";
     specif.remoteName = "i-score-remote";

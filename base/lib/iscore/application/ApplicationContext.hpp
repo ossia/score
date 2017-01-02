@@ -32,7 +32,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   virtual ~ApplicationContext();
 
   /**
-   * @brief settings Access a specific Settings model instance.
+   * @brief Access a specific Settings model instance.
    *
    * @see iscore::Settings::Model
    */
@@ -52,7 +52,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   }
 
   /**
-   * @brief applicationPlugins List of all the application-wide plug-ins
+   * @brief List of all the application-wide plug-ins
    *
    * @see iscore::GUIApplicationContextPlugin
    */
@@ -62,7 +62,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   }
 
   /**
-   * @brief settings Access a specific application plug-in instance.
+   * @brief Access a specific application plug-in instance.
    *
    * @see iscore::GUIApplicationContextPlugin
    */
@@ -73,7 +73,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   }
 
   /**
-   * @brief addons List of all the registered addons.
+   * @brief List of all the registered addons.
    *
    * @see iscore::Addon
    */
@@ -83,7 +83,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   }
 
   /**
-   * @brief panels List of the available GUI panels.
+   * @brief List of the available GUI panels.
    *
    * @see iscore::PanelDelegate
    */
@@ -93,7 +93,18 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   }
 
   /**
-   * @brief interfaces Access to a specific interface list
+   * @brief Access to a specific PanelDelegate
+   *
+   * @see iscore::PanelDelegate
+   */
+  template<typename T>
+  T& panel() const
+  {
+    return components.panel<T>();
+  }
+
+  /**
+   * @brief Access to a specific interface list
    *
    * @see iscore::InterfaceList
    */

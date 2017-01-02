@@ -171,14 +171,7 @@ uint qHash(const Id<T>& id, uint seed)
 template <typename tag>
 QDebug operator<<(QDebug dbg, const Id<tag>& c)
 {
-  if (c.val())
-  {
-    dbg.nospace() << c.val();
-  }
-  else
-  {
-    dbg.nospace() << "Not set";
-  }
+  dbg.nospace() << c.val();
 
   return dbg.space();
 }

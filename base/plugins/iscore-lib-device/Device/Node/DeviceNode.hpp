@@ -48,6 +48,11 @@ public:
   {
   }
 
+  bool operator==(const DeviceExplorerNode& other) const
+  {
+    return static_cast<const VariantBasedNode&>(*this) == static_cast<const VariantBasedNode&>(other);
+  }
+
   //- accessors
   QString displayName() const;
 

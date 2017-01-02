@@ -35,6 +35,11 @@ iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer()
 
   auto& anySer = iscore::anySerializers();
   anySer.emplace(std::string("instanceBounds"), std::make_unique<iscore::any_serializer_t<ossia::net::instance_bounds>>());
+  anySer.emplace(std::string("description"), std::make_unique<iscore::any_serializer_t<ossia::net::description>>());
+  anySer.emplace(std::string("priority"), std::make_unique<iscore::any_serializer_t<ossia::net::priority>>());
+  anySer.emplace(std::string("tags"), std::make_unique<iscore::any_serializer_t<ossia::net::tags>>());
+  anySer.emplace(std::string("refreshRate"), std::make_unique<iscore::any_serializer_t<ossia::net::refresh_rate>>());
+  anySer.emplace(std::string("valueStepSize"), std::make_unique<iscore::any_serializer_t<ossia::net::value_step_size>>());
 }
 
 iscore_plugin_deviceexplorer::~iscore_plugin_deviceexplorer()
