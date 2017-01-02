@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/std/String.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <boost/any.hpp>
 
@@ -57,25 +58,15 @@ ISCORE_LIB_BASE_EXPORT any_serializer_map& anySerializers();
 template<typename Vis, typename Any>
 void apply(Vis& s, const std::string& key, Any& v)
 {
-  const auto& t = v.type();
-  if(t == typeid(int32_t))
-    iscore::any_serializer_t<int32_t>{}.apply(s, v);
-  else if(t == typeid(std::string))
-    iscore::any_serializer_t<std::string>{}.apply(s, v);
-  else if(t == typeid(std::vector<std::string>))
-    iscore::any_serializer_t<int32_t>{}.apply(s, v);
+  auto& ser = iscore::anySerializers();
+  auto it = ser.find(key);
+  if(it != ser.end())
+  {
+    it.value()->apply(s, v);
+  }
   else
   {
-    auto& ser = iscore::anySerializers();
-    auto it = ser.find(key);
-    if(it != ser.end())
-    {
-      it.value()->apply(s, v);
-    }
-    else
-    {
-      ISCORE_TODO;
-    }
+    ISCORE_TODO;
   }
 }
 

@@ -89,6 +89,10 @@ public:
     return m_data;
   }
 
+  bool operator==(const VariantBasedNode& other) const
+  {
+    return m_data == other.m_data;
+  }
 protected:
   eggs::variant<InvisibleRootNode, Args...> m_data;
 };

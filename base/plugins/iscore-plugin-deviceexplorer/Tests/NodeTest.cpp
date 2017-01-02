@@ -3,7 +3,9 @@
 #include <QString>
 #include <QtTest/QtTest>
 #include <algorithm>
-
+#include <core/application/MockApplication.hpp>
+#include <iscore/serialization/AnySerialization.hpp>
+#include <ossia/network/base/node_attributes.hpp>
 class NodeTest : public QObject
 {
   Q_OBJECT
@@ -118,7 +120,7 @@ private slots:
     Device::Node root;
 
     Device::DeviceSettings dev_base{
-        UuidKey<Device::ProtocolFactory>{"NoProtocol"}, "ADevice", {}};
+        UuidKey<Device::ProtocolFactory>{"85783b8d-454d-4326-a070-9666d2534eff"}, "ADevice", {}};
     auto& dev = root.emplace_back(std::move(dev_base), nullptr);
 
     ISCORE_ASSERT(root.childCount() == 1);
@@ -128,7 +130,7 @@ private slots:
 
     auto& dev_2 = root.emplace_back(
         Device::DeviceSettings{
-            UuidKey<Device::ProtocolFactory>{"Bla"}, "OtherDevice", {}},
+            UuidKey<Device::ProtocolFactory>{"85783b8d-454d-4326-a070-9666d2534eff"}, "OtherDevice", {}},
         nullptr);
     ISCORE_ASSERT(root.childCount() == 2);
     ISCORE_ASSERT(dev_2.parent() == &root);
@@ -167,6 +169,73 @@ private slots:
       ISCORE_ASSERT(
           root_copy.childAt(1).childAt(0).parent() == &root_copy.childAt(1));
     }
+  }
+
+  void test_serialize_any()
+  {
+    auto& anySer = iscore::anySerializers();
+    anySer.emplace(std::string("instanceBounds"), std::make_unique<iscore::any_serializer_t<ossia::net::instance_bounds>>());
+    anySer.emplace(std::string("description"), std::make_unique<iscore::any_serializer_t<ossia::net::description>>());
+    anySer.emplace(std::string("priority"), std::make_unique<iscore::any_serializer_t<ossia::net::priority>>());
+    anySer.emplace(std::string("tags"), std::make_unique<iscore::any_serializer_t<ossia::net::tags>>());
+    anySer.emplace(std::string("refreshRate"), std::make_unique<iscore::any_serializer_t<ossia::net::refresh_rate>>());
+    anySer.emplace(std::string("valueStepSize"), std::make_unique<iscore::any_serializer_t<ossia::net::value_step_size>>());
+    iscore::testing::MockApplication app;
+    ossia::net::extended_attributes s;
+    {
+      auto out = DataStreamWriter::unmarshall<ossia::net::extended_attributes >(DataStreamReader::marshall(s));
+    }
+
+
+    ossia::net::set_tags(s, std::vector<std::string>{"tutu", "titi"});
+    {
+      auto out = DataStreamWriter::unmarshall<ossia::net::extended_attributes >(DataStreamReader::marshall(s));
+    }
+    ossia::net::set_description(s, "something");
+    {
+      auto out = DataStreamWriter::unmarshall<ossia::net::extended_attributes >(DataStreamReader::marshall(s));
+    }
+    ossia::net::set_priority(s, 1234);
+    {
+      auto out = DataStreamWriter::unmarshall<ossia::net::extended_attributes >(DataStreamReader::marshall(s));
+    }
+  }
+
+  void test_serialize()
+  {
+    Device::Node root;
+    Device::DeviceSettings dev_base{
+        UuidKey<Device::ProtocolFactory>{"85783b8d-454d-4326-a070-9666d2534eff"}, "ADevice", {}};
+    auto& dev = root.emplace_back(std::move(dev_base), nullptr);
+
+    Device::Node child(Device::AddressSettings{}, &dev);
+    dev.push_back(child);
+
+    iscore::testing::MockApplication app;
+    Device::AddressSettings s;
+    for(auto val : {
+        State::Value::fromValue(State::impulse_t{}),
+        State::Value::fromValue(int{}),
+        State::Value::fromValue(float{}),
+        State::Value::fromValue(char{}),
+        State::Value::fromValue(std::string{}),
+        State::Value::fromValue(State::tuple_t{}),
+        State::Value::fromValue(std::array<float,2>{}),
+        State::Value::fromValue(std::array<float,3>{}),
+        State::Value::fromValue(std::array<float,4>{})
+  })
+    {
+      s.value = val;
+      auto out = DataStreamWriter::unmarshall<Device::AddressSettings>(DataStreamReader::marshall(s));
+      QVERIFY(out == s);
+    }
+
+    ossia::net::set_tags(s, std::vector<std::string>{"tutu", "titi"});
+    ossia::net::set_description(s, "something");
+    ossia::net::set_priority(s, 1234);
+
+    auto out = DataStreamWriter::unmarshall<Device::AddressSettings>(DataStreamReader::marshall(s));
+    QVERIFY(out == s);
   }
 };
 

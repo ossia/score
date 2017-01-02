@@ -82,6 +82,21 @@ public:
   }
 
   template <typename T>
+  T& panel() const
+  {
+    for (auto& elt : m_data.panels)
+    {
+      if (auto c = dynamic_cast<T*>(elt.get()))
+      {
+        return *c;
+      }
+    }
+
+    ISCORE_ABORT;
+    throw;
+  }
+
+  template <typename T>
   const T* findInterfaces() const
   {
     static_assert(

@@ -14,7 +14,7 @@ namespace Scenario
 PlayToolState::PlayToolState(const Scenario::ToolPalette& sm)
     : m_sm{sm}
     , m_exec{m_sm.context()
-                 .context.app.components
+                 .context.app
                  .applicationPlugin<ScenarioApplicationPlugin>()
                  .execution()}
 {

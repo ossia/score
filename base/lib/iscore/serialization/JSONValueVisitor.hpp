@@ -469,3 +469,25 @@ struct TSerializer<JSONValue, UuidKey<U>>
   }
 };
 
+template <typename T>
+struct
+    TSerializer<JSONValue, std::vector<T>>
+{
+  static void
+  readFrom(JSONValue::Serializer& s, const std::vector<T>& vec)
+  {
+    QJsonArray arr;
+    for(const auto& e : vec)
+      arr.append(toJsonValue(e));
+    s.val = std::move(arr);
+  }
+
+  static void writeTo(JSONValue::Deserializer& s, std::vector<T>& vec)
+  {
+    const QJsonArray arr = s.val.toArray();
+    vec.resize(arr.size());
+    for(const auto& e : arr)
+      vec.push_back(fromJsonValue<T>(e));
+  }
+};
+
