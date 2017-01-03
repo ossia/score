@@ -41,7 +41,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 
 #include <Scenario/Inspector/Constraint/BaseConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
@@ -87,7 +87,7 @@ iscore_plugin_scenario::iscore_plugin_scenario()
 
 iscore_plugin_scenario::~iscore_plugin_scenario() = default;
 
-iscore::GUIApplicationContextPlugin*
+iscore::GUIApplicationPlugin*
 iscore_plugin_scenario::make_applicationPlugin(
     const iscore::GUIApplicationContext& app)
 {

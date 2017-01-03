@@ -2,7 +2,7 @@
 
 #include <Process/TimeValue.hpp>
 #include <QString>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <memory>
 
 #include <Engine/Executor/ContextMenu/PlayContextMenu.hpp>
@@ -41,7 +41,7 @@ namespace Engine
 {
 class ISCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
     : public QObject,
-      public iscore::GUIApplicationContextPlugin
+      public iscore::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const iscore::GUIApplicationContext& app);

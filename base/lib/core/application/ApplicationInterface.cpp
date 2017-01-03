@@ -70,7 +70,7 @@ void GUIApplicationInterface::loadPluginData(
 
   presenter.setupGUI();
 
-  for (iscore::GUIApplicationContextPlugin* app_plug :
+  for (iscore::GUIApplicationPlugin* app_plug :
        ctx.applicationPlugins())
   {
     app_plug->initialize();

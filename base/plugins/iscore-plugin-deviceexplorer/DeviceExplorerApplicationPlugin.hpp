@@ -1,6 +1,6 @@
 #pragma once
 #include <QString>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
@@ -13,7 +13,7 @@ struct VisitorVariant;
 
 namespace Explorer
 {
-class ApplicationPlugin final : public iscore::GUIApplicationContextPlugin
+class ApplicationPlugin final : public iscore::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const iscore::GUIApplicationContext& app);

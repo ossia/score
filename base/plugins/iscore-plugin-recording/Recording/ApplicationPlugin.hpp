@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <memory>
 #include <vector>
 
@@ -18,7 +18,7 @@ struct Point;
 namespace Recording
 {
 class ApplicationPlugin final : public QObject,
-                                public iscore::GUIApplicationContextPlugin
+                                public iscore::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const iscore::GUIApplicationContext& app);

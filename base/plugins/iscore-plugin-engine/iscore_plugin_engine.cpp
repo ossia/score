@@ -55,7 +55,7 @@ iscore_plugin_engine::~iscore_plugin_engine()
 {
 }
 
-iscore::GUIApplicationContextPlugin*
+iscore::GUIApplicationPlugin*
 iscore_plugin_engine::make_applicationPlugin(
     const iscore::GUIApplicationContext& app)
 {

@@ -4,7 +4,7 @@
 #include <iscore/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <utility>
 #include <vector>
@@ -12,7 +12,7 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/Command.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 /*!
  * \namespace Scenario
@@ -55,16 +55,16 @@ class PanelFactory;
 
 class iscore_plugin_scenario final
     : public QObject,
-      public iscore::GUIApplicationContextPlugin_QtInterface,
+      public iscore::GUIApplicationPlugin_QtInterface,
       public iscore::CommandFactory_QtInterface,
       public iscore::FactoryList_QtInterface,
       public iscore::FactoryInterface_QtInterface,
       public iscore::Plugin_QtInterface
 {
   Q_OBJECT
-  Q_PLUGIN_METADATA(IID GUIApplicationContextPlugin_QtInterface_iid)
+  Q_PLUGIN_METADATA(IID GUIApplicationPlugin_QtInterface_iid)
   Q_INTERFACES(
-      iscore::GUIApplicationContextPlugin_QtInterface
+      iscore::GUIApplicationPlugin_QtInterface
           iscore::CommandFactory_QtInterface iscore::FactoryList_QtInterface
               iscore::FactoryInterface_QtInterface iscore::Plugin_QtInterface)
 
@@ -75,7 +75,7 @@ public:
 
 private:
   // Application plugin interface
-  iscore::GUIApplicationContextPlugin*
+  iscore::GUIApplicationPlugin*
   make_applicationPlugin(const iscore::GUIApplicationContext& app) override;
 
   // NOTE : implementation is in CommandNames.cpp

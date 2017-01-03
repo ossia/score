@@ -54,7 +54,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   /**
    * @brief List of all the application-wide plug-ins
    *
-   * @see iscore::GUIApplicationContextPlugin
+   * @see iscore::GUIApplicationPlugin
    */
   const auto& applicationPlugins() const
   {
@@ -64,7 +64,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   /**
    * @brief Access a specific application plug-in instance.
    *
-   * @see iscore::GUIApplicationContextPlugin
+   * @see iscore::GUIApplicationPlugin
    */
   template <typename T>
   T& applicationPlugin() const

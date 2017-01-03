@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
 #include <Scenario/Application/Menus/ToolMenuActions.hpp>
@@ -36,7 +36,7 @@ class StateModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final
     : public QObject,
-      public iscore::GUIApplicationContextPlugin
+      public iscore::GUIApplicationPlugin
 {
   Q_OBJECT
   friend class ScenarioContextMenuManager;

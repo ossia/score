@@ -217,7 +217,7 @@ void Application::loadPluginData()
 
     m_presenter->setupGUI();
 
-    for(iscore::GUIApplicationContextPlugin* app_plug : ctx.applicationPlugins())
+    for(iscore::GUIApplicationPlugin* app_plug : ctx.applicationPlugins())
     {
         app_plug->initialize();
     }

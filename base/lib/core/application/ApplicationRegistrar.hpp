@@ -15,7 +15,7 @@ namespace iscore
 class DocumentDelegateFactory;
 class InterfaceListBase;
 struct GUIApplicationContext;
-class GUIApplicationContextPlugin;
+class GUIApplicationPlugin;
 class PanelDelegateFactory;
 class SettingsDelegateFactory;
 struct ApplicationComponentsData;
@@ -42,7 +42,7 @@ public:
 
   // Register data from plugins
   void registerAddons(std::vector<iscore::Addon> vec);
-  void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
+  void registerApplicationContextPlugin(GUIApplicationPlugin*);
   void registerPanel(PanelDelegateFactory&);
   void registerCommands(
       iscore::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds);

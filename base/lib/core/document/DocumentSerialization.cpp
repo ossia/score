@@ -14,7 +14,7 @@
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>

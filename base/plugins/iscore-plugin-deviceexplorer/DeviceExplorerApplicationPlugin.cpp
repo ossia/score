@@ -7,7 +7,7 @@
 #include "DeviceExplorerApplicationPlugin.hpp"
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 
 struct VisitorVariant;
@@ -15,7 +15,7 @@ struct VisitorVariant;
 namespace Explorer
 {
 ApplicationPlugin::ApplicationPlugin(const iscore::GUIApplicationContext& app)
-    : GUIApplicationContextPlugin{app}
+    : GUIApplicationPlugin{app}
 {
 }
 

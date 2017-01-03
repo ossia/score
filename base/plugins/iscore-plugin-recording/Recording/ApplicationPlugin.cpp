@@ -14,7 +14,7 @@
 #include <iscore/application/ApplicationContext.hpp>
 
 #include <core/document/Document.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <Curve/Settings/CurveSettingsModel.hpp>
 #include <Engine/ApplicationPlugin.hpp>
@@ -28,7 +28,7 @@
 namespace Recording
 {
 ApplicationPlugin::ApplicationPlugin(const iscore::GUIApplicationContext& ctx)
-    : iscore::GUIApplicationContextPlugin{ctx}
+    : iscore::GUIApplicationPlugin{ctx}
 {
   using namespace Scenario;
   // Since we have declared the dependency, we can assume

@@ -5,7 +5,7 @@
 #include <QMessageBox>
 #include <QObject>
 #include <core/view/View.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <qnamespace.h>

@@ -3,13 +3,13 @@
 #include <QStringList>
 #include <iscore/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <utility>
 
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/Command.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 
 namespace iscore
 {
@@ -28,14 +28,14 @@ namespace iscore
 class iscore_plugin_recording final
     : public QObject,
       public iscore::Plugin_QtInterface,
-      public iscore::GUIApplicationContextPlugin_QtInterface,
+      public iscore::GUIApplicationPlugin_QtInterface,
       public iscore::CommandFactory_QtInterface,
       public iscore::FactoryInterface_QtInterface
 {
   Q_OBJECT
-  Q_PLUGIN_METADATA(IID GUIApplicationContextPlugin_QtInterface_iid)
+  Q_PLUGIN_METADATA(IID GUIApplicationPlugin_QtInterface_iid)
   Q_INTERFACES(iscore::Plugin_QtInterface
-                   iscore::GUIApplicationContextPlugin_QtInterface
+                   iscore::GUIApplicationPlugin_QtInterface
                        iscore::CommandFactory_QtInterface
                            iscore::FactoryInterface_QtInterface)
 
@@ -45,7 +45,7 @@ public:
   virtual ~iscore_plugin_recording();
 
 private:
-  iscore::GUIApplicationContextPlugin*
+  iscore::GUIApplicationPlugin*
   make_applicationPlugin(const iscore::GUIApplicationContext& app) override;
 
   std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(

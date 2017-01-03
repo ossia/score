@@ -22,7 +22,7 @@ class DocumentDelegateFactory;
 class DocumentPluginFactory;
 class InterfaceListBase;
 class Plugin_QtInterface;
-class GUIApplicationContextPlugin;
+class GUIApplicationPlugin;
 class PanelDelegate;
 
 struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
@@ -36,7 +36,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
   ApplicationComponentsData& operator=(ApplicationComponentsData&&) = delete;
 
   std::vector<iscore::Addon> addons;
-  std::vector<GUIApplicationContextPlugin*> appPlugins;
+  std::vector<GUIApplicationPlugin*> appPlugins;
 
   iscore::hash_map<iscore::InterfaceKey, std::unique_ptr<InterfaceListBase>>
           factories;

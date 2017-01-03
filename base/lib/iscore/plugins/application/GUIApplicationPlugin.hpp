@@ -66,11 +66,11 @@ struct GUIElements
  * plug-ins.
  *
  */
-class ISCORE_LIB_BASE_EXPORT GUIApplicationContextPlugin
+class ISCORE_LIB_BASE_EXPORT GUIApplicationPlugin
 {
 public:
   using GUIElements = iscore::GUIElements;
-  GUIApplicationContextPlugin(const iscore::GUIApplicationContext& presenter);
+  GUIApplicationPlugin(const iscore::GUIApplicationContext& presenter);
 
   /**
    * @brief initialize
@@ -80,7 +80,7 @@ public:
    */
   virtual void initialize();
 
-  virtual ~GUIApplicationContextPlugin();
+  virtual ~GUIApplicationPlugin();
 
   /**
    * @brief makeGUIElements

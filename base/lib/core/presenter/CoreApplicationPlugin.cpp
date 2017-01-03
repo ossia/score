@@ -14,7 +14,7 @@ namespace iscore
 
 CoreApplicationPlugin::CoreApplicationPlugin(
     const GUIApplicationContext& app, Presenter& pres)
-    : GUIApplicationContextPlugin{app}, m_presenter{pres}
+    : GUIApplicationPlugin{app}, m_presenter{pres}
 {
 }
 
