@@ -96,13 +96,13 @@ public:
   void clear()
   {
     for (auto element : m_constraints)
-      cleanup(element);
+      do_cleanup(element);
     for (auto element : m_states)
-      cleanup(element);
+      do_cleanup(element);
     for (auto element : m_events)
-      cleanup(element);
+      do_cleanup(element);
     for (auto element : m_timeNodes)
-      cleanup(element);
+      do_cleanup(element);
 
     m_constraints.clear();
     m_states.clear();
@@ -120,7 +120,7 @@ private:
   struct MatchingComponent;
 
   template <typename Pair_T>
-  void cleanup(const Pair_T& pair)
+  void do_cleanup(const Pair_T& pair)
   {
     // TODO constexpr-if
     if(HasOwnership)
@@ -222,7 +222,7 @@ private:
 
     if (it != container.end())
     {
-      cleanup(*it);
+      do_cleanup(*it);
       container.erase(it);
     }
   }
