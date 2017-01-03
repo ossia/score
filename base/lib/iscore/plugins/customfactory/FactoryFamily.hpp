@@ -162,6 +162,11 @@ public:
     return make_indirect_map_iterator(map.find(std::forward<K>(key)));
   }
 
+  auto size() const
+  {
+    return map.size();
+  }
+
 protected:
   iscore::hash_map<
     typename FactoryType::ConcreteKey,

@@ -10,7 +10,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/tools/std/Optional.hpp>
@@ -445,7 +445,7 @@ ISCORE_LIB_BASE_EXPORT
 void DocumentManager::prepareNewDocument(const iscore::GUIApplicationContext& ctx)
 {
   m_preparingNewDocument = true;
-  for (GUIApplicationContextPlugin* appPlugin :
+  for (GUIApplicationPlugin* appPlugin :
        ctx.applicationPlugins())
   {
     appPlugin->prepareNewDocument();

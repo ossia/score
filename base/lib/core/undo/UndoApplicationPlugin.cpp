@@ -7,7 +7,7 @@
 #include <core/document/Document.hpp>
 
 #include <iscore/actions/Menu.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <QIcon>
 #include <core/presenter/CoreActions.hpp>
@@ -18,7 +18,7 @@ class QObject;
 
 iscore::UndoApplicationPlugin::UndoApplicationPlugin(
     const iscore::GUIApplicationContext& app)
-    : iscore::GUIApplicationContextPlugin{app}
+    : iscore::GUIApplicationPlugin{app}
     , m_undoAction{"Undo", nullptr}
     , m_redoAction{"Redo", nullptr}
 {

@@ -1,6 +1,6 @@
 #pragma once
 #include <core/presenter/Presenter.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 namespace iscore
 {
 class Presenter;
@@ -11,7 +11,7 @@ class Presenter;
  */
 class ISCORE_LIB_BASE_EXPORT CoreApplicationPlugin final
     : public QObject,
-      public iscore::GUIApplicationContextPlugin
+      public iscore::GUIApplicationPlugin
 {
 public:
   CoreApplicationPlugin(

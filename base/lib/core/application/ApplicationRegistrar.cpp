@@ -3,7 +3,7 @@
 #include <core/view/View.hpp>
 #include <iscore/application/ApplicationComponents.hpp>
 #include <iscore/application/ApplicationContext.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <iscore/plugins/panel/PanelDelegateFactory.hpp>
 #include <type_traits>
 #include <vector>
@@ -42,7 +42,7 @@ void ApplicationRegistrar::registerAddons(std::vector<iscore::Addon> vec)
 
 ISCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerApplicationContextPlugin(
-    GUIApplicationContextPlugin* ctrl)
+    GUIApplicationPlugin* ctrl)
 {
   // GUI Presenter stuff...
   auto ui = ctrl->makeGUIElements();

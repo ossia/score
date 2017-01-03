@@ -12,7 +12,7 @@
 
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <iscore/application/ApplicationContext.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <iscore/tools/Todo.hpp>
 
 #include <ossia/context.hpp>
@@ -40,7 +40,7 @@
 namespace Engine
 {
 ApplicationPlugin::ApplicationPlugin(const iscore::GUIApplicationContext& ctx)
-    : iscore::GUIApplicationContextPlugin{ctx}, m_playActions{*this, ctx}
+    : iscore::GUIApplicationPlugin{ctx}, m_playActions{*this, ctx}
 {
   std::vector<spdlog::sink_ptr> v{
     spdlog::sinks::stderr_sink_mt::instance(),

@@ -25,7 +25,7 @@
 #include <vector>
 
 #include <iscore/application/GUIApplicationContext.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <core/application/SafeQApplication.hpp>
 #include <iscore/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationSettings.hpp>

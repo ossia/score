@@ -55,7 +55,7 @@
 #include <core/document/DocumentView.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/actions/Menu.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/IdentifiedObjectMap.hpp>
@@ -73,7 +73,7 @@ void test_parse_expr_full();
 
 ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     const iscore::GUIApplicationContext& ctx)
-    : GUIApplicationContextPlugin{ctx}
+    : GUIApplicationPlugin{ctx}
 {
   connect(
       qApp, &QApplication::applicationStateChanged, this,

@@ -11,7 +11,7 @@
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 #include <iscore_lib_base_export.h>
@@ -101,7 +101,7 @@ void registerPlugins(
   for(const iscore::Addon& addon : availablePlugins)
   {
     auto ctrl_plugin
-        = dynamic_cast<GUIApplicationContextPlugin_QtInterface*>(addon.plugin);
+        = dynamic_cast<GUIApplicationPlugin_QtInterface*>(addon.plugin);
     if (ctrl_plugin)
     {
       if (auto plug = ctrl_plugin->make_applicationPlugin(context))

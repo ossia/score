@@ -61,7 +61,7 @@ iscore_plugin_deviceexplorer::factories(
       ctx, key);
 }
 
-iscore::GUIApplicationContextPlugin*
+iscore::GUIApplicationPlugin*
 iscore_plugin_deviceexplorer::make_applicationPlugin(
     const iscore::GUIApplicationContext& app)
 {

@@ -5,7 +5,7 @@
 #include <core/document/DocumentBackupManager.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <QString>
 #include <QVariant>

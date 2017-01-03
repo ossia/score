@@ -23,7 +23,7 @@ iscore_plugin_recording::~iscore_plugin_recording()
 {
 }
 
-iscore::GUIApplicationContextPlugin*
+iscore::GUIApplicationPlugin*
 iscore_plugin_recording::make_applicationPlugin(
     const iscore::GUIApplicationContext& app)
 {

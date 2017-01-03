@@ -2,7 +2,7 @@
 
 #include <QAction>
 #include <QList>
-#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <iscore_lib_base_export.h>
 #include <vector>
@@ -22,7 +22,7 @@ namespace iscore
  * which provides a undo panel.
  */
 class ISCORE_LIB_BASE_EXPORT UndoApplicationPlugin final
-    : public iscore::GUIApplicationContextPlugin
+    : public iscore::GUIApplicationPlugin
 {
 public:
   UndoApplicationPlugin(const iscore::GUIApplicationContext& app);
