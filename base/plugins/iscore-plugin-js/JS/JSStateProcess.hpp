@@ -36,6 +36,8 @@ public:
   }
 
 signals:
+  void scriptError(int, const QString&);
+  void scriptOk();
   void scriptChanged(QString);
 
 private:

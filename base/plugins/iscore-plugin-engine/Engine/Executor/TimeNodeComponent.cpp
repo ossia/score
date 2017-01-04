@@ -35,7 +35,15 @@ TimeNodeComponent::TimeNodeComponent(
     this->system().executionQueue.enqueue(
           [e = m_ossia_node, exp_ptr]
     {
+      bool old = e->isObservingExpression();
+      if(old)
+        e->observeExpressionResult(false);
+
       e->setExpression(std::move(*exp_ptr));
+
+      if(old)
+        e->observeExpressionResult(true);
+
     });
   });
 }

@@ -6,6 +6,7 @@
 
 #include "Component.hpp"
 #include "JSAPIWrapper.hpp"
+#include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_constraint.hpp>
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
@@ -16,7 +17,7 @@ namespace JS
 namespace Executor
 {
 ProcessExecutor::ProcessExecutor(const Explorer::DeviceDocumentPlugin& devices)
-    : m_devices{devices.list()}
+  : m_devices{devices.list()}
 {
   auto obj = m_engine.newQObject(new JS::APIWrapper{m_engine, devices});
   m_engine.globalObject().setProperty("iscore", obj);
@@ -26,9 +27,10 @@ void ProcessExecutor::setTickFun(const QString& val)
 {
   m_tickFun = m_engine.evaluate(val);
   if (m_tickFun.isError())
-    qDebug() << "Uncaught exception at line"
-             << m_tickFun.property("lineNumber").toInt() << ":"
-             << m_tickFun.toString();
+    ossia::logger()
+        .error("Uncaught exception at line {} : {}",
+               m_tickFun.property("lineNumber").toInt() ,
+               m_tickFun.toString().toStdString());
 }
 
 ossia::state_element ProcessExecutor::state()
@@ -38,23 +40,25 @@ ossia::state_element ProcessExecutor::state()
 
 ossia::state_element ProcessExecutor::state(double t)
 {
-  ossia::state st;
-  if (!m_tickFun.isCallable())
-    return st;
-
-  // 2. Get the value of the js fun
-  auto messages = JS::convert::messages(m_tickFun.call({QJSValue{t}}));
-
-  m_engine.collectGarbage();
-
-  for (const auto& mess : messages)
+  if (m_tickFun.isCallable())
   {
-    st.add(Engine::iscore_to_ossia::message(mess, m_devices));
+    ossia::state st;
+
+    // 2. Get the value of the js fun
+    auto messages = JS::convert::messages(m_tickFun.call({QJSValue{t}}));
+
+    m_engine.collectGarbage();
+
+    for (const auto& mess : messages)
+    {
+      st.add(Engine::iscore_to_ossia::message(mess, m_devices));
+    }
+
+    // 3. Convert our value back
+    if(unmuted())
+      return st;
   }
 
-  // 3. Convert our value back
-  if(unmuted())
-    return st;
   return {};
 }
 
@@ -69,9 +73,9 @@ Component::Component(
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
-    : ::Engine::Execution::
-          ProcessComponent_T<JS::ProcessModel, ProcessExecutor>{
-              parentConstraint, element, ctx, id, "JSComponent", parent}
+  : ::Engine::Execution::
+      ProcessComponent_T<JS::ProcessModel, ProcessExecutor>{
+        parentConstraint, element, ctx, id, "JSComponent", parent}
 {
   m_ossia_process = std::make_shared<ProcessExecutor>(ctx.devices);
   OSSIAProcess().setTickFun(element.script());
@@ -80,8 +84,8 @@ Component::Component(
       this, [=] (const QString& str) {
     system().executionQueue.enqueue(
           [proc=std::dynamic_pointer_cast<ProcessExecutor>(m_ossia_process),
-           &str]
-      { proc->setTickFun(str); });
+          &str]
+    { proc->setTickFun(str); });
   });
 }
 }

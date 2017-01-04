@@ -86,6 +86,9 @@ public:
   bool isFoldable(int line) const;
   bool isFolded(int line) const;
 
+  void setError(int line);
+  void clearError();
+
 signals:
   void editingFinished(QString);
   void focused();
@@ -106,6 +109,7 @@ public slots:
 protected:
   void resizeEvent(QResizeEvent* e) override;
   void wheelEvent(QWheelEvent* e) override;
+  void keyPressEvent(QKeyEvent* e) override;
   void focusOutEvent(QFocusEvent* event) override
   {
     emit editingFinished(this->toPlainText());

@@ -7,6 +7,7 @@
 
 class JSEdit;
 class QWidget;
+class QLabel;
 namespace iscore
 {
 class Document;
@@ -15,10 +16,27 @@ struct DocumentContext;
 
 namespace JS
 {
+struct JSWidgetBase
+{
+  JSWidgetBase(const iscore::CommandStackFacade& st): m_dispatcher{st} { }
+
+  template<typename Widg, typename T>
+  void init(Widg* self, T& model);
+  void on_modelChanged(const QString& script);
+
+  JSEdit* m_edit{};
+  QLabel* m_errorLabel{};
+  QString m_script;
+
+  CommandDispatcher<> m_dispatcher;
+};
+
 class InspectorWidget final
     : public Process::InspectorWidgetDelegate_T<JS::ProcessModel>
+    , public JSWidgetBase
 {
   Q_OBJECT
+  friend class JSWidgetBase;
 public:
   explicit InspectorWidget(
       const JS::ProcessModel& object,
@@ -27,33 +45,25 @@ public:
 
 signals:
   void pressed();
-
 private:
   void on_textChange(const QString& newText);
-  void on_modelChanged(const QString& script);
-
-  JSEdit* m_edit{};
-  QString m_script;
-
-  CommandDispatcher<> m_dispatcher;
 };
 
 class StateInspectorWidget final
     : public Process::StateProcessInspectorWidgetDelegate_T<JS::StateProcess>
+    , public JSWidgetBase
 {
+  Q_OBJECT
+  friend class JSWidgetBase;
 public:
   explicit StateInspectorWidget(
       const JS::StateProcess& object,
       const iscore::DocumentContext& context,
       QWidget* parent);
-
+signals:
+  void pressed();
 private:
   void on_textChange(const QString& newText);
-  void on_modelChanged(const QString& script);
 
-  JSEdit* m_edit{};
-  QString m_script;
-
-  CommandDispatcher<> m_dispatcher;
 };
 }
