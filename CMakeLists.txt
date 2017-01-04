@@ -71,6 +71,7 @@ add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu" )
 set(WITH_DOC False CACHE INTERNAL "" FORCE)
 set(ZMQ_BUILD_TESTS False CACHE INTERNAL "" FORCE)
 add_subdirectory("${OSSIA_3RDPARTY_FOLDER}/libzmq" )
+include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/cppzmq")
 
 set(SKIP_INSTALL_ALL True) # For zlib to not install anything
 add_subdirectory("${3RDPARTY_FOLDER}/zlib" EXCLUDE_FROM_ALL)
