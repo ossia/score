@@ -170,13 +170,13 @@ struct ptr
  * Allows the first argument to be a reference
  */
 template <typename T, typename... Args>
-auto con(const T& t, Args&&... args)
+QMetaObject::Connection con(const T& t, Args&&... args)
 {
   return QObject::connect(&t, std::forward<Args>(args)...);
 }
 
 template <typename T, typename... Args>
-auto con(ptr<T> t, Args&&... args)
+QMetaObject::Connection con(ptr<T> t, Args&&... args)
 {
   return QObject::connect(&*t, std::forward<Args>(args)...);
 }

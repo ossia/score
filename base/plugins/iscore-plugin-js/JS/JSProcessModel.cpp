@@ -2,6 +2,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <algorithm>
 #include <core/document/Document.hpp>
+#include <QJSEngine>
 #include <vector>
 
 #include "JS/JSProcessMetadata.hpp"
@@ -59,6 +60,18 @@ ProcessModel::~ProcessModel()
 void ProcessModel::setScript(const QString& script)
 {
   m_script = script;
+
+  QJSEngine engine;
+  auto f = engine.evaluate(script);
+  if(f.isError())
+  {
+    emit scriptError(f.property("lineNumber").toInt(), f.toString());
+  }
+  else
+  {
+    emit scriptOk();
+  }
+
   emit scriptChanged(script);
 }
 }

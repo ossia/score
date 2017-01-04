@@ -9,6 +9,7 @@
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/model/Identifier.hpp>
+#include <QJSValue>
 
 class DataStream;
 class JSONObject;
@@ -52,6 +53,8 @@ public:
 
   ~ProcessModel();
 signals:
+  void scriptError(int, const QString&);
+  void scriptOk();
   void scriptChanged(const QString&);
 
 private:

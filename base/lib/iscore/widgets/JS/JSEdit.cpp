@@ -516,13 +516,15 @@ public:
   SidebarWidget(JSEdit* editor);
   QVector<BlockInfo> lineNumbers;
   QColor backgroundColor;
-  QColor lineNumberColor;
+  QPen linePen{Qt::black};
+  QPen errorPen{Qt::red};
   QColor indicatorColor;
   QColor foldIndicatorColor;
   QFont font;
   int foldIndicatorWidth;
   QPixmap rightArrowIcon;
   QPixmap downArrowIcon;
+  int errorLine = -1;
 
 protected:
   void mousePressEvent(QMouseEvent* event) override;
@@ -533,7 +535,6 @@ SidebarWidget::SidebarWidget(JSEdit* editor)
     : QWidget(editor), foldIndicatorWidth(0)
 {
   backgroundColor = Qt::lightGray;
-  lineNumberColor = Qt::black;
   indicatorColor = Qt::white;
   foldIndicatorColor = Qt::lightGray;
 }
@@ -569,13 +570,17 @@ void SidebarWidget::paintEvent(QPaintEvent* event)
 {
   QPainter p(this);
   p.fillRect(event->rect(), backgroundColor);
-  p.setPen(lineNumberColor);
+  p.setPen(linePen);
   p.setFont(font);
   int fh = QFontMetrics(font).height();
-  foreach (BlockInfo ln, lineNumbers)
+  const auto& lines = lineNumbers;
+  for(const BlockInfo& ln : lines)
+  {
+    p.setPen(ln.number != errorLine ? linePen : errorPen);
     p.drawText(
         0, ln.position, width() - 4 - foldIndicatorWidth, fh, Qt::AlignRight,
         QString::number(ln.number));
+  }
 
   if (foldIndicatorWidth > 0)
   {
@@ -787,7 +792,7 @@ void JSEdit::setColor(ColorComponent component, const QColor& color)
   }
   else if (component == LineNumber)
   {
-    d->sidebar->lineNumberColor = color;
+    d->sidebar->linePen = color;
     updateSidebar();
   }
   else if (component == Cursor)
@@ -918,6 +923,18 @@ bool JSEdit::isFolded(int line) const
   return !block.isVisible();
 }
 
+void JSEdit::setError(int line)
+{
+  d_ptr->sidebar->errorLine = line;
+  updateSidebar();
+}
+
+void JSEdit::clearError()
+{
+  d_ptr->sidebar->errorLine = -1;
+  updateSidebar();
+}
+
 void JSEdit::fold(int line)
 {
   QTextBlock startBlock = document()->findBlockByNumber(line - 1);
@@ -998,6 +1015,15 @@ void JSEdit::wheelEvent(QWheelEvent* e)
     return;
   }
   QPlainTextEdit::wheelEvent(e);
+}
+
+void JSEdit::keyPressEvent(QKeyEvent* e)
+{
+  QPlainTextEdit::keyPressEvent(e);
+  if(e->key() == Qt::Key_Space && e->modifiers() & Qt::KeyboardModifier::ControlModifier)
+    emit editingFinished(this->toPlainText());
+
+  e->accept();
 }
 
 void JSEdit::updateCursor()
@@ -1100,7 +1126,7 @@ void JSEdit::updateSidebar()
 {
   Q_D(JSEdit);
 
-  if (!d->showLineNumbers && !d->codeFolding)
+  if (!d->showLineNumbers && !d->codeFolding && (d->sidebar->errorLine == -1))
   {
     d->sidebar->hide();
     setViewportMargins(0, 0, 0, 0);
