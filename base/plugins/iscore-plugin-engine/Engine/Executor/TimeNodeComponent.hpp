@@ -20,6 +20,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT TimeNodeComponent final :
 {
   COMMON_COMPONENT_METADATA("eca86942-002e-4af5-ad3d-cb1615e0552c")
 public:
+  static const constexpr bool is_unique = true;
   TimeNodeComponent(
       const Scenario::TimeNodeModel& element,
       const Engine::Execution::Context& ctx,

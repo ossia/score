@@ -341,7 +341,7 @@ TimeNodeComponent* ScenarioComponentBase::make<TimeNodeComponent, Scenario::Time
   elt->onSetup(ossia_tn, elt->makeTrigger());
 
   // What happens when a time node's status change
-  ossia_tn->setCallback([thisP=shared_from_this(),elt]() {
+  ossia_tn->triggered.add_callback([thisP=shared_from_this(),elt] {
     auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
     return sub.timeNodeCallback(
           elt.get(), sub.m_parent_constraint.OSSIAConstraint()->getDate());
