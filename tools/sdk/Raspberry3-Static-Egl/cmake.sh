@@ -14,6 +14,8 @@ cmake ../cmake-3.7.1 -DCMAKE_INSTALL_PREFIX=/opt/cmake -DCMAKE_C_COMPILER=$CC -D
 make -j$(nproc)
 make install
 
-wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.bz2
-tar xaf boost_1_62_0.tar.bz2
-mv boost_1_62_0 /opt/
+export BOOST_VER=63
+export BOOST_ADDR=boost_1_63_0
+wget "https://sourceforge.net/projects/boost/files/boost/1.$BOOST_VER.0/$BOOST_ADDR.tar.bz2"
+tar xaf "$BOOST_ADDR.tar.bz2"
+mv "$BOOST_ADDR" /opt/
