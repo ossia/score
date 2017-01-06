@@ -33,3 +33,4 @@ mkdir gcc-build-2
 )
 
 rm -rf /opt/gcc-6-temp
+rm -rf gcc-build-2
