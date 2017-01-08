@@ -321,6 +321,9 @@ parseAddressAccessor(const QString& str);
 
 ISCORE_LIB_STATE_EXPORT State::Expression defaultTrueExpression();
 ISCORE_LIB_STATE_EXPORT State::Expression defaultFalseExpression();
+
+//! True if the expression is "true" (the default case)
+ISCORE_LIB_STATE_EXPORT bool isTrueExpression(const QString&);
 }
 
 JSON_METADATA(State::Address, "Address")
