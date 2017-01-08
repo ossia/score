@@ -103,3 +103,8 @@ State::Expression State::defaultFalseExpression()
   static const auto expr = *State::parseExpression("true == false"s);
   return expr;
 }
+
+bool State::isTrueExpression(const QString& cond)
+{
+  return cond.isEmpty() || cond == " { true == true } " || cond == "true == true";
+}
