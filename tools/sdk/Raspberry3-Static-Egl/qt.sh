@@ -1,12 +1,13 @@
 #!/bin/bash -eux
 
-cd /image
-rm -rf gcc-build-2
-
+export NPROC=$(nproc)
 export PATH=/opt/gcc-6/bin:$PATH
-NPROC=$(nproc)
+export CC=/opt/gcc-6/bin/gcc
+export CXX=/opt/gcc-6/bin/g++
+export LD_LIBRARY_PATH=/opt/gcc-6/lib
+export PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
 
-rsync -a /opt/vc/ /usr/
+apt-get install gstreamer1.0-omx
 
 git clone https://code.qt.io/qt/qt5.git
 
@@ -16,13 +17,10 @@ git clone https://code.qt.io/qt/qt5.git
   git submodule update --init --recursive
 )
 
-export CC=/opt/gcc-6/bin/gcc
-export CXX=/opt/gcc-6/bin/g++
-export LD_LIBRARY_PATH=/opt/gcc-6/lib
 
-mkdir qt5-build
+mkdir qt5-build-static
 (
-  cd qt5-build
+  cd qt5-build-static
   ../qt5/configure -release \
                    -opensource \
                    -confirm-license \
@@ -31,15 +29,38 @@ mkdir qt5-build
                    -static \
                    -no-compile-examples \
                    -ltcg \
-                   -pkg-config \
-                   -dbus-linked \
                    -opengl es2 \
                    -device linux-rpi3-g++ \
-                   -prefix /opt/gcc-6 \
-                   -device-option CROSS_COMPILE=/usr/bin/ \
-                   -skip qtwayland -skip webkit -skip wayland -skip qtscript -skip qtwebkit
+                   -prefix /opt/qt5-static \
+                   -device-option CROSS_COMPILE=/opt/gcc-6/bin/ \
+                   -sysroot / \
+                   -skip qtwayland -skip webkit -skip wayland -skip qtscript -skip qtwebkit -skip qtwebengine
 
   make -j$NPROC
   make install -j$NPROC
 )
-rm -rf qt5-build
+rm -rf qt5-build-static
+
+mkdir qt5-build-dynamic
+(
+  cd qt5-build-dynamic
+  ../qt5/configure -release \
+                   -opensource \
+                   -confirm-license \
+                   -nomake examples \
+                   -nomake tests \
+                   -no-compile-examples \
+                   -ltcg \
+                   -opengl es2 \
+                   -device linux-rpi3-g++ \
+                   -prefix /opt/qt5-dynamic \
+                   -device-option CROSS_COMPILE=/opt/gcc-6/bin/ \
+                   -sysroot / \
+                   -skip qtwayland -skip webkit -skip wayland -skip qtscript -skip qtwebkit -skip qtwebengine
+
+  make -j$NPROC
+  make install -j$NPROC
+)
+
+rm -rf qt5-build-dynamic
+rm -rf qt5
