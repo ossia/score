@@ -7,7 +7,7 @@ export CXX=/opt/gcc-6/bin/g++
 export LD_LIBRARY_PATH=/opt/gcc-6/lib
 export PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
 
-apt-get install gstreamer1.0-omx
+apt-get -y --force-yes install gstreamer1.0-omx
 
 git clone https://code.qt.io/qt/qt5.git
 
@@ -29,6 +29,7 @@ mkdir qt5-build-static
                    -static \
                    -no-compile-examples \
                    -ltcg \
+		   -strip \
                    -opengl es2 \
                    -device linux-rpi3-g++ \
                    -prefix /opt/qt5-static \
@@ -51,6 +52,7 @@ mkdir qt5-build-dynamic
                    -nomake tests \
                    -no-compile-examples \
                    -ltcg \
+	           -strip \
                    -opengl es2 \
                    -device linux-rpi3-g++ \
                    -prefix /opt/qt5-dynamic \

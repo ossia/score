@@ -8,9 +8,9 @@ export CXX=/opt/gcc-6/bin/g++
 export LD_LIBRARY_PATH=/opt/gcc-6/lib
 export PATH=/opt/gcc-6/bin:$PATH
 
-apt-get -y install cmake
+apt-get -y --force-yes install cmake
 
-mkdir /image
+mkdir -p /image
 (
     cd /image
     wget https://cmake.org/files/v3.7/cmake-3.7.1.tar.gz
@@ -26,6 +26,8 @@ mkdir /image
     wget "https://sourceforge.net/projects/boost/files/boost/1.$BOOST_VER.0/$BOOST_ADDR.tar.bz2"
     tar xaf "$BOOST_ADDR.tar.bz2"
     mv "$BOOST_ADDR" /opt/
+    rm -rf /opt/$BOOST_ADDR/libs
+    rm -rf /opt/$BOOST_ADDR/doc
 )
 
 rm -rf /image
