@@ -163,7 +163,7 @@ void ConstraintPresenter::on_maxDurationChanged(const TimeValue& max)
 {
   auto x = max.toPixels(m_zoomRatio);
   m_view->setMaxWidth(max.isInfinite(), max.isInfinite() ? -1 : x);
-  m_view->rightBrace().setX(x);
+  m_view->rightBrace().setX(x + 2);
   updateBraces();
 }
 
