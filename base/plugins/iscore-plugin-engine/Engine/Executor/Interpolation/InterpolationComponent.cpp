@@ -35,14 +35,50 @@ Component::Component(
                                                                              id,
                                                                              "InterpolationComponent",
                                                                              parent}
-    , m_deviceList{ctx.devices.list()}
 {
-  if (auto dest = Engine::iscore_to_ossia::makeDestination(
-          m_deviceList, process().address()))
+  m_ossia_process = std::make_shared<ossia::automation>();
+
+  con(element, &Interpolation::ProcessModel::addressChanged,
+      this, [this] (const auto&) { this->recompute(); });
+  con(element, &Interpolation::ProcessModel::startChanged,
+      this, [this] (const auto&) { this->recompute(); });
+  con(element, &Interpolation::ProcessModel::endChanged,
+      this, [this] (const auto&) { this->recompute(); });
+  con(element, &Interpolation::ProcessModel::tweenChanged,
+      this, [this] (const auto&) { this->recompute(); });
+  con(element, &Interpolation::ProcessModel::curveChanged,
+      this, [this] () { this->recompute(); });
+
+  recompute();
+}
+
+void Component::recompute()
+{
+  auto dest = Engine::iscore_to_ossia::makeDestination(
+            system().devices.list(), process().address());
+  if(dest)
   {
-    m_ossia_process = std::make_shared<ossia::automation>(
-        *dest, on_curveChanged(dest->value.get().getValueType()));
+    auto curve = on_curveChanged(dest->value.get().getValueType());
+    if(curve)
+    {
+      system().executionQueue.enqueue(
+            [proc=std::dynamic_pointer_cast<ossia::automation>(m_ossia_process)
+            ,curve
+            ,d_=*dest]
+      {
+        proc->setDestination(std::move(d_));
+        proc->setBehavior(curve);
+      });
+      return;
+    }
   }
+
+  // If something did not work out
+  system().executionQueue.enqueue(
+        [proc=std::dynamic_pointer_cast<ossia::automation>(m_ossia_process)]
+  {
+    proc->clean();
+  });
 }
 
 template <typename Y_T>
@@ -51,7 +87,7 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
 {
   using namespace ossia;
 
-  auto scale_x = [=](double val) -> double { return val; };
+  auto scale_x = [](double val) -> double { return val; };
   auto segt_data = process().curve().sortedSegments();
   if (segt_data.size() != 0)
   {
@@ -149,6 +185,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
             break;
           }
           default:
+            // TODO handle recursive case
             // Default case : we use a constant value.
             t.push_back(std::make_shared<ossia::constant_curve>(start));
         }
