@@ -75,7 +75,7 @@ void Component::recompute()
     auto& d = *dest;
     auto addressType = d.value.get().getValueType();
 
-    auto curve =process().tween()
+    auto curve = process().tween()
         ? on_curveChanged(addressType, d)
         : on_curveChanged(addressType, {});
 

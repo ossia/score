@@ -32,6 +32,7 @@ public:
       QObject* parent);
 
 private:
+  void recompute();
   void rebuildCurve();
 
   ossia::behavior on_curveChanged(ossia::val_type);
@@ -39,8 +40,6 @@ private:
   template <typename T>
   std::shared_ptr<ossia::curve_abstract>
   on_curveChanged_impl(double min, double max, double s, double e);
-
-  const Device::DeviceList& m_deviceList;
 };
 using ComponentFactory
     = ::Engine::Execution::ProcessComponentFactory_T<Component>;
