@@ -84,11 +84,9 @@ protected:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
 private:
-  QRectF m_selectArea;
-
-  bool m_lock{};
   TemporalScenarioPresenter* m_pres{};
-
+  QRectF m_selectArea{};
   QPointF m_previousPoint{};
+  bool m_lock{};
 };
 }
