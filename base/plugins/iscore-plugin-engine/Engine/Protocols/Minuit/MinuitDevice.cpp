@@ -53,5 +53,14 @@ bool MinuitDevice::reconnect()
 
   return connected();
 }
+
+void MinuitDevice::recreate(const Device::Node& n)
+{
+  for(auto& child : n)
+  {
+    addNode(child);
+  }
+}
+
 }
 }

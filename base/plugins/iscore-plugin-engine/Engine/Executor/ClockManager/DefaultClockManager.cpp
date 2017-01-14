@@ -50,6 +50,8 @@ DefaultClockManager::makeDefaultCallback(
       cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
 
     // Run some commands if they have been submitted.
+    //! TODO it could be interesting to count here the time remaining to the next tick between
+    //! each command and do the max that we can achieve
     for(int i = 0; i < 64; i++)
     {
       ExecutionCommand c;

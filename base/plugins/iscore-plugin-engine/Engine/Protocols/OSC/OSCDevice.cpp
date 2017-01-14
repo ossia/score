@@ -45,6 +45,14 @@ bool OSCDevice::reconnect()
   return connected();
 }
 
+void OSCDevice::recreate(const Device::Node& n)
+{
+  for(auto& child : n)
+  {
+    addNode(child);
+  }
+}
+
 bool OSCDevice::isLearning() const
 {
   auto& proto = static_cast<ossia::net::osc_protocol&>(m_dev->getProtocol());
