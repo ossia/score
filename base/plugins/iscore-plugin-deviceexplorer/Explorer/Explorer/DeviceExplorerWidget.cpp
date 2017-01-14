@@ -654,6 +654,7 @@ void DeviceExplorerWidget::reconnect()
     auto& dev = m->deviceModel().list().device(
         select.get<Device::DeviceSettings>().name);
     dev.reconnect();
+    dev.recreate(select);
   }
 }
 
