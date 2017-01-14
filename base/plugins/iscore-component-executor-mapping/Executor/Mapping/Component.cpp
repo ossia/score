@@ -37,32 +37,72 @@ Component::Component(
           ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>{parentConstraint,
                                                                    element,
                                                                    ctx, id,
-                                                                   "MappingEle"
-                                                                   "ment",
+                                                                   "MappingElement",
                                                                    parent}
-    , m_deviceList{ctx.devices.list()}
 {
+  m_ossia_process = std::make_shared<ossia::mapper>();
+
+  con(element, &Mapping::ProcessModel::sourceAddressChanged,
+      this, [this] (const auto&) { this->recompute(); });
+  con(element, &Mapping::ProcessModel::sourceMinChanged,
+      this, [this] (const auto&) { this->recompute(); });
+  con(element, &Mapping::ProcessModel::sourceMaxChanged,
+      this, [this] (const auto&) { this->recompute(); });
+
+  con(element, &Mapping::ProcessModel::targetAddressChanged,
+      this, [this] (const auto&) { this->recompute(); });
+  con(element, &Mapping::ProcessModel::targetMinChanged,
+      this, [this] (const auto&) { this->recompute(); });
+  con(element, &Mapping::ProcessModel::targetMaxChanged,
+      this, [this] (const auto&) { this->recompute(); });
+
+  con(element, &Mapping::ProcessModel::curveChanged,
+      this, [this] () { this->recompute(); });
+
+  recompute();
+}
+
+void Component::recompute()
+{
+  const auto& devices = system().devices.list();
   auto ossia_source_addr = Engine::iscore_to_ossia::makeDestination(
-      m_deviceList, process().sourceAddress());
+      devices, process().sourceAddress());
 
-  if (!ossia_source_addr)
-    return;
-
-  auto ossia_target_addr = Engine::iscore_to_ossia::makeDestination(
-      m_deviceList, process().targetAddress());
-  if (!ossia_target_addr)
-    return;
-
-  m_sourceAddressType = ossia_source_addr->value.get().getValueType();
-  m_targetAddressType = ossia_target_addr->value.get().getValueType();
-
-  rebuildCurve(); // If the type changes we need to rebuild the curve.
-
-  if (m_ossia_curve)
+  if (ossia_source_addr)
   {
-    m_ossia_process = std::make_shared<ossia::mapper>(
-        *ossia_source_addr, *ossia_target_addr, m_ossia_curve);
+    auto ossia_target_addr = Engine::iscore_to_ossia::makeDestination(
+          devices, process().targetAddress());
+    if (ossia_target_addr)
+    {
+      auto sourceAddressType = ossia_source_addr->value.get().getValueType();
+      auto targetAddressType = ossia_target_addr->value.get().getValueType();
+
+      auto curve = rebuildCurve(sourceAddressType, targetAddressType); // If the type changes we need to rebuild the curve.
+
+      if (curve)
+      {
+        system().executionQueue.enqueue(
+              [proc=std::dynamic_pointer_cast<ossia::mapper>(m_ossia_process)
+              ,curve
+              ,source=*ossia_source_addr
+              ,target=*ossia_target_addr]
+        {
+          proc->setDriverAddress(std::move(source));
+          proc->setDrivenAddress(std::move(target));
+          proc->setBehavior(std::move(curve));
+        });
+        return;
+      }
+    }
   }
+
+  // If something did not work out
+  system().executionQueue.enqueue(
+        [proc=std::dynamic_pointer_cast<ossia::mapper>(m_ossia_process)]
+  {
+     proc->clean();
+  });
+
 }
 
 template <typename X_T, typename Y_T>
@@ -93,9 +133,10 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl2()
 }
 
 template <typename X_T>
-std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl()
+std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
+    ossia::val_type target)
 {
-  switch (m_targetAddressType)
+  switch (target)
   {
     case ossia::val_type::INT:
       return on_curveChanged_impl2<X_T, int>();
@@ -109,44 +150,34 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl()
       break;
     default:
       qDebug() << "Unsupported target address type: "
-               << (int)m_targetAddressType;
+               << (int)target;
       ISCORE_TODO;
   }
 
   return {};
 }
 
-std::shared_ptr<ossia::curve_abstract> Component::rebuildCurve()
+std::shared_ptr<ossia::curve_abstract> Component::rebuildCurve(
+    ossia::val_type source,
+    ossia::val_type target)
 {
-  m_ossia_curve.reset();
-  switch (m_sourceAddressType)
+  switch (source)
   {
     case ossia::val_type::INT:
-      m_ossia_curve = on_curveChanged_impl<int>();
-      break;
+      return on_curveChanged_impl<int>(target);
     case ossia::val_type::FLOAT:
     case ossia::val_type::TUPLE:
     case ossia::val_type::VEC2F:
     case ossia::val_type::VEC3F:
     case ossia::val_type::VEC4F:
-      m_ossia_curve = on_curveChanged_impl<float>();
-      break;
-    /*
-            {
-                State::AddressAccessor addr = process().sourceAddress();
-                if(addr.qualifiers.accessors.size() == 1)
-                {
-                  m_ossia_curve = on_curveChanged_impl<float>();
-                }
-                break;
-            }*/
+      return on_curveChanged_impl<float>(target);
     default:
       qDebug() << "Unsupported source address type: "
-               << (int)m_sourceAddressType;
+               << (int)source;
       ISCORE_TODO;
   }
 
-  return m_ossia_curve;
+  return {};
 }
 }
 }

@@ -59,6 +59,7 @@ public:
 
   virtual void disconnect() = 0;
   virtual bool reconnect() = 0;
+  virtual void recreate(const Device::Node&) {} // Argument is the node of the device, used for recreation
   virtual bool connected() const = 0;
 
   virtual void updateSettings(const Device::DeviceSettings&) = 0;

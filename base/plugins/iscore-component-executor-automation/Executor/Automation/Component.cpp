@@ -38,31 +38,25 @@ Component::Component(
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
-    : ::Engine::Execution::
-          ProcessComponent_T<Automation::ProcessModel, ossia::automation>{parentConstraint,
-                                                                          element,
-                                                                          ctx,
-                                                                          id,
-                                                                          "Exe"
-                                                                          "cut"
-                                                                          "or:"
-                                                                          ":Au"
-                                                                          "tom"
-                                                                          "ati"
-                                                                          "on:"
-                                                                          ":Co"
-                                                                          "mpo"
-                                                                          "nen"
-                                                                          "t",
-                                                                          parent}
-    , m_deviceList{ctx.devices.list()}
+  : ::Engine::Execution::
+      ProcessComponent_T<Automation::ProcessModel, ossia::automation>{
+        parentConstraint,
+        element,
+        ctx,
+        id, "Executor::AutomationComponent", parent}
 {
+  m_ossia_process = std::make_shared<ossia::automation>();
 
   con(element, &Automation::ProcessModel::addressChanged,
       this, [this] (const auto&) { this->recompute(); });
   con(element, &Automation::ProcessModel::minChanged,
       this, [this] (const auto&) { this->recompute(); });
   con(element, &Automation::ProcessModel::maxChanged,
+      this, [this] (const auto&) { this->recompute(); });
+
+  // TODO the tween case will reset the "running" value,
+  // so it may not work perfectly.
+  con(element, &Automation::ProcessModel::tweenChanged,
       this, [this] (const auto&) { this->recompute(); });
   con(element, &Automation::ProcessModel::curveChanged,
       this, [this] () { this->recompute(); });
@@ -73,59 +67,38 @@ Component::Component(
 void Component::recompute()
 {
   auto dest = Engine::iscore_to_ossia::makeDestination(
-      m_deviceList, process().address());
+        system().devices.list(),
+        process().address());
 
   if (dest)
   {
     auto& d = *dest;
-    m_addressType = d.value.get().getValueType();
+    auto addressType = d.value.get().getValueType();
 
-    if (process().tween())
-      on_curveChanged(d); // If the type changes we need to rebuild the curve.
-    else
-      on_curveChanged({});
+    auto curve =process().tween()
+        ? on_curveChanged(addressType, d)
+        : on_curveChanged(addressType, {});
 
-    if (m_ossia_curve)
-    {
-      if(!m_ossia_process)
-      {
-        m_ossia_process = std::make_shared<ossia::automation>(std::move(d), m_ossia_curve);
-      }
-      else
-      {
-        system().executionQueue.enqueue(
-              [proc=std::dynamic_pointer_cast<ossia::automation>(m_ossia_process)
-              ,curve=m_ossia_curve
-              ,d_=d]
-        {
-          proc->setDestination(std::move(d_));
-          proc->setBehavior(curve);
-        });
-      }
-    }
-    else
-    {
-      if(m_ossia_process)
-      {
-        system().executionQueue.enqueue(
-              [proc=std::dynamic_pointer_cast<ossia::automation>(m_ossia_process)]
-        {
-          proc->clean();
-        });
-      }
-    }
-  }
-  else
-  {
-    if(m_ossia_process)
+    if (curve)
     {
       system().executionQueue.enqueue(
-            [proc=std::dynamic_pointer_cast<ossia::automation>(m_ossia_process)]
+            [proc=std::dynamic_pointer_cast<ossia::automation>(m_ossia_process)
+            ,curve
+            ,d_=d]
       {
-        proc->clean();
+        proc->setDestination(std::move(d_));
+        proc->setBehavior(curve);
       });
+      return;
     }
   }
+
+  // If something did not work out
+  system().executionQueue.enqueue(
+        [proc=std::dynamic_pointer_cast<ossia::automation>(m_ossia_process)]
+  {
+    proc->clean();
+  });
 }
 
 template <typename Y_T>
@@ -144,7 +117,7 @@ Component::on_curveChanged_impl(const optional<ossia::Destination>& d)
   if (segt_data.size() != 0)
   {
     return Engine::iscore_to_ossia::curve<double, Y_T>(
-        scale_x, scale_y, segt_data, d);
+          scale_x, scale_y, segt_data, d);
   }
   else
   {
@@ -153,29 +126,27 @@ Component::on_curveChanged_impl(const optional<ossia::Destination>& d)
 }
 
 std::shared_ptr<ossia::curve_abstract>
-Component::on_curveChanged(const optional<ossia::Destination>& d)
+Component::on_curveChanged(
+    ossia::val_type type,
+    const optional<ossia::Destination>& d)
 {
-  m_ossia_curve.reset();
-  switch (m_addressType)
+  switch (type)
   {
     case ossia::val_type::INT:
-      m_ossia_curve = on_curveChanged_impl<int>(d);
-      break;
+      return on_curveChanged_impl<int>(d);
     case ossia::val_type::FLOAT:
-      m_ossia_curve = on_curveChanged_impl<float>(d);
-      break;
+      return on_curveChanged_impl<float>(d);
     case ossia::val_type::TUPLE:
     case ossia::val_type::VEC2F:
     case ossia::val_type::VEC3F:
     case ossia::val_type::VEC4F:
-      m_ossia_curve = on_curveChanged_impl<float>(d);
-      break;
+      return on_curveChanged_impl<float>(d);
     default:
-      qDebug() << "Unsupported curve type: " << (int)m_addressType;
+      qDebug() << "Unsupported curve type: " << (int)type;
       ISCORE_TODO;
   }
 
-  return m_ossia_curve;
+  return {};
 }
 }
 }
