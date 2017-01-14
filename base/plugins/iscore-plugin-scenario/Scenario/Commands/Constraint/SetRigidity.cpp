@@ -43,14 +43,14 @@ void SetRigidity::redo() const
 {
   auto& constraint = m_path.find();
   constraint.duration.setRigid(m_rigidity);
-  // auto dur = constraint.duration.defaultDuration();
+  auto dur = constraint.duration.defaultDuration();
 
   if (m_rigidity)
   {
     constraint.duration.setMinNull(false);
     constraint.duration.setMaxInfinite(false);
-    //    constraint.duration.setMinDuration(dur);
-    //    constraint.duration.setMaxDuration(dur);
+    constraint.duration.setMinDuration(dur);
+    constraint.duration.setMaxDuration(dur);
   }
   else
   {
