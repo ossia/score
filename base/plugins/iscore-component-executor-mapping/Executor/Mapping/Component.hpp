@@ -33,20 +33,17 @@ public:
       QObject* parent);
 
 private:
-  std::shared_ptr<ossia::curve_abstract> rebuildCurve();
-
-  ossia::val_type m_sourceAddressType{ossia::val_type(-1)};
-  ossia::val_type m_targetAddressType{ossia::val_type(-1)};
+  void recompute();
+  std::shared_ptr<ossia::curve_abstract> rebuildCurve(
+      ossia::val_type source,
+      ossia::val_type target);
 
   template <typename T>
-  std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl();
+  std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl(
+      ossia::val_type target);
 
   template <typename X_T, typename Y_T>
   std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl2();
-
-  std::shared_ptr<ossia::curve_abstract> m_ossia_curve;
-
-  const Device::DeviceList& m_deviceList;
 };
 
 using ComponentFactory
