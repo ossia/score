@@ -133,7 +133,7 @@ Component::Component(
   m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::OffsetBehavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
-  m_ossia_constraint->onSetup(loop->getPatternTimeConstraint(), m_ossia_constraint->makeDurations(), true);
+  m_ossia_constraint->onSetup(loop->getPatternTimeConstraint(), m_ossia_constraint->makeDurations(), false);
 }
 
 Component::~Component()
