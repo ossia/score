@@ -64,20 +64,21 @@ ConstraintComponentBase::~ConstraintComponentBase()
     m_ossia_constraint->setCallback(ossia::time_constraint::ExecutionCallback{});
 
   for(auto& proc : m_processes)
-    proc->cleanup();
+    proc.second->cleanup();
   executionStopped();
 }
 
 void ConstraintComponent::init()
 {
-  iscore::PolymorphicComponentHierarchy<ConstraintComponentBase, false>::init();
+    init_hierarchy();
 }
 
 void ConstraintComponent::cleanup()
 {
-  m_ossia_constraint->setCallback(ossia::time_constraint::ExecutionCallback{});
+  if(m_ossia_constraint)
+    m_ossia_constraint->setCallback(ossia::time_constraint::ExecutionCallback{});
   for(auto& proc : m_processes)
-    proc->cleanup();
+    proc.second->cleanup();
 
   m_processes.clear();
   m_ossia_constraint.reset();
@@ -178,7 +179,7 @@ void ConstraintComponentBase::stop()
 
   for (auto& process : m_processes)
   {
-    process->stop();
+    process.second->stop();
   }
   constraint().reset();
 
@@ -216,7 +217,7 @@ ProcessComponent* ConstraintComponentBase::make(
     auto plug = fac.make(self, proc, ctx, id, nullptr);
     if (plug)
     {
-      m_processes.push_back(plug);
+      m_processes.emplace(proc.id(), plug);
 
       system().executionQueue.enqueue(
             [=,cst=m_ossia_constraint] {
@@ -240,7 +241,6 @@ std::function<void ()> ConstraintComponentBase::removing(
     const Process::ProcessModel& e,
     ProcessComponent& c)
 {
-
   return {};
 }
 

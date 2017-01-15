@@ -267,8 +267,11 @@ void ApplicationPlugin::on_stop()
       m_playing = false;
       m_paused = false;
 
-      m_clock->stop();
-      m_clock.reset();
+	  if (m_clock)
+	  {
+          m_clock->stop();
+          m_clock.reset();
+	  }
       plugmodel->clear();
     }
 

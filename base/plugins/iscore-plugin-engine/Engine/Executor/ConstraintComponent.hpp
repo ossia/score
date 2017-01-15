@@ -32,6 +32,31 @@ namespace Engine
 {
 namespace Execution
 {
+class ConstraintComponentBase;
+class ConstraintComponent;
+
+}
+}
+
+namespace iscore
+{
+template<>
+struct is_component_serializable<Engine::Execution::ConstraintComponentBase>
+{
+    using type = iscore::not_serializable_tag;
+};
+
+template<>
+struct is_component_serializable<Engine::Execution::ConstraintComponent>
+{
+    using type = iscore::not_serializable_tag;
+};
+}
+
+namespace Engine
+{
+namespace Execution
+{
 struct Context;
 class DocumentPlugin;
 class ISCORE_PLUGIN_ENGINE_EXPORT ConstraintComponentBase :
@@ -104,7 +129,7 @@ protected:
   void on_processAdded(Process::ProcessModel& iscore_proc);
 
   std::shared_ptr<ossia::time_constraint> m_ossia_constraint;
-  std::vector<std::shared_ptr<ProcessComponent>> m_processes;
+  iscore::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>> m_processes;
 };
 
 
@@ -119,6 +144,11 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ConstraintComponent final :
   {
 
   }
+
+  ConstraintComponent(const ConstraintComponent&) = delete;
+  ConstraintComponent(ConstraintComponent&&) = delete;
+  ConstraintComponent& operator=(const ConstraintComponent&) = delete;
+  ConstraintComponent& operator=(ConstraintComponent&&) = delete;
   void init();
   void cleanup();
 

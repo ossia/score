@@ -271,7 +271,7 @@ static optional<ossia::net::instance_bounds> fromJamomaInstanceBounds(const QStr
     auto inst = str.split(' ');
     if(inst.size() == 2)
     {
-      return ossia::net::instance_bounds{inst[0].toInt(), inst[1].toInt()};
+      return ossia::net::instance_bounds(inst[0].toInt(), inst[1].toInt());
     }
   }
   return ossia::none;

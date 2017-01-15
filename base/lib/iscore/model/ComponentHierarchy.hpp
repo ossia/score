@@ -183,7 +183,7 @@ public:
       : ParentComponent_T{std::forward<Args>(args)...}
       , m_componentFactory{iscore::AppComponents().template interfaces<ChildComponentFactoryList_T>()}
   {
-    init();
+    init_hierarchy();
   }
 
   template <typename... Args>
@@ -193,7 +193,7 @@ public:
   {
   }
 
-  void init()
+  void init_hierarchy()
   {
     auto& child_models = ParentComponent_T::template models<ChildModel_T>();
     for (auto& child_model : child_models)
@@ -218,6 +218,33 @@ public:
         typename iscore::is_component_serializable<ChildComponent_T>::type{});
   }
 
+  void remove(const ChildModel_T& model)
+  {
+    auto it = ossia::find_if(
+        m_children, [&](auto pair) { return pair.model == &model; });
+
+    if (it != m_children.end())
+    {
+      do_cleanup(*it);
+      m_children.erase(it);
+    }
+  }
+
+  void clear()
+  {
+    for (const auto& element : m_children)
+    {
+      do_cleanup(element);
+    }
+    m_children.clear();
+  }
+
+  ~PolymorphicComponentHierarchyManager()
+  {
+    clear();
+  }
+
+private:
   void add(ChildModel_T& model, iscore::serializable_tag)
   {
     // Will return a factory for the given process if available
@@ -264,33 +291,6 @@ public:
     }
   }
 
-  void remove(const ChildModel_T& model)
-  {
-    auto it = ossia::find_if(
-        m_children, [&](auto pair) { return pair.model == &model; });
-
-    if (it != m_children.end())
-    {
-      do_cleanup(*it);
-      m_children.erase(it);
-    }
-  }
-
-  void clear()
-  {
-    for (const auto& element : m_children)
-    {
-      do_cleanup(element);
-    }
-    m_children.clear();
-  }
-
-  ~PolymorphicComponentHierarchyManager()
-  {
-    clear();
-  }
-
-private:
   void do_cleanup(const ChildPair& pair)
   {
     // TODO constexpr-if
