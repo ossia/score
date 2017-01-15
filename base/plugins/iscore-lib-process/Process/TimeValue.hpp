@@ -93,7 +93,7 @@ public:
 
   double toPixels(ZoomRatio ratio) const
   {
-    return ratio > 0 ? *m_impl / ratio : 0;
+    return (ratio > 0 && !isInfinite()) ? *m_impl / ratio : 0;
   }
 
   QTime toQTime() const

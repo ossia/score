@@ -6,8 +6,8 @@
 namespace Engine
 {
 namespace Execution
-{
-StateComponent::StateComponent(
+{ 
+ISCORE_PLUGIN_ENGINE_EXPORT StateComponent::StateComponent(
     const Scenario::StateModel& element,
     const Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
@@ -17,19 +17,19 @@ StateComponent::StateComponent(
 {
 }
 
-void StateComponent::cleanup()
+ISCORE_PLUGIN_ENGINE_EXPORT void StateComponent::cleanup()
 {
   m_ev.reset();
 }
 
-void StateComponent::onSetup(
+ISCORE_PLUGIN_ENGINE_EXPORT void StateComponent::onSetup(
     const std::shared_ptr<ossia::time_event>& root)
 {
   m_ev = root;
   m_ev->addState(m_state);
 }
 
-void StateComponent::onDelete() const
+ISCORE_PLUGIN_ENGINE_EXPORT void StateComponent::onDelete() const
 {
   system().executionQueue.enqueue([ev=m_ev,st=m_state] {
     if(ev)
