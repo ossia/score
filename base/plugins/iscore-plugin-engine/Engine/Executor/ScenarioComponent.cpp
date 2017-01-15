@@ -118,7 +118,8 @@ void ScenarioComponentBase::removeConstraint(const Id<Scenario::ConstraintModel>
   auto it = m_ossia_constraints.find(id);
   if(it != m_ossia_constraints.end())
   {
-    m_ctx.executionQueue.enqueue([&proc=OSSIAProcess(),cstr=it.value()->OSSIAConstraint()] {
+    std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+    m_ctx.executionQueue.enqueue([proc,cstr=it.value()->OSSIAConstraint()] {
       auto& next = cstr->getStartEvent().nextTimeConstraints();
       auto next_it = ossia::find(next, cstr);
       next.erase(next_it);
@@ -127,7 +128,7 @@ void ScenarioComponentBase::removeConstraint(const Id<Scenario::ConstraintModel>
       auto prev_it = ossia::find(prev, cstr);
       prev.erase(prev_it);
 
-      proc.removeTimeConstraint(cstr);
+      proc->removeTimeConstraint(cstr);
     });
 
     it->second->cleanup();
@@ -142,7 +143,8 @@ std::function<void ()> ScenarioComponentBase::removing(
   auto it = m_ossia_constraints.find(e.id());
   if(it != m_ossia_constraints.end())
   {
-    m_ctx.executionQueue.enqueue([&proc=OSSIAProcess(),cstr=c.OSSIAConstraint()] {
+   std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+    m_ctx.executionQueue.enqueue([proc,cstr=c.OSSIAConstraint()] {
       if(cstr)
       {
         auto& next = cstr->getStartEvent().nextTimeConstraints();
@@ -155,7 +157,7 @@ std::function<void ()> ScenarioComponentBase::removing(
         if(prev_it != prev.end())
           prev.erase(prev_it);
 
-        proc.removeTimeConstraint(cstr);
+        proc->removeTimeConstraint(cstr);
       }
     });
 
@@ -173,8 +175,9 @@ std::function<void ()> ScenarioComponentBase::removing(
   auto it = m_ossia_timenodes.find(e.id());
   if(it != m_ossia_timenodes.end())
   {
-    m_ctx.executionQueue.enqueue([&proc=OSSIAProcess(),tn=c.OSSIATimeNode()] {
-      proc.removeTimeNode(tn);
+    std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+    m_ctx.executionQueue.enqueue([proc,tn=c.OSSIATimeNode()] {
+      proc->removeTimeNode(tn);
     });
 
     it->second->cleanup();
@@ -190,7 +193,7 @@ std::function<void ()> ScenarioComponentBase::removing(
   auto it = m_ossia_timeevents.find(e.id());
   if(it != m_ossia_timeevents.end())
   {
-    m_ctx.executionQueue.enqueue([&proc=OSSIAProcess(),ev=c.OSSIAEvent()] {
+    m_ctx.executionQueue.enqueue([ev=c.OSSIAEvent()] {
       ev->getTimeNode().remove(ev);
     });
 

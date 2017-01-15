@@ -79,9 +79,6 @@ void ConstraintComponent::cleanup()
     m_ossia_constraint->setCallback(ossia::time_constraint::ExecutionCallback{});
   for(auto& proc : m_processes)
     proc.second->cleanup();
-
-  m_processes.clear();
-  m_ossia_constraint.reset();
 }
 
 ConstraintComponentBase::constraint_duration_data ConstraintComponentBase::makeDurations() const
@@ -241,6 +238,17 @@ std::function<void ()> ConstraintComponentBase::removing(
     const Process::ProcessModel& e,
     ProcessComponent& c)
 {
+  auto it = m_processes.find(e.id());
+  if(it != m_processes.end())
+  {
+    system().executionQueue.enqueue([cstr=m_ossia_constraint,proc=c.OSSIAProcessPtr()] {
+      cstr->removeTimeProcess(proc.get());
+    });
+
+    c.cleanup();
+
+    return [=] { m_processes.erase(it); };
+  }
   return {};
 }
 
