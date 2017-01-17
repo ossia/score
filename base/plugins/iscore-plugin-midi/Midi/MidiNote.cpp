@@ -10,10 +10,10 @@ Note::Note(const Id<Note>& id, QObject* parent)
 
 Note::Note(const Id<Note>& id, NoteData n, QObject* parent)
     : IdentifiedObject<Note>(id, "Note", parent)
-    , m_start{n.start}
-    , m_duration{n.duration}
-    , m_pitch{n.pitch}
-    , m_velocity{n.velocity}
+    , m_start{n.m_start}
+    , m_duration{n.m_duration}
+    , m_pitch{n.m_pitch}
+    , m_velocity{n.m_velocity}
 {
 }
 
@@ -100,10 +100,10 @@ NoteData Note::noteData() const
 
 void Note::setData(NoteData d)
 {
-  m_start = d.start;
-  m_duration = d.duration;
-  m_pitch = d.pitch;
-  m_velocity = d.velocity;
+  m_start = d.m_start;
+  m_duration = d.m_duration;
+  m_pitch = d.m_pitch;
+  m_velocity = d.m_velocity;
 
   emit noteChanged();
 }

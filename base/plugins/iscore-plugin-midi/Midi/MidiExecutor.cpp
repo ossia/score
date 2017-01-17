@@ -35,6 +35,10 @@ ProcessExecutor::ProcessExecutor(
 
   if (!m_channelNode)
     throw error_t("Bad node");
+
+  m_notes.reserve(m_process.notes.size());
+  ossia::transform(m_process.notes, std::inserter(m_notes, m_notes.begin()),
+                   [] (const Note& n) { return n.noteData(); });
 }
 
 ProcessExecutor::~ProcessExecutor()
@@ -53,43 +57,59 @@ ossia::state_element ProcessExecutor::state(double t)
   ossia::time_value date = par_cst.getDate();
   if (date != mLastDate)
   {
-    ossia::state st;
+    m_lastState.clear();
     if (mLastDate > date)
       mLastDate = 0;
+
     auto diff = (date - mLastDate) / par_cst.getDurationNominal();
     mLastDate = date;
     auto cur_pos = t;
     auto max_pos = cur_pos + diff;
 
     // Look for all the messages
-    // TODO do something more intelligent, by
-    // sorting them and only taking the current & next ones for instance
-    for (Note& note : m_process.notes)
+    auto max_it = std::lower_bound(m_notes.begin(), m_notes.end(), max_pos + 1, NoteComparator{});
+    for(auto it = m_notes.begin(); it < max_it; )
     {
+      NoteData& note = *it;
       auto start_time = note.start();
-      auto end_time = note.end();
-
       if (start_time >= cur_pos && start_time < max_pos)
       {
         // Send note_on
         auto p = m_channelNode->note_on(note.pitch(), note.velocity());
-        st.add(std::move(p[0]));
-        st.add(std::move(p[1]));
+        m_lastState.add(std::move(p[0]));
+        m_lastState.add(std::move(p[1]));
 
+        m_playingnotes.insert(note);
         m_playing.insert(note.pitch());
+        it = m_notes.erase(it);
+        max_it = std::lower_bound(it, m_notes.end(), max_pos + 1, NoteComparator{});
       }
-      if (end_time >= cur_pos && end_time < max_pos)
+      else
       {
-        // Send note_on
-        auto p = m_channelNode->note_off(note.pitch(), note.velocity());
-        st.add(std::move(p[0]));
-        st.add(std::move(p[1]));
-
-        m_playing.erase(note.pitch());
+        ++it;
       }
     }
 
-    m_lastState = std::move(st);
+    for(auto it = m_playingnotes.begin(); it != m_playingnotes.end(); )
+    {
+      NoteData& note = *it;
+      auto end_time = note.end();
+
+      if (end_time >= cur_pos && end_time < max_pos)
+      {
+        // Send note_off
+        auto p = m_channelNode->note_off(note.pitch(), note.velocity());
+        m_lastState.add(std::move(p[0]));
+        m_lastState.add(std::move(p[1]));
+
+        it = m_playingnotes.erase(it);
+        m_playing.erase(note.pitch());
+      }
+      else
+      {
+        ++it;
+      }
+    }
   }
 
   if(unmuted())

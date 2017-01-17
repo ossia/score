@@ -123,15 +123,15 @@ void View::keyPressEvent(QKeyEvent* ev)
 NoteData noteAtPos(QPointF point, const QRectF& rect)
 {
   NoteData n;
-  n.start = qBound(0., point.x() / rect.width(), 1.);
-  n.duration = 0.1;
-  n.pitch = qBound(
+  n.m_start = qBound(0., point.x() / rect.width(), 1.);
+  n.m_duration = 0.1;
+  n.m_pitch = qBound(
       0,
       int(127
           - (qMin(rect.bottom(), qMax(point.y(), rect.top())) / rect.height())
                 * 127),
       127);
-  n.velocity = 127.;
+  n.m_velocity = 127.;
   return n;
 }
 }

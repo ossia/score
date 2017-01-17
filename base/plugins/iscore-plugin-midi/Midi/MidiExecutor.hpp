@@ -3,8 +3,8 @@
 #include <ossia/editor/state/state_element.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <set>
-
+#include <Midi/MidiNote.hpp>
+#include <boost/container/flat_set.hpp>
 namespace ossia
 {
 namespace net
@@ -43,6 +43,10 @@ private:
 
   ossia::net::midi::channel_node* m_channelNode{};
   ossia::state m_lastState;
+
+  using note_set = boost::container::flat_multiset<NoteData, NoteComparator>;
+  note_set m_notes;
+  note_set m_playingnotes;
 
   std::set<int> m_playing;
 };
