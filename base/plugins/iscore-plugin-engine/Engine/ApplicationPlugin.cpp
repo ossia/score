@@ -207,6 +207,7 @@ void ApplicationPlugin::on_play(
 
       if(setup_fun)
       {
+        plugmodel->runAllCommands();
         setup_fun(c);
         plugmodel->runAllCommands();
       }
@@ -267,12 +268,12 @@ void ApplicationPlugin::on_stop()
       m_playing = false;
       m_paused = false;
 
-	  if (m_clock)
-	  {
+    if (m_clock)
+    {
           m_clock->stop();
           m_clock.reset();
-		  plugmodel->clear();
-	  }
+      plugmodel->clear();
+    }
     }
 
     // If we can we resume listening

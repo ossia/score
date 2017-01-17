@@ -113,30 +113,6 @@ void ScenarioComponentBase::stop()
   ProcessComponent::stop();
 }
 
-void ScenarioComponentBase::removeConstraint(const Id<Scenario::ConstraintModel>& id)
-{
-  auto it = m_ossia_constraints.find(id);
-  if(it != m_ossia_constraints.end())
-  {
-    std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
-    m_ctx.executionQueue.enqueue([proc,cstr=it.value()->OSSIAConstraint()] {
-      auto& next = cstr->getStartEvent().nextTimeConstraints();
-      auto next_it = ossia::find(next, cstr);
-      next.erase(next_it);
-
-      auto& prev = cstr->getEndEvent().previousTimeConstraints();
-      auto prev_it = ossia::find(prev, cstr);
-      prev.erase(prev_it);
-
-      proc->removeTimeConstraint(cstr);
-    });
-
-    it->second->cleanup();
-
-    m_ossia_constraints.erase(it);
-  }
-}
-
 std::function<void ()> ScenarioComponentBase::removing(
     const Scenario::ConstraintModel& e, ConstraintComponent& c)
 {

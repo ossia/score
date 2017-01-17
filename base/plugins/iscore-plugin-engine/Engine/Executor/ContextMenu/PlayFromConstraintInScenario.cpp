@@ -84,15 +84,15 @@ void PlayFromConstraintScenarioPruner::operator()(const Context& exec_ctx)
 
   ISCORE_ASSERT(scenar_proc_it != source_procs.end());
 
-  auto e = dynamic_cast<ScenarioComponentBase*>((*scenar_proc_it).second.get());
-  auto scenar_constraints = e->constraints();
+  auto scenar_comp = dynamic_cast<ScenarioComponent*>((*scenar_proc_it).second.get());
+  auto scenar_constraints = scenar_comp->constraints();
   ConstraintComponent* other_cst{};
   for(auto elt : scenar_constraints)
   {
     auto& is = elt.second->iscoreConstraint();
     if(toRemove(toKeep, is))
     {
-      e->removeConstraint(elt.first);
+       scenar_comp->remove(is);
     }
     else if(&is == &constraint)
     {
@@ -100,14 +100,20 @@ void PlayFromConstraintScenarioPruner::operator()(const Context& exec_ctx)
     }
   }
 
-  // Get the time_constraint element of the constraint we're starting from.
+  // Get the time_constraint element of the constraint we're starting from,
+  // unless it is already linked to the beginning.
+  auto& start_e = *scenar_comp->OSSIAProcess().getStartTimeNode()->timeEvents()[0];
   auto& new_end_e = other_cst->OSSIAConstraint()->getStartEvent();
-  auto end_date = new_end_e.getTimeNode().getDate();
-  auto new_cst = ossia::time_constraint::create(
-                   ossia::time_constraint::ExecutionCallback{},
-                   *e->OSSIAProcess().getStartTimeNode()->timeEvents()[0],
-      new_end_e, end_date, end_date, end_date);
-  e->OSSIAProcess().addTimeConstraint(new_cst);
+  if(&start_e != &new_end_e)
+  {
+    auto end_date = new_end_e.getTimeNode().getDate();
+    auto new_cst = ossia::time_constraint::create(
+          ossia::time_constraint::ExecutionCallback{},
+          *scenar_comp->OSSIAProcess().getStartTimeNode()->timeEvents()[0],
+        new_end_e, end_date, end_date, end_date);
+
+    scenar_comp->OSSIAProcess().addTimeConstraint(new_cst);
+  }
 
   // Then we add a constraint from the beginning of the scenario to this one,
   // and we do an offset.
