@@ -79,6 +79,7 @@ void ConstraintComponent::cleanup()
   for(auto& proc : m_processes)
     proc->cleanup();
 
+  clear();
   m_processes.clear();
   m_ossia_constraint.reset();
 }
