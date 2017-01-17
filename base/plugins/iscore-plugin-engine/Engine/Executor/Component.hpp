@@ -5,7 +5,7 @@ namespace Engine
 {
 namespace Execution
 {
-class Context;
+struct Context;
 using Component = iscore::GenericComponent<const Context>;
 }
 }

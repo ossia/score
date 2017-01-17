@@ -40,6 +40,7 @@ public:
   const Scenario::TimeNodeModel& iscoreTimeNode() const;
 
 private:
+  void updateTrigger();
   void on_GUITrigger();
   std::shared_ptr<ossia::time_node> m_ossia_node;
   const Scenario::TimeNodeModel& m_iscore_node;

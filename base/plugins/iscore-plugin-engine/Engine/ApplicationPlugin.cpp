@@ -267,9 +267,12 @@ void ApplicationPlugin::on_stop()
       m_playing = false;
       m_paused = false;
 
-      m_clock->stop();
-      m_clock.reset();
-      plugmodel->clear();
+	  if (m_clock)
+	  {
+          m_clock->stop();
+          m_clock.reset();
+		  plugmodel->clear();
+	  }
     }
 
     // If we can we resume listening

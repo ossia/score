@@ -133,6 +133,8 @@ void loadPlugins(
       iscore::Addon addon;
       addon.corePlugin = true;
       addon.plugin = iscore_plug;
+      addon.key = iscore_plug->key();
+      addon.corePlugin = true;
       availablePlugins.push_back(std::move(addon));
     }
   }

@@ -114,12 +114,12 @@ void deserializeRemainingComponents(iscore::Components& comps, QObject* obj)
 }
 
 template<>
-void DataStreamReader::read<iscore::SerializableComponent>(const iscore::SerializableComponent&)
+ISCORE_LIB_BASE_EXPORT void DataStreamReader::read<iscore::SerializableComponent>(const iscore::SerializableComponent&)
 {
 
 }
 template<>
-void JSONObjectReader::read<iscore::SerializableComponent>(const iscore::SerializableComponent&)
+ISCORE_LIB_BASE_EXPORT void JSONObjectReader::read<iscore::SerializableComponent>(const iscore::SerializableComponent&)
 {
 
 }

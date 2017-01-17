@@ -406,7 +406,7 @@ static void visit_node(const Process::MessageNode& root, Fun f)
   }
 }
 
-void state(
+ISCORE_PLUGIN_ENGINE_EXPORT void state(
     ossia::state& parent,
     const Scenario::StateModel& iscore_state,
     const Engine::Execution::Context& ctx)
@@ -435,7 +435,7 @@ void state(
   }
 }
 
-ossia::state state(
+ISCORE_PLUGIN_ENGINE_EXPORT ossia::state state(
     const Scenario::StateModel& iscore_state,
     const Engine::Execution::Context& ctx)
 {
