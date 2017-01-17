@@ -28,24 +28,10 @@ TimeNodeComponent::TimeNodeComponent(
   connect(m_iscore_node.trigger(), &Scenario::TriggerModel::triggeredByGui,
           this, &TimeNodeComponent::on_GUITrigger);
 
+  connect(element.trigger(), &Scenario::TriggerModel::activeChanged,
+          this, &TimeNodeComponent::updateTrigger);
   connect(element.trigger(), &Scenario::TriggerModel::triggerChanged,
-      this, [this] (const auto& expr)
-  {
-    auto exp_ptr = std::make_shared<ossia::expression_ptr>( this->makeTrigger() );
-    this->system().executionQueue.enqueue(
-          [e = m_ossia_node, exp_ptr]
-    {
-      bool old = e->isObservingExpression();
-      if(old)
-        e->observeExpressionResult(false);
-
-      e->setExpression(std::move(*exp_ptr));
-
-      if(old)
-        e->observeExpressionResult(true);
-
-    });
-  });
+          this, [this] (const State::Expression& expr) { this->updateTrigger(); });
 }
 
 void TimeNodeComponent::cleanup()
@@ -88,6 +74,25 @@ std::shared_ptr<ossia::time_node> TimeNodeComponent::OSSIATimeNode() const
 const Scenario::TimeNodeModel& TimeNodeComponent::iscoreTimeNode() const
 {
   return m_iscore_node;
+}
+
+void TimeNodeComponent::updateTrigger()
+{
+  auto exp_ptr = std::make_shared<ossia::expression_ptr>( this->makeTrigger() );
+  this->system().executionQueue.enqueue(
+        [e = m_ossia_node, exp_ptr]
+  {
+    bool old = e->isObservingExpression();
+    if(old)
+      e->observeExpressionResult(false);
+
+    e->setExpression(std::move(*exp_ptr));
+
+    if(old)
+      e->observeExpressionResult(true);
+
+  });
+
 }
 
 void TimeNodeComponent::on_GUITrigger()

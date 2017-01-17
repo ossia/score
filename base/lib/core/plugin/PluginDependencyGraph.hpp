@@ -47,7 +47,8 @@ public:
     // First add all the vertices to the graph
     for(const iscore::Addon& addon : addons)
     {
-      keys[addon.key] = boost::add_vertex(GraphVertex{&addon}, m_graph);
+      auto vx = boost::add_vertex(GraphVertex{ &addon }, m_graph);
+      keys[addon.key] = vx;
     }
 
     // If A depends on B, then there is an edge from B to A.
