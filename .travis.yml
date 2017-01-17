@@ -31,15 +31,11 @@ matrix:
   include:
     - os: linux
       env: CONF=linux-gcov CAN_DEPLOY=False
-      dist: trusty
 
     - os: osx
       env: CONF=osx-release CAN_DEPLOY=True
     - os: linux
       env: CONF=linux-package-appimage CAN_DEPLOY=True
-      dist: trusty
-      services:
-        - docker
 
     - os: osx
       env: CONF=osx-debug CAN_DEPLOY=False
@@ -50,13 +46,10 @@ matrix:
 
     - os: linux
       env: CONF=linux-debug CAN_DEPLOY=False
-      dist: trusty
     - os: linux
       env: CONF=linux-static-debug CAN_DEPLOY=False
-      dist: trusty
     - os: linux
       env: CONF=linux-release CAN_DEPLOY=False
-      dist: trusty
 
 # Coverity
 #    - os: linux
