@@ -76,19 +76,19 @@ public:
     setup<Scenario::ConstraintModel>();
   }
 
-  const std::list<ConstraintPair>& constraints() const
+  const std::list<ConstraintPair>& constraints_pairs() const
   {
     return m_constraints;
   }
-  const std::list<EventPair>& events() const
+  const std::list<EventPair>& events_pairs() const
   {
     return m_events;
   }
-  const std::list<StatePair>& states() const
+  const std::list<StatePair>& states_pairs() const
   {
     return m_states;
   }
-  const std::list<TimeNodePair>& timeNodes() const
+  const std::list<TimeNodePair>& timeNodes_pairs() const
   {
     return m_timeNodes;
   }
@@ -113,6 +113,22 @@ public:
   ~HierarchicalScenarioComponent()
   {
     clear();
+  }
+
+  template <typename elt_t>
+  void remove(const elt_t& element)
+  {
+    using map_t = MatchingComponent<elt_t, true>;
+    auto& container = this->*map_t::local_container;
+
+    auto it = ossia::find_if(
+        container, [&](auto pair) { return &pair.element == &element; });
+
+    if (it != container.end())
+    {
+      do_cleanup(*it);
+      container.erase(it);
+    }
   }
 
 private:
@@ -207,23 +223,6 @@ private:
       element.components().add(comp);
       (this->*map_t::local_container)
           .emplace_back(typename map_t::pair_type{element, *comp});
-    }
-  }
-
-
-  template <typename elt_t>
-  void remove(const elt_t& element)
-  {
-    using map_t = MatchingComponent<elt_t, true>;
-    auto& container = this->*map_t::local_container;
-
-    auto it = ossia::find_if(
-        container, [&](auto pair) { return &pair.element == &element; });
-
-    if (it != container.end())
-    {
-      do_cleanup(*it);
-      container.erase(it);
     }
   }
 

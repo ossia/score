@@ -92,8 +92,6 @@ public:
 
   void stop() override;
 
-  void removeConstraint(const Id<Scenario::ConstraintModel>&);
-
   template <typename Component_T, typename Element>
   Component_T* make(const Id<iscore::Component>& id, Element& elt);
 
