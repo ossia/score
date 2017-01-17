@@ -91,34 +91,34 @@ void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
 template <>
 void DataStreamReader::read(const Midi::NoteData& n)
 {
-  m_stream << n.start << n.duration << n.pitch << n.velocity;
+  m_stream << n.m_start << n.m_duration << n.m_pitch << n.m_velocity;
 }
 
 
 template <>
 void DataStreamWriter::write(Midi::NoteData& n)
 {
-  m_stream >> n.start >> n.duration >> n.pitch >> n.velocity;
+  m_stream >> n.m_start >> n.m_duration >> n.m_pitch >> n.m_velocity;
 }
 
 
 template <>
 void JSONObjectReader::read(const Midi::NoteData& n)
 {
-  obj["Start"] = n.start;
-  obj["Duration"] = n.duration;
-  obj["Pitch"] = n.pitch;
-  obj["Velocity"] = n.velocity;
+  obj["Start"] = n.m_start;
+  obj["Duration"] = n.m_duration;
+  obj["Pitch"] = n.m_pitch;
+  obj["Velocity"] = n.m_velocity;
 }
 
 
 template <>
 void JSONObjectWriter::write(Midi::NoteData& n)
 {
-  n.start = obj["Start"].toDouble();
-  n.duration = obj["Duration"].toDouble();
-  n.pitch = obj["Pitch"].toInt();
-  n.velocity = obj["Velocity"].toInt();
+  n.m_start = obj["Start"].toDouble();
+  n.m_duration = obj["Duration"].toDouble();
+  n.m_pitch = obj["Pitch"].toInt();
+  n.m_velocity = obj["Velocity"].toInt();
 }
 
 

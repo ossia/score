@@ -9,15 +9,38 @@ struct NoteData
 {
   NoteData() = default;
   NoteData(double s, double d, midi_size_t p, midi_size_t v)
-      : start{s}, duration{d}, pitch{p}, velocity{v}
+      : m_start{s}, m_duration{d}, m_pitch{p}, m_velocity{v}
   {
   }
 
-  double start{};
-  double duration{};
+  double start() const { return m_start; }
+  double duration() const { return m_duration; }
+  double end() const { return m_start + m_duration; }
 
-  midi_size_t pitch{};
-  midi_size_t velocity{};
+  midi_size_t pitch() const { return m_pitch; }
+  midi_size_t velocity() const { return m_velocity; }
+
+  void setStart(double s) { m_start = s; }
+  void setDuration(double s) { m_duration = s; }
+  void setPitch(midi_size_t s) { m_pitch = s; }
+  void setVelocity(midi_size_t s) { m_velocity = s; }
+
+  double m_start{};
+  double m_duration{};
+
+  midi_size_t m_pitch{};
+  midi_size_t m_velocity{};
+};
+
+struct NoteComparator
+{
+  bool operator()(const NoteData& lhs, const NoteData& rhs) const
+  {
+    return lhs.m_start < rhs.m_start;
+  }
+  bool operator()(const NoteData& lhs, double rhs) const {
+    return lhs.m_start < rhs;
+  }
 };
 
 /**

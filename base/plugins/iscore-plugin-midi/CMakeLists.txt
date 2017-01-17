@@ -48,5 +48,6 @@ set(SOURCE_FILES
 add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 iscore_generate_command_list_file(${PROJECT_NAME} "${HEADER_FILES}")
 target_link_libraries(${PROJECT_NAME} PUBLIC iscore_plugin_engine)
+target_include_directories(${PROJECT_NAME} PRIVATE "${OSSIA_3RDPARTY_FOLDER}/GSL")
 
 setup_iscore_plugin(${PROJECT_NAME})
