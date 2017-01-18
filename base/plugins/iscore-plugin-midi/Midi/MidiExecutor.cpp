@@ -13,28 +13,34 @@ namespace Executor
 {
 ProcessExecutor::ProcessExecutor(
     const Midi::ProcessModel& proc, const Device::DeviceList& devices)
-    : m_process{proc}
+  : m_process{proc}
 {
   using error_t
-      = Engine::Execution::InvalidProcessException<Midi::ProcessModel>;
-  // Load the address
-  // Look for the real node in the device
-  auto dev_p = devices.findDevice(proc.device());
-  if (!dev_p)
-    throw error_t("Bad device");
+  = Engine::Execution::InvalidProcessException<Midi::ProcessModel>;
 
-  auto dev = dynamic_cast<Engine::Network::OSSIADevice*>(dev_p);
-  if (!dev)
-    throw error_t("Bad process");
+  if(proc.device().isEmpty())
+  {
+    // We're in "audio" mode.
+  }
+  else
+  {
+    // Load the address
+    // Look for the real node in the device
+    auto dev_p = devices.findDevice(proc.device());
+    if(dev_p)
+    {
+      auto dev = dynamic_cast<Engine::Network::OSSIADevice*>(dev_p);
+      if (dev)
+      {
+        // We get the node corresponding to the channel
+        auto node = Engine::iscore_to_ossia::findNodeFromPath(
+        {QString::number(proc.channel())}, *dev->getDevice());
 
-  // We get the node corresponding to the channel
-  auto node = Engine::iscore_to_ossia::findNodeFromPath(
-      {QString::number(proc.channel())}, *dev->getDevice());
-
-  m_channelNode = dynamic_cast<ossia::net::midi::channel_node*>(node);
-
-  if (!m_channelNode)
-    throw error_t("Bad node");
+        if(node)
+          m_channelNode = dynamic_cast<ossia::net::midi::channel_node*>(node);
+      }
+    }
+  }
 
   m_notes.reserve(m_process.notes.size());
   ossia::transform(m_process.notes, std::inserter(m_notes, m_notes.begin()),
@@ -61,6 +67,9 @@ ossia::state_element ProcessExecutor::state(double t)
     if (mLastDate > date)
       mLastDate = 0;
 
+    timedState.currentAudioStart.clear();
+    timedState.currentAudioStop.clear();
+
     auto diff = (date - mLastDate) / par_cst.getDurationNominal();
     mLastDate = date;
     auto cur_pos = t;
@@ -75,9 +84,16 @@ ossia::state_element ProcessExecutor::state(double t)
       if (start_time >= cur_pos && start_time < max_pos)
       {
         // Send note_on
-        auto p = m_channelNode->note_on(note.pitch(), note.velocity());
-        m_lastState.add(std::move(p[0]));
-        m_lastState.add(std::move(p[1]));
+        if(m_channelNode)
+        {
+          auto p = m_channelNode->note_on(note.pitch(), note.velocity());
+          m_lastState.add(std::move(p[0]));
+          m_lastState.add(std::move(p[1]));
+        }
+        else
+        {
+          timedState.currentAudioStart.emplace_back(note, 0);
+        }
 
         m_playingnotes.insert(note);
         m_playing.insert(note.pitch());
@@ -97,10 +113,17 @@ ossia::state_element ProcessExecutor::state(double t)
 
       if (end_time >= cur_pos && end_time < max_pos)
       {
-        // Send note_off
-        auto p = m_channelNode->note_off(note.pitch(), note.velocity());
-        m_lastState.add(std::move(p[0]));
-        m_lastState.add(std::move(p[1]));
+        if(m_channelNode)
+        {
+          // Send note_off
+          auto p = m_channelNode->note_off(note.pitch(), note.velocity());
+          m_lastState.add(std::move(p[0]));
+          m_lastState.add(std::move(p[1]));
+        }
+        else
+        {
+          timedState.currentAudioStop.emplace_back(note, 0);
+        }
 
         it = m_playingnotes.erase(it);
         m_playing.erase(note.pitch());
@@ -117,6 +140,7 @@ ossia::state_element ProcessExecutor::state(double t)
   return {};
 }
 
+
 ossia::state_element ProcessExecutor::offset(ossia::time_value off)
 {
   return state(off / parent()->getDurationNominal());
@@ -124,14 +148,17 @@ ossia::state_element ProcessExecutor::offset(ossia::time_value off)
 
 void ProcessExecutor::stop()
 {
-  ossia::state s;
-  for (auto& note : m_playing)
+  if(m_channelNode)
   {
-    auto p = m_channelNode->note_off(note, 0);
-    s.add(std::move(p[0]));
-    s.add(std::move(p[1]));
+    ossia::state s;
+    for (auto& note : m_playing)
+    {
+      auto p = m_channelNode->note_off(note, 0);
+      s.add(std::move(p[0]));
+      s.add(std::move(p[1]));
+    }
+    s.launch();
   }
-  s.launch();
   m_playing.clear();
 }
 
@@ -141,9 +168,9 @@ Component::Component(
     const Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
-    : ::Engine::Execution::
-          ProcessComponent_T<Midi::ProcessModel, ProcessExecutor>{
-              parentConstraint, element, ctx, id, "MidiComponent", parent}
+  : ::Engine::Execution::
+      ProcessComponent_T<Midi::ProcessModel, ProcessExecutor>{
+        parentConstraint, element, ctx, id, "MidiComponent", parent}
 {
   m_ossia_process = std::make_shared<ProcessExecutor>(element, ctx.devices.list());
 }

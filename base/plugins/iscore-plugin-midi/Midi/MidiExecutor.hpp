@@ -32,13 +32,22 @@ public:
       const Midi::ProcessModel& proc, const Device::DeviceList& devices);
   ~ProcessExecutor();
 
-  ossia::state_element state(double);
+  const Midi::ProcessModel& process() const { return m_process; }
+
   ossia::state_element state() override;
   ossia::state_element offset(ossia::time_value) override;
 
   void stop() override;
 
+  struct TimedState {
+    std::vector<std::pair<NoteData, uint32_t>> currentAudioStart;
+    std::vector<std::pair<NoteData, uint32_t>> currentAudioStop;
+  };
+  TimedState timedState;
+
 private:
+  ossia::state_element state(double);
+
   const Midi::ProcessModel& m_process;
 
   ossia::net::midi::channel_node* m_channelNode{};
@@ -57,6 +66,7 @@ class Component final
 {
   COMPONENT_METADATA("6d5334a5-7b8c-45df-9805-11d1b4472cdf")
 public:
+    static const constexpr bool is_unique = true;
   Component(
       Engine::Execution::ConstraintComponent& parentConstraint,
       Midi::ProcessModel& element,
