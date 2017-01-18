@@ -15,9 +15,6 @@ ProcessExecutor::ProcessExecutor(
     const Midi::ProcessModel& proc, const Device::DeviceList& devices)
   : m_process{proc}
 {
-  using error_t
-  = Engine::Execution::InvalidProcessException<Midi::ProcessModel>;
-
   if(proc.device().isEmpty())
   {
     // We're in "audio" mode.
@@ -159,6 +156,8 @@ void ProcessExecutor::stop()
     }
     s.launch();
   }
+
+  timedState.currentAudioStart.clear();
   m_playing.clear();
 }
 
