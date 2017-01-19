@@ -71,7 +71,7 @@ public:
   {
     return m_ossia_process;
   }
-  auto& OSSIAProcess() const
+  ossia::time_process& OSSIAProcess() const
   {
     return *m_ossia_process;
   }
