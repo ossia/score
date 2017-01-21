@@ -220,7 +220,7 @@ public:
         if (this->currentPoint.date <= this->m_clickedPoint.date)
         {
           this->currentPoint.date
-              = this->m_clickedPoint.date + TimeValue::fromMsecs(10);
+              = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
           ;
         }
 

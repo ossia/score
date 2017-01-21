@@ -40,7 +40,7 @@ class ISCORE_LIB_PROCESS_EXPORT DummyModel final : public Process::ProcessModel
 
 public:
   explicit DummyModel(
-      const TimeValue& duration, const Id<ProcessModel>& id, QObject* parent);
+      const TimeVal& duration, const Id<ProcessModel>& id, QObject* parent);
 
   explicit DummyModel(
       const DummyModel& source, const Id<ProcessModel>& id, QObject* parent);

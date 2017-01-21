@@ -24,7 +24,7 @@ class SetProcessDuration final : public iscore::Command
       "Change a process duration")
 
 public:
-  SetProcessDuration(Path<Process::ProcessModel>&& path, TimeValue newVal);
+  SetProcessDuration(Path<Process::ProcessModel>&& path, TimeVal newVal);
 
   void undo() const override;
   void redo() const override;
@@ -35,8 +35,8 @@ protected:
 
 private:
   Path<Process::ProcessModel> m_path;
-  TimeValue m_old;
-  TimeValue m_new;
+  TimeVal m_old;
+  TimeVal m_new;
 };
 }
 }

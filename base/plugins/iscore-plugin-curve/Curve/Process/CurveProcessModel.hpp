@@ -16,7 +16,7 @@ class ISCORE_PLUGIN_CURVE_EXPORT CurveProcessModel
   Q_OBJECT
 public:
   CurveProcessModel(
-      TimeValue duration,
+      TimeVal duration,
       const Id<ProcessModel>& id,
       const QString& name,
       QObject* parent)

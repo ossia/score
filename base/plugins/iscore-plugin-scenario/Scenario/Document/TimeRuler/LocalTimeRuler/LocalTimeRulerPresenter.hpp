@@ -15,12 +15,12 @@ public:
   LocalTimeRulerPresenter(LocalTimeRulerView* view, QObject* parent);
   LocalTimeRulerPresenter(
       LocalTimeRulerView* view,
-      TimeValue startDate,
-      TimeValue duration,
+      TimeVal startDate,
+      TimeVal duration,
       double pixPerMillis,
       QObject* parent);
   ~LocalTimeRulerPresenter();
 
-  void setStartPoint(TimeValue dur) override;
+  void setStartPoint(TimeVal dur) override;
 };
 }

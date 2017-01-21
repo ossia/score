@@ -24,7 +24,7 @@ CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
     const Scenario::ProcessModel& scenario,
     Id<StateModel>
         startState,
-    TimeValue date,
+    TimeVal date,
     double endStateY)
     : m_newTimeNode{getStrongId(scenario.timeNodes)}
     , m_createdName{RandomNameProvider::generateRandomName()}
@@ -37,7 +37,7 @@ CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
     const Path<Scenario::ProcessModel>& scenarioPath,
     Id<StateModel>
         startState,
-    TimeValue date,
+    TimeVal date,
     double endStateY)
     : CreateConstraint_State_Event_TimeNode{scenarioPath.find(),
                                             std::move(startState),

@@ -38,7 +38,7 @@ public:
   TimeNodeModel(
       const Id<TimeNodeModel>& id,
       const VerticalExtent& extent,
-      const TimeValue& date,
+      const TimeVal& date,
       QObject* parent);
 
   template <typename DeserializerVisitor>
@@ -57,8 +57,8 @@ public:
   const VerticalExtent& extent() const;
   void setExtent(const VerticalExtent& extent);
 
-  const TimeValue& date() const;
-  void setDate(const TimeValue&);
+  const TimeVal& date() const;
+  void setDate(const TimeVal&);
 
   void addEvent(const Id<EventModel>&);
   bool removeEvent(const Id<EventModel>&);
@@ -72,14 +72,14 @@ public:
 
 signals:
   void extentChanged(const VerticalExtent&);
-  void dateChanged(const TimeValue&);
+  void dateChanged(const TimeVal&);
 
   void newEvent(const Id<EventModel>& eventId);
   void eventRemoved(const Id<EventModel>& eventId);
 
 private:
   VerticalExtent m_extent;
-  TimeValue m_date{std::chrono::seconds{0}};
+  TimeVal m_date{std::chrono::seconds{0}};
   TriggerModel* m_trigger;
 
   QVector<Id<EventModel>> m_events;

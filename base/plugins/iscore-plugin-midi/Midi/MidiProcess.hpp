@@ -17,7 +17,7 @@ class ISCORE_PLUGIN_MIDI_EXPORT ProcessModel final
 
 public:
   explicit ProcessModel(
-      const TimeValue& duration,
+      const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
 
@@ -64,9 +64,9 @@ signals:
   void channelChanged(int);
 
 private:
-  void setDurationAndScale(const TimeValue& newDuration) override;
-  void setDurationAndGrow(const TimeValue& newDuration) override;
-  void setDurationAndShrink(const TimeValue& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) override;
+  void setDurationAndGrow(const TimeVal& newDuration) override;
+  void setDurationAndShrink(const TimeVal& newDuration) override;
 
   QString m_device;
   int m_channel{1};

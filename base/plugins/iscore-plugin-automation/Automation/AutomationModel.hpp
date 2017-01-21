@@ -44,7 +44,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
 
 public:
   ProcessModel(
-      const TimeValue& duration,
+      const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
   ~ProcessModel();
@@ -94,9 +94,9 @@ signals:
 
 private:
   //// ProcessModel ////
-  void setDurationAndScale(const TimeValue& newDuration) override;
-  void setDurationAndGrow(const TimeValue& newDuration) override;
-  void setDurationAndShrink(const TimeValue& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) override;
+  void setDurationAndGrow(const TimeVal& newDuration) override;
+  void setDurationAndShrink(const TimeVal& newDuration) override;
 
   /// States
   ProcessState* startStateData() const override;

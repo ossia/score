@@ -69,7 +69,7 @@ DefaultClockManager::makeDefaultCallback(
 }
 
 void DefaultClockManager::play_impl(
-    const TimeValue& t, BaseScenarioElement& bs)
+    const TimeVal& t, BaseScenarioElement& bs)
 {
   bs.baseConstraint().play(t);
 }

@@ -87,10 +87,10 @@ GetTimeDifferenceInDouble(std::chrono::steady_clock::time_point start)
   return duration_cast<microseconds>(steady_clock::now() - start).count()
          / 1000.;
 }
-inline TimeValue GetTimeDifference(std::chrono::steady_clock::time_point start)
+inline TimeVal GetTimeDifference(std::chrono::steady_clock::time_point start)
 {
   using namespace std::chrono;
-  return TimeValue::fromMsecs(GetTimeDifferenceInDouble(start));
+  return TimeVal::fromMsecs(GetTimeDifferenceInDouble(start));
 }
 
 /**

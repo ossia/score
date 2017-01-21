@@ -24,7 +24,7 @@ class CreateCommentBlock final : public iscore::Command
       "Create a comment block")
 public:
   CreateCommentBlock(
-      Path<ProcessModel>&& scenarioPath, TimeValue date, double yPosition);
+      Path<ProcessModel>&& scenarioPath, TimeVal date, double yPosition);
 
   void undo() const override;
   void redo() const override;
@@ -35,7 +35,7 @@ protected:
 
 private:
   Path<ProcessModel> m_path;
-  TimeValue m_date;
+  TimeVal m_date;
   double m_y;
 
   Id<CommentBlockModel> m_id;

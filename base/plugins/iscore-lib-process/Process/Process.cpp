@@ -16,7 +16,7 @@ template class iscore::SerializableInterface<Process::ProcessModelFactory>;
 namespace Process
 {
 ProcessModel::ProcessModel(
-    TimeValue duration,
+    TimeVal duration,
     const Id<ProcessModel>& id,
     const QString& name,
     QObject* parent)
@@ -52,7 +52,7 @@ std::vector<LayerModel*> ProcessModel::layers() const
   return m_layers;
 }
 
-void ProcessModel::setParentDuration(ExpandMode mode, const TimeValue& t)
+void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t)
 {
   switch (mode)
   {
@@ -73,19 +73,19 @@ void ProcessModel::setParentDuration(ExpandMode mode, const TimeValue& t)
         setDurationAndGrow(t);
       break;
     }
-    case ExpandMode::Fixed:
+    case ExpandMode::CannotExpand:
     default:
       break;
   }
 }
 
-void ProcessModel::setDuration(const TimeValue& other)
+void ProcessModel::setDuration(const TimeVal& other)
 {
   m_duration = other;
   emit durationChanged(m_duration);
 }
 
-const TimeValue& ProcessModel::duration() const
+const TimeVal& ProcessModel::duration() const
 {
   return m_duration;
 }

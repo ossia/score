@@ -77,7 +77,7 @@ public:
         if (!evId)
           return;
 
-        TimeValue date
+        TimeVal date
             = this->m_pressedPrevious
                   ? max(this->currentPoint.date, *this->m_pressedPrevious)
                   : this->currentPoint.date;
@@ -105,7 +105,7 @@ public:
         if (!prev_csts.empty())
         {
           // We find the one that starts the latest.
-          TimeValue t = TimeValue::zero();
+          TimeVal t = TimeVal::zero();
           for (const auto& cst_id : prev_csts)
           {
             const auto& other_date = scenar.constraint(cst_id).startDate();
@@ -115,7 +115,7 @@ public:
 
           // These 10 milliseconds are here to prevent "squashing"
           // processes to zero, which leads to problem (they can't scale back!)
-          this->m_pressedPrevious = t + TimeValue::fromMsecs(10);
+          this->m_pressedPrevious = t + TimeVal::fromMsecs(10);
         }
         else
         {
@@ -140,7 +140,7 @@ public:
   }
 
   SingleOngoingCommandDispatcher<MoveEventCommand_T> m_movingDispatcher;
-  optional<TimeValue> m_pressedPrevious;
+  optional<TimeVal> m_pressedPrevious;
 };
 
 /**
@@ -312,7 +312,7 @@ public:
           m_mergingEventDispatcher.rollback();
           m_mergingTnDispatcher.rollback();
 
-          TimeValue date
+          TimeVal date
               = this->m_pressedPrevious
                     ? max(this->currentPoint.date, *this->m_pressedPrevious)
                     : this->currentPoint.date;
@@ -340,7 +340,7 @@ public:
         if (!evId)
           return;
 
-        TimeValue date
+        TimeVal date
             = this->m_pressedPrevious
                   ? max(this->currentPoint.date, *this->m_pressedPrevious)
                   : this->currentPoint.date;
@@ -371,7 +371,7 @@ public:
         if (!prev_csts.empty())
         {
           // We find the one that starts the latest.
-          TimeValue t = TimeValue::zero();
+          TimeVal t = TimeVal::zero();
           for (const auto& cst_id : prev_csts)
           {
             const auto& other_date = scenar.constraint(cst_id).startDate();
@@ -381,7 +381,7 @@ public:
 
           // These 10 milliseconds are here to prevent "squashing"
           // processes to zero, which leads to problem (they can't scale back!)
-          this->m_pressedPrevious = t + TimeValue::fromMsecs(10);
+          this->m_pressedPrevious = t + TimeVal::fromMsecs(10);
         }
         else
         {
@@ -417,7 +417,7 @@ public:
   SingleOngoingCommandDispatcher<Command::MergeEvents<Scenario::ProcessModel>>
       m_mergingEventDispatcher;
 
-  optional<TimeValue> m_pressedPrevious;
+  optional<TimeVal> m_pressedPrevious;
   Scenario::Point m_clickedPoint;
 };
 }

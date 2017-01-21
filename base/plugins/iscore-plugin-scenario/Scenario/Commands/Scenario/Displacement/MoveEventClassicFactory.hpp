@@ -26,7 +26,7 @@ class MoveEventClassicFactory final : public MoveEventFactoryInterface
       Path<Scenario::ProcessModel>&& scenarioPath,
       Id<EventModel>
           eventId,
-      TimeValue newDate,
+      TimeVal newDate,
       ExpandMode mode) override;
 
   std::unique_ptr<SerializableMoveEvent> make() override;

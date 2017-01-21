@@ -31,7 +31,7 @@ bool DropProcessInScenario::handle(
 
     // 5 seconds.
     // TODO instead use a percentage of the currently displayed view
-    TimeValue t = std::chrono::seconds{5};
+    TimeVal t = std::chrono::seconds{5};
 
     // Create the beginning
     auto start_cmd = new Scenario::Command::CreateTimeNode_Event_State{

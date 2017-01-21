@@ -95,7 +95,7 @@ State::MessageList ProcessState::setMessages(
 }
 
 ProcessModel::ProcessModel(
-    const TimeValue& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : CurveProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}
@@ -178,21 +178,21 @@ QString ProcessModel::prettyName() const
   return address().toShortString();
 }
 
-void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   // We only need to change the duration.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
 {
   // We only need to change the duration.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
 {
   // We only need to change the duration.
   setDuration(newDuration);

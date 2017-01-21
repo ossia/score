@@ -36,7 +36,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final
 
 public:
   explicit ProcessModel(
-      const TimeValue& duration,
+      const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parentObject);
 

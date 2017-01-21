@@ -111,7 +111,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
 
   // SHIFT
   m_shiftAction
-      = makeToolbarAction(tr("Sequence"), this, ExpandMode::Fixed, tr(""));
+      = makeToolbarAction(tr("Sequence"), this, ExpandMode::CannotExpand, tr(""));
   setIcons(
       m_shiftAction, QString(":/icons/sequence_on.png"),
       QString(":/icons/sequence_off.png"));
@@ -231,7 +231,7 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
             if (!m_grow->isChecked())
               m_grow->setChecked(true);
             break;
-          case ExpandMode::Fixed:
+          case ExpandMode::CannotExpand:
             break;
             /*
         case ExpandMode::Fixed:

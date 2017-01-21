@@ -42,7 +42,7 @@ QString ScenarioFactory::prettyName() const
 }
 
 Process::ProcessModel* ScenarioFactory::make(
-    const TimeValue& duration,
+    const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
 {

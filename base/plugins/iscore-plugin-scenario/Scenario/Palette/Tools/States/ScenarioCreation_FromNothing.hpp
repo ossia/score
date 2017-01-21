@@ -176,12 +176,12 @@ public:
          && this->currentPoint.date <= this->m_clickedPoint.date)
         {
           this->currentPoint.date
-              = this->m_clickedPoint.date + TimeValue::fromMsecs(10);
+              = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
         }
         else if (this->clickedEvent == this->m_parentSM.model().startEvent().id()
-              && this->currentPoint.date <= TimeValue::fromMsecs(10))
+              && this->currentPoint.date <= TimeVal::fromMsecs(10))
         {
-          this->currentPoint.date = TimeValue::fromMsecs(10);
+          this->currentPoint.date = TimeVal::fromMsecs(10);
         }
 
         this->m_dispatcher.template submitCommand<MoveNewEvent>(

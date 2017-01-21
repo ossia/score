@@ -35,7 +35,7 @@ public:
       Path<Scenario::ProcessModel>&& scenarioPath,
       Id<EventModel>
           eventId,
-      TimeValue newDate,
+      TimeVal newDate,
       ExpandMode mode)
       = 0;
 

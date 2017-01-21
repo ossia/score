@@ -39,7 +39,7 @@ public:
           constraintId,
       Id<EventModel>
           eventId,
-      TimeValue date,
+      TimeVal date,
       const double y,
       bool yLocked);
   MoveNewEvent(
@@ -48,7 +48,7 @@ public:
           constraintId,
       Id<EventModel>
           eventId,
-      TimeValue date,
+      TimeVal date,
       const double y,
       bool yLocked,
       ExpandMode);
@@ -60,7 +60,7 @@ public:
       unused_t,
       unused_t,
       const Id<EventModel>& id,
-      const TimeValue& date,
+      const TimeVal& date,
       const double y,
       bool yLocked)
   {

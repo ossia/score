@@ -26,7 +26,7 @@ void ScenarioCreate<CommentBlockModel>::undo(
 
 CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
     const Id<CommentBlockModel>& id,
-    const TimeValue& date,
+    const TimeVal& date,
     double y,
     Scenario::ProcessModel& s)
 {
@@ -45,7 +45,7 @@ void ScenarioCreate<TimeNodeModel>::undo(
 TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
     const Id<TimeNodeModel>& id,
     const VerticalExtent& extent,
-    const TimeValue& date,
+    const TimeVal& date,
     Scenario::ProcessModel& s)
 {
   auto timeNode = new TimeNodeModel{id, extent, date, &s};
@@ -144,9 +144,9 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
     constraint->duration.setRigid(false);
     const auto& dur = constraint->duration.defaultDuration();
     constraint->duration.setMinDuration(
-        TimeValue::fromMsecs(0.8 * dur.msec()));
+        TimeVal::fromMsecs(0.8 * dur.msec()));
     constraint->duration.setMaxDuration(
-        TimeValue::fromMsecs(1.2 * dur.msec()));
+        TimeVal::fromMsecs(1.2 * dur.msec()));
   }
 
   return *constraint;

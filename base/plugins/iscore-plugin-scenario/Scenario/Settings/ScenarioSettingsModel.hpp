@@ -16,7 +16,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT Model final
                  GraphicZoomChanged FINAL)
   Q_PROPERTY(qreal SlotHeight READ getSlotHeight WRITE setSlotHeight NOTIFY
                  SlotHeightChanged FINAL)
-  Q_PROPERTY(TimeValue DefaultDuration READ getDefaultDuration WRITE
+  Q_PROPERTY(TimeVal DefaultDuration READ getDefaultDuration WRITE
                  setDefaultDuration NOTIFY DefaultDurationChanged FINAL)
   Q_PROPERTY(bool SnapshotOnCreate READ getSnapshotOnCreate WRITE
                  setSnapshotOnCreate NOTIFY SnapshotOnCreateChanged FINAL)
@@ -26,7 +26,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT Model final
   QString m_Skin;
   double m_GraphicZoom{};
   qreal m_SlotHeight{};
-  TimeValue m_DefaultDuration{};
+  TimeVal m_DefaultDuration{};
   bool m_SnapshotOnCreate{};
   bool m_AutoSequence{};
 
@@ -38,7 +38,7 @@ public:
 
   ISCORE_SETTINGS_PARAMETER_HPP(double, GraphicZoom)
   ISCORE_SETTINGS_PARAMETER_HPP(qreal, SlotHeight)
-  ISCORE_SETTINGS_PARAMETER_HPP(TimeValue, DefaultDuration)
+  ISCORE_SETTINGS_PARAMETER_HPP(TimeVal, DefaultDuration)
   ISCORE_SETTINGS_PARAMETER_HPP(bool, SnapshotOnCreate)
   ISCORE_SETTINGS_PARAMETER_HPP(bool, AutoSequence)
 

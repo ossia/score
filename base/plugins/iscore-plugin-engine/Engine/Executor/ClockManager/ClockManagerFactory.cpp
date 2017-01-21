@@ -9,7 +9,7 @@ namespace Execution
 ClockManager::~ClockManager() = default;
 ClockManagerFactory::~ClockManagerFactory() = default;
 
-void ClockManager::play(const TimeValue& t)
+void ClockManager::play(const TimeVal& t)
 {
   auto bs = context.sys.baseScenario();
   if (!bs)

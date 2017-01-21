@@ -191,7 +191,7 @@ private slots:
     {
       auto out = DataStreamWriter::unmarshall<ossia::net::extended_attributes >(DataStreamReader::marshall(s));
     }
-    ossia::net::set_description(s, "something");
+    ossia::net::set_description(s, std::string("something"));
     {
       auto out = DataStreamWriter::unmarshall<ossia::net::extended_attributes >(DataStreamReader::marshall(s));
     }
@@ -231,7 +231,7 @@ private slots:
     }
 
     ossia::net::set_tags(s, std::vector<std::string>{"tutu", "titi"});
-    ossia::net::set_description(s, "something");
+    ossia::net::set_description(s, std::string("something"));
     ossia::net::set_priority(s, 1234);
 
     auto out = DataStreamWriter::unmarshall<Device::AddressSettings>(DataStreamReader::marshall(s));

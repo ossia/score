@@ -249,7 +249,7 @@ void AutomationRecorder::parameterCallback(
 void AutomationRecorder::finish(
     State::AddressAccessor addr,
     const RecordData& recorded,
-    const TimeValue& msecs,
+    const TimeVal& msecs,
     bool simplify,
     int simplifyRatio)
 {

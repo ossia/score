@@ -51,7 +51,7 @@ public:
   void setDisabledSlotState();
   void setEnabledSlotState();
 
-  void on_durationChanged(const TimeValue&);
+  void on_durationChanged(const TimeVal&);
 
   void on_askUpdate();
 
@@ -81,6 +81,6 @@ private:
   const Process::ProcessPresenterContext& m_context;
 
   ZoomRatio m_zoomRatio{};
-  TimeValue m_duration{};
+  TimeVal m_duration{};
 };
 }

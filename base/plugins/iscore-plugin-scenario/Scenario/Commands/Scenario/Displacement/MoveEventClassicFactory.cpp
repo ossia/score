@@ -24,7 +24,7 @@ std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make(
     Path<Scenario::ProcessModel>&& scenarioPath,
     Id<EventModel>
         eventId,
-    TimeValue newDate,
+    TimeVal newDate,
     ExpandMode mode)
 {
   return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>(

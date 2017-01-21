@@ -260,7 +260,7 @@ void SlotPresenter::on_layerModelCreated_impl(
 
   auto con_id = con(
       proc_vm.processModel(), &Process::ProcessModel::durationChanged, this,
-      [&](const TimeValue&) {
+      [&](const TimeVal&) {
         // TODO index instead
         auto it = std::find_if(
             m_processes.begin(), m_processes.end(), [&](const auto& elt) {

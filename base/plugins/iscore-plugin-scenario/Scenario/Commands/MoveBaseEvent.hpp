@@ -31,7 +31,7 @@ private:
   template <typename ScaleFun>
   static void updateDuration(
       SimpleScenario_T& scenar,
-      const TimeValue& newDuration,
+      const TimeVal& newDuration,
       ScaleFun&& scaleMethod)
   {
     scenar.endEvent().setDate(newDuration);
@@ -73,7 +73,7 @@ public:
   MoveBaseEvent(
       Path<SimpleScenario_T>&& path,
       const Id<EventModel>& event,
-      const TimeValue& date,
+      const TimeVal& date,
       double y,
       ExpandMode mode)
       : m_path{std::move(path)}, m_newDate{date}, m_mode{mode}
@@ -89,7 +89,7 @@ public:
     auto& scenar = m_path.find();
 
     updateDuration(
-        scenar, m_oldDate, [&](Process::ProcessModel& p, const TimeValue& v) {
+        scenar, m_oldDate, [&](Process::ProcessModel& p, const TimeVal& v) {
           // Nothing is needed since the processes will be replaced anyway.
         });
 
@@ -113,12 +113,12 @@ public:
     auto& scenar = m_path.find();
 
     updateDuration(
-        scenar, m_newDate, [&](Process::ProcessModel& p, const TimeValue& v) {
+        scenar, m_newDate, [&](Process::ProcessModel& p, const TimeVal& v) {
           p.setParentDuration(m_mode, v);
         });
   }
 
-  void update(unused_t, unused_t, const TimeValue& date, double, ExpandMode)
+  void update(unused_t, unused_t, const TimeVal& date, double, ExpandMode)
   {
     m_newDate = date;
   }
@@ -143,8 +143,8 @@ protected:
 private:
   Path<SimpleScenario_T> m_path;
 
-  TimeValue m_oldDate{};
-  TimeValue m_newDate{};
+  TimeVal m_oldDate{};
+  TimeVal m_newDate{};
 
   ExpandMode m_mode{ExpandMode::Scale};
 

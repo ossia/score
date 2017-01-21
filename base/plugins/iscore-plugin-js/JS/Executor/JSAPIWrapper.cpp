@@ -152,7 +152,7 @@ QJSValue message(QJSEngine& engine, const State::Message& mess)
   return obj;
 }
 
-QJSValue time(const TimeValue& val)
+QJSValue time(const TimeVal& val)
 {
   return val.msec();
 }

@@ -12,42 +12,42 @@ AbstractTimeRuler::AbstractTimeRuler(
 {
   m_view->setPresenter(this);
 
-  m_graduationsSpacing.push_back({0.1, TimeValue{std::chrono::seconds(120)}});
-  m_graduationsSpacing.push_back({0.2, TimeValue{std::chrono::seconds(60)}});
-  m_graduationsSpacing.push_back({0.5, TimeValue{std::chrono::seconds(30)}});
+  m_graduationsSpacing.push_back({0.1, TimeVal{std::chrono::seconds(120)}});
+  m_graduationsSpacing.push_back({0.2, TimeVal{std::chrono::seconds(60)}});
+  m_graduationsSpacing.push_back({0.5, TimeVal{std::chrono::seconds(30)}});
 
-  m_graduationsSpacing.push_back({1, TimeValue{std::chrono::seconds(10)}});
-  m_graduationsSpacing.push_back({2, TimeValue{std::chrono::seconds(5)}});
-  m_graduationsSpacing.push_back({5, TimeValue{std::chrono::seconds(2)}});
+  m_graduationsSpacing.push_back({1, TimeVal{std::chrono::seconds(10)}});
+  m_graduationsSpacing.push_back({2, TimeVal{std::chrono::seconds(5)}});
+  m_graduationsSpacing.push_back({5, TimeVal{std::chrono::seconds(2)}});
 
-  m_graduationsSpacing.push_back({10, TimeValue{std::chrono::seconds(1)}});
+  m_graduationsSpacing.push_back({10, TimeVal{std::chrono::seconds(1)}});
   m_graduationsSpacing.push_back(
-      {20, TimeValue{std::chrono::milliseconds(500)}});
+      {20, TimeVal{std::chrono::milliseconds(500)}});
   m_graduationsSpacing.push_back(
-      {40, TimeValue{std::chrono::milliseconds(250)}});
+      {40, TimeVal{std::chrono::milliseconds(250)}});
   m_graduationsSpacing.push_back(
-      {80, TimeValue{std::chrono::milliseconds(150)}});
-
-  m_graduationsSpacing.push_back(
-      {100, TimeValue{std::chrono::milliseconds(100)}});
-  m_graduationsSpacing.push_back(
-      {200, TimeValue{std::chrono::milliseconds(50)}});
-  m_graduationsSpacing.push_back(
-      {500, TimeValue{std::chrono::milliseconds(20)}});
+      {80, TimeVal{std::chrono::milliseconds(150)}});
 
   m_graduationsSpacing.push_back(
-      {1000, TimeValue{std::chrono::milliseconds(10)}});
+      {100, TimeVal{std::chrono::milliseconds(100)}});
   m_graduationsSpacing.push_back(
-      {2000, TimeValue{std::chrono::milliseconds(5)}});
+      {200, TimeVal{std::chrono::milliseconds(50)}});
   m_graduationsSpacing.push_back(
-      {5000, TimeValue{std::chrono::milliseconds(2)}});
+      {500, TimeVal{std::chrono::milliseconds(20)}});
+
   m_graduationsSpacing.push_back(
-      {10000, TimeValue{std::chrono::milliseconds(1)}});
+      {1000, TimeVal{std::chrono::milliseconds(10)}});
+  m_graduationsSpacing.push_back(
+      {2000, TimeVal{std::chrono::milliseconds(5)}});
+  m_graduationsSpacing.push_back(
+      {5000, TimeVal{std::chrono::milliseconds(2)}});
+  m_graduationsSpacing.push_back(
+      {10000, TimeVal{std::chrono::milliseconds(1)}});
 }
 
 AbstractTimeRuler::~AbstractTimeRuler() = default;
 
-void AbstractTimeRuler::setStartPoint(TimeValue dur)
+void AbstractTimeRuler::setStartPoint(TimeVal dur)
 {
   if (m_startPoint != dur)
   {
@@ -95,7 +95,7 @@ void AbstractTimeRuler::computeGraduationSpacing()
   m_view->setGraduationsStyle(gradSpace, deltaTime, std::move(format), loop);
 }
 
-const QVector<QPair<double, TimeValue>>&
+const QVector<QPair<double, TimeVal>>&
 AbstractTimeRuler::graduationsSpacing() const
 {
   return m_graduationsSpacing;

@@ -113,7 +113,7 @@ void RackPresenter::setEnabledSlotState()
   }
 }
 
-void RackPresenter::on_durationChanged(const TimeValue& duration)
+void RackPresenter::on_durationChanged(const TimeVal& duration)
 {
   m_duration = duration;
   on_askUpdate();

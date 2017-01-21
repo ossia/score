@@ -53,17 +53,17 @@ ConstraintPresenter::ConstraintPresenter(
   con(constraint.duration, &ConstraintDurations::minNullChanged, this,
       [&](bool b) { updateBraces(); });
   con(constraint.duration, &ConstraintDurations::minDurationChanged, this,
-      [&](const TimeValue& val) {
+      [&](const TimeVal& val) {
         on_minDurationChanged(val);
         updateChildren();
       });
   con(constraint.duration, &ConstraintDurations::defaultDurationChanged, this,
-      [&](const TimeValue& val) {
+      [&](const TimeVal& val) {
         on_defaultDurationChanged(val);
         updateChildren();
       });
   con(constraint.duration, &ConstraintDurations::maxDurationChanged, this,
-      [&](const TimeValue& val) {
+      [&](const TimeVal& val) {
         on_maxDurationChanged(val);
         updateChildren();
       });
@@ -135,7 +135,7 @@ const Id<ConstraintModel>& ConstraintPresenter::id() const
   return model().id();
 }
 
-void ConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
+void ConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
   auto width = val.toPixels(m_zoomRatio);
   m_view->setDefaultWidth(width);
@@ -151,7 +151,7 @@ void ConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
   updateBraces();
 }
 
-void ConstraintPresenter::on_minDurationChanged(const TimeValue& min)
+void ConstraintPresenter::on_minDurationChanged(const TimeVal& min)
 {
   auto x = min.toPixels(m_zoomRatio);
   m_view->setMinWidth(x);
@@ -159,7 +159,7 @@ void ConstraintPresenter::on_minDurationChanged(const TimeValue& min)
   updateBraces();
 }
 
-void ConstraintPresenter::on_maxDurationChanged(const TimeValue& max)
+void ConstraintPresenter::on_maxDurationChanged(const TimeVal& max)
 {
   auto x = max.toPixels(m_zoomRatio);
   m_view->setMaxWidth(max.isInfinite(), max.isInfinite() ? -1 : x);

@@ -31,7 +31,7 @@ QJSValue address(const State::AddressAccessor& val);
 
 QJSValue message(QJSEngine& engine, const State::Message& mess);
 
-QJSValue time(const TimeValue& val);
+QJSValue time(const TimeVal& val);
 
 // TODO vector instead of MessageList.
 QJSValue messages(QJSEngine& engine, const State::MessageList& messages);

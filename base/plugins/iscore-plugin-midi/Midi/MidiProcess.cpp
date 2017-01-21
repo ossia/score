@@ -3,7 +3,7 @@
 namespace Midi
 {
 ProcessModel::ProcessModel(
-    const TimeValue& duration,
+    const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id,
@@ -43,13 +43,13 @@ ProcessModel::~ProcessModel()
 {
 }
 
-void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   setDuration(newDuration);
   emit notesChanged();
 }
 
-void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
 {
   auto ratio = duration() / newDuration;
 
@@ -60,7 +60,7 @@ void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
   emit notesChanged();
 }
 
-void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
 {
   auto ratio = duration() / newDuration;
   auto inv_ratio = newDuration / duration();

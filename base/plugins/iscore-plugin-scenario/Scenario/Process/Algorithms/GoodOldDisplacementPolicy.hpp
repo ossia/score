@@ -27,7 +27,7 @@ public:
   static void computeDisplacement(
       Scenario::ProcessModel& scenario,
       const QVector<Id<TimeNodeModel>>& draggedElements,
-      const TimeValue& deltaTime,
+      const TimeVal& deltaTime,
       ElementsProperties& elementsProperties);
 
   static void getRelatedTimeNodes(

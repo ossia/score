@@ -90,7 +90,7 @@ public:
   };
 
   //! To be called from the GUI thread
-  void play(TimeValue t = TimeValue::zero());
+  void play(TimeVal t = TimeVal::zero());
 
   //! To be called from the GUI thread
   constraint_duration_data makeDurations() const;

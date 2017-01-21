@@ -26,7 +26,7 @@ public:
       = &ConstraintDurations::maxDuration; // used by state machine
                                            // (MoveState.hpp)
 
-  SetMaxDuration(const ConstraintModel& cst, TimeValue newval, bool isInfinite)
+  SetMaxDuration(const ConstraintModel& cst, TimeVal newval, bool isInfinite)
       : m_path{cst}
       , m_oldVal{cst.duration.maxDuration()}
       , m_newVal{std::move(newval)}
@@ -36,7 +36,7 @@ public:
   }
 
   void
-  update(const ConstraintModel& cst, const TimeValue& newval, bool isInfinite)
+  update(const ConstraintModel& cst, const TimeVal& newval, bool isInfinite)
   {
     m_newVal = newval;
     auto& cstrDuration = cst.duration;
@@ -69,8 +69,8 @@ protected:
 private:
   Path<ConstraintModel> m_path;
 
-  TimeValue m_oldVal;
-  TimeValue m_newVal;
+  TimeVal m_oldVal;
+  TimeVal m_newVal;
   bool m_newInfinite;
   bool m_oldInfinite;
 };

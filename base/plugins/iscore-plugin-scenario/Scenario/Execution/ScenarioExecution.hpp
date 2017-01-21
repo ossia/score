@@ -36,10 +36,10 @@ signals:
   void playFromConstraintAtDate(
       const Scenario::ScenarioInterface&,
       Id<Scenario::ConstraintModel>,
-      const TimeValue&) const;
+      const TimeVal&) const;
 
   //! "Play from here" algorithm.
-  void playAtDate(const TimeValue&) const;
+  void playAtDate(const TimeVal&) const;
 
   //! Request an automation recording from a given point.
   void startRecording(const Scenario::ProcessModel&, Scenario::Point) const;

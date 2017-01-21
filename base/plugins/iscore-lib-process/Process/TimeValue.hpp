@@ -281,8 +281,8 @@ class TimeValue_T<QTime>
 };
 */
 #include <QDebug>
-using TimeValue = TimeValue_T<double>;
-inline QDebug operator<<(QDebug d, const TimeValue& tv)
+using TimeVal = TimeValue_T<double>;
+inline QDebug operator<<(QDebug d, const TimeVal& tv)
 {
   if (!tv.isInfinite())
   {
@@ -295,7 +295,7 @@ inline QDebug operator<<(QDebug d, const TimeValue& tv)
 
   return d;
 }
-inline const TimeValue& max(const TimeValue& lhs, const TimeValue& rhs)
+inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs)
 {
   if (lhs < rhs)
     return rhs;
@@ -305,9 +305,9 @@ inline const TimeValue& max(const TimeValue& lhs, const TimeValue& rhs)
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 template <>
-struct TSerializer<DataStream, TimeValue>
+struct TSerializer<DataStream, TimeVal>
 {
-  static void readFrom(DataStream::Serializer& s, const TimeValue& tv)
+  static void readFrom(DataStream::Serializer& s, const TimeVal& tv)
   {
     s.stream() << tv.isInfinite();
 
@@ -317,7 +317,7 @@ struct TSerializer<DataStream, TimeValue>
     }
   }
 
-  static void writeTo(DataStream::Deserializer& s, TimeValue& tv)
+  static void writeTo(DataStream::Deserializer& s, TimeVal& tv)
   {
     bool inf;
     s.stream() >> inf;
@@ -330,7 +330,7 @@ struct TSerializer<DataStream, TimeValue>
     }
     else
     {
-      tv = TimeValue{PositiveInfinity{}};
+      tv = TimeVal{PositiveInfinity{}};
     }
   }
 };
@@ -338,9 +338,9 @@ struct TSerializer<DataStream, TimeValue>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
 template <>
-struct TSerializer<JSONValue, TimeValue>
+struct TSerializer<JSONValue, TimeVal>
 {
-  static void readFrom(JSONValue::Serializer& s, const TimeValue& tv)
+  static void readFrom(JSONValue::Serializer& s, const TimeVal& tv)
   {
     if (tv.isInfinite())
     {
@@ -352,11 +352,11 @@ struct TSerializer<JSONValue, TimeValue>
     }
   }
 
-  static void writeTo(JSONValue::Deserializer& s, TimeValue& tv)
+  static void writeTo(JSONValue::Deserializer& s, TimeVal& tv)
   {
     if (s.val.toString() == "inf")
     {
-      tv = TimeValue{PositiveInfinity{}};
+      tv = TimeVal{PositiveInfinity{}};
     }
     else
     {
@@ -365,4 +365,4 @@ struct TSerializer<JSONValue, TimeValue>
   }
 };
 
-Q_DECLARE_METATYPE(TimeValue)
+Q_DECLARE_METATYPE(TimeVal)

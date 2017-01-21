@@ -28,7 +28,7 @@ public:
   QString prettyName() const override;
 
   Process::ProcessModel* make(
-      const TimeValue& duration,
+      const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent) override;
 

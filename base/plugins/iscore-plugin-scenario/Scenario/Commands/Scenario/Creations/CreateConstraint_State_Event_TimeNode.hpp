@@ -33,14 +33,14 @@ public:
       const Scenario::ProcessModel& scenario,
       Id<StateModel>
           startState,
-      TimeValue date,
+      TimeVal date,
       double endStateY);
 
   CreateConstraint_State_Event_TimeNode(
       const Path<Scenario::ProcessModel>& scenario,
       Id<StateModel>
           startState,
-      TimeValue date,
+      TimeVal date,
       double endStateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
@@ -86,7 +86,7 @@ private:
 
   CreateConstraint_State_Event m_command;
 
-  TimeValue m_date;
+  TimeVal m_date;
 };
 }
 }

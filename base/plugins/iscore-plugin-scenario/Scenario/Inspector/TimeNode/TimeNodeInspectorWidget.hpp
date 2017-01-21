@@ -43,7 +43,7 @@ private:
 
   void updateDisplayedValues();
   void on_splitTimeNodeClicked();
-  void on_dateChanged(const TimeValue&);
+  void on_dateChanged(const TimeVal&);
 
   std::list<QWidget*> m_properties;
   QWidget* m_events;

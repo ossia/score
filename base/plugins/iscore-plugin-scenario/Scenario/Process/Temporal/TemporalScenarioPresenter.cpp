@@ -403,7 +403,7 @@ void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
   con(event_model, &EventModel::extentChanged, this,
       [=](const VerticalExtent&) { m_viewInterface.on_eventMoved(*ev_pres); });
   con(event_model, &EventModel::dateChanged, this,
-      [=](const TimeValue&) { m_viewInterface.on_eventMoved(*ev_pres); });
+      [=](const TimeVal&) { m_viewInterface.on_eventMoved(*ev_pres); });
 
   connect(ev_pres, &EventPresenter::eventHoverEnter, this, [=]() {
     m_viewInterface.on_hoverOnEvent(ev_pres->id(), true);
@@ -437,7 +437,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated(
         m_viewInterface.on_timeNodeMoved(*tn_pres);
       });
   con(timeNode_model, &TimeNodeModel::dateChanged, this,
-      [=](const TimeValue&) { m_viewInterface.on_timeNodeMoved(*tn_pres); });
+      [=](const TimeVal&) { m_viewInterface.on_timeNodeMoved(*tn_pres); });
 
   // For the state machine
   connect(
@@ -492,7 +492,7 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(
       cst_pres, &TemporalConstraintPresenter::heightPercentageChanged, this,
       [=]() { m_viewInterface.on_constraintMoved(*cst_pres); });
   con(constraint_view_model.model(), &ConstraintModel::startDateChanged, this,
-      [=](const TimeValue&) {
+      [=](const TimeVal&) {
         m_viewInterface.on_constraintMoved(*cst_pres);
       });
   connect(
@@ -528,7 +528,7 @@ void TemporalScenarioPresenter::on_commentBlockCreated(
   m_viewInterface.on_commentMoved(*cmt_pres);
 
   con(comment_block_model, &CommentBlockModel::dateChanged, this,
-      [=](const TimeValue&) { m_viewInterface.on_commentMoved(*cmt_pres); });
+      [=](const TimeVal&) { m_viewInterface.on_commentMoved(*cmt_pres); });
   con(comment_block_model, &CommentBlockModel::heightPercentageChanged, this,
       [=](double y) { m_viewInterface.on_commentMoved(*cmt_pres); });
 

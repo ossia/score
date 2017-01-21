@@ -42,7 +42,7 @@ public:
       const Id<EventModel>&,
       const Id<TimeNodeModel>& timenode,
       const VerticalExtent& extent,
-      const TimeValue& date,
+      const TimeVal& date,
       QObject* parent);
 
   // Copy
@@ -75,8 +75,8 @@ public:
 
   VerticalExtent extent() const;
 
-  const TimeValue& date() const;
-  void translate(const TimeValue& deltaTime);
+  const TimeVal& date() const;
+  void translate(const TimeVal& deltaTime);
 
   ExecutionStatus status() const;
   void reset();
@@ -84,14 +84,14 @@ public:
   void setCondition(const State::Expression& arg);
 
   void setExtent(const VerticalExtent& extent);
-  void setDate(const TimeValue& date);
+  void setDate(const TimeVal& date);
 
   void setStatus(ExecutionStatus status);
   void setOffsetBehavior(OffsetBehavior);
 
 signals:
   void extentChanged(const VerticalExtent&);
-  void dateChanged(const TimeValue&);
+  void dateChanged(const TimeVal&);
 
   void conditionChanged(const State::Expression&);
 
@@ -109,7 +109,7 @@ private:
   State::Expression m_condition;
 
   VerticalExtent m_extent;
-  TimeValue m_date{TimeValue::zero()};
+  TimeVal m_date{TimeVal::zero()};
 
   ExecutionStatusProperty m_status{};
   OffsetBehavior m_offset{};

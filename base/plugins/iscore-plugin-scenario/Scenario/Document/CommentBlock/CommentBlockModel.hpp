@@ -26,7 +26,7 @@ public:
 
   CommentBlockModel(
       const Id<CommentBlockModel>& id,
-      const TimeValue& date,
+      const TimeVal& date,
       double yPos,
       QObject* parent);
 
@@ -42,8 +42,8 @@ public:
       const Id<CommentBlockModel>& id,
       QObject* parent);
 
-  void setDate(const TimeValue& date);
-  const TimeValue& date() const;
+  void setDate(const TimeVal& date);
+  const TimeVal& date() const;
 
   double heightPercentage() const;
   void setHeightPercentage(double y);
@@ -52,12 +52,12 @@ public:
   void setContent(const QString content);
 
 signals:
-  void dateChanged(const TimeValue&);
+  void dateChanged(const TimeVal&);
   void heightPercentageChanged(bool);
   void contentChanged(QString);
 
 private:
-  TimeValue m_date{std::chrono::seconds{0}};
+  TimeVal m_date{std::chrono::seconds{0}};
   double m_yposition{0};
 
   QString m_HTMLcontent{

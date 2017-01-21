@@ -39,13 +39,13 @@ public:
 
   const Context& context;
 
-  void play(const TimeValue& t);
+  void play(const TimeVal& t);
   void pause();
   void resume();
   void stop();
 
 protected:
-  virtual void play_impl(const TimeValue& t, BaseScenarioElement&) = 0;
+  virtual void play_impl(const TimeVal& t, BaseScenarioElement&) = 0;
   virtual void pause_impl(BaseScenarioElement&) = 0;
   virtual void resume_impl(BaseScenarioElement&) = 0;
   virtual void stop_impl(BaseScenarioElement&) = 0;

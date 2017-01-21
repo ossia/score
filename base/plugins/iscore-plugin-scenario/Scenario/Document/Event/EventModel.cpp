@@ -21,7 +21,7 @@ EventModel::EventModel(
     const Id<EventModel>& id,
     const Id<TimeNodeModel>& timenode,
     const VerticalExtent& extent,
-    const TimeValue& date,
+    const TimeVal& date,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, EventModel>::get(), parent}
     , m_timeNode{timenode}
@@ -61,12 +61,12 @@ void EventModel::setExtent(const VerticalExtent& extent)
   }
 }
 
-const TimeValue& EventModel::date() const
+const TimeVal& EventModel::date() const
 {
   return m_date;
 }
 
-void EventModel::setDate(const TimeValue& date)
+void EventModel::setDate(const TimeVal& date)
 {
   if (m_date != date)
   {
@@ -101,7 +101,7 @@ void EventModel::setOffsetBehavior(OffsetBehavior f)
   }
 }
 
-void EventModel::translate(const TimeValue& deltaTime)
+void EventModel::translate(const TimeVal& deltaTime)
 {
   setDate(m_date + deltaTime);
 }

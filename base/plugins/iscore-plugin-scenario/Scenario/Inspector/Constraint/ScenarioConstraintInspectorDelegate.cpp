@@ -34,7 +34,7 @@ void ScenarioConstraintInspectorDelegate::addWidgets_post(
 
 void ScenarioConstraintInspectorDelegate::on_defaultDurationChanged(
     OngoingCommandDispatcher& dispatcher,
-    const TimeValue& val,
+    const TimeVal& val,
     ExpandMode expandmode) const
 {
   auto& scenario = *safe_cast<Scenario::ProcessModel*>(m_model.parent());

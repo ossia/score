@@ -79,7 +79,7 @@ JSONObjectWriter::write(Scenario::TimeNodeModel& timenode)
   if (timenode.metadata().getLabel() == QStringLiteral("TimeNode"))
     timenode.metadata().setLabel("");
 
-  timenode.m_date = fromJsonValue<TimeValue>(obj[strings.Date]);
+  timenode.m_date = fromJsonValue<TimeVal>(obj[strings.Date]);
   timenode.m_extent = fromJsonValue<Scenario::VerticalExtent>(obj[strings.Extent]);
 
   fromJsonValueArray(obj[strings.Events].toArray(), timenode.m_events);

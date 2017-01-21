@@ -6,6 +6,6 @@ enum ExpandMode
   Scale,
   GrowShrink,
   ForceGrow,
-  Fixed
+  CannotExpand
 };
 Q_DECLARE_METATYPE(ExpandMode)

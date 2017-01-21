@@ -98,9 +98,9 @@ public:
     return m_constraintViewModels;
   }
 
-  const TimeValue& startDate() const;
-  void setStartDate(const TimeValue& start);
-  void translate(const TimeValue& deltaTime);
+  const TimeVal& startDate() const;
+  void setStartDate(const TimeVal& start);
+  void translate(const TimeVal& deltaTime);
 
   double heightPercentage() const;
 
@@ -128,7 +128,7 @@ signals:
 
   void heightPercentageChanged(double);
 
-  void startDateChanged(const TimeValue&);
+  void startDateChanged(const TimeVal&);
 
   void focusChanged(bool);
   void executionStateChanged(Scenario::ConstraintExecutionState);
@@ -153,7 +153,7 @@ private:
   Id<StateModel> m_startState;
   Id<StateModel> m_endState;
 
-  TimeValue m_startDate; // origin
+  TimeVal m_startDate; // origin
 
   double m_heightPercentage{0.5};
 

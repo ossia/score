@@ -16,7 +16,7 @@ class QObject;
 namespace Dummy
 {
 DummyModel::DummyModel(
-    const TimeValue& duration, const Id<ProcessModel>& id, QObject* parent)
+    const TimeVal& duration, const Id<ProcessModel>& id, QObject* parent)
     : ProcessModel{duration, id, "DummyModel", parent}
 {
   metadata().setInstanceName(*this);

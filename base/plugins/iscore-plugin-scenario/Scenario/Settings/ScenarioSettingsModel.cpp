@@ -18,7 +18,7 @@ const iscore::sp<ModelGraphicZoomParameter> GraphicZoom{
 const iscore::sp<ModelSlotHeightParameter> SlotHeight{
     QStringLiteral("Skin/slotHeight"), 200};
 const iscore::sp<ModelDefaultDurationParameter> DefaultDuration{
-    QStringLiteral("Skin/defaultDuration"), TimeValue::fromMsecs(15000)};
+    QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
 const iscore::sp<ModelSnapshotOnCreateParameter> SnapshotOnCreate{
     QStringLiteral("Scenario/SnapshotOnCreate"), true};
 const iscore::sp<ModelAutoSequenceParameter> AutoSequence{
@@ -82,7 +82,7 @@ void Model::setSkin(const QString& skin)
 
 ISCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
 ISCORE_SETTINGS_PARAMETER_CPP(qreal, Model, SlotHeight)
-ISCORE_SETTINGS_PARAMETER_CPP(TimeValue, Model, DefaultDuration)
+ISCORE_SETTINGS_PARAMETER_CPP(TimeVal, Model, DefaultDuration)
 ISCORE_SETTINGS_PARAMETER_CPP(bool, Model, SnapshotOnCreate)
 ISCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
 }

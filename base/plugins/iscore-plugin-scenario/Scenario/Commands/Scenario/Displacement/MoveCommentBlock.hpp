@@ -22,10 +22,10 @@ public:
       const ProcessModel& scenarPath,
       Id<CommentBlockModel>
           id,
-      TimeValue newDate,
+      TimeVal newDate,
       double newY);
 
-  void update(unused_t, unused_t, TimeValue newDate, double newYPos)
+  void update(unused_t, unused_t, TimeVal newDate, double newYPos)
   {
     m_newDate = std::move(newDate);
     m_newY = newYPos;
@@ -42,7 +42,7 @@ protected:
 private:
   Path<ProcessModel> m_path;
   Id<CommentBlockModel> m_id;
-  TimeValue m_oldDate, m_newDate;
+  TimeVal m_oldDate, m_newDate;
   double m_oldY, m_newY;
 };
 }

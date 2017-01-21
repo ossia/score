@@ -58,9 +58,9 @@ public:
 
   const Id<ConstraintModel>& id() const;
 
-  void on_defaultDurationChanged(const TimeValue&);
-  void on_minDurationChanged(const TimeValue&);
-  void on_maxDurationChanged(const TimeValue&);
+  void on_defaultDurationChanged(const TimeVal&);
+  void on_minDurationChanged(const TimeVal&);
+  void on_maxDurationChanged(const TimeVal&);
 
   void on_playPercentageChanged(double t);
 

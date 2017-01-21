@@ -196,7 +196,7 @@ public:
         if (this->currentPoint.date <= this->m_clickedPoint.date)
         {
           this->currentPoint.date
-              = this->m_clickedPoint.date + TimeValue::fromMsecs(10);
+              = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
           ;
         }
 
@@ -225,7 +225,7 @@ public:
         this->m_dispatcher.template submitCommand<MoveEventMeta>(
             Path<Scenario_T>{this->m_scenarioPath},
             this->createdEvents.last(),
-            TimeValue::zero(),
+            TimeVal::zero(),
             0.,
             stateMachine.editionSettings().expandMode());
       });

@@ -26,7 +26,7 @@ private:
   }
 
   Model_T* make(
-      const TimeValue& duration,
+      const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent) final override;
 
@@ -35,7 +35,7 @@ private:
 
 template <typename Model_T>
 Model_T* GenericProcessModelFactory<Model_T>::make(
-    const TimeValue& duration,
+    const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
 {
