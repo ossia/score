@@ -25,7 +25,7 @@ class QObject;
 namespace RecordedMessages
 {
 ProcessModel::ProcessModel(
-    const TimeValue& duration,
+    const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id,
@@ -55,13 +55,13 @@ void ProcessModel::setMessages(const QList<RecordedMessage>& script)
   emit messagesChanged();
 }
 
-void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   setDuration(newDuration);
   emit messagesChanged();
 }
 
-void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
 {
   int n = m_messages.size();
   auto ratio = duration() / newDuration;
@@ -73,7 +73,7 @@ void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
   emit messagesChanged();
 }
 
-void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
 {
   auto ratio = duration() / newDuration;
   auto inv_ratio = newDuration / duration();

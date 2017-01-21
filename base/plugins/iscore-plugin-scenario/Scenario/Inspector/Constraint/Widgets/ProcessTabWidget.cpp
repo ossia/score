@@ -196,7 +196,7 @@ void ProcessTabWidget::displaySharedProcess(
   auto durWidg = new TimeSpinBox;
   durWidg->setTime(process.duration().toQTime());
   con(process, &Process::ProcessModel::durationChanged, durWidg,
-      [=](const TimeValue& tv) {
+      [=](const TimeVal& tv) {
         if (durWidg)
           durWidg->setTime(tv.toQTime());
       },
@@ -205,7 +205,7 @@ void ProcessTabWidget::displaySharedProcess(
       durWidg, &TimeSpinBox::editingFinished, this,
       [&, durWidg] {
         auto cmd = new Command::SetProcessDuration{process,
-                                                   TimeValue(durWidg->time())};
+                                                   TimeVal(durWidg->time())};
         m_constraintWidget.commandDispatcher()->submitCommand(cmd);
       },
       Qt::QueuedConnection);

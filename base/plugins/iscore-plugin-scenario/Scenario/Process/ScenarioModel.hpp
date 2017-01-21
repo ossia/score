@@ -55,7 +55,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
 public:
   using layer_type = AbstractScenarioLayer;
   ProcessModel(
-      const TimeValue& duration,
+      const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
   ~ProcessModel();
@@ -165,9 +165,9 @@ public slots:
 
 private:
   //// ProcessModel specifics ////
-  void setDurationAndScale(const TimeValue& newDuration) override;
-  void setDurationAndGrow(const TimeValue& newDuration) override;
-  void setDurationAndShrink(const TimeValue& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) override;
+  void setDurationAndGrow(const TimeVal& newDuration) override;
+  void setDurationAndShrink(const TimeVal& newDuration) override;
 
   void startExecution() override;
   void stopExecution() override;

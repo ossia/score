@@ -78,7 +78,7 @@ signals:
   void slotPositionsChanged();
 
   void on_deleteSharedProcessModel(const Process::ProcessModel&);
-  void on_durationChanged(const TimeValue&);
+  void on_durationChanged(const TimeVal&);
 
 private:
   void initConnections();

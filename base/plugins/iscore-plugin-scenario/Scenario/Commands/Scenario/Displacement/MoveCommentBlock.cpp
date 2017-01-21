@@ -14,7 +14,7 @@ MoveCommentBlock::MoveCommentBlock(
     const ProcessModel& scenar,
     Id<CommentBlockModel>
         id,
-    TimeValue newDate,
+    TimeVal newDate,
     double newY)
     : m_path{scenar}
     , m_id{std::move(id)}

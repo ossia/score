@@ -46,7 +46,7 @@ private:
   void finish(
       State::AddressAccessor addr,
       const RecordData& dat,
-      const TimeValue& msecs,
+      const TimeVal& msecs,
       bool,
       int);
   const Curve::Settings::Model& m_settings;

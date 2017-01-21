@@ -189,7 +189,7 @@ void TemporalConstraintView::enableOverlay(bool b)
   }
 }
 
-void TemporalConstraintView::setExecutionDuration(const TimeValue& progress)
+void TemporalConstraintView::setExecutionDuration(const TimeVal& progress)
 {
   // FIXME this should be merged with the slot in ConstraintPresenter!!!
   // Also make a setting to disable it since it may take a lot of time

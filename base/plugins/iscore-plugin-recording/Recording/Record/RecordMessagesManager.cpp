@@ -100,7 +100,7 @@ void MessageRecorder::on_valueUpdated(
         msecs, State::Message{State::AddressAccessor{addr},
                               State::fromOSSIAValue(val)}});
 
-    m_createdProcess->setDuration(TimeValue::fromMsecs(msecs));
+    m_createdProcess->setDuration(TimeVal::fromMsecs(msecs));
   }
   else
   {

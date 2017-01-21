@@ -19,7 +19,7 @@ class SerializableMoveEvent : public iscore::Command
 public:
   virtual void update(
       const Id<EventModel>& eventId,
-      const TimeValue& newDate,
+      const TimeVal& newDate,
       double y,
       ExpandMode mode)
       = 0;

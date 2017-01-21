@@ -27,11 +27,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateTimeNode_Event_State final
       "Create a timenode, an event and a state")
 public:
   CreateTimeNode_Event_State(
-      const Scenario::ProcessModel& scenario, TimeValue date, double stateY);
+      const Scenario::ProcessModel& scenario, TimeVal date, double stateY);
 
   CreateTimeNode_Event_State(
       const Path<Scenario::ProcessModel>& scenario,
-      TimeValue date,
+      TimeVal date,
       double stateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
@@ -63,7 +63,7 @@ protected:
 
 private:
   Id<TimeNodeModel> m_newTimeNode;
-  TimeValue m_date;
+  TimeVal m_date;
 
   CreateEvent_State m_command;
 };

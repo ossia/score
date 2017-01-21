@@ -16,7 +16,7 @@ namespace Recording
 struct ParameterPolicy
 {
   void operator()(
-      const RecordData& proc, const TimeValue& msecs, double msec, float val)
+      const RecordData& proc, const TimeVal& msecs, double msec, float val)
   {
     auto last = proc.segment.points().rbegin();
     proc.segment.addPoint(msec - 1, last->second);
@@ -37,7 +37,7 @@ struct ParameterPolicy
 struct MessagePolicy
 {
   void operator()(
-      const RecordData& proc, const TimeValue& msecs, double msec, float val)
+      const RecordData& proc, const TimeVal& msecs, double msec, float val)
   {
     proc.segment.addPoint(msec, val);
     static_cast<Automation::ProcessModel*>(proc.curveModel.parent())
@@ -50,7 +50,7 @@ struct RecordAutomationSubsequentCallbackVisitor
 {
   AutomationRecorder& recorder;
   const State::Address& addr;
-  TimeValue msecs;
+  TimeVal msecs;
 
   void operator()(std::array<float, 2> val)
   {

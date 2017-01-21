@@ -15,8 +15,8 @@ LocalTimeRulerPresenter::LocalTimeRulerPresenter(
 
 LocalTimeRulerPresenter::LocalTimeRulerPresenter(
     LocalTimeRulerView* view,
-    TimeValue startDate,
-    TimeValue duration,
+    TimeVal startDate,
+    TimeVal duration,
     double pixPerMillis,
     QObject* parent)
     : LocalTimeRulerPresenter{view, parent}
@@ -27,7 +27,7 @@ LocalTimeRulerPresenter::LocalTimeRulerPresenter(
 
 LocalTimeRulerPresenter::~LocalTimeRulerPresenter() = default;
 
-void LocalTimeRulerPresenter::setStartPoint(TimeValue dur)
+void LocalTimeRulerPresenter::setStartPoint(TimeVal dur)
 {
   if (m_startPoint != dur)
   {

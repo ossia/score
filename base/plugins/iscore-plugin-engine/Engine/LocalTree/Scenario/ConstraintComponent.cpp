@@ -17,7 +17,7 @@ ConstraintBase::ConstraintBase(
     , m_processesNode{*node().createChild("processes")}
 {
   using namespace Scenario;
-  using tv_t = ::TimeValue;
+  using tv_t = ::TimeVal;
 
   m_properties.push_back(add_property<float>(
       node(), "yPos", &constraint, &ConstraintModel::heightPercentage,

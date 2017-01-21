@@ -31,7 +31,7 @@ public:
       Path<Scenario::ProcessModel>&& scenarioPath,
       Id<EventModel>
           eventId,
-      TimeValue newDate,
+      TimeVal newDate,
       ExpandMode mode);
   ~MoveEventOnCreationMeta();
 
@@ -52,7 +52,7 @@ private:
 public:
   void update(
       const Id<EventModel>& eventId,
-      const TimeValue& newDate,
+      const TimeVal& newDate,
       double,
       ExpandMode mode) override;
 };

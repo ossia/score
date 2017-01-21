@@ -178,11 +178,11 @@ struct MatchingType<State::tuple_t>
   }
 };
 template <>
-struct MatchingType<::TimeValue>
+struct MatchingType<::TimeVal>
 {
   static constexpr const auto val = ossia::val_type::FLOAT;
   using type = float;
-  static auto convert(::TimeValue&& t)
+  static auto convert(::TimeVal&& t)
   {
     return State::Value::fromValue(t.msec());
   }
@@ -207,10 +207,10 @@ ToFullAddressSettings(const State::Address& addr, const Device::DeviceList&);
 ISCORE_PLUGIN_ENGINE_EXPORT Device::Node
 ToDeviceExplorer(const ossia::net::node_base& node);
 
-inline ::TimeValue time(ossia::time_value t)
+inline ::TimeVal time(ossia::time_value t)
 {
-  return t.isInfinite() ? ::TimeValue{PositiveInfinity{}}
-                        : ::TimeValue::fromMsecs(double(t));
+  return t.isInfinite() ? ::TimeVal{PositiveInfinity{}}
+                        : ::TimeVal::fromMsecs(double(t));
 }
 }
 }

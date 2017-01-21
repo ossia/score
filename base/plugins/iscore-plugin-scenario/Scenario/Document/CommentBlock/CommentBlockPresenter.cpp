@@ -34,7 +34,7 @@ const Id<CommentBlockModel>& CommentBlockPresenter::id() const
   return m_model.id();
 }
 
-const TimeValue& CommentBlockPresenter::date() const
+const TimeVal& CommentBlockPresenter::date() const
 {
   return model().date();
 }

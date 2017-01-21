@@ -249,7 +249,7 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
   */
 }
 
-void TimeNodeInspectorWidget::on_dateChanged(const TimeValue& t)
+void TimeNodeInspectorWidget::on_dateChanged(const TimeVal& t)
 {
   m_date->setText(t.toString());
 }

@@ -23,7 +23,7 @@ public:
 
   static CommentBlockModel& redo(
       const Id<CommentBlockModel>& id,
-      const TimeValue& date,
+      const TimeVal& date,
       double y,
       Scenario::ProcessModel& s);
 };
@@ -37,7 +37,7 @@ public:
   static TimeNodeModel& redo(
       const Id<TimeNodeModel>& id,
       const VerticalExtent& extent,
-      const TimeValue& date,
+      const TimeVal& date,
       Scenario::ProcessModel& s);
 };
 

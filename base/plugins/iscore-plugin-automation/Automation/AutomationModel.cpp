@@ -31,7 +31,7 @@ class QObject;
 namespace Automation
 {
 ProcessModel::ProcessModel(
-    const TimeValue& duration,
+    const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : CurveProcessModel{duration, id,
@@ -80,14 +80,14 @@ QString ProcessModel::prettyName() const
   return address().toShortString();
 }
 
-void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   // We only need to change the duration.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
 {
   // If there are no segments, nothing changes
   if (m_curve->segments().size() == 0)
@@ -113,7 +113,7 @@ void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
 {
   // If there are no segments, nothing changes
   if (m_curve->segments().size() == 0)

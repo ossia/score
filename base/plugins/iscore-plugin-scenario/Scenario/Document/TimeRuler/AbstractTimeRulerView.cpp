@@ -106,9 +106,9 @@ void AbstractTimeRulerView::createRulerPath()
   double prev_big_grad_msec
       = std::floor(m_pres->startPoint().msec() / big_delta) * big_delta;
 
-  TimeValue startTime
-      = TimeValue::fromMsecs(m_pres->startPoint().msec() - prev_big_grad_msec);
-  QTime time = TimeValue::fromMsecs(prev_big_grad_msec).toQTime();
+  TimeVal startTime
+      = TimeVal::fromMsecs(m_pres->startPoint().msec() - prev_big_grad_msec);
+  QTime time = TimeVal::fromMsecs(prev_big_grad_msec).toQTime();
   double t = -startTime.toPixels(1. / m_pres->pixelsPerMillis());
 
   uint32_t i = 0;

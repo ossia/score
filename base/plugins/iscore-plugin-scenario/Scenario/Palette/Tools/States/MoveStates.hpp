@@ -174,8 +174,8 @@ public:
   SingleOngoingCommandDispatcher<MoveBraceCommand_T> m_dispatcher;
 
 private:
-  optional<TimeValue> m_initialDate;
-  optional<TimeValue> m_initialDuration;
+  optional<TimeVal> m_initialDate;
+  optional<TimeVal> m_initialDuration;
 };
 
 template <
@@ -226,7 +226,7 @@ public:
         if (!prev_csts.empty())
         {
           // We find the one that starts the latest.
-          TimeValue t = TimeValue::zero();
+          TimeVal t = TimeVal::zero();
           for (const auto& cst_id : prev_csts)
           {
             const auto& other_date = scenar.constraint(cst_id).startDate();
@@ -286,6 +286,6 @@ public:
   }
 
   SingleOngoingCommandDispatcher<MoveTimeNodeCommand_T> m_dispatcher;
-  optional<TimeValue> m_pressedPrevious;
+  optional<TimeVal> m_pressedPrevious;
 };
 }

@@ -17,7 +17,7 @@ namespace Scenario
 TimeNodeModel::TimeNodeModel(
     const Id<TimeNodeModel>& id,
     const VerticalExtent& extent,
-    const TimeValue& date,
+    const TimeVal& date,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, TimeNodeModel>::get(), parent}
     , m_extent{extent}
@@ -69,12 +69,12 @@ bool TimeNodeModel::removeEvent(const Id<EventModel>& eventId)
   return false;
 }
 
-const TimeValue& TimeNodeModel::date() const
+const TimeVal& TimeNodeModel::date() const
 {
   return m_date;
 }
 
-void TimeNodeModel::setDate(const TimeValue& date)
+void TimeNodeModel::setDate(const TimeVal& date)
 {
   m_date = date;
   emit dateChanged(m_date);

@@ -74,7 +74,7 @@ public:
                     scenario.state(curConstraintToUpdate.endState()).eventId())
                 .date();
 
-      TimeValue defaultDuration = endDate - startDate;
+      TimeVal defaultDuration = endDate - startDate;
 
       // set start date and default duration
       if (!(curConstraintToUpdate.startDate() - startDate).isZero())
@@ -141,7 +141,7 @@ public:
                     scenario.state(curConstraintToUpdate.endState()).eventId())
                 .date();
 
-      TimeValue defaultDuration = endDate - startDate;
+      TimeVal defaultDuration = endDate - startDate;
 
       // set start date and default duration
       if (!(curConstraintToUpdate.startDate() - startDate).isZero())

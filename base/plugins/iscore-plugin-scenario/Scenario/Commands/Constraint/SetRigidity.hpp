@@ -36,8 +36,8 @@ protected:
 private:
   Path<ConstraintModel> m_path;
   // Unused if the constraint was rigid // NOTE Why ??
-  TimeValue m_oldMinDuration;
-  TimeValue m_oldMaxDuration;
+  TimeVal m_oldMinDuration;
+  TimeVal m_oldMaxDuration;
 
   bool m_rigidity{}, m_oldIsNull{}, m_oldIsInfinite{};
 };

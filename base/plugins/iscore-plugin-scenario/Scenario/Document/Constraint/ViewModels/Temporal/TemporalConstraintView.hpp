@@ -56,7 +56,7 @@ public:
     update();
   }
 
-  void setExecutionDuration(const TimeValue& progress);
+  void setExecutionDuration(const TimeVal& progress);
 
 signals:
   void constraintHoverEnter();

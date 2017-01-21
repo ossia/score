@@ -26,7 +26,7 @@ public:
   {
     return m_totalScroll;
   }
-  TimeValue startPoint() const
+  TimeVal startPoint() const
   {
     return m_startPoint;
   }
@@ -34,9 +34,9 @@ public:
   {
     return m_pixelPerMillis;
   }
-  const QVector<QPair<double, TimeValue>>& graduationsSpacing() const;
+  const QVector<QPair<double, TimeVal>>& graduationsSpacing() const;
 
-  virtual void setStartPoint(TimeValue dur);
+  virtual void setStartPoint(TimeVal dur);
   void setPixelPerMillis(double factor);
 
 protected:
@@ -44,9 +44,9 @@ protected:
 
   AbstractTimeRulerView* m_view;
 
-  TimeValue m_startPoint{};
+  TimeVal m_startPoint{};
 
-  QVector<QPair<double, TimeValue>> m_graduationsSpacing;
+  QVector<QPair<double, TimeVal>> m_graduationsSpacing;
 
   double m_pixelPerMillis{0.01};
   int m_totalScroll{};

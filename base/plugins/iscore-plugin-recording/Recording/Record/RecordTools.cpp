@@ -173,7 +173,7 @@ Box CreateBox(RecordContext& context)
       default_end_date,
       0,
       true,
-      ExpandMode::Fixed);
+      ExpandMode::CannotExpand);
   context.dispatcher.submitCommand(cmd_move);
 
   auto cmd_rack = new Scenario::Command::AddRackToConstraint{cstr};

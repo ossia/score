@@ -37,7 +37,7 @@ namespace Scenario
 {
 // RENAMEME and my header too
 ProcessModel::ProcessModel(
-    const TimeValue& duration,
+    const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::
@@ -49,7 +49,7 @@ ProcessModel::ProcessModel(
     , m_startStateId{Scenario::startId<StateModel>()}
 {
   auto& start_tn = ScenarioCreate<TimeNodeModel>::redo(
-      m_startTimeNodeId, {0., 0.1}, TimeValue::zero(), *this);
+      m_startTimeNodeId, {0., 0.1}, TimeVal::zero(), *this);
 
   auto& start_ev = ScenarioCreate<EventModel>::redo(
       m_startEventId, start_tn, {0., 0.0}, *this);
@@ -109,7 +109,7 @@ ProcessModel::~ProcessModel()
 {
 }
 
-void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   double scale = newDuration / duration();
 
@@ -149,12 +149,12 @@ void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
   this->setDuration(newDuration);
 }
 
-void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
 {
   this->setDuration(newDuration);
 }
 
-void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
 {
   this->setDuration(newDuration);
   return; // Disabled by Asana
@@ -304,7 +304,7 @@ const StateModel* furthestSelectedState(const Scenario::ProcessModel& scenar)
 {
   const StateModel* furthest_state{};
   {
-    TimeValue max_t = TimeValue::zero();
+    TimeVal max_t = TimeVal::zero();
     double max_y = 0;
     for (StateModel& state : scenar.states)
     {
@@ -333,7 +333,7 @@ const StateModel* furthestSelectedState(const Scenario::ProcessModel& scenar)
   // If there is no furthest state, we instead go for a constraint
   const ConstraintModel* furthest_constraint{};
   {
-    TimeValue max_t = TimeValue::zero();
+    TimeVal max_t = TimeVal::zero();
     double max_y = 0;
     for (ConstraintModel& cst : scenar.constraints)
     {
@@ -368,7 +368,7 @@ const StateModel* furthestSelectedStateWithoutFollowingConstraint(
 {
   const StateModel* furthest_state{};
   {
-    TimeValue max_t = TimeValue::zero();
+    TimeVal max_t = TimeVal::zero();
     double max_y = 0;
     for (StateModel& state : scenar.states)
     {
@@ -397,7 +397,7 @@ const StateModel* furthestSelectedStateWithoutFollowingConstraint(
   // If there is no furthest state, we instead go for a constraint
   const ConstraintModel* furthest_constraint{};
   {
-    TimeValue max_t = TimeValue::zero();
+    TimeVal max_t = TimeVal::zero();
     double max_y = 0;
     for (ConstraintModel& cst : scenar.constraints)
     {

@@ -22,7 +22,7 @@ class QObject;
 namespace Mapping
 {
 ProcessModel::ProcessModel(
-    const TimeValue& duration,
+    const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Curve::CurveProcessModel{
@@ -71,20 +71,20 @@ QString ProcessModel::prettyName() const
          + " ->\n  " + targetAddress().toShortString();
 }
 
-void ProcessModel::setDurationAndScale(const TimeValue& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   // Whatever happens we want to keep the same curve.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndGrow(const TimeValue& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
 {
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndShrink(const TimeValue& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
 {
   setDuration(newDuration);
   m_curve->changed();

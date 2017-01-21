@@ -53,7 +53,7 @@ View::View() : m_widg{new QWidget}
   m_defaultDur = new iscore::TimeSpinBox;
   connect(
       m_defaultDur, &iscore::TimeSpinBox::timeChanged, this,
-      [=](const QTime& t) { emit defaultDurationChanged(TimeValue{t}); });
+      [=](const QTime& t) { emit defaultDurationChanged(TimeVal{t}); });
   lay->addRow(tr("New score duration"), m_defaultDur);
 
   // Snapshot
@@ -84,7 +84,7 @@ void View::setZoom(const int val)
     m_zoomSpinBox->setValue(val);
 }
 
-void View::setDefaultDuration(const TimeValue& t)
+void View::setDefaultDuration(const TimeVal& t)
 {
   auto qtime = t.toQTime();
   if (qtime != m_defaultDur->time())

@@ -19,7 +19,7 @@ namespace Scenario
 namespace Command
 {
 CreateTimeNode_Event_State::CreateTimeNode_Event_State(
-    const Scenario::ProcessModel& scenario, TimeValue date, double stateY)
+    const Scenario::ProcessModel& scenario, TimeVal date, double stateY)
     : m_newTimeNode{getStrongId(scenario.timeNodes)}
     , m_date{std::move(date)}
     , m_command{scenario, m_newTimeNode, stateY}
@@ -28,7 +28,7 @@ CreateTimeNode_Event_State::CreateTimeNode_Event_State(
 
 CreateTimeNode_Event_State::CreateTimeNode_Event_State(
     const Path<Scenario::ProcessModel>& scenario,
-    TimeValue date,
+    TimeVal date,
     double stateY)
     : CreateTimeNode_Event_State{scenario.find(), std::move(date), stateY}
 {

@@ -29,7 +29,7 @@ class EditionSettings;
 Scenario::Point
 ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
-  return {TimeValue::fromMsecs(point.x() * m_presenter.zoomRatio())
+  return {TimeVal::fromMsecs(point.x() * m_presenter.zoomRatio())
               + m_presenter.presenters().startTimeNode().date(),
           0};
 }

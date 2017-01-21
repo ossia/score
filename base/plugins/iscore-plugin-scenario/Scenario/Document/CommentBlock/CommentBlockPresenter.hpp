@@ -39,7 +39,7 @@ public:
     return m_view;
   }
 
-  const TimeValue& date() const;
+  const TimeVal& date() const;
 
   void on_zoomRatioChanged(ZoomRatio newRatio);
 signals:

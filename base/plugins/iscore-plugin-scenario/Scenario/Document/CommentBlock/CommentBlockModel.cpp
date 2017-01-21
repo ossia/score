@@ -6,7 +6,7 @@ namespace Scenario
 {
 CommentBlockModel::CommentBlockModel(
     const Id<CommentBlockModel>& id,
-    const TimeValue& date,
+    const TimeVal& date,
     double yPos,
     QObject* parent)
     : IdentifiedObject<CommentBlockModel>{id, "CommentBlockModel", parent}
@@ -26,7 +26,7 @@ CommentBlockModel::CommentBlockModel(
   m_HTMLcontent = source.content();
 }
 
-void CommentBlockModel::setDate(const TimeValue& date)
+void CommentBlockModel::setDate(const TimeVal& date)
 {
   if (date != m_date)
   {
@@ -35,7 +35,7 @@ void CommentBlockModel::setDate(const TimeValue& date)
   }
 }
 
-const TimeValue& CommentBlockModel::date() const
+const TimeVal& CommentBlockModel::date() const
 {
   return m_date;
 }

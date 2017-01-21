@@ -51,7 +51,7 @@ public:
 
   void on_defaultDurationChanged(
       OngoingCommandDispatcher& dispatcher,
-      const TimeValue& val,
+      const TimeVal& val,
       ExpandMode) const override;
 };
 
@@ -77,7 +77,7 @@ void ConstraintInspectorDelegate::addWidgets_post(
 
 void ConstraintInspectorDelegate::on_defaultDurationChanged(
     OngoingCommandDispatcher& dispatcher,
-    const TimeValue& val,
+    const TimeVal& val,
     ExpandMode expandmode) const
 {
   auto& loop = *safe_cast<Loop::ProcessModel*>(m_model.parent());

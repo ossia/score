@@ -27,7 +27,7 @@ class RackModel;
 void GoodOldDisplacementPolicy::computeDisplacement(
     Scenario::ProcessModel& scenario,
     const QVector<Id<TimeNodeModel>>& draggedElements,
-    const TimeValue& deltaTime,
+    const TimeVal& deltaTime,
     ElementsProperties& elementsProperties)
 {
   // this old behavior supports only the move of one timenode
@@ -102,7 +102,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             auto& startTnodeId = curConstraintStartEvent.timeNode();
 
             // compute default duration
-            TimeValue startDate;
+            TimeVal startDate;
 
             // if prev tnode has moved take updated value else take existing
             auto it = elementsProperties.timenodes.find(startTnodeId);
@@ -118,8 +118,8 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             const auto& endDate
                 = elementsProperties.timenodes[curTimeNodeId].newDate;
 
-            TimeValue newDefaultDuration = endDate - startDate;
-            TimeValue deltaBounds = newDefaultDuration
+            TimeVal newDefaultDuration = endDate - startDate;
+            TimeVal deltaBounds = newDefaultDuration
                                     - curConstraint.duration.defaultDuration();
 
             auto& val = cur_constraint_it.value();

@@ -27,22 +27,22 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
   auto& stack = iscore::IDocument::documentContext(*m_parent).commandStack;
   m_startNode = new TimeNodeModel{Scenario::startId<TimeNodeModel>(),
                                   {0.2, 0.8},
-                                  TimeValue::zero(),
+                                  TimeVal::zero(),
                                   m_parent};
   m_endNode = new TimeNodeModel{Scenario::endId<TimeNodeModel>(),
                                 {0.2, 0.8},
-                                TimeValue::zero(),
+                                TimeVal::zero(),
                                 m_parent};
 
   m_startEvent = new EventModel{Scenario::startId<EventModel>(),
                                 m_startNode->id(),
                                 {0.1, 0.15},
-                                TimeValue::zero(),
+                                TimeVal::zero(),
                                 m_parent};
   m_endEvent = new EventModel{Scenario::endId<EventModel>(),
                               m_endNode->id(),
                               {0.4, 0.6},
-                              TimeValue::zero(),
+                              TimeVal::zero(),
                               m_parent};
 
   m_startState = new StateModel{Scenario::startId<StateModel>(),

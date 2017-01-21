@@ -47,6 +47,6 @@ template <>
 ISCORE_LIB_PROCESS_EXPORT void
 JSONObjectWriter::write(Process::ProcessModel& process)
 {
-  process.m_duration = fromJsonValue<TimeValue>(obj[strings.Duration]);
+  process.m_duration = fromJsonValue<TimeVal>(obj[strings.Duration]);
   // process.m_useParentDuration = obj["UseParentDuration"].toBool();
 }

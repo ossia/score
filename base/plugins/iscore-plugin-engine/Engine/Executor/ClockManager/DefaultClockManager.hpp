@@ -23,7 +23,7 @@ public:
   makeDefaultCallback(Engine::Execution::BaseScenarioElement&);
 
 private:
-  void play_impl(const TimeValue& t, BaseScenarioElement&) override;
+  void play_impl(const TimeVal& t, BaseScenarioElement&) override;
   void pause_impl(BaseScenarioElement&) override;
   void resume_impl(BaseScenarioElement&) override;
   void stop_impl(BaseScenarioElement&) override;

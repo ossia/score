@@ -26,7 +26,7 @@ public:
   static const constexpr auto corresponding_member
       = &ConstraintDurations::minDuration;
 
-  SetMinDuration(const ConstraintModel& cst, TimeValue newval, bool isMinNull)
+  SetMinDuration(const ConstraintModel& cst, TimeVal newval, bool isMinNull)
       : m_path{cst}
       , m_oldVal{cst.duration.minDuration()}
       , m_newVal{newval}
@@ -35,12 +35,12 @@ public:
   {
   }
 
-  void update(const ConstraintModel& cst, TimeValue newval, bool isMinNull)
+  void update(const ConstraintModel& cst, TimeVal newval, bool isMinNull)
   {
     m_newVal = newval;
     auto& cstrDuration = cst.duration;
-    if (m_newVal < TimeValue::zero())
-      m_newVal = TimeValue::zero();
+    if (m_newVal < TimeVal::zero())
+      m_newVal = TimeVal::zero();
     if (m_newVal > cstrDuration.defaultDuration())
       m_newVal = cstrDuration.defaultDuration();
   }
@@ -72,8 +72,8 @@ protected:
 private:
   Path<ConstraintModel> m_path;
 
-  TimeValue m_oldVal;
-  TimeValue m_newVal;
+  TimeVal m_oldVal;
+  TimeVal m_newVal;
   bool m_oldMinNull, m_newMinNull;
 };
 }

@@ -55,14 +55,14 @@ public:
   void on_documentChanged(
       iscore::Document* olddoc, iscore::Document* newdoc) override;
 
-  void on_play(bool, ::TimeValue t = ::TimeValue::zero());
+  void on_play(bool, ::TimeVal t = ::TimeVal::zero());
   void on_play(
       Scenario::ConstraintModel&,
       bool,
       std::function<void(const Engine::Execution::Context&)> setup = {},
-      ::TimeValue t = ::TimeValue::zero());
+      ::TimeVal t = ::TimeVal::zero());
 
-  void on_record(::TimeValue t);
+  void on_record(::TimeVal t);
 
   bool playing() const
   {

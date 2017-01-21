@@ -45,14 +45,14 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
       [&](const qreal h) { v.setSlotHeight(h); });
   v.setSlotHeight(qreal(m.getSlotHeight()));
 
-  con(v, &View::defaultDurationChanged, this, [&](const TimeValue& t) {
+  con(v, &View::defaultDurationChanged, this, [&](const TimeVal& t) {
     if (t != m.getDefaultDuration())
     {
       m_disp.submitCommand<SetModelDefaultDuration>(this->model(this), t);
     }
   });
   con(m, &Model::DefaultDurationChanged, this,
-      [&](const TimeValue& t) { v.setDefaultDuration(t); });
+      [&](const TimeVal& t) { v.setDefaultDuration(t); });
   v.setDefaultDuration(m.getDefaultDuration());
 
   con(v, &View::snapshotChanged, this, [&](bool b) {

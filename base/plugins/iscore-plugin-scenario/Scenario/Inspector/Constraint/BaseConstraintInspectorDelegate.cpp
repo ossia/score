@@ -65,7 +65,7 @@ void BaseConstraintInspectorDelegate::addWidgets_post(
 
 void BaseConstraintInspectorDelegate::on_defaultDurationChanged(
     OngoingCommandDispatcher& dispatcher,
-    const TimeValue& val,
+    const TimeVal& val,
     ExpandMode expandmode) const
 {
   auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());

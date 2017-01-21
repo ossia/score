@@ -32,7 +32,7 @@ public:
   static CreateSequence* make(
       const Scenario::ProcessModel& scenario,
       const Id<StateModel>& start,
-      const TimeValue& date,
+      const TimeVal& date,
       double endStateY);
 
   void undo() const override

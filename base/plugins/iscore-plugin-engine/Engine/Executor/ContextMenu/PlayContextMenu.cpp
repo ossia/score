@@ -131,7 +131,7 @@ PlayContextMenu::PlayContextMenu(
       [&] (
       const Scenario::ScenarioInterface& scenar,
       Id<Scenario::ConstraintModel> id,
-      const TimeValue& t) {
+      const TimeVal& t) {
 
     // First we select the parent scenario of the constraint,
     auto& cst_to_play = scenar.constraint(id);
@@ -202,7 +202,7 @@ PlayContextMenu::PlayContextMenu(
             .execution();
   m_playFromHere = new QAction{tr("Play from here"), this};
   connect(m_playFromHere, &QAction::triggered, this, [&]() {
-    exec_ctx.playAtDate(m_playFromHere->data().value<::TimeValue>());
+    exec_ctx.playAtDate(m_playFromHere->data().value<::TimeVal>());
   });
 }
 

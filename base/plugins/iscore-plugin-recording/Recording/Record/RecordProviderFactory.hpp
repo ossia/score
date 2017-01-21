@@ -38,7 +38,7 @@ struct RecordContext
     return firstValueTime.time_since_epoch() != clock::duration::zero();
   }
 
-  TimeValue time() const
+  TimeVal time() const
   {
     return GetTimeDifference(firstValueTime);
   }

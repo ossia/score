@@ -40,7 +40,7 @@ public:
   virtual QString prettyName() const = 0;
 
   virtual Process::ProcessModel*
-  make(const TimeValue& duration, const Id<ProcessModel>& id, QObject* parent)
+  make(const TimeVal& duration, const Id<ProcessModel>& id, QObject* parent)
       = 0;
 
   virtual Process::ProcessModel* load(const VisitorVariant&, QObject* parent)

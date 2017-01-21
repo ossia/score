@@ -48,9 +48,9 @@ void JSONObjectReader::read(
 template <>
 void JSONObjectWriter::write(Scenario::ConstraintDurations& durs)
 {
-  durs.m_defaultDuration = fromJsonValue<TimeValue>(obj[strings.DefaultDuration]);
-  durs.m_minDuration = fromJsonValue<TimeValue>(obj[strings.MinDuration]);
-  durs.m_maxDuration = fromJsonValue<TimeValue>(obj[strings.MaxDuration]);
+  durs.m_defaultDuration = fromJsonValue<TimeVal>(obj[strings.DefaultDuration]);
+  durs.m_minDuration = fromJsonValue<TimeVal>(obj[strings.MinDuration]);
+  durs.m_maxDuration = fromJsonValue<TimeVal>(obj[strings.MaxDuration]);
   durs.m_rigidity = obj[strings.Rigidity].toBool();
   durs.m_isMinNull = obj[strings.MinNull].toBool();
   durs.m_isMaxInfinite = obj[strings.MaxInf].toBool();

@@ -68,7 +68,7 @@ public:
   MoveEvent(
       Path<Scenario::ProcessModel>&& scenarioPath,
       const Id<EventModel>& eventId,
-      const TimeValue& newDate,
+      const TimeVal& newDate,
       ExpandMode mode)
       : SerializableMoveEvent{}, m_path{std::move(scenarioPath)}, m_mode{mode}
   {
@@ -88,14 +88,14 @@ public:
 
   void update(
       const Id<EventModel>& eventId,
-      const TimeValue& newDate,
+      const TimeVal& newDate,
       double,
       ExpandMode) override
   {
     // we need to compute the new time delta
     // NOTE: in the future in would be better to give directly the delta value
     // to this method
-    TimeValue deltaDate = newDate - m_initialDate;
+    TimeVal deltaDate = newDate - m_initialDate;
 
     auto& scenario = m_path.find();
 
@@ -119,7 +119,7 @@ public:
     // update positions using old stored dates
     DisplacementPolicy::revertPositions(
         scenario,
-        [&](Process::ProcessModel& p, const TimeValue& t) {
+        [&](Process::ProcessModel& p, const TimeVal& t) {
           p.setParentDuration(m_mode, t);
         },
         m_savedElementsProperties);
@@ -134,7 +134,7 @@ public:
     // update positions using new stored dates
     DisplacementPolicy::updatePositions(
         scenario,
-        [&](Process::ProcessModel& p, const TimeValue& t) {
+        [&](Process::ProcessModel& p, const TimeVal& t) {
           p.setParentDuration(m_mode, t);
         },
         m_savedElementsProperties);
@@ -174,7 +174,7 @@ private:
    * @brief m_initialDate
    * the delta will be calculated from the initial date
    */
-  TimeValue
+  TimeVal
       m_initialDate; // used to compute the deltaTime and respect undo behavior
 };
 }

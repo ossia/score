@@ -164,18 +164,18 @@ void ConstraintModel::setEndState(const Id<StateModel>& endState)
   m_endState = endState;
 }
 
-const TimeValue& ConstraintModel::startDate() const
+const TimeVal& ConstraintModel::startDate() const
 {
   return m_startDate;
 }
 
-void ConstraintModel::setStartDate(const TimeValue& start)
+void ConstraintModel::setStartDate(const TimeVal& start)
 {
   m_startDate = start;
   emit startDateChanged(start);
 }
 
-void ConstraintModel::translate(const TimeValue& deltaTime)
+void ConstraintModel::translate(const TimeVal& deltaTime)
 {
   setStartDate(m_startDate + deltaTime);
 }

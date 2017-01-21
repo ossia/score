@@ -43,7 +43,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel final
                  targetMaxChanged)
 public:
   ProcessModel(
-      const TimeValue& duration,
+      const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
 
@@ -90,9 +90,9 @@ private:
       QObject* parent);
 
   //// ProcessModel ////
-  void setDurationAndScale(const TimeValue& newDuration) override;
-  void setDurationAndGrow(const TimeValue& newDuration) override;
-  void setDurationAndShrink(const TimeValue& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) override;
+  void setDurationAndGrow(const TimeVal& newDuration) override;
+  void setDurationAndShrink(const TimeVal& newDuration) override;
 
   State::AddressAccessor m_sourceAddress;
   State::AddressAccessor m_targetAddress;

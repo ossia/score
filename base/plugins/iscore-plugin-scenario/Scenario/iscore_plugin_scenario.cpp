@@ -67,7 +67,7 @@ iscore_plugin_scenario::iscore_plugin_scenario()
   qRegisterMetaTypeStreamOperators<State::ValueList>();
   qRegisterMetaTypeStreamOperators<State::Expression>();
 
-  qRegisterMetaTypeStreamOperators<TimeValue>();
+  qRegisterMetaTypeStreamOperators<TimeVal>();
   qRegisterMetaType<ExecutionStatus>();
   qRegisterMetaType<Scenario::ConstraintExecutionState>();
   qRegisterMetaType<QPointer<Process::LayerPresenter>>();

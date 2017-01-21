@@ -53,7 +53,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel
 
 public:
   ProcessModel(
-      TimeValue duration,
+      TimeVal duration,
       const Id<ProcessModel>& id,
       const QString& name,
       QObject* parent);
@@ -77,7 +77,7 @@ public:
 
   //// Features of a process
   /// Duration
-  void setParentDuration(ExpandMode mode, const TimeValue& t);
+  void setParentDuration(ExpandMode mode, const TimeVal& t);
 
   void setUseParentDuration(bool b)
   {
@@ -95,8 +95,8 @@ public:
 
   // TODO might not be useful... put in protected ?
   // Constructor needs it, too.
-  void setDuration(const TimeValue& other);
-  const TimeValue& duration() const;
+  void setDuration(const TimeVal& other);
+  const TimeVal& duration() const;
 
   /// Execution
   virtual void startExecution()
@@ -141,7 +141,7 @@ public:
 signals:
   // True if the execution is running.
   void execution(bool);
-  void durationChanged(const TimeValue&);
+  void durationChanged(const TimeVal&);
   void useParentDurationChanged(bool);
   void priorityChanged(int32_t);
   void priorityOverrideChanged(bool);
@@ -159,19 +159,19 @@ protected:
   //   setDurationWithScale(2); setDurationWithScale(3);
   // yields the same result as :
   //   setDurationWithScale(3); setDurationWithScale(2);
-  virtual void setDurationAndScale(const TimeValue& newDuration)
+  virtual void setDurationAndScale(const TimeVal& newDuration)
   {
     setDuration(newDuration);
   }
 
   // Does nothing if newDuration < currentDuration
-  virtual void setDurationAndGrow(const TimeValue& newDuration)
+  virtual void setDurationAndGrow(const TimeVal& newDuration)
   {
     setDuration(newDuration);
   }
 
   // Does nothing if newDuration > currentDuration
-  virtual void setDurationAndShrink(const TimeValue& newDuration)
+  virtual void setDurationAndShrink(const TimeVal& newDuration)
   {
     setDuration(newDuration);
   }
@@ -184,7 +184,7 @@ private:
   // A process view is never displayed alone, it is always in a view, which is
   // in a rack.
   std::vector<LayerModel*> m_layers;
-  TimeValue m_duration;
+  TimeVal m_duration;
   bool m_useParentDuration{true};
 
   int32_t m_priority = 0;

@@ -14,7 +14,7 @@ struct PlayFromConstraintScenarioPruner
 {
   const Scenario::ScenarioInterface& scenar;
   Scenario::ConstraintModel& constraint;
-  TimeValue time;
+  TimeVal time;
 
    tsl::hopscotch_set<Scenario::ConstraintModel*> constraintsToKeep() const;
 

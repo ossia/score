@@ -66,6 +66,6 @@ JSONObjectWriter::write(Scenario::EventModel& ev)
   fromJsonObject(obj[strings.Condition], ev.m_condition);
 
   ev.m_extent = fromJsonValue<Scenario::VerticalExtent>(obj[strings.Extent]);
-  ev.m_date = fromJsonValue<TimeValue>(obj[strings.Date]);
+  ev.m_date = fromJsonValue<TimeVal>(obj[strings.Date]);
   ev.m_offset = static_cast<Scenario::OffsetBehavior>(obj[strings.Offset].toInt());
 }

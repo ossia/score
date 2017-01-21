@@ -73,7 +73,7 @@ ApplicationPlugin::ApplicationPlugin(const iscore::GUIApplicationContext& ctx)
   auto& ctrl = ctx.components
                    .applicationPlugin<Scenario::ScenarioApplicationPlugin>();
   con(ctrl.execution(), &Scenario::ScenarioExecution::playAtDate, this,
-      [ =, act = play_action.action() ](const TimeValue& t) {
+      [ =, act = play_action.action() ](const TimeVal& t) {
         on_play(true, t);
         act->trigger();
       });
@@ -143,7 +143,7 @@ void ApplicationPlugin::on_documentChanged(
   }
 }
 
-void ApplicationPlugin::on_play(bool b, ::TimeValue t)
+void ApplicationPlugin::on_play(bool b, ::TimeVal t)
 {
   // TODO have a on_exit handler to properly stop the scenario.
   if (auto doc = currentDocument())
@@ -159,7 +159,7 @@ void ApplicationPlugin::on_play(bool b, ::TimeValue t)
 void ApplicationPlugin::on_play(
     Scenario::ConstraintModel& cst, bool b,
     std::function<void(const Engine::Execution::Context&)> setup_fun,
-    TimeValue t)
+    TimeVal t)
 {
   auto doc = currentDocument();
   ISCORE_ASSERT(doc);
@@ -228,7 +228,7 @@ void ApplicationPlugin::on_play(
   }
 }
 
-void ApplicationPlugin::on_record(::TimeValue t)
+void ApplicationPlugin::on_record(::TimeVal t)
 {
   ISCORE_ASSERT(!m_playing);
 

@@ -146,7 +146,7 @@ public:
   {
     m_delegate.on_defaultDurationChanged(
         m_dispatcher,
-        TimeValue::fromMsecs(val),
+        TimeVal::fromMsecs(val),
         m_editionSettings.expandMode());
   }
 
@@ -181,7 +181,7 @@ public:
     m_maxSpin->setVisible(!b);
   }
 
-  void on_modelDefaultDurationChanged(const TimeValue& dur)
+  void on_modelDefaultDurationChanged(const TimeVal& dur)
   {
     if (dur.toQTime() == m_valueSpin->time())
       return;
@@ -189,7 +189,7 @@ public:
     m_valueSpin->setTime(dur.toQTime());
   }
 
-  void on_modelMinDurationChanged(const TimeValue& dur)
+  void on_modelMinDurationChanged(const TimeVal& dur)
   {
     if (dur.toQTime() == m_minSpin->time())
       return;
@@ -198,7 +198,7 @@ public:
     m_min = dur;
   }
 
-  void on_modelMaxDurationChanged(const TimeValue& dur)
+  void on_modelMaxDurationChanged(const TimeVal& dur)
   {
     if (dur.toQTime() == m_maxSpin->time())
       return;
@@ -257,7 +257,7 @@ public:
     using namespace Scenario::Command;
     m_dispatcher.submitCommand<SetMinDuration>(
         m_model,
-        TimeValue{std::chrono::milliseconds{val}},
+        TimeVal{std::chrono::milliseconds{val}},
         !m_minNonNullBox->isChecked());
   }
 
@@ -266,7 +266,7 @@ public:
     using namespace Scenario::Command;
     m_dispatcher.submitCommand<SetMaxDuration>(
         m_model,
-        TimeValue{std::chrono::milliseconds{val}},
+        TimeVal{std::chrono::milliseconds{val}},
         !m_maxFiniteBox->isChecked());
   }
 
@@ -287,8 +287,8 @@ public:
   QCheckBox* m_minNonNullBox{};
   QCheckBox* m_maxFiniteBox{};
 
-  TimeValue m_max;
-  TimeValue m_min;
+  TimeVal m_max;
+  TimeVal m_min;
 
   OngoingCommandDispatcher m_dispatcher;
   CommandDispatcher<> m_simpleDispatcher;
@@ -336,17 +336,17 @@ public:
     m_maxLab->setHidden(b);
   }
 
-  void on_modelDefaultDurationChanged(const TimeValue& dur)
+  void on_modelDefaultDurationChanged(const TimeVal& dur)
   {
     m_defaultLab->setText(dur.toString());
   }
 
-  void on_modelMinDurationChanged(const TimeValue& dur)
+  void on_modelMinDurationChanged(const TimeVal& dur)
   {
     m_minLab->setText(dur.toString());
   }
 
-  void on_modelMaxDurationChanged(const TimeValue& dur)
+  void on_modelMaxDurationChanged(const TimeVal& dur)
   {
     m_maxLab->setText(dur.toString());
   }
@@ -378,7 +378,7 @@ DurationWidget::DurationWidget(
   // CONNECTIONS FROM MODEL
   // TODO these need to be updated when the default duration changes
   con(dur, &ConstraintDurations::defaultDurationChanged, this,
-      [](const TimeValue& t) {
+      [](const TimeVal& t) {
 
       });
   con(dur, &ConstraintDurations::minDurationChanged, this, [this](auto v) {

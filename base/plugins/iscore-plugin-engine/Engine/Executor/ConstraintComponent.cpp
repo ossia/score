@@ -37,21 +37,21 @@ ConstraintComponentBase::ConstraintComponentBase(
 
   con(constraint().duration,
       &Scenario::ConstraintDurations::defaultDurationChanged, this,
-      [&](TimeValue sp) {
+      [&](TimeVal sp) {
     system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
       { cst->setDurationNominal(iscore_to_ossia::time(sp)); });
   });
 
   con(constraint().duration,
       &Scenario::ConstraintDurations::minDurationChanged, this,
-      [&](TimeValue sp) {
+      [&](TimeVal sp) {
     system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
       { cst->setDurationMin(iscore_to_ossia::time(sp)); });
   });
 
   con(constraint().duration,
       &Scenario::ConstraintDurations::maxDurationChanged, this,
-      [&](TimeValue sp) {
+      [&](TimeVal sp) {
     system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
       { cst->setDurationMax(iscore_to_ossia::time(sp)); });
   });
@@ -139,7 +139,7 @@ Scenario::ConstraintModel& ConstraintComponentBase::iscoreConstraint() const
   return constraint();
 }
 
-void ConstraintComponentBase::play(TimeValue t)
+void ConstraintComponentBase::play(TimeVal t)
 {
   constraint().duration.setPlayPercentage(0);
 

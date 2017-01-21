@@ -25,7 +25,7 @@ MoveEventMeta::MoveEventMeta(
     Path<Scenario::ProcessModel>&& scenarioPath,
     Id<EventModel>
         eventId,
-    TimeValue newDate,
+    TimeVal newDate,
     double y,
     ExpandMode mode)
     : SerializableMoveEvent{}
@@ -112,7 +112,7 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
 }
 
 void MoveEventMeta::update(
-    const Id<EventModel>& eventId, const TimeValue& newDate, double y,
+    const Id<EventModel>& eventId, const TimeVal& newDate, double y,
     ExpandMode mode)
 {
   m_moveEventImplementation->update(eventId, newDate, y, mode);

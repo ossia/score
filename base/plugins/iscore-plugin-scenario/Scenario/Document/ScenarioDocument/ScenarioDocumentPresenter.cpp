@@ -285,7 +285,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
   QRectF visible_scene_rect = gv.mapToScene(viewport_rect).boundingRect();
 
   m_mainTimeRuler->setStartPoint(
-      TimeValue::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
+      TimeVal::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
   displayedConstraint().fullView()->setVisibleRect(visible_scene_rect);
 }
 

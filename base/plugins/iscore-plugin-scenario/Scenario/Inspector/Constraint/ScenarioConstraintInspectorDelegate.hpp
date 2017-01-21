@@ -28,7 +28,7 @@ public:
 
   void on_defaultDurationChanged(
       OngoingCommandDispatcher& dispatcher,
-      const TimeValue& val,
+      const TimeVal& val,
       ExpandMode) const override;
 };
 }

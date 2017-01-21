@@ -30,14 +30,14 @@ void ConstraintDurations::checkConsistency()
       || (isRigid() && minDuration() != maxDuration())); // a voir
 
   m_model.consistency.setValid(
-      minDuration() - TimeValue::fromMsecs(TIME_TOLERANCE_MSEC)
+      minDuration() - TimeVal::fromMsecs(TIME_TOLERANCE_MSEC)
           <= m_defaultDuration
-      && maxDuration() + TimeValue::fromMsecs(TIME_TOLERANCE_MSEC)
+      && maxDuration() + TimeVal::fromMsecs(TIME_TOLERANCE_MSEC)
              >= m_defaultDuration
       && m_defaultDuration.msec() + TIME_TOLERANCE_MSEC > 0);
 }
 
-void ConstraintDurations::setDefaultDuration(const TimeValue& arg)
+void ConstraintDurations::setDefaultDuration(const TimeVal& arg)
 {
   if (m_defaultDuration != arg)
   {
@@ -47,7 +47,7 @@ void ConstraintDurations::setDefaultDuration(const TimeValue& arg)
   checkConsistency();
 }
 
-void ConstraintDurations::setMinDuration(const TimeValue& arg)
+void ConstraintDurations::setMinDuration(const TimeVal& arg)
 {
   if (m_minDuration != arg && !m_isMinNull)
   {
@@ -57,7 +57,7 @@ void ConstraintDurations::setMinDuration(const TimeValue& arg)
   }
 }
 
-void ConstraintDurations::setMaxDuration(const TimeValue& arg)
+void ConstraintDurations::setMaxDuration(const TimeVal& arg)
 {
   if (m_maxDuration != arg)
   {
@@ -107,7 +107,7 @@ void ConstraintDurations::setMaxInfinite(bool isMaxInfinite)
 
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 ConstraintDurations::Algorithms::setDurationInBounds(
-    ConstraintModel& cstr, const TimeValue& time)
+    ConstraintModel& cstr, const TimeVal& time)
 {
   if (cstr.duration.defaultDuration() != time)
   {
@@ -130,7 +130,7 @@ ConstraintDurations::Algorithms::setDurationInBounds(
 
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 ConstraintDurations::Algorithms::changeAllDurations(
-    ConstraintModel& cstr, const TimeValue& time)
+    ConstraintModel& cstr, const TimeVal& time)
 {
   if (cstr.duration.defaultDuration() != time)
   {
@@ -146,7 +146,7 @@ ConstraintDurations::Algorithms::changeAllDurations(
 
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 ConstraintDurations::Algorithms::scaleAllDurations(
-    ConstraintModel& cstr, const TimeValue& time)
+    ConstraintModel& cstr, const TimeVal& time)
 {
   if (cstr.duration.defaultDuration() != time)
   {

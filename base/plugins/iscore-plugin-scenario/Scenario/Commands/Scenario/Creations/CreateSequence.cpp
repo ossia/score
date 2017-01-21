@@ -249,7 +249,7 @@ void CreateSequenceProcesses::deserializeImpl(DataStreamOutput& s)
 CreateSequence* CreateSequence::make(
     const ProcessModel& scenario,
     const Id<StateModel>& start,
-    const TimeValue& date,
+    const TimeVal& date,
     double endStateY)
 {
   auto cmd = new CreateSequence;

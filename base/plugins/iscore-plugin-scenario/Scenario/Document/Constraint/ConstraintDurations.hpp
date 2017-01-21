@@ -18,9 +18,9 @@ class ConstraintModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
 {
   // These dates are relative to the beginning of the constraint.
-  Q_PROPERTY(TimeValue minDuration READ minDuration WRITE setMinDuration NOTIFY
+  Q_PROPERTY(TimeVal minDuration READ minDuration WRITE setMinDuration NOTIFY
                  minDurationChanged)
-  Q_PROPERTY(TimeValue maxDuration READ maxDuration WRITE setMaxDuration NOTIFY
+  Q_PROPERTY(TimeVal maxDuration READ maxDuration WRITE setMaxDuration NOTIFY
                  maxDurationChanged)
   Q_PROPERTY(double playPercentage READ playPercentage WRITE setPlayPercentage
                  NOTIFY playPercentageChanged)
@@ -44,19 +44,19 @@ public:
 
   ConstraintDurations& operator=(const ConstraintDurations& other);
 
-  const TimeValue& defaultDuration() const
+  const TimeVal& defaultDuration() const
   {
     return m_defaultDuration;
   }
 
-  TimeValue minDuration() const
+  TimeVal minDuration() const
   {
     if (m_isMinNull)
-      return TimeValue::zero();
+      return TimeVal::zero();
     return m_minDuration;
   }
 
-  TimeValue maxDuration() const
+  TimeVal maxDuration() const
   {
     if (m_isMaxInfinite)
       return PositiveInfinity{};
@@ -85,11 +85,11 @@ public:
   {
   public:
     static void
-    setDurationInBounds(ConstraintModel& cstr, const TimeValue& time);
+    setDurationInBounds(ConstraintModel& cstr, const TimeVal& time);
     static void
-    changeAllDurations(ConstraintModel& cstr, const TimeValue& time);
+    changeAllDurations(ConstraintModel& cstr, const TimeVal& time);
     static void
-    scaleAllDurations(ConstraintModel& cstr, const TimeValue& time);
+    scaleAllDurations(ConstraintModel& cstr, const TimeVal& time);
   };
 
   bool isMinNul() const
@@ -102,9 +102,9 @@ public:
     return m_isMaxInfinite;
   }
 
-  void setDefaultDuration(const TimeValue& arg);
-  void setMinDuration(const TimeValue& arg);
-  void setMaxDuration(const TimeValue& arg);
+  void setDefaultDuration(const TimeVal& arg);
+  void setMinDuration(const TimeVal& arg);
+  void setMaxDuration(const TimeVal& arg);
 
   void setPlayPercentage(double arg);
 
@@ -124,9 +124,9 @@ public:
   }
 
 signals:
-  void defaultDurationChanged(const TimeValue& arg);
-  void minDurationChanged(const TimeValue& arg);
-  void maxDurationChanged(const TimeValue& arg);
+  void defaultDurationChanged(const TimeVal& arg);
+  void minDurationChanged(const TimeVal& arg);
+  void maxDurationChanged(const TimeVal& arg);
 
   void playPercentageChanged(double arg);
   void rigidityChanged(bool arg);
@@ -140,9 +140,9 @@ signals:
 private:
   ConstraintModel& m_model;
 
-  TimeValue m_defaultDuration{std::chrono::milliseconds{200}};
-  TimeValue m_minDuration{m_defaultDuration};
-  TimeValue m_maxDuration{m_defaultDuration};
+  TimeVal m_defaultDuration{std::chrono::milliseconds{200}};
+  TimeVal m_minDuration{m_defaultDuration};
+  TimeVal m_maxDuration{m_defaultDuration};
 
   double m_playPercentage{}; // Between 0 and 1.
   double m_executionSpeed{1};

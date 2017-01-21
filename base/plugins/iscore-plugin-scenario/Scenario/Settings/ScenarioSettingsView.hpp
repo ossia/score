@@ -20,7 +20,7 @@ public:
   void setSkin(const QString&);
   void setZoom(const int); // zoom percentage
   void setSlotHeight(const qreal);
-  void setDefaultDuration(const TimeValue& t);
+  void setDefaultDuration(const TimeVal& t);
   void setSnapshot(bool);
   void setSequence(bool);
 
@@ -28,7 +28,7 @@ signals:
   void skinChanged(const QString&);
   void zoomChanged(int);
   void slotHeightChanged(qreal);
-  void defaultDurationChanged(const TimeValue& t);
+  void defaultDurationChanged(const TimeVal& t);
   void snapshotChanged(bool);
   void sequenceChanged(bool);
 

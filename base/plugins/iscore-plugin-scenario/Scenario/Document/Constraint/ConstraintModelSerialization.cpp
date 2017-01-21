@@ -175,6 +175,6 @@ JSONObjectWriter::write(Scenario::ConstraintModel& constraint)
   constraint.m_endState
       = fromJsonValue<Id<Scenario::StateModel>>(obj[strings.EndState]);
 
-  constraint.m_startDate = fromJsonValue<TimeValue>(obj[strings.StartDate]);
+  constraint.m_startDate = fromJsonValue<TimeVal>(obj[strings.StartDate]);
   constraint.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
 }
