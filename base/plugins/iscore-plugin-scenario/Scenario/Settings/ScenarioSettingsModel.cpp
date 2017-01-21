@@ -82,8 +82,24 @@ void Model::setSkin(const QString& skin)
 
 ISCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
 ISCORE_SETTINGS_PARAMETER_CPP(qreal, Model, SlotHeight)
-ISCORE_SETTINGS_PARAMETER_CPP(TimeVal, Model, DefaultDuration)
 ISCORE_SETTINGS_PARAMETER_CPP(bool, Model, SnapshotOnCreate)
 ISCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
+
+  TimeVal Model::getDefaultDuration() const
+  {
+    return m_DefaultDuration;
+  }
+
+  void Model::setDefaultDuration(TimeVal val)
+  {
+    if (val == m_DefaultDuration)
+      return;
+
+    m_DefaultDuration = std::max(val, TimeVal{std::chrono::seconds{10}});
+
+    QSettings s;
+    s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration)); \
+    emit DefaultDurationChanged(val);
+  }
 }
 }
