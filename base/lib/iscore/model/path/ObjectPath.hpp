@@ -171,3 +171,17 @@ inline uint qHash(const ObjectPath& obj, uint seed)
 }
 
 Q_DECLARE_METATYPE(ObjectPath)
+
+namespace boost
+{
+template<>
+struct hash<ObjectIdentifier>
+{
+  std::size_t operator()(const ObjectIdentifier& path) const;
+};
+template<>
+struct hash<ObjectPath>
+{
+  std::size_t operator()(const ObjectPath& path) const;
+};
+}

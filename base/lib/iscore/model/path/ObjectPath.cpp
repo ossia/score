@@ -24,6 +24,21 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/model/path/ObjectIdentifier.hpp>
 
+namespace boost
+{
+std::size_t hash<ObjectIdentifier>::operator()(const ObjectIdentifier& path) const
+{
+  std::size_t seed = 0;
+  boost::hash_combine(seed, path.objectName());
+  boost::hash_combine(seed, path.id());
+  return seed;
+}
+std::size_t hash<ObjectPath>::operator()(const ObjectPath& path) const
+{
+  return boost::hash_range(path.vec().cbegin(), path.vec().cend());
+}
+}
+
 ObjectPath ObjectPath::pathBetweenObjects(
     const QObject* const parent_obj, const QObject* target_object)
 {
