@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/model/Identifier.hpp>
+#include <boost/functional/hash_fwd.hpp>
 
 /**
  * @brief The ObjectIdentifier class
@@ -56,3 +57,4 @@ private:
 Q_DECLARE_METATYPE(ObjectIdentifier)
 
 typedef std::vector<ObjectIdentifier> ObjectIdentifierVector;
+

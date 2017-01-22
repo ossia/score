@@ -254,3 +254,15 @@ QDebug operator<<(QDebug d, Path<T> path)
   d << unsafe.toString();
   return d;
 }
+
+namespace std
+{
+template <typename tag>
+struct hash<Path<tag>>
+{
+  std::size_t operator()(const Path<tag>& path) const
+  {
+    return boost::hash<ObjectPath>{}(path.unsafePath());
+  }
+};
+}
