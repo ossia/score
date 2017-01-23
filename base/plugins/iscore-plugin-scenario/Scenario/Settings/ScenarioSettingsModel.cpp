@@ -92,13 +92,14 @@ ISCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
 
   void Model::setDefaultDuration(TimeVal val)
   {
+    val = std::max(val, TimeVal{std::chrono::seconds{10}});
     if (val == m_DefaultDuration)
       return;
 
-    m_DefaultDuration = std::max(val, TimeVal{std::chrono::seconds{10}});
+    m_DefaultDuration = val;
 
     QSettings s;
-    s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration)); \
+    s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
     emit DefaultDurationChanged(val);
   }
 }
