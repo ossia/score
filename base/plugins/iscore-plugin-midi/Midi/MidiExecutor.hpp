@@ -57,7 +57,7 @@ private:
   note_set m_notes;
   note_set m_playingnotes;
 
-  std::set<int> m_playing;
+  boost::container::flat_set<int> m_playing;
 };
 
 class Component final
