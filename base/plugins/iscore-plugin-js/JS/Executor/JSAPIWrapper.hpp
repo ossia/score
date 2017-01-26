@@ -26,6 +26,7 @@ namespace convert
 QJSValue makeImpulse(QJSEngine& engine);
 
 QJSValue value(QJSEngine& engine, const State::Value& val);
+QJSValue value(QJSEngine& engine, const ossia::value& val);
 
 QJSValue address(const State::AddressAccessor& val);
 
@@ -52,6 +53,7 @@ public:
 
 public slots:
   QJSValue value(QJSValue address);
+  QJSValue clone(QJSValue address);
 
 private:
   QJSEngine& m_engine;
