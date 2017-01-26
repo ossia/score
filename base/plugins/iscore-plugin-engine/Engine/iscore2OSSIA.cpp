@@ -54,8 +54,8 @@ class NodeNotFoundException : public std::runtime_error
 {
 public:
   NodeNotFoundException(const State::Address& n)
-      : std::runtime_error{"Address: " + n.toString().toStdString()
-                           + "not found in actual tree."}
+    : std::runtime_error{"Address: " + n.toString().toStdString()
+                         + "not found in actual tree."}
   {
   }
 };
@@ -206,9 +206,9 @@ void updateOSSIAAddress(
   }
 
   addr.setRepetitionFilter(
-      ossia::repetition_filter(settings.repetitionFilter));
+        ossia::repetition_filter(settings.repetitionFilter));
   addr.setBoundingMode(
-      Engine::iscore_to_ossia::toBoundingMode(settings.clipMode));
+        Engine::iscore_to_ossia::toBoundingMode(settings.clipMode));
 
   addr.setValue(Engine::iscore_to_ossia::toOSSIAValue(settings.value));
 
@@ -285,7 +285,7 @@ void createOSSIAAddress(
   } visitor{};
 
   auto addr = node.createAddress(
-      eggs::variants::apply(visitor, settings.value.val.impl()));
+        eggs::variants::apply(visitor, settings.value.val.impl()));
   if (addr)
     updateOSSIAAddress(settings, *addr);
 }
@@ -353,43 +353,50 @@ ossia::value toOSSIAValue(const State::Value& value)
   return State::toOSSIAValue(value.val);
 }
 
+ossia::net::address_base* address(
+    const State::Address& addr,
+    const Device::DeviceList& deviceList)
+{
+  auto dev_p = deviceList.findDevice(addr.device);
+  if (dev_p)
+  {
+    // OPTIMIZEME by sorting by device prior
+    // to this.
+    const auto& dev = *dev_p;
+    if (dev.connected())
+    {
+      if (auto casted_dev
+          = dynamic_cast<const Engine::Network::OSSIADevice*>(&dev))
+      {
+        auto ossia_dev = casted_dev->getDevice();
+        if (ossia_dev)
+        {
+          auto ossia_node =
+              Engine::iscore_to_ossia::findNodeFromPath(
+                addr.path,
+                *ossia_dev);
+
+          if (ossia_node)
+            return ossia_node->getAddress();
+        }
+      }
+    }
+  }
+
+  return nullptr;
+}
+
 optional<ossia::message>
 message(const State::Message& mess, const Device::DeviceList& deviceList)
 {
-  auto dev_p = deviceList.findDevice(mess.address.address.device);
-  if (!dev_p)
-    return {};
-
-  // OPTIMIZEME by sorting by device prior
-  // to this.
-  const auto& dev = *dev_p;
-  if (!dev.connected())
-    return {};
-
-  if (auto casted_dev
-      = dynamic_cast<const Engine::Network::OSSIADevice*>(&dev))
+  if(auto ossia_addr = address(mess.address.address, deviceList))
   {
-    auto dev = casted_dev->getDevice();
-    if (!dev)
-      return {};
-
-    auto ossia_node = Engine::iscore_to_ossia::findNodeFromPath(
-        mess.address.address.path, *dev);
-
-    if (!ossia_node)
-      return {};
-    auto ossia_addr = ossia_node->getAddress();
-    if (!ossia_addr)
-      return {};
-
     auto val = Engine::iscore_to_ossia::toOSSIAValue(mess.value);
-    if (!val.valid())
-      return {};
-
-    return ossia::message{
+    if (val.valid())
+      return ossia::message{
         {*ossia_addr, mess.address.qualifiers.get().accessors},
         std::move(val),
-        mess.address.qualifiers.get().unit};
+            mess.address.qualifiers.get().unit};
   }
 
   return {};
@@ -561,9 +568,9 @@ expressionAtom(const State::Relation& rel, const Device::DeviceList& dev)
   using namespace eggs::variants;
 
   return ossia::expressions::make_expression_atom(
-      expressionOperand(rel.lhs, dev),
-      expressionComparator(rel.op),
-      expressionOperand(rel.rhs, dev));
+        expressionOperand(rel.lhs, dev),
+        expressionComparator(rel.op),
+        expressionOperand(rel.rhs, dev));
 }
 
 static ossia::expression_ptr
@@ -572,7 +579,7 @@ expressionPulse(const State::Pulse& rel, const Device::DeviceList& dev)
   using namespace eggs::variants;
 
   return ossia::expressions::make_expression_pulse(
-      expressionAddress(rel.address, dev));
+        expressionAddress(rel.address, dev));
 }
 
 ossia::expression_ptr
@@ -597,14 +604,14 @@ expression(const State::Expression& e, const Device::DeviceList& list)
       const auto& lhs = expr.childAt(0);
       const auto& rhs = expr.childAt(1);
       return ossia::expressions::make_expression_composition(
-          expression(lhs, devlist),
-          expressionOperator(rel),
-          expression(rhs, devlist));
+            expression(lhs, devlist),
+            expressionOperator(rel),
+            expression(rhs, devlist));
     }
     return_type operator()(const State::UnaryOperator) const
     {
       return ossia::expressions::make_expression_not(
-          expression(expr.childAt(0), devlist));
+            expression(expr.childAt(0), devlist));
     }
     return_type operator()(const InvisibleRootNode) const
     {
@@ -632,7 +639,7 @@ ossia::net::address_base*
 findAddress(const Device::DeviceList& devs, const State::Address& addr)
 {
   auto dev_p = dynamic_cast<Engine::Network::OSSIADevice*>(
-      devs.findDevice(addr.device));
+        devs.findDevice(addr.device));
   if (dev_p)
   {
     auto ossia_dev = dev_p->getDevice();
