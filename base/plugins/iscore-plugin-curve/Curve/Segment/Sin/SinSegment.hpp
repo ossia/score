@@ -30,12 +30,14 @@ public:
   SinSegment(const SegmentData& dat, QObject* parent);
   SinSegment(const SinSegment& other, const id_type& id, QObject* parent);
 
-  template <typename Impl>
-  SinSegment(Impl& vis, QObject* parent)
+  SinSegment(DataStream::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
-  {
-    vis.writeTo(*this);
-  }
+  { vis.writeTo(*this); }
+
+  SinSegment(JSONObject::Deserializer& vis, QObject* parent)
+      : SegmentModel{vis, parent}
+  { vis.writeTo(*this); }
+
 
   void on_startChanged() override;
   void on_endChanged() override;

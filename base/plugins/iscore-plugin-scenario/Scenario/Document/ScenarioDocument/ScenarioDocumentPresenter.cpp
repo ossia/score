@@ -182,14 +182,16 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
   // Set a new zoom ratio, such that the displayed constraint takes the whole
   // screen.
 
-  ZoomRatio newZoom = displayedConstraint().fullView()->zoom();
+  double newZoom = displayedConstraint().fullView()->zoom();
+  auto rect = displayedConstraint().fullView()->visibleRect();
+
   if (newZoom != -1) // constraint has already been in fullview
   {
-    double newSliderPos = ZoomPolicy::zoomRatioToSliderPos(
-        newZoom,
+    view().zoomSlider()->setValue(newZoom);
+    newZoom = ZoomPolicy::sliderPosToZoomRatio(
+        0.01,
         displayedConstraint().duration.defaultDuration().msec(),
         gv.width());
-    view().zoomSlider()->setValue(newSliderPos);
   }
   else // first time in fullview : init the zoom ratio
   {
@@ -204,7 +206,7 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
 
   // scroll to the last center position
   gv.ensureVisible(
-      gv.mapFromScene(displayedConstraint().fullView()->visibleRect())
+      gv.mapFromScene(rect)
           .boundingRect());
 
   on_askUpdate();
@@ -342,7 +344,7 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
   QRectF new_visible_scene_rect = gv.mapToScene(vp.rect()).boundingRect();
 
   // TODO should call displayedElementsPresenter instead??
-  displayedConstraint().fullView()->setZoom(m_zoomRatio);
+  displayedConstraint().fullView()->setZoom(view().zoomSlider()->value());
   displayedConstraint().fullView()->setVisibleRect(new_visible_scene_rect);
 }
 }

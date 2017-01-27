@@ -95,6 +95,11 @@ ISCORE_PLUGIN_ENGINE_EXPORT ossia::state state(
     const Scenario::StateModel& iscore_state,
     const Engine::Execution::Context& ctx);
 
+ISCORE_PLUGIN_ENGINE_EXPORT
+ossia::net::address_base* address(
+    const State::Address& addr,
+    const Device::DeviceList& deviceList);
+
 ISCORE_PLUGIN_ENGINE_EXPORT optional<ossia::message>
 message(const State::Message& mess, const Device::DeviceList&);
 

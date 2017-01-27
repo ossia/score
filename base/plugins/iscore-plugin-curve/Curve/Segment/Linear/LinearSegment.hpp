@@ -29,12 +29,13 @@ public:
   LinearSegment(
       const LinearSegment& other, const id_type& id, QObject* parent);
 
-  template <typename Impl>
-  LinearSegment(Impl& vis, QObject* parent)
+  LinearSegment(DataStream::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
-  {
-    vis.writeTo(*this);
-  }
+  { vis.writeTo(*this); }
+
+  LinearSegment(JSONObject::Deserializer& vis, QObject* parent)
+      : SegmentModel{vis, parent}
+  { vis.writeTo(*this); }
 
   void on_startChanged() override;
   void on_endChanged() override;

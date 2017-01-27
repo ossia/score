@@ -43,12 +43,14 @@ public:
 
   PowerSegment(const PowerSegment& other, const id_type& id, QObject* parent);
 
-  template <typename Impl>
-  PowerSegment(Impl& vis, QObject* parent)
+  PowerSegment(DataStream::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
-  {
-    vis.writeTo(*this);
-  }
+  { vis.writeTo(*this); }
+
+  PowerSegment(JSONObject::Deserializer& vis, QObject* parent)
+      : SegmentModel{vis, parent}
+  { vis.writeTo(*this); }
+
 
   double gamma = PowerSegmentData::linearGamma; // TODO private
 private:
