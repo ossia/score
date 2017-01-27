@@ -5,7 +5,7 @@
 #include "WSDevice.hpp"
 #include <ossia/network/generic/generic_address.hpp>
 #include <ossia/network/generic/generic_device.hpp>
-#include <ossia/network/websocket-generic-client/ws_generic_client.hpp>
+#include <ossia-qt/websocket-generic-client/ws_generic_client.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/WS/WSSpecificSettings.hpp>
 
