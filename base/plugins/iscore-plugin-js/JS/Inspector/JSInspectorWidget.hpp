@@ -36,7 +36,7 @@ class InspectorWidget final
     , public JSWidgetBase
 {
   Q_OBJECT
-  friend class JSWidgetBase;
+  friend struct JSWidgetBase;
 public:
   explicit InspectorWidget(
       const JS::ProcessModel& object,

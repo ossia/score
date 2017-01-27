@@ -63,9 +63,12 @@ public:
   }
 
   using data_type = EasingData;
-  template <typename... Args>
-  EasingSegment(Args&&... args)
-      : Curve::SegmentModel{std::forward<Args>(args)...}
+  EasingSegment(const Id<SegmentModel>& id, QObject* parent):
+    Curve::SegmentModel{id, parent}
+  {
+  }
+  EasingSegment(const Curve::SegmentData& dat, QObject* parent):
+    Curve::SegmentModel{dat, parent}
   {
   }
 

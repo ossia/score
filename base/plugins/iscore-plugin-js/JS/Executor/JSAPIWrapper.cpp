@@ -3,9 +3,12 @@
 #include "JSAPIWrapper.hpp"
 #include <ossia/editor/value/value.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Engine/iscore2OSSIA.hpp>
 
 namespace JS
 {
+
+
 QJSValue APIWrapper::value(QJSValue address)
 {
   // OPTIMIZEME : have State::Address::fromString return a optional<Address> to
@@ -21,6 +24,33 @@ QJSValue APIWrapper::value(QJSValue address)
     {
       return JS::convert::value(m_engine, *std::move(val));
     }
+  }
+
+  return {};
+}
+
+ossia::value clone_val(const State::Address& addr, const Device::DeviceList& l)
+{
+  auto ossia_addr = Engine::iscore_to_ossia::address(addr, l);
+  if(ossia_addr)
+    return ossia_addr->cloneValue();
+  return {};
+}
+
+QJSValue APIWrapper::clone(QJSValue address)
+{
+  // OPTIMIZEME : have State::Address::fromString return a optional<Address> to
+  // have a single check.
+  auto addr_str = address.toString();
+  auto acc_opt = State::AddressAccessor::fromString(addr_str);
+  if (acc_opt)
+  {
+    // FIXME this does not handle accessors at all
+    const State::AddressAccessor& acc = *acc_opt;
+
+    return JS::convert::value(
+          m_engine,
+          clone_val(acc.address, devices.list()));
   }
 
   return {};
@@ -135,6 +165,64 @@ QJSValue value(QJSEngine& engine, const State::Value& val)
   } visitor{engine};
 
   return ossia::apply(visitor, val.val.impl());
+}
+
+struct ossia_value_visitor
+{
+  QJSEngine& engine;
+
+public:
+  using return_type = QJSValue;
+  return_type operator()() const
+  { return makeImpulse(engine); }
+  return_type operator()(ossia::Impulse) const
+  { return makeImpulse(engine); }
+  return_type operator()(int i) const
+  { return i; }
+  return_type operator()(float f) const
+  { return f; }
+  return_type operator()(bool b) const
+  { return b; }
+  return_type operator()(char c) const
+  { return QString(QChar(c)); }
+  return_type operator()(const std::string& s) const
+  { return QString::fromStdString(s); }
+
+  template<std::size_t N>
+  return_type operator()(const std::array<float, N>& t) const
+  {
+    auto arr = engine.newArray(N);
+
+    for (int i = 0; i < N; i++)
+    {
+      arr.setProperty(i, t[i]);
+    }
+
+    return arr;
+  }
+
+  return_type operator()(const std::vector<ossia::value>& t) const
+  {
+    auto arr = engine.newArray(t.size());
+
+    int i = 0;
+    for (const ossia::value& elt : t)
+    {
+      arr.setProperty(i++, elt.apply(*this));
+    }
+
+    return arr;
+  }
+
+  return_type operator()(const ossia::Destination& t) const
+  {
+    return {};
+  }
+};
+
+QJSValue value(QJSEngine& engine, const ossia::value& val)
+{
+  return val.apply(ossia_value_visitor{engine});
 }
 
 QJSValue address(const State::AddressAccessor& val)
