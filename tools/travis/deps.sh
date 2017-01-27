@@ -22,7 +22,7 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-get install -qq libasound-dev ninja-build gcovr lcov
     
 
-    sudo wget https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.tar.bz2 -O /opt/boost.tar.bz2
+    sudo wget https://downloads.sourceforge.net/project/boost/boost/1.63.0/boost_1_63_0.tar.bz2 -O /opt/boost.tar.bz2
     (cd /opt; sudo tar xaf boost.tar.bz2; sudo mv boost_* boost ; sudo chmod -R a+rwx boost)
 
     if [[ "$CONF" == "linux-package" ]];
