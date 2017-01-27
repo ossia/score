@@ -5,7 +5,7 @@
 #include "HTTPDevice.hpp"
 #include <ossia/network/generic/generic_address.hpp>
 #include <ossia/network/generic/generic_device.hpp>
-#include <ossia/network/http/http.hpp>
+#include <ossia-qt/http/http.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/HTTP/HTTPSpecificSettings.hpp>
 
