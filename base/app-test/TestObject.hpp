@@ -39,13 +39,16 @@ class TestObject : public QObject
         void appStarted()
         {
             QDirIterator it("testdata/stacks/");
+
             while (it.hasNext())
             {
-                qDebug() << it.next();
-
+                it.next();
                 if(!it.filePath().contains(".stack"))
-                    continue;
+                {
+                  continue;
+                }
 
+                qDebug() << "Loading stack" << it.fileName();
                 auto doc = m_context.documents.loadStack(m_context, it.filePath());
                 QApplication::processEvents();
                 if(!doc)
