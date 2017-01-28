@@ -311,7 +311,7 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 bool DocumentManager::saveStack()
 {
   QFileDialog d{&m_view, tr("Save Stack As")};
-  d.setNameFilters({".stack"});
+  d.setNameFilters({"*.stack"});
   d.setConfirmOverwrite(true);
   d.setFileMode(QFileDialog::AnyFile);
   d.setAcceptMode(QFileDialog::AcceptSave);
