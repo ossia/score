@@ -18,7 +18,7 @@ class TestApplication final :
         TestApplication(int& argc, char** argv);
         ~TestApplication();
 
-        const iscore::ApplicationContext& context() const override;
+        const iscore::GUIApplicationContext& context() const override;
         const iscore::ApplicationComponents& components() const override
         { return context().components; }
 

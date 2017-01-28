@@ -21,10 +21,10 @@
 
 class TestObject : public QObject
 {
-        const iscore::ApplicationContext& m_context;
+        const iscore::GUIApplicationContext& m_context;
         Q_OBJECT
     public:
-        TestObject(const iscore::ApplicationContext& ctx):
+        TestObject(const iscore::GUIApplicationContext& ctx):
             m_context{ctx}
         {
             QTimer::singleShot(1000, this, SIGNAL(appStarting()));
@@ -88,6 +88,8 @@ class TestObject : public QObject
 
             {
                 auto doc = m_context.documents.loadFile(m_context, "testdata/execution.scorejson");
+                if(!doc)
+                  qApp->exit(1);
                 for(int i = 0; i < 10; i++)
                 {
                     QApplication::processEvents();

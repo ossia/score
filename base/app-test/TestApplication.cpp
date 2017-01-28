@@ -38,7 +38,7 @@ TestApplication::TestApplication(int &argc, char **argv):
                 m_presenter->toolbarManager(),
                 m_presenter->actionManager()};
 
-    ApplicationInterface::loadPluginData(ctx, registrar, *m_settings, *m_presenter);
+    GUIApplicationInterface::loadPluginData(ctx, registrar, *m_settings, *m_presenter);
 
     m_view->show();
 }
@@ -53,7 +53,7 @@ TestApplication::~TestApplication()
     delete m_app;
 }
 
-const iscore::ApplicationContext &TestApplication::context() const
+const iscore::GUIApplicationContext& TestApplication::context() const
 {
     return m_presenter->applicationContext();
 }
