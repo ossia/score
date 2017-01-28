@@ -127,12 +127,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
     set(CXX_IS_MSVC True)
     set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} runtimeobject.lib")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
-
-    if(ISCORE_ENABLE_LTO)
-      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL /Gw /Gy")
-      set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /LTCG /OPT:REF /OPT:ICF")
-      set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG /OPT:REF /OPT:ICF")
-    endif()
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -143,19 +137,11 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   if (GCC_VERSION VERSION_LESS 5.1)
     message(FATAL_ERROR "i-score requires at least g++-5.1 to build. ")
   endif()
-
-  # Note : http://stackoverflow.com/questions/31355692/cmake-support-for-gccs-link-time-optimization-lto
-  if(ISCORE_ENABLE_LTO)
-    find_program(CMAKE_GCC_AR NAMES ${_CMAKE_TOOLCHAIN_PREFIX}gcc-ar${_CMAKE_TOOLCHAIN_SUFFIX} HINTS ${_CMAKE_TOOLCHAIN_LOCATION})
-    find_program(CMAKE_GCC_NM NAMES ${_CMAKE_TOOLCHAIN_PREFIX}gcc-nm HINTS ${_CMAKE_TOOLCHAIN_LOCATION})
-    find_program(CMAKE_GCC_RANLIB NAMES ${_CMAKE_TOOLCHAIN_PREFIX}gcc-ranlib HINTS ${_CMAKE_TOOLCHAIN_LOCATION})
-
-    set(CMAKE_AR "${CMAKE_GCC_AR}")
-    set(CMAKE_NM "${CMAKE_GCC_NM}")
-    set(CMAKE_RANLIB "${CMAKE_GCC_RANLIB}")
-  endif()
 endif()
 
+if(ISCORE_ENABLE_LTO)
+  setup_lto()
+endif()
 
 # Useful header files
 include(WriteCompilerDetectionHeader)
