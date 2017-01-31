@@ -67,7 +67,11 @@ public:
   }
 };
 
-using ProcessComponentFactoryList = iscore::
-    GenericComponentFactoryList<Process::ProcessModel, LocalTree::DocumentPlugin, LocalTree::ProcessComponentFactory>;
+class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactoryList : public iscore::
+    GenericComponentFactoryList<Process::ProcessModel, LocalTree::DocumentPlugin, LocalTree::ProcessComponentFactory>
+{
+public:
+  ~ProcessComponentFactoryList();
+};
 }
 }

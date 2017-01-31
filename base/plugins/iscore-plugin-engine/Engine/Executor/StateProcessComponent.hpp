@@ -94,7 +94,11 @@ public:
   }
 };
 
-using StateProcessComponentFactoryList = iscore::
-    GenericComponentFactoryList<Process::StateProcess, Engine::Execution::DocumentPlugin, Engine::Execution::StateProcessComponentFactory>;
+class ISCORE_PLUGIN_ENGINE_EXPORT StateProcessComponentFactoryList final : public iscore::
+    GenericComponentFactoryList<Process::StateProcess, Engine::Execution::DocumentPlugin, Engine::Execution::StateProcessComponentFactory>
+{
+public:
+  ~StateProcessComponentFactoryList();
+};
 }
 }
