@@ -34,17 +34,11 @@ CreateAutomationFromStates::CreateAutomationFromStates(
     Id<Process::ProcessModel>
         curveId,
     State::AddressAccessor address,
-    double start,
-    double end,
-    double min,
-    double max)
+    const Curve::CurveDomain& dom)
     : CreateProcessAndLayers<Automation::ProcessModel>{constraint, slotList,
                                                        std::move(curveId)}
     , m_address{std::move(address)}
-    , m_start{start}
-    , m_end{end}
-    , m_min{min}
-    , m_max{max}
+    , m_dom{dom}
 {
 }
 
@@ -62,12 +56,12 @@ void CreateAutomationFromStates::redo() const
       Id<Curve::SegmentModel>{iscore::id_generator::getFirstId()},
       &autom.curve()};
 
-  double fact = 1. / (m_max - m_min);
-  segment->setStart({0., (m_start - m_min) * fact});
-  segment->setEnd({1., (m_end - m_min) * fact});
+  double fact = 1. / (m_dom.max - m_dom.min);
+  segment->setStart({0., (m_dom.start - m_dom.min) * fact});
+  segment->setEnd({1., (m_dom.end - m_dom.min) * fact});
 
-  autom.setMin(m_min);
-  autom.setMax(m_max);
+  autom.setMin(m_dom.min);
+  autom.setMax(m_dom.max);
 
   autom.curve().addSegment(segment);
 
@@ -80,13 +74,13 @@ void CreateAutomationFromStates::redo() const
 void CreateAutomationFromStates::serializeImpl(DataStreamInput& s) const
 {
   CreateProcessAndLayers<Automation::ProcessModel>::serializeImpl(s);
-  s << m_address << m_start << m_end << m_min << m_max;
+  s << m_address << m_dom;
 }
 
 void CreateAutomationFromStates::deserializeImpl(DataStreamOutput& s)
 {
   CreateProcessAndLayers<Automation::ProcessModel>::deserializeImpl(s);
-  s >> m_address >> m_start >> m_end >> m_min >> m_max;
+  s >> m_address >> m_dom;
 }
 
 CreateInterpolationFromStates::CreateInterpolationFromStates(

@@ -174,26 +174,11 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
     auto start = State::convert::value<double>(elt.first.value);
     auto end = State::convert::value<double>(elt.second.value);
-    auto& dom = elt.second.domain.get();
-    auto min_v = dom.get_min();
-    auto max_v = dom.get_max();
-    double min
-        = (min_v.valid())
-              ? std::min(ossia::convert<double>(min_v), std::min(start, end))
-              : std::min(start, end);
-    double max
-        = (max_v.valid())
-              ? std::max(ossia::convert<double>(max_v), std::max(start, end))
-              : std::max(start, end);
-
+    Curve::CurveDomain d{ elt.second.domain.get(), start, end};
     auto cmd = new CreateAutomationFromStates{constraint,
                                               layer_vect,
                                               process_ids[cur_proc],
-                                              elt.first.address,
-                                              start,
-                                              end,
-                                              min,
-                                              max};
+                                              elt.first.address, d};
     m_interpolations.addCommand(cmd);
     cur_proc++;
   }

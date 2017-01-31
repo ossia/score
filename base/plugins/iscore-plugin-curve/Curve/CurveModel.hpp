@@ -13,6 +13,18 @@ class JSONObject;
 class QObject;
 #include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_curve_export.h>
+
+namespace ossia
+{
+namespace net
+{
+struct domain;
+}
+}
+namespace State
+{
+struct Value;
+}
 namespace Curve
 {
 class PointModel;
@@ -88,6 +100,31 @@ private:
   std::vector<PointModel*> m_points;    // Each between 0, 1
 };
 
-std::vector<SegmentData>
-    ISCORE_PLUGIN_CURVE_EXPORT orderedSegments(const Model& curve);
+ISCORE_PLUGIN_CURVE_EXPORT
+std::vector<SegmentData> orderedSegments(const Model& curve);
+
+struct ISCORE_PLUGIN_CURVE_EXPORT CurveDomain
+{
+  CurveDomain() = default;
+  CurveDomain(const CurveDomain&) = default;
+  CurveDomain(CurveDomain&&) = default;
+  CurveDomain& operator=(const CurveDomain&) = default;
+  CurveDomain& operator=(CurveDomain&&) = default;
+  CurveDomain(const ossia::net::domain& dom);
+  CurveDomain(const ossia::net::domain& dom, const State::Value&);
+  CurveDomain(const ossia::net::domain& dom, double start, double end);
+  CurveDomain(double start, double end):
+    min{std::min(start, end)},
+    max{std::max(start, end)},
+    start{start},
+    end{end} { }
+
+  void refine(const ossia::net::domain&);
+  void ensureValid();
+
+  double min = 0;
+  double max = 1;
+  double start = 0;
+  double end = 1;
+};
 }

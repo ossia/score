@@ -4,6 +4,7 @@
 #include <ossia/network/domain/domain.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
+#include <QCheckBox>
 
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -135,6 +136,8 @@ public:
     auto lay = new iscore::MarginLess<QHBoxLayout>{this};
     this->setLayout(lay);
 
+    m_minCB = new QCheckBox{this};
+    m_maxCB = new QCheckBox{this};
     auto min_l = new QLabel{tr("Min"), this};
     min_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     m_min = new iscore::SpinBox<T>{this};
@@ -142,10 +145,21 @@ public:
     max_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     m_max = new iscore::SpinBox<T>{this};
     lay->addWidget(min_l);
+    lay->addWidget(m_minCB);
     lay->addWidget(m_min);
     lay->addWidget(max_l);
+    lay->addWidget(m_maxCB);
     lay->addWidget(m_max);
 
+    m_min->setEnabled(false);
+    m_max->setEnabled(false);
+
+    connect(m_minCB, &QCheckBox::stateChanged, this, [=] (int st) {
+          m_min->setEnabled(bool(st));
+    });
+    connect(m_maxCB, &QCheckBox::stateChanged, this, [=] (int st) {
+          m_max->setEnabled(bool(st));
+    });
     auto pb = new QPushButton{tr("Values"), this};
     lay->addWidget(pb);
 
@@ -164,8 +178,16 @@ public:
   {
     domain_type dom;
 
-    dom.min = m_min->value();
-    dom.max = m_max->value();
+    if(m_minCB->checkState())
+      dom.min = m_min->value();
+    else
+      dom.min = ossia::none;
+
+    if(m_maxCB->checkState())
+      dom.max = m_max->value();
+    else
+      dom.max = ossia::none;
+
     dom.values = m_values;
 
     return dom;
@@ -174,23 +196,31 @@ public:
   void setDomain(ossia::net::domain dom_base)
   {
     m_values.clear();
-    m_min->setValue(0);
-    m_max->setValue(100);
+    m_minCB->setCheckState(Qt::Unchecked);
+    m_maxCB->setCheckState(Qt::Unchecked);
 
     if (auto dom_p = dom_base.target<domain_type>())
     {
       auto& dom = *dom_p;
 
       if (dom.min)
+      {
+        m_minCB->setCheckState(Qt::Checked);
         m_min->setValue(*dom.min);
+      }
       if (dom.max)
+      {
+        m_maxCB->setCheckState(Qt::Checked);
         m_max->setValue(*dom.max);
+      }
 
       m_values = dom.values;
     }
   }
 
 private:
+  QCheckBox* m_minCB{};
+  QCheckBox* m_maxCB{};
   iscore::SpinBox<T>* m_min{};
   iscore::SpinBox<T>* m_max{};
 

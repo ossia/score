@@ -30,6 +30,8 @@ ChangeAddress::ChangeAddress(
     , m_new(Explorer::makeFullAddressAccessorSettings(
           newval, iscore::IDocument::documentContext(autom), 0., 1.))
 {
+  Curve::CurveDomain c(m_new.domain.get(), m_new.value);
+  m_new.domain.get() = ossia::net::make_domain(c.min, c.max);
 }
 
 ChangeAddress::ChangeAddress(
@@ -38,6 +40,8 @@ ChangeAddress::ChangeAddress(
     , m_old{autom.address(), autom.min(), autom.max()}
     , m_new{std::move(newval)}
 {
+  Curve::CurveDomain c(m_new.domain.get(), m_new.value);
+  m_new.domain.get() = ossia::net::make_domain(c.min, c.max);
 }
 
 ChangeAddress::ChangeAddress(
@@ -46,6 +50,8 @@ ChangeAddress::ChangeAddress(
 {
   m_new.address = newval.address;
   m_new.domain = newval.domain;
+  Curve::CurveDomain c(m_new.domain.get(), m_new.value);
+  m_new.domain.get() = ossia::net::make_domain(c.min, c.max);
   m_new.address.qualifiers.get().unit = newval.unit;
 
   m_old.address = autom.address();

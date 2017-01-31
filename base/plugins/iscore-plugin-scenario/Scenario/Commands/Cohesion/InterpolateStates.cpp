@@ -178,28 +178,20 @@ void InterpolateStates(
       double start = State::convert::value<double>(elt.first.value);
       double end = State::convert::value<double>(elt.second.value);
 
-      double min = std::min(start, end);
-      double max = std::max(start, end);
+      Curve::CurveDomain d{start, end};
+
       if (auto node = Device::try_getNodeFromAddress(
               rootNode, elt.first.address.address))
       {
         const Device::AddressSettings& as
             = node->get<Device::AddressSettings>();
 
-        auto& dom = as.domain.get();
-        auto min_v = dom.get_min();
-        auto max_v = dom.get_max();
-
-        if (ossia::is_numeric(min_v))
-          min = std::min(min, ossia::convert<double>(min_v));
-
-        if (ossia::is_numeric(max_v))
-          max = std::max(max, ossia::convert<double>(max_v));
+        d.refine(as.domain.get());
       }
 
       macro->addCommand(new CreateAutomationFromStates{
           constraint, bigLayerVec[cur_proc], process_ids[cur_proc],
-          elt.first.address, start, end, min, max});
+          elt.first.address, d});
 
       cur_proc++;
     }

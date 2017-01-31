@@ -32,6 +32,8 @@ class ConstraintModel;
 class SlotModel;
 namespace Command
 {
+
+// MOVEME
 template <typename ProcessModel_T>
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers
     : public iscore::Command
@@ -117,10 +119,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
 public:
   CreateAutomationFromStates(
       const ConstraintModel& constraint,
-      const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>&
-          slotList,
-      Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-      double start, double end, double min, double max);
+      const std::vector<std::pair<Path<SlotModel>,
+      Id<Process::LayerModel>>>& slotList,
+      Id<Process::ProcessModel> curveId,
+      State::AddressAccessor address,
+      const Curve::CurveDomain&);
 
   void redo() const override;
 
@@ -131,8 +134,7 @@ protected:
 private:
   State::AddressAccessor m_address;
 
-  double m_start{}, m_end{};
-  double m_min{}, m_max{};
+  Curve::CurveDomain m_dom;
 };
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
