@@ -109,23 +109,23 @@ Component::Component(
   auto main_end_event = *main_end_node->timeEvents().begin();
 
   using namespace Engine::Execution;
-  m_ossia_startTimeNode = new TimeNodeComponent{element.startTimeNode(),
-                                              system(), iscore::newId(element.startTimeNode()), this};
-  m_ossia_endTimeNode = new TimeNodeComponent{element.endTimeNode(),
-                                            system(), iscore::newId(element.endTimeNode()), this};
+  m_ossia_startTimeNode = std::make_shared<TimeNodeComponent>(element.startTimeNode(),
+                                              system(), iscore::newId(element.startTimeNode()), this);
+  m_ossia_endTimeNode = std::make_shared<TimeNodeComponent>(element.endTimeNode(),
+                                            system(), iscore::newId(element.endTimeNode()), this);
 
-  m_ossia_startEvent = new EventComponent{element.startEvent(),
-                                        system(), iscore::newId(element.startEvent()), this};
-  m_ossia_endEvent = new EventComponent{element.endEvent(),
-                                      system(), iscore::newId(element.endEvent()), this};
+  m_ossia_startEvent = std::make_shared<EventComponent>(element.startEvent(),
+                                        system(), iscore::newId(element.startEvent()), this);
+  m_ossia_endEvent = std::make_shared<EventComponent>(element.endEvent(),
+                                      system(), iscore::newId(element.endEvent()), this);
 
   m_ossia_startState
-      = new StateComponent{element.startState(), system(), iscore::newId(element.startState()), this};
+      = std::make_shared<StateComponent>(element.startState(), system(), iscore::newId(element.startState()), this);
   m_ossia_endState
-      = new StateComponent{element.endState(), system(), iscore::newId(element.endState()), this};
+      = std::make_shared<StateComponent>(element.endState(), system(), iscore::newId(element.endState()), this);
 
 
-  m_ossia_constraint = new ConstraintComponent{element.constraint(), system(), iscore::newId(element.constraint()), this};
+  m_ossia_constraint = std::make_shared<ConstraintComponent>(element.constraint(), system(), iscore::newId(element.constraint()), this);
 
   m_ossia_startTimeNode->onSetup(main_start_node, m_ossia_startTimeNode->makeTrigger());
   m_ossia_endTimeNode->onSetup(main_end_node, m_ossia_endTimeNode->makeTrigger());
@@ -138,6 +138,38 @@ Component::Component(
 
 Component::~Component()
 {
+}
+
+void Component::cleanup()
+{
+  if(m_ossia_constraint)
+    m_ossia_constraint->cleanup();
+  if(m_ossia_startState)
+    m_ossia_startState->cleanup();
+  if(m_ossia_endState)
+    m_ossia_endState->cleanup();
+  if(m_ossia_startEvent)
+    m_ossia_startEvent->cleanup();
+  if(m_ossia_endEvent)
+    m_ossia_endEvent->cleanup();
+  if(m_ossia_startTimeNode)
+  {
+    m_ossia_startTimeNode->OSSIATimeNode()->cleanup();
+    m_ossia_startTimeNode->cleanup();
+  }
+  if(m_ossia_endTimeNode)
+  {
+    m_ossia_endTimeNode->OSSIATimeNode()->cleanup();
+    m_ossia_endTimeNode->cleanup();
+  }
+
+  m_ossia_constraint.reset();
+  m_ossia_startState.reset();
+  m_ossia_endState.reset();
+  m_ossia_startEvent.reset();
+  m_ossia_endEvent.reset();
+  m_ossia_startTimeNode.reset();
+  m_ossia_endTimeNode.reset();
 }
 
 void Component::stop()

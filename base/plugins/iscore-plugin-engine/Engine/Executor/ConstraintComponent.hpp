@@ -79,7 +79,7 @@ public:
   ConstraintComponentBase(ConstraintComponentBase&&) = delete;
   ConstraintComponentBase& operator=(const ConstraintComponentBase&) = delete;
   ConstraintComponentBase& operator=(ConstraintComponentBase&&) = delete;
-  ~ConstraintComponentBase();
+
 
   struct constraint_duration_data
   {
@@ -149,6 +149,8 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ConstraintComponent final :
   ConstraintComponent(ConstraintComponent&&) = delete;
   ConstraintComponent& operator=(const ConstraintComponent&) = delete;
   ConstraintComponent& operator=(ConstraintComponent&&) = delete;
+  ~ConstraintComponent();
+
   void init();
   void cleanup();
 

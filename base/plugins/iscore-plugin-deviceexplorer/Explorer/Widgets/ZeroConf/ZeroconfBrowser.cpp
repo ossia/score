@@ -22,7 +22,8 @@ class QWidget;
 
 using namespace KDNSSD;
 ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
-    : m_dialog{new QDialog{parent}}
+    : QObject{parent},
+      m_dialog{new QDialog{parent}}
 {
   QGridLayout* lay = new QGridLayout;
   auto buttonBox
