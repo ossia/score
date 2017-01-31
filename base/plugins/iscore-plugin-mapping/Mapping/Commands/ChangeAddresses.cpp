@@ -25,6 +25,8 @@ ChangeSourceAddress::ChangeSourceAddress(
     , m_old{mapping.sourceAddress(), mapping.sourceMin(), mapping.sourceMax()}
     , m_new{std::move(newval)}
 {
+  Curve::CurveDomain c(m_new.domain.get(), m_new.value);
+  m_new.domain.get() = ossia::net::make_domain(c.min, c.max);
 }
 
 void ChangeSourceAddress::undo() const
@@ -65,6 +67,8 @@ ChangeTargetAddress::ChangeTargetAddress(
     , m_old{mapping.targetAddress(), mapping.targetMin(), mapping.targetMax()}
     , m_new{std::move(newval)}
 {
+  Curve::CurveDomain c(m_new.domain.get(), m_new.value);
+  m_new.domain.get() = ossia::net::make_domain(c.min, c.max);
 }
 
 void ChangeTargetAddress::undo() const
