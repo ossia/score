@@ -132,7 +132,12 @@ public:
     return comp;
   }
 };
-using ProcessComponentFactoryList = iscore::
-    GenericComponentFactoryList<Process::ProcessModel, Engine::Execution::DocumentPlugin, Engine::Execution::ProcessComponentFactory>;
+
+class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactoryList final : public iscore::
+    GenericComponentFactoryList<Process::ProcessModel, Engine::Execution::DocumentPlugin, Engine::Execution::ProcessComponentFactory>
+{
+public:
+  ~ProcessComponentFactoryList();
+};
 }
 }

@@ -54,7 +54,7 @@ class StateInspectorWidget final
     , public JSWidgetBase
 {
   Q_OBJECT
-  friend class JSWidgetBase;
+  friend struct JSWidgetBase;
 public:
   explicit StateInspectorWidget(
       const JS::StateProcess& object,

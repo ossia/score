@@ -27,12 +27,8 @@ class ProcessComponent;
 class ProcessComponentFactory;
 class StateProcessComponent;
 class StateProcessComponentFactory;
-
-using ProcessComponentFactoryList = iscore::
-    GenericComponentFactoryList<Process::ProcessModel, Engine::Execution::DocumentPlugin, Engine::Execution::ProcessComponentFactory>;
-
-using StateProcessComponentFactoryList = iscore::
-    GenericComponentFactoryList<Process::StateProcess, Engine::Execution::DocumentPlugin, Engine::Execution::StateProcessComponentFactory>;
+class ProcessComponentFactoryList;
+class StateProcessComponentFactoryList;
 
 using ExecutionCommand = std::function<void()>;
 using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand>;
@@ -51,5 +47,6 @@ struct ISCORE_PLUGIN_ENGINE_EXPORT Context
 
   auto& context() const { return *this; }
 };
+
 }
 }

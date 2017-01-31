@@ -14,10 +14,6 @@ Engine::LocalTree::ProcessComponent::ProcessComponent(
 {
 }
 
-Engine::LocalTree::ProcessComponent::~ProcessComponent()
-{
-}
-
-Engine::LocalTree::ProcessComponentFactory::~ProcessComponentFactory()
-{
-}
+Engine::LocalTree::ProcessComponent::~ProcessComponent() = default;
+Engine::LocalTree::ProcessComponentFactory::~ProcessComponentFactory() = default;
+Engine::LocalTree::ProcessComponentFactoryList::~ProcessComponentFactoryList() = default;

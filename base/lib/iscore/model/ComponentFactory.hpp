@@ -42,7 +42,7 @@ template <
     typename Model_T,   // e.g. ProcessModel - maybe ProcessEntity ?
     typename System_T,  // e.g. LocalTree::DocumentPlugin
     typename Factory_T> // e.g. ProcessComponentFactory
-class GenericComponentFactoryList final
+class GenericComponentFactoryList
     : public iscore::InterfaceList<Factory_T>
 {
 public:
