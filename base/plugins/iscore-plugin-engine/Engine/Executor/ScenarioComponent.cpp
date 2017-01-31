@@ -134,6 +134,7 @@ std::function<void ()> ScenarioComponentBase::removing(
           prev.erase(prev_it);
 
         proc->removeTimeConstraint(cstr);
+        qDebug()<< "CLEANED c" << cstr.use_count();
       }
     });
 
@@ -153,6 +154,7 @@ std::function<void ()> ScenarioComponentBase::removing(
   {
     std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
     m_ctx.executionQueue.enqueue([proc,tn=c.OSSIATimeNode()] {
+      tn->cleanup();
       proc->removeTimeNode(tn);
     });
 
@@ -170,8 +172,11 @@ std::function<void ()> ScenarioComponentBase::removing(
   if(it != m_ossia_timeevents.end())
   {
     m_ctx.executionQueue.enqueue([ev=c.OSSIAEvent()] {
+      ev->cleanup();
       ev->getTimeNode().remove(ev);
     });
+
+    c.cleanup();
 
     return [=] { m_ossia_timeevents.erase(it); };
   }

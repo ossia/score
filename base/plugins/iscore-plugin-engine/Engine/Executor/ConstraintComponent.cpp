@@ -58,7 +58,7 @@ ConstraintComponentBase::ConstraintComponentBase(
 
 }
 
-ConstraintComponentBase::~ConstraintComponentBase()
+ConstraintComponent::~ConstraintComponent()
 {
   if(m_ossia_constraint)
     m_ossia_constraint->setCallback(ossia::time_constraint::ExecutionCallback{});

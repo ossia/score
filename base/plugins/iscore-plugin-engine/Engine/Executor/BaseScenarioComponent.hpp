@@ -131,16 +131,16 @@ signals:
 
 private:
   const Context& m_ctx;
-  std::shared_ptr<ConstraintComponent> m_ossia_constraint{};
+  std::shared_ptr<ConstraintComponent> m_ossia_constraint;
 
-  std::shared_ptr<TimeNodeComponent> m_ossia_startTimeNode{};
-  std::shared_ptr<TimeNodeComponent> m_ossia_endTimeNode{};
+  std::shared_ptr<TimeNodeComponent> m_ossia_startTimeNode;
+  std::shared_ptr<TimeNodeComponent> m_ossia_endTimeNode;
 
-  std::shared_ptr<EventComponent> m_ossia_startEvent{};
-  std::shared_ptr<EventComponent> m_ossia_endEvent{};
+  std::shared_ptr<EventComponent> m_ossia_startEvent;
+  std::shared_ptr<EventComponent> m_ossia_endEvent;
 
-  std::shared_ptr<StateComponent> m_ossia_startState{};
-  std::shared_ptr<StateComponent> m_ossia_endState{};
+  std::shared_ptr<StateComponent> m_ossia_startState;
+  std::shared_ptr<StateComponent> m_ossia_endState;
 };
 }
 }
