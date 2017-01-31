@@ -11,10 +11,12 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
+#include <ossia/network/domain/domain_base.hpp>
 
 #include "CurveModel.hpp"
 #include <ossia/detail/algorithms.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
+#include <State/ValueConversion.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/selection/Selectable.hpp>
@@ -357,4 +359,94 @@ std::vector<SegmentData> orderedSegments(const Model& curve)
 
   return vec2;
 }
+
+CurveDomain::CurveDomain(const ossia::net::domain& dom):
+  min{ossia::convert<double>(dom.get_min())}
+, max{ossia::convert<double>(dom.get_max())}
+{
+  if(min == 0. && max == 0.)
+  {
+    max = 1.;
+  }
+
+  start = std::min(min, max);
+  end = std::max(min, max);
+}
+
+CurveDomain::CurveDomain(const ossia::net::domain& dom, const State::Value& v):
+  min{ossia::convert<double>(dom.get_min())}
+, max{ossia::convert<double>(dom.get_max())}
+{
+  if(min == 0. && max == 0.)
+  {
+    const auto val = State::convert::value<double>(v);
+    if(val > 0.)
+      max = val;
+    else if(val < 0.)
+      min = val;
+    else
+      max = 1.;
+  }
+
+  if(min == max)
+    max += 1.;
+
+  start = std::min(min, max);
+  end = std::max(min, max);
+}
+
+CurveDomain::CurveDomain(const ossia::net::domain& dom, double start, double end):
+  min{ossia::convert<double>(dom.get_min())}
+, max{ossia::convert<double>(dom.get_max())}
+, start{start}
+, end{end}
+{
+  auto min_v = dom.get_min();
+  auto max_v = dom.get_max();
+  min = (min_v.valid())
+            ? std::min(ossia::convert<double>(min_v), std::min(start, end))
+            : std::min(start, end);
+  max = (max_v.valid())
+            ? std::max(ossia::convert<double>(max_v), std::max(start, end))
+            : std::max(start, end);
+
+  ensureValid();
+}
+
+void CurveDomain::refine(const ossia::net::domain& dom)
+{
+  auto min_v = dom.get_min();
+  auto max_v = dom.get_max();
+
+  if (min_v.valid())
+    min = std::min(min, ossia::convert<double>(min_v));
+  else
+    min = std::min(start, end);
+
+  if (max_v.valid())
+    max = std::max(max, ossia::convert<double>(max_v));
+  else
+    max = std::max(start, end);
+
+  ensureValid();
+}
+
+void CurveDomain::ensureValid()
+{
+  if(min == 0. && max == 0.)
+  {
+    max = 1.;
+  }
+  else if(min == max)
+  {
+    max += 1.;
+  }
+
+  if(start == end)
+  {
+    start = std::min(min, max);
+    end = std::max(min, max);
+  }
+}
+
 }

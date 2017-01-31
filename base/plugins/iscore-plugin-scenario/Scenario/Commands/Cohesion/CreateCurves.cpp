@@ -121,25 +121,18 @@ void CreateCurvesFromAddresses(
 
       // Then we set-up all the necessary values
       // min / max
-      auto& dom = as.domain.get();
-      auto min_v = dom.get_min();
-      auto max_v = dom.get_max();
-
-      double min = ossia::convert<double>(min_v);
-      double max = ossia::convert<double>(max_v);
+      Curve::CurveDomain dom{as.domain.get(), as.value};
 
       // start value / end value
-      double start = std::min(min, max);
-      double end = std::max(min, max);
       Process::MessageNode* s_node = Device::try_getNodeFromString(
           ss.messages().rootNode(), stringList(as.address));
       if (s_node)
       {
         if (auto val = s_node->value())
         {
-          start = State::convert::value<double>(*val);
-          min = std::min(start, min);
-          max = std::max(start, max);
+          dom.start = State::convert::value<double>(*val);
+          dom.min = std::min(dom.start, dom.min);
+          dom.max = std::max(dom.start, dom.max);
         }
       }
 
@@ -149,16 +142,15 @@ void CreateCurvesFromAddresses(
       {
         if (auto val = e_node->value())
         {
-          end = State::convert::value<double>(*val);
-          min = std::min(end, min);
-          max = std::max(end, max);
+          dom.end = State::convert::value<double>(*val);
+          dom.min = std::min(dom.end, dom.min);
+          dom.max = std::max(dom.end, dom.max);
         }
       }
 
       // Send the command.
       macro->addCommand(new Scenario::Command::CreateAutomationFromStates{
-          constraint, bigLayerVec[i], process_ids[i], addr, start, end, min,
-          max});
+          constraint, bigLayerVec[i], process_ids[i], addr, dom});
 
       i++;
       added_processes++;

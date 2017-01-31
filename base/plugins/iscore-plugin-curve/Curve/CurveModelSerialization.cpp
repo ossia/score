@@ -16,6 +16,20 @@
 
 template <>
 ISCORE_PLUGIN_CURVE_EXPORT void
+DataStreamReader::read(const Curve::CurveDomain& dom)
+{
+  m_stream << dom.min << dom.max << dom.start << dom.end;
+}
+
+template <>
+ISCORE_PLUGIN_CURVE_EXPORT void
+DataStreamWriter::write(Curve::CurveDomain& dom)
+{
+  m_stream >> dom.min >> dom.max >> dom.start >> dom.end;
+}
+
+template <>
+ISCORE_PLUGIN_CURVE_EXPORT void
 DataStreamReader::read(const Curve::Model& curve)
 {
   const auto& segments = curve.segments();
