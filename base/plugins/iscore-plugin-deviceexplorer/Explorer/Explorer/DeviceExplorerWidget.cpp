@@ -414,6 +414,8 @@ void DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
   {
     m_ntView->setModel((QAbstractItemModel*)nullptr);
   }
+
+  setEnabled(bool(model));
 }
 
 void DeviceExplorerWidget::populateColumnCBox()
