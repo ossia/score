@@ -81,12 +81,14 @@ protected:
 
 private:
   void updatePoints();
+  void updatePen();
   // Takes a table of points and draws them in a square given by the
   // boundingRect
   // QGraphicsItem interface
   QRectF m_rect;
 
   const SegmentModel* m_model{};
+  const QPen* m_pen{};
   const Curve::Style& m_style;
 
   QPainterPath m_unstrokedShape;
@@ -95,5 +97,6 @@ private:
   bool m_enabled{true};
   bool m_tween{false};
   bool m_selected{};
+
 };
 }

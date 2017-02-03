@@ -6,7 +6,7 @@ namespace Interpolation
 class Colors
 {
 public:
-  Colors();
+  Colors(const iscore::Skin& s);
 
   const auto& style() const
   {
