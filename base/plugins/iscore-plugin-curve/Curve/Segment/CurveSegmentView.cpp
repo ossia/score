@@ -32,6 +32,7 @@ SegmentView::SegmentView(
   this->setFlag(ItemIsFocusable, false);
 
   setModel(model);
+  updatePen();
 }
 
 void SegmentView::setModel(const SegmentModel* model)
@@ -69,38 +70,38 @@ void SegmentView::paint(
 {
   painter->setRenderHint(QPainter::RenderHint::Antialiasing, m_enabled);
 
-  QPen pen;
-  pen.setWidth(m_enabled ? 2 : 1);
-  pen.setStyle(m_tween ? Qt::PenStyle::DashLine : Qt::PenStyle::SolidLine);
-  pen.setColor(
-      m_enabled ? (m_selected ? m_style.SegmentSelected : m_style.Segment)
-                : m_style.SegmentDisabled);
-
-  painter->setPen(pen);
+  painter->setPen(*m_pen);
+  painter->setBrush(Qt::NoBrush);
   painter->drawPath(m_unstrokedShape);
+
+  painter->setRenderHint(QPainter::RenderHint::Antialiasing, false);
 }
 
 void SegmentView::setSelected(bool selected)
 {
   m_selected = selected;
+  updatePen();
   update();
 }
 
 void SegmentView::enable()
 {
   m_enabled = true;
+  updatePen();
   update();
 }
 
 void SegmentView::disable()
 {
   m_enabled = false;
+  updatePen();
   update();
 }
 
 void SegmentView::setTween(bool b)
 {
   m_tween = b;
+  updatePen();
   update();
 }
 
@@ -138,6 +139,33 @@ void SegmentView::updatePoints()
   m_strokedShape = CurveSegmentStroker.createStroke(m_unstrokedShape);
 
   update();
+}
+
+void SegmentView::updatePen()
+{
+  if(m_enabled)
+  {
+    if(!m_tween)
+    {
+      if(!m_selected)
+        m_pen = &m_style.PenSegment;
+      else
+        m_pen = &m_style.PenSegmentSelected;
+    }
+    else
+    {
+      if(!m_selected)
+        m_pen = &m_style.PenSegmentTween;
+      else
+        m_pen = &m_style.PenSegmentTweenSelected;
+    }
+  }
+  else
+  {
+    m_pen = &m_style.PenSegmentDisabled;
+  }
+
+  ISCORE_ASSERT(m_pen);
 }
 
 void SegmentView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)

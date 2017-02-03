@@ -30,6 +30,7 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
 void StateView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  painter->setPen(Qt::NoPen);
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = ScenarioStyle::instance();
   skin.StateTemporalPointBrush.setColor(
@@ -50,7 +51,6 @@ void StateView::paint(
         m_radiusFull * m_dilatationFactor);
   }
 
-  painter->setPen(Qt::NoPen);
   painter->setBrush(skin.StateTemporalPointBrush);
   qreal r = m_radiusPoint * m_dilatationFactor;
   painter->drawEllipse({0., 0.}, r, r);
@@ -60,6 +60,8 @@ void StateView::paint(
   painter->setPen(Qt::darkYellow);
   painter->drawRect(boundingRect());
 #endif
+
+  painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
 void StateView::setContainMessage(bool arg)

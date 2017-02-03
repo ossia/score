@@ -95,6 +95,6 @@ public:
   }
 
 private:
-  CurveColors_T m_colors;
+  CurveColors_T m_colors{iscore::Skin::instance()};
 };
 }

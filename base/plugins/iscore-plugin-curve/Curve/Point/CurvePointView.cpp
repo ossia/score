@@ -27,6 +27,7 @@ PointView::PointView(
   this->setZValue(2);
   this->setCursor(Qt::CrossCursor);
   this->setFlag(ItemIsFocusable, false);
+  // Bad on retina. :( this->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
 
   setModel(model);
 }
@@ -60,14 +61,17 @@ QRectF PointView::boundingRect() const
 void PointView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const QColor c = m_selected ? m_style.PointSelected : m_style.Point;
+  if(!m_selected)
+  {
+    painter->setPen(m_style.PenPoint);
+    painter->setBrush(m_style.BrushPoint);
+  }
+  else
+  {
+    painter->setPen(m_style.PenPointSelected);
+    painter->setBrush(m_style.BrushPointSelected);
+  }
 
-  QPen pen{c, 1};
-  painter->setBrush(c);
-
-  pen.setCosmetic(true);
-
-  painter->setPen(pen);
   painter->drawEllipse(ellipse);
 }
 

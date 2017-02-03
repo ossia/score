@@ -3,11 +3,14 @@
 
 namespace Automation
 {
-Colors::Colors()
-    : m_style{iscore::Skin::instance().Tender3,
-              iscore::Skin::instance().Emphasis2,
-              iscore::Skin::instance().Tender1,
-              iscore::Skin::instance().Tender2, iscore::Skin::instance().Gray}
+Colors::Colors(const iscore::Skin& s)
+  : m_style{
+      s.Tender3,
+      s.Emphasis2,
+      s.Tender1,
+      s.Tender2,
+      s.Gray}
 {
+  m_style.init(s);
 }
 }
