@@ -185,6 +185,24 @@ static ossia::bounding_mode toBoundingMode(Device::ClipMode c)
   }
 }
 
+static ossia::val_type toOssiaType(State::ValueType t)
+{
+  switch(t)
+  {
+    case State::ValueType::Impulse: return ossia::val_type::IMPULSE;
+    case State::ValueType::Int: return ossia::val_type::INT;
+    case State::ValueType::Float: return ossia::val_type::FLOAT;
+    case State::ValueType::Bool: return ossia::val_type::BOOL;
+    case State::ValueType::String: return ossia::val_type::STRING;
+    case State::ValueType::Char: return ossia::val_type::CHAR;
+    case State::ValueType::Vec2f: return ossia::val_type::VEC2F;
+    case State::ValueType::Vec3f: return ossia::val_type::VEC3F;
+    case State::ValueType::Vec4f: return ossia::val_type::VEC4F;
+    case State::ValueType::Tuple: return ossia::val_type::TUPLE;
+    case State::ValueType::NoValue: throw;
+  }
+}
+
 void updateOSSIAAddress(
     const Device::FullAddressSettings& settings,
     ossia::net::address_base& addr)
@@ -210,6 +228,7 @@ void updateOSSIAAddress(
   addr.setBoundingMode(
         Engine::iscore_to_ossia::toBoundingMode(settings.clipMode));
 
+  addr.setValueType(toOssiaType(settings.value.val.which()));
   addr.setValue(Engine::iscore_to_ossia::toOSSIAValue(settings.value));
 
   addr.setDomain(settings.domain);
