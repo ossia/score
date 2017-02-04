@@ -1,15 +1,15 @@
 #pragma once
 #include <State/Relation.hpp>
-#include <eggs/variant/variant.hpp>
+
 #include <iscore/tools/std/Optional.hpp>
+#include <iscore/model/tree/InvisibleRootNode.hpp>
+#include <iscore/model/tree/VariantBasedNode.hpp>
+#include <ossia/editor/expression/operators.hpp>
 
 #include <QString>
 #include <algorithm>
 #include <cstddef>
-#include <iscore/model/tree/VariantBasedNode.hpp>
 #include <vector>
-
-#include <iscore/model/tree/InvisibleRootNode.hpp>
 
 class DataStream;
 class JSONObject;
@@ -18,13 +18,8 @@ class TreeNode;
 
 namespace State
 {
-enum class BinaryOperator
-{
-  And,
-  Or,
-  Xor,
-  None
-};
+using BinaryOperator = ossia::expressions::binary_operator;
+
 enum class UnaryOperator
 {
   Not,

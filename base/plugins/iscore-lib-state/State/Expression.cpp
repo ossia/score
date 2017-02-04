@@ -6,9 +6,9 @@
 QString State::ExprData::toString() const
 {
   static const QMap<State::BinaryOperator, QString> binopMap{
-      {State::BinaryOperator::And, "and"},
-      {State::BinaryOperator::Or, "or"},
-      {State::BinaryOperator::Xor, "xor"},
+      {State::BinaryOperator::AND, "and"},
+      {State::BinaryOperator::OR, "or"},
+      {State::BinaryOperator::XOR, "xor"},
   };
   static const QMap<State::UnaryOperator, QString> unopMap{
       {State::UnaryOperator::Not, "not"},

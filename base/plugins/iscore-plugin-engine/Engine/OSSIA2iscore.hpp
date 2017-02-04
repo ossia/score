@@ -76,13 +76,13 @@ struct MatchingType<bool>
   }
 };
 template <>
-struct MatchingType<State::impulse_t>
+struct MatchingType<State::impulse>
 {
   static constexpr const auto val = ossia::val_type::IMPULSE;
-  using type = ossia::Impulse;
-  static auto convert(State::impulse_t)
+  using type = ossia::impulse;
+  static auto convert(State::impulse)
   {
-    return State::Value::fromValue(State::impulse_t{});
+    return State::Value::fromValue(State::impulse{});
   }
 };
 template <>
@@ -137,7 +137,7 @@ template <>
 struct MatchingType<State::vec2f>
 {
   static constexpr const auto val = ossia::val_type::VEC2F;
-  using type = ossia::Vec2f;
+  using type = ossia::vec2f;
   static auto convert(const State::vec2f& t)
   {
     return State::Value::fromValue(t);
@@ -147,7 +147,7 @@ template <>
 struct MatchingType<State::vec3f>
 {
   static constexpr const auto val = ossia::val_type::VEC3F;
-  using type = ossia::Vec3f;
+  using type = ossia::vec3f;
   static auto convert(const State::vec3f& t)
   {
     return State::Value::fromValue(t);
@@ -157,7 +157,7 @@ template <>
 struct MatchingType<State::vec4f>
 {
   static constexpr const auto val = ossia::val_type::VEC4F;
-  using type = ossia::Vec4f;
+  using type = ossia::vec4f;
   static auto convert(const State::vec4f& t)
   {
     return State::Value::fromValue(t);

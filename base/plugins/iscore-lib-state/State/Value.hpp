@@ -8,6 +8,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <ossia-qt/metatypes.hpp>
 #include <iscore_lib_state_export.h>
 #include <vector>
 
@@ -17,12 +18,12 @@ class QDebug;
 
 namespace State
 {
-using impulse_t = ossia::Impulse;
+using impulse = ossia::impulse;
 
 class ValueImpl;
-using vec2f = std::array<float, 2>;
-using vec3f = std::array<float, 3>;
-using vec4f = std::array<float, 4>;
+using vec2f = ossia::vec2f;
+using vec3f = ossia::vec3f;
+using vec4f = ossia::vec4f;
 using tuple_t = std::vector<ValueImpl>;
 enum class ValueType : std::size_t
 {
@@ -45,7 +46,16 @@ class ISCORE_LIB_STATE_EXPORT ValueImpl
 
 public:
   using variant_t = eggs::
-      variant<impulse_t, int, float, bool, std::string, char, vec2f, vec3f, vec4f, tuple_t>;
+      variant<
+        float,
+        int,
+        vec2f, vec3f, vec4f,
+        impulse,
+        bool,
+        std::string,
+        tuple_t,
+        char>;
+
   ValueImpl() = default;
   ValueImpl(const ValueImpl&) = default;
   ValueImpl(ValueImpl&&) = default;
@@ -53,7 +63,7 @@ public:
   ValueImpl& operator=(const ValueImpl&) = default;
   ValueImpl& operator=(ValueImpl&&) = default;
 
-  ValueImpl(impulse_t v);
+  ValueImpl(impulse v);
   ValueImpl(int v);
   ValueImpl(float v);
   ValueImpl(double v);
@@ -65,7 +75,7 @@ public:
   ValueImpl(vec4f v);
   ValueImpl(tuple_t v);
 
-  ValueImpl& operator=(impulse_t v);
+  ValueImpl& operator=(impulse v);
   ValueImpl& operator=(int v);
   ValueImpl& operator=(float v);
   ValueImpl& operator=(double v);
@@ -189,11 +199,6 @@ ISCORE_LIB_STATE_EXPORT ossia::value toOSSIAValue(const State::ValueImpl& val);
 ISCORE_LIB_STATE_EXPORT State::Value fromOSSIAValue(const ossia::value& val);
 }
 
-Q_DECLARE_METATYPE(State::impulse_t)
 Q_DECLARE_METATYPE(State::Value)
 Q_DECLARE_METATYPE(State::ValueList)
 Q_DECLARE_METATYPE(State::ValueType)
-
-Q_DECLARE_METATYPE(State::vec2f)
-Q_DECLARE_METATYPE(State::vec3f)
-Q_DECLARE_METATYPE(State::vec4f)

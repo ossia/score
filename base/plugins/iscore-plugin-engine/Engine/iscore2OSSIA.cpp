@@ -146,7 +146,8 @@ getNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
   using namespace ossia;
   // Find the relevant node to add in the device
   ossia::net::node_base* node = &dev.getRootNode();
-  for (int i = 0; i < path.size(); i++)
+  const int n = path.size();
+  for (int i = 0; i < n ; i++)
   {
     const auto& children = node->children();
 
@@ -185,23 +186,22 @@ static ossia::bounding_mode toBoundingMode(Device::ClipMode c)
   }
 }
 
-static ossia::val_type toOssiaType(State::ValueType t)
+struct ossia_type_visitor
 {
-  switch(t)
-  {
-    case State::ValueType::Impulse: return ossia::val_type::IMPULSE;
-    case State::ValueType::Int: return ossia::val_type::INT;
-    case State::ValueType::Float: return ossia::val_type::FLOAT;
-    case State::ValueType::Bool: return ossia::val_type::BOOL;
-    case State::ValueType::String: return ossia::val_type::STRING;
-    case State::ValueType::Char: return ossia::val_type::CHAR;
-    case State::ValueType::Vec2f: return ossia::val_type::VEC2F;
-    case State::ValueType::Vec3f: return ossia::val_type::VEC3F;
-    case State::ValueType::Vec4f: return ossia::val_type::VEC4F;
-    case State::ValueType::Tuple: return ossia::val_type::TUPLE;
-    case State::ValueType::NoValue: throw;
-  }
-}
+public:
+  using return_type = ossia::val_type;
+  return_type operator()() const { ISCORE_ABORT; }
+  return_type operator()(const State::impulse&) const { return ossia::val_type::IMPULSE; }
+  return_type operator()(int) const { return ossia::val_type::INT; }
+  return_type operator()(float) const { return ossia::val_type::FLOAT; }
+  return_type operator()(bool) const { return ossia::val_type::BOOL; }
+  return_type operator()(const std::string&) const { return ossia::val_type::STRING; }
+  return_type operator()(char) const { return ossia::val_type::CHAR; }
+  return_type operator()(const State::vec2f&) const { return ossia::val_type::VEC2F; }
+  return_type operator()(const State::vec3f&) const { return ossia::val_type::VEC3F; }
+  return_type operator()(const State::vec4f&) const { return ossia::val_type::VEC4F; }
+  return_type operator()(const State::tuple_t&) const { return ossia::val_type::TUPLE; }
+};
 
 void updateOSSIAAddress(
     const Device::FullAddressSettings& settings,
@@ -228,7 +228,7 @@ void updateOSSIAAddress(
   addr.setBoundingMode(
         Engine::iscore_to_ossia::toBoundingMode(settings.clipMode));
 
-  addr.setValueType(toOssiaType(settings.value.val.which()));
+  addr.setValueType(ossia::apply(ossia_type_visitor{}, settings.value.val.impl()));
   addr.setValue(Engine::iscore_to_ossia::toOSSIAValue(settings.value));
 
   addr.setDomain(settings.domain);
@@ -244,67 +244,8 @@ void createOSSIAAddress(
   if (!settings.value.val.impl())
     return;
 
-  struct
-  {
-  public:
-    using return_type = ossia::val_type;
-    return_type operator()() const
-    {
-      ISCORE_ABORT;
-      return ossia::val_type::IMPULSE;
-    }
-    return_type operator()(const State::impulse_t&) const
-    {
-      return ossia::val_type::IMPULSE;
-    }
-    return_type operator()(int) const
-    {
-      return ossia::val_type::INT;
-    }
-    return_type operator()(float) const
-    {
-      return ossia::val_type::FLOAT;
-    }
-    return_type operator()(bool) const
-    {
-      return ossia::val_type::BOOL;
-    }
-    return_type operator()(const QString&) const
-    {
-      return ossia::val_type::STRING;
-    }
-    return_type operator()(QChar) const
-    {
-      return ossia::val_type::CHAR;
-    }
-    return_type operator()(const std::string&) const
-    {
-      return ossia::val_type::STRING;
-    }
-    return_type operator()(char) const
-    {
-      return ossia::val_type::CHAR;
-    }
-    return_type operator()(const State::vec2f&) const
-    {
-      return ossia::val_type::VEC2F;
-    }
-    return_type operator()(const State::vec3f&) const
-    {
-      return ossia::val_type::VEC3F;
-    }
-    return_type operator()(const State::vec4f&) const
-    {
-      return ossia::val_type::VEC4F;
-    }
-    return_type operator()(const State::tuple_t&) const
-    {
-      return ossia::val_type::TUPLE;
-    }
-  } visitor{};
-
   auto addr = node.createAddress(
-        eggs::variants::apply(visitor, settings.value.val.impl()));
+        ossia::apply(ossia_type_visitor{}, settings.value.val.impl()));
   if (addr)
     updateOSSIAAddress(settings, *addr);
 }
@@ -317,7 +258,7 @@ void updateOSSIAValue(const State::ValueImpl& iscore_data, ossia::value& val)
     void operator()(const ossia::Destination&) const
     {
     }
-    void operator()(ossia::Impulse) const
+    void operator()(ossia::impulse) const
     {
     }
     void operator()(int32_t& v) const
@@ -340,21 +281,21 @@ void updateOSSIAValue(const State::ValueImpl& iscore_data, ossia::value& val)
     {
       v = data.get<std::string>();
     }
-    void operator()(ossia::Vec2f& v) const
+    void operator()(ossia::vec2f& v) const
     {
       v = data.get<State::vec2f>();
     }
-    void operator()(ossia::Vec3f& v) const
+    void operator()(ossia::vec3f& v) const
     {
       v = data.get<State::vec3f>();
     }
-    void operator()(ossia::Vec4f& v) const
+    void operator()(ossia::vec4f& v) const
     {
       v = data.get<State::vec4f>();
     }
     void operator()(std::vector<ossia::value>& vec) const
     {
-      State::tuple_t tuple = data.get<State::tuple_t>();
+      const State::tuple_t& tuple = *data.target<State::tuple_t>();
       ISCORE_ASSERT(tuple.size() == vec.size());
       const int n = vec.size();
       for (int i = 0; i < n; i++)
@@ -541,45 +482,6 @@ static ossia::value expressionOperand(
   return eggs::variants::apply(visitor, relm);
 }
 
-static ossia::expressions::expression_atom::Comparator
-expressionComparator(State::Relation::Comparator op)
-{
-  using namespace ossia::expressions;
-  switch (op)
-  {
-    case State::Relation::Comparator::Different:
-      return expression_atom::Comparator::DIFFERENT;
-    case State::Relation::Comparator::Equal:
-      return expression_atom::Comparator::EQUAL;
-    case State::Relation::Comparator::Greater:
-      return expression_atom::Comparator::GREATER_THAN;
-    case State::Relation::Comparator::GreaterEqual:
-      return expression_atom::Comparator::GREATER_THAN_OR_EQUAL;
-    case State::Relation::Comparator::Lower:
-      return expression_atom::Comparator::LOWER_THAN;
-    case State::Relation::Comparator::LowerEqual:
-      return expression_atom::Comparator::LOWER_THAN_OR_EQUAL;
-    default:
-      ISCORE_ABORT;
-  }
-}
-
-static ossia::expressions::expression_composition::Operator
-expressionOperator(State::BinaryOperator op)
-{
-  using namespace ossia::expressions;
-  switch (op)
-  {
-    case State::BinaryOperator::And:
-      return expression_composition::Operator::AND;
-    case State::BinaryOperator::Or:
-      return expression_composition::Operator::OR;
-    case State::BinaryOperator::Xor:
-      return expression_composition::Operator::XOR;
-    default:
-      ISCORE_ABORT;
-  }
-}
 // State::Relation -> OSSIA::ExpressionAtom
 static ossia::expression_ptr
 expressionAtom(const State::Relation& rel, const Device::DeviceList& dev)
@@ -587,8 +489,7 @@ expressionAtom(const State::Relation& rel, const Device::DeviceList& dev)
   using namespace eggs::variants;
 
   return ossia::expressions::make_expression_atom(
-        expressionOperand(rel.lhs, dev),
-        expressionComparator(rel.op),
+        expressionOperand(rel.lhs, dev), rel.op,
         expressionOperand(rel.rhs, dev));
 }
 
@@ -624,7 +525,7 @@ expression(const State::Expression& e, const Device::DeviceList& list)
       const auto& rhs = expr.childAt(1);
       return ossia::expressions::make_expression_composition(
             expression(lhs, devlist),
-            expressionOperator(rel),
+            rel,
             expression(rhs, devlist));
     }
     return_type operator()(const State::UnaryOperator) const

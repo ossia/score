@@ -115,7 +115,7 @@ void GUIItem::on_impulse()
   sendMessage(
         State::Message{
           State::AddressAccessor{m_addr.address},
-          State::Value::fromValue(State::impulse_t{})});
+          State::Value::fromValue(State::impulse{})});
 }
 
 void GUIItem::on_boolValueChanged(bool b)

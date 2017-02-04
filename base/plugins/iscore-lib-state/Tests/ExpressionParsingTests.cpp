@@ -84,7 +84,7 @@ QString::fromStdString(std::string(f,l)) << "'\n";
 // TODO move me
 QDebug operator<<(QDebug dbg, const State::Address& a);
 QDebug operator<<(QDebug dbg, const State::RelationMember& v);
-QDebug operator<<(QDebug dbg, const State::Relation::Comparator& v);
+QDebug operator<<(QDebug dbg, const ossia::expressions::comparator& v);
 QDebug operator<<(QDebug dbg, const State::Relation& v);
 QDebug operator<<(QDebug dbg, const State::BinaryOperator& v);
 QDebug operator<<(QDebug dbg, const State::UnaryOperator& v);
@@ -103,26 +103,26 @@ QDebug operator<<(QDebug dbg, const State::RelationMember& v)
   return dbg;
 }
 
-QDebug operator<<(QDebug dbg, const State::Relation::Comparator& v)
+QDebug operator<<(QDebug dbg, const ossia::expressions::comparator& v)
 {
   switch (v)
   {
-    case State::Relation::Comparator::Different:
+    case ossia::expressions::comparator::DIFFERENT:
       dbg << "!=";
       break;
-    case State::Relation::Comparator::Equal:
+    case ossia::expressions::comparator::EQUAL:
       dbg << "==";
       break;
-    case State::Relation::Comparator::Greater:
+    case ossia::expressions::comparator::GREATER:
       dbg << ">";
       break;
-    case State::Relation::Comparator::GreaterEqual:
+    case ossia::expressions::comparator::GREATER_EQUAL:
       dbg << ">=";
       break;
-    case State::Relation::Comparator::Lower:
+    case ossia::expressions::comparator::LOWER:
       dbg << "<";
       break;
-    case State::Relation::Comparator::LowerEqual:
+    case ossia::expressions::comparator::LOWER_EQUAL:
       dbg << "<=";
       break;
   }
@@ -139,13 +139,13 @@ QDebug operator<<(QDebug dbg, const State::BinaryOperator& v)
 {
   switch (v)
   {
-    case State::BinaryOperator::And:
+    case State::BinaryOperator::AND:
       dbg << "and";
       break;
-    case State::BinaryOperator::Or:
+    case State::BinaryOperator::OR:
       dbg << "or";
       break;
-    case State::BinaryOperator::Xor:
+    case State::BinaryOperator::XOR:
       dbg << "xor";
       break;
     case State::BinaryOperator::None:

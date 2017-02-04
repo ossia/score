@@ -214,7 +214,7 @@ private slots:
     iscore::testing::MockApplication app;
     Device::AddressSettings s;
     for(auto val : {
-        State::Value::fromValue(State::impulse_t{}),
+        State::Value::fromValue(State::impulse{}),
         State::Value::fromValue(int{}),
         State::Value::fromValue(float{}),
         State::Value::fromValue(char{}),

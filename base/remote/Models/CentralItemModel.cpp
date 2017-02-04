@@ -13,7 +13,7 @@ namespace RemoteUI
 // Type to widget
 struct AddressItemFactory
 {
-  auto operator()(State::impulse_t i)
+  auto operator()(State::impulse i)
   { return WidgetKind::PushButton; }
 
   auto operator()(bool b)

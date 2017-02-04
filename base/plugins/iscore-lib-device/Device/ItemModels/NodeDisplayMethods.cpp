@@ -25,7 +25,7 @@ QVariant convert(const ossia::value& val)
   {
   public:
     using return_type = QVariant;
-    return_type operator()(const ossia::Impulse& v) const
+    return_type operator()(const ossia::impulse& v) const
     {
       return QVariant::fromValue(v);
     }
@@ -50,15 +50,15 @@ QVariant convert(const ossia::value& val)
       return QVariant::fromValue(QChar(c));
     }
 
-    return_type operator()(ossia::Vec2f t) const
+    return_type operator()(ossia::vec2f t) const
     {
       return QVector2D{t[0], t[1]};
     }
-    return_type operator()(ossia::Vec3f t) const
+    return_type operator()(ossia::vec3f t) const
     {
       return QVector3D{t[0], t[1], t[2]};
     }
-    return_type operator()(ossia::Vec4f t) const
+    return_type operator()(ossia::vec4f t) const
     {
       return QVector4D{t[0], t[1], t[2], t[3]};
     }

@@ -76,7 +76,7 @@ QJSValue value(QJSEngine& engine, const State::Value& val)
     {
       return makeImpulse(engine);
     }
-    return_type operator()(const State::impulse_t&) const
+    return_type operator()(const State::impulse&) const
     {
       return makeImpulse(engine);
     }
@@ -175,7 +175,7 @@ public:
   using return_type = QJSValue;
   return_type operator()() const
   { return makeImpulse(engine); }
-  return_type operator()(ossia::Impulse) const
+  return_type operator()(ossia::impulse) const
   { return makeImpulse(engine); }
   return_type operator()(int i) const
   { return i; }
@@ -281,7 +281,7 @@ State::ValueImpl value(const QJSValue& val)
   {
     if (val.hasProperty("impulse"))
     {
-      return State::impulse_t{};
+      return State::impulse{};
     }
   }
 
@@ -308,7 +308,7 @@ State::Message message(const QJSValue& val)
     auto iscore_addr = val.property(strings.address);
     auto res = State::AddressAccessor::fromString(iscore_addr.toString());
     if (res)
-      return State::Message{*res, State::Value::fromValue(State::impulse_t{})};
+      return State::Message{*res, State::Value::fromValue(State::impulse{})};
   }
 
   return {};
@@ -343,7 +343,7 @@ State::MessageList messages(const QJSValue& val)
   {
     auto res = State::AddressAccessor::fromString(val.toString());
     if (res)
-      ml.append({*res, State::Value::fromValue(State::impulse_t{})});
+      ml.append({*res, State::Value::fromValue(State::impulse{})});
   }
 
   return ml;

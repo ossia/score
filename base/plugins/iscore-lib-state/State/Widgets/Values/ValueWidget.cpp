@@ -31,7 +31,7 @@ Value TypeAndValueWidget::value() const
   if (m_val)
     return m_val->widget()->value();
 
-  return State::Value::fromValue(impulse_t{});
+  return State::Value::fromValue(impulse{});
 }
 
 // TODO refactor with MessageEditDialog

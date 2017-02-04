@@ -29,7 +29,7 @@ State::Expression ExpressionEditorWidget::expression()
 
   // will keep containing the last relation added
 
-  for (auto r : m_relations)
+  for (SimpleExpressionEditorWidget* r : m_relations)
   {
     if (!exp.hasChildren())
     {
@@ -47,21 +47,21 @@ State::Expression ExpressionEditorWidget::expression()
       }
 
       auto op = r->binOperator();
-      if (op == State::BinaryOperator::Or)
+      if (op == State::BinaryOperator::OR)
       {
         auto pOp = op;
         if (lastRel->parent()->is<State::BinaryOperator>())
           pOp = lastRel->parent()->get<State::BinaryOperator>();
 
         // we're taking out the child of an "OR" node or of the root
-        while (pOp != State::BinaryOperator::Or && lastRel->parent() != &exp)
+        while (pOp != State::BinaryOperator::OR && lastRel->parent() != &exp)
         {
           lastRel = lastRel->parent();
           if (lastRel->is<State::BinaryOperator>())
             pOp = lastRel->get<State::BinaryOperator>();
         }
       }
-      if (op != State::BinaryOperator::None)
+      if (op)
       {
         auto p = lastRel->parent();
         // remove link between parent and current
@@ -70,7 +70,7 @@ State::Expression ExpressionEditorWidget::expression()
         p->removeChild(last_it);
 
         // insert operator
-        p->emplace_back(op, p);
+        p->emplace_back(*op, p);
         auto& nOp = p->front();
 
         // recreate link
@@ -143,11 +143,12 @@ void ExpressionEditorWidget::exploreExpression(State::Expression expr)
       widg.exploreExpression(a);
       widg.exploreExpression(b);
 
-      for (int i = 1; i < widg.m_relations.size(); i++)
+      const int num = widg.m_relations.size();
+      for (int i = 1; i < num; i++)
       {
-        if (widg.m_relations.at(i)->binOperator()
-            == State::BinaryOperator::None)
-          widg.m_relations.at(i)->setOperator(op);
+        auto rel = widg.m_relations.at(i);
+        if (!rel->binOperator())
+          rel->setOperator(op);
       }
 
       if (!widg.m_relations.empty())
@@ -180,7 +181,7 @@ QString ExpressionEditorWidget::currentExpr()
 void ExpressionEditorWidget::addNewTerm()
 {
   auto relationEditor
-      = new SimpleExpressionEditorWidget{m_context, m_relations.size(), this};
+      = new SimpleExpressionEditorWidget{m_context, (int) m_relations.size(), this};
   m_relations.push_back(relationEditor);
 
   m_mainLayout->addWidget(relationEditor);
@@ -200,12 +201,13 @@ void ExpressionEditorWidget::removeTerm(int index)
 {
   if (m_relations.size() > 1)
   {
-    for (int i = index; i < m_relations.size(); i++)
+    const int n = m_relations.size();
+    for (int i = index; i < n; i++)
     {
       m_relations.at(i)->id--;
     }
     delete m_relations.at(index);
-    m_relations.removeAt(index);
+    m_relations.erase(m_relations.begin() + index);
     // TODO the model should be updated here.
   }
   else if (m_relations.size() == 1)

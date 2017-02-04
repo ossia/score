@@ -35,13 +35,13 @@ DataStreamWriter::write(State::ValueImpl& value)
 
 
 template <>
-void DataStreamReader::read(const State::impulse_t& value)
+void DataStreamReader::read(const State::impulse& value)
 {
 }
 
 
 template <>
-void DataStreamWriter::write(State::impulse_t& value)
+void DataStreamWriter::write(State::impulse& value)
 {
 }
 

@@ -46,9 +46,9 @@ public:
       const iscore::DocumentContext&, int index, QWidget* parent = nullptr);
 
   State::Expression relation();
-  State::BinaryOperator binOperator();
+  optional<State::BinaryOperator> binOperator();
 
-  int id;
+  int id = -1;
 
   void setRelation(State::Relation r);
   void setPulse(State::Pulse r);

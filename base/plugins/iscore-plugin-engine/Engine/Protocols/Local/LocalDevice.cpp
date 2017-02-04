@@ -75,7 +75,7 @@ LocalDevice::LocalDevice(
     auto local_stop_node = root.createChild("stop");
     auto local_stop_address
         = local_stop_node->createAddress(ossia::val_type::IMPULSE);
-    local_stop_address->setValue(ossia::Impulse{});
+    local_stop_address->setValue(ossia::impulse{});
     local_stop_address->add_callback([&](const ossia::value&) {
       auto& stop_action = appplug.context.actions.action<Actions::Stop>();
       stop_action.action()->trigger();

@@ -315,7 +315,7 @@ static State::ValueImpl fromJamomaJsonValue(
   if (val.isNull())
   {
     if (type == State::ValueType::Impulse)
-      return State::ValueImpl{State::impulse_t{}};
+      return State::ValueImpl{State::impulse{}};
     else
       return State::ValueImpl{};
   }
@@ -325,7 +325,7 @@ static State::ValueImpl fromJamomaJsonValue(
     case ValueType::NoValue:
       return State::ValueImpl{};
     case ValueType::Impulse:
-      return State::ValueImpl{State::impulse_t{}};
+      return State::ValueImpl{State::impulse{}};
     case ValueType::Int:
       return State::ValueImpl{val.toVariant().toInt()};
     case ValueType::Float:
