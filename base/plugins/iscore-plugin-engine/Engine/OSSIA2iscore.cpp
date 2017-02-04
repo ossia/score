@@ -139,7 +139,7 @@ State::Value ToValue(ossia::val_type t)
     case ossia::val_type::FLOAT:
       return State::Value::fromValue(float{});
     case ossia::val_type::IMPULSE:
-      return State::Value::fromValue(State::impulse_t{});
+      return State::Value::fromValue(State::impulse{});
     case ossia::val_type::INT:
       return State::Value::fromValue(int{});
     case ossia::val_type::BOOL:

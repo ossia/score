@@ -49,7 +49,7 @@ private:
   void removeTerm(int index);
 
   const iscore::DocumentContext& m_context;
-  QVector<SimpleExpressionEditorWidget*> m_relations;
+  std::vector<SimpleExpressionEditorWidget*> m_relations;
 
   QVBoxLayout* m_mainLayout{};
 

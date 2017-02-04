@@ -17,7 +17,7 @@ bool Value::operator!=(const Value& m) const
   return val != m.val;
 }
 
-ValueImpl::ValueImpl(impulse_t v) : m_variant{v}
+ValueImpl::ValueImpl(impulse v) : m_variant{v}
 {
 }
 ValueImpl::ValueImpl(int v) : m_variant{v}
@@ -52,7 +52,7 @@ ValueImpl::ValueImpl(tuple_t v) : m_variant{std::move(v)}
 {
 }
 
-ValueImpl& ValueImpl::operator=(impulse_t v)
+ValueImpl& ValueImpl::operator=(impulse v)
 {
   m_variant = v;
   return *this;
@@ -163,9 +163,9 @@ ossia::value toOSSIAValue(const State::ValueImpl& val)
     {
       return ossia::value{};
     }
-    return_type operator()(const State::impulse_t&) const
+    return_type operator()(const State::impulse&) const
     {
-      return ossia::Impulse{};
+      return ossia::impulse{};
     }
     return_type operator()(int v) const
     {
@@ -232,9 +232,9 @@ Value fromOSSIAValue(const ossia::value& val)
     {
       return {};
     }
-    return_type operator()(ossia::Impulse) const
+    return_type operator()(ossia::impulse) const
     {
-      return State::Value::fromValue(State::impulse_t{});
+      return State::Value::fromValue(State::impulse{});
     }
     return_type operator()(int32_t v) const
     {
@@ -256,15 +256,15 @@ Value fromOSSIAValue(const ossia::value& val)
     {
       return State::Value::fromValue(v);
     }
-    return_type operator()(ossia::Vec2f v) const
+    return_type operator()(ossia::vec2f v) const
     {
       return State::Value::fromValue(v);
     }
-    return_type operator()(ossia::Vec3f v) const
+    return_type operator()(ossia::vec3f v) const
     {
       return State::Value::fromValue(v);
     }
-    return_type operator()(ossia::Vec4f v) const
+    return_type operator()(ossia::vec4f v) const
     {
       return State::Value::fromValue(v);
     }

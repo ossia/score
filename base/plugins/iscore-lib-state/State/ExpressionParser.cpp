@@ -138,7 +138,7 @@ BOOST_FUSION_ADAPT_STRUCT(State::Value, (State::Value::value_type, val))
 BOOST_FUSION_ADAPT_STRUCT(
     State::Relation,
     (State::RelationMember,
-     lhs)(State::Relation::Comparator, op)(State::RelationMember, rhs))
+     lhs)(ossia::expressions::comparator, op)(State::RelationMember, rhs))
 
 BOOST_FUSION_ADAPT_STRUCT(State::Pulse, (State::Address, address))
 namespace
@@ -282,16 +282,16 @@ struct RelationMember_parser : qi::grammar<Iterator, State::RelationMember()>
 };
 
 /// Relation parsing
-struct RelationOperation_map : qi::symbols<char, State::Relation::Comparator>
+struct RelationOperation_map : qi::symbols<char, ossia::expressions::comparator>
 {
   RelationOperation_map()
   {
-    add("<=", State::Relation::Comparator::LowerEqual)(
-        ">=", State::Relation::Comparator::GreaterEqual)(
-        "<", State::Relation::Comparator::Lower)(
-        ">", State::Relation::Comparator::Greater)(
-        "!=", State::Relation::Comparator::Different)(
-        "==", State::Relation::Comparator::Equal);
+    add("<=", ossia::expressions::comparator::LOWER_EQUAL)(
+        ">=", ossia::expressions::comparator::GREATER_EQUAL)(
+        "<", ossia::expressions::comparator::LOWER)(
+        ">", ossia::expressions::comparator::GREATER)(
+        "!=", ossia::expressions::comparator::DIFFERENT)(
+        "==", ossia::expressions::comparator::EQUAL);
   }
 };
 
@@ -424,15 +424,15 @@ struct Expression_builder : boost::static_visitor<void>
 
   void operator()(const binop<op_and>& b)
   {
-    rec_binop(State::BinaryOperator::And, b.oper1, b.oper2);
+    rec_binop(State::BinaryOperator::AND, b.oper1, b.oper2);
   }
   void operator()(const binop<op_or>& b)
   {
-    rec_binop(State::BinaryOperator::Or, b.oper1, b.oper2);
+    rec_binop(State::BinaryOperator::OR, b.oper1, b.oper2);
   }
   void operator()(const binop<op_xor>& b)
   {
-    rec_binop(State::BinaryOperator::Xor, b.oper1, b.oper2);
+    rec_binop(State::BinaryOperator::XOR, b.oper1, b.oper2);
   }
 
   void

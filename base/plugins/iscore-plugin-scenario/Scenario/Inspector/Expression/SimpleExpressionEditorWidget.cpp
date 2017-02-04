@@ -131,16 +131,16 @@ State::Expression SimpleExpressionEditorWidget::relation()
     return State::Expression{};
 }
 
-State::BinaryOperator SimpleExpressionEditorWidget::binOperator()
+optional<State::BinaryOperator> SimpleExpressionEditorWidget::binOperator()
 {
   switch (m_binOperator->currentIndex())
   {
     case 1:
-      return State::BinaryOperator::And;
+      return State::BinaryOperator::AND;
     case 2:
-      return State::BinaryOperator::Or;
+      return State::BinaryOperator::OR;
     default:
-      return State::BinaryOperator::None;
+      return iscore::none;
   }
 }
 
@@ -153,7 +153,7 @@ void SimpleExpressionEditorWidget::setRelation(State::Relation r)
     auto lv = *lptr;
     auto rv = *rptr;
 
-    if (r.op == State::Relation::Comparator::Equal && lv == rv)
+    if (r.op == ossia::expressions::comparator::EQUAL && lv == rv)
     {
       m_comparator->setCurrentIndex(ExpressionEditorComparator::AlwaysTrue);
     }
@@ -205,11 +205,11 @@ void SimpleExpressionEditorWidget::setOperator(State::BinaryOperator o)
 {
   switch (o)
   {
-    case State::BinaryOperator::And:
+    case State::BinaryOperator::AND:
       m_binOperator->setCurrentIndex(1);
       m_op = "and";
       break;
-    case State::BinaryOperator::Or:
+    case State::BinaryOperator::OR:
       m_binOperator->setCurrentIndex(2);
       m_op = "or";
       break;

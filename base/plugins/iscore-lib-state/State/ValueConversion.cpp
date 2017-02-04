@@ -52,9 +52,9 @@ QVariant value(const State::Value& val)
     {
       return QVariant{};
     }
-    return_type operator()(const impulse_t&) const
+    return_type operator()(const impulse&) const
     {
-      return QVariant::fromValue(State::impulse_t{});
+      return QVariant::fromValue(State::impulse{});
     }
     return_type operator()(int i) const
     {
@@ -125,7 +125,7 @@ QJsonValue value(const State::Value& val)
     {
       return {};
     }
-    return_type operator()(const impulse_t&) const
+    return_type operator()(const impulse&) const
     {
       return {};
     }
@@ -209,7 +209,7 @@ QString textualType(const State::Value& val)
     {
       return QStringLiteral("None");
     }
-    return_type operator()(impulse_t) const
+    return_type operator()(impulse) const
     {
       return QStringLiteral("Impulse");
     }
@@ -325,7 +325,7 @@ fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
   if (val.isNull())
   {
     if (type == State::ValueType::Impulse)
-      return State::ValueImpl{State::impulse_t{}};
+      return State::ValueImpl{State::impulse{}};
     else
       return State::ValueImpl{};
   }
@@ -335,7 +335,7 @@ fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
     case ValueType::NoValue:
       return State::ValueImpl{};
     case ValueType::Impulse:
-      return State::ValueImpl{State::impulse_t{}};
+      return State::ValueImpl{State::impulse{}};
     case ValueType::Int:
       return State::ValueImpl{val.toInt()};
     case ValueType::Float:
@@ -456,7 +456,7 @@ int value(const State::Value& val)
     {
       return 0;
     }
-    return_type operator()(const impulse_t&) const
+    return_type operator()(const impulse&) const
     {
       return 0;
     }
@@ -520,7 +520,7 @@ float value(const State::Value& val)
     {
       return {};
     }
-    return_type operator()(const impulse_t&) const
+    return_type operator()(const impulse&) const
     {
       return {};
     }
@@ -589,7 +589,7 @@ bool value(const State::Value& val)
     {
       return {};
     }
-    return_type operator()(const impulse_t&) const
+    return_type operator()(const impulse&) const
     {
       return {};
     }
@@ -660,7 +660,7 @@ QChar value(const State::Value& val)
     {
       return '-';
     }
-    return_type operator()(const impulse_t&) const
+    return_type operator()(const impulse&) const
     {
       return '-';
     }
@@ -723,7 +723,7 @@ QString value(const State::Value& val)
     {
       return {};
     }
-    return_type operator()(const State::impulse_t&) const
+    return_type operator()(const State::impulse&) const
     {
       return {};
     }
@@ -804,7 +804,7 @@ vec2f value(const State::Value& val)
     {
       return {};
     }
-    return_type operator()(const State::impulse_t&) const
+    return_type operator()(const State::impulse&) const
     {
       return {};
     }
@@ -870,7 +870,7 @@ vec3f value(const State::Value& val)
     {
       return {};
     }
-    return_type operator()(const State::impulse_t&) const
+    return_type operator()(const State::impulse&) const
     {
       return {};
     }
@@ -933,7 +933,7 @@ vec4f value(const State::Value& val)
     {
       return {};
     }
-    return_type operator()(const State::impulse_t&) const
+    return_type operator()(const State::impulse&) const
     {
       return {};
     }
@@ -995,9 +995,9 @@ tuple_t value(const State::Value& val)
     {
       return {};
     }
-    return_type operator()(const State::impulse_t&) const
+    return_type operator()(const State::impulse&) const
     {
-      return {impulse_t{}};
+      return {impulse{}};
     }
     return_type operator()(int i) const
     {
@@ -1068,7 +1068,7 @@ QString toPrettyString(const State::Value& val)
     {
       return {};
     }
-    QString operator()(const State::impulse_t&) const
+    QString operator()(const State::impulse&) const
     {
       return {};
     }
@@ -1187,7 +1187,7 @@ struct convert_helper
   {
     toConvert.val = State::ValueImpl{};
   }
-  void operator()(const State::impulse_t& v) const
+  void operator()(const State::impulse& v) const
   {
     toConvert.val = v;
   }
@@ -1269,7 +1269,7 @@ static State::ValueImpl fromQVariantImpl(const QVariant& val)
     {
       if (t == qMetaTypeId<State::Value>())
       {
-        return State::ValueImpl{impulse_t{}};
+        return State::ValueImpl{impulse{}};
       }
       else
       {

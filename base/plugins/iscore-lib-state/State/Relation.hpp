@@ -3,6 +3,7 @@
 #include <QString>
 #include <State/Address.hpp>
 #include <State/Value.hpp>
+#include <ossia/editor/expression/operators.hpp>
 #include <eggs/variant/variant.hpp>
 
 namespace State
@@ -14,16 +15,6 @@ ISCORE_LIB_STATE_EXPORT QString toString(const RelationMember&);
 
 struct ISCORE_LIB_STATE_EXPORT Relation
 {
-  enum Comparator
-  {
-    Equal,
-    Different,
-    Greater,
-    Lower,
-    GreaterEqual,
-    LowerEqual
-  };
-
   Relation() noexcept = default;
   Relation(const Relation& other) noexcept
       : lhs{other.lhs}, op{other.op}, rhs{other.rhs}
@@ -50,13 +41,13 @@ struct ISCORE_LIB_STATE_EXPORT Relation
     return *this;
   }
 
-  Relation(RelationMember l, Comparator o, RelationMember r)
+  Relation(RelationMember l, ossia::expressions::comparator o, RelationMember r)
       : lhs{std::move(l)}, op{o}, rhs{std::move(r)}
   {
   }
 
   RelationMember lhs;
-  Comparator op;
+  ossia::expressions::comparator op;
   RelationMember rhs;
 
   friend bool operator==(const Relation& eq_lhs, const Relation& eq_rhs)
@@ -84,6 +75,6 @@ struct ISCORE_LIB_STATE_EXPORT Pulse
   }
 };
 ISCORE_LIB_STATE_EXPORT QString toString(const Pulse&);
-ISCORE_LIB_STATE_EXPORT const QMap<State::Relation::Comparator, QString>
+ISCORE_LIB_STATE_EXPORT const QMap<ossia::expressions::comparator, QString>
 opToString();
 }

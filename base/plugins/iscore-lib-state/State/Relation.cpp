@@ -56,12 +56,12 @@ QString State::toString(const Relation& rel)
       .arg(toString(rel.rhs));
 }
 
-const QMap<State::Relation::Comparator, QString> State::opToString()
+const QMap<ossia::expressions::comparator, QString> State::opToString()
 {
-  return {{State::Relation::Comparator::LowerEqual, "<="},
-          {State::Relation::Comparator::GreaterEqual, ">="},
-          {State::Relation::Comparator::Lower, "<"},
-          {State::Relation::Comparator::Greater, ">"},
-          {State::Relation::Comparator::Different, "!="},
-          {State::Relation::Comparator::Equal, "=="}};
+  return {{ossia::expressions::comparator::LOWER_EQUAL, "<="},
+          {ossia::expressions::comparator::GREATER_EQUAL, ">="},
+          {ossia::expressions::comparator::LOWER, "<"},
+          {ossia::expressions::comparator::GREATER, ">"},
+          {ossia::expressions::comparator::DIFFERENT, "!="},
+          {ossia::expressions::comparator::EQUAL, "=="}};
 }

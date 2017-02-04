@@ -45,7 +45,7 @@ private slots:
       QCOMPARE(unmarshall<ossia::value>(marshall<DataStream>(v)), v);
     }
     {
-      ossia::value v = ossia::Impulse{};
+      ossia::value v = ossia::impulse{};
       QCOMPARE(unmarshall<ossia::value>(marshall<JSONObject>(v)), v);
       QCOMPARE(unmarshall<ossia::value>(marshall<DataStream>(v)), v);
     }
@@ -70,17 +70,17 @@ private slots:
       QCOMPARE(unmarshall<ossia::value>(marshall<DataStream>(v)), v);
     }
     {
-      ossia::value v(ossia::Vec2f{1, 2});
+      ossia::value v(ossia::vec2f{1, 2});
       QCOMPARE(unmarshall<ossia::value>(marshall<JSONObject>(v)), v);
       QCOMPARE(unmarshall<ossia::value>(marshall<DataStream>(v)), v);
     }
     {
-      ossia::value v(ossia::Vec3f{1, 2, 45});
+      ossia::value v(ossia::vec3f{1, 2, 45});
       QCOMPARE(unmarshall<ossia::value>(marshall<JSONObject>(v)), v);
       QCOMPARE(unmarshall<ossia::value>(marshall<DataStream>(v)), v);
     }
     {
-      ossia::value v(ossia::Vec4f{1, 2, 45, 345});
+      ossia::value v(ossia::vec4f{1, 2, 45, 345});
       QCOMPARE(unmarshall<ossia::value>(marshall<JSONObject>(v)), v);
       QCOMPARE(unmarshall<ossia::value>(marshall<DataStream>(v)), v);
     }
@@ -135,21 +135,21 @@ private slots:
 
     {
       ossia::net::domain d
-          = ossia::net::make_domain(ossia::Vec2f{0, 0}, ossia::Vec2f{1, 1});
+          = ossia::net::make_domain(ossia::vec2f{0, 0}, ossia::vec2f{1, 1});
       QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
       QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
     }
 
     {
       ossia::net::domain d = ossia::net::make_domain(
-          ossia::Vec3f{0, 0, 0}, ossia::Vec3f{1, 1, 1});
+          ossia::vec3f{0, 0, 0}, ossia::vec3f{1, 1, 1});
       QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
       QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
     }
 
     {
       ossia::net::domain d = ossia::net::make_domain(
-          ossia::Vec4f{0, 0, 0, 0}, ossia::Vec4f{1, 1, 1, 1});
+          ossia::vec4f{0, 0, 0, 0}, ossia::vec4f{1, 1, 1, 1});
       QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
       QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
     }

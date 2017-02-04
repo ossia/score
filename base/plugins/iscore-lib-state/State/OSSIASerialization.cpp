@@ -13,25 +13,25 @@
 
 #include <State/Value.hpp>
 #include <iscore_lib_state_export.h>
-JSON_METADATA(ossia::Impulse, "Impulse")
+JSON_METADATA(ossia::impulse, "Impulse")
 JSON_METADATA(int32_t, "Int")
 JSON_METADATA(char, "Char")
 JSON_METADATA(bool, "Bool")
 JSON_METADATA(float, "Float")
-JSON_METADATA(ossia::Vec2f, "Vec2f")
-JSON_METADATA(ossia::Vec3f, "Vec3f")
-JSON_METADATA(ossia::Vec4f, "Vec4f")
+JSON_METADATA(ossia::vec2f, "Vec2f")
+JSON_METADATA(ossia::vec3f, "Vec3f")
+JSON_METADATA(ossia::vec4f, "Vec4f")
 JSON_METADATA(std::vector<ossia::value>, "Tuple")
 JSON_METADATA(std::string, "String")
 JSON_METADATA(ossia::value, "Generic")
-JSON_METADATA(ossia::net::domain_base<ossia::Impulse>, "Impulse")
+JSON_METADATA(ossia::net::domain_base<ossia::impulse>, "Impulse")
 JSON_METADATA(ossia::net::domain_base<int32_t>, "Int")
 JSON_METADATA(ossia::net::domain_base<char>, "Char")
 JSON_METADATA(ossia::net::domain_base<bool>, "Bool")
 JSON_METADATA(ossia::net::domain_base<float>, "Float")
-JSON_METADATA(ossia::net::domain_base<ossia::Vec2f>, "Vec2f")
-JSON_METADATA(ossia::net::domain_base<ossia::Vec3f>, "Vec3f")
-JSON_METADATA(ossia::net::domain_base<ossia::Vec4f>, "Vec4f")
+JSON_METADATA(ossia::net::domain_base<ossia::vec2f>, "Vec2f")
+JSON_METADATA(ossia::net::domain_base<ossia::vec3f>, "Vec3f")
+JSON_METADATA(ossia::net::domain_base<ossia::vec4f>, "Vec4f")
 JSON_METADATA(ossia::net::domain_base<std::vector<ossia::value>>, "Tuple")
 JSON_METADATA(ossia::net::domain_base<std::string>, "String")
 JSON_METADATA(ossia::net::domain_base<ossia::value>, "Generic")
@@ -40,11 +40,11 @@ ISCORE_DECL_VALUE_TYPE(int)
 ISCORE_DECL_VALUE_TYPE(float)
 ISCORE_DECL_VALUE_TYPE(bool)
 ISCORE_DECL_VALUE_TYPE(char)
-ISCORE_DECL_VALUE_TYPE(ossia::Impulse)
+ISCORE_DECL_VALUE_TYPE(ossia::impulse)
 ISCORE_DECL_VALUE_TYPE(std::string)
-ISCORE_DECL_VALUE_TYPE(ossia::Vec2f)
-ISCORE_DECL_VALUE_TYPE(ossia::Vec3f)
-ISCORE_DECL_VALUE_TYPE(ossia::Vec4f)
+ISCORE_DECL_VALUE_TYPE(ossia::vec2f)
+ISCORE_DECL_VALUE_TYPE(ossia::vec3f)
+ISCORE_DECL_VALUE_TYPE(ossia::vec4f)
 
 template <>
 template <>
@@ -213,9 +213,9 @@ struct TSerializer<DataStream, ossia::net::domain_base<std::string>>
 };
 
 template <>
-struct TSerializer<DataStream, ossia::net::domain_base<ossia::Impulse>>
+struct TSerializer<DataStream, ossia::net::domain_base<ossia::impulse>>
 {
-  using domain_t = ossia::net::domain_base<ossia::Impulse>;
+  using domain_t = ossia::net::domain_base<ossia::impulse>;
   static void readFrom(DataStream::Serializer& s, const domain_t& domain)
   {
     s.insertDelimiter();
@@ -245,7 +245,7 @@ DataStreamWriter::write(ossia::net::domain& n)
 
 /// JSON ///
 template <>
-ossia::Impulse fromJsonValue<ossia::Impulse>(const QJsonValueRef& obj)
+ossia::impulse fromJsonValue<ossia::impulse>(const QJsonValueRef& obj)
 {
   return {};
 }
@@ -471,9 +471,9 @@ struct TSerializer<JSONObject, ossia::net::domain_base<std::string>>
 };
 
 template <>
-struct TSerializer<JSONObject, ossia::net::domain_base<ossia::Impulse>>
+struct TSerializer<JSONObject, ossia::net::domain_base<ossia::impulse>>
 {
-  using domain_t = ossia::net::domain_base<ossia::Impulse>;
+  using domain_t = ossia::net::domain_base<ossia::impulse>;
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
   }
@@ -531,13 +531,13 @@ JSONValueWriter::writeTo(ossia::value& n)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueReader::readFrom(const ossia::Impulse& n)
+JSONValueReader::readFrom(const ossia::impulse& n)
 {
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueWriter::writeTo(ossia::Impulse& n)
+JSONValueWriter::writeTo(ossia::impulse& n)
 {
 }
 

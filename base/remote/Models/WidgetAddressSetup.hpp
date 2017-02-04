@@ -13,7 +13,7 @@ struct SetSliderAddress
   GUIItem& item;
   const Device::FullAddressSettings& address;
 
-  void operator()(State::impulse_t c)
+  void operator()(State::impulse c)
   {
     // Do nothing
     item.m_connection = QObject::connect(item.item(), SIGNAL(clicked()),
@@ -87,7 +87,7 @@ struct SetCheckboxAddress
   GUIItem& item;
   const Device::FullAddressSettings& address;
 
-  void operator()(State::impulse_t)
+  void operator()(State::impulse)
   {
     // Do nothing
     item.m_connection = QObject::connect(item.item(), SIGNAL(toggled()),
@@ -140,7 +140,7 @@ struct SetLineEditAddress
   GUIItem& item;
   const Device::FullAddressSettings& address;
 
-  void operator()(State::impulse_t)
+  void operator()(State::impulse)
   {
     // Do nothing
     item.m_connection = QObject::connect(item.item(), SIGNAL(toggled()),
@@ -195,7 +195,7 @@ struct SetLabelAddress
   GUIItem& item;
   const Device::FullAddressSettings& address;
 
-  void operator()(State::impulse_t)
+  void operator()(State::impulse)
   {
     // Do nothing
     QQmlProperty(item.item(), "text.text")

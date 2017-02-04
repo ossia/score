@@ -17,7 +17,7 @@ TimeNode::TimeNode(
     : CommonComponent{parent, timeNode.metadata(), doc,
                       id,     "StateComponent",    parent_comp}
 {
-  m_properties.push_back(add_setProperty<::State::impulse_t>(
+  m_properties.push_back(add_setProperty<::State::impulse>(
       node(), "trigger", [&](auto) { timeNode.trigger()->triggeredByGui(); }));
 }
 }
