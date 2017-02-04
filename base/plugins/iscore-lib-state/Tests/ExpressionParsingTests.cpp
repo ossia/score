@@ -148,7 +148,7 @@ QDebug operator<<(QDebug dbg, const State::BinaryOperator& v)
     case State::BinaryOperator::XOR:
       dbg << "xor";
       break;
-    case State::BinaryOperator::None:
+    default:
       dbg << "none";
       break;
   }
@@ -162,7 +162,7 @@ QDebug operator<<(QDebug dbg, const State::UnaryOperator& v)
     case State::UnaryOperator::Not:
       dbg << "not";
       break;
-    case State::UnaryOperator::None:
+    default:
       dbg << "none";
       break;
   }
