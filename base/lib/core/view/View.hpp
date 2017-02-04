@@ -45,12 +45,14 @@ signals:
   void closeRequested(const Id<DocumentModel>&);
 
   void activeWindowChanged();
+  void sizeChanged(QSize);
 
 public slots:
   void on_fileNameChanged(DocumentView* d, const QString& newName);
 
 private:
   void changeEvent(QEvent*) override;
+  void resizeEvent(QResizeEvent*) override;
 
   std::vector<QPair<PanelDelegate*, QDockWidget*>> m_leftPanels;
   std::vector<QPair<PanelDelegate*, QDockWidget*>> m_rightPanels;

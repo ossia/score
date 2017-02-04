@@ -173,6 +173,11 @@ void ScenarioDocumentView::update()
   m_scene->update();
 }
 
+qreal ScenarioDocumentView::viewWidth() const
+{
+  return m_view->width();
+}
+
 void ScenarioDocumentView::newLocalTimeRuler()
 {
 }

@@ -73,9 +73,8 @@ MetadataWidget::MetadataWidget(
 
   headerLay->addWidget(descriptionWidget);
 
-  metadataLayout->addWidget(m_comments);
-
   metadataLayout->addWidget(m_meta);
+  metadataLayout->addWidget(m_comments);
 
   connect(m_cmtBtn, &QToolButton::released, this, [&]() {
     m_cmtExpanded = !m_cmtExpanded;

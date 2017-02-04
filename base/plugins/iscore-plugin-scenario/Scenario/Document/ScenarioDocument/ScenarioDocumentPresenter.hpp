@@ -84,12 +84,13 @@ signals:
 
   void requestDisplayedConstraintChange(ConstraintModel&);
 
+private slots:
+  void on_viewSizeChanged(QSize);
 private:
   void on_displayedConstraintChanged();
   void on_zoomSliderChanged(double);
   void on_zoomOnWheelEvent(QPointF, QPointF);
   void on_timeRulerScrollEvent(QPointF, QPointF);
-  void on_viewSizeChanged(const QSize& s);
   void on_horizontalPositionChanged(int dx);
   void on_elementsScaleChanged(double s);
 

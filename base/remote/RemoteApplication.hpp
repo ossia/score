@@ -10,7 +10,6 @@
 
 namespace iscore {
 class Settings;
-class View;
 class Presenter;
 }  // namespace iscore
 

@@ -49,6 +49,7 @@ void PanelDelegate::on_modelChanged(
 
     m_widget->layout()->addWidget(m_stack);
     m_widget->layout()->addWidget(m_inspectorPanel);
+    m_widget->layout()->setSizeConstraint(QLayout::SetDefaultConstraint);
 
     setNewSelection(stack.currentSelection());
   }

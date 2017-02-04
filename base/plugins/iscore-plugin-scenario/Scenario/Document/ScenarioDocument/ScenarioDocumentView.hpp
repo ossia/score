@@ -44,6 +44,8 @@ public:
     return *m_view;
   }
 
+  qreal viewWidth() const;
+
   QGraphicsView* rulerView() const
   {
     return m_timeRulersView;
