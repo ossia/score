@@ -92,8 +92,11 @@ void ConstraintView::setHeight(double height)
 
 void ConstraintView::setPlayWidth(double width)
 {
-  m_playWidth = width;
-  update();
+  if(width != m_playWidth)
+  {
+    m_playWidth = width;
+    update();
+  }
 }
 
 void ConstraintView::setValid(bool val)

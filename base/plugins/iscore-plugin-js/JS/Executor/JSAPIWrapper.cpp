@@ -29,7 +29,7 @@ QJSValue APIWrapper::value(QJSValue address)
   return {};
 }
 
-ossia::value clone_val(const State::Address& addr, const Device::DeviceList& l)
+static ossia::value clone_val(const State::Address& addr, const Device::DeviceList& l)
 {
   auto ossia_addr = Engine::iscore_to_ossia::address(addr, l);
   if(ossia_addr)
