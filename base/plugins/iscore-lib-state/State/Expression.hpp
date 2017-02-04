@@ -22,8 +22,7 @@ using BinaryOperator = ossia::expressions::binary_operator;
 
 enum class UnaryOperator
 {
-  Not,
-  None
+  Not
 };
 
 struct ISCORE_LIB_STATE_EXPORT ExprData
