@@ -27,16 +27,16 @@ using vec4f = ossia::vec4f;
 using tuple_t = std::vector<ValueImpl>;
 enum class ValueType : std::size_t
 {
-  Impulse,
-  Int,
   Float,
-  Bool,
-  String,
-  Char,
+  Int,
   Vec2f,
   Vec3f,
   Vec4f,
+  Impulse,
+  Bool,
+  String,
   Tuple,
+  Char,
   NoValue = eggs::variant<>::npos
 };
 
