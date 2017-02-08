@@ -89,7 +89,7 @@ LocalDevice::LocalDevice(
   dev.onNodeRenamed.connect<LocalDevice, &LocalDevice::nodeRenamed>(this);
   dev.onAddressCreated.connect<LocalDevice, &LocalDevice::addressCreated>(
       this);
-  dev.onAddressModified.connect<LocalDevice, &LocalDevice::addressUpdated>(
+  dev.onAttributeModified.connect<LocalDevice, &LocalDevice::addressUpdated>(
       this);
 }
 
