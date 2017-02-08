@@ -68,7 +68,7 @@ public:
   void nodeRemoving(const ossia::net::node_base&);
   void nodeRenamed(const ossia::net::node_base&, std::string);
   void addressCreated(const ossia::net::address_base&);
-  void addressUpdated(const ossia::net::address_base&);
+  void addressUpdated(const ossia::net::node_base&, ossia::string_view key);
 
 protected:
   using DeviceInterface::DeviceInterface;

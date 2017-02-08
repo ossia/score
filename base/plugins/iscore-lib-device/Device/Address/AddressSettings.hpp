@@ -8,6 +8,7 @@
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
 #include <iscore/tools/Metadata.hpp>
+#include <ossia/detail/any_map.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <iscore_lib_device_export.h>
 
@@ -174,7 +175,7 @@ struct ISCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
 
   Device::RepetitionFilter repetitionFilter{};
 
-  iscore::hash_map<std::string, boost::any> extendedAttributes;
+  ossia::any_map extendedAttributes;
 
   State::AddressAccessor address;
 };

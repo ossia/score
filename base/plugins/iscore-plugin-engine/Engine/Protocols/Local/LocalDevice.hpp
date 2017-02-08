@@ -49,9 +49,9 @@ public:
   {
     OSSIADevice::addressCreated(n);
   }
-  void addressUpdated(const ossia::net::address_base& n)
+  void addressUpdated(const ossia::net::node_base& n, ossia::string_view s)
   {
-    OSSIADevice::addressUpdated(n);
+    OSSIADevice::addressUpdated(n, s);
   }
 
 private:

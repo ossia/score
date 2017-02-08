@@ -488,12 +488,12 @@ void OSSIADevice::addressCreated(const ossia::net::address_base& addr)
   emit pathUpdated(currentAddress, as);
 }
 
-void OSSIADevice::addressUpdated(const ossia::net::address_base& addr)
+void OSSIADevice::addressUpdated(const ossia::net::node_base& node, ossia::string_view key)
 {
   State::Address currentAddress
-      = Engine::ossia_to_iscore::ToAddress(addr.getNode());
+      = Engine::ossia_to_iscore::ToAddress(node);
   Device::AddressSettings as
-      = Engine::ossia_to_iscore::ToAddressSettings(addr.getNode());
+      = Engine::ossia_to_iscore::ToAddressSettings(node);
   emit pathUpdated(currentAddress, as);
 }
 }
