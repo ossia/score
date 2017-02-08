@@ -45,7 +45,7 @@ void ActionManager::reset(iscore::Document* doc)
           });
     selectionConnection = con(
         doc->selectionStack(), &SelectionStack::currentSelectionChanged, this,
-        [=](const auto&) { this->selectionChanged(mdoc); });
+        [=](const auto&) { this->selectionChanged(mdoc); }, Qt::QueuedConnection);
   }
 
   // Reset all the actions
