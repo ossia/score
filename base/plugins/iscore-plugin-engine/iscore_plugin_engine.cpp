@@ -1,6 +1,7 @@
 #include <Engine/Protocols/Local/LocalProtocolFactory.hpp>
 #include <Engine/Protocols/Minuit/MinuitProtocolFactory.hpp>
 #include <Engine/Protocols/OSC/OSCProtocolFactory.hpp>
+#include <Engine/Protocols/OSCQuery/OSCQueryProtocolFactory.hpp>
 
 #include <Engine/Protocols/Panel/MessagesPanel.hpp>
 
@@ -83,7 +84,8 @@ iscore_plugin_engine::factories(
             FW<Device::ProtocolFactory,
                  Network::LocalProtocolFactory,
                  Network::OSCProtocolFactory,
-                 Network::MinuitProtocolFactory
+                 Network::MinuitProtocolFactory,
+                 Network::OSCQueryProtocolFactory
 #if defined(OSSIA_PROTOCOL_MIDI)
                  , Network::MIDIProtocolFactory
 #endif
