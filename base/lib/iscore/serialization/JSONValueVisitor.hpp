@@ -341,6 +341,10 @@ inline QJsonValue toJsonValue(int obj)
 }
 inline QJsonValue toJsonValue(float obj)
 {
+  return (double)obj;
+}
+inline QJsonValue toJsonValue(double obj)
+{
   return obj;
 }
 inline QJsonValue toJsonValue(char obj)
@@ -358,6 +362,11 @@ inline QJsonValue toJsonValue<int>(const int& obj)
 }
 template <>
 inline QJsonValue toJsonValue<float>(const float& obj)
+{
+  return (double)obj;
+}
+template <>
+inline QJsonValue toJsonValue<double>(const double& obj)
 {
   return obj;
 }
@@ -407,6 +416,11 @@ inline int fromJsonValue<int>(const QJsonValue& obj)
 }
 template <>
 inline float fromJsonValue<float>(const QJsonValue& obj)
+{
+  return (float)obj.toDouble();
+}
+template <>
+inline double fromJsonValue<double>(const QJsonValue& obj)
 {
   return obj.toDouble();
 }
