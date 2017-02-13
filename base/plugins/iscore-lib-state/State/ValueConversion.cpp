@@ -24,10 +24,10 @@ namespace convert
 {
 
 const std::array<const QString, 11> ValuePrettyTypes{
-    {QObject::tr("Impulse"), QObject::tr("Int"), QObject::tr("Float"),
-     QObject::tr("Bool"), QObject::tr("String"), QObject::tr("Char"),
-     QObject::tr("Vec2f"), QObject::tr("Vec3f"), QObject::tr("Vec4f"),
-     QObject::tr("Tuple"), QObject::tr("Container")}};
+    {QObject::tr("Float"), QObject::tr("Int"), QObject::tr("Vec2f"),
+     QObject::tr("Vec3f"), QObject::tr("Vec4f"), QObject::tr("Impulse"),
+     QObject::tr("Bool"), QObject::tr("String"), QObject::tr("Tuple"),
+     QObject::tr("Char"), QObject::tr("Container")}};
 
 const std::array<std::pair<QString, ValueType>, 10> ValuePrettyTypesPairArray{
     {std::make_pair(QObject::tr("Impulse"), ValueType::Impulse),
