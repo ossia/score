@@ -5,7 +5,7 @@ namespace Engine
 {
 namespace Network
 {
-class HTTPDevice final : public OwningOSSIADevice, public Nano::Observer
+class HTTPDevice final : public OwningOSSIADevice
 {
 public:
   HTTPDevice(const Device::DeviceSettings& settings);
