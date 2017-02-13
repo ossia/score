@@ -39,13 +39,7 @@ bool OSCQueryDevice::reconnect()
 
     setLogging_impl(isLogging());
 
-    m_dev->onNodeCreated.connect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
-    m_dev->onNodeRemoving.connect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
-    m_dev->onNodeRenamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
-    m_dev->onAddressCreated.connect<OSSIADevice, &OSSIADevice::addressCreated>(
-        this);
-    m_dev->onAttributeModified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
-        this);
+    enableCallbacks();
   }
   catch (std::exception& e)
   {
