@@ -83,7 +83,7 @@ void Document::init()
           panel.setNewSelection(s);
         }
         m_model->setNewSelection(s);
-      });
+      }, Qt::QueuedConnection);
 
   m_documentUpdateTimer.setInterval(16); // 30 hz
   m_documentUpdateTimer.start();

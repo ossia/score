@@ -7,6 +7,7 @@
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore_plugin_engine_export.h>
 
+#include <nano_observer.hpp>
 #include <QString>
 #include <functional>
 #include <memory>
@@ -28,7 +29,7 @@ namespace Engine
 namespace Network
 {
 
-class ISCORE_PLUGIN_ENGINE_EXPORT OSSIADevice : public Device::DeviceInterface
+class ISCORE_PLUGIN_ENGINE_EXPORT OSSIADevice : public Device::DeviceInterface, public Nano::Observer
 {
 public:
   virtual ~OSSIADevice();
@@ -68,7 +69,7 @@ public:
   void nodeRemoving(const ossia::net::node_base&);
   void nodeRenamed(const ossia::net::node_base&, std::string);
   void addressCreated(const ossia::net::address_base&);
-  void addressUpdated(const ossia::net::address_base&);
+  void addressUpdated(const ossia::net::node_base&, ossia::string_view key);
 
 protected:
   using DeviceInterface::DeviceInterface;
@@ -78,6 +79,8 @@ protected:
 
   void removeListening_impl(ossia::net::node_base& node, State::Address addr);
   void setLogging_impl(bool) const;
+  void enableCallbacks();
+  void disableCallbacks();
 
 private:
   bool m_logging = false;

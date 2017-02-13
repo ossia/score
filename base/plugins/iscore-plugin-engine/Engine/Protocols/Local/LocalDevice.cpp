@@ -84,13 +84,7 @@ LocalDevice::LocalDevice(
 
   setRemoteSettings(settings);
 
-  dev.onNodeCreated.connect<LocalDevice, &LocalDevice::nodeCreated>(this);
-  dev.onNodeRemoving.connect<LocalDevice, &LocalDevice::nodeRemoving>(this);
-  dev.onNodeRenamed.connect<LocalDevice, &LocalDevice::nodeRenamed>(this);
-  dev.onAddressCreated.connect<LocalDevice, &LocalDevice::addressCreated>(
-      this);
-  dev.onAddressModified.connect<LocalDevice, &LocalDevice::addressUpdated>(
-      this);
+  enableCallbacks();
 }
 
 LocalDevice::~LocalDevice()
