@@ -2,7 +2,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/std/String.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <boost/any.hpp>
+#include <ossia/detail/any_map.hpp>
 
 /**
  * \file AnySerialization.hpp
@@ -18,7 +18,7 @@
  */
 namespace iscore
 {
-using any_map = iscore::hash_map<std::string, boost::any>;
+using any_map = ossia::any_map;
 
 struct ISCORE_LIB_BASE_EXPORT any_serializer
 {

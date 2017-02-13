@@ -36,10 +36,7 @@ bool HTTPDevice::reconnect()
         std::make_unique<ossia::net::http_protocol>(stgs.text.toUtf8()),
         settings().name.toStdString());
 
-    m_dev->onNodeCreated.connect<HTTPDevice, &HTTPDevice::nodeCreated>(this);
-    m_dev->onNodeRemoving.connect<HTTPDevice, &HTTPDevice::nodeRemoving>(this);
-    m_dev->onNodeRenamed.connect<HTTPDevice, &HTTPDevice::nodeRenamed>(this);
-
+    enableCallbacks();
     setLogging_impl(isLogging());
   }
   catch (std::exception& e)

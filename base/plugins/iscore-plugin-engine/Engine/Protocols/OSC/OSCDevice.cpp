@@ -73,7 +73,7 @@ void OSCDevice::setLearning(bool b)
         (OSSIADevice*)this);
     dev.onAddressCreated.connect<OSSIADevice, &OSSIADevice::addressCreated>(
         (OSSIADevice*)this);
-    dev.onAddressModified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
+    dev.onAttributeModified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
         (OSSIADevice*)this);
   }
   else
@@ -86,7 +86,7 @@ void OSCDevice::setLearning(bool b)
         (OSSIADevice*)this);
     dev.onAddressCreated.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
         (OSSIADevice*)this);
-    dev.onAddressModified
+    dev.onAttributeModified
         .disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
             (OSSIADevice*)this);
   }
