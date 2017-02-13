@@ -36,9 +36,7 @@ bool WSDevice::reconnect()
             stgs.address.toUtf8(), stgs.text.toUtf8()),
         settings().name.toStdString());
 
-    m_dev->onNodeCreated.connect<WSDevice, &WSDevice::nodeCreated>(this);
-    m_dev->onNodeRemoving.connect<WSDevice, &WSDevice::nodeRemoving>(this);
-    m_dev->onNodeRenamed.connect<WSDevice, &WSDevice::nodeRenamed>(this);
+    enableCallbacks();
 
     setLogging_impl(isLogging());
   }
