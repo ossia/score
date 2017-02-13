@@ -12,18 +12,6 @@ public:
 
   bool reconnect() override;
 
-  void nodeCreated(const ossia::net::node_base& n)
-  {
-    OSSIADevice::nodeCreated(n);
-  }
-  void nodeRemoving(const ossia::net::node_base& n)
-  {
-    OSSIADevice::nodeRemoving(n);
-  }
-  void nodeRenamed(const ossia::net::node_base& n, std::string s)
-  {
-    OSSIADevice::nodeRenamed(n, s);
-  }
 };
 }
 }
