@@ -3,7 +3,7 @@
 #include <QJsonObject>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-
+#include <ossia-qt/js_utilities.hpp>
 namespace iscore
 {
 ModelMetadata::ModelMetadata(const ModelMetadata& other) : QObject{}
@@ -80,8 +80,7 @@ void ModelMetadata::setName(const QString& arg)
   }
   else
   {
-    m_scriptingName
-        = QString::fromStdString(ossia::net::sanitize_name(arg.toStdString()));
+    ossia::net::sanitize_name(m_scriptingName);
   }
   emit NameChanged(arg);
   emit metadataChanged();
