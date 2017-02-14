@@ -18,6 +18,8 @@ OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
 {
   m_capas.canRefreshTree = true;
 
+  connect(this, &OSCQueryDevice::sig_command,
+          this, &OSCQueryDevice::slot_command, Qt::QueuedConnection);
   reconnect();
 }
 
@@ -30,9 +32,12 @@ bool OSCQueryDevice::reconnect()
     auto stgs
         = settings().deviceSpecificSettings.value<OSCQuerySpecificSettings>();
 
-    std::unique_ptr<ossia::net::protocol_base> ossia_settings
+    auto ossia_settings
         = std::make_unique<ossia::oscquery::oscquery_mirror_protocol>(
             stgs.host.toStdString());
+
+    // run the commands in the Qt event loop
+    ossia_settings->setCommandCallback([=] { sig_command(); });
 
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
@@ -58,6 +63,15 @@ void OSCQueryDevice::recreate(const Device::Node& n)
   for(auto& child : n)
   {
     addNode(child);
+  }
+}
+
+void OSCQueryDevice::slot_command()
+{
+  if(m_dev)
+  {
+    auto proto = safe_cast<ossia::oscquery::oscquery_mirror_protocol*>(&m_dev->getProtocol());
+    proto->runCommands();
   }
 }
 
