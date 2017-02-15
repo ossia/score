@@ -84,8 +84,9 @@ void ListeningManager::enableListening_rec(
     }
 
     // TODO check this
-    auto childIndex = index.child(i, 0);
+    auto childIndex = m_model.index(i, 0, index);
 
+    // TODO what if there is a proxy model ?
     if (m_widget.view()->isExpanded(childIndex))
     {
       enableListening_rec(childIndex, dev, lm);
