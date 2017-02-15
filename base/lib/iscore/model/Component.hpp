@@ -15,6 +15,7 @@ struct lazy_init_t { };
 class ISCORE_LIB_BASE_EXPORT Component
     : public IdentifiedObject<iscore::Component>
 {
+  Q_OBJECT
 public:
   using IdentifiedObject<iscore::Component>::IdentifiedObject;
   using Key = UuidKey<iscore::Component>;
