@@ -102,7 +102,7 @@ QVariant nameColumnData(const Device::Node& node, int role)
 
   using namespace iscore;
 
-  const Device::IOType ioType = node.get<Device::AddressSettings>().ioType;
+  const auto ioType = node.get<Device::AddressSettings>().ioType;
   switch (role)
   {
     case Qt::DisplayRole:
@@ -110,14 +110,14 @@ QVariant nameColumnData(const Device::Node& node, int role)
       return node.displayName();
     case Qt::FontRole:
     {
-      if (ioType == IOType::In || ioType == IOType::Out)
+      if (ioType == ossia::access_mode::GET || ioType == ossia::access_mode::SET)
       {
         return italicFont;
       }
     }
     case Qt::ForegroundRole:
     {
-      if (ioType == IOType::In || ioType == IOType::Out)
+      if (ioType == ossia::access_mode::GET || ioType == ossia::access_mode::SET)
       {
         return QBrush(Qt::lightGray);
       }
@@ -174,16 +174,19 @@ QVariant valueColumnData(const Device::Node& node, int role)
   }
   else if (role == Qt::ForegroundRole)
   {
-    const IOType ioType = node.get<AddressSettings>().ioType;
+    const auto ioType = node.get<AddressSettings>().ioType;
 
-    switch (ioType)
+    if(ioType)
     {
-      case IOType::In:
-        return QBrush(Qt::darkGray);
-      case IOType::Out:
-        return QBrush(Qt::lightGray);
-      default:
-        return {};
+      switch (*ioType)
+      {
+        case ossia::access_mode::GET:
+          return QBrush(Qt::darkGray);
+        case ossia::access_mode::SET:
+          return QBrush(Qt::lightGray);
+        default:
+          return {};
+      }
     }
   }
 
@@ -201,9 +204,9 @@ QVariant GetColumnData(const Device::Node& node, int role)
   {
       switch(node.get<AddressSettings>().ioType)
       {
-          case IOType::In:    return true;
-          case IOType::Out:   return false;
-          case IOType::InOut: return true;
+          case ossia::access_mode::GET:    return true;
+          case ossia::access_mode::SET:   return false;
+          case ossia::access_mode::BI: return true;
           case IOType::Invalid: return QVariant{};
           default:            return QVariant{};
       }
@@ -212,19 +215,20 @@ QVariant GetColumnData(const Device::Node& node, int role)
 
   if (role == Qt::CheckStateRole)
   {
-    switch (node.get<AddressSettings>().ioType)
+    const auto ioType = node.get<AddressSettings>().ioType;
+    if(ioType)
     {
-      case IOType::In:
-        return Qt::Checked;
-      case IOType::Out:
-        return Qt::Unchecked;
-      case IOType::InOut:
-        return Qt::Checked;
-      case IOType::Invalid:
-        return Qt::Unchecked;
-      default:
-        return Qt::Unchecked;
+      switch (*ioType)
+      {
+        case ossia::access_mode::GET:
+          return Qt::Checked;
+        case ossia::access_mode::SET:
+          return Qt::Unchecked;
+        case ossia::access_mode::BI:
+          return Qt::Checked;
+      }
     }
+    return Qt::Unchecked;
   }
 
   return {};
@@ -240,9 +244,9 @@ QVariant SetColumnData(const Device::Node& node, int role)
   {
       switch(node.get<AddressSettings>().ioType)
       {
-          case IOType::In:    return false;
-          case IOType::Out:   return true;
-          case IOType::InOut: return true;
+          case ossia::access_mode::GET:    return false;
+          case ossia::access_mode::SET:   return true;
+          case ossia::access_mode::BI: return true;
           case IOType::Invalid: return true;
           default:            return QVariant{};
       }
@@ -251,19 +255,20 @@ QVariant SetColumnData(const Device::Node& node, int role)
 
   if (role == Qt::CheckStateRole)
   {
-    switch (node.get<AddressSettings>().ioType)
+    const auto ioType = node.get<AddressSettings>().ioType;
+    if(ioType)
     {
-      case IOType::In:
-        return Qt::Unchecked;
-      case IOType::Out:
-        return Qt::Checked;
-      case IOType::InOut:
-        return Qt::Checked;
-      case IOType::Invalid:
-        return Qt::Unchecked;
-      default:
-        return Qt::Unchecked;
+      switch (*ioType)
+      {
+        case ossia::access_mode::GET:
+          return Qt::Unchecked;
+        case ossia::access_mode::SET:
+          return Qt::Checked;
+        case ossia::access_mode::BI:
+          return Qt::Checked;
+      }
     }
+    return Qt::Unchecked;
   }
   return {};
 }

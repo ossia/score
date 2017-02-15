@@ -92,7 +92,7 @@ void parametersList(const Node& n, State::MessageList& ml)
   {
     const auto& stgs = n.get<AddressSettings>();
 
-    if (stgs.ioType == IOType::InOut)
+    if (stgs.ioType == ossia::access_mode::BI)
     {
       ml.push_back(message(n));
     }
@@ -168,7 +168,7 @@ void merge(Device::Node& base, const State::Message& message)
             // we assign a default Out value
             // so that we only send the nodes that actually had messages
             // via the OSSIA api.
-            addr.ioType = IOType::Out;
+            addr.ioType = ossia::access_mode::SET;
           }
 
           newNode = &parentnode->emplace_back(std::move(addr), nullptr);

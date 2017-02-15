@@ -96,8 +96,9 @@ void AddressEditDialog::updateType()
 
   m_addressWidget->setWidget(widg);
 
-  if (m_originalSettings.ioType == Device::IOType::Invalid)
-    m_originalSettings.ioType = Device::IOType::InOut;
+  if (!m_originalSettings.ioType)
+    m_originalSettings.ioType = ossia::access_mode::BI;
+
   if (widg)
   {
     auto& dom = m_originalSettings.domain.get();
@@ -129,8 +130,8 @@ Device::AddressSettings AddressEditDialog::getSettings() const
 Device::AddressSettings AddressEditDialog::makeDefaultSettings()
 {
   Device::AddressSettings s;
-  s.ioType = Device::IOType::InOut;
-  s.clipMode = Device::ClipMode::Free;
+  s.ioType = ossia::access_mode::BI;
+  s.clipMode = ossia::bounding_mode::FREE;
 
   return s;
 }

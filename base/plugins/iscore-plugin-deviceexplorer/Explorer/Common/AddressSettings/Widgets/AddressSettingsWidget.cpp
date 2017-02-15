@@ -64,7 +64,7 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
   m_layout->addRow(makeLabel(tr("Description"), this), m_description);
 
   // Populate the combo boxes
-  const auto& io_map = Device::IOTypeStringMap();
+  const auto& io_map = Device::AccessModeText();
   for (auto it = io_map.cbegin(); it != io_map.cend(); ++it)
   {
     m_ioTypeCBox->addItem(it.value(), (int)it.key());
@@ -115,11 +115,11 @@ Device::AddressSettings AddressSettingsWidget::getCommonSettings() const
   Device::AddressSettings settings;
   if (!m_none_type)
   {
-    settings.ioType = static_cast<Device::IOType>(
+    settings.ioType = static_cast<ossia::access_mode>(
           m_ioTypeCBox->currentData().value<int>());
-    settings.clipMode = static_cast<Device::ClipMode>(
+    settings.clipMode = static_cast<ossia::bounding_mode>(
           m_clipModeCBox->currentData().value<int>());
-    settings.repetitionFilter = m_repetition->isChecked();
+    settings.repetitionFilter = static_cast<ossia::repetition_filter>(m_repetition->isChecked());
     settings.unit = m_unit->unit();
     auto txt = m_description->text();
     if(!txt.isEmpty())
@@ -146,7 +146,7 @@ void AddressSettingsWidget::setCommonSettings(
 {
   if (!m_none_type)
   {
-    const int ioTypeIndex = m_ioTypeCBox->findData((int)settings.ioType);
+    const int ioTypeIndex = m_ioTypeCBox->findData((int)*settings.ioType);
     ISCORE_ASSERT(ioTypeIndex != -1);
     m_ioTypeCBox->setCurrentIndex(ioTypeIndex);
 
@@ -154,7 +154,7 @@ void AddressSettingsWidget::setCommonSettings(
     ISCORE_ASSERT(clipModeIndex != -1);
     m_clipModeCBox->setCurrentIndex(clipModeIndex);
 
-    m_repetition->setChecked(settings.repetitionFilter);
+    m_repetition->setChecked((bool)settings.repetitionFilter);
 
     m_unit->setUnit(settings.unit);
 

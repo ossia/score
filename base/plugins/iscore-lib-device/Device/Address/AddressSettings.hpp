@@ -10,6 +10,7 @@
 #include <iscore/tools/Metadata.hpp>
 #include <ossia/detail/any_map.hpp>
 #include <ossia/network/base/node_attributes.hpp>
+#include <ossia/network/common/address_properties.hpp>
 #include <iscore_lib_device_export.h>
 
 template <typename T>
@@ -27,7 +28,6 @@ class DeviceExplorerNode;
  */
 using Node = TreeNode<DeviceExplorerNode>;
 
-using RefreshRate = int;
 using RepetitionFilter = bool;
 struct ISCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
 {
@@ -41,16 +41,16 @@ struct ISCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
   State::Value value;
   Device::Domain domain;
 
-  Device::IOType ioType{};
-  Device::ClipMode clipMode{};
   State::Unit unit;
 
-  Device::RepetitionFilter repetitionFilter{};
+  optional<ossia::access_mode> ioType;
+  ossia::bounding_mode clipMode;
+  ossia::repetition_filter repetitionFilter{};
 
-  ossia::net::extended_attributes extendedAttributes;
+  ossia::extended_attributes extendedAttributes;
 
-  operator const ossia::net::extended_attributes&() const { return extendedAttributes; }
-  operator ossia::net::extended_attributes&() { return extendedAttributes; }
+  operator const ossia::extended_attributes&() const { return extendedAttributes; }
+  operator ossia::extended_attributes&() { return extendedAttributes; }
 
 };
 
@@ -170,10 +170,9 @@ struct ISCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
   State::Value value;
   Device::Domain domain;
 
-  Device::IOType ioType{};
-  Device::ClipMode clipMode{};
-
-  Device::RepetitionFilter repetitionFilter{};
+  optional<ossia::access_mode> ioType;
+  ossia::bounding_mode clipMode;
+  ossia::repetition_filter repetitionFilter{};
 
   ossia::any_map extendedAttributes;
 

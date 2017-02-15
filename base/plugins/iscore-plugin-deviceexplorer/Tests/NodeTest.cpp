@@ -181,24 +181,26 @@ private slots:
     anySer.emplace(std::string("refreshRate"), std::make_unique<iscore::any_serializer_t<ossia::net::refresh_rate>>());
     anySer.emplace(std::string("valueStepSize"), std::make_unique<iscore::any_serializer_t<ossia::net::value_step_size>>());
     iscore::testing::MockApplication app;
-    ossia::net::extended_attributes s;
+    ossia::extended_attributes s;
     {
-      auto out = DataStreamWriter::unmarshall<ossia::net::extended_attributes >(DataStreamReader::marshall(s));
+      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes >(DataStreamReader::marshall(s));
     }
 
 
     ossia::net::set_tags(s, std::vector<std::string>{"tutu", "titi"});
     {
-      auto out = DataStreamWriter::unmarshall<ossia::net::extended_attributes >(DataStreamReader::marshall(s));
+      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes >(DataStreamReader::marshall(s));
     }
     ossia::net::set_description(s, std::string("something"));
     {
-      auto out = DataStreamWriter::unmarshall<ossia::net::extended_attributes >(DataStreamReader::marshall(s));
+      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes >(DataStreamReader::marshall(s));
     }
     ossia::net::set_priority(s, 1234);
     {
-      auto out = DataStreamWriter::unmarshall<ossia::net::extended_attributes >(DataStreamReader::marshall(s));
+      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes >(DataStreamReader::marshall(s));
     }
+
+    // TODO add more tests
   }
 
   void test_serialize()

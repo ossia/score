@@ -8,13 +8,14 @@
 namespace Device
 {
 
-static const QMap<IOType, QString> iotypemap{
-    {//    {IOType::Invalid, QObject::tr("")},
-     {IOType::In, QObject::tr("<-")},
-     {IOType::Out, QObject::tr("->")},
-     {IOType::InOut, QObject::tr("<->")}}};
+static const QMap<ossia::access_mode, QString> iotypemap{
+  {
+    {ossia::access_mode::GET, QObject::tr("<-")},
+    {ossia::access_mode::SET, QObject::tr("->")},
+    {ossia::access_mode::BI, QObject::tr("<->")}
+  }};
 
-const QMap<IOType, QString>& IOTypeStringMap()
+const QMap<ossia::access_mode, QString>& AccessModeText()
 {
   return iotypemap;
 }

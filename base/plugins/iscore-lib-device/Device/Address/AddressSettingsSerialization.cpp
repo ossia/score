@@ -39,12 +39,13 @@ void JSONObjectReader::read(
     const Device::AddressSettingsCommon& n)
 {
   // Metadata
-  obj[strings.ioType] = Device::IOTypeStringMap()[n.ioType];
+  if(n.ioType)
+    obj[strings.ioType] = Device::AccessModeText()[*n.ioType];
   obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
   obj[strings.Unit]
       = QString::fromStdString(ossia::get_pretty_unit_text(n.unit));
 
-  obj[strings.RepetitionFilter] = n.repetitionFilter;
+  obj[strings.RepetitionFilter] = static_cast<bool>(n.repetitionFilter);
 
   // Value, domain and type
   readFrom(n.value);
@@ -56,13 +57,13 @@ void JSONObjectReader::read(
 template <>
 void JSONObjectWriter::write(Device::AddressSettingsCommon& n)
 {
-  n.ioType = Device::IOTypeStringMap().key(obj[strings.ioType].toString());
+  n.ioType = Device::AccessModeText().key(obj[strings.ioType].toString());
   n.clipMode
       = Device::ClipModeStringMap().key(obj[strings.ClipMode].toString());
   n.unit
       = ossia::parse_pretty_unit(obj[strings.Unit].toString().toStdString());
 
-  n.repetitionFilter = obj[strings.RepetitionFilter].toBool();
+  n.repetitionFilter = (ossia::repetition_filter) obj[strings.RepetitionFilter].toBool();
 
   writeTo(n.value);
   n.domain = fromJsonObject<Device::Domain>(obj[strings.Domain].toObject());
@@ -163,10 +164,11 @@ ISCORE_LIB_DEVICE_EXPORT void JSONObjectReader::read(
     const Device::FullAddressAccessorSettings& n)
 {
   // Metadata
-  obj[strings.ioType] = Device::IOTypeStringMap()[n.ioType];
+  if(n.ioType)
+    obj[strings.ioType] = Device::AccessModeText()[*n.ioType];
   obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
 
-  obj[strings.RepetitionFilter] = n.repetitionFilter;
+  obj[strings.RepetitionFilter] = static_cast<bool>(n.repetitionFilter);
 
   // Value, domain and type
   readFrom(n.value);
@@ -180,11 +182,11 @@ template <>
 ISCORE_LIB_DEVICE_EXPORT void
 JSONObjectWriter::write(Device::FullAddressAccessorSettings& n)
 {
-  n.ioType = Device::IOTypeStringMap().key(obj[strings.ioType].toString());
+  n.ioType = Device::AccessModeText().key(obj[strings.ioType].toString());
   n.clipMode
       = Device::ClipModeStringMap().key(obj[strings.ClipMode].toString());
 
-  n.repetitionFilter = obj[strings.RepetitionFilter].toBool();
+  n.repetitionFilter = (ossia::repetition_filter)obj[strings.RepetitionFilter].toBool();
 
 
   writeTo(n.value);

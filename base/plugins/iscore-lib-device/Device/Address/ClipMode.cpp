@@ -7,27 +7,27 @@
 
 namespace Device
 {
-const QMap<ClipMode, QString> clipmodemap{{
-    {ClipMode::Free, QStringLiteral("Free")},
-    {ClipMode::Clip, QStringLiteral("Clip")},
-    {ClipMode::Fold, QStringLiteral("Fold")},
-    {ClipMode::Wrap, QStringLiteral("Wrap")},
-    {ClipMode::Low, QStringLiteral("Low")},
-    {ClipMode::High, QStringLiteral("High")},
+const QMap<ossia::bounding_mode, QString> clipmodemap{{
+    {ossia::bounding_mode::FREE, QStringLiteral("Free")},
+    {ossia::bounding_mode::CLIP, QStringLiteral("Clip")},
+    {ossia::bounding_mode::FOLD, QStringLiteral("Fold")},
+    {ossia::bounding_mode::WRAP, QStringLiteral("Wrap")},
+    {ossia::bounding_mode::LOW, QStringLiteral("Low")},
+    {ossia::bounding_mode::HIGH, QStringLiteral("High")},
 }};
-const QMap<ClipMode, QString> clipmodeprettymap{{
-    {ClipMode::Free, QObject::tr("Free")},
-    {ClipMode::Clip, QObject::tr("Clip")},
-    {ClipMode::Fold, QObject::tr("Fold")},
-    {ClipMode::Wrap, QObject::tr("Wrap")},
-    {ClipMode::Low, QObject::tr("Low")},
-    {ClipMode::High, QObject::tr("High")},
+const QMap<ossia::bounding_mode, QString> clipmodeprettymap{{
+    {ossia::bounding_mode::FREE, QObject::tr("Free")},
+    {ossia::bounding_mode::CLIP, QObject::tr("Clip")},
+    {ossia::bounding_mode::FOLD, QObject::tr("Fold")},
+    {ossia::bounding_mode::WRAP, QObject::tr("Wrap")},
+    {ossia::bounding_mode::LOW, QObject::tr("Low")},
+    {ossia::bounding_mode::HIGH, QObject::tr("High")},
 }};
-const QMap<ClipMode, QString>& ClipModeStringMap()
+const QMap<ossia::bounding_mode, QString>& ClipModeStringMap()
 {
   return clipmodemap;
 }
-const QMap<ClipMode, QString>& ClipModePrettyStringMap()
+const QMap<ossia::bounding_mode, QString>& ClipModePrettyStringMap()
 {
   return clipmodeprettymap;
 }

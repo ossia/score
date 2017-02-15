@@ -132,8 +132,8 @@ bool ValueImpl::operator!=(const ValueImpl& other) const
 
 bool ValueImpl::isNumeric() const
 {
-  const auto t = m_variant.which();
-  return t == 1 || t == 2;
+  const auto t = which();
+  return t == ValueType::Float || t == ValueType::Int;
 }
 
 bool ValueImpl::isValid() const
@@ -143,9 +143,18 @@ bool ValueImpl::isValid() const
 
 bool ValueImpl::isArray() const
 {
-  const auto t = m_variant.which();
+  const auto t = which();
 
-  return t >= 6 && t <= 9;
+  switch(t)
+  {
+    case State::ValueType::Vec2f:
+    case State::ValueType::Vec3f:
+    case State::ValueType::Vec4f:
+    case State::ValueType::Tuple:
+      return true;
+    default:
+      return false;
+  }
 }
 
 ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m)

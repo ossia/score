@@ -530,15 +530,15 @@ bool DeviceExplorerModel::setData(
                           {
                               switch(settings.ioType)
                               {
-                                  case IOType::In:
+                                  case ossia::access_mode::GET:
                                       break;
-                                  case IOType::Out:
-                                      settings.ioType = IOType::InOut;
+                                  case ossia::access_mode::SET:
+                                      settings.ioType = ossia::access_mode::BI;
                                       break;
-                                  case IOType::InOut:
+                                  case ossia::access_mode::BI:
                                       break;
                                   default:
-                                      settings.ioType = IOType::In;
+                                      settings.ioType = ossia::access_mode::GET;
                                       break;
                               }
                           }
@@ -546,13 +546,13 @@ bool DeviceExplorerModel::setData(
                           {
                               switch(settings.ioType)
                               {
-                                  case IOType::In:
+                                  case ossia::access_mode::GET:
                                       settings.ioType = IOType::Invalid;
                                       break;
-                                  case IOType::Out:
+                                  case ossia::access_mode::SET:
                                       break;
-                                  case IOType::InOut:
-                                      settings.ioType = IOType::Out;
+                                  case ossia::access_mode::BI:
+                                      settings.ioType = ossia::access_mode::SET;
                                       break;
                                   default:
                                       break;
@@ -565,15 +565,15 @@ bool DeviceExplorerModel::setData(
                           {
                               switch(settings.ioType)
                               {
-                                  case IOType::In:
-                                      settings.ioType = IOType::InOut;
+                                  case ossia::access_mode::GET:
+                                      settings.ioType = ossia::access_mode::BI;
                                       break;
-                                  case IOType::Out:
+                                  case ossia::access_mode::SET:
                                       break;
-                                  case IOType::InOut:
+                                  case ossia::access_mode::BI:
                                       break;
                                   default:
-                                      settings.ioType = IOType::Out;
+                                      settings.ioType = ossia::access_mode::SET;
                                       break;
                               }
                           }
@@ -581,13 +581,13 @@ bool DeviceExplorerModel::setData(
                           {
                               switch(settings.ioType)
                               {
-                                  case IOType::In:
+                                  case ossia::access_mode::GET:
                                       break;
-                                  case IOType::Out:
+                                  case ossia::access_mode::SET:
                                       settings.ioType = IOType::Invalid;
                                       break;
-                                  case IOType::InOut:
-                                      settings.ioType = IOType::In;
+                                  case ossia::access_mode::BI:
+                                      settings.ioType = ossia::access_mode::GET;
                                       break;
                                   default:
                                       break;
@@ -741,7 +741,7 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
     if (node->is<Device::AddressSettings>())
     {
       auto& val = node->get<Device::AddressSettings>();
-      if (val.ioType == Device::IOType::Out)
+      if (val.ioType == ossia::access_mode::SET)
       {
         nodes.messages.append(node);
       }

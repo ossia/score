@@ -164,28 +164,6 @@ getNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
   return node;
 }
 
-static ossia::bounding_mode toBoundingMode(Device::ClipMode c)
-{
-  switch (c)
-  {
-    case Device::ClipMode::Free:
-      return ossia::bounding_mode::FREE;
-    case Device::ClipMode::Clip:
-      return ossia::bounding_mode::CLIP;
-    case Device::ClipMode::Wrap:
-      return ossia::bounding_mode::WRAP;
-    case Device::ClipMode::Fold:
-      return ossia::bounding_mode::FOLD;
-    case Device::ClipMode::Low:
-      return ossia::bounding_mode::LOW;
-    case Device::ClipMode::High:
-      return ossia::bounding_mode::HIGH;
-    default:
-      ISCORE_ABORT;
-      return static_cast<ossia::bounding_mode>(-1);
-  }
-}
-
 struct ossia_type_visitor
 {
 public:
@@ -207,28 +185,16 @@ void updateOSSIAAddress(
     const Device::FullAddressSettings& settings,
     ossia::net::address_base& addr)
 {
-  switch (settings.ioType)
-  {
-    case Device::IOType::In:
-      addr.setAccessMode(ossia::access_mode::GET);
-      break;
-    case Device::IOType::Out:
-      addr.setAccessMode(ossia::access_mode::SET);
-      break;
-    case Device::IOType::InOut:
-      addr.setAccessMode(ossia::access_mode::BI);
-      break;
-    case Device::IOType::Invalid:
-      ISCORE_ABORT;
-      break;
-  }
+  ISCORE_ASSERT(settings.ioType);
+  addr.setAccessMode(*settings.ioType);
+
+  addr.setBoundingMode(settings.clipMode);
 
   addr.setRepetitionFilter(
         ossia::repetition_filter(settings.repetitionFilter));
-  addr.setBoundingMode(
-        Engine::iscore_to_ossia::toBoundingMode(settings.clipMode));
 
   addr.setValueType(ossia::apply(ossia_type_visitor{}, settings.value.val.impl()));
+
   addr.setValue(Engine::iscore_to_ossia::toOSSIAValue(settings.value));
 
   addr.setDomain(settings.domain);
