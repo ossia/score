@@ -30,9 +30,9 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node)
   {
     auto value_future = addr->pullValueAsync();
 
-    s.ioType = ToIOType(addr->getAccessMode());
-    s.clipMode = ToClipMode(addr->getBoundingMode());
-    s.repetitionFilter = bool(addr->getRepetitionFilter());
+    s.ioType = addr->getAccessMode();
+    s.clipMode = addr->getBoundingMode();
+    s.repetitionFilter = addr->getRepetitionFilter();
     s.unit = addr->getUnit();
     s.extendedAttributes = node.getExtendedAttributes();
     s.domain = addr->getDomain();
@@ -77,41 +77,25 @@ Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
   return iscore_node;
 }
 
-Device::IOType ToIOType(ossia::access_mode t)
-{
-  switch (t)
-  {
-    case ossia::access_mode::GET:
-      return Device::IOType::In;
-    case ossia::access_mode::SET:
-      return Device::IOType::Out;
-    case ossia::access_mode::BI:
-      return Device::IOType::InOut;
-    default:
-      ISCORE_ABORT;
-      return Device::IOType::Invalid;
-  }
-}
-
-Device::ClipMode ToClipMode(ossia::bounding_mode b)
+ossia::bounding_mode ToClipMode(ossia::bounding_mode b)
 {
   switch (b)
   {
     case ossia::bounding_mode::CLIP:
-      return Device::ClipMode::Clip;
+      return ossia::bounding_mode::CLIP;
     case ossia::bounding_mode::FOLD:
-      return Device::ClipMode::Fold;
+      return ossia::bounding_mode::FOLD;
     case ossia::bounding_mode::FREE:
-      return Device::ClipMode::Free;
+      return ossia::bounding_mode::FREE;
     case ossia::bounding_mode::WRAP:
-      return Device::ClipMode::Wrap;
+      return ossia::bounding_mode::WRAP;
     case ossia::bounding_mode::LOW:
-      return Device::ClipMode::Low;
+      return ossia::bounding_mode::LOW;
     case ossia::bounding_mode::HIGH:
-      return Device::ClipMode::High;
+      return ossia::bounding_mode::HIGH;
     default:
       ISCORE_ABORT;
-      return static_cast<Device::ClipMode>(-1);
+      return static_cast<ossia::bounding_mode>(-1);
   }
 }
 

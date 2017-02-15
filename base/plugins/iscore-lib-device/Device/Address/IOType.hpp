@@ -1,27 +1,22 @@
 #pragma once
 #include <iscore_lib_device_export.h>
+#include <ossia/network/common/address_properties.hpp>
+#include <iscore/tools/std/Optional.hpp>
+
 class QString;
 template <class Key, class T>
 class QMap;
 
 namespace Device
 {
-enum class IOType : int
-{
-  Invalid,
-  In,
-  Out,
-  InOut
-};
+ISCORE_LIB_DEVICE_EXPORT const QMap<ossia::access_mode, QString>& AccessModeText();
 
-ISCORE_LIB_DEVICE_EXPORT const QMap<IOType, QString>& IOTypeStringMap();
-
-inline bool hasInput(IOType t)
+inline bool hasInput(const optional<ossia::access_mode> t)
 {
-  return t == IOType::InOut || t == IOType::In;
+  return t && (*t == ossia::access_mode::BI || *t == ossia::access_mode::GET);
 }
-inline bool hasOutput(IOType t)
+inline bool hasOutput(const optional<ossia::access_mode> t)
 {
-  return t == IOType::InOut || t == IOType::Out;
+  return t && (*t == ossia::access_mode::BI || *t == ossia::access_mode::SET);
 }
 }

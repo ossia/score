@@ -100,25 +100,25 @@ read_valueDefault(const QDomElement& dom_element, const QString& type)
   }
 }
 
-static auto read_service(const QDomElement& dom_element)
+static optional<ossia::access_mode> read_service(const QDomElement& dom_element)
 {
   using namespace iscore;
   if (dom_element.hasAttribute("service"))
   {
     const auto service = dom_element.attribute("service");
     if (service == "parameter")
-      return Device::IOType::InOut;
+      return ossia::access_mode::BI;
     /*
 else if(service == "")
-    addr.ioType = IOType::In;
+    addr.ioType = ossia::access_mode::GET;
 else if(service == "")
-    addr.ioType = IOType::Out;
+    addr.ioType = ossia::access_mode::SET;
 */
     else
-      return Device::IOType::Invalid;
+      return ossia::none;
   }
 
-  return Device::IOType::Invalid;
+  return ossia::none;
 }
 
 static auto
@@ -151,10 +151,10 @@ static auto read_rangeClipmode(const QDomElement& dom_element)
     const auto clipmode = dom_element.attribute("rangeClipmode");
     if (clipmode == "both")
     {
-      return Device::ClipMode::Clip;
+      return ossia::bounding_mode::CLIP;
     }
   }
-  return Device::ClipMode::Free;
+  return ossia::bounding_mode::FREE;
 }
 
 static void
@@ -182,7 +182,9 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
     addr.ioType = read_service(dom_element);
 
     ossia::net::set_priority(addr, dom_element.attribute("priority").toInt());
-    addr.repetitionFilter = dom_element.attribute("repetitionsFilter").toInt();
+    auto rfl = dom_element.attribute("repetitionsFilter").toInt();
+
+    addr.repetitionFilter = rfl ? ossia::repetition_filter::ON : ossia::repetition_filter::OFF;
 
     addr.domain = read_rangeBounds(dom_element, type);
     addr.clipMode = read_rangeClipmode(dom_element);
@@ -404,9 +406,9 @@ static const json_actions_t& actions()
                   [] (Device::AddressSettings& addr, const QJsonValue& val) {
                     auto v = val.toVariant().toInt();
                     if(v == 1)
-                      addr.ioType = IOType::In;
+                      addr.ioType = ossia::access_mode::GET;
                     else
-                      addr.ioType = IOType::InOut;
+                      addr.ioType = ossia::access_mode::BI;
                   }});
       a.emplace(json_actions_t::value_type{
                   QStringLiteral("instanceBounds"),
@@ -450,7 +452,7 @@ static void read_node(
     {
       // It means that it's a children on which we recurse
       Device::AddressSettings cld;
-      cld.ioType = IOType::InOut;
+      cld.ioType = ossia::access_mode::BI;
       cld.name = it.key();
 
       auto& childNode = thisNode.emplace_back(std::move(cld), &thisNode);
@@ -508,7 +510,7 @@ try
         {
           // It means that it's a children on which we recurse
           Device::AddressSettings cld;
-          cld.ioType = IOType::InOut;
+          cld.ioType = ossia::access_mode::BI;
           cld.name = sub_it.key();
 
           auto& childNode = rootNode.emplace_back(cld, &rootNode);

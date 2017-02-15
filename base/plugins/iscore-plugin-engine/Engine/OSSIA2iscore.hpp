@@ -188,8 +188,7 @@ struct MatchingType<::TimeVal>
   }
 };
 
-ISCORE_PLUGIN_ENGINE_EXPORT Device::IOType ToIOType(ossia::access_mode t);
-ISCORE_PLUGIN_ENGINE_EXPORT Device::ClipMode
+ISCORE_PLUGIN_ENGINE_EXPORT ossia::bounding_mode
 ToClipMode(ossia::bounding_mode b);
 
 ISCORE_PLUGIN_ENGINE_EXPORT State::Value ToValue(ossia::val_type);
