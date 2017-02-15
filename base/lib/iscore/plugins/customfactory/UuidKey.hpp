@@ -45,6 +45,15 @@ public:
     }
   }
 
+  Q_DECL_RELAXED_CONSTEXPR uuid& operator=(const uuid& other) noexcept
+  {
+    for (std::size_t i = 0; i < sizeof(data); ++i)
+    {
+      data[i] = other.data[i];
+    }
+    return *this;
+  }
+
   Q_DECL_CONSTEXPR iterator begin() noexcept
   {
     return data;

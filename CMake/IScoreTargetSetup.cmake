@@ -189,12 +189,12 @@ function(iscore_set_unix_compile_options theTarget)
 
     # Release options
     "$<$<AND:$<CONFIG:Release>,$<BOOL:${NACL}>>:-O3>"
-    "$<$<AND:$<CONFIG:Release>,$<NOT:$<BOOL:${NACL}>>>:-Ofast>"
+    "$<$<AND:$<CONFIG:Release>,$<NOT:$<BOOL:${NACL}>>>:-Ofast -fno-finite-math-only>"
     "$<$<AND:$<CONFIG:Release>,$<BOOL:${ISCORE_ENABLE_OPTIMIZE_CUSTOM}>>:-march=native>"
     )
 
     target_link_libraries(${theTarget} PUBLIC
-        "$<$<CONFIG:Release>:-Ofast>"
+        "$<$<CONFIG:Release>:-Ofast -fno-finite-math-only>"
         "$<$<AND:$<CONFIG:Release>,$<BOOL:${ISCORE_ENABLE_OPTIMIZE_CUSTOM}>>:-march=native>")
 endfunction()
 

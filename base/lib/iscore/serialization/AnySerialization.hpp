@@ -121,16 +121,16 @@ struct ISCORE_LIB_BASE_EXPORT TSerializer<JSONObject, iscore::any_map>
     }
   }
 
-
   static void writeTo(
       JSONObject::Deserializer& s,
       iscore::any_map& obj)
   {
     const QJsonObject& extended = s.obj;
-    for(const auto& k : extended.keys())
+    auto end = extended.constEnd();
+    for(auto it = extended.constBegin(); it != end; ++it)
     {
-      JSONValue::Deserializer v{extended[k]};
-      auto key = k.toStdString();
+      JSONValue::Deserializer v{it.value()};
+      auto key = it.key().toStdString();
       boost::any val;
       apply(v, key, val);
       obj[std::move(key)] = std::move(val);
