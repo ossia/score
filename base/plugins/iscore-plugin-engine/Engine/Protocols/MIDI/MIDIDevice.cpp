@@ -75,7 +75,7 @@ Device::Node MIDIDevice::refresh()
   }
   else
   {
-    auto& children = m_dev->getRootNode().children();
+    const auto& children = m_dev->getRootNode().children();
     device_node.reserve(children.size());
     for (const auto& node : children)
     {

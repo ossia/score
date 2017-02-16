@@ -42,7 +42,7 @@ void OSSIADevice::updateSettings(const Device::DeviceSettings& newsettings)
     Device::Node iscore_device{settings(), nullptr};
 
     // Recurse on the children
-    auto& ossia_children = dev->getRootNode().children();
+    const auto& ossia_children = dev->getRootNode().children();
     iscore_device.reserve(ossia_children.size());
     for (const auto& node : ossia_children)
     {
@@ -248,7 +248,7 @@ void OSSIADevice::removeNode(const State::Address& address)
     ossia::net::node_base* node
         = Engine::iscore_to_ossia::getNodeFromPath(address.path, *dev);
     auto parent = node->getParent();
-    auto& parentChildren = node->getParent()->children();
+    const auto& parentChildren = node->getParent()->children();
     auto it = std::find_if(
           parentChildren.begin(), parentChildren.end(),
           [&](auto&& elt) { return elt.get() == node; });
@@ -285,7 +285,7 @@ Device::Node OSSIADevice::refresh()
       // First make the node corresponding to the root node.
 
       // Recurse on the children
-      auto& children = root.children();
+      const auto& children = root.children();
       device_node.reserve(children.size());
       for (const auto& node : children)
       {
