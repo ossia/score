@@ -136,7 +136,7 @@ Device::Node LocalDevice::refresh()
   Device::Node iscore_device{settings(), nullptr};
 
   // Recurse on the children
-  auto& ossia_children = m_dev.getRootNode().children();
+  const auto& ossia_children = m_dev.getRootNode().children();
   iscore_device.reserve(ossia_children.size());
   for (const auto& node : ossia_children)
   {
