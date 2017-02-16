@@ -18,9 +18,9 @@ AddressSettingsCommon::AddressSettingsCommon(
     const AddressSettingsCommon& other) noexcept
     : value{other.value}
     , domain{other.domain}
+    , unit{other.unit}
     , ioType{other.ioType}
     , clipMode{other.clipMode}
-    , unit{other.unit}
     , repetitionFilter{other.repetitionFilter}
     , extendedAttributes{other.extendedAttributes}
 {
@@ -30,9 +30,9 @@ AddressSettingsCommon::AddressSettingsCommon(
     AddressSettingsCommon&& other) noexcept
     : value{std::move(other.value)}
     , domain{std::move(other.domain)}
+    , unit{std::move(other.unit)}
     , ioType{other.ioType}
     , clipMode{other.clipMode}
-    , unit{std::move(other.unit)}
     , repetitionFilter{other.repetitionFilter}
     , extendedAttributes{std::move(other.extendedAttributes)}
 {
@@ -43,9 +43,9 @@ operator=(const AddressSettingsCommon& other) noexcept
 {
   value = other.value;
   domain = other.domain;
+  unit = other.unit;
   ioType = other.ioType;
   clipMode = other.clipMode;
-  unit = other.unit;
   repetitionFilter = other.repetitionFilter;
   extendedAttributes = other.extendedAttributes;
   return *this;
@@ -56,9 +56,9 @@ operator=(AddressSettingsCommon&& other) noexcept
 {
   value = std::move(other.value);
   domain = std::move(other.domain);
+  unit = std::move(other.unit);
   ioType = other.ioType;
   clipMode = other.clipMode;
-  unit = std::move(other.unit);
   repetitionFilter = other.repetitionFilter;
   extendedAttributes = std::move(other.extendedAttributes);
   return *this;
