@@ -70,12 +70,13 @@ void ListeningManager::disableListening_rec(
 }
 
 void ListeningManager::enableListening_rec(
-    const QModelIndex& index,
+    const QModelIndex& proxy_index,
     Device::DeviceInterface& dev,
     ListeningHandler& lm)
 {
   int i = 0;
-  for (const auto& child : nodeFromProxyModelIndex(index))
+  auto source_index = m_widget.sourceIndex(proxy_index);
+  for (const auto& child : nodeFromModelIndex(source_index))
   {
     if (child.is<Device::AddressSettings>())
     {
@@ -84,12 +85,13 @@ void ListeningManager::enableListening_rec(
     }
 
     // TODO check this
-    auto childIndex = m_model.index(i, 0, index);
+    auto child_sourceIndex = m_model.index(i, 0, source_index);
+    auto child_proxyIndex = m_widget.proxyIndex(child_sourceIndex);
 
     // TODO what if there is a proxy model ?
-    if (m_widget.view()->isExpanded(childIndex))
+    if (m_widget.view()->isExpanded(child_proxyIndex))
     {
-      enableListening_rec(childIndex, dev, lm);
+      enableListening_rec(child_proxyIndex, dev, lm);
     }
     i++;
   }

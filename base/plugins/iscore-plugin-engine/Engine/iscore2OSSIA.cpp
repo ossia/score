@@ -73,12 +73,8 @@ createNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
   ossia::net::node_base* node = &dev.getRootNode();
   for (int i = 0; i < path.size(); i++)
   {
-    const auto& children = node->children();
-    auto it = ossia::find_if(children, [&](const auto& ossia_node) {
-      return ossia_node->getName() == path[i].toStdString();
-    });
-
-    if (it == children.end())
+    auto cld = node->findChild(path[i].toStdString());
+    if (!cld)
     {
       // We have to start adding sub-nodes from here.
       ossia::net::node_base* parentnode = node;
@@ -108,7 +104,7 @@ createNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
     }
     else
     {
-      node = it->get();
+      node = cld;
     }
   }
 
