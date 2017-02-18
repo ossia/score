@@ -124,7 +124,7 @@ else if(service == "")
 static auto
 read_rangeBounds(const QDomElement& dom_element, const QString& type)
 {
-  ossia::net::domain domain;
+  ossia::domain domain;
 
   if (dom_element.hasAttribute("rangeBounds"))
   {
@@ -137,7 +137,7 @@ read_rangeBounds(const QDomElement& dom_element, const QString& type)
     {
       auto v1 = stringToOssiaVal(minBound, type);
       auto v2 = stringToOssiaVal(bounds, type);
-      domain = ossia::net::make_domain(v1, v2);
+      domain = ossia::make_domain(v1, v2);
     }
   }
 
@@ -279,7 +279,7 @@ static optional<ossia::net::instance_bounds> fromJamomaInstanceBounds(const QStr
   return ossia::none;
 }
 
-static ossia::net::domain fromJamomaJsonDomain(
+static ossia::domain fromJamomaJsonDomain(
     const QString& str,
     State::ValueType t)
 {
@@ -290,14 +290,14 @@ static ossia::net::domain fromJamomaJsonDomain(
     {
       switch(t) {
         case State::ValueType::Int:
-          return ossia::net::make_domain(dom[0].toInt(), dom[1].toInt());
+          return ossia::make_domain(dom[0].toInt(), dom[1].toInt());
           break;
         case State::ValueType::Float:
         case State::ValueType::Tuple:
         case State::ValueType::Vec2f:
         case State::ValueType::Vec3f:
         case State::ValueType::Vec4f:
-          return ossia::net::make_domain(dom[0].toFloat(), dom[1].toFloat());
+          return ossia::make_domain(dom[0].toFloat(), dom[1].toFloat());
           break;
         default:
           break;

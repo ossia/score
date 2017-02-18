@@ -1,5 +1,5 @@
 #include "TraversalPath.hpp"
-#include <ossia/network/base/path.hpp>
+#include <ossia/network/common/path.hpp>
 
 namespace State
 {

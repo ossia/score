@@ -1065,7 +1065,7 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
   // If there is none, build with some default settings
   Device::FullAddressAccessorSettings s;
   s.address = addr;
-  s.domain = ossia::net::make_domain(std::move(min), std::move(max));
+  s.domain = ossia::make_domain(std::move(min), std::move(max));
   return s;
 }
 
@@ -1098,7 +1098,7 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
   // If there is none, build with some default settings
   Device::FullAddressAccessorSettings s;
   s.address = addr;
-  s.domain = ossia::net::make_domain(std::move(min), std::move(max));
+  s.domain = ossia::make_domain(std::move(min), std::move(max));
   return s;
 }
 

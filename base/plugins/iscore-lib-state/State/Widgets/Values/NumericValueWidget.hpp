@@ -128,7 +128,7 @@ template <typename T>
 class NumericDomainWidget final : public QWidget
 {
 public:
-  using domain_type = ossia::net::domain_base<T>;
+  using domain_type = ossia::domain_base<T>;
   using set_type = boost::container::flat_set<T>;
 
   NumericDomainWidget(QWidget* parent) : QWidget{parent}
@@ -193,7 +193,7 @@ public:
     return dom;
   }
 
-  void setDomain(ossia::net::domain dom_base)
+  void setDomain(ossia::domain dom_base)
   {
     m_values.clear();
     m_minCB->setCheckState(Qt::Unchecked);

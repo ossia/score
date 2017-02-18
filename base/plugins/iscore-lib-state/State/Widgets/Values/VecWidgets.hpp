@@ -74,7 +74,7 @@ template <std::size_t N>
 class VecDomainWidget final : public QWidget
 {
 public:
-  using domain_type = ossia::net::domain_base<std::array<float, N>>;
+  using domain_type = ossia::domain_base<std::array<float, N>>;
   using set_type = boost::container::flat_set<std::array<float, N>>;
 
   VecDomainWidget(QWidget* parent) : QWidget{parent}
@@ -104,7 +104,7 @@ public:
     return dom;
   }
 
-  void setDomain(ossia::net::domain dom_base)
+  void setDomain(ossia::domain dom_base)
   {
     m_min->setValue(ossia::fill_vec<N>(0));
     m_max->setValue(ossia::fill_vec<N>(1));

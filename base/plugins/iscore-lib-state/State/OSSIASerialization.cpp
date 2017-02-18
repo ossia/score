@@ -24,17 +24,17 @@ JSON_METADATA(ossia::vec4f, "Vec4f")
 JSON_METADATA(std::vector<ossia::value>, "Tuple")
 JSON_METADATA(std::string, "String")
 JSON_METADATA(ossia::value, "Generic")
-JSON_METADATA(ossia::net::domain_base<ossia::impulse>, "Impulse")
-JSON_METADATA(ossia::net::domain_base<int32_t>, "Int")
-JSON_METADATA(ossia::net::domain_base<char>, "Char")
-JSON_METADATA(ossia::net::domain_base<bool>, "Bool")
-JSON_METADATA(ossia::net::domain_base<float>, "Float")
-JSON_METADATA(ossia::net::domain_base<ossia::vec2f>, "Vec2f")
-JSON_METADATA(ossia::net::domain_base<ossia::vec3f>, "Vec3f")
-JSON_METADATA(ossia::net::domain_base<ossia::vec4f>, "Vec4f")
-JSON_METADATA(ossia::net::domain_base<std::vector<ossia::value>>, "Tuple")
-JSON_METADATA(ossia::net::domain_base<std::string>, "String")
-JSON_METADATA(ossia::net::domain_base<ossia::value>, "Generic")
+JSON_METADATA(ossia::domain_base<ossia::impulse>, "Impulse")
+JSON_METADATA(ossia::domain_base<int32_t>, "Int")
+JSON_METADATA(ossia::domain_base<char>, "Char")
+JSON_METADATA(ossia::domain_base<bool>, "Bool")
+JSON_METADATA(ossia::domain_base<float>, "Float")
+JSON_METADATA(ossia::domain_base<ossia::vec2f>, "Vec2f")
+JSON_METADATA(ossia::domain_base<ossia::vec3f>, "Vec3f")
+JSON_METADATA(ossia::domain_base<ossia::vec4f>, "Vec4f")
+JSON_METADATA(ossia::domain_base<std::vector<ossia::value>>, "Tuple")
+JSON_METADATA(ossia::domain_base<std::string>, "String")
+JSON_METADATA(ossia::domain_base<ossia::value>, "Generic")
 
 ISCORE_DECL_VALUE_TYPE(int)
 ISCORE_DECL_VALUE_TYPE(float)
@@ -109,9 +109,9 @@ DataStreamOutput& operator>>(DataStreamOutput& stream, ossia::value& obj)
 }
 
 template <typename T>
-struct TSerializer<DataStream, ossia::net::domain_base<T>>
+struct TSerializer<DataStream, ossia::domain_base<T>>
 {
-  using domain_t = ossia::net::domain_base<T>;
+  using domain_t = ossia::domain_base<T>;
   static void readFrom(DataStream::Serializer& s, const domain_t& domain)
   {
     // Min
@@ -180,9 +180,9 @@ struct TSerializer<DataStream, ossia::net::domain_base<T>>
 };
 
 template <>
-struct TSerializer<DataStream, ossia::net::domain_base<std::string>>
+struct TSerializer<DataStream, ossia::domain_base<std::string>>
 {
-  using domain_t = ossia::net::domain_base<std::string>;
+  using domain_t = ossia::domain_base<std::string>;
   static void readFrom(DataStream::Serializer& s, const domain_t& domain)
   {
     // Values
@@ -213,9 +213,9 @@ struct TSerializer<DataStream, ossia::net::domain_base<std::string>>
 };
 
 template <>
-struct TSerializer<DataStream, ossia::net::domain_base<ossia::impulse>>
+struct TSerializer<DataStream, ossia::domain_base<ossia::impulse>>
 {
-  using domain_t = ossia::net::domain_base<ossia::impulse>;
+  using domain_t = ossia::domain_base<ossia::impulse>;
   static void readFrom(DataStream::Serializer& s, const domain_t& domain)
   {
     s.insertDelimiter();
@@ -230,17 +230,17 @@ struct TSerializer<DataStream, ossia::net::domain_base<ossia::impulse>>
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamReader::read(const ossia::net::domain& n)
+DataStreamReader::read(const ossia::domain& n)
 {
-  readFrom((const ossia::net::domain_base_variant&)n);
+  readFrom((const ossia::domain_base_variant&)n);
 }
 
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-DataStreamWriter::write(ossia::net::domain& n)
+DataStreamWriter::write(ossia::domain& n)
 {
-  writeTo((ossia::net::domain_base_variant&)n);
+  writeTo((ossia::domain_base_variant&)n);
 }
 
 /// JSON ///
@@ -406,9 +406,9 @@ struct TSerializer<JSONValue, std::string>
 };
 
 template <typename T>
-struct TSerializer<JSONObject, ossia::net::domain_base<T>>
+struct TSerializer<JSONObject, ossia::domain_base<T>>
 {
-  using domain_t = ossia::net::domain_base<T>;
+  using domain_t = ossia::domain_base<T>;
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
     if (domain.min)
@@ -447,9 +447,9 @@ struct TSerializer<JSONObject, ossia::net::domain_base<T>>
 };
 
 template <>
-struct TSerializer<JSONObject, ossia::net::domain_base<std::string>>
+struct TSerializer<JSONObject, ossia::domain_base<std::string>>
 {
-  using domain_t = ossia::net::domain_base<std::string>;
+  using domain_t = ossia::domain_base<std::string>;
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
     if (!domain.values.empty())
@@ -471,9 +471,9 @@ struct TSerializer<JSONObject, ossia::net::domain_base<std::string>>
 };
 
 template <>
-struct TSerializer<JSONObject, ossia::net::domain_base<ossia::impulse>>
+struct TSerializer<JSONObject, ossia::domain_base<ossia::impulse>>
 {
-  using domain_t = ossia::net::domain_base<ossia::impulse>;
+  using domain_t = ossia::domain_base<ossia::impulse>;
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
   }
@@ -486,17 +486,17 @@ struct TSerializer<JSONObject, ossia::net::domain_base<ossia::impulse>>
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectReader::read(const ossia::net::domain& n)
+JSONObjectReader::read(const ossia::domain& n)
 {
-  readFrom((const ossia::net::domain_base_variant&)n);
+  readFrom((const ossia::domain_base_variant&)n);
 }
 
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::write(ossia::net::domain& n)
+JSONObjectWriter::write(ossia::domain& n)
 {
-  writeTo((ossia::net::domain_base_variant&)n);
+  writeTo((ossia::domain_base_variant&)n);
 }
 
 

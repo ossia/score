@@ -360,7 +360,7 @@ std::vector<SegmentData> orderedSegments(const Model& curve)
   return vec2;
 }
 
-CurveDomain::CurveDomain(const ossia::net::domain& dom):
+CurveDomain::CurveDomain(const ossia::domain& dom):
   min{ossia::convert<double>(dom.get_min())}
 , max{ossia::convert<double>(dom.get_max())}
 {
@@ -373,7 +373,7 @@ CurveDomain::CurveDomain(const ossia::net::domain& dom):
   end = std::max(min, max);
 }
 
-CurveDomain::CurveDomain(const ossia::net::domain& dom, const State::Value& v):
+CurveDomain::CurveDomain(const ossia::domain& dom, const State::Value& v):
   min{ossia::convert<double>(dom.get_min())}
 , max{ossia::convert<double>(dom.get_max())}
 {
@@ -395,7 +395,7 @@ CurveDomain::CurveDomain(const ossia::net::domain& dom, const State::Value& v):
   end = std::max(min, max);
 }
 
-CurveDomain::CurveDomain(const ossia::net::domain& dom, double start, double end):
+CurveDomain::CurveDomain(const ossia::domain& dom, double start, double end):
   min{ossia::convert<double>(dom.get_min())}
 , max{ossia::convert<double>(dom.get_max())}
 , start{start}
@@ -413,7 +413,7 @@ CurveDomain::CurveDomain(const ossia::net::domain& dom, double start, double end
   ensureValid();
 }
 
-void CurveDomain::refine(const ossia::net::domain& dom)
+void CurveDomain::refine(const ossia::domain& dom)
 {
   auto min_v = dom.get_min();
   auto max_v = dom.get_max();

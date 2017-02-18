@@ -59,8 +59,8 @@ class ISCORE_LIB_STATE_EXPORT CharDomainWidget final : public QWidget
 public:
   CharDomainWidget(QWidget* parent);
 
-  ossia::net::domain_base<char> domain() const;
-  void setDomain(ossia::net::domain);
+  ossia::domain_base<char> domain() const;
+  void setDomain(ossia::domain);
 
 private:
   QLineEdit* m_min{};
