@@ -50,7 +50,7 @@ public:
     setCommonSettings(settings);
     m_valueEdit->setValue(
         State::convert::value<std::array<float, N>>(settings.value));
-    if (settings.domain.get().target<ossia::net::domain_base<float>>())
+    if (settings.domain.get().target<ossia::domain_base<float>>())
     {
       m_domainFloatEdit->setDomain(settings.domain);
       m_domainSelector->setCurrentIndex(0);
@@ -66,7 +66,7 @@ public:
   {
     Device::AddressSettings s;
     s.value.val = std::array<float, N>{};
-    s.domain = ossia::net::make_domain(float{0}, float{1});
+    s.domain = ossia::make_domain(float{0}, float{1});
     return {};
   }
 

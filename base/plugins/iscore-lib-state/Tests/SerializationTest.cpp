@@ -104,68 +104,68 @@ private slots:
   void ossia_domain_serialization_test()
   {
     {
-      ossia::net::domain d;
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
+      ossia::domain d;
+      QCOMPARE(unmarshall<ossia::domain>(marshall<JSONObject>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<DataStream>(d)), d);
     }
 
     {
-      ossia::net::domain d = ossia::net::make_domain(0, 1);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
+      ossia::domain d = ossia::make_domain(0, 1);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<JSONObject>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<DataStream>(d)), d);
     }
 
     {
-      ossia::net::domain d = ossia::net::make_domain(0., 1.);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
+      ossia::domain d = ossia::make_domain(0., 1.);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<JSONObject>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<DataStream>(d)), d);
     }
 
     {
-      ossia::net::domain d = ossia::net::make_domain(false, true);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
+      ossia::domain d = ossia::make_domain(false, true);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<JSONObject>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<DataStream>(d)), d);
     }
 
     {
-      ossia::net::domain d = ossia::net::make_domain('a', 'z');
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
+      ossia::domain d = ossia::make_domain('a', 'z');
+      QCOMPARE(unmarshall<ossia::domain>(marshall<JSONObject>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<DataStream>(d)), d);
     }
 
     {
-      ossia::net::domain d
-          = ossia::net::make_domain(ossia::vec2f{0, 0}, ossia::vec2f{1, 1});
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
+      ossia::domain d
+          = ossia::make_domain(ossia::vec2f{0, 0}, ossia::vec2f{1, 1});
+      QCOMPARE(unmarshall<ossia::domain>(marshall<JSONObject>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<DataStream>(d)), d);
     }
 
     {
-      ossia::net::domain d = ossia::net::make_domain(
+      ossia::domain d = ossia::make_domain(
           ossia::vec3f{0, 0, 0}, ossia::vec3f{1, 1, 1});
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<JSONObject>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<DataStream>(d)), d);
     }
 
     {
-      ossia::net::domain d = ossia::net::make_domain(
+      ossia::domain d = ossia::make_domain(
           ossia::vec4f{0, 0, 0, 0}, ossia::vec4f{1, 1, 1, 1});
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<JSONObject>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<DataStream>(d)), d);
     }
 
     {
-      ossia::net::domain d = ossia::net::make_domain(
+      ossia::domain d = ossia::make_domain(
           std::vector<ossia::value>{0, 'x'},
           std::vector<ossia::value>{1, 'y'});
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<JSONObject>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<DataStream>(d)), d);
     }
 
     {
-      ossia::net::domain d = ossia::net::domain_base<std::string>();
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<JSONObject>(d)), d);
-      QCOMPARE(unmarshall<ossia::net::domain>(marshall<DataStream>(d)), d);
+      ossia::domain d = ossia::domain_base<std::string>();
+      QCOMPARE(unmarshall<ossia::domain>(marshall<JSONObject>(d)), d);
+      QCOMPARE(unmarshall<ossia::domain>(marshall<DataStream>(d)), d);
     }
   }
 };

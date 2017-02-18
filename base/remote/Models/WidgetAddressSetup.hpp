@@ -31,8 +31,8 @@ struct SetSliderAddress
 
   void operator()(int i)
   {
-    auto min = ossia::convert<int>(ossia::net::get_min(address.domain.get()));
-    auto max = ossia::convert<int>(ossia::net::get_max(address.domain.get()));
+    auto min = ossia::convert<int>(ossia::get_min(address.domain.get()));
+    auto max = ossia::convert<int>(ossia::get_max(address.domain.get()));
 
     QQmlProperty(item.item(), "slider.from").write((qreal)min);
     QQmlProperty(item.item(), "slider.to").write((qreal)max);
@@ -45,8 +45,8 @@ struct SetSliderAddress
 
   void operator()(float f)
   {
-    auto min = ossia::convert<float>(ossia::net::get_min(address.domain.get()));
-    auto max = ossia::convert<float>(ossia::net::get_max(address.domain.get()));
+    auto min = ossia::convert<float>(ossia::get_min(address.domain.get()));
+    auto max = ossia::convert<float>(ossia::get_max(address.domain.get()));
 
     QQmlProperty(item.item(), "slider.from").write((qreal)min);
     QQmlProperty(item.item(), "slider.to").write((qreal)max);

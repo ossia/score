@@ -16,10 +16,7 @@ class QObject;
 
 namespace ossia
 {
-namespace net
-{
 struct domain;
-}
 }
 namespace State
 {
@@ -110,16 +107,16 @@ struct ISCORE_PLUGIN_CURVE_EXPORT CurveDomain
   CurveDomain(CurveDomain&&) = default;
   CurveDomain& operator=(const CurveDomain&) = default;
   CurveDomain& operator=(CurveDomain&&) = default;
-  CurveDomain(const ossia::net::domain& dom);
-  CurveDomain(const ossia::net::domain& dom, const State::Value&);
-  CurveDomain(const ossia::net::domain& dom, double start, double end);
+  CurveDomain(const ossia::domain& dom);
+  CurveDomain(const ossia::domain& dom, const State::Value&);
+  CurveDomain(const ossia::domain& dom, double start, double end);
   CurveDomain(double start, double end):
     min{std::min(start, end)},
     max{std::max(start, end)},
     start{start},
     end{end} { }
 
-  void refine(const ossia::net::domain&);
+  void refine(const ossia::domain&);
   void ensureValid();
 
   double min = 0;

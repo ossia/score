@@ -147,9 +147,9 @@ CharDomainWidget::CharDomainWidget(QWidget* parent) : QWidget{parent}
   });
 }
 
-ossia::net::domain_base<char> CharDomainWidget::domain() const
+ossia::domain_base<char> CharDomainWidget::domain() const
 {
-  ossia::net::domain_base<char> dom;
+  ossia::domain_base<char> dom;
 
   auto min = m_min->text();
   if (!min.isEmpty())
@@ -164,13 +164,13 @@ ossia::net::domain_base<char> CharDomainWidget::domain() const
   return dom;
 }
 
-void CharDomainWidget::setDomain(ossia::net::domain dom_base)
+void CharDomainWidget::setDomain(ossia::domain dom_base)
 {
   m_values.clear();
   m_min->clear();
   m_max->clear();
 
-  if (auto dom_p = dom_base.target<ossia::net::domain_base<char>>())
+  if (auto dom_p = dom_base.target<ossia::domain_base<char>>())
   {
     auto& dom = *dom_p;
 

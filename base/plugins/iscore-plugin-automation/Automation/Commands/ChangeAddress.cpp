@@ -31,7 +31,7 @@ ChangeAddress::ChangeAddress(
           newval, iscore::IDocument::documentContext(autom), 0., 1.))
 {
   Curve::CurveDomain c(m_new.domain.get(), m_new.value);
-  m_new.domain.get() = ossia::net::make_domain(c.min, c.max);
+  m_new.domain.get() = ossia::make_domain(c.min, c.max);
 }
 
 ChangeAddress::ChangeAddress(
@@ -41,7 +41,7 @@ ChangeAddress::ChangeAddress(
     , m_new{std::move(newval)}
 {
   Curve::CurveDomain c(m_new.domain.get(), m_new.value);
-  m_new.domain.get() = ossia::net::make_domain(c.min, c.max);
+  m_new.domain.get() = ossia::make_domain(c.min, c.max);
 }
 
 ChangeAddress::ChangeAddress(
@@ -51,11 +51,11 @@ ChangeAddress::ChangeAddress(
   m_new.address = newval.address;
   m_new.domain = newval.domain;
   Curve::CurveDomain c(m_new.domain.get(), m_new.value);
-  m_new.domain.get() = ossia::net::make_domain(c.min, c.max);
+  m_new.domain.get() = ossia::make_domain(c.min, c.max);
   m_new.address.qualifiers.get().unit = newval.unit;
 
   m_old.address = autom.address();
-  m_old.domain = ossia::net::make_domain(autom.min(), autom.max());
+  m_old.domain = ossia::make_domain(autom.min(), autom.max());
 }
 
 void ChangeAddress::undo() const

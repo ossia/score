@@ -219,7 +219,7 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
     const State::AddressAccessor& addr,
     const ossia::value& min,
     const ossia::value& max) noexcept
-    : domain{ossia::net::make_domain(min, max)}, address{addr}
+    : domain{ossia::make_domain(min, max)}, address{addr}
 {
 }
 

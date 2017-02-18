@@ -5,10 +5,7 @@
 
 namespace ossia
 {
-namespace net
-{
 struct domain;
-}
 }
 
 namespace Device
@@ -24,20 +21,20 @@ public:
   Domain& operator=(Domain&& other) noexcept;
   ~Domain();
 
-  Domain(const ossia::net::domain&) noexcept;
-  Domain& operator=(const ossia::net::domain&) noexcept;
+  Domain(const ossia::domain&) noexcept;
+  Domain& operator=(const ossia::domain&) noexcept;
 
-  operator const ossia::net::domain&() const noexcept;
-  operator ossia::net::domain&() noexcept;
+  operator const ossia::domain&() const noexcept;
+  operator ossia::domain&() noexcept;
 
   bool operator==(const Device::Domain& other) const noexcept;
   bool operator!=(const Device::Domain& other) const noexcept;
 
-  const ossia::net::domain& get() const noexcept;
-  ossia::net::domain& get() noexcept;
+  const ossia::domain& get() const noexcept;
+  ossia::domain& get() noexcept;
 
 private:
-  std::unique_ptr<ossia::net::domain> domain;
+  std::unique_ptr<ossia::domain> domain;
 };
 }
 

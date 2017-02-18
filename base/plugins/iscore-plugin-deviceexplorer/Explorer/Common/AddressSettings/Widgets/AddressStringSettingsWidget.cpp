@@ -38,7 +38,7 @@ Device::AddressSettings AddressStringSettingsWidget::getSettings() const
 {
   auto settings = getCommonSettings();
   settings.value.val = m_valueEdit->text().toStdString();
-  settings.domain = ossia::net::domain_base<std::string>{m_values->values()};
+  settings.domain = ossia::domain_base<std::string>{m_values->values()};
   return settings;
 }
 
@@ -54,7 +54,7 @@ void AddressStringSettingsWidget::setSettings(
   m_valueEdit->setText(State::convert::value<QString>(settings.value));
 
   if (auto dom_p
-      = settings.domain.get().target<ossia::net::domain_base<std::string>>())
+      = settings.domain.get().target<ossia::domain_base<std::string>>())
     m_values->setValues(dom_p->values);
   else
     m_values->setValues(State::StringValueSetDialog::set_type{});

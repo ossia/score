@@ -5,18 +5,18 @@
 namespace Device
 {
 
-Domain::Domain() noexcept : domain{std::make_unique<ossia::net::domain>()}
+Domain::Domain() noexcept : domain{std::make_unique<ossia::domain>()}
 {
 }
 
 Domain::Domain(const Domain& other) noexcept
-    : domain{std::make_unique<ossia::net::domain>(*other.domain)}
+    : domain{std::make_unique<ossia::domain>(*other.domain)}
 {
 }
 
 Domain::Domain(Domain&& other) noexcept : domain{std::move(other.domain)}
 {
-  other.domain = std::make_unique<ossia::net::domain>();
+  other.domain = std::make_unique<ossia::domain>();
 }
 
 Domain& Domain::operator=(const Domain& other) noexcept
@@ -35,12 +35,12 @@ Domain::~Domain()
 {
 }
 
-Domain::Domain(const ossia::net::domain& other) noexcept
-    : domain{std::make_unique<ossia::net::domain>(other)}
+Domain::Domain(const ossia::domain& other) noexcept
+    : domain{std::make_unique<ossia::domain>(other)}
 {
 }
 
-Domain& Domain::operator=(const ossia::net::domain& other) noexcept
+Domain& Domain::operator=(const ossia::domain& other) noexcept
 {
   *domain = other;
   return *this;
@@ -56,22 +56,22 @@ bool Domain::operator!=(const Domain& other) const noexcept
   return *domain != *other.domain;
 }
 
-const ossia::net::domain& Domain::get() const noexcept
+const ossia::domain& Domain::get() const noexcept
 {
   return *domain;
 }
 
-ossia::net::domain& Domain::get() noexcept
+ossia::domain& Domain::get() noexcept
 {
   return *domain;
 }
 
-Domain::operator const ossia::net::domain&() const noexcept
+Domain::operator const ossia::domain&() const noexcept
 {
   return *domain;
 }
 
-Domain::operator ossia::net::domain&() noexcept
+Domain::operator ossia::domain&() noexcept
 {
   return *domain;
 }
