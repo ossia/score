@@ -14,7 +14,7 @@
 namespace Scenario
 {
 
-bool DropProcessInScenario::handle(
+bool DropProcessInScenario::drop(
     const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData* mime)
 {
   if (mime->formats().contains(iscore::mime::processdata()))
@@ -79,7 +79,7 @@ bool DropProcessInScenario::handle(
   }
 }
 
-bool DropProcessInConstraint::handle(
+bool DropProcessInConstraint::drop(
     const ConstraintModel& cst, const QMimeData* mime)
 {
   if (mime->formats().contains(iscore::mime::processdata()))
@@ -132,7 +132,7 @@ static void getAddressesRecursively(
   }
 }
 
-bool AutomationDropHandler::handle(
+bool AutomationDropHandler::drop(
     const ConstraintModel& cst, const QMimeData* mime)
 {
   // TODO refactor with AddressEditWidget

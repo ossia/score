@@ -8,7 +8,8 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <State/MessageListSerialization.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -17,7 +18,96 @@
 
 namespace Scenario
 {
-bool MessageDropHandler::handle(
+static Scenario::StateModel* closestLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario)
+{
+  TimeNodeModel* cur_tn = &scenario.startTimeNode();
+  for(auto& tn : scenario.timeNodes)
+  {
+    auto date = tn.date();
+    if(date > cur_tn->date() && date < pt.date)
+    {
+      cur_tn = &tn;
+    }
+  }
+
+  auto states = Scenario::states(*cur_tn, scenario);
+  if(!states.empty())
+  {
+    auto cur_st = &scenario.states.at(states.front());
+    for(auto state_id : states)
+    {
+      auto& state = scenario.states.at(state_id);
+      if(std::abs(state.heightPercentage() - pt.y) < std::abs(cur_st->heightPercentage() - pt.y))
+      {
+        cur_st = &state;
+      }
+    }
+    return cur_st;
+  }
+  return nullptr;
+}
+
+
+static Scenario::StateModel* magneticLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario)
+{
+  Scenario::StateModel* cur_st = &*scenario.states.begin();
+
+  for(auto& state : scenario.states)
+  {
+      if(std::abs(state.heightPercentage() - pt.y) < std::abs(cur_st->heightPercentage() - pt.y))
+      {
+        auto& new_ev = scenario.event(state.eventId());
+        if(new_ev.date() < pt.date)
+          cur_st = &state;
+      }
+  }
+  return cur_st;
+}
+
+
+bool MessageDropHandler::dragEnter(
+    const Scenario::TemporalScenarioPresenter& pres,
+    QPointF pos,
+    const QMimeData* mime)
+{
+  return dragMove(pres, pos, mime);
+}
+
+bool MessageDropHandler::dragMove(
+    const Scenario::TemporalScenarioPresenter& pres,
+    QPointF pos,
+    const QMimeData* mime)
+{
+  if (!mime->formats().contains(iscore::mime::messagelist()))
+    return false;
+
+  auto pt = pres.toScenarioPoint(pos);
+  auto st = closestLeftState(pt, pres.processModel());
+  if(st)
+  {
+    if (st->nextConstraint())
+    {
+      pres.drawDragLine(*st, pt);
+    }
+    else
+    {
+      // Sequence
+      pres.drawDragLine(*st, {pt.date, st->heightPercentage()});
+    }
+  }
+  return true;
+}
+
+bool MessageDropHandler::dragLeave(
+    const Scenario::TemporalScenarioPresenter& pres,
+    QPointF pos,
+    const QMimeData* mime)
+{
+  pres.stopDrawDragLine();
+  return false;
+}
+
+bool MessageDropHandler::drop(
     const Scenario::TemporalScenarioPresenter& pres,
     QPointF pos,
     const QMimeData* mime)
@@ -26,6 +116,8 @@ bool MessageDropHandler::handle(
   // If the mime data has states in it we can handle it.
   if (!mime->formats().contains(iscore::mime::messagelist()))
     return false;
+
+  pres.stopDrawDragLine();
 
   Mime<State::MessageList>::Deserializer des{*mime};
   State::MessageList ml = des.deserialize();
@@ -38,8 +130,8 @@ bool MessageDropHandler::handle(
 
   Scenario::Point pt = pres.toScenarioPoint(pos);
 
-  auto state = furthestSelectedState(scenar);
-  if (state && (scenar.events.at(state->eventId()).date() < pt.date))
+  auto state = closestLeftState(pt, scenar);
+  if (state)
   {
     if (state->nextConstraint())
     {

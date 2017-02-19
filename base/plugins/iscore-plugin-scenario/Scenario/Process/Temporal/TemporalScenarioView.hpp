@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/LayerView.hpp>
+#include <iscore/tools/std/Optional.hpp>
 #include <QPoint>
 #include <QRect>
 
@@ -36,6 +37,8 @@ public:
     m_pres = pres;
   }
 
+  void drawDragLine(QPointF, QPointF);
+  void stopDrawDragLine();
 signals:
   void pressed(QPointF);
   void released(QPointF);
@@ -50,6 +53,9 @@ signals:
 
   // Screen pos, scene pos
   void askContextMenu(const QPoint&, const QPointF&);
+  void dragEnter(const QPointF& pos, const QMimeData*);
+  void dragMove(const QPointF& pos, const QMimeData*);
+  void dragLeave(const QPointF& pos, const QMimeData*);
   void dropReceived(const QPointF& pos, const QMimeData*);
 
 public slots:
@@ -81,12 +87,16 @@ protected:
   void keyPressEvent(QKeyEvent* event) override;
   void keyReleaseEvent(QKeyEvent* event) override;
 
+  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
 private:
   TemporalScenarioPresenter* m_pres{};
   QRectF m_selectArea{};
   QPointF m_previousPoint{};
+  iscore::optional<QRectF> m_dragLine{};
   bool m_lock{};
 };
 }

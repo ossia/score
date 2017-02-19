@@ -16,7 +16,19 @@ public:
   virtual ~DropHandler();
 
   // Returns false if not handled.
-  virtual bool handle(
+  virtual bool dragEnter(
+      const Scenario::TemporalScenarioPresenter&,
+      QPointF pos,
+      const QMimeData* mime) { return false; }
+  virtual bool dragMove(
+      const Scenario::TemporalScenarioPresenter&,
+      QPointF pos,
+      const QMimeData* mime) { return false; }
+  virtual bool dragLeave(
+      const Scenario::TemporalScenarioPresenter&,
+      QPointF pos,
+      const QMimeData* mime) { return false; }
+  virtual bool drop(
       const Scenario::TemporalScenarioPresenter&,
       QPointF pos,
       const QMimeData* mime)
@@ -28,7 +40,19 @@ class DropHandlerList final : public iscore::InterfaceList<DropHandler>
 public:
   virtual ~DropHandlerList();
 
-  bool handle(
+  bool dragEnter(
+      const TemporalScenarioPresenter& scen,
+      QPointF pos,
+      const QMimeData* mime) const;
+  bool dragMove(
+      const TemporalScenarioPresenter& scen,
+      QPointF pos,
+      const QMimeData* mime) const;
+  bool dragLeave(
+      const TemporalScenarioPresenter&,
+      QPointF pos,
+      const QMimeData* mime) const;
+  bool drop(
       const TemporalScenarioPresenter& scen,
       QPointF pos,
       const QMimeData* mime) const;
@@ -43,7 +67,7 @@ public:
   virtual ~ConstraintDropHandler();
 
   // Returns false if not handled.
-  virtual bool handle(const Scenario::ConstraintModel&, const QMimeData* mime)
+  virtual bool drop(const Scenario::ConstraintModel&, const QMimeData* mime)
       = 0;
 };
 
@@ -53,6 +77,6 @@ class ConstraintDropHandlerList final
 public:
   virtual ~ConstraintDropHandlerList();
 
-  bool handle(const Scenario::ConstraintModel&, const QMimeData* mime) const;
+  bool drop(const Scenario::ConstraintModel&, const QMimeData* mime) const;
 };
 }

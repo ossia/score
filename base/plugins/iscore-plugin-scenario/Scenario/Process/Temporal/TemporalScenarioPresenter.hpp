@@ -162,6 +162,9 @@ public:
   {
     return QObject::event(e);
   }
+
+  void drawDragLine(const Scenario::StateModel&, Scenario::Point) const;
+  void stopDrawDragLine() const;
 signals:
   void linesExtremityScaled(int, int);
 

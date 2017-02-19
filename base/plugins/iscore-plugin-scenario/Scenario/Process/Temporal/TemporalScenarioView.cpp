@@ -43,6 +43,30 @@ void TemporalScenarioView::paint_impl(QPainter* painter) const
     painter->setCompositionMode(
         QPainter::CompositionMode::CompositionMode_SourceOver);
   }
+
+  if(m_dragLine)
+  {
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    const QRectF& rec = *m_dragLine;
+    painter->setPen(QPen{Qt::gray, 2, Qt::DashLine});
+    painter->drawLine(rec.topLeft(), rec.bottomLeft());
+    painter->drawLine(rec.bottomLeft(), rec.bottomRight());
+    painter->drawEllipse(rec.bottomRight(), 3, 3);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+  }
+}
+
+void TemporalScenarioView::drawDragLine(QPointF left, QPointF right)
+{
+  m_dragLine = QRectF(left, right);
+
+  update();
+}
+
+
+void TemporalScenarioView::stopDrawDragLine()
+{
+  m_dragLine = iscore::none;
 }
 
 void TemporalScenarioView::movedAsked(const QPointF& p)
@@ -122,6 +146,27 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent* event)
        }
    }
    */
+
+  event->accept();
+}
+
+void TemporalScenarioView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+  emit dragEnter(event->pos(), event->mimeData());
+
+  event->accept();
+}
+
+void TemporalScenarioView::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  emit dragMove(event->pos(), event->mimeData());
+
+  event->accept();
+}
+
+void TemporalScenarioView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  emit dragLeave(event->pos(), event->mimeData());
 
   event->accept();
 }

@@ -11,14 +11,56 @@ DropHandlerList::~DropHandlerList()
 {
 }
 
-bool DropHandlerList::handle(
+bool DropHandlerList::dragEnter(
     const TemporalScenarioPresenter& scen,
     QPointF drop,
     const QMimeData* mime) const
 {
   for (auto& fact : *this)
   {
-    if (fact.handle(scen, drop, mime))
+    if (fact.dragEnter(scen, drop, mime))
+      return true;
+  }
+
+  return false;
+}
+
+bool DropHandlerList::dragMove(
+    const TemporalScenarioPresenter& scen,
+    QPointF drop,
+    const QMimeData* mime) const
+{
+  for (auto& fact : *this)
+  {
+    if (fact.dragMove(scen, drop, mime))
+      return true;
+  }
+
+  return false;
+}
+
+bool DropHandlerList::dragLeave(
+    const TemporalScenarioPresenter& scen,
+    QPointF drop,
+    const QMimeData* mime) const
+{
+  for (auto& fact : *this)
+  {
+    if (fact.dragLeave(scen, drop, mime))
+      return true;
+  }
+
+  return false;
+}
+
+bool DropHandlerList::drop(
+    const TemporalScenarioPresenter& scen,
+    QPointF drop,
+    const QMimeData* mime) const
+{
+  for (auto& fact : *this)
+  {
+    if (fact.drop(scen, drop, mime))
       return true;
   }
 
@@ -33,12 +75,12 @@ ConstraintDropHandlerList::~ConstraintDropHandlerList()
 {
 }
 
-bool ConstraintDropHandlerList::handle(
+bool ConstraintDropHandlerList::drop(
     const Scenario::ConstraintModel& cst, const QMimeData* mime) const
 {
   for (auto& fact : *this)
   {
-    if (fact.handle(cst, mime))
+    if (fact.drop(cst, mime))
       return true;
   }
 
