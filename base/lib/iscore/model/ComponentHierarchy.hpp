@@ -214,7 +214,7 @@ public:
 
   void add(ChildModel_T& element)
   {
-    add(element,
+    add_impl(element,
         typename iscore::is_component_serializable<ChildComponent_T>::type{});
   }
 
@@ -245,14 +245,16 @@ public:
   }
 
 private:
-  void add(ChildModel_T& model, iscore::serializable_tag)
+  // TODO remove these useless templates when MSVC grows some brains
+  template<typename TheChild>
+  void add_impl(TheChild& model, iscore::serializable_tag)
   {
     // Will return a factory for the given process if available
     if (auto factory = m_componentFactory.factory(model))
     {
       // Since the component may be serializable, we first look if
       // we can deserialize it.
-      auto comp = iscore::deserialize_component<ChildComponent_T>(
+      ChildComponent_T* comp = iscore::deserialize_component<ChildComponent_T>(
             model.components(),
             [&] (auto&& deserializer) {
         ParentComponent_T::template load<ChildComponent_T>(deserializer, *factory, model);
@@ -274,7 +276,8 @@ private:
     }
   }
 
-  void add(ChildModel_T& model, iscore::not_serializable_tag)
+  template<typename TheChild>
+  void add_impl(TheChild& model, iscore::not_serializable_tag)
   {
     // Will return a factory for the given process if available
     if (auto factory = m_componentFactory.factory(model))
