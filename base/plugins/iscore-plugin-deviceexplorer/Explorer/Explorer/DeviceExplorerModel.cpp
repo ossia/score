@@ -213,7 +213,7 @@ void DeviceExplorerModel::updateAddress(
 
   emit dataChanged(
       modelIndexFromNode(*node, 0),
-      modelIndexFromNode(*node, (int)Column::Count));
+      modelIndexFromNode(*node, (int)Column::Count - 1));
 }
 
 void DeviceExplorerModel::updateValue(
