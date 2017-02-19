@@ -247,12 +247,9 @@ void OSSIADevice::removeNode(const State::Address& address)
   {
     ossia::net::node_base* node
         = Engine::iscore_to_ossia::getNodeFromPath(address.path, *dev);
+
     auto parent = node->getParent();
-    const auto& parentChildren = node->getParent()->children();
-    auto it = std::find_if(
-          parentChildren.begin(), parentChildren.end(),
-          [&](auto&& elt) { return elt.get() == node; });
-    if (it != parentChildren.end())
+    if(parent->hasChild(node))
     {
       /* If we are listening to this node, we recursively
        * remove listening to all the children. */

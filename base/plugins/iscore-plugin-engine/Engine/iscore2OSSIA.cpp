@@ -119,12 +119,9 @@ findNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
   ossia::net::node_base* node = &dev.getRootNode();
   for (int i = 0; i < path.size(); i++)
   {
-    const auto& children = node->children();
-    auto it = ossia::find_if(children, [&](const auto& ossia_node) {
-      return ossia_node->getName() == path[i].toStdString();
-    });
-    if (it != children.end())
-      node = it->get();
+    auto cld = node->findChild(path[i].toStdString());
+    if (cld)
+      node = cld;
     else
     {
       qDebug() << "looking for" << path
@@ -145,15 +142,11 @@ getNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
   const int n = path.size();
   for (int i = 0; i < n ; i++)
   {
-    const auto& children = node->children();
+    auto cld = node->findChild(path[i].toStdString());
 
-    auto it = ossia::find_if(children, [&](const auto& ossia_node) {
-      return ossia_node->getName() == path[i].toStdString();
-    });
+    ISCORE_ASSERT(cld);
 
-    ISCORE_ASSERT(it != children.end());
-
-    node = it->get();
+    node = cld;
   }
 
   ISCORE_ASSERT(node);
