@@ -4,8 +4,8 @@ cd /image
 BINUTILS=binutils-2.27
 MPC=mpc-1.0.3
 MPFR=mpfr-3.1.5
-GMP=gmp-6.1.1
-GCC=gcc-6.2.0
+GMP=gmp-6.1.2
+GCC=gcc-6.3.0
 ISL=isl-0.16.1
 CLOOG=cloog-0.18.4
 

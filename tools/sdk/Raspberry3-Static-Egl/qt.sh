@@ -29,7 +29,7 @@ mkdir qt5-build-static
                    -static \
                    -no-compile-examples \
                    -ltcg \
-		   -strip \
+                   -strip \
                    -opengl es2 \
                    -device linux-rpi3-g++ \
                    -prefix /opt/qt5-static \
@@ -52,7 +52,7 @@ mkdir qt5-build-dynamic
                    -nomake tests \
                    -no-compile-examples \
                    -ltcg \
-	           -strip \
+                   -strip \
                    -opengl es2 \
                    -device linux-rpi3-g++ \
                    -prefix /opt/qt5-dynamic \
