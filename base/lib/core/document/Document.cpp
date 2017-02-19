@@ -78,11 +78,13 @@ void Document::init()
 {
   con(m_selectionStack, &SelectionStack::currentSelectionChanged, this,
       [&](const Selection& s) {
+        Selection filtered = s;
+        filtered.removeAll(nullptr);
         for (auto& panel : m_context.app.panels())
         {
-          panel.setNewSelection(s);
+          panel.setNewSelection(filtered);
         }
-        m_model->setNewSelection(s);
+        m_model->setNewSelection(filtered);
       }, Qt::QueuedConnection);
 
   m_documentUpdateTimer.setInterval(16); // 30 hz

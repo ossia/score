@@ -43,6 +43,8 @@ public:
   void activate(Curve::Tool);
   void desactivate(Curve::Tool);
 
+  // From double-click :
+  void createPoint(QPointF);
 private:
   Curve::Point ScenePointToCurvePoint(const QPointF& point)
   {

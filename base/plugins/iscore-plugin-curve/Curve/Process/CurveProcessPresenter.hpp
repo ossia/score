@@ -56,6 +56,9 @@ public:
                 : focused() ? Curve::Tool::Select : Curve::Tool::Disabled);
         });
 
+    connect(&m_curvepresenter->view(), &View::doubleClick,
+            this, [this] (QPointF pt) { m_sm.createPoint(pt); });
+
     parentGeometryChanged();
   }
 
@@ -136,6 +139,7 @@ public:
   {
     m_curvepresenter->fillContextMenu(menu, pos, scenepos);
   }
+
 
 protected:
   const LayerModel_T& m_layer;

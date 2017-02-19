@@ -61,6 +61,7 @@ QRectF PointView::boundingRect() const
 void PointView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  painter->setRenderHint(QPainter::Antialiasing, true);
   if(!m_selected)
   {
     painter->setPen(m_style.PenPoint);
@@ -73,6 +74,7 @@ void PointView::paint(
   }
 
   painter->drawEllipse(ellipse);
+  painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
 void PointView::setSelected(bool selected)

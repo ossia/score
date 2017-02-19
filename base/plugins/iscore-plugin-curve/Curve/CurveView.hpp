@@ -41,6 +41,7 @@ signals:
   void pressed(QPointF);
   void moved(QPointF);
   void released(QPointF);
+  void doubleClick(QPointF);
 
   void escPressed();
 
@@ -51,6 +52,7 @@ signals:
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
 

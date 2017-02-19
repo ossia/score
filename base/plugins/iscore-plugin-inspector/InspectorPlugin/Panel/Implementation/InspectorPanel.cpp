@@ -41,9 +41,11 @@ InspectorPanelWidget::InspectorPanelWidget(
 void InspectorPanelWidget::newItemsInspected(const Selection& objects)
 {
   QList<const IdentifiedObjectAbstract*> selectedObj;
+  selectedObj.reserve(objects.size());
   for (auto elt : objects)
   {
-    selectedObj.append(elt);
+    if(elt)
+      selectedObj.append(elt);
   }
 
   if (m_currentInspector)
@@ -53,7 +55,7 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
   }
 
   // All the objects selected ought to be in the same document.
-  if (!objects.empty())
+  if (!selectedObj.empty())
   {
     auto& doc = iscore::IDocument::documentContext(*selectedObj.first());
 

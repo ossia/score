@@ -116,7 +116,6 @@ private:
 
   void setupPointConnections(PointView*);
   void setupSegmentConnections(SegmentView*);
-
   void modelReset();
 
   const SegmentList& m_curveSegments;
