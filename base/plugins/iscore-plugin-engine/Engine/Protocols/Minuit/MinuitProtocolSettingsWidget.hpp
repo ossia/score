@@ -31,6 +31,7 @@ protected:
   QSpinBox* m_portInputSBox{};
   QSpinBox* m_portOutputSBox{};
   QLineEdit* m_localHostEdit{};
+  QLineEdit* m_localNameEdit{};
 
   ZeroconfBrowser* m_browser{};
 };
