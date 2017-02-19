@@ -58,13 +58,11 @@ void TimeNodeView::paint(
     pen_color = m_color.getColor();
   }
 
-  skin.TimenodeBrush.setColor(pen_color);
-  skin.TimenodePen.setBrush(skin.TimenodeBrush);
+  skin.TimenodePen.setColor(pen_color);
   painter->setPen(skin.TimenodePen);
 
-  painter->fillRect(
-      QRectF(QPointF(-1, 0), QPointF(1, m_extent.bottom() - m_extent.top())),
-      skin.TimenodeBrush);
+  painter->drawLine(
+      QPointF(0, 0), QPointF(0, m_extent.bottom() - m_extent.top()));
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
   painter->setPen(Qt::darkMagenta);

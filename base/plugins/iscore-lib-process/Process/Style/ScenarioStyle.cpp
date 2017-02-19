@@ -103,7 +103,8 @@ void ScenarioStyle::initPens()
       = QPen{Qt::black, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   ConstraintPlayPen
       = QPen{Qt::black, 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-  TimenodePen = QPen{Qt::black, 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  TimenodePen = QPen{Qt::black, 2, Qt::DotLine, Qt::SquareCap, Qt::MiterJoin};
+
   TimenodeBrush = QBrush{Qt::black};
   StateTemporalPointBrush = QBrush{Qt::black};
   StateBrush = QBrush{Qt::black};
