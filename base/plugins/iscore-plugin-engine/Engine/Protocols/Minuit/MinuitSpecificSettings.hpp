@@ -11,6 +11,7 @@ struct MinuitSpecificSettings
   int inputPort{};
   int outputPort{};
   QString host;
+  QString localName;
 };
 }
 }
