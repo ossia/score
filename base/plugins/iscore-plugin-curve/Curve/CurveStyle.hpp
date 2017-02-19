@@ -11,6 +11,17 @@ namespace Curve
 {
 struct ISCORE_PLUGIN_CURVE_EXPORT Style
 {
+  // TODO removeme when msvc starts knowing C++
+  Style(const QColor& c1, const QColor& c2, const QColor& c3, const QColor& c4, const QColor& c5):
+    Point{c1},
+    PointSelected{c2},
+    Segment{c3},
+    SegmentSelected{c4},
+    SegmentDisabled{c5}
+  {
+
+  }
+
   const QColor& Point;         //{128, 215, 62}; // Tender3
   const QColor& PointSelected; //{233, 208, 89}; // Emphasis2
 
