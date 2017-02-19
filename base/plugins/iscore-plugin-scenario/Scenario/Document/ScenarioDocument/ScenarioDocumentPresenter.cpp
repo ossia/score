@@ -280,6 +280,7 @@ void ScenarioDocumentPresenter::on_timeRulerScrollEvent(
 
 void ScenarioDocumentPresenter::on_viewSizeChanged(QSize)
 {
+  QTimer::singleShot(0, this, [&] {
   auto& gv = view().view();
   auto zoom = ZoomPolicy::sliderPosToZoomRatio(
       view().zoomSlider()->value(),
@@ -292,6 +293,7 @@ void ScenarioDocumentPresenter::on_viewSizeChanged(QSize)
   // update the center of view
   displayedConstraint().fullView()->setVisibleRect(
       gv.mapToScene(gv.viewport()->rect()).boundingRect());
+  });
 }
 
 void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
