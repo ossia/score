@@ -332,11 +332,11 @@ ExpressionEditorComparators()
 {
   static const std::map<ExpressionEditorComparator, QString> map{
       {ExpressionEditorComparator::Equal, "="},
-      {ExpressionEditorComparator::Different, QString::fromUtf8("\u2260")},
+      {ExpressionEditorComparator::Different, QString::fromUtf8("≠")},
       {ExpressionEditorComparator::Greater, ">"},
       {ExpressionEditorComparator::Lower, "<"},
-      {ExpressionEditorComparator::GreaterEqual, QString::fromUtf8("\u2265")},
-      {ExpressionEditorComparator::LowerEqual, QString::fromUtf8("\u2264")},
+      {ExpressionEditorComparator::GreaterEqual, QString::fromUtf8("≥")},
+      {ExpressionEditorComparator::LowerEqual, QString::fromUtf8("≤")},
       {ExpressionEditorComparator::Pulse, "Pulse"},
       {ExpressionEditorComparator::AlwaysTrue, "True"},
       {ExpressionEditorComparator::AlwaysFalse, "False"}};
