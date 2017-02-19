@@ -195,7 +195,7 @@ public:
       duration *= m_currentCurveMax;
 
     m_zoomRatio
-        = mapZoom(1.0 - newzoom, 1.5, std::max(5., 2 * duration / m_width));
+        = mapZoom(1.0 - newzoom, 1.5, std::max(5., 2 * duration) / m_width);
 
     recompute();
   }
@@ -223,7 +223,7 @@ private:
     m_view->setSceneRect({0, 0, maxWidth, m_height});
 
     m_curveView->setRect({0, 0, maxWidth, m_height});
-    m_curvePresenter->setRect(QRectF{0, 0, fullWidth * 1.2, m_height});
+    m_curvePresenter->setRect(QRectF{0, 0, fullWidth, m_height});
   }
 
   double m_currentCurveMax{};
