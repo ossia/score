@@ -18,8 +18,10 @@ class DeviceExplorerModel;
 }
 namespace Recording
 {
-struct RecordContext
+struct RecordContext : public QObject
 {
+  Q_OBJECT
+public:
   using clock = std::chrono::steady_clock;
   RecordContext(const Scenario::ProcessModel&, Scenario::Point pt);
   RecordContext(const RecordContext& other) = delete;
@@ -30,7 +32,7 @@ struct RecordContext
   void start()
   {
     firstValueTime = clock::now();
-    timer.start();
+    emit startTimer();
   }
 
   bool started() const
@@ -56,6 +58,14 @@ struct RecordContext
   Scenario::Point point;
   clock::time_point firstValueTime;
   QTimer timer;
+
+signals:
+  void startTimer();
+public slots:
+  void on_startTimer()
+  {
+    timer.start();
+  }
 };
 
 struct RecordProvider
