@@ -78,7 +78,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
   con(v, &TemporalConstraintView::dropReceived, this,
       [=](const QPointF& pos, const QMimeData* mime) {
         m_context.app.interfaces<Scenario::ConstraintDropHandlerList>()
-            .handle(m_viewModel.model(), mime);
+            .drop(m_viewModel.model(), mime);
       });
 
   // Header set-up
@@ -98,7 +98,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
       header, &TemporalConstraintHeader::dropReceived, this,
       [=](const QPointF& pos, const QMimeData* mime) {
         m_context.app.interfaces<Scenario::ConstraintDropHandlerList>()
-            .handle(m_viewModel.model(), mime);
+            .drop(m_viewModel.model(), mime);
       });
   // Go to full-view on double click
   connect(header, &TemporalConstraintHeader::doubleClicked, this, [this]() {

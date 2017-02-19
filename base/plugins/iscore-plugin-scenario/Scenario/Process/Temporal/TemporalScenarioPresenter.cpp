@@ -133,12 +133,51 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
       m_view, &TemporalScenarioView::askContextMenu, this,
       &TemporalScenarioPresenter::contextMenuRequested);
   connect(
+        m_view, &TemporalScenarioView::dragEnter, this,
+        [=](const QPointF& pos, const QMimeData* mime) {
+    try
+    {
+      m_context.context.app.interfaces<Scenario::DropHandlerList>()
+          .dragEnter(*this, pos, mime);
+    }
+    catch (std::exception& e)
+    {
+      qDebug() << "Error during dragEnter: " << e.what();
+    }
+  });
+  connect(
+        m_view, &TemporalScenarioView::dragMove, this,
+        [=](const QPointF& pos, const QMimeData* mime) {
+    try
+    {
+      m_context.context.app.interfaces<Scenario::DropHandlerList>()
+          .dragMove(*this, pos, mime);
+    }
+    catch (std::exception& e)
+    {
+      qDebug() << "Error during dragMove: " << e.what();
+    }
+  });
+  connect(
+        m_view, &TemporalScenarioView::dragLeave, this,
+        [=](const QPointF& pos, const QMimeData* mime) {
+    try
+    {
+      m_context.context.app.interfaces<Scenario::DropHandlerList>()
+          .dragLeave(*this, pos, mime);
+    }
+    catch (std::exception& e)
+    {
+      qDebug() << "Error during dragLeave: " << e.what();
+    }
+  });
+  connect(
       m_view, &TemporalScenarioView::dropReceived, this,
       [=](const QPointF& pos, const QMimeData* mime) {
         try
         {
           m_context.context.app.interfaces<Scenario::DropHandlerList>()
-              .handle(*this, pos, mime);
+              .drop(*this, pos, mime);
         }
         catch (std::exception& e)
         {
@@ -285,6 +324,17 @@ void TemporalScenarioPresenter::fillContextMenu(
   });
 
   menu.addAction(createCommentAct);
+}
+
+void TemporalScenarioPresenter::drawDragLine(const StateModel& st, Point pt) const
+{
+  auto& real_st = m_states.at(st.id());
+  m_view->drawDragLine(real_st.view()->pos(), { pt.date.toPixels(m_zoomRatio), pt.y * m_view->height() });
+}
+
+void TemporalScenarioPresenter::stopDrawDragLine() const
+{
+  m_view->stopDrawDragLine();
 }
 
 template <typename Map, typename Id>
