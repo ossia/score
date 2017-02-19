@@ -6,7 +6,7 @@ set -o pipefail
 yum -y update
 yum -y install epel-release centos-release-scl-rh
 yum -y update
-yum -y install libmpc gcc sudo wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 libXrender fontconfig freetype xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm libXi alsa-lib-devel git wget make binutils fuse glibc-devel glib2-devel libarchive3-devel fuse-devel zlib-devel patch openssl-static openssl-devel vim-common 
+yum -y install libmpc gcc sudo wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 libXrender fontconfig freetype xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm libXi alsa-lib-devel git wget make binutils fuse glibc-devel glib2-devel libarchive3-devel fuse-devel zlib-devel patch openssl-static openssl-devel vim-common python-devel
 
 git_pull_rebase_helper()
 {
@@ -20,7 +20,7 @@ wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/6.0-osx/i-score-s
 tar -xaf i-score-sdk.txz --directory /
 cp -rf /usr/local/lib64/* /usr/lib64/
 
-export BOOST_VER=62
+export BOOST_VER=63
 wget -nv "http://downloads.sourceforge.net/project/boost/boost/1.${BOOST_VER}.0/boost_1_${BOOST_VER}_0.tar.bz2"
 tar -xaf "boost_1_${BOOST_VER}_0.tar.bz2"
 mv "boost_1_${BOOST_VER}_0" boost
