@@ -16,5 +16,8 @@ RecordContext::RecordContext(
     , point{pt}
 
 {
+  connect(this, &RecordContext::startTimer,
+          this, &RecordContext::on_startTimer,
+          Qt::QueuedConnection);
 }
 }

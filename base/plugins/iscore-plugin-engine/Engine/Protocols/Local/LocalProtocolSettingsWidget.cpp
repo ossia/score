@@ -40,7 +40,7 @@ Device::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s = LocalProtocolFactory::static_defaultSettings();
   // TODO *** protocol was never being set here. Check everywhere.! ***
-  s.name = "iscore";
+  s.name = "i-score";
   Network::LocalSpecificSettings local;
   local.host = m_localHostEdit->text();
   local.remoteName = m_remoteNameEdit->text();
