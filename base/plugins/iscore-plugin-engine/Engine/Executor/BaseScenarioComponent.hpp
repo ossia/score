@@ -7,7 +7,7 @@
 #include <iscore_plugin_engine_export.h>
 namespace ossia
 {
-class time_value;
+struct time_value;
 }
 
 namespace Scenario
