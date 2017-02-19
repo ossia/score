@@ -114,4 +114,14 @@ void ToolPalette::activate(Curve::Tool)
 void ToolPalette::desactivate(Curve::Tool)
 {
 }
+
+void ToolPalette::createPoint(QPointF point)
+{
+  scenePoint = point;
+  auto curvePoint
+      = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
+
+  m_createTool.on_pressed(point, curvePoint);
+  m_createTool.on_released(point, curvePoint);
+}
 }

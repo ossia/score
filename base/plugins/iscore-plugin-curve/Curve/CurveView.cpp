@@ -45,6 +45,13 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
+void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  if (event->button() == Qt::LeftButton)
+    emit doubleClick(event->scenePos());
+  event->accept();
+}
+
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   emit moved(event->scenePos());

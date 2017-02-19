@@ -333,7 +333,7 @@ void Presenter::setupSegmentConnections(SegmentView* seg_view)
 {
   connect(
       seg_view, &SegmentView::contextMenuRequested, m_view,
-      &View::contextMenuRequested);
+        &View::contextMenuRequested);
 }
 
 void Presenter::modelReset()
