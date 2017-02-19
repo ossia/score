@@ -16,6 +16,7 @@
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <QApplication>
 #include <QFinalState>
@@ -290,25 +291,25 @@ private:
     const auto& scenar = this->m_parentSM.model();
     if (!this->clickedState)
       return;
+    bool sequence = this->m_parentSM.editionSettings().sequence();
+    bool new_event = qApp->keyboardModifiers() & Qt::ALT;
     auto& st = scenar.state(*this->clickedState);
-    if (!this->m_parentSM.editionSettings().sequence())
+    if(new_event && !sequence)
     {
-      // Create new state on the event
-      auto cmd = new Scenario::Command::CreateState{
-          this->m_scenarioPath, st.eventId(), this->currentPoint.y};
+      // Create new event on the timenode
+      auto tn = Scenario::parentEvent(st, scenar).timeNode();
+      auto cmd = new Scenario::Command::CreateEvent_State{
+          this->m_scenarioPath, tn, this->currentPoint.y};
       this->m_dispatcher.submitCommand(cmd);
 
+      this->createdEvents.append(cmd->createdEvent());
       this->createdStates.append(cmd->createdState());
       fun(this->createdStates.first());
+
     }
     else
     {
-      if (!st.nextConstraint()) // TODO & deltaY < deltaX
-      {
-        this->currentPoint.y = st.heightPercentage();
-        fun(*this->clickedState);
-      }
-      else
+      if (!sequence)
       {
         // Create new state on the event
         auto cmd = new Scenario::Command::CreateState{
@@ -317,7 +318,25 @@ private:
 
         this->createdStates.append(cmd->createdState());
         fun(this->createdStates.first());
-        // create a single state on the same event (deltaY > deltaX)
+      }
+      else
+      {
+        if (!st.nextConstraint()) // TODO & deltaY < deltaX
+        {
+          this->currentPoint.y = st.heightPercentage();
+          fun(*this->clickedState);
+        }
+        else
+        {
+          // Create new state on the event
+          auto cmd = new Scenario::Command::CreateState{
+              this->m_scenarioPath, st.eventId(), this->currentPoint.y};
+          this->m_dispatcher.submitCommand(cmd);
+
+          this->createdStates.append(cmd->createdState());
+          fun(this->createdStates.first());
+          // create a single state on the same event (deltaY > deltaX)
+        }
       }
     }
   }
