@@ -88,7 +88,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       &ScenarioDocumentPresenter::on_zoomSliderChanged);
 
   con(iscore::GUIAppContext().mainWindow, SIGNAL(sizeChanged(QSize)),
-      this, SLOT(on_viewSizeChanged(QSize)));
+      this, SLOT(on_viewSizeChanged(QSize)), Qt::QueuedConnection);
   con(view().view(), &ProcessGraphicsView::zoom, this,
       &ScenarioDocumentPresenter::on_zoomOnWheelEvent);
   con(view(), &ScenarioDocumentView::horizontalPositionChanged, this,

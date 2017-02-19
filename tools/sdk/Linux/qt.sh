@@ -55,7 +55,7 @@ mkdir qt5-build
                    -dbus-linked \
                    -no-gstreamer \
                    -no-system-proxies \
-                   -skip qtwayland -skip webkit -skip wayland -skip qtscript -skip qtwebkit -skip qtwebengine -skip qtgamepad
+                   -skip qtwayland -skip webkit -skip wayland -skip qtscript -skip qtwebkit -skip qtwebengine -skip qtgamepad -skip qtenginio
 
   make -j$NPROC
   make install -j$NPROC
