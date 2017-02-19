@@ -6,7 +6,6 @@
 
 #include "MinuitSpecificSettings.hpp"
 
-
 template <>
 void DataStreamReader::read(
     const Engine::Network::MinuitSpecificSettings& n)

@@ -175,12 +175,12 @@ Q_DECLARE_METATYPE(ObjectPath)
 namespace boost
 {
 template<>
-struct hash<ObjectIdentifier>
+struct ISCORE_LIB_BASE_EXPORT hash<ObjectIdentifier>
 {
   std::size_t operator()(const ObjectIdentifier& path) const;
 };
 template<>
-struct hash<ObjectPath>
+struct ISCORE_LIB_BASE_EXPORT hash<ObjectPath>
 {
   std::size_t operator()(const ObjectPath& path) const;
 };
