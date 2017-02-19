@@ -113,46 +113,6 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
   using namespace iscore;
   GUIElements e;
 
-  {
-    m_selectAll = new QAction{tr("Select all"), this};
-    m_selectAll->setToolTip("Ctrl+a");
-    connect(m_selectAll, &QAction::triggered, [this]() {
-      auto doc = currentDocument();
-      if (!doc)
-        return;
-
-      auto pres = IDocument::try_get<ScenarioDocumentPresenter>(*doc);
-      if (pres)
-        pres->selectAll();
-    });
-
-    m_deselectAll = new QAction{tr("Deselect all"), this};
-    m_deselectAll->setToolTip("Ctrl+Shift+a");
-    connect(m_deselectAll, &QAction::triggered, [this]() {
-      auto doc = currentDocument();
-      if (!doc)
-        return;
-
-      auto pres = IDocument::try_get<ScenarioDocumentPresenter>(*doc);
-      if (pres)
-        pres->deselectAll();
-    });
-
-    Menu& menu = context.menus.get().at(Menus::View());
-    menu.menu()->addAction(m_selectAll);
-    menu.menu()->addAction(m_deselectAll);
-
-    e.actions.add<Actions::SelectAll>(m_selectAll);
-    e.actions.add<Actions::DeselectAll>(m_deselectAll);
-
-    auto& cond
-        = context.actions
-              .condition<iscore::
-                             EnableWhenDocumentIs<Scenario::
-                                                      ScenarioDocumentModel>>();
-    cond.add<Actions::SelectAll>();
-    cond.add<Actions::DeselectAll>();
-  }
 
   m_objectActions.makeGUIElements(e);
   m_toolActions.makeGUIElements(e);

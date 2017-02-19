@@ -57,6 +57,8 @@ ISCORE_DECLARE_ACTION(
     SelectAll, "&Select All", Scenario, QKeySequence::SelectAll)
 ISCORE_DECLARE_ACTION(
     DeselectAll, "&Deselect All", Scenario, QKeySequence::Deselect)
+ISCORE_DECLARE_ACTION(
+    SelectTop, "Select &Top", Scenario, QKeySequence{QObject::tr("Ctrl+Shift+T")})
 
 // Transport
 ISCORE_DECLARE_ACTION(Play, "&Play", Scenario, Qt::Key_Space)

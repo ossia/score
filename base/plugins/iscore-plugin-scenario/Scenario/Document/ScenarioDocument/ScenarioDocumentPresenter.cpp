@@ -165,6 +165,18 @@ void ScenarioDocumentPresenter::deselectAll()
   m_selectionDispatcher.setAndCommit(Selection{});
 }
 
+void ScenarioDocumentPresenter::selectTop()
+{
+  auto& displayedElements = model().displayedElements;
+
+  model().focusManager().focus(this);
+  iscore::SelectionDispatcher{m_context.selectionStack}
+    .setAndCommit(
+     {&displayedElements.startState(),
+      &displayedElements.constraint(),
+      &displayedElements.endState()});
+}
+
 void ScenarioDocumentPresenter::on_displayedConstraintChanged()
 {
   auto& gv = view().view();

@@ -18,6 +18,8 @@ namespace Scenario
 {
 struct Point;
 class ScenarioApplicationPlugin;
+class ScenarioDocumentModel;
+class ScenarioDocumentPresenter;
 class TemporalScenarioPresenter;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions : public QObject
 {
@@ -40,6 +42,8 @@ private:
   void pasteElements(const QJsonObject& obj, const Scenario::Point& origin);
   void writeJsonToSelectedElements(const QJsonObject& obj);
 
+  ScenarioDocumentModel* getScenarioDocModel() const;
+  ScenarioDocumentPresenter* getScenarioDocPresenter() const;
   ScenarioApplicationPlugin* m_parent{};
 
   EventActions m_eventActions;
@@ -54,5 +58,10 @@ private:
   QAction* m_pasteElements{};
   QAction* m_elementsToJson{};
   QAction* m_mergeTimeNodes{};
+
+
+  QAction* m_selectAll{};
+  QAction* m_deselectAll{};
+  QAction* m_selectTop{};
 };
 }
