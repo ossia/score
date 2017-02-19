@@ -9,6 +9,7 @@
 #include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -272,7 +273,12 @@ void ScenarioDocumentModel::setDisplayedConstraint(ConstraintModel& constraint)
   if (displayedElements.initialized())
   {
     if (&constraint == &displayedElements.constraint())
+    {
+      auto pres = iscore::IDocument::try_get<ScenarioDocumentPresenter>(
+            *iscore::IDocument::documentFromObject(this));
+      if(pres) pres->selectTop();
       return;
+    }
   }
 
   auto& provider

@@ -64,6 +64,7 @@ public:
 
   void selectAll();
   void deselectAll();
+  void selectTop();
 
   void setMillisPerPixel(ZoomRatio newFactor);
 

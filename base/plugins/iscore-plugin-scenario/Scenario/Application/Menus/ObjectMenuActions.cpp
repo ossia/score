@@ -9,6 +9,7 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QObject>
+#include <iscore/document/DocumentInterface.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Constraint/InsertContentInConstraint.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
@@ -19,6 +20,8 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/actions/MenuManager.hpp>
@@ -181,12 +184,35 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
 
   parent->context.mainWindow.addAction(m_removeElements);
   parent->context.mainWindow.addAction(m_clearElements);
+
+
+  // Selection actions
+  m_selectAll = new QAction{tr("Select all"), this};
+  m_selectAll->setToolTip("Ctrl+A");
+  connect(m_selectAll, &QAction::triggered, [this]() {
+    if (auto pres = getScenarioDocPresenter())
+      pres->selectAll();
+  });
+
+  m_deselectAll = new QAction{tr("Deselect all"), this};
+  m_deselectAll->setToolTip("Ctrl+Shift+A");
+  connect(m_deselectAll, &QAction::triggered, [this]() {
+    if (auto pres = getScenarioDocPresenter())
+      pres->deselectAll();
+  });
+
+  m_selectTop = new QAction{this};
+  connect(m_selectTop, &QAction::triggered, [this] {
+    if (auto pres = getScenarioDocPresenter())
+      pres->selectTop();
+  });
 }
 
-void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
+void ObjectMenuActions::makeGUIElements(iscore::GUIElements& e)
 {
   using namespace iscore;
-  auto& actions = ref.actions;
+  auto& actions = e.actions;
+  auto& base_menus = m_parent->context.menus.get();
 
   auto& scenariofocus_cond
       = m_parent->context.actions
@@ -198,6 +224,13 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
   auto& scenarioiface_cond
       = m_parent->context.actions
             .condition<EnableWhenScenarioInterfaceObject>();
+
+  auto& scenariodocument_cond
+      = m_parent->context.actions
+            .condition<iscore::
+                           EnableWhenDocumentIs<Scenario::
+                                                    ScenarioDocumentModel>>();
+
   actions.add<Actions::RemoveElements>(m_removeElements);
   actions.add<Actions::ClearElements>(m_clearElements);
   actions.add<Actions::CopyContent>(m_copyContent);
@@ -217,7 +250,7 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
   scenarioiface_cond.add<Actions::PasteContent>();
   scenarioiface_cond.add<Actions::ElementsToJson>();
 
-  Menu& object = m_parent->context.menus.get().at(Menus::Object());
+  Menu& object = base_menus.at(Menus::Object());
   object.menu()->addAction(m_elementsToJson);
   object.menu()->addAction(m_removeElements);
   object.menu()->addAction(m_clearElements);
@@ -228,9 +261,23 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& ref)
   object.menu()->addAction(m_pasteElements);
   object.menu()->addSeparator();
   object.menu()->addAction(m_mergeTimeNodes);
-  m_eventActions.makeGUIElements(ref);
-  m_cstrActions.makeGUIElements(ref);
-  m_stateActions.makeGUIElements(ref);
+  m_eventActions.makeGUIElements(e);
+  m_cstrActions.makeGUIElements(e);
+  m_stateActions.makeGUIElements(e);
+
+  Menu& view = base_menus.at(Menus::View());
+  view.menu()->addAction(m_selectAll);
+  view.menu()->addAction(m_deselectAll);
+  view.menu()->addAction(m_selectTop);
+
+  e.actions.add<Actions::SelectAll>(m_selectAll);
+  e.actions.add<Actions::DeselectAll>(m_deselectAll);
+  e.actions.add<Actions::SelectTop>(m_selectTop);
+
+  scenariodocument_cond.add<Actions::SelectAll>();
+  scenariodocument_cond.add<Actions::DeselectAll>();
+  scenariodocument_cond.add<Actions::SelectTop>();
+
 }
 
 void ObjectMenuActions::setupContextMenu(
@@ -421,6 +468,20 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject& obj)
         return copySelectedScenarioElements(bem.baseScenario());
     }*/
   }
+}
+
+ScenarioDocumentModel*ObjectMenuActions::getScenarioDocModel() const
+{
+  if(auto doc = m_parent->currentDocument())
+    return iscore::IDocument::try_get<ScenarioDocumentModel>(*doc);
+  return nullptr;
+}
+
+ScenarioDocumentPresenter*ObjectMenuActions::getScenarioDocPresenter() const
+{
+  if(auto doc = m_parent->currentDocument())
+    return iscore::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
+  return nullptr;
 }
 
 CommandDispatcher<> ObjectMenuActions::dispatcher() const

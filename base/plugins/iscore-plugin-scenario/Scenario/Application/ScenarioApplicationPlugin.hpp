@@ -94,9 +94,6 @@ private:
   ToolMenuActions m_toolActions{this};
   TransportActions m_transportActions{context};
 
-  QAction* m_selectAll{};
-  QAction* m_deselectAll{};
-
   void on_presenterFocused(Process::LayerPresenter* lm);
   void on_presenterDefocused(Process::LayerPresenter* lm);
 };

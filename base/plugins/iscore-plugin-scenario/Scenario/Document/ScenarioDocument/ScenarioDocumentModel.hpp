@@ -57,11 +57,7 @@ public:
   void serialize(const VisitorVariant&) const override;
   void setNewSelection(const Selection& s) override;
 
-  Process::ProcessFocusManager& focusManager()
-  {
-    return m_focusManager;
-  }
-  const Process::ProcessFocusManager& focusManager() const
+  Process::ProcessFocusManager& focusManager() const
   {
     return m_focusManager;
   }
@@ -80,7 +76,7 @@ private:
   void init();
   void initializeNewDocument(const FullViewConstraintViewModel* viewmodel);
 
-  Process::ProcessFocusManager m_focusManager;
+  mutable Process::ProcessFocusManager m_focusManager;
   QPointer<ConstraintModel> m_focusedConstraint{};
   BaseScenario* m_baseScenario{};
 
