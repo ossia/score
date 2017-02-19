@@ -35,7 +35,7 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     , SlotHandle{&s.Transparent3}
     ,
 
-    TimenodeDefault{&s.HalfDark}
+    TimenodeDefault{&s.HalfLight}
     , TimenodeSelected{&s.Base2}
     ,
 

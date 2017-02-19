@@ -34,6 +34,7 @@ mkdir qt5-build
                    -no-gif \
                    -qt-libpng \
                    -qt-libjpeg \
+                   -qt-zlib \
                    -qt-freetype \
                    -qt-harfbuzz \
                    -openssl \
@@ -54,7 +55,7 @@ mkdir qt5-build
                    -dbus-linked \
                    -no-gstreamer \
                    -no-system-proxies \
-                   -skip qtwayland -skip webkit -skip wayland -skip qtscript -skip qtwebkit -skip qtwebengine
+                   -skip qtwayland -skip webkit -skip wayland -skip qtscript -skip qtwebkit -skip qtwebengine -skip qtgamepad
 
   make -j$NPROC
   make install -j$NPROC
