@@ -10,8 +10,8 @@ git clone https://code.qt.io/qt/qt5.git
 
 (
   cd qt5
-  git checkout 5.7
-  perl init-repository --module-subset=qtbase,qtimageformats,qtsvg,qtwebsockets,qttranslations,qtrepotools,qtdeclarative,qttools,qtdoc
+  git checkout 5.8
+  git submodule update --init --recursive
 )
 
 export CC=/usr/local/bin/gcc
@@ -25,6 +25,7 @@ mkdir qt5-build
                    -confirm-license \
                    -nomake examples \
                    -nomake tests \
+                   -no-compile-examples \
                    -no-qml-debug \
                    -qt-zlib \
                    -no-mtdev \
@@ -52,7 +53,8 @@ mkdir qt5-build
                    -ltcg \
                    -dbus-linked \
                    -no-gstreamer \
-                   -no-system-proxies
+                   -no-system-proxies \
+                   -skip qtwayland -skip webkit -skip wayland -skip qtscript -skip qtwebkit -skip qtwebengine
 
   make -j$NPROC
   make install -j$NPROC
