@@ -36,7 +36,7 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter, QGraphicsItem* parent)
   auto f = skin.SansFont;
   f.setPointSize(10);
   m_text->setFont(f);
-  m_text->setColor(iscore::ColorRef{&skin.Gray});
+  m_text->setColor(m_color);
 }
 
 TimeNodeView::~TimeNodeView()
