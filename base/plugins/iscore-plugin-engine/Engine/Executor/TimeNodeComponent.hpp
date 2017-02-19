@@ -4,7 +4,7 @@
 namespace ossia
 {
 class time_node;
-class time_value;
+struct time_value;
 }
 namespace Scenario
 {

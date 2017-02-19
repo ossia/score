@@ -249,18 +249,18 @@ void OSSIADevice::removeNode(const State::Address& address)
         = Engine::iscore_to_ossia::getNodeFromPath(address.path, *dev);
 
     auto parent = node->getParent();
-    if(parent->hasChild(node))
+    if(parent->hasChild(*node))
     {
       /* If we are listening to this node, we recursively
        * remove listening to all the children. */
-      removeListening_impl(*it->get(), address);
+      removeListening_impl(*node, address);
 
       // TODO !! if we remove nodes while recording
       // (or anything involving a registered listening state), there will be
       // crashes.
       // The Device Explorer should be locked for edition during recording /
       // playing.
-      parent->removeChild((*it)->getName());
+      parent->removeChild(node->getName());
     }
   }
 }

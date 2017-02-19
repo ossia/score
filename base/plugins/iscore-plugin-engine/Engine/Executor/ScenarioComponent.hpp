@@ -27,7 +27,7 @@ class QObject;
 namespace ossia
 {
 class time_process;
-class time_value;
+struct time_value;
 } // namespace OSSIA
 namespace Engine
 {
