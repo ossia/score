@@ -18,7 +18,7 @@ public:
   DisplayedElementsPresenterContainer make_presenters(
       const ConstraintModel& m,
       const Process::ProcessPresenterContext& ctx,
-      QGraphicsItem* view_parent,
+      QQuickPaintedItem* view_parent,
       QObject* parent) const override;
 };
 }

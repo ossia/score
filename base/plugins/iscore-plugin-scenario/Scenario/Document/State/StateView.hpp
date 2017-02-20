@@ -1,6 +1,6 @@
 #pragma once
 #include <QColor>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QRect>
 #include <QtGlobal>
 #include <iscore/model/ColorReference.hpp>
@@ -13,7 +13,7 @@ class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneMouseEvent;
 class QMimeData;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
@@ -21,18 +21,17 @@ namespace Scenario
 class StateMenuOverlay;
 class StatePresenter;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject,
-                                                      public QGraphicsItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
+
 public:
-  StateView(StatePresenter& presenter, QGraphicsItem* parent = nullptr);
+  StateView(StatePresenter& presenter, QQuickPaintedItem* parent = nullptr);
   virtual ~StateView() = default;
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::State;
+    return 1337 + ItemType::State;
   }
   int type() const override
   {
@@ -51,9 +50,7 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void setContainMessage(bool);
   void setSelected(bool arg);
@@ -66,9 +63,9 @@ signals:
   void startCreateMode();
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;

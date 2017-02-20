@@ -102,7 +102,7 @@ void Presenter::setRect(const QRectF& rect)
 
 void Presenter::setPos(PointView& point)
 {
-  point.setPos(myscale(point.model().pos(), m_localRect.size()));
+  point.setPosition(myscale(point.model().pos(), m_localRect.size()));
 }
 
 void Presenter::setPos(SegmentView& segment)
@@ -114,7 +114,7 @@ void Presenter::setPos(SegmentView& segment)
   double startx, endx;
   startx = segment.model().start().x() * m_localRect.width();
   endx = segment.model().end().x() * m_localRect.width();
-  segment.setPos({startx, 0});
+  segment.setPosition({startx, 0});
   segment.setRect({0., 0., endx - startx, m_localRect.height()});
 }
 
@@ -438,7 +438,7 @@ void Presenter::modelReset()
 void Presenter::enableActions(bool b)
 {
   m_actions->setEnabled(b);
-  m_view->setFocus();
+//  m_view->setFocus();
 }
 
 void Presenter::enable()

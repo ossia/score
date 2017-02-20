@@ -16,15 +16,15 @@
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
-EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_presenter{presenter}
+EventView::EventView(EventPresenter& presenter, QQuickPaintedItem* parent)
+    : QQuickPaintedItem{parent}, m_presenter{presenter}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
   setAcceptDrops(true);
 
   m_color = presenter.model().metadata().getColor();
@@ -37,7 +37,7 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
   this->setParentItem(parent);
   this->setCursor(Qt::SizeHorCursor);
 
-  this->setZValue(ZPos::Event);
+  this->setZ(ZPos::Event);
   this->setAcceptHoverEvents(true);
 }
 
@@ -68,7 +68,7 @@ bool EventView::hasTrigger() const
 }
 
 void EventView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   auto& skin = ScenarioStyle::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
@@ -151,31 +151,31 @@ void EventView::changeToolTip(const QString& c)
   this->setToolTip(c);
 }
 
-void EventView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void EventView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
     emit m_presenter.pressed(event->scenePos());
 }
 
-void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void EventView::mouseMoveEvent(QMouseEvent* event)
 {
   emit m_presenter.moved(event->scenePos());
 }
 
-void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void EventView::mouseReleaseEvent(QMouseEvent* event)
 {
   emit m_presenter.released(event->scenePos());
 }
 
 void EventView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
-  QGraphicsItem::hoverEnterEvent(h);
+  QQuickPaintedItem::hoverEnterEvent(h);
   emit eventHoverEnter();
 }
 
 void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
-  QGraphicsItem::hoverLeaveEvent(h);
+  QQuickPaintedItem::hoverLeaveEvent(h);
   emit eventHoverLeave();
 }
 

@@ -1,4 +1,4 @@
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 
 #include "TriggerModel.hpp"
 #include "TriggerPresenter.hpp"
@@ -8,7 +8,7 @@
 namespace Scenario
 {
 TriggerPresenter::TriggerPresenter(
-    const TriggerModel& model, QGraphicsItem* parentView, QObject* parent)
+    const TriggerModel& model, QQuickPaintedItem* parentView, QObject* parent)
     : QObject{parent}, m_model{model}, m_view{new TriggerView{parentView}}
 {
   m_view->setVisible(m_model.active());

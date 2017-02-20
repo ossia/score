@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPoint>
 #include <QRect>
 #include <iscore_plugin_curve_export.h>
@@ -9,18 +9,16 @@ class QGraphicsSceneContextMenuEvent;
 class QGraphicsSceneMouseEvent;
 class QKeyEvent;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Curve
 {
-class ISCORE_PLUGIN_CURVE_EXPORT View final : public QObject,
-                                              public QGraphicsItem
+class ISCORE_PLUGIN_CURVE_EXPORT View final :public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
 public:
-  explicit View(QGraphicsItem* parent);
+  explicit View(QQuickPaintedItem* parent);
   virtual ~View();
 
   void setRect(const QRectF& theRect);
@@ -31,9 +29,7 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void setSelectionArea(const QRectF&);
 
@@ -51,17 +47,17 @@ signals:
   void contextMenuRequested(const QPoint&, const QPointF&);
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
 
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
 
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
 
   void keyPressEvent(QKeyEvent* ev) override;
   void keyReleaseEvent(QKeyEvent* ev) override;
 
-  void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
+//  void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 
 private:
   QRectF m_rect; // The rect in which the whole curve must fit.

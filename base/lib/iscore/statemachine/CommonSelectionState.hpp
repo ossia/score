@@ -3,7 +3,7 @@
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/statemachine/StateMachineTools.hpp>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 
 namespace iscore
 {

@@ -5,7 +5,7 @@
 #include "SceneGraduations.hpp"
 #include <Process/Tools/ProcessGraphicsView.hpp>
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 void SceneGraduations::setSize(const QSizeF& s)
@@ -28,7 +28,7 @@ QRectF SceneGraduations::boundingRect() const
 }
 
 void SceneGraduations::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setPen(m_lines);
   painter->drawPath(m_grid);

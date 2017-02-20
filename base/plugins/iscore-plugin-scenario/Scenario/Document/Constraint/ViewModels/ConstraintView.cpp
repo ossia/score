@@ -9,8 +9,8 @@
 namespace Scenario
 {
 ConstraintView::ConstraintView(
-    ConstraintPresenter& presenter, QGraphicsItem* parent)
-    : QGraphicsItem{parent}
+    ConstraintPresenter& presenter, QQuickPaintedItem* parent)
+    : QQuickPaintedItem{parent}
     , m_labelItem{new SimpleTextItem{this}}
     , m_counterItem{new SimpleTextItem{this}}
     , m_presenter{presenter}
@@ -107,7 +107,7 @@ void ConstraintView::setValid(bool val)
 void ConstraintView::setSelected(bool selected)
 {
   m_selected = selected;
-  setZValue(m_selected ? ZPos::SelectedConstraint : ZPos::Constraint);
+  setZ(m_selected ? ZPos::SelectedConstraint : ZPos::Constraint);
   enableOverlay(selected);
   update();
 }
@@ -117,18 +117,18 @@ void ConstraintView::enableOverlay(bool selected)
 
 }
 
-void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void ConstraintView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
     emit m_presenter.pressed(event->scenePos());
 }
 
-void ConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void ConstraintView::mouseMoveEvent(QMouseEvent* event)
 {
   emit m_presenter.moved(event->scenePos());
 }
 
-void ConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void ConstraintView::mouseReleaseEvent(QMouseEvent* event)
 {
   emit m_presenter.released(event->scenePos());
 }

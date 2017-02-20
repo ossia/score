@@ -1,11 +1,11 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPoint>
 #include <QRect>
 
 class QGraphicsSceneContextMenuEvent;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 #include <iscore/model/Identifier.hpp>
 
@@ -13,33 +13,31 @@ namespace Curve
 {
 class PointModel;
 struct Style;
-class PointView final : public QObject, public QGraphicsItem
+class PointView final : public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
+
 public:
   PointView(
       const PointModel* model,
       const Curve::Style& style,
-      QGraphicsItem* parent);
+      QQuickPaintedItem* parent);
 
   const PointModel& model() const;
   const Id<PointModel>& id() const;
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + 100;
+    return 1337 + 100;
   }
-  int type() const override
+/*  int type() const override
   {
     return static_type();
   }
-
+  */
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void setSelected(bool selected);
 
@@ -52,7 +50,7 @@ signals:
   void contextMenuRequested(const QPoint&, const QPointF&);
 
 protected:
-  void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
+//  void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 
 private:
   const PointModel* m_model;

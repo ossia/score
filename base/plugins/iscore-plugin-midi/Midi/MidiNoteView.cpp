@@ -6,17 +6,17 @@
 namespace Midi
 {
 
-NoteView::NoteView(const Note& n, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, note{n}
+NoteView::NoteView(const Note& n, QQuickPaintedItem* parent)
+    : QQuickPaintedItem{parent}, note{n}
 {
-  this->setFlag(QGraphicsItem::ItemIsSelectable, true);
-  this->setFlag(QGraphicsItem::ItemIsMovable, true);
-  this->setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
+  this->setFlag(QQuickPaintedItem::ItemIsSelectable, true);
+  this->setFlag(QQuickPaintedItem::ItemIsMovable, true);
+  this->setFlag(QQuickPaintedItem::ItemSendsGeometryChanges, true);
   this->setAcceptHoverEvents(true);
 }
 
 void NoteView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
 
@@ -35,11 +35,11 @@ void NoteView::paint(
 }
 
 QVariant NoteView::itemChange(
-    QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+    QQuickPaintedItem::GraphicsItemChange change, const QVariant& value)
 {
   switch (change)
   {
-    case QGraphicsItem::ItemPositionChange:
+    case QQuickPaintedItem::ItemPositionChange:
     {
       QPointF newPos = value.toPointF();
       QRectF rect = this->parentItem()->boundingRect();
@@ -58,16 +58,16 @@ QVariant NoteView::itemChange(
       newPos.setY(height - note * note_height);
       return newPos;
     }
-    case QGraphicsItem::ItemSelectedChange:
+    case QQuickPaintedItem::ItemSelectedChange:
     {
-      this->setZValue(10 * (int)value.toBool());
+      this->setZ(10 * (int)value.toBool());
       break;
     }
     default:
       break;
   }
 
-  return QGraphicsItem::itemChange(change, value);
+  return QQuickPaintedItem::itemChange(change, value);
 }
 
 void NoteView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
@@ -81,7 +81,7 @@ void NoteView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
     this->setCursor(Qt::ArrowCursor);
   }
 
-  QGraphicsItem::hoverEnterEvent(event);
+  QQuickPaintedItem::hoverEnterEvent(event);
 }
 
 void NoteView::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
@@ -95,17 +95,17 @@ void NoteView::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
     this->setCursor(Qt::ArrowCursor);
   }
 
-  QGraphicsItem::hoverMoveEvent(event);
+  QQuickPaintedItem::hoverMoveEvent(event);
 }
 
 void NoteView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
   this->setCursor(Qt::ArrowCursor);
 
-  QGraphicsItem::hoverEnterEvent(event);
+  QQuickPaintedItem::hoverEnterEvent(event);
 }
 
-void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void NoteView::mousePressEvent(QMouseEvent* event)
 {
   if (event->pos().x() >= this->boundingRect().width() - 2)
   {
@@ -115,11 +115,11 @@ void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
   else
   {
     m_scaling = false;
-    QGraphicsItem::mousePressEvent(event);
+    QQuickPaintedItem::mousePressEvent(event);
   }
 }
 
-void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void NoteView::mouseMoveEvent(QMouseEvent* event)
 {
   if (m_scaling)
   {
@@ -128,11 +128,11 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   }
   else
   {
-    QGraphicsItem::mouseMoveEvent(event);
+    QQuickPaintedItem::mouseMoveEvent(event);
   }
 }
 
-void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void NoteView::mouseReleaseEvent(QMouseEvent* event)
 {
   if (m_scaling)
   {
@@ -142,7 +142,7 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   else
   {
     emit noteChangeFinished();
-    QGraphicsItem::mouseReleaseEvent(event);
+    QQuickPaintedItem::mouseReleaseEvent(event);
   }
 }
 }

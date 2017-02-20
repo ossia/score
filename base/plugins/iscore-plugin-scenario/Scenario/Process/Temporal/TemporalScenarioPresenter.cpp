@@ -252,13 +252,13 @@ void TemporalScenarioPresenter::setHeight(qreal height)
 
 void TemporalScenarioPresenter::putToFront()
 {
-  m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
+  m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, false);
   m_view->setOpacity(1);
 }
 
 void TemporalScenarioPresenter::putBehind()
 {
-  m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
+  m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, true);
   m_view->setOpacity(0.1);
 }
 

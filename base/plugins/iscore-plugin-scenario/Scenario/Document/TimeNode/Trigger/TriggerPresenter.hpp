@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 
 namespace Scenario
 {
@@ -13,7 +13,7 @@ class TriggerPresenter final : public QObject
   Q_OBJECT
 public:
   TriggerPresenter(
-      const TriggerModel&, QGraphicsItem*, QObject* parent = nullptr);
+      const TriggerModel&, QQuickPaintedItem*, QObject* parent = nullptr);
 
   const TriggerModel& model() const
   {

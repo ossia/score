@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QString>
 #include <functional>
 namespace iscore
@@ -14,7 +14,7 @@ namespace Scenario
 class SeparatorItem final : public QGraphicsSimpleTextItem
 {
 public:
-  SeparatorItem(QGraphicsItem* parent);
+  SeparatorItem(QQuickPaintedItem* parent);
 };
 
 class ClickableLabelItem final : public QObject, public QGraphicsSimpleTextItem
@@ -26,7 +26,7 @@ public:
       iscore::ModelMetadata& constraint,
       ClickHandler&& onClick,
       const QString& text,
-      QGraphicsItem* parent);
+      QQuickPaintedItem* parent);
 
   int index() const;
   void setIndex(int index);
@@ -35,7 +35,7 @@ signals:
   void textChanged();
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 

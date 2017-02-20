@@ -1,28 +1,26 @@
 #pragma once
 
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPainterPath>
 #include <QRect>
 #include <iscore/model/ColorReference.hpp>
 
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
 
-class ConditionView final : public QGraphicsItem
+class ConditionView final : public QQuickPaintedItem
 {
 public:
-  ConditionView(iscore::ColorRef color, QGraphicsItem* parent);
+  ConditionView(iscore::ColorRef color, QQuickPaintedItem* parent);
 
-  using QGraphicsItem::QGraphicsItem;
+  using QQuickPaintedItem::QQuickPaintedItem;
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
   void changeHeight(qreal newH);
 
   void setColor(iscore::ColorRef c)

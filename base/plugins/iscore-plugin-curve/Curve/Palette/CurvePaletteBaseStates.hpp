@@ -2,7 +2,7 @@
 #include "CurvePoint.hpp"
 #include <QState>
 #include <iscore/model/Identifier.hpp>
-class QGraphicsItem;
+class QQuickPaintedItem;
 
 namespace Curve
 {

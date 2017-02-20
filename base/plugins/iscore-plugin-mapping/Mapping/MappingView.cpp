@@ -1,7 +1,7 @@
 #include <Process/Style/ProcessFonts.hpp>
 #include <QFlags>
 #include <QFont>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPainter>
 #include <QRect>
 #include <qnamespace.h>
@@ -13,9 +13,9 @@
 static const int fontSize = 8;
 namespace Mapping
 {
-LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
+LayerView::LayerView(QQuickPaintedItem* parent) : Process::LayerView{parent}
 {
-  setZValue(1);
+  setZ(1);
   this->setFlags(
       ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 

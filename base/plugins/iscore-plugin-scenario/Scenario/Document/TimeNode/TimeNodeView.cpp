@@ -14,17 +14,17 @@
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
-TimeNodeView::TimeNodeView(TimeNodePresenter& presenter, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_presenter{presenter}
+TimeNodeView::TimeNodeView(TimeNodePresenter& presenter, QQuickPaintedItem* parent)
+    : QQuickPaintedItem{parent}, m_presenter{presenter}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setParentItem(parent);
-  this->setZValue(ZPos::TimeNode);
+  this->setZ(ZPos::TimeNode);
   this->setAcceptHoverEvents(true);
   this->setCursor(Qt::CrossCursor);
 
@@ -44,7 +44,7 @@ TimeNodeView::~TimeNodeView()
 }
 
 void TimeNodeView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   auto height = m_extent.bottom() - m_extent.top();
   if(height < 1)
@@ -120,18 +120,18 @@ void TimeNodeView::setLabel(const QString& s)
   setTriggerActive(m_text->pos().y() == -40);
 }
 
-void TimeNodeView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void TimeNodeView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
     emit m_presenter.pressed(event->scenePos());
 }
 
-void TimeNodeView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void TimeNodeView::mouseMoveEvent(QMouseEvent* event)
 {
   emit m_presenter.moved(event->scenePos());
 }
 
-void TimeNodeView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void TimeNodeView::mouseReleaseEvent(QMouseEvent* event)
 {
   emit m_presenter.released(event->scenePos());
 }

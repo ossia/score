@@ -13,11 +13,11 @@
 namespace Scenario
 {
 CommentBlockView::CommentBlockView(
-    CommentBlockPresenter& presenter, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_presenter{presenter}
+    CommentBlockPresenter& presenter, QQuickPaintedItem* parent)
+    : QQuickPaintedItem{parent}, m_presenter{presenter}
 {
   this->setParentItem(parent);
-  this->setZValue(ZPos::Comment);
+  this->setZ(ZPos::Comment);
   this->setAcceptHoverEvents(true);
 
   m_textItem = new TextItem{"", this};
@@ -30,7 +30,7 @@ CommentBlockView::CommentBlockView(
 }
 
 void CommentBlockView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   auto p = QPen{Qt::white};
   p.setWidth(1.);
@@ -65,7 +65,7 @@ void CommentBlockView::setHtmlContent(QString htmlText)
   m_textItem->setHtml(htmlText);
 }
 
-void CommentBlockView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void CommentBlockView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
   {
@@ -74,12 +74,12 @@ void CommentBlockView::mousePressEvent(QGraphicsSceneMouseEvent* event)
   }
 }
 
-void CommentBlockView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void CommentBlockView::mouseMoveEvent(QMouseEvent* event)
 {
   emit m_presenter.moved(event->scenePos() - m_clickedPoint);
 }
 
-void CommentBlockView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void CommentBlockView::mouseReleaseEvent(QMouseEvent* event)
 {
   auto p = event->scenePos();
   auto d = (m_clickedScenePoint - p).manhattanLength();
@@ -89,7 +89,7 @@ void CommentBlockView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   emit m_presenter.released(event->scenePos());
 }
 
-void CommentBlockView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* evt)
+void CommentBlockView::mouseDoubleClickEvent(QMouseEvent* evt)
 {
   focusOnText();
 }

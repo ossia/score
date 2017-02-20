@@ -1,7 +1,7 @@
 #include <QAbstractState>
 #include <QAbstractTransition>
 #include <QFinalState>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QKeyEventTransition>
 #include <qcoreevent.h>
 #include <qnamespace.h>

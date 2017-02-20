@@ -8,7 +8,7 @@ class View final : public Process::LayerView
 {
   Q_OBJECT
 public:
-  explicit View(QGraphicsItem* parent);
+  explicit View(QQuickPaintedItem* parent);
   virtual ~View();
 
   void setDisplayedName(const QString& s);

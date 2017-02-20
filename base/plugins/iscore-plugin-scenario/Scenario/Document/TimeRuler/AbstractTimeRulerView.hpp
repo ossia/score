@@ -1,7 +1,7 @@
 #pragma once
 #include <QColor>
 #include <QDateTime>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QMap>
 #include <QPainterPath>
 #include <QPoint>
@@ -11,16 +11,16 @@
 
 class QGraphicsSceneMouseEvent;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
 class AbstractTimeRuler;
-class AbstractTimeRulerView : public QObject, public QGraphicsItem
+class AbstractTimeRulerView : public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
+
 
   AbstractTimeRuler* m_pres{};
 
@@ -31,9 +31,7 @@ public:
     m_pres = pres;
   }
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void setHeight(qreal newHeight);
   void setWidth(qreal newWidth);
@@ -55,9 +53,9 @@ signals:
   void drag(QPointF, QPointF);
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent*) final override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent*) final override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent*) final override;
+  void mousePressEvent(QMouseEvent*) final override;
+  void mouseMoveEvent(QMouseEvent*) final override;
+  void mouseReleaseEvent(QMouseEvent*) final override;
   void createRulerPath();
 
   qreal m_height{};

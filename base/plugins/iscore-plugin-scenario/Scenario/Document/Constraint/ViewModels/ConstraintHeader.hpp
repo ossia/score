@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QString>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
@@ -8,7 +8,7 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 class ConstraintView;
-class ConstraintHeader : public QObject, public QGraphicsItem
+class ConstraintHeader : public QQuickPaintedItem
 {
 public:
   enum class State
@@ -18,11 +18,11 @@ public:
     RackShown   // There is a rack currently shown
   };
 
-  using QGraphicsItem::QGraphicsItem;
+  using QQuickPaintedItem::QQuickPaintedItem;
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::ConstraintHeader;
+    return 1337 + ItemType::ConstraintHeader;
   }
   int type() const override
   {
@@ -57,9 +57,9 @@ public:
   }
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+  void mousePressEvent(QMouseEvent* event) final override;
+  void mouseMoveEvent(QMouseEvent* event) final override;
+  void mouseReleaseEvent(QMouseEvent* event) final override;
 
 protected:
   virtual void on_textChange()

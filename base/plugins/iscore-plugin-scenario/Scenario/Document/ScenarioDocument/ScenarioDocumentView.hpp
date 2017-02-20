@@ -2,7 +2,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
 
 class BaseGraphicsObject;
-class QGraphicsView;
+class QQuickWidget;
 class QObject;
 class QWidget;
 class ProcessGraphicsView;
@@ -46,7 +46,7 @@ public:
 
   qreal viewWidth() const;
 
-  QGraphicsView* rulerView() const
+  QQuickWidget* rulerView() const
   {
     return m_timeRulersView;
   }
@@ -74,7 +74,7 @@ private:
   ProcessGraphicsView* m_view{};
   BaseGraphicsObject* m_baseObject{};
 
-  QGraphicsView* m_timeRulersView{};
+  QQuickWidget* m_timeRulersView{};
   TimeRulerView* m_timeRuler{};
 
   iscore::DoubleSlider* m_zoomSlider{};

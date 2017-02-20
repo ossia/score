@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QRect>
 #include <QSize>
 
@@ -9,10 +9,10 @@ class LayerModel;
 }
 class ProcessPanelPresenter;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
-class ProcessPanelGraphicsProxy final : public QGraphicsItem
+class ProcessPanelGraphicsProxy final : public QQuickPaintedItem
 {
   QSizeF m_size;
 
@@ -21,8 +21,7 @@ public:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void setRect(const QSizeF& size);
 };

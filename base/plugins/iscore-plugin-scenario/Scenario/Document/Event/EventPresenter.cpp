@@ -1,4 +1,4 @@
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QMimeData>
 #include <QRect>
 #include <QSize>
@@ -30,7 +30,7 @@ class QObject;
 namespace Scenario
 {
 EventPresenter::EventPresenter(
-    const EventModel& model, QGraphicsItem* parentview, QObject* parent)
+    const EventModel& model, QQuickPaintedItem* parentview, QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new EventView{*this, parentview}}

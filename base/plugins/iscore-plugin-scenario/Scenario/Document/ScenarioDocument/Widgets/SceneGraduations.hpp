@@ -1,17 +1,17 @@
 #pragma once
 #include <QColor>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPainterPath>
 #include <QPen>
 #include <QRect>
 #include <QSize>
 
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 class ProcessGraphicsView;
 
-class SceneGraduations final : public QGraphicsItem
+class SceneGraduations final : public QQuickPaintedItem
 {
 private:
   QPen m_lines;
@@ -24,8 +24,7 @@ public:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void setGrid(QPainterPath&& newGrid);
   void setColor(const QColor& col);

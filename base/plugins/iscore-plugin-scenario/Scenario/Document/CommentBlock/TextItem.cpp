@@ -5,10 +5,10 @@
 namespace Scenario
 {
 
-TextItem::TextItem(QString text, QGraphicsItem* parent)
+TextItem::TextItem(QString text, QQuickPaintedItem* parent)
     : QGraphicsTextItem{text, parent}
 {
-  this->setFlag(QGraphicsItem::ItemIsFocusable);
+  this->setFlag(QQuickPaintedItem::ItemIsFocusable);
   this->setDefaultTextColor(Qt::white);
 }
 
@@ -18,7 +18,7 @@ void TextItem::focusOutEvent(QFocusEvent* event)
 }
 
 void SimpleTextItem::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   //    setPen(m_color.getColor()); -> if enabled, there will be undesirable
   //    antialiasing

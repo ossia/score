@@ -1,31 +1,27 @@
 #pragma once
 
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QRect>
 #include <QtGlobal>
 #include <iscore_lib_process_export.h>
 
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Process
 {
-class ISCORE_LIB_PROCESS_EXPORT LayerView : public QObject,
-                                            public QGraphicsItem
+class ISCORE_LIB_PROCESS_EXPORT LayerView : public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
 public:
-  LayerView(QGraphicsItem* parent);
+  LayerView(QQuickPaintedItem* parent);
 
   virtual ~LayerView();
 
   QRectF boundingRect() const final override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) final override;
+      QPainter* painter) final override;
 
   void setHeight(qreal height);
   qreal height() const;

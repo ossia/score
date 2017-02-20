@@ -4,9 +4,9 @@
 #include <QString>
 #include <iscore_lib_process_export.h>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QPainter;
-class QQuickView;
+class QQuickWidget;
 class QGraphicsProxyWidget;
 class QQuickItem;
 
@@ -17,7 +17,7 @@ class ISCORE_LIB_PROCESS_EXPORT View final : public Process::LayerView
 {
   Q_OBJECT
 public:
-  explicit View(QGraphicsItem* parent);
+  explicit View(QQuickPaintedItem* parent);
 
   void setWidget(QWidget*);
 
@@ -27,9 +27,9 @@ signals:
 private:
   void updateText();
   void paint_impl(QPainter*) const override;
-  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
+  void mousePressEvent(QMouseEvent*) override;
+  void mouseMoveEvent(QMouseEvent*) override;
+  void mouseReleaseEvent(QMouseEvent*) override;
 
   QGraphicsProxyWidget* m_widg{};
 };

@@ -84,7 +84,7 @@ private:
 
   LayerView_T* makeLayerView(
       const Process::LayerModel& viewmodel,
-      QGraphicsItem* parent) final override
+      QQuickPaintedItem* parent) final override
   {
     return new LayerView_T{parent};
   }

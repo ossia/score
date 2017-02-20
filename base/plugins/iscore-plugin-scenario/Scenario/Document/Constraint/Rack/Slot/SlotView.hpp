@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPoint>
 #include <QRect>
 #include <QString>
@@ -8,7 +8,7 @@
 #include <iscore_plugin_scenario_export.h>
 class QGraphicsSceneContextMenuEvent;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
@@ -17,23 +17,20 @@ class SlotHandle;
 class SlotOverlay;
 class SlotPresenter;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT SlotView final : public QObject,
-                                                     public QGraphicsItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotView final : public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
+
 
 public:
   const SlotPresenter& presenter;
 
-  SlotView(const SlotPresenter& pres, QGraphicsItem* parent);
+  SlotView(const SlotPresenter& pres, QQuickPaintedItem* parent);
   virtual ~SlotView() = default;
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void setHeight(qreal height);
   qreal height() const;

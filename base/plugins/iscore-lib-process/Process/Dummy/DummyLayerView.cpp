@@ -11,11 +11,11 @@
 #include <QGraphicsLayout>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
-#include <QGraphicsView>
+#include <QQuickWidget>
 #include <QOpenGLPaintDevice>
 #include <QQuickItem>
 #include <QQuickRenderControl>
-#include <QQuickView>
+#include <QQuickWidget>
 #include <QQuickWindow>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -26,10 +26,10 @@
 namespace Dummy
 {
 // TODO MOVEME in iscore/widgets
-class DummyTextItem final : public QGraphicsItem
+class DummyTextItem final : public QQuickPaintedItem
 {
 public:
-  DummyTextItem(QGraphicsItem* parent) : QGraphicsItem{parent}
+  DummyTextItem(QQuickPaintedItem* parent) : QQuickPaintedItem{parent}
   {
   }
 
@@ -41,7 +41,7 @@ public:
 
   void setFont(const QFont& font)
   {
-    prepareGeometryChange();
+//    prepareGeometryChange();
     m_font = font;
     m_font.setPointSizeF(30);
     update();
@@ -54,8 +54,7 @@ public:
   }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override
+      QPainter* painter) override
   {
     painter->setFont(m_font);
     painter->setPen(Qt::lightGray);
@@ -66,7 +65,7 @@ private:
   QString m_text;
   QFont m_font;
 };
-DummyLayerView::DummyLayerView(QGraphicsItem* parent)
+DummyLayerView::DummyLayerView(QQuickPaintedItem* parent)
     : LayerView{parent}, m_text{new DummyTextItem{this}}
 {
   m_text->setFont(iscore::Skin::instance().SansFont);
@@ -75,13 +74,13 @@ DummyLayerView::DummyLayerView(QGraphicsItem* parent)
   connect(
       this, &DummyLayerView::widthChanged, this, &DummyLayerView::updateText);
   /*
-  m_view = new QQuickView();
+  m_view = new QQuickWidget();
   m_view->setSource(QUrl("qrc:/DummyProcess.qml"));
 
   m_view->create();
 
   m_item = m_view->rootObject()->findChild<QQuickItem*>("input");
-  connect(m_view, &QQuickView::sceneGraphInvalidated,
+  connect(m_view, &QQuickWidget::sceneGraphInvalidated,
           this, [=] { update(); });
 
   connect(this, &DummyLayerView::heightChanged,
@@ -123,7 +122,7 @@ void DummyLayerView::updateText()
     m_text->setScale(min);
   }
 
-  m_text->setPos(w / 2., h / 2.);
+  m_text->setPosition(QPointF(w / 2., h / 2.));
 }
 
 void DummyLayerView::paint_impl(QPainter* painter) const
@@ -133,7 +132,7 @@ void DummyLayerView::paint_impl(QPainter* painter) const
   */
 }
 
-void DummyLayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
+void DummyLayerView::mousePressEvent(QMouseEvent* ev)
 {
   /*
   auto nev = new QMouseEvent(QEvent::Type::MouseButtonPress, ev->pos(),
@@ -143,7 +142,7 @@ void DummyLayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
   */
   emit pressed();
 }
-void DummyLayerView::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
+void DummyLayerView::mouseMoveEvent(QMouseEvent* ev)
 {
   /*
   auto nev = new QMouseEvent(QEvent::Type::MouseMove, ev->pos(), ev->button(),
@@ -152,7 +151,7 @@ void DummyLayerView::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
   m_view->requestUpdate();
   */
 }
-void DummyLayerView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
+void DummyLayerView::mouseReleaseEvent(QMouseEvent* ev)
 {
   /*
   auto nev = new QMouseEvent(QEvent::Type::MouseButtonRelease, ev->pos(),

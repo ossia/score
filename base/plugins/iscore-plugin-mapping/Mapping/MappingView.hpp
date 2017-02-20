@@ -4,7 +4,7 @@
 #include <QString>
 #include <QTextLayout>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QPainter;
 
 namespace Mapping
@@ -12,7 +12,7 @@ namespace Mapping
 class LayerView final : public Process::LayerView
 {
 public:
-  explicit LayerView(QGraphicsItem* parent);
+  explicit LayerView(QQuickPaintedItem* parent);
 
   void showName(bool b);
 

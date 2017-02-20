@@ -3,15 +3,15 @@
 #include "RackView.hpp"
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
-RackView::RackView(QGraphicsItem* parent) : QGraphicsItem{parent}
+RackView::RackView(QQuickPaintedItem* parent) : QQuickPaintedItem{parent}
 {
-  this->setFlag(QGraphicsItem::ItemHasNoContents);
-  this->setZValue(ZPos::Rack);
+  this->setFlag(QQuickPaintedItem::ItemHasNoContents);
+  this->setZ(ZPos::Rack);
   this->setCursor(QCursor(Qt::ArrowCursor));
 }
 
@@ -20,7 +20,7 @@ QRectF RackView::boundingRect() const
   return {0, 0, m_width, m_height};
 }
 
-void RackView::paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget*)
+void RackView::paint(QPainter*)
 {
 }
 }

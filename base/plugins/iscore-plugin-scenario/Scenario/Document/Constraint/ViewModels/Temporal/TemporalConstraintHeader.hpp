@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QRect>
 #include <QTextLayout>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
@@ -7,7 +7,7 @@
 
 class QGraphicsSceneMouseEvent;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
@@ -20,9 +20,7 @@ public:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 signals:
   void doubleClicked();
 
@@ -39,7 +37,7 @@ protected:
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
-  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
   void on_textChange() override;

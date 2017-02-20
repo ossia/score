@@ -5,7 +5,7 @@ class QPainter;
 
 namespace Loop
 {
-LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
+LayerView::LayerView(QQuickPaintedItem* parent) : Process::LayerView{parent}
 {
 }
 
@@ -27,7 +27,7 @@ void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
   event->accept();
 }
 
-void LayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
+void LayerView::mousePressEvent(QMouseEvent* ev)
 {
   emit pressed();
   ev->accept();

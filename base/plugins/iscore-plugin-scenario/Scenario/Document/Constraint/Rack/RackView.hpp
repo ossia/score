@@ -1,28 +1,25 @@
 #pragma once
 
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QRect>
 
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
-class RackView final : public QObject, public QGraphicsItem
+class RackView final : public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
 
 public:
-  RackView(QGraphicsItem* parent);
+  RackView(QQuickPaintedItem* parent);
   virtual ~RackView() = default;
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void setHeight(qreal height)
   {

@@ -1,8 +1,8 @@
 #pragma once
-#include <QGraphicsView>
+#include <QQuickWidget>
 namespace Scenario
 {
-class TimeRulerGraphicsView : public QGraphicsView
+class TimeRulerGraphicsView : public QQuickWidget
 {
 public:
   TimeRulerGraphicsView(QGraphicsScene*);

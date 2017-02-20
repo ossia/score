@@ -5,15 +5,16 @@
 namespace WidgetLayer
 {
 
-View::View(QGraphicsItem* parent) : LayerView{parent}
+View::View(QQuickPaintedItem* parent) : LayerView{parent}
 {
+	/*
   m_widg = new QGraphicsProxyWidget{this};
   connect(this, &LayerView::heightChanged, this, [=] {
     m_widg->setGeometry(QRectF{0, 0, this->width() - 10, this->height() - 10});
   });
   connect(this, &LayerView::widthChanged, this, [=] {
     m_widg->setGeometry(QRectF{0, 0, this->width() - 10, this->height() - 10});
-  });
+  });*/
 }
 
 void View::setWidget(QWidget* w)
@@ -35,14 +36,14 @@ void View::paint_impl(QPainter* painter) const
 {
 }
 
-void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
+void View::mousePressEvent(QMouseEvent* ev)
 {
   emit pressed();
 }
-void View::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
+void View::mouseMoveEvent(QMouseEvent* ev)
 {
 }
-void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
+void View::mouseReleaseEvent(QMouseEvent* ev)
 {
 }
 }

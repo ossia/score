@@ -17,7 +17,7 @@ namespace Scenario
 FullViewConstraintPresenter::FullViewConstraintPresenter(
     const FullViewConstraintViewModel& cstr_model,
     const Process::ProcessPresenterContext& ctx,
-    QGraphicsItem* parentobject,
+    QQuickPaintedItem* parentobject,
     QObject* parent)
     : ConstraintPresenter{
           cstr_model, new FullViewConstraintView{*this, parentobject},

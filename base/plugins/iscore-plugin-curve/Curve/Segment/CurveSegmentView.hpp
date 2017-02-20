@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPainterPath>
 #include <QPoint>
 #include <QRect>
@@ -7,7 +7,7 @@
 #include <iscore_plugin_curve_export.h>
 class QGraphicsSceneContextMenuEvent;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Curve
@@ -15,31 +15,30 @@ namespace Curve
 class SegmentModel;
 
 struct Style;
-class ISCORE_PLUGIN_CURVE_EXPORT SegmentView final : public QObject,
-                                                     public QGraphicsItem
+class ISCORE_PLUGIN_CURVE_EXPORT SegmentView final : public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
+
 public:
   SegmentView(
       const SegmentModel* model,
       const Curve::Style& style,
-      QGraphicsItem* parent);
+      QQuickPaintedItem* parent);
 
   const Id<SegmentModel>& id() const;
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + 101;
+    return 1337 + 101;
   }
-  int type() const override
+/*  int type() const override
   {
     return static_type();
   }
-
+  */
   QRectF boundingRect() const override;
 
-  QPainterPath shape() const override
+/*  QPainterPath shape() const override
   {
     return m_strokedShape;
   }
@@ -48,16 +47,14 @@ public:
   {
     return m_strokedShape;
   }
-
+  */
   bool contains(const QPointF& pt) const override
   {
     return m_strokedShape.contains(pt);
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void setModel(const SegmentModel*);
   const SegmentModel& model() const
@@ -77,14 +74,14 @@ signals:
   void contextMenuRequested(const QPoint&, const QPointF&);
 
 protected:
-  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+//  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 private:
   void updatePoints();
   void updatePen();
   // Takes a table of points and draws them in a square given by the
   // boundingRect
-  // QGraphicsItem interface
+  // QQuickPaintedItem interface
   QRectF m_rect;
 
   const SegmentModel* m_model{};

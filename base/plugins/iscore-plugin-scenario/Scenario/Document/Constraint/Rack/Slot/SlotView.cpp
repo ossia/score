@@ -9,23 +9,23 @@
 #include "SlotOverlay.hpp"
 #include "SlotView.hpp"
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
-SlotView::SlotView(const SlotPresenter& pres, QGraphicsItem* parent)
-    : QGraphicsItem{parent}
+SlotView::SlotView(const SlotPresenter& pres, QQuickPaintedItem* parent)
+    : QQuickPaintedItem{parent}
     , presenter{pres}
     , m_handle{new SlotHandle{*this, this}}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setCursor(QCursor(Qt::ArrowCursor));
   this->setFlag(ItemClipsChildrenToShape, true);
-  this->setZValue(1);
+  this->setZ(1);
   m_handle->setPos(
       0, this->boundingRect().height() - SlotHandle::handleHeight());
-  m_handle->setZValue(100);
+  m_handle->setZ(100);
 }
 
 QRectF SlotView::boundingRect() const
@@ -34,7 +34,7 @@ QRectF SlotView::boundingRect() const
 }
 
 void SlotView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   if (!m_focus)
@@ -81,7 +81,7 @@ void SlotView::enable()
 
   this->update();
 
-  for (QGraphicsItem* item : childItems())
+  for (QQuickPaintedItem* item : childItems())
   {
     item->setEnabled(true);
     item->setFlag(ItemStacksBehindParent, false);
@@ -97,7 +97,7 @@ void SlotView::disable()
 {
   delete m_overlay;
 
-  for (QGraphicsItem* item : childItems())
+  for (QQuickPaintedItem* item : childItems())
   {
     item->setEnabled(false);
     item->setFlag(ItemStacksBehindParent, true);

@@ -1,7 +1,7 @@
 #pragma once
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPoint>
 #include <iscore/statemachine/GraphicsSceneTool.hpp>
 
@@ -20,7 +20,7 @@ protected:
   template <typename PointFun, typename SegmentFun, typename NothingFun>
   void mapTopItem(
       QPointF scenePoint,
-      const QGraphicsItem* pressedItem,
+      const QQuickPaintedItem* pressedItem,
       PointFun pt_fun,
       SegmentFun seg_fun,
       NothingFun nothing_fun) const

@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -11,12 +11,12 @@ namespace Scenario
 {
 
 class ConstraintMenuOverlay final :
-    public QGraphicsItem
+    public QQuickPaintedItem
 {
 
 public:
   ConstraintMenuOverlay(ConstraintView* parent):
-    QGraphicsItem{parent}
+    QQuickPaintedItem{parent}
   {
 
   }
@@ -26,7 +26,7 @@ public:
     return {0, -10, 20, 20};
   }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(QPainter* painter) override
   {
 
     auto& skin = ScenarioStyle::instance();
@@ -56,7 +56,7 @@ public:
   }
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override
+  void mousePressEvent(QMouseEvent* event) override
   {
     auto cst = static_cast<ConstraintView*>(parentItem());
     emit cst->requestOverlayMenu(event->pos());

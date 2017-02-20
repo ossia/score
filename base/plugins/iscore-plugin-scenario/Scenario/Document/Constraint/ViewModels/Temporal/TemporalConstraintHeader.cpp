@@ -5,7 +5,7 @@
 #include <QFontMetrics>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
-#include <QGraphicsView>
+#include <QQuickWidget>
 #include <QList>
 #include <QPainter>
 #include <QPen>
@@ -18,20 +18,20 @@
 #include <iscore/model/Skin.hpp>
 
 class QGraphicsSceneMouseEvent;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
 TemporalConstraintHeader::TemporalConstraintHeader() : ConstraintHeader{}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setAcceptDrops(true);
   this->setAcceptedMouseButtons(
       Qt::LeftButton); // needs to be enabled for dblclick
   this->setFlags(
-      QGraphicsItem::ItemIsSelectable); // needs to be enabled for dblclick
-  this->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
+      QQuickPaintedItem::ItemIsSelectable); // needs to be enabled for dblclick
+  this->setFlag(QQuickPaintedItem::ItemClipsChildrenToShape);
 
   // m_textCache.setCacheEnabled(true);
 }
@@ -42,7 +42,7 @@ QRectF TemporalConstraintHeader::boundingRect() const
 }
 
 void TemporalConstraintHeader::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   if (m_state == State::RackHidden)
@@ -135,14 +135,14 @@ void TemporalConstraintHeader::on_textChange()
 
 void TemporalConstraintHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
-  QGraphicsItem::hoverEnterEvent(h);
+  QQuickPaintedItem::hoverEnterEvent(h);
   emit constraintHoverEnter();
   emit shadowChanged(true);
 }
 
 void TemporalConstraintHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
-  QGraphicsItem::hoverLeaveEvent(h);
+  QQuickPaintedItem::hoverLeaveEvent(h);
   emit shadowChanged(false);
   emit constraintHoverLeave();
 }
@@ -150,7 +150,7 @@ void TemporalConstraintHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 void TemporalConstraintHeader::dragEnterEvent(
     QGraphicsSceneDragDropEvent* event)
 {
-  QGraphicsItem::dragEnterEvent(event);
+  QQuickPaintedItem::dragEnterEvent(event);
   emit shadowChanged(true);
   event->accept();
 }
@@ -158,7 +158,7 @@ void TemporalConstraintHeader::dragEnterEvent(
 void TemporalConstraintHeader::dragLeaveEvent(
     QGraphicsSceneDragDropEvent* event)
 {
-  QGraphicsItem::dragLeaveEvent(event);
+  QQuickPaintedItem::dragLeaveEvent(event);
   emit shadowChanged(false);
   event->accept();
 }

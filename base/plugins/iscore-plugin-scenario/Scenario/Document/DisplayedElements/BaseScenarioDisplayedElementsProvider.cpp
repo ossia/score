@@ -39,7 +39,7 @@ DisplayedElementsPresenterContainer
 BaseScenarioDisplayedElementsProvider::make_presenters(
     const ConstraintModel& m,
     const Process::ProcessPresenterContext& ctx,
-    QGraphicsItem* view_parent,
+    QQuickPaintedItem* view_parent,
     QObject* parent) const
 {
   if (auto bs = dynamic_cast<BaseScenario*>(m.parent()))

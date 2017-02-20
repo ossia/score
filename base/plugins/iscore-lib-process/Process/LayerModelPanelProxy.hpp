@@ -6,7 +6,7 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <QGraphicsScene>
-#include <QGraphicsView>
+#include <QQuickWidget>
 class ProcessGraphicsView;
 namespace iscore
 {

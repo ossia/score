@@ -10,7 +10,7 @@ class View final : public Process::LayerView
 {
   Q_OBJECT
 public:
-  View(QGraphicsItem* parent);
+  View(QQuickPaintedItem* parent);
 
   ~View();
 
@@ -23,10 +23,10 @@ signals:
 private:
   void paint_impl(QPainter*) const override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
-  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
-  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) override;
+  void mousePressEvent(QMouseEvent*) override;
+  void mouseMoveEvent(QMouseEvent*) override;
+  void mouseReleaseEvent(QMouseEvent*) override;
+  void mouseDoubleClickEvent(QMouseEvent*) override;
   void keyPressEvent(QKeyEvent*) override;
 
   QPainterPath m_selectArea;

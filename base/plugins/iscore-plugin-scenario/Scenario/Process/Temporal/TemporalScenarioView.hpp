@@ -4,7 +4,7 @@
 #include <QPoint>
 #include <QRect>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QGraphicsSceneContextMenuEvent;
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneMouseEvent;
@@ -21,7 +21,7 @@ class TemporalScenarioView final : public Process::LayerView
   Q_OBJECT
 
 public:
-  TemporalScenarioView(QGraphicsItem* parent);
+  TemporalScenarioView(QQuickPaintedItem* parent);
   ~TemporalScenarioView();
 
   void paint_impl(QPainter* painter) const override;
@@ -78,10 +78,10 @@ public slots:
   void movedAsked(const QPointF& p);
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
   void keyPressEvent(QKeyEvent* event) override;

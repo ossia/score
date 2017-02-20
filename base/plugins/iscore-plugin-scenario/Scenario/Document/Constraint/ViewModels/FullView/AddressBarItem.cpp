@@ -15,14 +15,14 @@
 #include <iscore/model/path/ObjectIdentifier.hpp>
 
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
-AddressBarItem::AddressBarItem(QGraphicsItem* parent) : QGraphicsItem{parent}
+AddressBarItem::AddressBarItem(QQuickPaintedItem* parent) : QQuickPaintedItem{parent}
 {
-  this->setFlag(QGraphicsItem::ItemHasNoContents, true);
+  this->setFlag(QQuickPaintedItem::ItemHasNoContents, true);
 }
 
 void AddressBarItem::setTargetObject(ObjectPath&& path)
@@ -82,7 +82,7 @@ QRectF AddressBarItem::boundingRect() const
 }
 
 void AddressBarItem::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
 }
 

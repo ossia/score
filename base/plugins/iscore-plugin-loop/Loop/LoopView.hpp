@@ -2,7 +2,7 @@
 #include <Process/LayerView.hpp>
 #include <QRect>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QPainter;
 
 namespace Loop
@@ -11,7 +11,7 @@ class LayerView final : public Process::LayerView
 {
   Q_OBJECT
 public:
-  LayerView(QGraphicsItem* parent);
+  LayerView(QQuickPaintedItem* parent);
 
   ~LayerView();
 
@@ -24,6 +24,6 @@ signals:
 protected:
   void paint_impl(QPainter*) const override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
-  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
+  void mousePressEvent(QMouseEvent*) override;
 };
 }

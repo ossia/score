@@ -1,5 +1,5 @@
 #include <QGraphicsScene>
-#include <QGraphicsView>
+#include <QQuickWidget>
 #include <QList>
 #include <QPoint>
 #include <cmath>
@@ -8,17 +8,17 @@
 #include "FullViewConstraintHeader.hpp"
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
-FullViewConstraintHeader::FullViewConstraintHeader(QGraphicsItem* parent)
+FullViewConstraintHeader::FullViewConstraintHeader(QQuickPaintedItem* parent)
     : ConstraintHeader{parent}, m_bar{new AddressBarItem(this)}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
   m_bar->setPos(10, 5);
   connect(m_bar, &AddressBarItem::needRedraw, this, [&]() { update(); });
 }
@@ -34,7 +34,7 @@ QRectF FullViewConstraintHeader::boundingRect() const
 }
 
 void FullViewConstraintHeader::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   double textWidth = m_bar->width();

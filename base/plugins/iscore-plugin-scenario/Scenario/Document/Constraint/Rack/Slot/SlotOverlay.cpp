@@ -6,16 +6,16 @@
 #include "SlotPresenter.hpp"
 #include "SlotView.hpp"
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
 SlotOverlay::SlotOverlay(SlotView* parent)
-    : QGraphicsItem{parent}, m_slotView{*parent}
+    : QQuickPaintedItem{parent}, m_slotView{*parent}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
-  this->setZValue(1500);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
+  this->setZ(1500);
   this->setPos(0, 0);
 }
 
@@ -35,7 +35,7 @@ void SlotOverlay::setWidth(qreal width)
 }
 
 void SlotOverlay::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->setPen(ScenarioStyle::instance().SlotOverlayBorder.getColor());
@@ -43,17 +43,17 @@ void SlotOverlay::paint(
   painter->drawRect(boundingRect());
 }
 
-void SlotOverlay::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void SlotOverlay::mousePressEvent(QMouseEvent* event)
 {
   emit m_slotView.presenter.pressed(event->scenePos());
 }
 
-void SlotOverlay::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void SlotOverlay::mouseMoveEvent(QMouseEvent* event)
 {
   emit m_slotView.presenter.moved(event->scenePos());
 }
 
-void SlotOverlay::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void SlotOverlay::mouseReleaseEvent(QMouseEvent* event)
 {
   emit m_slotView.presenter.released(event->scenePos());
 }

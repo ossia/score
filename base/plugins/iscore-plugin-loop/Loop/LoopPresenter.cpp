@@ -1,7 +1,7 @@
 #include <Loop/LoopLayer.hpp>
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopView.hpp>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <tuple>
 #include <type_traits>
@@ -157,13 +157,13 @@ void LayerPresenter::setHeight(qreal height)
 
 void LayerPresenter::putToFront()
 {
-  m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
+  m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, false);
   m_view->setOpacity(1);
 }
 
 void LayerPresenter::putBehind()
 {
-  m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
+  m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, true);
   m_view->setOpacity(0.1);
 }
 

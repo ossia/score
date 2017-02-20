@@ -12,7 +12,7 @@
 #include "CurvePointView.hpp"
 #include <iscore/tools/Todo.hpp>
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 #include <iscore/model/Identifier.hpp>
 namespace Curve
@@ -21,13 +21,13 @@ const qreal radius = 2.5;
 const QRectF ellipse{-radius, -radius, 2 * radius, 2 * radius};
 
 PointView::PointView(
-    const PointModel* model, const Curve::Style& style, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_style{style}
+    const PointModel* model, const Curve::Style& style, QQuickPaintedItem* parent)
+    : QQuickPaintedItem{parent}, m_style{style}
 {
-  this->setZValue(2);
+  this->setZ(2);
   this->setCursor(Qt::CrossCursor);
   this->setFlag(ItemIsFocusable, false);
-  // Bad on retina. :( this->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+  // Bad on retina. :( this->setCacheMode(QQuickPaintedItem::DeviceCoordinateCache);
 
   setModel(model);
 }
@@ -59,7 +59,7 @@ QRectF PointView::boundingRect() const
 }
 
 void PointView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   if(!m_selected)
@@ -92,9 +92,9 @@ void PointView::disable()
 {
   this->setVisible(false);
 }
-
+/*
 void PointView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
   emit contextMenuRequested(ev->screenPos(), ev->scenePos());
-}
+}*/
 }

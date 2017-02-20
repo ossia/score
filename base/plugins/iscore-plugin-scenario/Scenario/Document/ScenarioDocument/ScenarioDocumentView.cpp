@@ -9,7 +9,7 @@
 #include <QFile>
 #include <QFlags>
 #include <QGraphicsScene>
-#include <QGraphicsView>
+#include <QQuickWidget>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPainter>

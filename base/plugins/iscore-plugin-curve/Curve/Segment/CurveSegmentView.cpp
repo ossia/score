@@ -11,7 +11,7 @@
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/Todo.hpp>
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 #include <iscore/model/Identifier.hpp>
 namespace Curve
@@ -24,11 +24,11 @@ const QPainterPathStroker CurveSegmentStroker{[]() {
 SegmentView::SegmentView(
     const SegmentModel* model,
     const Curve::Style& style,
-    QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_style{style}
+    QQuickPaintedItem* parent)
+    : QQuickPaintedItem{parent}, m_style{style}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
-  this->setZValue(1);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
+  this->setZ(1);
   this->setFlag(ItemIsFocusable, false);
 
   setModel(model);
@@ -55,7 +55,7 @@ const Id<SegmentModel>& SegmentView::id() const
 
 void SegmentView::setRect(const QRectF& theRect)
 {
-  prepareGeometryChange();
+//  prepareGeometryChange();
   m_rect = theRect;
   updatePoints();
 }
@@ -66,7 +66,7 @@ QRectF SegmentView::boundingRect() const
 }
 
 void SegmentView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setRenderHint(QPainter::RenderHint::Antialiasing, m_enabled);
 
@@ -167,9 +167,9 @@ void SegmentView::updatePen()
 
   ISCORE_ASSERT(m_pen);
 }
-
+/*
 void SegmentView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
   emit contextMenuRequested(ev->screenPos(), ev->scenePos());
-}
+}*/
 }

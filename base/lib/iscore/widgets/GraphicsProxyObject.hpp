@@ -1,15 +1,15 @@
 #pragma once
 #include <QBrush>
 #include <QDebug>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QObject>
 #include <QPainter>
-class BaseGraphicsObject final : public QObject, public QGraphicsItem
+class BaseGraphicsObject final : public QQuickPaintedItem
 {
 public:
-  BaseGraphicsObject(QGraphicsItem* parent = nullptr) : QGraphicsItem{parent}
+  BaseGraphicsObject(QQuickPaintedItem* parent = nullptr) : QQuickPaintedItem{parent}
   {
-    this->setFlag(QGraphicsItem::ItemHasNoContents, true);
+    this->setFlag(QQuickPaintedItem::ItemHasNoContents, true);
   }
 
   QRectF boundingRect() const override
@@ -18,8 +18,7 @@ public:
   }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override
+      QPainter* painter) override
   {
   }
 

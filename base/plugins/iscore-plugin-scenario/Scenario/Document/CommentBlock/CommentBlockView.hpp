@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QObject>
 
 #include <QPointF>
@@ -9,16 +9,16 @@ namespace Scenario
 class TextItem;
 
 class CommentBlockPresenter;
-class CommentBlockView final : public QObject, public QGraphicsItem
+class CommentBlockView final : public QQuickPaintedItem
 {
 public:
-  CommentBlockView(CommentBlockPresenter& presenter, QGraphicsItem* parent);
+  CommentBlockView(CommentBlockPresenter& presenter, QQuickPaintedItem* parent);
 
   //~TimeNodeView() = default;
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::Comment;
+    return 1337 + ItemType::Comment;
   }
   int type() const override
   {
@@ -31,9 +31,7 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   QRectF boundingRect() const override;
 
@@ -41,10 +39,10 @@ public:
   void setHtmlContent(QString htmlText);
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* evt) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+  void mouseDoubleClickEvent(QMouseEvent* evt) override;
 
 private:
   void focusOnText();

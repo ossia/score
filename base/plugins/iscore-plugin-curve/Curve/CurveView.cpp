@@ -7,15 +7,15 @@
 
 #include "CurveView.hpp"
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Curve
 {
-View::View(QGraphicsItem* parent) : QGraphicsItem{parent}
+View::View(QQuickPaintedItem* parent) : QQuickPaintedItem{parent}
 {
   this->setFlags(ItemClipsChildrenToShape | ItemIsFocusable);
-  this->setZValue(1);
+  this->setZ(1);
 }
 
 View::~View()
@@ -23,7 +23,7 @@ View::~View()
 }
 
 void View::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   if (m_selectArea != QRectF{})
   {
@@ -38,27 +38,27 @@ void View::setSelectionArea(const QRectF& rect)
   update();
 }
 
-void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void View::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)
     emit pressed(event->scenePos());
   event->accept();
 }
 
-void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+void View::mouseDoubleClickEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)
     emit doubleClick(event->scenePos());
   event->accept();
 }
 
-void View::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void View::mouseMoveEvent(QMouseEvent* event)
 {
   emit moved(event->scenePos());
   event->accept();
 }
 
-void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void View::mouseReleaseEvent(QMouseEvent* event)
 {
   emit released(event->scenePos());
   event->accept();
@@ -76,14 +76,14 @@ void View::keyReleaseEvent(QKeyEvent* ev)
   ev->accept();
 }
 
-void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
+/*void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
   emit contextMenuRequested(ev->screenPos(), ev->scenePos());
 }
-
+*/
 void View::setRect(const QRectF& theRect)
 {
-  prepareGeometryChange();
+ // prepareGeometryChange();
   m_rect = theRect;
   update();
 }

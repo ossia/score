@@ -10,12 +10,12 @@
 using namespace Scenario;
 
 ConstraintBrace::ConstraintBrace(
-    const ConstraintView& parentCstr, QGraphicsItem* parent)
-    : QGraphicsItem(), m_parent{parentCstr}
+    const ConstraintView& parentCstr, QQuickPaintedItem* parent)
+    : QQuickPaintedItem(), m_parent{parentCstr}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setCursor(Qt::SizeHorCursor);
-  this->setZValue(ZPos::Brace);
+  this->setZ(ZPos::Brace);
 
   m_path.moveTo(10, -10);
   m_path.arcTo(0, -10, 20, 20, 90, 180);
@@ -29,7 +29,7 @@ QRectF ConstraintBrace::boundingRect() const
 }
 
 void ConstraintBrace::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setBrush({});
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -64,18 +64,18 @@ void ConstraintBrace::paint(
 #endif
 }
 
-void ConstraintBrace::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void ConstraintBrace::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
     m_parent.presenter().pressed(event->scenePos());
 }
 
-void ConstraintBrace::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void ConstraintBrace::mouseMoveEvent(QMouseEvent* event)
 {
   m_parent.presenter().moved(event->scenePos());
 }
 
-void ConstraintBrace::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void ConstraintBrace::mouseReleaseEvent(QMouseEvent* event)
 {
   m_parent.presenter().released(event->scenePos());
 }

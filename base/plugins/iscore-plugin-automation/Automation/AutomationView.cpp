@@ -1,7 +1,7 @@
 #include <Process/Style/ProcessFonts.hpp>
 #include <QFlags>
 #include <QFont>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QRect>
@@ -14,9 +14,9 @@
 const int fontSize = 8;
 namespace Automation
 {
-LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
+LayerView::LayerView(QQuickPaintedItem* parent) : Process::LayerView{parent}
 {
-  setZValue(1);
+  setZ(1);
   setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
   setAcceptDrops(true);
   auto f = iscore::Skin::instance().SansFont;

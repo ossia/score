@@ -11,7 +11,7 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/model/Skin.hpp>
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
@@ -27,7 +27,7 @@ AbstractTimeRulerView::AbstractTimeRulerView()
 }
 
 void AbstractTimeRulerView::paint(
-    QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* p)
 {
   auto& painter = *p;
   painter.setRenderHint(QPainter::Antialiasing, false);
@@ -84,7 +84,7 @@ void AbstractTimeRulerView::setFormat(QString format)
   }
 }
 
-void AbstractTimeRulerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
+void AbstractTimeRulerView::mousePressEvent(QMouseEvent* ev)
 {
   ev->accept();
 }
@@ -143,13 +143,13 @@ void AbstractTimeRulerView::createRulerPath()
   update();
 }
 
-void AbstractTimeRulerView::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
+void AbstractTimeRulerView::mouseMoveEvent(QMouseEvent* ev)
 {
   emit drag(ev->lastScenePos(), ev->scenePos());
   ev->accept();
 }
 
-void AbstractTimeRulerView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
+void AbstractTimeRulerView::mouseReleaseEvent(QMouseEvent* ev)
 {
   ev->accept();
 }

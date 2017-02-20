@@ -16,7 +16,7 @@ class QObject;
 namespace Scenario
 {
 TimeNodePresenter::TimeNodePresenter(
-    const TimeNodeModel& model, QGraphicsItem* parentview, QObject* parent)
+    const TimeNodeModel& model, QQuickPaintedItem* parentview, QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new TimeNodeView{*this, parentview}}

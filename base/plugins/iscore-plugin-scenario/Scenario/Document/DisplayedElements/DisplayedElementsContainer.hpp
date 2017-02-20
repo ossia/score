@@ -4,7 +4,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-class QGraphicsItem;
+class QQuickPaintedItem;
 namespace Scenario
 {
 class FullViewConstraintPresenter;

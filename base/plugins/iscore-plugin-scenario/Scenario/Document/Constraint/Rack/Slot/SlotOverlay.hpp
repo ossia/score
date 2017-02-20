@@ -1,25 +1,25 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QRect>
 #include <QtGlobal>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 class QGraphicsSceneMouseEvent;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
 class SlotView;
-class SlotOverlay final : public QGraphicsItem
+class SlotOverlay final : public QQuickPaintedItem
 {
 public:
   SlotOverlay(SlotView* parent);
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::SlotOverlay;
+    return 1337 + ItemType::SlotOverlay;
   }
   int type() const override
   {
@@ -37,13 +37,11 @@ public:
   void setWidth(qreal height);
 
   virtual void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
-  void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mousePressEvent(QMouseEvent* ev) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
   const SlotView& m_slotView;

@@ -28,7 +28,7 @@ class QObject;
 namespace Scenario
 {
 StatePresenter::StatePresenter(
-    const StateModel& model, QGraphicsItem* parentview, QObject* parent)
+    const StateModel& model, QQuickPaintedItem* parentview, QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new StateView{*this, parentview}}

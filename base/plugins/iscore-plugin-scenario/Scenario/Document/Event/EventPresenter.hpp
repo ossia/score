@@ -5,7 +5,7 @@
 #include <QString>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <iscore_plugin_scenario_export.h>
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QMimeData;
 class QObject;
 #include <iscore/model/Identifier.hpp>
@@ -20,7 +20,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EventPresenter final : public QObject
 
 public:
   EventPresenter(
-      const EventModel& model, QGraphicsItem* parentview, QObject* parent);
+      const EventModel& model, QQuickPaintedItem* parentview, QObject* parent);
   virtual ~EventPresenter();
 
   const Id<EventModel>& id() const;

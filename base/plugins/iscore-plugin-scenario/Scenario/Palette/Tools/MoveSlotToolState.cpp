@@ -1,4 +1,4 @@
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QGraphicsScene>
 #include <QState>
 #include <QTransform>

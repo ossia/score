@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QState>
 #include <QStateMachine>
 #include <Scenario/Palette/ScenarioPoint.hpp>
@@ -78,7 +78,7 @@ public:
   }
 
 protected:
-  OptionalId<EventModel> itemToEventId(const QGraphicsItem* pressedItem) const
+  OptionalId<EventModel> itemToEventId(const QQuickPaintedItem* pressedItem) const
   {
     const auto& event
         = static_cast<const EventView*>(pressedItem)->presenter().model();
@@ -87,7 +87,7 @@ protected:
                : OptionalId<EventModel>{};
   }
   OptionalId<TimeNodeModel>
-  itemToTimeNodeId(const QGraphicsItem* pressedItem) const
+  itemToTimeNodeId(const QQuickPaintedItem* pressedItem) const
   {
     const auto& timenode
         = static_cast<const TimeNodeView*>(pressedItem)->presenter().model();
@@ -96,7 +96,7 @@ protected:
                : OptionalId<TimeNodeModel>{};
   }
   OptionalId<ConstraintModel>
-  itemToConstraintId(const QGraphicsItem* pressedItem) const
+  itemToConstraintId(const QQuickPaintedItem* pressedItem) const
   {
     const auto& constraint = static_cast<const ConstraintView*>(pressedItem)
                                  ->presenter()
@@ -106,7 +106,7 @@ protected:
                ? constraint.id()
                : OptionalId<ConstraintModel>{};
   }
-  OptionalId<StateModel> itemToStateId(const QGraphicsItem* pressedItem) const
+  OptionalId<StateModel> itemToStateId(const QQuickPaintedItem* pressedItem) const
   {
     const auto& state
         = static_cast<const StateView*>(pressedItem)->presenter().model();
@@ -115,7 +115,7 @@ protected:
                ? state.id()
                : OptionalId<StateModel>{};
   }
-  const SlotModel* itemToSlotFromHandle(const QGraphicsItem* pressedItem) const
+  const SlotModel* itemToSlotFromHandle(const QQuickPaintedItem* pressedItem) const
   {
     const auto& slot = static_cast<const SlotHandle*>(pressedItem)
                            ->slotView()
@@ -136,7 +136,7 @@ protected:
       typename SlotHandleFun,
       typename NothingFun>
   void mapTopItem(
-      const QGraphicsItem* item,
+      const QQuickPaintedItem* item,
       StateFun st_fun,
       EventFun ev_fun,
       TimeNodeFun tn_fun,

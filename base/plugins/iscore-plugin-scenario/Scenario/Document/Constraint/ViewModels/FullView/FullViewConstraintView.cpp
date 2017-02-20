@@ -1,7 +1,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QColor>
 #include <QCursor>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPainter>
 #include <QPen>
 #include <QtGlobal>
@@ -11,20 +11,20 @@
 #include "FullViewConstraintView.hpp"
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
 FullViewConstraintView::FullViewConstraintView(
-    FullViewConstraintPresenter& presenter, QGraphicsItem* parent)
+    FullViewConstraintPresenter& presenter, QQuickPaintedItem* parent)
     : ConstraintView{presenter, parent}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setParentItem(parent);
   this->setFlag(ItemIsSelectable);
 
-  this->setZValue(1);
+  this->setZ(1);
   this->setY(2 * constraintAndRackHeight());
 }
 
@@ -34,7 +34,7 @@ QRectF FullViewConstraintView::boundingRect() const
 }
 
 void FullViewConstraintView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   auto& skin = ScenarioStyle::instance();
   const qreal min_w = minWidth();

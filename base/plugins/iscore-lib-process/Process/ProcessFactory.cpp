@@ -96,7 +96,7 @@ LayerPresenter* LayerFactory::makeLayerPresenter(
 }
 
 LayerView*
-LayerFactory::makeLayerView(const LayerModel& view, QGraphicsItem* parent)
+LayerFactory::makeLayerView(const LayerModel& view, QQuickPaintedItem* parent)
 {
   return new Dummy::DummyLayerView{parent};
 }

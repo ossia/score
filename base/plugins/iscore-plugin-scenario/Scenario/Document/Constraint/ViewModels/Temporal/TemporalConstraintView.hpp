@@ -15,7 +15,7 @@ class QMimeData;
 class QGraphicsSceneHoverEvent;
 class QGraphicsSceneDragDropEvent;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 class ConstraintMenuOverlay;
 namespace Scenario
@@ -30,7 +30,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final
 
 public:
   TemporalConstraintView(
-      TemporalConstraintPresenter& presenter, QGraphicsItem* parent);
+      TemporalConstraintPresenter& presenter, QQuickPaintedItem* parent);
 
   QRectF boundingRect() const override
   {
@@ -41,9 +41,7 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void enableOverlay(bool b) override;
 

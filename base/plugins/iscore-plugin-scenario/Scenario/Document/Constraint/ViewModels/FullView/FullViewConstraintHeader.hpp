@@ -2,9 +2,9 @@
 #include <QRect>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
@@ -13,7 +13,7 @@ class AddressBarItem;
 class FullViewConstraintHeader final : public ConstraintHeader
 {
 public:
-  FullViewConstraintHeader(QGraphicsItem*);
+  FullViewConstraintHeader(QQuickPaintedItem*);
 
   AddressBarItem* bar() const;
 
@@ -23,8 +23,7 @@ public:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
 private:
   AddressBarItem* m_bar{};

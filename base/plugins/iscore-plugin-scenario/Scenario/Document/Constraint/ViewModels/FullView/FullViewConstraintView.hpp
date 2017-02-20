@@ -2,9 +2,9 @@
 #include <QRect>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
@@ -16,14 +16,12 @@ class FullViewConstraintView final : public ConstraintView
 
 public:
   FullViewConstraintView(
-      FullViewConstraintPresenter& presenter, QGraphicsItem* parent);
+      FullViewConstraintPresenter& presenter, QQuickPaintedItem* parent);
 
   virtual ~FullViewConstraintView() = default;
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 };
 }

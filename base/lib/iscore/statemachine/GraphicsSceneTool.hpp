@@ -1,6 +1,6 @@
 #pragma once
 #include <QApplication>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QGraphicsScene>
 #include <QStateMachine>
 #include <iscore/statemachine/StateMachineUtils.hpp>
@@ -45,7 +45,7 @@ protected:
   {
   }
 
-  QGraphicsItem* itemUnderMouse(const QPointF& point) const
+  QQuickPaintedItem* itemUnderMouse(const QPointF& point) const
   {
     return m_scene.itemAt(point, QTransform());
   }

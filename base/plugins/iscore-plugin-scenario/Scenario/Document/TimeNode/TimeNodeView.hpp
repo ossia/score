@@ -1,6 +1,6 @@
 #pragma once
 #include <QColor>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPoint>
 #include <QRect>
 #include <QTextLayout>
@@ -12,22 +12,22 @@
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
 class QGraphicsSceneMouseEvent;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
 class TimeNodePresenter;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QGraphicsItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QQuickPaintedItem
 {
 public:
-  TimeNodeView(TimeNodePresenter& presenter, QGraphicsItem* parent);
+  TimeNodeView(TimeNodePresenter& presenter, QQuickPaintedItem* parent);
   ~TimeNodeView();
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::TimeNode;
+    return 1337 + ItemType::TimeNode;
   }
   int type() const override
   {
@@ -40,11 +40,9 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
-  // QGraphicsItem interface
+  // QQuickPaintedItem interface
   QRectF boundingRect() const override
   {
     return {-3., 0., 6., m_extent.bottom() - m_extent.top()};
@@ -67,9 +65,9 @@ public:
   void setLabel(const QString& label);
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
   TimeNodePresenter& m_presenter;

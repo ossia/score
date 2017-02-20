@@ -7,7 +7,7 @@
 namespace Scenario
 {
 CommentBlockPresenter::CommentBlockPresenter(
-    const CommentBlockModel& model, QGraphicsItem* parentView, QObject* parent)
+    const CommentBlockModel& model, QQuickPaintedItem* parentView, QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new CommentBlockView{*this, parentView}}

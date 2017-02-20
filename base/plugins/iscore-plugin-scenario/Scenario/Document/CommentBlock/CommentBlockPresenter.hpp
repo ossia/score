@@ -5,7 +5,7 @@
 #include <iscore/model/Identifier.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QTextDocument;
 
 namespace Scenario
@@ -18,7 +18,7 @@ class CommentBlockPresenter final : public QObject
 public:
   CommentBlockPresenter(
       const CommentBlockModel& model,
-      QGraphicsItem* parentView,
+      QQuickPaintedItem* parentView,
       QObject* parent);
 
   ~CommentBlockPresenter();

@@ -12,7 +12,7 @@ class TextItem final : public QGraphicsTextItem
 {
   Q_OBJECT
 public:
-  TextItem(QString text, QGraphicsItem* parent);
+  TextItem(QString text, QQuickPaintedItem* parent);
 
 signals:
   void focusOut();
@@ -27,9 +27,7 @@ public:
   using QGraphicsSimpleTextItem::QGraphicsSimpleTextItem;
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void setColor(iscore::ColorRef c)
   {

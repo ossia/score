@@ -4,7 +4,7 @@
 #include <QString>
 #include <QTextLayout>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QPainter;
 class QMimeData;
 
@@ -14,7 +14,7 @@ class LayerView final : public Process::LayerView
 {
   Q_OBJECT
 public:
-  explicit LayerView(QGraphicsItem* parent);
+  explicit LayerView(QQuickPaintedItem* parent);
   virtual ~LayerView();
 
   void setDisplayedName(const QString& s);

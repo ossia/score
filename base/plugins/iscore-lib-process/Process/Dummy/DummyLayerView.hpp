@@ -4,9 +4,9 @@
 #include <QString>
 #include <iscore_lib_process_export.h>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QPainter;
-class QQuickView;
+class QQuickWidget;
 class QQuickItem;
 
 namespace Dummy
@@ -17,7 +17,7 @@ class ISCORE_LIB_PROCESS_EXPORT DummyLayerView final
 {
   Q_OBJECT
 public:
-  explicit DummyLayerView(QGraphicsItem* parent);
+  explicit DummyLayerView(QQuickPaintedItem* parent);
 
   void setText(const QString& text);
 
@@ -27,12 +27,12 @@ signals:
 private:
   void updateText();
   void paint_impl(QPainter*) const override;
-  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
+  void mousePressEvent(QMouseEvent*) override;
+  void mouseMoveEvent(QMouseEvent*) override;
+  void mouseReleaseEvent(QMouseEvent*) override;
   DummyTextItem* m_text{};
   /*
-  QQuickView* m_view{};
+  QQuickWidget* m_view{};
   QQuickItem* m_item{};
   */
 };

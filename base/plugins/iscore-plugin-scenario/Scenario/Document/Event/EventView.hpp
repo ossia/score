@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPoint>
 #include <QRect>
 #include <QString>
@@ -15,26 +15,25 @@ class QGraphicsSceneHoverEvent;
 class QGraphicsSceneMouseEvent;
 class QMimeData;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
 class ConditionView;
 class EventPresenter;
-class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QObject,
-                                                      public QGraphicsItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
+
 
 public:
-  EventView(EventPresenter& presenter, QGraphicsItem* parent);
+  EventView(EventPresenter& presenter, QQuickPaintedItem* parent);
   virtual ~EventView() = default;
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::Event;
+    return 1337 + ItemType::Event;
   }
   int type() const override
   {
@@ -52,9 +51,7 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
   void setSelected(bool selected);
   bool isSelected() const;
@@ -82,9 +79,9 @@ signals:
   void dropReceived(const QPointF& pos, const QMimeData*);
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;

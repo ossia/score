@@ -22,7 +22,7 @@
  * a hierarchical model of objects in a timeline.
  *
  * It also has the core graphics logic of i-score based on QGraphicsScene
- * and QGraphicsView.
+ * and QQuickWidget.
  *
  * As such, it is quite complex and provides a lot of classes.
  *

@@ -23,16 +23,16 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
 {
   // Setup the view
   m_widget = new QWidget;
-  m_scene = new QGraphicsScene(this);
-  m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
+  //m_scene = new QGraphicsScene(this);
+  //m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
 
   m_widget->setLayout(new QVBoxLayout);
   m_view = new ProcessGraphicsView{m_scene, m_widget};
 
   m_widget->layout()->addWidget(m_view);
 
-  m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+//  m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+//  m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   connect(
       m_view, &ProcessGraphicsView::sizeChanged, this,
       &GraphicsViewLayerModelPanelProxy::on_sizeChanged);
@@ -56,14 +56,14 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
   m_obj = new ProcessPanelGraphicsProxy{};
   // Add the items to the scene early because
   // the presenters might call scene() in their ctor.
-  m_scene->addItem(m_obj);
+//  m_scene->addItem(m_obj);
 
   m_layerView = fact->makeLayerView(m_layer, m_obj);
 
   m_processPresenter
       = fact->makeLayerPresenter(m_layer, m_layerView, m_context, this);
 
-  m_layerView->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
+  m_layerView->setFlag(QQuickPaintedItem::ItemClipsChildrenToShape, false);
 
   // connect(&m_context.updateTimer, &QTimer::timeout, this,
   // [&vp=*m_view->viewport()] { vp.update();} );
@@ -99,10 +99,12 @@ QWidget* Process::GraphicsViewLayerModelPanelProxy::widget() const
 void Process::GraphicsViewLayerModelPanelProxy::on_sizeChanged(
     const QSize& size)
 {
+	/*
   m_height = size.height() - m_view->horizontalScrollBar()->height() - 2;
   m_width = size.width();
 
   recompute();
+  */
 }
 
 void Process::GraphicsViewLayerModelPanelProxy::on_zoomChanged(
@@ -132,7 +134,7 @@ void Process::GraphicsViewLayerModelPanelProxy::recompute()
   const auto& duration = m_layer.processModel().duration();
   auto fullWidth = duration.toPixels(m_zoomRatio);
 
-  m_view->setSceneRect(0, 0, fullWidth * 1.2, m_height);
+ // m_view->setSceneRect(0, 0, fullWidth * 1.2, m_height);
 
   if (m_processPresenter)
   {

@@ -6,7 +6,7 @@
 #include <iscore_plugin_scenario_export.h>
 #include <sys/types.h>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QObject;
 
 namespace Scenario
@@ -21,7 +21,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodePresenter final : public QObject
   Q_OBJECT
 public:
   TimeNodePresenter(
-      const TimeNodeModel& model, QGraphicsItem* parentview, QObject* parent);
+      const TimeNodeModel& model, QQuickPaintedItem* parentview, QObject* parent);
   ~TimeNodePresenter();
 
   const Id<TimeNodeModel>& id() const;

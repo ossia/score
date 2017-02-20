@@ -10,25 +10,25 @@
 #include "StatePresenter.hpp"
 #include "StateView.hpp"
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 namespace Scenario
 {
-StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_presenter{pres}
+StateView::StateView(StatePresenter& pres, QQuickPaintedItem* parent)
+    : QQuickPaintedItem(parent), m_presenter{pres}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setParentItem(parent);
 
   this->setCursor(QCursor(Qt::SizeAllCursor));
-  this->setZValue(ZPos::State);
+  this->setZ(ZPos::State);
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
   m_color = ScenarioStyle::instance().StateOutline;
 }
 
 void StateView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setPen(Qt::NoPen);
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -101,18 +101,18 @@ void StateView::setStatus(ExecutionStatus status)
   update();
 }
 
-void StateView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void StateView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
     emit m_presenter.pressed(event->scenePos());
 }
 
-void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void StateView::mouseMoveEvent(QMouseEvent* event)
 {
   emit m_presenter.moved(event->scenePos());
 }
 
-void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void StateView::mouseReleaseEvent(QMouseEvent* event)
 {
   emit m_presenter.released(event->scenePos());
 }

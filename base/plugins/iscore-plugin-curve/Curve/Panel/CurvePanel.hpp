@@ -123,7 +123,7 @@ public:
     m_widget->layout()->addWidget(m_zoomSlider);
     m_view->show();
 
-    m_curveView->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
+    m_curveView->setFlag(QQuickPaintedItem::ItemClipsChildrenToShape, false);
     m_view->addActions(m_curvePresenter->actions().actions());
     m_curvePresenter->editionSettings().setTool(Curve::Tool::Select);
     m_curvePresenter->setBoundedMove(false);

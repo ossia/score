@@ -7,7 +7,7 @@
 #include <iscore/model/Identifier.hpp>
 #include <iscore_lib_process_export.h>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QObject;
 struct VisitorVariant;
 namespace iscore
@@ -95,7 +95,7 @@ public:
       QObject* parent);
 
   virtual Process::LayerView*
-  makeLayerView(const Process::LayerModel& view, QGraphicsItem* parent);
+  makeLayerView(const Process::LayerModel& view, QQuickPaintedItem* parent);
 
   virtual Process::LayerModelPanelProxy*
   makePanel(const LayerModel& layer, QObject* parent);

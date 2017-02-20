@@ -14,7 +14,7 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 
-SeparatorItem::SeparatorItem(QGraphicsItem* parent)
+SeparatorItem::SeparatorItem(QQuickPaintedItem* parent)
     : QGraphicsSimpleTextItem{"/", parent}
 {
   auto font = iscore::Skin::instance().SansFont;
@@ -28,7 +28,7 @@ ClickableLabelItem::ClickableLabelItem(
     iscore::ModelMetadata& metadata,
     ClickHandler&& onClick,
     const QString& text,
-    QGraphicsItem* parent)
+    QQuickPaintedItem* parent)
     : QGraphicsSimpleTextItem{text, parent}, m_onClick{std::move(onClick)}
 {
   connect(
@@ -47,7 +47,7 @@ ClickableLabelItem::ClickableLabelItem(
   this->setAcceptHoverEvents(true);
 }
 
-void ClickableLabelItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void ClickableLabelItem::mousePressEvent(QMouseEvent* event)
 {
   m_onClick(this);
 }

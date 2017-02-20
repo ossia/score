@@ -6,7 +6,7 @@
 class QGraphicsSceneMouseEvent;
 class QGraphicsSvgItem;
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
@@ -14,14 +14,14 @@ namespace Scenario
 class TriggerView final : public QGraphicsSvgItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
+  
 
 public:
-  TriggerView(QGraphicsItem* parent);
+  TriggerView(QQuickPaintedItem* parent);
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::Trigger;
+    return 1337 + ItemType::Trigger;
   }
   int type() const override
   {
@@ -32,7 +32,7 @@ signals:
   void pressed();
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
+  void mousePressEvent(QMouseEvent*) override;
 
 private:
   QGraphicsSvgItem* m_item{};

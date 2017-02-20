@@ -1,7 +1,7 @@
 #include <QAction>
 #include <QByteArray>
 #include <QClipboard>
-#include <QGraphicsView>
+#include <QQuickWidget>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonValue>

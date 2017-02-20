@@ -6,7 +6,7 @@
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 
 class ObjectPath;
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QObject;
 
 namespace iscore
@@ -34,7 +34,7 @@ public:
   FullViewConstraintPresenter(
       const FullViewConstraintViewModel& viewModel,
       const Process::ProcessPresenterContext& ctx,
-      QGraphicsItem* parentobject,
+      QQuickPaintedItem* parentobject,
       QObject* parent);
 
   virtual ~FullViewConstraintPresenter();

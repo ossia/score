@@ -6,7 +6,7 @@ namespace Scenario
 {
 
 TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
-    : QGraphicsView{scene}
+    : QQuickWidget{scene}
 {
   setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform
@@ -20,15 +20,15 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
   setFocusPolicy(Qt::NoFocus);
   setSceneRect(ScenarioLeftSpace, -70, 800, 35);
   setFixedHeight(40);
-  setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+  setViewportUpdateMode(QQuickWidget::NoViewportUpdate);
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
   setBackgroundBrush(ScenarioStyle::instance().TimeRulerBackground.getBrush());
 
-  setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
+  setOptimizationFlag(QQuickWidget::DontSavePainterState, true);
 #if defined(__APPLE__)
   setRenderHints(0);
-  setOptimizationFlag(QGraphicsView::IndirectPainting, true);
+  setOptimizationFlag(QQuickWidget::IndirectPainting, true);
 #endif
 }
 }

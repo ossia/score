@@ -3,20 +3,20 @@
 class QGraphicsSceneMouseEvent;
 #include <QPainter>
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
-TriggerView::TriggerView(QGraphicsItem* parent)
+TriggerView::TriggerView(QQuickPaintedItem* parent)
     : QGraphicsSvgItem{":/images/trigger.svg", parent}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setScale(1.5);
   setFlag(ItemStacksBehindParent, true);
 }
 
-void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
+void TriggerView::mousePressEvent(QMouseEvent* ev)
 {
   emit pressed();
 }

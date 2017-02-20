@@ -1,32 +1,31 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QList>
 #include <QRect>
 
 #include <iscore/model/path/ObjectPath.hpp>
 
 class QPainter;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
 class ConstraintModel;
 class ClickableLabelItem;
-class AddressBarItem final : public QObject, public QGraphicsItem
+class AddressBarItem final : public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
+
 public:
-  AddressBarItem(QGraphicsItem* parent);
+  AddressBarItem(QQuickPaintedItem* parent);
 
   double width() const;
   void setTargetObject(ObjectPath&&);
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
 signals:
   void needRedraw();
@@ -34,7 +33,7 @@ signals:
 
 private:
   void redraw();
-  QList<QGraphicsItem*> m_items;
+  QList<QQuickPaintedItem*> m_items;
   ObjectPath m_currentPath;
 
   double m_width{};

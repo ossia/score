@@ -1,6 +1,6 @@
 #pragma once
 #include <QBrush>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <iscore_plugin_scenario_export.h>
 #include <qnamespace.h>
 
@@ -11,21 +11,19 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace : public QGraphicsItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace : public QQuickPaintedItem
 {
 public:
-  ConstraintBrace(const ConstraintView& parentCstr, QGraphicsItem* parent);
+  ConstraintBrace(const ConstraintView& parentCstr, QQuickPaintedItem* parent);
 
   QRectF boundingRect() const override;
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+  void mousePressEvent(QMouseEvent* event) final override;
+  void mouseMoveEvent(QMouseEvent* event) final override;
+  void mouseReleaseEvent(QMouseEvent* event) final override;
 
 protected:
   const ConstraintView& m_parent;

@@ -22,7 +22,7 @@ namespace Process
 class LayerPresenter;
 }
 class LayerView;
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QObject;
 
 namespace Scenario
@@ -58,7 +58,7 @@ ScenarioTemporalLayerFactory::ScenarioTemporalLayerFactory(
 }
 
 Process::LayerView* ScenarioTemporalLayerFactory::makeLayerView(
-    const Process::LayerModel& viewmodel, QGraphicsItem* parent)
+    const Process::LayerModel& viewmodel, QQuickPaintedItem* parent)
 {
   if (dynamic_cast<const TemporalScenarioLayer*>(&viewmodel))
     return new TemporalScenarioView{parent};

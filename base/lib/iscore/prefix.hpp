@@ -16,7 +16,7 @@
 #include <QDebug>
 #include <QFlags>
 #include <QFormLayout>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QGridLayout>
 #include <QIODevice>
 #include <QJsonArray>

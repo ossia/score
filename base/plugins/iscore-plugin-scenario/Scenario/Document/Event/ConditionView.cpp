@@ -10,15 +10,15 @@
 
 #include "ConditionView.hpp"
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
-ConditionView::ConditionView(iscore::ColorRef color, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_color{color}
+ConditionView::ConditionView(iscore::ColorRef color, QQuickPaintedItem* parent)
+    : QQuickPaintedItem{parent}, m_color{color}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
   setFlag(ItemStacksBehindParent, true);
 
   changeHeight(0);
@@ -33,7 +33,7 @@ QRectF ConditionView::boundingRect() const
 }
 
 void ConditionView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   QPen pen{m_color.getColor()};

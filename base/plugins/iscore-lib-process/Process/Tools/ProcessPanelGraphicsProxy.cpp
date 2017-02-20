@@ -7,12 +7,12 @@ namespace Process
 {
 class LayerModel;
 }
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy()
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+//  this->setCacheMode(QQuickPaintedItem::NoCache);
 }
 
 QRectF ProcessPanelGraphicsProxy::boundingRect() const
@@ -21,7 +21,7 @@ QRectF ProcessPanelGraphicsProxy::boundingRect() const
 }
 
 void ProcessPanelGraphicsProxy::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->setBrush(
@@ -33,6 +33,6 @@ void ProcessPanelGraphicsProxy::paint(
 
 void ProcessPanelGraphicsProxy::setRect(const QSizeF& size)
 {
-  prepareGeometryChange();
+//  prepareGeometryChange();
   m_size = size;
 }

@@ -3,15 +3,15 @@
 
 #include "LayerView.hpp"
 
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 namespace Process
 {
 LayerView::~LayerView() = default;
 
-LayerView::LayerView(QGraphicsItem* parent) : QGraphicsItem{parent}
+LayerView::LayerView(QQuickPaintedItem* parent) : QQuickPaintedItem{parent}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+//  this->setCacheMode(QQuickPaintedItem::NoCache);
 }
 
 QRectF LayerView::boundingRect() const
@@ -20,14 +20,14 @@ QRectF LayerView::boundingRect() const
 }
 
 void LayerView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter)
 {
   paint_impl(painter);
 }
 
 void LayerView::setHeight(qreal height)
 {
-  prepareGeometryChange();
+//  prepareGeometryChange();
   m_height = height;
   emit heightChanged();
 }
@@ -39,7 +39,7 @@ qreal LayerView::height() const
 
 void LayerView::setWidth(qreal width)
 {
-  prepareGeometryChange();
+//  prepareGeometryChange();
   m_width = width;
   emit widthChanged();
 }

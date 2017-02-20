@@ -2,7 +2,7 @@
 #include <QCursor>
 #include <QEvent>
 #include <QFlags>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QGraphicsSceneEvent>
 #include <QKeyEvent>
 #include <QPainter>
@@ -13,14 +13,14 @@
 #include <Process/LayerView.hpp>
 namespace Scenario
 {
-TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent)
+TemporalScenarioView::TemporalScenarioView(QQuickPaintedItem* parent)
     : LayerView{parent}
 {
   this->setFlags(
       ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
   setAcceptDrops(true);
 
-  this->setZValue(1);
+  this->setZ(1);
 }
 
 TemporalScenarioView::~TemporalScenarioView() = default;
@@ -78,7 +78,7 @@ void TemporalScenarioView::movedAsked(const QPointF& p)
       = p; // we use the last pos, because if not there's a larsen and crash
 }
 
-void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void TemporalScenarioView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)
     emit pressed(event->scenePos());
@@ -86,14 +86,14 @@ void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void TemporalScenarioView::mouseMoveEvent(QMouseEvent* event)
 {
   emit moved(event->scenePos());
 
   event->accept();
 }
 
-void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void TemporalScenarioView::mouseReleaseEvent(QMouseEvent* event)
 {
   emit released(event->scenePos());
 
@@ -118,7 +118,7 @@ void TemporalScenarioView::contextMenuEvent(
 
 void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
 {
-  QGraphicsItem::keyPressEvent(event);
+  QQuickPaintedItem::keyPressEvent(event);
   if (event->key() == Qt::Key_Escape)
   {
     emit escPressed();
@@ -133,7 +133,7 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
 
 void TemporalScenarioView::keyReleaseEvent(QKeyEvent* event)
 {
-  QGraphicsItem::keyReleaseEvent(event);
+  QQuickPaintedItem::keyReleaseEvent(event);
   if (event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control)
   {
     emit keyReleased(event->key());

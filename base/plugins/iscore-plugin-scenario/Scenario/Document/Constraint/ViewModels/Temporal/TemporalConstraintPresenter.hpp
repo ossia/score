@@ -4,7 +4,7 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <iscore_plugin_scenario_export.h>
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QObject;
 namespace Scenario
 {
@@ -24,7 +24,7 @@ public:
   TemporalConstraintPresenter(
       const TemporalConstraintViewModel& viewModel,
       const Process::ProcessPresenterContext& ctx,
-      QGraphicsItem* parentobject,
+      QQuickPaintedItem* parentobject,
       QObject* parent);
 
 

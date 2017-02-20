@@ -15,7 +15,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public QObject
 
 public:
   StatePresenter(
-      const StateModel& model, QGraphicsItem* parentview, QObject* parent);
+      const StateModel& model, QQuickPaintedItem* parentview, QObject* parent);
 
   virtual ~StatePresenter();
 

@@ -1,18 +1,17 @@
 #pragma once
 #include <Midi/MidiNote.hpp>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QObject>
 
 namespace Midi
 {
-class NoteView final : public QObject, public QGraphicsItem
+class NoteView final : public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
 public:
   const Note& note;
 
-  NoteView(const Note& n, QGraphicsItem* parent);
+  NoteView(const Note& n, QQuickPaintedItem* parent);
 
   void setWidth(double w)
   {
@@ -32,8 +31,7 @@ public:
   }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QPainter* painter) override;
 
 signals:
   void noteChanged(int, double); // pitch, scaled between [0; 1]
@@ -46,9 +44,9 @@ private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
 
   double m_width{};
   double m_height{};

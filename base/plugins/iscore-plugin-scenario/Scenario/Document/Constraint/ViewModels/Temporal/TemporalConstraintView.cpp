@@ -2,7 +2,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QBrush>
 #include <QFont>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPainterPath>
@@ -19,26 +19,26 @@
 #include <iscore/model/Skin.hpp>
 
 class QGraphicsSceneHoverEvent;
-class QStyleOptionGraphicsItem;
+
 class QWidget;
 
 namespace Scenario
 {
 TemporalConstraintView::TemporalConstraintView(
-    TemporalConstraintPresenter& presenter, QGraphicsItem* parent)
+    TemporalConstraintPresenter& presenter, QQuickPaintedItem* parent)
   : ConstraintView{presenter, parent}
   , m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setParentItem(parent);
   this->setAcceptDrops(true);
   this->setCursor(QCursor(Qt::SizeVerCursor));
 
-  this->setZValue(ZPos::Constraint);
+  this->setZ(ZPos::Constraint);
 }
 
 void TemporalConstraintView::paint(
-    QPainter* p, const QStyleOptionGraphicsItem*, QWidget*)
+    QPainter* p)
 {
   QPainterPath solidPath, dashedPath, playedPath;
   auto& painter = *p;
@@ -136,28 +136,28 @@ void TemporalConstraintView::paint(
 
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
-  QGraphicsItem::hoverEnterEvent(h);
+  QQuickPaintedItem::hoverEnterEvent(h);
   setShadow(true);
   emit constraintHoverEnter();
 }
 
 void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
-  QGraphicsItem::hoverLeaveEvent(h);
+  QQuickPaintedItem::hoverLeaveEvent(h);
   setShadow(false);
   emit constraintHoverLeave();
 }
 
 void TemporalConstraintView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-  QGraphicsItem::dragEnterEvent(event);
+  QQuickPaintedItem::dragEnterEvent(event);
   setShadow(true);
   event->accept();
 }
 
 void TemporalConstraintView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
-  QGraphicsItem::dragLeaveEvent(event);
+  QQuickPaintedItem::dragLeaveEvent(event);
   setShadow(false);
   event->accept();
 }

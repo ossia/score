@@ -12,7 +12,7 @@ class LayerPresenter;
 class LayerView;
 class ProcessModel;
 }
-class QGraphicsItem;
+class QQuickPaintedItem;
 class QObject;
 struct VisitorVariant;
 #include <iscore/model/Identifier.hpp>
@@ -68,7 +68,7 @@ public:
       QObject* parent) override;
 
   Process::LayerView* makeLayerView(
-      const Process::LayerModel& viewmodel, QGraphicsItem* parent) override;
+      const Process::LayerModel& viewmodel, QQuickPaintedItem* parent) override;
 
   bool matches(const UuidKey<Process::ProcessModelFactory>& p) const override;
   UuidKey<Process::LayerFactory> concreteKey() const noexcept override;

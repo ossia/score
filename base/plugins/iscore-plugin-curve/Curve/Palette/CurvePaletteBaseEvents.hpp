@@ -4,7 +4,7 @@
 
 #include <iscore/tools/Clamp.hpp>
 
-class QGraphicsItem;
+class QQuickPaintedItem;
 namespace Curve
 {
 class SegmentModel;
@@ -28,7 +28,7 @@ template <typename Element_T, typename Modifier_T>
 struct CurveEvent : public iscore::PositionedEvent<Curve::Point>
 {
   static constexpr const int user_type = Element_T::value + Modifier_T::value;
-  CurveEvent(const Curve::Point& pt, const QGraphicsItem* theItem)
+  CurveEvent(const Curve::Point& pt, const QQuickPaintedItem* theItem)
       : iscore::PositionedEvent<Curve::Point>{pt,
                                               QEvent::Type(
                                                   QEvent::User + user_type)}
@@ -36,7 +36,7 @@ struct CurveEvent : public iscore::PositionedEvent<Curve::Point>
   {
   }
 
-  const QGraphicsItem* const item{};
+  const QQuickPaintedItem* const item{};
 };
 
 using ClickOnNothing_Event

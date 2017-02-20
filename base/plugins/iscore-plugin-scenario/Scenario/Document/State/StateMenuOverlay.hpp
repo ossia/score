@@ -1,5 +1,5 @@
 #pragma once
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <Scenario/Document/State/StateView.hpp>
 #include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -11,12 +11,12 @@ namespace Scenario
 {
 
 class StateMenuOverlay final :
-    public QGraphicsItem
+    public QQuickPaintedItem
 {
   static const constexpr auto radius = 4;
 public:
   StateMenuOverlay(StateView* parent):
-    QGraphicsItem{parent}
+    QQuickPaintedItem{parent}
   {
 
   }
@@ -26,7 +26,7 @@ public:
     return {-radius, -radius, 2 * radius, 2 * radius};
   }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(QPainter* painter) override
   {
     auto& skin = ScenarioStyle::instance();
 
@@ -50,7 +50,7 @@ public:
   }
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override
+  void mousePressEvent(QMouseEvent* event) override
   {
     auto st = static_cast<StateView*>(parentItem());
     emit st->startCreateMode();

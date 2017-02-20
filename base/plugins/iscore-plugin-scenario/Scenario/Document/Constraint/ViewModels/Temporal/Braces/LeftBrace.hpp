@@ -11,14 +11,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT LeftBraceView final
     : public ConstraintBrace
 {
 public:
-  LeftBraceView(const ConstraintView& parentCstr, QGraphicsItem* parent)
+  LeftBraceView(const ConstraintView& parentCstr, QQuickPaintedItem* parent)
       : ConstraintBrace{parentCstr, parent}
   {
   }
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::LeftBrace;
+    return 1337 + ItemType::LeftBrace;
   }
   int type() const override
   {
@@ -30,7 +30,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT RightBraceView final
     : public ConstraintBrace
 {
 public:
-  RightBraceView(const ConstraintView& parentCstr, QGraphicsItem* parent)
+  RightBraceView(const ConstraintView& parentCstr, QQuickPaintedItem* parent)
       : ConstraintBrace{parentCstr, parent}
   {
     this->setRotation(180);
@@ -38,7 +38,7 @@ public:
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::RightBrace;
+    return 1337 + ItemType::RightBrace;
   }
   int type() const override
   {

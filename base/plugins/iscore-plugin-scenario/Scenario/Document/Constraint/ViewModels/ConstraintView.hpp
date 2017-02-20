@@ -1,6 +1,6 @@
 #pragma once
 #include <QBrush>
-#include <QGraphicsItem>
+#include <QQuickPaintedItem>
 #include <QPen>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <iscore_plugin_scenario_export.h>
@@ -16,19 +16,18 @@ class LeftBraceView;
 class RightBraceView;
 class SimpleTextItem;
 class ConstraintMenuOverlay;
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QObject,
-                                                     public QGraphicsItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QQuickPaintedItem
 {
   Q_OBJECT
-  Q_INTERFACES(QGraphicsItem)
+
 
 public:
-  ConstraintView(ConstraintPresenter& presenter, QGraphicsItem* parent);
+  ConstraintView(ConstraintPresenter& presenter, QQuickPaintedItem* parent);
   virtual ~ConstraintView();
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::Constraint;
+    return 1337 + ItemType::Constraint;
   }
   int type() const final override
   {
@@ -115,9 +114,9 @@ public:
   void updateCounterPos();
   void updateOverlayPos();
 
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+  void mousePressEvent(QMouseEvent* event) final override;
+  void mouseMoveEvent(QMouseEvent* event) final override;
+  void mouseReleaseEvent(QMouseEvent* event) final override;
 
   LeftBraceView& leftBrace() const
   {
