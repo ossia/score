@@ -17,8 +17,8 @@ namespace Automation
 LayerView::LayerView(QQuickPaintedItem* parent) : Process::LayerView{parent}
 {
   setZ(1);
-  setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
-  setAcceptDrops(true);
+  setFlags(ItemClipsChildrenToShape /* | ItemIsSelectable | ItemIsFocusable */);
+  //setAcceptDrops(true);
   auto f = iscore::Skin::instance().SansFont;
   f.setPointSize(fontSize);
 
@@ -52,7 +52,7 @@ void LayerView::paint_impl(QPainter* painter) const
 #endif
 }
 
-void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
+void LayerView::dropEvent(QDropEvent* event)
 {
   if (event->mimeData())
     emit dropReceived(*event->mimeData());

@@ -121,16 +121,16 @@ const Id<Process::ProcessModel>& Presenter::modelId() const
 void Presenter::setupNote(NoteView& v)
 {
   const auto note_height = m_view->height() / 127.;
-  v.setPos(
+  v.setPosition({
       v.note.start() * m_view->width(),
-      m_view->height() - v.note.pitch() * note_height);
+      m_view->height() - v.note.pitch() * note_height});
   v.setWidth(v.note.duration() * m_view->width());
   v.setHeight(note_height);
 
   con(v.note, &Note::noteChanged, &v, [&] { updateNote(v); });
 
   con(v, &NoteView::noteChangeFinished, this, [&] {
-    auto newPos = v.pos();
+    auto newPos = v.position();
     auto rect = m_view->boundingRect();
     auto height = rect.height();
 
@@ -164,8 +164,8 @@ void Presenter::updateNote(NoteView& v)
   const auto note_height = m_view->height() / 127.;
   QPointF newPos{v.note.start() * m_view->width(),
                  m_view->height() - v.note.pitch() * note_height};
-  if (newPos != v.pos())
-    v.setPos(newPos);
+  if (newPos != v.position())
+    v.setPosition(newPos);
 
   v.setWidth(v.note.duration() * m_view->width());
   v.setHeight(note_height);
@@ -195,7 +195,7 @@ std::vector<Id<Note>> Presenter::selectedNotes() const
 
   std::vector<Id<Note>> res;
   boost::copy(
-      m_notes | filtered([](NoteView* v) { return v->isSelected(); })
+      m_notes | filtered([](NoteView* v) { return false; /* v->isSelected() */; })
           | transformed([](NoteView* v) { return v->note.id(); }),
       std::back_inserter(res));
   return res;

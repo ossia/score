@@ -1,5 +1,5 @@
 #pragma once
-#include <QQuickPaintedItem>
+#include <iscore/tools/GraphicsItem.hpp>
 #include <QPoint>
 #include <QRect>
 
@@ -13,7 +13,7 @@ namespace Curve
 {
 class PointModel;
 struct Style;
-class PointView final : public QQuickPaintedItem
+class PointView final : public GraphicsItem
 {
   Q_OBJECT
 
@@ -30,11 +30,11 @@ public:
   {
     return 1337 + 100;
   }
-/*  int type() const override
+  int type() const override
   {
     return static_type();
   }
-  */
+
   QRectF boundingRect() const override;
   void paint(
       QPainter* painter) override;

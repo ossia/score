@@ -141,17 +141,9 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     auto pres = m_parent->focusedPresenter();
     if (!pres)
       return;
-    auto views = pres->view().scene()->views();
-    if (views.empty())
-      return;
-
-    auto view = views.front();
-
-    QPoint pos = QCursor::pos();
-
-    auto scene_pt = view->mapToScene(view->mapFromGlobal(pos));
     TemporalScenarioView& sv = pres->view();
-    auto sv_pt = sv.mapFromScene(scene_pt);
+
+    auto sv_pt = sv.mapFromGlobal(QCursor::pos());
     if (!sv.contains(sv_pt))
     {
       sv_pt = sv.mapToScene(sv.boundingRect().center());

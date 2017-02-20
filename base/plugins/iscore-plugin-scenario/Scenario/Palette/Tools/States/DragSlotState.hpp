@@ -30,7 +30,7 @@ public:
   DragSlotState(
       const iscore::CommandStackFacade& stack,
       const ToolPalette_T& sm,
-      const QGraphicsScene& scene,
+      const QQuickItem& scene,
       QState* parent)
       : SlotState{parent}, m_dispatcher{stack}, m_sm{sm}, m_scene{scene}
   {
@@ -46,7 +46,7 @@ public:
 
     connect(release, &QAbstractState::entered, [=]() {
       auto overlay = dynamic_cast<SlotOverlay*>(
-          m_scene.itemAt(m_sm.scenePoint, QTransform()));
+          m_scene.childAt(m_sm.scenePoint.x(), m_sm.scenePoint.y()));
       if (overlay)
       {
         auto& baseSlot = this->currentSlot.find();
@@ -76,6 +76,6 @@ public:
 private:
   CommandDispatcher<> m_dispatcher;
   const ToolPalette_T& m_sm;
-  const QGraphicsScene& m_scene;
+  const QQuickItem& m_scene;
 };
 }

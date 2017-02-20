@@ -8,12 +8,15 @@
 #include <QPainterPath>
 #include <QScrollBar>
 #include <QWheelEvent>
+#include <QQuickItem>
 #include <qnamespace.h>
 
 ProcessGraphicsView::ProcessGraphicsView(
-    QGraphicsScene* scene, QWidget* parent)
+    QQuickItem* scene, QWidget* parent)
     : QQuickWidget{}
 {
+  scene->setParentItem(this->rootObject());
+  scene->setSize(QSizeF(500, 500));
 	/*
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setViewportUpdateMode(QQuickWidget::SmartViewportUpdate);
@@ -32,8 +35,8 @@ ProcessGraphicsView::ProcessGraphicsView(
 #endif
 
 #if defined(__APPLE__)
-  setRenderHints(0);
-  setOptimizationFlag(QQuickWidget::IndirectPainting, true);
+  //setRenderHints(0);
+  //setOptimizationFlag(QQuickWidget::IndirectPainting, true);
 #endif
 
   // m_graduations = new SceneGraduations{this};

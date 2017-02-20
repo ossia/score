@@ -22,11 +22,11 @@ const QRectF ellipse{-radius, -radius, 2 * radius, 2 * radius};
 
 PointView::PointView(
     const PointModel* model, const Curve::Style& style, QQuickPaintedItem* parent)
-    : QQuickPaintedItem{parent}, m_style{style}
+    : GraphicsItem{parent}, m_style{style}
 {
   this->setZ(2);
   this->setCursor(Qt::CrossCursor);
-  this->setFlag(ItemIsFocusable, false);
+  // this->setFlag(ItemIsFocusable, false);
   // Bad on retina. :( this->setCacheMode(QQuickPaintedItem::DeviceCoordinateCache);
 
   setModel(model);

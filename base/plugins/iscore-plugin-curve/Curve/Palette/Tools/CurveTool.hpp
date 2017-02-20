@@ -20,7 +20,7 @@ protected:
   template <typename PointFun, typename SegmentFun, typename NothingFun>
   void mapTopItem(
       QPointF scenePoint,
-      const QQuickPaintedItem* pressedItem,
+      const QQuickItem* pressedItem,
       PointFun pt_fun,
       SegmentFun seg_fun,
       NothingFun nothing_fun) const
@@ -31,11 +31,17 @@ protected:
       return;
     }
 
-    switch (pressedItem->type())
+    auto obj = qobject_cast<const GraphicsItem*>(pressedItem);
+    if(!obj)
+    {
+      nothing_fun();
+      return;
+    }
+    switch (obj->type())
     {
       case PointView::static_type():
       {
-        auto pt = safe_cast<const PointView*>(pressedItem);
+        auto pt = safe_cast<const PointView*>(obj);
         if (pt->contains(pt->mapFromScene(scenePoint)))
           pt_fun(pt);
         break;
@@ -43,7 +49,7 @@ protected:
 
       case SegmentView::static_type():
       {
-        auto segt = safe_cast<const SegmentView*>(pressedItem);
+        auto segt = safe_cast<const SegmentView*>(obj);
         if (segt->contains(segt->mapFromScene(scenePoint)))
         {
           seg_fun(segt);

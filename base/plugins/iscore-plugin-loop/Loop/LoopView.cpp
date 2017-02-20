@@ -20,13 +20,13 @@ void LayerView::setSelectionArea(QRectF)
 void LayerView::paint_impl(QPainter*) const
 {
 }
-
+/*
 void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
-  emit askContextMenu(event->screenPos(), event->scenePos());
+  emit askContextMenu(event->screenPos(), mapToScene(event->localPos()));
   event->accept();
 }
-
+*/
 void LayerView::mousePressEvent(QMouseEvent* ev)
 {
   emit pressed();

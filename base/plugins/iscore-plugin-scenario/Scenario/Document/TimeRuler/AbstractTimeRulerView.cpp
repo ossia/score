@@ -53,26 +53,28 @@ void AbstractTimeRulerView::paint(
 
 void AbstractTimeRulerView::setHeight(qreal newHeight)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_height = newHeight;
+  update();
 }
 
 void AbstractTimeRulerView::setWidth(qreal newWidth)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_width = newWidth;
   createRulerPath();
+  update();
 }
 
 void AbstractTimeRulerView::setGraduationsStyle(
     double size, int delta, QString format, int mark)
 {
-  prepareGeometryChange();
   m_graduationsSpacing = size;
   m_graduationDelta = delta;
   setFormat(std::move(format));
   m_intervalsBetweenMark = mark;
   createRulerPath();
+  update();
 }
 
 void AbstractTimeRulerView::setFormat(QString format)
@@ -86,6 +88,7 @@ void AbstractTimeRulerView::setFormat(QString format)
 
 void AbstractTimeRulerView::mousePressEvent(QMouseEvent* ev)
 {
+  m_lastScenePos = mapToScene(ev->localPos());
   ev->accept();
 }
 
@@ -145,7 +148,9 @@ void AbstractTimeRulerView::createRulerPath()
 
 void AbstractTimeRulerView::mouseMoveEvent(QMouseEvent* ev)
 {
-  emit drag(ev->lastScenePos(), ev->scenePos());
+  auto pos = mapToScene(ev->localPos());
+  emit drag(m_lastScenePos, pos);
+  m_lastScenePos = pos;
   ev->accept();
 }
 

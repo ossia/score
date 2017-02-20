@@ -59,7 +59,7 @@ EventPresenter::EventPresenter(
   connect(m_view, &EventView::dropReceived, this, &EventPresenter::handleDrop);
 
   m_view->setCondition(m_model.condition().toString());
-  m_view->setToolTip(m_model.metadata().getComment());
+  //m_view->setToolTip(m_model.metadata().getComment());
 
   con(m_model, &EventModel::conditionChanged, this,
       [&](const State::Expression& c) { m_view->setCondition(c.toString()); });

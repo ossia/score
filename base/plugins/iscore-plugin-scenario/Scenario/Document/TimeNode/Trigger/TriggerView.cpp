@@ -9,15 +9,20 @@ class QWidget;
 namespace Scenario
 {
 TriggerView::TriggerView(QQuickPaintedItem* parent)
-    : QGraphicsSvgItem{":/images/trigger.svg", parent}
+    : GraphicsItem{parent}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setScale(1.5);
-  setFlag(ItemStacksBehindParent, true);
+  //setFlag(ItemStacksBehindParent, true);
 }
 
 void TriggerView::mousePressEvent(QMouseEvent* ev)
 {
   emit pressed();
+}
+
+void TriggerView::paint(QPainter *painter)
+{
+  // TODO
 }
 }

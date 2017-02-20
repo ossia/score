@@ -22,7 +22,7 @@ signals:
 
 private:
   void paint_impl(QPainter*) const override;
-  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+  //void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mousePressEvent(QMouseEvent*) override;
   void mouseMoveEvent(QMouseEvent*) override;
   void mouseReleaseEvent(QMouseEvent*) override;
@@ -30,6 +30,7 @@ private:
   void keyPressEvent(QKeyEvent*) override;
 
   QPainterPath m_selectArea;
+  QPointF m_buttonPos;
 };
 
 NoteData noteAtPos(QPointF point, const QRectF& rect);

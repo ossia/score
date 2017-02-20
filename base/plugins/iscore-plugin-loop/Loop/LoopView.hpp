@@ -23,7 +23,7 @@ signals:
 
 protected:
   void paint_impl(QPainter*) const override;
-  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+//  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mousePressEvent(QMouseEvent*) override;
 };
 }

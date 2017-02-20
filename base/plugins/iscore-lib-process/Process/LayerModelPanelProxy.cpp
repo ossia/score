@@ -23,7 +23,7 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
 {
   // Setup the view
   m_widget = new QWidget;
-  //m_scene = new QGraphicsScene(this);
+  m_scene = new QQuickItem;
   //m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
 
   m_widget->setLayout(new QVBoxLayout);

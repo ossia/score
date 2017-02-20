@@ -47,7 +47,7 @@ void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
 
   ev.view()->setExtent(ev.model().extent() * h);
 
-  ev.view()->setPos({ev.model().date().toPixels(m_presenter.m_zoomRatio),
+  ev.view()->setPosition({ev.model().date().toPixels(m_presenter.m_zoomRatio),
                      ev.model().extent().top() * h});
 
   // We also have to move all the relevant states
@@ -79,7 +79,7 @@ void ScenarioViewInterface::on_constraintMoved(
 
   if (dateChanged)
   {
-    cstr_view.setPos(startPos, rect.height() * cstr_model.heightPercentage());
+    cstr_view.setPosition(QPointF{startPos, rect.height() * cstr_model.heightPercentage()});
   }
   else
   {
@@ -104,7 +104,7 @@ void ScenarioViewInterface::on_timeNodeMoved(const TimeNodePresenter& timenode)
   auto h = m_presenter.m_view->boundingRect().height();
   timenode.view()->setExtent(timenode.model().extent() * h);
 
-  timenode.view()->setPos(
+  timenode.view()->setPosition(
       {timenode.model().date().toPixels(m_presenter.m_zoomRatio),
        timenode.model().extent().top() * h});
 
@@ -117,7 +117,7 @@ void ScenarioViewInterface::on_stateMoved(const StatePresenter& state)
   const auto& ev = m_presenter.processModel()
                        .event(state.model().eventId());
 
-  state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio),
+  state.view()->setPosition({ev.date().toPixels(m_presenter.m_zoomRatio),
                         rect.height() * state.model().heightPercentage()});
 
   m_presenter.m_view->update();
@@ -127,9 +127,9 @@ void ScenarioViewInterface::on_commentMoved(
     const CommentBlockPresenter& comment)
 {
   auto h = m_presenter.m_view->boundingRect().height();
-  comment.view()->setPos(
+  comment.view()->setPosition(QPointF{
       comment.date().toPixels(m_presenter.zoomRatio()),
-      comment.model().heightPercentage() * h);
+      comment.model().heightPercentage() * h});
   m_presenter.m_view->update();
 }
 

@@ -252,13 +252,13 @@ void TemporalScenarioPresenter::setHeight(qreal height)
 
 void TemporalScenarioPresenter::putToFront()
 {
-  m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, false);
+  //m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, false);
   m_view->setOpacity(1);
 }
 
 void TemporalScenarioPresenter::putBehind()
 {
-  m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, true);
+  //m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, true);
   m_view->setOpacity(0.1);
 }
 
@@ -329,7 +329,7 @@ void TemporalScenarioPresenter::fillContextMenu(
 void TemporalScenarioPresenter::drawDragLine(const StateModel& st, Point pt) const
 {
   auto& real_st = m_states.at(st.id());
-  m_view->drawDragLine(real_st.view()->pos(), { pt.date.toPixels(m_zoomRatio), pt.y * m_view->height() });
+  m_view->drawDragLine(real_st.view()->position(), { pt.date.toPixels(m_zoomRatio), pt.y * m_view->height() });
 }
 
 void TemporalScenarioPresenter::stopDrawDragLine() const
@@ -434,7 +434,7 @@ void TemporalScenarioPresenter::on_focusChanged()
 {
   if (focused())
   {
-    m_view->setFocus();
+    //m_view->setFocus();
   }
 
   editionSettings().setTool(Scenario::Tool::Select);

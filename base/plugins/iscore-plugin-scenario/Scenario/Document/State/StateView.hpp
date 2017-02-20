@@ -1,6 +1,6 @@
 #pragma once
 #include <QColor>
-#include <QQuickPaintedItem>
+#include <iscore/tools/GraphicsItem.hpp>
 #include <QRect>
 #include <QtGlobal>
 #include <iscore/model/ColorReference.hpp>
@@ -21,7 +21,7 @@ namespace Scenario
 class StateMenuOverlay;
 class StatePresenter;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QQuickPaintedItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT StateView final : public GraphicsItem
 {
   Q_OBJECT
 
@@ -66,12 +66,12 @@ protected:
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
-  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
-  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
-  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
-  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
+  void hoverEnterEvent(QHoverEvent* event) override;
+  void hoverLeaveEvent(QHoverEvent* event) override;
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dragLeaveEvent(QDragLeaveEvent* event) override;
 
-  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
 
 private:
   void setDilatation(double);

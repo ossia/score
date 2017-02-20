@@ -14,19 +14,20 @@ namespace Scenario
 {
 CommentBlockView::CommentBlockView(
     CommentBlockPresenter& presenter, QQuickPaintedItem* parent)
-    : QQuickPaintedItem{parent}, m_presenter{presenter}
+    : GraphicsItem{parent}, m_presenter{presenter}
 {
   this->setParentItem(parent);
   this->setZ(ZPos::Comment);
   this->setAcceptHoverEvents(true);
 
   m_textItem = new TextItem{"", this};
-
+/*
   connect(
       m_textItem->document(), &QTextDocument::contentsChanged, this,
       [&]() { this->prepareGeometryChange(); });
   connect(m_textItem, &TextItem::focusOut, this, &CommentBlockView::focusOut);
   focusOut();
+  */
 }
 
 void CommentBlockView::paint(
@@ -62,31 +63,31 @@ void CommentBlockView::setSelected(bool b)
 
 void CommentBlockView::setHtmlContent(QString htmlText)
 {
-  m_textItem->setHtml(htmlText);
+  //m_textItem->setHtml(htmlText);
 }
 
 void CommentBlockView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
   {
-    m_clickedPoint = event->scenePos() - this->pos();
-    m_clickedScenePoint = event->scenePos();
+    //m_clickedPoint = mapToScene(event->localPos()) - this->pos();
+    m_clickedScenePoint = mapToScene(event->localPos());
   }
 }
 
 void CommentBlockView::mouseMoveEvent(QMouseEvent* event)
 {
-  emit m_presenter.moved(event->scenePos() - m_clickedPoint);
+  emit m_presenter.moved(mapToScene(event->localPos()) - m_clickedPoint);
 }
 
 void CommentBlockView::mouseReleaseEvent(QMouseEvent* event)
 {
-  auto p = event->scenePos();
+  auto p = mapToScene(event->localPos());
   auto d = (m_clickedScenePoint - p).manhattanLength();
   if (std::abs(d) < 5)
     emit m_presenter.selected();
 
-  emit m_presenter.released(event->scenePos());
+  emit m_presenter.released(mapToScene(event->localPos()));
 }
 
 void CommentBlockView::mouseDoubleClickEvent(QMouseEvent* evt)
@@ -96,6 +97,7 @@ void CommentBlockView::mouseDoubleClickEvent(QMouseEvent* evt)
 
 void CommentBlockView::focusOnText()
 {
+  /*
   if (m_textItem->textInteractionFlags() == Qt::NoTextInteraction)
   {
     m_textItem->setTextInteractionFlags(Qt::TextEditorInteraction);
@@ -104,15 +106,18 @@ void CommentBlockView::focusOnText()
     c.select(QTextCursor::Document);
     m_textItem->setTextCursor(c);
   }
+  */
 }
 
 void CommentBlockView::focusOut()
 {
+  /*
   m_textItem->setTextInteractionFlags(Qt::NoTextInteraction);
   QTextCursor c = m_textItem->textCursor();
   c.clearSelection();
   m_textItem->setTextCursor(c);
   clearFocus();
   emit m_presenter.editFinished(m_textItem->toHtml());
+  */
 }
 }

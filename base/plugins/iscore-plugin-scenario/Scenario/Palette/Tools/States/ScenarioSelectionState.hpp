@@ -87,7 +87,7 @@ public:
     for (const auto& elt : m_parentSM.presenter().getConstraints())
     {
       if (area.intersects(
-              elt.view()->boundingRect().translated(elt.view()->pos())))
+              elt.view()->boundingRect().translated(elt.view()->position())))
       {
         sel.append(&elt.model());
       }
@@ -95,7 +95,7 @@ public:
     for (const auto& elt : m_parentSM.presenter().getTimeNodes())
     {
       if (area.intersects(
-              elt.view()->boundingRect().translated(elt.view()->pos())))
+              elt.view()->boundingRect().translated(elt.view()->position())))
       {
         sel.append(&elt.model());
       }
@@ -103,7 +103,7 @@ public:
     for (const auto& elt : m_parentSM.presenter().getEvents())
     {
       if (area.intersects(
-              elt.view()->boundingRect().translated(elt.view()->pos())))
+              elt.view()->boundingRect().translated(elt.view()->position())))
       {
         sel.append(&elt.model());
       }
@@ -111,7 +111,7 @@ public:
     for (const auto& elt : m_parentSM.presenter().getStates())
     {
       if (area.intersects(
-              elt.view()->boundingRect().translated(elt.view()->pos())))
+              elt.view()->boundingRect().translated(elt.view()->position())))
       {
         sel.append(&elt.model());
       }

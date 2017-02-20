@@ -1,5 +1,5 @@
 #pragma once
-#include <QQuickPaintedItem>
+#include <iscore/tools/GraphicsItem.hpp>
 #include <QRect>
 #include <QtGlobal>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
@@ -12,7 +12,7 @@ class QWidget;
 namespace Scenario
 {
 class SlotView;
-class SlotOverlay final : public QQuickPaintedItem
+class SlotOverlay final : public GraphicsItem
 {
 public:
   SlotOverlay(SlotView* parent);

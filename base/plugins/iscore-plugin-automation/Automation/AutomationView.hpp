@@ -29,7 +29,7 @@ signals:
 
 protected:
   void paint_impl(QPainter* painter) const override;
-  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
 
 private:
   bool m_showName{true};

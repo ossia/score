@@ -70,8 +70,8 @@ public:
   void on_focusChanged() override
   {
     bool b = focused();
-    if (b)
-      m_view->setFocus();
+    //if (b)
+    //  m_view->setFocus();
 
     // TODO Same for Scenario please.
     m_curvepresenter->enableActions(b);
@@ -92,14 +92,14 @@ public:
 
   void putToFront() override
   {
-    m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, false);
+    //m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, false);
     m_curvepresenter->enable();
     m_view->showName(true);
   }
 
   void putBehind() override
   {
-    m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, true);
+    //m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, true);
     m_curvepresenter->disable();
     m_view->showName(false);
   }

@@ -57,7 +57,7 @@ MoveSlotTool::MoveSlotTool(const ToolPalette& sm) : m_sm{sm}
 
 void MoveSlotTool::on_pressed(QPointF scenePoint)
 {
-  auto item = m_sm.scene().itemAt(scenePoint, QTransform());
+  auto item = qobject_cast<GraphicsItem*>(m_sm.scene().childAt(scenePoint.x(), scenePoint.y()));
   if (!item)
     return;
 

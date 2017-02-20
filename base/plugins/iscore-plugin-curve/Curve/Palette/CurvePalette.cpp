@@ -4,7 +4,7 @@ namespace Curve
 {
 
 ToolPalette::ToolPalette(const iscore::DocumentContext& ctx, Presenter& pres)
-    : GraphicsSceneToolPalette{*pres.view().scene()}
+    : GraphicsSceneToolPalette{pres.view()}
     , m_presenter{pres}
     , m_selectTool{*this, ctx}
     , m_createTool{*this, ctx}

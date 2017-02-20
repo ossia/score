@@ -81,12 +81,13 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/ObjectIdentifierSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/IdentifiedObjectAbstract.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/RandomNameProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/ObjectPath.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/RelativePath.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/RandomNameProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/ModelMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/Skin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/ColorReference.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/GraphicsItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/GraphicsSceneToolPalette.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/CommonSelectionState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/GraphicsItem.cpp"
@@ -132,7 +133,7 @@ set(SRCS
 add_library(iscore_lib_base ${SRCS} ${HEADERS} ${QRCS})
 
 target_link_libraries(iscore_lib_base
-        PUBLIC Qt5::Core Qt5::Widgets Qt5::Qml Qt5::QuickWidgets ossia
+        PUBLIC Qt5::Core Qt5::Widgets Qt5::Qml Qt5::Quick Qt5::QuickWidgets ossia
     PRIVATE Qt5::Svg QRecentFilesMenu)
 
 set_property(TARGET iscore_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/iscore/prefix.hpp")

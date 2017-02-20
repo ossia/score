@@ -26,7 +26,7 @@ namespace Scenario
 {
 ToolPalette::ToolPalette(
     Process::LayerContext& lay, TemporalScenarioPresenter& presenter)
-    : GraphicsSceneToolPalette{*presenter.view().scene()}
+    : GraphicsSceneToolPalette{presenter.view()}
     , m_presenter{presenter}
     , m_model{static_cast<const Scenario::ProcessModel&>(
           m_presenter.m_layer.processModel())}

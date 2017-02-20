@@ -1,5 +1,5 @@
 #pragma once
-#include <QQuickPaintedItem>
+#include <iscore/tools/GraphicsItem.hpp>
 #include <QPainterPath>
 #include <QPoint>
 #include <QRect>
@@ -15,7 +15,7 @@ namespace Curve
 class SegmentModel;
 
 struct Style;
-class ISCORE_PLUGIN_CURVE_EXPORT SegmentView final : public QQuickPaintedItem
+class ISCORE_PLUGIN_CURVE_EXPORT SegmentView final : public GraphicsItem
 {
   Q_OBJECT
 
@@ -31,23 +31,23 @@ public:
   {
     return 1337 + 101;
   }
-/*  int type() const override
+  int type() const override
   {
     return static_type();
   }
-  */
+
   QRectF boundingRect() const override;
 
-/*  QPainterPath shape() const override
+  QPainterPath shape() const
   {
     return m_strokedShape;
   }
 
-  QPainterPath opaqueArea() const override
+  QPainterPath opaqueArea() const
   {
     return m_strokedShape;
   }
-  */
+
   bool contains(const QPointF& pt) const override
   {
     return m_strokedShape.contains(pt);

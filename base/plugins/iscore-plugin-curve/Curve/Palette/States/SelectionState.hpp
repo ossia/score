@@ -81,17 +81,17 @@ private:
     using namespace std;
     Selection sel;
 
-    for (const auto& point : m_parentSM.presenter().points())
+    for (const PointView& point : m_parentSM.presenter().points())
     {
-      if (point.shape().translated(point.pos()).intersects(scene_area))
+      if (point.boundingRect().translated(point.position()).intersects(scene_area))
       {
         sel.append(&point.model());
       }
     }
 
-    for (const auto& segment : m_parentSM.presenter().segments())
+    for (const SegmentView& segment : m_parentSM.presenter().segments())
     {
-      if (segment.shape().translated(segment.pos()).intersects(scene_area))
+      if (segment.shape().translated(segment.position()).intersects(scene_area))
       {
         sel.append(&segment.model());
       }

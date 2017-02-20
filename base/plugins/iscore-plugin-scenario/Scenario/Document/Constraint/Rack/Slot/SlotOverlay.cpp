@@ -12,11 +12,10 @@ class QWidget;
 namespace Scenario
 {
 SlotOverlay::SlotOverlay(SlotView* parent)
-    : QQuickPaintedItem{parent}, m_slotView{*parent}
+    : GraphicsItem{parent}, m_slotView{*parent}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setZ(1500);
-  this->setPos(0, 0);
 }
 
 QRectF SlotOverlay::boundingRect() const
@@ -27,11 +26,11 @@ QRectF SlotOverlay::boundingRect() const
 
 void SlotOverlay::setHeight(qreal height)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
 }
 void SlotOverlay::setWidth(qreal width)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
 }
 
 void SlotOverlay::paint(
@@ -45,16 +44,16 @@ void SlotOverlay::paint(
 
 void SlotOverlay::mousePressEvent(QMouseEvent* event)
 {
-  emit m_slotView.presenter.pressed(event->scenePos());
+  emit m_slotView.presenter.pressed(mapToScene(event->localPos()));
 }
 
 void SlotOverlay::mouseMoveEvent(QMouseEvent* event)
 {
-  emit m_slotView.presenter.moved(event->scenePos());
+  emit m_slotView.presenter.moved(mapToScene(event->localPos()));
 }
 
 void SlotOverlay::mouseReleaseEvent(QMouseEvent* event)
 {
-  emit m_slotView.presenter.released(event->scenePos());
+  emit m_slotView.presenter.released(mapToScene(event->localPos()));
 }
 }

@@ -20,9 +20,9 @@ class QWidget;
 namespace Scenario
 {
 TimeNodeView::TimeNodeView(TimeNodePresenter& presenter, QQuickPaintedItem* parent)
-    : QQuickPaintedItem{parent}, m_presenter{presenter}
+    : GraphicsItem{parent}, m_presenter{presenter}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setParentItem(parent);
   this->setZ(ZPos::TimeNode);
   this->setAcceptHoverEvents(true);
@@ -75,14 +75,14 @@ void TimeNodeView::paint(
 
 void TimeNodeView::setExtent(const VerticalExtent& extent)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_extent = extent;
   this->update();
 }
 
 void TimeNodeView::setExtent(VerticalExtent&& extent)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_extent = std::move(extent);
   this->update();
 }
@@ -95,9 +95,9 @@ void TimeNodeView::setMoving(bool arg)
 void TimeNodeView::setTriggerActive(bool b)
 {
   if (b)
-    m_text->setPos(-m_text->boundingRect().width() / 2, -40);
+    m_text->setPosition(QPointF(-m_text->boundingRect().width() / 2, -40));
   else
-    m_text->setPos(-m_text->boundingRect().width() / 2, -20);
+    m_text->setPosition(QPointF(-m_text->boundingRect().width() / 2, -20));
 }
 
 void TimeNodeView::setSelected(bool selected)
@@ -117,22 +117,22 @@ void TimeNodeView::setLabel(const QString& s)
   m_text->setText(s);
 
   // Used to re-set the text position
-  setTriggerActive(m_text->pos().y() == -40);
+  setTriggerActive(m_text->y() == -40);
 }
 
 void TimeNodeView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
-    emit m_presenter.pressed(event->scenePos());
+    emit m_presenter.pressed(mapToScene(event->localPos()));
 }
 
 void TimeNodeView::mouseMoveEvent(QMouseEvent* event)
 {
-  emit m_presenter.moved(event->scenePos());
+  emit m_presenter.moved(mapToScene(event->localPos()));
 }
 
 void TimeNodeView::mouseReleaseEvent(QMouseEvent* event)
 {
-  emit m_presenter.released(event->scenePos());
+  emit m_presenter.released(mapToScene(event->localPos()));
 }
 }

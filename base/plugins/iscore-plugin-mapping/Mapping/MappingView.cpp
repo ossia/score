@@ -17,7 +17,7 @@ LayerView::LayerView(QQuickPaintedItem* parent) : Process::LayerView{parent}
 {
   setZ(1);
   this->setFlags(
-      ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+      ItemClipsChildrenToShape /*| ItemIsSelectable | ItemIsFocusable */);
 
   auto f = iscore::Skin::instance().SansFont;
   f.setPointSize(fontSize);

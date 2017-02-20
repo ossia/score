@@ -1,5 +1,5 @@
 #pragma once
-#include <QQuickPaintedItem>
+#include <iscore/tools/GraphicsItem.hpp>
 #include <QObject>
 
 #include <QPointF>
@@ -9,7 +9,7 @@ namespace Scenario
 class TextItem;
 
 class CommentBlockPresenter;
-class CommentBlockView final : public QQuickPaintedItem
+class CommentBlockView final : public GraphicsItem
 {
 public:
   CommentBlockView(CommentBlockPresenter& presenter, QQuickPaintedItem* parent);

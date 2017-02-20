@@ -11,9 +11,9 @@ using namespace Scenario;
 
 ConstraintBrace::ConstraintBrace(
     const ConstraintView& parentCstr, QQuickPaintedItem* parent)
-    : QQuickPaintedItem(), m_parent{parentCstr}
+    : GraphicsItem(), m_parent{parentCstr}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setCursor(Qt::SizeHorCursor);
   this->setZ(ZPos::Brace);
 
@@ -67,15 +67,15 @@ void ConstraintBrace::paint(
 void ConstraintBrace::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
-    m_parent.presenter().pressed(event->scenePos());
+    m_parent.presenter().pressed(mapToScene(event->localPos()));
 }
 
 void ConstraintBrace::mouseMoveEvent(QMouseEvent* event)
 {
-  m_parent.presenter().moved(event->scenePos());
+  m_parent.presenter().moved(mapToScene(event->localPos()));
 }
 
 void ConstraintBrace::mouseReleaseEvent(QMouseEvent* event)
 {
-  m_parent.presenter().released(event->scenePos());
+  m_parent.presenter().released(mapToScene(event->localPos()));
 }

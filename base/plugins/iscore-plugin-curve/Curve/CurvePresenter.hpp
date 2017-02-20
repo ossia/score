@@ -36,11 +36,11 @@ public:
       QObject* parent);
   virtual ~Presenter();
 
-  const auto& points() const
+  const IdContainer<PointView, PointModel>& points() const
   {
     return m_points;
   }
-  const auto& segments() const
+  const IdContainer<SegmentView, SegmentModel>& segments() const
   {
     return m_segments;
   }

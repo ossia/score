@@ -23,14 +23,16 @@ public:
 
   void setHeight(qreal height)
   {
-    prepareGeometryChange();
+    //prepareGeometryChange();
     m_height = height;
+    update();
   }
 
   void setWidth(qreal width)
   {
-    prepareGeometryChange();
+    //prepareGeometryChange();
     m_width = width;
+    update();
   }
 
 private:

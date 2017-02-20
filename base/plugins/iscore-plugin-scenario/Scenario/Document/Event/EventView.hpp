@@ -1,5 +1,5 @@
 #pragma once
-#include <QQuickPaintedItem>
+#include <iscore/tools/GraphicsItem.hpp>
 #include <QPoint>
 #include <QRect>
 #include <QString>
@@ -11,7 +11,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <iscore_plugin_scenario_export.h>
 class QGraphicsSceneDragDropEvent;
-class QGraphicsSceneHoverEvent;
+class QHoverEvent;
 class QGraphicsSceneMouseEvent;
 class QMimeData;
 class QPainter;
@@ -22,7 +22,7 @@ namespace Scenario
 {
 class ConditionView;
 class EventPresenter;
-class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QQuickPaintedItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT EventView final : public GraphicsItem
 {
   Q_OBJECT
 
@@ -83,10 +83,10 @@ protected:
   void mouseMoveEvent(QMouseEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
 
-  void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
-  void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
+  void hoverEnterEvent(QHoverEvent* h) override;
+  void hoverLeaveEvent(QHoverEvent* h) override;
 
-  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
 
 private:
   EventPresenter& m_presenter;

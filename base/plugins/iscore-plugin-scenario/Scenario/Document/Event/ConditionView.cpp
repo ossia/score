@@ -18,8 +18,8 @@ namespace Scenario
 ConditionView::ConditionView(iscore::ColorRef color, QQuickPaintedItem* parent)
     : QQuickPaintedItem{parent}, m_color{color}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
-  setFlag(ItemStacksBehindParent, true);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
+  //setFlag(ItemStacksBehindParent, true);
 
   changeHeight(0);
 
@@ -54,7 +54,7 @@ void ConditionView::paint(
 
 void ConditionView::changeHeight(qreal newH)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_height = newH;
 
   m_Cpath = QPainterPath();

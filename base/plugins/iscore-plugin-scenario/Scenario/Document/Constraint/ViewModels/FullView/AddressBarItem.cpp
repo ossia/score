@@ -22,7 +22,7 @@ namespace Scenario
 {
 AddressBarItem::AddressBarItem(QQuickPaintedItem* parent) : QQuickPaintedItem{parent}
 {
-  this->setFlag(QQuickPaintedItem::ItemHasNoContents, true);
+  this->setFlag(QQuickPaintedItem::ItemHasContents, false);
 }
 
 void AddressBarItem::setTargetObject(ObjectPath&& path)
@@ -58,17 +58,18 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
         lab, &ClickableLabelItem::textChanged, this, &AddressBarItem::redraw);
 
     m_items.append(lab);
-    lab->setPos(currentWidth, 0);
+    lab->setPosition(QPointF(currentWidth, 0));
     currentWidth += 10 + lab->boundingRect().width();
 
     auto sep = new SeparatorItem{this};
-    sep->setPos(currentWidth, 0);
+    sep->setPosition(QPointF(currentWidth, 0));
     currentWidth += 10 + sep->boundingRect().width();
     m_items.append(sep);
   }
 
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_width = currentWidth;
+  update();
 }
 
 double AddressBarItem::width() const
@@ -91,7 +92,7 @@ void AddressBarItem::redraw()
   double currentWidth = 0;
   for (auto obj : m_items)
   {
-    obj->setPos(currentWidth, 0);
+    obj->setPosition(QPointF(currentWidth, 0));
     currentWidth += 10 + obj->boundingRect().width();
   }
 

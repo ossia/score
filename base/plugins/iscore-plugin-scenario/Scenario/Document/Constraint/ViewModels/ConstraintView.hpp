@@ -1,6 +1,6 @@
 #pragma once
 #include <QBrush>
-#include <QQuickPaintedItem>
+#include <iscore/tools/GraphicsItem.hpp>
 #include <QPen>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <iscore_plugin_scenario_export.h>
@@ -16,7 +16,7 @@ class LeftBraceView;
 class RightBraceView;
 class SimpleTextItem;
 class ConstraintMenuOverlay;
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public QQuickPaintedItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintView : public GraphicsItem
 {
   Q_OBJECT
 

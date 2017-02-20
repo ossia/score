@@ -10,7 +10,7 @@ namespace Scenario
 {
 RackView::RackView(QQuickPaintedItem* parent) : QQuickPaintedItem{parent}
 {
-  this->setFlag(QQuickPaintedItem::ItemHasNoContents);
+  this->setFlag(QQuickPaintedItem::ItemHasContents, false);
   this->setZ(ZPos::Rack);
   this->setCursor(QCursor(Qt::ArrowCursor));
 }

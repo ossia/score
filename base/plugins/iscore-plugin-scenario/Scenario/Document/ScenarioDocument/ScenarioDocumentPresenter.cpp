@@ -11,6 +11,7 @@
 #include <iscore/tools/Clamp.hpp>
 #include <iscore/widgets/DoubleSlider.hpp>
 
+
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QPolygon>
 #include <QSize>
@@ -221,10 +222,10 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
   setMillisPerPixel(newZoom);
 
   // scroll to the last center position
-  gv.ensureVisible(
+  /*gv.ensureVisible(
       gv.mapFromScene(rect)
           .boundingRect());
-
+  */
   on_askUpdate();
 }
 
@@ -282,6 +283,7 @@ void ScenarioDocumentPresenter::on_timeRulerScrollEvent(
 
 void ScenarioDocumentPresenter::on_viewSizeChanged(QSize)
 {
+  /*
   QTimer::singleShot(0, this, [&] {
   auto& gv = view().view();
   auto zoom = ZoomPolicy::sliderPosToZoomRatio(
@@ -296,10 +298,11 @@ void ScenarioDocumentPresenter::on_viewSizeChanged(QSize)
   displayedConstraint().fullView()->setVisibleRect(
       gv.mapToScene(gv.viewport()->rect()).boundingRect());
   });
+  */
 }
 
 void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
-{
+{/*
   auto& gv = view().view();
   QRect viewport_rect = gv.viewport()->rect();
   QRectF visible_scene_rect = gv.mapToScene(viewport_rect).boundingRect();
@@ -307,6 +310,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
   m_mainTimeRuler->setStartPoint(
       TimeVal::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
   displayedConstraint().fullView()->setVisibleRect(visible_scene_rect);
+  */
 }
 
 void ScenarioDocumentPresenter::on_elementsScaleChanged(double s)
@@ -316,11 +320,12 @@ void ScenarioDocumentPresenter::on_elementsScaleChanged(double s)
 
 void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
 {
-  view().view().setSceneRect(rect);
+  //view().view().setSceneRect(rect);
 }
 
 void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 {
+  /*
   auto& gv = view().view();
   auto& vp = *gv.viewport();
   auto w = vp.width();
@@ -364,5 +369,6 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
   // TODO should call displayedElementsPresenter instead??
   displayedConstraint().fullView()->setZoom(view().zoomSlider()->value());
   displayedConstraint().fullView()->setVisibleRect(new_visible_scene_rect);
+  */
 }
 }

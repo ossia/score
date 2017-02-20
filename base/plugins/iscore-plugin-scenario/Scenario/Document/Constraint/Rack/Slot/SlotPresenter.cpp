@@ -43,7 +43,7 @@ SlotPresenter::SlotPresenter(
     , m_view{new SlotView{*this, view}}
     , m_context{ctx}
 {
-  m_view->setPos(0, 0);
+  m_view->setPosition(QPointF(0, 0));
 
   for (const auto& proc_vm : m_model.layers)
   {
@@ -109,11 +109,11 @@ void SlotPresenter::setWidth(qreal w)
 
 void SlotPresenter::setVerticalPosition(double pos)
 {
-  auto view_pos = m_view->pos();
+  auto view_pos = m_view->position();
 
   if (view_pos.y() != pos)
   {
-    m_view->setPos(view_pos.x(), pos);
+    m_view->setPosition(QPointF(view_pos.x(), pos));
     m_view->update();
   }
 }
@@ -372,7 +372,7 @@ void SlotPresenter::updateProcessShape(const SlotProcessData& data)
 
     auto width = data.model->processModel().duration().toPixels(m_zoomRatio);
     pair.first->setWidth(width);
-    pair.second->setPos(pos, 0);
+    pair.second->setPosition(QPointF(pos, 0));
     pair.first->parentGeometryChanged();
     pos += width;
   }

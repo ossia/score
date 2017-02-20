@@ -59,7 +59,7 @@ protected:
   void mousePressEvent(QMouseEvent* event) override
   {
     auto cst = static_cast<ConstraintView*>(parentItem());
-    emit cst->requestOverlayMenu(event->pos());
+    emit cst->requestOverlayMenu(event->localPos());
     event->accept();
   }
 };

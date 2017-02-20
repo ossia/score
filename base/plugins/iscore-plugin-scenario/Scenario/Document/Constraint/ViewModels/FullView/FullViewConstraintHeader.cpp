@@ -18,8 +18,8 @@ namespace Scenario
 FullViewConstraintHeader::FullViewConstraintHeader(QQuickPaintedItem* parent)
     : ConstraintHeader{parent}, m_bar{new AddressBarItem(this)}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
-  m_bar->setPos(10, 5);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
+  m_bar->setPosition(QPointF(10, 5));
   connect(m_bar, &AddressBarItem::needRedraw, this, [&]() { update(); });
 }
 
@@ -42,6 +42,7 @@ void FullViewConstraintHeader::paint(
   // If the centered text is hidden, we put it at the left so that it's on the
   // view.
   // We have to compute the visible part of the header
+  /*
   auto view = scene()->views().first();
 
   // Note: if the constraint always has its pos() in (0; 0), we can
@@ -67,5 +68,6 @@ void FullViewConstraintHeader::paint(
 
   if (std::abs(m_bar->pos().x() - x) > 1)
     m_bar->setPos(x, 5);
+    */
 }
 }

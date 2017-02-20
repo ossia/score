@@ -14,7 +14,7 @@ namespace Curve
 {
 View::View(QQuickPaintedItem* parent) : QQuickPaintedItem{parent}
 {
-  this->setFlags(ItemClipsChildrenToShape | ItemIsFocusable);
+  this->setFlags(ItemClipsChildrenToShape/* | ItemIsFocusable*/);
   this->setZ(1);
 }
 
@@ -41,26 +41,26 @@ void View::setSelectionArea(const QRectF& rect)
 void View::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)
-    emit pressed(event->scenePos());
+    emit pressed(mapToScene(event->localPos()));
   event->accept();
 }
 
 void View::mouseDoubleClickEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)
-    emit doubleClick(event->scenePos());
+    emit doubleClick(mapToScene(event->localPos()));
   event->accept();
 }
 
 void View::mouseMoveEvent(QMouseEvent* event)
 {
-  emit moved(event->scenePos());
+  emit moved(mapToScene(event->localPos()));
   event->accept();
 }
 
 void View::mouseReleaseEvent(QMouseEvent* event)
 {
-  emit released(event->scenePos());
+  emit released(mapToScene(event->localPos()));
   event->accept();
 }
 

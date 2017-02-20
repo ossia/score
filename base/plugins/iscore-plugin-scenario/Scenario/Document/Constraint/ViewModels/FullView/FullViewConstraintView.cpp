@@ -20,9 +20,9 @@ FullViewConstraintView::FullViewConstraintView(
     FullViewConstraintPresenter& presenter, QQuickPaintedItem* parent)
     : ConstraintView{presenter, parent}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setParentItem(parent);
-  this->setFlag(ItemIsSelectable);
+  //this->setFlag(ItemIsSelectable);
 
   this->setZ(1);
   this->setY(2 * constraintAndRackHeight());
@@ -51,10 +51,10 @@ void FullViewConstraintView::paint(
   {
     c = skin.ConstraintSelected.getColor();
   }
-  else if (parentItem()->isSelected())
+/*  else if (parentItem()->isSelected())
   {
     c = skin.ConstraintFullViewParentSelected.getColor();
-  }
+  } */
   else
   {
     c = skin.ConstraintBase.getColor();

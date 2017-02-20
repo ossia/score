@@ -38,7 +38,7 @@ ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
     const DisplayedElementsModel& model,
     ScenarioDocumentPresenter& pres,
     BaseGraphicsObject& view)
-    : GraphicsSceneToolPalette{*view.scene()}
+    : GraphicsSceneToolPalette{view}
     , m_model{model}
     , m_scenarioModel{*safe_cast<Scenario::ProcessModel*>(
           m_model.constraint().parent())}

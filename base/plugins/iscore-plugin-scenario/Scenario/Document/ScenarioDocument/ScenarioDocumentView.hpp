@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
-
+#include <QQuickItem>
 class BaseGraphicsObject;
 class QQuickWidget;
 class QObject;
@@ -34,7 +34,7 @@ public:
 
   void update();
 
-  ScenarioScene& scene() const
+  QQuickItem& scene() const
   {
     return *m_scene;
   }
@@ -70,7 +70,7 @@ signals:
 
 private:
   QWidget* m_widget{};
-  ScenarioScene* m_scene{};
+  QQuickItem* m_scene{};
   ProcessGraphicsView* m_view{};
   BaseGraphicsObject* m_baseObject{};
 

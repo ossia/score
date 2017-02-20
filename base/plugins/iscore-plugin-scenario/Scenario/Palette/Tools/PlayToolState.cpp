@@ -23,7 +23,7 @@ PlayToolState::PlayToolState(const Scenario::ToolPalette& sm)
 void PlayToolState::on_pressed(
     QPointF scenePoint, Scenario::Point scenarioPoint)
 {
-  auto item = m_sm.scene().itemAt(scenePoint, QTransform());
+  auto item = qobject_cast<GraphicsItem*>(m_sm.scene().childAt(scenePoint.x(), scenePoint.y()));
   if (!item)
     return;
 

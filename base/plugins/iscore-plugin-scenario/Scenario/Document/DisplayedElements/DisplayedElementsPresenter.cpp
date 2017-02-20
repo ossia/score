@@ -206,9 +206,9 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
 
 void DisplayedElementsPresenter::updateLength(double length)
 {
-  m_endStatePresenter->view()->setPos({length, 0});
-  m_endEventPresenter->view()->setPos({length, 0});
-  m_endNodePresenter->view()->setPos({length, 0});
+  m_endStatePresenter->view()->setPosition({length, 0});
+  m_endEventPresenter->view()->setPosition({length, 0});
+  m_endNodePresenter->view()->setPosition({length, 0});
 }
 
 void DisplayedElementsPresenter::on_constraintExecutionTimer()

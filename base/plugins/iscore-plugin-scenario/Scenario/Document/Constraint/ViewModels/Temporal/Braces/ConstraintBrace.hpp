@@ -1,6 +1,6 @@
 #pragma once
 #include <QBrush>
-#include <QQuickPaintedItem>
+#include <iscore/tools/GraphicsItem.hpp>
 #include <iscore_plugin_scenario_export.h>
 #include <qnamespace.h>
 
@@ -11,7 +11,7 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace : public QQuickPaintedItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace : public GraphicsItem
 {
 public:
   ConstraintBrace(const ConstraintView& parentCstr, QQuickPaintedItem* parent);

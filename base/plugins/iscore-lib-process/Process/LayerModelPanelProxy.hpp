@@ -55,7 +55,7 @@ private:
   const LayerModel& m_layer;
   QWidget* m_widget{};
 
-  QGraphicsScene* m_scene{};
+  QQuickItem* m_scene{};
   ProcessGraphicsView* m_view{};
   ProcessPanelGraphicsProxy* m_obj{};
   iscore::DoubleSlider* m_zoomSlider{};

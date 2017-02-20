@@ -80,5 +80,7 @@ protected:
   };
 
   std::vector<Mark> m_marks;
+
+  QPointF m_lastScenePos;
 };
 }

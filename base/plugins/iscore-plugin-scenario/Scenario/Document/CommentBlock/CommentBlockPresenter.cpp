@@ -41,7 +41,7 @@ const TimeVal& CommentBlockPresenter::date() const
 
 void CommentBlockPresenter::on_zoomRatioChanged(ZoomRatio newRatio)
 {
-  m_view->setPos(m_model.date().toPixels(newRatio), m_view->pos().y());
+  m_view->setPosition({m_model.date().toPixels(newRatio), m_view->y()});
   m_view->update();
 }
 }

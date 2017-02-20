@@ -35,22 +35,11 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
   con(metadata, &iscore::ModelMetadata::NameChanged, m_header,
       &ConstraintHeader::setText);
   m_header->setText(metadata.getName());
-  m_header->show();
+  m_header->setVisible(true);
 }
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()
 {
-  // TODO deleteGraphicsObject ?
-  if (Scenario::view(this))
-  {
-    auto sc = Scenario::view(this)->scene();
-
-    if (sc && sc->items().contains(Scenario::view(this)))
-    {
-      sc->removeItem(Scenario::view(this));
-    }
-
-    Scenario::view(this)->deleteLater();
-  }
+  m_view->deleteLater();
 }
 }

@@ -15,14 +15,16 @@ public:
 
   void setWidth(double w)
   {
-    prepareGeometryChange();
+    //prepareGeometryChange();
     m_width = w;
+    update();
   }
 
   void setHeight(double h)
   {
-    prepareGeometryChange();
+    //prepareGeometryChange();
     m_height = h;
+    update();
   }
 
   QRectF boundingRect() const override
@@ -39,15 +41,16 @@ signals:
   void noteScaled(double);
 
 private:
+  /*
   QVariant
   itemChange(GraphicsItemChange change, const QVariant& value) override;
-  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
-  void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
-  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverEnterEvent(QHoverEvent* event) override;
+  void hoverMoveEvent(QHoverEvent* event) override;
+  void hoverLeaveEvent(QHoverEvent* event) override;
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
-
+*/
   double m_width{};
   double m_height{};
 

@@ -78,7 +78,7 @@ public:
   }
 
 protected:
-  OptionalId<EventModel> itemToEventId(const QQuickPaintedItem* pressedItem) const
+  OptionalId<EventModel> itemToEventId(const QQuickItem* pressedItem) const
   {
     const auto& event
         = static_cast<const EventView*>(pressedItem)->presenter().model();
@@ -87,7 +87,7 @@ protected:
                : OptionalId<EventModel>{};
   }
   OptionalId<TimeNodeModel>
-  itemToTimeNodeId(const QQuickPaintedItem* pressedItem) const
+  itemToTimeNodeId(const QQuickItem* pressedItem) const
   {
     const auto& timenode
         = static_cast<const TimeNodeView*>(pressedItem)->presenter().model();
@@ -96,7 +96,7 @@ protected:
                : OptionalId<TimeNodeModel>{};
   }
   OptionalId<ConstraintModel>
-  itemToConstraintId(const QQuickPaintedItem* pressedItem) const
+  itemToConstraintId(const QQuickItem* pressedItem) const
   {
     const auto& constraint = static_cast<const ConstraintView*>(pressedItem)
                                  ->presenter()
@@ -106,7 +106,7 @@ protected:
                ? constraint.id()
                : OptionalId<ConstraintModel>{};
   }
-  OptionalId<StateModel> itemToStateId(const QQuickPaintedItem* pressedItem) const
+  OptionalId<StateModel> itemToStateId(const QQuickItem* pressedItem) const
   {
     const auto& state
         = static_cast<const StateView*>(pressedItem)->presenter().model();
@@ -115,7 +115,7 @@ protected:
                ? state.id()
                : OptionalId<StateModel>{};
   }
-  const SlotModel* itemToSlotFromHandle(const QQuickPaintedItem* pressedItem) const
+  const SlotModel* itemToSlotFromHandle(const QQuickItem* pressedItem) const
   {
     const auto& slot = static_cast<const SlotHandle*>(pressedItem)
                            ->slotView()
@@ -136,7 +136,7 @@ protected:
       typename SlotHandleFun,
       typename NothingFun>
   void mapTopItem(
-      const QQuickPaintedItem* item,
+      const QQuickItem* obj,
       StateFun st_fun,
       EventFun ev_fun,
       TimeNodeFun tn_fun,
@@ -146,7 +146,7 @@ protected:
       SlotHandleFun handle_fun,
       NothingFun nothing_fun) const
   {
-    if (!item)
+    if (!obj)
     {
       nothing_fun();
       return;
@@ -161,6 +161,13 @@ protected:
     // Each time :
     // Check if it is an event / timenode / constraint /state
     // The itemToXXXId methods check that we are in the correct scenario, too.
+    auto item = qobject_cast<const GraphicsItem*>(obj);
+    if(!item)
+    {
+      nothing_fun();
+      return;
+    }
+
     switch (item->type())
     {
       case EventView::static_type():

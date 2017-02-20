@@ -82,15 +82,15 @@ protected:
   void mouseMoveEvent(QMouseEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
   void mouseDoubleClickEvent(QMouseEvent* event) override;
-  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+  //void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
   void keyPressEvent(QKeyEvent* event) override;
   void keyReleaseEvent(QKeyEvent* event) override;
 
-  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
-  void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
-  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
-  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dragMoveEvent(QDragMoveEvent* event) override;
+  void dragLeaveEvent(QDragLeaveEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
 
 private:
   TemporalScenarioPresenter* m_pres{};

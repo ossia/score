@@ -18,7 +18,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <iscore/model/Skin.hpp>
 
-class QGraphicsSceneHoverEvent;
+class QHoverEvent;
 
 class QWidget;
 
@@ -29,9 +29,9 @@ TemporalConstraintView::TemporalConstraintView(
   : ConstraintView{presenter, parent}
   , m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setParentItem(parent);
-  this->setAcceptDrops(true);
+  //this->setAcceptDrops(true);
   this->setCursor(QCursor(Qt::SizeVerCursor));
 
   this->setZ(ZPos::Constraint);
@@ -134,35 +134,35 @@ void TemporalConstraintView::paint(
 #endif
 }
 
-void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
+void TemporalConstraintView::hoverEnterEvent(QHoverEvent* h)
 {
   QQuickPaintedItem::hoverEnterEvent(h);
   setShadow(true);
   emit constraintHoverEnter();
 }
 
-void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
+void TemporalConstraintView::hoverLeaveEvent(QHoverEvent* h)
 {
   QQuickPaintedItem::hoverLeaveEvent(h);
   setShadow(false);
   emit constraintHoverLeave();
 }
 
-void TemporalConstraintView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+void TemporalConstraintView::dragEnterEvent(QDragEnterEvent* event)
 {
   QQuickPaintedItem::dragEnterEvent(event);
   setShadow(true);
   event->accept();
 }
 
-void TemporalConstraintView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+void TemporalConstraintView::dragLeaveEvent(QDragLeaveEvent* event)
 {
   QQuickPaintedItem::dragLeaveEvent(event);
   setShadow(false);
   event->accept();
 }
 
-void TemporalConstraintView::dropEvent(QGraphicsSceneDragDropEvent* event)
+void TemporalConstraintView::dropEvent(QDropEvent* event)
 {
   emit dropReceived(event->pos(), event->mimeData());
 

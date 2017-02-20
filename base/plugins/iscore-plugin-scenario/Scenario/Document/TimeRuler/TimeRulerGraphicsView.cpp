@@ -5,9 +5,9 @@
 namespace Scenario
 {
 
-TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
-    : QQuickWidget{scene}
+TimeRulerGraphicsView::TimeRulerGraphicsView()
 {
+  /*
   setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform
       | QPainter::TextAntialiasing);
@@ -30,5 +30,6 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
   setRenderHints(0);
   setOptimizationFlag(QQuickWidget::IndirectPainting, true);
 #endif
+*/
 }
 }

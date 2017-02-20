@@ -112,20 +112,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()
 {
-
-  auto view = Scenario::view(this);
-  // TODO deleteGraphicsObject
-  if (view)
-  {
-    auto sc = view->scene();
-
-    if (sc && sc->items().contains(view))
-    {
-      sc->removeItem(view);
-    }
-
-    view->deleteLater();
-  }
+  m_view->deleteLater();
 }
 
 void TemporalConstraintPresenter::on_requestOverlayMenu(QPointF)

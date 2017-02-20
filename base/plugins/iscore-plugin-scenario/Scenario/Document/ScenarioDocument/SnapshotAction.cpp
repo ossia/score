@@ -3,14 +3,14 @@
 #include <QBuffer>
 #include <QClipboard>
 #include <QFile>
-#include <QGraphicsScene>
+#include <QQuickItem>
 #include <QMimeData>
 #include <QPainter>
 #include <QSvgGenerator>
 namespace Scenario
 {
 
-SnapshotAction::SnapshotAction(QGraphicsScene& scene, QWidget* parent)
+SnapshotAction::SnapshotAction(QQuickItem& scene, QWidget* parent)
     : QAction{tr("Scenario screenshot"), parent}
 {
   setShortcutContext(Qt::WidgetWithChildrenShortcut);
@@ -19,7 +19,7 @@ SnapshotAction::SnapshotAction(QGraphicsScene& scene, QWidget* parent)
   connect(this, &QAction::triggered, this, [&] { takeScreenshot(scene); });
 }
 
-void SnapshotAction::takeScreenshot(QGraphicsScene& scene)
+void SnapshotAction::takeScreenshot(QQuickItem& scene)
 {
   // Create a SVG from the scene
   QBuffer b;
@@ -30,7 +30,7 @@ void SnapshotAction::takeScreenshot(QGraphicsScene& scene)
   painter.setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-  scene.render(&painter, QRectF(0, 0, 1920, 1080), QRectF(0, 0, 1920, 1080));
+  //scene.render(&painter, QRectF(0, 0, 1920, 1080), QRectF(0, 0, 1920, 1080));
   painter.end();
 
   // Set the clipboard

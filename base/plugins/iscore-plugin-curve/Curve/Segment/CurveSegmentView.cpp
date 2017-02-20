@@ -25,11 +25,11 @@ SegmentView::SegmentView(
     const SegmentModel* model,
     const Curve::Style& style,
     QQuickPaintedItem* parent)
-    : QQuickPaintedItem{parent}, m_style{style}
+    : GraphicsItem{parent}, m_style{style}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setZ(1);
-  this->setFlag(ItemIsFocusable, false);
+  //this->setFlag(ItemIsFocusable, false);
 
   setModel(model);
   updatePen();

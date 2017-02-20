@@ -12,7 +12,7 @@
 #include <iscore/model/ColorReference.hpp>
 
 class QMimeData;
-class QGraphicsSceneHoverEvent;
+class QHoverEvent;
 class QGraphicsSceneDragDropEvent;
 class QPainter;
 
@@ -62,11 +62,11 @@ signals:
   void dropReceived(const QPointF& pos, const QMimeData*);
 
 protected:
-  void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
-  void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
-  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
-  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
-  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+  void hoverEnterEvent(QHoverEvent* h) override;
+  void hoverLeaveEvent(QHoverEvent* h) override;
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dragLeaveEvent(QDragLeaveEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
 
 private:
   iscore::ColorRef m_bgColor;

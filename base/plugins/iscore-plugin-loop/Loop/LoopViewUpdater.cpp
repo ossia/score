@@ -34,7 +34,7 @@ void ViewUpdater::updateEvent(const Scenario::EventPresenter& event)
 {
   event.view()->setExtent(extent());
 
-  event.view()->setPos({event.model().date().toPixels(m_presenter.m_zoomRatio),
+  event.view()->setPosition({event.model().date().toPixels(m_presenter.m_zoomRatio),
                         extent().top()});
 
   // We also have to move all the relevant states
@@ -64,7 +64,7 @@ void ViewUpdater::updateConstraint(
 
   if (dateChanged)
   {
-    cstr_view.setPos({startPos, extent().top()});
+    cstr_view.setPosition({startPos, extent().top()});
   }
   else
   {
@@ -88,7 +88,7 @@ void ViewUpdater::updateTimeNode(const Scenario::TimeNodePresenter& timenode)
 {
   timenode.view()->setExtent(2. * extent());
 
-  timenode.view()->setPos(
+  timenode.view()->setPosition(
       {timenode.model().date().toPixels(m_presenter.m_zoomRatio),
        extent().top()});
 
@@ -100,13 +100,13 @@ void ViewUpdater::updateState(const Scenario::StatePresenter& state)
   if (&state == m_presenter.m_startStatePresenter)
   {
     const auto& ev = m_presenter.m_layer.model().startEvent();
-    state.view()->setPos(
+    state.view()->setPosition(
         {ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
   }
   else if (&state == m_presenter.m_endStatePresenter)
   {
     const auto& ev = m_presenter.m_layer.model().endEvent();
-    state.view()->setPos(
+    state.view()->setPosition(
         {ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
   }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/tools/GraphicsItem.hpp>
 #include <QGraphicsSvgItem>
 #include <QRect>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
@@ -11,7 +12,7 @@ class QWidget;
 
 namespace Scenario
 {
-class TriggerView final : public QGraphicsSvgItem
+class TriggerView final : public GraphicsItem
 {
   Q_OBJECT
   
@@ -32,9 +33,8 @@ signals:
   void pressed();
 
 protected:
+  void paint(QPainter *painter) override;
   void mousePressEvent(QMouseEvent*) override;
 
-private:
-  QGraphicsSvgItem* m_item{};
 };
 }

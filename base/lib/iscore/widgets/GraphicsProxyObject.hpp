@@ -9,7 +9,7 @@ class BaseGraphicsObject final : public QQuickPaintedItem
 public:
   BaseGraphicsObject(QQuickPaintedItem* parent = nullptr) : QQuickPaintedItem{parent}
   {
-    this->setFlag(QQuickPaintedItem::ItemHasNoContents, true);
+    this->setFlag(QQuickPaintedItem::ItemHasContents, false);
   }
 
   QRectF boundingRect() const override

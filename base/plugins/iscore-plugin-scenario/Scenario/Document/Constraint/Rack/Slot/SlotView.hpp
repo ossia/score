@@ -49,7 +49,7 @@ signals:
   void askContextMenu(const QPoint&, const QPointF&);
 
 private:
-  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+  //void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
   qreal m_height{};
   qreal m_width{};

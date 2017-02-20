@@ -15,14 +15,14 @@ class QWidget;
 namespace Scenario
 {
 StateView::StateView(StatePresenter& pres, QQuickPaintedItem* parent)
-    : QQuickPaintedItem(parent), m_presenter{pres}
+    : GraphicsItem(parent), m_presenter{pres}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
+  // this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setParentItem(parent);
 
   this->setCursor(QCursor(Qt::SizeAllCursor));
   this->setZ(ZPos::State);
-  this->setAcceptDrops(true);
+  // this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
   m_color = ScenarioStyle::instance().StateOutline;
 }
@@ -78,7 +78,7 @@ void StateView::setSelected(bool b)
   if(b)
   {
     m_overlay = new StateMenuOverlay{this};
-    m_overlay->setPos(10, -10);
+    m_overlay->setPosition(QPointF(10, -10));
   }
   else
   {
@@ -104,48 +104,48 @@ void StateView::setStatus(ExecutionStatus status)
 void StateView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
-    emit m_presenter.pressed(event->scenePos());
+    emit m_presenter.pressed(mapToScene(event->localPos()));
 }
 
 void StateView::mouseMoveEvent(QMouseEvent* event)
 {
-  emit m_presenter.moved(event->scenePos());
+  emit m_presenter.moved(mapToScene(event->localPos()));
 }
 
 void StateView::mouseReleaseEvent(QMouseEvent* event)
 {
-  emit m_presenter.released(event->scenePos());
+  emit m_presenter.released(mapToScene(event->localPos()));
 }
 
-void StateView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+void StateView::hoverEnterEvent(QHoverEvent* event)
 {
   //   m_dilatationFactor = 1.5;
   //   update();
 }
 
-void StateView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+void StateView::hoverLeaveEvent(QHoverEvent* event)
 {
   //    m_dilatationFactor = m_selected ? 1.5 : 1;
   //    update();
 }
-void StateView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+void StateView::dragEnterEvent(QDragEnterEvent* event)
 {
   setDilatation(1.5);
 }
 
-void StateView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+void StateView::dragLeaveEvent(QDragLeaveEvent* event)
 {
   setDilatation(m_selected ? 1.5 : 1);
 }
 
-void StateView::dropEvent(QGraphicsSceneDragDropEvent* event)
+void StateView::dropEvent(QDropEvent* event)
 {
   emit dropReceived(event->mimeData());
 }
 
 void StateView::setDilatation(double val)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_dilatationFactor = val;
   //    this->setScale(m_dilatationFactor);
   //    emit m_presenter.askUpdate();

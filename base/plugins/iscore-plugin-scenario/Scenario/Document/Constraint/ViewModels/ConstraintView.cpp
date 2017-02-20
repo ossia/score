@@ -10,7 +10,7 @@ namespace Scenario
 {
 ConstraintView::ConstraintView(
     ConstraintPresenter& presenter, QQuickPaintedItem* parent)
-    : QQuickPaintedItem{parent}
+    : GraphicsItem{parent}
     , m_labelItem{new SimpleTextItem{this}}
     , m_counterItem{new SimpleTextItem{this}}
     , m_presenter{presenter}
@@ -18,11 +18,11 @@ ConstraintView::ConstraintView(
   setAcceptHoverEvents(true);
   m_leftBrace = new LeftBraceView{*this, this};
   m_leftBrace->setX(minWidth());
-  m_leftBrace->hide();
+  m_leftBrace->setVisible(false);
 
   m_rightBrace = new RightBraceView{*this, this};
   m_rightBrace->setX(maxWidth());
-  m_rightBrace->hide();
+  m_rightBrace->setVisible(false);
 
   const int fontSize = 12;
   auto f = iscore::Skin::instance().SansFont;
@@ -30,7 +30,7 @@ ConstraintView::ConstraintView(
   f.setPointSize(fontSize);
   f.setStyleStrategy(QFont::NoAntialias);
   m_labelItem->setFont(f);
-  m_labelItem->setPos(0, -16);
+  m_labelItem->setPosition(QPointF(0, -16));
   m_labelItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
   m_labelItem->setAcceptHoverEvents(false);
 
@@ -50,7 +50,7 @@ ConstraintView::~ConstraintView()
 
 void ConstraintView::setInfinite(bool infinite)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
 
   m_infinite = infinite;
   update();
@@ -58,7 +58,7 @@ void ConstraintView::setInfinite(bool infinite)
 
 void ConstraintView::setDefaultWidth(double width)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_defaultWidth = width;
 
   update();
@@ -66,7 +66,7 @@ void ConstraintView::setDefaultWidth(double width)
 
 void ConstraintView::setMaxWidth(bool infinite, double max)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
 
   setInfinite(infinite);
   if (!infinite)
@@ -78,14 +78,14 @@ void ConstraintView::setMaxWidth(bool infinite, double max)
 
 void ConstraintView::setMinWidth(double min)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_minWidth = min;
   update();
 }
 
 void ConstraintView::setHeight(double height)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_height = height;
   update();
 }
@@ -120,17 +120,17 @@ void ConstraintView::enableOverlay(bool selected)
 void ConstraintView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
-    emit m_presenter.pressed(event->scenePos());
+    emit m_presenter.pressed(mapToScene(event->localPos()));
 }
 
 void ConstraintView::mouseMoveEvent(QMouseEvent* event)
 {
-  emit m_presenter.moved(event->scenePos());
+  emit m_presenter.moved(mapToScene(event->localPos()));
 }
 
 void ConstraintView::mouseReleaseEvent(QMouseEvent* event)
 {
-  emit m_presenter.released(event->scenePos());
+  emit m_presenter.released(mapToScene(event->localPos()));
 }
 
 bool ConstraintView::warning() const
@@ -188,20 +188,20 @@ void ConstraintView::setShadow(bool shadow)
 }
 void ConstraintView::updateLabelPos()
 {
-  m_labelItem->setPos(
-        defaultWidth() / 2. - m_labelItem->boundingRect().width() / 2., -17);
+  m_labelItem->setPosition(QPointF(
+        defaultWidth() / 2. - m_labelItem->boundingRect().width() / 2., -17));
 }
 
 void ConstraintView::updateCounterPos()
 {
-  m_counterItem->setPos(
-        defaultWidth() - m_counterItem->boundingRect().width() - 5, 5);
+  m_counterItem->setPosition(QPointF(
+        defaultWidth() - m_counterItem->boundingRect().width() - 5, 5));
 }
 
 void ConstraintView::updateOverlayPos()
 {
   if(m_overlay)
-    m_overlay->setPos(defaultWidth() / 2. - m_overlay->boundingRect().width() / 2, -10);
+    m_overlay->setPosition(QPointF(defaultWidth() / 2. - m_overlay->boundingRect().width() / 2, -10));
 }
 
 void ConstraintView::setExecutionState(ConstraintExecutionState s)

@@ -29,7 +29,7 @@ ToolPalette::ToolPalette(
     LayerPresenter& presenter,
     Process::LayerContext& ctx,
     LayerView& view)
-    : GraphicsSceneToolPalette{*view.scene()}
+    : GraphicsSceneToolPalette{view}
     , m_model{model}
     , m_presenter{presenter}
     , m_context{ctx}

@@ -1,14 +1,14 @@
 #pragma once
 #include <QAction>
-class QGraphicsScene;
+class QQuickItem;
 namespace Scenario
 {
 struct SnapshotAction : public QAction
 {
 public:
-  SnapshotAction(QGraphicsScene& scene, QWidget* parent);
+  SnapshotAction(QQuickItem& scene, QWidget* parent);
 
 private:
-  void takeScreenshot(QGraphicsScene& scene);
+  void takeScreenshot(QQuickItem& scene);
 };
 }

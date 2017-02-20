@@ -9,8 +9,8 @@ namespace Interpolation
 View::View(QQuickPaintedItem* parent) : Process::LayerView{parent}
 {
   setZ(1);
-  setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
-  setAcceptDrops(true);
+  setFlags(ItemClipsChildrenToShape /* | ItemIsSelectable | ItemIsFocusable */);
+  // setAcceptDrops(true);
   auto f = iscore::Skin::instance().SansFont;
   f.setPointSize(fontSize);
 
@@ -44,7 +44,7 @@ void View::paint_impl(QPainter* painter) const
 #endif
 }
 
-void View::dropEvent(QGraphicsSceneDragDropEvent* event)
+void View::dropEvent(QDropEvent* event)
 {
   emit dropReceived(event->mimeData());
 }

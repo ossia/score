@@ -1,5 +1,5 @@
 #pragma once
-#include <QQuickPaintedItem>
+#include <iscore/tools/GraphicsItem.hpp>
 #include <QPen>
 #include <QRect>
 #include <QtGlobal>
@@ -13,7 +13,7 @@ namespace Scenario
 {
 class SlotView;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QQuickPaintedItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public GraphicsItem
 {
 public:
   SlotHandle(const SlotView& slotView, QQuickPaintedItem* parent);

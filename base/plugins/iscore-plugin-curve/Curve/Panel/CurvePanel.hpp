@@ -59,8 +59,8 @@ public:
             LayerModelPanelProxy{parent},
             m_layer{layermodel},
             m_widget{new QWidget},
-            m_scene{new QGraphicsScene{this}},
-            m_view{new ProcessGraphicsView{m_scene, m_widget}},
+            //m_scene{new QGraphicsScene{this}},
+            m_view{new ProcessGraphicsView{nullptr, m_widget}},
             m_processEnd{new QGraphicsLineItem{}},
             m_curveView{new Curve::View{nullptr}},
             m_curvePresenter{
@@ -68,7 +68,7 @@ public:
 
             // Add the items to the scene early because
             // the presenters might call scene() in their ctor.
-            m_scene->addItem(m_curveView);
+            //m_scene->addItem(m_curveView);
 
             // Setup the model
             auto fact = iscore::AppContext()
@@ -96,20 +96,20 @@ public:
             m_sm{m_context, *m_curvePresenter}
   {
     // Setup the view
-    m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
+    //m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
 
     QPen p{Qt::DashLine};
     p.setWidth(2);
     p.setColor(QColor::fromRgba(qRgba(100, 100, 100, 100)));
     m_processEnd->setPen(p);
-    m_scene->addItem(m_processEnd);
+    //m_scene->addItem(m_processEnd);
 
     m_widget->setLayout(new QVBoxLayout);
 
     m_widget->layout()->addWidget(m_view);
 
-    m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    //m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     connect(
         m_view, &ProcessGraphicsView::sizeChanged, this,
         &CurvePanelProxy::on_sizeChanged);
@@ -175,7 +175,7 @@ public:
 
   void on_sizeChanged(const QSize& size)
   {
-    m_height = size.height() - m_view->horizontalScrollBar()->height() - 2;
+    //m_height = size.height() - m_view->horizontalScrollBar()->height() - 2;
     m_width = size.width();
 
     recompute();
@@ -220,7 +220,7 @@ private:
     m_processEnd->setLine(fullWidth, 0, fullWidth, m_height);
 
     auto maxWidth = std::max(fullWidth * 1.2, m_width) * 1.5;
-    m_view->setSceneRect({0, 0, maxWidth, m_height});
+    //m_view->setSceneRect({0, 0, maxWidth, m_height});
 
     m_curveView->setRect({0, 0, maxWidth, m_height});
     m_curvePresenter->setRect(QRectF{0, 0, fullWidth, m_height});
@@ -233,7 +233,7 @@ private:
   const Layer_T& m_layer;
   QWidget* m_widget{};
 
-  QGraphicsScene* m_scene{};
+  //QGraphicsScene* m_scene{};
   ProcessGraphicsView* m_view{};
   iscore::DoubleSlider* m_zoomSlider{};
 

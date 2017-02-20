@@ -19,12 +19,12 @@ SlotView::SlotView(const SlotPresenter& pres, QQuickPaintedItem* parent)
     , presenter{pres}
     , m_handle{new SlotHandle{*this, this}}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setCursor(QCursor(Qt::ArrowCursor));
   this->setFlag(ItemClipsChildrenToShape, true);
   this->setZ(1);
-  m_handle->setPos(
-      0, this->boundingRect().height() - SlotHandle::handleHeight());
+  m_handle->setPosition(QPointF(
+      0, this->boundingRect().height() - SlotHandle::handleHeight()));
   m_handle->setZ(100);
 }
 
@@ -47,10 +47,10 @@ void SlotView::paint(
 
 void SlotView::setHeight(qreal height)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_height = height;
-  m_handle->setPos(
-      0, this->boundingRect().height() - SlotHandle::handleHeight());
+  m_handle->setPosition(
+      QPointF(0, this->boundingRect().height() - SlotHandle::handleHeight()));
   if (m_overlay)
     m_overlay->setHeight(m_height);
 }
@@ -62,7 +62,7 @@ qreal SlotView::height() const
 
 void SlotView::setWidth(qreal width)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_width = width;
   if (m_overlay)
     m_overlay->setWidth(m_width);
@@ -81,10 +81,10 @@ void SlotView::enable()
 
   this->update();
 
-  for (QQuickPaintedItem* item : childItems())
+  for (QQuickItem* item : childItems())
   {
     item->setEnabled(true);
-    item->setFlag(ItemStacksBehindParent, false);
+    //item->setFlag(ItemStacksBehindParent, false);
   }
 
   delete m_overlay;
@@ -97,14 +97,14 @@ void SlotView::disable()
 {
   delete m_overlay;
 
-  for (QQuickPaintedItem* item : childItems())
+  for (QQuickItem* item : childItems())
   {
     item->setEnabled(false);
-    item->setFlag(ItemStacksBehindParent, true);
+//    item->setFlag(ItemStacksBehindParent, true);
   }
 
   m_overlay = new SlotOverlay{this};
-  m_handle->setFlag(ItemStacksBehindParent, false);
+//  m_handle->setFlag(ItemStacksBehindParent, false);
   m_handle->setEnabled(true);
 }
 
@@ -118,9 +118,10 @@ void SlotView::setFrontProcessName(const QString& s)
 {
   m_frontProcessName = s;
 }
-
+/*
 void SlotView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
-  emit askContextMenu(event->screenPos(), event->scenePos());
+  emit askContextMenu(event->screenPos(), mapToScene(event->localPos()));
 }
+*/
 }

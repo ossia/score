@@ -15,11 +15,11 @@ class QWidget;
 namespace Scenario
 {
 SlotHandle::SlotHandle(const SlotView& slotView, QQuickPaintedItem* parent)
-    : QQuickPaintedItem{parent}
+    : GraphicsItem{parent}
     , m_slotView{slotView}
     , m_width{slotView.boundingRect().width()}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setCursor(Qt::SizeVerCursor);
   m_pen.setWidth(0);
 }
@@ -42,21 +42,21 @@ void SlotHandle::paint(
 void SlotHandle::setWidth(qreal width)
 {
   m_width = width;
-  prepareGeometryChange();
+  update();
 }
 
 void SlotHandle::mousePressEvent(QMouseEvent* event)
 {
-  m_slotView.presenter.pressed(event->scenePos());
+  m_slotView.presenter.pressed(mapToScene(event->localPos()));
 }
 
 void SlotHandle::mouseMoveEvent(QMouseEvent* event)
 {
-  m_slotView.presenter.moved(event->scenePos());
+  m_slotView.presenter.moved(mapToScene(event->localPos()));
 }
 
 void SlotHandle::mouseReleaseEvent(QMouseEvent* event)
 {
-  m_slotView.presenter.released(event->scenePos());
+  m_slotView.presenter.released(mapToScene(event->localPos()));
 }
 }

@@ -5,6 +5,6 @@ namespace Scenario
 class TimeRulerGraphicsView : public QQuickWidget
 {
 public:
-  TimeRulerGraphicsView(QGraphicsScene*);
+  TimeRulerGraphicsView();
 };
 }

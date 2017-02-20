@@ -12,8 +12,8 @@ namespace Midi
 View::View(QQuickPaintedItem* parent) : Process::LayerView{parent}
 {
   this->setAcceptHoverEvents(true);
-  this->setAcceptDrops(true);
-  this->setFlag(QQuickPaintedItem::ItemIsFocusable, true);
+  //this->setAcceptDrops(true);
+  //this->setFlag(QQuickPaintedItem::ItemIsFocusable, true);
 }
 
 View::~View()
@@ -72,25 +72,26 @@ void View::paint_impl(QPainter* p) const
     p->drawPath(m_selectArea);
   }
 }
-
+/*
 void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
-  emit askContextMenu(event->screenPos(), event->scenePos());
+  emit askContextMenu(event->screenPos(), mapToScene(event->localPos()));
   event->accept();
 }
-
+*/
 void View::mousePressEvent(QMouseEvent* ev)
 {
   emit pressed();
-
+  if(ev->button() == Qt::LeftButton)
+    m_buttonPos = ev->localPos();
   ev->accept();
 }
 
 void View::mouseMoveEvent(QMouseEvent* ev)
 {
   QPainterPath p;
-  p.addRect(QRectF{ev->buttonDownPos(Qt::LeftButton), ev->pos()});
-  this->scene()->setSelectionArea(mapToScene(p));
+  p.addRect(QRectF{m_buttonPos, ev->localPos()});
+  //this->scene()->setSelectionArea(mapToScene(p));
 
   m_selectArea = p;
   update();
@@ -106,7 +107,7 @@ void View::mouseReleaseEvent(QMouseEvent* ev)
 
 void View::mouseDoubleClickEvent(QMouseEvent* ev)
 {
-  emit doubleClicked(ev->pos());
+  emit doubleClicked(ev->localPos());
   ev->accept();
 }
 

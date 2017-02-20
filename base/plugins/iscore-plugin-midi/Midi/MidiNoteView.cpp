@@ -9,9 +9,9 @@ namespace Midi
 NoteView::NoteView(const Note& n, QQuickPaintedItem* parent)
     : QQuickPaintedItem{parent}, note{n}
 {
-  this->setFlag(QQuickPaintedItem::ItemIsSelectable, true);
-  this->setFlag(QQuickPaintedItem::ItemIsMovable, true);
-  this->setFlag(QQuickPaintedItem::ItemSendsGeometryChanges, true);
+  //this->setFlag(QQuickPaintedItem::ItemIsSelectable, true);
+  //this->setFlag(QQuickPaintedItem::ItemIsMovable, true);
+  //this->setFlag(QQuickPaintedItem::ItemSendsGeometryChanges, true);
   this->setAcceptHoverEvents(true);
 }
 
@@ -21,7 +21,7 @@ void NoteView::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   QColor orange = QColor::fromRgb(200, 120, 20);
-  painter->setBrush(this->isSelected() ? orange.darker() : orange);
+  //painter->setBrush(this->isSelected() ? orange.darker() : orange);
   painter->setPen(orange.darker());
   painter->drawRect(boundingRect().adjusted(0, -1, 0, -1));
 
@@ -33,7 +33,7 @@ void NoteView::paint(
   painter->drawLine(
       QPointF{2, m_height / 2.}, QPointF{m_width - 2, m_height / 2.});
 }
-
+/*
 QVariant NoteView::itemChange(
     QQuickPaintedItem::GraphicsItemChange change, const QVariant& value)
 {
@@ -70,7 +70,7 @@ QVariant NoteView::itemChange(
   return QQuickPaintedItem::itemChange(change, value);
 }
 
-void NoteView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+void NoteView::hoverEnterEvent(QHoverEvent* event)
 {
   if (event->pos().x() >= this->boundingRect().width() - 2)
   {
@@ -84,7 +84,7 @@ void NoteView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
   QQuickPaintedItem::hoverEnterEvent(event);
 }
 
-void NoteView::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+void NoteView::hoverMoveEvent(QHoverEvent* event)
 {
   if (event->pos().x() >= this->boundingRect().width() - 2)
   {
@@ -98,7 +98,7 @@ void NoteView::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   QQuickPaintedItem::hoverMoveEvent(event);
 }
 
-void NoteView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+void NoteView::hoverLeaveEvent(QHoverEvent* event)
 {
   this->setCursor(Qt::ArrowCursor);
 
@@ -107,7 +107,7 @@ void NoteView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 
 void NoteView::mousePressEvent(QMouseEvent* event)
 {
-  if (event->pos().x() >= this->boundingRect().width() - 2)
+  if (event->localPos().x() >= this->boundingRect().width() - 2)
   {
     m_scaling = true;
     event->accept();
@@ -123,7 +123,7 @@ void NoteView::mouseMoveEvent(QMouseEvent* event)
 {
   if (m_scaling)
   {
-    this->setWidth(event->pos().x());
+    this->setWidth(event->localPos().x());
     event->accept();
   }
   else
@@ -145,4 +145,5 @@ void NoteView::mouseReleaseEvent(QMouseEvent* event)
     QQuickPaintedItem::mouseReleaseEvent(event);
   }
 }
+*/
 }

@@ -6,8 +6,8 @@ namespace Scenario
 {
 void ConstraintHeader::setWidth(double width)
 {
-  prepareGeometryChange();
   m_width = width;
+  update();
 }
 
 void ConstraintHeader::setText(const QString& text)

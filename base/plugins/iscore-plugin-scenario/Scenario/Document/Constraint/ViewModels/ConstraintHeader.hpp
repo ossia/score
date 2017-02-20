@@ -1,5 +1,5 @@
 #pragma once
-#include <QQuickPaintedItem>
+#include <iscore/tools/GraphicsItem.hpp>
 #include <QString>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
@@ -8,7 +8,7 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 class ConstraintView;
-class ConstraintHeader : public QQuickPaintedItem
+class ConstraintHeader : public GraphicsItem
 {
 public:
   enum class State
@@ -18,7 +18,7 @@ public:
     RackShown   // There is a rack currently shown
   };
 
-  using QQuickPaintedItem::QQuickPaintedItem;
+  using GraphicsItem::GraphicsItem;
 
   static constexpr int static_type()
   {
@@ -48,9 +48,9 @@ public:
       return;
 
     if (m_state == State::Hidden)
-      show();
+      this->setVisible(true);
     else if (s == State::Hidden)
-      hide();
+      this->setVisible(false);
 
     m_state = s;
     update();

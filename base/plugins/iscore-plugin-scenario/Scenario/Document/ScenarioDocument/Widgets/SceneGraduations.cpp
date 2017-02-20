@@ -10,7 +10,7 @@ class QWidget;
 
 void SceneGraduations::setSize(const QSizeF& s)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_size = s;
   update();
 }

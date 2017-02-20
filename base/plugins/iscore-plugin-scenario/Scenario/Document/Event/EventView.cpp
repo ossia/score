@@ -22,17 +22,17 @@ class QWidget;
 namespace Scenario
 {
 EventView::EventView(EventPresenter& presenter, QQuickPaintedItem* parent)
-    : QQuickPaintedItem{parent}, m_presenter{presenter}
+    : GraphicsItem{parent}, m_presenter{presenter}
 {
-  this->setCacheMode(QQuickPaintedItem::NoCache);
-  setAcceptDrops(true);
+  //this->setCacheMode(QQuickPaintedItem::NoCache);
+  //setAcceptDrops(true);
 
   m_color = presenter.model().metadata().getColor();
 
   m_conditionItem
       = new ConditionView(ScenarioStyle::instance().ConditionDefault, this);
   m_conditionItem->setVisible(false);
-  m_conditionItem->setPos(-13.5, -13.5);
+  m_conditionItem->setPosition(QPointF(-13.5, -13.5));
 
   this->setParentItem(parent);
   this->setCursor(Qt::SizeHorCursor);
@@ -47,7 +47,7 @@ void EventView::setCondition(const QString& cond)
     return;
   m_condition = cond;
   m_conditionItem->setVisible(!State::isTrueExpression(cond));
-  m_conditionItem->setToolTip(m_condition);
+  //m_conditionItem->setToolTip(m_condition);
 }
 
 bool EventView::hasCondition() const
@@ -98,7 +98,7 @@ void EventView::paint(
 
 void EventView::setExtent(const VerticalExtent& extent)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_extent = extent;
   m_conditionItem->changeHeight(extent.bottom() - extent.top());
   this->update();
@@ -106,7 +106,7 @@ void EventView::setExtent(const VerticalExtent& extent)
 
 void EventView::setExtent(VerticalExtent&& extent)
 {
-  prepareGeometryChange();
+  //prepareGeometryChange();
   m_conditionItem->changeHeight(extent.bottom() - extent.top());
   m_extent = std::move(extent);
   this->update();
@@ -142,45 +142,45 @@ void EventView::changeColor(iscore::ColorRef newColor)
 
 void EventView::setWidthScale(double d)
 {
-  QTransform t;
-  this->setTransform(t.scale(d, 1.));
+  //QTransform t;
+  //this->setTransform(t.scale(d, 1.));
 }
 
 void EventView::changeToolTip(const QString& c)
 {
-  this->setToolTip(c);
+  //this->setToolTip(c);
 }
 
 void EventView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
-    emit m_presenter.pressed(event->scenePos());
+    emit m_presenter.pressed(mapToScene(event->localPos()));
 }
 
 void EventView::mouseMoveEvent(QMouseEvent* event)
 {
-  emit m_presenter.moved(event->scenePos());
+  emit m_presenter.moved(mapToScene(event->localPos()));
 }
 
 void EventView::mouseReleaseEvent(QMouseEvent* event)
 {
-  emit m_presenter.released(event->scenePos());
+  emit m_presenter.released(mapToScene(event->localPos()));
 }
 
-void EventView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
+void EventView::hoverEnterEvent(QHoverEvent* h)
 {
   QQuickPaintedItem::hoverEnterEvent(h);
   emit eventHoverEnter();
 }
 
-void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
+void EventView::hoverLeaveEvent(QHoverEvent* h)
 {
   QQuickPaintedItem::hoverLeaveEvent(h);
   emit eventHoverLeave();
 }
 
-void EventView::dropEvent(QGraphicsSceneDragDropEvent* event)
+void EventView::dropEvent(QDropEvent* event)
 {
-  emit dropReceived(event->scenePos(), event->mimeData());
+  emit dropReceived(mapToScene(event->pos()), event->mimeData());
 }
 }

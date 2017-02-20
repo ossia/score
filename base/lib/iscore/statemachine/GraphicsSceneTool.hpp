@@ -31,7 +31,7 @@ public:
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
   }
 
-  const QGraphicsScene& scene() const
+  const QQuickItem& scene() const
   {
     return m_scene;
   }
@@ -41,16 +41,16 @@ public:
   }
 
 protected:
-  GraphicsSceneTool(const QGraphicsScene& scene) : m_scene{scene}
+  GraphicsSceneTool(const QQuickItem& scene) : m_scene{scene}
   {
   }
 
-  QQuickPaintedItem* itemUnderMouse(const QPointF& point) const
+  QQuickItem* itemUnderMouse(const QPointF& point) const
   {
-    return m_scene.itemAt(point, QTransform());
+    return m_scene.childAt(point.x(), point.y());
   }
 
 private:
-  const QGraphicsScene& m_scene;
+  const QQuickItem& m_scene;
   QStateMachine m_localSM;
 };

@@ -1,6 +1,6 @@
 #pragma once
 #include <QColor>
-#include <QQuickPaintedItem>
+#include <iscore/tools/GraphicsItem.hpp>
 #include <QPoint>
 #include <QRect>
 #include <QTextLayout>
@@ -19,7 +19,7 @@ namespace Scenario
 {
 class TimeNodePresenter;
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public QQuickPaintedItem
+class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeView final : public GraphicsItem
 {
 public:
   TimeNodeView(TimeNodePresenter& presenter, QQuickPaintedItem* parent);

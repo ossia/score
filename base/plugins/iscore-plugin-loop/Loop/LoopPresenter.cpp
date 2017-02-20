@@ -157,13 +157,13 @@ void LayerPresenter::setHeight(qreal height)
 
 void LayerPresenter::putToFront()
 {
-  m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, false);
+  //m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, false);
   m_view->setOpacity(1);
 }
 
 void LayerPresenter::putBehind()
 {
-  m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, true);
+  //m_view->setFlag(QQuickPaintedItem::ItemStacksBehindParent, true);
   m_view->setOpacity(0.1);
 }
 

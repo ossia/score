@@ -6,18 +6,19 @@ namespace iscore
 {
 class ModelMetadata;
 }
-class QGraphicsSceneHoverEvent;
+class QHoverEvent;
 class QGraphicsSceneMouseEvent;
 
 namespace Scenario
 {
-class SeparatorItem final : public QGraphicsSimpleTextItem
+class SeparatorItem final : public QQuickPaintedItem
 {
 public:
   SeparatorItem(QQuickPaintedItem* parent);
+  void paint(QPainter *painter) override;
 };
 
-class ClickableLabelItem final : public QObject, public QGraphicsSimpleTextItem
+class ClickableLabelItem final : public QQuickPaintedItem
 {
   Q_OBJECT
 public:
@@ -36,11 +37,13 @@ signals:
 
 protected:
   void mousePressEvent(QMouseEvent* event) override;
-  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
-  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverEnterEvent(QHoverEvent* event) override;
+  void hoverLeaveEvent(QHoverEvent* event) override;
 
 private:
+  void paint(QPainter *painter) override;
   int m_index{-1};
   ClickHandler m_onClick;
+  QString m_text;
 };
 }

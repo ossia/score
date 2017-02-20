@@ -45,7 +45,7 @@ ConstraintPresenter::ConstraintPresenter(
   auto& constraint = m_viewModel.model();
   m_header->setParentItem(m_view);
   m_header->setConstraintView(m_view);
-  m_header->hide();
+  m_header->setVisible(false);
 
   con(constraint.selection, &Selectable::changed, m_view,
       &ConstraintView::setSelected);
@@ -315,7 +315,7 @@ void ConstraintPresenter::updateBraces()
 void ConstraintPresenter::createRackPresenter(const RackModel& rackModel)
 {
   auto rackView = new RackView{m_view};
-  rackView->setPos(0, ConstraintHeader::headerHeight());
+  rackView->setPosition(QPointF(0, ConstraintHeader::headerHeight()));
 
   // Cas par défaut
   m_rack = new RackPresenter{rackModel, rackView, m_context, this};

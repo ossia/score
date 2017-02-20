@@ -50,24 +50,16 @@ ScenarioDocumentView::ScenarioDocumentView(
     const iscore::ApplicationContext& ctx, QObject* parent)
     : iscore::DocumentDelegateView{parent}
     , m_widget{new QWidget}
-    , m_scene{new ScenarioScene{m_widget}}
+    , m_scene{new QQuickItem}
     , m_view{new ProcessGraphicsView{m_scene, m_widget}}
     , m_baseObject{new BaseGraphicsObject}
-    , m_timeRulersView{new TimeRulerGraphicsView{m_scene}}
+    , m_timeRulersView{new TimeRulerGraphicsView{}}
     , m_timeRuler{new TimeRulerView}
 {
 #if defined(ISCORE_WEBSOCKETS)
   auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif
-#if defined(ISCORE_OPENGL)
-  auto vp1 = new QOpenGLWidget;
-  m_view->setViewport(vp1);
-  auto vp2 = new QOpenGLWidget;
-  m_timeRulersView->setViewport(vp2);
-#else
-  m_view->setAttribute(Qt::WA_PaintOnScreen, true);
-  m_timeRulersView->setAttribute(Qt::WA_PaintOnScreen, true);
-#endif
+
   m_widget->addAction(new SnapshotAction{*m_scene, m_widget});
 
   // Transport
@@ -114,8 +106,8 @@ ScenarioDocumentView::ScenarioDocumentView(
   });
 
   // view layout
-  m_scene->addItem(m_timeRuler);
-  m_scene->addItem(m_baseObject);
+  m_timeRuler->setParentItem(m_scene);
+  m_baseObject->setParentItem(m_scene);
 
   auto lay = new QVBoxLayout;
   m_widget->setLayout(lay);
@@ -126,8 +118,8 @@ ScenarioDocumentView::ScenarioDocumentView(
 
   lay->setSpacing(1);
 
-  m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  //m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  //m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   connect(
       m_view, &ProcessGraphicsView::scrolled, this,
       &ScenarioDocumentView::horizontalPositionChanged);
@@ -135,8 +127,8 @@ ScenarioDocumentView::ScenarioDocumentView(
   auto& skin = iscore::Skin::instance();
   con(skin, &iscore::Skin::changed, this, [&]() {
     auto& skin = ScenarioStyle::instance();
-    m_timeRulersView->setBackgroundBrush(skin.TimeRulerBackground.getBrush());
-    m_view->setBackgroundBrush(skin.Background.getBrush());
+    m_timeRulersView->setClearColor(skin.TimeRulerBackground.getColor());
+    m_view->setClearColor(skin.Background.getColor());
   });
 
   m_widget->setObjectName("ScenarioViewer");
@@ -148,16 +140,16 @@ ScenarioDocumentView::ScenarioDocumentView(
     switch (t)
     {
       case Scenario::Tool::Select:
-        m_view->viewport()->unsetCursor();
+        m_view->window()->unsetCursor();
         break;
       case Scenario::Tool::Create:
-        m_view->viewport()->setCursor(QCursor(Qt::CrossCursor));
+        m_view->window()->setCursor(QCursor(Qt::CrossCursor));
         break;
       case Scenario::Tool::Play:
-        m_view->viewport()->setCursor(QCursor(Qt::PointingHandCursor));
+        m_view->window()->setCursor(QCursor(Qt::PointingHandCursor));
         break;
       default:
-        m_view->viewport()->unsetCursor();
+        m_view->window()->unsetCursor();
         break;
     }
   });

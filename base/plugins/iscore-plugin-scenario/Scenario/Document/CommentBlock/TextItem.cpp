@@ -1,15 +1,20 @@
 #include "TextItem.hpp"
 
 #include <QGraphicsSceneMouseEvent>
-
+#include <QPainter>
 namespace Scenario
 {
 
 TextItem::TextItem(QString text, QQuickPaintedItem* parent)
-    : QGraphicsTextItem{text, parent}
+    : GraphicsItem{parent}
 {
-  this->setFlag(QQuickPaintedItem::ItemIsFocusable);
-  this->setDefaultTextColor(Qt::white);
+  //this->setFlag(QQuickPaintedItem::ItemIsFocusable);
+  //this->setDefaultTextColor(Qt::white);
+}
+
+void TextItem::paint(QPainter* painter)
+{
+  painter->drawText(boundingRect(), "TODO m_text");
 }
 
 void TextItem::focusOutEvent(QFocusEvent* event)
@@ -22,7 +27,8 @@ void SimpleTextItem::paint(
 {
   //    setPen(m_color.getColor()); -> if enabled, there will be undesirable
   //    antialiasing
-  setBrush(m_color.getBrush());
-  QGraphicsSimpleTextItem::paint(painter, option, widget);
+  //setBrush(m_color.getBrush());
+  painter->drawText(boundingRect(), "TODO m_text");
+  //QGraphicsSimpleTextItem::paint(painter, option, widget);
 }
 }
