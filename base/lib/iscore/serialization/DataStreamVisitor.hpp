@@ -21,7 +21,7 @@ namespace iscore
 {
 class ApplicationComponents;
 }
-#if defined(ISCORE_DEBUG)
+#if defined(ISCORE_DEBUG_DELIMITERS)
 #define ISCORE_DEBUG_INSERT_DELIMITER do { insertDelimiter(); } while(0)
 #define ISCORE_DEBUG_INSERT_DELIMITER2(Vis) do { Vis.insertDelimiter(); } while(0)
 #define ISCORE_DEBUG_CHECK_DELIMITER do { checkDelimiter(); } while(0)

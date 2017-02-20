@@ -380,7 +380,7 @@ void OSSIADevice::setListening(const State::Address& addr, bool b)
     // and the address wasn't already listening
     if (b)
     {
-      ossia_addr->requestValue();
+      ossia_addr->pullValue();
 
       if (cb_it == m_callbacks.end())
       {

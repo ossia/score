@@ -90,6 +90,8 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QPen EventPen;
   QBrush EventBrush;
 
+  QPen TransparentPen;
+
 private:
   ScenarioStyle() noexcept;
   void initPens();

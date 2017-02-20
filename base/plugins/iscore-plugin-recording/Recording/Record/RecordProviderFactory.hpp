@@ -56,7 +56,7 @@ public:
   RecordCommandDispatcher dispatcher;
 
   Scenario::Point point;
-  clock::time_point firstValueTime;
+  clock::time_point firstValueTime{};
   QTimer timer;
 
 signals:
@@ -139,6 +139,7 @@ public:
     }
 
     //// Start the record timer ////
+    ctx.timer.stop();
     ctx.timer.setTimerType(Qt::PreciseTimer);
     ctx.timer.setInterval(
         16.66 * 4); // TODO ReasonableUpdateInterval(curve_count));
