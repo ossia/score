@@ -46,6 +46,10 @@ TimeNodeView::~TimeNodeView()
 void TimeNodeView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  auto height = m_extent.bottom() - m_extent.top();
+  if(height < 1)
+    return;
+
   auto& skin = ScenarioStyle::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
   QColor pen_color;
@@ -61,8 +65,7 @@ void TimeNodeView::paint(
   skin.TimenodePen.setColor(pen_color);
   painter->setPen(skin.TimenodePen);
 
-  painter->drawLine(
-      QPointF(0, 0), QPointF(0, m_extent.bottom() - m_extent.top()));
+  painter->drawLine(QPointF(0, 0), QPointF(0, height));
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
   painter->setPen(Qt::darkMagenta);
