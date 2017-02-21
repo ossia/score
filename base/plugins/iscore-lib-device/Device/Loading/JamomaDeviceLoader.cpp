@@ -80,9 +80,10 @@ static ossia::value stringToOssiaVal(const QString& str, const QString& type)
     qDebug() << "Unknown type: " << type;
   }
 
+  /*
   if (!ok)
     return {};
-
+  */
   return val;
 }
 
@@ -188,6 +189,14 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
 
     addr.domain = read_rangeBounds(dom_element, type);
     addr.clipMode = read_rangeClipmode(dom_element);
+
+    if(!addr.ioType)
+    {
+      if(addr.value.val.isValid())
+      {
+        addr.ioType = ossia::access_mode::BI;
+      }
+    }
   }
 
   auto& childNode = parentNode.emplace_back(addr, &parentNode);
