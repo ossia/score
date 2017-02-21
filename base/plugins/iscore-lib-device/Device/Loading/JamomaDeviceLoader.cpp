@@ -43,6 +43,17 @@ static State::Value stringToVal(const QString& str, const QString& type)
     val.val = str.toStdString();
     ok = true;
   }
+  else if (type == "array")
+  {
+    val.val = State::tuple_t{};
+    // TODO
+    ok = true;
+  }
+  else if(type == "none")
+  {
+    val.val = ossia::impulse{};
+    ok = true;
+  }
   else
   {
     qDebug() << "Unknown type: " << type;
@@ -75,6 +86,17 @@ static ossia::value stringToOssiaVal(const QString& str, const QString& type)
     val = str.toStdString();
     ok = true;
   }
+  else if (type == "array")
+  {
+    val = std::vector<ossia::value>{};
+    // TODO
+    ok = true;
+  }
+  else if(type == "none")
+  {
+    val = ossia::impulse{};
+    ok = true;
+  }
   else
   {
     qDebug() << "Unknown type: " << type;
@@ -101,7 +123,8 @@ read_valueDefault(const QDomElement& dom_element, const QString& type)
   }
 }
 
-static optional<ossia::access_mode> read_service(const QDomElement& dom_element)
+static optional<ossia::access_mode> read_service(
+    const QDomElement& dom_element)
 {
   using namespace iscore;
   if (dom_element.hasAttribute("service"))
@@ -123,7 +146,9 @@ else if(service == "")
 }
 
 static auto
-read_rangeBounds(const QDomElement& dom_element, const QString& type)
+read_rangeBounds(
+    const QDomElement& dom_element,
+    const QString& type)
 {
   ossia::domain domain;
 
@@ -197,6 +222,14 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
         addr.ioType = ossia::access_mode::BI;
       }
     }
+
+    if(dom_element.previousSibling().isComment())
+    {
+      auto desc = dom_element.previousSibling().nodeValue();
+      if(desc.startsWith("\"")) desc.remove(0, 1);
+      if(desc.endsWith("\"")) desc.chop(1);
+      ossia::net::set_description(addr, desc.toStdString());
+    }
   }
 
   auto& childNode = parentNode.emplace_back(addr, &parentNode);
@@ -205,7 +238,13 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
   {
     convertFromDomElement(dom_child, childNode);
 
-    dom_child = dom_child.nextSibling().toElement();
+    auto ns = dom_child.nextSibling();
+    while(ns.isComment())
+    {
+      ns = ns.nextSibling();
+    }
+    dom_child = ns.toElement();
+
   }
   return;
 }
