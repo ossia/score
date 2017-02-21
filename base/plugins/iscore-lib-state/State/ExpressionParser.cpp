@@ -466,11 +466,11 @@ struct Expression_builder : boost::static_visitor<void>
 iscore::optional<State::Expression> State::parseExpression(const std::string& input)
 {
   auto f(std::begin(input)), l(std::end(input));
-  Expression_parser<decltype(f)> p;
+  auto p = std::make_unique<Expression_parser<decltype(f)>>();
   try
   {
     expr_raw result;
-    bool ok = qi::phrase_parse(f, l, p, qi::standard::space, result);
+    bool ok = qi::phrase_parse(f, l, *p, qi::standard::space, result);
 
     if (!ok)
     {
@@ -533,11 +533,11 @@ iscore::optional<State::Address> State::parseAddress(const QString& str)
 {
   auto input = str.toStdString();
   auto f(std::begin(input)), l(std::end(input));
-  Address_parser<decltype(f)> p;
+  auto p = std::make_unique<Address_parser<decltype(f)>>();
   try
   {
     State::Address result;
-    bool ok = qi::phrase_parse(f, l, p, qi::standard::space, result);
+    bool ok = qi::phrase_parse(f, l, *p, qi::standard::space, result);
 
     if (!ok)
     {
@@ -563,11 +563,11 @@ State::parseAddressAccessor(const QString& str)
 {
   auto input = str.toStdString();
   auto f(std::begin(input)), l(std::end(input));
-  AddressAccessor_parser<decltype(f)> p;
+  auto p = std::make_unique<AddressAccessor_parser<decltype(f)>>();
   try
   {
     State::AddressAccessor result;
-    bool ok = qi::phrase_parse(f, l, p, qi::standard::space, result);
+    bool ok = qi::phrase_parse(f, l, *p, qi::standard::space, result);
 
     if (ok)
     {

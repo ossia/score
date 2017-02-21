@@ -31,6 +31,7 @@ static void removeEventFromTimeNode(
   {
     if (timeNode->removeEvent(eventId))
     {
+      scenario.events.remove(eventId);
       if (timeNode->events().isEmpty())
       {
         // TODO transform this into a class with algorithms on timenodes +
@@ -98,8 +99,6 @@ void StandardRemovalPolicy::removeEventStatesAndConstraints(
   }
 
   removeEventFromTimeNode(scenario, eventId);
-
-  scenario.events.remove(&ev);
 }
 
 void StandardRemovalPolicy::removeComment(
