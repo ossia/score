@@ -26,11 +26,11 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
 {
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
-  m_portOutputSBox = new QSpinBox(this);
-  m_portOutputSBox->setRange(0, 65535);
-
   m_portInputSBox = new QSpinBox(this);
   m_portInputSBox->setRange(0, 65535);
+
+  m_portOutputSBox = new QSpinBox(this);
+  m_portOutputSBox->setRange(0, 65535);
 
   m_localHostEdit = new QLineEdit(this);
 
@@ -47,8 +47,8 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
   load_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   layout->addRow(tr("Device name"), m_deviceNameEdit);
-  layout->addRow(tr("i-score listening port"), m_portOutputSBox);
   layout->addRow(tr("Device listening port"), m_portInputSBox);
+  layout->addRow(tr("i-score listening port"), m_portOutputSBox);
   layout->addRow(tr("Device host"), m_localHostEdit);
   layout->addRow(load_label, sublay);
 
