@@ -17,6 +17,7 @@ public:
 
 signals:
   void sig_command();
+  void sig_disconnect();
 private slots:
   void slot_command();
 };

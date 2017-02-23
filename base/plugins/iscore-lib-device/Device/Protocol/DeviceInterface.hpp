@@ -34,6 +34,7 @@ struct ISCORE_LIB_DEVICE_EXPORT DeviceCapas
   bool canListen{true};
   bool canSerialize{true};
   bool canLearn{false};
+  bool hasCallbacks{true};
 };
 
 class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject

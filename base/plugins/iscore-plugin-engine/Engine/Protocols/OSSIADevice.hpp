@@ -84,6 +84,7 @@ protected:
 
 private:
   bool m_logging = false;
+  bool m_callbacksEnabled = false;
 };
 
 class ISCORE_PLUGIN_ENGINE_EXPORT OwningOSSIADevice : public OSSIADevice
