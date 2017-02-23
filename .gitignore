@@ -1,4 +1,5 @@
 .idea
+CMake/common
 CMakeFiles*
 base/disabled_addons
 build-*
