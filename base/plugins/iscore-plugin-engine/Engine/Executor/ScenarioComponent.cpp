@@ -147,7 +147,6 @@ std::function<void ()> ScenarioComponentBase::removing(
 std::function<void ()> ScenarioComponentBase::removing(
     const Scenario::TimeNodeModel& e, TimeNodeComponent& c)
 {
-  qDebug() << "Remove timenode" << e.id();
   // FIXME this will certainly break stuff WRT member variables, coherency checker, etc.
   auto it = m_ossia_timenodes.find(e.id());
   if(it != m_ossia_timenodes.end())
@@ -168,7 +167,6 @@ std::function<void ()> ScenarioComponentBase::removing(
 std::function<void ()> ScenarioComponentBase::removing(
     const Scenario::EventModel& e, EventComponent& c)
 {
-  qDebug() << "Remove event" << e.id();
   auto it = m_ossia_timeevents.find(e.id());
   if(it != m_ossia_timeevents.end())
   {

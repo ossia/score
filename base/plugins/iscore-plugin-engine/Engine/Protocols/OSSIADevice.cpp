@@ -74,6 +74,9 @@ void OSSIADevice::updateSettings(const Device::DeviceSettings& newsettings)
 
 void OSSIADevice::disconnect()
 {
+  if(m_capas.hasCallbacks)
+    disableCallbacks();
+
   m_callbacks.clear();
   if (auto dev = getDevice())
   {
@@ -211,31 +214,37 @@ void OSSIADevice::setLogging_impl(bool b) const
 
 void OSSIADevice::enableCallbacks()
 {
-  auto dev = getDevice();
-  if(dev)
+  if(!m_callbacksEnabled)
   {
-    dev->onNodeCreated.connect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
-    dev->onNodeRemoving.connect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
-    dev->onNodeRenamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
-    dev->onAddressCreated.connect<OSSIADevice, &OSSIADevice::addressCreated>(
-          this);
-    dev->onAttributeModified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
-          this);
+    auto dev = getDevice();
+    if(dev)
+    {
+      dev->onNodeCreated.connect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
+      dev->onNodeRemoving.connect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
+      dev->onNodeRenamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
+      dev->onAddressCreated.connect<OSSIADevice, &OSSIADevice::addressCreated>(
+            this);
+      dev->onAttributeModified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
+            this);
+    }
   }
 }
 
 void OSSIADevice::disableCallbacks()
 {
-  auto dev = getDevice();
-  if(dev)
+  if(m_callbacksEnabled)
   {
-    dev->onNodeCreated.disconnect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
-    dev->onNodeRemoving.disconnect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
-    dev->onNodeRenamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
-    dev->onAddressCreated.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
-          this);
-    dev->onAttributeModified.disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
-          this);
+    auto dev = getDevice();
+    if(dev)
+    {
+      dev->onNodeCreated.disconnect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
+      dev->onNodeRemoving.disconnect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
+      dev->onNodeRenamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
+      dev->onAddressCreated.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
+            this);
+      dev->onAttributeModified.disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
+            this);
+    }
   }
 }
 

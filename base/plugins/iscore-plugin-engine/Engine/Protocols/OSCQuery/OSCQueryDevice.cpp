@@ -1,6 +1,7 @@
 #include <QString>
 #include <QVariant>
 #include <memory>
+#include <QTimer>
 
 #include "OSCQueryDevice.hpp"
 #include <ossia/network/generic/generic_address.hpp>
@@ -20,6 +21,8 @@ OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
 
   connect(this, &OSCQueryDevice::sig_command,
           this, &OSCQueryDevice::slot_command, Qt::QueuedConnection);
+  connect(this, &OSCQueryDevice::sig_disconnect,
+          this, &OSCQueryDevice::disconnect, Qt::QueuedConnection);
   reconnect();
 }
 
@@ -38,6 +41,12 @@ bool OSCQueryDevice::reconnect()
 
     // run the commands in the Qt event loop
     ossia_settings->setCommandCallback([=] { sig_command(); });
+    ossia_settings->setDisconnectCallback([=] {
+      emit sig_disconnect();
+    });
+    ossia_settings->setFailCallback([=] {
+      emit sig_disconnect();
+    });
 
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
