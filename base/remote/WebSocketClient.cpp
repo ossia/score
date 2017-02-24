@@ -50,6 +50,7 @@ void WebSocketClient::open(QUrl u)
 
 void WebSocketClient::handleObject(const QJsonObject& obj)
 {
+  qDebug() << obj;
   auto it = actions.find(obj[iscore::StringConstant().Message].toString().toStdString());
   if(it != actions.end())
   {
