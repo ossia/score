@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 #endif
 
     QLocale::setDefault(QLocale::C);
-    std::setlocale(LC_ALL, "C");
+    setlocale(LC_ALL, "C");
 
     init_plugins();
 
