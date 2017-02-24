@@ -57,8 +57,20 @@ QAction* ZeroconfBrowser::makeAction()
 void ZeroconfBrowser::accept()
 {
   auto selection = m_list->currentIndex();
+  if(!selection.isValid())
+  {
+    m_dialog->close();
+    return;
+  }
 
-  auto name = m_model->itemData(selection).first().toString();
+  auto dat = m_model->itemData(selection);
+  if(dat.isEmpty())
+  {
+    m_dialog->close();
+    return;
+  }
+
+  auto name = dat.first().toString();
   QString ip;
   int port = 0;
   QMap<QString, QByteArray> text;
