@@ -70,9 +70,9 @@ Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
     iscore_node.reserve(cld.size());
 
     // 2. Recurse on the children
-    for (const auto& ossia_child : ossia_node.children())
+    for (const auto& ossia_child : cld)
     {
-      auto child_n = ToDeviceExplorer(*ossia_child.get());
+      auto child_n = ToDeviceExplorer(*ossia_child);
       child_n.setParent(&iscore_node);
       iscore_node.push_back(std::move(child_n));
     }
