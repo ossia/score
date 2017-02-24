@@ -2,6 +2,7 @@
 #include <Engine/Protocols/Minuit/MinuitProtocolFactory.hpp>
 #include <Engine/Protocols/OSC/OSCProtocolFactory.hpp>
 #include <Engine/Protocols/OSCQuery/OSCQueryProtocolFactory.hpp>
+#include <Engine/Protocols/Serial/SerialProtocolFactory.hpp>
 
 #include <Engine/Protocols/Panel/MessagesPanel.hpp>
 
@@ -94,6 +95,9 @@ iscore_plugin_engine::factories(
 #endif
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
                  , Network::WSProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_SERIAL)
+                 , Network::SerialProtocolFactory
 #endif
             >,
             FW<Engine::Execution::ProcessComponentFactory,
