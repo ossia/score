@@ -27,7 +27,7 @@ public:
   ~GUIItem();
 
 
-  auto item() const { return m_item; }
+  QQuickItem* item() const { return m_item; }
   void setAddress(const Device::FullAddressSettings&);
   void setValue(const State::Message& m);
 
