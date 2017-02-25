@@ -326,6 +326,21 @@ optional<State::Value> OSSIADevice::refresh(const State::Address& address)
   return {};
 }
 
+void OSSIADevice::request(const State::Address& address)
+{
+  if (auto dev = getDevice())
+  {
+    auto node = Engine::iscore_to_ossia::findNodeFromPath(address.path, *dev);
+    if (node)
+    {
+      if (auto addr = node->getAddress())
+      {
+        addr->requestValue();
+      }
+    }
+  }
+}
+
 Device::Node OSSIADevice::getNode(const State::Address& address)
 {
   if (auto dev = getDevice())
@@ -390,8 +405,6 @@ void OSSIADevice::setListening(const State::Address& addr, bool b)
     // and the address wasn't already listening
     if (b)
     {
-      ossia_addr->pullValue();
-
       if (cb_it == m_callbacks.end())
       {
         m_callbacks.insert({addr,

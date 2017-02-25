@@ -77,6 +77,9 @@ public:
   {
     return {};
   }
+  virtual void request(const State::Address&)
+  {
+  }
   virtual void setListening(const State::Address&, bool)
   {
   }
