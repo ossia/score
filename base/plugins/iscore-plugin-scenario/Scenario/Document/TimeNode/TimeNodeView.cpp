@@ -52,7 +52,7 @@ void TimeNodeView::paint(
 
   auto& skin = ScenarioStyle::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
-  QColor pen_color;
+  QBrush pen_color;
   if (isSelected())
   {
     pen_color = skin.TimenodeSelected.getColor();
@@ -62,7 +62,7 @@ void TimeNodeView::paint(
     pen_color = m_color.getColor();
   }
 
-  skin.TimenodePen.setColor(pen_color);
+  skin.TimenodePen.setBrush(pen_color);
   painter->setPen(skin.TimenodePen);
 
   painter->drawLine(QPointF(0, 0), QPointF(0, height));

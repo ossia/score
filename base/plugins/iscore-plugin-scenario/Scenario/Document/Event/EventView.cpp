@@ -74,15 +74,15 @@ void EventView::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   if (m_status.get() == ExecutionStatus::Editing)
-    skin.EventPen.setColor(m_color.getColor());
+    skin.EventPen.setBrush(m_color.getColor());
   else
-    skin.EventPen.setColor(m_status.eventStatusColor().getColor());
+    skin.EventPen.setBrush(m_status.eventStatusColor().getColor());
 
   if (isSelected())
   {
-    skin.EventPen.setColor(skin.EventSelected.getColor());
+    skin.EventPen.setBrush(skin.EventSelected.getColor());
   }
-  skin.EventBrush.setColor(skin.EventPen.color());
+  skin.EventBrush = skin.EventPen.brush();
 
   painter->setPen(skin.EventPen);
   painter->fillRect(

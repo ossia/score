@@ -22,7 +22,7 @@ void SimpleTextItem::paint(
 {
   //    setPen(m_color.getColor()); -> if enabled, there will be undesirable
   //    antialiasing
-  setBrush(m_color.getBrush());
+  setBrush(m_color.getColor());
   QGraphicsSimpleTextItem::paint(painter, option, widget);
 }
 }

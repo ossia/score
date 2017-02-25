@@ -7,6 +7,8 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     ConstraintBase{&s.Base1}
     , ConstraintSelected{&s.Base2}
     , ConstraintPlayFill{&s.Base3}
+    , ConstraintPlayDashFill{&s.Pulse1}
+    , ConstraintLoop{&s.Warn1}
     , ConstraintWarning{&s.Warn2}
     , ConstraintInvalid{&s.Warn3}
     , ConstraintMuted{&s.Tender2}
@@ -75,6 +77,7 @@ void ScenarioStyle::setConstraintWidth(double w)
   ConstraintSolidPen.setWidth(3 * w);
   ConstraintDashPen.setWidth(3 * w);
   ConstraintPlayPen.setWidth(3 * w);
+  ConstraintPlayDashPen.setWidth(3 * w);
 }
 
 ScenarioStyle& ScenarioStyle::instance()
@@ -103,6 +106,7 @@ void ScenarioStyle::initPens()
       = QPen{Qt::black, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   ConstraintPlayPen
       = QPen{Qt::black, 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  ConstraintPlayDashPen = ConstraintDashPen;
   TimenodePen = QPen{Qt::black, 2, Qt::DotLine, Qt::SquareCap, Qt::MiterJoin};
 
   TimenodeBrush = QBrush{Qt::black};

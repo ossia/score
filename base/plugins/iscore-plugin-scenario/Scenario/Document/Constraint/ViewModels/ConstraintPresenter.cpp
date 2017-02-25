@@ -76,6 +76,10 @@ ConstraintPresenter::ConstraintPresenter(
 
   con(constraint, &ConstraintModel::heightPercentageChanged, this,
       &ConstraintPresenter::heightPercentageChanged);
+  con(constraint, &ConstraintModel::executionStarted,
+      this, [=] { m_view->setExecuting(true); });
+  con(constraint, &ConstraintModel::executionStopped,
+      this, [=] { m_view->setExecuting(false); });
 
   con(m_viewModel, &ConstraintViewModel::rackShown, this,
       &ConstraintPresenter::on_rackShown);

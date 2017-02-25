@@ -32,7 +32,7 @@ QRectF SlotHandle::boundingRect() const
 void SlotHandle::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  m_pen.setColor(ScenarioStyle::instance().ProcessViewBorder.getColor());
+  m_pen.setBrush(ScenarioStyle::instance().ProcessViewBorder.getColor());
   painter->setPen(m_pen);
   painter->setBrush(m_pen.color());
 

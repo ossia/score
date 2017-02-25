@@ -50,44 +50,64 @@ ConstraintView::~ConstraintView()
 
 void ConstraintView::setInfinite(bool infinite)
 {
-  prepareGeometryChange();
+  if(m_infinite != infinite)
+  {
+    prepareGeometryChange();
 
-  m_infinite = infinite;
+    m_infinite = infinite;
+    updatePaths();
+  }
+}
+
+void ConstraintView::setExecuting(bool e)
+{
+  m_executing = e;
   update();
 }
 
 void ConstraintView::setDefaultWidth(double width)
 {
-  prepareGeometryChange();
-  m_defaultWidth = width;
-
-  update();
+  if(m_defaultWidth != width)
+  {
+    prepareGeometryChange();
+    m_defaultWidth = width;
+    updatePaths();
+  }
 }
 
 void ConstraintView::setMaxWidth(bool infinite, double max)
 {
-  prepareGeometryChange();
-
-  setInfinite(infinite);
-  if (!infinite)
+  if(infinite != m_infinite || max != m_maxWidth)
   {
-    m_maxWidth = max;
+    prepareGeometryChange();
+
+    setInfinite(infinite);
+    if (!infinite)
+    {
+      m_maxWidth = max;
+    }
+    updatePaths();
   }
-  update();
 }
 
 void ConstraintView::setMinWidth(double min)
 {
-  prepareGeometryChange();
-  m_minWidth = min;
-  update();
+  if(min != m_minWidth)
+  {
+    prepareGeometryChange();
+    m_minWidth = min;
+    updatePaths();
+  }
 }
 
 void ConstraintView::setHeight(double height)
 {
-  prepareGeometryChange();
-  m_height = height;
-  update();
+  if(m_height != height)
+  {
+    prepareGeometryChange();
+    m_height = height;
+    updatePaths();
+  }
 }
 
 void ConstraintView::setPlayWidth(double width)
@@ -95,7 +115,7 @@ void ConstraintView::setPlayWidth(double width)
   if(width != m_playWidth)
   {
     m_playWidth = width;
-    update();
+    updatePaths();
   }
 }
 
@@ -143,36 +163,29 @@ void ConstraintView::setWarning(bool warning)
   m_warning = warning;
 }
 
-QColor ConstraintView::constraintColor(const ScenarioStyle& skin) const
+QBrush ConstraintView::constraintColor(const ScenarioStyle& skin) const
 {
-  QColor constraintColor;
   // TODO make a switch instead
   if (isSelected())
   {
-    constraintColor = skin.ConstraintSelected.getColor();
+    return skin.ConstraintSelected.getColor();
   }
   else if (warning())
   {
-    constraintColor = skin.ConstraintWarning.getColor();
+    return skin.ConstraintWarning.getColor();
   }
-  else
+  else if (!isValid() || m_state == ConstraintExecutionState::Disabled)
   {
-    constraintColor = skin.ConstraintBase.getColor();
-  }
-
-  if (!isValid() || m_state == ConstraintExecutionState::Disabled)
-  {
-    constraintColor = skin.ConstraintInvalid.getColor();
+    return skin.ConstraintInvalid.getColor();
   }
   else if (m_state == ConstraintExecutionState::Muted)
   {
-    constraintColor = skin.ConstraintMuted.getColor();
+    return skin.ConstraintMuted.getColor();
   }
-
-  if (shadow())
-    constraintColor = constraintColor.lighter();
-
-  return constraintColor;
+  else
+  {
+    return skin.ConstraintBase.getColor();
+  }
 }
 
 bool ConstraintView::shadow() const

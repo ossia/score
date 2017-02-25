@@ -20,10 +20,14 @@ public:
 
   virtual ~FullViewConstraintView() = default;
 
+  void updatePaths() final override;
   QRectF boundingRect() const override;
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
+
+private:
+  QPainterPath solidPath, dashedPath, playedPath;
 };
 }
