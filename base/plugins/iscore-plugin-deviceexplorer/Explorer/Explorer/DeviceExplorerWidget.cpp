@@ -9,7 +9,7 @@
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
 #include <Explorer/Commands/UpdateAddresses.hpp>
-
+#include <ossia-qt/js_utilities.hpp>
 #include <QAbstractProxyModel>
 #include <QAction>
 #include <QBoxLayout>
@@ -683,6 +683,7 @@ void DeviceExplorerWidget::addDevice()
         return;
       }
     }
+    ossia::net::sanitize_name(deviceSettings.name);
 
     auto path = m_deviceDialog->getPath();
     blockGUI(true);
