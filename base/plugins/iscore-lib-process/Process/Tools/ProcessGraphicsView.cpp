@@ -38,7 +38,7 @@ ProcessGraphicsView::ProcessGraphicsView(
   // scene()->addItem(m_graduations);
 
   // m_graduations->setColor(m_bg.color().lighter());
-  this->setBackgroundBrush(ScenarioStyle::instance().Background.getBrush());
+  this->setBackgroundBrush(ScenarioStyle::instance().Background.getColor());
 }
 
 void ProcessGraphicsView::setGrid(QPainterPath&& newGrid)

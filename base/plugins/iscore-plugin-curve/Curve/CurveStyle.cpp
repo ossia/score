@@ -24,9 +24,9 @@ void Style::update()
   PenSegmentTweenSelected = QPen{SegmentSelected, 2, Qt::PenStyle::DashLine};
   PenSegmentDisabled = QPen{SegmentDisabled, 1, Qt::PenStyle::SolidLine};
 
-  PenPoint = Point;
+  PenPoint = Point.color();
   PenPoint.setCosmetic(true);
-  PenPointSelected = PointSelected;
+  PenPointSelected = PointSelected.color();
   BrushPoint = Point;
   BrushPointSelected = PointSelected;
 }

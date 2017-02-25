@@ -33,28 +33,23 @@ public:
   ColorRef& operator=(const ColorRef& other) = default;
   ColorRef& operator=(ColorRef&& other) = default;
 
-  ColorRef(QColor Skin::*s) : ref{&(iscore::Skin::instance().*s)}
+  ColorRef(QBrush Skin::*s) : ref{&(iscore::Skin::instance().*s)}
   {
   }
 
-  ColorRef(const QColor* col) : ref{col}
+  ColorRef(const QBrush* col) : ref{col}
   {
   }
 
-  void setColor(QColor Skin::*s)
+  void setColor(QBrush Skin::*s)
   {
     // Set color by reference
     ref = &(iscore::Skin::instance().*s);
   }
 
-  QColor getColor() const
+  QBrush getColor() const
   {
     return ref ? *ref : Qt::black;
-  }
-
-  QBrush getBrush() const
-  {
-    return getColor();
   }
 
   QString name() const
@@ -66,7 +61,7 @@ public:
   static optional<ColorRef> SimilarColor(QColor other);
 
 private:
-  const QColor* ref{};
+  const QBrush* ref{};
 };
 }
 

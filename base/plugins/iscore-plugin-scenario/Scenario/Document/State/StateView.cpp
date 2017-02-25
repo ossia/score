@@ -33,17 +33,16 @@ void StateView::paint(
   painter->setPen(Qt::NoPen);
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = ScenarioStyle::instance();
-  skin.StateTemporalPointBrush.setColor(
-      m_selected ? skin.StateSelected.getColor() : skin.StateDot.getColor());
+  skin.StateTemporalPointBrush =
+      m_selected ? skin.StateSelected.getColor() : skin.StateDot.getColor();
 
   auto status = m_status.get();
   if (status != ExecutionStatus::Editing)
-    skin.StateTemporalPointBrush.setColor(
-        m_status.stateStatusColor().getColor());
+    skin.StateTemporalPointBrush = m_status.stateStatusColor().getColor();
 
   if (m_containMessage)
   {
-    skin.StateBrush.setColor(m_color.getColor());
+    skin.StateBrush = m_color.getColor();
     painter->setBrush(skin.StateBrush);
     painter->drawEllipse(
         {0., 0.},

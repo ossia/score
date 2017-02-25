@@ -32,7 +32,7 @@ void AbstractTimeRulerView::paint(
   auto& painter = *p;
   painter.setRenderHint(QPainter::Antialiasing, false);
 
-  QPen pen{m_color.getBrush(), 2, Qt::SolidLine};
+  QPen pen{m_color.getColor(), 2, Qt::SolidLine};
   painter.setPen(pen);
   painter.drawLine(0, 0, m_width, 0);
 

@@ -38,9 +38,9 @@ void SlotView::paint(
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   if (!m_focus)
-    painter->setPen(ScenarioStyle::instance().ProcessViewBorder.getColor());
+    painter->setPen(ScenarioStyle::instance().ProcessViewBorder.getColor().color());
   else
-    painter->setPen(ScenarioStyle::instance().SlotFocus.getColor());
+    painter->setPen(ScenarioStyle::instance().SlotFocus.getColor().color());
 
   painter->drawLine(0, 0, m_width, 0);
 }

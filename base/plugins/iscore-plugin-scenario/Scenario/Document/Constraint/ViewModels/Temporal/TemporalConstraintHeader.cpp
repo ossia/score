@@ -49,7 +49,7 @@ void TemporalConstraintHeader::paint(
   {
     auto rect = boundingRect();
     painter->fillRect(
-        rect, ScenarioStyle::instance().ConstraintHeaderRackHidden.getBrush());
+        rect, ScenarioStyle::instance().ConstraintHeaderRackHidden.getColor());
 
     // Fake timenode continuation
     auto color
@@ -62,7 +62,7 @@ void TemporalConstraintHeader::paint(
   }
 
   // Header
-  painter->setPen(ScenarioStyle::instance().ConstraintHeaderText.getColor());
+  painter->setPen(ScenarioStyle::instance().ConstraintHeaderText.getColor().color());
 
   // If the centered text is hidden, we put it at the left so that it's on the
   // view.

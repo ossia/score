@@ -37,20 +37,20 @@ void ConstraintBrace::paint(
   // TODO make a switch instead and transform these to use Q_FLAGS or something
   if (m_parent.isSelected())
   {
-    pen.setColor(ScenarioStyle::instance().ConstraintSelected.getColor());
+    pen.setBrush(ScenarioStyle::instance().ConstraintSelected.getColor());
   }
   else if (m_parent.warning())
   {
-    pen.setColor(ScenarioStyle::instance().ConstraintWarning.getColor());
+    pen.setBrush(ScenarioStyle::instance().ConstraintWarning.getColor());
   }
   else
   {
-    pen.setColor(ScenarioStyle::instance().ConstraintBase.getColor());
+    pen.setBrush(ScenarioStyle::instance().ConstraintBase.getColor());
   }
 
   if (!m_parent.isValid())
   {
-    pen.setColor(ScenarioStyle::instance().ConstraintInvalid.getColor());
+    pen.setBrush(ScenarioStyle::instance().ConstraintInvalid.getColor());
   }
 
   painter->setPen(pen);

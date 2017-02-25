@@ -72,5 +72,9 @@ protected:
 
 private:
   iscore::ColorRef m_bgColor;
+  void updatePaths() final override;
+
+  QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath;
+  double m_dashOffset = 0;
 };
 }

@@ -46,6 +46,7 @@ public:
     return m_infinite;
   }
 
+  void setExecuting(bool);
   void setDefaultWidth(double width);
   void setMaxWidth(bool infinite, double max);
   void setMinWidth(double min);
@@ -109,11 +110,12 @@ public:
   void setWarning(bool warning);
 
   void setExecutionState(ConstraintExecutionState);
-  QColor constraintColor(const ScenarioStyle& skin) const;
+  QBrush constraintColor(const ScenarioStyle& skin) const;
 
   void updateLabelPos();
   void updateCounterPos();
   void updateOverlayPos();
+  virtual void updatePaths() = 0;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
@@ -150,9 +152,10 @@ protected:
   bool m_selected{};
   bool m_infinite{};
   bool m_validConstraint{true};
-  bool m_warning{false};
-  bool m_shadow{false};
+  bool m_warning{};
+  bool m_shadow{};
   bool m_hasFocus{};
+  bool m_executing{};
   ConstraintExecutionState m_state{};
 };
 }

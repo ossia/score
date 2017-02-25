@@ -20,7 +20,7 @@ make_bimap(std::initializer_list<typename boost::bimap<L, R>::value_type> list)
 Skin::Skin() noexcept
     : SansFont{"Ubuntu"}
     , MonoFont{"APCCourier-Bold", 8}
-    , m_colorMap(make_bimap<QString, const QColor*>(
+    , m_colorMap(make_bimap<QString, const QBrush*>(
           {ISCORE_INSERT_COLOR(Dark),
            ISCORE_INSERT_COLOR(HalfDark),
            ISCORE_INSERT_COLOR(Gray),
@@ -46,8 +46,11 @@ Skin::Skin() noexcept
            ISCORE_INSERT_COLOR(Smooth3),
            ISCORE_INSERT_COLOR(Tender1),
            ISCORE_INSERT_COLOR(Tender2),
-           ISCORE_INSERT_COLOR(Tender3)}))
+           ISCORE_INSERT_COLOR(Tender3),
+           ISCORE_INSERT_COLOR(Pulse1)
+                   }))
 {
+  this->startTimer(32, Qt::CoarseTimer);
 }
 
 Skin& iscore::Skin::instance()
@@ -63,7 +66,7 @@ Skin& iscore::Skin::instance()
   } while (0)
 void Skin::load(const QJsonObject& obj)
 {
-  auto fromColor = [&](const QString& key, QColor& col) {
+  auto fromColor = [&](const QString& key, QBrush& col) {
     auto arr = obj[key].toArray();
     if (arr.size() == 3)
       col = QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt());
@@ -106,15 +109,17 @@ void Skin::load(const QJsonObject& obj)
   ISCORE_CONVERT_COLOR(Tender2);
   ISCORE_CONVERT_COLOR(Tender3);
 
+  ISCORE_CONVERT_COLOR(Pulse1);
+
   emit changed();
 }
 
 #define ISCORE_MAKE_PAIR_COLOR(Col) \
-  vec.push_back(qMakePair(Col, QStringLiteral(#Col)));
+  vec.push_back(qMakePair(Col.color(), QStringLiteral(#Col)));
 QVector<QPair<QColor, QString>> Skin::getColors() const
 {
   QVector<QPair<QColor, QString>> vec;
-  vec.reserve(26);
+  vec.reserve(27);
 
   ISCORE_MAKE_PAIR_COLOR(Dark);
   ISCORE_MAKE_PAIR_COLOR(HalfDark);
@@ -142,17 +147,45 @@ QVector<QPair<QColor, QString>> Skin::getColors() const
   ISCORE_MAKE_PAIR_COLOR(Tender1);
   ISCORE_MAKE_PAIR_COLOR(Tender2);
   ISCORE_MAKE_PAIR_COLOR(Tender3);
+  ISCORE_MAKE_PAIR_COLOR(Pulse1);
 
   return vec;
 }
 
-const QColor* Skin::fromString(const QString& s) const
+void Skin::timerEvent(QTimerEvent* event)
+{
+  auto col = Pulse1.color();
+  auto alpha = col.alphaF();
+  if(m_pulseDirection)
+  {
+    alpha += 0.02;
+    if(alpha >= 1)
+    {
+      m_pulseDirection = false;
+      alpha = 1;
+    }
+    col.setAlphaF(alpha);
+  }
+  else
+  {
+    alpha -= 0.02;
+    if(alpha <= 0.5)
+    {
+      m_pulseDirection = true;
+      alpha = 0.5;
+    }
+    col.setAlphaF(alpha);
+  }
+  Pulse1.setColor(col);
+}
+
+const QBrush* Skin::fromString(const QString& s) const
 {
   auto it = m_colorMap.left.find(s);
   return it != m_colorMap.left.end() ? it->second : nullptr;
 }
 
-QString Skin::toString(const QColor* c) const
+QString Skin::toString(const QBrush* c) const
 {
   auto it = m_colorMap.right.find(c);
   return it != m_colorMap.right.end() ? it->second : nullptr;

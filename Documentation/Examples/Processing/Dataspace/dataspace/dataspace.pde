@@ -1,6 +1,7 @@
 // NOTE : forked from  https://www.openprocessing.org/sketch/147268
 import oscP5.*;
 import netP5.*;
+import java.util.Random;
 
 OscP5 osc_in;
 NetAddress osc_out;
@@ -28,6 +29,7 @@ void setup()
   }
 }
 
+Random rand = new Random();
 void dumpOSC()
 {
   {
@@ -40,6 +42,7 @@ void dumpOSC()
   OscMessage osc_msg = new OscMessage("/mouse/move");
   osc_msg.add(mouseX);
   osc_msg.add(mouseY);
+  osc_msg.add(rand.nextFloat() * 100 - 50);
   osc_in.send(osc_msg, osc_out);
   }
   {
