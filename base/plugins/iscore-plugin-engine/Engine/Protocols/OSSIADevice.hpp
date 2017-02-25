@@ -49,6 +49,7 @@ public:
   // throws std::runtime_error
   using Device::DeviceInterface::refresh;
   optional<State::Value> refresh(const State::Address&) final override;
+  void request(const State::Address&) final override;
 
   Device::Node getNode(const State::Address&) final override;
   Device::Node getNodeWithoutChildren(const State::Address&) final override;

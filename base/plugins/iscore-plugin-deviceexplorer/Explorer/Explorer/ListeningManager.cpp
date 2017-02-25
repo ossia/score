@@ -49,6 +49,7 @@ void ListeningManager::enableListening(Device::Node& node)
 
   auto addr = Device::address(node);
   m_handler.setListening(dev, addr.address, true);
+  dev.request(addr.address);
 }
 
 void ListeningManager::disableListening_rec(
@@ -82,6 +83,7 @@ void ListeningManager::enableListening_rec(
     {
       auto addr = Device::address(child);
       lm.setListening(dev, addr.address, true);
+      dev.request(addr.address);
     }
 
     // TODO check this
