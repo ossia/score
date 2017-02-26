@@ -167,48 +167,60 @@ void AutomationRecorder::stop()
       State::Address a, uint8_t i, ossia::unit_t u) -> State::AddressAccessor {
     return State::AddressAccessor{std::move(a), {i}, u};
   };
+
+  int N = 0;
+
   // Potentially simplify curve and transform it in segments
   for (const auto& recorded : numeric_records)
   {
-    finish(
+    if(finish(
         State::AddressAccessor{recorded.first, {}, recorded.second.unit},
         recorded.second,
         msecs,
         simplify,
-        simplifyRatio);
+        simplifyRatio))
+      N++;
   }
 
   for (const auto& recorded : vec2_records)
   {
     for (int i = 0; i < 2; i++)
-      finish(
+      if(finish(
           make_address(recorded.first, i, recorded.second[i].unit),
           recorded.second[i],
           msecs,
           simplify,
-          simplifyRatio);
+          simplifyRatio))
+        N++;
   }
 
   for (const auto& recorded : vec3_records)
   {
     for (int i = 0; i < 3; i++)
-      finish(
+      if(finish(
           make_address(recorded.first, i, recorded.second[i].unit),
           recorded.second[i],
           msecs,
           simplify,
-          simplifyRatio);
+          simplifyRatio))
+        N++;
   }
 
   for (const auto& recorded : vec4_records)
   {
     for (int i = 0; i < 4; i++)
-      finish(
+      if(finish(
           make_address(recorded.first, i, recorded.second[i].unit),
           recorded.second[i],
           msecs,
           simplify,
-          simplifyRatio);
+          simplifyRatio))
+        N++;
+  }
+
+  if(N == 0)
+  {
+    context.dispatcher.rollback();
   }
 }
 
@@ -246,7 +258,7 @@ void AutomationRecorder::parameterCallback(
   }
 }
 
-void AutomationRecorder::finish(
+bool AutomationRecorder::finish(
     State::AddressAccessor addr,
     const RecordData& recorded,
     const TimeVal& msecs,
@@ -254,6 +266,14 @@ void AutomationRecorder::finish(
     int simplifyRatio)
 {
   Curve::PointArraySegment& segt = recorded.segment;
+  if(segt.points().empty() || (segt.points().size() == 1 && segt.points().begin()->first == 0.))
+  {
+    recorded.addLayCmd->undo();
+    delete recorded.addLayCmd;
+    recorded.addProcCmd->undo();
+    delete recorded.addProcCmd;
+    return false;
+  }
 
   auto& automation
       = *safe_cast<Automation::ProcessModel*>(recorded.curveModel.parent());
@@ -282,6 +302,8 @@ void AutomationRecorder::finish(
   context.dispatcher.submitCommand(recorded.addProcCmd);
   context.dispatcher.submitCommand(recorded.addLayCmd);
   context.dispatcher.submitCommand(initCurveCmd);
+
+  return true;
 }
 
 Priority AutomationRecorderFactory::matches(
