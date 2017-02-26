@@ -78,15 +78,13 @@ void FullViewConstraintView::paint(
     p.setPen(skin.ConstraintSolidPen);
     p.drawLine(0, 0, min_w, 0);
 
-    // The little hat
-    p.drawLine(min_w, -5, min_w, -15);
-    p.drawLine(min_w, -15, max_w, -15);
-    p.drawLine(max_w, -5, max_w, -15);
-
-    // Finally the dashed line
+    // Then the dashed line
     skin.ConstraintDashPen.setBrush(c);
     p.setPen(skin.ConstraintDashPen);
-    p.drawLine(min_w, 0, max_w, 0);
+    if(!infinite())
+      p.drawLine(min_w, 0, max_w, 0);
+    else
+      p.drawLine(min_w, 0, def_w, 0);
   }
 
   auto pw = playWidth();
@@ -96,6 +94,7 @@ void FullViewConstraintView::paint(
     p.setPen(skin.ConstraintPlayPen);
     p.drawLine(0, 0, std::min(play_w, std::max(def_w, max_w)), 0);
   }
+
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
   p.setPen(Qt::red);

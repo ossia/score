@@ -54,6 +54,8 @@ signals:
   void sig_defocusedViewModel(const LayerModel*);
   void sig_focusedViewModel(const LayerModel*);
 
+  void sig_focusedRoot();
+
 private:
   void focusPresenter(LayerPresenter*);
   void defocusPresenter(LayerPresenter*);

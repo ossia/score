@@ -16,8 +16,7 @@ SelectionStack::SelectionStack()
       this,
       &SelectionStack::pushNewSelection,
       this,
-      &SelectionStack::push,
-      Qt::QueuedConnection);
+      &SelectionStack::push);
   m_unselectable.push(Selection{});
 }
 
@@ -37,6 +36,18 @@ void SelectionStack::clear()
   m_reselectable.clear();
   m_unselectable.push(Selection{});
   emit currentSelectionChanged(m_unselectable.top());
+}
+
+void SelectionStack::clearAllButLast()
+{
+  Selection last;
+  if(canUnselect())
+    last = m_unselectable.top();
+
+  m_unselectable.clear();
+  m_reselectable.clear();
+  m_unselectable.push(Selection{});
+  m_unselectable.push(std::move(last));
 }
 
 void SelectionStack::push(const Selection& selection)

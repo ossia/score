@@ -255,6 +255,10 @@ void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
             .condition<Process::
                            EnableWhenFocusedProcessIs<Scenario::
                                                           ScenarioInterface>>();
+  auto& scenario_doc_cond
+      = m_parent->context.actions
+        .condition<
+        iscore::EnableWhenDocumentIs<ScenarioDocumentModel>>();
 
   iscore::Menu& menu = m_parent->context.menus.get().at(iscore::Menus::Edit());
 
@@ -297,8 +301,8 @@ void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
 
     ref.actions.add<Actions::Scale>(m_scale);
     ref.actions.add<Actions::Grow>(m_grow);
-    scenario_iface_cond.add<Actions::Scale>();
-    scenario_iface_cond.add<Actions::Grow>();
+    scenario_doc_cond.add<Actions::Scale>();
+    scenario_doc_cond.add<Actions::Grow>();
   }
 }
 
