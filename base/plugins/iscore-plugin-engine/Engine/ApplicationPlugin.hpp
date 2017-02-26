@@ -55,6 +55,8 @@ public:
   void on_documentChanged(
       iscore::Document* olddoc, iscore::Document* newdoc) override;
 
+  void prepareNewDocument() override;
+
   void on_play(bool, ::TimeVal t = ::TimeVal::zero());
   void on_play(
       Scenario::ConstraintModel&,
