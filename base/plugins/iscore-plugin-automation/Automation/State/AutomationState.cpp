@@ -128,9 +128,9 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
       // Scale min, max, and the value
       // TODO convert to the real type of the curve.
       auto val = State::convert::value<float>(mess.value);
-      if (val < process().min())
+      if (val < process().min() && std::abs(val - process().min()) > 1e-9)
         process().setMin(val);
-      if (val > process().max())
+      if (val > process().max() && std::abs(val - process().max()) > 1e-9)
         process().setMax(val);
 
       val = (val - process().min()) / (process().max() - process().min());

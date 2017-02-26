@@ -6,6 +6,11 @@
 #define TIME_TOLERANCE_MSEC 0.5
 namespace Scenario
 {
+ConstraintDurations::~ConstraintDurations()
+{
+
+}
+
 ConstraintDurations& ConstraintDurations::
 operator=(const ConstraintDurations& other)
 {
