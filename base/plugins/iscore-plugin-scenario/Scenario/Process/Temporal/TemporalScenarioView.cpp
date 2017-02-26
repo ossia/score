@@ -16,8 +16,7 @@ namespace Scenario
 TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent)
     : LayerView{parent}
 {
-  this->setFlags(
-      ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+  this->setFlags(ItemIsSelectable | ItemIsFocusable);
   setAcceptDrops(true);
 
   this->setZValue(1);
