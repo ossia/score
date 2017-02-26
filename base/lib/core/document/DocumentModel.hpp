@@ -55,11 +55,10 @@ public:
     return m_pluginModels;
   }
 
+  void setNewSelection(const Selection&);
+
 signals:
   void pluginModelsChanged();
-
-public slots:
-  void setNewSelection(const Selection&);
 
 private:
   void loadDocumentAsJson(

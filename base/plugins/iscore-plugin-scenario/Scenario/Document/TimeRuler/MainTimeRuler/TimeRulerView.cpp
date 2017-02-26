@@ -13,6 +13,7 @@ TimeRulerView::TimeRulerView(QGraphicsView* v) : AbstractTimeRulerView{v}
   m_height = -3 * m_graduationHeight;
   m_textPosition = 1.15 * m_graduationHeight;
   m_color = ScenarioStyle::instance().TimeRuler;
+  this->setX(10);
 
   auto& skin = iscore::Skin::instance();
   con(skin, &iscore::Skin::changed, this, [&]() {

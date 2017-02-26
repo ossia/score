@@ -24,6 +24,7 @@ public:
   bool canUnselect() const;
   bool canReselect() const;
   void clear();
+  void clearAllButLast();
 
   // Go to the previous set of selections
   void unselect();
