@@ -87,7 +87,21 @@ ossia::state_element ProcessExecutor::state(double t)
   {
     QVariant ret;
     QMetaObject::invokeMethod(m_object, "onTick", Qt::DirectConnection, Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, t));
-    qDebug() << ret;
+    if(ret.canConvert<QJSValue>())
+    {
+      ossia::state st;
+      auto messages = JS::convert::messages(ret.value<QJSValue>());
+
+      m_engine.collectGarbage();
+
+      for (const auto& mess : messages)
+      {
+        st.add(Engine::iscore_to_ossia::message(mess, m_devices));
+      }
+
+      if(unmuted())
+        return st;
+    }
   }
 
   return {};

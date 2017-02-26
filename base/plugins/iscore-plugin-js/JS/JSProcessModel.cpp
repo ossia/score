@@ -75,6 +75,18 @@ void ProcessModel::setScript(const QString& script)
     }
     else
     {
+      m_properties.clear();
+      auto obj = c.create();
+      const auto mobj = obj->metaObject();
+      int i = mobj->propertyOffset();
+      const int N = mobj->propertyCount();
+      m_properties.reserve(N - i);
+      for(; i < N; i++)
+      {
+        auto prop = obj->metaObject()->property(i);
+        m_properties.emplace_back(prop.name(), prop.read(obj));
+      }
+
       emit scriptOk();
     }
   }

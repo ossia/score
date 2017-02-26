@@ -35,8 +35,23 @@ ProcessModel::ProcessModel(
 {
 }
 
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
+{
+  setDuration(newDuration);
+}
+
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
+{
+  setDuration(newDuration);
+}
+
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
+{
+  setDuration(newDuration);
+}
+
 ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
-    : Entity(vis, parent)
+  : Entity(vis, parent)
 {
   vis.writeTo(*this);
 }
@@ -45,6 +60,11 @@ ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
     : Entity(vis, parent)
 {
   vis.writeTo(*this);
+}
+
+QString ProcessModel::prettyName() const
+{
+  return metadata().getName();
 }
 
 std::vector<LayerModel*> ProcessModel::layers() const
@@ -79,6 +99,20 @@ void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t)
   }
 }
 
+void ProcessModel::setUseParentDuration(bool b)
+{
+  if (m_useParentDuration != b)
+  {
+    m_useParentDuration = b;
+    emit useParentDurationChanged(b);
+  }
+}
+
+bool ProcessModel::useParentDuration() const
+{
+  return m_useParentDuration;
+}
+
 void ProcessModel::setDuration(const TimeVal& other)
 {
   m_duration = other;
@@ -90,32 +124,40 @@ const TimeVal& ProcessModel::duration() const
   return m_duration;
 }
 
-int32_t ProcessModel::priority() const
+void ProcessModel::startExecution()
 {
-  return m_priority;
 }
 
-void ProcessModel::setPriority(int32_t i)
+void ProcessModel::stopExecution()
 {
-  if (m_priority != i)
-  {
-    m_priority = i;
-    emit priorityChanged(i);
-  }
 }
 
-bool ProcessModel::priorityOverride() const
+void ProcessModel::reset()
 {
-  return m_priorityOverride;
 }
 
-void ProcessModel::setPriorityOverride(bool o)
+ProcessStateDataInterface*ProcessModel::startStateData() const
 {
-  if (m_priorityOverride != o)
-  {
-    m_priorityOverride = o;
-    emit priorityOverrideChanged(o);
-  }
+  return nullptr;
+}
+
+ProcessStateDataInterface*ProcessModel::endStateData() const
+{
+  return nullptr;
+}
+
+Selection ProcessModel::selectableChildren() const
+{
+  return {};
+}
+
+Selection ProcessModel::selectedChildren() const
+{
+  return {};
+}
+
+void ProcessModel::setSelection(const Selection& s) const
+{
 }
 
 void ProcessModel::addLayer(LayerModel* m)
