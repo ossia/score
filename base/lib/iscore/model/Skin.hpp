@@ -63,7 +63,7 @@ signals:
   void changed();
 
 private:
-  void timerEvent(QTimerEvent *event);
+  void timerEvent(QTimerEvent *event) override;
   Skin() noexcept;
 
   boost::bimap<QString, const QBrush*> m_colorMap;
