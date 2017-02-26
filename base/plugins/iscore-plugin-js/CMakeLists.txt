@@ -25,6 +25,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/StateComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/ProcessScript.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/EditScript.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.cpp"
