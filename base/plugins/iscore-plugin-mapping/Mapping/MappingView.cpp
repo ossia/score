@@ -17,7 +17,7 @@ LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
 {
   setZValue(1);
   this->setFlags(
-      ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+      ItemIsSelectable | ItemIsFocusable);
 
   auto f = iscore::Skin::instance().SansFont;
   f.setPointSize(fontSize);

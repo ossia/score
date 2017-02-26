@@ -14,7 +14,7 @@ namespace Curve
 {
 View::View(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
-  this->setFlags(ItemClipsChildrenToShape | ItemIsFocusable);
+  this->setFlags(ItemIsFocusable);
   this->setZValue(1);
 }
 
