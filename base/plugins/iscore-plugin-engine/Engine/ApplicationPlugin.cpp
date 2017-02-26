@@ -143,6 +143,11 @@ void ApplicationPlugin::on_documentChanged(
   }
 }
 
+void ApplicationPlugin::prepareNewDocument()
+{
+  on_stop();
+}
+
 void ApplicationPlugin::on_play(bool b, ::TimeVal t)
 {
   // TODO have a on_exit handler to properly stop the scenario.
@@ -162,7 +167,8 @@ void ApplicationPlugin::on_play(
     TimeVal t)
 {
   auto doc = currentDocument();
-  ISCORE_ASSERT(doc);
+  if(!doc)
+    return;
 
   auto plugmodel
       = doc->context().findPlugin<Engine::Execution::DocumentPlugin>();
@@ -256,6 +262,14 @@ void ApplicationPlugin::on_record(::TimeVal t)
 
 void ApplicationPlugin::on_stop()
 {
+  m_playing = false;
+  m_paused = false;
+  if (m_clock)
+  {
+    m_clock->stop();
+    m_clock.reset();
+  }
+
   if (auto doc = currentDocument())
   {
     auto plugmodel
@@ -265,15 +279,7 @@ void ApplicationPlugin::on_stop()
 
     if (plugmodel && plugmodel->baseScenario())
     {
-      m_playing = false;
-      m_paused = false;
-
-    if (m_clock)
-    {
-          m_clock->stop();
-          m_clock.reset();
       plugmodel->clear();
-    }
     }
 
     // If we can we resume listening
