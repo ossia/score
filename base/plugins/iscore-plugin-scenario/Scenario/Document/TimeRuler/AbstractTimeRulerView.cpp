@@ -6,6 +6,7 @@
 #include <Scenario/Document/TimeRuler/AbstractTimeRuler.hpp>
 #include <cmath>
 #include <qnamespace.h>
+#include <QGraphicsView>
 
 #include "AbstractTimeRulerView.hpp"
 #include <Process/TimeValue.hpp>
@@ -16,12 +17,13 @@ class QWidget;
 
 namespace Scenario
 {
-AbstractTimeRulerView::AbstractTimeRulerView()
+AbstractTimeRulerView::AbstractTimeRulerView(QGraphicsView* v)
     : m_width{800}
     , m_graduationsSpacing{10}
     , m_graduationDelta{10}
     , m_intervalsBetweenMark{1}
     , m_graduationHeight{-10}
+    , m_viewport{v->viewport()}
 {
   setY(-25);
 }
@@ -98,6 +100,7 @@ void AbstractTimeRulerView::createRulerPath()
   if (m_width == 0)
   {
     m_path = path;
+    update();
     return;
   }
 
@@ -141,6 +144,7 @@ void AbstractTimeRulerView::createRulerPath()
   }
   m_path = path;
   update();
+  m_viewport->update();
 }
 
 void AbstractTimeRulerView::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)

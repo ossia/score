@@ -8,7 +8,8 @@
 
 namespace Scenario
 {
-LocalTimeRulerView::LocalTimeRulerView() : AbstractTimeRulerView()
+LocalTimeRulerView::LocalTimeRulerView(QGraphicsView* v)
+  : AbstractTimeRulerView(v)
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   m_graduationHeight = 10;

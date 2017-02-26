@@ -71,7 +71,7 @@ void AbstractTimeRuler::computeGraduationSpacing()
   double gradSpace = pixPerSec;
 
   double deltaTime = 100;
-  QString format = "m:ss";
+  auto format = QStringLiteral("m:ss");
   int loop = 5;
 
   int i = 0;
@@ -88,11 +88,11 @@ void AbstractTimeRuler::computeGraduationSpacing()
   }
   if (i > 5)
   {
-    format = "m:ss.z";
+    format = QStringLiteral("m:ss.z");
     loop = 10;
   }
 
-  m_view->setGraduationsStyle(gradSpace, deltaTime, std::move(format), loop);
+  m_view->setGraduationsStyle(gradSpace, deltaTime, format, loop);
 }
 
 const QVector<QPair<double, TimeVal>>&
