@@ -95,7 +95,6 @@ void FullViewConstraintView::paint(
     p.drawLine(0, 0, std::min(play_w, std::max(def_w, max_w)), 0);
   }
 
-
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
   p.setPen(Qt::red);
   p.drawRect(boundingRect());

@@ -49,7 +49,7 @@ void PanelDelegate::on_modelChanged(
     m_inspectorPanel = new InspectorPanelWidget{fact, stack, m_widget};
 
 
-    m_inspectorPanel->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
+    m_inspectorPanel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
     lay->addWidget(m_stack);
     lay->addWidget(m_inspectorPanel);
 
