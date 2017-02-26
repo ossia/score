@@ -7,7 +7,7 @@
 #include <iscore/tools/Todo.hpp>
 namespace Scenario
 {
-TimeRulerView::TimeRulerView() : AbstractTimeRulerView{}
+TimeRulerView::TimeRulerView(QGraphicsView* v) : AbstractTimeRulerView{v}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   m_height = -3 * m_graduationHeight;

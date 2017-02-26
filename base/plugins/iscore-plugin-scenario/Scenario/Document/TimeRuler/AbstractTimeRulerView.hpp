@@ -13,19 +13,21 @@ class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
+class QGraphicsView;
 
 namespace Scenario
 {
 class AbstractTimeRuler;
 class AbstractTimeRulerView : public QObject, public QGraphicsItem
 {
+  friend class AbstractTimeRuler;
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
 
   AbstractTimeRuler* m_pres{};
 
 public:
-  AbstractTimeRulerView();
+  AbstractTimeRulerView(QGraphicsView*);
   void setPresenter(AbstractTimeRuler* pres)
   {
     m_pres = pres;
@@ -73,6 +75,8 @@ protected:
 
   iscore::ColorRef m_color;
   QPainterPath m_path;
+
+  QWidget* m_viewport{};
 
   struct Mark
   {

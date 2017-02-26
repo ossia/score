@@ -8,7 +8,7 @@ namespace Scenario
 class LocalTimeRulerView final : public AbstractTimeRulerView
 {
 public:
-  LocalTimeRulerView();
+  LocalTimeRulerView(QGraphicsView*);
   ~LocalTimeRulerView();
 
   QRectF boundingRect() const override;

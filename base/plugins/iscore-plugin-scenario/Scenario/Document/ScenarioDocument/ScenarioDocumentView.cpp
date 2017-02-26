@@ -54,7 +54,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_view{new ProcessGraphicsView{m_scene, m_widget}}
     , m_baseObject{new BaseGraphicsObject}
     , m_timeRulersView{new TimeRulerGraphicsView{m_scene}}
-    , m_timeRuler{new TimeRulerView}
+    , m_timeRuler{new TimeRulerView{m_timeRulersView}}
 {
 #if defined(ISCORE_WEBSOCKETS)
   auto wsview = new WebSocketView(m_scene, 9998, this);
