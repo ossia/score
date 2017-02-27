@@ -229,6 +229,7 @@ void OSSIADevice::enableCallbacks()
       dev->onAttributeModified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
             this);
     }
+    m_callbacksEnabled = true;
   }
 }
 
@@ -247,6 +248,7 @@ void OSSIADevice::disableCallbacks()
       dev->onAttributeModified.disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
             this);
     }
+    m_callbacksEnabled = false;
   }
 }
 
