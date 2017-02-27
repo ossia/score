@@ -187,8 +187,8 @@ void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(
   updateLength(t.toPixels(m_model->zoomRatio()));
 }
 
-const int deltaX = 10;
-const int deltaY = 20;
+const double deltaX = 10.;
+const double deltaY = 20.;
 void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
     double size)
 {
@@ -204,10 +204,10 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
   m_startStatePresenter->view()->setPos(deltaX, deltaY);
   m_constraintPresenter->view()->setPos(deltaX, deltaY);
 
-  m_startEventPresenter->view()->setExtent({0, 0});
-  m_startNodePresenter->view()->setExtent({0, size});
-  m_endEventPresenter->view()->setExtent({0, 1});
-  m_endNodePresenter->view()->setExtent({0, size});
+  m_startEventPresenter->view()->setExtent({0., 0.});
+  m_startNodePresenter->view()->setExtent({0., size});
+  m_endEventPresenter->view()->setExtent({0., 1.});
+  m_endNodePresenter->view()->setExtent({0., size});
 }
 
 void DisplayedElementsPresenter::updateLength(double length)
