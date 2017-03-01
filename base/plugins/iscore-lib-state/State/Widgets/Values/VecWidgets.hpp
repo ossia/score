@@ -8,6 +8,7 @@
 #include <State/Value.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 namespace State
 {
@@ -82,10 +83,10 @@ public:
     auto lay = new iscore::MarginLess<QFormLayout>{this};
     this->setLayout(lay);
 
-    auto min_l = new QLabel{tr("Min"), this};
+    auto min_l = new TextLabel{tr("Min"), this};
     min_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     m_min = new VecWidget<N>{this};
-    auto max_l = new QLabel{tr("Max"), this};
+    auto max_l = new TextLabel{tr("Max"), this};
     max_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     m_max = new VecWidget<N>{this};
     lay->addWidget(min_l);

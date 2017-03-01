@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QSpinBox>
 #include <QWidget>
+#include <iscore/widgets/TextLabel.hpp>
 #include <list>
 
 #include "CurvePointInspectorWidget.hpp"
@@ -69,7 +70,7 @@ PointInspectorWidget::PointInspectorWidget(
   m_XBox->setSingleStep(m_xFactor / 100);
   m_XBox->setEnabled(false);
 
-  hlayX->addWidget(new QLabel{"t (ms)"});
+  hlayX->addWidget(new TextLabel{"t (ms)"});
   hlayX->addWidget(m_XBox);
 
   // y  box
@@ -90,7 +91,7 @@ PointInspectorWidget::PointInspectorWidget(
       &PointInspectorWidget::on_editFinished);
   vec.push_back(widgY);
 
-  hlayY->addWidget(new QLabel{"value"});
+  hlayY->addWidget(new TextLabel{tr("value")});
   hlayY->addWidget(m_YBox);
 
   // y en %

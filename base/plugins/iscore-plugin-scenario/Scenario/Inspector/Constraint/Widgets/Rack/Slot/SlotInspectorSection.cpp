@@ -35,6 +35,7 @@
 #include <iscore/widgets/SpinBoxes.hpp>
 
 #include <iscore/widgets/Separator.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 namespace Scenario
 {
@@ -64,7 +65,7 @@ SlotInspectorSection::SlotInspectorSection(
   });
 
   // Change height
-  lay->addWidget(new QLabel{tr("Slot height: ")});
+  lay->addWidget(new TextLabel{tr("Slot height: ")});
   lay->addWidget(m_sb.widget());
 
   // View model list
@@ -125,7 +126,7 @@ void SlotInspectorSection::displayLayerModel(const Process::LayerModel& lm)
 
   auto row = m_lmGridLayout->rowCount();
 
-  auto label = new QLabel{QString{name + ".%1"}.arg(id.val()), this};
+  auto label = new TextLabel{QString{name + ".%1"}.arg(id.val()), this};
   m_lmGridLayout->addWidget(label, row, 0);
 
   // To front button

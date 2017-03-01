@@ -18,6 +18,7 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 namespace Scenario
 {
@@ -32,7 +33,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   m_address = new Explorer::AddressAccessorEditWidget{
       doc.plugin<Explorer::DeviceDocumentPlugin>().explorer(),
       this};
-  m_ok = new QLabel{"/!\\ ", this};
+  m_ok = new TextLabel{QStringLiteral("/!\\ "), this};
 
   m_comparator = new QComboBox{this};
 
@@ -41,7 +42,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   auto btnWidg = new QWidget{this};
   auto btnLay = new iscore::MarginLess<QVBoxLayout>{btnWidg};
   auto rmBtn = new QToolButton{btnWidg};
-  rmBtn->setText("-");
+  rmBtn->setText(QStringLiteral("-"));
   rmBtn->setMaximumSize(30, 30);
 
   auto remIcon = makeIcons(
@@ -162,7 +163,7 @@ void SimpleExpressionEditorWidget::setRelation(State::Relation r)
       m_comparator->setCurrentIndex(ExpressionEditorComparator::AlwaysFalse);
     }
     m_address->setAddress(State::AddressAccessor{});
-    m_value->setText("");
+    m_value->clear();
   }
   else
   {
@@ -191,7 +192,7 @@ void SimpleExpressionEditorWidget::setRelation(State::Relation r)
 void SimpleExpressionEditorWidget::setPulse(State::Pulse p)
 {
   m_address->setAddress(State::AddressAccessor{p.address});
-  m_value->setText("");
+  m_value->clear();
 
   m_comparator->setCurrentIndex(ExpressionEditorComparator::Pulse);
   m_relation = State::toString(p);

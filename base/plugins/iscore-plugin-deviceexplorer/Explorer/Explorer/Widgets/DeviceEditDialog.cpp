@@ -19,6 +19,7 @@
 
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 namespace Explorer
 {
@@ -50,7 +51,7 @@ void DeviceEditDialog::buildGUI()
   m_layout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
 
   // QLabel for the warning text
-  m_layout->addWidget(new QLabel);
+  m_layout->addWidget(new TextLabel);
 
   m_protocolCBox = new QComboBox(this);
   m_layout->addRow(tr("Protocol"), m_protocolCBox);
