@@ -15,8 +15,9 @@ ProcessGraphicsView::ProcessGraphicsView(
     QQuickItem* scene, QWidget* parent)
     : QQuickWidget{}
 {
-  scene->setParentItem(this->rootObject());
-  scene->setSize(QSizeF(500, 500));
+  setResizeMode(QQuickWidget::SizeViewToRootObject);
+  scene->setParentItem(this->quickWindow()->contentItem());
+  //scene->setSize(QSizeF(500, 500));
 	/*
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setViewportUpdateMode(QQuickWidget::SmartViewportUpdate);
@@ -43,7 +44,7 @@ ProcessGraphicsView::ProcessGraphicsView(
   // scene()->addItem(m_graduations);
 
   // m_graduations->setColor(m_bg.color().lighter());
-  //this->setBackgroundBrush(ScenarioStyle::instance().Background.getBrush());
+  this->setClearColor(ScenarioStyle::instance().Background.getColor().color());
 }
 
 void ProcessGraphicsView::setGrid(QPainterPath&& newGrid)

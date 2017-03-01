@@ -28,15 +28,11 @@ public:
   SlotView(const SlotPresenter& pres, QQuickPaintedItem* parent);
   virtual ~SlotView() = default;
 
-  QRectF boundingRect() const override;
   void paint(
       QPainter* painter) override;
 
   void setHeight(qreal height);
-  qreal height() const;
-
   void setWidth(qreal width);
-  qreal width() const;
 
   void enable();
   void disable();
@@ -51,8 +47,6 @@ signals:
 private:
   //void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
-  qreal m_height{};
-  qreal m_width{};
   SlotOverlay* m_overlay{};
   SlotHandle* m_handle{};
   bool m_focus{false};

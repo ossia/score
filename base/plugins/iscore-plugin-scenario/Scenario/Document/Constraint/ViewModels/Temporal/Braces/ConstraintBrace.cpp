@@ -11,19 +11,19 @@ using namespace Scenario;
 
 ConstraintBrace::ConstraintBrace(
     const ConstraintView& parentCstr, QQuickPaintedItem* parent)
-    : GraphicsItem(), m_parent{parentCstr}
+    : GraphicsItem(parent), m_parent{parentCstr}
 {
   //this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setCursor(Qt::SizeHorCursor);
   this->setZ(ZPos::Brace);
 
+  this->setWidth(10);
+  this->setHeight(20);
   m_path.moveTo(10, -10);
   m_path.arcTo(0, -10, 20, 20, 90, 180);
-
-  this->setParentItem(parent);
 }
 
-QRectF ConstraintBrace::boundingRect() const
+QRectF ConstraintBrace::clipRect() const
 {
   return {0, -10, 10, 20};
 }
@@ -37,20 +37,20 @@ void ConstraintBrace::paint(
   // TODO make a switch instead and transform these to use Q_FLAGS or something
   if (m_parent.isSelected())
   {
-    pen.setColor(ScenarioStyle::instance().ConstraintSelected.getColor());
+    pen.setBrush(ScenarioStyle::instance().ConstraintSelected.getColor());
   }
   else if (m_parent.warning())
   {
-    pen.setColor(ScenarioStyle::instance().ConstraintWarning.getColor());
+    pen.setBrush(ScenarioStyle::instance().ConstraintWarning.getColor());
   }
   else
   {
-    pen.setColor(ScenarioStyle::instance().ConstraintBase.getColor());
+    pen.setBrush(ScenarioStyle::instance().ConstraintBase.getColor());
   }
 
   if (!m_parent.isValid())
   {
-    pen.setColor(ScenarioStyle::instance().ConstraintInvalid.getColor());
+    pen.setBrush(ScenarioStyle::instance().ConstraintInvalid.getColor());
   }
 
   painter->setPen(pen);

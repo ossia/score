@@ -31,6 +31,7 @@
 #include <QToolButton>
 
 #include <iscore/widgets/SetIcons.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 namespace Scenario
 {
@@ -61,8 +62,8 @@ ProcessTabWidget::ProcessTabWidget(
   addProcButton->setObjectName("addAProcess");
   addProcButton->setAutoRaise(true);
 
-  auto addProcText = new QLabel("Add Process");
-  addProcText->setStyleSheet(QString("text-align : left;"));
+  auto addProcText = new TextLabel(tr("Add Process"));
+  addProcText->setStyleSheet(QStringLiteral("text-align : left;"));
 
   // add new process dialog
   m_addProcess = new AddProcessDialog{m_constraintWidget.processList(), this};
@@ -191,25 +192,6 @@ void ProcessTabWidget::displaySharedProcess(
   }
 
   newProc->addContent(stateWidget);
-
-  // Durations
-  auto durWidg = new TimeSpinBox;
-  durWidg->setTime(process.duration().toQTime());
-  con(process, &Process::ProcessModel::durationChanged, durWidg,
-      [=](const TimeVal& tv) {
-        if (durWidg)
-          durWidg->setTime(tv.toQTime());
-      },
-      Qt::QueuedConnection);
-  connect(
-      durWidg, &TimeSpinBox::editingFinished, this,
-      [&, durWidg] {
-        auto cmd = new Command::SetProcessDuration{process,
-                                                   TimeVal(durWidg->time())};
-        m_constraintWidget.commandDispatcher()->submitCommand(cmd);
-      },
-      Qt::QueuedConnection);
-  stateLayout->addRow(tr("Duration"), durWidg);
 
   // Global setup
   m_processesSectionWidgets.push_back(newProc); // add in list

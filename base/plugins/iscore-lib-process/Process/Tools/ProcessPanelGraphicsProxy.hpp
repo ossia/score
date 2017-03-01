@@ -19,7 +19,6 @@ class ProcessPanelGraphicsProxy final : public QQuickPaintedItem
 public:
   ProcessPanelGraphicsProxy();
 
-  QRectF boundingRect() const override;
   void paint(
       QPainter* painter) override;
 

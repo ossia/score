@@ -30,6 +30,8 @@ PointView::PointView(
   // Bad on retina. :( this->setCacheMode(QQuickPaintedItem::DeviceCoordinateCache);
 
   setModel(model);
+  setWidth(4 * radius);
+  setHeight(4 * radius);
 }
 
 void PointView::setModel(const PointModel* model)
@@ -50,12 +52,6 @@ const PointModel& PointView::model() const
 const Id<PointModel>& PointView::id() const
 {
   return m_model->id();
-}
-
-QRectF PointView::boundingRect() const
-{
-  const qreal gripSize = radius * 2;
-  return {-gripSize, -gripSize, 2 * gripSize, 2 * gripSize};
 }
 
 void PointView::paint(

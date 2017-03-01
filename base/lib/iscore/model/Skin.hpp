@@ -1,5 +1,5 @@
 #pragma once
-#include <QColor>
+#include <QBrush>
 #include <QFont>
 #include <QObject>
 #include <QPair>
@@ -19,42 +19,43 @@ public:
   QFont SansFont;
   QFont MonoFont;
 
-  QColor Dark;
-  QColor HalfDark;
-  QColor Gray;
-  QColor HalfLight;
-  QColor Light;
+  QBrush Dark;
+  QBrush HalfDark;
+  QBrush Gray;
+  QBrush HalfLight;
+  QBrush Light;
 
-  QColor Emphasis1;
-  QColor Emphasis2;
-  QColor Emphasis3;
-  QColor Emphasis4;
+  QBrush Emphasis1;
+  QBrush Emphasis2;
+  QBrush Emphasis3;
+  QBrush Emphasis4;
 
-  QColor Base1;
-  QColor Base2;
-  QColor Base3;
-  QColor Base4;
+  QBrush Base1;
+  QBrush Base2;
+  QBrush Base3;
+  QBrush Base4;
 
-  QColor Warn1;
-  QColor Warn2;
-  QColor Warn3;
+  QBrush Warn1;
+  QBrush Warn2;
+  QBrush Warn3;
 
-  QColor Background1;
+  QBrush Background1;
 
-  QColor Transparent1;
-  QColor Transparent2;
-  QColor Transparent3;
+  QBrush Transparent1;
+  QBrush Transparent2;
+  QBrush Transparent3;
 
-  QColor Smooth1;
-  QColor Smooth2;
-  QColor Smooth3;
+  QBrush Smooth1;
+  QBrush Smooth2;
+  QBrush Smooth3;
 
-  QColor Tender1;
-  QColor Tender2;
-  QColor Tender3;
+  QBrush Tender1;
+  QBrush Tender2;
+  QBrush Tender3;
 
-  const QColor* fromString(const QString& s) const;
-  QString toString(const QColor*) const;
+  QBrush Pulse1;
+  const QBrush* fromString(const QString& s) const;
+  QString toString(const QBrush*) const;
 
   QVector<QPair<QColor, QString>> getColors() const;
 
@@ -62,8 +63,11 @@ signals:
   void changed();
 
 private:
+  void timerEvent(QTimerEvent *event) override;
   Skin() noexcept;
 
-  boost::bimap<QString, const QColor*> m_colorMap;
+  boost::bimap<QString, const QBrush*> m_colorMap;
+
+  bool m_pulseDirection{false};
 };
 }

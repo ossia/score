@@ -28,6 +28,7 @@
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
@@ -46,6 +47,7 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <algorithm>
 #include <chrono>
+#include <QApplication>
 #include <core/document/Document.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 
@@ -115,6 +117,11 @@ void ScenarioDocumentModel::init()
       this, &ScenarioDocumentModel::on_viewModelDefocused);
   con(m_focusManager, &Process::ProcessFocusManager::sig_focusedViewModel,
       this, &ScenarioDocumentModel::on_viewModelFocused);
+  con(m_focusManager, &Process::ProcessFocusManager::sig_focusedRoot,
+      this, [] {
+    ScenarioApplicationPlugin& app = iscore::AppContext().applicationPlugin<ScenarioApplicationPlugin>();
+    app.editionSettings().setExpandMode(ExpandMode::GrowShrink);
+  }, Qt::QueuedConnection);
 }
 
 void ScenarioDocumentModel::initializeNewDocument(
@@ -184,7 +191,7 @@ void ScenarioDocumentModel::on_viewModelDefocused(
   if (vm)
     vm->processModel().setSelection({});
 
-  iscore::IDocument::documentContext(*this).selectionStack.clear();
+  iscore::IDocument::documentContext(*this).selectionStack.clearAllButLast();
 }
 
 void ScenarioDocumentModel::on_viewModelFocused(
@@ -229,7 +236,7 @@ void ScenarioDocumentModel::setNewSelection(const Selection& s)
     displayedElements.setSelection(Selection{});
     // Note : once here was a call to defocus a presenter. Why ? See git blame.
   }
-  else if (std::any_of(s.begin(), s.end(), [&](const QObject* obj) {
+  else if (ossia::any_of(s, [&](const QObject* obj) {
              return obj == &displayedElements.constraint()
                     || obj == &displayedElements.startTimeNode()
                     || obj == &displayedElements.endTimeNode()
@@ -244,8 +251,10 @@ void ScenarioDocumentModel::setNewSelection(const Selection& s)
       process->setSelection(Selection{});
     }
 
+    m_focusManager.focus(
+          &iscore::IDocument::get<Scenario::ScenarioDocumentPresenter>(*iscore::IDocument::documentFromObject(this)));
+
     displayedElements.setSelection(s);
-    m_focusManager.focusNothing();
   }
   else
   {

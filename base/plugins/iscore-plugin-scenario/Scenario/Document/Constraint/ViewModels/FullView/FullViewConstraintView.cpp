@@ -25,12 +25,17 @@ FullViewConstraintView::FullViewConstraintView(
   //this->setFlag(ItemIsSelectable);
 
   this->setZ(1);
-  this->setY(2 * constraintAndRackHeight());
+  this->setY(2 * height());
 }
 
-QRectF FullViewConstraintView::boundingRect() const
+void FullViewConstraintView::updatePaths()
 {
-  return {0, 0, qreal(std::max(defaultWidth(), maxWidth())) + 3, qreal(constraintAndRackHeight()) + 3};
+  update();
+}
+
+void FullViewConstraintView::updateSize()
+{
+  setWidth(qreal(std::max(defaultWidth(), maxWidth())) + 3);
 }
 
 void FullViewConstraintView::paint(
@@ -46,7 +51,7 @@ void FullViewConstraintView::paint(
 
   p.setRenderHint(QPainter::Antialiasing, false);
 
-  QColor c;
+  QBrush c;
   if (isSelected())
   {
     c = skin.ConstraintSelected.getColor();
@@ -60,7 +65,7 @@ void FullViewConstraintView::paint(
     c = skin.ConstraintBase.getColor();
   }
 
-  skin.ConstraintSolidPen.setColor(c);
+  skin.ConstraintSolidPen.setBrush(c);
 
   if (min_w == max_w)
   {
@@ -73,21 +78,19 @@ void FullViewConstraintView::paint(
     p.setPen(skin.ConstraintSolidPen);
     p.drawLine(0, 0, min_w, 0);
 
-    // The little hat
-    p.drawLine(min_w, -5, min_w, -15);
-    p.drawLine(min_w, -15, max_w, -15);
-    p.drawLine(max_w, -5, max_w, -15);
-
-    // Finally the dashed line
-    skin.ConstraintDashPen.setColor(c);
+    // Then the dashed line
+    skin.ConstraintDashPen.setBrush(c);
     p.setPen(skin.ConstraintDashPen);
-    p.drawLine(min_w, 0, max_w, 0);
+    if(!infinite())
+      p.drawLine(min_w, 0, max_w, 0);
+    else
+      p.drawLine(min_w, 0, def_w, 0);
   }
 
   auto pw = playWidth();
   if (pw != 0.)
   {
-    skin.ConstraintPlayPen.setColor(skin.ConstraintPlayFill.getColor());
+    skin.ConstraintPlayPen.setBrush(skin.ConstraintPlayFill.getColor());
     p.setPen(skin.ConstraintPlayPen);
     p.drawLine(0, 0, std::min(play_w, std::max(def_w, max_w)), 0);
   }

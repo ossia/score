@@ -43,11 +43,8 @@ public:
     return m_presenter;
   }
 
-  QRectF boundingRect() const override
-  {
-    auto radius = m_radiusFull * m_dilatationFactor;
-    return {-radius, -radius, 2 * radius, 2 * radius};
-  }
+  QRectF boundingRect() const override;
+  QRectF clipRect() const override;
 
   void paint(
       QPainter* painter) override;

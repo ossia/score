@@ -11,6 +11,7 @@
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <JS/JSProcessModel.hpp>
+#include <QQmlComponent>
 
 namespace JS
 {
@@ -25,12 +26,36 @@ ProcessExecutor::ProcessExecutor(const Explorer::DeviceDocumentPlugin& devices)
 
 void ProcessExecutor::setTickFun(const QString& val)
 {
-  m_tickFun = m_engine.evaluate(val);
-  if (m_tickFun.isError())
-    ossia::logger()
-        .error("Uncaught exception at line {} : {}",
-               m_tickFun.property("lineNumber").toInt() ,
-               m_tickFun.toString().toStdString());
+  if(val.startsWith("import"))
+  {
+    // QML case
+    QQmlComponent c{&m_engine};
+    c.setData(val.toUtf8(), QUrl());
+    const auto& errs = c.errors();
+    if(!errs.empty())
+    {
+      ossia::logger()
+          .error("Uncaught exception at line {} : {}",
+                 errs[0].line(),
+                 errs[0].toString().toStdString());
+    }
+    else
+    {
+      m_object = c.create();
+      if(m_object)
+        m_object->setParent(&m_engine);
+    }
+  }
+  else
+  {
+    // JS case
+    m_tickFun = m_engine.evaluate(val);
+    if (m_tickFun.isError())
+      ossia::logger()
+          .error("Uncaught exception at line {} : {}",
+                 m_tickFun.property("lineNumber").toInt() ,
+                 m_tickFun.toString().toStdString());
+  }
 }
 
 ossia::state_element ProcessExecutor::state()
@@ -57,6 +82,26 @@ ossia::state_element ProcessExecutor::state(double t)
     // 3. Convert our value back
     if(unmuted())
       return st;
+  }
+  else if(m_object)
+  {
+    QVariant ret;
+    QMetaObject::invokeMethod(m_object, "onTick", Qt::DirectConnection, Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, t));
+    if(ret.canConvert<QJSValue>())
+    {
+      ossia::state st;
+      auto messages = JS::convert::messages(ret.value<QJSValue>());
+
+      m_engine.collectGarbage();
+
+      for (const auto& mess : messages)
+      {
+        st.add(Engine::iscore_to_ossia::message(mess, m_devices));
+      }
+
+      if(unmuted())
+        return st;
+    }
   }
 
   return {};

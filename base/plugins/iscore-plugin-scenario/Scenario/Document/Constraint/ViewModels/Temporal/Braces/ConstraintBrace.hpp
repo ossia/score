@@ -16,7 +16,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace : public GraphicsItem
 public:
   ConstraintBrace(const ConstraintView& parentCstr, QQuickPaintedItem* parent);
 
-  QRectF boundingRect() const override;
+  QRectF clipRect() const override;
 
   void paint(
       QPainter* painter) override;

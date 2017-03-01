@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/tools/GraphicsItem.hpp>
+#include <QStaticText>
 #include <QString>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
@@ -39,7 +40,6 @@ public:
     return ConstraintHeaderHeight;
   }
 
-  void setWidth(double width);
   void setText(const QString& text);
 
   virtual void setState(State s)
@@ -67,7 +67,6 @@ protected:
   }
   ConstraintView* m_view{};
   State m_state{};
-  double m_width{};
   QString m_text;
 };
 }

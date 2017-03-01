@@ -34,6 +34,7 @@ struct ISCORE_LIB_DEVICE_EXPORT DeviceCapas
   bool canListen{true};
   bool canSerialize{true};
   bool canLearn{false};
+  bool hasCallbacks{true};
 };
 
 class ISCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
@@ -75,6 +76,9 @@ public:
   virtual optional<State::Value> refresh(const State::Address&)
   {
     return {};
+  }
+  virtual void request(const State::Address&)
+  {
   }
   virtual void setListening(const State::Address&, bool)
   {

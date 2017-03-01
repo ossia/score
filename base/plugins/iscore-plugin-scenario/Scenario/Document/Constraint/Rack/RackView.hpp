@@ -17,26 +17,7 @@ public:
   RackView(QQuickPaintedItem* parent);
   virtual ~RackView() = default;
 
-  QRectF boundingRect() const override;
   void paint(
       QPainter* painter) override;
-
-  void setHeight(qreal height)
-  {
-    //prepareGeometryChange();
-    m_height = height;
-    update();
-  }
-
-  void setWidth(qreal width)
-  {
-    //prepareGeometryChange();
-    m_width = width;
-    update();
-  }
-
-private:
-  qreal m_height{};
-  qreal m_width{};
 };
 }

@@ -12,6 +12,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <iscore/widgets/ReactiveLabel.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 namespace Interpolation
 {
@@ -116,7 +117,7 @@ StateInspectorWidget::StateInspectorWidget(
     QWidget* parent)
     : InspectorWidgetBase{object, doc, parent}
     , m_state{object}
-    , m_label{new QLabel}
+    , m_label{new TextLabel}
 {
   std::list<QWidget*> vec;
   vec.push_back(m_label);

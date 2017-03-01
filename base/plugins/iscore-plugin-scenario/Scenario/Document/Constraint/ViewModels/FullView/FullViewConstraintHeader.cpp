@@ -20,17 +20,13 @@ FullViewConstraintHeader::FullViewConstraintHeader(QQuickPaintedItem* parent)
 {
   //this->setCacheMode(QQuickPaintedItem::NoCache);
   m_bar->setPosition(QPointF(10, 5));
+  this->setHeight(ConstraintHeader::headerHeight());
   connect(m_bar, &AddressBarItem::needRedraw, this, [&]() { update(); });
 }
 
 AddressBarItem* FullViewConstraintHeader::bar() const
 {
   return m_bar;
-}
-
-QRectF FullViewConstraintHeader::boundingRect() const
-{
-  return {0, 0, m_width, qreal(ConstraintHeader::headerHeight())};
 }
 
 void FullViewConstraintHeader::paint(

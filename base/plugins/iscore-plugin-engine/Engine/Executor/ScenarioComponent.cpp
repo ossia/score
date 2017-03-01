@@ -134,7 +134,6 @@ std::function<void ()> ScenarioComponentBase::removing(
           prev.erase(prev_it);
 
         proc->removeTimeConstraint(cstr);
-        qDebug()<< "CLEANED c" << cstr.use_count();
       }
     });
 
@@ -236,8 +235,10 @@ ConstraintComponent* ScenarioComponentBase::make<ConstraintComponent, Scenario::
         ] {
     auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
 
-    ossia_sev->OSSIAEvent()->nextTimeConstraints().push_back(ossia_cst);
-    ossia_eev->OSSIAEvent()->previousTimeConstraints().push_back(ossia_cst);
+    if(auto sev = ossia_sev->OSSIAEvent())
+      sev->nextTimeConstraints().push_back(ossia_cst);
+    if(auto eev = ossia_eev->OSSIAEvent())
+      eev->previousTimeConstraints().push_back(ossia_cst);
 
     sub.OSSIAProcess().addTimeConstraint(ossia_cst);
   });
@@ -257,7 +258,8 @@ StateComponent* ScenarioComponentBase::make<StateComponent, Scenario::StateModel
   auto ossia_ev = events.at(iscore_state.eventId());
 
   m_ctx.executionQueue.enqueue([elt,ev=ossia_ev] {
-    elt->onSetup(ev->OSSIAEvent());
+    if(auto e = ev->OSSIAEvent())
+      elt->onSetup(e);
   });
 
   m_ossia_states.insert({iscore_state.id(), elt});

@@ -37,18 +37,115 @@ TemporalConstraintView::TemporalConstraintView(
   this->setZ(ZPos::Constraint);
 }
 
-void TemporalConstraintView::paint(
-    QPainter* p)
+void TemporalConstraintView::updatePaths()
 {
-  QPainterPath solidPath, dashedPath, playedPath;
-  auto& painter = *p;
-  painter.setRenderHint(QPainter::Antialiasing, false);
-  auto& skin = ScenarioStyle::instance();
+  solidPath = QPainterPath{};
+  dashedPath = QPainterPath{};
+  playedSolidPath = QPainterPath{};
+  playedDashedPath = QPainterPath{};
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
   const qreal def_w = defaultWidth();
   const qreal play_w = playWidth();
+
+  // Paths
+  if(play_w <= 0)
+  {
+    if (infinite())
+    {
+      if (min_w != 0.)
+      {
+        solidPath.lineTo(min_w, 0);
+      }
+
+      // TODO end state should be hidden
+      dashedPath.moveTo(min_w, 0);
+      dashedPath.lineTo(def_w, 0);
+    }
+    else if (min_w == max_w) // TODO rigid()
+    {
+      solidPath.lineTo(def_w, 0);
+    }
+    else
+    {
+      if (min_w != 0.)
+      {
+        solidPath.lineTo(min_w, 0);
+      }
+      dashedPath.moveTo(min_w, 0);
+      dashedPath.lineTo(max_w, 0);
+    }
+  }
+  else
+  {
+    if (infinite())
+    {
+      if (min_w != 0.)
+      {
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0);
+        if(play_w < min_w)
+        {
+          solidPath.moveTo(play_w, 0);
+          solidPath.lineTo(min_w, 0);
+        }
+      }
+
+      if(play_w > min_w)
+      {
+        playedDashedPath.moveTo(min_w, 0);
+        playedDashedPath.lineTo(def_w, 0);
+      }
+      else
+      {
+        dashedPath.moveTo(min_w, 0);
+        dashedPath.lineTo(def_w, 0);
+      }
+    }
+    else if (min_w == max_w) // TODO rigid()
+    {
+      playedSolidPath.lineTo(std::min(play_w, def_w), 0);
+      if(play_w < def_w)
+      {
+        solidPath.moveTo(play_w, 0);
+        solidPath.lineTo(def_w, 0);
+      }
+    }
+    else
+    {
+      if (min_w != 0.)
+      {
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0);
+        if(play_w < min_w)
+        {
+          solidPath.moveTo(play_w, 0);
+          solidPath.lineTo(min_w, 0);
+        }
+      }
+
+      if(play_w > min_w)
+      {
+        playedDashedPath.moveTo(min_w, 0);
+        playedDashedPath.lineTo(max_w, 0);
+      }
+      else
+      {
+        dashedPath.moveTo(min_w, 0);
+        dashedPath.lineTo(max_w, 0);
+      }
+    }
+  }
+  update();
+}
+
+void TemporalConstraintView::paint(
+    QPainter* p)
+{
+  auto& painter = *p;
+  painter.setRenderHint(QPainter::Antialiasing, false);
+  auto& skin = ScenarioStyle::instance();
+
+  const qreal def_w = defaultWidth();
 
   // Draw the stuff present if there is a rack *in the model* ?
   if (presenter().rack())
@@ -58,54 +155,22 @@ void TemporalConstraintView::paint(
     rect.adjust(0, 4, 0, -10);
     rect.setWidth(def_w);
 
-    QColor bgColor = m_bgColor.getColor();
+    auto bgColor = m_bgColor.getColor().color();
     bgColor.setAlpha(m_hasFocus ? 84 : 76);
     painter.fillRect(rect, bgColor);
 
     // Fake timenode continuation
-    skin.ConstraintRackPen.setColor(skin.RackSideBorder.getColor());
+    skin.ConstraintRackPen.setBrush(skin.RackSideBorder.getColor());
     painter.setPen(skin.ConstraintRackPen);
     painter.drawLine(rect.topLeft(), rect.bottomLeft());
     painter.drawLine(rect.topRight(), rect.bottomRight());
   }
 
-  // Paths
-  if (infinite())
-  {
-    if (min_w != 0.)
-    {
-      solidPath.lineTo(min_w, 0);
-    }
-
-    // TODO end state should be hidden
-    dashedPath.moveTo(min_w, 0);
-    dashedPath.lineTo(def_w, 0);
-  }
-  else if (min_w == max_w) // TODO rigid()
-  {
-    solidPath.lineTo(def_w, 0);
-  }
-  else
-  {
-    if (min_w != 0.)
-    {
-      solidPath.lineTo(min_w, 0);
-    }
-
-    dashedPath.moveTo(min_w, 0);
-    dashedPath.lineTo(max_w, 0);
-  }
-
-  if (play_w != 0.)
-  {
-    playedPath.lineTo(std::min(play_w, std::max(def_w, max_w)), 0);
-  }
-
   // Colors
   auto defaultColor = this->constraintColor(skin);
 
-  skin.ConstraintSolidPen.setColor(defaultColor);
-  skin.ConstraintDashPen.setColor(defaultColor);
+  skin.ConstraintSolidPen.setBrush(defaultColor);
+  skin.ConstraintDashPen.setBrush(defaultColor);
 
   // Drawing
   if (!solidPath.isEmpty())
@@ -118,13 +183,29 @@ void TemporalConstraintView::paint(
   {
     painter.setPen(skin.ConstraintDashPen);
     painter.drawPath(dashedPath);
+    skin.ConstraintDashPen.setDashOffset(0);
   }
 
-  if (!playedPath.isEmpty())
+  if (!playedSolidPath.isEmpty())
   {
-    skin.ConstraintPlayPen.setColor(skin.ConstraintPlayFill.getColor());
+    skin.ConstraintPlayPen.setBrush(skin.ConstraintPlayFill.getColor());
+
     painter.setPen(skin.ConstraintPlayPen);
-    painter.drawPath(playedPath);
+    painter.drawPath(playedSolidPath);
+  }
+  if (!playedDashedPath.isEmpty())
+  {
+    if(this->m_executing)
+    {
+      skin.ConstraintPlayDashPen.setBrush(skin.ConstraintPlayDashFill.getColor());
+    }
+    else
+    {
+      skin.ConstraintPlayDashPen.setBrush(skin.ConstraintPlayFill.getColor());
+    }
+
+    painter.setPen(skin.ConstraintPlayDashPen);
+    painter.drawPath(playedDashedPath);
   }
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
@@ -132,6 +213,14 @@ void TemporalConstraintView::paint(
   painter.setBrush(Qt::NoBrush);
   painter.drawRect(boundingRect());
 #endif
+}
+
+void TemporalConstraintView::updateSize()
+{
+  qreal x = std::min(0., minWidth());
+  qreal rectW = infinite() ? defaultWidth() : maxWidth();
+  rectW -= x;
+  setWidth(rectW);
 }
 
 void TemporalConstraintView::hoverEnterEvent(QHoverEvent* h)

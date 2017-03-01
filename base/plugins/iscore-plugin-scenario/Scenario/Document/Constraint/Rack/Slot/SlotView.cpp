@@ -28,50 +28,34 @@ SlotView::SlotView(const SlotPresenter& pres, QQuickPaintedItem* parent)
   m_handle->setZ(100);
 }
 
-QRectF SlotView::boundingRect() const
-{
-  return {0, 0, m_width, m_height};
-}
-
 void SlotView::paint(
     QPainter* painter)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   if (!m_focus)
-    painter->setPen(ScenarioStyle::instance().ProcessViewBorder.getColor());
+    painter->setPen(ScenarioStyle::instance().ProcessViewBorder.getColor().color());
   else
-    painter->setPen(ScenarioStyle::instance().SlotFocus.getColor());
+    painter->setPen(ScenarioStyle::instance().SlotFocus.getColor().color());
 
-  painter->drawLine(0, 0, m_width, 0);
+  painter->drawLine(0, 0, width(), 0);
 }
 
 void SlotView::setHeight(qreal height)
 {
   //prepareGeometryChange();
-  m_height = height;
+  QQuickPaintedItem::setHeight(height);
   m_handle->setPosition(
       QPointF(0, this->boundingRect().height() - SlotHandle::handleHeight()));
   if (m_overlay)
-    m_overlay->setHeight(m_height);
-}
-
-qreal SlotView::height() const
-{
-  return m_height;
+    m_overlay->setHeight(height);
 }
 
 void SlotView::setWidth(qreal width)
 {
-  //prepareGeometryChange();
-  m_width = width;
+  QQuickPaintedItem::setWidth(width);
   if (m_overlay)
-    m_overlay->setWidth(m_width);
+    m_overlay->setWidth(width);
   m_handle->setWidth(width);
-}
-
-qreal SlotView::width() const
-{
-  return m_width;
 }
 
 void SlotView::enable()

@@ -6,6 +6,8 @@
 #include <Scenario/Document/TimeRuler/AbstractTimeRuler.hpp>
 #include <cmath>
 #include <qnamespace.h>
+#include <Process/Style/ScenarioStyle.hpp>
+#include <QGraphicsView>
 
 #include "AbstractTimeRulerView.hpp"
 #include <Process/TimeValue.hpp>
@@ -16,37 +18,36 @@ class QWidget;
 
 namespace Scenario
 {
-AbstractTimeRulerView::AbstractTimeRulerView()
+AbstractTimeRulerView::AbstractTimeRulerView(QWidget* viewport)
     : m_width{800}
     , m_graduationsSpacing{10}
     , m_graduationDelta{10}
-    , m_intervalsBetweenMark{1}
     , m_graduationHeight{-10}
+    , m_intervalsBetweenMark{1}
+    , m_viewport{viewport}
 {
+  setAcceptedMouseButtons(Qt::AllButtons);
   setY(-25);
 }
 
 void AbstractTimeRulerView::paint(
     QPainter* p)
 {
-  auto& painter = *p;
-  painter.setRenderHint(QPainter::Antialiasing, false);
-
-  QPen pen{m_color.getBrush(), 2, Qt::SolidLine};
-  painter.setPen(pen);
-  painter.drawLine(0, 0, m_width, 0);
-
-  pen.setWidth(1);
-  painter.setPen(pen);
-  painter.drawPath(m_path);
-
-  painter.setFont(iscore::Skin::instance().MonoFont);
-
-  if (m_width > 0)
+  if (m_width > 0.)
   {
+    auto& painter = *p;
+    auto& style = ScenarioStyle::instance();
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setPen(style.TimeRulerLargePen);
+    painter.drawLine(0, 0, m_width, 0);
+    painter.setPen(style.TimeRulerSmallPen);
+    painter.drawPath(m_path);
+
+    painter.setFont(iscore::Skin::instance().MonoFont);
+
     for (const Mark& mark : m_marks)
     {
-      painter.drawText(mark.pos + 6, m_textPosition, mark.text);
+      painter.drawStaticText(mark.pos + 6., m_textPosition, mark.text);
     }
   }
 }
@@ -79,10 +80,12 @@ void AbstractTimeRulerView::setGraduationsStyle(
 
 void AbstractTimeRulerView::setFormat(QString format)
 {
+  const auto& font = iscore::Skin::instance().MonoFont;
   m_timeFormat = std::move(format);
   for (Mark& mark : m_marks)
   {
-    mark.text = mark.time.toString(m_timeFormat);
+    mark.text.setText(mark.time.toString(m_timeFormat));
+    mark.text.prepare(QTransform{}, font);
   }
 }
 
@@ -96,11 +99,11 @@ void AbstractTimeRulerView::createRulerPath()
 {
   m_marks.clear();
 
-  QPainterPath path;
+  m_path = QPainterPath{};
 
   if (m_width == 0)
   {
-    m_path = path;
+    update();
     return;
   }
 
@@ -117,6 +120,7 @@ void AbstractTimeRulerView::createRulerPath()
   uint32_t i = 0;
   double gradSize;
 
+  const auto& font = iscore::Skin::instance().MonoFont;
   while (t < m_width + 1)
   {
     /*
@@ -134,16 +138,17 @@ void AbstractTimeRulerView::createRulerPath()
     if (res == 0)
     {
       m_marks.push_back({t, time, time.toString(m_timeFormat)});
+      m_marks.back().text.prepare(QTransform{}, font);
       gradSize = 3;
-      path.addRect(t, 0, 1, m_graduationHeight * gradSize);
+      m_path.addRect(t, 0, 1, m_graduationHeight * gradSize);
     }
 
     t += m_graduationsSpacing;
     time = time.addMSecs(m_graduationDelta);
     i++;
   }
-  m_path = path;
   update();
+  m_viewport->update();
 }
 
 void AbstractTimeRulerView::mouseMoveEvent(QMouseEvent* ev)

@@ -38,6 +38,7 @@
 #include <iscore/model/Identifier.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 struct FunctionEvent : public QEvent
 {
@@ -79,7 +80,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
   // default date
   auto dateWid = new QWidget{this};
   auto dateLay = new QFormLayout{dateWid};
-  m_date = new QLabel{m_model.date().toString(), dateWid};
+  m_date = new TextLabel{m_model.date().toString(), dateWid};
 
   dateLay->addRow(tr("Default date"), m_date);
   dateWid->setLayout(dateLay);
@@ -100,7 +101,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
   m_properties.push_back(dateWid);
   m_properties.push_back(trigSec);
-  m_properties.push_back(new QLabel{tr("Events"), this});
+  m_properties.push_back(new TextLabel{tr("Events"), this});
   m_properties.push_back(m_events);
 
   updateAreaLayout(m_properties);

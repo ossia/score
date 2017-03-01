@@ -24,18 +24,12 @@ InspectorPanelWidget::InspectorPanelWidget(
     QWidget* parent)
     : QWidget{parent}
     , m_layout{new QVBoxLayout{this}}
-    , m_tabWidget{new QTabWidget{this}}
     , m_list{list}
     , m_selectionDispatcher{s}
 {
   m_layout->setContentsMargins(0, 0, 0, 0);
   m_layout->setSpacing(0);
   setMinimumWidth(350);
-  m_layout->addWidget(m_tabWidget);
-
-  connect(
-      m_tabWidget, &QTabWidget::tabCloseRequested, this,
-      &InspectorPanelWidget::on_tabClose);
 }
 
 void InspectorPanelWidget::newItemsInspected(const Selection& objects)
@@ -59,24 +53,15 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
   {
     auto& doc = iscore::IDocument::documentContext(*selectedObj.first());
 
-    auto widgets = m_list.make(doc, selectedObj, m_tabWidget);
-
-    m_tabWidget->addTab(widgets.first(), widgets.first()->tabName());
-    m_currentInspector = widgets.first();
+    auto widgets = m_list.make(doc, selectedObj, this);
+    if(!widgets.empty())
+    {
+      m_layout->addWidget(widgets.first());
+      m_currentInspector = widgets.first();
+    }
   }
 
   m_currentSel = objects.toList();
 }
 
-void InspectorPanelWidget::on_tabClose(int index)
-{
-  auto inspector_widget = static_cast<Inspector::InspectorWidgetBase*>(
-      m_tabWidget->widget(index));
-  // TODO need m_tabWidget.movable() = false !
-
-  Selection sel = Selection::fromList(m_currentSel);
-  sel.removeAll(inspector_widget->inspectedObject_addr());
-
-  m_selectionDispatcher.setAndCommit(sel);
-}
 }

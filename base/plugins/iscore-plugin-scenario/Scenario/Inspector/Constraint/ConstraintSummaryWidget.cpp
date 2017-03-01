@@ -3,6 +3,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #include <QGridLayout>
 #include <QLabel>
@@ -28,35 +29,39 @@ ConstraintSummaryWidget::ConstraintSummaryWidget(
   auto eventBtn
       = SelectionButton::make("", &object, *m_selectionDispatcher, this);
 
-  mainLay->addWidget(new QLabel{object.metadata().getName()}, 0, 0, 1, 3);
-  mainLay->addWidget(
-      new QLabel{tr("start : ") + object.startDate().toString()}, 0, 3, 1, 3);
+  auto l1 = new TextLabel{object.metadata().getName()};
+  auto l2 = new TextLabel{tr("start : ") + object.startDate().toString()};
+  mainLay->addWidget(l1, 0, 0, 1, 3);
+  mainLay->addWidget(l2, 0, 3, 1, 3);
   mainLay->addWidget(eventBtn, 0, 6, 1, 1);
 
   if (object.duration.isRigid())
   {
-    mainLay->addWidget(
-        new QLabel{object.duration.defaultDuration().toString()}, 1, 1, 1, 4);
+    auto l3 = new TextLabel{object.duration.defaultDuration().toString()};
+    mainLay->addWidget(l3, 1, 1, 1, 4);
   }
   else
   {
-    QString max = object.duration.maxDuration().isInfinite()
-                      ? "inf"
-                      : object.duration.maxDuration().toString();
-    QString min = object.duration.minDuration().isZero()
-                      ? "0"
-                      : object.duration.minDuration().toString();
-    mainLay->addWidget(
-        new QLabel{tr("Flexible : ") + min + " to " + max}, 1, 1, 1, 4);
+    QString text = tr("Flexible : ")
+                   % (object.duration.minDuration().isZero()
+                        ? QStringLiteral("0")
+                        : object.duration.minDuration().toString())
+                   % tr(" to ")
+                   % (object.duration.maxDuration().isInfinite()
+                                                 ? QStringLiteral("inf")
+                                                 : object.duration.maxDuration().toString());
+    auto l4 = new TextLabel{text};
+    mainLay->addWidget(l4, 1, 1, 1, 4);
   }
 
   if (!object.processes.empty())
   {
     auto processList
-        = new Inspector::InspectorSectionWidget{tr("processes"), false, this};
+        = new Inspector::InspectorSectionWidget{tr("Processes"), false, this};
     for (const auto& p : object.processes)
     {
-      processList->addContent(new QLabel{p.prettyName()});
+      auto lab = new TextLabel{p.prettyName()};
+      processList->addContent(lab);
     }
     mainLay->addWidget(processList, 2, 1, 1, 6);
   }

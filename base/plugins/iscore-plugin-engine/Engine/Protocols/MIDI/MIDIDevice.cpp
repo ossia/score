@@ -18,6 +18,7 @@ MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings)
   using namespace ossia;
   m_capas.canRefreshTree = true;
   m_capas.canSerialize = false;
+  m_capas.hasCallbacks = false;
 
   reconnect();
 }

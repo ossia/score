@@ -50,6 +50,10 @@ int main(int argc, char** argv)
   );
   printf("ARM FPSCR: %08x\n",x);
 #endif
+
+    QLocale::setDefault(QLocale::C);
+    setlocale(LC_ALL, "C");
+
     init_plugins();
 
 #if defined(ISCORE_OPENGL)

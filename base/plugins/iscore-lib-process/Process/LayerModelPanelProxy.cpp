@@ -63,8 +63,6 @@ Process::GraphicsViewLayerModelPanelProxy::GraphicsViewLayerModelPanelProxy(
   m_processPresenter
       = fact->makeLayerPresenter(m_layer, m_layerView, m_context, this);
 
-  m_layerView->setFlag(QQuickPaintedItem::ItemClipsChildrenToShape, false);
-
   // connect(&m_context.updateTimer, &QTimer::timeout, this,
   // [&vp=*m_view->viewport()] { vp.update();} );
   // Have a zoom here too. For now the process should be the size of the

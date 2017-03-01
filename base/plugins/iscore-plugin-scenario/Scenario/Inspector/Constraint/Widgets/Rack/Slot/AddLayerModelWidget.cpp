@@ -11,6 +11,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #include <QString>
 #include <QStringList>
@@ -39,8 +40,8 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot)
   addButton->setIcon(addIcon);
 
   // Text
-  auto addText = new QLabel("Add Process View");
-  addText->setStyleSheet(QString("text-align : left;"));
+  auto addText = new TextLabel(tr("Add Process View"));
+  addText->setStyleSheet(QStringLiteral("text-align : left;"));
 
   layout->addWidget(addButton);
   layout->addWidget(addText);

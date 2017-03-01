@@ -23,11 +23,6 @@ public:
 
   void setRect(const QRectF& theRect);
 
-  QRectF boundingRect() const override
-  {
-    return m_rect;
-  }
-
   void paint(
       QPainter* painter) override;
 
@@ -60,7 +55,6 @@ protected:
 //  void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 
 private:
-  QRectF m_rect; // The rect in which the whole curve must fit.
   QRectF m_selectArea;
 };
 }

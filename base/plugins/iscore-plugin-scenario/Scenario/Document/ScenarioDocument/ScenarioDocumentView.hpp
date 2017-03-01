@@ -34,10 +34,7 @@ public:
 
   void update();
 
-  QQuickItem& scene() const
-  {
-    return *m_scene;
-  }
+  QQuickItem& scene() const;
 
   ProcessGraphicsView& view() const
   {
@@ -70,9 +67,8 @@ signals:
 
 private:
   QWidget* m_widget{};
-  QQuickItem* m_scene{};
-  ProcessGraphicsView* m_view{};
   BaseGraphicsObject* m_baseObject{};
+  ProcessGraphicsView* m_view{};
 
   QQuickWidget* m_timeRulersView{};
   TimeRulerView* m_timeRuler{};

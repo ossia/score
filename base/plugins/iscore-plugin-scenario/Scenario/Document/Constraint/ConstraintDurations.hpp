@@ -42,6 +42,7 @@ public:
   {
   }
 
+  ~ConstraintDurations();
   ConstraintDurations& operator=(const ConstraintDurations& other);
 
   const TimeVal& defaultDuration() const

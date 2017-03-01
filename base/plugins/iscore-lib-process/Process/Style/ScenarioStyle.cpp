@@ -7,6 +7,8 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     ConstraintBase{&s.Base1}
     , ConstraintSelected{&s.Base2}
     , ConstraintPlayFill{&s.Base3}
+    , ConstraintPlayDashFill{&s.Pulse1}
+    , ConstraintLoop{&s.Warn1}
     , ConstraintWarning{&s.Warn2}
     , ConstraintInvalid{&s.Warn3}
     , ConstraintMuted{&s.Tender2}
@@ -67,7 +69,8 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     , TimeRuler{&s.Base1}
     , LocalTimeRuler{&s.Gray}
 {
-  initPens();
+  update();
+  QObject::connect(&s, &iscore::Skin::changed, [=] { this->update(); });
 }
 
 void ScenarioStyle::setConstraintWidth(double w)
@@ -75,6 +78,7 @@ void ScenarioStyle::setConstraintWidth(double w)
   ConstraintSolidPen.setWidth(3 * w);
   ConstraintDashPen.setWidth(3 * w);
   ConstraintPlayPen.setWidth(3 * w);
+  ConstraintPlayDashPen.setWidth(3 * w);
 }
 
 ScenarioStyle& ScenarioStyle::instance()
@@ -85,10 +89,10 @@ ScenarioStyle& ScenarioStyle::instance()
 
 ScenarioStyle::ScenarioStyle() noexcept
 {
-  initPens();
+  update();
 }
 
-void ScenarioStyle::initPens()
+void ScenarioStyle::update()
 {
   ConstraintSolidPen = QPen{QBrush{Qt::black}, 3, Qt::SolidLine, Qt::SquareCap,
                             Qt::RoundJoin};
@@ -103,6 +107,13 @@ void ScenarioStyle::initPens()
       = QPen{Qt::black, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   ConstraintPlayPen
       = QPen{Qt::black, 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  ConstraintPlayDashPen = ConstraintDashPen;
+
+  ConstraintSolidPen.setCosmetic(true);
+  ConstraintDashPen.setCosmetic(true);
+  ConstraintRackPen.setCosmetic(true);
+  ConstraintPlayPen.setCosmetic(true);
+  ConstraintPlayDashPen.setCosmetic(true);
   TimenodePen = QPen{Qt::black, 2, Qt::DotLine, Qt::SquareCap, Qt::MiterJoin};
 
   TimenodeBrush = QBrush{Qt::black};
@@ -110,4 +121,9 @@ void ScenarioStyle::initPens()
   StateBrush = QBrush{Qt::black};
   EventPen = QPen{Qt::black, 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   EventBrush = QBrush{Qt::black};
+
+  TimeRulerLargePen = QPen{TimeRuler.getColor(), 2, Qt::SolidLine};
+  TimeRulerLargePen.setCosmetic(true);
+  TimeRulerSmallPen = QPen{TimeRuler.getColor(), 1, Qt::SolidLine};
+  TimeRulerSmallPen.setCosmetic(true);
 }

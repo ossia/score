@@ -17,7 +17,8 @@ namespace Automation
 LayerView::LayerView(QQuickPaintedItem* parent) : Process::LayerView{parent}
 {
   setZ(1);
-  setFlags(ItemClipsChildrenToShape /* | ItemIsSelectable | ItemIsFocusable */);
+  this->setFlag(QQuickPaintedItem::ItemClipsChildrenToShape, true);
+  //setFlags(ItemClipsChildrenToShape /* | ItemIsSelectable | ItemIsFocusable */);
   //setAcceptDrops(true);
   auto f = iscore::Skin::instance().SansFont;
   f.setPointSize(fontSize);

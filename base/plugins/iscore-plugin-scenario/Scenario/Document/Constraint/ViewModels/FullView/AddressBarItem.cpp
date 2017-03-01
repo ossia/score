@@ -22,7 +22,8 @@ namespace Scenario
 {
 AddressBarItem::AddressBarItem(QQuickPaintedItem* parent) : QQuickPaintedItem{parent}
 {
-  this->setFlag(QQuickPaintedItem::ItemHasContents, false);
+  setAcceptedMouseButtons(Qt::AllButtons);
+  //this->setFlag(QQuickPaintedItem::ItemHasContents, false);
 }
 
 void AddressBarItem::setTargetObject(ObjectPath&& path)

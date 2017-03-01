@@ -49,6 +49,7 @@ public:
   // throws std::runtime_error
   using Device::DeviceInterface::refresh;
   optional<State::Value> refresh(const State::Address&) final override;
+  void request(const State::Address&) final override;
 
   Device::Node getNode(const State::Address&) final override;
   Device::Node getNodeWithoutChildren(const State::Address&) final override;
@@ -84,6 +85,7 @@ protected:
 
 private:
   bool m_logging = false;
+  bool m_callbacksEnabled = false;
 };
 
 class ISCORE_PLUGIN_ENGINE_EXPORT OwningOSSIADevice : public OSSIADevice

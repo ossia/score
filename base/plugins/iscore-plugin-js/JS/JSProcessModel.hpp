@@ -10,7 +10,7 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/model/Identifier.hpp>
 #include <QJSValue>
-
+#include <QVariantMap>
 class DataStream;
 class JSONObject;
 namespace Process
@@ -51,6 +51,7 @@ public:
     return m_script;
   }
 
+  const std::vector<std::pair<QByteArray, QVariant>>& customProperties() const { return m_properties; }
   ~ProcessModel();
 signals:
   void scriptError(int, const QString&);
@@ -59,5 +60,6 @@ signals:
 
 private:
   QString m_script;
+  std::vector<std::pair<QByteArray, QVariant>> m_properties;
 };
 }

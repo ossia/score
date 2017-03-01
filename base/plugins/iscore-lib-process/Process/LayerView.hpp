@@ -19,15 +19,11 @@ public:
 
   virtual ~LayerView();
 
-  QRectF boundingRect() const final override;
   void paint(
       QPainter* painter) final override;
 
   void setHeight(qreal height);
-  qreal height() const;
-
   void setWidth(qreal width);
-  qreal width() const;
 
 signals:
   void heightChanged();
@@ -36,8 +32,5 @@ signals:
 protected:
   virtual void paint_impl(QPainter*) const = 0;
 
-private:
-  qreal m_height{};
-  qreal m_width{};
 };
 }

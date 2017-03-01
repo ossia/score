@@ -41,8 +41,6 @@ public:
   void paint(
       QPainter* painter) override;
 
-  void setWidth(qreal width);
-
 private:
   void mousePressEvent(QMouseEvent* event) final override;
   void mouseMoveEvent(QMouseEvent* event) final override;

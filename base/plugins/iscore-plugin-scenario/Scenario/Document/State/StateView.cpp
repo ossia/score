@@ -16,7 +16,7 @@ namespace Scenario
 {
 StateView::StateView(StatePresenter& pres, QQuickPaintedItem* parent)
     : GraphicsItem(parent), m_presenter{pres}
-{
+{;
   // this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setParentItem(parent);
 
@@ -25,6 +25,19 @@ StateView::StateView(StatePresenter& pres, QQuickPaintedItem* parent)
   // this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
   m_color = ScenarioStyle::instance().StateOutline;
+  setDilatation(1);
+}
+
+QRectF StateView::boundingRect() const
+{
+  auto radius = m_radiusFull * m_dilatationFactor;
+  return {-radius, -radius, 2 * radius, 2 * radius};
+}
+
+QRectF StateView::clipRect() const
+{
+  auto radius = m_radiusFull * m_dilatationFactor;
+  return {-radius, -radius, 2 * radius, 2 * radius};
 }
 
 void StateView::paint(
@@ -33,17 +46,16 @@ void StateView::paint(
   painter->setPen(Qt::NoPen);
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = ScenarioStyle::instance();
-  skin.StateTemporalPointBrush.setColor(
-      m_selected ? skin.StateSelected.getColor() : skin.StateDot.getColor());
+  skin.StateTemporalPointBrush =
+      m_selected ? skin.StateSelected.getColor() : skin.StateDot.getColor();
 
   auto status = m_status.get();
   if (status != ExecutionStatus::Editing)
-    skin.StateTemporalPointBrush.setColor(
-        m_status.stateStatusColor().getColor());
+    skin.StateTemporalPointBrush = m_status.stateStatusColor().getColor();
 
   if (m_containMessage)
   {
-    skin.StateBrush.setColor(m_color.getColor());
+    skin.StateBrush = m_color.getColor();
     painter->setBrush(skin.StateBrush);
     painter->drawEllipse(
         {0., 0.},
@@ -105,16 +117,19 @@ void StateView::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
     emit m_presenter.pressed(mapToScene(event->localPos()));
+  event->accept();
 }
 
 void StateView::mouseMoveEvent(QMouseEvent* event)
 {
   emit m_presenter.moved(mapToScene(event->localPos()));
+  event->accept();
 }
 
 void StateView::mouseReleaseEvent(QMouseEvent* event)
 {
   emit m_presenter.released(mapToScene(event->localPos()));
+  event->accept();
 }
 
 void StateView::hoverEnterEvent(QHoverEvent* event)
@@ -147,6 +162,8 @@ void StateView::setDilatation(double val)
 {
   //prepareGeometryChange();
   m_dilatationFactor = val;
+  setWidth(2. * m_radiusFull * m_dilatationFactor);
+  setHeight(2. * m_radiusFull * m_dilatationFactor);
   //    this->setScale(m_dilatationFactor);
   //    emit m_presenter.askUpdate();
   this->update();

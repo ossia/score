@@ -23,21 +23,17 @@ class QWidget;
 
 namespace Scenario
 {
-TemporalConstraintHeader::TemporalConstraintHeader() : ConstraintHeader{}
+TemporalConstraintHeader::TemporalConstraintHeader()
 {
   //this->setCacheMode(QQuickPaintedItem::NoCache);
   //this->setAcceptDrops(true);
+  this->setHeight(ConstraintHeader::headerHeight());
   this->setAcceptedMouseButtons(
       Qt::LeftButton); // needs to be enabled for dblclick
   //this->setFlags(QQuickPaintedItem::ItemIsSelectable); // needs to be enabled for dblclick
   this->setFlag(QQuickPaintedItem::ItemClipsChildrenToShape);
 
   // m_textCache.setCacheEnabled(true);
-}
-
-QRectF TemporalConstraintHeader::boundingRect() const
-{
-  return {0, 0, m_width, qreal(ConstraintHeader::headerHeight())};
 }
 
 void TemporalConstraintHeader::paint(
@@ -48,7 +44,7 @@ void TemporalConstraintHeader::paint(
   {
     auto rect = boundingRect();
     painter->fillRect(
-        rect, ScenarioStyle::instance().ConstraintHeaderRackHidden.getBrush());
+        rect, ScenarioStyle::instance().ConstraintHeaderRackHidden.getColor());
 
     // Fake timenode continuation
     auto color
@@ -61,7 +57,7 @@ void TemporalConstraintHeader::paint(
   }
 
   // Header
-  painter->setPen(ScenarioStyle::instance().ConstraintHeaderText.getColor());
+  painter->setPen(ScenarioStyle::instance().ConstraintHeaderText.getColor().color());
 
   // If the centered text is hidden, we put it at the left so that it's on the
   // view.

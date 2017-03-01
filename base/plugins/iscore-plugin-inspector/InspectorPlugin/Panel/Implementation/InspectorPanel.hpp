@@ -53,11 +53,9 @@ public slots:
    */
   void newItemsInspected(const Selection&);
 
-  void on_tabClose(int index);
-
 private:
   QVBoxLayout* m_layout{};
-  QTabWidget* m_tabWidget{};
+  QWidget* m_curWidget{};
 
   Inspector::InspectorWidgetBase* m_currentInspector{};
 

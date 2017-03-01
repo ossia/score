@@ -4,11 +4,6 @@
 class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
-void ConstraintHeader::setWidth(double width)
-{
-  m_width = width;
-  update();
-}
 
 void ConstraintHeader::setText(const QString& text)
 {

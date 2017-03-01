@@ -186,6 +186,12 @@ QDebug operator<<(QDebug dbg, const State::Expression& v)
   return dbg;
 }
 
+static void debug_path(iscore::optional<State::AddressAccessor> addr ) {
+  qDebug() << addr->toString();
+}
+static void debug_path(iscore::optional<State::Address> addr ) {
+  qDebug() << addr->toString();
+}
 using namespace iscore;
 class ExpressionParsingTests : public QObject
 {
@@ -472,9 +478,23 @@ private slots:
     // return 0;
   }
 
+  void test_address_dot_in_instances()
+  {
+    debug_path(State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]"));
+    debug_path(State::parseAddressAccessor("myapp:/score/color.1"));
+    debug_path(State::parseAddressAccessor("myapp:/score/color@[color.rgb.r]"));
+    debug_path(State::parseAddressAccessor("myapp:/score/color.1@[color.rgb]"));
+
+    debug_path(State::parseAddress("myapp:/score/color.1@[color.rgb.r]"));
+    debug_path(State::parseAddress("myapp:/score/color.1"));
+    debug_path(State::parseAddress("myapp:/score/color@[color.rgb.r]"));
+    debug_path(State::parseAddress("myapp:/score/color.1@[color.rgb]"));
+  }
+
   void test_parse_random()
   {
     using namespace std::literals;
+    QVERIFY(bool(State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]")));
     QVERIFY(bool(State::parseExpression("{ myapp:/score > 2}"s)));
     QVERIFY(bool(State::parseExpression("{2 > myapp:/stagescore }"s)));
     QVERIFY(

@@ -32,15 +32,15 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   QFormLayout* layout = new QFormLayout;
 
 #if defined(ISCORE_ZEROCONF)
-  m_browser = new ZeroconfBrowser{"_OSCQuery._tcp", this};
+  m_browser = new ZeroconfBrowser{"_oscjson._tcp", this};
   auto pb = new QPushButton{tr("Find devices..."), this};
   connect(
       pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
   connect(
       m_browser, &ZeroconfBrowser::sessionSelected, this,
-      [=](QString ip, int port, QMap<QString, QByteArray> txt) {
-        m_deviceNameEdit->setText(txt["LocalName"]);
-        m_localHostEdit->setText(ip);
+      [=](QString name, QString ip, int port, QMap<QString, QByteArray> txt) {
+        m_deviceNameEdit->setText(name);
+        m_localHostEdit->setText("ws://" + ip + ":" + QString::number(port));
       });
   layout->addWidget(pb);
 #endif

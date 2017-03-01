@@ -35,7 +35,6 @@ public:
     return static_type();
   }
 
-  QRectF boundingRect() const override;
   void paint(
       QPainter* painter) override;
 

@@ -1,14 +1,20 @@
+#include <Process/ProcessContext.hpp>
 #include <QGraphicsScene>
 #include <QList>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
+#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
+#include <Process/LayerView.hpp>
 #include "AddressBarItem.hpp"
 #include "FullViewConstraintHeader.hpp"
 #include "FullViewConstraintPresenter.hpp"
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
 
 class QObject;
 
@@ -36,6 +42,18 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
       &ConstraintHeader::setText);
   m_header->setText(metadata.getName());
   m_header->setVisible(true);
+
+  if(rack())
+  {
+    for(const SlotPresenter& slot : rack()->getSlots())
+    {
+      for(const auto& layer : slot.processes())
+      {
+        Process::LayerView* view = layer.view;
+        view->setFlag(QQuickPaintedItem::ItemClipsChildrenToShape, false);
+      }
+    }
+  }
 }
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()

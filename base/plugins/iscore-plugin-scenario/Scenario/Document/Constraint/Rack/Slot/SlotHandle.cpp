@@ -17,7 +17,7 @@ namespace Scenario
 SlotHandle::SlotHandle(const SlotView& slotView, QQuickPaintedItem* parent)
     : GraphicsItem{parent}
     , m_slotView{slotView}
-    , m_width{slotView.boundingRect().width()}
+    , m_width{slotView.width()}
 {
   //this->setCacheMode(QQuickPaintedItem::NoCache);
   this->setCursor(Qt::SizeVerCursor);
@@ -32,17 +32,11 @@ QRectF SlotHandle::boundingRect() const
 void SlotHandle::paint(
     QPainter* painter)
 {
-  m_pen.setColor(ScenarioStyle::instance().ProcessViewBorder.getColor());
+  m_pen.setBrush(ScenarioStyle::instance().ProcessViewBorder.getColor());
   painter->setPen(m_pen);
   painter->setBrush(m_pen.color());
 
   painter->drawLine(0, -handleHeight() / 2., m_width, -handleHeight() / 2.);
-}
-
-void SlotHandle::setWidth(qreal width)
-{
-  m_width = width;
-  update();
 }
 
 void SlotHandle::mousePressEvent(QMouseEvent* event)

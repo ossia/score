@@ -37,7 +37,7 @@ void SlotOverlay::paint(
     QPainter* painter)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->setPen(ScenarioStyle::instance().SlotOverlayBorder.getColor());
+  painter->setPen(ScenarioStyle::instance().SlotOverlayBorder.getColor().color());
   painter->setBrush(ScenarioStyle::instance().SlotOverlay.getColor());
   painter->drawRect(boundingRect());
 }

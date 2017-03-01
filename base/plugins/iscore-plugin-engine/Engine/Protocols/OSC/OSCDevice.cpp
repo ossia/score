@@ -19,6 +19,7 @@ OSCDevice::OSCDevice(const Device::DeviceSettings& settings)
 {
   using namespace ossia;
   m_capas.canLearn = true;
+  m_capas.hasCallbacks = false;
 
   reconnect();
 }

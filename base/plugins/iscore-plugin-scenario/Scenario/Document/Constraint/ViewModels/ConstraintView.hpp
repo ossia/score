@@ -45,6 +45,7 @@ public:
     return m_infinite;
   }
 
+  void setExecuting(bool);
   void setDefaultWidth(double width);
   void setMaxWidth(bool infinite, double max);
   void setMinWidth(double min);
@@ -52,11 +53,7 @@ public:
   void setPlayWidth(double width);
   void setValid(bool val);
 
-  double height() const
-  {
-    return m_height;
-  }
-
+  virtual void updateSize() = 0;
   void setSelected(bool selected);
   virtual void enableOverlay(bool selected);
 
@@ -78,11 +75,6 @@ public:
   double maxWidth() const
   {
     return m_maxWidth;
-  }
-
-  double constraintAndRackHeight() const
-  {
-    return m_height;
   }
 
   double playWidth() const
@@ -108,11 +100,12 @@ public:
   void setWarning(bool warning);
 
   void setExecutionState(ConstraintExecutionState);
-  QColor constraintColor(const ScenarioStyle& skin) const;
+  QBrush constraintColor(const ScenarioStyle& skin) const;
 
   void updateLabelPos();
   void updateCounterPos();
   void updateOverlayPos();
+  virtual void updatePaths() = 0;
 
   void mousePressEvent(QMouseEvent* event) final override;
   void mouseMoveEvent(QMouseEvent* event) final override;
@@ -144,14 +137,13 @@ protected:
   double m_minWidth{};
   double m_playWidth{};
 
-  double m_height{};
-
   bool m_selected{};
   bool m_infinite{};
   bool m_validConstraint{true};
-  bool m_warning{false};
-  bool m_shadow{false};
+  bool m_warning{};
+  bool m_shadow{};
   bool m_hasFocus{};
+  bool m_executing{};
   ConstraintExecutionState m_state{};
 };
 }

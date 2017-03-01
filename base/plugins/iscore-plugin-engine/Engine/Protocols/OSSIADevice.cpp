@@ -17,6 +17,7 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/network_logger.hpp>
+#include <boost/timer.hpp>
 
 namespace Engine
 {
@@ -42,12 +43,14 @@ void OSSIADevice::updateSettings(const Device::DeviceSettings& newsettings)
     Device::Node iscore_device{settings(), nullptr};
 
     // Recurse on the children
-    const auto& ossia_children = dev->getRootNode().children();
-    iscore_device.reserve(ossia_children.size());
-    for (const auto& node : ossia_children)
     {
-      iscore_device.push_back(
-            Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
+      const auto& ossia_children = dev->getRootNode().children();
+      iscore_device.reserve(ossia_children.size());
+      for (const auto& node : ossia_children)
+      {
+        iscore_device.push_back(
+              Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
+      }
     }
 
     // We change the settings safely
@@ -73,6 +76,9 @@ void OSSIADevice::updateSettings(const Device::DeviceSettings& newsettings)
 
 void OSSIADevice::disconnect()
 {
+  if(m_capas.hasCallbacks)
+    disableCallbacks();
+
   m_callbacks.clear();
   if (auto dev = getDevice())
   {
@@ -210,31 +216,39 @@ void OSSIADevice::setLogging_impl(bool b) const
 
 void OSSIADevice::enableCallbacks()
 {
-  auto dev = getDevice();
-  if(dev)
+  if(!m_callbacksEnabled)
   {
-    dev->onNodeCreated.connect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
-    dev->onNodeRemoving.connect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
-    dev->onNodeRenamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
-    dev->onAddressCreated.connect<OSSIADevice, &OSSIADevice::addressCreated>(
-          this);
-    dev->onAttributeModified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
-          this);
+    auto dev = getDevice();
+    if(dev)
+    {
+      dev->onNodeCreated.connect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
+      dev->onNodeRemoving.connect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
+      dev->onNodeRenamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
+      dev->onAddressCreated.connect<OSSIADevice, &OSSIADevice::addressCreated>(
+            this);
+      dev->onAttributeModified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
+            this);
+    }
+    m_callbacksEnabled = true;
   }
 }
 
 void OSSIADevice::disableCallbacks()
 {
-  auto dev = getDevice();
-  if(dev)
+  if(m_callbacksEnabled)
   {
-    dev->onNodeCreated.disconnect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
-    dev->onNodeRemoving.disconnect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
-    dev->onNodeRenamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
-    dev->onAddressCreated.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
-          this);
-    dev->onAttributeModified.disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
-          this);
+    auto dev = getDevice();
+    if(dev)
+    {
+      dev->onNodeCreated.disconnect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
+      dev->onNodeRemoving.disconnect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
+      dev->onNodeRenamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
+      dev->onAddressCreated.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
+            this);
+      dev->onAttributeModified.disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
+            this);
+    }
+    m_callbacksEnabled = false;
   }
 }
 
@@ -316,6 +330,21 @@ optional<State::Value> OSSIADevice::refresh(const State::Address& address)
   return {};
 }
 
+void OSSIADevice::request(const State::Address& address)
+{
+  if (auto dev = getDevice())
+  {
+    auto node = Engine::iscore_to_ossia::findNodeFromPath(address.path, *dev);
+    if (node)
+    {
+      if (auto addr = node->getAddress())
+      {
+        addr->requestValue();
+      }
+    }
+  }
+}
+
 Device::Node OSSIADevice::getNode(const State::Address& address)
 {
   if (auto dev = getDevice())
@@ -380,8 +409,6 @@ void OSSIADevice::setListening(const State::Address& addr, bool b)
     // and the address wasn't already listening
     if (b)
     {
-      ossia_addr->pullValue();
-
       if (cb_it == m_callbacks.end())
       {
         m_callbacks.insert({addr,

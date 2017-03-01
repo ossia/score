@@ -39,6 +39,7 @@ ClickableLabelItem::ClickableLabelItem(
     QQuickPaintedItem* parent)
     : QQuickPaintedItem{parent}, m_onClick{std::move(onClick)}, m_text{text}
 {
+  setAcceptedMouseButtons(Qt::AllButtons);
   connect(
       &metadata, &iscore::ModelMetadata::NameChanged, this,
       [&](const QString& name) {

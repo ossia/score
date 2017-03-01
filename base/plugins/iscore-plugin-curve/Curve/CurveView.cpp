@@ -83,8 +83,8 @@ void View::keyReleaseEvent(QKeyEvent* ev)
 */
 void View::setRect(const QRectF& theRect)
 {
- // prepareGeometryChange();
-  m_rect = theRect;
+  setWidth(theRect.width());
+  setHeight(theRect.height());
   update();
 }
 }

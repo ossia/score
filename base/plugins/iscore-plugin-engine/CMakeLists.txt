@@ -191,6 +191,19 @@ set(WS_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSProtocolFactory.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSSpecificSettingsSerialization.cpp"
 )
+
+set(SERIAL_HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialSpecificSettings.hpp"
+)
+set(SERIAL_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialProtocolSettingsWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialDevice.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialProtocolFactory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialSpecificSettingsSerialization.cpp"
+)
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 get_target_property(OSSIA_PROTOCOLS ossia OSSIA_PROTOCOLS)
@@ -207,6 +220,11 @@ endif()
 if("${OSSIA_PROTOCOLS}" MATCHES "WebSockets")
     target_sources(${PROJECT_NAME} PRIVATE ${WS_HDRS} ${WS_SRCS})
     target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_WEBSOCKETS)
+endif()
+
+if("${OSSIA_PROTOCOLS}" MATCHES "Serial")
+    target_sources(${PROJECT_NAME} PRIVATE ${SERIAL_HDRS} ${SERIAL_SRCS})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_SERIAL)
 endif()
 
 target_link_libraries(${PROJECT_NAME}

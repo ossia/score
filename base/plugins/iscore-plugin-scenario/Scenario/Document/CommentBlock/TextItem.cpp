@@ -27,6 +27,7 @@ void SimpleTextItem::paint(
 {
   //    setPen(m_color.getColor()); -> if enabled, there will be undesirable
   //    antialiasing
+
   //setBrush(m_color.getBrush());
   painter->drawText(boundingRect(), "TODO m_text");
   //QGraphicsSimpleTextItem::paint(painter, option, widget);

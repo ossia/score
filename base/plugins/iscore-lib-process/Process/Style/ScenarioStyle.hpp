@@ -27,6 +27,8 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   iscore::ColorRef ConstraintBase;
   iscore::ColorRef ConstraintSelected;
   iscore::ColorRef ConstraintPlayFill;
+  iscore::ColorRef ConstraintPlayDashFill;
+  iscore::ColorRef ConstraintLoop;
   iscore::ColorRef ConstraintWarning;
   iscore::ColorRef ConstraintInvalid;
   iscore::ColorRef ConstraintMuted;
@@ -80,6 +82,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QPen ConstraintDashPen;
   QPen ConstraintRackPen;
   QPen ConstraintPlayPen;
+  QPen ConstraintPlayDashPen;
 
   QPen TimenodePen;
   QBrush TimenodeBrush;
@@ -92,7 +95,9 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 
   QPen TransparentPen;
 
+  QPen TimeRulerLargePen, TimeRulerSmallPen;
+
 private:
   ScenarioStyle() noexcept;
-  void initPens();
+  void update();
 };

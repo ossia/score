@@ -38,6 +38,7 @@ EventView::EventView(EventPresenter& presenter, QQuickPaintedItem* parent)
   this->setCursor(Qt::SizeHorCursor);
 
   this->setZ(ZPos::Event);
+  this->setWidth(6);
   this->setAcceptHoverEvents(true);
 }
 
@@ -74,15 +75,15 @@ void EventView::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   if (m_status.get() == ExecutionStatus::Editing)
-    skin.EventPen.setColor(m_color.getColor());
+    skin.EventPen.setBrush(m_color.getColor());
   else
-    skin.EventPen.setColor(m_status.eventStatusColor().getColor());
+    skin.EventPen.setBrush(m_status.eventStatusColor().getColor());
 
   if (isSelected())
   {
-    skin.EventPen.setColor(skin.EventSelected.getColor());
+    skin.EventPen.setBrush(skin.EventSelected.getColor());
   }
-  skin.EventBrush.setColor(skin.EventPen.color());
+  skin.EventBrush = skin.EventPen.brush();
 
   painter->setPen(skin.EventPen);
   painter->fillRect(
@@ -100,6 +101,7 @@ void EventView::setExtent(const VerticalExtent& extent)
 {
   //prepareGeometryChange();
   m_extent = extent;
+  setHeight(qreal(m_extent.bottom() - m_extent.top() + 20));
   m_conditionItem->changeHeight(extent.bottom() - extent.top());
   this->update();
 }
@@ -109,6 +111,7 @@ void EventView::setExtent(VerticalExtent&& extent)
   //prepareGeometryChange();
   m_conditionItem->changeHeight(extent.bottom() - extent.top());
   m_extent = std::move(extent);
+  setHeight(qreal(m_extent.bottom() - m_extent.top() + 20));
   this->update();
 }
 

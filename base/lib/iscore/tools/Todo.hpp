@@ -1,7 +1,7 @@
 #pragma once
 #include <QDebug>
 #include <QObject>
-#include <exception>
+#include <stdexcept>
 #include <iscore_compiler_detection.hpp>
 #include <iscore_lib_base_export.h>
 #include <typeinfo>
@@ -59,7 +59,15 @@
     }                               \
   } while (0)
 #else
-#define ISCORE_ASSERT(arg) ((void)(0))
+#define ISCORE_ASSERT(arg)          \
+  do                                \
+  {                                 \
+    bool iscore_assert_b = !!(arg); \
+    if (!iscore_assert_b)           \
+    {                               \
+      throw std::runtime_error("Error: " #arg );    \
+    }                               \
+  } while (0)
 #endif
 
 #define ISCORE_ABORT  \

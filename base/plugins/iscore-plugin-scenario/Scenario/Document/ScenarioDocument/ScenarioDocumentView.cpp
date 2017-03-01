@@ -35,6 +35,7 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #if defined(ISCORE_OPENGL)
 #include <QOpenGLWidget>
@@ -50,17 +51,17 @@ ScenarioDocumentView::ScenarioDocumentView(
     const iscore::ApplicationContext& ctx, QObject* parent)
     : iscore::DocumentDelegateView{parent}
     , m_widget{new QWidget}
-    , m_scene{new QQuickItem}
-    , m_view{new ProcessGraphicsView{m_scene, m_widget}}
     , m_baseObject{new BaseGraphicsObject}
+    , m_view{new ProcessGraphicsView{m_baseObject, m_widget}}
     , m_timeRulersView{new TimeRulerGraphicsView{}}
-    , m_timeRuler{new TimeRulerView}
+    , m_timeRuler{new TimeRulerView{m_timeRulersView}}
 {
 #if defined(ISCORE_WEBSOCKETS)
   auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif
 
-  m_widget->addAction(new SnapshotAction{*m_scene, m_widget});
+  m_view->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+  m_widget->addAction(new SnapshotAction{*m_baseObject, m_widget});
 
   // Transport
   auto transportWidget = new QWidget{m_widget};
@@ -75,7 +76,7 @@ ScenarioDocumentView::ScenarioDocumentView(
       m_zoomSlider, &iscore::DoubleSlider::valueChanged, this,
       &ScenarioDocumentView::horizontalZoomChanged);
 
-  QLabel* zoomLabel = new QLabel{tr("Zoom")};
+  QLabel* zoomLabel = new TextLabel{tr("Zoom")};
   zoomLabel->setObjectName("ScenarioZoomLabel");
   transportLayout->addWidget(zoomLabel, 0, 1);
   transportLayout->addWidget(m_zoomSlider, 0, 2);
@@ -106,13 +107,12 @@ ScenarioDocumentView::ScenarioDocumentView(
   });
 
   // view layout
-  m_timeRuler->setParentItem(m_scene);
-  m_baseObject->setParentItem(m_scene);
+  m_timeRuler->setParentItem(m_timeRulersView->quickWindow()->contentItem());
 
   auto lay = new QVBoxLayout;
   m_widget->setLayout(lay);
 
-  lay->addWidget(m_timeRulersView);
+  //lay->addWidget(m_timeRulersView);
   lay->addWidget(m_view);
   lay->addWidget(transportWidget);
 
@@ -127,8 +127,8 @@ ScenarioDocumentView::ScenarioDocumentView(
   auto& skin = iscore::Skin::instance();
   con(skin, &iscore::Skin::changed, this, [&]() {
     auto& skin = ScenarioStyle::instance();
-    m_timeRulersView->setClearColor(skin.TimeRulerBackground.getColor());
-    m_view->setClearColor(skin.Background.getColor());
+    m_timeRulersView->setClearColor(skin.TimeRulerBackground.getColor().color());
+    m_view->setClearColor(skin.Background.getColor().color());
   });
 
   m_widget->setObjectName("ScenarioViewer");
@@ -162,7 +162,12 @@ QWidget* ScenarioDocumentView::getWidget()
 
 void ScenarioDocumentView::update()
 {
-  m_scene->update();
+  m_baseObject->update();
+}
+
+QQuickItem&ScenarioDocumentView::scene() const
+{
+  return *m_baseObject;
 }
 
 qreal ScenarioDocumentView::viewWidth() const

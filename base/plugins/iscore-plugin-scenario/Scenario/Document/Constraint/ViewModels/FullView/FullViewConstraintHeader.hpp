@@ -21,7 +21,6 @@ public:
   {
   }
 
-  QRectF boundingRect() const override;
   void paint(
       QPainter* painter) override;
 

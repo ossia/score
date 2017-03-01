@@ -11,12 +11,9 @@ LayerView::~LayerView() = default;
 
 LayerView::LayerView(QQuickPaintedItem* parent) : QQuickPaintedItem{parent}
 {
+  setAcceptedMouseButtons(Qt::AllButtons);
+    this->setFlag(QQuickPaintedItem::ItemClipsChildrenToShape, true);
 //  this->setCacheMode(QQuickPaintedItem::NoCache);
-}
-
-QRectF LayerView::boundingRect() const
-{
-  return {0, 0, m_width, m_height};
 }
 
 void LayerView::paint(
@@ -27,25 +24,14 @@ void LayerView::paint(
 
 void LayerView::setHeight(qreal height)
 {
-//  prepareGeometryChange();
-  m_height = height;
+  QQuickPaintedItem::setHeight(height);
   emit heightChanged();
-}
-
-qreal LayerView::height() const
-{
-  return m_height;
 }
 
 void LayerView::setWidth(qreal width)
 {
-//  prepareGeometryChange();
-  m_width = width;
+  QQuickPaintedItem::setWidth(width);
   emit widthChanged();
 }
 
-qreal LayerView::width() const
-{
-  return m_width;
-}
 }

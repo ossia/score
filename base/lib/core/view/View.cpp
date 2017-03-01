@@ -8,6 +8,7 @@
 #include <QRect>
 #include <QTabBar>
 #include <QTabWidget>
+#include <QQuickWidget>
 #include <QWidget>
 #include <algorithm>
 #include <core/document/Document.hpp>

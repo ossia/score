@@ -16,8 +16,7 @@ namespace Mapping
 LayerView::LayerView(QQuickPaintedItem* parent) : Process::LayerView{parent}
 {
   setZ(1);
-  this->setFlags(
-      ItemClipsChildrenToShape /*| ItemIsSelectable | ItemIsFocusable */);
+  this->setFlag(QQuickPaintedItem::ItemClipsChildrenToShape, true);
 
   auto f = iscore::Skin::instance().SansFont;
   f.setPointSize(fontSize);

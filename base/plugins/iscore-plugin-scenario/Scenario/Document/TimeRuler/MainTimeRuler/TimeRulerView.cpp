@@ -7,18 +7,12 @@
 #include <iscore/tools/Todo.hpp>
 namespace Scenario
 {
-TimeRulerView::TimeRulerView() : AbstractTimeRulerView{}
+TimeRulerView::TimeRulerView(QWidget* v) : AbstractTimeRulerView{v}
 {
   //this->setCacheMode(QQuickPaintedItem::NoCache);
   m_height = -3 * m_graduationHeight;
-  m_textPosition = 1.15 * m_graduationHeight;
-  m_color = ScenarioStyle::instance().TimeRuler;
-
-  auto& skin = iscore::Skin::instance();
-  con(skin, &iscore::Skin::changed, this, [&]() {
-    auto& skin = ScenarioStyle::instance();
-    m_color = skin.TimeRuler;
-  });
+  m_textPosition = 1.65 * m_graduationHeight;
+  this->setX(10);
 }
 
 QRectF TimeRulerView::boundingRect() const

@@ -22,23 +22,20 @@ namespace ossia_to_iscore
 Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node)
 {
   Device::AddressSettings s;
-  s.name = QString::fromStdString(node.getName());
 
   const auto& addr = node.getAddress();
 
   if (addr)
   {
-    auto value_future = addr->pullValueAsync();
+    addr->requestValue();
 
+    s.name = QString::fromStdString(node.getName());
     s.ioType = addr->getAccessMode();
     s.clipMode = addr->getBoundingMode();
     s.repetitionFilter = addr->getRepetitionFilter();
     s.unit = addr->getUnit();
     s.extendedAttributes = node.getExtendedAttributes();
     s.domain = addr->getDomain();
-
-    if (value_future.valid())
-      value_future.wait_for(std::chrono::milliseconds(25));
 
     try
     {
@@ -48,6 +45,10 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node)
     {
       s.value = ToValue(addr->getValueType());
     }
+  }
+  else
+  {
+    s.name = QString::fromStdString(node.getName());
   }
   return s;
 }
@@ -64,16 +65,18 @@ ToFullAddressSettings(const ossia::net::node_base& node)
 Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
 {
   Device::Node iscore_node{ToAddressSettings(ossia_node), nullptr};
-  iscore_node.reserve(ossia_node.children().size());
-
-  // 2. Recurse on the children
-  for (const auto& ossia_child : ossia_node.children())
   {
-    auto child_n = ToDeviceExplorer(*ossia_child.get());
-    child_n.setParent(&iscore_node);
-    iscore_node.push_back(std::move(child_n));
-  }
+    const auto& cld = ossia_node.children();
+    iscore_node.reserve(cld.size());
 
+    // 2. Recurse on the children
+    for (const auto& ossia_child : cld)
+    {
+      auto child_n = ToDeviceExplorer(*ossia_child);
+      child_n.setParent(&iscore_node);
+      iscore_node.push_back(std::move(child_n));
+    }
+  }
   return iscore_node;
 }
 

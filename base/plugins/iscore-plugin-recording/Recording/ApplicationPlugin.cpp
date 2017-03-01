@@ -74,7 +74,12 @@ void ApplicationPlugin::record(
         [=]() { m_ossiaplug->on_record(pt.date); }, Qt::QueuedConnection);
   }
 
-  m_recManager->setup();
+  auto res = m_recManager->setup();
+  if(!res)
+  {
+    m_recManager.reset();
+    m_currentContext.reset();
+  }
 }
 
 void ApplicationPlugin::recordMessages(
@@ -98,7 +103,12 @@ void ApplicationPlugin::recordMessages(
         [=]() { m_ossiaplug->on_record(pt.date); }, Qt::QueuedConnection);
   }
 
-  m_recMessagesManager->setup();
+  auto res = m_recMessagesManager->setup();
+  if(!res)
+  {
+    m_recMessagesManager.reset();
+    m_currentContext.reset();
+  }
 }
 
 void ApplicationPlugin::stopRecord()

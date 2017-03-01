@@ -23,7 +23,7 @@ TimeRulerGraphicsView::TimeRulerGraphicsView()
   setViewportUpdateMode(QQuickWidget::NoViewportUpdate);
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-  setBackgroundBrush(ScenarioStyle::instance().TimeRulerBackground.getBrush());
+  setBackgroundBrush(ScenarioStyle::instance().TimeRulerBackground.getColor());
 
   setOptimizationFlag(QQuickWidget::DontSavePainterState, true);
 #if defined(__APPLE__)

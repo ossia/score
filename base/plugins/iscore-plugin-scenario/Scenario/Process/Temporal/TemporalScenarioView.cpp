@@ -19,6 +19,7 @@ TemporalScenarioView::TemporalScenarioView(QQuickPaintedItem* parent)
   /*
   this->setFlags(
       ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+
   setAcceptDrops(true);
 */
   this->setZ(1);

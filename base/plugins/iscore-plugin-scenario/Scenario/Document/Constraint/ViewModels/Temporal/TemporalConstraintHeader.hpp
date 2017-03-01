@@ -18,7 +18,6 @@ class TemporalConstraintHeader final : public ConstraintHeader
 public:
   TemporalConstraintHeader();
 
-  QRectF boundingRect() const override;
   void paint(
       QPainter* painter) override;
 signals:

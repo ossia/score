@@ -9,7 +9,7 @@
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
 #include <Explorer/Commands/UpdateAddresses.hpp>
-
+#include <ossia-qt/js_utilities.hpp>
 #include <QAbstractProxyModel>
 #include <QAction>
 #include <QBoxLayout>
@@ -67,6 +67,7 @@
 #include <iscore/widgets/SignalUtils.hpp>
 
 #include <QLabel>
+#include <QListWidget>
 namespace Explorer
 {
 
@@ -84,13 +85,13 @@ public:
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    m_addressArea = new QLabel{tr("New addresses: \n\n"), this};
-    lay->addWidget(m_addressArea);
+    m_list = new QListWidget{this};
+    lay->addWidget(m_list);
     lay->addWidget(buttonBox);
 
     con(dev, &Device::DeviceInterface::pathAdded, this,
         [=](const State::Address& a) {
-          m_addressArea->setText(m_addressArea->text() + "\n" + a.toString());
+          m_list->addItem(a.toString());
         });
 
     m_dev.setLearning(true);
@@ -102,7 +103,7 @@ public:
   }
 
   Device::DeviceInterface& m_dev;
-  QLabel* m_addressArea{};
+  QListWidget* m_list{};
 };
 
 DeviceExplorerWidget::DeviceExplorerWidget(
@@ -683,6 +684,7 @@ void DeviceExplorerWidget::addDevice()
         return;
       }
     }
+    ossia::net::sanitize_name(deviceSettings.name);
 
     auto path = m_deviceDialog->getPath();
     blockGUI(true);

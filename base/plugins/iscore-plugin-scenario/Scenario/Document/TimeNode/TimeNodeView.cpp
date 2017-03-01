@@ -37,6 +37,8 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter, QQuickPaintedItem* pare
   f.setPointSize(10);
   m_text->setFont(f);
   m_text->setColor(m_color);
+
+  setWidth(6);
 }
 
 TimeNodeView::~TimeNodeView()
@@ -52,7 +54,7 @@ void TimeNodeView::paint(
 
   auto& skin = ScenarioStyle::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
-  QColor pen_color;
+  QBrush pen_color;
   if (isSelected())
   {
     pen_color = skin.TimenodeSelected.getColor();
@@ -62,7 +64,7 @@ void TimeNodeView::paint(
     pen_color = m_color.getColor();
   }
 
-  skin.TimenodePen.setColor(pen_color);
+  skin.TimenodePen.setBrush(pen_color);
   painter->setPen(skin.TimenodePen);
 
   painter->drawLine(QPointF(0, 0), QPointF(0, height));
@@ -75,15 +77,15 @@ void TimeNodeView::paint(
 
 void TimeNodeView::setExtent(const VerticalExtent& extent)
 {
-  //prepareGeometryChange();
   m_extent = extent;
+  setHeight(m_extent.bottom() - m_extent.top());
   this->update();
 }
 
 void TimeNodeView::setExtent(VerticalExtent&& extent)
 {
-  //prepareGeometryChange();
   m_extent = std::move(extent);
+  setHeight(m_extent.bottom() - m_extent.top());
   this->update();
 }
 

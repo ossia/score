@@ -45,9 +45,9 @@ MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
       pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
   connect(
       m_browser, &ZeroconfBrowser::sessionSelected, this,
-      [=](QString ip, int port, QMap<QString, QByteArray> txt) {
-        m_deviceNameEdit->setText(txt["LocalName"]);
-        m_portInputSBox->setValue(txt["LocalPort"].toInt());
+      [=](QString name, QString ip, int port, QMap<QString, QByteArray> txt) {
+        m_deviceNameEdit->setText(name);
+        m_portInputSBox->setValue(port);
         m_portOutputSBox->setValue(txt["RemotePort"].toInt());
         m_localHostEdit->setText(ip);
       });

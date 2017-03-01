@@ -55,14 +55,9 @@ const Id<SegmentModel>& SegmentView::id() const
 
 void SegmentView::setRect(const QRectF& theRect)
 {
-//  prepareGeometryChange();
-  m_rect = theRect;
+  setWidth(theRect.width());
+  setHeight(theRect.height());
   updatePoints();
-}
-
-QRectF SegmentView::boundingRect() const
-{
-  return m_rect;
 }
 
 void SegmentView::paint(
@@ -112,13 +107,13 @@ void SegmentView::updatePoints()
 
   // Get the length of the segment to scale.
   double len = m_model->end().x() - m_model->start().x();
-  double startx = m_model->start().x() * m_rect.width() / len;
-  double scalex = m_rect.width() / len;
+  double startx = m_model->start().x() * width() / len;
+  double scalex = width() / len;
 
   m_model->updateData(25); // Set the number of required points here.
   const auto& pts = m_model->data();
 
-  const auto rect_height = m_rect.height();
+  const auto rect_height = height();
   // Map to the scene coordinates
   if (!pts.empty())
   {

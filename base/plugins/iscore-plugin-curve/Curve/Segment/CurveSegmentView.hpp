@@ -36,8 +36,6 @@ public:
     return static_type();
   }
 
-  QRectF boundingRect() const override;
-
   QPainterPath shape() const
   {
     return m_strokedShape;
@@ -81,8 +79,6 @@ private:
   void updatePen();
   // Takes a table of points and draws them in a square given by the
   // boundingRect
-  // QQuickPaintedItem interface
-  QRectF m_rect;
 
   const SegmentModel* m_model{};
   const QPen* m_pen{};

@@ -37,12 +37,13 @@ public:
     qreal x = std::min(0., minWidth());
     qreal rectW = infinite() ? defaultWidth() : maxWidth();
     rectW -= x;
-    return {x, -4, rectW, qreal(constraintAndRackHeight())};
+    return {x, -4, rectW, qreal(height())};
   }
 
   void paint(
       QPainter* painter) override;
 
+  void updateSize() final override;
   void enableOverlay(bool b) override;
 
   void setLabelColor(iscore::ColorRef labelColor);
@@ -70,5 +71,9 @@ protected:
 
 private:
   iscore::ColorRef m_bgColor;
+  void updatePaths() final override;
+
+  QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath;
+  double m_dashOffset = 0;
 };
 }

@@ -36,7 +36,7 @@ void ConditionView::paint(
     QPainter* painter)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
-  QPen pen{m_color.getColor()};
+  QPen pen{m_color.getColor().color()};
 
   pen.setWidth(2);
   painter->setPen(pen);

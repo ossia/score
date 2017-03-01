@@ -242,10 +242,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
             if (it != slot_processes.end())
             {
               const SlotProcessData& proc_elt = *it;
-              if (!proc_elt.processes.empty())
-              {
-                focusManager->focus(proc_elt.processes.front().first);
-              }
+              focusManager->focus(proc_elt.presenter);
             }
           }
         }

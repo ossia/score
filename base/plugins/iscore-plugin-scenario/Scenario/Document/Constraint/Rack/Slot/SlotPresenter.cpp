@@ -81,8 +81,7 @@ SlotPresenter::SlotPresenter(
 SlotPresenter::~SlotPresenter()
 {
   for (auto& proc : m_processes)
-    for (auto& sub : proc.processes)
-      delete sub.first;
+    delete proc.presenter;
 }
 
 const Id<SlotModel>& SlotPresenter::id() const
@@ -123,8 +122,7 @@ void SlotPresenter::enable()
   m_view->enable();
   for (auto& elt : m_processes)
   {
-    for (auto& pair : elt.processes)
-      pair.first->parentGeometryChanged();
+    elt.presenter->parentGeometryChanged();
   }
 
   if (auto frontLayer = m_model.frontLayerModel())
@@ -139,11 +137,8 @@ void SlotPresenter::disable()
 
   for (auto& elt : m_processes)
   {
-    for (auto& pair : elt.processes)
-    {
-      pair.first->parentGeometryChanged();
-      pair.first->putBehind();
-    }
+    elt.presenter->parentGeometryChanged();
+    elt.presenter->putBehind();
   }
 
   m_enabled = false;
@@ -162,14 +157,10 @@ void SlotPresenter::on_layerModelRemoved(const Process::LayerModel& layerModel)
     if (to_delete)
     {
       // No need to delete the view, the process presenters already do it.
-
-      for (const auto& pair : elt.processes)
-      {
-        QPointer<Process::LayerView> view_p{pair.second};
-        delete pair.first;
-        if (view_p)
-          deleteGraphicsItem(pair.second);
-      }
+      QPointer<Process::LayerView> view_p{elt.view};
+      delete elt.presenter;
+      if (view_p)
+        deleteGraphicsItem(elt.view);
     }
 
     return to_delete;
@@ -188,17 +179,11 @@ void SlotPresenter::on_layerModelPutToFront(const Process::LayerModel& layer)
   {
     if (elt.model->id() == layer.id())
     {
-      for (SlotProcessData::ProcessPair& pair : elt.processes)
-      {
-        pair.first->putToFront();
-      }
+      elt.presenter->putToFront();
     }
     else
     {
-      for (SlotProcessData::ProcessPair& pair : elt.processes)
-      {
-        pair.first->putBehind();
-      }
+      elt.presenter->putBehind();
     }
   }
 }
@@ -222,10 +207,7 @@ void SlotPresenter::on_zoomRatioChanged(ZoomRatio val)
 
   for (auto& elt : m_processes)
   {
-    for (SlotProcessData::ProcessPair& pair : elt.processes)
-    {
-      pair.first->on_zoomRatioChanged(m_zoomRatio);
-    }
+    elt.presenter->on_zoomRatioChanged(m_zoomRatio);
   }
 
   updateProcessesShape();
@@ -239,24 +221,11 @@ void SlotPresenter::on_layerModelCreated_impl(
   auto factory = m_processList.findDefaultFactory(procKey);
   ISCORE_ASSERT(factory);
 
-  const bool m_looping = false;
-  int numproc
-      = m_looping
-            ? m_view->width()
-                      / proc_vm.processModel().duration().toPixels(m_zoomRatio)
-                  + 1
-            : 1;
-  std::vector<SlotProcessData::ProcessPair> vec;
-  for (int i = 0; i < numproc; i++)
-  {
-    auto proc_view = factory->makeLayerView(proc_vm, m_view);
-    auto proc_pres
-        = factory->makeLayerPresenter(proc_vm, proc_view, m_context, this);
+  auto proc_view = factory->makeLayerView(proc_vm, m_view);
+  auto proc_pres
+      = factory->makeLayerPresenter(proc_vm, proc_view, m_context, this);
 
-    vec.push_back({proc_pres, proc_view});
-  }
-
-  m_processes.push_back(SlotProcessData(&proc_vm, std::move(vec)));
+  m_processes.emplace_back(&proc_vm, proc_pres, proc_view);
 
   auto con_id = con(
       proc_vm.processModel(), &Process::ProcessModel::durationChanged, this,
@@ -286,96 +255,23 @@ void SlotPresenter::on_layerModelCreated_impl(
     on_layerModelPutToFront(proc_vm);
   }
 
-  for (SlotProcessData::ProcessPair& pair : m_processes.back().processes)
-  {
-    pair.first->on_zoomRatioChanged(m_zoomRatio);
-  }
+  proc_pres->on_zoomRatioChanged(m_zoomRatio);
 
   updateProcessesShape();
 }
 
 void SlotPresenter::updateProcesses()
 {
-  for (SlotProcessData& proc : m_processes)
-  {
-    const bool m_looping = false;
-    int numproc
-        = m_looping
-              ? m_view->width()
-                        / proc.model->processModel().duration().toPixels(
-                              m_zoomRatio)
-                    + 1
-              : 1;
-
-    int proc_size = proc.processes.size();
-
-    if (numproc > 0)
-    {
-      if (proc_size < numproc)
-      {
-        auto procKey = proc.model->processModel().concreteKey();
-        auto factory = m_processList.findDefaultFactory(procKey);
-        ISCORE_ASSERT(factory);
-
-        for (int i = proc_size; i < numproc; i++)
-        {
-          auto proc_view = factory->makeLayerView(*proc.model, m_view);
-          auto proc_pres = factory->makeLayerPresenter(
-              *proc.model, proc_view, m_context, this);
-
-          proc.processes.push_back(std::make_pair(proc_pres, proc_view));
-        }
-
-        for (SlotProcessData::ProcessPair& pair : proc.processes)
-        {
-          pair.first->on_zoomRatioChanged(m_zoomRatio);
-        }
-
-        auto frontLayer = m_model.frontLayerModel();
-        if (frontLayer && (frontLayer->id() == proc.model->id()))
-        {
-          on_layerModelPutToFront(*proc.model);
-        }
-      }
-      else if (proc_size == numproc)
-      {
-        // Do nothing
-      }
-      else if (proc_size > numproc)
-      {
-        for (int i = proc_size - 1; i >= numproc; i--)
-        {
-          delete proc.processes[i].first;
-        }
-        proc.processes.resize(numproc);
-      }
-    }
-    else
-    {
-      for (int i = 0; i < proc_size; i++)
-      {
-        delete proc.processes[i].first;
-      }
-      proc.processes.resize(0);
-    }
-  }
-
   updateProcessesShape();
 }
 
 void SlotPresenter::updateProcessShape(const SlotProcessData& data)
 {
-  double pos = 0;
-  for (const SlotProcessData::ProcessPair& pair : data.processes)
-  {
-    pair.first->setHeight(height() - SlotHandle::handleHeight());
+  data.presenter->setHeight(height() - SlotHandle::handleHeight());
 
-    auto width = data.model->processModel().duration().toPixels(m_zoomRatio);
-    pair.first->setWidth(width);
-    pair.second->setPosition(QPointF(pos, 0));
-    pair.first->parentGeometryChanged();
-    pos += width;
-  }
+  auto width = data.model->processModel().duration().toPixels(m_zoomRatio);
+  data.presenter->setWidth(width);
+  data.presenter->parentGeometryChanged();
 }
 
 void SlotPresenter::updateProcessesShape()

@@ -157,9 +157,8 @@ void DisplayedElementsPresenter::showConstraint()
     const auto& slot = *m_constraintPresenter->rack()->getSlots().begin();
     if (!slot.processes().empty())
     {
-      const auto& slot_process = slot.processes().front().processes;
-      if (!slot_process.empty())
-        emit requestFocusedPresenterChange(slot_process.front().first);
+      const auto& slot_process = slot.processes().front();
+      emit requestFocusedPresenterChange(slot_process.presenter);
     }
   }
 
@@ -188,6 +187,8 @@ void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(
   updateLength(t.toPixels(m_model->zoomRatio()));
 }
 
+const double deltaX = 10.;
+const double deltaY = 20.;
 void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
     double size)
 {
@@ -198,17 +199,22 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
                            .toPixels(m_constraintPresenter->zoomRatio()),
                        size});
 
-  m_startEventPresenter->view()->setExtent({0, 1});
-  m_startNodePresenter->view()->setExtent({0, size * .4});
-  m_endEventPresenter->view()->setExtent({0, 1});
-  m_endNodePresenter->view()->setExtent({0, size * .4});
+  m_startEventPresenter->view()->setPosition({deltaX, deltaY});
+  m_startNodePresenter->view()->setPosition({deltaX, deltaY});
+  m_startStatePresenter->view()->setPosition({deltaX, deltaY});
+  m_constraintPresenter->view()->setPosition({deltaX, deltaY});
+
+  m_startEventPresenter->view()->setExtent({0., 0.});
+  m_startNodePresenter->view()->setExtent({0., size});
+  m_endEventPresenter->view()->setExtent({0., 1.});
+  m_endNodePresenter->view()->setExtent({0., size});
 }
 
 void DisplayedElementsPresenter::updateLength(double length)
 {
-  m_endStatePresenter->view()->setPosition({length, 0});
-  m_endEventPresenter->view()->setPosition({length, 0});
-  m_endNodePresenter->view()->setPosition({length, 0});
+  m_endStatePresenter->view()->setPosition({deltaX + length, deltaY});
+  m_endEventPresenter->view()->setPosition({deltaX + length, deltaY});
+  m_endNodePresenter->view()->setPosition({deltaX + length, deltaY});
 }
 
 void DisplayedElementsPresenter::on_constraintExecutionTimer()
