@@ -135,9 +135,13 @@ target_sources(${PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/ZeroConf/ZeroconfBrowser.cpp")
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC ISCORE_ZEROCONF)
-target_sources(${PROJECT_NAME} PRIVATE $<TARGET_OBJECTS:ServusQt>)
+target_sources(${PROJECT_NAME} PRIVATE $<TARGET_OBJECTS:Servus> $<TARGET_OBJECTS:ServusQt>)
 target_include_directories(${PROJECT_NAME} PRIVATE ${OSSIA_3RDPARTY_FOLDER}/Servus)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core)
+
+if(WIN32)
+target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32)
+endif()
 setup_iscore_plugin(iscore_plugin_deviceexplorer)
 setup_iscore_tests(Tests)
 
