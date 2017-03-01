@@ -31,6 +31,7 @@
 #include <QToolButton>
 
 #include <iscore/widgets/SetIcons.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 namespace Scenario
 {
@@ -61,8 +62,8 @@ ProcessTabWidget::ProcessTabWidget(
   addProcButton->setObjectName("addAProcess");
   addProcButton->setAutoRaise(true);
 
-  auto addProcText = new QLabel("Add Process");
-  addProcText->setStyleSheet(QString("text-align : left;"));
+  auto addProcText = new TextLabel(tr("Add Process"));
+  addProcText->setStyleSheet(QStringLiteral("text-align : left;"));
 
   // add new process dialog
   m_addProcess = new AddProcessDialog{m_constraintWidget.processList(), this};

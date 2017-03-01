@@ -4,6 +4,7 @@
 #include <ossia/network/domain/domain.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 #include <QCheckBox>
 
 #include <QDialog>
@@ -138,10 +139,10 @@ public:
 
     m_minCB = new QCheckBox{this};
     m_maxCB = new QCheckBox{this};
-    auto min_l = new QLabel{tr("Min"), this};
+    auto min_l = new TextLabel{tr("Min"), this};
     min_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     m_min = new iscore::SpinBox<T>{this};
-    auto max_l = new QLabel{tr("Max"), this};
+    auto max_l = new TextLabel{tr("Max"), this};
     max_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     m_max = new iscore::SpinBox<T>{this};
     lay->addWidget(min_l);

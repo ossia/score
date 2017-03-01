@@ -20,6 +20,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #include <QMenu>
 #include <algorithm>
@@ -120,12 +121,12 @@ void StateInspectorWidget::updateDisplayedValues()
   auto procLay = new QVBoxLayout;
   {
     auto addProcButton = new QPushButton;
-    addProcButton->setText("+");
+    addProcButton->setText(QStringLiteral("+"));
     addProcButton->setObjectName("addAProcess");
     procLay->addWidget(addProcButton);
 
-    auto addProcText = new QLabel(tr("Add Process"));
-    addProcText->setStyleSheet(QString("text-align : left;"));
+    auto addProcText = new TextLabel(tr("Add Process"));
+    addProcText->setStyleSheet(QStringLiteral("text-align : left;"));
     procLay->addWidget(addProcText);
 
     // add new process dialog

@@ -58,7 +58,7 @@ void JSWidgetBase::init(Widg* self, T& model)
   con(model, &T::scriptOk,
       self, [=] (){
     m_edit->clearError();
-    m_errorLabel->setText("");
+    m_errorLabel->clear();
     m_errorLabel->setVisible(false);
   });
   con(model, &T::scriptChanged,

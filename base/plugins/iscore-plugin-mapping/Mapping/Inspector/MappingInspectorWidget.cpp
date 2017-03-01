@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #include <QPushButton>
 #include <QSpinBox>
@@ -50,7 +51,7 @@ InspectorWidget::InspectorWidget(
     vlay->setSpacing(0);
     vlay->setContentsMargins(0, 0, 0, 0);
 
-    vlay->addWidget(new QLabel{tr("Source")});
+    vlay->addWidget(new TextLabel{tr("Source")});
 
     m_sourceLineEdit = new AddressAccessorEditWidget{explorer, this};
 
@@ -101,7 +102,7 @@ InspectorWidget::InspectorWidget(
     vlay->setSpacing(0);
     vlay->setContentsMargins(0, 0, 0, 0);
 
-    vlay->addWidget(new QLabel{tr("Target")});
+    vlay->addWidget(new TextLabel{tr("Target")});
 
     m_targetLineEdit = new AddressAccessorEditWidget{explorer, this};
 

@@ -6,6 +6,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
@@ -25,13 +26,13 @@ EventSummaryWidget::EventSummaryWidget(
   auto eventBtn
       = SelectionButton::make("", &object, *m_selectionDispatcher, this);
 
-  mainLay->addWidget(new QLabel{object.metadata().getName()}, 0, 0, 1, 3);
-  mainLay->addWidget(new QLabel{object.date().toString()}, 0, 3, 1, 3);
+  mainLay->addWidget(new TextLabel{object.metadata().getName()}, 0, 0, 1, 3);
+  mainLay->addWidget(new TextLabel{object.date().toString()}, 0, 3, 1, 3);
   mainLay->addWidget(eventBtn, 0, 6, 1, 1);
 
   if (!object.condition().toString().isEmpty())
   {
-    auto cond = new QLabel{object.condition().toString()};
+    auto cond = new TextLabel{object.condition().toString()};
     cond->setWordWrap(true);
     mainLay->addWidget(cond, 1, 1, 1, 6);
   }

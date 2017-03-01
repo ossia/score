@@ -7,6 +7,7 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QVBoxLayout>
+#include <iscore/widgets/TextLabel.hpp>
 
 class QWidget;
 
@@ -18,7 +19,7 @@ LocalProtocolSettingsWidget::LocalProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
   auto lay = new QFormLayout;
-  QLabel* deviceNameLabel = new QLabel(tr("Local device"), this);
+  QLabel* deviceNameLabel = new TextLabel(tr("Local device"), this);
   lay->addWidget(deviceNameLabel);
   m_remoteNameEdit = new QLineEdit;
   m_localHostEdit = new QLineEdit;

@@ -3,6 +3,7 @@
 #include <iscore/tools/QMapHelper.hpp>
 #include <iscore/widgets/ClearLayout.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #include <QAction>
 #include <QFormLayout>
@@ -69,7 +70,7 @@ QVariantMap ExtendedMetadataWidget::currentMap() const
 std::pair<QLabel*, QLineEdit*>
 ExtendedMetadataWidget::makeRow(const QString& l, const QString& r, int row)
 {
-  auto left = new QLabel{l};
+  auto left = new TextLabel{l};
   left->setContextMenuPolicy(Qt::ActionsContextMenu);
   auto remove_act = new QAction{tr("Remove"), left};
   connect(

@@ -69,7 +69,8 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     , TimeRuler{&s.Base1}
     , LocalTimeRuler{&s.Gray}
 {
-  initPens();
+  update();
+  QObject::connect(&s, &iscore::Skin::changed, [=] { this->update(); });
 }
 
 void ScenarioStyle::setConstraintWidth(double w)
@@ -88,10 +89,10 @@ ScenarioStyle& ScenarioStyle::instance()
 
 ScenarioStyle::ScenarioStyle() noexcept
 {
-  initPens();
+  update();
 }
 
-void ScenarioStyle::initPens()
+void ScenarioStyle::update()
 {
   ConstraintSolidPen = QPen{QBrush{Qt::black}, 3, Qt::SolidLine, Qt::SquareCap,
                             Qt::RoundJoin};
@@ -120,4 +121,9 @@ void ScenarioStyle::initPens()
   StateBrush = QBrush{Qt::black};
   EventPen = QPen{Qt::black, 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   EventBrush = QBrush{Qt::black};
+
+  TimeRulerLargePen = QPen{TimeRuler.getColor(), 2, Qt::SolidLine};
+  TimeRulerLargePen.setCosmetic(true);
+  TimeRulerSmallPen = QPen{TimeRuler.getColor(), 1, Qt::SolidLine};
+  TimeRulerSmallPen.setCosmetic(true);
 }

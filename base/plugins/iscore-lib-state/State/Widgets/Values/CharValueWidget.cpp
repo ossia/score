@@ -3,6 +3,7 @@
 #include <QLineEdit>
 #include <QString>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #include "CharValueWidget.hpp"
 #include <QDialogButtonBox>
@@ -118,12 +119,12 @@ CharDomainWidget::CharDomainWidget(QWidget* parent) : QWidget{parent}
   auto lay = new iscore::MarginLess<QHBoxLayout>{this};
   this->setLayout(lay);
 
-  auto min_l = new QLabel{tr("Min"), this};
+  auto min_l = new TextLabel{tr("Min"), this};
   min_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   m_min = new QLineEdit{this};
   m_min->setMaximumWidth(20);
   m_min->setMaxLength(1);
-  auto max_l = new QLabel{tr("Max"), this};
+  auto max_l = new TextLabel{tr("Max"), this};
   max_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
   m_max = new QLineEdit{this};
   m_max->setMaximumWidth(20);

@@ -1,5 +1,6 @@
 #pragma once
 #include <QGraphicsItem>
+#include <QStaticText>
 #include <QString>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 

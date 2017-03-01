@@ -25,6 +25,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/widgets/Separator.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 #include <utility>
 
 #include "ConstraintInspectorWidget.hpp"
@@ -86,7 +87,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     auto lay = new iscore::MarginLess<QVBoxLayout>{speedWidg};
 
     // Label
-    auto speedLab = new QLabel{
+    auto speedLab = new TextLabel{
         "Speed x" + QString::number(m_model.duration.executionSpeed())};
     lay->addWidget(speedLab);
 
@@ -112,7 +113,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
       pb->setMinimumWidth(35);
       pb->setMaximumWidth(35);
       pb->setContentsMargins(0, 0, 0, 0);
-      pb->setStyleSheet(" QPushButton { margin: 0px; padding: 0px; }");
+      pb->setStyleSheet(QStringLiteral("QPushButton { margin: 0px; padding: 0px; }"));
 
       connect(pb, &QPushButton::clicked, this, [=] { setSpeedFun(factor); });
       speedLay->addWidget(pb, 1, btn_col++, 1, 1);
