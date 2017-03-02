@@ -60,3 +60,6 @@ mkdir qt5-build
   make -j$NPROC
   make install -j$NPROC
 )
+cd /
+rm -rf /image
+
