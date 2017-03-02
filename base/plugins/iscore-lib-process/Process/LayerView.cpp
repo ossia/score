@@ -12,6 +12,7 @@ LayerView::~LayerView() = default;
 LayerView::LayerView(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
+  this->setFlag(ItemClipsChildrenToShape, true);
 }
 
 QRectF LayerView::boundingRect() const

@@ -23,11 +23,11 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   m_unfoldBtn->setAutoRaise(true);
 
   m_buttonTitle = new QPushButton{title};
-  m_buttonTitle->setObjectName("ButtonTitle");
+  m_buttonTitle->setObjectName(QStringLiteral("ButtonTitle"));
 
   m_buttonTitle->setFlat(true);
-  m_buttonTitle->setText("section name");
-  m_buttonTitle->setStyleSheet("text-align: left;");
+  m_buttonTitle->setText(QStringLiteral("section name"));
+  m_buttonTitle->setStyleSheet(QStringLiteral("text-align: left;"));
 
   m_sectionTitle = new QLineEdit{tr("Section Name")};
   m_sectionTitle->setObjectName("SectionTitle");
@@ -38,6 +38,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
     m_buttonTitle->hide();
   else
     m_sectionTitle->hide();
+  m_sectionTitle->setReadOnly(true);
 
   m_menuBtn = new QPushButton{"#", title};
   m_menuBtn->setObjectName("SettingsMenu");
@@ -73,7 +74,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   // INIT
   m_isUnfolded = true;
   m_unfoldBtn->setArrowType(Qt::DownArrow);
-  renameSection("Section Name");
+  renameSection(QStringLiteral("Section Name"));
 }
 
 InspectorSectionWidget::InspectorSectionWidget(

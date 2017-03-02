@@ -56,7 +56,7 @@ void WSProtocolSettingsWidget::setDefaults()
 
   m_deviceNameEdit->setText("newDevice");
   m_codeEdit->setPlainText("");
-  m_addressNameEdit->setText("");
+  m_addressNameEdit->clear();
 }
 
 Device::DeviceSettings WSProtocolSettingsWidget::getSettings() const

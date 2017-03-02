@@ -38,18 +38,20 @@ void PanelDelegate::on_modelChanged(
   m_stack = nullptr;
   delete m_inspectorPanel;
   m_inspectorPanel = nullptr;
-
   if (newm)
   {
+    auto lay = static_cast<iscore::MarginLess<QVBoxLayout>*>(m_widget->layout());
+
     auto& fact
         = newm->app.interfaces<Inspector::InspectorWidgetList>();
     SelectionStack& stack = newm->selectionStack;
     m_stack = new SelectionStackWidget{stack, m_widget};
     m_inspectorPanel = new InspectorPanelWidget{fact, stack, m_widget};
 
-    m_widget->layout()->addWidget(m_stack);
-    m_widget->layout()->addWidget(m_inspectorPanel);
-    m_widget->layout()->setSizeConstraint(QLayout::SetDefaultConstraint);
+
+    m_inspectorPanel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+    lay->addWidget(m_stack);
+    lay->addWidget(m_inspectorPanel);
 
     setNewSelection(stack.currentSelection());
   }

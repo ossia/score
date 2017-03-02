@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/panel/PanelDelegate.hpp>
-
+class QSpacerItem;
 namespace InspectorPanel
 {
 class SelectionStackWidget;

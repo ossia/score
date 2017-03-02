@@ -8,13 +8,13 @@
 
 namespace Scenario
 {
-LocalTimeRulerView::LocalTimeRulerView() : AbstractTimeRulerView()
+LocalTimeRulerView::LocalTimeRulerView(QGraphicsView* v)
+  : AbstractTimeRulerView(v)
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   m_graduationHeight = 10;
   m_textPosition = 1.75 * m_graduationHeight;
   m_height = 3 * m_graduationHeight;
-  m_color = ScenarioStyle::instance().LocalTimeRuler;
   m_timeFormat = "ss''''z";
   setZValue(1);
 }

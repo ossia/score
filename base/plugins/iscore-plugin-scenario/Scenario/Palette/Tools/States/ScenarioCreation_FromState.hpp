@@ -189,8 +189,8 @@ public:
         {
           auto sequence = settings.sequence();
           auto magnetism_distance
-              = std::abs(this->currentPoint.y - this->m_clickedPoint.y)
-                < 0.005;
+              = (std::abs(this->currentPoint.y - this->m_clickedPoint.y)
+                < 0.01);
           if (!sequence && magnetism_distance)
           {
             settings.setSequence(true);

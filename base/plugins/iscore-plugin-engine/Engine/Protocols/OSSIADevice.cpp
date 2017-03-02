@@ -43,12 +43,14 @@ void OSSIADevice::updateSettings(const Device::DeviceSettings& newsettings)
     Device::Node iscore_device{settings(), nullptr};
 
     // Recurse on the children
-    const auto& ossia_children = dev->getRootNode().children();
-    iscore_device.reserve(ossia_children.size());
-    for (const auto& node : ossia_children)
     {
-      iscore_device.push_back(
-            Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
+      const auto& ossia_children = dev->getRootNode().children();
+      iscore_device.reserve(ossia_children.size());
+      for (const auto& node : ossia_children)
+      {
+        iscore_device.push_back(
+              Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
+      }
     }
 
     // We change the settings safely
@@ -227,6 +229,7 @@ void OSSIADevice::enableCallbacks()
       dev->onAttributeModified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
             this);
     }
+    m_callbacksEnabled = true;
   }
 }
 
@@ -245,6 +248,7 @@ void OSSIADevice::disableCallbacks()
       dev->onAttributeModified.disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
             this);
     }
+    m_callbacksEnabled = false;
   }
 }
 

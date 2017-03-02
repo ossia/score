@@ -44,11 +44,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessModel
   Q_OBJECT
 
   ISCORE_SERIALIZE_FRIENDS
-
-  Q_PROPERTY(
-      int32_t priority READ priority WRITE setPriority NOTIFY priorityChanged)
-  Q_PROPERTY(bool priorityOverride READ priorityOverride WRITE
-                 setPriorityOverride NOTIFY priorityOverrideChanged)
   friend class Process::LayerFactory; // to register layers
 
 public:
@@ -67,10 +62,7 @@ public:
   clone(const Id<Process::ProcessModel>& newId, QObject* newParent) const = 0;
 
   // A user-friendly text to show to the users
-  virtual QString prettyName() const
-  {
-    return metadata().getName();
-  }
+  virtual QString prettyName() const;
 
   // Do a copy.
   std::vector<LayerModel*> layers() const;
@@ -79,19 +71,9 @@ public:
   /// Duration
   void setParentDuration(ExpandMode mode, const TimeVal& t);
 
-  void setUseParentDuration(bool b)
-  {
-    if (m_useParentDuration != b)
-    {
-      m_useParentDuration = b;
-      emit useParentDurationChanged(b);
-    }
-  }
+  void setUseParentDuration(bool b);
 
-  bool useParentDuration() const
-  {
-    return m_useParentDuration;
-  }
+  bool useParentDuration() const;
 
   // TODO might not be useful... put in protected ?
   // Constructor needs it, too.
@@ -99,52 +81,24 @@ public:
   const TimeVal& duration() const;
 
   /// Execution
-  virtual void startExecution()
-  {
-  }
-  virtual void stopExecution()
-  {
-  }
-  virtual void reset()
-  {
-  }
+  virtual void startExecution();
+  virtual void stopExecution();
+  virtual void reset();
 
   /// States. The process has ownership.
-  virtual ProcessStateDataInterface* startStateData() const
-  {
-    return nullptr;
-  }
-  virtual ProcessStateDataInterface* endStateData() const
-  {
-    return nullptr;
-  }
+  virtual ProcessStateDataInterface* startStateData() const;
+  virtual ProcessStateDataInterface* endStateData() const;
 
   /// Selection
-  virtual Selection selectableChildren() const
-  {
-    return {};
-  }
-  virtual Selection selectedChildren() const
-  {
-    return {};
-  }
-  virtual void setSelection(const Selection& s) const
-  {
-  }
-
-  int32_t priority() const;
-  void setPriority(int32_t);
-
-  bool priorityOverride() const;
-  void setPriorityOverride(bool);
+  virtual Selection selectableChildren() const;
+  virtual Selection selectedChildren() const;
+  virtual void setSelection(const Selection& s) const;
 
 signals:
   // True if the execution is running.
   void execution(bool);
   void durationChanged(const TimeVal&);
   void useParentDurationChanged(bool);
-  void priorityChanged(int32_t);
-  void priorityOverrideChanged(bool);
 
 protected:
   // Clone
@@ -159,22 +113,13 @@ protected:
   //   setDurationWithScale(2); setDurationWithScale(3);
   // yields the same result as :
   //   setDurationWithScale(3); setDurationWithScale(2);
-  virtual void setDurationAndScale(const TimeVal& newDuration)
-  {
-    setDuration(newDuration);
-  }
+  virtual void setDurationAndScale(const TimeVal& newDuration);
 
   // Does nothing if newDuration < currentDuration
-  virtual void setDurationAndGrow(const TimeVal& newDuration)
-  {
-    setDuration(newDuration);
-  }
+  virtual void setDurationAndGrow(const TimeVal& newDuration);
 
   // Does nothing if newDuration > currentDuration
-  virtual void setDurationAndShrink(const TimeVal& newDuration)
-  {
-    setDuration(newDuration);
-  }
+  virtual void setDurationAndShrink(const TimeVal& newDuration);
 
 private:
   void addLayer(LayerModel* m);
@@ -185,10 +130,8 @@ private:
   // in a rack.
   std::vector<LayerModel*> m_layers;
   TimeVal m_duration;
-  bool m_useParentDuration{true};
 
-  int32_t m_priority = 0;
-  bool m_priorityOverride = 0;
+  bool m_useParentDuration{true};
 };
 
 ISCORE_LIB_PROCESS_EXPORT ProcessModel* parentProcess(QObject* obj);

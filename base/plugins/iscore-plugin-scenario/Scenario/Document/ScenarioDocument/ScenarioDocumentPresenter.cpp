@@ -88,9 +88,9 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       &ScenarioDocumentPresenter::on_zoomSliderChanged);
 
   con(iscore::GUIAppContext().mainWindow, SIGNAL(sizeChanged(QSize)),
-      this, SLOT(on_viewSizeChanged(QSize)), Qt::QueuedConnection);
-  //con(view().view(), &ProcessGraphicsView::sizeChanged, this,
-  //    &ScenarioDocumentPresenter::on_viewSizeChanged);
+      this, SLOT(on_windowSizeChanged(QSize)), Qt::QueuedConnection);
+  con(view().view(), &ProcessGraphicsView::sizeChanged, this,
+      &ScenarioDocumentPresenter::on_viewSizeChanged);
   con(view().view(), &ProcessGraphicsView::zoom, this,
       &ScenarioDocumentPresenter::on_zoomOnWheelEvent);
   con(view(), &ScenarioDocumentView::horizontalPositionChanged, this,
@@ -280,22 +280,26 @@ void ScenarioDocumentPresenter::on_timeRulerScrollEvent(
   view().view().scrollHorizontal(previous.x() - current.x());
 }
 
-void ScenarioDocumentPresenter::on_viewSizeChanged(QSize)
+void ScenarioDocumentPresenter::on_windowSizeChanged(QSize)
 {
-  QTimer::singleShot(0, this, [&] {
+  QTimer::singleShot(25, this, [&] {
   auto& gv = view().view();
   auto zoom = ZoomPolicy::sliderPosToZoomRatio(
       view().zoomSlider()->value(),
       displayedConstraint().duration.defaultDuration().msec(),
       view().viewWidth());
 
-  m_mainTimeRuler->view()->setWidth(gv.width());
   updateZoom(zoom, {0, 0});
 
   // update the center of view
   displayedConstraint().fullView()->setVisibleRect(
       gv.mapToScene(gv.viewport()->rect()).boundingRect());
   });
+}
+
+void ScenarioDocumentPresenter::on_viewSizeChanged(QSize s)
+{
+  m_mainTimeRuler->view()->setWidth(s.width());
 }
 
 void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
@@ -361,6 +365,7 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 
   QRectF new_visible_scene_rect = gv.mapToScene(vp.rect()).boundingRect();
 
+  m_mainTimeRuler->view()->setWidth(gv.width());
   // TODO should call displayedElementsPresenter instead??
   displayedConstraint().fullView()->setZoom(view().zoomSlider()->value());
   displayedConstraint().fullView()->setVisibleRect(new_visible_scene_rect);

@@ -3,7 +3,7 @@
 #include <ossia/editor/scenario/time_value.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <QJSEngine>
+#include <QQmlEngine>
 #include <QJSValue>
 #include <QString>
 #include <iscore/document/DocumentContext.hpp>
@@ -43,7 +43,8 @@ public:
 
 private:
   const Device::DeviceList& m_devices;
-  QJSEngine m_engine;
+  QQmlEngine m_engine;
+  QObject* m_object{};
   QJSValue m_tickFun;
 };
 

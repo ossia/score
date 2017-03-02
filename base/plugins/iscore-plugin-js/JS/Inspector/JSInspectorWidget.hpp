@@ -8,6 +8,7 @@
 class JSEdit;
 class QWidget;
 class QLabel;
+class QTableWidget;
 namespace iscore
 {
 class Document;
@@ -26,6 +27,7 @@ struct JSWidgetBase
 
   JSEdit* m_edit{};
   QLabel* m_errorLabel{};
+  QTableWidget* m_tableWidget{};
   QString m_script;
 
   CommandDispatcher<> m_dispatcher;

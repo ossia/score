@@ -29,21 +29,22 @@ class SlotModel;
 class SlotView;
 struct SlotProcessData
 {
-  using ProcessPair = std::pair<Process::LayerPresenter*, Process::LayerView*>;
-
   SlotProcessData() = default;
   SlotProcessData(const SlotProcessData&) = default;
   SlotProcessData(SlotProcessData&&) = default;
   SlotProcessData& operator=(const SlotProcessData&) = default;
   SlotProcessData& operator=(SlotProcessData&&) = default;
   SlotProcessData(
-      const Process::LayerModel* m, std::vector<ProcessPair>&& procs)
-      : model(m), processes(std::move(procs))
+      const Process::LayerModel* m,
+      Process::LayerPresenter* p,
+      Process::LayerView* v)
+      : model(m), presenter(p), view(v)
   {
   }
 
   const Process::LayerModel* model{};
-  std::vector<ProcessPair> processes;
+  Process::LayerPresenter* presenter{};
+  Process::LayerView* view{};
 };
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final : public QObject,
@@ -106,9 +107,6 @@ private:
   std::vector<SlotProcessData> m_processes;
 
   const Process::ProcessPresenterContext& m_context;
-
-  // Maybe move this out of the state of the presenter ?
-  int m_currentResizingValue{}; // Used when the m_slotView is being resized.
 
   ZoomRatio m_zoomRatio{};
 

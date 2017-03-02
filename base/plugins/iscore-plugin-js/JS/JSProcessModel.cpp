@@ -2,7 +2,8 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <algorithm>
 #include <core/document/Document.hpp>
-#include <QJSEngine>
+#include <QQmlEngine>
+#include <QQmlComponent>
 #include <vector>
 
 #include "JS/JSProcessMetadata.hpp"
@@ -59,17 +60,47 @@ ProcessModel::~ProcessModel()
 
 void ProcessModel::setScript(const QString& script)
 {
+  static QQmlEngine test_engine;
   m_script = script;
 
-  QJSEngine engine;
-  auto f = engine.evaluate(script);
-  if(f.isError())
+  if(script.startsWith("import"))
   {
-    emit scriptError(f.property("lineNumber").toInt(), f.toString());
+    QQmlComponent c{&test_engine};
+    c.setData(script.toUtf8(), QUrl());
+    const auto& errs = c.errors();
+    if(!errs.empty())
+    {
+      const auto& err = errs.first();
+      emit scriptError(err.line(), err.toString());
+    }
+    else
+    {
+      m_properties.clear();
+      auto obj = c.create();
+      const auto mobj = obj->metaObject();
+      int i = mobj->propertyOffset();
+      const int N = mobj->propertyCount();
+      m_properties.reserve(N - i);
+      for(; i < N; i++)
+      {
+        auto prop = obj->metaObject()->property(i);
+        m_properties.emplace_back(prop.name(), prop.read(obj));
+      }
+
+      emit scriptOk();
+    }
   }
   else
   {
-    emit scriptOk();
+    auto f = test_engine.evaluate(script);
+    if(f.isError())
+    {
+      emit scriptError(f.property("lineNumber").toInt(), f.toString());
+    }
+    else
+    {
+      emit scriptOk();
+    }
   }
 
   emit scriptChanged(script);
