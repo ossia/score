@@ -35,6 +35,7 @@ public:
     return m_script;
   }
 
+  const std::vector<std::pair<QByteArray, QVariant>>& customProperties() const { return m_properties; }
 signals:
   void scriptError(int, const QString&);
   void scriptOk();
@@ -47,5 +48,6 @@ private:
   }
 
   QString m_script;
+  std::vector<std::pair<QByteArray, QVariant>> m_properties;
 };
 }

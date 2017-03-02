@@ -9,7 +9,7 @@ namespace Interpolation
 View::View(QGraphicsItem* parent) : Process::LayerView{parent}
 {
   setZValue(1);
-  setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+  setFlags(ItemIsSelectable | ItemIsFocusable);
   setAcceptDrops(true);
   auto f = iscore::Skin::instance().SansFont;
   f.setPointSize(fontSize);

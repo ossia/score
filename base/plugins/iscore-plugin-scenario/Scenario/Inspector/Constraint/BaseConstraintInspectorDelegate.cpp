@@ -15,6 +15,7 @@
 #include <QObject>
 #include <QtGlobal>
 #include <iscore/application/ApplicationContext.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #include <QString>
 
@@ -54,7 +55,7 @@ void BaseConstraintInspectorDelegate::addWidgets_pre(
       ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       tn, parent};
   m_triggerLine->HideRmButton();
-  widgets.push_back(new QLabel(QObject::tr("Trigger")));
+  widgets.push_back(new TextLabel(QObject::tr("Trigger")));
   widgets.push_back(m_triggerLine);
 }
 

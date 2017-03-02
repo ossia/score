@@ -21,7 +21,6 @@ SlotView::SlotView(const SlotPresenter& pres, QGraphicsItem* parent)
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setCursor(QCursor(Qt::ArrowCursor));
-  this->setFlag(ItemClipsChildrenToShape, true);
   this->setZValue(1);
   m_handle->setPos(
       0, this->boundingRect().height() - SlotHandle::handleHeight());

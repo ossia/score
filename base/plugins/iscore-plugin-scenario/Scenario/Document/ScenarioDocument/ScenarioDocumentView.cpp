@@ -35,6 +35,7 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #if defined(ISCORE_OPENGL)
 #include <QOpenGLWidget>
@@ -54,7 +55,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_view{new ProcessGraphicsView{m_scene, m_widget}}
     , m_baseObject{new BaseGraphicsObject}
     , m_timeRulersView{new TimeRulerGraphicsView{m_scene}}
-    , m_timeRuler{new TimeRulerView}
+    , m_timeRuler{new TimeRulerView{m_timeRulersView}}
 {
 #if defined(ISCORE_WEBSOCKETS)
   auto wsview = new WebSocketView(m_scene, 9998, this);
@@ -83,7 +84,7 @@ ScenarioDocumentView::ScenarioDocumentView(
       m_zoomSlider, &iscore::DoubleSlider::valueChanged, this,
       &ScenarioDocumentView::horizontalZoomChanged);
 
-  QLabel* zoomLabel = new QLabel{tr("Zoom")};
+  QLabel* zoomLabel = new TextLabel{tr("Zoom")};
   zoomLabel->setObjectName("ScenarioZoomLabel");
   transportLayout->addWidget(zoomLabel, 0, 1);
   transportLayout->addWidget(m_zoomSlider, 0, 2);

@@ -9,6 +9,8 @@
 #include <State/Message.hpp>
 #include <iscore/tools/Todo.hpp>
 
+#include <iscore/widgets/TextLabel.hpp>
+
 class QWidget;
 namespace iscore
 {
@@ -23,7 +25,7 @@ StateInspectorWidget::StateInspectorWidget(
     QWidget* parent)
     : InspectorWidgetBase{object, doc, parent}
     , m_state{object}
-    , m_label{new QLabel}
+    , m_label{new TextLabel}
 {
   std::list<QWidget*> vec;
   vec.push_back(m_label);

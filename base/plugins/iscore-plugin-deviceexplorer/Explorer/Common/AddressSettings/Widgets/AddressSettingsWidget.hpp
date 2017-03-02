@@ -3,6 +3,7 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <QLabel>
 #include <QWidget>
+#include <iscore/widgets/TextLabel.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
 
 class QComboBox;
@@ -51,7 +52,7 @@ private:
 
 inline QLabel* makeLabel(QString text, QWidget* parent)
 {
-  auto label = new QLabel{std::move(text), parent};
+  auto label = new TextLabel{std::move(text), parent};
   label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   return label;
 }

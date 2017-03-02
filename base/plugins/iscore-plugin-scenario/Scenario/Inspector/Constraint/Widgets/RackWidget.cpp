@@ -11,6 +11,7 @@
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Inspector/Constraint/Widgets/ProcessViewTabWidget.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #include <QString>
 #include <QStringList>
@@ -39,7 +40,7 @@ RackWidget::RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent)
 
   // Button
   auto addButton = new QToolButton{this};
-  addButton->setText("+");
+  addButton->setText(QStringLiteral("+"));
   auto addIcon = makeIcons(
       ":/icons/condition_add_on.png", ":/icons/condition_add_off.png");
   addButton->setIcon(addIcon);
@@ -48,8 +49,8 @@ RackWidget::RackWidget(ProcessViewTabWidget* parentTabWidget, QWidget* parent)
     parentTabWidget->createRack();
   });
   // Text
-  auto addText = new QLabel{"Add Rack", this};
-  addText->setStyleSheet(QString{"text-align : left;"});
+  auto addText = new TextLabel{tr("Add Rack"), this};
+  addText->setStyleSheet(QStringLiteral("text-align : left;"));
 
   // For each view model, a rack chooser.
   viewModelsChanged();
@@ -70,11 +71,12 @@ void RackWidget::viewModelsChanged()
   auto lay = new iscore::MarginLess<QGridLayout>{m_comboBoxesWidget};
   int i = 0;
 
-  auto rackUsed = new QLabel{"Rack Used"};
+  auto rackUsed = new TextLabel{tr("Rack Used")};
   rackUsed->setAlignment(Qt::AlignHCenter);
 
   lay->addWidget(new QWidget{m_comboBoxesWidget}, i, 0);
-  lay->addWidget(new QLabel{"View Model"}, i, 1);
+  auto lab = new TextLabel{tr("View Model")};
+  lay->addWidget(lab, i, 1);
   lay->addWidget(rackUsed, i, 2);
   lay->addWidget(new QWidget{m_comboBoxesWidget}, i, 3);
   i++;
@@ -84,14 +86,14 @@ void RackWidget::viewModelsChanged()
     QLabel* label;
     if (dynamic_cast<FullViewConstraintViewModel*>(vm))
     {
-      label = new QLabel{tr("Full view"), m_comboBoxesWidget};
+      label = new TextLabel{tr("Full view"), m_comboBoxesWidget};
     }
     else
     {
-      //            label = new QLabel{QString::number(vm->id().val().get()),
+      //            label = new TextLabel{QString::number(vm->id().val().get()),
       //            m_comboBoxesWidget};
       // TODO until we have others viewmodel, display a name instead of Id
-      label = new QLabel{tr("Reduce view"), m_comboBoxesWidget};
+      label = new TextLabel{tr("Reduce view"), m_comboBoxesWidget};
     }
     auto rack = new QComboBox{m_comboBoxesWidget};
     updateComboBox(rack, vm);

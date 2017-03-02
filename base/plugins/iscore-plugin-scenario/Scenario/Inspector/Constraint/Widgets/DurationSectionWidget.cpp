@@ -19,6 +19,7 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 #include <qnamespace.h>
 
 #include "DurationSectionWidget.hpp"
@@ -80,21 +81,22 @@ public:
         &EditionGrid::on_maxFiniteToggled);
 
     // DISPLAY
-    m_minNull = new QLabel{tr("Null")};
+    m_minNull = new TextLabel{tr("Null")};
     m_minNull->hide();
-    m_maxInfinity = new QLabel{tr("Infinity")};
+    m_maxInfinity = new TextLabel{tr("Infinity")};
     m_maxInfinity->hide();
 
-    editableGrid->addWidget(new QLabel(tr("Default Duration")), 0, 1, 1, 1);
+    auto dur = new TextLabel(tr("Default Duration"));
+    editableGrid->addWidget(dur, 0, 1, 1, 1);
     editableGrid->addWidget(m_valueSpin, 0, 2, 1, 1);
 
-    m_minTitle = new QLabel(tr("Min Duration"));
+    m_minTitle = new TextLabel(tr("Min Duration"));
     editableGrid->addWidget(m_minNonNullBox, 1, 0, 1, 1);
     editableGrid->addWidget(m_minTitle, 1, 1, 1, 1);
     editableGrid->addWidget(m_minSpin, 1, 2, 1, 1);
     editableGrid->addWidget(m_minNull, 1, 2, 1, 1);
 
-    m_maxTitle = new QLabel(tr("Max Duration"));
+    m_maxTitle = new TextLabel(tr("Max Duration"));
     editableGrid->addWidget(m_maxFiniteBox, 2, 0, 1, 1);
     editableGrid->addWidget(m_maxTitle, 2, 1, 1, 1);
     editableGrid->addWidget(m_maxSpin, 2, 2, 1, 1);
@@ -301,20 +303,20 @@ public:
   {
     auto playingGrid = new iscore::MarginLess<QGridLayout>(this);
 
-    m_minLab = new QLabel{m_dur.minDuration().toString(), this};
-    m_maxLab = new QLabel{m_dur.maxDuration().toString(), this};
-    m_defaultLab = new QLabel{m_dur.defaultDuration().toString(), this};
-    m_currentPosLab = new QLabel{this};
+    m_minLab = new TextLabel{m_dur.minDuration().toString(), this};
+    m_maxLab = new TextLabel{m_dur.maxDuration().toString(), this};
+    m_defaultLab = new TextLabel{m_dur.defaultDuration().toString(), this};
+    m_currentPosLab = new TextLabel{this};
 
     on_progress(m_dur.playPercentage());
 
-    playingGrid->addWidget(new QLabel(tr("Default Duration")), 0, 0, 1, 1);
+    playingGrid->addWidget(new TextLabel(tr("Default Duration")), 0, 0, 1, 1);
     playingGrid->addWidget(m_defaultLab, 0, 1, 1, 1);
-    playingGrid->addWidget(new QLabel(tr("Min Duration")), 1, 0, 1, 1);
+    playingGrid->addWidget(new TextLabel(tr("Min Duration")), 1, 0, 1, 1);
     playingGrid->addWidget(m_minLab, 1, 1, 1, 1);
-    playingGrid->addWidget(new QLabel(tr("Max Duration")), 2, 0, 1, 1);
+    playingGrid->addWidget(new TextLabel(tr("Max Duration")), 2, 0, 1, 1);
     playingGrid->addWidget(m_maxLab, 2, 1, 1, 1);
-    playingGrid->addWidget(new QLabel{tr("Progress")}, 3, 0, 1, 1);
+    playingGrid->addWidget(new TextLabel{tr("Progress")}, 3, 0, 1, 1);
     playingGrid->addWidget(m_currentPosLab, 3, 1, 1, 1);
 
     con(m_dur, &ConstraintDurations::playPercentageChanged, this,

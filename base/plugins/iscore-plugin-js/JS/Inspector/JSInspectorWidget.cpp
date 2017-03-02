@@ -12,6 +12,9 @@
 #include <iscore/model/path/Path.hpp>
 
 #include <iscore/widgets/JS/JSEdit.hpp>
+#include <QTableWidget>
+#include <QTableWidgetItem>
+#include <QHeaderView>
 class QVBoxLayout;
 class QWidget;
 namespace iscore
@@ -27,6 +30,24 @@ void JSWidgetBase::init(Widg* self, T& model)
   m_edit->setPlainText(model.script());
 
   m_errorLabel = new QLabel{self};
+  m_tableWidget = new QTableWidget{self};
+
+  m_tableWidget->insertColumn(0);
+  m_tableWidget->insertColumn(1);
+  m_tableWidget->setColumnCount(2);
+  m_tableWidget->setRowCount(model.customProperties().size());
+  m_tableWidget->horizontalHeader()->hide();
+  m_tableWidget->verticalHeader()->hide();
+  m_tableWidget->setAlternatingRowColors(true);
+  int i = 0;
+  for(const auto& e : model.customProperties())
+  {
+    auto key = new QTableWidgetItem(QString(e.first));
+    m_tableWidget->setItem(i, 0, key);
+    auto val = new QTableWidgetItem(e.second.toString());
+    m_tableWidget->setItem(i, 1, val);
+    i++;
+  }
 
   con(model, &T::scriptError,
       self, [=] (int line, const QString& err){
@@ -37,7 +58,7 @@ void JSWidgetBase::init(Widg* self, T& model)
   con(model, &T::scriptOk,
       self, [=] (){
     m_edit->clearError();
-    m_errorLabel->setText("");
+    m_errorLabel->clear();
     m_errorLabel->setVisible(false);
   });
   con(model, &T::scriptChanged,
@@ -85,6 +106,13 @@ InspectorWidget::InspectorWidget(
   this->init(this, JSModel);
 
   lay->addWidget(m_edit);
+  if(parent) // So that it is not shown in the process
+    lay->addWidget(m_tableWidget);
+  else
+  {
+    delete m_tableWidget;
+    m_tableWidget = nullptr;
+  }
   lay->addWidget(m_errorLabel);
   this->setLayout(lay);
 }

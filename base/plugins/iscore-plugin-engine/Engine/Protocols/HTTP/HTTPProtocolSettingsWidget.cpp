@@ -13,6 +13,7 @@
 
 #include <QPlainTextEdit>
 #include <iscore/widgets/JS/JSEdit.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 class QWidget;
 
 namespace Engine
@@ -22,10 +23,10 @@ namespace Network
 HTTPProtocolSettingsWidget::HTTPProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
-  QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
+  QLabel* deviceNameLabel = new TextLabel(tr("Device name"), this);
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
-  QLabel* codeLabel = new QLabel(tr("Code"), this);
+  QLabel* codeLabel = new TextLabel(tr("Code"), this);
   m_codeEdit = new JSEdit(this);
 
   QGridLayout* gLayout = new QGridLayout;

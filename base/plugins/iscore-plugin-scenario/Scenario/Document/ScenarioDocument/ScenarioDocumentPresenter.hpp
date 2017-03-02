@@ -86,6 +86,7 @@ signals:
   void requestDisplayedConstraintChange(ConstraintModel&);
 
 private slots:
+  void on_windowSizeChanged(QSize);
   void on_viewSizeChanged(QSize);
 private:
   void on_displayedConstraintChanged();

@@ -32,6 +32,7 @@ InspectorWidgetBase::InspectorWidgetBase(
   auto scrollArea = new QScrollArea;
   scrollArea->setWidgetResizable(true);
   scrollArea->setSizeAdjustPolicy(QScrollArea::AdjustToContents);
+  scrollArea->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   auto scrollAreaContentWidget = new QWidget;
   m_scrollAreaLayout
       = new iscore::MarginLess<QVBoxLayout>{scrollAreaContentWidget};
@@ -60,7 +61,8 @@ void InspectorWidgetBase::updateSectionsView(
   {
     auto item = layout->takeAt(0);
 
-    delete item->widget();
+    if(auto widg = item->widget())
+      delete widg;
     delete item;
   }
 
