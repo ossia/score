@@ -62,14 +62,14 @@ DataStreamWriter::write(iscore::uuid_t& obj)
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-JSONValueReader::readFrom(const iscore::uuid_t& obj)
+JSONValueReader::read(const iscore::uuid_t& obj)
 {
   val = QString(iscore::uuids::toByteArray(obj));
 }
 
 template<>
 ISCORE_LIB_BASE_EXPORT void
-JSONValueWriter::writeTo(iscore::uuid_t& obj)
+JSONValueWriter::write(iscore::uuid_t& obj)
 {
   auto str = val.toString();
   obj = iscore::uuids::string_generator::compute(str.begin(), str.end());

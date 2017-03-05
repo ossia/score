@@ -33,13 +33,13 @@ auto makeJsonArray(std::initializer_list<QJsonValue> lst)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-JSONValueReader::readFrom(const QPointF& pt)
+JSONValueReader::read(const QPointF& pt)
 {
   val = makeJsonArray({pt.x(), pt.y()});
 }
 
 template <>
-ISCORE_LIB_BASE_EXPORT void JSONValueWriter::writeTo(QPointF& pt)
+ISCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QPointF& pt)
 {
   auto arr = val.toArray();
   pt.setX(arr[0].toDouble());
@@ -48,13 +48,13 @@ ISCORE_LIB_BASE_EXPORT void JSONValueWriter::writeTo(QPointF& pt)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-JSONValueReader::readFrom(const QRectF& pt)
+JSONValueReader::read(const QRectF& pt)
 {
   val = makeJsonArray({pt.x(), pt.y(), pt.width(), pt.height()});
 }
 
 template <>
-ISCORE_LIB_BASE_EXPORT void JSONValueWriter::writeTo(QRectF& pt)
+ISCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QRectF& pt)
 {
   auto arr = val.toArray();
   pt.setX(arr[0].toDouble());
@@ -65,14 +65,14 @@ ISCORE_LIB_BASE_EXPORT void JSONValueWriter::writeTo(QRectF& pt)
 
 template <>
 ISCORE_LIB_BASE_EXPORT void
-JSONValueReader::readFrom(const QTransform& pt)
+JSONValueReader::read(const QTransform& pt)
 {
   val = makeJsonArray({pt.m11(), pt.m12(), pt.m13(), pt.m21(), pt.m22(),
                        pt.m23(), pt.m31(), pt.m32(), pt.m33()});
 }
 
 template <>
-ISCORE_LIB_BASE_EXPORT void JSONValueWriter::writeTo(QTransform& pt)
+ISCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QTransform& pt)
 {
   auto arr = val.toArray();
   pt.setMatrix(

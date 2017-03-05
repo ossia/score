@@ -75,8 +75,8 @@ template <std::size_t N>
 class VecDomainWidget final : public QWidget
 {
 public:
-  using domain_type = ossia::domain_base<std::array<float, N>>;
-  using set_type = boost::container::flat_set<std::array<float, N>>;
+  using domain_type = ossia::vecf_domain<N>;
+  using set_type = boost::container::flat_set<float>;
 
   VecDomainWidget(QWidget* parent) : QWidget{parent}
   {
@@ -95,12 +95,32 @@ public:
     lay->addWidget(m_max);
   }
 
+  static std::array<optional<float>, N> toOptional(const std::array<float, N>& f)
+  {
+    std::array<optional<float>, N> res;
+    for(std::size_t i = 0; i < N; i++)
+    {
+      res[i] = f[i];
+    }
+    return res;
+  }
+
+  static std::array<float, N> fromOptional(const std::array<optional<float>, N>& f)
+  {
+    std::array<float, N> res;
+    for(std::size_t i = 0; i < N; i++)
+    {
+      res[i] = f[i] ? *f[i] : 0;
+    }
+    return res;
+  }
+
   domain_type domain() const
   {
     domain_type dom;
 
-    dom.min = m_min->value();
-    dom.max = m_max->value();
+    dom.min = toOptional(m_min->value());
+    dom.max = toOptional(m_max->value());
 
     return dom;
   }
@@ -114,10 +134,8 @@ public:
     {
       auto& dom = *dom_p;
 
-      if (dom.min)
-        m_min->setValue(*dom.min);
-      if (dom.max)
-        m_max->setValue(*dom.max);
+      m_min->setValue(fromOptional(dom.min));
+      m_max->setValue(fromOptional(dom.max));
     }
   }
 

@@ -490,21 +490,21 @@ struct TSerializer<DataStream, QList<T>>
   }
 };
 
-template <typename... Args>
-struct TSerializer<DataStream, std::array<Args...>>
+template <typename T, std::size_t N>
+struct TSerializer<DataStream, std::array<T, N>>
 {
   static void
-  readFrom(DataStream::Serializer& s, const std::array<Args...>& arr)
+  readFrom(DataStream::Serializer& s, const std::array<T, N>& arr)
   {
-    for (int i = 0; i < arr.size(); i++)
+    for (std::size_t i = 0U; i < N; i++)
       s.stream() << arr[i];
 
     ISCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
-  static void writeTo(DataStream::Deserializer& s, std::array<Args...>& arr)
+  static void writeTo(DataStream::Deserializer& s, std::array<T, N>& arr)
   {
-    for (int i = 0; i < arr.size(); i++)
+    for (std::size_t i = 0U; i < N; i++)
       s.stream() >> arr[i];
 
     ISCORE_DEBUG_CHECK_DELIMITER2(s);
