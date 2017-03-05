@@ -29,10 +29,10 @@ JSON_METADATA(ossia::domain_base<int32_t>, "Int")
 JSON_METADATA(ossia::domain_base<char>, "Char")
 JSON_METADATA(ossia::domain_base<bool>, "Bool")
 JSON_METADATA(ossia::domain_base<float>, "Float")
-JSON_METADATA(ossia::domain_base<ossia::vec2f>, "Vec2f")
-JSON_METADATA(ossia::domain_base<ossia::vec3f>, "Vec3f")
-JSON_METADATA(ossia::domain_base<ossia::vec4f>, "Vec4f")
-JSON_METADATA(ossia::domain_base<std::vector<ossia::value>>, "Tuple")
+JSON_METADATA(ossia::vecf_domain<2>, "Vec2f")
+JSON_METADATA(ossia::vecf_domain<3>, "Vec3f")
+JSON_METADATA(ossia::vecf_domain<4>, "Vec4f")
+JSON_METADATA(ossia::vector_domain, "Tuple")
 JSON_METADATA(ossia::domain_base<std::string>, "String")
 JSON_METADATA(ossia::domain_base<ossia::value>, "Generic")
 
@@ -45,6 +45,13 @@ ISCORE_DECL_VALUE_TYPE(std::string)
 ISCORE_DECL_VALUE_TYPE(ossia::vec2f)
 ISCORE_DECL_VALUE_TYPE(ossia::vec3f)
 ISCORE_DECL_VALUE_TYPE(ossia::vec4f)
+
+template<>
+struct is_custom_serialized<ossia::vector_domain> : public std::true_type { };
+template<std::size_t N>
+struct is_custom_serialized<ossia::vecf_domain<N>> : public std::true_type { };
+template<typename T, std::size_t N>
+struct is_custom_serialized<std::array<T, N>> : public std::true_type { };
 
 template <>
 template <>
@@ -249,75 +256,89 @@ ossia::impulse fromJsonValue<ossia::impulse>(const QJsonValueRef& obj)
 {
   return {};
 }
-template <>
-std::array<float, 2>
-fromJsonValue<std::array<float, 2>>(const QJsonValueRef& obj)
-{
-  std::array<float, 2> v;
-  auto arr = obj.toArray();
-  const std::size_t N = std::min(2, arr.size());
-  for (std::size_t i = 0; i < N; i++)
-    v[i] = arr[i].toDouble();
 
-  return v;
-}
-template <>
-std::array<float, 3>
-fromJsonValue<std::array<float, 3>>(const QJsonValueRef& obj)
+template <typename T, std::size_t N>
+struct TSerializer<JSONValue, std::array<T, N>>
 {
-  std::array<float, 3> v;
-  auto arr = obj.toArray();
-  const std::size_t N = std::min(3, arr.size());
-  for (std::size_t i = 0; i < N; i++)
-    v[i] = arr[i].toDouble();
+  static void
+  readFrom(JSONValue::Serializer& s, const std::array<T, N>& vec)
+  {
+    QJsonArray arr;
+    for (std::size_t i = 0; i < N; i++)
+      arr.push_back(toJsonValue(vec[i]));
+    s.val = std::move(arr);
+  }
 
-  return v;
-}
-template <>
-std::array<float, 4>
-fromJsonValue<std::array<float, 4>>(const QJsonValueRef& obj)
+  static void
+  writeTo(JSONValue::Deserializer& s, std::array<T, N>& vec)
+  {
+    auto arr = s.val.toArray();
+    const std::size_t M = std::min((int)N, arr.size());
+    for (std::size_t i = 0; i < M; i++)
+      vec[i] = fromJsonValue<T>(arr[i]);
+  }
+};
+
+template <std::size_t N>
+struct TSerializer<JSONValue, std::array<float, N>>
 {
-  std::array<float, 4> v;
-  auto arr = obj.toArray();
-  const std::size_t N = std::min(4, arr.size());
-  for (std::size_t i = 0; i < N; i++)
-    v[i] = arr[i].toDouble();
+  static void
+  readFrom(JSONValue::Serializer& s, const std::array<float, N>& vec)
+  {
+    QJsonArray arr;
+    for (std::size_t i = 0; i < N; i++)
+      arr.push_back(vec[i]);
+    s.val = std::move(arr);
+  }
 
-  return v;
-}
-template <>
-std::array<float, 2> fromJsonValue<std::array<float, 2>>(const QJsonValue& obj)
+  static void
+  writeTo(JSONValue::Deserializer& s,  std::array<float, N>& vec)
+  {
+    auto arr = s.val.toArray();
+    const std::size_t M = std::min((int)N, arr.size());
+    for (std::size_t i = 0; i < M; i++)
+      vec[i] = arr[i].toDouble();
+  }
+};
+
+template<typename T>
+struct TSerializer<JSONValue, optional<T>>
 {
-  std::array<float, 2> v;
-  auto arr = obj.toArray();
-  const std::size_t N = std::min(2, arr.size());
-  for (std::size_t i = 0; i < N; i++)
-    v[i] = arr[i].toDouble();
+  static void readFrom(JSONValue::Serializer& s, const optional<T>& obj)
+  {
+    if (obj)
+    {
+      s.val = toJsonValue(*obj);
+    }
+    else
+    {
+      s.val = QJsonValue{};
+    }
+  }
 
-  return v;
-}
-template <>
-std::array<float, 3> fromJsonValue<std::array<float, 3>>(const QJsonValue& obj)
+  static void writeTo(JSONValue::Deserializer& s, optional<T>& obj)
+  {
+    if (s.val.toString() == s.strings.none)
+    {
+      obj = iscore::none;
+    }
+    else
+    {
+      obj = fromJsonValue<T>(s.val);
+    }
+  }
+};
+
+
+
+QJsonValue toJsonValue(const optional<float>& f)
 {
-  std::array<float, 3> v;
-  auto arr = obj.toArray();
-  const std::size_t N = std::min(3, arr.size());
-  for (std::size_t i = 0; i < N; i++)
-    v[i] = arr[i].toDouble();
-
-  return v;
+  if(f)
+    return *f;
+  else
+    return QJsonValue{};
 }
-template <>
-std::array<float, 4> fromJsonValue<std::array<float, 4>>(const QJsonValue& obj)
-{
-  std::array<float, 4> v;
-  auto arr = obj.toArray();
-  const std::size_t N = std::min(4, arr.size());
-  for (std::size_t i = 0; i < N; i++)
-    v[i] = arr[i].toDouble();
 
-  return v;
-}
 template <typename T>
 QJsonArray toJsonArray(const boost::container::flat_set<T>& array)
 {
@@ -327,11 +348,58 @@ QJsonArray toJsonArray(const boost::container::flat_set<T>& array)
   return arr;
 }
 
+QJsonArray toJsonArray(const boost::container::flat_set<float>& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+    arr.push_back(v);
+  return arr;
+}
+
+template<std::size_t N>
+QJsonArray toJsonArray(const std::array<optional<float>, N>& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+    if(v) arr.push_back(*v);
+    else arr.push_back(QJsonValue{});
+  return arr;
+}
+
 QJsonArray toJsonArray(const std::vector<ossia::value>& array)
 {
   QJsonArray arr;
   for (auto& v : array)
     arr.push_back(toJsonValue(v));
+  return arr;
+}
+
+QJsonArray toJsonArray(
+    const std::vector<boost::container::flat_set<ossia::value>>& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+  {
+    QJsonArray sub;
+    for(auto& val : v)
+      sub.push_back(toJsonValue(val));
+    arr.push_back(std::move(sub));
+  }
+  return arr;
+}
+
+template<std::size_t N>
+QJsonArray toJsonArray(
+    const std::array<boost::container::flat_set<float>, N>& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+  {
+    QJsonArray sub;
+    for(float val : v)
+      sub.push_back(val);
+    arr.push_back(std::move(sub));
+  }
   return arr;
 }
 
@@ -354,10 +422,10 @@ JSONObjectWriter::write(ossia::value& n);
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueReader::readFrom(const ossia::value& n);
+JSONValueReader::read(const ossia::value& n);
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueWriter::writeTo(ossia::value& n);
+JSONValueWriter::write(ossia::value& n);
 
 template <>
 struct TSerializer<JSONObject, std::vector<ossia::value>>
@@ -485,6 +553,153 @@ struct TSerializer<JSONObject, ossia::domain_base<ossia::impulse>>
 
 
 template <>
+struct TSerializer<JSONObject, ossia::vector_domain>
+{
+  using domain_t = ossia::vector_domain;
+  static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
+  {
+    s.obj[s.strings.Min] = toJsonArray(domain.min);
+    s.obj[s.strings.Max] = toJsonArray(domain.max);
+    s.obj[s.strings.Values] = toJsonArray(domain.values);
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, domain_t& domain)
+  {
+    // OPTIMIZEME there should be something in boost
+    // to get multiple iterators from multiple keys in one pass...
+    auto it_min = s.obj.constFind(s.strings.Min);
+    auto it_max = s.obj.constFind(s.strings.Max);
+    auto it_values = s.obj.constFind(s.strings.Values);
+    if (it_min != s.obj.constEnd())
+    {
+      domain.min = fromJsonValue<std::vector<ossia::value>>(*it_min);
+    }
+    if (it_max != s.obj.constEnd())
+    {
+      domain.max = fromJsonValue<std::vector<ossia::value>>(*it_max);
+    }
+    if (it_values != s.obj.constEnd())
+    {
+      const auto arr = it_values->toArray();
+      domain.values.resize(arr.size());
+      int i = 0;
+      for (const auto& v : arr)
+      {
+        if(v.isArray())
+        {
+          for(const auto& u : v.toArray())
+            domain.values[i].insert(fromJsonValue<ossia::value>(u));
+        }
+        i++;
+      }
+    }
+  }
+};
+
+template <typename T>
+struct TSerializer<DataStream, boost::container::flat_set<T>>
+{
+  using type = boost::container::flat_set<T>;
+  static void readFrom(DataStream::Serializer& s, const type& obj)
+  {
+    s.stream() << (int32_t)obj.size();
+    for(const auto& e : obj)
+      s.stream() << e;
+  }
+
+  static void writeTo(DataStream::Deserializer& s, type& obj)
+  {
+    int32_t n;
+    s.stream() >> n;
+    for(; n --> 0;)
+    {
+      T val;
+      s.stream() >> val;
+      obj.insert(std::move(val));
+    }
+  }
+};
+
+template <>
+struct TSerializer<DataStream, ossia::vector_domain>
+{
+  using domain_t = ossia::vector_domain;
+  static void readFrom(DataStream::Serializer& s, const domain_t& domain)
+  {
+    s.stream() << domain.min << domain.max << domain.values;
+  }
+
+  static void writeTo(DataStream::Deserializer& s, domain_t& domain)
+  {
+    s.stream() >> domain.min >> domain.max >> domain.values;
+  }
+};
+
+
+template <std::size_t N>
+struct TSerializer<JSONObject, ossia::vecf_domain<N>>
+{
+  using domain_t = ossia::vecf_domain<N>;
+  static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
+  {
+    s.obj[s.strings.Min] = toJsonArray(domain.min);
+    s.obj[s.strings.Max] = toJsonArray(domain.max);
+    s.obj[s.strings.Values] = toJsonArray(domain.values);
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, domain_t& domain)
+  {
+    // OPTIMIZEME there should be something in boost
+    // to get multiple iterators from multiple keys in one pass...
+    auto it_min = s.obj.constFind(s.strings.Min);
+    auto it_max = s.obj.constFind(s.strings.Max);
+    auto it_values = s.obj.constFind(s.strings.Values);
+    if (it_min != s.obj.constEnd())
+    {
+      domain.min = fromJsonValue<std::array<optional<float>, N>>(*it_min);
+    }
+    if (it_max != s.obj.constEnd())
+    {
+      domain.max = fromJsonValue<std::array<optional<float>, N>>(*it_max);
+    }
+    if (it_values != s.obj.constEnd())
+    {
+      const auto arr = it_values->toArray();
+      std::size_t i = 0;
+      for (const auto& v : arr)
+      {
+        if(i < N)
+        {
+          if(v.isArray())
+          {
+            for(const auto& u : v.toArray())
+              domain.values[i].insert(fromJsonValue<float>(u));
+          }
+          i++;
+        }
+      }
+    }
+  }
+};
+
+template <std::size_t N>
+struct TSerializer<DataStream, ossia::vecf_domain<N>>
+{
+  using domain_t = ossia::vecf_domain<N>;
+  static void readFrom(DataStream::Serializer& s, const domain_t& domain)
+  {
+    s.stream() << domain.min << domain.max << domain.values;
+  }
+
+  static void writeTo(DataStream::Deserializer& s, domain_t& domain)
+  {
+    s.stream() >> domain.min >> domain.max >> domain.values;
+  }
+};
+
+
+
+template <>
 ISCORE_LIB_STATE_EXPORT void
 JSONObjectReader::read(const ossia::domain& n)
 {
@@ -517,64 +732,65 @@ JSONObjectWriter::write(ossia::value& n)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueReader::readFrom(const ossia::value& n)
+JSONValueReader::read(const ossia::value& n)
 {
   val = marshall<JSONObject>(n);
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueWriter::writeTo(ossia::value& n)
+JSONValueWriter::write(ossia::value& n)
 {
   n = unmarshall<ossia::value>(val.toObject());
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueReader::readFrom(const ossia::impulse& n)
+JSONValueReader::read(const ossia::impulse& n)
 {
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueWriter::writeTo(ossia::impulse& n)
+JSONValueWriter::write(ossia::impulse& n)
 {
+  val = QJsonValue{};
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueReader::readFrom(const std::array<float, 2>& n)
+JSONValueReader::read(const std::array<float, 2>& n)
 {
   val = toJsonValue(n);
 }
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueReader::readFrom(const std::array<float, 3>& n)
+JSONValueReader::read(const std::array<float, 3>& n)
 {
   val = toJsonValue(n);
 }
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueReader::readFrom(const std::array<float, 4>& n)
+JSONValueReader::read(const std::array<float, 4>& n)
 {
   val = toJsonValue(n);
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueWriter::writeTo(std::array<float, 2>& n)
+JSONValueWriter::write(std::array<float, 2>& n)
 {
   fromJsonValue(val, n);
 }
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueWriter::writeTo(std::array<float, 3>& n)
+JSONValueWriter::write(std::array<float, 3>& n)
 {
   fromJsonValue(val, n);
 }
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueWriter::writeTo(std::array<float, 4>& n)
+JSONValueWriter::write(std::array<float, 4>& n)
 {
   fromJsonValue(val, n);
 }
@@ -599,7 +815,7 @@ DataStreamWriter::write(ossia::net::instance_bounds& n)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueReader::readFrom(const ossia::net::instance_bounds& b)
+JSONValueReader::read(const ossia::net::instance_bounds& b)
 {
   QJsonObject obj;
   obj[strings.Min] = b.min_instances;
@@ -609,7 +825,7 @@ JSONValueReader::readFrom(const ossia::net::instance_bounds& b)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueWriter::writeTo(ossia::net::instance_bounds& n)
+JSONValueWriter::write(ossia::net::instance_bounds& n)
 {
   const auto& obj = val.toObject();
   n.min_instances = obj[strings.Min].toInt();

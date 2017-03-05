@@ -19,13 +19,13 @@ void DataStreamWriter::write(Scenario::VerticalExtent& ve)
 }
 
 template <>
-void JSONValueReader::readFrom(const Scenario::VerticalExtent& ve)
+void JSONValueReader::read(const Scenario::VerticalExtent& ve)
 {
-  readFrom(static_cast<QPointF>(ve));
+  read(static_cast<QPointF>(ve));
 }
 
 template <>
-void JSONValueWriter::writeTo(Scenario::VerticalExtent& ve)
+void JSONValueWriter::write(Scenario::VerticalExtent& ve)
 {
-  writeTo(static_cast<QPointF&>(ve));
+  write(static_cast<QPointF&>(ve));
 }

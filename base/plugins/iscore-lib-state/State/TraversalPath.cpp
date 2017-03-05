@@ -115,14 +115,14 @@ DataStreamWriter::write(State::TraversalPath& var)
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueReader::readFrom(const State::TraversalPath& var)
+JSONValueReader::read(const State::TraversalPath& var)
 {
   val = var.m_textual;
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
-JSONValueWriter::writeTo(State::TraversalPath& var)
+JSONValueWriter::write(State::TraversalPath& var)
 {
   var.m_textual = val.toString();
   *var.m_path = *ossia::traversal::make_path(var.m_textual.toStdString());

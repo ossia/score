@@ -5,8 +5,8 @@
 #include <QMap>
 #include <iscore/serialization/StringConstants.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/serialization/VisitorTags.hpp>
 #include <iscore/model/EntityBase.hpp>
-
 template <class>
 class StringKey;
 
@@ -44,28 +44,34 @@ public:
     return {*this, JSONValue::type()};
   }
 
-  template <template <class...> class T, typename... Args>
-  void readFrom(
-      const T<Args...>& obj,
-      typename std::enable_if<is_template<T<Args...>>::value, void>::
-          type* = nullptr)
+  template<typename T>
+  void readFrom(const T& obj)
   {
-    TSerializer<JSONValue, T<Args...>>::readFrom(*this, obj);
+    readFrom_impl(obj, typename serialization_tag<T>::type{});
   }
 
-  template <
-      typename T,
-      std::
-          enable_if_t<!std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
-  void readFrom(const T&);
+  template <typename T>
+  void read(const T&);
 
-  template <
-      typename T,
-      std::
-          enable_if_t<std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
-  void readFrom(const T& elt)
+  template <typename T>
+  void readFrom_impl(
+      const T& obj, visitor_template_tag)
   {
-    val = (int32_t)elt;
+    TSerializer<JSONValue, T>::readFrom(*this, obj);
+  }
+
+  template <typename T>
+  void readFrom_impl(
+      const T& obj, visitor_default_tag)
+  {
+    read(obj);
+  }
+
+  template <typename T>
+  void readFrom_impl(
+      const T& obj, visitor_enum_tag)
+  {
+    val = (int32_t)obj;
   }
 
   QJsonValue val;
@@ -97,8 +103,17 @@ public:
   {
   }
 
+  template<typename T>
+  void writeTo(T& obj)
+  {
+    writeTo_impl(obj, typename serialization_tag<T>::type{});
+  }
+  QJsonValue val;
+  const iscore::StringConstants& strings{iscore::StringConstant()};
+
+private:
   template <template <class...> class T, typename... Args>
-  void writeTo(
+  void write(
       T<Args...>& obj,
       typename std::enable_if<is_template<T<Args...>>::value, void>::
           type* = nullptr)
@@ -106,22 +121,26 @@ public:
     TSerializer<JSONValue, T<Args...>>::writeTo(*this, obj);
   }
 
-  template <
-      typename T,
-      std::
-          enable_if_t<!std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
-  void writeTo(T&);
-  template <
-      typename T,
-      std::
-          enable_if_t<std::is_enum<T>::value && !is_template<T>::value>* = nullptr>
-  void writeTo(T& elt)
+  template <typename T>
+  void write(T&);
+
+  template <typename T>
+  void writeTo_impl(T& obj, visitor_template_tag)
+  {
+    TSerializer<JSONValue, T>::writeTo(*this, obj);
+  }
+
+  template <typename T, typename OtherTag>
+  void writeTo_impl(T& obj, OtherTag)
+  {
+    write(obj);
+  }
+
+  template <typename T>
+  void writeTo_impl(T& elt, visitor_enum_tag)
   {
     elt = static_cast<T>(val.toInt());
   }
-
-  QJsonValue val;
-  const iscore::StringConstants& strings{iscore::StringConstant()};
 };
 
 template <>
