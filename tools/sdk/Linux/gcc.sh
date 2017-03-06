@@ -18,7 +18,7 @@ mkdir gcc-build-2
   export CXX=/usr/local/bin/g++
 
   ../combined/configure --enable-languages=c,c++,lto --enable-gold --enable-plugins --enable-plugin --disable-multilib --disable-nls --enable-werror=no --with-build-config=bootstrap-lto --enable-checking=none
-  make BOOT_CFLAGS="-O3 -g0" -j$NPROC && make install-strip && rsync -rtv /usr/local/ /usr/
+  make BOOT_CFLAGS="-O3 -g0" -j$NPROC && make install-strip && rsync -rtva /usr/local/ /usr/
 )
 rm -rf gcc-build-2
 
