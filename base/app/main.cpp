@@ -51,6 +51,7 @@ int main(int argc, char** argv)
   printf("ARM FPSCR: %08x\n",x);
 #endif
 
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QLocale::setDefault(QLocale::C);
     setlocale(LC_ALL, "C");
 
