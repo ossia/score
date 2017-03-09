@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 #if defined(__APPLE__)
     fmt.setMajorVersion(4);
     fmt.setMinorVersion(1);
-    fmt.setSamples(4);
+    fmt.setSamples(1);
 #endif
     fmt.setSwapBehavior(QSurfaceFormat::SingleBuffer);
     fmt.setSwapInterval(0);

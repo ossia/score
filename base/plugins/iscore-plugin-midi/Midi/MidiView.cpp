@@ -5,27 +5,9 @@
 #include <QGraphicsView>
 #include <QKeyEvent>
 #include <QPainter>
-
+#include <Midi/MidiStyle.hpp>
 namespace Midi
 {
-struct MidiStyle
-{
-  const QBrush lightBrush = QColor::fromRgb(200, 200, 200);
-  const QBrush darkBrush = QColor::fromRgb(170, 170, 170);
-  const QBrush transparentBrush{Qt::transparent};
-  const QPen darkPen = [] {
-    QPen p = QColor::fromRgb(150, 150, 150);
-    p.setCosmetic(true);
-    return p;
-  } ();
-
-  const QPen selectionPen = [] {
-    QPen pen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap,
-          Qt::BevelJoin};
-    pen.setCosmetic(true);
-    return pen;
-  }();
-};
 
 View::View(QGraphicsItem* parent) : Process::LayerView{parent}
 {

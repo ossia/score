@@ -88,6 +88,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QBrush TimenodeBrush;
 
   QBrush StateTemporalPointBrush;
+  QPen StateTemporalPointPen;
   QBrush StateBrush;
 
   QPen EventPen;
