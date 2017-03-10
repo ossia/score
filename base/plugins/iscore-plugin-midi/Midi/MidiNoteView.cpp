@@ -2,7 +2,7 @@
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-
+#include <Midi/MidiStyle.hpp>
 namespace Midi
 {
 
@@ -18,18 +18,19 @@ NoteView::NoteView(const Note& n, QGraphicsItem* parent)
 void NoteView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  static MidiStyle s;
   painter->setRenderHint(QPainter::Antialiasing, false);
 
-  QColor orange = QColor::fromRgb(200, 120, 20);
-  painter->setBrush(this->isSelected() ? orange.darker() : orange);
-  painter->setPen(orange.darker());
+  painter->setBrush(this->isSelected() ? s.noteSelectedBaseBrush : s.noteBaseBrush);
+  painter->setPen(s.noteBasePen);
   painter->drawRect(boundingRect().adjusted(0, -1, 0, -1));
 
+  auto orange = s.noteBaseBrush.color();
   orange.setHslF(
       orange.hslHueF() - 0.02, 1., 0.25 + (127 - note.velocity()) / 256.);
-  QPen p(orange);
-  p.setWidthF(2);
-  painter->setPen(p);
+  s.paintedNote.setColor(orange);
+
+  painter->setPen(s.paintedNote);
   painter->drawLine(
       QPointF{2, m_height / 2.}, QPointF{m_width - 2, m_height / 2.});
 }

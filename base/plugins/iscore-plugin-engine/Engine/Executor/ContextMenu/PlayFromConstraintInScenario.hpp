@@ -1,6 +1,7 @@
 #pragma once
 #include <Scenario/Document/Graph.hpp>
 #include <Process/TimeValue.hpp>
+#include <hopscotch_set.h>
 
 namespace Engine
 {

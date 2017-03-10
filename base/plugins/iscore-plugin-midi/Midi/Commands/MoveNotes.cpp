@@ -56,7 +56,7 @@ void MoveNotes::update(unused_t, unused_t, int note_delta, double t_delta)
     NoteData data = elt.second;
     data.setPitch(qBound(0, data.pitch() + note_delta, 127));
     data.setStart(std::max(data.start() + t_delta, 0.));
-    m_after.push_back(elt);
+    m_after.push_back({elt.first, std::move(data)});
   }
 }
 
