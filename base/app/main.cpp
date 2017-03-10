@@ -51,6 +51,7 @@ int main(int argc, char** argv)
   printf("ARM FPSCR: %08x\n",x);
 #endif
 
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QLocale::setDefault(QLocale::C);
     setlocale(LC_ALL, "C");
 
@@ -61,7 +62,7 @@ int main(int argc, char** argv)
 #if defined(__APPLE__)
     fmt.setMajorVersion(4);
     fmt.setMinorVersion(1);
-    fmt.setSamples(4);
+    fmt.setSamples(1);
 #endif
     fmt.setSwapBehavior(QSurfaceFormat::SingleBuffer);
     fmt.setSwapInterval(0);

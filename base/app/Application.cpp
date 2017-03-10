@@ -148,6 +148,11 @@ void Application::init()
     }
 
     initDocuments();
+
+    if(m_applicationSettings.gui)
+    {
+        m_view->sizeChanged(m_view->size());
+    }
 }
 
 void Application::initDocuments()

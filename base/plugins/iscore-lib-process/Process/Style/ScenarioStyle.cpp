@@ -109,7 +109,7 @@ void ScenarioStyle::update()
       = QPen{Qt::black, 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   ConstraintPlayDashPen = ConstraintDashPen;
 
-  ConstraintSolidPen.setCosmetic(true);
+  //ConstraintSolidPen.setCosmetic(true);
   ConstraintDashPen.setCosmetic(true);
   ConstraintRackPen.setCosmetic(true);
   ConstraintPlayPen.setCosmetic(true);
@@ -118,6 +118,7 @@ void ScenarioStyle::update()
 
   TimenodeBrush = QBrush{Qt::black};
   StateTemporalPointBrush = QBrush{Qt::black};
+  StateTemporalPointPen.setCosmetic(true);
   StateBrush = QBrush{Qt::black};
   EventPen = QPen{Qt::black, 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   EventBrush = QBrush{Qt::black};

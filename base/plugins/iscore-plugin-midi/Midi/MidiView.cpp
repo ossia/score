@@ -5,7 +5,7 @@
 #include <QGraphicsView>
 #include <QKeyEvent>
 #include <QPainter>
-
+#include <Midi/MidiStyle.hpp>
 namespace Midi
 {
 
@@ -22,53 +22,64 @@ View::~View()
 
 void View::paint_impl(QPainter* p) const
 {
+  static const MidiStyle style;
   p->setRenderHint(QPainter::Antialiasing, false);
+  p->setPen(style.darkPen);
   //    1 3   6 8 10
   //   0 2 4 5 7 9  11
-  QColor l1 = QColor::fromRgb(200, 200, 200);
-  QColor d1 = QColor::fromRgb(170, 170, 170);
-  QColor d2 = d1.darker();
-  p->setPen(d2);
   auto rect = boundingRect();
   auto note_height = rect.height() / 127.;
 
-  for (int i = 0; i < 128; i++)
+  if(note_height > 3)
   {
-    switch (i % 12)
+    p->setBrush(style.lightBrush);
+    for (int i = 0; i < 128; i++)
     {
-      case 0:
-      case 2:
-      case 4:
-      case 5:
-      case 7:
-      case 9:
-      case 11:
+      switch (i % 12)
       {
-        p->setBrush(l1);
-        break;
-      }
+        case 0:
+        case 2:
+        case 4:
+        case 5:
+        case 7:
+        case 9:
+        case 11:
+        {
+          p->drawRect(QRectF{0, rect.height() - note_height * i - 1, rect.width(), note_height});
+          break;
+        }
 
-      case 1:
-      case 3:
-      case 6:
-      case 8:
-      case 10:
-      {
-        p->setBrush(d1);
-        break;
+        default:
+          break;
       }
     }
 
-    p->drawRect(0, rect.height() - note_height * i, rect.width(), note_height);
+    p->setBrush(style.darkBrush);
+    for (int i = 0; i < 128; i++)
+    {
+      switch (i % 12)
+      {
+        case 1:
+        case 3:
+        case 6:
+        case 8:
+        case 10:
+        {
+          p->drawRect(QRectF{0, rect.height() - note_height * i - 1, rect.width(), note_height});
+          break;
+        }
+        default:
+          break;
+      }
+    }
+
   }
 
   if (!m_selectArea.isEmpty())
   {
     p->setCompositionMode(QPainter::CompositionMode_Xor);
-    p->setBrush(Qt::transparent);
-    p->setPen(QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap,
-                   Qt::BevelJoin});
-
+    p->setBrush(style.transparentBrush);
+    p->setPen(style.selectionPen);
     p->drawPath(m_selectArea);
   }
 }
