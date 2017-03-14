@@ -19,7 +19,9 @@
 #include <QStringList>
 #include <QStyleFactory>
 #include <QFileInfo>
+#include <QStyle>
 #include <QDir>
+#include <QQuickStyle>
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <algorithm>
 #include <vector>
@@ -61,12 +63,35 @@ static void setQApplicationSettings(QApplication &m_app)
                 .arg(ISCORE_VERSION_EXTRA)
                 );
 
+
     QFile stylesheet_file{":/qdarkstyle/qdarkstyle.qss"};
     stylesheet_file.open(QFile::ReadOnly);
     QString stylesheet = QLatin1String(stylesheet_file.readAll());
 
     qApp->setStyle(QStyleFactory::create("Fusion"));
     qApp->setStyleSheet(stylesheet);
+
+    auto pal = qApp->palette();
+    pal.setBrush(QPalette::Background, QColor("#1A2024"));
+    pal.setBrush(QPalette::Base, QColor("#12171A")); // lineedit bg
+    pal.setBrush(QPalette::Button, QColor("#12171A")); // lineedit bg
+    pal.setBrush(QPalette::AlternateBase, QColor("#1f2a30")); // alternate bg
+    pal.setBrush(QPalette::Highlight, QColor("#3d8ec9")); // tableview bg
+    pal.setBrush(QPalette::WindowText, QColor("silver")); // color
+    pal.setBrush(QPalette::Text, QColor("silver")); // color
+    pal.setBrush(QPalette::ButtonText, QColor("silver")); // color
+    pal.setBrush(QPalette::Light, QColor("#666666"));
+    pal.setBrush(QPalette::Midlight, QColor("#666666"));
+    pal.setBrush(QPalette::Mid, QColor("#666666"));
+    pal.setBrush(QPalette::Dark, QColor("#666666"));
+    pal.setBrush(QPalette::Shadow, QColor("#666666"));
+
+    QFont f("Ubuntu-R", 9);
+    qApp->setFont(f);
+
+    qApp->setPalette(pal);
+
+    QQuickStyle::setStyle(":/desktopqqc2style/Desktop");
 }
 
 }  // namespace iscore

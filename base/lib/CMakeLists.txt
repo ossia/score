@@ -3,7 +3,7 @@ project(iscore_lib_base LANGUAGES CXX)
 iscore_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Svg QuickWidgets)
+find_package(Qt5 5.7 REQUIRED COMPONENTS Core Widgets Svg QuickWidgets)
 
 # Files & main target
 file(GLOB_RECURSE HEADERS

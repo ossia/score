@@ -21,9 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-QWidget {
-font: 9pt "Ubuntu";
-}
 QProgressBar:horizontal {
     /*border: 1px solid #3A3939;*/
     text-align: center;
@@ -45,6 +42,7 @@ QToolTip
 
 QWidget
 {
+    font: 9pt "Ubuntu";
     color: silver;
     background-color: #1A2024;
     selection-background-color: #3d8ec9;
