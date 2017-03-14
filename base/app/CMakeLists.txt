@@ -6,6 +6,7 @@ enable_testing()
 set(APPNAME "i-score")
 # TODO strip symbols after deployment build
 
+find_package(Qt5 5.7 COMPONENTS QuickControls2)
 set(SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp"
@@ -27,7 +28,7 @@ else()
 endif()
 
 
-target_link_libraries(${APPNAME} PUBLIC iscore_lib_base)
+target_link_libraries(${APPNAME} PUBLIC iscore_lib_base Qt5::QuickControls2)
 
 if(ISCORE_STATIC_PLUGINS)
   iscore_write_static_plugins_header()

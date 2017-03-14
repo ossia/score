@@ -192,37 +192,50 @@
         <file>icons_svg/start_on.svg</file>
         <file>icons_svg/stop_off.svg</file>
         <file>desktopqqc2style/Desktop/Button.qml</file>
+        <file>desktopqqc2style/Desktop/Button.qmlc</file>
         <file>desktopqqc2style/Desktop/CheckBox.qml</file>
+        <file>desktopqqc2style/Desktop/CheckBox.qmlc</file>
         <file>desktopqqc2style/Desktop/CheckDelegate.qml</file>
         <file>desktopqqc2style/Desktop/CheckIndicator.qml</file>
+        <file>desktopqqc2style/Desktop/CheckIndicator.qmlc</file>
         <file>desktopqqc2style/Desktop/ComboBox.qml</file>
+        <file>desktopqqc2style/Desktop/ComboBox.qmlc</file>
         <file>desktopqqc2style/Desktop/Container.qml</file>
         <file>desktopqqc2style/Desktop/Control.qml</file>
         <file>desktopqqc2style/Desktop/Dial.qml</file>
+        <file>desktopqqc2style/Desktop/Dial.qmlc</file>
         <file>desktopqqc2style/Desktop/Dialog.qml</file>
         <file>desktopqqc2style/Desktop/DialogButtonBox.qml</file>
         <file>desktopqqc2style/Desktop/Drawer.qml</file>
         <file>desktopqqc2style/Desktop/Frame.qml</file>
         <file>desktopqqc2style/Desktop/GroupBox.qml</file>
         <file>desktopqqc2style/Desktop/ItemDelegate.qml</file>
+        <file>desktopqqc2style/Desktop/ItemDelegate.qmlc</file>
         <file>desktopqqc2style/Desktop/Label.qml</file>
+        <file>desktopqqc2style/Desktop/Label.qmlc</file>
         <file>desktopqqc2style/Desktop/Menu.qml</file>
         <file>desktopqqc2style/Desktop/MenuItem.qml</file>
         <file>desktopqqc2style/Desktop/Popup.qml</file>
         <file>desktopqqc2style/Desktop/ProgressBar.qml</file>
         <file>desktopqqc2style/Desktop/RadioButton.qml</file>
+        <file>desktopqqc2style/Desktop/RadioButton.qmlc</file>
         <file>desktopqqc2style/Desktop/RadioDelegate.qml</file>
         <file>desktopqqc2style/Desktop/RadioIndicator.qml</file>
+        <file>desktopqqc2style/Desktop/RadioIndicator.qmlc</file>
         <file>desktopqqc2style/Desktop/RangeSlider.qml</file>
         <file>desktopqqc2style/Desktop/ScrollBar.qml</file>
+        <file>desktopqqc2style/Desktop/ScrollBar.qmlc</file>
         <file>desktopqqc2style/Desktop/Slider.qml</file>
+        <file>desktopqqc2style/Desktop/Slider.qmlc</file>
         <file>desktopqqc2style/Desktop/SpinBox.qml</file>
+        <file>desktopqqc2style/Desktop/SpinBox.qmlc</file>
         <file>desktopqqc2style/Desktop/Switch.qml</file>
         <file>desktopqqc2style/Desktop/SwitchDelegate.qml</file>
         <file>desktopqqc2style/Desktop/SwitchIndicator.qml</file>
         <file>desktopqqc2style/Desktop/TabBar.qml</file>
         <file>desktopqqc2style/Desktop/TabButton.qml</file>
         <file>desktopqqc2style/Desktop/TextArea.qml</file>
+        <file>desktopqqc2style/Desktop/TextArea.qmlc</file>
         <file>desktopqqc2style/Desktop/TextField.qml</file>
         <file>desktopqqc2style/Desktop/ToolBar.qml</file>
         <file>desktopqqc2style/Desktop/ToolButton.qml</file>
