@@ -19,3 +19,6 @@
 [submodule "Documentation/Doxygen/doxygen-bootstrapped"]
 	path = Documentation/Doxygen/doxygen-bootstrapped
 	url = https://github.com/Velron/doxygen-bootstrapped
+[submodule "3rdparty/desktopqqc2style"]
+	path = 3rdparty/desktopqqc2style
+	url = https://anongit.kde.org/scratch/mart/desktopqqc2style.git
