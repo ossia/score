@@ -14,8 +14,10 @@ macro(SUBDIRLIST result curdir)
 endmacro()
 
 
-subdirlist(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+subdirlist(SUBDIRS "${CMAKE_CURRENT_SOURCE_DIR}")
 set(ISCORE_ADDON True)
 foreach(subdir ${SUBDIRS})
-    add_subdirectory(${subdir})
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/CMakeLists.txt")
+    add_subdirectory("${subdir}")
+  endif()
 endforeach()
