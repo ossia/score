@@ -269,7 +269,7 @@ void SlotPresenter::updateProcessShape(const SlotProcessData& data)
 {
   data.presenter->setHeight(height() - SlotHandle::handleHeight());
 
-  auto width = data.model->processModel().duration().toPixels(m_zoomRatio);
+  auto width = m_model.parentConstraint().duration.defaultDuration().toPixels(m_zoomRatio);
   data.presenter->setWidth(width);
   data.presenter->parentGeometryChanged();
 }
