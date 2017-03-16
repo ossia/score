@@ -72,7 +72,7 @@ static void setQApplicationSettings(QApplication &m_app)
     qApp->setStyleSheet(stylesheet);
 
     auto pal = qApp->palette();
-    pal.setBrush(QPalette::Background, QColor("#1A2024"));
+    pal.setBrush(QPalette::Background, QColor("#001A2024"));
     pal.setBrush(QPalette::Base, QColor("#12171A")); // lineedit bg
     pal.setBrush(QPalette::Button, QColor("#12171A")); // lineedit bg
     pal.setBrush(QPalette::AlternateBase, QColor("#1f2a30")); // alternate bg
