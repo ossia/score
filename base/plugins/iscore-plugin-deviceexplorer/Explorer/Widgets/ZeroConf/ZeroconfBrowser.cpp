@@ -33,8 +33,12 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
   lay->addWidget(buttonBox);
   m_dialog->setLayout(lay);
 
+  try {
   m_serv = std::make_unique<servus::Servus>(service.toStdString());
   m_model = new servus::qt::ItemModel(*m_serv, this);
+  } catch(const std::exception& e) { qDebug() << e.what(); }
+    catch(...) { }
+
   m_list = new QListView;
   m_list->setSelectionMode(QAbstractItemView::SingleSelection);
   m_list->setModel(m_model);
