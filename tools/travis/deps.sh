@@ -20,7 +20,7 @@ case "$TRAVIS_OS_NAME" in
     sudo add-apt-repository --yes ppa:beineri/opt-qt58-trusty
 
     sudo apt-get update -qq
-    sudo apt-get install -qq --force-yes g++-6 binutils libasound-dev ninja-build gcovr lcov qt58-meta-minimal qt58svg qt58websockets clang-4.0 lld-4.0
+    sudo apt-get install -qq --force-yes g++-6 binutils libasound-dev ninja-build gcovr lcov qt58-meta-minimal qt58svg qt58quickcontrols2 qt58websockets clang-4.0 lld-4.0
     
     wait wget || true
     (cd /opt; sudo tar xaf boost.tar.bz2; sudo mv boost_* boost ; sudo chmod -R a+rwx boost)
