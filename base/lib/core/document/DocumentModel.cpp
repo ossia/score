@@ -5,7 +5,6 @@
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/model/IdentifiedObject.hpp>
-
 class QObject;
 #include <iscore/model/Identifier.hpp>
 
@@ -27,10 +26,13 @@ DocumentModel::DocumentModel(
 
 DocumentModel::~DocumentModel()
 {
+  auto p = m_pluginModels;
+
   // We remove the plug-ins first.
-  for (auto plug : m_pluginModels)
+  for (auto plug : p)
   {
     delete plug;
+    m_pluginModels.erase(m_pluginModels.begin());
   }
   delete m_model;
 }

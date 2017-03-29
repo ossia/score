@@ -28,6 +28,7 @@ public:
           id,
       QObject* parent);
 
+  virtual ~DeviceDocumentPlugin();
   template <typename Impl>
   DeviceDocumentPlugin(
       const iscore::DocumentContext& ctx,

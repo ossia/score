@@ -39,7 +39,12 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
     : iscore::SerializableDocumentPlugin{
           ctx, std::move(id), "Explorer::DeviceDocumentPlugin", parent}
 {
-  m_explorer = new DeviceExplorerModel{*this, this};
+    m_explorer = new DeviceExplorerModel{*this, this};
+}
+
+DeviceDocumentPlugin::~DeviceDocumentPlugin()
+{
+
 }
 
 // MOVEME
