@@ -315,7 +315,22 @@ T fromJsonObject(QJsonObject&& json)
 }
 
 template <typename T>
+T fromJsonObject(const QJsonObject& json)
+{
+  T obj;
+  JSONObjectWriter writer{json};
+  writer.writeTo(obj);
+
+  return obj;
+}
+template <typename T>
 T fromJsonObject(QJsonValue&& json)
+{
+  return fromJsonObject<T>(json.toObject());
+}
+
+template <typename T>
+T fromJsonObject(const QJsonValue& json)
 {
   return fromJsonObject<T>(json.toObject());
 }
