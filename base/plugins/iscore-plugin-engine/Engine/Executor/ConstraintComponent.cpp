@@ -109,7 +109,7 @@ void ConstraintComponent::onSetup(
   // BaseScenario needs a special callback. It is given in DefaultClockManager.
   if (!parent_is_base_scenario)
   {
-    m_ossia_constraint->setCallback(
+    m_ossia_constraint->setStatelessCallback(
         [&](ossia::time_value position,
             ossia::time_value date,
             const ossia::state& state) {
