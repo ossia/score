@@ -29,11 +29,12 @@ public:
     }
   }
 
+  template<typename Strategy = SendStrategy::Simple> // TODO why ?
   void commit()
   {
     if (m_cmd)
     {
-      SendStrategy::Simple::send(stack(), m_cmd.release());
+      Strategy::send(stack(), m_cmd.release());
       stack().enableActions();
     }
   }
