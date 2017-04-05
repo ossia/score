@@ -32,10 +32,12 @@ void setIcons(QAction* action, const QString& iconOn, const QString& iconOff)
   else
   {
     QIcon icon;
-    icon.addFile(iconOn, QSize{}, QIcon::Mode::Selected);
-    icon.addFile(iconOn, QSize{}, QIcon::Mode::Active);
-    icon.addFile(iconOn, QSize{}, QIcon::Mode::Normal, QIcon::State::On);
-    icon.addFile(iconOff, QSize{}, QIcon::Mode::Normal);
+    QPixmap on(iconOn);
+    QPixmap off(iconOff);
+    icon.addPixmap(on, QIcon::Mode::Selected);
+    icon.addPixmap(on, QIcon::Mode::Active);
+    icon.addPixmap(on, QIcon::Mode::Normal, QIcon::State::On);
+    icon.addPixmap(off, QIcon::Mode::Normal);
     action->setIcon(icon);
 
     map.insert(std::make_pair(std::move(pair), std::move(icon)));
@@ -59,12 +61,14 @@ QIcon genIconFromPixmaps(const QString& iconOn, const QString& iconOff)
   else
   {
     QIcon icon;
-    icon.addFile(iconOn, QSize{}, QIcon::Mode::Selected);
-    icon.addFile(iconOn, QSize{}, QIcon::Mode::Active);
-    icon.addFile(iconOn, QSize{}, QIcon::Mode::Normal, QIcon::State::On);
-    icon.addFile(iconOn, QSize{}, QIcon::Mode::Selected, QIcon::State::On);
-    icon.addFile(iconOn, QSize{}, QIcon::Mode::Active, QIcon::State::On);
-    icon.addFile(iconOff, QSize{}, QIcon::Mode::Normal);
+    QPixmap on(iconOn);
+    QPixmap off(iconOff);
+    icon.addPixmap(on, QIcon::Mode::Selected);
+    icon.addPixmap(on, QIcon::Mode::Active);
+    icon.addPixmap(on, QIcon::Mode::Normal, QIcon::State::On);
+    icon.addPixmap(on, QIcon::Mode::Selected, QIcon::State::On);
+    icon.addPixmap(on, QIcon::Mode::Active, QIcon::State::On);
+    icon.addPixmap(off, QIcon::Mode::Normal);
 
     map.insert(std::make_pair(std::move(pair), icon));
     return icon;
