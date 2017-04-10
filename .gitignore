@@ -24,7 +24,7 @@ Makefile
 # Eclipse
 .cproject
 .project
-
+.vs
 /i-scoreRecast.app/
 *.db
 *kde*
