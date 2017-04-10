@@ -39,8 +39,6 @@ ProcessModel::ProcessModel(
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , Scenario::BaseScenarioContainer{this}
 {
-  this->setUseParentDuration(true);
-
   Scenario::ConstraintDurations::Algorithms::changeAllDurations(
       constraint(), duration);
   endEvent().setDate(duration);

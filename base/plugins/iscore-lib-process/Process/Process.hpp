@@ -71,10 +71,6 @@ public:
   /// Duration
   void setParentDuration(ExpandMode mode, const TimeVal& t);
 
-  void setUseParentDuration(bool b);
-
-  bool useParentDuration() const;
-
   // TODO might not be useful... put in protected ?
   // Constructor needs it, too.
   void setDuration(const TimeVal& other);
@@ -130,8 +126,6 @@ private:
   // in a rack.
   std::vector<LayerModel*> m_layers;
   TimeVal m_duration;
-
-  bool m_useParentDuration{true};
 };
 
 ISCORE_LIB_PROCESS_EXPORT ProcessModel* parentProcess(QObject* obj);

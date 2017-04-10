@@ -99,20 +99,6 @@ void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t)
   }
 }
 
-void ProcessModel::setUseParentDuration(bool b)
-{
-  if (m_useParentDuration != b)
-  {
-    m_useParentDuration = b;
-    emit useParentDurationChanged(b);
-  }
-}
-
-bool ProcessModel::useParentDuration() const
-{
-  return m_useParentDuration;
-}
-
 void ProcessModel::setDuration(const TimeVal& other)
 {
   m_duration = other;

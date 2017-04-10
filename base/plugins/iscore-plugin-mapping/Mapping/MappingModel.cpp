@@ -28,8 +28,6 @@ ProcessModel::ProcessModel(
     : Curve::CurveProcessModel{
           duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-  setUseParentDuration(true);
-  // Named shall be enough ?
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
   auto s1 = new Curve::DefaultCurveSegmentModel(
