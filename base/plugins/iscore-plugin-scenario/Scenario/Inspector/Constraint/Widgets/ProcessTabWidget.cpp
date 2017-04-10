@@ -149,25 +149,6 @@ void ProcessTabWidget::displaySharedProcess(
       },
       Qt::QueuedConnection);
 
-  auto setParentDurAct = newProc->menu()->addAction(tr("Use parent duration"));
-  setParentDurAct->setCheckable(true);
-  setParentDurAct->setChecked(process.useParentDuration());
-  con(process, &Process::ProcessModel::useParentDurationChanged, this,
-      [=](bool b) {
-        if (setParentDurAct->isChecked() != b)
-        {
-          setParentDurAct->setChecked(b);
-        }
-      });
-
-  connect(setParentDurAct, &QAction::toggled, this, [&](bool b) {
-    if (b != process.useParentDuration())
-    {
-      auto cmd = new Command::SetProcessUseParentDuration{process, b};
-      m_constraintWidget.commandDispatcher()->submitCommand(cmd);
-    }
-  });
-
   // Start & end state
   auto stateWidget = new QWidget;
   auto stateLayout = new iscore::MarginLess<QFormLayout>{stateWidget};
