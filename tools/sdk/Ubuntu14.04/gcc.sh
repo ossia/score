@@ -88,4 +88,4 @@ mkdir gcc-build-2
 
 rm -rf /opt/gcc-6-temp
 cd /
-rm -rf /image
+rm -rf /image/gcc-build-2 /image/*.tar.*
