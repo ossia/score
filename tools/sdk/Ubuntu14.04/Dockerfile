@@ -16,6 +16,6 @@ RUN /image/qt-deps.sh
 ADD qt.sh /image/qt.sh
 RUN /image/qt.sh
 
-ADD cmake.sh /image/cmake.sh
-RUN /image/cmake.sh
+#ADD cmake.sh /image/cmake.sh
+#RUN /image/cmake.sh
 
