@@ -23,11 +23,12 @@ iscore::DocumentDelegateView* ScenarioDocumentFactory::makeView(
 
 iscore::DocumentDelegatePresenter*
 ScenarioDocumentFactory::makePresenter(
+    const iscore::DocumentContext& ctx,
     iscore::DocumentPresenter* parent_presenter,
     const iscore::DocumentDelegateModel& model,
     iscore::DocumentDelegateView& view)
 {
-  return new ScenarioDocumentPresenter{parent_presenter, model, view};
+  return new ScenarioDocumentPresenter{ctx, parent_presenter, model, view};
 }
 
 iscore::DocumentDelegateModel* ScenarioDocumentFactory::make(

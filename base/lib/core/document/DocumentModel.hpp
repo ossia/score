@@ -55,8 +55,6 @@ public:
     return m_pluginModels;
   }
 
-  void setNewSelection(const Selection&);
-
 signals:
   void pluginModelsChanged();
 

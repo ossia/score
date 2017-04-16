@@ -17,6 +17,8 @@
 #include <QString>
 #include <QWidget>
 #include <QtGlobal>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
@@ -66,20 +68,21 @@ ScenarioDocumentView& ScenarioDocumentPresenter::view() const
 }
 
 ScenarioDocumentPresenter::ScenarioDocumentPresenter(
+    const iscore::DocumentContext& ctx,
     iscore::DocumentPresenter* parent_presenter,
     const iscore::DocumentDelegateModel& delegate_model,
     iscore::DocumentDelegateView& delegate_view)
     : DocumentDelegatePresenter{parent_presenter, delegate_model,
                                          delegate_view}
     , m_scenarioPresenter{new DisplayedElementsPresenter{this}}
-    , m_selectionDispatcher{iscore::IDocument::documentContext(model())
-                                .selectionStack}
-    , m_context{iscore::IDocument::documentContext(model()), m_focusDispatcher}
+    , m_selectionDispatcher{ctx.selectionStack}
+    , m_context{ctx, m_focusDispatcher}
     , m_mainTimeRuler{new TimeRulerPresenter{view().timeRuler(), this}}
+
+    , m_focusManager{ctx.document.focusManager()}
 {
   using namespace iscore;
 
-  auto& ctx = iscore::IDocument::documentContext(model());
   // Setup the connections
   con((m_selectionDispatcher.stack()),
       &SelectionStack::currentSelectionChanged, this,
@@ -97,18 +100,12 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       &ScenarioDocumentPresenter::on_horizontalPositionChanged);
 
   connect(
-      this, &ScenarioDocumentPresenter::requestDisplayedConstraintChange,
-      &model(), &ScenarioDocumentModel::setDisplayedConstraint);
-  connect(
       m_scenarioPresenter,
       &DisplayedElementsPresenter::requestFocusedPresenterChange,
-      &model().focusManager(),
+      &focusManager(),
       static_cast<void (Process::ProcessFocusManager::*)(
           QPointer<Process::LayerPresenter>)>(
           &Process::ProcessFocusManager::focus));
-
-  con(model(), &ScenarioDocumentModel::focusMe, this,
-      [&]() { view().view().setFocus(); });
 
   connect(
       m_mainTimeRuler->view(), &TimeRulerView::drag, this,
@@ -119,12 +116,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   // Focus
   connect(
       &m_focusDispatcher, SIGNAL(focus(QPointer<Process::LayerPresenter>)),
-      &model(), SIGNAL(setFocusedPresenter(QPointer<Process::LayerPresenter>)),
+      this, SIGNAL(setFocusedPresenter(QPointer<Process::LayerPresenter>)),
       Qt::QueuedConnection);
-
-  // Show our constraint
-  con(model(), &ScenarioDocumentModel::displayedConstraintChanged, this,
-      &ScenarioDocumentPresenter::on_displayedConstraintChanged);
 
   con(ctx.app.settings<Settings::Model>(),
       &Settings::Model::GraphicZoomChanged, this, [&](double d) {
@@ -132,10 +125,29 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
         skin.setConstraintWidth(d);
       });
 
+
+  // Help for the FocusDispatcher.
+  connect(
+      this, &ScenarioDocumentPresenter::setFocusedPresenter, &m_focusManager,
+      static_cast<void (Process::ProcessFocusManager::*)(
+          QPointer<Process::LayerPresenter>)>(
+          &Process::ProcessFocusManager::focus));
+
+  con(m_focusManager, &Process::ProcessFocusManager::sig_defocusedViewModel,
+      this, &ScenarioDocumentPresenter::on_viewModelDefocused);
+  con(m_focusManager, &Process::ProcessFocusManager::sig_focusedViewModel,
+      this, &ScenarioDocumentPresenter::on_viewModelFocused);
+  con(m_focusManager, &Process::ProcessFocusManager::sig_focusedRoot,
+      this, [] {
+    ScenarioApplicationPlugin& app = iscore::AppContext().applicationPlugin<ScenarioApplicationPlugin>();
+    app.editionSettings().setExpandMode(ExpandMode::GrowShrink);
+  }, Qt::QueuedConnection);
+
+
   // QGraphicsView& v = view().view();
   // connect(&ctx.updateTimer, &QTimer::timeout, this, [&vp=*v.viewport()] {
   // vp.update();} );
-  emit requestDisplayedConstraintChange(model().baseConstraint());
+  setDisplayedConstraint(model().baseConstraint());
 }
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
@@ -145,7 +157,7 @@ ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
 
 const ConstraintModel& ScenarioDocumentPresenter::displayedConstraint() const
 {
-  return model().displayedElements.constraint();
+  return displayedElements.constraint();
 }
 
 void ScenarioDocumentPresenter::on_askUpdate()
@@ -155,7 +167,7 @@ void ScenarioDocumentPresenter::on_askUpdate()
 
 void ScenarioDocumentPresenter::selectAll()
 {
-  auto processmodel = model().focusManager().focusedModel();
+  auto processmodel = focusManager().focusedModel();
   if (processmodel)
   {
     m_selectionDispatcher.setAndCommit(processmodel->selectableChildren());
@@ -169,9 +181,7 @@ void ScenarioDocumentPresenter::deselectAll()
 
 void ScenarioDocumentPresenter::selectTop()
 {
-  auto& displayedElements = model().displayedElements;
-
-  model().focusManager().focus(this);
+  focusManager().focus(this);
   iscore::SelectionDispatcher{m_context.selectionStack}
     .setAndCommit(
      {&displayedElements.startState(),
@@ -193,7 +203,7 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
   connect(
       m_scenarioPresenter->constraintPresenter(),
       &FullViewConstraintPresenter::constraintSelected, this,
-      &ScenarioDocumentPresenter::requestDisplayedConstraintChange);
+      &ScenarioDocumentPresenter::setDisplayedConstraint);
 
   // Set a new zoom ratio, such that the displayed constraint takes the whole
   // screen.
@@ -367,5 +377,152 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
   // TODO should call displayedElementsPresenter instead??
   displayedConstraint().fullView()->setZoom(view().zoomSlider()->value());
   displayedConstraint().fullView()->setVisibleRect(new_visible_scene_rect);
+}
+
+
+
+
+static void updateSlotFocus(const Process::LayerModel* lm, bool b)
+{
+  if (lm && lm->parent())
+  {
+    if (auto slot = dynamic_cast<SlotModel*>(lm->parent()))
+    {
+      slot->setFocus(b);
+    }
+  }
+}
+
+
+void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constraint)
+{
+  if (displayedElements.initialized())
+  {
+    if (&constraint == &displayedElements.constraint())
+    {
+      auto pres = iscore::IDocument::try_get<ScenarioDocumentPresenter>(
+            *iscore::IDocument::documentFromObject(this));
+      if(pres) pres->selectTop();
+      return;
+    }
+  }
+
+  auto& provider
+      = iscore::IDocument::documentContext(*this)
+            .app.interfaces<DisplayedElementsProviderList>();
+  displayedElements.setDisplayedElements(
+      provider.make(&DisplayedElementsProvider::make, constraint));
+
+  m_focusManager.focusNothing();
+
+  disconnect(m_constraintConnection);
+  if (&constraint != &model().baseConstraint())
+  {
+    m_constraintConnection
+        = connect(constraint.fullView(), &QObject::destroyed, this, [&]() {
+            setDisplayedConstraint(model().baseConstraint());
+          });
+  }
+
+  on_displayedConstraintChanged();
+}
+
+
+void ScenarioDocumentPresenter::on_viewModelDefocused(
+    const Process::LayerModel* vm)
+{
+  // Disable the focus on previously focused view model
+  updateSlotFocus(vm, false);
+
+  // Deselect
+  // Note : why these two lines ?
+  // selectionStack.clear() should clear the selection everywhere anyway.
+  if (vm)
+    vm->processModel().setSelection({});
+
+  iscore::IDocument::documentContext(*this).selectionStack.clearAllButLast();
+}
+
+void ScenarioDocumentPresenter::on_viewModelFocused(
+    const Process::LayerModel* process)
+{
+  // Enable focus on the new viewmodel
+  updateSlotFocus(process, true);
+
+  // If the parent of the layer is a constraint, we set the focus on the
+  // constraint too.
+  auto slot = process->parent();
+  if (!slot)
+    return;
+  auto rack = slot->parent();
+  if (!rack)
+    return;
+  auto cm = rack->parent();
+  if (auto constraint = dynamic_cast<ConstraintModel*>(cm))
+  {
+    if (m_focusedConstraint)
+      m_focusedConstraint->focusChanged(false);
+
+    m_focusedConstraint = constraint;
+    m_focusedConstraint->focusChanged(true);
+  }
+}
+
+// TODO candidate for ProcessSelectionManager.
+void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
+{
+  auto process = m_focusManager.focusedModel();
+
+  // Manages the selection (different case if we're
+  // selecting something in a process, or something in full view)
+  if (s.empty())
+  {
+    if (process)
+    {
+      process->setSelection(Selection{});
+    }
+
+    displayedElements.setSelection(Selection{});
+    // Note : once here was a call to defocus a presenter. Why ? See git blame.
+  }
+  else if (ossia::any_of(s, [&](const QObject* obj) {
+             return obj == &displayedElements.constraint()
+                    || obj == &displayedElements.startTimeNode()
+                    || obj == &displayedElements.endTimeNode()
+                    || obj == &displayedElements.startEvent()
+                    || obj == &displayedElements.endEvent()
+                    || obj == &displayedElements.startState()
+                    || obj == &displayedElements.endState();
+           }))
+  {
+    if (process)
+    {
+      process->setSelection(Selection{});
+    }
+
+    m_focusManager.focus(
+          &iscore::IDocument::get<Scenario::ScenarioDocumentPresenter>(*iscore::IDocument::documentFromObject(this)));
+
+    displayedElements.setSelection(s);
+  }
+  else
+  {
+    displayedElements.setSelection(Selection{});
+
+    // We know by the presenter that all objects
+    // in a given selection are in the same Process.
+    auto newProc = Process::parentProcess(*s.begin());
+    if (process && newProc != process)
+    {
+      process->setSelection(Selection{});
+    }
+
+    if (newProc)
+    {
+      newProc->setSelection(s);
+    }
+  }
+
+  view().view().setFocus();
 }
 }

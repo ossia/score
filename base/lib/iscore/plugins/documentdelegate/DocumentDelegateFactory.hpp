@@ -33,6 +33,7 @@ public:
       = 0;
 
   virtual DocumentDelegatePresenter* makePresenter(
+      const iscore::DocumentContext& ctx,
       DocumentPresenter* parent_presenter,
       const DocumentDelegateModel& model,
       DocumentDelegateView& view)

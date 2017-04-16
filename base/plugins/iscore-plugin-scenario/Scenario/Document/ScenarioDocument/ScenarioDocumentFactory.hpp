@@ -24,6 +24,7 @@ class ScenarioDocumentFactory final : public iscore::DocumentDelegateFactory
   makeView(const iscore::ApplicationContext& ctx, QObject* parent) override;
 
   iscore::DocumentDelegatePresenter* makePresenter(
+      const iscore::DocumentContext& ctx,
       iscore::DocumentPresenter* parent_presenter,
       const iscore::DocumentDelegateModel& model,
       iscore::DocumentDelegateView& view) override;

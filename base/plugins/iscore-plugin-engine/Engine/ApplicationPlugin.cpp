@@ -23,10 +23,12 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <algorithm>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentPresenter.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <iscore/actions/ActionManager.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
@@ -153,8 +155,8 @@ void ApplicationPlugin::on_play(bool b, ::TimeVal t)
   // TODO have a on_exit handler to properly stop the scenario.
   if (auto doc = currentDocument())
   {
-    auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
-        &doc->model().modelDelegate());
+    auto scenar = dynamic_cast<Scenario::ScenarioDocumentPresenter*>(
+        &doc->presenter().presenterDelegate());
     if (!scenar)
       return;
     on_play(scenar->displayedElements.constraint(), b, {}, t);

@@ -45,9 +45,8 @@ class DisplayedElementsModel;
 DisplayedElementsPresenter::DisplayedElementsPresenter(
     ScenarioDocumentPresenter* parent)
     : QObject{parent}
-    , BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>{parent
-                                                                                     ->model()
-                                                                                     .displayedElements}
+    , BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>{
+        parent->displayedElements}
     , m_model{parent}
 {
 }

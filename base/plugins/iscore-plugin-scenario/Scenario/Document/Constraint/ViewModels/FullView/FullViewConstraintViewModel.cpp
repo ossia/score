@@ -1,5 +1,6 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include "FullViewConstraintViewModel.hpp"
@@ -56,7 +57,7 @@ void FullViewConstraintViewModel::setVisibleRect(const QRectF& value)
 bool FullViewConstraintViewModel::isActive()
 {
   auto& ctx = iscore::IDocument::documentContext(model());
-  auto& baseElt = iscore::IDocument::get<ScenarioDocumentModel>(ctx.document);
+  auto& baseElt = iscore::IDocument::get<ScenarioDocumentPresenter>(ctx.document);
 
   return (&this->model() == &baseElt.displayedElements.constraint());
 }

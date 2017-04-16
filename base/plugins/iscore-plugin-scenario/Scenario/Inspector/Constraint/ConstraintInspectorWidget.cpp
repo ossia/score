@@ -18,6 +18,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
@@ -148,7 +149,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
   ////// BODY
   auto setAsDisplayedConstraint = new QPushButton{tr("Full view"), this};
   connect(setAsDisplayedConstraint, &QPushButton::clicked, this, [this] {
-    auto& base = get<ScenarioDocumentModel>(*documentFromObject(m_model));
+    auto& base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
 
     base.setDisplayedConstraint(model());
   });

@@ -8,6 +8,7 @@
 #include <iscore/actions/ActionManager.hpp>
 #include <iscore/actions/MenuManager.hpp>
 
+#include <Process/ProcessContext.hpp>
 #include <Process/Layer/LayerContextMenu.hpp>
 #include <QAction>
 #include <QMainWindow>

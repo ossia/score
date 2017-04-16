@@ -8,6 +8,7 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
@@ -104,7 +105,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
   connect(header, &TemporalConstraintHeader::doubleClicked, this, [this]() {
     using namespace iscore::IDocument;
     auto& base
-        = get<ScenarioDocumentModel>(*documentFromObject(m_viewModel.model()));
+        = get<ScenarioDocumentPresenter>(*documentFromObject(m_viewModel.model()));
 
     base.setDisplayedConstraint(m_viewModel.model());
   });

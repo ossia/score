@@ -44,8 +44,4 @@ void DocumentModel::addPluginModel(DocumentPlugin* m)
   emit pluginModelsChanged();
 }
 
-void DocumentModel::setNewSelection(const Selection& s)
-{
-  m_model->setNewSelection(s);
-}
 }

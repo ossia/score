@@ -159,7 +159,7 @@ Document::Document(
   }
 
   m_view = new DocumentView{factory, *this, parentview};
-  m_presenter = new DocumentPresenter{factory, *m_model, *m_view, this};
+  m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
   init();
 }
 

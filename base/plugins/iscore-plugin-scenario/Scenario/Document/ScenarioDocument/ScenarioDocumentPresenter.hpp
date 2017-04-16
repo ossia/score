@@ -1,8 +1,10 @@
 #pragma once
 #include <QPoint>
 #include <QRect>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <memory>
 
 #include <Process/Focus/FocusDispatcher.hpp>
@@ -34,7 +36,7 @@ class TimeRulerPresenter;
  * A bit special because we connect it to the presenter of the content model
  * inside the constraint model of the base element model.
  */
-class ScenarioDocumentPresenter final
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentPresenter final
     : public iscore::DocumentDelegatePresenter
 {
   Q_OBJECT
@@ -42,6 +44,7 @@ class ScenarioDocumentPresenter final
 
 public:
   ScenarioDocumentPresenter(
+      const iscore::DocumentContext& ctx,
       iscore::DocumentPresenter* parent_presenter,
       const iscore::DocumentDelegateModel& model,
       iscore::DocumentDelegateView& view);
@@ -77,13 +80,30 @@ public:
     return m_context;
   }
 
+
+  void setNewSelection(const Selection& s) override;
+
+  Process::ProcessFocusManager& focusManager() const
+  {
+    return m_focusManager;
+  }
+
+  void setDisplayedConstraint(Scenario::ConstraintModel& constraint);
+
+  void on_viewModelDefocused(const Process::LayerModel* vm);
+  void on_viewModelFocused(const Process::LayerModel* vm);
+
+
+public:
+  DisplayedElementsModel displayedElements;
+
 signals:
   void pressed(QPointF);
   void moved(QPointF);
   void released(QPointF);
   void escPressed();
 
-  void requestDisplayedConstraintChange(ConstraintModel&);
+  void setFocusedPresenter(QPointer<Process::LayerPresenter>);
 
 private slots:
   void on_windowSizeChanged(QSize);
@@ -103,6 +123,9 @@ private:
 
   iscore::SelectionDispatcher m_selectionDispatcher;
   FocusDispatcher m_focusDispatcher;
+  mutable Process::ProcessFocusManager m_focusManager;
+  QPointer<ConstraintModel> m_focusedConstraint{};
+
   Process::ProcessPresenterContext m_context;
 
   // State machine
@@ -112,5 +135,7 @@ private:
   TimeRulerPresenter* m_mainTimeRuler{};
 
   ZoomRatio m_zoomRatio;
+  QMetaObject::Connection m_constraintConnection;
+
 };
 }
