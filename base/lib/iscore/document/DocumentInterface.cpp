@@ -48,7 +48,7 @@ ObjectPath iscore::IDocument::unsafe_path(const QObject& obj)
 iscore::DocumentDelegatePresenter&
 iscore::IDocument::presenterDelegate_generic(const iscore::Document& d)
 {
-  return *d.presenter().presenterDelegate();
+  return d.presenter().presenterDelegate();
 }
 
 iscore::DocumentDelegateModel&

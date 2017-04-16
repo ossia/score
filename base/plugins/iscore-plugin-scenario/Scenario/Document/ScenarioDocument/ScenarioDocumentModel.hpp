@@ -1,12 +1,11 @@
 #pragma once
-#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
 
 #include <QPointer>
 #include <core/document/Document.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 class JSONObject;
 class DataStream;
@@ -39,7 +38,6 @@ public:
       const iscore::DocumentContext& ctx,
       QObject* parent)
       : iscore::DocumentDelegateModel{vis, parent}
-      , m_focusManager{ctx.document.focusManager()}
   {
     vis.writeTo(*this);
     init();
@@ -55,34 +53,11 @@ public:
   ConstraintModel& baseConstraint() const;
 
   void serialize(const VisitorVariant&) const override;
-  void setNewSelection(const Selection& s) override;
-
-  Process::ProcessFocusManager& focusManager() const
-  {
-    return m_focusManager;
-  }
-
-  void setDisplayedConstraint(Scenario::ConstraintModel& constraint);
-
-  void on_viewModelDefocused(const Process::LayerModel* vm);
-  void on_viewModelFocused(const Process::LayerModel* vm);
-
-signals:
-  void focusMe();
-  void setFocusedPresenter(QPointer<Process::LayerPresenter>);
-  void displayedConstraintChanged();
 
 private:
   void init();
   void initializeNewDocument(const FullViewConstraintViewModel* viewmodel);
 
-  mutable Process::ProcessFocusManager m_focusManager;
-  QPointer<ConstraintModel> m_focusedConstraint{};
   BaseScenario* m_baseScenario{};
-
-  QMetaObject::Connection m_constraintConnection;
-
-public:
-  DisplayedElementsModel displayedElements;
 };
 }

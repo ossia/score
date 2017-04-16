@@ -16,6 +16,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/model/path/PathSerialization.hpp>
 
+#include <Process/ProcessContext.hpp>
 #include <QAction>
 #include <QMenu>
 #include <Scenario/Application/ScenarioActions.hpp>

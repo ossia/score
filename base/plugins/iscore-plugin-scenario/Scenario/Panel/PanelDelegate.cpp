@@ -6,8 +6,9 @@
 #include <QVBoxLayout>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentPresenter.hpp>
 #include <iscore/application/GUIApplicationContext.hpp>
 #include <iscore/widgets/ClearLayout.hpp>
 
@@ -57,22 +58,22 @@ void PanelDelegate::on_modelChanged(
     return;
   }
 
-  auto bem = iscore::IDocument::try_get<Scenario::ScenarioDocumentModel>(
+  auto bep = iscore::IDocument::try_get<Scenario::ScenarioDocumentPresenter>(
       newm->document);
 
-  if (!bem)
+  if (!bep)
     return;
 
   m_connections.push_back(con(
-      bem->focusManager(), &Process::ProcessFocusManager::sig_focusedViewModel,
+      bep->focusManager(), &Process::ProcessFocusManager::sig_focusedViewModel,
       this, &PanelDelegate::on_focusedViewModelChanged));
 
   m_connections.push_back(
-      con(bem->focusManager(),
+      con(bep->focusManager(),
           &Process::ProcessFocusManager::sig_defocusedViewModel, this,
           [&] { on_focusedViewModelChanged(nullptr); }));
 
-  on_focusedViewModelChanged(bem->focusManager().focusedViewModel());
+  on_focusedViewModelChanged(bep->focusManager().focusedViewModel());
 }
 
 void PanelDelegate::cleanup()
@@ -86,8 +87,8 @@ void PanelDelegate::cleanup()
 static bool isInFullView(const Process::LayerModel& theLM)
 {
   auto& doc = iscore::IDocument::documentContext(theLM);
-  auto& sub = safe_cast<Scenario::ScenarioDocumentModel&>(
-      doc.document.model().modelDelegate());
+  auto& sub = safe_cast<Scenario::ScenarioDocumentPresenter&>(
+      doc.document.presenter().presenterDelegate());
   return &sub.displayedElements.constraint()
          == dynamic_cast<ConstraintModel*>(theLM.parent()->parent()->parent());
 }

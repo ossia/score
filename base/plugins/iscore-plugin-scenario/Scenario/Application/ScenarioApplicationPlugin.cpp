@@ -52,6 +52,7 @@
 
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/actions/Menu.hpp>
@@ -284,7 +285,7 @@ ScenarioApplicationPlugin::processFocusManager() const
   if (auto doc = currentDocument())
   {
     auto bem
-        = dynamic_cast<ScenarioDocumentModel*>(&doc->model().modelDelegate());
+        = dynamic_cast<ScenarioDocumentPresenter*>(&doc->presenter().presenterDelegate());
     if (bem)
     {
       return &bem->focusManager();

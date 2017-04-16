@@ -40,6 +40,7 @@ void AbstractTimeRulerView::paint(
     painter.setPen(style.TimeRulerLargePen);
     painter.drawLine(0, 0, m_width, 0);
     painter.setPen(style.TimeRulerSmallPen);
+    painter.setBrush(style.TimeRuler.getColor());
     painter.drawPath(m_path);
 
     painter.setFont(iscore::Skin::instance().MonoFont);

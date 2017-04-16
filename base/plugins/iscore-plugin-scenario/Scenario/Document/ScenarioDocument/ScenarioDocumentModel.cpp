@@ -59,15 +59,12 @@ namespace Scenario
 {
 ScenarioDocumentModel::ScenarioDocumentModel(
     const iscore::DocumentContext& ctx, QObject* parent)
-    : iscore::
-          DocumentDelegateModel{Id<iscore::
-                                                DocumentDelegateModel>(
-                                             iscore::id_generator::
-                                                 getFirstId()),
-                                         "Scenario::ScenarioDocumentModel",
-                                         parent}
-    , m_focusManager{ctx.document.focusManager()}
-    , m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
+  : iscore::
+    DocumentDelegateModel{Id<iscore::DocumentDelegateModel>(
+                            iscore::id_generator::getFirstId()),
+                          "Scenario::ScenarioDocumentModel",
+                          parent}
+  , m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
   auto dur
       = ctx.app.settings<Scenario::Settings::Model>().getDefaultDuration();
@@ -106,22 +103,6 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
 void ScenarioDocumentModel::init()
 {
-  // Help for the FocusDispatcher.
-  connect(
-      this, &ScenarioDocumentModel::setFocusedPresenter, &m_focusManager,
-      static_cast<void (Process::ProcessFocusManager::*)(
-          QPointer<Process::LayerPresenter>)>(
-          &Process::ProcessFocusManager::focus));
-
-  con(m_focusManager, &Process::ProcessFocusManager::sig_defocusedViewModel,
-      this, &ScenarioDocumentModel::on_viewModelDefocused);
-  con(m_focusManager, &Process::ProcessFocusManager::sig_focusedViewModel,
-      this, &ScenarioDocumentModel::on_viewModelFocused);
-  con(m_focusManager, &Process::ProcessFocusManager::sig_focusedRoot,
-      this, [] {
-    ScenarioApplicationPlugin& app = iscore::AppContext().applicationPlugin<ScenarioApplicationPlugin>();
-    app.editionSettings().setExpandMode(ExpandMode::GrowShrink);
-  }, Qt::QueuedConnection);
 }
 
 void ScenarioDocumentModel::initializeNewDocument(
@@ -168,145 +149,5 @@ ConstraintModel& ScenarioDocumentModel::baseConstraint() const
   return m_baseScenario->constraint();
 }
 
-static void updateSlotFocus(const Process::LayerModel* lm, bool b)
-{
-  if (lm && lm->parent())
-  {
-    if (auto slot = dynamic_cast<SlotModel*>(lm->parent()))
-    {
-      slot->setFocus(b);
-    }
-  }
-}
 
-void ScenarioDocumentModel::on_viewModelDefocused(
-    const Process::LayerModel* vm)
-{
-  // Disable the focus on previously focused view model
-  updateSlotFocus(vm, false);
-
-  // Deselect
-  // Note : why these two lines ?
-  // selectionStack.clear() should clear the selection everywhere anyway.
-  if (vm)
-    vm->processModel().setSelection({});
-
-  iscore::IDocument::documentContext(*this).selectionStack.clearAllButLast();
-}
-
-void ScenarioDocumentModel::on_viewModelFocused(
-    const Process::LayerModel* process)
-{
-  // Enable focus on the new viewmodel
-  updateSlotFocus(process, true);
-
-  // If the parent of the layer is a constraint, we set the focus on the
-  // constraint too.
-  auto slot = process->parent();
-  if (!slot)
-    return;
-  auto rack = slot->parent();
-  if (!rack)
-    return;
-  auto cm = rack->parent();
-  if (auto constraint = dynamic_cast<ConstraintModel*>(cm))
-  {
-    if (m_focusedConstraint)
-      m_focusedConstraint->focusChanged(false);
-
-    m_focusedConstraint = constraint;
-    m_focusedConstraint->focusChanged(true);
-  }
-}
-
-// TODO candidate for ProcessSelectionManager.
-void ScenarioDocumentModel::setNewSelection(const Selection& s)
-{
-  auto process = m_focusManager.focusedModel();
-
-  // Manages the selection (different case if we're
-  // selecting something in a process, or something in full view)
-  if (s.empty())
-  {
-    if (process)
-    {
-      process->setSelection(Selection{});
-    }
-
-    displayedElements.setSelection(Selection{});
-    // Note : once here was a call to defocus a presenter. Why ? See git blame.
-  }
-  else if (ossia::any_of(s, [&](const QObject* obj) {
-             return obj == &displayedElements.constraint()
-                    || obj == &displayedElements.startTimeNode()
-                    || obj == &displayedElements.endTimeNode()
-                    || obj == &displayedElements.startEvent()
-                    || obj == &displayedElements.endEvent()
-                    || obj == &displayedElements.startState()
-                    || obj == &displayedElements.endState();
-           }))
-  {
-    if (process)
-    {
-      process->setSelection(Selection{});
-    }
-
-    m_focusManager.focus(
-          &iscore::IDocument::get<Scenario::ScenarioDocumentPresenter>(*iscore::IDocument::documentFromObject(this)));
-
-    displayedElements.setSelection(s);
-  }
-  else
-  {
-    displayedElements.setSelection(Selection{});
-
-    // We know by the presenter that all objects
-    // in a given selection are in the same Process.
-    auto newProc = Process::parentProcess(*s.begin());
-    if (process && newProc != process)
-    {
-      process->setSelection(Selection{});
-    }
-
-    if (newProc)
-    {
-      newProc->setSelection(s);
-    }
-  }
-
-  emit focusMe();
-}
-
-void ScenarioDocumentModel::setDisplayedConstraint(ConstraintModel& constraint)
-{
-  if (displayedElements.initialized())
-  {
-    if (&constraint == &displayedElements.constraint())
-    {
-      auto pres = iscore::IDocument::try_get<ScenarioDocumentPresenter>(
-            *iscore::IDocument::documentFromObject(this));
-      if(pres) pres->selectTop();
-      return;
-    }
-  }
-
-  auto& provider
-      = iscore::IDocument::documentContext(*this)
-            .app.interfaces<DisplayedElementsProviderList>();
-  displayedElements.setDisplayedElements(
-      provider.make(&DisplayedElementsProvider::make, constraint));
-
-  m_focusManager.focusNothing();
-
-  disconnect(m_constraintConnection);
-  if (&constraint != &m_baseScenario->constraint())
-  {
-    m_constraintConnection
-        = connect(constraint.fullView(), &QObject::destroyed, this, [&]() {
-            setDisplayedConstraint(m_baseScenario->constraint());
-          });
-  }
-
-  emit displayedConstraintChanged();
-}
 }

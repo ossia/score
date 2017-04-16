@@ -10,6 +10,7 @@
 
 #include <core/document/DocumentBackupManager.hpp>
 #include <iscore/document/DocumentContext.hpp>
+#include <iscore/selection/Selection.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 
 #include <iscore/tools/Todo.hpp>
@@ -66,7 +67,7 @@ Document::Document(
 
   // TODO don't build them / destroy them if !application.gui.
   m_view = new DocumentView{factory, *this, parentview};
-  m_presenter = new DocumentPresenter{factory, *m_model, *m_view, this};
+  m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
 
   init();
 
@@ -84,7 +85,7 @@ void Document::init()
         {
           panel.setNewSelection(filtered);
         }
-        m_model->setNewSelection(filtered);
+        m_presenter->setNewSelection(filtered);
       });
 
   m_documentUpdateTimer.setInterval(16); // 30 hz
