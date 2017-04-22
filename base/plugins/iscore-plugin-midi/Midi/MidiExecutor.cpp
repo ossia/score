@@ -50,25 +50,25 @@ ProcessExecutor::~ProcessExecutor()
 
 ossia::state_element ProcessExecutor::state()
 {
-  return state(parent()->getDate() / parent()->getDurationNominal());
+  return state(parent()->get_date() / parent()->get_nominal_duration());
 }
 
 ossia::state_element ProcessExecutor::state(double t)
 {
   ossia::time_constraint& par_cst = *parent();
 
-  ossia::time_value date = par_cst.getDate();
-  if (date != mLastDate)
+  ossia::time_value date = par_cst.get_date();
+  if (date != m_lastDate)
   {
     m_lastState.clear();
-    if (mLastDate > date)
-      mLastDate = 0;
+    if (m_lastDate > date)
+      m_lastDate = 0;
 
     timedState.currentAudioStart.clear();
     timedState.currentAudioStop.clear();
 
-    auto diff = (date - mLastDate) / par_cst.getDurationNominal();
-    mLastDate = date;
+    auto diff = (date - m_lastDate) / par_cst.get_nominal_duration();
+    m_lastDate = date;
     auto cur_pos = t;
     auto max_pos = cur_pos + diff;
 
@@ -140,7 +140,7 @@ ossia::state_element ProcessExecutor::state(double t)
 
 ossia::state_element ProcessExecutor::offset(ossia::time_value off)
 {
-  return state(off / parent()->getDurationNominal());
+  return state(off / parent()->get_nominal_duration());
 }
 
 void ProcessExecutor::stop()

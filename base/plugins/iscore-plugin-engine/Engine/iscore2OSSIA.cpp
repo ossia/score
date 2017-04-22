@@ -70,23 +70,23 @@ createNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
 {
   using namespace ossia;
   // Find the relevant node to add in the device
-  ossia::net::node_base* node = &dev.getRootNode();
+  ossia::net::node_base* node = &dev.get_root_node();
   for (int i = 0; i < path.size(); i++)
   {
-    auto cld = node->findChild(path[i].toStdString());
+    auto cld = node->find_child(path[i].toStdString());
     if (!cld)
     {
       // We have to start adding sub-nodes from here.
       ossia::net::node_base* parentnode = node;
       for (int k = i; k < path.size(); k++)
       {
-        auto newNode = parentnode->createChild(path[k].toStdString());
-        if (path[k].toStdString() != newNode->getName())
+        auto newNode = parentnode->create_child(path[k].toStdString());
+        if (path[k].toStdString() != newNode->get_name())
         {
-          qDebug() << path[k] << newNode->getName().c_str();
+          qDebug() << path[k] << newNode->get_name().c_str();
           for (const auto& node : parentnode->children())
           {
-            qDebug() << node->getName().c_str();
+            qDebug() << node->get_name().c_str();
           }
           ISCORE_ABORT;
         }
@@ -116,16 +116,16 @@ findNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
 {
   using namespace ossia;
   // Find the relevant node to add in the device
-  ossia::net::node_base* node = &dev.getRootNode();
+  ossia::net::node_base* node = &dev.get_root_node();
   for (int i = 0; i < path.size(); i++)
   {
-    auto cld = node->findChild(path[i].toStdString());
+    auto cld = node->find_child(path[i].toStdString());
     if (cld)
       node = cld;
     else
     {
       qDebug() << "looking for" << path
-               << " -- last found: " << node->getName() << "\n";
+               << " -- last found: " << node->get_name() << "\n";
       return {};
     }
   }
@@ -138,11 +138,11 @@ getNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
 {
   using namespace ossia;
   // Find the relevant node to add in the device
-  ossia::net::node_base* node = &dev.getRootNode();
+  ossia::net::node_base* node = &dev.get_root_node();
   const int n = path.size();
   for (int i = 0; i < n ; i++)
   {
-    auto cld = node->findChild(path[i].toStdString());
+    auto cld = node->find_child(path[i].toStdString());
 
     ISCORE_ASSERT(cld);
 
@@ -175,22 +175,22 @@ void updateOSSIAAddress(
     ossia::net::address_base& addr)
 {
   ISCORE_ASSERT(settings.ioType);
-  addr.setAccessMode(*settings.ioType);
+  addr.set_access(*settings.ioType);
 
-  addr.setBoundingMode(settings.clipMode);
+  addr.set_bounding(settings.clipMode);
 
-  addr.setRepetitionFilter(
+  addr.set_repetition_filter(
         ossia::repetition_filter(settings.repetitionFilter));
 
-  addr.setValueType(ossia::apply(ossia_type_visitor{}, settings.value.val.impl()));
+  addr.set_value_type(ossia::apply(ossia_type_visitor{}, settings.value.val.impl()));
 
-  addr.setValue(Engine::iscore_to_ossia::toOSSIAValue(settings.value));
+  addr.set_value(Engine::iscore_to_ossia::toOSSIAValue(settings.value));
 
-  addr.setDomain(settings.domain);
+  addr.set_domain(settings.domain);
 
-  addr.setUnit(settings.unit);
+  addr.set_unit(settings.unit);
 
-  addr.getNode().setExtendedAttributes(settings.extendedAttributes);
+  addr.getNode().set_extended_attributes(settings.extendedAttributes);
 }
 
 void createOSSIAAddress(
@@ -199,7 +199,7 @@ void createOSSIAAddress(
   if (!settings.value.val.impl())
     return;
 
-  auto addr = node.createAddress(
+  auto addr = node.create_address(
         ossia::apply(ossia_type_visitor{}, settings.value.val.impl()));
   if (addr)
     updateOSSIAAddress(settings, *addr);
@@ -292,7 +292,7 @@ ossia::net::address_base* address(
                 *ossia_dev);
 
           if (ossia_node)
-            return ossia_node->getAddress();
+            return ossia_node->get_address();
         }
       }
     }
@@ -389,7 +389,7 @@ static ossia::Destination expressionAddress(
     auto n = findNodeFromPath(addr.path, *dev);
     if (n)
     {
-      auto ossia_addr = n->getAddress();
+      auto ossia_addr = n->get_address();
       if (ossia_addr)
         return ossia::Destination(*ossia_addr);
       else
@@ -523,7 +523,7 @@ findAddress(const Device::DeviceList& devs, const State::Address& addr)
       auto node
           = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
       if (node)
-        return node->getAddress();
+        return node->get_address();
     }
   }
   return {};

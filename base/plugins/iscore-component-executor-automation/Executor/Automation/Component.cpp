@@ -73,7 +73,7 @@ void Component::recompute()
   if (dest)
   {
     auto& d = *dest;
-    auto addressType = d.value.get().getValueType();
+    auto addressType = d.address().get_value_type();
 
     auto curve = process().tween()
         ? on_curveChanged(addressType, d)
@@ -86,8 +86,8 @@ void Component::recompute()
             ,curve
             ,d_=d]
       {
-        proc->setDestination(std::move(d_));
-        proc->setBehavior(curve);
+        proc->set_destination(std::move(d_));
+        proc->set_behavior(curve);
       });
       return;
     }

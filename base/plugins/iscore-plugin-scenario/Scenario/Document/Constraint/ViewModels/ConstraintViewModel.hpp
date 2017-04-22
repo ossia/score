@@ -55,7 +55,7 @@ signals:
   void rackHidden();
   void rackShown(const OptionalId<RackModel>&);
 
-  void aboutToBeDeleted(ConstraintViewModel*);
+  void about_to_be_deleted(ConstraintViewModel*);
 
 private:
   // A view model cannot be constructed without a model

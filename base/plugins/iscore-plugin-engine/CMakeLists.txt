@@ -209,22 +209,18 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 get_target_property(OSSIA_PROTOCOLS ossia OSSIA_PROTOCOLS)
 if("${OSSIA_PROTOCOLS}" MATCHES "MIDI")
     target_sources(${PROJECT_NAME} PRIVATE ${MIDI_HDRS} ${MIDI_SRCS})
-    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_MIDI)
 endif()
 
 if("${OSSIA_PROTOCOLS}" MATCHES "HTTP")
     target_sources(${PROJECT_NAME} PRIVATE ${HTTP_HDRS} ${HTTP_SRCS})
-    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_HTTP)
 endif()
 
 if("${OSSIA_PROTOCOLS}" MATCHES "WebSockets")
     target_sources(${PROJECT_NAME} PRIVATE ${WS_HDRS} ${WS_SRCS})
-    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_WEBSOCKETS)
 endif()
 
 if("${OSSIA_PROTOCOLS}" MATCHES "Serial")
     target_sources(${PROJECT_NAME} PRIVATE ${SERIAL_HDRS} ${SERIAL_SRCS})
-    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_SERIAL)
 endif()
 
 target_link_libraries(${PROJECT_NAME}

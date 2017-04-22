@@ -38,11 +38,11 @@ BaseScenarioElement::BaseScenarioElement(
   auto main_end_node = std::make_shared<ossia::time_node>();
 
   auto main_start_event = *main_start_node->emplace(
-      main_start_node->timeEvents().begin(),
+      main_start_node->get_time_events().begin(),
       [this](auto&&...) {},
       ossia::expressions::make_expression_true());
   auto main_end_event = *main_end_node->emplace(
-      main_end_node->timeEvents().begin(),
+      main_end_node->get_time_events().begin(),
       [this](auto&&...) {},
       ossia::expressions::make_expression_true());
 
@@ -75,18 +75,18 @@ BaseScenarioElement::BaseScenarioElement(
 
   m_ossia_startTimeNode->onSetup(main_start_node, m_ossia_startTimeNode->makeTrigger());
   m_ossia_endTimeNode->onSetup(main_end_node, m_ossia_endTimeNode->makeTrigger());
-  m_ossia_startEvent->onSetup(main_start_event, m_ossia_startEvent->makeExpression(), (ossia::time_event::OffsetBehavior)element.startEvent().offsetBehavior());
-  m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::OffsetBehavior)element.endEvent().offsetBehavior());
+  m_ossia_startEvent->onSetup(main_start_event, m_ossia_startEvent->makeExpression(), (ossia::time_event::offset_behavior)element.startEvent().offsetBehavior());
+  m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
   m_ossia_constraint->onSetup(main_constraint, m_ossia_constraint->makeDurations(), true);
 
-  main_constraint->setExecutionStatusCallback(
-      [=](ossia::clock::ClockExecutionStatus c) {
-        if (c == ossia::clock::ClockExecutionStatus::STOPPED)
+  main_constraint->set_exec_status_callback(
+      [=](ossia::clock::exec_status c) {
+        if (c == ossia::clock::exec_status::STOPPED)
         {
           ossia::state accumulator;
-          ossia::flatten_and_filter(accumulator, main_end_event->getState());
+          ossia::flatten_and_filter(accumulator, main_end_event->get_state());
           accumulator.launch();
 
           emit finished();

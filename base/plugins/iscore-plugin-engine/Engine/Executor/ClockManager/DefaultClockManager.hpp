@@ -19,7 +19,7 @@ public:
   virtual ~DefaultClockManager();
 
   //! Creates an execution callback for the root ossia::time_constraint
-  ossia::time_constraint::ExecutionCallback
+  ossia::time_constraint::exec_callback
   makeDefaultCallback(Engine::Execution::BaseScenarioElement&);
 
 private:

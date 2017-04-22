@@ -29,7 +29,7 @@ EventComponent::EventComponent(
     this->system().executionQueue.enqueue(
           [e = m_ossia_event, exp_ptr]
     {
-      e->setExpression(std::move(*exp_ptr));
+      e->set_expression(std::move(*exp_ptr));
     });
   });
 }
@@ -56,11 +56,11 @@ ossia::expression_ptr EventComponent::makeExpression() const
 void EventComponent::onSetup(
     std::shared_ptr<ossia::time_event> event,
     ossia::expression_ptr expr,
-    ossia::time_event::OffsetBehavior b)
+    ossia::time_event::offset_behavior b)
 {
   m_ossia_event = event;
-  m_ossia_event->setExpression(std::move(expr));
-  m_ossia_event->setOffsetBehavior(b);
+  m_ossia_event->set_expression(std::move(expr));
+  m_ossia_event->set_offset_behavior(b);
 }
 
 std::shared_ptr<ossia::time_event> EventComponent::OSSIAEvent() const

@@ -33,7 +33,7 @@ static ossia::value clone_val(const State::Address& addr, const Device::DeviceLi
 {
   auto ossia_addr = Engine::iscore_to_ossia::address(addr, l);
   if(ossia_addr)
-    return ossia_addr->cloneValue();
+    return ossia_addr->value();
   return {};
 }
 

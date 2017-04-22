@@ -35,18 +35,18 @@ LocalDevice::LocalDevice(
   auto& appplug
       = ctx.app.applicationPlugin<Engine::ApplicationPlugin>();
 
-  auto& proto = safe_cast<ossia::net::local_protocol&>(dev.getProtocol());
+  auto& proto = safe_cast<ossia::net::multiplex_protocol&>(dev.get_protocol());
 
   m_proto = &proto;
   setLogging_impl(isLogging());
 
-  auto& root = dev.getRootNode();
+  auto& root = dev.get_root_node();
 
   {
-    auto local_play_node = root.createChild("play");
+    auto local_play_node = root.create_child("play");
     auto local_play_address
-        = local_play_node->createAddress(ossia::val_type::BOOL);
-    local_play_address->setValue(bool{false});
+        = local_play_node->create_address(ossia::val_type::BOOL);
+    local_play_address->set_value(bool{false});
     local_play_address->add_callback([&](const ossia::value& v) {
       if (auto val = v.target<bool>())
       {
@@ -72,10 +72,10 @@ LocalDevice::LocalDevice(
     });
   }
   {
-    auto local_stop_node = root.createChild("stop");
+    auto local_stop_node = root.create_child("stop");
     auto local_stop_address
-        = local_stop_node->createAddress(ossia::val_type::IMPULSE);
-    local_stop_address->setValue(ossia::impulse{});
+        = local_stop_node->create_address(ossia::val_type::IMPULSE);
+    local_stop_address->set_value(ossia::impulse{});
     local_stop_address->add_callback([&](const ossia::value&) {
       auto& stop_action = appplug.context.actions.action<Actions::Stop>();
       stop_action.action()->trigger();
@@ -106,7 +106,7 @@ void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
       set.remotePort = 9999;
       set.localPort = 6666;
     }
-    m_proto->exposeTo(std::make_unique<ossia::net::minuit_protocol>(
+    m_proto->expose_to(std::make_unique<ossia::net::minuit_protocol>(
         set.remoteName.toStdString(),
         set.host.toStdString(),
         set.remotePort,
@@ -136,7 +136,7 @@ Device::Node LocalDevice::refresh()
   Device::Node iscore_device{settings(), nullptr};
 
   // Recurse on the children
-  const auto& ossia_children = m_dev.getRootNode().children();
+  const auto& ossia_children = m_dev.get_root_node().children();
   iscore_device.reserve(ossia_children.size());
   for (const auto& node : ossia_children)
   {
@@ -145,7 +145,7 @@ Device::Node LocalDevice::refresh()
   }
 
   iscore_device.get<Device::DeviceSettings>().name
-      = QString::fromStdString(m_dev.getName());
+      = QString::fromStdString(m_dev.get_name());
 
   return iscore_device;
 }

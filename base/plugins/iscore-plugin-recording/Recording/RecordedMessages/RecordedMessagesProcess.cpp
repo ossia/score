@@ -26,7 +26,7 @@ ProcessExecutor::ProcessExecutor(
 
 ossia::state_element ProcessExecutor::state()
 {
-  return state(parent()->getDate() / parent()->getDurationNominal());
+  return state(parent()->get_date() / parent()->get_nominal_duration());
 }
 
 ossia::state_element ProcessExecutor::state(double t)
@@ -35,7 +35,7 @@ ossia::state_element ProcessExecutor::state(double t)
   ossia::time_constraint& par_cst = *parent();
 
   auto cur_pos = t;
-  auto span = par_cst.getGranularity(); // TODO this does not make sense :
+  auto span = par_cst.get_granularity(); // TODO this does not make sense :
   // granularity is in MS
 
   auto max_pos = cur_pos + span;
@@ -46,7 +46,7 @@ ossia::state_element ProcessExecutor::state(double t)
   for (int i = 0; i < n; i++)
   {
     auto& mess = m_list[i];
-    auto time = mess.percentage * par_cst.getDurationNominal();
+    auto time = mess.percentage * par_cst.get_nominal_duration();
     if (time >= cur_pos && time < max_pos)
     {
       st.add(Engine::iscore_to_ossia::message(mess.message, m_devices));
@@ -60,7 +60,7 @@ ossia::state_element ProcessExecutor::state(double t)
 
 ossia::state_element ProcessExecutor::offset(ossia::time_value off)
 {
-  return state(off / parent()->getDurationNominal());
+  return state(off / parent()->get_nominal_duration());
 }
 
 Component::Component(

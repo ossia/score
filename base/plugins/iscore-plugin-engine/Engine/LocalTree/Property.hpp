@@ -74,11 +74,11 @@ struct PropertyWrapper final : public BaseCallbackWrapper
           auto newVal = ::State::Value::fromValue(property.get());
           try
           {
-            auto res = State::fromOSSIAValue(addr.cloneValue());
+            auto res = State::fromOSSIAValue(addr.value());
 
             if (newVal != res)
             {
-              addr.pushValue(Engine::iscore_to_ossia::toOSSIAValue(newVal));
+              addr.push_value(Engine::iscore_to_ossia::toOSSIAValue(newVal));
             }
           }
           catch (...)
@@ -88,7 +88,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
         Qt::QueuedConnection);
 
     {
-      addr.setValue(Engine::iscore_to_ossia::toOSSIAValue(
+      addr.set_value(Engine::iscore_to_ossia::toOSSIAValue(
           ::State::Value::fromValue(property.get())));
     }
   }
@@ -118,13 +118,13 @@ auto add_property(
     QObject* context)
 {
   constexpr const auto t = Engine::ossia_to_iscore::MatchingType<T>::val;
-  auto node = n.createChild(name);
+  auto node = n.create_child(name);
   ISCORE_ASSERT(node);
 
-  auto addr = node->createAddress(t);
+  auto addr = node->create_address(t);
   ISCORE_ASSERT(addr);
 
-  addr->setAccessMode(ossia::access_mode::BI);
+  addr->set_access(ossia::access_mode::BI);
 
   return make_property(
       *node,

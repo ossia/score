@@ -55,42 +55,42 @@ Component::Component(
   auto loop = std::make_shared<ossia::loop>(
       main_duration,
       [](ossia::time_value, ossia::time_value, const ossia::state_element&) {},
-      [this, &element](ossia::time_event::Status newStatus) {
+      [this, &element](ossia::time_event::status newStatus) {
 
         element.startEvent().setStatus(
             static_cast<Scenario::ExecutionStatus>(newStatus));
         switch (newStatus)
         {
-          case ossia::time_event::Status::NONE:
+          case ossia::time_event::status::NONE:
             break;
-          case ossia::time_event::Status::PENDING:
+          case ossia::time_event::status::PENDING:
             break;
-          case ossia::time_event::Status::HAPPENED:
+          case ossia::time_event::status::HAPPENED:
             startConstraintExecution(
                 m_ossia_constraint->iscoreConstraint().id());
             break;
-          case ossia::time_event::Status::DISPOSED:
+          case ossia::time_event::status::DISPOSED:
             break;
           default:
             ISCORE_TODO;
             break;
         }
       },
-      [this, &element](ossia::time_event::Status newStatus) {
+      [this, &element](ossia::time_event::status newStatus) {
 
         element.endEvent().setStatus(
             static_cast<Scenario::ExecutionStatus>(newStatus));
         switch (newStatus)
         {
-          case ossia::time_event::Status::NONE:
+          case ossia::time_event::status::NONE:
             break;
-          case ossia::time_event::Status::PENDING:
+          case ossia::time_event::status::PENDING:
             break;
-          case ossia::time_event::Status::HAPPENED:
+          case ossia::time_event::status::HAPPENED:
             stopConstraintExecution(
                 m_ossia_constraint->iscoreConstraint().id());
             break;
-          case ossia::time_event::Status::DISPOSED:
+          case ossia::time_event::status::DISPOSED:
             break;
           default:
             ISCORE_TODO;
@@ -103,10 +103,10 @@ Component::Component(
 
   // TODO also states in BasEelement
   // TODO put graphical settings somewhere.
-  auto main_start_node = loop->getPatternStartTimeNode();
-  auto main_end_node = loop->getPatternEndTimeNode();
-  auto main_start_event = *main_start_node->timeEvents().begin();
-  auto main_end_event = *main_end_node->timeEvents().begin();
+  auto main_start_node = loop->get_start_timenode();
+  auto main_end_node = loop->get_end_timenode();
+  auto main_start_event = *main_start_node->get_time_events().begin();
+  auto main_end_event = *main_end_node->get_time_events().begin();
 
   using namespace Engine::Execution;
   m_ossia_startTimeNode = std::make_shared<TimeNodeComponent>(element.startTimeNode(),
@@ -129,11 +129,11 @@ Component::Component(
 
   m_ossia_startTimeNode->onSetup(main_start_node, m_ossia_startTimeNode->makeTrigger());
   m_ossia_endTimeNode->onSetup(main_end_node, m_ossia_endTimeNode->makeTrigger());
-  m_ossia_startEvent->onSetup(main_start_event, m_ossia_startEvent->makeExpression(), (ossia::time_event::OffsetBehavior)element.startEvent().offsetBehavior());
-  m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::OffsetBehavior)element.endEvent().offsetBehavior());
+  m_ossia_startEvent->onSetup(main_start_event, m_ossia_startEvent->makeExpression(), (ossia::time_event::offset_behavior)element.startEvent().offsetBehavior());
+  m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
-  m_ossia_constraint->onSetup(loop->getPatternTimeConstraint(), m_ossia_constraint->makeDurations(), false);
+  m_ossia_constraint->onSetup(loop->get_time_constraint(), m_ossia_constraint->makeDurations(), false);
 }
 
 Component::~Component()

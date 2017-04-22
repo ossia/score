@@ -40,11 +40,11 @@ bool OSCQueryDevice::reconnect()
             stgs.host.toStdString());
 
     // run the commands in the Qt event loop
-    ossia_settings->setCommandCallback([=] { sig_command(); });
-    ossia_settings->setDisconnectCallback([=] {
+    ossia_settings->set_command_callback([=] { sig_command(); });
+    ossia_settings->set_disconnect_callback([=] {
       emit sig_disconnect();
     });
-    ossia_settings->setFailCallback([=] {
+    ossia_settings->set_fail_callback([=] {
       emit sig_disconnect();
     });
 
@@ -79,8 +79,8 @@ void OSCQueryDevice::slot_command()
 {
   if(m_dev)
   {
-    auto proto = safe_cast<ossia::oscquery::oscquery_mirror_protocol*>(&m_dev->getProtocol());
-    proto->runCommands();
+    auto proto = safe_cast<ossia::oscquery::oscquery_mirror_protocol*>(&m_dev->get_protocol());
+    proto->run_commands();
   }
 }
 

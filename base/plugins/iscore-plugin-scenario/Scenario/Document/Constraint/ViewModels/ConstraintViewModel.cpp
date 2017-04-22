@@ -69,7 +69,7 @@ ConstraintViewModel::ConstraintViewModel(
 
 ConstraintViewModel::~ConstraintViewModel()
 {
-  emit aboutToBeDeleted(this);
+  emit about_to_be_deleted(this);
 }
 
 ConstraintModel& ConstraintViewModel::model() const

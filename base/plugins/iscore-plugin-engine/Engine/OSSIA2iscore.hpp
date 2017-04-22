@@ -208,7 +208,7 @@ ToDeviceExplorer(const ossia::net::node_base& node);
 
 inline ::TimeVal time(ossia::time_value t)
 {
-  return t.isInfinite() ? ::TimeVal{PositiveInfinity{}}
+  return t.infinite() ? ::TimeVal{PositiveInfinity{}}
                         : ::TimeVal::fromMsecs(double(t));
 }
 }

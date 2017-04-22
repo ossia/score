@@ -21,7 +21,7 @@ struct SetPropertyWrapper final : public BaseCallbackWrapper
     callbackIt = addr.add_callback(
         [=](const ossia::value& v) { setFun(State::fromOSSIAValue(v)); });
 
-    addr.setValue(typename Engine::ossia_to_iscore::MatchingType<T>::type{});
+    addr.set_value(typename Engine::ossia_to_iscore::MatchingType<T>::type{});
   }
 };
 
@@ -37,13 +37,13 @@ auto add_setProperty(
     ossia::net::node_base& n, const std::string& name, Callback cb)
 {
   constexpr const auto t = Engine::ossia_to_iscore::MatchingType<T>::val;
-  auto node = n.createChild(name);
+  auto node = n.create_child(name);
   ISCORE_ASSERT(node);
 
-  auto addr = node->createAddress(t);
+  auto addr = node->create_address(t);
   ISCORE_ASSERT(addr);
 
-  addr->setAccessMode(ossia::access_mode::SET);
+  addr->set_access(ossia::access_mode::SET);
 
   return make_setProperty<T>(*node, *addr, cb);
 }
