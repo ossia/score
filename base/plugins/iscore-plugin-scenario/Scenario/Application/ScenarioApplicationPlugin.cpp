@@ -98,10 +98,15 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
       std::make_shared<EnableWhenSelectionContains<EventModel>>());
   ctx.actions.onSelectionChange(
       std::make_shared<EnableWhenSelectionContains<StateModel>>());
+  ctx.actions.onSelectionChange(
+      std::make_shared<EnableWhenSelectionContains<TimeNodeModel>>());
 
   auto on_sm = std::make_shared<EnableWhenScenarioModelObject>();
   ctx.actions.onSelectionChange(on_sm);
   ctx.actions.onFocusChange(on_sm);
+  auto on_instant_si = std::make_shared<EnableWhenScenarioInterfaceInstantObject>();
+  ctx.actions.onSelectionChange(on_instant_si);
+  ctx.actions.onFocusChange(on_instant_si);
   auto on_si = std::make_shared<EnableWhenScenarioInterfaceObject>();
   ctx.actions.onSelectionChange(on_si);
   ctx.actions.onFocusChange(on_si);

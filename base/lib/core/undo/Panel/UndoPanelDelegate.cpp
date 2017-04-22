@@ -21,7 +21,7 @@ QWidget* UndoPanelDelegate::widget()
 const PanelStatus& UndoPanelDelegate::defaultPanelStatus() const
 {
   static const iscore::PanelStatus status{
-      true, Qt::LeftDockWidgetArea, 1, QObject::tr("History"),
+      false, Qt::LeftDockWidgetArea, 1, QObject::tr("History"),
       QKeySequence::fromString("Ctrl+Shift+H")};
 
   return status;

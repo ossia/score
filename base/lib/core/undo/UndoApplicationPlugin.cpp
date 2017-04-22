@@ -28,8 +28,8 @@ iscore::UndoApplicationPlugin::UndoApplicationPlugin(
   m_undoAction.setToolTip(QObject::tr("Undo (Ctrl+Z)"));
 
   setIcons(
-      &m_undoAction, QString(":/icons/prev_on.png"),
-      QString(":/icons/prev_off.png"));
+      &m_undoAction, QStringLiteral(":/icons/prev_on.png"),
+      QStringLiteral(":/icons/prev_off.png"));
 
   con(m_undoAction, &QAction::triggered,
       [&]() { currentDocument()->commandStack().undo(); });
@@ -40,8 +40,8 @@ iscore::UndoApplicationPlugin::UndoApplicationPlugin(
   m_redoAction.setToolTip(QObject::tr("Redo (Ctrl+Shift+Z)"));
 
   setIcons(
-      &m_redoAction, QString(":/icons/next_on.png"),
-      QString(":/icons/next_off.png"));
+      &m_redoAction, QStringLiteral(":/icons/next_on.png"),
+      QStringLiteral(":/icons/next_off.png"));
 
   con(m_redoAction, &QAction::triggered,
       [&]() { currentDocument()->commandStack().redo(); });

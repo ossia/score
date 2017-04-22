@@ -66,7 +66,7 @@ void CoreApplicationPlugin::openSettings()
 
 void CoreApplicationPlugin::about()
 {
-  auto version_text = QString("%1.%2.%3-%4 '%5'\n\n")
+  auto version_text = QStringLiteral("%1.%2.%3-%4 '%5'\n\n")
                           .arg(ISCORE_VERSION_MAJOR)
                           .arg(ISCORE_VERSION_MINOR)
                           .arg(ISCORE_VERSION_PATCH)

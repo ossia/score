@@ -101,7 +101,7 @@ class TimeSpinBox final : public QTimeEdit
 public:
   TimeSpinBox(QWidget* parent = nullptr) : QTimeEdit(parent)
   {
-    setDisplayFormat(QString("h.mm.ss.zzz"));
+    setDisplayFormat(QStringLiteral("h.mm.ss.zzz"));
   }
 
   void wheelEvent(QWheelEvent* event) override

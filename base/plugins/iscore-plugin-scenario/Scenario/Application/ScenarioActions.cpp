@@ -86,10 +86,44 @@ void EnableWhenScenarioModelObject::action(
            || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
            || bool(dynamic_cast<const Scenario::StateModel*>(ptr))
            || bool(dynamic_cast<const Scenario::CommentBlockModel*>(ptr));
+  }); // TODO why not timenode
+
+  setEnabled(mgr, res);
+}
+
+
+
+EnableWhenScenarioInterfaceInstantObject::EnableWhenScenarioInterfaceInstantObject()
+    : iscore::ActionCondition{static_key()}
+{
+}
+
+iscore::ActionConditionKey EnableWhenScenarioInterfaceInstantObject::static_key()
+{
+  return iscore::ActionConditionKey{"ScenarioInterfaceInstantObject"};
+}
+
+void EnableWhenScenarioInterfaceInstantObject::action(
+    iscore::ActionManager& mgr, iscore::MaybeDocument doc)
+{
+  if (!doc)
+  {
+    setEnabled(mgr, false);
+    return;
+  }
+
+  const auto& sel = doc->selectionStack.currentSelection();
+  auto res = ossia::any_of(sel, [](auto obj) {
+    auto ptr = obj.data();
+    return bool(dynamic_cast<const Scenario::TimeNodeModel*>(ptr))
+           || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
+           || bool(dynamic_cast<const Scenario::StateModel*>(ptr));
   });
 
   setEnabled(mgr, res);
 }
+
+
 
 EnableWhenScenarioInterfaceObject::EnableWhenScenarioInterfaceObject()
     : iscore::ActionCondition{static_key()}
@@ -140,7 +174,7 @@ void EnableWhenScenarioInterfaceObject::action(
     return bool(dynamic_cast<const Scenario::ConstraintModel*>(ptr))
            || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
            || bool(dynamic_cast<const Scenario::StateModel*>(ptr));
-  });
+  }); // TODO why not timenode
 
   setEnabled(mgr, res);
 }

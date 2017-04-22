@@ -17,6 +17,7 @@ focusedScenarioInterface(const iscore::DocumentContext& ctx);
 ISCORE_PLUGIN_SCENARIO_EXPORT const Scenario::ProcessModel*
 focusedScenarioModel(const iscore::DocumentContext& ctx);
 
+//! Anything in a scenario model
 class EnableWhenScenarioModelObject final : public iscore::ActionCondition
 {
 public:
@@ -28,6 +29,19 @@ private:
   void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override;
 };
 
+//! Only events, nodes, states
+class EnableWhenScenarioInterfaceInstantObject final : public iscore::ActionCondition
+{
+public:
+  EnableWhenScenarioInterfaceInstantObject();
+
+  static iscore::ActionConditionKey static_key();
+
+private:
+  void action(iscore::ActionManager& mgr, iscore::MaybeDocument doc) override;
+};
+
+//! Anything in a scenario interface
 class EnableWhenScenarioInterfaceObject final : public iscore::ActionCondition
 {
 public:
@@ -50,6 +64,7 @@ ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ScenarioInterface)
 ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::ConstraintModel)
 ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::EventModel)
 ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::StateModel)
+ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::TimeNodeModel)
 
 /// Actions
 // View
