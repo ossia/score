@@ -465,6 +465,12 @@ expression(const State::Expression& e, const Device::DeviceList& list)
     const State::Expression& expr;
     const Device::DeviceList& devlist;
     using return_type = ossia::expression_ptr;
+
+    return_type operator()() const
+    {
+      return ossia::expressions::make_expression_true();
+    }
+
     return_type operator()(const State::Relation& rel) const
     {
       return expressionAtom(rel, devlist);
@@ -507,7 +513,7 @@ expression(const State::Expression& e, const Device::DeviceList& list)
 
   } visitor{e, list};
 
-  return eggs::variants::apply(visitor, e.impl());
+  return ossia::apply(visitor, e.impl());
 }
 
 ossia::net::address_base*

@@ -105,7 +105,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   }
 
   m_comparator->setCurrentText(
-      lst.at(ExpressionEditorComparator::AlwaysFalse));
+      lst.at(ExpressionEditorComparator::AlwaysTrue));
 
   QSizePolicy sp_retain = m_binOperator->sizePolicy();
   sp_retain.setRetainSizeWhenHidden(true);
