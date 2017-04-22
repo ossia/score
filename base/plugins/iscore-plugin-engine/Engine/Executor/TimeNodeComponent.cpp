@@ -63,7 +63,7 @@ void TimeNodeComponent::onSetup(
     ossia::expression_ptr exp)
 {
   m_ossia_node = ptr;
-  m_ossia_node->setExpression(std::move(exp));
+  m_ossia_node->set_expression(std::move(exp));
 }
 
 std::shared_ptr<ossia::time_node> TimeNodeComponent::OSSIATimeNode() const
@@ -82,14 +82,14 @@ void TimeNodeComponent::updateTrigger()
   this->system().executionQueue.enqueue(
         [e = m_ossia_node, exp_ptr]
   {
-    bool old = e->isObservingExpression();
+    bool old = e->is_observing_expression();
     if(old)
-      e->observeExpressionResult(false);
+      e->observe_expression(false);
 
-    e->setExpression(std::move(*exp_ptr));
+    e->set_expression(std::move(*exp_ptr));
 
     if(old)
-      e->observeExpressionResult(true);
+      e->observe_expression(true);
 
   });
 
@@ -103,10 +103,10 @@ void TimeNodeComponent::on_GUITrigger()
       node->trigger();
 
       ossia::state accumulator;
-      for (auto& event : node->timeEvents())
+      for (auto& event : node->get_time_events())
       {
-        if (event->getStatus() == ossia::time_event::Status::HAPPENED)
-          ossia::flatten_and_filter(accumulator, event->getState());
+        if (event->get_status() == ossia::time_event::status::HAPPENED)
+          ossia::flatten_and_filter(accumulator, event->get_state());
       }
       accumulator.launch();
     }

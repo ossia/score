@@ -33,27 +33,27 @@ ConstraintComponentBase::ConstraintComponentBase(
 {
   con(constraint().duration,
       &Scenario::ConstraintDurations::executionSpeedChanged, this,
-      [&](double sp) { m_ossia_constraint->setSpeed(sp); });
+      [&](double sp) { m_ossia_constraint->set_speed(sp); });
 
   con(constraint().duration,
       &Scenario::ConstraintDurations::defaultDurationChanged, this,
       [&](TimeVal sp) {
     system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
-      { cst->setDurationNominal(iscore_to_ossia::time(sp)); });
+      { cst->set_nominal_duration(iscore_to_ossia::time(sp)); });
   });
 
   con(constraint().duration,
       &Scenario::ConstraintDurations::minDurationChanged, this,
       [&](TimeVal sp) {
     system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
-      { cst->setDurationMin(iscore_to_ossia::time(sp)); });
+      { cst->set_min_duration(iscore_to_ossia::time(sp)); });
   });
 
   con(constraint().duration,
       &Scenario::ConstraintDurations::maxDurationChanged, this,
       [&](TimeVal sp) {
     system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
-      { cst->setDurationMax(iscore_to_ossia::time(sp)); });
+      { cst->set_max_duration(iscore_to_ossia::time(sp)); });
   });
 
 }
@@ -61,7 +61,7 @@ ConstraintComponentBase::ConstraintComponentBase(
 ConstraintComponent::~ConstraintComponent()
 {
   if(m_ossia_constraint)
-    m_ossia_constraint->setCallback(ossia::time_constraint::ExecutionCallback{});
+    m_ossia_constraint->set_callback(ossia::time_constraint::exec_callback{});
 
   for(auto& proc : m_processes)
     proc.second->cleanup();
@@ -76,7 +76,7 @@ void ConstraintComponent::init()
 void ConstraintComponent::cleanup()
 {
   if(m_ossia_constraint)
-    m_ossia_constraint->setCallback(ossia::time_constraint::ExecutionCallback{});
+    m_ossia_constraint->set_callback(ossia::time_constraint::exec_callback{});
   for(auto& proc : m_processes)
     proc.second->cleanup();
 
@@ -102,14 +102,14 @@ void ConstraintComponent::onSetup(
 {
   m_ossia_constraint = ossia_cst;
 
-  m_ossia_constraint->setDurationMin(dur.minDuration);
-  m_ossia_constraint->setDurationMax(dur.maxDuration);
-  m_ossia_constraint->setSpeed(dur.speed);
+  m_ossia_constraint->set_min_duration(dur.minDuration);
+  m_ossia_constraint->set_max_duration(dur.maxDuration);
+  m_ossia_constraint->set_speed(dur.speed);
 
   // BaseScenario needs a special callback. It is given in DefaultClockManager.
   if (!parent_is_base_scenario)
   {
-    m_ossia_constraint->setStatelessCallback(
+    m_ossia_constraint->set_stateless_callback(
         [&](ossia::time_value position,
             ossia::time_value date,
             const ossia::state& state) {
@@ -143,7 +143,7 @@ void ConstraintComponentBase::play(TimeVal t)
 {
   constraint().duration.setPlayPercentage(0);
 
-  auto start_state = m_ossia_constraint->getStartEvent().getState();
+  auto start_state = m_ossia_constraint->get_start_event().get_state();
   auto offset_state = m_ossia_constraint->offset(Engine::iscore_to_ossia::time(t));
 
   ossia::state accumulator;
@@ -175,7 +175,7 @@ void ConstraintComponentBase::resume()
 void ConstraintComponentBase::stop()
 {
   m_ossia_constraint->stop();
-  auto st = m_ossia_constraint->getEndEvent().getState();
+  auto st = m_ossia_constraint->get_end_event().get_state();
   st.launch();
 
   for (auto& process : m_processes)
@@ -222,7 +222,7 @@ ProcessComponent* ConstraintComponentBase::make(
 
       system().executionQueue.enqueue(
             [=,cst=m_ossia_constraint] {
-        cst->addTimeProcess(plug->OSSIAProcessPtr());
+        cst->add_time_process(plug->OSSIAProcessPtr());
       });
     }
     return plug.get();
@@ -246,7 +246,7 @@ std::function<void ()> ConstraintComponentBase::removing(
   if(it != m_processes.end())
   {
     system().executionQueue.enqueue([cstr=m_ossia_constraint,proc=c.OSSIAProcessPtr()] {
-      cstr->removeTimeProcess(proc.get());
+      cstr->remove_time_process(proc.get());
     });
 
     c.cleanup();

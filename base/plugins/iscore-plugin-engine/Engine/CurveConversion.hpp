@@ -46,8 +46,8 @@ std::shared_ptr<ossia::curve_abstract> curve(
   auto start = segments[0]->start();
   if (start.x() == 0.)
   {
-    curve->setInitialPointAbscissa(scale_x(start.x()));
-    curve->setInitialPointOrdinate(scale_y(start.y()));
+    curve->set_x0(scale_x(start.x()));
+    curve->set_y0(scale_y(start.y()));
   }
 
   for (auto iscore_segment : segments)
@@ -56,27 +56,27 @@ std::shared_ptr<ossia::curve_abstract> curve(
 #if defined(_MSC_VER)
     if (std::is_same<Y_T, int>::value)
     {
-      curve->addPoint(
+      curve->add_point(
           iscore_segment->makeIntFunction(),
           scale_x(end.x()),
           scale_y(end.y()));
     }
     else if (std::is_same<Y_T, float>::value)
     {
-      curve->addPoint(
+      curve->add_point(
           iscore_segment->makeFloatFunction(),
           scale_x(end.x()),
           scale_y(end.y()));
     }
     else if (std::is_same<Y_T, bool>::value)
     {
-      curve->addPoint(
+      curve->add_point(
           iscore_segment->makeBoolFunction(),
           scale_x(end.x()),
           scale_y(end.y()));
     }
 #else
-    curve->addPoint(
+    curve->add_point(
         (iscore_segment->*CurveTraits<Y_T>::fun)(),
         scale_x(end.x()),
         scale_y(end.y()));
@@ -85,7 +85,7 @@ std::shared_ptr<ossia::curve_abstract> curve(
 
   if (tween)
   {
-    curve->setInitialPointOrdinateDestination(*tween);
+    curve->set_y0_destination(*tween);
   }
 
   return curve;

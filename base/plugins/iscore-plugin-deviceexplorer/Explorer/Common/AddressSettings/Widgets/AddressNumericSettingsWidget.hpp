@@ -29,7 +29,7 @@ public:
     m_layout->insertRow(1, makeLabel(tr("Domain"), this), m_domainEdit);
 
     m_valueSBox->setValue(0);
-    m_domainEdit->setDomain(ossia::make_domain(T{0}, T{1}));
+    m_domainEdit->set_domain(ossia::make_domain(T{0}, T{1}));
   }
 
   Device::AddressSettings getSettings() const override
@@ -52,7 +52,7 @@ public:
   {
     setCommonSettings(settings);
     m_valueSBox->setValue(State::convert::value<T>(settings.value));
-    m_domainEdit->setDomain(settings.domain);
+    m_domainEdit->set_domain(settings.domain);
   }
 
 private:

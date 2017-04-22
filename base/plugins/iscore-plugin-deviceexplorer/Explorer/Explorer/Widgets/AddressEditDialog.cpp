@@ -92,7 +92,7 @@ void AddressEditDialog::updateType()
 {
   const auto valueType
       = m_valueTypeCBox->currentData().value<State::ValueType>();
-  auto widg = AddressSettingsFactory::instance().getValueTypeWidget(valueType);
+  auto widg = AddressSettingsFactory::instance().get_value_typeWidget(valueType);
 
   m_addressWidget->setWidget(widg);
 

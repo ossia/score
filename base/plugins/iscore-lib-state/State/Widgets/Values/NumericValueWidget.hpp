@@ -194,7 +194,7 @@ public:
     return dom;
   }
 
-  void setDomain(ossia::domain dom_base)
+  void set_domain(ossia::domain dom_base)
   {
     m_values.clear();
     m_minCB->setCheckState(Qt::Unchecked);

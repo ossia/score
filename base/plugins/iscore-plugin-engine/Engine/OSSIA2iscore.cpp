@@ -23,32 +23,32 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node)
 {
   Device::AddressSettings s;
 
-  const auto& addr = node.getAddress();
+  const auto& addr = node.get_address();
 
   if (addr)
   {
-    addr->requestValue();
+    addr->request_value();
 
-    s.name = QString::fromStdString(node.getName());
-    s.ioType = addr->getAccessMode();
-    s.clipMode = addr->getBoundingMode();
-    s.repetitionFilter = addr->getRepetitionFilter();
-    s.unit = addr->getUnit();
-    s.extendedAttributes = node.getExtendedAttributes();
-    s.domain = addr->getDomain();
+    s.name = QString::fromStdString(node.get_name());
+    s.ioType = addr->get_access();
+    s.clipMode = addr->get_bounding();
+    s.repetitionFilter = addr->get_repetition_filter();
+    s.unit = addr->get_unit();
+    s.extendedAttributes = node.get_extended_attributes();
+    s.domain = addr->get_domain();
 
     try
     {
-      s.value = State::fromOSSIAValue(addr->cloneValue());
+      s.value = State::fromOSSIAValue(addr->value());
     }
     catch (...)
     {
-      s.value = ToValue(addr->getValueType());
+      s.value = ToValue(addr->get_value_type());
     }
   }
   else
   {
-    s.name = QString::fromStdString(node.getName());
+    s.name = QString::fromStdString(node.get_name());
   }
   return s;
 }
@@ -107,15 +107,15 @@ State::Address ToAddress(const ossia::net::node_base& node)
   State::Address addr;
   const ossia::net::node_base* cur = &node;
 
-  while (auto padre = cur->getParent())
+  while (auto padre = cur->get_parent())
   {
-    addr.path.push_front(QString::fromStdString(cur->getName()));
+    addr.path.push_front(QString::fromStdString(cur->get_name()));
     cur = padre;
   }
 
   // The last node is the root node "/", which by convention
   // has the same name than the device
-  addr.device = QString::fromStdString(cur->getName());
+  addr.device = QString::fromStdString(cur->get_name());
   return addr;
 }
 
@@ -156,7 +156,7 @@ Device::FullAddressSettings ToFullAddressSettings(
   auto dest = Engine::iscore_to_ossia::makeDestination(list, State::AddressAccessor{addr});
   if(dest)
   {
-    return ToFullAddressSettings((*dest).value.get().getNode());
+    return ToFullAddressSettings((*dest).address().getNode());
   }
 
   return {};

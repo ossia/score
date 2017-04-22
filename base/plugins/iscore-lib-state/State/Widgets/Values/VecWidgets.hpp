@@ -125,7 +125,7 @@ public:
     return dom;
   }
 
-  void setDomain(ossia::domain dom_base)
+  void set_domain(ossia::domain dom_base)
   {
     m_min->setValue(ossia::fill_vec<N>(0));
     m_max->setValue(ossia::fill_vec<N>(1));

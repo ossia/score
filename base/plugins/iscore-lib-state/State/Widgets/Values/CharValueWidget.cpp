@@ -165,7 +165,7 @@ ossia::domain_base<char> CharDomainWidget::domain() const
   return dom;
 }
 
-void CharDomainWidget::setDomain(ossia::domain dom_base)
+void CharDomainWidget::set_domain(ossia::domain dom_base)
 {
   m_values.clear();
   m_min->clear();

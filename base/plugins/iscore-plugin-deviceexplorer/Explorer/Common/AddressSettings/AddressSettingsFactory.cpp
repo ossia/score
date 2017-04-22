@@ -86,7 +86,7 @@ AddressSettingsFactory& AddressSettingsFactory::instance()
 }
 
 AddressSettingsWidget*
-AddressSettingsFactory::getValueTypeWidget(State::ValueType valueType) const
+AddressSettingsFactory::get_value_typeWidget(State::ValueType valueType) const
 {
   auto it = m_addressSettingsWidgetFactory.find(valueType);
 

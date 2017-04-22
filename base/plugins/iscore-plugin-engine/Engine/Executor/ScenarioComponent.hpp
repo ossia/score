@@ -115,7 +115,7 @@ protected:
   void stopConstraintExecution(const Id<Scenario::ConstraintModel>&);
   void disableConstraintExecution(const Id<Scenario::ConstraintModel>& id);
 
-  void eventCallback(EventComponent& ev, ossia::time_event::Status newStatus);
+  void eventCallback(EventComponent& ev, ossia::time_event::status newStatus);
 
   void timeNodeCallback(
       Engine::Execution::TimeNodeComponent* tn, ossia::time_value date);

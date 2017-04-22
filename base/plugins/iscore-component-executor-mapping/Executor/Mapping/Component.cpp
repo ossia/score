@@ -74,8 +74,8 @@ void Component::recompute()
           devices, process().targetAddress());
     if (ossia_target_addr)
     {
-      auto sourceAddressType = ossia_source_addr->value.get().getValueType();
-      auto targetAddressType = ossia_target_addr->value.get().getValueType();
+      auto sourceAddressType = ossia_source_addr->address().get_value_type();
+      auto targetAddressType = ossia_target_addr->address().get_value_type();
 
       auto curve = rebuildCurve(sourceAddressType, targetAddressType); // If the type changes we need to rebuild the curve.
 
@@ -87,9 +87,9 @@ void Component::recompute()
               ,source=*ossia_source_addr
               ,target=*ossia_target_addr]
         {
-          proc->setDriverAddress(std::move(source));
-          proc->setDrivenAddress(std::move(target));
-          proc->setBehavior(std::move(curve));
+          proc->set_driver(std::move(source));
+          proc->set_driven(std::move(target));
+          proc->set_behavior(std::move(curve));
         });
         return;
       }

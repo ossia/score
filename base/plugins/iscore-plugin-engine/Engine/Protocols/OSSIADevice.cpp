@@ -44,7 +44,7 @@ void OSSIADevice::updateSettings(const Device::DeviceSettings& newsettings)
 
     // Recurse on the children
     {
-      const auto& ossia_children = dev->getRootNode().children();
+      const auto& ossia_children = dev->get_root_node().children();
       iscore_device.reserve(ossia_children.size());
       for (const auto& node : ossia_children)
       {
@@ -82,8 +82,8 @@ void OSSIADevice::disconnect()
   m_callbacks.clear();
   if (auto dev = getDevice())
   {
-    auto& root = dev->getRootNode();
-    root.clearChildren();
+    auto& root = dev->get_root_node();
+    root.clear_children();
   }
 }
 
@@ -114,18 +114,18 @@ void OSSIADevice::updateAddress(
     ossia::net::node_base* node
         = Engine::iscore_to_ossia::getNodeFromPath(currentAddr.path, *dev);
     auto newName = settings.address.path.last().toStdString();
-    if (newName != node->getName())
+    if (newName != node->get_name())
     {
-      node->setName(newName);
+      node->set_name(newName);
     }
 
     if (settings.value.val.which() == State::ValueType::NoValue)
     {
-      node->removeAddress();
+      node->remove_address();
     }
     else
     {
-      auto currentAddr = node->getAddress();
+      auto currentAddr = node->get_address();
       if (currentAddr)
         Engine::iscore_to_ossia::updateOSSIAAddress(settings, *currentAddr);
       else
@@ -149,7 +149,7 @@ void OSSIADevice::removeListening_impl(
   for (const auto& child : node.children())
   {
     State::Address sub_addr = addr;
-    sub_addr.path += QString::fromStdString(child->getName());
+    sub_addr.path += QString::fromStdString(child->get_name());
     removeListening_impl(*child.get(), std::move(sub_addr));
   }
 }
@@ -205,11 +205,11 @@ void OSSIADevice::setLogging_impl(bool b) const
       logger.inbound_logger->set_level(spdlog::level::info);
       logger.outbound_logger->set_pattern("%v");
       logger.outbound_logger->set_level(spdlog::level::info);
-      dev->getProtocol().setLogger(std::move(logger));
+      dev->get_protocol().set_logger(std::move(logger));
     }
     else
     {
-      dev->getProtocol().setLogger({});
+      dev->get_protocol().set_logger({});
     }
   }
 }
@@ -221,12 +221,12 @@ void OSSIADevice::enableCallbacks()
     auto dev = getDevice();
     if(dev)
     {
-      dev->onNodeCreated.connect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
-      dev->onNodeRemoving.connect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
-      dev->onNodeRenamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
-      dev->onAddressCreated.connect<OSSIADevice, &OSSIADevice::addressCreated>(
+      dev->on_node_created.connect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
+      dev->on_node_removing.connect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
+      dev->on_node_renamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
+      dev->on_address_created.connect<OSSIADevice, &OSSIADevice::addressCreated>(
             this);
-      dev->onAttributeModified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
+      dev->on_attribute_modified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
             this);
     }
     m_callbacksEnabled = true;
@@ -240,12 +240,12 @@ void OSSIADevice::disableCallbacks()
     auto dev = getDevice();
     if(dev)
     {
-      dev->onNodeCreated.disconnect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
-      dev->onNodeRemoving.disconnect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
-      dev->onNodeRenamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
-      dev->onAddressCreated.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
+      dev->on_node_created.disconnect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
+      dev->on_node_removing.disconnect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
+      dev->on_node_renamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
+      dev->on_address_created.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
             this);
-      dev->onAttributeModified.disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
+      dev->on_attribute_modified.disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
             this);
     }
     m_callbacksEnabled = false;
@@ -262,8 +262,8 @@ void OSSIADevice::removeNode(const State::Address& address)
     ossia::net::node_base* node
         = Engine::iscore_to_ossia::getNodeFromPath(address.path, *dev);
 
-    auto parent = node->getParent();
-    if(parent->hasChild(*node))
+    auto parent = node->get_parent();
+    if(parent->has_child(*node))
     {
       /* If we are listening to this node, we recursively
        * remove listening to all the children. */
@@ -274,7 +274,7 @@ void OSSIADevice::removeNode(const State::Address& address)
       // crashes.
       // The Device Explorer should be locked for edition during recording /
       // playing.
-      parent->removeChild(node->getName());
+      parent->remove_child(node->get_name());
     }
   }
 }
@@ -285,12 +285,12 @@ Device::Node OSSIADevice::refresh()
 
   if (auto dev = getDevice())
   {
-    auto& root = dev->getRootNode();
+    auto& root = dev->get_root_node();
     // Clear the listening
     removeListening_impl(root, State::Address{m_settings.name, {}});
 
     disableCallbacks();
-    if (dev->getProtocol().update(root))
+    if (dev->get_protocol().update(root))
     {
       // Make a device explorer node from the current state of the device.
       // First make the node corresponding to the root node.
@@ -319,10 +319,10 @@ optional<State::Value> OSSIADevice::refresh(const State::Address& address)
     auto node = Engine::iscore_to_ossia::findNodeFromPath(address.path, *dev);
     if (node)
     {
-      if (auto addr = node->getAddress())
+      if (auto addr = node->get_address())
       {
-        addr->pullValue();
-        return State::fromOSSIAValue(addr->cloneValue());
+        addr->pull_value();
+        return State::fromOSSIAValue(addr->value());
       }
     }
   }
@@ -337,9 +337,9 @@ void OSSIADevice::request(const State::Address& address)
     auto node = Engine::iscore_to_ossia::findNodeFromPath(address.path, *dev);
     if (node)
     {
-      if (auto addr = node->getAddress())
+      if (auto addr = node->get_address())
       {
-        addr->requestValue();
+        addr->request_value();
       }
     }
   }
@@ -389,7 +389,7 @@ void OSSIADevice::setListening(const State::Address& addr, bool b)
       if (!n)
         return;
 
-      ossia_addr = n->getAddress();
+      ossia_addr = n->get_address();
       if (!ossia_addr)
         return;
     }
@@ -418,7 +418,7 @@ void OSSIADevice::setListening(const State::Address& addr, bool b)
                              })}});
       }
 
-      valueUpdated(addr, ossia_addr->cloneValue());
+      valueUpdated(addr, ossia_addr->value());
     }
     else
     {
@@ -469,10 +469,10 @@ void OSSIADevice::sendMessage(const State::Message& mess)
       auto node = Engine::iscore_to_ossia::getNodeFromPath(
             mess.address.address.path, *dev);
 
-      auto addr = node->getAddress();
+      auto addr = node->get_address();
       if (addr)
       {
-        addr->pushValue(Engine::iscore_to_ossia::toOSSIAValue(mess.value));
+        addr->push_value(Engine::iscore_to_ossia::toOSSIAValue(mess.value));
       }
     }
     else
@@ -522,16 +522,16 @@ void OSSIADevice::nodeRemoving(const ossia::net::node_base& n)
 void OSSIADevice::nodeRenamed(
     const ossia::net::node_base& node, std::string old_name)
 {
-  if (!node.getParent())
+  if (!node.get_parent())
     return;
 
   State::Address currentAddress
-      = Engine::ossia_to_iscore::ToAddress(*node.getParent());
+      = Engine::ossia_to_iscore::ToAddress(*node.get_parent());
   currentAddress.path.push_back(QString::fromStdString(old_name));
 
   Device::AddressSettings as
       = Engine::ossia_to_iscore::ToAddressSettings(node);
-  as.name = QString::fromStdString(node.getName());
+  as.name = QString::fromStdString(node.get_name());
   emit pathUpdated(currentAddress, as);
 }
 

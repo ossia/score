@@ -9,7 +9,7 @@ namespace ossia
 namespace net
 {
 class generic_device;
-class local_protocol;
+class multiplex_protocol;
 }
 }
 namespace Engine
@@ -40,7 +40,7 @@ private:
   Device::Node refresh() override;
 
   ossia::net::device_base& m_dev;
-  ossia::net::local_protocol* m_proto;
+  ossia::net::multiplex_protocol* m_proto;
   using OSSIADevice::refresh;
 };
 }

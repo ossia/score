@@ -58,7 +58,7 @@ void Component::recompute()
             system().devices.list(), process().address());
   if(dest)
   {
-    auto curve = on_curveChanged(dest->value.get().getValueType());
+    auto curve = on_curveChanged(dest->address().get_value_type());
     if(curve)
     {
       system().executionQueue.enqueue(
@@ -66,8 +66,8 @@ void Component::recompute()
             ,curve
             ,d_=*dest]
       {
-        proc->setDestination(std::move(d_));
-        proc->setBehavior(curve);
+        proc->set_destination(std::move(d_));
+        proc->set_behavior(curve);
       });
       return;
     }
@@ -103,8 +103,8 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
     else if (start == end)
     {
       auto curve = std::make_shared<ossia::curve<double, Y_T>>();
-      curve->setInitialPointAbscissa(0);
-      curve->setInitialPointOrdinate(start);
+      curve->set_x0(0);
+      curve->set_y0(start);
       return curve;
     }
     else // start > end

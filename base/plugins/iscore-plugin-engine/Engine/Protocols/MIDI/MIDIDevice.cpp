@@ -42,8 +42,8 @@ bool MIDIDevice::reconnect()
 
     auto dev
         = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
-    dev->setName(settings().name.toStdString());
-    dev->updateNamespace();
+    dev->set_name(settings().name.toStdString());
+    dev->update_namespace();
     m_dev = std::move(dev);
   }
   catch (std::exception& e)
@@ -59,7 +59,7 @@ void MIDIDevice::disconnect()
   if (connected())
   {
     removeListening_impl(
-        m_dev->getRootNode(), State::Address{m_settings.name, {}});
+        m_dev->get_root_node(), State::Address{m_settings.name, {}});
   }
 
   m_callbacks.clear();
@@ -76,7 +76,7 @@ Device::Node MIDIDevice::refresh()
   }
   else
   {
-    const auto& children = m_dev->getRootNode().children();
+    const auto& children = m_dev->get_root_node().children();
     device_node.reserve(children.size());
     for (const auto& node : children)
     {

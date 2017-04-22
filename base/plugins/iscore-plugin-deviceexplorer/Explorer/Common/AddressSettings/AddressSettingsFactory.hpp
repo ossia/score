@@ -23,7 +23,7 @@ class AddressSettingsFactory
 public:
   static AddressSettingsFactory& instance();
 
-  AddressSettingsWidget* getValueTypeWidget(State::ValueType valueType) const;
+  AddressSettingsWidget* get_value_typeWidget(State::ValueType valueType) const;
 
 private:
   AddressSettingsFactory();

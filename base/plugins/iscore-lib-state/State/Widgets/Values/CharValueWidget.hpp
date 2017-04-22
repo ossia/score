@@ -60,7 +60,7 @@ public:
   CharDomainWidget(QWidget* parent);
 
   ossia::domain_base<char> domain() const;
-  void setDomain(ossia::domain);
+  void set_domain(ossia::domain);
 
 private:
   QLineEdit* m_min{};

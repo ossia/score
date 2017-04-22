@@ -102,17 +102,17 @@ void PlayFromConstraintScenarioPruner::operator()(const Context& exec_ctx)
 
   // Get the time_constraint element of the constraint we're starting from,
   // unless it is already linked to the beginning.
-  auto& start_e = *scenar_comp->OSSIAProcess().getStartTimeNode()->timeEvents()[0];
-  auto& new_end_e = other_cst->OSSIAConstraint()->getStartEvent();
+  auto& start_e = *scenar_comp->OSSIAProcess().get_start_time_node()->get_time_events()[0];
+  auto& new_end_e = other_cst->OSSIAConstraint()->get_start_event();
   if(&start_e != &new_end_e)
   {
-    auto end_date = new_end_e.getTimeNode().getDate();
+    auto end_date = new_end_e.get_time_node().get_date();
     auto new_cst = ossia::time_constraint::create(
-          ossia::time_constraint::ExecutionCallback{},
-          *scenar_comp->OSSIAProcess().getStartTimeNode()->timeEvents()[0],
+          ossia::time_constraint::exec_callback{},
+          *scenar_comp->OSSIAProcess().get_start_time_node()->get_time_events()[0],
         new_end_e, end_date, end_date, end_date);
 
-    scenar_comp->OSSIAProcess().addTimeConstraint(new_cst);
+    scenar_comp->OSSIAProcess().add_time_constraint(new_cst);
   }
 
   // Then we add a constraint from the beginning of the scenario to this one,

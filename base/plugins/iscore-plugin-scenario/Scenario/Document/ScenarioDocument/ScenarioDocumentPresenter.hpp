@@ -123,6 +123,7 @@ private:
 
   iscore::SelectionDispatcher m_selectionDispatcher;
   FocusDispatcher m_focusDispatcher;
+  TimeRulerPresenter* m_mainTimeRuler{};
   mutable Process::ProcessFocusManager m_focusManager;
   QPointer<ConstraintModel> m_focusedConstraint{};
 
@@ -130,9 +131,6 @@ private:
 
   // State machine
   std::unique_ptr<GraphicsSceneToolPalette> m_stateMachine;
-
-  // Various widgets
-  TimeRulerPresenter* m_mainTimeRuler{};
 
   ZoomRatio m_zoomRatio;
   QMetaObject::Connection m_constraintConnection;

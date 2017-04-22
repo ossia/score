@@ -22,12 +22,12 @@ DefaultClockManager::DefaultClockManager(const Context& ctx)
   auto& bs = *ctx.sys.baseScenario();
   ossia::time_constraint& ossia_cst = *bs.baseConstraint().OSSIAConstraint();
 
-  ossia_cst.setDriveMode(ossia::clock::DriveMode::INTERNAL);
-  ossia_cst.setGranularity(ossia::time_value(
+  ossia_cst.set_drive_mode(ossia::clock::drive_mode::INTERNAL);
+  ossia_cst.set_granularity(ossia::time_value(
       context.doc.app.settings<Settings::Model>().getRate()));
-  ossia_cst.setCallback(makeDefaultCallback(bs));
+  ossia_cst.set_callback(makeDefaultCallback(bs));
 }
-ossia::time_constraint::ExecutionCallback
+ossia::time_constraint::exec_callback
 DefaultClockManager::makeDefaultCallback(
     Engine::Execution::BaseScenarioElement& bs)
 {

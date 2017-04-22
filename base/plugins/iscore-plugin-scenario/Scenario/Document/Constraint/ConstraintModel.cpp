@@ -112,7 +112,7 @@ void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
           viewmodel);
 
   connect(
-      viewmodel, &ConstraintViewModel::aboutToBeDeleted, this,
+      viewmodel, &ConstraintViewModel::about_to_be_deleted, this,
       &ConstraintModel::on_destroyedViewModel);
 
   m_constraintViewModels.push_back(viewmodel);

@@ -15,9 +15,9 @@ Event::Event(
     : CommonComponent{parent, event.metadata(), doc,
                       id,     "EventComponent", parent_comp}
 {
-  auto exp_n = node().createChild("expression");
-  auto exp_a = exp_n->createAddress(ossia::val_type::STRING);
-  exp_a->setAccessMode(ossia::access_mode::BI);
+  auto exp_n = node().create_child("expression");
+  auto exp_a = exp_n->create_address(ossia::val_type::STRING);
+  exp_a->set_access(ossia::access_mode::BI);
 
   exp_a->add_callback([&](const ossia::value& v) {
     auto expr = v.target<std::string>();
@@ -35,11 +35,11 @@ Event::Event(
         ossia::value newVal = cond.toString().toStdString();
         try
         {
-          auto res = exp_a->cloneValue();
+          auto res = exp_a->value();
 
           if (newVal != res)
           {
-            exp_a->pushValue(std::move(newVal));
+            exp_a->push_value(std::move(newVal));
           }
         }
         catch (...)
@@ -48,7 +48,7 @@ Event::Event(
       },
       Qt::QueuedConnection);
 
-  exp_a->setValue(event.condition().toString().toStdString());
+  exp_a->set_value(event.condition().toString().toStdString());
 
 }
 }

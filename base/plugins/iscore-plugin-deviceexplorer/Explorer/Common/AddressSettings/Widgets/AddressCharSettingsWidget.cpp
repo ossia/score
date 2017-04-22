@@ -40,6 +40,6 @@ void AddressCharSettingsWidget::setSettings(
 {
   setCommonSettings(settings);
   m_valueEdit->setValue(settings.value);
-  m_domainEdit->setDomain(settings.domain);
+  m_domainEdit->set_domain(settings.domain);
 }
 }

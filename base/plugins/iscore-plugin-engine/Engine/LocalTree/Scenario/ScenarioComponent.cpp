@@ -19,10 +19,10 @@ ScenarioComponentBase::ScenarioComponentBase(
                                                  id,
                                                  "ScenarioComponent",
                                                  parent_obj}
-    , m_constraintsNode{*node().createChild("constraints")}
-    , m_eventsNode{*node().createChild("events")}
-    , m_timeNodesNode{*node().createChild("timenodes")}
-    , m_statesNode{*node().createChild("states")}
+    , m_constraintsNode{*node().create_child("constraints")}
+    , m_eventsNode{*node().create_child("events")}
+    , m_timeNodesNode{*node().create_child("timenodes")}
+    , m_statesNode{*node().create_child("states")}
 {
 }
 

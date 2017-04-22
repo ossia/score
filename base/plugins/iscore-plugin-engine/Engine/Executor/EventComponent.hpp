@@ -36,7 +36,7 @@ public:
   //! To be called from the API edition queue
   void onSetup(std::shared_ptr<ossia::time_event> event,
                ossia::expression_ptr expr,
-               ossia::time_event::OffsetBehavior b);
+               ossia::time_event::offset_behavior b);
 
   std::shared_ptr<ossia::time_event> OSSIAEvent() const;
   const Scenario::EventModel& iscoreEvent() const

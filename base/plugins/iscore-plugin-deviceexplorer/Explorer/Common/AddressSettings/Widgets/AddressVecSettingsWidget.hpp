@@ -52,12 +52,12 @@ public:
         State::convert::value<std::array<float, N>>(settings.value));
     if (settings.domain.get().target<ossia::domain_base<float>>())
     {
-      m_domainFloatEdit->setDomain(settings.domain);
+      m_domainFloatEdit->set_domain(settings.domain);
       m_domainSelector->setCurrentIndex(0);
     }
     else
     {
-      m_domainVecEdit->setDomain(settings.domain);
+      m_domainVecEdit->set_domain(settings.domain);
       m_domainSelector->setCurrentIndex(1);
     }
   }
