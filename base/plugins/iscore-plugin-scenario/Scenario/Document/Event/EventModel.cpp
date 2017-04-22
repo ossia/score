@@ -25,7 +25,7 @@ EventModel::EventModel(
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, EventModel>::get(), parent}
     , m_timeNode{timenode}
-    , m_condition{State::defaultTrueExpression()}
+    , m_condition{}
     , m_extent{extent}
     , m_date{date}
     , m_offset{OffsetBehavior::True}
