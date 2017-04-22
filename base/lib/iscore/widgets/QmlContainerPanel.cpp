@@ -23,8 +23,8 @@ QMLContainerPanel::QMLContainerPanel(QWidget* parent)
     , m_collapse{new QAction(tr("Collapse"), this)}
 {
   QIcon icon = genIconFromPixmaps(
-      QString(":/icons/condition_remove_on.png"),
-      QString(":/icons/condition_remove_off.png"));
+      QStringLiteral(":/icons/condition_remove_on.png"),
+      QStringLiteral(":/icons/condition_remove_off.png"));
   m_collapse->setIcon(icon);
   m_collapse->setCheckable(true);
   m_collapse->setToolTip(tr("Collapse tracks"));

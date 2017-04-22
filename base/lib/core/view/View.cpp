@@ -68,6 +68,8 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
 
   setCentralWidget(m_tabWidget);
   m_tabWidget->tabBar()->setDocumentMode(true);
+  m_tabWidget->tabBar()->setDrawBase(false);
+  m_tabWidget->tabBar()->setAutoHide(true);
   connect(
       m_tabWidget, &QTabWidget::currentChanged, this,
       [&](int index) {

@@ -21,7 +21,7 @@ iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
   {
     qDebug("fail");
     throw std::runtime_error(
-        QString("Object (name: %1) is not part of a Document!")
+        QStringLiteral("Object (name: %1) is not part of a Document!")
             .arg(objName)
             .toStdString());
   }
