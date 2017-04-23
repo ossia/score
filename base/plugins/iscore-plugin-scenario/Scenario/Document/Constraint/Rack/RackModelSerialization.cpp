@@ -26,8 +26,6 @@ class IdentifiedObject;
 template <>
 void DataStreamReader::read(const Scenario::RackModel& rack)
 {
-  m_stream << rack.slotsPositions();
-
   const auto& theSlots = rack.slotmodels;
   m_stream << (int32_t)theSlots.size();
 
@@ -43,16 +41,16 @@ void DataStreamReader::read(const Scenario::RackModel& rack)
 template <>
 void DataStreamWriter::write(Scenario::RackModel& rack)
 {
-  int32_t slots_size;
-  QList<Id<Scenario::SlotModel>> positions;
-  m_stream >> positions;
+  rack.slotmodels.clear();
 
+  int32_t slots_size;
   m_stream >> slots_size;
 
+  int i = 0;
   for (; slots_size-- > 0;)
   {
     auto slot = new Scenario::SlotModel(*this, &rack);
-    rack.addSlot(slot, positions.indexOf(slot->id()));
+    rack.addSlot(slot, i++);
   }
 
   checkDelimiter();
@@ -69,36 +67,21 @@ void JSONObjectReader::read(const Scenario::RackModel& rack)
   }
 
   obj["Slots"] = arr;
-
-  QJsonArray positions;
-
-  for (auto& id : rack.slotsPositions())
-  {
-    positions.append(id.val());
-  }
-
-  obj["SlotsPositions"] = positions;
 }
 
 
 template <>
 void JSONObjectWriter::write(Scenario::RackModel& rack)
 {
+  rack.slotmodels.clear();
+
   QJsonArray theSlots = obj["Slots"].toArray();
-  QJsonArray slotsPositions = obj["SlotsPositions"].toArray();
-  QMap<Id<Scenario::SlotModel>, int> list;
 
   int i = 0;
-  for (auto elt : slotsPositions)
-  {
-    list.insert(Id<Scenario::SlotModel>{elt.toInt()}, i);
-    i++;
-  }
-
   for (const auto& json_slot : theSlots)
   {
     JSONObject::Deserializer deserializer{json_slot.toObject()};
     auto slot = new Scenario::SlotModel{deserializer, &rack};
-    rack.addSlot(slot, list[slot->id()]);
+    rack.addSlot(slot, i++);
   }
 }

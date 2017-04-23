@@ -40,8 +40,6 @@ public:
 
   bool isSelected() const;
 
-  RackPresenter* rack() const;
-
   const ConstraintModel& model() const;
   const ConstraintViewModel& abstractConstraintViewModel() const
   {
@@ -50,7 +48,7 @@ public:
 
   ConstraintView* view() const;
 
-  void on_zoomRatioChanged(ZoomRatio val);
+  virtual void on_zoomRatioChanged(ZoomRatio val);
   ZoomRatio zoomRatio() const
   {
     return m_zoomRatio;
@@ -58,20 +56,11 @@ public:
 
   const Id<ConstraintModel>& id() const;
 
-  void on_defaultDurationChanged(const TimeVal&);
+  virtual void on_defaultDurationChanged(const TimeVal&);
   void on_minDurationChanged(const TimeVal&);
   void on_maxDurationChanged(const TimeVal&);
 
   void on_playPercentageChanged(double t);
-
-  void on_rackShown(const OptionalId<RackModel>&);
-  void on_rackHidden();
-  void on_noRacks();
-
-  void on_racksChanged(const RackModel&);
-  void on_racksChanged();
-
-  void updateHeight();
 
 signals:
   void pressed(QPointF) const;
@@ -92,14 +81,9 @@ protected:
 
 private:
   void updateChildren();
-  void createRackPresenter(const RackModel&);
-  void clearRackPresenter();
-  void on_rackRemoved(const RackModel&);
-
   void updateBraces();
 
   ZoomRatio m_zoomRatio{};
-  RackPresenter* m_rack{};
 };
 
 // TODO concept: constraint view model.

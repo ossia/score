@@ -39,7 +39,19 @@ public:
 
   virtual ~FullViewConstraintPresenter();
 
+  RackPresenter& rack() const;
+
 signals:
   void constraintSelected(ConstraintModel&);
+
+private:
+  void updateScaling() override;
+  void on_zoomRatioChanged(ZoomRatio val) override;
+  void on_defaultDurationChanged(const TimeVal&) override;
+
+  void updateHeight();
+
+  void createRackPresenter();
+  RackPresenter* m_rack{};
 };
 }

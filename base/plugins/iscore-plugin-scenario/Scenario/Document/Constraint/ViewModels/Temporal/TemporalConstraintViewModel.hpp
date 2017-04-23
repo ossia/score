@@ -43,8 +43,6 @@ public:
     // Nothing to add, no vis.visit(*this);
   }
 
-  QString type() const override;
-
 signals:
   void eventSelected(const QString&);
 };

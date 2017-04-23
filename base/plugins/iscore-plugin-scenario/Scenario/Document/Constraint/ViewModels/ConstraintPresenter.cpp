@@ -1,6 +1,4 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/RackView.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <qnamespace.h>
 
@@ -11,7 +9,6 @@
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
 #include <iscore/selection/Selectable.hpp>
@@ -21,13 +18,6 @@
 #include <iscore/tools/Todo.hpp>
 
 class QObject;
-/**
- * TODO Mettre dans la doc :
- * L'abstract constraint presenter a deux interfaces :
- *  - une qui est relative à la gestion de la vue (setScaleFactor)
- *  - une qui est là pour interagir avec le modèle
- * (on_defaul/min/maxDurationChanged)
- */
 namespace Scenario
 {
 ConstraintPresenter::ConstraintPresenter(
@@ -81,32 +71,15 @@ ConstraintPresenter::ConstraintPresenter(
   con(constraint, &ConstraintModel::executionStopped,
       this, [=] { m_view->setExecuting(false); });
 
-  con(m_viewModel, &ConstraintViewModel::rackShown, this,
-      &ConstraintPresenter::on_rackShown);
-
-  con(m_viewModel, &ConstraintViewModel::rackHidden, this,
-      &ConstraintPresenter::on_rackHidden);
-
-  con(m_viewModel, &ConstraintViewModel::lastRackRemoved, this,
-      &ConstraintPresenter::on_noRacks);
 
   con(constraint.consistency, &ModelConsistency::validChanged, m_view,
       &ConstraintView::setValid);
   con(constraint.consistency, &ModelConsistency::warningChanged, m_view,
       &ConstraintView::setWarning);
-
-  constraint.racks.added
-      .connect<ConstraintPresenter, &ConstraintPresenter::on_racksChanged>(
-          this);
-  constraint.racks.removed
-      .connect<ConstraintPresenter, &ConstraintPresenter::on_racksChanged>(
-          this);
-  on_racksChanged();
 }
 
 ConstraintPresenter::~ConstraintPresenter()
 {
-  delete m_rack;
 }
 
 void ConstraintPresenter::updateScaling()
@@ -120,18 +93,12 @@ void ConstraintPresenter::updateScaling()
   on_playPercentageChanged(cm.duration.playPercentage());
 
   updateChildren();
-  updateHeight();
 }
 
 void ConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
   m_zoomRatio = val;
   updateScaling();
-
-  if (rack())
-  {
-    rack()->on_zoomRatioChanged(m_zoomRatio);
-  }
 }
 
 const Id<ConstraintModel>& ConstraintPresenter::id() const
@@ -148,10 +115,6 @@ void ConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
   m_view->updateOverlayPos();
   m_header->setWidth(width);
 
-  if (rack())
-  {
-    rack()->setWidth(m_view->defaultWidth());
-  }
   updateBraces();
 }
 
@@ -179,25 +142,6 @@ void ConstraintPresenter::on_playPercentageChanged(double t)
     m_view->setPlayWidth(m_view->defaultWidth() * t);
 }
 
-void ConstraintPresenter::updateHeight()
-{
-  if (rack() && m_viewModel.isRackShown())
-  {
-    m_view->setHeight(rack()->height() + ConstraintHeader::headerHeight());
-  }
-  else if (rack() && !m_viewModel.isRackShown())
-  {
-    m_view->setHeight(ConstraintHeader::headerHeight());
-  }
-  else
-  {
-    m_view->setHeight(8);
-  }
-
-  updateChildren();
-  emit heightChanged();
-}
-
 void ConstraintPresenter::updateChildren()
 {
   emit askUpdate();
@@ -211,10 +155,6 @@ bool ConstraintPresenter::isSelected() const
   return m_viewModel.model().selection.get();
 }
 
-RackPresenter* ConstraintPresenter::rack() const
-{
-  return m_rack;
-}
 
 const ConstraintModel& ConstraintPresenter::model() const
 {
@@ -224,85 +164,6 @@ const ConstraintModel& ConstraintPresenter::model() const
 ConstraintView* ConstraintPresenter::view() const
 {
   return m_view;
-}
-
-void ConstraintPresenter::on_rackShown(const OptionalId<RackModel>& rackId)
-{
-  clearRackPresenter();
-  if (rackId)
-  {
-    createRackPresenter(m_viewModel.model().racks.at(*rackId));
-
-    m_header->setState(ConstraintHeader::State::RackShown);
-  }
-  else
-  {
-    m_header->setState(ConstraintHeader::State::RackHidden);
-  }
-  updateHeight();
-}
-
-void ConstraintPresenter::on_rackHidden()
-{
-  if (!model().racks.empty())
-  {
-    clearRackPresenter();
-
-    m_header->setState(ConstraintHeader::State::RackHidden);
-    updateHeight();
-  }
-  else
-  {
-    on_noRacks();
-  }
-}
-
-void ConstraintPresenter::on_noRacks()
-{
-  // m_header->hide();
-  clearRackPresenter();
-
-  m_header->setState(ConstraintHeader::State::Hidden);
-  updateHeight();
-}
-
-void ConstraintPresenter::on_racksChanged(const RackModel&)
-{
-  on_racksChanged();
-}
-
-void ConstraintPresenter::on_racksChanged()
-{
-  auto& constraint = m_viewModel.model();
-  if (!constraint.racks.empty())
-  {
-    if (m_viewModel.isRackShown())
-    {
-      on_rackShown(*m_viewModel.shownRack());
-    }
-    else if (!constraint.processes.empty()) // TODO why isn't this when there
-                                            // are racks but hidden ?
-    {
-      on_rackHidden();
-    }
-    else
-    {
-      on_noRacks();
-    }
-  }
-  else
-  {
-    on_noRacks();
-  }
-}
-
-void ConstraintPresenter::clearRackPresenter()
-{
-  if (m_rack)
-  {
-    m_rack->deleteLater();
-    m_rack = nullptr;
-  }
 }
 
 void ConstraintPresenter::updateBraces()
@@ -316,24 +177,4 @@ void ConstraintPresenter::updateBraces()
   rb.setVisible(!dur.isMaxInfinite() && !rigid);
 }
 
-void ConstraintPresenter::createRackPresenter(const RackModel& rackModel)
-{
-  auto rackView = new RackView{m_view};
-  rackView->setPos(0, ConstraintHeader::headerHeight());
-
-  // Cas par défaut
-  m_rack = new RackPresenter{rackModel, rackView, m_context, this};
-
-  m_rack->on_zoomRatioChanged(m_zoomRatio);
-
-  connect(
-      m_rack, &RackPresenter::askUpdate, this,
-      &ConstraintPresenter::updateHeight);
-
-  connect(
-      m_rack, &RackPresenter::pressed, this, &ConstraintPresenter::pressed);
-  connect(m_rack, &RackPresenter::moved, this, &ConstraintPresenter::moved);
-  connect(
-      m_rack, &RackPresenter::released, this, &ConstraintPresenter::released);
-}
 }

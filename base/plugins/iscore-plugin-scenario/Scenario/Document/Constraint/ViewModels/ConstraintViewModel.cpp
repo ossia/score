@@ -41,23 +41,6 @@ void ConstraintViewModel::showRack(const OptionalId<RackModel>& rackId)
   }
 }
 
-void ConstraintViewModel::on_rackRemoval(const RackModel& rack)
-{
-  if (shownRack() == rack.id())
-  {
-    // There is only one rack left and it is
-    // being removed
-    if (m_model.racks.size() == 1)
-    {
-      emit lastRackRemoved();
-    }
-    else
-    {
-      hideRack();
-    }
-  }
-}
-
 ConstraintViewModel::ConstraintViewModel(
     const Id<ConstraintViewModel>& id,
     const QString& name,

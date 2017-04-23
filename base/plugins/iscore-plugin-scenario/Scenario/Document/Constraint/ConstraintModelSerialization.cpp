@@ -51,11 +51,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
   }
 
   // Rackes
-  m_stream << (int32_t)constraint.racks.size();
-  for (const auto& rack : constraint.racks)
-  {
-    readFrom(rack);
-  }
+  m_stream << constraint.smallViewRack()
+           << constraint.fullViewRack();
 
   // Full view
   readFrom(*constraint.m_fullViewModel);
@@ -94,13 +91,8 @@ DataStreamWriter::write(Scenario::ConstraintModel& constraint)
   }
 
   // Rackes
-  int32_t rack_count;
-  m_stream >> rack_count;
-
-  for (; rack_count-- > 0;)
-  {
-    constraint.racks.add(new Scenario::RackModel(*this, &constraint));
-  }
+  constraint.m_smallViewRack = new Scenario::RackModel(*this, &constraint);
+  constraint.m_fullViewRack = new Scenario::RackModel(*this, &constraint);
 
   constraint.setFullView(new Scenario::FullViewConstraintViewModel{
       *this, constraint, &constraint});
@@ -123,7 +115,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
   obj[strings.Processes] = toJsonArray(constraint.processes);
 
   // Rackes
-  obj[strings.Racks] = toJsonArray(constraint.racks);
+  obj["SmallViewRack"] = toJsonObject(constraint.smallViewRack());
+  obj["FullViewRack"] = toJsonObject(constraint.fullViewRack());
 
   // Full view
   obj[strings.FullView] = toJsonObject(*constraint.fullView());
@@ -158,11 +151,14 @@ JSONObjectWriter::write(Scenario::ConstraintModel& constraint)
       ISCORE_TODO;
   }
 
-  QJsonArray rack_array = obj[strings.Racks].toArray();
-  for (const auto& json_vref : rack_array)
   {
-    JSONObject::Deserializer deserializer{json_vref.toObject()};
-    constraint.racks.add(new Scenario::RackModel(deserializer, &constraint));
+    JSONObject::Deserializer dr{obj["SmallViewRack"].toObject()};
+    constraint.m_smallViewRack = new Scenario::RackModel(dr, &constraint);
+  }
+
+  {
+    JSONObject::Deserializer dr{obj["FullViewRack"].toObject()};
+    constraint.m_fullViewRack = new Scenario::RackModel(dr, &constraint);
   }
 
   constraint.setFullView(new Scenario::FullViewConstraintViewModel{

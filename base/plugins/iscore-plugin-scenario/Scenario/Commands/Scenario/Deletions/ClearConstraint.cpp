@@ -41,18 +41,15 @@ void ClearConstraint::redo() const
 {
   auto& constraint = m_constraintSaveData.constraintPath.find();
 
+  constraint.smallViewRack().slotmodels.clear();
+  constraint.fullViewRack().slotmodels.clear();
+
   // We make copies since the iterators might change.
   // TODO check if this is still valid wrt boost::multi_index
   auto processes = shallow_copy(constraint.processes);
   for (auto process : processes)
   {
     RemoveProcess(constraint, process->id());
-  }
-
-  auto rackes = shallow_copy(constraint.racks);
-  for (const auto& rack : rackes)
-  {
-    constraint.racks.remove(rack->id());
   }
 }
 

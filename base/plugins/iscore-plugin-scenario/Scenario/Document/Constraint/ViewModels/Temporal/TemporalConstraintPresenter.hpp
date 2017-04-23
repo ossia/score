@@ -27,12 +27,34 @@ public:
       QGraphicsItem* parentobject,
       QObject* parent);
 
-
   virtual ~TemporalConstraintPresenter();
+
   void on_requestOverlayMenu(QPointF);
+
+
+  RackPresenter* rack() const;
+  void on_rackShown(const OptionalId<RackModel>&);
+  void on_rackHidden();
+  void on_noRacks();
+
+  void on_racksChanged(const RackModel&);
+  void on_racksChanged();
+
+  void updateScaling() override;
+  void on_zoomRatioChanged(ZoomRatio val) override;
+  void on_defaultDurationChanged(const TimeVal&) override;
+
+  void updateHeight();
 
 signals:
   void constraintHoverEnter();
   void constraintHoverLeave();
+
+private:
+  void createRackPresenter(const RackModel&);
+  void clearRackPresenter();
+  void on_rackRemoved(const RackModel&);
+
+  RackPresenter* m_rack{};
 };
 }
