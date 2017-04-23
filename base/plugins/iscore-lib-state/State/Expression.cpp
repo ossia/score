@@ -108,3 +108,8 @@ bool State::isTrueExpression(const QString& cond)
 {
   return cond.isEmpty() || cond == " { true == true } " || cond == "true == true";
 }
+
+bool State::isEmptyExpression(const QString& cond)
+{
+  return cond.isEmpty();
+}

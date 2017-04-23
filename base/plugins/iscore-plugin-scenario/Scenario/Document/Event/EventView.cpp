@@ -46,25 +46,13 @@ void EventView::setCondition(const QString& cond)
   if (m_condition == cond)
     return;
   m_condition = cond;
-  m_conditionItem->setVisible(!State::isTrueExpression(cond));
+  m_conditionItem->setVisible(!State::isEmptyExpression(cond));
   m_conditionItem->setToolTip(m_condition);
 }
 
 bool EventView::hasCondition() const
 {
   return !m_condition.isEmpty();
-}
-
-void EventView::setTrigger(const QString& trig)
-{
-  if (m_trigger == trig)
-    return;
-  m_trigger = trig;
-}
-
-bool EventView::hasTrigger() const
-{
-  return !m_trigger.isEmpty();
 }
 
 void EventView::paint(

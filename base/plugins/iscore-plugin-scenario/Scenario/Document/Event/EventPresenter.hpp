@@ -41,7 +41,6 @@ signals:
   void eventHoverLeave();
 
 private:
-  void triggerSetted(QString);
   const EventModel& m_model;
   graphics_item_ptr<EventView> m_view;
 
