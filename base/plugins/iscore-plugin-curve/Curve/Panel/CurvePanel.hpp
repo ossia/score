@@ -6,6 +6,7 @@
 #include <Curve/Palette/CurvePalette.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerModelPanelProxy.hpp>
+#include <Process/Process.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>
@@ -47,16 +48,16 @@ struct PanelContext
   Curve::Presenter& presenter;
 };
 
-template <typename Layer_T>
-class CurvePanelProxy : public Process::LayerModelPanelProxy
+template <typename Model_T>
+class CurvePanelProxy : public Process::LayerPanelProxy
 {
-  using context_t = PanelContext<CurvePanelProxy<Layer_T>>;
+  using context_t = PanelContext<CurvePanelProxy<Model_T>>;
 
 public:
   CurvePanelProxy(
-                const Layer_T& layermodel,
+                const Model_T& layermodel,
                 QObject* parent):
-            LayerModelPanelProxy{parent},
+            LayerPanelProxy{parent},
             m_layer{layermodel},
             m_widget{new QWidget},
             m_scene{new QGraphicsScene{this}},
@@ -74,7 +75,7 @@ public:
             auto fact = iscore::AppContext()
                     .components
                     .interfaces<Process::LayerFactoryList>()
-                    .get(m_layer.concreteKey());
+                    .get(((const Process::ProcessModel&)m_layer).concreteKey());
 
             if(!fact)
                 throw;
@@ -86,7 +87,7 @@ public:
             return new Curve::Presenter{
                     iscore::IDocument::documentContext(m_layer),
                     istyle->style(),
-                    m_layer.processModel().curve(),
+                    m_layer.curve(),
                     m_curveView,
                     this};
                 } () // This lambda function gets called and returns what we need
@@ -128,7 +129,7 @@ public:
     m_curvePresenter->editionSettings().setTool(Curve::Tool::Select);
     m_curvePresenter->setBoundedMove(false);
 
-    con(m_layer.processModel().curve(), &Curve::Model::changed, this,
+    con(m_layer.curve(), &Curve::Model::changed, this,
         &CurvePanelProxy::on_curveChanged);
 
     // connect(&m_context.context.updateTimer, &QTimer::timeout, this,
@@ -152,7 +153,7 @@ public:
   {
     // Find the last point
 
-    auto& points = m_layer.processModel().curve().points();
+    auto& points = m_layer.curve().points();
     m_currentCurveMax = 0;
     for (Curve::PointModel* point : points)
     {
@@ -163,7 +164,7 @@ public:
   }
 
   // Can return the same view model, or a new one.
-  const Layer_T& layer() final override
+  const Model_T& layer() final override
   {
     return m_layer;
   }
@@ -190,7 +191,7 @@ public:
       return (max - min) * val + min;
     };
 
-    auto duration = m_layer.processModel().duration().msec();
+    auto duration = m_layer.duration().msec();
     if (m_currentCurveMax > 1)
       duration *= m_currentCurveMax;
 
@@ -212,7 +213,7 @@ private:
     // constraint
     // is displayed on screen;
     // We want the value to be at least twice the duration of the constraint
-    const auto& duration = m_layer.processModel().duration();
+    const auto& duration = m_layer.duration();
     auto fullWidth = duration.toPixels(m_zoomRatio);
     if (m_currentCurveMax > 1)
       fullWidth *= m_currentCurveMax;
@@ -230,7 +231,7 @@ private:
 
   double m_height{}, m_width{};
 
-  const Layer_T& m_layer;
+  const Model_T& m_layer;
   QWidget* m_widget{};
 
   QGraphicsScene* m_scene{};

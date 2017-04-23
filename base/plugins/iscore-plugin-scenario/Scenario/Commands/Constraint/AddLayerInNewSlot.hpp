@@ -55,15 +55,8 @@ protected:
 private:
   Path<ConstraintModel> m_path;
 
-  bool m_existingRack{};
-
   Id<Process::ProcessModel> m_processId{};
-  OptionalId<RackModel> m_createdRackId{};
   Id<SlotModel> m_createdSlotId{};
-  Id<Process::LayerModel> m_createdLayerId{};
-  Id<Process::ProcessModel> m_sharedProcessModelId{};
-
-  QByteArray m_processData;
 };
 }
 }

@@ -18,8 +18,6 @@ RackModel::RackModel(const Id<RackModel>& id, QObject* parent)
 RackModel::RackModel(
     const RackModel& source,
     const Id<RackModel>& id,
-    std::function<void(const SlotModel&, SlotModel&)>
-        lmCopyMethod,
     QObject* parent)
     : Entity{source, id, Metadata<ObjectKey_k, RackModel>::get(), parent}
 {
@@ -27,8 +25,7 @@ RackModel::RackModel(
   initConnections();
   for (const auto& slot : source.slotmodels)
   {
-    auto new_slot = new SlotModel{lmCopyMethod, slot,
-                                  Id<SlotModel>{slot.id_val()}, this};
+    auto new_slot = new SlotModel{slot, Id<SlotModel>{slot.id_val()}, this};
     addSlot(new_slot, source.slotPosition(new_slot->id()));
   }
 }

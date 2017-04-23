@@ -27,7 +27,7 @@ class CreateProcessInNewSlot final : public iscore::AggregateCommand
       Dispatcher & disp,
       const Scenario::ConstraintModel& constraint,
       const Scenario::RackModel& rack,
-      UuidKey<Process::ProcessModelFactory> proc)
+      UuidKey<Process::ProcessModel> proc)
   {
     auto cmd1 = new Scenario::Command::AddOnlyProcessToConstraint(
         constraint, proc);

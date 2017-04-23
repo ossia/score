@@ -65,13 +65,13 @@ void ProcessViewTabWidget::activeRackChanged(
   {
     if (vm->isRackShown())
     {
-      auto cmd = new Command::HideRackInViewModel{*vm};
+      auto cmd = new Command::HideRack{*vm};
       emit m_commandDispatcher->submitCommand(cmd);
     }
   }
   else
   {
-    auto cmd = new Command::ShowRackInViewModel{*vm, *rack};
+    auto cmd = new Command::ShowRack{*vm, *rack};
     emit m_commandDispatcher->submitCommand(cmd);
   }
 }

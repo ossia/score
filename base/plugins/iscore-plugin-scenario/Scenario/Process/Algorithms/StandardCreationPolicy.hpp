@@ -75,7 +75,6 @@ public:
 
   static ConstraintModel& redo(
       const Id<ConstraintModel>& id,
-      const Id<ConstraintViewModel>& fullviewid,
       StateModel& sst,
       StateModel& est,
       double ypos,

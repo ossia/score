@@ -39,15 +39,21 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
   auto& proc = constraint.processes.at(m_processId);
   s1.readFrom(proc);
 
-  // Save ALL the view models!
-  for (const auto& lm : proc.layers())
+  for(const SlotModel& slt : constraint.smallViewRack().slotmodels)
   {
-    QByteArray vm_arr;
-    DataStream::Serializer s{&vm_arr};
-    s.readFrom(iscore::RelativePath(*lm->parent(), lm->processModel()));
-    s.readFrom(*lm);
-
-    m_serializedViewModels.append({*lm, vm_arr});
+    if(slt.frontLayerModel() == m_processId)
+    {
+      m_slots.push_back(slt);
+      m_inFront.push_back(true);
+    }
+    else
+    {
+      if(ossia::find(slt.layers(), m_processId) != slt.layers().end())
+      {
+        m_slots.push_back(slt);
+        m_inFront.push_back(false);
+      }
+    }
   }
 }
 
@@ -66,24 +72,13 @@ void RemoveProcessFromConstraint::undo() const
     ISCORE_TODO;
     return;
   }
-  // Restore the view models
-  auto& layers = context.interfaces<Process::LayerFactoryList>();
-  for (const auto& it : m_serializedViewModels)
+
+  for(int i = 0; i < m_slots.size(); i++)
   {
-    const auto& path = it.first.unsafePath().vec();
-
-    auto& slot
-        = constraint.racks.at(Id<RackModel>(path.at(path.size() - 3).id()))
-              .slotmodels.at(Id<SlotModel>(path.at(path.size() - 2).id()));
-
-    DataStream::Deserializer stream{it.second};
-    iscore::RelativePath process;
-    stream.writeTo(process);
-    auto lm = deserialize_interface(layers, stream, process, &slot);
-    if (lm)
-      slot.layers.add(lm);
-    else
-      ISCORE_TODO;
+    Scenario::SlotModel& slot = m_slots[i].find();
+    slot.addLayer(m_processId);
+    if(m_inFront[i])
+      slot.putToFront(m_processId);
   }
 }
 
@@ -98,13 +93,13 @@ void RemoveProcessFromConstraint::redo() const
 void RemoveProcessFromConstraint::serializeImpl(DataStreamInput& s) const
 {
   s << m_path << m_processId << m_serializedProcessData
-    << m_serializedViewModels;
+    << m_slots << m_inFront;
 }
 
 void RemoveProcessFromConstraint::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_processId >> m_serializedProcessData
-      >> m_serializedViewModels;
+    >> m_slots >> m_inFront;
 }
 }
 }

@@ -121,7 +121,7 @@ void ScenarioDocumentModel::initializeNewDocument(
   cmd2.redo();
   auto& rack = constraint_model.smallViewRack();
 
-  ShowRackInViewModel cmd3{
+  ShowRack cmd3{
           static_cast<const ConstraintViewModel&>(*viewmodel),
       rack.id()};
   cmd3.redo();

@@ -115,13 +115,12 @@ void ScenarioCreate<ConstraintModel>::undo(
 
 ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
     const Id<ConstraintModel>& id,
-    const Id<ConstraintViewModel>& fullviewid,
     StateModel& sst,
     StateModel& est,
     double ypos,
     Scenario::ProcessModel& s)
 {
-  auto constraint = new ConstraintModel{id, fullviewid, ypos, &s};
+  auto constraint = new ConstraintModel{id, ypos, &s};
 
   constraint->setStartState(sst.id());
   constraint->setEndState(est.id());

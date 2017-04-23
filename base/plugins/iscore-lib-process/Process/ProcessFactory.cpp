@@ -16,77 +16,9 @@ ProcessFactoryList::~ProcessFactoryList() = default;
 LayerFactoryList::~LayerFactoryList() = default;
 StateProcessList::~StateProcessList() = default;
 
-LayerModel* LayerFactory::make(
-    Process::ProcessModel& proc,
-    const Id<LayerModel>& viewModelId,
-    const QByteArray& constructionData,
-    QObject* parent)
-{
-  auto lm = makeLayer_impl(proc, viewModelId, constructionData, parent);
-  proc.addLayer(lm);
-
-  return lm;
-}
-
-LayerModel* LayerFactory::load(
-    const VisitorVariant& v,
-    const iscore::RelativePath& process,
-    QObject* parent)
-{
-  switch (v.identifier)
-  {
-    case DataStream::type():
-    {
-      auto& proc = process.find<Process::ProcessModel>(parent);
-
-      // Note : we pass a reference to the stream,
-      // so it is already increased past the reading of the path.
-      auto lm = loadLayer_impl(proc, v, parent);
-      proc.addLayer(lm);
-
-      return lm;
-    }
-    case JSONObject::type():
-    {
-      if (auto p = process.try_find<Process::ProcessModel>(parent))
-      {
-        auto& proc = *p;
-        auto lm = loadLayer_impl(proc, v, parent);
-        proc.addLayer(lm);
-
-        return lm;
-      }
-      return nullptr;
-    }
-    default:
-      return nullptr;
-  }
-}
-
-LayerModel* LayerFactory::cloneLayer(
-    Process::ProcessModel& proc,
-    const Id<LayerModel>& newId,
-    const LayerModel& source,
-    QObject* parent)
-{
-  auto lm = cloneLayer_impl(proc, newId, source, parent);
-  proc.addLayer(lm);
-
-  return lm;
-}
-
-QByteArray LayerFactory::makeLayerConstructionData(const ProcessModel&) const
-{
-  return {};
-}
-
-QByteArray LayerFactory::makeStaticLayerConstructionData() const
-{
-  return {};
-}
 
 LayerPresenter* LayerFactory::makeLayerPresenter(
-    const LayerModel& lm,
+    const ProcessModel& lm,
     LayerView* v,
     const ProcessPresenterContext& context,
     QObject* parent)
@@ -96,15 +28,15 @@ LayerPresenter* LayerFactory::makeLayerPresenter(
 }
 
 LayerView*
-LayerFactory::makeLayerView(const LayerModel& view, QGraphicsItem* parent)
+LayerFactory::makeLayerView(const ProcessModel& view, QGraphicsItem* parent)
 {
   return new Dummy::DummyLayerView{parent};
 }
 
-LayerModelPanelProxy*
-LayerFactory::makePanel(const LayerModel& layer, QObject* parent)
+LayerPanelProxy*
+LayerFactory::makePanel(const ProcessModel& layer, QObject* parent)
 {
-  return new Process::GraphicsViewLayerModelPanelProxy{layer, parent};
+  return new Process::GraphicsViewLayerPanelProxy{layer, parent};
 }
 
 bool LayerFactory::matches(const ProcessModel& p) const
@@ -113,7 +45,7 @@ bool LayerFactory::matches(const ProcessModel& p) const
 }
 
 bool LayerFactory::matches(
-    const UuidKey<Process::ProcessModelFactory>& p) const
+    const UuidKey<Process::ProcessModel>& p) const
 {
   return false;
 }
@@ -132,13 +64,6 @@ StateProcessList::loadMissing(const VisitorVariant& vis, QObject* parent) const
   return nullptr;
 }
 
-LayerFactoryList::object_type*
-LayerFactoryList::loadMissing(const VisitorVariant& vis, const iscore::RelativePath&, QObject* parent) const
-{
-  ISCORE_TODO;
-  return nullptr;
-}
-
 LayerFactory*
 LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 {
@@ -146,7 +71,7 @@ LayerFactoryList::findDefaultFactory(const ProcessModel& proc) const
 }
 
 LayerFactory* LayerFactoryList::findDefaultFactory(
-    const UuidKey<ProcessModelFactory>& proc) const
+    const UuidKey<ProcessModel>& proc) const
 {
   for (auto& fac : *this)
   {

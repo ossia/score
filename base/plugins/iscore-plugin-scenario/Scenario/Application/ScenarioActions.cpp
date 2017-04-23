@@ -11,10 +11,9 @@ namespace Scenario
 const ScenarioInterface*
 focusedScenarioInterface(const iscore::DocumentContext& ctx)
 {
-  if (auto layer = dynamic_cast<const Process::LayerModel*>(
-          ctx.document.focusManager().get()))
+  if (auto layer = focusedScenarioModel(ctx))
   {
-    return dynamic_cast<Scenario::ScenarioInterface*>(&layer->processModel());
+    return layer;
   }
   else
   {
@@ -31,12 +30,7 @@ focusedScenarioInterface(const iscore::DocumentContext& ctx)
 
 const ProcessModel* focusedScenarioModel(const iscore::DocumentContext& ctx)
 {
-  if (auto layer = dynamic_cast<const Process::LayerModel*>(
-          ctx.document.focusManager().get()))
-  {
-    return dynamic_cast<Scenario::ProcessModel*>(&layer->processModel());
-  }
-  return nullptr;
+  return dynamic_cast<const Process::ProcessModel*>(ctx.document.focusManager().get());
 }
 
 EnableWhenScenarioModelObject::EnableWhenScenarioModelObject()
@@ -65,14 +59,7 @@ void EnableWhenScenarioModelObject::action(
     return;
   }
 
-  auto lm = dynamic_cast<const Process::LayerModel*>(focus);
-  if (!lm)
-  {
-    setEnabled(mgr, false);
-    return;
-  }
-
-  auto proc = dynamic_cast<const Scenario::ProcessModel*>(&lm->processModel());
+  auto proc = dynamic_cast<const Scenario::ProcessModel*>(focus);
   if (!proc)
   {
     setEnabled(mgr, false);

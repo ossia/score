@@ -45,7 +45,6 @@ public:
 
   // Copy
   SlotModel(
-      std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
       const SlotModel& source,
       const Id<SlotModel>& id,
       RackModel* parent);
@@ -65,8 +64,8 @@ public:
 
   // A process is selected for edition when it is
   // the edited process when the interface is clicked.
-  void putToFront(const OptionalId<Process::LayerModel>& layerId);
-  const Process::LayerModel* frontLayerModel() const;
+  void putToFront(const OptionalId<Process::ProcessModel>& layerId);
+  const Process::ProcessModel* frontLayerModel() const;
 
   // A slot is always in a constraint
   ConstraintModel& parentConstraint() const;
@@ -74,15 +73,18 @@ public:
   qreal getHeight() const;
   bool focus() const;
 
-  iscore::EntityMap<Process::LayerModel> layers;
-
   void
   on_deleteSharedProcessModel(const Process::ProcessModel& sharedProcessId);
 
   void setHeight(qreal arg);
   void setFocus(bool arg);
+
+  void addLayer(Id<Process::ProcessModel> p);
+  void removeLayer(Id<Process::ProcessModel> p);
+  const std::vector<Id<Process::ProcessModel>>& layers() const { return m_processes; }
+
 signals:
-  void layerModelPutToFront(const Process::LayerModel& layerModelId);
+  void layerModelPutToFront(const Process::ProcessModel& layerModelId);
 
   void HeightChanged(qreal arg);
   void focusChanged(bool arg);
@@ -90,10 +92,11 @@ signals:
 private:
   void initConnections();
 
-  void on_addLayer(const Process::LayerModel& viewmodel);
-  void on_removeLayer(const Process::LayerModel&);
+  void on_addLayer(const Process::ProcessModel& viewmodel);
+  void on_removeLayer(const Process::ProcessModel&);
 
-  OptionalId<Process::LayerModel> m_frontLayerModelId;
+  OptionalId<Process::ProcessModel> m_frontLayerModelId;
+  std::vector<Id<Process::ProcessModel>> m_processes;
 
   qreal m_height{200};
   bool m_focus{false};
@@ -107,7 +110,7 @@ ISCORE_PARAMETER_TYPE(SlotModel, Height)
  *
  * @return A pointer to the parent constraint if there is one, or nullptr.
  */
-ConstraintModel* parentConstraint(Process::LayerModel* lm);
+ConstraintModel* parentConstraint(Process::ProcessModel* lm);
 }
 
 DEFAULT_MODEL_METADATA(Scenario::SlotModel, "Slot")

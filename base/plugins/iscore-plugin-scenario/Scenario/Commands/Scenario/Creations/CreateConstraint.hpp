@@ -70,9 +70,6 @@ private:
 
   Id<StateModel> m_startStateId{};
   Id<StateModel> m_endStateId{};
-
-  ConstraintViewModelIdMap m_createdConstraintViewModelIDs;
-  Id<ConstraintViewModel> m_createdConstraintFullViewId{};
 };
 }
 }

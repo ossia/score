@@ -14,7 +14,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final
   Q_OBJECT
 
 public:
-  using viewmodel_type = TemporalConstraintViewModel;
   using view_type = TemporalConstraintView;
   const auto& id() const
   {
@@ -22,7 +21,7 @@ public:
   } // To please boost::const_mem_fun
 
   TemporalConstraintPresenter(
-      const TemporalConstraintViewModel& viewModel,
+      const ConstraintModel& viewModel,
       const Process::ProcessPresenterContext& ctx,
       QGraphicsItem* parentobject,
       QObject* parent);

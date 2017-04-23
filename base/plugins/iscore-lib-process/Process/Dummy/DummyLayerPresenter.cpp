@@ -1,4 +1,3 @@
-#include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
 
 #include "DummyLayerPresenter.hpp"
@@ -12,7 +11,7 @@ class QObject;
 namespace Dummy
 {
 DummyLayerPresenter::DummyLayerPresenter(
-    const Process::LayerModel& model,
+    const Process::ProcessModel& model,
     DummyLayerView* view,
     const Process::ProcessPresenterContext& ctx,
     QObject* parent)
@@ -22,7 +21,7 @@ DummyLayerPresenter::DummyLayerPresenter(
   connect(view, &DummyLayerView::pressed, this, [&]() {
     m_context.context.focusDispatcher.focus(this);
   });
-  con(model.processModel().metadata(), &iscore::ModelMetadata::NameChanged,
+  con(model.metadata(), &iscore::ModelMetadata::NameChanged,
       this, [&](QString s) { putToFront(); });
 }
 
@@ -38,7 +37,7 @@ void DummyLayerPresenter::setHeight(qreal val)
 
 void DummyLayerPresenter::putToFront()
 {
-  m_view->setText(m_layer.processModel().prettyName());
+  m_view->setText(m_layer.prettyName());
 }
 
 void DummyLayerPresenter::putBehind()
@@ -54,13 +53,13 @@ void DummyLayerPresenter::parentGeometryChanged()
 {
 }
 
-const Process::LayerModel& DummyLayerPresenter::layerModel() const
+const Process::ProcessModel& DummyLayerPresenter::layerModel() const
 {
   return m_layer;
 }
 
 const Id<Process::ProcessModel>& DummyLayerPresenter::modelId() const
 {
-  return m_layer.processModel().id();
+  return m_layer.id();
 }
 }

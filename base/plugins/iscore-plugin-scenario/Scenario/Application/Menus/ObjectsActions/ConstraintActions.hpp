@@ -9,6 +9,7 @@ struct GUIElements;
 }
 namespace Process
 {
+class ProcessModel;
 class LayerContextMenuManager;
 class ProcessModelFactory;
 class LayerFactory;
@@ -29,7 +30,7 @@ public:
   void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
 private:
-  void addProcessInConstraint(const UuidKey<Process::ProcessModelFactory>&);
+  void addProcessInConstraint(const UuidKey<Process::ProcessModel>&);
 
   CommandDispatcher<> dispatcher();
 

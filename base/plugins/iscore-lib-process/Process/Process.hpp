@@ -19,10 +19,6 @@
 #include <iscore/model/Identifier.hpp>
 #include <iscore_lib_process_export.h>
 
-namespace Process
-{
-class LayerModel;
-}
 class ProcessStateDataInterface;
 
 namespace Process
@@ -39,12 +35,11 @@ class LayerFactory;
  */
 class ISCORE_LIB_PROCESS_EXPORT ProcessModel
     : public iscore::Entity<ProcessModel>,
-      public iscore::SerializableInterface<ProcessModelFactory>
+    public iscore::SerializableInterface<ProcessModel>
 {
   Q_OBJECT
 
   ISCORE_SERIALIZE_FRIENDS
-  friend class Process::LayerFactory; // to register layers
 
 public:
   ProcessModel(
@@ -63,9 +58,6 @@ public:
 
   // A user-friendly text to show to the users
   virtual QString prettyName() const;
-
-  // Do a copy.
-  std::vector<LayerModel*> layers() const;
 
   //// Features of a process
   /// Duration
@@ -118,13 +110,6 @@ protected:
   virtual void setDurationAndShrink(const TimeVal& newDuration);
 
 private:
-  void addLayer(LayerModel* m);
-  void removeLayer(LayerModel* m);
-
-  // Ownership : the parent is the Slot or another widget, not the process.
-  // A process view is never displayed alone, it is always in a view, which is
-  // in a rack.
-  std::vector<LayerModel*> m_layers;
   TimeVal m_duration;
 };
 
@@ -132,19 +117,6 @@ ISCORE_LIB_PROCESS_EXPORT ProcessModel* parentProcess(QObject* obj);
 ISCORE_LIB_PROCESS_EXPORT const ProcessModel*
 parentProcess(const QObject* obj);
 }
-template <typename T>
-std::vector<typename T::layer_type*> layers(const T& processModel)
-{
-  std::vector<typename T::layer_type*> v;
-
-  for (auto& elt : processModel.layers())
-  {
-    v.push_back(safe_cast<typename T::layer_type*>(elt));
-  }
-
-  return v;
-}
-
 DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")
 
 Q_DECLARE_METATYPE(Id<Process::ProcessModel>)

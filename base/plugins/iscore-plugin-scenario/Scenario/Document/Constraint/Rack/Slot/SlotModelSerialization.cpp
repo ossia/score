@@ -16,67 +16,27 @@
 #include <iscore/model/Identifier.hpp>
 #include <iscore/model/path/RelativePath.hpp>
 
-
-namespace Process
-{
-class LayerModel;
-}
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-template <typename model>
-class IdentifiedObject;
-
-
 template <>
 void DataStreamReader::read(const Scenario::SlotModel& slot)
 {
-  m_stream << slot.m_frontLayerModelId;
-
-  const auto& lms = slot.layers;
-  m_stream << (int32_t)lms.size();
-
-  for (const Process::LayerModel& lm : lms)
-  {
-    // To allow recreation.
-    // This supposes that the process is stored inside a Constraint.
-    // We save the relative path coming from the layer's parent, since when
-    // recreating the layer does not exist yet.
-    m_stream << iscore::RelativePath(*lm.parent(), lm.processModel());
-
-    readFrom(lm);
-  }
-
-  m_stream << slot.getHeight();
+  m_stream << slot.m_frontLayerModelId << slot.m_processes << slot.getHeight();
 
   insertDelimiter();
 }
 
-
 template <>
 void DataStreamWriter::write(Scenario::SlotModel& slot)
 {
-  OptionalId<Process::LayerModel> editedProcessId;
+  OptionalId<Process::ProcessModel> editedProcessId;
   m_stream >> editedProcessId;
 
-  int32_t lm_size;
-  m_stream >> lm_size;
-
-  auto& layers = components.interfaces<Process::LayerFactoryList>();
-  for (int i = 0; i < lm_size; i++)
-  {
-    iscore::RelativePath process;
-    m_stream >> process;
-    auto lm = deserialize_interface(layers, *this, process, &slot);
-    if (lm)
-      slot.layers.add(lm);
-    else
-      ISCORE_TODO;
-  }
+  std::vector<Id<Process::ProcessModel>> procs;
+  m_stream >> procs;
 
   qreal height;
   m_stream >> height;
+
+  slot.m_processes = std::move(procs);
   slot.setHeight(height);
 
   slot.putToFront(editedProcessId);
@@ -90,22 +50,7 @@ void JSONObjectReader::read(const Scenario::SlotModel& slot)
 {
   obj["EditedProcess"] = toJsonValue(slot.m_frontLayerModelId);
   obj["Height"] = slot.getHeight();
-
-  // TODO toJsonArray
-  QJsonArray arr;
-
-  for (const Process::LayerModel& lm : slot.layers)
-  {
-    // See above.
-    auto obj = toJsonObject(lm);
-    obj["SharedProcess"] =
-        toJsonObject(
-          iscore::RelativePath(*lm.parent(), lm.processModel()));
-
-    arr.push_back(std::move(obj));
-  }
-
-  obj["LayerModels"] = arr;
+  obj["Processes"] = toJsonValueArray(slot.m_processes);
 }
 
 
@@ -113,23 +58,13 @@ template <>
 void JSONObjectWriter::write(Scenario::SlotModel& slot)
 {
   QJsonArray arr = obj["LayerModels"].toArray();
-
-  auto& layers = components.interfaces<Process::LayerFactoryList>();
-  for (const auto& json_vref : arr)
+  slot.m_processes.clear();
+  for(const auto& e : arr)
   {
-    JSONObject::Deserializer des{json_vref.toObject()};
-    auto process
-        = fromJsonObject<iscore::RelativePath>(des.obj["SharedProcess"]);
-
-    auto lm = deserialize_interface(layers, des, process, &slot);
-    if (lm)
-      slot.layers.add(lm);
-    else
-      ISCORE_TODO;
+    slot.m_processes.push_back(fromJsonValue<Id<Process::ProcessModel>>(e));
   }
-
   slot.setHeight(static_cast<qreal>(obj["Height"].toDouble()));
   auto editedProc
-      = fromJsonValue<OptionalId<Process::LayerModel>>(obj["EditedProcess"]);
+      = fromJsonValue<OptionalId<Process::ProcessModel>>(obj["EditedProcess"]);
   slot.putToFront(editedProc);
 }

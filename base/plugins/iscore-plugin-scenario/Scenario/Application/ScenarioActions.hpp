@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/Actions/ProcessActions.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/actions/Action.hpp>
 
 #include <Process/Layer/LayerContextMenu.hpp>
@@ -55,7 +55,6 @@ private:
 }
 
 /// Conditions relative to Scenario elements
-ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Scenario::TemporalScenarioLayer)
 ISCORE_DECLARE_DOCUMENT_CONDITION(Scenario::ScenarioDocumentModel)
 
 ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ProcessModel)

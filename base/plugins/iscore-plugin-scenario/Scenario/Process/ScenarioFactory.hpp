@@ -24,7 +24,7 @@ class EditionSettings;
 class ScenarioFactory final : public Process::ProcessModelFactory
 {
 public:
-  UuidKey<Process::ProcessModelFactory> concreteKey() const noexcept override;
+  UuidKey<Process::ProcessModel> concreteKey() const noexcept override;
   QString prettyName() const override;
 
   Process::ProcessModel* make(
@@ -39,39 +39,18 @@ class ScenarioTemporalLayerFactory final : public Process::LayerFactory
 {
 public:
   ScenarioTemporalLayerFactory(Scenario::EditionSettings&);
-  QByteArray makeStaticLayerConstructionData() const override;
-
-  QByteArray
-  makeLayerConstructionData(const Process::ProcessModel& proc) const override;
-
-  Process::LayerModel* makeLayer_impl(
-      Process::ProcessModel& proc,
-      const Id<Process::LayerModel>& viewModelId,
-      const QByteArray& constructionData,
-      QObject* parent) override;
-
-  Process::LayerModel* cloneLayer_impl(
-      Process::ProcessModel& proc,
-      const Id<Process::LayerModel>& newId,
-      const Process::LayerModel& source,
-      QObject* parent) override;
-
-  Process::LayerModel* loadLayer_impl(
-      Process::ProcessModel& proc,
-      const VisitorVariant& vis,
-      QObject* parent) override;
 
   Process::LayerPresenter* makeLayerPresenter(
-      const Process::LayerModel&,
+      const Process::ProcessModel&,
       Process::LayerView*,
       const Process::ProcessPresenterContext& context,
       QObject* parent) override;
 
   Process::LayerView* makeLayerView(
-      const Process::LayerModel& viewmodel, QGraphicsItem* parent) override;
+      const Process::ProcessModel& viewmodel, QGraphicsItem* parent) override;
 
-  bool matches(const UuidKey<Process::ProcessModelFactory>& p) const override;
-  UuidKey<Process::LayerFactory> concreteKey() const noexcept override;
+  bool matches(const UuidKey<Process::ProcessModel>& p) const override;
+  UuidKey<Process::ProcessModel> concreteKey() const noexcept override;
 
 private:
   Scenario::EditionSettings& m_editionSettings;

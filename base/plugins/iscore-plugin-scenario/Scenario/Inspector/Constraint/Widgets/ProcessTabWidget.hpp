@@ -25,7 +25,7 @@ public:
 signals:
 
 public slots:
-  void createProcess(const UuidKey<Process::ProcessModelFactory>& processName);
+  void createProcess(const UuidKey<Process::ProcessModel>& processName);
   void displayProcess(const Process::ProcessModel&, bool expanded);
 
   void updateDisplayedValues();

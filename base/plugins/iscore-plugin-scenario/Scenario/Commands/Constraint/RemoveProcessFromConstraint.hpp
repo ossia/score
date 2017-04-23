@@ -22,6 +22,7 @@ class ProcessModel;
 
 namespace Scenario
 {
+class SlotModel;
 class ConstraintModel;
 namespace Command
 {
@@ -46,9 +47,10 @@ protected:
 private:
   Path<ConstraintModel> m_path;
   Id<Process::ProcessModel> m_processId;
-
   QByteArray m_serializedProcessData;
-  QVector<QPair<Path<Process::LayerModel>, QByteArray>> m_serializedViewModels;
+
+  std::vector<Path<Scenario::SlotModel>> m_slots;
+  std::vector<bool> m_inFront;
 };
 }
 }

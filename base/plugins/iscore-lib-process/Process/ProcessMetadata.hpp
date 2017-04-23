@@ -4,6 +4,7 @@
 
 namespace Process
 {
+class ProcessModel;
 class ProcessModelFactory;
 class LayerFactory;
 class StateProcessFactory;
@@ -11,12 +12,8 @@ class StateProcessFactory;
 
 #define PROCESS_METADATA(Export, Model, Uuid, ObjectKey, PrettyName) \
   MODEL_METADATA(                                                    \
-      Export, Process::ProcessModelFactory, Model, Uuid, ObjectKey,  \
+      Export, Process::ProcessModel, Model, Uuid, ObjectKey,  \
       PrettyName)
-
-#define LAYER_METADATA(Export, Model, Uuid, ObjectKey, PrettyName) \
-  MODEL_METADATA(                                                  \
-      Export, Process::LayerFactory, Model, Uuid, ObjectKey, PrettyName)
 
 #define STATEPROCESS_METADATA(Export, Model, Uuid, ObjectKey, PrettyName) \
   MODEL_METADATA(                                                         \

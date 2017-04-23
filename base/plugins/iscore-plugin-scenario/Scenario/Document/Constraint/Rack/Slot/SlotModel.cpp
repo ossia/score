@@ -16,7 +16,7 @@
 #include <iscore/tools/Todo.hpp>
 
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
-
+#include <boost/range/algorithm_ext/erase.hpp>
 namespace Scenario
 {
 SlotModel::SlotModel(
@@ -29,25 +29,15 @@ SlotModel::SlotModel(
 }
 
 SlotModel::SlotModel(
-    std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
     const SlotModel& source,
     const Id<SlotModel>& id,
     RackModel* parent)
     : Entity{source, id, Metadata<ObjectKey_k, SlotModel>::get(), parent}
     , m_frontLayerModelId{source.m_frontLayerModelId}
+    , m_processes{source.m_processes}
     , m_height{source.getHeight()}
 {
   initConnections();
-
-  // Note: we have a small trick for the layer model id.
-  // Since we're cloning, we want the pointer cached in the layer model to be
-  // the
-  // one we have cloned, hence instead of just copying the id, we ask the
-  // corresponding
-  // layer model to give us its id.
-  // TODO this is fucking ugly - mostly because two objects exist with the same
-  // id...
-  lmCopyMethod(source, *this);
 
   metadata().setInstanceName(*this);
 }
@@ -57,28 +47,12 @@ RackModel& SlotModel::rack() const
   return *static_cast<RackModel*>(parent());
 }
 
-void SlotModel::copyViewModelsInSameConstraint(
-    const SlotModel& source, SlotModel& target)
-{
-  auto& procs
-      = iscore::AppComponents().interfaces<Process::LayerFactoryList>();
-
-  for (const auto& lm : source.layers)
-  {
-    // We can safely reuse the same id since it's in a different slot.
-    auto& proc = lm.processModel();
-    auto fact = procs.findDefaultFactory(proc.concreteKey());
-
-    target.layers.add(fact->cloneLayer(proc, lm.id(), lm, &target));
-  }
-}
-
-void SlotModel::on_addLayer(const Process::LayerModel& viewmodel)
+void SlotModel::on_addLayer(const Process::ProcessModel& proc)
 {
   putToFront(viewmodel.id());
 }
 
-void SlotModel::on_removeLayer(const Process::LayerModel&)
+void SlotModel::on_removeLayer(const Process::ProcessModel& proc)
 {
   if (!layers.empty())
   {
@@ -90,7 +64,18 @@ void SlotModel::on_removeLayer(const Process::LayerModel&)
   }
 }
 
-void SlotModel::putToFront(const OptionalId<Process::LayerModel>& id)
+void SlotModel::addLayer(Id<Process::ProcessModel> p)
+{
+
+  // TODO
+}
+
+void SlotModel::removeLayer(Id<Process::ProcessModel> p)
+{
+  boost::range::remove_erase(m_processes, proc.id());
+  // TODO send a signal?
+}
+void SlotModel::putToFront(const OptionalId<Process::ProcessModel>& id)
 {
   if (!id)
     return;
@@ -106,7 +91,7 @@ void SlotModel::putToFront(const OptionalId<Process::LayerModel>& id)
   }
 }
 
-const Process::LayerModel* SlotModel::frontLayerModel() const
+const Process::ProcessModel* SlotModel::frontLayerModel() const
 {
   if (!m_frontLayerModelId)
     return nullptr;
@@ -115,18 +100,7 @@ const Process::LayerModel* SlotModel::frontLayerModel() const
 
 void SlotModel::on_deleteSharedProcessModel(const Process::ProcessModel& proc)
 {
-  using namespace std;
-  auto it = find_if(
-      begin(layers),
-      end(layers),
-      [id = proc.id()](const Process::LayerModel& lm) {
-        return lm.processModel().id() == id;
-      });
-
-  if (it != end(layers))
-  {
-    layers.remove((*it).id());
-  }
+  removeLayer(proc);
 }
 
 void SlotModel::setHeight(qreal arg)
@@ -146,6 +120,7 @@ void SlotModel::setFocus(bool arg)
   m_focus = arg;
   emit focusChanged(arg);
 }
+
 
 void SlotModel::initConnections()
 {
