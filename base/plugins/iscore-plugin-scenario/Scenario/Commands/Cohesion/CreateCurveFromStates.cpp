@@ -29,10 +29,8 @@ namespace Command
 {
 CreateAutomationFromStates::CreateAutomationFromStates(
     const ConstraintModel& constraint,
-    const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>&
-        slotList,
-    Id<Process::ProcessModel>
-        curveId,
+    const std::vector<Path<SlotModel>>& slotList,
+    Id<Process::ProcessModel> curveId,
     State::AddressAccessor address,
     const Curve::CurveDomain& dom)
     : CreateProcessAndLayers<Automation::ProcessModel>{constraint, slotList,
@@ -85,7 +83,7 @@ void CreateAutomationFromStates::deserializeImpl(DataStreamOutput& s)
 
 CreateInterpolationFromStates::CreateInterpolationFromStates(
     const ConstraintModel& constraint,
-    const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>&
+    const std::vector<Path<SlotModel>>&
         slotList,
     Id<Process::ProcessModel> curveId, State::AddressAccessor address,
     State::Value start, State::Value end)

@@ -54,14 +54,13 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
   m_stream << constraint.smallViewRack()
            << constraint.fullViewRack();
 
-  // Full view
-  readFrom(*constraint.m_fullViewModel);
-
   // Common data
   m_stream << constraint.duration << constraint.m_startState
            << constraint.m_endState
 
-           << constraint.m_startDate << constraint.m_heightPercentage;
+           << constraint.m_startDate << constraint.m_heightPercentage
+           << constraint.m_zoom << constraint.m_center
+           << constraint.m_smallViewShown;
 
   insertDelimiter();
 }
@@ -94,14 +93,13 @@ DataStreamWriter::write(Scenario::ConstraintModel& constraint)
   constraint.m_smallViewRack = new Scenario::RackModel(*this, &constraint);
   constraint.m_fullViewRack = new Scenario::RackModel(*this, &constraint);
 
-  constraint.setFullView(new Scenario::FullViewConstraintViewModel{
-      *this, constraint, &constraint});
-
   // Common data
   m_stream >> constraint.duration >> constraint.m_startState
       >> constraint.m_endState
 
-      >> constraint.m_startDate >> constraint.m_heightPercentage;
+      >> constraint.m_startDate >> constraint.m_heightPercentage
+      >> constraint.m_zoom >> constraint.m_center
+      >> constraint.m_smallViewShown;
 
   checkDelimiter();
 }
@@ -115,11 +113,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
   obj[strings.Processes] = toJsonArray(constraint.processes);
 
   // Rackes
-  obj["SmallViewRack"] = toJsonObject(constraint.smallViewRack());
-  obj["FullViewRack"] = toJsonObject(constraint.fullViewRack());
-
-  // Full view
-  obj[strings.FullView] = toJsonObject(*constraint.fullView());
+  obj[strings.SmallViewRack] = toJsonObject(constraint.smallViewRack());
+  obj[strings.FullViewRack] = toJsonObject(constraint.fullViewRack());
 
   // Common data
   // The fields will go in the same level as the
@@ -131,6 +126,10 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
 
   obj[strings.StartDate] = toJsonValue(constraint.m_startDate);
   obj[strings.HeightPercentage] = constraint.m_heightPercentage;
+
+  obj[strings.Zoom] = constraint.m_zoom;
+  obj[strings.Center] = toJsonValue(constraint.m_center);
+  obj[strings.SmallViewShown] = constraint.m_smallViewShown;
 }
 
 
@@ -152,18 +151,14 @@ JSONObjectWriter::write(Scenario::ConstraintModel& constraint)
   }
 
   {
-    JSONObject::Deserializer dr{obj["SmallViewRack"].toObject()};
+    JSONObject::Deserializer dr{obj[strings.SmallViewRack].toObject()};
     constraint.m_smallViewRack = new Scenario::RackModel(dr, &constraint);
   }
 
   {
-    JSONObject::Deserializer dr{obj["FullViewRack"].toObject()};
+    JSONObject::Deserializer dr{obj[strings.FullViewRack].toObject()};
     constraint.m_fullViewRack = new Scenario::RackModel(dr, &constraint);
   }
-
-  constraint.setFullView(new Scenario::FullViewConstraintViewModel{
-      JSONObject::Deserializer{obj[strings.FullView].toObject()}, constraint,
-      &constraint});
 
   writeTo(constraint.duration);
   constraint.m_startState
@@ -173,4 +168,8 @@ JSONObjectWriter::write(Scenario::ConstraintModel& constraint)
 
   constraint.m_startDate = fromJsonValue<TimeVal>(obj[strings.StartDate]);
   constraint.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
+
+  constraint.m_zoom = obj[strings.Zoom].toDouble();
+  constraint.m_center = fromJsonValue<QRectF>(obj[strings.Center]);
+  constraint.m_smallViewShown = obj[strings.SmallViewShown].toBool();
 }

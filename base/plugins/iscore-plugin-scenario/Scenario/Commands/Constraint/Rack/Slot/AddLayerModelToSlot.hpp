@@ -37,24 +37,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final
       AddLayerModelToSlot,
       "Add a layer to a slot")
 public:
+    AddLayerModelToSlot(
+      Path<SlotModel>&& slot, Id<Process::ProcessModel> process);
   AddLayerModelToSlot(
       const SlotModel& slot, const Process::ProcessModel& process);
-
-  // Use this constructor when the process isn't created yet
-  AddLayerModelToSlot(
-      Path<SlotModel>&& slot,
-      const Process::ProcessModel& process,
-      QByteArray processConstructionData);
-
-  AddLayerModelToSlot(
-      Path<SlotModel>&& slot,
-      Id<Process::LayerModel>
-          layerid,
-      Path<Process::ProcessModel>
-          process,
-      UuidKey<Process::LayerFactory>
-          uid,
-      QByteArray processConstructionData);
 
   void undo() const override;
   void redo() const override;
@@ -64,13 +50,8 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<SlotModel> m_slotPath;
-  Path<Process::ProcessModel> m_processPath;
-  UuidKey<Process::LayerFactory> m_layerFactory;
-
-  QByteArray m_processData;
-
-  Id<Process::LayerModel> m_createdLayerId{};
+  Path<SlotModel> m_slot;
+  Id<Process::ProcessModel> m_processId;
 };
 }
 }

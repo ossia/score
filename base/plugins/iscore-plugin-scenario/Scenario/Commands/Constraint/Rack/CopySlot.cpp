@@ -36,8 +36,7 @@ void CopySlot::redo() const
   const auto& sourceSlot = m_slotPath.find();
   auto& targetRack = m_targetRackPath.find();
 
-  targetRack.addSlot(new SlotModel{&SlotModel::copyViewModelsInSameConstraint,
-                                   sourceSlot, m_newSlotId, &targetRack});
+  targetRack.addSlot(new SlotModel{sourceSlot, m_newSlotId, &targetRack});
 }
 
 void CopySlot::serializeImpl(DataStreamInput& s) const

@@ -6,24 +6,24 @@
 
 namespace Process
 {
-class LayerModel;
+class ProcessModel;
 }
 class QObject;
 
 namespace WidgetLayer
 {
 template <typename Process_T, typename Widget_T>
-class LayerPanelProxy final : public Process::LayerModelPanelProxy
+class LayerPanelProxy final : public Process::LayerPanelProxy
 {
 public:
-  explicit LayerPanelProxy(const Process::LayerModel& vm, QObject* parent)
-      : Process::LayerModelPanelProxy{parent}, m_layer{vm}
+  explicit LayerPanelProxy(const Process::ProcessModel& vm, QObject* parent)
+      : Process::LayerPanelProxy{parent}, m_layer{vm}
   {
-    m_widget = new Widget_T{safe_cast<Process_T&>(vm.processModel()),
+    m_widget = new Widget_T{safe_cast<Process_T&>(vm),
                             iscore::IDocument::documentContext(vm), nullptr};
   }
 
-  const Process::LayerModel& layer() final override
+  const Process::ProcessModel& layer() final override
   {
     return m_layer;
   }
@@ -34,7 +34,7 @@ public:
   }
 
 private:
-  const Process::LayerModel& m_layer;
+  const Process::ProcessModel& m_layer;
   QWidget* m_widget{};
 };
 }

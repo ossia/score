@@ -172,7 +172,7 @@ void ConstraintActions::setupContextMenu(
           auto act = new QAction{rack.metadata().getName(), rackMenu};
           connect(act, &QAction::triggered, this, [&]() {
             auto cmd
-                = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
+                = new Scenario::Command::ShowRack{vm, rack.id()};
             CommandDispatcher<> dispatcher{
                 m_parent->currentDocument()->context().commandStack};
             dispatcher.submitCommand(cmd);
@@ -183,7 +183,7 @@ void ConstraintActions::setupContextMenu(
 
         auto hideAct = new QAction{tr("Hide"), rackMenu};
         connect(hideAct, &QAction::triggered, this, [&]() {
-          auto cmd = new Scenario::Command::HideRackInViewModel{vm};
+          auto cmd = new Scenario::Command::HideRack{vm};
           CommandDispatcher<> dispatcher{
               m_parent->currentDocument()->context().commandStack};
           dispatcher.submitCommand(cmd);
@@ -208,7 +208,7 @@ void ConstraintActions::setupContextMenu(
 }
 
 void ConstraintActions::addProcessInConstraint(
-    const UuidKey<Process::ProcessModelFactory>& processName)
+    const UuidKey<Process::ProcessModel>& processName)
 {
   auto selectedConstraints
       = selectedConstraintsInCurrentDocument(m_parent->context);

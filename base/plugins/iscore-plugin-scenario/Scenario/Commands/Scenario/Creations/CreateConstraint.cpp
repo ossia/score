@@ -46,19 +46,6 @@ CreateConstraint::CreateConstraint(
   // ISCORE_ASSERT(!scenar.state(startState).nextConstraint());
   // ISCORE_ASSERT(!scenar.state(endState).previousConstraint());
   m_createdConstraintId = getStrongId(scenar.constraints);
-
-  // For each ScenarioViewModel of the scenario we are applying this command
-  // in,
-  // we have to generate ConstraintViewModels, too
-  for (const auto& viewModel : layers(scenar))
-  {
-    m_createdConstraintViewModelIDs[*viewModel]
-        = getStrongId(viewModel->constraints());
-  }
-
-  // Finally, the id of the full view
-  m_createdConstraintFullViewId = getStrongId(
-      m_createdConstraintViewModelIDs.values().toVector().toStdVector());
 }
 
 void CreateConstraint::undo() const
@@ -76,7 +63,6 @@ void CreateConstraint::redo() const
 
   ScenarioCreate<ConstraintModel>::redo(
       m_createdConstraintId,
-      m_createdConstraintFullViewId,
       sst,
       est,
       sst.heightPercentage(),
@@ -85,23 +71,18 @@ void CreateConstraint::redo() const
   scenar.constraints.at(m_createdConstraintId)
       .metadata()
       .setName(m_createdName);
-
-  createConstraintViewModels(
-      m_createdConstraintViewModelIDs, m_createdConstraintId, scenar);
 }
 
 void CreateConstraint::serializeImpl(DataStreamInput& s) const
 {
   s << m_path << m_createdName << m_createdConstraintId << m_startStateId
-    << m_endStateId << m_createdConstraintViewModelIDs
-    << m_createdConstraintFullViewId;
+    << m_endStateId ;
 }
 
 void CreateConstraint::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_createdName >> m_createdConstraintId >> m_startStateId
-      >> m_endStateId >> m_createdConstraintViewModelIDs
-      >> m_createdConstraintFullViewId;
+      >> m_endStateId;
 }
 }
 }

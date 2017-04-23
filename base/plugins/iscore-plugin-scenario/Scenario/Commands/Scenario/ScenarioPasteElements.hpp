@@ -56,9 +56,6 @@ private:
   QVector<QJsonObject> m_json_constraints;
   QVector<QJsonObject> m_json_events;
   QVector<QJsonObject> m_json_states;
-
-  // TODO std::map...
-  QMap<Id<ConstraintModel>, ConstraintViewModelIdMap> m_constraintViewModels;
 };
 }
 }

@@ -21,7 +21,7 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Process::LayerModel& model,
+      const Process::ProcessModel& model,
       View* view,
       const Process::ProcessPresenterContext& ctx,
       QObject* parent)
@@ -63,7 +63,7 @@ public:
   {
   }
 
-  const Process::LayerModel& layerModel() const override
+  const Process::ProcessModel& layerModel() const override
   {
     return m_layer;
   }
@@ -73,7 +73,7 @@ public:
   }
 
 private:
-  const Process::LayerModel& m_layer;
+  const Process::ProcessModel& m_layer;
   View* m_view{};
 };
 }

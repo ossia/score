@@ -43,8 +43,6 @@ public:
   RackModel(
       const RackModel& source,
       const Id<RackModel>& id,
-      std::function<void(const SlotModel&, SlotModel&)>
-          lmCopyMethod,
       QObject* parent);
 
   template <typename Impl>

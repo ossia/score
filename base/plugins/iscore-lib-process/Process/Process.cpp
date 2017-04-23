@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "LayerModel.hpp"
 #include "Process.hpp"
 #include <ossia/detail/algorithms.hpp>
 #include <Process/ExpandMode.hpp>
@@ -65,11 +64,6 @@ ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
 QString ProcessModel::prettyName() const
 {
   return metadata().getName();
-}
-
-std::vector<LayerModel*> ProcessModel::layers() const
-{
-  return m_layers;
 }
 
 void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t)
@@ -144,21 +138,6 @@ Selection ProcessModel::selectedChildren() const
 
 void ProcessModel::setSelection(const Selection& s) const
 {
-}
-
-void ProcessModel::addLayer(LayerModel* m)
-{
-  connect(m, &LayerModel::destroyed, this, [=]() { removeLayer(m); });
-  m_layers.push_back(m);
-}
-
-void ProcessModel::removeLayer(LayerModel* m)
-{
-  auto it = ossia::find(m_layers, m);
-  if (it != m_layers.end())
-  {
-    m_layers.erase(it);
-  }
 }
 
 ProcessModel* parentProcess(QObject* obj)

@@ -15,33 +15,32 @@ class DoubleSlider;
 class ProcessPanelGraphicsProxy;
 namespace Process
 {
-class LayerModel;
 class LayerPresenter;
 class LayerView;
 }
 namespace Process
 {
-class ISCORE_LIB_PROCESS_EXPORT LayerModelPanelProxy : public QObject
+class ISCORE_LIB_PROCESS_EXPORT LayerPanelProxy : public QObject
 {
 public:
   using QObject::QObject;
-  virtual ~LayerModelPanelProxy();
+  virtual ~LayerPanelProxy();
 
   // Can return the same view model, or a new one.
-  virtual const LayerModel& layer() = 0;
+  virtual const Process::ProcessModel& layer() = 0;
   virtual QWidget* widget() const = 0;
 };
 
-class ISCORE_LIB_PROCESS_EXPORT GraphicsViewLayerModelPanelProxy
-    : public LayerModelPanelProxy
+class ISCORE_LIB_PROCESS_EXPORT GraphicsViewLayerPanelProxy
+    : public LayerPanelProxy
 {
 public:
-  GraphicsViewLayerModelPanelProxy(const LayerModel& model, QObject* parent);
+  GraphicsViewLayerPanelProxy(const Process::ProcessModel& model, QObject* parent);
 
-  virtual ~GraphicsViewLayerModelPanelProxy();
+  virtual ~GraphicsViewLayerPanelProxy();
 
   // Can return the same view model, or a new one.
-  const LayerModel& layer() final override;
+  const Process::ProcessModel& layer() final override;
   QWidget* widget() const final override;
 
   void on_sizeChanged(const QSize& size);
@@ -52,7 +51,7 @@ private:
 
   double m_height{}, m_width{};
 
-  const LayerModel& m_layer;
+  const Process::ProcessModel& m_layer;
   QWidget* m_widget{};
 
   QGraphicsScene* m_scene{};

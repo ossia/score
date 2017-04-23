@@ -11,5 +11,5 @@ namespace Interpolation
 {
 using InterpolationFactory = Process::GenericProcessModelFactory<ProcessModel>;
 using InterpolationLayerFactory
-    = Curve::CurveLayerFactory_T<ProcessModel, Layer, Presenter, View, Colors>;
+    = Curve::CurveLayerFactory_T<ProcessModel, Presenter, View, Colors>;
 }

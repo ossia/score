@@ -81,7 +81,7 @@ ProcessTabWidget::ProcessTabWidget(
 }
 
 void ProcessTabWidget::createProcess(
-    const UuidKey<Process::ProcessModelFactory>& processName)
+    const UuidKey<Process::ProcessModel>& processName)
 {
   auto cmd = Command::make_AddProcessToConstraint(
       m_constraintWidget.model(), processName);

@@ -187,7 +187,7 @@ Box CreateBox(RecordContext& context)
   for (const auto& vm : cstr.viewModels())
   {
     auto cmd_showrack
-        = new Scenario::Command::ShowRackInViewModel{*vm, rack.id()};
+        = new Scenario::Command::ShowRack{*vm, rack.id()};
     cmd_showrack->redo();
     context.dispatcher.submitCommand(cmd_showrack);
   }

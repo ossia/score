@@ -199,6 +199,23 @@ struct TSerializer<JSONValue, optional<double>>
   }
 };
 
+template <>
+struct TSerializer<JSONValue, QRectF>
+{
+  static void readFrom(JSONValue::Serializer& s, const QRectF& obj)
+  {
+    s.val = QJsonArray{obj.x(), obj.y(), obj.width(), obj.height()};
+  }
+
+  static void writeTo(JSONValue::Deserializer& s, QRectF& obj)
+  {
+    auto arr = s.val.toArray();
+    ISCORE_ASSERT(arr.size() == 4);
+    obj = {arr[0].toDouble(), arr[1].toDouble(), arr[2].toDouble(), arr[3].toDouble()};
+  }
+};
+
+
 template <typename U>
 struct TSerializer<JSONValue, Id<U>>
 {

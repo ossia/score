@@ -44,8 +44,8 @@ public:
   /** Properties of the class **/
   iscore::EntityMap<Process::ProcessModel> processes;
 
-  RackModel& smallViewRack();
-  RackModel& fullViewRack();
+  RackModel& smallViewRack() const { return *m_smallViewRack; }
+  RackModel& fullViewRack() const { return *m_fullViewRack; }
   iscore::EntityMap<RackModel> racks;
 
   Selectable selection;
@@ -71,22 +71,8 @@ public:
   template <typename Deserializer>
   ConstraintModel(Deserializer&& vis, QObject* parent) : Entity{vis, parent}
   {
-    initConnections();
     vis.writeTo(*this);
   }
-
-  // Factories for the view models.
-  template <typename ViewModelType> // Arg might be an id or a datastream [
-  ViewModelType*
-  makeConstraintViewModel(const Id<ConstraintViewModel>& id, QObject* parent)
-  {
-    auto viewmodel = new ViewModelType{id, *this, parent};
-    setupConstraintViewModel(viewmodel);
-    return viewmodel;
-  }
-
-  // Note : the Constraint does not have ownership (it's generally the Slot)
-  void setupConstraintViewModel(ConstraintViewModel* viewmodel);
 
   const Id<StateModel>& startState() const;
   void setStartState(const Id<StateModel>& eventId);
@@ -94,25 +80,11 @@ public:
   const Id<StateModel>& endState() const;
   void setEndState(const Id<StateModel>& endState);
 
-  // Here we won't remove / add things from the outside so it is safe to
-  // return a reference
-  const QVector<ConstraintViewModel*>& viewModels() const
-  {
-    return m_constraintViewModels;
-  }
-
   const TimeVal& startDate() const;
   void setStartDate(const TimeVal& start);
   void translate(const TimeVal& deltaTime);
 
   double heightPercentage() const;
-
-  FullViewConstraintViewModel* fullView() const
-  {
-    return m_fullViewModel;
-  }
-
-  void setFullView(FullViewConstraintViewModel* fv);
 
   void startExecution();
   void stopExecution();
@@ -125,10 +97,21 @@ public:
   {
     return m_executionState;
   }
-signals:
-  void viewModelCreated(const ConstraintViewModel&);
-  void viewModelRemoved(const QObject*);
 
+  static Id<RackModel> smallViewRackId();
+  static Id<RackModel> fullViewRackId();
+
+  // Full view properties:
+
+
+  ZoomRatio zoom() const;
+  void setZoom(const ZoomRatio& zoom);
+
+  QRectF visibleRect() const;
+  void setVisibleRect(const QRectF& value);
+
+  void setSmallViewVisible(bool);
+signals:
   void heightPercentageChanged(double);
 
   void startDateChanged(const TimeVal&);
@@ -139,22 +122,14 @@ signals:
   void executionStopped();
 
 private:
-  void on_destroyedViewModel(ConstraintViewModel* obj);
   void initConnections();
   void on_rackAdded(const RackModel& rack);
-
-  // The small view constraint view models that show this constraint
-  // The constraint does not have ownership of these: their parent (in the Qt
-  // sense) are
-  // the scenario view models
-  QVector<ConstraintViewModel*> m_constraintViewModels;
 
   // Model for the full view.
   // Note : it is also present in m_constraintViewModels.
 
   RackModel* m_smallViewRack{};
   RackModel* m_fullViewRack{};
-  FullViewConstraintViewModel* m_fullViewModel{};
 
   Id<StateModel> m_startState;
   Id<StateModel> m_endState;
@@ -163,8 +138,15 @@ private:
 
   double m_heightPercentage{0.5};
 
+  ZoomRatio m_zoom{-1};
+  QRectF m_center{};
+  bool m_smallViewShown{};
   ConstraintExecutionState m_executionState{};
 };
+
+ISCORE_PLUGIN_SCENARIO_EXPORT
+bool isInFullView(const Scenario::ConstraintModel& cstr);
+
 }
 
 DEFAULT_MODEL_METADATA(Scenario::ConstraintModel, "Constraint")

@@ -31,7 +31,7 @@ namespace Command
 {
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
     Path<ConstraintModel>&& constraintPath,
-    UuidKey<Process::ProcessModelFactory>
+    UuidKey<Process::ProcessModel>
         process)
     : AddOnlyProcessToConstraint{std::move(constraintPath),
                                  getStrongId(constraintPath.find().processes),
@@ -43,7 +43,7 @@ AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
     Path<ConstraintModel>&& constraintPath,
     Id<Process::ProcessModel>
         processId,
-    UuidKey<Process::ProcessModelFactory>
+    UuidKey<Process::ProcessModel>
         process)
     : m_path{std::move(constraintPath)}
     , m_processName{process}

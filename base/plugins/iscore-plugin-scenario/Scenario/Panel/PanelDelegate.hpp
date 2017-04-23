@@ -4,7 +4,7 @@
 namespace Process
 {
 class LayerModel;
-class LayerModelPanelProxy;
+class LayerPanelProxy;
 }
 
 namespace Scenario
@@ -29,7 +29,7 @@ private:
 
   QWidget* m_widget{};
   QPointer<const Process::LayerModel> m_layerModel{};
-  Process::LayerModelPanelProxy* m_proxy{};
+  Process::LayerPanelProxy* m_proxy{};
 
   std::vector<QMetaObject::Connection> m_connections;
 };

@@ -97,6 +97,11 @@ struct StringConstants
   const QString Condition;
   const QString Offset;
   const QString Segments;
+  const QString SmallViewRack;
+  const QString FullViewRack;
+  const QString Zoom;
+  const QString Center;
+  const QString SmallViewShown;
 };
 
 ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant();

@@ -6,6 +6,10 @@
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/application/ApplicationContext.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <core/document/DocumentPresenter.hpp>
 #include <map>
 #include <utility>
 
@@ -24,24 +28,19 @@ class TimeNodeModel;
 
 ConstraintModel::ConstraintModel(
     const Id<ConstraintModel>& id,
-    const Id<ConstraintViewModel>& fullViewId,
     double yPos,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent}
-    , m_smallViewRack{new RackModel{Id<RackModel>{0}, this}}
-    , m_fullViewRack{new RackModel{Id<RackModel>{1}, this}}
-    , m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
+    , m_smallViewRack{new RackModel{smallViewRackId(), this}}
+    , m_fullViewRack{new RackModel{fullViewRackId(), this}}
 {
   initConnections();
-  setupConstraintViewModel(m_fullViewModel);
   metadata().setInstanceName(*this);
   metadata().setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
   setHeightPercentage(yPos);
 
   on_rackAdded(*m_smallViewRack);
   on_rackAdded(*m_fullViewRack);
-
-  m_fullViewModel->showRack(Id<RackModel>{1});
 }
 
 ConstraintModel::~ConstraintModel()
@@ -98,40 +97,8 @@ ConstraintModel::ConstraintModel(
 
   m_smallViewRack = new RackModel{*source.m_smallViewRack, source.m_smallViewRack->id(), rack_fun, this};
   m_fullViewRack = new RackModel{*source.m_fullViewRack, source.m_fullViewRack->id(), rack_fun, this};
-
-  // NOTE : we do not copy the view models on which this constraint does not
-  // have ownership,
-  // this is the job of a command.
-  // However, the full view constraint must be copied since we have ownership
-  // of it.
-  m_fullViewModel
-      = source.fullView()->clone(source.fullView()->id(), *this, this);
 }
 
-void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
-{
-  connect(
-      viewmodel, &ConstraintViewModel::about_to_be_deleted, this,
-      &ConstraintModel::on_destroyedViewModel);
-
-  m_constraintViewModels.push_back(viewmodel);
-  emit viewModelCreated(*viewmodel);
-}
-
-void ConstraintModel::on_destroyedViewModel(ConstraintViewModel* obj)
-{
-  int index = m_constraintViewModels.indexOf(obj);
-
-  if (index != -1)
-  {
-    m_constraintViewModels.remove(index);
-    emit viewModelRemoved(obj);
-  }
-}
-
-void ConstraintModel::initConnections()
-{
-}
 
 void ConstraintModel::on_rackAdded(const RackModel& rack)
 {
@@ -239,5 +206,48 @@ void ConstraintModel::setExecutionState(ConstraintExecutionState s)
     m_executionState = s;
     emit executionStateChanged(s);
   }
+}
+
+Id<RackModel> ConstraintModel::smallViewRackId()
+{
+  return Id<RackModel>{0};
+}
+
+Id<RackModel> ConstraintModel::fullViewRackId()
+{
+  return Id<RackModel>{1};
+}
+
+ZoomRatio ConstraintModel::zoom() const
+{
+  return m_zoom;
+}
+
+void ConstraintModel::setZoom(const ZoomRatio& zoom)
+{
+  m_zoom = zoom;
+}
+
+QRectF ConstraintModel::visibleRect() const
+{
+  return m_center;
+}
+
+void ConstraintModel::setVisibleRect(const QRectF& value)
+{
+  m_center = value;
+}
+
+void ConstraintModel::setSmallViewVisible(bool)
+{
+
+}
+
+bool isInFullView(const ConstraintModel& cstr)
+{
+  auto& doc = iscore::IDocument::documentContext(cstr);
+  auto& sub = safe_cast<Scenario::ScenarioDocumentPresenter&>(
+                doc.document.presenter().presenterDelegate());
+  return &sub.displayedElements.constraint() == &cstr;
 }
 }
