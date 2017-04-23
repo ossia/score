@@ -26,7 +26,7 @@ signals:
 
 public slots:
   void createProcess(const UuidKey<Process::ProcessModelFactory>& processName);
-  void displaySharedProcess(const Process::ProcessModel&);
+  void displayProcess(const Process::ProcessModel&, bool expanded);
 
   void updateDisplayedValues();
 
@@ -35,7 +35,6 @@ private:
   void createLayerInNewSlot(const Id<Process::ProcessModel>& processId);
 
   const ConstraintInspectorWidget& m_constraintWidget;
-  Inspector::InspectorSectionWidget* m_processSection{};
 
   std::vector<Inspector::InspectorSectionWidget*> m_processesSectionWidgets;
   AddProcessDialog* m_addProcess{};

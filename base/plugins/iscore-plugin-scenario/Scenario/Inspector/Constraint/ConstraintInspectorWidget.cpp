@@ -192,46 +192,12 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
       = new DurationWidget{ctrl.editionSettings(), *m_delegate, this};
   m_properties.push_back(m_durationSection);
 
-  /*
-  auto loop = new QCheckBox{tr("Loop content"), this};
-  loop->setChecked(m_model.looping());
-  connect(loop, &QCheckBox::clicked,
-          this, [this] (bool checked){
-      auto cmd = new Command::SetLooping{m_model, checked};
-      commandDispatcher()->submitCommand(cmd);
-  });
-  m_properties.push_back(loop);
-  */
   // Separator
   m_properties.push_back(new Inspector::HSeparator{this});
 
-  // tab Processes/View
-  auto tabWidget = new QTabWidget{this};
+  // Processes
   m_processesTabPage = new ProcessTabWidget{*this, this};
-  m_viewTabPage = new ProcessViewTabWidget{*this, this};
-
-  tabWidget->addTab(m_processesTabPage, tr("Processes"));
-  tabWidget->addTab(m_viewTabPage, tr("View"));
-
-  m_properties.push_back(tabWidget);
-
-  // Plugins
-
-  ISCORE_TODO;
-  /*
-  for(auto& plugdata : m_model.pluginModelList.list())
-  {
-      for(auto plugin : ctx.pluginModels())
-      {
-          auto md = plugin->makeElementPluginWidget(plugdata, this);
-          if(md)
-          {
-              m_properties.push_back(md);
-              break;
-          }
-      }
-  }
-  */
+  m_properties.push_back(m_processesTabPage);
 
   // Constraint interface
   model()
@@ -246,14 +212,6 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
       .processes.orderChanged
       .connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_orderChanged>(
           this);
-  model()
-      .racks.added
-      .connect<ProcessViewTabWidget, &ProcessViewTabWidget::on_rackCreated>(
-          m_viewTabPage); // todo maybe not working ...
-  model()
-      .racks.removed
-      .connect<ProcessViewTabWidget, &ProcessViewTabWidget::on_rackRemoved>(
-          m_viewTabPage);
 
   con(model(), &ConstraintModel::viewModelCreated, this,
       &ConstraintInspectorWidget::on_constraintViewModelCreated);
@@ -282,9 +240,7 @@ QString ConstraintInspectorWidget::tabName()
 void ConstraintInspectorWidget::updateDisplayedValues()
 {
   // Cleanup the widgets
-
   m_processesTabPage->updateDisplayedValues();
-  m_viewTabPage->updateDisplayedValues();
 
   m_delegate->updateElements();
 }
@@ -292,31 +248,33 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 void ConstraintInspectorWidget::on_processCreated(const Process::ProcessModel&)
 {
   // OPTIMIZEME
-  m_processesTabPage->updateDisplayedValues();
+  // Note: this is put in the event loop because when creating a process,
+  // this signal is emitted before the process could be put as the front layer.
+  // hence the incorrect process is expanded.
+  // TODO we should also update when a new process is displayed in a new slot...
+  QTimer::singleShot(0, [this] { m_processesTabPage->updateDisplayedValues(); });
 }
 
 void ConstraintInspectorWidget::on_processRemoved(const Process::ProcessModel&)
 {
   // OPTIMIZEME
-  m_processesTabPage->updateDisplayedValues();
+  QTimer::singleShot(0, [this] { m_processesTabPage->updateDisplayedValues(); });
 }
 
 void ConstraintInspectorWidget::on_orderChanged()
 {
   // OPTIMIZEME
-  m_processesTabPage->updateDisplayedValues();
+  QTimer::singleShot(0, [this] { m_processesTabPage->updateDisplayedValues(); });
 }
 
 void ConstraintInspectorWidget::on_constraintViewModelCreated(
     const ConstraintViewModel&)
 {
   // OPTIMIZEME
-  m_viewTabPage->rackWidget()->viewModelsChanged();
 }
 
 void ConstraintInspectorWidget::on_constraintViewModelRemoved(const QObject*)
 {
   // OPTIMIZEME
-  m_viewTabPage->rackWidget()->viewModelsChanged();
 }
 }

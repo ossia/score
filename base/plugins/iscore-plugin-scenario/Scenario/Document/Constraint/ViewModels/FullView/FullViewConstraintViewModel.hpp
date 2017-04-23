@@ -6,7 +6,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
 #include <iscore/model/Identifier.hpp>
-
+namespace Process { class LayerModel; }
 namespace Scenario
 {
 class ConstraintModel;
@@ -61,4 +61,11 @@ private:
   ZoomRatio m_zoom{-1};
   QRectF m_center{};
 };
+
+
+ISCORE_PLUGIN_SCENARIO_EXPORT
+bool isInFullView(const Scenario::ConstraintModel& cstr);
+
+ISCORE_PLUGIN_SCENARIO_EXPORT
+bool isInFullView(const Process::LayerModel& theLM);
 }

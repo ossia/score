@@ -5,12 +5,14 @@
 
 #include "FullViewConstraintViewModel.hpp"
 #include <Process/ZoomHelper.hpp>
+#include <Process/LayerModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/model/Identifier.hpp>
 
 #include <iscore/document/DocumentContext.hpp>
+#include <core/document/DocumentPresenter.hpp>
 class QObject;
 namespace Scenario
 {
@@ -61,4 +63,22 @@ bool FullViewConstraintViewModel::isActive()
 
   return (&this->model() == &baseElt.displayedElements.constraint());
 }
+
+bool isInFullView(const ConstraintModel& cstr)
+{
+  auto& doc = iscore::IDocument::documentContext(cstr);
+  auto& sub = safe_cast<Scenario::ScenarioDocumentPresenter&>(
+                doc.document.presenter().presenterDelegate());
+  return &sub.displayedElements.constraint() == &cstr;
+}
+
+bool isInFullView(const Process::LayerModel& theLM)
+{
+  if(auto p = theLM.parent())
+    if(auto p2 = p->parent())
+      if(auto cst = qobject_cast<ConstraintModel*>(p2->parent()))
+        return isInFullView(*cst);
+  return false;
+}
+
 }
