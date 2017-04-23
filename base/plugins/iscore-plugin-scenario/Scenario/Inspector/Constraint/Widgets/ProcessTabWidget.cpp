@@ -5,6 +5,8 @@
 
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/SetIcons.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>
 
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
@@ -16,7 +18,7 @@
 #include <Scenario/Commands/Constraint/SetProcessUseParentDuration.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Commands/SetProcessDuration.hpp>
-
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
@@ -30,9 +32,7 @@
 #include <QMenu>
 #include <QToolButton>
 
-#include <iscore/widgets/SetIcons.hpp>
-#include <iscore/widgets/TextLabel.hpp>
-
+#include <boost/container/flat_map.hpp>
 namespace Scenario
 {
 
@@ -44,11 +44,6 @@ ProcessTabWidget::ProcessTabWidget(
 
   // main layout
   auto processesLay = new iscore::MarginLess<QVBoxLayout>{this};
-
-  // usefull ?
-  m_processSection
-      = new Inspector::InspectorSectionWidget("Processes", false, this);
-  m_processSection->setObjectName("Processes");
 
   // add new process widget
   auto addProc = new QWidget(this);
@@ -82,7 +77,6 @@ ProcessTabWidget::ProcessTabWidget(
   addProcLayout->addWidget(addProcText);
 
   processesLay->addWidget(addProc);
-  processesLay->addWidget(m_processSection);
   processesLay->addStretch(1);
 }
 
@@ -94,8 +88,37 @@ void ProcessTabWidget::createProcess(
   m_constraintWidget.commandDispatcher()->submitCommand(cmd);
 }
 
-void ProcessTabWidget::displaySharedProcess(
-    const Process::ProcessModel& process)
+// MOVEME
+RackModel* getSmallViewRack(
+    const Scenario::ConstraintModel& c)
+{
+  if(c.racks.size() == 1)
+    return &(*c.racks.begin());
+
+  const auto fv_rack = c.fullView()->shownRack();
+
+  if(fv_rack)
+  {
+    const auto fv_rid = *fv_rack;
+    for(auto& rack : c.racks)
+    {
+      if(rack.id() != fv_rid)
+        return &rack;
+    }
+  }
+  else
+  {
+    if(!c.racks.empty())
+    {
+      return &(*c.racks.begin());
+    }
+  }
+  return nullptr;
+}
+
+void ProcessTabWidget::displayProcess(
+    const Process::ProcessModel& process,
+    bool expanded)
 {
   using namespace iscore;
 
@@ -137,7 +160,6 @@ void ProcessTabWidget::displaySharedProcess(
   }
 
   // delete process
-
   auto delAct = newProc->menu()->addAction(tr("Remove Process"));
   delAct->setIcon(genIconFromPixmaps(
       QStringLiteral(":/icons/delete_on.png"), QStringLiteral(":/icons/delete_off.png")));
@@ -175,32 +197,68 @@ void ProcessTabWidget::displaySharedProcess(
   newProc->addContent(stateWidget);
 
   // Global setup
+  newProc->expand(expanded);
   m_processesSectionWidgets.push_back(newProc); // add in list
-  m_processSection->addContent(newProc);        // add in view
+  this->layout()->addWidget(newProc);           // add in view
 }
 
 void ProcessTabWidget::updateDisplayedValues()
 {
-  for (auto& process : m_processesSectionWidgets)
+  for (auto process : m_processesSectionWidgets)
   {
-    m_processSection->removeContent(process);
+    delete process;
   }
   m_processesSectionWidgets.clear();
 
-  for (const auto& process : m_constraintWidget.model().processes)
+  const auto& cst = m_constraintWidget.model();
+  const auto fv = isInFullView(cst);
+  auto sv_rack = !fv ? getSmallViewRack(cst) : nullptr;
+
+  if(fv)
   {
-    displaySharedProcess(process);
+    // If the selected constraint is the full view one :
+    // all widgets are expanded.
+    for(const auto& p : cst.processes)
+    {
+      displayProcess(p, true);
+    }
   }
-}
-template <typename T>
-std::vector<std::string> brethrenNames(const T& vec)
-{
-  std::vector<std::string> names;
-  for (auto& elt : vec)
+  else
   {
-    names.push_back(elt.metadata.getName().toStdString());
+    // Else, if the selected constraint is just part of a scenario :
+    // The widget is expanded if the process is the edited one in
+    // one of the slots.
+    if(!sv_rack)
+    {
+      for(const auto& p : cst.processes)
+      {
+        displayProcess(p, false);
+      }
+    }
+    else
+    {
+      // List all the processes with their state.
+      boost::container::flat_map<Id<Process::ProcessModel>, bool> expanded;
+      expanded.reserve(cst.processes.size());
+      for(const auto& process : cst.processes)
+      {
+        expanded.insert(std::make_pair(process.id(), false));
+      }
+
+      for(const SlotModel& slot : sv_rack->slotmodels)
+      {
+        if(auto lay = slot.frontLayerModel())
+        {
+          expanded[lay->processModel().id()] = true;
+        }
+      }
+
+      for(const auto& p : cst.processes)
+      {
+        displayProcess(p, expanded[p.id()]);
+      }
+    }
   }
-  return names;
 }
 
 void ProcessTabWidget::ask_processNameChanged(

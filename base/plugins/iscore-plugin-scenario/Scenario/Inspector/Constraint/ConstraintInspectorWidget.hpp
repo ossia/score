@@ -102,7 +102,6 @@ private:
   QWidget* m_durationSection{};
 
   Scenario::ProcessTabWidget* m_processesTabPage{};
-  Scenario::ProcessViewTabWidget* m_viewTabPage{};
 
   std::list<QWidget*> m_properties;
 

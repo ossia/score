@@ -83,16 +83,6 @@ void PanelDelegate::cleanup()
   m_proxy = nullptr;
 }
 
-// TODO could go in some utility library
-static bool isInFullView(const Process::LayerModel& theLM)
-{
-  auto& doc = iscore::IDocument::documentContext(theLM);
-  auto& sub = safe_cast<Scenario::ScenarioDocumentPresenter&>(
-      doc.document.presenter().presenterDelegate());
-  return &sub.displayedElements.constraint()
-         == dynamic_cast<ConstraintModel*>(theLM.parent()->parent()->parent());
-}
-
 void PanelDelegate::on_focusedViewModelChanged(
     const Process::LayerModel* theLM)
 {
