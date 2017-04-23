@@ -88,34 +88,6 @@ void ProcessTabWidget::createProcess(
   m_constraintWidget.commandDispatcher()->submitCommand(cmd);
 }
 
-// MOVEME
-RackModel* getSmallViewRack(
-    const Scenario::ConstraintModel& c)
-{
-  if(c.racks.size() == 1)
-    return &(*c.racks.begin());
-
-  const auto fv_rack = c.fullView()->shownRack();
-
-  if(fv_rack)
-  {
-    const auto fv_rid = *fv_rack;
-    for(auto& rack : c.racks)
-    {
-      if(rack.id() != fv_rid)
-        return &rack;
-    }
-  }
-  else
-  {
-    if(!c.racks.empty())
-    {
-      return &(*c.racks.begin());
-    }
-  }
-  return nullptr;
-}
-
 void ProcessTabWidget::displayProcess(
     const Process::ProcessModel& process,
     bool expanded)
@@ -210,9 +182,9 @@ void ProcessTabWidget::updateDisplayedValues()
   }
   m_processesSectionWidgets.clear();
 
-  const auto& cst = m_constraintWidget.model();
+  const ConstraintModel& cst = m_constraintWidget.model();
   const auto fv = isInFullView(cst);
-  auto sv_rack = !fv ? getSmallViewRack(cst) : nullptr;
+  auto sv_rack = !fv ? &cst.smallViewRack() : nullptr;
 
   if(fv)
   {

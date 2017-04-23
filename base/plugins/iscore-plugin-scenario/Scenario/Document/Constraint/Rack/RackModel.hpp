@@ -62,30 +62,18 @@ public:
 
   void
   swapSlots(const Id<SlotModel>& firstslot, const Id<SlotModel>& secondslot);
-
-  int slotPosition(const Id<SlotModel>& slotId) const
-  {
-    return m_positions.indexOf(slotId);
-  }
-
-  const QList<Id<SlotModel>>& slotsPositions() const
-  {
-    return m_positions;
-  }
+  int slotPosition(const Id<SlotModel>& slotId) const;
 
   iscore::EntityMap<SlotModel> slotmodels;
 signals:
   void slotPositionsChanged();
 
-  void on_deleteSharedProcessModel(const Process::ProcessModel&);
+  void on_deleteProcess(const Process::ProcessModel&);
   void on_durationChanged(const TimeVal&);
 
 private:
   void initConnections();
   void on_slotRemoved(const SlotModel&);
-
-  // Positions of the slots. First is topmost.
-  QList<Id<SlotModel>> m_positions;
 };
 }
 DEFAULT_MODEL_METADATA(Scenario::RackModel, "Rack")

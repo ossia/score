@@ -26,12 +26,13 @@ ConstraintSaveData::ConstraintSaveData(
     processes.push_back(std::move(arr));
   }
 
-  racks.reserve(constraint.racks.size());
-  for (const auto& rack : constraint.racks)
+  racks.reserve(2);
+  for (const auto& rack : {constraint.smallViewRack(), constraint.fullViewRack()})
   {
     QByteArray arr;
     DataStream::Serializer s{&arr};
-    s.readFrom(rack);
+    // We only save the data proper to the racks.
+    s.read(rack);
     racks.push_back(std::move(arr));
   }
 
@@ -58,10 +59,13 @@ void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
   }
 
   // Restore the rackes
-  for (auto& sourcerack : racks)
   {
-    DataStream::Deserializer des{sourcerack};
-    constraint.racks.add(new RackModel{des, &constraint});
+    DataStream::Deserializer des{racks[0]};
+    des.write(constraint.m_smallViewRack);
+  }
+  {
+    DataStream::Deserializer des{racks[1]};
+    des.write(constraint.m_fullViewRack);
   }
 
   // Restore the correct rackes in the constraint view models

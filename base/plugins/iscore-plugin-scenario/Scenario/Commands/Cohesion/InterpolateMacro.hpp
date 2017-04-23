@@ -137,7 +137,7 @@ public:
           if (!rack.slotmodels.empty())
           {
             const auto& firstSlot
-                = rack.slotmodels.at(rack.slotsPositions()[0]);
+                = rack.slotmodels.at(*rack.slotmodels.begin());
 
             // Check if the rack / slot has already been added
             bool used = ossia::any_of(slotsToUse, [&](const auto& elt) {

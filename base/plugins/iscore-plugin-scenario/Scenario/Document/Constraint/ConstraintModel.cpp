@@ -28,6 +28,8 @@ ConstraintModel::ConstraintModel(
     double yPos,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent}
+    , m_smallViewRack{new RackModel{Id<RackModel>{0}, this}}
+    , m_fullViewRack{new RackModel{Id<RackModel>{1}, this}}
     , m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
   initConnections();
@@ -35,6 +37,11 @@ ConstraintModel::ConstraintModel(
   metadata().setInstanceName(*this);
   metadata().setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
   setHeightPercentage(yPos);
+
+  on_rackAdded(*m_smallViewRack);
+  on_rackAdded(*m_fullViewRack);
+
+  m_fullViewModel->showRack(Id<RackModel>{1});
 }
 
 ConstraintModel::~ConstraintModel()
@@ -77,40 +84,32 @@ ConstraintModel::ConstraintModel(
 
   auto& procs
       = iscore::AppComponents().interfaces<Process::LayerFactoryList>();
-  for (const auto& rack : source.racks)
-  {
-    racks.add(new RackModel{
-        rack, rack.id(),
-        [&](const SlotModel& source_slot, SlotModel& target) {
-          for (auto& lm : source_slot.layers)
-          {
-            // We can safely reuse the same id since it's in a different slot.
-            auto proc = processPairs[&lm.processModel()];
-            auto fact = procs.findDefaultFactory(proc->concreteKey());
-            // TODO harmonize the order of parameters (source first, then new
-            // id)
-            target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
-          }
-        },
-        this});
-  }
+  auto rack_fun = [&] (const SlotModel& source_slot, SlotModel& target) {
+    for (auto& lm : source_slot.layers)
+    {
+      // We can safely reuse the same id since it's in a different slot.
+      auto proc = processPairs[&lm.processModel()];
+      auto fact = procs.findDefaultFactory(proc->concreteKey());
+      // TODO harmonize the order of parameters (source first, then new
+      // id)
+      target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
+    }
+  };
+
+  m_smallViewRack = new RackModel{*source.m_smallViewRack, source.m_smallViewRack->id(), rack_fun, this};
+  m_fullViewRack = new RackModel{*source.m_fullViewRack, source.m_fullViewRack->id(), rack_fun, this};
 
   // NOTE : we do not copy the view models on which this constraint does not
   // have ownership,
   // this is the job of a command.
   // However, the full view constraint must be copied since we have ownership
   // of it.
-
   m_fullViewModel
       = source.fullView()->clone(source.fullView()->id(), *this, this);
 }
 
 void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
 {
-  racks.removing
-      .connect<ConstraintViewModel, &ConstraintViewModel::on_rackRemoval>(
-          viewmodel);
-
   connect(
       viewmodel, &ConstraintViewModel::about_to_be_deleted, this,
       &ConstraintModel::on_destroyedViewModel);
@@ -132,13 +131,12 @@ void ConstraintModel::on_destroyedViewModel(ConstraintViewModel* obj)
 
 void ConstraintModel::initConnections()
 {
-  racks.added.connect<ConstraintModel, &ConstraintModel::on_rackAdded>(this);
 }
 
 void ConstraintModel::on_rackAdded(const RackModel& rack)
 {
   processes.removed
-      .connect<RackModel, &RackModel::on_deleteSharedProcessModel>(
+      .connect<RackModel, &RackModel::on_deleteProcess>(
           const_cast<RackModel&>(rack));
   con(duration, &ConstraintDurations::defaultDurationChanged, &rack,
       &RackModel::on_durationChanged);

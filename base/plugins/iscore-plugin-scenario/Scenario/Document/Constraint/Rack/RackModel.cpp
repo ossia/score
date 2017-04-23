@@ -45,31 +45,45 @@ void RackModel::addSlot(SlotModel* slot, int position)
       this, &RackModel::on_deleteSharedProcessModel, slot,
       &SlotModel::on_deleteSharedProcessModel);
 
-  m_positions.insert(position, slot->id());
-  slotmodels.add(slot);
+  auto& map = slotmodels.unsafe_map();
+  auto& ordered = map.ordered();
+  auto it = ordered.begin();
+  std::advance(it, position);
+  ordered.insert(it, slot);
+
+  map.mutable_added(*slot);
+  map.added(*slot);
 
   emit slotPositionsChanged();
 }
 
 void RackModel::addSlot(SlotModel* m)
 {
-  addSlot(m, m_positions.size());
+  addSlot(m, slotmodels.size());
 }
 
 void RackModel::on_slotRemoved(const SlotModel& slot)
 {
-  // Make the remaining slots decrease their position.
-  m_positions.removeAll(slot.id());
-
   emit slotPositionsChanged();
 }
 
 void RackModel::swapSlots(
     const Id<SlotModel>& firstslot, const Id<SlotModel>& secondslot)
 {
-  m_positions.swap(
-      m_positions.indexOf(firstslot), m_positions.indexOf(secondslot));
+  slotmodels.swap(firstslot, secondslot);
   emit slotPositionsChanged();
+}
+
+int RackModel::slotPosition(const Id<SlotModel>& slotId) const
+{
+  int i = 0;
+  for(auto& e : slotmodels)
+    if(e.id() == slotId)
+      return i;
+    else
+      i++;
+
+  return -1; // To follow QList::indexOf.
 }
 
 void RackModel::initConnections()

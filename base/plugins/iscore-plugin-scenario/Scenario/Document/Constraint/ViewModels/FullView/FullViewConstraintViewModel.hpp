@@ -47,8 +47,6 @@ public:
     vis.writeTo(*this);
   }
 
-  QString type() const override;
-
   ZoomRatio zoom() const;
   void setZoom(const ZoomRatio& zoom);
 

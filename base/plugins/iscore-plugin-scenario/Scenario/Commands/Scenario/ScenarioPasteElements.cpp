@@ -449,16 +449,6 @@ void ScenarioPasteElements::redo() const
 
     createConstraintViewModels(
         m_constraintViewModels[cst->id()], cst->id(), scenario);
-
-    if (!cst->racks.empty())
-    {
-      const auto& rackId = cst->racks.begin()->id();
-      const auto& vms = cst->viewModels();
-      for (ConstraintViewModel* vm : vms)
-      {
-        vm->showRack(rackId);
-      }
-    }
   }
 
   for (const auto& event : addedEvents)

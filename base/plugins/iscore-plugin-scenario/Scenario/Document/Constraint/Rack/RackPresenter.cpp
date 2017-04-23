@@ -170,9 +170,9 @@ void RackPresenter::updateShape()
   // Set the slots position graphically in order.
   int currentSlotY = 0;
 
-  for (const auto& slotId : m_model.slotsPositions())
+  for (const auto& slt : m_model.slotmodels)
   {
-    auto& slotPres = m_slots.at(slotId);
+    auto& slotPres = m_slots.at(slt.id());
     slotPres.setWidth(width());
     slotPres.setVerticalPosition(currentSlotY);
     currentSlotY

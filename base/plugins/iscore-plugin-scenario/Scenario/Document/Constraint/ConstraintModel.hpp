@@ -43,6 +43,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
 public:
   /** Properties of the class **/
   iscore::EntityMap<Process::ProcessModel> processes;
+
+  RackModel& smallViewRack();
+  RackModel& fullViewRack();
   iscore::EntityMap<RackModel> racks;
 
   Selectable selection;
@@ -148,6 +151,9 @@ private:
 
   // Model for the full view.
   // Note : it is also present in m_constraintViewModels.
+
+  RackModel* m_smallViewRack{};
+  RackModel* m_fullViewRack{};
   FullViewConstraintViewModel* m_fullViewModel{};
 
   Id<StateModel> m_startState;

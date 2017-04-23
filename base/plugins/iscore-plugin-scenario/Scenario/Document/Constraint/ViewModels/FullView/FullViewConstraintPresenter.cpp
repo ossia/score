@@ -2,6 +2,7 @@
 #include <QGraphicsScene>
 #include <QList>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
@@ -54,6 +55,8 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
       }
     }
   }
+
+  createRackPresenter();
 }
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()
@@ -71,4 +74,68 @@ FullViewConstraintPresenter::~FullViewConstraintPresenter()
     Scenario::view(this)->deleteLater();
   }
 }
+
+RackPresenter& FullViewConstraintPresenter::rack() const
+{
+  return *m_rack;
+}
+
+
+void FullViewConstraintPresenter::createRackPresenter()
+{
+  auto rackView = new RackView{m_view};
+  rackView->setPos(0, ConstraintHeader::headerHeight());
+
+  // Cas par défaut
+  m_rack = new RackPresenter{
+           m_viewModel.model().fullViewRack(),
+           rackView, m_context, this};
+
+  m_rack->on_zoomRatioChanged(m_zoomRatio);
+
+  connect(
+        m_rack, &RackPresenter::askUpdate, this,
+        &ConstraintPresenter::updateHeight);
+
+  connect(m_rack, &RackPresenter::pressed,
+          this, &ConstraintPresenter::pressed);
+  connect(m_rack, &RackPresenter::moved,
+          this, &ConstraintPresenter::moved);
+  connect(m_rack, &RackPresenter::released,
+          this, &ConstraintPresenter::released);
+}
+
+void FullViewConstraintPresenter::updateScaling()
+{
+  ConstraintPresenter::updateScaling();
+  updateHeight();
+}
+
+void FullViewConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
+{
+  ConstraintPresenter::on_zoomRatioChanged(val);
+
+  m_rack->on_zoomRatioChanged(m_zoomRatio);
+}
+
+void FullViewConstraintPresenter::on_defaultDurationChanged(const TimeVal& v)
+{
+  ConstraintPresenter::on_defaultDurationChanged(v);
+
+  m_rack->setWidth(m_view->defaultWidth());
+}
+
+void FullViewConstraintPresenter::updateHeight()
+{
+  view->setHeight(m_rack->height() + ConstraintHeader::headerHeight());
+
+  updateChildren();
+  emit heightChanged();
+}
+
+RackPresenter* FullViewConstraintPresenter::rack() const
+{
+  return m_rack;
+}
+
 }

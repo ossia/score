@@ -39,7 +39,6 @@ public:
       const Id<ConstraintViewModel>& id, ConstraintModel& cm, QObject* parent)
       = 0;
 
-  virtual QString type() const = 0;
   ConstraintModel& model() const;
 
   bool isRackShown() const;

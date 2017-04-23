@@ -31,11 +31,6 @@ FullViewConstraintViewModel* FullViewConstraintViewModel::clone(
   return cstr;
 }
 
-QString FullViewConstraintViewModel::type() const
-{
-  return "FullView";
-}
-
 ZoomRatio FullViewConstraintViewModel::zoom() const
 {
   return m_zoom;
