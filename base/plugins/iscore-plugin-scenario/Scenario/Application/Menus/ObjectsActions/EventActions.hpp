@@ -30,12 +30,17 @@ public:
 private:
   void addTriggerToTimeNode();
   void removeTriggerFromTimeNode();
+  void addCondition();
+  void removeCondition();
 
   CommandDispatcher<> dispatcher();
 
   ScenarioApplicationPlugin* m_parent{};
   QAction* m_addTrigger{};
   QAction* m_removeTrigger{};
+
+  QAction* m_addCondition{};
+  QAction* m_removeCondition{};
 
   const Command::TriggerCommandFactoryList& m_triggerCommandFactory;
 };

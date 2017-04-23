@@ -89,11 +89,6 @@ bool EventPresenter::isSelected() const
   return m_model.selection.get();
 }
 
-void EventPresenter::triggerSetted(QString trig)
-{
-  m_view->setTrigger(trig);
-}
-
 void EventPresenter::handleDrop(const QPointF& pos, const QMimeData* mime)
 {
   // We don't want to create a new state in BaseScenario

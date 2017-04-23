@@ -62,9 +62,6 @@ public:
   void setCondition(const QString& cond);
   bool hasCondition() const;
 
-  void setTrigger(const QString& trig);
-  bool hasTrigger() const;
-
   void setExtent(const VerticalExtent& extent);
   void setExtent(VerticalExtent&& extent);
 
@@ -94,7 +91,6 @@ protected:
 private:
   EventPresenter& m_presenter;
   QString m_condition;
-  QString m_trigger;
   iscore::ColorRef m_color;
 
   ExecutionStatusProperty m_status{};

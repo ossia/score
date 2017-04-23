@@ -115,6 +115,11 @@ ISCORE_DECLARE_ACTION(
 ISCORE_DECLARE_ACTION(
     RemoveTrigger, "&Remove Trigger", Scenario, QKeySequence::UnknownKey)
 
+ISCORE_DECLARE_ACTION(
+    AddCondition, "&Add Condition", Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(
+    RemoveCondition, "&Remove Condition", Scenario, QKeySequence::UnknownKey)
+
 // State
 ISCORE_DECLARE_ACTION(
     RefreshStates, "Refresh St&ates", Scenario, Qt::CTRL + Qt::Key_U)
