@@ -44,7 +44,6 @@ public:
 
   RackModel& smallViewRack() const { return *m_smallViewRack; }
   RackModel& fullViewRack() const { return *m_fullViewRack; }
-  iscore::EntityMap<RackModel> racks;
 
   Selectable selection;
   ModelConsistency consistency{nullptr};
@@ -65,11 +64,10 @@ public:
       QObject* parent);
 
   // Serialization
-  template <typename Deserializer>
-  ConstraintModel(Deserializer&& vis, QObject* parent) : Entity{vis, parent}
-  {
-    vis.writeTo(*this);
-  }
+  ConstraintModel(DataStream::Deserializer& vis, QObject* parent);
+  ConstraintModel(JSONObject::Deserializer& vis, QObject* parent);
+  ConstraintModel(DataStream::Deserializer&& vis, QObject* parent);
+  ConstraintModel(JSONObject::Deserializer&& vis, QObject* parent);
 
   const Id<StateModel>& startState() const;
   void setStartState(const Id<StateModel>& eventId);
@@ -122,6 +120,9 @@ signals:
   void smallViewVisibleChanged(bool);
 
 private:
+  void on_addProcess(const Process::ProcessModel&);
+  void on_removeProcess(const Process::ProcessModel&);
+  void initConnections();
   void on_rackAdded(const RackModel& rack);
 
   // Model for the full view.
@@ -142,6 +143,7 @@ private:
   bool m_smallViewShown{};
   ConstraintExecutionState m_executionState{};
 };
+
 
 ISCORE_PLUGIN_SCENARIO_EXPORT
 bool isInFullView(const Scenario::ConstraintModel& cstr);

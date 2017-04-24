@@ -7,6 +7,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <core/document/Document.hpp>
@@ -35,6 +36,7 @@ ConstraintModel::ConstraintModel(
     , m_smallViewRack{new RackModel{smallViewRackId(), this}}
     , m_fullViewRack{new RackModel{fullViewRackId(), this}}
 {
+  initConnections();
   metadata().setInstanceName(*this);
   metadata().setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
   setHeightPercentage(yPos);
@@ -47,6 +49,13 @@ ConstraintModel::~ConstraintModel()
 {
   static_assert(std::is_same<serialization_tag<ConstraintModel>::type, visitor_entity_tag>::value, "");
 }
+void ConstraintModel::initConnections()
+{
+  processes.added
+      .connect<ConstraintModel, &ConstraintModel::on_addProcess>(this);
+  processes.removed
+      .connect<ConstraintModel, &ConstraintModel::on_removeProcess>(this);
+}
 
 ConstraintModel::ConstraintModel(
     const ConstraintModel& source,
@@ -54,6 +63,7 @@ ConstraintModel::ConstraintModel(
     QObject* parent)
     : Entity{source, id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent}
 {
+  initConnections();
   metadata().setInstanceName(*this);
   // It is not necessary to save modelconsistency because it should be
   // recomputed
@@ -84,12 +94,41 @@ ConstraintModel::ConstraintModel(
   m_fullViewRack = new RackModel{*source.m_fullViewRack, source.m_fullViewRack->id(), this};
 }
 
+ConstraintModel::ConstraintModel(
+    DataStream::Deserializer& vis,
+    QObject* parent) : Entity{vis, parent}
+{
+  initConnections();
+  vis.writeTo(*this);
+}
+
+ConstraintModel::ConstraintModel(
+    JSONObject::Deserializer& vis,
+    QObject* parent) : Entity{vis, parent}
+{
+  initConnections();
+  vis.writeTo(*this);
+}
+
+ConstraintModel::ConstraintModel(
+    DataStream::Deserializer&& vis,
+    QObject* parent) : Entity{vis, parent}
+{
+  initConnections();
+  vis.writeTo(*this);
+}
+
+ConstraintModel::ConstraintModel(
+    JSONObject::Deserializer&& vis,
+    QObject* parent) : Entity{vis, parent}
+{
+  initConnections();
+  vis.writeTo(*this);
+}
+
 
 void ConstraintModel::on_rackAdded(const RackModel& rack)
 {
-  processes.removed
-      .connect<RackModel, &RackModel::on_deleteProcess>(
-          const_cast<RackModel&>(rack));
   con(duration, &ConstraintDurations::defaultDurationChanged, &rack,
       &RackModel::on_durationChanged);
 }
@@ -226,6 +265,33 @@ void ConstraintModel::setSmallViewVisible(bool v)
 bool ConstraintModel::smallViewVisible() const
 {
   return m_smallViewShown;
+}
+
+void ConstraintModel::on_addProcess(const Process::ProcessModel& p)
+{
+  // TODO use  m_cmd.context.settings<Scenario::Settings::Model>().getSlotHeight();
+  auto new_fv_slot = new SlotModel{getStrongId(m_fullViewRack->slotmodels), 100, m_fullViewRack};
+  m_fullViewRack->addSlot(new_fv_slot);
+
+  new_fv_slot->addLayer(p.id());
+}
+
+void ConstraintModel::on_removeProcess(const Process::ProcessModel& p)
+{
+  for(SlotModel& slot : m_smallViewRack->slotmodels)
+  {
+    slot.removeLayer(p.id());
+  }
+  for(SlotModel& slot : m_fullViewRack->slotmodels)
+  {
+    slot.removeLayer(p.id());
+  }
+  auto it = ossia::find_if(m_fullViewRack->slotmodels,
+                           [] (const auto& slot) {
+    return slot.layers().empty();
+  });
+  if(it != m_fullViewRack->slotmodels.end())
+    m_fullViewRack->slotmodels.erase(*it);
 }
 
 bool isInFullView(const ConstraintModel& cstr)

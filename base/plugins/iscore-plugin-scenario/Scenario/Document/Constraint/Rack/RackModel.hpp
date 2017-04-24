@@ -66,7 +66,6 @@ public:
 signals:
   void slotPositionsChanged();
 
-  void on_deleteProcess(const Process::ProcessModel&);
   void on_durationChanged(const TimeVal&);
 
 private:
