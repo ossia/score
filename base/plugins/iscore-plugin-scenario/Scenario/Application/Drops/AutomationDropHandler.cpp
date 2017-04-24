@@ -17,6 +17,8 @@ namespace Scenario
 bool DropProcessInScenario::drop(
     const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData* mime)
 {
+  // TODO
+  /*
   if (mime->formats().contains(iscore::mime::processdata()))
   {
     Mime<Process::ProcessData>::Deserializer des{*mime};
@@ -77,6 +79,8 @@ bool DropProcessInScenario::drop(
   {
     return false;
   }
+  */
+  return false;
 }
 
 bool DropProcessInConstraint::drop(

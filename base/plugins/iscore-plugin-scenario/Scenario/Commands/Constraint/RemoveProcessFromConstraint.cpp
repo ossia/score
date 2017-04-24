@@ -21,6 +21,38 @@
 #include <iscore/model/path/PathSerialization.hpp>
 #include <iscore/model/path/ObjectPath.hpp>
 
+// MOVEME
+template<>
+struct is_custom_serialized<std::vector<bool>> : std::true_type {};
+template <>
+struct TSerializer<DataStream, std::vector<bool>>
+{
+  static void
+  readFrom(DataStream::Serializer& s, const std::vector<bool>& vec)
+  {
+    s.stream() << (int32_t)vec.size();
+    for (bool elt : vec)
+      s.stream() << elt;
+
+    ISCORE_DEBUG_INSERT_DELIMITER2(s);
+  }
+
+  static void writeTo(DataStream::Deserializer& s, std::vector<bool>& vec)
+  {
+    int32_t n;
+    s.stream() >> n;
+
+    vec.clear();
+    vec.resize(n);
+    for (int i = 0; i < n; i++)
+    {
+      s.stream() >> vec[i];
+    }
+
+    ISCORE_DEBUG_CHECK_DELIMITER2(s);
+  }
+};
+
 namespace Scenario
 {
 namespace Command
@@ -89,6 +121,7 @@ void RemoveProcessFromConstraint::redo() const
 
   // The view models will be deleted accordingly.
 }
+
 
 void RemoveProcessFromConstraint::serializeImpl(DataStreamInput& s) const
 {

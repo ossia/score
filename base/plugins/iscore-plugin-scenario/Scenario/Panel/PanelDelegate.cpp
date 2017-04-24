@@ -73,7 +73,7 @@ void PanelDelegate::on_modelChanged(
           &Process::ProcessFocusManager::sig_defocusedViewModel, this,
           [&] { on_focusedViewModelChanged(nullptr); }));
 
-  on_focusedViewModelChanged(bep->focusManager().focusedViewModel());
+  on_focusedViewModelChanged(bep->focusManager().focusedModel());
 }
 
 void PanelDelegate::cleanup()
@@ -84,10 +84,9 @@ void PanelDelegate::cleanup()
 }
 
 void PanelDelegate::on_focusedViewModelChanged(
-    const Process::LayerModel* theLM)
+    const Process::ProcessModel* theLM)
 {
-  if (theLM && m_layerModel
-      && &theLM->processModel() == &m_layerModel->processModel())
+  if (theLM && m_layerModel && theLM == m_layerModel)
   {
     // We don't want to switch if we click on the same layer
     return;
@@ -116,7 +115,7 @@ void PanelDelegate::on_focusedViewModelChanged(
     auto fact = context()
                     .interfaces<Process::LayerFactoryList>()
                     .findDefaultFactory(
-                        m_layerModel->processModel().concreteKey());
+                        m_layerModel->concreteKey());
 
     m_proxy = fact->makePanel(*m_layerModel, this);
     if (m_proxy)
@@ -125,7 +124,7 @@ void PanelDelegate::on_focusedViewModelChanged(
 }
 
 void PanelDelegate::on_focusedViewModelRemoved(
-    const Process::LayerModel* theLM)
+    const Process::ProcessModel* theLM)
 {
   ISCORE_TODO;
 }

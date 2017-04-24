@@ -9,10 +9,6 @@ struct FocusManager;
 }
 namespace Process
 {
-class LayerModel;
-}
-namespace Process
-{
 class LayerPresenter;
 }
 namespace Process
@@ -39,7 +35,6 @@ public:
   }
 
   const ProcessModel* focusedModel() const;
-  const LayerModel* focusedViewModel() const;
   LayerPresenter* focusedPresenter() const;
 
   void focus(QPointer<Process::LayerPresenter>);
@@ -51,8 +46,8 @@ signals:
   void sig_focusedPresenter(LayerPresenter*);
   void sig_defocusedPresenter(LayerPresenter*);
 
-  void sig_defocusedViewModel(const LayerModel*);
-  void sig_focusedViewModel(const LayerModel*);
+  void sig_defocusedViewModel(const ProcessModel*);
+  void sig_focusedViewModel(const ProcessModel*);
 
   void sig_focusedRoot();
 
@@ -63,7 +58,6 @@ private:
   iscore::FocusManager& m_mgr;
 
   QPointer<const ProcessModel> m_currentModel{};
-  QPointer<const LayerModel> m_currentViewModel{};
   QPointer<LayerPresenter> m_currentPresenter{};
 
   QMetaObject::Connection m_deathConnection;

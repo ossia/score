@@ -14,11 +14,7 @@
 
 class DataStream;
 class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
-class QObject;
+
 namespace Scenario
 {
 class TimeNodeModel;

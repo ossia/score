@@ -12,14 +12,6 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
-namespace Process
-{
-class LayerModel;
-}
-class QObject;
-struct VisitorVariant;
-
-
 template <>
 void DataStreamReader::read(
     const Automation::ProcessModel& autom)

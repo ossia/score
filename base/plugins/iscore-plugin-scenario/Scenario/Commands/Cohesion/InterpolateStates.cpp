@@ -165,11 +165,7 @@ void InterpolateStates(
         total_procs, constraint.processes);
 
     // Note : a *lot* of thins happen in makeAddProcessMacro.
-    auto macro_tuple = Command::makeAddProcessMacro(constraint, total_procs);
-
-    // TODO Refactor with structured bindings when C++17
-    auto macro = std::get<0>(macro_tuple);
-    auto& bigLayerVec = std::get<1>(macro_tuple);
+    auto macro = Command::makeAddProcessMacro(constraint, total_procs);
 
     int cur_proc = 0;
     // Generate automations between numeric values
@@ -190,7 +186,7 @@ void InterpolateStates(
       }
 
       macro->addCommand(new CreateAutomationFromStates{
-          constraint, bigLayerVec[cur_proc], process_ids[cur_proc],
+          constraint, macro->slotsToUse, process_ids[cur_proc],
           elt.first.address, d});
 
       cur_proc++;
@@ -200,7 +196,7 @@ void InterpolateStates(
     for (const auto& elt : pairs.tupleMessages)
     {
       macro->addCommand(new CreateInterpolationFromStates{
-          constraint, bigLayerVec[cur_proc], process_ids[cur_proc],
+          constraint, macro->slotsToUse, process_ids[cur_proc],
           elt.first.address, elt.first.value, elt.second.value});
       cur_proc++;
     }

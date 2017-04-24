@@ -33,10 +33,7 @@
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 
-namespace Process
-{
-class LayerModel;
-}
+
 namespace Process
 {
 class ProcessModel;
@@ -50,33 +47,32 @@ struct VerticalExtent;
 namespace Loop
 {
 LayerPresenter::LayerPresenter(
-    const Layer& layer,
+    const ProcessModel& layer,
     LayerView* view,
     const Process::ProcessPresenterContext& ctx,
     QObject* parent)
     : Process::LayerPresenter{ctx, parent}
-    , BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>{layer
-                                                                                           .model()}
+    , BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>{layer}
     , m_layer{layer}
     , m_view{view}
     , m_viewUpdater{*this}
-    , m_palette{m_layer.model(), *this, m_context, *m_view}
+    , m_palette{m_layer, *this, m_context, *m_view}
 {
   using namespace Scenario;
   m_constraintPresenter
       = new TemporalConstraintPresenter{layer.constraint(), ctx, view, this};
   m_startStatePresenter = new StatePresenter{
-      layer.model().BaseScenarioContainer::startState(), m_view, this};
+      layer.BaseScenarioContainer::startState(), m_view, this};
   m_endStatePresenter = new StatePresenter{
-      layer.model().BaseScenarioContainer::endState(), m_view, this};
+      layer.BaseScenarioContainer::endState(), m_view, this};
   m_startEventPresenter
-      = new EventPresenter{layer.model().startEvent(), m_view, this};
+      = new EventPresenter{layer.startEvent(), m_view, this};
   m_endEventPresenter
-      = new EventPresenter{layer.model().endEvent(), m_view, this};
+      = new EventPresenter{layer.endEvent(), m_view, this};
   m_startNodePresenter
-      = new TimeNodePresenter{layer.model().startTimeNode(), m_view, this};
+      = new TimeNodePresenter{layer.startTimeNode(), m_view, this};
   m_endNodePresenter
-      = new TimeNodePresenter{layer.model().endTimeNode(), m_view, this};
+      = new TimeNodePresenter{layer.endTimeNode(), m_view, this};
 
   auto elements = std::make_tuple(
       m_constraintPresenter,
@@ -179,14 +175,14 @@ void LayerPresenter::parentGeometryChanged()
   m_view->update();
 }
 
-const Process::LayerModel& LayerPresenter::layerModel() const
+const Process::ProcessModel& LayerPresenter::layerModel() const
 {
   return m_layer;
 }
 
 const Id<Process::ProcessModel>& LayerPresenter::modelId() const
 {
-  return m_layer.model().id();
+  return m_layer.id();
 }
 
 void LayerPresenter::updateAllElements()

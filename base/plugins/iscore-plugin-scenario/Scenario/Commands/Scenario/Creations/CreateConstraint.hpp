@@ -15,7 +15,6 @@ namespace Scenario
 {
 class StateModel;
 class ConstraintModel;
-class ConstraintViewModel;
 class ProcessModel;
 
 namespace Command

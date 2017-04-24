@@ -157,26 +157,17 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   // Generate brand new ids for the processes
   auto process_ids
       = getStrongIdRange<Process::ProcessModel>(m_addedProcessCount);
-  auto layers_ids = getStrongIdRange<Process::LayerModel>(m_addedProcessCount);
 
   int cur_proc = 0;
   // Here we know that there is nothing yet, so we can just assign
   // ids 1, 2, 3, 4 to each process and each process view in each slot
   for (const auto& elt : matchingNumericMessages)
   {
-    std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>
-        layer_vect;
-    for (const auto& slots_elt : m_interpolations.slotsToUse)
-    {
-      layer_vect.push_back(
-          std::make_pair(slots_elt.first, layers_ids[cur_proc]));
-    }
-
     auto start = State::convert::value<double>(elt.first.value);
     auto end = State::convert::value<double>(elt.second.value);
     Curve::CurveDomain d{ elt.second.domain.get(), start, end};
     auto cmd = new CreateAutomationFromStates{constraint,
-                                              layer_vect,
+                                              m_interpolations.slotsToUse,
                                               process_ids[cur_proc],
                                               elt.first.address, d};
     m_interpolations.addCommand(cmd);
@@ -185,16 +176,9 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
   for (const auto& elt : matchingTupleMessages)
   {
-    std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>
-        layer_vect;
-    for (const auto& slots_elt : m_interpolations.slotsToUse)
-    {
-      layer_vect.push_back(
-          std::make_pair(slots_elt.first, layers_ids[cur_proc]));
-    }
-
     m_interpolations.addCommand(new CreateInterpolationFromStates{
-        constraint, layer_vect, process_ids[cur_proc], elt.first.address,
+        constraint, m_interpolations.slotsToUse,
+        process_ids[cur_proc], elt.first.address,
         elt.first.value, elt.second.value});
     cur_proc++;
   }

@@ -13,10 +13,7 @@
 #include <QVariantMap>
 class DataStream;
 class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
+
 
 class QObject;
 

@@ -11,10 +11,6 @@ struct DataStreamInput;
 struct DataStreamOutput;
 namespace Process
 {
-class LayerModel;
-}
-namespace Process
-{
 class ProcessModel;
 }
 

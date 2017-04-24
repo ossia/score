@@ -5,7 +5,6 @@
 namespace Scenario
 {
 class ConstraintModel;
-class ConstraintViewModel;
 class EventModel;
 class StateModel;
 class CommentBlockModel;

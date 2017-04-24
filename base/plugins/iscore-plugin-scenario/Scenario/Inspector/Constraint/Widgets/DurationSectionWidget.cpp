@@ -137,8 +137,7 @@ public:
     // it may cause unexpected changes in parent scenarios.
     auto mod_del = dynamic_cast<Scenario::ScenarioDocumentModel*>(
         &fac.document.model().modelDelegate());
-    if (m_model.fullView()->isActive()
-        && &m_model != &mod_del->baseConstraint())
+    if (isInFullView(m_model) && &m_model != &mod_del->baseConstraint())
     {
       m_valueSpin->setEnabled(false);
     }

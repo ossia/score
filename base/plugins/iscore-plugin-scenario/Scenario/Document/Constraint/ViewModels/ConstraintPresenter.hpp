@@ -19,7 +19,6 @@ namespace Scenario
 class ConstraintHeader;
 class ConstraintModel;
 class ConstraintView;
-class ConstraintViewModel;
 class RackModel;
 class RackPresenter;
 
@@ -30,7 +29,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public QObject,
 
 public:
   ConstraintPresenter(
-      const ConstraintViewModel& model,
+      const ConstraintModel& model,
       ConstraintView* view,
       ConstraintHeader* header,
       const Process::ProcessPresenterContext& ctx,
@@ -41,10 +40,6 @@ public:
   bool isSelected() const;
 
   const ConstraintModel& model() const;
-  const ConstraintViewModel& abstractConstraintViewModel() const
-  {
-    return m_viewModel;
-  }
 
   ConstraintView* view() const;
 
@@ -73,13 +68,12 @@ signals:
 
 protected:
   // Process presenters are in the slot presenters.
-  const ConstraintViewModel& m_viewModel;
+  const ConstraintModel& m_model;
   ConstraintView* m_view{};
   ConstraintHeader* m_header{};
 
   const Process::ProcessPresenterContext& m_context;
 
-private:
   void updateChildren();
   void updateBraces();
 

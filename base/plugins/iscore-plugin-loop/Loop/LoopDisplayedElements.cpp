@@ -40,8 +40,7 @@ DisplayedElementsProvider::make_presenters(
   if (auto bs = dynamic_cast<Loop::ProcessModel*>(m.parent()))
   {
     return Scenario::DisplayedElementsPresenterContainer{
-        new Scenario::FullViewConstraintPresenter{*m.fullView(), ctx,
-                                                  view_parent, parent},
+        new Scenario::FullViewConstraintPresenter{m, ctx, view_parent, parent},
         new Scenario::StatePresenter{bs->startState(), view_parent, parent},
         new Scenario::StatePresenter{bs->endState(), view_parent, parent},
         new Scenario::EventPresenter{bs->startEvent(), view_parent, parent},

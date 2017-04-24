@@ -84,8 +84,6 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   using namespace iscore;
   using namespace Process;
   ctx.actions.onFocusChange(
-      std::make_shared<EnableWhenFocusedObjectIs<TemporalScenarioLayer>>());
-  ctx.actions.onFocusChange(
       std::make_shared<EnableWhenFocusedProcessIs<ProcessModel>>());
   ctx.actions.onFocusChange(
       std::make_shared<EnableWhenFocusedProcessIs<ScenarioInterface>>());
@@ -221,19 +219,19 @@ void ScenarioApplicationPlugin::on_documentChanged(
       // We focus by default the first process of the constraint in full view
       // we're in
       // TODO this snippet is useful, put it somewhere in some Toolkit file.
-      auto& pres
+      ScenarioDocumentPresenter& pres
           = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
       auto& cst = pres.displayedConstraint();
-      auto cst_pres = pres.presenters().constraintPresenter();
+      FullViewConstraintPresenter* cst_pres = pres.presenters().constraintPresenter();
 
-      if (!cst.processes.empty() && cst_pres && cst_pres->rack())
+      if (!cst.processes.empty() && cst_pres)
       {
-        auto rack = cst_pres->rack();
-        const auto& slts = rack->getSlots();
+        auto& rack = cst_pres->rack();
+        const auto& slts = rack.getSlots();
         if (!slts.empty())
         {
-          const auto& top_slot = rack->model().slotsPositions().front();
-          const SlotPresenter& first = slts.at(top_slot);
+          const auto& top_slot = *slts.begin();
+          const SlotPresenter& first = slts.at(top_slot.id());
           const auto& slot_processes = first.processes();
           if (!slot_processes.empty())
           {

@@ -54,6 +54,7 @@ private:
   QVector<QPair<Id<StateModel>, QByteArray>> m_removedStates;
   QVector<QPair<Id<EventModel>, QByteArray>> m_removedEvents;
   QVector<QPair<Id<TimeNodeModel>, QByteArray>> m_removedTimeNodes;
+  QVector<QPair<Id<ConstraintModel>, QByteArray>> m_removedConstraints;
 };
 }
 }

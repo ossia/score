@@ -49,9 +49,9 @@ public:
   AddProcessToConstraintBase() = default;
   AddProcessToConstraintBase(
       const ConstraintModel& constraint,
-      UuidKey<Process::ProcessModel>
-          process)
-      : m_addProcessCommand{constraint, getStrongId(constraint.processes),
+      UuidKey<Process::ProcessModel> process)
+      : m_addProcessCommand{constraint,
+                            getStrongId(constraint.processes),
                             process}
   {
   }
@@ -183,17 +183,11 @@ public:
       const Process::LayerFactoryList& fact, const ConstraintModel& constraint)
   {
     m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
-
-    m_layerConstructionData = fact.findDefaultFactory(m_cmd.processKey())
-                                  ->makeStaticLayerConstructionData();
-    m_createdLayerId
-        = Id<Process::LayerModel>(iscore::id_generator::getFirstId());
   }
 
   void undo(ConstraintModel& constraint) const
   {
-    ISCORE_ASSERT(!constraint.racks.empty());
-    auto& firstRack = *constraint.racks.begin();
+    auto& firstRack = constraint.smallViewRack();
 
     // Removing the slot will remove the layer
     firstRack.slotmodels.remove(m_createdSlotId);
@@ -201,8 +195,7 @@ public:
 
   void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
   {
-    ISCORE_ASSERT(!constraint.racks.empty());
-    auto& firstRack = *constraint.racks.begin();
+    auto& firstRack = constraint.smallViewRack();
 
     // Slot
     auto h
@@ -211,27 +204,21 @@ public:
     firstRack.addSlot(slot);
 
     // Layer
-    auto& procs
-        = m_cmd.context.interfaces<Process::LayerFactoryList>();
-    auto fact = procs.findDefaultFactory(proc.concreteKey());
-    slot->layers.add(
-        fact->make(proc, m_createdLayerId, m_layerConstructionData, slot));
+    slot->addLayer(proc.id());
   }
 
   void serialize(DataStreamInput& s) const
   {
-    s << m_createdSlotId << m_createdLayerId << m_layerConstructionData;
+    s << m_createdSlotId;
   }
 
   void deserialize(DataStreamOutput& s)
   {
-    s >> m_createdSlotId >> m_createdLayerId >> m_layerConstructionData;
+    s >> m_createdSlotId;
   }
 
 private:
   Id<SlotModel> m_createdSlotId;
-  Id<Process::LayerModel> m_createdLayerId;
-  QByteArray m_layerConstructionData;
 };
 
 template <>
@@ -250,35 +237,25 @@ public:
     return var;
   }
 
-  AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>(proc_t& cmd)
+  AddProcessDelegate<HasSlots, NotBaseConstraint>(proc_t& cmd)
       : m_cmd{cmd}
   {
   }
 
   void init(
-      const Process::LayerFactoryList& fact, const ConstraintModel& constraint)
+      const Process::LayerFactoryList& fact,
+      const ConstraintModel& constraint)
   {
-    // TODO these init functions should instead directly take a layerfactory.
-    ISCORE_ASSERT(!constraint.racks.empty());
-    const auto& firstRack = *constraint.racks.begin();
-
-    ISCORE_ASSERT(!firstRack.slotmodels.empty());
-    const auto& firstSlot = *firstRack.slotmodels.begin();
-
-    m_layerConstructionData = fact.findDefaultFactory(m_cmd.processKey())
-                                  ->makeStaticLayerConstructionData();
-    m_createdLayerId = getStrongId(firstSlot.layers);
   }
 
   void undo(ConstraintModel& constraint) const
   {
-    ISCORE_ASSERT(!constraint.racks.empty());
-    const auto& firstRack = *constraint.racks.begin();
+    const auto& firstRack = constraint.smallViewRack();
 
     ISCORE_ASSERT(!firstRack.slotmodels.empty());
     auto& firstSlot = *firstRack.slotmodels.begin();
 
-    firstSlot.layers.remove(m_createdLayerId);
+    firstSlot.removeLayer(m_cmd.processId());
   }
 
   void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
@@ -289,26 +266,17 @@ public:
     ISCORE_ASSERT(!firstRack.slotmodels.empty());
     auto& firstSlot = *firstRack.slotmodels.begin();
 
-    auto& procs
-        = m_cmd.context.interfaces<Process::LayerFactoryList>();
-    auto fact = procs.findDefaultFactory(proc.concreteKey());
-    firstSlot.layers.add(fact->make(
-        proc, m_createdLayerId, m_layerConstructionData, &firstSlot));
+    firstSlot.addLayer(m_cmd.processId());
   }
 
   void serialize(DataStreamInput& s) const
   {
-    s << m_createdLayerId << m_layerConstructionData;
   }
 
   void deserialize(DataStreamOutput& s)
   {
-    s >> m_createdLayerId >> m_layerConstructionData;
   }
 
-private:
-  Id<Process::LayerModel> m_createdLayerId;
-  QByteArray m_layerConstructionData;
 };
 
 template <>
@@ -412,7 +380,6 @@ using AddProcessDelegate_HasRacks_BaseConstraint
 }
 }
 
-ISCORE_COMMAND_DECL_T(AddProcessToConstraint<AddProcessDelegate<HasNoRacks>>)
 ISCORE_COMMAND_DECL_T(
     AddProcessToConstraint<AddProcessDelegate_HasNoSlots_HasRacks_NotBaseConstraint>)
 ISCORE_COMMAND_DECL_T(

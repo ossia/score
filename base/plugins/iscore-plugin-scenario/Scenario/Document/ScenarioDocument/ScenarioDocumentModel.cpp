@@ -90,7 +90,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
         m_baseScenario->constraint().metadata().setName(info.baseName());
       });
 
-  initializeNewDocument(m_baseScenario->constraint().fullView());
+  initializeNewDocument(m_baseScenario->constraint());
   init();
 
   // Select the first state
@@ -106,28 +106,21 @@ void ScenarioDocumentModel::init()
 }
 
 void ScenarioDocumentModel::initializeNewDocument(
-    const FullViewConstraintViewModel* viewmodel)
+    const ConstraintModel& constraint_model)
 {
   using namespace Scenario::Command;
-  const auto& constraint_model = viewmodel->model();
 
   AddOnlyProcessToConstraint cmd1{
       iscore::IDocument::path(m_baseScenario->constraint()),
       Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
   cmd1.redo();
 
-  AddRackToConstraint cmd2{
-      iscore::IDocument::path(m_baseScenario->constraint())};
-  cmd2.redo();
   auto& rack = constraint_model.smallViewRack();
 
-  ShowRack cmd3{
-          static_cast<const ConstraintViewModel&>(*viewmodel),
-      rack.id()};
+  ShowRack cmd3{constraint_model};
   cmd3.redo();
 
-  AddSlotToRack cmd4{*rack,
-  };
+  AddSlotToRack cmd4{rack};
   cmd4.redo();
 
   ResizeSlotVertically cmd5{

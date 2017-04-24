@@ -65,7 +65,7 @@ ScenarioDisplayedElementsProvider::make_presenters(
     const auto& startNode = sm->timeNodes.at(startEvent.timeNode());
     const auto& endNode = sm->timeNodes.at(endEvent.timeNode());
     return DisplayedElementsPresenterContainer{
-        new FullViewConstraintPresenter{*m.fullView(), ctx, view_parent,
+        new FullViewConstraintPresenter{m, ctx, view_parent,
                                         parent},
         new StatePresenter{startState, view_parent, parent},
         new StatePresenter{endState, view_parent, parent},

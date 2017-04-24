@@ -28,7 +28,6 @@ class QObject;
 namespace Scenario
 {
 class ConstraintModel;
-class ConstraintViewModel;
 
 UuidKey<Process::ProcessModel>
 ScenarioFactory::concreteKey() const noexcept
@@ -60,7 +59,7 @@ ScenarioTemporalLayerFactory::ScenarioTemporalLayerFactory(
 Process::LayerView* ScenarioTemporalLayerFactory::makeLayerView(
     const Process::ProcessModel& viewmodel, QGraphicsItem* parent)
 {
-  if (dynamic_cast<const TemporalScenarioLayer*>(&viewmodel))
+  if (dynamic_cast<const Scenario::ProcessModel*>(&viewmodel))
     return new TemporalScenarioView{parent};
 
   return nullptr;
@@ -75,8 +74,7 @@ bool ScenarioTemporalLayerFactory::matches(
 UuidKey<Process::ProcessModel>
 ScenarioTemporalLayerFactory::concreteKey() const noexcept
 {
-  return Metadata<ConcreteKey_k, Scenario::TemporalScenarioLayer>::
-      get();
+  return Metadata<ConcreteKey_k, Scenario::ProcessModel>::get();
 }
 
 Process::LayerPresenter* ScenarioTemporalLayerFactory::makeLayerPresenter(

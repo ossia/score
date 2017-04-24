@@ -144,6 +144,8 @@ addr)});
 }
 */
 
+// TODO
+/*
 Box CreateBox(RecordContext& context)
 {
   // Get the clicked point in scenario and create a state + constraint + state
@@ -196,4 +198,5 @@ Box CreateBox(RecordContext& context)
 
   return {cstr, rack, slot, *cmd_move, cmd_end->createdEvent()};
 }
+  */
 }

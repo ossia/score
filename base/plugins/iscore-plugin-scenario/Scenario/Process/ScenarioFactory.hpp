@@ -7,7 +7,6 @@
 
 namespace Process
 {
-class LayerModel;
 class LayerPresenter;
 class LayerView;
 class ProcessModel;

@@ -12,10 +12,7 @@
 #include <iscore/model/Identifier.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
-namespace Process
-{
-class LayerModel;
-}
+
 namespace Process
 {
 class ProcessModel;
@@ -28,7 +25,6 @@ class TemporalConstraintPresenter;
 }
 namespace Loop
 {
-class Layer;
 class LayerView;
 class ProcessModel;
 } // namespace Loop
@@ -59,7 +55,7 @@ class LayerPresenter final
 
 public:
   LayerPresenter(
-      const Loop::Layer&,
+      const Loop::ProcessModel&,
       LayerView* view,
       const Process::ProcessPresenterContext& ctx,
       QObject* parent);
@@ -69,6 +65,7 @@ public:
   {
     return *m_view;
   }
+  const Loop::ProcessModel& model() const { return m_layer; }
 
   using BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>::
       event;
@@ -83,7 +80,7 @@ public:
   void on_zoomRatioChanged(ZoomRatio) override;
   void parentGeometryChanged() override;
 
-  const Process::LayerModel& layerModel() const override;
+  const Process::ProcessModel& layerModel() const override;
   const Id<Process::ProcessModel>& modelId() const override;
 
   ZoomRatio zoomRatio() const
@@ -107,7 +104,7 @@ private:
   void updateAllElements();
   void on_constraintExecutionTimer();
 
-  const Loop::Layer& m_layer;
+  const Loop::ProcessModel& m_layer;
   graphics_item_ptr<LayerView> m_view;
 
   ZoomRatio m_zoomRatio{};

@@ -24,7 +24,6 @@ SlotModel::SlotModel(
     : Entity{id, Metadata<ObjectKey_k, SlotModel>::get(), parent}
 {
   m_height = slotHeight;
-  initConnections();
   metadata().setInstanceName(*this);
 }
 
@@ -37,8 +36,6 @@ SlotModel::SlotModel(
     , m_processes{source.m_processes}
     , m_height{source.getHeight()}
 {
-  initConnections();
-
   metadata().setInstanceName(*this);
 }
 
@@ -47,32 +44,27 @@ RackModel& SlotModel::rack() const
   return *static_cast<RackModel*>(parent());
 }
 
-void SlotModel::on_addLayer(const Process::ProcessModel& proc)
+void SlotModel::addLayer(Id<Process::ProcessModel> p)
 {
-  putToFront(viewmodel.id());
+  auto it = ossia::find(m_processes, p);
+  if(it == m_processes.end())
+    m_processes.push_back(p);
+  putToFront(p);
+  layerAdded(parentConstraint().processes.at(p));
 }
 
-void SlotModel::on_removeLayer(const Process::ProcessModel& proc)
+void SlotModel::removeLayer(Id<Process::ProcessModel> p)
 {
-  if (!layers.empty())
+  boost::range::remove_erase(m_processes, p);
+  if (!m_processes.empty())
   {
-    putToFront((*layers.begin()).id());
+    putToFront(*layers().begin());
   }
   else
   {
     m_frontLayerModelId = iscore::none;
   }
-}
-
-void SlotModel::addLayer(Id<Process::ProcessModel> p)
-{
-
-  // TODO
-}
-
-void SlotModel::removeLayer(Id<Process::ProcessModel> p)
-{
-  boost::range::remove_erase(m_processes, proc.id());
+  layerRemoved(parentConstraint().processes.at(p));
   // TODO send a signal?
 }
 void SlotModel::putToFront(const OptionalId<Process::ProcessModel>& id)
@@ -82,11 +74,11 @@ void SlotModel::putToFront(const OptionalId<Process::ProcessModel>& id)
 
   if (id != m_frontLayerModelId)
   {
-    auto lay = layers.find(*id);
-    if (lay != layers.end())
+    auto lay = ossia::find(m_processes, *id);
+    if (lay != m_processes.end())
     {
       m_frontLayerModelId = id;
-      emit layerModelPutToFront(*lay);
+      emit layerModelPutToFront(*frontLayerModel());
     }
   }
 }
@@ -95,12 +87,13 @@ const Process::ProcessModel* SlotModel::frontLayerModel() const
 {
   if (!m_frontLayerModelId)
     return nullptr;
-  return &layers.at(*m_frontLayerModelId);
+
+  return & parentConstraint().processes.at(*m_frontLayerModelId);
 }
 
 void SlotModel::on_deleteSharedProcessModel(const Process::ProcessModel& proc)
 {
-  removeLayer(proc);
+  removeLayer(proc.id());
 }
 
 void SlotModel::setHeight(qreal arg)
@@ -119,13 +112,6 @@ void SlotModel::setFocus(bool arg)
 
   m_focus = arg;
   emit focusChanged(arg);
-}
-
-
-void SlotModel::initConnections()
-{
-  layers.added.connect<SlotModel, &SlotModel::on_addLayer>(this);
-  layers.removed.connect<SlotModel, &SlotModel::on_removeLayer>(this);
 }
 
 ConstraintModel& SlotModel::parentConstraint() const

@@ -11,11 +11,6 @@ struct DataStreamInput;
 struct DataStreamOutput;
 namespace Process
 {
-class LayerModel;
-class LayerFactory;
-}
-namespace Process
-{
 class ProcessModel;
 }
 
@@ -38,7 +33,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final
       "Add a layer to a slot")
 public:
     AddLayerModelToSlot(
-      Path<SlotModel>&& slot, Id<Process::ProcessModel> process);
+      const Path<SlotModel>& slot, Id<Process::ProcessModel> process);
   AddLayerModelToSlot(
       const SlotModel& slot, const Process::ProcessModel& process);
 

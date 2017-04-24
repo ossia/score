@@ -21,13 +21,6 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/model/Identifier.hpp>
 
-namespace Process
-{
-class LayerModel;
-}
-
-class QObject;
-
 namespace Loop
 {
 

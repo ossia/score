@@ -22,7 +22,6 @@ namespace Scenario
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
-class ConstraintViewModel;
 class RackModel;
 class ProcessModel;
 namespace Command

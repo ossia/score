@@ -39,7 +39,7 @@ void RackModel::addSlot(SlotModel* slot, int position)
 {
   // Connection
   connect(
-      this, &RackModel::on_deleteSharedProcessModel, slot,
+      this, &RackModel::on_deleteProcess, slot,
       &SlotModel::on_deleteSharedProcessModel);
 
   auto& map = slotmodels.unsafe_map();
@@ -48,8 +48,8 @@ void RackModel::addSlot(SlotModel* slot, int position)
   std::advance(it, position);
   ordered.insert(it, slot);
 
-  map.mutable_added(*slot);
-  map.added(*slot);
+  slotmodels.mutable_added(*slot);
+  slotmodels.added(*slot);
 
   emit slotPositionsChanged();
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include <Midi/Commands/MoveNotes.hpp>
-#include <Midi/MidiLayer.hpp>
+#include <Midi/MidiProcess.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <nano_observer.hpp>
@@ -13,7 +13,7 @@ class Presenter final : public Process::LayerPresenter, public Nano::Observer
 {
 public:
   explicit Presenter(
-      const Layer& model,
+      const Midi::ProcessModel& model,
       View* view,
       const Process::ProcessPresenterContext& ctx,
       QObject* parent);
@@ -28,7 +28,7 @@ public:
 
   void parentGeometryChanged() override;
 
-  const Process::LayerModel& layerModel() const override;
+  const Midi::ProcessModel& layerModel() const override;
   const Id<Process::ProcessModel>& modelId() const override;
 
 private:
@@ -39,7 +39,7 @@ private:
 
   std::vector<Id<Note>> selectedNotes() const;
 
-  const Layer& m_layer;
+  const Midi::ProcessModel& m_layer;
   View* m_view{};
   std::vector<NoteView*> m_notes;
 

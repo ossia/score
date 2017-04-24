@@ -18,7 +18,6 @@ namespace Scenario
 {
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
-class ConstraintViewModel;
 class AddProcessDialog;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintActions : public QObject
 {

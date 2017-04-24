@@ -142,6 +142,8 @@ void ConstraintActions::makeGUIElements(iscore::GUIElements& ref)
 void ConstraintActions::setupContextMenu(
     Process::LayerContextMenuManager& ctxm)
 {
+  // TODO
+  /*
   using namespace Process;
   Process::LayerContextMenu cm
       = MetaContextMenu<ContextMenus::ConstraintContextMenu>::make();
@@ -205,6 +207,7 @@ void ConstraintActions::setupContextMenu(
   });
 
   ctxm.insert(std::move(cm));
+  */
 }
 
 void ConstraintActions::addProcessInConstraint(

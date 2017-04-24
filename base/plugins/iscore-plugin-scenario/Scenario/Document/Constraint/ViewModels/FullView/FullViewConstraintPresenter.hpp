@@ -28,11 +28,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT FullViewConstraintPresenter final
   Q_OBJECT
 
 public:
-  using viewmodel_type = FullViewConstraintViewModel;
   using view_type = FullViewConstraintView;
 
   FullViewConstraintPresenter(
-      const FullViewConstraintViewModel& viewModel,
+      const ConstraintModel& viewModel,
       const Process::ProcessPresenterContext& ctx,
       QGraphicsItem* parentobject,
       QObject* parent);
@@ -40,16 +39,16 @@ public:
   virtual ~FullViewConstraintPresenter();
 
   RackPresenter& rack() const;
+  void updateHeight();
+  void on_zoomRatioChanged(ZoomRatio val) override;
 
 signals:
   void constraintSelected(ConstraintModel&);
 
 private:
   void updateScaling() override;
-  void on_zoomRatioChanged(ZoomRatio val) override;
   void on_defaultDurationChanged(const TimeVal&) override;
 
-  void updateHeight();
 
   void createRackPresenter();
   RackPresenter* m_rack{};

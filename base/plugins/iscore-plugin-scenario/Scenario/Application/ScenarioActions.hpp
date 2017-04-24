@@ -11,7 +11,6 @@ namespace Scenario
 class ScenarioInterface;
 class ScenarioDocumentModel;
 class ProcessModel;
-class TemporalScenarioLayer;
 ISCORE_PLUGIN_SCENARIO_EXPORT const Scenario::ScenarioInterface*
 focusedScenarioInterface(const iscore::DocumentContext& ctx);
 ISCORE_PLUGIN_SCENARIO_EXPORT const Scenario::ProcessModel*

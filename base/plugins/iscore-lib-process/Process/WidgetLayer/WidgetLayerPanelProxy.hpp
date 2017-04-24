@@ -19,7 +19,7 @@ public:
   explicit LayerPanelProxy(const Process::ProcessModel& vm, QObject* parent)
       : Process::LayerPanelProxy{parent}, m_layer{vm}
   {
-    m_widget = new Widget_T{safe_cast<Process_T&>(vm),
+    m_widget = new Widget_T{safe_cast<const Process_T&>(vm),
                             iscore::IDocument::documentContext(vm), nullptr};
   }
 

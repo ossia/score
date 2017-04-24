@@ -162,8 +162,7 @@ PlayContextMenu::PlayContextMenu(
 
     auto& pres
         = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
-    auto proc = safe_cast<Scenario::ProcessModel*>(
-        &pres.layerModel().processModel());
+    auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.layerModel());
 
     exec_signals.startRecording(
         *proc,
@@ -184,8 +183,7 @@ PlayContextMenu::PlayContextMenu(
 
     auto& pres
         = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
-    auto proc = safe_cast<Scenario::ProcessModel*>(
-        &pres.layerModel().processModel());
+    auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.processModel());
 
     exec_signals.startRecordingMessages(
         *proc,
@@ -208,6 +206,8 @@ PlayContextMenu::PlayContextMenu(
 
 void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 {
+  // TODO
+  /*
   using namespace Process;
   Process::LayerContextMenu& scenario_cm
       = ctxm.menu<ContextMenus::ScenarioModelContextMenu>();
@@ -270,6 +270,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
     m_recordMessages->setData(data);
 
   });
+  */
 }
 }
 }

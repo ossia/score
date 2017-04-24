@@ -21,8 +21,9 @@ namespace Command
 {
 
 AddLayerModelToSlot::AddLayerModelToSlot(
-  Path<SlotModel>&& slot, Id<Process::ProcessModel> process)
-  : m_slot{std::move(slot)}
+    const Path<SlotModel>& slot,
+    Id<Process::ProcessModel> process)
+  : m_slot{slot}
   , m_processId{std::move(process)}
 {
 
