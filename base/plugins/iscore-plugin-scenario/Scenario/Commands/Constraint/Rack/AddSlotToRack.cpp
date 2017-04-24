@@ -1,4 +1,4 @@
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
@@ -19,21 +19,15 @@ namespace Scenario
 namespace Command
 {
 
-AddSlotToRack::AddSlotToRack(Path<RackModel>&& rackPath) : m_path{rackPath}
+AddSlotToRack::AddSlotToRack(const Path<ConstraintModel>&  rackPath)
+  : m_path{rackPath}
 {
-  auto rack = m_path.try_find(); // Because we use this in a macro, the rack
-                                 // may not be there yet
-
-  if (rack)
-    m_createdSlotId = getStrongId(rack->slotmodels);
-  else
-    m_createdSlotId = Id<SlotModel>{iscore::id_generator::getFirstId()};
 }
 
 void AddSlotToRack::undo() const
 {
   auto& rack = m_path.find();
-  rack.slotmodels.remove(m_createdSlotId);
+  rack.removeSlot(rack.smallView().size() - 1);
 }
 
 void AddSlotToRack::redo() const
@@ -43,17 +37,17 @@ void AddSlotToRack::redo() const
                .settings<Scenario::Settings::Model>()
                .getSlotHeight();
 
-  rack.addSlot(new SlotModel{m_createdSlotId, h, &rack});
+  rack.addSlot(Slot{{}, {}, h});
 }
 
 void AddSlotToRack::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_createdSlotId;
+  s << m_path;
 }
 
 void AddSlotToRack::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_createdSlotId;
+  s >> m_path;
 }
 }
 }

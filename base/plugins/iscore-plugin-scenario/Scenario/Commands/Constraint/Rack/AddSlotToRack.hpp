@@ -11,8 +11,7 @@ struct DataStreamOutput;
 
 namespace Scenario
 {
-class RackModel;
-class SlotModel;
+class ConstraintModel;
 
 namespace Command
 {
@@ -27,24 +26,18 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddSlotToRack final
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), AddSlotToRack, "Create a slot")
 public:
-  AddSlotToRack(Path<RackModel>&& rackPath);
+  AddSlotToRack(const Path<ConstraintModel>& rackPath);
 
   void undo() const override;
   void redo() const override;
-
-  const auto& createdSlot() const
-  {
-    return m_createdSlotId;
-  }
 
 protected:
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<RackModel> m_path;
+  Path<ConstraintModel> m_path;
 
-  Id<SlotModel> m_createdSlotId{};
 };
 }
 }

@@ -147,6 +147,8 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
 
 void DisplayedElementsPresenter::showConstraint()
 {
+  // TODO
+  /*
   // We set the focus on the main scenario.
   auto& rack = m_constraintPresenter->rack();
   if (!rack.getSlots().empty())
@@ -158,6 +160,7 @@ void DisplayedElementsPresenter::showConstraint()
       emit requestFocusedPresenterChange(slot_process.presenter);
     }
   }
+  */
 
   m_constraintPresenter->updateHeight();
 }

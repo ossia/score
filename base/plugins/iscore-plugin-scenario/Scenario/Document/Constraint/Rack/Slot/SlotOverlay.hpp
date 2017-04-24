@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include <QGraphicsItem>
 #include <QRect>
@@ -49,3 +50,4 @@ private:
   const SlotView& m_slotView;
 };
 }
+*/

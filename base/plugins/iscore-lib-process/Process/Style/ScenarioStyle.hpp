@@ -98,6 +98,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 
   QPen TimeRulerLargePen, TimeRulerSmallPen;
 
+  QPen SlotHandlePen;
 private:
   ScenarioStyle() noexcept;
   void update();

@@ -35,7 +35,6 @@ namespace Scenario
 {
 class MetadataWidget;
 class ConstraintModel;
-class RackModel;
 class ProcessModel;
 class ScenarioInterface;
 class ProcessTabWidget;

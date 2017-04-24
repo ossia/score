@@ -468,7 +468,7 @@ struct TSerializer<DataStream, optional<T>>
     }
     else
     {
-      obj = iscore::none;
+      obj = ossia::none;
     }
     ISCORE_DEBUG_CHECK_DELIMITER2(s);
   }

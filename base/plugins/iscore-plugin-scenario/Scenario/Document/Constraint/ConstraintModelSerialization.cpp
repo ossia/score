@@ -39,6 +39,62 @@ class Writer;
 // sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
 
+
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
+    const Scenario::Slot& slot)
+{
+
+}
+
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
+    Scenario::Slot& slot)
+{
+
+}
+
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
+    const Scenario::Slot& slot)
+{
+
+}
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
+    Scenario::Slot& slot)
+{
+
+}
+
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
+    const Scenario::SlotIdentifier& SlotIdentifier)
+{
+
+}
+
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
+    Scenario::SlotIdentifier& SlotIdentifier)
+{
+
+}
+
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
+    const Scenario::SlotIdentifier& SlotIdentifier)
+{
+
+}
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
+    Scenario::SlotIdentifier& SlotIdentifier)
+{
+
+}
+
+
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::ConstraintModel& constraint)
@@ -50,9 +106,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     readFrom(process);
   }
 
-  // Rackes
-  m_stream << constraint.smallViewRack()
-           << constraint.fullViewRack();
+  // Racks
+  m_stream << constraint.m_smallView << constraint.m_fullView;
 
   // Common data
   m_stream << constraint.duration << constraint.m_startState
@@ -90,8 +145,7 @@ DataStreamWriter::write(Scenario::ConstraintModel& constraint)
   }
 
   // Rackes
-  constraint.m_smallViewRack = new Scenario::RackModel(*this, &constraint);
-  constraint.m_fullViewRack = new Scenario::RackModel(*this, &constraint);
+  m_stream >> constraint.m_smallView >> constraint.m_fullView;
 
   // Common data
   m_stream >> constraint.duration >> constraint.m_startState
@@ -113,8 +167,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
   obj[strings.Processes] = toJsonArray(constraint.processes);
 
   // Rackes
-  obj[strings.SmallViewRack] = toJsonObject(constraint.smallViewRack());
-  obj[strings.FullViewRack] = toJsonObject(constraint.fullViewRack());
+  obj[strings.SmallViewRack] = toJsonArray(constraint.smallView());
+  obj[strings.FullViewRack] = toJsonArray(constraint.fullView());
 
   // Common data
   // The fields will go in the same level as the
@@ -150,15 +204,8 @@ JSONObjectWriter::write(Scenario::ConstraintModel& constraint)
       ISCORE_TODO;
   }
 
-  {
-    JSONObject::Deserializer dr{obj[strings.SmallViewRack].toObject()};
-    constraint.m_smallViewRack = new Scenario::RackModel(dr, &constraint);
-  }
-
-  {
-    JSONObject::Deserializer dr{obj[strings.FullViewRack].toObject()};
-    constraint.m_fullViewRack = new Scenario::RackModel(dr, &constraint);
-  }
+  fromJsonArray(obj[strings.SmallViewRack].toArray(), constraint.m_smallView);
+  fromJsonArray(obj[strings.FullViewRack].toArray(), constraint.m_fullView);
 
   writeTo(constraint.duration);
   constraint.m_startState

@@ -184,7 +184,7 @@ void ProcessTabWidget::updateDisplayedValues()
 
   const ConstraintModel& cst = m_constraintWidget.model();
   const auto fv = isInFullView(cst);
-  auto sv_rack = !fv ? &cst.smallViewRack() : nullptr;
+  auto sv_rack = !fv ? &cst.smallView() : nullptr;
 
   if(fv)
   {
@@ -217,11 +217,11 @@ void ProcessTabWidget::updateDisplayedValues()
         expanded.insert(std::make_pair(process.id(), false));
       }
 
-      for(const SlotModel& slot : sv_rack->slotmodels)
+      for(const auto& slot : cst.smallView())
       {
-        if(auto lay = slot.frontLayerModel())
+        if(auto lay = slot.frontProcess)
         {
-          expanded[lay->id()] = true;
+          expanded[*lay] = true;
         }
       }
 

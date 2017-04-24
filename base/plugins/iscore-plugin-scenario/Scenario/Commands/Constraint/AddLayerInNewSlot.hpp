@@ -17,8 +17,6 @@ class ProcessModel;
 namespace Scenario
 {
 class ConstraintModel;
-class RackModel;
-class SlotModel;
 namespace Command
 {
 /**
@@ -32,9 +30,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerInNewSlot final
 public:
   AddLayerInNewSlot(
       Path<ConstraintModel>&& constraintPath,
-      Id<Process::ProcessModel>
-          process); // maybe should we pass the viewmodel too, if many
-                    // available ?
+      Id<Process::ProcessModel> process);
 
   void undo() const override;
   void redo() const override;
@@ -50,9 +46,7 @@ protected:
 
 private:
   Path<ConstraintModel> m_path;
-
   Id<Process::ProcessModel> m_processId{};
-  Id<SlotModel> m_createdSlotId{};
 };
 }
 }

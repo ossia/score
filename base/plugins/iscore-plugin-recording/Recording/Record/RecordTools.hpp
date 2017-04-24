@@ -29,8 +29,6 @@ namespace Scenario
 class ProcessModel;
 class ConstraintModel;
 class EventModel;
-class RackModel;
-class SlotModel;
 struct Point;
 }
 
@@ -63,8 +61,7 @@ using RecordCommandDispatcher
 struct Box
 {
   Scenario::ConstraintModel& constraint;
-  Scenario::RackModel& rack;
-  Scenario::SlotModel& slot;
+  // In the first slot.
 
   Scenario::Command::MoveNewEvent& moveCommand;
   Id<Scenario::EventModel> endEvent;

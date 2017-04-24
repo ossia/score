@@ -127,4 +127,7 @@ void ScenarioStyle::update()
   TimeRulerLargePen.setCosmetic(true);
   TimeRulerSmallPen = QPen{TimeRuler.getColor(), 1, Qt::SolidLine};
   TimeRulerSmallPen.setCosmetic(true);
+
+  SlotHandlePen.setWidth(0);
+  SlotHandlePen.setBrush(ProcessViewBorder.getColor());
 }

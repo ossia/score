@@ -181,6 +181,7 @@ void ScenarioContextMenuManager::createLayerContextMenu(
     const Process::LayerContextMenuManager& lcmmgr,
     const Process::LayerPresenter& pres)
 {
+  /*
   using namespace iscore;
 
   bool has_slot_menu = false;
@@ -206,6 +207,6 @@ void ScenarioContextMenuManager::createLayerContextMenu(
   else
   {
     pres.fillContextMenu(menu, pos, scenepos, lcmmgr);
-  }
+  }*/
 }
 }

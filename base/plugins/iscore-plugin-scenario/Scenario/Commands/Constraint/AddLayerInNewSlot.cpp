@@ -28,43 +28,30 @@ AddLayerInNewSlot::AddLayerInNewSlot(
   : m_path{std::move(constraintPath)}
   , m_processId{std::move(process)}
 {
-  auto& constraint = m_path.find();
-
-  auto& rack = constraint.smallViewRack();
-  m_createdSlotId = getStrongId(rack.slotmodels);
 }
 
 void AddLayerInNewSlot::undo() const
 {
   auto& constraint = m_path.find();
-  auto& rack = constraint.smallViewRack();
-
-  // Removing the slot is enough
-  rack.slotmodels.remove(m_createdSlotId);
+  constraint.removeSlot(constraint.smallView().size() - 1);
 }
 
 void AddLayerInNewSlot::redo() const
 {
   auto& constraint = m_path.find();
-
   auto h = context.settings<Scenario::Settings::Model>().getSlotHeight();
-  // Slot
-  auto& rack = constraint.smallViewRack();
-  rack.addSlot(new SlotModel{m_createdSlotId, h, &rack});
 
-  // Process View
-  auto& slot = rack.slotmodels.at(m_createdSlotId);
-  slot.addLayer(m_processId);
+  constraint.addSlot(Slot{{m_processId}, m_processId, h});
 }
 
 void AddLayerInNewSlot::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_processId << m_createdSlotId;
+  s << m_path << m_processId;
 }
 
 void AddLayerInNewSlot::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_processId >> m_createdSlotId;
+  s >> m_path >> m_processId;
 }
 }
 }

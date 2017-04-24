@@ -47,39 +47,29 @@ public:
   // Use this constructor when the constraint does not exist yet.
   AddMultipleProcessesToConstraintMacro(const Path<ConstraintModel>& cstpath)
   {
-    auto rackPath = cstpath.extend(ConstraintModel::smallViewRackId());
-
     // Then create a slot in this rack
-    auto cmd_slot = new Scenario::Command::AddSlotToRack{
-        Path<RackModel>{rackPath}};
+    auto cmd_slot = new Scenario::Command::AddSlotToRack{cstpath};
     addCommand(cmd_slot);
 
-    auto createdSlotPath = rackPath.extend(cmd_slot->createdSlot());
-    slotsToUse.push_back(std::move(createdSlotPath));
+    slotsToUse.push_back({cstpath, 0});
   }
 
   // Use this constructor when the constraint already exists
   AddMultipleProcessesToConstraintMacro(const ConstraintModel& constraint)
   {
     // If no slot : create slot
-    if(constraint.smallViewRack().slotmodels.empty())
+    if(constraint.smallView().empty())
     {
-      auto cmd_slot = new Scenario::Command::AddSlotToRack{constraint.smallViewRack()};
+      auto cmd_slot = new Scenario::Command::AddSlotToRack{constraint};
       addCommand(cmd_slot);
+    }
 
-      auto createdSlotPath = iscore::IDocument::path(constraint.smallViewRack())
-                             .extend(cmd_slot->createdSlot());
-      slotsToUse.push_back(std::move(createdSlotPath));
-    }
-    else
-    {
-      // Else put everything in first slot
-      slotsToUse.push_back(*constraint.smallViewRack().slotmodels.begin());
-    }
+    // Put everything in first slot
+    slotsToUse.push_back({constraint, 0});
   }
 
   // No need to save this, it is useful only for construction.
-  std::vector<Path<SlotModel>> slotsToUse;
+  std::vector<SlotIdentifier> slotsToUse;
 };
 
 inline AddMultipleProcessesToConstraintMacro*

@@ -11,7 +11,6 @@ struct DataStreamOutput;
 
 namespace Scenario
 {
-class RackModel;
 class ConstraintModel;
 namespace Command
 {

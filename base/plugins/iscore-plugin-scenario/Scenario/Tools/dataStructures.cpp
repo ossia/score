@@ -32,7 +32,7 @@ ConstraintSaveData::ConstraintSaveData(
     QByteArray arr;
     DataStream::Serializer s{&arr};
     // We only save the data proper to the racks.
-    s.read(constraint.smallViewRack());
+    s.readFrom(constraint.smallView());
     racks.push_back(std::move(arr));
   }
 
@@ -40,7 +40,7 @@ ConstraintSaveData::ConstraintSaveData(
     QByteArray arr;
     DataStream::Serializer s{&arr};
     // We only save the data proper to the racks.
-    s.read(constraint.fullViewRack());
+    s.readFrom(constraint.fullView());
     racks.push_back(std::move(arr));
   }
 }
@@ -62,18 +62,19 @@ void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
   // Restore the rackes
   {
     DataStream::Deserializer des{racks[0]};
-    des.write(*constraint.m_smallViewRack);
+    Scenario::Rack r;
+    des.writeTo(r);
+    constraint.replaceSmallView(std::move(r));
   }
   {
     DataStream::Deserializer des{racks[1]};
-    des.write(*constraint.m_fullViewRack);
+    Scenario::Rack r;
+    des.writeTo(r);
+    constraint.replaceFullView(std::move(r));
   }
 }
 }
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
+
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(

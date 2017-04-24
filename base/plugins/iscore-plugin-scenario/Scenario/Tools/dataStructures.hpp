@@ -18,7 +18,6 @@ needed
 namespace Scenario
 {
 class ConstraintModel;
-class RackModel;
 class TimeNodeModel;
 
 struct TimenodeProperties

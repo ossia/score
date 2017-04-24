@@ -1,6 +1,7 @@
 #pragma once
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <State/Address.hpp>
 #include <iscore/command/Command.hpp>
@@ -26,7 +27,6 @@ class Path;
 namespace Scenario
 {
 class ConstraintModel;
-class SlotModel;
 namespace Command
 {
 
@@ -39,7 +39,7 @@ public:
   CreateProcessAndLayers() = default;
   CreateProcessAndLayers(
       const ConstraintModel& constraint,
-      const std::vector<Path<SlotModel>>& slotList,
+      const std::vector<SlotIdentifier>& slotList,
       Id<Process::ProcessModel> procId)
       : m_addProcessCmd{std::move(constraint), std::move(procId),
                         Metadata<ConcreteKey_k, ProcessModel_T>::get()}
@@ -99,7 +99,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
 public:
   CreateAutomationFromStates(
       const ConstraintModel& constraint,
-      const std::vector<Path<SlotModel>>& slotList,
+      const std::vector<SlotIdentifier>& slotList,
       Id<Process::ProcessModel> curveId,
       State::AddressAccessor address,
       const Curve::CurveDomain&);
@@ -125,7 +125,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
 public:
   CreateInterpolationFromStates(
       const ConstraintModel& constraint,
-      const std::vector<Path<SlotModel>>& slotList,
+      const std::vector<SlotIdentifier>& slotList,
       Id<Process::ProcessModel> curveId, State::AddressAccessor address,
       State::Value start, State::Value end);
 

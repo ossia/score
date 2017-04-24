@@ -11,13 +11,14 @@ class QWidget;
 
 namespace Scenario
 {
-class SlotView;
+class ConstraintPresenter;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QGraphicsItem
 {
 public:
-  SlotHandle(const SlotView& slotView, QGraphicsItem* parent);
+  SlotHandle(const ConstraintPresenter& slotView, int slotIndex, QGraphicsItem* parent);
 
+  const ConstraintPresenter& presenter() const { return m_presenter; }
   static constexpr int static_type()
   {
     return QGraphicsItem::UserType + ItemType::SlotHandle;
@@ -27,14 +28,11 @@ public:
     return static_type();
   }
 
+  int slotIndex() const;
+  void setSlotIndex(int);
   static constexpr double handleHeight()
   {
     return 3.;
-  }
-
-  const SlotView& slotView() const
-  {
-    return m_slotView;
   }
 
   QRectF boundingRect() const override;
@@ -50,8 +48,8 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
 
-  const SlotView& m_slotView;
+  const ConstraintPresenter& m_presenter;
   qreal m_width{};
-  QPen m_pen;
+  int m_slotIndex;
 };
 }

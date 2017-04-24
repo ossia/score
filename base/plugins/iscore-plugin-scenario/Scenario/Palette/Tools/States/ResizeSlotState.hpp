@@ -100,7 +100,7 @@ public:
 
     connect(press, &QAbstractState::entered, [=]() {
       m_originalPoint = m_sm.scenePoint;
-      m_originalHeight = this->currentSlot.find().getHeight();
+      m_originalHeight = this->currentSlot.find().height;
     });
 
     connect(move, &QAbstractState::entered, [=]() {
@@ -108,8 +108,7 @@ public:
           20.0,
           m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
-      m_ongoingDispatcher.submitCommand(
-          Path<SlotModel>{this->currentSlot}, val);
+      m_ongoingDispatcher.submitCommand(this->currentSlot, val);
       return;
     });
 

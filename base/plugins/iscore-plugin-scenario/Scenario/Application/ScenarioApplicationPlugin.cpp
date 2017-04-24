@@ -226,28 +226,13 @@ void ScenarioApplicationPlugin::on_documentChanged(
 
       if (!cst.processes.empty() && cst_pres)
       {
-        auto& rack = cst_pres->rack();
-        const auto& slts = rack.getSlots();
-        if (!slts.empty())
+        auto& rack = cst.fullView();
+        if (!rack.empty())
         {
-          const auto& top_slot = *slts.begin();
-          const SlotPresenter& first = slts.at(top_slot.id());
-          const auto& slot_processes = first.processes();
-          if (!slot_processes.empty())
+          const Slot& top_slot = *rack.begin();
+          if (top_slot.frontProcess)
           {
-            const auto& front_proc
-                = *first.model()
-                       .frontLayerModel(); // Won't crash because not empty
-            auto it = std::find_if(
-                slot_processes.begin(), slot_processes.end(),
-                [&](const auto& proc_elt) {
-                  return proc_elt.model == &front_proc;
-                });
-            if (it != slot_processes.end())
-            {
-              const SlotProcessData& proc_elt = *it;
-              focusManager->focus(proc_elt.presenter);
-            }
+            focusManager->focus(cst_pres->process(*top_slot.frontProcess));
           }
         }
       }

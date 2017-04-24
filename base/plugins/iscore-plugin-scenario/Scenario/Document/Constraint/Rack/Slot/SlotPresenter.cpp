@@ -1,3 +1,4 @@
+/*
 #include <Process/LayerModel.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
@@ -283,3 +284,4 @@ void SlotPresenter::updateProcessesShape()
   }
 }
 }
+*/

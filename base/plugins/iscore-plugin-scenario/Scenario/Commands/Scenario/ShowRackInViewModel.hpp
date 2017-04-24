@@ -9,7 +9,6 @@
 namespace Scenario
 {
 class ConstraintModel;
-class RackModel;
 namespace Command
 {
 /**

@@ -2,7 +2,6 @@
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <iscore/model/path/RelativePath.hpp>
 
@@ -71,22 +70,8 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
   auto& proc = constraint.processes.at(m_processId);
   s1.readFrom(proc);
 
-  for(const SlotModel& slt : constraint.smallViewRack().slotmodels)
-  {
-    if(slt.frontLayerModel() == m_processId)
-    {
-      m_slots.push_back(slt);
-      m_inFront.push_back(true);
-    }
-    else
-    {
-      if(ossia::find(slt.layers(), m_processId) != slt.layers().end())
-      {
-        m_slots.push_back(slt);
-        m_inFront.push_back(false);
-      }
-    }
-  }
+  m_smallView = constraint.smallView();
+  m_fullView = constraint.fullView();
 }
 
 void RemoveProcessFromConstraint::undo() const
@@ -105,13 +90,8 @@ void RemoveProcessFromConstraint::undo() const
     return;
   }
 
-  for(int i = 0; i < m_slots.size(); i++)
-  {
-    Scenario::SlotModel& slot = m_slots[i].find();
-    slot.addLayer(m_processId);
-    if(m_inFront[i])
-      slot.putToFront(m_processId);
-  }
+  constraint.replaceSmallView(m_smallView);
+  constraint.replaceFullView(m_fullView);
 }
 
 void RemoveProcessFromConstraint::redo() const
@@ -120,19 +100,18 @@ void RemoveProcessFromConstraint::redo() const
   RemoveProcess(constraint, m_processId);
 
   // The view models will be deleted accordingly.
+  // TODO maybe delete them here actually ?
 }
 
 
 void RemoveProcessFromConstraint::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_processId << m_serializedProcessData
-    << m_slots << m_inFront;
+  s << m_path << m_processId << m_serializedProcessData << m_smallView << m_fullView;
 }
 
 void RemoveProcessFromConstraint::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_processId >> m_serializedProcessData
-    >> m_slots >> m_inFront;
+  s >> m_path >> m_processId >> m_serializedProcessData >> m_smallView >> m_fullView;
 }
 }
 }

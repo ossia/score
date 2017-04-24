@@ -3,25 +3,36 @@
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPoint>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <qnamespace.h>
 
 #include "SlotHandle.hpp"
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
 
 class QStyleOptionGraphicsItem;
 class QWidget;
 
 namespace Scenario
 {
-SlotHandle::SlotHandle(const SlotView& slotView, QGraphicsItem* parent)
+class ConstraintPresenter;
+SlotHandle::SlotHandle(const ConstraintPresenter& slotView, int slotIndex, QGraphicsItem* parent)
     : QGraphicsItem{parent}
-    , m_slotView{slotView}
-    , m_width{slotView.boundingRect().width()}
+    , m_presenter{slotView}
+    , m_width{slotView.view()->boundingRect().width()}
+    , m_slotIndex{slotIndex}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setCursor(Qt::SizeVerCursor);
-  m_pen.setWidth(0);
+}
+
+int SlotHandle::slotIndex() const
+{
+  return m_slotIndex;
+}
+
+void SlotHandle::setSlotIndex(int v)
+{
+  m_slotIndex = v;
 }
 
 QRectF SlotHandle::boundingRect() const
@@ -32,9 +43,10 @@ QRectF SlotHandle::boundingRect() const
 void SlotHandle::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  m_pen.setBrush(ScenarioStyle::instance().ProcessViewBorder.getColor());
-  painter->setPen(m_pen);
-  painter->setBrush(m_pen.color());
+  const auto& style = ScenarioStyle::instance();
+
+  painter->setPen(style.SlotHandlePen);
+  painter->setBrush(style.ProcessViewBorder.getColor());
 
   painter->drawLine(0, -handleHeight() / 2., m_width, -handleHeight() / 2.);
 }
@@ -47,16 +59,16 @@ void SlotHandle::setWidth(qreal width)
 
 void SlotHandle::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_slotView.presenter.pressed(event->scenePos());
+  m_presenter.slotHandlePressed(event->scenePos());
 }
 
 void SlotHandle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_slotView.presenter.moved(event->scenePos());
+  m_presenter.slotHandleMoved(event->scenePos());
 }
 
 void SlotHandle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_slotView.presenter.released(event->scenePos());
+  m_presenter.slotHandleReleased(event->scenePos());
 }
 }

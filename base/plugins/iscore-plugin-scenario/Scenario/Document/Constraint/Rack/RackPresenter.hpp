@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
@@ -16,7 +17,6 @@ class QObject;
 
 namespace Scenario
 {
-class RackModel;
 class RackView;
 class RackPresenter final : public QObject, public Nano::Observer
 {
@@ -84,3 +84,4 @@ private:
   TimeVal m_duration{};
 };
 }
+*/

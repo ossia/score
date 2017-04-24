@@ -35,7 +35,6 @@ public:
   void on_requestOverlayMenu(QPointF);
 
 
-  RackPresenter* rack() const;
   void on_rackVisibleChanged(bool);
 
   void updateScaling() override;
@@ -50,11 +49,9 @@ signals:
 
 private:
   void on_processesChanged(const Process::ProcessModel&);
-  void createRackPresenter(const RackModel&);
+  //void createRackPresenter(const RackModel&);
   void clearRackPresenter();
-  void on_rackRemoved(const RackModel&);
-
-  RackPresenter* m_rack{};
+  //void on_rackRemoved(const RackModel&);
 };
 
 }

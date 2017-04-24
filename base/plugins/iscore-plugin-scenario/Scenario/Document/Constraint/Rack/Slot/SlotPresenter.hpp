@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include <Process/ZoomHelper.hpp>
 
@@ -25,7 +26,6 @@ class LayerPresenter;
 namespace Scenario
 {
 class RackView;
-class SlotModel;
 class SlotView;
 struct SlotProcessData
 {
@@ -113,3 +113,4 @@ private:
   bool m_enabled{true};
 };
 }
+*/

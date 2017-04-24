@@ -10,6 +10,8 @@
 namespace Recording
 {
 
+// TODO
+/*
 RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
 {
   // Note : since we directly create the IDs here, we don't have to worry
@@ -47,26 +49,27 @@ RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
   return RecordData{cmd_proc, cmd_layer, autom.curve(), *segt, addr.unit};
 }
 
+  */
 void RecordAutomationCreationVisitor::handle_numeric(float val)
-{
+{/*
   addresses.back().push_back(Device::address(node).address);
   recorder.numeric_records.insert(
-      std::make_pair(addresses.back().back(), makeCurve(val)));
+      std::make_pair(addresses.back().back(), makeCurve(val)));*/
 }
 
 void RecordAutomationCreationVisitor::operator()(std::array<float, 2> val)
-{
+{/*
   // here we create one curve per component.
 
   // The address is added only once
   addresses.back().push_back(Device::address(node).address);
   recorder.vec2_records.insert(std::make_pair(
       addresses.back().back(),
-      std::array<RecordData, 2>{makeCurve(val[0]), makeCurve(val[1])}));
+      std::array<RecordData, 2>{makeCurve(val[0]), makeCurve(val[1])}));*/
 }
 
 void RecordAutomationCreationVisitor::operator()(std::array<float, 3> val)
-{
+{/*
   // here we create one curve per component.
 
   // The address is added only once
@@ -74,11 +77,11 @@ void RecordAutomationCreationVisitor::operator()(std::array<float, 3> val)
   recorder.vec3_records.insert(std::make_pair(
       addresses.back().back(),
       std::array<RecordData, 3>{makeCurve(val[0]), makeCurve(val[1]),
-                                makeCurve(val[2])}));
+                                makeCurve(val[2])}));*/
 }
 
 void RecordAutomationCreationVisitor::operator()(std::array<float, 4> val)
-{
+{/*
   // here we create one curve per component.
 
   // The address is added only once
@@ -86,7 +89,7 @@ void RecordAutomationCreationVisitor::operator()(std::array<float, 4> val)
   recorder.vec4_records.insert(std::make_pair(
       addresses.back().back(),
       std::array<RecordData, 4>{makeCurve(val[0]), makeCurve(val[1]),
-                                makeCurve(val[2]), makeCurve(val[3])}));
+                                makeCurve(val[2]), makeCurve(val[3])}));*/
 }
 
 void RecordAutomationCreationVisitor::operator()(float f)

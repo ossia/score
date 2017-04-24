@@ -1,3 +1,4 @@
+/*
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
@@ -123,3 +124,4 @@ void SlotView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
   emit askContextMenu(event->screenPos(), event->scenePos());
 }
 }
+*/

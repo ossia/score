@@ -11,9 +11,9 @@ struct RecordAutomationCreationVisitor
   Device::AddressSettings& addr;
   std::vector<std::vector<State::Address>>& addresses;
   AutomationRecorder& recorder;
-
+/*
   RecordData makeCurve(float start_y);
-
+*/
   void handle_numeric(float val);
 
   void operator()(std::array<float, 2> val);

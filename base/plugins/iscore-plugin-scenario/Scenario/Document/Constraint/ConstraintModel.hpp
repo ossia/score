@@ -4,7 +4,7 @@
 #include <QObject>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ExecutionState.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
 #include <iscore/model/Entity.hpp>
 #include <iscore/selection/Selectable.hpp>
@@ -41,9 +41,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
 public:
   /** Properties of the class **/
   iscore::EntityMap<Process::ProcessModel> processes;
-
-  RackModel& smallViewRack() const { return *m_smallViewRack; }
-  RackModel& fullViewRack() const { return *m_fullViewRack; }
 
   Selectable selection;
   ModelConsistency consistency{nullptr};
@@ -88,17 +85,13 @@ public:
 
   void setHeightPercentage(double arg);
   void setExecutionState(ConstraintExecutionState);
+
   ConstraintExecutionState executionState() const
   {
     return m_executionState;
   }
 
-  static Id<RackModel> smallViewRackId();
-  static Id<RackModel> fullViewRackId();
-
   // Full view properties:
-
-
   ZoomRatio zoom() const;
   void setZoom(const ZoomRatio& zoom);
 
@@ -107,6 +100,37 @@ public:
 
   void setSmallViewVisible(bool);
   bool smallViewVisible() const;
+
+  const Rack& smallView() const { return m_smallView; }
+  const Rack& fullView() const { return m_fullView; }
+
+  void clearSmallView();
+  void clearFullView();
+  void replaceSmallView(const Rack& other);
+  void replaceFullView(const Rack& other);
+
+  void addSlot(Slot s);
+  void addSlot(Slot s, int pos);
+  void removeSlot(int pos);
+  void swapSlots(int pos1, int pos2, bool fullview);
+  const Slot* findSlot(const SlotIdentifier& slot) const;
+  const Slot& getSlot(const SlotIdentifier& slot) const;
+  Slot& getSlot(const SlotIdentifier& slot);
+  const Slot& getSmallViewSlot(int pos) const;
+  const Slot& getFullViewSlot(int pos) const;
+
+  void setSlotHeight(const SlotIdentifier& slot, double height);
+  void setSmallViewSlotHeight(int pos, double height);
+  void setFullViewSlotHeight(int pos, double height);
+
+  void addLayer(const SlotIdentifier& slot, Id<Process::ProcessModel>);
+  void removeLayer(const SlotIdentifier& slot, Id<Process::ProcessModel>);
+  void putLayerToFront(const SlotIdentifier& slot, Id<Process::ProcessModel>);
+
+  void addLayer(int slot, Id<Process::ProcessModel>);
+  void removeLayer(int slot, Id<Process::ProcessModel>);
+  void putLayerToFront(int slot, Id<Process::ProcessModel>);
+
 signals:
   void heightPercentageChanged(double);
 
@@ -123,14 +147,12 @@ private:
   void on_addProcess(const Process::ProcessModel&);
   void on_removeProcess(const Process::ProcessModel&);
   void initConnections();
-  void on_rackAdded(const RackModel& rack);
 
   // Model for the full view.
   // Note : it is also present in m_constraintViewModels.
 
-  RackModel* m_smallViewRack{};
-  RackModel* m_fullViewRack{};
-
+  Rack m_smallView;
+  Rack m_fullView;
   Id<StateModel> m_startState;
   Id<StateModel> m_endState;
 
