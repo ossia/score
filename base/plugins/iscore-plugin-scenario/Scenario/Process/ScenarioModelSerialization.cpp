@@ -24,10 +24,7 @@
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_scenario_export.h>
-namespace Process
-{
-class LayerModel;
-}
+
 namespace Process
 {
 class ProcessModel;

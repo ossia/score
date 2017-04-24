@@ -25,7 +25,6 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Palette/Tool.hpp>
-#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
@@ -51,20 +50,19 @@ struct VerticalExtent;
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
     Scenario::EditionSettings& e,
-    const TemporalScenarioLayer& process_view_model,
+    const Scenario::ProcessModel& scenario,
     Process::LayerView* view,
     const Process::ProcessPresenterContext& context,
     QObject* parent)
-    : LayerPresenter{context, parent}
-    , m_layer{process_view_model}
-    , m_view{static_cast<TemporalScenarioView*>(view)}
-    , m_viewInterface{*this}
-    , m_editionSettings{e}
-    , m_ongoingDispatcher{context.commandStack}
-    , m_selectionDispatcher{context.selectionStack}
-    , m_sm{m_context, *this}
+  : LayerPresenter{context, parent}
+  , m_layer{scenario}
+  , m_view{static_cast<TemporalScenarioView*>(view)}
+  , m_viewInterface{*this}
+  , m_editionSettings{e}
+  , m_ongoingDispatcher{context.commandStack}
+  , m_selectionDispatcher{context.selectionStack}
+  , m_sm{m_context, *this}
 {
-  const Scenario::ProcessModel& scenario = model(m_layer);
   /////// Setup of existing data
   // For each constraint & event, display' em
   for (const auto& state_model : scenario.states)
@@ -84,54 +82,65 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
   for (const auto& cmt_model : scenario.comments)
   {
-    on_commentBlockCreated(cmt_model);
+    on_commentCreated(cmt_model);
   }
 
-  for (const auto& constraint_view_model : constraintsViewModels(m_layer))
+  for (const auto& constraint : scenario.constraints)
   {
-    on_constraintViewModelCreated(*constraint_view_model);
+    on_constraintCreated(constraint);
   }
 
   /////// Connections
-  con(m_layer, &TemporalScenarioLayer::stateCreated, this,
-      &TemporalScenarioPresenter::on_stateCreated);
-  con(m_layer, &TemporalScenarioLayer::stateRemoved, this,
-      &TemporalScenarioPresenter::on_stateRemoved);
+  scenario.constraints.added
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_constraintCreated>(
+        this);
+  scenario.constraints.removed
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_constraintRemoved>(
+        this);
 
-  con(m_layer, &TemporalScenarioLayer::commentCreated, this,
-      &TemporalScenarioPresenter::on_commentBlockCreated);
-  con(m_layer, &TemporalScenarioLayer::commentRemoved, this,
-      &TemporalScenarioPresenter::on_commentBlockRemoved);
+  scenario.states.added
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_stateCreated>(
+        this);
+  scenario.states.removed
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_stateRemoved>(
+        this);
 
-  con(m_layer, &TemporalScenarioLayer::eventCreated, this,
-      &TemporalScenarioPresenter::on_eventCreated);
-  con(m_layer, &TemporalScenarioLayer::eventRemoved, this,
-      &TemporalScenarioPresenter::on_eventRemoved);
+  scenario.events.added
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_eventCreated>(
+        this);
+  scenario.events.removed
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_eventRemoved>(
+        this);
 
-  con(m_layer, &TemporalScenarioLayer::timeNodeCreated, this,
-      &TemporalScenarioPresenter::on_timeNodeCreated);
-  con(m_layer, &TemporalScenarioLayer::timeNodeRemoved, this,
-      &TemporalScenarioPresenter::on_timeNodeRemoved);
+  scenario.timeNodes.added
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_timeNodeCreated>(
+        this);
+  scenario.timeNodes.removed
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_timeNodeRemoved>(
+        this);
 
-  con(m_layer, &TemporalScenarioLayer::constraintViewModelCreated, this,
-      &TemporalScenarioPresenter::on_constraintViewModelCreated);
-  con(m_layer, &TemporalScenarioLayer::constraintViewModelRemoved, this,
-      &TemporalScenarioPresenter::on_constraintViewModelRemoved);
+  scenario.comments.added
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_commentCreated>(
+        this);
+  scenario.comments.removed
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_commentRemoved>(
+        this);
+
 
   connect(
-      m_view, &TemporalScenarioView::keyPressed, this,
-      &TemporalScenarioPresenter::on_keyPressed);
+        m_view, &TemporalScenarioView::keyPressed, this,
+        &TemporalScenarioPresenter::on_keyPressed);
   connect(
-      m_view, &TemporalScenarioView::keyReleased, this,
-      &TemporalScenarioPresenter::on_keyReleased);
+        m_view, &TemporalScenarioView::keyReleased, this,
+        &TemporalScenarioPresenter::on_keyReleased);
 
   connect(
-      m_view, &TemporalScenarioView::doubleClick, this,
-      &TemporalScenarioPresenter::doubleClick);
+        m_view, &TemporalScenarioView::doubleClick, this,
+        &TemporalScenarioPresenter::doubleClick);
 
   connect(
-      m_view, &TemporalScenarioView::askContextMenu, this,
-      &TemporalScenarioPresenter::contextMenuRequested);
+        m_view, &TemporalScenarioView::askContextMenu, this,
+        &TemporalScenarioPresenter::contextMenuRequested);
   connect(
         m_view, &TemporalScenarioView::dragEnter, this,
         [=](const QPointF& pos, const QMimeData* mime) {
@@ -172,24 +181,24 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     }
   });
   connect(
-      m_view, &TemporalScenarioView::dropReceived, this,
-      [=](const QPointF& pos, const QMimeData* mime) {
-        try
-        {
-          m_context.context.app.interfaces<Scenario::DropHandlerList>()
-              .drop(*this, pos, mime);
-        }
-        catch (std::exception& e)
-        {
-          qDebug() << "Error during drop: " << e.what();
-        }
-      });
-
+        m_view, &TemporalScenarioView::dropReceived, this,
+        [=](const QPointF& pos, const QMimeData* mime) {
+    try
+    {
+      m_context.context.app.interfaces<Scenario::DropHandlerList>()
+          .drop(*this, pos, mime);
+    }
+    catch (std::exception& e)
+    {
+      qDebug() << "Error during drop: " << e.what();
+    }
+  });
+/*
   con(model(m_layer), &Scenario::ProcessModel::locked, m_view,
       &TemporalScenarioView::lock);
   con(model(m_layer), &Scenario::ProcessModel::unlocked, m_view,
       &TemporalScenarioView::unlock);
-/*
+
   connect(
       &layerModel().processModel(), &Process::ProcessModel::execution, this,
       [&](bool b) {
@@ -210,14 +219,14 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
   con(context.app.settings<Settings::Model>(),
       &Settings::Model::GraphicZoomChanged, this, [&](double d) {
-        m_graphicalScale = d;
-        m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
-      });
+    m_graphicalScale = d;
+    m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
+  });
   m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
 
   m_con = con(
-      context.updateTimer, &QTimer::timeout, this,
-      &TemporalScenarioPresenter::on_constraintExecutionTimer);
+        context.updateTimer, &QTimer::timeout, this,
+        &TemporalScenarioPresenter::on_constraintExecutionTimer);
 }
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
@@ -225,14 +234,14 @@ TemporalScenarioPresenter::~TemporalScenarioPresenter()
   disconnect(m_con);
 }
 
-const Process::LayerModel& TemporalScenarioPresenter::layerModel() const
+const Process::ProcessModel& TemporalScenarioPresenter::layerModel() const
 {
   return m_layer;
 }
 
 const Id<Process::ProcessModel>& TemporalScenarioPresenter::modelId() const
 {
-  return m_layer.processModel().id();
+  return m_layer.id();
 }
 
 Point TemporalScenarioPresenter::toScenarioPoint(QPointF pt) const
@@ -284,7 +293,7 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 
 const ProcessModel& TemporalScenarioPresenter::processModel() const
 {
-  return ::model(m_layer);
+  return m_layer;
 }
 
 void TemporalScenarioPresenter::fillContextMenu(
@@ -298,14 +307,14 @@ void TemporalScenarioPresenter::fillContextMenu(
 
   // Get ScenarioModel actions
   cm.menu<ContextMenus::ScenarioModelContextMenu>().build(
-      menu, pos, scenepos, this->context());
+        menu, pos, scenepos, this->context());
   menu.addSeparator();
   cm.menu<ContextMenus::ConstraintContextMenu>().build(
-      menu, pos, scenepos, this->context());
+        menu, pos, scenepos, this->context());
   cm.menu<ContextMenus::EventContextMenu>().build(
-      menu, pos, scenepos, this->context());
+        menu, pos, scenepos, this->context());
   cm.menu<ContextMenus::StateContextMenu>().build(
-      menu, pos, scenepos, this->context());
+        menu, pos, scenepos, this->context());
 
   menu.addSeparator();
 
@@ -315,10 +324,10 @@ void TemporalScenarioPresenter::fillContextMenu(
   auto createCommentAct = new QAction{"Add a Comment Block", &menu};
   connect(createCommentAct, &QAction::triggered, [&, scenepos, pos]() {
     auto scenPoint = Scenario::ConvertToScenarioPoint(
-        scenepos, zoomRatio(), view().height());
+          scenepos, zoomRatio(), view().height());
 
     auto cmd = new Scenario::Command::CreateCommentBlock{
-        static_cast<Scenario::ProcessModel&>(layerModel().processModel()),
+        m_layer,
         scenPoint.date, scenPoint.y};
     CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
   });
@@ -366,14 +375,14 @@ void TemporalScenarioPresenter::on_timeNodeRemoved(
   removeElement(m_timeNodes.get(), timeNode.id());
 }
 
-void TemporalScenarioPresenter::on_constraintViewModelRemoved(
-    const ConstraintViewModel& cvm)
+void TemporalScenarioPresenter::on_constraintRemoved(
+    const ConstraintModel& cvm)
 {
   // Don't put a const auto& here, else deletion will crash.
   for (auto& pres : m_constraints)
   {
     // OPTIMIZEME add an index in the map on viewmodel id ?
-    if (Scenario::viewModel(pres).id() == cvm.id())
+    if (pres.id() == cvm.id())
     {
       auto cid = pres.id();
       auto it = m_constraints.find(cid);
@@ -389,7 +398,7 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(
   }
 }
 
-void TemporalScenarioPresenter::on_commentBlockRemoved(
+void TemporalScenarioPresenter::on_commentRemoved(
     const CommentBlockModel& cmt)
 {
   removeElement(m_comments.get(), cmt.id());
@@ -426,7 +435,7 @@ void TemporalScenarioPresenter::doubleClick(QPointF pt)
 
   // Just create a dot
   auto cmd
-      = new Command::CreateTimeNode_Event_State{processModel(), sp.date, sp.y};
+      = new Command::CreateTimeNode_Event_State{m_layer, sp.date, sp.y};
   CommandDispatcher<>{m_context.context.commandStack}.submitCommand(cmd);
 }
 
@@ -464,14 +473,14 @@ void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
 
   // For the state machine
   connect(
-      ev_pres, &EventPresenter::pressed, m_view,
-      &TemporalScenarioView::pressedAsked);
+        ev_pres, &EventPresenter::pressed, m_view,
+        &TemporalScenarioView::pressedAsked);
   connect(
-      ev_pres, &EventPresenter::moved, m_view,
-      &TemporalScenarioView::movedAsked);
+        ev_pres, &EventPresenter::moved, m_view,
+        &TemporalScenarioView::movedAsked);
   connect(
-      ev_pres, &EventPresenter::released, m_view,
-      &TemporalScenarioView::released);
+        ev_pres, &EventPresenter::released, m_view,
+        &TemporalScenarioView::released);
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated(
@@ -484,21 +493,21 @@ void TemporalScenarioPresenter::on_timeNodeCreated(
 
   con(timeNode_model, &TimeNodeModel::extentChanged, this,
       [=](const VerticalExtent&) {
-        m_viewInterface.on_timeNodeMoved(*tn_pres);
-      });
+    m_viewInterface.on_timeNodeMoved(*tn_pres);
+  });
   con(timeNode_model, &TimeNodeModel::dateChanged, this,
       [=](const TimeVal&) { m_viewInterface.on_timeNodeMoved(*tn_pres); });
 
   // For the state machine
   connect(
-      tn_pres, &TimeNodePresenter::pressed, m_view,
-      &TemporalScenarioView::pressedAsked);
+        tn_pres, &TimeNodePresenter::pressed, m_view,
+        &TemporalScenarioView::pressedAsked);
   connect(
-      tn_pres, &TimeNodePresenter::moved, m_view,
-      &TemporalScenarioView::movedAsked);
+        tn_pres, &TimeNodePresenter::moved, m_view,
+        &TemporalScenarioView::movedAsked);
   connect(
-      tn_pres, &TimeNodePresenter::released, m_view,
-      &TemporalScenarioView::released);
+        tn_pres, &TimeNodePresenter::released, m_view,
+        &TemporalScenarioView::released);
 }
 
 void TemporalScenarioPresenter::on_stateCreated(const StateModel& state)
@@ -514,40 +523,40 @@ void TemporalScenarioPresenter::on_stateCreated(const StateModel& state)
 
   // For the state machine
   connect(
-      st_pres, &StatePresenter::pressed, m_view,
-      &TemporalScenarioView::pressedAsked);
+        st_pres, &StatePresenter::pressed, m_view,
+        &TemporalScenarioView::pressedAsked);
   connect(
-      st_pres, &StatePresenter::moved, m_view,
-      &TemporalScenarioView::movedAsked);
+        st_pres, &StatePresenter::moved, m_view,
+        &TemporalScenarioView::movedAsked);
   connect(
-      st_pres, &StatePresenter::released, m_view,
-      &TemporalScenarioView::released);
+        st_pres, &StatePresenter::released, m_view,
+        &TemporalScenarioView::released);
 
   connect(
-      st_pres, &StatePresenter::askUpdate, this,
-      &TemporalScenarioPresenter::on_askUpdate);
+        st_pres, &StatePresenter::askUpdate, this,
+        &TemporalScenarioPresenter::on_askUpdate);
 }
 
-void TemporalScenarioPresenter::on_constraintViewModelCreated(
-    const TemporalConstraintViewModel& constraint_view_model)
+void TemporalScenarioPresenter::on_constraintCreated(
+    const ConstraintModel& constraint)
 {
   auto cst_pres = new TemporalConstraintPresenter{
-      constraint_view_model, m_context.context, m_view, this};
+      constraint, m_context.context, m_view, this};
   m_constraints.insert(cst_pres);
   cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
   m_viewInterface.on_constraintMoved(*cst_pres);
 
   connect(
-      cst_pres, &TemporalConstraintPresenter::heightPercentageChanged, this,
-      [=]() { m_viewInterface.on_constraintMoved(*cst_pres); });
-  con(constraint_view_model.model(), &ConstraintModel::startDateChanged, this,
+        cst_pres, &TemporalConstraintPresenter::heightPercentageChanged, this,
+        [=]() { m_viewInterface.on_constraintMoved(*cst_pres); });
+  con(constraint, &ConstraintModel::startDateChanged, this,
       [=](const TimeVal&) {
-        m_viewInterface.on_constraintMoved(*cst_pres);
-      });
+    m_viewInterface.on_constraintMoved(*cst_pres);
+  });
   connect(
-      cst_pres, &TemporalConstraintPresenter::askUpdate, this,
-      &TemporalScenarioPresenter::on_askUpdate);
+        cst_pres, &TemporalConstraintPresenter::askUpdate, this,
+        &TemporalScenarioPresenter::on_askUpdate);
 
   connect(cst_pres, &TemporalConstraintPresenter::constraintHoverEnter, [=]() {
     m_viewInterface.on_hoverOnConstraint(cst_pres->model().id(), true);
@@ -558,17 +567,17 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(
 
   // For the state machine
   connect(
-      cst_pres, &TemporalConstraintPresenter::pressed, m_view,
-      &TemporalScenarioView::pressedAsked);
+        cst_pres, &TemporalConstraintPresenter::pressed, m_view,
+        &TemporalScenarioView::pressedAsked);
   connect(
-      cst_pres, &TemporalConstraintPresenter::moved, m_view,
-      &TemporalScenarioView::movedAsked);
+        cst_pres, &TemporalConstraintPresenter::moved, m_view,
+        &TemporalScenarioView::movedAsked);
   connect(
-      cst_pres, &TemporalConstraintPresenter::released, m_view,
-      &TemporalScenarioView::released);
+        cst_pres, &TemporalConstraintPresenter::released, m_view,
+        &TemporalScenarioView::released);
 }
 
-void TemporalScenarioPresenter::on_commentBlockCreated(
+void TemporalScenarioPresenter::on_commentCreated(
     const CommentBlockModel& comment_block_model)
 {
   using namespace Scenario::Command;
@@ -589,26 +598,24 @@ void TemporalScenarioPresenter::on_commentBlockCreated(
 
   // Commands
   connect(cmt_pres, &CommentBlockPresenter::moved, this, [&](QPointF scenPos) {
-    auto& scenarModel = static_cast<Scenario::ProcessModel&>(
-        this->layerModel().processModel());
     auto pos = Scenario::ConvertToScenarioPoint(
-        scenPos, m_zoomRatio, m_view->height());
+          scenPos, m_zoomRatio, m_view->height());
     m_ongoingDispatcher.submitCommand<MoveCommentBlock>(
-        scenarModel, comment_block_model.id(), pos.date, pos.y);
+          m_layer, comment_block_model.id(), pos.date, pos.y);
   });
   connect(
-      cmt_pres, &CommentBlockPresenter::released, this,
-      [&](QPointF scenPos) { m_ongoingDispatcher.commit(); });
+        cmt_pres, &CommentBlockPresenter::released, this,
+        [&](QPointF scenPos) { m_ongoingDispatcher.commit(); });
 
   connect(
-      cmt_pres, &CommentBlockPresenter::editFinished, this,
-      [&](const QString& doc) {
-        if (focused() && doc != comment_block_model.content())
-        {
-          CommandDispatcher<> c{m_context.context.commandStack};
-          c.submitCommand(new SetCommentText{{comment_block_model}, doc});
-        }
-      });
+        cmt_pres, &CommentBlockPresenter::editFinished, this,
+        [&](const QString& doc) {
+    if (focused() && doc != comment_block_model.content())
+    {
+      CommandDispatcher<> c{m_context.context.commandStack};
+      c.submitCommand(new SetCommentText{{comment_block_model}, doc});
+    }
+  });
 }
 
 void TemporalScenarioPresenter::updateAllElements()

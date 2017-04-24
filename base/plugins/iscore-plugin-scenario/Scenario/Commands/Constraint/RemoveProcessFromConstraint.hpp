@@ -13,10 +13,6 @@ struct DataStreamInput;
 struct DataStreamOutput;
 namespace Process
 {
-class LayerModel;
-}
-namespace Process
-{
 class ProcessModel;
 }
 
@@ -50,7 +46,7 @@ private:
   QByteArray m_serializedProcessData;
 
   std::vector<Path<Scenario::SlotModel>> m_slots;
-  std::vector<bool> m_inFront;
+  std::vector<int8_t> m_inFront;
 };
 }
 }

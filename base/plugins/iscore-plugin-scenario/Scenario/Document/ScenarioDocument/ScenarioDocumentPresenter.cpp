@@ -155,14 +155,9 @@ ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
   delete m_scenarioPresenter;
 }
 
-const ConstraintModel& ScenarioDocumentPresenter::displayedConstraint() const
+ConstraintModel& ScenarioDocumentPresenter::displayedConstraint() const
 {
   return displayedElements.constraint();
-}
-
-void ScenarioDocumentPresenter::on_askUpdate()
-{
-  // view().update();
 }
 
 void ScenarioDocumentPresenter::selectAll()
@@ -208,8 +203,8 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
   // Set a new zoom ratio, such that the displayed constraint takes the whole
   // screen.
 
-  double newZoom = displayedConstraint().fullView()->zoom();
-  auto rect = displayedConstraint().fullView()->visibleRect();
+  double newZoom = displayedConstraint().zoom();
+  auto rect = displayedConstraint().visibleRect();
 
   if (newZoom != -1) // constraint has already been in fullview
   {
@@ -234,8 +229,6 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
   gv.ensureVisible(
       gv.mapFromScene(rect)
           .boundingRect());
-
-  on_askUpdate();
 }
 
 void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
@@ -301,7 +294,7 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize)
   updateZoom(zoom, {0, 0});
 
   // update the center of view
-  displayedConstraint().fullView()->setVisibleRect(
+  displayedConstraint().setVisibleRect(
       gv.mapToScene(gv.viewport()->rect()).boundingRect());
 }
 
@@ -318,7 +311,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 
   m_mainTimeRuler->setStartPoint(
       TimeVal::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
-  displayedConstraint().fullView()->setVisibleRect(visible_scene_rect);
+  displayedConstraint().setVisibleRect(visible_scene_rect);
 }
 
 void ScenarioDocumentPresenter::on_elementsScaleChanged(double s)
@@ -375,15 +368,17 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 
   m_mainTimeRuler->view()->setWidth(gv.width());
   // TODO should call displayedElementsPresenter instead??
-  displayedConstraint().fullView()->setZoom(view().zoomSlider()->value());
-  displayedConstraint().fullView()->setVisibleRect(new_visible_scene_rect);
+  displayedConstraint().setZoom(view().zoomSlider()->value());
+  displayedConstraint().setVisibleRect(new_visible_scene_rect);
 }
 
 
 
 
-static void updateSlotFocus(const Process::LayerModel* lm, bool b)
+static void updateSlotFocus(const Process::ProcessModel* lm, bool b)
 {
+  // TODO
+  /*
   if (lm && lm->parent())
   {
     if (auto slot = dynamic_cast<SlotModel*>(lm->parent()))
@@ -391,6 +386,7 @@ static void updateSlotFocus(const Process::LayerModel* lm, bool b)
       slot->setFocus(b);
     }
   }
+  */
 }
 
 
@@ -419,7 +415,7 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
   if (&constraint != &model().baseConstraint())
   {
     m_constraintConnection
-        = connect(constraint.fullView(), &QObject::destroyed, this, [&]() {
+        = con(constraint, &QObject::destroyed, this, [&]() {
             setDisplayedConstraint(model().baseConstraint());
           });
   }
@@ -429,25 +425,25 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
 
 
 void ScenarioDocumentPresenter::on_viewModelDefocused(
-    const Process::LayerModel* vm)
+    const Process::ProcessModel* vm)
 {
   // Disable the focus on previously focused view model
-  updateSlotFocus(vm, false);
+  // TODO updateSlotFocus(vm, false);
 
   // Deselect
   // Note : why these two lines ?
   // selectionStack.clear() should clear the selection everywhere anyway.
   if (vm)
-    vm->processModel().setSelection({});
+    vm->setSelection({});
 
   iscore::IDocument::documentContext(*this).selectionStack.clearAllButLast();
 }
 
 void ScenarioDocumentPresenter::on_viewModelFocused(
-    const Process::LayerModel* process)
+    const Process::ProcessModel* process)
 {
   // Enable focus on the new viewmodel
-  updateSlotFocus(process, true);
+  // TODO updateSlotFocus(process, true);
 
   // If the parent of the layer is a constraint, we set the focus on the
   // constraint too.

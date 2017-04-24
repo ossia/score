@@ -30,7 +30,7 @@ focusedScenarioInterface(const iscore::DocumentContext& ctx)
 
 const ProcessModel* focusedScenarioModel(const iscore::DocumentContext& ctx)
 {
-  return dynamic_cast<const Process::ProcessModel*>(ctx.document.focusManager().get());
+  return dynamic_cast<const Scenario::ProcessModel*>(ctx.document.focusManager().get());
 }
 
 EnableWhenScenarioModelObject::EnableWhenScenarioModelObject()

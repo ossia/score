@@ -6,6 +6,10 @@
 #include <iscore_plugin_scenario_export.h>
 class QGraphicsItem;
 class QObject;
+namespace Process
+{
+class ProcessModel;
+}
 namespace Scenario
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final
@@ -32,12 +36,7 @@ public:
 
 
   RackPresenter* rack() const;
-  void on_rackShown(const OptionalId<RackModel>&);
-  void on_rackHidden();
-  void on_noRacks();
-
-  void on_racksChanged(const RackModel&);
-  void on_racksChanged();
+  void on_rackVisibleChanged(bool);
 
   void updateScaling() override;
   void on_zoomRatioChanged(ZoomRatio val) override;
@@ -50,10 +49,12 @@ signals:
   void constraintHoverLeave();
 
 private:
+  void on_processesChanged(const Process::ProcessModel&);
   void createRackPresenter(const RackModel&);
   void clearRackPresenter();
   void on_rackRemoved(const RackModel&);
 
   RackPresenter* m_rack{};
 };
+
 }

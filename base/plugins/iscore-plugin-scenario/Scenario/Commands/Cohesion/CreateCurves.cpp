@@ -95,10 +95,7 @@ void CreateCurvesFromAddresses(
     // Generate brand new ids for the processes
     auto process_ids = getStrongIdRange<Process::ProcessModel>(
         addresses.size(), constraint.processes);
-    auto macro_tuple
-        = Scenario::Command::makeAddProcessMacro(constraint, addresses.size());
-    auto macro = std::get<0>(macro_tuple);
-    auto& bigLayerVec = std::get<1>(macro_tuple);
+    auto macro = Scenario::Command::makeAddProcessMacro(constraint, addresses.size());
 
     const Scenario::StateModel& ss = startState(constraint, *scenar);
     const auto& es = endState(constraint, *scenar);
@@ -150,7 +147,7 @@ void CreateCurvesFromAddresses(
 
       // Send the command.
       macro->addCommand(new Scenario::Command::CreateAutomationFromStates{
-          constraint, bigLayerVec[i], process_ids[i], addr, dom});
+          constraint, macro->slotsToUse, process_ids[i], addr, dom});
 
       i++;
       added_processes++;

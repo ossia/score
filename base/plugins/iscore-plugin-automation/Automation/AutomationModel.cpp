@@ -19,10 +19,7 @@
 #include <iscore/tools/MapCopy.hpp>
 #include <iscore/model/Identifier.hpp>
 
-namespace Process
-{
-class LayerModel;
-}
+
 namespace Process
 {
 class ProcessModel;

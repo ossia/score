@@ -9,6 +9,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/document/DocumentContext.hpp>
+#include <core/document/Document.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <map>
 #include <utility>
@@ -34,7 +35,6 @@ ConstraintModel::ConstraintModel(
     , m_smallViewRack{new RackModel{smallViewRackId(), this}}
     , m_fullViewRack{new RackModel{fullViewRackId(), this}}
 {
-  initConnections();
   metadata().setInstanceName(*this);
   metadata().setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
   setHeightPercentage(yPos);
@@ -55,7 +55,6 @@ ConstraintModel::ConstraintModel(
     : Entity{source, id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent}
 {
   metadata().setInstanceName(*this);
-  initConnections();
   // It is not necessary to save modelconsistency because it should be
   // recomputed
 
@@ -81,22 +80,8 @@ ConstraintModel::ConstraintModel(
     // duration.
   }
 
-  auto& procs
-      = iscore::AppComponents().interfaces<Process::LayerFactoryList>();
-  auto rack_fun = [&] (const SlotModel& source_slot, SlotModel& target) {
-    for (auto& lm : source_slot.layers)
-    {
-      // We can safely reuse the same id since it's in a different slot.
-      auto proc = processPairs[&lm.processModel()];
-      auto fact = procs.findDefaultFactory(proc->concreteKey());
-      // TODO harmonize the order of parameters (source first, then new
-      // id)
-      target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
-    }
-  };
-
-  m_smallViewRack = new RackModel{*source.m_smallViewRack, source.m_smallViewRack->id(), rack_fun, this};
-  m_fullViewRack = new RackModel{*source.m_fullViewRack, source.m_fullViewRack->id(), rack_fun, this};
+  m_smallViewRack = new RackModel{*source.m_smallViewRack, source.m_smallViewRack->id(), this};
+  m_fullViewRack = new RackModel{*source.m_fullViewRack, source.m_fullViewRack->id(), this};
 }
 
 
@@ -150,12 +135,6 @@ void ConstraintModel::translate(const TimeVal& deltaTime)
 double ConstraintModel::heightPercentage() const
 {
   return m_heightPercentage;
-}
-
-void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
-{
-  m_fullViewModel = fv;
-  setupConstraintViewModel(m_fullViewModel);
 }
 
 // Should go in an "execution" object.
@@ -238,9 +217,15 @@ void ConstraintModel::setVisibleRect(const QRectF& value)
   m_center = value;
 }
 
-void ConstraintModel::setSmallViewVisible(bool)
+void ConstraintModel::setSmallViewVisible(bool v)
 {
+  m_smallViewShown = v;
+  emit smallViewVisibleChanged(v);
+}
 
+bool ConstraintModel::smallViewVisible() const
+{
+  return m_smallViewShown;
 }
 
 bool isInFullView(const ConstraintModel& cstr)
@@ -250,4 +235,10 @@ bool isInFullView(const ConstraintModel& cstr)
                 doc.document.presenter().presenterDelegate());
   return &sub.displayedElements.constraint() == &cstr;
 }
+
+bool isInFullView(const Process::ProcessModel& cstr)
+{
+  return isInFullView(*static_cast<ConstraintModel*>(cstr.parent()));
+}
+
 }

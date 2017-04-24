@@ -21,18 +21,18 @@ class QObject;
 namespace Scenario
 {
 ConstraintPresenter::ConstraintPresenter(
-    const ConstraintViewModel& model,
+    const ConstraintModel& model,
     ConstraintView* view,
     ConstraintHeader* header,
     const Process::ProcessPresenterContext& ctx,
     QObject* parent)
     : QObject{parent}
-    , m_viewModel{model}
+    , m_model{model}
     , m_view{view}
     , m_header{header}
     , m_context{ctx}
 {
-  auto& constraint = m_viewModel.model();
+  auto& constraint = m_model;
   m_header->setParentItem(m_view);
   m_header->setConstraintView(m_view);
   m_header->hide();
@@ -84,7 +84,7 @@ ConstraintPresenter::~ConstraintPresenter()
 
 void ConstraintPresenter::updateScaling()
 {
-  const auto& cm = m_viewModel.model();
+  const auto& cm = m_model;
   // prendre en compte la distance du clic à chaque côté
 
   on_defaultDurationChanged(cm.duration.defaultDuration());
@@ -152,13 +152,13 @@ void ConstraintPresenter::updateChildren()
 
 bool ConstraintPresenter::isSelected() const
 {
-  return m_viewModel.model().selection.get();
+  return m_model.selection.get();
 }
 
 
 const ConstraintModel& ConstraintPresenter::model() const
 {
-  return m_viewModel.model();
+  return m_model;
 }
 
 ConstraintView* ConstraintPresenter::view() const
@@ -168,7 +168,7 @@ ConstraintView* ConstraintPresenter::view() const
 
 void ConstraintPresenter::updateBraces()
 {
-  const auto& dur = m_viewModel.model().duration;
+  const auto& dur = m_model.duration;
   auto& lb = m_view->leftBrace();
   auto& rb = m_view->rightBrace();
   const bool rigid = dur.isRigid();

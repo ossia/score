@@ -45,15 +45,16 @@ SlotPresenter::SlotPresenter(
 {
   m_view->setPos(0, 0);
 
-  for (const auto& proc_vm : m_model.layers)
+  auto& constraint = model.parentConstraint();
+  for (const auto& proc_vm : m_model.layers())
   {
-    on_layerModelCreated_impl(proc_vm);
+    on_layerModelCreated_impl(constraint.processes.at(proc_vm));
   }
 
-  m_model.layers.added
-      .connect<SlotPresenter, &SlotPresenter::on_layerModelCreated>(this);
-  m_model.layers.removed
-      .connect<SlotPresenter, &SlotPresenter::on_layerModelRemoved>(this);
+  con(m_model, &SlotModel::layerAdded,
+      this, &SlotPresenter::on_layerModelCreated);
+  con(m_model, &SlotModel::layerRemoved,
+      this, &SlotPresenter::on_layerModelRemoved);
 
   con(m_model, &SlotModel::layerModelPutToFront, this,
       &SlotPresenter::on_layerModelPutToFront);
@@ -144,12 +145,12 @@ void SlotPresenter::disable()
   m_enabled = false;
 }
 
-void SlotPresenter::on_layerModelCreated(const Process::LayerModel& layerModel)
+void SlotPresenter::on_layerModelCreated(const Process::ProcessModel& layerModel)
 {
   on_layerModelCreated_impl(layerModel);
 }
 
-void SlotPresenter::on_layerModelRemoved(const Process::LayerModel& layerModel)
+void SlotPresenter::on_layerModelRemoved(const Process::ProcessModel& layerModel)
 {
   boost::remove_erase_if(m_processes, [&](auto& elt) {
     bool to_delete = elt.model->id() == layerModel.id();
@@ -170,7 +171,7 @@ void SlotPresenter::on_layerModelRemoved(const Process::LayerModel& layerModel)
   emit askUpdate();
 }
 
-void SlotPresenter::on_layerModelPutToFront(const Process::LayerModel& layer)
+void SlotPresenter::on_layerModelPutToFront(const Process::ProcessModel& layer)
 {
   // Put the selected one at z+1 and the others at -z; set "disabled" graphics
   // mode.
@@ -214,9 +215,9 @@ void SlotPresenter::on_zoomRatioChanged(ZoomRatio val)
 }
 
 void SlotPresenter::on_layerModelCreated_impl(
-    const Process::LayerModel& proc_vm)
+    const Process::ProcessModel& proc_vm)
 {
-  const auto& procKey = proc_vm.processModel().concreteKey();
+  const auto& procKey = proc_vm.concreteKey();
 
   auto factory = m_processList.findDefaultFactory(procKey);
   ISCORE_ASSERT(factory);
@@ -228,13 +229,13 @@ void SlotPresenter::on_layerModelCreated_impl(
   m_processes.emplace_back(&proc_vm, proc_pres, proc_view);
 
   auto con_id = con(
-      proc_vm.processModel(), &Process::ProcessModel::durationChanged, this,
+      proc_vm, &Process::ProcessModel::durationChanged, this,
       [&](const TimeVal&) {
         // TODO index instead
         auto it = std::find_if(
             m_processes.begin(), m_processes.end(), [&](const auto& elt) {
-              return elt.model->processModel().id()
-                     == proc_vm.processModel().id();
+              return elt.model->id()
+                     == proc_vm.id();
             });
 
         // TODO this should be an assert but it sometimes causes crashes.

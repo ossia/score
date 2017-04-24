@@ -8,14 +8,6 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore_plugin_mapping_export.h>
-class DataStream;
-class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
-
-class QObject;
 #include <iscore/model/Identifier.hpp>
 
 namespace Mapping

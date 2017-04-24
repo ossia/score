@@ -25,8 +25,6 @@ class JSONObject;
 namespace Scenario
 {
 class StateModel;
-class ConstraintViewModel;
-class FullViewConstraintViewModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
     : public iscore::Entity<ConstraintModel>,
@@ -35,7 +33,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
   Q_OBJECT
 
   ISCORE_SERIALIZE_FRIENDS
-
+  friend class ConstraintSaveData;
   // TODO must go in view model
   Q_PROPERTY(double heightPercentage READ heightPercentage WRITE
                  setHeightPercentage NOTIFY heightPercentageChanged)
@@ -55,7 +53,6 @@ public:
   /** The class **/
   ConstraintModel(
       const Id<ConstraintModel>&,
-      const Id<ConstraintViewModel>& fullViewId,
       double yPos,
       QObject* parent);
 
@@ -111,6 +108,7 @@ public:
   void setVisibleRect(const QRectF& value);
 
   void setSmallViewVisible(bool);
+  bool smallViewVisible() const;
 signals:
   void heightPercentageChanged(double);
 
@@ -121,8 +119,9 @@ signals:
   void executionStarted();
   void executionStopped();
 
+  void smallViewVisibleChanged(bool);
+
 private:
-  void initConnections();
   void on_rackAdded(const RackModel& rack);
 
   // Model for the full view.
@@ -146,6 +145,8 @@ private:
 
 ISCORE_PLUGIN_SCENARIO_EXPORT
 bool isInFullView(const Scenario::ConstraintModel& cstr);
+ISCORE_PLUGIN_SCENARIO_EXPORT
+bool isInFullView(const Process::ProcessModel& cstr);
 
 }
 

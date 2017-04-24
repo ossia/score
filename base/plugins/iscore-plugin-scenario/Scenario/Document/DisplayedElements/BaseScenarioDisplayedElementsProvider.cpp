@@ -45,7 +45,7 @@ BaseScenarioDisplayedElementsProvider::make_presenters(
   if (auto bs = dynamic_cast<BaseScenario*>(m.parent()))
   {
     return DisplayedElementsPresenterContainer{
-        new FullViewConstraintPresenter{*m.fullView(), ctx, view_parent,
+        new FullViewConstraintPresenter{m, ctx, view_parent,
                                         parent},
         new StatePresenter{bs->startState(), view_parent, parent},
         new StatePresenter{bs->endState(), view_parent, parent},

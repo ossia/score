@@ -56,7 +56,6 @@ public:
   template <typename Impl>
   SlotModel(Impl& vis, QObject* parent) : Entity{vis, parent}
   {
-    initConnections();
     vis.writeTo(*this);
   }
 
@@ -89,12 +88,10 @@ signals:
   void HeightChanged(qreal arg);
   void focusChanged(bool arg);
 
+  void layerAdded(const Process::ProcessModel&);
+  void layerRemoved(const Process::ProcessModel&);
+
 private:
-  void initConnections();
-
-  void on_addLayer(const Process::ProcessModel& viewmodel);
-  void on_removeLayer(const Process::ProcessModel&);
-
   OptionalId<Process::ProcessModel> m_frontLayerModelId;
   std::vector<Id<Process::ProcessModel>> m_processes;
 

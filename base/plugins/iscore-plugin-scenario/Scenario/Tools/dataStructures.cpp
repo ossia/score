@@ -27,20 +27,21 @@ ConstraintSaveData::ConstraintSaveData(
   }
 
   racks.reserve(2);
-  for (const auto& rack : {constraint.smallViewRack(), constraint.fullViewRack()})
+
   {
     QByteArray arr;
     DataStream::Serializer s{&arr};
     // We only save the data proper to the racks.
-    s.read(rack);
+    s.read(constraint.smallViewRack());
     racks.push_back(std::move(arr));
   }
 
-  // TODO save view model data instead, since later it
-  // might be more than just the shown rack.
-  for (const auto& viewmodel : constraint.viewModels())
   {
-    viewMapping.insert(viewmodel->id(), viewmodel->shownRack());
+    QByteArray arr;
+    DataStream::Serializer s{&arr};
+    // We only save the data proper to the racks.
+    s.read(constraint.fullViewRack());
+    racks.push_back(std::move(arr));
   }
 }
 
@@ -61,24 +62,11 @@ void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
   // Restore the rackes
   {
     DataStream::Deserializer des{racks[0]};
-    des.write(constraint.m_smallViewRack);
+    des.write(*constraint.m_smallViewRack);
   }
   {
     DataStream::Deserializer des{racks[1]};
-    des.write(constraint.m_fullViewRack);
-  }
-
-  // Restore the correct rackes in the constraint view models
-  if (constraint.processes.size() != 0)
-  {
-    auto bit = constraint.viewModels().begin(),
-         eit = constraint.viewModels().end();
-    for (const auto& cvmid : viewMapping.keys())
-    {
-      auto it = std::find(bit, eit, cvmid);
-      ISCORE_ASSERT(it != eit);
-      (*it)->showRack(viewMapping.value(cvmid));
-    }
+    des.write(*constraint.m_fullViewRack);
   }
 }
 }
@@ -113,8 +101,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::ConstraintSaveData& constraintProperties)
 {
   m_stream << constraintProperties.constraintPath
-           << constraintProperties.processes << constraintProperties.racks
-           << constraintProperties.viewMapping;
+           << constraintProperties.processes << constraintProperties.racks;
   insertDelimiter();
 }
 
@@ -123,8 +110,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::ConstraintSaveData& constraintProperties)
 {
   m_stream >> constraintProperties.constraintPath
-      >> constraintProperties.processes >> constraintProperties.racks
-      >> constraintProperties.viewMapping;
+      >> constraintProperties.processes >> constraintProperties.racks;
 
   checkDelimiter();
 }

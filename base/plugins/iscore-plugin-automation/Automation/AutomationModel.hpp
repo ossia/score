@@ -13,10 +13,7 @@
 
 class DataStream;
 class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
+
 namespace Process
 {
 class ProcessModel;

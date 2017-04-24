@@ -110,9 +110,7 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
       con(m_constraintPresenter->model().duration,
           &ConstraintDurations::defaultDurationChanged, this,
           &DisplayedElementsPresenter::on_displayedConstraintDurationChanged));
-  m_connections.push_back(connect(
-      m_constraintPresenter, &FullViewConstraintPresenter::askUpdate, m_model,
-      &ScenarioDocumentPresenter::on_askUpdate));
+
   m_connections.push_back(connect(
       m_constraintPresenter, &FullViewConstraintPresenter::heightChanged, this,
       [&]() {
@@ -150,10 +148,10 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
 void DisplayedElementsPresenter::showConstraint()
 {
   // We set the focus on the main scenario.
-  if (m_constraintPresenter->rack()
-      && !m_constraintPresenter->rack()->getSlots().empty())
+  auto& rack = m_constraintPresenter->rack();
+  if (!rack.getSlots().empty())
   {
-    const auto& slot = *m_constraintPresenter->rack()->getSlots().begin();
+    const auto& slot = *rack.getSlots().begin();
     if (!slot.processes().empty())
     {
       const auto& slot_process = slot.processes().front();
@@ -168,8 +166,7 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 {
   if (!m_constraintPresenter)
     return;
-  updateLength(m_constraintPresenter->abstractConstraintViewModel()
-                   .model()
+  updateLength(m_constraintPresenter->model()
                    .duration.defaultDuration()
                    .toPixels(r));
 
@@ -192,8 +189,7 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
     double size)
 {
   m_model->updateRect({qreal(ScenarioLeftSpace), 0,
-                       m_constraintPresenter->abstractConstraintViewModel()
-                           .model()
+                       m_constraintPresenter->model()
                            .duration.defaultDuration()
                            .toPixels(m_constraintPresenter->zoomRatio()),
                        size});

@@ -12,13 +12,6 @@
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/model/Identifier.hpp>
 
-namespace Process
-{
-class LayerModel;
-}
-
-class QObject;
-
 namespace Mapping
 {
 ProcessModel::ProcessModel(

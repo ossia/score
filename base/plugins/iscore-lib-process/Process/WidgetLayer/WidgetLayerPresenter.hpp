@@ -33,7 +33,7 @@ public:
     });
 
     m_view->setWidget(new Widget_T{
-        static_cast<const Process_T&>(m_layer.processModel()), ctx, nullptr});
+        static_cast<const Process_T&>(m_layer), ctx, nullptr});
   }
 
   void setWidth(qreal val) override
@@ -69,7 +69,7 @@ public:
   }
   const Id<Process::ProcessModel>& modelId() const override
   {
-    return m_layer.processModel().id();
+    return m_layer.id();
   }
 
 private:

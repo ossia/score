@@ -15,10 +15,7 @@
 
 struct DataStreamInput;
 struct DataStreamOutput;
-namespace Process
-{
-class LayerModel;
-}
+
 namespace Process
 {
 class ProcessModel;
@@ -47,13 +44,10 @@ public:
       : m_addProcessCmd{std::move(constraint), std::move(procId),
                         Metadata<ConcreteKey_k, ProcessModel_T>::get()}
   {
-    auto proc = m_addProcessCmd.constraintPath().extend(
-        Metadata<ObjectKey_k, ProcessModel_T>::get(), procId);
-
     m_slotsCmd.reserve(slotList.size());
     for (const auto& elt : slotList)
     {
-      m_slotsCmd.emplace_back(elt, proc);
+      m_slotsCmd.emplace_back(elt, procId);
     }
   }
 

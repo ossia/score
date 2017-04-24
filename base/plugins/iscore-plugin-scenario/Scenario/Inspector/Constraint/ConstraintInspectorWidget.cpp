@@ -213,11 +213,6 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
       .connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_orderChanged>(
           this);
 
-  con(model(), &ConstraintModel::viewModelCreated, this,
-      &ConstraintInspectorWidget::on_constraintViewModelCreated);
-  con(model(), &ConstraintModel::viewModelRemoved, this,
-      &ConstraintInspectorWidget::on_constraintViewModelRemoved);
-
   updateDisplayedValues();
 
   m_delegate->addWidgets_post(m_properties, this);
@@ -267,14 +262,4 @@ void ConstraintInspectorWidget::on_orderChanged()
   QTimer::singleShot(0, [this] { m_processesTabPage->updateDisplayedValues(); });
 }
 
-void ConstraintInspectorWidget::on_constraintViewModelCreated(
-    const ConstraintViewModel&)
-{
-  // OPTIMIZEME
-}
-
-void ConstraintInspectorWidget::on_constraintViewModelRemoved(const QObject*)
-{
-  // OPTIMIZEME
-}
 }

@@ -54,6 +54,8 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     QMenu& menu,
     const SlotPresenter& slotp)
 {
+  //TODO
+  /*
   using namespace Scenario::Command;
   // TODO see
   // http://stackoverflow.com/questions/21443023/capturing-a-reference-by-reference-in-a-c11-lambda
@@ -169,6 +171,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     dialog.launchWindow();
   });
   menu.addAction(addNewProcessInNewSlot);
+  */
 }
 
 void ScenarioContextMenuManager::createLayerContextMenu(

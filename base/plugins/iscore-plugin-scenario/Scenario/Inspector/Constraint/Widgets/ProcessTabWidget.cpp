@@ -221,7 +221,7 @@ void ProcessTabWidget::updateDisplayedValues()
       {
         if(auto lay = slot.frontLayerModel())
         {
-          expanded[lay->processModel().id()] = true;
+          expanded[lay->id()] = true;
         }
       }
 

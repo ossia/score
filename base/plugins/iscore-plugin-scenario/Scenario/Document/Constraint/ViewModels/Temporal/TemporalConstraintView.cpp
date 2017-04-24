@@ -37,6 +37,11 @@ TemporalConstraintView::TemporalConstraintView(
   this->setZValue(ZPos::Constraint);
 }
 
+const TemporalConstraintPresenter&TemporalConstraintView::presenter() const
+{
+  return static_cast<const TemporalConstraintPresenter&>(m_presenter);
+}
+
 void TemporalConstraintView::updatePaths()
 {
   solidPath = QPainterPath{};

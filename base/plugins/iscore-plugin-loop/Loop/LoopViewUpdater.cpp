@@ -99,13 +99,13 @@ void ViewUpdater::updateState(const Scenario::StatePresenter& state)
 {
   if (&state == m_presenter.m_startStatePresenter)
   {
-    const auto& ev = m_presenter.m_layer.model().startEvent();
+    const auto& ev = m_presenter.model().startEvent();
     state.view()->setPos(
         {ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
   }
   else if (&state == m_presenter.m_endStatePresenter)
   {
-    const auto& ev = m_presenter.m_layer.model().endEvent();
+    const auto& ev = m_presenter.model().endEvent();
     state.view()->setPos(
         {ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
   }

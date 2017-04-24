@@ -34,7 +34,7 @@ class QString;
 namespace Scenario
 {
 TemporalConstraintPresenter::TemporalConstraintPresenter(
-    const TemporalConstraintViewModel& cstr_model,
+    const ConstraintModel& cstr_model,
     const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* parentobject,
     QObject* parent)
@@ -52,10 +52,10 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
   con(v, &ConstraintView::requestOverlayMenu,
       this, &TemporalConstraintPresenter::on_requestOverlayMenu);
 
-  con(cstr_model.model(), &ConstraintModel::executionStateChanged, &v,
+  con(cstr_model, &ConstraintModel::executionStateChanged, &v,
       &TemporalConstraintView::setExecutionState);
 
-  const auto& metadata = m_viewModel.model().metadata();
+  const auto& metadata = m_model.metadata();
   con(metadata, &iscore::ModelMetadata::LabelChanged, &v,
       &TemporalConstraintView::setLabel);
 
@@ -72,18 +72,18 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
   v.setLabelColor(metadata.getColor());
   v.setColor(metadata.getColor());
   m_header->setText(metadata.getName());
-  v.setExecutionState(m_viewModel.model().executionState());
+  v.setExecutionState(m_model.executionState());
 
-  con(m_viewModel.model().selection, &Selectable::changed, &v,
+  con(m_model.selection, &Selectable::changed, &v,
       &TemporalConstraintView::setFocused);
-  con(m_viewModel.model(), &ConstraintModel::focusChanged, &v,
+  con(m_model, &ConstraintModel::focusChanged, &v,
       &TemporalConstraintView::setFocused);
 
   // Drop
   con(v, &TemporalConstraintView::dropReceived, this,
       [=](const QPointF& pos, const QMimeData* mime) {
     m_context.app.interfaces<Scenario::ConstraintDropHandlerList>()
-        .drop(m_viewModel.model(), mime);
+        .drop(m_model, mime);
   });
 
   // Header set-up
@@ -103,34 +103,27 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
         header, &TemporalConstraintHeader::dropReceived, this,
         [=](const QPointF& pos, const QMimeData* mime) {
     m_context.app.interfaces<Scenario::ConstraintDropHandlerList>()
-        .drop(m_viewModel.model(), mime);
+        .drop(m_model, mime);
   });
   // Go to full-view on double click
   connect(header, &TemporalConstraintHeader::doubleClicked, this, [this]() {
     using namespace iscore::IDocument;
-    auto& base
-        = get<ScenarioDocumentPresenter>(*documentFromObject(m_viewModel.model()));
+    ScenarioDocumentPresenter& base
+        = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
 
-    base.setDisplayedConstraint(m_viewModel.model());
+    base.setDisplayedConstraint(const_cast<ConstraintModel&>(m_model));
   });
 
 
-  con(m_viewModel, &ConstraintViewModel::rackShown, this,
-      &ConstraintPresenter::on_rackShown);
+  con(m_model, &ConstraintModel::smallViewVisibleChanged, this,
+      &TemporalConstraintPresenter::on_rackVisibleChanged);
 
-  con(m_viewModel, &ConstraintViewModel::rackHidden, this,
-      &ConstraintPresenter::on_rackHidden);
-
-  con(m_viewModel, &ConstraintViewModel::lastRackRemoved, this,
-      &ConstraintPresenter::on_noRacks);
-
-  constraint.racks.added
-      .connect<ConstraintPresenter, &ConstraintPresenter::on_racksChanged>(
+  m_model.processes.added
+      .connect<TemporalConstraintPresenter, &TemporalConstraintPresenter::on_processesChanged>(
         this);
-  constraint.racks.removed
-      .connect<ConstraintPresenter, &ConstraintPresenter::on_racksChanged>(
+  m_model.processes.removed
+      .connect<TemporalConstraintPresenter, &TemporalConstraintPresenter::on_processesChanged>(
         this);
-  on_racksChanged();
 }
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()
@@ -171,13 +164,13 @@ void TemporalConstraintPresenter::on_requestOverlayMenu(QPointF)
   dialog->deleteLater();
 }
 
-
+/*
 void TemporalConstraintPresenter::on_rackShown(const OptionalId<RackModel>& rackId)
 {
   clearRackPresenter();
   if (rackId)
   {
-    createRackPresenter(m_viewModel.model().smallViewRack());
+    createRackPresenter(m_model.smallViewRack());
 
     m_header->setState(ConstraintHeader::State::RackShown);
   }
@@ -205,17 +198,12 @@ void TemporalConstraintPresenter::on_noRacks()
   updateHeight();
 }
 
-void TemporalConstraintPresenter::on_racksChanged(const RackModel&)
-{
-  on_racksChanged();
-}
-
 void TemporalConstraintPresenter::on_racksChanged()
 {
-  auto& constraint = m_viewModel.model();
-  if (m_viewModel.isRackShown())
+  auto& constraint = m_model;
+  if (m_model.isRackShown())
   {
-    on_rackShown(*m_viewModel.shownRack());
+    on_rackShown(*m_model.shownRack());
   }
   else if (!constraint.processes.empty()) // TODO why isn't this when there
     // are racks but hidden ?
@@ -227,6 +215,7 @@ void TemporalConstraintPresenter::on_racksChanged()
     on_noRacks();
   }
 }
+*/
 
 void TemporalConstraintPresenter::updateScaling()
 {
@@ -275,7 +264,7 @@ void TemporalConstraintPresenter::createRackPresenter(const RackModel& rackModel
 
   connect(
         m_rack, &RackPresenter::askUpdate, this,
-        &ConstraintPresenter::updateHeight);
+        &TemporalConstraintPresenter::updateHeight);
 
   connect(m_rack, &RackPresenter::pressed,
           this, &ConstraintPresenter::pressed);
@@ -287,11 +276,11 @@ void TemporalConstraintPresenter::createRackPresenter(const RackModel& rackModel
 
 void TemporalConstraintPresenter::updateHeight()
 {
-  if (rack() && m_viewModel.isRackShown())
+  if (m_model.smallViewVisible())
   {
     m_view->setHeight(rack()->height() + ConstraintHeader::headerHeight());
   }
-  else if (rack() && !m_viewModel.isRackShown())
+  else if (!m_model.smallViewVisible() && !m_model.processes.empty())
   {
     m_view->setHeight(ConstraintHeader::headerHeight());
   }
@@ -302,10 +291,21 @@ void TemporalConstraintPresenter::updateHeight()
 
   updateChildren();
   emit heightChanged();
+
 }
 
 RackPresenter* TemporalConstraintPresenter::rack() const
 {
   return m_rack;
+}
+
+void TemporalConstraintPresenter::on_rackVisibleChanged(bool)
+{
+  // TODO
+}
+
+void TemporalConstraintPresenter::on_processesChanged(const Process::ProcessModel&)
+{
+  // TODO
 }
 }

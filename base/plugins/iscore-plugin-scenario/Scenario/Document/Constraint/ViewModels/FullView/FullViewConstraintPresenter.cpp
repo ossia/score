@@ -22,7 +22,7 @@ class QObject;
 namespace Scenario
 {
 FullViewConstraintPresenter::FullViewConstraintPresenter(
-    const FullViewConstraintViewModel& cstr_model,
+    const ConstraintModel& cstr_model,
     const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* parentobject,
     QObject* parent)
@@ -32,31 +32,27 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
 {
   // Update the address bar
   auto addressBar = static_cast<FullViewConstraintHeader*>(m_header)->bar();
-  addressBar->setTargetObject(
-      iscore::IDocument::unsafe_path(cstr_model.model()));
+  addressBar->setTargetObject(iscore::IDocument::unsafe_path(cstr_model));
   connect(
       addressBar, &AddressBarItem::constraintSelected, this,
       &FullViewConstraintPresenter::constraintSelected);
 
-  const auto& metadata = m_viewModel.model().metadata();
+  const auto& metadata = m_model.metadata();
   con(metadata, &iscore::ModelMetadata::NameChanged, m_header,
       &ConstraintHeader::setText);
   m_header->setText(metadata.getName());
   m_header->show();
 
-  if(rack())
+  createRackPresenter();
+
+  for(const SlotPresenter& slot : rack().getSlots())
   {
-    for(const SlotPresenter& slot : rack()->getSlots())
+    for(const auto& layer : slot.processes())
     {
-      for(const auto& layer : slot.processes())
-      {
-        Process::LayerView* view = layer.view;
-        view->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
-      }
+      Process::LayerView* view = layer.view;
+      view->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
     }
   }
-
-  createRackPresenter();
 }
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()
@@ -88,14 +84,14 @@ void FullViewConstraintPresenter::createRackPresenter()
 
   // Cas par défaut
   m_rack = new RackPresenter{
-           m_viewModel.model().fullViewRack(),
+           m_model.fullViewRack(),
            rackView, m_context, this};
 
   m_rack->on_zoomRatioChanged(m_zoomRatio);
 
   connect(
         m_rack, &RackPresenter::askUpdate, this,
-        &ConstraintPresenter::updateHeight);
+        &FullViewConstraintPresenter::updateHeight);
 
   connect(m_rack, &RackPresenter::pressed,
           this, &ConstraintPresenter::pressed);
@@ -127,15 +123,9 @@ void FullViewConstraintPresenter::on_defaultDurationChanged(const TimeVal& v)
 
 void FullViewConstraintPresenter::updateHeight()
 {
-  view->setHeight(m_rack->height() + ConstraintHeader::headerHeight());
+  view()->setHeight(m_rack->height() + ConstraintHeader::headerHeight());
 
   updateChildren();
   emit heightChanged();
 }
-
-RackPresenter* FullViewConstraintPresenter::rack() const
-{
-  return m_rack;
-}
-
 }

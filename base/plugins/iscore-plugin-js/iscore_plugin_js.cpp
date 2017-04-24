@@ -28,7 +28,14 @@ iscore_plugin_js::factories(
     const iscore::ApplicationContext& ctx,
     const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, FW<Process::ProcessModelFactory, JS::ProcessFactory>, FW<Process::LayerFactory, JS::LayerFactory>, FW<Process::StateProcessFactory, JS::StateProcessFactory>, FW<Process::InspectorWidgetDelegateFactory, JS::InspectorFactory>, FW<Process::StateProcessInspectorWidgetDelegateFactory, JS::StateInspectorFactory>, FW<Engine::Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>, FW<Engine::Execution::StateProcessComponentFactory, JS::Executor::StateProcessComponentFactory>>(
+  return instantiate_factories<iscore::ApplicationContext,
+      FW<Process::ProcessModelFactory, JS::ProcessFactory>,
+      FW<Process::LayerFactory, JS::LayerFactory>,
+      FW<Process::StateProcessFactory, JS::StateProcessFactory>,
+      FW<Process::InspectorWidgetDelegateFactory, JS::InspectorFactory>,
+      FW<Process::StateProcessInspectorWidgetDelegateFactory, JS::StateInspectorFactory>,
+      FW<Engine::Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>,
+      FW<Engine::Execution::StateProcessComponentFactory, JS::Executor::StateProcessComponentFactory>>(
       ctx, key);
 }
 

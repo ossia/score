@@ -100,7 +100,6 @@ protected:
   {
     const auto& constraint = static_cast<const ConstraintView*>(pressedItem)
                                  ->presenter()
-                                 .abstractConstraintViewModel()
                                  .model();
     return constraint.parent() == &this->m_palette.model()
                ? constraint.id()

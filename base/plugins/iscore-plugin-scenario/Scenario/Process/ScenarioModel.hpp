@@ -28,11 +28,6 @@
 
 class DataStream;
 class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
-
 class QEvent;
 
 namespace Scenario

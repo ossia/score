@@ -11,16 +11,6 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
-namespace Process
-{
-class LayerModel;
-}
-namespace Process
-{
-class ProcessModel;
-}
-
-class QObject;
 #include <iscore/model/Identifier.hpp>
 
 namespace JS

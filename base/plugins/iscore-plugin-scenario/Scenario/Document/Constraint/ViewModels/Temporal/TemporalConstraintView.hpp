@@ -40,6 +40,7 @@ public:
     return {x, -4, rectW, qreal(constraintAndRackHeight())};
   }
 
+  const TemporalConstraintPresenter& presenter() const;
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,

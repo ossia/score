@@ -9,15 +9,6 @@
 #include <State/Message.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-
-class DataStream;
-class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
-
-class QObject;
 #include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_recording_export.h>
 namespace RecordedMessages

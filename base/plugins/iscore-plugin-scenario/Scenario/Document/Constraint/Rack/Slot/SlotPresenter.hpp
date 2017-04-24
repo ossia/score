@@ -17,8 +17,8 @@ namespace Process
 struct ProcessPresenterContext;
 class ProcessFactoryList;
 class LayerFactoryList;
+class ProcessModel;
 class LayerView;
-class LayerModel;
 class LayerPresenter;
 }
 
@@ -35,14 +35,14 @@ struct SlotProcessData
   SlotProcessData& operator=(const SlotProcessData&) = default;
   SlotProcessData& operator=(SlotProcessData&&) = default;
   SlotProcessData(
-      const Process::LayerModel* m,
+      const Process::ProcessModel* m,
       Process::LayerPresenter* p,
       Process::LayerView* v)
       : model(m), presenter(p), view(v)
   {
   }
 
-  const Process::LayerModel* model{};
+  const Process::ProcessModel* model{};
   Process::LayerPresenter* presenter{};
   Process::LayerView* view{};
 };
@@ -91,11 +91,11 @@ signals:
 
 private:
   // From Model
-  void on_layerModelCreated(const Process::LayerModel&);
-  void on_layerModelRemoved(const Process::LayerModel&);
-  void on_layerModelPutToFront(const Process::LayerModel&);
+  void on_layerModelCreated(const Process::ProcessModel&);
+  void on_layerModelRemoved(const Process::ProcessModel&);
+  void on_layerModelPutToFront(const Process::ProcessModel&);
 
-  void on_layerModelCreated_impl(const Process::LayerModel&);
+  void on_layerModelCreated_impl(const Process::ProcessModel&);
 
   void updateProcesses();
   void updateProcessShape(const SlotProcessData&);
