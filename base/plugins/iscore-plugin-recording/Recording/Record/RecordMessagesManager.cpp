@@ -116,6 +116,8 @@ void MessageRecorder::on_valueUpdated(
 bool MessageRecorder::setup(
     const Box& box, const RecordListening& recordListening)
 {
+  // TODO
+  /*
   using namespace std::chrono;
   //// Device tree management ////
 
@@ -159,7 +161,7 @@ bool MessageRecorder::setup(
 
     m_recordCallbackConnections.push_back(&dev);
   }
-
+  */
   return true;
 }
 }

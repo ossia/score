@@ -23,7 +23,6 @@ class Reader;
 
 namespace Scenario
 {
-class RackModel;
 void GoodOldDisplacementPolicy::computeDisplacement(
     Scenario::ProcessModel& scenario,
     const QVector<Id<TimeNodeModel>>& draggedElements,

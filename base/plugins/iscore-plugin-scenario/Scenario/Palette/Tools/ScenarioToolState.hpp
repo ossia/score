@@ -114,15 +114,15 @@ protected:
                ? state.id()
                : OptionalId<StateModel>{};
   }
-  const SlotModel* itemToSlotFromHandle(const QGraphicsItem* pressedItem) const
+  optional<SlotIdentifier> itemToConstraintFromHandle(const QGraphicsItem* pressedItem) const
   {
-    const auto& slot = static_cast<const SlotHandle*>(pressedItem)
-                           ->slotView()
-                           .presenter.model();
+    auto handle = static_cast<const SlotHandle*>(pressedItem);
+    const auto& cst = handle->presenter().model();
 
-    return slot.parentConstraint().parent() == &this->m_palette.model()
-               ? &slot
-               : nullptr;
+    if(cst.parent() == &this->m_palette.model())
+      return SlotIdentifier{cst, handle->slotIndex()};
+    else
+      return ossia::none;
   }
 
   template <
@@ -180,7 +180,7 @@ protected:
 
       case SlotHandle::static_type(): // Slot handle
       {
-        auto slot = itemToSlotFromHandle(item);
+        auto slot = itemToConstraintFromHandle(item);
         if (slot)
         {
           handle_fun(*slot);

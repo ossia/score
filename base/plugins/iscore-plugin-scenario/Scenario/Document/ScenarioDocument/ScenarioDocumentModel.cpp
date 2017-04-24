@@ -114,22 +114,18 @@ void ScenarioDocumentModel::initializeNewDocument(
       iscore::IDocument::path(m_baseScenario->constraint()),
       Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
   cmd1.redo();
-
-  auto& rack = constraint_model.smallViewRack();
-
   ShowRack cmd3{constraint_model};
   cmd3.redo();
 
-  AddSlotToRack cmd4{rack};
+  AddSlotToRack cmd4{constraint_model};
   cmd4.redo();
 
-  ResizeSlotVertically cmd5{
-          *rack.slotmodels.begin(),
+  ResizeSlotVertically cmd5{{constraint_model, 0},
       1500};
   cmd5.redo();
 
   AddLayerModelToSlot cmd6{
-      *rack.slotmodels.begin(),
+      {constraint_model, 0},
       *m_baseScenario->constraint().processes.begin()};
   cmd6.redo();
 }

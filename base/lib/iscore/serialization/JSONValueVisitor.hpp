@@ -162,7 +162,7 @@ struct TSerializer<JSONValue, optional<int32_t>>
   {
     if (s.val.toString() == s.strings.none)
     {
-      obj = iscore::none;
+      obj = ossia::none;
     }
     else
     {
@@ -190,7 +190,7 @@ struct TSerializer<JSONValue, optional<double>>
   {
     if (s.val.toString() == s.strings.none)
     {
-      obj = iscore::none;
+      obj = ossia::none;
     }
     else
     {

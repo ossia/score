@@ -154,6 +154,7 @@ void TemporalConstraintView::paint(
   const qreal play_w = playWidth();
 
   // Draw the stuff present if there is a rack *in the model* ?
+  /*
   if (presenter().rack())
   {
     // Background
@@ -170,7 +171,7 @@ void TemporalConstraintView::paint(
     painter.setPen(skin.ConstraintRackPen);
     painter.drawLine(rect.topLeft(), rect.bottomLeft());
     painter.drawLine(rect.topRight(), rect.bottomRight());
-  }
+  }*/
 
   // Colors
   auto defaultColor = this->constraintColor(skin);

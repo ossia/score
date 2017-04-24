@@ -12,6 +12,8 @@
 namespace Process
 {
 struct ProcessPresenterContext;
+class ProcessModel;
+class LayerPresenter;
 }
 
 namespace Scenario
@@ -19,8 +21,6 @@ namespace Scenario
 class ConstraintHeader;
 class ConstraintModel;
 class ConstraintView;
-class RackModel;
-class RackPresenter;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public QObject,
                                                           public Nano::Observer
@@ -57,10 +57,16 @@ public:
 
   void on_playPercentageChanged(double t);
 
+  Process::LayerPresenter* process(Id<Process::ProcessModel>);
+
 signals:
   void pressed(QPointF) const;
   void moved(QPointF) const;
   void released(QPointF) const;
+
+  void slotHandlePressed(QPointF) const;
+  void slotHandleMoved(QPointF) const;
+  void slotHandleReleased(QPointF) const;
 
   void askUpdate();
   void heightChanged();           // The vertical size

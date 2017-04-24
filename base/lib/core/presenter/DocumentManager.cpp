@@ -167,7 +167,7 @@ void DocumentManager::setCurrentDocument(
   {
     for (auto& panel : ctx.panels())
     {
-      panel.setModel(iscore::none);
+      panel.setModel(ossia::none);
     }
   }
 

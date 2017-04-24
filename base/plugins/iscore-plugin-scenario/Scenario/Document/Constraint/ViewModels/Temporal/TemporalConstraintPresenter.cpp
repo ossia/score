@@ -125,7 +125,6 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
       .connect<TemporalConstraintPresenter, &TemporalConstraintPresenter::on_processesChanged>(
         this);
 
-  createRackPresenter(m_model.smallViewRack());
 }
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()
@@ -144,7 +143,6 @@ TemporalConstraintPresenter::~TemporalConstraintPresenter()
     view->deleteLater();
   }
 
-  delete m_rack;
 }
 
 void TemporalConstraintPresenter::on_requestOverlayMenu(QPointF)
@@ -229,33 +227,34 @@ void TemporalConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
   ConstraintPresenter::on_zoomRatioChanged(val);
 
-  if (rack())
-  {
-    rack()->on_zoomRatioChanged(m_zoomRatio);
-  }
+//  if (rack())
+//  {
+//    rack()->on_zoomRatioChanged(m_zoomRatio);
+//  }
 }
 
 void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& v)
 {
   ConstraintPresenter::on_defaultDurationChanged(v);
 
-  if (rack())
-  {
-    rack()->setWidth(m_view->defaultWidth());
-  }
+//  if (rack())
+//  {
+//    rack()->setWidth(m_view->defaultWidth());
+//  }
 }
 
 void TemporalConstraintPresenter::clearRackPresenter()
 {
-  if (m_rack)
-  {
-    m_rack->deleteLater();
-    m_rack = nullptr;
-  }
+//  if (m_rack)
+//  {
+//    m_rack->deleteLater();
+//    m_rack = nullptr;
+//  }
 }
-
+/*
 void TemporalConstraintPresenter::createRackPresenter(const RackModel& rackModel)
 {
+
   auto rackView = new RackView{m_view};
   rackView->setPos(0, ConstraintHeader::headerHeight());
 
@@ -275,9 +274,10 @@ void TemporalConstraintPresenter::createRackPresenter(const RackModel& rackModel
   connect(m_rack, &RackPresenter::released,
           this, &ConstraintPresenter::released);
 }
-
+*/
 void TemporalConstraintPresenter::updateHeight()
 {
+  /*
   if (m_model.smallViewVisible())
   {
     m_view->setHeight(rack()->height() + ConstraintHeader::headerHeight());
@@ -293,12 +293,7 @@ void TemporalConstraintPresenter::updateHeight()
 
   updateChildren();
   emit heightChanged();
-
-}
-
-RackPresenter* TemporalConstraintPresenter::rack() const
-{
-  return m_rack;
+*/
 }
 
 void TemporalConstraintPresenter::on_rackVisibleChanged(bool)

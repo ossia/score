@@ -26,7 +26,6 @@ class CreateProcessInNewSlot final : public iscore::AggregateCommand
   static void create(
       Dispatcher & disp,
       const Scenario::ConstraintModel& constraint,
-      const Scenario::RackModel& rack,
       UuidKey<Process::ProcessModel> proc)
   {
     auto cmd1 = new Scenario::Command::AddOnlyProcessToConstraint(
@@ -34,13 +33,12 @@ class CreateProcessInNewSlot final : public iscore::AggregateCommand
     cmd1->redo();
     disp.submitCommand(cmd1);
 
-    auto cmd2 = new Scenario::Command::AddSlotToRack(rack);
+    auto cmd2 = new Scenario::Command::AddSlotToRack(constraint);
     cmd2->redo();
     disp.submitCommand(cmd2);
 
     auto cmd3 = new Scenario::Command::AddLayerModelToSlot(
-        rack.slotmodels.at(cmd2->createdSlot()),
-        constraint.processes.at(cmd1->processId()));
+        {constraint, constraint.smallView().size()}, cmd1->processId());
     cmd3->redo();
     disp.submitCommand(cmd3);
 

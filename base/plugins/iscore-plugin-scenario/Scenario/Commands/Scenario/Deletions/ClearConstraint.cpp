@@ -41,8 +41,8 @@ void ClearConstraint::redo() const
 {
   auto& constraint = m_constraintSaveData.constraintPath.find();
 
-  constraint.smallViewRack().slotmodels.clear();
-  constraint.fullViewRack().slotmodels.clear();
+  constraint.clearSmallView();
+  constraint.clearFullView();
 
   // We make copies since the iterators might change.
   // TODO check if this is still valid wrt boost::multi_index

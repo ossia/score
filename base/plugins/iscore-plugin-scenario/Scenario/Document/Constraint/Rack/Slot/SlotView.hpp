@@ -1,3 +1,4 @@
+/*
 #pragma once
 #include <QGraphicsItem>
 #include <QPoint>
@@ -62,3 +63,4 @@ private:
   QString m_frontProcessName{};
 };
 }
+*/

@@ -1,3 +1,4 @@
+/*
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
@@ -58,3 +59,5 @@ void SlotOverlay::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   emit m_slotView.presenter.released(event->scenePos());
 }
 }
+
+*/

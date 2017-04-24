@@ -5,6 +5,7 @@
 #include <iscore/model/path/Path.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_scenario_export.h>
 struct DataStreamInput;
@@ -16,7 +17,6 @@ class ProcessModel;
 
 namespace Scenario
 {
-class SlotModel;
 namespace Command
 {
 /**
@@ -33,9 +33,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final
       "Add a layer to a slot")
 public:
     AddLayerModelToSlot(
-      const Path<SlotModel>& slot, Id<Process::ProcessModel> process);
+      const SlotIdentifier& slot, Id<Process::ProcessModel> process);
   AddLayerModelToSlot(
-      const SlotModel& slot, const Process::ProcessModel& process);
+      const SlotIdentifier& slot, const Process::ProcessModel& process);
 
   void undo() const override;
   void redo() const override;
@@ -45,7 +45,7 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<SlotModel> m_slot;
+  SlotIdentifier m_slot;
   Id<Process::ProcessModel> m_processId;
 };
 }

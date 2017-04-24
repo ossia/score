@@ -1,3 +1,4 @@
+/*
 #include <QObject>
 #include <QRect>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
@@ -214,3 +215,4 @@ void RackPresenter::on_slotPositionsChanged()
   updateShape();
 }
 }
+*/

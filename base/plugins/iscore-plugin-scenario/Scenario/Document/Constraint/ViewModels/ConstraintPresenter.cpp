@@ -142,6 +142,11 @@ void ConstraintPresenter::on_playPercentageChanged(double t)
     m_view->setPlayWidth(m_view->defaultWidth() * t);
 }
 
+Process::LayerPresenter* ConstraintPresenter::process(Id<Process::ProcessModel>)
+{
+  return nullptr;
+}
+
 void ConstraintPresenter::updateChildren()
 {
   emit askUpdate();

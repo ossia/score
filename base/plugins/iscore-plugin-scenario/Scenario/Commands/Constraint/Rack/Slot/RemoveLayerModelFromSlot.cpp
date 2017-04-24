@@ -1,5 +1,5 @@
 #include <Process/LayerModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <iscore/model/path/RelativePath.hpp>
 
 #include "RemoveLayerModelFromSlot.hpp"
@@ -17,21 +17,21 @@ namespace Command
 {
 
 RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
-    Path<SlotModel>&& rackPath, Id<Process::ProcessModel> layerId)
-    : m_path{rackPath}, m_layerId{std::move(layerId)}
+    SlotIdentifier&& rackPath, Id<Process::ProcessModel> layerId)
+    : m_path{std::move(rackPath)}, m_layerId{std::move(layerId)}
 {
 }
 
 void RemoveLayerModelFromSlot::undo() const
 {
-  auto& slot = m_path.find();
-  slot.addLayer(m_layerId);
+  auto& slot = m_path.constraint.find();
+  slot.addLayer(m_path, m_layerId);
 }
 
 void RemoveLayerModelFromSlot::redo() const
 {
-  auto& slot = m_path.find();
-  slot.removeLayer(m_layerId);
+  auto& slot = m_path.constraint.find();
+  slot.removeLayer(m_path, m_layerId);
 }
 
 void RemoveLayerModelFromSlot::serializeImpl(DataStreamInput& s) const

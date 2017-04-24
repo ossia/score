@@ -96,7 +96,7 @@ private:
   TemporalScenarioPresenter* m_pres{};
   QRectF m_selectArea{};
   QPointF m_previousPoint{};
-  iscore::optional<QRectF> m_dragLine{};
+  ossia::optional<QRectF> m_dragLine{};
   bool m_lock{};
 };
 }

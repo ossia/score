@@ -65,7 +65,7 @@ void TemporalScenarioView::drawDragLine(QPointF left, QPointF right)
 
 void TemporalScenarioView::stopDrawDragLine()
 {
-  m_dragLine = iscore::none;
+  m_dragLine = ossia::none;
 }
 
 void TemporalScenarioView::movedAsked(const QPointF& p)

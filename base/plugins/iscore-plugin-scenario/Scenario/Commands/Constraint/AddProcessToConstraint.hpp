@@ -182,43 +182,29 @@ public:
   void init(
       const Process::LayerFactoryList& fact, const ConstraintModel& constraint)
   {
-    m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
   }
 
   void undo(ConstraintModel& constraint) const
   {
-    auto& firstRack = constraint.smallViewRack();
-
-    // Removing the slot will remove the layer
-    firstRack.slotmodels.remove(m_createdSlotId);
+    constraint.removeSlot(constraint.smallView().size() - 1);
   }
 
   void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
   {
-    auto& firstRack = constraint.smallViewRack();
-
-    // Slot
     auto h
         = m_cmd.context.settings<Scenario::Settings::Model>().getSlotHeight();
-    auto slot = new SlotModel{m_createdSlotId, h, &firstRack};
-    firstRack.addSlot(slot);
-
-    // Layer
-    slot->addLayer(proc.id());
+    constraint.addSlot(Slot{{proc.id()}, proc.id(), h});
   }
 
   void serialize(DataStreamInput& s) const
   {
-    s << m_createdSlotId;
   }
 
   void deserialize(DataStreamOutput& s)
   {
-    s >> m_createdSlotId;
   }
 
 private:
-  Id<SlotModel> m_createdSlotId;
 };
 
 template <>
@@ -250,22 +236,12 @@ public:
 
   void undo(ConstraintModel& constraint) const
   {
-    const auto& firstRack = constraint.smallViewRack();
-
-    ISCORE_ASSERT(!firstRack.slotmodels.empty());
-    auto& firstSlot = *firstRack.slotmodels.begin();
-
-    firstSlot.removeLayer(m_cmd.processId());
+    constraint.removeLayer(0, m_cmd.processId());
   }
 
   void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
   {
-    const auto& firstRack = constraint.smallViewRack();
-
-    ISCORE_ASSERT(!firstRack.slotmodels.empty());
-    auto& firstSlot = *firstRack.slotmodels.begin();
-
-    firstSlot.addLayer(m_cmd.processId());
+    constraint.addLayer(0, m_cmd.processId());
   }
 
   void serialize(DataStreamInput& s) const
@@ -330,8 +306,7 @@ make_AddProcessToConstraint(
 
   Scenario::Command::AddProcessToConstraintBase* cmd{};
 
-  auto& firstRack = constraint.smallViewRack();
-  auto noSlots = firstRack.slotmodels.empty();
+  auto noSlots = constraint.smallView().empty();
   if (isScenarioModel)
   {
     if (noSlots)

@@ -119,7 +119,7 @@ public:
         }
         else
         {
-          this->m_pressedPrevious = iscore::none;
+          this->m_pressedPrevious = ossia::none;
         }
 
       });
@@ -385,7 +385,7 @@ public:
         }
         else
         {
-          this->m_pressedPrevious = iscore::none;
+          this->m_pressedPrevious = ossia::none;
         }
 
       });

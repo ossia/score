@@ -53,7 +53,7 @@ loadPlugin(
     const QString& fileName,
     const std::vector<iscore::Addon>& availablePlugins);
 
-iscore::optional<iscore::Addon> makeAddon(
+ossia::optional<iscore::Addon> makeAddon(
     const QString& addon_path,
     const QJsonObject& json_addon,
     const std::vector<iscore::Addon>& availablePlugins);

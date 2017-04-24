@@ -141,7 +141,7 @@ optional<State::BinaryOperator> SimpleExpressionEditorWidget::binOperator()
     case 2:
       return State::BinaryOperator::OR;
     default:
-      return iscore::none;
+      return ossia::none;
   }
 }
 

@@ -21,7 +21,7 @@ namespace Command
 {
 
 AddLayerModelToSlot::AddLayerModelToSlot(
-    const Path<SlotModel>& slot,
+    const SlotIdentifier& slot,
     Id<Process::ProcessModel> process)
   : m_slot{slot}
   , m_processId{std::move(process)}
@@ -30,7 +30,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 }
 
 AddLayerModelToSlot::AddLayerModelToSlot(
-    const SlotModel& slot, const Process::ProcessModel& process)
+    const SlotIdentifier& slot, const Process::ProcessModel& process)
     : m_slot{slot}
     , m_processId{process.id()}
 {
@@ -38,15 +38,17 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 
 void AddLayerModelToSlot::undo() const
 {
-  auto slot = m_slot.try_find();
-  if (slot)
-    slot->removeLayer(m_processId);
+  auto cst = m_slot.constraint.try_find();
+  if (cst)
+  {
+    cst->removeLayer(m_slot, m_processId);
+  }
 }
 
 void AddLayerModelToSlot::redo() const
 {
-  auto& slot = m_slot.find();
-  slot.addLayer(m_processId);
+  auto& cst = m_slot.constraint.find();
+  cst.addLayer(m_slot, m_processId);
 }
 
 void AddLayerModelToSlot::serializeImpl(DataStreamInput& s) const
