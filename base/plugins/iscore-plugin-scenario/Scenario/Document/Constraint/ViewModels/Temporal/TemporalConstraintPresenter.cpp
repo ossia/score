@@ -124,6 +124,8 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
   m_model.processes.removed
       .connect<TemporalConstraintPresenter, &TemporalConstraintPresenter::on_processesChanged>(
         this);
+
+  createRackPresenter(m_model.smallViewRack());
 }
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()

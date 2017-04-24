@@ -38,10 +38,6 @@ ConstraintModel& RackModel::constraint() const
 void RackModel::addSlot(SlotModel* slot, int position)
 {
   // Connection
-  connect(
-      this, &RackModel::on_deleteProcess, slot,
-      &SlotModel::on_deleteSharedProcessModel);
-
   auto& map = slotmodels.unsafe_map();
   auto& ordered = map.ordered();
   auto it = ordered.begin();

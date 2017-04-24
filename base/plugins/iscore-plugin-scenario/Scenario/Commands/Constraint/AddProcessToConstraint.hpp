@@ -260,8 +260,7 @@ public:
 
   void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
   {
-    ISCORE_ASSERT(!constraint.racks.empty());
-    const auto& firstRack = *constraint.racks.begin();
+    const auto& firstRack = constraint.smallViewRack();
 
     ISCORE_ASSERT(!firstRack.slotmodels.empty());
     auto& firstSlot = *firstRack.slotmodels.begin();
@@ -331,8 +330,7 @@ make_AddProcessToConstraint(
 
   Scenario::Command::AddProcessToConstraintBase* cmd{};
 
-
-  auto& firstRack = *constraint.racks.begin();
+  auto& firstRack = constraint.smallViewRack();
   auto noSlots = firstRack.slotmodels.empty();
   if (isScenarioModel)
   {
