@@ -64,7 +64,7 @@ public:
   {
   }
 
-  SlotIdentifier currentSlot;
+  SlotPath currentSlot;
 
   QPointF m_originalPoint;
   double m_originalHeight{};

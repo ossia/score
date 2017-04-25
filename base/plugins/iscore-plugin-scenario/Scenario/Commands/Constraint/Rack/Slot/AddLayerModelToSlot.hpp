@@ -33,9 +33,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final
       "Add a layer to a slot")
 public:
     AddLayerModelToSlot(
-      const SlotIdentifier& slot, Id<Process::ProcessModel> process);
+      const SlotPath& slot, Id<Process::ProcessModel> process);
   AddLayerModelToSlot(
-      const SlotIdentifier& slot, const Process::ProcessModel& process);
+      const SlotPath& slot, const Process::ProcessModel& process);
 
   void undo() const override;
   void redo() const override;
@@ -45,7 +45,7 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  SlotIdentifier m_slot;
+  SlotPath m_slot;
   Id<Process::ProcessModel> m_processId;
 };
 }

@@ -59,16 +59,16 @@ void SlotHandle::setWidth(qreal width)
 
 void SlotHandle::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_presenter.slotHandlePressed(event->scenePos());
+  m_presenter.pressed(event->scenePos());
 }
 
 void SlotHandle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_presenter.slotHandleMoved(event->scenePos());
+  m_presenter.moved(event->scenePos());
 }
 
 void SlotHandle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_presenter.slotHandleReleased(event->scenePos());
+  m_presenter.released(event->scenePos());
 }
 }

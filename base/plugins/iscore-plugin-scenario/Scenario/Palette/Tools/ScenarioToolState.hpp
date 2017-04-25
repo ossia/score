@@ -31,6 +31,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/RightBrace.hpp>
@@ -114,15 +115,21 @@ protected:
                ? state.id()
                : OptionalId<StateModel>{};
   }
-  optional<SlotIdentifier> itemToConstraintFromHandle(const QGraphicsItem* pressedItem) const
+  optional<SlotPath> itemToConstraintFromHandle(const QGraphicsItem* pressedItem) const
   {
     auto handle = static_cast<const SlotHandle*>(pressedItem);
     const auto& cst = handle->presenter().model();
 
     if(cst.parent() == &this->m_palette.model())
-      return SlotIdentifier{cst, handle->slotIndex()};
+    {
+      auto fv = isInFullView(cst) ?
+            Slot::FullView : Slot::SmallView;
+      return SlotPath{cst, handle->slotIndex(), fv};
+    }
     else
+    {
       return ossia::none;
+    }
   }
 
   template <

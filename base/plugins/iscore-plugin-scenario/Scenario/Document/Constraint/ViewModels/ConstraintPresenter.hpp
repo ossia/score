@@ -14,6 +14,7 @@ namespace Process
 struct ProcessPresenterContext;
 class ProcessModel;
 class LayerPresenter;
+class LayerView;
 }
 
 namespace Scenario
@@ -21,6 +22,27 @@ namespace Scenario
 class ConstraintHeader;
 class ConstraintModel;
 class ConstraintView;
+
+struct LayerData
+{
+  LayerData() = default;
+  LayerData(const LayerData&) = default;
+  LayerData(LayerData&&) = default;
+  LayerData& operator=(const LayerData&) = default;
+  LayerData& operator=(LayerData&&) = default;
+  LayerData(
+      const Process::ProcessModel* m,
+      Process::LayerPresenter* p,
+      Process::LayerView* v)
+      : model(m), presenter(p), view(v)
+  {
+  }
+
+  const Process::ProcessModel* model{};
+  Process::LayerPresenter* presenter{};
+  Process::LayerView* view{};
+};
+
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintPresenter : public QObject,
                                                           public Nano::Observer

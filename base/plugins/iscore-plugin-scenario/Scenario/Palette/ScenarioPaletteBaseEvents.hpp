@@ -189,49 +189,49 @@ using ReleaseOnRightBrace_Event
 //     = iscore::NumberedWithPath_Event<ConstraintModel, ClickOnSlotHandle>;
 struct ClickOnSlotHandle_Event: public iscore::NumberedEvent<ClickOnSlotHandle>
 {
-  explicit ClickOnSlotHandle_Event(const SlotIdentifier& p)
+  explicit ClickOnSlotHandle_Event(const SlotPath& p)
     : NumberedEvent<ClickOnSlotHandle>(), path(p)
   {
   }
 
-  explicit ClickOnSlotHandle_Event(SlotIdentifier&& p)
+  explicit ClickOnSlotHandle_Event(SlotPath&& p)
     : NumberedEvent<ClickOnSlotHandle>(), path(std::move(p))
   {
   }
 
-  SlotIdentifier path;
+  SlotPath path;
 };
 
 struct MoveOnSlotHandle_Event: public iscore::NumberedEvent<MoveOnSlotHandle>
 {
-  explicit MoveOnSlotHandle_Event(const SlotIdentifier& p)
+  explicit MoveOnSlotHandle_Event(const SlotPath& p)
     : NumberedEvent<MoveOnSlotHandle>(), path(p)
   {
   }
 
-  explicit MoveOnSlotHandle_Event(SlotIdentifier&& p)
+  explicit MoveOnSlotHandle_Event(SlotPath&& p)
     : NumberedEvent<MoveOnSlotHandle>(), path(std::move(p))
   {
   }
 
-  SlotIdentifier path;
+  SlotPath path;
 };
 
 // using ReleaseOnSlotHandle_Event
 //     = iscore::NumberedWithPath_Event<ConstraintModel, ReleaseOnSlotHandle>;
 struct ReleaseOnSlotHandle_Event: public iscore::NumberedEvent<ReleaseOnSlotHandle>
 {
-  explicit ReleaseOnSlotHandle_Event(const SlotIdentifier& p)
+  explicit ReleaseOnSlotHandle_Event(const SlotPath& p)
     : NumberedEvent<ReleaseOnSlotHandle>(), path(p)
   {
   }
 
-  explicit ReleaseOnSlotHandle_Event(SlotIdentifier&& p)
+  explicit ReleaseOnSlotHandle_Event(SlotPath&& p)
     : NumberedEvent<ReleaseOnSlotHandle>(), path(std::move(p))
   {
   }
 
-  SlotIdentifier path;
+  SlotPath path;
 };
 
 template <int N>

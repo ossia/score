@@ -8,7 +8,7 @@
 namespace Scenario
 {
 PutLayerModelToFront::PutLayerModelToFront(
-    SlotIdentifier&& slotPath, const Id<Process::ProcessModel>& pid)
+    SlotPath&& slotPath, const Id<Process::ProcessModel>& pid)
     : m_slotPath{std::move(slotPath)}, m_pid{pid}
 {
 }

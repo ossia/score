@@ -69,7 +69,7 @@ public:
   }
 
   // No need to save this, it is useful only for construction.
-  std::vector<SlotIdentifier> slotsToUse;
+  std::vector<SlotPath> slotsToUse;
 };
 
 inline AddMultipleProcessesToConstraintMacro*

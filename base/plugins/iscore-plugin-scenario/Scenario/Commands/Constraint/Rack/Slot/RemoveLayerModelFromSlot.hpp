@@ -32,7 +32,7 @@ class RemoveLayerModelFromSlot final : public iscore::Command
       "Remove a layer from a slot")
 public:
   RemoveLayerModelFromSlot(
-      SlotIdentifier&& slotPath, Id<Process::ProcessModel> layerId);
+      SlotPath&& slotPath, Id<Process::ProcessModel> layerId);
 
   void undo() const override;
   void redo() const override;
@@ -42,7 +42,7 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  SlotIdentifier m_path;
+  SlotPath m_path;
   Id<Process::ProcessModel> m_layerId{};
 };
 }
