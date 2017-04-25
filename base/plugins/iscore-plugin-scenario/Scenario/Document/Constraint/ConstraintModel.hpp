@@ -102,27 +102,28 @@ public:
   bool smallViewVisible() const;
 
   const Rack& smallView() const { return m_smallView; }
-  const Rack& fullView() const { return m_fullView; }
+  const FullRack& fullView() const { return m_fullView; }
 
   void clearSmallView();
   void clearFullView();
   void replaceSmallView(const Rack& other);
-  void replaceFullView(const Rack& other);
+  void replaceFullView(const FullRack& other);
 
+  // Adding and removing slots and layers is only for the small view
   void addSlot(Slot s);
-  void addSlot(Slot s, SlotId pos);
-  void removeSlot(SlotId pos);
+  void addSlot(Slot s, int pos);
+  void removeSlot(int pos);
+
+  void addLayer(int slot, Id<Process::ProcessModel>);
+  void removeLayer(int slot, Id<Process::ProcessModel>);
+
+  void putLayerToFront(int slot, Id<Process::ProcessModel>);
+  void putLayerToFront(int slot, ossia::none_t);
+
   void swapSlots(int pos1, int pos2, Slot::RackView fullview);
-  const Slot* findSlot(const SlotId& slot) const;
-  const Slot& getSlot(const SlotId& slot) const;
-  Slot& getSlot(const SlotId& slot);
 
+  double getSlotHeight(const SlotId& slot) const;
   void setSlotHeight(const SlotId& slot, double height);
-
-  void addLayer(const SlotId& slot, Id<Process::ProcessModel>);
-  void removeLayer(const SlotId& slot, Id<Process::ProcessModel>);
-  void putLayerToFront(const SlotId& slot, Id<Process::ProcessModel>);
-  void putLayerToFront(const SlotId& slot, ossia::none_t);
 
 signals:
   void heightPercentageChanged(double);
@@ -144,18 +145,27 @@ signals:
 
   void layerAdded(SlotId, Id<Process::ProcessModel>);
   void layerRemoved(SlotId, Id<Process::ProcessModel>);
-  void frontLayerChanged(SlotId, OptionalId<Process::ProcessModel>);
+  void frontLayerChanged(int, OptionalId<Process::ProcessModel>);
 
 private:
   void on_addProcess(const Process::ProcessModel&);
   void on_removeProcess(const Process::ProcessModel&);
   void initConnections();
 
+  const Slot* findSmallViewSlot(int slot) const;
+  const Slot& getSmallViewSlot(int slot) const;
+  Slot& getSmallViewSlot(int slot);
+
+  const FullSlot* findFullViewSlot(int slot) const;
+  const FullSlot& getFullViewSlot(int slot) const;
+  FullSlot& getFullViewSlot(int slot);
+
   // Model for the full view.
   // Note : it is also present in m_constraintViewModels.
 
   Rack m_smallView;
-  Rack m_fullView;
+
+  FullRack m_fullView;
   Id<StateModel> m_startState;
   Id<StateModel> m_endState;
 
@@ -167,6 +177,8 @@ private:
   QRectF m_center{};
   bool m_smallViewShown{};
   ConstraintExecutionState m_executionState{};
+
+  friend class SlotPath;
 };
 
 

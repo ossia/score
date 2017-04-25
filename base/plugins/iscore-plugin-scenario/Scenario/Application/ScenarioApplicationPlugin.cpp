@@ -229,11 +229,8 @@ void ScenarioApplicationPlugin::on_documentChanged(
         auto& rack = cst.fullView();
         if (!rack.empty())
         {
-          const Slot& top_slot = *rack.begin();
-          if (top_slot.frontProcess)
-          {
-            focusManager->focus(cst_pres->process(*top_slot.frontProcess));
-          }
+          const FullSlot& top_slot = *rack.begin();
+          focusManager->focus(cst_pres->process(top_slot.process));
         }
       }
     }

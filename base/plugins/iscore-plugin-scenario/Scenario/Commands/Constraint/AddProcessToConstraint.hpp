@@ -186,7 +186,7 @@ public:
 
   void undo(ConstraintModel& constraint) const
   {
-    constraint.removeSlot(SlotId{constraint.smallView().size() - 1, Slot::SmallView});
+    constraint.removeSlot(constraint.smallView().size() - 1);
   }
 
   void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
@@ -236,12 +236,12 @@ public:
 
   void undo(ConstraintModel& constraint) const
   {
-    constraint.removeLayer(SlotId{0, Slot::SmallView}, m_cmd.processId());
+    constraint.removeLayer(0, m_cmd.processId());
   }
 
   void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
   {
-    constraint.addLayer(SlotId{0, Slot::SmallView}, m_cmd.processId());
+    constraint.addLayer(0, m_cmd.processId());
   }
 
   void serialize(DataStreamInput& s) const

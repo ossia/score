@@ -71,7 +71,6 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
   s1.readFrom(proc);
 
   m_smallView = constraint.smallView();
-  m_fullView = constraint.fullView();
 }
 
 void RemoveProcessFromConstraint::undo() const
@@ -91,7 +90,6 @@ void RemoveProcessFromConstraint::undo() const
   }
 
   constraint.replaceSmallView(m_smallView);
-  constraint.replaceFullView(m_fullView);
 }
 
 void RemoveProcessFromConstraint::redo() const
@@ -106,12 +104,12 @@ void RemoveProcessFromConstraint::redo() const
 
 void RemoveProcessFromConstraint::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_processId << m_serializedProcessData << m_smallView << m_fullView;
+  s << m_path << m_processId << m_serializedProcessData << m_smallView;
 }
 
 void RemoveProcessFromConstraint::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_processId >> m_serializedProcessData >> m_smallView >> m_fullView;
+  s >> m_path >> m_processId >> m_serializedProcessData >> m_smallView;
 }
 }
 }

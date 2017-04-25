@@ -87,7 +87,6 @@ Process::LayerPresenter* ScenarioTemporalLayerFactory::makeLayerPresenter(
   {
     auto pres = new TemporalScenarioPresenter{m_editionSettings, *vm, view,
                                               context, parent};
-    static_cast<TemporalScenarioView*>(view)->setPresenter(pres);
     return pres;
   }
   return nullptr;

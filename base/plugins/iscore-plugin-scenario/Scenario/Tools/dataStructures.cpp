@@ -68,7 +68,7 @@ void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
   }
   {
     DataStream::Deserializer des{racks[1]};
-    Scenario::Rack r;
+    Scenario::FullRack r;
     des.writeTo(r);
     constraint.replaceFullView(std::move(r));
   }

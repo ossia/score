@@ -82,11 +82,16 @@ public:
   virtual Selection selectedChildren() const;
   virtual void setSelection(const Selection& s) const;
 
+  double getSlotHeight() const;
+  void setSlotHeight(double);
+
 signals:
   // True if the execution is running.
   void execution(bool);
   void durationChanged(const TimeVal&);
   void useParentDurationChanged(bool);
+
+  void slotHeightChanged(double);
 
 protected:
   // Clone
@@ -111,6 +116,7 @@ protected:
 
 private:
   TimeVal m_duration;
+  double m_slotHeight{}; //! Height in full view
 };
 
 ISCORE_LIB_PROCESS_EXPORT ProcessModel* parentProcess(QObject* obj);

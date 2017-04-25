@@ -80,18 +80,6 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
     this->updatePositions();
   });
 
-  con(m_model, &ConstraintModel::layerAdded,
-      this, [=] (SlotId id, Id<Process::ProcessModel> proc) {
-    createLayer(id.index, m_model.processes.at(proc));
-  });
-  con(m_model, &ConstraintModel::layerRemoved,
-      this, [=] (SlotId, Id<Process::ProcessModel> proc) {
-    removeLayer(m_model.processes.at(proc));
-  });
-  con(m_model, &ConstraintModel::frontLayerChanged,
-      this, [=] (SlotId, OptionalId<Process::ProcessModel>) {
-
-  });
 
   updatePositions();
 }
@@ -112,103 +100,64 @@ FullViewConstraintPresenter::~FullViewConstraintPresenter()
   }
 }
 
-void FullViewConstraintPresenter::createSlot(int pos, const Slot& slt)
+void FullViewConstraintPresenter::createSlot(int pos, const FullSlot& slt)
 {
   SlotPresenter p;
   p.handle = new SlotHandle{*this, pos, m_view};
   // p.view = new SlotView{};
   m_slots.insert(m_slots.begin() + pos, std::move(p));
 
-  for(const auto& process : slt.processes)
-  {
-    createLayer(pos, m_model.processes.at(process));
-  }
-}
+  const auto& proc = m_model.processes.at(slt.process);
 
-void FullViewConstraintPresenter::createLayer(int slot, const Process::ProcessModel& proc)
-{
   const auto& procKey = proc.concreteKey();
 
   auto factory = m_context.processList.findDefaultFactory(procKey);
   auto proc_view = factory->makeLayerView(proc, m_view);
   auto proc_pres = factory->makeLayerPresenter(proc, proc_view, m_context, this);
-  m_slots.at(slot).processes.push_back(LayerData{
+  proc_pres->putToFront();
+  m_slots.at(pos).process = LayerData{
                   &proc, proc_pres, proc_view
-                });
-
+                };
 
   auto con_id = con(
         proc, &Process::ProcessModel::durationChanged, this,
         [&] (const TimeVal&) {
     int i = 0;
-    for(const SlotPresenter& slot : m_slots)
-    {
-      auto it = ossia::find_if(slot.processes,
-                               [&] (const LayerData& elt) {
-        return elt.model->id() == proc.id();
-      });
-
-      if (it != slot.processes.end())
-        updateProcessShape(i, *it);
+    auto it = ossia::find_if(m_slots,
+                             [&] (const SlotPresenter& elt) {
+      return elt.process.model->id() == proc.id();
+    });
+    if(it != m_slots.end())
+        updateProcessShape(i);
       i++;
-    }
+
   });
+
   con(proc, &IdentifiedObjectAbstract::identified_object_destroying, this,
       [=] { QObject::disconnect(con_id); });
 
-  auto frontLayer = m_model.fullView().at(slot).frontProcess;
-  if (frontLayer && (*frontLayer == proc.id()))
-  {
-    on_layerModelPutToFront(slot, proc);
-  }
-  else
-  {
-    on_layerModelPutToBack(slot, proc);
-  }
-
-  updateProcessShape(slot, m_slots[slot].processes.back());
+  updateProcessShape(pos);
 }
 
-void FullViewConstraintPresenter::updateProcessShape(int slot, const LayerData& data)
+void FullViewConstraintPresenter::updateProcessShape(int slot)
 {
-  data.presenter->setHeight(m_model.fullView().at(slot).height - SlotHandle::handleHeight());
+  const LayerData& data = m_slots.at(slot).process;
+  data.presenter->setHeight(data.model->getSlotHeight() - SlotHandle::handleHeight());
 
   auto width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
   data.presenter->setWidth(width);
   data.presenter->parentGeometryChanged();
 }
 
-void FullViewConstraintPresenter::removeLayer(const Process::ProcessModel& proc)
-{
-  for(SlotPresenter& slot : m_slots)
-  {
-    boost::range::remove_erase_if(slot.processes, [&] (const LayerData& elt) {
-      bool to_delete = elt.model->id() == proc.id();
-
-      if (to_delete)
-      {
-        // No need to delete the view, the process presenters already do it.
-        QPointer<Process::LayerView> view_p{elt.view};
-        delete elt.presenter;
-        if (view_p)
-          deleteGraphicsItem(elt.view);
-      }
-
-      return to_delete;
-    });
-  }
-}
 
 void FullViewConstraintPresenter::on_slotRemoved(int pos)
 {
   SlotPresenter& slot = m_slots.at(pos);
-  for(LayerData& elt : slot.processes)
-  {
-    QPointer<Process::LayerView> view_p{elt.view};
-    delete elt.presenter;
-    if (view_p)
-      deleteGraphicsItem(elt.view);
-  }
+
+  QPointer<Process::LayerView> view_p{slot.process.view};
+  delete slot.process.presenter;
+  if (view_p)
+    deleteGraphicsItem(slot.process.view);
 
   deleteGraphicsItem(slot.handle);
   //deleteGraphicsItem(slot.view);
@@ -220,10 +169,7 @@ void FullViewConstraintPresenter::updateProcessesShape()
 {
   for(int i = 0; i < m_slots.size(); i++)
   {
-    for(const LayerData& proc : m_slots[i].processes)
-    {
-      updateProcessShape(i, proc);
-    }
+    updateProcessShape(i);
   }
 }
 
@@ -239,15 +185,12 @@ void FullViewConstraintPresenter::updatePositions()
   for(int i = 0; i < m_slots.size(); i++)
   {
     const SlotPresenter& slot = m_slots[i];
-    const Slot& model = m_model.fullView()[i];
+    const LayerData& proc = slot.process;
 
-    for(const LayerData& proc : slot.processes)
-    {
-      proc.view->setPos(0, currentSlotY);
-      proc.view->update();
-    }
+    proc.view->setPos(0, currentSlotY);
+    proc.view->update();
 
-    currentSlotY += model.height + slotSpacing; // Separation between slots
+    currentSlotY += proc.model->getSlotHeight() + slotSpacing; // Separation between slots
     slot.handle->setPos(0, currentSlotY - slotSpacing / 2);
   }
 
@@ -260,42 +203,13 @@ void FullViewConstraintPresenter::updatePositions()
 double FullViewConstraintPresenter::rackHeight() const
 {
   qreal height = 0;
-  for(const auto& slot : m_model.fullView())
+  for(const SlotPresenter& slot : m_slots)
   {
-    height += slot.height + slotSpacing;
+    height += slot.process.model->getSlotHeight() + slotSpacing;
   }
   return height;
 }
 
-void FullViewConstraintPresenter::on_layerModelPutToFront(int slot, const Process::ProcessModel& proc)
-{
-  // Put the selected one at z+1 and the others at -z; set "disabled" graphics
-  // mode.
-  // OPTIMIZEME by saving the previous to front and just switching...
-  for (const LayerData& elt : m_slots.at(slot).processes)
-  {
-    if (elt.model->id() == proc.id())
-    {
-      elt.presenter->putToFront();
-    }
-    else
-    {
-      elt.presenter->putBehind();
-    }
-  }
-}
-
-void FullViewConstraintPresenter::on_layerModelPutToBack(int slot, const Process::ProcessModel& proc)
-{
-  for (const LayerData& elt : m_slots.at(slot).processes)
-  {
-    if (elt.model->id() == proc.id())
-    {
-      elt.presenter->putBehind();
-      return;
-    }
-  }
-}
 void FullViewConstraintPresenter::updateScaling()
 {
   ConstraintPresenter::updateScaling();
@@ -308,10 +222,7 @@ void FullViewConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
 
   for(const SlotPresenter& slot : m_slots)
   {
-    for(const LayerData& proc : slot.processes)
-    {
-      proc.presenter->on_zoomRatioChanged(val);
-    }
+    slot.process.presenter->on_zoomRatioChanged(val);
   }
 
   updateProcessesShape();
@@ -325,10 +236,7 @@ void FullViewConstraintPresenter::on_defaultDurationChanged(const TimeVal& v)
   for(const SlotPresenter& slot : m_slots)
   {
     slot.handle->setWidth(w);
-    for(const LayerData& proc : slot.processes)
-    {
-      proc.presenter->setWidth(w);
-    }
+    slot.process.presenter->setWidth(w);
   }
 }
 
