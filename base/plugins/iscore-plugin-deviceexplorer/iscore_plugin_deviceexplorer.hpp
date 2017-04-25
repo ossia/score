@@ -25,14 +25,14 @@ class iscore_plugin_deviceexplorer final
       public iscore::Plugin_QtInterface,
       public iscore::FactoryList_QtInterface,
       public iscore::FactoryInterface_QtInterface,
-      public iscore::GUIApplicationPlugin_QtInterface,
+      public iscore::ApplicationPlugin_QtInterface,
       public iscore::CommandFactory_QtInterface
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
   Q_INTERFACES(iscore::Plugin_QtInterface iscore::FactoryList_QtInterface
                    iscore::FactoryInterface_QtInterface
-                       iscore::GUIApplicationPlugin_QtInterface
+                       iscore::ApplicationPlugin_QtInterface
                            iscore::CommandFactory_QtInterface)
 
   ISCORE_PLUGIN_METADATA(1, "3c2a0e25-ab14-4c06-a1ba-033d721a520f")
@@ -51,7 +51,7 @@ private:
 
   // application plugin
   iscore::GUIApplicationPlugin*
-  make_applicationPlugin(const iscore::GUIApplicationContext& app) override;
+  make_guiApplicationPlugin(const iscore::GUIApplicationContext& app) override;
 
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;

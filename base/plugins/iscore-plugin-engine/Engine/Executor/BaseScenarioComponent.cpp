@@ -31,8 +31,17 @@ namespace Engine
 namespace Execution
 {
 BaseScenarioElement::BaseScenarioElement(
-    BaseScenarioRefContainer element, const Context& ctx, QObject* parent)
+    const Context& ctx,
+    QObject* parent)
     : QObject{nullptr}, m_ctx{ctx}
+{
+}
+
+BaseScenarioElement::~BaseScenarioElement()
+{
+}
+
+void BaseScenarioElement::init(BaseScenarioRefContainer element)
 {
   auto main_start_node = std::make_shared<ossia::time_node>();
   auto main_end_node = std::make_shared<ossia::time_node>();
@@ -94,10 +103,6 @@ BaseScenarioElement::BaseScenarioElement(
       });
 }
 
-BaseScenarioElement::~BaseScenarioElement()
-{
-}
-
 void BaseScenarioElement::cleanup()
 {
   if(m_ossia_constraint)
@@ -128,8 +133,6 @@ void BaseScenarioElement::cleanup()
   m_ossia_endEvent.reset();
   m_ossia_startTimeNode.reset();
   m_ossia_endTimeNode.reset();
-
-  m_ctx.sys.runAllCommands();
 }
 
 ConstraintComponent& BaseScenarioElement::baseConstraint() const

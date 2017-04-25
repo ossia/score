@@ -28,6 +28,7 @@
 #include <core/command/CommandStack.hpp>
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/application/ApplicationComponents.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
@@ -171,7 +172,7 @@ void DocumentManager::setCurrentDocument(
     }
   }
 
-  for (auto& ctrl : ctx.applicationPlugins())
+  for (auto& ctrl : ctx.guiApplicationPlugins())
   {
     ctrl->on_documentChanged(old, m_currentDocument);
   }
@@ -217,7 +218,11 @@ bool DocumentManager::closeDocument(
 void DocumentManager::forceCloseDocument(
     const iscore::GUIApplicationContext& ctx, Document& doc)
 {
-  emit doc.aboutToClose();
+  for(auto plug : doc.model().pluginModels())
+  {
+    plug->on_documentClosing();
+  }
+
   QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
   m_view.closeDocument(&doc.view());
@@ -446,7 +451,7 @@ void DocumentManager::prepareNewDocument(const iscore::GUIApplicationContext& ct
 {
   m_preparingNewDocument = true;
   for (GUIApplicationPlugin* appPlugin :
-       ctx.applicationPlugins())
+       ctx.guiApplicationPlugins())
   {
     appPlugin->prepareNewDocument();
   }

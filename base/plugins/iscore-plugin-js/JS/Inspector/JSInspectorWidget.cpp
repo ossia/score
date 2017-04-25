@@ -16,11 +16,6 @@
 #include <QTableWidgetItem>
 #include <QHeaderView>
 class QVBoxLayout;
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
 namespace JS
 {
 template<typename Widg, typename T>

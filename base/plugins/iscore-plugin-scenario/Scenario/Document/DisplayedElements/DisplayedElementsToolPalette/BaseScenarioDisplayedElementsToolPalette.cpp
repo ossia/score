@@ -70,8 +70,8 @@ BaseScenarioDisplayedElementsToolPalette::context() const
 const Scenario::EditionSettings&
 BaseScenarioDisplayedElementsToolPalette::editionSettings() const
 {
-  return m_context.context.app.components
-      .applicationPlugin<ScenarioApplicationPlugin>()
+  return m_context.context.app
+      .guiApplicationPlugin<ScenarioApplicationPlugin>()
       .editionSettings(); // OPTIMIZEME
 }
 

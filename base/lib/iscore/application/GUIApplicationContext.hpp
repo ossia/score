@@ -31,6 +31,27 @@ struct GUIApplicationContext : public iscore::ApplicationContext
   {
   }
 
+  /**
+   * @brief List of all the application-wide plug-ins
+   *
+   * @see iscore::GUIApplicationPlugin
+   */
+  const auto& guiApplicationPlugins() const
+  {
+    return components.guiApplicationPlugins();
+  }
+
+  /**
+   * @brief Access a specific application plug-in instance.
+   *
+   * @see iscore::GUIApplicationPlugin
+   */
+  template <typename T>
+  T& guiApplicationPlugin() const
+  {
+    return components.guiApplicationPlugin<T>();
+  }
+
   DocumentManager& documents;
 
   MenuManager& menus;

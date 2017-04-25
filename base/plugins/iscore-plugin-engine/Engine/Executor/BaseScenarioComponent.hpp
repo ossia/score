@@ -2,7 +2,6 @@
 #include <memory>
 
 #include <ossia/editor/state/state_element.hpp>
-#include <Engine/Executor/ConstraintExecutionFacade.hpp>
 #include <QObject>
 #include <iscore_plugin_engine_export.h>
 namespace ossia
@@ -109,11 +108,12 @@ class ISCORE_PLUGIN_ENGINE_EXPORT BaseScenarioElement final : public QObject
 {
   Q_OBJECT
 public:
-  BaseScenarioElement(
-      BaseScenarioRefContainer element, const Context&, QObject* parent);
+  BaseScenarioElement(const Context&, QObject* parent);
   ~BaseScenarioElement();
 
+  void init(BaseScenarioRefContainer);
   void cleanup();
+  bool active() const { return bool(m_ossia_constraint); }
 
   ConstraintComponent& baseConstraint() const;
 

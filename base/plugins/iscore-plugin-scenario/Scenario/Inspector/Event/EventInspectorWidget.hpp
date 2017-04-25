@@ -11,11 +11,6 @@ class QLabel;
 class QComboBox;
 class QLineEdit;
 class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Scenario
 {
 class StateModel;

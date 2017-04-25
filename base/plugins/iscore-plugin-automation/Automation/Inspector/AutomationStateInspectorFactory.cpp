@@ -4,12 +4,6 @@
 #include "AutomationStateInspectorFactory.hpp"
 #include <Automation/State/AutomationState.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
-class QObject;
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
 
 namespace Automation
 {

@@ -55,16 +55,16 @@ class PanelFactory;
 
 class iscore_plugin_scenario final
     : public QObject,
-      public iscore::GUIApplicationPlugin_QtInterface,
+      public iscore::ApplicationPlugin_QtInterface,
       public iscore::CommandFactory_QtInterface,
       public iscore::FactoryList_QtInterface,
       public iscore::FactoryInterface_QtInterface,
       public iscore::Plugin_QtInterface
 {
   Q_OBJECT
-  Q_PLUGIN_METADATA(IID GUIApplicationPlugin_QtInterface_iid)
+  Q_PLUGIN_METADATA(IID ApplicationPlugin_QtInterface_iid)
   Q_INTERFACES(
-      iscore::GUIApplicationPlugin_QtInterface
+      iscore::ApplicationPlugin_QtInterface
           iscore::CommandFactory_QtInterface iscore::FactoryList_QtInterface
               iscore::FactoryInterface_QtInterface iscore::Plugin_QtInterface)
 
@@ -76,7 +76,7 @@ public:
 private:
   // Application plugin interface
   iscore::GUIApplicationPlugin*
-  make_applicationPlugin(const iscore::GUIApplicationContext& app) override;
+  make_guiApplicationPlugin(const iscore::GUIApplicationContext& app) override;
 
   // NOTE : implementation is in CommandNames.cpp
   std::pair<const CommandGroupKey, CommandGeneratorMap>
@@ -90,5 +90,8 @@ private:
   // ex. si QString = Process, renvoie un vecteur avec ScenarioFactory.
   std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext&,
+      const iscore::InterfaceKey& factoryName) const override;
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
+      const iscore::GUIApplicationContext&,
       const iscore::InterfaceKey& factoryName) const override;
 };

@@ -142,8 +142,7 @@ void ProcessTabWidget::displayProcess(
 
   const auto& fact
       = m_constraintWidget.context()
-            .app.components
-            .interfaces<Process::InspectorWidgetDelegateFactoryList>();
+            .app.interfaces<Process::InspectorWidgetDelegateFactoryList>();
   if (auto widg = fact.make(
           &Process::InspectorWidgetDelegateFactory::make, process,
           m_constraintWidget.context(), newProc))

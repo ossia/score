@@ -15,7 +15,7 @@ PlayToolState::PlayToolState(const Scenario::ToolPalette& sm)
     : m_sm{sm}
     , m_exec{m_sm.context()
                  .context.app
-                 .applicationPlugin<ScenarioApplicationPlugin>()
+                 .guiApplicationPlugin<ScenarioApplicationPlugin>()
                  .execution()}
 {
 }

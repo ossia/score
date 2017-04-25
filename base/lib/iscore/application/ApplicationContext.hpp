@@ -52,27 +52,6 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   }
 
   /**
-   * @brief List of all the application-wide plug-ins
-   *
-   * @see iscore::GUIApplicationPlugin
-   */
-  const auto& applicationPlugins() const
-  {
-    return components.applicationPlugins();
-  }
-
-  /**
-   * @brief Access a specific application plug-in instance.
-   *
-   * @see iscore::GUIApplicationPlugin
-   */
-  template <typename T>
-  T& applicationPlugin() const
-  {
-    return components.applicationPlugin<T>();
-  }
-
-  /**
    * @brief List of all the registered addons.
    *
    * @see iscore::Addon

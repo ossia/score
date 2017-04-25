@@ -10,11 +10,6 @@
 #include <iscore/model/path/Path.hpp>
 
 class QVBoxLayout;
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
 namespace RecordedMessages
 {
 InspectorWidget::InspectorWidget(

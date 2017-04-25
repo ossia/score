@@ -26,6 +26,11 @@ struct GUIElements
   std::vector<Toolbar> toolbars;
 };
 
+class ISCORE_LIB_BASE_EXPORT ApplicationPlugin
+{
+  virtual ~ApplicationPlugin();
+};
+
 /**
  * @brief Used to extend the software with application-wide data.
  *

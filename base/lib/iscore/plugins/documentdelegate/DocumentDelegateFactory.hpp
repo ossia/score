@@ -12,7 +12,7 @@ class DocumentDelegateView;
 class DocumentModel;
 class DocumentPresenter;
 class DocumentView;
-struct ApplicationContext;
+struct GUIApplicationContext;
 struct DocumentContext;
 
 /**
@@ -29,7 +29,7 @@ public:
   virtual ~DocumentDelegateFactory();
 
   virtual DocumentDelegateView*
-  makeView(const iscore::ApplicationContext& ctx, QObject* parent)
+  makeView(const iscore::GUIApplicationContext& ctx, QObject* parent)
       = 0;
 
   virtual DocumentDelegatePresenter* makePresenter(

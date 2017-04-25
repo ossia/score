@@ -3,13 +3,6 @@
 #include "CurvePointInspectorFactory.hpp"
 #include "CurvePointInspectorWidget.hpp"
 #include <Curve/Point/CurvePointModel.hpp>
-class QObject;
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Automation
 {
 Inspector::InspectorWidgetBase* PointInspectorFactory::makeWidget(

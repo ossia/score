@@ -48,7 +48,7 @@
 namespace Scenario
 {
 ScenarioDocumentView::ScenarioDocumentView(
-    const iscore::ApplicationContext& ctx, QObject* parent)
+    const iscore::GUIApplicationContext& ctx, QObject* parent)
     : iscore::DocumentDelegateView{parent}
     , m_widget{new QWidget}
     , m_scene{new ScenarioScene{m_widget}}
@@ -144,7 +144,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->setObjectName("ScenarioViewer");
 
   // Cursors
-  auto& es = ctx.applicationPlugin<ScenarioApplicationPlugin>()
+  auto& es = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>()
                  .editionSettings();
   con(es, &EditionSettings::toolChanged, this, [=](Scenario::Tool t) {
     switch (t)

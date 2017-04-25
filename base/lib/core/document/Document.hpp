@@ -119,10 +119,6 @@ public:
     return m_virgin && !m_commandStack.canUndo() && !m_commandStack.canRedo();
   }
 
-signals:
-  //! Used to warn plug-ins that they are going to be deleted soon.
-  void aboutToClose();
-
 private:
   // These are to be constructed by DocumentBuilder.
   Document(

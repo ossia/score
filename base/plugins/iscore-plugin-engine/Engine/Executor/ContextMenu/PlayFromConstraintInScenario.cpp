@@ -79,7 +79,7 @@ void PlayFromConstraintScenarioPruner::operator()(const Context& exec_ctx)
 
   // Get the constraints in the scenario execution
   auto process_ptr = dynamic_cast<const Process::ProcessModel*>(&scenar);
-  auto& source_procs = exec_ctx.sys.baseScenario()->baseConstraint().processes();
+  auto& source_procs = exec_ctx.scenario.baseConstraint().processes();
   auto scenar_proc_it = source_procs.find(process_ptr->id());
 
   ISCORE_ASSERT(scenar_proc_it != source_procs.end());

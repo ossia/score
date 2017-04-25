@@ -11,38 +11,27 @@ ClockManagerFactory::~ClockManagerFactory() = default;
 
 void ClockManager::play(const TimeVal& t)
 {
-  auto bs = context.sys.baseScenario();
-  if (!bs)
-    return;
-
-  play_impl(t, *bs);
+  auto& bs = context.scenario;
+  play_impl(t, bs);
 }
 
 void ClockManager::pause()
 {
-  auto bs = context.sys.baseScenario();
-  if (!bs)
-    return;
-
-  pause_impl(*bs);
+  auto& bs = context.scenario;
+  pause_impl(bs);
 }
 
 void ClockManager::resume()
 {
-  auto bs = context.sys.baseScenario();
-  if (!bs)
-    return;
-
-  resume_impl(*bs);
+  auto& bs = context.scenario;
+  resume_impl(bs);
 }
 
 void ClockManager::stop()
 {
-  auto bs = context.sys.baseScenario();
-  if (!bs)
-    return;
-
-  stop_impl(*bs);
+  auto& bs = context.scenario;
+  if(bs.active())
+    stop_impl(bs);
 }
 }
 }

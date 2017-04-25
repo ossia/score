@@ -5,10 +5,6 @@
 
 class QDoubleSpinBox;
 class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
 namespace Curve
 {
 class PointModel;

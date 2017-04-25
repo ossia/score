@@ -88,7 +88,7 @@ iscore_plugin_scenario::iscore_plugin_scenario()
 iscore_plugin_scenario::~iscore_plugin_scenario() = default;
 
 iscore::GUIApplicationPlugin*
-iscore_plugin_scenario::make_applicationPlugin(
+iscore_plugin_scenario::make_guiApplicationPlugin(
     const iscore::GUIApplicationContext& app)
 {
   using namespace Scenario;
@@ -105,13 +105,13 @@ iscore_plugin_scenario::factoryFamilies()
 
 template <>
 struct
-    FactoryBuilder<iscore::ApplicationContext, Scenario::ScenarioTemporalLayerFactory>
+    FactoryBuilder<iscore::GUIApplicationContext, Scenario::ScenarioTemporalLayerFactory>
 {
-  static auto make(const iscore::ApplicationContext& ctx)
+  static auto make(const iscore::GUIApplicationContext& ctx)
   {
     using namespace Scenario;
     auto& appPlugin
-        = ctx.applicationPlugin<ScenarioApplicationPlugin>();
+        = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
     return std::make_unique<ScenarioTemporalLayerFactory>(
         appPlugin.editionSettings());
   }
@@ -124,6 +124,31 @@ iscore_plugin_scenario::factories(
 {
   using namespace Scenario;
   using namespace Scenario::Command;
-  return instantiate_factories<iscore::ApplicationContext, FW<Process::ProcessModelFactory, ScenarioFactory>, FW<Process::LayerFactory, ScenarioTemporalLayerFactory>, FW<MoveEventFactoryInterface, MoveEventClassicFactory>, FW<Process::InspectorWidgetDelegateFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>, FW<DisplayedElementsToolPaletteFactory, BaseScenarioDisplayedElementsToolPaletteFactory, ScenarioDisplayedElementsToolPaletteFactory>, FW<TriggerCommandFactory, ScenarioTriggerCommandFactory, BaseScenarioTriggerCommandFactory>, FW<DisplayedElementsProvider, ScenarioDisplayedElementsProvider, BaseScenarioDisplayedElementsProvider>, FW<iscore::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>, FW<iscore::SettingsDelegateFactory, Scenario::Settings::Factory>, FW<iscore::PanelDelegateFactory, Scenario::PanelDelegateFactory>, FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario>, FW<Scenario::ConstraintDropHandler, Scenario::DropProcessInConstraint, Scenario::AutomationDropHandler>, FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory>, FW<ConstraintInspectorDelegateFactory, ScenarioConstraintInspectorDelegateFactory, BaseConstraintInspectorDelegateFactory>, FW<iscore::ValidityChecker, ScenarioValidityChecker>>(
+  return instantiate_factories<iscore::ApplicationContext,
+      FW<Process::ProcessModelFactory, ScenarioFactory>,
+      FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
+      FW<Process::InspectorWidgetDelegateFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>,
+      FW<DisplayedElementsToolPaletteFactory, BaseScenarioDisplayedElementsToolPaletteFactory, ScenarioDisplayedElementsToolPaletteFactory>,
+      FW<TriggerCommandFactory, ScenarioTriggerCommandFactory, BaseScenarioTriggerCommandFactory>,
+      FW<DisplayedElementsProvider, ScenarioDisplayedElementsProvider, BaseScenarioDisplayedElementsProvider>,
+      FW<iscore::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>,
+      FW<iscore::SettingsDelegateFactory, Scenario::Settings::Factory>,
+      FW<iscore::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
+      FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario>,
+      FW<Scenario::ConstraintDropHandler, Scenario::DropProcessInConstraint, Scenario::AutomationDropHandler>,
+      FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory>,
+      FW<ConstraintInspectorDelegateFactory, ScenarioConstraintInspectorDelegateFactory, BaseConstraintInspectorDelegateFactory>,
+      FW<iscore::ValidityChecker, ScenarioValidityChecker>>(
+      ctx, key);
+}
+std::vector<std::unique_ptr<iscore::InterfaceBase>>
+iscore_plugin_scenario::factories(
+    const iscore::GUIApplicationContext& ctx,
+    const iscore::InterfaceKey& key) const
+{
+  using namespace Scenario;
+  using namespace Scenario::Command;
+  return instantiate_factories<iscore::GUIApplicationContext,
+      FW<Process::LayerFactory, ScenarioTemporalLayerFactory>>(
       ctx, key);
 }

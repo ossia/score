@@ -190,7 +190,7 @@ void Application::initDocuments()
     }
 
     // The plug-ins have the ability to override the boot process.
-    for(auto plug : ctx.applicationPlugins())
+    for(auto plug : ctx.guiApplicationPlugins())
     {
         if(plug->handleStartup())
         {

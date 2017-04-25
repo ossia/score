@@ -26,7 +26,7 @@ TransportActions::TransportActions(
     const iscore::GUIApplicationContext& context)
     : m_context{context}
 {
-  auto& obj = *context.mainWindow.centralWidget();
+  auto obj = context.mainWindow.centralWidget();
 
   m_play = new QAction{tr("Play"), nullptr};
   m_play->setObjectName("Play");
@@ -35,7 +35,7 @@ TransportActions::TransportActions(
   m_play->setData(false);
   setIcons(
       m_play, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
-  obj.addAction(m_play);
+  obj->addAction(m_play);
 
   m_stop = new QAction{tr("Stop"), nullptr};
   m_stop->setObjectName("Stop");
@@ -43,7 +43,7 @@ TransportActions::TransportActions(
   m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   setIcons(
       m_stop, QString(":/icons/stop_on.png"), QString(":/icons/stop_off.png"));
-  obj.addAction(m_stop);
+  obj->addAction(m_stop);
   /*
       m_goToStart = new QAction{tr("⏮ Start"), nullptr};
       m_goToStart->setObjectName("Start");
@@ -59,7 +59,7 @@ TransportActions::TransportActions(
   m_stopAndInit->setObjectName("StopAndInit");
   m_stopAndInit->setShortcut(Qt::CTRL + Qt::Key_Return);
   m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  obj.addAction(m_stopAndInit);
+  obj->addAction(m_stopAndInit);
 
   setIcons(
       m_stopAndInit, QString(":/icons/reinitialize_on.png"),

@@ -34,8 +34,7 @@ ToolPalette::ToolPalette(
     , m_presenter{presenter}
     , m_context{ctx}
     , m_view{view}
-    , m_editionSettings{m_context.context.app.components
-                            .applicationPlugin<Scenario::
+    , m_editionSettings{m_context.context.app.guiApplicationPlugin<Scenario::
                                                    ScenarioApplicationPlugin>()
                             .editionSettings()}
     , m_state{*this}

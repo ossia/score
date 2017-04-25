@@ -9,12 +9,6 @@ class JSEdit;
 class QWidget;
 class QLabel;
 class QTableWidget;
-namespace iscore
-{
-class Document;
-struct DocumentContext;
-} // namespace iscore
-
 namespace JS
 {
 struct JSWidgetBase

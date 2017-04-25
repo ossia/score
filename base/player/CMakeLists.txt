@@ -26,7 +26,7 @@ else()
 endif()
 
 
-target_link_libraries(player PUBLIC iscore_lib_base Qt5::QuickControls2)
+target_link_libraries(player PUBLIC iscore_lib_base  iscore_plugin_scenario iscore_lib_engine Qt5::QuickControls2)
 
 if(ISCORE_STATIC_PLUGINS)
   iscore_write_static_plugins_header()

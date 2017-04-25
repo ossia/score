@@ -50,9 +50,9 @@ void GUIApplicationInterface::loadPluginData(
   registrar.registerFactory(
       std::make_unique<iscore::SettingsDelegateFactoryList>());
 
-  registrar.registerApplicationContextPlugin(
+  registrar.registerApplicationPlugin(
       new iscore::CoreApplicationPlugin{ctx, presenter});
-  registrar.registerApplicationContextPlugin(
+  registrar.registerApplicationPlugin(
       new iscore::UndoApplicationPlugin{ctx});
 
   iscore::PluginLoader::loadPlugins(registrar, ctx);
@@ -71,7 +71,7 @@ void GUIApplicationInterface::loadPluginData(
   presenter.setupGUI();
 
   for (iscore::GUIApplicationPlugin* app_plug :
-       ctx.applicationPlugins())
+       ctx.guiApplicationPlugins())
   {
     app_plug->initialize();
   }

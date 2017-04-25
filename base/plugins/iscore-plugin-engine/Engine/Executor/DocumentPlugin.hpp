@@ -1,14 +1,11 @@
 #pragma once
+#include "BaseScenarioComponent.hpp"
+
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/tools/Metadata.hpp>
 #include <iscore_plugin_engine_export.h>
 #include <memory>
-class QObject;
-namespace iscore
-{
-class Document;
-} // namespace iscore
 
 namespace iscore
 {
@@ -23,24 +20,23 @@ namespace Engine
 {
 namespace Execution
 {
-class BaseScenarioElement;
-
 class ISCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
     : public iscore::DocumentPlugin
 {
 public:
   DocumentPlugin(
-      iscore::Document& doc, Id<iscore::DocumentPlugin>, QObject* parent);
+      const iscore::DocumentContext& ctx, Id<iscore::DocumentPlugin>, QObject* parent);
 
   ~DocumentPlugin();
   void reload(Scenario::ConstraintModel& doc);
   void clear();
 
-  BaseScenarioElement* baseScenario() const;
+  void on_documentClosing() override;
+  const BaseScenarioElement& baseScenario() const;
 
   bool isPlaying() const;
 
-  auto& context() const
+  const Context& context() const
   {
     return m_ctx;
   }
@@ -50,7 +46,7 @@ public:
 private:
   mutable ExecutionCommandQueue m_editionQueue;
   Context m_ctx;
-  std::shared_ptr<BaseScenarioElement> m_base;
+  BaseScenarioElement m_base;
 };
 }
 }

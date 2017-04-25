@@ -2,14 +2,6 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <QList>
 
-class QObject;
-class QString;
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Automation
 {
 class PointInspectorFactory final : public Inspector::InspectorWidgetFactory

@@ -40,6 +40,8 @@ iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer()
   anySer.emplace(std::string("tags"), std::make_unique<iscore::any_serializer_t<ossia::net::tags>>());
   anySer.emplace(std::string("refreshRate"), std::make_unique<iscore::any_serializer_t<ossia::net::refresh_rate>>());
   anySer.emplace(std::string("valueStepSize"), std::make_unique<iscore::any_serializer_t<ossia::net::value_step_size>>());
+
+  // TODO continue
 }
 
 iscore_plugin_deviceexplorer::~iscore_plugin_deviceexplorer()
@@ -62,7 +64,7 @@ iscore_plugin_deviceexplorer::factories(
 }
 
 iscore::GUIApplicationPlugin*
-iscore_plugin_deviceexplorer::make_applicationPlugin(
+iscore_plugin_deviceexplorer::make_guiApplicationPlugin(
     const iscore::GUIApplicationContext& app)
 {
   return new Explorer::ApplicationPlugin{app};

@@ -10,12 +10,6 @@ namespace Inspector
 class InspectorSectionWidget;
 }
 class QLabel;
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Scenario
 {
 class MetadataWidget;

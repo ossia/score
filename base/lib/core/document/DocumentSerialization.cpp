@@ -318,7 +318,7 @@ DocumentModel::DocumentModel(
 {
   using namespace std;
 
-  for (auto& appPlug : ctx.app.applicationPlugins())
+  for (auto& appPlug : ctx.app.guiApplicationPlugins())
   {
     appPlug->on_initDocument(ctx.document);
   }

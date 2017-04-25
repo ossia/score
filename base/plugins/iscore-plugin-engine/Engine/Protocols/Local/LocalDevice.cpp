@@ -1,5 +1,4 @@
 #include <ossia/network/base/device.hpp>
-#include <Engine/ApplicationPlugin.hpp>
 #include <QString>
 #include <QVariant>
 #include <iscore/document/DocumentContext.hpp>
@@ -15,8 +14,6 @@
 #include <Engine/OSSIA2iscore.hpp>
 #include <Engine/Protocols/Local/LocalSpecificSettings.hpp>
 #include <Engine/iscore2OSSIA.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <iscore/actions/ActionManager.hpp>
 namespace Engine
 {
 namespace Network
@@ -32,55 +29,11 @@ LocalDevice::LocalDevice(
   m_capas.canRemoveNode = false;
   m_capas.canSerialize = false;
 
-  auto& appplug
-      = ctx.app.applicationPlugin<Engine::ApplicationPlugin>();
 
   auto& proto = safe_cast<ossia::net::multiplex_protocol&>(dev.get_protocol());
 
   m_proto = &proto;
   setLogging_impl(isLogging());
-
-  auto& root = dev.get_root_node();
-
-  {
-    auto local_play_node = root.create_child("play");
-    auto local_play_address
-        = local_play_node->create_address(ossia::val_type::BOOL);
-    local_play_address->set_value(bool{false});
-    local_play_address->add_callback([&](const ossia::value& v) {
-      if (auto val = v.target<bool>())
-      {
-        if (!appplug.playing() && *val)
-        {
-          // not playing, play requested
-          auto& play_action = appplug.context.actions.action<Actions::Play>();
-          play_action.action()->trigger();
-        }
-        else if (appplug.playing())
-        {
-          if (appplug.paused() == *val)
-          {
-            // paused, play requested
-            // or playing, pause requested
-
-            auto& play_action
-                = appplug.context.actions.action<Actions::Play>();
-            play_action.action()->trigger();
-          }
-        }
-      }
-    });
-  }
-  {
-    auto local_stop_node = root.create_child("stop");
-    auto local_stop_address
-        = local_stop_node->create_address(ossia::val_type::IMPULSE);
-    local_stop_address->set_value(ossia::impulse{});
-    local_stop_address->add_callback([&](const ossia::value&) {
-      auto& stop_action = appplug.context.actions.action<Actions::Stop>();
-      stop_action.action()->trigger();
-    });
-  }
 
   setRemoteSettings(settings);
 

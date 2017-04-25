@@ -11,7 +11,6 @@ class ProcessModel;
 class QWidget;
 namespace iscore
 {
-class Document;
 struct DocumentContext;
 } // namespace iscore
 
