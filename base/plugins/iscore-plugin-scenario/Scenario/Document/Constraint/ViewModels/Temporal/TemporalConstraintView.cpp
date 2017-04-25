@@ -159,7 +159,7 @@ void TemporalConstraintView::paint(
   {
     // Background
     auto rect = boundingRect();
-    rect.adjust(0, 4, 0, -10);
+    rect.adjust(0, 4, 0, 0);
     rect.setWidth(def_w);
 
     auto bgColor = m_bgColor.getColor().color();

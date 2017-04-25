@@ -1,6 +1,7 @@
 #pragma once
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 #include <iscore_plugin_scenario_export.h>
@@ -12,6 +13,7 @@ class ProcessModel;
 }
 namespace Scenario
 {
+class SlotHandle;
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final
     : public ConstraintPresenter
 {
@@ -53,6 +55,23 @@ private:
   void clearRackPresenter();
   //void on_rackRemoved(const RackModel&);
   double rackHeight() const;
+  struct SlotPresenter
+  {
+    SlotHandle* handle{};
+    std::vector<LayerData> processes;
+  };
+
+  std::vector<SlotPresenter> m_slots;
+  void createSlot(int pos, const Slot& slt);
+  void createLayer(int slot, const Process::ProcessModel& proc);
+  void updateProcessShape(int slot, const LayerData& data);
+  void removeLayer(const Process::ProcessModel& proc);
+  void on_slotRemoved(int pos);
+  void updateProcessesShape();
+  void updatePositions();
+  void on_layerModelPutToFront(int slot, const Process::ProcessModel& proc);
+  void on_layerModelPutToBack(int slot, const Process::ProcessModel& proc);
+  void on_rackChanged();
 };
 
 }

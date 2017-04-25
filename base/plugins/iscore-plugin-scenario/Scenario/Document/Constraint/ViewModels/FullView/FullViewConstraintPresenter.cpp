@@ -35,53 +35,48 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
           cstr_model, new FullViewConstraintView{*this, parentobject},
           new FullViewConstraintHeader{parentobject}, ctx, parent}
 {
-  // Update the address bar
+  // Address bar
   auto addressBar = static_cast<FullViewConstraintHeader*>(m_header)->bar();
   addressBar->setTargetObject(iscore::IDocument::unsafe_path(cstr_model));
-  connect(
-      addressBar, &AddressBarItem::constraintSelected, this,
-      &FullViewConstraintPresenter::constraintSelected);
+  connect(addressBar, &AddressBarItem::constraintSelected, this,
+          &FullViewConstraintPresenter::constraintSelected);
 
+  // Header
   const auto& metadata = m_model.metadata();
   con(metadata, &iscore::ModelMetadata::NameChanged, m_header,
       &ConstraintHeader::setText);
   m_header->setText(metadata.getName());
   m_header->show();
 
-  const auto& slts = cstr_model.fullView();
-  m_slots.reserve(slts.size());
-  for(int i = 0; i < slts.size(); i++)
-  {
-    createSlot(i, slts[i]);
-  }
-
+  // Slots
   con(m_model, &ConstraintModel::rackChanged,
       this, [=] (Slot::RackView t) {
     if(t == Slot::FullView)
-    {
-      for(int i = slts.size(); i --> 0 ; i++)
-      {
-        on_slotRemoved(i);
-      }
-    }
+      on_rackChanged();
   });
+
   con(m_model, &ConstraintModel::slotAdded,
       this, [=] (const SlotId& s) {
-    createSlot(s.index, m_model.fullView()[s.index]);
+    if(s.fullView())
+      createSlot(s.index, m_model.fullView()[s.index]);
   });
 
   con(m_model, &ConstraintModel::slotRemoved,
       this, [=] (const SlotId& s) {
-    on_slotRemoved(s.index);
+    if(s.fullView())
+      on_slotRemoved(s.index);
   });
 
   con(m_model, &ConstraintModel::slotResized,
-          this, [this] (const auto& slotid) {
-    this->updatePositions();
+          this, [this] (const SlotId& s) {
+    if(s.fullView())
+      this->updatePositions();
   });
 
-
-  updatePositions();
+  // Initial state
+  const auto& slts = cstr_model.fullView();
+  m_slots.reserve(slts.size());
+  on_rackChanged();
 }
 
 FullViewConstraintPresenter::~FullViewConstraintPresenter()
@@ -104,7 +99,6 @@ void FullViewConstraintPresenter::createSlot(int pos, const FullSlot& slt)
 {
   SlotPresenter p;
   p.handle = new SlotHandle{*this, pos, m_view};
-  // p.view = new SlotView{};
   m_slots.insert(m_slots.begin() + pos, std::move(p));
 
   const auto& proc = m_model.processes.at(slt.process);
@@ -149,7 +143,6 @@ void FullViewConstraintPresenter::updateProcessShape(int slot)
   data.presenter->parentGeometryChanged();
 }
 
-
 void FullViewConstraintPresenter::on_slotRemoved(int pos)
 {
   SlotPresenter& slot = m_slots.at(pos);
@@ -160,7 +153,6 @@ void FullViewConstraintPresenter::on_slotRemoved(int pos)
     deleteGraphicsItem(slot.process.view);
 
   deleteGraphicsItem(slot.handle);
-  //deleteGraphicsItem(slot.view);
 
   m_slots.erase(m_slots.begin() + pos);
 }
@@ -190,8 +182,10 @@ void FullViewConstraintPresenter::updatePositions()
     proc.view->setPos(0, currentSlotY);
     proc.view->update();
 
-    currentSlotY += proc.model->getSlotHeight() + slotSpacing; // Separation between slots
-    slot.handle->setPos(0, currentSlotY - slotSpacing / 2);
+    currentSlotY += proc.model->getSlotHeight();
+
+    slot.handle->setPos(0, currentSlotY);
+    currentSlotY += SlotHandle::handleHeight();
   }
 
   // Horizontal shape
@@ -205,9 +199,31 @@ double FullViewConstraintPresenter::rackHeight() const
   qreal height = 0;
   for(const SlotPresenter& slot : m_slots)
   {
-    height += slot.process.model->getSlotHeight() + slotSpacing;
+    height += slot.process.model->getSlotHeight() + SlotHandle::handleHeight();
   }
   return height;
+}
+
+void FullViewConstraintPresenter::on_rackChanged()
+{
+  // Remove existing
+  for(int i = m_slots.size(); i --> 0 ; )
+  {
+    on_slotRemoved(i);
+  }
+
+  // Recreate
+  m_slots.reserve(m_model.fullView().size());
+
+  int i = 0;
+  for(auto slt : m_model.fullView())
+  {
+    createSlot(i, slt);
+    i++;
+  }
+
+  // Update view
+  updatePositions();
 }
 
 void FullViewConstraintPresenter::updateScaling()

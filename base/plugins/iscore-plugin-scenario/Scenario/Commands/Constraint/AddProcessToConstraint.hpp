@@ -194,6 +194,7 @@ public:
     auto h
         = m_cmd.context.settings<Scenario::Settings::Model>().getSlotHeight();
     constraint.addSlot(Slot{{proc.id()}, proc.id(), h});
+    constraint.setSmallViewVisible(true);
   }
 
   void serialize(DataStreamInput& s) const
