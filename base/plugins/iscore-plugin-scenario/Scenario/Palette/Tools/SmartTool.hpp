@@ -157,7 +157,7 @@ public:
       this->localSM().postEvent((new ClickOnRightBrace_Event{id, sp}));
       m_nothingPressed = false;
     },
-    [&](const SlotIdentifier& slot) // Slot handle
+    [&](const SlotPath& slot) // Slot handle
     {
       this->localSM().postEvent(new ClickOnSlotHandle_Event{slot});
       m_nothingPressed = false;
@@ -199,7 +199,7 @@ public:
       [&](const Id<ConstraintModel>& id) {
         this->localSM().postEvent(new MoveOnRightBrace_Event{id, sp});
       }, // RightBrace
-      [&](const SlotIdentifier& slot) {
+      [&](const SlotPath& slot) {
         this->localSM().postEvent(new MoveOnSlotHandle_Event{slot});
       }, // Slot handle
       [&]() { this->localSM().postEvent(new MoveOnNothing_Event{sp}); });
@@ -249,7 +249,7 @@ public:
     {
       this->localSM().postEvent(new ReleaseOnRightBrace_Event{id, sp});
     },
-    [&](const SlotIdentifier& slot) // Slot handle
+    [&](const SlotPath& slot) // Slot handle
     { this->localSM().postEvent(new ReleaseOnSlotHandle_Event{slot}); },
     [&]() {
       this->localSM().postEvent(

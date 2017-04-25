@@ -250,103 +250,127 @@ bool ConstraintModel::smallViewVisible() const
 
 void ConstraintModel::clearSmallView()
 {
-
+  m_smallView.clear();
+  emit rackChanged(Slot::SmallView);
 }
 
 void ConstraintModel::clearFullView()
 {
-
-}
-
-void ConstraintModel::replaceFullView(const Rack& other)
-{
-
+  m_fullView.clear();
+  emit rackChanged(Slot::FullView);
 }
 
 void ConstraintModel::replaceSmallView(const Rack& other)
 {
-
+  m_smallView = other;
+  emit rackChanged(Slot::SmallView);
 }
 
-void ConstraintModel::addLayer(const SlotIdentifier& slot, Id<Process::ProcessModel>)
+void ConstraintModel::replaceFullView(const Rack& other)
 {
-
+  m_fullView = other;
+  emit rackChanged(Slot::FullView);
 }
 
-void ConstraintModel::removeLayer(const SlotIdentifier& slot, Id<Process::ProcessModel>)
+void ConstraintModel::addLayer(const SlotId& slot, Id<Process::ProcessModel> id)
 {
+  auto& vec = slot.full_view ? m_fullView : m_smallView;
 
+  auto& procs = vec.at(slot.index).processes;
+  ISCORE_ASSERT(ossia::find(procs, id) == procs.end());
+  procs.push_back(id);
+
+  emit layerAdded(slot, id);
+
+  putLayerToFront(slot, id);
 }
 
-void ConstraintModel::putLayerToFront(const SlotIdentifier& slot, Id<Process::ProcessModel>)
+void ConstraintModel::removeLayer(const SlotId& slot, Id<Process::ProcessModel> id)
 {
+  auto& vec = slot.full_view ? m_fullView : m_smallView;
 
+  auto& procs = vec.at(slot.index).processes;
+  const auto N = procs.size();
+  boost::remove_erase(procs, id);
+
+  if(procs.size() < N)
+  {
+    emit layerRemoved(slot, id);
+
+    if(!procs.empty())
+      putLayerToFront(slot, procs.front());
+    else
+      putLayerToFront(slot, ossia::none);
+  }
 }
 
-void ConstraintModel::addLayer(int slot, Id<Process::ProcessModel>)
+void ConstraintModel::putLayerToFront(const SlotId& slot, Id<Process::ProcessModel> id)
 {
+  auto& vec = slot.full_view ? m_fullView : m_smallView;
 
+  vec.at(slot.index).frontProcess = id;
+  emit frontLayerChanged(slot, id);
 }
 
-void ConstraintModel::removeLayer(int slot, Id<Process::ProcessModel>)
+void ConstraintModel::putLayerToFront(const SlotId& slot, ossia::none_t)
 {
+  auto& vec = slot.full_view ? m_fullView : m_smallView;
 
+  vec.at(slot.index).frontProcess = ossia::none;
+  emit frontLayerChanged(slot, ossia::none);
 }
 
-void ConstraintModel::putLayerToFront(int slot, Id<Process::ProcessModel>)
+void ConstraintModel::addSlot(Slot s, SlotId pos)
 {
-
-}
-
-void ConstraintModel::addSlot(Slot s, int pos)
-{
-  ISCORE_ASSERT(m_smallView.size() >= pos);
-  m_smallView.insert(m_smallView.begin() + pos, std::move(s));
-  // TODO notify
+  ISCORE_ASSERT(m_smallView.size() >= pos.index);
+  m_smallView.insert(m_smallView.begin() + pos.index, std::move(s));
+  emit slotAdded(pos);
 }
 
 void ConstraintModel::addSlot(Slot s)
 {
-  addSlot(std::move(s), m_smallView.size());
+  addSlot(std::move(s), {m_smallView.size(), Slot::SmallView});
 }
 
-void ConstraintModel::removeSlot(int pos)
+void ConstraintModel::removeSlot(SlotId pos)
 {
-  ISCORE_ASSERT(m_smallView.size() >= pos);
-  m_smallView.erase(m_smallView.begin() + pos);
-  // TODO notify
+  ISCORE_ASSERT(m_smallView.size() >= pos.index);
+  m_smallView.erase(m_smallView.begin() + pos.index);
+  emit slotRemoved(pos);
 }
 
-const Slot* ConstraintModel::findSlot(const SlotIdentifier& slot) const
+const Slot* ConstraintModel::findSlot(const SlotId& slot) const
 {
-  if(slot.full_view && slot.slot_position < m_fullView.size())
-    return &m_fullView[slot.slot_position];
-  else if(slot.slot_position < m_smallView.size())
-    return &m_smallView[slot.slot_position];
+  if(slot.full_view && slot.index < m_fullView.size())
+    return &m_fullView[slot.index];
+  else if(slot.index < m_smallView.size())
+    return &m_smallView[slot.index];
 
   return nullptr;
 }
 
-const Slot& ConstraintModel::getSlot(const SlotIdentifier& slot) const
+const Slot& ConstraintModel::getSlot(const SlotId& slot) const
 {
   if(slot.full_view)
-    return m_fullView.at(slot.slot_position);
+    return m_fullView.at(slot.index);
   else
-    return m_smallView.at(slot.slot_position);
+    return m_smallView.at(slot.index);
 }
 
-void ConstraintModel::setSlotHeight(const SlotIdentifier& slot, double height)
+void ConstraintModel::setSlotHeight(const SlotId& slot, double height)
 {
   getSlot(slot).height = height;
-  // TODO emit
+  emit slotResized(slot);
 }
 
 void swap(Scenario::Slot& lhs, Scenario::Slot& rhs)
 {
-
+  Scenario::Slot tmp = std::move(lhs);
+  lhs = std::move(rhs);
+  rhs = std::move(tmp);
 }
 
-void ConstraintModel::swapSlots(int pos1, int pos2, bool fullview)
+void ConstraintModel::swapSlots(int pos1, int pos2, Slot::RackView fullview)
 {
   auto& vec = fullview ? m_fullView : m_smallView;
 
@@ -354,26 +378,15 @@ void ConstraintModel::swapSlots(int pos1, int pos2, bool fullview)
   ISCORE_ASSERT(vec.size() > pos2);
   std::iter_swap(vec.begin() + pos1, vec.begin() + pos2);
 
-  // TODO emit
-
+  emit slotsSwapped(pos1, pos2, fullview);
 }
 
-Slot& ConstraintModel::getSlot(const SlotIdentifier& slot)
+Slot& ConstraintModel::getSlot(const SlotId& slot)
 {
   if(slot.full_view)
-    return m_fullView.at(slot.slot_position);
+    return m_fullView.at(slot.index);
   else
-    return m_smallView.at(slot.slot_position);
-}
-
-const Slot& ConstraintModel::getSmallViewSlot(int pos) const
-{
-  return m_smallView.at(pos);
-}
-
-const Slot& ConstraintModel::getFullViewSlot(int pos) const
-{
-  return m_fullView.at(pos);
+    return m_smallView.at(slot.index);
 }
 
 void ConstraintModel::on_addProcess(const Process::ProcessModel& p)
@@ -381,31 +394,35 @@ void ConstraintModel::on_addProcess(const Process::ProcessModel& p)
   // TODO use  m_cmd.context.settings<Scenario::Settings::Model>().getSlotHeight();
   // TODO do it in AddProcess instead.
   m_fullView.push_back(Slot{{p.id()}, {p.id()}, 100});
-  // TODO emit.
+  emit slotAdded({m_fullView.size() - 1, Slot::FullView});
 }
 
 void ConstraintModel::on_removeProcess(const Process::ProcessModel& p)
 {
-  for(Slot& slot : m_smallView)
+  for(int i = 0; i < m_smallView.size(); i++)
   {
-    boost::range::remove_erase(slot.processes, p.id());
-    // TODO emit
+    removeLayer(SlotId{i, Slot::SmallView}, p.id());
   }
-  for(Slot& slot : m_fullView)
+
+  for(int i = 0; i < m_smallView.size(); i++)
   {
-    boost::range::remove_erase(slot.processes, p.id());
-    // TODO emit
+    removeLayer(SlotId{i, Slot::FullView}, p.id());
   }
+
   auto it = ossia::find_if(m_fullView, [] (const auto& slot) {
     return slot.processes.empty();
   });
   if(it != m_fullView.end())
+  {
+    int N = std::distance(m_fullView.begin(), it);
     m_fullView.erase(it);
-  // TODO emit
+    emit slotRemoved(SlotId{N, Slot::FullView});
+  }
 }
 
 bool isInFullView(const ConstraintModel& cstr)
 {
+  // TODO just check if parent() == basescenario
   auto& doc = iscore::IDocument::documentContext(cstr);
   auto& sub = safe_cast<Scenario::ScenarioDocumentPresenter&>(
                 doc.document.presenter().presenterDelegate());
@@ -417,11 +434,11 @@ bool isInFullView(const Process::ProcessModel& cstr)
   return isInFullView(*static_cast<ConstraintModel*>(cstr.parent()));
 }
 
-const Scenario::Slot& SlotIdentifier::find() const
+const Scenario::Slot& SlotPath::find() const
 {
   return constraint.find().getSlot(*this);
 }
-const Scenario::Slot* SlotIdentifier::try_find() const
+const Scenario::Slot* SlotPath::try_find() const
 {
   if(auto cst = constraint.try_find())
     return cst->findSlot(*this);

@@ -39,7 +39,7 @@ public:
   CreateProcessAndLayers() = default;
   CreateProcessAndLayers(
       const ConstraintModel& constraint,
-      const std::vector<SlotIdentifier>& slotList,
+      const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> procId)
       : m_addProcessCmd{std::move(constraint), std::move(procId),
                         Metadata<ConcreteKey_k, ProcessModel_T>::get()}
@@ -99,7 +99,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
 public:
   CreateAutomationFromStates(
       const ConstraintModel& constraint,
-      const std::vector<SlotIdentifier>& slotList,
+      const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> curveId,
       State::AddressAccessor address,
       const Curve::CurveDomain&);
@@ -125,7 +125,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
 public:
   CreateInterpolationFromStates(
       const ConstraintModel& constraint,
-      const std::vector<SlotIdentifier>& slotList,
+      const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> curveId, State::AddressAccessor address,
       State::Value start, State::Value end);
 

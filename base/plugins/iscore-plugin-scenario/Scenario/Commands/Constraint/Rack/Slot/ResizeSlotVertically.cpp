@@ -12,7 +12,7 @@ namespace Command
 {
 
 ResizeSlotVertically::ResizeSlotVertically(
-    const SlotIdentifier& slotPath,
+    const SlotPath& slotPath,
     double newSize)
   : m_path{slotPath}, m_newSize{newSize}
 {
@@ -21,7 +21,7 @@ ResizeSlotVertically::ResizeSlotVertically(
 }
 
 ResizeSlotVertically::ResizeSlotVertically(
-    SlotIdentifier&& slotPath, double newSize)
+    SlotPath&& slotPath, double newSize)
     : m_path{slotPath}, m_newSize{newSize}
 {
   auto& slot = m_path.find();

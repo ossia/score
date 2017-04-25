@@ -1,27 +1,15 @@
 #pragma once
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 
-class ObjectPath;
-class QGraphicsItem;
-class QObject;
-
-namespace iscore
-{
-}
 namespace Scenario
 {
-/**
- * @brief The FullViewConstraintPresenter class
- *
- * Présenteur : reçoit signaux depuis modèle et vue et présenteurs enfants.
- * Exemple : cas d'un process ajouté : le modèle reçoit la commande addprocess,
- * émet un signal, qui est capturé par le présenteur qui va instancier le
- * présenteur nécessaire en appelant la factory.
- */
+class SlotView;
+class SlotHandle;
 class ISCORE_PLUGIN_SCENARIO_EXPORT FullViewConstraintPresenter final
     : public ConstraintPresenter
 {
@@ -49,5 +37,29 @@ private:
   void on_defaultDurationChanged(const TimeVal&) override;
 
   void createRackPresenter();
+
+  void on_layerModelPutToFront(int slot, const Process::ProcessModel&);
+  void on_layerModelPutToBack(int slot, const Process::ProcessModel&);
+  void createSlot(int pos, const Slot& slt);
+  void createLayer(int slot, const Process::ProcessModel& vm);
+  void updateProcessShape(int slot, const LayerData& p);
+
+
+  void removeLayer(const Process::ProcessModel&);
+  void on_slotRemoved(int);
+
+  void updateProcessesShape();
+  void updatePositions();
+
+  double rackHeight() const;
+
+  struct SlotPresenter
+  {
+    SlotView* view{};
+    SlotHandle* handle{};
+    std::vector<LayerData> processes;
+  };
+
+  std::vector<SlotPresenter> m_slots;
 };
 }

@@ -22,8 +22,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ResizeSlotVertically final
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), ResizeSlotVertically, "Resize a slot")
 public:
-    ResizeSlotVertically(const SlotIdentifier& slotPath, double newSize);
-  ResizeSlotVertically(SlotIdentifier&& slotPath, double newSize);
+    ResizeSlotVertically(const SlotPath& slotPath, double newSize);
+  ResizeSlotVertically(SlotPath&& slotPath, double newSize);
 
   void undo() const override;
   void redo() const override;
@@ -38,7 +38,7 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  SlotIdentifier m_path;
+  SlotPath m_path;
 
   double m_originalSize{};
   double m_newSize{};

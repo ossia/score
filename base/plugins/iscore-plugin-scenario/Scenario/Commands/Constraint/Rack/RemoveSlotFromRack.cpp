@@ -14,7 +14,7 @@ namespace Scenario
 {
 namespace Command
 {
-RemoveSlotFromRack::RemoveSlotFromRack(SlotIdentifier slotPath):
+RemoveSlotFromRack::RemoveSlotFromRack(SlotPath slotPath):
   m_path{slotPath}
 , m_slot{slotPath.find()}
 {
@@ -23,13 +23,13 @@ RemoveSlotFromRack::RemoveSlotFromRack(SlotIdentifier slotPath):
 void RemoveSlotFromRack::undo() const
 {
   auto& rack = m_path.constraint.find();
-  rack.addSlot(m_slot, m_path.slot_position);
+  rack.addSlot(m_slot, m_path);
 }
 
 void RemoveSlotFromRack::redo() const
 {
   auto& rack = m_path.constraint.find();
-  rack.removeSlot(m_path.slot_position);
+  rack.removeSlot(m_path);
 }
 
 void RemoveSlotFromRack::serializeImpl(DataStreamInput& s) const

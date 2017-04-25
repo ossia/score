@@ -27,26 +27,6 @@ namespace Scenario
 {
 class RackView;
 class SlotView;
-struct SlotProcessData
-{
-  SlotProcessData() = default;
-  SlotProcessData(const SlotProcessData&) = default;
-  SlotProcessData(SlotProcessData&&) = default;
-  SlotProcessData& operator=(const SlotProcessData&) = default;
-  SlotProcessData& operator=(SlotProcessData&&) = default;
-  SlotProcessData(
-      const Process::ProcessModel* m,
-      Process::LayerPresenter* p,
-      Process::LayerView* v)
-      : model(m), presenter(p), view(v)
-  {
-  }
-
-  const Process::ProcessModel* model{};
-  Process::LayerPresenter* presenter{};
-  Process::LayerView* view{};
-};
-
 class ISCORE_PLUGIN_SCENARIO_EXPORT SlotPresenter final : public QObject,
                                                           public Nano::Observer
 {

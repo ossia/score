@@ -76,6 +76,7 @@ ConstraintPresenter::ConstraintPresenter(
       &ConstraintView::setValid);
   con(constraint.consistency, &ModelConsistency::warningChanged, m_view,
       &ConstraintView::setWarning);
+
 }
 
 ConstraintPresenter::~ConstraintPresenter()

@@ -27,7 +27,7 @@ void SwapSlots::undo() const
 void SwapSlots::redo() const
 {
   auto& cst = m_path.find();
-  cst.swapSlots(m_first, m_second, false);
+  cst.swapSlots(m_first, m_second, Slot::SmallView);
 }
 
 void SwapSlots::serializeImpl(DataStreamInput& s) const

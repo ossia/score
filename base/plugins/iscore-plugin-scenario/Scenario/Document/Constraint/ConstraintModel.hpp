@@ -110,26 +110,19 @@ public:
   void replaceFullView(const Rack& other);
 
   void addSlot(Slot s);
-  void addSlot(Slot s, int pos);
-  void removeSlot(int pos);
-  void swapSlots(int pos1, int pos2, bool fullview);
-  const Slot* findSlot(const SlotIdentifier& slot) const;
-  const Slot& getSlot(const SlotIdentifier& slot) const;
-  Slot& getSlot(const SlotIdentifier& slot);
-  const Slot& getSmallViewSlot(int pos) const;
-  const Slot& getFullViewSlot(int pos) const;
+  void addSlot(Slot s, SlotId pos);
+  void removeSlot(SlotId pos);
+  void swapSlots(int pos1, int pos2, Slot::RackView fullview);
+  const Slot* findSlot(const SlotId& slot) const;
+  const Slot& getSlot(const SlotId& slot) const;
+  Slot& getSlot(const SlotId& slot);
 
-  void setSlotHeight(const SlotIdentifier& slot, double height);
-  void setSmallViewSlotHeight(int pos, double height);
-  void setFullViewSlotHeight(int pos, double height);
+  void setSlotHeight(const SlotId& slot, double height);
 
-  void addLayer(const SlotIdentifier& slot, Id<Process::ProcessModel>);
-  void removeLayer(const SlotIdentifier& slot, Id<Process::ProcessModel>);
-  void putLayerToFront(const SlotIdentifier& slot, Id<Process::ProcessModel>);
-
-  void addLayer(int slot, Id<Process::ProcessModel>);
-  void removeLayer(int slot, Id<Process::ProcessModel>);
-  void putLayerToFront(int slot, Id<Process::ProcessModel>);
+  void addLayer(const SlotId& slot, Id<Process::ProcessModel>);
+  void removeLayer(const SlotId& slot, Id<Process::ProcessModel>);
+  void putLayerToFront(const SlotId& slot, Id<Process::ProcessModel>);
+  void putLayerToFront(const SlotId& slot, ossia::none_t);
 
 signals:
   void heightPercentageChanged(double);
@@ -141,7 +134,17 @@ signals:
   void executionStarted();
   void executionStopped();
 
-  void smallViewVisibleChanged(bool);
+  void smallViewVisibleChanged(bool fv);
+
+  void rackChanged(Slot::RackView fv);
+  void slotAdded(SlotId);
+  void slotRemoved(SlotId);
+  void slotResized(SlotId);
+  void slotsSwapped(int slot1, int slot2, Slot::RackView fv);
+
+  void layerAdded(SlotId, Id<Process::ProcessModel>);
+  void layerRemoved(SlotId, Id<Process::ProcessModel>);
+  void frontLayerChanged(SlotId, OptionalId<Process::ProcessModel>);
 
 private:
   void on_addProcess(const Process::ProcessModel&);

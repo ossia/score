@@ -27,7 +27,7 @@ AddSlotToRack::AddSlotToRack(const Path<ConstraintModel>&  rackPath)
 void AddSlotToRack::undo() const
 {
   auto& rack = m_path.find();
-  rack.removeSlot(rack.smallView().size() - 1);
+  rack.removeSlot(SlotId{rack.smallView().size() - 1, Slot::SmallView});
 }
 
 void AddSlotToRack::redo() const
