@@ -9,7 +9,6 @@ class QCheckBox;
 
 namespace iscore
 {
-class Document;
 struct DocumentContext;
 }
 namespace State

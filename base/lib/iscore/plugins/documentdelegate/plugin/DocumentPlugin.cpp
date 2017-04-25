@@ -15,6 +15,11 @@ DocumentPlugin::DocumentPlugin(
 {
 }
 
+void DocumentPlugin::on_documentClosing()
+{
+
+}
+
 DocumentPlugin::~DocumentPlugin() = default;
 SerializableDocumentPlugin::~SerializableDocumentPlugin() = default;
 DocumentPluginFactory::~DocumentPluginFactory() = default;

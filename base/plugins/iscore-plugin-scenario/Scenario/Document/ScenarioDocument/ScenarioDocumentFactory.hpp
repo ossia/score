@@ -21,7 +21,7 @@ class ScenarioDocumentFactory final : public iscore::DocumentDelegateFactory
   ISCORE_CONCRETE("2bca3373-d858-4288-b054-5960d3e5902c")
 
   iscore::DocumentDelegateView*
-  makeView(const iscore::ApplicationContext& ctx, QObject* parent) override;
+  makeView(const iscore::GUIApplicationContext& ctx, QObject* parent) override;
 
   iscore::DocumentDelegatePresenter* makePresenter(
       const iscore::DocumentContext& ctx,

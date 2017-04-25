@@ -127,9 +127,10 @@ namespace iscore
 struct ApplicationContext;
 }
 
+template<typename Context_T>
 struct FactoryMatcher
 {
-  const iscore::ApplicationContext& ctx;
+  const Context_T& ctx;
   const iscore::InterfaceKey& fact;
   std::vector<std::unique_ptr<iscore::InterfaceBase>>& vec;
 
@@ -165,7 +166,7 @@ auto instantiate_factories(
 {
   std::vector<std::unique_ptr<iscore::InterfaceBase>> vec;
 
-  for_each_type_if<TL<Args...>>(FactoryMatcher{ctx, key, vec});
+  for_each_type_if<TL<Args...>>(FactoryMatcher<Context_T>{ctx, key, vec});
 
   return vec;
 }

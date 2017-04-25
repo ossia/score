@@ -11,12 +11,6 @@
 
 #include <iscore/widgets/TextLabel.hpp>
 
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Automation
 {
 StateInspectorWidget::StateInspectorWidget(

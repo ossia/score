@@ -9,82 +9,78 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-class QObject;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Engine
 {
 namespace Execution
 {
 DocumentPlugin::DocumentPlugin(
-    iscore::Document& doc, Id<iscore::DocumentPlugin> id, QObject* parent)
-    : iscore::DocumentPlugin{doc.context(), std::move(id),
+    const iscore::DocumentContext& ctx,
+    Id<iscore::DocumentPlugin> id,
+    QObject* parent)
+    : iscore::DocumentPlugin{ctx, std::move(id),
                              "OSSIADocumentPlugin", parent}
     , m_ctx{
-          doc.context(), *this,
-          doc.context().plugin<Explorer::DeviceDocumentPlugin>(),
-          doc.context().app.interfaces<ProcessComponentFactoryList>(),
-          doc.context()
-              .app.interfaces<StateProcessComponentFactoryList>(),
+          ctx, m_base,
+          ctx.plugin<Explorer::DeviceDocumentPlugin>(),
+          ctx.app.interfaces<ProcessComponentFactoryList>(),
+          ctx.app.interfaces<StateProcessComponentFactoryList>(),
           m_editionQueue
       }
+    , m_base{m_ctx, this}
 {
-  con(doc, &iscore::Document::aboutToClose, this, [&] {
-    if (m_base)
-    {
-      m_base->baseConstraint().stop();
-    }
-    m_base.reset();
-  });
 }
 
 DocumentPlugin::~DocumentPlugin()
 {
-  if (m_base)
+  if (m_base.active())
   {
-    m_base->baseConstraint().stop();
+    m_base.baseConstraint().stop();
     clear();
   }
 }
 
 void DocumentPlugin::reload(Scenario::ConstraintModel& cst)
 {
-  if (m_base)
+  if (m_base.active())
   {
-    m_base->baseConstraint().stop();
+    m_base.baseConstraint().stop();
   }
   clear();
 
   auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
   ISCORE_ASSERT(parent);
-  m_base = std::make_shared<BaseScenarioElement>(
-      BaseScenarioRefContainer{cst, *parent}, m_ctx, this);
+  m_base.init(BaseScenarioRefContainer{cst, *parent});
 
   runAllCommands();
 }
 
 void DocumentPlugin::clear()
 {
-  if(m_base)
+  if(m_base.active())
   {
     runAllCommands();
-    m_base->cleanup();
+    m_base.cleanup();
     runAllCommands();
   }
-  m_base.reset();
 }
 
-BaseScenarioElement* DocumentPlugin::baseScenario() const
+void DocumentPlugin::on_documentClosing()
 {
-  return m_base.get();
+  if (m_base.active())
+  {
+    m_base.baseConstraint().stop();
+    clear();
+  }
+}
+
+const BaseScenarioElement& DocumentPlugin::baseScenario() const
+{
+  return m_base;
 }
 
 bool DocumentPlugin::isPlaying() const
 {
-  return m_base.get();
+  return m_base.active();
 }
 
 void DocumentPlugin::runAllCommands() const

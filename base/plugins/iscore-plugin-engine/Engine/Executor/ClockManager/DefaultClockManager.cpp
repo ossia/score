@@ -19,7 +19,7 @@ DefaultClockManager::~DefaultClockManager() = default;
 DefaultClockManager::DefaultClockManager(const Context& ctx)
     : ClockManager{ctx}
 {
-  auto& bs = *ctx.sys.baseScenario();
+  auto& bs = ctx.scenario;
   ossia::time_constraint& ossia_cst = *bs.baseConstraint().OSSIAConstraint();
 
   ossia_cst.set_drive_mode(ossia::clock::drive_mode::INTERNAL);

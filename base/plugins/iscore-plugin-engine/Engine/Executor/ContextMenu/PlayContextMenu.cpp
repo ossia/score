@@ -53,8 +53,7 @@ PlayContextMenu::PlayContextMenu(
     : m_ctx{ctx}
 {
   auto& exec_signals
-      = m_ctx.components
-            .applicationPlugin<Scenario::ScenarioApplicationPlugin>()
+      = m_ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>()
             .execution();
 
   using namespace Scenario;
@@ -198,7 +197,7 @@ PlayContextMenu::PlayContextMenu(
   });
 
   auto& exec_ctx
-      = m_ctx.applicationPlugin<ScenarioApplicationPlugin>()
+      = m_ctx.guiApplicationPlugin<ScenarioApplicationPlugin>()
             .execution();
   m_playFromHere = new QAction{tr("Play from here"), this};
   connect(m_playFromHere, &QAction::triggered, this, [&]() {

@@ -2,12 +2,6 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 
-class QLabel;
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
 
 namespace Automation
 {

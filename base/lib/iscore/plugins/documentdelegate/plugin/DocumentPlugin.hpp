@@ -46,6 +46,7 @@ public:
   {
   }
 
+  virtual void on_documentClosing();
 protected:
   const iscore::DocumentContext& m_context;
 };

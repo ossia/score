@@ -6,7 +6,6 @@
 
 namespace iscore
 {
-class Document;
 class DocumentDelegateModel;
 }
 // TODO this is ugly :'(

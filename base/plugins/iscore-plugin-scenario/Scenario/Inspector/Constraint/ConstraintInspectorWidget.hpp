@@ -26,11 +26,6 @@ class ProcessFactoryList;
 class QObject;
 class QWidget;
 
-namespace iscore
-{
-class Document;
-}
-
 namespace Scenario
 {
 class MetadataWidget;

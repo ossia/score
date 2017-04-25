@@ -238,7 +238,7 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(Device::DeviceSettings& n)
 
   // Request from the protocol factory the protocol to see
   // if it is compatible.
-  auto& context = m_devicePlugin.context().app.components;
+  auto& context = m_devicePlugin.context().app;
   auto prot = context.interfaces<Device::ProtocolFactoryList>().get(n.protocol);
   if (!prot)
     return false;

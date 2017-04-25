@@ -2,15 +2,6 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <QList>
 
-class InspectorWidgetBase;
-class QObject;
-class QString;
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Scenario
 {
 class TimeNodeInspectorFactory final : public Inspector::InspectorWidgetFactory

@@ -7,6 +7,7 @@
 namespace iscore
 {
 struct ApplicationContext;
+struct GUIApplicationContext;
 
 // Reimplement in plug-in if the plug-in offers an IMPLEMENTATION of an
 // abstract type offered in another plug-in.
@@ -18,7 +19,10 @@ public:
   virtual ~FactoryInterface_QtInterface();
   virtual std::vector<std::unique_ptr<InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
-      const iscore::InterfaceKey& key) const = 0;
+      const iscore::InterfaceKey& key) const;
+  virtual std::vector<std::unique_ptr<InterfaceBase>> factories(
+      const iscore::GUIApplicationContext& ctx,
+      const iscore::InterfaceKey& key) const;
 };
 }
 

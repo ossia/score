@@ -42,7 +42,8 @@ public:
 
   // Register data from plugins
   void registerAddons(std::vector<iscore::Addon> vec);
-  void registerApplicationContextPlugin(GUIApplicationPlugin*);
+  void registerApplicationPlugin(ApplicationPlugin*);
+  void registerApplicationPlugin(GUIApplicationPlugin*);
   void registerPanel(PanelDelegateFactory&);
   void registerCommands(
       iscore::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds);

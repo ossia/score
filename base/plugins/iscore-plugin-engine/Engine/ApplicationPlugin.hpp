@@ -25,6 +25,7 @@ class Device;
 }
 namespace Engine
 {
+namespace LocalTree { class DocumentPlugin; }
 namespace Execution
 {
 class ClockManager;
@@ -78,6 +79,8 @@ public:
 private:
   void on_stop();
   void on_init();
+
+  void initLocalTreeNodes(Engine::LocalTree::DocumentPlugin&);
 
   std::unique_ptr<Engine::Execution::ClockManager>
   makeClock(const Engine::Execution::Context&);

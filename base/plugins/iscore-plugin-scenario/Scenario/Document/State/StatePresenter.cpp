@@ -49,7 +49,7 @@ StatePresenter::StatePresenter(
 
 
   connect(m_view, &StateView::startCreateMode, this, [=] {
-    auto& plug = iscore::AppContext().applicationPlugin<Scenario::ScenarioApplicationPlugin>();
+    auto& plug = iscore::GUIAppContext().guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
     plug.editionSettings().setTool(Scenario::Tool::Create);
   });
   connect(m_view, &StateView::dropReceived, this, &StatePresenter::handleDrop);

@@ -59,11 +59,11 @@ iscore::optional<iscore::Addon> makeAddon(
     const std::vector<iscore::Addon>& availablePlugins);
 
 
-template<typename Registrar_T, typename Context_T>
-void registerPlugins(
+template<typename Registrar_T>
+void registerPluginsImpl(
     const std::vector<iscore::Addon>& availablePlugins,
     Registrar_T& registrar,
-    const Context_T& context)
+    const iscore::GUIApplicationContext& context)
 {
   // Load what the plug-ins have to offer.
   for (const iscore::Addon& addon : availablePlugins)
@@ -81,6 +81,15 @@ void registerPlugins(
     {
       for (auto& factory_family : registrar.components().factories)
       {
+        const iscore::ApplicationContext& base_ctx = context;
+        // Register core factories
+        for (auto&& new_factory :
+             factories_plugin->factories(base_ctx, factory_family.first))
+        {
+          factory_family.second->insert(std::move(new_factory));
+        }
+
+        // Register GUI factories
         for (auto&& new_factory :
              factories_plugin->factories(context, factory_family.first))
         {
@@ -101,14 +110,16 @@ void registerPlugins(
   for(const iscore::Addon& addon : availablePlugins)
   {
     auto ctrl_plugin
-        = dynamic_cast<GUIApplicationPlugin_QtInterface*>(addon.plugin);
+        = dynamic_cast<ApplicationPlugin_QtInterface*>(addon.plugin);
     if (ctrl_plugin)
     {
-      if (auto plug = ctrl_plugin->make_applicationPlugin(context))
-        registrar.registerApplicationContextPlugin(plug);
+      if(auto plug = ctrl_plugin->make_applicationPlugin(context))
+        registrar.registerApplicationPlugin(plug);
+      if(auto plug = ctrl_plugin->make_guiApplicationPlugin(context))
+        registrar.registerApplicationPlugin(plug);
     }
   }
-  registerPlugins(availablePlugins, registrar, (const iscore::ApplicationContext&) context);
+  registerPluginsImpl(availablePlugins, registrar, context);
 }
 
 /**

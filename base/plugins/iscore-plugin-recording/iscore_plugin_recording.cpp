@@ -24,7 +24,7 @@ iscore_plugin_recording::~iscore_plugin_recording()
 }
 
 iscore::GUIApplicationPlugin*
-iscore_plugin_recording::make_applicationPlugin(
+iscore_plugin_recording::make_guiApplicationPlugin(
     const iscore::GUIApplicationContext& app)
 {
   return new Recording::ApplicationPlugin{app};

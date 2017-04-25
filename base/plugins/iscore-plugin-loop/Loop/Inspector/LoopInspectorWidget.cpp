@@ -10,13 +10,6 @@
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
-class QVBoxLayout;
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 LoopInspectorWidget::LoopInspectorWidget(
     const Loop::ProcessModel& object,
     const iscore::DocumentContext& doc,
@@ -25,7 +18,7 @@ LoopInspectorWidget::LoopInspectorWidget(
 {
   // FIXME URGENT add implemented virtual destructors to every class that
   // inherits from a virtual.
-  auto& appContext = doc.app.components;
+  auto& appContext = doc.app;
   auto& constraintWidgetFactory
       = appContext.interfaces<Scenario::ConstraintInspectorDelegateFactoryList>();
 

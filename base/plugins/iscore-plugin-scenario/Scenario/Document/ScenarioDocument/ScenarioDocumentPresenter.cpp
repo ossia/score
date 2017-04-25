@@ -76,10 +76,10 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
                                          delegate_view}
     , m_scenarioPresenter{new DisplayedElementsPresenter{this}}
     , m_selectionDispatcher{ctx.selectionStack}
-    , m_context{ctx, m_focusDispatcher}
     , m_mainTimeRuler{new TimeRulerPresenter{view().timeRuler(), this}}
-
     , m_focusManager{ctx.document.focusManager()}
+    , m_context{ctx, m_focusDispatcher}
+
 {
   using namespace iscore;
 
@@ -139,7 +139,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       this, &ScenarioDocumentPresenter::on_viewModelFocused);
   con(m_focusManager, &Process::ProcessFocusManager::sig_focusedRoot,
       this, [] {
-    ScenarioApplicationPlugin& app = iscore::AppContext().applicationPlugin<ScenarioApplicationPlugin>();
+    ScenarioApplicationPlugin& app = iscore::GUIAppContext().guiApplicationPlugin<ScenarioApplicationPlugin>();
     app.editionSettings().setExpandMode(ExpandMode::GrowShrink);
   }, Qt::QueuedConnection);
 

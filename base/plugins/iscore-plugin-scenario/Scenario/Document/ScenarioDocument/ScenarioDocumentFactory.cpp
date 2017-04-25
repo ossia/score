@@ -16,7 +16,7 @@ struct VisitorVariant;
 namespace Scenario
 {
 iscore::DocumentDelegateView* ScenarioDocumentFactory::makeView(
-    const iscore::ApplicationContext& ctx, QObject* parent)
+    const iscore::GUIApplicationContext& ctx, QObject* parent)
 {
   return new ScenarioDocumentView{ctx, parent};
 }

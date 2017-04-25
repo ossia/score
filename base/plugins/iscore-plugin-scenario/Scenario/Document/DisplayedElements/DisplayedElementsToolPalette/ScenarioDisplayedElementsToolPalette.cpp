@@ -45,8 +45,8 @@ ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
     , m_presenter{pres}
     , m_context{pres.context(), m_presenter}
     , m_view{view}
-    , m_editionSettings{m_context.context.app.components
-                            .applicationPlugin<ScenarioApplicationPlugin>()
+    , m_editionSettings{m_context.context.app
+                        .guiApplicationPlugin<ScenarioApplicationPlugin>()
                             .editionSettings()}
     , m_state{*this}
     , m_inputDisp{m_presenter, *this, m_context}

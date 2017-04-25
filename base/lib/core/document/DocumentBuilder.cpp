@@ -37,12 +37,12 @@ Document* DocumentBuilder::newDocument(
       = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 
   m_backupManager = new DocumentBackupManager{*doc};
-  for (auto& appPlug : ctx.applicationPlugins())
+  for (auto& appPlug : ctx.guiApplicationPlugins())
   {
     appPlug->on_newDocument(*doc);
   }
 
-  for (auto& appPlug : ctx.applicationPlugins())
+  for (auto& appPlug : ctx.guiApplicationPlugins())
   {
     appPlug->on_createdDocument(*doc);
   }
@@ -63,12 +63,12 @@ Document* DocumentBuilder::loadDocument(
   try
   {
     doc = new Document{docData, doctype, m_parentView, m_parentPresenter};
-    for (auto& appPlug : ctx.applicationPlugins())
+    for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
     }
 
-    for (auto& appPlug : ctx.applicationPlugins())
+    for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_createdDocument(*doc);
     }
@@ -108,12 +108,12 @@ Document* DocumentBuilder::restoreDocument(
     // (potentially a blank document which is saved at the beginning, once
     // every plug-in has been loaded)
     doc = new Document{docData, doctype, m_parentView, m_parentPresenter};
-    for (auto& appPlug : ctx.applicationPlugins())
+    for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
     }
 
-    for (auto& appPlug : ctx.applicationPlugins())
+    for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_createdDocument(*doc);
     }

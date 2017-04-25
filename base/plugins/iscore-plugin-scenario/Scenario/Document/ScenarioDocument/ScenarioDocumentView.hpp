@@ -10,7 +10,7 @@ class ProcessGraphicsView;
 namespace iscore
 {
 class DoubleSlider;
-struct ApplicationContext;
+struct GUIApplicationContext;
 }
 
 namespace Scenario
@@ -22,7 +22,7 @@ class ScenarioDocumentView final : public iscore::DocumentDelegateView
   Q_OBJECT
 
 public:
-  ScenarioDocumentView(const iscore::ApplicationContext& ctx, QObject* parent);
+  ScenarioDocumentView(const iscore::GUIApplicationContext& ctx, QObject* parent);
   virtual ~ScenarioDocumentView() = default;
 
   QWidget* getWidget() override;

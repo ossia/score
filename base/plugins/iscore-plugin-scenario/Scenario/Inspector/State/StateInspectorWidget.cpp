@@ -38,11 +38,6 @@
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/path/Path.hpp>
 #include <iscore/model/Identifier.hpp>
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Scenario
 {
 StateInspectorWidget::StateInspectorWidget(
@@ -202,8 +197,7 @@ StateInspectorWidget::displayStateProcess(const Process::StateProcess& process)
   sectionWidg->showMenu(true);
 
   const auto& fact
-      = m_context.app.components
-            .interfaces<Process::
+      = m_context.app.interfaces<Process::
                          StateProcessInspectorWidgetDelegateFactoryList>();
   if (auto widg = fact.make(
           &Process::StateProcessInspectorWidgetDelegateFactory::make, process,

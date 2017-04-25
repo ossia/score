@@ -29,6 +29,7 @@ class StateProcessComponent;
 class StateProcessComponentFactory;
 class ProcessComponentFactoryList;
 class StateProcessComponentFactoryList;
+class BaseScenarioElement;
 
 using ExecutionCommand = std::function<void()>;
 using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand>;
@@ -36,8 +37,14 @@ using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand>;
 //! Useful structures when creating the execution elements.
 struct ISCORE_PLUGIN_ENGINE_EXPORT Context
 {
+  Context() = delete;
+  Context(const Context&) = delete;
+  Context& operator=(const Context&) = delete;
+  Context(Context&&) = delete;
+  Context& operator=(Context&&) = delete;
+
   const iscore::DocumentContext& doc;
-  const Engine::Execution::DocumentPlugin& sys;
+  Engine::Execution::BaseScenarioElement& scenario;
   const Explorer::DeviceDocumentPlugin& devices;
   const Engine::Execution::ProcessComponentFactoryList& processes;
   const Engine::Execution::StateProcessComponentFactoryList& stateProcesses;

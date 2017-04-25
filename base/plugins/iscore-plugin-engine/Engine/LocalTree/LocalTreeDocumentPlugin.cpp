@@ -35,18 +35,19 @@
 #include <Engine/LocalTree/Settings/LocalTreeModel.hpp>
 #include <Engine/Protocols/Local/LocalProtocolFactory.hpp>
 #include <Engine/Protocols/Local/LocalSpecificSettings.hpp>
+#include <Engine/ApplicationPlugin.hpp>
+#include <iscore/actions/ActionManager.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 Engine::LocalTree::DocumentPlugin::DocumentPlugin(
-    iscore::Document& doc, Id<iscore::DocumentPlugin> id, QObject* parent)
-    : iscore::DocumentPlugin{doc.context(), std::move(id),
-                             "LocalTree::DocumentPlugin", parent}
+    const iscore::DocumentContext& ctx, Id<iscore::DocumentPlugin> id, QObject* parent)
+    : iscore::DocumentPlugin{ctx, std::move(id), "LocalTree::DocumentPlugin", parent}
     , m_localDevice{std::make_unique<ossia::net::multiplex_protocol>(), "i-score"}
     , m_localDeviceWrapper{
-          m_localDevice, doc.context(),
+          m_localDevice, ctx,
           Network::LocalProtocolFactory::static_defaultSettings()}
 {
-  con(doc, &iscore::Document::aboutToClose, this, &DocumentPlugin::cleanup);
 }
 
 Engine::LocalTree::DocumentPlugin::~DocumentPlugin()
@@ -78,6 +79,11 @@ void Engine::LocalTree::DocumentPlugin::init()
   auto docplug = context().findPlugin<Explorer::DeviceDocumentPlugin>();
   if (docplug)
     docplug->list().setLocalDevice(&m_localDeviceWrapper);
+}
+
+void Engine::LocalTree::DocumentPlugin::on_documentClosing()
+{
+  cleanup();
 }
 
 void Engine::LocalTree::DocumentPlugin::create()

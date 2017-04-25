@@ -72,8 +72,7 @@ ApplicationPlugin::ApplicationPlugin(const iscore::GUIApplicationContext& ctx)
       init_action.action(), &QAction::triggered, this,
       &ApplicationPlugin::on_init, Qt::QueuedConnection);
 
-  auto& ctrl = ctx.components
-                   .applicationPlugin<Scenario::ScenarioApplicationPlugin>();
+  auto& ctrl = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
   con(ctrl.execution(), &Scenario::ScenarioExecution::playAtDate, this,
       [ =, act = play_action.action() ](const TimeVal& t) {
         on_play(true, t);
@@ -107,7 +106,7 @@ bool ApplicationPlugin::handleStartup()
 void ApplicationPlugin::on_initDocument(iscore::Document& doc)
 {
   doc.model().addPluginModel(new Engine::LocalTree::DocumentPlugin{
-      doc, getStrongId(doc.model().pluginModels()), &doc.model()});
+      doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
 }
 
 void ApplicationPlugin::on_createdDocument(iscore::Document& doc)
@@ -116,9 +115,10 @@ void ApplicationPlugin::on_createdDocument(iscore::Document& doc)
   if (lt)
   {
     lt->init();
+    initLocalTreeNodes(*lt);
   }
   doc.model().addPluginModel(new Engine::Execution::DocumentPlugin{
-      doc, getStrongId(doc.model().pluginModels()), &doc.model()});
+      doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
 }
 
 void ApplicationPlugin::on_documentChanged(
@@ -182,8 +182,8 @@ void ApplicationPlugin::on_play(
     if (m_playing)
     {
       ISCORE_ASSERT(bool(m_clock));
-      auto bs = plugmodel->baseScenario();
-      ossia::time_constraint& cstr = *bs->baseConstraint().OSSIAConstraint();
+      auto& bs = plugmodel->baseScenario();
+      ossia::time_constraint& cstr = *bs.baseConstraint().OSSIAConstraint();
       if (cstr.paused())
       {
         m_clock->resume();
@@ -204,7 +204,7 @@ void ApplicationPlugin::on_play(
       auto& c = plugmodel->context();
       m_clock = makeClock(c);
 
-      connect(
+      con(
           plugmodel->baseScenario(),
           &Engine::Execution::BaseScenarioElement::finished, this,
           [=]() {
@@ -278,11 +278,8 @@ void ApplicationPlugin::on_stop()
         = doc->context().findPlugin<Engine::Execution::DocumentPlugin>();
     if (!plugmodel)
       return;
-
-    if (plugmodel && plugmodel->baseScenario())
-    {
+    else
       plugmodel->clear();
-    }
 
     // If we can we resume listening
     if (!context.documents.preparingNewDocument())
@@ -324,6 +321,53 @@ void ApplicationPlugin::on_init()
       if (explorer)
         explorer->deviceModel().listening().restore();
     }
+  }
+}
+
+void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
+{
+  auto& appplug = *this;
+  auto& root = lt.device().get_root_node();
+
+  {
+    auto local_play_node = root.create_child("play");
+    auto local_play_address
+        = local_play_node->create_address(ossia::val_type::BOOL);
+    local_play_address->set_value(bool{false});
+    local_play_address->add_callback([&](const ossia::value& v) {
+      if (auto val = v.target<bool>())
+      {
+        if (!appplug.playing() && *val)
+        {
+          // not playing, play requested
+          auto& play_action = appplug.context.actions.action<Actions::Play>();
+          play_action.action()->trigger();
+        }
+        else if (appplug.playing())
+        {
+          if (appplug.paused() == *val)
+          {
+            // paused, play requested
+            // or playing, pause requested
+
+            auto& play_action
+                = appplug.context.actions.action<Actions::Play>();
+            play_action.action()->trigger();
+          }
+        }
+      }
+    });
+  }
+
+  {
+    auto local_stop_node = root.create_child("stop");
+    auto local_stop_address
+        = local_stop_node->create_address(ossia::val_type::IMPULSE);
+    local_stop_address->set_value(ossia::impulse{});
+    local_stop_address->add_callback([&](const ossia::value&) {
+      auto& stop_action = appplug.context.actions.action<Actions::Stop>();
+      stop_action.action()->trigger();
+    });
   }
 }
 

@@ -6,11 +6,6 @@
 
 class QObject;
 class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Scenario
 {
 Inspector::InspectorWidgetBase* EventInspectorFactory::makeWidget(

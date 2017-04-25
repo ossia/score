@@ -5,11 +5,6 @@
 class QObject;
 class QString;
 class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Scenario
 {
 class ConstraintInspectorFactory final

@@ -22,6 +22,7 @@ class DocumentDelegateFactory;
 class DocumentPluginFactory;
 class InterfaceListBase;
 class Plugin_QtInterface;
+class ApplicationPlugin;
 class GUIApplicationPlugin;
 class PanelDelegate;
 
@@ -36,7 +37,8 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationComponentsData
   ApplicationComponentsData& operator=(ApplicationComponentsData&&) = delete;
 
   std::vector<iscore::Addon> addons;
-  std::vector<GUIApplicationPlugin*> appPlugins;
+  std::vector<ApplicationPlugin*> appPlugins;
+  std::vector<GUIApplicationPlugin*> guiAppPlugins;
 
   iscore::hash_map<iscore::InterfaceKey, std::unique_ptr<InterfaceListBase>>
           factories;
@@ -52,9 +54,9 @@ public:
   }
 
   // Getters for plugin-registered things
-  const auto& applicationPlugins() const
+  const auto& guiApplicationPlugins() const
   {
-    return m_data.appPlugins;
+    return m_data.guiAppPlugins;
   }
   const auto& addons() const
   {
@@ -62,9 +64,9 @@ public:
   }
 
   template <typename T>
-  T& applicationPlugin() const
+  T& guiApplicationPlugin() const
   {
-    for (auto& elt : m_data.appPlugins)
+    for (auto& elt : m_data.guiAppPlugins)
     {
       if (auto c = dynamic_cast<T*>(elt))
       {

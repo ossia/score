@@ -141,6 +141,7 @@ function(iscore_set_clang_compile_options theTarget)
         -Wno-missing-braces
         -Werror=return-stack-address
         -Wmissing-field-initializers
+        -Wno-gnu-statement-expression
         -ftemplate-backtrace-limit=0
         "$<$<CONFIG:Debug>:-O0>"
         )
@@ -152,7 +153,7 @@ endfunction()
 function(iscore_set_linux_compile_options theTarget)
     use_gold(${theTarget})
 
-    if(NOT ISCORE_SANITIZE)
+    if(NOT ISCORE_SANITIZE AND LINKER_IS_GOLD)
         target_compile_options(${theTarget} PUBLIC
             # Debug options
             "$<$<CONFIG:Debug>:-gsplit-dwarf>")

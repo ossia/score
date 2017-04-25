@@ -4,23 +4,26 @@
 
 namespace iscore
 {
+class ApplicationPlugin;
+struct ApplicationContext;
 struct GUIApplicationContext;
 class GUIApplicationPlugin;
 
-class ISCORE_LIB_BASE_EXPORT GUIApplicationPlugin_QtInterface
+class ISCORE_LIB_BASE_EXPORT ApplicationPlugin_QtInterface
 {
 public:
-  virtual ~GUIApplicationPlugin_QtInterface();
+  virtual ~ApplicationPlugin_QtInterface();
 
+  virtual ApplicationPlugin*
+  make_applicationPlugin(const iscore::ApplicationContext& app);
   virtual GUIApplicationPlugin*
-  make_applicationPlugin(const iscore::GUIApplicationContext& app)
-      = 0;
+  make_guiApplicationPlugin(const iscore::GUIApplicationContext& app);
 };
 }
 
-#define GUIApplicationPlugin_QtInterface_iid \
-  "org.ossia.i-score.plugins.GUIApplicationPlugin_QtInterface"
+#define ApplicationPlugin_QtInterface_iid \
+  "org.ossia.i-score.plugins.ApplicationPlugin_QtInterface"
 
 Q_DECLARE_INTERFACE(
-    iscore::GUIApplicationPlugin_QtInterface,
-    GUIApplicationPlugin_QtInterface_iid)
+    iscore::ApplicationPlugin_QtInterface,
+    ApplicationPlugin_QtInterface_iid)

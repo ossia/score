@@ -33,12 +33,13 @@ class ISCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin
 {
 public:
   DocumentPlugin(
-      iscore::Document& doc, Id<iscore::DocumentPlugin> id, QObject* parent);
+      const iscore::DocumentContext& doc, Id<iscore::DocumentPlugin> id, QObject* parent);
 
   ~DocumentPlugin();
 
   void init();
 
+  void on_documentClosing() override;
   ossia::net::generic_device& device()
   {
     return m_localDevice;

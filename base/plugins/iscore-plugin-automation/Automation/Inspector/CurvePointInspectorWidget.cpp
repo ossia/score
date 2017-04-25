@@ -18,10 +18,6 @@
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <iscore/widgets/SignalUtils.hpp>
 
-namespace iscore
-{
-class Document;
-} // namespace iscore
 
 namespace Automation
 {

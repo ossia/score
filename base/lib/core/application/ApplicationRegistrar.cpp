@@ -40,8 +40,13 @@ void ApplicationRegistrar::registerAddons(std::vector<iscore::Addon> vec)
   m_components.addons = std::move(vec);
 }
 
+void ApplicationRegistrar::registerApplicationPlugin(ApplicationPlugin* ctrl)
+{
+  m_components.appPlugins.push_back(ctrl);
+}
+
 ISCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerApplicationContextPlugin(
+void ApplicationRegistrar::registerApplicationPlugin(
     GUIApplicationPlugin* ctrl)
 {
   // GUI Presenter stuff...
@@ -54,7 +59,7 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
   con(m_view, &iscore::View::activeWindowChanged,
       [=]() { ctrl->on_activeWindowChanged(); });
 
-  m_components.appPlugins.push_back(ctrl);
+  m_components.guiAppPlugins.push_back(ctrl);
 }
 
 ISCORE_LIB_BASE_EXPORT

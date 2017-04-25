@@ -7,14 +7,6 @@
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 #include <memory>
 
-class InspectorWidgetBase;
-class QObject;
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Scenario
 {
 class ConstraintInspectorDelegate;

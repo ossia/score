@@ -4,13 +4,6 @@
 #include "StateInspectorFactory.hpp"
 #include "StateInspectorWidget.hpp"
 
-class QObject;
-class QWidget;
-namespace iscore
-{
-class Document;
-} // namespace iscore
-
 namespace Scenario
 {
 Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
