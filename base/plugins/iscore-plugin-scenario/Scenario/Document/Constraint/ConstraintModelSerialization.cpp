@@ -73,6 +73,36 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
+    const Scenario::FullSlot& slot)
+{
+  // TODO
+
+}
+
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
+    Scenario::FullSlot& slot)
+{
+  // TODO
+
+}
+
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
+    const Scenario::FullSlot& slot)
+{
+  // TODO
+
+}
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
+    Scenario::FullSlot& slot)
+{
+  // TODO
+
+}
+template <>
+ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::SlotPath& SlotIdentifier)
 {
   // TODO

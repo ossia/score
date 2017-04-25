@@ -41,14 +41,14 @@ void AddLayerModelToSlot::undo() const
   auto cst = m_slot.constraint.try_find();
   if (cst)
   {
-    cst->removeLayer(m_slot, m_processId);
+    cst->removeLayer(m_slot.index, m_processId);
   }
 }
 
 void AddLayerModelToSlot::redo() const
 {
   auto& cst = m_slot.constraint.find();
-  cst.addLayer(m_slot, m_processId);
+  cst.addLayer(m_slot.index, m_processId);
 }
 
 void AddLayerModelToSlot::serializeImpl(DataStreamInput& s) const

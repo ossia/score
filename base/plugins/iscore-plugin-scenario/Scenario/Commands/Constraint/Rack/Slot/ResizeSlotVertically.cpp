@@ -16,28 +16,28 @@ ResizeSlotVertically::ResizeSlotVertically(
     double newSize)
   : m_path{slotPath}, m_newSize{newSize}
 {
-  auto& slot = m_path.find();
-  m_originalSize = slot.height;
+  auto& cst = m_path.constraint.find();
+  m_originalSize = cst.getSlotHeight(m_path);
 }
 
 ResizeSlotVertically::ResizeSlotVertically(
     SlotPath&& slotPath, double newSize)
     : m_path{slotPath}, m_newSize{newSize}
 {
-  auto& slot = m_path.find();
-  m_originalSize = slot.height;
+  auto& cst = m_path.constraint.find();
+  m_originalSize = cst.getSlotHeight(m_path);
 }
 
 void ResizeSlotVertically::undo() const
 {
-  auto& slot = m_path.constraint.find();
-  slot.setSlotHeight(m_path, m_originalSize);
+  auto& cst = m_path.constraint.find();
+  cst.setSlotHeight(m_path, m_originalSize);
 }
 
 void ResizeSlotVertically::redo() const
 {
-  auto& slot = m_path.constraint.find();
-  slot.setSlotHeight(m_path, m_newSize);
+  auto& cst = m_path.constraint.find();
+  cst.setSlotHeight(m_path, m_newSize);
 }
 
 void ResizeSlotVertically::serializeImpl(DataStreamInput& s) const

@@ -275,12 +275,23 @@ void TemporalConstraintPresenter::createRackPresenter(const RackModel& rackModel
           this, &ConstraintPresenter::released);
 }
 */
+
+static const constexpr int slotSpacing = 10;
+double TemporalConstraintPresenter::rackHeight() const
+{
+  qreal height = 0;
+  for(const auto& slot : m_model.smallView())
+  {
+    height += slot.height + slotSpacing;
+  }
+  return height;
+}
+
 void TemporalConstraintPresenter::updateHeight()
 {
-  /*
   if (m_model.smallViewVisible())
   {
-    m_view->setHeight(rack()->height() + ConstraintHeader::headerHeight());
+    m_view->setHeight(rackHeight() + ConstraintHeader::headerHeight());
   }
   else if (!m_model.smallViewVisible() && !m_model.processes.empty())
   {
@@ -293,7 +304,7 @@ void TemporalConstraintPresenter::updateHeight()
 
   updateChildren();
   emit heightChanged();
-*/
+
 }
 
 void TemporalConstraintPresenter::on_rackVisibleChanged(bool)

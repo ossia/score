@@ -52,6 +52,7 @@ private:
   //void createRackPresenter(const RackModel&);
   void clearRackPresenter();
   //void on_rackRemoved(const RackModel&);
+  double rackHeight() const;
 };
 
 }

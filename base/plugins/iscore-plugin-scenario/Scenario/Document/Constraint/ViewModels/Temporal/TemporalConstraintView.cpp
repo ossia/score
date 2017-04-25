@@ -154,8 +154,8 @@ void TemporalConstraintView::paint(
   const qreal play_w = playWidth();
 
   // Draw the stuff present if there is a rack *in the model* ?
-  /*
-  if (presenter().rack())
+
+  if (presenter().model().smallViewVisible())
   {
     // Background
     auto rect = boundingRect();
@@ -171,7 +171,7 @@ void TemporalConstraintView::paint(
     painter.setPen(skin.ConstraintRackPen);
     painter.drawLine(rect.topLeft(), rect.bottomLeft());
     painter.drawLine(rect.topRight(), rect.bottomRight());
-  }*/
+  }
 
   // Colors
   auto defaultColor = this->constraintColor(skin);
@@ -214,7 +214,7 @@ void TemporalConstraintView::paint(
     painter.setPen(skin.ConstraintPlayDashPen);
     painter.drawPath(playedDashedPath);
   }
-
+#define ISCORE_SCENARIO_DEBUG_RECTS
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
   painter.setPen(Qt::darkRed);
   painter.setBrush(Qt::NoBrush);

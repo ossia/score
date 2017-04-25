@@ -23,13 +23,13 @@ RemoveSlotFromRack::RemoveSlotFromRack(SlotPath slotPath):
 void RemoveSlotFromRack::undo() const
 {
   auto& rack = m_path.constraint.find();
-  rack.addSlot(m_slot, m_path);
+  rack.addSlot(m_slot, m_path.index);
 }
 
 void RemoveSlotFromRack::redo() const
 {
   auto& rack = m_path.constraint.find();
-  rack.removeSlot(m_path);
+  rack.removeSlot(m_path.index);
 }
 
 void RemoveSlotFromRack::serializeImpl(DataStreamInput& s) const

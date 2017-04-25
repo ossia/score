@@ -14,12 +14,16 @@ struct ISCORE_PLUGIN_SCENARIO_EXPORT Slot
 };
 
 using Rack = std::vector<Slot>;
+struct FullSlot {
+  Id<Process::ProcessModel> process;
+};
+using FullRack = std::vector<FullSlot>;
 class ConstraintModel;
 
 struct ISCORE_PLUGIN_SCENARIO_EXPORT SlotPath
 {
   Path<ConstraintModel> constraint;
-  int slot_position{};
+  int index{};
   Slot::RackView full_view{};
 
   const Slot& find() const;
@@ -34,20 +38,23 @@ struct ISCORE_PLUGIN_SCENARIO_EXPORT SlotId
 
   SlotId(std::size_t p, Slot::RackView f)
     : index{(int)p}
-    , full_view{f} {}
+    , view{f} {}
   SlotId(int p, Slot::RackView f)
     : index{p}
-    , full_view{f} {}
+    , view{f} {}
 
   SlotId(const SlotPath& p)
-    : index{p.slot_position}
-    , full_view{p.full_view}
+    : index{p.index}
+    , view{p.full_view}
   {
 
   }
 
   int index{};
-  Slot::RackView full_view{};
+  Slot::RackView view{};
+
+  bool fullView() const { return view == Slot::FullView; }
+  bool smallView() const { return view == Slot::SmallView; }
 };
 
 

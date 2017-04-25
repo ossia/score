@@ -45,7 +45,7 @@ private:
   Id<Process::ProcessModel> m_processId;
   QByteArray m_serializedProcessData;
 
-  Rack m_smallView, m_fullView;
+  Rack m_smallView;
 };
 }
 }

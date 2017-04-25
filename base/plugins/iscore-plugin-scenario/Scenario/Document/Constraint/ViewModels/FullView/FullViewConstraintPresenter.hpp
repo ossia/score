@@ -36,16 +36,8 @@ private:
   void updateScaling() override;
   void on_defaultDurationChanged(const TimeVal&) override;
 
-  void createRackPresenter();
-
-  void on_layerModelPutToFront(int slot, const Process::ProcessModel&);
-  void on_layerModelPutToBack(int slot, const Process::ProcessModel&);
-  void createSlot(int pos, const Slot& slt);
-  void createLayer(int slot, const Process::ProcessModel& vm);
-  void updateProcessShape(int slot, const LayerData& p);
-
-
-  void removeLayer(const Process::ProcessModel&);
+  void createSlot(int pos, const FullSlot& slt);
+  void updateProcessShape(int slot);
   void on_slotRemoved(int);
 
   void updateProcessesShape();
@@ -57,7 +49,7 @@ private:
   {
     SlotView* view{};
     SlotHandle* handle{};
-    std::vector<LayerData> processes;
+    LayerData process;
   };
 
   std::vector<SlotPresenter> m_slots;

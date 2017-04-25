@@ -15,6 +15,7 @@
 
 #include <Scenario/Commands/Constraint/Rack/MoveSlot.hpp>
 #include <Scenario/Commands/Constraint/Rack/SwapSlots.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
@@ -100,7 +101,9 @@ public:
 
     connect(press, &QAbstractState::entered, [=]() {
       m_originalPoint = m_sm.scenePoint;
-      m_originalHeight = this->currentSlot.find().height;
+
+      const ConstraintModel& cst = this->currentSlot.constraint.find();
+      m_originalHeight = cst.getSlotHeight(this->currentSlot);
     });
 
     connect(move, &QAbstractState::entered, [=]() {

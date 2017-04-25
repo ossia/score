@@ -25,13 +25,13 @@ RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
 void RemoveLayerModelFromSlot::undo() const
 {
   auto& slot = m_path.constraint.find();
-  slot.addLayer(m_path, m_layerId);
+  slot.addLayer(m_path.index, m_layerId);
 }
 
 void RemoveLayerModelFromSlot::redo() const
 {
   auto& slot = m_path.constraint.find();
-  slot.removeLayer(m_path, m_layerId);
+  slot.removeLayer(m_path.index, m_layerId);
 }
 
 void RemoveLayerModelFromSlot::serializeImpl(DataStreamInput& s) const
