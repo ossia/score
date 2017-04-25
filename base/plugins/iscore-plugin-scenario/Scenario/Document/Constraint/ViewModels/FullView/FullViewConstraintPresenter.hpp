@@ -44,10 +44,10 @@ private:
   void updatePositions();
 
   double rackHeight() const;
+  void on_rackChanged();
 
   struct SlotPresenter
   {
-    SlotView* view{};
     SlotHandle* handle{};
     LayerData process;
   };

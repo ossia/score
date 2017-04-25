@@ -329,6 +329,9 @@ void ConstraintModel::removeSlot(int pos)
   ISCORE_ASSERT(m_smallView.size() >= pos);
   m_smallView.erase(m_smallView.begin() + pos);
   emit slotRemoved({pos, Slot::SmallView});
+
+  if(m_smallView.empty())
+    setSmallViewVisible(false);
 }
 
 
