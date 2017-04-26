@@ -16,7 +16,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel final
     : public Curve::CurveProcessModel
 {
   ISCORE_SERIALIZE_FRIENDS
-  MODEL_METADATA_IMPL(Mapping::ProcessModel)
+  PROCESS_METADATA_IMPL(Mapping::ProcessModel)
 
   Q_OBJECT
 

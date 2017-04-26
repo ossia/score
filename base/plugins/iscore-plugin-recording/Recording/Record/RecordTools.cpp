@@ -143,8 +143,7 @@ addr)});
 }
 */
 
-// TODO
-/*
+
 Box CreateBox(RecordContext& context)
 {
   // Get the clicked point in scenario and create a state + constraint + state
@@ -177,25 +176,15 @@ Box CreateBox(RecordContext& context)
       ExpandMode::CannotExpand);
   context.dispatcher.submitCommand(cmd_move);
 
-  auto cmd_rack = new Scenario::Command::AddRackToConstraint{cstr};
-  cmd_rack->redo();
-  context.dispatcher.submitCommand(cmd_rack);
-  auto& rack = cstr.racks.at(cmd_rack->createdRack());
-  auto cmd_slot = new Scenario::Command::AddSlotToRack{rack};
+  auto cmd_slot = new Scenario::Command::AddSlotToRack{cstr};
   cmd_slot->redo();
   context.dispatcher.submitCommand(cmd_slot);
 
-  for (const auto& vm : cstr.viewModels())
-  {
-    auto cmd_showrack
-        = new Scenario::Command::ShowRack{*vm, rack.id()};
-    cmd_showrack->redo();
-    context.dispatcher.submitCommand(cmd_showrack);
-  }
+  auto cmd_showrack = new Scenario::Command::ShowRack{cstr};
+  cmd_showrack->redo();
+  context.dispatcher.submitCommand(cmd_showrack);
 
-  auto& slot = rack.slotmodels.at(cmd_slot->createdSlot());
-
-  return {cstr, rack, slot, *cmd_move, cmd_end->createdEvent()};
+  return {cstr, *cmd_move, cmd_end->createdEvent()};
 }
-  */
+
 }

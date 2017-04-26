@@ -140,8 +140,6 @@ void ConstraintActions::makeGUIElements(iscore::GUIElements& ref)
 void ConstraintActions::setupContextMenu(
     Process::LayerContextMenuManager& ctxm)
 {
-  // TODO
-  /*
   using namespace Process;
   Process::LayerContextMenu cm
       = MetaContextMenu<ContextMenus::ConstraintContextMenu>::make();
@@ -155,42 +153,6 @@ void ConstraintActions::setupContextMenu(
 
     QList<const ConstraintModel*> selectedConstraints
         = filterSelectionByType<ConstraintModel>(sel);
-    if (selectedConstraints.size() == 1)
-    {
-      auto& cst = *selectedConstraints.front();
-      if (!cst.racks.empty())
-      {
-        auto rackMenu = menu.addMenu(tr("Racks"));
-
-        // We have to find the constraint view model of this layer.
-        auto& vm = dynamic_cast<const TemporalScenarioLayer*>(
-                       &ctx.presenter.layerModel())
-                       ->constraint(cst.id());
-
-        for (const RackModel& rack : cst.racks)
-        {
-          auto act = new QAction{rack.metadata().getName(), rackMenu};
-          connect(act, &QAction::triggered, this, [&]() {
-            auto cmd
-                = new Scenario::Command::ShowRack{vm, rack.id()};
-            CommandDispatcher<> dispatcher{
-                m_parent->currentDocument()->context().commandStack};
-            dispatcher.submitCommand(cmd);
-          });
-
-          rackMenu->addAction(act);
-        }
-
-        auto hideAct = new QAction{tr("Hide"), rackMenu};
-        connect(hideAct, &QAction::triggered, this, [&]() {
-          auto cmd = new Scenario::Command::HideRack{vm};
-          CommandDispatcher<> dispatcher{
-              m_parent->currentDocument()->context().commandStack};
-          dispatcher.submitCommand(cmd);
-        });
-        rackMenu->addAction(hideAct);
-      }
-    }
 
     if (selectedConstraints.size() >= 1)
     {
@@ -205,7 +167,6 @@ void ConstraintActions::setupContextMenu(
   });
 
   ctxm.insert(std::move(cm));
-  */
 }
 
 void ConstraintActions::addProcessInConstraint(

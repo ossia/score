@@ -58,6 +58,7 @@ public:
 
   // A user-friendly text to show to the users
   virtual QString prettyName() const;
+  virtual QString prettyShortName() const = 0;
 
   //// Features of a process
   /// Duration
