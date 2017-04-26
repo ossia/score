@@ -75,8 +75,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
                                          delegate_view}
     , m_scenarioPresenter{new DisplayedElementsPresenter{this}}
     , m_selectionDispatcher{ctx.selectionStack}
-    , m_context{ctx, m_focusDispatcher}
     , m_mainTimeRuler{new TimeRulerPresenter{view().timeRuler(), this}}
+    , m_context{ctx, m_focusDispatcher}
 
     , m_focusManager{ctx.document.focusManager()}
 {

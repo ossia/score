@@ -33,7 +33,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
   Q_OBJECT
 
   ISCORE_SERIALIZE_FRIENDS
-  friend class ConstraintSaveData;
+  friend struct ConstraintSaveData;
   Q_PROPERTY(double heightPercentage READ heightPercentage WRITE
                  setHeightPercentage NOTIFY heightPercentageChanged)
 
@@ -177,7 +177,7 @@ private:
   bool m_smallViewShown{};
   ConstraintExecutionState m_executionState{};
 
-  friend class SlotPath;
+  friend struct SlotPath;
 };
 
 

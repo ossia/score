@@ -156,7 +156,7 @@ void FullViewConstraintPresenter::on_slotRemoved(int pos)
 
 void FullViewConstraintPresenter::updateProcessesShape()
 {
-  for(int i = 0; i < m_slots.size(); i++)
+  for(int i = 0; i < (int)m_slots.size(); i++)
   {
     updateProcessShape(i);
   }
@@ -171,7 +171,7 @@ void FullViewConstraintPresenter::updatePositions()
   // Set the slots position graphically in order.
   qreal currentSlotY = ConstraintHeader::headerHeight();
 
-  for(int i = 0; i < m_slots.size(); i++)
+  for(int i = 0; i < (int)m_slots.size(); i++)
   {
     const SlotPresenter& slot = m_slots[i];
     const LayerData& proc = slot.process;
@@ -243,7 +243,7 @@ void FullViewConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
 
 int FullViewConstraintPresenter::indexOfSlot(const Process::LayerPresenter& p)
 {
-  for(int i = 0; i < m_slots.size(); ++i)
+  for(int i = 0; i < (int)m_slots.size(); ++i)
   {
     if(m_slots[i].process.presenter == &p)
       return i;

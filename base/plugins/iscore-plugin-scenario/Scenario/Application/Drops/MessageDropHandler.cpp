@@ -46,7 +46,7 @@ static Scenario::StateModel* closestLeftState(Scenario::Point pt, const Scenario
   return nullptr;
 }
 
-
+/*
 static Scenario::StateModel* magneticLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario)
 {
   Scenario::StateModel* cur_st = &*scenario.states.begin();
@@ -62,7 +62,7 @@ static Scenario::StateModel* magneticLeftState(Scenario::Point pt, const Scenari
   }
   return cur_st;
 }
-
+*/
 
 bool MessageDropHandler::dragEnter(
     const Scenario::TemporalScenarioPresenter& pres,

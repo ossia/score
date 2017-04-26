@@ -100,7 +100,6 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 {
   GUIElements e;
   auto& menus = e.menus;
-  auto& actions = e.actions.container;
 
   menus.reserve(10);
   auto file = new QMenu{tr("&File")};

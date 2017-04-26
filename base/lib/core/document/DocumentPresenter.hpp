@@ -5,7 +5,7 @@
 class Selection;
 namespace iscore
 {
-class DocumentContext;
+struct DocumentContext;
 class DocumentDelegateFactory;
 class DocumentDelegatePresenter;
 class DocumentModel;
