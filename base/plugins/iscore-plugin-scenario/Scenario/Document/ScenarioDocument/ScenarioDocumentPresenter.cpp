@@ -371,24 +371,6 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
   displayedConstraint().setVisibleRect(new_visible_scene_rect);
 }
 
-
-
-
-static void updateSlotFocus(const Process::ProcessModel* lm, bool b)
-{
-  // TODO
-  /*
-  if (lm && lm->parent())
-  {
-    if (auto slot = dynamic_cast<SlotModel*>(lm->parent()))
-    {
-      slot->setFocus(b);
-    }
-  }
-  */
-}
-
-
 void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constraint)
 {
   if (displayedElements.initialized())
@@ -426,9 +408,6 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
 void ScenarioDocumentPresenter::on_viewModelDefocused(
     const Process::ProcessModel* vm)
 {
-  // Disable the focus on previously focused view model
-  // TODO updateSlotFocus(vm, false);
-
   // Deselect
   // Note : why these two lines ?
   // selectionStack.clear() should clear the selection everywhere anyway.
@@ -441,9 +420,6 @@ void ScenarioDocumentPresenter::on_viewModelDefocused(
 void ScenarioDocumentPresenter::on_viewModelFocused(
     const Process::ProcessModel* process)
 {
-  // Enable focus on the new viewmodel
-  // TODO updateSlotFocus(process, true);
-
   // If the parent of the layer is a constraint, we set the focus on the
   // constraint too.
   auto slot = process->parent();

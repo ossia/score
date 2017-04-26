@@ -132,7 +132,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
   auto addNewProcessInExistingSlot
       = new QAction{tr("Add new process in this slot"), &menu};
-  QObject::connect(addNewProcessInExistingSlot, &QAction::triggered, [&]() {
+  QObject::connect(addNewProcessInExistingSlot, &QAction::triggered, [&, slot_path]() {
     auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
     AddProcessDialog dialog{fact, qApp->activeWindow()};
 
@@ -202,21 +202,10 @@ void ScenarioContextMenuManager::createLayerContextMenu(
   bool has_slot_menu = false;
 
   // Fill with slot actions
-  if (auto full_view = dynamic_cast<FullViewConstraintPresenter*>(pres.parent()))
+  if(auto small_view = dynamic_cast<TemporalConstraintPresenter*>(pres.parent()))
   {
     auto& context = pres.context().context;
-    if (context.selectionStack.currentSelection().toList().isEmpty())
-    {
-      auto slotSubmenu = menu.addMenu(tr("Slot"));
-      ScenarioContextMenuManager::createSlotContextMenu(
-          context, *slotSubmenu, *full_view, full_view->indexOfSlot(pres));
-      has_slot_menu = true;
-    }
-  }
-  else if(auto small_view = dynamic_cast<TemporalConstraintPresenter*>(pres.parent()))
-  {
-    auto& context = pres.context().context;
-    if (context.selectionStack.currentSelection().toList().isEmpty())
+    //if (context.selectionStack.currentSelection().toList().isEmpty())
     {
       auto slotSubmenu = menu.addMenu(tr("Slot"));
       ScenarioContextMenuManager::createSlotContextMenu(

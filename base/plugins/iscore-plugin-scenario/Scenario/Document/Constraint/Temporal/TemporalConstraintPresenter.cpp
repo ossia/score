@@ -341,6 +341,8 @@ void TemporalConstraintPresenter::on_slotRemoved(int pos)
   //deleteGraphicsItem(slot.view);
 
   m_slots.erase(m_slots.begin() + pos);
+
+  updatePositions();
 }
 
 void TemporalConstraintPresenter::updateProcessesShape()
