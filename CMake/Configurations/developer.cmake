@@ -1,5 +1,6 @@
 #set(CMAKE_C_COMPILER /usr/bin/clang)
 #set(CMAKE_CXX_COMPILER /usr/bin/clang++)
 set(ISCORE_COTIRE_DISABLE_UNITY True)
-include(travis/debug)
+set(ISCORE_SPLIT_DEBUG False)
+include(travis/static-debug)
 include(all-plugins)

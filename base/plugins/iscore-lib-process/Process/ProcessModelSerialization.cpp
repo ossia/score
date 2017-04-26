@@ -20,8 +20,8 @@ template <>
 ISCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(
     const Process::ProcessModel& process)
 {
-  readFrom(process.duration());
-  // m_stream << process.useParentDuration();
+  m_stream << process.m_duration
+          << process.m_slotHeight;
 }
 
 // We only load the members of the process here.
@@ -29,10 +29,8 @@ template <>
 ISCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write(Process::ProcessModel& process)
 {
-  writeTo(process.m_duration);
-  // m_stream >> process.m_useParentDuration;
-
-  // Delimiter checked on createProcess
+  m_stream >> process.m_duration
+           >> process.m_slotHeight;
 }
 
 template <>
@@ -40,7 +38,7 @@ ISCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read(
     const Process::ProcessModel& process)
 {
   obj[strings.Duration] = toJsonValue(process.duration());
-  // obj["UseParentDuration"] = process.useParentDuration();
+  obj[strings.Height] = process.getSlotHeight();
 }
 
 template <>
@@ -48,5 +46,5 @@ ISCORE_LIB_PROCESS_EXPORT void
 JSONObjectWriter::write(Process::ProcessModel& process)
 {
   process.m_duration = fromJsonValue<TimeVal>(obj[strings.Duration]);
-  // process.m_useParentDuration = obj["UseParentDuration"].toBool();
+  process.m_slotHeight = obj[strings.Height].toDouble();
 }

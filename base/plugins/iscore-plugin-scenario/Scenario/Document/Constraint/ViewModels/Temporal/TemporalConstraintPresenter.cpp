@@ -272,6 +272,7 @@ void TemporalConstraintPresenter::createLayer(int slot, const Process::ProcessMo
   auto factory = m_context.processList.findDefaultFactory(procKey);
   auto proc_view = factory->makeLayerView(proc, m_view);
   auto proc_pres = factory->makeLayerPresenter(proc, proc_view, m_context, this);
+  proc_pres->on_zoomRatioChanged(m_zoomRatio);
   m_slots.at(slot).processes.push_back(LayerData{
                   &proc, proc_pres, proc_view
                 });
@@ -389,8 +390,10 @@ void TemporalConstraintPresenter::updatePositions()
       proc.view->update();
     }
 
-    currentSlotY += model.height + SlotHandle::handleHeight();
-    slot.handle->setPos(0, currentSlotY - SlotHandle::handleHeight() / 2.);
+    currentSlotY += model.height;
+
+    slot.handle->setPos(0, currentSlotY);
+    currentSlotY += SlotHandle::handleHeight();
   }
 
   // Horizontal shape

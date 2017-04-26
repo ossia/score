@@ -44,21 +44,25 @@ QRectF TemporalConstraintHeader::boundingRect() const
 void TemporalConstraintHeader::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  const auto& skin = ScenarioStyle::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
   if (m_state == State::RackHidden)
   {
     auto rect = boundingRect();
     painter->fillRect(
-        rect, ScenarioStyle::instance().ConstraintHeaderRackHidden.getColor());
+        rect, skin.ConstraintHeaderRackHidden.getColor());
 
     // Fake timenode continuation
-    auto color
-        = ScenarioStyle::instance().ConstraintHeaderSideBorder.getColor();
-    QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-    painter->setPen(pen);
+
+    //QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+    painter->setPen(skin.ConstraintRackPen);
     painter->drawLine(rect.topLeft(), rect.bottomLeft());
     painter->drawLine(rect.topRight(), rect.bottomRight());
     painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+  }
+  else
+  {
+   // painter->drawLine(0, ConstraintHeaderHeight, def_w, ConstraintHeaderHeight);
   }
 
   // Header

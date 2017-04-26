@@ -92,13 +92,18 @@ function(iscore_set_gcc_compile_options theTarget)
           "$<$<CONFIG:Release>:-ffunction-sections>"
           "$<$<CONFIG:Release>:-fdata-sections>"
           "$<$<CONFIG:Release>:-Wl,--gc-sections>"
-#          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
-#          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
-          "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
-          "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
           "$<$<CONFIG:Debug>:-O0>"
           "$<$<CONFIG:Debug>:-ggdb>"
       )
+
+    if(ISCORE_SPLIT_DEBUG)
+      target_link_libraries(${theTarget} PUBLIC
+        #          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
+        #          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
+                  "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
+                  "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
+        )
+    endif()
 
       get_target_property(NO_LTO ${theTarget} ISCORE_TARGET_NO_LTO)
       if(NOT ${NO_LTO})
@@ -113,21 +118,25 @@ function(iscore_set_gcc_compile_options theTarget)
           "$<$<CONFIG:Release>:-ffunction-sections>"
           "$<$<CONFIG:Release>:-fdata-sections>"
           "$<$<CONFIG:Release>:-Wl,--gc-sections>"
-#          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
-#          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
           "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
-          "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
           "$<$<CONFIG:Debug>:-O0>"
           "$<$<CONFIG:Debug>:-ggdb>"
-          "$<$<CONFIG:Debug>:-gsplit-dwarf>"
-          "$<$<CONFIG:Debug>:-ggnu-pubnames>"
-          "$<$<CONFIG:Debug>:-fdebug-types-section>"
 
 #          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-s>"
 #          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-flto>"
 #          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
 #          "$<$<BOOL:${ISCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
           )
+        if(ISCORE_SPLIT_DEBUG)
+          target_link_libraries(${theTarget} PUBLIC
+            #          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
+            #          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
+          "$<$<CONFIG:Debug>:-gsplit-dwarf>"
+          "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
+          "$<$<CONFIG:Debug>:-fdebug-types-section>"
+          "$<$<CONFIG:Debug>:-ggnu-pubnames>"
+          )
+        endif()
 
       endif()
       # -Wcast-qual is nice but requires more work...
@@ -152,7 +161,7 @@ endfunction()
 function(iscore_set_linux_compile_options theTarget)
     use_gold(${theTarget})
 
-    if(NOT ISCORE_SANITIZE)
+    if(NOT ISCORE_SANITIZE AND ISCORE_SPLIT_DEBUG)
         target_compile_options(${theTarget} PUBLIC
             # Debug options
             "$<$<CONFIG:Debug>:-gsplit-dwarf>")
