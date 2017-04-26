@@ -121,7 +121,7 @@ public:
     m_curvepresenter->setRect(rect);
   }
 
-  const Model_T& layerModel() const override
+  const Model_T& model() const override
   {
     return m_layer;
   }

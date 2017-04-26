@@ -33,7 +33,7 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
 
   if (m_currentPresenter)
   {
-    m_currentModel = &m_currentPresenter->layerModel();
+    m_currentModel = &m_currentPresenter->model();
 
     emit sig_focusedViewModel(m_currentModel);
 

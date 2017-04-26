@@ -1,4 +1,5 @@
 #pragma once
+#include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopViewUpdater.hpp>
 #include <Loop/Palette/LoopToolPalette.hpp>
 #include <Process/LayerPresenter.hpp>
@@ -65,7 +66,6 @@ public:
   {
     return *m_view;
   }
-  const Loop::ProcessModel& model() const { return m_layer; }
 
   using BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>::
       event;
@@ -80,7 +80,7 @@ public:
   void on_zoomRatioChanged(ZoomRatio) override;
   void parentGeometryChanged() override;
 
-  const Process::ProcessModel& layerModel() const override;
+  const Loop::ProcessModel& model() const override;
   const Id<Process::ProcessModel>& modelId() const override;
 
   ZoomRatio zoomRatio() const

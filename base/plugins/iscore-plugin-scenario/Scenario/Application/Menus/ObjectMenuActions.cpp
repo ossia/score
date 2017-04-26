@@ -400,7 +400,7 @@ void ObjectMenuActions::pasteElements(
   if (!pres)
     return;
 
-  auto& sm = static_cast<const Scenario::ProcessModel&>(pres->layerModel());
+  auto& sm = static_cast<const Scenario::ProcessModel&>(pres->model());
   // TODO check json validity
   auto cmd = new Command::ScenarioPasteElements(sm, obj, origin);
 

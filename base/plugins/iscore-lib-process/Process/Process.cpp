@@ -19,7 +19,9 @@ ProcessModel::ProcessModel(
     const Id<ProcessModel>& id,
     const QString& name,
     QObject* parent)
-    : Entity{id, name, parent}, m_duration{std::move(duration)}
+    : Entity{id, name, parent}
+    , m_duration{std::move(duration)}
+    , m_slotHeight{300}
 {
 }
 
@@ -30,7 +32,9 @@ ProcessModel::ProcessModel(
     const Id<ProcessModel>& id,
     const QString& name,
     QObject* parent)
-    : Entity{source, id, name, parent}, m_duration{source.duration()}
+    : Entity{source, id, name, parent}
+    , m_duration{source.duration()}
+    , m_slotHeight{source.m_slotHeight}
 {
 }
 
