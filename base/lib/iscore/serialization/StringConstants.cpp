@@ -101,7 +101,9 @@ ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
         QStringLiteral("FullViewRack"),
         QStringLiteral("Zoom"),
         QStringLiteral("Center"),
-        QStringLiteral("SmallViewShown")
+        QStringLiteral("SmallViewShown"),
+        QStringLiteral("Height"),
+        QStringLiteral("Width")
                                       };
   return strings;
 }

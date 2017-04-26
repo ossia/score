@@ -102,6 +102,8 @@ struct StringConstants
   const QString Zoom;
   const QString Center;
   const QString SmallViewShown;
+  const QString Height;
+  const QString Width;
 };
 
 ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant();

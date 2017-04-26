@@ -22,10 +22,12 @@ elseif(NACL)
     add_subdirectory(app-nacl)
 else()
   add_subdirectory(app)
+endif()
+
+if(ISCORE_PLAYER)
   add_subdirectory(player)
 endif()
 
-set(ISCORE_REMOTE 1)
 if(ISCORE_REMOTE)
   add_subdirectory(remote)
 endif()

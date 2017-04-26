@@ -52,6 +52,7 @@ class TemporalScenarioView;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final
     : public Process::LayerPresenter
+    , public Nano::Observer
 {
   Q_OBJECT
 

@@ -22,6 +22,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/Identifier.hpp>
+#include <iscore/model/path/PathSerialization.hpp>
 
 namespace Scenario
 {
@@ -44,94 +45,73 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::Slot& slot)
 {
-  // TODO
-
+  m_stream << slot.processes << slot.frontProcess << slot.height;
 }
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::Slot& slot)
 {
-  // TODO
-
+  m_stream >> slot.processes >> slot.frontProcess >> slot.height;
 }
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
     const Scenario::Slot& slot)
 {
-  // TODO
-
+  obj[strings.Processes] = toJsonValueArray(slot.processes);
+  obj[strings.Process] = toJsonValue(slot.frontProcess);
+  obj[strings.Height] = slot.height;
 }
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
     Scenario::Slot& slot)
 {
-  // TODO
-
+  slot.processes = fromJsonValueArray<decltype(slot.processes)>(obj[strings.Processes].toArray());
+  slot.frontProcess = fromJsonValue<decltype(slot.frontProcess)>(obj[strings.Process]);
+  slot.height = obj[strings.Process].toDouble();
 }
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::FullSlot& slot)
 {
-  // TODO
-
+  m_stream << slot.process;
 }
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::FullSlot& slot)
 {
-  // TODO
-
+  m_stream >> slot.process;
 }
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
     const Scenario::FullSlot& slot)
 {
-  // TODO
-
+  obj[strings.Process] = toJsonValue(slot.process);
 }
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
     Scenario::FullSlot& slot)
 {
-  // TODO
-
+  slot.process = fromJsonValue<decltype(slot.process)>(obj[strings.Process]);
 }
+
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
-    const Scenario::SlotPath& SlotIdentifier)
+    const Scenario::SlotPath& slot)
 {
-  // TODO
-
+  m_stream << slot.constraint << slot.index << slot.full_view;
 }
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
-    Scenario::SlotPath& SlotIdentifier)
+    Scenario::SlotPath& slot)
 {
-  // TODO
-
+  m_stream >> slot.constraint >> slot.index >> slot.full_view;
 }
-
-template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
-    const Scenario::SlotPath& SlotIdentifier)
-{
-  // TODO
-
-}
-template <>
-ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
-    Scenario::SlotPath& SlotIdentifier)
-{
-
-  // TODO
-}
-
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
