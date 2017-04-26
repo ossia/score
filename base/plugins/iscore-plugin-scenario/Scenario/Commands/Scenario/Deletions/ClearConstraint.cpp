@@ -40,7 +40,6 @@ void ClearConstraint::redo() const
   auto& constraint = m_constraintSaveData.constraintPath.find();
 
   constraint.clearSmallView();
-  constraint.clearFullView();
 
   // We make copies since the iterators might change.
   // TODO check if this is still valid wrt boost::multi_index

@@ -25,7 +25,10 @@ ProcessModel::ProcessModel(
 {
 }
 
-ProcessModel::~ProcessModel() = default;
+ProcessModel::~ProcessModel()
+{
+  emit identified_object_destroying(this);
+}
 
 ProcessModel::ProcessModel(
     const ProcessModel& source,
