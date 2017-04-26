@@ -21,7 +21,6 @@ class QObject;
 
 namespace Scenario
 {
-static const constexpr int slotSpacing = 10;
 FullViewConstraintPresenter::FullViewConstraintPresenter(
     const ConstraintModel& cstr_model,
     const Process::ProcessPresenterContext& ctx,
