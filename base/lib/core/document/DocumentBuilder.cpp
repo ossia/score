@@ -60,6 +60,7 @@ Document* DocumentBuilder::loadDocument(
     DocumentDelegateFactory& doctype)
 {
   Document* doc = nullptr;
+  auto& doclist = ctx.documents.documents();
   try
   {
     doc = new Document{docData, doctype, m_parentView, m_parentPresenter};
@@ -73,7 +74,7 @@ Document* DocumentBuilder::loadDocument(
       appPlug->on_createdDocument(*doc);
     }
 
-    ctx.documents.documents().push_back(doc);
+    doclist.push_back(doc);
 
     m_backupManager = new DocumentBackupManager{*doc};
     m_backupManager->saveModelData(doc->saveAsByteArray());
@@ -85,9 +86,9 @@ Document* DocumentBuilder::loadDocument(
   {
     QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
 
-    if (!ctx.documents.documents().empty()
-        && ctx.documents.documents().back() == doc)
-      ctx.documents.documents().pop_back();
+    if (!doclist.empty()
+        && doclist.back() == doc)
+      doclist.pop_back();
 
     delete doc;
     return nullptr;
@@ -100,8 +101,8 @@ Document* DocumentBuilder::restoreDocument(
     const QByteArray& cmdData,
     DocumentDelegateFactory& doctype)
 {
-
   Document* doc = nullptr;
+  auto& doclist = ctx.documents.documents();
   try
   {
     // Restoring behaves just like loading : we reload what was loaded
@@ -118,7 +119,7 @@ Document* DocumentBuilder::restoreDocument(
       appPlug->on_createdDocument(*doc);
     }
 
-    ctx.documents.documents().push_back(doc);
+    doclist.push_back(doc);
 
     // We restore the pre-crash command stack.
     DataStream::Deserializer writer(cmdData);
@@ -137,9 +138,9 @@ Document* DocumentBuilder::restoreDocument(
   {
     QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
 
-    if (!ctx.documents.documents().empty()
-        && ctx.documents.documents().back() == doc)
-      ctx.documents.documents().pop_back();
+    if (!doclist.empty()
+        && doclist.back() == doc)
+      doclist.pop_back();
 
     delete doc;
     return nullptr;

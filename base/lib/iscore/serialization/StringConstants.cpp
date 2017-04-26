@@ -96,7 +96,14 @@ ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
         QStringLiteral("States"),
         QStringLiteral("Condition"),
         QStringLiteral("Offset"),
-        QStringLiteral("Segments")
+        QStringLiteral("Segments"),
+        QStringLiteral("SmallViewRack"),
+        QStringLiteral("FullViewRack"),
+        QStringLiteral("Zoom"),
+        QStringLiteral("Center"),
+        QStringLiteral("SmallViewShown"),
+        QStringLiteral("Height"),
+        QStringLiteral("Width")
                                       };
   return strings;
 }

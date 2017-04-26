@@ -30,7 +30,7 @@ TestApplication::TestApplication(int &argc, char **argv):
     auto& ctx = m_presenter->applicationContext();
 
     // Plugins
-    iscore::ApplicationRegistrar registrar{
+    iscore::GUIApplicationRegistrar registrar{
         m_presenter->components(),
                 ctx,
                 *m_view,

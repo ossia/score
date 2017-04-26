@@ -19,7 +19,7 @@ namespace Process
 {
 struct ProcessData
 {
-  UuidKey<Process::ProcessModelFactory> key;
+  UuidKey<Process::ProcessModel> key;
 };
 }
 template <>

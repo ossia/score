@@ -5,7 +5,7 @@ namespace iscore
 {
 class Settings;
 class Presenter;
-class ApplicationRegistrar;
+class GUIApplicationRegistrar;
 struct GUIApplicationContext;
 
 /**
@@ -59,7 +59,7 @@ public:
    */
   void loadPluginData(
       const iscore::GUIApplicationContext& ctx,
-      iscore::ApplicationRegistrar&,
+      iscore::GUIApplicationRegistrar&,
       iscore::Settings& m_settings,
       iscore::Presenter& m_presenter);
 };

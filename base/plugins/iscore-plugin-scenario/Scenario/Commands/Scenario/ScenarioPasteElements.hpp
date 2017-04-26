@@ -3,7 +3,6 @@
 #include <QMap>
 #include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <iscore/command/Command.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
@@ -18,7 +17,6 @@ namespace Scenario
 struct Point;
 class EventModel;
 class StateModel;
-class TemporalScenarioLayer;
 class TimeNodeModel;
 class ConstraintModel;
 namespace Command
@@ -32,7 +30,7 @@ class ScenarioPasteElements final : public iscore::Command
       "Paste elements in scenario")
 public:
   ScenarioPasteElements(
-      Path<TemporalScenarioLayer>&& path,
+      Path<Scenario::ProcessModel>&& path,
       const QJsonObject& obj,
       const Scenario::Point& pt);
 
@@ -44,7 +42,7 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<TemporalScenarioLayer> m_ts;
+  Path<Scenario::ProcessModel> m_ts;
 
   // TODO std::vector...
   QVector<Id<TimeNodeModel>> m_ids_timenodes;
@@ -56,9 +54,6 @@ private:
   QVector<QJsonObject> m_json_constraints;
   QVector<QJsonObject> m_json_events;
   QVector<QJsonObject> m_json_states;
-
-  // TODO std::map...
-  QMap<Id<ConstraintModel>, ConstraintViewModelIdMap> m_constraintViewModels;
 };
 }
 }

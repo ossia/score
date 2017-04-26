@@ -1,6 +1,6 @@
 #include <QtTest/QtTest>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 

@@ -21,14 +21,27 @@ struct GUIApplicationContext : public iscore::ApplicationContext
       iscore::ToolbarManager& e,
       iscore::ActionManager& f,
       const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>& g,
-      QMainWindow& mw)
-      : iscore::ApplicationContext{a, b, g},
-        documents{c},
-        menus{d},
-        toolbars{e},
-        actions{f},
-        mainWindow{mw}
+      QMainWindow& mw);
+
+  /**
+   * @brief List of the available GUI panels.
+   *
+   * @see iscore::PanelDelegate
+   */
+  auto panels() const
   {
+    return components.panels();
+  }
+
+  /**
+   * @brief Access to a specific PanelDelegate
+   *
+   * @see iscore::PanelDelegate
+   */
+  template<typename T>
+  T& panel() const
+  {
+    return components.panel<T>();
   }
 
   /**
@@ -52,7 +65,7 @@ struct GUIApplicationContext : public iscore::ApplicationContext
     return components.guiApplicationPlugin<T>();
   }
 
-  DocumentManager& documents;
+  DocumentManager& docManager;
 
   MenuManager& menus;
   ToolbarManager& toolbars;
@@ -61,4 +74,5 @@ struct GUIApplicationContext : public iscore::ApplicationContext
 };
 
 ISCORE_LIB_BASE_EXPORT const GUIApplicationContext& GUIAppContext();
+
 }

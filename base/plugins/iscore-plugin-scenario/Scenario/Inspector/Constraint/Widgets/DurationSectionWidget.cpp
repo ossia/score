@@ -8,7 +8,6 @@
 #include <Scenario/Commands/Constraint/SetMaxDuration.hpp>
 #include <Scenario/Commands/Constraint/SetMinDuration.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
@@ -137,8 +136,7 @@ public:
     // it may cause unexpected changes in parent scenarios.
     auto mod_del = dynamic_cast<Scenario::ScenarioDocumentModel*>(
         &fac.document.model().modelDelegate());
-    if (m_model.fullView()->isActive()
-        && &m_model != &mod_del->baseConstraint())
+    if (isInFullView(m_model) && &m_model != &mod_del->baseConstraint())
     {
       m_valueSpin->setEnabled(false);
     }

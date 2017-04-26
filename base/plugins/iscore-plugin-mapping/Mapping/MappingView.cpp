@@ -1,4 +1,4 @@
-#include <Process/Style/ProcessFonts.hpp>
+
 #include <QFlags>
 #include <QFont>
 #include <QGraphicsItem>
@@ -8,9 +8,8 @@
 
 #include "MappingView.hpp"
 #include <Process/LayerView.hpp>
-#include <iscore/model/Skin.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 
-static const int fontSize = 8;
 namespace Mapping
 {
 LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
@@ -19,10 +18,7 @@ LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
   this->setFlags(
       ItemIsSelectable | ItemIsFocusable);
 
-  auto f = iscore::Skin::instance().SansFont;
-  f.setPointSize(fontSize);
-
-  m_textcache.setFont(f);
+  m_textcache.setFont(ScenarioStyle::instance().Medium8Pt);
   m_textcache.setCacheEnabled(true);
 }
 
@@ -52,7 +48,7 @@ void LayerView::paint_impl(QPainter* painter) const
 {
   if (m_showName)
   {
-    m_textcache.draw(painter, QPointF{5., double(fontSize)});
+    m_textcache.draw(painter, QPointF{5., 8.});
   }
 }
 }

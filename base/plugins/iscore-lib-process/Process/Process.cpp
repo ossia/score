@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "LayerModel.hpp"
 #include "Process.hpp"
 #include <ossia/detail/algorithms.hpp>
 #include <Process/ExpandMode.hpp>
@@ -20,18 +19,25 @@ ProcessModel::ProcessModel(
     const Id<ProcessModel>& id,
     const QString& name,
     QObject* parent)
-    : Entity{id, name, parent}, m_duration{std::move(duration)}
+    : Entity{id, name, parent}
+    , m_duration{std::move(duration)}
+    , m_slotHeight{300}
 {
 }
 
-ProcessModel::~ProcessModel() = default;
+ProcessModel::~ProcessModel()
+{
+  emit identified_object_destroying(this);
+}
 
 ProcessModel::ProcessModel(
     const ProcessModel& source,
     const Id<ProcessModel>& id,
     const QString& name,
     QObject* parent)
-    : Entity{source, id, name, parent}, m_duration{source.duration()}
+    : Entity{source, id, name, parent}
+    , m_duration{source.duration()}
+    , m_slotHeight{source.m_slotHeight}
 {
 }
 
@@ -65,11 +71,6 @@ ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
 QString ProcessModel::prettyName() const
 {
   return metadata().getName();
-}
-
-std::vector<LayerModel*> ProcessModel::layers() const
-{
-  return m_layers;
 }
 
 void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t)
@@ -146,19 +147,15 @@ void ProcessModel::setSelection(const Selection& s) const
 {
 }
 
-void ProcessModel::addLayer(LayerModel* m)
+double ProcessModel::getSlotHeight() const
 {
-  connect(m, &LayerModel::destroyed, this, [=]() { removeLayer(m); });
-  m_layers.push_back(m);
+  return m_slotHeight;
 }
 
-void ProcessModel::removeLayer(LayerModel* m)
+void ProcessModel::setSlotHeight(double v)
 {
-  auto it = ossia::find(m_layers, m);
-  if (it != m_layers.end())
-  {
-    m_layers.erase(it);
-  }
+  m_slotHeight = v;
+  emit slotHeightChanged(v);
 }
 
 ProcessModel* parentProcess(QObject* obj)

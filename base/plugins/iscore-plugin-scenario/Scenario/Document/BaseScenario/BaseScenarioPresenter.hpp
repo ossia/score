@@ -7,9 +7,8 @@
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/FullView/FullViewConstraintView.hpp>
 #include <iscore/tools/std/IndirectContainer.hpp>
 
 template <typename Model_T, typename ConstraintPresenter_T>

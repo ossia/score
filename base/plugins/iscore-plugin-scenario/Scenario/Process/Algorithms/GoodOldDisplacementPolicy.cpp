@@ -6,7 +6,6 @@
 #include "GoodOldDisplacementPolicy.hpp"
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
@@ -23,7 +22,6 @@ class Reader;
 
 namespace Scenario
 {
-class RackModel;
 void GoodOldDisplacementPolicy::computeDisplacement(
     Scenario::ProcessModel& scenario,
     const QVector<Id<TimeNodeModel>>& draggedElements,

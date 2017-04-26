@@ -31,14 +31,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final
 public:
   AddOnlyProcessToConstraint(
       Path<ConstraintModel>&& constraint,
-      UuidKey<Process::ProcessModelFactory>
-          process);
+      UuidKey<Process::ProcessModel> process);
   AddOnlyProcessToConstraint(
       Path<ConstraintModel>&& constraint,
-      Id<Process::ProcessModel>
-          idToUse,
-      UuidKey<Process::ProcessModelFactory>
-          process);
+      Id<Process::ProcessModel> idToUse,
+      UuidKey<Process::ProcessModel> process);
 
   void undo() const override;
   void redo() const override;
@@ -56,7 +53,7 @@ public:
     return m_createdProcessId;
   }
 
-  const UuidKey<Process::ProcessModelFactory>& processKey() const
+  const UuidKey<Process::ProcessModel>& processKey() const
   {
     return m_processName;
   }
@@ -67,7 +64,7 @@ protected:
 
 private:
   Path<ConstraintModel> m_path;
-  UuidKey<Process::ProcessModelFactory> m_processName;
+  UuidKey<Process::ProcessModel> m_processName;
 
   Id<Process::ProcessModel> m_createdProcessId{};
 };

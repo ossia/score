@@ -1,8 +1,6 @@
 #include <Process/ProcessList.hpp>
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
@@ -41,18 +39,14 @@ void ClearConstraint::redo() const
 {
   auto& constraint = m_constraintSaveData.constraintPath.find();
 
+  constraint.clearSmallView();
+
   // We make copies since the iterators might change.
   // TODO check if this is still valid wrt boost::multi_index
   auto processes = shallow_copy(constraint.processes);
   for (auto process : processes)
   {
     RemoveProcess(constraint, process->id());
-  }
-
-  auto rackes = shallow_copy(constraint.racks);
-  for (const auto& rack : rackes)
-  {
-    constraint.racks.remove(rack->id());
   }
 }
 

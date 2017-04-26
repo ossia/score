@@ -1,7 +1,6 @@
 #pragma once
 #include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <iscore/command/Command.hpp>
 #include <iscore/model/path/Path.hpp>
 #include <iscore/model/Identifier.hpp>
@@ -15,7 +14,6 @@ namespace Scenario
 {
 class StateModel;
 class ConstraintModel;
-class ConstraintViewModel;
 class ProcessModel;
 
 namespace Command
@@ -70,9 +68,6 @@ private:
 
   Id<StateModel> m_startStateId{};
   Id<StateModel> m_endStateId{};
-
-  ConstraintViewModelIdMap m_createdConstraintViewModelIDs;
-  Id<ConstraintViewModel> m_createdConstraintFullViewId{};
 };
 }
 }

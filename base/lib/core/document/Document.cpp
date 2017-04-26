@@ -88,7 +88,7 @@ void Document::init()
         m_presenter->setNewSelection(filtered);
       });
 
-  m_documentUpdateTimer.setInterval(16); // 30 hz
+  m_documentUpdateTimer.setInterval(16);
   m_documentUpdateTimer.start();
 }
 

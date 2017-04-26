@@ -18,10 +18,35 @@ class View;
 
 namespace iscore
 {
+
+struct DocumentList
+{
+public:
+  const std::vector<Document*>& documents() const
+  {
+    return m_documents;
+  }
+  std::vector<Document*>& documents()
+  {
+    return m_documents;
+  }
+
+  Document* currentDocument() const
+  {
+    return m_currentDocument;
+  }
+
+protected:
+  std::vector<Document*> m_documents;
+  Document* m_currentDocument{};
+};
+
 /**
  * @brief Owns the documents
  */
-class ISCORE_LIB_BASE_EXPORT DocumentManager : public QObject
+class ISCORE_LIB_BASE_EXPORT DocumentManager
+    : public QObject
+    , public DocumentList
 {
   Q_OBJECT
 public:
@@ -72,16 +97,6 @@ public:
   // Restore documents after a crash
   void restoreDocuments(const iscore::GUIApplicationContext& ctx);
 
-  const std::vector<Document*>& documents() const
-  {
-    return m_documents;
-  }
-  std::vector<Document*>& documents()
-  {
-    return m_documents;
-  }
-
-  Document* currentDocument() const;
   void
   setCurrentDocument(const iscore::GUIApplicationContext& ctx, Document* doc);
 
@@ -129,8 +144,6 @@ private:
 
   DocumentBuilder m_builder;
 
-  std::vector<Document*> m_documents;
-  Document* m_currentDocument{};
   QPointer<QRecentFilesMenu> m_recentFiles{};
 
   bool m_preparingNewDocument{};

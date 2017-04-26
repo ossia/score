@@ -5,6 +5,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <iscore_plugin_scenario_export.h>
 
 namespace iscore
 {
@@ -16,7 +17,7 @@ struct VisitorVariant;
 
 namespace Scenario
 {
-class ScenarioDocumentFactory final : public iscore::DocumentDelegateFactory
+class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentFactory final : public iscore::DocumentDelegateFactory
 {
   ISCORE_CONCRETE("2bca3373-d858-4288-b054-5960d3e5902c")
 

@@ -123,7 +123,7 @@ public:
         [&](const Id<ConstraintModel>&) {},
 
         // Press a slot handle
-        [&](const SlotModel&) {},
+        [&](const SlotPath&) {},
 
         // Click on the background
         [&]() {

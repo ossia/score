@@ -14,7 +14,6 @@
 #include <iscore/model/Identifier.hpp>
 namespace Scenario
 {
-class ConstraintViewModel;
 
 BaseScenarioContainer::BaseScenarioContainer(no_init, QObject* parentObject)
     : m_parent{parentObject}
@@ -50,8 +49,7 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
   m_endState = new StateModel{Scenario::endId<StateModel>(), m_endEvent->id(),
                               0, stack, m_parent};
 
-  m_constraint = new ConstraintModel{Id<ConstraintModel>{0},
-                                     Id<ConstraintViewModel>{0}, 0, m_parent};
+  m_constraint = new ConstraintModel{Id<ConstraintModel>{0}, 0, m_parent};
 
   m_startNode->addEvent(m_startEvent->id());
   m_endNode->addEvent(m_endEvent->id());

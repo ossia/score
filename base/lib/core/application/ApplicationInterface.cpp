@@ -5,6 +5,7 @@
 #include <core/settings/Settings.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
+#include <core/view/View.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
@@ -35,7 +36,7 @@ GUIApplicationInterface& GUIApplicationInterface::instance()
 
 void GUIApplicationInterface::loadPluginData(
     const iscore::GUIApplicationContext& ctx,
-    iscore::ApplicationRegistrar& registrar,
+    iscore::GUIApplicationRegistrar& registrar,
     iscore::Settings& settings,
     iscore::Presenter& presenter)
 {
@@ -50,9 +51,9 @@ void GUIApplicationInterface::loadPluginData(
   registrar.registerFactory(
       std::make_unique<iscore::SettingsDelegateFactoryList>());
 
-  registrar.registerApplicationPlugin(
+  registrar.registerGUIApplicationPlugin(
       new iscore::CoreApplicationPlugin{ctx, presenter});
-  registrar.registerApplicationPlugin(
+  registrar.registerGUIApplicationPlugin(
       new iscore::UndoApplicationPlugin{ctx});
 
   iscore::PluginLoader::loadPlugins(registrar, ctx);
@@ -81,6 +82,21 @@ void GUIApplicationInterface::loadPluginData(
   {
     registrar.registerPanel(panel_fac);
   }
+
+  for(auto& panel : registrar.components().panels)
+  {
+    presenter.view()->setupPanel(panel.get());
+  }
+}
+
+GUIApplicationContext::GUIApplicationContext(const ApplicationSettings& a, const ApplicationComponents& b, DocumentManager& c, MenuManager& d, ToolbarManager& e, ActionManager& f, const std::vector<std::unique_ptr<SettingsDelegateModel> >& g, QMainWindow& mw)
+  : iscore::ApplicationContext{a, b, c, g},
+    docManager{c},
+    menus{d},
+    toolbars{e},
+    actions{f},
+    mainWindow{mw}
+{
 }
 
 ISCORE_LIB_BASE_EXPORT const ApplicationContext& AppContext()

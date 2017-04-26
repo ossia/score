@@ -1,17 +1,15 @@
-#include <Process/LayerModel.hpp>
+
 #include <Process/Process.hpp>
 #include <QList>
 #include <QObject>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <boost/iterator/iterator_facade.hpp>
@@ -21,8 +19,6 @@
 #include "ScenarioDocumentModel.hpp"
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
@@ -90,7 +86,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
         m_baseScenario->constraint().metadata().setName(info.baseName());
       });
 
-  initializeNewDocument(m_baseScenario->constraint().fullView());
+  initializeNewDocument(m_baseScenario->constraint());
   init();
 
   // Select the first state
@@ -106,42 +102,14 @@ void ScenarioDocumentModel::init()
 }
 
 void ScenarioDocumentModel::initializeNewDocument(
-    const FullViewConstraintViewModel* viewmodel)
-{
+    const ConstraintModel& constraint_model) {
   using namespace Scenario::Command;
-  const auto& constraint_model = viewmodel->model();
 
   AddOnlyProcessToConstraint cmd1{
       iscore::IDocument::path(m_baseScenario->constraint()),
       Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
   cmd1.redo();
-
-  AddRackToConstraint cmd2{
-      iscore::IDocument::path(m_baseScenario->constraint())};
-  cmd2.redo();
-  auto& rack = *constraint_model.racks.begin();
-
-  ShowRackInViewModel cmd3{
-      iscore::IDocument::path(
-          static_cast<const ConstraintViewModel&>(*viewmodel)),
-      rack.id()};
-  cmd3.redo();
-
-  AddSlotToRack cmd4{
-      iscore::IDocument::path(*m_baseScenario->constraint().racks.begin()),
-  };
-  cmd4.redo();
-
-  ResizeSlotVertically cmd5{
-      iscore::IDocument::path(
-          *m_baseScenario->constraint().racks.begin()->slotmodels.begin()),
-      1500};
-  cmd5.redo();
-
-  AddLayerModelToSlot cmd6{
-      *m_baseScenario->constraint().racks.begin()->slotmodels.begin(),
-      *m_baseScenario->constraint().processes.begin()};
-  cmd6.redo();
+  constraint_model.processes.begin()->setSlotHeight(1500);
 }
 
 ConstraintModel& ScenarioDocumentModel::baseConstraint() const

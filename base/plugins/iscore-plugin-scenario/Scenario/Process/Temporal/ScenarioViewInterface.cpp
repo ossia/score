@@ -1,22 +1,21 @@
 #include <QPoint>
 #include <QRect>
 #include <QtGlobal>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
+#include <Scenario/Document/Constraint/Temporal/TemporalConstraintView.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 
 #include "ScenarioViewInterface.hpp"
 #include "TemporalScenarioPresenter.hpp"
-#include <Process/LayerModel.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Event/EventView.hpp>

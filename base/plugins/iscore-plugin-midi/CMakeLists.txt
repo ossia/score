@@ -20,7 +20,6 @@ set(HEADER_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiProcess.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNote.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiLayer.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteView.hpp"
@@ -43,7 +42,6 @@ set(SOURCE_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteView.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNote.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiStyle.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_midi.cpp"
   )
 

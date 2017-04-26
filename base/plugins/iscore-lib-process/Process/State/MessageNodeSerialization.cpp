@@ -70,7 +70,7 @@ void fromJsonValue(
   }
   else
   {
-    value = iscore::none;
+    value = ossia::none;
   }
 }
 

@@ -9,10 +9,6 @@
 
 namespace Process
 {
-class LayerModel;
-}
-namespace Process
-{
 class ProcessModel;
 }
 class QMenu;
@@ -26,7 +22,7 @@ class ISCORE_LIB_PROCESS_EXPORT DummyLayerPresenter final
 {
 public:
   explicit DummyLayerPresenter(
-      const Process::LayerModel& model,
+      const Process::ProcessModel& model,
       DummyLayerView* view,
       const Process::ProcessPresenterContext& ctx,
       QObject* parent);
@@ -41,11 +37,11 @@ public:
 
   void parentGeometryChanged() override;
 
-  const Process::LayerModel& layerModel() const override;
+  const Process::ProcessModel& model() const override;
   const Id<Process::ProcessModel>& modelId() const override;
 
 private:
-  const Process::LayerModel& m_layer;
+  const Process::ProcessModel& m_layer;
   DummyLayerView* m_view{};
 };
 }

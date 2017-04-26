@@ -5,7 +5,6 @@
 #include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
@@ -47,7 +46,7 @@ static Scenario::StateModel* closestLeftState(Scenario::Point pt, const Scenario
   return nullptr;
 }
 
-
+/*
 static Scenario::StateModel* magneticLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario)
 {
   Scenario::StateModel* cur_st = &*scenario.states.begin();
@@ -63,7 +62,7 @@ static Scenario::StateModel* magneticLeftState(Scenario::Point pt, const Scenari
   }
   return cur_st;
 }
-
+*/
 
 bool MessageDropHandler::dragEnter(
     const Scenario::TemporalScenarioPresenter& pres,

@@ -21,18 +21,12 @@
 #include <iscore/model/IdentifiedObjectMap.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/model/Identifier.hpp>
 
 class DataStream;
 class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
-
 class QEvent;
 
 namespace Scenario
@@ -48,12 +42,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
   Q_OBJECT
 
   ISCORE_SERIALIZE_FRIENDS
-  MODEL_METADATA_IMPL(Scenario::ProcessModel)
+  PROCESS_METADATA_IMPL(Scenario::ProcessModel)
   friend class ScenarioFactory;
   friend class ScenarioTemporalLayerFactory;
 
 public:
-  using layer_type = AbstractScenarioLayer;
   ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
@@ -208,7 +201,6 @@ private:
       const Scenario::ProcessModel& source,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
-  void setupLayer(AbstractScenarioLayer*);
 
   Id<TimeNodeModel> m_startTimeNodeId{};
 

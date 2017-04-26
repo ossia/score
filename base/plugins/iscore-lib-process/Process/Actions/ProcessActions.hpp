@@ -40,14 +40,7 @@ struct EnableWhenFocusedProcessIs;
         return;                                                               \
       }                                                                       \
                                                                               \
-      auto layer = dynamic_cast<const Process::LayerModel*>(obj);             \
-      if (!layer)                                                             \
-      {                                                                       \
-        setEnabled(mgr, false);                                               \
-        return;                                                               \
-      }                                                                       \
-                                                                              \
-      setEnabled(mgr, bool(dynamic_cast<Type*>(&layer->processModel())));     \
+      setEnabled(mgr, bool(dynamic_cast<const Type*>(obj)));                  \
     }                                                                         \
   };                                                                          \
   }

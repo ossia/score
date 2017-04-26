@@ -320,7 +320,7 @@ struct TSerializer<JSONValue, optional<T>>
   {
     if (s.val.toString() == s.strings.none)
     {
-      obj = iscore::none;
+      obj = ossia::none;
     }
     else
     {

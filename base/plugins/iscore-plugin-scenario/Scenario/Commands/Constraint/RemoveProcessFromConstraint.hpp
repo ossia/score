@@ -1,6 +1,7 @@
 #pragma once
 #include <QByteArray>
 #include <QPair>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/Command.hpp>
@@ -11,10 +12,6 @@
 
 struct DataStreamInput;
 struct DataStreamOutput;
-namespace Process
-{
-class LayerModel;
-}
 namespace Process
 {
 class ProcessModel;
@@ -46,9 +43,9 @@ protected:
 private:
   Path<ConstraintModel> m_path;
   Id<Process::ProcessModel> m_processId;
-
   QByteArray m_serializedProcessData;
-  QVector<QPair<Path<Process::LayerModel>, QByteArray>> m_serializedViewModels;
+
+  Rack m_smallView;
 };
 }
 }

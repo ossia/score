@@ -146,10 +146,7 @@ Document* DocumentManager::setupDocument(
   return doc;
 }
 
-Document* DocumentManager::currentDocument() const
-{
-  return m_currentDocument;
-}
+
 
 void DocumentManager::setCurrentDocument(
     const iscore::GUIApplicationContext& ctx, Document* doc)
@@ -168,7 +165,7 @@ void DocumentManager::setCurrentDocument(
   {
     for (auto& panel : ctx.panels())
     {
-      panel.setModel(iscore::none);
+      panel.setModel(ossia::none);
     }
   }
 

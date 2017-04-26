@@ -50,7 +50,7 @@ public:
       iscore::DocumentDelegateView& view);
   virtual ~ScenarioDocumentPresenter();
 
-  const ConstraintModel& displayedConstraint() const;
+  ConstraintModel& displayedConstraint() const;
   const DisplayedElementsPresenter& presenters() const
   {
     return *m_scenarioPresenter;
@@ -63,7 +63,6 @@ public:
   // double height() const;
   ZoomRatio zoomRatio() const;
 
-  void on_askUpdate();
 
   void selectAll();
   void deselectAll();
@@ -90,8 +89,8 @@ public:
 
   void setDisplayedConstraint(Scenario::ConstraintModel& constraint);
 
-  void on_viewModelDefocused(const Process::LayerModel* vm);
-  void on_viewModelFocused(const Process::LayerModel* vm);
+  void on_viewModelDefocused(const Process::ProcessModel* vm);
+  void on_viewModelFocused(const Process::ProcessModel* vm);
 
 
 public:

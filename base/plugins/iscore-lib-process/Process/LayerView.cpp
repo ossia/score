@@ -13,6 +13,18 @@ LayerView::LayerView(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(ItemClipsChildrenToShape, true);
+  this->setAcceptHoverEvents(true);
+}
+
+void LayerView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+  if(auto p = parentItem())
+    p->unsetCursor();
+}
+void LayerView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+  if(auto p = parentItem())
+    p->unsetCursor();
 }
 
 QRectF LayerView::boundingRect() const

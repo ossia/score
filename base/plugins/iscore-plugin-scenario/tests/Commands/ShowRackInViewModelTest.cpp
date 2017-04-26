@@ -3,15 +3,15 @@
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Constraint/ConstraintViewModel.hpp>
 #include <Scenario/Document/Event/EventData.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Constraint/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
 
 #include <Process/AbstractScenarioLayerModel.hpp>

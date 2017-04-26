@@ -1,5 +1,6 @@
 #pragma once
 #include "ScenarioPoint.hpp"
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 
 #include <iscore/tools/Clamp.hpp>
@@ -27,7 +28,6 @@ class TimeNodeModel;
 class EventModel;
 class ConstraintModel;
 class StateModel;
-class SlotModel;
 class TriggerModel;
 
 // We avoid virtual inheritance (with Numbered event);
@@ -81,8 +81,6 @@ static const constexpr int ClickOnConstraint
     = ScenarioElement::Constraint + iscore::Modifier::Click_tag::value;
 static const constexpr int ClickOnState
     = ScenarioElement::State + iscore::Modifier::Click_tag::value;
-static const constexpr int ClickOnSlotOverlay
-    = ScenarioElement::SlotOverlay_e + iscore::Modifier::Click_tag::value;
 static const constexpr int ClickOnSlotHandle
     = ScenarioElement::SlotHandle_e + iscore::Modifier::Click_tag::value;
 static const constexpr int ClickOnTrigger
@@ -102,8 +100,6 @@ static const constexpr int MoveOnConstraint
     = ScenarioElement::Constraint + iscore::Modifier::Move_tag::value;
 static const constexpr int MoveOnState
     = ScenarioElement::State + iscore::Modifier::Move_tag::value;
-static const constexpr int MoveOnSlotOverlay
-    = ScenarioElement::SlotOverlay_e + iscore::Modifier::Move_tag::value;
 static const constexpr int MoveOnSlotHandle
     = ScenarioElement::SlotHandle_e + iscore::Modifier::Move_tag::value;
 static const constexpr int MoveOnTrigger
@@ -123,8 +119,6 @@ static const constexpr int ReleaseOnConstraint
     = ScenarioElement::Constraint + iscore::Modifier::Release_tag::value;
 static const constexpr int ReleaseOnState
     = ScenarioElement::State + iscore::Modifier::Release_tag::value;
-static const constexpr int ReleaseOnSlotOverlay
-    = ScenarioElement::SlotOverlay_e + iscore::Modifier::Release_tag::value;
 static const constexpr int ReleaseOnSlotHandle
     = ScenarioElement::SlotHandle_e + iscore::Modifier::Release_tag::value;
 static const constexpr int ReleaseOnTrigger
@@ -144,16 +138,13 @@ using ClickOnConstraint_Event
     = PositionedWithId_ScenarioEvent<ConstraintModel, ClickOnConstraint>;
 using ClickOnState_Event
     = PositionedWithId_ScenarioEvent<StateModel, ClickOnState>;
-using ClickOnSlotOverlay_Event
-    = iscore::NumberedWithPath_Event<SlotModel, ClickOnSlotOverlay>;
-using ClickOnSlotHandle_Event
-    = iscore::NumberedWithPath_Event<SlotModel, ClickOnSlotHandle>;
 using ClickOnTrigger_Event
     = iscore::NumberedWithPath_Event<TriggerModel, ClickOnTrigger>;
 using ClickOnLeftBrace_Event
     = PositionedWithId_ScenarioEvent<ConstraintModel, ClickOnLeftBrace>;
 using ClickOnRightBrace_Event
     = PositionedWithId_ScenarioEvent<ConstraintModel, ClickOnRightBrace>;
+
 
 /* move on */
 using MoveOnNothing_Event = PositionedScenarioEvent<MoveOnNothing>;
@@ -165,10 +156,6 @@ using MoveOnConstraint_Event
     = PositionedWithId_ScenarioEvent<ConstraintModel, MoveOnConstraint>;
 using MoveOnState_Event
     = PositionedWithId_ScenarioEvent<StateModel, MoveOnState>;
-using MoveOnSlot_Event
-    = iscore::NumberedWithPath_Event<SlotModel, MoveOnSlotOverlay>;
-using MoveOnSlotHandle_Event
-    = iscore::NumberedWithPath_Event<SlotModel, MoveOnSlotHandle>;
 using MoveOnTrigger_Event
     = iscore::NumberedWithPath_Event<TriggerModel, MoveOnTrigger>;
 using MoveOnLeftBrace_Event
@@ -186,16 +173,66 @@ using ReleaseOnConstraint_Event
     = PositionedWithId_ScenarioEvent<ConstraintModel, ReleaseOnConstraint>;
 using ReleaseOnState_Event
     = PositionedWithId_ScenarioEvent<StateModel, ReleaseOnState>;
-using ReleaseOnSlot_Event
-    = iscore::NumberedWithPath_Event<SlotModel, ReleaseOnSlotOverlay>;
-using ReleaseOnSlotHandle_Event
-    = iscore::NumberedWithPath_Event<SlotModel, ReleaseOnSlotHandle>;
 using ReleaseOnTrigger_Event
     = iscore::NumberedWithPath_Event<TriggerModel, ReleaseOnTrigger>;
 using ReleaseOnLeftBrace_Event
     = PositionedWithId_ScenarioEvent<ConstraintModel, ReleaseOnLeftBrace>;
 using ReleaseOnRightBrace_Event
     = PositionedWithId_ScenarioEvent<ConstraintModel, ReleaseOnRightBrace>;
+
+
+//using ReleaseOnSlotHandle_Event
+//    = iscore::NumberedWithPath_Event<ConstraintModel, ReleaseOnSlotHandle>;
+//using MoveOnSlotHandle_Event
+//    = iscore::NumberedWithPath_Event<ConstraintModel, MoveOnSlotHandle>;
+// using ClickOnSlotHandle_Event
+//     = iscore::NumberedWithPath_Event<ConstraintModel, ClickOnSlotHandle>;
+struct ClickOnSlotHandle_Event: public iscore::NumberedEvent<ClickOnSlotHandle>
+{
+  explicit ClickOnSlotHandle_Event(const SlotPath& p)
+    : NumberedEvent<ClickOnSlotHandle>(), path(p)
+  {
+  }
+
+  explicit ClickOnSlotHandle_Event(SlotPath&& p)
+    : NumberedEvent<ClickOnSlotHandle>(), path(std::move(p))
+  {
+  }
+
+  SlotPath path;
+};
+
+struct MoveOnSlotHandle_Event: public iscore::NumberedEvent<MoveOnSlotHandle>
+{
+  explicit MoveOnSlotHandle_Event(const SlotPath& p)
+    : NumberedEvent<MoveOnSlotHandle>(), path(p)
+  {
+  }
+
+  explicit MoveOnSlotHandle_Event(SlotPath&& p)
+    : NumberedEvent<MoveOnSlotHandle>(), path(std::move(p))
+  {
+  }
+
+  SlotPath path;
+};
+
+// using ReleaseOnSlotHandle_Event
+//     = iscore::NumberedWithPath_Event<ConstraintModel, ReleaseOnSlotHandle>;
+struct ReleaseOnSlotHandle_Event: public iscore::NumberedEvent<ReleaseOnSlotHandle>
+{
+  explicit ReleaseOnSlotHandle_Event(const SlotPath& p)
+    : NumberedEvent<ReleaseOnSlotHandle>(), path(p)
+  {
+  }
+
+  explicit ReleaseOnSlotHandle_Event(SlotPath&& p)
+    : NumberedEvent<ReleaseOnSlotHandle>(), path(std::move(p))
+  {
+  }
+
+  SlotPath path;
+};
 
 template <int N>
 QString debug_StateMachineIDs()

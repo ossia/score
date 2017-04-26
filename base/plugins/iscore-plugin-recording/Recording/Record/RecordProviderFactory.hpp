@@ -163,6 +163,7 @@ public:
         &ctx.scenario, &IdentifiedObjectAbstract::identified_object_destroyed,
         this, [&]() { ctx.timer.stop(); });
 
+
     return true;
   }
 

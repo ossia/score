@@ -163,6 +163,29 @@ Document::Document(
   init();
 }
 
+Document::Document(
+    const QVariant& data,
+    DocumentDelegateFactory& factory,
+    QObject* parent)
+  : QObject{parent}
+  , m_commandStack{*this}
+  , m_objectLocker{this}
+  , m_context{*this}
+{
+  std::allocator<DocumentModel> allocator;
+  m_model = allocator.allocate(1);
+  try
+  {
+    allocator.construct(m_model, m_context, data, factory, this);
+  }
+  catch (...)
+  {
+    allocator.deallocate(m_model, 1);
+    throw;
+  }
+}
+
+
 void DocumentModel::loadDocumentAsByteArray(
     iscore::DocumentContext& ctx,
     const QByteArray& data,

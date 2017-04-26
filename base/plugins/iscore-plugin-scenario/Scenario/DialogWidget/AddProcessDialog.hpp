@@ -23,7 +23,7 @@ public:
   void launchWindow();
 
 signals:
-  void okPressed(UuidKey<Process::ProcessModelFactory>);
+  void okPressed(UuidKey<Process::ProcessModel>);
 
 private:
   const Process::ProcessFactoryList& m_factoryList;

@@ -1,5 +1,4 @@
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <type_traits>
 #include <utility>
@@ -15,52 +14,32 @@ namespace Scenario
 {
 namespace Command
 {
-RemoveSlotFromRack::RemoveSlotFromRack(Path<SlotModel>&& slotPath)
+RemoveSlotFromRack::RemoveSlotFromRack(SlotPath slotPath):
+  m_path{slotPath}
+, m_slot{slotPath.find()}
 {
-  auto trimmedSlotPath = std::move(slotPath).splitLast<RackModel>();
-
-  m_path = std::move(trimmedSlotPath.first);
-  m_slotId = Id<SlotModel>{trimmedSlotPath.second.id()};
-
-  auto& rack = m_path.find();
-  m_position = rack.slotPosition(m_slotId);
-
-  DataStream::Serializer s{&m_serializedSlotData};
-  s.readFrom(rack.slotmodels.at(m_slotId));
-}
-
-RemoveSlotFromRack::RemoveSlotFromRack(
-    Path<RackModel>&& rackPath, Id<SlotModel> slotId)
-    : m_path{rackPath}, m_slotId{std::move(slotId)}
-{
-  auto& rack = m_path.find();
-  DataStream::Serializer s{&m_serializedSlotData};
-
-  s.readFrom(rack.slotmodels.at(m_slotId));
-  m_position = rack.slotPosition(m_slotId);
 }
 
 void RemoveSlotFromRack::undo() const
 {
-  auto& rack = m_path.find();
-  DataStream::Deserializer s{m_serializedSlotData};
-  rack.addSlot(new SlotModel{s, &rack}, m_position);
+  auto& rack = m_path.constraint.find();
+  rack.addSlot(m_slot, m_path.index);
 }
 
 void RemoveSlotFromRack::redo() const
 {
-  auto& rack = m_path.find();
-  rack.slotmodels.remove(m_slotId);
+  auto& rack = m_path.constraint.find();
+  rack.removeSlot(m_path.index);
 }
 
 void RemoveSlotFromRack::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_slotId << m_position << m_serializedSlotData;
+  s << m_path << m_slot;
 }
 
 void RemoveSlotFromRack::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_slotId >> m_position >> m_serializedSlotData;
+  s >> m_path >> m_slot;
 }
 }
 }

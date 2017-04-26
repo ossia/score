@@ -4,21 +4,12 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-#include "AutomationLayerModel.hpp"
 #include "AutomationModel.hpp"
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <Curve/CurveModel.hpp>
 #include <State/Address.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-
-namespace Process
-{
-class LayerModel;
-}
-class QObject;
-struct VisitorVariant;
-
 
 template <>
 void DataStreamReader::read(

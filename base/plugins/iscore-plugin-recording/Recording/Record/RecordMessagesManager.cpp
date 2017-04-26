@@ -6,8 +6,7 @@
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 
@@ -123,7 +122,7 @@ bool MessageRecorder::setup(
   // Note : since we directly create the IDs here, we don't have to worry
   // about their generation.
   auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
-      Path<Scenario::ConstraintModel>(box.constraint),
+      box.constraint,
       Metadata<ConcreteKey_k, RecordedMessages::ProcessModel>::get()};
 
   cmd_proc->redo();
@@ -134,7 +133,7 @@ bool MessageRecorder::setup(
   m_createdProcess = &record_proc;
 
   //// Creation of the layer ////
-  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{box.slot, proc};
+  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{{box.constraint, 0}, proc};
   cmd_layer->redo();
   context.dispatcher.submitCommand(cmd_layer);
 

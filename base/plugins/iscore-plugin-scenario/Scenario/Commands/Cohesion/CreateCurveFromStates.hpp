@@ -1,6 +1,7 @@
 #pragma once
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <State/Address.hpp>
 #include <iscore/command/Command.hpp>
@@ -15,10 +16,7 @@
 
 struct DataStreamInput;
 struct DataStreamOutput;
-namespace Process
-{
-class LayerModel;
-}
+
 namespace Process
 {
 class ProcessModel;
@@ -29,7 +27,6 @@ class Path;
 namespace Scenario
 {
 class ConstraintModel;
-class SlotModel;
 namespace Command
 {
 
@@ -41,33 +38,16 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers
 public:
   CreateProcessAndLayers() = default;
   CreateProcessAndLayers(
-      Path<ConstraintModel>&& constraint,
-      const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>&
-          slotList,
-      Id<Process::ProcessModel>
-          procId)
+      const ConstraintModel& constraint,
+      const std::vector<SlotPath>& slotList,
+      Id<Process::ProcessModel> procId)
       : m_addProcessCmd{std::move(constraint), std::move(procId),
                         Metadata<ConcreteKey_k, ProcessModel_T>::get()}
   {
-    auto proc = m_addProcessCmd.constraintPath().extend(
-        Metadata<ObjectKey_k, ProcessModel_T>::get(), procId);
-
     m_slotsCmd.reserve(slotList.size());
-
-    auto fact = context.interfaces<Process::LayerFactoryList>()
-                    .findDefaultFactory(
-                        Metadata<ConcreteKey_k, ProcessModel_T>::get());
-    ISCORE_ASSERT(fact);
-    auto procData = fact->makeStaticLayerConstructionData();
-
     for (const auto& elt : slotList)
     {
-      m_slotsCmd.emplace_back(
-          Path<SlotModel>(elt.first),
-          elt.second,
-          Path<Process::ProcessModel>{proc},
-          fact->concreteKey(),
-          procData);
+      m_slotsCmd.emplace_back(elt, procId);
     }
   }
 
@@ -119,8 +99,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
 public:
   CreateAutomationFromStates(
       const ConstraintModel& constraint,
-      const std::vector<std::pair<Path<SlotModel>,
-      Id<Process::LayerModel>>>& slotList,
+      const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> curveId,
       State::AddressAccessor address,
       const Curve::CurveDomain&);
@@ -146,8 +125,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
 public:
   CreateInterpolationFromStates(
       const ConstraintModel& constraint,
-      const std::vector<std::pair<Path<SlotModel>, Id<Process::LayerModel>>>&
-          slotList,
+      const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> curveId, State::AddressAccessor address,
       State::Value start, State::Value end);
 

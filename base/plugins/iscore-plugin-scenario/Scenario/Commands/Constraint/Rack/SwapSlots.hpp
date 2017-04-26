@@ -11,15 +11,14 @@ struct DataStreamOutput;
 
 namespace Scenario
 {
-class RackModel;
-class SlotModel;
+class ConstraintModel;
 namespace Command
 {
 class SwapSlots final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapSlots, "Swap slots")
 public:
-  SwapSlots(Path<RackModel>&& rack, Id<SlotModel> first, Id<SlotModel> second);
+  SwapSlots(Path<ConstraintModel>&& rack, int pos1, int pos2);
 
   void undo() const override;
   void redo() const override;
@@ -29,8 +28,8 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<RackModel> m_rackPath;
-  Id<SlotModel> m_first, m_second;
+  Path<ConstraintModel> m_path;
+  int m_first{}, m_second{};
 };
 }
 }

@@ -13,10 +13,7 @@
 
 class DataStream;
 class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
+
 namespace Process
 {
 class ProcessModel;
@@ -31,7 +28,7 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
     : public Curve::CurveProcessModel
 {
   ISCORE_SERIALIZE_FRIENDS
-  MODEL_METADATA_IMPL(Automation::ProcessModel)
+  PROCESS_METADATA_IMPL(Automation::ProcessModel)
 
   Q_OBJECT
   Q_PROPERTY(::State::AddressAccessor address READ address WRITE setAddress

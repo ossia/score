@@ -3,6 +3,7 @@
 
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <iscore/model/path/Path.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 
 #include <QAbstractTransition>
 #include <QPointF>
@@ -15,7 +16,6 @@ class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
 class StateModel;
-class SlotModel;
 // OPTIMIZEME this when we have all the tools
 template <typename Scenario_T>
 class StateBase : public QState
@@ -28,15 +28,15 @@ public:
 
   void clear()
   {
-    clickedEvent = iscore::none;
-    clickedTimeNode = iscore::none;
-    clickedConstraint = iscore::none;
-    clickedState = iscore::none;
+    clickedEvent = ossia::none;
+    clickedTimeNode = ossia::none;
+    clickedConstraint = ossia::none;
+    clickedState = ossia::none;
 
-    hoveredEvent = iscore::none;
-    hoveredTimeNode = iscore::none;
-    hoveredConstraint = iscore::none;
-    hoveredState = iscore::none;
+    hoveredEvent = ossia::none;
+    hoveredTimeNode = ossia::none;
+    hoveredConstraint = ossia::none;
+    hoveredState = ossia::none;
 
     currentPoint = Scenario::Point();
   }
@@ -64,7 +64,7 @@ public:
   {
   }
 
-  Path<SlotModel> currentSlot;
+  SlotPath currentSlot;
 
   QPointF m_originalPoint;
   double m_originalHeight{};

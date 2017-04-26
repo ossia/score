@@ -1,5 +1,6 @@
 #pragma once
 #include <QByteArray>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/Command.hpp>
 #include <iscore/model/path/Path.hpp>
@@ -11,19 +12,18 @@ struct DataStreamInput;
 struct DataStreamOutput;
 namespace Process
 {
-class LayerModel;
+class ProcessModel;
 }
 
 namespace Scenario
 {
-class SlotModel;
 namespace Command
 {
 /**
-         * @brief The RemoveLayerFromSlot class
-         *
-         * Removes a process view from a slot.
-         */
+ * @brief The RemoveLayerFromSlot class
+ *
+ * Removes a process view from a slot.
+ */
 class RemoveLayerModelFromSlot final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
@@ -32,7 +32,7 @@ class RemoveLayerModelFromSlot final : public iscore::Command
       "Remove a layer from a slot")
 public:
   RemoveLayerModelFromSlot(
-      Path<SlotModel>&& slotPath, Id<Process::LayerModel> layerId);
+      SlotPath&& slotPath, Id<Process::ProcessModel> layerId);
 
   void undo() const override;
   void redo() const override;
@@ -42,10 +42,8 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<SlotModel> m_path;
-  Id<Process::LayerModel> m_layerId{};
-
-  QByteArray m_serializedLayerData;
+  SlotPath m_path;
+  Id<Process::ProcessModel> m_layerId{};
 };
 }
 }

@@ -1,4 +1,4 @@
-#include <Loop/LoopLayer.hpp>
+
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
@@ -20,13 +20,6 @@
 #include <iscore/model/Skin.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/model/Identifier.hpp>
-
-namespace Process
-{
-class LayerModel;
-}
-
-class QObject;
 
 namespace Loop
 {
@@ -69,6 +62,7 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
+  emit identified_object_destroying(this);
 }
 
 void ProcessModel::startExecution()

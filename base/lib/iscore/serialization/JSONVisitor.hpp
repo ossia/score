@@ -264,7 +264,7 @@ struct TSerializer<JSONObject, optional<int32_t>>
   {
     if (s.obj[s.strings.id].toString() == s.strings.none)
     {
-      obj = iscore::none;
+      obj = ossia::none;
     }
     else
     {

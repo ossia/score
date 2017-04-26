@@ -8,14 +8,6 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore_plugin_mapping_export.h>
-class DataStream;
-class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
-
-class QObject;
 #include <iscore/model/Identifier.hpp>
 
 namespace Mapping
@@ -24,7 +16,7 @@ class ISCORE_PLUGIN_MAPPING_EXPORT ProcessModel final
     : public Curve::CurveProcessModel
 {
   ISCORE_SERIALIZE_FRIENDS
-  MODEL_METADATA_IMPL(Mapping::ProcessModel)
+  PROCESS_METADATA_IMPL(Mapping::ProcessModel)
 
   Q_OBJECT
 

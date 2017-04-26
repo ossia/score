@@ -9,15 +9,6 @@
 #include <State/Message.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
-
-class DataStream;
-class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
-
-class QObject;
 #include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_recording_export.h>
 namespace RecordedMessages
@@ -33,7 +24,7 @@ class ISCORE_PLUGIN_RECORDING_EXPORT ProcessModel final
     : public Process::ProcessModel
 {
   ISCORE_SERIALIZE_FRIENDS
-  MODEL_METADATA_IMPL(RecordedMessages::ProcessModel)
+  PROCESS_METADATA_IMPL(RecordedMessages::ProcessModel)
   Q_OBJECT
 public:
   explicit ProcessModel(

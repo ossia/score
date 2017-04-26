@@ -23,6 +23,7 @@
 #include <qcoreevent.h>
 #include <qnamespace.h>
 #include <set>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 
 class QObject;
 
@@ -231,7 +232,10 @@ void View::changeEvent(QEvent* ev)
 {
   if (ev->type() == QEvent::ActivationChange)
   {
-    emit activeWindowChanged();
+    for(GUIApplicationPlugin* ctrl : m_presenter->applicationContext().guiApplicationPlugins())
+    {
+      ctrl->on_activeWindowChanged();
+    }
   }
 
   QMainWindow::changeEvent(ev);

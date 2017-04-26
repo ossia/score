@@ -3,10 +3,6 @@
 
 #include "ProcessPanelGraphicsProxy.hpp"
 
-namespace Process
-{
-class LayerModel;
-}
 class QStyleOptionGraphicsItem;
 class QWidget;
 

@@ -1,7 +1,6 @@
 #include <Process/ProcessList.hpp>
 #include <QDataStream>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/model/path/PathSerialization.hpp>
@@ -26,20 +25,22 @@ ConstraintSaveData::ConstraintSaveData(
     processes.push_back(std::move(arr));
   }
 
-  racks.reserve(constraint.racks.size());
-  for (const auto& rack : constraint.racks)
+  racks.reserve(2);
+
   {
     QByteArray arr;
     DataStream::Serializer s{&arr};
-    s.readFrom(rack);
+    // We only save the data proper to the racks.
+    s.readFrom(constraint.smallView());
     racks.push_back(std::move(arr));
   }
 
-  // TODO save view model data instead, since later it
-  // might be more than just the shown rack.
-  for (const auto& viewmodel : constraint.viewModels())
   {
-    viewMapping.insert(viewmodel->id(), viewmodel->shownRack());
+    QByteArray arr;
+    DataStream::Serializer s{&arr};
+    // We only save the data proper to the racks.
+    s.readFrom(constraint.fullView());
+    racks.push_back(std::move(arr));
   }
 }
 
@@ -58,30 +59,21 @@ void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
   }
 
   // Restore the rackes
-  for (auto& sourcerack : racks)
   {
-    DataStream::Deserializer des{sourcerack};
-    constraint.racks.add(new RackModel{des, &constraint});
+    DataStream::Deserializer des{racks[0]};
+    Scenario::Rack r;
+    des.writeTo(r);
+    constraint.replaceSmallView(std::move(r));
   }
+  {
+    DataStream::Deserializer des{racks[1]};
+    Scenario::FullRack r;
+    des.writeTo(r);
+    constraint.replaceFullView(std::move(r));
+  }
+}
+}
 
-  // Restore the correct rackes in the constraint view models
-  if (constraint.processes.size() != 0)
-  {
-    auto bit = constraint.viewModels().begin(),
-         eit = constraint.viewModels().end();
-    for (const auto& cvmid : viewMapping.keys())
-    {
-      auto it = std::find(bit, eit, cvmid);
-      ISCORE_ASSERT(it != eit);
-      (*it)->showRack(viewMapping.value(cvmid));
-    }
-  }
-}
-}
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
@@ -109,8 +101,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::ConstraintSaveData& constraintProperties)
 {
   m_stream << constraintProperties.constraintPath
-           << constraintProperties.processes << constraintProperties.racks
-           << constraintProperties.viewMapping;
+           << constraintProperties.processes << constraintProperties.racks;
   insertDelimiter();
 }
 
@@ -119,8 +110,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::ConstraintSaveData& constraintProperties)
 {
   m_stream >> constraintProperties.constraintPath
-      >> constraintProperties.processes >> constraintProperties.racks
-      >> constraintProperties.viewMapping;
+      >> constraintProperties.processes >> constraintProperties.racks;
 
   checkDelimiter();
 }

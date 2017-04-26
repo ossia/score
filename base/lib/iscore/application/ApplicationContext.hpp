@@ -10,7 +10,7 @@ class DocumentManager;
 class MenuManager;
 class ToolbarManager;
 class ActionManager;
-
+struct DocumentList;
 /**
  * @brief Used to access all the application-wide state and structures
  *
@@ -24,6 +24,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   explicit ApplicationContext(
       const iscore::ApplicationSettings&,
       const ApplicationComponents&,
+      DocumentList& l,
       const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>&);
   ApplicationContext(const ApplicationContext&) = delete;
   ApplicationContext(ApplicationContext&&) = delete;
@@ -62,27 +63,6 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
   }
 
   /**
-   * @brief List of the available GUI panels.
-   *
-   * @see iscore::PanelDelegate
-   */
-  auto panels() const
-  {
-    return components.panels();
-  }
-
-  /**
-   * @brief Access to a specific PanelDelegate
-   *
-   * @see iscore::PanelDelegate
-   */
-  template<typename T>
-  T& panel() const
-  {
-    return components.panel<T>();
-  }
-
-  /**
    * @brief Access to a specific interface list
    *
    * @see iscore::InterfaceList
@@ -114,6 +94,7 @@ struct ISCORE_LIB_BASE_EXPORT ApplicationContext
 
   const iscore::ApplicationComponents& components;
 
+  DocumentList& documents;
 private:
   const std::vector<std::unique_ptr<iscore::SettingsDelegateModel>>&
       m_settings;

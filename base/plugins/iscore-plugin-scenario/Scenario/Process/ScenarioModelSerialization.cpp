@@ -6,7 +6,6 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <algorithm>
 #include <iscore/tools/std/Optional.hpp>
 #include <sys/types.h>
@@ -24,10 +23,7 @@
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_scenario_export.h>
-namespace Process
-{
-class LayerModel;
-}
+
 namespace Process
 {
 class ProcessModel;

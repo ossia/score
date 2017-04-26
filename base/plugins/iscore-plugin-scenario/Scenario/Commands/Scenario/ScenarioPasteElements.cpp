@@ -4,7 +4,6 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 
 #include <QDataStream>
 #include <QHash>
@@ -23,14 +22,9 @@
 
 #include "ScenarioPasteElements.hpp"
 #include <ossia/detail/algorithms.hpp>
-#include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
-#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/document/DocumentContext.hpp>
@@ -90,15 +84,14 @@ namespace Scenario
 namespace Command
 {
 ScenarioPasteElements::ScenarioPasteElements(
-    Path<TemporalScenarioLayer>&& path,
+    Path<Scenario::ProcessModel>&& path,
     const QJsonObject& obj,
     const Scenario::Point& pt)
     : m_ts{std::move(path)}
 {
   // We assign new ids WRT the elements of the scenario - these ids can
   // be easily mapped.
-  const auto& tsModel = m_ts.find();
-  Scenario::ProcessModel& scenario = ::model(tsModel);
+  auto& scenario = m_ts.find();
 
   auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
 
@@ -257,28 +250,6 @@ ScenarioPasteElements::ScenarioPasteElements(
     }
   }
 
-  // Then we have to create default constraint views... everywhere...
-  for (const ConstraintModel* constraint : constraints)
-  {
-    m_constraintViewModels.insert(
-        constraint->id(), ConstraintViewModelIdMap{});
-  }
-  for (const auto& viewModel : layers(scenario))
-  {
-    // We generate size(constraints) new view model ids.
-    auto viewmodelconstraints = viewModel->constraints();
-
-    int i = 0;
-    auto range = getStrongIdRangePtr<ConstraintViewModel>(
-        constraints.size(), viewmodelconstraints);
-    for (const ConstraintModel* constraint : constraints)
-    {
-      auto& res = m_constraintViewModels[constraint->id()];
-      res[*viewModel] = range[i++];
-    }
-    // We generate as many viewModel id as there are constraints to be added.
-  }
-
   // Set the correct positions / dates.
   // Take the earliest constraint or timenode and compute the delta; apply the
   // delta everywhere.
@@ -390,8 +361,7 @@ ScenarioPasteElements::ScenarioPasteElements(
 
 void ScenarioPasteElements::undo() const
 {
-  auto& tsModel = m_ts.find();
-  Scenario::ProcessModel& scenario = ::model(tsModel);
+  auto& scenario = m_ts.find();
 
   for (const auto& elt : m_ids_timenodes)
   {
@@ -413,8 +383,7 @@ void ScenarioPasteElements::undo() const
 
 void ScenarioPasteElements::redo() const
 {
-  auto& tsModel = m_ts.find();
-  Scenario::ProcessModel& scenario = ::model(tsModel);
+  Scenario::ProcessModel& scenario = m_ts.find();
 
   std::vector<TimeNodeModel*> addedTimeNodes;
   addedTimeNodes.reserve(m_json_timenodes.size());
@@ -446,19 +415,6 @@ void ScenarioPasteElements::redo() const
     auto cst
         = new ConstraintModel(JSONObject::Deserializer{constraint}, &scenario);
     scenario.constraints.add(cst);
-
-    createConstraintViewModels(
-        m_constraintViewModels[cst->id()], cst->id(), scenario);
-
-    if (!cst->racks.empty())
-    {
-      const auto& rackId = cst->racks.begin()->id();
-      const auto& vms = cst->viewModels();
-      for (ConstraintViewModel* vm : vms)
-      {
-        vm->showRack(rackId);
-      }
-    }
   }
 
   for (const auto& event : addedEvents)
@@ -474,24 +430,16 @@ void ScenarioPasteElements::redo() const
 void ScenarioPasteElements::serializeImpl(DataStreamInput& s) const
 {
   s << m_ts
-
     << m_ids_timenodes << m_ids_events << m_ids_states << m_ids_constraints
-
-    << m_json_timenodes << m_json_events << m_json_states << m_json_constraints
-
-    << m_constraintViewModels;
+    << m_json_timenodes << m_json_events << m_json_states << m_json_constraints ;
 }
 
 void ScenarioPasteElements::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_ts
-
       >> m_ids_timenodes >> m_ids_events >> m_ids_states >> m_ids_constraints
-
       >> m_json_timenodes >> m_json_events >> m_json_states
-      >> m_json_constraints
-
-      >> m_constraintViewModels;
+      >> m_json_constraints;
 }
 }
 }
