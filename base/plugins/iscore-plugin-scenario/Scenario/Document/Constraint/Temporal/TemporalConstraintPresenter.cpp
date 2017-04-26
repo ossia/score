@@ -136,7 +136,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
   });
 
   con(m_model, &ConstraintModel::slotResized,
-          this, [this] (const SlotId& s) {
+      this, [this] (const SlotId& s) {
     if(s.smallView())
       this->updatePositions();
   });
@@ -159,6 +159,8 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     // TODO else
   });
 
+  m_model.processes.added.connect<TemporalConstraintPresenter, &TemporalConstraintPresenter::on_processesChanged>(this);
+  m_model.processes.removed.connect<TemporalConstraintPresenter, &TemporalConstraintPresenter::on_processesChanged>(this);
   on_rackVisibleChanged(m_model.smallViewVisible());
 }
 
@@ -231,118 +233,146 @@ void TemporalConstraintPresenter::updateHeight()
 
 void TemporalConstraintPresenter::on_rackVisibleChanged(bool b)
 {
-  m_header->setVisible(b);
+  if(b)
+  {
+    m_header->setState(ConstraintHeader::State::RackShown);
+    Scenario::view(this)->setSmallViewVisible(b);
+  }
+  else if(!m_model.processes.empty())
+  {
+    m_header->setState(ConstraintHeader::State::RackHidden);
+  }
+  else
+  {
+    m_header->setState(ConstraintHeader::State::Hidden);
+  }
 
-  Scenario::view(this)->setSmallViewVisible(b);
   on_rackChanged();
 }
 
 void TemporalConstraintPresenter::createSlot(int pos, const Slot& slt)
 {
-  SlotPresenter p;
-  p.handle = new SlotHandle{*this, pos, m_view};
-  // p.view = new SlotView{};
-  m_slots.insert(m_slots.begin() + pos, std::move(p));
-
-  for(const auto& process : slt.processes)
+  if(m_model.smallViewVisible())
   {
-    createLayer(pos, m_model.processes.at(process));
+    SlotPresenter p;
+    p.handle = new SlotHandle{*this, pos, m_view};
+    // p.view = new SlotView{};
+    m_slots.insert(m_slots.begin() + pos, std::move(p));
+
+    for(const auto& process : slt.processes)
+    {
+      createLayer(pos, m_model.processes.at(process));
+    }
+
+    updatePositions();
   }
 }
 
 void TemporalConstraintPresenter::createLayer(int slot, const Process::ProcessModel& proc)
 {
-  const auto& procKey = proc.concreteKey();
+  if(m_model.smallViewVisible())
+  {
+    const auto& procKey = proc.concreteKey();
 
-  auto factory = m_context.processList.findDefaultFactory(procKey);
-  auto proc_view = factory->makeLayerView(proc, m_view);
-  auto proc_pres = factory->makeLayerPresenter(proc, proc_view, m_context, this);
-  proc_pres->on_zoomRatioChanged(m_zoomRatio);
-  m_slots.at(slot).processes.push_back(LayerData{
-                  &proc, proc_pres, proc_view
-                });
+    auto factory = m_context.processList.findDefaultFactory(procKey);
+    auto proc_view = factory->makeLayerView(proc, m_view);
+    auto proc_pres = factory->makeLayerPresenter(proc, proc_view, m_context, this);
+    proc_pres->on_zoomRatioChanged(m_zoomRatio);
+    m_slots.at(slot).processes.push_back(LayerData{
+                                           &proc, proc_pres, proc_view
+                                         });
 
-  auto con_id = con(
-        proc, &Process::ProcessModel::durationChanged, this,
-        [&] (const TimeVal&) {
-    int i = 0;
-    for(const SlotPresenter& slot : m_slots)
+    auto con_id = con(
+          proc, &Process::ProcessModel::durationChanged, this,
+          [&] (const TimeVal&) {
+      int i = 0;
+      for(const SlotPresenter& slot : m_slots)
+      {
+        auto it = ossia::find_if(slot.processes,
+                                 [&] (const LayerData& elt) {
+          return elt.model->id() == proc.id();
+        });
+
+        if (it != slot.processes.end())
+          updateProcessShape(i, *it);
+        i++;
+      }
+    });
+
+    con(proc, &IdentifiedObjectAbstract::identified_object_destroying, this,
+        [=] { QObject::disconnect(con_id); });
+
+    auto frontLayer = m_model.smallView().at(slot).frontProcess;
+    if (frontLayer && (*frontLayer == proc.id()))
     {
-      auto it = ossia::find_if(slot.processes,
-                               [&] (const LayerData& elt) {
-        return elt.model->id() == proc.id();
-      });
-
-      if (it != slot.processes.end())
-        updateProcessShape(i, *it);
-      i++;
+      on_layerModelPutToFront(slot, proc);
     }
-  });
+    else
+    {
+      on_layerModelPutToBack(slot, proc);
+    }
 
-  con(proc, &IdentifiedObjectAbstract::identified_object_destroying, this,
-      [=] { QObject::disconnect(con_id); });
-
-  auto frontLayer = m_model.smallView().at(slot).frontProcess;
-  if (frontLayer && (*frontLayer == proc.id()))
-  {
-    on_layerModelPutToFront(slot, proc);
+    updatePositions();
   }
-  else
-  {
-    on_layerModelPutToBack(slot, proc);
-  }
-
-  updatePositions();
 }
 
 void TemporalConstraintPresenter::updateProcessShape(int slot, const LayerData& data)
 {
-  data.presenter->setHeight(m_model.smallView().at(slot).height - SlotHandle::handleHeight());
+  if(m_model.smallViewVisible())
+  {
+    data.presenter->setHeight(m_model.smallView().at(slot).height - SlotHandle::handleHeight());
 
-  auto width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
-  data.presenter->setWidth(width);
-  data.presenter->parentGeometryChanged();
-  data.view->update();
+    auto width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+    data.presenter->setWidth(width);
+    data.presenter->parentGeometryChanged();
+    data.view->update();
+  }
 }
 
 void TemporalConstraintPresenter::removeLayer(const Process::ProcessModel& proc)
 {
-  for(SlotPresenter& slot : m_slots)
+  if(m_model.smallViewVisible())
   {
-    boost::range::remove_erase_if(slot.processes, [&] (const LayerData& elt) {
-      bool to_delete = elt.model->id() == proc.id();
+    for(SlotPresenter& slot : m_slots)
+    {
+      boost::range::remove_erase_if(slot.processes, [&] (const LayerData& elt) {
+        bool to_delete = elt.model->id() == proc.id();
 
-      if (to_delete)
-      {
-        // No need to delete the view, the process presenters already do it.
-        QPointer<Process::LayerView> view_p{elt.view};
-        delete elt.presenter;
-        if (view_p)
-          deleteGraphicsItem(elt.view);
-      }
+        if (to_delete)
+        {
+          // No need to delete the view, the process presenters already do it.
+          QPointer<Process::LayerView> view_p{elt.view};
+          delete elt.presenter;
+          if (view_p)
+            deleteGraphicsItem(elt.view);
+        }
 
-      return to_delete;
-    });
+        return to_delete;
+      });
+    }
   }
 }
 
 void TemporalConstraintPresenter::on_slotRemoved(int pos)
 {
-  SlotPresenter& slot = m_slots.at(pos);
-  for(LayerData& elt : slot.processes)
+  if(m_model.smallViewVisible())
   {
-    QPointer<Process::LayerView> view_p{elt.view};
-    delete elt.presenter;
-    if (view_p)
-      deleteGraphicsItem(elt.view);
+    SlotPresenter& slot = m_slots.at(pos);
+    for(LayerData& elt : slot.processes)
+    {
+      QPointer<Process::LayerView> view_p{elt.view};
+      delete elt.presenter;
+      if (view_p)
+        deleteGraphicsItem(elt.view);
+    }
+
+    deleteGraphicsItem(slot.handle);
+    //deleteGraphicsItem(slot.view);
+
+    m_slots.erase(m_slots.begin() + pos);
+
+    updatePositions();
   }
-
-  deleteGraphicsItem(slot.handle);
-  //deleteGraphicsItem(slot.view);
-
-  m_slots.erase(m_slots.begin() + pos);
-
-  updatePositions();
 }
 
 void TemporalConstraintPresenter::updateProcessesShape()
@@ -391,30 +421,36 @@ void TemporalConstraintPresenter::updatePositions()
 
 void TemporalConstraintPresenter::on_layerModelPutToFront(int slot, const Process::ProcessModel& proc)
 {
-  // Put the selected one at z+1 and the others at -z; set "disabled" graphics
-  // mode.
-  // OPTIMIZEME by saving the previous to front and just switching...
-  for (const LayerData& elt : m_slots.at(slot).processes)
+  if(m_model.smallViewVisible())
   {
-    if (elt.model->id() == proc.id())
+    // Put the selected one at z+1 and the others at -z; set "disabled" graphics
+    // mode.
+    // OPTIMIZEME by saving the previous to front and just switching...
+    for (const LayerData& elt : m_slots.at(slot).processes)
     {
-      elt.presenter->putToFront();
-    }
-    else
-    {
-      elt.presenter->putBehind();
+      if (elt.model->id() == proc.id())
+      {
+        elt.presenter->putToFront();
+      }
+      else
+      {
+        elt.presenter->putBehind();
+      }
     }
   }
 }
 
 void TemporalConstraintPresenter::on_layerModelPutToBack(int slot, const Process::ProcessModel& proc)
 {
-  for (const LayerData& elt : m_slots.at(slot).processes)
+  if(m_model.smallViewVisible())
   {
-    if (elt.model->id() == proc.id())
+    for (const LayerData& elt : m_slots.at(slot).processes)
     {
-      elt.presenter->putBehind();
-      return;
+      if (elt.model->id() == proc.id())
+      {
+        elt.presenter->putBehind();
+        return;
+      }
     }
   }
 }
@@ -428,13 +464,17 @@ void TemporalConstraintPresenter::on_rackChanged()
   }
 
   // Recreate
-  m_slots.reserve(m_model.smallView().size());
 
-  int i = 0;
-  for(const auto& slt : m_model.smallView())
+  if(m_model.smallViewVisible())
   {
-    createSlot(i, slt);
-    i++;
+    m_slots.reserve(m_model.smallView().size());
+
+    int i = 0;
+    for(const auto& slt : m_model.smallView())
+    {
+      createSlot(i, slt);
+      i++;
+    }
   }
 
   // Update view
@@ -479,18 +519,37 @@ void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& v)
 
 int TemporalConstraintPresenter::indexOfSlot(const Process::LayerPresenter& proc)
 {
-  for(int i = 0; i < m_slots.size(); ++i)
+  if(m_model.smallViewVisible())
   {
-    const auto& p = m_slots[i].processes;
-    for(int j = 0; j < p.size(); j++)
+    for(int i = 0; i < m_slots.size(); ++i)
     {
-      if(p[j].presenter == &proc)
-        return i;
+      const auto& p = m_slots[i].processes;
+      for(int j = 0; j < p.size(); j++)
+      {
+        if(p[j].presenter == &proc)
+          return i;
+      }
     }
   }
 
   ISCORE_ABORT;
+}
 
+void TemporalConstraintPresenter::on_processesChanged(const Process::ProcessModel&)
+{
+  if(m_model.smallViewVisible())
+  {
+    m_header->setState(ConstraintHeader::State::RackShown);
+    Scenario::view(this)->setSmallViewVisible(true);
+  }
+  else if(!m_model.processes.empty())
+  {
+    m_header->setState(ConstraintHeader::State::RackHidden);
+  }
+  else
+  {
+    m_header->setState(ConstraintHeader::State::Hidden);
+  }
 }
 
 }

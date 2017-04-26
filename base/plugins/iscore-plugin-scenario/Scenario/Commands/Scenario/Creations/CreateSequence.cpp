@@ -238,6 +238,9 @@ CreateSequence* CreateSequence::make(
   proc_command->redo();
   cmd->addCommand(proc_command);
 
+  auto show_rack = new ShowRack{scenario.constraint(create_command->createdConstraint())};
+  show_rack->redo();
+  cmd->addCommand(show_rack);
   return cmd;
 }
 }

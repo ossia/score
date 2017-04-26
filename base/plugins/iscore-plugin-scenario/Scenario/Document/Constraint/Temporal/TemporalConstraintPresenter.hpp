@@ -33,35 +33,18 @@ public:
 
   virtual ~TemporalConstraintPresenter();
 
-  void on_requestOverlayMenu(QPointF);
-
-
-  void on_rackVisibleChanged(bool);
-
   void updateScaling() override;
-  void on_zoomRatioChanged(ZoomRatio val) override;
-  void on_defaultDurationChanged(const TimeVal&) override;
-
   void updateHeight();
+
   int indexOfSlot(const Process::LayerPresenter&);
+  void on_zoomRatioChanged(ZoomRatio val) override;
 
 signals:
   void constraintHoverEnter();
   void constraintHoverLeave();
 
 private:
-  void on_processesChanged(const Process::ProcessModel&);
-  //void createRackPresenter(const RackModel&);
-  void clearRackPresenter();
-  //void on_rackRemoved(const RackModel&);
   double rackHeight() const;
-  struct SlotPresenter
-  {
-    SlotHandle* handle{};
-    std::vector<LayerData> processes;
-  };
-
-  std::vector<SlotPresenter> m_slots;
   void createSlot(int pos, const Slot& slt);
   void createLayer(int slot, const Process::ProcessModel& proc);
   void updateProcessShape(int slot, const LayerData& data);
@@ -72,6 +55,18 @@ private:
   void on_layerModelPutToFront(int slot, const Process::ProcessModel& proc);
   void on_layerModelPutToBack(int slot, const Process::ProcessModel& proc);
   void on_rackChanged();
+  void on_processesChanged(const Process::ProcessModel&);
+  void on_requestOverlayMenu(QPointF);
+  void on_rackVisibleChanged(bool);
+  void on_defaultDurationChanged(const TimeVal&) override;
+
+  struct SlotPresenter
+  {
+    SlotHandle* handle{};
+    std::vector<LayerData> processes;
+  };
+
+  std::vector<SlotPresenter> m_slots;
 };
 
 }

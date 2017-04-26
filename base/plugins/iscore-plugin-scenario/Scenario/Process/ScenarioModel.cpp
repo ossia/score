@@ -102,6 +102,7 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
+  emit identified_object_destroying(this);
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)

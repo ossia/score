@@ -306,6 +306,9 @@ void ConstraintModel::addSlot(Slot s, int pos)
   ISCORE_ASSERT(m_smallView.size() >= pos);
   m_smallView.insert(m_smallView.begin() + pos, std::move(s));
   emit slotAdded({pos, Slot::SmallView});
+
+  if(m_smallView.size() == 1)
+    setSmallViewVisible(true);
 }
 
 void ConstraintModel::addSlot(Slot s)
