@@ -37,10 +37,10 @@
 #if defined(ISCORE_STATIC_PLUGINS)
   #include <iscore_static_plugins.hpp>
 #endif
-struct mock_appinterface : public iscore::ApplicationInterface
+struct PlayerApp : public iscore::ApplicationInterface
 {
 public:
-  mock_appinterface(iscore::ApplicationContext& x):
+  PlayerApp(iscore::ApplicationContext& x):
     ctx{x}
   {
     m_instance = this;
@@ -145,18 +145,18 @@ int main(int argc, char** argv)
 {
   using namespace iscore;
 
+  // Load core application and plug-ins
   SafeQApplication app{argc, argv};
 
   iscore::ApplicationSettings glob_settings;
   iscore::ApplicationComponentsData data;
-  // Load plug-ins
 
   ApplicationComponents comps{data};
   DocumentList docs;
   std::vector<std::unique_ptr<iscore::SettingsDelegateModel>> setgs;
   iscore::ApplicationContext ctx{glob_settings, comps, docs, std::move(setgs)};
 
-  mock_appinterface x{ctx};
+  PlayerApp x{ctx};
 
   iscore::ApplicationRegistrar reg(data);
   reg.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
@@ -167,7 +167,6 @@ int main(int argc, char** argv)
 
   loadPlugins(reg, ctx);
 
-  // Load the settings
   QSettings s;
   for (auto& plugin :
        ctx.interfaces<iscore::SettingsDelegateFactoryList>())
@@ -175,32 +174,27 @@ int main(int argc, char** argv)
     setgs.push_back(plugin.makeModel(s, ctx));
   }
 
-
+  // Load a document
   QFile f("/home/jcelerier/i-score/Tests/testdata/execution.scorejson");
   f.open(QIODevice::ReadOnly);
 
   auto json = QJsonDocument::fromJson(f.readAll()).object();
-  auto doc_factory = new Scenario::ScenarioDocumentFactory;
-  auto doc = new Document{json, *doc_factory, qApp};
+  Scenario::ScenarioDocumentFactory fac;
+  Document doc{json, fac, qApp};
 
-  docs.documents().push_back(doc);
-  // Load plugins
+  docs.documents().push_back(&doc);
 
-  auto& doc_model = safe_cast<Scenario::ScenarioDocumentModel&>(doc->model().modelDelegate());
+  auto& doc_model = safe_cast<Scenario::ScenarioDocumentModel&>(doc.model().modelDelegate());
   auto& root_cst = doc_model.baseConstraint();
-  auto exec = new Engine::Execution::DocumentPlugin{doc->context(), Id<DocumentPlugin>{998}, nullptr};
-  auto lt = new Engine::LocalTree::DocumentPlugin{doc->context(), Id<DocumentPlugin>{999}, nullptr};
+  auto exec = new Engine::Execution::DocumentPlugin{doc.context(), Id<DocumentPlugin>{998}, nullptr};
+  auto lt = new Engine::LocalTree::DocumentPlugin{doc.context(), Id<DocumentPlugin>{999}, nullptr};
   lt->init();
-  doc->model().addPluginModel(exec);
-  doc->model().addPluginModel(lt);
-  for(auto& plug : doc->model().pluginModels())
-    qDebug() << plug->objectName();
-  // injitialize execution document plugin
-  exec->reload(root_cst);
-  // base scenario
+  doc.model().addPluginModel(lt);
+  doc.model().addPluginModel(exec);
 
   // Setup execution
   {
+    exec->reload(root_cst);
     auto& exec_settings = ctx.settings<Engine::Execution::Settings::Model>();
     auto clock = exec_settings.makeClock(exec->context());
 
@@ -208,6 +202,7 @@ int main(int argc, char** argv)
     while(exec->context().scenario.baseConstraint().OSSIAConstraint()->running())
       ;
   }
-  delete doc;
+
+  exec->clear();
   return 0;
 }
