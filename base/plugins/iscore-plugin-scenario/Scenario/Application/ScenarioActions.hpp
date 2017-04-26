@@ -135,6 +135,10 @@ ISCORE_DECLARE_ACTION(
     QKeySequence(QObject::tr("Ctrl+J")))
 ISCORE_DECLARE_ACTION(
     MergeTimeNodes, "&Merge TimeNodes", Scenario, Qt::SHIFT + Qt::Key_M)
+ISCORE_DECLARE_ACTION(
+    ShowRacks, "&Show racks", Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(
+    HideRacks, "&Hide racks", Scenario, QKeySequence::UnknownKey)
 
 // Navigation
 ISCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)

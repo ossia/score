@@ -57,7 +57,7 @@ bool DropProcessInScenario::drop(
     // Add a new layer in this slot.
     auto& proc = constraint.processes.at(process_cmd->processId());
     auto layer_cmd = new Scenario::Command::AddLayerModelToSlot{
-        SlotPath{constraint, constraint.smallView().size() - 1},
+        SlotPath{constraint, int(constraint.smallView().size() - 1)},
         proc};
 
     m.submitCommand(layer_cmd);
