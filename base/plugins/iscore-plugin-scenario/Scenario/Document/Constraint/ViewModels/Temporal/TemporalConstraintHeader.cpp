@@ -53,20 +53,19 @@ void TemporalConstraintHeader::paint(
         rect, skin.ConstraintHeaderRackHidden.getColor());
 
     // Fake timenode continuation
-
-    //QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-    painter->setPen(skin.ConstraintRackPen);
+    painter->setPen(skin.ConstraintHeaderSeparator);
     painter->drawLine(rect.topLeft(), rect.bottomLeft());
     painter->drawLine(rect.topRight(), rect.bottomRight());
     painter->drawLine(rect.bottomLeft(), rect.bottomRight());
   }
   else
   {
-   // painter->drawLine(0, ConstraintHeaderHeight, def_w, ConstraintHeaderHeight);
+    painter->setPen(skin.ConstraintHeaderSeparator);
+    painter->drawLine(0, ConstraintHeaderHeight, m_width, ConstraintHeaderHeight);
   }
 
   // Header
-  painter->setPen(ScenarioStyle::instance().ConstraintHeaderText.getColor().color());
+  painter->setPen(skin.ConstraintHeaderText.getColor().color());
 
   // If the centered text is hidden, we put it at the left so that it's on the
   // view.
@@ -106,10 +105,7 @@ void TemporalConstraintHeader::paint(
   }
   // TODO m_textCache.draw(painter, QPointF{m_previous_x,y}, {},
   // boundingRect());
-  auto font = iscore::Skin::instance().SansFont;
-  font.setPointSize(10);
-  font.setBold(true);
-  painter->setFont(font);
+  painter->setFont(skin.Bold10Pt);
   painter->drawText(m_previous_x, y, w, h, Qt::AlignLeft, m_text);
 }
 
@@ -121,10 +117,7 @@ void TemporalConstraintHeader::mouseDoubleClickEvent(
 
 void TemporalConstraintHeader::on_textChange()
 {
-  auto font = iscore::Skin::instance().SansFont;
-  font.setPointSize(10);
-  font.setBold(true);
-  QFontMetrics fm(font);
+  QFontMetrics fm(ScenarioStyle::instance().Bold10Pt);
   m_textWidthCache = fm.width(m_text);
   /*
       m_textCache.setFont(font);
@@ -141,13 +134,11 @@ void TemporalConstraintHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverEnterEvent(h);
   emit constraintHoverEnter();
-  emit shadowChanged(true);
 }
 
 void TemporalConstraintHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverLeaveEvent(h);
-  emit shadowChanged(false);
   emit constraintHoverLeave();
 }
 
@@ -155,7 +146,6 @@ void TemporalConstraintHeader::dragEnterEvent(
     QGraphicsSceneDragDropEvent* event)
 {
   QGraphicsItem::dragEnterEvent(event);
-  emit shadowChanged(true);
   event->accept();
 }
 
@@ -163,7 +153,6 @@ void TemporalConstraintHeader::dragLeaveEvent(
     QGraphicsSceneDragDropEvent* event)
 {
   QGraphicsItem::dragLeaveEvent(event);
-  emit shadowChanged(false);
   event->accept();
 }
 

@@ -24,20 +24,12 @@ ConstraintView::ConstraintView(
   m_rightBrace->setX(maxWidth());
   m_rightBrace->hide();
 
-  const int fontSize = 12;
-  auto f = iscore::Skin::instance().SansFont;
-  f.setBold(false);
-  f.setPointSize(fontSize);
-  f.setStyleStrategy(QFont::NoAntialias);
-  m_labelItem->setFont(f);
+  m_labelItem->setFont(ScenarioStyle::instance().Medium12Pt);
   m_labelItem->setPos(0, -16);
   m_labelItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
   m_labelItem->setAcceptHoverEvents(false);
 
-  f.setPointSize(7);
-  f.setStyleStrategy(QFont::NoAntialias);
-  f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
-  m_counterItem->setFont(f);
+  m_counterItem->setFont(ScenarioStyle::instance().Medium7Pt);
   m_counterItem->setColor(iscore::ColorRef(&iscore::Skin::Light));
   m_counterItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
   m_counterItem->setAcceptHoverEvents(false);
@@ -132,6 +124,16 @@ void ConstraintView::setSelected(bool selected)
   update();
 }
 
+void ConstraintView::setGripCursor()
+{
+  this->setCursor(QCursor(Qt::ClosedHandCursor));
+}
+
+void ConstraintView::setUngripCursor()
+{
+  this->setCursor(QCursor(Qt::OpenHandCursor));
+}
+
 void ConstraintView::enableOverlay(bool selected)
 {
 
@@ -140,7 +142,13 @@ void ConstraintView::enableOverlay(bool selected)
 void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
+  {
+    if(event->pos().y() < 4)
+      setGripCursor();
+    else
+      unsetCursor();
     emit m_presenter.pressed(event->scenePos());
+  }
 }
 
 void ConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
@@ -151,6 +159,10 @@ void ConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void ConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   emit m_presenter.released(event->scenePos());
+  if(event->pos().y() < 4)
+    setUngripCursor();
+  else
+    unsetCursor();
 }
 
 bool ConstraintView::warning() const
@@ -188,14 +200,8 @@ QBrush ConstraintView::constraintColor(const ScenarioStyle& skin) const
   }
 }
 
-bool ConstraintView::shadow() const
+void ConstraintView::updateOverlay()
 {
-  return m_shadow;
-}
-
-void ConstraintView::setShadow(bool shadow)
-{
-  m_shadow = shadow;
   if(m_overlay) m_overlay->update();
   update();
 }

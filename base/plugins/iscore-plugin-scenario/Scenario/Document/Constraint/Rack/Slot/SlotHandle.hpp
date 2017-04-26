@@ -32,7 +32,7 @@ public:
   void setSlotIndex(int);
   static constexpr double handleHeight()
   {
-    return 3.;
+    return 4.;
   }
 
   QRectF boundingRect() const override;

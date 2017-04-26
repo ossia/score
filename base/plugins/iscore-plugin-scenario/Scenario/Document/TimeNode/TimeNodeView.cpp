@@ -28,14 +28,10 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter, QGraphicsItem* parent)
   this->setAcceptHoverEvents(true);
   this->setCursor(Qt::CrossCursor);
 
-  auto& skin = iscore::Skin::instance();
-
   m_text = new SimpleTextItem{this};
   m_color = presenter.model().metadata().getColor();
 
-  auto f = skin.SansFont;
-  f.setPointSize(10);
-  m_text->setFont(f);
+  m_text->setFont(ScenarioStyle::instance().Bold10Pt);
   m_text->setColor(m_color);
 }
 

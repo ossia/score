@@ -38,7 +38,7 @@ class CreateProcessInNewSlot final : public iscore::AggregateCommand
     disp.submitCommand(cmd2);
 
     auto cmd3 = new Scenario::Command::AddLayerModelToSlot(
-        {constraint, constraint.smallView().size()}, cmd1->processId());
+        SlotPath{constraint, (int) constraint.smallView().size()}, cmd1->processId());
     cmd3->redo();
     disp.submitCommand(cmd3);
 

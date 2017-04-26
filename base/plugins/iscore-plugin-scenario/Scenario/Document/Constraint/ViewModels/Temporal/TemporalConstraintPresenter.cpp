@@ -48,6 +48,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
                         new TemporalConstraintHeader, ctx, parent}
 {
   TemporalConstraintView& v = *Scenario::view(this);
+  v.setSmallViewVisible(cstr_model.smallViewVisible());
   con(v, &TemporalConstraintView::constraintHoverEnter, this,
       &TemporalConstraintPresenter::constraintHoverEnter);
 
@@ -100,9 +101,6 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
   connect(
         header, &TemporalConstraintHeader::constraintHoverLeave, this,
         &TemporalConstraintPresenter::constraintHoverLeave);
-  connect(
-        header, &TemporalConstraintHeader::shadowChanged, &v,
-        &TemporalConstraintView::setShadow);
 
   connect(
         header, &TemporalConstraintHeader::dropReceived, this,
@@ -241,16 +239,10 @@ void TemporalConstraintPresenter::updateHeight()
 void TemporalConstraintPresenter::on_rackVisibleChanged(bool b)
 {
   m_header->setVisible(b);
+
+  Scenario::view(this)->setSmallViewVisible(b);
   on_rackChanged();
 }
-
-void TemporalConstraintPresenter::on_processesChanged(const Process::ProcessModel&)
-{
-  // TODO
-}
-
-
-
 
 void TemporalConstraintPresenter::createSlot(int pos, const Slot& slt)
 {

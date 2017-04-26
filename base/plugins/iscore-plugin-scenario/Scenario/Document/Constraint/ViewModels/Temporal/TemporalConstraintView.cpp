@@ -10,6 +10,7 @@
 #include <QCursor>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <qnamespace.h>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotHandle.hpp>
 
 #include <Scenario/Document/Constraint/ViewModels/ConstraintMenuOverlay.hpp>
 #include "TemporalConstraintPresenter.hpp"
@@ -32,7 +33,6 @@ TemporalConstraintView::TemporalConstraintView(
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
   this->setAcceptDrops(true);
-  this->setCursor(QCursor(Qt::SizeVerCursor));
 
   this->setZValue(ZPos::Constraint);
 }
@@ -159,7 +159,7 @@ void TemporalConstraintView::paint(
   {
     // Background
     auto rect = boundingRect();
-    rect.adjust(0, 4, 0, 0);
+    rect.adjust(0, 4, 0, SlotHandle::handleHeight());
     rect.setWidth(def_w);
 
     auto bgColor = m_bgColor.getColor().color();
@@ -214,7 +214,7 @@ void TemporalConstraintView::paint(
     painter.setPen(skin.ConstraintPlayDashPen);
     painter.drawPath(playedDashedPath);
   }
-#define ISCORE_SCENARIO_DEBUG_RECTS
+
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
   painter.setPen(Qt::darkRed);
   painter.setBrush(Qt::NoBrush);
@@ -222,31 +222,41 @@ void TemporalConstraintView::paint(
 #endif
 }
 
+void TemporalConstraintView::setSmallViewVisible(bool b)
+{
+}
+
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverEnterEvent(h);
-  setShadow(true);
+  if(h->pos().y() < 4)
+    setUngripCursor();
+  else
+    unsetCursor();
+
+  updateOverlay();
   emit constraintHoverEnter();
 }
 
 void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverLeaveEvent(h);
-  setShadow(false);
+  unsetCursor();
+  updateOverlay();
   emit constraintHoverLeave();
 }
 
 void TemporalConstraintView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   QGraphicsItem::dragEnterEvent(event);
-  setShadow(true);
+  updateOverlay();
   event->accept();
 }
 
 void TemporalConstraintView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
   QGraphicsItem::dragLeaveEvent(event);
-  setShadow(false);
+  updateOverlay();
   event->accept();
 }
 
