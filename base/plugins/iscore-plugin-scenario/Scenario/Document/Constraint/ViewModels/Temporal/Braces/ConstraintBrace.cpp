@@ -31,29 +31,26 @@ QRectF ConstraintBrace::boundingRect() const
 void ConstraintBrace::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  painter->setBrush({});
+  auto& skin = ScenarioStyle::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
-  QPen pen{{}, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-  // TODO make a switch instead and transform these to use Q_FLAGS or something
+  painter->setBrush(skin.DefaultBrush);
+
   if (m_parent.isSelected())
   {
-    pen.setBrush(ScenarioStyle::instance().ConstraintSelected.getColor());
+    painter->setPen(skin.ConstraintBraceSelected);
   }
   else if (m_parent.warning())
   {
-    pen.setBrush(ScenarioStyle::instance().ConstraintWarning.getColor());
+    painter->setPen(skin.ConstraintBraceWarning);
+  }
+  else if (!m_parent.isValid())
+  {
+    painter->setPen(skin.ConstraintBraceInvalid);
   }
   else
   {
-    pen.setBrush(ScenarioStyle::instance().ConstraintBase.getColor());
+    painter->setPen(skin.ConstraintBrace);
   }
-
-  if (!m_parent.isValid())
-  {
-    pen.setBrush(ScenarioStyle::instance().ConstraintInvalid.getColor());
-  }
-
-  painter->setPen(pen);
 
   painter->drawPath(m_path);
 

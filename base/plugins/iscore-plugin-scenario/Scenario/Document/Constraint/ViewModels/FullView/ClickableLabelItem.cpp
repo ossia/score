@@ -7,6 +7,7 @@
 #include "ClickableLabelItem.hpp"
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/model/Skin.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 
 class QGraphicsSceneHoverEvent;
 class QGraphicsSceneMouseEvent;
@@ -17,10 +18,7 @@ namespace Scenario
 SeparatorItem::SeparatorItem(QGraphicsItem* parent)
     : QGraphicsSimpleTextItem{"/", parent}
 {
-  auto font = iscore::Skin::instance().SansFont;
-  font.setPointSize(10);
-  font.setBold(true);
-  this->setFont(font);
+  this->setFont(ScenarioStyle::instance().Bold10Pt);
   this->setBrush(Qt::white);
 }
 
@@ -38,10 +36,7 @@ ClickableLabelItem::ClickableLabelItem(
         emit textChanged();
       });
 
-  auto font = iscore::Skin::instance().SansFont;
-  font.setPointSize(10);
-  font.setBold(true);
-  this->setFont(font);
+  this->setFont(ScenarioStyle::instance().Bold10Pt);
   this->setBrush(Qt::white);
 
   this->setAcceptHoverEvents(true);

@@ -103,8 +103,7 @@ public:
     update();
   }
 
-  bool shadow() const;
-  void setShadow(bool shadow);
+  void updateOverlay();
 
   bool warning() const;
   void setWarning(bool warning);
@@ -134,6 +133,9 @@ signals:
   void requestOverlayMenu(QPointF);
 
 protected:
+  void setGripCursor();
+  void setUngripCursor();
+
   LeftBraceView* m_leftBrace{};
   RightBraceView* m_rightBrace{};
   SimpleTextItem* m_labelItem{};
@@ -153,9 +155,9 @@ protected:
   bool m_infinite{};
   bool m_validConstraint{true};
   bool m_warning{};
-  bool m_shadow{};
   bool m_hasFocus{};
   bool m_executing{};
   ConstraintExecutionState m_state{};
 };
+
 }

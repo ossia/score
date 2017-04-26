@@ -30,8 +30,6 @@ signals:
   void constraintHoverLeave();
   void dropReceived(const QPointF& pos, const QMimeData*);
 
-  void shadowChanged(bool);
-
 protected:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;

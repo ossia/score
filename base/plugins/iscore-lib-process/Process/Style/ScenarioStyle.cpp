@@ -69,8 +69,8 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     , TimeRuler{&s.Base1}
     , LocalTimeRuler{&s.Gray}
 {
-  update();
-  QObject::connect(&s, &iscore::Skin::changed, [=] { this->update(); });
+  update(s);
+  QObject::connect(&s, &iscore::Skin::changed, [&] { this->update(s); });
 }
 
 void ScenarioStyle::setConstraintWidth(double w)
@@ -89,10 +89,10 @@ ScenarioStyle& ScenarioStyle::instance()
 
 ScenarioStyle::ScenarioStyle() noexcept
 {
-  update();
+  update(iscore::Skin::instance());
 }
 
-void ScenarioStyle::update()
+void ScenarioStyle::update(const iscore::Skin& skin)
 {
   ConstraintSolidPen = QPen{QBrush{Qt::black}, 3, Qt::SolidLine, Qt::SquareCap,
                             Qt::RoundJoin};
@@ -108,6 +108,17 @@ void ScenarioStyle::update()
   ConstraintPlayPen
       = QPen{Qt::black, 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   ConstraintPlayDashPen = ConstraintDashPen;
+  ConstraintHeaderSeparator
+      = QPen{ConstraintHeaderSideBorder.getColor(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+
+  ConstraintBrace
+      = QPen{ConstraintBase.getColor(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  ConstraintBraceSelected = ConstraintBrace;
+  ConstraintBraceSelected.setBrush(ConstraintSelected.getColor());
+  ConstraintBraceWarning = ConstraintBrace;
+  ConstraintBraceWarning.setBrush(ConstraintWarning.getColor());
+  ConstraintBraceInvalid = ConstraintBrace;
+  ConstraintBraceInvalid.setBrush(ConstraintInvalid.getColor());
 
   //ConstraintSolidPen.setCosmetic(true);
   ConstraintDashPen.setCosmetic(true);
@@ -130,4 +141,20 @@ void ScenarioStyle::update()
 
   SlotHandlePen.setWidth(0);
   SlotHandlePen.setBrush(ProcessViewBorder.getColor());
+
+  Bold10Pt = skin.SansFont;
+  Bold10Pt.setPointSize(10);
+  Bold10Pt.setBold(true);
+
+  Medium7Pt = skin.SansFont;
+  Medium7Pt.setPointSize(7);
+  Medium7Pt.setStyleStrategy(QFont::NoAntialias);
+  Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
+
+  Medium8Pt = skin.SansFont;
+  Medium8Pt.setPointSize(8);
+
+  Medium12Pt = skin.SansFont;
+  Medium12Pt.setPointSize(12);
+  Medium12Pt.setStyleStrategy(QFont::NoAntialias);
 }

@@ -39,6 +39,8 @@ signals:
 
 protected:
   virtual void paint_impl(QPainter*) const = 0;
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
 private:
   qreal m_height{};

@@ -37,7 +37,7 @@ void SlotHandle::setSlotIndex(int v)
 
 QRectF SlotHandle::boundingRect() const
 {
-  return {0, 0, m_width, handleHeight()};
+  return {1, 0, m_width - 2, handleHeight()};
 }
 
 void SlotHandle::paint(
@@ -45,11 +45,7 @@ void SlotHandle::paint(
 {
   const auto& style = ScenarioStyle::instance();
 
-  painter->setPen(style.SlotHandlePen);
-  painter->setBrush(style.ProcessViewBorder.getColor());
-
-  painter->fillRect(boundingRect(), Qt::red);
-  //painter->drawLine(0, -handleHeight() / 2., m_width, -handleHeight() / 2.);
+  painter->fillRect(boundingRect().adjusted(0, 1, 0, 1), style.ProcessViewBorder.getColor());
 }
 
 void SlotHandle::setWidth(qreal width)
