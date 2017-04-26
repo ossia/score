@@ -1,5 +1,5 @@
-#include <Process/LayerModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <iscore/model/path/RelativePath.hpp>
 
 #include "RemoveLayerModelFromSlot.hpp"
@@ -17,48 +17,31 @@ namespace Command
 {
 
 RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
-    Path<SlotModel>&& rackPath, Id<Process::LayerModel> layerId)
-    : m_path{rackPath}, m_layerId{std::move(layerId)}
+    SlotPath&& rackPath, Id<Process::ProcessModel> layerId)
+    : m_path{std::move(rackPath)}, m_layerId{std::move(layerId)}
 {
-  auto& slot = m_path.find();
-  auto& lm = slot.layers.at(m_layerId);
-
-  DataStream::Serializer s{&m_serializedLayerData};
-
-  s.readFrom(iscore::RelativePath(*lm.parent(), lm.processModel()));
-  s.readFrom(lm);
 }
 
 void RemoveLayerModelFromSlot::undo() const
 {
-  auto& slot = m_path.find();
-  DataStream::Deserializer s{m_serializedLayerData};
-
-  iscore::RelativePath p;
-  s.writeTo(p);
-
-  auto lm = deserialize_interface(
-      this->context.interfaces<Process::LayerFactoryList>(), s, p, &slot);
-  if (lm)
-    slot.layers.add(lm);
-  else
-    ISCORE_TODO;
+  auto& slot = m_path.constraint.find();
+  slot.addLayer(m_path.index, m_layerId);
 }
 
 void RemoveLayerModelFromSlot::redo() const
 {
-  auto& slot = m_path.find();
-  slot.layers.remove(m_layerId);
+  auto& slot = m_path.constraint.find();
+  slot.removeLayer(m_path.index, m_layerId);
 }
 
 void RemoveLayerModelFromSlot::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_layerId << m_serializedLayerData;
+  s << m_path << m_layerId;
 }
 
 void RemoveLayerModelFromSlot::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_layerId >> m_serializedLayerData;
+  s >> m_path >> m_layerId;
 }
 }
 }

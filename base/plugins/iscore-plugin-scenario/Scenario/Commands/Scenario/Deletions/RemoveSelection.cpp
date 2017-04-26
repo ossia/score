@@ -15,7 +15,6 @@
 #include "RemoveSelection.hpp"
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
@@ -160,9 +159,7 @@ RemoveSelection::RemoveSelection(
       QByteArray arr;
       DataStream::Serializer s{&arr};
       s.readFrom(*constraint);
-      m_removedConstraints.push_back(
-          {{constraint->id(), arr},
-           serializeConstraintViewModels(*constraint, scenar)});
+      m_removedConstraints.push_back({constraint->id(), arr});
     }
   }
 
@@ -323,7 +320,7 @@ void RemoveSelection::undo() const
   // And then all the constraints.
   for (const auto& constraintdata : m_removedConstraints)
   {
-    DataStream::Deserializer s{constraintdata.first.second};
+    DataStream::Deserializer s{constraintdata.second};
     auto cstr = new ConstraintModel{s, &scenar};
 
     scenar.constraints.add(cstr);
@@ -331,13 +328,6 @@ void RemoveSelection::undo() const
     // Set-up the start / end events correctly.
     SetNextConstraint(startState(*cstr, scenar), *cstr);
     SetPreviousConstraint(endState(*cstr, scenar), *cstr);
-  }
-
-  // And finally the constraint's view models
-  for (const auto& constraintdata : m_removedConstraints)
-  {
-    // view model creation
-    deserializeConstraintViewModels(constraintdata.second, scenar);
   }
 
   for (auto& tn : scenar.timeNodes)
@@ -357,7 +347,7 @@ void RemoveSelection::redo() const
   // Remove the constraints
   for (const auto& cstr : m_removedConstraints)
   {
-    StandardRemovalPolicy::removeConstraint(scenar, cstr.first.first);
+    StandardRemovalPolicy::removeConstraint(scenar, cstr.first);
   }
 
   // The other things

@@ -4,7 +4,7 @@
 #include <Process/ProcessContext.hpp>
 #include <QObject>
 #include <QPoint>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
 #include <iscore/model/IdentifiedObjectMap.hpp>
@@ -41,7 +41,6 @@ namespace iscore
 }
 namespace Process
 {
-class LayerModel;
 class LayerView;
 }
 
@@ -49,13 +48,11 @@ namespace Scenario
 {
 
 class EditionSettings;
-class ConstraintViewModel;
-class TemporalConstraintViewModel;
-class TemporalScenarioLayer;
 class TemporalScenarioView;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final
     : public Process::LayerPresenter
+    , public Nano::Observer
 {
   Q_OBJECT
 
@@ -66,13 +63,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final
 public:
   TemporalScenarioPresenter(
       Scenario::EditionSettings&,
-      const TemporalScenarioLayer& model,
+      const Scenario::ProcessModel& model,
       Process::LayerView* view,
       const Process::ProcessPresenterContext& context,
       QObject* parent);
   ~TemporalScenarioPresenter();
 
-  const Process::LayerModel& layerModel() const override;
+  const Process::ProcessModel& model() const override;
   const Id<Process::ProcessModel>& modelId() const override;
 
   /**
@@ -182,11 +179,11 @@ public:
   void on_timeNodeCreated(const TimeNodeModel&);
   void on_timeNodeRemoved(const TimeNodeModel&);
 
-  void on_constraintViewModelCreated(const TemporalConstraintViewModel&);
-  void on_constraintViewModelRemoved(const ConstraintViewModel&);
+  void on_constraintCreated(const ConstraintModel&);
+  void on_constraintRemoved(const ConstraintModel&);
 
-  void on_commentBlockCreated(const CommentBlockModel&);
-  void on_commentBlockRemoved(const CommentBlockModel&);
+  void on_commentCreated(const CommentBlockModel&);
+  void on_commentRemoved(const CommentBlockModel&);
 
   void on_askUpdate();
 
@@ -208,7 +205,7 @@ private:
   ZoomRatio m_zoomRatio{1};
   double m_graphicalScale{1.};
 
-  const TemporalScenarioLayer& m_layer;
+  const Scenario::ProcessModel& m_layer;
 
   // The order of deletion matters!
   // m_view has to be deleted after the other elements.

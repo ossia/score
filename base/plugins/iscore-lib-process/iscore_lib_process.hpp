@@ -28,9 +28,6 @@
  *
  * The UI works as follows :
  * * Process::ProcessModel is the base class for processes.
- * * Process::LayerModel is the "view model" : a process may have multiple
- * different view;
- *   a LayerModel will be the data model for a particular view.
  * * Process::LayerPresenter / Process::LayerView do the actual displaying,
  * currently with Qt's Graphics View framework.
  * * A process can have an inspector widget.

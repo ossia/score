@@ -40,6 +40,15 @@ class ConstraintComponent;
 
 namespace Engine
 {
+/*
+class CoreApplicationPlugin : public iscore::ApplicationPlugin
+{
+public:
+  CoreApplicationPlugin(const iscore::ApplicationContext& ctx);
+
+};
+*/
+
 class ISCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
     : public QObject,
       public iscore::GUIApplicationPlugin

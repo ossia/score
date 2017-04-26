@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <iscore/command/Command.hpp>
 #include <iscore/model/path/Path.hpp>
 #include <iscore_plugin_scenario_export.h>
@@ -8,7 +9,6 @@ struct DataStreamOutput;
 
 namespace Scenario
 {
-class SlotModel;
 namespace Command
 {
 /**
@@ -22,7 +22,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ResizeSlotVertically final
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), ResizeSlotVertically, "Resize a slot")
 public:
-  ResizeSlotVertically(Path<SlotModel>&& slotPath, double newSize);
+    ResizeSlotVertically(const SlotPath& slotPath, double newSize);
+  ResizeSlotVertically(SlotPath&& slotPath, double newSize);
 
   void undo() const override;
   void redo() const override;
@@ -37,7 +38,7 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<SlotModel> m_path;
+  SlotPath m_path;
 
   double m_originalSize{};
   double m_newSize{};

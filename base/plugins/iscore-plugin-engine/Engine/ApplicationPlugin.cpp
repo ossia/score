@@ -282,7 +282,7 @@ void ApplicationPlugin::on_stop()
       plugmodel->clear();
 
     // If we can we resume listening
-    if (!context.documents.preparingNewDocument())
+    if (!context.docManager.preparingNewDocument())
     {
       auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
       if (explorer)
@@ -315,7 +315,7 @@ void ApplicationPlugin::on_init()
     state.launch();
 
     // If we can we resume listening
-    if (!context.documents.preparingNewDocument())
+    if (!context.docManager.preparingNewDocument())
     {
       auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
       if (explorer)

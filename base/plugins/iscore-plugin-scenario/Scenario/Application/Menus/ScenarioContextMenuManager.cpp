@@ -1,4 +1,4 @@
-#include <Process/LayerModel.hpp>
+
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 
@@ -13,9 +13,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
@@ -46,27 +44,35 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/Identifier.hpp>
+#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
 
 namespace Scenario
 {
 void ScenarioContextMenuManager::createSlotContextMenu(
     const iscore::DocumentContext& ctx,
     QMenu& menu,
-    const SlotPresenter& slotp)
+    const TemporalConstraintPresenter& pres,
+    int slot_index)
 {
   using namespace Scenario::Command;
   // TODO see
   // http://stackoverflow.com/questions/21443023/capturing-a-reference-by-reference-in-a-c11-lambda
-  auto& slotm = slotp.model();
+  auto& constraint = pres.model();
+  const Slot& slot = constraint.smallView().at(slot_index);
+  SlotPath slot_path{constraint, slot_index, Slot::SmallView};
 
   // First changing the process in the current slot
   auto processes_submenu = menu.addMenu(tr("Focus process in this slot"));
-  for (const Process::LayerModel& proc : slotm.layers)
+  for (const Id<Process::ProcessModel>& proc : slot.processes)
   {
+    auto& p = constraint.processes.at(proc);
+    auto name = p.prettyName();
+    if(name.isEmpty())
+      name = p.prettyShortName();
     QAction* procAct
-        = new QAction{proc.processModel().prettyName(), processes_submenu};
-    QObject::connect(procAct, &QAction::triggered, [&]() {
-      PutLayerModelToFront cmd{slotm, proc.id()};
+        = new QAction{name, processes_submenu};
+    QObject::connect(procAct, &QAction::triggered, [&,slot_path] () mutable {
+      PutLayerModelToFront cmd{std::move(slot_path), p.id()};
       cmd.redo();
     });
     processes_submenu->addAction(procAct);
@@ -74,13 +80,17 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
   // Then creation of a new slot with existing processes
   auto new_processes_submenu = menu.addMenu(tr("Show process in new slot"));
-  for (const Process::LayerModel& proc : slotm.layers)
+  for (const Id<Process::ProcessModel>& proc : slot.processes)
   {
+    auto& p = constraint.processes.at(proc);
+    auto name = p.prettyName();
+    if(name.isEmpty())
+      name = p.prettyShortName();
     QAction* procAct
-        = new QAction{proc.processModel().prettyName(), new_processes_submenu};
+        = new QAction{name, new_processes_submenu};
     QObject::connect(procAct, &QAction::triggered, [&]() {
       auto cmd = new Scenario::Command::AddLayerInNewSlot{
-          slotm.parentConstraint(), proc.processModel().id()};
+          constraint, p.id()};
       CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
     });
     new_processes_submenu->addAction(procAct);
@@ -88,8 +98,8 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
   // Then removal of slot
   auto removeSlotAct = new QAction{tr("Remove this slot"), nullptr};
-  QObject::connect(removeSlotAct, &QAction::triggered, [&]() {
-    auto cmd = new Scenario::Command::RemoveSlotFromRack{slotm};
+  QObject::connect(removeSlotAct, &QAction::triggered, [&,slot_path]() {
+    auto cmd = new Scenario::Command::RemoveSlotFromRack{slot_path};
     CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
   });
   menu.addAction(removeSlotAct);
@@ -99,20 +109,21 @@ void ScenarioContextMenuManager::createSlotContextMenu(
   // Then Add process in this slot
   auto existing_processes_submenu
       = menu.addMenu(tr("Add existing process in this slot"));
-  for (const Process::ProcessModel& proc : slotm.parentConstraint().processes)
+  for (const Process::ProcessModel& p : constraint.processes)
   {
     // OPTIMIZEME by filtering before.
-    if (std::none_of(
-            slotm.layers.begin(), slotm.layers.end(),
-            [&](const Process::LayerModel& layer) {
-              return &layer.processModel() == &proc;
+    if (ossia::none_of(slot.processes,
+            [&] (const Id<Process::ProcessModel>& layer) {
+              return layer == p.id();
             }))
     {
+      auto name = p.prettyName();
+      if(name.isEmpty())
+        name = p.prettyShortName();
       QAction* procAct
-          = new QAction{proc.prettyName(), existing_processes_submenu};
-      QObject::connect(procAct, &QAction::triggered, [&]() {
-
-        auto cmd2 = new Scenario::Command::AddLayerModelToSlot{slotm, proc};
+          = new QAction{name, existing_processes_submenu};
+      QObject::connect(procAct, &QAction::triggered, [&, slot_path] () mutable {
+        auto cmd2 = new Scenario::Command::AddLayerModelToSlot{std::move(slot_path), p};
         CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd2);
       });
       existing_processes_submenu->addAction(procAct);
@@ -121,13 +132,12 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
   auto addNewProcessInExistingSlot
       = new QAction{tr("Add new process in this slot"), &menu};
-  QObject::connect(addNewProcessInExistingSlot, &QAction::triggered, [&]() {
+  QObject::connect(addNewProcessInExistingSlot, &QAction::triggered, [&, slot_path]() {
     auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
     AddProcessDialog dialog{fact, qApp->activeWindow()};
 
     QObject::connect(
-        &dialog, &AddProcessDialog::okPressed, [&](const auto& proc) {
-          auto& constraint = slotm.parentConstraint();
+        &dialog, &AddProcessDialog::okPressed, [&, slot_path] (const auto& proc) mutable {
           QuietMacroCommandDispatcher<Scenario::Command::
                                           CreateProcessInExistingSlot>
               disp{ctx.commandStack};
@@ -138,7 +148,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
           disp.submitCommand(cmd1);
 
           auto cmd2 = new Scenario::Command::AddLayerModelToSlot(
-              slotm, constraint.processes.at(cmd1->processId()));
+              std::move(slot_path), constraint.processes.at(cmd1->processId()));
           cmd2->redo();
           disp.submitCommand(cmd2);
 
@@ -161,7 +171,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
           using cmd = Scenario::Command::CreateProcessInNewSlot;
           QuietMacroCommandDispatcher<cmd> disp{ctx.commandStack};
 
-          cmd::create(disp, slotm.parentConstraint(), slotm.rack(), proc);
+          cmd::create(disp, constraint, proc);
 
           disp.commit();
         });
@@ -169,6 +179,15 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     dialog.launchWindow();
   });
   menu.addAction(addNewProcessInNewSlot);
+}
+
+void ScenarioContextMenuManager::createSlotContextMenu(
+    const iscore::DocumentContext& docContext,
+    QMenu& menu,
+    const FullViewConstraintPresenter& slotp,
+    int slot_index)
+{
+
 }
 
 void ScenarioContextMenuManager::createLayerContextMenu(
@@ -181,15 +200,16 @@ void ScenarioContextMenuManager::createLayerContextMenu(
   using namespace iscore;
 
   bool has_slot_menu = false;
+
   // Fill with slot actions
-  if (auto slotp = dynamic_cast<SlotPresenter*>(pres.parent()))
+  if(auto small_view = dynamic_cast<TemporalConstraintPresenter*>(pres.parent()))
   {
     auto& context = pres.context().context;
-    if (context.selectionStack.currentSelection().toList().isEmpty())
+    //if (context.selectionStack.currentSelection().toList().isEmpty())
     {
       auto slotSubmenu = menu.addMenu(tr("Slot"));
       ScenarioContextMenuManager::createSlotContextMenu(
-          context, *slotSubmenu, *slotp);
+          context, *slotSubmenu, *small_view, small_view->indexOfSlot(pres));
       has_slot_menu = true;
     }
   }
@@ -197,7 +217,7 @@ void ScenarioContextMenuManager::createLayerContextMenu(
   // Then the process-specific part
   if (has_slot_menu)
   {
-    auto processMenu = menu.addMenu(tr("Process"));
+    auto processMenu = menu.addMenu(pres.model().prettyShortName());
     pres.fillContextMenu(*processMenu, pos, scenepos, lcmmgr);
   }
   else

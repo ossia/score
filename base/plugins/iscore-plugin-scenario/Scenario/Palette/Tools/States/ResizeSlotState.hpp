@@ -6,15 +6,10 @@
 
 #include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
 
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotOverlay.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
-
-#include <Scenario/Commands/Constraint/Rack/MoveSlot.hpp>
 #include <Scenario/Commands/Constraint/Rack/SwapSlots.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
@@ -100,7 +95,9 @@ public:
 
     connect(press, &QAbstractState::entered, [=]() {
       m_originalPoint = m_sm.scenePoint;
-      m_originalHeight = this->currentSlot.find().getHeight();
+
+      const ConstraintModel& cst = this->currentSlot.constraint.find();
+      m_originalHeight = cst.getSlotHeight(this->currentSlot);
     });
 
     connect(move, &QAbstractState::entered, [=]() {
@@ -108,8 +105,7 @@ public:
           20.0,
           m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
-      m_ongoingDispatcher.submitCommand(
-          Path<SlotModel>{this->currentSlot}, val);
+      m_ongoingDispatcher.submitCommand(this->currentSlot, val);
       return;
     });
 

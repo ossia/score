@@ -213,7 +213,7 @@ optional<iscore::Addon> makeAddon(
   }
 
   if (add.name.isEmpty() || add.path.isEmpty() || add.key.impl().is_nil())
-    return iscore::none;
+    return ossia::none;
 
   return add;
 }

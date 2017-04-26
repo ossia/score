@@ -1,5 +1,4 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -14,11 +13,8 @@
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintView.hpp>
+#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
@@ -110,9 +106,7 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
       con(m_constraintPresenter->model().duration,
           &ConstraintDurations::defaultDurationChanged, this,
           &DisplayedElementsPresenter::on_displayedConstraintDurationChanged));
-  m_connections.push_back(connect(
-      m_constraintPresenter, &FullViewConstraintPresenter::askUpdate, m_model,
-      &ScenarioDocumentPresenter::on_askUpdate));
+
   m_connections.push_back(connect(
       m_constraintPresenter, &FullViewConstraintPresenter::heightChanged, this,
       [&]() {
@@ -150,15 +144,10 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
 void DisplayedElementsPresenter::showConstraint()
 {
   // We set the focus on the main scenario.
-  if (m_constraintPresenter->rack()
-      && !m_constraintPresenter->rack()->getSlots().empty())
+  auto& rack = m_constraintPresenter->getSlots();
+  if (!rack.empty())
   {
-    const auto& slot = *m_constraintPresenter->rack()->getSlots().begin();
-    if (!slot.processes().empty())
-    {
-      const auto& slot_process = slot.processes().front();
-      emit requestFocusedPresenterChange(slot_process.presenter);
-    }
+    emit requestFocusedPresenterChange(rack.front().process.presenter);
   }
 
   m_constraintPresenter->updateHeight();
@@ -168,8 +157,7 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 {
   if (!m_constraintPresenter)
     return;
-  updateLength(m_constraintPresenter->abstractConstraintViewModel()
-                   .model()
+  updateLength(m_constraintPresenter->model()
                    .duration.defaultDuration()
                    .toPixels(r));
 
@@ -192,8 +180,7 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
     double size)
 {
   m_model->updateRect({qreal(ScenarioLeftSpace), 0,
-                       m_constraintPresenter->abstractConstraintViewModel()
-                           .model()
+                       m_constraintPresenter->model()
                            .duration.defaultDuration()
                            .toPixels(m_constraintPresenter->zoomRatio()),
                        size});

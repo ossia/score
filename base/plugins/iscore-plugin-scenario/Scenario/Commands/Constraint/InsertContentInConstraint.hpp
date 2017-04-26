@@ -16,7 +16,6 @@ class ProcessModel;
 }
 namespace Scenario
 {
-class RackModel;
 class ConstraintModel;
 
 namespace Command
@@ -45,7 +44,6 @@ private:
   Path<ConstraintModel> m_target;
   ExpandMode m_mode{ExpandMode::GrowShrink};
 
-  QMap<Id<RackModel>, Id<RackModel>> m_rackIds;
   QMap<Id<Process::ProcessModel>, Id<Process::ProcessModel>> m_processIds;
 };
 }

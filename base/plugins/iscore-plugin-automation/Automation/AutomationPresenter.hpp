@@ -1,7 +1,6 @@
 #pragma once
 #include <Curve/Process/CurveProcessPresenter.hpp>
 
-#include <Automation/AutomationLayerModel.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationView.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
@@ -13,23 +12,23 @@
 namespace Automation
 {
 class LayerPresenter final
-    : public Curve::CurveProcessPresenter<Layer, LayerView>
+    : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
 public:
   LayerPresenter(
       const Curve::Style& style,
-      const Layer& layer,
+      const ProcessModel& layer,
       LayerView* view,
       const Process::ProcessPresenterContext& context,
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
     // TODO instead have a prettyNameChanged signal.
-    con(m_layer.processModel(), &ProcessModel::addressChanged, this,
+    con(m_layer, &ProcessModel::addressChanged, this,
         &LayerPresenter::on_nameChanges);
-    con(m_layer.processModel(), &ProcessModel::tweenChanged, this,
+    con(m_layer, &ProcessModel::tweenChanged, this,
         &LayerPresenter::on_tweenChanges);
-    con(m_layer.processModel().metadata(), &iscore::ModelMetadata::NameChanged,
+    con(m_layer.metadata(), &iscore::ModelMetadata::NameChanged,
         this, &LayerPresenter::on_nameChanges);
 
     connect(
@@ -38,7 +37,7 @@ public:
     on_nameChanges();
     m_view->showName(true);
 
-    on_tweenChanges(m_layer.processModel().tween());
+    on_tweenChanges(m_layer.tween());
   }
 
 private:
@@ -56,12 +55,12 @@ private:
 
   void on_nameChanges()
   {
-    m_view->setDisplayedName(m_layer.processModel().prettyName());
+    m_view->setDisplayedName(m_layer.prettyName());
   }
 
   void on_dropReceived(const QMimeData& mime)
   {
-    auto& autom = this->layerModel().processModel();
+    auto& autom = this->model();
     // TODO refactor with AddressEditWidget
     if (mime.formats().contains(iscore::mime::addressettings()))
     {

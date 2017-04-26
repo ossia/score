@@ -12,7 +12,6 @@
 #include <Engine/Executor/BaseScenarioComponent.hpp>
 
 #include <Engine/Executor/ContextMenu/PlayFromConstraintInScenario.hpp>
-#include <Process/LayerModel.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioRecordInitData.hpp>
@@ -161,8 +160,7 @@ PlayContextMenu::PlayContextMenu(
 
     auto& pres
         = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
-    auto proc = safe_cast<Scenario::ProcessModel*>(
-        &pres.layerModel().processModel());
+    auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.model());
 
     exec_signals.startRecording(
         *proc,
@@ -183,8 +181,7 @@ PlayContextMenu::PlayContextMenu(
 
     auto& pres
         = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
-    auto proc = safe_cast<Scenario::ProcessModel*>(
-        &pres.layerModel().processModel());
+    auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.processModel());
 
     exec_signals.startRecordingMessages(
         *proc,

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <QLabel>
 
 
 namespace Automation

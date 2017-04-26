@@ -14,11 +14,7 @@
 
 class DataStream;
 class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
-class QObject;
+
 namespace Scenario
 {
 class TimeNodeModel;
@@ -32,7 +28,7 @@ class ISCORE_PLUGIN_LOOP_EXPORT ProcessModel final
       public Scenario::BaseScenarioContainer
 {
   ISCORE_SERIALIZE_FRIENDS
-  MODEL_METADATA_IMPL(Loop::ProcessModel)
+  PROCESS_METADATA_IMPL(Loop::ProcessModel)
 
 public:
   explicit ProcessModel(

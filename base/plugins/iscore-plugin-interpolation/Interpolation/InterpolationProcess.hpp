@@ -58,7 +58,7 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final
     : public Curve::CurveProcessModel
 {
   ISCORE_SERIALIZE_FRIENDS
-  MODEL_METADATA_IMPL(Interpolation::ProcessModel)
+  PROCESS_METADATA_IMPL(Interpolation::ProcessModel)
 
   Q_OBJECT
   Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress

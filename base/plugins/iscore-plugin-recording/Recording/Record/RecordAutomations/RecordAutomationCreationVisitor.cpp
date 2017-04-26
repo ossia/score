@@ -15,13 +15,13 @@ RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
   // Note : since we directly create the IDs here, we don't have to worry
   // about their generation.
   auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
-      Path<Scenario::ConstraintModel>(box.constraint),
+      box.constraint,
       Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
   cmd_proc->redo();
   auto& proc = box.constraint.processes.at(cmd_proc->processId());
   auto& autom = static_cast<Automation::ProcessModel&>(proc);
 
-  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{box.slot, proc};
+  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{Scenario::SlotPath{box.constraint, 0}, proc};
   cmd_layer->redo();
 
   autom.curve().clear();

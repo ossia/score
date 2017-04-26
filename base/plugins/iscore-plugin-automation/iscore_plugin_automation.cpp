@@ -1,5 +1,4 @@
 #include <Automation/AutomationColors.hpp>
-#include <Automation/AutomationLayerModel.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationPresenter.hpp>
 #include <Automation/AutomationView.hpp>
@@ -25,7 +24,7 @@ namespace Automation
 using AutomationFactory
     = Process::GenericProcessModelFactory<Automation::ProcessModel>;
 using AutomationLayerFactory = Curve::
-    CurveLayerFactory_T<Automation::ProcessModel, Automation::Layer, Automation::LayerPresenter, Automation::LayerView, Automation::Colors>;
+    CurveLayerFactory_T<Automation::ProcessModel, Automation::LayerPresenter, Automation::LayerView, Automation::Colors>;
 }
 
 iscore_plugin_automation::iscore_plugin_automation() = default;
@@ -37,7 +36,10 @@ iscore_plugin_automation::factories(
     const iscore::InterfaceKey& key) const
 {
   return instantiate_factories<iscore::ApplicationContext,
-      FW<Process::ProcessModelFactory, Automation::AutomationFactory>, FW<Process::LayerFactory, Automation::AutomationLayerFactory>, FW<Inspector::InspectorWidgetFactory, Automation::StateInspectorFactory, Automation::PointInspectorFactory>, FW<Process::InspectorWidgetDelegateFactory, Automation::InspectorFactory>>(
+      FW<Process::ProcessModelFactory, Automation::AutomationFactory>,
+      FW<Process::LayerFactory, Automation::AutomationLayerFactory>,
+      FW<Inspector::InspectorWidgetFactory, Automation::StateInspectorFactory, Automation::PointInspectorFactory>,
+      FW<Process::InspectorWidgetDelegateFactory, Automation::InspectorFactory>>(
       ctx, key);
 }
 

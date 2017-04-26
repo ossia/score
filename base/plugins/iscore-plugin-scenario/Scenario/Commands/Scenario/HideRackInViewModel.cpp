@@ -1,4 +1,4 @@
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <algorithm>
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -11,41 +11,32 @@ namespace Scenario
 {
 namespace Command
 {
-
-HideRackInViewModel::HideRackInViewModel(Path<ConstraintViewModel>&& path)
-    : m_constraintViewPath{std::move(path)}
-{
-  auto& constraint_vm = m_constraintViewPath.find();
-  m_constraintPreviousId = constraint_vm.shownRack();
-}
-
-HideRackInViewModel::HideRackInViewModel(
-    const ConstraintViewModel& constraint_vm)
+HideRack::HideRack(
+    const Scenario::ConstraintModel& constraint_vm)
     : m_constraintViewPath{constraint_vm}
 {
-  m_constraintPreviousId = constraint_vm.shownRack();
 }
 
-void HideRackInViewModel::undo() const
+void HideRack::undo() const
 {
   auto& vm = m_constraintViewPath.find();
-  vm.showRack(m_constraintPreviousId);
+  vm.setSmallViewVisible(true);
 }
 
-void HideRackInViewModel::redo() const
+void HideRack::redo() const
 {
   auto& vm = m_constraintViewPath.find();
-  vm.hideRack();
+  vm.setSmallViewVisible(false);
 }
 
-void HideRackInViewModel::serializeImpl(DataStreamInput& s) const
+void HideRack::serializeImpl(DataStreamInput& s) const
 {
-  s << m_constraintViewPath << m_constraintPreviousId;
+  s << m_constraintViewPath;
 }
 
-void HideRackInViewModel::deserializeImpl(DataStreamOutput& s)
+void HideRack::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_constraintViewPath >> m_constraintPreviousId;
+  s >> m_constraintViewPath;
 }
 }
 }

@@ -3,10 +3,6 @@
 #include <QRect>
 #include <QSize>
 
-namespace Process
-{
-class LayerModel;
-}
 class ProcessPanelPresenter;
 class QPainter;
 class QStyleOptionGraphicsItem;

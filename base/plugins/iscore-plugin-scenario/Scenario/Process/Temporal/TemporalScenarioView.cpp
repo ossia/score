@@ -16,7 +16,7 @@ namespace Scenario
 TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent)
     : LayerView{parent}
 {
-  this->setFlags(ItemIsSelectable | ItemIsFocusable);
+  this->setFlags(ItemIsSelectable | ItemIsFocusable | ItemClipsChildrenToShape);
   setAcceptDrops(true);
 
   this->setZValue(1);
@@ -65,7 +65,7 @@ void TemporalScenarioView::drawDragLine(QPointF left, QPointF right)
 
 void TemporalScenarioView::stopDrawDragLine()
 {
-  m_dragLine = iscore::none;
+  m_dragLine = ossia::none;
 }
 
 void TemporalScenarioView::movedAsked(const QPointF& p)

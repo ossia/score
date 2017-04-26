@@ -4,7 +4,7 @@
 #include <QObject>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ExecutionState.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
 #include <iscore/model/Entity.hpp>
 #include <iscore/selection/Selectable.hpp>
@@ -25,8 +25,6 @@ class JSONObject;
 namespace Scenario
 {
 class StateModel;
-class ConstraintViewModel;
-class FullViewConstraintViewModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
     : public iscore::Entity<ConstraintModel>,
@@ -35,15 +33,13 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
   Q_OBJECT
 
   ISCORE_SERIALIZE_FRIENDS
-
-  // TODO must go in view model
+  friend struct ConstraintSaveData;
   Q_PROPERTY(double heightPercentage READ heightPercentage WRITE
                  setHeightPercentage NOTIFY heightPercentageChanged)
 
 public:
   /** Properties of the class **/
   iscore::EntityMap<Process::ProcessModel> processes;
-  iscore::EntityMap<RackModel> racks;
 
   Selectable selection;
   ModelConsistency consistency{nullptr};
@@ -52,7 +48,6 @@ public:
   /** The class **/
   ConstraintModel(
       const Id<ConstraintModel>&,
-      const Id<ConstraintViewModel>& fullViewId,
       double yPos,
       QObject* parent);
 
@@ -65,25 +60,10 @@ public:
       QObject* parent);
 
   // Serialization
-  template <typename Deserializer>
-  ConstraintModel(Deserializer&& vis, QObject* parent) : Entity{vis, parent}
-  {
-    initConnections();
-    vis.writeTo(*this);
-  }
-
-  // Factories for the view models.
-  template <typename ViewModelType> // Arg might be an id or a datastream [
-  ViewModelType*
-  makeConstraintViewModel(const Id<ConstraintViewModel>& id, QObject* parent)
-  {
-    auto viewmodel = new ViewModelType{id, *this, parent};
-    setupConstraintViewModel(viewmodel);
-    return viewmodel;
-  }
-
-  // Note : the Constraint does not have ownership (it's generally the Slot)
-  void setupConstraintViewModel(ConstraintViewModel* viewmodel);
+  ConstraintModel(DataStream::Deserializer& vis, QObject* parent);
+  ConstraintModel(JSONObject::Deserializer& vis, QObject* parent);
+  ConstraintModel(DataStream::Deserializer&& vis, QObject* parent);
+  ConstraintModel(JSONObject::Deserializer&& vis, QObject* parent);
 
   const Id<StateModel>& startState() const;
   void setStartState(const Id<StateModel>& eventId);
@@ -91,25 +71,11 @@ public:
   const Id<StateModel>& endState() const;
   void setEndState(const Id<StateModel>& endState);
 
-  // Here we won't remove / add things from the outside so it is safe to
-  // return a reference
-  const QVector<ConstraintViewModel*>& viewModels() const
-  {
-    return m_constraintViewModels;
-  }
-
   const TimeVal& startDate() const;
   void setStartDate(const TimeVal& start);
   void translate(const TimeVal& deltaTime);
 
   double heightPercentage() const;
-
-  FullViewConstraintViewModel* fullView() const
-  {
-    return m_fullViewModel;
-  }
-
-  void setFullView(FullViewConstraintViewModel* fv);
 
   void startExecution();
   void stopExecution();
@@ -118,14 +84,47 @@ public:
 
   void setHeightPercentage(double arg);
   void setExecutionState(ConstraintExecutionState);
+
   ConstraintExecutionState executionState() const
   {
     return m_executionState;
   }
-signals:
-  void viewModelCreated(const ConstraintViewModel&);
-  void viewModelRemoved(const QObject*);
 
+  // Full view properties:
+  ZoomRatio zoom() const;
+  void setZoom(const ZoomRatio& zoom);
+
+  QRectF visibleRect() const;
+  void setVisibleRect(const QRectF& value);
+
+  void setSmallViewVisible(bool);
+  bool smallViewVisible() const;
+
+  const Rack& smallView() const { return m_smallView; }
+  const FullRack& fullView() const { return m_fullView; }
+
+  void clearSmallView();
+  void clearFullView();
+  void replaceSmallView(const Rack& other);
+  void replaceFullView(const FullRack& other);
+
+  // Adding and removing slots and layers is only for the small view
+  void addSlot(Slot s);
+  void addSlot(Slot s, int pos);
+  void removeSlot(int pos);
+
+  void addLayer(int slot, Id<Process::ProcessModel>);
+  void removeLayer(int slot, Id<Process::ProcessModel>);
+
+  void putLayerToFront(int slot, Id<Process::ProcessModel>);
+  void putLayerToFront(int slot, ossia::none_t);
+
+  void swapSlots(int pos1, int pos2, Slot::RackView fullview);
+
+  double getSlotHeight(const SlotId& slot) const;
+  void setSlotHeight(const SlotId& slot, double height);
+
+signals:
   void heightPercentageChanged(double);
 
   void startDateChanged(const TimeVal&);
@@ -135,21 +134,37 @@ signals:
   void executionStarted();
   void executionStopped();
 
-private:
-  void on_destroyedViewModel(ConstraintViewModel* obj);
-  void initConnections();
-  void on_rackAdded(const RackModel& rack);
+  void smallViewVisibleChanged(bool fv);
 
-  // The small view constraint view models that show this constraint
-  // The constraint does not have ownership of these: their parent (in the Qt
-  // sense) are
-  // the scenario view models
-  QVector<ConstraintViewModel*> m_constraintViewModels;
+  void rackChanged(Slot::RackView fv);
+  void slotAdded(SlotId);
+  void slotRemoved(SlotId);
+  void slotResized(SlotId);
+  void slotsSwapped(int slot1, int slot2, Slot::RackView fv);
+
+  void layerAdded(SlotId, Id<Process::ProcessModel>);
+  void layerRemoved(SlotId, Id<Process::ProcessModel>);
+  void frontLayerChanged(int, OptionalId<Process::ProcessModel>);
+
+private:
+  void on_addProcess(const Process::ProcessModel&);
+  void on_removeProcess(const Process::ProcessModel&);
+  void initConnections();
+
+  const Slot* findSmallViewSlot(int slot) const;
+  const Slot& getSmallViewSlot(int slot) const;
+  Slot& getSmallViewSlot(int slot);
+
+  const FullSlot* findFullViewSlot(int slot) const;
+  const FullSlot& getFullViewSlot(int slot) const;
+  FullSlot& getFullViewSlot(int slot);
 
   // Model for the full view.
   // Note : it is also present in m_constraintViewModels.
-  FullViewConstraintViewModel* m_fullViewModel{};
 
+  Rack m_smallView;
+
+  FullRack m_fullView;
   Id<StateModel> m_startState;
   Id<StateModel> m_endState;
 
@@ -157,8 +172,20 @@ private:
 
   double m_heightPercentage{0.5};
 
+  ZoomRatio m_zoom{-1};
+  QRectF m_center{};
+  bool m_smallViewShown{};
   ConstraintExecutionState m_executionState{};
+
+  friend struct SlotPath;
 };
+
+
+ISCORE_PLUGIN_SCENARIO_EXPORT
+bool isInFullView(const Scenario::ConstraintModel& cstr);
+ISCORE_PLUGIN_SCENARIO_EXPORT
+bool isInFullView(const Process::ProcessModel& cstr);
+
 }
 
 DEFAULT_MODEL_METADATA(Scenario::ConstraintModel, "Constraint")

@@ -6,9 +6,7 @@
 #include <QObject>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
@@ -26,7 +24,6 @@
 #include <QString>
 #include <vector>
 
-#include <Process/LayerModel.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
 
@@ -49,9 +46,9 @@ public:
   AddProcessToConstraintBase() = default;
   AddProcessToConstraintBase(
       const ConstraintModel& constraint,
-      UuidKey<Process::ProcessModelFactory>
-          process)
-      : m_addProcessCommand{constraint, getStrongId(constraint.processes),
+      UuidKey<Process::ProcessModel> process)
+      : m_addProcessCommand{constraint,
+                            getStrongId(constraint.processes),
                             process}
   {
   }
@@ -64,7 +61,7 @@ public:
   {
     return m_addProcessCommand.processId();
   }
-  const UuidKey<Process::ProcessModelFactory>& processKey() const
+  const UuidKey<Process::ProcessModel>& processKey() const
   {
     return m_addProcessCommand.processKey();
   }
@@ -100,7 +97,7 @@ public:
 
   AddProcessToConstraint(
       const ConstraintModel& constraint,
-      const UuidKey<Process::ProcessModelFactory>& process)
+      const UuidKey<Process::ProcessModel>& process)
       : AddProcessToConstraintBase{constraint, process}
   {
     auto& fact = context.interfaces<Process::LayerFactoryList>();
@@ -148,12 +145,6 @@ class NotBaseConstraint
 class IsBaseConstraint
 {
 };
-class HasNoRacks
-{
-};
-class HasRacks
-{
-};
 class HasNoSlots
 {
 };
@@ -165,98 +156,11 @@ template <typename... Traits>
 class AddProcessDelegate;
 
 template <>
-class AddProcessDelegate<HasNoRacks>
-{
-private:
-  using proc_t = AddProcessToConstraint<AddProcessDelegate<HasNoRacks>>;
-  proc_t& m_cmd;
-
-public:
-  static const CommandKey& static_key()
-  {
-    static const CommandKey var{"AddProcessDelegate_NoRacks"};
-    return var;
-  }
-
-  AddProcessDelegate<HasNoRacks>(proc_t& cmd) : m_cmd{cmd}
-  {
-  }
-
-  void init(
-      const Process::LayerFactoryList& fact, const ConstraintModel& constraint)
-  {
-    m_createdRackId = getStrongId(constraint.racks);
-    m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
-    m_createdLayerId
-        = Id<Process::LayerModel>(iscore::id_generator::getFirstId());
-    m_layerConstructionData = fact.findDefaultFactory(m_cmd.processKey())
-                                  ->makeStaticLayerConstructionData();
-  }
-
-  void undo(ConstraintModel& constraint) const
-  {
-    auto& rack = constraint.racks.at(m_createdRackId);
-
-    // Removing the slot will remove the layer
-    rack.slotmodels.remove(m_createdSlotId);
-    constraint.racks.remove(m_createdRackId);
-  }
-
-  void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
-  {
-    // TODO refactor with AddRackToConstraint
-    auto rack = new RackModel{m_createdRackId, &constraint};
-    constraint.racks.add(rack);
-
-    // If it is the first rack created,
-    // it is also assigned to all the views of the constraint.
-    if (constraint.racks.size() == 1)
-    {
-      for (const auto& vm : constraint.viewModels())
-      {
-        vm->showRack(m_createdRackId);
-      }
-    }
-
-    // Slot
-    auto h
-        = m_cmd.context.settings<Scenario::Settings::Model>().getSlotHeight();
-    auto slot = new SlotModel{m_createdSlotId, h, rack};
-    rack->addSlot(slot);
-
-    // Process View
-    auto& procs
-        = m_cmd.context.interfaces<Process::LayerFactoryList>();
-    auto fact = procs.findDefaultFactory(proc.concreteKey());
-    slot->layers.add(
-        fact->make(proc, m_createdLayerId, m_layerConstructionData, slot));
-  }
-
-  void serialize(DataStreamInput& s) const
-  {
-    s << m_createdRackId << m_createdSlotId << m_createdLayerId
-      << m_layerConstructionData;
-  }
-
-  void deserialize(DataStreamOutput& s)
-  {
-    s >> m_createdRackId >> m_createdSlotId >> m_createdLayerId
-        >> m_layerConstructionData;
-  }
-
-private:
-  Id<RackModel> m_createdRackId;
-  Id<SlotModel> m_createdSlotId;
-  Id<Process::LayerModel> m_createdLayerId;
-  QByteArray m_layerConstructionData;
-};
-
-template <>
-class AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>
+class AddProcessDelegate<HasNoSlots, NotBaseConstraint>
 {
 private:
   using proc_t
-      = AddProcessToConstraint<AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>>;
+      = AddProcessToConstraint<AddProcessDelegate<HasNoSlots, NotBaseConstraint>>;
   proc_t& m_cmd;
 
 public:
@@ -267,7 +171,7 @@ public:
     return var;
   }
 
-  AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>(proc_t& cmd)
+  AddProcessDelegate<HasNoSlots, NotBaseConstraint>(proc_t& cmd)
       : m_cmd{cmd}
   {
   }
@@ -275,64 +179,38 @@ public:
   void init(
       const Process::LayerFactoryList& fact, const ConstraintModel& constraint)
   {
-    m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
-
-    m_layerConstructionData = fact.findDefaultFactory(m_cmd.processKey())
-                                  ->makeStaticLayerConstructionData();
-    m_createdLayerId
-        = Id<Process::LayerModel>(iscore::id_generator::getFirstId());
   }
 
   void undo(ConstraintModel& constraint) const
   {
-    ISCORE_ASSERT(!constraint.racks.empty());
-    auto& firstRack = *constraint.racks.begin();
-
-    // Removing the slot will remove the layer
-    firstRack.slotmodels.remove(m_createdSlotId);
+    constraint.removeSlot(int(constraint.smallView().size() - 1));
   }
 
   void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
   {
-    ISCORE_ASSERT(!constraint.racks.empty());
-    auto& firstRack = *constraint.racks.begin();
-
-    // Slot
     auto h
         = m_cmd.context.settings<Scenario::Settings::Model>().getSlotHeight();
-    auto slot = new SlotModel{m_createdSlotId, h, &firstRack};
-    firstRack.addSlot(slot);
-
-    // Layer
-    auto& procs
-        = m_cmd.context.interfaces<Process::LayerFactoryList>();
-    auto fact = procs.findDefaultFactory(proc.concreteKey());
-    slot->layers.add(
-        fact->make(proc, m_createdLayerId, m_layerConstructionData, slot));
+    constraint.addSlot(Slot{{proc.id()}, proc.id(), h});
+    constraint.setSmallViewVisible(true);
   }
 
   void serialize(DataStreamInput& s) const
   {
-    s << m_createdSlotId << m_createdLayerId << m_layerConstructionData;
   }
 
   void deserialize(DataStreamOutput& s)
   {
-    s >> m_createdSlotId >> m_createdLayerId >> m_layerConstructionData;
   }
 
 private:
-  Id<SlotModel> m_createdSlotId;
-  Id<Process::LayerModel> m_createdLayerId;
-  QByteArray m_layerConstructionData;
 };
 
 template <>
-class AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>
+class AddProcessDelegate<HasSlots, NotBaseConstraint>
 {
 private:
   using proc_t
-      = AddProcessToConstraint<AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>>;
+      = AddProcessToConstraint<AddProcessDelegate<HasSlots, NotBaseConstraint>>;
   proc_t& m_cmd;
 
 public:
@@ -343,73 +221,43 @@ public:
     return var;
   }
 
-  AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>(proc_t& cmd)
+  AddProcessDelegate<HasSlots, NotBaseConstraint>(proc_t& cmd)
       : m_cmd{cmd}
   {
   }
 
   void init(
-      const Process::LayerFactoryList& fact, const ConstraintModel& constraint)
+      const Process::LayerFactoryList& fact,
+      const ConstraintModel& constraint)
   {
-    // TODO these init functions should instead directly take a layerfactory.
-    ISCORE_ASSERT(!constraint.racks.empty());
-    const auto& firstRack = *constraint.racks.begin();
-
-    ISCORE_ASSERT(!firstRack.slotmodels.empty());
-    const auto& firstSlot = *firstRack.slotmodels.begin();
-
-    m_layerConstructionData = fact.findDefaultFactory(m_cmd.processKey())
-                                  ->makeStaticLayerConstructionData();
-    m_createdLayerId = getStrongId(firstSlot.layers);
   }
 
   void undo(ConstraintModel& constraint) const
   {
-    ISCORE_ASSERT(!constraint.racks.empty());
-    const auto& firstRack = *constraint.racks.begin();
-
-    ISCORE_ASSERT(!firstRack.slotmodels.empty());
-    auto& firstSlot = *firstRack.slotmodels.begin();
-
-    firstSlot.layers.remove(m_createdLayerId);
+    constraint.removeLayer(0, m_cmd.processId());
   }
 
   void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
   {
-    ISCORE_ASSERT(!constraint.racks.empty());
-    const auto& firstRack = *constraint.racks.begin();
-
-    ISCORE_ASSERT(!firstRack.slotmodels.empty());
-    auto& firstSlot = *firstRack.slotmodels.begin();
-
-    auto& procs
-        = m_cmd.context.interfaces<Process::LayerFactoryList>();
-    auto fact = procs.findDefaultFactory(proc.concreteKey());
-    firstSlot.layers.add(fact->make(
-        proc, m_createdLayerId, m_layerConstructionData, &firstSlot));
+    constraint.addLayer(0, m_cmd.processId());
   }
 
   void serialize(DataStreamInput& s) const
   {
-    s << m_createdLayerId << m_layerConstructionData;
   }
 
   void deserialize(DataStreamOutput& s)
   {
-    s >> m_createdLayerId >> m_layerConstructionData;
   }
 
-private:
-  Id<Process::LayerModel> m_createdLayerId;
-  QByteArray m_layerConstructionData;
 };
 
 template <>
-class AddProcessDelegate<HasRacks, IsBaseConstraint>
+class AddProcessDelegate<IsBaseConstraint>
 {
 
   using proc_t
-      = AddProcessToConstraint<AddProcessDelegate<HasRacks, IsBaseConstraint>>;
+      = AddProcessToConstraint<AddProcessDelegate<IsBaseConstraint>>;
 
 public:
   static const CommandKey& static_key()
@@ -419,7 +267,7 @@ public:
     return var;
   }
 
-  AddProcessDelegate<HasRacks, IsBaseConstraint>(const proc_t&)
+  AddProcessDelegate<IsBaseConstraint>(const proc_t&)
   {
   }
 
@@ -449,46 +297,37 @@ public:
 inline Scenario::Command::AddProcessToConstraintBase*
 make_AddProcessToConstraint(
     const ConstraintModel& constraint,
-    const UuidKey<Process::ProcessModelFactory>& process)
+    const UuidKey<Process::ProcessModel>& process)
 {
   auto isScenarioModel
       = dynamic_cast<Scenario::ProcessModel*>(constraint.parent());
-  auto noRackes = constraint.racks.empty();
 
   Scenario::Command::AddProcessToConstraintBase* cmd{};
-  if (noRackes)
+
+  auto noSlots = constraint.smallView().empty();
+  if (isScenarioModel)
   {
-    cmd = new AddProcessToConstraint<AddProcessDelegate<HasNoRacks>>{
-        constraint, process};
-  }
-  else
-  {
-    auto& firstRack = *constraint.racks.begin();
-    auto noSlots = firstRack.slotmodels.empty();
-    if (isScenarioModel)
+    if (noSlots)
     {
-      if (noSlots)
-      {
-        cmd = new AddProcessToConstraint<AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>>{
-            constraint, process};
-      }
-      else
-      {
-        cmd = new AddProcessToConstraint<AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>>{
-            constraint, process};
-      }
+      cmd = new AddProcessToConstraint<AddProcessDelegate<HasNoSlots, NotBaseConstraint>>{
+        constraint, process};
     }
     else
     {
-      if (noSlots)
-      {
-        ISCORE_TODO;
-      }
-      else
-      {
-        cmd = new AddProcessToConstraint<AddProcessDelegate<HasRacks, IsBaseConstraint>>{
-            constraint, process};
-      }
+      cmd = new AddProcessToConstraint<AddProcessDelegate<HasSlots, NotBaseConstraint>>{
+        constraint, process};
+    }
+  }
+  else
+  {
+    if (noSlots)
+    {
+      ISCORE_TODO;
+    }
+    else
+    {
+      cmd = new AddProcessToConstraint<AddProcessDelegate<IsBaseConstraint>>{
+        constraint, process};
     }
   }
 
@@ -504,15 +343,14 @@ class AddProcessInNewBoxMacro final : public iscore::AggregateCommand
 
 // To make the preprocessor happy
 using AddProcessDelegate_HasNoSlots_HasRacks_NotBaseConstraint
-    = AddProcessDelegate<HasNoSlots, HasRacks, NotBaseConstraint>;
+    = AddProcessDelegate<HasNoSlots, NotBaseConstraint>;
 using AddProcessDelegate_HasSlots_HasRacks_NotBaseConstraint
-    = AddProcessDelegate<HasSlots, HasRacks, NotBaseConstraint>;
+    = AddProcessDelegate<HasSlots, NotBaseConstraint>;
 using AddProcessDelegate_HasRacks_BaseConstraint
-    = AddProcessDelegate<HasRacks, IsBaseConstraint>;
+    = AddProcessDelegate<IsBaseConstraint>;
 }
 }
 
-ISCORE_COMMAND_DECL_T(AddProcessToConstraint<AddProcessDelegate<HasNoRacks>>)
 ISCORE_COMMAND_DECL_T(
     AddProcessToConstraint<AddProcessDelegate_HasNoSlots_HasRacks_NotBaseConstraint>)
 ISCORE_COMMAND_DECL_T(

@@ -3,7 +3,6 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include "AutomationLayerModel.hpp"
 #include "AutomationModel.hpp"
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <Automation/AutomationProcessMetadata.hpp>
@@ -19,10 +18,7 @@
 #include <iscore/tools/MapCopy.hpp>
 #include <iscore/model/Identifier.hpp>
 
-namespace Process
-{
-class LayerModel;
-}
+
 namespace Process
 {
 class ProcessModel;

@@ -84,6 +84,13 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QPen ConstraintPlayPen;
   QPen ConstraintPlayDashPen;
 
+  QPen ConstraintBraceSelected;
+  QPen ConstraintBraceWarning;
+  QPen ConstraintBraceInvalid;
+  QPen ConstraintBrace;
+
+  QPen ConstraintHeaderSeparator;
+
   QPen TimenodePen;
   QBrush TimenodeBrush;
 
@@ -98,7 +105,15 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 
   QPen TimeRulerLargePen, TimeRulerSmallPen;
 
+  QPen SlotHandlePen;
+
+  QFont Bold10Pt;
+  QFont Medium7Pt;
+  QFont Medium8Pt;
+  QFont Medium12Pt;
+
+  QBrush DefaultBrush;
 private:
   ScenarioStyle() noexcept;
-  void update();
+  void update(const iscore::Skin& skin);
 };

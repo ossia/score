@@ -13,10 +13,7 @@
 #include <QVariantMap>
 class DataStream;
 class JSONObject;
-namespace Process
-{
-class LayerModel;
-}
+
 
 class QObject;
 
@@ -25,7 +22,7 @@ namespace JS
 class ProcessModel final : public Process::ProcessModel
 {
   ISCORE_SERIALIZE_FRIENDS
-  MODEL_METADATA_IMPL(JS::ProcessModel)
+  PROCESS_METADATA_IMPL(JS::ProcessModel)
   Q_OBJECT
 public:
   explicit ProcessModel(

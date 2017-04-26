@@ -1,9 +1,8 @@
 #include "InterpolationView.hpp"
-#include <Process/Style/ProcessFonts.hpp>
 #include <QGraphicsSceneMouseEvent>
 #include <iscore/model/Skin.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 
-const int fontSize = 8;
 namespace Interpolation
 {
 View::View(QGraphicsItem* parent) : Process::LayerView{parent}
@@ -11,10 +10,8 @@ View::View(QGraphicsItem* parent) : Process::LayerView{parent}
   setZValue(1);
   setFlags(ItemIsSelectable | ItemIsFocusable);
   setAcceptDrops(true);
-  auto f = iscore::Skin::instance().SansFont;
-  f.setPointSize(fontSize);
 
-  m_textcache.setFont(f);
+  m_textcache.setFont(ScenarioStyle::instance().Medium8Pt);
   m_textcache.setCacheEnabled(true);
 }
 
@@ -39,7 +36,7 @@ void View::paint_impl(QPainter* painter) const
 #if !defined(ISCORE_IEEE_SKIN)
   if (m_showName)
   {
-    m_textcache.draw(painter, QPointF{5., double(fontSize)});
+    m_textcache.draw(painter, QPointF{5., 8.});
   }
 #endif
 }

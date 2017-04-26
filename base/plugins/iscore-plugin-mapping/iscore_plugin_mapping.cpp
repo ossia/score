@@ -1,5 +1,4 @@
 #include <Mapping/MappingColors.hpp>
-#include <Mapping/MappingLayerModel.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <Mapping/MappingPresenter.hpp>
 #include <Mapping/MappingView.hpp>
@@ -24,7 +23,7 @@ namespace Mapping
 using MappingFactory
     = Process::GenericProcessModelFactory<Mapping::ProcessModel>;
 using MappingLayerFactory = Curve::
-    CurveLayerFactory_T<Mapping::ProcessModel, Mapping::Layer, Mapping::LayerPresenter, Mapping::LayerView, Mapping::Colors>;
+    CurveLayerFactory_T<Mapping::ProcessModel, Mapping::LayerPresenter, Mapping::LayerView, Mapping::Colors>;
 }
 
 #include <iscore_plugin_mapping_commands_files.hpp>

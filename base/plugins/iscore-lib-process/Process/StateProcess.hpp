@@ -32,6 +32,7 @@ public:
 
   // A user-friendly text to show to the users
   virtual QString prettyName() const = 0;
+  virtual QString prettyShortName() const = 0;
 };
 }
 

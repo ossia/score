@@ -1,4 +1,4 @@
-#include <Midi/MidiLayer.hpp>
+
 #include <Midi/MidiNoteView.hpp>
 #include <Midi/MidiPresenter.hpp>
 #include <Midi/MidiProcess.hpp>
@@ -21,7 +21,7 @@
 namespace Midi
 {
 Presenter::Presenter(
-    const Layer& layer,
+    const Midi::ProcessModel& layer,
     View* view,
     const Process::ProcessPresenterContext& ctx,
     QObject* parent)
@@ -32,7 +32,7 @@ Presenter::Presenter(
 {
   putToFront();
 
-  auto& model = layer.processModel();
+  auto& model = layer;
 
   con(model, &ProcessModel::notesChanged, this, [&]() {
 
@@ -53,7 +53,7 @@ Presenter::Presenter(
 
   connect(m_view, &View::doubleClicked, this, [&](QPointF pos) {
     CommandDispatcher<>{context().context.commandStack}.submitCommand(
-        new AddNote{layer.processModel(),
+        new AddNote{layer,
                     noteAtPos(pos, m_view->boundingRect())});
   });
 
@@ -63,7 +63,7 @@ Presenter::Presenter(
 
   connect(m_view, &View::deleteRequested, this, [&] {
     CommandDispatcher<>{context().context.commandStack}.submitCommand(
-        new RemoveNotes{m_layer.processModel(), selectedNotes()});
+        new RemoveNotes{m_layer, selectedNotes()});
 
   });
 
@@ -108,14 +108,14 @@ void Presenter::parentGeometryChanged()
 {
 }
 
-const Process::LayerModel& Presenter::layerModel() const
+const Midi::ProcessModel& Presenter::model() const
 {
   return m_layer;
 }
 
 const Id<Process::ProcessModel>& Presenter::modelId() const
 {
-  return m_layer.processModel().id();
+  return m_layer.id();
 }
 
 void Presenter::setupNote(NoteView& v)
@@ -143,7 +143,7 @@ void Presenter::setupNote(NoteView& v)
         127);
 
     m_ongoing.submitCommand(
-        m_layer.processModel(),
+        m_layer,
         selectedNotes(),
         note - v.note.pitch(),
         newPos.x() / rect.width() - v.note.start());
@@ -155,7 +155,7 @@ void Presenter::setupNote(NoteView& v)
 
     auto dt = newScale - v.note.duration();
     CommandDispatcher<>{context().context.commandStack}.submitCommand(
-        new ScaleNotes{m_layer.processModel(), selectedNotes(), dt});
+        new ScaleNotes{m_layer, selectedNotes(), dt});
   });
 }
 

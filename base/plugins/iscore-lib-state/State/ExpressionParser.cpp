@@ -463,7 +463,7 @@ struct Expression_builder : boost::static_visitor<void>
 };
 }
 
-iscore::optional<State::Expression> State::parseExpression(const std::string& input)
+ossia::optional<State::Expression> State::parseExpression(const std::string& input)
 {
   auto f(std::begin(input)), l(std::end(input));
   auto p = std::make_unique<Expression_parser<decltype(f)>>();
@@ -496,12 +496,12 @@ iscore::optional<State::Expression> State::parseExpression(const std::string& in
   }
 }
 
-iscore::optional<State::Expression> State::parseExpression(const QString& str)
+ossia::optional<State::Expression> State::parseExpression(const QString& str)
 {
   return parseExpression(str.toStdString());
 }
 
-iscore::optional<State::Value> State::parseValue(const std::string& input)
+ossia::optional<State::Value> State::parseValue(const std::string& input)
 {
   auto f(std::begin(input)), l(std::end(input));
   Value_parser<decltype(f)> p;
@@ -529,7 +529,7 @@ iscore::optional<State::Value> State::parseValue(const std::string& input)
   }
 }
 
-iscore::optional<State::Address> State::parseAddress(const QString& str)
+ossia::optional<State::Address> State::parseAddress(const QString& str)
 {
   auto input = str.toStdString();
   auto f(std::begin(input)), l(std::end(input));
@@ -558,7 +558,7 @@ iscore::optional<State::Address> State::parseAddress(const QString& str)
   }
 }
 
-iscore::optional<State::AddressAccessor>
+ossia::optional<State::AddressAccessor>
 State::parseAddressAccessor(const QString& str)
 {
   auto input = str.toStdString();
@@ -576,7 +576,7 @@ State::parseAddressAccessor(const QString& str)
     else
     {
       // We try to get an address instead.
-      iscore::optional<State::Address> res = State::parseAddress(str);
+      ossia::optional<State::Address> res = State::parseAddress(str);
       if (res)
       {
         result.address = (*res);

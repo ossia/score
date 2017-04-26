@@ -19,18 +19,8 @@ namespace iscore
 {
 ISCORE_LIB_BASE_EXPORT
 ApplicationRegistrar::ApplicationRegistrar(
-    ApplicationComponentsData& comp,
-    const iscore::GUIApplicationContext& ctx,
-    iscore::View& view,
-    MenuManager& m,
-    ToolbarManager& t,
-    ActionManager& a)
-    : m_components{comp}
-    , m_context{ctx}
-    , m_view{view}
-    , m_menuManager{m}
-    , m_toolbarManager{t}
-    , m_actionManager{a}
+    ApplicationComponentsData& comp)
+  : m_components{comp}
 {
 }
 
@@ -43,32 +33,6 @@ void ApplicationRegistrar::registerAddons(std::vector<iscore::Addon> vec)
 void ApplicationRegistrar::registerApplicationPlugin(ApplicationPlugin* ctrl)
 {
   m_components.appPlugins.push_back(ctrl);
-}
-
-ISCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerApplicationPlugin(
-    GUIApplicationPlugin* ctrl)
-{
-  // GUI Presenter stuff...
-  auto ui = ctrl->makeGUIElements();
-  m_menuManager.insert(std::move(ui.menus));
-  m_toolbarManager.insert(std::move(ui.toolbars));
-  m_actionManager.insert(std::move(ui.actions.container));
-
-  // TODO do a for-loop instead in Presenter or something
-  con(m_view, &iscore::View::activeWindowChanged,
-      [=]() { ctrl->on_activeWindowChanged(); });
-
-  m_components.guiAppPlugins.push_back(ctrl);
-}
-
-ISCORE_LIB_BASE_EXPORT
-void ApplicationRegistrar::registerPanel(PanelDelegateFactory& factory)
-{
-  auto panel = factory.make(m_context);
-  m_view.setupPanel(panel.get());
-
-  m_components.panels.push_back(std::move(panel));
 }
 
 ISCORE_LIB_BASE_EXPORT
@@ -100,4 +64,41 @@ void ApplicationRegistrar::registerFactory(
   m_components.factories.insert(
       std::make_pair(cmds->interfaceKey(), std::move(cmds)));
 }
+
+
+GUIApplicationRegistrar::GUIApplicationRegistrar(
+    ApplicationComponentsData& comp,
+    const iscore::GUIApplicationContext& ctx,
+    MenuManager& m,
+    ToolbarManager& t,
+    ActionManager& a)
+    : ApplicationRegistrar{comp}
+    , m_context{ctx}
+    , m_menuManager{m}
+    , m_toolbarManager{t}
+    , m_actionManager{a}
+{
+}
+
+ISCORE_LIB_BASE_EXPORT
+void GUIApplicationRegistrar::registerGUIApplicationPlugin(
+    GUIApplicationPlugin* ctrl)
+{
+  // GUI Presenter stuff...
+  auto ui = ctrl->makeGUIElements();
+  m_menuManager.insert(std::move(ui.menus));
+  m_toolbarManager.insert(std::move(ui.toolbars));
+  m_actionManager.insert(std::move(ui.actions.container));
+
+  m_components.guiAppPlugins.push_back(ctrl);
+}
+
+ISCORE_LIB_BASE_EXPORT
+void GUIApplicationRegistrar::registerPanel(PanelDelegateFactory& factory)
+{
+  auto panel = factory.make(m_context);
+
+  m_components.panels.push_back(std::move(panel));
+}
+
 }

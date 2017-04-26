@@ -1,11 +1,15 @@
-#include <Process/LayerModel.hpp>
+
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/application/ApplicationContext.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <iscore/tools/IdentifierGeneration.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/document/DocumentContext.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentPresenter.hpp>
 #include <map>
 #include <utility>
 
@@ -13,25 +17,20 @@
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/tools/Todo.hpp>
-
+#include <boost/range/algorithm_ext/erase.hpp>
 namespace Scenario
 {
 class StateModel;
 class TimeNodeModel;
-
 ConstraintModel::ConstraintModel(
     const Id<ConstraintModel>& id,
-    const Id<ConstraintViewModel>& fullViewId,
     double yPos,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent}
-    , m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
   initConnections();
-  setupConstraintViewModel(m_fullViewModel);
   metadata().setInstanceName(*this);
   metadata().setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
   setHeightPercentage(yPos);
@@ -41,6 +40,13 @@ ConstraintModel::~ConstraintModel()
 {
   static_assert(std::is_same<serialization_tag<ConstraintModel>::type, visitor_entity_tag>::value, "");
 }
+void ConstraintModel::initConnections()
+{
+  processes.added
+      .connect<ConstraintModel, &ConstraintModel::on_addProcess>(this);
+  processes.removed
+      .connect<ConstraintModel, &ConstraintModel::on_removeProcess>(this);
+}
 
 ConstraintModel::ConstraintModel(
     const ConstraintModel& source,
@@ -48,100 +54,63 @@ ConstraintModel::ConstraintModel(
     QObject* parent)
     : Entity{source, id, Metadata<ObjectKey_k, ConstraintModel>::get(), parent}
 {
-  metadata().setInstanceName(*this);
   initConnections();
+  metadata().setInstanceName(*this);
   // It is not necessary to save modelconsistency because it should be
   // recomputed
 
+  m_smallView = source.m_smallView;
+  m_fullView = source.m_fullView;
   m_startState = source.startState();
   m_endState = source.endState();
   duration = source.duration;
 
   m_startDate = source.m_startDate;
   m_heightPercentage = source.heightPercentage();
-
-  // For an explanation of this, see ReplaceConstraintContent command
-  std::map<const Process::ProcessModel*, Process::ProcessModel*> processPairs;
+  m_zoom = source.m_zoom;
+  m_center = source.m_center;
+  m_smallViewShown = source.m_smallViewShown;
 
   // Clone the processes
   for (const auto& process : source.processes)
   {
     auto newproc = process.clone(process.id(), this);
-
-    processPairs.insert(std::make_pair(&process, newproc));
     processes.add(newproc);
-
     // We don't need to resize them since the new constraint will have the same
     // duration.
   }
-
-  auto& procs
-      = iscore::AppComponents().interfaces<Process::LayerFactoryList>();
-  for (const auto& rack : source.racks)
-  {
-    racks.add(new RackModel{
-        rack, rack.id(),
-        [&](const SlotModel& source_slot, SlotModel& target) {
-          for (auto& lm : source_slot.layers)
-          {
-            // We can safely reuse the same id since it's in a different slot.
-            auto proc = processPairs[&lm.processModel()];
-            auto fact = procs.findDefaultFactory(proc->concreteKey());
-            // TODO harmonize the order of parameters (source first, then new
-            // id)
-            target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
-          }
-        },
-        this});
-  }
-
-  // NOTE : we do not copy the view models on which this constraint does not
-  // have ownership,
-  // this is the job of a command.
-  // However, the full view constraint must be copied since we have ownership
-  // of it.
-
-  m_fullViewModel
-      = source.fullView()->clone(source.fullView()->id(), *this, this);
 }
 
-void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
+ConstraintModel::ConstraintModel(
+    DataStream::Deserializer& vis,
+    QObject* parent) : Entity{vis, parent}
 {
-  racks.removing
-      .connect<ConstraintViewModel, &ConstraintViewModel::on_rackRemoval>(
-          viewmodel);
-
-  connect(
-      viewmodel, &ConstraintViewModel::about_to_be_deleted, this,
-      &ConstraintModel::on_destroyedViewModel);
-
-  m_constraintViewModels.push_back(viewmodel);
-  emit viewModelCreated(*viewmodel);
+  initConnections();
+  vis.writeTo(*this);
 }
 
-void ConstraintModel::on_destroyedViewModel(ConstraintViewModel* obj)
+ConstraintModel::ConstraintModel(
+    JSONObject::Deserializer& vis,
+    QObject* parent) : Entity{vis, parent}
 {
-  int index = m_constraintViewModels.indexOf(obj);
-
-  if (index != -1)
-  {
-    m_constraintViewModels.remove(index);
-    emit viewModelRemoved(obj);
-  }
+  initConnections();
+  vis.writeTo(*this);
 }
 
-void ConstraintModel::initConnections()
+ConstraintModel::ConstraintModel(
+    DataStream::Deserializer&& vis,
+    QObject* parent) : Entity{vis, parent}
 {
-  racks.added.connect<ConstraintModel, &ConstraintModel::on_rackAdded>(this);
+  initConnections();
+  vis.writeTo(*this);
 }
 
-void ConstraintModel::on_rackAdded(const RackModel& rack)
+ConstraintModel::ConstraintModel(
+    JSONObject::Deserializer&& vis,
+    QObject* parent) : Entity{vis, parent}
 {
-  processes.removed
-      .connect<RackModel, &RackModel::on_deleteSharedProcessModel>(
-          const_cast<RackModel&>(rack));
-  con(duration, &ConstraintDurations::defaultDurationChanged, &rack,
-      &RackModel::on_durationChanged);
+  initConnections();
+  vis.writeTo(*this);
 }
 
 const Id<StateModel>& ConstraintModel::startState() const
@@ -185,12 +154,6 @@ void ConstraintModel::translate(const TimeVal& deltaTime)
 double ConstraintModel::heightPercentage() const
 {
   return m_heightPercentage;
-}
-
-void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
-{
-  m_fullViewModel = fv;
-  setupConstraintViewModel(m_fullViewModel);
 }
 
 // Should go in an "execution" object.
@@ -242,4 +205,260 @@ void ConstraintModel::setExecutionState(ConstraintExecutionState s)
     emit executionStateChanged(s);
   }
 }
+
+ZoomRatio ConstraintModel::zoom() const
+{
+  return m_zoom;
+}
+
+void ConstraintModel::setZoom(const ZoomRatio& zoom)
+{
+  m_zoom = zoom;
+}
+
+QRectF ConstraintModel::visibleRect() const
+{
+  return m_center;
+}
+
+void ConstraintModel::setVisibleRect(const QRectF& value)
+{
+  m_center = value;
+}
+
+void ConstraintModel::setSmallViewVisible(bool v)
+{
+  m_smallViewShown = v;
+  emit smallViewVisibleChanged(v);
+}
+
+bool ConstraintModel::smallViewVisible() const
+{
+  return m_smallViewShown;
+}
+
+void ConstraintModel::clearSmallView()
+{
+  m_smallView.clear();
+  emit rackChanged(Slot::SmallView);
+}
+
+void ConstraintModel::clearFullView()
+{
+  m_fullView.clear();
+  emit rackChanged(Slot::FullView);
+}
+
+void ConstraintModel::replaceSmallView(const Rack& other)
+{
+  m_smallView = other;
+  emit rackChanged(Slot::SmallView);
+}
+
+void ConstraintModel::replaceFullView(const FullRack& other)
+{
+  m_fullView = other;
+  emit rackChanged(Slot::FullView);
+}
+
+void ConstraintModel::addLayer(int slot, Id<Process::ProcessModel> id)
+{
+  auto& procs = m_smallView.at(slot).processes;
+  ISCORE_ASSERT(ossia::find(procs, id) == procs.end());
+  procs.push_back(id);
+
+  emit layerAdded({slot, Slot::SmallView}, id);
+
+  putLayerToFront(slot, id);
+}
+
+void ConstraintModel::removeLayer(int slot, Id<Process::ProcessModel> id)
+{
+  auto& procs = m_smallView.at(slot).processes;
+  const auto N = procs.size();
+  boost::range::remove_erase(procs, id);
+
+  if(procs.size() < N)
+  {
+    emit layerRemoved({slot, Slot::SmallView}, id);
+
+    if(!procs.empty())
+      putLayerToFront(slot, procs.front());
+    else
+      putLayerToFront(slot, ossia::none);
+  }
+}
+
+void ConstraintModel::putLayerToFront(int slot, Id<Process::ProcessModel> id)
+{
+  m_smallView.at(slot).frontProcess = id;
+  emit frontLayerChanged(slot, id);
+}
+
+void ConstraintModel::putLayerToFront(int slot, ossia::none_t)
+{
+  m_smallView.at(slot).frontProcess = ossia::none;
+  emit frontLayerChanged(slot, ossia::none);
+}
+
+void ConstraintModel::addSlot(Slot s, int pos)
+{
+  ISCORE_ASSERT((int)m_smallView.size() >= pos);
+  m_smallView.insert(m_smallView.begin() + pos, std::move(s));
+  emit slotAdded({pos, Slot::SmallView});
+
+  if(m_smallView.size() == 1)
+    setSmallViewVisible(true);
+}
+
+void ConstraintModel::addSlot(Slot s)
+{
+  addSlot(std::move(s), m_smallView.size());
+}
+
+void ConstraintModel::removeSlot(int pos)
+{
+  ISCORE_ASSERT((int)m_smallView.size() >= pos);
+  m_smallView.erase(m_smallView.begin() + pos);
+  emit slotRemoved({pos, Slot::SmallView});
+
+  if(m_smallView.empty())
+    setSmallViewVisible(false);
+}
+
+
+const Slot* ConstraintModel::findSmallViewSlot(int slot) const
+{
+  if(slot < (int)m_smallView.size())
+    return &m_smallView[slot];
+
+  return nullptr;
+}
+
+const Slot& ConstraintModel::getSmallViewSlot(int slot) const
+{
+  return m_smallView.at(slot);
+}
+
+Slot& ConstraintModel::getSmallViewSlot(int slot)
+{
+  return m_smallView.at(slot);
+}
+
+
+
+const FullSlot* ConstraintModel::findFullViewSlot(int slot) const
+{
+  if(slot < (int)m_fullView.size())
+    return &m_fullView[slot];
+
+  return nullptr;
+}
+
+const FullSlot& ConstraintModel::getFullViewSlot(int slot) const
+{
+  return m_fullView.at(slot);
+}
+
+FullSlot& ConstraintModel::getFullViewSlot(int slot)
+{
+  return m_fullView.at(slot);
+}
+
+double ConstraintModel::getSlotHeight(const SlotId& slot) const
+{
+  if(slot.fullView())
+    return processes.at(m_fullView.at(slot.index).process).getSlotHeight();
+  else
+    return m_smallView.at(slot.index).height;
+}
+
+
+void ConstraintModel::setSlotHeight(const SlotId& slot, double height)
+{
+  if(slot.fullView())
+    processes.at(m_fullView.at(slot.index).process).setSlotHeight(height);
+  else
+    getSmallViewSlot(slot.index).height = height;
+  emit slotResized(slot);
+}
+
+void swap(Scenario::Slot& lhs, Scenario::Slot& rhs)
+{
+  Scenario::Slot tmp = std::move(lhs);
+  lhs = std::move(rhs);
+  rhs = std::move(tmp);
+}
+
+void ConstraintModel::swapSlots(int pos1, int pos2, Slot::RackView v)
+{
+  if(v == Slot::FullView)
+  {
+    auto& vec = m_fullView;
+    ISCORE_ASSERT((int)vec.size() > pos1);
+    ISCORE_ASSERT((int)vec.size() > pos2);
+    std::iter_swap(vec.begin() + pos1, vec.begin() + pos2);
+  }
+  else
+  {
+    auto& vec = m_smallView;
+    ISCORE_ASSERT((int)vec.size() > pos1);
+    ISCORE_ASSERT((int)vec.size() > pos2);
+    std::iter_swap(vec.begin() + pos1, vec.begin() + pos2);
+  }
+  emit slotsSwapped(pos1, pos2, v);
+}
+
+void ConstraintModel::on_addProcess(const Process::ProcessModel& p)
+{
+  m_fullView.push_back(FullSlot{p.id()});
+  emit slotAdded({m_fullView.size() - 1, Slot::FullView});
+}
+
+void ConstraintModel::on_removeProcess(const Process::ProcessModel& p)
+{
+  const auto& pid = p.id();
+  for(int i = 0; i < (int)m_smallView.size(); i++)
+  {
+    removeLayer(i, pid);
+  }
+
+  auto it = ossia::find_if(m_fullView, [&] (const FullSlot& slot) {
+    return slot.process == pid;
+  });
+  if(it != m_fullView.end())
+  {
+    int N = std::distance(m_fullView.begin(), it);
+    m_fullView.erase(it);
+    emit slotRemoved(SlotId{N, Slot::FullView});
+  }
+}
+
+bool isInFullView(const ConstraintModel& cstr)
+{
+  // TODO just check if parent() == basescenario
+  auto& doc = iscore::IDocument::documentContext(cstr);
+  auto& sub = safe_cast<Scenario::ScenarioDocumentPresenter&>(
+                doc.document.presenter().presenterDelegate());
+  return &sub.displayedElements.constraint() == &cstr;
+}
+
+bool isInFullView(const Process::ProcessModel& cstr)
+{
+  return isInFullView(*static_cast<ConstraintModel*>(cstr.parent()));
+}
+
+const Scenario::Slot& SlotPath::find() const
+{
+  return constraint.find().getSmallViewSlot(index);
+}
+
+const Scenario::Slot* SlotPath::try_find() const
+{
+  if(auto cst = constraint.try_find())
+    return cst->findSmallViewSlot(index);
+  else
+    return nullptr;
+}
+
 }

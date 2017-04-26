@@ -11,10 +11,6 @@ class JSONObject;
 class DataStream;
 namespace Process
 {
-class LayerModel;
-}
-namespace Process
-{
 class LayerPresenter;
 }
 class QObject;
@@ -56,7 +52,7 @@ public:
 
 private:
   void init();
-  void initializeNewDocument(const FullViewConstraintViewModel* viewmodel);
+  void initializeNewDocument(const ConstraintModel& viewmodel);
 
   BaseScenario* m_baseScenario{};
 };

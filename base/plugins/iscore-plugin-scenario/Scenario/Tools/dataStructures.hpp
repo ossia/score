@@ -18,8 +18,6 @@ needed
 namespace Scenario
 {
 class ConstraintModel;
-class ConstraintViewModel;
-class RackModel;
 class TimeNodeModel;
 
 struct TimenodeProperties
@@ -44,9 +42,6 @@ struct ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintSaveData
   Path<ConstraintModel> constraintPath;
   QVector<QByteArray> processes;
   QVector<QByteArray> racks;
-  QMap< // Mapping for the view models of this constraint
-      Id<ConstraintViewModel>, OptionalId<RackModel>>
-      viewMapping;
 };
 
 struct ConstraintProperties : public ConstraintSaveData

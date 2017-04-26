@@ -44,7 +44,6 @@ signals:
   void activeDocumentChanged(const Id<DocumentModel>&);
   void closeRequested(const Id<DocumentModel>&);
 
-  void activeWindowChanged();
   void sizeChanged(QSize);
 
 public slots:

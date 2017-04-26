@@ -1,4 +1,4 @@
-#include <Process/Style/ProcessFonts.hpp>
+
 #include <QFont>
 #include <QPainter>
 #include <qnamespace.h>

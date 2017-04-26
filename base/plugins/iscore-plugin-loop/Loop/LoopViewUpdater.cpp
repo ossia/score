@@ -1,11 +1,11 @@
-#include <Loop/LoopLayer.hpp>
+
 #include <Loop/LoopPresenter.hpp>
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopView.hpp>
 #include <QPoint>
 #include <QRect>
 #include <QtGlobal>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
+#include <Scenario/Document/Constraint/Temporal/TemporalConstraintView.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
 
@@ -13,8 +13,8 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -99,13 +99,13 @@ void ViewUpdater::updateState(const Scenario::StatePresenter& state)
 {
   if (&state == m_presenter.m_startStatePresenter)
   {
-    const auto& ev = m_presenter.m_layer.model().startEvent();
+    const auto& ev = m_presenter.model().startEvent();
     state.view()->setPos(
         {ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
   }
   else if (&state == m_presenter.m_endStatePresenter)
   {
-    const auto& ev = m_presenter.m_layer.model().endEvent();
+    const auto& ev = m_presenter.model().endEvent();
     state.view()->setPos(
         {ev.date().toPixels(m_presenter.m_zoomRatio), extent().top()});
   }

@@ -30,8 +30,6 @@ namespace Scenario
 {
 class MetadataWidget;
 class ConstraintModel;
-class ConstraintViewModel;
-class RackModel;
 class ProcessModel;
 class ScenarioInterface;
 class ProcessTabWidget;
@@ -83,9 +81,6 @@ private:
   void on_processCreated(const Process::ProcessModel&);
   void on_processRemoved(const Process::ProcessModel&);
   void on_orderChanged();
-
-  void on_constraintViewModelCreated(const ConstraintViewModel&);
-  void on_constraintViewModelRemoved(const QObject*);
 
   QWidget* makeStatesWidget(Scenario::ScenarioInterface*);
 

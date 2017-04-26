@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/Actions/ProcessActions.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/actions/Action.hpp>
 
 #include <Process/Layer/LayerContextMenu.hpp>
@@ -11,7 +11,6 @@ namespace Scenario
 class ScenarioInterface;
 class ScenarioDocumentModel;
 class ProcessModel;
-class TemporalScenarioLayer;
 ISCORE_PLUGIN_SCENARIO_EXPORT const Scenario::ScenarioInterface*
 focusedScenarioInterface(const iscore::DocumentContext& ctx);
 ISCORE_PLUGIN_SCENARIO_EXPORT const Scenario::ProcessModel*
@@ -55,7 +54,6 @@ private:
 }
 
 /// Conditions relative to Scenario elements
-ISCORE_DECLARE_FOCUSED_OBJECT_CONDITION(Scenario::TemporalScenarioLayer)
 ISCORE_DECLARE_DOCUMENT_CONDITION(Scenario::ScenarioDocumentModel)
 
 ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ProcessModel)
@@ -137,6 +135,10 @@ ISCORE_DECLARE_ACTION(
     QKeySequence(QObject::tr("Ctrl+J")))
 ISCORE_DECLARE_ACTION(
     MergeTimeNodes, "&Merge TimeNodes", Scenario, Qt::SHIFT + Qt::Key_M)
+ISCORE_DECLARE_ACTION(
+    ShowRacks, "&Show racks", Scenario, QKeySequence::UnknownKey)
+ISCORE_DECLARE_ACTION(
+    HideRacks, "&Hide racks", Scenario, QKeySequence::UnknownKey)
 
 // Navigation
 ISCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)

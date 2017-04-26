@@ -3,9 +3,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
@@ -43,8 +41,8 @@ auto selectedConstraintsInCurrentDocument(
     const iscore::GUIApplicationContext& appContext)
 {
   auto sel = appContext.documents.currentDocument()
-                 ->selectionStack()
-                 .currentSelection();
+      ->selectionStack()
+      .currentSelection();
   QList<const Scenario::ConstraintModel*> selected_elements;
   for (auto obj : sel)
   {
@@ -59,7 +57,7 @@ auto selectedConstraintsInCurrentDocument(
 }
 
 ConstraintActions::ConstraintActions(ScenarioApplicationPlugin* parent)
-    : m_parent{parent}
+  : m_parent{parent}
 {
   const auto& appContext = parent->context;
 
@@ -72,8 +70,8 @@ ConstraintActions::ConstraintActions(ScenarioApplicationPlugin* parent)
     auto dialog = new AddProcessDialog{fact, qApp->activeWindow()};
 
     connect(
-        dialog, &AddProcessDialog::okPressed, this,
-        &ConstraintActions::addProcessInConstraint);
+          dialog, &AddProcessDialog::okPressed, this,
+          &ConstraintActions::addProcessInConstraint);
     dialog->launchWindow();
     dialog->deleteLater();
   });
@@ -82,12 +80,22 @@ ConstraintActions::ConstraintActions(ScenarioApplicationPlugin* parent)
   m_interp->setShortcutContext(Qt::ApplicationShortcut);
   m_interp->setToolTip(tr("Interpolate states (Ctrl+K)"));
   setIcons(
-      m_interp, QString(":/icons/interpolate_on.png"),
-      QString(":/icons/interpolate_off.png"));
+        m_interp, QString(":/icons/interpolate_on.png"),
+        QString(":/icons/interpolate_off.png"));
   connect(m_interp, &QAction::triggered, this, [&]() {
     DoForSelectedConstraints(
-        m_parent->currentDocument()->context(), Command::InterpolateStates);
+          m_parent->currentDocument()->context(), Command::InterpolateStates);
   });
+
+  m_showRacks = new QAction{tr("Show Racks"), this};
+  m_showRacks->setShortcutContext(Qt::ApplicationShortcut);
+  m_showRacks->setToolTip(tr("Show racks"));
+  connect(m_showRacks, &QAction::triggered, this, &ConstraintActions::on_showRacks);
+
+  m_hideRacks = new QAction{tr("Hide Racks"), this};
+  m_hideRacks->setShortcutContext(Qt::ApplicationShortcut);
+  m_hideRacks->setToolTip(tr("Hide racks"));
+  connect(m_hideRacks, &QAction::triggered, this, &ConstraintActions::on_hideRacks);
 
   m_curves = new QAction{this};
   m_curves->setShortcutContext(Qt::WidgetWithChildrenShortcut);
@@ -95,8 +103,8 @@ ConstraintActions::ConstraintActions(ScenarioApplicationPlugin* parent)
   parent->context.mainWindow.addAction(m_curves);
 
   setIcons(
-      m_curves, QString(":/icons/create_curve_on.png"),
-      QString(":/icons/create_curve_off.png"));
+        m_curves, QString(":/icons/create_curve_on.png"),
+        QString(":/icons/create_curve_off.png"));
 
   connect(m_curves, &QAction::triggered, this, [&]() {
     if (auto doc = m_parent->currentDocument())
@@ -117,26 +125,32 @@ void ConstraintActions::makeGUIElements(iscore::GUIElements& ref)
   object.menu()->addAction(m_addProcess);
   object.menu()->addAction(m_interp);
   object.menu()->addAction(m_curves);
+  object.menu()->addAction(m_showRacks);
+  object.menu()->addAction(m_hideRacks);
   {
     auto bar = new QToolBar{tr("Constraint")};
     bar->addAction(m_interp);
     bar->addAction(m_curves);
     ref.toolbars.emplace_back(
-        bar, StringKey<iscore::Toolbar>("Constraint"), 0, 0);
+          bar, StringKey<iscore::Toolbar>("Constraint"), 0, 0);
   }
 
   ref.actions.add<Actions::AddProcess>(m_addProcess);
   ref.actions.add<Actions::InterpolateStates>(m_interp);
   ref.actions.add<Actions::CreateCurves>(m_curves);
+  ref.actions.add<Actions::ShowRacks>(m_showRacks);
+  ref.actions.add<Actions::HideRacks>(m_hideRacks);
 
   auto& cond
       = m_parent->context.actions
-            .condition<iscore::
-                           EnableWhenSelectionContains<Scenario::
-                                                           ConstraintModel>>();
+      .condition<iscore::
+      EnableWhenSelectionContains<Scenario::
+      ConstraintModel>>();
   cond.add<Actions::AddProcess>();
   cond.add<Actions::InterpolateStates>();
   cond.add<Actions::CreateCurves>();
+  cond.add<Actions::ShowRacks>();
+  cond.add<Actions::HideRacks>();
 }
 
 void ConstraintActions::setupContextMenu(
@@ -146,8 +160,9 @@ void ConstraintActions::setupContextMenu(
   Process::LayerContextMenu cm
       = MetaContextMenu<ContextMenus::ConstraintContextMenu>::make();
 
+
   cm.functions.push_back([this](
-      QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
+                         QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
     using namespace iscore;
     auto sel = ctx.context.selectionStack.currentSelection();
     if (sel.empty())
@@ -155,42 +170,6 @@ void ConstraintActions::setupContextMenu(
 
     QList<const ConstraintModel*> selectedConstraints
         = filterSelectionByType<ConstraintModel>(sel);
-    if (selectedConstraints.size() == 1)
-    {
-      auto& cst = *selectedConstraints.front();
-      if (!cst.racks.empty())
-      {
-        auto rackMenu = menu.addMenu(tr("Racks"));
-
-        // We have to find the constraint view model of this layer.
-        auto& vm = dynamic_cast<const TemporalScenarioLayer*>(
-                       &ctx.presenter.layerModel())
-                       ->constraint(cst.id());
-
-        for (const RackModel& rack : cst.racks)
-        {
-          auto act = new QAction{rack.metadata().getName(), rackMenu};
-          connect(act, &QAction::triggered, this, [&]() {
-            auto cmd
-                = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
-            CommandDispatcher<> dispatcher{
-                m_parent->currentDocument()->context().commandStack};
-            dispatcher.submitCommand(cmd);
-          });
-
-          rackMenu->addAction(act);
-        }
-
-        auto hideAct = new QAction{tr("Hide"), rackMenu};
-        connect(hideAct, &QAction::triggered, this, [&]() {
-          auto cmd = new Scenario::Command::HideRackInViewModel{vm};
-          CommandDispatcher<> dispatcher{
-              m_parent->currentDocument()->context().commandStack};
-          dispatcher.submitCommand(cmd);
-        });
-        rackMenu->addAction(hideAct);
-      }
-    }
 
     if (selectedConstraints.size() >= 1)
     {
@@ -201,6 +180,8 @@ void ConstraintActions::setupContextMenu(
         cstrSubmenu->addAction(m_addProcess);
       }
       cstrSubmenu->addAction(m_interp);
+      cstrSubmenu->addAction(m_showRacks);
+      cstrSubmenu->addAction(m_hideRacks);
     }
   });
 
@@ -208,7 +189,7 @@ void ConstraintActions::setupContextMenu(
 }
 
 void ConstraintActions::addProcessInConstraint(
-    const UuidKey<Process::ProcessModelFactory>& processName)
+    const UuidKey<Process::ProcessModel>& processName)
 {
   auto selectedConstraints
       = selectedConstraintsInCurrentDocument(m_parent->context);
@@ -218,16 +199,44 @@ void ConstraintActions::addProcessInConstraint(
   auto cmd
       = Scenario::Command::make_AddProcessToConstraint( // NOTE just the first,
                                                         // not all ?
-          **selectedConstraints.begin(),
-          processName);
+                                                        **selectedConstraints.begin(),
+                                                        processName);
 
   emit dispatcher().submitCommand(cmd);
+}
+
+void ConstraintActions::on_showRacks()
+{
+  if(auto doc = m_parent->currentDocument())
+  {
+    auto selected_constraints = filterSelectionByType<ConstraintModel>(
+          doc->context().selectionStack.currentSelection());
+    for(const ConstraintModel* c : selected_constraints)
+    {
+      if(!c->processes.empty())
+        const_cast<ConstraintModel*>(c)->setSmallViewVisible(true);
+    }
+  }
+}
+
+void ConstraintActions::on_hideRacks()
+{
+  if(auto doc = m_parent->currentDocument())
+  {
+    auto selected_constraints = filterSelectionByType<ConstraintModel>(
+          doc->context().selectionStack.currentSelection());
+    for(const ConstraintModel* c : selected_constraints)
+    {
+      if(!c->processes.empty())
+        const_cast<ConstraintModel*>(c)->setSmallViewVisible(false);
+    }
+  }
 }
 
 CommandDispatcher<> ConstraintActions::dispatcher()
 {
   CommandDispatcher<> disp{
-      m_parent->currentDocument()->context().commandStack};
+    m_parent->currentDocument()->context().commandStack};
   return disp;
 }
 }

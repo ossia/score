@@ -32,11 +32,6 @@ public:
     update();
   }
 
-  void setPresenter(TemporalScenarioPresenter* pres)
-  {
-    m_pres = pres;
-  }
-
   void drawDragLine(QPointF, QPointF);
   void stopDrawDragLine();
 signals:
@@ -93,10 +88,9 @@ protected:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
 private:
-  TemporalScenarioPresenter* m_pres{};
   QRectF m_selectArea{};
   QPointF m_previousPoint{};
-  iscore::optional<QRectF> m_dragLine{};
+  ossia::optional<QRectF> m_dragLine{};
   bool m_lock{};
 };
 }

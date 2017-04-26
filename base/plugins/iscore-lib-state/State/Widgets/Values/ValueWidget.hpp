@@ -25,27 +25,4 @@ public:
   virtual ~ValueWidget();
   virtual State::Value value() const = 0;
 };
-
-/**
- * @brief The TypeAndValueWidget class
- *
- * Represents a "line" with a combobox for
- * choosing a type, and a widget for the value.
- *
- * e.g.
- *
- * [Int  ^]     |      234 |
- */
-class ISCORE_LIB_STATE_EXPORT TypeAndValueWidget : public QWidget
-{
-public:
-  TypeAndValueWidget(State::Value init, QWidget* parent);
-  virtual ~TypeAndValueWidget();
-  State::Value value() const;
-
-private:
-  void on_typeChanged(State::Value val, State::ValueType t);
-  TypeComboBox* m_type{};
-  WidgetWrapper<State::ValueWidget>* m_val{};
-};
 }

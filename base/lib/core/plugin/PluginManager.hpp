@@ -18,7 +18,7 @@
 namespace iscore
 {
 struct ApplicationContext;
-class ApplicationRegistrar;
+class GUIApplicationRegistrar;
 class Plugin_QtInterface;
 struct Addon;
 
@@ -53,7 +53,7 @@ loadPlugin(
     const QString& fileName,
     const std::vector<iscore::Addon>& availablePlugins);
 
-iscore::optional<iscore::Addon> makeAddon(
+ossia::optional<iscore::Addon> makeAddon(
     const QString& addon_path,
     const QJsonObject& json_addon,
     const std::vector<iscore::Addon>& availablePlugins);
@@ -116,7 +116,7 @@ void registerPlugins(
       if(auto plug = ctrl_plugin->make_applicationPlugin(context))
         registrar.registerApplicationPlugin(plug);
       if(auto plug = ctrl_plugin->make_guiApplicationPlugin(context))
-        registrar.registerApplicationPlugin(plug);
+        registrar.registerGUIApplicationPlugin(plug);
     }
   }
   registerPluginsImpl(availablePlugins, registrar, context);

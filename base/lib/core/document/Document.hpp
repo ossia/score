@@ -119,6 +119,12 @@ public:
     return m_virgin && !m_commandStack.canUndo() && !m_commandStack.canRedo();
   }
 
+  // Load without creating presenter and view
+  Document(
+      const QVariant& data,
+      DocumentDelegateFactory& type,
+      QObject* parent);
+
 private:
   // These are to be constructed by DocumentBuilder.
   Document(

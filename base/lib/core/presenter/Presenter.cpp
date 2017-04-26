@@ -72,7 +72,7 @@ Presenter::Presenter(
   // this dependency cycle.
 
   connect(
-      &m_context.documents, &DocumentManager::documentChanged, &m_actions,
+      &m_context.docManager, &DocumentManager::documentChanged, &m_actions,
       &ActionManager::reset);
 
   m_view->setPresenter(this);

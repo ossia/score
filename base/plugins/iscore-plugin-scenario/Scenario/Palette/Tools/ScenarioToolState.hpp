@@ -21,19 +21,16 @@
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
 
-#include <Scenario/Document/Constraint/Rack/Slot/SlotHandle.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
+#include <Scenario/Document/Constraint/SlotHandle.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ConstraintView.hpp>
 
-#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/LeftBrace.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/RightBrace.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Constraint/ConstraintHeader.hpp>
+#include <Scenario/Document/Constraint/Temporal/Braces/LeftBrace.hpp>
 
 namespace iscore
 {
@@ -100,7 +97,6 @@ protected:
   {
     const auto& constraint = static_cast<const ConstraintView*>(pressedItem)
                                  ->presenter()
-                                 .abstractConstraintViewModel()
                                  .model();
     return constraint.parent() == &this->m_palette.model()
                ? constraint.id()
@@ -115,15 +111,21 @@ protected:
                ? state.id()
                : OptionalId<StateModel>{};
   }
-  const SlotModel* itemToSlotFromHandle(const QGraphicsItem* pressedItem) const
+  optional<SlotPath> itemToConstraintFromHandle(const QGraphicsItem* pressedItem) const
   {
-    const auto& slot = static_cast<const SlotHandle*>(pressedItem)
-                           ->slotView()
-                           .presenter.model();
+    auto handle = static_cast<const SlotHandle*>(pressedItem);
+    const auto& cst = handle->presenter().model();
 
-    return slot.parentConstraint().parent() == &this->m_palette.model()
-               ? &slot
-               : nullptr;
+    if(cst.parent() == &this->m_palette.model())
+    {
+      auto fv = isInFullView(cst) ?
+            Slot::FullView : Slot::SmallView;
+      return SlotPath{cst, handle->slotIndex(), fv};
+    }
+    else
+    {
+      return ossia::none;
+    }
   }
 
   template <
@@ -181,7 +183,7 @@ protected:
 
       case SlotHandle::static_type(): // Slot handle
       {
-        auto slot = itemToSlotFromHandle(item);
+        auto slot = itemToConstraintFromHandle(item);
         if (slot)
         {
           handle_fun(*slot);

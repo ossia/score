@@ -11,7 +11,6 @@ class QPointF;
 namespace Process
 {
 class ProcessModel;
-class LayerModel;
 class LayerContextMenuManager;
 class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
 {
@@ -43,7 +42,7 @@ public:
   virtual void on_zoomRatioChanged(ZoomRatio) = 0;
   virtual void parentGeometryChanged() = 0;
 
-  virtual const LayerModel& layerModel() const = 0;
+  virtual const ProcessModel& model() const = 0;
   virtual const Id<ProcessModel>& modelId() const = 0;
 
   virtual void fillContextMenu(

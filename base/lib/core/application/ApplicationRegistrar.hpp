@@ -29,22 +29,17 @@ class Plugin_QtInterface;
  * Used at the plug-in loading time : stores the
  * classes of the plug-in and performs minor initialization steps.
  */
-class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
+
+class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar
+    : public QObject
 {
 public:
   ApplicationRegistrar(
-      ApplicationComponentsData&,
-      const iscore::GUIApplicationContext&,
-      iscore::View&,
-      MenuManager&,
-      ToolbarManager&,
-      ActionManager&);
+      ApplicationComponentsData&);
 
-  // Register data from plugins
   void registerAddons(std::vector<iscore::Addon> vec);
   void registerApplicationPlugin(ApplicationPlugin*);
-  void registerApplicationPlugin(GUIApplicationPlugin*);
-  void registerPanel(PanelDelegateFactory&);
+
   void registerCommands(
       iscore::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds);
   void registerCommands(
@@ -59,10 +54,27 @@ public:
     return m_components;
   }
 
-private:
+protected:
   ApplicationComponentsData& m_components;
+};
+
+class ISCORE_LIB_BASE_EXPORT GUIApplicationRegistrar
+    : public ApplicationRegistrar
+{
+public:
+  GUIApplicationRegistrar(
+      ApplicationComponentsData&,
+      const iscore::GUIApplicationContext&,
+      MenuManager&,
+      ToolbarManager&,
+      ActionManager&);
+
+  // Register data from plugins
+  void registerGUIApplicationPlugin(GUIApplicationPlugin*);
+  void registerPanel(PanelDelegateFactory&);
+
+private:
   const iscore::GUIApplicationContext& m_context;
-  iscore::View& m_view;
 
   MenuManager& m_menuManager;
   ToolbarManager& m_toolbarManager;

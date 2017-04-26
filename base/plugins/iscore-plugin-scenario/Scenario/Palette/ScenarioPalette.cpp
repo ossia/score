@@ -1,4 +1,4 @@
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
+
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
@@ -13,7 +13,6 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/CreationToolState.hpp>
-#include <Scenario/Palette/Tools/MoveSlotToolState.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -29,7 +28,7 @@ ToolPalette::ToolPalette(
     : GraphicsSceneToolPalette{*presenter.view().scene()}
     , m_presenter{presenter}
     , m_model{static_cast<const Scenario::ProcessModel&>(
-          m_presenter.m_layer.processModel())}
+          m_presenter.processModel())}
     , m_context{lay}
     , m_createTool{*this}
     , m_selectTool{*this}

@@ -1,9 +1,8 @@
-#include <Process/LayerModel.hpp>
+
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <QDataStream>
@@ -44,24 +43,7 @@ InsertContentInConstraint::InsertContentInConstraint(
 {
   auto& trg_constraint = m_target.find();
 
-  // For all rackes in source, generate new id's
-  // TODO we can use SettableIdentifierGeneration here.
-  const auto& target_rackes = trg_constraint.racks;
-  std::vector<Id<RackModel>> target_rackes_ids;
-  target_rackes_ids.reserve(target_rackes.size());
-  std::transform(
-      target_rackes.begin(), target_rackes.end(),
-      std::back_inserter(target_rackes_ids),
-      [](const auto& rack) { return rack.id(); });
-
-  for (const auto& rack : m_source["Rackes"].toArray())
-  {
-    auto newId = getStrongId(target_rackes_ids);
-    m_rackIds.insert(Id<RackModel>(rack.toObject()["id"].toInt()), newId);
-    target_rackes_ids.push_back(newId);
-  }
-
-  // Same for processes
+  // Generate new ids for each cloned process.
   const auto& target_processes = trg_constraint.processes;
   std::vector<Id<Process::ProcessModel>> target_processes_ids;
   target_processes_ids.reserve(target_processes.size());
@@ -81,17 +63,14 @@ InsertContentInConstraint::InsertContentInConstraint(
 
 void InsertContentInConstraint::undo() const
 {
-  // We just have to remove what we added
   auto& trg_constraint = m_target.find();
+  // We just have to remove what we added
+  // TODO Remove the added slots, etc.
 
+  // Remove the processes
   for (const auto& proc_id : m_processIds)
   {
     RemoveProcess(trg_constraint, proc_id);
-  }
-
-  for (const auto& rack_id : m_rackIds)
-  {
-    trg_constraint.racks.remove(rack_id);
   }
 }
 
@@ -126,47 +105,18 @@ void InsertContentInConstraint::redo() const
     }
   }
 
-  // Clone the rackes
-  auto& procs = context.interfaces<Process::LayerFactoryList>();
-
-  const auto& src_racks = src_constraint.racks;
-  for (const auto& sourcerack : src_racks)
-  {
-    // REFACTORME 01
-    // Since we want to duplicate our process view models using
-    // the target constraint's cloned shared processes (they might setup some
-    // specific data),
-    // we maintain a pair mapping each original process to their cloned
-    // counterpart.
-    // We can then use the correct cloned process to clone the process view
-    // model.
-    auto newrack = new RackModel{
-        sourcerack, m_rackIds[sourcerack.id()],
-        [&](const SlotModel& source, SlotModel& target) {
-          for (const auto& lm : source.layers)
-          {
-            // We can safely reuse the same id since it's in a different slot.
-            auto proc = processPairs[&lm.processModel()];
-            auto fact = procs.findDefaultFactory(*proc);
-            // TODO harmonize the order of parameters (source first, then new
-            // id)
-            target.layers.add(fact->cloneLayer(*proc, lm.id(), lm, &target));
-          }
-        },
-        &trg_constraint};
-    trg_constraint.racks.add(newrack);
-  }
+  // TODO add the new processes to the small view
 }
 
 void InsertContentInConstraint::serializeImpl(DataStreamInput& s) const
 {
-  s << m_source << m_target << m_rackIds << m_processIds << (int)m_mode;
+  s << m_source << m_target << m_processIds << (int)m_mode;
 }
 
 void InsertContentInConstraint::deserializeImpl(DataStreamOutput& s)
 {
   int mode;
-  s >> m_source >> m_target >> m_rackIds >> m_processIds >> mode;
+  s >> m_source >> m_target >> m_processIds >> mode;
   m_mode = static_cast<ExpandMode>(mode);
 }
 }

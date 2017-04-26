@@ -1,7 +1,6 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -29,7 +28,6 @@
 #include <string.h>
 
 #include "Menus/TransportActions.hpp"
-#include <Process/LayerModel.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 
@@ -39,9 +37,7 @@
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
@@ -50,7 +46,6 @@
 #include <Scenario/Palette/Tool.hpp>
 #include <core/document/Document.hpp>
 
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
@@ -83,8 +78,6 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   // Register conditions for the actions enablement
   using namespace iscore;
   using namespace Process;
-  ctx.actions.onFocusChange(
-      std::make_shared<EnableWhenFocusedObjectIs<TemporalScenarioLayer>>());
   ctx.actions.onFocusChange(
       std::make_shared<EnableWhenFocusedProcessIs<ProcessModel>>());
   ctx.actions.onFocusChange(
@@ -221,36 +214,18 @@ void ScenarioApplicationPlugin::on_documentChanged(
       // We focus by default the first process of the constraint in full view
       // we're in
       // TODO this snippet is useful, put it somewhere in some Toolkit file.
-      auto& pres
+      ScenarioDocumentPresenter& pres
           = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
       auto& cst = pres.displayedConstraint();
-      auto cst_pres = pres.presenters().constraintPresenter();
+      FullViewConstraintPresenter* cst_pres = pres.presenters().constraintPresenter();
 
-      if (!cst.processes.empty() && cst_pres && cst_pres->rack())
+      if (!cst.processes.empty() && cst_pres)
       {
-        auto rack = cst_pres->rack();
-        const auto& slts = rack->getSlots();
-        if (!slts.empty())
+        auto& rack = cst.fullView();
+        if (!rack.empty())
         {
-          const auto& top_slot = rack->model().slotsPositions().front();
-          const SlotPresenter& first = slts.at(top_slot);
-          const auto& slot_processes = first.processes();
-          if (!slot_processes.empty())
-          {
-            const auto& front_proc
-                = *first.model()
-                       .frontLayerModel(); // Won't crash because not empty
-            auto it = std::find_if(
-                slot_processes.begin(), slot_processes.end(),
-                [&](const auto& proc_elt) {
-                  return proc_elt.model == &front_proc;
-                });
-            if (it != slot_processes.end())
-            {
-              const SlotProcessData& proc_elt = *it;
-              focusManager->focus(proc_elt.presenter);
-            }
-          }
+          const FullSlot& top_slot = *rack.begin();
+          focusManager->focus(cst_pres->process(top_slot.process));
         }
       }
     }

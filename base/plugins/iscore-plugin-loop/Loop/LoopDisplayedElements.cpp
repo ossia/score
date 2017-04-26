@@ -1,6 +1,6 @@
 #include "LoopDisplayedElements.hpp"
 #include "LoopProcessModel.hpp"
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
@@ -40,8 +40,7 @@ DisplayedElementsProvider::make_presenters(
   if (auto bs = dynamic_cast<Loop::ProcessModel*>(m.parent()))
   {
     return Scenario::DisplayedElementsPresenterContainer{
-        new Scenario::FullViewConstraintPresenter{*m.fullView(), ctx,
-                                                  view_parent, parent},
+        new Scenario::FullViewConstraintPresenter{m, ctx, view_parent, parent},
         new Scenario::StatePresenter{bs->startState(), view_parent, parent},
         new Scenario::StatePresenter{bs->endState(), view_parent, parent},
         new Scenario::EventPresenter{bs->startEvent(), view_parent, parent},

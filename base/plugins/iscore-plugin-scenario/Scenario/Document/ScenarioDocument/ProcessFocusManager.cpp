@@ -1,5 +1,4 @@
 #include "ProcessFocusManager.hpp"
-#include <Process/LayerModel.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 namespace Process
@@ -10,10 +9,6 @@ const ProcessModel* ProcessFocusManager::focusedModel() const
   return m_currentModel;
 }
 
-const LayerModel* ProcessFocusManager::focusedViewModel() const
-{
-  return m_currentViewModel;
-}
 
 LayerPresenter* ProcessFocusManager::focusedPresenter() const
 {
@@ -29,22 +24,21 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
   {
     defocusPresenter(m_currentPresenter);
   }
-  if (m_currentViewModel)
+  if (m_currentModel)
   {
-    emit sig_defocusedViewModel(m_currentViewModel);
+    emit sig_defocusedViewModel(m_currentModel);
   }
 
   m_currentPresenter = p;
 
   if (m_currentPresenter)
   {
-    m_currentViewModel = &m_currentPresenter->layerModel();
-    m_currentModel = &m_currentViewModel->processModel();
+    m_currentModel = &m_currentPresenter->model();
 
-    emit sig_focusedViewModel(m_currentViewModel);
+    emit sig_focusedViewModel(m_currentModel);
 
     m_deathConnection = connect(
-        m_currentViewModel,
+        m_currentModel,
         &IdentifiedObjectAbstract::identified_object_destroying, this, [=]() {
           sig_defocusedViewModel(nullptr);
           sig_defocusedPresenter(nullptr);
@@ -54,11 +48,10 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
   }
   else
   {
-    m_currentViewModel = nullptr;
     m_currentModel = nullptr;
   }
 
-  m_mgr.set(m_currentViewModel);
+  m_mgr.set(m_currentModel);
 }
 
 void ProcessFocusManager::focus(Scenario::ScenarioDocumentPresenter*)
@@ -69,13 +62,12 @@ void ProcessFocusManager::focus(Scenario::ScenarioDocumentPresenter*)
 
 void ProcessFocusManager::focusNothing()
 {
-  if (m_currentViewModel)
-    emit sig_defocusedViewModel(m_currentViewModel);
+  if (m_currentModel)
+    emit sig_defocusedViewModel(m_currentModel);
   if (m_currentPresenter)
     defocusPresenter(m_currentPresenter);
 
   m_currentModel = nullptr;
-  m_currentViewModel = nullptr;
   m_currentPresenter = nullptr;
 
   m_mgr.set(nullptr);

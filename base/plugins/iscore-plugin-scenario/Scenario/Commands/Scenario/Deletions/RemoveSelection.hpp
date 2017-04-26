@@ -8,7 +8,6 @@
 #include <iscore/model/Identifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <iscore/selection/Selection.hpp>
 
 struct DataStreamInput;
@@ -25,10 +24,10 @@ class ProcessModel;
 namespace Command
 {
 /**
-        * @brief The RemoveSelection class
-        *
-        * Tries to remove what is selected in a scenario.
-        */
+ * @brief The RemoveSelection class
+ *
+ * Tries to remove what is selected in a scenario.
+ */
 class RemoveSelection final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
@@ -54,9 +53,7 @@ private:
   QVector<QPair<Id<StateModel>, QByteArray>> m_removedStates;
   QVector<QPair<Id<EventModel>, QByteArray>> m_removedEvents;
   QVector<QPair<Id<TimeNodeModel>, QByteArray>> m_removedTimeNodes;
-  QVector<QPair<QPair<Id<ConstraintModel>, QByteArray>, SerializedConstraintViewModels>>
-      m_removedConstraints; // The handlers inside the events are IN the
-                            // constraints / Rackes / etc.
+  QVector<QPair<Id<ConstraintModel>, QByteArray>> m_removedConstraints;
 };
 }
 }

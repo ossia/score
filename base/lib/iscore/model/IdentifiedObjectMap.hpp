@@ -116,6 +116,8 @@ public:
   using MapBase<Element, Model, bmi::multi_index_container<Element*, bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<IdentifiedObject<Model>, const Id<Model>&, &IdentifiedObject<Model>::id>>, bmi::sequenced<>>>>::
       MapBase;
 
+  auto& ordered() { return this->m_map.template get<1>(); }
+
   auto begin() const
   {
     return boost::make_indirect_iterator(

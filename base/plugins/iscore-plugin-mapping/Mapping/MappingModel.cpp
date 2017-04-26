@@ -3,7 +3,6 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include "MappingLayerModel.hpp"
 #include "MappingModel.hpp"
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
@@ -11,13 +10,6 @@
 #include <State/Address.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/model/Identifier.hpp>
-
-namespace Process
-{
-class LayerModel;
-}
-
-class QObject;
 
 namespace Mapping
 {

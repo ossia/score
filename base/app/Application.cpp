@@ -225,10 +225,9 @@ void Application::initDocuments()
 void Application::loadPluginData()
 {
     auto& ctx = m_presenter->applicationContext();
-    iscore::ApplicationRegistrar registrar{
+    iscore::GUIApplicationRegistrar registrar{
         m_presenter->components(),
                 ctx,
-                *m_view,
                 m_presenter->menuManager(),
                 m_presenter->toolbarManager(),
                 m_presenter->actionManager()};
