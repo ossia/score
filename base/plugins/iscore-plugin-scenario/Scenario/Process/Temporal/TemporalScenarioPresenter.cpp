@@ -7,36 +7,12 @@
 #include <State/MessageListSerialization.hpp>
 
 #include "TemporalScenarioPresenter.hpp"
-#include <Process/LayerPresenter.hpp>
-#include <Process/Process.hpp>
-#include <Process/ProcessContext.hpp>
-#include <Process/TimeValue.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
-#include <Scenario/Commands/State/AddMessagesToState.hpp>
-#include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Palette/Tool.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
-#include <State/Message.hpp>
-#include <algorithm>
 #include <iscore/actions/ActionManager.hpp>
-#include <iscore/document/DocumentContext.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <iscore/serialization/MimeVisitor.hpp>
-#include <iscore/model/EntityMap.hpp>
-#include <iscore/model/IdentifiedObject.hpp>
-#include <iscore/model/IdentifiedObjectMap.hpp>
-#include <iscore/model/path/Path.hpp>
-#include <iscore/tools/Todo.hpp>
-#include <iscore/widgets/GraphicsItem.hpp>
+
 class MessageItemModel;
 class QMenu;
 

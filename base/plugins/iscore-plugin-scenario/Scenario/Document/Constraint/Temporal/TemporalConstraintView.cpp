@@ -151,7 +151,6 @@ void TemporalConstraintView::paint(
   auto& skin = ScenarioStyle::instance();
 
   const qreal def_w = defaultWidth();
-  const qreal play_w = playWidth();
 
   // Draw the stuff present if there is a rack *in the model* ?
 

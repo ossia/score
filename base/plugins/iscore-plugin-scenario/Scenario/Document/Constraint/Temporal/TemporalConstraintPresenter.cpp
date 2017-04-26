@@ -377,7 +377,7 @@ void TemporalConstraintPresenter::on_slotRemoved(int pos)
 
 void TemporalConstraintPresenter::updateProcessesShape()
 {
-  for(int i = 0; i < m_slots.size(); i++)
+  for(int i = 0; i < (int)m_slots.size(); i++)
   {
     for(const LayerData& proc : m_slots[i].processes)
     {
@@ -396,7 +396,7 @@ void TemporalConstraintPresenter::updatePositions()
   // Set the slots position graphically in order.
   qreal currentSlotY = ConstraintHeader::headerHeight();
 
-  for(int i = 0; i < m_slots.size(); i++)
+  for(int i = 0; i < (int)m_slots.size(); i++)
   {
     const SlotPresenter& slot = m_slots[i];
     const Slot& model = m_model.smallView()[i];
@@ -531,10 +531,10 @@ int TemporalConstraintPresenter::indexOfSlot(const Process::LayerPresenter& proc
 {
   if(m_model.smallViewVisible())
   {
-    for(int i = 0; i < m_slots.size(); ++i)
+    for(int i = 0; i < (int)m_slots.size(); ++i)
     {
       const auto& p = m_slots[i].processes;
-      for(int j = 0; j < p.size(); j++)
+      for(int j = 0; j < (int)p.size(); j++)
       {
         if(p[j].presenter == &proc)
           return i;

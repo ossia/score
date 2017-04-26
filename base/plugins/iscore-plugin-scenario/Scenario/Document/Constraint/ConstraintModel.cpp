@@ -303,7 +303,7 @@ void ConstraintModel::putLayerToFront(int slot, ossia::none_t)
 
 void ConstraintModel::addSlot(Slot s, int pos)
 {
-  ISCORE_ASSERT(m_smallView.size() >= pos);
+  ISCORE_ASSERT((int)m_smallView.size() >= pos);
   m_smallView.insert(m_smallView.begin() + pos, std::move(s));
   emit slotAdded({pos, Slot::SmallView});
 
@@ -318,7 +318,7 @@ void ConstraintModel::addSlot(Slot s)
 
 void ConstraintModel::removeSlot(int pos)
 {
-  ISCORE_ASSERT(m_smallView.size() >= pos);
+  ISCORE_ASSERT((int)m_smallView.size() >= pos);
   m_smallView.erase(m_smallView.begin() + pos);
   emit slotRemoved({pos, Slot::SmallView});
 
@@ -329,7 +329,7 @@ void ConstraintModel::removeSlot(int pos)
 
 const Slot* ConstraintModel::findSmallViewSlot(int slot) const
 {
-  if(slot < m_smallView.size())
+  if(slot < (int)m_smallView.size())
     return &m_smallView[slot];
 
   return nullptr;
@@ -349,7 +349,7 @@ Slot& ConstraintModel::getSmallViewSlot(int slot)
 
 const FullSlot* ConstraintModel::findFullViewSlot(int slot) const
 {
-  if(slot < m_fullView.size())
+  if(slot < (int)m_fullView.size())
     return &m_fullView[slot];
 
   return nullptr;
@@ -395,15 +395,15 @@ void ConstraintModel::swapSlots(int pos1, int pos2, Slot::RackView v)
   if(v == Slot::FullView)
   {
     auto& vec = m_fullView;
-    ISCORE_ASSERT(vec.size() > pos1);
-    ISCORE_ASSERT(vec.size() > pos2);
+    ISCORE_ASSERT((int)vec.size() > pos1);
+    ISCORE_ASSERT((int)vec.size() > pos2);
     std::iter_swap(vec.begin() + pos1, vec.begin() + pos2);
   }
   else
   {
     auto& vec = m_smallView;
-    ISCORE_ASSERT(vec.size() > pos1);
-    ISCORE_ASSERT(vec.size() > pos2);
+    ISCORE_ASSERT((int)vec.size() > pos1);
+    ISCORE_ASSERT((int)vec.size() > pos2);
     std::iter_swap(vec.begin() + pos1, vec.begin() + pos2);
   }
   emit slotsSwapped(pos1, pos2, v);
@@ -418,7 +418,7 @@ void ConstraintModel::on_addProcess(const Process::ProcessModel& p)
 void ConstraintModel::on_removeProcess(const Process::ProcessModel& p)
 {
   const auto& pid = p.id();
-  for(int i = 0; i < m_smallView.size(); i++)
+  for(int i = 0; i < (int)m_smallView.size(); i++)
   {
     removeLayer(i, pid);
   }
