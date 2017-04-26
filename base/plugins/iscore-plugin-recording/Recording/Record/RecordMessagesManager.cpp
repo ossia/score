@@ -115,8 +115,6 @@ void MessageRecorder::on_valueUpdated(
 bool MessageRecorder::setup(
     const Box& box, const RecordListening& recordListening)
 {
-  // TODO
-  /*
   using namespace std::chrono;
   //// Device tree management ////
 
@@ -124,7 +122,7 @@ bool MessageRecorder::setup(
   // Note : since we directly create the IDs here, we don't have to worry
   // about their generation.
   auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
-      Path<Scenario::ConstraintModel>(box.constraint),
+      box.constraint,
       Metadata<ConcreteKey_k, RecordedMessages::ProcessModel>::get()};
 
   cmd_proc->redo();
@@ -135,7 +133,7 @@ bool MessageRecorder::setup(
   m_createdProcess = &record_proc;
 
   //// Creation of the layer ////
-  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{box.slot, proc};
+  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{{box.constraint, 0}, proc};
   cmd_layer->redo();
   context.dispatcher.submitCommand(cmd_layer);
 
@@ -160,7 +158,7 @@ bool MessageRecorder::setup(
 
     m_recordCallbackConnections.push_back(&dev);
   }
-  */
+
   return true;
 }
 }

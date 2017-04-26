@@ -205,8 +205,6 @@ PlayContextMenu::PlayContextMenu(
 
 void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 {
-  // TODO
-  /*
   using namespace Process;
   Process::LayerContextMenu& scenario_cm
       = ctxm.menu<ContextMenus::ScenarioModelContextMenu>();
@@ -215,6 +213,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
   Process::LayerContextMenu& cst_cm
       = ctxm.menu<ContextMenus::ConstraintContextMenu>();
 
+  return;
   cst_cm.functions.push_back(
       [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
         using namespace iscore;
@@ -269,7 +268,6 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
     m_recordMessages->setData(data);
 
   });
-  */
 }
 }
 }

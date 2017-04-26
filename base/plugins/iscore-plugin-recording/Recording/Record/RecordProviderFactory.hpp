@@ -129,8 +129,6 @@ public:
     // Disable listening for everything
     ctx.explorer.deviceModel().listening().stop();
 
-    // TODO
-    /*
     // Create the processes, etc.
     Box box = CreateBox(ctx);
 
@@ -165,7 +163,7 @@ public:
         &ctx.scenario, &IdentifiedObjectAbstract::identified_object_destroyed,
         this, [&]() { ctx.timer.stop(); });
 
-    */
+
     return true;
   }
 

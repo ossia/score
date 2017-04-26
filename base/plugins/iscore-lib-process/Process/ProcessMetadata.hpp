@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <iscore/tools/Metadata.hpp>
+#include <iscore/plugins/customfactory/SerializableInterface.hpp>
 
 namespace Process
 {
@@ -19,3 +20,7 @@ class StateProcessFactory;
   MODEL_METADATA(                                                         \
       Export, Process::StateProcessFactory, Model, Uuid, ObjectKey,       \
       PrettyName)
+
+#define PROCESS_METADATA_IMPL(Model) \
+  MODEL_METADATA_IMPL(Model) \
+  QString prettyShortName() const override { return Metadata<PrettyName_k, Model>::get(); }

@@ -12,7 +12,7 @@ class ISCORE_PLUGIN_MIDI_EXPORT ProcessModel final
     : public Process::ProcessModel
 {
   ISCORE_SERIALIZE_FRIENDS
-  MODEL_METADATA_IMPL(Midi::ProcessModel)
+  PROCESS_METADATA_IMPL(Midi::ProcessModel)
   Q_OBJECT
 
 public:

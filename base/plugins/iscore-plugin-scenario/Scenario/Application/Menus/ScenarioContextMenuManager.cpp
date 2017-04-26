@@ -219,7 +219,7 @@ void ScenarioContextMenuManager::createLayerContextMenu(
   // Then the process-specific part
   if (has_slot_menu)
   {
-    auto processMenu = menu.addMenu(tr("Process"));
+    auto processMenu = menu.addMenu(pres.layerModel().prettyName());
     pres.fillContextMenu(*processMenu, pos, scenepos, lcmmgr);
   }
   else
