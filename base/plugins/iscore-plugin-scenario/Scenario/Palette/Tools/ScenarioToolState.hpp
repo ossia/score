@@ -21,20 +21,16 @@
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
 
-#include <Scenario/Document/Constraint/Rack/Slot/SlotHandle.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
+#include <Scenario/Document/Constraint/SlotHandle.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ConstraintView.hpp>
 
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/LeftBrace.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/Braces/RightBrace.hpp>
+#include <Scenario/Document/Constraint/ConstraintHeader.hpp>
+#include <Scenario/Document/Constraint/Temporal/Braces/LeftBrace.hpp>
 
 namespace iscore
 {

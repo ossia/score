@@ -6,7 +6,7 @@
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 
 #include "BaseScenarioDisplayedElementsProvider.hpp"
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
 
 namespace Scenario
 {

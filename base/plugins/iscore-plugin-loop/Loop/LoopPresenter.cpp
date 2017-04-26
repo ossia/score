@@ -1,4 +1,4 @@
-#include <Loop/LoopLayer.hpp>
+
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopView.hpp>
 #include <QGraphicsItem>
@@ -13,8 +13,8 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
+#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/Temporal/TemporalConstraintView.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>

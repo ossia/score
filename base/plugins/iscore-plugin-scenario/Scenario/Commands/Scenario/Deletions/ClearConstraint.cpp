@@ -1,8 +1,6 @@
 #include <Process/ProcessList.hpp>
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 

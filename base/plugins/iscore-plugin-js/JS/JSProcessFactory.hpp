@@ -6,7 +6,6 @@
 #include <JS/JSProcessMetadata.hpp>
 #include <JS/JSProcessModel.hpp>
 #include <JS/JSStateProcess.hpp>
-#include <Process/LayerModel.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/StateProcessFactory.hpp>
 

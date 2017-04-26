@@ -1,5 +1,4 @@
 #include "ProcessFocusManager.hpp"
-#include <Process/LayerModel.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 namespace Process

@@ -1,5 +1,5 @@
 #include <Process/Process.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 
 #include <Process/ProcessList.hpp>
 #include <algorithm>

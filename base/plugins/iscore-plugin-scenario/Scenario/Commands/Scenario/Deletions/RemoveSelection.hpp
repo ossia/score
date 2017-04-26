@@ -8,7 +8,6 @@
 #include <iscore/model/Identifier.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <iscore/selection/Selection.hpp>
 
 struct DataStreamInput;

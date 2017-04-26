@@ -14,9 +14,7 @@
 #include <QWidget>
 #include <QtGlobal>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Constraint/SetLooping.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
@@ -31,15 +29,11 @@
 
 #include "ConstraintInspectorWidget.hpp"
 #include "Widgets/DurationSectionWidget.hpp"
-#include "Widgets/Rack/RackInspectorSection.hpp"
-#include "Widgets/RackWidget.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Inspector/Constraint/Widgets/ProcessTabWidget.hpp>
-#include <Scenario/Inspector/Constraint/Widgets/ProcessViewTabWidget.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/document/DocumentContext.hpp>

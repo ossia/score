@@ -3,7 +3,6 @@
 #include <QMap>
 #include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <iscore/command/Command.hpp>
 #include <iscore/tools/std/Optional.hpp>
 

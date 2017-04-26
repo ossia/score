@@ -13,7 +13,7 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <iscore/model/Identifier.hpp>

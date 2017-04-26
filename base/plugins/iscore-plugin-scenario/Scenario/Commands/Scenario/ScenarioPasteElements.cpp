@@ -4,7 +4,6 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 
 #include <QDataStream>
 #include <QHash>
@@ -23,14 +22,9 @@
 
 #include "ScenarioPasteElements.hpp"
 #include <ossia/detail/algorithms.hpp>
-#include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
-#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/document/DocumentContext.hpp>

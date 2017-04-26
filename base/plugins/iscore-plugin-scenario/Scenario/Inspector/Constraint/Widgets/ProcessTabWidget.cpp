@@ -15,10 +15,8 @@
 #include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/RemoveProcessFromConstraint.hpp>
-#include <Scenario/Commands/Constraint/SetProcessUseParentDuration.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Commands/SetProcessDuration.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>

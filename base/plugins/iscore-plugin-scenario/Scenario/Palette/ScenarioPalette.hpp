@@ -3,7 +3,6 @@
 #include <QPoint>
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/CreationToolState.hpp>
-#include <Scenario/Palette/Tools/MoveSlotToolState.hpp>
 #include <Scenario/Palette/Tools/PlayToolState.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>

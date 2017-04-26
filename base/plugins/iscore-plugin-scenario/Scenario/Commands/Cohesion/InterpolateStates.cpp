@@ -23,10 +23,9 @@
 #include <Device/Address/Domain.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
-#include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/MessageNode.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>

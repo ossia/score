@@ -9,7 +9,6 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExpandMode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Focus/FocusDispatcher.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModel.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelPanelProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerPresenter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerView.hpp"
@@ -24,7 +23,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcess.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ProcessFonts.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/TimeValue.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessMimeSerialization.hpp"
@@ -41,13 +39,12 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.hpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyModel.hpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerPresenter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyState.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetProcessFactory.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerModel.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPresenter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPanelProxy.hpp"
@@ -55,7 +52,6 @@ set(PROCESS_HDRS
 set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNodeSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactory.cpp"
@@ -64,10 +60,8 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ProcessFonts.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.cpp"
 
@@ -80,15 +74,11 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyModelSerialization.cpp"
-
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerModelSerialization.cpp"
 )
 
 qt5_add_resources(DUMMYPROCESS_QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/resources/DummyResources.qrc")

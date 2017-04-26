@@ -4,7 +4,7 @@
 #include <Process/ProcessContext.hpp>
 #include <QObject>
 #include <QPoint>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
 #include <iscore/model/IdentifiedObjectMap.hpp>

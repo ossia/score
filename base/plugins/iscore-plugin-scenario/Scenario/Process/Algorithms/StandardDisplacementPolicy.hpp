@@ -8,14 +8,11 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Scenario/Commands/Scenario/Deletions/ClearConstraint.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
-#include <Process/LayerModel.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 

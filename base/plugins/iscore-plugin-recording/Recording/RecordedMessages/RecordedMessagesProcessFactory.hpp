@@ -1,6 +1,5 @@
 #pragma once
 #include <Process/GenericProcessFactory.hpp>
-#include <Process/LayerModel.hpp>
 #include <Recording/RecordedMessages/RecordedMessagesProcessMetadata.hpp>
 #include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
 namespace RecordedMessages

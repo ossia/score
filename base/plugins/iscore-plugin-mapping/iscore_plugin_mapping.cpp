@@ -1,5 +1,4 @@
 #include <Mapping/MappingColors.hpp>
-#include <Mapping/MappingLayerModel.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <Mapping/MappingPresenter.hpp>
 #include <Mapping/MappingView.hpp>

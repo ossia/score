@@ -1,7 +1,6 @@
 #pragma once
 #include <Process/GenericProcessFactory.hpp>
 
-#include <Loop/LoopLayer.hpp>
 #include <Loop/LoopPresenter.hpp>
 #include <Loop/LoopProcessMetadata.hpp>
 #include <Loop/LoopProcessModel.hpp>
