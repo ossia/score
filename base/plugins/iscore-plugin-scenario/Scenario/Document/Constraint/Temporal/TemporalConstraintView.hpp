@@ -18,6 +18,7 @@ class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 class ConstraintMenuOverlay;
+namespace Process { class LayerPresenter; }
 namespace Scenario
 {
 class TemporalConstraintPresenter;

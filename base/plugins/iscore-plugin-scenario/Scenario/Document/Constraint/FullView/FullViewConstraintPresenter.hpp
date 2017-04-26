@@ -27,6 +27,7 @@ public:
 
   void updateHeight();
   void on_zoomRatioChanged(ZoomRatio val) override;
+  int indexOfSlot(const Process::LayerPresenter&);
 
 signals:
   void constraintSelected(ConstraintModel&);

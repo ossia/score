@@ -241,6 +241,17 @@ void FullViewConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
   updateProcessesShape();
 }
 
+int FullViewConstraintPresenter::indexOfSlot(const Process::LayerPresenter& p)
+{
+  for(int i = 0; i < m_slots.size(); ++i)
+  {
+    if(m_slots[i].process.presenter == &p)
+      return i;
+  }
+
+  ISCORE_ABORT;
+}
+
 void FullViewConstraintPresenter::on_defaultDurationChanged(const TimeVal& v)
 {
   ConstraintPresenter::on_defaultDurationChanged(v);
