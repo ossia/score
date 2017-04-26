@@ -175,7 +175,7 @@ void LayerPresenter::parentGeometryChanged()
   m_view->update();
 }
 
-const Process::ProcessModel& LayerPresenter::layerModel() const
+const Loop::ProcessModel& LayerPresenter::model() const
 {
   return m_layer;
 }

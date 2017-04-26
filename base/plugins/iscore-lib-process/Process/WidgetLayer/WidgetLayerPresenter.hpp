@@ -63,7 +63,7 @@ public:
   {
   }
 
-  const Process::ProcessModel& layerModel() const override
+  const Process::ProcessModel& model() const override
   {
     return m_layer;
   }

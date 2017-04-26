@@ -17,8 +17,6 @@ namespace Scenario
 bool DropProcessInScenario::drop(
     const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData* mime)
 {
-  // TODO
-  /*
   if (mime->formats().contains(iscore::mime::processdata()))
   {
     Mime<Process::ProcessData>::Deserializer des{*mime};
@@ -47,29 +45,25 @@ bool DropProcessInScenario::drop(
     m.submitCommand(box_cmd);
     auto& constraint = scenar.constraint(box_cmd->createdConstraint());
 
-    auto cmd3 = new Scenario::Command::AddRackToConstraint{constraint};
-    m.submitCommand(cmd3);
-
-    auto& rack = constraint.racks.at(cmd3->createdRack());
-
     // Create process
     auto process_cmd
         = new Scenario::Command::AddOnlyProcessToConstraint{constraint, p.key};
     m.submitCommand(process_cmd);
 
     // Create a new slot
-    auto slot_cmd = new Scenario::Command::AddSlotToRack{rack};
+    auto slot_cmd = new Scenario::Command::AddSlotToRack{constraint};
     m.submitCommand(slot_cmd);
 
     // Add a new layer in this slot.
-    auto& slot = rack.slotmodels.at(slot_cmd->createdSlot());
-
     auto& proc = constraint.processes.at(process_cmd->processId());
-    auto layer_cmd = new Scenario::Command::AddLayerModelToSlot{slot, proc};
+    auto layer_cmd = new Scenario::Command::AddLayerModelToSlot{
+        SlotPath{constraint, constraint.smallView().size() - 1},
+        proc};
+
     m.submitCommand(layer_cmd);
+
     // Finally we show the newly created rack
-    auto show_cmd = new Scenario::Command::ShowRackInAllViewModels{constraint,
-                                                                   rack.id()};
+    auto show_cmd = new Scenario::Command::ShowRack{constraint};
     m.submitCommand(show_cmd);
 
     m.commit();
@@ -79,7 +73,7 @@ bool DropProcessInScenario::drop(
   {
     return false;
   }
-  */
+
   return false;
 }
 

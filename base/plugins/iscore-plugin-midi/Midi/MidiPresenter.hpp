@@ -28,7 +28,7 @@ public:
 
   void parentGeometryChanged() override;
 
-  const Midi::ProcessModel& layerModel() const override;
+  const Midi::ProcessModel& model() const override;
   const Id<Process::ProcessModel>& modelId() const override;
 
 private:

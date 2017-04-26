@@ -42,7 +42,7 @@ public:
   virtual void on_zoomRatioChanged(ZoomRatio) = 0;
   virtual void parentGeometryChanged() = 0;
 
-  virtual const ProcessModel& layerModel() const = 0;
+  virtual const ProcessModel& model() const = 0;
   virtual const Id<ProcessModel>& modelId() const = 0;
 
   virtual void fillContextMenu(

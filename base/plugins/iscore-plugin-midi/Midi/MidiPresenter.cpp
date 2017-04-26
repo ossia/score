@@ -108,7 +108,7 @@ void Presenter::parentGeometryChanged()
 {
 }
 
-const Midi::ProcessModel& Presenter::layerModel() const
+const Midi::ProcessModel& Presenter::model() const
 {
   return m_layer;
 }

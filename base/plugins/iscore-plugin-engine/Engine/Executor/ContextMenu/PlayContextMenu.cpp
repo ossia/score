@@ -161,7 +161,7 @@ PlayContextMenu::PlayContextMenu(
 
     auto& pres
         = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
-    auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.layerModel());
+    auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.model());
 
     exec_signals.startRecording(
         *proc,
@@ -213,7 +213,6 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
   Process::LayerContextMenu& cst_cm
       = ctxm.menu<ContextMenus::ConstraintContextMenu>();
 
-  return;
   cst_cm.functions.push_back(
       [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
         using namespace iscore;

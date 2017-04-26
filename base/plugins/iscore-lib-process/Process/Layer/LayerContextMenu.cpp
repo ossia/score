@@ -12,6 +12,9 @@ void LayerContextMenu::build(
     QMenu& m, QPoint pt, QPointF ptf, const LayerContext& proc) const
 {
   for (auto& fun : functions)
+  {
+    ISCORE_ASSERT(bool(fun));
     fun(m, pt, ptf, proc);
+  }
 }
 }

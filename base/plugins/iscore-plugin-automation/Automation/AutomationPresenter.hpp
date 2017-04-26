@@ -60,7 +60,7 @@ private:
 
   void on_dropReceived(const QMimeData& mime)
   {
-    auto& autom = this->layerModel();
+    auto& autom = this->model();
     // TODO refactor with AddressEditWidget
     if (mime.formats().contains(iscore::mime::addressettings()))
     {

@@ -53,7 +53,7 @@ void DummyLayerPresenter::parentGeometryChanged()
 {
 }
 
-const Process::ProcessModel& DummyLayerPresenter::layerModel() const
+const Process::ProcessModel& DummyLayerPresenter::model() const
 {
   return m_layer;
 }

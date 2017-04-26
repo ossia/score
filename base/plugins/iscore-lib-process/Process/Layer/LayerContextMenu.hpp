@@ -46,7 +46,7 @@ public:
   }
 
   template <typename T>
-  auto& menu()
+  LayerContextMenu& menu()
   {
     using meta_t = MetaContextMenu<T>;
     ISCORE_ASSERT(m_container.find(meta_t::static_key()) != m_container.end());
@@ -54,7 +54,7 @@ public:
   }
 
   template <typename T>
-  auto& menu() const
+  const LayerContextMenu& menu() const
   {
     using meta_t = MetaContextMenu<T>;
     ISCORE_ASSERT(m_container.find(meta_t::static_key()) != m_container.end());

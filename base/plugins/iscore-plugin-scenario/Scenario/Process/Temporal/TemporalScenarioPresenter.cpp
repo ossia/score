@@ -230,7 +230,7 @@ TemporalScenarioPresenter::~TemporalScenarioPresenter()
   disconnect(m_con);
 }
 
-const Process::ProcessModel& TemporalScenarioPresenter::layerModel() const
+const Process::ProcessModel& TemporalScenarioPresenter::model() const
 {
   return m_layer;
 }
