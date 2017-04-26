@@ -1,9 +1,8 @@
-#include <Process/LayerModel.hpp>
+
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 
 #include <QDataStream>

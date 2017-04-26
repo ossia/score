@@ -1,12 +1,9 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <iscore/command/AggregateCommand.hpp>
 
-#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Scenario/ShowRackInAllViewModels.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 
 #include <ossia/detail/algorithms.hpp>

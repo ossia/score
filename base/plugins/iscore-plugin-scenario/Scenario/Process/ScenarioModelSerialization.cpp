@@ -6,7 +6,6 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <algorithm>
 #include <iscore/tools/std/Optional.hpp>
 #include <sys/types.h>

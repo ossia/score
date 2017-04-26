@@ -1,7 +1,6 @@
 #include <Process/Process.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 
 #include <algorithm>
 #include <boost/iterator/iterator_facade.hpp>
@@ -11,7 +10,6 @@
 
 #include "AddLayerInNewSlot.hpp"
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>

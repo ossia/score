@@ -1,9 +1,7 @@
-#include <Process/LayerModel.hpp>
+
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
@@ -19,7 +17,6 @@
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>

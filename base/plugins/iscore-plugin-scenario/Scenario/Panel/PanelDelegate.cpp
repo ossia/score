@@ -1,10 +1,8 @@
 #include "PanelDelegate.hpp"
-#include <Process/LayerModel.hpp>
 #include <Process/LayerModelPanelProxy.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Tools/ProcessPanelGraphicsProxy.hpp>
 #include <QVBoxLayout>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>

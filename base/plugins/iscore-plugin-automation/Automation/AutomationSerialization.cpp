@@ -4,7 +4,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-#include "AutomationLayerModel.hpp"
 #include "AutomationModel.hpp"
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <Curve/CurveModel.hpp>

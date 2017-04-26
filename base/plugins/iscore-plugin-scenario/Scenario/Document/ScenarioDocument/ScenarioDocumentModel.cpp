@@ -1,17 +1,15 @@
-#include <Process/LayerModel.hpp>
+
 #include <Process/Process.hpp>
 #include <QList>
 #include <QObject>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <boost/iterator/iterator_facade.hpp>
@@ -21,8 +19,6 @@
 #include "ScenarioDocumentModel.hpp"
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>

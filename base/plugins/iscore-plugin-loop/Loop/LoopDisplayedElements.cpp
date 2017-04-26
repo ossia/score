@@ -1,6 +1,6 @@
 #include "LoopDisplayedElements.hpp"
 #include "LoopProcessModel.hpp"
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>

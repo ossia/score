@@ -1,7 +1,6 @@
 #include "RecordTools.hpp"
 #include <Recording/Record/RecordProviderFactory.hpp>
 
-#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>

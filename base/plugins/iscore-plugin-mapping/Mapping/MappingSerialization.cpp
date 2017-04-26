@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <iscore/serialization/VisitorCommon.hpp>
 
-#include "MappingLayerModel.hpp"
 #include "MappingModel.hpp"
 #include <Curve/CurveModel.hpp>
 #include <State/Address.hpp>

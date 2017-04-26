@@ -1,7 +1,6 @@
 #pragma once
 #include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <iscore/command/Command.hpp>
 #include <iscore/model/path/Path.hpp>
 #include <iscore/model/Identifier.hpp>

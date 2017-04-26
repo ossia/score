@@ -1,4 +1,4 @@
-#include <Process/LayerModel.hpp>
+
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <iscore/model/path/RelativePath.hpp>
 

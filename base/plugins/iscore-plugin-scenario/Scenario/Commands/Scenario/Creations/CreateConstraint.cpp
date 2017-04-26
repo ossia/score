@@ -15,10 +15,7 @@
 
 #include "CreateConstraint.hpp"
 #include <Process/Process.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/model/EntityMap.hpp>

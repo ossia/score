@@ -1,7 +1,6 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -29,7 +28,6 @@
 #include <string.h>
 
 #include "Menus/TransportActions.hpp"
-#include <Process/LayerModel.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 
@@ -39,9 +37,7 @@
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
@@ -50,7 +46,6 @@
 #include <Scenario/Palette/Tool.hpp>
 #include <core/document/Document.hpp>
 
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>

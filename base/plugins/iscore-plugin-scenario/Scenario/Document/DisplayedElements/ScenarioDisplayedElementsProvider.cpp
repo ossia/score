@@ -5,7 +5,7 @@
 
 #include "ScenarioDisplayedElementsProvider.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>

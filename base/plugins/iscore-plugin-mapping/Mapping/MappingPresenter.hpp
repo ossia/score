@@ -2,7 +2,6 @@
 #include <Curve/CurveStyle.hpp>
 #include <Curve/Process/CurveProcessPresenter.hpp>
 
-#include <Mapping/MappingLayerModel.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <Mapping/MappingView.hpp>
 

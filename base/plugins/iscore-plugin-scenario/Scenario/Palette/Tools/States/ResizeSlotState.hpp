@@ -6,14 +6,8 @@
 
 #include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
 
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotOverlay.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
-
-#include <Scenario/Commands/Constraint/Rack/MoveSlot.hpp>
 #include <Scenario/Commands/Constraint/Rack/SwapSlots.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>

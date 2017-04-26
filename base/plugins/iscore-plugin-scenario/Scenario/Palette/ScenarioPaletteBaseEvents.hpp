@@ -1,6 +1,6 @@
 #pragma once
 #include "ScenarioPoint.hpp"
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 
 #include <iscore/tools/Clamp.hpp>

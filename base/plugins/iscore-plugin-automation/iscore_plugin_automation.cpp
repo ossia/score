@@ -1,5 +1,4 @@
 #include <Automation/AutomationColors.hpp>
-#include <Automation/AutomationLayerModel.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationPresenter.hpp>
 #include <Automation/AutomationView.hpp>

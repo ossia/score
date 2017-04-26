@@ -17,7 +17,6 @@
 #include <Scenario/Commands/State/InsertContentInState.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -33,7 +32,6 @@
 #include <algorithm>
 
 #include "ObjectMenuActions.hpp"
-#include <Process/LayerModel.hpp>
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 

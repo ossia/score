@@ -1,7 +1,6 @@
 #pragma once
 #include <Curve/Process/CurveProcessPresenter.hpp>
 
-#include <Automation/AutomationLayerModel.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationView.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>

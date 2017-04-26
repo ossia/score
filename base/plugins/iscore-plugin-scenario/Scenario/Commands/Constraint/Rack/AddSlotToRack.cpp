@@ -1,5 +1,5 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <boost/iterator/iterator_facade.hpp>

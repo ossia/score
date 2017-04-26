@@ -1,5 +1,5 @@
 #pragma once
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 
 namespace Scenario
 {

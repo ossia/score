@@ -1,5 +1,4 @@
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
@@ -9,7 +8,6 @@
 #include <iscore/tools/std/Optional.hpp>
 
 #include "ScenarioFactory.hpp"
-#include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <iscore/document/DocumentInterface.hpp>

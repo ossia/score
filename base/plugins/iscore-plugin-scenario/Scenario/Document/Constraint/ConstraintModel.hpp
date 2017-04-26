@@ -4,7 +4,7 @@
 #include <QObject>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Constraint/ExecutionState.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
 #include <iscore/model/Entity.hpp>
 #include <iscore/selection/Selectable.hpp>

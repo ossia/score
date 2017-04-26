@@ -1,4 +1,4 @@
-#include <Midi/MidiLayer.hpp>
+
 #include <Midi/MidiNoteView.hpp>
 #include <Midi/MidiPresenter.hpp>
 #include <Midi/MidiProcess.hpp>

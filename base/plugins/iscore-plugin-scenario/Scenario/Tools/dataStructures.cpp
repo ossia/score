@@ -1,7 +1,6 @@
 #include <Process/ProcessList.hpp>
 #include <QDataStream>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/model/path/PathSerialization.hpp>

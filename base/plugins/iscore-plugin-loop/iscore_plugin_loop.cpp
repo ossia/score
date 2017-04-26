@@ -3,7 +3,6 @@
 #include <Loop/Inspector/LoopTriggerCommandFactory.hpp>
 #include <Loop/LoopProcessFactory.hpp>
 #include <Process/Process.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <string.h>
 #include <iscore/tools/std/HashMap.hpp>
