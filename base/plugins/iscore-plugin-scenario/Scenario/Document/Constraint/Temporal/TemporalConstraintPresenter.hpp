@@ -43,6 +43,7 @@ public:
   void on_defaultDurationChanged(const TimeVal&) override;
 
   void updateHeight();
+  int indexOfSlot(const Process::LayerPresenter&);
 
 signals:
   void constraintHoverEnter();

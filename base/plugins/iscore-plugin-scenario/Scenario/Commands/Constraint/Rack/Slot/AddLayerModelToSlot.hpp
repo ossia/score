@@ -20,10 +20,10 @@ namespace Scenario
 namespace Command
 {
 /**
-         * @brief The AddLayerToSlot class
-         *
-         * Adds a process view to a slot.
-         */
+ * @brief The AddLayerToSlot class
+ *
+ * Adds a process view to a slot.
+ */
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final
     : public iscore::Command
 {

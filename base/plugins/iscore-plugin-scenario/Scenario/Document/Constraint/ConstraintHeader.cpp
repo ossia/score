@@ -1,6 +1,8 @@
 #include "ConstraintHeader.hpp"
 #include "ConstraintView.hpp"
 
+#include <QCursor>
+
 class QGraphicsSceneMouseEvent;
 namespace Scenario
 {

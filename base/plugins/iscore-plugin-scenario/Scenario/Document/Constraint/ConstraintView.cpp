@@ -1,5 +1,6 @@
 #include <QGraphicsSceneEvent>
 #include <QtGlobal>
+#include <QCursor>
 
 #include "ConstraintPresenter.hpp"
 #include "ConstraintView.hpp"

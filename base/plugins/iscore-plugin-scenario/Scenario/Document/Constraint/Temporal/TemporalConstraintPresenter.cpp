@@ -475,5 +475,20 @@ void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& v)
   }
 }
 
+int TemporalConstraintPresenter::indexOfSlot(const Process::LayerPresenter& proc)
+{
+  for(int i = 0; i < m_slots.size(); ++i)
+  {
+    const auto& p = m_slots[i].processes;
+    for(int j = 0; j < p.size(); j++)
+    {
+      if(p[j].presenter == &proc)
+        return i;
+    }
+  }
+
+  ISCORE_ABORT;
+
+}
 
 }
