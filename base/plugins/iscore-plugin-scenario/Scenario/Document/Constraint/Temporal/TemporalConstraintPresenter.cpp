@@ -458,10 +458,20 @@ void TemporalConstraintPresenter::on_layerModelPutToBack(int slot, const Process
 void TemporalConstraintPresenter::on_rackChanged()
 {
   // Remove existing
-  for(int i = m_slots.size(); i --> 0 ; )
+  for(auto& slot : m_slots)
   {
-    on_slotRemoved(i);
+    for(LayerData& elt : slot.processes)
+    {
+      QPointer<Process::LayerView> view_p{elt.view};
+      delete elt.presenter;
+      if (view_p)
+        deleteGraphicsItem(elt.view);
+    }
+
+    deleteGraphicsItem(slot.handle);
   }
+
+  m_slots.clear();
 
   // Recreate
 

@@ -183,7 +183,7 @@ public:
 
   void undo(ConstraintModel& constraint) const
   {
-    constraint.removeSlot(constraint.smallView().size() - 1);
+    constraint.removeSlot(int(constraint.smallView().size() - 1));
   }
 
   void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const

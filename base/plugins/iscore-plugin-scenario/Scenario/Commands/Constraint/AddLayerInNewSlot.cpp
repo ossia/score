@@ -31,7 +31,7 @@ AddLayerInNewSlot::AddLayerInNewSlot(
 void AddLayerInNewSlot::undo() const
 {
   auto& constraint = m_path.find();
-  constraint.removeSlot(constraint.smallView().size() - 1);
+  constraint.removeSlot(int(constraint.smallView().size() - 1));
 }
 
 void AddLayerInNewSlot::redo() const
