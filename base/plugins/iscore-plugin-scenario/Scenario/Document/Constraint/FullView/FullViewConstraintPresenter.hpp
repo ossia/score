@@ -15,6 +15,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT FullViewConstraintPresenter final
   Q_OBJECT
 
 public:
+  struct SlotPresenter
+  {
+    SlotHandle* handle{};
+    LayerData process;
+  };
   using view_type = FullViewConstraintView;
 
   FullViewConstraintPresenter(
@@ -29,6 +34,9 @@ public:
   void on_zoomRatioChanged(ZoomRatio val) override;
   int indexOfSlot(const Process::LayerPresenter&);
 
+  const std::vector<SlotPresenter>& getSlots() const {
+    return m_slots;
+  }
 signals:
   void constraintSelected(ConstraintModel&);
 
@@ -46,11 +54,6 @@ private:
   double rackHeight() const;
   void on_rackChanged();
 
-  struct SlotPresenter
-  {
-    SlotHandle* handle{};
-    LayerData process;
-  };
 
   std::vector<SlotPresenter> m_slots;
 };

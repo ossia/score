@@ -113,14 +113,6 @@ ConstraintModel::ConstraintModel(
   vis.writeTo(*this);
 }
 
-/* TODO
-void ConstraintModel::on_rackAdded(const RackModel& rack)
-{
-  con(duration, &ConstraintDurations::defaultDurationChanged, &rack,
-      &RackModel::on_durationChanged);
-}
-*/
-
 const Id<StateModel>& ConstraintModel::startState() const
 {
   return m_startState;
@@ -416,8 +408,6 @@ void ConstraintModel::swapSlots(int pos1, int pos2, Slot::RackView v)
 
 void ConstraintModel::on_addProcess(const Process::ProcessModel& p)
 {
-  // TODO use  m_cmd.context.settings<Scenario::Settings::Model>().getSlotHeight();
-  // TODO do it in AddProcess instead.
   m_fullView.push_back(FullSlot{p.id()});
   emit slotAdded({m_fullView.size() - 1, Slot::FullView});
 }

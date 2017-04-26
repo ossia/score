@@ -34,7 +34,6 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
 
   ISCORE_SERIALIZE_FRIENDS
   friend class ConstraintSaveData;
-  // TODO must go in view model
   Q_PROPERTY(double heightPercentage READ heightPercentage WRITE
                  setHeightPercentage NOTIFY heightPercentageChanged)
 

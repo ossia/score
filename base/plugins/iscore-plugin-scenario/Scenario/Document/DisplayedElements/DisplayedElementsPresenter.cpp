@@ -143,20 +143,12 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
 
 void DisplayedElementsPresenter::showConstraint()
 {
-  // TODO
-  /*
   // We set the focus on the main scenario.
-  auto& rack = m_constraintPresenter->rack();
-  if (!rack.getSlots().empty())
+  auto& rack = m_constraintPresenter->getSlots();
+  if (!rack.empty())
   {
-    const auto& slot = *rack.getSlots().begin();
-    if (!slot.processes().empty())
-    {
-      const auto& slot_process = slot.processes().front();
-      emit requestFocusedPresenterChange(slot_process.presenter);
-    }
+    emit requestFocusedPresenterChange(rack.front().process.presenter);
   }
-  */
 
   m_constraintPresenter->updateHeight();
 }
