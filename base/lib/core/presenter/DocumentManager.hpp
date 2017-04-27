@@ -26,6 +26,7 @@ public:
   {
     return m_documents;
   }
+
   std::vector<Document*>& documents()
   {
     return m_documents;
@@ -34,6 +35,11 @@ public:
   Document* currentDocument() const
   {
     return m_currentDocument;
+  }
+
+  void setCurrentDocument(Document* d)
+  {
+    m_currentDocument = d;
   }
 
 protected:
