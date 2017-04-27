@@ -49,6 +49,9 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/TimeNodeComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ConstraintComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Interpolation/InterpolationComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/Component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Mapping/Component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Loop/Component.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Settings/ExecutorModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Settings/ExecutorPresenter.hpp"
@@ -122,6 +125,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/TimeNodeComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ConstraintComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Interpolation/InterpolationComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Mapping/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Loop/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ClockManager/ClockManagerFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ClockManager/DefaultClockManager.cpp"
 
@@ -227,6 +233,7 @@ target_link_libraries(${PROJECT_NAME}
         PUBLIC
           Qt5::Core Qt5::Widgets
           iscore_lib_base iscore_lib_device iscore_lib_process iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
+          iscore_plugin_mapping iscore_plugin_loop
           ossia
 )
 
