@@ -22,7 +22,7 @@ class RemoveMessageNodes final : public iscore::Command
 
 public:
   RemoveMessageNodes(
-      Path<StateModel>&&, const QList<const Process::MessageNode*>&);
+      Path<StateModel>&&, const std::vector<const Process::MessageNode*>&);
 
   void undo() const override;
   void redo() const override;

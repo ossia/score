@@ -13,26 +13,24 @@
 namespace Recording
 {
 
-static QList<Device::Node*> GetParametersRecursive(Device::Node* parent)
+
+static void GetParametersRecursive(Device::Node* parent, std::vector<Device::Node*>& vec)
 {
-  QList<Device::Node*> res;
-  res.reserve(parent->childCount());
+  vec.reserve(vec.size() + parent->childCount());
   for (auto& node : *parent)
   {
-    res.push_back(&node);
-    res.append(GetParametersRecursive(&node));
+    vec.push_back(&node);
+    GetParametersRecursive(&node, vec);
   }
-  return res;
 }
-
-static QList<Device::Node*>
-GetParametersRecursive(QList<Device::Node*> parents)
+static std::vector<Device::Node*>
+GetParametersRecursive(const std::vector<Device::Node*>& parents)
 {
-  QList<Device::Node*> res;
+  std::vector<Device::Node*> res;
   for (auto node : parents)
   {
     res.push_back(node);
-    res.append(GetParametersRecursive(node));
+    GetParametersRecursive(node, res);
   }
 
   for (auto it = res.begin(); it != res.end();)

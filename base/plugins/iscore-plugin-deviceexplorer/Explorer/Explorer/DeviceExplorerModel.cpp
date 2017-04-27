@@ -49,6 +49,7 @@
 #include <iscore/serialization/MimeVisitor.hpp>
 #include <iscore/model/path/Path.hpp>
 #include <iscore/model/tree/TreeNode.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
@@ -733,8 +734,9 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
       indexes, std::back_inserter(nodes.parents),
       [&](const QModelIndex& idx) { return &nodeFromModelIndex(idx); });
 
-  nodes.parents.removeAll(&m_rootNode);
+  boost::range::remove_erase(nodes.parents, &m_rootNode);
 
+  nodes.messages.reserve(nodes.messages.size() + nodes.parents.size());
   // Filter messages
   for (auto node : nodes.parents)
   {
@@ -743,7 +745,7 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
       auto& val = node->get<Device::AddressSettings>();
       if (val.ioType == ossia::access_mode::SET)
       {
-        nodes.messages.append(node);
+        nodes.messages.push_back(node);
       }
     }
   }
@@ -783,7 +785,11 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
   // The "Nodes" part. Deserialize with FreeNodeList to get the adresses.
   {
     Mime<Device::NodeList>::Serializer s{*mimeData};
-    s.serialize(uniqueNodes.parents + uniqueNodes.messages);
+    Device::NodeList vec;
+    vec.reserve(uniqueNodes.parents.size() + uniqueNodes.messages.size());
+    vec.insert(vec.end(), uniqueNodes.parents.begin(), uniqueNodes.parents.end());
+    vec.insert(vec.end(), uniqueNodes.messages.begin(), uniqueNodes.messages.end());
+    s.serialize(vec);
   }
 
   if (messages.empty() && uniqueNodes.parents.empty()

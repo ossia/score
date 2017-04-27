@@ -22,6 +22,18 @@ CommandStack::~CommandStack()
   qDeleteAll(m_redoable);
 }
 
+void CommandStack::enableActions()
+{
+  canUndoChanged(canUndo());
+  canRedoChanged(canRedo());
+}
+
+void CommandStack::disableActions()
+{
+  canUndoChanged(false);
+  canRedoChanged(false);
+}
+
 const Command* CommandStack::command(int index) const
 {
   if (index < m_undoable.size())

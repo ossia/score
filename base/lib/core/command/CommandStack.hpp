@@ -39,21 +39,13 @@ public:
    * Used in ongoing command classes, to prevent doing undo-redo
    * while performing an ongoing action (moving something for instance).
    */
-  void enableActions()
-  {
-    canUndoChanged(canUndo());
-    canRedoChanged(canRedo());
-  }
+  void enableActions();
 
   /**
    * @brief Disable the "undo" and "redo" user actions.
    * @see enableActions
    */
-  void disableActions()
-  {
-    canUndoChanged(false);
-    canRedoChanged(false);
-  }
+  void disableActions();
 
   bool canUndo() const
   {

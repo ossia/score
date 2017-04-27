@@ -10,7 +10,7 @@ export DISPLAY=:99.0
 sh -e /etc/init.d/xvfb start
 sleep 3
 cp -rf ../Tests/testdata .
-rm -rf *.o
+find . -name "*.o" -print0 | xargs -0 rm -rf
 LD_LIBRARY_PATH=/usr/lib64 ./iscore_testapp
 # LD_LIBRARY_PATH=/usr/lib64 $CMAKE_BIN --build . --target iscore_test_coverage_unity
 lcov --compat-libtool --directory .. --capture --output-file coverage.info

@@ -65,7 +65,7 @@ using NodePath = TreePath<Device::Node>;
 
 // TODO reflist may be a better name.
 using FreeNode = std::pair<State::Address, Device::Node>;
-using NodeList = QList<Device::Node*>;
+using NodeList = std::vector<Device::Node*>;
 using FreeNodeList = std::vector<FreeNode>;
 
 // TODO add specifications & tests to these functions
@@ -138,28 +138,30 @@ bool isAncestor(const Node_T& gramps, const Node_T* node)
  * TESTME
  */
 template <typename Node_T>
-QList<Node_T*> filterUniqueParents(const QList<Node_T*>& nodes)
+std::vector<Node_T*> filterUniqueParents(std::vector<Node_T*>& nodes)
 {
-  // OPTIMIZEME this horrible lazy algorithm.
-  auto nodes_cpy = nodes.toSet().toList(); // Remove duplicates
+  std::vector<Node_T*> cleaned_nodes;
 
-  QList<Node_T*> cleaned_nodes;
+  ossia::sort(nodes);
+  nodes.erase(ossia::unique(nodes), nodes.end());
+
+  cleaned_nodes.reserve(nodes.size());
 
   // Only copy the index if it none of its parents
   // except the invisible root are in the list.
-  for (auto n : nodes_cpy)
+  for (auto n : nodes)
   {
-    if (std::any_of(nodes_cpy.begin(), nodes_cpy.end(), [&](Node_T* other) {
+    if (ossia::any_of(nodes, [&](Node_T* other) {
           if (other == n)
             return false;
           return isAncestor(*other, n);
         }))
     {
-      nodes_cpy.removeOne(n);
+      continue;
     }
     else
     {
-      cleaned_nodes.append(n);
+      cleaned_nodes.push_back(n);
     }
   }
 
