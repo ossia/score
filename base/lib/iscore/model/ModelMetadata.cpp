@@ -60,23 +60,24 @@ void ModelMetadata::setName(const QString& arg)
 
   if (parent() && parent()->parent())
   {
+    // TODO use an object pool of some sorts instead
+    static std::vector<QString> bros;
+
     auto parent_bros
         = parent()->parent()->findChildren<IdentifiedObjectAbstract*>(
-            QString{}, Qt::FindDirectChildrenOnly);
+          QString{}, Qt::FindDirectChildrenOnly);
 
-    std::vector<std::string> bros;
+    bros.clear();
     bros.reserve(parent_bros.size());
     for (auto o : parent_bros)
     {
       auto objs = o->findChildren<ModelMetadata*>(
-          QString{}, Qt::FindDirectChildrenOnly);
+            QString{}, Qt::FindDirectChildrenOnly);
       if (!objs.empty())
-        bros.push_back(objs[0]->getName().toStdString());
+        bros.push_back(objs[0]->getName());
     }
 
-    auto res = QString::fromStdString(
-        ossia::net::sanitize_name(arg.toStdString(), bros));
-    m_scriptingName = res;
+    m_scriptingName = ossia::net::sanitize_name(arg, bros);
   }
   else
   {
@@ -170,7 +171,7 @@ ISCORE_LIB_BASE_EXPORT void
 DataStreamWriter::write(iscore::ModelMetadata& md)
 {
   m_stream >> md.m_scriptingName >> md.m_comment >> md.m_color >> md.m_label
-           >> md.m_extendedMetadata;
+      >> md.m_extendedMetadata;
 
   checkDelimiter();
 }
@@ -186,7 +187,7 @@ JSONObjectReader::read(const iscore::ModelMetadata& md)
   if (!md.m_extendedMetadata.empty())
   {
     obj.insert(
-        strings.Extended, QJsonObject::fromVariantMap(md.m_extendedMetadata));
+          strings.Extended, QJsonObject::fromVariantMap(md.m_extendedMetadata));
   }
 }
 

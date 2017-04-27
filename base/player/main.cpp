@@ -146,7 +146,7 @@ int main(int argc, char** argv)
   using namespace iscore;
 
   // Load core application and plug-ins
-  SafeQApplication app{argc, argv};
+  QCoreApplication app{argc, argv};
 
   iscore::ApplicationSettings glob_settings;
   iscore::ApplicationComponentsData data;
