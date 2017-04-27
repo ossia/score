@@ -2,9 +2,13 @@
 
 int main(int argc, char** argv)
 {
-  iscore::player x{argc, argv};
-  x.load("/home/jcelerier/i-score/Tests/testdata/execution.scorejson");
-  x.play();
-  std::this_thread::sleep_for(std::chrono::seconds(20));
+  if(argc > 1)
+  {
+    iscore::Player p;
+    p.load(argv[1]);
+    p.play();
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    p.stop();
+  }
   return 0;
 }
