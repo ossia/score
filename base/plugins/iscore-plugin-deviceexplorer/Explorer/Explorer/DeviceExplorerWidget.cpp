@@ -768,12 +768,12 @@ void DeviceExplorerWidget::removeNodes()
 {
   auto indexes = m_ntView->selectedIndexes();
 
-  QList<Device::Node*> nodes;
+  Device::NodeList nodes;
   for (auto index : indexes)
   {
     auto& n = model()->nodeFromModelIndex(sourceIndex(index));
     if (!n.is<InvisibleRootNode>())
-      nodes.append(&n);
+      nodes.push_back(&n);
   }
 
   auto cmd = new Command::RemoveNodes;

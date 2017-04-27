@@ -258,7 +258,7 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
   // them.
   // So we take them from last to first so that when removing in segments,
   // the order stays valid.
-  for (auto elt : indicesToRemove)
+  for (const auto& elt : indicesToRemove)
   {
     segments_by_id.erase(elt);
   }

@@ -39,7 +39,7 @@ MoveConstraint::MoveConstraint(
 void MoveConstraint::undo() const
 {
   auto& scenar = m_path.find();
-  for (auto cstr : m_selectedConstraints)
+  for (const auto& cstr : m_selectedConstraints)
   {
     updateConstraintVerticalPos(cstr.second, cstr.first, scenar);
   }
@@ -48,7 +48,7 @@ void MoveConstraint::undo() const
 void MoveConstraint::redo() const
 {
   auto& scenar = m_path.find();
-  for (auto cstr : m_selectedConstraints)
+  for (const auto& cstr : m_selectedConstraints)
   {
     updateConstraintVerticalPos(
         cstr.second + m_newHeight - m_oldHeight, cstr.first, scenar);

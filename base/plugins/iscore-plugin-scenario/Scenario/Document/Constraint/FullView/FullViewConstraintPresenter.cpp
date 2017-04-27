@@ -212,7 +212,7 @@ void FullViewConstraintPresenter::on_rackChanged()
   m_slots.reserve(m_model.fullView().size());
 
   int i = 0;
-  for(auto slt : m_model.fullView())
+  for(const auto& slt : m_model.fullView())
   {
     createSlot(i, slt);
     i++;

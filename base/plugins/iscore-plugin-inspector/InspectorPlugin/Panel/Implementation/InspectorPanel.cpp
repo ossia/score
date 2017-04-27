@@ -36,7 +36,7 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
 {
   QList<const IdentifiedObjectAbstract*> selectedObj;
   selectedObj.reserve(objects.size());
-  for (auto elt : objects)
+  for (auto& elt : objects)
   {
     if(elt)
       selectedObj.append(elt);

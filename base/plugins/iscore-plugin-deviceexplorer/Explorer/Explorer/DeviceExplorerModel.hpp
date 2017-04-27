@@ -50,12 +50,12 @@ struct ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT SelectedNodes
   /**
   * @brief parents The topmost parents of the selected parameters
   */
-  QList<Device::Node*> parents;
+  std::vector<Device::Node*> parents;
 
   /**
    * @brief messages The selected messages
    */
-  QList<Device::Node*> messages;
+  std::vector<Device::Node*> messages;
 };
 
 class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final

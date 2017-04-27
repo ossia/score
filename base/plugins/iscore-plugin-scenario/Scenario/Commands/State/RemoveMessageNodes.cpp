@@ -15,7 +15,7 @@ namespace Command
 
 RemoveMessageNodes::RemoveMessageNodes(
     Path<StateModel>&& device_tree,
-    const QList<const Process::MessageNode*>& nodes)
+    const std::vector<const Process::MessageNode*>& nodes)
     : m_path{device_tree}
 {
   auto model = m_path.try_find();

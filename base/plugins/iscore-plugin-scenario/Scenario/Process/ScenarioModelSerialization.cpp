@@ -190,14 +190,16 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
   scenario.m_startStateId
       = fromJsonValue<Id<Scenario::StateModel>>(obj["StartStateId"]);
 
-  for (const auto& json_vref : obj["Constraints"].toArray())
+  const auto& constraints = obj["Constraints"].toArray();
+  for (const auto& json_vref : constraints)
   {
     auto constraint = new Scenario::ConstraintModel{
         JSONObject::Deserializer{json_vref.toObject()}, &scenario};
     scenario.constraints.add(constraint);
   }
 
-  for (const auto& json_vref : obj["TimeNodes"].toArray())
+  const auto& timenodes = obj["TimeNodes"].toArray();
+  for (const auto& json_vref : timenodes)
   {
     auto tnmodel = new Scenario::TimeNodeModel{
         JSONObject::Deserializer{json_vref.toObject()}, &scenario};
@@ -205,7 +207,8 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
     scenario.timeNodes.add(tnmodel);
   }
 
-  for (const auto& json_vref : obj["Events"].toArray())
+  const auto& events = obj["Events"].toArray();
+  for (const auto& json_vref : events)
   {
     auto evmodel = new Scenario::EventModel{
         JSONObject::Deserializer{json_vref.toObject()}, &scenario};
@@ -213,7 +216,8 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
     scenario.events.add(evmodel);
   }
 
-  for (const auto& json_vref : obj["Comments"].toArray())
+  const auto& comments = obj["Comments"].toArray();
+  for (const auto& json_vref : comments)
   {
     auto cmtmodel = new Scenario::CommentBlockModel{
         JSONObject::Deserializer{json_vref.toObject()}, &scenario};
@@ -222,7 +226,8 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
   }
 
   auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
-  for (const auto& json_vref : obj["States"].toArray())
+  const auto& states = obj["States"].toArray();
+  for (const auto& json_vref : states)
   {
     auto stmodel = new Scenario::StateModel{
         JSONObject::Deserializer{json_vref.toObject()}, stack, &scenario};
