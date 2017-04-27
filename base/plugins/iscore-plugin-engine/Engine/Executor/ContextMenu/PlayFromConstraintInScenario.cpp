@@ -100,6 +100,8 @@ void PlayFromConstraintScenarioPruner::operator()(const Context& exec_ctx)
     }
   }
 
+  ISCORE_ASSERT(other_cst);
+
   // Get the time_constraint element of the constraint we're starting from,
   // unless it is already linked to the beginning.
   auto& start_e = *scenar_comp->OSSIAProcess().get_start_time_node()->get_time_events()[0];

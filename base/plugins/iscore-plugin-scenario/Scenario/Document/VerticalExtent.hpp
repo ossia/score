@@ -52,7 +52,7 @@ struct VerticalExtent final : public QPointF
   }
 };
 
-inline QDebug operator<<(QDebug d, const VerticalExtent& ve)
+inline QDebug operator<<(const QDebug& d, const VerticalExtent& ve)
 {
   d << static_cast<QPointF>(ve);
   return d;
