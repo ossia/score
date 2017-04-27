@@ -19,8 +19,4 @@ iscore-plugin-js
 iscore-plugin-midi
 iscore-plugin-recording
 iscore-plugin-mapping
-
-iscore-component-executor-mapping
-iscore-component-executor-automation
-iscore-component-executor-loop
 )
