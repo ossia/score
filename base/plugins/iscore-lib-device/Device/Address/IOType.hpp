@@ -11,11 +11,11 @@ namespace Device
 {
 ISCORE_LIB_DEVICE_EXPORT const QMap<ossia::access_mode, QString>& AccessModeText();
 
-inline bool hasInput(const optional<ossia::access_mode> t)
+inline bool hasInput(const optional<ossia::access_mode>& t)
 {
   return t && (*t == ossia::access_mode::BI || *t == ossia::access_mode::GET);
 }
-inline bool hasOutput(const optional<ossia::access_mode> t)
+inline bool hasOutput(const optional<ossia::access_mode>& t)
 {
   return t && (*t == ossia::access_mode::BI || *t == ossia::access_mode::SET);
 }
