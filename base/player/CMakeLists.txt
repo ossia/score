@@ -6,7 +6,11 @@ enable_testing()
 
 find_package(Qt5 5.7 COMPONENTS QuickControls2)
 
-add_executable(player "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
+add_executable(player
+  "${CMAKE_CURRENT_SOURCE_DIR}/player.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/player.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
+  )
 
 target_link_libraries(player PUBLIC iscore_lib_base iscore_plugin_scenario iscore_plugin_engine Qt5::QuickControls2)
 
