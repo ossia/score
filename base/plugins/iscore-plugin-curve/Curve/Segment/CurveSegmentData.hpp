@@ -74,7 +74,7 @@ struct SegmentData
           prev,
       OptionalId<SegmentModel>
           foll,
-      UuidKey<Curve::SegmentFactory>
+      const UuidKey<Curve::SegmentFactory>&
           t,
       QVariant data)
       : id(std::move(i))
