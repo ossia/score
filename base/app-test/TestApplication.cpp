@@ -33,7 +33,6 @@ TestApplication::TestApplication(int &argc, char **argv):
     iscore::GUIApplicationRegistrar registrar{
         m_presenter->components(),
                 ctx,
-                *m_view,
                 m_presenter->menuManager(),
                 m_presenter->toolbarManager(),
                 m_presenter->actionManager()};
