@@ -81,7 +81,7 @@ bool MessageDropHandler::dragMove(
     return false;
 
   auto pt = pres.toScenarioPoint(pos);
-  auto st = closestLeftState(pt, pres.processModel());
+  auto st = closestLeftState(pt, pres.model());
   if(st)
   {
     if (st->nextConstraint())
@@ -124,7 +124,7 @@ bool MessageDropHandler::drop(
   RedoMacroCommandDispatcher<Scenario::Command::CreateStateMacro> m{
       pres.context().context.commandStack};
 
-  const Scenario::ProcessModel& scenar = pres.processModel();
+  const Scenario::ProcessModel& scenar = pres.model();
   Id<StateModel> createdState;
 
   Scenario::Point pt = pres.toScenarioPoint(pos);
