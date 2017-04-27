@@ -90,6 +90,11 @@ private:
 
 class ISCORE_PLUGIN_ENGINE_EXPORT OwningOSSIADevice : public OSSIADevice
 {
+public:
+  virtual ~OwningOSSIADevice();
+  void replaceDevice(ossia::net::device_base*);
+  void releaseDevice();
+
 protected:
   void disconnect() override;
 
@@ -102,5 +107,6 @@ protected:
 
   std::unique_ptr<ossia::net::device_base> m_dev;
 };
+
 }
 }

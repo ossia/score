@@ -503,6 +503,23 @@ void OSSIADevice::setLogging(bool b)
   setLogging_impl(m_logging);
 }
 
+OwningOSSIADevice::~OwningOSSIADevice()
+{
+
+}
+
+void OwningOSSIADevice::replaceDevice(ossia::net::device_base* d)
+{
+  disconnect();
+  m_dev.reset(d);
+}
+
+void OwningOSSIADevice::releaseDevice()
+{
+  OSSIADevice::disconnect();
+  m_dev.release();
+}
+
 void OwningOSSIADevice::disconnect()
 {
   OSSIADevice::disconnect();
