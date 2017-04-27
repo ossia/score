@@ -206,7 +206,7 @@ TemporalScenarioPresenter::~TemporalScenarioPresenter()
   disconnect(m_con);
 }
 
-const Process::ProcessModel& TemporalScenarioPresenter::model() const
+const Scenario::ProcessModel& TemporalScenarioPresenter::model() const
 {
   return m_layer;
 }
@@ -261,11 +261,6 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
   {
     comment.on_zoomRatioChanged(m_zoomRatio);
   }
-}
-
-const ProcessModel& TemporalScenarioPresenter::processModel() const
-{
-  return m_layer;
 }
 
 void TemporalScenarioPresenter::fillContextMenu(

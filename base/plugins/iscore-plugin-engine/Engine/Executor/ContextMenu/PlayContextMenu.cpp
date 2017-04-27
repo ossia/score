@@ -181,7 +181,7 @@ PlayContextMenu::PlayContextMenu(
 
     auto& pres
         = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
-    auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.processModel());
+    auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.model());
 
     exec_signals.startRecordingMessages(
         *proc,

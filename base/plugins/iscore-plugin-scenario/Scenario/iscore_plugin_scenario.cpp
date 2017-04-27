@@ -133,7 +133,7 @@ iscore_plugin_scenario::factories(
       FW<DisplayedElementsProvider, ScenarioDisplayedElementsProvider, BaseScenarioDisplayedElementsProvider>,
       FW<iscore::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>,
       FW<iscore::SettingsDelegateFactory, Scenario::Settings::Factory>,
-      FW<iscore::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
+//      FW<iscore::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
       FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario>,
       FW<Scenario::ConstraintDropHandler, Scenario::DropProcessInConstraint, Scenario::AutomationDropHandler>,
       FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory>,

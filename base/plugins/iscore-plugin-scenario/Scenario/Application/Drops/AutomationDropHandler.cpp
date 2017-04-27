@@ -26,7 +26,7 @@ bool DropProcessInScenario::drop(
         pres.context().context.commandStack};
 
     // Create a box.
-    const Scenario::ProcessModel& scenar = pres.processModel();
+    const Scenario::ProcessModel& scenar = pres.model();
     Scenario::Point pt = pres.toScenarioPoint(pos);
 
     // 5 seconds.

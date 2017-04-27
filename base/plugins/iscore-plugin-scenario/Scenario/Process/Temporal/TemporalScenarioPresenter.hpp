@@ -20,14 +20,11 @@
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <iscore/model/Identifier.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
-namespace Process
-{
-class ProcessModel;
-}
 class QEvent;
 class QMenu;
 class QMimeData;
@@ -69,7 +66,7 @@ public:
       QObject* parent);
   ~TemporalScenarioPresenter();
 
-  const Process::ProcessModel& model() const override;
+  const Scenario::ProcessModel& model() const override;
   const Id<Process::ProcessModel>& modelId() const override;
 
   /**
@@ -130,7 +127,6 @@ public:
     return m_comments;
   }
 
-  const ProcessModel& processModel() const;
   TemporalScenarioView& view() const
   {
     return *m_view;

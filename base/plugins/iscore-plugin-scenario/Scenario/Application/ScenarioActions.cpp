@@ -130,30 +130,6 @@ void EnableWhenScenarioInterfaceObject::action(
     return;
   }
 
-  /*
-          auto focus = doc->focus.get();
-          if(!focus)
-          {
-              setEnabled(mgr, false);
-              return;
-          }
-
-          auto lm = dynamic_cast<const Process::LayerModel*>(focus);
-          if(!lm)
-          {
-              setEnabled(mgr, false);
-              return;
-          }
-
-          auto proc = dynamic_cast<const
-     Scenario::ScenarioInterface*>(&lm->processModel());
-          if(!proc)
-          {
-              setEnabled(mgr, false);
-              return;
-          }
-          */
-
   const auto& sel = doc->selectionStack.currentSelection();
   auto res = ossia::any_of(sel, [](auto obj) {
     auto ptr = obj.data();
