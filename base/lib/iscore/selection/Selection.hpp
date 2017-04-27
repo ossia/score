@@ -36,10 +36,16 @@ public:
     return s;
   }
 
-  void append(base_type::value_type obj)
+  void append(const base_type::value_type& obj)
   {
     if (!contains(obj))
       base_type::append(obj);
+  }
+
+  void append(base_type::value_type&& obj)
+  {
+    if (!contains(obj))
+      base_type::append(std::move(obj));
   }
 
   bool operator==(const Selection& other) const

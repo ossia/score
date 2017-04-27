@@ -59,7 +59,7 @@ Action::Action(
     ActionGroupKey k,
     const QKeySequence& defaultShortcut)
     : m_impl{act}
-    , m_text{text}
+    , m_text{std::move(text)}
     , m_key{std::move(key)}
     , m_groupKey{std::move(k)}
     , m_default{defaultShortcut}
@@ -76,7 +76,7 @@ Action::Action(
     const QKeySequence& defaultShortcut,
     const QKeySequence& defaultShortcut2)
     : m_impl{act}
-    , m_text{text}
+    , m_text{std::move(text)}
     , m_key{std::move(key)}
     , m_groupKey{std::move(k)}
     , m_default{defaultShortcut}
@@ -93,7 +93,7 @@ Action::Action(
     const char* group_key,
     const QKeySequence& defaultShortcut)
     : m_impl{act}
-    , m_text{text}
+    , m_text{std::move(text)}
     , m_key{key}
     , m_groupKey{group_key}
     , m_default{defaultShortcut}

@@ -57,7 +57,7 @@
       DEBUG_BREAK;                  \
       Q_ASSERT(iscore_assert_b);    \
     }                               \
-  } while (0)
+  } while (false)
 #else
 #define ISCORE_ASSERT(arg)          \
   do                                \
@@ -67,7 +67,7 @@
     {                               \
       throw std::runtime_error("Error: " #arg );    \
     }                               \
-  } while (0)
+  } while (false)
 #endif
 
 #define ISCORE_ABORT  \
