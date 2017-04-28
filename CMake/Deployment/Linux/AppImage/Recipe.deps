@@ -20,14 +20,14 @@ wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/6.0-osx/i-score-s
 tar -xaf i-score-sdk.txz --directory /
 cp -rf /usr/local/lib64/* /usr/lib64/
 
-export BOOST_VER=63
+export BOOST_VER=64
 wget -nv "http://downloads.sourceforge.net/project/boost/boost/1.${BOOST_VER}.0/boost_1_${BOOST_VER}_0.tar.bz2"
 tar -xaf "boost_1_${BOOST_VER}_0.tar.bz2"
 mv "boost_1_${BOOST_VER}_0" boost
 
 # Download CMake
 (
-    wget -nv --no-check-certificate -c https://cmake.org/files/v3.7/cmake-3.7.0-Linux-x86_64.tar.gz
+    wget -nv --no-check-certificate -c https://cmake.org/files/v3.8/cmake-3.8.0-Linux-x86_64.tar.gz
     tar xaf cmake-*.tar.gz
 )
 
