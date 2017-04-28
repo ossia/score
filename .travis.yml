@@ -29,8 +29,9 @@ matrix:
     - os: osx
 
   include:
-    - os: linux
-      env: CONF=linux-gcov CAN_DEPLOY=False
+# disabled due to out of memory errors...
+#    - os: linux
+#      env: CONF=linux-gcov CAN_DEPLOY=False
 
     - os: osx
       env: CONF=osx-release CAN_DEPLOY=True
