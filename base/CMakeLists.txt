@@ -17,7 +17,7 @@ if(ISCORE_MERGE_COMPONENTS)
 endif()
 
 if(ANDROID)
-    add_subdirectory(app-android)
+#    add_subdirectory(app-android)
 elseif(NACL)
     add_subdirectory(app-nacl)
 else()
