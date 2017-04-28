@@ -54,7 +54,7 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
 # Copy needed libraries and remove system ones
 (
     cd $APP.AppDir
-    cp ../../AppImageKit/AppRun .
+    wget https://github.com/probonopd/AppImageKit/releases/download/continuous/AppRun-x86_64 -O AppRun
     chmod a+x AppRun
     mkdir -p ./usr/lib/qt5/
     mkdir -p ./usr/lib/qt5/plugins/platforms
@@ -140,7 +140,9 @@ rm -rf out || true
 mkdir -p out
 
 # Convert the AppDir into an AppImage
-../AppImageKit/AppImageAssistant.AppDir/package ./$APP.AppDir/ ./out/$APPIMAGE
+wget https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+chmod a+x appimagetool-x86_64.AppImage
+./appimagetool-x86_64.AppImage ./$APP.AppDir/ ./out/$APPIMAGE
 
 chmod a+rwx out/$APPIMAGE
 ls -lh out/$APPIMAGE
