@@ -34,6 +34,9 @@ GUIApplicationInterface& GUIApplicationInterface::instance()
   return *static_cast<GUIApplicationInterface*>(ApplicationInterface::m_instance);
 }
 
+GUIApplicationInterface::~GUIApplicationInterface()
+{
+}
 void GUIApplicationInterface::loadPluginData(
     const iscore::GUIApplicationContext& ctx,
     iscore::GUIApplicationRegistrar& registrar,

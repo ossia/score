@@ -40,6 +40,7 @@ class ISCORE_LIB_BASE_EXPORT GUIApplicationInterface : public ApplicationInterfa
 {
 public:
   using ApplicationInterface::ApplicationInterface;
+  virtual ~GUIApplicationInterface();
   virtual const GUIApplicationContext& context() const override = 0;
 
   static GUIApplicationInterface& instance();
