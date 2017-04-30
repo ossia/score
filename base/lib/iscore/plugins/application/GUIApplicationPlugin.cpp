@@ -17,6 +17,7 @@ struct VisitorVariant;
 namespace iscore
 {
 
+ApplicationPlugin::~ApplicationPlugin() = default;
 GUIApplicationPlugin::GUIApplicationPlugin(
     const iscore::GUIApplicationContext& app)
     : context{app}

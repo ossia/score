@@ -43,8 +43,10 @@ struct TSerializer<DataStream, std::vector<bool>>
     vec.clear();
     vec.resize(n);
     for (int i = 0; i < n; i++)
-    {
-      s.stream() >> vec[i];
+    { 
+      bool b;
+      s.stream() >> b;
+      vec[i] = b;
     }
 
     ISCORE_DEBUG_CHECK_DELIMITER2(s);
