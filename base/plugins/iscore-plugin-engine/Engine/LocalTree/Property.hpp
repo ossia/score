@@ -2,6 +2,7 @@
 #include <Engine/LocalTree/BaseCallbackWrapper.hpp>
 #include <Engine/OSSIA2iscore.hpp>
 #include <Engine/iscore2OSSIA.hpp>
+#include <State/Value.hpp>
 
 namespace Engine
 {
@@ -65,7 +66,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
       : BaseCallbackWrapper{param_node, param_addr}, property{prop}
   {
     callbackIt = addr.add_callback([=](const ossia::value& v) {
-      property.set(State::fromOSSIAValue(v));
+      property.set(::State::fromOSSIAValue(v));
     });
 
     QObject::connect(
@@ -74,7 +75,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
           auto newVal = ::State::Value::fromValue(property.get());
           try
           {
-            auto res = State::fromOSSIAValue(addr.value());
+            auto res = ::State::fromOSSIAValue(addr.value());
 
             if (newVal != res)
             {

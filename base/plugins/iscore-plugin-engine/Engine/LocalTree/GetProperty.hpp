@@ -62,7 +62,7 @@ struct GetPropertyWrapper final : public BaseProperty
           auto newVal = converter_t::convert(property.get());
           try
           {
-            auto res = State::fromOSSIAValue(addr.value());
+            auto res = ::State::fromOSSIAValue(addr.value());
 
             if (newVal != res)
             {
