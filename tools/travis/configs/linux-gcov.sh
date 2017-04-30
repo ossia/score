@@ -14,6 +14,6 @@ find . -name "*.o" -print0 | xargs -0 rm -rf
 LD_LIBRARY_PATH=/usr/lib64 ./iscore_testapp
 # LD_LIBRARY_PATH=/usr/lib64 $CMAKE_BIN --build . --target iscore_test_coverage_unity
 lcov --compat-libtool --directory .. --capture --output-file coverage.info
-lcov --remove coverage.info '*.moc' 'moc_*' 'qrc_*' 'ui_*' 'tests/*' '/usr/*' '/opt/*' '3rdparty/*' --output-file coverage.info.cleaned
+lcov --remove coverage.info '*.moc' '*/moc_*' '*/qrc_*' '*/ui_*' '*/tests/*' '/usr/*' '/opt/*' '*/3rdparty/*' --output-file coverage.info.cleaned
 mv coverage.info.cleaned coverage.info
 coveralls-lcov coverage.info

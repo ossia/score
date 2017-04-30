@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <type_traits>
 #include <vector>
-
+#include <boost/container/flat_set.hpp>
 #include <iscore/serialization/VisitorTags.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/model/EntityBase.hpp>
@@ -626,6 +626,31 @@ struct TSerializer<DataStream, iscore::hash_map<T, U>>
     }
   }
 };
+
+template <typename T>
+struct TSerializer<DataStream, boost::container::flat_set<T>>
+{
+  using type = boost::container::flat_set<T>;
+  static void readFrom(DataStream::Serializer& s, const type& obj)
+  {
+    s.stream() << (int32_t)obj.size();
+    for(const auto& e : obj)
+      s.stream() << e;
+  }
+
+  static void writeTo(DataStream::Deserializer& s, type& obj)
+  {
+    int32_t n;
+    s.stream() >> n;
+    for(; n --> 0;)
+    {
+      T val;
+      s.stream() >> val;
+      obj.insert(std::move(val));
+    }
+  }
+};
+
 
 Q_DECLARE_METATYPE(DataStreamReader*)
 Q_DECLARE_METATYPE(DataStreamWriter*)

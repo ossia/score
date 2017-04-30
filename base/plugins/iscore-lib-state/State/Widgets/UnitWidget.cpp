@@ -1,6 +1,7 @@
 #include "UnitWidget.hpp"
 #include <ossia/editor/dataspace/dataspace.hpp>
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/editor/dataspace/detail/dataspace_parse.hpp>
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <brigand/algorithms/for_each.hpp>
@@ -21,9 +22,9 @@ UnitWidget::UnitWidget(const State::Unit& u, QWidget* parent) : QWidget{parent}
 
   // Fill dataspace. Unit is filled each time the dataspace changes
   m_dataspace->addItem(tr("None"), QVariant::fromValue(State::Unit{}));
-  brigand::for_each<ossia::unit_variant>([=](auto d) {
+  brigand::for_each<ossia::dataspace_u_list>([=](auto d) {
     // For each dataspace, add its text to the combo box
-    using dataspace_type = typename decltype(d)::type;
+    using dataspace_type = typename ossia::matching_unit_u_list<typename decltype(d)::type>::type;
     ossia::string_view text
         = ossia::dataspace_traits<dataspace_type>::text()[0];
 
@@ -63,9 +64,9 @@ void UnitWidget::setUnit(const State::Unit& unit)
     m_dataspace->setCurrentIndex(u.which() + 1);
 
     // Then set the correct unit
-    eggs::variants::apply(
+    ossia::apply_nonnull(
         [=](auto dataspace) { m_unit->setCurrentIndex(dataspace.which()); },
-        u);
+        u.v);
   }
   else
   {
@@ -90,11 +91,13 @@ void UnitWidget::on_dataspaceChanged(const State::Unit& unit)
       // Set to default unit, which is the first one for each type list
 
       // First lift ourselves in the dataspace realm
-      eggs::variants::apply(
+      ossia::apply_nonnull(
           [=](auto dataspace) -> void {
             // Then For each unit in the dataspace, add it to the unit
             // combobox.
-            brigand::for_each<decltype(dataspace)>([=](auto u) {
+            using typelist = typename ossia
+              ::matching_unit_u_list<decltype(dataspace)>::type;
+            brigand::for_each<typelist>([=](auto u) {
               using unit_type = typename decltype(u)::type;
               ossia::string_view text
                   = ossia::unit_traits<unit_type>::text()[0];
@@ -105,7 +108,7 @@ void UnitWidget::on_dataspaceChanged(const State::Unit& unit)
                       State::Unit{ossia::unit_t{unit_type{}}}));
             });
           },
-          d);
+          d.v);
     }
 
     emit unitChanged(m_unit->currentData().value<State::Unit>());

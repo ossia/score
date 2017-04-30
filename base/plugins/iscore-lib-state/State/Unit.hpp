@@ -56,4 +56,7 @@ struct ISCORE_LIB_STATE_EXPORT TSerializer<DataStream, State::Unit>
   static void writeTo(DataStream::Deserializer& s, State::Unit& var);
 };
 
+template<>
+struct is_custom_serialized<ossia::unit_t> : public std::true_type {};
+
 Q_DECLARE_METATYPE(State::Unit)

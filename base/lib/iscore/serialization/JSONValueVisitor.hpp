@@ -6,6 +6,7 @@
 #include <iscore/serialization/StringConstants.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/serialization/VisitorTags.hpp>
+#include <boost/container/flat_set.hpp>
 #include <iscore/model/EntityBase.hpp>
 template <class>
 class StringKey;
@@ -538,6 +539,146 @@ struct
     vec.resize(arr.size());
     for(const auto& e : arr)
       vec.push_back(fromJsonValue<T>(e));
+  }
+};
+
+
+
+template <typename T, std::size_t N>
+struct TSerializer<JSONValue, std::array<T, N>>
+{
+  static void
+  readFrom(JSONValue::Serializer& s, const std::array<T, N>& vec)
+  {
+    QJsonArray arr;
+    for (std::size_t i = 0; i < N; i++)
+      arr.push_back(toJsonValue(vec[i]));
+    s.val = std::move(arr);
+  }
+
+  static void
+  writeTo(JSONValue::Deserializer& s, std::array<T, N>& vec)
+  {
+    auto arr = s.val.toArray();
+    const std::size_t M = std::min((int)N, arr.size());
+    for (std::size_t i = 0; i < M; i++)
+      vec[i] = fromJsonValue<T>(arr[i]);
+  }
+};
+
+template <std::size_t N>
+struct TSerializer<JSONValue, std::array<float, N>>
+{
+  static void
+  readFrom(JSONValue::Serializer& s, const std::array<float, N>& vec)
+  {
+    QJsonArray arr;
+    for (std::size_t i = 0; i < N; i++)
+      arr.push_back(vec[i]);
+    s.val = std::move(arr);
+  }
+
+  static void
+  writeTo(JSONValue::Deserializer& s,  std::array<float, N>& vec)
+  {
+    auto arr = s.val.toArray();
+    const std::size_t M = std::min((int)N, arr.size());
+    for (std::size_t i = 0; i < M; i++)
+      vec[i] = arr[i].toDouble();
+  }
+};
+
+template<typename T>
+struct TSerializer<JSONValue, optional<T>>
+{
+  static void readFrom(JSONValue::Serializer& s, const optional<T>& obj)
+  {
+    if (obj)
+    {
+      s.val = toJsonValue(*obj);
+    }
+    else
+    {
+      s.val = QJsonValue{};
+    }
+  }
+
+  static void writeTo(JSONValue::Deserializer& s, optional<T>& obj)
+  {
+    if (s.val.toString() == s.strings.none)
+    {
+      obj = ossia::none;
+    }
+    else
+    {
+      obj = fromJsonValue<T>(s.val);
+    }
+  }
+};
+
+inline
+QJsonValue toJsonValue(const optional<float>& f)
+{
+  if(f)
+    return *f;
+  else
+    return QJsonValue{};
+}
+
+template <typename T>
+QJsonArray toJsonArray(const boost::container::flat_set<T>& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+    arr.push_back(toJsonValue(v));
+  return arr;
+}
+
+inline
+QJsonArray toJsonArray(const boost::container::flat_set<float>& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+    arr.push_back(v);
+  return arr;
+}
+
+template<std::size_t N>
+QJsonArray toJsonArray(const std::array<optional<float>, N>& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+    if(v) arr.push_back(*v);
+    else arr.push_back(QJsonValue{});
+  return arr;
+}
+
+template<std::size_t N>
+QJsonArray toJsonArray(
+    const std::array<boost::container::flat_set<float>, N>& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+  {
+    QJsonArray sub;
+    for(float val : v)
+      sub.push_back(val);
+    arr.push_back(std::move(sub));
+  }
+  return arr;
+}
+
+template <>
+struct TSerializer<JSONValue, std::string>
+{
+  static void readFrom(JSONValue::Serializer& s, const std::string& v)
+  {
+    s.val = QString::fromStdString(v);
+  }
+
+  static void writeTo(JSONValue::Deserializer& s, std::string& val)
+  {
+    val = s.val.toString().toStdString();
   }
 };
 

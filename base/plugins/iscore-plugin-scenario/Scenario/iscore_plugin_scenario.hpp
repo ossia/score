@@ -91,7 +91,7 @@ private:
   std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
       const iscore::ApplicationContext&,
       const iscore::InterfaceKey& factoryName) const override;
-  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
+  std::vector<std::unique_ptr<iscore::InterfaceBase>> guiFactories(
       const iscore::GUIApplicationContext&,
       const iscore::InterfaceKey& factoryName) const override;
 };

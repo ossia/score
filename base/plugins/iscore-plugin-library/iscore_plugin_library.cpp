@@ -12,7 +12,7 @@ iscore_plugin_library::~iscore_plugin_library()
 }
 
 std::vector<std::unique_ptr<iscore::InterfaceBase>>
-iscore_plugin_library::factories(
+iscore_plugin_library::guiFactories(
     const iscore::GUIApplicationContext& ctx,
     const iscore::InterfaceKey& key) const
 {

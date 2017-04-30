@@ -192,7 +192,7 @@ function(iscore_set_unix_compile_options theTarget)
     -pedantic
     -Woverloaded-virtual
     -pipe
-    -Wmissing-declarations
+    -Wno-missing-declarations
     -Werror=redundant-decls
     -Werror=return-type
     -Werror=trigraphs

@@ -130,7 +130,7 @@ public:
     m_min->setValue(ossia::fill_vec<N>(0));
     m_max->setValue(ossia::fill_vec<N>(1));
 
-    if (auto dom_p = dom_base.target<domain_type>())
+    if (auto dom_p = dom_base.v.target<domain_type>())
     {
       auto& dom = *dom_p;
 

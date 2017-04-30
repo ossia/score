@@ -91,7 +91,7 @@ void registerPluginsImpl(
 
         // Register GUI factories
         for (auto&& new_factory :
-             factories_plugin->factories(context, factory_family.first))
+             factories_plugin->guiFactories(context, factory_family.first))
         {
           factory_family.second->insert(std::move(new_factory));
         }

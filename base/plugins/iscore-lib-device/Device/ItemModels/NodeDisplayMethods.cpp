@@ -69,7 +69,7 @@ QVariant convert(const ossia::value& val)
 
       for (const auto& elt : t)
       {
-        arr.push_back(eggs::variants::apply(*this, elt.v));
+        arr.push_back(ossia::apply_nonnull(*this, elt.v));
       }
 
       return arr;

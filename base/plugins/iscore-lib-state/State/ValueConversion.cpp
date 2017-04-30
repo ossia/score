@@ -3,7 +3,7 @@
 #include <QLocale>
 #include <QMetaType>
 #include <QObject>
-#include <eggs/variant/variant.hpp>
+#include <ossia/detail/apply.hpp>
 
 #include <QStringList>
 #include <QVector2D>

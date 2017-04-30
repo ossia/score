@@ -50,7 +50,7 @@ public:
     setCommonSettings(settings);
     m_valueEdit->setValue(
         State::convert::value<std::array<float, N>>(settings.value));
-    if (settings.domain.get().target<ossia::domain_base<float>>())
+    if (settings.domain.get().v.target<ossia::domain_base<float>>())
     {
       m_domainFloatEdit->set_domain(settings.domain);
       m_domainSelector->setCurrentIndex(0);

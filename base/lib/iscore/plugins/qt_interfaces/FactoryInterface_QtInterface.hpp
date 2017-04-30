@@ -20,7 +20,7 @@ public:
   virtual std::vector<std::unique_ptr<InterfaceBase>> factories(
       const iscore::ApplicationContext& ctx,
       const iscore::InterfaceKey& key) const;
-  virtual std::vector<std::unique_ptr<InterfaceBase>> factories(
+  virtual std::vector<std::unique_ptr<InterfaceBase>> guiFactories(
       const iscore::GUIApplicationContext& ctx,
       const iscore::InterfaceKey& key) const;
 };
