@@ -7,17 +7,22 @@ iscore_common_setup()
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 # Inspector interface
-file(GLOB_RECURSE INTERFACE_HDRS
-		"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/*.hpp")
+set(HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorSectionWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetBase.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetFactoryInterface.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetList.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/iscore_lib_inspector.hpp"
+)
 
-set(INTERFACE_SRCS
+set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetFactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorSectionWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetBase.cpp"
 )
 
-add_library(${PROJECT_NAME} ${INTERFACE_HDRS} ${INTERFACE_SRCS})
+add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Core Qt5::Widgets iscore_lib_base)
 
 setup_iscore_library(iscore_lib_inspector)

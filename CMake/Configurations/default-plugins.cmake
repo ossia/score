@@ -14,9 +14,9 @@ iscore-plugin-interpolation
 iscore-plugin-scenario
 iscore-plugin-loop
 
+iscore-plugin-mapping
 iscore-plugin-engine
 iscore-plugin-js
 iscore-plugin-midi
 iscore-plugin-recording
-iscore-plugin-mapping
 )

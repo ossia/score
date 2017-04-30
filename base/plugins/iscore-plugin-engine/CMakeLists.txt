@@ -212,30 +212,30 @@ set(SERIAL_SRCS
 )
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
-get_target_property(OSSIA_PROTOCOLS ossia OSSIA_PROTOCOLS)
-if("${OSSIA_PROTOCOLS}" MATCHES "MIDI")
+if(OSSIA_PROTOCOL_MIDI)
     target_sources(${PROJECT_NAME} PRIVATE ${MIDI_HDRS} ${MIDI_SRCS})
 endif()
 
-if("${OSSIA_PROTOCOLS}" MATCHES "HTTP")
+if(OSSIA_PROTOCOL_HTTP)
     target_sources(${PROJECT_NAME} PRIVATE ${HTTP_HDRS} ${HTTP_SRCS})
 endif()
 
-if("${OSSIA_PROTOCOLS}" MATCHES "WebSockets")
+if(OSSIA_PROTOCOL_WEBSOCKETS)
     target_sources(${PROJECT_NAME} PRIVATE ${WS_HDRS} ${WS_SRCS})
 endif()
 
-if("${OSSIA_PROTOCOLS}" MATCHES "Serial")
+if(OSSIA_PROTOCOL_SERIAL)
     target_sources(${PROJECT_NAME} PRIVATE ${SERIAL_HDRS} ${SERIAL_SRCS})
 endif()
 
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
           Qt5::Core Qt5::Widgets
-          iscore_lib_base iscore_lib_device iscore_lib_process iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
-          iscore_plugin_mapping iscore_plugin_loop
+          iscore_lib_base iscore_lib_device iscore_lib_process
+          iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
+          iscore_plugin_mapping
+          iscore_plugin_loop
           ossia
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC iscore_plugin_loop)
 setup_iscore_plugin(${PROJECT_NAME})

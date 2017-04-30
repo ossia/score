@@ -14,8 +14,20 @@ if(NOT TARGET iscore_plugin_engine)
 endif()
 
 # Files & main target
-file(GLOB_RECURSE HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
+set(HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_js.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/EditScript.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/ProcessScript.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/StateComponent.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessMetadata.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSStateProcess.hpp"
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSStateProcess.cpp"
