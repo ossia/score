@@ -142,7 +142,7 @@ iscore_plugin_scenario::factories(
       ctx, key);
 }
 std::vector<std::unique_ptr<iscore::InterfaceBase>>
-iscore_plugin_scenario::factories(
+iscore_plugin_scenario::guiFactories(
     const iscore::GUIApplicationContext& ctx,
     const iscore::InterfaceKey& key) const
 {

@@ -1,6 +1,7 @@
 #include "player.hpp"
 #include "player_impl.hpp"
 #include <ossia/network/generic/generic_device.hpp>
+#include <ossia/detail/logger.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
 
 #if defined(ISCORE_STATIC_PLUGINS)

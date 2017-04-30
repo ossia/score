@@ -89,7 +89,7 @@ public:
   ValueImpl& operator=(const tuple_t& v);
   ValueImpl& operator=(tuple_t&& v);
 
-  const auto& impl() const
+  const variant_t& impl() const
   {
     return m_variant;
   }

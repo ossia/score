@@ -200,7 +200,7 @@ public:
     m_minCB->setCheckState(Qt::Unchecked);
     m_maxCB->setCheckState(Qt::Unchecked);
 
-    if (auto dom_p = dom_base.target<domain_type>())
+    if (auto dom_p = dom_base.v.target<domain_type>())
     {
       auto& dom = *dom_p;
 

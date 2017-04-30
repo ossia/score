@@ -11,7 +11,7 @@ FactoryInterface_QtInterface::factories(
 { return {}; }
 
 std::vector<std::unique_ptr<InterfaceBase> >
-FactoryInterface_QtInterface::factories(
+FactoryInterface_QtInterface::guiFactories(
     const GUIApplicationContext& ctx,
     const InterfaceKey& key) const
 { return {}; }

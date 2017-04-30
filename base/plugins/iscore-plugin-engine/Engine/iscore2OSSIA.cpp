@@ -47,6 +47,7 @@
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
 #include <State/Relation.hpp>
+#include <ossia/detail/apply.hpp>
 #include <iscore/model/tree/InvisibleRootNode.hpp>
 
 #include <boost/call_traits.hpp>
@@ -260,7 +261,7 @@ void updateOSSIAValue(const State::ValueImpl& iscore_data, ossia::value& val)
     }
   } visitor{iscore_data};
 
-  return eggs::variants::apply(visitor, val.v);
+  return ossia::apply_nonnull(visitor, val.v);
 }
 
 ossia::value toOSSIAValue(const State::Value& value)

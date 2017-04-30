@@ -3,6 +3,7 @@
 #include <ossia/editor/dataspace/dataspace.hpp>
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <ossia/editor/value/value.hpp>
+#include <ossia/detail/apply.hpp>
 #include <State/ValueConversion.hpp>
 
 namespace State
@@ -292,7 +293,7 @@ Value fromOSSIAValue(const ossia::value& val)
   } visitor{};
 
   if (val.valid())
-    return eggs::variants::apply(visitor, val.v);
+    return ossia::apply_nonnull(visitor, val.v);
   return {};
 }
 
@@ -375,8 +376,8 @@ void TSerializer<DataStream, ossia::unit_t>::readFrom(
 
   if (var)
   {
-    eggs::variants::apply(
-        [&](auto unit) { s.stream() << (quint64)unit.which(); }, var);
+    ossia::apply_nonnull(
+        [&](auto unit) { s.stream() << (quint64)unit.which(); }, var.v);
   }
 
   s.insertDelimiter();
@@ -388,7 +389,7 @@ void TSerializer<DataStream, ossia::unit_t>::writeTo(
   quint64 ds_which;
   s.stream() >> ds_which;
 
-  if (ds_which != (quint64)var.npos)
+  if (ds_which != (quint64)var.v.npos)
   {
     quint64 unit_which;
     s.stream() >> unit_which;

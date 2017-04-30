@@ -131,7 +131,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
 
   auto source_unit = process().sourceUnit();
   auto dest_unit = process().address().qualifiers.get().unit;
-  if (source_unit != dest_unit)
+  if (source_unit.get() != dest_unit)
   {
     start = ossia::convert(start, source_unit, dest_unit);
     end = ossia::convert(end, source_unit, dest_unit);
@@ -187,7 +187,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
           default:
             // TODO handle recursive case
             // Default case : we use a constant value.
-            t.push_back(std::make_shared<ossia::constant_curve>(start));
+            t.push_back(ossia::curve_ptr(std::make_shared<ossia::constant_curve>(start)));
         }
       }
       return t;
@@ -251,7 +251,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
       return t;
     }
     default:
-      return std::make_shared<ossia::constant_curve>(start);
+      return ossia::curve_ptr{std::make_shared<ossia::constant_curve>(start)};
   }
 }
 }

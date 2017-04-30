@@ -54,7 +54,7 @@ void AddressStringSettingsWidget::setSettings(
   m_valueEdit->setText(State::convert::value<QString>(settings.value));
 
   if (auto dom_p
-      = settings.domain.get().target<ossia::domain_base<std::string>>())
+      = settings.domain.get().v.target<ossia::domain_base<std::string>>())
     m_values->setValues(dom_p->values);
   else
     m_values->setValues(State::StringValueSetDialog::set_type{});

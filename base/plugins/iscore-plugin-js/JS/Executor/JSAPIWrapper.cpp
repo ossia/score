@@ -4,6 +4,7 @@
 #include <ossia/editor/value/value.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Engine/iscore2OSSIA.hpp>
+#include <ossia/detail/apply.hpp>
 
 namespace JS
 {

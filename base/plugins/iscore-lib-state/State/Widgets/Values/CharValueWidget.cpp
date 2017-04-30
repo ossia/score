@@ -171,7 +171,7 @@ void CharDomainWidget::set_domain(ossia::domain dom_base)
   m_min->clear();
   m_max->clear();
 
-  if (auto dom_p = dom_base.target<ossia::domain_base<char>>())
+  if (auto dom_p = dom_base.v.target<ossia::domain_base<char>>())
   {
     auto& dom = *dom_p;
 
