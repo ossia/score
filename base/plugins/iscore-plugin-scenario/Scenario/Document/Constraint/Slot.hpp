@@ -7,6 +7,26 @@ struct ISCORE_PLUGIN_SCENARIO_EXPORT Slot
 {
   enum RackView { SmallView, FullView };
 
+  Slot() = default;
+  Slot(const Slot&) = default;
+  Slot(Slot&&) = default;
+  Slot& operator=(const Slot&) = default;
+  Slot& operator=(Slot&&) = default;
+
+  Slot(std::vector<Id<Process::ProcessModel>> p): processes{std::move(p)} { }
+  Slot(std::vector<Id<Process::ProcessModel>> p, Id<Process::ProcessModel> fp)
+    : processes{std::move(p)}
+    , frontProcess{std::move(fp)}
+  { }
+  Slot(
+      std::vector<Id<Process::ProcessModel>> p,
+      Id<Process::ProcessModel> fp,
+      qreal h)
+    : processes{std::move(p)}
+    , frontProcess{std::move(fp)}
+    , height{h}
+  { }
+
   std::vector<Id<Process::ProcessModel>> processes;
   OptionalId<Process::ProcessModel> frontProcess;
   qreal height{200};
@@ -22,6 +42,15 @@ class ConstraintModel;
 
 struct ISCORE_PLUGIN_SCENARIO_EXPORT SlotPath
 {
+  SlotPath() = default;
+  SlotPath(const SlotPath&) = default;
+  SlotPath(SlotPath&&) = default;
+  SlotPath& operator=(const SlotPath&) = default;
+  SlotPath& operator=(SlotPath&&) = default;
+
+  SlotPath(Path<ConstraintModel> p): constraint{std::move(p)} { }
+  SlotPath(Path<ConstraintModel> p, int idx): constraint{std::move(p)}, index{idx} { }
+
   Path<ConstraintModel> constraint;
   int index{};
   Slot::RackView full_view{};
