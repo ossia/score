@@ -7,8 +7,16 @@ iscore_common_setup()
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
-file(GLOB_RECURSE HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/*.hpp"
+set(HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationPresenter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_interpolation.hpp"
+
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.cpp"

@@ -32,9 +32,35 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressValidator.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/UnitWidget.cpp"
 )
-
-file(GLOB_RECURSE HDRS
-     "${CMAKE_CURRENT_SOURCE_DIR}/State/*.hpp")
+set(HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/iscore_lib_state.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/DomainSerialization.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/DomainSerializationImpl.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Expression.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Message.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/MessageListSerialization.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/OSSIASerializationImpl.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Relation.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/StateMimeTypes.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/TraversalPath.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Unit.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueConversion.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Value.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueSerialization.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueSerializationImpl.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressFragmentLineEdit.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressLineEdit.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressValidator.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/UnitWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/BoolValueWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/CharValueWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/NumericValueWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/StringValueWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/TypeComboBox.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/ValueWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/VecWidgets.hpp"
+)
 
 add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC

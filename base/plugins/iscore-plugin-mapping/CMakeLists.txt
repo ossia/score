@@ -7,8 +7,19 @@ iscore_common_setup()
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
-file(GLOB_RECURSE HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/*.hpp"
+set(HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_mapping.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/ChangeAddresses.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/MappingCommandFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/MinMaxCommands.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Inspector/MappingInspectorFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Inspector/MappingInspectorWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingColors.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingModel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingPresenter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingProcessMetadata.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingView.hpp"
+
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingSerialization.cpp"
