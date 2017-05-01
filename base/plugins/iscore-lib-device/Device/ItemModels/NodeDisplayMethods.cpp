@@ -74,11 +74,6 @@ QVariant convert(const ossia::value& val)
 
       return arr;
     }
-
-    return_type operator()(const ossia::Destination& t) const
-    {
-      return {};
-    }
     return_type operator()() const
     {
       return {};

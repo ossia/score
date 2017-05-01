@@ -27,7 +27,6 @@ void apply_typeonly(Functor&& functor, ossia::value_variant_type::Type type, oss
       return functor(typeholder<std::vector<ossia::value>>{}, var);
     case value_variant_type::Type::Type9:
       return functor(typeholder<char>{}, var);
-    case value_variant_type::Type::Type10: // Destination ought to be removed
     default: throw;
   }
 }
@@ -40,9 +39,6 @@ struct ValueVariantJsonSerializer
   {
     m_obj[Metadata<Json_k, T>::get()] = toJsonValue(value);
   }
-  void operator()(const ossia::Destination& value)
-  {
-  }
 };
 
 struct ValueVariantDatastreamSerializer
@@ -52,9 +48,6 @@ struct ValueVariantDatastreamSerializer
   void operator()(const T& value)
   {
     s.stream() << value;
-  }
-  void operator()(const ossia::Destination& value)
-  {
   }
 };
 template<>

@@ -214,11 +214,6 @@ public:
 
     return arr;
   }
-
-  return_type operator()(const ossia::Destination& t) const
-  {
-    return {};
-  }
 };
 
 QJSValue value(QJSEngine& engine, const ossia::value& val)
