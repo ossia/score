@@ -54,6 +54,7 @@ install(FILES
   "${QT_DLL_DIR}/Qt5Quick${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5QuickWidgets${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5QuickControls2${DEBUG_CHAR}.dll"
+  "${QT_DLL_DIR}/Qt5QuickTemplates2${DEBUG_CHAR}.dll"
   DESTINATION ${ISCORE_BIN_INSTALL_DIR})
 
 # Qt conf file
