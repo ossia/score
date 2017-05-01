@@ -143,7 +143,6 @@ State::Value ToValue(ossia::val_type t)
       return State::Value::fromValue(State::vec3f{});
     case ossia::val_type::VEC4F:
       return State::Value::fromValue(State::vec4f{});
-    case ossia::val_type::DESTINATION:
     default:
       return State::Value{};
   }

@@ -211,9 +211,6 @@ void updateOSSIAValue(const State::ValueImpl& iscore_data, ossia::value& val)
   struct
   {
     const State::ValueImpl& data;
-    void operator()(const ossia::Destination&) const
-    {
-    }
     void operator()(ossia::impulse) const
     {
     }
@@ -407,7 +404,7 @@ static ossia::Destination expressionAddress(
   }
 }
 
-static ossia::value expressionOperand(
+static ossia::expressions::expression_atom::val_t expressionOperand(
     const State::RelationMember& relm, const Device::DeviceList& list)
 {
   using namespace eggs::variants;
@@ -416,7 +413,7 @@ static ossia::value expressionOperand(
   {
   public:
     const Device::DeviceList& devlist;
-    using return_type = ossia::value;
+    using return_type = ossia::expressions::expression_atom::val_t;
     return_type operator()(const State::Address& addr) const
     {
       return expressionAddress(addr, devlist);

@@ -238,10 +238,6 @@ Value fromOSSIAValue(const ossia::value& val)
   struct
   {
     using return_type = State::Value;
-    return_type operator()(ossia::Destination) const
-    {
-      return {};
-    }
     return_type operator()(ossia::impulse) const
     {
       return State::Value::fromValue(State::impulse{});
