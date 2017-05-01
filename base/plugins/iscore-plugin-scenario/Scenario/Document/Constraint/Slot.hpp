@@ -50,6 +50,13 @@ struct ISCORE_PLUGIN_SCENARIO_EXPORT SlotPath
 
   SlotPath(Path<ConstraintModel> p): constraint{std::move(p)} { }
   SlotPath(Path<ConstraintModel> p, int idx): constraint{std::move(p)}, index{idx} { }
+  SlotPath(Path<ConstraintModel> p, int idx, Slot::RackView v):
+    constraint{std::move(p)},
+    index{idx},
+    full_view{v}
+  {
+
+  }
 
   Path<ConstraintModel> constraint;
   int index{};

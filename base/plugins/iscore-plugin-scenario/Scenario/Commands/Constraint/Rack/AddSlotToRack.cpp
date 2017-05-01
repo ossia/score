@@ -37,7 +37,7 @@ void AddSlotToRack::redo() const
                .settings<Scenario::Settings::Model>()
                .getSlotHeight();
 
-  rack.addSlot(Slot{{}, {}, h});
+  rack.addSlot(Slot{{}, Id<Process::ProcessModel>{}, h});
 }
 
 void AddSlotToRack::serializeImpl(DataStreamInput& s) const
