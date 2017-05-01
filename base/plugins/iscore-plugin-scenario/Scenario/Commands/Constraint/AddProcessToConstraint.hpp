@@ -139,12 +139,6 @@ private:
   AddProcessDelegate m_delegate{*this};
 };
 
-class NotBaseConstraint
-{
-};
-class IsBaseConstraint
-{
-};
 class HasNoSlots
 {
 };
@@ -152,15 +146,15 @@ class HasSlots
 {
 };
 
-template <typename... Traits>
+template <typename t>
 class AddProcessDelegate;
 
 template <>
-class AddProcessDelegate<HasNoSlots, NotBaseConstraint>
+class AddProcessDelegate<HasNoSlots>
 {
 private:
   using proc_t
-      = AddProcessToConstraint<AddProcessDelegate<HasNoSlots, NotBaseConstraint>>;
+      = AddProcessToConstraint<AddProcessDelegate<HasNoSlots>>;
   proc_t& m_cmd;
 
 public:
@@ -171,7 +165,7 @@ public:
     return var;
   }
 
-  AddProcessDelegate<HasNoSlots, NotBaseConstraint>(proc_t& cmd)
+  AddProcessDelegate<HasNoSlots>(proc_t& cmd)
       : m_cmd{cmd}
   {
   }
@@ -206,11 +200,11 @@ private:
 };
 
 template <>
-class AddProcessDelegate<HasSlots, NotBaseConstraint>
+class AddProcessDelegate<HasSlots>
 {
 private:
   using proc_t
-      = AddProcessToConstraint<AddProcessDelegate<HasSlots, NotBaseConstraint>>;
+      = AddProcessToConstraint<AddProcessDelegate<HasSlots>>;
   proc_t& m_cmd;
 
 public:
@@ -221,7 +215,7 @@ public:
     return var;
   }
 
-  AddProcessDelegate<HasSlots, NotBaseConstraint>(proc_t& cmd)
+  AddProcessDelegate<HasSlots>(proc_t& cmd)
       : m_cmd{cmd}
   {
   }
@@ -249,86 +243,26 @@ public:
   void deserialize(DataStreamOutput& s)
   {
   }
-
 };
 
-template <>
-class AddProcessDelegate<IsBaseConstraint>
-{
-
-  using proc_t
-      = AddProcessToConstraint<AddProcessDelegate<IsBaseConstraint>>;
-
-public:
-  static const CommandKey& static_key()
-  {
-    static const CommandKey var{
-        "AddProcessDelegateWhenRacksAndBaseConstraint"};
-    return var;
-  }
-
-  AddProcessDelegate<IsBaseConstraint>(const proc_t&)
-  {
-  }
-
-  void init(
-      const Process::LayerFactoryList& fact, const ConstraintModel& constraint)
-  {
-    // Base constraint : add in new slot?
-  }
-
-  void undo(ConstraintModel& constraint) const
-  {
-  }
-
-  void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
-  {
-  }
-
-  void serialize(DataStreamInput& s) const
-  {
-  }
-
-  void deserialize(DataStreamOutput& s)
-  {
-  }
-};
 
 inline Scenario::Command::AddProcessToConstraintBase*
 make_AddProcessToConstraint(
     const ConstraintModel& constraint,
     const UuidKey<Process::ProcessModel>& process)
 {
-  auto isScenarioModel
-      = dynamic_cast<Scenario::ProcessModel*>(constraint.parent());
-
   Scenario::Command::AddProcessToConstraintBase* cmd{};
 
   auto noSlots = constraint.smallView().empty();
-  if (isScenarioModel)
+  if (noSlots)
   {
-    if (noSlots)
-    {
-      cmd = new AddProcessToConstraint<AddProcessDelegate<HasNoSlots, NotBaseConstraint>>{
-        constraint, process};
-    }
-    else
-    {
-      cmd = new AddProcessToConstraint<AddProcessDelegate<HasSlots, NotBaseConstraint>>{
-        constraint, process};
-    }
+    cmd = new AddProcessToConstraint<AddProcessDelegate<HasNoSlots>>{
+                                                                    constraint, process};
   }
   else
   {
-    if (noSlots)
-    {
-      ISCORE_TODO;
-    }
-    else
-    {
-      cmd = new AddProcessToConstraint<AddProcessDelegate<IsBaseConstraint>>{
-        constraint, process};
-    }
+    cmd = new AddProcessToConstraint<AddProcessDelegate<HasSlots>>{
+                                                                  constraint, process};
   }
 
   return cmd;
@@ -340,20 +274,10 @@ class AddProcessInNewBoxMacro final : public iscore::AggregateCommand
       ScenarioCommandFactoryName(), AddProcessInNewBoxMacro,
       "Add a process in a new box")
 };
-
-// To make the preprocessor happy
-using AddProcessDelegate_HasNoSlots_HasRacks_NotBaseConstraint
-    = AddProcessDelegate<HasNoSlots, NotBaseConstraint>;
-using AddProcessDelegate_HasSlots_HasRacks_NotBaseConstraint
-    = AddProcessDelegate<HasSlots, NotBaseConstraint>;
-using AddProcessDelegate_HasRacks_BaseConstraint
-    = AddProcessDelegate<IsBaseConstraint>;
 }
 }
 
 ISCORE_COMMAND_DECL_T(
-    AddProcessToConstraint<AddProcessDelegate_HasNoSlots_HasRacks_NotBaseConstraint>)
+    AddProcessToConstraint<AddProcessDelegate<HasNoSlots>>)
 ISCORE_COMMAND_DECL_T(
-    AddProcessToConstraint<AddProcessDelegate_HasSlots_HasRacks_NotBaseConstraint>)
-ISCORE_COMMAND_DECL_T(
-    AddProcessToConstraint<AddProcessDelegate_HasRacks_BaseConstraint>)
+    AddProcessToConstraint<AddProcessDelegate<HasSlots>>)
