@@ -14,6 +14,7 @@ target_link_libraries(iscore_player PUBLIC
   iscore_lib_base iscore_plugin_scenario iscore_plugin_engine
   iscore_plugin_pluginsettings iscore_plugin_inspector iscore_plugin_js
   iscore_plugin_midi iscore_plugin_recording
+  ossia
   Qt5::QuickControls2)
 
 add_executable(player "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")

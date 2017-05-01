@@ -24,6 +24,9 @@
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/Interpolation/InterpolationComponent.hpp>
+#include <Engine/Executor/Mapping/Component.hpp>
+#include <Engine/Executor/Loop/Component.hpp>
+#include <Engine/Executor/Automation/Component.hpp>
 #include <Engine/Executor/Settings/ExecutorFactory.hpp>
 #include <Engine/Executor/StateProcessComponent.hpp>
 #include <Engine/Listening/PlayListeningHandlerFactory.hpp>
@@ -102,7 +105,11 @@ iscore_plugin_engine::factories(
             >,
             FW<Engine::Execution::ProcessComponentFactory,
                  Engine::Execution::ScenarioComponentFactory,
-                 Interpolation::Executor::ComponentFactory>,
+                 Interpolation::Executor::ComponentFactory,
+                 Automation::RecreateOnPlay::ComponentFactory,
+                 Mapping::RecreateOnPlay::ComponentFactory,
+                 Loop::RecreateOnPlay::ComponentFactory
+      >,
             FW<Explorer::ListeningHandlerFactory,
                  Engine::Execution::PlayListeningHandlerFactory>,
             FW<iscore::SettingsDelegateFactory,
