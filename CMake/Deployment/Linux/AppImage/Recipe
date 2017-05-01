@@ -84,6 +84,8 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     cp -v $QTDIR/lib/libQt5XcbQpa.so.5 ./usr/lib || true
     ldd ./usr/lib/libQt5XcbQpa.so.5 | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     cp -v $QTDIR/lib/libQt5DBus.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5QuickControls2.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5QuickTemplates2.so.5 ./usr/lib || true
 
     # Taken from Subsurface appimage
     # The following are assumed to be part of the base system
