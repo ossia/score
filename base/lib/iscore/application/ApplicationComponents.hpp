@@ -54,6 +54,10 @@ public:
   }
 
   // Getters for plugin-registered things
+  const auto& applicationPlugins() const
+  {
+    return m_data.appPlugins;
+  }
   const auto& guiApplicationPlugins() const
   {
     return m_data.guiAppPlugins;
@@ -63,6 +67,20 @@ public:
     return m_data.addons;
   }
 
+  template <typename T>
+  T& applicationPlugin() const
+  {
+    for(auto& elt : m_data.appPlugins)
+    {
+      if(auto c = dynamic_cast<T*>(elt))
+      {
+        return *c;
+      }
+    }
+
+    ISCORE_ABORT;
+    throw;
+  }
   template <typename T>
   T& guiApplicationPlugin() const
   {

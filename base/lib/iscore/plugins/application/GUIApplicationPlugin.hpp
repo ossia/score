@@ -28,7 +28,20 @@ struct GUIElements
 
 class ISCORE_LIB_BASE_EXPORT ApplicationPlugin
 {
+public:
+  ApplicationPlugin(const iscore::ApplicationContext& ctx);
+
+  /**
+   * @brief initialize
+   *
+   * This method will be called once every class has been loaded
+   * from every plug-in.
+   */
+  virtual void initialize();
+
   virtual ~ApplicationPlugin();
+
+  const iscore::ApplicationContext& context;
 };
 
 /**
@@ -77,13 +90,6 @@ public:
   using GUIElements = iscore::GUIElements;
   GUIApplicationPlugin(const iscore::GUIApplicationContext& presenter);
 
-  /**
-   * @brief initialize
-   *
-   * This method will be called once every class has been loaded
-   * from every plug-in.
-   */
-  virtual void initialize();
 
   virtual ~GUIApplicationPlugin();
 
