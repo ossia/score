@@ -1,8 +1,9 @@
 #include "player.hpp"
 #include <ossia/network/generic/generic_device.hpp>
-
-int main()
+#include <QCoreApplication>
+int main(int argc, char** argv)
 {
+  QCoreApplication app(argc, argv);
   // Create a player instance
   iscore::Player p;
 
@@ -21,13 +22,5 @@ int main()
   // The device will replace the implementation that will be loaded with the same name.
   p.registerDevice(dev);
 
-  // Load a file
-  p.load("/tmp/device.scorejson");
-
-  // Execution occurs in a separate thread
-  p.play();
-  std::this_thread::sleep_for(std::chrono::seconds(5));
-  p.stop();
-
-  return 0;
+  return app.exec();
 }
