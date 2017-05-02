@@ -10,10 +10,14 @@ add_library(iscore_player SHARED
   "${CMAKE_CURRENT_SOURCE_DIR}/player_impl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/player.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/player.cpp")
+
+foreach(plugin ${ISCORE_LIBRARIES_LIST})
+  target_link_libraries(iscore_player PUBLIC ${plugin})
+endforeach()
+foreach(plugin ${ISCORE_PLUGINS_LIST})
+  target_link_libraries(iscore_player PUBLIC ${plugin})
+endforeach()
 target_link_libraries(iscore_player PUBLIC
-  iscore_lib_base iscore_plugin_scenario iscore_plugin_engine
-  iscore_plugin_pluginsettings iscore_plugin_inspector iscore_plugin_js
-  iscore_plugin_midi iscore_plugin_recording
   ossia
   Qt5::QuickControls2)
 
@@ -25,7 +29,6 @@ target_link_libraries(player_device PUBLIC iscore_player)
 
 if(ISCORE_STATIC_PLUGINS)
   iscore_write_static_plugins_header()
-  target_link_libraries(player PUBLIC ${ISCORE_PLUGINS_LIST})
 endif()
 
 setup_iscore_common_lib_features(iscore_player)
