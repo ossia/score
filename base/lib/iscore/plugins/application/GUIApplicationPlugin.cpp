@@ -18,6 +18,17 @@ namespace iscore
 {
 
 ApplicationPlugin::~ApplicationPlugin() = default;
+
+ApplicationPlugin::ApplicationPlugin(const ApplicationContext& ctx):
+  context{ctx}
+{
+
+}
+
+void ApplicationPlugin::initialize()
+{
+}
+
 GUIApplicationPlugin::GUIApplicationPlugin(
     const iscore::GUIApplicationContext& app)
     : context{app}
@@ -26,9 +37,6 @@ GUIApplicationPlugin::GUIApplicationPlugin(
 
 GUIApplicationPlugin::~GUIApplicationPlugin() = default;
 
-void GUIApplicationPlugin::initialize()
-{
-}
 
 GUIElements GUIApplicationPlugin::makeGUIElements()
 {

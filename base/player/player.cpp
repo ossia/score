@@ -3,6 +3,18 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/detail/logger.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
+#include <Engine/Executor/Settings/ExecutorModel.hpp>
+#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
+
+#if defined(ISCORE_PLUGIN_AUDIO)
+#include <Audio/AudioStreamEngine/Clock/AudioClock.hpp>
+#include <Audio/AudioStreamEngine/AudioApplicationPlugin.hpp>
+#include <Audio/AudioStreamEngine/AudioDocumentPlugin.hpp>
+#include <Audio/Settings/Card/CardSettingsModel.hpp>
+#endif
+
+#if defined(ISCORE_ADDON_NETWORK)
+#endif
 
 #if defined(ISCORE_STATIC_PLUGINS)
   #include <iscore_static_plugins.hpp>
@@ -55,6 +67,19 @@ void PlayerImpl::init()
   {
     m_settings.push_back(plugin.makeModel(s, m_appContext));
   }
+
+  for (iscore::ApplicationPlugin* app_plug :
+       m_components.applicationPlugins())
+  {
+    app_plug->initialize();
+  }
+
+#if defined(ISCORE_PLUGIN_AUDIO)
+  auto& exec_settings = m_appContext.settings<Engine::Execution::Settings::Model>();
+  exec_settings.setClock(Audio::AudioStreamEngine::AudioClockFactory::static_concreteKey());
+  auto& audio_settings = m_appContext.settings<Audio::Settings::Model>();
+  audio_settings.setDriver("PortAudio");
+#endif
 
   connect(this, &PlayerImpl::sig_play, this, &PlayerImpl::play, Qt::QueuedConnection);
   connect(this, &PlayerImpl::sig_stop, this, &PlayerImpl::stop, Qt::QueuedConnection);
@@ -109,6 +134,11 @@ void PlayerImpl::loadFile(QString file)
   DocumentModel& doc_model = m_currentDocument->model();
   doc_model.addPluginModel(m_localTreePlugin);
   doc_model.addPluginModel(m_execPlugin);
+
+#if defined(ISCORE_PLUGIN_AUDIO)
+  auto& audio_ctx = m_components.applicationPlugin<Audio::AudioStreamEngine::ApplicationPlugin>().context();
+  doc_model.addPluginModel(new Audio::AudioStreamEngine::DocumentPlugin{audio_ctx, ctx, Id<DocumentPlugin>{997}, nullptr});
+#endif
 
   m_devicesPlugin = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
 }

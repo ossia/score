@@ -67,7 +67,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
 {
   slot.processes = fromJsonValueArray<decltype(slot.processes)>(obj[strings.Processes].toArray());
   slot.frontProcess = fromJsonValue<decltype(slot.frontProcess)>(obj[strings.Process]);
-  slot.height = obj[strings.Process].toDouble();
+  slot.height = obj[strings.Height].toDouble();
 }
 
 template <>

@@ -49,6 +49,16 @@ struct GUIApplicationContext : public iscore::ApplicationContext
    *
    * @see iscore::GUIApplicationPlugin
    */
+  const auto& applicationPlugins() const
+  {
+    return components.applicationPlugins();
+  }
+
+  /**
+   * @brief List of all the gui application-wide plug-ins
+   *
+   * @see iscore::GUIApplicationPlugin
+   */
   const auto& guiApplicationPlugins() const
   {
     return components.guiApplicationPlugins();
@@ -56,6 +66,17 @@ struct GUIApplicationContext : public iscore::ApplicationContext
 
   /**
    * @brief Access a specific application plug-in instance.
+   *
+   * @see iscore::GUIApplicationPlugin
+   */
+  template <typename T>
+  T& applicationPlugin() const
+  {
+    return components.applicationPlugin<T>();
+  }
+
+  /**
+   * @brief Access a specific gui application plug-in instance.
    *
    * @see iscore::GUIApplicationPlugin
    */
