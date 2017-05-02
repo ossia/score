@@ -34,6 +34,7 @@
 #include <ossia/editor/scenario/time_constraint.hpp>
 #include <QPluginLoader>
 #include <QJsonDocument>
+#include <QQmlExtensionInterface>
 #include <ossia/context.hpp>
 namespace iscore
 {
@@ -57,8 +58,10 @@ public:
   void close();
 
   void loadFile(QString file);
+  void loadArray(QByteArray network);
+
   void registerDevice(ossia::net::device_base*);
-  void unregisterDevice(ossia::net::device_base*);
+  void releaseDevice(ossia::net::device_base*);
   void play();
   void stop();
 
@@ -74,6 +77,7 @@ signals:
   void sig_registerDevice(ossia::net::device_base*);
 
 private:
+  void setupLoadedDocument();
   const ApplicationContext& context() const override;
   const ApplicationComponents& components() const override;
 
@@ -102,5 +106,10 @@ private:
   std::vector<ossia::net::device_base*> m_ownedDevices;
 };
 
+
+class PlayerPlugin : public QQmlExtensionInterface
+{
+
+};
 
 }

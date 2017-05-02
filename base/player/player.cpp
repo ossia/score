@@ -14,6 +14,9 @@
 #endif
 
 #if defined(ISCORE_ADDON_NETWORK)
+#include <Network/PlayerPlugin.hpp>
+#include <Network/Document/ClientPolicy.hpp>
+#include <Network/Document/DocumentPlugin.hpp>
 #endif
 
 #if defined(ISCORE_STATIC_PLUGINS)
@@ -81,6 +84,25 @@ void PlayerImpl::init()
   audio_settings.setDriver("PortAudio");
 #endif
 
+#if defined(ISCORE_ADDON_NETWORK)
+  auto& netplug = m_components.applicationPlugin<Network::PlayerPlugin>();
+  netplug.documentLoader = [&] (const QByteArray& arr) {
+    loadArray(arr);
+    return m_currentDocument.get();
+  };
+  netplug.onDocumentLoaded = [&] {
+    Document& doc = *m_currentDocument;
+    auto plug = doc.context().findPlugin<Network::NetworkDocumentPlugin>();
+    if(plug)
+    {
+      auto pol = dynamic_cast<Network::PlayerClientEditionPolicy*>(&plug->policy());
+      if(pol)
+      {
+        pol->onPlay = [this] { play(); };
+      }
+    }
+  };
+#endif
   connect(this, &PlayerImpl::sig_play, this, &PlayerImpl::play, Qt::QueuedConnection);
   connect(this, &PlayerImpl::sig_stop, this, &PlayerImpl::stop, Qt::QueuedConnection);
   connect(this, &PlayerImpl::sig_loadFile, this, &PlayerImpl::loadFile, Qt::QueuedConnection);
@@ -97,8 +119,8 @@ void PlayerImpl::closeDocument()
 
     m_execPlugin->clear();
 
-    while(!m_ownedDevices.empty())
-      unregisterDevice(m_ownedDevices.back());
+    for(auto dev : m_ownedDevices)
+      releaseDevice(dev);
 
     m_execPlugin = nullptr;
     m_localTreePlugin = nullptr;
@@ -122,6 +144,21 @@ void PlayerImpl::loadFile(QString file)
   Scenario::ScenarioDocumentFactory fac;
   m_currentDocument = std::make_unique<Document>(json, fac, QCoreApplication::instance());
 
+  setupLoadedDocument();
+}
+
+void PlayerImpl::loadArray(QByteArray network)
+{
+  closeDocument();
+
+  Scenario::ScenarioDocumentFactory fac;
+  m_currentDocument = std::make_unique<Document>(network, fac, QCoreApplication::instance());
+
+  setupLoadedDocument();
+}
+
+void PlayerImpl::setupLoadedDocument()
+{
   m_documents.documents().push_back(m_currentDocument.get());
   m_documents.setCurrentDocument(m_currentDocument.get());
 
@@ -141,34 +178,37 @@ void PlayerImpl::loadFile(QString file)
 #endif
 
   m_devicesPlugin = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+
+  ISCORE_ASSERT(m_devicesPlugin);
+  for(auto dev : m_ownedDevices)
+  {
+    Device::DeviceInterface* d = m_devicesPlugin->list().findDevice(QString::fromStdString(dev->get_name()));
+
+    if(auto sd = static_cast<Engine::Network::OwningOSSIADevice*>(d))
+    {
+      sd->replaceDevice(dev);
+    }
+    else
+    {
+      m_devicesPlugin->list().apply([] (const Device::DeviceInterface& d) { qDebug() << d.settings().name; } );
+      ossia::logger().error("Tried to register unknown device: {}", dev->get_name());
+    }
+  }
 }
+
 
 void PlayerImpl::registerDevice(ossia::net::device_base* dev)
 {
-  ISCORE_ASSERT(m_devicesPlugin);
-  Device::DeviceInterface* d = m_devicesPlugin->list().findDevice(QString::fromStdString(dev->get_name()));
-
-  if(auto sd = static_cast<Engine::Network::OwningOSSIADevice*>(d))
-  {
-    sd->replaceDevice(dev);
-    m_ownedDevices.push_back(dev);
-  }
-  else
-  {
-    m_devicesPlugin->list().apply([] (const Device::DeviceInterface& d) { qDebug() << d.settings().name; } );
-    ossia::logger().error("Tried to register unknown device: {}", dev->get_name());
-  }
+  m_ownedDevices.push_back(dev);
 }
 
-void PlayerImpl::unregisterDevice(ossia::net::device_base* dev)
+void PlayerImpl::releaseDevice(ossia::net::device_base* dev)
 {
-
   ISCORE_ASSERT(m_devicesPlugin);
   Device::DeviceInterface* d = m_devicesPlugin->list().findDevice(QString::fromStdString(dev->get_name()));
   if(auto sd = static_cast<Engine::Network::OwningOSSIADevice*>(d))
   {
     sd->releaseDevice();
-    m_ownedDevices.erase(ossia::find(m_ownedDevices, dev));
   }
 }
 
