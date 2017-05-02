@@ -225,8 +225,14 @@ function(iscore_set_compile_options theTarget)
       $<$<BOOL:${ISCORE_OPENGL}>:ISCORE_OPENGL>
       $<$<BOOL:${DEPLOYMENT_BUILD}>:ISCORE_DEPLOYMENT_BUILD>
       $<$<BOOL:${ISCORE_STATIC_PLUGINS}>:ISCORE_STATIC_PLUGINS>
-      $<$<BOOL:${ISCORE_STATIC_PLUGINS}>:QT_STATICPLUGIN>
       )
+  get_target_property(theType ${theTarget} TYPE)
+
+  if(${theType} MATCHES STATIC_LIBRARY)
+    target_compile_definitions(${TheTarget} PRIVATE
+      $<$<BOOL:${ISCORE_STATIC_PLUGINS}>:QT_STATICPLUGIN>
+    )
+  endif()
 
   if(ISCORE_SANITIZE)
       get_target_property(NO_SANITIZE ${theTarget} ISCORE_TARGET_NO_SANITIZE)

@@ -1,4 +1,5 @@
 
+#include <iscore_player_export.h>
 #include <QCoreApplication>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/application/SafeQApplication.hpp>
@@ -34,8 +35,8 @@
 #include <ossia/editor/scenario/time_constraint.hpp>
 #include <QPluginLoader>
 #include <QJsonDocument>
-#include <QQmlExtensionInterface>
 #include <ossia/context.hpp>
+#include <ossia-qt/device/qml_device.hpp>
 namespace iscore
 {
 class PlayerImpl :
@@ -104,12 +105,6 @@ private:
   std::unique_ptr<Engine::Execution::ClockManager> m_clock;
 
   std::vector<ossia::net::device_base*> m_ownedDevices;
-};
-
-
-class PlayerPlugin : public QQmlExtensionInterface
-{
-
 };
 
 }

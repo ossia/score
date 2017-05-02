@@ -5,7 +5,6 @@
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <iscore/plugins/application/GUIApplicationPlugin.hpp>
-
 #if defined(ISCORE_PLUGIN_AUDIO)
 #include <Audio/AudioStreamEngine/Clock/AudioClock.hpp>
 #include <Audio/AudioStreamEngine/AudioApplicationPlugin.hpp>
@@ -17,6 +16,7 @@
 #include <Network/PlayerPlugin.hpp>
 #include <Network/Document/ClientPolicy.hpp>
 #include <Network/Document/DocumentPlugin.hpp>
+#include <Network/Settings/NetworkSettingsModel.hpp>
 #endif
 
 #if defined(ISCORE_STATIC_PLUGINS)
@@ -71,6 +71,12 @@ void PlayerImpl::init()
     m_settings.push_back(plugin.makeModel(s, m_appContext));
   }
 
+#if defined(ISCORE_ADDON_NETWORK)
+  auto& ns = m_appContext.settings<Network::Settings::Model>();
+  srand(time(NULL));
+  ns.setClientName(QString::fromStdString(fmt::format("player.{}", rand() % 100)));
+#endif
+
   for (iscore::ApplicationPlugin* app_plug :
        m_components.applicationPlugins())
   {
@@ -102,6 +108,7 @@ void PlayerImpl::init()
       }
     }
   };
+
 #endif
   connect(this, &PlayerImpl::sig_play, this, &PlayerImpl::play, Qt::QueuedConnection);
   connect(this, &PlayerImpl::sig_stop, this, &PlayerImpl::stop, Qt::QueuedConnection);
@@ -180,7 +187,7 @@ void PlayerImpl::setupLoadedDocument()
   m_devicesPlugin = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
 
   ISCORE_ASSERT(m_devicesPlugin);
-  for(auto dev : m_ownedDevices)
+  for(ossia::net::device_base* dev : m_ownedDevices)
   {
     Device::DeviceInterface* d = m_devicesPlugin->list().findDevice(QString::fromStdString(dev->get_name()));
 
@@ -384,5 +391,6 @@ void Player::registerDevice(ossia::net::device_base& dev)
 {
   m_player->sig_registerDevice(&dev);
 }
+
 
 }

@@ -1,3 +1,4 @@
+*.qmlc
 Tests/testdata/stacks2
 .idea
 CMake/common
