@@ -1,17 +1,18 @@
 import QtQuick 2.5
-import CreativeControls 1.0
 import Ossia 1.0 as Ossia
+import QtQuick.Controls 2.1
 import QtMultimedia 5.5
 Item {
     id: root
 
     Video
     {
-        loops: MediaPlayer.Infinite
+        onStopped: play()
+        //loops: MediaPlayer.Infinite
         anchors.fill: parent
         autoPlay: true
         muted: true
-        source: "/home/jcelerier/travail/videoplayer/vide_silent.mp4"
+        source: "/home/jcelerier/video/vid1.mp4"
         Ossia.Property on opacity {
             device: Ossia.SingleDevice
             node: '/video1/opacity'
@@ -20,13 +21,16 @@ Item {
 
     Video
     {
-        y: 400
-        loops: MediaPlayer.Infinite
+        onStopped: play()
+
+        //loops: MediaPlayer.Infinite
+        height: 200
         width: 200
-        height: 300
+        x: 0.5 * parent.width - width / 2
+        y: 0.5 * parent.height - height / 2
         autoPlay: true
         muted: true
-        source: "/home/jcelerier/Vidéos/heyaheya.mkv"
+        source: "/home/jcelerier/video/vid2.mp4"
         Ossia.Property on opacity {
             device: Ossia.SingleDevice
             node: '/video2/opacity'
@@ -35,26 +39,38 @@ Item {
             device: Ossia.SingleDevice
             node: '/video2/rotation'
         }
-        Ossia.Property on width {
+        Ossia.Property on scale {
             device: Ossia.SingleDevice
             node: '/video2/width'
-        }
-        Ossia.Property on width {
+        }/*
+        Ossia.Property on height {
             device: Ossia.SingleDevice
             node: '/video2/height'
-        }
+        }*/
 
     }
 
-    Joystick {
+    Row {
+    Slider {
+        id: sl
         width: 200
-        height: 200
-        Ossia.Property on stickR {
+        property real vpos : visualPosition
+        Ossia.Property on vpos {
             device: Ossia.SingleDevice
             node: '/stick'
         }
     }
 
+    Button {
+        property bool t: false
+        text: "Trigger"
+        onClicked: t = !t;
+        Ossia.Property on t {
+            device: Ossia.SingleDevice
+            node: '/push'
+        }
+    }
+    }
 
     Ossia.Player {
         id: p

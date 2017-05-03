@@ -15,13 +15,14 @@ class PanelView;
  * It displays a @c{DocumentDelegateViewInterface}, in
  * the central widget.
  */
-class DocumentView final : public QWidget
+class DocumentView final : public QObject
 {
+  Q_OBJECT
 public:
   DocumentView(
       DocumentDelegateFactory& viewDelegate,
       const Document& doc,
-      QWidget* parent);
+      QObject* parent);
 
   DocumentDelegateView& viewDelegate() const
   {

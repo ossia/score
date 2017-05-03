@@ -119,8 +119,9 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_scene->addItem(m_timeRuler);
   m_scene->addItem(m_baseObject);
 
-  auto lay = new QVBoxLayout;
+  auto lay = new iscore::MarginLess<QVBoxLayout>;
   m_widget->setLayout(lay);
+  m_widget->setContentsMargins(0, 0, 0, 0);
 
   lay->addWidget(m_timeRulersView);
   lay->addWidget(m_view);

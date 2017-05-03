@@ -105,6 +105,7 @@ void PlayerImpl::init()
       if(pol)
       {
         pol->onPlay = [this] { play(); };
+        pol->onStop = [this] { stop(); };
       }
     }
   };
