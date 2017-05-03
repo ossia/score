@@ -15,6 +15,8 @@
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
+
+#include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <iscore/actions/Menu.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/widgets/QmlContainerPanel.hpp>
@@ -24,8 +26,6 @@
 #include <qnamespace.h>
 #include <set>
 #include <iscore/plugins/application/GUIApplicationPlugin.hpp>
-
-class QObject;
 
 namespace iscore
 {
@@ -68,6 +68,7 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
       static_cast<int>(rect.height() * 0.75));
 
   setCentralWidget(m_tabWidget);
+  m_tabWidget->setContentsMargins(0, 0, 0, 0);
   m_tabWidget->tabBar()->setDocumentMode(true);
   m_tabWidget->tabBar()->setDrawBase(false);
   m_tabWidget->tabBar()->setAutoHide(true);
@@ -93,13 +94,13 @@ void View::setPresenter(Presenter* p)
 {
   m_presenter = p;
 }
-
 void View::addDocumentView(DocumentView* doc)
 {
   doc->setParent(this);
-  m_tabWidget->addTab(doc, doc->document().metadata().fileName());
+  m_tabWidget->addTab(doc->viewDelegate().getWidget(), doc->document().metadata().fileName());
   m_tabWidget->setCurrentIndex(m_tabWidget->count() - 1);
   m_tabWidget->setTabsClosable(true);
+  emit sizeChanged(size());
 }
 
 void View::setupPanel(PanelDelegate* v)
@@ -173,7 +174,7 @@ void View::closeDocument(DocumentView* doc)
 {
   for (int i = 0; i < m_tabWidget->count(); i++)
   {
-    if (doc == m_tabWidget->widget(i))
+    if (doc->viewDelegate().getWidget() == m_tabWidget->widget(i))
     {
       m_tabWidget->removeTab(i);
       return;
@@ -214,7 +215,7 @@ void View::on_fileNameChanged(DocumentView* d, const QString& newName)
 {
   for (int i = 0; i < m_tabWidget->count(); i++)
   {
-    if (d == m_tabWidget->widget(i))
+    if (d->viewDelegate().getWidget() == m_tabWidget->widget(i))
     {
       QString n = newName;
       while (n.contains("/"))
