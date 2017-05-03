@@ -83,7 +83,7 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
       Qt::QueuedConnection);
 
   connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, [&](int index) {
-    emit closeRequested(safe_cast<DocumentView*>(m_tabWidget->widget(index))
+    emit closeRequested(m_documents.at(m_tabWidget->widget(index))
                             ->document()
                             .model()
                             .id());
@@ -97,7 +97,9 @@ void View::setPresenter(Presenter* p)
 void View::addDocumentView(DocumentView* doc)
 {
   doc->setParent(this);
-  m_tabWidget->addTab(doc->viewDelegate().getWidget(), doc->document().metadata().fileName());
+  auto widg = doc->viewDelegate().getWidget();
+  m_documents.insert(std::make_pair(widg, doc));
+  m_tabWidget->addTab(widg, doc->document().metadata().fileName());
   m_tabWidget->setCurrentIndex(m_tabWidget->count() - 1);
   m_tabWidget->setTabsClosable(true);
   emit sizeChanged(size());
@@ -174,8 +176,11 @@ void View::closeDocument(DocumentView* doc)
 {
   for (int i = 0; i < m_tabWidget->count(); i++)
   {
-    if (doc->viewDelegate().getWidget() == m_tabWidget->widget(i))
+    auto widg = doc->viewDelegate().getWidget() ;
+    if (widg == m_tabWidget->widget(i))
     {
+      m_documents.erase(widg);
+
       m_tabWidget->removeTab(i);
       return;
     }
