@@ -8,6 +8,7 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     , ConstraintSelected{&s.Base2}
     , ConstraintPlayFill{&s.Base3}
     , ConstraintPlayDashFill{&s.Pulse1}
+    , ConstraintWaitingDashFill{&s.Pulse2}
     , ConstraintLoop{&s.Warn1}
     , ConstraintWarning{&s.Warn2}
     , ConstraintInvalid{&s.Warn3}
@@ -79,6 +80,7 @@ void ScenarioStyle::setConstraintWidth(double w)
   ConstraintDashPen.setWidth(3 * w);
   ConstraintPlayPen.setWidth(3 * w);
   ConstraintPlayDashPen.setWidth(3 * w);
+  ConstraintWaitingDashPen.setWidth(3 * w);
 }
 
 ScenarioStyle& ScenarioStyle::instance()
@@ -108,6 +110,7 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   ConstraintPlayPen
       = QPen{Qt::black, 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   ConstraintPlayDashPen = ConstraintDashPen;
+  ConstraintWaitingDashPen = ConstraintDashPen;
   ConstraintHeaderSeparator
       = QPen{ConstraintHeaderSideBorder.getColor(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
 
@@ -125,6 +128,7 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   ConstraintRackPen.setCosmetic(true);
   ConstraintPlayPen.setCosmetic(true);
   ConstraintPlayDashPen.setCosmetic(true);
+  ConstraintWaitingDashPen.setCosmetic(true);
   TimenodePen = QPen{Qt::black, 2, Qt::DotLine, Qt::SquareCap, Qt::MiterJoin};
 
   TimenodeBrush = QBrush{Qt::black};

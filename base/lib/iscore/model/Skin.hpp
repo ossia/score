@@ -54,6 +54,7 @@ public:
   QBrush Tender3;
 
   QBrush Pulse1;
+  QBrush Pulse2;
   const QBrush* fromString(const QString& s) const;
   QString toString(const QBrush*) const;
 

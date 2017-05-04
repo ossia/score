@@ -28,6 +28,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   iscore::ColorRef ConstraintSelected;
   iscore::ColorRef ConstraintPlayFill;
   iscore::ColorRef ConstraintPlayDashFill;
+  iscore::ColorRef ConstraintWaitingDashFill;
   iscore::ColorRef ConstraintLoop;
   iscore::ColorRef ConstraintWarning;
   iscore::ColorRef ConstraintInvalid;
@@ -83,6 +84,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QPen ConstraintRackPen;
   QPen ConstraintPlayPen;
   QPen ConstraintPlayDashPen;
+  QPen ConstraintWaitingDashPen;
 
   QPen ConstraintBraceSelected;
   QPen ConstraintBraceWarning;

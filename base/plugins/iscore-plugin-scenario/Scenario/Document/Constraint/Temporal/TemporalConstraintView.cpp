@@ -48,6 +48,7 @@ void TemporalConstraintView::updatePaths()
   dashedPath = QPainterPath{};
   playedSolidPath = QPainterPath{};
   playedDashedPath = QPainterPath{};
+  waitingDashedPath = QPainterPath{};
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
@@ -99,7 +100,10 @@ void TemporalConstraintView::updatePaths()
       if(play_w > min_w)
       {
         playedDashedPath.moveTo(min_w, 0);
-        playedDashedPath.lineTo(def_w, 0);
+        playedDashedPath.lineTo(std::min(def_w, play_w), 0);
+
+        waitingDashedPath.moveTo(min_w, 0);
+        waitingDashedPath.lineTo(def_w, 0);
       }
       else
       {
@@ -131,7 +135,10 @@ void TemporalConstraintView::updatePaths()
       if(play_w > min_w)
       {
         playedDashedPath.moveTo(min_w, 0);
-        playedDashedPath.lineTo(max_w, 0);
+        playedDashedPath.lineTo(play_w, 0);
+
+        waitingDashedPath.moveTo(min_w, 0);
+        waitingDashedPath.lineTo(max_w, 0);
       }
       else
       {
@@ -199,9 +206,20 @@ void TemporalConstraintView::paint(
     painter.setPen(skin.ConstraintPlayPen);
     painter.drawPath(playedSolidPath);
   }
+
+  if(!waitingDashedPath.isEmpty())
+  {
+    if(this->m_waiting)
+    {
+      skin.ConstraintWaitingDashPen.setBrush(skin.ConstraintWaitingDashFill.getColor());
+      painter.setPen(skin.ConstraintWaitingDashPen);
+      painter.drawPath(waitingDashedPath);
+    }
+  }
+
   if (!playedDashedPath.isEmpty())
   {
-    if(this->m_executing)
+    if(this->m_waiting)
     {
       skin.ConstraintPlayDashPen.setBrush(skin.ConstraintPlayDashFill.getColor());
     }
