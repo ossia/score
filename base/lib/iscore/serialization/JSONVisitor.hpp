@@ -539,6 +539,7 @@ void fromJsonArray(QJsonArray&& json_arr, Container<int>& arr)
 template <template <typename U> class Container>
 void fromJsonArray(QJsonArray&& json_arr, Container<QString>& arr)
 {
+  arr.clear();
   arr.reserve(json_arr.size());
   Foreach(json_arr, [&](auto elt) { arr.push_back(elt.toString()); });
 }
@@ -546,6 +547,7 @@ void fromJsonArray(QJsonArray&& json_arr, Container<QString>& arr)
 template <template <typename U> class Container, typename T>
 void fromJsonArray(QJsonArray&& json_arr, Container<T>& arr)
 {
+  arr.clear();
   arr.reserve(json_arr.size());
   Foreach(json_arr, [&](auto elt) {
     T obj;
@@ -557,6 +559,7 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T>& arr)
 template <template <typename U, typename V> class Container, typename T1, typename T2, std::enable_if_t<!std::is_arithmetic<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 {
+  arr.clear();
   arr.reserve(json_arr.size());
   Foreach(json_arr, [&](auto elt) {
     T1 obj;
@@ -587,13 +590,14 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
   }
 }
 
-inline void fromJsonArray(QJsonArray&& json_arr, QStringList& list)
+inline void fromJsonArray(QJsonArray&& json_arr, QStringList& arr)
 {
   int n = json_arr.size();
-  list.reserve(n);
+  arr.clear();
+  arr.reserve(n);
   for (int i = 0; i < n; i++)
   {
-    list.push_back(json_arr.at(i).toString());
+    arr.push_back(json_arr.at(i).toString());
   }
 }
 
