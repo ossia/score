@@ -235,12 +235,20 @@ CreateSequence* CreateSequence::make(
 
   auto proc_command = new CreateSequenceProcesses{
       scenario, scenario.constraint(create_command->createdConstraint())};
-  proc_command->redo();
-  cmd->addCommand(proc_command);
 
-  auto show_rack = new ShowRack{scenario.constraint(create_command->createdConstraint())};
-  show_rack->redo();
-  cmd->addCommand(show_rack);
+  if(proc_command->addedProcessCount() > 0)
+  {
+    proc_command->redo();
+    cmd->addCommand(proc_command);
+
+    auto show_rack = new ShowRack{scenario.constraint(create_command->createdConstraint())};
+    show_rack->redo();
+    cmd->addCommand(show_rack);
+  }
+  else
+  {
+    delete proc_command;
+  }
   return cmd;
 }
 }
