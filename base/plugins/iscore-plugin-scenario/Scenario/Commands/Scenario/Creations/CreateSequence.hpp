@@ -79,6 +79,8 @@ public:
       const Scenario::ProcessModel& scenario,
       const Scenario::ConstraintModel& constraint);
 
+  int addedProcessCount() const { return m_addedProcessCount; }
+
   void undo() const override;
   void redo() const override;
 
