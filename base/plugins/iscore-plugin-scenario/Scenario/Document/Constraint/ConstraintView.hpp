@@ -156,7 +156,7 @@ protected:
   bool m_validConstraint{true};
   bool m_warning{};
   bool m_hasFocus{};
-  bool m_executing{};
+  bool m_waiting{};
   ConstraintExecutionState m_state{};
 };
 

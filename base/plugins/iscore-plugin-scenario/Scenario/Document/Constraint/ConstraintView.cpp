@@ -54,7 +54,7 @@ void ConstraintView::setInfinite(bool infinite)
 
 void ConstraintView::setExecuting(bool e)
 {
-  m_executing = e;
+  m_waiting = e;
   update();
 }
 

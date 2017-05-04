@@ -78,7 +78,7 @@ private:
   iscore::ColorRef m_bgColor;
   void updatePaths() final override;
 
-  QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath;
+  QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath, waitingDashedPath;
   double m_dashOffset = 0;
 };
 }

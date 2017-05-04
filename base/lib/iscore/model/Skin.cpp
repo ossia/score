@@ -47,7 +47,8 @@ Skin::Skin() noexcept
            ISCORE_INSERT_COLOR(Tender1),
            ISCORE_INSERT_COLOR(Tender2),
            ISCORE_INSERT_COLOR(Tender3),
-           ISCORE_INSERT_COLOR(Pulse1)
+           ISCORE_INSERT_COLOR(Pulse1),
+           ISCORE_INSERT_COLOR(Pulse2)
                    }))
 {
   this->startTimer(32, Qt::CoarseTimer);
@@ -110,6 +111,7 @@ void Skin::load(const QJsonObject& obj)
   ISCORE_CONVERT_COLOR(Tender3);
 
   ISCORE_CONVERT_COLOR(Pulse1);
+  ISCORE_CONVERT_COLOR(Pulse2);
 
   emit changed();
 }
@@ -148,20 +150,22 @@ QVector<QPair<QColor, QString>> Skin::getColors() const
   ISCORE_MAKE_PAIR_COLOR(Tender2);
   ISCORE_MAKE_PAIR_COLOR(Tender3);
   ISCORE_MAKE_PAIR_COLOR(Pulse1);
+  ISCORE_MAKE_PAIR_COLOR(Pulse2);
 
   return vec;
 }
 
-void Skin::timerEvent(QTimerEvent* event)
+static bool pulse(QBrush& ref, bool pulse)
 {
-  auto col = Pulse1.color();
+  bool invert = false;
+  auto col = ref.color();
   auto alpha = col.alphaF();
-  if(m_pulseDirection)
+  if(pulse)
   {
     alpha += 0.02;
     if(alpha >= 1)
     {
-      m_pulseDirection = false;
+      invert = true;
       alpha = 1;
     }
     col.setAlphaF(alpha);
@@ -171,12 +175,21 @@ void Skin::timerEvent(QTimerEvent* event)
     alpha -= 0.02;
     if(alpha <= 0.5)
     {
-      m_pulseDirection = true;
+      invert = true;
       alpha = 0.5;
     }
     col.setAlphaF(alpha);
   }
-  Pulse1.setColor(col);
+  ref.setColor(col);
+  return invert;
+}
+
+void Skin::timerEvent(QTimerEvent* event)
+{
+  pulse(Pulse1, m_pulseDirection);
+  auto invert = pulse(Pulse2, m_pulseDirection);
+  if(invert)
+    m_pulseDirection = !m_pulseDirection;
 }
 
 const QBrush* Skin::fromString(const QString& s) const
