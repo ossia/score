@@ -16,23 +16,6 @@ ProcessFactoryList::~ProcessFactoryList() = default;
 LayerFactoryList::~LayerFactoryList() = default;
 StateProcessList::~StateProcessList() = default;
 
-
-LayerPresenter* LayerFactory::makeLayerPresenter(
-    const ProcessModel& lm,
-    LayerView* v,
-    const ProcessPresenterContext& context,
-    QObject* parent)
-{
-  return new Dummy::DummyLayerPresenter{
-      lm, static_cast<Dummy::DummyLayerView*>(v), context, parent};
-}
-
-LayerView*
-LayerFactory::makeLayerView(const ProcessModel& view, QGraphicsItem* parent)
-{
-  return new Dummy::DummyLayerView{parent};
-}
-
 LayerPanelProxy*
 LayerFactory::makePanel(const ProcessModel& layer, QObject* parent)
 {

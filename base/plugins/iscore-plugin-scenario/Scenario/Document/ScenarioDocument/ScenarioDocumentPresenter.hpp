@@ -92,6 +92,7 @@ public:
   void on_viewModelDefocused(const Process::ProcessModel* vm);
   void on_viewModelFocused(const Process::ProcessModel* vm);
 
+  void updateMaxWidth(double w);
 
 public:
   DisplayedElementsModel displayedElements;

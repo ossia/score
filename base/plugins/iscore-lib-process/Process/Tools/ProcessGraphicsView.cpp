@@ -62,6 +62,16 @@ void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
 
 void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
 {
+  if(dx < 0)
+  {
+    auto cur_rect = mapToScene(rect()).boundingRect();
+    auto scene_rect = sceneRect();
+    if(cur_rect.x() + cur_rect.width() - dx > (this->sceneRect().width() - 100))
+    {
+      scene_rect.adjust(0, 0, 100, 0);
+      setSceneRect(scene_rect);
+    }
+  }
   QGraphicsView::scrollContentsBy(dx, dy);
 
   this->scene()->update();

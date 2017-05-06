@@ -439,6 +439,14 @@ void ScenarioDocumentPresenter::on_viewModelFocused(
   }
 }
 
+void ScenarioDocumentPresenter::updateMaxWidth(double w)
+{
+  // TODO save it in the constraint.
+  // By default -1.
+  // Then when displaying, have a "get longest duration" which returns
+  // the correction duration between default, max, maxGraphical / maxContent
+}
+
 // TODO candidate for ProcessSelectionManager.
 void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
 {

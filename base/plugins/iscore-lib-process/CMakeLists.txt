@@ -39,11 +39,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.hpp"
 
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerPresenter.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerView.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyState.hpp"
-
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetProcessFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPresenter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.hpp"
@@ -74,16 +69,11 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyLayerView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/DummyState.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.cpp"
 )
 
-qt5_add_resources(DUMMYPROCESS_QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dummy/resources/DummyResources.qrc")
-
-add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS}  ${DUMMYPROCESS_QRCS} )
+add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS}  )
 target_link_libraries(iscore_lib_process  PUBLIC
     Qt5::Core Qt5::Widgets iscore_lib_base iscore_lib_state iscore_lib_inspector)
 

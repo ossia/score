@@ -36,6 +36,11 @@ void LayerView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   paint_impl(painter);
+#if defined(ISCORE_SCENARIO_DEBUG_RECTS)
+  painter->setPen(Qt::green);
+  painter->setBrush(Qt::NoBrush);
+  painter->drawRect(boundingRect());
+#endif
 }
 
 void LayerView::setHeight(qreal height)
