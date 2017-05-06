@@ -16,6 +16,9 @@ target_compile_definitions(iscore_player PRIVATE
 foreach(plugin ${ISCORE_LIBRARIES_LIST})
   target_link_libraries(iscore_player PUBLIC ${plugin})
 endforeach()
+if(ANDROID)
+    list(REMOVE_ITEM ISCORE_PLUGINS_LIST iscore_plugin_midi)
+endif()
 foreach(plugin ${ISCORE_PLUGINS_LIST})
   target_link_libraries(iscore_player PUBLIC ${plugin})
 endforeach()
@@ -24,9 +27,9 @@ target_link_libraries(iscore_player PUBLIC
   Qt5::QuickControls2)
 
 add_library(iscore_player_plugin SHARED
-  "${CMAKE_CURRENT_SOURCE_DIR}/player_qml_plugin.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/player_qml_plugin.cpp"
-  )
+    "${CMAKE_CURRENT_SOURCE_DIR}/player_qml_plugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/player_qml_plugin.cpp"
+    )
 target_link_libraries(iscore_player_plugin PRIVATE iscore_player)
 
 add_executable(player "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")

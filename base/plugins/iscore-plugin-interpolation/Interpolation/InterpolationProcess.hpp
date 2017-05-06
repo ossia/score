@@ -27,6 +27,7 @@ namespace Interpolation
 class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessState final
     : public ProcessStateDataInterface
 {
+    Q_OBJECT
 public:
   enum Point
   {

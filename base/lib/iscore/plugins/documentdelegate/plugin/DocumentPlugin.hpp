@@ -72,6 +72,7 @@ class ISCORE_LIB_BASE_EXPORT SerializableDocumentPlugin
     : public DocumentPlugin,
       public SerializableInterface<DocumentPluginFactory>
 {
+    Q_OBJECT
 public:
   virtual void serializeAfterDocument(const VisitorVariant& vis) const;
   virtual void reloadAfterDocument(const VisitorVariant& vis);

@@ -11,6 +11,7 @@ namespace Mapping
 {
 class LayerView final : public Process::LayerView
 {
+    Q_OBJECT
 public:
   explicit LayerView(QGraphicsItem* parent);
 

@@ -16,6 +16,11 @@ QMLPlayer::~QMLPlayer()
 
 }
 
+int QMLPlayer::port() const
+{
+  return m_port;
+}
+
 void QMLPlayer::load(QString str)
 {
   m_player.sig_loadFile(str);
@@ -35,6 +40,12 @@ void QMLPlayer::registerDevice(ossia::qt::qml_device* dev)
 {
   if(dev)
     m_player.registerDevice(&dev->device());
+}
+
+void QMLPlayer::setPort(int p)
+{
+  m_port = p;
+  m_player.sig_setPort(p);
 }
 
 

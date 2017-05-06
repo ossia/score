@@ -18,6 +18,7 @@ class TimeNodeModel;
 class BaseScenario final : public IdentifiedObject<BaseScenario>,
                            public BaseScenarioContainer
 {
+  Q_OBJECT
   ISCORE_SERIALIZE_FRIENDS
 
 public:

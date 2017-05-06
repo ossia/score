@@ -30,7 +30,7 @@ LocalDevice::LocalDevice(
   m_capas.canSerialize = false;
 
 
-  auto& proto = safe_cast<ossia::net::multiplex_protocol&>(dev.get_protocol());
+  auto& proto = dynamic_cast<ossia::net::multiplex_protocol&>(dev.get_protocol());
 
   m_proto = &proto;
   setLogging_impl(isLogging());

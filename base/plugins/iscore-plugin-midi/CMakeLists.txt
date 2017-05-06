@@ -4,6 +4,9 @@ project(iscore_plugin_midi LANGUAGES CXX)
 if(IOS)
   return()
 endif()
+if(ANDROID)
+  return()
+endif()
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 

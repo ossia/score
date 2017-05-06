@@ -44,8 +44,8 @@ void ConstraintModel::initConnections()
 {
   processes.added
       .connect<ConstraintModel, &ConstraintModel::on_addProcess>(this);
-  processes.removed
-      .connect<ConstraintModel, &ConstraintModel::on_removeProcess>(this);
+  processes.removing
+      .connect<ConstraintModel, &ConstraintModel::on_removingProcess>(this);
 }
 
 ConstraintModel::ConstraintModel(
@@ -415,7 +415,7 @@ void ConstraintModel::on_addProcess(const Process::ProcessModel& p)
   emit slotAdded({m_fullView.size() - 1, Slot::FullView});
 }
 
-void ConstraintModel::on_removeProcess(const Process::ProcessModel& p)
+void ConstraintModel::on_removingProcess(const Process::ProcessModel& p)
 {
   const auto& pid = p.id();
   for(int i = 0; i < (int)m_smallView.size(); i++)
