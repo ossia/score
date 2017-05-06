@@ -21,7 +21,7 @@ class ProcessModel;
 namespace Command
 {
 
-class MoveNewState final : public iscore::Command
+class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewState final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), MoveNewState, "Move a new state")

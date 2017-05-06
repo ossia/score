@@ -9,6 +9,7 @@
 #include <Scenario/Document/Constraint/Slot.hpp>
 
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveNewState.hpp>
 
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -29,7 +30,6 @@
 #include "RecordMessagesManager.hpp"
 #include <Explorer/Explorer/ListeningManager.hpp>
 #include <Recording/Commands/Record.hpp>
-#include <Recording/RecordedMessages/Commands/EditMessages.hpp>
 #include <core/document/Document.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -45,7 +45,8 @@
 #include <qnamespace.h>
 #include <type_traits>
 #include <utility>
-
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 namespace Recording
 {
 MessageRecorder::MessageRecorder(RecordContext& ctx) : context{ctx}
@@ -55,7 +56,6 @@ MessageRecorder::MessageRecorder(RecordContext& ctx) : context{ctx}
 void MessageRecorder::stop()
 {
   // Stop all the recording machinery
-  auto msecs = context.timeInDouble();
   for (const auto& dev : m_recordCallbackConnections)
   {
     if (dev)
@@ -75,16 +75,36 @@ void MessageRecorder::stop()
     return;
   }
 
-  for (auto& val : m_records)
+  Id<Scenario::StateModel> startState = m_createdProcess->startEvent().states().first();
+  auto setStateCmd = new Scenario::Command::AddMessagesToState(m_createdProcess->state(startState), {m_records[0].m});
+  setStateCmd->redo();
+  context.dispatcher.submitCommand(setStateCmd);
+
+  auto movecmd = new Scenario::Command::MoveNewState{*m_createdProcess, startState, 0.5};
+  movecmd->redo();
+  context.dispatcher.submitCommand(movecmd);
+
+  for (int i = 1; i < m_records.size(); i++)
   {
-    val.percentage = val.percentage / msecs;
+    RecordedMessage& val = m_records[i];
+
+    // Create a state
+    auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+               *m_createdProcess,
+               startState,
+               TimeVal::fromMsecs(val.percentage),
+               0.5};
+    cmd->redo();
+    startState = cmd->createdState();
+    context.dispatcher.submitCommand(cmd);
+
+    // Add messages to it
+    auto setStateCmd = new Scenario::Command::AddMessagesToState(m_createdProcess->state(startState), {val.m});
+    setStateCmd->redo();
+    context.dispatcher.submitCommand(setStateCmd);
+
   }
 
-  auto cmd = new RecordedMessages::EditMessages{*m_createdProcess, m_records};
-
-  // Commit
-  cmd->redo();
-  context.dispatcher.submitCommand(cmd);
 }
 
 void MessageRecorder::on_valueUpdated(
@@ -95,7 +115,7 @@ void MessageRecorder::on_valueUpdated(
     // Move end event by the current duration.
     auto msecs = context.timeInDouble();
 
-    m_records.append(RecordedMessages::RecordedMessage{
+    m_records.push_back(RecordedMessage{
         msecs, State::Message{State::AddressAccessor{addr},
                               State::fromOSSIAValue(val)}});
 
@@ -106,7 +126,7 @@ void MessageRecorder::on_valueUpdated(
     emit firstMessageReceived();
     context.start();
 
-    m_records.append(RecordedMessages::RecordedMessage{
+    m_records.push_back(RecordedMessage{
         0., State::Message{State::AddressAccessor{addr},
                            State::fromOSSIAValue(val)}});
   }
@@ -123,13 +143,13 @@ bool MessageRecorder::setup(
   // about their generation.
   auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
       box.constraint,
-      Metadata<ConcreteKey_k, RecordedMessages::ProcessModel>::get()};
+      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
 
   cmd_proc->redo();
   context.dispatcher.submitCommand(cmd_proc);
 
   auto& proc = box.constraint.processes.at(cmd_proc->processId());
-  auto& record_proc = static_cast<RecordedMessages::ProcessModel&>(proc);
+  auto& record_proc = static_cast<Scenario::ProcessModel&>(proc);
   m_createdProcess = &record_proc;
 
   //// Creation of the layer ////
@@ -158,7 +178,6 @@ bool MessageRecorder::setup(
 
     m_recordCallbackConnections.push_back(&dev);
   }
-
   return true;
 }
 }
