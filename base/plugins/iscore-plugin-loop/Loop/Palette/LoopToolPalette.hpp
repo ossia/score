@@ -4,6 +4,7 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
+#include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 
 #include <Scenario/Palette/Tool.hpp>
 
@@ -19,8 +20,6 @@ struct LayerContext;
 namespace Scenario
 {
 class MoveConstraintInBaseScenario_StateWrapper;
-class MoveLeftBraceInBaseScenario_StateWrapper;
-class MoveRightBraceInBaseScenario_StateWrapper;
 class MoveEventInBaseScenario_StateWrapper;
 class MoveTimeNodeInBaseScenario_StateWrapper;
 }
@@ -63,7 +62,12 @@ private:
   const Scenario::EditionSettings& m_editionSettings;
 
   Scenario::
-      SmartTool<Loop::ProcessModel, ToolPalette, LayerView, Scenario::MoveConstraintInBaseScenario_StateWrapper, Scenario::MoveLeftBraceInBaseScenario_StateWrapper, Scenario::MoveRightBraceInBaseScenario_StateWrapper, Scenario::MoveEventInBaseScenario_StateWrapper, Scenario::MoveTimeNodeInBaseScenario_StateWrapper>
+      SmartTool<Loop::ProcessModel, ToolPalette, LayerView,
+                Scenario::MoveConstraintInBaseScenario_StateWrapper,
+                Scenario::MoveLeftBraceInScenario_StateWrapper,
+                Scenario::MoveRightBraceInScenario_StateWrapper,
+                Scenario::MoveEventInBaseScenario_StateWrapper,
+                Scenario::MoveTimeNodeInBaseScenario_StateWrapper>
           m_state;
 
   ToolPaletteInputDispatcher<Scenario::Tool, ToolPalette, Process::LayerContext, LayerPresenter>
