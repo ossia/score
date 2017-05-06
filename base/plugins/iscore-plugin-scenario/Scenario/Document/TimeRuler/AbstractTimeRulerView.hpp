@@ -56,9 +56,11 @@ public:
 
 signals:
   void drag(QPointF, QPointF);
+  void rescale();
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent*) final override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent*) final override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent*) final override;
   void createRulerPath();

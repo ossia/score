@@ -92,6 +92,12 @@ void AbstractTimeRulerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
   ev->accept();
 }
 
+void AbstractTimeRulerView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
+{
+  emit rescale();
+  ev->accept();
+}
+
 void AbstractTimeRulerView::createRulerPath()
 {
   m_marks.clear();
