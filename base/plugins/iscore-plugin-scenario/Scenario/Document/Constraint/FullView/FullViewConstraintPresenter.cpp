@@ -53,13 +53,13 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
   con(m_model, &ConstraintModel::slotAdded,
       this, [=] (const SlotId& s) {
     if(s.fullView())
-      createSlot(s.index, m_model.fullView()[s.index]);
+      on_rackChanged();
   });
 
   con(m_model, &ConstraintModel::slotRemoved,
       this, [=] (const SlotId& s) {
     if(s.fullView())
-      on_slotRemoved(s.index);
+      on_rackChanged();
   });
 
   con(m_model, &ConstraintModel::slotResized,
@@ -159,6 +159,7 @@ void FullViewConstraintPresenter::updateProcessesShape()
   {
     updateProcessShape(i);
   }
+  updateHeight();
 }
 
 void FullViewConstraintPresenter::updatePositions()

@@ -241,19 +241,28 @@ void ConstraintInspectorWidget::on_processCreated(const Process::ProcessModel&)
   // this signal is emitted before the process could be put as the front layer.
   // hence the incorrect process is expanded.
   // TODO we should also update when a new process is displayed in a new slot...
-  QTimer::singleShot(0, [this] { m_processesTabPage->updateDisplayedValues(); });
+  QTimer::singleShot(0, [this] {
+      if(m_processesTabPage)
+          m_processesTabPage->updateDisplayedValues();
+  });
 }
 
 void ConstraintInspectorWidget::on_processRemoved(const Process::ProcessModel&)
 {
   // OPTIMIZEME
-  QTimer::singleShot(0, [this] { m_processesTabPage->updateDisplayedValues(); });
+    QTimer::singleShot(0, [this] {
+        if(m_processesTabPage)
+            m_processesTabPage->updateDisplayedValues();
+    });
 }
 
 void ConstraintInspectorWidget::on_orderChanged()
 {
   // OPTIMIZEME
-  QTimer::singleShot(0, [this] { m_processesTabPage->updateDisplayedValues(); });
+    QTimer::singleShot(0, [this] {
+        if(m_processesTabPage)
+            m_processesTabPage->updateDisplayedValues();
+    });
 }
 
 }
