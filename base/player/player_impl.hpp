@@ -37,9 +37,10 @@
 #include <QJsonDocument>
 #include <ossia/context.hpp>
 #include <ossia-qt/device/qml_device.hpp>
+#include <iscore_player_export.h>
 namespace iscore
 {
-class PlayerImpl :
+class ISCORE_PLAYER_EXPORT PlayerImpl :
     public QObject,
     public ApplicationInterface
 {
@@ -63,6 +64,7 @@ public:
 
   void registerDevice(ossia::net::device_base*);
   void releaseDevice(ossia::net::device_base*);
+  void setPort(int);
   void play();
   void stop();
 
@@ -75,6 +77,7 @@ signals:
   void sig_stop();
   void sig_close();
   void sig_loadFile(QString);
+  void sig_setPort(int);
   void sig_registerDevice(ossia::net::device_base*);
 
 private:

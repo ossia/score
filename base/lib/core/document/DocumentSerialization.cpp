@@ -70,7 +70,7 @@ QJsonObject Document::saveAsJson()
   for (const auto& plugin : model().pluginModels())
   {
     if (auto serializable_plugin
-        = dynamic_cast<SerializableDocumentPlugin*>(plugin))
+        = qobject_cast<SerializableDocumentPlugin*>(plugin))
     {
       JSONObject::Serializer s_before;
       s_before.readFrom(*serializable_plugin);
@@ -108,7 +108,7 @@ QByteArray Document::saveAsByteArray()
   for (const auto& plugin : model().pluginModels())
   {
     if (auto serializable_plugin
-        = dynamic_cast<SerializableDocumentPlugin*>(plugin))
+        = qobject_cast<SerializableDocumentPlugin*>(plugin))
     {
       static_assert(is_identified_object<SerializableDocumentPlugin>::value, "");
       static_assert(
@@ -262,7 +262,7 @@ void DocumentModel::loadDocumentAsByteArray(
 
   for(int i = 0; i < plug_n; i++)
   {
-    if(auto plug = dynamic_cast<iscore::SerializableDocumentPlugin*>(docs[i]))
+    if(auto plug = qobject_cast<iscore::SerializableDocumentPlugin*>(docs[i]))
     {
       DataStream::Deserializer plug_writer{documentPluginModels[i].second};
       plug->reloadAfterDocument(plug_writer.toVariant());
@@ -302,7 +302,7 @@ void DocumentModel::loadDocumentAsJson(
 
     if (plug)
     {
-      if(auto ser = dynamic_cast<iscore::SerializableDocumentPlugin*>(plug))
+      if(auto ser = qobject_cast<iscore::SerializableDocumentPlugin*>(plug))
       {
         auto it = plug_writer.obj.find("DocumentPostModelPart");
         if((it != plug_writer.obj.end()) && it->isObject())

@@ -79,7 +79,7 @@ void OSCQueryDevice::slot_command()
 {
   if(m_dev)
   {
-    auto proto = safe_cast<ossia::oscquery::oscquery_mirror_protocol*>(&m_dev->get_protocol());
+    auto proto = dynamic_cast<ossia::oscquery::oscquery_mirror_protocol*>(&m_dev->get_protocol());
     proto->run_commands();
   }
 }

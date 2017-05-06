@@ -8,6 +8,7 @@ namespace Interpolation
 {
 class Presenter : public Curve::CurveProcessPresenter<ProcessModel, View>
 {
+    Q_OBJECT
 public:
   Presenter(
       const Curve::Style& style,

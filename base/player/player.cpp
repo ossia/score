@@ -116,6 +116,7 @@ void PlayerImpl::init()
   connect(this, &PlayerImpl::sig_loadFile, this, &PlayerImpl::loadFile, Qt::QueuedConnection);
   connect(this, &PlayerImpl::sig_close, this, &PlayerImpl::close, Qt::QueuedConnection);
   connect(this, &PlayerImpl::sig_registerDevice, this, &PlayerImpl::registerDevice, Qt::QueuedConnection);
+  connect(this, &PlayerImpl::sig_setPort, this, &PlayerImpl::setPort, Qt::QueuedConnection);
 }
 
 void PlayerImpl::closeDocument()
@@ -208,6 +209,14 @@ void PlayerImpl::setupLoadedDocument()
 void PlayerImpl::registerDevice(ossia::net::device_base* dev)
 {
   m_ownedDevices.push_back(dev);
+}
+
+void PlayerImpl::setPort(int p)
+{
+#if defined(ISCORE_ADDON_NETWORK)
+  auto& ns = m_appContext.settings<Network::Settings::Model>();
+  ns.setPlayerPort(p);
+#endif
 }
 
 void PlayerImpl::releaseDevice(ossia::net::device_base* dev)
@@ -368,6 +377,12 @@ Player::~Player()
     m_thread.join();
 
   m_player.reset();
+}
+
+void Player::setPort(int port)
+{
+  assert(m_loaded);
+    m_player->sig_setPort(port);
 }
 
 void Player::load(std::string path)

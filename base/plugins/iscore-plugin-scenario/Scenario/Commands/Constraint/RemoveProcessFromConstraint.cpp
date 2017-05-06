@@ -18,6 +18,7 @@
 #include <iscore/model/path/Path.hpp>
 #include <iscore/model/path/PathSerialization.hpp>
 #include <iscore/model/path/ObjectPath.hpp>
+#include <boost/range/adaptor/reversed.hpp>
 
 // MOVEME
 template<>
@@ -72,6 +73,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
   s1.readFrom(proc);
 
   m_smallView = constraint.smallView();
+  m_smallViewVisible = constraint.smallViewVisible();
 }
 
 void RemoveProcessFromConstraint::undo() const
@@ -91,26 +93,37 @@ void RemoveProcessFromConstraint::undo() const
   }
 
   constraint.replaceSmallView(m_smallView);
+  constraint.setSmallViewVisible(m_smallViewVisible);
 }
 
 void RemoveProcessFromConstraint::redo() const
 {
   auto& constraint = m_path.find();
+  // Find the slots that will be empty : we remove them.
+  std::vector<int> slots_to_remove;
+  int i = 0;
+  for(const Slot& slot : constraint.smallView())
+  {
+    if(slot.processes.size() == 1 && slot.processes[0] == m_processId)
+      slots_to_remove.push_back(i);
+    i++;
+  }
+
   RemoveProcess(constraint, m_processId);
 
-  // The view models will be deleted accordingly.
-  // TODO maybe delete them here actually ?
+  for(int slt : boost::adaptors::reverse(slots_to_remove))
+    constraint.removeSlot(slt);
 }
 
 
 void RemoveProcessFromConstraint::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_processId << m_serializedProcessData << m_smallView;
+  s << m_path << m_processId << m_serializedProcessData << m_smallView << m_smallViewVisible;
 }
 
 void RemoveProcessFromConstraint::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_processId >> m_serializedProcessData >> m_smallView;
+  s >> m_path >> m_processId >> m_serializedProcessData >> m_smallView >> m_smallViewVisible;
 }
 }
 }

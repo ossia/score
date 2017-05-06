@@ -14,6 +14,7 @@ namespace Automation
 class LayerPresenter final
     : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
+    Q_OBJECT
 public:
   LayerPresenter(
       const Curve::Style& style,

@@ -46,6 +46,7 @@ private:
   QByteArray m_serializedProcessData;
 
   Rack m_smallView;
+  bool m_smallViewVisible{};
 };
 }
 }

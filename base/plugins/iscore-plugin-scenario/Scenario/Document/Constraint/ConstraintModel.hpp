@@ -148,7 +148,7 @@ signals:
 
 private:
   void on_addProcess(const Process::ProcessModel&);
-  void on_removeProcess(const Process::ProcessModel&);
+  void on_removingProcess(const Process::ProcessModel&);
   void initConnections();
 
   const Slot* findSmallViewSlot(int slot) const;

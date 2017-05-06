@@ -11,6 +11,7 @@ namespace Mapping
 {
 class LayerPresenter : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
+    Q_OBJECT
 public:
   LayerPresenter(
       const Curve::Style& style,

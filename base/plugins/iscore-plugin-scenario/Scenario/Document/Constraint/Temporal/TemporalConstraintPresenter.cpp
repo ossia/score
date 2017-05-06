@@ -474,7 +474,6 @@ void TemporalConstraintPresenter::on_rackChanged()
   m_slots.clear();
 
   // Recreate
-
   if(m_model.smallViewVisible())
   {
     m_slots.reserve(m_model.smallView().size());
