@@ -42,7 +42,8 @@ signals:
 
 private:
   void updateScaling() override;
-  void on_defaultDurationChanged(const TimeVal&) override;
+  void on_defaultDurationChanged(const TimeVal&);
+  void on_guiDurationChanged(const TimeVal&);
 
   void createSlot(int pos, const FullSlot& slt);
   void updateProcessShape(int slot);

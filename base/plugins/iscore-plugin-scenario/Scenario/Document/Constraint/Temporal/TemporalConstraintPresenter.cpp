@@ -32,16 +32,16 @@ class QString;
 namespace Scenario
 {
 TemporalConstraintPresenter::TemporalConstraintPresenter(
-    const ConstraintModel& cstr_model,
+    const ConstraintModel& constraint,
     const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* parentobject,
     QObject* parent)
-  : ConstraintPresenter{cstr_model,
+  : ConstraintPresenter{constraint,
                         new TemporalConstraintView{*this, parentobject},
                         new TemporalConstraintHeader, ctx, parent}
 {
   TemporalConstraintView& v = *Scenario::view(this);
-  v.setSmallViewVisible(cstr_model.smallViewVisible());
+  v.setSmallViewVisible(constraint.smallViewVisible());
   con(v, &TemporalConstraintView::constraintHoverEnter, this,
       &TemporalConstraintPresenter::constraintHoverEnter);
 
@@ -51,7 +51,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
   con(v, &ConstraintView::requestOverlayMenu,
       this, &TemporalConstraintPresenter::on_requestOverlayMenu);
 
-  con(cstr_model, &ConstraintModel::executionStateChanged, &v,
+  con(constraint, &ConstraintModel::executionStateChanged, &v,
       &TemporalConstraintView::setExecutionState);
 
   const auto& metadata = m_model.metadata();
@@ -85,6 +85,13 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
         .drop(m_model, mime);
   });
 
+  // Time
+  con(constraint.duration, &ConstraintDurations::defaultDurationChanged, this,
+      [&](const TimeVal& val) {
+        on_defaultDurationChanged(val);
+        updateChildren();
+      });
+
   // Header set-up
   auto header = static_cast<TemporalConstraintHeader*>(m_header);
 
@@ -111,7 +118,7 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     base.setDisplayedConstraint(const_cast<ConstraintModel&>(m_model));
   });
 
-
+  // Slots & racks
   con(m_model, &ConstraintModel::smallViewVisibleChanged, this,
       &TemporalConstraintPresenter::on_rackVisibleChanged);
 
@@ -161,6 +168,8 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 
   m_model.processes.added.connect<TemporalConstraintPresenter, &TemporalConstraintPresenter::on_processesChanged>(this);
   m_model.processes.removed.connect<TemporalConstraintPresenter, &TemporalConstraintPresenter::on_processesChanged>(this);
+
+  on_defaultDurationChanged(m_model.duration.defaultDuration());
   on_rackVisibleChanged(m_model.smallViewVisible());
 }
 
@@ -179,7 +188,6 @@ TemporalConstraintPresenter::~TemporalConstraintPresenter()
 
     view->deleteLater();
   }
-
 }
 
 void TemporalConstraintPresenter::on_requestOverlayMenu(QPointF)
@@ -492,6 +500,7 @@ void TemporalConstraintPresenter::on_rackChanged()
 
 void TemporalConstraintPresenter::updateScaling()
 {
+  on_defaultDurationChanged(model().duration.defaultDuration());
   ConstraintPresenter::updateScaling();
   updateHeight();
 }
@@ -511,11 +520,17 @@ void TemporalConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
   updateProcessesShape();
 }
 
-void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& v)
+void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
-  ConstraintPresenter::on_defaultDurationChanged(v);
+  const auto w = val.toPixels(m_zoomRatio);
+  m_view->setDefaultWidth(w);
+  m_view->updateLabelPos();
+  m_view->updateCounterPos();
+  m_view->updateOverlayPos();
+  m_header->setWidth(w);
 
-  const auto w = m_view->defaultWidth();
+  updateBraces();
+
   for(const SlotPresenter& slot : m_slots)
   {
     slot.handle->setWidth(w);

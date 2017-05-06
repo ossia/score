@@ -76,6 +76,8 @@ public:
     return m_points;
   }
 
+  double lastPointPos() const;
+
 signals:
   void segmentAdded(const SegmentModel&);
   void segmentRemoved(const Id<SegmentModel>&); // dangerous if async

@@ -42,13 +42,6 @@
 #include <iscore/model/path/ObjectPath.hpp>
 #include <iscore/tools/Todo.hpp>
 
-namespace iscore
-{
-class DocumentDelegateModel;
-class DocumentDelegateView;
-class DocumentPresenter;
-} // namespace iscore
-
 namespace Scenario
 {
 const ScenarioDocumentModel& ScenarioDocumentPresenter::model() const
@@ -83,9 +76,6 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   using namespace iscore;
 
   // Setup the connections
-  con((m_selectionDispatcher.stack()),
-      &SelectionStack::currentSelectionChanged, this,
-      &ScenarioDocumentPresenter::on_newSelection);
   con(view(), &ScenarioDocumentView::horizontalZoomChanged, this,
       &ScenarioDocumentPresenter::on_zoomSliderChanged);
 
@@ -95,7 +85,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       &ScenarioDocumentPresenter::on_viewSizeChanged);
   con(view().view(), &ProcessGraphicsView::zoom, this,
       &ScenarioDocumentPresenter::on_zoomOnWheelEvent);
-  con(view(), &ScenarioDocumentView::horizontalPositionChanged, this,
+  con(view().view(), &ProcessGraphicsView::scrolled, this,
       &ScenarioDocumentPresenter::on_horizontalPositionChanged);
 
   connect(
@@ -142,10 +132,6 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     app.editionSettings().setExpandMode(ExpandMode::GrowShrink);
   }, Qt::QueuedConnection);
 
-
-  // QGraphicsView& v = view().view();
-  // connect(&ctx.updateTimer, &QTimer::timeout, this, [&vp=*v.viewport()] {
-  // vp.update();} );
   setDisplayedConstraint(model().baseConstraint());
 }
 
@@ -157,6 +143,11 @@ ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
 ConstraintModel& ScenarioDocumentPresenter::displayedConstraint() const
 {
   return displayedElements.constraint();
+}
+
+const DisplayedElementsPresenter&ScenarioDocumentPresenter::presenters() const
+{
+  return *m_scenarioPresenter;
 }
 
 void ScenarioDocumentPresenter::selectAll()
@@ -210,7 +201,7 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
     view().zoomSlider()->setValue(newZoom);
     newZoom = ZoomPolicy::sliderPosToZoomRatio(
         0.01,
-        displayedConstraint().duration.defaultDuration().msec(),
+        displayedDuration(),
         view().viewWidth());
   }
   else // first time in fullview : init the zoom ratio
@@ -218,7 +209,7 @@ void ScenarioDocumentPresenter::on_displayedConstraintChanged()
     view().zoomSlider()->setValue(0.01);
     newZoom = ZoomPolicy::sliderPosToZoomRatio(
         0.01,
-        displayedConstraint().duration.defaultDuration().msec(),
+        displayedDuration(),
         view().viewWidth());
   }
 
@@ -238,15 +229,11 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
   m_scenarioPresenter->on_zoomRatioChanged(m_zoomRatio);
 }
 
-void ScenarioDocumentPresenter::on_newSelection(const Selection& sel)
-{
-}
-
 void ScenarioDocumentPresenter::on_zoomSliderChanged(double sliderPos)
 {
   auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
       sliderPos,
-      displayedConstraint().duration.defaultDuration().msec(),
+      displayedDuration(),
       view().viewWidth());
 
   updateZoom(newMillisPerPix, QPointF{}); // Null point
@@ -270,7 +257,7 @@ void ScenarioDocumentPresenter::on_zoomOnWheelEvent(
 
   auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
       newSliderPos,
-      displayedConstraint().duration.defaultDuration().msec(),
+      displayedDuration(),
       view().viewWidth());
 
   updateZoom(newMillisPerPix, center);
@@ -287,7 +274,7 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize)
   auto& gv = view().view();
   auto zoom = ZoomPolicy::sliderPosToZoomRatio(
       view().zoomSlider()->value(),
-      displayedConstraint().duration.defaultDuration().msec(),
+      displayedDuration(),
       view().viewWidth());
 
   updateZoom(zoom, {0, 0});
@@ -304,7 +291,42 @@ void ScenarioDocumentPresenter::on_viewSizeChanged(QSize s)
 
 void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 {
+  auto& c = displayedConstraint();
   auto& gv = view().view();
+
+  if(dx < 0 && !m_zooming)
+  {
+    auto cur_rect = gv.mapToScene(gv.rect()).boundingRect();
+    auto scene_rect = gv.sceneRect();
+    if(cur_rect.x() + cur_rect.width() - dx > (scene_rect.width()))
+    {
+      c.duration.setGuiDuration(TimeVal::fromMsecs(m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx)));
+      scene_rect.adjust(0, 0, 5, 0);
+      gv.setSceneRect(scene_rect);
+    }
+  }
+  else if(dx > 0 && !m_zooming)
+  {
+    TimeVal min_time = (c.duration.isMaxInfinite() ? c.duration.defaultDuration() : c.duration.maxDuration()) * 1.1;
+    for(Process::ProcessModel& proc : c.processes)
+    {
+      if(proc.contentHasDuration())
+      {
+        auto d = proc.contentDuration();
+        if(d > min_time)
+          min_time = d;
+      }
+    }
+    if(min_time < c.duration.guiDuration())
+    {
+      auto cur_rect = gv.mapToScene(gv.rect()).boundingRect();
+      c.duration.setGuiDuration(std::max(TimeVal::fromMsecs(m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx)), min_time));
+      auto scene_rect = gv.sceneRect();
+      scene_rect.adjust(0, 0, -dx, 0);
+      gv.setSceneRect(scene_rect);
+    }
+  }
+
   QRect viewport_rect = gv.viewport()->rect();
   QRectF visible_scene_rect = gv.mapToScene(viewport_rect).boundingRect();
 
@@ -313,18 +335,19 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
   displayedConstraint().setVisibleRect(visible_scene_rect);
 }
 
-void ScenarioDocumentPresenter::on_elementsScaleChanged(double s)
-{
-  ;
-}
-
 void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
 {
   view().view().setSceneRect(rect);
 }
 
+const Process::ProcessPresenterContext&ScenarioDocumentPresenter::context() const
+{
+  return m_context;
+}
+
 void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 {
+  m_zooming = true;
   auto& gv = view().view();
   auto& vp = *gv.viewport();
   auto w = vp.width();
@@ -369,6 +392,12 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
   // TODO should call displayedElementsPresenter instead??
   displayedConstraint().setZoom(view().zoomSlider()->value());
   displayedConstraint().setVisibleRect(new_visible_scene_rect);
+  m_zooming = false;
+}
+
+double ScenarioDocumentPresenter::displayedDuration() const
+{
+  return 0.9 * displayedConstraint().duration.guiDuration().msec();
 }
 
 void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constraint)
@@ -447,7 +476,6 @@ void ScenarioDocumentPresenter::updateMaxWidth(double w)
   // the correction duration between default, max, maxGraphical / maxContent
 }
 
-// TODO candidate for ProcessSelectionManager.
 void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
 {
   auto process = m_focusManager.focusedModel();
@@ -503,5 +531,10 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
   }
 
   view().view().setFocus();
+}
+
+Process::ProcessFocusManager&ScenarioDocumentPresenter::focusManager() const
+{
+  return m_focusManager;
 }
 }

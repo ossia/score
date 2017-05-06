@@ -38,7 +38,7 @@ TriggerInspectorWidget::TriggerInspectorWidget(
       m_model.trigger(), &TriggerModel::triggerChanged, m_exprEditor,
       &ExpressionEditorWidget::setExpression);
 
-  m_addTrigBtn = new QPushButton{tr("Add Trigger")};
+  m_addTrigBtn = new QPushButton{tr("Enable trigger")};
   m_menuButton = new QPushButton{"#"};
   m_menuButton->setMenu(m_menu.menu);
 

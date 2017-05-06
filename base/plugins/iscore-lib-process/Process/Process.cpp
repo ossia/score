@@ -100,6 +100,16 @@ void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t)
   }
 }
 
+bool ProcessModel::contentHasDuration() const
+{
+  return false;
+}
+
+TimeVal ProcessModel::contentDuration() const
+{
+  return TimeVal::zero();
+}
+
 void ProcessModel::setDuration(const TimeVal& other)
 {
   m_duration = other;

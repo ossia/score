@@ -64,6 +64,9 @@ public:
   /// Duration
   void setParentDuration(ExpandMode mode, const TimeVal& t);
 
+  virtual bool contentHasDuration() const;
+  virtual TimeVal contentDuration() const;
+
   // TODO might not be useful... put in protected ?
   // Constructor needs it, too.
   void setDuration(const TimeVal& other);

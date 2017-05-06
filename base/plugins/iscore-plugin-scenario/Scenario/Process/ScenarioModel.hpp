@@ -188,6 +188,9 @@ private:
   }
 
 private:
+  bool contentHasDuration() const override;
+  TimeVal contentDuration() const override;
+
   template <typename Fun>
   void apply(Fun fun) const
   {

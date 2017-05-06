@@ -83,11 +83,13 @@ public:
   void setWidth(qreal width) override
   {
     m_view->setWidth(width);
+    m_curvepresenter->view().setRect(m_view->boundingRect());
   }
 
   void setHeight(qreal height) override
   {
     m_view->setHeight(height);
+    m_curvepresenter->view().setRect(m_view->boundingRect());
   }
 
   void putToFront() override
@@ -107,17 +109,16 @@ public:
   void on_zoomRatioChanged(ZoomRatio val) override
   {
     m_zoomRatio = val;
-    // TODO REDRAW??? or parentGeometryChanged called afterwards?
+    parentGeometryChanged();
   }
 
   void parentGeometryChanged() override
   {
     // Compute the rect with the duration of the process.
     QRectF rect = m_view->boundingRect(); // for the height
+    m_curvepresenter->view().setRect(rect);
 
     rect.setWidth(m_layer.duration().toPixels(m_zoomRatio));
-
-    m_curvepresenter->view().setRect(rect);
     m_curvepresenter->setRect(rect);
   }
 

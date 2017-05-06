@@ -68,7 +68,7 @@ public:
     m_minNonNullBox = new QCheckBox{};
     m_maxFiniteBox = new QCheckBox{};
 
-    m_minNonNullBox->setChecked(!m_dur.isMinNul());
+    m_minNonNullBox->setChecked(!m_dur.isMinNull());
     m_maxFiniteBox->setChecked(!m_dur.isMaxInfinite());
 
     connect(
@@ -123,8 +123,8 @@ public:
     con(m_dur, &ConstraintDurations::maxInfiniteChanged, this,
         &EditionGrid::on_modelMaxInfiniteChanged);
 
-    m_minNull->setVisible(m_model.duration.isMinNul());
-    m_minSpin->setVisible(!m_model.duration.isMinNul());
+    m_minNull->setVisible(m_model.duration.isMinNull());
+    m_minSpin->setVisible(!m_model.duration.isMinNull());
 
     m_maxInfinity->setVisible(m_model.duration.isMaxInfinite());
     m_maxSpin->setVisible(!m_model.duration.isMaxInfinite());

@@ -16,7 +16,7 @@ LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
 {
   setZValue(1);
   this->setFlags(
-      ItemIsSelectable | ItemIsFocusable);
+      ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 
   m_textcache.setFont(ScenarioStyle::instance().Medium8Pt);
   m_textcache.setCacheEnabled(true);

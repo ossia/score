@@ -46,22 +46,11 @@ ConstraintPresenter::ConstraintPresenter(
         on_minDurationChanged(val);
         updateChildren();
       });
-  con(constraint.duration, &ConstraintDurations::defaultDurationChanged, this,
-      [&](const TimeVal& val) {
-        on_defaultDurationChanged(val);
-        updateChildren();
-      });
   con(constraint.duration, &ConstraintDurations::maxDurationChanged, this,
       [&](const TimeVal& val) {
         on_maxDurationChanged(val);
         updateChildren();
       });
-
-  // As an optimization, this has been replaced
-  // by a timer in the parent processes, scenario and loop.
-  // con(constraint.duration, &ConstraintDurations::playPercentageChanged,
-  //         this, &ConstraintPresenter::on_playPercentageChanged,
-  //         Qt::QueuedConnection);
 
   con(constraint, &ConstraintModel::heightPercentageChanged, this,
       &ConstraintPresenter::heightPercentageChanged);
@@ -70,12 +59,10 @@ ConstraintPresenter::ConstraintPresenter(
   con(constraint, &ConstraintModel::executionStopped,
       this, [=] { m_view->setExecuting(false); });
 
-
   con(constraint.consistency, &ModelConsistency::validChanged, m_view,
       &ConstraintView::setValid);
   con(constraint.consistency, &ModelConsistency::warningChanged, m_view,
       &ConstraintView::setWarning);
-
 }
 
 ConstraintPresenter::~ConstraintPresenter()
@@ -85,9 +72,7 @@ ConstraintPresenter::~ConstraintPresenter()
 void ConstraintPresenter::updateScaling()
 {
   const auto& cm = m_model;
-  // prendre en compte la distance du clic à chaque côté
 
-  on_defaultDurationChanged(cm.duration.defaultDuration());
   on_minDurationChanged(cm.duration.minDuration());
   on_maxDurationChanged(cm.duration.maxDuration());
   on_playPercentageChanged(cm.duration.playPercentage());
@@ -104,18 +89,6 @@ void ConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
 const Id<ConstraintModel>& ConstraintPresenter::id() const
 {
   return model().id();
-}
-
-void ConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
-{
-  auto width = val.toPixels(m_zoomRatio);
-  m_view->setDefaultWidth(width);
-  m_view->updateLabelPos();
-  m_view->updateCounterPos();
-  m_view->updateOverlayPos();
-  m_header->setWidth(width);
-
-  updateBraces();
 }
 
 void ConstraintPresenter::on_minDurationChanged(const TimeVal& min)
@@ -142,11 +115,6 @@ void ConstraintPresenter::on_playPercentageChanged(double t)
     m_view->setPlayWidth(m_view->defaultWidth() * t);
 }
 
-Process::LayerPresenter* ConstraintPresenter::process(Id<Process::ProcessModel>)
-{
-  return nullptr;
-}
-
 void ConstraintPresenter::updateChildren()
 {
   emit askUpdate();
@@ -159,7 +127,6 @@ bool ConstraintPresenter::isSelected() const
 {
   return m_model.selection.get();
 }
-
 
 const ConstraintModel& ConstraintPresenter::model() const
 {
@@ -178,7 +145,7 @@ void ConstraintPresenter::updateBraces()
   auto& rb = m_view->rightBrace();
   const bool rigid = dur.isRigid();
 
-  lb.setVisible(!dur.isMinNul() && !rigid);
+  lb.setVisible(!dur.isMinNull() && !rigid);
   rb.setVisible(!dur.isMaxInfinite() && !rigid);
 }
 

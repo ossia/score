@@ -46,13 +46,11 @@ void CommandObjectBase::handleLocking()
 
   const bool bounded = m_presenter->boundedMove();
   // We lock between O - 1 in both axes.
-  if (bounded)
-  {
-    if (current_x < 0.)
-      m_state->currentPoint.setX(0.);
-    else if (current_x > 1.)
-      m_state->currentPoint.setX(1.);
-  }
+  if (current_x < 0.)
+    m_state->currentPoint.setX(0.);
+  else if (bounded && current_x > 1.)
+    m_state->currentPoint.setX(1.);
+
 
   if (current_y < 0.)
     m_state->currentPoint.setY(0.);

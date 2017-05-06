@@ -42,6 +42,11 @@ public:
   }
 
 private:
+  void setFullView() override
+  {
+    m_curvepresenter->setBoundedMove(false);
+  }
+
   void on_tweenChanges(bool b)
   {
     for (auto& seg : m_curvepresenter->segments())

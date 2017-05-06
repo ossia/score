@@ -33,6 +33,8 @@ public:
   void setFocus(bool focus);
   virtual void on_focusChanged();
 
+  virtual void setFullView();
+
   virtual void setWidth(qreal width) = 0;
   virtual void setHeight(qreal height) = 0;
 

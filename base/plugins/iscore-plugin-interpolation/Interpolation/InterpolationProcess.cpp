@@ -54,6 +54,16 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
   return {};
 }
 
+bool ProcessModel::contentHasDuration() const
+{
+  return true;
+}
+
+TimeVal ProcessModel::contentDuration() const
+{
+  return duration() * std::min(1., m_curve->lastPointPos());
+}
+
 State::MessageList ProcessState::messages() const
 {
   /*

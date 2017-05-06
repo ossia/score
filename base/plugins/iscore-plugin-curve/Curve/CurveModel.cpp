@@ -325,6 +325,15 @@ const std::vector<PointModel*>& Model::points() const
   return m_points;
 }
 
+double Model::lastPointPos() const
+{
+  double pos = 0;
+  for(auto pt : m_points)
+    if(pt->pos().x() > pos)
+      pos = pt->pos().x();
+  return pos;
+}
+
 void Model::addPoint(PointModel* pt)
 {
   m_points.push_back(pt);
