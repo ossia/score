@@ -91,7 +91,7 @@ private:
   // InspectorSectionWidget* m_eventsSection {};
   QWidget* m_durationSection{};
 
-  Scenario::ProcessTabWidget* m_processesTabPage{};
+  QPointer<Scenario::ProcessTabWidget> m_processesTabPage{};
 
   std::list<QWidget*> m_properties;
 
