@@ -7,7 +7,7 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
-
+#include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 class BaseGraphicsObject;
 namespace Scenario
 {
@@ -48,7 +48,7 @@ private:
   ScenarioDocumentPresenter& m_presenter;
   BaseElementContext m_context;
   Scenario::
-      SmartTool<BaseScenario, BaseScenarioDisplayedElementsToolPalette, BaseGraphicsObject, MoveConstraintInBaseScenario_StateWrapper, MoveLeftBraceInBaseScenario_StateWrapper, MoveRightBraceInBaseScenario_StateWrapper, MoveEventInBaseScenario_StateWrapper, MoveTimeNodeInBaseScenario_StateWrapper>
+      SmartTool<BaseScenario, BaseScenarioDisplayedElementsToolPalette, BaseGraphicsObject, MoveConstraintInBaseScenario_StateWrapper, MoveLeftBraceInScenario_StateWrapper, MoveRightBraceInScenario_StateWrapper, MoveEventInBaseScenario_StateWrapper, MoveTimeNodeInBaseScenario_StateWrapper>
           m_state;
 
   ToolPaletteInputDispatcher<Scenario::Tool, BaseScenarioDisplayedElementsToolPalette, BaseElementContext, ScenarioDocumentPresenter>
