@@ -190,10 +190,10 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
   m_startStatePresenter->view()->setPos(deltaX, deltaY);
   m_constraintPresenter->view()->setPos(deltaX, deltaY);
 
-  m_startEventPresenter->view()->setExtent({0., 0.});
+  m_startEventPresenter->view()->setExtent({0., 1.});
   m_startNodePresenter->view()->setExtent({0., size});
   m_endEventPresenter->view()->setExtent({0., 1.});
-  m_endNodePresenter->view()->setExtent({0., size});
+  m_endNodePresenter->view()->setExtent({0., ConstraintHeaderHeight});
 }
 
 void DisplayedElementsPresenter::updateLength(double length)

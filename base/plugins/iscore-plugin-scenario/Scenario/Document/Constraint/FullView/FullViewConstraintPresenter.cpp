@@ -105,6 +105,7 @@ void FullViewConstraintPresenter::createSlot(int pos, const FullSlot& slt)
   auto proc_pres = factory->makeLayerPresenter(proc, proc_view, m_context, this);
   proc_pres->putToFront();
   proc_pres->on_zoomRatioChanged(m_zoomRatio);
+  proc_view->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
   m_slots.at(pos).process = LayerData{
                   &proc, proc_pres, proc_view
                 };
