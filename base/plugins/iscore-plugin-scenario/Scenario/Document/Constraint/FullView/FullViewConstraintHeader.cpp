@@ -3,7 +3,7 @@
 #include <QList>
 #include <QPoint>
 #include <cmath>
-
+#include <Process/Style/ScenarioStyle.hpp>
 #include "AddressBarItem.hpp"
 #include "FullViewConstraintHeader.hpp"
 #include <Scenario/Document/Constraint/ConstraintHeader.hpp>
@@ -37,6 +37,11 @@ void FullViewConstraintHeader::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
+
+  const auto& skin = ScenarioStyle::instance();
+  painter->setPen(skin.ConstraintHeaderSeparator);
+  painter->drawLine(0, ConstraintHeaderHeight, m_width, ConstraintHeaderHeight);
+
   double textWidth = m_bar->width();
 
   // If the centered text is hidden, we put it at the left so that it's on the
