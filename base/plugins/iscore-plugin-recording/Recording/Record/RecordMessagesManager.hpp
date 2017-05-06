@@ -1,11 +1,12 @@
 #pragma once
 #include <Recording/Record/RecordProviderFactory.hpp>
 #include <Recording/Record/RecordTools.hpp>
-#include <Recording/RecordedMessages/RecordedMessagesProcessModel.hpp>
 namespace Recording
 {
-struct RecordMessagesData
+struct RecordedMessage
 {
+    double percentage;
+    State::Message m;
 };
 class MessageRecorder : public QObject,
                         public RecordProvider,
@@ -27,7 +28,7 @@ private:
   void on_valueUpdated(const State::Address& addr, const ossia::value& val);
   std::vector<QPointer<Device::DeviceInterface>> m_recordCallbackConnections;
 
-  RecordedMessages::ProcessModel* m_createdProcess{};
-  QList<RecordedMessages::RecordedMessage> m_records;
+  Scenario::ProcessModel* m_createdProcess{};
+  std::vector<RecordedMessage> m_records;
 };
 }

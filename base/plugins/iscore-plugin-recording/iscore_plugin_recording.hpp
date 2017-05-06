@@ -48,10 +48,6 @@ private:
   iscore::GUIApplicationPlugin*
   make_guiApplicationPlugin(const iscore::GUIApplicationContext& app) override;
 
-  std::vector<std::unique_ptr<iscore::InterfaceBase>> factories(
-      const iscore::ApplicationContext& ctx,
-      const iscore::InterfaceKey& key) const override;
-
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 

@@ -15,14 +15,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/ApplicationPlugin.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Commands/Record.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Commands/RecordingCommandFactory.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/Commands/EditMessages.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/Commands/RecordedMessagesCommandFactory.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/Inspector/RecordedMessagesInspectorFactory.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/Inspector/RecordedMessagesInspectorWidget.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/RecordedMessagesProcessFactory.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/RecordedMessagesProcess.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/RecordedMessagesProcessMetadata.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/RecordedMessagesProcessModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordAutomations/RecordAutomationCreationVisitor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordAutomations/RecordAutomationFirstParameterCallbackVisitor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordAutomations/RecordAutomationParameterCallbackVisitor.hpp"
@@ -33,16 +25,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordTools.hpp"
 )
 set(SRCS
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/RecordedMessagesProcess.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/RecordedMessagesProcessModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/RecordedMessagesProcessModelSerialization.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/Commands/EditMessages.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/Commands/RecordedMessagesCommandFactory.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Recording/RecordedMessages/Inspector/RecordedMessagesInspectorWidget.cpp"
-
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Commands/RecordingCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Recording/Record/RecordProviderFactory.cpp"
