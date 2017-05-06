@@ -73,13 +73,10 @@ public:
 
   const Id<ConstraintModel>& id() const;
 
-  virtual void on_defaultDurationChanged(const TimeVal&);
   void on_minDurationChanged(const TimeVal&);
   void on_maxDurationChanged(const TimeVal&);
 
   void on_playPercentageChanged(double t);
-
-  Process::LayerPresenter* process(Id<Process::ProcessModel>);
 
 signals:
   void pressed(QPointF) const;
@@ -97,6 +94,8 @@ signals:
 protected:
   // Process presenters are in the slot presenters.
   const ConstraintModel& m_model;
+
+  ZoomRatio m_zoomRatio{};
   ConstraintView* m_view{};
   ConstraintHeader* m_header{};
 
@@ -104,18 +103,7 @@ protected:
 
   void updateChildren();
   void updateBraces();
-
-  ZoomRatio m_zoomRatio{};
 };
-
-// TODO concept: constraint view model.
-
-template <typename T>
-const typename T::viewmodel_type* viewModel(const T* obj)
-{
-  return static_cast<const typename T::viewmodel_type*>(
-      &obj->abstractConstraintViewModel());
-}
 
 template <typename T>
 const typename T::view_type* view(const T* obj)
@@ -127,13 +115,6 @@ template <typename T>
 typename T::view_type* view(T* obj)
 {
   return static_cast<typename T::view_type*>(obj->view());
-}
-
-template <typename T>
-const typename T::viewmodel_type& viewModel(const T& obj)
-{
-  return static_cast<const typename T::viewmodel_type&>(
-      obj.abstractConstraintViewModel());
 }
 
 template <typename T>

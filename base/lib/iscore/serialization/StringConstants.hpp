@@ -70,6 +70,7 @@ struct StringConstants
   const QString DefaultDuration;
   const QString MinDuration;
   const QString MaxDuration;
+  const QString GuiDuration;
   const QString Rigidity;
   const QString MinNull;
   const QString MaxInf;

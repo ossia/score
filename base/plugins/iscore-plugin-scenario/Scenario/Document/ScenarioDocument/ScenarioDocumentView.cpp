@@ -83,10 +83,6 @@ ScenarioDocumentView::ScenarioDocumentView(
   connect(
       m_zoomSlider, &iscore::DoubleSlider::valueChanged, this,
       &ScenarioDocumentView::horizontalZoomChanged);
-
-  QLabel* zoomLabel = new TextLabel{tr("Zoom")};
-  zoomLabel->setObjectName("ScenarioZoomLabel");
-  transportLayout->addWidget(zoomLabel, 0, 1);
   transportLayout->addWidget(m_zoomSlider, 0, 2);
 
   QAction* zoomIn = new QAction(tr("Zoom in"), m_widget);
@@ -129,9 +125,6 @@ ScenarioDocumentView::ScenarioDocumentView(
 
   m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  connect(
-      m_view, &ProcessGraphicsView::scrolled, this,
-      &ScenarioDocumentView::horizontalPositionChanged);
 
   auto& skin = iscore::Skin::instance();
   con(skin, &iscore::Skin::changed, this, [&]() {

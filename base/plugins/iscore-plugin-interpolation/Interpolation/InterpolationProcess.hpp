@@ -108,6 +108,8 @@ private:
   void setDurationAndScale(const TimeVal& newDuration) override;
   void setDurationAndGrow(const TimeVal& newDuration) override;
   void setDurationAndShrink(const TimeVal& newDuration) override;
+  bool contentHasDuration() const override;
+  TimeVal contentDuration() const override;
 
   /// States
   ProcessState* startStateData() const override;

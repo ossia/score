@@ -51,13 +51,11 @@ public:
   virtual ~ScenarioDocumentPresenter();
 
   ConstraintModel& displayedConstraint() const;
-  const DisplayedElementsPresenter& presenters() const
-  {
-    return *m_scenarioPresenter;
-  }
-
+  const DisplayedElementsPresenter& presenters() const;
   const ScenarioDocumentModel& model() const;
   ScenarioDocumentView& view() const;
+  const Process::ProcessPresenterContext& context() const;
+  Process::ProcessFocusManager& focusManager() const;
 
   // The height in pixels of the displayed constraint with its rack.
   // double height() const;
@@ -69,23 +67,9 @@ public:
   void selectTop();
 
   void setMillisPerPixel(ZoomRatio newFactor);
-
-  void on_newSelection(const Selection&);
-
   void updateRect(const QRectF& rect);
 
-  const Process::ProcessPresenterContext& context() const
-  {
-    return m_context;
-  }
-
-
   void setNewSelection(const Selection& s) override;
-
-  Process::ProcessFocusManager& focusManager() const
-  {
-    return m_focusManager;
-  }
 
   void setDisplayedConstraint(Scenario::ConstraintModel& constraint);
 
@@ -94,7 +78,6 @@ public:
 
   void updateMaxWidth(double w);
 
-public:
   DisplayedElementsModel displayedElements;
 
 signals:
@@ -107,17 +90,17 @@ signals:
 
 private slots:
   void on_windowSizeChanged(QSize);
-  void on_viewSizeChanged(QSize);
+
 private:
+  void on_viewSizeChanged(QSize);
   void on_displayedConstraintChanged();
   void on_zoomSliderChanged(double);
   void on_zoomOnWheelEvent(QPointF, QPointF);
   void on_timeRulerScrollEvent(QPointF, QPointF);
   void on_horizontalPositionChanged(int dx);
-  void on_elementsScaleChanged(double s);
 
-  // void updateGrid();
   void updateZoom(ZoomRatio newZoom, QPointF focus);
+  double displayedDuration() const;
 
   DisplayedElementsPresenter* m_scenarioPresenter{};
 
@@ -134,6 +117,8 @@ private:
 
   ZoomRatio m_zoomRatio;
   QMetaObject::Connection m_constraintConnection;
+
+  bool m_zooming{false};
 
 };
 }

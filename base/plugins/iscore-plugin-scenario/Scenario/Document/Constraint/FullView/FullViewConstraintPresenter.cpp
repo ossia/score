@@ -22,17 +22,17 @@ class QObject;
 namespace Scenario
 {
 FullViewConstraintPresenter::FullViewConstraintPresenter(
-    const ConstraintModel& cstr_model,
+    const ConstraintModel& constraint,
     const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* parentobject,
     QObject* parent)
     : ConstraintPresenter{
-          cstr_model, new FullViewConstraintView{*this, parentobject},
+          constraint, new FullViewConstraintView{*this, parentobject},
           new FullViewConstraintHeader{parentobject}, ctx, parent}
 {
   // Address bar
   auto addressBar = static_cast<FullViewConstraintHeader*>(m_header)->bar();
-  addressBar->setTargetObject(iscore::IDocument::unsafe_path(cstr_model));
+  addressBar->setTargetObject(iscore::IDocument::unsafe_path(constraint));
   connect(addressBar, &AddressBarItem::constraintSelected, this,
           &FullViewConstraintPresenter::constraintSelected);
 
@@ -42,6 +42,17 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
       &ConstraintHeader::setText);
   m_header->setText(metadata.getName());
   m_header->show();
+
+  // Time
+  con(constraint.duration, &ConstraintDurations::defaultDurationChanged, this,
+      [&](const TimeVal& val) {
+    on_defaultDurationChanged(val);
+  });
+  con(constraint.duration, &ConstraintDurations::guiDurationChanged, this,
+      [&](const TimeVal& val) {
+        on_guiDurationChanged(val);
+        updateChildren();
+      });
 
   // Slots
   con(m_model, &ConstraintModel::rackChanged,
@@ -69,7 +80,7 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
   });
 
   // Initial state
-  const auto& slts = cstr_model.fullView();
+  const auto& slts = constraint.fullView();
   m_slots.reserve(slts.size());
   on_rackChanged();
 }
@@ -105,6 +116,7 @@ void FullViewConstraintPresenter::createSlot(int pos, const FullSlot& slt)
   auto proc_pres = factory->makeLayerPresenter(proc, proc_view, m_context, this);
   proc_pres->putToFront();
   proc_pres->on_zoomRatioChanged(m_zoomRatio);
+  proc_pres->setFullView();
   proc_view->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
   m_slots.at(pos).process = LayerData{
                   &proc, proc_pres, proc_view
@@ -135,7 +147,7 @@ void FullViewConstraintPresenter::updateProcessShape(int slot)
   const LayerData& data = m_slots.at(slot).process;
   data.presenter->setHeight(data.model->getSlotHeight() - SlotHandle::handleHeight());
 
-  auto width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+  auto width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
   data.presenter->setWidth(width);
   data.presenter->parentGeometryChanged();
 }
@@ -188,6 +200,7 @@ void FullViewConstraintPresenter::updatePositions()
 
   // Horizontal shape
   on_defaultDurationChanged(m_model.duration.defaultDuration());
+  on_guiDurationChanged(m_model.duration.guiDuration());
 
   updateProcessesShape();
 }
@@ -226,8 +239,21 @@ void FullViewConstraintPresenter::on_rackChanged()
 
 void FullViewConstraintPresenter::updateScaling()
 {
+  on_defaultDurationChanged(model().duration.defaultDuration());
+  on_guiDurationChanged(model().duration.guiDuration());
   ConstraintPresenter::updateScaling();
   updateHeight();
+}
+
+void FullViewConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
+{
+  const auto w = val.toPixels(m_zoomRatio);
+  m_header->setWidth(w);
+  m_view->updateLabelPos();
+  m_view->updateCounterPos();
+  m_view->updateOverlayPos();
+  m_header->update();
+  m_view->update();
 }
 
 void FullViewConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
@@ -253,11 +279,11 @@ int FullViewConstraintPresenter::indexOfSlot(const Process::LayerPresenter& p)
   ISCORE_ABORT;
 }
 
-void FullViewConstraintPresenter::on_defaultDurationChanged(const TimeVal& v)
+void FullViewConstraintPresenter::on_guiDurationChanged(const TimeVal& val)
 {
-  ConstraintPresenter::on_defaultDurationChanged(v);
+  const auto w = val.toPixels(m_zoomRatio);
+  m_view->setDefaultWidth(w);
 
-  const auto w = m_view->defaultWidth();
   for(const SlotPresenter& slot : m_slots)
   {
     slot.handle->setWidth(w);

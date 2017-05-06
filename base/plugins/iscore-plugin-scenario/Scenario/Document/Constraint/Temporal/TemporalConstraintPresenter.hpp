@@ -58,7 +58,7 @@ private:
   void on_processesChanged(const Process::ProcessModel&);
   void on_requestOverlayMenu(QPointF);
   void on_rackVisibleChanged(bool);
-  void on_defaultDurationChanged(const TimeVal&) override;
+  void on_defaultDurationChanged(const TimeVal&);
 
   struct SlotPresenter
   {

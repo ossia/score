@@ -216,17 +216,11 @@ void ScenarioApplicationPlugin::on_documentChanged(
       // TODO this snippet is useful, put it somewhere in some Toolkit file.
       ScenarioDocumentPresenter& pres
           = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
-      auto& cst = pres.displayedConstraint();
       FullViewConstraintPresenter* cst_pres = pres.presenters().constraintPresenter();
 
-      if (!cst.processes.empty() && cst_pres)
+      if(!cst_pres->getSlots().empty())
       {
-        auto& rack = cst.fullView();
-        if (!rack.empty())
-        {
-          const FullSlot& top_slot = *rack.begin();
-          focusManager->focus(cst_pres->process(top_slot.process));
-        }
+        focusManager->focus(cst_pres->getSlots().front().process.presenter);
       }
     }
 

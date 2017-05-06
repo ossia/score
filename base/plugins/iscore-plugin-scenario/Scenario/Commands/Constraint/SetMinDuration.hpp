@@ -30,7 +30,7 @@ public:
       : m_path{cst}
       , m_oldVal{cst.duration.minDuration()}
       , m_newVal{newval}
-      , m_oldMinNull{cst.duration.isMinNul()}
+      , m_oldMinNull{cst.duration.isMinNull()}
       , m_newMinNull{isMinNull}
   {
   }

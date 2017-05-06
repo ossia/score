@@ -376,4 +376,21 @@ const StateModel* furthestSelectedStateWithoutFollowingConstraint(
 
   return nullptr;
 }
+
+bool ProcessModel::contentHasDuration() const
+{
+  return true;
+}
+
+TimeVal ProcessModel::contentDuration() const
+{
+  TimeVal max_tn_pos = TimeVal::zero();
+  for(TimeNodeModel& t : timeNodes)
+  {
+    if(t.date() > max_tn_pos)
+      max_tn_pos = t.date();
+  }
+  return max_tn_pos;
+}
+
 }

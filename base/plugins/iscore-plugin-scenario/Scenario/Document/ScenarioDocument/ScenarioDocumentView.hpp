@@ -65,7 +65,6 @@ public:
 
 signals:
   void horizontalZoomChanged(double newZoom);
-  void horizontalPositionChanged(int);
   void elementsScaleChanged(double);
 
 private:

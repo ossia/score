@@ -154,6 +154,16 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
   m_curve->changed();
 }
 
+bool ProcessModel::contentHasDuration() const
+{
+  return true;
+}
+
+TimeVal ProcessModel::contentDuration() const
+{
+  return duration() * std::min(1., m_curve->lastPointPos());
+}
+
 void ProcessModel::setCurve_impl()
 {
   connect(m_curve, &Curve::Model::changed, this, [&]() {

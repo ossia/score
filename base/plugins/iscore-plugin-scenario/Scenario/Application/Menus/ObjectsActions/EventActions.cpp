@@ -33,23 +33,23 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   using namespace iscore;
 
   /// Add Trigger ///
-  m_addTrigger = new QAction{tr("Add Trigger"), this};
+  m_addTrigger = new QAction{tr("Enable trigger"), this};
   connect(
       m_addTrigger, &QAction::triggered, this,
       &EventActions::addTriggerToTimeNode);
   m_addTrigger->setEnabled(false);
 
-  m_addTrigger->setToolTip(tr("Add trigger"));
+  m_addTrigger->setToolTip(tr("Enable trigger"));
   setIcons(m_addTrigger, ":/icons/trigger_on.png", ":/icons/trigger_off.png");
 
   /// Remove Trigger ///
-  m_removeTrigger = new QAction{tr("Remove Trigger"), this};
+  m_removeTrigger = new QAction{tr("Disable trigger"), this};
   connect(
       m_removeTrigger, &QAction::triggered, this,
       &EventActions::removeTriggerFromTimeNode);
   m_removeTrigger->setEnabled(false);
 
-  // Add Condition ///
+  /// Add Condition ///
   m_addCondition = new QAction{tr("Add Condition"), this};
   connect(
       m_addCondition, &QAction::triggered, this,
@@ -59,7 +59,7 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   m_addCondition->setToolTip(tr("Add Condition"));
   setIcons(m_addCondition, ":/icons/condition_on.png", ":/icons/condition_off.png");
 
-  // Remove Condition ///
+  /// Remove Condition ///
   m_removeCondition = new QAction{tr("Remove Condition"), this};
   connect(
       m_removeCondition, &QAction::triggered, this,

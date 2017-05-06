@@ -24,7 +24,7 @@ SetRigidity::SetRigidity(Path<ConstraintModel>&& constraintPath, bool rigid)
 
   m_oldMinDuration = constraint.duration.minDuration();
   m_oldMaxDuration = constraint.duration.maxDuration();
-  m_oldIsNull = constraint.duration.isMinNul();
+  m_oldIsNull = constraint.duration.isMinNull();
   m_oldIsInfinite = constraint.duration.isMaxInfinite();
 }
 

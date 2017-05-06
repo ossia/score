@@ -109,9 +109,9 @@ ISCORE_DECLARE_ACTION(
 
 // Event
 ISCORE_DECLARE_ACTION(
-    AddTrigger, "&Add Trigger", Scenario, QKeySequence::UnknownKey)
+    AddTrigger, "&Enable Trigger", Scenario, QKeySequence::UnknownKey)
 ISCORE_DECLARE_ACTION(
-    RemoveTrigger, "&Remove Trigger", Scenario, QKeySequence::UnknownKey)
+    RemoveTrigger, "&Disable Trigger", Scenario, QKeySequence::UnknownKey)
 
 ISCORE_DECLARE_ACTION(
     AddCondition, "&Add Condition", Scenario, QKeySequence::UnknownKey)

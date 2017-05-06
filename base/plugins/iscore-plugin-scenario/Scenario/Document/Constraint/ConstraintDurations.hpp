@@ -19,20 +19,22 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDurations final : public QObject
 {
   // These dates are relative to the beginning of the constraint.
   Q_PROPERTY(TimeVal minDuration READ minDuration WRITE setMinDuration NOTIFY
-                 minDurationChanged)
+             minDurationChanged FINAL)
   Q_PROPERTY(TimeVal maxDuration READ maxDuration WRITE setMaxDuration NOTIFY
-                 maxDurationChanged)
+                 maxDurationChanged FINAL)
+  Q_PROPERTY(TimeVal guiDuration READ guiDuration WRITE setGuiDuration NOTIFY
+                 guiDurationChanged FINAL)
   Q_PROPERTY(double playPercentage READ playPercentage WRITE setPlayPercentage
-                 NOTIFY playPercentageChanged)
+             NOTIFY playPercentageChanged FINAL)
 
-  Q_PROPERTY(bool isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged)
+  Q_PROPERTY(bool isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged FINAL)
   Q_PROPERTY(
-      bool isMinNul READ isMinNul WRITE setMinNull NOTIFY minNullChanged)
+      bool isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged FINAL)
   Q_PROPERTY(bool isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY
-                 maxInfiniteChanged)
+                 maxInfiniteChanged FINAL)
 
   Q_PROPERTY(double executionSpeed READ executionSpeed WRITE setExecutionSpeed
-                 NOTIFY executionSpeedChanged)
+                 NOTIFY executionSpeedChanged FINAL)
 
   ISCORE_SERIALIZE_FRIENDS
 
@@ -43,6 +45,7 @@ public:
   }
 
   ~ConstraintDurations();
+
   ConstraintDurations& operator=(const ConstraintDurations& other);
 
   const TimeVal& defaultDuration() const
@@ -79,6 +82,39 @@ public:
     return m_rigidity;
   }
 
+  TimeVal guiDuration() const
+  {
+    return m_guiDuration;
+  }
+
+  bool isMinNull() const
+  {
+    return m_isMinNull;
+  }
+
+  bool isMaxInfinite() const
+  {
+    return m_isMaxInfinite;
+  }
+
+  void setDefaultDuration(const TimeVal& arg);
+  void setMinDuration(const TimeVal& arg);
+  void setMaxDuration(const TimeVal& arg);  
+  void setGuiDuration(TimeVal guiDuration);
+
+  void setPlayPercentage(double arg);
+  void setRigid(bool arg);
+  void setMinNull(bool isMinNull);
+  void setMaxInfinite(bool isMaxInfinite);
+  void setExecutionSpeed(double executionSpeed)
+  {
+    if (m_executionSpeed == executionSpeed)
+      return;
+
+    m_executionSpeed = executionSpeed;
+    emit executionSpeedChanged(executionSpeed);
+  }
+
   void checkConsistency();
 
   // Modification algorithms that keep everything consistent
@@ -93,57 +129,24 @@ public:
     scaleAllDurations(ConstraintModel& cstr, const TimeVal& time);
   };
 
-  bool isMinNul() const
-  {
-    return m_isMinNull;
-  }
-
-  bool isMaxInfinite() const
-  {
-    return m_isMaxInfinite;
-  }
-
-  void setDefaultDuration(const TimeVal& arg);
-  void setMinDuration(const TimeVal& arg);
-  void setMaxDuration(const TimeVal& arg);
-
-  void setPlayPercentage(double arg);
-
-  void setRigid(bool arg);
-
-  void setMinNull(bool isMinNull);
-
-  void setMaxInfinite(bool isMaxInfinite);
-
-  void setExecutionSpeed(double executionSpeed)
-  {
-    if (m_executionSpeed == executionSpeed)
-      return;
-
-    m_executionSpeed = executionSpeed;
-    emit executionSpeedChanged(executionSpeed);
-  }
-
-signals:
+  signals:
   void defaultDurationChanged(const TimeVal& arg);
   void minDurationChanged(const TimeVal& arg);
   void maxDurationChanged(const TimeVal& arg);
-
   void playPercentageChanged(double arg);
   void rigidityChanged(bool arg);
-
-  void minNullChanged(bool isMinNul);
-
+  void minNullChanged(bool isMinNull);
   void maxInfiniteChanged(bool isMaxInfinite);
-
   void executionSpeedChanged(double executionSpeed);
+  void guiDurationChanged(TimeVal guiDuration);
 
-private:
+  private:
   ConstraintModel& m_model;
 
   TimeVal m_defaultDuration{std::chrono::milliseconds{200}};
   TimeVal m_minDuration{m_defaultDuration};
   TimeVal m_maxDuration{m_defaultDuration};
+  TimeVal m_guiDuration{m_defaultDuration};
 
   double m_playPercentage{}; // Between 0 and 1.
   double m_executionSpeed{1};
@@ -151,4 +154,5 @@ private:
   bool m_isMinNull{false};
   bool m_isMaxInfinite{false};
 };
+
 }

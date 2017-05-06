@@ -164,10 +164,6 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
   m_constraintPresenter->on_zoomRatioChanged(r);
 }
 
-void DisplayedElementsPresenter::on_elementsScaleChanged(double s)
-{
-}
-
 void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(
     TimeVal t)
 {
@@ -179,9 +175,9 @@ const double deltaY = 20.;
 void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
     double size)
 {
-  m_model->updateRect({qreal(ScenarioLeftSpace), 0,
+  m_model->updateRect(QRectF{qreal(ScenarioLeftSpace), 0.,
                        m_constraintPresenter->model()
-                           .duration.defaultDuration()
+                           .duration.guiDuration()
                            .toPixels(m_constraintPresenter->zoomRatio()),
                        size});
 

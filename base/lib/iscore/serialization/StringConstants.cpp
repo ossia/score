@@ -70,6 +70,7 @@ ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
         QStringLiteral("DefaultDuration"),
         QStringLiteral("MinDuration"),
         QStringLiteral("MaxDuration"),
+        QStringLiteral("GuiDuration"),
         QStringLiteral("Rigidity"),
         QStringLiteral("MinNull"),
         QStringLiteral("MaxInf"),

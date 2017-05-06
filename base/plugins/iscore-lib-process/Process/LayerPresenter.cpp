@@ -18,6 +18,11 @@ void LayerPresenter::on_focusChanged()
 {
 }
 
+void LayerPresenter::setFullView()
+{
+
+}
+
 void LayerPresenter::fillContextMenu(
     QMenu&, QPoint pos, QPointF scenepos, const LayerContextMenuManager&) const
 {

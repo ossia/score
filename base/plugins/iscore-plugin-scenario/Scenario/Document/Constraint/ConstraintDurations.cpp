@@ -17,6 +17,7 @@ operator=(const ConstraintDurations& other)
   m_defaultDuration = other.m_defaultDuration;
   m_minDuration = other.m_minDuration;
   m_maxDuration = other.m_maxDuration;
+  m_guiDuration = other.m_guiDuration;
 
   m_playPercentage = other.m_playPercentage;
   m_executionSpeed = other.m_executionSpeed;
@@ -48,8 +49,12 @@ void ConstraintDurations::setDefaultDuration(const TimeVal& arg)
   {
     m_defaultDuration = arg;
     emit defaultDurationChanged(arg);
+
+    if(m_guiDuration < m_defaultDuration)
+      setGuiDuration(m_defaultDuration * 1.1);
+
+    checkConsistency();
   }
-  checkConsistency();
 }
 
 void ConstraintDurations::setMinDuration(const TimeVal& arg)
@@ -58,6 +63,7 @@ void ConstraintDurations::setMinDuration(const TimeVal& arg)
   {
     m_minDuration = arg;
     emit minDurationChanged(arg);
+
     checkConsistency();
   }
 }
@@ -68,8 +74,21 @@ void ConstraintDurations::setMaxDuration(const TimeVal& arg)
   {
     m_maxDuration = arg;
     emit maxDurationChanged(arg);
+
+    if(m_guiDuration < m_maxDuration && !m_maxDuration.isInfinite())
+      setGuiDuration(m_maxDuration * 1.1);
+
     checkConsistency();
   }
+}
+
+void ConstraintDurations::setGuiDuration(TimeVal guiDuration)
+{
+  if (m_guiDuration == guiDuration)
+    return;
+
+  m_guiDuration = guiDuration;
+  emit guiDurationChanged(guiDuration);
 }
 
 void ConstraintDurations::setPlayPercentage(double arg)

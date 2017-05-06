@@ -6,7 +6,7 @@
 
 namespace Interpolation
 {
-class Presenter : public Curve::CurveProcessPresenter<ProcessModel, View>
+class Presenter final : public Curve::CurveProcessPresenter<ProcessModel, View>
 {
     Q_OBJECT
 public:
@@ -28,6 +28,11 @@ public:
   }
 
 private:
+  void setFullView() override
+  {
+    m_curvepresenter->setBoundedMove(false);
+  }
+
   void on_nameChanges()
   {
     m_view->setDisplayedName(m_layer.prettyName());

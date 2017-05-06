@@ -19,7 +19,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessGraphicsView final
 public:
   ProcessGraphicsView(QGraphicsScene* scene, QWidget* parent);
 
-  void setGrid(QPainterPath&& newGrid);
   void scrollHorizontal(double dx);
 signals:
   void sizeChanged(const QSize&);
