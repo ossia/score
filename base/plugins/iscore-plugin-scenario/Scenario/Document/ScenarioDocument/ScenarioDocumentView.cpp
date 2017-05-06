@@ -69,7 +69,6 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_timeRulersView->setAttribute(Qt::WA_PaintOnScreen, true);
 #endif
   m_timeRuler = new TimeRulerView{m_timeRulersView};
-
   m_widget->addAction(new SnapshotAction{*m_scene, m_widget});
 
   // Transport
@@ -110,10 +109,9 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->addAction(largeView);
   largeView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   largeView->setShortcut(tr("Ctrl+0"));
-  connect(largeView, &QAction::triggered, this, [&]() {
-    m_zoomSlider->setValue(0.05);
-    emit horizontalZoomChanged(m_zoomSlider->value());
-  });
+  connect(largeView, &QAction::triggered, this, &ScenarioDocumentView::setLargeView);
+  connect(m_timeRuler, &AbstractTimeRulerView::rescale,
+          largeView, &QAction::trigger);
 
   // view layout
   m_scene->addItem(m_timeRuler);
@@ -183,5 +181,12 @@ qreal ScenarioDocumentView::viewWidth() const
 
 void ScenarioDocumentView::newLocalTimeRuler()
 {
+}
+
+void ScenarioDocumentView::setLargeView()
+{
+  view().scroll(-view().sceneRect().x(), 0);
+  m_zoomSlider->setValue(0.05);
+  emit horizontalZoomChanged(m_zoomSlider->value());
 }
 }
