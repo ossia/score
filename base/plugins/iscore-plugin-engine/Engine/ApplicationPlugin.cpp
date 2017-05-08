@@ -14,7 +14,7 @@
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <iscore/tools/Todo.hpp>
-
+#include <ossia/network/generic/generic_device.hpp>
 #include <ossia/context.hpp>
 #include <ossia/editor/scenario/time_constraint.hpp>
 #include <Engine/Executor/ClockManager/ClockManagerFactory.hpp>

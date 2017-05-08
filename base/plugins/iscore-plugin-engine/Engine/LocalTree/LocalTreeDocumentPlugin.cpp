@@ -1,4 +1,6 @@
 #include "LocalTreeDocumentPlugin.hpp"
+#include <ossia/network/generic/generic_device.hpp>
+#include <ossia/network/local/local.hpp>
 #include <ossia/editor/state/state_element.hpp>
 #include <ossia/editor/value/value.hpp>
 #include <ossia/network/base/address.hpp>
@@ -43,9 +45,9 @@
 Engine::LocalTree::DocumentPlugin::DocumentPlugin(
     const iscore::DocumentContext& ctx, Id<iscore::DocumentPlugin> id, QObject* parent)
     : iscore::DocumentPlugin{ctx, std::move(id), "LocalTree::DocumentPlugin", parent}
-    , m_localDevice{std::make_unique<ossia::net::multiplex_protocol>(), "i-score"}
+    , m_localDevice{std::make_unique<ossia::net::generic_device>(std::make_unique<ossia::net::multiplex_protocol>(), "i-score")}
     , m_localDeviceWrapper{
-          m_localDevice, ctx,
+          *m_localDevice, ctx,
           Network::LocalProtocolFactory::static_defaultSettings()}
 {
 }
@@ -98,7 +100,7 @@ void Engine::LocalTree::DocumentPlugin::create()
 
   auto& cstr = scenar->baseScenario().constraint();
   m_root = new Constraint(
-      m_localDevice.get_root_node(),
+      m_localDevice->get_root_node(),
       getStrongId(cstr.components()),
       cstr,
       *this,
