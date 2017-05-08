@@ -124,12 +124,9 @@ struct TSerializer<JSONObject, ossia::value_variant_type>
       auto it = s.obj.constFind(keys[i]);
       if (it != s.obj.constEnd())
       {
-        if(var.m_type != var.npos)
-        {
           apply_typeonly([&] (auto type, var_t& var) {
             var = fromJsonValue<typename decltype(type)::type>(*it);
           }, (var_t::Type)i, var);
-        }
         return;
       }
     }

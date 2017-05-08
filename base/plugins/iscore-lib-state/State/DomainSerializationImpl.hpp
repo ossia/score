@@ -427,8 +427,18 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
     }
   }
 
-  using value_type_list = brigand::list<float, int, ossia::vec2f, ossia::vec3f, ossia::vec4f,
-  ossia::impulse, bool, std::string, std::vector<ossia::value>, char>;
+  using value_type_list = brigand::list<
+    ossia::domain_base<ossia::impulse>,
+  ossia::domain_base<bool>,
+  ossia::domain_base<int>,
+  ossia::domain_base<float>,
+  ossia::domain_base<char>,
+  ossia::domain_base<std::string>,
+  ossia::vector_domain,
+  ossia::vecf_domain<2>,
+  ossia::vecf_domain<3>,
+  ossia::vecf_domain<4>,
+  ossia::domain_base<ossia::value>>;
 
   static auto init_keys()
   {
@@ -455,12 +465,9 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
       auto it = s.obj.constFind(keys[i]);
       if (it != s.obj.constEnd())
       {
-        if(var.m_type != var.npos)
-        {
           apply_typeonly([&] (auto type, var_t& var) {
-            var = fromJsonObject<typename decltype(type)::type>(*it);
+              var = fromJsonObject<typename decltype(type)::type>(*it);
           }, (var_t::Type)i, var);
-        }
         return;
       }
     }

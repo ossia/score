@@ -106,7 +106,7 @@ static void getAddressesRecursively(
     State::Address curAddr,
     std::vector<Device::FullAddressSettings>& addresses)
 {
-  // TODO refactor with CreateCurves
+  // TODO refactor with CreateCurves and AddressAccessorEditWidget
   if (node.is<Device::AddressSettings>())
   {
     const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
