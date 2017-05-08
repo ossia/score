@@ -12,7 +12,7 @@
 #include <QString>
 #include <QVariant>
 
-#if defined(ISCORE_ZEROCONF)
+#if defined(OSSIA_DNSSD)
 #include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
 #endif
 
@@ -31,7 +31,7 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
 
   QFormLayout* layout = new QFormLayout;
 
-#if defined(ISCORE_ZEROCONF)
+#if defined(OSSIA_DNSSD)
   m_browser = new ZeroconfBrowser{"_oscjson._tcp", this};
   auto pb = new QPushButton{tr("Find devices..."), this};
   connect(
