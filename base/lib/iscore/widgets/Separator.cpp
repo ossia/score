@@ -4,7 +4,7 @@
 #include <QLayout>
 #include <iscore/widgets/MarginLess.hpp>
 
-namespace Inspector
+namespace iscore
 {
 HSeparator::HSeparator(QWidget* parent) : QWidget{parent}
 {

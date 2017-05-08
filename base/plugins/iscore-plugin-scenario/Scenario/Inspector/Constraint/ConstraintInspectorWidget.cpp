@@ -177,7 +177,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
   }
 
   // Separator
-  m_properties.push_back(new Inspector::HSeparator{this});
+  m_properties.push_back(new iscore::HSeparator{this});
 
   // Durations
   auto& ctrl
@@ -187,7 +187,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
   m_properties.push_back(m_durationSection);
 
   // Separator
-  m_properties.push_back(new Inspector::HSeparator{this});
+  m_properties.push_back(new iscore::HSeparator{this});
 
   // Processes
   m_processesTabPage = new ProcessTabWidget{*this, this};
