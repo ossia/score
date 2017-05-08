@@ -161,7 +161,7 @@ void PlayerImpl::loadArray(QByteArray network)
   closeDocument();
 
   Scenario::ScenarioDocumentFactory fac;
-  m_currentDocument = std::make_unique<Document>(network, fac, QCoreApplication::instance());
+  m_currentDocument = std::make_unique<Document>(QJsonDocument::fromBinaryData(network).object(), fac, QCoreApplication::instance());
 
   setupLoadedDocument();
 }

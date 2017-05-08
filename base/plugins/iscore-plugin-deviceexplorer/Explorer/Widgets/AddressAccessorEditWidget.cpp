@@ -117,6 +117,30 @@ void AddressAccessorEditWidget::dropEvent(QDropEvent* ev)
     setFullAddress(Device::FullAddressAccessorSettings{std::move(as)});
     emit addressChanged(m_address);
   }
+  else if (mime.formats().contains(iscore::mime::nodelist()))
+  {
+    Mime<Device::FreeNodeList>::Deserializer des{mime};
+    Device::FreeNodeList nl = des.deserialize();
+    if (nl.empty())
+      return;
+
+    // We only take the first node.
+    const Device::Node& node = nl.front().second;
+    // TODO refactor with CreateCurves and AutomationDropHandle
+    if (node.is<Device::AddressSettings>())
+    {
+      const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
+      if (addr.value.val.isNumeric())
+      {
+        Device::FullAddressSettings as;
+        static_cast<Device::AddressSettingsCommon&>(as) = addr;
+        as.address = nl.front().first;
+
+        setFullAddress(Device::FullAddressAccessorSettings{std::move(as)});
+        emit addressChanged(m_address);
+      }
+    }
+  }
   else if (mime.formats().contains(iscore::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
