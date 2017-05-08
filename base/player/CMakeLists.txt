@@ -31,6 +31,9 @@ add_library(iscore_player_plugin SHARED
     "${CMAKE_CURRENT_SOURCE_DIR}/player_qml_plugin.cpp"
     )
 target_link_libraries(iscore_player_plugin PRIVATE iscore_player)
+if(ANDROID)
+    target_link_libraries(iscore_player_plugin PRIVATE log)
+endif()
 
 add_executable(player "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 target_link_libraries(player PUBLIC iscore_player)

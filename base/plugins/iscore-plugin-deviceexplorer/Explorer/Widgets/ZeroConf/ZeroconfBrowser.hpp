@@ -1,11 +1,14 @@
 #pragma once
 #include <QObject>
 #include <QString>
+
 #include <iscore_plugin_deviceexplorer_export.h>
 
 class QAction;
 class QDialog;
 class QListView;
+class QLineEdit;
+class QSpinBox;
 class QWidget;
 namespace servus {
 class Servus;
@@ -30,6 +33,8 @@ public slots:
 
 private:
   QDialog* m_dialog{};
+  QLineEdit* m_manualIp{};
+  QSpinBox* m_manualPort{};
   QListView* m_list{};
   std::unique_ptr<servus::Servus> m_serv;
   servus::qt::ItemModel* m_model{};

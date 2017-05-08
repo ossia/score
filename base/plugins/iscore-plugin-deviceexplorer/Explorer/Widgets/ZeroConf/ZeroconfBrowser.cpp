@@ -12,6 +12,9 @@
 #include <QHostInfo>
 #include <QList>
 #include <QListView>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <iscore/widgets/MarginLess.hpp>
 
 #include <QVariant>
 
@@ -43,6 +46,17 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
   m_list->setSelectionMode(QAbstractItemView::SingleSelection);
   m_list->setModel(m_model);
   lay->addWidget(m_list);
+
+  auto manualWidg = new QWidget;
+  manualWidg->setLayout(new iscore::MarginLess<QHBoxLayout>);
+  m_manualIp = new QLineEdit;
+  m_manualPort = new QSpinBox;
+  m_manualPort->setMinimum(1000);
+  m_manualPort->setMaximum(65535);
+  manualWidg->layout()->addWidget(m_manualIp);
+  manualWidg->layout()->addWidget(m_manualPort);
+
+  lay->addWidget(manualWidg);
 }
 
 ZeroconfBrowser::~ZeroconfBrowser()
@@ -60,6 +74,16 @@ QAction* ZeroconfBrowser::makeAction()
 
 void ZeroconfBrowser::accept()
 {
+  auto ip = m_manualIp->text();
+  int port = m_manualPort->value();
+
+  if(!ip.isEmpty() && port > 0)
+  {
+    emit sessionSelected("manual", ip, port, {});
+    m_dialog->close();
+    return;
+  }
+
   auto selection = m_list->currentIndex();
   if(!selection.isValid())
   {
@@ -75,8 +99,7 @@ void ZeroconfBrowser::accept()
   }
 
   auto name = dat.first().toString();
-  QString ip;
-  int port = 0;
+
   QMap<QString, QByteArray> text;
   const int N = m_model->rowCount(selection);
   for(int i = 0; i < N; i++)

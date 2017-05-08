@@ -1,6 +1,4 @@
 #pragma once
-#include <ossia/network/generic/generic_device.hpp>
-#include <ossia/network/local/local.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <iscore/tools/Metadata.hpp>
 
@@ -42,11 +40,11 @@ public:
   void on_documentClosing() override;
   ossia::net::generic_device& device()
   {
-    return m_localDevice;
+    return *m_localDevice;
   }
   const ossia::net::generic_device& device() const
   {
-    return m_localDevice;
+    return *m_localDevice;
   }
 
   Network::LocalDevice& localDevice()
@@ -59,7 +57,7 @@ private:
   void cleanup();
 
   Constraint* m_root{};
-  ossia::net::generic_device m_localDevice;
+  std::unique_ptr<ossia::net::generic_device> m_localDevice;
   Network::LocalDevice m_localDeviceWrapper;
 };
 }

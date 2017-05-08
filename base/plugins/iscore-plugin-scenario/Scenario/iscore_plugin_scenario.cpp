@@ -50,6 +50,16 @@
 #include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
+#include <Scenario/iscore_plugin_scenario.hpp>
+#include <iscore/tools/std/HashMap.hpp>
+#include <utility>
+
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/command/Command.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
+
+#include <iscore_plugin_scenario_commands_files.hpp>
 
 #include <State/Unit.hpp>
 iscore_plugin_scenario::iscore_plugin_scenario()
@@ -141,6 +151,24 @@ iscore_plugin_scenario::factories(
       FW<iscore::ValidityChecker, ScenarioValidityChecker>>(
       ctx, key);
 }
+
+std::pair<const CommandGroupKey, CommandGeneratorMap>
+iscore_plugin_scenario::make_commands()
+{
+  using namespace Scenario;
+  using namespace Scenario::Command;
+  std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
+      ScenarioCommandFactoryName(), CommandGeneratorMap{}};
+
+  using Types = TypeList<
+#include <iscore_plugin_scenario_commands.hpp>
+      >;
+  for_each_type<Types>(iscore::commands::FactoryInserter{cmds.second});
+
+  return cmds;
+}
+
+
 std::vector<std::unique_ptr<iscore::InterfaceBase>>
 iscore_plugin_scenario::guiFactories(
     const iscore::GUIApplicationContext& ctx,

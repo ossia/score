@@ -386,7 +386,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/SplitTimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeNode/SetTrigger.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/CommandNames.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/SetProcessDuration.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ScenarioCommandFactory.cpp"

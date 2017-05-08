@@ -74,6 +74,7 @@ Item {
 
     Ossia.Player {
         id: p
+        port: 5567
     }
     Component.onCompleted: {
         Ossia.SingleDevice.setName("OSCdevice");
