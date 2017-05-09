@@ -38,6 +38,7 @@
 #include <ossia/context.hpp>
 #include <ossia-qt/device/qml_device.hpp>
 #include <iscore_player_export.h>
+namespace Network { class NetworkDocumentPlugin; }
 namespace iscore
 {
 class ISCORE_PLAYER_EXPORT PlayerImpl :
@@ -105,6 +106,7 @@ private:
   Explorer::DeviceDocumentPlugin* m_devicesPlugin{};
   Engine::Execution::DocumentPlugin* m_execPlugin{};
   Engine::LocalTree::DocumentPlugin* m_localTreePlugin{};
+  Network::NetworkDocumentPlugin* m_networkPlugin{};
   std::unique_ptr<Engine::Execution::ClockManager> m_clock;
 
   std::vector<ossia::net::device_base*> m_ownedDevices;

@@ -84,8 +84,12 @@ void QMLPlayer::registerDevice(ossia::qt::qml_device* dev)
 
 void QMLPlayer::setPort(int p)
 {
-  m_port = p;
-  m_player.sig_setPort(p);
+  if(m_port != p)
+  {
+    m_port = p;
+    m_player.sig_setPort(p);
+    emit portChanged(p);
+  }
 }
 
 

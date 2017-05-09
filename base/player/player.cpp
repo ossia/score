@@ -17,6 +17,7 @@
 #include <Network/Document/ClientPolicy.hpp>
 #include <Network/Document/DocumentPlugin.hpp>
 #include <Network/Settings/NetworkSettingsModel.hpp>
+#include <Network/Document/Execution/BasicPruner.hpp>
 #endif
 
 #if defined(ISCORE_STATIC_PLUGINS)
@@ -101,6 +102,7 @@ void PlayerImpl::init()
     auto plug = doc.context().findPlugin<Network::NetworkDocumentPlugin>();
     if(plug)
     {
+      m_networkPlugin = plug;
       auto pol = dynamic_cast<Network::PlayerClientEditionPolicy*>(&plug->policy());
       if(pol)
       {
@@ -134,6 +136,9 @@ void PlayerImpl::closeDocument()
     m_execPlugin = nullptr;
     m_localTreePlugin = nullptr;
     m_devicesPlugin = nullptr;
+#if defined(ISCORE_ADDON_NETWORK)
+    m_networkPlugin = nullptr;
+#endif
     m_documents.documents().clear();
     m_documents.setCurrentDocument(nullptr);
     m_currentDocument.reset();
@@ -243,6 +248,11 @@ void PlayerImpl::play()
   auto& exec_settings = m_appContext.settings<Engine::Execution::Settings::Model>();
   m_clock = exec_settings.makeClock(exec_ctx);
 
+#if defined(ISCORE_ADDON_NETWORK)
+  m_execPlugin->runAllCommands();
+  Network::BasicPruner{*m_networkPlugin}(exec_ctx);
+  m_execPlugin->runAllCommands();
+#endif
   m_clock->play(TimeVal::zero());
 }
 
