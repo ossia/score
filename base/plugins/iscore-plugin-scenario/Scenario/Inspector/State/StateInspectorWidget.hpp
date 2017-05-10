@@ -1,4 +1,5 @@
 #pragma once
+#include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <iscore/plugins/customfactory/UuidKey.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
@@ -22,18 +23,15 @@ namespace Scenario
 {
 class AddStateProcessDialog;
 class StateModel;
-class StateInspectorWidget final : public QWidget, public Nano::Observer
+class StateInspectorWidget final :
+    public Inspector::InspectorSectionWidget,
+    public Nano::Observer
 {
 public:
   explicit StateInspectorWidget(
       const StateModel& object,
       const iscore::DocumentContext& context,
       QWidget* parent);
-
-  Inspector::InspectorSectionWidget& stateSection()
-  {
-    return *m_stateSection;
-  }
 
 public slots:
   void splitEvent();
@@ -51,9 +49,6 @@ private:
   CommandDispatcher<> m_commandDispatcher;
   iscore::SelectionDispatcher m_selectionDispatcher;
 
-  std::list<QWidget*> m_properties;
-
-  Inspector::InspectorSectionWidget* m_stateSection{};
   AddStateProcessDialog* m_addProcess{};
 };
 }

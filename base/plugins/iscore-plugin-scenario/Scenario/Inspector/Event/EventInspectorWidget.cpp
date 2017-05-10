@@ -194,27 +194,7 @@ EventInspectorWidget::EventInspectorWidget(
 
   m_properties.push_back(m_statesWidget);
 
-  // Plugins (TODO factorize with ConstraintInspectorWidget)
-  ISCORE_TODO;
-  /*
-  for(auto& plugdata : m_model.pluginModelList.list())
-  {
-      for(auto plugin : doc.pluginModels())
-      {
-          auto md = plugin->makeElementPluginWidget(plugdata, this);
-          if(md)
-          {
-              m_properties.push_back(md);
-              break;
-          }
-      }
-  }
-  */
-
   updateDisplayedValues();
-
-  // Display data
-  //    updateAreaLayout(m_properties);
 
   auto lay = new iscore::MarginLess<QVBoxLayout>{this};
   for (auto w : m_properties)
@@ -225,21 +205,17 @@ EventInspectorWidget::EventInspectorWidget(
 void EventInspectorWidget::addState(const StateModel& state)
 {
   auto sw = new StateInspectorWidget{state, m_context, this};
-  sw->hide(); // TODO UGLY : we create a state (inspectorbase) just to extract
-              // the section ...
-  auto& section = sw->stateSection();
-  section.showMenu(true);
-  auto split = section.menu()->addAction(tr("Put in new Event"));
+  sw->showMenu(true);
+  auto split = sw->menu()->addAction(tr("Put in new Event"));
   connect(
       split, &QAction::triggered, sw, &StateInspectorWidget::splitEvent,
       Qt::QueuedConnection);
 
   m_states.push_back(sw);
-  m_statesWidget->layout()->addWidget(&section);
-  m_states.push_back(&section);
-  m_statesSections[state.id()] = &section;
+  m_statesWidget->layout()->addWidget(sw);
+  m_statesSections[state.id()] = sw;
 
-  section.expand(false);
+  sw->expand(false);
 
   con(state.selection, &Selectable::changed, this, [&](bool b) {
     if (b)
