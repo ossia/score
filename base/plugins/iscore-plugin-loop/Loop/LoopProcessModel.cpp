@@ -48,6 +48,8 @@ ProcessModel::ProcessModel(
   BaseScenarioContainer::endEvent().setExtent({height, 0.2});
   BaseScenarioContainer::startTimeNode().setExtent({height, 1});
   BaseScenarioContainer::endTimeNode().setExtent({height, 1});
+
+  metadata().setInstanceName(*this);
 }
 
 ProcessModel::ProcessModel(
