@@ -100,7 +100,8 @@ EventInspectorWidget::EventInspectorWidget(
 
   {
     auto expr_widg = new QWidget;
-    auto expr_lay = new QHBoxLayout{expr_widg};
+    expr_widg->setContentsMargins(0, 0, 0, 0);
+    auto expr_lay = new iscore::MarginLess<QHBoxLayout>{expr_widg};
 
     m_exprEditor = new ExpressionEditorWidget{m_context, expr_widg};
     connect(
@@ -112,7 +113,7 @@ EventInspectorWidget::EventInspectorWidget(
     con(m_model, &EventModel::conditionChanged, m_exprEditor,
         &ExpressionEditorWidget::setExpression);
 
-    auto condMenuButton = new QPushButton{"#"};
+    auto condMenuButton = new Inspector::MenuButton{expr_widg};
     condMenuButton->setMenu(m_menu.menu);
 
     connect(m_menu.addSubAction, &QAction::triggered, m_exprEditor, [=] {
@@ -147,7 +148,7 @@ EventInspectorWidget::EventInspectorWidget(
   // Offset
   {
     auto w = new QWidget;
-    auto l = new QFormLayout{w};
+    auto l = new iscore::MarginLess<QFormLayout>{w};
     m_offsetBehavior = new QComboBox{w};
     m_offsetBehavior->addItem(
         tr("True"), QVariant::fromValue(OffsetBehavior::True));
@@ -182,16 +183,18 @@ EventInspectorWidget::EventInspectorWidget(
     condSection->addContent(w);
   }
 
+  m_properties.push_back(new iscore::HSeparator{this});
   m_properties.push_back(condSection);
 
   condSection->expand(!m_model.condition().toString().isEmpty());
 
   // State
   m_statesWidget = new QWidget{this};
-  auto dispLayout = new QVBoxLayout{m_statesWidget};
+  auto dispLayout = new iscore::MarginLess<QVBoxLayout>{m_statesWidget};
   m_statesWidget->setLayout(dispLayout);
   dispLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
+  m_properties.push_back(new iscore::HSeparator{this});
   m_properties.push_back(m_statesWidget);
 
   updateDisplayedValues();

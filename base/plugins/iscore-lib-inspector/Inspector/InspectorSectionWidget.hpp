@@ -12,6 +12,12 @@ class QMenu;
 
 namespace Inspector
 {
+class ISCORE_LIB_INSPECTOR_EXPORT MenuButton final : public QPushButton
+{
+  public:
+    MenuButton(QWidget* parent);
+};
+
 /** @brief InspectorSectionWidget is widget that can fold or unfold his
  * content.
  *
@@ -67,7 +73,7 @@ private:
 
   QPushButton m_buttonTitle;
   QLineEdit m_sectionTitle; /*!< header label editable ? */
-  QPushButton m_menuBtn;
+  MenuButton m_menuBtn;
   QMenu* m_menu{};
 
   bool m_isUnfolded{};
