@@ -44,7 +44,7 @@ StateInspectorWidget::StateInspectorWidget(
     const StateModel& object,
     const iscore::DocumentContext& doc,
     QWidget* parent)
-    : QWidget{parent}
+    : Inspector::InspectorSectionWidget{"State", false, parent}
     , m_model{object}
     , m_context{doc}
     , m_commandDispatcher{m_context.commandStack}
@@ -52,9 +52,6 @@ StateInspectorWidget::StateInspectorWidget(
 {
   setObjectName("StateInspectorWidget");
   setParent(parent);
-
-  auto lay = new iscore::MarginLess<QVBoxLayout>{this};
-  this->setLayout(lay);
 
   updateDisplayedValues();
   m_model.stateProcesses.added
@@ -69,19 +66,14 @@ void StateInspectorWidget::updateDisplayedValues()
 {
   // Cleanup
   // OPTIMIZEME
-  qDeleteAll(m_properties);
-  m_properties.clear();
-
+  InspectorSectionWidget::removeAll();
   auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
   ISCORE_ASSERT(scenar);
 
-  auto event = m_model.eventId();
-
   // State setup
-  m_stateSection = new Inspector::InspectorSectionWidget{"State", false, this};
-  auto tv = new MessageTreeView{m_model, m_stateSection};
+  auto tv = new MessageTreeView{m_model, this};
 
-  m_stateSection->addContent(tv);
+  addContent(tv);
 
   auto linkWidget = new QWidget;
   auto linkLay = new iscore::MarginLess<QHBoxLayout>{linkWidget};
@@ -109,20 +101,15 @@ void StateInspectorWidget::updateDisplayedValues()
   }
   linkLay->addStretch(1);
 
-  m_stateSection->addContent(linkWidget);
+  addContent(linkWidget);
 
   // State processes
   auto procWidg = new QWidget;
-  auto procLay = new QVBoxLayout;
+  auto procLay = new iscore::MarginLess<QVBoxLayout>;
   {
     auto addProcButton = new QPushButton;
-    addProcButton->setText(QStringLiteral("+"));
-    addProcButton->setObjectName("addAProcess");
+    addProcButton->setText(QStringLiteral("Add process"));
     procLay->addWidget(addProcButton);
-
-    auto addProcText = new TextLabel(tr("Add Process"));
-    addProcText->setStyleSheet(QStringLiteral("text-align : left;"));
-    procLay->addWidget(addProcText);
 
     // add new process dialog
     delete m_addProcess;
@@ -146,11 +133,7 @@ void StateInspectorWidget::updateDisplayedValues()
     procWidg->setLayout(procLay);
   }
 
-  m_stateSection->addContent(procWidg);
-  m_properties.push_back(m_stateSection);
-
-  for (auto w : m_properties)
-    this->layout()->addWidget(w);
+  addContent(procWidg);
 }
 
 void StateInspectorWidget::splitEvent()

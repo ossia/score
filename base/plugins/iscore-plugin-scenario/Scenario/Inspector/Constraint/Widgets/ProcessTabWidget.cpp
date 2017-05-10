@@ -52,7 +52,6 @@ ProcessTabWidget::ProcessTabWidget(
   QIcon addIcon = makeIcons(
       ":/icons/condition_add_on.png", ":/icons/condition_add_off.png");
   addProcButton->setIcon(addIcon);
-  addProcButton->setObjectName("addAProcess");
   addProcButton->setAutoRaise(true);
 
   auto addProcText = new TextLabel(tr("Add Process"));

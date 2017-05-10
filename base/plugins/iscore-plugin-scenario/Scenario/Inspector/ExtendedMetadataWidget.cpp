@@ -21,7 +21,7 @@ ExtendedMetadataWidget::ExtendedMetadataWidget(
 {
   m_layout = new iscore::MarginLess<QFormLayout>(this);
 
-  m_addButton = new QPushButton{tr("+")};
+  m_addButton = new QPushButton{tr("Add metadata")};
   connect(
       m_addButton, &QPushButton::clicked, this,
       [=]() {

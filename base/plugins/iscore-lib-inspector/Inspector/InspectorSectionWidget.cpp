@@ -1,79 +1,66 @@
-#include <QBoxLayout>
+#include "InspectorSectionWidget.hpp"
+
 #include <QLayoutItem>
-#include <QLineEdit>
-#include <iscore/widgets/MarginLess.hpp>
 #include <qnamespace.h>
 
 #include <QAction>
 #include <QMenu>
-#include <QPushButton>
-#include <QToolButton>
 
-#include "InspectorSectionWidget.hpp"
 namespace Inspector
 {
 InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
     : QWidget(parent)
+    , m_generalLayout{this}
+    , m_title{this}
+    , m_titleLayout{&m_title}
+    , m_unfoldBtn{&m_title}
+    , m_buttonTitle{&m_title}
+    , m_sectionTitle{&m_title}
+    , m_menuBtn{QStringLiteral("⚙"), &m_title}
 {
   // HEADER : arrow button and name
-  auto title = new QWidget{this};
-  auto titleLayout = new iscore::MarginLess<QHBoxLayout>{title};
+  this->setContentsMargins(0, 0, 0, 0);
+  m_unfoldBtn.setIconSize({4,4});
 
-  m_unfoldBtn = new QToolButton{title};
-  m_unfoldBtn->setAutoRaise(true);
+  m_buttonTitle.setObjectName(QStringLiteral("ButtonTitle"));
+  m_buttonTitle.setText(QStringLiteral("section name"));
 
-  m_buttonTitle = new QPushButton{title};
-  m_buttonTitle->setObjectName(QStringLiteral("ButtonTitle"));
-
-  m_buttonTitle->setFlat(true);
-  m_buttonTitle->setText(QStringLiteral("section name"));
-  m_buttonTitle->setStyleSheet(QStringLiteral("text-align: left;"));
-
-  m_sectionTitle = new QLineEdit{tr("Section Name")};
-  m_sectionTitle->setObjectName("SectionTitle");
-  connect(m_sectionTitle, &QLineEdit::editingFinished, this, [=]() {
-    emit nameChanged(m_sectionTitle->text());
+  m_sectionTitle.setObjectName("SectionTitle");
+  con(m_sectionTitle, &QLineEdit::editingFinished, this, [=]() {
+    emit nameChanged(m_sectionTitle.text());
   });
   if (editable)
-    m_buttonTitle->hide();
+    m_buttonTitle.hide();
   else
-    m_sectionTitle->hide();
-  m_sectionTitle->setReadOnly(true);
+    m_sectionTitle.hide();
+  m_sectionTitle.setReadOnly(true);
 
-  m_menuBtn = new QPushButton{"#", title};
-  m_menuBtn->setObjectName("SettingsMenu");
-  m_menuBtn->setHidden(true);
-  m_menu = new QMenu{m_menuBtn};
-  m_menuBtn->setMenu(m_menu);
+  m_menuBtn.setObjectName("SettingsMenu");
+  m_menuBtn.setHidden(true);
+  m_menuBtn.setFlat(true);
+  m_menu = new QMenu{&m_menuBtn};
+  m_menuBtn.setMenu(m_menu);
 
-  titleLayout->addWidget(m_unfoldBtn);
-  titleLayout->addWidget(m_sectionTitle);
-  titleLayout->addWidget(m_buttonTitle);
-  titleLayout->addStretch(1);
-  titleLayout->addWidget(m_menuBtn);
-
-  // CONTENT
-  m_container = new QWidget;
-  m_container->setObjectName("InspectorContainer");
-  m_container->setContentsMargins(0, 0, 0, 0);
-  m_containerLayout = new iscore::MarginLess<QVBoxLayout>{m_container};
+  m_titleLayout.addWidget(&m_unfoldBtn);
+  m_titleLayout.addWidget(&m_sectionTitle);
+  m_titleLayout.addWidget(&m_buttonTitle);
+  m_titleLayout.addStretch(1);
+  m_titleLayout.addWidget(&m_menuBtn);
 
   // GENERAL
-  auto globalLayout = new iscore::MarginLess<QVBoxLayout>{this};
-  globalLayout->addWidget(title);
-  globalLayout->addWidget(m_container);
+  m_generalLayout.addWidget(&m_title);
   this->setContentsMargins(0, 0, 0, 0);
 
-  connect(m_unfoldBtn, &QAbstractButton::released, this, [&] {
+  con(m_unfoldBtn, &QAbstractButton::released, this, [&] {
     this->expand(!m_isUnfolded);
   });
-  connect(m_buttonTitle, &QAbstractButton::clicked, this, [&] {
+  con(m_buttonTitle, &QAbstractButton::clicked, this, [&] {
     this->expand(!m_isUnfolded);
   });
 
   // INIT
   m_isUnfolded = true;
-  m_unfoldBtn->setArrowType(Qt::DownArrow);
+  m_unfoldBtn.setArrowType(Qt::DownArrow);
   renameSection(QStringLiteral("Section Name"));
 }
 
@@ -82,14 +69,14 @@ InspectorSectionWidget::InspectorSectionWidget(
     : InspectorSectionWidget(editable, parent)
 {
   renameSection(name);
-  setObjectName(name);
+  setObjectName(std::move(name));
 }
 
 InspectorSectionWidget::~InspectorSectionWidget() = default;
 
 QString InspectorSectionWidget::name() const
 {
-  return m_sectionTitle->text();
+  return m_sectionTitle.text();
 }
 
 void InspectorSectionWidget::expand(bool b)
@@ -98,38 +85,43 @@ void InspectorSectionWidget::expand(bool b)
     return;
   else
     m_isUnfolded = b;
-  m_container->setVisible(m_isUnfolded);
+
+  for(int i = m_generalLayout.count() - 1; i >= 1; i--)
+  {
+    if(auto widg = m_generalLayout.itemAt(i)->widget())
+      widg->setVisible(m_isUnfolded);
+  }
 
   if (m_isUnfolded)
   {
-    m_unfoldBtn->setArrowType(Qt::DownArrow);
+    m_unfoldBtn.setArrowType(Qt::DownArrow);
   }
   else
   {
-    m_unfoldBtn->setArrowType(Qt::RightArrow);
+    m_unfoldBtn.setArrowType(Qt::RightArrow);
   }
 }
 
 void InspectorSectionWidget::renameSection(QString newName)
 {
-  m_sectionTitle->setText(newName);
-  m_buttonTitle->setText(newName);
+  m_sectionTitle.setText(newName);
+  m_buttonTitle.setText(newName);
 }
 
 void InspectorSectionWidget::addContent(QWidget* newWidget)
 {
-  m_containerLayout->addWidget(newWidget);
+  m_generalLayout.addWidget(newWidget);
 }
 
 void InspectorSectionWidget::removeContent(QWidget* toRemove)
 {
-  m_containerLayout->removeWidget(toRemove);
+  m_generalLayout.removeWidget(toRemove);
   delete toRemove;
 }
 
 void InspectorSectionWidget::removeAll()
 {
-  while (QLayoutItem* item = m_containerLayout->takeAt(0))
+  while (QLayoutItem* item = m_generalLayout.takeAt(1))
   {
     if (QWidget* wid = item->widget())
     {
@@ -142,11 +134,7 @@ void InspectorSectionWidget::removeAll()
 
 void InspectorSectionWidget::showMenu(bool b)
 {
-  m_menuBtn->setHidden(!b);
+  m_menuBtn.setHidden(!b);
 }
 
-QWidget* InspectorSectionWidget::titleWidget()
-{
-  return m_buttonTitle;
-}
 }

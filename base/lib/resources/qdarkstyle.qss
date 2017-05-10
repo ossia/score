@@ -371,6 +371,7 @@ QPushButton#ButtonTitle
     margin-left: 2px;
     color: silver;
     border: none;
+    text-align: left;
 }
 
 QPushButton#ButtonTitle:hover {
@@ -663,11 +664,16 @@ QToolButton
 QPushButton#SettingsMenu {
     color: silver;
     background-color: #1A2024;
-    border-width: 0px;
+    border: none;
     padding: 0px;
     outline: none;
-    font:bold;
+    font: 12pt bold;
 }
+
+QPushButton#SettingsMenu:hover {
+    color: white;
+}
+
 QPushButton::menu-indicator#SettingsMenu {
     image: url(none.jpg);
 }

@@ -1,15 +1,22 @@
 #pragma once
 
 #include <QColor>
+#include <QLineEdit>
 #include <QPixmap>
 #include <QString>
+#include <QToolButton>
+#include <QVBoxLayout>
 #include <QWidget>
+#include <Scenario/Inspector/CommentEdit.hpp>
+#include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
+
 #include <Scenario/Commands/Metadata/ChangeElementColor.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementLabel.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Commands/Metadata/SetExtendedMetadata.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 #include <iscore/model/IdentifiedObject.hpp>
 
@@ -103,22 +110,25 @@ signals:
   void extendedMetadataChanged(const QVariantMap& arg);
 
 private:
+  static const constexpr int m_colorIconSize{21};
+
   const iscore::ModelMetadata& m_metadata;
   CommandDispatcher<> m_commandDispatcher;
 
-  QLineEdit* m_scriptingNameLine{};
-  QLineEdit* m_labelLine{};
-  QToolButton* m_colorButton{};
-  CommentEdit* m_comments{};
-  ExtendedMetadataWidget* m_meta{};
+  iscore::MarginLess<QVBoxLayout> m_metadataLayout;
+  iscore::MarginLess<QHBoxLayout> m_headerLay;
+  iscore::MarginLess<QVBoxLayout> m_btnLay;
+  QWidget m_descriptionWidget;
+  iscore::MarginLess<QFormLayout> m_descriptionLay;
+  QLineEdit m_scriptingNameLine;
+  QLineEdit m_labelLine;
+  CommentEdit m_comments;
+  QToolButton m_colorButton;
+  QToolButton m_cmtBtn;
+  ExtendedMetadataWidget m_meta;
   QPixmap m_colorButtonPixmap{4 * m_colorIconSize / 3,
                               4 * m_colorIconSize / 3};
-  static const int m_colorIconSize{21};
+
   bool m_cmtExpanded{false};
-  QToolButton* m_cmtBtn{};
-
-  color_widgets::ColorPaletteModel* m_palette{};
-
-  //        QString m_scriptingName;
 };
 }

@@ -1,13 +1,14 @@
 #pragma once
+#include <iscore_lib_inspector_export.h>
+#include <iscore/widgets/MarginLess.hpp>
 
 #include <QString>
 #include <QWidget>
-#include <iscore_lib_inspector_export.h>
-class QLineEdit;
-class QPushButton;
-class QToolButton;
+#include <QBoxLayout>
+#include <QPushButton>
+#include <QToolButton>
+#include <QLineEdit>
 class QMenu;
-class QVBoxLayout;
 
 namespace Inspector
 {
@@ -18,15 +19,17 @@ namespace Inspector
  * It contains one main widget in a QScrollArea with a vertical layout, that
  * can be folded/unfolded on click on the arrow button.
  */
-
 class ISCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
 {
   Q_OBJECT
 public:
   explicit InspectorSectionWidget(
-      bool editable = false, QWidget* parent = nullptr);
+      bool editable = false,
+        QWidget* parent = nullptr);
   InspectorSectionWidget(
-      QString name, bool nameEditable = false, QWidget* parent = nullptr);
+      QString name,
+      bool nameEditable = false,
+      QWidget* parent = nullptr);
   virtual ~InspectorSectionWidget();
 
   QMenu* menu() const
@@ -35,13 +38,10 @@ public:
   }
   QString name() const;
 
-public slots:
-
   // Display tool
   void expand(bool b);
 
   // Manage section
-
   //! change the name in the header
   void renameSection(QString newName);
 
@@ -52,29 +52,23 @@ public slots:
   void removeContent(QWidget* toRemove);
 
   void removeAll();
-
   void showMenu(bool b);
-  QVBoxLayout* containerLayout()
-  {
-    return m_containerLayout;
-  }
 
 signals:
   void nameChanged(QString newName);
 
-protected:
-  virtual QWidget* titleWidget();
-  QLineEdit* m_sectionTitle{}; /*!< header label editable ? */
-
 private:
-  QWidget* m_container{};
-  QVBoxLayout* m_containerLayout{}; /*!< main layout */
+  iscore::MarginLess<QVBoxLayout> m_generalLayout; /*!< main layout */
 
-  QToolButton* m_unfoldBtn{}; /*!< button for the fold/unfold action */
+  QWidget m_title;
+  iscore::MarginLess<QHBoxLayout> m_titleLayout;
 
-  QPushButton* m_buttonTitle{};
+  QToolButton m_unfoldBtn; /*!< button for the fold/unfold action */
+
+  QPushButton m_buttonTitle;
+  QLineEdit m_sectionTitle; /*!< header label editable ? */
+  QPushButton m_menuBtn;
   QMenu* m_menu{};
-  QPushButton* m_menuBtn{};
 
   bool m_isUnfolded{};
 };
