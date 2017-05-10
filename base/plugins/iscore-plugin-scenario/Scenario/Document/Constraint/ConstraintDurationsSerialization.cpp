@@ -53,8 +53,19 @@ void JSONObjectWriter::write(Scenario::ConstraintDurations& durs)
   durs.m_defaultDuration = fromJsonValue<TimeVal>(obj[strings.DefaultDuration]);
   durs.m_minDuration = fromJsonValue<TimeVal>(obj[strings.MinDuration]);
   durs.m_maxDuration = fromJsonValue<TimeVal>(obj[strings.MaxDuration]);
-  durs.m_guiDuration = fromJsonValue<TimeVal>(obj[strings.GuiDuration]);
+
   durs.m_rigidity = obj[strings.Rigidity].toBool();
   durs.m_isMinNull = obj[strings.MinNull].toBool();
   durs.m_isMaxInfinite = obj[strings.MaxInf].toBool();
+
+  auto guidur = obj.find(strings.GuiDuration);
+  if(guidur != obj.end())
+    durs.m_guiDuration = fromJsonValue<TimeVal>(*guidur);
+  else
+  {
+    if(durs.m_isMaxInfinite)
+      durs.m_guiDuration = durs.m_defaultDuration;
+    else
+      durs.m_guiDuration = durs.m_maxDuration;
+  }
 }
