@@ -79,7 +79,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
   // default date
   auto dateWid = new QWidget{this};
-  auto dateLay = new QFormLayout{dateWid};
+  auto dateLay = new iscore::MarginLess<QFormLayout>{dateWid};
   m_date = new TextLabel{m_model.date().toString(), dateWid};
 
   dateLay->addRow(tr("Default date"), m_date);
@@ -100,7 +100,9 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
   evLay->setSizeConstraint(QLayout::SetMinimumSize);
 
   m_properties.push_back(dateWid);
+  m_properties.push_back(new iscore::HSeparator{this});
   m_properties.push_back(trigSec);
+  m_properties.push_back(new iscore::HSeparator{this});
   m_properties.push_back(new TextLabel{tr("Events"), this});
   m_properties.push_back(m_events);
 

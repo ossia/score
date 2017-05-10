@@ -1,8 +1,10 @@
+#include <Inspector/InspectorSectionWidget.hpp>
 #include <QBoxLayout>
 #include <QPushButton>
 #include <Scenario/Commands/TimeNode/SetTrigger.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <algorithm>
+#include <iscore/widgets/MarginLess.hpp>
 
 #include "TriggerInspectorWidget.hpp"
 #include <Inspector/InspectorWidgetBase.hpp>
@@ -28,7 +30,7 @@ TriggerInspectorWidget::TriggerInspectorWidget(
     , m_parent{parent}
     , m_menu{[&] { return m_model.trigger()->expression(); }, this}
 {
-  auto triglay = new QHBoxLayout{this};
+  auto triglay = new iscore::MarginLess<QHBoxLayout>{this};
 
   m_exprEditor = new ExpressionEditorWidget{doc, this};
   connect(
@@ -39,12 +41,13 @@ TriggerInspectorWidget::TriggerInspectorWidget(
       &ExpressionEditorWidget::setExpression);
 
   m_addTrigBtn = new QPushButton{tr("Enable trigger")};
-  m_menuButton = new QPushButton{"#"};
+  m_menuButton = new Inspector::MenuButton{this};
+  m_menuButton->setObjectName(QStringLiteral("SettingsMenu"));
   m_menuButton->setMenu(m_menu.menu);
 
+  triglay->addWidget(m_addTrigBtn);
   triglay->addWidget(m_exprEditor);
   triglay->addWidget(m_menuButton);
-  triglay->addWidget(m_addTrigBtn);
 
   on_triggerActiveChanged();
 
@@ -59,7 +62,7 @@ TriggerInspectorWidget::TriggerInspectorWidget(
   connect(
       m_menu.deleteAction, &QAction::triggered, this,
       &TriggerInspectorWidget::removeTrigger);
-  con(m_menu, &ExpressionMenu::expressionChanged, this, [=](const QString&
+  con(m_menu, &ExpressionMenu::expressionChanged, this, [=] (const QString&
                                                                 str) {
     auto trig = State::parseExpression(str);
     if (!trig)

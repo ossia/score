@@ -8,6 +8,13 @@
 
 namespace Inspector
 {
+MenuButton::MenuButton(QWidget* parent):
+  QPushButton{QStringLiteral("⚙"), parent}
+{
+  setFlat(true);
+  setObjectName(QStringLiteral("SettingsMenu"));
+}
+
 InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
     : QWidget(parent)
     , m_generalLayout{this}
@@ -16,10 +23,11 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
     , m_unfoldBtn{&m_title}
     , m_buttonTitle{&m_title}
     , m_sectionTitle{&m_title}
-    , m_menuBtn{QStringLiteral("⚙"), &m_title}
+    , m_menuBtn{&m_title}
 {
   // HEADER : arrow button and name
   this->setContentsMargins(0, 0, 0, 0);
+  m_title.setContentsMargins(0, 0, 0, 0);
   m_unfoldBtn.setIconSize({4,4});
 
   m_buttonTitle.setObjectName(QStringLiteral("ButtonTitle"));
@@ -35,7 +43,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
     m_sectionTitle.hide();
   m_sectionTitle.setReadOnly(true);
 
-  m_menuBtn.setObjectName("SettingsMenu");
+  m_menuBtn.setObjectName(QStringLiteral("SettingsMenu"));
   m_menuBtn.setHidden(true);
   m_menuBtn.setFlat(true);
   m_menu = new QMenu{&m_menuBtn};
@@ -49,7 +57,6 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
 
   // GENERAL
   m_generalLayout.addWidget(&m_title);
-  this->setContentsMargins(0, 0, 0, 0);
 
   con(m_unfoldBtn, &QAbstractButton::released, this, [&] {
     this->expand(!m_isUnfolded);
@@ -136,5 +143,6 @@ void InspectorSectionWidget::showMenu(bool b)
 {
   m_menuBtn.setHidden(!b);
 }
+
 
 }

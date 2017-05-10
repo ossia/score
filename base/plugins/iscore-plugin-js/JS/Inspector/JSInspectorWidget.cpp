@@ -15,6 +15,7 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QHeaderView>
+#include <iscore/widgets/MarginLess.hpp>
 class QVBoxLayout;
 namespace JS
 {
@@ -95,7 +96,7 @@ InspectorWidget::InspectorWidget(
 {
   setObjectName("JSInspectorWidget");
   setParent(parent);
-  auto lay = new QVBoxLayout;
+  auto lay = new iscore::MarginLess<QVBoxLayout>{this};
 
 
   this->init(this, JSModel);
@@ -109,7 +110,6 @@ InspectorWidget::InspectorWidget(
     m_tableWidget = nullptr;
   }
   lay->addWidget(m_errorLabel);
-  this->setLayout(lay);
 }
 
 
@@ -132,13 +132,12 @@ StateInspectorWidget::StateInspectorWidget(
 {
   setObjectName("JSInspectorWidget");
   setParent(parent);
-  auto lay = new QVBoxLayout;
+  auto lay = new iscore::MarginLess<QVBoxLayout>{this};
 
   this->init(this, JSModel);
 
   lay->addWidget(m_edit);
   lay->addWidget(m_errorLabel);
-  this->setLayout(lay);
 }
 
 

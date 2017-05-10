@@ -233,6 +233,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Scenario/ScenarioInspectorWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/MenuButton.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/SelectionButton.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/State/StateInspectorFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/State/StateInspectorWidget.hpp"
