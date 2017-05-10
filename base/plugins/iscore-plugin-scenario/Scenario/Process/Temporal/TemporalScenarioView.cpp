@@ -58,7 +58,6 @@ void TemporalScenarioView::paint_impl(QPainter* painter) const
 void TemporalScenarioView::drawDragLine(QPointF left, QPointF right)
 {
   m_dragLine = QRectF(left, right);
-
   update();
 }
 
@@ -66,6 +65,7 @@ void TemporalScenarioView::drawDragLine(QPointF left, QPointF right)
 void TemporalScenarioView::stopDrawDragLine()
 {
   m_dragLine = ossia::none;
+  update();
 }
 
 void TemporalScenarioView::movedAsked(const QPointF& p)
