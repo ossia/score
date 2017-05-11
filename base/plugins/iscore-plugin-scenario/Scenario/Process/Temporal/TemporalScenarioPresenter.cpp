@@ -1,3 +1,4 @@
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Comment/SetCommentText.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
@@ -199,6 +200,26 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
   m_con = con(
         context.updateTimer, &QTimer::timeout, this,
         &TemporalScenarioPresenter::on_constraintExecutionTimer);
+
+  auto& es = context.app.guiApplicationPlugin<ScenarioApplicationPlugin>()
+                 .editionSettings();
+  con(es, &EditionSettings::toolChanged, this, [=] (Scenario::Tool t) {
+    switch (t)
+    {
+      case Scenario::Tool::Select:
+        m_view->unsetCursor();
+        break;
+      case Scenario::Tool::Create:
+        m_view->setCursor(QCursor(Qt::CrossCursor));
+        break;
+      case Scenario::Tool::Play:
+        m_view->setCursor(QCursor(Qt::PointingHandCursor));
+        break;
+      default:
+        m_view->unsetCursor();
+        break;
+    }
+  });
 }
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()

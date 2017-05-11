@@ -19,6 +19,7 @@
 #include <QStyleFactory>
 #include <QToolBar>
 #include <QWidget>
+#include <QTimer>
 #include <iscore/model/Skin.hpp>
 
 #include "ScenarioDocumentView.hpp"
@@ -90,7 +91,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   zoomIn->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   zoomIn->setShortcuts({QKeySequence::ZoomIn, tr("Ctrl+=")});
   connect(zoomIn, &QAction::triggered, this, [&]() {
-    m_zoomSlider->setValue(m_zoomSlider->value() + 0.05);
+    m_zoomSlider->setValue(m_zoomSlider->value() + 0.04);
     emit horizontalZoomChanged(m_zoomSlider->value());
   });
   QAction* zoomOut = new QAction(tr("Zoom out"), m_widget);
@@ -98,7 +99,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   zoomOut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   zoomOut->setShortcut(QKeySequence::ZoomOut);
   connect(zoomOut, &QAction::triggered, this, [&]() {
-    m_zoomSlider->setValue(m_zoomSlider->value() - 0.05);
+    m_zoomSlider->setValue(m_zoomSlider->value() - 0.04);
     emit horizontalZoomChanged(m_zoomSlider->value());
   });
   QAction* largeView = new QAction{tr("Large view"), m_widget};
@@ -136,24 +137,11 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->setObjectName("ScenarioViewer");
 
   // Cursors
-  auto& es = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>()
-                 .editionSettings();
-  con(es, &EditionSettings::toolChanged, this, [=](Scenario::Tool t) {
-    switch (t)
-    {
-      case Scenario::Tool::Select:
-        m_view->viewport()->unsetCursor();
-        break;
-      case Scenario::Tool::Create:
-        m_view->viewport()->setCursor(QCursor(Qt::CrossCursor));
-        break;
-      case Scenario::Tool::Play:
-        m_view->viewport()->setCursor(QCursor(Qt::PointingHandCursor));
-        break;
-      default:
-        m_view->viewport()->unsetCursor();
-        break;
-    }
+  con(this->view(), &ProcessGraphicsView::focusedOut,
+          this, [&] {
+    auto& es = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>()
+                   .editionSettings();
+    es.setTool(Scenario::Tool::Select);
   });
 }
 
@@ -172,14 +160,13 @@ qreal ScenarioDocumentView::viewWidth() const
   return m_view->width();
 }
 
-void ScenarioDocumentView::newLocalTimeRuler()
-{
-}
-
 void ScenarioDocumentView::setLargeView()
 {
-  view().scroll(-view().sceneRect().x(), 0);
-  m_zoomSlider->setValue(0.05);
+  m_zoomSlider->setValue(0.00);
   emit horizontalZoomChanged(m_zoomSlider->value());
+  QTimer::singleShot(0, [=] {
+  view().scrollHorizontal(-view().sceneRect().x() - 10);
+  view().repaint();
+  });
 }
 }

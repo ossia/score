@@ -39,10 +39,10 @@ namespace Scenario
 class DisplayedElementsModel;
 
 DisplayedElementsPresenter::DisplayedElementsPresenter(
-    ScenarioDocumentPresenter* parent)
-    : QObject{parent}
+    ScenarioDocumentPresenter& parent)
+    : QObject{&parent}
     , BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>{
-        parent->displayedElements}
+        parent.displayedElements}
     , m_model{parent}
 {
 }
@@ -50,7 +50,7 @@ DisplayedElementsPresenter::DisplayedElementsPresenter(
 DisplayedElementsPresenter::~DisplayedElementsPresenter()
 {
   disconnect(
-      &m_model->context().updateTimer, &QTimer::timeout, this,
+      &m_model.context().updateTimer, &QTimer::timeout, this,
       &DisplayedElementsPresenter::on_constraintExecutionTimer);
 
   // TODO use directly displayedelementspresentercontainer
@@ -65,14 +65,14 @@ DisplayedElementsPresenter::~DisplayedElementsPresenter()
 
 BaseGraphicsObject& DisplayedElementsPresenter::view() const
 {
-  return *m_model->view().baseItem();
+  return *m_model.view().baseItem();
 }
 
 void DisplayedElementsPresenter::on_displayedConstraintChanged(
     const ConstraintModel& m)
 {
   disconnect(
-      &m_model->context().updateTimer, &QTimer::timeout, this,
+      &m_model.context().updateTimer, &QTimer::timeout, this,
       &DisplayedElementsPresenter::on_constraintExecutionTimer);
 
   for (auto& con : m_connections)
@@ -89,11 +89,11 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
   delete m_endNodePresenter;
 
   // Create states / events
-  auto& ctx = m_model->context();
+  auto& ctx = m_model.context();
   auto& provider = ctx.app.interfaces<DisplayedElementsProviderList>();
   DisplayedElementsPresenterContainer elts = provider.make(
       &DisplayedElementsProvider::make_presenters, m, ctx,
-      m_model->view().baseItem(), this);
+      m_model.view().baseItem(), this);
   m_constraintPresenter = elts.constraint;
   m_startStatePresenter = elts.startState;
   m_endStatePresenter = elts.endState;
@@ -126,11 +126,11 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
   ossia::for_each_in_tuple(elements, [&](auto elt) {
     using elt_t = std::remove_reference_t<decltype(*elt)>;
     m_connections.push_back(connect(
-        elt, &elt_t::pressed, m_model, &ScenarioDocumentPresenter::pressed));
+        elt, &elt_t::pressed, &m_model, &ScenarioDocumentPresenter::pressed));
     m_connections.push_back(connect(
-        elt, &elt_t::moved, m_model, &ScenarioDocumentPresenter::moved));
+        elt, &elt_t::moved, &m_model, &ScenarioDocumentPresenter::moved));
     m_connections.push_back(connect(
-        elt, &elt_t::released, m_model, &ScenarioDocumentPresenter::released));
+        elt, &elt_t::released, &m_model, &ScenarioDocumentPresenter::released));
   });
 
   showConstraint();
@@ -167,7 +167,7 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(
     TimeVal t)
 {
-  updateLength(t.toPixels(m_model->zoomRatio()));
+  updateLength(t.toPixels(m_model.zoomRatio()));
 }
 
 const double deltaX = 10.;
@@ -175,7 +175,7 @@ const double deltaY = 20.;
 void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
     double size)
 {
-  m_model->updateRect(QRectF{qreal(ScenarioLeftSpace), 0.,
+  m_model.updateRect(QRectF{qreal(ScenarioLeftSpace), 0.,
                        m_constraintPresenter->model()
                            .duration.guiDuration()
                            .toPixels(m_constraintPresenter->zoomRatio()),

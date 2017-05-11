@@ -61,8 +61,6 @@ public:
     return m_zoomSlider;
   }
 
-  void newLocalTimeRuler();
-
 signals:
   void horizontalZoomChanged(double newZoom);
   void elementsScaleChanged(double);

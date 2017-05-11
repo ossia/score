@@ -92,7 +92,14 @@ void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
 void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
 {
   m_zoomModifier = false;
+  emit focusedOut();
   event->ignore();
 
   QGraphicsView::focusOutEvent(event);
+}
+
+void ProcessGraphicsView::leaveEvent(QEvent* event)
+{
+  emit focusedOut();
+  QGraphicsView::leaveEvent(event);
 }

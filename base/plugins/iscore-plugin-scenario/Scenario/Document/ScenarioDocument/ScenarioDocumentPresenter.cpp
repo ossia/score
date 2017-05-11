@@ -66,7 +66,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     iscore::DocumentDelegateView& delegate_view)
     : DocumentDelegatePresenter{parent_presenter, delegate_model,
                                          delegate_view}
-    , m_scenarioPresenter{new DisplayedElementsPresenter{this}}
+    , m_scenarioPresenter{new DisplayedElementsPresenter{*this}}
     , m_selectionDispatcher{ctx.selectionStack}
     , m_mainTimeRuler{new TimeRulerPresenter{view().timeRuler(), this}}
     , m_focusManager{ctx.document.focusManager()}
@@ -97,10 +97,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
           &Process::ProcessFocusManager::focus));
 
   connect(
-      m_mainTimeRuler->view(), &TimeRulerView::drag, this,
-      [&](QPointF prev, QPointF current) {
-        on_timeRulerScrollEvent(prev, current);
-      });
+        m_mainTimeRuler->view(), &TimeRulerView::drag, this,
+        &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
 
   // Focus
   connect(
