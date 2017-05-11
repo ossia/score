@@ -1,5 +1,5 @@
 #include "InspectorSectionWidget.hpp"
-
+#include <iscore/tools/Todo.hpp>
 #include <QLayoutItem>
 #include <qnamespace.h>
 
