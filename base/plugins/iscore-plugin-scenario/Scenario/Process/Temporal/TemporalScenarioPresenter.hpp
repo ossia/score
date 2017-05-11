@@ -140,7 +140,7 @@ public:
   {
     return m_sm;
   }
-  auto& editionSettings() const
+  Scenario::EditionSettings& editionSettings() const
   {
     return m_editionSettings;
   }

@@ -26,7 +26,7 @@ class DisplayedElementsPresenter final
 {
   Q_OBJECT
 public:
-  DisplayedElementsPresenter(ScenarioDocumentPresenter* parent);
+  DisplayedElementsPresenter(ScenarioDocumentPresenter& parent);
   ~DisplayedElementsPresenter();
   using QObject::event;
   using BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>::
@@ -49,7 +49,7 @@ private:
   void on_constraintExecutionTimer();
   void updateLength(double);
 
-  ScenarioDocumentPresenter* m_model{};
+  ScenarioDocumentPresenter& m_model;
 
   std::vector<QMetaObject::Connection> m_connections;
 };

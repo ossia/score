@@ -60,7 +60,7 @@ void Scenario::EditionSettings::setExecution(bool ex)
 
 void Scenario::EditionSettings::setDefault()
 {
-  setTool(m_previousTool);
+  setTool(Scenario::Tool::Select);
   setSequence(false);
 }
 

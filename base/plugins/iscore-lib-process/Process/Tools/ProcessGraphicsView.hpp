@@ -23,6 +23,7 @@ public:
 signals:
   void sizeChanged(const QSize&);
   void scrolled(int);
+  void focusedOut();
   void zoom(QPoint pixDelta, QPointF pos);
 
 private:
@@ -32,6 +33,7 @@ private:
   void keyPressEvent(QKeyEvent* event) override;
   void keyReleaseEvent(QKeyEvent* event) override;
   void focusOutEvent(QFocusEvent* event) override;
+  void leaveEvent(QEvent* event) override;
 
   SceneGraduations* m_graduations{};
   bool m_zoomModifier{false};
