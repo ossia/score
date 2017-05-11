@@ -30,7 +30,7 @@ public:
 private:
   void setFullView() override
   {
-    m_curvepresenter->setBoundedMove(false);
+    m_curve.setBoundedMove(false);
   }
 
   void on_nameChanges()

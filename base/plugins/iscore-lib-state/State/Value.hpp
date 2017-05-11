@@ -53,8 +53,7 @@ public:
         impulse,
         bool,
         std::string,
-        tuple_t,
-        char>;
+        tuple_t, char>;
 
   ValueImpl() = default;
   ValueImpl(const ValueImpl&) = default;

@@ -92,7 +92,7 @@ public:
       QMenu&,
       QPoint pos,
       QPointF scenepos,
-      const Process::LayerContextMenuManager&) const override;
+      const Process::LayerContextMenuManager&) override;
 
 signals:
   void pressed(QPointF);

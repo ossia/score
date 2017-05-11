@@ -24,7 +24,7 @@ void LayerPresenter::setFullView()
 }
 
 void LayerPresenter::fillContextMenu(
-    QMenu&, QPoint pos, QPointF scenepos, const LayerContextMenuManager&) const
+    QMenu&, QPoint pos, QPointF scenepos, const LayerContextMenuManager&)
 {
 }
 }

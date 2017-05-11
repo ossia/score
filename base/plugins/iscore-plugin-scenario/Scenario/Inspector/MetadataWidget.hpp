@@ -5,6 +5,7 @@
 #include <QPixmap>
 #include <QString>
 #include <QToolButton>
+#include <QFormLayout>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <Scenario/Inspector/CommentEdit.hpp>

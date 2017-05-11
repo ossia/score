@@ -198,7 +198,7 @@ void LayerPresenter::fillContextMenu(
     QMenu& menu,
     QPoint pos,
     QPointF scenepos,
-    const Process::LayerContextMenuManager&) const
+    const Process::LayerContextMenuManager&)
 {
   // TODO ACTIONS
   /*

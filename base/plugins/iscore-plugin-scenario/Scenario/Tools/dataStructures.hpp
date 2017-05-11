@@ -22,12 +22,12 @@ class TimeNodeModel;
 
 struct TimenodeProperties
 {
-  TimeVal oldDate;
-  TimeVal newDate;
-  double date;
+  TimeVal oldDate{};
+  TimeVal newDate{};
+  double date{};
 
-  double date_min;
-  double date_max;
+  double date_min{};
+  double date_max{};
 
   ExecutionStatus status{ExecutionStatus::Editing};
 };
@@ -48,10 +48,10 @@ struct ConstraintProperties : public ConstraintSaveData
 {
   using ConstraintSaveData::ConstraintSaveData;
 
-  TimeVal oldMin;
-  TimeVal newMin;
-  TimeVal oldMax;
-  TimeVal newMax;
+  TimeVal oldMin{};
+  TimeVal newMin{};
+  TimeVal oldMax{};
+  TimeVal newMax{};
   ExecutionStatus status{ExecutionStatus::Editing};
 };
 
