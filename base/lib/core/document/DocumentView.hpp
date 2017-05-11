@@ -29,8 +29,6 @@ public:
     return *m_view;
   }
 
-  void addPanel(PanelView*);
-
   const Document& document() const
   {
     return m_document;

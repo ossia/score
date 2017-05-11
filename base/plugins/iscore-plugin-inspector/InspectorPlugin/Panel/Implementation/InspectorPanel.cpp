@@ -4,6 +4,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 #include <boost/operators.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 #include "InspectorPanel.hpp"
 #include <Inspector/InspectorWidgetBase.hpp>
@@ -23,13 +24,13 @@ InspectorPanelWidget::InspectorPanelWidget(
     iscore::SelectionStack& s,
     QWidget* parent)
     : QWidget{parent}
-    , m_layout{new QVBoxLayout{this}}
+    , m_layout{new iscore::MarginLess<QVBoxLayout>{this}}
     , m_list{list}
     , m_selectionDispatcher{s}
 {
   m_layout->setContentsMargins(0, 0, 0, 0);
   m_layout->setSpacing(0);
-  setMinimumWidth(350);
+  setMinimumWidth(250);
 }
 
 void InspectorPanelWidget::newItemsInspected(const Selection& objects)
