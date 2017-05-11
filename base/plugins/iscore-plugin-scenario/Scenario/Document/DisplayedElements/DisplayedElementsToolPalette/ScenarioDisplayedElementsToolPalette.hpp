@@ -17,8 +17,8 @@ class EditionSettings;
 class MoveConstraintInScenario_StateWrapper;
 class MoveLeftBraceInScenario_StateWrapper;
 class MoveRightBraceInScenario_StateWrapper;
-class MoveEventInScenario_StateWrapper;
-class MoveTimeNodeInScenario_StateWrapper;
+class MoveEventInTopScenario_StateWrapper;
+class MoveTimeNodeInTopScenario_StateWrapper;
 class ProcessModel;
 class DisplayedElementsModel;
 class DisplayedElementsPresenter;
@@ -56,8 +56,15 @@ private:
   BaseGraphicsObject& m_view;
   const Scenario::EditionSettings& m_editionSettings;
 
-  Scenario::
-      SmartTool<Scenario::ProcessModel, ScenarioDisplayedElementsToolPalette, BaseGraphicsObject, Scenario::MoveConstraintInScenario_StateWrapper, Scenario::MoveLeftBraceInScenario_StateWrapper, Scenario::MoveRightBraceInScenario_StateWrapper, Scenario::MoveEventInScenario_StateWrapper, Scenario::MoveTimeNodeInScenario_StateWrapper>
+  Scenario::SmartTool<
+            Scenario::ProcessModel,
+            ScenarioDisplayedElementsToolPalette,
+            BaseGraphicsObject,
+            Scenario::MoveConstraintInScenario_StateWrapper,
+            Scenario::MoveLeftBraceInScenario_StateWrapper,
+            Scenario::MoveRightBraceInScenario_StateWrapper,
+            Scenario::MoveEventInTopScenario_StateWrapper,
+            Scenario::MoveTimeNodeInTopScenario_StateWrapper>
           m_state;
 
   ToolPaletteInputDispatcher<Scenario::Tool, ScenarioDisplayedElementsToolPalette, BaseElementContext, ScenarioDocumentPresenter>
