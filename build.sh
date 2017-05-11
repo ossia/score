@@ -20,7 +20,7 @@ brew install qt5 boost
 mkdir -p $BUILD_DIR
 cd $BUILD_DIR
 
-ISCORE_CMAKE_QT_CONFIG="$(find /usr/local/Cellar/qt5 -name Qt5Config.cmake | head -1)"
+ISCORE_CMAKE_QT_CONFIG="$(find /usr/local/Cellar/qt -name Qt5Config.cmake | head -1)"
 VAR1=`dirname $ISCORE_CMAKE_QT_CONFIG`
 ISCORE_CMAKE_QT_PATH=`dirname $VAR1`
 
