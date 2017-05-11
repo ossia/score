@@ -106,4 +106,45 @@ public:
     moveTimeNode->addTransition(moveTimeNode, finishedState(), waitState);
   }
 };
+
+class MoveEventInTopScenario_StateWrapper
+{
+public:
+  template <typename Scenario_T, typename ToolPalette_T>
+  static void
+  make(const ToolPalette_T& palette, QState* waitState, QState& parent)
+  {
+    /// Event
+    auto moveEvent
+        = new MoveEventState<Scenario::Command::MoveTopEventMeta, Scenario_T, ToolPalette_T>{
+            palette, palette.model(), palette.context().context.commandStack,
+            palette.context().context.objectLocker, &parent};
+
+    iscore::make_transition<ClickOnState_Transition<Scenario_T>>(
+        waitState, moveEvent, *moveEvent);
+
+    iscore::make_transition<ClickOnEvent_Transition<Scenario_T>>(
+        waitState, moveEvent, *moveEvent);
+    moveEvent->addTransition(moveEvent, finishedState(), waitState);
+  }
+};
+
+class MoveTimeNodeInTopScenario_StateWrapper
+{
+public:
+  template <typename Scenario_T, typename ToolPalette_T>
+  static void
+  make(const ToolPalette_T& palette, QState* waitState, QState& parent)
+  {
+    /// TimeNode
+    auto moveTimeNode
+        = new MoveTimeNodeState<Scenario::Command::MoveTopEventMeta, Scenario_T, ToolPalette_T>{
+            palette, palette.model(), palette.context().context.commandStack,
+            palette.context().context.objectLocker, &parent};
+
+    iscore::make_transition<ClickOnTimeNode_Transition<Scenario_T>>(
+        waitState, moveTimeNode, *moveTimeNode);
+    moveTimeNode->addTransition(moveTimeNode, finishedState(), waitState);
+  }
+};
 }
