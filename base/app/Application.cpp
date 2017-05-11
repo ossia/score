@@ -198,12 +198,19 @@ void Application::initDocuments()
         }
     }
 
+    connect(m_app, &SafeQApplication::fileOpened,
+            this, [&] (const QString& file) {
+        m_presenter->documentManager().loadFile(ctx, file);
+    });
+
     // Try to reload if there was a crash
     if(m_applicationSettings.tryToRestore && iscore::DocumentBackups::canRestoreDocuments())
     {
         m_presenter->documentManager().restoreDocuments(ctx);
     }
-    else
+
+    // If nothing was reloaded, open a normal document
+    if(m_presenter->documentManager().documents().empty())
     {
         auto& documentKinds = m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>();
         if(!documentKinds.empty() && m_presenter->documentManager().documents().empty())
@@ -214,11 +221,6 @@ void Application::initDocuments()
                         *m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>().begin());
         }
     }
-
-    connect(m_app, &SafeQApplication::fileOpened,
-            this, [&] (const QString& file) {
-        m_presenter->documentManager().loadFile(ctx, file);
-    });
 
 }
 
