@@ -177,6 +177,13 @@ public:
           return;
         }
 
+        if (this->currentPoint.date <= this->m_clickedPoint.date)
+        {
+          this->currentPoint.date
+              = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
+          ;
+        }
+
         // Magnetism handling :
         // If we press "sequence"... we're always in sequence.
         //
@@ -216,13 +223,6 @@ public:
                 = this->m_parentSM.model().state(*this->clickedState);
             this->currentPoint.y = st.heightPercentage();
           }
-        }
-
-        if (this->currentPoint.date <= this->m_clickedPoint.date)
-        {
-          this->currentPoint.date
-              = this->m_clickedPoint.date + TimeVal::fromMsecs(10);
-          ;
         }
 
         this->m_dispatcher.template submitCommand<MoveNewEvent>(
