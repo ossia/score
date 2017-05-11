@@ -352,6 +352,7 @@ void Presenter::modelReset()
     if (diff_points > 0)
     {
       points.reserve(points.size() + diff_points);
+      newPoints.reserve(diff_points);
       for (; diff_points-- > 0;)
       {
         auto pt = new PointView{nullptr, m_style, m_view};
@@ -376,6 +377,7 @@ void Presenter::modelReset()
     if (diff_segts > 0)
     {
       segments.reserve(segments.size() + diff_segts);
+      newSegments.reserve(diff_segts);
       for (; diff_segts-- > 0;)
       {
         auto seg = new SegmentView{nullptr, m_style, m_view};

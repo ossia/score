@@ -18,7 +18,7 @@ class LayerPresenter final
 public:
   LayerPresenter(
       const Curve::Style& style,
-      const ProcessModel& layer,
+      const Automation::ProcessModel& layer,
       LayerView* view,
       const Process::ProcessPresenterContext& context,
       QObject* parent)
@@ -39,6 +39,10 @@ public:
     m_view->showName(true);
 
     on_tweenChanges(m_layer.tween());
+    con(layer.curve(), &Curve::Model::curveReset,
+        this, [&] {
+      on_tweenChanges(layer.tween());
+    });
   }
 
 private:
@@ -49,12 +53,15 @@ private:
 
   void on_tweenChanges(bool b)
   {
-    for (auto& seg : m_curve.segments())
+    for (Curve::SegmentView& seg : m_curve.segments())
     {
-      if (seg.model().start().x() == 0.)
+      if (seg.model().start().x() != 0.)
+      {
+        seg.setTween(false);
+      }
+      else
       {
         seg.setTween(b);
-        return;
       }
     }
   }

@@ -73,18 +73,13 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->addAction(new SnapshotAction{*m_scene, m_widget});
 
   // Transport
-  auto transportWidget = new QWidget{m_widget};
-  transportWidget->setObjectName("ScenarioTransportWidget");
-  auto transportLayout = new iscore::MarginLess<QGridLayout>{transportWidget};
-
   /// Zoom
-  m_zoomSlider = new iscore::DoubleSlider{transportWidget};
+  m_zoomSlider = new iscore::DoubleSlider{m_widget};
   m_zoomSlider->setObjectName("ZoomSliderWidget");
 
   connect(
       m_zoomSlider, &iscore::DoubleSlider::valueChanged, this,
       &ScenarioDocumentView::horizontalZoomChanged);
-  transportLayout->addWidget(m_zoomSlider, 0, 2);
 
   QAction* zoomIn = new QAction(tr("Zoom in"), m_widget);
   m_widget->addAction(zoomIn);
@@ -120,7 +115,7 @@ ScenarioDocumentView::ScenarioDocumentView(
 
   lay->addWidget(m_timeRulersView);
   lay->addWidget(m_view);
-  lay->addWidget(transportWidget);
+  lay->addWidget(m_zoomSlider);
 
   lay->setSpacing(1);
 
