@@ -149,7 +149,7 @@ public:
       QMenu&,
       QPoint pos,
       QPointF scenepos,
-      const Process::LayerContextMenuManager&) const override;
+      const Process::LayerContextMenuManager&) override;
 
   bool event(QEvent* e) override
   {

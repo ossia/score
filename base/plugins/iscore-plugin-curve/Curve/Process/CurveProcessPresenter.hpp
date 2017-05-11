@@ -36,27 +36,25 @@ public:
       : LayerPresenter{ctx, parent}
       , m_layer{lm}
       , m_view{static_cast<LayerView_T*>(view)}
-      , m_curvepresenter{new Presenter{ctx, style,
-                                       m_layer.curve(),
-                                       new View{m_view}, this}}
+      , m_curve{ctx, style, m_layer.curve(), new View{m_view}, this}
       , m_commandDispatcher{ctx.commandStack}
-      , m_sm{m_context, *m_curvepresenter}
+      , m_sm{m_context, m_curve}
   {
     con(m_layer, &CurveProcessModel::curveChanged, this,
         &CurveProcessPresenter::parentGeometryChanged);
 
-    connect(
-        m_curvepresenter, &Presenter::contextMenuRequested, this,
+    con(
+        m_curve, &Presenter::contextMenuRequested, this,
         &LayerPresenter::contextMenuRequested);
 
     con(m_layer, &Process::ProcessModel::execution, this,
         [&](bool b) {
-          m_curvepresenter->editionSettings().setTool(
+          m_curve.editionSettings().setTool(
               b ? Curve::Tool::Playing
                 : focused() ? Curve::Tool::Select : Curve::Tool::Disabled);
         });
 
-    connect(&m_curvepresenter->view(), &View::doubleClick,
+    connect(&m_curve.view(), &View::doubleClick,
             this, [this] (QPointF pt) { m_sm.createPoint(pt); });
 
     parentGeometryChanged();
@@ -64,70 +62,69 @@ public:
 
   virtual ~CurveProcessPresenter()
   {
-    delete m_curvepresenter;
   }
 
-  void on_focusChanged() override
+  void on_focusChanged() final override
   {
     bool b = focused();
     if (b)
       m_view->setFocus();
 
     // TODO Same for Scenario please.
-    m_curvepresenter->enableActions(b);
+    m_curve.enableActions(b);
 
     // TODO if playing() ?
-    m_curvepresenter->editionSettings().setTool(Curve::Tool::Select);
+    m_curve.editionSettings().setTool(Curve::Tool::Select);
   }
 
-  void setWidth(qreal width) override
+  void setWidth(qreal width) final override
   {
     m_view->setWidth(width);
-    m_curvepresenter->view().setRect(m_view->boundingRect());
+    m_curve.view().setRect(m_view->boundingRect());
   }
 
-  void setHeight(qreal height) override
+  void setHeight(qreal height) final override
   {
     m_view->setHeight(height);
-    m_curvepresenter->view().setRect(m_view->boundingRect());
+    m_curve.view().setRect(m_view->boundingRect());
   }
 
-  void putToFront() override
+  void putToFront() final override
   {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
-    m_curvepresenter->enable();
+    m_curve.enable();
     m_view->showName(true);
   }
 
-  void putBehind() override
+  void putBehind() final override
   {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
-    m_curvepresenter->disable();
+    m_curve.disable();
     m_view->showName(false);
   }
 
-  void on_zoomRatioChanged(ZoomRatio val) override
+  void on_zoomRatioChanged(ZoomRatio val) final override
   {
     m_zoomRatio = val;
     parentGeometryChanged();
   }
 
-  void parentGeometryChanged() override
+  void parentGeometryChanged() final override
   {
     // Compute the rect with the duration of the process.
     QRectF rect = m_view->boundingRect(); // for the height
-    m_curvepresenter->view().setRect(rect);
+    m_curve.view().setRect(rect);
 
     rect.setWidth(m_layer.duration().toPixels(m_zoomRatio));
-    m_curvepresenter->setRect(rect);
+    m_curve.setRect(rect);
   }
 
-  const Model_T& model() const override
+  const Model_T& model() const final override
   {
     return m_layer;
   }
 
-  const Id<Process::ProcessModel>& modelId() const override
+  const Id<Process::ProcessModel>& modelId() const final override
   {
     return m_layer.id();
   }
@@ -136,9 +133,9 @@ public:
       QMenu& menu,
       QPoint pos,
       QPointF scenepos,
-      const Process::LayerContextMenuManager&) const override
+      const Process::LayerContextMenuManager&) final override
   {
-    m_curvepresenter->fillContextMenu(menu, pos, scenepos);
+    m_curve.fillContextMenu(menu, pos, scenepos);
   }
 
 
@@ -146,12 +143,10 @@ protected:
   const Model_T& m_layer;
   graphics_item_ptr<LayerView_T> m_view;
 
-  Presenter* m_curvepresenter{};
-
+  Presenter m_curve;
   CommandDispatcher<> m_commandDispatcher;
 
+  Curve::ToolPalette_T<Process::LayerContext> m_sm;  
   ZoomRatio m_zoomRatio{};
-
-  Curve::ToolPalette_T<Process::LayerContext> m_sm;
 };
 }

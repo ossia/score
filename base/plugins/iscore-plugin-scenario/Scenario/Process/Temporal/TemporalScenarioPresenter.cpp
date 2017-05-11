@@ -267,7 +267,7 @@ void TemporalScenarioPresenter::fillContextMenu(
     QMenu& menu,
     QPoint pos,
     QPointF scenepos,
-    const Process::LayerContextMenuManager& cm) const
+    const Process::LayerContextMenuManager& cm)
 {
   auto& ctx = m_context.context;
   auto& actions = ctx.app.actions;

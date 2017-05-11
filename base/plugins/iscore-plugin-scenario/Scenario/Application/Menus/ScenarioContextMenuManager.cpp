@@ -195,7 +195,7 @@ void ScenarioContextMenuManager::createLayerContextMenu(
     QPoint pos,
     QPointF scenepos,
     const Process::LayerContextMenuManager& lcmmgr,
-    const Process::LayerPresenter& pres)
+    Process::LayerPresenter& pres)
 {
   using namespace iscore;
 

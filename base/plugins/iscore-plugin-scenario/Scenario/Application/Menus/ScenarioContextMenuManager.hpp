@@ -42,6 +42,6 @@ public:
       QPoint pos,
       QPointF scenepos,
       const Process::LayerContextMenuManager&,
-      const Process::LayerPresenter& pres);
+      Process::LayerPresenter& pres);
 };
 }

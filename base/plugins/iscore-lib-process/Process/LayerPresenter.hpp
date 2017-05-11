@@ -51,7 +51,7 @@ public:
       QMenu&,
       QPoint pos,
       QPointF scenepos,
-      const LayerContextMenuManager&) const;
+      const LayerContextMenuManager&);
 
 signals:
   void contextMenuRequested(const QPoint&, const QPointF&);

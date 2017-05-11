@@ -18,23 +18,27 @@ struct qt_log_sink final : public spdlog::sinks::sink
       case spdlog::level::info:
       case spdlog::level::trace:
       {
-        m.info(msg.raw.c_str());
+        m.info("%s", msg.raw.c_str());
         break;
       }
       case spdlog::level::debug:
       {
-        m.debug(msg.raw.c_str());
+        m.debug("%s", msg.raw.c_str());
         break;
       }
       case spdlog::level::warn:
       {
-        m.warning(msg.raw.c_str());
+        m.warning("%s", msg.raw.c_str());
         break;
       }
       case spdlog::level::err:
       case spdlog::level::critical:
       {
-        m.critical(msg.raw.c_str());
+        m.critical("%s", msg.raw.c_str());
+        break;
+      }
+      case spdlog::level::off:
+      {
         break;
       }
     }
