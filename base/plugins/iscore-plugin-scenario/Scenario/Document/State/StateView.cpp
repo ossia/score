@@ -78,7 +78,7 @@ void StateView::setSelected(bool b)
   if(b)
   {
     m_overlay = new StateMenuOverlay{this};
-    m_overlay->setPos(10, -10);
+    m_overlay->setPos(14, -14);
   }
   else
   {
