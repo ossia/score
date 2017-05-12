@@ -1,6 +1,5 @@
 #pragma once
 #include <Process/LayerView.hpp>
-#include <QGraphicsSimpleTextItem>
 #include <QString>
 #include <iscore_lib_process_export.h>
 

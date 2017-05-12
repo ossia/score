@@ -3,9 +3,11 @@
 #include <QGraphicsItem>
 #include <QPen>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <Scenario/Document/Constraint/Temporal/Braces/LeftBrace.hpp>
 #include <iscore_plugin_scenario_export.h>
 #include <Scenario/Document/Constraint/ExecutionState.hpp>
 #include <qnamespace.h>
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
 class QGraphicsSceneMouseEvent;
 
 struct ScenarioStyle;
@@ -109,7 +111,7 @@ public:
   void setWarning(bool warning);
 
   void setExecutionState(ConstraintExecutionState);
-  QBrush constraintColor(const ScenarioStyle& skin) const;
+  const QBrush& constraintColor(const ScenarioStyle& skin) const;
 
   void updateLabelPos();
   void updateCounterPos();
@@ -120,13 +122,13 @@ public:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
 
-  LeftBraceView& leftBrace() const
+  LeftBraceView& leftBrace()
   {
-    return *m_leftBrace;
+    return m_leftBrace;
   }
-  RightBraceView& rightBrace() const
+  RightBraceView& rightBrace()
   {
-    return *m_rightBrace;
+    return m_rightBrace;
   }
 
 signals:
@@ -136,10 +138,10 @@ protected:
   void setGripCursor();
   void setUngripCursor();
 
-  LeftBraceView* m_leftBrace{};
-  RightBraceView* m_rightBrace{};
-  SimpleTextItem* m_labelItem{};
-  SimpleTextItem* m_counterItem{};
+  LeftBraceView m_leftBrace;
+  RightBraceView m_rightBrace;
+  SimpleTextItem m_labelItem;
+  SimpleTextItem m_counterItem;
 
   ConstraintMenuOverlay* m_overlay{};
 

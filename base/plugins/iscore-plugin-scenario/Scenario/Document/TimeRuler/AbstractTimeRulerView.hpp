@@ -1,15 +1,17 @@
 #pragma once
 #include <QColor>
 #include <QDateTime>
+#include <QGlyphRun>
 #include <QGraphicsItem>
 #include <QMap>
 #include <QPainterPath>
 #include <QPoint>
-#include <QStaticText>
+#include <QCache>
+#include <QTextLayout>
 #include <QString>
 #include <QtGlobal>
 #include <iscore/model/ColorReference.hpp>
-
+#include <deque>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -69,7 +71,7 @@ protected:
   {
     double pos;
     QTime time;
-    QStaticText text;
+    QGlyphRun text;
   };
 
   std::vector<Mark> m_marks;
@@ -88,5 +90,8 @@ protected:
 
   QWidget* m_viewport{};
 
+  QGlyphRun getGlyphs(const QTime& t);
+  QTextLayout m_layout;
+  std::deque<std::pair<QTime, QGlyphRun>> m_stringCache;
 };
 }
