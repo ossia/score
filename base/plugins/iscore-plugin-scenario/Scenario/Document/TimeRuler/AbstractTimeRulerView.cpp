@@ -83,12 +83,9 @@ void AbstractTimeRulerView::setFormat(QString format)
 {
   if(format != m_timeFormat)
   {
-    const auto& font = iscore::Skin::instance().MonoFont;
     m_timeFormat = std::move(format);
     m_stringCache.clear();
 
-    QTextLayout l;
-    l.setFont(font);
     for (Mark& mark : m_marks)
     {
       mark.text = getGlyphs(mark.time);
@@ -132,9 +129,6 @@ void AbstractTimeRulerView::createRulerPath()
 
   uint32_t i = 0;
 
-  const auto& font = iscore::Skin::instance().MonoFont;
-  QTextLayout l;
-  l.setFont(font);
   while (t < m_width + 1)
   {
     uint32_t res = (i % m_intervalsBetweenMark);
@@ -161,8 +155,6 @@ QGlyphRun AbstractTimeRulerView::getGlyphs(const QTime& t)
   }
   else
   {
-    static int cm = 0;
-    qDebug()<< cm; cm++;
     m_layout.setText(t.toString(m_timeFormat));
     m_layout.beginLayout();
     auto line = m_layout.createLine();
