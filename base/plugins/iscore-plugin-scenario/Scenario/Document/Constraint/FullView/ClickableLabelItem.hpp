@@ -2,6 +2,9 @@
 #include <QGraphicsItem>
 #include <QString>
 #include <functional>
+
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
+
 namespace iscore
 {
 class ModelMetadata;
@@ -11,13 +14,20 @@ class QGraphicsSceneMouseEvent;
 
 namespace Scenario
 {
-class SeparatorItem final : public QGraphicsSimpleTextItem
+class SeparatorItem final : public QGraphicsItem
 {
 public:
   SeparatorItem(QGraphicsItem* parent);
+
+  // QGraphicsItem interface
+public:
+  QRectF boundingRect() const override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 };
 
-class ClickableLabelItem final : public QObject, public QGraphicsSimpleTextItem
+class ClickableLabelItem final :
+    public QObject,
+    public SimpleTextItem
 {
   Q_OBJECT
 public:

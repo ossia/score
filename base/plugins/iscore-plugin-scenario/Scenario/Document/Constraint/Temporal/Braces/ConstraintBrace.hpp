@@ -4,12 +4,11 @@
 #include <iscore_plugin_scenario_export.h>
 #include <qnamespace.h>
 
-#include <Scenario/Document/Constraint/Temporal/TemporalConstraintView.hpp>
-
 class QGraphicsSceneMouseEvent;
 
 namespace Scenario
 {
+class ConstraintView;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintBrace : public QGraphicsItem
 {

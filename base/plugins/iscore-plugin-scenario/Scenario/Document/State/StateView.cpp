@@ -24,15 +24,14 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
   this->setZValue(ZPos::State);
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
-  m_color = ScenarioStyle::instance().StateOutline;
 }
 
 void StateView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  painter->setPen(Qt::NoPen);
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = ScenarioStyle::instance();
+  painter->setPen(skin.NoPen);
   skin.StateTemporalPointBrush =
       m_selected ? skin.StateSelected.getColor() : skin.StateDot.getColor();
 
@@ -42,8 +41,7 @@ void StateView::paint(
 
   if (m_containMessage)
   {
-    skin.StateBrush = m_color.getColor();
-    painter->setBrush(skin.StateBrush);
+    painter->setBrush(skin.StateOutline.getColor());
     painter->drawEllipse(
         {0., 0.},
         m_radiusFull * m_dilatationFactor,
@@ -89,12 +87,6 @@ void StateView::setSelected(bool b)
   }
 }
 
-void StateView::changeColor(iscore::ColorRef c)
-{
-  m_color = c;
-  update();
-}
-
 void StateView::setStatus(ExecutionStatus status)
 {
   if (m_status.get() == status)
@@ -121,14 +113,10 @@ void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void StateView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-  //   m_dilatationFactor = 1.5;
-  //   update();
 }
 
 void StateView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-  //    m_dilatationFactor = m_selected ? 1.5 : 1;
-  //    update();
 }
 void StateView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
@@ -149,8 +137,6 @@ void StateView::setDilatation(double val)
 {
   prepareGeometryChange();
   m_dilatationFactor = val;
-  //    this->setScale(m_dilatationFactor);
-  //    emit m_presenter.askUpdate();
   this->update();
 }
 }

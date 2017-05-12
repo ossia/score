@@ -1,13 +1,12 @@
 #pragma once
 #include <QColor>
-#include <QGraphicsSimpleTextItem>
 #include <QGraphicsTextItem>
+#include <QGlyphRun>
 #include <QPen>
 #include <iscore/model/ColorReference.hpp>
 
 namespace Scenario
 {
-// TODO move these two
 class TextItem final : public QGraphicsTextItem
 {
   Q_OBJECT
@@ -21,23 +20,27 @@ protected:
   void focusOutEvent(QFocusEvent* event) override;
 };
 
-class SimpleTextItem final : public QGraphicsSimpleTextItem
+class SimpleTextItem : public QGraphicsItem
 {
 public:
-  using QGraphicsSimpleTextItem::QGraphicsSimpleTextItem;
+  SimpleTextItem(QGraphicsItem*);
 
+  QRectF boundingRect() const final override;
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+      QWidget* widget) final override;
 
-  void setColor(iscore::ColorRef c)
-  {
-    m_color = c;
-    update();
-  }
+  void setFont(QFont f);
+  void setText(QString s);
+  void setColor(iscore::ColorRef c);
 
 private:
+  void updateImpl();
   iscore::ColorRef m_color;
+  QFont m_font;
+  QString m_string;
+  QRectF m_rect;
+  ossia::optional<QGlyphRun> m_line;
 };
 }

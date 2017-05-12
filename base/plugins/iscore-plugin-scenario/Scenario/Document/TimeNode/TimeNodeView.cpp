@@ -20,7 +20,9 @@ class QWidget;
 namespace Scenario
 {
 TimeNodeView::TimeNodeView(TimeNodePresenter& presenter, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_presenter{presenter}
+    : QGraphicsItem{parent}
+    , m_presenter{presenter}
+    , m_text{this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
@@ -28,11 +30,10 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter, QGraphicsItem* parent)
   this->setAcceptHoverEvents(true);
   this->setCursor(Qt::CrossCursor);
 
-  m_text = new SimpleTextItem{this};
   m_color = presenter.model().metadata().getColor();
 
-  m_text->setFont(ScenarioStyle::instance().Bold10Pt);
-  m_text->setColor(m_color);
+  m_text.setFont(ScenarioStyle::instance().Bold10Pt);
+  m_text.setColor(m_color);
 }
 
 TimeNodeView::~TimeNodeView()
@@ -91,9 +92,9 @@ void TimeNodeView::setMoving(bool arg)
 void TimeNodeView::setTriggerActive(bool b)
 {
   if (b)
-    m_text->setPos(-m_text->boundingRect().width() / 2, -40);
+    m_text.setPos(-m_text.boundingRect().width() / 2, -40);
   else
-    m_text->setPos(-m_text->boundingRect().width() / 2, -20);
+    m_text.setPos(-m_text.boundingRect().width() / 2, -20);
 }
 
 void TimeNodeView::setSelected(bool selected)
@@ -110,10 +111,10 @@ void TimeNodeView::changeColor(iscore::ColorRef newColor)
 
 void TimeNodeView::setLabel(const QString& s)
 {
-  m_text->setText(s);
+  m_text.setText(s);
 
   // Used to re-set the text position
-  setTriggerActive(m_text->pos().y() == -40);
+  setTriggerActive(m_text.pos().y() == -40);
 }
 
 void TimeNodeView::mousePressEvent(QGraphicsSceneMouseEvent* event)

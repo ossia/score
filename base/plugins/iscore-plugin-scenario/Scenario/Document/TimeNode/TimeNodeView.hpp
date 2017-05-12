@@ -79,6 +79,6 @@ private:
   iscore::ColorRef m_color;
   bool m_selected{};
 
-  SimpleTextItem* m_text{};
+  SimpleTextItem m_text;
 };
 }

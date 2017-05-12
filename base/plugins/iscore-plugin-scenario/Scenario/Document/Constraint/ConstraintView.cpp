@@ -5,35 +5,34 @@
 #include "ConstraintPresenter.hpp"
 #include "ConstraintView.hpp"
 #include "ConstraintMenuOverlay.hpp"
-#include <Scenario/Document/Constraint/Temporal/Braces/LeftBrace.hpp>
 
 namespace Scenario
 {
 ConstraintView::ConstraintView(
     ConstraintPresenter& presenter, QGraphicsItem* parent)
     : QGraphicsItem{parent}
-    , m_labelItem{new SimpleTextItem{this}}
-    , m_counterItem{new SimpleTextItem{this}}
+    , m_leftBrace{*this, this}
+    , m_rightBrace{*this, this}
+    , m_labelItem{this}
+    , m_counterItem{this}
     , m_presenter{presenter}
 {
   setAcceptHoverEvents(true);
-  m_leftBrace = new LeftBraceView{*this, this};
-  m_leftBrace->setX(minWidth());
-  m_leftBrace->hide();
+  m_leftBrace.setX(minWidth());
+  m_leftBrace.hide();
 
-  m_rightBrace = new RightBraceView{*this, this};
-  m_rightBrace->setX(maxWidth());
-  m_rightBrace->hide();
+  m_rightBrace.setX(maxWidth());
+  m_rightBrace.hide();
 
-  m_labelItem->setFont(ScenarioStyle::instance().Medium12Pt);
-  m_labelItem->setPos(0, -16);
-  m_labelItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
-  m_labelItem->setAcceptHoverEvents(false);
+  m_labelItem.setFont(ScenarioStyle::instance().Medium12Pt);
+  m_labelItem.setPos(0, -16);
+  m_labelItem.setAcceptedMouseButtons(Qt::MouseButton::NoButton);
+  m_labelItem.setAcceptHoverEvents(false);
 
-  m_counterItem->setFont(ScenarioStyle::instance().Medium7Pt);
-  m_counterItem->setColor(iscore::ColorRef(&iscore::Skin::Light));
-  m_counterItem->setAcceptedMouseButtons(Qt::MouseButton::NoButton);
-  m_counterItem->setAcceptHoverEvents(false);
+  m_counterItem.setFont(ScenarioStyle::instance().Medium7Pt);
+  m_counterItem.setColor(iscore::ColorRef(&iscore::Skin::Light));
+  m_counterItem.setAcceptedMouseButtons(Qt::MouseButton::NoButton);
+  m_counterItem.setAcceptHoverEvents(false);
 }
 
 ConstraintView::~ConstraintView()
@@ -176,7 +175,7 @@ void ConstraintView::setWarning(bool warning)
   m_warning = warning;
 }
 
-QBrush ConstraintView::constraintColor(const ScenarioStyle& skin) const
+const QBrush& ConstraintView::constraintColor(const ScenarioStyle& skin) const
 {
   // TODO make a switch instead
   if (isSelected())
@@ -208,14 +207,14 @@ void ConstraintView::updateOverlay()
 }
 void ConstraintView::updateLabelPos()
 {
-  m_labelItem->setPos(
-        defaultWidth() / 2. - m_labelItem->boundingRect().width() / 2., -17);
+  m_labelItem.setPos(
+        defaultWidth() / 2. - m_labelItem.boundingRect().width() / 2., -17);
 }
 
 void ConstraintView::updateCounterPos()
 {
-  m_counterItem->setPos(
-        defaultWidth() - m_counterItem->boundingRect().width() - 5, 5);
+  m_counterItem.setPos(
+        defaultWidth() - m_counterItem.boundingRect().width() - 5, 5);
 }
 
 void ConstraintView::updateOverlayPos()
