@@ -49,19 +49,17 @@ void TimeNodeView::paint(
 
   auto& skin = ScenarioStyle::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
-  QBrush pen_color;
+
   if (isSelected())
   {
-    pen_color = skin.TimenodeSelected.getColor();
+    skin.TimenodePen.setBrush(skin.TimenodeSelected.getColor());
   }
   else
   {
-    pen_color = m_color.getColor();
+    skin.TimenodePen.setBrush(m_color.getColor());
   }
 
-  skin.TimenodePen.setBrush(pen_color);
   painter->setPen(skin.TimenodePen);
-
   painter->drawLine(QPointF(0, 0), QPointF(0, height));
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)

@@ -285,6 +285,7 @@ void FullViewConstraintPresenter::on_guiDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);
 
+  static_cast<FullViewConstraintView*>(m_view)->setGuiWidth(w);
   for(const SlotPresenter& slot : m_slots)
   {
     slot.handle->setWidth(w);

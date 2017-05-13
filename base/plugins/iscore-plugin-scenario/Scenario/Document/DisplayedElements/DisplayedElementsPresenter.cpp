@@ -189,10 +189,12 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
   m_startEventPresenter->view()->setExtent({0., 1.});
   m_startNodePresenter->view()->setExtent({0., (qreal)size});
   m_endEventPresenter->view()->setExtent({0., 1.});
-  m_endNodePresenter->view()->setExtent({0., (qreal)ConstraintHeaderHeight});
+  m_endNodePresenter->view()->setExtent({0., 10000});
 
   m_startEventPresenter->view()->setZValue(0);
   m_startNodePresenter->view()->setZValue(0);
+  m_endEventPresenter->view()->setZValue(0);
+  m_endNodePresenter->view()->setZValue(0);
   m_constraintPresenter->view()->setZValue(1);
   m_startStatePresenter->view()->setZValue(2);
 }

@@ -27,7 +27,9 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
+  void setGuiWidth(double);
+
 private:
-  QPainterPath solidPath, dashedPath, playedPath;
+  double m_guiWidth{};
 };
 }

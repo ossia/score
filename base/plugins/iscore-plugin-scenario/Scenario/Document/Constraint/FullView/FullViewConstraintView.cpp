@@ -10,7 +10,8 @@
 #include "FullViewConstraintPresenter.hpp"
 #include "FullViewConstraintView.hpp"
 #include <Scenario/Document/Constraint/ConstraintView.hpp>
-
+#include <QGraphicsScene>
+#include <QGraphicsView>
 class QStyleOptionGraphicsItem;
 class QWidget;
 
@@ -35,7 +36,7 @@ void FullViewConstraintView::updatePaths()
 
 QRectF FullViewConstraintView::boundingRect() const
 {
-  return {0, 0, qreal(std::max(defaultWidth(), maxWidth())) + 3, qreal(constraintAndRackHeight()) + 3};
+  return {0, 0, qreal(std::max(defaultWidth(), m_guiWidth)) + 3, qreal(constraintAndRackHeight()) + 3};
 }
 
 void FullViewConstraintView::paint(
@@ -74,17 +75,24 @@ void FullViewConstraintView::paint(
   }
   else
   {
-    // First the line going from 0 to the min
-    p.setPen(skin.ConstraintSolidPen);
-    p.drawLine(0, 0, min_w, 0);
-
     // Then the dashed line
     skin.ConstraintDashPen.setBrush(c);
     p.setPen(skin.ConstraintDashPen);
     if(!infinite())
       p.drawLine(min_w, 0, max_w, 0);
     else
-      p.drawLine(min_w, 0, def_w, 0);
+    {
+      p.fillRect(QRectF{defaultWidth(), 0, m_guiWidth, height()}, skin.SlotOverlay.getColor());
+      p.drawLine(min_w, 0, m_guiWidth, 0);
+
+      painter->setPen(skin.FullViewConstraintHeaderSeparator);
+      p.drawLine(min_w, ConstraintHeaderHeight, m_guiWidth, ConstraintHeaderHeight);
+    }
+
+    // First the line going from 0 to the min
+    p.setPen(skin.ConstraintSolidPen);
+    p.drawLine(0, 0, min_w, 0);
+
   }
 
   auto pw = playWidth();
@@ -99,5 +107,11 @@ void FullViewConstraintView::paint(
   p.setPen(Qt::red);
   p.drawRect(boundingRect());
 #endif
+}
+
+void FullViewConstraintView::setGuiWidth(double w)
+{
+  m_guiWidth = w;
+  update();
 }
 }
