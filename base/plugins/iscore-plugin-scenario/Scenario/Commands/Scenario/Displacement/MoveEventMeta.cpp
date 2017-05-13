@@ -118,5 +118,73 @@ void MoveEventMeta::update(
   m_moveEventImplementation->update(eventId, newDate, y, mode);
   m_newY = y;
 }
+
+
+
+
+
+MoveTopEventMeta::MoveTopEventMeta(
+    Path<Scenario::ProcessModel>&& scenarioPath,
+    Id<EventModel>
+        eventId,
+    TimeVal newDate,
+    double y,
+    ExpandMode mode)
+    : SerializableMoveEvent{}
+    , m_scenario{scenarioPath}
+    , m_eventId{std::move(eventId)}
+    , m_moveEventImplementation(
+          context.interfaces<MoveEventList>()
+              .get(context, MoveEventFactoryInterface::Strategy::MOVE)
+              .make(
+                  std::move(scenarioPath), m_eventId, std::move(newDate),
+                  mode))
+{
+}
+
+void MoveTopEventMeta::undo() const
+{
+  m_moveEventImplementation->undo();
+}
+
+void MoveTopEventMeta::redo() const
+{
+  m_moveEventImplementation->redo();
+}
+
+const Path<Scenario::ProcessModel>& MoveTopEventMeta::path() const
+{
+  return m_moveEventImplementation->path();
+}
+
+void MoveTopEventMeta::serializeImpl(DataStreamInput& s) const
+{
+  s << m_scenario << m_eventId << m_moveEventImplementation->serialize();
+}
+
+void MoveTopEventMeta::deserializeImpl(DataStreamOutput& s)
+{
+  QByteArray cmdData;
+  s >> m_scenario >> m_eventId >> cmdData;
+
+  m_moveEventImplementation
+      = context.interfaces<MoveEventList>()
+            .get(context, MoveEventFactoryInterface::Strategy::MOVE)
+            .make();
+
+  m_moveEventImplementation->deserialize(cmdData);
+}
+
+void MoveTopEventMeta::update(
+    const Id<EventModel>& eventId, const TimeVal& newDate, double y,
+    ExpandMode mode)
+{
+  m_moveEventImplementation->update(eventId, newDate, y, mode);
+}
+
+void MoveTopEventMeta::update(unused_t, const Id<EventModel>& eventId, const TimeVal& newDate, double y, ExpandMode mode)
+{
+  m_moveEventImplementation->update(eventId, newDate, y, mode);
+}
 }
 }

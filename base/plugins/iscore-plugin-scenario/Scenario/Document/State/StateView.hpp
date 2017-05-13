@@ -57,8 +57,6 @@ public:
 
   void setContainMessage(bool);
   void setSelected(bool arg);
-
-  void changeColor(iscore::ColorRef);
   void setStatus(ExecutionStatus);
 
 signals:
@@ -81,15 +79,12 @@ private:
   StatePresenter& m_presenter;
   StateMenuOverlay* m_overlay{};
 
+  qreal m_dilatationFactor = 1;
   bool m_containMessage{false};
   bool m_selected{false};
-
-  iscore::ColorRef m_color;
-
   ExecutionStatusProperty m_status{};
 
   static const constexpr qreal m_radiusFull = 6.;
   static const constexpr qreal m_radiusPoint = 3.5;
-  qreal m_dilatationFactor = 1;
 };
 }

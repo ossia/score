@@ -1,5 +1,5 @@
 #include "InspectorSectionWidget.hpp"
-
+#include <iscore/tools/Todo.hpp>
 #include <QLayoutItem>
 #include <qnamespace.h>
 
@@ -9,7 +9,11 @@
 namespace Inspector
 {
 MenuButton::MenuButton(QWidget* parent):
+#if defined(_MSC_VER)
+  QPushButton{QString(QChar(0x2699)), parent}
+#else
   QPushButton{QStringLiteral("⚙"), parent}
+#endif
 {
   setFlat(true);
   setObjectName(QStringLiteral("SettingsMenu"));

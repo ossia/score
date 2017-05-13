@@ -25,9 +25,8 @@ enum class ExecutionStatus
 };
 
 // TODO Use me for events, states
-class ExecutionStatusProperty final : public QObject
+class ExecutionStatusProperty
 {
-  Q_OBJECT
 public:
   ExecutionStatus get() const noexcept
   {
@@ -38,14 +37,11 @@ public:
     if (m_status != e)
     {
       m_status = e;
-      emit changed(m_status);
     }
   }
   iscore::ColorRef eventStatusColor();
   iscore::ColorRef stateStatusColor();
 
-signals:
-  void changed(ExecutionStatus);
 
 private:
   ExecutionStatus m_status{ExecutionStatus::Editing};

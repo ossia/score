@@ -93,6 +93,9 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 
   QPen ConstraintHeaderSeparator;
 
+  QPen ConditionPen;
+  QPen ConditionTrianglePen;
+
   QPen TimenodePen;
   QBrush TimenodeBrush;
 
@@ -109,12 +112,20 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
 
   QPen SlotHandlePen;
 
+  QPen TextItemPen;
+
   QFont Bold10Pt;
   QFont Medium7Pt;
   QFont Medium8Pt;
   QFont Medium12Pt;
 
+  QPen SeparatorPen;
+  QBrush SeparatorBrush;
   QBrush DefaultBrush;
+  QBrush TransparentBrush;
+
+  const QPen NoPen{Qt::NoPen};
+  const QBrush NoBrush{Qt::NoBrush};
 private:
   ScenarioStyle() noexcept;
   void update(const iscore::Skin& skin);

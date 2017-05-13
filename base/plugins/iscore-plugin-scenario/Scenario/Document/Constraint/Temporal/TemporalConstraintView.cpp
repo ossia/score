@@ -286,7 +286,7 @@ void TemporalConstraintView::dropEvent(QGraphicsSceneDragDropEvent* event)
 
 void TemporalConstraintView::setLabel(const QString& label)
 {
-  m_labelItem->setText(label);
+  m_labelItem.setText(label);
   updateLabelPos();
 }
 
@@ -310,22 +310,22 @@ void TemporalConstraintView::setExecutionDuration(const TimeVal& progress)
   // Also make a setting to disable it since it may take a lot of time
   if (!qFuzzyCompare(progress.msec(), 0))
   {
-    if (!m_counterItem->isVisible())
-      m_counterItem->setVisible(true);
+    if (!m_counterItem.isVisible())
+      m_counterItem.setVisible(true);
     updateCounterPos();
 
-    m_counterItem->setText(progress.toString());
+    m_counterItem.setText(progress.toString());
   }
   else
   {
-    m_counterItem->setVisible(false);
+    m_counterItem.setVisible(false);
   }
   update();
 }
 
 void TemporalConstraintView::setLabelColor(iscore::ColorRef labelColor)
 {
-  m_labelItem->setColor(labelColor);
+  m_labelItem.setColor(labelColor);
   update();
 }
 

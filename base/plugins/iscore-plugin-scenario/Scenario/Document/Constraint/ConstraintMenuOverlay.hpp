@@ -28,10 +28,9 @@ public:
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
   {
-
     auto& skin = ScenarioStyle::instance();
     auto cst = static_cast<ConstraintView*>(parentItem());
-    auto col = cst->constraintColor(skin);
+    const auto& col = cst->constraintColor(skin);
     painter->setPen(col.color());
     painter->setBrush(col);
 
@@ -52,7 +51,7 @@ public:
     painter->setPen(p);
     painter->drawLine(l1);
     painter->drawLine(l2);
-    painter->setBrush(QBrush());
+    painter->setBrush(skin.DefaultBrush);
   }
 
 protected:
