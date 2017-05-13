@@ -22,7 +22,7 @@
 "Background1" : [37, 41, 48],
 
 "Transparent1" : [0, 127, 229, 76],
-"Transparent2" : [170, 170, 170, 70],
+"Transparent2" : [170, 170, 170, 30],
 "Transparent3" : [37, 41, 48, 40],
 
 "Smooth1" : [222, 0, 0],

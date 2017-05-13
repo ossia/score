@@ -37,6 +37,14 @@ TemporalConstraintView::TemporalConstraintView(
   this->setZValue(ZPos::Constraint);
 }
 
+QRectF TemporalConstraintView::boundingRect() const
+{
+  qreal x = std::min(0., minWidth());
+  qreal rectW = infinite() ? defaultWidth() : maxWidth();
+  rectW -= x;
+  return {x, -4, rectW, qreal(constraintAndRackHeight())};
+}
+
 const TemporalConstraintPresenter&TemporalConstraintView::presenter() const
 {
   return static_cast<const TemporalConstraintPresenter&>(m_presenter);

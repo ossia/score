@@ -33,13 +33,7 @@ public:
   TemporalConstraintView(
       TemporalConstraintPresenter& presenter, QGraphicsItem* parent);
 
-  QRectF boundingRect() const override
-  {
-    qreal x = std::min(0., minWidth());
-    qreal rectW = infinite() ? defaultWidth() : maxWidth();
-    rectW -= x;
-    return {x, -4, rectW, qreal(constraintAndRackHeight())};
-  }
+  QRectF boundingRect() const override;
 
   const TemporalConstraintPresenter& presenter() const;
   void paint(
@@ -56,7 +50,7 @@ public:
 
   void setColor(iscore::ColorRef c)
   {
-    m_bgColor = c;
+    m_bgColor = std::move(c);
     update();
   }
 
@@ -67,18 +61,16 @@ signals:
   void constraintHoverLeave();
   void dropReceived(const QPointF& pos, const QMimeData*);
 
-protected:
+private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
-private:
-  iscore::ColorRef m_bgColor;
   void updatePaths() final override;
+  iscore::ColorRef m_bgColor;
 
   QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath, waitingDashedPath;
-  double m_dashOffset = 0;
 };
 }
