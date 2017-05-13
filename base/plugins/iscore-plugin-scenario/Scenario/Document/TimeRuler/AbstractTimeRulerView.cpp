@@ -159,12 +159,19 @@ QGlyphRun AbstractTimeRulerView::getGlyphs(const QTime& t)
     m_layout.beginLayout();
     auto line = m_layout.createLine();
     m_layout.endLayout();
-    m_layout.clearLayout();
 
-    auto gr = line.glyphRuns()[0];
+    QGlyphRun gr;
+
+    auto glr = line.glyphRuns();
+    if (!glr.isEmpty())
+        gr = glr.first();
+
     m_stringCache.push_back(std::make_pair(t, gr));
-    if(m_stringCache.size() > 16)
-      m_stringCache.pop_front();
+    if (m_stringCache.size() > 16)
+        m_stringCache.pop_front();
+
+    m_layout.clearLayout();
+    
     return gr;
   }
 }

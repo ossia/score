@@ -9,7 +9,11 @@
 namespace Inspector
 {
 MenuButton::MenuButton(QWidget* parent):
+#if defined(_MSC_VER)
+  QPushButton{QStringLiteral("#"), parent}
+#else
   QPushButton{QStringLiteral("⚙"), parent}
+#endif
 {
   setFlat(true);
   setObjectName(QStringLiteral("SettingsMenu"));
