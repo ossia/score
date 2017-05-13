@@ -66,6 +66,7 @@ class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final
                  NOTIFY addressChanged)
   Q_PROPERTY(State::Value start READ start WRITE setStart NOTIFY startChanged)
   Q_PROPERTY(State::Value end READ end WRITE setEnd NOTIFY endChanged)
+  Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
 
 public:
   ProcessModel(
@@ -96,6 +97,19 @@ public:
   void setEnd(State::Value arg);
 
   QString prettyName() const override;
+
+  bool tween() const
+  {
+    return m_tween;
+  }
+  void setTween(bool tween)
+  {
+    if (m_tween == tween)
+      return;
+
+    m_tween = tween;
+    emit tweenChanged(tween);
+  }
 
 signals:
   void addressChanged(const ::State::AddressAccessor&);
@@ -129,5 +143,6 @@ private:
 
   ProcessState* m_startState{};
   ProcessState* m_endState{};
+  bool m_tween = false;
 };
 }

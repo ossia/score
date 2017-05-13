@@ -248,7 +248,7 @@ DataStreamReader::read(
   readFrom(interp.curve());
 
   m_stream << interp.address() << interp.sourceUnit() << interp.start()
-           << interp.end();
+           << interp.end() << interp.tween();
 
   insertDelimiter();
 }
@@ -263,13 +263,15 @@ DataStreamWriter::write(Interpolation::ProcessModel& interp)
   State::AddressAccessor address;
   ossia::unit_t u;
   State::Value start, end;
+  bool tw;
 
-  m_stream >> address >> u >> start >> end;
+  m_stream >> address >> u >> start >> end >> tw;
 
   interp.setAddress(address);
   interp.setSourceUnit(u);
   interp.setStart(start);
   interp.setEnd(end);
+  interp.setTween(tw);
 
   checkDelimiter();
 }
@@ -286,6 +288,7 @@ JSONObjectReader::read(
       ossia::get_pretty_unit_text(interp.sourceUnit()));
   obj[strings.Start] = toJsonObject(interp.start());
   obj[strings.End] = toJsonObject(interp.end());
+  obj["Tween"] = interp.tween();
 }
 
 
@@ -302,4 +305,5 @@ JSONObjectWriter::write(Interpolation::ProcessModel& interp)
       ossia::parse_pretty_unit(obj[strings.Unit].toString().toStdString()));
   interp.setStart(fromJsonObject<State::Value>(obj[strings.Start]));
   interp.setEnd(fromJsonObject<State::Value>(obj[strings.End]));
+  interp.setTween(obj["Tween"].toBool());
 }

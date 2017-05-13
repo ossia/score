@@ -31,6 +31,7 @@ InspectorWidget::InspectorWidget(
   vlay->setSpacing(0);
   vlay->setContentsMargins(0, 0, 0, 0);
 
+  // Address
   m_lineEdit = new AddressAccessorEditWidget{
       doc.plugin<DeviceDocumentPlugin>().explorer(),
       this};
@@ -44,6 +45,14 @@ InspectorWidget::InspectorWidget(
         [this] (const auto& addr) { this->on_addressChange(addr.address); });
 
   vlay->addRow(tr("Address"), m_lineEdit);
+
+  // Tween
+  m_tween = new QCheckBox{this};
+  vlay->addRow(tr("Tween"), m_tween);
+  m_tween->setChecked(process().tween());
+  con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
+  connect(
+      m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
 
   this->setLayout(vlay);
 }
@@ -108,6 +117,17 @@ void InspectorWidget::on_addressChange(const ::State::AddressAccessor& addr)
 
     m_dispatcher.submitCommand(
         new ChangeAddress{process(), addr, sv, ev, source_u});
+  }
+}
+
+void InspectorWidget::on_tweenChanged()
+{
+  bool newVal = m_tween->checkState();
+  if (newVal != process().tween())
+  {
+    auto cmd = new SetTween{process(), newVal};
+
+    m_dispatcher.submitCommand(cmd);
   }
 }
 
