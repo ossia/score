@@ -63,5 +63,45 @@ private:
 
   std::unique_ptr<SerializableMoveEvent> m_moveEventImplementation{};
 };
+
+
+
+class ISCORE_PLUGIN_SCENARIO_EXPORT MoveTopEventMeta final
+    : public SerializableMoveEvent
+{
+  ISCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), MoveTopEventMeta, "Move an event")
+
+public:
+  MoveTopEventMeta(
+      Path<Scenario::ProcessModel>&& scenarioPath,
+      Id<EventModel>
+          eventId,
+      TimeVal newDate,
+      double y,
+      ExpandMode mode);
+
+  void undo() const override;
+  void redo() const override;
+
+  const Path<Scenario::ProcessModel>& path() const override;
+
+  void update(
+      const Id<EventModel>& eventId, const TimeVal& newDate, double y,
+      ExpandMode mode) override;
+  void update(
+      unused_t, const Id<EventModel>& eventId, const TimeVal& newDate,
+      double y, ExpandMode mode);
+
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
+
+private:
+  // TODO : make a UI to change that
+  Path<Scenario::ProcessModel> m_scenario;
+  Id<EventModel> m_eventId;
+  std::unique_ptr<SerializableMoveEvent> m_moveEventImplementation{};
+};
 }
 }

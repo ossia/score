@@ -260,8 +260,15 @@ void PlayerImpl::stop()
 {
   if(m_clock)
     m_clock->stop();
+
+#if defined(ISCORE_ADDON_NETWORK)
+  if(m_networkPlugin)
+    m_networkPlugin->on_stop();
+#endif
+
   if(m_execPlugin)
     m_execPlugin->clear();
+
   m_clock.reset();
 }
 

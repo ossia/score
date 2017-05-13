@@ -4,6 +4,7 @@
 #include <eggs/variant.hpp>
 #include <iscore/model/Skin.hpp>
 #include <iscore/tools/std/Optional.hpp>
+#include <iscore/tools/Todo.hpp>
 #include <utility>
 
 namespace iscore
@@ -47,9 +48,10 @@ public:
     ref = &(iscore::Skin::instance().*s);
   }
 
-  QBrush getColor() const
+  const QBrush& getColor() const
   {
-    return ref ? *ref : Qt::black;
+    ISCORE_ASSERT(ref);
+    return *ref;
   }
 
   QString name() const

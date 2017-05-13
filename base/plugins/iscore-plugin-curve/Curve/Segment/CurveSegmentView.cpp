@@ -8,6 +8,7 @@
 #include "CurveSegmentModel.hpp"
 #include "CurveSegmentView.hpp"
 #include <Curve/Palette/CurvePoint.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/tools/Todo.hpp>
 
@@ -68,10 +69,11 @@ QRectF SegmentView::boundingRect() const
 void SegmentView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  auto& skin = ScenarioStyle::instance();
   painter->setRenderHint(QPainter::RenderHint::Antialiasing, m_enabled);
 
   painter->setPen(*m_pen);
-  painter->setBrush(Qt::NoBrush);
+  painter->setBrush(skin.NoBrush);
   painter->drawPath(m_unstrokedShape);
 
   painter->setRenderHint(QPainter::RenderHint::Antialiasing, false);

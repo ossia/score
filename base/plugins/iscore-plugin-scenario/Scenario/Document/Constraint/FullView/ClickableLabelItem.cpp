@@ -1,6 +1,7 @@
 
 #include <QBrush>
 #include <QFont>
+#include <QPainter>
 #include <algorithm>
 #include <qnamespace.h>
 
@@ -16,10 +17,24 @@ namespace Scenario
 {
 
 SeparatorItem::SeparatorItem(QGraphicsItem* parent)
-    : QGraphicsSimpleTextItem{"/", parent}
+    : QGraphicsItem{parent}
 {
-  this->setFont(ScenarioStyle::instance().Bold10Pt);
-  this->setBrush(Qt::white);
+}
+
+QRectF SeparatorItem::boundingRect() const
+{
+  return {0, 0, 5, 10};
+}
+
+void SeparatorItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  auto& skin = ScenarioStyle::instance();
+  const QRectF rect{1, 1, 4, 9};
+
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  painter->setPen(skin.SeparatorPen);
+  painter->setBrush(skin.SeparatorBrush);
+  painter->drawLine(rect.bottomLeft(), rect.topRight());
 }
 
 ClickableLabelItem::ClickableLabelItem(
@@ -27,8 +42,9 @@ ClickableLabelItem::ClickableLabelItem(
     ClickHandler&& onClick,
     const QString& text,
     QGraphicsItem* parent)
-    : QGraphicsSimpleTextItem{text, parent}, m_onClick{std::move(onClick)}
+    : SimpleTextItem{parent}, m_onClick{std::move(onClick)}
 {
+  setText(text);
   connect(
       &metadata, &iscore::ModelMetadata::NameChanged, this,
       [&](const QString& name) {
@@ -37,7 +53,7 @@ ClickableLabelItem::ClickableLabelItem(
       });
 
   this->setFont(ScenarioStyle::instance().Bold10Pt);
-  this->setBrush(Qt::white);
+  this->setColor(ScenarioStyle::instance().StateOutline);
 
   this->setAcceptHoverEvents(true);
 }
@@ -49,14 +65,12 @@ void ClickableLabelItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void ClickableLabelItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-  this->setBrush(Qt::blue);
-  update();
+  this->setColor(ScenarioStyle::instance().ConstraintSelected);
 }
 
 void ClickableLabelItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-  this->setBrush(Qt::white);
-  update();
+  this->setColor(ScenarioStyle::instance().StateOutline);
 }
 
 int ClickableLabelItem::index() const

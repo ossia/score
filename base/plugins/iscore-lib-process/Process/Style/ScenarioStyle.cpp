@@ -69,6 +69,9 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     TimeRulerBackground{&s.Background1}
     , TimeRuler{&s.Base1}
     , LocalTimeRuler{&s.Gray}
+    , SeparatorPen{Qt::white, 2}
+    , SeparatorBrush{Qt::white}
+    , TransparentBrush{Qt::transparent}
 {
   update(s);
   QObject::connect(&s, &iscore::Skin::changed, [&] { this->update(s); });
@@ -129,9 +132,14 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   ConstraintPlayPen.setCosmetic(true);
   ConstraintPlayDashPen.setCosmetic(true);
   ConstraintWaitingDashPen.setCosmetic(true);
-  TimenodePen = QPen{Qt::black, 2, Qt::DotLine, Qt::SquareCap, Qt::MiterJoin};
 
+  ConditionPen = QPen{Qt::black, 2};
+  ConditionTrianglePen = QPen{Qt::black, 2};
+  ConditionTrianglePen.setCosmetic(true);
+
+  TimenodePen = QPen{Qt::black, 2, Qt::DotLine, Qt::SquareCap, Qt::MiterJoin};
   TimenodeBrush = QBrush{Qt::black};
+
   StateTemporalPointBrush = QBrush{Qt::black};
   StateTemporalPointPen.setCosmetic(true);
   StateBrush = QBrush{Qt::black};

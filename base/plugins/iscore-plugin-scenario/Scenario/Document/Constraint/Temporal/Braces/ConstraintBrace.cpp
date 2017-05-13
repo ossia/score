@@ -6,6 +6,7 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ConstraintView.hpp>
 
 using namespace Scenario;
 
