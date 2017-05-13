@@ -92,6 +92,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QPen ConstraintBrace;
 
   QPen ConstraintHeaderSeparator;
+  QPen FullViewConstraintHeaderSeparator;
 
   QPen ConditionPen;
   QPen ConditionTrianglePen;

@@ -38,7 +38,7 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     , SlotHandle{&s.Transparent3}
     ,
 
-    TimenodeDefault{&s.HalfLight}
+    TimenodeDefault{&s.Gray}
     , TimenodeSelected{&s.Base2}
     ,
 
@@ -116,6 +116,8 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   ConstraintWaitingDashPen = ConstraintDashPen;
   ConstraintHeaderSeparator
       = QPen{ConstraintHeaderSideBorder.getColor(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  FullViewConstraintHeaderSeparator
+      = QPen{ConstraintHeaderSideBorder.getColor(), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin};
 
   ConstraintBrace
       = QPen{ConstraintBase.getColor(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
