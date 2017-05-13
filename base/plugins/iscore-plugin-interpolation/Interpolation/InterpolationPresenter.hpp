@@ -22,9 +22,16 @@ public:
         &Presenter::on_nameChanges);
     con(m_layer.metadata(), &iscore::ModelMetadata::NameChanged,
         this, &Presenter::on_nameChanges);
+    con(m_layer, &ProcessModel::tweenChanged, this,
+        &Presenter::on_tweenChanges);
 
     m_view->setDisplayedName(m_layer.prettyName());
     m_view->showName(true);
+    on_tweenChanges(m_layer.tween());
+    con(layer.curve(), &Curve::Model::curveReset,
+        this, [&] {
+      on_tweenChanges(layer.tween());
+    });
   }
 
 private:
@@ -37,5 +44,21 @@ private:
   {
     m_view->setDisplayedName(m_layer.prettyName());
   }
+
+  void on_tweenChanges(bool b)
+  {
+    for (Curve::SegmentView& seg : m_curve.segments())
+    {
+      if (seg.model().start().x() != 0.)
+      {
+        seg.setTween(false);
+      }
+      else
+      {
+        seg.setTween(b);
+      }
+    }
+  }
+
 };
 }

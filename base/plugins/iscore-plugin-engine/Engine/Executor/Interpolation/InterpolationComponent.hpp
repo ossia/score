@@ -35,11 +35,13 @@ private:
   void recompute();
   void rebuildCurve();
 
-  ossia::behavior on_curveChanged(ossia::val_type);
+  ossia::behavior on_curveChanged(
+      ossia::val_type,
+      const optional<ossia::Destination>& d);
 
   template <typename T>
   std::shared_ptr<ossia::curve_abstract>
-  on_curveChanged_impl(double min, double max, double s, double e);
+  on_curveChanged_impl(double min, double max, double s, double e, const optional<ossia::Destination>& d);
 };
 using ComponentFactory
     = ::Engine::Execution::ProcessComponentFactory_T<Component>;

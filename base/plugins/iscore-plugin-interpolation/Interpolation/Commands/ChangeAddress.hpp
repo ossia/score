@@ -41,7 +41,7 @@ private:
 class ISCORE_PLUGIN_INTERPOLATION_EXPORT SetTween final
     : public iscore::PropertyCommand
 {
-  ISCORE_COMMAND_DECL(CommandFactoryName(), SetTween, "Set curve tween")
+  ISCORE_COMMAND_DECL(CommandFactoryName(), SetTween, "Set interpolation tween")
 public:
   SetTween(Path<ProcessModel>&& path, bool newval)
       : iscore::PropertyCommand{std::move(path), "tween", newval}

@@ -58,7 +58,12 @@ void Component::recompute()
             system().devices.list(), process().address());
   if(dest)
   {
-    auto curve = on_curveChanged(dest->address().get_value_type());
+    auto& d = *dest;
+    auto addressType = d.address().get_value_type();
+    auto curve =  process().tween()
+                  ? on_curveChanged(addressType, d)
+                  : on_curveChanged(addressType, {});
+
     if(curve)
     {
       system().executionQueue.enqueue(
@@ -83,7 +88,7 @@ void Component::recompute()
 
 template <typename Y_T>
 std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
-    double min, double max, double start, double end)
+    double min, double max, double start, double end, const optional<ossia::Destination>& d)
 {
   using namespace ossia;
 
@@ -91,29 +96,38 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
   auto segt_data = process().curve().sortedSegments();
   if (segt_data.size() != 0)
   {
-    if (start < end)
+    if(d)
     {
+      auto scale_y = [=] (double val) -> Y_T { return val * (max - min) + min; };
       return Engine::iscore_to_ossia::curve<double, Y_T>(
-          scale_x,
-          [=](double val) -> Y_T {
-            return ossia::easing::ease{}(min, max, val);
-          },
-          segt_data, {});
+            scale_x, scale_y, segt_data, d);
     }
-    else if (start == end)
+    else
     {
-      auto curve = std::make_shared<ossia::curve<double, Y_T>>();
-      curve->set_x0(0);
-      curve->set_y0(start);
-      return curve;
-    }
-    else // start > end
-    {
-      return Engine::iscore_to_ossia::
-          curve<double, Y_T>( // ossia::easing::ease
-              scale_x,
-              [=](double val) -> Y_T { return max - val * (max - min); },
-              segt_data, {});
+      if (start < end)
+      {
+        return Engine::iscore_to_ossia::curve<double, Y_T>(
+            scale_x,
+            [=](double val) -> Y_T {
+              return ossia::easing::ease{}(min, max, val);
+            },
+            segt_data, {});
+      }
+      else if (start == end)
+      {
+        auto curve = std::make_shared<ossia::curve<double, Y_T>>();
+        curve->set_x0(0);
+        curve->set_y0(start);
+        return curve;
+      }
+      else // start > end
+      {
+        return Engine::iscore_to_ossia::
+            curve<double, Y_T>( // ossia::easing::ease
+                scale_x,
+                [=](double val) -> Y_T { return max - val * (max - min); },
+                segt_data, {});
+      }
     }
   }
   else
@@ -124,7 +138,9 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
   return {};
 }
 
-ossia::behavior Component::on_curveChanged(ossia::val_type type)
+ossia::behavior Component::on_curveChanged(
+    ossia::val_type type,
+    const optional<ossia::Destination>& d)
 {
   auto start = Engine::iscore_to_ossia::toOSSIAValue(process().start());
   auto end = Engine::iscore_to_ossia::toOSSIAValue(process().end());
@@ -144,14 +160,14 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
       const auto start_v = ossia::convert<double>(start);
       const auto end_v = ossia::convert<double>(end);
       return on_curveChanged_impl<int>(
-          std::min(start_v, end_v), std::max(start_v, end_v), start_v, end_v);
+          std::min(start_v, end_v), std::max(start_v, end_v), start_v, end_v, d);
     }
     case ossia::val_type::FLOAT:
     {
       const auto start_v = ossia::convert<double>(start);
       const auto end_v = ossia::convert<double>(end);
       return on_curveChanged_impl<float>(
-          std::min(start_v, end_v), std::max(start_v, end_v), start_v, end_v);
+          std::min(start_v, end_v), std::max(start_v, end_v), start_v, end_v, d);
     }
     case ossia::val_type::TUPLE:
     {
@@ -172,7 +188,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
             int end_v_i = ossia::convert<int>(end_v[i]);
             t.push_back(on_curveChanged_impl<int>(
                 std::min(start_v_i, end_v_i), std::max(start_v_i, end_v_i),
-                start_v_i, end_v_i));
+                start_v_i, end_v_i, d));
             break;
           }
           case ossia::val_type::FLOAT:
@@ -181,7 +197,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
             float end_v_i = ossia::convert<float>(end_v[i]);
             t.push_back(on_curveChanged_impl<float>(
                 std::min(start_v_i, end_v_i), std::max(start_v_i, end_v_i),
-                start_v_i, end_v_i));
+                start_v_i, end_v_i, d));
             break;
           }
           default:
@@ -208,7 +224,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
         float end_v_i = end_v[i];
         t.push_back(on_curveChanged_impl<float>(
             std::min(start_v_i, end_v_i), std::max(start_v_i, end_v_i),
-            start_v_i, end_v_i));
+            start_v_i, end_v_i, d));
       }
       return t;
     }
@@ -227,7 +243,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
         float end_v_i = end_v[i];
         t.push_back(on_curveChanged_impl<float>(
             std::min(start_v_i, end_v_i), std::max(start_v_i, end_v_i),
-            start_v_i, end_v_i));
+            start_v_i, end_v_i, d));
       }
       return t;
     }
@@ -246,7 +262,7 @@ ossia::behavior Component::on_curveChanged(ossia::val_type type)
         float end_v_i = end_v[i];
         t.push_back(on_curveChanged_impl<float>(
             std::min(start_v_i, end_v_i), std::max(start_v_i, end_v_i),
-            start_v_i, end_v_i));
+            start_v_i, end_v_i, d));
       }
       return t;
     }
