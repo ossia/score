@@ -10,7 +10,7 @@ namespace Inspector
 {
 MenuButton::MenuButton(QWidget* parent):
 #if defined(_MSC_VER)
-  QPushButton{QStringLiteral("#"), parent}
+  QPushButton{QString(QChar(0x2699)), parent}
 #else
   QPushButton{QStringLiteral("⚙"), parent}
 #endif
