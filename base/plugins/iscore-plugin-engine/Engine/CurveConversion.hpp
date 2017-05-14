@@ -90,5 +90,61 @@ std::shared_ptr<ossia::curve_abstract> curve(
 
   return curve;
 }
+
+
+template <
+    typename X_T,
+    typename Y_T,
+    typename XScaleFun,
+    typename Segments>
+std::shared_ptr<ossia::curve_abstract> scalable_curve(
+    Y_T min, Y_T max, Y_T end,
+    XScaleFun scale_x,
+    const Segments& segments,
+    const ossia::Destination& tween)
+{
+  auto curve = std::make_shared<ossia::curve<X_T, Y_T>>();
+
+  auto start = segments[0]->start();
+  if (start.x() == 0.)
+  {
+    curve->set_x0(scale_x(start.x()));
+    curve->set_y0(start.y());
+  }
+
+  curve->set_scale_bounds(min, max, end);
+  curve->set_y0_destination(tween);
+
+  for (auto iscore_segment : segments)
+  {
+    auto end = iscore_segment->end();
+#if defined(_MSC_VER)
+    if (std::is_same<Y_T, int>::value)
+    {
+      curve->add_point(
+          iscore_segment->makeIntFunction(),
+          scale_x(end.x()), end.y());
+    }
+    else if (std::is_same<Y_T, float>::value)
+    {
+      curve->add_point(
+          iscore_segment->makeFloatFunction(),
+            scale_x(end.x()), end.y());
+    }
+    else if (std::is_same<Y_T, bool>::value)
+    {
+      curve->add_point(
+          iscore_segment->makeBoolFunction(),
+            scale_x(end.x()), end.y());
+    }
+#else
+    curve->add_point(
+        (iscore_segment->*CurveTraits<Y_T>::fun)(),
+          scale_x(end.x()), end.y());
+#endif
+  }
+
+  return curve;
+}
 }
 }
