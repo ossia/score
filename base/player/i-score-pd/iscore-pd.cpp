@@ -1,7 +1,7 @@
 #include <sstream>
 #include <memory>
 #include "player.hpp"
-
+#include <get_library_path.hpp>
 extern "C" {
 #include <cicm_wrapper.h>
 }
@@ -40,12 +40,16 @@ static void iscore_load(t_iscore* x, t_symbol* s){
 static void *iscore_new(t_symbol *name, int argc, t_atom *argv)
 {
     t_iscore *x = (t_iscore *)eobj_new(iscore_class);
-    x->p = std::make_unique<iscore::Player>();
+    auto path = get_library_path("i-score.");
+    post("i-score player: %s", path.c_str());
+
+    x->p = std::make_unique<iscore::Player>(path + "/plugins");
+
     return (x);
 }
 
-static void iscore_free(t_iscore *x){
-
+static void iscore_free(t_iscore *x) {
+  x->p.reset();
 }
 
 extern "C" void setup_i0x2dscore(void)

@@ -55,6 +55,7 @@ public:
   ~PlayerImpl();
 
   void init();
+  void registerPluginPath(std::string);
   void closeDocument();
 
   void exec();
@@ -102,6 +103,7 @@ private:
   std::unique_ptr<QCoreApplication> m_app{};
 
   // Application-specific
+  std::string m_pluginPath;
   ApplicationSettings m_globSettings;
   ApplicationComponentsData m_compData;
 

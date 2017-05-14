@@ -126,13 +126,13 @@ std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
 }
 
 void
-loadPluginsInAllFolders(std::vector<iscore::Addon>& availablePlugins)
+loadPluginsInAllFolders(std::vector<iscore::Addon>& availablePlugins, QStringList additional)
 {
   using namespace iscore::PluginLoader;
 
 #if !defined(ISCORE_STATIC_QT)
   // Load dynamic plug-ins
-  for (const QString& pluginsFolder : pluginsDir())
+  for (const QString& pluginsFolder : pluginsDir() + additional)
   {
     QDir pluginsDir(pluginsFolder);
     for (const QString& fileName : pluginsDir.entryList(QDir::Files))

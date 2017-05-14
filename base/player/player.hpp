@@ -12,6 +12,7 @@ class ISCORE_PLAYER_EXPORT Player
 {
 public:
   Player();
+  Player(std::string plugin_path);
   ~Player();
 
   void setPort(int port);
