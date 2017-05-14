@@ -1,4 +1,5 @@
 #include <sstream>
+#include <memory>
 #include "player.hpp"
 
 extern "C" {
@@ -11,7 +12,7 @@ namespace player {
 struct t_iscore
 {
     t_eobj     obj; // pd object - always placed first in the object's struct
-    iscore::Player p;
+    std::unique_ptr<iscore::Player> p;
 };
 
 static t_eclass *iscore_class;
@@ -22,15 +23,15 @@ static void iscore_bang(t_iscore* x){
 
 static void iscore_float(t_iscore* x, t_float f){
     if (f > 0.){
-       x->p.play();
+       x->p->play();
     } else {
-       x->p.stop();
+       x->p->stop();
     }
 }
 
 static void iscore_load(t_iscore* x, t_symbol* s){
     try{
-      x->p.load(s->s_name);
+      x->p->load(s->s_name);
     } catch (std::exception& e){
         pd_error(x,"can't open file %s: %s", s->s_name, e.what());
     }
@@ -39,6 +40,7 @@ static void iscore_load(t_iscore* x, t_symbol* s){
 static void *iscore_new(t_symbol *name, int argc, t_atom *argv)
 {
     t_iscore *x = (t_iscore *)eobj_new(iscore_class);
+    x->p = std::make_unique<iscore::Player>();
     return (x);
 }
 

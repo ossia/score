@@ -106,7 +106,16 @@ void PlayerImpl::init()
       auto pol = dynamic_cast<Network::PlayerClientEditionPolicy*>(&plug->policy());
       if(pol)
       {
-        pol->onPlay = [this] { play(); };
+        pol->onPlay = [this] {
+          prepare_play();
+
+          auto& exec_ctx = m_execPlugin->context();
+          m_execPlugin->runAllCommands();
+          Network::BasicPruner{*m_networkPlugin}(exec_ctx);
+          m_execPlugin->runAllCommands();
+
+          do_play();
+        };
         pol->onStop = [this] { stop(); };
       }
     }
@@ -238,7 +247,7 @@ void PlayerImpl::exec() { if(m_app) m_app->exec(); }
 
 void PlayerImpl::close() { if(m_app) m_app->exit(0); }
 
-void PlayerImpl::play()
+void PlayerImpl::prepare_play()
 {
   DocumentModel& doc_model = m_currentDocument->model();
   Scenario::ConstraintModel& root_cst = safe_cast<Scenario::ScenarioDocumentModel&>(doc_model.modelDelegate()).baseConstraint();
@@ -247,12 +256,10 @@ void PlayerImpl::play()
 
   auto& exec_settings = m_appContext.settings<Engine::Execution::Settings::Model>();
   m_clock = exec_settings.makeClock(exec_ctx);
+}
 
-#if defined(ISCORE_ADDON_NETWORK)
-  m_execPlugin->runAllCommands();
-  Network::BasicPruner{*m_networkPlugin}(exec_ctx);
-  m_execPlugin->runAllCommands();
-#endif
+void PlayerImpl::do_play()
+{
   m_clock->play(TimeVal::zero());
 }
 

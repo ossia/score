@@ -66,7 +66,16 @@ public:
   void registerDevice(ossia::net::device_base*);
   void releaseDevice(ossia::net::device_base*);
   void setPort(int);
-  void play();
+
+  void prepare_play();
+  void do_play();
+
+  void play()
+  {
+    prepare_play();
+    do_play();
+  }
+
   void stop();
 
 
