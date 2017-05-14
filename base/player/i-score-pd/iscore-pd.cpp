@@ -15,7 +15,7 @@ struct t_iscore
     std::unique_ptr<iscore::Player> p;
 };
 
-static t_eclass *iscore_class;
+static t_eclass *iscore_class = nullptr;
 
 static void iscore_bang(t_iscore* x){
 
@@ -42,7 +42,6 @@ static void *iscore_new(t_symbol *name, int argc, t_atom *argv)
     t_iscore *x = (t_iscore *)eobj_new(iscore_class);
     auto path = get_library_path("i-score.");
     post("i-score player: %s", path.c_str());
-
     x->p = std::make_unique<iscore::Player>(path + "/plugins");
 
     return (x);
@@ -54,15 +53,21 @@ static void iscore_free(t_iscore *x) {
 
 extern "C" void setup_i0x2dscore(void)
 {
+    setenv("LC_NUMERIC","C", 1);
+
     t_eclass* c = eclass_new("i-score",
                            (method)iscore_new, (method)iscore_free,
                            sizeof(t_iscore), CLASS_DEFAULT, A_GIMME, 0);
+
+    // it is checked in eobj_new but never initialized.
+    c->c_class.c_patchable = true;
 
     if (c){
         eclass_addmethod(c, (method) iscore_bang,  "bang",     A_NULL,   0);
         eclass_addmethod(c, (method) iscore_float, "float",    A_FLOAT,  0);
         eclass_addmethod(c, (method) iscore_load,  "load",     A_SYMBOL, 0);
     }
+
     iscore_class = c;
 }
 
