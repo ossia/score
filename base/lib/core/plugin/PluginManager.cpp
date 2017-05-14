@@ -41,7 +41,10 @@ QStringList pluginsDir()
     << QCoreApplication::applicationDirPath()
            + "../Frameworks/i-score/plugins";
 #endif
+  auto pwd = QDir{}.absolutePath() + "/plugins";
 
+  if(pwd != l[0])
+    l << pwd;
   qDebug() << l;
   return l;
 }

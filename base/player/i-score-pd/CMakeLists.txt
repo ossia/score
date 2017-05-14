@@ -72,6 +72,7 @@ set(PROJECT_SRCS iscore-pd.cpp )
 
 add_library(${PROJECT_NAME} SHARED ${PROJECT_SRCS})
 use_gold(${PROJECT_NAME})
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE CicmWrapper)
 target_link_libraries(${PROJECT_NAME} PRIVATE iscore_player)
