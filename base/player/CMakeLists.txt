@@ -16,7 +16,10 @@ endif()
 add_library(iscore_player
   "${CMAKE_CURRENT_SOURCE_DIR}/player_impl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/player.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/player.cpp")
+  "${CMAKE_CURRENT_SOURCE_DIR}/player.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/get_library_path.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/get_library_path.cpp"
+  )
 target_compile_definitions(iscore_player PRIVATE
   $<$<BOOL:${ISCORE_STATIC_PLUGINS}>:QT_STATICPLUGIN>
 )
