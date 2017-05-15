@@ -79,13 +79,13 @@ void FullViewConstraintView::paint(
     skin.ConstraintDashPen.setBrush(c);
     p.setPen(skin.ConstraintDashPen);
 
-    p.fillRect(QRectF{def_w, ConstraintHeaderHeight, m_guiWidth, height()}, skin.SlotOverlay.getColor());
+    p.fillRect(QRectF{def_w, (double)ConstraintHeaderHeight, m_guiWidth, height()}, skin.SlotOverlay.getColor());
 
     p.drawLine(QPointF{min_w, 0.}, QPointF{infinite()? m_guiWidth : max_w, 0.});
 
 
     painter->setPen(skin.FullViewConstraintHeaderSeparator);
-    p.drawLine(QPointF{def_w, ConstraintHeaderHeight}, QPointF{m_guiWidth, ConstraintHeaderHeight});
+    p.drawLine(QPointF{def_w, (double)ConstraintHeaderHeight}, QPointF{m_guiWidth, (double)ConstraintHeaderHeight});
 
     // First the line going from 0 to the min
     p.setPen(skin.ConstraintSolidPen);

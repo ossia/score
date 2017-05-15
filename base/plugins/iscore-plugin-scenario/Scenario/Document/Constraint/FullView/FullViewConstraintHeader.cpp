@@ -41,7 +41,7 @@ void FullViewConstraintHeader::paint(
 
   const auto& skin = ScenarioStyle::instance();
   painter->setPen(skin.ConstraintHeaderSeparator);
-  painter->drawLine(QPointF{0, ConstraintHeaderHeight}, QPointF{m_width, ConstraintHeaderHeight});
+  painter->drawLine(QPointF{0, (double)ConstraintHeaderHeight}, QPointF{m_width, (double)ConstraintHeaderHeight});
 
   double textWidth = m_bar->width();
 
