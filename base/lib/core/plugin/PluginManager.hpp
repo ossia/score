@@ -43,7 +43,8 @@ QStringList addonsDir();
 QStringList pluginsDir();
 
 ISCORE_LIB_BASE_EXPORT void loadPluginsInAllFolders(
-    std::vector<iscore::Addon>& availablePlugins);
+    std::vector<iscore::Addon>& availablePlugins
+    , QStringList additional = {});
 
 ISCORE_LIB_BASE_EXPORT void loadAddonsInAllFolders(
     std::vector<iscore::Addon>& availablePlugins);

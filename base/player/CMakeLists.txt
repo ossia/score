@@ -6,10 +6,20 @@ enable_testing()
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5 5.7 COMPONENTS QuickControls2)
 
+option(ISCORE_PLAYER_PD "Build player object for PD" OFF)
+option(ISCORE_PLAYER_MAX "Build player object for Max" OFF)
+
+if(ISCORE_PLAYER_PD)
+  add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/i-score-pd")
+endif()
+
 add_library(iscore_player
   "${CMAKE_CURRENT_SOURCE_DIR}/player_impl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/player.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/player.cpp")
+  "${CMAKE_CURRENT_SOURCE_DIR}/player.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/get_library_path.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/get_library_path.cpp"
+  )
 target_compile_definitions(iscore_player PRIVATE
   $<$<BOOL:${ISCORE_STATIC_PLUGINS}>:QT_STATICPLUGIN>
 )

@@ -41,7 +41,7 @@ void AbstractTimeRulerView::paint(
     auto& style = ScenarioStyle::instance();
     painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setPen(style.TimeRulerLargePen);
-    painter.drawLine(0, 0, m_width, 0);
+    painter.drawLine(QPointF{0, 0}, QPointF{m_width, 0});
     painter.setPen(style.TimeRulerSmallPen);
     painter.setBrush(style.TimeRuler.getColor());
     painter.drawPath(m_path);

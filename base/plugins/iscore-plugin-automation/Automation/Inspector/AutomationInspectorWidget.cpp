@@ -46,6 +46,7 @@ InspectorWidget::InspectorWidget(
   vlay->setMargin(2);
   vlay->setContentsMargins(0, 0, 0, 0);
 
+  // Address
   m_lineEdit = new AddressAccessorEditWidget{
       doc.plugin<DeviceDocumentPlugin>().explorer(), this};
 
