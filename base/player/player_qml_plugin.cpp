@@ -52,6 +52,7 @@ struct qt_log_sink final : public spdlog::sinks::sink
 
 QMLPlayer::QMLPlayer()
 {
+  m_player.init();
   registerDevice(&ossia::qt::qml_singleton_device::instance());
 }
 

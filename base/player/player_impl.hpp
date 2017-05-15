@@ -55,6 +55,7 @@ public:
   ~PlayerImpl();
 
   void init();
+  void registerPluginPath(std::string);
   void closeDocument();
 
   void exec();
@@ -66,7 +67,16 @@ public:
   void registerDevice(ossia::net::device_base*);
   void releaseDevice(ossia::net::device_base*);
   void setPort(int);
-  void play();
+
+  void prepare_play();
+  void do_play();
+
+  void play()
+  {
+    prepare_play();
+    do_play();
+  }
+
   void stop();
 
 
@@ -93,6 +103,7 @@ private:
   std::unique_ptr<QCoreApplication> m_app{};
 
   // Application-specific
+  std::string m_pluginPath;
   ApplicationSettings m_globSettings;
   ApplicationComponentsData m_compData;
 

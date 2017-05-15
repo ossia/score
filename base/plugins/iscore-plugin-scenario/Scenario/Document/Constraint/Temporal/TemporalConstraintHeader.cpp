@@ -61,7 +61,7 @@ void TemporalConstraintHeader::paint(
   else
   {
     painter->setPen(skin.ConstraintHeaderSeparator);
-    painter->drawLine(0, ConstraintHeaderHeight, m_width, ConstraintHeaderHeight);
+    painter->drawLine(QPointF{0, ConstraintHeaderHeight}, QPointF{m_width, ConstraintHeaderHeight});
   }
 
   // Header

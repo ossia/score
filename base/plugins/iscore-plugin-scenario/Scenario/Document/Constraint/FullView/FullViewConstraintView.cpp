@@ -71,27 +71,25 @@ void FullViewConstraintView::paint(
   if (min_w == max_w)
   {
     p.setPen(skin.ConstraintSolidPen);
-    p.drawLine(0, 0, def_w, 0);
+    p.drawLine(QPointF{0., 0.}, QPointF{def_w, 0.});
   }
   else
   {
     // Then the dashed line
     skin.ConstraintDashPen.setBrush(c);
     p.setPen(skin.ConstraintDashPen);
-    if(!infinite())
-      p.drawLine(min_w, 0, max_w, 0);
-    else
-    {
-      p.fillRect(QRectF{defaultWidth(), 0, m_guiWidth, height()}, skin.SlotOverlay.getColor());
-      p.drawLine(min_w, 0, m_guiWidth, 0);
 
-      painter->setPen(skin.FullViewConstraintHeaderSeparator);
-      p.drawLine(min_w, ConstraintHeaderHeight, m_guiWidth, ConstraintHeaderHeight);
-    }
+    p.fillRect(QRectF{def_w, (double)ConstraintHeaderHeight, m_guiWidth, height()}, skin.SlotOverlay.getColor());
+
+    p.drawLine(QPointF{min_w, 0.}, QPointF{infinite()? m_guiWidth : max_w, 0.});
+
+
+    painter->setPen(skin.FullViewConstraintHeaderSeparator);
+    p.drawLine(QPointF{def_w, (double)ConstraintHeaderHeight}, QPointF{m_guiWidth, (double)ConstraintHeaderHeight});
 
     // First the line going from 0 to the min
     p.setPen(skin.ConstraintSolidPen);
-    p.drawLine(0, 0, min_w, 0);
+    p.drawLine(QPointF{0., 0.}, QPointF{min_w, 0.});
 
   }
 
@@ -100,7 +98,7 @@ void FullViewConstraintView::paint(
   {
     skin.ConstraintPlayPen.setBrush(skin.ConstraintPlayFill.getColor());
     p.setPen(skin.ConstraintPlayPen);
-    p.drawLine(0, 0, std::min(play_w, std::max(def_w, max_w)), 0);
+    p.drawLine(QPointF{0., 0.}, QPointF{std::min(play_w, std::max(def_w, max_w)), 0.});
   }
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)

@@ -30,7 +30,6 @@ namespace iscore
 PlayerImpl::PlayerImpl()
 {
   m_instance = this;
-  init();
 }
 
 PlayerImpl::PlayerImpl(bool)
@@ -38,7 +37,6 @@ PlayerImpl::PlayerImpl(bool)
   , m_app{std::make_unique<QCoreApplication>(argc, argv)}
 {
   m_instance = this;
-  init();
 }
 
 PlayerImpl::~PlayerImpl()
@@ -106,7 +104,16 @@ void PlayerImpl::init()
       auto pol = dynamic_cast<Network::PlayerClientEditionPolicy*>(&plug->policy());
       if(pol)
       {
-        pol->onPlay = [this] { play(); };
+        pol->onPlay = [this] {
+          prepare_play();
+
+          auto& exec_ctx = m_execPlugin->context();
+          m_execPlugin->runAllCommands();
+          Network::BasicPruner{*m_networkPlugin}(exec_ctx);
+          m_execPlugin->runAllCommands();
+
+          do_play();
+        };
         pol->onStop = [this] { stop(); };
       }
     }
@@ -119,6 +126,11 @@ void PlayerImpl::init()
   connect(this, &PlayerImpl::sig_close, this, &PlayerImpl::close, Qt::QueuedConnection);
   connect(this, &PlayerImpl::sig_registerDevice, this, &PlayerImpl::registerDevice, Qt::QueuedConnection);
   connect(this, &PlayerImpl::sig_setPort, this, &PlayerImpl::setPort, Qt::QueuedConnection);
+}
+
+void PlayerImpl::registerPluginPath(std::string s)
+{
+  m_pluginPath = s;
 }
 
 void PlayerImpl::closeDocument()
@@ -238,7 +250,7 @@ void PlayerImpl::exec() { if(m_app) m_app->exec(); }
 
 void PlayerImpl::close() { if(m_app) m_app->exit(0); }
 
-void PlayerImpl::play()
+void PlayerImpl::prepare_play()
 {
   DocumentModel& doc_model = m_currentDocument->model();
   Scenario::ConstraintModel& root_cst = safe_cast<Scenario::ScenarioDocumentModel&>(doc_model.modelDelegate()).baseConstraint();
@@ -247,12 +259,10 @@ void PlayerImpl::play()
 
   auto& exec_settings = m_appContext.settings<Engine::Execution::Settings::Model>();
   m_clock = exec_settings.makeClock(exec_ctx);
+}
 
-#if defined(ISCORE_ADDON_NETWORK)
-  m_execPlugin->runAllCommands();
-  Network::BasicPruner{*m_networkPlugin}(exec_ctx);
-  m_execPlugin->runAllCommands();
-#endif
+void PlayerImpl::do_play()
+{
   m_clock->play(TimeVal::zero());
 }
 
@@ -303,7 +313,11 @@ void PlayerImpl::loadPlugins(ApplicationRegistrar& registrar, const ApplicationC
     }
   }
 
-  loadPluginsInAllFolders(availablePlugins);
+  if(!m_pluginPath.empty())
+    loadPluginsInAllFolders(availablePlugins, {QString::fromStdString(m_pluginPath)});
+  else
+    loadPluginsInAllFolders(availablePlugins);
+
   loadAddonsInAllFolders(availablePlugins);
 
   registrar.registerAddons(availablePlugins);
@@ -367,22 +381,36 @@ void PlayerImpl::loadPlugins(ApplicationRegistrar& registrar, const ApplicationC
 
 
 
-Player::Player()
+Player::Player():
+  Player{std::string{}}
+{
+}
+
+Player::Player(std::string plugin_path)
 {
   if(QCoreApplication::instance())
   { // we run in the main thread
     m_player = std::make_unique<PlayerImpl>();
+
+    m_player->registerPluginPath(plugin_path);
+
+    m_player->init();
     m_loaded = true;
   }
   else
   {
-    m_thread = std::thread([&] {
+    m_thread = std::thread([&,plugins=plugin_path] {
       m_player = std::make_unique<PlayerImpl>(true);
+
+      m_player->registerPluginPath(plugins);
+
+      m_player->init();
       m_loaded = true;
       m_player->exec();
       m_player.reset();
     });
   }
+
 }
 
 Player::~Player()

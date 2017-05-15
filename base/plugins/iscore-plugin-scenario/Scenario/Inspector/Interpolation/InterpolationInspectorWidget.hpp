@@ -7,6 +7,7 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 class QLabel;
+class QCheckBox;
 namespace Interpolation
 {
 class ProcessModel;
@@ -28,8 +29,10 @@ public:
 private:
   void on_addressChange(const ::State::AddressAccessor& newText);
   Explorer::AddressAccessorEditWidget* m_lineEdit{};
+  QCheckBox* m_tween{};
 
   CommandDispatcher<> m_dispatcher;
+  void on_tweenChanged();
 };
 
 class InspectorFactory final
