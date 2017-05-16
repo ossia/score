@@ -38,7 +38,7 @@ ConstraintBase::ConstraintBase(
       &ConstraintDurations::defaultDurationChanged, this));
 
   m_properties.push_back(add_getProperty<float>(
-      node(), "play", &constraint.duration,
+      node(), "playtime", &constraint.duration,
       &ConstraintDurations::playPercentage,
       &ConstraintDurations::playPercentageChanged, this));
 
