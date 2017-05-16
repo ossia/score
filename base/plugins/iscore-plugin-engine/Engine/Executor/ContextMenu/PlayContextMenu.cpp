@@ -222,9 +222,8 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
         if (ossia::any_of(sel, matches<Scenario::ConstraintModel>{}))
         {
           auto submenu = menu.findChild<QMenu*>("Constraint");
-          ISCORE_ASSERT(submenu);
-
-          submenu->addAction(m_playConstraints);
+          if(submenu)
+            submenu->addAction(m_playConstraints);
         }
       });
 
