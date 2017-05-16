@@ -46,5 +46,9 @@ ISCORE_LIB_PROCESS_EXPORT void
 JSONObjectWriter::write(Process::ProcessModel& process)
 {
   process.m_duration = fromJsonValue<TimeVal>(obj[strings.Duration]);
-  process.m_slotHeight = obj[strings.Height].toDouble();
+  auto h_it = obj.constFind(strings.Height);
+  if(h_it != obj.constEnd())
+    process.m_slotHeight = obj[strings.Height].toDouble();
+  else
+    process.m_slotHeight = 300;
 }
