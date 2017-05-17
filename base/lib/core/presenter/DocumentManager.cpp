@@ -251,10 +251,10 @@ bool DocumentManager::saveDocument(Document& doc)
       f.write(json_doc.toJson());
     }
     f.commit();
-  }
 
-  m_recentFiles->addRecentFile(savename);
-  saveRecentFilesState();
+    m_recentFiles->addRecentFile(savename);
+    saveRecentFilesState();
+  }
 
   return true;
 }
@@ -304,6 +304,9 @@ bool DocumentManager::saveDocumentAs(Document& doc)
         f.write(json_doc.toJson());
       }
       f.commit();
+
+      m_recentFiles->addRecentFile(savename);
+      saveRecentFilesState();
     }
     return true;
   }
