@@ -16,7 +16,7 @@ public:
   template <typename Fun>
   ExpressionMenu(Fun f, QWidget* parent)
       : menu{new QMenu{parent}}
-      , deleteAction{menu->addAction(QObject::tr("Delete"))}
+      , deleteAction{menu->addAction(QObject::tr("Disable"))}
       , editAction{menu->addAction(QObject::tr("Edit"))}
       , addSubAction{menu->addAction(QObject::tr("Add sub-expression"))}
   {
