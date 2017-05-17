@@ -221,7 +221,18 @@ JSONObjectWriter::write(Scenario::ConstraintModel& constraint)
   }
 
   fromJsonArray(obj[strings.SmallViewRack].toArray(), constraint.m_smallView);
-  fromJsonArray(obj[strings.FullViewRack].toArray(), constraint.m_fullView);
+  auto fv_it = obj.constFind(strings.FullViewRack);
+  if(fv_it != obj.constEnd())
+  {
+    fromJsonArray(fv_it->toArray(), constraint.m_fullView);
+  }
+  else
+  {
+    // Create a slot for every process
+    constraint.m_fullView.clear();
+    for(auto& proc : constraint.processes)
+      constraint.m_fullView.push_back(Scenario::FullSlot{proc.id()});
+  }
 
   writeTo(constraint.duration);
   constraint.m_startState
