@@ -93,7 +93,6 @@ private slots:
 
 private:
   void on_viewSizeChanged(QSize);
-  void on_displayedConstraintChanged();
   void on_zoomSliderChanged(double);
   void on_zoomOnWheelEvent(QPointF, QPointF);
   void on_timeRulerScrollEvent(QPointF, QPointF);
