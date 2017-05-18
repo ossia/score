@@ -60,10 +60,10 @@ public:
       const Process::ProcessModel&,
       Process::LayerView*,
       const Process::ProcessPresenterContext& context,
-      QObject* parent) = 0;
+      QObject* parent);
 
   virtual Process::LayerView*
-  makeLayerView(const Process::ProcessModel& view, QGraphicsItem* parent) = 0;
+  makeLayerView(const Process::ProcessModel& view, QGraphicsItem* parent);
 
   virtual Process::LayerPanelProxy*
   makePanel(const ProcessModel& layer, QObject* parent);
