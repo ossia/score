@@ -61,16 +61,16 @@ private:
   void stopConstraintExecution(const Id<Scenario::ConstraintModel>&);
 
 private:
-  std::shared_ptr<Engine::Execution::ConstraintComponent> m_ossia_constraint;
+  Engine::Execution::ConstraintComponent* m_ossia_constraint{};
 
-  std::shared_ptr<Engine::Execution::TimeNodeComponent> m_ossia_startTimeNode;
-  std::shared_ptr<Engine::Execution::TimeNodeComponent> m_ossia_endTimeNode;
+  Engine::Execution::TimeNodeComponent* m_ossia_startTimeNode{};
+  Engine::Execution::TimeNodeComponent* m_ossia_endTimeNode{};
 
-  std::shared_ptr<Engine::Execution::EventComponent> m_ossia_startEvent;
-  std::shared_ptr<Engine::Execution::EventComponent> m_ossia_endEvent;
+  Engine::Execution::EventComponent* m_ossia_startEvent{};
+  Engine::Execution::EventComponent* m_ossia_endEvent{};
 
-  std::shared_ptr<Engine::Execution::StateComponent> m_ossia_startState;
-  std::shared_ptr<Engine::Execution::StateComponent> m_ossia_endState;
+  Engine::Execution::StateComponent* m_ossia_startState{};
+  Engine::Execution::StateComponent* m_ossia_endState{};
 };
 
 using ComponentFactory
