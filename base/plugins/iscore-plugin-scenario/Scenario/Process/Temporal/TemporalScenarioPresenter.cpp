@@ -435,6 +435,7 @@ void TemporalScenarioPresenter::on_focusChanged()
   }
 
   editionSettings().setTool(Scenario::Tool::Select);
+  editionSettings().setExpandMode(ExpandMode::Scale);
 }
 
 /////////////////////////////////////////////////////////////////////
