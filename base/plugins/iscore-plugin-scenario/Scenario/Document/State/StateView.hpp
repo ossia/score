@@ -58,6 +58,7 @@ public:
   void setContainMessage(bool);
   void setSelected(bool arg);
   void setStatus(ExecutionStatus);
+  void disableOverlay();
 
 signals:
   void dropReceived(const QMimeData*);
@@ -82,6 +83,7 @@ private:
   qreal m_dilatationFactor = 1;
   bool m_containMessage{false};
   bool m_selected{false};
+  bool m_hasOverlay{true};
   ExecutionStatusProperty m_status{};
 
   static const constexpr qreal m_radiusFull = 6.;

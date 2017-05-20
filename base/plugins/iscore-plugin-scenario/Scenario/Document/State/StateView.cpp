@@ -75,15 +75,18 @@ void StateView::setSelected(bool b)
   m_selected = b;
   setDilatation(m_selected ? 1.5 : 1);
 
-  if(b)
+  if(m_hasOverlay)
   {
-    m_overlay = new StateMenuOverlay{this};
-    m_overlay->setPos(14, -14);
-  }
-  else
-  {
-    delete m_overlay;
-    m_overlay = nullptr;
+      if(b)
+      {
+        m_overlay = new StateMenuOverlay{this};
+        m_overlay->setPos(14, -14);
+      }
+      else
+      {
+        delete m_overlay;
+        m_overlay = nullptr;
+      }
   }
 }
 
@@ -93,6 +96,11 @@ void StateView::setStatus(ExecutionStatus status)
     return;
   m_status.set(status);
   update();
+}
+
+void StateView::disableOverlay()
+{
+    m_hasOverlay = false;
 }
 
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent* event)
