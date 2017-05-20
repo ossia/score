@@ -18,6 +18,7 @@
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 
 namespace Scenario
 {
@@ -224,6 +225,19 @@ protected:
     this->makeSnapshot();
     this->m_dispatcher
         .template commit<Scenario::Command::CreationMetaCommand>();
+    // Select all the created elements
+    Selection s;
+    for(auto& st : this->createdStates)
+    {
+      s.append(&m_parentSM.model().states.at(st));
+    }
+    for(auto& c : this->createdConstraints)
+    {
+      s.append(&m_parentSM.model().constraints.at(c));
+    }
+
+    iscore::SelectionDispatcher d{this->m_parentSM.context().context.selectionStack};
+    d.setAndCommit(s);
     this->clearCreatedIds();
     this->m_parentSM.editionSettings().setSequence(false);
   }
