@@ -211,8 +211,11 @@ function(iscore_set_unix_compile_options theTarget)
 endfunction()
 
 function(iscore_set_compile_options theTarget)
-  set_target_properties(${TheTarget} PROPERTIES CXX_STANDARD 14)
-
+  if(${CMAKE_VERSION} VERSION_LESS 3.8.0 OR ANDROID OR APPLE)
+    set_target_properties(${TheTarget} PROPERTIES CXX_STANDARD 14)
+  else()
+    set_target_properties(${TheTarget} PROPERTIES CXX_STANDARD 17)
+  endif()
   target_compile_definitions(${TheTarget} PUBLIC
       $<$<CONFIG:Debug>:ISCORE_DEBUG>
       $<$<CONFIG:Debug>:BOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING>
