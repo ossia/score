@@ -96,7 +96,7 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
   copiedTimeNodes.reserve(selectedTimeNodes.size());
   for (const auto& tn : selectedTimeNodes)
   {
-    auto clone_tn = new TimeNodeModel(*tn, tn->id(), parent);
+    auto clone_tn = new TimeNodeModel(*tn, tn->id(), nullptr);
     auto events = clone_tn->events();
     for (const auto& event : events)
     {
@@ -114,7 +114,7 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
   copiedEvents.reserve(selectedEvents.size());
   for (const auto& ev : selectedEvents)
   {
-    auto clone_ev = new EventModel(*ev, ev->id(), parent);
+    auto clone_ev = new EventModel(*ev, ev->id(), nullptr);
     auto states = clone_ev->states();
     for (const auto& state : states)
     {
