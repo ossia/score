@@ -9,6 +9,8 @@ namespace iscore
 ModelMetadata::ModelMetadata(const ModelMetadata& other) : QObject{}
 {
   setName(other.getName());
+
+  qDebug() << other.getName() << getName();
   setComment(other.getComment());
   setColor(other.getColor());
   setLabel(other.getLabel());
@@ -74,15 +76,21 @@ void ModelMetadata::setName(const QString& arg)
       auto objs = o->findChildren<ModelMetadata*>(
             QString{}, Qt::FindDirectChildrenOnly);
       if (!objs.empty())
-        bros.push_back(objs[0]->getName());
+      {
+         auto n = objs[0]->getName();
+         if(!n.isEmpty())
+             bros.push_back(std::move(n));
+      }
     }
 
     m_scriptingName = ossia::net::sanitize_name(arg, bros);
   }
   else
   {
+    m_scriptingName = arg;
     ossia::net::sanitize_name(m_scriptingName);
   }
+
   emit NameChanged(arg);
   emit metadataChanged();
 }
