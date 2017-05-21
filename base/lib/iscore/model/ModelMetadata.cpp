@@ -9,8 +9,6 @@ namespace iscore
 ModelMetadata::ModelMetadata(const ModelMetadata& other) : QObject{}
 {
   setName(other.getName());
-
-  qDebug() << other.getName() << getName();
   setComment(other.getComment());
   setColor(other.getColor());
   setLabel(other.getLabel());
