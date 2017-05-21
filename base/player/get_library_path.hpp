@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/string_view.hpp>
+#include <string>
 #include <iscore_player_export.h>
 namespace iscore
 {
