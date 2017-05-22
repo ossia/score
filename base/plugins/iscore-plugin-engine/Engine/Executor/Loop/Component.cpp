@@ -109,23 +109,23 @@ Component::Component(
   auto main_end_event = *main_end_node->get_time_events().begin();
 
   using namespace Engine::Execution;
-  m_ossia_startTimeNode = std::make_shared<TimeNodeComponent>(element.startTimeNode(),
+  m_ossia_startTimeNode = new TimeNodeComponent(element.startTimeNode(),
                                               system(), iscore::newId(element.startTimeNode()), this);
-  m_ossia_endTimeNode = std::make_shared<TimeNodeComponent>(element.endTimeNode(),
+  m_ossia_endTimeNode = new TimeNodeComponent(element.endTimeNode(),
                                             system(), iscore::newId(element.endTimeNode()), this);
 
-  m_ossia_startEvent = std::make_shared<EventComponent>(element.startEvent(),
+  m_ossia_startEvent = new EventComponent(element.startEvent(),
                                         system(), iscore::newId(element.startEvent()), this);
-  m_ossia_endEvent = std::make_shared<EventComponent>(element.endEvent(),
+  m_ossia_endEvent = new EventComponent(element.endEvent(),
                                       system(), iscore::newId(element.endEvent()), this);
 
   m_ossia_startState
-      = std::make_shared<StateComponent>(element.startState(), system(), iscore::newId(element.startState()), this);
+      = new StateComponent(element.startState(), system(), iscore::newId(element.startState()), this);
   m_ossia_endState
-      = std::make_shared<StateComponent>(element.endState(), system(), iscore::newId(element.endState()), this);
+      = new StateComponent(element.endState(), system(), iscore::newId(element.endState()), this);
 
 
-  m_ossia_constraint = std::make_shared<ConstraintComponent>(element.constraint(), system(), iscore::newId(element.constraint()), this);
+  m_ossia_constraint = new ConstraintComponent(element.constraint(), system(), iscore::newId(element.constraint()), this);
 
   m_ossia_startTimeNode->onSetup(main_start_node, m_ossia_startTimeNode->makeTrigger());
   m_ossia_endTimeNode->onSetup(main_end_node, m_ossia_endTimeNode->makeTrigger());
@@ -134,6 +134,17 @@ Component::Component(
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
   m_ossia_constraint->onSetup(loop->get_time_constraint(), m_ossia_constraint->makeDurations(), false);
+
+  element.startState().components().add(m_ossia_startState);
+  element.endState().components().add(m_ossia_endState);
+
+  element.startEvent().components().add(m_ossia_startEvent);
+  element.endEvent().components().add(m_ossia_endEvent);
+
+  element.startTimeNode().components().add(m_ossia_startTimeNode);
+  element.endTimeNode().components().add(m_ossia_endTimeNode);
+
+  element.constraint().components().add(m_ossia_constraint);
 }
 
 Component::~Component()
@@ -143,33 +154,50 @@ Component::~Component()
 void Component::cleanup()
 {
   if(m_ossia_constraint)
+  {
     m_ossia_constraint->cleanup();
+    process().constraint().components().remove(m_ossia_constraint);
+  }
   if(m_ossia_startState)
+  {
     m_ossia_startState->cleanup();
+    process().startState().components().remove(m_ossia_startState);
+  }
   if(m_ossia_endState)
+  {
     m_ossia_endState->cleanup();
+    process().endState().components().remove(m_ossia_endState);
+  }
   if(m_ossia_startEvent)
+  {
     m_ossia_startEvent->cleanup();
+    process().startEvent().components().remove(m_ossia_startEvent);
+  }
   if(m_ossia_endEvent)
+  {
     m_ossia_endEvent->cleanup();
+    process().endEvent().components().remove(m_ossia_endEvent);
+  }
   if(m_ossia_startTimeNode)
   {
     m_ossia_startTimeNode->OSSIATimeNode()->cleanup();
     m_ossia_startTimeNode->cleanup();
+    process().startTimeNode().components().remove(m_ossia_startTimeNode);
   }
   if(m_ossia_endTimeNode)
   {
     m_ossia_endTimeNode->OSSIATimeNode()->cleanup();
     m_ossia_endTimeNode->cleanup();
+    process().endTimeNode().components().remove(m_ossia_endTimeNode);
   }
 
-  m_ossia_constraint.reset();
-  m_ossia_startState.reset();
-  m_ossia_endState.reset();
-  m_ossia_startEvent.reset();
-  m_ossia_endEvent.reset();
-  m_ossia_startTimeNode.reset();
-  m_ossia_endTimeNode.reset();
+  m_ossia_constraint = nullptr;
+  m_ossia_startState = nullptr;
+  m_ossia_endState = nullptr;
+  m_ossia_startEvent = nullptr;
+  m_ossia_endEvent = nullptr;
+  m_ossia_startTimeNode = nullptr;
+  m_ossia_endTimeNode = nullptr;
 }
 
 void Component::stop()

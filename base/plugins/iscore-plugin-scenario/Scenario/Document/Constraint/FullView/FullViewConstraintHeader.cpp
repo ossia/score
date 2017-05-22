@@ -20,7 +20,7 @@ FullViewConstraintHeader::FullViewConstraintHeader(QGraphicsItem* parent)
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
-  m_bar->setPos(10, 5);
+  m_bar->setPos(10., 5.);
   connect(m_bar, &AddressBarItem::needRedraw, this, [&]() { update(); });
 }
 
@@ -41,7 +41,9 @@ void FullViewConstraintHeader::paint(
 
   const auto& skin = ScenarioStyle::instance();
   painter->setPen(skin.ConstraintHeaderSeparator);
-  painter->drawLine(QPointF{0, (double)ConstraintHeaderHeight}, QPointF{m_width, (double)ConstraintHeaderHeight});
+  painter->drawLine(
+              QPointF{0., (double)ConstraintHeaderHeight},
+              QPointF{m_width, (double)ConstraintHeaderHeight});
 
   double textWidth = m_bar->width();
 
@@ -53,12 +55,12 @@ void FullViewConstraintHeader::paint(
   // Note: if the constraint always has its pos() in (0; 0), we can
   // safely remove the call to mapToScene.
   double text_left
-      = view->mapFromScene(mapToScene({m_width / 2. - textWidth / 2., 0})).x();
+      = view->mapFromScene(mapToScene(QPointF{m_width / 2. - textWidth / 2., 0})).x();
   double text_right
-      = view->mapFromScene(mapToScene({m_width / 2. + textWidth / 2., 0})).x();
+      = view->mapFromScene(mapToScene(QPointF{m_width / 2. + textWidth / 2., 0})).x();
   double x = (m_width - textWidth) / 2.;
-  double min_x = 10;
-  double max_x = view->width() - 30;
+  double min_x = 10.;
+  double max_x = view->width() - 30.;
 
   if (text_left <= min_x)
   {
@@ -71,7 +73,7 @@ void FullViewConstraintHeader::paint(
     x = x - text_right + max_x;
   }
 
-  if (std::abs(m_bar->pos().x() - x) > 1)
-    m_bar->setPos(x, 5);
+  if (std::abs(m_bar->pos().x() - x) > 0.1)
+    m_bar->setPos(x, 5.);
 }
 }

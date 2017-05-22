@@ -44,7 +44,6 @@ EventModel::EventModel(
     , m_date{source.m_date}
     , m_offset{source.m_offset}
 {
-  metadata().setInstanceName(*this);
 }
 
 VerticalExtent EventModel::extent() const

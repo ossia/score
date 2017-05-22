@@ -117,6 +117,9 @@ LayerPresenter::LayerPresenter(
   con(ctx.updateTimer, &QTimer::timeout, this,
       &LayerPresenter::on_constraintExecutionTimer);
 
+  m_startStatePresenter->view()->disableOverlay();
+  m_endStatePresenter->view()->disableOverlay();
+
   m_constraintPresenter->view()->unsetCursor();
 }
 

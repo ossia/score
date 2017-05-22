@@ -52,39 +52,13 @@ MoveEventMeta::MoveEventMeta(
 void MoveEventMeta::undo() const
 {
   m_moveEventImplementation->undo();
-  auto& scenar = m_scenario.find();
-  auto& ev = scenar.event(m_eventId);
-  auto states = ev.states();
-  if (states.size() == 1)
-  {
-    auto& st = scenar.states.at(states.front());
-    if (st.previousConstraint())
-      updateConstraintVerticalPos(m_oldY, *st.previousConstraint(), scenar);
-    if (st.nextConstraint())
-      updateConstraintVerticalPos(m_oldY, *st.nextConstraint(), scenar);
-    if (!st.previousConstraint() && !st.nextConstraint())
-      st.setHeightPercentage(m_oldY);
-  }
+  updateY(m_oldY);
 }
 
 void MoveEventMeta::redo() const
 {
   m_moveEventImplementation->redo();
-  if (!m_scenario.valid())
-    return;
-  auto& scenar = m_scenario.find();
-  auto& ev = scenar.event(m_eventId);
-  auto states = ev.states();
-  if (states.size() == 1)
-  {
-    auto& st = scenar.states.at(states.front());
-    if (!st.previousConstraint() && !st.nextConstraint())
-      st.setHeightPercentage(m_newY);
-    if (st.previousConstraint())
-      updateConstraintVerticalPos(m_newY, *st.previousConstraint(), scenar);
-    if (st.nextConstraint())
-      updateConstraintVerticalPos(m_newY, *st.nextConstraint(), scenar);
-  }
+  updateY(m_newY);
 }
 
 const Path<Scenario::ProcessModel>& MoveEventMeta::path() const
@@ -111,12 +85,33 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
   m_moveEventImplementation->deserialize(cmdData);
 }
 
+void MoveEventMeta::updateY(double y) const
+{
+    if (!m_scenario.valid())
+      return;
+
+    auto& scenar = m_scenario.find();
+    auto& ev = scenar.event(m_eventId);
+    auto states = ev.states();
+    if (states.size() == 1)
+    {
+      auto& st = scenar.states.at(states.front());
+      if (!st.previousConstraint() && !st.nextConstraint())
+        st.setHeightPercentage(y);
+      if (st.previousConstraint())
+        updateConstraintVerticalPos(y, *st.previousConstraint(), scenar);
+      if (st.nextConstraint())
+        updateConstraintVerticalPos(y, *st.nextConstraint(), scenar);
+    }
+}
+
 void MoveEventMeta::update(
     const Id<EventModel>& eventId, const TimeVal& newDate, double y,
     ExpandMode mode)
 {
   m_moveEventImplementation->update(eventId, newDate, y, mode);
   m_newY = y;
+  updateY(m_newY);
 }
 
 

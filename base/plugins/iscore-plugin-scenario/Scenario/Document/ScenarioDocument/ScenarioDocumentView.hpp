@@ -61,12 +61,12 @@ public:
     return m_zoomSlider;
   }
 
+  void setLargeView();
 signals:
   void horizontalZoomChanged(double newZoom);
   void elementsScaleChanged(double);
 
 private:
-  void setLargeView();
   QWidget* m_widget{};
   ScenarioScene* m_scene{};
   ProcessGraphicsView* m_view{};

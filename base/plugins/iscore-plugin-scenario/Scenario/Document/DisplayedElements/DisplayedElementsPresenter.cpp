@@ -133,6 +133,9 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
         elt, &elt_t::released, &m_model, &ScenarioDocumentPresenter::released));
   });
 
+  elts.startState->view()->disableOverlay();
+  elts.endState->view()->disableOverlay();
+
   showConstraint();
 
   on_zoomRatioChanged(m_constraintPresenter->zoomRatio());

@@ -47,7 +47,6 @@ StateModel::StateModel(
     , m_heightPercentage{source.heightPercentage()}
     , m_messageItemModel{new MessageItemModel{m_stack, *this, this}}
 {
-  metadata().setInstanceName(*this);
   // FIXME Source has to be in the same document else it will crash.
   // FIXME prune the messages from the prev / next processes data and rebuild
   // it.

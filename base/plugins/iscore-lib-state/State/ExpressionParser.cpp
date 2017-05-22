@@ -157,7 +157,7 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
   {
     using qi::alnum;
     // OPTIMIZEME
-    auto str = ossia::net::pattern_match_characters().to_string();
+    std::string str{ossia::net::pattern_match_characters()};
     dev = +qi::char_(str);
     member_elt = +qi::char_(str);
     path %= (+("/" >> member_elt) | "/");

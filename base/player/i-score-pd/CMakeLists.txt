@@ -58,7 +58,9 @@ include_directories("${OSSIA_PD_PATH}/src")
 
 set(OLD_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS OFF)
-add_subdirectory("${OSSIA_CICM_PATH}" "${CMAKE_CURRENT_BINARY_DIR}/Cicm-build")
+if(NOT TARGET CicmWrapper)
+  add_subdirectory("${OSSIA_CICM_PATH}" "${CMAKE_CURRENT_BINARY_DIR}/Cicm-build")
+endif()
 set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
 
 include_directories("${OSSIA_CICM_PATH}/Sources")
