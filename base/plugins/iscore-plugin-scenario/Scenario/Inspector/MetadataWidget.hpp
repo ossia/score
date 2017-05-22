@@ -66,8 +66,20 @@ public:
         this, &MetadataWidget::scriptingNameChanged,
         [&](const QString& newName) {
           if (newName != model.metadata().getName())
-            m_commandDispatcher.submitCommand(
-                new ChangeElementName<T>{path(model), newName});
+          {
+            if(!newName.isEmpty())
+            {
+              m_commandDispatcher.submitCommand(
+                  new ChangeElementName<T>{path(model), newName});
+            }
+            else
+            {
+              m_commandDispatcher.submitCommand(
+                  new ChangeElementName<T>{
+                      path(model), QString("%1.0").arg(Metadata<PrettyName_k, T>::get())
+                  });
+            }
+          }
         });
 
     connect(this, &MetadataWidget::labelChanged, [&](const QString& newLabel) {
