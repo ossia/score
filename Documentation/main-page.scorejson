@@ -3,23 +3,23 @@
         "BaseScenario": {
             "Constraint": {
                 "Center": [
+                    35,
                     0,
-                    0,
-                    1372,
-                    947
+                    990,
+                    862
                 ],
                 "Components": [
                 ],
-                "DefaultDuration": 10000,
+                "DefaultDuration": 9466.55803034061,
                 "EndState": 1,
                 "FullViewRack": [
                     {
                         "Process": 1
                     }
                 ],
-                "GuiDuration": 11000,
+                "GuiDuration": 10378.128297705065,
                 "HeightPercentage": 0,
-                "MaxDuration": 10000,
+                "MaxDuration": "inf",
                 "MaxInf": true,
                 "Metadata": {
                     "Color": "Transparent1",
@@ -27,7 +27,7 @@
                     "Label": "",
                     "ScriptingName": "ex-score"
                 },
-                "MinDuration": 10000,
+                "MinDuration": 7255.309103272769,
                 "MinNull": false,
                 "ObjectName": "Scenario::ConstraintModel",
                 "Processes": [
@@ -48,14 +48,14 @@
                                 "id": 2
                             },
                             {
-                                "Date": 1872.1907582507718,
+                                "Date": 1686.380218399045,
                                 "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">Loops and unlimited nesting</span></p></body></html>",
-                                "HeightPercentage": 0.3689839572192513,
+                                "HeightPercentage": 0.3709893048128342,
                                 "ObjectName": "CommentBlockModel",
                                 "id": 3
                             },
                             {
-                                "Date": 5417.55987131621,
+                                "Date": 5270.867339854321,
                                 "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">Automations and interpolations <br />can start from the running value</span></p></body></html>",
                                 "HeightPercentage": 0.20254010695187166,
                                 "ObjectName": "CommentBlockModel",
@@ -69,9 +69,9 @@
                                 "id": 5
                             },
                             {
-                                "Date": 8351.150114559545,
+                                "Date": 8204.005243860373,
                                 "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">Automatic unit and <br />dataspace conversion</span></p></body></html>",
-                                "HeightPercentage": 0.17713903743315507,
+                                "HeightPercentage": 0.1804812834224599,
                                 "ObjectName": "CommentBlockModel",
                                 "id": 6
                             },
@@ -229,7 +229,7 @@
                                     }
                                 ],
                                 "GuiDuration": 1741.9584231919525,
-                                "HeightPercentage": 0.23796791443850268,
+                                "HeightPercentage": 0.23796790838241577,
                                 "MaxDuration": 1530.811947653534,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -1587,7 +1587,7 @@
                                 "id": 10
                             }
                         ],
-                        "Duration": 10000,
+                        "Duration": 9466.55803034061,
                         "Events": [
                             {
                                 "Components": [
@@ -1735,7 +1735,7 @@
                                 },
                                 "Date": 1236.7150710107367,
                                 "Extent": [
-                                    0.23796791443850268,
+                                    0.23796790838241577,
                                     0.39505345936127534
                                 ],
                                 "Metadata": {
@@ -1764,8 +1764,8 @@
                                 },
                                 "Date": 2767.5270186642706,
                                 "Extent": [
-                                    0.23796791443850268,
-                                    0.23796791443850268
+                                    0.23796790838241577,
+                                    0.23796790838241577
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -1792,8 +1792,8 @@
                                 },
                                 "Date": 4660.304352955093,
                                 "Extent": [
-                                    0.23796791443850268,
-                                    0.23796791443850268
+                                    0.23796790838241577,
+                                    0.23796790838241577
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -1821,7 +1821,7 @@
                                 "Date": 7427.831371619364,
                                 "Extent": [
                                     0.16109625708291875,
-                                    0.23796791443850268
+                                    0.23796790838241577
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -2204,7 +2204,7 @@
                                 "Components": [
                                 ],
                                 "Event": 4,
-                                "HeightPercentage": 0.23796791443850268,
+                                "HeightPercentage": 0.23796790838241577,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -2417,7 +2417,7 @@
                                 "Components": [
                                 ],
                                 "Event": 5,
-                                "HeightPercentage": 0.23796791443850268,
+                                "HeightPercentage": 0.23796790838241577,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -2630,7 +2630,7 @@
                                 "Components": [
                                 ],
                                 "Event": 6,
-                                "HeightPercentage": 0.23796791443850268,
+                                "HeightPercentage": 0.23796790838241577,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -2720,7 +2720,7 @@
                                 "Components": [
                                 ],
                                 "Event": 7,
-                                "HeightPercentage": 0.23796791443850268,
+                                "HeightPercentage": 0.23796790838241577,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -3372,8 +3372,8 @@
                                     5
                                 ],
                                 "Extent": [
-                                    0.23796791443850268,
-                                    0.23796791443850268
+                                    0.23796790838241577,
+                                    0.23796790838241577
                                 ],
                                 "Metadata": {
                                     "Color": "Gray",
@@ -3420,8 +3420,8 @@
                                     6
                                 ],
                                 "Extent": [
-                                    0.23796791443850268,
-                                    0.23796791443850268
+                                    0.23796790838241577,
+                                    0.23796790838241577
                                 ],
                                 "Metadata": {
                                     "Color": "Gray",
@@ -3469,7 +3469,7 @@
                                 ],
                                 "Extent": [
                                     0.16109625708291875,
-                                    0.23796791443850268
+                                    0.23796790838241577
                                 ],
                                 "Metadata": {
                                     "Color": "Gray",
@@ -3663,7 +3663,7 @@
                 "SmallViewShown": false,
                 "StartDate": 0,
                 "StartState": 0,
-                "Zoom": 0.07144165042389261,
+                "Zoom": 0.05773925783938694,
                 "id": 0
             },
             "EndEvent": {
@@ -3675,7 +3675,7 @@
                     "RootNode": {
                     }
                 },
-                "Date": 10000,
+                "Date": 9466.55803034061,
                 "Extent": [
                     0.4,
                     0.6
@@ -3732,7 +3732,7 @@
             "EndTimeNode": {
                 "Components": [
                 ],
-                "Date": 10000,
+                "Date": 9466.55803034061,
                 "Events": [
                     1
                 ],
