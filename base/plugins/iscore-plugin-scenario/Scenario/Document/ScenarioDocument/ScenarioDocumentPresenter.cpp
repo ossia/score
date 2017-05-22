@@ -172,53 +172,6 @@ void ScenarioDocumentPresenter::selectTop()
       &displayedElements.endState()});
 }
 
-void ScenarioDocumentPresenter::on_displayedConstraintChanged()
-{
-  auto& gv = view().view();
-  auto& cst = displayedConstraint();
-  // Setup of the state machine.
-  auto& ctx = iscore::IDocument::documentContext(model());
-  const auto& fact
-      = ctx.app.interfaces<DisplayedElementsToolPaletteFactoryList>();
-  m_stateMachine
-      = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, cst);
-  m_scenarioPresenter->on_displayedConstraintChanged(cst);
-  connect(
-      m_scenarioPresenter->constraintPresenter(),
-      &FullViewConstraintPresenter::constraintSelected, this,
-      &ScenarioDocumentPresenter::setDisplayedConstraint);
-
-  // Set a new zoom ratio, such that the displayed constraint takes the whole
-  // screen.
-
-  double newZoom = displayedConstraint().zoom();
-  auto rect = displayedConstraint().visibleRect();
-
-  if (newZoom != -1) // constraint has already been in fullview
-  {
-    view().zoomSlider()->setValue(newZoom);
-    newZoom = ZoomPolicy::sliderPosToZoomRatio(
-        0.01,
-        displayedDuration(),
-        view().viewWidth());
-  }
-  else // first time in fullview : init the zoom ratio
-  {
-    view().zoomSlider()->setValue(0.01);
-    newZoom = ZoomPolicy::sliderPosToZoomRatio(
-        0.01,
-        displayedDuration(),
-        view().viewWidth());
-  }
-
-  setMillisPerPixel(newZoom);
-
-  // scroll to the last center position
-  gv.ensureVisible(
-      gv.mapFromScene(rect)
-          .boundingRect());
-}
-
 void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 {
   m_zoomRatio = newRatio;
@@ -428,7 +381,54 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
           });
   }
 
-  on_displayedConstraintChanged();
+
+  auto& gv = view().view();
+  auto& cst = displayedConstraint();
+  // Setup of the state machine.
+  auto& ctx = iscore::IDocument::documentContext(model());
+  const auto& fact
+      = ctx.app.interfaces<DisplayedElementsToolPaletteFactoryList>();
+  m_stateMachine
+      = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, cst);
+  m_scenarioPresenter->on_displayedConstraintChanged(cst);
+  connect(
+      m_scenarioPresenter->constraintPresenter(),
+      &FullViewConstraintPresenter::constraintSelected, this,
+      &ScenarioDocumentPresenter::setDisplayedConstraint);
+
+  /*
+  // Set a new zoom ratio, such that the displayed constraint takes the whole
+  // screen.
+
+  double newZoom = displayedConstraint().zoom();
+  auto rect = displayedConstraint().visibleRect();
+
+  if (newZoom != -1) // constraint has already been in fullview
+  {
+    view().zoomSlider()->setValue(newZoom);
+    newZoom = ZoomPolicy::sliderPosToZoomRatio(
+        0.01,
+        displayedDuration(),
+        view().viewWidth());
+  }
+  else // first time in fullview : init the zoom ratio
+  {
+    view().zoomSlider()->setValue(0.01);
+    newZoom = ZoomPolicy::sliderPosToZoomRatio(
+        0.01,
+        displayedDuration(),
+        view().viewWidth());
+  }
+
+  setMillisPerPixel(newZoom);
+
+  // scroll to the last center position
+  gv.ensureVisible(
+      gv.mapFromScene(rect)
+          .boundingRect());
+
+  */
+  view().setLargeView();
 }
 
 

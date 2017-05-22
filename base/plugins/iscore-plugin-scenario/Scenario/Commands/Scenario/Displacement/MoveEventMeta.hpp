@@ -48,6 +48,7 @@ public:
   {
     m_moveEventImplementation->update(eventId, newDate, y, mode);
     m_newY = y;
+    updateY(m_newY);
   }
 
 protected:
@@ -55,6 +56,7 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
+  void updateY(double y) const;
   // TODO : make a UI to change that
   Path<Scenario::ProcessModel> m_scenario;
   Id<EventModel> m_eventId;

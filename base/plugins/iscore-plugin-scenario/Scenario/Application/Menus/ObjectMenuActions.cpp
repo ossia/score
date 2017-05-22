@@ -134,6 +134,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   });
 
   m_pasteElements = new QAction{tr("Paste elements"), this};
+  m_pasteElements->setShortcut(QKeySequence::Paste);
   m_pasteElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   connect(m_pasteElements, &QAction::triggered, [this]() {
     auto pres = m_parent->focusedPresenter();
@@ -182,6 +183,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
 
   parent->context.mainWindow.addAction(m_removeElements);
   parent->context.mainWindow.addAction(m_clearElements);
+  parent->context.mainWindow.addAction(m_pasteElements);
 
 
   // Selection actions

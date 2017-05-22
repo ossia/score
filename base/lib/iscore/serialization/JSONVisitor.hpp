@@ -341,7 +341,7 @@ T fromJsonObject(QJsonValueRef json)
   return fromJsonObject<T>(json.toObject());
 }
 
-template <template <typename U> class Container>
+template <template <typename...> class Container>
 QJsonArray toJsonArray(const Container<int>& array)
 {
   QJsonArray arr;
@@ -354,21 +354,8 @@ QJsonArray toJsonArray(const Container<int>& array)
   return arr;
 }
 
-template <template <typename U> class Container>
+template <template <typename...> class Container>
 QJsonArray toJsonArray(const Container<unsigned int>& array)
-{
-  QJsonArray arr;
-
-  for (auto elt : array)
-  {
-    arr.append(elt);
-  }
-
-  return arr;
-}
-
-template <template <typename U, typename V> class Container, typename V>
-QJsonArray toJsonArray(const Container<unsigned int, V>& array)
 {
   QJsonArray arr;
 

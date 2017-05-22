@@ -32,7 +32,7 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
 
   m_currentPath = std::move(path);
 
-  double currentWidth = 0;
+  double currentWidth = 0.;
 
   int i = -1;
   for (auto& identifier : m_currentPath)
@@ -58,12 +58,12 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
         lab, &ClickableLabelItem::textChanged, this, &AddressBarItem::redraw);
 
     m_items.append(lab);
-    lab->setPos(currentWidth, 0);
-    currentWidth += 10 + lab->boundingRect().width();
+    lab->setPos(currentWidth, 0.);
+    currentWidth += 10. + lab->boundingRect().width();
 
     auto sep = new SeparatorItem{this};
-    sep->setPos(currentWidth, 0);
-    currentWidth += 10 + sep->boundingRect().width();
+    sep->setPos(currentWidth, 0.);
+    currentWidth += 10. + sep->boundingRect().width();
     m_items.append(sep);
   }
 
@@ -88,11 +88,11 @@ void AddressBarItem::paint(
 
 void AddressBarItem::redraw()
 {
-  double currentWidth = 0;
+  double currentWidth = 0.;
   for (auto obj : m_items)
   {
-    obj->setPos(currentWidth, 0);
-    currentWidth += 10 + obj->boundingRect().width();
+    obj->setPos(currentWidth, 0.);
+    currentWidth += 10. + obj->boundingRect().width();
   }
 
   emit needRedraw();

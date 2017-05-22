@@ -38,7 +38,7 @@ TemporalConstraintHeader::TemporalConstraintHeader() : ConstraintHeader{}
 
 QRectF TemporalConstraintHeader::boundingRect() const
 {
-  return {0, 0, m_width, qreal(ConstraintHeader::headerHeight())};
+  return {0., 0., m_width, qreal(ConstraintHeader::headerHeight())};
 }
 
 void TemporalConstraintHeader::paint(
@@ -48,7 +48,7 @@ void TemporalConstraintHeader::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
   if (m_state == State::RackHidden)
   {
-    auto rect = boundingRect();
+    const auto rect = boundingRect();
     painter->fillRect(
         rect, skin.ConstraintHeaderRackHidden.getColor());
 
@@ -61,7 +61,9 @@ void TemporalConstraintHeader::paint(
   else
   {
     painter->setPen(skin.ConstraintHeaderSeparator);
-    painter->drawLine(QPointF{0, ConstraintHeaderHeight}, QPointF{m_width, ConstraintHeaderHeight});
+    painter->drawLine(
+                QPointF{0., (double)ConstraintHeaderHeight},
+                QPointF{m_width, (double)ConstraintHeaderHeight});
   }
 
   // Header
@@ -73,15 +75,15 @@ void TemporalConstraintHeader::paint(
   auto view = scene()->views().first();
   int text_left
       = view->mapFromScene(
-                mapToScene({m_width / 2. - m_textWidthCache / 2., 0}))
+                mapToScene({m_width / 2. - m_textWidthCache / 2., 0.}))
             .x();
   int text_right
       = view->mapFromScene(
-                mapToScene({m_width / 2. + m_textWidthCache / 2., 0}))
+                mapToScene({m_width / 2. + m_textWidthCache / 2., 0.}))
             .x();
   double x = (m_width - m_textWidthCache) / 2.;
-  double min_x = 10;
-  double max_x = view->width() - 30;
+  double min_x = 10.;
+  double max_x = view->width() - 30.;
 
   if (text_left <= min_x)
   {
@@ -95,11 +97,11 @@ void TemporalConstraintHeader::paint(
   }
 
   x = std::max(x, 10.);
-  double y = 4;
+  double y = 4.;
   double w = m_width - x;
   double h = ConstraintHeader::headerHeight();
 
-  if (std::abs(m_previous_x - x) > 1)
+  if (std::abs(m_previous_x - x) > 0.1)
   {
     m_previous_x = x;
   }

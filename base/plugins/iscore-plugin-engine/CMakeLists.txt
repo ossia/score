@@ -222,10 +222,12 @@ endif()
 
 if(OSSIA_PROTOCOL_WEBSOCKETS)
     target_sources(${PROJECT_NAME} PRIVATE ${WS_HDRS} ${WS_SRCS})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_WEBSOCKETS)
 endif()
 
 if(OSSIA_PROTOCOL_SERIAL)
     target_sources(${PROJECT_NAME} PRIVATE ${SERIAL_HDRS} ${SERIAL_SRCS})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_SERIAL)
 endif()
 
 target_link_libraries(${PROJECT_NAME}

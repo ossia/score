@@ -635,6 +635,14 @@ QJsonArray toJsonArray(const boost::container::flat_set<T>& array)
 }
 
 inline
+QJsonArray toJsonArray(const boost::container::flat_set<int>& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+    arr.push_back(v);
+  return arr;
+}
+inline
 QJsonArray toJsonArray(const boost::container::flat_set<float>& array)
 {
   QJsonArray arr;

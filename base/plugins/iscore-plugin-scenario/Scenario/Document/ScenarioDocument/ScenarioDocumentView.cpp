@@ -157,11 +157,11 @@ qreal ScenarioDocumentView::viewWidth() const
 
 void ScenarioDocumentView::setLargeView()
 {
-  m_zoomSlider->setValue(0.00);
+  m_zoomSlider->setValue(0.05);
   emit horizontalZoomChanged(m_zoomSlider->value());
   QTimer::singleShot(0, [=] {
-  view().scrollHorizontal(-view().sceneRect().x() - 10);
-  view().repaint();
+      if(auto hs = view().horizontalScrollBar())
+        hs->setValue(0);
   });
 }
 }
