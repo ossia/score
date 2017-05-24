@@ -33,6 +33,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
+#include <Scenario/Document/Minimap/Minimap.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
@@ -113,6 +114,13 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->setLayout(lay);
   m_widget->setContentsMargins(0, 0, 0, 0);
 
+  auto minimap_scene = new QGraphicsScene;
+  auto minimap_view = new TimeRulerGraphicsView{minimap_scene};
+  minimap_view->setSceneRect({0, 0, 2000, 100});
+  m_minimap = new Minimap{minimap_view->viewport()};
+  minimap_scene->addItem(m_minimap);
+
+  lay->addWidget(minimap_view);
   lay->addWidget(m_timeRulersView);
   lay->addWidget(m_view);
   lay->addWidget(m_zoomSlider);
@@ -138,16 +146,14 @@ ScenarioDocumentView::ScenarioDocumentView(
                    .editionSettings();
     es.setTool(Scenario::Tool::Select);
   });
+
+  con(this->view(), &ProcessGraphicsView::sizeChanged, this,
+      &ScenarioDocumentView::on_viewSizeChanged);
 }
 
 QWidget* ScenarioDocumentView::getWidget()
 {
   return m_widget;
-}
-
-void ScenarioDocumentView::update()
-{
-  m_scene->update();
 }
 
 qreal ScenarioDocumentView::viewWidth() const
@@ -163,5 +169,12 @@ void ScenarioDocumentView::setLargeView()
       if(auto hs = view().horizontalScrollBar())
         hs->setValue(0);
   });
+}
+
+void ScenarioDocumentView::on_viewSizeChanged(QSize s)
+{
+  m_timeRuler->setWidth(s.width());
+  m_minimap->setWidth(s.width());
+  qDebug() << s.width();
 }
 }

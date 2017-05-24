@@ -6,6 +6,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerPresenter.hpp>
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
+#include <Scenario/Document/Minimap/Minimap.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/tools/Clamp.hpp>
 #include <iscore/widgets/DoubleSlider.hpp>
@@ -81,8 +82,6 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
   con(iscore::GUIAppContext().mainWindow, SIGNAL(sizeChanged(QSize)),
       this, SLOT(on_windowSizeChanged(QSize)), Qt::QueuedConnection);
-  con(view().view(), &ProcessGraphicsView::sizeChanged, this,
-      &ScenarioDocumentPresenter::on_viewSizeChanged);
   con(view().view(), &ProcessGraphicsView::zoom, this,
       &ScenarioDocumentPresenter::on_zoomOnWheelEvent);
   con(view().view(), &ProcessGraphicsView::scrolled, this,
@@ -182,6 +181,8 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 
 void ScenarioDocumentPresenter::on_zoomSliderChanged(double sliderPos)
 {
+  view().minimap().setLeftHandleTime(TimeVal::zero());
+  view().minimap().setRightHandleTime(displayedConstraint().duration.guiDuration());
   auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
       sliderPos,
       displayedDuration(),
@@ -235,11 +236,6 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize)
       gv.mapToScene(gv.viewport()->rect()).boundingRect());
 }
 
-void ScenarioDocumentPresenter::on_viewSizeChanged(QSize s)
-{
-  m_mainTimeRuler->view()->setWidth(s.width());
-}
-
 void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 {
   auto& c = displayedConstraint();
@@ -251,7 +247,9 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
     auto scene_rect = gv.sceneRect();
     if(cur_rect.x() + cur_rect.width() - dx > (scene_rect.width()))
     {
-      c.duration.setGuiDuration(TimeVal::fromMsecs(m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx)));
+      auto t = TimeVal::fromMsecs(m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx));
+      c.duration.setGuiDuration(t);
+      view().minimap().setVisibleDuration(t);
       scene_rect.adjust(0, 0, 5, 0);
       gv.setSceneRect(scene_rect);
     }
@@ -271,7 +269,10 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
     if(min_time < c.duration.guiDuration())
     {
       auto cur_rect = gv.mapToScene(gv.rect()).boundingRect();
-      c.duration.setGuiDuration(std::max(TimeVal::fromMsecs(m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx)), min_time));
+      auto t = std::max(TimeVal::fromMsecs(m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx)), min_time);
+      c.duration.setGuiDuration(t);
+      view().minimap().setVisibleDuration(t);
+
       auto scene_rect = gv.sceneRect();
       scene_rect.adjust(0, 0, -dx, 0);
       gv.setSceneRect(scene_rect);
@@ -340,6 +341,7 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
   QRectF new_visible_scene_rect = gv.mapToScene(vp.rect()).boundingRect();
 
   m_mainTimeRuler->view()->setWidth(gv.width());
+
   // TODO should call displayedElementsPresenter instead??
   displayedConstraint().setZoom(view().zoomSlider()->value());
   displayedConstraint().setVisibleRect(new_visible_scene_rect);
