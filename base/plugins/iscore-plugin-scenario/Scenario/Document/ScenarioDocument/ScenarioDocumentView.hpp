@@ -15,6 +15,7 @@ struct GUIApplicationContext;
 
 namespace Scenario
 {
+class Minimap;
 class ScenarioScene;
 class TimeRulerView;
 class ScenarioDocumentView final : public iscore::DocumentDelegateView
@@ -31,8 +32,6 @@ public:
   {
     return m_baseObject;
   }
-
-  void update();
 
   ScenarioScene& scene() const
   {
@@ -56,6 +55,8 @@ public:
     return m_timeRuler;
   }
 
+  Minimap& minimap() const { return *m_minimap; }
+
   iscore::DoubleSlider* zoomSlider() const
   {
     return m_zoomSlider;
@@ -67,6 +68,7 @@ signals:
   void elementsScaleChanged(double);
 
 private:
+  void on_viewSizeChanged(QSize);
   QWidget* m_widget{};
   ScenarioScene* m_scene{};
   ProcessGraphicsView* m_view{};
@@ -74,6 +76,7 @@ private:
 
   QGraphicsView* m_timeRulersView{};
   TimeRulerView* m_timeRuler{};
+  Minimap* m_minimap{};
 
   iscore::DoubleSlider* m_zoomSlider{};
 };
