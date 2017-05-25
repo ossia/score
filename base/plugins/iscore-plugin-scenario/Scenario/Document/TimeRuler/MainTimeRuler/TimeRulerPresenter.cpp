@@ -6,7 +6,7 @@
 class QObject;
 namespace Scenario
 {
-TimeRulerPresenter::TimeRulerPresenter(TimeRulerView* view, QObject* parent)
+TimeRulerPresenter::TimeRulerPresenter(TimeRulerView& view, QObject* parent)
     : AbstractTimeRuler{view, parent}
 {
   m_startPoint.addMSecs(0);
@@ -14,8 +14,8 @@ TimeRulerPresenter::TimeRulerPresenter(TimeRulerView* view, QObject* parent)
 
 TimeRulerPresenter::~TimeRulerPresenter() = default;
 
-TimeRulerView* TimeRulerPresenter::view()
+TimeRulerView& TimeRulerPresenter::view()
 {
-  return static_cast<TimeRulerView*>(m_view);
+  return static_cast<TimeRulerView&>(m_view);
 }
 }

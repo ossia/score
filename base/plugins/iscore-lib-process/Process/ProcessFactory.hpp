@@ -19,6 +19,7 @@ namespace Process
 {
 class LayerPresenter;
 class LayerView;
+class MiniLayer;
 class ProcessModel;
 class LayerPanelProxy;
 struct ProcessPresenterContext;
@@ -64,6 +65,9 @@ public:
 
   virtual Process::LayerView*
   makeLayerView(const Process::ProcessModel& view, QGraphicsItem* parent);
+
+  virtual Process::MiniLayer*
+  makeMiniLayer(const Process::ProcessModel& view, QGraphicsItem* parent);
 
   virtual Process::LayerPanelProxy*
   makePanel(const ProcessModel& layer, QObject* parent);

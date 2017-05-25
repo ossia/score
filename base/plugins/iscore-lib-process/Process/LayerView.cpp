@@ -8,6 +8,7 @@ class QWidget;
 namespace Process
 {
 LayerView::~LayerView() = default;
+MiniLayer::~MiniLayer() = default;
 
 LayerView::LayerView(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
@@ -65,5 +66,58 @@ void LayerView::setWidth(qreal width)
 qreal LayerView::width() const
 {
   return m_width;
+}
+
+
+MiniLayer::MiniLayer(QGraphicsItem* parent) : QGraphicsItem{parent}
+{
+  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setFlag(ItemClipsChildrenToShape, true);
+}
+
+QRectF MiniLayer::boundingRect() const
+{
+  return {0, 0, m_width, m_height};
+}
+
+void MiniLayer::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  paint_impl(painter);
+}
+
+void MiniLayer::setHeight(qreal height)
+{
+  prepareGeometryChange();
+  m_height = height;
+  update();
+}
+
+qreal MiniLayer::height() const
+{
+  return m_height;
+}
+
+void MiniLayer::setWidth(qreal width)
+{
+  prepareGeometryChange();
+  m_width = width;
+  update();
+}
+
+qreal MiniLayer::width() const
+{
+  return m_width;
+}
+
+void MiniLayer::setZoomRatio(qreal z)
+{
+  m_zoom = z;
+  update();
+}
+
+qreal MiniLayer::zoom() const
+{
+  return m_zoom;
 }
 }

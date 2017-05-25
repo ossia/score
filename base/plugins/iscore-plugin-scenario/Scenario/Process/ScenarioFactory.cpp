@@ -1,4 +1,5 @@
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/MiniScenarioView.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
@@ -55,10 +56,20 @@ ScenarioTemporalLayerFactory::ScenarioTemporalLayerFactory(
 }
 
 Process::LayerView* ScenarioTemporalLayerFactory::makeLayerView(
-    const Process::ProcessModel& viewmodel, QGraphicsItem* parent)
+    const Process::ProcessModel& p, QGraphicsItem* parent)
 {
-  if (dynamic_cast<const Scenario::ProcessModel*>(&viewmodel))
+  if (dynamic_cast<const Scenario::ProcessModel*>(&p))
     return new TemporalScenarioView{parent};
+
+  return nullptr;
+}
+
+Process::MiniLayer* ScenarioTemporalLayerFactory::makeMiniLayer(
+    const Process::ProcessModel& p,
+    QGraphicsItem* parent)
+{
+  if (auto s = dynamic_cast<const Scenario::ProcessModel*>(&p))
+    return new MiniScenarioView{*s, parent};
 
   return nullptr;
 }
