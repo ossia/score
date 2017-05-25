@@ -99,6 +99,9 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
         m_mainTimeRuler->view(), &TimeRulerView::drag, this,
         &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
 
+  con(view().minimap(), &Minimap::visibleRectChanged,
+      this, &ScenarioDocumentPresenter::on_minimapChanged);
+
   // Focus
   connect(
       &m_focusDispatcher, SIGNAL(focus(QPointer<Process::LayerPresenter>)),
@@ -181,8 +184,8 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 
 void ScenarioDocumentPresenter::on_zoomSliderChanged(double sliderPos)
 {
-  view().minimap().setLeftHandleTime(TimeVal::zero());
-  view().minimap().setRightHandleTime(displayedConstraint().duration.guiDuration());
+  view().minimap().setLeftHandle(0);
+  view().minimap().setRightHandle(view().viewWidth());
   auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
       sliderPos,
       displayedDuration(),
@@ -249,7 +252,6 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
     {
       auto t = TimeVal::fromMsecs(m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx));
       c.duration.setGuiDuration(t);
-      view().minimap().setVisibleDuration(t);
       scene_rect.adjust(0, 0, 5, 0);
       gv.setSceneRect(scene_rect);
     }
@@ -271,7 +273,6 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
       auto cur_rect = gv.mapToScene(gv.rect()).boundingRect();
       auto t = std::max(TimeVal::fromMsecs(m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx)), min_time);
       c.duration.setGuiDuration(t);
-      view().minimap().setVisibleDuration(t);
 
       auto scene_rect = gv.sceneRect();
       scene_rect.adjust(0, 0, -dx, 0);
@@ -285,6 +286,13 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
   m_mainTimeRuler->setStartPoint(
       TimeVal::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
   displayedConstraint().setVisibleRect(visible_scene_rect);
+
+  updateMinimap();
+}
+
+void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
+{
+
 }
 
 void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
@@ -332,7 +340,7 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     setMillisPerPixel(newZoom);
 
   qreal x = centerT / m_zoomRatio - deltaX;
-  ; // here's the new zoom
+  // here's the new zoom
 
   auto newView = QRectF{x, y, (qreal)w, (qreal)h};
 
@@ -346,6 +354,31 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
   displayedConstraint().setZoom(view().zoomSlider()->value());
   displayedConstraint().setVisibleRect(new_visible_scene_rect);
   m_zooming = false;
+  updateMinimap();
+}
+
+void ScenarioDocumentPresenter::updateMinimap()
+{
+  auto& minimap = view().minimap();
+
+  auto viewRect = view().view().viewport()->rect();
+  auto visibleSceneRect = QRectF{
+                          view().view().mapToScene(viewRect.topLeft()),
+                          view().view().mapToScene(viewRect.bottomRight())};
+  auto viewWidth = viewRect.width();
+  auto cstWidth = displayedConstraint().duration.guiDuration().toPixels(m_zoomRatio);
+
+  minimap.setWidth(viewWidth);
+
+  // Compute handle positions.
+  auto vp_x1 = visibleSceneRect.left();
+  auto vp_x2 = visibleSceneRect.right();
+
+  auto lh_x = viewWidth * (vp_x1 / cstWidth);
+  minimap.setLeftHandle(lh_x);
+
+  auto rh_x = viewWidth * (vp_x2 / cstWidth);
+  minimap.setRightHandle(rh_x);
 }
 
 double ScenarioDocumentPresenter::displayedDuration() const

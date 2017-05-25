@@ -5,37 +5,36 @@
 
 namespace Scenario
 {
-class Minimap
+class Minimap final
     : public QObject
     , public QGraphicsItem
 {
     Q_OBJECT
   public:
     Minimap(QWidget* vp);
-    void setVisibleDuration(TimeVal t);
     void setWidth(double);
-    void setLeftHandleTime(TimeVal t);
-    void setRightHandleTime(TimeVal t);
+    void setLeftHandle(double);
+    void setRightHandle(double);
 
   signals:
-    void visibleRectChanged(QRectF);
+    void visibleRectChanged(double l, double r);
 
   private:
-    QRectF boundingRect() const;
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+    QRectF boundingRect() const override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)  override;
 
-    void mousePressEvent(QGraphicsSceneMouseEvent*);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent*);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent*);
+    void mousePressEvent(QGraphicsSceneMouseEvent*) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
 
     QWidget* m_viewport{};
-    TimeVal m_time;
     double m_leftHandle{};
     double m_rightHandle{};
-    double m_height{100};
+    static const constexpr double m_height{40};
     double m_width{100};
 
     bool m_gripLeft{false};
     bool m_gripRight{false};
+    bool m_gripMid{false};
 };
 }
