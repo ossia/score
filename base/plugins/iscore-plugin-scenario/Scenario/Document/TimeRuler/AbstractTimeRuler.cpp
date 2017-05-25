@@ -7,10 +7,10 @@
 namespace Scenario
 {
 AbstractTimeRuler::AbstractTimeRuler(
-    AbstractTimeRulerView* view, QObject* parent)
+    AbstractTimeRulerView& view, QObject* parent)
     : QObject{parent}, m_view{view}
 {
-  m_view->setPresenter(this);
+  m_view.setPresenter(this);
 
   m_graduationsSpacing.push_back({0.1, TimeVal{std::chrono::seconds(120)}});
   m_graduationsSpacing.push_back({0.2, TimeVal{std::chrono::seconds(60)}});
@@ -92,7 +92,7 @@ void AbstractTimeRuler::computeGraduationSpacing()
     loop = 10;
   }
 
-  m_view->setGraduationsStyle(gradSpace, deltaTime, format, loop);
+  m_view.setGraduationsStyle(gradSpace, deltaTime, format, loop);
 }
 
 const QVector<QPair<double, TimeVal>>&

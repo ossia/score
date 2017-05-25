@@ -65,7 +65,7 @@ DisplayedElementsPresenter::~DisplayedElementsPresenter()
 
 BaseGraphicsObject& DisplayedElementsPresenter::view() const
 {
-  return *m_model.view().baseItem();
+  return m_model.view().baseItem();
 }
 
 void DisplayedElementsPresenter::on_displayedConstraintChanged(
@@ -93,7 +93,7 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
   auto& provider = ctx.app.interfaces<DisplayedElementsProviderList>();
   DisplayedElementsPresenterContainer elts = provider.make(
       &DisplayedElementsProvider::make_presenters, m, ctx,
-      m_model.view().baseItem(), this);
+      &m_model.view().baseItem(), this);
   m_constraintPresenter = elts.constraint;
   m_startStatePresenter = elts.startState;
   m_endStatePresenter = elts.endState;

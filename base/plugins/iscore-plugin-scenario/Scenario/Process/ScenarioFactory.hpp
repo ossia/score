@@ -48,6 +48,9 @@ public:
   Process::LayerView* makeLayerView(
       const Process::ProcessModel& viewmodel, QGraphicsItem* parent) override;
 
+  Process::MiniLayer*
+  makeMiniLayer(const Process::ProcessModel& view, QGraphicsItem* parent) override;
+
   bool matches(const UuidKey<Process::ProcessModel>& p) const override;
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override;
 

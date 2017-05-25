@@ -1,7 +1,14 @@
 #pragma once
+#include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
+#include <Scenario/Document/Minimap/Minimap.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
+#include <iscore/widgets/GraphicsProxyObject.hpp>
+#include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
+
+#include <Process/Tools/ProcessGraphicsView.hpp>
+
 #include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
 
-class BaseGraphicsObject;
 class QGraphicsView;
 class QObject;
 class QWidget;
@@ -15,6 +22,7 @@ struct GUIApplicationContext;
 
 namespace Scenario
 {
+class Minimap;
 class ScenarioScene;
 class TimeRulerView;
 class ScenarioDocumentView final : public iscore::DocumentDelegateView
@@ -27,54 +35,52 @@ public:
 
   QWidget* getWidget() override;
 
-  BaseGraphicsObject* baseItem() const
+  BaseGraphicsObject& baseItem()
   {
     return m_baseObject;
   }
 
-  void update();
-
-  ScenarioScene& scene() const
+  ScenarioScene& scene()
   {
-    return *m_scene;
+    return m_scene;
   }
 
-  ProcessGraphicsView& view() const
+  ProcessGraphicsView& view()
   {
-    return *m_view;
+    return m_view;
   }
 
   qreal viewWidth() const;
 
-  QGraphicsView* rulerView() const
+  QGraphicsView& rulerView()
   {
     return m_timeRulersView;
   }
 
-  TimeRulerView* timeRuler()
+  TimeRulerView& timeRuler()
   {
     return m_timeRuler;
   }
 
-  iscore::DoubleSlider* zoomSlider() const
-  {
-    return m_zoomSlider;
-  }
+  Minimap& minimap()  { return m_minimap; }
 
-  void setLargeView();
+
+  QRectF viewportRect() const;
+  QRectF visibleSceneRect() const;
+
 signals:
-  void horizontalZoomChanged(double newZoom);
   void elementsScaleChanged(double);
 
 private:
   QWidget* m_widget{};
-  ScenarioScene* m_scene{};
-  ProcessGraphicsView* m_view{};
-  BaseGraphicsObject* m_baseObject{};
+  ScenarioScene m_scene;
+  ProcessGraphicsView m_view;
+  BaseGraphicsObject m_baseObject;
 
-  QGraphicsView* m_timeRulersView{};
-  TimeRulerView* m_timeRuler{};
-
-  iscore::DoubleSlider* m_zoomSlider{};
+  TimeRulerGraphicsView m_timeRulersView;
+  TimeRulerView m_timeRuler;
+  QGraphicsScene m_minimapScene;
+  TimeRulerGraphicsView m_minimapView;
+  Minimap m_minimap;
 };
 }
