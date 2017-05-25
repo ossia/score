@@ -328,7 +328,7 @@ void TemporalConstraintPresenter::updateProcessShape(int slot, const LayerData& 
 {
   if(m_model.smallViewVisible())
   {
-    data.presenter->setHeight(m_model.smallView().at(slot).height - SlotHandle::handleHeight());
+    data.presenter->setHeight(m_model.smallView().at(slot).height);
 
     auto width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
     data.presenter->setWidth(width);
