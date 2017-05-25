@@ -76,8 +76,6 @@ public:
   void on_viewModelDefocused(const Process::ProcessModel* vm);
   void on_viewModelFocused(const Process::ProcessModel* vm);
 
-  void updateMaxWidth(double w);
-
   DisplayedElementsModel displayedElements;
 
 signals:
@@ -119,6 +117,7 @@ private:
   QMetaObject::Connection m_constraintConnection;
 
   bool m_zooming{false};
+  bool m_updatingMinimap{false};
 
 };
 }

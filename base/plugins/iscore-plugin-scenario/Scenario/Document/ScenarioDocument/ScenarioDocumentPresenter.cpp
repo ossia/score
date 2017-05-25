@@ -184,8 +184,6 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 
 void ScenarioDocumentPresenter::on_zoomSliderChanged(double sliderPos)
 {
-  view().minimap().setLeftHandle(0);
-  view().minimap().setRightHandle(view().viewWidth());
   auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
       sliderPos,
       displayedDuration(),
@@ -287,12 +285,64 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
       TimeVal::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
   displayedConstraint().setVisibleRect(visible_scene_rect);
 
-  updateMinimap();
+  if(!m_updatingMinimap)
+    updateMinimap();
 }
 
 void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
 {
+  m_updatingMinimap = true;
+  const auto map_w = view().minimap().width();
+  const auto dur = displayedConstraint().duration.guiDuration();
 
+  // Map pixels to time
+  auto lpos = l / map_w;
+  auto ltime = dur * lpos;
+
+  auto rpos = r / map_w;
+  auto rtime = dur * rpos;
+
+  // Compute new zoom level
+  auto disptime = (rtime - ltime).msec();
+  auto view_width = view().viewportRect().width();
+
+
+  // Compute new x position
+  const auto newZoom = disptime / view_width;
+  const auto newCstWidth = dur.toPixels(newZoom);
+  const auto newX = newCstWidth * l / view_width;
+  {
+
+    m_zooming = true;
+    auto& gv = view().view();
+    const auto& vp = *gv.viewport();
+    const auto w = vp.width();
+    const auto h = vp.height();
+
+    const QRect viewport_rect = vp.rect();
+    const QRectF visible_scene_rect = gv.mapToScene(viewport_rect).boundingRect();
+
+    const auto y = visible_scene_rect.top();
+
+    if (newZoom != m_zoomRatio)
+      setMillisPerPixel(newZoom);
+
+    // here's the new zoom
+
+    auto newView = QRectF{newX, y, (qreal)w, (qreal)h};
+
+    gv.ensureVisible(newView, 0, 0);
+
+    const QRectF new_visible_scene_rect = gv.mapToScene(vp.rect()).boundingRect();
+
+    m_mainTimeRuler->view()->setWidth(gv.width());
+
+    // TODO should call displayedElementsPresenter instead??
+    displayedConstraint().setZoom(view().zoomSlider()->value());
+    displayedConstraint().setVisibleRect(new_visible_scene_rect);
+    m_zooming = false;
+  }
+  m_updatingMinimap = false;
 }
 
 void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
@@ -309,12 +359,12 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 {
   m_zooming = true;
   auto& gv = view().view();
-  auto& vp = *gv.viewport();
-  auto w = vp.width();
-  auto h = vp.height();
+  const auto& vp = *gv.viewport();
+  const auto w = vp.width();
+  const auto h = vp.height();
 
-  QRect viewport_rect = vp.rect();
-  QRectF visible_scene_rect = gv.mapToScene(viewport_rect).boundingRect();
+  const QRect viewport_rect = vp.rect();
+  const QRectF visible_scene_rect = gv.mapToScene(viewport_rect).boundingRect();
 
   qreal center = focus.x();
   if (focus.isNull())
@@ -330,23 +380,21 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     center = visible_scene_rect.right();
   }
 
-  qreal centerT = center * m_zoomRatio; // here's the old zoom
-
-  auto deltaX = center - visible_scene_rect.left();
-
-  auto y = visible_scene_rect.top();
+  const qreal centerT = center * m_zoomRatio; // here's the old zoom
+  const auto deltaX = center - visible_scene_rect.left();
+  const auto y = visible_scene_rect.top();
 
   if (newZoom != m_zoomRatio)
     setMillisPerPixel(newZoom);
 
-  qreal x = centerT / m_zoomRatio - deltaX;
+  const qreal x = centerT / m_zoomRatio - deltaX;
   // here's the new zoom
 
   auto newView = QRectF{x, y, (qreal)w, (qreal)h};
 
   gv.ensureVisible(newView, 0, 0);
 
-  QRectF new_visible_scene_rect = gv.mapToScene(vp.rect()).boundingRect();
+  const QRectF new_visible_scene_rect = gv.mapToScene(vp.rect()).boundingRect();
 
   m_mainTimeRuler->view()->setWidth(gv.width());
 
@@ -354,30 +402,30 @@ void ScenarioDocumentPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
   displayedConstraint().setZoom(view().zoomSlider()->value());
   displayedConstraint().setVisibleRect(new_visible_scene_rect);
   m_zooming = false;
-  updateMinimap();
+
+  if(!m_updatingMinimap)
+    updateMinimap();
 }
 
 void ScenarioDocumentPresenter::updateMinimap()
 {
   auto& minimap = view().minimap();
 
-  auto viewRect = view().view().viewport()->rect();
-  auto visibleSceneRect = QRectF{
-                          view().view().mapToScene(viewRect.topLeft()),
-                          view().view().mapToScene(viewRect.bottomRight())};
-  auto viewWidth = viewRect.width();
-  auto cstWidth = displayedConstraint().duration.guiDuration().toPixels(m_zoomRatio);
+  const auto viewRect = view().viewportRect();
+  const auto visibleSceneRect = view().visibleSceneRect();
+  const auto viewWidth = viewRect.width();
+  const auto cstWidth = displayedConstraint().duration.guiDuration().toPixels(m_zoomRatio);
 
   minimap.setWidth(viewWidth);
 
   // Compute handle positions.
-  auto vp_x1 = visibleSceneRect.left();
-  auto vp_x2 = visibleSceneRect.right();
+  const auto vp_x1 = visibleSceneRect.left();
+  const auto vp_x2 = visibleSceneRect.right();
 
-  auto lh_x = viewWidth * (vp_x1 / cstWidth);
+  const auto lh_x = viewWidth * (vp_x1 / cstWidth);
   minimap.setLeftHandle(lh_x);
 
-  auto rh_x = viewWidth * (vp_x2 / cstWidth);
+  const auto rh_x = viewWidth * (vp_x2 / cstWidth);
   minimap.setRightHandle(rh_x);
 }
 
@@ -499,14 +547,6 @@ void ScenarioDocumentPresenter::on_viewModelFocused(
     m_focusedConstraint = constraint;
     m_focusedConstraint->focusChanged(true);
   }
-}
-
-void ScenarioDocumentPresenter::updateMaxWidth(double w)
-{
-  // TODO save it in the constraint.
-  // By default -1.
-  // Then when displaying, have a "get longest duration" which returns
-  // the correction duration between default, max, maxGraphical / maxContent
 }
 
 void ScenarioDocumentPresenter::setNewSelection(const Selection& s)

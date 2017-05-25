@@ -62,6 +62,8 @@ public:
     return m_zoomSlider;
   }
 
+  QRectF viewportRect() const;
+  QRectF visibleSceneRect() const;
   void setLargeView();
 signals:
   void horizontalZoomChanged(double newZoom);

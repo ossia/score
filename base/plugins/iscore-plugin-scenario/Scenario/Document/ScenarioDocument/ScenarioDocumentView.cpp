@@ -161,6 +161,21 @@ qreal ScenarioDocumentView::viewWidth() const
   return m_view->width();
 }
 
+QRectF ScenarioDocumentView::viewportRect() const
+{
+  return view().viewport()->rect();
+}
+
+QRectF ScenarioDocumentView::visibleSceneRect() const
+{
+  const auto& v = view();
+  const auto viewRect = v.viewport()->rect();
+  return QRectF{
+    v.mapToScene(viewRect.topLeft()),
+    v.mapToScene(viewRect.bottomRight())
+  };
+}
+
 void ScenarioDocumentView::setLargeView()
 {
   m_zoomSlider->setValue(0.05);
