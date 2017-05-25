@@ -1,7 +1,9 @@
 #include "LoopView.hpp"
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
-class QPainter;
+#include <Process/Style/ScenarioStyle.hpp>
+#include <QPainter>
+#include <QSlider>
 
 namespace Loop
 {
@@ -17,8 +19,9 @@ void LayerView::setSelectionArea(QRectF)
 {
 }
 
-void LayerView::paint_impl(QPainter*) const
+void LayerView::paint_impl(QPainter* p) const
 {
+  p->fillRect(boundingRect(), QColor(85, 75, 0));
 }
 
 void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
