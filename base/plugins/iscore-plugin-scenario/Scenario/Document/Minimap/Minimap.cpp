@@ -50,11 +50,14 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
   m_gripLeft = false;
   m_gripRight = false;
   m_gripMid = false;
-  if(std::abs(ev->pos().x() - m_leftHandle) < 3.)
+
+  const auto pos_x = ev->pos().x();
+
+  if(std::abs(pos_x - m_leftHandle) < 3.)
     m_gripLeft = true;
-  else if(std::abs(ev->pos().x() - m_rightHandle) < 3.)
+  else if(std::abs(pos_x - m_rightHandle) < 3.)
     m_gripRight = true;
-  else if(ev->pos().x() > m_leftHandle && ev->pos().x() < m_rightHandle)
+  else if(pos_x > m_leftHandle && pos_x < m_rightHandle)
     m_gripMid = true;
 
   ev->accept();
@@ -62,25 +65,33 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 
 void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
+  const auto pos = ev->pos();
   if(m_gripLeft || m_gripRight || m_gripMid)
   {
     if(m_gripLeft)
     {
-      m_leftHandle = ossia::clamp(ev->pos().x(), 0., m_rightHandle - 5);
+      m_leftHandle = ossia::clamp(pos.x(), 0., m_rightHandle - 5);
     }
     else if(m_gripRight)
     {
-      m_rightHandle = ossia::clamp(ev->pos().x(), m_leftHandle + 5, m_width);
+      m_rightHandle = ossia::clamp(pos.x(), m_leftHandle + 5, m_width);
     }
     else if(m_gripMid)
     {
-      auto orig = ev->lastPos().x();
-      auto dx = ev->pos().x() - orig;
+      const auto lastpos = ev->lastPos();
+      auto dx = pos.x() - lastpos.x();
 
       m_leftHandle += dx;
       m_rightHandle += dx;
+
+      auto dy = pos.y() - lastpos.y();
+      m_leftHandle -= dy;
+      m_rightHandle += dy;
+
       m_leftHandle = ossia::clamp(m_leftHandle, 0., m_rightHandle - 5);
       m_rightHandle = ossia::clamp(m_rightHandle, m_leftHandle + 5, m_width);
+
+      // TODO contract / expand for zoom.
     }
 
     update();

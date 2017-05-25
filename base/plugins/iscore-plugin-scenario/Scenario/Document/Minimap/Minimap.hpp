@@ -13,6 +13,7 @@ class Minimap final
   public:
     Minimap(QWidget* vp);
     void setWidth(double);
+    double width() const { return m_width; }
     void setLeftHandle(double);
     void setRightHandle(double);
 
