@@ -227,14 +227,10 @@ protected:
         .template commit<Scenario::Command::CreationMetaCommand>();
     // Select all the created elements
     Selection s;
-    for(auto& st : this->createdStates)
-    {
-      s.append(&m_parentSM.model().states.at(st));
-    }
-    for(auto& c : this->createdConstraints)
-    {
-      s.append(&m_parentSM.model().constraints.at(c));
-    }
+    if(!this->createdStates.empty())
+      s.append(&m_parentSM.model().states.at(this->createdStates.back()));
+    if(!this->createdConstraints.empty())
+      s.append(&m_parentSM.model().constraints.at(this->createdConstraints.back()));
 
     iscore::SelectionDispatcher d{this->m_parentSM.context().context.selectionStack};
     d.setAndCommit(s);
