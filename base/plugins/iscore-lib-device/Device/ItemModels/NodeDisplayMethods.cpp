@@ -89,8 +89,8 @@ namespace Device
 
 QVariant nameColumnData(const Device::Node& node, int role)
 {
-  static const QFont italicFont{[]() {
-    QFont f;
+  static const QFont& italicFont{[]() {
+    static QFont f;
     f.setItalic(true);
     return f;
   }()};
@@ -109,6 +109,7 @@ QVariant nameColumnData(const Device::Node& node, int role)
       {
         return italicFont;
       }
+      return {};
     }
     case Qt::ForegroundRole:
     {
@@ -116,6 +117,7 @@ QVariant nameColumnData(const Device::Node& node, int role)
       {
         return QBrush(Qt::lightGray);
       }
+      return {};
     }
     default:
       return {};
@@ -125,8 +127,8 @@ QVariant nameColumnData(const Device::Node& node, int role)
 QVariant
 deviceNameColumnData(const Device::Node& node, bool connected, int role)
 {
-  static const QFont italicFont{[]() {
-    QFont f;
+  static const QFont& italicFont{[]() {
+    static QFont f;
     f.setItalic(true);
     return f;
   }()};
@@ -142,6 +144,7 @@ deviceNameColumnData(const Device::Node& node, bool connected, int role)
     {
       if (!connected)
         return italicFont;
+      return {};
     }
     default:
       return {};

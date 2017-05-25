@@ -96,8 +96,10 @@ private:
   void on_zoomOnWheelEvent(QPointF, QPointF);
   void on_timeRulerScrollEvent(QPointF, QPointF);
   void on_horizontalPositionChanged(int dx);
+  void on_minimapChanged(double l, double r);
 
   void updateZoom(ZoomRatio newZoom, QPointF focus);
+  void updateMinimap();
   double displayedDuration() const;
 
   DisplayedElementsPresenter* m_scenarioPresenter{};

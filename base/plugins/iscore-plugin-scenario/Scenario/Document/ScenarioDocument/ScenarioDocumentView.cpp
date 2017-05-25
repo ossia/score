@@ -116,7 +116,7 @@ ScenarioDocumentView::ScenarioDocumentView(
 
   auto minimap_scene = new QGraphicsScene;
   auto minimap_view = new TimeRulerGraphicsView{minimap_scene};
-  minimap_view->setSceneRect({0, 0, 2000, 100});
+  minimap_view->setSceneRect({0, 0, 4000, 100});
   m_minimap = new Minimap{minimap_view->viewport()};
   minimap_scene->addItem(m_minimap);
 
@@ -175,6 +175,5 @@ void ScenarioDocumentView::on_viewSizeChanged(QSize s)
 {
   m_timeRuler->setWidth(s.width());
   m_minimap->setWidth(s.width());
-  qDebug() << s.width();
 }
 }
