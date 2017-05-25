@@ -8,7 +8,7 @@
 #include <QDesktopWidget>
 namespace Scenario
 {
-static const constexpr auto min_dist = 10;
+static const constexpr double min_dist = 10.0;
 Minimap::Minimap(QWidget* vp):
   m_viewport{vp}
 {
@@ -58,12 +58,17 @@ void Minimap::setLargeView()
 
 void Minimap::zoomIn()
 {
-  modifyHandles(m_leftHandle + 10, m_rightHandle - 10);
+  modifyHandles(m_leftHandle + 10., m_rightHandle - 10.);
 }
 
 void Minimap::zoomOut()
 {
-  modifyHandles(m_leftHandle - 10, m_rightHandle + 10);
+  modifyHandles(m_leftHandle - 10., m_rightHandle + 10.);
+}
+
+void Minimap::zoom(double z)
+{
+  modifyHandles(m_leftHandle + z, m_rightHandle - z);
 }
 
 QRectF Minimap::boundingRect() const
@@ -105,7 +110,7 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
   const auto pos = ev->screenPos();
   if(m_gripLeft || m_gripRight || m_gripMid)
   {
-    auto dx = pos.x() - 100;
+    auto dx = 0.7 * (pos.x() - 100.);
     if(m_gripLeft)
     {
       setLeftHandle(m_leftHandle + dx);
@@ -116,7 +121,7 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
     }
     else if(m_gripMid)
     {
-      auto dy = pos.y() - 100;
+      auto dy = 0.7 * (pos.y() - 100.);
 
       setHandles(
             m_leftHandle  + dx - dy,
