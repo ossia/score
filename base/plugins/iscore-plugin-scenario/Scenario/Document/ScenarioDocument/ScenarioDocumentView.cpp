@@ -107,6 +107,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->setLayout(lay);
   m_widget->setContentsMargins(0, 0, 0, 0);
 
+  m_minimapView.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
   m_minimapView.setSceneRect({0, 0, 4000, 100});
   m_minimapScene.addItem(&m_minimap);
 
