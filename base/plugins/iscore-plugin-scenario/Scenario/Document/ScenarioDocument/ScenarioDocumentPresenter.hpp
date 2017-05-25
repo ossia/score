@@ -22,6 +22,10 @@ class DocumentDelegateView;
 class DocumentPresenter;
 } // namespace iscore
 
+namespace Process
+{
+class MiniLayer;
+}
 namespace Scenario
 {
 class DisplayedElementsPresenter;
@@ -88,6 +92,7 @@ signals:
 
 private slots:
   void on_windowSizeChanged(QSize);
+  void on_viewReady();
 
 private:
   void on_zoomOnWheelEvent(QPointF, QPointF);
@@ -112,8 +117,9 @@ private:
   // State machine
   std::unique_ptr<GraphicsSceneToolPalette> m_stateMachine;
 
-  ZoomRatio m_zoomRatio;
-  QMetaObject::Connection m_constraintConnection;
+  ZoomRatio m_zoomRatio{-1};
+  QMetaObject::Connection m_constraintConnection, m_durationConnection;
+  Process::MiniLayer* m_miniLayer{};
 
   bool m_zooming{false};
   bool m_updatingMinimap{false};

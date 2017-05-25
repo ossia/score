@@ -3,9 +3,9 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QWidget>
+#include <Process/Style/ScenarioStyle.hpp>
 #include <ossia/detail/math.hpp>
 #include <QApplication>
-#include <QDesktopWidget>
 namespace Scenario
 {
 static const constexpr double min_dist = 10.0;
@@ -19,30 +19,33 @@ void Minimap::setWidth(double d)
   prepareGeometryChange();
   m_width = d;
   update();
-  m_viewport->update();
 }
 
 void Minimap::setLeftHandle(double l)
 {
   m_leftHandle = ossia::clamp(l, 0., m_rightHandle - min_dist);
+  if(std::isnan(m_leftHandle))
+  {
+    ISCORE_BREAKPOINT;
+  }
   update();
-  m_viewport->update();
 }
 
 void Minimap::setRightHandle(double r)
 {
   m_rightHandle = ossia::clamp(r, m_leftHandle + min_dist, m_width);
   update();
-  m_viewport->update();
 }
 
 void Minimap::setHandles(double l, double r)
 {
   m_leftHandle = ossia::clamp(l, 0., m_rightHandle - min_dist);
   m_rightHandle = ossia::clamp(r, m_leftHandle + min_dist, m_width);
-
+  if(std::isnan(m_leftHandle))
+  {
+    ISCORE_BREAKPOINT;
+  }
   update();
-  m_viewport->update();
 }
 
 void Minimap::modifyHandles(double l, double r)
@@ -78,7 +81,8 @@ QRectF Minimap::boundingRect() const
 
 void Minimap::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  painter->setPen(QPen(QColor(0, 255, 0, 255), 2));
+  auto& sk = ScenarioStyle::instance();
+  painter->setPen(sk.TimenodePen);
   painter->drawRect(QRectF{m_leftHandle, 2., m_rightHandle - m_leftHandle, m_height - 3.});
 }
 

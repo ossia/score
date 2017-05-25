@@ -1,4 +1,5 @@
 #include <Process/Process.hpp>
+#include <Process/ProcessList.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
@@ -12,6 +13,7 @@
 #include <iscore/widgets/DoubleSlider.hpp>
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/LayerView.hpp>
 #include <QPolygon>
 #include <QSize>
 #include <QString>
@@ -79,9 +81,11 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   // Setup the connections
   con(iscore::GUIAppContext().mainWindow, SIGNAL(sizeChanged(QSize)),
       this, SLOT(on_windowSizeChanged(QSize)), Qt::QueuedConnection);
+  con(iscore::GUIAppContext().mainWindow, SIGNAL(ready()),
+      this, SLOT(on_viewReady()), Qt::QueuedConnection);
 
   con(view().view(), &ProcessGraphicsView::sizeChanged, this,
-      &ScenarioDocumentPresenter::on_windowSizeChanged);
+      &ScenarioDocumentPresenter::on_windowSizeChanged, Qt::QueuedConnection);
   con(view().view(), &ProcessGraphicsView::zoom, this,
       &ScenarioDocumentPresenter::on_zoomOnWheelEvent);
   con(view().view(), &ProcessGraphicsView::scrolled, this,
@@ -211,11 +215,23 @@ void ScenarioDocumentPresenter::on_timeRulerScrollEvent(
 
 void ScenarioDocumentPresenter::on_windowSizeChanged(QSize s)
 {
+  if(m_zoomRatio == -1)
+    return;
+
   // Keep the same zoom level with the new width.
   // Left handle should not move.
   auto new_w = view().viewWidth();
 
   view().timeRuler().setWidth(new_w);
+
+  // Update the time constraint if the window is greater.
+  auto& c = displayedConstraint();
+  auto visible_rect = view().visibleSceneRect();
+  if(visible_rect.width() > c.duration.guiDuration().toPixels(m_zoomRatio))
+  {
+    auto t = TimeVal::fromMsecs(m_zoomRatio * visible_rect.width());
+    c.duration.setGuiDuration(t);
+  }
 
   updateMinimap();
 }
@@ -269,7 +285,9 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
   displayedConstraint().setVisibleRect(visible_scene_rect);
 
   if(!m_updatingMinimap)
+  {
     updateMinimap();
+  }
 }
 
 
@@ -289,6 +307,14 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
   const auto disptime = (rtime - ltime).msec();
   const auto view_width = view().viewportRect().width();
   return disptime / view_width;
+}
+
+void ScenarioDocumentPresenter::on_viewReady()
+{
+  QTimer::singleShot(0, [=] {
+    updateMinimap();
+    view().minimap().setLargeView();
+  });
 }
 
 
@@ -349,14 +375,25 @@ const Process::ProcessPresenterContext&ScenarioDocumentPresenter::context() cons
 
 void ScenarioDocumentPresenter::updateMinimap()
 {
+  if(m_zoomRatio == -1)
+    return;
+
   auto& minimap = view().minimap();
 
   const auto viewRect = view().viewportRect();
   const auto visibleSceneRect = view().visibleSceneRect();
   const auto viewWidth = viewRect.width();
-  const auto cstWidth = displayedConstraint().duration.guiDuration().toPixels(m_zoomRatio);
+  const auto cstDur = displayedConstraint().duration.guiDuration();
+  const auto cstWidth = cstDur.toPixels(m_zoomRatio);
 
   minimap.setWidth(viewWidth);
+  if(m_miniLayer)
+  {
+    m_miniLayer->setWidth(viewWidth);
+    // ms per pixel: divide guiDuration by width
+
+    m_miniLayer->setZoomRatio(cstDur.msec() / viewWidth);
+  }
 
   // Compute handle positions.
   const auto vp_x1 = visibleSceneRect.left();
@@ -376,26 +413,27 @@ double ScenarioDocumentPresenter::displayedDuration() const
 
 void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constraint)
 {
+  auto& ctx = iscore::IDocument::documentContext(model());
   if (displayedElements.initialized())
   {
     if (&constraint == &displayedElements.constraint())
     {
       auto pres = iscore::IDocument::try_get<ScenarioDocumentPresenter>(
-            *iscore::IDocument::documentFromObject(this));
+            ctx.document);
       if(pres) pres->selectTop();
       return;
     }
   }
 
   auto& provider
-      = iscore::IDocument::documentContext(*this)
-            .app.interfaces<DisplayedElementsProviderList>();
+      = ctx.app.interfaces<DisplayedElementsProviderList>();
   displayedElements.setDisplayedElements(
       provider.make(&DisplayedElementsProvider::make, constraint));
 
   m_focusManager.focusNothing();
 
   disconnect(m_constraintConnection);
+  disconnect(m_durationConnection);
   if (&constraint != &model().baseConstraint())
   {
     m_constraintConnection
@@ -403,16 +441,33 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
             setDisplayedConstraint(model().baseConstraint());
           });
   }
+  m_durationConnection = con(constraint.duration, &ConstraintDurations::guiDurationChanged,
+                             this, [=] {
+    updateMinimap();
+  });
 
+  delete m_miniLayer;
 
-  auto& cst = displayedConstraint();
+  auto& layerFactoryList = ctx.app.interfaces<Process::LayerFactoryList>();
+  for(auto& proc : constraint.processes)
+  {
+    if(auto fac = layerFactoryList.findDefaultFactory(proc))
+    {
+      if((m_miniLayer = fac->makeMiniLayer(proc, nullptr)))
+      {
+        m_miniLayer->setHeight(40);
+        view().minimap().scene()->addItem(m_miniLayer);
+        break;
+      }
+    }
+  }
+
   // Setup of the state machine.
-  auto& ctx = iscore::IDocument::documentContext(model());
   const auto& fact
       = ctx.app.interfaces<DisplayedElementsToolPaletteFactoryList>();
   m_stateMachine
-      = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, cst);
-  m_scenarioPresenter->on_displayedConstraintChanged(cst);
+      = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, constraint);
+  m_scenarioPresenter->on_displayedConstraintChanged(constraint);
   connect(
       m_scenarioPresenter->constraintPresenter(),
       &FullViewConstraintPresenter::constraintSelected, this,
@@ -451,7 +506,8 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
           .boundingRect());
 
   */
-  QTimer::singleShot(0, [=] {
+  QTimer::singleShot(1, [=] {
+    updateMinimap();
     view().minimap().setLargeView();
   });
 }
