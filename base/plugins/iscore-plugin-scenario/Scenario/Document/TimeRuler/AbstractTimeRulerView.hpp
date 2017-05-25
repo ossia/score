@@ -81,9 +81,9 @@ protected:
 
   qreal m_graduationsSpacing{};
   qreal m_textPosition{};
-  int32_t m_graduationDelta{};
-  int32_t m_graduationHeight{};
-  uint32_t m_intervalsBetweenMark{};
+  qreal m_graduationDelta{};
+  qreal m_graduationHeight{};
+  int32_t m_intervalsBetweenMark{};
   QString m_timeFormat{};
 
   QPainterPath m_path;
