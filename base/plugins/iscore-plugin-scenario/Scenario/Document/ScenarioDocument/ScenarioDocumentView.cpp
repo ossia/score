@@ -63,9 +63,9 @@ ScenarioDocumentView::ScenarioDocumentView(
 #endif
 #if defined(ISCORE_OPENGL)
   auto vp1 = new QOpenGLWidget;
-  m_view->setViewport(vp1);
+  m_view.setViewport(vp1);
   auto vp2 = new QOpenGLWidget;
-  m_timeRulersView->setViewport(vp2);
+  m_timeRulersView.setViewport(vp2);
 #else
   m_view.setAttribute(Qt::WA_PaintOnScreen, true);
   m_timeRulersView.setAttribute(Qt::WA_PaintOnScreen, true);
