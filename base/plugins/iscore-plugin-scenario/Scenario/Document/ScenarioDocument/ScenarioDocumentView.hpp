@@ -57,16 +57,11 @@ public:
 
   Minimap& minimap() const { return *m_minimap; }
 
-  iscore::DoubleSlider* zoomSlider() const
-  {
-    return m_zoomSlider;
-  }
 
   QRectF viewportRect() const;
   QRectF visibleSceneRect() const;
   void setLargeView();
 signals:
-  void horizontalZoomChanged(double newZoom);
   void elementsScaleChanged(double);
 
 private:
@@ -79,7 +74,5 @@ private:
   QGraphicsView* m_timeRulersView{};
   TimeRulerView* m_timeRuler{};
   Minimap* m_minimap{};
-
-  iscore::DoubleSlider* m_zoomSlider{};
 };
 }

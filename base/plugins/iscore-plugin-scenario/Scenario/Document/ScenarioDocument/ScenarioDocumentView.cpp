@@ -73,30 +73,22 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_timeRuler = new TimeRulerView{m_timeRulersView};
   m_widget->addAction(new SnapshotAction{*m_scene, m_widget});
 
+  m_timeRulersView->setFixedHeight(20);
   // Transport
   /// Zoom
-  m_zoomSlider = new iscore::DoubleSlider{m_widget};
-  m_zoomSlider->setObjectName("ZoomSliderWidget");
-
-  connect(
-      m_zoomSlider, &iscore::DoubleSlider::valueChanged, this,
-      &ScenarioDocumentView::horizontalZoomChanged);
-
   QAction* zoomIn = new QAction(tr("Zoom in"), m_widget);
   m_widget->addAction(zoomIn);
   zoomIn->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   zoomIn->setShortcuts({QKeySequence::ZoomIn, tr("Ctrl+=")});
-  connect(zoomIn, &QAction::triggered, this, [&]() {
-    m_zoomSlider->setValue(m_zoomSlider->value() + 0.04);
-    emit horizontalZoomChanged(m_zoomSlider->value());
+  connect(zoomIn, &QAction::triggered, this, [&] {
+    m_minimap->zoomIn();
   });
   QAction* zoomOut = new QAction(tr("Zoom out"), m_widget);
   m_widget->addAction(zoomOut);
   zoomOut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   zoomOut->setShortcut(QKeySequence::ZoomOut);
-  connect(zoomOut, &QAction::triggered, this, [&]() {
-    m_zoomSlider->setValue(m_zoomSlider->value() - 0.04);
-    emit horizontalZoomChanged(m_zoomSlider->value());
+  connect(zoomOut, &QAction::triggered, this, [&] {
+    m_minimap->zoomOut();
   });
   QAction* largeView = new QAction{tr("Large view"), m_widget};
   m_widget->addAction(largeView);
@@ -123,7 +115,6 @@ ScenarioDocumentView::ScenarioDocumentView(
   lay->addWidget(minimap_view);
   lay->addWidget(m_timeRulersView);
   lay->addWidget(m_view);
-  lay->addWidget(m_zoomSlider);
 
   lay->setSpacing(1);
 
@@ -178,11 +169,8 @@ QRectF ScenarioDocumentView::visibleSceneRect() const
 
 void ScenarioDocumentView::setLargeView()
 {
-  m_zoomSlider->setValue(0.05);
-  emit horizontalZoomChanged(m_zoomSlider->value());
   QTimer::singleShot(0, [=] {
-      if(auto hs = view().horizontalScrollBar())
-        hs->setValue(0);
+    m_minimap->setLargeView();
   });
 }
 

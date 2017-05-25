@@ -14,8 +14,18 @@ class Minimap final
     Minimap(QWidget* vp);
     void setWidth(double);
     double width() const { return m_width; }
+
+    // These do not send notification
     void setLeftHandle(double);
     void setRightHandle(double);
+    void setHandles(double l, double r);
+
+    // This one sends visibleRectChanged
+    void modifyHandles(double l, double r);
+
+    void setLargeView();
+    void zoomIn();
+    void zoomOut();
 
   signals:
     void visibleRectChanged(double l, double r);
@@ -33,6 +43,8 @@ class Minimap final
     double m_rightHandle{};
     static const constexpr double m_height{40};
     double m_width{100};
+    QPoint m_startPos;
+    QPointF m_lastPos;
 
     bool m_gripLeft{false};
     bool m_gripRight{false};
