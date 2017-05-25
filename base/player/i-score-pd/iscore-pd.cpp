@@ -5,7 +5,9 @@
 extern "C" {
 #include <cicm_wrapper.h>
 }
-
+#include <ossia-pd/src/ossia-pd.hpp>
+#include <ossia-pd/src/device.hpp>
+#include <iostream>
 namespace iscore {
 namespace player {
 
@@ -20,6 +22,22 @@ static t_eclass *iscore_class = nullptr;
 static void iscore_bang(t_iscore* x){
 
 }
+static void iscore_find_device(t_iscore* x)
+{
+    if(!x || (x && !x->p))
+        return;
+
+    int level{};
+    auto parent = ossia::pd::find_parent(&x->obj, "ossia.device", 0, &level);
+    if(parent)
+    {
+        auto dev = ((ossia::pd::t_device*) parent)->x_device;
+        if(dev)
+        {
+            x->p->registerDevice(*dev);
+        }
+    }
+}
 
 static void iscore_float(t_iscore* x, t_float f){
     if (f > 0.){
@@ -30,7 +48,7 @@ static void iscore_float(t_iscore* x, t_float f){
 }
 
 static void iscore_load(t_iscore* x, t_symbol* s){
-    try{
+    try {
       x->p->load(s->s_name);
     } catch (std::exception& e){
         pd_error(x,"can't open file %s: %s", s->s_name, e.what());
@@ -63,9 +81,10 @@ extern "C" void setup_i0x2dscore(void)
     c->c_class.c_patchable = true;
 
     if (c){
-        eclass_addmethod(c, (method) iscore_bang,  "bang",     A_NULL,   0);
-        eclass_addmethod(c, (method) iscore_float, "float",    A_FLOAT,  0);
-        eclass_addmethod(c, (method) iscore_load,  "load",     A_SYMBOL, 0);
+        eclass_addmethod(c, (method) iscore_bang,         "bang",   A_NULL,   0);
+        eclass_addmethod(c, (method) iscore_float,        "float",  A_FLOAT,  0);
+        eclass_addmethod(c, (method) iscore_load,         "load",   A_SYMBOL, 0);
+        eclass_addmethod(c, (method) iscore_find_device,  "device", A_NULL,   0);
     }
 
     iscore_class = c;
