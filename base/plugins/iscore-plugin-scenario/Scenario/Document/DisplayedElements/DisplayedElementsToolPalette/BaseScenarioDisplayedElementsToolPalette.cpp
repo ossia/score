@@ -47,7 +47,7 @@ BaseScenarioDisplayedElementsToolPalette::
 
 BaseGraphicsObject& BaseScenarioDisplayedElementsToolPalette::view() const
 {
-  return *m_presenter.view().baseItem();
+  return m_presenter.view().baseItem();
 }
 
 const DisplayedElementsPresenter&
@@ -88,7 +88,7 @@ void BaseScenarioDisplayedElementsToolPalette::on_pressed(QPointF point)
   scenePoint = point;
   m_state.on_pressed(
       point, ScenePointToScenarioPoint(
-                 m_presenter.view().baseItem()->mapFromScene(point)));
+                 m_presenter.view().baseItem().mapFromScene(point)));
 }
 
 void BaseScenarioDisplayedElementsToolPalette::on_moved(QPointF point)
@@ -96,7 +96,7 @@ void BaseScenarioDisplayedElementsToolPalette::on_moved(QPointF point)
   scenePoint = point;
   m_state.on_moved(
       point, ScenePointToScenarioPoint(
-                 m_presenter.view().baseItem()->mapFromScene(point)));
+                 m_presenter.view().baseItem().mapFromScene(point)));
 }
 
 void BaseScenarioDisplayedElementsToolPalette::on_released(QPointF point)
@@ -104,7 +104,7 @@ void BaseScenarioDisplayedElementsToolPalette::on_released(QPointF point)
   scenePoint = point;
   m_state.on_released(
       point, ScenePointToScenarioPoint(
-                 m_presenter.view().baseItem()->mapFromScene(point)));
+                 m_presenter.view().baseItem().mapFromScene(point)));
 }
 
 void BaseScenarioDisplayedElementsToolPalette::on_cancel()
