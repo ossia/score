@@ -69,7 +69,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     iscore::DocumentDelegateView& delegate_view)
     : DocumentDelegatePresenter{parent_presenter, delegate_model,
                                          delegate_view}
-    , m_scenarioPresenter{new DisplayedElementsPresenter{*this}}
+    , m_scenarioPresenter{*this}
     , m_selectionDispatcher{ctx.selectionStack}
     , m_mainTimeRuler{new TimeRulerPresenter{view().timeRuler(), this}}
     , m_focusManager{ctx.document.focusManager()}
@@ -92,7 +92,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       &ScenarioDocumentPresenter::on_horizontalPositionChanged);
 
   connect(
-      m_scenarioPresenter,
+      &m_scenarioPresenter,
       &DisplayedElementsPresenter::requestFocusedPresenterChange,
       &focusManager(),
       static_cast<void (Process::ProcessFocusManager::*)(
@@ -141,7 +141,6 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
 {
-  delete m_scenarioPresenter;
 }
 
 ConstraintModel& ScenarioDocumentPresenter::displayedConstraint() const
@@ -151,7 +150,7 @@ ConstraintModel& ScenarioDocumentPresenter::displayedConstraint() const
 
 const DisplayedElementsPresenter&ScenarioDocumentPresenter::presenters() const
 {
-  return *m_scenarioPresenter;
+  return m_scenarioPresenter;
 }
 
 void ScenarioDocumentPresenter::selectAll()
@@ -183,7 +182,7 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
   m_zoomRatio = newRatio;
 
   m_mainTimeRuler->setPixelPerMillis(1.0 / m_zoomRatio);
-  m_scenarioPresenter->on_zoomRatioChanged(m_zoomRatio);
+  m_scenarioPresenter.on_zoomRatioChanged(m_zoomRatio);
 }
 
 void ScenarioDocumentPresenter::on_zoomOnWheelEvent(
@@ -494,10 +493,10 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
       = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, constraint);
 
   m_updatingView = true;
-  m_scenarioPresenter->on_displayedConstraintChanged(constraint);
+  m_scenarioPresenter.on_displayedConstraintChanged(constraint);
   m_updatingView = false;
   connect(
-      m_scenarioPresenter->constraintPresenter(),
+      m_scenarioPresenter.constraintPresenter(),
       &FullViewConstraintPresenter::constraintSelected, this,
       &ScenarioDocumentPresenter::setDisplayedConstraint);
 
