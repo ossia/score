@@ -19,7 +19,7 @@ make_bimap(std::initializer_list<typename boost::bimap<L, R>::value_type> list)
   }
 Skin::Skin() noexcept
     : SansFont{"Ubuntu"}
-    , MonoFont{"APCCourier-Bold", 8}
+    , MonoFont{"APCCourier-Bold", 10, QFont::Black}
     , m_colorMap(make_bimap<QString, const QBrush*>(
           {ISCORE_INSERT_COLOR(Dark),
            ISCORE_INSERT_COLOR(HalfDark),
@@ -52,6 +52,8 @@ Skin::Skin() noexcept
                    }))
 {
   this->startTimer(32, Qt::CoarseTimer);
+  MonoFont.setStyleHint(QFont::Monospace, QFont::PreferQuality);
+  MonoFont.setHintingPreference(QFont::PreferFullHinting);
 }
 
 Skin& iscore::Skin::instance()

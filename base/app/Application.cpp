@@ -177,6 +177,7 @@ void Application::init()
     if(m_applicationSettings.gui)
     {
         m_view->sizeChanged(m_view->size());
+        m_view->ready();
     }
 }
 

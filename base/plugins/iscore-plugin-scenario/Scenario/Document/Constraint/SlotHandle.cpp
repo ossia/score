@@ -45,7 +45,7 @@ void SlotHandle::paint(
 {
   const auto& style = ScenarioStyle::instance();
 
-  painter->fillRect(boundingRect().adjusted(0, 1, 0, 1), style.ProcessViewBorder.getColor());
+  painter->fillRect(boundingRect(), style.ProcessViewBorder.getColor());
 }
 
 void SlotHandle::setWidth(qreal width)

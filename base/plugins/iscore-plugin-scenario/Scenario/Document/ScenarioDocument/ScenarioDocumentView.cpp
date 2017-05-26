@@ -23,8 +23,6 @@
 #include <iscore/model/Skin.hpp>
 
 #include "ScenarioDocumentView.hpp"
-#include <Process/Tools/ProcessGraphicsView.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <iscore/widgets/DoubleSlider.hpp>
 #include <iscore/widgets/GraphicsProxyObject.hpp>
 #include <iscore/widgets/MarginLess.hpp>
@@ -32,7 +30,6 @@
 #include <QScrollBar>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
-#include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
@@ -52,81 +49,83 @@ ScenarioDocumentView::ScenarioDocumentView(
     const iscore::GUIApplicationContext& ctx, QObject* parent)
     : iscore::DocumentDelegateView{parent}
     , m_widget{new QWidget}
-    , m_scene{new ScenarioScene{m_widget}}
-    , m_view{new ProcessGraphicsView{m_scene, m_widget}}
-    , m_baseObject{new BaseGraphicsObject}
-    , m_timeRulersView{new TimeRulerGraphicsView{m_scene}}
+    , m_scene{m_widget}
+    , m_view{&m_scene, m_widget}
+    , m_timeRulersView{&m_scene}
+    , m_timeRuler{&m_timeRulersView}
+    , m_minimapScene{m_widget}
+    , m_minimapView{&m_minimapScene}
+    , m_minimap{m_minimapView.viewport()}
+
 {
 #if defined(ISCORE_WEBSOCKETS)
   auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif
 #if defined(ISCORE_OPENGL)
   auto vp1 = new QOpenGLWidget;
-  m_view->setViewport(vp1);
+  m_view.setViewport(vp1);
   auto vp2 = new QOpenGLWidget;
-  m_timeRulersView->setViewport(vp2);
+  m_timeRulersView.setViewport(vp2);
 #else
-  m_view->setAttribute(Qt::WA_PaintOnScreen, true);
-  m_timeRulersView->setAttribute(Qt::WA_PaintOnScreen, true);
+  m_view.setAttribute(Qt::WA_PaintOnScreen, true);
+  m_timeRulersView.setAttribute(Qt::WA_PaintOnScreen, true);
 #endif
-  m_timeRuler = new TimeRulerView{m_timeRulersView};
-  m_widget->addAction(new SnapshotAction{*m_scene, m_widget});
+  m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 
+  m_timeRulersView.setFixedHeight(20);
   // Transport
   /// Zoom
-  m_zoomSlider = new iscore::DoubleSlider{m_widget};
-  m_zoomSlider->setObjectName("ZoomSliderWidget");
-
-  connect(
-      m_zoomSlider, &iscore::DoubleSlider::valueChanged, this,
-      &ScenarioDocumentView::horizontalZoomChanged);
-
   QAction* zoomIn = new QAction(tr("Zoom in"), m_widget);
   m_widget->addAction(zoomIn);
   zoomIn->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   zoomIn->setShortcuts({QKeySequence::ZoomIn, tr("Ctrl+=")});
-  connect(zoomIn, &QAction::triggered, this, [&]() {
-    m_zoomSlider->setValue(m_zoomSlider->value() + 0.04);
-    emit horizontalZoomChanged(m_zoomSlider->value());
+  connect(zoomIn, &QAction::triggered, this, [&] {
+    m_minimap.zoomIn();
   });
   QAction* zoomOut = new QAction(tr("Zoom out"), m_widget);
   m_widget->addAction(zoomOut);
   zoomOut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   zoomOut->setShortcut(QKeySequence::ZoomOut);
-  connect(zoomOut, &QAction::triggered, this, [&]() {
-    m_zoomSlider->setValue(m_zoomSlider->value() - 0.04);
-    emit horizontalZoomChanged(m_zoomSlider->value());
+  connect(zoomOut, &QAction::triggered, this, [&] {
+    m_minimap.zoomOut();
   });
   QAction* largeView = new QAction{tr("Large view"), m_widget};
   m_widget->addAction(largeView);
   largeView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   largeView->setShortcut(tr("Ctrl+0"));
-  connect(largeView, &QAction::triggered, this, &ScenarioDocumentView::setLargeView);
-  connect(m_timeRuler, &AbstractTimeRulerView::rescale,
-          largeView, &QAction::trigger);
+  connect(largeView, &QAction::triggered, this, [this] {
+      m_minimap.setLargeView();
+  }, Qt::QueuedConnection);
+  con(m_timeRuler, &AbstractTimeRulerView::rescale,
+      largeView, &QAction::trigger);
 
   // view layout
-  m_scene->addItem(m_timeRuler);
-  m_scene->addItem(m_baseObject);
+  m_scene.addItem(&m_timeRuler);
+  m_scene.addItem(&m_baseObject);
 
   auto lay = new iscore::MarginLess<QVBoxLayout>;
   m_widget->setLayout(lay);
   m_widget->setContentsMargins(0, 0, 0, 0);
 
-  lay->addWidget(m_timeRulersView);
-  lay->addWidget(m_view);
-  lay->addWidget(m_zoomSlider);
+  m_minimapView.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+  m_minimapView.setSceneRect({0, 0, 4000, 100});
+  m_minimapScene.addItem(&m_minimap);
+
+  lay->addWidget(&m_minimapView);
+  lay->addWidget(&m_timeRulersView);
+  lay->addWidget(&m_view);
 
   lay->setSpacing(1);
 
-  m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  m_view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  m_view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   auto& skin = iscore::Skin::instance();
   con(skin, &iscore::Skin::changed, this, [&]() {
     auto& skin = ScenarioStyle::instance();
-    m_timeRulersView->setBackgroundBrush(skin.TimeRulerBackground.getColor());
-    m_view->setBackgroundBrush(skin.Background.getColor());
+    m_timeRulersView.setBackgroundBrush(skin.TimeRulerBackground.getColor());
+    m_minimapView.setBackgroundBrush(skin.TimeRulerBackground.getColor());
+    m_view.setBackgroundBrush(skin.Background.getColor());
   });
 
   m_widget->setObjectName("ScenarioViewer");
@@ -145,23 +144,23 @@ QWidget* ScenarioDocumentView::getWidget()
   return m_widget;
 }
 
-void ScenarioDocumentView::update()
-{
-  m_scene->update();
-}
-
 qreal ScenarioDocumentView::viewWidth() const
 {
-  return m_view->width();
+  return m_view.width();
 }
 
-void ScenarioDocumentView::setLargeView()
+QRectF ScenarioDocumentView::viewportRect() const
 {
-  m_zoomSlider->setValue(0.05);
-  emit horizontalZoomChanged(m_zoomSlider->value());
-  QTimer::singleShot(0, [=] {
-      if(auto hs = view().horizontalScrollBar())
-        hs->setValue(0);
-  });
+  return m_view.viewport()->rect();
 }
+
+QRectF ScenarioDocumentView::visibleSceneRect() const
+{
+  const auto viewRect = m_view.viewport()->rect();
+  return QRectF{
+    m_view.mapToScene(viewRect.topLeft()),
+    m_view.mapToScene(viewRect.bottomRight())
+  };
+}
+
 }

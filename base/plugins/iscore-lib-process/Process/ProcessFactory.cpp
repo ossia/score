@@ -78,7 +78,14 @@ LayerPresenter *LayerFactory::makeLayerPresenter(
 
 LayerView *LayerFactory::makeLayerView(const ProcessModel &view, QGraphicsItem *parent)
 {
-    return new DefaultLayerView{parent};
+  return new DefaultLayerView{parent};
+}
+
+Process::MiniLayer* LayerFactory::makeMiniLayer(
+    const ProcessModel& view,
+    QGraphicsItem* parent)
+{
+  return nullptr;
 }
 
 LayerPanelProxy*
