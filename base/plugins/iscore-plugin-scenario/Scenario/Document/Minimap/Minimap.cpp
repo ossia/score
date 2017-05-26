@@ -161,6 +161,12 @@ void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
   ev->accept();
 }
 
+void Minimap::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
+{
+  emit rescale();
+  ev->accept();
+}
+
 void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
 {
   const auto pos_x = ev->pos().x();
