@@ -10,6 +10,7 @@
 #include <QGraphicsView>
 #include <QTextLayout>
 
+#include <fmt/format.h>
 #include "AbstractTimeRulerView.hpp"
 #include <Process/TimeValue.hpp>
 #include <iscore/model/Skin.hpp>
@@ -69,7 +70,7 @@ void AbstractTimeRulerView::setWidth(qreal newWidth)
 }
 
 void AbstractTimeRulerView::setGraduationsStyle(
-    double size, int delta, QString format, int mark)
+    double size, double delta, QString format, double mark)
 {
   prepareGeometryChange();
   m_graduationsSpacing = size;
@@ -118,20 +119,19 @@ void AbstractTimeRulerView::createRulerPath()
   }
 
   // If we are between two graduations, we adjust our origin.
-  double big_delta = m_graduationDelta * 5 * 2;
+  double big_delta = m_graduationDelta * 5. * 2.;
   double prev_big_grad_msec
       = std::floor(m_pres->startPoint().msec() / big_delta) * big_delta;
 
-  TimeVal startTime
-      = TimeVal::fromMsecs(m_pres->startPoint().msec() - prev_big_grad_msec);
-  QTime time = TimeVal::fromMsecs(prev_big_grad_msec).toQTime();
-  double t = -startTime.toPixels(1. / m_pres->pixelsPerMillis());
+  double startTime = m_pres->startPoint().msec() - prev_big_grad_msec;
+  std::chrono::microseconds time{(int64_t)(1000. * prev_big_grad_msec)};
+  double t = -startTime * m_pres->pixelsPerMillis();
 
-  uint32_t i = 0;
+  double i = 0;
 
-  while (t < m_width + 1)
+  while (t < m_width + 1.)
   {
-    uint32_t res = (i % m_intervalsBetweenMark);
+    double res = std::fmod(i, m_intervalsBetweenMark);
     if (res == 0)
     {
       m_marks.emplace_back(Mark{t, time, getGlyphs(time)});
@@ -139,14 +139,26 @@ void AbstractTimeRulerView::createRulerPath()
     }
 
     t += m_graduationsSpacing;
-    time = time.addMSecs(m_graduationDelta);
+    time += std::chrono::microseconds((int64_t)(1000. * m_graduationDelta));
     i++;
   }
   update();
   m_viewport->update();
 }
 
-QGlyphRun AbstractTimeRulerView::getGlyphs(const QTime& t)
+// Taken from https://stackoverflow.com/a/42139394/1495627
+template<class...Durations, class DurationIn>
+std::tuple<Durations...> break_down_durations( DurationIn d ) {
+  std::tuple<Durations...> retval;
+  using discard=int[];
+  (void)discard{0,(void((
+    (std::get<Durations>(retval) = std::chrono::duration_cast<Durations>(d)),
+    (d -= std::chrono::duration_cast<DurationIn>(std::get<Durations>(retval)))
+  )),0)...};
+  return retval;
+}
+
+QGlyphRun AbstractTimeRulerView::getGlyphs(std::chrono::microseconds t)
 {
   auto it = ossia::find_if(m_stringCache, [&] (auto& v) { return v.first == t; });
   if(it != m_stringCache.end())
@@ -155,7 +167,16 @@ QGlyphRun AbstractTimeRulerView::getGlyphs(const QTime& t)
   }
   else
   {
-    m_layout.setText(t.toString(m_timeFormat));
+    if(m_timeFormat == "m:ss")
+    {
+      auto clean_duration = break_down_durations<std::chrono::minutes, std::chrono::seconds>(t);
+      m_layout.setText(QString::fromStdString( fmt::format("{0}:{1:02}", std::get<0>(clean_duration).count(), std::get<1>(clean_duration).count())));
+    }
+    else if(m_timeFormat == "m:ss.z")
+    {
+      auto clean_duration = break_down_durations<std::chrono::minutes, std::chrono::seconds, std::chrono::milliseconds>(t);
+      m_layout.setText(QString::fromStdString(fmt::format("{0}:{1:02}.{2:03}", std::get<0>(clean_duration).count(), std::get<1>(clean_duration).count(), std::get<2>(clean_duration).count())));
+    }
     m_layout.beginLayout();
     auto line = m_layout.createLine();
     m_layout.endLayout();

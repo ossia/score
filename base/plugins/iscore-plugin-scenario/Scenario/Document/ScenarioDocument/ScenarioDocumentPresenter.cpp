@@ -200,8 +200,8 @@ void ScenarioDocumentPresenter::on_zoomOnWheelEvent(
   auto rh = map.rightHandle();
 
   // Zoom
-  lh += x_view_percent * zoom.y() / 2.;
-  rh -= (1. - x_view_percent) * zoom.y() / 2.;
+  lh += 0.01 * (rh - lh) * x_view_percent * zoom.y() / 2.;
+  rh -= 0.01 * (rh - lh) * (1. - x_view_percent) * zoom.y() / 2.;
 
   view().minimap().modifyHandles(lh, rh);
 }
@@ -386,14 +386,20 @@ void ScenarioDocumentPresenter::updateMinimap()
   const auto cstDur = displayedConstraint().duration.guiDuration();
   const auto cstWidth = cstDur.toPixels(m_zoomRatio);
 
+  // ZoomRatio in the minimap view
+  const auto zoomRatio = cstDur.msec() / viewWidth;
+
   minimap.setWidth(viewWidth);
   if(m_miniLayer)
   {
     m_miniLayer->setWidth(viewWidth);
-    // ms per pixel: divide guiDuration by width
-
-    m_miniLayer->setZoomRatio(cstDur.msec() / viewWidth);
+    m_miniLayer->setZoomRatio(zoomRatio);
   }
+
+  // Compute min handle spacing.
+  // The maximum zoom in the main view should be 10 pixels for one millisecond.
+  // Given the viewWidth and the guiDuration, compute the distance required.
+  minimap.setMinDistance(20 * viewWidth / cstDur.msec());
 
   // Compute handle positions.
   const auto vp_x1 = visibleSceneRect.left();

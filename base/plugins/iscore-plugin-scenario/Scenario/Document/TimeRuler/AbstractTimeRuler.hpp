@@ -34,7 +34,7 @@ public:
   {
     return m_pixelPerMillis;
   }
-  const QVector<QPair<double, TimeVal>>& graduationsSpacing() const;
+  const QVector<QPair<double, std::chrono::microseconds>>& graduationsSpacing() const;
 
   virtual void setStartPoint(TimeVal dur);
   void setPixelPerMillis(double factor);
@@ -46,7 +46,7 @@ protected:
 
   TimeVal m_startPoint{};
 
-  QVector<QPair<double, TimeVal>> m_graduationsSpacing;
+  QVector<QPair<double, std::chrono::microseconds>> m_graduationsSpacing;
 
   double m_pixelPerMillis{0.01};
   int m_totalScroll{};

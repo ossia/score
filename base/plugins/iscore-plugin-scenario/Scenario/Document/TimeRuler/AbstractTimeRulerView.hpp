@@ -12,6 +12,7 @@
 #include <QtGlobal>
 #include <iscore/model/ColorReference.hpp>
 #include <deque>
+#include <chrono>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -53,7 +54,7 @@ public:
     return m_width;
   }
 
-  void setGraduationsStyle(double size, int delta, QString format, int mark);
+  void setGraduationsStyle(double size, double delta, QString format, double mark);
   void setFormat(QString);
 
 signals:
@@ -70,7 +71,7 @@ protected:
   struct Mark
   {
     double pos;
-    QTime time;
+    std::chrono::microseconds time;
     QGlyphRun text;
   };
 
@@ -83,15 +84,15 @@ protected:
   qreal m_textPosition{};
   qreal m_graduationDelta{};
   qreal m_graduationHeight{};
-  int32_t m_intervalsBetweenMark{};
+  qreal m_intervalsBetweenMark{};
   QString m_timeFormat{};
 
   QPainterPath m_path;
 
   QWidget* m_viewport{};
 
-  QGlyphRun getGlyphs(const QTime& t);
+  QGlyphRun getGlyphs(std::chrono::microseconds);
   QTextLayout m_layout;
-  std::deque<std::pair<QTime, QGlyphRun>> m_stringCache;
+  std::deque<std::pair<std::chrono::microseconds, QGlyphRun>> m_stringCache;
 };
 }

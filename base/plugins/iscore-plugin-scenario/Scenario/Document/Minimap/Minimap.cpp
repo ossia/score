@@ -8,7 +8,6 @@
 #include <QApplication>
 namespace Scenario
 {
-static const constexpr double min_dist = 10.0;
 Minimap::Minimap(QWidget* vp):
   m_viewport{vp}
 {
@@ -22,9 +21,14 @@ void Minimap::setWidth(double d)
   update();
 }
 
+void Minimap::setMinDistance(double d)
+{
+  m_minDist = d;
+}
+
 void Minimap::setLeftHandle(double l)
 {
-  m_leftHandle = ossia::clamp(l, 0., m_rightHandle - min_dist);
+  m_leftHandle = ossia::clamp(l, 0., m_rightHandle - m_minDist);
   if(std::isnan(m_leftHandle))
   {
     ISCORE_BREAKPOINT;
@@ -34,14 +38,14 @@ void Minimap::setLeftHandle(double l)
 
 void Minimap::setRightHandle(double r)
 {
-  m_rightHandle = ossia::clamp(r, m_leftHandle + min_dist, m_width);
+  m_rightHandle = ossia::clamp(r, m_leftHandle + m_minDist, m_width);
   update();
 }
 
 void Minimap::setHandles(double l, double r)
 {
-  m_leftHandle = ossia::clamp(l, 0., m_rightHandle - min_dist);
-  m_rightHandle = ossia::clamp(r, m_leftHandle + min_dist, m_width);
+  m_leftHandle = ossia::clamp(l, 0., m_rightHandle - m_minDist);
+  m_rightHandle = ossia::clamp(r, m_leftHandle + m_minDist, m_width);
   if(std::isnan(m_leftHandle))
   {
     ISCORE_BREAKPOINT;
@@ -62,12 +66,16 @@ void Minimap::setLargeView()
 
 void Minimap::zoomIn()
 {
-  modifyHandles(m_leftHandle + 10., m_rightHandle - 10.);
+  modifyHandles(
+        m_leftHandle + 0.01 * (m_rightHandle - m_leftHandle),
+        m_rightHandle - 0.01 * (m_rightHandle - m_leftHandle));
 }
 
 void Minimap::zoomOut()
 {
-  modifyHandles(m_leftHandle - 10., m_rightHandle + 10.);
+  modifyHandles(
+        m_leftHandle - 0.01 * (m_rightHandle - m_leftHandle),
+        m_rightHandle + 0.01 * (m_rightHandle - m_leftHandle));
 }
 
 void Minimap::zoom(double z)
