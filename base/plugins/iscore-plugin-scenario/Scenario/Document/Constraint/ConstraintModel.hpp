@@ -34,6 +34,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
 
   ISCORE_SERIALIZE_FRIENDS
   friend struct ConstraintSaveData;
+  friend struct SlotPath;
   Q_PROPERTY(double heightPercentage READ heightPercentage WRITE
                  setHeightPercentage NOTIFY heightPercentageChanged)
 
@@ -94,8 +95,8 @@ public:
   ZoomRatio zoom() const;
   void setZoom(const ZoomRatio& zoom);
 
-  QRectF visibleRect() const;
-  void setVisibleRect(const QRectF& value);
+  TimeVal midTime() const;
+  void setMidTime(const TimeVal& value);
 
   void setSmallViewVisible(bool);
   bool smallViewVisible() const;
@@ -163,21 +164,19 @@ private:
   // Note : it is also present in m_constraintViewModels.
 
   Rack m_smallView;
-
   FullRack m_fullView;
+
   Id<StateModel> m_startState;
   Id<StateModel> m_endState;
 
-  TimeVal m_startDate; // origin
-
+  TimeVal m_startDate;
   double m_heightPercentage{0.5};
 
   ZoomRatio m_zoom{-1};
-  QRectF m_center{};
-  bool m_smallViewShown{};
+  TimeVal m_center{};
   ConstraintExecutionState m_executionState{};
+  bool m_smallViewShown{};
 
-  friend struct SlotPath;
 };
 
 

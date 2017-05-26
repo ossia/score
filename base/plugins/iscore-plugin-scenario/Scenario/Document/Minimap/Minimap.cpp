@@ -29,10 +29,6 @@ void Minimap::setMinDistance(double d)
 void Minimap::setLeftHandle(double l)
 {
   m_leftHandle = ossia::clamp(l, 0., m_rightHandle - m_minDist);
-  if(std::isnan(m_leftHandle))
-  {
-    ISCORE_BREAKPOINT;
-  }
   update();
 }
 
@@ -46,10 +42,6 @@ void Minimap::setHandles(double l, double r)
 {
   m_leftHandle = ossia::clamp(l, 0., m_rightHandle - m_minDist);
   m_rightHandle = ossia::clamp(r, m_leftHandle + m_minDist, m_width);
-  if(std::isnan(m_leftHandle))
-  {
-    ISCORE_BREAKPOINT;
-  }
   update();
 }
 

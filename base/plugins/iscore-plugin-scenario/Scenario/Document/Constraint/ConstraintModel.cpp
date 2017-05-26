@@ -216,12 +216,12 @@ void ConstraintModel::setZoom(const ZoomRatio& zoom)
   m_zoom = zoom;
 }
 
-QRectF ConstraintModel::visibleRect() const
+TimeVal ConstraintModel::midTime() const
 {
   return m_center;
 }
 
-void ConstraintModel::setVisibleRect(const QRectF& value)
+void ConstraintModel::setMidTime(const TimeVal& value)
 {
   m_center = value;
 }
