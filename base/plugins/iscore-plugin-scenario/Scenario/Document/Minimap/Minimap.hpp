@@ -41,6 +41,10 @@ class Minimap final
     void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
 
+    void hoverEnterEvent(QGraphicsSceneHoverEvent*) override;
+    void hoverMoveEvent(QGraphicsSceneHoverEvent*) override;
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent*) override;
+
     QWidget* m_viewport{};
     double m_leftHandle{};
     double m_rightHandle{};

@@ -12,6 +12,7 @@ static const constexpr double min_dist = 10.0;
 Minimap::Minimap(QWidget* vp):
   m_viewport{vp}
 {
+  this->setAcceptHoverEvents(true);
 }
 
 void Minimap::setWidth(double d)
@@ -100,11 +101,15 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
     m_gripRight = true;
   else if(pos_x > m_leftHandle && pos_x < m_rightHandle)
     m_gripMid = true;
+  else
+  {
+    ev->ignore();
+    return;
+  }
 
   m_startPos = ev->screenPos();
   m_lastPos = m_startPos;
 
-  QCursor::setPos(100, 100);
   QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
   ev->accept();
 }
@@ -114,7 +119,7 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
   const auto pos = ev->screenPos();
   if(m_gripLeft || m_gripRight || m_gripMid)
   {
-    auto dx = 0.7 * (pos.x() - 100.);
+    auto dx = 0.7 * (pos.x() - m_startPos.x());
     if(m_gripLeft)
     {
       setLeftHandle(m_leftHandle + dx);
@@ -125,14 +130,14 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
     }
     else if(m_gripMid)
     {
-      auto dy = 0.7 * (pos.y() - 100.);
+      auto dy = 0.7 * (pos.y() - m_startPos.y());
 
       setHandles(
             m_leftHandle  + dx - dy,
             m_rightHandle + dx + dy);
     }
 
-    QCursor::setPos(100, 100);
+    QCursor::setPos(m_startPos);
     emit visibleRectChanged(m_leftHandle, m_rightHandle);
   }
   ev->accept();
@@ -146,6 +151,36 @@ void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
   QCursor::setPos(m_startPos);
   QApplication::restoreOverrideCursor();
   ev->accept();
+}
+
+void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
+{
+  const auto pos_x = ev->pos().x();
+  if(std::abs(pos_x - m_leftHandle) < 3.)
+  {
+    QApplication::setOverrideCursor(Qt::SizeHorCursor);
+  }
+  else if(std::abs(pos_x - m_rightHandle) < 3.)
+  {
+    QApplication::setOverrideCursor(Qt::SizeHorCursor);
+  }
+  else if(pos_x > m_leftHandle && pos_x < m_rightHandle)
+  {
+    QApplication::setOverrideCursor(Qt::SizeAllCursor);
+  }
+  else
+  {
+    QApplication::restoreOverrideCursor();
+  }
+}
+void Minimap::hoverMoveEvent(QGraphicsSceneHoverEvent* ev)
+{
+  this->hoverEnterEvent(ev);
+}
+
+void Minimap::hoverLeaveEvent(QGraphicsSceneHoverEvent* e)
+{
+  QApplication::restoreOverrideCursor();
 }
 
 }
