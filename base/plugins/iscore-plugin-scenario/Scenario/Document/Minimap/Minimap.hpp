@@ -32,6 +32,7 @@ class Minimap final
     void zoom(double z);
 
   signals:
+    void rescale();
     void visibleRectChanged(double l, double r);
 
   private:
@@ -41,6 +42,7 @@ class Minimap final
     void mousePressEvent(QGraphicsSceneMouseEvent*) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) final override;
 
     void hoverEnterEvent(QGraphicsSceneHoverEvent*) override;
     void hoverMoveEvent(QGraphicsSceneHoverEvent*) override;

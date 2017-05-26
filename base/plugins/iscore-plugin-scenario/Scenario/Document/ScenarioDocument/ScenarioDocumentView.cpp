@@ -98,6 +98,8 @@ ScenarioDocumentView::ScenarioDocumentView(
   }, Qt::QueuedConnection);
   con(m_timeRuler, &AbstractTimeRulerView::rescale,
       largeView, &QAction::trigger);
+  con(m_minimap, &Minimap::rescale,
+      largeView, &QAction::trigger);
 
   // view layout
   m_scene.addItem(&m_timeRuler);
