@@ -18,6 +18,7 @@ class Minimap final
     double rightHandle() const { return m_rightHandle; }
 
     // These do not send notification
+    void setMinDistance(double);
     void setLeftHandle(double);
     void setRightHandle(double);
     void setHandles(double l, double r);
@@ -45,11 +46,13 @@ class Minimap final
     void hoverMoveEvent(QGraphicsSceneHoverEvent*) override;
     void hoverLeaveEvent(QGraphicsSceneHoverEvent*) override;
 
+    static const constexpr double m_height{40.};
+
     QWidget* m_viewport{};
     double m_leftHandle{};
     double m_rightHandle{};
-    static const constexpr double m_height{40};
-    double m_width{100};
+    double m_width{100.};
+    double m_minDist{10.};
     QPoint m_startPos;
     QPointF m_lastPos;
 
