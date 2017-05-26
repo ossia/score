@@ -123,6 +123,8 @@ private:
 
   bool m_zooming{false};
   bool m_updatingMinimap{false};
+  bool m_updatingView{false};
 
+  double computeReverseZoom(ZoomRatio r);
 };
 }
