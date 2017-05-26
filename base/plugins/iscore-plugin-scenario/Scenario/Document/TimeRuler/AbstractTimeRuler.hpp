@@ -15,10 +15,10 @@ class AbstractTimeRuler : public QObject
   Q_OBJECT
 public:
   explicit AbstractTimeRuler(
-      AbstractTimeRulerView* view, QObject* parent = nullptr);
+      AbstractTimeRulerView& view, QObject* parent = nullptr);
   virtual ~AbstractTimeRuler();
 
-  AbstractTimeRulerView* view()
+  AbstractTimeRulerView& view()
   {
     return m_view;
   }
@@ -42,7 +42,7 @@ public:
 protected:
   void computeGraduationSpacing();
 
-  AbstractTimeRulerView* m_view;
+  AbstractTimeRulerView& m_view;
 
   TimeVal m_startPoint{};
 

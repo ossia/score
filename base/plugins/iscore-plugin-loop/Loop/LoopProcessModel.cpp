@@ -40,8 +40,6 @@ ProcessModel::ProcessModel(
   const double height = 0.5;
   constraint().setHeightPercentage(height);
   constraint().metadata().setName("pattern");
-  constraint().metadata().setColor(
-      ScenarioStyle::instance().ConstraintInvalid);
   BaseScenarioContainer::startState().setHeightPercentage(height);
   BaseScenarioContainer::endState().setHeightPercentage(height);
   BaseScenarioContainer::startEvent().setExtent({height, 0.2});

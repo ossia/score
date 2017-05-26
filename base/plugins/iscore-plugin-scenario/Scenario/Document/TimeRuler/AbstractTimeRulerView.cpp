@@ -23,11 +23,11 @@ AbstractTimeRulerView::AbstractTimeRulerView(QGraphicsView* v)
     : m_width{800}
     , m_graduationsSpacing{10}
     , m_graduationDelta{10}
-    , m_graduationHeight{-10}
+    , m_graduationHeight{-15}
     , m_intervalsBetweenMark{1}
     , m_viewport{v->viewport()}
 {
-  setY(-25);
+  setY(-24);
 
   m_layout.setFont(iscore::Skin::instance().MonoFont);
 }
@@ -171,7 +171,7 @@ QGlyphRun AbstractTimeRulerView::getGlyphs(const QTime& t)
         m_stringCache.pop_front();
 
     m_layout.clearLayout();
-    
+
     return gr;
   }
 }

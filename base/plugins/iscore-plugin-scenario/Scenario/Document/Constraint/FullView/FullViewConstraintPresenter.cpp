@@ -145,7 +145,7 @@ void FullViewConstraintPresenter::createSlot(int pos, const FullSlot& slt)
 void FullViewConstraintPresenter::updateProcessShape(int slot)
 {
   const LayerData& data = m_slots.at(slot).process;
-  data.presenter->setHeight(data.model->getSlotHeight() - SlotHandle::handleHeight());
+  data.presenter->setHeight(data.model->getSlotHeight());
 
   auto width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
   data.presenter->setWidth(width);

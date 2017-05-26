@@ -17,7 +17,7 @@ ScenarioDisplayedElementsToolPaletteFactory::make(
     ScenarioDocumentPresenter& pres, const ConstraintModel& constraint)
 {
   return std::make_unique<ScenarioDisplayedElementsToolPalette>(
-      pres.displayedElements, pres, *pres.view().baseItem());
+      pres.displayedElements, pres, pres.view().baseItem());
 }
 
 bool ScenarioDisplayedElementsToolPaletteFactory::matches(
