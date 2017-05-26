@@ -94,6 +94,8 @@ set(ISCORE_TESTBED OFF)
 if(ISCORE_TESTBED)
 add_subdirectory(Tests/testbed)
 endif()
+
+add_custom_target(Docs SOURCES Documentation/Models/i-score.qmodel)
 #if(INTEGRATION_TESTING)
 
  #       include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")

@@ -446,7 +446,9 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
     updateMinimap();
   });
 
+  // Setup of the layer in the minimap
   delete m_miniLayer;
+  m_miniLayer = nullptr;
 
   auto& layerFactoryList = ctx.app.interfaces<Process::LayerFactoryList>();
   for(auto& proc : constraint.processes)
@@ -457,6 +459,11 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
       {
         m_miniLayer->setHeight(40);
         view().minimap().scene()->addItem(m_miniLayer);
+        con(proc, &Process::ProcessModel::identified_object_destroying,
+            this, [=] {
+          delete m_miniLayer;
+          m_miniLayer = nullptr;
+        });
         break;
       }
     }
