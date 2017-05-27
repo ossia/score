@@ -5,10 +5,11 @@
 #include <QWidget>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <ossia/detail/math.hpp>
+#include <QGraphicsView>
 #include <QApplication>
 namespace Scenario
 {
-Minimap::Minimap(QWidget* vp):
+Minimap::Minimap(QGraphicsView* vp):
   m_viewport{vp}
 {
   this->setAcceptHoverEvents(true);
@@ -108,9 +109,18 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
   }
 
   m_startPos = ev->screenPos();
-  m_lastPos = m_startPos;
+  m_relativeStartX = (ev->pos().x() - m_leftHandle) / (m_rightHandle - m_leftHandle);
+  m_startY = ev->pos().y();
 
-  QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+  if(m_setCursor)
+  {
+    QApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
+  }
+  else
+  {
+    QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+    m_setCursor = true;
+  }
   ev->accept();
 }
 
@@ -139,18 +149,39 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 
     QCursor::setPos(m_startPos);
     emit visibleRectChanged(m_leftHandle, m_rightHandle);
+
+    ev->accept();
+    return;
   }
-  ev->accept();
+  ev->ignore();
 }
 
 void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
-  m_gripLeft = false;
-  m_gripRight = false;
-  m_gripMid = false;
-  QCursor::setPos(m_startPos);
-  QApplication::restoreOverrideCursor();
-  ev->accept();
+  if(m_setCursor)
+  {
+    QApplication::restoreOverrideCursor();
+    m_setCursor = false;
+  }
+
+  if(m_gripLeft || m_gripRight || m_gripMid)
+  {
+    m_gripLeft = false;
+    m_gripRight = false;
+    m_gripMid = false;
+
+    QPointF pos;
+    pos.setX(ossia::clamp(
+               m_leftHandle + m_relativeStartX * (m_rightHandle - m_leftHandle),
+               m_leftHandle,
+               m_rightHandle));
+    pos.setY(m_startY);
+
+    QCursor::setPos(m_viewport->mapToGlobal(pos.toPoint()));
+    ev->accept();
+    return;
+  }
+  ev->ignore();
 }
 
 void Minimap::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
@@ -164,19 +195,35 @@ void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
   const auto pos_x = ev->pos().x();
   if(std::abs(pos_x - m_leftHandle) < 3.)
   {
-    QApplication::setOverrideCursor(Qt::SizeHorCursor);
+    if(!m_setCursor)
+    {
+      QApplication::setOverrideCursor(Qt::SizeHorCursor);
+      m_setCursor = true;
+    }
   }
   else if(std::abs(pos_x - m_rightHandle) < 3.)
   {
-    QApplication::setOverrideCursor(Qt::SizeHorCursor);
+    if(!m_setCursor)
+    {
+      QApplication::setOverrideCursor(Qt::SizeHorCursor);
+      m_setCursor = true;
+    }
   }
   else if(pos_x > m_leftHandle && pos_x < m_rightHandle)
   {
-    QApplication::setOverrideCursor(Qt::SizeAllCursor);
+    if(!m_setCursor)
+    {
+      QApplication::setOverrideCursor(Qt::SizeAllCursor);
+      m_setCursor = true;
+    }
   }
   else
   {
-    QApplication::restoreOverrideCursor();
+    if(m_setCursor)
+    {
+      QApplication::restoreOverrideCursor();
+      m_setCursor = false;
+    }
   }
 }
 void Minimap::hoverMoveEvent(QGraphicsSceneHoverEvent* ev)
@@ -186,7 +233,11 @@ void Minimap::hoverMoveEvent(QGraphicsSceneHoverEvent* ev)
 
 void Minimap::hoverLeaveEvent(QGraphicsSceneHoverEvent* e)
 {
-  QApplication::restoreOverrideCursor();
+  if(m_setCursor)
+  {
+    QApplication::restoreOverrideCursor();
+    m_setCursor = false;
+  }
 }
 
 }

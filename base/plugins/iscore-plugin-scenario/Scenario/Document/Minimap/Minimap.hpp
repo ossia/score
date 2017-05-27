@@ -2,7 +2,7 @@
 
 #include <QGraphicsItem>
 #include <Process/TimeValue.hpp>
-
+class QGraphicsView;
 namespace Scenario
 {
 class Minimap final
@@ -11,7 +11,7 @@ class Minimap final
 {
     Q_OBJECT
   public:
-    Minimap(QWidget* vp);
+    Minimap(QGraphicsView* vp);
     void setWidth(double);
     double width() const { return m_width; }
     double leftHandle() const { return m_leftHandle; }
@@ -50,16 +50,18 @@ class Minimap final
 
     static const constexpr double m_height{40.};
 
-    QWidget* m_viewport{};
+    QGraphicsView* m_viewport{};
     double m_leftHandle{};
     double m_rightHandle{};
     double m_width{100.};
     double m_minDist{10.};
     QPoint m_startPos;
-    QPointF m_lastPos;
+    double m_startY{};
+    double m_relativeStartX{};
 
     bool m_gripLeft{false};
     bool m_gripRight{false};
     bool m_gripMid{false};
+    bool m_setCursor{false};
 };
 }
