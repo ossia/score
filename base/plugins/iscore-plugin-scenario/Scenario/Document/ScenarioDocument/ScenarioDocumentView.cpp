@@ -55,7 +55,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_timeRuler{&m_timeRulersView}
     , m_minimapScene{m_widget}
     , m_minimapView{&m_minimapScene}
-    , m_minimap{m_minimapView.viewport()}
+    , m_minimap{&m_minimapView}
 
 {
 #if defined(ISCORE_WEBSOCKETS)
