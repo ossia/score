@@ -69,7 +69,9 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     TimeRulerBackground{&s.Background1}
     , TimeRuler{&s.Base1}
     , LocalTimeRuler{&s.Gray}
-    , SeparatorPen{Qt::white, 2}
+    , CommentBlockPen{Qt::white, 1.}
+    , MinimapPen{Qt::white, 2.}
+    , SeparatorPen{Qt::white, 2.}
     , SeparatorBrush{Qt::white}
     , TransparentBrush{Qt::transparent}
 {
@@ -155,6 +157,8 @@ void ScenarioStyle::update(const iscore::Skin& skin)
 
   SlotHandlePen.setWidth(0);
   SlotHandlePen.setBrush(ProcessViewBorder.getColor());
+
+  MinimapPen.setCosmetic(true);
 
   Bold10Pt = skin.SansFont;
   Bold10Pt.setPointSize(10);

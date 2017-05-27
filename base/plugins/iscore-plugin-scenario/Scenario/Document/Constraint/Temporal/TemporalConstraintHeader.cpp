@@ -30,10 +30,10 @@ TemporalConstraintHeader::TemporalConstraintHeader() : ConstraintHeader{}
   this->setAcceptedMouseButtons(
       Qt::LeftButton); // needs to be enabled for dblclick
   this->setFlags(
-      QGraphicsItem::ItemIsSelectable); // needs to be enabled for dblclick
-  this->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
+      QGraphicsItem::ItemIsSelectable |
+      QGraphicsItem::ItemClipsToShape |
+      QGraphicsItem::ItemClipsChildrenToShape);
 
-  // m_textCache.setCacheEnabled(true);
 }
 
 QRectF TemporalConstraintHeader::boundingRect() const
@@ -82,8 +82,8 @@ void TemporalConstraintHeader::paint(
                 mapToScene({m_width / 2. + m_textWidthCache / 2., 0.}))
             .x();
   double x = (m_width - m_textWidthCache) / 2.;
-  double min_x = 10.;
-  double max_x = view->width() - 30.;
+  const constexpr double min_x = 10.;
+  const double max_x = view->width() - 30.;
 
   if (text_left <= min_x)
   {
@@ -97,18 +97,13 @@ void TemporalConstraintHeader::paint(
   }
 
   x = std::max(x, 10.);
-  double y = 4.;
-  double w = m_width - x;
-  double h = ConstraintHeader::headerHeight();
-
   if (std::abs(m_previous_x - x) > 0.1)
   {
     m_previous_x = x;
   }
-  // TODO m_textCache.draw(painter, QPointF{m_previous_x,y}, {},
-  // boundingRect());
+  // TODO do like TimeRuler
   painter->setFont(skin.Bold10Pt);
-  painter->drawText(m_previous_x, y, w, h, Qt::AlignLeft, m_text);
+  painter->drawText(QRectF{m_previous_x, 4., m_width - x, ConstraintHeader::headerHeight()}, Qt::AlignLeft, m_text);
 }
 
 void TemporalConstraintHeader::mouseDoubleClickEvent(
@@ -121,15 +116,6 @@ void TemporalConstraintHeader::on_textChange()
 {
   QFontMetrics fm(ScenarioStyle::instance().Bold10Pt);
   m_textWidthCache = fm.width(m_text);
-  /*
-      m_textCache.setFont(font);
-      m_textCache.setText(m_text);
-
-      m_textCache.beginLayout();
-      QTextLine line = m_textCache.createLine();
-      line.setPosition(QPointF{0., 0.});
-
-      m_textCache.endLayout();*/
 }
 
 void TemporalConstraintHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* h)

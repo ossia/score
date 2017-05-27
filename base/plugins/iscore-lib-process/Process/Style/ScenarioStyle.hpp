@@ -120,6 +120,8 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QFont Medium8Pt;
   QFont Medium12Pt;
 
+  QPen CommentBlockPen;
+  QPen MinimapPen;
   QPen SeparatorPen;
   QBrush SeparatorBrush;
   QBrush DefaultBrush;

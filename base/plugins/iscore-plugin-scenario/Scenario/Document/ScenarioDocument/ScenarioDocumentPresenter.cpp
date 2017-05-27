@@ -5,8 +5,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerPresenter.hpp>
-#include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
+#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <Scenario/Document/Minimap/Minimap.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/tools/Clamp.hpp>
@@ -71,7 +70,6 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
                                          delegate_view}
     , m_scenarioPresenter{*this}
     , m_selectionDispatcher{ctx.selectionStack}
-    , m_mainTimeRuler{new TimeRulerPresenter{view().timeRuler(), this}}
     , m_focusManager{ctx.document.focusManager()}
     , m_context{ctx, m_focusDispatcher}
 
@@ -99,9 +97,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
           QPointer<Process::LayerPresenter>)>(
           &Process::ProcessFocusManager::focus));
 
-  connect(
-        &m_mainTimeRuler->view(), &TimeRulerView::drag, this,
-        &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
+  con(view().timeRuler(), &TimeRuler::drag, this,
+      &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
 
   con(view().minimap(), &Minimap::visibleRectChanged,
       this, &ScenarioDocumentPresenter::on_minimapChanged);
@@ -181,7 +178,7 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 {
   m_zoomRatio = newRatio;
 
-  m_mainTimeRuler->setPixelPerMillis(1.0 / m_zoomRatio);
+  view().timeRuler().setPixelPerMillis(1.0 / m_zoomRatio);
   m_scenarioPresenter.on_zoomRatioChanged(m_zoomRatio);
 }
 
@@ -280,7 +277,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 
   QRectF visible_scene_rect = view().visibleSceneRect();
 
-  m_mainTimeRuler->setStartPoint(
+  view().timeRuler().setStartPoint(
       TimeVal::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
   const auto dur = c.duration.guiDuration() ;
   c.setMidTime(dur * (visible_scene_rect.center().x() / dur.toPixels(m_zoomRatio)));
@@ -363,7 +360,7 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
   auto newView = QRectF{newX, y, (qreal)w, (qreal)h};
   gv.ensureVisible(newView, 0., 0.);
 
-  m_mainTimeRuler->view().setWidth(gv.width());
+  view().timeRuler().setWidth(gv.width());
 
   // Save state in constraint
   c.setZoom(newZoom);

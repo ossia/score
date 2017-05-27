@@ -13,6 +13,8 @@
 #include <iscore/model/ColorReference.hpp>
 #include <deque>
 #include <chrono>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -21,21 +23,15 @@ class QGraphicsView;
 
 namespace Scenario
 {
-class AbstractTimeRuler;
-class AbstractTimeRulerView : public QObject, public QGraphicsItem
+class TimeRuler final : public QObject, public QGraphicsItem
 {
-  friend class AbstractTimeRuler;
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
 
-  AbstractTimeRuler* m_pres{};
-
 public:
-  AbstractTimeRulerView(QGraphicsView*);
-  void setPresenter(AbstractTimeRuler* pres)
-  {
-    m_pres = pres;
-  }
+  enum class Format { Seconds, Milliseconds };
+
+  TimeRuler(QGraphicsView*);
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
@@ -54,14 +50,19 @@ public:
     return m_width;
   }
 
-  void setGraduationsStyle(double size, double delta, QString format, double mark);
-  void setFormat(QString);
+
+  void setStartPoint(TimeVal dur);
+  void setPixelPerMillis(double factor);
 
 signals:
   void drag(QPointF, QPointF);
   void rescale();
 
-protected:
+private:
+  void computeGraduationSpacing();
+  void setFormat(Format);
+
+  QRectF boundingRect() const final override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) final override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent*) final override;
@@ -75,6 +76,10 @@ protected:
     QGlyphRun text;
   };
 
+  TimeVal m_startPoint{};
+
+  double m_pixelPerMillis{0.01};
+
   std::vector<Mark> m_marks;
 
   qreal m_height{};
@@ -85,7 +90,7 @@ protected:
   qreal m_graduationDelta{};
   qreal m_graduationHeight{};
   qreal m_intervalsBetweenMark{};
-  QString m_timeFormat{};
+  Format m_timeFormat{};
 
   QPainterPath m_path;
 
