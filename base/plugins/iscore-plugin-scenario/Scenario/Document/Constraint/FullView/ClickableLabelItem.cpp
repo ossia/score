@@ -29,7 +29,7 @@ QRectF SeparatorItem::boundingRect() const
 void SeparatorItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = ScenarioStyle::instance();
-  const constexpr QRectF rect{1., 1., 4., 9.};
+  const Q_DECL_RELAXED_CONSTEXPR QRectF rect{1., 1., 4., 9.};
 
   painter->setRenderHint(QPainter::Antialiasing, true);
   painter->setPen(skin.SeparatorPen);
