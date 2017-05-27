@@ -35,7 +35,7 @@ public:
     m_view = view;
   }
 
-  static constexpr int headerHeight()
+  static constexpr double headerHeight()
   {
     return ConstraintHeaderHeight;
   }

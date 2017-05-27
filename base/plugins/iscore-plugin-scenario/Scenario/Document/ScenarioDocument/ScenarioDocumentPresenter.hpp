@@ -109,7 +109,6 @@ private:
 
   iscore::SelectionDispatcher m_selectionDispatcher;
   FocusDispatcher m_focusDispatcher;
-  TimeRulerPresenter* m_mainTimeRuler{};
   mutable Process::ProcessFocusManager m_focusManager;
   QPointer<ConstraintModel> m_focusedConstraint{};
 

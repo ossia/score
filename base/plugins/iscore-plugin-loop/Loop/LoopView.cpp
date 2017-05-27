@@ -21,7 +21,7 @@ void LayerView::setSelectionArea(QRectF)
 
 void LayerView::paint_impl(QPainter* p) const
 {
-  p->fillRect(boundingRect(), QColor(85, 75, 0));
+  p->fillRect(boundingRect(), QColor(85, 75, 0, 200));
 }
 
 void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)

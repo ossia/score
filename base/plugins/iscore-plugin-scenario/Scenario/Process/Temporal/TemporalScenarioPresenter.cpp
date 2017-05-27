@@ -530,7 +530,7 @@ void TemporalScenarioPresenter::on_constraintCreated(
     const ConstraintModel& constraint)
 {
   auto cst_pres = new TemporalConstraintPresenter{
-      constraint, m_context.context, m_view, this};
+      constraint, m_context.context, true, m_view, this};
   m_constraints.insert(cst_pres);
   cst_pres->on_zoomRatioChanged(m_zoomRatio);
 

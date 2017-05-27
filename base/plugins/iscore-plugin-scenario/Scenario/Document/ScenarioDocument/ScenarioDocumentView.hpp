@@ -3,7 +3,7 @@
 #include <Scenario/Document/Minimap/Minimap.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <iscore/widgets/GraphicsProxyObject.hpp>
-#include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
+#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 
 #include <Process/Tools/ProcessGraphicsView.hpp>
 
@@ -24,7 +24,7 @@ namespace Scenario
 {
 class Minimap;
 class ScenarioScene;
-class TimeRulerView;
+class TimeRuler;
 class ScenarioDocumentView final : public iscore::DocumentDelegateView
 {
   Q_OBJECT
@@ -57,7 +57,7 @@ public:
     return m_timeRulersView;
   }
 
-  TimeRulerView& timeRuler()
+  TimeRuler& timeRuler()
   {
     return m_timeRuler;
   }
@@ -78,7 +78,7 @@ private:
   BaseGraphicsObject m_baseObject;
 
   TimeRulerGraphicsView m_timeRulersView;
-  TimeRulerView m_timeRuler;
+  TimeRuler m_timeRuler;
   QGraphicsScene m_minimapScene;
   TimeRulerGraphicsView m_minimapView;
   Minimap m_minimap;

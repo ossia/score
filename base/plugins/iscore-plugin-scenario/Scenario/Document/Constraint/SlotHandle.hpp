@@ -52,4 +52,29 @@ private:
   qreal m_width{};
   int m_slotIndex;
 };
+
+class ISCORE_PLUGIN_SCENARIO_EXPORT InactiveSlotHandle final : public QGraphicsItem
+{
+public:
+  InactiveSlotHandle(const ConstraintPresenter& slotView, int slotIndex, QGraphicsItem* parent);
+
+  int slotIndex() const;
+  void setSlotIndex(int);
+  static constexpr double handleHeight()
+  {
+    return 4.;
+  }
+
+  QRectF boundingRect() const override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
+
+  void setWidth(qreal width);
+
+private:
+  qreal m_width{};
+  int m_slotIndex;
+};
 }

@@ -50,7 +50,7 @@ void TemporalScenarioView::paint_impl(QPainter* painter) const
     painter->setPen(QPen{Qt::gray, 2, Qt::DashLine});
     painter->drawLine(rec.topLeft(), rec.bottomLeft());
     painter->drawLine(rec.bottomLeft(), rec.bottomRight());
-    painter->drawEllipse(rec.bottomRight(), 3, 3);
+    painter->drawEllipse(rec.bottomRight(), 3., 3.);
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
 }

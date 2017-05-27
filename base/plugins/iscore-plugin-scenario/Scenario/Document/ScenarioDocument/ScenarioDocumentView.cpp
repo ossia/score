@@ -1,6 +1,5 @@
 #include <Scenario/Application/Menus/TransportActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
 
 #include <QAction>
 #include <QApplication>
@@ -96,7 +95,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   connect(largeView, &QAction::triggered, this, [this] {
       m_minimap.setLargeView();
   }, Qt::QueuedConnection);
-  con(m_timeRuler, &AbstractTimeRulerView::rescale,
+  con(m_timeRuler, &TimeRuler::rescale,
       largeView, &QAction::trigger);
   con(m_minimap, &Minimap::rescale,
       largeView, &QAction::trigger);

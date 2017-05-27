@@ -22,10 +22,10 @@ MiniScenarioView::MiniScenarioView(const ProcessModel& sc, QGraphicsItem* p)
 
 void MiniScenarioView::paint_impl(QPainter* p) const
 {
+  auto& skin = ScenarioStyle::instance();
   const auto h = height() - 8;
 
-  QPen pen(Qt::black, 2);
-  pen.setCosmetic(true);
+  auto& pen = skin.MinimapPen;
   for(const Scenario::ConstraintModel& c : m_scenario.constraints)
   {
     auto col = c.metadata().getColor().getColor().color();
@@ -35,8 +35,8 @@ void MiniScenarioView::paint_impl(QPainter* p) const
     auto def = c.duration.defaultDuration().toPixels(zoom());
     auto st = c.startDate().toPixels(zoom());
     auto y = c.heightPercentage();
-    p->drawLine(QPointF{st, 4 + y * h},
-                QPointF{st + def, 4 + y * h});
+    p->drawLine(QPointF{st, 4. + y * h},
+                QPointF{st + def, 4. + y * h});
   }
 
 }
