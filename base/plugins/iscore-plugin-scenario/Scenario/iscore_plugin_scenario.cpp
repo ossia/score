@@ -51,6 +51,7 @@
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
 #include <Scenario/iscore_plugin_scenario.hpp>
+#include <Interpolation/InterpolationFactory.hpp>
 #include <iscore/tools/std/HashMap.hpp>
 #include <utility>
 
@@ -135,7 +136,8 @@ iscore_plugin_scenario::factories(
   using namespace Scenario;
   using namespace Scenario::Command;
   return instantiate_factories<iscore::ApplicationContext,
-      FW<Process::ProcessModelFactory, ScenarioFactory>,
+      FW<Process::ProcessModelFactory, ScenarioFactory, Interpolation::InterpolationFactory>,
+      FW<Process::LayerFactory, Interpolation::InterpolationLayerFactory>,
       FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
       FW<Process::InspectorWidgetDelegateFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>,
       FW<DisplayedElementsToolPaletteFactory, BaseScenarioDisplayedElementsToolPaletteFactory, ScenarioDisplayedElementsToolPaletteFactory>,
