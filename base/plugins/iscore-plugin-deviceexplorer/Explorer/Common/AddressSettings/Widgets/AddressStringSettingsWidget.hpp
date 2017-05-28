@@ -20,6 +20,7 @@ public:
   Device::AddressSettings getSettings() const override;
   void setSettings(const Device::AddressSettings& settings) override;
   Device::AddressSettings getDefaultSettings() const override;
+  void setCanEditProperties(bool b) override;
 
 protected:
   QLineEdit* m_valueEdit;

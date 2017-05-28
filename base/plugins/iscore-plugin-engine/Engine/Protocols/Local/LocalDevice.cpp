@@ -26,6 +26,8 @@ LocalDevice::LocalDevice(
 {
   m_capas.canRefreshTree = true;
   m_capas.canAddNode = false;
+  m_capas.canRenameNode = false;
+  m_capas.canSetProperties = false;
   m_capas.canRemoveNode = false;
   m_capas.canSerialize = false;
 
