@@ -243,7 +243,11 @@ JSONObjectWriter::write(Scenario::ConstraintModel& constraint)
   constraint.m_startDate = fromJsonValue<TimeVal>(obj[strings.StartDate]);
   constraint.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
 
-  constraint.m_zoom = obj[strings.Zoom].toDouble();
-  constraint.m_center = fromJsonValue<QRectF>(obj[strings.Center]);
+  auto zit = obj.find(strings.Zoom);
+  if(zit != obj.end())
+    constraint.m_zoom = zit->toDouble();
+  auto cit = obj.find(strings.Center);
+  if(cit != obj.end() && cit->isDouble())
+    constraint.m_center = fromJsonValue<TimeVal>(*cit);
   constraint.m_smallViewShown = obj[strings.SmallViewShown].toBool();
 }

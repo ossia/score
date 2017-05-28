@@ -2,7 +2,7 @@
 
 #include <QGraphicsItem>
 #include <Process/TimeValue.hpp>
-
+class QGraphicsView;
 namespace Scenario
 {
 class Minimap final
@@ -11,13 +11,14 @@ class Minimap final
 {
     Q_OBJECT
   public:
-    Minimap(QWidget* vp);
+    Minimap(QGraphicsView* vp);
     void setWidth(double);
     double width() const { return m_width; }
     double leftHandle() const { return m_leftHandle; }
     double rightHandle() const { return m_rightHandle; }
 
     // These do not send notification
+    void setMinDistance(double);
     void setLeftHandle(double);
     void setRightHandle(double);
     void setHandles(double l, double r);
@@ -31,6 +32,7 @@ class Minimap final
     void zoom(double z);
 
   signals:
+    void rescale();
     void visibleRectChanged(double l, double r);
 
   private:
@@ -40,17 +42,26 @@ class Minimap final
     void mousePressEvent(QGraphicsSceneMouseEvent*) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) final override;
 
-    QWidget* m_viewport{};
+    void hoverEnterEvent(QGraphicsSceneHoverEvent*) override;
+    void hoverMoveEvent(QGraphicsSceneHoverEvent*) override;
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent*) override;
+
+    static const constexpr double m_height{40.};
+
+    QGraphicsView* m_viewport{};
     double m_leftHandle{};
     double m_rightHandle{};
-    static const constexpr double m_height{40};
-    double m_width{100};
+    double m_width{100.};
+    double m_minDist{10.};
     QPoint m_startPos;
-    QPointF m_lastPos;
+    double m_startY{};
+    double m_relativeStartX{};
 
     bool m_gripLeft{false};
     bool m_gripRight{false};
     bool m_gripMid{false};
+    bool m_setCursor{false};
 };
 }

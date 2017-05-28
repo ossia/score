@@ -34,11 +34,13 @@ namespace Scenario
 TemporalConstraintPresenter::TemporalConstraintPresenter(
     const ConstraintModel& constraint,
     const Process::ProcessPresenterContext& ctx,
+    bool handles,
     QGraphicsItem* parentobject,
     QObject* parent)
   : ConstraintPresenter{constraint,
                         new TemporalConstraintView{*this, parentobject},
                         new TemporalConstraintHeader, ctx, parent}
+  , m_handles{handles}
 {
   TemporalConstraintView& v = *Scenario::view(this);
   v.setSmallViewVisible(constraint.smallViewVisible());
@@ -263,7 +265,8 @@ void TemporalConstraintPresenter::createSlot(int pos, const Slot& slt)
   if(m_model.smallViewVisible())
   {
     SlotPresenter p;
-    p.handle = new SlotHandle{*this, pos, m_view};
+    if(m_handles)
+      p.handle = new SlotHandle{*this, pos, m_view};
     // p.view = new SlotView{};
     m_slots.insert(m_slots.begin() + pos, std::move(p));
 
@@ -417,7 +420,8 @@ void TemporalConstraintPresenter::updatePositions()
 
     currentSlotY += model.height;
 
-    slot.handle->setPos(0, currentSlotY);
+    if(slot.handle)
+      slot.handle->setPos(0, currentSlotY);
     currentSlotY += SlotHandle::handleHeight();
   }
 
@@ -533,7 +537,8 @@ void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
 
   for(const SlotPresenter& slot : m_slots)
   {
-    slot.handle->setWidth(w);
+    if(slot.handle)
+      slot.handle->setWidth(w);
     for(const LayerData& proc : slot.processes)
     {
       proc.presenter->setWidth(w);

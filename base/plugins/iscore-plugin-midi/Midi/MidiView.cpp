@@ -45,7 +45,7 @@ void View::paint_impl(QPainter* p) const
         case 9:
         case 11:
         {
-          p->drawRect(QRectF{0, rect.height() - note_height * i - 1, rect.width(), note_height});
+          p->drawRect(QRectF{0., rect.height() - note_height * i - 1, rect.width(), note_height});
           break;
         }
 
@@ -65,7 +65,7 @@ void View::paint_impl(QPainter* p) const
         case 8:
         case 10:
         {
-          p->drawRect(QRectF{0, rect.height() - note_height * i - 1, rect.width(), note_height});
+          p->drawRect(QRectF{0., rect.height() - note_height * i - 1, rect.width(), note_height});
           break;
         }
         default:

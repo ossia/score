@@ -53,7 +53,7 @@ void StateView::paint(
   painter->setBrush(skin.StateTemporalPointBrush);
   painter->setPen(skin.StateTemporalPointPen);
   const qreal r = m_radiusPoint * m_dilatationFactor;
-  painter->drawEllipse({0., 0.}, r, r);
+  painter->drawEllipse(QPointF{0., 0.}, r, r);
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
   painter->setBrush(Qt::NoBrush);
