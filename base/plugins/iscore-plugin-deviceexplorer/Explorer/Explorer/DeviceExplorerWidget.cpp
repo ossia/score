@@ -515,6 +515,20 @@ DeviceExplorerFilterProxyModel* DeviceExplorerWidget::proxyModel()
   return m_proxyModel;
 }
 
+QString getDevice(const Device::Node& n)
+{
+  if(n.is<Device::AddressSettings>())
+  {
+    const Device::Node* p = &n;
+    while((p = p->parent()))
+    {
+      if(p->is<Device::DeviceSettings>())
+        return p->get<Device::DeviceSettings>().name;
+    }
+  }
+  return {};
+}
+
 void DeviceExplorerWidget::edit()
 {
   const auto& select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
@@ -543,7 +557,19 @@ void DeviceExplorerWidget::edit()
   else
   {
     auto before = select.get<Device::AddressSettings>();
+    auto devname = getDevice(select);
+    auto dev = model()->deviceModel().list().findDevice(devname);
+    bool canRename = true;
+    bool canEdit = true;
+    if(dev)
+    {
+      canRename = dev->capabilities().canRenameNode;
+      canEdit = dev->capabilities().canSetProperties;
+    }
+
     AddressEditDialog dial{before, this};
+    dial.setCanRename(canRename);
+    dial.setCanEditProperties(canEdit);
 
     auto code = static_cast<QDialog::DialogCode>(dial.exec());
 

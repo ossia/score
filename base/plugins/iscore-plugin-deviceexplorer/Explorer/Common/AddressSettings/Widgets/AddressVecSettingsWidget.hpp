@@ -70,6 +70,14 @@ public:
     return {};
   }
 
+  void setCanEditProperties(bool b) override
+  {
+    AddressSettingsWidget::setCanEditProperties(b);
+    m_domainVecEdit->setEnabled(false);
+    m_domainFloatEdit->setEnabled(false);
+    m_domainSelector->setEnabled(false);
+  }
+
   void on_domainTypeChange(int id)
   {
     switch (id)

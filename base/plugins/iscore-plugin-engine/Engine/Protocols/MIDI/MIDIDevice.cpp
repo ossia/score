@@ -19,6 +19,8 @@ MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings)
   m_capas.canRefreshTree = true;
   m_capas.canSerialize = false;
   m_capas.hasCallbacks = false;
+  m_capas.canRenameNode = false;
+  m_capas.canSetProperties = false;
 
   reconnect();
 }

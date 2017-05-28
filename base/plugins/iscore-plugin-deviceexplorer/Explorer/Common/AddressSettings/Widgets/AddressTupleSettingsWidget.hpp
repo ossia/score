@@ -18,5 +18,6 @@ public:
   void setSettings(const Device::AddressSettings& settings) override;
 
   Device::AddressSettings getDefaultSettings() const override;
+  void setCanEditProperties(bool b) override;
 };
 }

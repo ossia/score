@@ -23,4 +23,9 @@ Device::AddressSettings AddressNoneSettingsWidget::getDefaultSettings() const
 {
   return {};
 }
+
+void AddressNoneSettingsWidget::setCanEditProperties(bool b)
+{
+  AddressSettingsWidget::setCanEditProperties(b);
+}
 }
