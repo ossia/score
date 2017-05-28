@@ -7,7 +7,7 @@
 #include <QTextCursor>
 #include <QTextDocument>
 #include <QWidget>
-
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <cmath>
 namespace Scenario
@@ -32,10 +32,10 @@ CommentBlockView::CommentBlockView(
 void CommentBlockView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto p = QPen{Qt::white};
-  p.setWidth(1.);
-  painter->setPen(p);
-  painter->drawRoundedRect(boundingRect(), 5, 5);
+  auto& skin = ScenarioStyle::instance();
+
+  painter->setPen(skin.CommentBlockPen);
+  painter->drawRoundedRect(boundingRect(), 5., 5.);
 }
 
 QRectF CommentBlockView::boundingRect() const
@@ -43,9 +43,9 @@ QRectF CommentBlockView::boundingRect() const
   if (m_textItem)
   {
     auto rect = m_textItem->boundingRect();
-    rect.translate(-3, -3);
-    rect.setWidth(rect.width() + 6);
-    rect.setHeight(rect.height() + 6);
+    rect.translate(-3., -3.);
+    rect.setWidth(rect.width() + 6.);
+    rect.setHeight(rect.height() + 6.);
     return rect;
   }
   else

@@ -18,7 +18,7 @@ class QWidget;
 namespace Curve
 {
 const qreal radius = 2.5;
-const QRectF ellipse{-radius, -radius, 2 * radius, 2 * radius};
+const QRectF ellipse{-radius, -radius, 2. * radius, 2. * radius};
 
 PointView::PointView(
     const PointModel* model, const Curve::Style& style, QGraphicsItem* parent)
@@ -54,8 +54,8 @@ const Id<PointModel>& PointView::id() const
 
 QRectF PointView::boundingRect() const
 {
-  const qreal gripSize = radius * 2;
-  return {-gripSize, -gripSize, 2 * gripSize, 2 * gripSize};
+  const qreal gripSize = radius * 2.;
+  return {-gripSize, -gripSize, 2. * gripSize, 2. * gripSize};
 }
 
 void PointView::paint(

@@ -31,9 +31,9 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
           new FullViewConstraintHeader{parentobject}, ctx, parent}
 {
   // Address bar
-  auto addressBar = static_cast<FullViewConstraintHeader*>(m_header)->bar();
-  addressBar->setTargetObject(iscore::IDocument::unsafe_path(constraint));
-  connect(addressBar, &AddressBarItem::constraintSelected, this,
+  auto& addressBar = static_cast<FullViewConstraintHeader*>(m_header)->bar();
+  addressBar.setTargetObject(iscore::IDocument::unsafe_path(constraint));
+  con(addressBar, &AddressBarItem::constraintSelected, this,
           &FullViewConstraintPresenter::constraintSelected);
 
   // Header

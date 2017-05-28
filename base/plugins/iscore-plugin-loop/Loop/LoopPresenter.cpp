@@ -60,7 +60,7 @@ LayerPresenter::LayerPresenter(
 {
   using namespace Scenario;
   m_constraintPresenter
-      = new TemporalConstraintPresenter{layer.constraint(), ctx, view, this};
+      = new TemporalConstraintPresenter{layer.constraint(), ctx, false, view, this};
   m_startStatePresenter = new StatePresenter{
       layer.BaseScenarioContainer::startState(), m_view, this};
   m_endStatePresenter = new StatePresenter{
@@ -152,6 +152,13 @@ void LayerPresenter::setWidth(qreal width)
 void LayerPresenter::setHeight(qreal height)
 {
   m_view->setHeight(height);
+  auto& c = m_constraintPresenter->model();
+  auto max_height = height - 65.;
+  const auto N = c.smallView().size();
+  for(std::size_t i = 0U; i < N; i++)
+  {
+    const_cast<Scenario::ConstraintModel&>(c).setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, max_height / N);
+  }
 }
 
 void LayerPresenter::putToFront()

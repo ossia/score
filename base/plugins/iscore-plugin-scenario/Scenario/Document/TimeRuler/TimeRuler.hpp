@@ -12,6 +12,9 @@
 #include <QtGlobal>
 #include <iscore/model/ColorReference.hpp>
 #include <deque>
+#include <chrono>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -20,21 +23,15 @@ class QGraphicsView;
 
 namespace Scenario
 {
-class AbstractTimeRuler;
-class AbstractTimeRulerView : public QObject, public QGraphicsItem
+class TimeRuler final : public QObject, public QGraphicsItem
 {
-  friend class AbstractTimeRuler;
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
 
-  AbstractTimeRuler* m_pres{};
-
 public:
-  AbstractTimeRulerView(QGraphicsView*);
-  void setPresenter(AbstractTimeRuler* pres)
-  {
-    m_pres = pres;
-  }
+  enum class Format { Seconds, Milliseconds };
+
+  TimeRuler(QGraphicsView*);
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
@@ -53,14 +50,19 @@ public:
     return m_width;
   }
 
-  void setGraduationsStyle(double size, int delta, QString format, int mark);
-  void setFormat(QString);
+
+  void setStartPoint(TimeVal dur);
+  void setPixelPerMillis(double factor);
 
 signals:
   void drag(QPointF, QPointF);
   void rescale();
 
-protected:
+private:
+  void computeGraduationSpacing();
+  void setFormat(Format);
+
+  QRectF boundingRect() const final override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) final override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent*) final override;
@@ -70,9 +72,13 @@ protected:
   struct Mark
   {
     double pos;
-    QTime time;
+    std::chrono::microseconds time;
     QGlyphRun text;
   };
+
+  TimeVal m_startPoint{};
+
+  double m_pixelPerMillis{0.01};
 
   std::vector<Mark> m_marks;
 
@@ -83,15 +89,15 @@ protected:
   qreal m_textPosition{};
   qreal m_graduationDelta{};
   qreal m_graduationHeight{};
-  int32_t m_intervalsBetweenMark{};
-  QString m_timeFormat{};
+  qreal m_intervalsBetweenMark{};
+  Format m_timeFormat{};
 
   QPainterPath m_path;
 
   QWidget* m_viewport{};
 
-  QGlyphRun getGlyphs(const QTime& t);
+  QGlyphRun getGlyphs(std::chrono::microseconds);
   QTextLayout m_layout;
-  std::deque<std::pair<QTime, QGlyphRun>> m_stringCache;
+  std::deque<std::pair<std::chrono::microseconds, QGlyphRun>> m_stringCache;
 };
 }

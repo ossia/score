@@ -18,6 +18,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessList.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/DataflowProcess.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessFactoryList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessFactory.hpp"
@@ -57,6 +58,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/DataflowProcess.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.cpp"
 

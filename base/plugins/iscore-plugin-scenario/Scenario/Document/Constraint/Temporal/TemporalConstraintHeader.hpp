@@ -41,9 +41,8 @@ protected:
 
 private:
   void on_textChange() override;
-  int m_previous_x{};
+  qreal m_previous_x{};
 
-  int m_textWidthCache;
-  // QTextLayout m_textCache;
+  qreal m_textWidthCache;
 };
 }

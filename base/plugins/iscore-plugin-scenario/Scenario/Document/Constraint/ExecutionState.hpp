@@ -3,7 +3,7 @@
 
 namespace Scenario
 {
-enum class ConstraintExecutionState
+enum class ConstraintExecutionState: uint8_t
 {
   Enabled,
   Disabled,

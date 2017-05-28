@@ -35,7 +35,7 @@ public:
     painter->setBrush(col);
 
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->drawChord(0, 0, 20, 20, 5760 / 2, -5760 / 2);
+    painter->drawChord(QRectF{0., 0., 20., 20.}, 5760 / 2, -5760 / 2);
 
     painter->setBrush(skin.EventPending.getColor());
     const auto bright = skin.EventPending.getColor().color();

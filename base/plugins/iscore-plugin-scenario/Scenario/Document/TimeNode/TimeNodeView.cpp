@@ -60,7 +60,7 @@ void TimeNodeView::paint(
   }
 
   painter->setPen(skin.TimenodePen);
-  painter->drawLine(QPointF(0, 0), QPointF(0, height));
+  painter->drawLine(QPointF(0., 0.), QPointF(0., height));
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
   painter->setPen(Qt::darkMagenta);

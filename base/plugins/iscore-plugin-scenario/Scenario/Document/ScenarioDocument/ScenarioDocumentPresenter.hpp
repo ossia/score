@@ -2,6 +2,7 @@
 #include <QPoint>
 #include <QRect>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
@@ -104,11 +105,10 @@ private:
   void updateMinimap();
   double displayedDuration() const;
 
-  DisplayedElementsPresenter* m_scenarioPresenter{};
+  DisplayedElementsPresenter m_scenarioPresenter;
 
   iscore::SelectionDispatcher m_selectionDispatcher;
   FocusDispatcher m_focusDispatcher;
-  TimeRulerPresenter* m_mainTimeRuler{};
   mutable Process::ProcessFocusManager m_focusManager;
   QPointer<ConstraintModel> m_focusedConstraint{};
 
@@ -123,6 +123,8 @@ private:
 
   bool m_zooming{false};
   bool m_updatingMinimap{false};
+  bool m_updatingView{false};
 
+  double computeReverseZoom(ZoomRatio r);
 };
 }

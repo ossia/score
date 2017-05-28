@@ -28,6 +28,7 @@ public:
   TemporalConstraintPresenter(
       const ConstraintModel& viewModel,
       const Process::ProcessPresenterContext& ctx,
+      bool handles,
       QGraphicsItem* parentobject,
       QObject* parent);
 
@@ -67,6 +68,7 @@ private:
   };
 
   std::vector<SlotPresenter> m_slots;
+  bool m_handles{true};
 };
 
 }
