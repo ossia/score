@@ -240,8 +240,7 @@ ProcessModel::ProcessModel(
 }
 
 
-template <>
-ISCORE_PLUGIN_INTERPOLATION_EXPORT void
+template <> void
 DataStreamReader::read(
     const Interpolation::ProcessModel& interp)
 {
@@ -254,8 +253,7 @@ DataStreamReader::read(
 }
 
 
-template <>
-ISCORE_PLUGIN_INTERPOLATION_EXPORT void
+template <> void
 DataStreamWriter::write(Interpolation::ProcessModel& interp)
 {
   interp.setCurve(new Curve::Model{*this, &interp});
@@ -277,8 +275,7 @@ DataStreamWriter::write(Interpolation::ProcessModel& interp)
 }
 
 
-template <>
-ISCORE_PLUGIN_INTERPOLATION_EXPORT void
+template <> void
 JSONObjectReader::read(
     const Interpolation::ProcessModel& interp)
 {
@@ -292,8 +289,7 @@ JSONObjectReader::read(
 }
 
 
-template <>
-ISCORE_PLUGIN_INTERPOLATION_EXPORT void
+template <> void
 JSONObjectWriter::write(Interpolation::ProcessModel& interp)
 {
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};

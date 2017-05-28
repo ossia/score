@@ -9,8 +9,7 @@
 #include <State/Value.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore_plugin_interpolation_export.h>
-
+#include <iscore_plugin_scenario_export.h>
 namespace Interpolation
 {
 class ProcessModel;
@@ -24,7 +23,7 @@ PROCESS_METADATA(
     "Interpolation")
 namespace Interpolation
 {
-class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessState final
+class ProcessState final
     : public ProcessStateDataInterface
 {
     Q_OBJECT
@@ -55,7 +54,7 @@ private:
   Point m_point{};
 };
 
-class ISCORE_PLUGIN_INTERPOLATION_EXPORT ProcessModel final
+class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
     : public Curve::CurveProcessModel
 {
   ISCORE_SERIALIZE_FRIENDS

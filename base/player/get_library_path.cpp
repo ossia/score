@@ -2,7 +2,6 @@
 
 #if defined(__linux__)
 #include <dlfcn.h>
-#include <ossia/detail/string_view.hpp>
 #include <link.h>
 #elif defined(__APPLE__)
 #include <mach-o/dyld.h>
