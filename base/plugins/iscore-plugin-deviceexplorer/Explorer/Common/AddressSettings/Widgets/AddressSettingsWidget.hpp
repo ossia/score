@@ -9,6 +9,7 @@
 class QComboBox;
 class QCheckBox;
 class QLineEdit;
+class QPushButton;
 class QLabel;
 class QFormLayout;
 
@@ -33,6 +34,7 @@ public:
   virtual Device::AddressSettings getSettings() const = 0;
   virtual Device::AddressSettings getDefaultSettings() const = 0;
   virtual void setSettings(const Device::AddressSettings& settings) = 0;
+  virtual void setCanEditProperties(bool) = 0;
 
 protected:
   Device::AddressSettings getCommonSettings() const;
@@ -41,13 +43,14 @@ protected:
   QFormLayout* m_layout;
 
 private:
-  bool m_none_type{false};
   QComboBox* m_ioTypeCBox{};
   QComboBox* m_clipModeCBox{};
   QCheckBox* m_repetition{};
   QComboBox* m_tagsEdit{};
+  QPushButton* m_addTagButton{};
   QLineEdit* m_description{};
   State::UnitWidget* m_unit{};
+  bool m_none_type{false};
 };
 
 inline QLabel* makeLabel(QString text, QWidget* parent)

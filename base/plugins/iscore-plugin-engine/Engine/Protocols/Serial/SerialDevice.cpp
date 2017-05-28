@@ -21,6 +21,8 @@ SerialDevice::SerialDevice(const Device::DeviceSettings& settings)
   m_capas.canAddNode = false;
   m_capas.canRemoveNode = false;
   m_capas.canSerialize = false;
+  m_capas.canRenameNode = false;
+  m_capas.canSetProperties = false;
   reconnect();
 }
 

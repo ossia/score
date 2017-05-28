@@ -29,4 +29,9 @@ Device::AddressSettings AddressTupleSettingsWidget::getDefaultSettings() const
 {
   return {};
 }
+
+void AddressTupleSettingsWidget::setCanEditProperties(bool b)
+{
+  AddressSettingsWidget::setCanEditProperties(b);
+}
 }

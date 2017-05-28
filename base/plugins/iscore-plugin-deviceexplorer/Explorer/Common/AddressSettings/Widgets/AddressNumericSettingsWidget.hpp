@@ -55,6 +55,12 @@ public:
     m_domainEdit->set_domain(settings.domain);
   }
 
+  void setCanEditProperties(bool b) override
+  {
+    AddressSettingsWidget::setCanEditProperties(b);
+    m_domainEdit->setEnabled(b);
+  }
+
 private:
   typename iscore::TemplatedSpinBox<T>::spinbox_type* m_valueSBox{};
   State::NumericDomainWidget<T>* m_domainEdit{};

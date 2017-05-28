@@ -34,9 +34,9 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
   m_tagsEdit->setToolTip(tr("Tags for this parameter"));
   m_tagsEdit->setEditable(true);
   m_tagsEdit->setInsertPolicy(QComboBox::InsertAtCurrent);
-  auto addTagButton = new QPushButton;
-  addTagButton->setText("+");
-  connect(addTagButton, &QPushButton::clicked, this, [&]() {
+  m_addTagButton = new QPushButton;
+  m_addTagButton->setText("+");
+  connect(m_addTagButton, &QPushButton::clicked, this, [&]() {
     bool ok = false;
     auto res = QInputDialog::getText(
           this, tr("Add tag"), tr("Add a tag"), QLineEdit::Normal, QString{},
@@ -49,7 +49,7 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
 
   QHBoxLayout* tagLayout = new QHBoxLayout;
   tagLayout->addWidget(m_tagsEdit);
-  tagLayout->addWidget(addTagButton);
+  tagLayout->addWidget(m_addTagButton);
 
   m_unit = new State::UnitWidget({}, this);
   m_unit->setToolTip("Set the dataspace and unit of the parameter.");
@@ -106,6 +106,24 @@ AddressSettingsWidget::AddressSettingsWidget(
   m_layout->addRow(tr("Tags"), tagLayout);
 
   setLayout(m_layout);
+}
+
+void AddressSettingsWidget::setCanEditProperties(bool b)
+{
+  if(m_ioTypeCBox)
+    m_ioTypeCBox->setEnabled(b);
+  if(m_clipModeCBox)
+    m_clipModeCBox->setEnabled(b);
+  if(m_repetition)
+    m_repetition->setEnabled(b);
+  if(m_tagsEdit)
+    m_tagsEdit->setEnabled(b);
+  if(m_addTagButton)
+    m_addTagButton->setEnabled(b);
+  if(m_description)
+    m_description->setEnabled(b);
+  if(m_unit)
+    m_unit->setEnabled(b);
 }
 
 AddressSettingsWidget::~AddressSettingsWidget() = default;
