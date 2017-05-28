@@ -142,9 +142,12 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
     {
       auto dy = 0.7 * (pos.y() - m_startPos.y());
 
-      setHandles(
-            m_leftHandle  + dx - dy,
-            m_rightHandle + dx + dy);
+      if(!((m_leftHandle <= 0. && dx < 0) || (m_rightHandle >= m_width && dx > 0)))
+      {
+        setHandles(
+              m_leftHandle  + dx - dy,
+              m_rightHandle + dx + dy);
+      }
     }
 
     QCursor::setPos(m_startPos);

@@ -28,6 +28,7 @@ struct ISCORE_LIB_DEVICE_EXPORT DeviceCapas
   bool canAddNode{true};
   bool canRemoveNode{true};
   bool canRenameNode{true};
+  bool canSetProperties{true};
   bool canDisconnect{true};
   bool canRefreshValue{true};
   bool canRefreshTree{false};

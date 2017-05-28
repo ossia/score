@@ -1,6 +1,9 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
 #include <Curve/Process/CurveProcessPresenter.hpp>
+#include <Device/Node/NodeListMimeSerialization.hpp>
+#include <State/MessageListSerialization.hpp>
+#include <Interpolation/Commands/ChangeAddress.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
 #include <Interpolation/InterpolationView.hpp>
 
@@ -24,6 +27,9 @@ public:
         this, &Presenter::on_nameChanges);
     con(m_layer, &ProcessModel::tweenChanged, this,
         &Presenter::on_tweenChanges);
+    connect(
+        m_view, &View::dropReceived, this,
+        &Presenter::on_dropReceived);
 
     m_view->setDisplayedName(m_layer.prettyName());
     m_view->showName(true);
@@ -57,6 +63,40 @@ private:
       {
         seg.setTween(b);
       }
+    }
+  }
+
+  void on_dropReceived(const QMimeData& mime)
+  {
+    auto& autom = this->model();
+    // TODO refactor with AddressEditWidget && AutomationPresenter
+    if (mime.formats().contains(iscore::mime::addressettings()))
+    {
+      Mime<Device::FullAddressSettings>::Deserializer des{mime};
+      Device::FullAddressSettings as = des.deserialize();
+
+      if (as.address.path.isEmpty())
+        return;
+
+      CommandDispatcher<> disp{context().context.commandStack};
+      ChangeInterpolationAddress(model(), State::AddressAccessor{std::move(as.address)}, disp);
+    }
+    else if (mime.formats().contains(iscore::mime::messagelist()))
+    {
+      Mime<State::MessageList>::Deserializer des{mime};
+      State::MessageList ml = des.deserialize();
+      if (ml.empty())
+        return;
+      auto& newAddr = ml[0].address;
+
+      if (newAddr == autom.address())
+        return;
+
+      if (newAddr.address.path.isEmpty())
+        return;
+
+      CommandDispatcher<> disp{context().context.commandStack};
+      ChangeInterpolationAddress(model(), std::move(newAddr), disp);
     }
   }
 

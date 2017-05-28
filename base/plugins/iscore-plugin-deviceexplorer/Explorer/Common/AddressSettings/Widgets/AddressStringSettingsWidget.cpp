@@ -47,6 +47,11 @@ Device::AddressSettings AddressStringSettingsWidget::getDefaultSettings() const
   return {};
 }
 
+void AddressStringSettingsWidget::setCanEditProperties(bool b)
+{
+  AddressSettingsWidget::setCanEditProperties(b);
+}
+
 void AddressStringSettingsWidget::setSettings(
     const Device::AddressSettings& settings)
 {

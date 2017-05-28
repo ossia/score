@@ -42,4 +42,10 @@ void AddressCharSettingsWidget::setSettings(
   m_valueEdit->setValue(settings.value);
   m_domainEdit->set_domain(settings.domain);
 }
+
+void AddressCharSettingsWidget::setCanEditProperties(bool b)
+{
+  AddressSettingsWidget::setCanEditProperties(b);
+  m_domainEdit->setEnabled(b);
+}
 }

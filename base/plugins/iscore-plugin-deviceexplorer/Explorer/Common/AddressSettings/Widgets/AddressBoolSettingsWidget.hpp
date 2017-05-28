@@ -16,6 +16,7 @@ public:
   Device::AddressSettings getDefaultSettings() const override;
 
   void setSettings(const Device::AddressSettings& settings) override;
+  void setCanEditProperties(bool) override;
 
 private:
   QComboBox* m_cb{};

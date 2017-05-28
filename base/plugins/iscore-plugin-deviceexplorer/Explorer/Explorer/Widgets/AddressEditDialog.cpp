@@ -106,6 +106,9 @@ void AddressEditDialog::updateType()
       dom = widg->getDefaultSettings().domain.get();
     widg->setSettings(m_originalSettings);
   }
+
+  if(widg)
+    widg->setCanEditProperties(m_canEdit);
 }
 
 Device::AddressSettings AddressEditDialog::getSettings() const
@@ -134,6 +137,19 @@ Device::AddressSettings AddressEditDialog::makeDefaultSettings()
   s.clipMode = ossia::bounding_mode::FREE;
 
   return s;
+}
+
+void AddressEditDialog::setCanRename(bool b)
+{
+  m_nameEdit->setEnabled(b);
+}
+
+void AddressEditDialog::setCanEditProperties(bool b)
+{
+  m_canEdit = b;
+  m_valueTypeCBox->setEnabled(b);
+  if(auto w = m_addressWidget->widget())
+    w->setCanEditProperties(b);
 }
 
 void AddressEditDialog::setNodeSettings()

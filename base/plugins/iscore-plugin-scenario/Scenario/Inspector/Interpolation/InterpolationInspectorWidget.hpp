@@ -11,12 +11,6 @@ class QCheckBox;
 namespace Interpolation
 {
 class ProcessModel;
-/**
- * Note : this class is temporarily in iscore-plugin-scenario instead
- * of iscore-plugin-interpolation, because of the need to access the first and
- * last state upon address change, which can be done only in the context of a
- * scenario.
- */
 class InspectorWidget final
     : public Process::InspectorWidgetDelegate_T<Interpolation::ProcessModel>
 {

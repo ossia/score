@@ -44,4 +44,9 @@ void AddressBoolSettingsWidget::setSettings(
   setCommonSettings(settings);
   m_cb->setCurrentIndex(State::convert::value<bool>(settings.value));
 }
+
+void AddressBoolSettingsWidget::setCanEditProperties(bool b)
+{
+  AddressSettingsWidget::setCanEditProperties(b);
+}
 }
