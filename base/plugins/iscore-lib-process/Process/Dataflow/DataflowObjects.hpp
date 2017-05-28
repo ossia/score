@@ -18,14 +18,7 @@ struct CableData
   Path<DataflowProcess> source, sink;
   ossia::optional<int> outlet, inlet;
 
-  friend bool operator==(const CableData& lhs, const CableData& rhs)
-  {
-    return lhs.type == rhs.type
-        && lhs.source == rhs.source
-        && lhs.sink == rhs.sink
-        && lhs.outlet == rhs.outlet
-        && lhs.inlet == rhs.inlet;
-  }
+  friend bool operator==(const CableData& lhs, const CableData& rhs);
 };
 
 struct Cable
