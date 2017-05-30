@@ -56,6 +56,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageEditDialog.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageListEditor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_deviceexplorer.hpp"
 )
 
 
