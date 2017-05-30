@@ -12,23 +12,22 @@ namespace Scenario
 class CommentBlockModel;
 namespace Command
 {
+//! Changes the comment in a comment block
 class SetCommentText final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetCommentText,
       "Set Text in comment block")
 public:
-  SetCommentText(Path<CommentBlockModel>&& path, QString newComment);
+  SetCommentText(const CommentBlockModel& model, QString newComment);
 
+private:
   void undo() const override;
   void redo() const override;
 
-  // Command interface
-protected:
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;
 
-private:
   Path<CommentBlockModel> m_path;
   QString m_newComment;
   QString m_oldComment;
