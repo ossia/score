@@ -419,7 +419,10 @@ void TemporalConstraintPresenter::updatePositions()
     currentSlotY += model.height;
 
     if(slot.handle)
+    {
       slot.handle->setPos(0, currentSlotY);
+      slot.handle->setSlotIndex(i);
+    }
     currentSlotY += SlotHandle::handleHeight();
   }
 
