@@ -93,7 +93,7 @@ private:
 
   QPointer<Scenario::ProcessTabWidget> m_processesTabPage{};
 
-  std::list<QWidget*> m_properties;
+  std::vector<QWidget*> m_properties;
 
   MetadataWidget* m_metadata{};
 
