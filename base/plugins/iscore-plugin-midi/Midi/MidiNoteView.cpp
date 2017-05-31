@@ -25,14 +25,18 @@ void NoteView::paint(
   painter->setPen(s.noteBasePen);
   painter->drawRect(boundingRect().adjusted(0., -1., 0., -1.));
 
-  auto orange = s.noteBaseBrush.color();
-  orange.setHslF(
-      orange.hslHueF() - 0.02, 1., 0.25 + (127. - note.velocity()) / 256.);
-  s.paintedNote.setColor(orange);
+  if(m_height > 6)
+  {
+    auto orange = s.noteBaseBrush.color();
+    orange.setHslF(
+        orange.hslHueF() - 0.02, 1., 0.25 + (127. - note.velocity()) / 256.);
 
-  painter->setPen(s.paintedNote);
-  painter->drawLine(
-      QPointF{2., m_height / 2.}, QPointF{m_width - 2., m_height / 2.});
+    s.paintedNote.setColor(orange);
+
+    painter->setPen(s.paintedNote);
+    painter->drawLine(
+          QPointF{2., m_height / 2.}, QPointF{m_width - 2., m_height / 2.});
+  }
 }
 
 QVariant NoteView::itemChange(
