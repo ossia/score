@@ -43,7 +43,6 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
   , m_handles{handles}
 {
   TemporalConstraintView& v = *Scenario::view(this);
-  v.setSmallViewVisible(constraint.smallViewVisible());
   con(v, &TemporalConstraintView::constraintHoverEnter, this,
       &TemporalConstraintPresenter::constraintHoverEnter);
 
@@ -246,7 +245,6 @@ void TemporalConstraintPresenter::on_rackVisibleChanged(bool b)
   if(b)
   {
     m_header->setState(ConstraintHeader::State::RackShown);
-    Scenario::view(this)->setSmallViewVisible(b);
   }
   else if(!m_model.processes.empty())
   {
@@ -569,7 +567,6 @@ void TemporalConstraintPresenter::on_processesChanged(const Process::ProcessMode
   if(m_model.smallViewVisible())
   {
     m_header->setState(ConstraintHeader::State::RackShown);
-    Scenario::view(this)->setSmallViewVisible(true);
   }
   else if(!m_model.processes.empty())
   {

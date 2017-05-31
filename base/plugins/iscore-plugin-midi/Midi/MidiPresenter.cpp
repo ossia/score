@@ -17,6 +17,7 @@
 #include <boost/range/adaptor/filtered.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm/copy.hpp>
+#include <ossia/detail/math.hpp>
 
 namespace Midi
 {
@@ -138,7 +139,7 @@ void Presenter::setupNote(NoteView& v)
     int note = qBound(
         0,
         int(127
-            - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
+            - (ossia::clamp(newPos.y(), rect.bottom(), rect.top()) / height)
                   * 127),
         127);
 
