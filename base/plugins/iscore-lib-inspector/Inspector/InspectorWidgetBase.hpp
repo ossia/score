@@ -51,8 +51,8 @@ public:
   }
 
   void
-  updateSectionsView(QVBoxLayout* layout, const std::list<QWidget*>& contents);
-  void updateAreaLayout(std::list<QWidget*>& contents);
+  updateSectionsView(QVBoxLayout* layout, const std::vector<QWidget*>& contents);
+  void updateAreaLayout(const std::vector<QWidget*>& contents);
 
   void addHeader(QWidget* header);
 
@@ -86,7 +86,7 @@ private:
   std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
   QVBoxLayout* m_scrollAreaLayout{};
 
-  std::list<QWidget*> m_sections;
+  std::vector<QWidget*> m_sections;
   QColor _currentColor{Qt::gray};
 
   static const int m_colorIconSize{21};

@@ -20,10 +20,10 @@ public:
 
   void updateElements() override;
   void addWidgets_pre(
-      std::list<QWidget*>& widgets,
+      std::vector<QWidget*>& widgets,
       ConstraintInspectorWidget* parent) override;
   void addWidgets_post(
-      std::list<QWidget*>& widgets,
+      std::vector<QWidget*>& widgets,
       ConstraintInspectorWidget* parent) override;
 
   void on_defaultDurationChanged(

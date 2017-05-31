@@ -2,7 +2,6 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
-#include <list>
 #include <vector>
 
 namespace Inspector
@@ -36,11 +35,10 @@ private:
   QString tabName() override;
 
   void updateDisplayedValues();
-  void on_splitTimeNodeClicked();
   void on_dateChanged(const TimeVal&);
 
-  std::list<QWidget*> m_properties;
-  QWidget* m_events;
+  std::vector<QWidget*> m_properties;
+  QWidget* m_events{};
 
   const TimeNodeModel& m_model;
 

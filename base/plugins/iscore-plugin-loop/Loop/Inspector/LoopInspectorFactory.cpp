@@ -43,10 +43,10 @@ public:
 
   void updateElements() override;
   void addWidgets_pre(
-      std::list<QWidget*>& widgets,
+      std::vector<QWidget*>& widgets,
       Scenario::ConstraintInspectorWidget* parent) override;
   void addWidgets_post(
-      std::list<QWidget*>& widgets,
+      std::vector<QWidget*>& widgets,
       Scenario::ConstraintInspectorWidget* parent) override;
 
   void on_defaultDurationChanged(
@@ -66,12 +66,12 @@ void ConstraintInspectorDelegate::updateElements()
 }
 
 void ConstraintInspectorDelegate::addWidgets_pre(
-    std::list<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent)
+    std::vector<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent)
 {
 }
 
 void ConstraintInspectorDelegate::addWidgets_post(
-    std::list<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent)
+    std::vector<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent)
 {
 }
 
