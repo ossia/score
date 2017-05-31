@@ -321,6 +321,12 @@
  * * Reimplement iscore::Command::undo() and iscore::Command::redo()
  * * Reimplement the serialization methods.
  * * Add the ISCORE_COMMAND_DECL macro with the relevant metadata for the command.
+ *   The use of this macro is mandatory: the build system scans the code and generate
+ *   files that will automatically register all the commands. This way, when there is a crash,
+ *   commands can be deserialized correctly. They can also be sent through the network this way.
+ *   This also means that if a command is added, CMake may need to be re-run to register the command
+ *   and make it available to the crash restoring.
+ *
  *
  * Some examples of commands that can be used as base :
  * * Scenario::Command::SetCommentText for a very simple command that only changes a text
@@ -344,18 +350,225 @@
  *
  * \section SpecialCommands Special commands
  *
- * To simplify some common use cases, the following
+ * To simplify some common use cases, the following simplfified command classes
+ * are available :
+ *
+ * * iscore::PropertyCommand : commands which just change a value of a member
+ *                             within the Qt Property System (http://doc.qt.io/qt-5/properties.html).
+ *
+ * * iscore::AggregateCommand : used when a command is made of multiple small commands one after each other.
+ *                              For instance, the Scenario::Commands::ClearSelection command is an aggregate
+ *                              of various commands that clear various kinds of elements respectively.
+ *                              It should be subclassed to give a meaningful name to the user.
  *
  * \subsection Dispatchers Command dispatchers
  *
  * Sometimes just sending a command is not good enough.
+ * For instance, when moving a slider, we don't want to send a command each time
+ * the value changes, even though it is altered in the model.
  *
+ * Hence, some commands will have an additional `update()` method that takes
+ * the same argument as the constructor of the command.
  *
+ * The dispatchers are able to selectively create a new command the first time,
+ * and update it when `submitCommand` is called again.
+ * The command is then pushed in the command stack with `commit()`, or abandoned with `rollback()`.
  *
+ * The various useful dispatchers are :
+ *
+ * * MacroCommandDispatcher : appends commands to an AggregateCommand.
+ * * SingleOngoingCommandDispatcher : performs the updating mechanism mentioned above on a single command enforced at compile time.
+ * * MultiOngoingCommandDispatcher : performs the updating mechanism on multiple following commands. That is, the following code :
+ *
+ * \code
+ * MultiOngoingCommandDispatcher disp{stack};
+ * disp.submitCommand<Command1>(obj1, 0);
+ * disp.submitCommand<Command1>(obj1, 1);
+ * disp.submitCommand<Command1>(obj1, 2);
+ * disp.submitCommand<Command2>(obj2, obj3, obj4);
+ * disp.submitCommand<Command3>(obj1, 10);
+ * disp.submitCommand<Command3>(obj1, 20);
+ * disp.commit<MacroCommand>();
+ * \endcode
+ *
+ * Will behind the scene do the following :
+ * \code
+ * auto cmd = new Command1(obj1, 0);
+ * cmd->redo();
+ * cmd->update(obj1, 1);
+ * cmd->redo();
+ * cmd->update(obj1, 2);
+ * cmd->redo();
+ *
+ * auto cmd2 = new Command2(obj2, obj3, obj4);
+ * cmd2->redo();
+ *
+ * auto cmd3 = new Command3(obj1, 10);
+ * cmd3->redo();
+ * cmd3->(obj1, 20);
+ * cmd3->redo();
+ *
+ * auto macro = new MacroCommand{cmd, cmd2, cmd3};
+ * commandStack->push(macro);
+ * \endcode
  *
  */
 
 /*! \page Serialization
+ *
+ * \section GenSer Generalities on serialization
+ * i-score has two serialization methods:
+ *
+ * * A fast one, based on QDataStream
+ * * A slow one, based on JSON.
+ *
+ * If an object of type Foo is serializable, the following functions have to be reimplemented :
+ *
+ * In all cases :
+ * * `template<> void DataStreamReader::read(const Foo& dom);`
+ * * `template<> void DataStreamWriter::write(Foo& dom);`
+ *
+ * If the object is a "big" object with multiple members, etc:
+ * * `template<> void JSONObjectReader::read(const Foo& dom);`
+ * * `template<> void JSONObjectWriter::write(Foo& dom);`
+ *
+ * If the object is a "small" value-like data structure (for instance a (x,y) array):
+ * * `template<> void JSONValueReader::read(const Foo& dom);`
+ * * `template<> void JSONValueWriter::write(Foo& dom);`
+ *
+ * A simple example can be seen in the Engine::Network::MinuitSpecificSettings serialization code
+ * (located in MinuitSpecificSettingsSerialization.cpp).
+ *
+ * A more complex example would be the Scenario::ProcessModel serialization code (in ScenarioModelSerialization.cpp).
+ *
+ * \section DataStreamSer DataStream serialization
+ *
+ * This is mostly a matter of reading and writing into the `m_stream` variable:
+ *
+ * \code
+ * m_stream << object.member1 << object.member2;
+ * \endcode
+ *
+ * \code
+ * m_stream >> object.member1 >> object.member2;
+ * \endcode
+ *
+ * Since this code may be complex, it is possible to introduce
+ * a delimiter that will help detecting serialization bugs : just call
+ * `insertDelimiter()` in the serialization code and `checkDelimiter()`
+ * in the deserialization code.
+ *
+ * \section JSONObjSer JSON Object serialization
+ *
+ * Read and write in the `obj` variable, which is a QJsonObject.
+ * For instance:
+ *
+ * \code
+ * obj["Bar"] = foo.m_bar;
+ * obj["Baz"] = foo.m_baz;
+ * \endcode
+ *
+ * \code
+ * foo.m_bar = obj["Bar"].toDouble();
+ * foo.m_baz = obj["Bar"].toString();
+ * \endcode
+ *
+ * \section JSONValSer JSON Value serialization
+ *
+ * Read and write in the `val` variable, which is a QJsonValue.
+ * For instance:
+ *
+ * \code
+ * val = QJsonArray{foo.array[0], foo.array[1]};
+ * \endcode
+ *
+ * \code
+ * auto arr = val.toArray();
+ * foo.array[0] = arr[0].toString();
+ * foo.array[1] = arr[1].toString();
+ * \endcode
+ *
+ * \section DeserObj Complex object serialization
+ *
+ * For data types more complex than ints, floats, & other primitives,
+ * for instance inheriting from IdentifiedObject and being part of the object tree,
+ * serialization and deserialization follows the following process:
+ *
+ * \subsection ObjSer For serializing
+ *
+ * \subsubsection DSObjSer In DataStream
+ *
+ * Call `readFrom(theChildObject)`.
+ *
+ * \subsubsection JSObjSer In JSON
+ *
+ * Call `toJsonObject(theChildObject)` and save it in a key:
+ *
+ * \code
+   template <>
+   void JSONObjectReader::read(const Foo& foo) {
+     obj["MyChild"] = toJsonObject(foo.theChildObject());
+   }
+   \endcode
+ *
+ * Various utility functions are available in JSONObject.hpp, to save arrays, etc...
+ *
+ * \subsection ObjDeser For deserializing
+ *
+ * \subsubsection DSObjDeser In DataStream
+ *
+ * Construct the object with the deserializer in argument:
+ *
+ * \code
+   template <>
+   void DataStreamWriter::writer(Foo& foo) {
+     foo.m_theChildObject = new ChildObject{*this, &foo};
+   }
+   \endcode
+ *
+ * The object then deserializes itself in its constructor;
+ * see for instance Scenario::ConstraintModel::ConstraintModel or
+ * Scenario::StateModel::StateModel.
+ *
+ * \subsubsection JSObjDeser In JSON
+ *
+ * Construct a new deserializer with the child JSON object and pass it
+ * to the child constructor:
+ *
+ * \code
+   template <>
+   void JSONObjectWriter::writer(Foo& foo) {
+     foo.m_theChildObject = new ChildObject{JSONObject::Deserializer{obj["MyChild"].toObject()}, &foo};
+   }
+   \endcode
+ *
+ * \subsection PolySer Serialization of polymorphic types
+ *
+ * An example is available in Scenario::ConstraintModel's serialization code, which
+ * has to serialize its child Process::ProcessModel.
+ * The problem here is that we can't just call `new MyObject` since we don't know the type of the class
+ * that we are loading at compile-time.
+ *
+ * Hence, we have to look for our class in a factory, by saving the UUID of the class.
+ * This is done automatically if the class inherits from iscore::SerializableInterface;
+ * the serialization code won't change from the "simple" object case.
+ *
+ * For the deserialization, however, we have to look for the correct factory, which
+ * we can do through the saved UUID, and load the object.
+ *
+ * This can be done easily through the `deserialize_interface` function:
+ *
+ * \code
+template <>
+void DataStreamWriter::write(Scenario::ConstraintModel& constraint) {
+  auto& pl = components.interfaces<Process::ProcessFactoryList>();
+  auto proc = deserialize_interface(pl, *this, &constraint);
+  if(proc) {
+   // ...
+  } else {
+   // handle the error in some way.
+  }
+}
  *
  */
 
