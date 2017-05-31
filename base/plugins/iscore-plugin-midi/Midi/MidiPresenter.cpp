@@ -136,6 +136,10 @@ void Presenter::setupNote(NoteView& v)
     auto height = rect.height();
 
     // Snap to grid : we round y to the closest multiple of 127
+    qDebug()
+        << "Rect: " << rect.bottom() << rect.top()<< newPos.y();
+    qDebug() << qMin(rect.bottom(), qMax(newPos.y(), rect.top()))
+        << ossia::clamp(newPos.y(), rect.bottom(), rect.top());
     int note = qBound(
         0,
         int(127

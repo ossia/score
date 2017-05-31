@@ -94,7 +94,6 @@ public:
         move, release);
 
     connect(press, &QAbstractState::entered, [=]() {
-      qDebug() << "Pressed: " << this->currentSlot.index;
       m_originalPoint = m_sm.scenePoint;
 
       const ConstraintModel& cst = this->currentSlot.constraint.find();
@@ -110,7 +109,6 @@ public:
     });
 
     connect(release, &QAbstractState::entered, [=]() {
-      qDebug() << "Released: " << this->currentSlot.index;
       m_ongoingDispatcher.commit();
     });
   }
