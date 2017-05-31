@@ -184,10 +184,6 @@ public:
 protected:
   void debug_printPath(const Device::NodePath& path);
 
-  typedef QPair<Device::Node*, bool> CutElt;
-  QStack<CutElt> m_cutNodes;
-  bool m_lastCutNodeIsCopied;
-
 private:
   DeviceDocumentPlugin& m_devicePlugin;
 
