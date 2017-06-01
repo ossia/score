@@ -35,6 +35,7 @@ void CommentBlockView::paint(
   auto& skin = ScenarioStyle::instance();
 
   painter->setPen(skin.CommentBlockPen);
+  painter->setBrush(skin.TransparentBrush);
   painter->drawRoundedRect(boundingRect(), 5., 5.);
 }
 
