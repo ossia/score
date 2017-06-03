@@ -13,6 +13,10 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomModel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomPresenter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/AutomationCommandFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.hpp"
@@ -32,6 +36,10 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationModel.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.cpp"
