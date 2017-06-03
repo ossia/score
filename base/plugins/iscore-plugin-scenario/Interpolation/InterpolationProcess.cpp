@@ -231,6 +231,7 @@ ProcessModel::ProcessModel(
     , m_end{source.end()}
     , m_startState{new ProcessState{*this, ProcessState::Point::Start, this}}
     , m_endState{new ProcessState{*this, ProcessState::Point::End, this}}
+    , m_tween{source.tween()}
 {
   setCurve(source.curve().clone(source.curve().id(), this));
   connect(m_curve, &Curve::Model::changed, this, &ProcessModel::curveChanged);
