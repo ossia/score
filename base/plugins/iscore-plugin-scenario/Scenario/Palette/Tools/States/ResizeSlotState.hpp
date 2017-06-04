@@ -106,7 +106,6 @@ public:
           m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
       m_ongoingDispatcher.submitCommand(this->currentSlot, val);
-      return;
     });
 
     connect(release, &QAbstractState::entered, [=]() {

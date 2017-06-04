@@ -17,6 +17,7 @@
 #include <boost/range/adaptor/filtered.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm/copy.hpp>
+#include <ossia/detail/math.hpp>
 
 namespace Midi
 {
@@ -135,11 +136,11 @@ void Presenter::setupNote(NoteView& v)
     auto height = rect.height();
 
     // Snap to grid : we round y to the closest multiple of 127
-    int note = qBound(
-        0,
+    int note = ossia::clamp(
         int(127
             - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
                   * 127),
+        0,
         127);
 
     m_ongoing.submitCommand(

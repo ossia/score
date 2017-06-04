@@ -101,11 +101,10 @@ void EventPresenter::handleDrop(const QPointF& pos, const QMimeData* mime)
     Mime<State::MessageList>::Deserializer des{*mime};
     State::MessageList ml = des.deserialize();
 
-    auto cmd = new Scenario::Command::AddStateWithData{
-        *scenar, m_model.id(),
-        pos.y() / m_view->parentItem()->boundingRect().size().height(),
-        std::move(ml)};
-    m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submitCommand<Scenario::Command::AddStateWithData>(
+          *scenar, m_model.id(),
+          pos.y() / m_view->parentItem()->boundingRect().size().height(),
+          std::move(ml));
   }
 }
 }
