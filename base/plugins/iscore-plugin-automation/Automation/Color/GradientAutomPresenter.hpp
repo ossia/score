@@ -5,6 +5,9 @@
 #include <iscore/model/path/PathSerialization.hpp>
 #include <Device/Address/AddressSettings.hpp>
 
+template<>
+struct is_custom_serialized<QColor> : public std::true_type {};
+
 template <typename T, typename U>
 struct TSerializer<DataStream, boost::container::flat_map<T, U>>
 {
@@ -29,6 +32,50 @@ struct TSerializer<DataStream, boost::container::flat_map<T, U>>
       }
     }
 };
+
+template <>
+struct TSerializer<JSONValue, QColor>
+{
+    static void readFrom(JSONValue::Serializer& s, QColor c)
+    {
+      if(c.spec() != QColor::Rgb)
+        c = c.toRgb();
+      s.val = QJsonArray{c.redF(), c.greenF(), c.blueF(), c.alphaF()};
+    }
+
+    static void writeTo(JSONValue::Deserializer& s, QColor& c)
+    {
+      auto arr = s.val.toArray();
+      c.setRgbF(arr[0].toDouble(), arr[1].toDouble(), arr[2].toDouble(), arr[3].toDouble());
+    }
+};
+
+template <typename U>
+struct TSerializer<JSONValue, boost::container::flat_map<double, U>>
+{
+    using type = boost::container::flat_map<double, U>;
+    static void readFrom(JSONValue::Serializer& s, const type& obj)
+    {
+      QJsonArray arr;
+      for(const auto& e : obj)
+      {
+        arr.append(e.first);
+        arr.append(toJsonValue(e.second));
+      }
+    }
+
+    static void writeTo(JSONValue::Deserializer& s, type& obj)
+    {
+      auto arr = s.val.toArray();
+      for(int i = 0; i < arr.size(); i += 2)
+      {
+        double k = arr[i].toDouble();
+        U v = fromJsonValue<U>(arr[i+1]);
+        obj.insert(std::make_pair(std::move(k), std::move(v)));
+      }
+    }
+};
+
 
 
 namespace Gradient
@@ -98,6 +145,7 @@ class Presenter : public Process::LayerPresenter
   private:
     const Gradient::ProcessModel& m_layer;
     View* m_view{};
+    ZoomRatio m_zoomRatio;
 };
 
 }

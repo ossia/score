@@ -55,6 +55,18 @@ Presenter::Presenter(
       .submitCommand<ChangeGradient>(layer, new_grad);
   });
 
+  connect(m_view, &View::removePoint, this,
+          [&] (double orig) {
+    auto new_grad = m_layer.gradient();
+    auto it = new_grad.find(orig);
+    if(it == new_grad.end())
+      return;
+
+    new_grad.erase(it);
+    CommandDispatcher<>{context().context.commandStack}
+      .submitCommand<ChangeGradient>(layer, new_grad);
+  });
+
   connect(m_view, &View::setColor, this,
           [&] (double pos, QColor col) {
     auto new_grad = m_layer.gradient();
@@ -94,13 +106,15 @@ void Presenter::putBehind()
   m_view->setEnabled(false);
 }
 
-void Presenter::on_zoomRatioChanged(ZoomRatio)
+void Presenter::on_zoomRatioChanged(ZoomRatio r)
 {
-
+  m_zoomRatio = r;
+  parentGeometryChanged();
 }
 
 void Presenter::parentGeometryChanged()
 {
+  m_view->setDataWidth(m_layer.duration().toPixels(m_zoomRatio));
 }
 
 const Gradient::ProcessModel& Presenter::model() const
