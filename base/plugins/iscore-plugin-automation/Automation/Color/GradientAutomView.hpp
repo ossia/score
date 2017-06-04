@@ -11,10 +11,12 @@ class View : public Process::LayerView
 
     using gradient_colors = boost::container::flat_map<double, QColor>;
     void setGradient(const gradient_colors& c);
+    void setDataWidth(double);
 
   signals:
     void setColor(double pos, QColor);
     void movePoint(double old, double cur);
+    void removePoint(double pos);
     void pressed();
     void askContextMenu(const QPoint&, const QPointF&);
     void doubleClicked(QPointF);
@@ -30,5 +32,6 @@ class View : public Process::LayerView
     boost::container::flat_map<double, QColor> m_colors;
     boost::container::flat_map<double, QColor> m_origColors;
     optional<double> m_clicked;
+    double m_dataWidth{};
 };
 }

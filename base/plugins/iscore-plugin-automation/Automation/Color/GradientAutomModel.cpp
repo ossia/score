@@ -1,4 +1,5 @@
 #include <Automation/Color/GradientAutomModel.hpp>
+#include <Automation/Color/GradientAutomPresenter.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <QColor>
 namespace Gradient
@@ -10,8 +11,8 @@ ProcessModel::ProcessModel(
     : Process::ProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-  m_colors.insert(std::make_pair(0., QColor(Qt::black)));
-  m_colors.insert(std::make_pair(1., QColor(Qt::white)));
+  m_colors.insert(std::make_pair(0.2, QColor(Qt::black)));
+  m_colors.insert(std::make_pair(0.8, QColor(Qt::white)));
 
   metadata().setInstanceName(*this);
 }
@@ -60,8 +61,14 @@ bool ProcessModel::contentHasDuration() const
 
 TimeVal ProcessModel::contentDuration() const
 {
-  // TODO duration() * min(1., last point)
-  return duration();
+  auto lastPoint = 1.;
+  if(!m_colors.empty())
+  {
+    auto back = m_colors.rbegin()->first;
+    lastPoint = std::max(1., back);
+  }
+
+  return duration() * lastPoint;
 }
 
 ::State::AddressAccessor ProcessModel::address() const
@@ -102,11 +109,9 @@ template <>
 void DataStreamReader::read(
     const Gradient::ProcessModel& autom)
 {
-  /*
-  m_stream << autom.address();
-  m_stream << autom.tween();
-  m_stream << autom.gradient();
-  */
+  m_stream << autom.m_address
+           << autom.m_colors
+           << autom.m_tween;
   insertDelimiter();
 }
 
@@ -114,6 +119,9 @@ void DataStreamReader::read(
 template <>
 void DataStreamWriter::write(Gradient::ProcessModel& autom)
 {
+  m_stream >> autom.m_address
+           >> autom.m_colors
+           >> autom.m_tween;
 
   checkDelimiter();
 }
@@ -124,6 +132,8 @@ void JSONObjectReader::read(
     const Gradient::ProcessModel& autom)
 {
   obj[strings.Address] = toJsonObject(autom.address());
+  JSONValueReader v{}; v.readFrom(autom.m_colors);
+  obj["Gradient"] = v.val;
   obj["Tween"] = autom.tween();
 }
 
@@ -134,4 +144,6 @@ void JSONObjectWriter::write(Gradient::ProcessModel& autom)
   autom.setAddress(
       fromJsonObject<State::AddressAccessor>(obj[strings.Address]));
   autom.setTween(obj["Tween"].toBool());
+  JSONValueWriter v{}; v.val = obj["Gradient"];
+  v.writeTo(autom.m_colors);
 }
