@@ -26,7 +26,7 @@ Presenter::Presenter(
 
   m_view->setGradient(m_layer.gradient());
   connect(m_view, &View::doubleClicked, this, [&] (QPointF pos) {
-    auto np = pos.x() / m_view->width();
+    auto np = pos.x() / m_view->dataWidth();
     auto new_grad = m_layer.gradient();
     auto prev = new_grad.lower_bound(np);
     if(prev == new_grad.begin())

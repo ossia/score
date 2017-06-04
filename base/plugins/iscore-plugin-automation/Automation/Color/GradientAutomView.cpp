@@ -65,31 +65,33 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_clicked = ossia::none;
 
-  if(event->button() == Qt::LeftButton)
-  {
     const auto pos = event->pos();
     for(auto& e : m_colors)
     {
       if(std::abs(e.first * m_dataWidth - pos.x()) < 2.)
       {
-        if(pos.y() < (side / 1.5))
+
+        if(event->button() == Qt::LeftButton)
         {
-          auto w = QColorDialog::getColor();
-          if(w.isValid())
-            emit setColor(e.first, w);
+          if(pos.y() < (side / 1.5))
+          {
+            auto w = QColorDialog::getColor();
+            if(w.isValid())
+              emit setColor(e.first, w);
+          }
+          else
+          {
+            m_clicked = e.first;
+          }
         }
-        else
+
+        else if(event->button() == Qt::RightButton)
         {
-          m_clicked = e.first;
+          emit removePoint(e.first);
         }
         break;
       }
     }
-  }
-  else if(event->button() == Qt::RightButton)
-  {
-    emit removePoint(event->pos().x());
-  }
 }
 
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
