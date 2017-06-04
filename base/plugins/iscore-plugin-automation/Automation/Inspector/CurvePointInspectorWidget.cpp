@@ -32,7 +32,7 @@ PointInspectorWidget::PointInspectorWidget(
   setObjectName("CurvePointInspectorWidget");
   setParent(parent);
 
-  std::list<QWidget*> vec;
+  std::vector<QWidget*> vec;
   auto cm = safe_cast<Curve::Model*>(m_model.parent());
   auto automModel_base = dynamic_cast<ProcessModel*>(cm->parent());
   if (!automModel_base)

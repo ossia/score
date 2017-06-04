@@ -24,10 +24,10 @@ public:
   virtual ~ConstraintInspectorDelegate();
 
   virtual void
-  addWidgets_pre(std::list<QWidget*>&, ConstraintInspectorWidget* parent)
+  addWidgets_pre(std::vector<QWidget*>&, ConstraintInspectorWidget* parent)
       = 0;
   virtual void
-  addWidgets_post(std::list<QWidget*>&, ConstraintInspectorWidget* parent)
+  addWidgets_post(std::vector<QWidget*>&, ConstraintInspectorWidget* parent)
       = 0;
 
   virtual void updateElements() = 0;

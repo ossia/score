@@ -29,6 +29,6 @@ public:
   QString tabName() override;
 
 private:
-  std::list<QWidget*> m_properties;
+  std::vector<QWidget*> m_properties;
 };
 }

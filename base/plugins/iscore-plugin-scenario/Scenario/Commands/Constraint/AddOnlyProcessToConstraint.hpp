@@ -21,6 +21,7 @@ namespace Scenario
 class ConstraintModel;
 namespace Command
 {
+//! Create a new process in a constraint
 class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final
     : public iscore::Command
 {

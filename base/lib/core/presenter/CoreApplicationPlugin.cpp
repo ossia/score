@@ -108,7 +108,6 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
   auto edit = new QMenu{tr("&Edit")};
   auto object = new QMenu{tr("&Object")};
   auto play = new QMenu{tr("&Play")};
-  auto tool = new QMenu{tr("&Tool")};
   auto view = new QMenu{tr("&View")};
   auto settings = new QMenu{tr("&Settings")};
   auto about = new QMenu{tr("&About")};
@@ -116,7 +115,6 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
   menus.emplace_back(edit, Menus::Edit(), Menu::is_toplevel{}, 1);
   menus.emplace_back(object, Menus::Object(), Menu::is_toplevel{}, 2);
   menus.emplace_back(play, Menus::Play(), Menu::is_toplevel{}, 3);
-  menus.emplace_back(tool, Menus::Tool(), Menu::is_toplevel{}, 4);
   menus.emplace_back(view, Menus::View(), Menu::is_toplevel{}, 5);
   menus.emplace_back(settings, Menus::Settings(), Menu::is_toplevel{}, 6);
 

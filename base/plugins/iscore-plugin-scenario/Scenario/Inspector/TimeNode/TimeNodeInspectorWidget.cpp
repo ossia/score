@@ -78,12 +78,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
   setParent(parent);
 
   // default date
-  auto dateWid = new QWidget{this};
-  auto dateLay = new iscore::MarginLess<QFormLayout>{dateWid};
-  m_date = new TextLabel{m_model.date().toString(), dateWid};
-
-  dateLay->addRow(tr("Default date"), m_date);
-  dateWid->setLayout(dateLay);
+  m_date = new TextLabel{tr("Default date: ") + m_model.date().toString(), this};
 
   // Trigger
   auto trigSec
@@ -99,7 +94,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
   auto evLay = new iscore::MarginLess<QVBoxLayout>{m_events};
   evLay->setSizeConstraint(QLayout::SetMinimumSize);
 
-  m_properties.push_back(dateWid);
+  m_properties.push_back(m_date);
   m_properties.push_back(new iscore::HSeparator{this});
   m_properties.push_back(trigSec);
   m_properties.push_back(new iscore::HSeparator{this});
@@ -209,12 +204,14 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
   // OPTIMIZEME
   for (auto& elt : m_eventList)
   {
-    m_properties.remove(elt.second);
+    auto it = ossia::find(m_properties, elt.second);
+    if(it != m_properties.end())
+      m_properties.erase(it);
     delete elt.second;
   }
   m_eventList.clear();
 
-  m_date->setText(m_model.date().toString());
+  on_dateChanged(m_model.date());
 
   for (const auto& event : m_model.events())
   {
@@ -227,33 +224,8 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
   m_trigwidg->updateExpression(m_model.trigger()->expression());
 }
 
-void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
-{
-  /*
-  QVector<Id<EventModel> > eventGroup;
-
-  for(const auto& ev : m_events)
-  {
-      if(ev->isChecked())
-      {
-          eventGroup.push_back( Id<EventModel>(ev->eventName().toInt()));
-      }
-  }
-
-  if (eventGroup.size() < int(m_events.size()))
-  {
-      auto cmd = new Command::SplitTimeNode{m_model,
-                                   eventGroup};
-
-      commandDispatcher()->submitCommand(cmd);
-  }
-
-  updateDisplayedValues();
-  */
-}
-
 void TimeNodeInspectorWidget::on_dateChanged(const TimeVal& t)
 {
-  m_date->setText(t.toString());
+  m_date->setText(tr("Default date: ") + t.toString());
 }
 }

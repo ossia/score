@@ -62,13 +62,6 @@ StringKey<Menu> Menus::Play()
   return StringKey<Menu>{"Play"};
 }
 
-
-StringKey<Menu> Menus::Tool()
-{
-  return StringKey<Menu>{"Tool"};
-}
-
-
 StringKey<Menu> Menus::View()
 {
   return StringKey<Menu>{"View"};
