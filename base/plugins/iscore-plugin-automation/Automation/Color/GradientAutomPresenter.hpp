@@ -62,6 +62,7 @@ struct TSerializer<JSONValue, boost::container::flat_map<double, U>>
         arr.append(e.first);
         arr.append(toJsonValue(e.second));
       }
+      s.val = arr;
     }
 
     static void writeTo(JSONValue::Deserializer& s, type& obj)
