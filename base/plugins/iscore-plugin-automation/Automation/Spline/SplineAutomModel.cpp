@@ -1,8 +1,8 @@
-#include <Automation/Color/GradientAutomModel.hpp>
-#include <Automation/Color/GradientAutomPresenter.hpp>
+#include <Automation/Spline/SplineAutomModel.hpp>
+#include <Automation/Spline/SplineAutomPresenter.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <QColor>
-namespace Gradient
+namespace Spline
 {
 ProcessModel::ProcessModel(
     const TimeVal& duration,
@@ -11,8 +11,15 @@ ProcessModel::ProcessModel(
     : Process::ProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-  m_colors.insert(std::make_pair(0.2, QColor(Qt::black)));
-  m_colors.insert(std::make_pair(0.8, QColor(Qt::white)));
+  m_spline.points.push_back(QPointF(0., 0.));
+
+  m_spline.points.push_back(QPointF(0.4, 0.075));
+  m_spline.points.push_back(QPointF(0.45,0.24));
+  m_spline.points.push_back(QPointF(0.5,0.5));
+
+  m_spline.points.push_back(QPointF(0.55,0.76));
+  m_spline.points.push_back(QPointF(0.7,0.9));
+  m_spline.points.push_back(QPointF(1.0, 1.0));
 
   metadata().setInstanceName(*this);
 }
@@ -28,7 +35,7 @@ ProcessModel::ProcessModel(
     : Process::ProcessModel{
         source, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , m_address(source.m_address)
-    , m_colors{source.m_colors}
+    , m_spline{source.m_spline}
     , m_tween{source.m_tween}
 {
 }
@@ -61,14 +68,7 @@ bool ProcessModel::contentHasDuration() const
 
 TimeVal ProcessModel::contentDuration() const
 {
-  auto lastPoint = 1.;
-  if(!m_colors.empty())
-  {
-    auto back = m_colors.rbegin()->first;
-    lastPoint = std::max(1., back);
-  }
-
-  return duration() * lastPoint;
+  return duration();
 }
 
 ::State::AddressAccessor ProcessModel::address() const
@@ -85,27 +85,69 @@ void ProcessModel::setAddress(const ::State::AddressAccessor& arg)
 
   m_address = arg;
   emit addressChanged(arg);
+  emit unitChanged(arg.qualifiers.get().unit);
 }
 
+State::Unit ProcessModel::unit() const
+{
+  return m_address.qualifiers.get().unit;
+}
+
+void ProcessModel::setUnit(const State::Unit& u)
+{
+  if (u != unit())
+  {
+    m_address.qualifiers.get().unit = u;
+    emit addressChanged(m_address);
+    emit unitChanged(u);
+  }
+}
 }
 
 
 template <>
 void DataStreamReader::read(
-    const Gradient::ProcessModel& autom)
+    const Spline::spline_data& autom)
 {
-  m_stream << autom.m_address
-           << autom.m_colors
-           << autom.m_tween;
   insertDelimiter();
 }
 
 
 template <>
-void DataStreamWriter::write(Gradient::ProcessModel& autom)
+void DataStreamWriter::write(
+    Spline::spline_data& autom)
+{
+  checkDelimiter();
+}
+template <>
+void JSONValueReader::read(
+    const Spline::spline_data& autom)
+{
+
+}
+template <>
+void JSONValueWriter::write(
+    Spline::spline_data& autom)
+{
+
+}
+
+
+
+template <>
+void DataStreamReader::read(const Spline::ProcessModel& autom)
+{
+  m_stream << autom.m_address
+           << autom.m_spline
+           << autom.m_tween;
+
+  insertDelimiter();
+}
+template <>
+void DataStreamWriter::write(Spline::ProcessModel& autom)
 {
   m_stream >> autom.m_address
-           >> autom.m_colors
+           >> autom.m_spline
            >> autom.m_tween;
 
   checkDelimiter();
@@ -114,21 +156,21 @@ void DataStreamWriter::write(Gradient::ProcessModel& autom)
 
 template <>
 void JSONObjectReader::read(
-    const Gradient::ProcessModel& autom)
+    const Spline::ProcessModel& autom)
 {
   obj[strings.Address] = toJsonObject(autom.address());
-  JSONValueReader v{}; v.readFrom(autom.m_colors);
-  obj["Gradient"] = v.val;
+  JSONValueReader v{}; v.readFrom(autom.m_spline);
+  obj["Spline"] = v.val;
   obj["Tween"] = autom.tween();
 }
 
 
 template <>
-void JSONObjectWriter::write(Gradient::ProcessModel& autom)
+void JSONObjectWriter::write(Spline::ProcessModel& autom)
 {
   autom.setAddress(
       fromJsonObject<State::AddressAccessor>(obj[strings.Address]));
   autom.setTween(obj["Tween"].toBool());
-  JSONValueWriter v{}; v.val = obj["Gradient"];
-  v.writeTo(autom.m_colors);
+  JSONValueWriter v{}; v.val = obj["Spline"];
+  v.writeTo(autom.m_spline);
 }
