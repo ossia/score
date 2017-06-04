@@ -12,6 +12,7 @@ class View : public Process::LayerView
     using gradient_colors = boost::container::flat_map<double, QColor>;
     void setGradient(const gradient_colors& c);
     void setDataWidth(double);
+    double dataWidth() const { return m_dataWidth; }
 
   signals:
     void setColor(double pos, QColor);
