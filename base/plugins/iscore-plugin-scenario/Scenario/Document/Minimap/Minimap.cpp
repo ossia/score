@@ -88,8 +88,15 @@ void Minimap::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, Q
   painter->drawRect(QRectF{m_leftHandle, 2., m_rightHandle - m_leftHandle, m_height - 3.});
 }
 
+#if defined(__APPLE__)
+std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1;
+#endif
 void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
+#if defined(__APPLE__)
+    t0 = std::chrono::high_resolution_clock::now();
+    t1 = std::chrono::high_resolution_clock::now();
+#endif
   m_gripLeft = false;
   m_gripRight = false;
   m_gripMid = false;
@@ -123,9 +130,16 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
   }
   ev->accept();
 }
-
 void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
+#if defined(__APPLE__)
+    t1 = std::chrono::high_resolution_clock::now();
+    if(t1 - t0 < std::chrono::milliseconds(16))
+    {
+        return;
+    }
+    t0 = t1;
+#endif
   const auto pos = ev->screenPos();
   if(m_gripLeft || m_gripRight || m_gripMid)
   {
@@ -148,6 +162,7 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
     }
 
     QCursor::setPos(m_startPos);
+
     emit visibleRectChanged(m_leftHandle, m_rightHandle);
 
     ev->accept();

@@ -54,7 +54,6 @@ private:
   void changeEvent(QEvent*) override;
   void resizeEvent(QResizeEvent*) override;
 
-
   std::map<QWidget*, DocumentView*> m_documents;
   std::vector<QPair<PanelDelegate*, QDockWidget*>> m_leftPanels;
   std::vector<QPair<PanelDelegate*, QDockWidget*>> m_rightPanels;

@@ -252,4 +252,5 @@ void View::resizeEvent(QResizeEvent* e)
   QMainWindow::resizeEvent(e);
   emit sizeChanged(e->size());
 }
+
 }

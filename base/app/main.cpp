@@ -57,6 +57,7 @@ int main(int argc, char** argv)
 
     init_plugins();
 
+#undef ISCORE_OPENGL
 #if defined(ISCORE_OPENGL)
     QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
 #if defined(__APPLE__)
