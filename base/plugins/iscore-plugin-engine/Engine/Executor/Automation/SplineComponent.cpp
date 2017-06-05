@@ -37,12 +37,6 @@ Component::Component(
   recompute();
 }
 
-auto to_ossia_color(const QColor& c)
-{
-  auto col = c.toHsv();
-  return ossia::hsv{(float)col.hueF(), (float)col.saturationF(), (float)col.valueF()};
-}
-
 void Component::recompute()
 {
   const Engine::Execution::Context& s = this->system();

@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/LayerView.hpp>
 #include <Automation/Spline/SplineAutomModel.hpp>
-#include <QEasingCurve>
+#include <tinysplinecpp.h>
 namespace Spline
 {
 class View : public Process::LayerView
@@ -14,6 +14,7 @@ class View : public Process::LayerView
     {
       if(d != m_spline)
         m_spline = std::move(d);
+      updateSpline();
       update();
     }
 
@@ -28,6 +29,7 @@ class View : public Process::LayerView
 
   private:
     void paint_impl(QPainter*) const override;
+    void updateSpline();
 
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
@@ -40,6 +42,7 @@ class View : public Process::LayerView
     QPointF mapFromCanvas(const QPointF &point) const;
 
     spline_data m_spline;
+    tinyspline::BSpline m_spl;
     optional<std::size_t> m_clicked;
     bool m_block;
 
