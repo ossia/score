@@ -12,8 +12,10 @@
 
 namespace Spline
 {
-View::View(QGraphicsItem* parent): LayerView{parent}
+View::View(QGraphicsItem* parent)
+  : LayerView{parent}
 {
+  static_assert(std::is_same<tinyspline::real, qreal>::value, "");
   this->setFlags(QGraphicsItem::ItemIsFocusable |
                  QGraphicsItem::ItemClipsToShape);
 }
@@ -32,56 +34,80 @@ QPointF View::mapFromCanvas(const QPointF& point) const
 
 void View::paint_impl(QPainter* p) const
 {
+  if(m_spline.points.empty())
+    return;
+
   auto& skin = ScenarioStyle::instance();
-  auto& painter = *p;
+  QPainter& painter = *p;
 
   painter.setRenderHint(QPainter::Antialiasing);
 
   auto& segmt = skin.ConditionPen;
   segmt.setColor(qRgb(220, 170, 20));
-  auto& dash = skin.TimenodePen;
-  const auto N_segts = m_spline.segments();
 
   QPainterPath path;
-  for (std::size_t i = 0U; i < N_segts; i++)
+  auto p0 = m_spl.evaluate(0).result();
+  path.moveTo(mapToCanvas({p0[0], p0[1]}));
+  const constexpr auto N = 500;
+  for (std::size_t i = 1U; i < N; i++)
   {
-    QPainterPath path;
-    QPointF p0 = mapToCanvas(m_spline.getP0(i));
-    QPointF p1 = mapToCanvas(m_spline.getP1(i));
-    QPointF p2 = mapToCanvas(m_spline.getP2(i));
-    QPointF p3 = mapToCanvas(m_spline.getP3(i));
-
-    path.moveTo(p0);
-    path.cubicTo(p1, p2, p3);
-
-    painter.strokePath(path, segmt);
-
-    painter.setPen(dash);
-    painter.drawLine(p0, p1);
-    painter.drawLine(p3, p2);
+    auto pt = m_spl.evaluate(double(i) / N).result();
+    path.lineTo(mapToCanvas({pt[0], pt[1]}));
   }
+  painter.strokePath(path, segmt);
+
 
   const auto pts = m_spline.points.size();
-  for (std::size_t i = 0U; i < pts; ++i)
-  {
-    const auto& pt = mapToCanvas(m_spline.points.at(i));
-    auto rp = m_spline.isRealPoint(i);
-    const auto pointSize = rp ? 3 : 2.5;
 
-    if (rp)
+  // Handle first point
+  auto fp = mapToCanvas(m_spline.points[0]);
+  const auto pointSize = 3.;
+
+  if (0 != m_clicked)
+    painter.setBrush(QColor(170, 220, 20));
+  else
+    painter.setBrush(QColor(170, 220, 220));
+  painter.drawEllipse(QRectF{fp.x() - pointSize,
+                       fp.y() - pointSize,
+                       pointSize * 2.,
+                       pointSize * 2.
+                      });
+
+  // Remaining points
+  for (std::size_t i = 1U; i < pts; i++)
+  {
+    painter.setPen(skin.TimenodePen);
+    QPointF p = mapToCanvas(m_spline.points[i]);
+    painter.drawLine(fp, p);
+
+    if (i != m_clicked)
       painter.setBrush(QColor(170, 220, 20));
-    else if (i == m_clicked)
-      painter.setBrush(QColor(170, 220, 220));
     else
-      painter.setBrush(QColor(170, 160, 160));
+      painter.setBrush(QColor(170, 220, 220));
 
     painter.setPen(QPen(Qt::transparent));
-    painter.drawEllipse(QRectF{pt.x() - pointSize,
-                         pt.y() - pointSize,
+    painter.drawEllipse(QRectF{p.x() - pointSize,
+                         p.y() - pointSize,
                          pointSize * 2.,
                          pointSize * 2.
                         });
+    fp = p;
   }
+
+}
+
+void View::updateSpline()
+{
+  m_spl = tinyspline::BSpline{
+          3,
+          2,
+          m_spline.points.size(),
+          TS_CLAMPED
+       };
+  ts_bspline_set_ctrlp(
+        m_spl.data(),
+        reinterpret_cast<const tinyspline::real*>(m_spline.points.data()),
+        m_spl.data());
 }
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent *e)
@@ -98,6 +124,8 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent *e)
   else if(btn == Qt::RightButton)
   {
     // Delete
+
+    updateSpline();
   }
 }
 
@@ -110,32 +138,9 @@ void View::mouseMoveEvent(QGraphicsSceneMouseEvent *e)
   const auto N = m_spline.points.size();
   if (mp < N)
   {
-    // Move a real point
-    if (m_spline.isRealPoint(mp))
-    {
-      QPointF targetPoint = p;
-      QPointF distance = targetPoint - m_spline.points.at(mp);
-      m_spline.points[mp] = targetPoint;
-      if(mp == 0)
-      {
-        m_spline.points[mp + 1] += distance;
-      }
-      else if(mp == N - 1)
-      {
-        m_spline.points[mp - 1] += distance;
-      }
-      else
-      {
-        m_spline.points[mp - 1] += distance;
-        m_spline.points[mp + 1] += distance;
-      }
-    }
-    else
-    {
-      // Move a tangent
-      m_spline.points[mp] = p;
-    }
+    m_spline.points[mp] = p;
 
+    updateSpline();
     update();
   }
 }
@@ -157,26 +162,19 @@ void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
   const std::size_t N = m_spline.points.size();
   for (std::size_t i = 0; i < N - 1; ++i)
   {
-    auto real = m_spline.isRealPoint(i);
-    if (real && m_spline.points[i].x() > newPos.x())
-    {
-      break;
-    }
-    else if (real)
+    if (m_spline.points[i].x() <= newPos.x())
     {
       splitIndex = i;
     }
+    else
+    {
+      break;
+    }
   }
-  QPointF before = m_spline.points.at(splitIndex);
-  QPointF after = QPointF(1.0, 1.0);
 
-  if ((splitIndex + 3) < N)
-    after = m_spline.points.at(splitIndex + 3);
+  m_spline.points.insert(m_spline.points.begin() + splitIndex + 1, newPos);
 
-  m_spline.points.insert(m_spline.points.begin() + splitIndex + 2, (newPos + after) / 2.);
-  m_spline.points.insert(m_spline.points.begin() + splitIndex + 2, newPos);
-  m_spline.points.insert(m_spline.points.begin() + splitIndex + 2, (newPos + before) / 2.);
-
+  updateSpline();
   emit changed();
   update();
 }

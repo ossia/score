@@ -83,6 +83,7 @@ set(TINYSPLINE_SRC
   "${OSSIA_3RDPARTY_FOLDER}/tinyspline/library/tinysplinecpp.cpp"
   )
 add_library(tinyspline STATIC "${TINYSPLINE_SRC}")
+target_compile_definitions(tinyspline PUBLIC TINYSPLINE_DOUBLE_PRECISION)
 target_include_directories(tinyspline PUBLIC "${OSSIA_3RDPARTY_FOLDER}/tinyspline/library")
 
 set(SKIP_INSTALL_ALL True) # For zlib to not install anything

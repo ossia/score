@@ -13,7 +13,7 @@ class curve_abstract;
 class color_automation : public ossia::time_process
 {
   public:
-    using grad_type = boost::container::flat_map<double, ossia::hsv>;
+    using grad_type = boost::container::flat_map<double, ossia::hunter_lab>;
 
     color_automation()
     {
@@ -64,10 +64,10 @@ class color_automation : public ossia::time_process
         --it_prev;
 
         // Interpolate in hsv domain
-        ossia::hunter_lab prev{it_prev->second};
-        ossia::hunter_lab next{it_next->second};
+        const ossia::hunter_lab prev{it_prev->second};
+        const ossia::hunter_lab next{it_next->second};
 
-        auto coeff = (t - it_prev->first) / (it_next->first - it_prev->first);
+        const auto coeff = (t - it_prev->first) / (it_next->first - it_prev->first);
 
         ossia::hunter_lab res;
         ossia::easing::ease e{};
