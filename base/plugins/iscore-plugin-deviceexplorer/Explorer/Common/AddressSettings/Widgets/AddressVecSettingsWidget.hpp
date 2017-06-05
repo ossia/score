@@ -73,9 +73,9 @@ public:
   void setCanEditProperties(bool b) override
   {
     AddressSettingsWidget::setCanEditProperties(b);
-    m_domainVecEdit->setEnabled(false);
-    m_domainFloatEdit->setEnabled(false);
-    m_domainSelector->setEnabled(false);
+    m_domainVecEdit->setEnabled(b);
+    m_domainFloatEdit->setEnabled(b);
+    m_domainSelector->setEnabled(b);
   }
 
   void on_domainTypeChange(int id)

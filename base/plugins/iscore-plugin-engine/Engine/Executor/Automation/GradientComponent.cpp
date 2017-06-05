@@ -37,13 +37,26 @@ Component::Component(
   recompute();
 }
 
-auto to_ossia_color(const QColor& c)
+static ossia::hunter_lab to_ossia_color(const QColor& c)
 {
-  auto col = c.toHsv();
-  return ossia::hsv{(float)col.hueF(), (float)col.saturationF(), (float)col.valueF()};
+  switch(c.spec())
+  {
+    case QColor::Rgb:
+    {
+      ossia::rgb r{(float)c.redF(), (float)c.greenF(), (float)c.blueF()};
+      return ossia::hunter_lab{r};
+    }
+    case QColor::Hsv:
+    case QColor::Cmyk:
+    case QColor::Hsl:
+      return to_ossia_color(c.toRgb());
+    case QColor::Invalid:
+    default:
+      return ossia::hunter_lab{};
+  }
 }
 
-auto to_ossia_gradient(const Gradient::ProcessModel::gradient_colors& c)
+static auto to_ossia_gradient(const Gradient::ProcessModel::gradient_colors& c)
 {
   ossia::color_automation::grad_type g;
   for(auto& e : c)
