@@ -4,67 +4,11 @@
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
 #include <boost/container/flat_map.hpp>
+#include <ossia/editor/automation/spline.hpp>
 #include <iscore_plugin_automation_export.h>
 
 namespace Spline
 {
-
-struct spline_data
-{
-    std::size_t segments() const
-    {
-      return (points.size() - 1) / 3;
-    }
-
-    QPointF getP0(std::size_t i) const
-    {
-      if(i == 0)
-      {
-        return points[0];
-      }
-      else
-      {
-        return points[i*3];
-      }
-    }
-    QPointF getP1(std::size_t i) const
-    {
-      if(i == 0)
-        return points[1];
-      return points[i*3+1];
-    }
-    QPointF getP2(std::size_t i) const
-    {
-      if(i == 0)
-        return points[2];
-      return points[i*3+2];
-    }
-    QPointF getP3(std::size_t i) const
-    {
-      if(i == 0)
-        return points[3];
-      return points[i*3+3];
-    }
-
-    static bool isRealPoint(std::size_t i)
-    {
-      return i == 0 || !((i + 3) % 3);
-    }
-
-    std::vector<QPointF> points;
-
-
-    friend bool operator==(const spline_data& lhs, const spline_data& rhs)
-    {
-      return lhs.points == rhs.points;
-    }
-    friend bool operator!=(const spline_data& lhs, const spline_data& rhs)
-    {
-      return lhs.points != rhs.points;
-    }
-};
-
-
 
 class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
     : public Process::ProcessModel
@@ -112,8 +56,8 @@ public:
 
   QString prettyName() const override;
 
-  const spline_data& spline() const { return m_spline; }
-  void setSpline(const spline_data& c) {
+  const ossia::spline_data& spline() const { return m_spline; }
+  void setSpline(const ossia::spline_data& c) {
     if(m_spline != c)
     {
       m_spline = c;
@@ -141,7 +85,7 @@ private:
       QObject* parent);
 
   State::AddressAccessor m_address;
-  spline_data m_spline;
+  ossia::spline_data m_spline;
 
   bool m_tween = false;
 };

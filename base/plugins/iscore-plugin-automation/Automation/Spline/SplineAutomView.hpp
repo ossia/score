@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/LayerView.hpp>
 #include <Automation/Spline/SplineAutomModel.hpp>
-#include <tinysplinecpp.h>
+#include <ossia/editor/automation/tinysplinecpp.h>
 namespace Spline
 {
 class View : public Process::LayerView
@@ -10,7 +10,7 @@ class View : public Process::LayerView
   public:
     View(QGraphicsItem* parent);
 
-    void setSpline(spline_data d)
+    void setSpline(ossia::spline_data d)
     {
       if(d != m_spline)
         m_spline = std::move(d);
@@ -18,7 +18,7 @@ class View : public Process::LayerView
       update();
     }
 
-    const spline_data& spline() const
+    const ossia::spline_data& spline() const
     { return m_spline; }
 
   signals:
@@ -38,10 +38,15 @@ class View : public Process::LayerView
 
     optional<std::size_t> findControlPoint(QPointF point);
     void addPoint(const QPointF point);
-    QPointF mapToCanvas(const QPointF& point) const;
-    QPointF mapFromCanvas(const QPointF &point) const;
+    template<typename T>
+    QPointF mapToCanvas(const T& point) const
+    {
+      return QPointF(point.x() * width(),
+                     height() - point.y() * height());
+    }
+    ossia::spline_point mapFromCanvas(const QPointF &point) const;
 
-    spline_data m_spline;
+    ossia::spline_data m_spline;
     tinyspline::BSpline m_spl;
     optional<std::size_t> m_clicked;
     bool m_block;

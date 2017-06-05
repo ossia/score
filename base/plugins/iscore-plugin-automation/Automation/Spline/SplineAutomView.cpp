@@ -20,16 +20,13 @@ View::View(QGraphicsItem* parent)
                  QGraphicsItem::ItemClipsToShape);
 }
 
-QPointF View::mapToCanvas(const QPointF &point) const
-{
-  return QPointF(point.x() * width(),
-                 height() - point.y() * height());
-}
 
-QPointF View::mapFromCanvas(const QPointF& point) const
+
+ossia::spline_point View::mapFromCanvas(const QPointF& point) const
 {
-  return QPointF(point.x() / width() ,
-                 1. - point.y() / height());
+  return ossia::spline_point{
+        (double)point.x() / width() ,
+        1. - point.y() / height()};
 }
 
 void View::paint_impl(QPainter* p) const
@@ -47,12 +44,12 @@ void View::paint_impl(QPainter* p) const
 
   QPainterPath path;
   auto p0 = m_spl.evaluate(0).result();
-  path.moveTo(mapToCanvas({p0[0], p0[1]}));
+  path.moveTo(mapToCanvas(ossia::spline_point{p0[0], p0[1]}));
   const constexpr auto N = 500;
   for (std::size_t i = 1U; i < N; i++)
   {
     auto pt = m_spl.evaluate(double(i) / N).result();
-    path.lineTo(mapToCanvas({pt[0], pt[1]}));
+    path.lineTo(mapToCanvas(ossia::spline_point{pt[0], pt[1]}));
   }
   painter.strokePath(path, segmt);
 
@@ -131,7 +128,7 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent *e)
 
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent *e)
 {
-  QPointF p = mapFromCanvas(e->pos());
+  auto p = mapFromCanvas(e->pos());
   if(!m_clicked)
     return;
   const auto mp = *m_clicked;
@@ -157,7 +154,7 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent *e)
 
 void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
-  QPointF newPos = mapFromCanvas(event->pos());
+  const auto newPos = mapFromCanvas(event->pos());
   std::size_t splitIndex = 0;
   const std::size_t N = m_spline.points.size();
   for (std::size_t i = 0; i < N - 1; ++i)

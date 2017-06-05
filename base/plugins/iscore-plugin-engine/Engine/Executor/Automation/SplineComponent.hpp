@@ -5,53 +5,8 @@
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <ossia/editor/scenario/time_constraint.hpp>
 #include <ossia/editor/curve/curve_segment/easing.hpp>
+#include <ossia/editor/automation/spline.hpp>
 #include <memory>
-#include <tinysplinecpp.h>
-namespace ossia
-{
-class curve_abstract;
-
-class spline_automation : public ossia::time_process
-{
-    tinyspline::BSpline m_spline;
-  public:
-    spline_automation()
-    {
-
-    }
-
-    void set_destination(ossia::Destination a)
-    {
-      m_address = std::move(a);
-    }
-
-    void set_spline(const Spline::spline_data& t);
-
-    ossia::state_element offset(ossia::time_value) override
-    {
-      return {};
-    }
-
-    ossia::state_element state() override;
-
-    void start() override
-    {
-    }
-    void stop() override
-    {
-    }
-    void pause() override
-    {
-    }
-    void resume() override
-    {
-    }
-
-  private:
-    optional<ossia::Destination> m_address;
-    Spline::spline_data m_data;
-};
-}
 
 namespace Device
 {
@@ -83,7 +38,6 @@ using ComponentFactory
 = ::Engine::Execution::ProcessComponentFactory_T<Component>;
 }
 }
-
 
 ISCORE_CONCRETE_COMPONENT_FACTORY(
     Engine::Execution::ProcessComponentFactory,

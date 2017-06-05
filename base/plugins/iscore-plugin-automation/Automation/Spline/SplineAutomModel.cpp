@@ -11,15 +11,15 @@ ProcessModel::ProcessModel(
     : Process::ProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-  m_spline.points.push_back(QPointF(0., 0.));
+  m_spline.points.push_back({0., 0.});
 
-  m_spline.points.push_back(QPointF(0.4, 0.075));
-  m_spline.points.push_back(QPointF(0.45,0.24));
-  m_spline.points.push_back(QPointF(0.5,0.5));
+  m_spline.points.push_back({0.4, 0.075});
+  m_spline.points.push_back({0.45,0.24});
+  m_spline.points.push_back({0.5,0.5});
 
-  m_spline.points.push_back(QPointF(0.55,0.76));
-  m_spline.points.push_back(QPointF(0.7,0.9));
-  m_spline.points.push_back(QPointF(1.0, 1.0));
+  m_spline.points.push_back({0.55,0.76});
+  m_spline.points.push_back({0.7,0.9});
+  m_spline.points.push_back({1.0, 1.0});
 
   metadata().setInstanceName(*this);
 }
@@ -105,31 +105,63 @@ void ProcessModel::setUnit(const State::Unit& u)
 }
 
 
+/// Point ///
 template <>
 void DataStreamReader::read(
-    const Spline::spline_data& autom)
+    const ossia::spline_point& autom)
 {
-  insertDelimiter();
+  m_stream << autom.m_x << autom.m_y;
 }
-
 
 template <>
 void DataStreamWriter::write(
-    Spline::spline_data& autom)
+    ossia::spline_point& autom)
 {
+  m_stream >> autom.m_x >> autom.m_y;
+}
+template <>
+void JSONValueReader::read(
+    const ossia::spline_point& autom)
+{
+  val = QJsonArray{autom.x(), autom.y()};
+}
+
+template <>
+void JSONValueWriter::write(
+    ossia::spline_point& autom)
+{
+  auto arr = val.toArray();
+  autom.m_x = arr[0].toDouble();
+  autom.m_y = arr[1].toDouble();
+}
+
+/// Data ///
+template <>
+void DataStreamReader::read(
+    const ossia::spline_data& autom)
+{
+  m_stream << autom.points;
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(
+    ossia::spline_data& autom)
+{
+  m_stream >> autom.points;
   checkDelimiter();
 }
 template <>
 void JSONValueReader::read(
-    const Spline::spline_data& autom)
+    const ossia::spline_data& autom)
 {
-
+  val = toJsonValueArray(autom.points);
 }
 template <>
 void JSONValueWriter::write(
-    Spline::spline_data& autom)
+    ossia::spline_data& autom)
 {
-
+  autom.points = fromJsonValueArray<std::vector<ossia::spline_point>>(val.toArray());
 }
 
 
