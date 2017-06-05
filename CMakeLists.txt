@@ -16,7 +16,7 @@ if(NOT ISCORE_CONFIGURATION)
 endif()
 include("${ISCORE_CONFIGURATION}")
 
-project(iscore LANGUAGES CXX)
+project(iscore LANGUAGES C CXX)
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
@@ -59,6 +59,8 @@ set(OSSIA_DISABLE_QT_PLUGIN ON CACHE INTERNAL "" FORCE)
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" )
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Qml WebSockets)
 
@@ -76,10 +78,12 @@ add_subdirectory("${3RDPARTY_FOLDER}/Qt-Color-Widgets" )
 add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator" )
 add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu" )
 
-set(WITH_DOC False CACHE INTERNAL "" FORCE)
-set(ZMQ_BUILD_TESTS False CACHE INTERNAL "" FORCE)
-#add_subdirectory("${OSSIA_3RDPARTY_FOLDER}/libzmq" )
-#include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/cppzmq")
+set(TINYSPLINE_SRC
+  "${OSSIA_3RDPARTY_FOLDER}/tinyspline/library/tinyspline.c"
+  "${OSSIA_3RDPARTY_FOLDER}/tinyspline/library/tinysplinecpp.cpp"
+  )
+add_library(tinyspline STATIC "${TINYSPLINE_SRC}")
+target_include_directories(tinyspline PUBLIC "${OSSIA_3RDPARTY_FOLDER}/tinyspline/library")
 
 set(SKIP_INSTALL_ALL True) # For zlib to not install anything
 add_subdirectory("${3RDPARTY_FOLDER}/zlib" EXCLUDE_FROM_ALL)
