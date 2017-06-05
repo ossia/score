@@ -158,6 +158,8 @@ void InspectorWidget::on_unitChanged()
 }
 }
 
+
+
 namespace Gradient
 {
 InspectorWidget::InspectorWidget(
@@ -190,6 +192,7 @@ InspectorWidget::InspectorWidget(
 
   vlay->addRow(tr("Address"), m_lineEdit);
 
+  /*
   // Tween
   m_tween = new QCheckBox{this};
   vlay->addRow(tr("Tween"), m_tween);
@@ -197,7 +200,7 @@ InspectorWidget::InspectorWidget(
   con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
   connect(
       m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
-
+  */
   this->setLayout(vlay);
 }
 
@@ -211,6 +214,80 @@ void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings
     return;
 
   auto cmd = new ChangeGradientAddress{process(), newAddr.address};
+
+  m_dispatcher.submitCommand(cmd);
+}
+
+void InspectorWidget::on_tweenChanged()
+{
+  bool newVal = m_tween->checkState();
+  if (newVal != process().tween())
+  {
+    //auto cmd = new SetTween{process(), newVal};
+
+    //m_dispatcher.submitCommand(cmd);
+  }
+}
+}
+
+
+
+
+namespace Spline
+{
+InspectorWidget::InspectorWidget(
+    const ProcessModel& automationModel,
+    const iscore::DocumentContext& doc,
+    QWidget* parent)
+    : InspectorWidgetDelegate_T{automationModel, parent}
+    , m_dispatcher{doc.commandStack}
+{
+  using namespace Explorer;
+  setObjectName("SplineInspectorWidget");
+  setParent(parent);
+
+  auto vlay = new QFormLayout;
+  vlay->setSpacing(2);
+  vlay->setMargin(2);
+  vlay->setContentsMargins(0, 0, 0, 0);
+
+  // Address
+  m_lineEdit = new AddressAccessorEditWidget{
+      doc.plugin<DeviceDocumentPlugin>().explorer(), this};
+
+  m_lineEdit->setAddress(process().address());
+  con(process(), &ProcessModel::addressChanged, m_lineEdit,
+      &AddressAccessorEditWidget::setAddress);
+
+  connect(
+      m_lineEdit, &AddressAccessorEditWidget::addressChanged, this,
+      &InspectorWidget::on_addressChange);
+
+  vlay->addRow(tr("Address"), m_lineEdit);
+
+  /*
+  // Tween
+  m_tween = new QCheckBox{this};
+  vlay->addRow(tr("Tween"), m_tween);
+  m_tween->setChecked(process().tween());
+  con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
+  connect(
+      m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
+
+  */
+  this->setLayout(vlay);
+}
+
+void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings& newAddr)
+{
+  // Various checks
+  if (newAddr.address == process().address())
+    return;
+
+  if (newAddr.address.address.path.isEmpty())
+    return;
+
+  auto cmd = new ChangeSplineAddress{process(), newAddr.address};
 
   m_dispatcher.submitCommand(cmd);
 }

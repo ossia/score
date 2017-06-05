@@ -68,7 +68,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_automation.cpp"
 )
 
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${TINYSPLINE})
 
 iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 

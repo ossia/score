@@ -113,7 +113,7 @@ class Component final
     : public ::Engine::Execution::
     ProcessComponent_T<Gradient::ProcessModel, ossia::color_automation>
 {
-    COMPONENT_METADATA("553f99e0-a12a-4a1a-a070-63f198908c6d")
+    COMPONENT_METADATA("45467316-6c07-47f9-9d68-9a9de0360402")
     public:
       Component(
         ::Engine::Execution::ConstraintComponent& parentConstraint,
