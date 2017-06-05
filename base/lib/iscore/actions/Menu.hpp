@@ -47,7 +47,6 @@ struct ISCORE_LIB_BASE_EXPORT Menus
   static StringKey<Menu> Edit();
   static StringKey<Menu> Object();
   static StringKey<Menu> Play();
-  static StringKey<Menu> Tool();
   static StringKey<Menu> View();
   static StringKey<Menu> Windows();
   static StringKey<Menu> Settings();

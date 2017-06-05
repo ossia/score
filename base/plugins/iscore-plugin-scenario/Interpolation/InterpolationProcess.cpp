@@ -231,6 +231,7 @@ ProcessModel::ProcessModel(
     , m_end{source.end()}
     , m_startState{new ProcessState{*this, ProcessState::Point::Start, this}}
     , m_endState{new ProcessState{*this, ProcessState::Point::End, this}}
+    , m_tween{source.tween()}
 {
   setCurve(source.curve().clone(source.curve().id(), this));
   connect(m_curve, &Curve::Model::changed, this, &ProcessModel::curveChanged);
@@ -240,8 +241,7 @@ ProcessModel::ProcessModel(
 }
 
 
-template <>
-ISCORE_PLUGIN_INTERPOLATION_EXPORT void
+template <> void
 DataStreamReader::read(
     const Interpolation::ProcessModel& interp)
 {
@@ -254,8 +254,7 @@ DataStreamReader::read(
 }
 
 
-template <>
-ISCORE_PLUGIN_INTERPOLATION_EXPORT void
+template <> void
 DataStreamWriter::write(Interpolation::ProcessModel& interp)
 {
   interp.setCurve(new Curve::Model{*this, &interp});
@@ -277,8 +276,7 @@ DataStreamWriter::write(Interpolation::ProcessModel& interp)
 }
 
 
-template <>
-ISCORE_PLUGIN_INTERPOLATION_EXPORT void
+template <> void
 JSONObjectReader::read(
     const Interpolation::ProcessModel& interp)
 {
@@ -292,8 +290,7 @@ JSONObjectReader::read(
 }
 
 
-template <>
-ISCORE_PLUGIN_INTERPOLATION_EXPORT void
+template <> void
 JSONObjectWriter::write(Interpolation::ProcessModel& interp)
 {
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};

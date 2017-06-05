@@ -1,14 +1,14 @@
 #pragma once
 #include <Interpolation/Commands/CommandFactory.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <iscore/command/PropertyCommand.hpp>
-#include <iscore_plugin_interpolation_export.h>
 
 namespace Interpolation
 {
 class ProcessModel;
-class ISCORE_PLUGIN_INTERPOLATION_EXPORT ChangeAddress final
+class ChangeAddress final
     : public iscore::Command
 {
   ISCORE_COMMAND_DECL(
@@ -37,8 +37,10 @@ private:
   State::Value m_oldEnd, m_newEnd;
 };
 
+void ChangeInterpolationAddress(const Interpolation::ProcessModel& proc, const ::State::AddressAccessor& addr, CommandDispatcher<>& disp);
+
 // MOVEME && should apply to both Interpolation and Automation
-class ISCORE_PLUGIN_INTERPOLATION_EXPORT SetTween final
+class SetTween final
     : public iscore::PropertyCommand
 {
   ISCORE_COMMAND_DECL(CommandFactoryName(), SetTween, "Set interpolation tween")

@@ -295,6 +295,15 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/PutLayerModelToFront.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/tests/helpers/ForwardDeclaration.hpp"
 
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.cpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.cpp"
+
+
 )
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/resources/ScenarioResources.qrc")
 
@@ -543,6 +552,14 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationFactory.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationPresenter.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.hpp"
 )
 
 add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
@@ -553,7 +570,7 @@ target_link_libraries(iscore_plugin_scenario
     Qt5::Core Qt5::Widgets Qt5::Svg
         iscore_lib_base ColorWidgets-qt5
     iscore_lib_process iscore_lib_device iscore_plugin_deviceexplorer
-    iscore_lib_state iscore_plugin_curve iscore_plugin_automation iscore_plugin_interpolation
+    iscore_lib_state iscore_plugin_curve iscore_plugin_automation
     iscore_lib_inspector Threads::Threads)
 
 if(ISCORE_OPENGL)

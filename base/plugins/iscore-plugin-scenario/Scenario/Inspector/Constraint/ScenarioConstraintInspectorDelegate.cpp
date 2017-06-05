@@ -23,12 +23,12 @@ void ScenarioConstraintInspectorDelegate::updateElements()
 }
 
 void ScenarioConstraintInspectorDelegate::addWidgets_pre(
-    std::list<QWidget*>& widgets, ConstraintInspectorWidget* parent)
+    std::vector<QWidget*>& widgets, ConstraintInspectorWidget* parent)
 {
 }
 
 void ScenarioConstraintInspectorDelegate::addWidgets_post(
-    std::list<QWidget*>& widgets, ConstraintInspectorWidget* parent)
+    std::vector<QWidget*>& widgets, ConstraintInspectorWidget* parent)
 {
 }
 

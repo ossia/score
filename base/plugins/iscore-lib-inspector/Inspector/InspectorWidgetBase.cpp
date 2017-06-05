@@ -55,7 +55,7 @@ QString InspectorWidgetBase::tabName()
 }
 
 void InspectorWidgetBase::updateSectionsView(
-    QVBoxLayout* layout, const std::list<QWidget*>& contents)
+    QVBoxLayout* layout, const std::vector<QWidget*>& contents)
 {
   while (!layout->isEmpty())
   {
@@ -66,13 +66,13 @@ void InspectorWidgetBase::updateSectionsView(
     delete item;
   }
 
-  for (auto& section : contents)
+  for (auto section : contents)
   {
     layout->addWidget(section);
   }
 }
 
-void InspectorWidgetBase::updateAreaLayout(std::list<QWidget*>& contents)
+void InspectorWidgetBase::updateAreaLayout(const std::vector<QWidget*>& contents)
 {
   while (!m_scrollAreaLayout->isEmpty())
   {
@@ -91,7 +91,7 @@ void InspectorWidgetBase::updateAreaLayout(std::list<QWidget*>& contents)
 
 void InspectorWidgetBase::addHeader(QWidget* header)
 {
-  m_sections.push_front(header);
+  m_sections.insert(m_sections.begin(), header);
   m_layout->insertWidget(0, header);
 }
 

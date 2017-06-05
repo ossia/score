@@ -13,6 +13,17 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.hpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomModel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomPresenter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomMetadata.hpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomModel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomPresenter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomMetadata.hpp"
+
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/AutomationCommandFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.hpp"
@@ -32,6 +43,14 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationModel.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.cpp"
@@ -55,6 +74,9 @@ iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC Qt5::Core Qt5::Widgets
-            iscore_lib_base iscore_lib_device iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state iscore_plugin_curve iscore_lib_inspector)
+            iscore_lib_base iscore_lib_device
+            iscore_plugin_deviceexplorer iscore_lib_process
+            iscore_lib_state iscore_plugin_curve iscore_lib_inspector
+            )
 
 setup_iscore_plugin(${PROJECT_NAME})

@@ -3,6 +3,8 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <QString>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <Automation/Color/GradientAutomModel.hpp>
+#include <Automation/Spline/SplineAutomModel.hpp>
 
 class QWidget;
 class QCheckBox;
@@ -50,6 +52,53 @@ private:
   QCheckBox* m_tween{};
   QDoubleSpinBox *m_minsb{}, *m_maxsb{};
   State::UnitWidget* m_uw{};
+
+  CommandDispatcher<> m_dispatcher;
+};
+}
+
+
+namespace Gradient
+{
+class ProcessModel;
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<Gradient::ProcessModel>
+{
+public:
+  explicit InspectorWidget(
+      const ProcessModel& object,
+      const iscore::DocumentContext& context,
+      QWidget* parent);
+
+private:
+  void on_addressChange(const Device::FullAddressAccessorSettings& newText);
+  void on_tweenChanged();
+
+  Explorer::AddressAccessorEditWidget* m_lineEdit{};
+  QCheckBox* m_tween{};
+
+  CommandDispatcher<> m_dispatcher;
+};
+}
+
+namespace Spline
+{
+class ProcessModel;
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<Spline::ProcessModel>
+{
+public:
+  explicit InspectorWidget(
+      const ProcessModel& object,
+      const iscore::DocumentContext& context,
+      QWidget* parent);
+
+private:
+  void on_addressChange(const Device::FullAddressAccessorSettings& newText);
+  void on_tweenChanged();
+
+  Explorer::AddressAccessorEditWidget* m_lineEdit{};
+  QCheckBox* m_tween{};
 
   CommandDispatcher<> m_dispatcher;
 };

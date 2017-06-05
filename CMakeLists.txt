@@ -16,7 +16,7 @@ if(NOT ISCORE_CONFIGURATION)
 endif()
 include("${ISCORE_CONFIGURATION}")
 
-project(iscore LANGUAGES CXX)
+project(iscore LANGUAGES C CXX)
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
@@ -27,8 +27,8 @@ cmake_policy(SET CMP0063 NEW)
 set(ISCORE_VERSION_MAJOR 1)
 set(ISCORE_VERSION_MINOR 0)
 set(ISCORE_VERSION_PATCH 0)
-set(ISCORE_VERSION_EXTRA b16)
-set(ISCORE_CODENAME "Scoresese")
+set(ISCORE_VERSION_EXTRA b18)
+set(ISCORE_CODENAME "sandwich froid")
 set(ISCORE_VERSION "${ISCORE_VERSION_MAJOR}.${ISCORE_VERSION_MINOR}.${ISCORE_VERSION_PATCH}-${ISCORE_VERSION_EXTRA}")
 
 enable_testing()
@@ -51,13 +51,15 @@ if(ISCORE_ENABLE_LTO)
     set(OSSIA_LTO ON CACHE INTERNAL "" FORCE)
 endif()
 set(OSSIA_NO_INSTALL ON CACHE INTERNAL "" FORCE)
-set(OSSIA_PD ON CACHE INTERNAL "" FORCE)
+set(OSSIA_PD OFF CACHE INTERNAL "" FORCE)
 set(OSSIA_JAVA OFF CACHE INTERNAL "" FORCE)
 set(OSSIA_OSX_FAT_LIBRARIES OFF CACHE INTERNAL "" FORCE)
 set(OSSIA_PYTHON OFF CACHE INTERNAL "" FORCE)
 set(OSSIA_DISABLE_QT_PLUGIN ON CACHE INTERNAL "" FORCE)
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" )
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Qml WebSockets)
@@ -75,11 +77,6 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 add_subdirectory("${3RDPARTY_FOLDER}/Qt-Color-Widgets" )
 add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator" )
 add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu" )
-
-set(WITH_DOC False CACHE INTERNAL "" FORCE)
-set(ZMQ_BUILD_TESTS False CACHE INTERNAL "" FORCE)
-#add_subdirectory("${OSSIA_3RDPARTY_FOLDER}/libzmq" )
-#include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/cppzmq")
 
 set(SKIP_INSTALL_ALL True) # For zlib to not install anything
 add_subdirectory("${3RDPARTY_FOLDER}/zlib" EXCLUDE_FROM_ALL)

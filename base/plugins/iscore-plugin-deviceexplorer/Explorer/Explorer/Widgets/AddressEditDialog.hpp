@@ -28,6 +28,9 @@ public:
   Device::AddressSettings getSettings() const;
   static Device::AddressSettings makeDefaultSettings();
 
+  void setCanRename(bool);
+  void setCanEditProperties(bool);
+
 protected:
   void setNodeSettings();
   void setValueSettings();
@@ -38,5 +41,6 @@ protected:
   QComboBox* m_valueTypeCBox{};
   WidgetWrapper<AddressSettingsWidget>* m_addressWidget{};
   QFormLayout* m_layout{};
+  bool m_canEdit{true};
 };
 }

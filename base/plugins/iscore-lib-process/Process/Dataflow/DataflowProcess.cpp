@@ -2,6 +2,15 @@
 #include <iscore/model/path/PathSerialization.hpp>
 namespace Process
 {
+ISCORE_LIB_PROCESS_EXPORT 
+bool operator==(const CableData& lhs, const CableData& rhs)
+{
+  return lhs.type == rhs.type
+      && lhs.source == rhs.source
+      && lhs.sink == rhs.sink
+      && lhs.outlet == rhs.outlet
+      && lhs.inlet == rhs.inlet;
+}
 
 DataflowProcess::DataflowProcess(
         const DataflowProcess& source,

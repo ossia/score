@@ -21,7 +21,7 @@ StateInspectorWidget::StateInspectorWidget(
     , m_state{object}
     , m_label{new TextLabel}
 {
-  std::list<QWidget*> vec;
+  std::vector<QWidget*> vec;
   vec.push_back(m_label);
 
   con(m_state, &ProcessStateDataInterface::stateChanged, this,

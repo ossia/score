@@ -130,15 +130,12 @@ void AddressAccessorEditWidget::dropEvent(QDropEvent* ev)
     if (node.is<Device::AddressSettings>())
     {
       const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
-      if (addr.value.val.isNumeric())
-      {
-        Device::FullAddressSettings as;
-        static_cast<Device::AddressSettingsCommon&>(as) = addr;
-        as.address = nl.front().first;
+      Device::FullAddressSettings as;
+      static_cast<Device::AddressSettingsCommon&>(as) = addr;
+      as.address = nl.front().first;
 
-        setFullAddress(Device::FullAddressAccessorSettings{std::move(as)});
-        emit addressChanged(m_address);
-      }
+      setFullAddress(Device::FullAddressAccessorSettings{std::move(as)});
+      emit addressChanged(m_address);
     }
   }
   else if (mime.formats().contains(iscore::mime::messagelist()))

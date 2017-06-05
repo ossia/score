@@ -5,9 +5,7 @@
 
 namespace iscore
 {
-/**
- * @brief Interface that provides new panels.
- */
+//! Reimplement this interface to register new panels.
 class ISCORE_LIB_BASE_EXPORT PanelDelegateFactory
     : public iscore::Interface<PanelDelegateFactory>
 {
@@ -15,10 +13,12 @@ class ISCORE_LIB_BASE_EXPORT PanelDelegateFactory
 public:
   virtual ~PanelDelegateFactory();
 
+  //! Create an instance of a PanelDelegate. Will only be called once.
   virtual std::unique_ptr<PanelDelegate>
   make(const iscore::GUIApplicationContext& ctx) = 0;
 };
 
+//! All the panels are registerd in this interface list.
 class ISCORE_LIB_BASE_EXPORT PanelDelegateFactoryList final
     : public InterfaceList<iscore::PanelDelegateFactory>
 {

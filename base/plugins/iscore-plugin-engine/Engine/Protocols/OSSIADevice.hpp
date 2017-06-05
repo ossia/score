@@ -106,6 +106,7 @@ protected:
   }
 
   std::unique_ptr<ossia::net::device_base> m_dev;
+  bool m_owned{true};
 };
 
 }

@@ -247,10 +247,6 @@ void TemporalConstraintView::paint(
 #endif
 }
 
-void TemporalConstraintView::setSmallViewVisible(bool b)
-{
-}
-
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverEnterEvent(h);
