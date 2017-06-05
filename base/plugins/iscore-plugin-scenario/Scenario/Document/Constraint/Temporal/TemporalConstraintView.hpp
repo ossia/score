@@ -41,8 +41,6 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
-  void setSmallViewVisible(bool);
-
   void enableOverlay(bool b) override;
 
   void setLabelColor(iscore::ColorRef labelColor);

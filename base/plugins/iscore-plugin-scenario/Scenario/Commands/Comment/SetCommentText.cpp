@@ -9,11 +9,12 @@ namespace Scenario
 namespace Command
 {
 SetCommentText::SetCommentText(
-    Path<CommentBlockModel>&& path, QString newComment)
-    : m_path{std::move(path)}, m_newComment{std::move(newComment)}
+    const CommentBlockModel& model, QString newComment)
+    : m_path{model}
+    , m_newComment{std::move(newComment)}
+    , m_oldComment{model.content()}
 {
-  auto& cmt = m_path.find();
-  m_oldComment = cmt.content();
+
 }
 
 void SetCommentText::undo() const

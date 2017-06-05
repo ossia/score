@@ -25,4 +25,9 @@ AddressImpulseSettingsWidget::getDefaultSettings() const
 {
   return {};
 }
+
+void AddressImpulseSettingsWidget::setCanEditProperties(bool b)
+{
+  AddressSettingsWidget::setCanEditProperties(b);
+}
 }

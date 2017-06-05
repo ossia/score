@@ -46,7 +46,7 @@ void BaseConstraintInspectorDelegate::updateElements()
 }
 
 void BaseConstraintInspectorDelegate::addWidgets_pre(
-    std::list<QWidget*>& widgets, ConstraintInspectorWidget* parent)
+    std::vector<QWidget*>& widgets, ConstraintInspectorWidget* parent)
 {
   auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
   auto& ctx = iscore::IDocument::documentContext(scenario);
@@ -60,7 +60,7 @@ void BaseConstraintInspectorDelegate::addWidgets_pre(
 }
 
 void BaseConstraintInspectorDelegate::addWidgets_post(
-    std::list<QWidget*>& widgets, ConstraintInspectorWidget* parent)
+    std::vector<QWidget*>& widgets, ConstraintInspectorWidget* parent)
 {
 }
 

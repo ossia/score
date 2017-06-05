@@ -18,6 +18,8 @@ OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
     : OwningOSSIADevice{settings}
 {
   m_capas.canRefreshTree = true;
+  m_capas.canRenameNode = false;
+  m_capas.canSetProperties = false;
 
   connect(this, &OSCQueryDevice::sig_command,
           this, &OSCQueryDevice::slot_command, Qt::QueuedConnection);

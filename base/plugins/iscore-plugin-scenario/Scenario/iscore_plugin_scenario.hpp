@@ -78,7 +78,6 @@ private:
   iscore::GUIApplicationPlugin*
   make_guiApplicationPlugin(const iscore::GUIApplicationContext& app) override;
 
-  // NOTE : implementation is in CommandNames.cpp
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 

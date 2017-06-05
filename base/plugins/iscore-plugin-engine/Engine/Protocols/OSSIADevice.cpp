@@ -512,6 +512,7 @@ void OwningOSSIADevice::replaceDevice(ossia::net::device_base* d)
 {
   disconnect();
   m_dev.reset(d);
+  m_owned = false;
 }
 
 void OwningOSSIADevice::releaseDevice()
@@ -522,8 +523,11 @@ void OwningOSSIADevice::releaseDevice()
 
 void OwningOSSIADevice::disconnect()
 {
-  OSSIADevice::disconnect();
-  m_dev.reset();
+  if(m_owned)
+  {
+    OSSIADevice::disconnect();
+    m_dev.reset();
+  }
 }
 
 void OSSIADevice::nodeCreated(const ossia::net::node_base& n)

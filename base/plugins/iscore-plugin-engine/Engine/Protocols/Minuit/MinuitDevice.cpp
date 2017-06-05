@@ -17,6 +17,8 @@ MinuitDevice::MinuitDevice(const Device::DeviceSettings& settings)
     : OwningOSSIADevice{settings}
 {
   m_capas.canRefreshTree = true;
+  m_capas.canRenameNode = false;
+  m_capas.canSetProperties = false;
   m_capas.hasCallbacks = false;
 
   reconnect();

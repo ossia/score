@@ -67,7 +67,6 @@ static const QMap<Explorer::Column, QString> HEADERS{
 DeviceExplorerModel::DeviceExplorerModel(
     DeviceDocumentPlugin& plug, QObject* parent)
     : NodeBasedItemModel{parent}
-    , m_lastCutNodeIsCopied{false}
     , m_devicePlugin{plug}
     , m_rootNode{plug.rootNode()}
     , m_cmdQ{plug.context().commandStack}
@@ -80,12 +79,6 @@ DeviceExplorerModel::DeviceExplorerModel(
 
 DeviceExplorerModel::~DeviceExplorerModel()
 {
-  for (QStack<CutElt>::iterator it = m_cutNodes.begin();
-       it != m_cutNodes.end();
-       ++it)
-  {
-    delete it->first;
-  }
 }
 
 DeviceDocumentPlugin& DeviceExplorerModel::deviceModel() const
@@ -693,11 +686,6 @@ bool DeviceExplorerModel::isDevice(QModelIndex index) const
 bool DeviceExplorerModel::isEmpty() const
 {
   return m_rootNode.childCount() == 0;
-}
-
-bool DeviceExplorerModel::hasCut() const
-{
-  return (!m_cutNodes.isEmpty());
 }
 
 /*

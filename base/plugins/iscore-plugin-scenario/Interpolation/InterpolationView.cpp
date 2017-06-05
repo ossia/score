@@ -43,6 +43,6 @@ void View::paint_impl(QPainter* painter) const
 
 void View::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dropReceived(event->mimeData());
+  emit dropReceived(*event->mimeData());
 }
 }

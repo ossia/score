@@ -65,6 +65,7 @@ ProcessModel::ProcessModel(
     , m_max{source.max()}
     , m_startState{new ProcessState{*this, 0., this}}
     , m_endState{new ProcessState{*this, 1., this}}
+    , m_tween{source.tween()}
 {
   metadata().setInstanceName(*this);
   setCurve(source.curve().clone(source.curve().id(), this));

@@ -10,6 +10,7 @@ class Minimap final
     , public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
   public:
     Minimap(QGraphicsView* vp);
     void setWidth(double);

@@ -10,7 +10,7 @@ namespace Scenario
 const ScenarioInterface*
 focusedScenarioInterface(const iscore::DocumentContext& ctx)
 {
-  if (auto layer = focusedScenarioModel(ctx))
+  if (auto layer = dynamic_cast<const Scenario::ScenarioInterface*>(ctx.document.focusManager().get()))
   {
     return layer;
   }

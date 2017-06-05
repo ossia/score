@@ -6,11 +6,6 @@
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QLabel>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 #include <iscore/widgets/ReactiveLabel.hpp>
 #include <iscore/widgets/TextLabel.hpp>
 
@@ -59,65 +54,7 @@ InspectorWidget::InspectorWidget(
 
 void InspectorWidget::on_addressChange(const ::State::AddressAccessor& addr)
 {
-  // Various checks
-  if (addr == process().address())
-    return;
-
-  if (addr.address.path.isEmpty())
-    return;
-
-  if (addr == State::AddressAccessor{})
-  {
-    m_dispatcher.submitCommand(new ChangeAddress{process(), {}, {}, {}, {}});
-  }
-  else
-  {
-    // Try to find a matching state in the start & end state in order to update
-    // the process
-    auto cst = dynamic_cast<Scenario::ConstraintModel*>(process().parent());
-    if (!cst)
-      return;
-    auto parent_scenario
-        = dynamic_cast<Scenario::ScenarioInterface*>(cst->parent());
-    if (!parent_scenario)
-      return;
-
-    State::Value sv, ev;
-    ossia::unit_t source_u;
-
-    auto& ss = Scenario::startState(*cst, *parent_scenario);
-    auto& es = Scenario::endState(*cst, *parent_scenario);
-    const auto snodes
-        = Process::try_getNodesFromAddress(ss.messages().rootNode(), addr);
-    const auto enodes
-        = Process::try_getNodesFromAddress(es.messages().rootNode(), addr);
-
-    for (const Process::MessageNode* lhs : snodes)
-    {
-      if (!lhs->hasValue())
-        continue;
-      if (lhs->name.qualifiers.get().accessors
-          != addr.qualifiers.get().accessors)
-        continue;
-
-      auto it = ossia::find_if(enodes, [&](auto rhs) {
-        return (lhs->name.qualifiers == rhs->name.qualifiers)
-               && rhs->hasValue();
-      });
-
-      if (it != enodes.end())
-      {
-        sv = *lhs->value();
-        ev = *(*it)->value();
-        source_u = lhs->name.qualifiers.get().unit;
-
-        break; // or maybe not break ? the latest should replace maybe ?
-      }
-    }
-
-    m_dispatcher.submitCommand(
-        new ChangeAddress{process(), addr, sv, ev, source_u});
-  }
+  ChangeInterpolationAddress(process(), addr, m_dispatcher);
 }
 
 void InspectorWidget::on_tweenChanged()
@@ -139,7 +76,7 @@ StateInspectorWidget::StateInspectorWidget(
     , m_state{object}
     , m_label{new TextLabel}
 {
-  std::list<QWidget*> vec;
+  std::vector<QWidget*> vec;
   vec.push_back(m_label);
 
   con(m_state, &ProcessStateDataInterface::stateChanged, this,
