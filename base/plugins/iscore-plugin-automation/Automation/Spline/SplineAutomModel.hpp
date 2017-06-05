@@ -1,24 +1,26 @@
 #pragma once
-#include <Automation/Color/GradientAutomMetadata.hpp>
+#include <Automation/Spline/SplineAutomMetadata.hpp>
 #include <Process/Process.hpp>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
 #include <boost/container/flat_map.hpp>
+#include <ossia/editor/automation/spline.hpp>
 #include <iscore_plugin_automation_export.h>
 
-namespace Gradient
+namespace Spline
 {
 
 class ISCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
     : public Process::ProcessModel
 {
   ISCORE_SERIALIZE_FRIENDS
-  PROCESS_METADATA_IMPL(Gradient::ProcessModel)
+  PROCESS_METADATA_IMPL(Spline::ProcessModel)
 
   Q_OBJECT
   Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress
                  NOTIFY addressChanged)
   Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
+  Q_PROPERTY(State::Unit unit READ unit WRITE setUnit NOTIFY unitChanged)
 
 public:
   ProcessModel(
@@ -36,6 +38,8 @@ public:
 
   State::AddressAccessor address() const;
   void setAddress(const State::AddressAccessor& arg);
+  State::Unit unit() const;
+  void setUnit(const State::Unit&);
 
   bool tween() const
   {
@@ -52,19 +56,19 @@ public:
 
   QString prettyName() const override;
 
-  using gradient_colors = boost::container::flat_map<double, QColor>;
-  const gradient_colors& gradient() const { return m_colors; }
-  void setGradient(const gradient_colors& c) {
-    if(m_colors != c)
+  const ossia::spline_data& spline() const { return m_spline; }
+  void setSpline(const ossia::spline_data& c) {
+    if(m_spline != c)
     {
-      m_colors = c;
-      emit gradientChanged();
+      m_spline = c;
+      emit splineChanged();
     }
   }
 signals:
   void addressChanged(const ::State::AddressAccessor&);
   void tweenChanged(bool tween);
-  void gradientChanged();
+  void unitChanged(const State::Unit&);
+  void splineChanged();
 
 private:
   //// ProcessModel ////
@@ -81,7 +85,7 @@ private:
       QObject* parent);
 
   State::AddressAccessor m_address;
-  boost::container::flat_map<double, QColor> m_colors;
+  ossia::spline_data m_spline;
 
   bool m_tween = false;
 };

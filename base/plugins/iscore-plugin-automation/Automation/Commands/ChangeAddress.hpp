@@ -62,3 +62,28 @@ class ChangeGradientAddress final : public iscore::Command
     State::AddressAccessor m_old, m_new;
 };
 }
+
+namespace Spline
+{
+class ProcessModel;
+class ChangeSplineAddress final : public iscore::Command
+{
+    ISCORE_COMMAND_DECL(Automation::CommandFactoryName(), ChangeSplineAddress, "ChangeSplineAddress")
+    public:
+      ChangeSplineAddress(
+        const ProcessModel& autom, const State::AddressAccessor& newval);
+
+  public:
+    void undo() const override;
+    void redo() const override;
+
+  protected:
+    void serializeImpl(DataStreamInput&) const override;
+    void deserializeImpl(DataStreamOutput&) override;
+
+  private:
+    Path<ProcessModel> m_path;
+    State::AddressAccessor m_old, m_new;
+};
+}
+
