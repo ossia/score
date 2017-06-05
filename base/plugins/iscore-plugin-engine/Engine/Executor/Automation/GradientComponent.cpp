@@ -39,8 +39,21 @@ Component::Component(
 
 auto to_ossia_color(const QColor& c)
 {
-  auto col = c.toHsv();
-  return ossia::hsv{(float)col.hueF(), (float)col.saturationF(), (float)col.valueF()};
+  switch(c.spec())
+  {
+    case QColor::Rgb:
+    {
+      ossia::rgb r{(float)c.redF(), (float)c.greenF(), (float)c.blueF()};
+      return ossia::hsv{r};
+    }
+    case QColor::Hsv:
+    case QColor::Cmyk:
+    case QColor::Hsl:
+      return to_ossia_color(c.toRgb());
+    case QColor::Invalid:
+    default:
+      return ossia::hsv{};
+  }
 }
 
 auto to_ossia_gradient(const Gradient::ProcessModel::gradient_colors& c)
