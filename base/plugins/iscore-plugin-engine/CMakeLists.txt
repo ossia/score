@@ -242,7 +242,6 @@ target_link_libraries(${PROJECT_NAME}
           iscore_plugin_mapping
           iscore_plugin_loop
           ossia
-          tinyspline
 )
 
 setup_iscore_plugin(${PROJECT_NAME})

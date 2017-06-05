@@ -57,39 +57,9 @@ void Component::recompute()
       proc->set_destination(std::move(d_));
       proc->set_spline(g);
     });
-    return;
   }
 }
 
 }
 }
 
-void ossia::spline_automation::set_spline(const Spline::spline_data& t)
-{
-  m_spline = tinyspline::BSpline(
-        3,
-        2,
-        t.points.size(),
-        TS_CLAMPED
-        );
-  std::vector<tinyspline::real> cp;
-  for(QPointF p : t.points)
-  {
-    cp.push_back(p.x());
-    cp.push_back(p.y());
-  }
-  m_spline.setCtrlp(cp);
-}
-
-ossia::state_element ossia::spline_automation::state()
-{
-  if(m_address)
-  {
-    auto& addr = *m_address;
-    auto t = parent()->get_date() / parent()->get_nominal_duration();
-
-    auto p = m_spline.evaluate(t).result();
-    return ossia::message{addr, ossia::vec2f{p[0], p[1]}};
-  }
-  return {};
-}

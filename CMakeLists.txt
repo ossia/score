@@ -78,14 +78,6 @@ add_subdirectory("${3RDPARTY_FOLDER}/Qt-Color-Widgets" )
 add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator" )
 add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu" )
 
-set(TINYSPLINE_SRC
-  "${OSSIA_3RDPARTY_FOLDER}/tinyspline/library/tinyspline.c"
-  "${OSSIA_3RDPARTY_FOLDER}/tinyspline/library/tinysplinecpp.cpp"
-  )
-add_library(tinyspline STATIC "${TINYSPLINE_SRC}")
-target_compile_definitions(tinyspline PUBLIC TINYSPLINE_DOUBLE_PRECISION)
-target_include_directories(tinyspline PUBLIC "${OSSIA_3RDPARTY_FOLDER}/tinyspline/library")
-
 set(SKIP_INSTALL_ALL True) # For zlib to not install anything
 add_subdirectory("${3RDPARTY_FOLDER}/zlib" EXCLUDE_FROM_ALL)
 add_subdirectory("${3RDPARTY_FOLDER}/quazip" EXCLUDE_FROM_ALL)

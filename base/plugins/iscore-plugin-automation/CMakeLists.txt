@@ -77,6 +77,6 @@ target_link_libraries(${PROJECT_NAME}
             iscore_lib_base iscore_lib_device
             iscore_plugin_deviceexplorer iscore_lib_process
             iscore_lib_state iscore_plugin_curve iscore_lib_inspector
-            tinyspline)
+            )
 
 setup_iscore_plugin(${PROJECT_NAME})

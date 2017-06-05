@@ -12,7 +12,7 @@ class ChangeSpline final : public iscore::Command
     ISCORE_COMMAND_DECL(Automation::CommandFactoryName(), ChangeSpline, "ChangeSpline")
     public:
       ChangeSpline(
-        const ProcessModel& autom, const spline_data& newval)
+        const ProcessModel& autom, const ossia::spline_data& newval)
     : m_path{autom}
     , m_old{autom.spline()}
     , m_new{newval}
@@ -42,7 +42,7 @@ void deserializeImpl(DataStreamOutput& s) override
 
 private:
 Path<ProcessModel> m_path;
-spline_data m_old, m_new;
+ossia::spline_data m_old, m_new;
 };
 
 class View;
