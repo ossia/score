@@ -41,6 +41,6 @@ protected:
   QComboBox* m_valueTypeCBox{};
   WidgetWrapper<AddressSettingsWidget>* m_addressWidget{};
   QFormLayout* m_layout{};
-  bool m_canEdit{};
+  bool m_canEdit{true};
 };
 }
