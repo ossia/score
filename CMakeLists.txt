@@ -22,6 +22,7 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0042 NEW)
+cmake_policy(SET CMP0053 NEW)
 cmake_policy(SET CMP0063 NEW)
 
 set(ISCORE_VERSION_MAJOR 1)

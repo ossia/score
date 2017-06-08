@@ -44,6 +44,12 @@
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
 #include <Engine/Protocols/WS/WSProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_SERIAL)
+#include <Engine/Protocols/Serial/SerialProtocolFactory.hpp>
+#endif
+#if defined(OSSIA_PROTOCOL_PHIDGETS)
+#include <Engine/Protocols/Phidgets/PhidgetsProtocolFactory.hpp>
+#endif
 
 #include <Scenario/iscore_plugin_scenario.hpp>
 #include <iscore_plugin_deviceexplorer.hpp>
@@ -103,6 +109,9 @@ iscore_plugin_engine::factories(
 #endif
 #if defined(OSSIA_PROTOCOL_SERIAL)
                  , Network::SerialProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_PHIDGETS)
+                 , Network::PhidgetProtocolFactory
 #endif
             >,
             FW<Engine::Execution::ProcessComponentFactory,
