@@ -60,7 +60,7 @@ void View::paint_impl(QPainter* p) const
   auto fp = mapToCanvas(m_spline.points[0]);
   const auto pointSize = 3.;
 
-  if (0 != m_clicked)
+  if (m_clicked && 0 != *m_clicked)
     painter.setBrush(QColor(170, 220, 20));
   else
     painter.setBrush(QColor(170, 220, 220));
