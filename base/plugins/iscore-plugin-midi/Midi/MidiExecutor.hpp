@@ -34,8 +34,8 @@ public:
 
   const Midi::ProcessModel& process() const { return m_process; }
 
-  ossia::state_element state() override;
-  ossia::state_element offset(ossia::time_value) override;
+  ossia::state_element state(ossia::time_value date, double pos) override;
+  ossia::state_element offset(ossia::time_value, double pos) override;
 
   void stop() override;
 

@@ -48,9 +48,9 @@ ProcessExecutor::~ProcessExecutor()
 {
 }
 
-ossia::state_element ProcessExecutor::state()
+ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos)
 {
-  return state(parent()->get_date() / parent()->get_nominal_duration());
+  return state(pos);
 }
 
 ossia::state_element ProcessExecutor::state(double t)
@@ -138,9 +138,9 @@ ossia::state_element ProcessExecutor::state(double t)
 }
 
 
-ossia::state_element ProcessExecutor::offset(ossia::time_value off)
+ossia::state_element ProcessExecutor::offset(ossia::time_value off, double pos)
 {
-  return state(off / parent()->get_nominal_duration());
+  return state(pos);
 }
 
 void ProcessExecutor::stop()

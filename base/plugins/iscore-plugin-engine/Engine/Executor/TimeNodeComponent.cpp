@@ -97,22 +97,17 @@ void TimeNodeComponent::updateTrigger()
 
 void TimeNodeComponent::on_GUITrigger()
 {
-  system().executionQueue.enqueue([node=m_ossia_node] {
-    try
-    {
-      node->trigger();
+  this->system().executionQueue.enqueue(
+        [e = m_ossia_node]
+  {
+    bool old = e->is_observing_expression();
+    if(old)
+      e->observe_expression(false);
 
-      ossia::state accumulator;
-      for (auto& event : node->get_time_events())
-      {
-        if (event->get_status() == ossia::time_event::status::HAPPENED)
-          ossia::flatten_and_filter(accumulator, event->get_state());
-      }
-      accumulator.launch();
-    }
-    catch (...)
-    {
-    }
+    e->set_expression(ossia::expressions::make_expression_true());
+
+    if(old)
+      e->observe_expression(true);
   });
 }
 }
