@@ -38,8 +38,8 @@ public:
   void setTickFun(const QString& val);
 
   ossia::state_element state(double);
-  ossia::state_element state() override;
-  ossia::state_element offset(ossia::time_value) override;
+  ossia::state_element state(ossia::time_value date, double pos) override;
+  ossia::state_element offset(ossia::time_value, double pos) override;
 
 private:
   const Device::DeviceList& m_devices;
