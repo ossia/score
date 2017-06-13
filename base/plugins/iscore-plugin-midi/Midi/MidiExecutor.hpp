@@ -46,8 +46,6 @@ public:
   TimedState timedState;
 
 private:
-  ossia::state_element state(double);
-
   const Midi::ProcessModel& m_process;
 
   ossia::net::midi::channel_node* m_channelNode{};
