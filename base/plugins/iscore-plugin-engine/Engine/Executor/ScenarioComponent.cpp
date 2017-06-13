@@ -195,7 +195,7 @@ std::function<void ()> ScenarioComponentBase::removing(
 }
 
 static void ScenarioConstraintCallback(
-    ossia::time_value, ossia::time_value, const ossia::state& element)
+    ossia::time_value, ossia::time_value, const ossia::state_element& element)
 {
 }
 

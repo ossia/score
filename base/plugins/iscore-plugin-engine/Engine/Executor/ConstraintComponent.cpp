@@ -112,7 +112,7 @@ void ConstraintComponent::onSetup(
     m_ossia_constraint->set_stateless_callback(
         [&](ossia::time_value position,
             ossia::time_value date,
-            const ossia::state& state) {
+            const ossia::state_element& state) {
       auto currentTime = Engine::ossia_to_iscore::time(date);
 
       auto& cstdur = constraint().duration;
