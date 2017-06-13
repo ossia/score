@@ -429,7 +429,7 @@ Document* DocumentManager::loadFile(
               qApp->activeWindow(),
               tr("Unable to load"),
               tr("Unable to load file : "
-                 "it has to be converted but the conversion was not "
+                 "There is probably something wrong with the file format "
                  "implemented yet."
                  "\n"
                  "Blame the developer."));
