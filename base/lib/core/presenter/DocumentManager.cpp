@@ -429,7 +429,7 @@ Document* DocumentManager::loadFile(
               qApp->activeWindow(),
               tr("Unable to load"),
               tr("Unable to load file : "
-                 "There is probably something wrong with the file format ");
+                 "There is probably something wrong with the file format "));
         }
       }
 
