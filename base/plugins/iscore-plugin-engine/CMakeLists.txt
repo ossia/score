@@ -214,6 +214,19 @@ set(SERIAL_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialProtocolFactory.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialSpecificSettingsSerialization.cpp"
 )
+
+set(PHIDGETS_HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsSpecificSettings.hpp"
+)
+set(PHIDGETS_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsProtocolSettingsWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsDevice.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsProtocolFactory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsSpecificSettingsSerialization.cpp"
+)
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 if(OSSIA_PROTOCOL_MIDI)
@@ -232,6 +245,11 @@ endif()
 if(OSSIA_PROTOCOL_SERIAL)
     target_sources(${PROJECT_NAME} PRIVATE ${SERIAL_HDRS} ${SERIAL_SRCS})
     target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_SERIAL)
+endif()
+
+if(OSSIA_PROTOCOL_PHIDGETS)
+    target_sources(${PROJECT_NAME} PRIVATE ${PHIDGETS_HDRS} ${PHIDGETS_SRCS})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_PHIDGETS)
 endif()
 
 target_link_libraries(${PROJECT_NAME}

@@ -60,6 +60,7 @@ ScenarioDocumentView::ScenarioDocumentView(
 #if defined(ISCORE_WEBSOCKETS)
   auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif
+#undef ISCORE_OPENGL
 #if defined(ISCORE_OPENGL)
   auto vp1 = new QOpenGLWidget;
   m_view.setViewport(vp1);
@@ -108,8 +109,6 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->setLayout(lay);
   m_widget->setContentsMargins(0, 0, 0, 0);
 
-  m_minimapView.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-  m_minimapView.setSceneRect({0, 0, 4000, 100});
   m_minimapScene.addItem(&m_minimap);
 
   lay->addWidget(&m_minimapView);

@@ -208,7 +208,7 @@ void ScenarioDocumentPresenter::on_timeRulerScrollEvent(
   view().view().scrollHorizontal(previous.x() - current.x());
 }
 
-
+static bool window_size_set = false;
 void ScenarioDocumentPresenter::on_windowSizeChanged(QSize s)
 {
   if(m_zoomRatio == -1)
@@ -230,6 +230,7 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize s)
   }
 
   updateMinimap();
+  window_size_set = true;
 }
 
 void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
@@ -312,7 +313,6 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
 void ScenarioDocumentPresenter::on_viewReady()
 {
   QTimer::singleShot(0, [=] {
-
     auto z = displayedConstraint().zoom();
     if(z > 0)
     {
@@ -325,6 +325,9 @@ void ScenarioDocumentPresenter::on_viewReady()
     {
       view().minimap().setLargeView();
     }
+
+    if(!window_size_set)
+        on_windowSizeChanged({});
   });
 }
 

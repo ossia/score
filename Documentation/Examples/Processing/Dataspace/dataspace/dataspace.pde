@@ -14,13 +14,13 @@ MyColor myColor = new MyColor();
 
 void setup()
 {
-  size(1024, 768, P2D);
+  size(1024, 768);
   
   // listen osc message from i-score
-  osc_in = new OscP5(this, 13001);
+  osc_in = new OscP5(this, 9996);
 
   // output osc messages to i-score
-  osc_out = new NetAddress("127.0.0.1", 13002);
+  osc_out = new NetAddress("127.0.0.1", 9997);
   
   triangles = new ArrayList<Triangle>();
   for (int i = 0; i < NB_PARTICLES; i++)

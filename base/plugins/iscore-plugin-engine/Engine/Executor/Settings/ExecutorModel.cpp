@@ -1,3 +1,4 @@
+#include <ossia/editor/state/state_element.hpp>
 #include "ExecutorModel.hpp"
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
 #include <iscore/application/ApplicationContext.hpp>

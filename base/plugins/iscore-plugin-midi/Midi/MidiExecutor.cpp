@@ -48,16 +48,10 @@ ProcessExecutor::~ProcessExecutor()
 {
 }
 
-ossia::state_element ProcessExecutor::state()
-{
-  return state(parent()->get_date() / parent()->get_nominal_duration());
-}
-
-ossia::state_element ProcessExecutor::state(double t)
+ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos)
 {
   ossia::time_constraint& par_cst = *parent();
 
-  ossia::time_value date = par_cst.get_date();
   if (date != m_lastDate)
   {
     m_lastState.clear();
@@ -69,7 +63,7 @@ ossia::state_element ProcessExecutor::state(double t)
 
     auto diff = (date - m_lastDate) / par_cst.get_nominal_duration();
     m_lastDate = date;
-    auto cur_pos = t;
+    auto cur_pos = pos;
     auto max_pos = cur_pos + diff;
 
     // Look for all the messages
@@ -137,10 +131,10 @@ ossia::state_element ProcessExecutor::state(double t)
   return {};
 }
 
-
-ossia::state_element ProcessExecutor::offset(ossia::time_value off)
+ossia::state_element ProcessExecutor::offset(ossia::time_value off, double pos)
 {
-  return state(off / parent()->get_nominal_duration());
+  // TODO
+  return {};
 }
 
 void ProcessExecutor::stop()

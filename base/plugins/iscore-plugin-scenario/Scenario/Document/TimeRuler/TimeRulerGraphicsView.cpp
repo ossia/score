@@ -1,5 +1,6 @@
 #include "TimeRulerGraphicsView.hpp"
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QWheelEvent>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 namespace Scenario
@@ -31,4 +32,24 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
   setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif
 }
+
+MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene *s):
+    TimeRulerGraphicsView{s}
+{
+    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    setSceneRect({0, 0, 2000, 100});
+
+    setDragMode(DragMode::NoDrag);
+}
+
+void MinimapGraphicsView::scrollContentsBy(int dx, int dy)
+{
+
+}
+
+void MinimapGraphicsView::wheelEvent(QWheelEvent *event)
+{
+    event->accept();
+}
+
 }
