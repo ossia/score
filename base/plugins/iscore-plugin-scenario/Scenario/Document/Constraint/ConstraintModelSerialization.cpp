@@ -220,7 +220,23 @@ JSONObjectWriter::write(Scenario::ConstraintModel& constraint)
       ISCORE_TODO;
   }
 
-  fromJsonArray(obj[strings.SmallViewRack].toArray(), constraint.m_smallView);
+  auto sv_it = obj.constFind(strings.SmallViewRack);
+  if(sv_it != obj.constEnd())
+  {
+    fromJsonArray(sv_it->toArray(), constraint.m_smallView);
+    constraint.m_smallViewShown = obj[strings.SmallViewShown].toBool();
+  }
+  else if(!constraint.processes.empty())
+  {
+    // To support old scores...
+    Scenario::Slot s;
+    for(auto& proc : constraint.processes)
+      s.processes.push_back(proc.id());
+    s.frontProcess = s.processes.front();
+    constraint.m_smallView.push_back(s);
+    constraint.m_smallViewShown = true;
+  }
+
   auto fv_it = obj.constFind(strings.FullViewRack);
   if(fv_it != obj.constEnd())
   {
@@ -249,5 +265,4 @@ JSONObjectWriter::write(Scenario::ConstraintModel& constraint)
   auto cit = obj.find(strings.Center);
   if(cit != obj.end() && cit->isDouble())
     constraint.m_center = fromJsonValue<TimeVal>(*cit);
-  constraint.m_smallViewShown = obj[strings.SmallViewShown].toBool();
 }

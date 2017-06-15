@@ -244,7 +244,7 @@ struct TSerializer<JSONValue, OptionalId<U>>
 
   static void writeTo(JSONValue::Deserializer& s, OptionalId<U>& obj)
   {
-    if (s.val.isNull())
+    if (s.val.isNull() || s.val.toString() == "none")
       obj = {};
     else
       obj = Id<U>{s.val.toInt()};

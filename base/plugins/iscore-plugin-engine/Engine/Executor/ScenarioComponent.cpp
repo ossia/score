@@ -1,3 +1,4 @@
+#include <ossia/editor/state/state_element.hpp>
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_constraint.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
@@ -195,7 +196,7 @@ std::function<void ()> ScenarioComponentBase::removing(
 }
 
 static void ScenarioConstraintCallback(
-    ossia::time_value, ossia::time_value, const ossia::state& element)
+    ossia::time_value, ossia::time_value, const ossia::state_element& element)
 {
 }
 

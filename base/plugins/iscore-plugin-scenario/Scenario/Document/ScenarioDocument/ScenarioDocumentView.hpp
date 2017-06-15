@@ -80,7 +80,7 @@ private:
   TimeRulerGraphicsView m_timeRulersView;
   TimeRuler m_timeRuler;
   QGraphicsScene m_minimapScene;
-  TimeRulerGraphicsView m_minimapView;
+  MinimapGraphicsView m_minimapView;
   Minimap m_minimap;
 };
 }
