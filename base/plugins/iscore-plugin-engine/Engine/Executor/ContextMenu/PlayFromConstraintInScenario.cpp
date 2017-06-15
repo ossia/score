@@ -1,3 +1,4 @@
+#include <ossia/editor/state/state_element.hpp>
 #include <Engine/Executor/ContextMenu/PlayFromConstraintInScenario.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <boost/graph/depth_first_search.hpp>
