@@ -1,3 +1,4 @@
+#include <ossia/editor/state/state_element.hpp>
 #include <ossia/editor/scenario/time_constraint.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Engine/OSSIA2iscore.hpp>

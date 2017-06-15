@@ -1,5 +1,7 @@
+#include <ossia/editor/state/state_element.hpp>
 #include "DefaultClockManager.hpp"
 
+#include <ossia/editor/state/state_element.hpp>
 #include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <Engine/Executor/ConstraintComponent.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
