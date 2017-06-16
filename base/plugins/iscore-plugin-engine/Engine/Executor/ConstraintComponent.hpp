@@ -90,9 +90,6 @@ public:
   };
 
   //! To be called from the GUI thread
-  void play(TimeVal t = TimeVal::zero());
-
-  //! To be called from the GUI thread
   constraint_duration_data makeDurations() const;
 
   std::shared_ptr<ossia::time_constraint> OSSIAConstraint() const;
