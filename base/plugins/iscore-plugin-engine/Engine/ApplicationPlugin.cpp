@@ -182,9 +182,7 @@ void ApplicationPlugin::on_play(
     if (m_playing)
     {
       ISCORE_ASSERT(bool(m_clock));
-      auto& bs = plugmodel->baseScenario();
-      ossia::time_constraint& cstr = *bs.baseConstraint().OSSIAConstraint();
-      if (cstr.paused())
+      if (m_clock->paused())
       {
         m_clock->resume();
         m_paused = false;
