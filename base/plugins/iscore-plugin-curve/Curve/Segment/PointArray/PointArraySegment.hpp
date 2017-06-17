@@ -23,7 +23,7 @@ CURVE_SEGMENT_METADATA(
     Curve::PointArraySegment,
     "c598b840-db67-4c8f-937a-46cfac87cb59",
     "PointArray",
-    "PointArray")
+    "PointArray", "hidden")
 
 namespace Curve
 {

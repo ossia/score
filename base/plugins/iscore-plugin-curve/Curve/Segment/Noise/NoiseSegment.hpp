@@ -3,37 +3,37 @@
 
 namespace Curve
 {
-class LinearSegment;
+class NoiseSegment;
 }
 
 CURVE_SEGMENT_METADATA(
     ISCORE_PLUGIN_CURVE_EXPORT,
-    Curve::LinearSegment,
-    "a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2",
-    "Linear",
-    "Linear", "")
+    Curve::NoiseSegment,
+    "82a3709d-d9cc-4dcf-9aa8-5d539545f34b",
+    "Noise",
+    "Noise", "")
 
 namespace Curve
 {
-struct ISCORE_PLUGIN_CURVE_EXPORT LinearSegmentData
+struct ISCORE_PLUGIN_CURVE_EXPORT NoiseSegmentData
 {
 };
 
-class ISCORE_PLUGIN_CURVE_EXPORT LinearSegment final : public SegmentModel
+class ISCORE_PLUGIN_CURVE_EXPORT NoiseSegment final : public SegmentModel
 {
-  MODEL_METADATA_IMPL(LinearSegment)
+  MODEL_METADATA_IMPL(NoiseSegment)
 public:
-  using data_type = LinearSegmentData;
+  using data_type = NoiseSegmentData;
   using SegmentModel::SegmentModel;
 
-  LinearSegment(
-      const LinearSegment& other, const id_type& id, QObject* parent);
+  NoiseSegment(
+      const NoiseSegment& other, const id_type& id, QObject* parent);
 
-  LinearSegment(DataStream::Deserializer& vis, QObject* parent)
+  NoiseSegment(DataStream::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
   { vis.writeTo(*this); }
 
-  LinearSegment(JSONObject::Deserializer& vis, QObject* parent)
+  NoiseSegment(JSONObject::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
   { vis.writeTo(*this); }
 
@@ -52,4 +52,4 @@ public:
 };
 }
 
-Q_DECLARE_METATYPE(Curve::LinearSegmentData)
+Q_DECLARE_METATYPE(Curve::NoiseSegmentData)

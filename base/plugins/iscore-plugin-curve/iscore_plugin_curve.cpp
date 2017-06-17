@@ -7,6 +7,7 @@
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
+#include <Curve/Segment/Noise/NoiseSegment.hpp>
 #include <Curve/Segment/Sin/SinSegment.hpp>
 #include <Curve/Settings/CurveSettingsFactory.hpp>
 #include <iscore/plugins/customfactory/FactorySetup.hpp>
@@ -24,7 +25,19 @@ iscore_plugin_curve::factories(
     const iscore::ApplicationContext& ctx,
     const iscore::InterfaceKey& factoryName) const
 {
-  return instantiate_factories<iscore::ApplicationContext, FW<Curve::SegmentFactory, Curve::SegmentFactory_T<Curve::LinearSegment>, Curve::SegmentFactory_T<Curve::PowerSegment>, Curve::SegmentFactory_T<Curve::PointArraySegment>>, FW<iscore::SettingsDelegateFactory, Curve::Settings::Factory>>(
+  return instantiate_factories<iscore::ApplicationContext,
+      FW<Curve::SegmentFactory
+        , Curve::SegmentFactory_T<Curve::LinearSegment>
+        , Curve::SegmentFactory_T<Curve::PowerSegment>
+        , Curve::SegmentFactory_T<Curve::NoiseSegment>
+        , Curve::SegmentFactory_T<Curve::PointArraySegment>
+        , Curve::SegmentFactory_T<Curve::PeriodicSegment<Curve::Sin>>
+        , Curve::SegmentFactory_T<Curve::PeriodicSegment<Curve::Square>>
+        , Curve::SegmentFactory_T<Curve::PeriodicSegment<Curve::Triangle>>
+        , Curve::SegmentFactory_T<Curve::PeriodicSegment<Curve::Saw>>
+
+      >,
+      FW<iscore::SettingsDelegateFactory, Curve::Settings::Factory>>(
       ctx, factoryName);
 }
 
