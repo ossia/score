@@ -125,10 +125,10 @@ ControlClock::ControlClock(
         const Engine::Execution::Context& ctx):
     ClockManager{ctx},
     m_default{ctx},
-    m_clock{*ctx.scenario.baseConstraint().OSSIAConstraint()}
+    m_clock{*ctx.scenario.baseConstraint().OSSIAConstraint(), 1.}
 {
-  m_clock.set_granularity(ossia::time_value(
-      context.doc.app.settings<Settings::Model>().getRate()));
+  m_clock.set_granularity(std::chrono::microseconds(
+      context.doc.app.settings<Settings::Model>().getRate() * 1000));
 
   // TODO this should be the case also with other clocks
   m_clock.set_exec_status_callback(
@@ -177,8 +177,8 @@ void ControlClock::resume_impl(
 void ControlClock::stop_impl(
         Engine::Execution::BaseScenarioElement& bs)
 {
-    m_default.stop();
     m_clock.stop();
+    m_default.stop();
 }
 
 bool ControlClock::paused() const
