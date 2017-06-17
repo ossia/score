@@ -163,6 +163,7 @@ void ConstraintComponentBase::stop()
   constraint().reset();
 
   executionStopped();
+  constraint().duration.setPlayPercentage(0);
 }
 
 void ConstraintComponentBase::executionStarted()
@@ -177,7 +178,6 @@ void ConstraintComponentBase::executionStarted()
 
 void ConstraintComponentBase::executionStopped()
 {
-  constraint().duration.setPlayPercentage(0);
   constraint().executionStopped();
   for (Process::ProcessModel& proc : constraint().processes)
   {
