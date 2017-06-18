@@ -725,16 +725,28 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
   boost::range::remove_erase(nodes.parents, &m_rootNode);
 
   nodes.messages.reserve(nodes.messages.size() + nodes.parents.size());
-  // Filter messages
-  for (auto node : nodes.parents)
+  if(nodes.parents.size() > 1)
   {
-    if (node->is<Device::AddressSettings>())
+    // Filter messages
+    for (auto node : nodes.parents)
     {
-      auto& val = node->get<Device::AddressSettings>();
-      if (val.ioType == ossia::access_mode::SET)
+      if (node->is<Device::AddressSettings>())
       {
-        nodes.messages.push_back(node);
+        auto& val = node->get<Device::AddressSettings>();
+        if (val.ioType == ossia::access_mode::SET)
+        {
+          nodes.messages.push_back(node);
+        }
       }
+    }
+  }
+  else if(nodes.parents.size() == 1)
+  {
+    const Device::Node* node = nodes.parents[0];
+    if (node->is<Device::AddressSettings>() && node->childCount() == 0)
+    {
+      // If a single node is selected we copy it even if it is "get"
+      nodes.messages.push_back(node);
     }
   }
 
