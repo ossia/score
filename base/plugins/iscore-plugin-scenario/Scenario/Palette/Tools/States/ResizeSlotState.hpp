@@ -110,6 +110,9 @@ public:
 
     connect(release, &QAbstractState::entered, [=]() {
       m_ongoingDispatcher.commit();
+
+      auto& cst = this->currentSlot.constraint.find();
+      cst.heightFinishedChanging();
     });
   }
 

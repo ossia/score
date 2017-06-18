@@ -742,7 +742,7 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
   }
   else if(nodes.parents.size() == 1)
   {
-    const Device::Node* node = nodes.parents[0];
+    Device::Node* node = nodes.parents[0];
     if (node->is<Device::AddressSettings>() && node->childCount() == 0)
     {
       // If a single node is selected we copy it even if it is "get"

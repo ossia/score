@@ -142,6 +142,7 @@ signals:
   void slotRemoved(SlotId);
   void slotResized(SlotId);
   void slotsSwapped(int slot1, int slot2, Slot::RackView fv);
+  void heightFinishedChanging();
 
   void layerAdded(SlotId, Id<Process::ProcessModel>);
   void layerRemoved(SlotId, Id<Process::ProcessModel>);
