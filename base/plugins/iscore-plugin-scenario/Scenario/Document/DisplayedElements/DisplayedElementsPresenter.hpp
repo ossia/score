@@ -20,7 +20,7 @@ class ConstraintModel;
 class DisplayedElementsModel;
 // Contains the elements that are shown (not necessarily the ones in
 // BaseScenarioModel)
-class DisplayedElementsPresenter final
+class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsPresenter final
     : public QObject,
       public BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>
 {
