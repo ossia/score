@@ -35,6 +35,7 @@ ToolPalette::ToolPalette(
     , m_playTool{*this}
     , m_inputDisp{presenter.view(), *this, lay}
 {
+  qDebug() << "Scenario TOOL PALETTE";
 }
 
 Scenario::EditionSettings& ToolPalette::editionSettings() const

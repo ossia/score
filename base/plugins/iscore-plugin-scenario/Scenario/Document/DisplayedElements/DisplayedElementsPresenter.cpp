@@ -194,15 +194,7 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
                   size + 40};
 
   if(qApp->mouseButtons() & Qt::MouseButton::LeftButton)
-  {
     new_rect.setHeight(std::max(new_rect.height(), cur_rect.height()));
-    qDebug() << "max height";
-  }
-  else
-  {
-
-    qDebug() << "set height";
-  }
   m_model.updateRect(new_rect);
 
   m_startEventPresenter->view()->setPos(deltaX, deltaY);

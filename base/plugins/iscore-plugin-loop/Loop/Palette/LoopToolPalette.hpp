@@ -5,6 +5,11 @@
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
+#include <iscore/widgets/GraphicsProxyObject.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
 
 #include <Scenario/Palette/Tool.hpp>
 
@@ -73,4 +78,66 @@ private:
   ToolPaletteInputDispatcher<Scenario::Tool, ToolPalette, Process::LayerContext, LayerPresenter>
       m_inputDisp;
 };
+
+
+class DisplayedElementsToolPalette final
+    : public GraphicsSceneToolPalette
+{
+public:
+  DisplayedElementsToolPalette(
+      const Scenario::DisplayedElementsModel&,
+      Scenario::ScenarioDocumentPresenter&,
+      BaseGraphicsObject&);
+
+  BaseGraphicsObject& view() const;
+  const Scenario::DisplayedElementsPresenter& presenter() const;
+  const Loop::ProcessModel& model() const;
+  const Scenario::BaseElementContext& context() const;
+  const Scenario::EditionSettings& editionSettings() const;
+
+  void activate(Scenario::Tool);
+  void desactivate(Scenario::Tool);
+
+  void on_pressed(QPointF);
+  void on_moved(QPointF);
+  void on_released(QPointF);
+  void on_cancel();
+
+private:
+  Scenario::Point ScenePointToScenarioPoint(QPointF point);
+  const Scenario::DisplayedElementsModel& m_model;
+  const Loop::ProcessModel& m_scenarioModel;
+  Scenario::ScenarioDocumentPresenter& m_presenter;
+  Scenario::BaseElementContext m_context;
+  BaseGraphicsObject& m_view;
+  const Scenario::EditionSettings& m_editionSettings;
+
+  Scenario::SmartTool<
+            Loop::ProcessModel,
+            DisplayedElementsToolPalette,
+            BaseGraphicsObject,
+            Scenario::MoveConstraintInBaseScenario_StateWrapper,
+            Scenario::MoveLeftBraceInScenario_StateWrapper,
+            Scenario::MoveRightBraceInScenario_StateWrapper,
+            Scenario::MoveEventInBaseScenario_StateWrapper,
+            Scenario::MoveTimeNodeInBaseScenario_StateWrapper>
+          m_state;
+
+  ToolPaletteInputDispatcher<Scenario::Tool, DisplayedElementsToolPalette,
+  Scenario::BaseElementContext, Scenario::ScenarioDocumentPresenter>
+      m_inputDisp;
+};
+
+class DisplayedElementsToolPaletteFactory final
+    : public Scenario::DisplayedElementsToolPaletteFactory
+{
+  ISCORE_CONCRETE("0e5053e8-2165-445e-acb8-3f5715fe25c8")
+public:
+  bool matches(const Scenario::ConstraintModel& constraint) const override;
+
+  std::unique_ptr<GraphicsSceneToolPalette> make(
+      Scenario::ScenarioDocumentPresenter& pres,
+      const Scenario::ConstraintModel& constraint) override;
+};
+
 }

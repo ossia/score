@@ -43,6 +43,7 @@ BaseScenarioDisplayedElementsToolPalette::
     , m_state{*this}
     , m_inputDisp{m_presenter, *this, m_context}
 {
+  qDebug() << "BaseScenarioDisplayedElementsToolPalette TOOL PALETTE";
 }
 
 BaseGraphicsObject& BaseScenarioDisplayedElementsToolPalette::view() const
