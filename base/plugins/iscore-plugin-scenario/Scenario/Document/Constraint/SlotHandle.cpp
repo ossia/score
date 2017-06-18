@@ -6,7 +6,8 @@
 #include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ConstraintView.hpp>
 #include <qnamespace.h>
-
+#include <QGraphicsScene>
+#include <QGraphicsView>
 #include "SlotHandle.hpp"
 
 class QStyleOptionGraphicsItem;
@@ -61,7 +62,15 @@ void SlotHandle::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void SlotHandle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_presenter.moved(event->scenePos());
+  static bool moving = false;
+  if(!moving)
+  {
+    moving = true;
+    m_presenter.moved(event->scenePos());
+
+    this->scene()->views()[0]->ensureVisible(this);
+    moving = false;
+  }
 }
 
 void SlotHandle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)

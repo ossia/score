@@ -1,3 +1,4 @@
+#include <QApplication>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
@@ -106,6 +107,13 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
       con(m_constraintPresenter->model().duration,
           &ConstraintDurations::defaultDurationChanged, this,
           &DisplayedElementsPresenter::on_displayedConstraintDurationChanged));
+  m_connections.push_back(
+        con(m_constraintPresenter->model(),
+            &ConstraintModel::heightFinishedChanging, this,
+            [&]() {
+              on_displayedConstraintHeightChanged(
+                  m_constraintPresenter->view()->height());
+            }));
 
   m_connections.push_back(connect(
       m_constraintPresenter, &FullViewConstraintPresenter::heightChanged, this,
@@ -178,11 +186,24 @@ const double deltaY = 20.;
 void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
     double size)
 {
-  m_model.updateRect(QRectF{qreal(ScenarioLeftSpace), 0.,
-                       m_constraintPresenter->model()
-                           .duration.guiDuration()
-                           .toPixels(m_constraintPresenter->zoomRatio()),
-                       size});
+  auto cur_rect = m_model.view().view().sceneRect();
+  QRectF new_rect{qreal(ScenarioLeftSpace), 0.,
+                  m_constraintPresenter->model()
+                      .duration.guiDuration()
+                      .toPixels(m_constraintPresenter->zoomRatio()),
+                  size + 40};
+
+  if(qApp->mouseButtons() & Qt::MouseButton::LeftButton)
+  {
+    new_rect.setHeight(std::max(new_rect.height(), cur_rect.height()));
+    qDebug() << "max height";
+  }
+  else
+  {
+
+    qDebug() << "set height";
+  }
+  m_model.updateRect(new_rect);
 
   m_startEventPresenter->view()->setPos(deltaX, deltaY);
   m_startNodePresenter->view()->setPos(deltaX, deltaY);
@@ -192,7 +213,7 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
   m_startEventPresenter->view()->setExtent({0., 1.});
   m_startNodePresenter->view()->setExtent({0., (qreal)size});
   m_endEventPresenter->view()->setExtent({0., 1.});
-  m_endNodePresenter->view()->setExtent({0., 10000});
+  m_endNodePresenter->view()->setExtent({0., size});
 
   m_startEventPresenter->view()->setZValue(0);
   m_startNodePresenter->view()->setZValue(0);
