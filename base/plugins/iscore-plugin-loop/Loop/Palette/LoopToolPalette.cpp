@@ -42,7 +42,6 @@ ToolPalette::ToolPalette(
     , m_state{*this}
     , m_inputDisp{m_presenter, *this, m_context}
 {
-  qDebug() << "LOOP TOOL PALETTE";
 }
 
 LayerView& ToolPalette::view() const
