@@ -491,7 +491,7 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
       = ctx.app.interfaces<DisplayedElementsToolPaletteFactoryList>();
   m_stateMachine
       = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, constraint);
-  qDebug() << m_stateMachine.get();
+
   m_updatingView = true;
   m_scenarioPresenter.on_displayedConstraintChanged(constraint);
   m_updatingView = false;

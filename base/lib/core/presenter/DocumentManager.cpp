@@ -78,6 +78,7 @@ void DocumentManager::init(const iscore::GUIApplicationContext& ctx)
 {
   con(m_view, &View::activeDocumentChanged, this,
       [&](const Id<DocumentModel>& doc) {
+        qDebug("received activedoc");
         prepareNewDocument(ctx);
         auto it = ossia::find_if(m_documents, [&](auto other) {
           return other->model().id() == doc;
@@ -153,6 +154,7 @@ void DocumentManager::setCurrentDocument(
 {
   auto old = m_currentDocument;
   m_currentDocument = doc;
+  qDebug() << old << m_currentDocument;
 
   if (doc)
   {
@@ -429,7 +431,7 @@ Document* DocumentManager::loadFile(
               qApp->activeWindow(),
               tr("Unable to load"),
               tr("Unable to load file : "
-                 "There is probably something wrong with the file format "));
+                 "There is probably something wrong with the file format."));
         }
       }
 
