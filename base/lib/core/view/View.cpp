@@ -75,10 +75,12 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
   connect(
       m_tabWidget, &QTabWidget::currentChanged, this,
       [&](int index) {
-        auto view = dynamic_cast<DocumentView*>(m_tabWidget->widget(index));
-        if (!view)
+        auto widg = m_tabWidget->widget(index);
+        auto doc = m_documents.find(widg);
+        if(doc == m_documents.end())
           return;
-        emit activeDocumentChanged(view->document().model().id());
+
+        emit activeDocumentChanged(doc->second->document().model().id());
       },
       Qt::QueuedConnection);
 
