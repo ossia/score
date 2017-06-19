@@ -6,6 +6,7 @@
 #include <iscore/model/path/PathSerialization.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/application/ApplicationContext.hpp>
+#include <iscore/document/DocumentContext.hpp>
 namespace Scenario
 {
 namespace Command
@@ -24,7 +25,7 @@ void RemoveStateProcess::undo(const iscore::DocumentContext& ctx) const
 {
   auto& state = m_path.find(ctx);
   // Create process model
-  auto proc = context.interfaces<Process::StateProcessList>()
+  auto proc = ctx.app.interfaces<Process::StateProcessList>()
                   .get(m_processUuid)
                   ->make(m_processId, &state);
 

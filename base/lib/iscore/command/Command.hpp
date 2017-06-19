@@ -43,15 +43,13 @@ public:
 protected:
   virtual void serializeImpl(DataStreamInput&) const = 0;
   virtual void deserializeImpl(DataStreamOutput&) = 0;
-
+/*
   quint32 timestamp() const;
   void setTimestamp(quint32 stmp);
 
-  const iscore::ApplicationContext& context;
-
 private:
   // TODO check if this is UTC
-  std::chrono::milliseconds m_timestamp;
+  std::chrono::milliseconds m_timestamp;*/
 };
 }
 

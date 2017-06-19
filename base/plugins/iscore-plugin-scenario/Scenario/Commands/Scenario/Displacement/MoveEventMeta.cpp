@@ -32,8 +32,8 @@ MoveEventMeta::MoveEventMeta(
     , m_eventId{std::move(eventId)}
     , m_newY{y}
     , m_moveEventImplementation(
-          context.interfaces<MoveEventList>()
-              .get(context, MoveEventFactoryInterface::Strategy::MOVE)
+          iscore::AppContext().interfaces<MoveEventList>()
+              .get(iscore::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
               .make(
                   scenar, m_eventId, std::move(newDate),
                   mode))
@@ -76,8 +76,8 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
   s >> m_scenario >> m_eventId >> m_oldY >> m_newY >> cmdData;
 
   m_moveEventImplementation
-      = context.interfaces<MoveEventList>()
-            .get(context, MoveEventFactoryInterface::Strategy::MOVE)
+      = iscore::AppContext().interfaces<MoveEventList>()
+            .get(iscore::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
             .make();
 
   m_moveEventImplementation->deserialize(cmdData);
@@ -122,8 +122,8 @@ MoveTopEventMeta::MoveTopEventMeta(
     , m_scenario{scenarioPath}
     , m_eventId{std::move(eventId)}
     , m_moveEventImplementation(
-          context.interfaces<MoveEventList>()
-              .get(context, MoveEventFactoryInterface::Strategy::MOVE)
+          iscore::AppContext().interfaces<MoveEventList>()
+              .get(iscore::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
               .make(
                   scenarioPath, m_eventId, std::move(newDate),
                   mode))
@@ -156,8 +156,8 @@ void MoveTopEventMeta::deserializeImpl(DataStreamOutput& s)
   s >> m_scenario >> m_eventId >> cmdData;
 
   m_moveEventImplementation
-      = context.interfaces<MoveEventList>()
-            .get(context, MoveEventFactoryInterface::Strategy::MOVE)
+      = iscore::AppContext().interfaces<MoveEventList>()
+            .get(iscore::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
             .make();
 
   m_moveEventImplementation->deserialize(cmdData);

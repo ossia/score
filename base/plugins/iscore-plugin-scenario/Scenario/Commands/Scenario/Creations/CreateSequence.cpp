@@ -57,7 +57,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 {
   // TESTME
 
-  if (!context.settings<Scenario::Settings::Model>().getAutoSequence())
+  if (!iscore::AppContext().settings<Scenario::Settings::Model>().getAutoSequence())
     return;
 
   // We get the device explorer, and we fetch the new states.

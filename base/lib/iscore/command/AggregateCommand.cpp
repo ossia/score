@@ -49,7 +49,7 @@ int AggregateCommand::count() const
 
 void AggregateCommand::serializeImpl(DataStreamInput& s) const
 {
-    std::vector<CommandData> serializedCommands;
+  std::vector<CommandData> serializedCommands;
   serializedCommands.reserve(m_cmds.size());
 
   for (auto& cmd : m_cmds)
@@ -67,6 +67,7 @@ void AggregateCommand::deserializeImpl(DataStreamOutput& s)
   DataStreamWriter writer{s.stream.device()};
   writer.writeTo(serializedCommands);
 
+  const auto& context = iscore::AppContext();
   for (const auto& cmd_pack : serializedCommands)
   {
     auto cmd = context.instantiateUndoCommand(cmd_pack);
