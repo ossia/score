@@ -45,25 +45,27 @@ private:
 
 signals:
   void
-  sig_handleSwap(Path<Process::ProcessModel> cst, double center, double y);
+  sig_handleSwap(QPointer<const Process::ProcessModel> cst, double center, double y);
   void sig_performSwap(
-      Path<Scenario::ConstraintModel> cst,
+      QPointer<const Scenario::ConstraintModel> cst,
       const Id<Process::ProcessModel>& id1,
       const Id<Process::ProcessModel>& id2);
   void sig_putAtEnd(
-      Path<Scenario::ConstraintModel> cst,
+      QPointer<const Scenario::ConstraintModel> cst,
       const Id<Process::ProcessModel>& id1);
 
 private slots:
   void performSwap(
-      Path<Scenario::ConstraintModel> cst,
+      QPointer<const Scenario::ConstraintModel> cst,
       const Id<Process::ProcessModel>& id1,
       const Id<Process::ProcessModel>& id2);
   void putAtEnd(
-      Path<Scenario::ConstraintModel> cst,
+      QPointer<const Scenario::ConstraintModel> cst,
       const Id<Process::ProcessModel>& id1);
 
-  void handleSwap(Path<Process::ProcessModel> cst, double center, double y);
+  void handleSwap(
+      QPointer<const Process::ProcessModel> cst,
+      double center, double y);
 
 private:
   const Process::ProcessModel& m_proc;

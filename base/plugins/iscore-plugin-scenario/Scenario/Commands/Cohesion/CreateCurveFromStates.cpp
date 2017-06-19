@@ -40,10 +40,10 @@ CreateAutomationFromStates::CreateAutomationFromStates(
 {
 }
 
-void CreateAutomationFromStates::redo() const
+void CreateAutomationFromStates::redo(const iscore::DocumentContext& ctx) const
 {
-  m_addProcessCmd.redo();
-  auto& cstr = m_addProcessCmd.constraintPath().find();
+  m_addProcessCmd.redo(ctx);
+  auto& cstr = m_addProcessCmd.constraintPath().find(ctx);
   auto& autom = safe_cast<Automation::ProcessModel&>(
       cstr.processes.at(m_addProcessCmd.processId()));
   autom.setAddress(m_address);
@@ -66,7 +66,7 @@ void CreateAutomationFromStates::redo() const
   emit autom.curve().changed();
 
   for (const auto& cmd : m_slotsCmd)
-    cmd.redo();
+    cmd.redo(ctx);
 }
 
 void CreateAutomationFromStates::serializeImpl(DataStreamInput& s) const
@@ -95,11 +95,11 @@ CreateInterpolationFromStates::CreateInterpolationFromStates(
 {
 }
 
-void CreateInterpolationFromStates::redo() const
+void CreateInterpolationFromStates::redo(const iscore::DocumentContext& ctx) const
 {
-  m_addProcessCmd.redo();
+  m_addProcessCmd.redo(ctx);
 
-  auto& cstr = m_addProcessCmd.constraintPath().find();
+  auto& cstr = m_addProcessCmd.constraintPath().find(ctx);
   auto& autom = safe_cast<Interpolation::ProcessModel&>(
       cstr.processes.at(m_addProcessCmd.processId()));
   autom.setAddress(m_address);
@@ -107,7 +107,7 @@ void CreateInterpolationFromStates::redo() const
   autom.setEnd(m_end);
 
   for (const auto& cmd : m_slotsCmd)
-    cmd.redo();
+    cmd.redo(ctx);
 }
 
 void CreateInterpolationFromStates::serializeImpl(DataStreamInput& s) const

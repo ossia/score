@@ -12,8 +12,8 @@ class SetOutput final : public iscore::Command
 public:
   SetOutput(const ProcessModel& model, const QString& dev);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;
@@ -32,8 +32,8 @@ public:
   // Channel should be in [ 0; 15 ]
   SetChannel(const ProcessModel& model, int chan);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

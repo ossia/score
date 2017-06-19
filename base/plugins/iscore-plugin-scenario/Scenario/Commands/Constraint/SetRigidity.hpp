@@ -24,10 +24,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SetRigidity final
       ScenarioCommandFactoryName(), SetRigidity, "Change constraint rigidity")
 
 public:
-  SetRigidity(Path<ConstraintModel>&& constraintPath, bool rigid);
+  SetRigidity(const ConstraintModel& constraint, bool rigid);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

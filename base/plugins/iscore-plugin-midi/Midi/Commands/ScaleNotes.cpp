@@ -12,9 +12,9 @@ ScaleNotes::ScaleNotes(
 {
 }
 
-void ScaleNotes::undo() const
+void ScaleNotes::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& model = m_model.find();
+  auto& model = m_model.find(ctx);
   for (auto& note : m_toScale)
   {
     auto& n = model.notes.at(note);
@@ -22,9 +22,9 @@ void ScaleNotes::undo() const
   }
 }
 
-void ScaleNotes::redo() const
+void ScaleNotes::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& model = m_model.find();
+  auto& model = m_model.find(ctx);
   for (auto& note : m_toScale)
   {
     auto& n = model.notes.at(note);

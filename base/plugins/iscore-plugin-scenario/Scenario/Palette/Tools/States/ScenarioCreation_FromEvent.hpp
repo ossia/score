@@ -26,7 +26,7 @@ class Creation_FromEvent final
 public:
   Creation_FromEvent(
       const ToolPalette_T& stateMachine,
-      const Path<Scenario_T>& scenarioPath,
+      const Scenario_T& scenarioPath,
       const iscore::CommandStackFacade& stack,
       QState* parent)
       : CreationState<Scenario_T, ToolPalette_T>{
@@ -181,7 +181,7 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewEvent>(
-            Path<Scenario_T>{this->m_scenarioPath},
+            this->m_scenario,
             this->createdConstraints.last(),
             this->createdEvents.last(),
             this->currentPoint.date,
@@ -202,7 +202,7 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewState>(
-            Path<Scenario_T>{this->m_scenarioPath},
+            this->m_scenario,
             this->createdStates.last(),
             this->currentPoint.y);
       });
@@ -220,7 +220,7 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewState>(
-            Path<Scenario_T>{this->m_scenarioPath},
+            this->m_scenario,
             this->createdStates.last(),
             this->currentPoint.y);
       });
@@ -246,7 +246,7 @@ private:
     if (this->clickedEvent)
     {
       auto cmd = new Scenario::Command::CreateState{
-          this->m_scenarioPath, *this->clickedEvent, this->currentPoint.y};
+          this->m_scenario, *this->clickedEvent, this->currentPoint.y};
       this->m_dispatcher.submitCommand(cmd);
 
       this->createdStates.append(cmd->createdState());

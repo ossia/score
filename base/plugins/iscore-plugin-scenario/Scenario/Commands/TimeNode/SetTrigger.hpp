@@ -18,10 +18,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT SetTrigger final
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetTrigger, "Change a trigger")
 public:
-  SetTrigger(Path<TimeNodeModel>&& timeNodePath, State::Expression trigger);
+  SetTrigger(
+      const TimeNodeModel& tn,
+      State::Expression trigger);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

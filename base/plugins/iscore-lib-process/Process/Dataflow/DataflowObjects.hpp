@@ -27,12 +27,13 @@ struct Cable
   Cable() = delete;
   Cable(const Cable&) = delete;
   Cable(Id<Cable> c): IdentifiedObject{c, "Cable", nullptr} { }
-  Cable(Id<Cable> c, const CableData& data):
+
+  Cable(const iscore::DocumentContext& ctx, Id<Cable> c, const CableData& data):
     IdentifiedObject{c, "Cable", nullptr}
   {
     type = data.type;
-    source = &data.source.find();
-    sink = &data.sink.find();
+    source = &data.source.find(ctx);
+    sink = &data.sink.find(ctx);
     outlet = data.outlet;
     inlet = data.inlet;
   }

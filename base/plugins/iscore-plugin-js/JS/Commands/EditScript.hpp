@@ -16,10 +16,10 @@ class EditScript final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(JS::CommandFactoryName(), EditScript, "Edit a JS script")
 public:
-  EditScript(Path<ProcessModel>&& model, const QString& text);
+  EditScript(const ProcessModel& model, const QString& text);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;
@@ -35,10 +35,10 @@ class EditStateScript final : public iscore::Command
   ISCORE_COMMAND_DECL(
       JS::CommandFactoryName(), EditStateScript, "Edit a JS state script")
 public:
-  EditStateScript(Path<StateProcess>&& model, const QString& text);
+  EditStateScript(const StateProcess& model, const QString& text);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

@@ -11,22 +11,21 @@ namespace Scenario
 namespace Command
 {
 CreateCommentBlock::CreateCommentBlock(
-    Path<ProcessModel>&& scenarioPath, TimeVal date, double yPosition)
-    : m_path{std::move(scenarioPath)}, m_date{std::move(date)}, m_y{yPosition}
+    const Scenario::ProcessModel& scenar, TimeVal date, double yPosition)
+    : m_path{scenar}, m_date{std::move(date)}, m_y{yPosition}
 {
-  auto& scenar = m_path.find();
   m_id = getStrongId(scenar.comments);
 }
 
-void CreateCommentBlock::undo() const
+void CreateCommentBlock::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
   ScenarioCreate<CommentBlockModel>::undo(m_id, scenar);
 }
 
-void CreateCommentBlock::redo() const
+void CreateCommentBlock::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
   ScenarioCreate<CommentBlockModel>::redo(m_id, m_date, m_y, scenar);
 }
 

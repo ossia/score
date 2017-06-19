@@ -28,15 +28,15 @@ private slots:
         Id<ConstraintModel>{1}, Id<ConstraintViewModel>{0}, qApp};
 
     AddRackToConstraint rackCmd(ObjectPath{{"ConstraintModel", {1}}});
-    rackCmd.redo();
+    rackCmd.redo(ctx);
 
     AddProcessToConstraint cmd{{{"ConstraintModel", {1}}}, "Scenario"};
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)cstrModel->processes().size(), 1);
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE((int)cstrModel->processes().size(), 0);
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)cstrModel->processes().size(), 1);
 
     // Delete them else they stay in qApp !

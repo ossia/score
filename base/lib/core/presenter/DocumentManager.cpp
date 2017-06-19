@@ -377,8 +377,8 @@ Document* DocumentManager::loadStack(
     setupDocument(ctx, doc);
 
     loadCommandStack(
-        ctx.components, writer, doc->commandStack(), [](auto cmd) {
-          cmd->redo();
+        ctx.components, writer, doc->commandStack(), [doc](auto cmd) {
+          cmd->redo(doc->context());
         });
     return doc;
   }

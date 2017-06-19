@@ -4,6 +4,11 @@
 #include <QSize>
 #include <QStringList>
 #include <Scenario/Commands/Event/State/AddStateWithData.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -23,8 +28,6 @@
 #include <iscore/serialization/MimeVisitor.hpp>
 
 #include <iscore/tools/Todo.hpp>
-
-class QObject;
 #include <iscore/model/Identifier.hpp>
 
 namespace Scenario
@@ -34,7 +37,6 @@ EventPresenter::EventPresenter(
     : QObject{parent}
     , m_model{model}
     , m_view{new EventView{*this, parentview}}
-    , m_dispatcher{iscore::IDocument::documentContext(m_model).commandStack}
 {
   // The scenario catches this :
   con(m_model.selection, &Selectable::changed, m_view,
@@ -101,10 +103,19 @@ void EventPresenter::handleDrop(const QPointF& pos, const QMimeData* mime)
     Mime<State::MessageList>::Deserializer des{*mime};
     State::MessageList ml = des.deserialize();
 
-    m_dispatcher.submitCommand<Scenario::Command::AddStateWithData>(
-          *scenar, m_model.id(),
-          pos.y() / m_view->parentItem()->boundingRect().size().height(),
-          std::move(ml));
+    RedoMacroCommandDispatcher<Command::AddStateWithData> dispatcher{
+      iscore::IDocument::documentContext(m_model).commandStack};
+
+    auto cmd = new Command::CreateState{
+                 *scenar, m_model.id(),
+                 pos.y() / m_view->parentItem()->boundingRect().size().height()};
+    dispatcher.submitCommand(cmd);
+    dispatcher.submitCommand(
+          new Command::AddMessagesToState{
+            scenar->states.at(cmd->createdState()),
+            std::move(ml)});
+
+    dispatcher.commit();
   }
 }
 }

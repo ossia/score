@@ -11,8 +11,8 @@ class SetMappingSourceMin final : public iscore::PropertyCommand
       MappingCommandFactoryName(), SetMappingSourceMin,
       "Set mapping source minimum")
 public:
-  SetMappingSourceMin(Path<ProcessModel>&& path, double newval)
-      : iscore::PropertyCommand{std::move(path), "sourceMin", newval}
+  SetMappingSourceMin(const ProcessModel& path, double newval)
+      : iscore::PropertyCommand{path, "sourceMin", newval}
   {
   }
 };
@@ -23,8 +23,8 @@ class SetMappingSourceMax final : public iscore::PropertyCommand
       MappingCommandFactoryName(), SetMappingSourceMax,
       "Set mapping source Maximum")
 public:
-  SetMappingSourceMax(Path<ProcessModel>&& path, double newval)
-      : iscore::PropertyCommand{std::move(path), "sourceMax", newval}
+  SetMappingSourceMax(const ProcessModel& path, double newval)
+      : iscore::PropertyCommand{path, "sourceMax", newval}
   {
   }
 };
@@ -35,8 +35,8 @@ class SetMappingTargetMin final : public iscore::PropertyCommand
       MappingCommandFactoryName(), SetMappingTargetMin,
       "Set mapping Target minimum")
 public:
-  SetMappingTargetMin(Path<ProcessModel>&& path, double newval)
-      : iscore::PropertyCommand{std::move(path), "targetMin", newval}
+  SetMappingTargetMin(const ProcessModel& path, double newval)
+      : iscore::PropertyCommand{path, "targetMin", newval}
   {
   }
 };
@@ -47,8 +47,8 @@ class SetMappingTargetMax final : public iscore::PropertyCommand
       MappingCommandFactoryName(), SetMappingTargetMax,
       "Set mapping Target Maximum")
 public:
-  SetMappingTargetMax(Path<ProcessModel>&& path, double newval)
-      : iscore::PropertyCommand{std::move(path), "targetMax", newval}
+  SetMappingTargetMax(const ProcessModel& path, double newval)
+      : iscore::PropertyCommand{path, "targetMax", newval}
   {
   }
 };

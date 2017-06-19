@@ -19,18 +19,18 @@ RemoveNotes::RemoveNotes(
   }
 }
 
-void RemoveNotes::undo() const
+void RemoveNotes::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& model = m_model.find();
+  auto& model = m_model.find(ctx);
   for (auto& note : m_notes)
   {
     model.notes.add(new Note{note.first, note.second, &model});
   }
 }
 
-void RemoveNotes::redo() const
+void RemoveNotes::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& model = m_model.find();
+  auto& model = m_model.find(ctx);
   for (auto& note : m_notes)
   {
     model.notes.remove(note.first);

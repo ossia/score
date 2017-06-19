@@ -15,8 +15,8 @@ class BlacklistCommand : public iscore::Command
 public:
   BlacklistCommand(QString name, bool value);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
   // bool mergeWith(const Command* other) override;
 
 protected:

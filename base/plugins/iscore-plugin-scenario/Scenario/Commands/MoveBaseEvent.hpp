@@ -71,22 +71,21 @@ public:
   MoveBaseEvent() = default;
 
   MoveBaseEvent(
-      Path<SimpleScenario_T>&& path,
+      const SimpleScenario_T& scenar,
       const Id<EventModel>& event,
       const TimeVal& date,
       double y,
       ExpandMode mode)
-      : m_path{std::move(path)}, m_newDate{date}, m_mode{mode}
+      : m_path{scenar}, m_newDate{date}, m_mode{mode}
   {
-    auto& scenar = m_path.find();
-    const auto& constraint = scenar.constraint();
+    const Scenario::ConstraintModel& constraint = scenar.constraint();
     m_oldDate = constraint.duration.defaultDuration();
     m_saveData = ConstraintSaveData{constraint};
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& scenar = m_path.find();
+    auto& scenar = m_path.find(ctx);
 
     updateDuration(
         scenar, m_oldDate, [&](Process::ProcessModel& p, const TimeVal& v) {
@@ -101,16 +100,16 @@ public:
 
     // 1. Clear the constraint
     ClearConstraint clearCmd{scenar.constraint()};
-    clearCmd.redo();
+    clearCmd.redo(ctx);
 
     // 2. Restore
     auto& constraint = scenar.constraint();
     m_saveData.reload(constraint);
   }
 
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& scenar = m_path.find();
+    auto& scenar = m_path.find(ctx);
 
     updateDuration(
         scenar, m_newDate, [&](Process::ProcessModel& p, const TimeVal& v) {

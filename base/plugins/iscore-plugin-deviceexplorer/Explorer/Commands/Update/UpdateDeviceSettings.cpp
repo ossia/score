@@ -16,12 +16,11 @@ namespace Explorer
 namespace Command
 {
 UpdateDeviceSettings::UpdateDeviceSettings(
-    Path<DeviceDocumentPlugin>&& device_tree,
+    const DeviceDocumentPlugin& devplug,
     const QString& name,
     const Device::DeviceSettings& parameters)
-    : m_devicesModel{device_tree}, m_newParameters(parameters)
+    : m_devicesModel{devplug}, m_newParameters(parameters)
 {
-  auto& devplug = m_devicesModel.find();
   auto it = std::find_if(
       devplug.rootNode().begin(),
       devplug.rootNode().end(),
@@ -34,15 +33,15 @@ UpdateDeviceSettings::UpdateDeviceSettings(
   m_oldParameters = (*it).get<Device::DeviceSettings>();
 }
 
-void UpdateDeviceSettings::undo() const
+void UpdateDeviceSettings::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.updateDevice(m_newParameters.name, m_oldParameters);
 }
 
-void UpdateDeviceSettings::redo() const
+void UpdateDeviceSettings::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.updateDevice(m_oldParameters.name, m_newParameters);
 }
 

@@ -19,39 +19,33 @@ namespace Scenario
 namespace Command
 {
 CreateTimeNode_Event_State::CreateTimeNode_Event_State(
-    const Scenario::ProcessModel& scenario, TimeVal date, double stateY)
+    const Scenario::ProcessModel& scenario,
+    TimeVal date,
+    double stateY)
     : m_newTimeNode{getStrongId(scenario.timeNodes)}
     , m_date{std::move(date)}
     , m_command{scenario, m_newTimeNode, stateY}
 {
 }
 
-CreateTimeNode_Event_State::CreateTimeNode_Event_State(
-    const Path<Scenario::ProcessModel>& scenario,
-    TimeVal date,
-    double stateY)
-    : CreateTimeNode_Event_State{scenario.find(), std::move(date), stateY}
+void CreateTimeNode_Event_State::undo(const iscore::DocumentContext& ctx) const
 {
-}
-
-void CreateTimeNode_Event_State::undo() const
-{
-  m_command.undo();
+  m_command.undo(ctx);
 
   ScenarioCreate<TimeNodeModel>::undo(
-      m_newTimeNode, m_command.scenarioPath().find());
+      m_newTimeNode, m_command.scenarioPath().find(ctx));
 }
 
-void CreateTimeNode_Event_State::redo() const
+void CreateTimeNode_Event_State::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_command.scenarioPath().find();
+  auto& scenar = m_command.scenarioPath().find(ctx);
 
   // Create the node
   ScenarioCreate<TimeNodeModel>::redo(
       m_newTimeNode, {0.4, 0.6}, m_date, scenar);
 
   // And the event
-  m_command.redo();
+  m_command.redo(ctx);
 }
 
 void CreateTimeNode_Event_State::serializeImpl(DataStreamInput& s) const

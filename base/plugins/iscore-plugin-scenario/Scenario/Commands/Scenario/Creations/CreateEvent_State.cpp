@@ -31,26 +31,17 @@ CreateEvent_State::CreateEvent_State(
 {
 }
 
-CreateEvent_State::CreateEvent_State(
-    const Path<Scenario::ProcessModel>& scenario,
-    Id<TimeNodeModel>
-        timeNode,
-    double stateY)
-    : CreateEvent_State{scenario.find(), std::move(timeNode), stateY}
+void CreateEvent_State::undo(const iscore::DocumentContext& ctx) const
 {
-}
-
-void CreateEvent_State::undo() const
-{
-  m_command.undo();
+  m_command.undo(ctx);
 
   ScenarioCreate<EventModel>::undo(
-      m_newEvent, m_command.scenarioPath().find());
+      m_newEvent, m_command.scenarioPath().find(ctx));
 }
 
-void CreateEvent_State::redo() const
+void CreateEvent_State::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_command.scenarioPath().find();
+  auto& scenar = m_command.scenarioPath().find(ctx);
 
   // Create the event
   ScenarioCreate<EventModel>::redo(
@@ -62,7 +53,7 @@ void CreateEvent_State::redo() const
   scenar.events.at(m_newEvent).metadata().setName(m_createdName);
 
   // And the state
-  m_command.redo();
+  m_command.redo(ctx);
 }
 
 void CreateEvent_State::serializeImpl(DataStreamInput& s) const

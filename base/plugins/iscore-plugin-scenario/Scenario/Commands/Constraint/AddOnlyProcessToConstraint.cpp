@@ -30,35 +30,35 @@ namespace Scenario
 namespace Command
 {
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
-    Path<ConstraintModel>&& constraintPath,
+    const ConstraintModel& cst,
     UuidKey<Process::ProcessModel>
         process)
-    : AddOnlyProcessToConstraint{std::move(constraintPath),
-                                 getStrongId(constraintPath.find().processes),
+    : AddOnlyProcessToConstraint{cst,
+                                 getStrongId(cst.processes),
                                  process}
 {
 }
 
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
-    Path<ConstraintModel>&& constraintPath,
+    const ConstraintModel& cst,
     Id<Process::ProcessModel>
         processId,
     UuidKey<Process::ProcessModel>
         process)
-    : m_path{std::move(constraintPath)}
+    : m_path{cst}
     , m_processName{process}
     , m_createdProcessId{std::move(processId)}
 {
 }
 
-void AddOnlyProcessToConstraint::undo() const
+void AddOnlyProcessToConstraint::undo(const iscore::DocumentContext& ctx) const
 {
-  undo(m_path.find());
+  undo(m_path.find(ctx));
 }
 
-void AddOnlyProcessToConstraint::redo() const
+void AddOnlyProcessToConstraint::redo(const iscore::DocumentContext& ctx) const
 {
-  redo(m_path.find());
+  redo(m_path.find(ctx));
 }
 
 void AddOnlyProcessToConstraint::undo(ConstraintModel& constraint) const

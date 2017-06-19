@@ -26,17 +26,17 @@ MoveCommentBlock::MoveCommentBlock(
   m_oldY = cmt.heightPercentage();
 }
 
-void Scenario::Command::MoveCommentBlock::undo() const
+void Scenario::Command::MoveCommentBlock::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
   auto& cmt = scenar.comment(m_id);
   cmt.setDate(m_oldDate);
   cmt.setHeightPercentage(m_oldY);
 }
 
-void Scenario::Command::MoveCommentBlock::redo() const
+void Scenario::Command::MoveCommentBlock::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
   auto& cmt = scenar.comment(m_id);
   cmt.setDate(m_newDate);
   cmt.setHeightPercentage(m_newY);

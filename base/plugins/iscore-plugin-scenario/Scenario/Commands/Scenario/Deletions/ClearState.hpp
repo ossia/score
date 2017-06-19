@@ -17,9 +17,9 @@ class ClearState final : public iscore::Command
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), ClearState, "Clear a state")
 public:
-  ClearState(Path<StateModel>&& path);
-  void undo() const override;
-  void redo() const override;
+  ClearState(const StateModel& path);
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

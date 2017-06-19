@@ -16,21 +16,21 @@ namespace Explorer
 namespace Command
 {
 AddDevice::AddDevice(
-    Path<DeviceDocumentPlugin>&& device_tree,
+    const DeviceDocumentPlugin& device_tree,
     const Device::DeviceSettings& parameters)
     : m_devicesModel{device_tree}, m_parameters(parameters)
 {
 }
 
-void AddDevice::undo() const
+void AddDevice::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.removeDevice(m_parameters);
 }
 
-void AddDevice::redo() const
+void AddDevice::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.addDevice(m_parameters);
 }
 

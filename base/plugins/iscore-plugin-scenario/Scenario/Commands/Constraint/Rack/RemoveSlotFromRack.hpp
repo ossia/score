@@ -21,10 +21,12 @@ class RemoveSlotFromRack final : public iscore::Command
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), RemoveSlotFromRack, "Remove a slot")
 public:
-  RemoveSlotFromRack(SlotPath slotPath);
+  RemoveSlotFromRack(
+      SlotPath slotPath,
+      Slot slt);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

@@ -21,19 +21,19 @@ AggregateCommand::~AggregateCommand()
   m_cmds.clear();
 }
 
-void AggregateCommand::undo() const
+void AggregateCommand::undo(const iscore::DocumentContext& ctx) const
 {
   for (const auto& cmd : boost::adaptors::reverse(m_cmds))
   {
-    cmd->undo();
+    cmd->undo(ctx);
   }
 }
 
-void AggregateCommand::redo() const
+void AggregateCommand::redo(const iscore::DocumentContext& ctx) const
 {
   for (const auto& cmd : m_cmds)
   {
-    cmd->redo();
+    cmd->redo(ctx);
   }
 }
 

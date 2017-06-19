@@ -14,54 +14,49 @@ namespace Scenario
 namespace Command
 {
 MoveNewEvent::MoveNewEvent(
-    Path<Scenario::ProcessModel>&& scenarioPath,
-    Id<ConstraintModel>
-        constraintId,
-    Id<EventModel>
-        eventId,
+    const Scenario::ProcessModel& scenarioPath,
+    Id<ConstraintModel> constraintId,
+    Id<EventModel> eventId,
     TimeVal date,
     double y,
     bool yLocked)
-    : m_path{std::move(scenarioPath)}
+    : m_path{scenarioPath}
     , m_constraintId{std::move(constraintId)}
-    , m_cmd{Path<Scenario::ProcessModel>{m_path}, std::move(eventId),
-            std::move(date), ExpandMode::Scale}
+    , m_cmd{scenarioPath, std::move(eventId), std::move(date), ExpandMode::Scale}
     , m_y{y}
     , m_yLocked{yLocked}
 {
 }
 
 MoveNewEvent::MoveNewEvent(
-    Path<Scenario::ProcessModel>&& scenarioPath,
-    Id<ConstraintModel>
-        constraintId,
-    Id<EventModel>
-        eventId,
+    const Scenario::ProcessModel& scenarioPath,
+    Id<ConstraintModel> constraintId,
+    Id<EventModel> eventId,
     TimeVal date,
     const double y,
     bool yLocked,
     ExpandMode mode)
     : m_path{scenarioPath}
     , m_constraintId{std::move(constraintId)}
-    , m_cmd{std::move(scenarioPath), std::move(eventId), std::move(date), mode}
+    , m_cmd{scenarioPath, std::move(eventId), std::move(date), mode}
     , m_y{y}
     , m_yLocked{yLocked}
 {
 }
 
-void MoveNewEvent::undo() const
+void MoveNewEvent::undo(const iscore::DocumentContext& ctx) const
 {
-  m_cmd.undo();
+  m_cmd.undo(ctx);
   // It is not needed to move the constraint since
   // the sub-command already does it correctly.
 }
 
-void MoveNewEvent::redo() const
+void MoveNewEvent::redo(const iscore::DocumentContext& ctx) const
 {
-  m_cmd.redo();
+  m_cmd.redo(ctx);
   if (!m_yLocked)
   {
-    updateConstraintVerticalPos(m_y, m_constraintId, m_cmd.path().find());
+    updateConstraintVerticalPos(m_y, m_constraintId, m_cmd.path().find(ctx));
   }
 }
 

@@ -29,8 +29,8 @@ public:
   Command();
   virtual ~Command();
 
-  virtual void undo() const = 0;
-  virtual void redo() const = 0;
+  virtual void undo(const iscore::DocumentContext& ctx) const = 0;
+  virtual void redo(const iscore::DocumentContext& ctx) const = 0;
 
   virtual const CommandGroupKey& parentKey() const noexcept = 0;
   virtual const CommandKey& key() const noexcept = 0;

@@ -21,12 +21,12 @@ class UpdateDeviceSettings final : public iscore::Command
       "Update a device")
 public:
   UpdateDeviceSettings(
-      Path<DeviceDocumentPlugin>&& device_tree,
+      const DeviceDocumentPlugin& devplug,
       const QString& name,
       const Device::DeviceSettings& parameters);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

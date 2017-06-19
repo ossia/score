@@ -32,26 +32,17 @@ CreateState::CreateState(
 {
 }
 
-CreateState::CreateState(
-    const Path<Scenario::ProcessModel>& scenarioPath,
-    Id<EventModel>
-        event,
-    double stateY)
-    : CreateState{scenarioPath.find(), std::move(event), stateY}
+void CreateState::undo(const iscore::DocumentContext& ctx) const
 {
-}
-
-void CreateState::undo() const
-{
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
 
   ScenarioCreate<StateModel>::undo(m_newState, scenar);
   updateEventExtent(m_event, scenar);
 }
 
-void CreateState::redo() const
+void CreateState::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
 
   // Create the end state
   ScenarioCreate<StateModel>::redo(

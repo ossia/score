@@ -23,19 +23,19 @@ public:
   using Command::Command;
   PropertyCommand() = default;
 
-  template <typename Path_T, typename... Args>
-  PropertyCommand(Path_T&& path, QString property, QVariant newval)
-      : m_path{std::move(path).unsafePath()}
+  template <typename T, typename... Args>
+  PropertyCommand(const T& obj, QString property, QVariant newval)
+      : m_path{Path<T>(obj).unsafePath()}
       , m_property{std::move(property)}
+      , m_old{obj.property(m_property.toUtf8().constData())}
       , m_new{std::move(newval)}
   {
-    m_old = m_path.find<QObject>().property(m_property.toUtf8().constData());
   }
 
   virtual ~PropertyCommand();
 
-  void undo() const final override;
-  void redo() const final override;
+  void undo(const iscore::DocumentContext& ctx) const final override;
+  void redo(const iscore::DocumentContext& ctx) const final override;
 
   template <typename Path_T>
   void update(const Path_T&, QVariant newval)

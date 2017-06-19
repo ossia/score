@@ -7,20 +7,20 @@
 #include <iscore/model/path/PathSerialization.hpp>
 namespace JS
 {
-EditScript::EditScript(Path<ProcessModel>&& model, const QString& text)
-    : m_model{std::move(model)}, m_new{text}
+EditScript::EditScript(const ProcessModel& model, const QString& text)
+    : m_model{model}, m_new{text}
 {
-  m_old = m_model.find().script();
+  m_old = model.script();
 }
 
-void EditScript::undo() const
+void EditScript::undo(const iscore::DocumentContext& ctx) const
 {
-  m_model.find().setScript(m_old);
+  m_model.find(ctx).setScript(m_old);
 }
 
-void EditScript::redo() const
+void EditScript::redo(const iscore::DocumentContext& ctx) const
 {
-  m_model.find().setScript(m_new);
+  m_model.find(ctx).setScript(m_new);
 }
 
 void EditScript::serializeImpl(DataStreamInput& s) const
@@ -34,20 +34,20 @@ void EditScript::deserializeImpl(DataStreamOutput& s)
 }
 
 EditStateScript::EditStateScript(
-    Path<StateProcess>&& model, const QString& text)
+    const StateProcess& model, const QString& text)
     : m_model{std::move(model)}, m_new{text}
 {
-  m_old = m_model.find().script();
+  m_old = model.script();
 }
 
-void EditStateScript::undo() const
+void EditStateScript::undo(const iscore::DocumentContext& ctx) const
 {
-  m_model.find().setScript(m_old);
+  m_model.find(ctx).setScript(m_old);
 }
 
-void EditStateScript::redo() const
+void EditStateScript::redo(const iscore::DocumentContext& ctx) const
 {
-  m_model.find().setScript(m_new);
+  m_model.find(ctx).setScript(m_new);
 }
 
 void EditStateScript::serializeImpl(DataStreamInput& s) const

@@ -28,16 +28,16 @@ ClearConstraint::ClearConstraint(const ConstraintModel& constraint)
 {
 }
 
-void ClearConstraint::undo() const
+void ClearConstraint::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& constraint = m_constraintSaveData.constraintPath.find();
+  auto& constraint = m_constraintSaveData.constraintPath.find(ctx);
 
   m_constraintSaveData.reload(constraint);
 }
 
-void ClearConstraint::redo() const
+void ClearConstraint::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& constraint = m_constraintSaveData.constraintPath.find();
+  auto& constraint = m_constraintSaveData.constraintPath.find(ctx);
 
   constraint.clearSmallView();
 

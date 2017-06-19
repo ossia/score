@@ -107,29 +107,10 @@ QString ObjectPath::toString() const
   return s;
 }
 
-QObject* ObjectPath::find_impl() const
+QObject* ObjectPath::find_impl(const iscore::DocumentContext& ctx) const
 {
   using namespace iscore;
-  QObject* obj{};
-
-  const auto& docs = iscore::GUIAppContext().documents.documents();
-  auto parent_doc_it = ossia::find_if(
-      docs,
-      [root_id_val
-       = m_objectIdentifiers.at(0).id()](const iscore::Document* doc) {
-        return doc->model().id().val() == root_id_val;
-      });
-
-  if (parent_doc_it != docs.end())
-  {
-    obj = &(*parent_doc_it)->model();
-  }
-  else
-  {
-    auto parent_name = m_objectIdentifiers.at(0).objectName();
-    auto objs = qApp->findChildren<IdentifiedObjectAbstract*>(parent_name);
-    obj = findById_weak_safe(objs, m_objectIdentifiers.at(0).id());
-  }
+  QObject* obj = &ctx.document.model();
 
   auto children = boost::make_iterator_range(
       m_objectIdentifiers.begin() + 1, m_objectIdentifiers.end());
@@ -144,28 +125,10 @@ QObject* ObjectPath::find_impl() const
   return obj;
 }
 
-QObject* ObjectPath::find_impl_unsafe() const
+QObject* ObjectPath::find_impl_unsafe(const iscore::DocumentContext& ctx) const
 {
   using namespace iscore;
-  QObject* obj{};
-
-  const auto& docs = iscore::GUIAppContext().documents.documents();
-  auto parent_doc_it = ossia::find_if(docs, [&](iscore::Document* doc) {
-    return doc->model().id().val() == m_objectIdentifiers.at(0).id();
-  });
-
-  if (parent_doc_it != docs.end())
-  {
-    obj = &(*parent_doc_it)->model();
-  }
-  else
-  {
-    auto parent_name = m_objectIdentifiers.at(0).objectName();
-    auto objs = qApp->findChildren<IdentifiedObjectAbstract*>(parent_name);
-    obj = findById_weak_unsafe(objs, m_objectIdentifiers.at(0).id());
-    if (!obj)
-      return nullptr;
-  }
+  QObject* obj = &ctx.document.model();
 
   auto children = boost::make_iterator_range(
       std::begin(m_objectIdentifiers) + 1, std::end(m_objectIdentifiers));

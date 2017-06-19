@@ -28,7 +28,7 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
     QObject* parent)
     : ConstraintPresenter{
           constraint, new FullViewConstraintView{*this, parentobject},
-          new FullViewConstraintHeader{parentobject}, ctx, parent}
+          new FullViewConstraintHeader{ctx, parentobject}, ctx, parent}
 {
   // Address bar
   auto& addressBar = static_cast<FullViewConstraintHeader*>(m_header)->bar();

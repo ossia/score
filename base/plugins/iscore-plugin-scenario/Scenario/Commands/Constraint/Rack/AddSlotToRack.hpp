@@ -28,8 +28,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddSlotToRack final
 public:
   AddSlotToRack(const Path<ConstraintModel>& rackPath);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

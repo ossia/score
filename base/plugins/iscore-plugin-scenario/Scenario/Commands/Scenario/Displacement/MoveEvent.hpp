@@ -64,14 +64,14 @@ public:
            * @param mode
            */
   MoveEvent(
-      Path<Scenario::ProcessModel>&& scenarioPath,
+      const Scenario::ProcessModel& scenario,
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
       ExpandMode mode)
-      : SerializableMoveEvent{}, m_path{std::move(scenarioPath)}, m_mode{mode}
+      : SerializableMoveEvent{}, m_path{scenario}, m_mode{mode}
   {
-    auto& scenar = m_path.find();
-    DisplacementPolicy::init(scenar, {scenar.event(eventId).timeNode()});
+    auto& s = const_cast<Scenario::ProcessModel&>(scenario);
+    DisplacementPolicy::init(s, {scenario.event(eventId).timeNode()});
     // we need to compute the new time delta and store this initial event id
     // for recalculate the delta on updates
     // NOTE: in the future in would be better to give directly the delta value
@@ -79,12 +79,13 @@ public:
     // in that way we wouldn't need to keep the initial event and recalculate
     // the delta
     m_eventId = eventId;
-    m_initialDate = getDate(scenar, eventId);
+    m_initialDate = getDate(scenario, eventId);
 
-    update(eventId, newDate, 0, m_mode);
+    update(s, eventId, newDate, 0, m_mode);
   }
 
   void update(
+      Scenario::ProcessModel& scenario,
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
       double,
@@ -94,8 +95,6 @@ public:
     // NOTE: in the future in would be better to give directly the delta value
     // to this method
     TimeVal deltaDate = newDate - m_initialDate;
-
-    auto& scenario = m_path.find();
 
     // NOTICE: multiple event displacement functionnality already available,
     // this is "retro" compatibility
@@ -110,12 +109,13 @@ public:
         scenario, draggedElements, deltaDate, m_savedElementsProperties);
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& scenario = m_path.find();
+    auto& scenario = m_path.find(ctx);
 
     // update positions using old stored dates
     DisplacementPolicy::revertPositions(
+        ctx,
         scenario,
         [&](Process::ProcessModel& p, const TimeVal& t) {
           p.setParentDuration(m_mode, t);
@@ -125,9 +125,9 @@ public:
     updateEventExtent(m_eventId, scenario);
   }
 
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& scenario = m_path.find();
+    auto& scenario = m_path.find(ctx);
 
     // update positions using new stored dates
     DisplacementPolicy::updatePositions(

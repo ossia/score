@@ -28,16 +28,15 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final
       "Add a state process")
 public:
   AddStateProcessToState(
-      Path<StateModel>&& state, UuidKey<Process::StateProcessFactory> process);
+      const Scenario::StateModel& state,
+      UuidKey<Process::StateProcessFactory> process);
   AddStateProcessToState(
-      Path<StateModel>&& state,
-      Id<Process::StateProcess>
-          idToUse,
-      UuidKey<Process::StateProcessFactory>
-          process);
+      const Scenario::StateModel& state,
+      Id<Process::StateProcess> idToUse,
+      UuidKey<Process::StateProcessFactory> process);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

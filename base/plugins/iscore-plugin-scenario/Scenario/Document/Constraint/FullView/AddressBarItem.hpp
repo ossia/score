@@ -18,7 +18,9 @@ class AddressBarItem final : public QObject, public QGraphicsItem
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
 public:
-  AddressBarItem(QGraphicsItem* parent);
+  AddressBarItem(
+      const iscore::DocumentContext& ctx,
+      QGraphicsItem* parent);
 
   double width() const;
   void setTargetObject(ObjectPath&&);
@@ -36,6 +38,7 @@ private:
   void redraw();
   QList<QGraphicsItem*> m_items;
   ObjectPath m_currentPath;
+  const iscore::DocumentContext& m_ctx;
 
   double m_width{};
 };

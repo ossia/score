@@ -29,9 +29,9 @@ ChangeSourceAddress::ChangeSourceAddress(
   m_new.domain.get() = ossia::make_domain(c.min, c.max);
 }
 
-void ChangeSourceAddress::undo() const
+void ChangeSourceAddress::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& mapping = m_path.find();
+  auto& mapping = m_path.find(ctx);
 
   auto& dom = m_old.domain.get();
   mapping.setSourceMin(dom.convert_min<double>());
@@ -40,9 +40,9 @@ void ChangeSourceAddress::undo() const
   mapping.setSourceAddress(m_old.address);
 }
 
-void ChangeSourceAddress::redo() const
+void ChangeSourceAddress::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& mapping = m_path.find();
+  auto& mapping = m_path.find(ctx);
 
   auto& dom = m_new.domain.get();
   mapping.setSourceMin(dom.convert_min<double>());
@@ -71,9 +71,9 @@ ChangeTargetAddress::ChangeTargetAddress(
   m_new.domain.get() = ossia::make_domain(c.min, c.max);
 }
 
-void ChangeTargetAddress::undo() const
+void ChangeTargetAddress::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& mapping = m_path.find();
+  auto& mapping = m_path.find(ctx);
 
   auto& dom = m_old.domain.get();
   mapping.setTargetMin(dom.convert_min<double>());
@@ -82,9 +82,9 @@ void ChangeTargetAddress::undo() const
   mapping.setTargetAddress(m_old.address);
 }
 
-void ChangeTargetAddress::redo() const
+void ChangeTargetAddress::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& mapping = m_path.find();
+  auto& mapping = m_path.find(ctx);
 
   auto& dom = m_new.domain.get();
   mapping.setTargetMin(dom.convert_min<double>());

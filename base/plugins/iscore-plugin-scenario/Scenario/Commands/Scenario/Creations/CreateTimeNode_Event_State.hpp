@@ -29,11 +29,6 @@ public:
   CreateTimeNode_Event_State(
       const Scenario::ProcessModel& scenario, TimeVal date, double stateY);
 
-  CreateTimeNode_Event_State(
-      const Path<Scenario::ProcessModel>& scenario,
-      TimeVal date,
-      double stateY);
-
   const Path<Scenario::ProcessModel>& scenarioPath() const
   {
     return m_command.scenarioPath();
@@ -54,8 +49,8 @@ public:
     return m_newTimeNode;
   }
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

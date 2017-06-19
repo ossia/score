@@ -96,13 +96,13 @@ class ChangeGradient final : public iscore::Command
 }
 
 public:
-void undo() const override
+void undo(const iscore::DocumentContext& ctx) const override
 {
-  m_path.find().setGradient(m_old);
+  m_path.find(ctx).setGradient(m_old);
 }
-void redo() const override
+void redo(const iscore::DocumentContext& ctx) const override
 {
-  m_path.find().setGradient(m_new);
+  m_path.find(ctx).setGradient(m_new);
 }
 
 protected:

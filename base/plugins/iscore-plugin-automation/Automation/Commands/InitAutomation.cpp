@@ -11,12 +11,12 @@
 namespace Automation
 {
 InitAutomation::InitAutomation(
-    Path<ProcessModel>&& path,
+    const ProcessModel& path,
     const ::State::AddressAccessor& newaddr,
     double newmin,
     double newmax,
     std::vector<Curve::SegmentData>&& segments)
-    : m_path{std::move(path)}
+    : m_path{path}
     , m_addr(newaddr)
     , m_newMin{newmin}
     , m_newMax{newmax}
@@ -25,12 +25,12 @@ InitAutomation::InitAutomation(
 }
 
 InitAutomation::InitAutomation(
-    Path<ProcessModel>&& path,
+    const ProcessModel& path,
     State::AddressAccessor&& newaddr,
     double newmin,
     double newmax,
     std::vector<Curve::SegmentData>&& segments)
-    : m_path{std::move(path)}
+    : m_path{path}
     , m_addr(std::move(newaddr))
     , m_newMin{newmin}
     , m_newMax{newmax}
@@ -39,20 +39,20 @@ InitAutomation::InitAutomation(
 }
 
 InitAutomation::InitAutomation(
-    Path<ProcessModel>&& path,
+    const ProcessModel& path,
     const ::State::AddressAccessor& newaddr,
     double newmin,
     double newmax)
-    : InitAutomation(std::move(path), newaddr, newmin, newmax, {})
+    : InitAutomation(path, newaddr, newmin, newmax, {})
 {
 }
-void InitAutomation::undo() const
+void InitAutomation::undo(const iscore::DocumentContext& ctx) const
 {
 }
 
-void InitAutomation::redo() const
+void InitAutomation::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& autom = m_path.find();
+  auto& autom = m_path.find(ctx);
 
   auto& curve = autom.curve();
 

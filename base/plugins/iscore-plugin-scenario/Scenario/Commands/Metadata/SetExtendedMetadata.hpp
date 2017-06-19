@@ -37,22 +37,21 @@ public:
 
   SetExtendedMetadata() = default;
 
-  SetExtendedMetadata(Path<T>&& path, QVariantMap newM)
-      : m_path{std::move(path)}, m_newMeta{std::move(newM)}
+  SetExtendedMetadata(const T& obj, QVariantMap newM)
+      : m_path{obj}, m_newMeta{std::move(newM)}
   {
-    auto& obj = m_path.find();
     m_oldMeta = obj.metadata().getExtendedMetadata();
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find();
+    auto& obj = m_path.find(ctx);
     obj.metadata().setExtendedMetadata(m_oldMeta);
   }
 
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find();
+    auto& obj = m_path.find(ctx);
     obj.metadata().setExtendedMetadata(m_newMeta);
   }
 

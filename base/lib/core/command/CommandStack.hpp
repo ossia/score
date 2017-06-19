@@ -47,64 +47,45 @@ public:
    */
   void disableActions();
 
-  bool canUndo() const
-  {
-    return !m_undoable.empty();
-  }
+  bool canUndo() const;
 
-  bool canRedo() const
-  {
-    return !m_redoable.empty();
-  }
+  bool canRedo() const;
 
   //! Text shown currently in the undo action
-  QString undoText() const
-  {
-    return canUndo() ? m_undoable.top()->description() : tr("Nothing to undo");
-  }
+  QString undoText() const;
 
   //! Text shown currently in the redo action
-  QString redoText() const
-  {
-    return canRedo() ? m_redoable.top()->description() : tr("Nothing to redo");
-  }
+  QString redoText() const;
 
-  int size() const
-  {
-    return m_undoable.size() + m_redoable.size();
-  }
+  int size() const;
 
   const iscore::Command* command(int index) const;
-  int currentIndex() const
-  {
-    return m_undoable.size();
-  }
+  int currentIndex() const;
 
-  void markCurrentIndexAsSaved()
-  {
-    setSavedIndex(currentIndex());
-  }
+  void markCurrentIndexAsSaved();
 
-  bool isAtSavedIndex() const
-  {
-    return currentIndex() == m_savedIndex;
-  }
+  bool isAtSavedIndex() const;
 
-  auto& undoable()
+  QStack<iscore::Command*>& undoable()
   {
     return m_undoable;
   }
-  auto& redoable()
+  QStack<iscore::Command*>& redoable()
   {
     return m_redoable;
   }
-  auto& undoable() const
+  const QStack<iscore::Command*>& undoable() const
   {
     return m_undoable;
   }
-  auto& redoable() const
+  const QStack<iscore::Command*>& redoable() const
   {
     return m_redoable;
+  }
+
+  const iscore::DocumentContext& context() const
+  {
+    return m_ctx;
   }
 
 signals:
@@ -231,5 +212,6 @@ private:
   int m_savedIndex{};
 
   DocumentValidator m_checker;
+  const iscore::DocumentContext& m_ctx;
 };
 }

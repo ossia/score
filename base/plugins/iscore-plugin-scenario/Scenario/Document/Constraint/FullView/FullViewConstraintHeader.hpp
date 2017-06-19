@@ -14,7 +14,9 @@ class AddressBarItem;
 class FullViewConstraintHeader final : public ConstraintHeader
 {
 public:
-  FullViewConstraintHeader(QGraphicsItem*);
+  FullViewConstraintHeader(
+      const iscore::DocumentContext& ctx,
+      QGraphicsItem*);
 
   AddressBarItem& bar();
 

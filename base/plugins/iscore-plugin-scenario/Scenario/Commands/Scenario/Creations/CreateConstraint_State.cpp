@@ -22,10 +22,8 @@ namespace Command
 {
 CreateConstraint_State::CreateConstraint_State(
     const Scenario::ProcessModel& scenario,
-    Id<StateModel>
-        startState,
-    Id<EventModel>
-        endEvent,
+    Id<StateModel> startState,
+    Id<EventModel> endEvent,
     double endStateY)
     : m_newState{getStrongId(scenario.states)}
     , m_command{scenario, std::move(startState), m_newState}
@@ -34,37 +32,25 @@ CreateConstraint_State::CreateConstraint_State(
 {
 }
 
-CreateConstraint_State::CreateConstraint_State(
-    const Path<Scenario::ProcessModel>& scenario,
-    Id<StateModel>
-        startState,
-    Id<EventModel>
-        endEvent,
-    double endStateY)
-    : CreateConstraint_State{scenario.find(), std::move(startState),
-                             std::move(endEvent), endStateY}
+void CreateConstraint_State::undo(const iscore::DocumentContext& ctx) const
 {
-}
-
-void CreateConstraint_State::undo() const
-{
-  m_command.undo();
+  m_command.undo(ctx);
 
   ScenarioCreate<StateModel>::undo(
-      m_newState, m_command.scenarioPath().find());
-  updateEventExtent(m_endEvent, m_command.scenarioPath().find());
+      m_newState, m_command.scenarioPath().find(ctx));
+  updateEventExtent(m_endEvent, m_command.scenarioPath().find(ctx));
 }
 
-void CreateConstraint_State::redo() const
+void CreateConstraint_State::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_command.scenarioPath().find();
+  auto& scenar = m_command.scenarioPath().find(ctx);
 
   // Create the end state
   ScenarioCreate<StateModel>::redo(
       m_newState, scenar.events.at(m_endEvent), m_stateY, scenar);
 
   // The constraint between
-  m_command.redo();
+  m_command.redo(ctx);
   updateEventExtent(m_endEvent, scenar);
 }
 

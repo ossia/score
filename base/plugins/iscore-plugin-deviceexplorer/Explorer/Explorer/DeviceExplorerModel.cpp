@@ -623,15 +623,24 @@ void DeviceExplorerModel::editData(
     int role)
 {
   Device::Node* node = path.toNode(&rootNode());
-  ISCORE_ASSERT(node->parent());
+  editData(*node, column, value, role);
+}
+
+void DeviceExplorerModel::editData(
+    Device::Node& node,
+    Column column,
+    const State::Value& value,
+    int role)
+{
+  ISCORE_ASSERT(node.parent());
 
   QModelIndex index = createIndex(
-      node->parent()->indexOfChild(node), (int)column, node->parent());
+      node.parent()->indexOfChild(&node), (int)column, node.parent());
 
   QModelIndex changedTopLeft = index;
   QModelIndex changedBottomRight = index;
 
-  if (node->is<Device::DeviceSettings>())
+  if (node.is<Device::DeviceSettings>())
     return;
 
   if (role == Qt::EditRole)
@@ -644,12 +653,12 @@ void DeviceExplorerModel::editData(
 
             if(! s.isEmpty())
             {
-                node->get<Device::AddressSettings>().name = s;
+                node.get<Device::AddressSettings>().name = s;
             }
         }
         else */ if (index.column() == (int)Column::Value)
     {
-      node->get<Device::AddressSettings>().value = value;
+      node.get<Device::AddressSettings>().value = value;
     }
     // TODO min/max/tags editing
   }

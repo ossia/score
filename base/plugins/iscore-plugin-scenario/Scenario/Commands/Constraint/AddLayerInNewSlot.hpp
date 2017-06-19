@@ -32,8 +32,8 @@ public:
       Path<ConstraintModel>&& constraintPath,
       Id<Process::ProcessModel> process);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   Id<Process::ProcessModel> processId() const
   {

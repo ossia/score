@@ -29,7 +29,7 @@ struct UndoRedo
       const iscore::CommandStackFacade& stack,
       iscore::Command* other)
   {
-    other->undo();
+    other->undo(stack.context());
     stack.redoAndPush(other);
   }
 };
@@ -38,15 +38,19 @@ namespace RedoStrategy
 {
 struct Redo
 {
-  static void redo(iscore::Command& cmd)
+  static void redo(
+      const iscore::DocumentContext& ctx,
+      iscore::Command& cmd)
   {
-    cmd.redo();
+    cmd.redo(ctx);
   }
 };
 
 struct Quiet
 {
-  static void redo(iscore::Command& cmd)
+  static void redo(
+      const iscore::DocumentContext& ctx,
+      iscore::Command& cmd)
   {
   }
 };
