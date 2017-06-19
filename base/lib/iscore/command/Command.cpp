@@ -9,17 +9,16 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 namespace iscore
 {
-Command::Command() :
-    context{iscore::AppContext()},
+Command::Command() /*:
     m_timestamp{
         std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::high_resolution_clock::now().time_since_epoch())}
+            std::chrono::high_resolution_clock::now().time_since_epoch())}*/
 {
 }
 
 Command::~Command() = default;
 SettingsCommandBase::~SettingsCommandBase() = default;
-
+/*
 quint32 Command::timestamp() const
 {
   return static_cast<quint32>(m_timestamp.count());
@@ -28,16 +27,16 @@ quint32 Command::timestamp() const
 void Command::setTimestamp(quint32 stmp)
 {
   m_timestamp = std::chrono::duration<quint32>(stmp);
-}
+}*/
 
 QByteArray Command::serialize() const
 {
   QByteArray arr;
   {
     QDataStream s(&arr, QIODevice::Append);
-    s.setVersion(QDataStream::Qt_5_3);
+    s.setVersion(QDataStream::Qt_5_8);
 
-    s << timestamp();
+    //s << timestamp();
     DataStreamInput inp{s};
     serializeImpl(inp);
   }
@@ -48,12 +47,12 @@ QByteArray Command::serialize() const
 void Command::deserialize(const QByteArray& arr)
 {
   QDataStream s(arr);
-  s.setVersion(QDataStream::Qt_5_3);
+  s.setVersion(QDataStream::Qt_5_8);
 
-  quint32 stmp;
-  s >> stmp;
+  //quint32 stmp;
+  //s >> stmp;
 
-  setTimestamp(stmp);
+  //setTimestamp(stmp);
 
   DataStreamOutput outp{s};
   deserializeImpl(outp);

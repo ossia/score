@@ -24,6 +24,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 namespace Scenario
 {
@@ -58,7 +59,7 @@ void AddOnlyProcessToConstraint::undo(const iscore::DocumentContext& ctx) const
 
 void AddOnlyProcessToConstraint::redo(const iscore::DocumentContext& ctx) const
 {
-  redo(m_path.find(ctx));
+  redo(m_path.find(ctx), ctx);
 }
 
 void AddOnlyProcessToConstraint::undo(ConstraintModel& constraint) const
@@ -67,10 +68,10 @@ void AddOnlyProcessToConstraint::undo(ConstraintModel& constraint) const
 }
 
 Process::ProcessModel&
-AddOnlyProcessToConstraint::redo(ConstraintModel& constraint) const
+AddOnlyProcessToConstraint::redo(ConstraintModel& constraint, const iscore::DocumentContext& ctx) const
 {
   // Create process model
-  auto fac = context.interfaces<Process::ProcessFactoryList>().get(
+  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(
       m_processName);
   ISCORE_ASSERT(fac);
   auto proc = fac->make(

@@ -42,7 +42,7 @@ public:
   void redo(const iscore::DocumentContext& ctx) const override;
 
   void undo(ConstraintModel&) const;
-  Process::ProcessModel& redo(ConstraintModel&) const;
+  Process::ProcessModel& redo(ConstraintModel&, const iscore::DocumentContext& ctx) const;
 
   const Path<ConstraintModel>& constraintPath() const
   {

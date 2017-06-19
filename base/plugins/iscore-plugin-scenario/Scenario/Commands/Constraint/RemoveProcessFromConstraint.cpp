@@ -2,6 +2,7 @@
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/model/path/RelativePath.hpp>
 
 #include <QDataStream>
@@ -78,7 +79,7 @@ void RemoveProcessFromConstraint::undo(const iscore::DocumentContext& ctx) const
 {
   auto& constraint = m_path.find(ctx);
   DataStream::Deserializer s{m_serializedProcessData};
-  auto& fact = context.interfaces<Process::ProcessFactoryList>();
+  auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
   auto proc = deserialize_interface(fact, s, &constraint);
   if (proc)
   {
