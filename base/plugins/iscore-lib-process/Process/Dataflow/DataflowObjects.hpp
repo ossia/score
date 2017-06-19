@@ -23,14 +23,25 @@ struct CableData
 
 struct Cable
     : public IdentifiedObject<Cable>
-    , public CableData
 {
   Cable() = delete;
   Cable(const Cable&) = delete;
   Cable(Id<Cable> c): IdentifiedObject{c, "Cable", nullptr} { }
-  Cable(Id<Cable> c, CableData data): IdentifiedObject{c, "Cable", nullptr}, CableData{data} { }
+  Cable(Id<Cable> c, const CableData& data):
+    IdentifiedObject{c, "Cable", nullptr}
+  {
+    type = data.type;
+    source = &data.source.find();
+    sink = &data.sink.find();
+    outlet = data.outlet;
+    inlet = data.inlet;
+  }
 
   QtNodes::Connection* gui{};
+  CableType type{};
+  DataflowProcess* source{};
+  DataflowProcess* sink{};
+  ossia::optional<int> outlet, inlet;
   std::shared_ptr<ossia::graph_node> source_node;
   std::shared_ptr<ossia::graph_node> sink_node;
   std::shared_ptr<ossia::graph_edge> exec;

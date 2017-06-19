@@ -63,7 +63,7 @@ void PlayerImpl::init()
 
   loadPlugins(reg, m_appContext);
 
-  QSettings s;
+  QSettings s("OSSIA", "i-score");
   for (auto& plugin :
        m_appContext.interfaces<SettingsDelegateFactoryList>())
   {

@@ -91,7 +91,6 @@ protected:
   Curve::StateBase* m_state{};
 
   SingleOngoingCommandDispatcher<UpdateCurve> m_dispatcher;
-  Path<Model> m_modelPath;
 
   std::vector<SegmentData> m_startSegments;
 
