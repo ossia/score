@@ -104,16 +104,16 @@ public:
     m_delegate.init(fact, constraint);
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& constraint = m_addProcessCommand.constraintPath().find();
+    auto& constraint = m_addProcessCommand.constraintPath().find(ctx);
 
     m_delegate.undo(constraint);
     m_addProcessCommand.undo(constraint);
   }
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& constraint = m_addProcessCommand.constraintPath().find();
+    auto& constraint = m_addProcessCommand.constraintPath().find(ctx);
 
     // Create process model
     auto& proc = m_addProcessCommand.redo(constraint);

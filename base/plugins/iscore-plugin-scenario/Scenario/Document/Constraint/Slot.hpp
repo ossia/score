@@ -62,8 +62,8 @@ struct ISCORE_PLUGIN_SCENARIO_EXPORT SlotPath
   int index{};
   Slot::RackView full_view{};
 
-  const Slot& find() const;
-  const Slot* try_find() const;
+  const Slot& find(const iscore::DocumentContext&) const;
+  const Slot* try_find(const iscore::DocumentContext&) const;
 };
 
 struct ISCORE_PLUGIN_SCENARIO_EXPORT SlotId

@@ -21,7 +21,7 @@ class CreationMetaCommand final : public iscore::AggregateCommand
       CreationMetaCommand,
       "Create elements in scenario")
 public:
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
     // We only undo the creation commands
     // since the move ones perform unnecessary serialization / etc in this case
@@ -37,7 +37,7 @@ public:
           || cmd->key() == CreateConstraint_State_Event_TimeNode::static_key()
           || cmd->key() == CreateSequence::static_key())
       {
-        cmd->undo();
+        cmd->undo(ctx);
       }
     }
   }

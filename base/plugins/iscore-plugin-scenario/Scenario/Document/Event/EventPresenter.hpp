@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 
 #include <QPoint>
 #include <QString>
@@ -29,7 +29,6 @@ public:
   const EventModel& model() const;
 
   bool isSelected() const;
-
   void handleDrop(const QPointF& pos, const QMimeData* mime);
 
 signals:
@@ -43,7 +42,5 @@ signals:
 private:
   const EventModel& m_model;
   graphics_item_ptr<EventView> m_view;
-
-  CommandDispatcher<> m_dispatcher;
 };
 }

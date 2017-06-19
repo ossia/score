@@ -19,9 +19,11 @@ class SetCondition final : public iscore::Command
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetCondition, "Set an Event's condition")
 public:
-  SetCondition(Path<EventModel>&& eventPath, State::Expression&& condition);
-  void undo() const override;
-  void redo() const override;
+  SetCondition(
+      const EventModel& event,
+      State::Expression&& condition);
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;
@@ -38,7 +40,9 @@ class SetOffsetBehavior final : public iscore::PropertyCommand
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetOffsetBehavior, "Set offset behavior")
 public:
-  SetOffsetBehavior(Path<EventModel>&& path, OffsetBehavior newval);
+  SetOffsetBehavior(
+      const EventModel& event,
+      OffsetBehavior newval);
 };
 }
 }

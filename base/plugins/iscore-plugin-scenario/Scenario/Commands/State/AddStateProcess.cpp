@@ -12,33 +12,34 @@ namespace Command
 {
 
 AddStateProcessToState::AddStateProcessToState(
-    Path<StateModel>&& state, UuidKey<Process::StateProcessFactory> process)
-    : AddStateProcessToState{std::move(state),
-                             getStrongId(state.find().stateProcesses), process}
+    const Scenario::StateModel& state,
+    UuidKey<Process::StateProcessFactory> process)
+    : AddStateProcessToState{state,
+                             getStrongId(state.stateProcesses), process}
 {
 }
 
 AddStateProcessToState::AddStateProcessToState(
-    Path<StateModel>&& state,
+    const Scenario::StateModel& state,
     Id<Process::StateProcess>
         processId,
     UuidKey<Process::StateProcessFactory>
         process)
-    : m_path{std::move(state)}
+    : m_path{state}
     , m_processName{process}
     , m_createdProcessId{std::move(processId)}
 {
 }
 
-void AddStateProcessToState::undo() const
+void AddStateProcessToState::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& state = m_path.find();
+  auto& state = m_path.find(ctx);
   state.stateProcesses.remove(m_createdProcessId);
 }
 
-void AddStateProcessToState::redo() const
+void AddStateProcessToState::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& state = m_path.find();
+  auto& state = m_path.find(ctx);
   // Create process model
   auto proc = context.interfaces<Process::StateProcessList>()
                   .get(m_processName)

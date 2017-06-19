@@ -37,22 +37,21 @@ public:
 
   ChangeElementName() = default;
 
-  ChangeElementName(Path<T>&& path, QString newName)
-      : m_path{std::move(path)}, m_newName{std::move(newName)}
+  ChangeElementName(const T& obj, QString newName)
+      : m_path{obj}, m_newName{std::move(newName)}
   {
-    auto& obj = m_path.find();
     m_oldName = obj.metadata().getName();
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find();
+    auto& obj = m_path.find(ctx);
     obj.metadata().setName(m_oldName);
   }
 
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find();
+    auto& obj = m_path.find(ctx);
     obj.metadata().setName(m_newName);
   }
 

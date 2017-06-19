@@ -29,10 +29,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final
       AddMessagesToState,
       "Add messages to state")
 public:
-  AddMessagesToState(Path<StateModel>&&, const State::MessageList& messages);
+  AddMessagesToState(
+      const Scenario::StateModel& state,
+      const State::MessageList& messages);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

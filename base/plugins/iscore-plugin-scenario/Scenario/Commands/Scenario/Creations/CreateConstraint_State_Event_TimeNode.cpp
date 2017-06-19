@@ -33,29 +33,17 @@ CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
 {
 }
 
-CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
-    const Path<Scenario::ProcessModel>& scenarioPath,
-    Id<StateModel>
-        startState,
-    TimeVal date,
-    double endStateY)
-    : CreateConstraint_State_Event_TimeNode{scenarioPath.find(),
-                                            std::move(startState),
-                                            std::move(date), endStateY}
+void CreateConstraint_State_Event_TimeNode::undo(const iscore::DocumentContext& ctx) const
 {
-}
-
-void CreateConstraint_State_Event_TimeNode::undo() const
-{
-  m_command.undo();
+  m_command.undo(ctx);
 
   ScenarioCreate<TimeNodeModel>::undo(
-      m_newTimeNode, m_command.scenarioPath().find());
+      m_newTimeNode, m_command.scenarioPath().find(ctx));
 }
 
-void CreateConstraint_State_Event_TimeNode::redo() const
+void CreateConstraint_State_Event_TimeNode::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_command.scenarioPath().find();
+  auto& scenar = m_command.scenarioPath().find(ctx);
 
   // Create the end timenode
   ScenarioCreate<TimeNodeModel>::redo(
@@ -67,7 +55,7 @@ void CreateConstraint_State_Event_TimeNode::redo() const
   scenar.timeNode(m_newTimeNode).metadata().setName(m_createdName);
 
   // The event + state + constraint between
-  m_command.redo();
+  m_command.redo(ctx);
 }
 
 void CreateConstraint_State_Event_TimeNode::serializeImpl(

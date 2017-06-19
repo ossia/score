@@ -29,16 +29,16 @@ class CreateProcessInNewSlot final : public iscore::AggregateCommand
   {
     auto cmd1 = new Scenario::Command::AddOnlyProcessToConstraint(
         constraint, proc);
-    cmd1->redo();
+    cmd1->redo(disp.stack().context());
     disp.submitCommand(cmd1);
 
     auto cmd2 = new Scenario::Command::AddSlotToRack(constraint);
-    cmd2->redo();
+    cmd2->redo(disp.stack().context());
     disp.submitCommand(cmd2);
 
     auto cmd3 = new Scenario::Command::AddLayerModelToSlot(
         SlotPath{constraint, int(constraint.smallView().size() - 1)}, cmd1->processId());
-    cmd3->redo();
+    cmd3->redo(disp.stack().context());
     disp.submitCommand(cmd3);
 
   }

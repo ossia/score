@@ -70,13 +70,13 @@ public:
             if(!newName.isEmpty())
             {
               m_commandDispatcher.submitCommand(
-                  new ChangeElementName<T>{path(model), newName});
+                  new ChangeElementName<T>{model, newName});
             }
             else
             {
               m_commandDispatcher.submitCommand(
                   new ChangeElementName<T>{
-                      path(model), QString("%1.0").arg(Metadata<PrettyName_k, T>::get())
+                      model, QString("%1.0").arg(Metadata<PrettyName_k, T>::get())
                   });
             }
           }
@@ -85,7 +85,7 @@ public:
     connect(this, &MetadataWidget::labelChanged, [&](const QString& newLabel) {
       if (newLabel != model.metadata().getLabel())
         m_commandDispatcher.submitCommand(
-            new ChangeElementLabel<T>{path(model), newLabel});
+            new ChangeElementLabel<T>{model, newLabel});
     });
 
     connect(
@@ -93,14 +93,14 @@ public:
         [&](const QString& newComments) {
           if (newComments != model.metadata().getComment())
             m_commandDispatcher.submitCommand(
-                new ChangeElementComments<T>{path(model), newComments});
+                new ChangeElementComments<T>{model, newComments});
         });
 
     connect(
         this, &MetadataWidget::colorChanged, [&](iscore::ColorRef newColor) {
           if (newColor != model.metadata().getColor())
             m_commandDispatcher.submitCommand(
-                new ChangeElementColor<T>{path(model), newColor});
+                new ChangeElementColor<T>{model, newColor});
         });
 
     connect(
@@ -108,7 +108,7 @@ public:
         [&](const QVariantMap& newM) {
           if (newM != model.metadata().getExtendedMetadata())
             m_commandDispatcher.submitCommand(
-                new SetExtendedMetadata<T>{path(model), newM});
+                new SetExtendedMetadata<T>{model, newM});
         });
   }
 

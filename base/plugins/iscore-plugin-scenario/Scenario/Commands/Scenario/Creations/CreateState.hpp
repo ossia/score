@@ -28,12 +28,6 @@ public:
           event,
       double stateY);
 
-  CreateState(
-      const Path<Scenario::ProcessModel>& scenarioPath,
-      Id<EventModel>
-          event,
-      double stateY);
-
   const Path<Scenario::ProcessModel>& scenarioPath() const
   {
     return m_path;
@@ -49,9 +43,9 @@ public:
     return m_newState;
   }
 
-  void undo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
 
-  void redo() const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

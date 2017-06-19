@@ -15,16 +15,14 @@ namespace Scenario
 namespace Command
 {
 
-ClearState::ClearState(Path<StateModel>&& path) : m_path{std::move(path)}
+ClearState::ClearState(const StateModel& state) : m_path{state}
 {
-  const auto& state = m_path.find();
-
   m_oldState = Process::getUserMessages(state.messages().rootNode());
 }
 
-void ClearState::undo() const
+void ClearState::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& state = m_path.find();
+  auto& state = m_path.find(ctx);
 
   Process::MessageNode n = state.messages().rootNode();
   updateTreeWithMessageList(n, m_oldState);
@@ -32,9 +30,9 @@ void ClearState::undo() const
   state.messages() = std::move(n);
 }
 
-void ClearState::redo() const
+void ClearState::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& state = m_path.find();
+  auto& state = m_path.find(ctx);
 
   Process::MessageNode n = state.messages().rootNode();
   removeAllUserMessages(n);

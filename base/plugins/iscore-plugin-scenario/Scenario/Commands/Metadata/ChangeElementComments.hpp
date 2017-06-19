@@ -37,22 +37,21 @@ public:
 
   ChangeElementComments() = default;
 
-  ChangeElementComments(Path<T>&& path, QString newComments)
-      : m_path{std::move(path)}, m_newComments{std::move(newComments)}
+  ChangeElementComments(const T& obj, QString newComments)
+      : m_path{obj}, m_newComments{std::move(newComments)}
   {
-    auto& obj = m_path.find();
     m_oldComments = obj.metadata().getComment();
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find();
+    auto& obj = m_path.find(ctx);
     obj.metadata().setComment(m_oldComments);
   }
 
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find();
+    auto& obj = m_path.find(ctx);
     obj.metadata().setComment(m_newComments);
   }
 

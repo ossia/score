@@ -35,16 +35,14 @@ namespace Command
 
 InsertContentInConstraint::InsertContentInConstraint(
     QJsonObject&& sourceConstraint,
-    Path<ConstraintModel>&& targetConstraint,
+    const ConstraintModel& targetConstraint,
     ExpandMode mode)
     : m_source{std::move(sourceConstraint)}
     , m_target{std::move(targetConstraint)}
     , m_mode{mode}
 {
-  auto& trg_constraint = m_target.find();
-
   // Generate new ids for each cloned process.
-  const auto& target_processes = trg_constraint.processes;
+  const auto& target_processes = targetConstraint.processes;
   std::vector<Id<Process::ProcessModel>> target_processes_ids;
   target_processes_ids.reserve(target_processes.size());
   std::transform(
@@ -61,9 +59,9 @@ InsertContentInConstraint::InsertContentInConstraint(
   }
 }
 
-void InsertContentInConstraint::undo() const
+void InsertContentInConstraint::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& trg_constraint = m_target.find();
+  auto& trg_constraint = m_target.find(ctx);
   // We just have to remove what we added
   // TODO Remove the added slots, etc.
 
@@ -74,9 +72,9 @@ void InsertContentInConstraint::undo() const
   }
 }
 
-void InsertContentInConstraint::redo() const
+void InsertContentInConstraint::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& trg_constraint = m_target.find();
+  auto& trg_constraint = m_target.find(ctx);
   ConstraintModel src_constraint{JSONObject::Deserializer{m_source},
                                  &trg_constraint}; // Temporary parent
 

@@ -30,11 +30,11 @@ class RemoveProcessFromConstraint final : public iscore::Command
       "Remove a process")
 public:
   RemoveProcessFromConstraint(
-      Path<ConstraintModel>&& constraintPath,
+      const ConstraintModel& cst,
       Id<Process::ProcessModel>
           processId);
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

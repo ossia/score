@@ -13,30 +13,30 @@ namespace Command
 {
 HideRack::HideRack(
     const Scenario::ConstraintModel& constraint_vm)
-    : m_constraintViewPath{constraint_vm}
+    : m_path{constraint_vm}
 {
 }
 
-void HideRack::undo() const
+void HideRack::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& vm = m_constraintViewPath.find();
+  auto& vm = m_path.find(ctx);
   vm.setSmallViewVisible(true);
 }
 
-void HideRack::redo() const
+void HideRack::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& vm = m_constraintViewPath.find();
+  auto& vm = m_path.find(ctx);
   vm.setSmallViewVisible(false);
 }
 
 void HideRack::serializeImpl(DataStreamInput& s) const
 {
-  s << m_constraintViewPath;
+  s << m_path;
 }
 
 void HideRack::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_constraintViewPath;
+  s >> m_path;
 }
 }
 }

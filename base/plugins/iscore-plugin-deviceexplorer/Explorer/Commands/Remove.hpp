@@ -19,15 +19,19 @@ class Remove final : public iscore::Command
       DeviceExplorerCommandFactoryName(), Remove, "Remove an Explorer node")
 public:
   // For addresses
-  Remove(Path<DeviceDocumentPlugin> device_tree, Device::NodePath&& path);
+  Remove(
+      const DeviceDocumentPlugin& devplug,
+      Device::NodePath&& path);
 
   // For devices
-  Remove(Path<DeviceDocumentPlugin> device_tree, const Device::Node& node);
+  Remove(
+      const DeviceDocumentPlugin& devplug,
+      const Device::Node& node);
 
   ~Remove();
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

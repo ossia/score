@@ -10,22 +10,22 @@
 namespace Curve
 {
 UpdateCurve::UpdateCurve(
-    Path<Model>&& model, std::vector<SegmentData>&& segments)
-    : m_model{std::move(model)}, m_newCurveData{std::move(segments)}
+    const Model& model, std::vector<SegmentData>&& segments)
+    : m_model{std::move(model)}
+    , m_oldCurveData{model.toCurveData()}
+    , m_newCurveData{std::move(segments)}
 {
-  const auto& curve = m_model.find();
-  m_oldCurveData = curve.toCurveData();
 }
 
-void UpdateCurve::undo() const
+void UpdateCurve::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& curve = m_model.find();
+  auto& curve = m_model.find(ctx);
   curve.fromCurveData(m_oldCurveData);
 }
 
-void UpdateCurve::redo() const
+void UpdateCurve::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& curve = m_model.find();
+  auto& curve = m_model.find(ctx);
   curve.fromCurveData(m_newCurveData);
 }
 

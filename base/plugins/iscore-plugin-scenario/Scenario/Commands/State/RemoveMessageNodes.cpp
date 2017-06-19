@@ -14,16 +14,11 @@ namespace Command
 {
 
 RemoveMessageNodes::RemoveMessageNodes(
-    Path<StateModel>&& device_tree,
+    const Scenario::StateModel& model,
     const std::vector<const Process::MessageNode*>& nodes)
-    : m_path{device_tree}
+    : m_path{model}
 {
-  auto model = m_path.try_find();
-  if (model)
-  {
-    m_oldState = model->messages().rootNode();
-  }
-
+  m_oldState = model.messages().rootNode();
   m_newState = m_oldState;
   for (const auto& node : nodes)
   {
@@ -31,15 +26,15 @@ RemoveMessageNodes::RemoveMessageNodes(
   }
 }
 
-void RemoveMessageNodes::undo() const
+void RemoveMessageNodes::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& model = m_path.find().messages();
+  auto& model = m_path.find(ctx).messages();
   model = m_oldState;
 }
 
-void RemoveMessageNodes::redo() const
+void RemoveMessageNodes::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& model = m_path.find().messages();
+  auto& model = m_path.find(ctx).messages();
   model = m_newState;
 }
 

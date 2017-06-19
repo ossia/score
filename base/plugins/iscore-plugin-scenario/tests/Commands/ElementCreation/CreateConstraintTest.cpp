@@ -29,7 +29,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         data);
-    eventCmd.redo();
+    eventCmd.redo(ctx);
 
     data.dDate.setMSecs(30);
     data.relativeY = 0.4;
@@ -39,7 +39,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         data);
-    event2Cmd.redo();
+    event2Cmd.redo(ctx);
 
     auto firstEvent_id = eventCmd.createdEvent();
     auto lastEvent_id = event2Cmd.createdEvent();
@@ -53,14 +53,14 @@ private slots:
         },
         firstEvent_id, lastEvent_id);
 
-    cstrCmd.redo();
+    cstrCmd.redo(ctx);
 
     QCOMPARE(firstEvent->nextConstraints().size(), 1);
     QCOMPARE(lastEvent->previousConstraints().size(), 2);
 
     QCOMPARE(firstEvent->nextConstraints().at(0), cstrCmd.createdConstraint());
 
-    cstrCmd.undo();
+    cstrCmd.undo(ctx);
 
     QCOMPARE(firstEvent->nextConstraints().size(), 0);
     QCOMPARE(lastEvent->previousConstraints().size(), 1);
@@ -80,7 +80,7 @@ private slots:
     catch (...)
     {
     }
-    cstrCmd.redo();
+    cstrCmd.redo(ctx);
 
     QCOMPARE(firstEvent->nextConstraints().size(), 1);
     QCOMPARE(lastEvent->previousConstraints().size(), 2);

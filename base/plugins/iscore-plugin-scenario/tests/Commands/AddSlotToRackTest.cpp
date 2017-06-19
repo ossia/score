@@ -20,14 +20,14 @@ private slots:
     AddSlotToRack cmd(ObjectPath{{"RackModel", {0}}});
     auto slotId = cmd.m_createdSlotId;
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)rack->getSlots().size(), 1);
     QCOMPARE(rack->slot(slotId)->parent(), rack);
 
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE((int)rack->getSlots().size(), 0);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)rack->getSlots().size(), 1);
     QCOMPARE(rack->slot(slotId)->parent(), rack);
 

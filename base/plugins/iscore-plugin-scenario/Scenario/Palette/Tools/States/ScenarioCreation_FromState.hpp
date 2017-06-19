@@ -31,7 +31,7 @@ class Creation_FromState final
 public:
   Creation_FromState(
       const ToolPalette_T& stateMachine,
-      const Path<Scenario_T>& scenarioPath,
+      const Scenario_T& scenarioPath,
       const iscore::CommandStackFacade& stack,
       QState* parent)
       : CreationState<Scenario_T, ToolPalette_T>{
@@ -226,7 +226,7 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewEvent>(
-            Path<Scenario_T>{this->m_scenarioPath},
+            this->m_scenario,
             this->createdConstraints.last(),
             this->createdEvents.last(),
             this->currentPoint.date,
@@ -247,7 +247,7 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewState>(
-            Path<Scenario_T>{this->m_scenarioPath},
+            this->m_scenario,
             this->createdStates.last(),
             this->currentPoint.y);
       });
@@ -265,7 +265,7 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewState>(
-            Path<Scenario_T>{this->m_scenarioPath},
+            this->m_scenario,
             this->createdStates.last(),
             this->currentPoint.y);
       });
@@ -299,7 +299,7 @@ private:
       // Create new event on the timenode
       auto tn = Scenario::parentEvent(st, scenar).timeNode();
       auto cmd = new Scenario::Command::CreateEvent_State{
-          this->m_scenarioPath, tn, this->currentPoint.y};
+          this->m_scenario, tn, this->currentPoint.y};
       this->m_dispatcher.submitCommand(cmd);
 
       this->createdEvents.append(cmd->createdEvent());
@@ -313,7 +313,7 @@ private:
       {
         // Create new state on the event
         auto cmd = new Scenario::Command::CreateState{
-            this->m_scenarioPath, st.eventId(), this->currentPoint.y};
+            this->m_scenario, st.eventId(), this->currentPoint.y};
         this->m_dispatcher.submitCommand(cmd);
 
         this->createdStates.append(cmd->createdState());
@@ -330,7 +330,7 @@ private:
         {
           // Create new state on the event
           auto cmd = new Scenario::Command::CreateState{
-              this->m_scenarioPath, st.eventId(), this->currentPoint.y};
+              this->m_scenario, st.eventId(), this->currentPoint.y};
           this->m_dispatcher.submitCommand(cmd);
 
           this->createdStates.append(cmd->createdState());

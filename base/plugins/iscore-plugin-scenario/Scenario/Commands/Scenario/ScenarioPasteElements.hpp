@@ -30,12 +30,12 @@ class ScenarioPasteElements final : public iscore::Command
       "Paste elements in scenario")
 public:
   ScenarioPasteElements(
-      Path<Scenario::ProcessModel>&& path,
+      const Scenario::ProcessModel& path,
       const QJsonObject& obj,
       const Scenario::Point& pt);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

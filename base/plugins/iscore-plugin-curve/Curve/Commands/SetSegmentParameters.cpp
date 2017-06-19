@@ -25,9 +25,9 @@ SetSegmentParameters::SetSegmentParameters(
   }
 }
 
-void SetSegmentParameters::undo() const
+void SetSegmentParameters::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& curve = m_model.find();
+  auto& curve = m_model.find(ctx);
   for (auto it = m_old.cbegin(); it != m_old.cend(); ++it)
   {
     auto& seg = curve.segments().at(it.key());
@@ -41,9 +41,9 @@ void SetSegmentParameters::undo() const
   curve.changed();
 }
 
-void SetSegmentParameters::redo() const
+void SetSegmentParameters::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& curve = m_model.find();
+  auto& curve = m_model.find(ctx);
   for (auto it = m_new.cbegin(); it != m_new.cend(); ++it)
   {
     auto& seg = curve.segments().at(it.key());

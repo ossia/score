@@ -44,7 +44,7 @@ struct TSerializer<DataStream, std::vector<bool>>
     vec.clear();
     vec.resize(n);
     for (int i = 0; i < n; i++)
-    { 
+    {
       bool b;
       s.stream() >> b;
       vec[i] = b;
@@ -60,13 +60,11 @@ namespace Command
 {
 
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(
-    Path<ConstraintModel>&& constraintPath,
+    const ConstraintModel& constraint,
     Id<Process::ProcessModel>
         processId)
-    : m_path{std::move(constraintPath)}, m_processId{std::move(processId)}
+    : m_path{constraint}, m_processId{std::move(processId)}
 {
-  auto& constraint = m_path.find();
-
   // Save the process
   DataStream::Serializer s1{&m_serializedProcessData};
   auto& proc = constraint.processes.at(m_processId);
@@ -76,9 +74,9 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
   m_smallViewVisible = constraint.smallViewVisible();
 }
 
-void RemoveProcessFromConstraint::undo() const
+void RemoveProcessFromConstraint::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& constraint = m_path.find();
+  auto& constraint = m_path.find(ctx);
   DataStream::Deserializer s{m_serializedProcessData};
   auto& fact = context.interfaces<Process::ProcessFactoryList>();
   auto proc = deserialize_interface(fact, s, &constraint);
@@ -96,9 +94,9 @@ void RemoveProcessFromConstraint::undo() const
   constraint.setSmallViewVisible(m_smallViewVisible);
 }
 
-void RemoveProcessFromConstraint::redo() const
+void RemoveProcessFromConstraint::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& constraint = m_path.find();
+  auto& constraint = m_path.find(ctx);
   // Find the slots that will be empty : we remove them.
   std::vector<int> slots_to_remove;
   int i = 0;

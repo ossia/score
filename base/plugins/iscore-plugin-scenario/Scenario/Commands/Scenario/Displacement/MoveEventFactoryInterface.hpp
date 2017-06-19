@@ -32,7 +32,7 @@ public:
     MOVE
   };
   virtual std::unique_ptr<SerializableMoveEvent> make(
-      Path<Scenario::ProcessModel>&& scenarioPath,
+      const Scenario::ProcessModel&,
       Id<EventModel>
           eventId,
       TimeVal newDate,

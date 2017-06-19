@@ -7,7 +7,7 @@ namespace Scenario
 namespace Command
 {
 PutProcessBefore::PutProcessBefore(
-    Path<Scenario::ConstraintModel>&& cst,
+    const ConstraintModel& cst,
     Id<Process::ProcessModel>
         proc,
     Id<Process::ProcessModel>
@@ -18,14 +18,14 @@ PutProcessBefore::PutProcessBefore(
 {
 }
 
-void PutProcessBefore::undo() const
+void PutProcessBefore::undo(const iscore::DocumentContext& ctx) const
 {
-  redo();
+  redo(ctx);
 }
 
-void PutProcessBefore::redo() const
+void PutProcessBefore::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& cst = m_path.find();
+  auto& cst = m_path.find(ctx);
   cst.processes.relocate(m_proc, m_proc2);
 }
 
@@ -40,26 +40,26 @@ void PutProcessBefore::deserializeImpl(DataStreamOutput& s)
 }
 
 PutProcessToEnd::PutProcessToEnd(
-    Path<Scenario::ConstraintModel>&& cst, Id<Process::ProcessModel> proc)
+    const ConstraintModel& cst,
+    Id<Process::ProcessModel> proc)
     : m_path{std::move(cst)}, m_proc{std::move(proc)}
 {
-  auto& c = m_path.find();
-  auto it = c.processes.find(m_proc);
-  ISCORE_ASSERT(it != c.processes.end());
+  auto it = cst.processes.find(m_proc);
+  ISCORE_ASSERT(it != cst.processes.end());
   std::advance(it, 1);
-  ISCORE_ASSERT(it != c.processes.end());
+  ISCORE_ASSERT(it != cst.processes.end());
   m_proc_after = it->id();
 }
 
-void PutProcessToEnd::undo() const
+void PutProcessToEnd::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& cst = m_path.find();
+  auto& cst = m_path.find(ctx);
   cst.processes.relocate(m_proc, m_proc_after);
 }
 
-void PutProcessToEnd::redo() const
+void PutProcessToEnd::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& cst = m_path.find();
+  auto& cst = m_path.find(ctx);
   cst.processes.putToEnd(m_proc);
 }
 
@@ -74,7 +74,7 @@ void PutProcessToEnd::deserializeImpl(DataStreamOutput& s)
 }
 
 SwapProcessPosition::SwapProcessPosition(
-    Path<Scenario::ConstraintModel>&& cst,
+    const ConstraintModel& cst,
     Id<Process::ProcessModel>
         proc,
     Id<Process::ProcessModel>
@@ -85,14 +85,14 @@ SwapProcessPosition::SwapProcessPosition(
 {
 }
 
-void SwapProcessPosition::undo() const
+void SwapProcessPosition::undo(const iscore::DocumentContext& ctx) const
 {
-  redo();
+  redo(ctx);
 }
 
-void SwapProcessPosition::redo() const
+void SwapProcessPosition::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& cst = m_path.find();
+  auto& cst = m_path.find(ctx);
   cst.processes.swap(m_proc, m_proc2);
 }
 

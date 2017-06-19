@@ -8,7 +8,7 @@ class Record final : public iscore::AggregateCommand
 {
   ISCORE_COMMAND_DECL(RecordingCommandFactoryName(), Record, "Record")
 public:
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
     const int N = m_cmds.size();
     // Undo 1
@@ -16,13 +16,13 @@ public:
     {
       auto it = m_cmds.begin();
       std::advance(it, 1);
-      (*it)->undo();
+      (*it)->undo(ctx);
     }
 
     if(N >= 1)
     {
       // Undo 0
-      (*m_cmds.begin())->undo();
+      (*m_cmds.begin())->undo(ctx);
     }
   }
 };

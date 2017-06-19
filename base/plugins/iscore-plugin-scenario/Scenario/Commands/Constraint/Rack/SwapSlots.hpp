@@ -20,8 +20,8 @@ class SwapSlots final : public iscore::Command
 public:
   SwapSlots(Path<ConstraintModel>&& rack, int pos1, int pos2);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

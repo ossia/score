@@ -12,31 +12,31 @@ namespace Command
 {
 
 ResizeSlotVertically::ResizeSlotVertically(
+    const ConstraintModel& cst,
     const SlotPath& slotPath,
     double newSize)
   : m_path{slotPath}, m_newSize{newSize}
 {
-  auto& cst = m_path.constraint.find();
   m_originalSize = cst.getSlotHeight(m_path);
 }
 
 ResizeSlotVertically::ResizeSlotVertically(
+    const ConstraintModel& cst,
     SlotPath&& slotPath, double newSize)
     : m_path{slotPath}, m_newSize{newSize}
 {
-  auto& cst = m_path.constraint.find();
   m_originalSize = cst.getSlotHeight(m_path);
 }
 
-void ResizeSlotVertically::undo() const
+void ResizeSlotVertically::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& cst = m_path.constraint.find();
+  auto& cst = m_path.constraint.find(ctx);
   cst.setSlotHeight(m_path, m_originalSize);
 }
 
-void ResizeSlotVertically::redo() const
+void ResizeSlotVertically::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& cst = m_path.constraint.find();
+  auto& cst = m_path.constraint.find(ctx);
   cst.setSlotHeight(m_path, m_newSize);
 }
 

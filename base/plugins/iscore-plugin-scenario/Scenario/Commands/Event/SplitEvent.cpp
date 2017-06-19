@@ -25,22 +25,22 @@ namespace Scenario
 namespace Command
 {
 SplitEvent::SplitEvent(
-    const Path<Scenario::ProcessModel>& scenario,
+    const Scenario::ProcessModel& scenario,
     Id<EventModel>
         event,
     QVector<Id<StateModel>>
         movingstates)
     : m_scenarioPath{scenario}
     , m_originalEvent{std::move(event)}
-    , m_newEvent{getStrongId(m_scenarioPath.find().events)}
+    , m_newEvent{getStrongId(scenario.events)}
     , m_createdName{RandomNameProvider::generateRandomName()}
     , m_movingStates{std::move(movingstates)}
 {
 }
 
-void SplitEvent::undo() const
+void SplitEvent::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_scenarioPath.find();
+  auto& scenar = m_scenarioPath.find(ctx);
   auto& originalEvent = scenar.events.at(m_originalEvent);
 
   for (auto& st : m_movingStates)
@@ -49,14 +49,14 @@ void SplitEvent::undo() const
     scenar.states.at(st).setEventId(m_originalEvent);
   }
 
-  ScenarioCreate<EventModel>::undo(m_newEvent, m_scenarioPath.find());
+  ScenarioCreate<EventModel>::undo(m_newEvent, m_scenarioPath.find(ctx));
 
   updateEventExtent(m_originalEvent, scenar);
 }
 
-void SplitEvent::redo() const
+void SplitEvent::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_scenarioPath.find();
+  auto& scenar = m_scenarioPath.find(ctx);
   auto& originalEvent = scenar.event(m_originalEvent);
   ScenarioCreate<EventModel>::redo(
       m_newEvent,

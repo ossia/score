@@ -161,12 +161,8 @@ bool MessageDropHandler::drop(
     createdState = cmd->createdState();
   }
 
-  auto state_path = make_path(scenar).extend(createdState);
-
-  auto cmd2 = new AddMessagesToState{std::move(state_path), ml};
-
+  auto cmd2 = new AddMessagesToState{scenar.state(createdState), ml};
   m.submitCommand(cmd2);
-
   m.commit();
   return true;
 }

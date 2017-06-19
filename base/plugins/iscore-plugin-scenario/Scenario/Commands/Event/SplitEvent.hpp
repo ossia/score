@@ -27,14 +27,14 @@ class SplitEvent final : public iscore::Command
 
 public:
   SplitEvent(
-      const Path<Scenario::ProcessModel>& scenario,
+      const Scenario::ProcessModel& scenario,
       Id<EventModel>
           event,
       QVector<Id<StateModel>>
           movingstates);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

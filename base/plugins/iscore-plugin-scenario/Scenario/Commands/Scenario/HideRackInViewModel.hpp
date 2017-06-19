@@ -27,15 +27,15 @@ class HideRack final : public iscore::Command
 public:
   HideRack(const Scenario::ConstraintModel& constraint);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<Scenario::ConstraintModel> m_constraintViewPath;
+  Path<Scenario::ConstraintModel> m_path;
 };
 }
 }

@@ -624,6 +624,9 @@ void DeviceExplorerWidget::refreshValue()
 {
   // TODO deprecate this
   QList<QPair<const Device::Node*, State::Value>> lst;
+
+  auto expl = model();
+
   for (auto index : m_ntView->selectedIndexes())
   {
     // Model checks
@@ -644,16 +647,11 @@ void DeviceExplorerWidget::refreshValue()
     // Getting the new values
     auto val = dev.refresh(addr.address);
     if (val)
-      lst.append({node, *val});
+    {
+      expl->editData(
+          *node, Explorer::Column::Value, *val, Qt::EditRole);
+    }
   }
-
-  if (lst.empty())
-    return;
-
-  // Send the command
-  Explorer::Command::UpdateAddressesValues cmd{model()->deviceModel(), lst};
-
-  cmd.redo();
 }
 
 void DeviceExplorerWidget::disconnect()
@@ -715,11 +713,11 @@ void DeviceExplorerWidget::addDevice()
     auto path = m_deviceDialog->getPath();
     blockGUI(true);
 
-    auto devplug_path = iscore::IDocument::path(model()->deviceModel());
+    auto& devplug = model()->deviceModel();
     if (path.isEmpty())
     {
       m_cmdDispatcher->submitCommand(
-          new Command::AddDevice{std::move(devplug_path), deviceSettings});
+          new Command::AddDevice{devplug, deviceSettings});
     }
     else
     {
@@ -728,7 +726,7 @@ void DeviceExplorerWidget::addDevice()
         Device::Node n{deviceSettings, nullptr};
         if (Device::loadDeviceFromXML(path, n))
           m_cmdDispatcher->submitCommand(
-              new Command::LoadDevice{std::move(devplug_path), std::move(n)});
+              new Command::LoadDevice{devplug, std::move(n)});
       }
       else if (path.contains(".device"))
       {
@@ -737,7 +735,7 @@ void DeviceExplorerWidget::addDevice()
         {
           n.get<Device::DeviceSettings>() = deviceSettings;
           m_cmdDispatcher->submitCommand(
-              new Command::LoadDevice{std::move(devplug_path), std::move(n)});
+              new Command::LoadDevice{devplug, std::move(n)});
         }
       }
       else if (path.contains(".json"))
@@ -747,7 +745,7 @@ void DeviceExplorerWidget::addDevice()
         {
           n.get<Device::DeviceSettings>() = deviceSettings;
           m_cmdDispatcher->submitCommand(
-              new Command::LoadDevice{std::move(devplug_path), std::move(n)});
+              new Command::LoadDevice{devplug, std::move(n)});
         }
       }
     }
@@ -803,7 +801,7 @@ void DeviceExplorerWidget::removeNodes()
   }
 
   auto cmd = new Command::RemoveNodes;
-  auto dev_model_path = iscore::IDocument::path(model()->deviceModel());
+  const auto& dev_model = model()->deviceModel();
 
   // If two nodes have the same parent,
   // we should send the commands in reverse order
@@ -870,7 +868,7 @@ void DeviceExplorerWidget::removeNodes()
   {
     if (n->is<Device::DeviceSettings>())
     {
-      cmd->addCommand(new Explorer::Command::Remove{dev_model_path, *n});
+      cmd->addCommand(new Explorer::Command::Remove{dev_model, *n});
     }
     else
     {
@@ -886,7 +884,7 @@ void DeviceExplorerWidget::removeNodes()
   for (auto it = paths.rbegin(); it != paths.rend(); ++it)
   {
     cmd->addCommand(
-        new Explorer::Command::Remove{dev_model_path, Device::NodePath{*it}});
+        new Explorer::Command::Remove{dev_model, Device::NodePath{*it}});
   }
 
   m_cmdDispatcher->submitCommand(cmd);
@@ -942,7 +940,7 @@ void DeviceExplorerWidget::learn()
         m->deviceModel(), std::move(oldDevice), std::move(newDevice)};
 
     // No need to push anything
-    cmd.undo();
+    cmd.undo(m_cmdDispatcher->stack().context());
   }
 }
 

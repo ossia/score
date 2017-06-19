@@ -18,6 +18,7 @@ class SerializableMoveEvent : public iscore::Command
 {
 public:
   virtual void update(
+      Scenario::ProcessModel& scenario,
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
       double y,

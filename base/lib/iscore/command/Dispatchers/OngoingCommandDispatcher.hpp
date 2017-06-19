@@ -39,13 +39,13 @@ public:
     {
       stack().disableActions();
       m_cmd = std::make_unique<TheCommand>(std::forward<Args>(args)...);
-      m_cmd->redo();
+      m_cmd->redo(stack().context());
     }
     else
     {
       ISCORE_ASSERT(m_cmd->key() == TheCommand::static_key());
       safe_cast<TheCommand*>(m_cmd.get())->update(std::forward<Args>(args)...);
-      m_cmd->redo();
+      m_cmd->redo(stack().context());
     }
   }
 
@@ -64,7 +64,7 @@ public:
   {
     if (m_cmd)
     {
-      m_cmd->undo();
+      m_cmd->undo(stack().context());
       stack().enableActions();
     }
     m_cmd.reset();

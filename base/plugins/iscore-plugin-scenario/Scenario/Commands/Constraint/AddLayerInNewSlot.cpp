@@ -28,15 +28,15 @@ AddLayerInNewSlot::AddLayerInNewSlot(
 {
 }
 
-void AddLayerInNewSlot::undo() const
+void AddLayerInNewSlot::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& constraint = m_path.find();
+  auto& constraint = m_path.find(ctx);
   constraint.removeSlot(int(constraint.smallView().size() - 1));
 }
 
-void AddLayerInNewSlot::redo() const
+void AddLayerInNewSlot::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& constraint = m_path.find();
+  auto& constraint = m_path.find(ctx);
   auto h = context.settings<Scenario::Settings::Model>().getSlotHeight();
 
   constraint.addSlot(Slot{{m_processId}, m_processId, h});

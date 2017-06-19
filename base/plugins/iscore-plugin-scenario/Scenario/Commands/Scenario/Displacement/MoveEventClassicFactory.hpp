@@ -23,7 +23,7 @@ class MoveEventClassicFactory final : public MoveEventFactoryInterface
   ISCORE_CONCRETE("644a6f8d-de63-4951-b28b-33b5e2c71ac8")
 
   std::unique_ptr<SerializableMoveEvent> make(
-      Path<Scenario::ProcessModel>&& scenarioPath,
+      const Scenario::ProcessModel&,
       Id<EventModel>
           eventId,
       TimeVal newDate,

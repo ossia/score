@@ -29,32 +29,31 @@ namespace Scenario
 namespace Command
 {
 CreateConstraint::CreateConstraint(
-    Path<Scenario::ProcessModel>&& scenarioPath,
+    const Scenario::ProcessModel& scenar,
     Id<StateModel>
         startState,
     Id<StateModel>
         endState)
-    : m_path{std::move(scenarioPath)}
+    : m_path{scenar}
     , m_createdName{RandomNameProvider::generateRandomName()}
     , m_startStateId{std::move(startState)}
     , m_endStateId{std::move(endState)}
 {
-  auto& scenar = m_path.find();
   // ISCORE_ASSERT(!scenar.state(startState).nextConstraint());
   // ISCORE_ASSERT(!scenar.state(endState).previousConstraint());
   m_createdConstraintId = getStrongId(scenar.constraints);
 }
 
-void CreateConstraint::undo() const
+void CreateConstraint::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
 
   ScenarioCreate<ConstraintModel>::undo(m_createdConstraintId, scenar);
 }
 
-void CreateConstraint::redo() const
+void CreateConstraint::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
   auto& sst = scenar.states.at(m_startStateId);
   auto& est = scenar.states.at(m_endStateId);
 

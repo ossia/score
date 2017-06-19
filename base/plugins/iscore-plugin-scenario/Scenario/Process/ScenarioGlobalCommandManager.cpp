@@ -46,7 +46,7 @@ void clearContentFromSelection(
 
   for (auto& state : statesToRemove)
   {
-    cleaner.submitCommand(new ClearState(path(*state)));
+    cleaner.submitCommand(new ClearState(*state));
   }
 
   cleaner.commit();
@@ -87,7 +87,7 @@ void removeSelection(
   if (!sel.empty())
   {
     CommandDispatcher<> dispatcher(stack);
-    dispatcher.submitCommand(new RemoveSelection(path(scenario), sel));
+    dispatcher.submitCommand(new RemoveSelection(scenario, sel));
   }
 }
 

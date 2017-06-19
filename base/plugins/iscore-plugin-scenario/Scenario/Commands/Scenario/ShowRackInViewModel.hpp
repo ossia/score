@@ -25,8 +25,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ShowRack final
 public:
   ShowRack(const Scenario::ConstraintModel& vm);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

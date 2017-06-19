@@ -30,14 +30,15 @@ class CreateSequence final : public iscore::AggregateCommand
 
 public:
   static CreateSequence* make(
+      const iscore::DocumentContext& ctx,
       const Scenario::ProcessModel& scenario,
       const Id<StateModel>& start,
       const TimeVal& date,
       double endStateY);
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    m_cmds.front()->undo();
+    m_cmds.front()->undo(ctx);
   }
 
   const Id<ConstraintModel>& createdConstraint() const
@@ -81,8 +82,8 @@ public:
 
   int addedProcessCount() const { return m_addedProcessCount; }
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

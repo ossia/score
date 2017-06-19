@@ -57,14 +57,14 @@ class TestObject : public QObject
                 iscore::CommandStack& stack = doc->commandStack();
                 while(stack.canUndo())
                 {
-                    stack.undo();
+                    stack.undo(ctx);
                     QApplication::processEvents();
 
                     // TODO select / deslect all events in all processes recursively.
                 }
                 while(stack.canRedo())
                 {
-                    stack.redo();
+                    stack.redo(ctx);
                     QApplication::processEvents();
                 }
 

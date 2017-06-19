@@ -184,21 +184,21 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   }
 }
 
-void CreateSequenceProcesses::undo() const
+void CreateSequenceProcesses::undo(const iscore::DocumentContext& ctx) const
 {
   if (m_addedProcessCount > 0)
-    m_interpolations.undo();
+    m_interpolations.undo(ctx);
 }
 
-void CreateSequenceProcesses::redo() const
+void CreateSequenceProcesses::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_scenario.find();
+  auto& scenar = m_scenario.find(ctx);
   auto& endstate = scenar.state(m_endState);
 
   endstate.messages() = m_stateData;
 
   if (m_addedProcessCount > 0)
-    m_interpolations.redo();
+    m_interpolations.redo(ctx);
 }
 
 void CreateSequenceProcesses::serializeImpl(DataStreamInput& s) const
@@ -216,6 +216,7 @@ void CreateSequenceProcesses::deserializeImpl(DataStreamOutput& s)
 }
 
 CreateSequence* CreateSequence::make(
+    const iscore::DocumentContext& ctx,
     const ProcessModel& scenario,
     const Id<StateModel>& start,
     const TimeVal& date,
@@ -230,7 +231,7 @@ CreateSequence* CreateSequence::make(
   cmd->m_newEvent = create_command->createdEvent();
   cmd->m_newTimeNode = create_command->createdTimeNode();
 
-  create_command->redo();
+  create_command->redo(ctx);
   cmd->addCommand(create_command);
 
   auto proc_command = new CreateSequenceProcesses{
@@ -238,11 +239,11 @@ CreateSequence* CreateSequence::make(
 
   if(proc_command->addedProcessCount() > 0)
   {
-    proc_command->redo();
+    proc_command->redo(ctx);
     cmd->addCommand(proc_command);
 
     auto show_rack = new ShowRack{scenario.constraint(create_command->createdConstraint())};
-    show_rack->redo();
+    show_rack->redo(ctx);
     cmd->addCommand(show_rack);
   }
   else

@@ -11,6 +11,7 @@ namespace iscore
 CommandStack::CommandStack(const iscore::Document& ctx, QObject* parent)
     : m_checker{iscore::AppComponents().interfaces<ValidityCheckerList>(),
                 ctx}
+    , m_ctx{ctx.context()}
 {
   this->setObjectName("CommandStack");
   this->setParent(parent);
@@ -34,6 +35,31 @@ void CommandStack::disableActions()
   canRedoChanged(false);
 }
 
+bool CommandStack::canUndo() const
+{
+  return !m_undoable.empty();
+}
+
+bool CommandStack::canRedo() const
+{
+  return !m_redoable.empty();
+}
+
+QString CommandStack::undoText() const
+{
+  return canUndo() ? m_undoable.top()->description() : tr("Nothing to undo");
+}
+
+QString CommandStack::redoText() const
+{
+  return canRedo() ? m_redoable.top()->description() : tr("Nothing to redo");
+}
+
+int CommandStack::size() const
+{
+  return m_undoable.size() + m_redoable.size();
+}
+
 const Command* CommandStack::command(int index) const
 {
   if (index < m_undoable.size())
@@ -48,6 +74,21 @@ const Command* CommandStack::command(int index) const
   {
     return nullptr;
   }
+}
+
+int CommandStack::currentIndex() const
+{
+  return m_undoable.size();
+}
+
+void CommandStack::markCurrentIndexAsSaved()
+{
+  setSavedIndex(currentIndex());
+}
+
+bool CommandStack::isAtSavedIndex() const
+{
+  return currentIndex() == m_savedIndex;
 }
 
 void CommandStack::setIndexQuiet(int index)
@@ -76,7 +117,7 @@ void CommandStack::undoQuiet()
 {
   updateStack([&]() {
     auto cmd = m_undoable.pop();
-    cmd->undo();
+    cmd->undo(m_ctx);
     m_redoable.push(cmd);
 
     emit sig_undo();
@@ -87,7 +128,7 @@ void CommandStack::redoQuiet()
 {
   updateStack([&]() {
     auto cmd = m_redoable.pop();
-    cmd->redo();
+    cmd->redo(m_ctx);
 
     m_undoable.push(cmd);
 
@@ -97,7 +138,7 @@ void CommandStack::redoQuiet()
 
 void CommandStack::redoAndPush(Command* cmd)
 {
-  cmd->redo();
+  cmd->redo(m_ctx);
   push(cmd);
 }
 
@@ -124,7 +165,7 @@ void CommandStack::push(Command* cmd)
 
 void CommandStack::redoAndPushQuiet(Command* cmd)
 {
-  cmd->redo();
+  cmd->redo(m_ctx);
   pushQuiet(cmd);
 }
 

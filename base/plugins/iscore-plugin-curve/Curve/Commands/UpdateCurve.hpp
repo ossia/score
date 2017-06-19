@@ -15,10 +15,10 @@ class UpdateCurve final : public iscore::Command
 {
   ISCORE_COMMAND_DECL(CommandFactoryName(), UpdateCurve, "Update Curve")
 public:
-  UpdateCurve(Path<Model>&& model, std::vector<SegmentData>&& segments);
+  UpdateCurve(const Model& model, std::vector<SegmentData>&& segments);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   void update(unused_t, std::vector<SegmentData>&& segments)
   {

@@ -5,14 +5,14 @@
 
 iscore::PropertyCommand::~PropertyCommand() = default;
 
-void iscore::PropertyCommand::undo() const
+void iscore::PropertyCommand::undo(const iscore::DocumentContext& ctx) const
 {
-  m_path.find<QObject>().setProperty(m_property.toUtf8().constData(), m_old);
+  m_path.find<QObject>(ctx).setProperty(m_property.toUtf8().constData(), m_old);
 }
 
-void iscore::PropertyCommand::redo() const
+void iscore::PropertyCommand::redo(const iscore::DocumentContext& ctx) const
 {
-  m_path.find<QObject>().setProperty(m_property.toUtf8().constData(), m_new);
+  m_path.find<QObject>(ctx).setProperty(m_property.toUtf8().constData(), m_new);
 }
 
 void iscore::PropertyCommand::serializeImpl(DataStreamInput& s) const

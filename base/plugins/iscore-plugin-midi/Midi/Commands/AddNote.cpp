@@ -11,14 +11,14 @@ AddNote::AddNote(const ProcessModel& model, const NoteData& n)
 {
 }
 
-void AddNote::undo() const
+void AddNote::undo(const iscore::DocumentContext& ctx) const
 {
-  m_model.find().notes.remove(m_id);
+  m_model.find(ctx).notes.remove(m_id);
 }
 
-void AddNote::redo() const
+void AddNote::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& model = m_model.find();
+  auto& model = m_model.find(ctx);
   model.notes.add(new Note{m_id, m_note, &model});
 }
 

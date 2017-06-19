@@ -24,15 +24,15 @@ AddSlotToRack::AddSlotToRack(const Path<ConstraintModel>&  rackPath)
 {
 }
 
-void AddSlotToRack::undo() const
+void AddSlotToRack::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& rack = m_path.find();
+  auto& rack = m_path.find(ctx);
   rack.removeSlot(rack.smallView().size() - 1);
 }
 
-void AddSlotToRack::redo() const
+void AddSlotToRack::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& rack = m_path.find();
+  auto& rack = m_path.find(ctx);
   auto h = iscore::AppContext()
                .settings<Scenario::Settings::Model>()
                .getSlotHeight();

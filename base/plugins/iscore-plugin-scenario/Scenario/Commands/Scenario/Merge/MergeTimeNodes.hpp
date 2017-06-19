@@ -57,16 +57,15 @@ public:
   MergeTimeNodes() = default;
 
   MergeTimeNodes(
-      Path<ProcessModel>&& scenar,
+      const ProcessModel& scenario,
       Id<TimeNodeModel>
           clickedTn,
       Id<TimeNodeModel>
           hoveredTn)
-      : m_scenarioPath{scenar}
+      : m_scenarioPath{scenario}
       , m_movingTnId{std::move(clickedTn)}
       , m_destinationTnId{std::move(hoveredTn)}
   {
-    auto& scenario = m_scenarioPath.find();
     auto& tn = scenario.timeNode(m_movingTnId);
     auto& destinantionTn = scenario.timeNode(m_destinationTnId);
 
@@ -76,16 +75,16 @@ public:
     m_serializedTimeNode = arr;
 
     m_moveCommand = new MoveEvent<GoodOldDisplacementPolicy>{
-        Path<ProcessModel>{scenario}, tn.events().front(),
+        scenario, tn.events().front(),
         destinantionTn.date(), ExpandMode::Scale};
 
     m_targetTrigger = destinantionTn.trigger()->expression();
     m_targetTriggerActive = destinantionTn.trigger()->active();
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& scenar = m_scenarioPath.find();
+    auto& scenar = m_scenarioPath.find(ctx);
     auto& globalTn = scenar.timeNode(m_destinationTnId);
 
     DataStream::Deserializer s{m_serializedTimeNode};
@@ -109,14 +108,14 @@ public:
     globalTn.trigger()->setExpression(m_targetTrigger);
     globalTn.trigger()->setActive(m_targetTriggerActive);
 
-    m_moveCommand->undo();
+    m_moveCommand->undo(ctx);
     updateTimeNodeExtent(m_destinationTnId, scenar);
   }
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    m_moveCommand->redo();
+    m_moveCommand->redo(ctx);
 
-    auto& scenar = m_scenarioPath.find();
+    auto& scenar = m_scenarioPath.find(ctx);
     auto& movingTn = scenar.timeNode(m_movingTnId);
     auto& destinationTn = scenar.timeNode(m_destinationTnId);
 
@@ -135,7 +134,7 @@ public:
   }
 
   void update(
-      Path<ProcessModel> scenar,
+      unused_t scenar,
       const Id<TimeNodeModel>& clickedTn,
       const Id<TimeNodeModel>& hoveredTn)
   {

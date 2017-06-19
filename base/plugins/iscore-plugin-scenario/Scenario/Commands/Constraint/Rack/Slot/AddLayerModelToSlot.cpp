@@ -36,18 +36,18 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 {
 }
 
-void AddLayerModelToSlot::undo() const
+void AddLayerModelToSlot::undo(const iscore::DocumentContext& ctx) const
 {
-  auto cst = m_slot.constraint.try_find();
+  auto cst = m_slot.constraint.try_find(ctx);
   if (cst)
   {
     cst->removeLayer(m_slot.index, m_processId);
   }
 }
 
-void AddLayerModelToSlot::redo() const
+void AddLayerModelToSlot::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& cst = m_slot.constraint.find();
+  auto& cst = m_slot.constraint.find(ctx);
   cst.addLayer(m_slot.index, m_processId);
 }
 

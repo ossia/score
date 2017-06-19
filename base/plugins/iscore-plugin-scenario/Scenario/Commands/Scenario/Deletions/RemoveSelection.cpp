@@ -38,11 +38,9 @@ namespace Scenario
 namespace Command
 {
 RemoveSelection::RemoveSelection(
-    Path<Scenario::ProcessModel>&& scenarioPath, Selection sel)
-    : m_path{std::move(scenarioPath)}
+    const Scenario::ProcessModel& scenar, Selection sel)
+    : m_path{scenar}
 {
-  auto& scenar = m_path.find();
-
   // Serialize all the events and constraints and timenodes and states and
   // comments
   // For each removed event, we also add its states to the selection.
@@ -179,9 +177,9 @@ RemoveSelection::RemoveSelection(
   }
 }
 
-void RemoveSelection::undo() const
+void RemoveSelection::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
 
   auto& stack = iscore::IDocument::documentContext(scenar).commandStack;
   // First instantiate everything
@@ -340,9 +338,9 @@ void RemoveSelection::undo() const
   }
 }
 
-void RemoveSelection::redo() const
+void RemoveSelection::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
 
   // Remove the constraints
   for (const auto& cstr : m_removedConstraints)

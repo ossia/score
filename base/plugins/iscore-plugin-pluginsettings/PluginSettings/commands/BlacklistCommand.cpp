@@ -14,11 +14,11 @@ BlacklistCommand::BlacklistCommand(QString name, bool value)
 {
 }
 
-void BlacklistCommand::undo() const
+void BlacklistCommand::undo(const iscore::DocumentContext& ctx) const
 {
 }
 
-void BlacklistCommand::redo() const
+void BlacklistCommand::redo(const iscore::DocumentContext& ctx) const
 {
   ISCORE_TODO;
   QSettings s;

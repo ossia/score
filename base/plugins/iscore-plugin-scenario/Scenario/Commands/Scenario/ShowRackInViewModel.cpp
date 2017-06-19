@@ -18,15 +18,15 @@ ShowRack::ShowRack(
 }
 
 
-void ShowRack::undo() const
+void ShowRack::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& vm = m_constraintViewPath.find();
+  auto& vm = m_constraintViewPath.find(ctx);
   vm.setSmallViewVisible(false);
 }
 
-void ShowRack::redo() const
+void ShowRack::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& vm = m_constraintViewPath.find();
+  auto& vm = m_constraintViewPath.find(ctx);
   vm.setSmallViewVisible(true);
 }
 

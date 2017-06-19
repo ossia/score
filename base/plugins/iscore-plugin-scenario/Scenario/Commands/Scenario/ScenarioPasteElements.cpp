@@ -84,15 +84,13 @@ namespace Scenario
 namespace Command
 {
 ScenarioPasteElements::ScenarioPasteElements(
-    Path<Scenario::ProcessModel>&& path,
+    const Scenario::ProcessModel& scenario,
     const QJsonObject& obj,
     const Scenario::Point& pt)
-    : m_ts{std::move(path)}
+    : m_ts{scenario}
 {
   // We assign new ids WRT the elements of the scenario - these ids can
   // be easily mapped.
-  auto& scenario = m_ts.find();
-
   auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
 
   std::vector<TimeNodeModel*> timenodes;
@@ -112,7 +110,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     for (const auto& element : json_arr)
     {
       constraints.emplace_back(new ConstraintModel{
-          JSONObject::Deserializer{element.toObject()}, &scenario});
+          JSONObject::Deserializer{element.toObject()}, (QObject*)&scenario});
     }
   }
   {
@@ -359,9 +357,9 @@ ScenarioPasteElements::ScenarioPasteElements(
   }
 }
 
-void ScenarioPasteElements::undo() const
+void ScenarioPasteElements::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenario = m_ts.find();
+  auto& scenario = m_ts.find(ctx);
 
   for (const auto& elt : m_ids_timenodes)
   {
@@ -381,9 +379,9 @@ void ScenarioPasteElements::undo() const
   }
 }
 
-void ScenarioPasteElements::redo() const
+void ScenarioPasteElements::redo(const iscore::DocumentContext& ctx) const
 {
-  Scenario::ProcessModel& scenario = m_ts.find();
+  Scenario::ProcessModel& scenario = m_ts.find(ctx);
 
   std::vector<TimeNodeModel*> addedTimeNodes;
   addedTimeNodes.reserve(m_json_timenodes.size());

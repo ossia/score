@@ -19,7 +19,7 @@ namespace Command
 {
 
 MoveEventOnCreationMeta::MoveEventOnCreationMeta(
-    Path<Scenario::ProcessModel>&& scenarioPath,
+    const Scenario::ProcessModel& scenarioPath,
     Id<EventModel>
         eventId,
     TimeVal newDate,
@@ -29,7 +29,7 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
           context.interfaces<MoveEventList>()
               .get(context, MoveEventFactoryInterface::Strategy::CREATION)
               .make(
-                  std::move(scenarioPath), std::move(eventId),
+                  scenarioPath, std::move(eventId),
                   std::move(newDate), mode))
 {
 }
@@ -38,14 +38,14 @@ MoveEventOnCreationMeta::~MoveEventOnCreationMeta()
 {
 }
 
-void MoveEventOnCreationMeta::undo() const
+void MoveEventOnCreationMeta::undo(const iscore::DocumentContext& ctx) const
 {
-  m_moveEventImplementation->undo();
+  m_moveEventImplementation->undo(ctx);
 }
 
-void MoveEventOnCreationMeta::redo() const
+void MoveEventOnCreationMeta::redo(const iscore::DocumentContext& ctx) const
 {
-  m_moveEventImplementation->redo();
+  m_moveEventImplementation->redo(ctx);
 }
 
 const Path<Scenario::ProcessModel>& MoveEventOnCreationMeta::path() const
@@ -73,10 +73,11 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
 }
 
 void MoveEventOnCreationMeta::update(
+    Scenario::ProcessModel& scenario,
     const Id<EventModel>& eventId, const TimeVal& newDate, double y,
     ExpandMode mode)
 {
-  m_moveEventImplementation->update(eventId, newDate, y, mode);
+  m_moveEventImplementation->update(scenario, eventId, newDate, y, mode);
 }
 }
 }

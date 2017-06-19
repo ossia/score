@@ -12,8 +12,8 @@ class SetProcessPriority final : public iscore::PropertyCommand
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetProcessPriority, "Set process priority")
 public:
-  SetProcessPriority(Path<Process::ProcessModel>&& path, int32_t newval)
-      : iscore::PropertyCommand{std::move(path), "processPriority",
+  SetProcessPriority(const Process::ProcessModel& path, int32_t newval)
+      : iscore::PropertyCommand{path, "processPriority",
                                 QVariant::fromValue(newval)}
   {
   }
@@ -26,8 +26,8 @@ class SetProcessPriorityOverride final : public iscore::PropertyCommand
       SetProcessPriorityOverride,
       "Set process priority override")
 public:
-  SetProcessPriorityOverride(Path<Process::ProcessModel>&& path, bool newval)
-      : iscore::PropertyCommand{std::move(path), "processPriorityOverride",
+  SetProcessPriorityOverride(const Process::ProcessModel& path, bool newval)
+      : iscore::PropertyCommand{path, "processPriorityOverride",
                                 QVariant::fromValue(newval)}
   {
   }

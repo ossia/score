@@ -66,7 +66,7 @@ public:
   CreationState(
       const ToolPalette_T& sm,
       const iscore::CommandStackFacade& stack,
-      const Path<Scenario_T>& scenarioPath,
+      const Scenario_T& scenarioPath,
       QState* parent)
       : CreationStateBase<Scenario_T>{scenarioPath, parent}
       , m_parentSM{sm}
@@ -85,7 +85,7 @@ protected:
           < getDate(m_parentSM.model(), *this->hoveredState))
       {
         auto cmd = new Scenario::Command::CreateConstraint{
-            Path<Scenario_T>{this->m_scenarioPath}, originalState,
+            this->m_scenario, originalState,
             *this->hoveredState};
 
         m_dispatcher.submitCommand(cmd);
@@ -105,7 +105,7 @@ protected:
           < getDate(m_parentSM.model(), *this->hoveredEvent))
       {
         auto cmd = new Scenario::Command::CreateConstraint_State{
-            Path<Scenario_T>{this->m_scenarioPath}, originalState,
+            this->m_scenario, originalState,
             *this->hoveredEvent, this->currentPoint.y};
 
         m_dispatcher.submitCommand(cmd);
@@ -126,7 +126,7 @@ protected:
           < getDate(m_parentSM.model(), *this->hoveredTimeNode))
       {
         auto cmd = new Scenario::Command::CreateConstraint_State_Event{
-            this->m_scenarioPath, originalState, *this->hoveredTimeNode,
+            this->m_scenario, originalState, *this->hoveredTimeNode,
             this->currentPoint.y};
 
         m_dispatcher.submitCommand(cmd);
@@ -143,7 +143,7 @@ protected:
     if (!m_parentSM.editionSettings().sequence())
     {
       auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
-          this->m_scenarioPath,
+          this->m_scenario,
           originalState, // Put there in createInitialState
           this->currentPoint.date, this->currentPoint.y};
 
@@ -159,6 +159,7 @@ protected:
 
       // This
       auto cmd = Scenario::Command::CreateSequence::make(
+          this->m_parentSM.context().context,
           this->m_parentSM.model(),
           originalState, // Put there in createInitialState
           this->currentPoint.date,

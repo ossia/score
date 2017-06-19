@@ -30,7 +30,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         data);
-    eventCmd.redo();
+    eventCmd.redo(ctx);
 
     auto endTn_id = eventCmd.createdTimeNode();
 
@@ -45,11 +45,11 @@ private slots:
         scenar->startEvent()->id(), eventCmd.createdTimeNode(),
         TimeValue::fromMsecs(10), 0.4);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), 3);
     QCOMPARE(scenar->event(cmd.createdEvent())->heightPercentage(), 0.4);
 
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE((int)scenar->events().size(), 2);
     QCOMPARE((int)scenar->timeNodes().size(), 2);
     try
@@ -61,7 +61,7 @@ private slots:
     {
     }
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), 3);
     QCOMPARE(scenar->event(cmd.createdEvent())->heightPercentage(), 0.4);
 

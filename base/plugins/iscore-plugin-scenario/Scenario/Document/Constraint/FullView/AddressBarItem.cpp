@@ -20,7 +20,11 @@ class QWidget;
 
 namespace Scenario
 {
-AddressBarItem::AddressBarItem(QGraphicsItem* parent) : QGraphicsItem{parent}
+AddressBarItem::AddressBarItem(
+    const iscore::DocumentContext& ctx,
+    QGraphicsItem* parent)
+  : QGraphicsItem{parent}
+  , m_ctx{ctx}
 {
   this->setFlag(QGraphicsItem::ItemHasNoContents, true);
 }
@@ -44,7 +48,7 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
     auto thisPath = m_currentPath;
     auto& pathVec = thisPath.vec();
     pathVec.resize(i + 1);
-    ConstraintModel& thisObj = thisPath.find<ConstraintModel>();
+    ConstraintModel& thisObj = thisPath.find<ConstraintModel>(m_ctx);
 
     QString txt = thisObj.metadata().getName();
 
