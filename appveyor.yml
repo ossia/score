@@ -20,7 +20,7 @@ build_script:
 
 artifacts:
   - name: Installer
-    path: 'build/i-score-*-win32.exe'
+    path: 'build/i-score-*.exe'
 
 deploy:
   release: $(APPVEYOR_REPO_TAG_NAME)
