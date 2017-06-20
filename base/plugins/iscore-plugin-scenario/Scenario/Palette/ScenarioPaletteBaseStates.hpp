@@ -21,8 +21,8 @@ template <typename Scenario_T>
 class StateBase : public QState
 {
 public:
-  StateBase(const Path<Scenario_T>& scenar, QState* parent)
-      : QState{parent}, m_scenarioPath{scenar}
+  StateBase(const Scenario_T& scenar, QState* parent)
+      : QState{parent}, m_scenario{const_cast<Scenario_T&>(scenar)}
   {
   }
 
@@ -54,7 +54,7 @@ public:
   Scenario::Point currentPoint;
 
 protected:
-  Path<Scenario_T> m_scenarioPath;
+  Scenario_T& m_scenario;
 };
 
 class SlotState : public QState

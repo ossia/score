@@ -43,6 +43,7 @@ public:
   void pause();
   void resume();
   void stop();
+  virtual bool paused() const;
 
 protected:
   virtual void play_impl(const TimeVal& t, BaseScenarioElement&) = 0;

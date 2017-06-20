@@ -27,7 +27,7 @@ class Creation_FromTimeNode final
 public:
   Creation_FromTimeNode(
       const ToolPalette_T& stateMachine,
-      const Path<Scenario_T>& scenarioPath,
+      const Scenario_T& scenarioPath,
       const iscore::CommandStackFacade& stack,
       QState* parent)
       : CreationState<Scenario_T, ToolPalette_T>{
@@ -202,7 +202,7 @@ public:
 
         // Move the timenode
         this->m_dispatcher.template submitCommand<MoveNewEvent>(
-            Path<Scenario_T>{this->m_scenarioPath},
+            this->m_scenario,
             this->createdConstraints.last(),
             this->createdEvents.last(),
             this->currentPoint.date,
@@ -223,7 +223,7 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveEventMeta>(
-            Path<Scenario_T>{this->m_scenarioPath},
+            this->m_scenario,
             this->createdEvents.last(),
             TimeVal::zero(),
             0.,
@@ -251,7 +251,7 @@ private:
     if (this->clickedTimeNode)
     {
       auto cmd = new Command::CreateEvent_State{
-          this->m_scenarioPath, *this->clickedTimeNode, this->currentPoint.y};
+          this->m_scenario, *this->clickedTimeNode, this->currentPoint.y};
       this->m_dispatcher.submitCommand(cmd);
 
       this->createdStates.append(cmd->createdState());

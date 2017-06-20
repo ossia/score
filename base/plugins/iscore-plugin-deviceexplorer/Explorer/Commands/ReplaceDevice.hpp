@@ -19,17 +19,17 @@ class ReplaceDevice final : public iscore::Command
       DeviceExplorerCommandFactoryName(), ReplaceDevice, "Replace a device")
 public:
   ReplaceDevice(
-      Path<DeviceDocumentPlugin>&& device_tree,
+      const DeviceDocumentPlugin& device_tree,
       int deviceIndex,
       Device::Node&& rootNode);
   ReplaceDevice(
-      Path<DeviceDocumentPlugin>&& device_tree,
+      const DeviceDocumentPlugin& device_tree,
       int deviceIndex,
       Device::Node&& oldDevice,
       Device::Node&& newDevice);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

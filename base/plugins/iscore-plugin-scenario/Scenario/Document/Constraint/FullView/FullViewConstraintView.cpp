@@ -26,7 +26,6 @@ FullViewConstraintView::FullViewConstraintView(
   this->setFlag(ItemIsSelectable);
 
   this->setZValue(1);
-  this->setY(2 * constraintAndRackHeight());
 }
 
 void FullViewConstraintView::updatePaths()
@@ -79,7 +78,7 @@ void FullViewConstraintView::paint(
     skin.ConstraintDashPen.setBrush(c);
     p.setPen(skin.ConstraintDashPen);
 
-    p.fillRect(QRectF{def_w, (double)ConstraintHeaderHeight, m_guiWidth, height()}, skin.SlotOverlay.getColor());
+    p.fillRect(QRectF{def_w, (double)ConstraintHeaderHeight, m_guiWidth, this->height() - ConstraintHeaderHeight}, skin.SlotOverlay.getColor());
 
     p.drawLine(QPointF{min_w, 0.}, QPointF{infinite()? m_guiWidth : max_w, 0.});
 

@@ -39,12 +39,10 @@ public:
     this->localSM().addState(m_waitState);
     this->localSM().setInitialState(m_waitState);
 
-    Path<Scenario_T> scenarioPath = this->m_palette.model();
-
     //// Create from nothing ////
     m_createFromNothingState
         = new Creation_FromNothing<Scenario_T, ToolPalette_T>{
-            this->m_palette, scenarioPath,
+            this->m_palette, this->m_palette.model(),
             this->m_palette.context().context.commandStack, nullptr};
 
     iscore::make_transition<ClickOnNothing_Transition<Scenario_T>>(
@@ -56,7 +54,7 @@ public:
 
     //// Create from an event ////
     m_createFromEventState = new Creation_FromEvent<Scenario_T, ToolPalette_T>{
-        this->m_palette, scenarioPath,
+        this->m_palette, this->m_palette.model(),
         this->m_palette.context().context.commandStack, nullptr};
 
     iscore::make_transition<ClickOnEvent_Transition<Scenario_T>>(
@@ -69,7 +67,7 @@ public:
     //// Create from a timenode ////
     m_createFromTimeNodeState
         = new Creation_FromTimeNode<Scenario_T, ToolPalette_T>{
-            this->m_palette, scenarioPath,
+            this->m_palette, this->m_palette.model(),
             this->m_palette.context().context.commandStack, nullptr};
 
     iscore::make_transition<ClickOnTimeNode_Transition<Scenario_T>>(
@@ -81,7 +79,7 @@ public:
 
     //// Create from a State ////
     m_createFromStateState = new Creation_FromState<Scenario_T, ToolPalette_T>{
-        this->m_palette, scenarioPath,
+        this->m_palette, this->m_palette.model(),
         this->m_palette.context().context.commandStack, nullptr};
 
     iscore::make_transition<ClickOnState_Transition<Scenario_T>>(

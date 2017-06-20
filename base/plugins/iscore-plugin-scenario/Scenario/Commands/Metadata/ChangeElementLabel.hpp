@@ -37,22 +37,21 @@ public:
 
   ChangeElementLabel() = default;
 
-  ChangeElementLabel(Path<T>&& path, QString newLabel)
-      : m_path{std::move(path)}, m_newLabel{std::move(newLabel)}
+  ChangeElementLabel(const T& obj, QString newLabel)
+      : m_path{obj}, m_newLabel{std::move(newLabel)}
   {
-    auto& obj = m_path.find();
     m_oldLabel = obj.metadata().getLabel();
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find();
+    auto& obj = m_path.find(ctx);
     obj.metadata().setLabel(m_oldLabel);
   }
 
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find();
+    auto& obj = m_path.find(ctx);
     obj.metadata().setLabel(m_newLabel);
   }
 

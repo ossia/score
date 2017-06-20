@@ -5,23 +5,22 @@
 
 #include "SinSegment.hpp"
 
-
 template <>
-void DataStreamReader::read(const Curve::SinSegment& segmt)
+void DataStreamReader::read(const Curve::PeriodicSegmentData& segmt)
 {
   m_stream << segmt.freq << segmt.ampl;
 }
 
 
 template <>
-void DataStreamWriter::write(Curve::SinSegment& segmt)
+void DataStreamWriter::write(Curve::PeriodicSegmentData& segmt)
 {
   m_stream >> segmt.freq >> segmt.ampl;
 }
 
 
 template <>
-void JSONObjectReader::read(const Curve::SinSegment& segmt)
+void JSONObjectReader::read(const Curve::PeriodicSegmentData& segmt)
 {
   obj["Freq"] = segmt.freq;
   obj["Ampl"] = segmt.ampl;
@@ -29,37 +28,7 @@ void JSONObjectReader::read(const Curve::SinSegment& segmt)
 
 
 template <>
-void JSONObjectWriter::write(Curve::SinSegment& segmt)
-{
-  segmt.freq = obj["Freq"].toDouble();
-  segmt.ampl = obj["Ampl"].toDouble();
-}
-
-
-template <>
-void DataStreamReader::read(const Curve::SinSegmentData& segmt)
-{
-  m_stream << segmt.freq << segmt.ampl;
-}
-
-
-template <>
-void DataStreamWriter::write(Curve::SinSegmentData& segmt)
-{
-  m_stream >> segmt.freq >> segmt.ampl;
-}
-
-
-template <>
-void JSONObjectReader::read(const Curve::SinSegmentData& segmt)
-{
-  obj["Freq"] = segmt.freq;
-  obj["Ampl"] = segmt.ampl;
-}
-
-
-template <>
-void JSONObjectWriter::write(Curve::SinSegmentData& segmt)
+void JSONObjectWriter::write(Curve::PeriodicSegmentData& segmt)
 {
   segmt.freq = obj["Freq"].toDouble();
   segmt.ampl = obj["Ampl"].toDouble();

@@ -46,6 +46,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentModelSerialization.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Linear/LinearSegment.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Noise/NoiseSegment.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArraySegment.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Power/PowerSegment.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Sin/SinSegment.hpp"
@@ -59,6 +60,7 @@ set(HDRS
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Linear/LinearSegmentSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Noise/NoiseSegmentSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Power/PowerSegmentSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Sin/SinSegmentSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArraySegmentSerialization.cpp"
@@ -79,6 +81,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Linear/LinearSegment.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Noise/NoiseSegment.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Power/PowerSegment.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Sin/SinSegment.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArraySegment.cpp"

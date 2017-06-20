@@ -376,6 +376,7 @@ double ConstraintModel::getSlotHeight(const SlotId& slot) const
 
 void ConstraintModel::setSlotHeight(const SlotId& slot, double height)
 {
+  height = std::max(height, 20.);
   if(slot.fullView())
     processes.at(m_fullView.at(slot.index).process).setSlotHeight(height);
   else
@@ -448,14 +449,14 @@ bool isInFullView(const Process::ProcessModel& cstr)
   return isInFullView(*static_cast<ConstraintModel*>(cstr.parent()));
 }
 
-const Scenario::Slot& SlotPath::find() const
+const Scenario::Slot& SlotPath::find(const iscore::DocumentContext& ctx) const
 {
-  return constraint.find().getSmallViewSlot(index);
+  return constraint.find(ctx).getSmallViewSlot(index);
 }
 
-const Scenario::Slot* SlotPath::try_find() const
+const Scenario::Slot* SlotPath::try_find(const iscore::DocumentContext& ctx) const
 {
-  if(auto cst = constraint.try_find())
+  if(auto cst = constraint.try_find(ctx))
     return cst->findSmallViewSlot(index);
   else
     return nullptr;

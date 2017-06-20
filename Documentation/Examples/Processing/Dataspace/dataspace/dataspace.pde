@@ -14,7 +14,7 @@ MyColor myColor = new MyColor();
 
 void setup()
 {
-  size(1024, 768);
+  size(1024, 768, P2D);
   
   // listen osc message from i-score
   osc_in = new OscP5(this, 9996);
@@ -78,9 +78,12 @@ void oscEvent(OscMessage osc_msg)
   {
     if (osc_msg.checkTypetag("f")) 
     { 
+      float density = osc_msg.get(0).floatValue();
+      if(density < 1) density = 1;
+      if(density > 100) density = 100;
       for (int i = 0; i < NB_PARTICLES; i++)
       {
-        parts[i].DIST_MAX = osc_msg.get(0).floatValue();
+        parts[i].DIST_MAX = density;
       }
     }
   }

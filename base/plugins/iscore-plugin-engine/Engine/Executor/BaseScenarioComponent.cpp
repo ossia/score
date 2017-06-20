@@ -91,17 +91,6 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_endState->onSetup(main_end_event);
   m_ossia_constraint->onSetup(main_constraint, m_ossia_constraint->makeDurations(), true);
 
-  main_constraint->set_exec_status_callback(
-      [=](ossia::clock::exec_status c) {
-        if (c == ossia::clock::exec_status::STOPPED)
-        {
-          ossia::state accumulator;
-          ossia::flatten_and_filter(accumulator, main_end_event->get_state());
-          accumulator.launch();
-
-          emit finished();
-        }
-      });
 }
 
 void BaseScenarioElement::cleanup()

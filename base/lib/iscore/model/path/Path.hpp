@@ -189,16 +189,16 @@ public:
   Path& operator=(const Path&) = default;
   Path& operator=(Path&&) = default;
 
-  Object& find() const
+  Object& find(const iscore::DocumentContext& ctx) const
   {
     ISCORE_ASSERT(valid());
-    return m_impl.find<Object>();
+    return m_impl.find<Object>(ctx);
   }
-  Object* try_find() const
+  Object* try_find(const iscore::DocumentContext& ctx) const
   {
     if (!valid())
       return nullptr;
-    return m_impl.try_find<Object>();
+    return m_impl.try_find<Object>(ctx);
   }
 
   const auto& unsafePath() const &

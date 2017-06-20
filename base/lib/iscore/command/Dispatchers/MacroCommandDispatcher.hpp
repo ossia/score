@@ -28,7 +28,7 @@ public:
 
   void submitCommand(iscore::Command* cmd)
   {
-    RedoStrategy_T::redo(*cmd);
+    RedoStrategy_T::redo(stack().context(), *cmd);
     m_aggregateCommand->addCommand(cmd);
   }
 
@@ -49,7 +49,7 @@ public:
   {
     if (m_aggregateCommand)
     {
-      m_aggregateCommand->undo();
+      m_aggregateCommand->undo(stack().context());
       m_aggregateCommand.reset();
     }
   }

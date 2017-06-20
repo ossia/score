@@ -25,8 +25,8 @@ class ISCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final
 public:
   SetSegmentParameters(const Model& model, SegmentParameterMap&& parameters);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   void update(unused_t, SegmentParameterMap&& segments)
   {

@@ -20,6 +20,11 @@ public:
   {
   }
 
+  const iscore::DocumentContext& context() const
+  {
+    return m_stack.context();
+  }
+
   void push(iscore::Command* cmd) const
   {
     m_stack.push(cmd);

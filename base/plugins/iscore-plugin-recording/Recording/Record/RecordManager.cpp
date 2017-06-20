@@ -266,9 +266,9 @@ bool AutomationRecorder::finish(
   Curve::PointArraySegment& segt = recorded.segment;
   if(segt.points().empty() || (segt.points().size() == 1 && segt.points().begin()->first == 0.))
   {
-    recorded.addLayCmd->undo();
+    recorded.addLayCmd->undo(context.context);
     delete recorded.addLayCmd;
-    recorded.addProcCmd->undo();
+    recorded.addProcCmd->undo(context.context);
     delete recorded.addProcCmd;
     return false;
   }

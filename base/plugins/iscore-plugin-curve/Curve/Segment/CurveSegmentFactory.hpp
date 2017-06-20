@@ -12,6 +12,7 @@ struct VisitorVariant;
 
 namespace Curve
 {
+class Category_k;
 class SegmentModel;
 struct SegmentData;
 class ISCORE_PLUGIN_CURVE_EXPORT SegmentFactory
@@ -22,6 +23,7 @@ public:
   virtual ~SegmentFactory();
 
   virtual QString prettyName() const = 0;
+  virtual QString category() const = 0;
 
   virtual SegmentModel* make(const Id<SegmentModel>&, QObject* parent) = 0;
 
@@ -84,6 +86,10 @@ public:
   QString prettyName() const override
   {
     return Metadata<PrettyName_k, T>::get();
+  }
+  QString category() const override
+  {
+    return Metadata<Category_k, T>::get();
   }
 };
 }

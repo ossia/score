@@ -9,7 +9,7 @@ public:
   PutLayerModelToFront(
       SlotPath&& slotPath, const Id<Process::ProcessModel>& pid);
 
-  void redo() const;
+  void redo(const iscore::DocumentContext& ctx) const;
 
 private:
   SlotPath m_slotPath;

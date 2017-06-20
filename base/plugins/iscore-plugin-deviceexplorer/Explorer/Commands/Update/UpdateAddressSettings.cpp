@@ -14,27 +14,26 @@ namespace Explorer
 namespace Command
 {
 UpdateAddressSettings::UpdateAddressSettings(
-    Path<DeviceDocumentPlugin>&& device_tree,
+    const DeviceDocumentPlugin& devplug,
     const Device::NodePath& node,
     const Device::AddressSettings& parameters)
-    : m_devicesModel{device_tree}, m_node(node), m_newParameters(parameters)
+    : m_devicesModel{devplug}, m_node(node), m_newParameters(parameters)
 {
-  auto& devplug = m_devicesModel.find();
   auto n = m_node.toNode(&devplug.rootNode());
   ISCORE_ASSERT(n);
 
   m_oldParameters = n->get<Device::AddressSettings>();
 }
 
-void UpdateAddressSettings::undo() const
+void UpdateAddressSettings::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.updateAddress(m_node, m_oldParameters);
 }
 
-void UpdateAddressSettings::redo() const
+void UpdateAddressSettings::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.updateAddress(m_node, m_newParameters);
 }
 

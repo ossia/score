@@ -26,9 +26,9 @@ ChangeAddress::ChangeAddress(
 {
 }
 
-void ChangeAddress::undo() const
+void ChangeAddress::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& interp = m_path.find();
+  auto& interp = m_path.find(ctx);
 
   interp.setStart(m_oldStart);
   interp.setEnd(m_oldEnd);
@@ -38,9 +38,9 @@ void ChangeAddress::undo() const
   interp.curve().changed();
 }
 
-void ChangeAddress::redo() const
+void ChangeAddress::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& interp = m_path.find();
+  auto& interp = m_path.find(ctx);
 
   interp.setStart(m_newStart);
   interp.setEnd(m_newEnd);

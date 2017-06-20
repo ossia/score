@@ -15,7 +15,7 @@ namespace Mapping
 LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
 {
   setZValue(1);
-  this->setFlags(
+  this->setFlags(ItemClipsToShape |
       ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 
   m_textcache.setFont(ScenarioStyle::instance().Medium8Pt);

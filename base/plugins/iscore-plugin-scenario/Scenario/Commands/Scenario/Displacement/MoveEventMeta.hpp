@@ -27,28 +27,30 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final
 
 public:
   MoveEventMeta(
-      Path<Scenario::ProcessModel>&& scenarioPath,
+      const Scenario::ProcessModel& scenarioPath,
       Id<EventModel>
           eventId,
       TimeVal newDate,
       double y,
       ExpandMode mode);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   const Path<Scenario::ProcessModel>& path() const override;
-
+/* REMOVEME
   void update(
       const Id<EventModel>& eventId, const TimeVal& newDate, double y,
-      ExpandMode mode) override;
+      ExpandMode mode) override;*/
   void update(
-      unused_t, const Id<EventModel>& eventId, const TimeVal& newDate,
-      double y, ExpandMode mode)
+      Scenario::ProcessModel& scenar,
+      const Id<EventModel>& eventId,
+      const TimeVal& newDate,
+      double y, ExpandMode mode) override
   {
-    m_moveEventImplementation->update(eventId, newDate, y, mode);
+    m_moveEventImplementation->update(scenar, eventId, newDate, y, mode);
     m_newY = y;
-    updateY(m_newY);
+    updateY(scenar, m_newY);
   }
 
 protected:
@@ -56,7 +58,7 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  void updateY(double y) const;
+  void updateY(Scenario::ProcessModel&, double y) const;
   // TODO : make a UI to change that
   Path<Scenario::ProcessModel> m_scenario;
   Id<EventModel> m_eventId;
@@ -76,24 +78,21 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveTopEventMeta final
 
 public:
   MoveTopEventMeta(
-      Path<Scenario::ProcessModel>&& scenarioPath,
+      const Scenario::ProcessModel& scenarioPath,
       Id<EventModel>
           eventId,
       TimeVal newDate,
       double y,
       ExpandMode mode);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   const Path<Scenario::ProcessModel>& path() const override;
 
   void update(
-      const Id<EventModel>& eventId, const TimeVal& newDate, double y,
-      ExpandMode mode) override;
-  void update(
-      unused_t, const Id<EventModel>& eventId, const TimeVal& newDate,
-      double y, ExpandMode mode);
+      Scenario::ProcessModel&, const Id<EventModel>& eventId, const TimeVal& newDate,
+      double y, ExpandMode mode) override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

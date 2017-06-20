@@ -61,9 +61,9 @@ ChangeAddress::ChangeAddress(
   m_old.domain = ossia::make_domain(autom.min(), autom.max());
 }
 
-void ChangeAddress::undo() const
+void ChangeAddress::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& autom = m_path.find();
+  auto& autom = m_path.find(ctx);
 
   {
     // QSignalBlocker blck{autom.curve()};
@@ -76,9 +76,9 @@ void ChangeAddress::undo() const
   // autom.curve().changed();
 }
 
-void ChangeAddress::redo() const
+void ChangeAddress::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& autom = m_path.find();
+  auto& autom = m_path.find(ctx);
 
   {
     // QSignalBlocker blck{autom.curve()};
@@ -112,15 +112,15 @@ ChangeGradientAddress::ChangeGradientAddress(
 {
 }
 
-void ChangeGradientAddress::undo() const
+void ChangeGradientAddress::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& autom = m_path.find();
+  auto& autom = m_path.find(ctx);
   autom.setAddress(m_old);
 }
 
-void ChangeGradientAddress::redo() const
+void ChangeGradientAddress::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& autom = m_path.find();
+  auto& autom = m_path.find(ctx);
   autom.setAddress(m_new);
 }
 
@@ -147,15 +147,15 @@ ChangeSplineAddress::ChangeSplineAddress(
 {
 }
 
-void ChangeSplineAddress::undo() const
+void ChangeSplineAddress::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& autom = m_path.find();
+  auto& autom = m_path.find(ctx);
   autom.setAddress(m_old);
 }
 
-void ChangeSplineAddress::redo() const
+void ChangeSplineAddress::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& autom = m_path.find();
+  auto& autom = m_path.find(ctx);
   autom.setAddress(m_new);
 }
 

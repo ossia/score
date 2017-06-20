@@ -65,6 +65,25 @@ public:
     }
   }
 
+  const T* toNode(const T* iter) const
+  {
+    const int pathSize = size();
+
+    for (int i = 0; i < pathSize; ++i)
+    {
+      if (at(i) < iter->childCount())
+      {
+        iter = &iter->childAt(at(i));
+      }
+      else
+      {
+        return nullptr;
+      }
+    }
+
+    return iter;
+  }
+
   T* toNode(T* iter) const
   {
     const int pathSize = size();

@@ -18,10 +18,12 @@ class LoadDevice final : public iscore::Command
   ISCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), LoadDevice, "Load a device")
 public:
-  LoadDevice(Path<DeviceDocumentPlugin>&& device_tree, Device::Node&& node);
+  LoadDevice(
+      const DeviceDocumentPlugin& devplug,
+      Device::Node&& node);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;
@@ -38,12 +40,12 @@ class ReloadWholeDevice final : public iscore::Command
       DeviceExplorerCommandFactoryName(), ReloadWholeDevice, "Reload a device")
 public:
   ReloadWholeDevice(
-      Path<DeviceDocumentPlugin>&& device_tree,
+      const DeviceDocumentPlugin& devplug,
       Device::Node&& oldnode,
       Device::Node&& newnode);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

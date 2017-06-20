@@ -23,8 +23,8 @@ public:
       const ProcessModel&, Device::FullAddressAccessorSettings newval);
 
 public:
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;
@@ -43,8 +43,8 @@ public:
   ChangeTargetAddress(const ProcessModel&, Device::FullAddressAccessorSettings);
 
 public:
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

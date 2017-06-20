@@ -86,7 +86,14 @@ ScenarioDocumentModel::ScenarioDocumentModel(
         m_baseScenario->constraint().metadata().setName(info.baseName());
       });
 
-  initializeNewDocument(m_baseScenario->constraint());
+  using namespace Scenario::Command;
+
+  AddOnlyProcessToConstraint cmd1{
+      m_baseScenario->constraint(),
+      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
+  cmd1.redo(ctx);
+  m_baseScenario->constraint().processes.begin()->setSlotHeight(1500);
+
   init();
 
   // Select the first state
@@ -103,13 +110,6 @@ void ScenarioDocumentModel::init()
 
 void ScenarioDocumentModel::initializeNewDocument(
     const ConstraintModel& constraint_model) {
-  using namespace Scenario::Command;
-
-  AddOnlyProcessToConstraint cmd1{
-      iscore::IDocument::path(m_baseScenario->constraint()),
-      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
-  cmd1.redo();
-  constraint_model.processes.begin()->setSlotHeight(1500);
 }
 
 ConstraintModel& ScenarioDocumentModel::baseConstraint() const

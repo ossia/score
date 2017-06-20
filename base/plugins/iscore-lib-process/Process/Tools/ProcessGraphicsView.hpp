@@ -24,7 +24,8 @@ signals:
   void sizeChanged(const QSize&);
   void scrolled(int);
   void focusedOut();
-  void zoom(QPoint pixDelta, QPointF pos);
+  void horizontalZoom(QPointF pixDelta, QPointF pos);
+  void verticalZoom(QPointF pixDelta, QPointF pos);
 
 private:
   void resizeEvent(QResizeEvent* ev) override;
@@ -35,5 +36,6 @@ private:
   void focusOutEvent(QFocusEvent* event) override;
   void leaveEvent(QEvent* event) override;
 
-  bool m_zoomModifier{false};
+  bool m_hZoom{false};
+  bool m_vZoom{false};
 };

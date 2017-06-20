@@ -33,5 +33,10 @@ void ClockManager::stop()
   if(bs.active())
     stop_impl(bs);
 }
+
+bool ClockManager::paused() const
+{
+  return false;
+}
 }
 }

@@ -21,19 +21,19 @@ AggregateCommand::~AggregateCommand()
   m_cmds.clear();
 }
 
-void AggregateCommand::undo() const
+void AggregateCommand::undo(const iscore::DocumentContext& ctx) const
 {
   for (const auto& cmd : boost::adaptors::reverse(m_cmds))
   {
-    cmd->undo();
+    cmd->undo(ctx);
   }
 }
 
-void AggregateCommand::redo() const
+void AggregateCommand::redo(const iscore::DocumentContext& ctx) const
 {
   for (const auto& cmd : m_cmds)
   {
-    cmd->redo();
+    cmd->redo(ctx);
   }
 }
 
@@ -49,7 +49,7 @@ int AggregateCommand::count() const
 
 void AggregateCommand::serializeImpl(DataStreamInput& s) const
 {
-    std::vector<CommandData> serializedCommands;
+  std::vector<CommandData> serializedCommands;
   serializedCommands.reserve(m_cmds.size());
 
   for (auto& cmd : m_cmds)
@@ -67,6 +67,7 @@ void AggregateCommand::deserializeImpl(DataStreamOutput& s)
   DataStreamWriter writer{s.stream.device()};
   writer.writeTo(serializedCommands);
 
+  const auto& context = iscore::AppContext();
   for (const auto& cmd_pack : serializedCommands)
   {
     auto cmd = context.instantiateUndoCommand(cmd_pack);

@@ -21,7 +21,7 @@ namespace Command
 class SerializableMoveEvent;
 
 std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make(
-    Path<Scenario::ProcessModel>&& scenarioPath,
+    const Scenario::ProcessModel& scenarioPath,
     Id<EventModel>
         eventId,
     TimeVal newDate,

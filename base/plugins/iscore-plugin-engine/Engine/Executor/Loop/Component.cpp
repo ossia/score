@@ -54,7 +54,7 @@ Component::Component(
 
   auto loop = std::make_shared<ossia::loop>(
       main_duration,
-      [](ossia::time_value, ossia::time_value, const ossia::state_element&) {},
+      [](double, ossia::time_value, const ossia::state_element&) {},
       [this, &element](ossia::time_event::status newStatus) {
 
         element.startEvent().setStatus(

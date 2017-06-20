@@ -111,7 +111,7 @@ void ConstraintComponent::onSetup(
   if (!parent_is_base_scenario)
   {
     m_ossia_constraint->set_stateless_callback(
-        [&](ossia::time_value position,
+        [&](double position,
             ossia::time_value date,
             const ossia::state_element& state) {
       auto currentTime = Engine::ossia_to_iscore::time(date);
@@ -140,29 +140,6 @@ Scenario::ConstraintModel& ConstraintComponentBase::iscoreConstraint() const
   return constraint();
 }
 
-void ConstraintComponentBase::play(TimeVal t)
-{
-  constraint().duration.setPlayPercentage(0);
-
-  auto start_state = m_ossia_constraint->get_start_event().get_state();
-  auto offset_state = m_ossia_constraint->offset(Engine::iscore_to_ossia::time(t));
-
-  ossia::state accumulator;
-  ossia::flatten_and_filter(accumulator, start_state);
-  ossia::flatten_and_filter(accumulator, offset_state);
-  accumulator.launch();
-
-  try
-  {
-    m_ossia_constraint->start();
-    executionStarted();
-  }
-  catch (const std::exception& e)
-  {
-    qDebug() << e.what();
-  }
-}
-
 void ConstraintComponentBase::pause()
 {
   m_ossia_constraint->pause();
@@ -186,6 +163,7 @@ void ConstraintComponentBase::stop()
   constraint().reset();
 
   executionStopped();
+  constraint().duration.setPlayPercentage(0);
 }
 
 void ConstraintComponentBase::executionStarted()

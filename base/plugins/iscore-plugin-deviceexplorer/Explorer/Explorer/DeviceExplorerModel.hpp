@@ -158,6 +158,11 @@ public:
       Column column,
       const State::Value& value,
       int role);
+  void editData(
+      Device::Node& n,
+      Column column,
+      const State::Value& value,
+      int role);
 
   Qt::DropActions supportedDropActions() const override;
   Qt::DropActions supportedDragActions() const override;

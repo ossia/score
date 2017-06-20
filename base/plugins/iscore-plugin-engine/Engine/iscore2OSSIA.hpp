@@ -84,7 +84,7 @@ ISCORE_PLUGIN_ENGINE_EXPORT ossia::value toOSSIAValue(const State::Value&);
 //// Other conversions
 ISCORE_PLUGIN_ENGINE_EXPORT inline ossia::time_value time(const TimeVal& t)
 {
-  return t.isInfinite() ? ossia::Infinite : ossia::time_value{t.msec()};
+  return t.isInfinite() ? ossia::Infinite : ossia::time_value{t.msec() * 1000.};
 }
 
 ISCORE_PLUGIN_ENGINE_EXPORT void state(

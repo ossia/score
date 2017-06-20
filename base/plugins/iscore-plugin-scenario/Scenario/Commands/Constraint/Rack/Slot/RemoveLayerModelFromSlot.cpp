@@ -22,15 +22,15 @@ RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
 {
 }
 
-void RemoveLayerModelFromSlot::undo() const
+void RemoveLayerModelFromSlot::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& slot = m_path.constraint.find();
+  auto& slot = m_path.constraint.find(ctx);
   slot.addLayer(m_path.index, m_layerId);
 }
 
-void RemoveLayerModelFromSlot::redo() const
+void RemoveLayerModelFromSlot::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& slot = m_path.constraint.find();
+  auto& slot = m_path.constraint.find(ctx);
   slot.removeLayer(m_path.index, m_layerId);
 }
 

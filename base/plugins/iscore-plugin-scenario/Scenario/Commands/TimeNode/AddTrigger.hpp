@@ -42,10 +42,9 @@ public:
 
   AddTrigger() = default;
 
-  AddTrigger(Path<TimeNodeModel>&& timeNodePath)
-      : m_path{std::move(timeNodePath)}
+  AddTrigger(const TimeNodeModel& tn)
+      : m_path{tn}
   {
-    auto& tn = m_path.find();
     Scenario_T* scenar = safe_cast<Scenario_T*>(tn.parent());
     for (const auto& cstrId : constraintsBeforeTimeNode(*scenar, tn.id()))
     {
@@ -53,25 +52,25 @@ public:
     }
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& tn = m_path.find();
+    auto& tn = m_path.find(ctx);
     tn.trigger()->setActive(false);
 
     for (const auto& cmd : m_cmds)
     {
-      cmd.undo();
+      cmd.undo(ctx);
     }
   }
 
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& tn = m_path.find();
+    auto& tn = m_path.find(ctx);
     tn.trigger()->setActive(true);
 
     for (const auto& cmd : m_cmds)
     {
-      cmd.redo();
+      cmd.redo(ctx);
     }
   }
 

@@ -77,11 +77,11 @@ void MessageRecorder::stop()
 
   Id<Scenario::StateModel> startState = m_createdProcess->startEvent().states().first();
   auto setStateCmd = new Scenario::Command::AddMessagesToState(m_createdProcess->state(startState), {m_records[0].m});
-  setStateCmd->redo();
+  setStateCmd->redo(context.context);
   context.dispatcher.submitCommand(setStateCmd);
 
   auto movecmd = new Scenario::Command::MoveNewState{*m_createdProcess, startState, 0.5};
-  movecmd->redo();
+  movecmd->redo(context.context);
   context.dispatcher.submitCommand(movecmd);
 
   for (int i = 1; i < m_records.size(); i++)
@@ -94,13 +94,13 @@ void MessageRecorder::stop()
                startState,
                TimeVal::fromMsecs(val.percentage),
                0.5};
-    cmd->redo();
+    cmd->redo(context.context);
     startState = cmd->createdState();
     context.dispatcher.submitCommand(cmd);
 
     // Add messages to it
     auto setStateCmd = new Scenario::Command::AddMessagesToState(m_createdProcess->state(startState), {val.m});
-    setStateCmd->redo();
+    setStateCmd->redo(context.context);
     context.dispatcher.submitCommand(setStateCmd);
 
   }
@@ -145,7 +145,7 @@ bool MessageRecorder::setup(
       box.constraint,
       Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
 
-  cmd_proc->redo();
+  cmd_proc->redo(context.context);
   context.dispatcher.submitCommand(cmd_proc);
 
   auto& proc = box.constraint.processes.at(cmd_proc->processId());
@@ -154,7 +154,7 @@ bool MessageRecorder::setup(
 
   //// Creation of the layer ////
   auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{{box.constraint, 0}, proc};
-  cmd_layer->redo();
+  cmd_layer->redo(context.context);
   context.dispatcher.submitCommand(cmd_layer);
 
   const auto& devicelist = context.explorer.deviceModel().list();

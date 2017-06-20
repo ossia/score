@@ -15,22 +15,22 @@ namespace Command
 {
 
 SetTrigger::SetTrigger(
-    Path<TimeNodeModel>&& timeNodePath, State::Expression trigger)
-    : m_path{std::move(timeNodePath)}, m_trigger(std::move(trigger))
+    const TimeNodeModel& tn,
+    State::Expression trigger)
+    : m_path{std::move(tn)}, m_trigger(std::move(trigger))
 {
-  auto& tn = m_path.find();
   m_previousTrigger = tn.trigger()->expression();
 }
 
-void SetTrigger::undo() const
+void SetTrigger::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& tn = m_path.find();
+  auto& tn = m_path.find(ctx);
   tn.trigger()->setExpression(m_previousTrigger);
 }
 
-void SetTrigger::redo() const
+void SetTrigger::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& tn = m_path.find();
+  auto& tn = m_path.find(ctx);
   tn.trigger()->setExpression(m_trigger);
 }
 

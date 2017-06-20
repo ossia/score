@@ -24,11 +24,12 @@ class InsertContentInState final : public iscore::Command
 
 public:
   InsertContentInState(
-      const QJsonObject& stateData, Path<StateModel>&& targetState);
+      const QJsonObject& stateData,
+      const Scenario::StateModel& state);
 
-  void undo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
 
-  void redo() const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

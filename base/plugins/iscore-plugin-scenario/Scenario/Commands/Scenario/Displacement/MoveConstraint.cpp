@@ -15,13 +15,11 @@ namespace Scenario
 namespace Command
 {
 MoveConstraint::MoveConstraint(
-    Path<Scenario::ProcessModel>&& scenarioPath,
-    Id<ConstraintModel>
-        id,
+    const Scenario::ProcessModel& scenar,
+    Id<ConstraintModel> id,
     double height)
-    : m_path{std::move(scenarioPath)}, m_constraint{id}, m_newHeight{height}
+    : m_path{scenar}, m_constraint{id}, m_newHeight{height}
 {
-  auto& scenar = m_path.find();
   auto& cst = scenar.constraints.at(m_constraint);
   m_oldHeight = cst.heightPercentage();
 
@@ -36,18 +34,18 @@ MoveConstraint::MoveConstraint(
     m_selectedConstraints.append({m_constraint, m_oldHeight});
 }
 
-void MoveConstraint::undo() const
+void MoveConstraint::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
   for (const auto& cstr : m_selectedConstraints)
   {
     updateConstraintVerticalPos(cstr.second, cstr.first, scenar);
   }
 }
 
-void MoveConstraint::redo() const
+void MoveConstraint::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
   for (const auto& cstr : m_selectedConstraints)
   {
     updateConstraintVerticalPos(

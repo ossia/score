@@ -196,7 +196,7 @@ StateInspectorWidget::displayStateProcess(const Process::StateProcess& process)
   connect(
       delAct, &QAction::triggered, this, [ =, id = process.id() ]() {
         auto cmd = new Command::RemoveStateProcess{
-            iscore::IDocument::path(m_model), id};
+            m_model, id};
         emit m_commandDispatcher.submitCommand(cmd);
       },
       Qt::QueuedConnection);

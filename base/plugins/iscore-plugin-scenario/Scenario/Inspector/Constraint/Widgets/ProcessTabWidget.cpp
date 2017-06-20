@@ -16,7 +16,6 @@
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/RemoveProcessFromConstraint.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
-#include <Scenario/Commands/SetProcessDuration.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
@@ -234,8 +233,7 @@ void ProcessTabWidget::ask_processNameChanged(
 {
   if (s != p.metadata().getName())
   {
-    auto cmd = new Command::ChangeElementName<Process::ProcessModel>{
-        iscore::IDocument::path(p), s};
+    auto cmd = new Command::ChangeElementName<Process::ProcessModel>{p, s};
     emit m_constraintWidget.commandDispatcher()->submitCommand(cmd);
   }
 }

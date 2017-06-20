@@ -14,10 +14,9 @@
 namespace Curve
 {
 MovePoint::MovePoint(
-    Path<Model>&& model, const Id<PointModel>& pointId, Curve::Point newPoint)
-    : m_model{std::move(model)}, m_pointId{pointId}, m_newPoint{newPoint}
+    const Model& curve, const Id<PointModel>& pointId, Curve::Point newPoint)
+    : m_model{curve}, m_pointId{pointId}, m_newPoint{newPoint}
 {
-  auto& curve = m_model.find();
   for (auto& p : curve.points())
   {
     if (p->id() == m_pointId)
@@ -28,9 +27,9 @@ MovePoint::MovePoint(
   }
 }
 
-void MovePoint::undo() const
+void MovePoint::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& curve = m_model.find();
+  auto& curve = m_model.find(ctx);
   for (auto& p : curve.points())
   {
     if (p->id() == m_pointId)
@@ -46,9 +45,9 @@ void MovePoint::undo() const
   curve.changed();
 }
 
-void MovePoint::redo() const
+void MovePoint::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& curve = m_model.find();
+  auto& curve = m_model.find(ctx);
   for (auto& p : curve.points())
   {
     if (p->id() == m_pointId)
@@ -65,7 +64,7 @@ void MovePoint::redo() const
 }
 
 void MovePoint::update(
-    Path<Model>&& model,
+    const Model& obj,
     const Id<PointModel>& pointId,
     const Curve::Point& newPoint)
 {

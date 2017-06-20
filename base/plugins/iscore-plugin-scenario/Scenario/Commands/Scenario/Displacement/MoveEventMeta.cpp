@@ -22,24 +22,22 @@ class EventModel;
 namespace Command
 {
 MoveEventMeta::MoveEventMeta(
-    Path<Scenario::ProcessModel>&& scenarioPath,
-    Id<EventModel>
-        eventId,
+    const Scenario::ProcessModel& scenar,
+    Id<EventModel> eventId,
     TimeVal newDate,
     double y,
     ExpandMode mode)
     : SerializableMoveEvent{}
-    , m_scenario{scenarioPath}
+    , m_scenario{scenar}
     , m_eventId{std::move(eventId)}
     , m_newY{y}
     , m_moveEventImplementation(
-          context.interfaces<MoveEventList>()
-              .get(context, MoveEventFactoryInterface::Strategy::MOVE)
+          iscore::AppContext().interfaces<MoveEventList>()
+              .get(iscore::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
               .make(
-                  std::move(scenarioPath), m_eventId, std::move(newDate),
+                  scenar, m_eventId, std::move(newDate),
                   mode))
 {
-  auto& scenar = m_scenario.find();
   auto& ev = scenar.event(m_eventId);
   auto states = ev.states();
   if (states.size() == 1)
@@ -49,16 +47,16 @@ MoveEventMeta::MoveEventMeta(
   }
 }
 
-void MoveEventMeta::undo() const
+void MoveEventMeta::undo(const iscore::DocumentContext& ctx) const
 {
-  m_moveEventImplementation->undo();
-  updateY(m_oldY);
+  m_moveEventImplementation->undo(ctx);
+  updateY(m_scenario.find(ctx), m_oldY);
 }
 
-void MoveEventMeta::redo() const
+void MoveEventMeta::redo(const iscore::DocumentContext& ctx) const
 {
-  m_moveEventImplementation->redo();
-  updateY(m_newY);
+  m_moveEventImplementation->redo(ctx);
+  updateY(m_scenario.find(ctx), m_newY);
 }
 
 const Path<Scenario::ProcessModel>& MoveEventMeta::path() const
@@ -78,19 +76,15 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
   s >> m_scenario >> m_eventId >> m_oldY >> m_newY >> cmdData;
 
   m_moveEventImplementation
-      = context.interfaces<MoveEventList>()
-            .get(context, MoveEventFactoryInterface::Strategy::MOVE)
+      = iscore::AppContext().interfaces<MoveEventList>()
+            .get(iscore::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
             .make();
 
   m_moveEventImplementation->deserialize(cmdData);
 }
 
-void MoveEventMeta::updateY(double y) const
+void MoveEventMeta::updateY(Scenario::ProcessModel& scenar, double y) const
 {
-    if (!m_scenario.valid())
-      return;
-
-    auto& scenar = m_scenario.find();
     auto& ev = scenar.event(m_eventId);
     auto states = ev.states();
     if (states.size() == 1)
@@ -104,24 +98,23 @@ void MoveEventMeta::updateY(double y) const
         updateConstraintVerticalPos(y, *st.nextConstraint(), scenar);
     }
 }
-
+/*
 void MoveEventMeta::update(
     const Id<EventModel>& eventId, const TimeVal& newDate, double y,
     ExpandMode mode)
 {
   m_moveEventImplementation->update(eventId, newDate, y, mode);
   m_newY = y;
-  updateY(m_newY);
+  updateY(m_scenario.find(ctx), m_newY);
 }
-
+*/
 
 
 
 
 MoveTopEventMeta::MoveTopEventMeta(
-    Path<Scenario::ProcessModel>&& scenarioPath,
-    Id<EventModel>
-        eventId,
+    const Scenario::ProcessModel& scenarioPath,
+    Id<EventModel> eventId,
     TimeVal newDate,
     double y,
     ExpandMode mode)
@@ -129,22 +122,22 @@ MoveTopEventMeta::MoveTopEventMeta(
     , m_scenario{scenarioPath}
     , m_eventId{std::move(eventId)}
     , m_moveEventImplementation(
-          context.interfaces<MoveEventList>()
-              .get(context, MoveEventFactoryInterface::Strategy::MOVE)
+          iscore::AppContext().interfaces<MoveEventList>()
+              .get(iscore::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
               .make(
-                  std::move(scenarioPath), m_eventId, std::move(newDate),
+                  scenarioPath, m_eventId, std::move(newDate),
                   mode))
 {
 }
 
-void MoveTopEventMeta::undo() const
+void MoveTopEventMeta::undo(const iscore::DocumentContext& ctx) const
 {
-  m_moveEventImplementation->undo();
+  m_moveEventImplementation->undo(ctx);
 }
 
-void MoveTopEventMeta::redo() const
+void MoveTopEventMeta::redo(const iscore::DocumentContext& ctx) const
 {
-  m_moveEventImplementation->redo();
+  m_moveEventImplementation->redo(ctx);
 }
 
 const Path<Scenario::ProcessModel>& MoveTopEventMeta::path() const
@@ -163,23 +156,16 @@ void MoveTopEventMeta::deserializeImpl(DataStreamOutput& s)
   s >> m_scenario >> m_eventId >> cmdData;
 
   m_moveEventImplementation
-      = context.interfaces<MoveEventList>()
-            .get(context, MoveEventFactoryInterface::Strategy::MOVE)
+      = iscore::AppContext().interfaces<MoveEventList>()
+            .get(iscore::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
             .make();
 
   m_moveEventImplementation->deserialize(cmdData);
 }
 
-void MoveTopEventMeta::update(
-    const Id<EventModel>& eventId, const TimeVal& newDate, double y,
-    ExpandMode mode)
+void MoveTopEventMeta::update(Scenario::ProcessModel& scenar, const Id<EventModel>& eventId, const TimeVal& newDate, double y, ExpandMode mode)
 {
-  m_moveEventImplementation->update(eventId, newDate, y, mode);
-}
-
-void MoveTopEventMeta::update(unused_t, const Id<EventModel>& eventId, const TimeVal& newDate, double y, ExpandMode mode)
-{
-  m_moveEventImplementation->update(eventId, newDate, y, mode);
+  m_moveEventImplementation->update(scenar, eventId, newDate, y, mode);
 }
 }
 }

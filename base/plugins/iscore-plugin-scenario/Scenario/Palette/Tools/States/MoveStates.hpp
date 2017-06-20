@@ -25,11 +25,11 @@ class MoveConstraintState final : public StateBase<Scenario_T>
 public:
   MoveConstraintState(
       const ToolPalette_T& stateMachine,
-      const Path<Scenario_T>& scenarioPath,
+      const Scenario_T& scenario,
       const iscore::CommandStackFacade& stack,
       iscore::ObjectLocker& locker,
       QState* parent)
-      : StateBase<Scenario_T>{scenarioPath, parent}, m_dispatcher{stack}
+      : StateBase<Scenario_T>{scenario, parent}, m_dispatcher{stack}
   {
     this->setObjectName("MoveConstraintState");
     using namespace Scenario::Command;
@@ -51,7 +51,7 @@ public:
       QObject::connect(t_pressed, &QAbstractTransition::triggered, [&]() {
         if (this->clickedConstraint)
         {
-          auto& cst = this->m_scenarioPath.find().constraint(
+          auto& cst = scenario.constraint(
               *this->clickedConstraint);
           m_constraintInitialPoint = {cst.startDate(), cst.heightPercentage()};
         }
@@ -68,7 +68,7 @@ public:
         if (this->clickedConstraint)
         {
           this->m_dispatcher.submitCommand(
-              Path<Scenario_T>{this->m_scenarioPath},
+              this->m_scenario,
               *this->clickedConstraint,
               m_constraintInitialPoint.y
                   + (this->currentPoint.y - m_initialClick.y));
@@ -104,7 +104,7 @@ class MoveConstraintBraceState final : public StateBase<Scenario_T>
 public:
   MoveConstraintBraceState(
       const ToolPalette_T& stateMachine,
-      const Path<Scenario_T>& scenarioPath,
+      const Scenario_T& scenarioPath,
       const iscore::CommandStackFacade& stack,
       iscore::ObjectLocker& locker,
       QState* parent)
@@ -186,7 +186,7 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
 public:
   MoveTimeNodeState(
       const ToolPalette_T& stateMachine,
-      const Path<Scenario_T>& scenarioPath,
+      const Scenario_T& scenarioPath,
       const iscore::CommandStackFacade& stack,
       iscore::ObjectLocker& locker,
       QState* parent)
@@ -264,7 +264,7 @@ public:
         }
 
         m_dispatcher.submitCommand(
-            Path<Scenario_T>{this->m_scenarioPath},
+            this->m_scenario,
             ev_id,
             date,
             this->currentPoint.y,

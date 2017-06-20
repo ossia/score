@@ -32,7 +32,7 @@ private slots:
         },
         data);
 
-    cmd.redo();
+    cmd.redo(ctx);
 
     auto event = scenar->event(cmd.createdEvent());
 
@@ -40,12 +40,12 @@ private slots:
     QCOMPARE(event->heightPercentage(), 0.2);
     QCOMPARE(cmd.createdTimeNode(), event->timeNode());
 
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE((int)scenar->events().size(), 2);
     scenar->event(Id<EventModel>(0));
     scenar->event(Id<EventModel>(1));
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), 3);
     QCOMPARE(event->heightPercentage(), 0.2);
 
@@ -67,7 +67,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         data);
-    cmd1.redo();
+    cmd1.redo(ctx);
 
     data.endTimeNodeId = cmd1.createdTimeNode();
     data.relativeY = 0.2;
@@ -81,16 +81,16 @@ private slots:
     int eventCount = 4;
     int timeNodeCount = 3;
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), eventCount);
     QCOMPARE((int)scenar->timeNodes().size(), timeNodeCount);
     QCOMPARE(scenar->event(cmd.createdEvent())->heightPercentage(), 0.2);
 
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE((int)scenar->events().size(), eventCount - 1);
     QCOMPARE((int)scenar->timeNodes().size(), timeNodeCount);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), eventCount);
     QCOMPARE((int)scenar->timeNodes().size(), timeNodeCount);
     QCOMPARE(scenar->event(cmd.createdEvent())->heightPercentage(), 0.2);

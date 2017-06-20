@@ -15,15 +15,13 @@ namespace Explorer
 namespace Command
 {
 AddAddress::AddAddress(
-    Path<DeviceDocumentPlugin>&& device_tree,
+    const DeviceDocumentPlugin& devplug,
     const Device::NodePath& nodePath,
     InsertMode insert,
     const Device::AddressSettings& addressSettings)
-    : m_devicesModel{device_tree}
+    : m_devicesModel{devplug}
 {
   m_addressSettings = addressSettings;
-
-  auto& devplug = m_devicesModel.find();
 
   const Device::Node* parentNode{};
 
@@ -44,15 +42,15 @@ AddAddress::AddAddress(
   m_parentNodePath = Device::NodePath{*parentNode};
 }
 
-void AddAddress::undo() const
+void AddAddress::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.removeNode(m_parentNodePath, m_addressSettings);
 }
 
-void AddAddress::redo() const
+void AddAddress::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.addAddress(m_parentNodePath, m_addressSettings, 0);
 }
 

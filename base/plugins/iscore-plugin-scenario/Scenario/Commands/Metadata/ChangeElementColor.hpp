@@ -37,22 +37,21 @@ public:
   }
 
   ChangeElementColor() = default;
-  ChangeElementColor(Path<T>&& path, iscore::ColorRef newColor)
-      : m_path{std::move(path)}, m_newColor{newColor}
+  ChangeElementColor(const T& obj, iscore::ColorRef newColor)
+      : m_path{obj}, m_newColor{newColor}
   {
-    auto& obj = m_path.find();
     m_oldColor = obj.metadata().getColor();
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find();
+    auto& obj = m_path.find(ctx);
     obj.metadata().setColor(m_oldColor);
   }
 
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& obj = m_path.find();
+    auto& obj = m_path.find(ctx);
     obj.metadata().setColor(m_newColor);
   }
 

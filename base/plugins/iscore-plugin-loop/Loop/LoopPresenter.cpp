@@ -157,7 +157,7 @@ void LayerPresenter::setHeight(qreal height)
   const auto N = c.smallView().size();
   for(std::size_t i = 0U; i < N; i++)
   {
-    const_cast<Scenario::ConstraintModel&>(c).setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, max_height / N);
+    const_cast<Scenario::ConstraintModel&>(c).setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, max_height / N - 1);
   }
 }
 

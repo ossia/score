@@ -24,10 +24,12 @@ class CreateCommentBlock final : public iscore::Command
       "Create a comment block")
 public:
   CreateCommentBlock(
-      Path<ProcessModel>&& scenarioPath, TimeVal date, double yPosition);
+      const Scenario::ProcessModel& scenarioPath,
+      TimeVal date,
+      double yPosition);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

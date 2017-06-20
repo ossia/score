@@ -24,41 +24,42 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/document/DocumentContext.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
-    Path<ConstraintModel>&& constraintPath,
+    const ConstraintModel& cst,
     UuidKey<Process::ProcessModel>
         process)
-    : AddOnlyProcessToConstraint{std::move(constraintPath),
-                                 getStrongId(constraintPath.find().processes),
+    : AddOnlyProcessToConstraint{cst,
+                                 getStrongId(cst.processes),
                                  process}
 {
 }
 
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
-    Path<ConstraintModel>&& constraintPath,
+    const ConstraintModel& cst,
     Id<Process::ProcessModel>
         processId,
     UuidKey<Process::ProcessModel>
         process)
-    : m_path{std::move(constraintPath)}
+    : m_path{cst}
     , m_processName{process}
     , m_createdProcessId{std::move(processId)}
 {
 }
 
-void AddOnlyProcessToConstraint::undo() const
+void AddOnlyProcessToConstraint::undo(const iscore::DocumentContext& ctx) const
 {
-  undo(m_path.find());
+  undo(m_path.find(ctx));
 }
 
-void AddOnlyProcessToConstraint::redo() const
+void AddOnlyProcessToConstraint::redo(const iscore::DocumentContext& ctx) const
 {
-  redo(m_path.find());
+  redo(m_path.find(ctx), ctx);
 }
 
 void AddOnlyProcessToConstraint::undo(ConstraintModel& constraint) const
@@ -67,10 +68,10 @@ void AddOnlyProcessToConstraint::undo(ConstraintModel& constraint) const
 }
 
 Process::ProcessModel&
-AddOnlyProcessToConstraint::redo(ConstraintModel& constraint) const
+AddOnlyProcessToConstraint::redo(ConstraintModel& constraint, const iscore::DocumentContext& ctx) const
 {
   // Create process model
-  auto fac = context.interfaces<Process::ProcessFactoryList>().get(
+  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(
       m_processName);
   ISCORE_ASSERT(fac);
   auto proc = fac->make(

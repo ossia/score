@@ -22,14 +22,14 @@ private slots:
 
     auto id = cmd.m_createdRackId;
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)constraint->rackes().size(), 1);
     QCOMPARE(constraint->rack(id)->parent(), constraint);
 
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE((int)constraint->rackes().size(), 0);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)constraint->rackes().size(), 1);
     QCOMPARE(constraint->rack(id)->parent(), constraint);
 

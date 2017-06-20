@@ -56,16 +56,15 @@ public:
   MergeEvents() = default;
 
   MergeEvents(
-      Path<ProcessModel>&& scenar,
+      const ProcessModel& scenario,
       Id<EventModel>
           clickedEv,
       Id<EventModel>
           hoveredEv)
-      : m_scenarioPath{scenar}
+      : m_scenarioPath{scenario}
       , m_movingEventId{std::move(clickedEv)}
       , m_destinationEventId{std::move(hoveredEv)}
   {
-    auto& scenario = m_scenarioPath.find();
     auto& event = scenario.event(m_movingEventId);
     auto& destinantionEvent = scenario.event(m_destinationEventId);
 
@@ -75,13 +74,13 @@ public:
     m_serializedEvent = arr;
 
     m_mergeTimeNodesCommand = new MergeTimeNodes<ProcessModel>{
-        Path<ProcessModel>{scenario}, event.timeNode(),
+        scenario, event.timeNode(),
         destinantionEvent.timeNode()};
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& scenar = m_scenarioPath.find();
+    auto& scenar = m_scenarioPath.find(ctx);
     auto& globalEvent = scenar.event(m_destinationEventId);
 
     DataStream::Deserializer s{m_serializedEvent};
@@ -107,21 +106,21 @@ public:
     {
       auto& tn = scenar.timeNode(globalEvent.timeNode());
       tn.addEvent(m_movingEventId);
-      m_mergeTimeNodesCommand->undo();
+      m_mergeTimeNodesCommand->undo(ctx);
     }
 
     updateEventExtent(m_destinationEventId, scenar);
   }
 
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& scenar = m_scenarioPath.find();
+    auto& scenar = m_scenarioPath.find(ctx);
     auto& movingEvent = scenar.event(m_movingEventId);
     auto& destinationEvent = scenar.event(m_destinationEventId);
     auto movingStates = movingEvent.states();
 
     if (movingEvent.timeNode() != destinationEvent.timeNode())
-      m_mergeTimeNodesCommand->redo();
+      m_mergeTimeNodesCommand->redo(ctx);
 
     for (auto& stateId : movingStates)
     {
@@ -137,7 +136,7 @@ public:
     updateEventExtent(m_destinationEventId, scenar);
   }
 
-  void update(Path<ProcessModel>, const Id<EventModel>&, const Id<EventModel>&)
+  void update(unused_t, const Id<EventModel>&, const Id<EventModel>&)
   {
   }
 

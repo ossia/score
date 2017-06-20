@@ -29,8 +29,8 @@ public:
   Command();
   virtual ~Command();
 
-  virtual void undo() const = 0;
-  virtual void redo() const = 0;
+  virtual void undo(const iscore::DocumentContext& ctx) const = 0;
+  virtual void redo(const iscore::DocumentContext& ctx) const = 0;
 
   virtual const CommandGroupKey& parentKey() const noexcept = 0;
   virtual const CommandKey& key() const noexcept = 0;
@@ -43,15 +43,13 @@ public:
 protected:
   virtual void serializeImpl(DataStreamInput&) const = 0;
   virtual void deserializeImpl(DataStreamOutput&) = 0;
-
+/*
   quint32 timestamp() const;
   void setTimestamp(quint32 stmp);
 
-  const iscore::ApplicationContext& context;
-
 private:
   // TODO check if this is UTC
-  std::chrono::milliseconds m_timestamp;
+  std::chrono::milliseconds m_timestamp;*/
 };
 }
 

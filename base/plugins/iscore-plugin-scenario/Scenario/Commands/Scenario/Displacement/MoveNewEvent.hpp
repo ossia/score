@@ -34,37 +34,33 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final
       ScenarioCommandFactoryName(), MoveNewEvent, "Move a new event")
 public:
   MoveNewEvent(
-      Path<Scenario::ProcessModel>&& scenarioPath,
-      Id<ConstraintModel>
-          constraintId,
-      Id<EventModel>
-          eventId,
+      const Scenario::ProcessModel& scenarioPath,
+      Id<ConstraintModel> constraintId,
+      Id<EventModel> eventId,
       TimeVal date,
       const double y,
       bool yLocked);
   MoveNewEvent(
-      Path<Scenario::ProcessModel>&& scenarioPath,
-      Id<ConstraintModel>
-          constraintId,
-      Id<EventModel>
-          eventId,
+      const Scenario::ProcessModel& scenarioPath,
+      Id<ConstraintModel>  constraintId,
+      Id<EventModel> eventId,
       TimeVal date,
       const double y,
       bool yLocked,
       ExpandMode);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   void update(
-      unused_t,
+      Scenario::ProcessModel& s,
       unused_t,
       const Id<EventModel>& id,
       const TimeVal& date,
       const double y,
       bool yLocked)
   {
-    m_cmd.update(id, date, y, ExpandMode::Scale);
+    m_cmd.update(s, id, date, y, ExpandMode::Scale);
     m_y = y;
     m_yLocked = yLocked;
   }

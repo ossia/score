@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <vector>
 
@@ -28,16 +29,16 @@ AddLayerInNewSlot::AddLayerInNewSlot(
 {
 }
 
-void AddLayerInNewSlot::undo() const
+void AddLayerInNewSlot::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& constraint = m_path.find();
+  auto& constraint = m_path.find(ctx);
   constraint.removeSlot(int(constraint.smallView().size() - 1));
 }
 
-void AddLayerInNewSlot::redo() const
+void AddLayerInNewSlot::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& constraint = m_path.find();
-  auto h = context.settings<Scenario::Settings::Model>().getSlotHeight();
+  auto& constraint = m_path.find(ctx);
+  auto h = ctx.app.settings<Scenario::Settings::Model>().getSlotHeight();
 
   constraint.addSlot(Slot{{m_processId}, m_processId, h});
 }

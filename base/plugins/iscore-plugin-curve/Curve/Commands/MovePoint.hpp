@@ -20,15 +20,15 @@ class ISCORE_PLUGIN_CURVE_EXPORT MovePoint final
   ISCORE_COMMAND_DECL(CommandFactoryName(), MovePoint, "Move a point")
 public:
   MovePoint(
-      Path<Model>&& model,
+      const Model& curve,
       const Id<PointModel>& pointId,
       Curve::Point newPoint);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   void update(
-      Path<Model>&& model,
+      const Model& obj,
       const Id<PointModel>& pointId,
       const Curve::Point& newPoint);
 

@@ -23,7 +23,7 @@ struct RecordContext : public QObject
   Q_OBJECT
 public:
   using clock = std::chrono::steady_clock;
-  RecordContext(const Scenario::ProcessModel&, Scenario::Point pt);
+  RecordContext(Scenario::ProcessModel&, Scenario::Point pt);
   RecordContext(const RecordContext& other) = delete;
   RecordContext(RecordContext&& other) = delete;
   RecordContext& operator=(const RecordContext& other) = delete;
@@ -51,7 +51,7 @@ public:
   }
 
   const iscore::DocumentContext& context;
-  const Scenario::ProcessModel& scenario;
+  Scenario::ProcessModel& scenario;
   Explorer::DeviceExplorerModel& explorer;
   RecordCommandDispatcher dispatcher;
 
@@ -119,7 +119,7 @@ public:
 
   bool setup()
   {
-    auto& ctx = recorder.context;
+    RecordContext& ctx = recorder.context;
     //// Device tree management ////
     // Get the listening of the selected addresses
     auto recordListening = GetAddressesToRecordRecursive(ctx.explorer);
@@ -147,14 +147,14 @@ public:
 
       // Move end event by the current duration.
       box.moveCommand.update(
-          {},
+          ctx.scenario,
           {},
           box.endEvent,
           ctx.point.date + GetTimeDifference(ctx.firstValueTime),
           0,
           true);
 
-      box.moveCommand.redo();
+      box.moveCommand.redo(ctx.context);
     });
 
     // In case where the software is exited

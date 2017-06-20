@@ -9,7 +9,10 @@
 #include <iscore_lib_base_export.h>
 #include <type_traits>
 #include <vector>
-
+namespace iscore
+{
+struct DocumentContext;
+}
 class QObject;
 
 /**
@@ -101,7 +104,7 @@ public:
    * @todo search starting from another object, for more performance.
    */
   template <class T>
-  T& find() const
+  T& find(const iscore::DocumentContext& ctx) const
   {
     // First see if the pointer is still loaded in the cache.
     if (!m_cache.isNull())
@@ -110,7 +113,7 @@ public:
     }
     else // Load it by hand
     {
-      auto ptr = safe_cast<typename std::remove_const<T>::type*>(find_impl());
+      auto ptr = safe_cast<typename std::remove_const<T>::type*>(find_impl(ctx));
       m_cache = ptr;
       return *ptr;
     }
@@ -122,7 +125,7 @@ public:
    * @return null if the object does not exist.
    */
   template <class T>
-  T* try_find() const
+  T* try_find(const iscore::DocumentContext& ctx) const
   {
     try
     {
@@ -133,7 +136,7 @@ public:
       else // Load it by hand
       {
         auto ptr = static_cast<typename std::remove_const<T>::type*>(
-            find_impl_unsafe());
+            find_impl_unsafe(ctx));
         m_cache = ptr;
         return ptr;
       }
@@ -156,10 +159,10 @@ public:
 
 private:
   // Throws
-  QObject* find_impl() const;
+  QObject* find_impl(const iscore::DocumentContext& ctx) const;
 
   // Returns nullptr
-  QObject* find_impl_unsafe() const;
+  QObject* find_impl_unsafe(const iscore::DocumentContext& ctx) const;
 
   ObjectIdentifierVector m_objectIdentifiers;
   mutable QPointer<QObject> m_cache;

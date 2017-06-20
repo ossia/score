@@ -45,21 +45,21 @@ public:
   {
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& tn = m_path.find();
+    auto& tn = m_path.find(ctx);
     tn.trigger()->setActive(true);
 
     for (const auto& cmd : m_cmds)
     {
-      cmd.undo();
+      cmd.undo(ctx);
     }
 
     m_cmds.clear();
   }
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& tn = m_path.find();
+    auto& tn = m_path.find(ctx);
     tn.trigger()->setActive(false);
 
     auto scenar = safe_cast<Scenario_T*>(tn.parent());
@@ -67,7 +67,7 @@ public:
     for (const auto& cstrId : constraintsBeforeTimeNode(*scenar, tn.id()))
     {
       m_cmds.emplace_back(scenar->constraint(cstrId), true);
-      m_cmds.back().redo();
+      m_cmds.back().redo(ctx);
     }
   }
 

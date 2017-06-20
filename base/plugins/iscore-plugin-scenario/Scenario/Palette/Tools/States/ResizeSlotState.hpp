@@ -96,7 +96,7 @@ public:
     connect(press, &QAbstractState::entered, [=]() {
       m_originalPoint = m_sm.scenePoint;
 
-      const ConstraintModel& cst = this->currentSlot.constraint.find();
+      const ConstraintModel& cst = this->currentSlot.constraint.find(stack.context());
       m_originalHeight = cst.getSlotHeight(this->currentSlot);
     });
 
@@ -105,11 +105,15 @@ public:
           20.0,
           m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
-      m_ongoingDispatcher.submitCommand(this->currentSlot, val);
+      const ConstraintModel& cst = this->currentSlot.constraint.find(stack.context());
+      m_ongoingDispatcher.submitCommand(cst, this->currentSlot, val);
     });
 
     connect(release, &QAbstractState::entered, [=]() {
       m_ongoingDispatcher.commit();
+
+      ConstraintModel& cst = this->currentSlot.constraint.find(stack.context());
+      cst.heightFinishedChanging();
     });
   }
 

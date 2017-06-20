@@ -36,7 +36,7 @@ private slots:
     QVERIFY(int_model2->processes().size() == 0);
     AddProcessToConstraint cmd(
         {{"ConstraintModel", {}}, {"ConstraintModel", 0}}, "Scenario");
-    cmd.redo();
+    cmd.redo(ctx);
     QVERIFY(int_model2->processes().size() == 1);
 
     auto s0 = static_cast<Scenario::ProcessModel*>(
@@ -60,7 +60,7 @@ private slots:
          {"ConstraintModel", int_0_id}},
         "Scenario");
 
-    cmd2.redo();
+    cmd2.redo(ctx);
     QVERIFY(int_model2->processes().size() == 1);
     auto last_constraint = s0->constraints().front();
     QVERIFY(last_constraint->processes().size() == 1);
@@ -68,11 +68,11 @@ private slots:
     RemoveProcessFromConstraint cmd3(
         {{"ConstraintModel", {}}, {"ConstraintModel", 0}}, s0->id());
 
-    cmd3.redo();
+    cmd3.redo(ctx);
     QVERIFY(int_model2->processes().size() == 0);
-    cmd3.undo();
+    cmd3.undo(ctx);
     QVERIFY(int_model2->processes().size() == 1);
-    cmd3.redo();
+    cmd3.redo(ctx);
     QVERIFY(int_model2->processes().size() == 0);
   }
 };

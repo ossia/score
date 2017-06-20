@@ -31,7 +31,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint final
       ScenarioCommandFactoryName(), CreateConstraint, "Create a constraint")
 public:
   CreateConstraint(
-      Path<Scenario::ProcessModel>&& scenarioPath,
+      const Scenario::ProcessModel& scenarioPath,
       Id<StateModel>
           startState,
       Id<StateModel>
@@ -43,8 +43,8 @@ public:
     return m_path;
   }
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   const Id<ConstraintModel>& createdConstraint() const
   {

@@ -19,14 +19,14 @@ SwapSlots::SwapSlots(
 {
 }
 
-void SwapSlots::undo() const
+void SwapSlots::undo(const iscore::DocumentContext& ctx) const
 {
-  redo();
+  redo(ctx);
 }
 
-void SwapSlots::redo() const
+void SwapSlots::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& cst = m_path.find();
+  auto& cst = m_path.find(ctx);
   cst.swapSlots(m_first, m_second, Slot::SmallView);
 }
 

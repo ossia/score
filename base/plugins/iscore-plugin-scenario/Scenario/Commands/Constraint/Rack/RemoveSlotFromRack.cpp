@@ -14,21 +14,23 @@ namespace Scenario
 {
 namespace Command
 {
-RemoveSlotFromRack::RemoveSlotFromRack(SlotPath slotPath):
-  m_path{slotPath}
-, m_slot{slotPath.find()}
+RemoveSlotFromRack::RemoveSlotFromRack(
+    SlotPath slotPath,
+    Slot slt):
+  m_path{std::move(slotPath)}
+, m_slot{std::move(slt)}
 {
 }
 
-void RemoveSlotFromRack::undo() const
+void RemoveSlotFromRack::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& rack = m_path.constraint.find();
+  auto& rack = m_path.constraint.find(ctx);
   rack.addSlot(m_slot, m_path.index);
 }
 
-void RemoveSlotFromRack::redo() const
+void RemoveSlotFromRack::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& rack = m_path.constraint.find();
+  auto& rack = m_path.constraint.find(ctx);
   rack.removeSlot(m_path.index);
 }
 

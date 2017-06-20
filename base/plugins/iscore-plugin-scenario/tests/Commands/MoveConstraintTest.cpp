@@ -42,13 +42,13 @@ private slots:
         },
         data);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE(scenar->constraint(int_0_id)->heightPercentage(), 0.1);
 
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE(scenar->constraint(int_0_id)->heightPercentage(), 0.5);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE(scenar->constraint(int_0_id)->heightPercentage(), 0.1);
 
     // Delete them else they stay in qApp !

@@ -54,7 +54,7 @@ ApplicationPlugin::ApplicationPlugin(const iscore::GUIApplicationContext& ctx)
 }
 
 void ApplicationPlugin::record(
-    const Scenario::ProcessModel& scenar, Scenario::Point pt)
+    Scenario::ProcessModel& scenar, Scenario::Point pt)
 {
   if (m_currentContext)
     return;
@@ -83,7 +83,7 @@ void ApplicationPlugin::record(
 }
 
 void ApplicationPlugin::recordMessages(
-    const Scenario::ProcessModel& scenar, Scenario::Point pt)
+    Scenario::ProcessModel& scenar, Scenario::Point pt)
 {
   if (m_currentContext)
     return;

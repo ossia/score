@@ -22,10 +22,11 @@ class RemoveMessageNodes final : public iscore::Command
 
 public:
   RemoveMessageNodes(
-      Path<StateModel>&&, const std::vector<const Process::MessageNode*>&);
+      const Scenario::StateModel& model,
+      const std::vector<const Process::MessageNode*>&);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;
