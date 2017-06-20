@@ -17,15 +17,15 @@ SetCommentText::SetCommentText(
 
 }
 
-void SetCommentText::undo() const
+void SetCommentText::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& cmt = m_path.find();
+  auto& cmt = m_path.find(ctx);
   cmt.setContent(m_oldComment);
 }
 
-void SetCommentText::redo() const
+void SetCommentText::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& cmt = m_path.find();
+  auto& cmt = m_path.find(ctx);
   cmt.setContent(m_newComment);
 }
 

@@ -16,19 +16,19 @@ namespace Scenario
 namespace Command
 {
 MoveNewState::MoveNewState(
-    Path<Scenario::ProcessModel>&& scenarioPath,
+    const Scenario::ProcessModel& scenar,
     Id<StateModel>
         stateId,
     double y)
-    : m_path(std::move(scenarioPath)), m_stateId{std::move(stateId)}, m_y{y}
+    : m_path(scenar)
+    , m_stateId{std::move(stateId)}, m_y{y}
 {
-  auto& scenar = m_path.find();
   m_oldy = scenar.state(m_stateId).heightPercentage();
 }
 
-void MoveNewState::undo() const
+void MoveNewState::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
   auto& state = scenar.state(m_stateId);
   state.setHeightPercentage(m_oldy);
   if(auto prev = state.previousConstraint())
@@ -43,9 +43,9 @@ void MoveNewState::undo() const
   updateEventExtent(state.eventId(), scenar);
 }
 
-void MoveNewState::redo() const
+void MoveNewState::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_path.find();
+  auto& scenar = m_path.find(ctx);
   auto& state = scenar.state(m_stateId);
   state.setHeightPercentage(m_y);
   if(auto prev = state.previousConstraint())

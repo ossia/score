@@ -50,7 +50,7 @@ void ProcessWidgetArea::dragEnterEvent(QDragEnterEvent* event)
 
   auto path = unmarshall<Path<Process::ProcessModel>>(
       event->mimeData()->data("application/x-iscore-processdrag"));
-  auto res = path.try_find();
+  auto res = path.try_find(m_disp.stack().context());
   if (!res)
     return;
 
@@ -82,48 +82,54 @@ void ProcessWidgetArea::dropEvent(QDropEvent* event)
   auto center = rect().center().y();
   auto y = event->pos().y();
 
-  emit handleSwap(path, center, y);
+  emit handleSwap(path.try_find(m_disp.stack().context()), center, y);
 }
 
 void ProcessWidgetArea::performSwap(
-    Path<Scenario::ConstraintModel> cst,
+    QPointer<const Scenario::ConstraintModel> cst,
     const Id<Process::ProcessModel>& id1,
     const Id<Process::ProcessModel>& id2)
 {
-  // Create a command to swap both processes
-  m_disp.submitCommand(
-      new Command::PutProcessBefore{std::move(cst), id1, id2});
+  if(cst)
+  {
+    // Create a command to swap both processes
+    m_disp.submitCommand(
+          new Command::PutProcessBefore{*cst, id1, id2});
+  }
 }
 
 void ProcessWidgetArea::putAtEnd(
-    Path<ConstraintModel> cst, const Id<Process::ProcessModel>& id1)
+    QPointer<const Scenario::ConstraintModel> cst, const Id<Process::ProcessModel>& id1)
 {
-  m_disp.submitCommand(new Command::PutProcessToEnd{std::move(cst), id1});
+  if(cst)
+  {
+    m_disp.submitCommand(new Command::PutProcessToEnd{*cst, id1});
+  }
 }
 
 void ProcessWidgetArea::handleSwap(
-    Path<Process::ProcessModel> path, double center, double y)
+    QPointer<const Process::ProcessModel> path, double center, double y)
 {
-  auto& cst = *safe_cast<Scenario::ConstraintModel*>(m_proc.parent());
+  auto cst = safe_cast<Scenario::ConstraintModel*>(m_proc.parent());
   if (y < center)
   {
     // Drop before this
-    emit sig_performSwap(cst, m_proc.id(), id(path));
+    emit sig_performSwap(cst, m_proc.id(), path->id());
   }
   else
   {
     // Drop after this
-    auto next_proc_it = cst.processes.find(m_proc.id());
+    auto next_proc_it = cst->processes.find(m_proc.id());
     std::advance(next_proc_it, 1);
-    if (next_proc_it != cst.processes.end())
+    if (next_proc_it != cst->processes.end())
     {
       // Drop before next process
-      emit sig_performSwap(cst, next_proc_it->id(), id(path));
+      emit sig_performSwap(cst, next_proc_it->id(), path->id());
     }
     else
     {
       // Drop at end
-      emit sig_putAtEnd(cst, id(path));
+      emit sig_putAtEnd(cst, path->id());
     }
   }
 }

@@ -26,11 +26,11 @@ private slots:
         },
         scenar->startEvent()->id(), TimeValue::fromMsecs(10), 0.5);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), 2);
     QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);
 
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE((int)scenar->events().size(), 1);
 
     try
@@ -42,7 +42,7 @@ private slots:
     {
     }
 
-    cmd.redo();
+    cmd.redo(ctx);
 
     QCOMPARE((int)scenar->events().size(), 2);
     QCOMPARE(scenar->event(cmd.m_createdEventId)->heightPercentage(), 0.5);

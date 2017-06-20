@@ -11,7 +11,7 @@ CURVE_SEGMENT_METADATA(
     Curve::LinearSegment,
     "a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2",
     "Linear",
-    "Linear")
+    "Linear", "")
 
 namespace Curve
 {

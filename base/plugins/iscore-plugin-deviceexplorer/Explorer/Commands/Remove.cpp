@@ -15,16 +15,19 @@ namespace Explorer
 class DeviceDocumentPlugin;
 namespace Command
 {
-Remove::Remove(Path<DeviceDocumentPlugin> device_tree, Device::NodePath&& path)
+Remove::Remove(
+    const DeviceDocumentPlugin& devplug,
+    Device::NodePath&& path)
     : m_device{false}
-    , m_cmd{new RemoveAddress{std::move(device_tree), std::move(path)}}
+    , m_cmd{new RemoveAddress{devplug, std::move(path)}}
 {
 }
 
 Remove::Remove(
-    Path<DeviceDocumentPlugin> device_tree, const Device::Node& node)
+    const DeviceDocumentPlugin& devplug,
+    const Device::Node& node)
     : m_device{true}
-    , m_cmd{new LoadDevice{std::move(device_tree), Device::Node{node}}}
+    , m_cmd{new LoadDevice{devplug, Device::Node{node}}}
 {
 }
 
@@ -33,14 +36,14 @@ Remove::~Remove()
   delete m_cmd;
 }
 
-void Remove::undo() const
+void Remove::undo(const iscore::DocumentContext& ctx) const
 {
-  m_device ? m_cmd->redo() : m_cmd->undo();
+  m_device ? m_cmd->redo(ctx) : m_cmd->undo(ctx);
 }
 
-void Remove::redo() const
+void Remove::redo(const iscore::DocumentContext& ctx) const
 {
-  m_device ? m_cmd->undo() : m_cmd->redo();
+  m_device ? m_cmd->undo(ctx) : m_cmd->redo(ctx);
 }
 
 void Remove::serializeImpl(DataStreamInput& d) const

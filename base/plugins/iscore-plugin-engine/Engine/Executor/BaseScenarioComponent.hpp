@@ -4,6 +4,7 @@
 #include <ossia/editor/state/state_element.hpp>
 #include <QObject>
 #include <iscore_plugin_engine_export.h>
+#include <ossia/editor/scenario/clock.hpp>
 namespace ossia
 {
 struct time_value;

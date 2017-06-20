@@ -42,11 +42,11 @@ signals:
   void playAtDate(const TimeVal&) const;
 
   //! Request an automation recording from a given point.
-  void startRecording(const Scenario::ProcessModel&, Scenario::Point) const;
+  void startRecording(Scenario::ProcessModel&, Scenario::Point) const;
 
   //! Request a message recording from a given point.
   void
-  startRecordingMessages(const Scenario::ProcessModel&, Scenario::Point) const;
+  startRecordingMessages(Scenario::ProcessModel&, Scenario::Point) const;
   void stopRecording() const;
 };
 }

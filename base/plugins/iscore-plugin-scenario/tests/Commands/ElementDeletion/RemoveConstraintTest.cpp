@@ -32,7 +32,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         data);
-    eventCmd.redo();
+    eventCmd.redo(ctx);
 
     auto event_id = eventCmd.createdEvent();
     auto eventCreated = scenar->event(event_id);
@@ -47,19 +47,19 @@ private slots:
             {"ScenarioModel", {0}},
         },
         constraint);
-    cmd.redo();
+    cmd.redo(ctx);
 
     QCOMPARE((int)scenar->constraints().size(), 0);
     QCOMPARE((int)eventCreated->previousConstraints().size(), 0);
 
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE((int)scenar->constraints().size(), 1);
     QCOMPARE((int)eventCreated->previousConstraints().size(), 1);
     QCOMPARE(scenar->constraints().at(0)->id(), constraint_id);
     QCOMPARE(eventCreated->previousConstraints().at(0), constraint_id);
     QCOMPARE(scenar->constraint(constraint_id)->heightPercentage(), y);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)scenar->constraints().size(), 0);
     QCOMPARE((int)eventCreated->previousConstraints().size(), 0);
 
@@ -81,7 +81,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         data);
-    eventCmd.redo();
+    eventCmd.redo(ctx);
 
     auto startEv_id = eventCmd.createdEvent();
 
@@ -90,7 +90,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         startEv_id, TimeValue::fromMsecs(30), 0.5);
-    event2Cmd.redo();
+    event2Cmd.redo(ctx);
 
     auto endEvent_id = event2Cmd.createdEvent();
 
@@ -107,13 +107,13 @@ private slots:
             {"ScenarioModel", {0}},
         },
         constraint);
-    cmd.redo();
+    cmd.redo(ctx);
 
     QCOMPARE((int)scenar->constraints().size(), 1);
     QCOMPARE((int)endEventCreated->previousConstraints().size(), 0);
     QCOMPARE((int)startEventCreated->nextConstraints().size(), 0);
 
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE((int)scenar->constraints().size(), 2);
     QCOMPARE((int)endEventCreated->previousConstraints().size(), 1);
     QCOMPARE((int)startEventCreated->nextConstraints().size(), 1);
@@ -124,7 +124,7 @@ private slots:
 
     QCOMPARE(scenar->constraint(constraint_id)->heightPercentage(), y);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)scenar->constraints().size(), 1);
     QCOMPARE((int)endEventCreated->previousConstraints().size(), 0);
     QCOMPARE((int)startEventCreated->nextConstraints().size(), 0);

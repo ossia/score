@@ -377,8 +377,8 @@ Document* DocumentManager::loadStack(
     setupDocument(ctx, doc);
 
     loadCommandStack(
-        ctx.components, writer, doc->commandStack(), [](auto cmd) {
-          cmd->redo();
+        ctx.components, writer, doc->commandStack(), [doc](auto cmd) {
+          cmd->redo(doc->context());
         });
     return doc;
   }
@@ -429,7 +429,7 @@ Document* DocumentManager::loadFile(
               qApp->activeWindow(),
               tr("Unable to load"),
               tr("Unable to load file : "
-                 "There is probably something wrong with the file format "));
+                 "There is probably something wrong with the file format."));
         }
       }
 

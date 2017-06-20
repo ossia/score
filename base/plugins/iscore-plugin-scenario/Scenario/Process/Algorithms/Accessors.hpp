@@ -93,7 +93,7 @@ nextConstraint(const StateModel& st, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-auto nextConstraints(const EventModel& ev, const Scenario_T& scenario)
+std::list<Id<ConstraintModel>> nextConstraints(const EventModel& ev, const Scenario_T& scenario)
 {
   std::list<Id<ConstraintModel>> constraints;
   for (const Id<StateModel>& state : ev.states())
@@ -105,7 +105,7 @@ auto nextConstraints(const EventModel& ev, const Scenario_T& scenario)
   return constraints;
 }
 template <typename Scenario_T>
-auto previousConstraints(const EventModel& ev, const Scenario_T& scenario)
+std::list<Id<ConstraintModel>> previousConstraints(const EventModel& ev, const Scenario_T& scenario)
 {
   std::list<Id<ConstraintModel>> constraints;
   for (const Id<StateModel>& state : ev.states())
@@ -119,7 +119,7 @@ auto previousConstraints(const EventModel& ev, const Scenario_T& scenario)
 
 // TimeNodes
 template <typename Scenario_T>
-auto nextConstraints(const TimeNodeModel& tn, const Scenario_T& scenario)
+std::list<Id<ConstraintModel>> nextConstraints(const TimeNodeModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<ConstraintModel>> constraints;
   for (const Id<EventModel>& event_id : tn.events())
@@ -133,7 +133,7 @@ auto nextConstraints(const TimeNodeModel& tn, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-auto previousConstraints(const TimeNodeModel& tn, const Scenario_T& scenario)
+std::list<Id<ConstraintModel>> previousConstraints(const TimeNodeModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<ConstraintModel>> constraints;
   for (const Id<EventModel>& event_id : tn.events())
@@ -147,7 +147,7 @@ auto previousConstraints(const TimeNodeModel& tn, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-auto states(const TimeNodeModel& tn, const Scenario_T& scenario)
+std::list<Id<StateModel>> states(const TimeNodeModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<StateModel>> stateList;
   for (const Id<EventModel>& event_id : tn.events())

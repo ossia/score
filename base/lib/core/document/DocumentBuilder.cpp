@@ -124,8 +124,8 @@ Document* DocumentBuilder::restoreDocument(
     // We restore the pre-crash command stack.
     DataStream::Deserializer writer(cmdData);
     loadCommandStack(
-        ctx.components, writer, doc->commandStack(), [](auto cmd) {
-          cmd->redo();
+        ctx.components, writer, doc->commandStack(), [doc](auto cmd) {
+          cmd->redo(doc->context());
         });
 
     m_backupManager = new DocumentBackupManager{*doc};

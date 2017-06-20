@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
+#include <iscore_plugin_scenario_export.h>
 #include <memory>
 
 namespace Scenario
@@ -8,7 +9,7 @@ namespace Scenario
 class ConstraintModel;
 class ScenarioDocumentPresenter;
 
-class DisplayedElementsToolPaletteFactory
+class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsToolPaletteFactory
     : public iscore::Interface<DisplayedElementsToolPaletteFactory>
 {
   ISCORE_INTERFACE("0884edb9-81e4-44ff-856f-fbc772f6d683")

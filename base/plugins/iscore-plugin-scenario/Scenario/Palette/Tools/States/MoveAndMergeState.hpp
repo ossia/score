@@ -8,6 +8,7 @@
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
@@ -24,7 +25,7 @@ class MoveEventState final : public StateBase<Scenario_T>
 public:
   MoveEventState(
       const ToolPalette_T& stateMachine,
-      const Path<Scenario_T>& scenarioPath,
+      const Scenario_T& scenarioPath,
       const iscore::CommandStackFacade& stack,
       iscore::ObjectLocker& locker,
       QState* parent)
@@ -83,7 +84,7 @@ public:
                   : this->currentPoint.date;
 
         this->m_movingDispatcher.submitCommand(
-            Path<Scenario_T>{this->m_scenarioPath},
+            this->m_scenario,
             *evId,
             date,
             this->currentPoint.y,
@@ -155,7 +156,7 @@ class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T>
 public:
   MoveEventState(
       const ToolPalette_T& stateMachine,
-      const Path<Scenario::ProcessModel>& scenarioPath,
+      const Scenario::ProcessModel& scenarioPath,
       const iscore::CommandStackFacade& stack,
       iscore::ObjectLocker& locker,
       QState* parent)
@@ -258,7 +259,7 @@ public:
           this->m_mergingEventDispatcher.rollback();
 
           this->m_mergingTnDispatcher.submitCommand(
-              Path<Scenario::ProcessModel>{this->m_scenarioPath},
+              this->m_scenario,
               tnId,
               *this->hoveredTimeNode);
         }
@@ -303,7 +304,7 @@ public:
           m_mergingTnDispatcher.rollback();
 
           m_mergingEventDispatcher.submitCommand(
-              Path<Scenario::ProcessModel>{this->m_scenarioPath},
+              m_scenario,
               *clickedEvId,
               *destinationEvId);
         }
@@ -318,7 +319,7 @@ public:
                     : this->currentPoint.date;
 
           this->m_movingDispatcher.submitCommand(
-              Path<Scenario::ProcessModel>{this->m_scenarioPath},
+              m_scenario,
               *clickedEvId,
               date,
               this->currentPoint.y,
@@ -346,7 +347,7 @@ public:
                   : this->currentPoint.date;
 
         this->m_movingDispatcher.submitCommand(
-            Path<Scenario::ProcessModel>{this->m_scenarioPath},
+            this->m_scenario,
             *evId,
             date,
             this->currentPoint.y,
@@ -356,7 +357,7 @@ public:
       QObject::connect(pressed, &QState::entered, [&]() {
         this->m_clickedPoint = this->currentPoint;
 
-        auto& scenar = stateMachine.model();
+        const Scenario::ProcessModel& scenar = stateMachine.model();
 
         // TODO refactor this part, it's used everywhere
         auto evId = this->clickedEvent;
@@ -367,7 +368,7 @@ public:
         if (!evId)
           return;
 
-        auto prev_csts = previousConstraints(scenar.event(*evId), scenar);
+        auto prev_csts = Scenario::previousConstraints(scenar.event(*evId), scenar);
         if (!prev_csts.empty())
         {
           // We find the one that starts the latest.

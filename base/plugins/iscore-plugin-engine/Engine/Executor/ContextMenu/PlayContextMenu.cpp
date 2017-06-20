@@ -161,9 +161,10 @@ PlayContextMenu::PlayContextMenu(
     auto& pres
         = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
     auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.model());
+    auto p = const_cast<Scenario::ProcessModel*>(proc);
 
     exec_signals.startRecording(
-        *proc,
+        *p,
         Scenario::ConvertToScenarioPoint(
             pres.view().mapFromScene(recdata.point),
             pres.zoomRatio(),
@@ -182,9 +183,10 @@ PlayContextMenu::PlayContextMenu(
     auto& pres
         = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
     auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.model());
+    auto p = const_cast<Scenario::ProcessModel*>(proc);
 
     exec_signals.startRecordingMessages(
-        *proc,
+        *p,
         Scenario::ConvertToScenarioPoint(
             pres.view().mapFromScene(recdata.point),
             pres.zoomRatio(),

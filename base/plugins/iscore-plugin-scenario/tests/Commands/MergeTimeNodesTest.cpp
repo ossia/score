@@ -32,7 +32,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         data);
-    eventCmd.redo();
+    eventCmd.redo(ctx);
 
     auto event1_id = eventCmd.createdEvent();
     auto event1 = scenar->event(event1_id);
@@ -45,7 +45,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         data);
-    event2Cmd.redo();
+    event2Cmd.redo(ctx);
 
     auto event2_id = event2Cmd.createdEvent();
     auto event2 = scenar->event(event2_id);
@@ -61,7 +61,7 @@ private slots:
         },
         tn1_id, tn2_id);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)scenar->timeNodes().size(), 3);
 
     QCOMPARE(event2->timeNode(), event1->timeNode());
@@ -74,7 +74,7 @@ private slots:
     {
     }
 
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE((int)scenar->timeNodes().size(), 4);
     try
     {
@@ -86,7 +86,7 @@ private slots:
       QFAIL("TimeNode call throw ...");
     }
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE((int)scenar->timeNodes().size(), 3);
     QCOMPARE(event2->timeNode(), event1->timeNode());
     try

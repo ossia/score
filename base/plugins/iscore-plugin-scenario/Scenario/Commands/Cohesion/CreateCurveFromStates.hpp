@@ -51,11 +51,11 @@ public:
     }
   }
 
-  void undo() const final override
+  void undo(const iscore::DocumentContext& ctx) const final override
   {
     for (const auto& cmd : m_slotsCmd)
-      cmd.undo();
-    m_addProcessCmd.undo();
+      cmd.undo(ctx);
+    m_addProcessCmd.undo(ctx);
   }
 
 protected:
@@ -104,7 +104,7 @@ public:
       State::AddressAccessor address,
       const Curve::CurveDomain&);
 
-  void redo() const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;
@@ -129,7 +129,7 @@ public:
       Id<Process::ProcessModel> curveId, State::AddressAccessor address,
       State::Value start, State::Value end);
 
-  void redo() const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

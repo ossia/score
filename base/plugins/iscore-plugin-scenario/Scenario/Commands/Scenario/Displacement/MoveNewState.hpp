@@ -27,13 +27,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewState final : public iscore::Command
       ScenarioCommandFactoryName(), MoveNewState, "Move a new state")
 public:
   MoveNewState(
-      Path<Scenario::ProcessModel>&& scenarioPath,
-      Id<StateModel>
-          stateId,
+      const Scenario::ProcessModel& scenar,
+      Id<StateModel> stateId,
       double y);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   void
   update(const Path<Scenario::ProcessModel>&, const Id<StateModel>&, double y)

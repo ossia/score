@@ -44,16 +44,16 @@ public:
       m_newVal = cstrDuration.defaultDuration();
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    m_path.find().duration.setMaxInfinite(m_oldInfinite);
-    m_path.find().duration.setMaxDuration(m_oldVal);
+    m_path.find(ctx).duration.setMaxInfinite(m_oldInfinite);
+    m_path.find(ctx).duration.setMaxDuration(m_oldVal);
   }
 
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    m_path.find().duration.setMaxInfinite(m_newInfinite);
-    m_path.find().duration.setMaxDuration(m_newVal);
+    m_path.find(ctx).duration.setMaxInfinite(m_newInfinite);
+    m_path.find(ctx).duration.setMaxDuration(m_newVal);
   }
 
 protected:

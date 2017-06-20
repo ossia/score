@@ -9,11 +9,13 @@ namespace RollbackStrategy
 {
 struct Simple
 {
-  static void rollback(const std::vector<iscore::Command*>& cmds)
+  static void rollback(
+      const iscore::DocumentContext& ctx,
+      const std::vector<iscore::Command*>& cmds)
   {
     for (int i = cmds.size() - 1; i >= 0; --i)
     {
-      cmds[i]->undo();
+      cmds[i]->undo(ctx);
     }
   }
 };
@@ -45,7 +47,7 @@ public:
   void submitCommand(iscore::Command* cmd)
   {
     stack().disableActions();
-    cmd->redo();
+    cmd->redo(stack().context());
     m_cmds.push_back(cmd);
   }
 
@@ -62,7 +64,7 @@ public:
     {
       stack().disableActions();
       auto cmd = new TheCommand(std::forward<Args>(args)...);
-      cmd->redo();
+      cmd->redo(stack().context());
       m_cmds.push_back(cmd);
     }
     else
@@ -71,12 +73,12 @@ public:
       if (last->key() == TheCommand::static_key())
       {
         safe_cast<TheCommand*>(last)->update(std::forward<Args>(args)...);
-        safe_cast<TheCommand*>(last)->redo();
+        safe_cast<TheCommand*>(last)->redo(stack().context());
       }
       else
       {
         auto cmd = new TheCommand(std::forward<Args>(args)...);
-        cmd->redo();
+        cmd->redo(stack().context());
         m_cmds.push_back(cmd);
       }
     }
@@ -104,7 +106,7 @@ public:
   template <typename RollbackStrategy>
   void rollback()
   {
-    RollbackStrategy::rollback(m_cmds);
+    RollbackStrategy::rollback(stack().context(), m_cmds);
 
     cleanup();
     m_cmds.clear();

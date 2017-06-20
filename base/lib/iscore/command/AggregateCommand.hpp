@@ -37,8 +37,8 @@ public:
     m_cmds.push_front(cmd);
   }
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   //! Add a command to be redone after the others.
   void addCommand(iscore::Command* cmd);

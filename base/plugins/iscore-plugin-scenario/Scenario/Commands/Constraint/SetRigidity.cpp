@@ -13,24 +13,22 @@ namespace Command
 {
 // Rigid constraint == end TimeNode has a trigger
 
-SetRigidity::SetRigidity(Path<ConstraintModel>&& constraintPath, bool rigid)
-    : m_path{constraintPath}, m_rigidity{rigid}
+SetRigidity::SetRigidity(const ConstraintModel& constraint, bool rigid)
+    : m_path{constraint}, m_rigidity{rigid}
 {
   // TODO make a class that embodies the logic for the relationship between
   // rigidity and min/max.
   // Also, min/max are indicative if rigid, they can still be set but won't be
   // used.
-  auto& constraint = m_path.find();
-
   m_oldMinDuration = constraint.duration.minDuration();
   m_oldMaxDuration = constraint.duration.maxDuration();
   m_oldIsNull = constraint.duration.isMinNull();
   m_oldIsInfinite = constraint.duration.isMaxInfinite();
 }
 
-void SetRigidity::undo() const
+void SetRigidity::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& constraint = m_path.find();
+  auto& constraint = m_path.find(ctx);
   constraint.duration.setRigid(!m_rigidity);
 
   constraint.duration.setMinNull(m_oldIsNull);
@@ -39,9 +37,9 @@ void SetRigidity::undo() const
   constraint.duration.setMaxDuration(m_oldMaxDuration);
 }
 
-void SetRigidity::redo() const
+void SetRigidity::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& constraint = m_path.find();
+  auto& constraint = m_path.find(ctx);
   constraint.duration.setRigid(m_rigidity);
   auto dur = constraint.duration.defaultDuration();
 

@@ -45,16 +45,16 @@ public:
       m_newVal = cstrDuration.defaultDuration();
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& cstrDuration = m_path.find().duration;
+    auto& cstrDuration = m_path.find(ctx).duration;
     cstrDuration.setMinNull(m_oldMinNull);
     cstrDuration.setMinDuration(m_oldVal);
   }
 
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& cstrDuration = m_path.find().duration;
+    auto& cstrDuration = m_path.find(ctx).duration;
     cstrDuration.setMinNull(m_newMinNull);
     cstrDuration.setMinDuration(m_newVal);
   }

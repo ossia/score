@@ -32,7 +32,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         data);
-    eventCmd.redo();
+    eventCmd.redo(ctx);
 
     auto eventCreated = scenar->event(eventCmd.createdEvent());
     auto event_id = eventCreated->id();
@@ -47,7 +47,7 @@ private slots:
         },
         eventCreated);
 
-    removeCmd.redo();
+    removeCmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent - 1);
     QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes - 1);
     try
@@ -67,12 +67,12 @@ private slots:
     {
     }
 
-    removeCmd.undo();
+    removeCmd.undo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent);
     QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes);
     QCOMPARE(scenar->event(event_id)->heightPercentage(), 0.4);
 
-    removeCmd.redo();
+    removeCmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent - 1);
     QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes - 1);
 
@@ -114,7 +114,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         data);
-    eventCmd.redo();
+    eventCmd.redo(ctx);
 
     data.endTimeNodeId = eventCmd.createdTimeNode();
     data.relativeY = 0.4;
@@ -124,7 +124,7 @@ private slots:
             {"ScenarioModel", {0}},
         },
         data);
-    event2Cmd.redo();
+    event2Cmd.redo(ctx);
 
     auto event_id = event2Cmd.createdEvent();
     auto eventCreated = scenar->event(event_id);
@@ -143,7 +143,7 @@ private slots:
         },
         eventCreated);
 
-    removeCmd.redo();
+    removeCmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent - 1);
     QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes);
     try
@@ -155,7 +155,7 @@ private slots:
     {
     }
 
-    removeCmd.undo();
+    removeCmd.undo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent);
     QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes);
     QCOMPARE(scenar->event(event_id)->heightPercentage(), 0.4);
@@ -166,7 +166,7 @@ private slots:
         scenar->event(event_id)->previousConstraints().first(),
         prevConstraints[0]);
 
-    removeCmd.redo();
+    removeCmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent - 1);
     QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes);
 

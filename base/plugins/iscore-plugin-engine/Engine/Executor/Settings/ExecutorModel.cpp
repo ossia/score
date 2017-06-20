@@ -15,7 +15,7 @@ const iscore::sp<ModelRateParameter> Rate{
     QStringLiteral("iscore_plugin_engine/ExecutionRate"), 50};
 const iscore::sp<ModelClockParameter> Clock{
     QStringLiteral("iscore_plugin_engine/Clock"),
-    DefaultClockManagerFactory::static_concreteKey()};
+    ControlClockFactory::static_concreteKey()};
 
 static auto list()
 {
@@ -35,7 +35,7 @@ Model::makeClock(const Engine::Execution::Context& ctx) const
   auto it = m_clockFactories.find(m_Clock);
   return it != m_clockFactories.end()
              ? it->make(ctx)
-             : std::make_unique<DefaultClockManager>(ctx);
+             : std::make_unique<ControlClock>(ctx);
 }
 
 ISCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)

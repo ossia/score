@@ -28,12 +28,12 @@ public:
     {
       stack().disableActions();
       m_cmd = std::make_unique<TheCommand>(std::forward<Args>(args)...);
-      m_cmd->redo();
+      m_cmd->redo(stack().context());
     }
     else
     {
       m_cmd->update(std::forward<Args>(args)...);
-      m_cmd->redo();
+      m_cmd->redo(stack().context());
     }
   }
 
@@ -50,7 +50,7 @@ public:
   {
     if (m_cmd)
     {
-      m_cmd->undo();
+      m_cmd->undo(stack().context());
       stack().enableActions();
     }
     m_cmd.reset();

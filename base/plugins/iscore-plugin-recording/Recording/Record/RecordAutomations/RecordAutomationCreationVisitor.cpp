@@ -17,12 +17,12 @@ RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
   auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
       box.constraint,
       Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
-  cmd_proc->redo();
+  cmd_proc->redo(recorder.context.context);
   auto& proc = box.constraint.processes.at(cmd_proc->processId());
   auto& autom = static_cast<Automation::ProcessModel&>(proc);
 
   auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{Scenario::SlotPath{box.constraint, 0}, proc};
-  cmd_layer->redo();
+  cmd_layer->redo(recorder.context.context);
 
   autom.curve().clear();
 

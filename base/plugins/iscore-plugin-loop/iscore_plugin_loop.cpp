@@ -13,6 +13,7 @@
 #include <Process/ProcessFactory.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+#include <Loop/Palette/LoopToolPalette.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/model/Identifier.hpp>
 #include <iscore_plugin_loop_commands_files.hpp>
@@ -33,7 +34,14 @@ iscore_plugin_loop::factories(
 {
   using namespace Scenario;
   using namespace Scenario::Command;
-  return instantiate_factories<iscore::ApplicationContext, FW<Process::ProcessModelFactory, Loop::ProcessFactory>, FW<Process::LayerFactory, Loop::LayerFactory>, FW<Process::InspectorWidgetDelegateFactory, Loop::InspectorFactory>, FW<ConstraintInspectorDelegateFactory, Loop::ConstraintInspectorDelegateFactory>, FW<TriggerCommandFactory, LoopTriggerCommandFactory>, FW<Scenario::DisplayedElementsProvider, Loop::DisplayedElementsProvider>>(
+  return instantiate_factories<iscore::ApplicationContext,
+      FW<Process::ProcessModelFactory, Loop::ProcessFactory>
+      , FW<Process::LayerFactory, Loop::LayerFactory>
+      , FW<Process::InspectorWidgetDelegateFactory, Loop::InspectorFactory>
+      , FW<ConstraintInspectorDelegateFactory, Loop::ConstraintInspectorDelegateFactory>
+      , FW<TriggerCommandFactory, LoopTriggerCommandFactory>
+      , FW<Scenario::DisplayedElementsToolPaletteFactory, Loop::DisplayedElementsToolPaletteFactory>
+      , FW<Scenario::DisplayedElementsProvider, Loop::DisplayedElementsProvider>>(
       ctx, key);
 }
 

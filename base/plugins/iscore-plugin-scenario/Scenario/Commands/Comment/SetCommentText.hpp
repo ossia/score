@@ -22,8 +22,8 @@ public:
   SetCommentText(const CommentBlockModel& model, QString newComment);
 
 private:
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;

@@ -13,23 +13,21 @@ namespace Scenario
 namespace Command
 {
 SetCondition::SetCondition(
-    Path<EventModel>&& eventPath, State::Expression&& cond)
-    : m_path{std::move(eventPath)}, m_condition(std::move(cond))
+    const EventModel& event, State::Expression&& cond)
+    : m_path{event}, m_condition(std::move(cond))
 {
-
-  auto& event = m_path.find();
   m_previousCondition = event.condition();
 }
 
-void SetCondition::undo() const
+void SetCondition::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& event = m_path.find();
+  auto& event = m_path.find(ctx);
   event.setCondition(m_previousCondition);
 }
 
-void SetCondition::redo() const
+void SetCondition::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& event = m_path.find();
+  auto& event = m_path.find(ctx);
   event.setCondition(m_condition);
 }
 
@@ -44,8 +42,9 @@ void SetCondition::deserializeImpl(DataStreamOutput& s)
 }
 
 SetOffsetBehavior::SetOffsetBehavior(
-    Path<EventModel>&& path, OffsetBehavior newval)
-    : iscore::PropertyCommand{std::move(path), "offsetBehavior",
+    const EventModel& event,
+    OffsetBehavior newval)
+    : iscore::PropertyCommand{event, "offsetBehavior",
                               QVariant::fromValue(newval)}
 {
 }

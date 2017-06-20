@@ -623,15 +623,24 @@ void DeviceExplorerModel::editData(
     int role)
 {
   Device::Node* node = path.toNode(&rootNode());
-  ISCORE_ASSERT(node->parent());
+  editData(*node, column, value, role);
+}
+
+void DeviceExplorerModel::editData(
+    Device::Node& node,
+    Column column,
+    const State::Value& value,
+    int role)
+{
+  ISCORE_ASSERT(node.parent());
 
   QModelIndex index = createIndex(
-      node->parent()->indexOfChild(node), (int)column, node->parent());
+      node.parent()->indexOfChild(&node), (int)column, node.parent());
 
   QModelIndex changedTopLeft = index;
   QModelIndex changedBottomRight = index;
 
-  if (node->is<Device::DeviceSettings>())
+  if (node.is<Device::DeviceSettings>())
     return;
 
   if (role == Qt::EditRole)
@@ -644,12 +653,12 @@ void DeviceExplorerModel::editData(
 
             if(! s.isEmpty())
             {
-                node->get<Device::AddressSettings>().name = s;
+                node.get<Device::AddressSettings>().name = s;
             }
         }
         else */ if (index.column() == (int)Column::Value)
     {
-      node->get<Device::AddressSettings>().value = value;
+      node.get<Device::AddressSettings>().value = value;
     }
     // TODO min/max/tags editing
   }
@@ -725,16 +734,28 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
   boost::range::remove_erase(nodes.parents, &m_rootNode);
 
   nodes.messages.reserve(nodes.messages.size() + nodes.parents.size());
-  // Filter messages
-  for (auto node : nodes.parents)
+  if(nodes.parents.size() > 1)
   {
-    if (node->is<Device::AddressSettings>())
+    // Filter messages
+    for (auto node : nodes.parents)
     {
-      auto& val = node->get<Device::AddressSettings>();
-      if (val.ioType == ossia::access_mode::SET)
+      if (node->is<Device::AddressSettings>())
       {
-        nodes.messages.push_back(node);
+        auto& val = node->get<Device::AddressSettings>();
+        if (val.ioType == ossia::access_mode::SET)
+        {
+          nodes.messages.push_back(node);
+        }
       }
+    }
+  }
+  else if(nodes.parents.size() == 1)
+  {
+    Device::Node* node = nodes.parents[0];
+    if (node->is<Device::AddressSettings>() && node->childCount() == 0)
+    {
+      // If a single node is selected we copy it even if it is "get"
+      nodes.messages.push_back(node);
     }
   }
 

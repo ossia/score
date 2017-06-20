@@ -24,13 +24,13 @@ class ISCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddAddress final
       DeviceExplorerCommandFactoryName(), AddAddress, "Add an address")
 public:
   AddAddress(
-      Path<DeviceDocumentPlugin>&& device_tree,
+      const DeviceDocumentPlugin& devplug,
       const Device::NodePath& nodePath,
       InsertMode insert,
       const Device::AddressSettings& addressSettings);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   int createdNodeIndex() const;
 

@@ -11,6 +11,7 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 
 void ScenarioRollbackStrategy::rollback(
+    const iscore::DocumentContext& ctx,
     const std::vector<iscore::Command*>& cmds)
 {
   // TODO UPDATE THIS ELSE ROLLBACK WON'T WORK.
@@ -23,11 +24,10 @@ void ScenarioRollbackStrategy::rollback(
         || cmds[i]->key() == CreateEvent_State::static_key()
         || cmds[i]->key() == CreateConstraint_State::static_key()
         || cmds[i]->key() == CreateConstraint_State_Event::static_key()
-        || cmds[i]->key()
-               == CreateConstraint_State_Event_TimeNode::static_key()
+        || cmds[i]->key() == CreateConstraint_State_Event_TimeNode::static_key()
         || cmds[i]->key() == CreateSequence::static_key())
     {
-      cmds[i]->undo();
+      cmds[i]->undo(ctx);
     }
   }
 }

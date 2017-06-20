@@ -264,12 +264,38 @@ void Presenter::fillContextMenu(
   connect(removeAct, &QAction::triggered, [&]() { removeSelection(); });
 
   auto typeMenu = menu.addMenu(tr("Type"));
+  QMap<QString, QMenu*> menus;
   for (const auto& seg : m_curveSegments)
   {
-    auto act = typeMenu->addAction(seg.prettyName());
+    auto text = seg.category();
+    QMenu* menuToAdd{};
+    if(text.isEmpty())
+    {
+      menuToAdd = typeMenu;
+    }
+    else if(text == "hidden")
+    {
+      continue;
+    }
+    else
+    {
+      auto it = menus.find(text);
+      if(it != menus.end())
+      {
+        menuToAdd = it.value();
+      }
+      else
+      {
+        menuToAdd = typeMenu->addMenu(text);
+        menus.insert(text, menuToAdd);
+      }
+    }
+
+    auto act = menuToAdd->addAction(seg.prettyName());
     connect(act, &QAction::triggered, this, [
       this, key = seg.concreteKey()
     ]() { updateSegmentsType(key); });
+
   }
 
   auto lockAction = new QAction{tr("Lock between points"), this};

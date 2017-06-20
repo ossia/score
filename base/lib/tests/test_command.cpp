@@ -31,7 +31,7 @@ class FakeCommand : public Command
 
         }
 
-        virtual void undo()
+        virtual void undo(const iscore::DocumentContext& ctx)
         {
             auto children = m_globalParent.findChildren<FakeModel*>
 ("FakeModel");
@@ -45,7 +45,7 @@ class FakeCommand : public Command
             }
         }
 
-        virtual void redo()
+        virtual void redo(const iscore::DocumentContext& ctx)
         {
             auto children = m_globalParent.findChildren<FakeModel*>
 ("FakeModel");
@@ -93,9 +93,9 @@ class TestCommand: public QObject
             auto cmd = new FakeCommand {0};
             m_commandQueue.push(cmd);
             QVERIFY(m_model->value == 1);
-            m_commandQueue.undo();
+            m_commandQueue.undo(ctx);
             QVERIFY(m_model->value == 0);
-            m_commandQueue.redo();
+            m_commandQueue.redo(ctx);
             QVERIFY(m_model->value == 1);
         }
 

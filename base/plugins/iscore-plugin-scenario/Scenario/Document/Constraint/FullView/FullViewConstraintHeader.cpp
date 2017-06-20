@@ -14,8 +14,10 @@ class QWidget;
 
 namespace Scenario
 {
-FullViewConstraintHeader::FullViewConstraintHeader(QGraphicsItem* parent)
-    : ConstraintHeader{parent}, m_bar{this}
+FullViewConstraintHeader::FullViewConstraintHeader(
+    const iscore::DocumentContext& ctx,
+    QGraphicsItem* parent)
+    : ConstraintHeader{parent}, m_bar{ctx, this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(QGraphicsItem::ItemClipsChildrenToShape);

@@ -21,20 +21,20 @@ namespace Command
 // by
 // a LoadDevice() ?
 ReplaceDevice::ReplaceDevice(
-    Path<DeviceDocumentPlugin>&& device_tree,
+    const DeviceDocumentPlugin& device_tree,
     int deviceIndex,
     Device::Node&& rootNode)
     : m_deviceTree{device_tree}
     , m_deviceIndex(deviceIndex)
     , m_deviceNode{std::move(rootNode)}
 {
-  auto& explorer = m_deviceTree.find().explorer();
+  auto& explorer = device_tree.explorer();
   m_savedNode = explorer.nodeFromModelIndex(
       explorer.index(m_deviceIndex, 0, QModelIndex()));
 }
 
 ReplaceDevice::ReplaceDevice(
-    Path<DeviceDocumentPlugin>&& device_tree,
+    const DeviceDocumentPlugin& device_tree,
     int deviceIndex,
     Device::Node&& oldRootNode,
     Device::Node&& newRootNode)
@@ -45,17 +45,17 @@ ReplaceDevice::ReplaceDevice(
 {
 }
 
-void ReplaceDevice::undo() const
+void ReplaceDevice::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& explorer = m_deviceTree.find().explorer();
+  auto& explorer = m_deviceTree.find(ctx).explorer();
 
   explorer.removeRow(m_deviceIndex);
   explorer.addDevice(m_savedNode);
 }
 
-void ReplaceDevice::redo() const
+void ReplaceDevice::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& explorer = m_deviceTree.find().explorer();
+  auto& explorer = m_deviceTree.find(ctx).explorer();
 
   const auto& cld = explorer.rootNode().children();
   for (auto it = cld.begin(); it != cld.end(); ++it)

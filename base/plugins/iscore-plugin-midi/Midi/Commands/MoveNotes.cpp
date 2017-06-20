@@ -25,9 +25,9 @@ MoveNotes::MoveNotes(
   }
 }
 
-void MoveNotes::undo() const
+void MoveNotes::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& model = m_model.find();
+  auto& model = m_model.find(ctx);
   for (const auto& note : m_before)
   {
     auto& n = model.notes.at(note.first);
@@ -36,9 +36,9 @@ void MoveNotes::undo() const
   }
 }
 
-void MoveNotes::redo() const
+void MoveNotes::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& model = m_model.find();
+  auto& model = m_model.find(ctx);
   for (const auto& note : m_after)
   {
     auto& n = model.notes.at(note.first);

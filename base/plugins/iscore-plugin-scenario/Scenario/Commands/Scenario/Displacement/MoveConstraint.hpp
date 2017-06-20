@@ -25,9 +25,8 @@ class MoveConstraint final : public iscore::Command
       ScenarioCommandFactoryName(), MoveConstraint, "Move a constraint")
 public:
   MoveConstraint(
-      Path<Scenario::ProcessModel>&& scenarioPath,
-      Id<ConstraintModel>
-          id,
+      const Scenario::ProcessModel& scenar,
+      Id<ConstraintModel> id,
       double y);
 
   void update(unused_t, unused_t, double height)
@@ -35,8 +34,8 @@ public:
     m_newHeight = height;
   }
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

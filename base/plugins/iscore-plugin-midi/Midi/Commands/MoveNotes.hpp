@@ -17,8 +17,8 @@ public:
       int note_delta,
       double t_delta);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   void update(unused_t, unused_t, int note_delta, double t_delta);
 

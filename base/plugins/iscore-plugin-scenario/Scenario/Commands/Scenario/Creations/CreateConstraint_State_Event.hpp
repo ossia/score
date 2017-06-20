@@ -29,18 +29,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateConstraint_State_Event final
 public:
   CreateConstraint_State_Event(
       const Scenario::ProcessModel& scenario,
-      Id<StateModel>
-          startState,
-      Id<TimeNodeModel>
-          endTimeNode,
-      double endStateY);
-
-  CreateConstraint_State_Event(
-      const Path<Scenario::ProcessModel>& scenario,
-      Id<StateModel>
-          startState,
-      Id<TimeNodeModel>
-          endTimeNode,
+      Id<StateModel> startState,
+      Id<TimeNodeModel> endTimeNode,
       double endStateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
@@ -73,8 +63,8 @@ public:
     return m_newEvent;
   }
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

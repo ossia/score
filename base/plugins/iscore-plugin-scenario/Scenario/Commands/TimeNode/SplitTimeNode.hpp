@@ -23,9 +23,9 @@ class SplitTimeNode final : public iscore::Command
       ScenarioCommandFactoryName(), SplitTimeNode, "Split a timenode")
 public:
   SplitTimeNode(
-      Path<TimeNodeModel>&& path, QVector<Id<EventModel>> eventsInNewTimeNode);
-  void undo() const override;
-  void redo() const override;
+      const TimeNodeModel& path, QVector<Id<EventModel>> eventsInNewTimeNode);
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

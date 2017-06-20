@@ -24,14 +24,12 @@ class PutProcessBefore final : public iscore::Command
 public:
   // Put proc2 before proc
   PutProcessBefore(
-      Path<Scenario::ConstraintModel>&& cst,
-      Id<Process::ProcessModel>
-          proc,
-      Id<Process::ProcessModel>
-          proc2);
+      const ConstraintModel& cst,
+      Id<Process::ProcessModel> proc,
+      Id<Process::ProcessModel> proc2);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;
@@ -50,10 +48,11 @@ class PutProcessToEnd final : public iscore::Command
 public:
   // Put proc2 before proc
   PutProcessToEnd(
-      Path<Scenario::ConstraintModel>&& cst, Id<Process::ProcessModel> proc);
+      const ConstraintModel& cst,
+      Id<Process::ProcessModel> proc);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;
@@ -73,14 +72,14 @@ class SwapProcessPosition final : public iscore::Command
 
 public:
   SwapProcessPosition(
-      Path<Scenario::ConstraintModel>&& cst,
+      const ConstraintModel& cst,
       Id<Process::ProcessModel>
           proc,
       Id<Process::ProcessModel>
           proc2);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

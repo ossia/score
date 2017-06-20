@@ -30,7 +30,7 @@ private slots:
 
     CreateEvent create_ev_cmd({{"ScenarioModel", {}}}, data);
 
-    create_ev_cmd.redo();
+    create_ev_cmd.redo(ctx);
     auto eventid = create_ev_cmd.m_cmd->m_createdEventId;
 
     MoveEvent cmd(
@@ -41,13 +41,13 @@ private slots:
         data.dDate,
         data.relativeY);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);
 
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.5);
 
-    cmd.redo();
+    cmd.redo(ctx);
     QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);
 
     // TODO test an horizontal displacement.

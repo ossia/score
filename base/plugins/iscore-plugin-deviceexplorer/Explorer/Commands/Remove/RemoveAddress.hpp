@@ -23,11 +23,11 @@ class RemoveAddress final : public iscore::Command
       DeviceExplorerCommandFactoryName(), RemoveAddress, "Remove an address")
 public:
   RemoveAddress(
-      Path<DeviceDocumentPlugin>&& device_tree,
+      const DeviceDocumentPlugin& devplug,
       const Device::NodePath& nodePath);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

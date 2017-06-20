@@ -134,7 +134,7 @@ iscore_plugin_engine::factories(
             >,
             FW<iscore::PanelDelegateFactory,
                  Engine::PanelDelegateFactory>,
-            FW<Engine::Execution::ClockManagerFactory, Engine::Execution::DefaultClockManagerFactory>,
+            FW<Engine::Execution::ClockManagerFactory, Engine::Execution::ControlClockFactory>,
             FW<Curve::SegmentFactory,
                 Curve::SegmentFactory_T<Segment_backIn>,
                 Curve::SegmentFactory_T<Segment_backOut>,

@@ -33,29 +33,17 @@ CreateConstraint_State_Event::CreateConstraint_State_Event(
 {
 }
 
-CreateConstraint_State_Event::CreateConstraint_State_Event(
-    const Path<Scenario::ProcessModel>& scenarioPath,
-    Id<StateModel>
-        startState,
-    Id<TimeNodeModel>
-        endTimeNode,
-    double endStateY)
-    : CreateConstraint_State_Event{scenarioPath.find(), std::move(startState),
-                                   std::move(endTimeNode), endStateY}
+void CreateConstraint_State_Event::undo(const iscore::DocumentContext& ctx) const
 {
-}
-
-void CreateConstraint_State_Event::undo() const
-{
-  m_command.undo();
+  m_command.undo(ctx);
 
   ScenarioCreate<EventModel>::undo(
-      m_newEvent, m_command.scenarioPath().find());
+      m_newEvent, m_command.scenarioPath().find(ctx));
 }
 
-void CreateConstraint_State_Event::redo() const
+void CreateConstraint_State_Event::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = m_command.scenarioPath().find();
+  auto& scenar = m_command.scenarioPath().find(ctx);
 
   // Create the end event
   ScenarioCreate<EventModel>::redo(
@@ -67,7 +55,7 @@ void CreateConstraint_State_Event::redo() const
   scenar.events.at(m_newEvent).metadata().setName(m_createdName);
 
   // The state + constraint between
-  m_command.redo();
+  m_command.redo(ctx);
 }
 
 void CreateConstraint_State_Event::serializeImpl(DataStreamInput& s) const

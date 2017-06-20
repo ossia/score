@@ -31,18 +31,18 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToConstraint final
       "Add a process")
 public:
   AddOnlyProcessToConstraint(
-      Path<ConstraintModel>&& constraint,
+      const ConstraintModel& cst,
       UuidKey<Process::ProcessModel> process);
   AddOnlyProcessToConstraint(
-      Path<ConstraintModel>&& constraint,
+      const ConstraintModel& cst,
       Id<Process::ProcessModel> idToUse,
       UuidKey<Process::ProcessModel> process);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   void undo(ConstraintModel&) const;
-  Process::ProcessModel& redo(ConstraintModel&) const;
+  Process::ProcessModel& redo(ConstraintModel&, const iscore::DocumentContext& ctx) const;
 
   const Path<ConstraintModel>& constraintPath() const
   {

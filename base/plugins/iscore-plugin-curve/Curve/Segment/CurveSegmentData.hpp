@@ -14,6 +14,7 @@ namespace Curve
 {
 class SegmentFactory;
 class SegmentModel;
+class Category_k;
 struct SegmentData;
 /* TODO it would maybe faster to have them on the heap and use QPointer for
  * caching ...
@@ -222,7 +223,7 @@ Q_DECLARE_METATYPE(Curve::SegmentData)
     }                                                       \
   };
 
-#define CURVE_SEGMENT_METADATA(Export, Model, Uuid, ObjectKey, PrettyName) \
+#define CURVE_SEGMENT_METADATA(Export, Model, Uuid, ObjectKey, PrettyName, Category) \
   OBJECTKEY_METADATA(Export, Model, ObjectKey)                             \
   CURVE_SEGMENT_FACTORY_METADATA(Export, Model, Uuid)                      \
   template <>                                                              \
@@ -231,5 +232,13 @@ Q_DECLARE_METATYPE(Curve::SegmentData)
     static auto get()                                                      \
     {                                                                      \
       return QObject::tr(PrettyName);                                      \
+    }                                                                      \
+  };                                                                       \
+  template <>                                                              \
+  struct Export Metadata<Curve::Category_k, Model>                         \
+  {                                                                        \
+    static auto get()                                                      \
+    {                                                                      \
+      return QObject::tr(Category);                                        \
     }                                                                      \
   };

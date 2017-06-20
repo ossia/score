@@ -28,17 +28,23 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final
       "Move an event on creation")
 public:
   MoveEventOnCreationMeta(
-      Path<Scenario::ProcessModel>&& scenarioPath,
+      const Scenario::ProcessModel& scenarioPath,
       Id<EventModel>
           eventId,
       TimeVal newDate,
       ExpandMode mode);
   ~MoveEventOnCreationMeta();
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
   const Path<Scenario::ProcessModel>& path() const override;
+  void update(
+      Scenario::ProcessModel& scenario,
+      const Id<EventModel>& eventId,
+      const TimeVal& newDate,
+      double,
+      ExpandMode mode) override;
 
   // Command interface
 protected:
@@ -47,14 +53,6 @@ protected:
 
 private:
   std::unique_ptr<SerializableMoveEvent> m_moveEventImplementation;
-
-  // SerializableMoveEvent interface
-public:
-  void update(
-      const Id<EventModel>& eventId,
-      const TimeVal& newDate,
-      double,
-      ExpandMode mode) override;
 };
 }
 }

@@ -17,7 +17,7 @@ namespace Automation
 LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
 {
   setZValue(1);
-  setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+  setFlags(ItemClipsToShape | ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
   setAcceptDrops(true);
 
   m_textcache.setFont(ScenarioStyle::instance().Medium8Pt);

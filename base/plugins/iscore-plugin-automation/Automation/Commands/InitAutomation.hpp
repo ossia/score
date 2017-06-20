@@ -21,26 +21,26 @@ class ISCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final
 public:
   // Note : the segments shall be sorted from start to end.
   InitAutomation(
-      Path<ProcessModel>&& path,
+      const ProcessModel& obj,
       const State::AddressAccessor& newaddr,
       double newmin,
       double newmax,
       std::vector<Curve::SegmentData>&& segments);
   InitAutomation(
-      Path<ProcessModel>&& path,
+      const ProcessModel& obj,
       State::AddressAccessor&& newaddr,
       double newmin,
       double newmax,
       std::vector<Curve::SegmentData>&& segments);
   InitAutomation(
-      Path<ProcessModel>&& path,
+      const ProcessModel& obj,
       const State::AddressAccessor& newaddr,
       double newmin,
       double newmax);
 
 public:
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

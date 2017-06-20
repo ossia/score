@@ -15,20 +15,22 @@ namespace Explorer
 namespace Command
 {
 LoadDevice::LoadDevice(
-    Path<DeviceDocumentPlugin>&& device_tree, Device::Node&& node)
-    : m_devicesModel{std::move(device_tree)}, m_deviceNode(std::move(node))
+    const DeviceDocumentPlugin& devplug,
+    Device::Node&& node)
+    : m_devicesModel{devplug},
+      m_deviceNode(std::move(node))
 {
 }
 
-void LoadDevice::undo() const
+void LoadDevice::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.removeDevice(m_deviceNode.get<Device::DeviceSettings>());
 }
 
-void LoadDevice::redo() const
+void LoadDevice::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.loadDevice(m_deviceNode);
 }
 
@@ -45,25 +47,25 @@ void LoadDevice::deserializeImpl(DataStreamOutput& d)
 }
 
 ReloadWholeDevice::ReloadWholeDevice(
-    Path<DeviceDocumentPlugin>&& device_tree,
+    const DeviceDocumentPlugin& devplug,
     Device::Node&& oldNode,
     Device::Node&& newNode)
-    : m_devicesModel{std::move(device_tree)}
+    : m_devicesModel{devplug}
     , m_oldNode(std::move(oldNode))
     , m_newNode(std::move(newNode))
 {
 }
 
-void ReloadWholeDevice::undo() const
+void ReloadWholeDevice::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.removeDevice(m_newNode.get<Device::DeviceSettings>());
   devplug.updateProxy.loadDevice(m_oldNode);
 }
 
-void ReloadWholeDevice::redo() const
+void ReloadWholeDevice::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find();
+  auto& devplug = m_devicesModel.find(ctx);
   devplug.updateProxy.removeDevice(m_oldNode.get<Device::DeviceSettings>());
   devplug.updateProxy.loadDevice(m_newNode);
 }

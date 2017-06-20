@@ -8,10 +8,12 @@
 #include "LoopToolPalette.hpp"
 #include <Process/ProcessContext.hpp>
 #include <Process/TimeValue.hpp>
+#include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
 #include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
 #include <iscore/application/ApplicationContext.hpp>
@@ -104,5 +106,105 @@ void ToolPalette::on_cancel()
 Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
   return {TimeVal::fromMsecs(point.x() * m_presenter.zoomRatio()), 0};
+}
+
+Scenario::Point
+DisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
+{
+  return {TimeVal::fromMsecs(point.x() * m_presenter.zoomRatio()), 0};
+}
+
+DisplayedElementsToolPalette::DisplayedElementsToolPalette(
+    const Scenario::DisplayedElementsModel& model,
+    Scenario::ScenarioDocumentPresenter& pres,
+    BaseGraphicsObject& view)
+    : GraphicsSceneToolPalette{*view.scene()}
+    , m_model{model}
+    , m_scenarioModel{*safe_cast<Loop::ProcessModel*>(
+          m_model.constraint().parent())}
+    , m_presenter{pres}
+    , m_context{pres.context(), m_presenter}
+    , m_view{view}
+    , m_editionSettings{m_context.context.app
+                        .guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>()
+                            .editionSettings()}
+    , m_state{*this}
+    , m_inputDisp{m_presenter, *this, m_context}
+{
+}
+
+BaseGraphicsObject& DisplayedElementsToolPalette::view() const
+{
+  return m_view;
+}
+
+const Scenario::DisplayedElementsPresenter&
+DisplayedElementsToolPalette::presenter() const
+{
+  return m_presenter.presenters();
+}
+
+const Loop::ProcessModel&
+DisplayedElementsToolPalette::model() const
+{
+  return m_scenarioModel;
+}
+
+const Scenario::BaseElementContext& DisplayedElementsToolPalette::context() const
+{
+  return m_context;
+}
+
+const Scenario::EditionSettings&
+DisplayedElementsToolPalette::editionSettings() const
+{
+  return m_editionSettings;
+}
+
+void DisplayedElementsToolPalette::activate(Scenario::Tool)
+{
+}
+
+void DisplayedElementsToolPalette::desactivate(Scenario::Tool)
+{
+}
+
+void DisplayedElementsToolPalette::on_pressed(QPointF point)
+{
+  scenePoint = point;
+  m_state.on_pressed(
+      point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+}
+
+void DisplayedElementsToolPalette::on_moved(QPointF point)
+{
+  scenePoint = point;
+  m_state.on_moved(
+      point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+}
+
+void DisplayedElementsToolPalette::on_released(QPointF point)
+{
+  scenePoint = point;
+  m_state.on_released(
+      point, ScenePointToScenarioPoint(m_view.mapFromScene(point)));
+}
+
+void DisplayedElementsToolPalette::on_cancel()
+{
+  m_state.on_cancel();
+}
+std::unique_ptr<GraphicsSceneToolPalette>
+DisplayedElementsToolPaletteFactory::make(
+    Scenario::ScenarioDocumentPresenter& pres, const Scenario::ConstraintModel& constraint)
+{
+  return std::make_unique<DisplayedElementsToolPalette>(
+      pres.displayedElements, pres, pres.view().baseItem());
+}
+
+bool DisplayedElementsToolPaletteFactory::matches(
+    const Scenario::ConstraintModel& constraint) const
+{
+  return dynamic_cast<Loop::ProcessModel*>(constraint.parent());
 }
 }

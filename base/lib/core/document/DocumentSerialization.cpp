@@ -47,7 +47,6 @@ QByteArray Document::saveDocumentModelAsByteArray()
 
   DataStream::Serializer s{&arr};
 
-  s.readFrom(model().id());
   TSerializer<DataStream, IdentifiedObject<DocumentDelegateModel>>::readFrom(s, m_model->modelDelegate());
   m_model->modelDelegate().serialize(s.toVariant());
   return arr;
@@ -56,7 +55,6 @@ QByteArray Document::saveDocumentModelAsByteArray()
 QJsonObject Document::saveDocumentModelAsJson()
 {
   JSONObject::Serializer s;
-  s.obj["DocumentId"] = toJsonValue(model().id());
   TSerializer<JSONObject, IdentifiedObject<DocumentDelegateModel>>::readFrom(s, m_model->modelDelegate());
   m_model->modelDelegate().serialize(s.toVariant());
   return s.obj;
@@ -213,18 +211,7 @@ void DocumentModel::loadDocumentAsByteArray(
   // Set the id
 
   DataStream::Deserializer doc_writer{doc};
-  {
-    Id<DocumentModel> doc_id;
-    doc_writer.writeTo(doc_id);
-
-    if (ossia::any_of(ctx.app.documents.documents(), [=](auto doc) {
-          return doc->id() == doc_id;
-        }))
-      throw std::runtime_error(
-          tr("The document is already loaded").toStdString());
-
-    this->setId(std::move(doc_id));
-  }
+  this->setId(getStrongId(ctx.app.documents.documents()));
 
   // Note : this *has* to be in this order, because
   // the plugin models might put some data in the
@@ -280,15 +267,7 @@ void DocumentModel::loadDocumentAsJson(
     throw std::runtime_error(tr("Invalid document").toStdString());
 
   const auto& doc = (*doc_obj).toObject();
-  auto doc_id = fromJsonValue<Id<DocumentModel>>(doc["DocumentId"]);
-
-  if (ossia::any_of(ctx.app.documents.documents(), [=](auto doc) {
-        return doc->id() == doc_id;
-      }))
-    throw std::runtime_error(
-        tr("The document is already loaded").toStdString());
-
-  this->setId(doc_id);
+  this->setId(getStrongId(ctx.app.documents.documents()));
 
   iscore::hash_map<iscore::SerializableDocumentPlugin*, QJsonObject> docs;
   // Load the plug-in models

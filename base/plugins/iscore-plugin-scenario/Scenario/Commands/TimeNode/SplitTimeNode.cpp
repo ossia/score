@@ -24,20 +24,19 @@ namespace Command
 {
 
 SplitTimeNode::SplitTimeNode(
-    Path<TimeNodeModel>&& path, QVector<Id<EventModel>> eventsInNewTimeNode)
-    : m_path{std::move(path)}
+    const TimeNodeModel& path, QVector<Id<EventModel>> eventsInNewTimeNode)
+    : m_path{path}
     , m_eventsInNewTimeNode(std::move(eventsInNewTimeNode))
 {
-  auto& originalTN = m_path.find();
-  m_originalTimeNodeId = originalTN.id();
+  m_originalTimeNodeId = path.id();
 
-  auto scenar = static_cast<Scenario::ProcessModel*>(originalTN.parent());
+  auto scenar = static_cast<Scenario::ProcessModel*>(path.parent());
   m_newTimeNodeId = getStrongId(scenar->timeNodes);
 }
 
-void SplitTimeNode::undo() const
+void SplitTimeNode::undo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = static_cast<Scenario::ProcessModel&>(*m_path.find().parent());
+  auto& scenar = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
   auto& originalTN = scenar.timeNode(m_originalTimeNodeId);
   auto& newTN = scenar.timeNode(m_newTimeNodeId);
 
@@ -53,9 +52,9 @@ void SplitTimeNode::undo() const
   updateTimeNodeExtent(originalTN.id(), scenar);
 }
 
-void SplitTimeNode::redo() const
+void SplitTimeNode::redo(const iscore::DocumentContext& ctx) const
 {
-  auto& scenar = static_cast<Scenario::ProcessModel&>(*m_path.find().parent());
+  auto& scenar = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
   auto& originalTN = scenar.timeNode(m_originalTimeNodeId);
 
   // TODO set the correct position here.

@@ -96,6 +96,7 @@ public:
 
   template <typename ProcessScaleMethod>
   static void revertPositions(
+      const iscore::DocumentContext& ctx,
       Scenario::ProcessModel& scenario,
       ProcessScaleMethod&& scaleMethod,
       const ElementsProperties& propsToUpdate)
@@ -160,7 +161,7 @@ public:
       // 1. Clear the constraint
       // TODO Don't use a command since it serializes a ton of unused stuff.
       Command::ClearConstraint clear_cmd{curConstraintToUpdate};
-      clear_cmd.redo();
+      clear_cmd.redo(ctx);
 
       // 2. Restore the rackes & processes.
       // Restore the constraint. The saving is done in

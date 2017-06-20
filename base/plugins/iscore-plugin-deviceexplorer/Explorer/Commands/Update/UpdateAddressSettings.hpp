@@ -21,12 +21,12 @@ class UpdateAddressSettings final : public iscore::Command
       "Update an address")
 public:
   UpdateAddressSettings(
-      Path<DeviceDocumentPlugin>&& device_tree,
+      const DeviceDocumentPlugin& devplug,
       const Device::NodePath& node,
       const Device::AddressSettings& parameters);
 
-  void undo() const override;
-  void redo() const override;
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

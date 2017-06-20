@@ -269,9 +269,6 @@ void EventInspectorWidget::updateDisplayedValues()
   m_exprEditor->setExpression(m_model.condition());
 }
 
-using namespace iscore::IDocument;
-using namespace Scenario;
-
 void EventInspectorWidget::on_conditionChanged()
 {
   auto cond = m_exprEditor->expression();
@@ -279,14 +276,14 @@ void EventInspectorWidget::on_conditionChanged()
   if (cond != m_model.condition())
   {
     auto cmd
-        = new Scenario::Command::SetCondition{path(m_model), std::move(cond)};
+        = new Scenario::Command::SetCondition{m_model, std::move(cond)};
     emit m_commandDispatcher.submitCommand(cmd);
   }
 }
 void EventInspectorWidget::on_conditionReset()
 {
   auto cmd
-      = new Scenario::Command::SetCondition{path(m_model), State::Expression{}};
+      = new Scenario::Command::SetCondition{m_model, State::Expression{}};
   emit m_commandDispatcher.submitCommand(cmd);
 }
 }

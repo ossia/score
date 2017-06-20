@@ -96,6 +96,7 @@ public:
   AddProcessToConstraint() = default;
 
   AddProcessToConstraint(
+      const iscore::ApplicationContext& context,
       const ConstraintModel& constraint,
       const UuidKey<Process::ProcessModel>& process)
       : AddProcessToConstraintBase{constraint, process}
@@ -104,19 +105,19 @@ public:
     m_delegate.init(fact, constraint);
   }
 
-  void undo() const override
+  void undo(const iscore::DocumentContext& ctx) const override
   {
-    auto& constraint = m_addProcessCommand.constraintPath().find();
+    auto& constraint = m_addProcessCommand.constraintPath().find(ctx);
 
     m_delegate.undo(constraint);
-    m_addProcessCommand.undo(constraint);
+    m_addProcessCommand.undo(ctx);
   }
-  void redo() const override
+  void redo(const iscore::DocumentContext& ctx) const override
   {
-    auto& constraint = m_addProcessCommand.constraintPath().find();
+    auto& constraint = m_addProcessCommand.constraintPath().find(ctx);
 
     // Create process model
-    auto& proc = m_addProcessCommand.redo(constraint);
+    auto& proc = m_addProcessCommand.redo(constraint, ctx);
     m_delegate.redo(constraint, proc);
   }
 
@@ -183,7 +184,7 @@ public:
   void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
   {
     auto h
-        = m_cmd.context.settings<Scenario::Settings::Model>().getSlotHeight();
+        = iscore::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
     constraint.addSlot(Slot{{proc.id()}, proc.id(), h});
     constraint.setSmallViewVisible(true);
   }
@@ -256,12 +257,12 @@ make_AddProcessToConstraint(
   auto noSlots = constraint.smallView().empty();
   if (noSlots)
   {
-    cmd = new AddProcessToConstraint<AddProcessDelegate<HasNoSlots>>{
+    cmd = new AddProcessToConstraint<AddProcessDelegate<HasNoSlots>>{iscore::AppContext(),
                                                                     constraint, process};
   }
   else
   {
-    cmd = new AddProcessToConstraint<AddProcessDelegate<HasSlots>>{
+    cmd = new AddProcessToConstraint<AddProcessDelegate<HasSlots>>{iscore::AppContext(),
                                                                   constraint, process};
   }
 

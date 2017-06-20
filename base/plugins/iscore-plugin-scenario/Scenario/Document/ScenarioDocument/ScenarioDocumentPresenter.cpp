@@ -84,8 +84,10 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
   con(view().view(), &ProcessGraphicsView::sizeChanged, this,
       &ScenarioDocumentPresenter::on_windowSizeChanged, Qt::QueuedConnection);
-  con(view().view(), &ProcessGraphicsView::zoom, this,
-      &ScenarioDocumentPresenter::on_zoomOnWheelEvent);
+  con(view().view(), &ProcessGraphicsView::horizontalZoom, this,
+      &ScenarioDocumentPresenter::on_horizontalZoom);
+  con(view().view(), &ProcessGraphicsView::verticalZoom, this,
+      &ScenarioDocumentPresenter::on_verticalZoom);
   con(view().view(), &ProcessGraphicsView::scrolled, this,
       &ScenarioDocumentPresenter::on_horizontalPositionChanged);
 
@@ -182,7 +184,7 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
   m_scenarioPresenter.on_zoomRatioChanged(m_zoomRatio);
 }
 
-void ScenarioDocumentPresenter::on_zoomOnWheelEvent(
+void ScenarioDocumentPresenter::on_horizontalZoom(
     QPointF zoom, QPointF scenePoint)
 {
   auto& map = view().minimap();
@@ -202,6 +204,21 @@ void ScenarioDocumentPresenter::on_zoomOnWheelEvent(
   view().minimap().modifyHandles(lh, rh);
 }
 
+
+void ScenarioDocumentPresenter::on_verticalZoom(
+    QPointF zoom, QPointF scenePoint)
+{
+  auto z = ossia::clamp(zoom.y(), -100., 100.);
+  if(z == 0.)
+    return;
+  auto& c = displayedConstraint();
+  const FullRack& slts = c.fullView();
+  for(std::size_t i = 0; i < slts.size(); i++)
+  {
+    SlotId slot{i, Slot::FullView};
+    c.setSlotHeight(slot, c.getSlotHeight(slot) + z);
+  }
+}
 void ScenarioDocumentPresenter::on_timeRulerScrollEvent(
     QPointF previous, QPointF current)
 {

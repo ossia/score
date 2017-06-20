@@ -22,17 +22,17 @@ private slots:
     AddRackToConstraint cmd{ObjectPath{{"ConstraintModel", {}}}};
 
     auto id = cmd.m_createdRackId;
-    cmd.redo();
+    cmd.redo(ctx);
 
     RemoveRackFromConstraint cmd2{ObjectPath{{"ConstraintModel", {}}}, id};
-    cmd2.redo();
+    cmd2.redo(ctx);
     QCOMPARE((int)constraint->rackes().size(), 0);
-    cmd2.undo();
+    cmd2.undo(ctx);
     QCOMPARE((int)constraint->rackes().size(), 1);
-    cmd.undo();
+    cmd.undo(ctx);
     QCOMPARE((int)constraint->rackes().size(), 0);
-    cmd.redo();
-    cmd2.redo();
+    cmd.redo(ctx);
+    cmd2.redo(ctx);
 
     // Delete them else they stay in qApp !
     delete constraint;

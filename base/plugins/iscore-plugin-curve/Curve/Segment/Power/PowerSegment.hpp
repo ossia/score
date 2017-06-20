@@ -16,7 +16,7 @@ CURVE_SEGMENT_METADATA(
     Curve::PowerSegment,
     "1e7cb83f-4e47-4b14-814d-2242a9c75991",
     "Power",
-    "Power")
+    "Power", "")
 
 namespace Curve
 {

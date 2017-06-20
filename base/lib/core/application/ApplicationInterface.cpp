@@ -65,7 +65,7 @@ void GUIApplicationInterface::loadPluginData(
   presenter.optimize();
 
   // Load the settings
-  QSettings s;
+  QSettings s("OSSIA", "i-score");
   for (auto& elt :
        ctx.interfaces<iscore::SettingsDelegateFactoryList>())
   {

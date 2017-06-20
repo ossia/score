@@ -22,29 +22,29 @@ private slots:
 
     AddRackToConstraint cmd{ObjectPath{{"ConstraintModel", {}}}};
 
-    cmd.redo();
+    cmd.redo(ctx);
     auto rack = constraint->rack(cmd.m_createdRackId);
 
     AddSlotToRack cmd2{
         ObjectPath{{"ConstraintModel", {}}, {"RackModel", rack->id()}}};
 
     auto slotId = cmd2.m_createdSlotId;
-    cmd2.redo();
+    cmd2.redo(ctx);
 
     RemoveSlotFromRack cmd3{
         ObjectPath{{"ConstraintModel", {}}, {"RackModel", rack->id()}},
         slotId};
 
     QCOMPARE((int)rack->getSlots().size(), 1);
-    cmd3.redo();
+    cmd3.redo(ctx);
     QCOMPARE((int)rack->getSlots().size(), 0);
-    cmd3.undo();
+    cmd3.undo(ctx);
     QCOMPARE((int)rack->getSlots().size(), 1);
-    cmd2.undo();
-    cmd.undo();
-    cmd.redo();
-    cmd2.redo();
-    cmd3.redo();
+    cmd2.undo(ctx);
+    cmd.undo(ctx);
+    cmd.redo(ctx);
+    cmd2.redo(ctx);
+    cmd3.redo(ctx);
 
     QCOMPARE((int)rack->getSlots().size(), 0);
   }

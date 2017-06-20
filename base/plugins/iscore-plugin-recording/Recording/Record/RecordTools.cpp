@@ -150,8 +150,8 @@ Box CreateBox(RecordContext& context)
   // automations.
   auto default_end_date = context.point.date;
   auto cmd_start = new Scenario::Command::CreateTimeNode_Event_State{
-      context.scenario, context.point.date, context.point.y};
-  cmd_start->redo();
+      context.scenario, default_end_date, context.point.y};
+  cmd_start->redo(context.context);
   context.dispatcher.submitCommand(cmd_start);
 
   // TODO what happens if we go past the end of our scenario ? Stop recording
@@ -159,7 +159,7 @@ Box CreateBox(RecordContext& context)
   auto cmd_end = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
       context.scenario, cmd_start->createdState(), default_end_date,
       context.point.y};
-  cmd_end->redo();
+  cmd_end->redo(context.context);
   context.dispatcher.submitCommand(cmd_end);
 
   auto& cstr = context.scenario.constraints.at(cmd_end->createdConstraint());
@@ -175,11 +175,11 @@ Box CreateBox(RecordContext& context)
   context.dispatcher.submitCommand(cmd_move);
 
   auto cmd_slot = new Scenario::Command::AddSlotToRack{cstr};
-  cmd_slot->redo();
+  cmd_slot->redo(context.context);
   context.dispatcher.submitCommand(cmd_slot);
 
   auto cmd_showrack = new Scenario::Command::ShowRack{cstr};
-  cmd_showrack->redo();
+  cmd_showrack->redo(context.context);
   context.dispatcher.submitCommand(cmd_showrack);
 
   return {cstr, *cmd_move, cmd_end->createdEvent()};

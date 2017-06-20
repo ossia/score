@@ -21,13 +21,13 @@ class ChangeSpline final : public iscore::Command
 }
 
 public:
-void undo() const override
+void undo(const iscore::DocumentContext& ctx) const override
 {
-  m_path.find().setSpline(m_old);
+  m_path.find(ctx).setSpline(m_old);
 }
-void redo() const override
+void redo(const iscore::DocumentContext& ctx) const override
 {
-  m_path.find().setSpline(m_new);
+  m_path.find(ctx).setSpline(m_new);
 }
 
 protected:
