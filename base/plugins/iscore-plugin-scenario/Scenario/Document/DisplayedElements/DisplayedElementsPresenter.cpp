@@ -217,6 +217,7 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
 
 void DisplayedElementsPresenter::updateLength(double length)
 {
+  // TODO why isn't rect updated here.
   m_endStatePresenter->view()->setPos({deltaX + length, deltaY});
   m_endEventPresenter->view()->setPos({deltaX + length, deltaY});
   m_endNodePresenter->view()->setPos({deltaX + length, deltaY});

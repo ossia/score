@@ -56,15 +56,22 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
   QGraphicsView::scrollContentsBy(dx, dy);
 
   this->scene()->update();
-  emit scrolled(dx);
+  if(dx != 0)
+    emit scrolled(dx);
 }
 
 void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 {
-  QPoint delta = event->angleDelta() / 8;
-  if (m_zoomModifier)
+  QPoint d = event->angleDelta();
+  QPointF delta = {d.x() / 8., d.y() / 8.};
+  if (m_hZoom)
   {
-    emit zoom(delta, mapToScene(event->pos()));
+    emit horizontalZoom(delta, mapToScene(event->pos()));
+    return;
+  }
+  else if(m_vZoom)
+  {
+    emit verticalZoom(delta, mapToScene(event->pos()));
     return;
   }
 
@@ -74,7 +81,10 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
 {
   if (event->key() == Qt::Key_Control)
-    m_zoomModifier = true;
+    m_hZoom = true;
+  else if(event->key() == Qt::Key_Shift)
+    m_vZoom = true;
+
   event->ignore();
 
   QGraphicsView::keyPressEvent(event);
@@ -83,7 +93,10 @@ void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
 void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
 {
   if (event->key() == Qt::Key_Control)
-    m_zoomModifier = false;
+    m_hZoom = false;
+  else if(event->key() == Qt::Key_Shift)
+    m_vZoom = false;
+
   event->ignore();
 
   QGraphicsView::keyReleaseEvent(event);
@@ -91,7 +104,8 @@ void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
 
 void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
 {
-  m_zoomModifier = false;
+  m_hZoom = false;
+  m_vZoom = false;
   emit focusedOut();
   event->ignore();
 
@@ -100,6 +114,8 @@ void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
 
 void ProcessGraphicsView::leaveEvent(QEvent* event)
 {
+  m_hZoom = false;
+  m_vZoom = false;
   emit focusedOut();
   QGraphicsView::leaveEvent(event);
 }

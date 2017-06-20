@@ -376,6 +376,7 @@ double ConstraintModel::getSlotHeight(const SlotId& slot) const
 
 void ConstraintModel::setSlotHeight(const SlotId& slot, double height)
 {
+  height = std::max(height, 20.);
   if(slot.fullView())
     processes.at(m_fullView.at(slot.index).process).setSlotHeight(height);
   else
