@@ -66,9 +66,10 @@ void SlotHandle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   if(!moving)
   {
     moving = true;
-    m_presenter.moved(event->scenePos());
+    auto p = event->scenePos();
+    m_presenter.moved(p);
 
-    this->scene()->views()[0]->ensureVisible(this);
+    this->scene()->views()[0]->ensureVisible(p.x(), p.y(), 1, 1);
     moving = false;
   }
 }

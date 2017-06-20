@@ -96,7 +96,8 @@ private slots:
   void on_viewReady();
 
 private:
-  void on_zoomOnWheelEvent(QPointF, QPointF);
+  void on_horizontalZoom(QPointF, QPointF);
+  void on_verticalZoom(QPointF, QPointF);
   void on_timeRulerScrollEvent(QPointF, QPointF);
   void on_horizontalPositionChanged(int dx);
   void on_minimapChanged(double l, double r);
