@@ -34,7 +34,7 @@ QByteArray Command::serialize() const
   QByteArray arr;
   {
     QDataStream s(&arr, QIODevice::Append);
-    s.setVersion(QDataStream::Qt_5_8);
+    s.setVersion(QDataStream::Qt_5_7);
 
     //s << timestamp();
     DataStreamInput inp{s};
@@ -47,7 +47,7 @@ QByteArray Command::serialize() const
 void Command::deserialize(const QByteArray& arr)
 {
   QDataStream s(arr);
-  s.setVersion(QDataStream::Qt_5_8);
+  s.setVersion(QDataStream::Qt_5_7);
 
   //quint32 stmp;
   //s >> stmp;
