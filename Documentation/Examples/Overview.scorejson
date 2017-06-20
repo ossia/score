@@ -2,7 +2,7 @@
     "Document": {
         "BaseScenario": {
             "Constraint": {
-                "Center": 8180.429132160883,
+                "Center": 156975.796037262,
                 "Components": [
                 ],
                 "DefaultDuration": 165000,
@@ -12,7 +12,7 @@
                         "Process": 1
                     }
                 ],
-                "GuiDuration": 166325.7569839354,
+                "GuiDuration": 168059.81171948413,
                 "HeightPercentage": 0,
                 "MaxDuration": "inf",
                 "MaxInf": true,
@@ -85,9 +85,9 @@
                                 "id": 8
                             },
                             {
-                                "Date": 46346.349191502864,
-                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">The purple curve is a mapping : </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">at each tick, it takes the value of its input, </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">and sends it to the output.</span></p></body></html>",
-                                "HeightPercentage": 0.13927392739273928,
+                                "Date": 45750.31111965638,
+                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">The purple curve is a mapping : </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">at each tick, it takes the value of its input, </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">and sends it to the output.<br />To test it, change my_float manually between 10 and 100.</span></p></body></html>",
+                                "HeightPercentage": 0.14125412541254126,
                                 "ObjectName": "CommentBlockModel",
                                 "id": 9
                             },
@@ -195,7 +195,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 31267.325258745943,
-                                "HeightPercentage": 0.2891089108910891,
+                                "HeightPercentage": 0.28910890221595764,
                                 "MaxDuration": 9996.353775098858,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -227,7 +227,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 7046.210343911144,
-                                "HeightPercentage": 0.23102310231023102,
+                                "HeightPercentage": 0.23102310299873352,
                                 "MaxDuration": 5762.864704048121,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -323,7 +323,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 1974.8894043488003,
-                                "HeightPercentage": 0.366996699669967,
+                                "HeightPercentage": 0.366996705532074,
                                 "MaxDuration": 1950.5080536778241,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -358,7 +358,7 @@
                                     }
                                 ],
                                 "GuiDuration": 7590.142005634264,
-                                "HeightPercentage": 0.18943894389438945,
+                                "HeightPercentage": 0.18943893909454346,
                                 "MaxDuration": 7541.5243338206055,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -421,7 +421,7 @@
                                                 {
                                                     "End": [
                                                         1,
-                                                        0.7250000834465027
+                                                        0.75
                                                     ],
                                                     "Following": null,
                                                     "ObjectName": "CurveSegmentModel",
@@ -439,14 +439,14 @@
                                         },
                                         "Duration": 7541.5243338206055,
                                         "Height": 300,
-                                        "Max": 1,
+                                        "Max": 100,
                                         "Metadata": {
                                             "Color": "",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Automation.1"
                                         },
-                                        "Min": 0,
+                                        "Min": 1,
                                         "ObjectName": "Automation",
                                         "Tween": false,
                                         "id": 1,
@@ -481,7 +481,7 @@
                                     }
                                 ],
                                 "GuiDuration": 8993.449508132624,
-                                "HeightPercentage": 0.18943894389438945,
+                                "HeightPercentage": 0.18943893909454346,
                                 "MaxDuration": 8417.341837807162,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -520,7 +520,7 @@
                                                     "Previous": null,
                                                     "Start": [
                                                         0,
-                                                        0.7250000834465027
+                                                        0.75
                                                     ],
                                                     "id": 1291427957,
                                                     "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991"
@@ -558,7 +558,7 @@
                                                 {
                                                     "End": [
                                                         1,
-                                                        0
+                                                        0.49494948983192444
                                                     ],
                                                     "Following": null,
                                                     "ObjectName": "CurveSegmentModel",
@@ -575,14 +575,14 @@
                                         },
                                         "Duration": 8417.341837807162,
                                         "Height": 300,
-                                        "Max": 1,
+                                        "Max": 100,
                                         "Metadata": {
                                             "Color": "",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Automation.1"
                                         },
-                                        "Min": 0,
+                                        "Min": 1,
                                         "ObjectName": "Automation",
                                         "Tween": false,
                                         "id": 1,
@@ -623,7 +623,7 @@
                                     }
                                 ],
                                 "GuiDuration": 6600.874128288424,
-                                "HeightPercentage": 0.18943894389438945,
+                                "HeightPercentage": 0.18943893909454346,
                                 "MaxDuration": 6448.071009976324,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -639,11 +639,12 @@
                                     {
                                         "Address": {
                                             "Accessors": [
+                                                1
                                             ],
-                                            "Unit": "none",
+                                            "Unit": "color.rgb",
                                             "address": {
-                                                "Device": "",
-                                                "Path": ""
+                                                "Device": "OSCdevice",
+                                                "Path": "my_color"
                                             }
                                         },
                                         "Components": [
@@ -672,7 +673,7 @@
                                         },
                                         "Duration": 6448.071009976324,
                                         "Height": 300,
-                                        "Max": 0,
+                                        "Max": 1,
                                         "Metadata": {
                                             "Color": "",
                                             "Comment": "",
@@ -688,11 +689,12 @@
                                     {
                                         "Address": {
                                             "Accessors": [
+                                                0
                                             ],
-                                            "Unit": "none",
+                                            "Unit": "color.rgb",
                                             "address": {
-                                                "Device": "",
-                                                "Path": ""
+                                                "Device": "OSCdevice",
+                                                "Path": "my_color"
                                             }
                                         },
                                         "Components": [
@@ -785,7 +787,7 @@
                                         },
                                         "Duration": 6448.071009976324,
                                         "Height": 300,
-                                        "Max": 0,
+                                        "Max": 1,
                                         "Metadata": {
                                             "Color": "",
                                             "Comment": "",
@@ -801,11 +803,12 @@
                                     {
                                         "Address": {
                                             "Accessors": [
+                                                2
                                             ],
-                                            "Unit": "none",
+                                            "Unit": "color.rgb",
                                             "address": {
-                                                "Device": "",
-                                                "Path": ""
+                                                "Device": "OSCdevice",
+                                                "Path": "my_color"
                                             }
                                         },
                                         "Components": [
@@ -834,7 +837,7 @@
                                         },
                                         "Duration": 6448.071009976324,
                                         "Height": 300,
-                                        "Max": 0,
+                                        "Max": 1,
                                         "Metadata": {
                                             "Color": "",
                                             "Comment": "",
@@ -881,7 +884,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 3022.3101793539777,
-                                "HeightPercentage": 0.18943894389438945,
+                                "HeightPercentage": 0.18943893909454346,
                                 "MaxDuration": 1597.415528199781,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -916,7 +919,7 @@
                                     }
                                 ],
                                 "GuiDuration": 8364.06770565403,
-                                "HeightPercentage": 0.18943894389438945,
+                                "HeightPercentage": 0.18943893909454346,
                                 "MaxDuration": 7944.479893580225,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -1004,11 +1007,10 @@
                                                 "Path": "my_float"
                                             }
                                         },
-                                        "SourceMax": 1,
-                                        "SourceMin": 0,
+                                        "SourceMax": 100,
+                                        "SourceMin": 10,
                                         "TargetAddress": {
                                             "Accessors": [
-                                                0
                                             ],
                                             "Unit": "color.rgb",
                                             "address": {
@@ -1047,7 +1049,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 1858.9203209134578,
-                                "HeightPercentage": 0.18943894389438945,
+                                "HeightPercentage": 0.18943893909454346,
                                 "MaxDuration": 1710.3027963280256,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -1082,7 +1084,7 @@
                                     }
                                 ],
                                 "GuiDuration": 7396.209165630711,
-                                "HeightPercentage": 0.18943894389438945,
+                                "HeightPercentage": 0.18943893909454346,
                                 "MaxDuration": 6947.954064683392,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -1192,7 +1194,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 3317.0877470101436,
-                                "HeightPercentage": 0.18943894389438945,
+                                "HeightPercentage": 0.18943893909454346,
                                 "MaxDuration": 1854.1460993729925,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -1341,8 +1343,8 @@
                                                             ],
                                                             "Unit": "none",
                                                             "address": {
-                                                                "Device": "",
-                                                                "Path": ""
+                                                                "Device": "OSCdevice",
+                                                                "Path": "my_float"
                                                             }
                                                         },
                                                         "Components": [
@@ -1352,8 +1354,8 @@
                                                             "Segments": [
                                                                 {
                                                                     "End": [
-                                                                        0.4965517241379309,
-                                                                        0.8655999966710806
+                                                                        0.4931809428661601,
+                                                                        0.6005999871343375
                                                                     ],
                                                                     "Following": 1,
                                                                     "ObjectName": "CurveSegmentModel",
@@ -1361,7 +1363,7 @@
                                                                     "Previous": null,
                                                                     "Start": [
                                                                         0,
-                                                                        0
+                                                                        0.3605999871343374
                                                                     ],
                                                                     "id": 733010140,
                                                                     "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991"
@@ -1369,15 +1371,15 @@
                                                                 {
                                                                     "End": [
                                                                         1,
-                                                                        1
+                                                                        0.43559998713433745
                                                                     ],
                                                                     "Following": null,
                                                                     "ObjectName": "CurveSegmentModel",
                                                                     "Power": 11.05,
                                                                     "Previous": 733010140,
                                                                     "Start": [
-                                                                        0.4965517241379309,
-                                                                        0.8655999966710806
+                                                                        0.4931809428661601,
+                                                                        0.6005999871343375
                                                                     ],
                                                                     "id": 1,
                                                                     "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991"
@@ -1387,14 +1389,14 @@
                                                         },
                                                         "Duration": 2709.9058375451373,
                                                         "Height": 300,
-                                                        "Max": 0,
+                                                        "Max": 100,
                                                         "Metadata": {
                                                             "Color": "",
                                                             "Comment": "",
                                                             "Label": "",
                                                             "ScriptingName": "Automation.1"
                                                         },
-                                                        "Min": 0,
+                                                        "Min": 20,
                                                         "ObjectName": "Automation",
                                                         "Tween": false,
                                                         "id": 1,
@@ -1489,7 +1491,7 @@
                                                                 "FullViewRack": [
                                                                 ],
                                                                 "GuiDuration": 313.7785706631213,
-                                                                "HeightPercentage": 0.6550000075250864,
+                                                                "HeightPercentage": 0.6550000309944153,
                                                                 "MaxDuration": 305.62847791862464,
                                                                 "MaxInf": false,
                                                                 "Metadata": {
@@ -2300,6 +2302,47 @@
                                                     "Accessors": [
                                                     ],
                                                     "Children": [
+                                                        {
+                                                            "Accessors": [
+                                                            ],
+                                                            "Children": [
+                                                                {
+                                                                    "Accessors": [
+                                                                    ],
+                                                                    "Children": [
+                                                                    ],
+                                                                    "Following": [
+                                                                        {
+                                                                            "Process": 1,
+                                                                            "Value": {
+                                                                                "Type": "Float",
+                                                                                "Value": 48.847999572753906
+                                                                            }
+                                                                        }
+                                                                    ],
+                                                                    "Name": "my_float",
+                                                                    "Previous": [
+                                                                    ],
+                                                                    "Priorities": [
+                                                                        1,
+                                                                        2,
+                                                                        0
+                                                                    ],
+                                                                    "Unit": "none"
+                                                                }
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "OSCdevice",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "Unit": "none"
+                                                        }
                                                     ],
                                                     "Following": [
                                                     ],
@@ -2335,6 +2378,47 @@
                                                     "Accessors": [
                                                     ],
                                                     "Children": [
+                                                        {
+                                                            "Accessors": [
+                                                            ],
+                                                            "Children": [
+                                                                {
+                                                                    "Accessors": [
+                                                                    ],
+                                                                    "Children": [
+                                                                    ],
+                                                                    "Following": [
+                                                                    ],
+                                                                    "Name": "my_float",
+                                                                    "Previous": [
+                                                                        {
+                                                                            "Process": 1,
+                                                                            "Value": {
+                                                                                "Type": "Float",
+                                                                                "Value": 54.847999572753906
+                                                                            }
+                                                                        }
+                                                                    ],
+                                                                    "Priorities": [
+                                                                        1,
+                                                                        2,
+                                                                        0
+                                                                    ],
+                                                                    "Unit": "none"
+                                                                }
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "OSCdevice",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "Unit": "none"
+                                                        }
                                                     ],
                                                     "Following": [
                                                     ],
@@ -2703,7 +2787,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 4325.661724141588,
-                                "HeightPercentage": 0.1788778877887789,
+                                "HeightPercentage": 0.17887789011001587,
                                 "MaxDuration": 2913.658156157544,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -2867,14 +2951,14 @@
                                                     },
                                                     "Duration": 2159.7745772916223,
                                                     "Height": 300,
-                                                    "Max": 1,
+                                                    "Max": 50,
                                                     "Metadata": {
                                                         "Color": "",
                                                         "Comment": "",
                                                         "Label": "",
                                                         "ScriptingName": "Automation.2"
                                                     },
-                                                    "Min": 0,
+                                                    "Min": 20,
                                                     "ObjectName": "Automation",
                                                     "Tween": false,
                                                     "id": 2,
@@ -2960,7 +3044,7 @@
                                                                         "Process": 2,
                                                                         "Value": {
                                                                             "Type": "Float",
-                                                                            "Value": 1
+                                                                            "Value": 50
                                                                         }
                                                                     }
                                                                 ],
@@ -3124,7 +3208,7 @@
                                                                         "Process": 2,
                                                                         "Value": {
                                                                             "Type": "Float",
-                                                                            "Value": 0
+                                                                            "Value": 20
                                                                         }
                                                                     }
                                                                 ],
@@ -3314,7 +3398,7 @@
                                             "ScriptingName": "Javascript.1"
                                         },
                                         "ObjectName": "Javascript",
-                                        "Script": "(function(t) { \n     var obj = { }; \n     obj.address = 'OSCdevice:/my_float'; \n     obj.value = t + Math.sin(iscore.value('OSCdevice:/my_int')); \n     return [ obj ]; \n});",
+                                        "Script": "(function(t) { \n     var obj = { }; \n     obj.address = 'OSCdevice:/my_float'; \n     obj.value = 20 + 20 * Math.cos(50 * t + Math.sin(iscore.value('OSCdevice:/my_int'))); \n     return [ obj ]; \n});",
                                         "id": 1,
                                         "uuid": "846a5de5-47f9-46c5-a898-013cb20951d0"
                                     }
@@ -3600,7 +3684,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 7194.494370204416,
-                                "HeightPercentage": 0.2693069306930693,
+                                "HeightPercentage": 0.2693069279193878,
                                 "MaxDuration": 6540.4494274585595,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -3728,9 +3812,9 @@
                                         "Gradient": [
                                             0.2,
                                             [
-                                                0,
-                                                0,
-                                                0,
+                                                0.9884336614023042,
+                                                0.3573357747768368,
+                                                0.2980086976424811,
                                                 1
                                             ],
                                             0.5199063231850114,
@@ -3749,9 +3833,9 @@
                                             ],
                                             0.9133489461358307,
                                             [
-                                                0,
-                                                0,
-                                                0,
+                                                0.7922178988326848,
+                                                0.8021515220874342,
+                                                0.8019531548027772,
                                                 1
                                             ]
                                         ],
@@ -6065,7 +6149,7 @@
                                                             "Process": 1,
                                                             "Value": {
                                                                 "Type": "Float",
-                                                                "Value": 0
+                                                                "Value": 1
                                                             }
                                                         }
                                                     ],
@@ -6141,7 +6225,7 @@
                                                             "Process": 1,
                                                             "Value": {
                                                                 "Type": "Float",
-                                                                "Value": 0.7250000834465027
+                                                                "Value": 75.25
                                                             }
                                                         }
                                                     ],
@@ -6151,7 +6235,7 @@
                                                             "Process": 1,
                                                             "Value": {
                                                                 "Type": "Float",
-                                                                "Value": 0.7250000834465027
+                                                                "Value": 72.77500915527344
                                                             }
                                                         }
                                                     ],
@@ -6227,7 +6311,7 @@
                                                             "Process": 1,
                                                             "Value": {
                                                                 "Type": "Float",
-                                                                "Value": 0
+                                                                "Value": 50
                                                             }
                                                         }
                                                     ],
@@ -6239,8 +6323,83 @@
                                                     "Unit": "none",
                                                     "User": {
                                                         "Type": "Float",
-                                                        "Value": 0
+                                                        "Value": 50
                                                     }
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                        1
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                        {
+                                                            "Process": 1,
+                                                            "Value": {
+                                                                "Type": "Float",
+                                                                "Value": 0
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Name": "my_color",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "color.rgb"
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                        0
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                        {
+                                                            "Process": 2,
+                                                            "Value": {
+                                                                "Type": "Float",
+                                                                "Value": 0
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Name": "my_color",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "color.rgb"
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                        2
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                        {
+                                                            "Process": 3,
+                                                            "Value": {
+                                                                "Type": "Float",
+                                                                "Value": 0
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Name": "my_color",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "color.rgb"
                                                 }
                                             ],
                                             "Following": [
@@ -6290,6 +6449,98 @@
                                     "Accessors": [
                                     ],
                                     "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                                {
+                                                    "Accessors": [
+                                                        0
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "my_color",
+                                                    "Previous": [
+                                                        {
+                                                            "Process": 2,
+                                                            "Value": {
+                                                                "Type": "Float",
+                                                                "Value": 1
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "color.rgb"
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                        1
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "my_color",
+                                                    "Previous": [
+                                                        {
+                                                            "Process": 1,
+                                                            "Value": {
+                                                                "Type": "Float",
+                                                                "Value": 1
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "color.rgb"
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                        2
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "my_color",
+                                                    "Previous": [
+                                                        {
+                                                            "Process": 3,
+                                                            "Value": {
+                                                                "Type": "Float",
+                                                                "Value": 1
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "color.rgb"
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "OSCdevice",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none"
+                                        }
                                     ],
                                     "Following": [
                                     ],
@@ -9861,7 +10112,7 @@
                 "SmallViewShown": false,
                 "StartDate": 0,
                 "StartState": 0,
-                "Zoom": 19.270740005090417,
+                "Zoom": 22.92454122486484,
                 "id": 0
             },
             "EndEvent": {
@@ -10165,9 +10416,9 @@
                                 "Type": "Vec3f",
                                 "Unit": "color.rgb",
                                 "Value": [
-                                    0,
-                                    0,
-                                    0
+                                    1,
+                                    1,
+                                    1
                                 ],
                                 "ioType": "<->"
                             },
@@ -10208,7 +10459,7 @@
                                 "RepetitionFilter": false,
                                 "Type": "Float",
                                 "Unit": "none",
-                                "Value": 0,
+                                "Value": 50,
                                 "ioType": "<->"
                             },
                             "Children": [
