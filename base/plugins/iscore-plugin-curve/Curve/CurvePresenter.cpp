@@ -237,6 +237,10 @@ void Presenter::setupView()
     {
       altact->setChecked(!altact->isChecked());
     }
+    if(key == Qt::Key_Backspace)
+    {
+      removeSelection();
+    }
   });
 
   connect(m_view, &View::keyReleased, this, [=](int key) {
