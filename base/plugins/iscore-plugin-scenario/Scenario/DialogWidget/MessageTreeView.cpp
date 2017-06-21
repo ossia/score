@@ -51,12 +51,13 @@ MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
   this->setModel(&m_model.messages());
 
   m_removeNodesAction = new QAction(tr("Remove Nodes"), this);
-  m_removeNodesAction->setShortcut(QKeySequence::Delete);
-  m_removeNodesAction->setShortcutContext(Qt::WidgetShortcut);
+  m_removeNodesAction->setShortcut(Qt::Key_Backspace);
+  m_removeNodesAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_removeNodesAction->setEnabled(true);
   connect(
       m_removeNodesAction, &QAction::triggered, this,
       &MessageTreeView::removeNodes);
+  addAction(m_removeNodesAction);
 
   expandAll();
   con(m_model.messages(), &MessageItemModel::modelReset, this,
