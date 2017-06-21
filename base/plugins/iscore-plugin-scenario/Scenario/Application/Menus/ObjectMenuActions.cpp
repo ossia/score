@@ -181,9 +181,11 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
         *sm, m_parent->currentDocument()->context().commandStack);
   });
 
-  parent->context.mainWindow.addAction(m_removeElements);
-  parent->context.mainWindow.addAction(m_clearElements);
-  parent->context.mainWindow.addAction(m_pasteElements);
+  auto doc = parent->context.mainWindow.findChild<QWidget*>("Documents", Qt::FindDirectChildrenOnly);
+  ISCORE_ASSERT(doc);
+  doc->addAction(m_removeElements);
+  doc->addAction(m_clearElements);
+  doc->addAction(m_pasteElements);
 
 
   // Selection actions
