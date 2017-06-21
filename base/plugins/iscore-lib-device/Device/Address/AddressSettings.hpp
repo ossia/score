@@ -44,7 +44,7 @@ struct ISCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
   State::Unit unit;
 
   optional<ossia::access_mode> ioType;
-  ossia::bounding_mode clipMode;
+  ossia::bounding_mode clipMode{};
   ossia::repetition_filter repetitionFilter{};
 
   ossia::extended_attributes extendedAttributes;
@@ -171,7 +171,7 @@ struct ISCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
   Device::Domain domain;
 
   optional<ossia::access_mode> ioType;
-  ossia::bounding_mode clipMode;
+  ossia::bounding_mode clipMode{};
   ossia::repetition_filter repetitionFilter{};
 
   ossia::any_map extendedAttributes;

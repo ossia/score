@@ -64,8 +64,17 @@ void JSONObjectWriter::write(Automation::ProcessModel& autom)
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-  autom.setAddress(
-      fromJsonObject<State::AddressAccessor>(obj[strings.Address]));
+  auto adrObj = obj[strings.Address].toObject();
+  if(adrObj.contains("Path"))
+  {
+      autom.setAddress(State::AddressAccessor{
+                  fromJsonObject<State::Address>(adrObj)});
+  }
+  else
+  {
+      autom.setAddress(
+          fromJsonObject<State::AddressAccessor>(adrObj));
+  }
   autom.setMin(obj[strings.Min].toDouble());
   autom.setMax(obj[strings.Max].toDouble());
   autom.setTween(obj["Tween"].toBool());

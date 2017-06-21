@@ -156,7 +156,6 @@ class AddProcessDelegate<HasNoSlots>
 private:
   using proc_t
       = AddProcessToConstraint<AddProcessDelegate<HasNoSlots>>;
-  proc_t& m_cmd;
 
 public:
   static const CommandKey& static_key()
@@ -167,7 +166,6 @@ public:
   }
 
   AddProcessDelegate<HasNoSlots>(proc_t& cmd)
-      : m_cmd{cmd}
   {
   }
 

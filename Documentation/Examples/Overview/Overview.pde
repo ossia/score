@@ -8,7 +8,7 @@ int numCircles = 10;
 float xpos = 320;
 float ypos = 240;
 
-color c = color(100, 100, 100);
+color c = color(150, 150, 150);
 
 
 // Called once at the opening

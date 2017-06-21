@@ -131,7 +131,6 @@ void MIDIProtocolSettingsWidget::updateDevices(
     }
     if (m_deviceCBox->count() > 0)
       m_deviceCBox->setCurrentIndex(0);
-    qDebug() << m_deviceCBox->count();
   }
   catch (std::exception& e)
   {
