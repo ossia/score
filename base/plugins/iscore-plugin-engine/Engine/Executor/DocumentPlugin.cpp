@@ -9,6 +9,8 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+
+#include <Engine/ApplicationPlugin.hpp>
 namespace Engine
 {
 namespace Execution
@@ -69,6 +71,7 @@ void DocumentPlugin::on_documentClosing()
   if (m_base.active())
   {
     m_base.baseConstraint().stop();
+    m_ctx.context().doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>().on_stop();
     clear();
   }
 }

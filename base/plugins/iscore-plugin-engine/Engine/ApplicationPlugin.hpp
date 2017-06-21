@@ -85,8 +85,8 @@ public:
     return m_paused;
   }
 
-private:
   void on_stop();
+private:
   void on_init();
 
   void initLocalTreeNodes(Engine::LocalTree::DocumentPlugin&);
