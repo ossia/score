@@ -244,7 +244,14 @@ void TemporalConstraintPresenter::on_rackVisibleChanged(bool b)
 {
   if(b)
   {
-    m_header->setState(ConstraintHeader::State::RackShown);
+    if(!m_model.processes.empty())
+    {
+      m_header->setState(ConstraintHeader::State::RackShown);
+    }
+    else
+    {
+      m_header->setState(ConstraintHeader::State::Hidden);
+    }
   }
   else if(!m_model.processes.empty())
   {

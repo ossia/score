@@ -244,6 +244,16 @@ ScenarioPasteElements::ScenarioPasteElements(
         if (end_state_id != states.end())
           SetPreviousConstraint(**end_state_id, *constraint);
       }
+
+      const auto& fv = constraint->fullView();
+      if(!fv.empty() && constraint->smallView().empty())
+      {
+        const auto N = fv.size();
+        for(std::size_t i = 0; i < N; i++)
+        {
+          constraint->addSlot(Slot{{fv[i].process}, fv[i].process}, i);
+        }
+      }
       i++;
     }
   }
