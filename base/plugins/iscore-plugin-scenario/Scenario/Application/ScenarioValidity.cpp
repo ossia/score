@@ -64,7 +64,11 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     {
       auto st = scenar.findState(state);
       ISCORE_ASSERT(st);
-      ISCORE_ASSERT(st->eventId() == event.id());
+      if(st->eventId() != event.id())
+      {
+          st->setEventId(event.id());
+      }
+      //ISCORE_ASSERT(st->eventId() == event.id());
     }
   }
 

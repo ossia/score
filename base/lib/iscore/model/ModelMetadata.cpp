@@ -213,6 +213,8 @@ JSONObjectWriter::write(iscore::ModelMetadata& md)
     auto sim_col = iscore::ColorRef::SimilarColor(col);
     if (sim_col)
       md.m_color = *sim_col;
+    else
+      md.m_color = iscore::Skin::instance().fromString("Base1");
   }
   else if (color_val.isString())
   {
@@ -220,7 +222,15 @@ JSONObjectWriter::write(iscore::ModelMetadata& md)
     auto col = iscore::ColorRef::ColorFromString(col_name);
     if (col)
       md.m_color = *col;
+    else
+        md.m_color = iscore::Skin::instance().fromString("Base1");
   }
+  else
+  {
+      md.m_color = iscore::Skin::instance().fromString("Base1");
+  }
+
+  md.m_color.getColor();
 
   md.m_label = obj[strings.Label].toString();
 
