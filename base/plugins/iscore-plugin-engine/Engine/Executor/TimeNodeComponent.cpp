@@ -8,6 +8,7 @@
 #include <exception>
 
 #include "ConstraintComponent.hpp"
+#include "ScenarioComponent.hpp"
 #include "TimeNodeComponent.hpp"
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/state/state.hpp>
@@ -97,18 +98,23 @@ void TimeNodeComponent::updateTrigger()
 
 void TimeNodeComponent::on_GUITrigger()
 {
-  this->system().executionQueue.enqueue(
-        [e = m_ossia_node]
+  if(dynamic_cast<Scenario::ProcessModel*>(this->iscoreTimeNode().parent()))
   {
-    bool old = e->is_observing_expression();
-    if(old)
-      e->observe_expression(false);
+    this->system().executionQueue.enqueue(
+          [this,e = m_ossia_node]
+    {
+        e->trigger_request = true;
+    });
+  }
+  else
+  {
+    this->system().executionQueue.enqueue(
+          [this,e = m_ossia_node]
+    {
+        e->trigger(); //TODO refactor w/ loop
+    });
+  }
 
-    e->set_expression(ossia::expressions::make_expression_true());
-
-    if(old)
-      e->observe_expression(true);
-  });
 }
 }
 }
