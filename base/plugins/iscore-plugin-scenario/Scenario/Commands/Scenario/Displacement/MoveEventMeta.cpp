@@ -47,6 +47,30 @@ MoveEventMeta::MoveEventMeta(
   }
 }
 
+
+MoveEventMeta::MoveEventMeta(
+    const Scenario::ProcessModel& scenar,
+    Id<EventModel> eventId,
+    TimeVal newDate,
+    double y,
+    ExpandMode mode,
+        Id<StateModel> sid)
+    : SerializableMoveEvent{}
+    , m_scenario{scenar}
+    , m_eventId{std::move(eventId)}
+    , m_stateId{std::move(sid)}
+    , m_newY{y}
+    , m_moveEventImplementation(
+          iscore::AppContext().interfaces<MoveEventList>()
+              .get(iscore::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
+              .make(
+                  scenar, m_eventId, std::move(newDate),
+                  mode))
+{
+  m_oldY = scenar.state(*m_stateId).heightPercentage();
+}
+
+
 void MoveEventMeta::undo(const iscore::DocumentContext& ctx) const
 {
   m_moveEventImplementation->undo(ctx);
@@ -66,14 +90,14 @@ const Path<Scenario::ProcessModel>& MoveEventMeta::path() const
 
 void MoveEventMeta::serializeImpl(DataStreamInput& s) const
 {
-  s << m_scenario << m_eventId << m_oldY << m_newY
+  s << m_scenario << m_eventId << m_stateId << m_oldY << m_newY
     << m_moveEventImplementation->serialize();
 }
 
 void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
 {
   QByteArray cmdData;
-  s >> m_scenario >> m_eventId >> m_oldY >> m_newY >> cmdData;
+  s >> m_scenario >> m_eventId >> m_stateId >> m_oldY >> m_newY >> cmdData;
 
   m_moveEventImplementation
       = iscore::AppContext().interfaces<MoveEventList>()
@@ -87,29 +111,29 @@ void MoveEventMeta::updateY(Scenario::ProcessModel& scenar, double y) const
 {
     auto& ev = scenar.event(m_eventId);
     auto states = ev.states();
-    if (states.size() == 1)
+    Scenario::StateModel* stp{};
+    if(m_stateId)
     {
-      auto& st = scenar.states.at(states.front());
-      if (!st.previousConstraint() && !st.nextConstraint())
-        st.setHeightPercentage(y);
-      if (st.previousConstraint())
-        updateConstraintVerticalPos(y, *st.previousConstraint(), scenar);
-      if (st.nextConstraint())
-        updateConstraintVerticalPos(y, *st.nextConstraint(), scenar);
+        stp = &scenar.states.at(*m_stateId);
+    }
+    else if (states.size() == 1)
+    {
+        stp = &scenar.states.at(states.front());
+    }
+
+    if(stp)
+    {
+        auto& st = *stp;
+        if (!st.previousConstraint() && !st.nextConstraint())
+        {
+          st.setHeightPercentage(y);
+        }
+        if (st.previousConstraint())
+          updateConstraintVerticalPos(y, *st.previousConstraint(), scenar);
+        if (st.nextConstraint())
+          updateConstraintVerticalPos(y, *st.nextConstraint(), scenar);
     }
 }
-/*
-void MoveEventMeta::update(
-    const Id<EventModel>& eventId, const TimeVal& newDate, double y,
-    ExpandMode mode)
-{
-  m_moveEventImplementation->update(eventId, newDate, y, mode);
-  m_newY = y;
-  updateY(m_scenario.find(ctx), m_newY);
-}
-*/
-
-
 
 
 MoveTopEventMeta::MoveTopEventMeta(
