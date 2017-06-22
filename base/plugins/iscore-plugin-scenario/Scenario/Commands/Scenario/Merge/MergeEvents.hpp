@@ -23,13 +23,7 @@ namespace Scenario
 
 namespace Command
 {
-template <typename Scenario_T>
-class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final : std::false_type
-{
-};
-
-template <>
-class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents<ProcessModel> final
+class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final
     : public iscore::Command
 {
   // No ISCORE_COMMAND here since it's a template.
@@ -73,7 +67,7 @@ public:
     s.readFrom(event);
     m_serializedEvent = arr;
 
-    m_mergeTimeNodesCommand = new MergeTimeNodes<ProcessModel>{
+    m_mergeTimeNodesCommand = new MergeTimeNodes{
         scenario, event.timeNode(),
         destinantionEvent.timeNode()};
   }
@@ -81,6 +75,8 @@ public:
   void undo(const iscore::DocumentContext& ctx) const override
   {
     auto& scenar = m_scenarioPath.find(ctx);
+
+    //ScenarioValidityChecker::checkValidity(scenar);
     auto& globalEvent = scenar.event(m_destinationEventId);
 
     DataStream::Deserializer s{m_serializedEvent};
@@ -102,19 +98,33 @@ public:
 
     scenar.events.add(recreatedEvent);
 
+    auto& tn = scenar.timeNode(globalEvent.timeNode());
     if (recreatedEvent->timeNode() != globalEvent.timeNode())
     {
-      auto& tn = scenar.timeNode(globalEvent.timeNode());
       tn.addEvent(m_movingEventId);
+      //ScenarioValidityChecker::checkValidity(scenar);
       m_mergeTimeNodesCommand->undo(ctx);
+      //ScenarioValidityChecker::checkValidity(scenar);
+    }
+    else
+    {
+        // recreatedEvent->timeNode == globalEvent->timeNode:
+        // both events originally were on the same time node.
+        // auto it = ossia::find(tn.events(), m_movingEventId);
+        // ISCORE_ASSERT(it == tn.events().end());
+        tn.addEvent(m_movingEventId);
+        //ScenarioValidityChecker::checkValidity(scenar);
     }
 
     updateEventExtent(m_destinationEventId, scenar);
+
+    //ScenarioValidityChecker::checkValidity(scenar);
   }
 
   void redo(const iscore::DocumentContext& ctx) const override
   {
     auto& scenar = m_scenarioPath.find(ctx);
+    //ScenarioValidityChecker::checkValidity(scenar);
     auto& movingEvent = scenar.event(m_movingEventId);
     auto& destinationEvent = scenar.event(m_destinationEventId);
     auto movingStates = movingEvent.states();
@@ -134,6 +144,7 @@ public:
 
     scenar.events.remove(m_movingEventId);
     updateEventExtent(m_destinationEventId, scenar);
+    //ScenarioValidityChecker::checkValidity(scenar);
   }
 
   void update(unused_t, const Id<EventModel>&, const Id<EventModel>&)
@@ -154,7 +165,7 @@ protected:
     s >> m_scenarioPath >> m_movingEventId >> m_destinationEventId
         >> m_serializedEvent >> cmd;
 
-    m_mergeTimeNodesCommand = new MergeTimeNodes<ProcessModel>{};
+    m_mergeTimeNodesCommand = new MergeTimeNodes{};
     m_mergeTimeNodesCommand->deserialize(cmd);
   }
 
@@ -164,7 +175,7 @@ private:
   Id<EventModel> m_destinationEventId;
 
   QByteArray m_serializedEvent;
-  MergeTimeNodes<ProcessModel>* m_mergeTimeNodesCommand;
+  MergeTimeNodes* m_mergeTimeNodesCommand;
 };
 }
 }

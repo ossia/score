@@ -17,7 +17,7 @@
 #include <iscore/model/path/Path.hpp>
 #include <iscore/model/path/PathSerialization.hpp>
 #include <iscore/model/Identifier.hpp>
-
+//#include <Scenario/Application/ScenarioValidity.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
@@ -25,12 +25,7 @@ namespace Scenario
 
 namespace Command
 {
-template <typename Scenario_T>
-class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes final : std::false_type
-{
-};
-template <>
-class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes<ProcessModel> final
+class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes final
     : public iscore::Command
 {
   // No ISCORE_COMMAND here since it's a template.
@@ -85,6 +80,8 @@ public:
   void undo(const iscore::DocumentContext& ctx) const override
   {
     auto& scenar = m_scenarioPath.find(ctx);
+
+    //ScenarioValidityChecker::checkValidity(scenar);
     auto& globalTn = scenar.timeNode(m_destinationTnId);
 
     DataStream::Deserializer s{m_serializedTimeNode};
@@ -108,14 +105,19 @@ public:
     globalTn.trigger()->setExpression(m_targetTrigger);
     globalTn.trigger()->setActive(m_targetTriggerActive);
 
+    //ScenarioValidityChecker::checkValidity(scenar);
     m_moveCommand->undo(ctx);
     updateTimeNodeExtent(m_destinationTnId, scenar);
+
+    //ScenarioValidityChecker::checkValidity(scenar);
   }
   void redo(const iscore::DocumentContext& ctx) const override
   {
-    m_moveCommand->redo(ctx);
-
     auto& scenar = m_scenarioPath.find(ctx);
+    //ScenarioValidityChecker::checkValidity(scenar);
+    m_moveCommand->redo(ctx);
+    //ScenarioValidityChecker::checkValidity(scenar);
+
     auto& movingTn = scenar.timeNode(m_movingTnId);
     auto& destinationTn = scenar.timeNode(m_destinationTnId);
 
@@ -131,6 +133,7 @@ public:
 
     scenar.timeNodes.remove(m_movingTnId);
     updateTimeNodeExtent(m_destinationTnId, scenar);
+    //ScenarioValidityChecker::checkValidity(scenar);
   }
 
   void update(
