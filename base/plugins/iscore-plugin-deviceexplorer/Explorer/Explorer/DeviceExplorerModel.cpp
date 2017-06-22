@@ -444,7 +444,7 @@ Qt::ItemFlags DeviceExplorerModel::flags(const QModelIndex& index) const
       f |= Qt::ItemIsUserCheckable;
     }
 
-    if (n.isEditable())
+    if (n.isEditable() && index.column() == (int) Column::Value)
     {
       f |= Qt::ItemIsEditable;
     }
