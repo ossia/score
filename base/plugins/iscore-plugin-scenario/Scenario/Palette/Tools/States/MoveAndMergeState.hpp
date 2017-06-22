@@ -6,6 +6,7 @@
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
+#include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
@@ -138,15 +139,26 @@ public:
 
         TimeVal date
             = this->m_pressedPrevious
-                  ? max(this->currentPoint.date, *this->m_pressedPrevious)
+                  ? std::max(this->currentPoint.date, *this->m_pressedPrevious)
                   : this->currentPoint.date;
+        date = std::max(date, TimeVal{});
 
-        this->m_movingDispatcher.submitCommand(
-            this->m_scenario,
-            *evId,
-            date,
-            this->currentPoint.y,
-            stateMachine.editionSettings().expandMode());
+        if(this->clickedState)
+            this->m_movingDispatcher.submitCommand(
+                    this->m_scenario,
+                    *evId,
+                    date,
+                    this->currentPoint.y,
+                    stateMachine.editionSettings().expandMode(),
+                    *this->clickedState);
+        else
+            this->m_movingDispatcher.submitCommand(
+                    this->m_scenario,
+                    *evId,
+                    date,
+                    this->currentPoint.y,
+                    stateMachine.editionSettings().expandMode());
+
       });
 
       QObject::connect(pressed, &QState::entered, [&]() {
@@ -202,278 +214,340 @@ public:
   optional<TimeVal> m_pressedPrevious;
 };
 
-/**
- * Specialization for the ScenarioModel allows merging
- */
-template <
-    typename MoveEventCommand_T, // MoveEventMeta
-    typename ToolPalette_T>
-class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T>
-    final : public StateBase<Scenario::ProcessModel>
-{
-public:
-  MoveEventState(
-      const ToolPalette_T& stateMachine,
-      const Scenario::ProcessModel& scenarioPath,
-      const iscore::CommandStackFacade& stack,
-      iscore::ObjectLocker& locker,
-      QState* parent)
-      : StateBase<Scenario::ProcessModel>{scenarioPath, parent}
-      , m_movingDispatcher{stack}
-      , m_mergingTnDispatcher{stack}
-      , m_mergingEventDispatcher{stack}
-  {
-    this->setObjectName("MoveEventState");
-    using namespace Scenario::Command;
-    auto finalState = new QFinalState{this};
+///**
+// * Specialization for the ScenarioModel allows merging
+// */
 
-    auto mainState = new QState{this};
-    {
-      auto pressed = new QState{mainState};
-      auto released = new QState{mainState};
+//template <
+//    typename MoveEventCommand_T, // MoveEventMeta
+//    typename ToolPalette_T>
+//class MoveEventState<MoveEventCommand_T, Scenario::ProcessModel, ToolPalette_T>
+//    final : public StateBase<Scenario::ProcessModel>
+//{
+//public:
+//  MoveEventState(
+//      const ToolPalette_T& stateMachine,
+//      const Scenario::ProcessModel& scenarioPath,
+//      const iscore::CommandStackFacade& stack,
+//      iscore::ObjectLocker& locker,
+//      QState* parent)
+//      : StateBase<Scenario::ProcessModel>{scenarioPath, parent}
+//      , m_movingDispatcher{stack}
+//      , m_mergingTnDispatcher{stack}
+//      , m_mergingEventDispatcher{stack}
+//  {
+//    this->setObjectName("MoveEventState");
+//    using namespace Scenario::Command;
+//    auto finalState = new QFinalState{this};
 
-      auto onlyMoving = new QState{mainState};
-      auto mergingOnTimeNode = new QState{mainState};
-      auto mergingOnEvent = new QState{mainState};
+//    auto mainState = new QState{this};
+//    {
+//      auto pressed = new QState{mainState};
+//      auto released = new QState{mainState};
 
-      auto rollbackTnMerging = new QState{mainState};
-      auto rollbackEventMerging = new QState{mainState};
+//      auto onlyMoving = new QState{mainState};
+//      auto mergingOnTimeNode = new QState{mainState};
+//      auto mergingOnEvent = new QState{mainState};
 
-      // General setup
-      mainState->setInitialState(pressed);
-      released->addTransition(finalState);
+//      auto rollbackTnMerging = new QState{mainState};
+//      auto rollbackEventMerging = new QState{mainState};
 
-      rollbackTnMerging->addTransition(onlyMoving);
-      rollbackEventMerging->addTransition(onlyMoving);
+//      // General setup
+//      mainState->setInitialState(pressed);
+//      released->addTransition(finalState);
 
-      // ***************************************
-      // transitions
+//      rollbackTnMerging->addTransition(onlyMoving);
+//      rollbackEventMerging->addTransition(onlyMoving);
 
-      // press
-      iscore::
-          make_transition<MoveOnAnything_Transition<Scenario::ProcessModel>>(
-              pressed, onlyMoving, *this);
-      iscore::make_transition<ReleaseOnAnything_Transition>(
-          pressed, finalState);
+//      // ***************************************
+//      // transitions
 
-      // update commands
-      //            iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
-      //                    onlyMoving, onlyMoving, *this);
-      //*
-      iscore::
-          make_transition<MoveOnAnythingButPonctual_Transition<Scenario::
-                                                                   ProcessModel>>(
-              onlyMoving, onlyMoving, *this);
+//      // press
+//      iscore::
+//          make_transition<MoveOnAnything_Transition<Scenario::ProcessModel>>(
+//              pressed, onlyMoving, *this);
+//      iscore::make_transition<ReleaseOnAnything_Transition>(
+//          pressed, finalState);
 
-      iscore::
-          make_transition<MoveOnTimeNode_Transition<Scenario::ProcessModel>>(
-              onlyMoving, mergingOnTimeNode, *this);
+//      // update commands
+//      //            iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
+//      //                    onlyMoving, onlyMoving, *this);
+//      //*
+//      iscore::
+//          make_transition<MoveOnAnythingButPonctual_Transition<Scenario::
+//                                                                   ProcessModel>>(
+//              onlyMoving, onlyMoving, *this);
 
-      iscore::make_transition<MoveOnEvent_Transition<Scenario::ProcessModel>>(
-          onlyMoving, mergingOnEvent, *this);
-      //*/
-      // rollback merging
-      iscore::
-          make_transition<MoveOnAnythingButTimeNode_Transition<Scenario::
-                                                                   ProcessModel>>(
-              mergingOnTimeNode, rollbackTnMerging, *this);
-      iscore::
-          make_transition<MoveOnAnythingButEvent_Transition<Scenario::
-                                                                ProcessModel>>(
-              mergingOnEvent, rollbackEventMerging, *this);
+//      iscore::
+//          make_transition<MoveOnTimeNode_Transition<Scenario::ProcessModel>>(
+//              onlyMoving, mergingOnTimeNode, *this);
 
-      // commit merging
-      iscore::make_transition<ReleaseOnAnything_Transition>(
-          mergingOnTimeNode, released);
-      iscore::make_transition<ReleaseOnAnything_Transition>(
-          mergingOnEvent, released);
-      iscore::make_transition<ReleaseOnAnything_Transition>(
-          onlyMoving, released);
+//      iscore::make_transition<MoveOnEvent_Transition<Scenario::ProcessModel>>(
+//          onlyMoving, mergingOnEvent, *this);
+//      iscore::make_transition<MoveOnEvent_Transition<Scenario::ProcessModel>>(
+//                  mergingOnEvent, mergingOnEvent, *this);
 
-      // ********************************************
-      // What happens in each state.
+//      iscore::make_transition<MoveOnState_Transition<Scenario::ProcessModel>>(
+//          onlyMoving, mergingOnEvent, *this);
+//      iscore::make_transition<MoveOnState_Transition<Scenario::ProcessModel>>(
+//                  mergingOnEvent, mergingOnEvent, *this);
+//      //*/
+//      // rollback merging
+//      iscore::
+//          make_transition<MoveOnAnythingButTimeNode_Transition<Scenario::
+//                                                                   ProcessModel>>(
+//              mergingOnTimeNode, rollbackTnMerging, *this);
+//      iscore::
+//          make_transition<MoveOnAnythingButEvent_Transition<Scenario::
+//                                                                ProcessModel>>(
+//              mergingOnEvent, rollbackEventMerging, *this);
 
-      QObject::connect(mergingOnTimeNode, &QState::entered, [&]() {
-        if (this->currentPoint.date <= this->m_clickedPoint.date)
-        {
-          return;
-        }
+//      // commit merging
+//      iscore::make_transition<ReleaseOnAnything_Transition>(
+//          mergingOnTimeNode, released);
+//      iscore::make_transition<ReleaseOnAnything_Transition>(
+//          mergingOnEvent, released);
+//      iscore::make_transition<ReleaseOnAnything_Transition>(
+//          onlyMoving, released);
 
-        auto& scenar = stateMachine.model();
-        // If we came here through a state.
-        auto evId = this->clickedEvent;
-        if (!bool(evId) && bool(this->clickedState))
-        {
-          evId = scenar.state(*this->clickedState).eventId();
-        }
-        if (!evId)
-          return;
+//      // ********************************************
+//      // What happens in each state.
 
-        auto tnId = scenar.event(*evId).timeNode();
+//      QObject::connect(mergingOnTimeNode, &QState::entered, [&]() {
+//          qDebug("mergingOnTimenode");
 
-        if (this->hoveredTimeNode && tnId != this->hoveredTimeNode)
-        {
-          this->m_movingDispatcher.rollback();
-          this->m_mergingEventDispatcher.rollback();
 
-          this->m_mergingTnDispatcher.submitCommand(
-              this->m_scenario,
-              tnId,
-              *this->hoveredTimeNode);
-        }
-        else
-        {
-          qDebug("stuck 1");
-        }
+//        auto& scenar = stateMachine.model();
+//        // If we came here through a state.
+//        auto evId = this->clickedEvent;
+//        if (!bool(evId) && bool(this->clickedState))
+//        {
+//          evId = scenar.state(*this->clickedState).eventId();
+//        }
+//        if (!evId)
+//          return;
 
-      });
-      QObject::connect(rollbackTnMerging, &QState::entered, [&]() {
-        m_mergingTnDispatcher.rollback();
-      });
+//        auto tnId = scenar.event(*evId).timeNode();
 
-      QObject::connect(mergingOnEvent, &QState::entered, [&]() {
-        if (this->currentPoint.date <= this->m_clickedPoint.date)
-        {
-          return;
-        }
+//        if (this->currentPoint.date <= this->m_clickedPoint.date)
+//        {
+//            auto& tn = scenar.timeNode(tnId);
+//            const auto& prev = Scenario::previousConstraints(tn, scenar);
+//            if(!prev.empty())
+//                return;
+//        }
 
-        auto& scenar = stateMachine.model();
-        // If we came here through a state.
-        auto clickedEvId = this->clickedEvent;
-        if (!bool(clickedEvId) && bool(this->clickedState))
-        {
-          clickedEvId = scenar.state(*this->clickedState).eventId();
-        }
-        if (!clickedEvId)
-          return;
 
-        auto destinationEvId = this->hoveredEvent;
-        if (!bool(destinationEvId) && bool(this->hoveredState))
-        {
-          destinationEvId = scenar.state(*this->hoveredState).eventId();
-        }
+//        if (this->hoveredTimeNode && tnId != this->hoveredTimeNode)
+//        {
+//          this->m_movingDispatcher.rollback();
+//          this->m_mergingEventDispatcher.rollback();
 
-        if (!destinationEvId)
-          return;
+//          this->m_mergingTnDispatcher.submitCommand(
+//              this->m_scenario,
+//              tnId,
+//              *this->hoveredTimeNode);
+//        }
+//        else
+//        {
+//          qDebug("stuck 1");
+//        }
 
-        if (clickedEvId != destinationEvId)
-        {
-          m_movingDispatcher.rollback();
-          m_mergingTnDispatcher.rollback();
+//      });
+//      QObject::connect(rollbackTnMerging, &QState::entered, [&]() {
+//          qDebug("rollbackTnMerging");
+//        m_mergingTnDispatcher.rollback();
+//      });
 
-          m_mergingEventDispatcher.submitCommand(
-              m_scenario,
-              *clickedEvId,
-              *destinationEvId);
-        }
-        else
-        {
-          m_mergingEventDispatcher.rollback();
-          m_mergingTnDispatcher.rollback();
+//      QObject::connect(mergingOnEvent, &QState::entered, [&]() {
+//          qDebug("mergingOnEvent");
 
-          TimeVal date
-              = this->m_pressedPrevious
-                    ? max(this->currentPoint.date, *this->m_pressedPrevious)
-                    : this->currentPoint.date;
+//        auto& scenar = stateMachine.model();
+//        // If we came here through a state.
+//        auto clickedEvId = this->clickedEvent;
+//        if (!bool(clickedEvId) && bool(this->clickedState))
+//        {
+//          clickedEvId = scenar.state(*this->clickedState).eventId();
+//          qDebug("event 1");
+//        }
+//        else
+//        {
+//            qDebug("event 2")
+//        }
+//        if (!clickedEvId) { qDebug("bye 1");
+//          return;
+//        }
 
-          this->m_movingDispatcher.submitCommand(
-              m_scenario,
-              *clickedEvId,
-              date,
-              this->currentPoint.y,
-              stateMachine.editionSettings().expandMode());
-        }
-      });
-      QObject::connect(rollbackEventMerging, &QState::entered, [&]() {
-        m_mergingEventDispatcher.rollback();
-      });
+//        auto destinationEvId = this->hoveredEvent;
+//        if (!bool(destinationEvId) && bool(this->hoveredState))
+//        {
+//          destinationEvId = scenar.state(*this->hoveredState).eventId();
+//        }
 
-      QObject::connect(onlyMoving, &QState::entered, [&]() {
-        auto& scenar = stateMachine.model();
-        // If we came here through a state.
-        auto evId = this->clickedEvent;
-        if (!bool(evId) && bool(this->clickedState))
-        {
-          evId = scenar.state(*this->clickedState).eventId();
-        }
-        if (!evId)
-          return;
+//        if (!destinationEvId) { qDebug("bye 2");
+//          return;
+//        }
+//        auto tnId = scenar.event(*destinationEvId).timeNode();
 
-        TimeVal date
-            = this->m_pressedPrevious
-                  ? max(this->currentPoint.date, *this->m_pressedPrevious)
-                  : this->currentPoint.date;
+//        if (this->currentPoint.date <= this->m_clickedPoint.date)
+//        {
+//            auto& tn = scenar.timeNode(tnId);
+//            const auto& prev = Scenario::previousConstraints(tn, scenar);
+//            if(!prev.empty()) { qDebug("bye 3");
+//                return;
+//            }
+//        }
 
-        this->m_movingDispatcher.submitCommand(
-            this->m_scenario,
-            *evId,
-            date,
-            this->currentPoint.y,
-            stateMachine.editionSettings().expandMode());
-      });
 
-      QObject::connect(pressed, &QState::entered, [&]() {
-        this->m_clickedPoint = this->currentPoint;
+//        qDebug() << *clickedEvId << *destinationEvId;
+//        if (*clickedEvId != *destinationEvId)
+//        {
+//          m_movingDispatcher.rollback();
+//          m_mergingTnDispatcher.rollback();
 
-        const Scenario::ProcessModel& scenar = stateMachine.model();
+//          m_mergingEventDispatcher.submitCommand(
+//              m_scenario,
+//              *clickedEvId,
+//              *destinationEvId);
+//        }
+//        else
+//        {
+//          m_mergingEventDispatcher.rollback();
+//          m_mergingTnDispatcher.rollback();
 
-        // TODO refactor this part, it's used everywhere
-        auto evId = this->clickedEvent;
-        if (!bool(evId) && bool(this->clickedState))
-        {
-          evId = scenar.state(*this->clickedState).eventId();
-        }
-        if (!evId)
-          return;
+//          TimeVal date
+//              = this->m_pressedPrevious
+//                    ? max(this->currentPoint.date, *this->m_pressedPrevious)
+//                    : this->currentPoint.date;
 
-        auto prev_csts = Scenario::previousConstraints(scenar.event(*evId), scenar);
-        if (!prev_csts.empty())
-        {
-          // We find the one that starts the latest.
-          TimeVal t = TimeVal::zero();
-          for (const auto& cst_id : prev_csts)
-          {
-            const auto& other_date = scenar.constraint(cst_id).startDate();
-            if (other_date > t)
-              t = other_date;
-          }
+//          if(this->clickedState)
+//          {
+//              this->m_movingDispatcher.submitCommand(
+//                  m_scenario,
+//                  *clickedEvId,
+//                  date,
+//                  this->currentPoint.y,
+//                  stateMachine.editionSettings().expandMode(),
+//                  *this->clickedState);
+//          }
+//          else
+//          {
+//              this->m_movingDispatcher.submitCommand(
+//                  m_scenario,
+//                  *clickedEvId,
+//                  date,
+//                  this->currentPoint.y,
+//                  stateMachine.editionSettings().expandMode());
+//          }
+//        }
+//      });
+//      QObject::connect(rollbackEventMerging, &QState::entered, [&]() {
+//          qDebug("rollbackEventMerging");
+//        m_mergingEventDispatcher.rollback();
+//      });
 
-          // These 10 milliseconds are here to prevent "squashing"
-          // processes to zero, which leads to problem (they can't scale back!)
-          this->m_pressedPrevious = t + TimeVal::fromMsecs(10);
-        }
-        else
-        {
-          this->m_pressedPrevious = ossia::none;
-        }
+//      QObject::connect(onlyMoving, &QState::entered, [&]() {
+//          qDebug("onlyMoving");
+//        auto& scenar = stateMachine.model();
+//        // If we came here through a state.
+//        auto evId = this->clickedEvent;
+//        if (!bool(evId) && bool(this->clickedState))
+//        {
+//          evId = scenar.state(*this->clickedState).eventId();
+//        }
+//        if (!evId)
+//          return;
 
-      });
+//        TimeVal date
+//            = this->m_pressedPrevious
+//                  ? std::max(this->currentPoint.date, *this->m_pressedPrevious)
+//                  : this->currentPoint.date;
 
-      QObject::connect(released, &QState::entered, [&]() {
-        m_movingDispatcher.commit();
-        m_mergingEventDispatcher.commit();
-        m_mergingTnDispatcher.commit();
-      });
-    }
+//        date = std::max(date, TimeVal{});
+//        if(this->clickedState)
+//        {
+//            this->m_movingDispatcher.submitCommand(
+//                m_scenario,
+//                *evId,
+//                date,
+//                this->currentPoint.y,
+//                stateMachine.editionSettings().expandMode(),
+//                        *this->clickedState);
+//        }
+//        else
+//        {
+//            this->m_movingDispatcher.submitCommand(
+//                m_scenario,
+//                *evId,
+//                date,
+//                this->currentPoint.y,
+//                stateMachine.editionSettings().expandMode());
+//        }
+//      });
 
-    auto rollbackState = new QState{this};
-    iscore::make_transition<iscore::Cancel_Transition>(
-        mainState, rollbackState);
-    rollbackState->addTransition(finalState);
-    QObject::connect(rollbackState, &QState::entered, [&]() {
-      m_movingDispatcher.rollback();
-      m_mergingTnDispatcher.rollback();
-      m_mergingEventDispatcher.rollback();
-    });
+//      QObject::connect(pressed, &QState::entered, [&]() {
+//        this->m_clickedPoint = this->currentPoint;
 
-    this->setInitialState(mainState);
-  }
+//        const Scenario::ProcessModel& scenar = stateMachine.model();
 
-  SingleOngoingCommandDispatcher<MoveEventCommand_T> m_movingDispatcher;
-  SingleOngoingCommandDispatcher<Command::MergeTimeNodes> m_mergingTnDispatcher;
-  SingleOngoingCommandDispatcher<Command::MergeEvents> m_mergingEventDispatcher;
+//        // TODO refactor this part, it's used everywhere
+//        auto evId = this->clickedEvent;
+//        if (!bool(evId) && bool(this->clickedState))
+//        {
+//          evId = scenar.state(*this->clickedState).eventId();
+//        }
+//        if (!evId)
+//          return;
 
-  optional<TimeVal> m_pressedPrevious;
-  Scenario::Point m_clickedPoint;
-};
+//        auto prev_csts = Scenario::previousConstraints(scenar.event(*evId), scenar);
+//        if (!prev_csts.empty())
+//        {
+//          // We find the one that starts the latest.
+//          TimeVal t = TimeVal::zero();
+//          for (const auto& cst_id : prev_csts)
+//          {
+//            const auto& other_date = scenar.constraint(cst_id).startDate();
+//            if (other_date > t)
+//              t = other_date;
+//          }
+
+//          // These 10 milliseconds are here to prevent "squashing"
+//          // processes to zero, which leads to problem (they can't scale back!)
+//          this->m_pressedPrevious = t + TimeVal::fromMsecs(10);
+//        }
+//        else
+//        {
+//          this->m_pressedPrevious = ossia::none;
+//        }
+
+//      });
+
+//      QObject::connect(released, &QState::entered, [&]() {
+//        m_movingDispatcher.commit();
+//        m_mergingEventDispatcher.commit();
+//        m_mergingTnDispatcher.commit();
+//        m_pressedPrevious = ossia::none;
+//      });
+//    }
+
+//    auto rollbackState = new QState{this};
+//    iscore::make_transition<iscore::Cancel_Transition>(
+//        mainState, rollbackState);
+//    rollbackState->addTransition(finalState);
+//    QObject::connect(rollbackState, &QState::entered, [&]() {
+//      m_movingDispatcher.rollback();
+//      m_mergingTnDispatcher.rollback();
+//      m_mergingEventDispatcher.rollback();
+//    });
+
+//    this->setInitialState(mainState);
+//  }
+
+//  SingleOngoingCommandDispatcher<MoveEventCommand_T> m_movingDispatcher;
+//  SingleOngoingCommandDispatcher<Command::MergeTimeNodes> m_mergingTnDispatcher;
+//  SingleOngoingCommandDispatcher<Command::MergeEvents> m_mergingEventDispatcher;
+
+//  optional<TimeVal> m_pressedPrevious;
+//  Scenario::Point m_clickedPoint;
+//};
 }

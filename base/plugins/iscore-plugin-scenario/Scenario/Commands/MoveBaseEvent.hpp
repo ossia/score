@@ -83,6 +83,17 @@ public:
     m_saveData = ConstraintSaveData{constraint};
   }
 
+  MoveBaseEvent(
+      const SimpleScenario_T& scenar,
+      const Id<EventModel>& event,
+      const TimeVal& date,
+      double y,
+      ExpandMode mode,
+          Id<StateModel>)
+      : MoveBaseEvent{scenar, event, date, y, mode}
+  {
+  }
+
   void undo(const iscore::DocumentContext& ctx) const override
   {
     auto& scenar = m_path.find(ctx);
@@ -118,6 +129,10 @@ public:
   }
 
   void update(unused_t, unused_t, const TimeVal& date, double, ExpandMode)
+  {
+    m_newDate = date;
+  }
+  void update(unused_t, unused_t, const TimeVal& date, double, ExpandMode, unused_t)
   {
     m_newDate = date;
   }
