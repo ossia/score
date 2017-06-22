@@ -26,29 +26,8 @@ namespace Command
 class ISCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final
     : public iscore::Command
 {
-  // No ISCORE_COMMAND here since it's a template.
-public:
-  const CommandGroupKey& parentKey() const noexcept override
-  {
-    return ScenarioCommandFactoryName();
-  }
-  static const CommandKey& static_key() noexcept
-  {
-    auto name = QString("MergeEvents");
-    static const CommandKey kagi{std::move(name)};
-    return kagi;
-  }
-  const CommandKey& key() const noexcept override
-  {
-    return static_key();
-  }
-  QString description() const override
-  {
-    return QObject::tr("Merging Events");
-  }
-
-  MergeEvents() = default;
-
+    ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeEvents, "Merge events")
+    public:
   MergeEvents(
       const ProcessModel& scenario,
       Id<EventModel>
@@ -179,5 +158,3 @@ private:
 };
 }
 }
-
-ISCORE_COMMAND_DECL_T(Scenario::Command::MergeEvents<Scenario::ProcessModel>)

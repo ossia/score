@@ -28,29 +28,8 @@ namespace Command
 class ISCORE_PLUGIN_SCENARIO_EXPORT MergeTimeNodes final
     : public iscore::Command
 {
-  // No ISCORE_COMMAND here since it's a template.
+    ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeTimeNodes, "Merge TimeNodes")
 public:
-  const CommandGroupKey& parentKey() const noexcept override
-  {
-    return ScenarioCommandFactoryName();
-  }
-  static const CommandKey& static_key() noexcept
-  {
-    auto name = QString("MergeTimeNodes");
-    static const CommandKey kagi{std::move(name)};
-    return kagi;
-  }
-  const CommandKey& key() const noexcept override
-  {
-    return static_key();
-  }
-  QString description() const noexcept override
-  {
-    return QObject::tr("Merging TimeNodes");
-  }
-
-  MergeTimeNodes() = default;
-
   MergeTimeNodes(
       const ProcessModel& scenario,
       Id<TimeNodeModel>
@@ -175,6 +154,3 @@ private:
 };
 }
 }
-
-ISCORE_COMMAND_DECL_T(
-    Scenario::Command::MergeTimeNodes<Scenario::ProcessModel>)
