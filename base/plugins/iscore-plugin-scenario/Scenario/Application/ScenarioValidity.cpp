@@ -51,6 +51,11 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
       ISCORE_ASSERT(cst);
       ISCORE_ASSERT(cst->startState() == state.id());
     }
+
+    auto num = ossia::count_if(scenar.events, [&] (auto& ev) {
+        return ossia::contains(ev.states(), state.id());
+    });
+    ISCORE_ASSERT(num == 1);
   }
 
   for (const EventModel& event : scenar.events)
@@ -64,12 +69,18 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     {
       auto st = scenar.findState(state);
       ISCORE_ASSERT(st);
+      /*
       if(st->eventId() != event.id())
       {
           st->setEventId(event.id());
-      }
-      //ISCORE_ASSERT(st->eventId() == event.id());
+      }*/
+      ISCORE_ASSERT(st->eventId() == event.id());
     }
+
+    auto num = ossia::count_if(scenar.timeNodes, [&] (auto& ev) {
+        return ossia::contains(ev.events(), event.id());
+    });
+    ISCORE_ASSERT(num == 1);
   }
 
   for (const TimeNodeModel& tn : scenar.timeNodes)

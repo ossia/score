@@ -11,12 +11,70 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-
+//#include <Scenario/Application/ScenarioValidity.hpp>
 #include <QFinalState>
 
 namespace Scenario
 {
+/*
+template <typename TheCommand>
+class BugfixDispatcher final : public ICommandDispatcher
+{
+public:
+  const Scenario::ProcessModel& scenario;
+  BugfixDispatcher(const iscore::CommandStackFacade& stack
+                                 , const Scenario::ProcessModel& p)
+      : ICommandDispatcher{stack}
+      , scenario{p}
+  {
+  }
 
+  template <typename... Args>
+  void submitCommand(Args&&... args)
+  {
+    if (!m_cmd)
+    {
+      stack().disableActions();
+      m_cmd = std::make_unique<TheCommand>(std::forward<Args>(args)...);
+      ScenarioValidityChecker::checkValidity(scenario);
+      m_cmd->redo(stack().context());
+      ScenarioValidityChecker::checkValidity(scenario);
+    }
+    else
+    {
+      m_cmd->update(std::forward<Args>(args)...);
+      ScenarioValidityChecker::checkValidity(scenario);
+      m_cmd->redo(stack().context());
+      ScenarioValidityChecker::checkValidity(scenario);
+    }
+  }
+
+  void commit()
+  {
+    if (m_cmd)
+    {
+      SendStrategy::Quiet::send(stack(), m_cmd.release());
+      stack().enableActions();
+      ScenarioValidityChecker::checkValidity(scenario);
+    }
+  }
+
+  void rollback()
+  {
+      ScenarioValidityChecker::checkValidity(scenario);
+    if (m_cmd)
+    {
+      m_cmd->undo(stack().context());
+      ScenarioValidityChecker::checkValidity(scenario);
+      stack().enableActions();
+    }
+    m_cmd.reset();
+  }
+
+private:
+  std::unique_ptr<TheCommand> m_cmd;
+};
+*/
 template <
     typename MoveEventCommand_T, // MoveEventMeta
     typename Scenario_T, typename ToolPalette_T>
@@ -412,11 +470,8 @@ public:
   }
 
   SingleOngoingCommandDispatcher<MoveEventCommand_T> m_movingDispatcher;
-  SingleOngoingCommandDispatcher<Command::
-                                     MergeTimeNodes<Scenario::ProcessModel>>
-      m_mergingTnDispatcher;
-  SingleOngoingCommandDispatcher<Command::MergeEvents<Scenario::ProcessModel>>
-      m_mergingEventDispatcher;
+  SingleOngoingCommandDispatcher<Command::MergeTimeNodes> m_mergingTnDispatcher;
+  SingleOngoingCommandDispatcher<Command::MergeEvents> m_mergingEventDispatcher;
 
   optional<TimeVal> m_pressedPrevious;
   Scenario::Point m_clickedPoint;

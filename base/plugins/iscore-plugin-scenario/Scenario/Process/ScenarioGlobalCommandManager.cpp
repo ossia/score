@@ -175,7 +175,7 @@ void mergeTimeNodes(
       auto& first = Scenario::parentTimeNode(**it, scenario);
       auto& second = Scenario::parentTimeNode(**(++it), scenario);
 
-      auto cmd = new Command::MergeTimeNodes<ProcessModel>(
+      auto cmd = new Command::MergeTimeNodes(
           scenario, second.id(), first.id());
       f.redoAndPush(cmd);
     }
@@ -186,7 +186,7 @@ void mergeTimeNodes(
     auto first_tn = (*it)->id();
     for (++it; it != timenodes.end(); ++it)
     {
-      auto cmd = new Command::MergeTimeNodes<ProcessModel>(
+      auto cmd = new Command::MergeTimeNodes(
           scenario, first_tn, (*it)->id());
       f.redoAndPush(cmd);
     }
