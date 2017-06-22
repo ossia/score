@@ -159,6 +159,7 @@ iscore_plugin_scenario::make_commands()
 {
   using namespace Scenario;
   using namespace Scenario::Command;
+    using namespace Interpolation;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       ScenarioCommandFactoryName(), CommandGeneratorMap{}};
 

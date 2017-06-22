@@ -296,12 +296,14 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/tests/helpers/ForwardDeclaration.hpp"
 
 
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationPresenter.hpp"
 
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.hpp"
 
 
 )
@@ -553,13 +555,12 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationFactory.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationPresenter.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.cpp"
+
 )
 
 add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
