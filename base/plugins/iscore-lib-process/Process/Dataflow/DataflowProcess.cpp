@@ -87,23 +87,23 @@ void DataflowProcess::updateCounts()
 }
 
 template<>
-void DataStreamReader::read<Process::Port>(const Process::Port& p)
+ISCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Port>(const Process::Port& p)
 {
   m_stream << p.type << p.customData << p.address;
 }
 template<>
-void DataStreamWriter::write<Process::Port>(Process::Port& p)
+ISCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Port>(Process::Port& p)
 {
   m_stream >> p.type >> p.customData >> p.address;
 }
 
 template<>
-void DataStreamReader::read<Process::CableData>(const Process::CableData& p)
+ISCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::CableData>(const Process::CableData& p)
 {
   m_stream << p.type << p.source << p.sink << p.outlet << p.inlet;
 }
 template<>
-void DataStreamWriter::write<Process::CableData>(Process::CableData& p)
+ISCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::CableData>(Process::CableData& p)
 {
   m_stream >> p.type >> p.source >> p.sink >> p.outlet >> p.inlet;
 }
