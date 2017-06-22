@@ -4,6 +4,7 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <iscore/model/Identifier.hpp>
+#include <ossia/detail/math.hpp>
 #include <QDebug>
 #include <QPoint>
 #include <cmath>
@@ -101,10 +102,20 @@ public:
       }
     }
   }
+
+  template <typename Y>
+  std::function<Y(double, Y, Y)> makeFunction() const
+  {
+    return [=](double ratio, Y start, Y end) {
+      return
+          start + (end - start) / 2. *
+          (1. + ampl * PeriodicFunction{}(ossia::two_pi * ratio * freq));
+    };
+  }
+
   double valueAt(double x) const override
   {
-    ISCORE_TODO;
-    return -1;
+    return (1. + ampl * PeriodicFunction{}(ossia::two_pi * x * freq)) / 2.;
   }
 
   optional<double> verticalParameter() const override
@@ -133,15 +144,6 @@ public:
     return QVariant::fromValue(PeriodicSegmentData{freq, ampl});
   }
 
-  template <typename Y>
-  std::function<Y(double, Y, Y)> makeFunction() const
-  {
-    return [=](double ratio, Y start, Y end) {
-      return
-          (end - start) / 2. *
-          (ampl * PeriodicFunction{}(6.28 * ratio * freq));
-    };
-  }
   std::function<float(double, float, float)> makeFloatFunction() const override
   {
     return makeFunction<float>();
