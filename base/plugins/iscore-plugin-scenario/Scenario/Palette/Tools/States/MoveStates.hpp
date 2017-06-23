@@ -9,27 +9,22 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <QFinalState>
+#include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <iscore/locking/ObjectLocker.hpp>
 namespace Scenario
 {
-
-// TODO a nice refactor is doable here between the four classes.
-// TODO rename in MoveConstraint_State for homoegeneity with
-// ClickOnConstraint_Transition,  etc.
-template <
-    typename MoveConstraintCommand_T, // MoveConstraint
-    typename Scenario_T, typename ToolPalette_T>
-class MoveConstraintState final : public StateBase<Scenario_T>
+template<typename T>
+class MoveConstraintState final : public StateBase<Scenario::ProcessModel>
 {
 public:
   MoveConstraintState(
-      const ToolPalette_T& stateMachine,
-      const Scenario_T& scenario,
+      const T& stateMachine,
+      const Scenario::ProcessModel& scenario,
       const iscore::CommandStackFacade& stack,
       iscore::ObjectLocker& locker,
       QState* parent)
-      : StateBase<Scenario_T>{scenario, parent}, m_dispatcher{stack}
+      : StateBase<Scenario::ProcessModel>{scenario, parent}, m_movingDispatcher{stack}
   {
     this->setObjectName("MoveConstraintState");
     using namespace Scenario::Command;
@@ -46,37 +41,73 @@ public:
       released->addTransition(finalState);
 
       auto t_pressed
-          = iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
+          = iscore::make_transition<MoveOnAnything_Transition<Scenario::ProcessModel>>(
               pressed, moving, *this);
       QObject::connect(t_pressed, &QAbstractTransition::triggered, [&]() {
-        if (this->clickedConstraint)
-        {
-          auto& cst = scenario.constraint(
-              *this->clickedConstraint);
+
+          auto& scenar = stateMachine.model();
+          m_initialClick = this->currentPoint;
+          if(!this->clickedConstraint)
+              return;
+          auto& cst = scenario.constraint(*this->clickedConstraint);
+          auto& sev = Scenario::startEvent(cst, scenario);
+
           m_constraintInitialPoint = {cst.startDate(), cst.heightPercentage()};
-        }
-        m_initialClick = this->currentPoint;
+
+          auto prev_csts = previousConstraints(sev, scenar);
+          if (!prev_csts.empty())
+          {
+            // We find the one that starts the latest.
+            TimeVal t = TimeVal::zero();
+            for (const auto& cst_id : prev_csts)
+            {
+              const auto& other_date = scenar.constraint(cst_id).startDate();
+              if (other_date > t)
+                t = other_date;
+            }
+
+            // These 10 milliseconds are here to prevent "squashing"
+            // processes to zero, which leads to problem (they can't scale back!)
+            this->m_pressedPrevious = t + TimeVal::fromMsecs(10);
+          }
+          else
+          {
+            this->m_pressedPrevious = ossia::none;
+          }
       });
 
       iscore::make_transition<ReleaseOnAnything_Transition>(
           pressed, finalState);
-      iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
+      iscore::make_transition<MoveOnAnything_Transition<Scenario::ProcessModel>>(
           moving, moving, *this);
       iscore::make_transition<ReleaseOnAnything_Transition>(moving, released);
 
-      QObject::connect(moving, &QState::entered, [&]() {
-        if (this->clickedConstraint)
-        {
-          this->m_dispatcher.submitCommand(
-              this->m_scenario,
-              *this->clickedConstraint,
-              m_constraintInitialPoint.y
-                  + (this->currentPoint.y - m_initialClick.y));
-        }
+      QObject::connect(moving, &QState::entered, [&] {
+          auto& scenario = stateMachine.model();
+          if(!this->clickedConstraint)
+              return;
+          auto& cst = scenario.constraint(*this->clickedConstraint);
+          auto& sev = Scenario::startEvent(cst, scenario);
+
+          TimeVal date = m_constraintInitialPoint.date + (this->currentPoint.date - m_initialClick.date);
+          if(this->m_pressedPrevious)
+            date = std::max(date, *this->m_pressedPrevious);
+          date = std::max(date, TimeVal{});
+
+          this->m_movingDispatcher.submitCommand(
+                      this->m_scenario,
+                      sev.id(),
+                      date,
+                      m_constraintInitialPoint.y + (this->currentPoint.y - m_initialClick.y),
+                      stateMachine.editionSettings().expandMode(),
+                      cst.startState());
       });
 
       QObject::connect(
-          released, &QState::entered, [&]() { m_dispatcher.commit(); });
+          released, &QState::entered, [&]() {
+          m_movingDispatcher.commit();
+          m_pressedPrevious = {};
+      });
     }
 
     auto rollbackState = new QState{this};
@@ -84,16 +115,21 @@ public:
         mainState, rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(
-        rollbackState, &QState::entered, [&]() { m_dispatcher.rollback(); });
+        rollbackState, &QState::entered, [&]() {
+        m_movingDispatcher.rollback();
+        m_pressedPrevious = {};
+    });
 
     this->setInitialState(mainState);
   }
 
-  SingleOngoingCommandDispatcher<MoveConstraintCommand_T> m_dispatcher;
+  //SingleOngoingCommandDispatcher<MoveConstraintCommand_T> m_dispatcher;
+  SingleOngoingCommandDispatcher<Command::MoveEventMeta> m_movingDispatcher;
 
 private:
   Scenario::Point m_initialClick{};
   Scenario::Point m_constraintInitialPoint{};
+  optional<TimeVal> m_pressedPrevious;
 };
 
 template <

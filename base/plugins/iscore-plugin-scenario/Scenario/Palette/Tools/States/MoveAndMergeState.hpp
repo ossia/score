@@ -196,15 +196,19 @@ public:
       });
 
       QObject::connect(
-          released, &QState::entered, [&]() { m_movingDispatcher.commit(); });
+          released, &QState::entered, [&] {
+          this->m_movingDispatcher.commit();
+          this->m_pressedPrevious = {};
+      });
     }
 
     auto rollbackState = new QState{this};
     iscore::make_transition<iscore::Cancel_Transition>(
         mainState, rollbackState);
     rollbackState->addTransition(finalState);
-    QObject::connect(rollbackState, &QState::entered, [&]() {
-      m_movingDispatcher.rollback();
+    QObject::connect(rollbackState, &QState::entered, [&] {
+      this->m_movingDispatcher.rollback();
+      this->m_pressedPrevious = {};
     });
 
     this->setInitialState(mainState);

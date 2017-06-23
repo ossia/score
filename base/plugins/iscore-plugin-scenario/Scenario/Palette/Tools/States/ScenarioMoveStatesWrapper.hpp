@@ -22,7 +22,7 @@ public:
     /// Constraint
     /// //TODO remove useless arguments to ctor
     auto moveConstraint
-        = new MoveConstraintState<Scenario::Command::MoveConstraint, Scenario_T, ToolPalette_T>{
+        = new MoveConstraintState<ToolPalette_T>{
             palette, palette.model(), palette.context().context.commandStack,
             palette.context().context.objectLocker, &parent};
 
