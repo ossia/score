@@ -68,6 +68,8 @@ private:
 
   Id<StateModel> m_startStateId{};
   Id<StateModel> m_endStateId{};
+  double m_startStatePos{-1};
+  double m_endStatePos{-1};
 };
 }
 }
