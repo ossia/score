@@ -4,8 +4,8 @@
 namespace Mapping
 {
 Colors::Colors(const iscore::Skin& s)
-    : m_style{s.Tender3,
-              s.Emphasis2,
+    : m_style{s.Emphasis3,
+              s.Tender2,
               s.Emphasis3,
               s.Tender2, s.Gray}
 {
