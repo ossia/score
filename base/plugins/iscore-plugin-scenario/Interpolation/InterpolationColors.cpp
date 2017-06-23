@@ -4,7 +4,7 @@
 namespace Interpolation
 {
 Colors::Colors(const iscore::Skin& s)
-    : m_style{s.Emphasis4,
+    : m_style{s.Tender3,
               s.Smooth3,
               s.Tender3,
               s.Smooth3, s.Gray}

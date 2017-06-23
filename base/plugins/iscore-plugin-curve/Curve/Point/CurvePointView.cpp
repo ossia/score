@@ -17,7 +17,7 @@ class QWidget;
 #include <iscore/model/Identifier.hpp>
 namespace Curve
 {
-const qreal radius = 2.5;
+const qreal radius = 2.85;
 const QRectF ellipse{-radius, -radius, 2. * radius, 2. * radius};
 
 PointView::PointView(
