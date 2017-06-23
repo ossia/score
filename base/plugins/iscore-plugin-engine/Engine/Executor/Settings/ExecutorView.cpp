@@ -1,6 +1,8 @@
 #include "ExecutorView.hpp"
 #include <QFormLayout>
 #include <QSpinBox>
+#include <QComboBox>
+#include <QCheckBox>
 #include <iscore/widgets/SignalUtils.hpp>
 
 namespace Engine
@@ -23,6 +25,9 @@ View::View() : m_widg{new QWidget}
   m_cb = new QComboBox;
   lay->addRow(tr("Clock source"), m_cb);
 
+  m_listening = new QCheckBox;
+  lay->addRow(tr("Enable listening during execution"), m_listening);
+
   connect(
       m_sb, SignalUtils::QSpinBox_valueChanged_int(), this,
       &View::rateChanged);
@@ -34,12 +39,21 @@ View::View() : m_widg{new QWidget}
             m_cb->itemData(i)
                 .value<ClockManagerFactory::ConcreteKey>());
       });
+
+  connect(
+      m_listening, &QCheckBox::toggled, this,
+      &View::executionListeningChanged);
 }
 
 void View::setRate(int val)
 {
   if (val != m_sb->value())
     m_sb->setValue(val);
+}
+void View::setExecutionListening(bool val)
+{
+  if (val != m_listening->isChecked())
+    m_listening->setChecked(val);
 }
 
 void View::setClock(ClockManagerFactory::ConcreteKey k)

@@ -16,10 +16,12 @@ const iscore::sp<ModelRateParameter> Rate{
 const iscore::sp<ModelClockParameter> Clock{
     QStringLiteral("iscore_plugin_engine/Clock"),
     ControlClockFactory::static_concreteKey()};
+const iscore::sp<ModelExecutionListeningParameter> ExecutionListening{
+    QStringLiteral("iscore_plugin_engine/ExecListening"), true};
 
 static auto list()
 {
-  return std::tie(Rate, Clock);
+  return std::tie(Rate, Clock, ExecutionListening);
 }
 }
 
@@ -39,8 +41,8 @@ Model::makeClock(const Engine::Execution::Context& ctx) const
 }
 
 ISCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
-ISCORE_SETTINGS_PARAMETER_CPP(
-    ClockManagerFactory::ConcreteKey, Model, Clock)
+ISCORE_SETTINGS_PARAMETER_CPP(ClockManagerFactory::ConcreteKey, Model, Clock)
+ISCORE_SETTINGS_PARAMETER_CPP(bool, Model, ExecutionListening)
 }
 }
 }

@@ -3,6 +3,7 @@
 #include <iscore/plugins/settingsdelegate/SettingsDelegateView.hpp>
 class QSpinBox;
 class QComboBox;
+class QCheckBox;
 namespace Engine
 {
 namespace Execution
@@ -17,6 +18,7 @@ public:
   View();
 
   void setRate(int);
+  void setExecutionListening(bool);
   void setClock(ClockManagerFactory::ConcreteKey k);
 
   void populateClocks(
@@ -24,6 +26,7 @@ public:
 
 signals:
   void rateChanged(int);
+  void executionListeningChanged(bool);
   void clockChanged(ClockManagerFactory::ConcreteKey);
 
 private:
@@ -32,6 +35,7 @@ private:
 
   QSpinBox* m_sb{};
   QComboBox* m_cb{};
+  QCheckBox* m_listening{};
 };
 }
 }
