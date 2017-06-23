@@ -1,6 +1,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <iscore/tools/RandomNameProvider.hpp>
 
 #include <QDataStream>
@@ -30,17 +31,20 @@ namespace Command
 {
 CreateConstraint::CreateConstraint(
     const Scenario::ProcessModel& scenar,
-    Id<StateModel>
-        startState,
-    Id<StateModel>
-        endState)
+    Id<StateModel> startState,
+    Id<StateModel> endState)
     : m_path{scenar}
     , m_createdName{RandomNameProvider::generateRandomName()}
     , m_startStateId{std::move(startState)}
     , m_endStateId{std::move(endState)}
 {
-  // ISCORE_ASSERT(!scenar.state(startState).nextConstraint());
-  // ISCORE_ASSERT(!scenar.state(endState).previousConstraint());
+    auto ss = scenar.states.find(m_startStateId);
+    if(ss != scenar.states.end())
+        m_startStatePos = ss->heightPercentage();
+    auto es = scenar.states.find(m_startStateId);
+    if(es != scenar.states.end())
+        m_endStatePos = es->heightPercentage();
+
   m_createdConstraintId = getStrongId(scenar.constraints);
 }
 
@@ -49,6 +53,14 @@ void CreateConstraint::undo(const iscore::DocumentContext& ctx) const
   auto& scenar = m_path.find(ctx);
 
   ScenarioCreate<ConstraintModel>::undo(m_createdConstraintId, scenar);
+  if(m_startStatePos != -1)
+  {
+      auto& sst = scenar.states.at(m_startStateId);
+      if(sst.previousConstraint())
+          updateConstraintVerticalPos(m_startStatePos, *sst.previousConstraint(), scenar);
+      else
+          sst.setHeightPercentage(m_startStatePos);
+  }
 }
 
 void CreateConstraint::redo(const iscore::DocumentContext& ctx) const
@@ -67,18 +79,20 @@ void CreateConstraint::redo(const iscore::DocumentContext& ctx) const
   scenar.constraints.at(m_createdConstraintId)
       .metadata()
       .setName(m_createdName);
+
+  updateConstraintVerticalPos(est.heightPercentage(), m_createdConstraintId, scenar);
 }
 
 void CreateConstraint::serializeImpl(DataStreamInput& s) const
 {
   s << m_path << m_createdName << m_createdConstraintId << m_startStateId
-    << m_endStateId ;
+    << m_endStateId << m_startStatePos << m_endStatePos;
 }
 
 void CreateConstraint::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_createdName >> m_createdConstraintId >> m_startStateId
-      >> m_endStateId;
+      >> m_endStateId >> m_startStatePos >> m_endStatePos;
 }
 }
 }
