@@ -10,6 +10,7 @@
 class QComboBox;
 class QLabel;
 class QLineEdit;
+class QToolButton;
 namespace Explorer
 {
 class AddressAccessorEditWidget;
@@ -58,6 +59,8 @@ public:
   QString currentRelation();
   QString currentOperator();
 
+  void enableRemoveButton(bool);
+
 signals:
   void editingFinished();
   void addTerm();
@@ -74,6 +77,7 @@ private:
   QComboBox* m_comparator{};
   QLineEdit* m_value{};
   QComboBox* m_binOperator{};
+  QToolButton* m_rmBtn{};
 
   ExpressionValidator<State::Expression> m_validator;
   QString m_relation{};

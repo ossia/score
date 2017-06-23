@@ -41,16 +41,16 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   auto btnWidg = new QWidget{this};
   auto btnLay = new iscore::MarginLess<QVBoxLayout>{btnWidg};
-  auto rmBtn = new QToolButton{btnWidg};
-  rmBtn->setText(QStringLiteral("-"));
-  rmBtn->setMaximumSize(30, 30);
+  m_rmBtn = new QToolButton{btnWidg};
+  m_rmBtn->setText(QStringLiteral("-"));
+  m_rmBtn->setMaximumSize(30, 30);
 
   auto remIcon = makeIcons(
       ":/icons/condition_remove_on.png", ":/icons/condition_remove_off.png");
 
-  rmBtn->setIcon(remIcon);
+  m_rmBtn->setIcon(remIcon);
 
-  btnLay->addWidget(rmBtn);
+  btnLay->addWidget(m_rmBtn);
 
   // Main Layout
 
@@ -64,7 +64,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   // Connections
 
-  connect(rmBtn, &QPushButton::clicked, this, [=]() { emit removeTerm(id); });
+  connect(m_rmBtn, &QPushButton::clicked, this, [=]() { emit removeTerm(id); });
 
   /// EDIT FINSHED
   connect(
@@ -325,7 +325,12 @@ QString SimpleExpressionEditorWidget::currentRelation()
 
 QString SimpleExpressionEditorWidget::currentOperator()
 {
-  return m_binOperator->currentText();
+    return m_binOperator->currentText();
+}
+
+void SimpleExpressionEditorWidget::enableRemoveButton(bool b)
+{
+    m_rmBtn->setVisible(b);
 }
 
 const std::map<ExpressionEditorComparator, QString>&

@@ -195,6 +195,11 @@ void ExpressionEditorWidget::addNewTerm()
   connect(
       relationEditor, &SimpleExpressionEditorWidget::editingFinished, this,
       &ExpressionEditorWidget::on_editFinished, Qt::QueuedConnection);
+
+  if(m_relations.size() == 1)
+      m_relations[0]->enableRemoveButton(false);
+  else if(m_relations.size() > 1)
+      m_relations[0]->enableRemoveButton(true);
 }
 
 void ExpressionEditorWidget::removeTerm(int index)
@@ -208,12 +213,14 @@ void ExpressionEditorWidget::removeTerm(int index)
     }
     delete m_relations.at(index);
     m_relations.erase(m_relations.begin() + index);
+    m_relations[0]->enableRemoveButton(true);
     // TODO the model should be updated here.
   }
   else if (m_relations.size() == 1)
   {
     // We just clear the expression
     emit resetExpression();
+    m_relations[0]->enableRemoveButton(false);
   }
 }
 }
