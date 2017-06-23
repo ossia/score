@@ -14,6 +14,20 @@
 
 namespace Explorer
 {
+template<typename T>
+struct DefaultBounds;
+template<>
+struct DefaultBounds<int>
+{
+    static const constexpr int min = 0;
+    static const constexpr int max = 127;
+};
+template<>
+struct DefaultBounds<float>
+{
+    static const constexpr float min = 0.;
+    static const constexpr float max = 1.;
+};
 template <typename T>
 class AddressNumericSettingsWidget final : public AddressSettingsWidget
 {
@@ -29,7 +43,7 @@ public:
     m_layout->insertRow(1, makeLabel(tr("Domain"), this), m_domainEdit);
 
     m_valueSBox->setValue(0);
-    m_domainEdit->set_domain(ossia::make_domain(T{0}, T{1}));
+    m_domainEdit->set_domain(ossia::make_domain(DefaultBounds<T>::min, DefaultBounds<T>::max));
   }
 
   Device::AddressSettings getSettings() const override
@@ -44,7 +58,7 @@ public:
   {
     Device::AddressSettings s;
     s.value.val = T{0};
-    s.domain = ossia::make_domain(T{0}, T{1});
+    s.domain = ossia::make_domain(DefaultBounds<T>::min, DefaultBounds<T>::max);
     return s;
   }
 
