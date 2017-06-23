@@ -136,7 +136,6 @@ void DeviceExplorerWidget::buildGUI()
       this, &DeviceExplorerWidget::updateActions, Qt::QueuedConnection);
 
   m_editAction = new QAction(tr("Edit"), this);
-  m_editAction->setShortcut(QKeySequence(Qt::Key_Return));
 
   m_refreshAction = new QAction(tr("Refresh namespace"), this);
   m_refreshAction->setShortcut(QKeySequence::Refresh);
@@ -157,7 +156,6 @@ void DeviceExplorerWidget::buildGUI()
 #endif
 
   m_editAction->setEnabled(false);
-  this->addAction(m_editAction);
   m_refreshAction->setEnabled(false);
   m_refreshValueAction->setEnabled(false);
   m_removeNodeAction->setEnabled(false);
