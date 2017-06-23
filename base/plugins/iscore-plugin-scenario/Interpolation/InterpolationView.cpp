@@ -37,6 +37,7 @@ void View::paint_impl(QPainter* painter) const
 #if !defined(ISCORE_IEEE_SKIN)
   if (m_showName)
   {
+    painter->setPen(ScenarioStyle::instance().ConstraintHeaderSeparator);
     m_textcache.draw(painter, QPointF{5., 8.});
   }
 #endif
