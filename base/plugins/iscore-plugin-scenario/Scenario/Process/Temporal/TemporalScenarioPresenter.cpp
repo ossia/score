@@ -166,28 +166,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
       qDebug() << "Error during drop: " << e.what();
     }
   });
-/*
-  con(model(m_layer), &Scenario::ProcessModel::locked, m_view,
-      &TemporalScenarioView::lock);
-  con(model(m_layer), &Scenario::ProcessModel::unlocked, m_view,
-      &TemporalScenarioView::unlock);
 
-  connect(
-      &layerModel().processModel(), &Process::ProcessModel::execution, this,
-      [&](bool b) {
-        if (b)
-        {
-          editionSettings().setTool(Scenario::Tool::Playing);
-          editionSettings().setExecution(true); // tool locked
-        }
-        else // TODO restore last tool ?
-        {
-          editionSettings().setExecution(false); // tool unlock
-          editionSettings().setTool(Scenario::Tool::Select);
-        }
-
-      });
-*/
   m_graphicalScale = context.app.settings<Settings::Model>().getGraphicZoom();
 
   con(context.app.settings<Settings::Model>(),
