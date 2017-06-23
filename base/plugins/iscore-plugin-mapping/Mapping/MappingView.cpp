@@ -48,6 +48,7 @@ void LayerView::paint_impl(QPainter* painter) const
 {
   if (m_showName)
   {
+    painter->setPen(ScenarioStyle::instance().ConstraintHeaderSeparator);
     m_textcache.draw(painter, QPointF{5., 8.});
   }
 }
