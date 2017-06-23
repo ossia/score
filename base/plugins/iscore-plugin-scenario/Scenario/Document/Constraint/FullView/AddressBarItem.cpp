@@ -63,11 +63,11 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
 
     m_items.append(lab);
     lab->setPos(currentWidth, 0.);
-    currentWidth += 10. + lab->boundingRect().width();
+    currentWidth += 5. + lab->boundingRect().width();
 
     auto sep = new SeparatorItem{this};
     sep->setPos(currentWidth, 0.);
-    currentWidth += 10. + sep->boundingRect().width();
+    currentWidth += 5. + sep->boundingRect().width();
     m_items.append(sep);
   }
 

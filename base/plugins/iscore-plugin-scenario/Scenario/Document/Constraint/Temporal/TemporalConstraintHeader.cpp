@@ -102,8 +102,9 @@ void TemporalConstraintHeader::paint(
     m_previous_x = x;
   }
   // TODO do like TimeRuler
-  painter->setFont(skin.Bold10Pt);
-  painter->drawText(QRectF{m_previous_x, 4., m_width - x, ConstraintHeader::headerHeight()}, Qt::AlignLeft, m_text);
+  painter->setFont(skin.Bold12Pt);
+  painter->drawText(QRectF{m_previous_x, 0, m_width - x, ConstraintHeader::headerHeight()},
+                    Qt::AlignLeft | Qt::AlignVCenter, m_text);
 }
 
 void TemporalConstraintHeader::mouseDoubleClickEvent(
@@ -114,7 +115,7 @@ void TemporalConstraintHeader::mouseDoubleClickEvent(
 
 void TemporalConstraintHeader::on_textChange()
 {
-  QFontMetrics fm(ScenarioStyle::instance().Bold10Pt);
+  QFontMetrics fm(ScenarioStyle::instance().Bold12Pt);
   m_textWidthCache = fm.width(m_text);
 }
 

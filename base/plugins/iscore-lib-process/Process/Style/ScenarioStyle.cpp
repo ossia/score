@@ -164,6 +164,9 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   Bold10Pt.setPointSize(10);
   Bold10Pt.setBold(true);
 
+  Bold12Pt = Bold10Pt;
+  Bold12Pt.setPointSize(12);
+
   Medium7Pt = skin.SansFont;
   Medium7Pt.setPointSize(7);
   Medium7Pt.setStyleStrategy(QFont::NoAntialias);
