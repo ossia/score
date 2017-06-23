@@ -194,8 +194,10 @@ void ApplicationPlugin::on_play(
       // Get all the selected nodes
       auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
       // Disable listening for everything
-      if (explorer)
+      if (explorer && !doc->context().app.settings<Execution::Settings::Model>().getExecutionListening())
+      {
         explorer->deviceModel().listening().stop();
+      }
 
       plugmodel->reload(cst);
 
@@ -305,7 +307,7 @@ void ApplicationPlugin::on_init()
 
     auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
     // Disable listening for everything
-    if (explorer)
+    if (explorer && !doc->context().app.settings<Execution::Settings::Model>().getExecutionListening())
       explorer->deviceModel().listening().stop();
 
     auto state = Engine::iscore_to_ossia::state(

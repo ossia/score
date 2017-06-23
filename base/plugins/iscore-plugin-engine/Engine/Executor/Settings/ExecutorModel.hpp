@@ -14,9 +14,11 @@ class ISCORE_PLUGIN_ENGINE_EXPORT Model : public iscore::SettingsDelegateModel
   Q_PROPERTY(int rate READ getRate WRITE setRate NOTIFY RateChanged)
   Q_PROPERTY(ClockManagerFactory::ConcreteKey clock READ getClock WRITE
                  setClock NOTIFY ClockChanged)
+  Q_PROPERTY(bool executionListening READ getExecutionListening WRITE setExecutionListening NOTIFY ExecutionListeningChanged)
 
   int m_Rate{};
   ClockManagerFactory::ConcreteKey m_Clock;
+  bool m_ExecutionListening{};
 
   const ClockManagerFactoryList& m_clockFactories;
 
@@ -33,10 +35,12 @@ public:
 
   ISCORE_SETTINGS_PARAMETER_HPP(int, Rate)
   ISCORE_SETTINGS_PARAMETER_HPP(ClockManagerFactory::ConcreteKey, Clock)
+  ISCORE_SETTINGS_PARAMETER_HPP(bool, ExecutionListening)
 };
 
 ISCORE_SETTINGS_PARAMETER(Model, Rate)
 ISCORE_SETTINGS_PARAMETER(Model, Clock)
+ISCORE_SETTINGS_PARAMETER(Model, ExecutionListening)
 }
 }
 }

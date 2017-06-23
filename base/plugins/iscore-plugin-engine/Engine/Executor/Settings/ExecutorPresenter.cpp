@@ -44,8 +44,17 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   });
 
   con(m, &Model::ClockChanged, &v, &View::setClock);
-
   v.setClock(m.getClock());
+
+  con(v, &View::executionListeningChanged, this, [&](auto val) {
+      if (val != m.getExecutionListening())
+      {
+          m_disp.submitCommand<SetModelExecutionListening>(this->model(this), val);
+      }
+  });
+
+  con(m, &Model::ExecutionListeningChanged, &v, &View::setExecutionListening);
+  v.setExecutionListening(m.getExecutionListening());
 }
 
 QString Presenter::settingsName()
