@@ -64,8 +64,7 @@ public:
   void setSuppressOnOverlap(bool);
   void setStretchBothBounds(bool);
   void setAddPointBehaviour(Curve::AddPointBehaviour);
-  void
-  setRemovePointBehaviour(Curve::RemovePointBehaviour removePointBehaviour);
+  void setRemovePointBehaviour(Curve::RemovePointBehaviour removePointBehaviour);
   void setTool(Curve::Tool tool);
 
 signals:

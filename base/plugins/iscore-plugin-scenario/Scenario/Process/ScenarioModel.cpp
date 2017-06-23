@@ -160,7 +160,6 @@ void ProcessModel::startExecution()
 {
   // TODO this is called for each process!!
   // But it should be done only once at the global level.
-  emit execution(true);
   for (ConstraintModel& constraint : constraints)
   {
     constraint.startExecution();
@@ -169,7 +168,6 @@ void ProcessModel::startExecution()
 
 void ProcessModel::stopExecution()
 {
-  emit execution(false);
   for (ConstraintModel& constraint : constraints)
   {
     constraint.stopExecution();

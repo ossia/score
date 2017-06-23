@@ -55,12 +55,10 @@ public:
 
   void startExecution() final override
   {
-    emit execution(true);
   }
 
   void stopExecution() final override
   {
-    emit execution(false);
   }
 
   void reset() final override

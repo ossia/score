@@ -47,13 +47,6 @@ public:
         m_curve, &Presenter::contextMenuRequested, this,
         &LayerPresenter::contextMenuRequested);
 
-    con(m_layer, &Process::ProcessModel::execution, this,
-        [&](bool b) {
-          m_curve.editionSettings().setTool(
-              b ? Curve::Tool::Playing
-                : focused() ? Curve::Tool::Select : Curve::Tool::Disabled);
-        });
-
     connect(&m_curve.view(), &View::doubleClick,
             this, [this] (QPointF pt) { m_sm.createPoint(pt); });
 
