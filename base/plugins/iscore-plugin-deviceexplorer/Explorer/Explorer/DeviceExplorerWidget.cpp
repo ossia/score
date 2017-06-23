@@ -157,6 +157,7 @@ void DeviceExplorerWidget::buildGUI()
 #endif
 
   m_editAction->setEnabled(false);
+  this->addAction(m_editAction);
   m_refreshAction->setEnabled(false);
   m_refreshValueAction->setEnabled(false);
   m_removeNodeAction->setEnabled(false);
