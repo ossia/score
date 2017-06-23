@@ -21,7 +21,7 @@ FullViewConstraintHeader::FullViewConstraintHeader(
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
-  m_bar.setPos(10., 5.);
+  m_bar.setPos(10., 10.);
   con(m_bar, &AddressBarItem::needRedraw, this, [&]() { update(); });
 }
 
@@ -75,6 +75,6 @@ void FullViewConstraintHeader::paint(
   }
 
   if (std::abs(m_bar.pos().x() - x) > 0.1)
-    m_bar.setPos(x, 5.);
+    m_bar.setPos(x, 8.);
 }
 }

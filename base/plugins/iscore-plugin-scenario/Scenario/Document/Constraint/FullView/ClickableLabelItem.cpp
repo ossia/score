@@ -52,7 +52,7 @@ ClickableLabelItem::ClickableLabelItem(
         emit textChanged();
       });
 
-  this->setFont(ScenarioStyle::instance().Bold10Pt);
+  this->setFont(ScenarioStyle::instance().Bold12Pt);
   this->setColor(ScenarioStyle::instance().StateOutline);
 
   this->setAcceptHoverEvents(true);
