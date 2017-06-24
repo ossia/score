@@ -47,11 +47,11 @@ void Model::setSkin(const QString& skin)
   if (m_Skin == skin)
     return;
 
-  QFile f(":/DefaultSkin.json");
-  if (skin == QStringLiteral("IEEE"))
-  {
-    f.setFileName(":/IEEESkin.json");
-  }
+  QFile f(skin);
+  if(skin.isEmpty() || skin == QStringLiteral("Default"))
+      f.setFileName(":/DefaultSkin.json");
+  else if (skin == QStringLiteral("IEEE"))
+      f.setFileName(":/IEEESkin.json");
 
   if (f.open(QFile::ReadOnly))
   {

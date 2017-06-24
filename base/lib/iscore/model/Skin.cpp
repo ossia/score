@@ -20,7 +20,7 @@ make_bimap(std::initializer_list<typename boost::bimap<L, R>::value_type> list)
 Skin::Skin() noexcept
     : SansFont{"Ubuntu"}
     , MonoFont{"APCCourier-Bold", 10, QFont::Black}
-    , m_colorMap(make_bimap<QString, const QBrush*>(
+    , m_colorMap(make_bimap<QString, QBrush*>(
           {ISCORE_INSERT_COLOR(Dark),
            ISCORE_INSERT_COLOR(HalfDark),
            ISCORE_INSERT_COLOR(Gray),
@@ -200,9 +200,15 @@ const QBrush* Skin::fromString(const QString& s) const
   return it != m_colorMap.left.end() ? it->second : nullptr;
 }
 
+QBrush* Skin::fromString(const QString& s)
+{
+    auto it = m_colorMap.left.find(s);
+    return it != m_colorMap.left.end() ? it->second : nullptr;
+}
+
 QString Skin::toString(const QBrush* c) const
 {
-  auto it = m_colorMap.right.find(c);
+  auto it = m_colorMap.right.find(const_cast<QBrush*>(c));
   return it != m_colorMap.right.end() ? it->second : nullptr;
 }
 
