@@ -245,6 +245,8 @@ endif()
 if(OSSIA_PROTOCOL_SERIAL)
     target_sources(${PROJECT_NAME} PRIVATE ${SERIAL_HDRS} ${SERIAL_SRCS})
     target_compile_definitions(${PROJECT_NAME} PRIVATE OSSIA_PROTOCOL_SERIAL)
+    find_package(Qt5 5.7 REQUIRED COMPONENTS SerialPort)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::SerialPort)
 endif()
 
 if(OSSIA_PROTOCOL_PHIDGETS)
