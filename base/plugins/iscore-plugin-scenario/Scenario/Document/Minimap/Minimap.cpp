@@ -84,8 +84,10 @@ QRectF Minimap::boundingRect() const
 void Minimap::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& sk = ScenarioStyle::instance();
-  painter->setPen(sk.TimenodePen);
-  painter->drawRect(QRectF{m_leftHandle, 2., m_rightHandle - m_leftHandle, m_height - 3.});
+  painter->setPen(sk.MinimapPen);
+  painter->setBrush(sk.MinimapBrush);
+  painter->drawRoundedRect(QRectF{m_leftHandle, 2., m_rightHandle - m_leftHandle, m_height - 3.}, 4, 4);
+  painter->drawRoundedRect(QRectF{m_leftHandle, 2., m_rightHandle - m_leftHandle, m_height - 3.}, 4, 4);
 }
 
 #if defined(__APPLE__)
