@@ -11,7 +11,7 @@ namespace Settings
 namespace Parameters
 {
 const iscore::sp<ModelLocalTreeParameter> LocalTree{
-    QStringLiteral("iscore_plugin_engine/LocalTree"), false};
+    QStringLiteral("iscore_plugin_engine/LocalTree"), true};
 
 static auto list()
 {
