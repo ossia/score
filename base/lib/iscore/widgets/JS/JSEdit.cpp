@@ -744,11 +744,10 @@ JSEdit::JSEdit(QWidget* parent)
 
   document()->setDocumentLayout(d_ptr->layout);
 
-  connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(updateCursor()));
-  connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateSidebar()));
-  connect(
-      this, SIGNAL(updateRequest(QRect, int)), this,
-      SLOT(updateSidebar(QRect, int)));
+  connect(this, &QPlainTextEdit::cursorPositionChanged, this, &JSEdit::updateCursor);
+  connect(this, &QPlainTextEdit::blockCountChanged, this, [=] { updateSidebar(); });
+  connect(this, &QPlainTextEdit::updateRequest, this, [=] (const QRect& r, int d) { updateSidebar(r, d); });
+  this->setContextMenuPolicy(Qt::NoContextMenu);
 
 #if defined(Q_OS_MAC)
   QFont textFont = font();

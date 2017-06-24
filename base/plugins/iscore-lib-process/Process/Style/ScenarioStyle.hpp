@@ -100,6 +100,9 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QPen TimenodePen;
   QBrush TimenodeBrush;
 
+  QPen MinimapPen;
+  QBrush MinimapBrush;
+
   QBrush StateTemporalPointBrush;
   QPen StateTemporalPointPen;
   QBrush StateBrush;
@@ -122,7 +125,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QFont Medium12Pt;
 
   QPen CommentBlockPen;
-  QPen MinimapPen;
+  QPen MiniScenarioPen;
   QPen SeparatorPen;
   QBrush SeparatorBrush;
   QBrush DefaultBrush;

@@ -70,7 +70,6 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     , TimeRuler{&s.Base1}
     , LocalTimeRuler{&s.Gray}
     , CommentBlockPen{Qt::white, 1.}
-    , MinimapPen{Qt::white, 2.}
     , SeparatorPen{Qt::white, 2.}
     , SeparatorBrush{Qt::white}
     , TransparentBrush{Qt::transparent}
@@ -144,6 +143,9 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   TimenodePen = QPen{Qt::black, 2, Qt::DotLine, Qt::SquareCap, Qt::MiterJoin};
   TimenodeBrush = QBrush{Qt::black};
 
+  MinimapPen = QPen{QColor(qRgba(80, 100, 140, 100)), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  MinimapBrush = QBrush{qRgba(20, 70, 80, 1)};
+
   StateTemporalPointBrush = QBrush{Qt::black};
   StateTemporalPointPen.setCosmetic(true);
   StateBrush = QBrush{Qt::black};
@@ -158,7 +160,7 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   SlotHandlePen.setWidth(0);
   SlotHandlePen.setBrush(ProcessViewBorder.getColor());
 
-  MinimapPen.setCosmetic(true);
+  MiniScenarioPen.setCosmetic(true);
 
   Bold10Pt = skin.SansFont;
   Bold10Pt.setPointSize(10);
