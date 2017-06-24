@@ -5,12 +5,88 @@
 #include <QLabel>
 #include <QSlider>
 #include <QSpinBox>
+#include <QListWidget>
+#include <QPushButton>
+#include <QJsonDocument>
+#include <QLineEdit>
+#include <QDialog>
+#include <QtColorWidgets/ColorWheel>
+#include <QFileDialog>
 #include <iscore/widgets/SignalUtils.hpp>
 
 namespace Scenario
 {
 namespace Settings
 {
+
+class ThemeDialog: public QDialog
+{
+public:
+    QHBoxLayout layout;
+    QVBoxLayout sublay;
+    QListWidget list;
+    QLineEdit hexa;
+    QLineEdit rgb;
+    QPushButton save{tr("Save")};
+    color_widgets::ColorWheel wheel;
+    ThemeDialog(QWidget* p): QDialog{p}
+    {
+        layout.addWidget(&list);
+        layout.addLayout(&sublay);
+        sublay.addWidget(&wheel);
+        sublay.addWidget(&hexa);
+        sublay.addWidget(&rgb);
+        sublay.addWidget(&save);
+        this->setLayout(&layout);
+        iscore::Skin& s = iscore::Skin::instance();
+        for(auto& col : s.getColors())
+        {
+            QPixmap p{16, 16};
+            p.fill(col.first);
+            list.addItem(new QListWidgetItem(p, col.second));
+        }
+
+        connect(&list, &QListWidget::currentItemChanged, this,
+                [&] (QListWidgetItem* cur, auto prev) {
+            if(cur)
+                wheel.setColor(s.fromString(cur->text())->color());
+        });
+
+        connect(&wheel, &color_widgets::ColorWheel::colorChanged,
+                this, [&] (QColor c) {
+            if(list.currentItem())
+            {
+                s.fromString(list.currentItem()->text())->setColor(c);
+                QPixmap p{16, 16};
+                p.fill(c);
+                list.currentItem()->setIcon(p);
+                s.changed();
+                hexa.setText(c.name(QColor::HexRgb));
+                rgb.setText(QString("%1, %2, %3").arg(c.red()).arg(c.green()).arg(c.blue()));
+            }
+        });
+
+        connect(&save, &QPushButton::clicked, this, [] {
+            auto f = QFileDialog::getSaveFileName(nullptr, tr("Skin"), "", tr("*.json"));
+            if(f.isEmpty())
+                return;
+            QFile fl{f};
+            fl.open(QIODevice::WriteOnly);
+            if(!fl.isOpen())
+                return;
+
+            QJsonObject obj;
+            for(auto& col : iscore::Skin::instance().getColors())
+            {
+                obj.insert(col.second, toJsonValue(col.first));
+            }
+
+            QJsonDocument doc;
+            doc.setObject(obj);
+            fl.write(doc.toJson());
+        });
+    }
+};
 
 View::View() : m_widg{new QWidget}
 {
@@ -21,6 +97,19 @@ View::View() : m_widg{new QWidget}
   m_skin = new QComboBox;
   m_skin->addItems({"Default", "IEEE"});
   lay->addRow(tr("Skin"), m_skin);
+  auto es = new QPushButton{tr("Edit skin")};
+  connect(es, &QPushButton::clicked, this, []
+  {
+      ThemeDialog d{nullptr};
+      d.exec();
+  });
+  auto ls = new QPushButton{tr("Load skin")};
+  connect(ls, &QPushButton::clicked, this, [=] {
+      auto f = QFileDialog::getOpenFileName(nullptr, tr("Skin"), tr("*.json"));
+      emit skinChanged(f);
+  });
+  lay->addWidget(ls);
+  lay->addWidget(es);
 
   connect(m_skin, &QComboBox::currentTextChanged, this, &View::skinChanged);
 

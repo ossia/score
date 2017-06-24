@@ -56,6 +56,7 @@ public:
   QBrush Pulse1;
   QBrush Pulse2;
   const QBrush* fromString(const QString& s) const;
+  QBrush* fromString(const QString& s);
   QString toString(const QBrush*) const;
 
   QVector<QPair<QColor, QString>> getColors() const;
@@ -67,7 +68,7 @@ private:
   void timerEvent(QTimerEvent *event) override;
   Skin() noexcept;
 
-  boost::bimap<QString, const QBrush*> m_colorMap;
+  boost::bimap<QString, QBrush*> m_colorMap;
 
   bool m_pulseDirection{false};
 };

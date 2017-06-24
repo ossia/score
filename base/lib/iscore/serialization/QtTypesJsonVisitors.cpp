@@ -39,6 +39,22 @@ JSONValueReader::read(const QPointF& pt)
 }
 
 template <>
+ISCORE_LIB_BASE_EXPORT void
+JSONValueReader::read(const QColor& p)
+{
+  auto pt = p.toRgb();
+  val = makeJsonArray({pt.red(), pt.green(), pt.blue(), pt.alpha()});
+}
+
+template <>
+ISCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QColor& pt)
+{
+  auto arr = val.toArray();
+  pt = QColor{arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt()};
+}
+
+
+template <>
 ISCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QPointF& pt)
 {
   auto arr = val.toArray();

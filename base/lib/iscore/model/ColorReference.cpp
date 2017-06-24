@@ -6,7 +6,7 @@ namespace iscore
 optional<ColorRef> ColorRef::ColorFromString(const QString& txt)
 {
   auto res = iscore::Skin::instance().fromString(txt);
-  ;
+
   if (res)
     return ColorRef(res);
   else
