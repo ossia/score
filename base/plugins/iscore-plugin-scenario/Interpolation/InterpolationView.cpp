@@ -2,7 +2,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <iscore/model/Skin.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-
+#include <QPainter>
 namespace Interpolation
 {
 View::View(QGraphicsItem* parent) : Process::LayerView{parent}
