@@ -748,6 +748,9 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
         }
       }
     }
+
+    // Filter parents
+    nodes.parents = filterUniqueParents(nodes.parents);
   }
   else if(nodes.parents.size() == 1)
   {
@@ -755,12 +758,9 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
     if (node->is<Device::AddressSettings>() && node->childCount() == 0)
     {
       // If a single node is selected we copy it even if it is "get"
-      nodes.messages.push_back(node);
+      nodes.messages = std::move(nodes.parents);
     }
   }
-
-  // Filter parents
-  nodes.parents = filterUniqueParents(nodes.parents);
 
   return nodes;
 }
@@ -780,6 +780,7 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
   {
     Device::parametersList(*node, messages);
   }
+
   for (const auto& node : uniqueNodes.messages)
   {
     messages += Device::message(*node);
