@@ -10,6 +10,7 @@
 #include <ossia/network/base/address.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
+#include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <Engine/OSSIA2iscore.hpp>
 #include <Engine/iscore2OSSIA.hpp>
@@ -64,6 +65,7 @@ ToFullAddressSettings(const ossia::net::node_base& node)
 
 Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
 {
+
   Device::Node iscore_node{ToAddressSettings(ossia_node), nullptr};
   {
     const auto& cld = ossia_node.children();
@@ -72,9 +74,12 @@ Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
     // 2. Recurse on the children
     for (const auto& ossia_child : cld)
     {
-      auto child_n = ToDeviceExplorer(*ossia_child);
-      child_n.setParent(&iscore_node);
-      iscore_node.push_back(std::move(child_n));
+      if(!ossia::net::get_hidden(*ossia_child))
+      {
+        auto child_n = ToDeviceExplorer(*ossia_child);
+        child_n.setParent(&iscore_node);
+        iscore_node.push_back(std::move(child_n));
+      }
     }
   }
   return iscore_node;
