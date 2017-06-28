@@ -107,11 +107,6 @@ ossia::state_element ProcessExecutor::state(double t)
   return {};
 }
 
-ossia::state_element ProcessExecutor::offset(ossia::time_value off, double pos)
-{
-  return state(pos);
-}
-
 Component::Component(
     ::Engine::Execution::ConstraintComponent& parentConstraint,
     JS::ProcessModel& element,
