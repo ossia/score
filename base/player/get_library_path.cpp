@@ -50,7 +50,7 @@ std::string get_library_path(ossia::string_view name_part)
   for(unsigned int i = 0; i < num_libs; i++)
   {
     auto path = ossia::string_view(_dyld_get_image_name(i));
-    auto pos = path.find(ldat.name_part);
+    auto pos = path.find(name_part);
     if(pos != std::string::npos)
     {
       auto substr = path.substr(0, pos);
