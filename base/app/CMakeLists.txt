@@ -29,7 +29,10 @@ endif()
 
 
 target_link_libraries(${APPNAME} PUBLIC iscore_lib_base Qt5::QuickControls2)
-
+if(APPLE)
+    find_library(CFLIB CoreFoundation)
+    target_link_libraries(${APPNAME} PRIVATE ${CFLIB})
+endif()
 if(ISCORE_STATIC_PLUGINS)
   iscore_write_static_plugins_header()
   target_link_libraries(${APPNAME} PUBLIC ${ISCORE_PLUGINS_LIST})

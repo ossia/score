@@ -2,6 +2,20 @@
 #include <QApplication>
 #include <QPixmapCache>
 #include <qnamespace.h>
+#if defined(__APPLE__)
+#include <CoreFoundation/CFNumber.h>
+#include <CoreFoundation/CFPreferences.h>
+void disableAppRestore()
+{
+    CFPreferencesSetAppValue(
+                CFSTR("NSQuitAlwaysKeepsWindows"),
+                kCFBooleanFalse,
+                kCFPreferencesCurrentApplication);
+
+    CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
+}
+
+#endif
 
 #if defined(ISCORE_STATIC_PLUGINS)
   #include <iscore_static_plugins.hpp>
@@ -35,6 +49,10 @@ static void init_plugins()
 #endif
 int main(int argc, char** argv)
 {
+#if defined(__APPLE__)
+    disableAppRestore();
+#endif
+
 #if defined(__SSE3__)
   // See https://en.wikipedia.org/wiki/Denormal_number
   // and http://stackoverflow.com/questions/9314534/why-does-changing-0-1f-to-0-slow-down-performance-by-10x
