@@ -31,7 +31,7 @@ public:
     explicit CssHighlighter(QTextDocument *document);
 
 protected:
-    void highlightBlock(const QString&);
+    void highlightBlock(const QString&) override;
     void highlight(const QString&, int, int, int/*State*/);
 
 private:
