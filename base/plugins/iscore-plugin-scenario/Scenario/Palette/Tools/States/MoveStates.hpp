@@ -12,6 +12,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <iscore/locking/ObjectLocker.hpp>
+#include <QApplication>
 namespace Scenario
 {
 template<typename T>
@@ -89,7 +90,11 @@ public:
           auto& cst = scenario.constraint(*this->clickedConstraint);
           auto& sev = Scenario::startEvent(cst, scenario);
 
-          TimeVal date = m_constraintInitialPoint.date + (this->currentPoint.date - m_initialClick.date);
+          TimeVal date{};
+          if(qApp->keyboardModifiers() & Qt::ShiftModifier)
+            date = m_constraintInitialPoint.date + (this->currentPoint.date - m_initialClick.date);
+          else
+            date = m_constraintInitialPoint.date;
           if(this->m_pressedPrevious)
             date = std::max(date, *this->m_pressedPrevious);
           date = std::max(date, TimeVal{});
