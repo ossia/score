@@ -52,7 +52,7 @@ public:
 
   SegmentModel* load(const VisitorVariant& vis, QObject* parent) override
   {
-    return deserialize_dyn(vis, [&](auto&& deserializer) {
+    return iscore::deserialize_dyn(vis, [&](auto&& deserializer) {
       return new T{deserializer, parent};
     });
   }
@@ -70,12 +70,12 @@ public:
   void serializeCurveSegmentData(
       const QVariant& data, const VisitorVariant& visitor) const override
   {
-    serialize_dyn(visitor, data.value<typename T::data_type>());
+    iscore::serialize_dyn(visitor, data.value<typename T::data_type>());
   }
 
   QVariant makeCurveSegmentData(const VisitorVariant& vis) const override
   {
-    return QVariant::fromValue(deserialize_dyn<typename T::data_type>(vis));
+    return QVariant::fromValue(iscore::deserialize_dyn<typename T::data_type>(vis));
   }
 
   UuidKey<Curve::SegmentFactory> concreteKey() const noexcept override

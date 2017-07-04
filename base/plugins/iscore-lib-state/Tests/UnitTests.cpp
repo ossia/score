@@ -17,7 +17,7 @@ private slots:
     ossia::unit_t u = ossia::rgba_u{};
     QVERIFY(u == u);
 
-    auto v = unmarshall<ossia::unit_t>(marshall<DataStream>(u));
+    auto v = iscore::unmarshall<ossia::unit_t>(iscore::marshall<DataStream>(u));
 
     QVERIFY(u == v);
   }

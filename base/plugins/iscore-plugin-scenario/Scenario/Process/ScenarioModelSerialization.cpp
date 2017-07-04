@@ -250,7 +250,7 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
 Process::ProcessModel*
 Scenario::ScenarioFactory::load(const VisitorVariant& vis, QObject* parent)
 {
-  return deserialize_dyn(vis, [&](auto&& deserializer) {
+  return iscore::deserialize_dyn(vis, [&](auto&& deserializer) {
     return new Scenario::ProcessModel{deserializer, parent};
   });
 }

@@ -17,15 +17,8 @@ public:
           const QString& name,
           QObject* parent);
 
-  template<typename Impl>
-  explicit DataflowProcess(
-          Impl& vis,
-          QObject* parent) :
-      Process::ProcessModel{vis, parent}
-  {
-      vis.writeTo(*this);
-      updateCounts();
-  }
+  DataflowProcess(DataStream::Deserializer& vis, QObject* parent);
+  DataflowProcess(JSONObject::Deserializer& vis, QObject* parent);
 
   ~DataflowProcess();
 

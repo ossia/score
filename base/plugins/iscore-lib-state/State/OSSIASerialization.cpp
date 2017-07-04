@@ -54,14 +54,14 @@ template <>
 ISCORE_LIB_STATE_EXPORT void
 JSONValueReader::read(const ossia::value& n)
 {
-  val = marshall<JSONObject>(n);
+  val = iscore::marshall<JSONObject>(n);
 }
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
 JSONValueWriter::write(ossia::value& n)
 {
-  n = unmarshall<ossia::value>(val.toObject());
+  n = iscore::unmarshall<ossia::value>(val.toObject());
 }
 
 template <>

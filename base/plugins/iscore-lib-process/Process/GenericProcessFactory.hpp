@@ -46,7 +46,7 @@ template <typename Model_T>
 Model_T* GenericProcessModelFactory<Model_T>::load(
     const VisitorVariant& vis, QObject* parent)
 {
-  return deserialize_dyn(vis, [&](auto&& deserializer) {
+  return iscore::deserialize_dyn(vis, [&](auto&& deserializer) {
     return new Model_T{deserializer, parent};
   });
 }

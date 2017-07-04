@@ -145,7 +145,7 @@ auto deserialize_interface(
                                                                       \
   void serialize_impl(const VisitorVariant& vis) const final override \
   {                                                                   \
-    serialize_dyn(vis, *this);                                        \
+    iscore::serialize_dyn(vis, *this);                                        \
   }
 
 /**

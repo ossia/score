@@ -331,7 +331,7 @@ ScenarioPasteElements::ScenarioPasteElements(
   for (auto elt : constraints)
   {
     m_ids_constraints.push_back(elt->id());
-    m_json_constraints.push_back(marshall<JSONObject>(*elt));
+    m_json_constraints.push_back(iscore::marshall<JSONObject>(*elt));
 
     delete elt;
   }
@@ -341,7 +341,7 @@ ScenarioPasteElements::ScenarioPasteElements(
   for (auto elt : timenodes)
   {
     m_ids_timenodes.push_back(elt->id());
-    m_json_timenodes.push_back(marshall<JSONObject>(*elt));
+    m_json_timenodes.push_back(iscore::marshall<JSONObject>(*elt));
 
     delete elt;
   }
@@ -351,7 +351,7 @@ ScenarioPasteElements::ScenarioPasteElements(
   for (auto elt : events)
   {
     m_ids_events.push_back(elt->id());
-    m_json_events.push_back(marshall<JSONObject>(*elt));
+    m_json_events.push_back(iscore::marshall<JSONObject>(*elt));
 
     delete elt;
   }
@@ -361,7 +361,7 @@ ScenarioPasteElements::ScenarioPasteElements(
   for (auto elt : states)
   {
     m_ids_states.push_back(elt->id());
-    m_json_states.push_back(marshall<JSONObject>(*elt));
+    m_json_states.push_back(iscore::marshall<JSONObject>(*elt));
 
     delete elt;
   }
