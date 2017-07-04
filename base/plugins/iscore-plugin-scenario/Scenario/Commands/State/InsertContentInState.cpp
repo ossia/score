@@ -34,8 +34,8 @@ InsertContentInState::InsertContentInState(
   m_newNode = m_oldNode;
   updateTreeWithMessageList(
       m_newNode,
-      flatten(
-          unmarshall<Process::MessageNode>(stateData["Messages"].toObject())));
+      Process::flatten(
+          iscore::unmarshall<Process::MessageNode>(stateData["Messages"].toObject())));
 }
 
 void InsertContentInState::undo(const iscore::DocumentContext& ctx) const

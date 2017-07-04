@@ -34,7 +34,7 @@ void toJsonValue(
 {
   if (value)
   {
-    object[name] = marshall<JSONObject>(*value);
+    object[name] = iscore::marshall<JSONObject>(*value);
   }
 }
 
@@ -66,7 +66,7 @@ void fromJsonValue(
   auto it = object.find(name);
   if (it != object.end())
   {
-    value = unmarshall<State::Value>((*it).toObject());
+    value = iscore::unmarshall<State::Value>((*it).toObject());
   }
   else
   {

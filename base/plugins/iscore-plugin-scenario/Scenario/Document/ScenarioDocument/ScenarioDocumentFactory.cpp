@@ -42,7 +42,7 @@ iscore::DocumentDelegateModel* ScenarioDocumentFactory::load(
     const iscore::DocumentContext& ctx,
     iscore::DocumentModel* parent)
 {
-  return deserialize_dyn(vis, [&](auto&& deserializer) {
+  return iscore::deserialize_dyn(vis, [&](auto&& deserializer) {
     return new ScenarioDocumentModel{deserializer, ctx, parent};
   });
 }

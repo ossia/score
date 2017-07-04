@@ -30,7 +30,7 @@ static auto arrayToJson(Selected_T&& selected)
   {
     for (const auto& element : selected)
     {
-      array.push_back(marshall<JSONObject>(*element));
+      array.push_back(iscore::marshall<JSONObject>(*element));
     }
   }
 

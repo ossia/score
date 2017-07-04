@@ -47,7 +47,7 @@ public:
 
   Model_T* load(const VisitorVariant& vis, QObject* parent) override
   {
-    return deserialize_dyn(vis, [&](auto&& deserializer) {
+    return iscore::deserialize_dyn(vis, [&](auto&& deserializer) {
       return new Model_T{deserializer, parent};
     });
   }

@@ -33,7 +33,7 @@ void ProcessWidgetArea::mousePressEvent(QMouseEvent* event)
 
     mimeData->setData(
         "application/x-iscore-processdrag",
-        marshall<DataStream>(make_path(m_proc)));
+        iscore::marshall<DataStream>(make_path(m_proc)));
     drag->setMimeData(mimeData);
     QLabel label{m_proc.metadata().getName()};
     drag->setPixmap(label.grab());
@@ -48,7 +48,7 @@ void ProcessWidgetArea::dragEnterEvent(QDragEnterEvent* event)
   if (!event->mimeData()->hasFormat("application/x-iscore-processdrag"))
     return;
 
-  auto path = unmarshall<Path<Process::ProcessModel>>(
+  auto path = iscore::unmarshall<Path<Process::ProcessModel>>(
       event->mimeData()->data("application/x-iscore-processdrag"));
   auto res = path.try_find(m_disp.stack().context());
   if (!res)
@@ -75,7 +75,7 @@ void ProcessWidgetArea::dropEvent(QDropEvent* event)
   event->acceptProposedAction();
 
   // Get the process
-  auto path = unmarshall<Path<Process::ProcessModel>>(
+  auto path = iscore::unmarshall<Path<Process::ProcessModel>>(
       event->mimeData()->data("application/x-iscore-processdrag"));
 
   // Position

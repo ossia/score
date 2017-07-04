@@ -1,22 +1,69 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+
 /**
- * This file contains usefule functions
+ * \file VisitorCommon.hpp
+ * This file contains useful functions
  * for simple serialization / deserialization of the common types
- * used in i-score.
+ * used in i-score, especially polymorphic types.
+ *
+ * The important point is the recursion for serialization.
+ * This allows if we have a class hierarchy such as:
+ *
+ * IdentifiedObject <- A <- B <- C <- D
+ *
+ * to correctly serialize A, B, C, D without
+ * needing to call the parent function's serialization function.
  */
+
+namespace iscore
+{
+struct has_no_base {};
+struct has_base {};
+
+template<typename T, typename U = void>
+struct base_kind
+{ using type = has_no_base; };
+
+template<typename T>
+struct base_kind<T, ossia::void_t<typename T::base_type>>
+{ using type = has_base; };
+
+template<typename Vis, typename T>
+void serialize_dyn_impl(Vis& v, const T& t);
+
+template<typename Vis, typename T>
+void serialize_recursive(Vis& v, const T& t, has_no_base)
+{
+  v.read(t);
+}
+
+template<typename Vis, typename T>
+void serialize_recursive(Vis& v, const T& t, has_base)
+{
+  serialize_dyn_impl(v, (const typename T::base_type&)t);
+  v.read(t);
+}
+
+template<typename Vis, typename T>
+void serialize_dyn_impl(Vis& v, const T& t)
+{
+  serialize_recursive(v, t, typename base_kind<T>::type{});
+}
+
+
 template <typename TheClass>
 void serialize_dyn(const VisitorVariant& vis, const TheClass& s)
 {
   if (vis.identifier == DataStream::type())
   {
-    static_cast<DataStream::Serializer&>(vis.visitor).read(s);
+    serialize_dyn_impl(static_cast<DataStream::Serializer&>(vis.visitor), s);
     return;
   }
   else if (vis.identifier == JSONObject::type())
   {
-    static_cast<JSONObject::Serializer&>(vis.visitor).read(s);
+    serialize_dyn_impl(static_cast<JSONObject::Serializer&>(vis.visitor), s);
     return;
   }
 
@@ -111,4 +158,6 @@ template <typename Object>
 auto unmarshall(const QByteArray& arr)
 {
   return DataStreamWriter::unmarshall<Object>(arr);
+}
+
 }
