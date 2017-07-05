@@ -2,7 +2,7 @@
     "Document": {
         "BaseScenario": {
             "Constraint": {
-                "Center": 156975.796037262,
+                "Center": 118983.54730554177,
                 "Components": [
                 ],
                 "DefaultDuration": 165000,
@@ -12,7 +12,7 @@
                         "Process": 1
                     }
                 ],
-                "GuiDuration": 168059.81171948413,
+                "GuiDuration": 181500.00000000003,
                 "HeightPercentage": 0,
                 "MaxDuration": "inf",
                 "MaxInf": true,
@@ -441,7 +441,7 @@
                                         "Height": 300,
                                         "Max": 100,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Automation.1"
@@ -577,7 +577,7 @@
                                         "Height": 300,
                                         "Max": 100,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Automation.1"
@@ -675,7 +675,7 @@
                                         "Height": 300,
                                         "Max": 1,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Automation.1"
@@ -789,7 +789,7 @@
                                         "Height": 300,
                                         "Max": 1,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Automation.2"
@@ -839,7 +839,7 @@
                                         "Height": 300,
                                         "Max": 1,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Automation.3"
@@ -992,7 +992,7 @@
                                         "Duration": 7944.479893580225,
                                         "Height": 300,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Mapping.1"
@@ -1153,7 +1153,7 @@
                                         },
                                         "Height": 300,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Interpolation.1"
@@ -1391,7 +1391,7 @@
                                                         "Height": 300,
                                                         "Max": 100,
                                                         "Metadata": {
-                                                            "Color": "",
+                                                            "Color": "Base1",
                                                             "Comment": "",
                                                             "Label": "",
                                                             "ScriptingName": "Automation.1"
@@ -1606,7 +1606,7 @@
                                                         ],
                                                         "Height": 300,
                                                         "Metadata": {
-                                                            "Color": "",
+                                                            "Color": "Base1",
                                                             "Comment": "",
                                                             "Label": "",
                                                             "ScriptingName": "Scenario.1"
@@ -1639,7 +1639,7 @@
                                                                     "Unit": "none"
                                                                 },
                                                                 "Metadata": {
-                                                                    "Color": "",
+                                                                    "Color": "Base1",
                                                                     "Comment": "",
                                                                     "Label": "",
                                                                     "ScriptingName": "State.0"
@@ -1674,7 +1674,7 @@
                                                                     "Unit": "none"
                                                                 },
                                                                 "Metadata": {
-                                                                    "Color": "",
+                                                                    "Color": "Base1",
                                                                     "Comment": "",
                                                                     "Label": "",
                                                                     "ScriptingName": "State.2"
@@ -1709,7 +1709,7 @@
                                                                     "Unit": "none"
                                                                 },
                                                                 "Metadata": {
-                                                                    "Color": "",
+                                                                    "Color": "Base1",
                                                                     "Comment": "",
                                                                     "Label": "",
                                                                     "ScriptingName": "State.3"
@@ -1744,7 +1744,7 @@
                                                                     "Unit": "none"
                                                                 },
                                                                 "Metadata": {
-                                                                    "Color": "",
+                                                                    "Color": "Base1",
                                                                     "Comment": "",
                                                                     "Label": "",
                                                                     "ScriptingName": "State.4"
@@ -1779,7 +1779,7 @@
                                                                     "Unit": "none"
                                                                 },
                                                                 "Metadata": {
-                                                                    "Color": "",
+                                                                    "Color": "Base1",
                                                                     "Comment": "",
                                                                     "Label": "",
                                                                     "ScriptingName": "State.5"
@@ -2108,7 +2108,7 @@
                                         ],
                                         "Height": 300,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Scenario.1"
@@ -2141,7 +2141,7 @@
                                                     "Unit": "none"
                                                 },
                                                 "Metadata": {
-                                                    "Color": "",
+                                                    "Color": "Base1",
                                                     "Comment": "",
                                                     "Label": "",
                                                     "ScriptingName": "State.0"
@@ -2176,7 +2176,7 @@
                                                     "Unit": "none"
                                                 },
                                                 "Metadata": {
-                                                    "Color": "",
+                                                    "Color": "Base1",
                                                     "Comment": "",
                                                     "Label": "",
                                                     "ScriptingName": "State.1"
@@ -2211,7 +2211,7 @@
                                                     "Unit": "none"
                                                 },
                                                 "Metadata": {
-                                                    "Color": "",
+                                                    "Color": "Base1",
                                                     "Comment": "",
                                                     "Label": "",
                                                     "ScriptingName": "State.2"
@@ -2246,7 +2246,7 @@
                                                     "Unit": "none"
                                                 },
                                                 "Metadata": {
-                                                    "Color": "",
+                                                    "Color": "Base1",
                                                     "Comment": "",
                                                     "Label": "",
                                                     "ScriptingName": "State.3"
@@ -2281,7 +2281,7 @@
                                                     "Unit": "none"
                                                 },
                                                 "Metadata": {
-                                                    "Color": "",
+                                                    "Color": "Base1",
                                                     "Comment": "",
                                                     "Label": "",
                                                     "ScriptingName": "State.4"
@@ -2357,7 +2357,7 @@
                                                     "Unit": "none"
                                                 },
                                                 "Metadata": {
-                                                    "Color": "",
+                                                    "Color": "Base1",
                                                     "Comment": "",
                                                     "Label": "",
                                                     "ScriptingName": "State.5"
@@ -2433,7 +2433,7 @@
                                                     "Unit": "none"
                                                 },
                                                 "Metadata": {
-                                                    "Color": "",
+                                                    "Color": "Base1",
                                                     "Comment": "",
                                                     "Label": "",
                                                     "ScriptingName": "State.6"
@@ -2468,7 +2468,7 @@
                                                     "Unit": "none"
                                                 },
                                                 "Metadata": {
-                                                    "Color": "",
+                                                    "Color": "Base1",
                                                     "Comment": "",
                                                     "Label": "",
                                                     "ScriptingName": "State.7"
@@ -2503,7 +2503,7 @@
                                                     "Unit": "none"
                                                 },
                                                 "Metadata": {
-                                                    "Color": "",
+                                                    "Color": "Base1",
                                                     "Comment": "",
                                                     "Label": "",
                                                     "ScriptingName": "State.8"
@@ -2904,7 +2904,7 @@
                                                     "Height": 300,
                                                     "Max": 1,
                                                     "Metadata": {
-                                                        "Color": "",
+                                                        "Color": "Base1",
                                                         "Comment": "",
                                                         "Label": "",
                                                         "ScriptingName": "Automation.1"
@@ -2953,7 +2953,7 @@
                                                     "Height": 300,
                                                     "Max": 50,
                                                     "Metadata": {
-                                                        "Color": "",
+                                                        "Color": "Base1",
                                                         "Comment": "",
                                                         "Label": "",
                                                         "ScriptingName": "Automation.2"
@@ -3082,7 +3082,7 @@
                                                 "Unit": "none"
                                             },
                                             "Metadata": {
-                                                "Color": "",
+                                                "Color": "Base1",
                                                 "Comment": "",
                                                 "Label": "",
                                                 "ScriptingName": "State.1"
@@ -3144,7 +3144,7 @@
                                         },
                                         "Height": 300,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Loop.1"
@@ -3249,7 +3249,7 @@
                                                 "Unit": "none"
                                             },
                                             "Metadata": {
-                                                "Color": "",
+                                                "Color": "Base1",
                                                 "Comment": "",
                                                 "Label": "",
                                                 "ScriptingName": "State.0"
@@ -3392,7 +3392,7 @@
                                         "Duration": 8598.347845443961,
                                         "Height": 300,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Javascript.1"
@@ -3841,7 +3841,7 @@
                                         ],
                                         "Height": 300,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Gradient.1"
@@ -3940,7 +3940,7 @@
                                         "Duration": 9087.353410113763,
                                         "Height": 300,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Spline.1"
@@ -4062,7 +4062,7 @@
                                         "Duration": 8455.721222415275,
                                         "Height": 300,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Midi.1"
@@ -4321,7 +4321,7 @@
                                         "Height": 300,
                                         "Max": 25,
                                         "Metadata": {
-                                            "Color": "",
+                                            "Color": "Base1",
                                             "Comment": "",
                                             "Label": "",
                                             "ScriptingName": "Automation.1"
@@ -5577,7 +5577,7 @@
                         ],
                         "Height": 1515,
                         "Metadata": {
-                            "Color": "",
+                            "Color": "Base1",
                             "Comment": "",
                             "Label": "",
                             "ScriptingName": "Scenario.1"
@@ -5610,7 +5610,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.0"
@@ -5645,7 +5645,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.1"
@@ -5680,7 +5680,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.2"
@@ -5715,7 +5715,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.3"
@@ -5834,7 +5834,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.4"
@@ -5869,7 +5869,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.5"
@@ -5904,7 +5904,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.6"
@@ -5939,7 +5939,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.7"
@@ -5974,7 +5974,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.8"
@@ -6009,7 +6009,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.9"
@@ -6044,7 +6044,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.10"
@@ -6079,7 +6079,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.11"
@@ -6114,7 +6114,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.12"
@@ -6190,7 +6190,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.13"
@@ -6235,7 +6235,7 @@
                                                             "Process": 1,
                                                             "Value": {
                                                                 "Type": "Float",
-                                                                "Value": 72.77500915527344
+                                                                "Value": 75.25
                                                             }
                                                         }
                                                     ],
@@ -6273,7 +6273,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.14"
@@ -6428,7 +6428,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.15"
@@ -6455,7 +6455,7 @@
                                             "Children": [
                                                 {
                                                     "Accessors": [
-                                                        0
+                                                        1
                                                     ],
                                                     "Children": [
                                                     ],
@@ -6464,7 +6464,7 @@
                                                     "Name": "my_color",
                                                     "Previous": [
                                                         {
-                                                            "Process": 2,
+                                                            "Process": 1,
                                                             "Value": {
                                                                 "Type": "Float",
                                                                 "Value": 1
@@ -6480,7 +6480,7 @@
                                                 },
                                                 {
                                                     "Accessors": [
-                                                        1
+                                                        0
                                                     ],
                                                     "Children": [
                                                     ],
@@ -6489,7 +6489,7 @@
                                                     "Name": "my_color",
                                                     "Previous": [
                                                         {
-                                                            "Process": 1,
+                                                            "Process": 2,
                                                             "Value": {
                                                                 "Type": "Float",
                                                                 "Value": 1
@@ -6555,7 +6555,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.16"
@@ -6590,7 +6590,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.17"
@@ -6625,7 +6625,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.18"
@@ -6698,7 +6698,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.19"
@@ -6771,7 +6771,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.20"
@@ -6806,7 +6806,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.21"
@@ -6841,7 +6841,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.22"
@@ -6876,7 +6876,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.23"
@@ -6911,7 +6911,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.24"
@@ -6946,7 +6946,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.25"
@@ -6981,7 +6981,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.26"
@@ -7016,7 +7016,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.27"
@@ -7051,7 +7051,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.28"
@@ -7086,7 +7086,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.29"
@@ -7121,7 +7121,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.30"
@@ -7156,7 +7156,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.31"
@@ -7191,7 +7191,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.32"
@@ -7349,7 +7349,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.33"
@@ -7384,7 +7384,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.34"
@@ -7457,7 +7457,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.35"
@@ -7492,7 +7492,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.36"
@@ -7565,7 +7565,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.37"
@@ -7600,7 +7600,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.38"
@@ -7635,7 +7635,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.39"
@@ -7670,7 +7670,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.40"
@@ -7705,7 +7705,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.41"
@@ -7740,7 +7740,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.42"
@@ -7775,7 +7775,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.43"
@@ -7848,7 +7848,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.44"
@@ -7883,7 +7883,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.45"
@@ -7918,7 +7918,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.46"
@@ -7953,7 +7953,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.47"
@@ -7988,7 +7988,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.48"
@@ -8023,7 +8023,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.49"
@@ -8058,7 +8058,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.50"
@@ -8131,7 +8131,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.51"
@@ -8207,7 +8207,7 @@
                                     "Unit": "none"
                                 },
                                 "Metadata": {
-                                    "Color": "",
+                                    "Color": "Base1",
                                     "Comment": "",
                                     "Label": "",
                                     "ScriptingName": "State.52"
@@ -10112,7 +10112,7 @@
                 "SmallViewShown": false,
                 "StartDate": 0,
                 "StartState": 0,
-                "Zoom": 22.92454122486484,
+                "Zoom": 112.14283440673117,
                 "id": 0
             },
             "EndEvent": {
@@ -10166,7 +10166,7 @@
                     "Unit": "none"
                 },
                 "Metadata": {
-                    "Color": "",
+                    "Color": "Base1",
                     "Comment": "",
                     "Label": "",
                     "ScriptingName": "State.1"
@@ -10278,7 +10278,7 @@
                     "Unit": "none"
                 },
                 "Metadata": {
-                    "Color": "",
+                    "Color": "Base1",
                     "Comment": "",
                     "Label": "",
                     "ScriptingName": "State.0"
@@ -10416,9 +10416,9 @@
                                 "Type": "Vec3f",
                                 "Unit": "color.rgb",
                                 "Value": [
-                                    1,
-                                    1,
-                                    1
+                                    0.7922234535217285,
+                                    0.8021705746650696,
+                                    0.8019587993621826
                                 ],
                                 "ioType": "<->"
                             },
@@ -10438,7 +10438,7 @@
                                 "RepetitionFilter": false,
                                 "Type": "Int",
                                 "Unit": "none",
-                                "Value": 25,
+                                "Value": 20,
                                 "ioType": "<->"
                             },
                             "Children": [
@@ -10459,7 +10459,7 @@
                                 "RepetitionFilter": false,
                                 "Type": "Float",
                                 "Unit": "none",
-                                "Value": 50,
+                                "Value": 38.438045501708984,
                                 "ioType": "<->"
                             },
                             "Children": [
