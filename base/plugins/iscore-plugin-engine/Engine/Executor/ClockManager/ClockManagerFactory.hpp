@@ -4,6 +4,8 @@
 #include <iscore_plugin_engine_export.h>
 
 #include <Process/TimeValue.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
+#include <functional>
 
 namespace Engine
 {
@@ -62,6 +64,9 @@ public:
   virtual QString prettyName() const = 0;
   virtual std::unique_ptr<ClockManager>
   make(const Engine::Execution::Context& ctx) = 0;
+
+  virtual std::function<ossia::time_value(const TimeVal&)>
+  makeTimeFunction() const = 0;
 };
 
 class ISCORE_PLUGIN_ENGINE_EXPORT ClockManagerFactoryList final

@@ -197,5 +197,11 @@ ControlClockFactory::make(const Engine::Execution::Context& ctx)
 {
   return std::make_unique<ControlClock>(ctx);
 }
+
+std::function<ossia::time_value(const TimeVal&)>
+ControlClockFactory::makeTimeFunction() const
+{
+  return &iscore_to_ossia::time;
+}
 }
 }

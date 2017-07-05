@@ -4,6 +4,7 @@
 #include "DocumentPlugin.hpp"
 #include <Engine/Executor/ConstraintComponent.hpp>
 #include <Engine/Executor/StateProcessComponent.hpp>
+#include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <core/document/Document.hpp>
@@ -26,6 +27,7 @@ DocumentPlugin::DocumentPlugin(
           ctx.plugin<Explorer::DeviceDocumentPlugin>(),
           ctx.app.interfaces<ProcessComponentFactoryList>(),
           ctx.app.interfaces<StateProcessComponentFactoryList>(),
+          ctx.app.settings<Engine::Execution::Settings::Model>().makeTimeFunction(),
           m_editionQueue
       }
     , m_base{m_ctx, this}

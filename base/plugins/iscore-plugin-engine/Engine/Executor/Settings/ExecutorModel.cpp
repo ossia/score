@@ -2,6 +2,7 @@
 #include "ExecutorModel.hpp"
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
 #include <iscore/application/ApplicationContext.hpp>
+#include <Engine/iscore2OSSIA.hpp>
 namespace Engine
 {
 namespace Execution
@@ -38,6 +39,15 @@ Model::makeClock(const Engine::Execution::Context& ctx) const
   return it != m_clockFactories.end()
              ? it->make(ctx)
              : std::make_unique<ControlClock>(ctx);
+}
+
+std::function<ossia::time_value(const TimeVal&)>
+Model::makeTimeFunction() const
+{
+  auto it = m_clockFactories.find(m_Clock);
+  return it != m_clockFactories.end()
+      ? it->makeTimeFunction()
+      : &iscore_to_ossia::time;
 }
 
 ISCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
