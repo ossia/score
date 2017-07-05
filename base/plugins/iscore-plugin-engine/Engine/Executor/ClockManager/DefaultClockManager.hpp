@@ -65,6 +65,8 @@ public:
 
   std::function<ossia::time_value(const TimeVal&)>
   makeTimeFunction() const override;
+  std::function<TimeVal(const ossia::time_value&)>
+  makeReverseTimeFunction() const override;
 };
 }
 }

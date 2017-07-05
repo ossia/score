@@ -121,7 +121,7 @@ public:
   }
 
 
-  auto& context() { return system(); }
+  const Context& context() const { return system(); }
 protected:
   void on_processAdded(Process::ProcessModel& iscore_proc);
 

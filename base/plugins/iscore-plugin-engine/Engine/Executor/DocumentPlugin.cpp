@@ -27,7 +27,7 @@ DocumentPlugin::DocumentPlugin(
           ctx.plugin<Explorer::DeviceDocumentPlugin>(),
           ctx.app.interfaces<ProcessComponentFactoryList>(),
           ctx.app.interfaces<StateProcessComponentFactoryList>(),
-          ctx.app.settings<Engine::Execution::Settings::Model>().makeTimeFunction(),
+          {}, {},
           m_editionQueue
       }
     , m_base{m_ctx, this}
@@ -50,7 +50,8 @@ void DocumentPlugin::reload(Scenario::ConstraintModel& cst)
     m_base.baseConstraint().stop();
   }
   clear();
-
+  m_ctx.time = iscore::DocumentPlugin::context().app.settings<Engine::Execution::Settings::Model>().makeTimeFunction();
+  m_ctx.reverseTime = iscore::DocumentPlugin::context().app.settings<Engine::Execution::Settings::Model>().makeReverseTimeFunction();
   auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
   ISCORE_ASSERT(parent);
   m_base.init(BaseScenarioRefContainer{cst, *parent});

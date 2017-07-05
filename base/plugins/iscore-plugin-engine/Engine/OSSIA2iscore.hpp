@@ -206,7 +206,7 @@ ToFullAddressSettings(const State::Address& addr, const Device::DeviceList&);
 ISCORE_PLUGIN_ENGINE_EXPORT Device::Node
 ToDeviceExplorer(const ossia::net::node_base& node);
 
-inline ::TimeVal time(ossia::time_value t)
+inline ::TimeVal defaultTime(ossia::time_value t)
 {
   return t.infinite() ? ::TimeVal{PositiveInfinity{}}
                         : ::TimeVal::fromMsecs(double(t) / 1000.);
