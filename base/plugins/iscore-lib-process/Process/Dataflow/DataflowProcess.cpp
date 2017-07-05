@@ -1,5 +1,6 @@
 #include "DataflowProcess.hpp"
 #include <iscore/model/path/PathSerialization.hpp>
+#include <iscore/serialization/JSONValueVisitor.hpp>
 namespace Process
 {
 ISCORE_LIB_PROCESS_EXPORT 
