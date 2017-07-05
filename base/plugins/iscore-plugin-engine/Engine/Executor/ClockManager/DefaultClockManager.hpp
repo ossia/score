@@ -62,6 +62,9 @@ public:
   QString prettyName() const override;
   std::unique_ptr<ClockManager>
   make(const Engine::Execution::Context& ctx) override;
+
+  std::function<ossia::time_value(const TimeVal&)>
+  makeTimeFunction() const override;
 };
 }
 }

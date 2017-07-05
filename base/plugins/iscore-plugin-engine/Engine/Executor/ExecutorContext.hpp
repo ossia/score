@@ -2,6 +2,8 @@
 #include <iscore_plugin_engine_export.h>
 #include <readerwriterqueue.h>
 #include <functional>
+#include <ossia/editor/scenario/time_value.hpp>
+#include <Process/TimeValue.hpp>
 namespace iscore
 {
 struct DocumentContext;
@@ -48,6 +50,13 @@ struct ISCORE_PLUGIN_ENGINE_EXPORT Context
   const Explorer::DeviceDocumentPlugin& devices;
   const Engine::Execution::ProcessComponentFactoryList& processes;
   const Engine::Execution::StateProcessComponentFactoryList& stateProcesses;
+
+  /** Used to map the "high-level" durations in i-score to low-level durations
+   *
+   * For instance, milliseconds to microseconds
+   * or milliseconds to samples
+   */
+  std::function<ossia::time_value(TimeVal)> time;
 
   //! \see LiveModification
   ExecutionCommandQueue& executionQueue;

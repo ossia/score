@@ -1,6 +1,8 @@
 #pragma once
 #include <Engine/Executor/ClockManager/ClockManagerFactory.hpp>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
+#include <Process/TimeValue.hpp>
 #include <iscore_plugin_engine_export.h>
 namespace Engine
 {
@@ -32,6 +34,8 @@ public:
 
   std::unique_ptr<ClockManager>
   makeClock(const Engine::Execution::Context& ctx) const;
+  std::function<ossia::time_value(const TimeVal&)>
+  makeTimeFunction() const;
 
   ISCORE_SETTINGS_PARAMETER_HPP(int, Rate)
   ISCORE_SETTINGS_PARAMETER_HPP(ClockManagerFactory::ConcreteKey, Clock)
