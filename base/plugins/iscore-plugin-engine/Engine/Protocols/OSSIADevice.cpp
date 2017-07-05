@@ -252,6 +252,25 @@ void OSSIADevice::disableCallbacks()
   }
 }
 
+Device::Node OSSIADevice::simple_refresh()
+{
+  Device::Node iscore_device{settings(), nullptr};
+
+  // Recurse on the children
+  const auto& ossia_children = getDevice()->get_root_node().children();
+  iscore_device.reserve(ossia_children.size());
+  for (const auto& node : ossia_children)
+  {
+    iscore_device.push_back(
+        Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
+  }
+
+  iscore_device.get<Device::DeviceSettings>().name
+      = QString::fromStdString(getDevice()->get_name());
+
+  return iscore_device;
+}
+
 void OSSIADevice::removeNode(const State::Address& address)
 {
   using namespace ossia;

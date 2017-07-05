@@ -64,9 +64,9 @@ public:
   make(const Engine::Execution::Context& ctx) override;
 
   std::function<ossia::time_value(const TimeVal&)>
-  makeTimeFunction() const override;
+  makeTimeFunction(const iscore::DocumentContext& ctx) const override;
   std::function<TimeVal(const ossia::time_value&)>
-  makeReverseTimeFunction() const override;
+  makeReverseTimeFunction(const iscore::DocumentContext& ctx) const override;
 };
 }
 }

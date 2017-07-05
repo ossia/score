@@ -83,6 +83,9 @@ protected:
   void enableCallbacks();
   void disableCallbacks();
 
+  // Refresh without handling callbacks
+  Device::Node simple_refresh();
+
 private:
   bool m_logging = false;
   bool m_callbacksEnabled = false;

@@ -1,7 +1,6 @@
 #pragma once
 #include <Engine/Protocols/OSSIADevice.hpp>
 
-Q_DECLARE_METATYPE(std::function<void()>)
 namespace Engine
 {
 namespace Network

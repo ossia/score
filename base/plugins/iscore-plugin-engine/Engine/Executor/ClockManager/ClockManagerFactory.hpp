@@ -66,9 +66,9 @@ public:
   make(const Engine::Execution::Context& ctx) = 0;
 
   virtual std::function<ossia::time_value(const TimeVal&)>
-  makeTimeFunction() const = 0;
+  makeTimeFunction(const iscore::DocumentContext& ctx) const = 0;
   virtual std::function<TimeVal(const ossia::time_value&)>
-  makeReverseTimeFunction() const = 0;
+  makeReverseTimeFunction(const iscore::DocumentContext& ctx) const = 0;
 };
 
 class ISCORE_PLUGIN_ENGINE_EXPORT ClockManagerFactoryList final
