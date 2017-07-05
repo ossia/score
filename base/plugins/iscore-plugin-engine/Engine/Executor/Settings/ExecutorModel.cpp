@@ -43,20 +43,20 @@ Model::makeClock(const Engine::Execution::Context& ctx) const
 }
 
 std::function<ossia::time_value(const TimeVal&)>
-Model::makeTimeFunction() const
+Model::makeTimeFunction(const iscore::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
   return it != m_clockFactories.end()
-      ? it->makeTimeFunction()
+      ? it->makeTimeFunction(ctx)
       : &iscore_to_ossia::defaultTime;
 }
 
 std::function<TimeVal(const ossia::time_value&)>
-Model::makeReverseTimeFunction() const
+Model::makeReverseTimeFunction(const iscore::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
   return it != m_clockFactories.end()
-               ? it->makeReverseTimeFunction()
+               ? it->makeReverseTimeFunction(ctx)
                : &ossia_to_iscore::defaultTime;
 }
 

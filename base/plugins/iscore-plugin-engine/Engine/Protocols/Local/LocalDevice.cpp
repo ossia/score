@@ -88,21 +88,7 @@ bool LocalDevice::reconnect()
 
 Device::Node LocalDevice::refresh()
 {
-  Device::Node iscore_device{settings(), nullptr};
-
-  // Recurse on the children
-  const auto& ossia_children = m_dev.get_root_node().children();
-  iscore_device.reserve(ossia_children.size());
-  for (const auto& node : ossia_children)
-  {
-    iscore_device.push_back(
-        Engine::ossia_to_iscore::ToDeviceExplorer(*node.get()));
-  }
-
-  iscore_device.get<Device::DeviceSettings>().name
-      = QString::fromStdString(m_dev.get_name());
-
-  return iscore_device;
+  return simple_refresh();
 }
 }
 }

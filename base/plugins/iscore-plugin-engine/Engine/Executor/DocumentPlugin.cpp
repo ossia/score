@@ -50,8 +50,10 @@ void DocumentPlugin::reload(Scenario::ConstraintModel& cst)
     m_base.baseConstraint().stop();
   }
   clear();
-  m_ctx.time = iscore::DocumentPlugin::context().app.settings<Engine::Execution::Settings::Model>().makeTimeFunction();
-  m_ctx.reverseTime = iscore::DocumentPlugin::context().app.settings<Engine::Execution::Settings::Model>().makeReverseTimeFunction();
+  auto& ctx = iscore::DocumentPlugin::context();
+  auto& settings = ctx.app.settings<Engine::Execution::Settings::Model>();
+  m_ctx.time = settings.makeTimeFunction(ctx);
+  m_ctx.reverseTime = settings.makeReverseTimeFunction(ctx);
   auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
   ISCORE_ASSERT(parent);
   m_base.init(BaseScenarioRefContainer{cst, *parent});
