@@ -36,6 +36,8 @@ public:
   makeClock(const Engine::Execution::Context& ctx) const;
   std::function<ossia::time_value(const TimeVal&)>
   makeTimeFunction() const;
+  std::function<TimeVal(const ossia::time_value&)>
+  makeReverseTimeFunction() const;
 
   ISCORE_SETTINGS_PARAMETER_HPP(int, Rate)
   ISCORE_SETTINGS_PARAMETER_HPP(ClockManagerFactory::ConcreteKey, Clock)

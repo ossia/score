@@ -62,12 +62,9 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
       [](auto&&...) {},
       *main_start_event,
       *main_end_event,
-      Engine::iscore_to_ossia::time(
-          element.constraint().duration.defaultDuration()),
-      Engine::iscore_to_ossia::time(
-          element.constraint().duration.minDuration()),
-      Engine::iscore_to_ossia::time(
-          element.constraint().duration.maxDuration()));
+      m_ctx.time(element.constraint().duration.defaultDuration()),
+      m_ctx.time(element.constraint().duration.minDuration()),
+      m_ctx.time(element.constraint().duration.maxDuration()));
 
   m_ossia_startTimeNode = std::make_shared<TimeNodeComponent>(
       element.startTimeNode(), m_ctx, newId(element.startTimeNode()), this);

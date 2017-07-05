@@ -49,7 +49,7 @@ Component::Component(
     : ::Engine::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>{
           parentConstraint, element, ctx, id, "LoopComponent", parent}
 {
-  ossia::time_value main_duration(Engine::iscore_to_ossia::time(
+  ossia::time_value main_duration(ctx.time(
       element.constraint().duration.defaultDuration()));
 
   auto loop = std::make_shared<ossia::loop>(

@@ -56,7 +56,8 @@ struct ISCORE_PLUGIN_ENGINE_EXPORT Context
    * For instance, milliseconds to microseconds
    * or milliseconds to samples
    */
-  std::function<ossia::time_value(TimeVal)> time;
+  std::function<ossia::time_value(const TimeVal&)> time;
+  std::function<TimeVal(const ossia::time_value&)> reverseTime;
 
   //! \see LiveModification
   ExecutionCommandQueue& executionQueue;

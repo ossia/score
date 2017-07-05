@@ -34,14 +34,14 @@ DefaultClockManager::makeDefaultCallback(
     Engine::Execution::BaseScenarioElement& bs)
 {
   auto& cst = bs.baseConstraint();
-  return [this, &bs, &iscore_cst = cst.iscoreConstraint() ](
+  return [this, &bs, &iscore_cst = cst.iscoreConstraint()](
       double position,
       ossia::time_value date,
       const ossia::state_element& state)
   {
     ossia::launch(state);
 
-    auto currentTime = Engine::ossia_to_iscore::time(date);
+    auto currentTime = this->context.reverseTime(date);
 
     auto& cstdur = iscore_cst.duration;
     const auto& maxdur = cstdur.maxDuration();
@@ -52,20 +52,10 @@ DefaultClockManager::makeDefaultCallback(
       cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
 
     // Run some commands if they have been submitted.
-    //! TODO it could be interesting to count here the time remaining to the next tick between
-    //! each command and do the max that we can achieve
-    for(int i = 0; i < 64; i++)
+    ExecutionCommand c;
+    while(context.executionQueue.try_dequeue(c))
     {
-      ExecutionCommand c;
-      context.executionQueue.try_dequeue(c);
-      if(c)
-      {
-        c();
-      }
-      else
-      {
-        break;
-      }
+      c();
     }
   };
 }
@@ -78,7 +68,7 @@ void DefaultClockManager::prepareExecution(
   const auto& oc = comp.OSSIAConstraint();
 
   auto start_state = oc->get_start_event().get_state();
-  auto offset_state = oc->offset(Engine::iscore_to_ossia::time(t));
+  auto offset_state = oc->offset(context.time(t));
 
   ossia::state accumulator;
   ossia::flatten_and_filter(accumulator, start_state);
@@ -201,7 +191,12 @@ ControlClockFactory::make(const Engine::Execution::Context& ctx)
 std::function<ossia::time_value(const TimeVal&)>
 ControlClockFactory::makeTimeFunction() const
 {
-  return &iscore_to_ossia::time;
+  return &iscore_to_ossia::defaultTime;
+}
+
+std::function<TimeVal (const ossia::time_value&)> ControlClockFactory::makeReverseTimeFunction() const
+{
+  return &ossia_to_iscore::defaultTime;
 }
 }
 }

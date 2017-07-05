@@ -3,6 +3,7 @@
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <Engine/iscore2OSSIA.hpp>
+#include <Engine/OSSIA2iscore.hpp>
 namespace Engine
 {
 namespace Execution
@@ -47,7 +48,16 @@ Model::makeTimeFunction() const
   auto it = m_clockFactories.find(m_Clock);
   return it != m_clockFactories.end()
       ? it->makeTimeFunction()
-      : &iscore_to_ossia::time;
+      : &iscore_to_ossia::defaultTime;
+}
+
+std::function<TimeVal(const ossia::time_value&)>
+Model::makeReverseTimeFunction() const
+{
+  auto it = m_clockFactories.find(m_Clock);
+  return it != m_clockFactories.end()
+               ? it->makeReverseTimeFunction()
+               : &ossia_to_iscore::defaultTime;
 }
 
 ISCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)

@@ -39,22 +39,22 @@ ConstraintComponentBase::ConstraintComponentBase(
   con(constraint().duration,
       &Scenario::ConstraintDurations::defaultDurationChanged, this,
       [&](TimeVal sp) {
-    system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
-      { cst->set_nominal_duration(iscore_to_ossia::time(sp)); });
+    system().executionQueue.enqueue([t=ctx.time(sp),cst = m_ossia_constraint]
+      { cst->set_nominal_duration(t); });
   });
 
   con(constraint().duration,
       &Scenario::ConstraintDurations::minDurationChanged, this,
       [&](TimeVal sp) {
-    system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
-      { cst->set_min_duration(iscore_to_ossia::time(sp)); });
+    system().executionQueue.enqueue([t=ctx.time(sp),cst = m_ossia_constraint]
+      { cst->set_min_duration(t); });
   });
 
   con(constraint().duration,
       &Scenario::ConstraintDurations::maxDurationChanged, this,
       [&](TimeVal sp) {
-    system().executionQueue.enqueue([sp,cst = m_ossia_constraint]
-      { cst->set_max_duration(iscore_to_ossia::time(sp)); });
+    system().executionQueue.enqueue([t=ctx.time(sp),cst = m_ossia_constraint]
+      { cst->set_max_duration(t); });
   });
 
 }
@@ -89,9 +89,9 @@ void ConstraintComponent::cleanup()
 ConstraintComponentBase::constraint_duration_data ConstraintComponentBase::makeDurations() const
 {
   return {
-        iscore_to_ossia::time(constraint().duration.defaultDuration()),
-        iscore_to_ossia::time(constraint().duration.minDuration()),
-        iscore_to_ossia::time(constraint().duration.maxDuration()),
+        context().time(constraint().duration.defaultDuration()),
+        context().time(constraint().duration.minDuration()),
+        context().time(constraint().duration.maxDuration()),
         constraint().duration.executionSpeed()
   };
 }
@@ -114,7 +114,7 @@ void ConstraintComponent::onSetup(
         [&](double position,
             ossia::time_value date,
             const ossia::state_element& state) {
-      auto currentTime = Engine::ossia_to_iscore::time(date);
+      auto currentTime = this->context().reverseTime(date);
 
       auto& cstdur = constraint().duration;
       const auto& maxdur = cstdur.maxDuration();

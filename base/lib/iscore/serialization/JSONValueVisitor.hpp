@@ -318,6 +318,17 @@ T fromJsonValue(const QJsonValueRef& json)
 template <template <typename U> class T, typename V>
 void fromJsonValueArray(const QJsonArray&& json_arr, T<Id<V>>& arr)
 {
+  arr.reserve(json_arr.size());
+  for (const auto& elt : json_arr)
+  {
+    arr.push_back(fromJsonValue<Id<V>>(elt));
+  }
+}
+
+template <typename V>
+void fromJsonValueArray(const QJsonArray&& json_arr, std::vector<Id<V>>& arr)
+{
+  arr.reserve(json_arr.size());
   for (const auto& elt : json_arr)
   {
     arr.push_back(fromJsonValue<Id<V>>(elt));
