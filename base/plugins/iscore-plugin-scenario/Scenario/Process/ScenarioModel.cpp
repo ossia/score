@@ -183,10 +183,8 @@ void ProcessModel::reset()
 
   for (auto& event : events)
   {
-    event.reset();
+    event.setStatus(Scenario::ExecutionStatus::Editing, *this);
   }
-
-  // TODO reset events / states display too
 }
 
 Selection ProcessModel::selectableChildren() const

@@ -76,7 +76,7 @@ public:
   void on_minDurationChanged(const TimeVal&);
   void on_maxDurationChanged(const TimeVal&);
 
-  void on_playPercentageChanged(double t);
+  bool on_playPercentageChanged(double t);
 
 signals:
   void pressed(QPointF) const;

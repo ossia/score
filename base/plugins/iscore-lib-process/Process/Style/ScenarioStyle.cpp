@@ -128,8 +128,9 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   ConstraintBraceWarning.setBrush(ConstraintWarning.getColor());
   ConstraintBraceInvalid = ConstraintBrace;
   ConstraintBraceInvalid.setBrush(ConstraintInvalid.getColor());
+  ConstraintHeaderTextPen = QPen{ConstraintHeaderText.getColor().color()};
 
-  //ConstraintSolidPen.setCosmetic(true);
+  // don't: ConstraintSolidPen.setCosmetic(true);
   ConstraintDashPen.setCosmetic(true);
   ConstraintRackPen.setCosmetic(true);
   ConstraintPlayPen.setCosmetic(true);
@@ -137,11 +138,13 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   ConstraintWaitingDashPen.setCosmetic(true);
 
   ConditionPen = QPen{Qt::black, 2};
+  ConditionPen.setCosmetic(true);
   ConditionTrianglePen = QPen{Qt::black, 2};
   ConditionTrianglePen.setCosmetic(true);
 
   TimenodePen = QPen{Qt::black, 2, Qt::DotLine, Qt::SquareCap, Qt::MiterJoin};
   TimenodeBrush = QBrush{Qt::black};
+  TimenodePen.setCosmetic(true);
 
   MinimapPen = QPen{QColor(qRgba(80, 100, 140, 100)), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   MinimapBrush = QBrush{qRgba(20, 70, 80, 1)};
@@ -150,6 +153,7 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   StateTemporalPointPen.setCosmetic(true);
   StateBrush = QBrush{Qt::black};
   EventPen = QPen{Qt::black, 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  EventPen.setCosmetic(true);
   EventBrush = QBrush{Qt::black};
 
   TimeRulerLargePen = QPen{TimeRuler.getColor(), 2, Qt::SolidLine};

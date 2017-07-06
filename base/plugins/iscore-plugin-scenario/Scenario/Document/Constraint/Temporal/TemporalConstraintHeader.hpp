@@ -3,6 +3,8 @@
 #include <QRect>
 #include <QTextLayout>
 #include <Scenario/Document/Constraint/ConstraintHeader.hpp>
+#include <ossia/detail/optional.hpp>
+#include <QGlyphRun>
 #include <qnamespace.h>
 
 class QGraphicsSceneMouseEvent;
@@ -43,6 +45,7 @@ private:
   void on_textChange() override;
   qreal m_previous_x{};
 
-  qreal m_textWidthCache;
+  QRectF m_textRectCache;
+  ossia::optional<QGlyphRun> m_line;
 };
 }

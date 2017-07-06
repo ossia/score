@@ -58,7 +58,7 @@ Component::Component(
       [this, &element](ossia::time_event::status newStatus) {
 
         element.startEvent().setStatus(
-            static_cast<Scenario::ExecutionStatus>(newStatus));
+            static_cast<Scenario::ExecutionStatus>(newStatus), process());
         switch (newStatus)
         {
           case ossia::time_event::status::NONE:
@@ -79,7 +79,7 @@ Component::Component(
       [this, &element](ossia::time_event::status newStatus) {
 
         element.endEvent().setStatus(
-            static_cast<Scenario::ExecutionStatus>(newStatus));
+            static_cast<Scenario::ExecutionStatus>(newStatus), process());
         switch (newStatus)
         {
           case ossia::time_event::status::NONE:

@@ -225,7 +225,14 @@ void DisplayedElementsPresenter::updateLength(double length)
 
 void DisplayedElementsPresenter::on_constraintExecutionTimer()
 {
-  m_constraintPresenter->on_playPercentageChanged(
-      m_constraintPresenter->model().duration.playPercentage());
+  auto& cst = *m_constraintPresenter;
+  auto pp = cst.model().duration.playPercentage();
+  if(cst.on_playPercentageChanged(pp))
+  {
+    auto& v = *cst.view();
+    const auto r = v.boundingRect();
+
+    v.update(r.x() + v.playWidth() - 1., r.y(), 1., 5.);
+  }
 }
 }

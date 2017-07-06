@@ -115,7 +115,7 @@ void ScenarioComponentBase::stop()
 
   for(Scenario::EventModel& e : process().events)
   {
-    e.setStatus(Scenario::ExecutionStatus::Editing);
+    e.setStatus(Scenario::ExecutionStatus::Editing, process());
   }
 }
 
@@ -387,7 +387,7 @@ void ScenarioComponentBase::eventCallback(
     EventComponent& ev, ossia::time_event::status newStatus)
 {
   auto the_event = const_cast<Scenario::EventModel*>(&ev.iscoreEvent());
-  the_event->setStatus(static_cast<Scenario::ExecutionStatus>(newStatus));
+  the_event->setStatus(static_cast<Scenario::ExecutionStatus>(newStatus), process());
 
   for (auto& state : the_event->states())
   {

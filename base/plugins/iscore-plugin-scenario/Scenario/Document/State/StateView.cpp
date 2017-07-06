@@ -14,6 +14,38 @@ class QStyleOptionGraphicsItem;
 class QWidget;
 namespace Scenario
 {
+static const QPainterPath smallNonDilated{
+[] {
+    QPainterPath p;
+    p.addEllipse({0, 0}, StateView::pointRadius, StateView::pointRadius);
+    return p;
+  }()
+};
+static const QPainterPath fullNonDilated{
+  [] {
+    QPainterPath p;
+    p.addEllipse({0, 0}, StateView::fullRadius, StateView::fullRadius);
+    return p;
+  }()
+};
+static const QPainterPath smallDilated{
+[] {
+    QPainterPath p;
+    p.addEllipse({0, 0},
+                 StateView::pointRadius * StateView::dilated,
+                 StateView::pointRadius * StateView::dilated);
+    return p;
+  }()
+};
+static const QPainterPath fullDilated{
+  [] {
+    QPainterPath p;
+    p.addEllipse({0, 0},
+                 StateView::fullRadius * StateView::dilated,
+                 StateView::fullRadius * StateView::dilated);
+    return p;
+  }()
+};
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
     : QGraphicsItem(parent), m_presenter{pres}
 {
@@ -42,18 +74,20 @@ void StateView::paint(
   if (m_containMessage)
   {
     painter->setBrush(skin.StateOutline.getColor());
-    painter->drawEllipse(
-        {0., 0.},
-        m_radiusFull * m_dilatationFactor,
-        m_radiusFull * m_dilatationFactor);
+    if(m_dilated)
+      painter->drawPath(fullDilated);
+    else
+      painter->drawPath(fullNonDilated);
   }
 
-  skin.StateTemporalPointPen.setColor(skin.StateTemporalPointBrush.color());
+  skin.StateTemporalPointPen.setBrush(skin.StateTemporalPointBrush);
 
   painter->setBrush(skin.StateTemporalPointBrush);
   painter->setPen(skin.StateTemporalPointPen);
-  const qreal r = m_radiusPoint * m_dilatationFactor;
-  painter->drawEllipse(QPointF{0., 0.}, r, r);
+  if(m_dilated)
+    painter->drawPath(smallDilated);
+  else
+    painter->drawPath(smallNonDilated);
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
   painter->setBrush(Qt::NoBrush);
@@ -73,7 +107,7 @@ void StateView::setContainMessage(bool arg)
 void StateView::setSelected(bool b)
 {
   m_selected = b;
-  setDilatation(m_selected ? 1.5 : 1);
+  setDilatation(m_selected);
 
   if(m_hasOverlay)
   {
@@ -128,12 +162,12 @@ void StateView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 }
 void StateView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-  setDilatation(1.5);
+  setDilatation(true);
 }
 
 void StateView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
-  setDilatation(m_selected ? 1.5 : 1);
+  setDilatation(m_selected);
 }
 
 void StateView::dropEvent(QGraphicsSceneDragDropEvent* event)
@@ -141,10 +175,10 @@ void StateView::dropEvent(QGraphicsSceneDragDropEvent* event)
   emit dropReceived(event->mimeData());
 }
 
-void StateView::setDilatation(double val)
+void StateView::setDilatation(bool val)
 {
   prepareGeometryChange();
-  m_dilatationFactor = val;
+  m_dilated = val;
   this->update();
 }
 }

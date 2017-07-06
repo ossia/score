@@ -67,21 +67,24 @@ void TemporalConstraintHeader::paint(
   }
 
   // Header
-  painter->setPen(skin.ConstraintHeaderText.getColor().color());
+  painter->setPen(skin.ConstraintHeaderTextPen);
 
   // If the centered text is hidden, we put it at the left so that it's on the
   // view.
   // We have to compute the visible part of the header
-  auto view = scene()->views().first();
+  const auto textWidth = m_textRectCache.width();
+  static auto view = [&] {
+    return scene()->views().first();
+  }();
   int text_left
       = view->mapFromScene(
-                mapToScene({m_width / 2. - m_textWidthCache / 2., 0.}))
+                mapToScene({m_width / 2. - textWidth / 2., 0.}))
             .x();
   int text_right
       = view->mapFromScene(
-                mapToScene({m_width / 2. + m_textWidthCache / 2., 0.}))
+                mapToScene({m_width / 2. + textWidth / 2., 0.}))
             .x();
-  double x = (m_width - m_textWidthCache) / 2.;
+  double x = (m_width - textWidth) / 2.;
   const constexpr double min_x = 10.;
   const double max_x = view->width() - 30.;
 
@@ -101,10 +104,10 @@ void TemporalConstraintHeader::paint(
   {
     m_previous_x = x;
   }
-  // TODO do like TimeRuler
-  painter->setFont(skin.Bold12Pt);
-  painter->drawText(QRectF{m_previous_x, 0, m_width - x, ConstraintHeader::headerHeight()},
-                    Qt::AlignLeft | Qt::AlignVCenter, m_text);
+
+  painter->drawGlyphRun({m_previous_x,
+                         (ConstraintHeader::headerHeight() - m_textRectCache.height()) / 2.},
+                        *m_line);
 }
 
 void TemporalConstraintHeader::mouseDoubleClickEvent(
@@ -115,8 +118,25 @@ void TemporalConstraintHeader::mouseDoubleClickEvent(
 
 void TemporalConstraintHeader::on_textChange()
 {
-  QFontMetrics fm(ScenarioStyle::instance().Bold12Pt);
-  m_textWidthCache = fm.width(m_text);
+  const auto& font = ScenarioStyle::instance().Bold12Pt;
+  if(m_text.isEmpty())
+  {
+    return;
+  }
+  else
+  {
+    QTextLayout layout(m_text, font);
+    layout.beginLayout();
+    auto line = layout.createLine();
+    layout.endLayout();
+
+    m_textRectCache = line.naturalTextRect();
+    auto r = line.glyphRuns();
+    if(r.size() > 0)
+      m_line = std::move(r[0]);
+    else
+      m_line = ossia::none;
+  }
 }
 
 void TemporalConstraintHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* h)

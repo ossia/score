@@ -48,6 +48,7 @@ void ConstraintView::setInfinite(bool infinite)
 
     m_infinite = infinite;
     updatePaths();
+    update();
   }
 }
 
@@ -64,6 +65,7 @@ void ConstraintView::setDefaultWidth(double width)
     prepareGeometryChange();
     m_defaultWidth = width;
     updatePaths();
+    update();
   }
 }
 
@@ -79,6 +81,7 @@ void ConstraintView::setMaxWidth(bool infinite, double max)
       m_maxWidth = max;
     }
     updatePaths();
+    update();
   }
 }
 
@@ -89,6 +92,7 @@ void ConstraintView::setMinWidth(double min)
     prepareGeometryChange();
     m_minWidth = min;
     updatePaths();
+    update();
   }
 }
 
@@ -99,16 +103,19 @@ void ConstraintView::setHeight(double height)
     prepareGeometryChange();
     m_height = height;
     updatePaths();
+    update();
   }
 }
 
-void ConstraintView::setPlayWidth(double width)
+bool ConstraintView::setPlayWidth(double width)
 {
   if(width != m_playWidth)
   {
     m_playWidth = width;
-    updatePaths();
+    updatePlayPaths();
+    return true;
   }
+  return false;
 }
 
 void ConstraintView::setValid(bool val)

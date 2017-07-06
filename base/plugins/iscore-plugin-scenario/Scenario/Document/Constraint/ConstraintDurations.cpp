@@ -97,7 +97,7 @@ void ConstraintDurations::setPlayPercentage(double arg)
     return;
 
   m_playPercentage = arg;
-  emit playPercentageChanged(arg);
+  //emit playPercentageChanged(arg);
 }
 
 void ConstraintDurations::setRigid(bool arg)
