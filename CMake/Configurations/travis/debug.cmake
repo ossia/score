@@ -1,4 +1,4 @@
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
 set(ISCORE_COTIRE True)
 set(DEPLOYMENT_BUILD False)
 

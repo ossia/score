@@ -15,18 +15,19 @@ ProcessGraphicsView::ProcessGraphicsView(
     : QGraphicsView{scene, parent}
 {
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
-  setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+  setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
   setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform
       | QPainter::TextAntialiasing);
 
   setFrameStyle(0);
   setCacheMode(QGraphicsView::CacheBackground);
+  setDragMode(QGraphicsView::NoDrag);
 
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
 #if !defined(ISCORE_OPENGL)
-// setAttribute(Qt::WA_PaintOnScreen, true);
-// setAttribute(Qt::WA_OpaquePaintEvent, true);
+ //setAttribute(Qt::WA_PaintOnScreen, true);
+ //setAttribute(Qt::WA_OpaquePaintEvent, true);
 #endif
 
 #if defined(__APPLE__)

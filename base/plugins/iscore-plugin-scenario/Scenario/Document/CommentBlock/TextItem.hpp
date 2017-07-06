@@ -37,10 +37,10 @@ public:
 
 private:
   void updateImpl();
+  QRectF m_rect;
   iscore::ColorRef m_color;
   QFont m_font;
   QString m_string;
-  QRectF m_rect;
   ossia::optional<QGlyphRun> m_line;
 };
 }

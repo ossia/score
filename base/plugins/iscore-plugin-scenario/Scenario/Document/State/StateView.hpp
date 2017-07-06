@@ -27,6 +27,11 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject,
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
 public:
+    static const constexpr qreal fullRadius = 6.;
+    static const constexpr qreal pointRadius = 3.5;
+    static const constexpr qreal notDilated = 1.;
+    static const constexpr qreal dilated = 1.5;
+
   StateView(StatePresenter& presenter, QGraphicsItem* parent = nullptr);
   virtual ~StateView() = default;
 
@@ -46,8 +51,8 @@ public:
 
   QRectF boundingRect() const override
   {
-    auto radius = m_radiusFull * m_dilatationFactor;
-    return {-radius, -radius, 2 * radius, 2 * radius};
+    const auto radius = m_dilated ? fullRadius * dilated : fullRadius;
+    return {-radius, -radius, 2. * radius, 2. * radius};
   }
 
   void paint(
@@ -76,17 +81,15 @@ protected:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
 private:
-  void setDilatation(double);
+  void setDilatation(bool);
   StatePresenter& m_presenter;
   StateMenuOverlay* m_overlay{};
 
-  qreal m_dilatationFactor = 1;
+  bool m_dilated{false};
   bool m_containMessage{false};
   bool m_selected{false};
   bool m_hasOverlay{true};
   ExecutionStatusProperty m_status{};
 
-  static const constexpr qreal m_radiusFull = 6.;
-  static const constexpr qreal m_radiusPoint = 3.5;
 };
 }

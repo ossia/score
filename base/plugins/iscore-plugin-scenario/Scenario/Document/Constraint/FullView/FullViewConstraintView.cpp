@@ -30,7 +30,9 @@ FullViewConstraintView::FullViewConstraintView(
 
 void FullViewConstraintView::updatePaths()
 {
-  update();
+}
+void FullViewConstraintView::updatePlayPaths()
+{
 }
 
 QRectF FullViewConstraintView::boundingRect() const

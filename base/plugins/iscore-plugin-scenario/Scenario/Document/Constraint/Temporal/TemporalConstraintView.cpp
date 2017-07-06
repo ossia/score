@@ -155,8 +155,66 @@ void TemporalConstraintView::updatePaths()
       }
     }
   }
-  update();
 }
+
+
+void TemporalConstraintView::updatePlayPaths()
+{
+  playedSolidPath = QPainterPath{};
+  playedDashedPath = QPainterPath{};
+  waitingDashedPath = QPainterPath{};
+
+  const qreal min_w = minWidth();
+  const qreal max_w = maxWidth();
+  const qreal def_w = defaultWidth();
+  const qreal play_w = playWidth();
+
+  // Paths
+  if(play_w <= 0)
+  {
+    return;
+  }
+  else
+  {
+    if (infinite())
+    {
+      if (min_w != 0.)
+      {
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0);
+      }
+
+      if(play_w > min_w)
+      {
+        playedDashedPath.moveTo(min_w, 0);
+        playedDashedPath.lineTo(std::min(def_w, play_w), 0);
+
+        waitingDashedPath.moveTo(min_w, 0);
+        waitingDashedPath.lineTo(def_w, 0);
+      }
+    }
+    else if (min_w == max_w) // TODO rigid()
+    {
+      playedSolidPath.lineTo(std::min(play_w, def_w), 0);
+    }
+    else
+    {
+      if (min_w != 0.)
+      {
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0);
+      }
+
+      if(play_w > min_w)
+      {
+        playedDashedPath.moveTo(min_w, 0);
+        playedDashedPath.lineTo(play_w, 0);
+
+        waitingDashedPath.moveTo(min_w, 0);
+        waitingDashedPath.lineTo(max_w, 0);
+      }
+    }
+  }
+}
+
 
 void TemporalConstraintView::paint(
     QPainter* p, const QStyleOptionGraphicsItem*, QWidget*)
@@ -177,7 +235,7 @@ void TemporalConstraintView::paint(
     rect.setWidth(def_w);
 
     auto bgColor = m_bgColor.getColor().color();
-    bgColor.setAlpha(m_hasFocus ? 84 : 76);
+    bgColor.setAlpha(m_hasFocus ? 86 : 70);
     painter.fillRect(rect, bgColor);
 
     // Fake timenode continuation

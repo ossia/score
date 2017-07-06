@@ -53,7 +53,7 @@ public:
   void setMaxWidth(bool infinite, double max);
   void setMinWidth(double min);
   void setHeight(double height);
-  void setPlayWidth(double width);
+  bool setPlayWidth(double width);
   void setValid(bool val);
 
   double height() const
@@ -117,6 +117,7 @@ public:
   void updateCounterPos();
   void updateOverlayPos();
   virtual void updatePaths() = 0;
+  virtual void updatePlayPaths() = 0;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;

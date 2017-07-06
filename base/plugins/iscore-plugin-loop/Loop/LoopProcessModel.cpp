@@ -78,9 +78,8 @@ void ProcessModel::stopExecution()
 void ProcessModel::reset()
 {
   constraint().reset();
-  startEvent().reset();
-  endEvent().reset();
-  // TODO reset events / states display too
+  startEvent().setStatus(Scenario::ExecutionStatus::Editing, *this);
+  endEvent().setStatus(Scenario::ExecutionStatus::Editing, *this);
 }
 
 Selection ProcessModel::selectableChildren() const

@@ -140,8 +140,9 @@ LayerPresenter::~LayerPresenter()
 
 void LayerPresenter::on_constraintExecutionTimer()
 {
-  m_constraintPresenter->on_playPercentageChanged(
-      m_constraintPresenter->model().duration.playPercentage());
+  if(m_constraintPresenter->on_playPercentageChanged(
+      m_constraintPresenter->model().duration.playPercentage()))
+    m_constraintPresenter->view()->update();
 }
 
 void LayerPresenter::setWidth(qreal width)

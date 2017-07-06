@@ -79,14 +79,13 @@ public:
   void translate(const TimeVal& deltaTime);
 
   ExecutionStatus status() const;
-  void reset();
 
   void setCondition(const State::Expression& arg);
 
   void setExtent(const VerticalExtent& extent);
   void setDate(const TimeVal& date);
 
-  void setStatus(ExecutionStatus status);
+  void setStatus(ExecutionStatus status, const Scenario::ScenarioInterface&);
   void setOffsetBehavior(OffsetBehavior);
 
 signals:

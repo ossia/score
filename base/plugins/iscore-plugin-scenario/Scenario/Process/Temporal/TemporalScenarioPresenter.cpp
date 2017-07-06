@@ -392,7 +392,15 @@ void TemporalScenarioPresenter::on_constraintExecutionTimer()
 {
   for (TemporalConstraintPresenter& cst : m_constraints)
   {
-    cst.on_playPercentageChanged(cst.model().duration.playPercentage());
+    auto pp = cst.model().duration.playPercentage();
+    if(cst.on_playPercentageChanged(pp))
+    {
+      auto& v = *cst.view();
+      const auto r = v.boundingRect();
+
+      if(r.width() > 7.)
+        v.update(r.x() + v.playWidth() - 1., r.y(), 1., 5.);
+    }
   }
 }
 

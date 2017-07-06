@@ -434,10 +434,11 @@ void ScenarioDocumentPresenter::updateMinimap()
   const auto vp_x2 = visibleSceneRect.right();
 
   const auto lh_x = viewWidth * (vp_x1 / cstWidth);
-  minimap.setLeftHandle(lh_x);
+  //minimap.setLeftHandle(lh_x);
 
   const auto rh_x = viewWidth * (vp_x2 / cstWidth);
-  minimap.setRightHandle(rh_x);
+  minimap.setHandles(lh_x, rh_x);
+  //minimap.setRightHandle(rh_x);
 }
 
 double ScenarioDocumentPresenter::displayedDuration() const

@@ -85,6 +85,7 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QPen ConstraintPlayPen;
   QPen ConstraintPlayDashPen;
   QPen ConstraintWaitingDashPen;
+  QPen ConstraintHeaderTextPen;
 
   QPen ConstraintBraceSelected;
   QPen ConstraintBraceWarning;

@@ -67,6 +67,7 @@ private:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
   void updatePaths() final override;
+  void updatePlayPaths() final override;
   iscore::ColorRef m_bgColor;
 
   QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath, waitingDashedPath;

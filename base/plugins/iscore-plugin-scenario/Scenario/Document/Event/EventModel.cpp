@@ -74,7 +74,9 @@ void EventModel::setDate(const TimeVal& date)
   }
 }
 
-void EventModel::setStatus(ExecutionStatus status)
+void EventModel::setStatus(
+    ExecutionStatus status,
+    const ScenarioInterface& scenar)
 {
   if (m_status.get() == status)
     return;
@@ -82,12 +84,9 @@ void EventModel::setStatus(ExecutionStatus status)
   m_status.set(status);
   emit statusChanged(status);
 
-  auto scenar = dynamic_cast<ScenarioInterface*>(parent());
-  ISCORE_ASSERT(scenar);
-
   for (auto& state : m_states)
   {
-    scenar->state(state).setStatus(status);
+    scenar.state(state).setStatus(status);
   }
 }
 
@@ -108,11 +107,6 @@ void EventModel::translate(const TimeVal& deltaTime)
 ExecutionStatus EventModel::status() const
 {
   return m_status.get();
-}
-
-void EventModel::reset()
-{
-  setStatus(ExecutionStatus::Editing);
 }
 
 // TODO Maybe remove the need for this by passing to the scenario instead ?
