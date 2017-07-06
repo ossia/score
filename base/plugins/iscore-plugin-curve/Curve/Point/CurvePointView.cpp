@@ -19,7 +19,11 @@ namespace Curve
 {
 const qreal radius = 2.85;
 const QRectF ellipse{-radius, -radius, 2. * radius, 2. * radius};
-
+static const QPainterPath ellipsePath{[] {
+    QPainterPath p;
+    p.addEllipse(ellipse);
+    return p;
+}()};
 PointView::PointView(
     const PointModel* model, const Curve::Style& style, QGraphicsItem* parent)
     : QGraphicsItem{parent}, m_style{style}
@@ -73,7 +77,7 @@ void PointView::paint(
     painter->setBrush(m_style.BrushPointSelected);
   }
 
-  painter->drawEllipse(ellipse);
+  painter->drawPath(ellipsePath);
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
 

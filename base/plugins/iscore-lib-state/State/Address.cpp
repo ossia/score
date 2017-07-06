@@ -323,7 +323,11 @@ QDebug operator<<(QDebug d, const State::AddressAccessorHead& a)
 
 QStringList stringList(const Address& addr)
 {
-  return QStringList{} << addr.device << addr.path;
+  QStringList l;
+  l.reserve(1 + addr.path.size());
+  l.append(addr.device);
+  l.append(addr.path);
+  return l;
 }
 
 QString toString(const ossia::destination_qualifiers& qualifiers)

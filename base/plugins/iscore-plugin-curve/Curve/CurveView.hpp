@@ -24,11 +24,7 @@ public:
   virtual ~View();
 
   void setRect(const QRectF& theRect);
-
-  QRectF boundingRect() const override
-  {
-    return m_rect;
-  }
+  QRectF boundingRect() const override;
 
   void paint(
       QPainter* painter,
@@ -50,12 +46,10 @@ signals:
 
   void contextMenuRequested(const QPoint&, const QPointF&);
 
-protected:
+private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
-
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
   void keyPressEvent(QKeyEvent* ev) override;
@@ -63,7 +57,6 @@ protected:
 
   void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 
-private:
   QRectF m_rect; // The rect in which the whole curve must fit.
   QRectF m_selectArea;
 };

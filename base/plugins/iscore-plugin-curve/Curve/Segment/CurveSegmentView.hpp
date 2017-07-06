@@ -38,21 +38,9 @@ public:
   }
 
   QRectF boundingRect() const override;
-
-  QPainterPath shape() const override
-  {
-    return m_strokedShape;
-  }
-
-  QPainterPath opaqueArea() const override
-  {
-    return m_strokedShape;
-  }
-
-  bool contains(const QPointF& pt) const override
-  {
-    return m_strokedShape.contains(pt);
-  }
+  QPainterPath shape() const override;
+  QPainterPath opaqueArea() const override;
+  bool contains(const QPointF& pt) const override;
 
   void paint(
       QPainter* painter,
@@ -80,6 +68,7 @@ protected:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 private:
+  void recomputeStroke() const;
   void updatePoints();
   void updatePen();
   // Takes a table of points and draws them in a square given by the
@@ -92,11 +81,12 @@ private:
   const Curve::Style& m_style;
 
   QPainterPath m_unstrokedShape;
-  QPainterPath m_strokedShape;
+  mutable QPainterPath m_strokedShape;
 
   bool m_enabled{true};
   bool m_tween{false};
   bool m_selected{};
+  mutable bool m_needsRecompute{false};
 
 };
 }

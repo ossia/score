@@ -54,7 +54,7 @@ public:
   }
 
   //- accessors
-  QString displayName() const;
+  const QString& displayName() const;
 
   bool isSelectable() const;
   bool isEditable() const;
@@ -88,7 +88,7 @@ parametersList(const Node& treeNode, State::MessageList& ml);
 ISCORE_LIB_DEVICE_EXPORT Device::Node&
 getNodeFromAddress(Device::Node& root, const State::Address&);
 ISCORE_LIB_DEVICE_EXPORT Device::Node*
-getNodeFromString(Device::Node& n, QStringList&& str); // Fails if not present.
+getNodeFromString(Device::Node& n, const QStringList& str); // Fails if not present.
 
 /**
  * @brief dumpTree An utility to print trees
@@ -169,22 +169,27 @@ std::vector<Node_T*> filterUniqueParents(std::vector<Node_T*>& nodes)
 }
 
 // Generic algorithms for DeviceExplorerNode-like structures.
-template <typename Node_T>
-Node_T* try_getNodeFromString(Node_T& n, QStringList&& parts)
+template <typename Node_T, typename It>
+Node_T* try_getNodeFromString_impl(Node_T& n, It begin, It end)
 {
-  if (parts.size() == 0)
+  if (begin == end)
     return &n;
 
   for (auto& child : n)
   {
-    if (child.displayName() == parts[0])
+    if (child.displayName() == *begin)
     {
-      parts.removeFirst();
-      return try_getNodeFromString(child, std::move(parts));
+      return try_getNodeFromString_impl(child, ++begin, end);
     }
   }
 
   return nullptr;
+}
+
+template <typename Node_T>
+Node_T* try_getNodeFromString(Node_T& n, const QStringList& parts)
+{
+  return try_getNodeFromString_impl(n, parts.cbegin(), parts.cend());
 }
 
 template <typename Node_T>
@@ -201,6 +206,6 @@ Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
   if (dev == root.end())
     return nullptr;
 
-  return try_getNodeFromString(*dev, QStringList(addr.path));
+  return try_getNodeFromString(*dev, addr.path);
 }
 }

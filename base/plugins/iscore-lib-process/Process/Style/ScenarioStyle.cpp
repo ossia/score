@@ -174,7 +174,7 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   Medium7Pt.setStyleStrategy(QFont::NoAntialias);
   Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
 
-  Medium8Pt = skin.SansFont;
+  Medium8Pt = skin.MonoFont;
   Medium8Pt.setPointSize(8);
 
   Medium12Pt = skin.SansFont;

@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
+#include <Device/Node/DeviceNode.hpp>
 
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
@@ -58,6 +59,8 @@ namespace iscore_to_ossia
 // OSSIA::net::Node* might be null.
 ISCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base*
 findNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
+ISCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base*
+findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev);
 
 ISCORE_PLUGIN_ENGINE_EXPORT ossia::net::address_base*
 findAddress(const Device::DeviceList& devices, const State::Address& addr);

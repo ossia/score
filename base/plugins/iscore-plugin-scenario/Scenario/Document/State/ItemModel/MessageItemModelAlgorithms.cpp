@@ -480,7 +480,7 @@ void updateTreeWithRemovedUserMessage(
 {
   // Find the message node
   Process::MessageNode* node
-      = Device::try_getNodeFromString(rootNode, stringList(addr));
+      = Device::try_getNodeFromString(rootNode, State::stringList(addr));
 
   if (node)
   {
@@ -534,7 +534,7 @@ void updateTreeWithRemovedNode(
 {
   // Find the message node
   Process::MessageNode* node_ptr
-      = Device::try_getNodeFromString(rootNode, stringList(addr));
+      = Device::try_getNodeFromString(rootNode, State::stringList(addr));
 
   if (node_ptr)
   {

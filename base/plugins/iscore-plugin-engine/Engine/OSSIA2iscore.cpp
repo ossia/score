@@ -107,16 +107,21 @@ ossia::bounding_mode ToClipMode(ossia::bounding_mode b)
   }
 }
 
+void ToAddress_rec(State::Address& addr, const ossia::net::node_base* cur, int N)
+{
+  if(auto padre = cur->get_parent())
+    ToAddress_rec(addr, padre, N + 1);
+  else
+    addr.path.reserve(N);
+  addr.path.push_back(QString::fromStdString(cur->get_name()));
+}
+
 State::Address ToAddress(const ossia::net::node_base& node)
 {
   State::Address addr;
   const ossia::net::node_base* cur = &node;
 
-  while (auto padre = cur->get_parent())
-  {
-    addr.path.push_front(QString::fromStdString(cur->get_name()));
-    cur = padre;
-  }
+  ToAddress_rec(addr, cur, 1);
 
   // The last node is the root node "/", which by convention
   // has the same name than the device
