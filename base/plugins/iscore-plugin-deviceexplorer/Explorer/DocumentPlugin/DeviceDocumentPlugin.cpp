@@ -205,7 +205,8 @@ void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
       Device::Node* parent = Device::try_getNodeFromAddress(m_rootNode, parentAddr);
       if (parent)
       {
-        auto it = ossia::find_if(*parent, [&] (const auto& n) { return n.displayName() == newaddr.path.last(); });
+        const auto& last = newaddr.path[newaddr.path.size() - 1];
+        auto it = ossia::find_if(*parent, [&] (const auto& n) { return n.displayName() == last; });
         if(it == parent->cend())
         {
           updateProxy.addLocalNode(

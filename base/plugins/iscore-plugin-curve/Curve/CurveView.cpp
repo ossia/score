@@ -87,4 +87,9 @@ void View::setRect(const QRectF& theRect)
   m_rect = theRect;
   update();
 }
+
+QRectF View::boundingRect() const
+{
+  return m_rect;
+}
 }

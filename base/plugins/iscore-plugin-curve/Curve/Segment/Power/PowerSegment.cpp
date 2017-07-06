@@ -46,7 +46,7 @@ void PowerSegment::updateData(int numInterp) const
     m_valid = false;
   if (!m_valid)
   {
-    if (gamma == PowerSegmentData::linearGamma)
+    if (gamma == PowerSegmentData::linearGamma || start() == end() || numInterp == 2)
     {
       if (m_data.size() != 2)
         m_data.resize(2);
@@ -55,7 +55,6 @@ void PowerSegment::updateData(int numInterp) const
     }
     else
     {
-      numInterp = 75;
       m_data.resize(numInterp + 1);
       double start_x = start().x();
       double start_y = start().y();

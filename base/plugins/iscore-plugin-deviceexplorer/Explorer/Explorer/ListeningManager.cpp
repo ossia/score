@@ -47,9 +47,8 @@ void ListeningManager::enableListening(Device::Node& node)
 {
   auto& dev = deviceFromNode(node);
 
-  auto addr = Device::address(node);
-  m_handler.setListening(dev, addr.address, true);
-  dev.request(addr.address);
+  m_handler.setListening(dev, node, true);
+  dev.request(node);
 }
 
 void ListeningManager::disableListening_rec(
@@ -59,9 +58,7 @@ void ListeningManager::disableListening_rec(
 {
   if (node.is<Device::AddressSettings>())
   {
-    auto addr = Device::address(node);
-
-    lm.setListening(dev, addr.address, false);
+    lm.setListening(dev, node, false);
   }
 
   for (const auto& child : node)
@@ -81,9 +78,8 @@ void ListeningManager::enableListening_rec(
   {
     if (child.is<Device::AddressSettings>())
     {
-      auto addr = Device::address(child);
-      lm.setListening(dev, addr.address, true);
-      dev.request(addr.address);
+      lm.setListening(dev, child, true);
+      dev.request(child);
     }
 
     // TODO check this

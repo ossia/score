@@ -113,10 +113,10 @@ void OSSIADevice::updateAddress(
   {
     ossia::net::node_base* node
         = Engine::iscore_to_ossia::getNodeFromPath(currentAddr.path, *dev);
-    auto newName = settings.address.path.last().toStdString();
-    if (newName != node->get_name())
+    auto newName = settings.address.path.last();
+    if (!latinCompare(newName, node->get_name()))
     {
-      node->set_name(newName);
+      node->set_name(newName.toStdString());
     }
 
     if (settings.value.val.which() == State::ValueType::NoValue)
@@ -349,11 +349,11 @@ optional<State::Value> OSSIADevice::refresh(const State::Address& address)
   return {};
 }
 
-void OSSIADevice::request(const State::Address& address)
+void OSSIADevice::request(const Device::Node& address)
 {
   if (auto dev = getDevice())
   {
-    auto node = Engine::iscore_to_ossia::findNodeFromPath(address.path, *dev);
+    auto node = Engine::iscore_to_ossia::findNodeFromPath(address, *dev);
     if (node)
     {
       if (auto addr = node->get_address())

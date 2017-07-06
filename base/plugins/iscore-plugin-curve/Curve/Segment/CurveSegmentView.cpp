@@ -17,11 +17,6 @@ class QWidget;
 #include <iscore/model/Identifier.hpp>
 namespace Curve
 {
-const QPainterPathStroker CurveSegmentStroker{[]() {
-  QPen p;
-  p.setWidth(12);
-  return p;
-}()};
 SegmentView::SegmentView(
     const SegmentModel* model,
     const Curve::Style& style,
@@ -38,15 +33,26 @@ SegmentView::SegmentView(
 
 void SegmentView::setModel(const SegmentModel* model)
 {
+  if(m_model)
+  {
+    disconnect(&m_model->selection, &Selectable::changed,
+               this, &SegmentView::setSelected);
+    disconnect(m_model, &SegmentModel::dataChanged,
+               this, &SegmentView::updatePoints);
+  }
+
   m_model = model;
 
   if (m_model)
   {
-    con(m_model->selection, &Selectable::changed, this,
-        &SegmentView::setSelected);
-    connect(
-        m_model, &SegmentModel::dataChanged, this, &SegmentView::updatePoints);
+    connect(&m_model->selection, &Selectable::changed,
+            this, &SegmentView::setSelected);
+    connect(m_model, &SegmentModel::dataChanged,
+            this, &SegmentView::updatePoints);
+
+    setSelected(m_model->selection.get());
   }
+  updatePoints();
 }
 
 const Id<SegmentModel>& SegmentView::id() const
@@ -64,6 +70,24 @@ void SegmentView::setRect(const QRectF& theRect)
 QRectF SegmentView::boundingRect() const
 {
   return m_rect;
+}
+
+QPainterPath SegmentView::shape() const
+{
+  recomputeStroke();
+  return m_strokedShape;
+}
+
+QPainterPath SegmentView::opaqueArea() const
+{
+  recomputeStroke();
+  return m_strokedShape;
+}
+
+bool SegmentView::contains(const QPointF& pt) const
+{
+  recomputeStroke();
+  return m_strokedShape.contains(pt);
 }
 
 void SegmentView::paint(
@@ -107,39 +131,57 @@ void SegmentView::setTween(bool b)
   update();
 }
 
+void SegmentView::recomputeStroke() const
+{
+  static const QPainterPathStroker CurveSegmentStroker{
+    [] {
+      QPen p;
+      p.setWidth(12);
+      return p;
+  }()
+  };
+  if(m_needsRecompute)
+  {
+    m_strokedShape = CurveSegmentStroker.createStroke(m_unstrokedShape);
+    m_needsRecompute = false;
+  }
+}
+
 void SegmentView::updatePoints()
 {
-  if (!m_model)
-    return;
-
-  // Get the length of the segment to scale.
-  double len = m_model->end().x() - m_model->start().x();
-  double startx = m_model->start().x() * m_rect.width() / len;
-  double scalex = m_rect.width() / len;
-
-  m_model->updateData(25); // Set the number of required points here.
-  const auto& pts = m_model->data();
-
-  const auto rect_height = m_rect.height();
-  // Map to the scene coordinates
-  if (!pts.empty())
+  if (m_model)
   {
-    auto first = pts.front();
-    auto first_scaled
-        = QPointF{first.x() * scalex - startx, (1. - first.y()) * rect_height};
+    // Get the length of the segment to scale.
+    double len = m_model->end().x() - m_model->start().x();
+    double startx = m_model->start().x() * m_rect.width() / len;
+    double scalex = m_rect.width() / len;
 
-    m_unstrokedShape = QPainterPath{first_scaled};
-    int n = pts.size();
-    for (int i = 1; i < n; i++)
+    m_model->updateData(std::min(75., std::max(m_rect.width(), 2.))); // Set the number of required points here.
+    const auto& pts = m_model->data();
+
+    const auto rect_height = m_rect.height();
+    // Map to the scene coordinates
+    if (!pts.empty())
     {
-      auto next = pts[i];
-      m_unstrokedShape.lineTo(
-          QPointF{next.x() * scalex - startx, (1. - next.y()) * rect_height});
+      auto first = pts.front();
+      auto first_scaled
+          = QPointF{first.x() * scalex - startx, (1. - first.y()) * rect_height};
+
+      m_unstrokedShape = QPainterPath{first_scaled};
+      int n = pts.size();
+      for (int i = 1; i < n; i++)
+      {
+        auto next = pts[i];
+        m_unstrokedShape.lineTo(
+            QPointF{next.x() * scalex - startx, (1. - next.y()) * rect_height});
+      }
     }
   }
-
-  m_strokedShape = CurveSegmentStroker.createStroke(m_unstrokedShape);
-
+  else
+  {
+    m_unstrokedShape = QPainterPath{};
+  }
+  m_needsRecompute = true;
   update();
 }
 

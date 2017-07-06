@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/model/EntityBase.hpp>
 #include <iscore/model/ComponentSerialization.hpp>
+#include <ossia-qt/js_utilities.hpp>
 
 namespace iscore
 {
@@ -18,17 +19,17 @@ class EntityMapInserter<iscore::Entity<T>>
   {
     ISCORE_ASSERT(obj);
 
-    std::vector<std::string> bros_names;
+    std::vector<QString> bros_names;
     bros_names.reserve(map.size());
     std::transform(
           map.begin(), map.end(), std::back_inserter(bros_names),
           [&](const auto& res) {
-      bros_names.push_back(res.metadata().getName().toStdString());
+      bros_names.push_back(res.metadata().getName());
     });
 
     auto new_name = ossia::net::sanitize_name(
-          obj->metadata().getName().toStdString(), bros_names);
-    obj->metadata().setName(QString::fromStdString(new_name));
+          obj->metadata().getName(), bros_names);
+    obj->metadata().setName(new_name);
 
     map.unsafe_map().insert(obj);
 

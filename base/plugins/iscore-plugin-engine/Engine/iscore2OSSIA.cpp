@@ -74,15 +74,16 @@ createNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
   ossia::net::node_base* node = &dev.get_root_node();
   for (int i = 0; i < path.size(); i++)
   {
-    auto cld = node->find_child(path[i].toStdString());
+    auto cld = node->find_child(path[i]);
     if (!cld)
     {
       // We have to start adding sub-nodes from here.
       ossia::net::node_base* parentnode = node;
       for (int k = i; k < path.size(); k++)
       {
-        auto newNode = parentnode->create_child(path[k].toStdString());
-        if (path[k].toStdString() != newNode->get_name())
+        auto path_k = path[k].toStdString();
+        auto newNode = parentnode->create_child(path_k);
+        if (path_k != newNode->get_name())
         {
           qDebug() << path[k] << newNode->get_name().c_str();
           for (const auto& node : parentnode->children())
@@ -120,12 +121,50 @@ findNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
   ossia::net::node_base* node = &dev.get_root_node();
   for (int i = 0; i < path.size(); i++)
   {
-    auto cld = node->find_child(path[i].toStdString());
+    auto cld = node->find_child(path[i]);
     if (cld)
       node = cld;
     else
     {
       qDebug() << "looking for" << path
+               << " -- last found: " << node->get_name() << "\n";
+      return {};
+    }
+  }
+
+  return node;
+}
+
+using small_node_vec = chobo::small_vector<const Device::Node*, 16>;
+void getPath(small_node_vec& v, const Device::Node* cur)
+{
+  auto p = cur->parent();
+  if(p && !p->is<Device::DeviceSettings>())
+  {
+    getPath(v, p);
+  }
+  v.push_back(cur);
+}
+
+ossia::net::node_base*
+findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev)
+{
+  using namespace ossia;
+  // First fill the vector of nodes
+  chobo::small_vector<const Device::Node*, 16> vec;
+  getPath(vec, &path);
+
+
+  // Find the relevant node to add in the device
+  ossia::net::node_base* node = &dev.get_root_node();
+  for (int i = 0; i < vec.size(); i++)
+  {
+    auto cld = node->find_child(vec[i]->displayName());
+    if (cld)
+      node = cld;
+    else
+    {
+      qDebug() << "looking for" << Device::address(path).address
                << " -- last found: " << node->get_name() << "\n";
       return {};
     }
@@ -143,7 +182,7 @@ getNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
   const int n = path.size();
   for (int i = 0; i < n ; i++)
   {
-    auto cld = node->find_child(path[i].toStdString());
+    auto cld = node->find_child(path[i]);
 
     ISCORE_ASSERT(cld);
 

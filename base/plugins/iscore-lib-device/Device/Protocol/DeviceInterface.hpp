@@ -78,7 +78,7 @@ public:
   {
     return {};
   }
-  virtual void request(const State::Address&)
+  virtual void request(const Device::Node&)
   {
   }
   virtual void setListening(const State::Address&, bool)

@@ -21,6 +21,15 @@ void PlayListeningHandler::setListening(
   }
 }
 
+void PlayListeningHandler::setListening(
+    Device::DeviceInterface& dev, const Device::Node& addr, bool b)
+{
+  if (!m_executor.isPlaying())
+  {
+    dev.setListening(Device::address(addr).address, b);
+  }
+}
+
 void PlayListeningHandler::addToListening(
     Device::DeviceInterface& dev, const std::vector<State::Address>& v)
 {

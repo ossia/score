@@ -15,12 +15,12 @@
 
 namespace Device
 {
-QString DeviceExplorerNode::displayName() const
+const QString& DeviceExplorerNode::displayName() const
 {
   struct
   {
   public:
-    using return_type = QString;
+    using return_type = const QString&;
     return_type operator()(const Device::DeviceSettings& dev) const
     {
       return dev.name;
@@ -33,7 +33,8 @@ QString DeviceExplorerNode::displayName() const
 
     return_type operator()(InvisibleRootNode) const
     {
-      return "Invisible Root DeviceExplorerNode";
+      static QString s{"Invisible Root DeviceExplorerNode"};
+      return s;
     }
   } visitor{};
 
@@ -51,9 +52,9 @@ bool DeviceExplorerNode::isEditable() const
          && hasOutput(get<Device::AddressSettings>().ioType);
 }
 
-Device::Node* getNodeFromString(Device::Node& n, QStringList&& parts)
+Device::Node* getNodeFromString(Device::Node& n, const QStringList& parts)
 {
-  auto theN = try_getNodeFromString(n, std::move(parts));
+  auto theN = try_getNodeFromString(n, parts);
   ISCORE_ASSERT(theN);
   return theN;
 }
@@ -65,6 +66,19 @@ Device::Node& getNodeFromAddress(Device::Node& n, const State::Address& addr)
   return *theN;
 }
 
+void address_rec(QStringList& path, const Node* n, const Device::Node*& root)
+{
+  if(n->parent() && !n->is<DeviceSettings>())
+  {
+    address_rec(path, n->parent(), root);
+    path.push_back(n->get<AddressSettings>().name);
+  }
+  else
+  {
+    root = n;
+  }
+}
+
 State::AddressAccessor address(const Node& treeNode)
 {
   State::AddressAccessor addr;
@@ -73,11 +87,8 @@ State::AddressAccessor address(const Node& treeNode)
   if (n->is<Device::AddressSettings>())
     addr.qualifiers.get().unit = n->get<Device::AddressSettings>().unit;
 
-  while (n->parent() && !n->is<DeviceSettings>())
-  {
-    addr.address.path.prepend(n->get<AddressSettings>().name);
-    n = n->parent();
-  }
+  addr.address.path.reserve(8);
+  address_rec(addr.address.path, n, n);
 
   ISCORE_ASSERT(n);
   ISCORE_ASSERT(n->is<DeviceSettings>());

@@ -1070,7 +1070,7 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
   if (deviceexplorer)
   {
     auto new_n = Device::try_getNodeFromString(
-        deviceexplorer->rootNode(), std::move(newpath));
+        deviceexplorer->rootNode(), newpath);
     if (new_n && new_n->is<Device::AddressSettings>())
     {
       return Device::FullAddressAccessorSettings{
@@ -1099,7 +1099,7 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
   // First try to find if there is a matching address
   // in the device explorer
   auto new_n = Device::try_getNodeFromString(
-        deviceexplorer.rootNode(), std::move(newpath));
+        deviceexplorer.rootNode(), newpath);
   if (new_n && new_n->is<Device::AddressSettings>())
   {
     return Device::FullAddressAccessorSettings{

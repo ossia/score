@@ -69,11 +69,10 @@ public:
 
   void updateData(int numInterp) const override
   {
-    if (std::size_t(2 * numInterp + 1) != m_data.size())
+    if (std::size_t(numInterp + 1) != m_data.size())
       m_valid = false;
     if (!m_valid)
     {
-      numInterp *= 2;
       m_data.resize(numInterp + 1);
 
       double start_x = start().x();

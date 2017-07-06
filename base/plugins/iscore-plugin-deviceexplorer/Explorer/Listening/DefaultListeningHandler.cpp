@@ -13,6 +13,11 @@ void DefaultListeningHandler::setListening(
   dev.setListening(addr, b);
 }
 
+void DefaultListeningHandler::setListening(Device::DeviceInterface& dev, const Device::Node& addr, bool b)
+{
+  dev.setListening(Device::address(addr).address, b);
+}
+
 void DefaultListeningHandler::addToListening(
     Device::DeviceInterface& dev, const std::vector<State::Address>& v)
 {
