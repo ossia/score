@@ -307,7 +307,7 @@ ISCORE_LIB_STATE_EXPORT optional<State::Expression>
 parseExpression(const QString& str);
 ISCORE_LIB_STATE_EXPORT optional<State::Expression>
 parseExpression(const std::string& str);
-ISCORE_LIB_STATE_EXPORT optional<State::Value> parseValue(const std::string& str);
+ISCORE_LIB_STATE_EXPORT optional<ossia::value> parseValue(const std::string& str);
 ISCORE_LIB_STATE_EXPORT optional<State::Address>
 parseAddress(const QString& str);
 ISCORE_LIB_STATE_EXPORT optional<State::AddressAccessor>
@@ -323,7 +323,7 @@ ISCORE_LIB_STATE_EXPORT bool isEmptyExpression(const QString&);
 
 JSON_METADATA(State::Address, "Address")
 JSON_METADATA(State::AddressAccessor, "AddressAccessor")
-JSON_METADATA(State::Value, "Value")
+JSON_METADATA(ossia::value, "Value")
 JSON_METADATA(State::Relation, "Relation")
 JSON_METADATA(State::Pulse, "Pulse")
 JSON_METADATA(State::UnaryOperator, "UnOp")

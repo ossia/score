@@ -29,20 +29,20 @@ const std::array<const QString, 11> ValuePrettyTypes{
      QObject::tr("Bool"), QObject::tr("String"), QObject::tr("Tuple"),
      QObject::tr("Char"), QObject::tr("Container")}};
 
-const std::array<std::pair<QString, ValueType>, 10> ValuePrettyTypesPairArray{
-    {std::make_pair(QObject::tr("Impulse"), ValueType::Impulse),
-     std::make_pair(QObject::tr("Int"), ValueType::Int),
-     std::make_pair(QObject::tr("Float"), ValueType::Float),
-     std::make_pair(QObject::tr("Bool"), ValueType::Bool),
-     std::make_pair(QObject::tr("String"), ValueType::String),
-     std::make_pair(QObject::tr("Char"), ValueType::Char),
-     std::make_pair(QObject::tr("Vec2f"), ValueType::Vec2f),
-     std::make_pair(QObject::tr("Vec3f"), ValueType::Vec3f),
-     std::make_pair(QObject::tr("Vec4f"), ValueType::Vec4f),
-     std::make_pair(QObject::tr("Tuple"), ValueType::Tuple)}};
+const std::array<std::pair<QString, ossia::val_type>, 10> ValuePrettyTypesPairArray{
+    {std::make_pair(QObject::tr("Impulse"), ossia::val_type::IMPULSE),
+     std::make_pair(QObject::tr("Int"), ossia::val_type::INT),
+     std::make_pair(QObject::tr("Float"), ossia::val_type::FLOAT),
+     std::make_pair(QObject::tr("Bool"), ossia::val_type::BOOL),
+     std::make_pair(QObject::tr("String"), ossia::val_type::STRING),
+     std::make_pair(QObject::tr("Char"), ossia::val_type::CHAR),
+     std::make_pair(QObject::tr("Vec2f"), ossia::val_type::VEC2F),
+     std::make_pair(QObject::tr("Vec3f"), ossia::val_type::VEC3F),
+     std::make_pair(QObject::tr("Vec4f"), ossia::val_type::VEC4F),
+     std::make_pair(QObject::tr("Tuple"), ossia::val_type::TUPLE)}};
 
 template <>
-QVariant value(const State::Value& val)
+QVariant value(const ossia::value& val)
 {
   struct vis
   {
@@ -104,18 +104,18 @@ QVariant value(const State::Value& val)
 
       for (const auto& elt : t)
       {
-        arr.push_back(ossia::apply(*this, elt.impl()));
+        arr.push_back(ossia::apply(*this, elt.v));
       }
 
       return arr;
     }
   };
 
-  return ossia::apply(vis{}, val.val.impl());
+  return ossia::apply(vis{}, val.v);
 }
 
 template <>
-QJsonValue value(const State::Value& val)
+QJsonValue value(const ossia::value& val)
 {
   struct vis
   {
@@ -188,7 +188,7 @@ QJsonValue value(const State::Value& val)
       {
         QJsonObject obj;
         obj[strings.Type] = textualType(elt);
-        obj[strings.Value] = eggs::variants::apply(*this, elt.impl());
+        obj[strings.Value] = ossia::apply(*this, elt.v);
         arr.append(obj);
       }
 
@@ -196,10 +196,10 @@ QJsonValue value(const State::Value& val)
     }
   };
 
-  return ossia::apply(vis{}, val.val.impl());
+  return ossia::apply(vis{}, val.v);
 }
 
-QString textualType(const State::Value& val)
+QString textualType(const ossia::value& val)
 {
   struct vis
   {
@@ -259,31 +259,31 @@ QString textualType(const State::Value& val)
     }
   };
 
-  return ossia::apply(vis{}, val.val.impl());
+  return ossia::apply(vis{}, val.v);
 }
 
-const QHash<QString, State::ValueType> ValueTypesMap{
-    {QStringLiteral("Impulse"), State::ValueType::Impulse},
-    {QStringLiteral("Int"), State::ValueType::Int},
-    {QStringLiteral("Float"), State::ValueType::Float},
-    {QStringLiteral("Bool"), State::ValueType::Bool},
-    {QStringLiteral("String"), State::ValueType::String},
-    {QStringLiteral("Char"), State::ValueType::Char},
-    {QStringLiteral("Vec2f"), State::ValueType::Vec2f},
-    {QStringLiteral("Vec3f"), State::ValueType::Vec3f},
-    {QStringLiteral("Vec4f"), State::ValueType::Vec4f},
-    {QStringLiteral("Tuple"), State::ValueType::Tuple},
-    {QStringLiteral("None"), State::ValueType::NoValue}};
+const QHash<QString, ossia::val_type> ValTypesMap{
+    {QStringLiteral("Impulse"), ossia::val_type::IMPULSE},
+    {QStringLiteral("Int"), ossia::val_type::INT},
+    {QStringLiteral("Float"), ossia::val_type::FLOAT},
+    {QStringLiteral("Bool"), ossia::val_type::BOOL},
+    {QStringLiteral("String"), ossia::val_type::STRING},
+    {QStringLiteral("Char"), ossia::val_type::CHAR},
+    {QStringLiteral("Vec2f"), ossia::val_type::VEC2F},
+    {QStringLiteral("Vec3f"), ossia::val_type::VEC3F},
+    {QStringLiteral("Vec4f"), ossia::val_type::VEC4F},
+    {QStringLiteral("Tuple"), ossia::val_type::TUPLE},
+    {QStringLiteral("None"), ossia::val_type::NONE}};
 
-static ValueType which(const QString& val)
+static ossia::val_type which(const QString& val)
 {
-  auto it = ValueTypesMap.find(val);
-  ISCORE_ASSERT(it != ValueTypesMap.end()); // What happens if there is a
+  auto it = ValTypesMap.find(val);
+  ISCORE_ASSERT(it != ValTypesMap.end()); // What happens if there is a
                                             // corrupt save file ?
-  return static_cast<State::ValueType>(*it);
+  return static_cast<ossia::val_type>(*it);
 }
 
-static State::ValueImpl fromQJsonValueImpl(const QJsonValue& val)
+static ossia::value fromQJsonValueImpl(const QJsonValue& val)
 {
   switch (val.type())
   {
@@ -310,48 +310,48 @@ static State::ValueImpl fromQJsonValueImpl(const QJsonValue& val)
     case QJsonValue::Type::Object:
     case QJsonValue::Type::Undefined:
     default:
-      return State::ValueImpl{};
+      return ossia::value{};
   }
 }
 
-State::Value fromQJsonValue(const QJsonValue& val)
+ossia::value fromQJsonValue(const QJsonValue& val)
 {
-  return State::Value::fromValue(fromQJsonValueImpl(val));
+  return fromQJsonValueImpl(val);
 }
 
-static State::ValueImpl
-fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
+static ossia::value
+fromQJsonValueImpl(const QJsonValue& val, ossia::val_type type)
 {
   if (val.isNull())
   {
-    if (type == State::ValueType::Impulse)
-      return State::ValueImpl{State::impulse{}};
+    if (type == ossia::val_type::IMPULSE)
+      return ossia::value{State::impulse{}};
     else
-      return State::ValueImpl{};
+      return ossia::value{};
   }
 
   switch (type)
   {
-    case ValueType::NoValue:
-      return State::ValueImpl{};
-    case ValueType::Impulse:
-      return State::ValueImpl{State::impulse{}};
-    case ValueType::Int:
-      return State::ValueImpl{val.toInt()};
-    case ValueType::Float:
-      return State::ValueImpl{val.toDouble()};
-    case ValueType::Bool:
-      return State::ValueImpl{val.toBool()};
-    case ValueType::String:
-      return State::ValueImpl{val.toString().toStdString()};
-    case ValueType::Char:
+    case ossia::val_type::NONE:
+      return ossia::value{};
+    case ossia::val_type::IMPULSE:
+      return ossia::value{State::impulse{}};
+    case ossia::val_type::INT:
+      return ossia::value{val.toInt()};
+    case ossia::val_type::FLOAT:
+      return ossia::value{val.toDouble()};
+    case ossia::val_type::BOOL:
+      return ossia::value{val.toBool()};
+    case ossia::val_type::STRING:
+      return ossia::value{val.toString().toStdString()};
+    case ossia::val_type::CHAR:
     {
       auto str = val.toString();
       if (!str.isEmpty())
-        return State::ValueImpl{str[0].toLatin1()};
-      return State::ValueImpl{char{}};
+        return ossia::value{str[0].toLatin1()};
+      return ossia::value{char{}};
     }
-    case ValueType::Vec2f:
+    case ossia::val_type::VEC2F:
     {
       auto json_arr = val.toArray();
       State::vec2f arr;
@@ -361,9 +361,9 @@ fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
         arr[i] = json_arr[i].toDouble();
       }
 
-      return State::ValueImpl{arr};
+      return ossia::value{arr};
     }
-    case ValueType::Vec3f:
+    case ossia::val_type::VEC3F:
     {
       auto json_arr = val.toArray();
       State::vec3f arr;
@@ -373,9 +373,9 @@ fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
         arr[i] = json_arr[i].toDouble();
       }
 
-      return State::ValueImpl{arr};
+      return ossia::value{arr};
     }
-    case ValueType::Vec4f:
+    case ossia::val_type::VEC4F:
     {
       auto json_arr = val.toArray();
       State::vec4f arr;
@@ -385,9 +385,9 @@ fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
         arr[i] = json_arr[i].toDouble();
       }
 
-      return State::ValueImpl{arr};
+      return ossia::value{arr};
     }
-    case ValueType::Tuple:
+    case ossia::val_type::TUPLE:
     {
       auto arr = val.toArray();
       State::tuple_t tuple;
@@ -406,26 +406,26 @@ fromQJsonValueImpl(const QJsonValue& val, State::ValueType type)
         }
       });
 
-      return State::ValueImpl{tuple};
+      return ossia::value{tuple};
     }
     default:
-      return State::ValueImpl{};
+      return ossia::value{};
   }
 }
 
-State::Value fromQJsonValue(const QJsonValue& val, ValueType which)
+ossia::value fromQJsonValue(const QJsonValue& val, ossia::val_type which)
 {
-  return State::Value{fromQJsonValueImpl(val, which)};
+  return ossia::value{fromQJsonValueImpl(val, which)};
 }
 
-State::Value fromQJsonValue(const QJsonValue& val, const QString& type)
+ossia::value fromQJsonValue(const QJsonValue& val, const QString& type)
 {
   return fromQJsonValue(val, which(type));
 }
 
-QString prettyType(const State::Value& val)
+QString prettyType(const ossia::value& val)
 {
-  const auto& impl = val.val.impl();
+  const auto& impl = val.v;
   if (impl.which() < ValuePrettyTypes.size())
     return ValuePrettyTypes.at(impl.which());
   else
@@ -446,7 +446,7 @@ const QStringList& ValuePrettyTypesList()
 }
 
 template <>
-int value(const State::Value& val)
+int value(const ossia::value& val)
 {
   struct
   {
@@ -506,11 +506,11 @@ int value(const State::Value& val)
     }
   } visitor{};
 
-  return ossia::apply(visitor, val.val.impl());
+  return ossia::apply(visitor, val.v);
 }
 
 template <>
-float value(const State::Value& val)
+float value(const ossia::value& val)
 {
   struct
   {
@@ -570,16 +570,16 @@ float value(const State::Value& val)
     }
   } visitor{};
 
-  return ossia::apply(visitor, val.val.impl());
+  return ossia::apply(visitor, val.v);
 }
 template <>
-double value(const State::Value& val)
+double value(const ossia::value& val)
 {
   return (double)value<float>(val);
 }
 
 template <>
-bool value(const State::Value& val)
+bool value(const ossia::value& val)
 {
   struct
   {
@@ -646,11 +646,11 @@ bool value(const State::Value& val)
     }
   } visitor{};
 
-  return ossia::apply(visitor, val.val.impl());
+  return ossia::apply(visitor, val.v);
 }
 
 template <>
-QChar value(const State::Value& val)
+QChar value(const ossia::value& val)
 {
   struct
   {
@@ -710,11 +710,11 @@ QChar value(const State::Value& val)
     }
   } visitor{};
 
-  return ossia::apply(visitor, val.val.impl());
+  return ossia::apply(visitor, val.v);
 }
 
 template <>
-QString value(const State::Value& val)
+QString value(const ossia::value& val)
 {
   struct
   {
@@ -775,7 +775,7 @@ QString value(const State::Value& val)
     }
   } visitor{};
 
-  return ossia::apply(visitor, val.val.impl());
+  return ossia::apply(visitor, val.v);
 }
 
 template<int N, typename Vis>
@@ -785,7 +785,7 @@ std::array<float, N> string_to_vec(const std::string& s, const Vis& visitor)
 
   if (v)
   {
-    const auto& val = (*v).val;
+    const auto& val = *v;
 
     if(auto t = val.target<tuple_t>())
       return visitor(*t);
@@ -795,7 +795,7 @@ std::array<float, N> string_to_vec(const std::string& s, const Vis& visitor)
 }
 
 template <>
-vec2f value(const State::Value& val)
+vec2f value(const ossia::value& val)
 {
   struct vis
   {
@@ -857,11 +857,11 @@ vec2f value(const State::Value& val)
     }
   };
 
-  return ossia::apply(vis{}, val.val.impl());
+  return ossia::apply(vis{}, val.v);
 }
 
 template <>
-vec3f value(const State::Value& val)
+vec3f value(const ossia::value& val)
 {
   struct vis
   {
@@ -920,11 +920,11 @@ vec3f value(const State::Value& val)
     }
   };
 
-  return ossia::apply(vis{}, val.val.impl());
+  return ossia::apply(vis{}, val.v);
 }
 
 template <>
-vec4f value(const State::Value& val)
+vec4f value(const ossia::value& val)
 {
   struct vis
   {
@@ -982,11 +982,11 @@ vec4f value(const State::Value& val)
     }
   };
 
-  return ossia::apply(vis{}, val.val.impl());
+  return ossia::apply(vis{}, val.v);
 }
 
 template <>
-tuple_t value(const State::Value& val)
+tuple_t value(const ossia::value& val)
 {
   struct vis
   {
@@ -1017,7 +1017,7 @@ tuple_t value(const State::Value& val)
 
       if (v)
       {
-        if(auto t = v->val.target<tuple_t>())
+        if(auto t = v->target<tuple_t>())
           return *t;
       }
 
@@ -1045,22 +1045,22 @@ tuple_t value(const State::Value& val)
     }
   };
 
-  return ossia::apply(vis{}, val.val.impl());
+  return ossia::apply(vis{}, val.v);
 }
 
 template <>
-std::string value(const State::Value& val)
+std::string value(const ossia::value& val)
 {
   return value<QString>(val).toStdString();
 }
 
 template <>
-char value(const State::Value& val)
+char value(const ossia::value& val)
 {
   return value<QChar>(val).toLatin1();
 }
 
-QString toPrettyString(const State::Value& val)
+QString toPrettyString(const ossia::value& val)
 {
   struct vis
   {
@@ -1161,13 +1161,13 @@ QString toPrettyString(const State::Value& val)
       auto n = t.size();
       if (n >= 1)
       {
-        s += eggs::variants::apply(*this, t[0].impl());
+        s += ossia::apply(*this, t[0].v);
       }
 
       for (std::size_t i = 1; i < n; i++)
       {
         s += ", ";
-        s += eggs::variants::apply(*this, t[i].impl());
+        s += ossia::apply(*this, t[i].v);
       }
 
       s += "]";
@@ -1175,70 +1175,70 @@ QString toPrettyString(const State::Value& val)
     }
   };
 
-  return ossia::apply(vis{}, val.val.impl());
+  return ossia::apply(vis{}, val.v);
 }
 
 namespace
 {
 struct convert_helper
 {
-  State::Value& toConvert;
+  ossia::value& toConvert;
   void operator()() const
   {
-    toConvert.val = State::ValueImpl{};
+    toConvert = ossia::value{};
   }
   void operator()(const State::impulse& v) const
   {
-    toConvert.val = v;
+    toConvert = v;
   }
 
   template <typename T>
   void operator()(const T&) const
   {
-    toConvert.val = value<T>(toConvert);
+    toConvert = value<T>(toConvert);
   }
 };
 }
-bool convert(const State::Value& orig, State::Value& toConvert)
+bool convert(const ossia::value& orig, ossia::value& toConvert)
 {
-  ossia::apply(convert_helper{toConvert}, orig.val.impl());
+  ossia::apply(convert_helper{toConvert}, orig.v);
   return true;
 }
 
-static State::ValueImpl fromQVariantImpl(const QVariant& val)
+static ossia::value fromQVariantImpl(const QVariant& val)
 {
 #pragma GCC diagnostic ignored "-Wswitch"
 #pragma GCC diagnostic ignored "-Wswitch-enum"
   switch (auto t = QMetaType::Type(val.type()))
   {
     case QMetaType::Int:
-      return State::ValueImpl{val.toInt()};
+      return ossia::value{val.toInt()};
     case QMetaType::UInt:
-      return State::ValueImpl{(int)val.toUInt()};
+      return ossia::value{(int)val.toUInt()};
     case QMetaType::Long:
-      return State::ValueImpl{(int)val.value<int64_t>()};
+      return ossia::value{(int)val.value<int64_t>()};
     case QMetaType::LongLong:
-      return State::ValueImpl{(int)val.toLongLong()};
+      return ossia::value{(int)val.toLongLong()};
     case QMetaType::ULong:
-      return State::ValueImpl{(int)val.value<uint64_t>()};
+      return ossia::value{(int)val.value<uint64_t>()};
     case QMetaType::ULongLong:
-      return State::ValueImpl{(int)val.toULongLong()};
+      return ossia::value{(int)val.toULongLong()};
     case QMetaType::Short:
-      return State::ValueImpl{(int)val.value<int16_t>()};
+      return ossia::value{(int)val.value<int16_t>()};
     case QMetaType::UShort:
-      return State::ValueImpl{(int)val.value<uint16_t>()};
+      return ossia::value{(int)val.value<uint16_t>()};
     case QMetaType::Float:
-      return State::ValueImpl{val.toFloat()};
+      return ossia::value{val.toFloat()};
     case QMetaType::Double:
-      return State::ValueImpl{(float)val.toDouble()};
+      return ossia::value{(float)val.toDouble()};
     case QMetaType::Bool:
-      return State::ValueImpl{val.toBool()};
+      return ossia::value{val.toBool()};
     case QMetaType::QString:
-      return State::ValueImpl{val.toString().toStdString()};
+      return ossia::value{val.toString().toStdString()};
     case QMetaType::Char:
-      return State::ValueImpl{val.value<char>()};
+      return ossia::value{val.value<char>()};
     case QMetaType::QChar:
-      return State::ValueImpl{val.toChar().toLatin1()};
+      return ossia::value{val.toChar().toLatin1()};
     case QMetaType::QVariantList:
     {
       auto list = val.value<QVariantList>();
@@ -1253,27 +1253,27 @@ static State::ValueImpl fromQVariantImpl(const QVariant& val)
     case QMetaType::QVector2D:
     {
       auto vec = val.value<QVector2D>();
-      return State::ValueImpl{vec2f{{vec[0], vec[1]}}};
+      return ossia::value{vec2f{{vec[0], vec[1]}}};
     }
     case QMetaType::QVector3D:
     {
       auto vec = val.value<QVector3D>();
-      return State::ValueImpl{vec3f{{vec[0], vec[1], vec[2]}}};
+      return ossia::value{vec3f{{vec[0], vec[1], vec[2]}}};
     }
     case QMetaType::QVector4D:
     {
       auto vec = val.value<QVector4D>();
-      return State::ValueImpl{vec4f{{vec[0], vec[1], vec[2], vec[3]}}};
+      return ossia::value{vec4f{{vec[0], vec[1], vec[2], vec[3]}}};
     }
     default:
     {
-      if (t == qMetaTypeId<State::Value>())
+      if (t == qMetaTypeId<ossia::value>())
       {
-        return State::ValueImpl{impulse{}};
+        return ossia::value{impulse{}};
       }
       else
       {
-        return State::ValueImpl{};
+        return ossia::value{};
       }
     }
   }
@@ -1282,17 +1282,17 @@ static State::ValueImpl fromQVariantImpl(const QVariant& val)
 #pragma GCC diagnostic warning "-Wswitch-enum"
 }
 
-State::Value fromQVariant(const QVariant& val)
+ossia::value fromQVariant(const QVariant& val)
 {
-  return State::Value{fromQVariantImpl(val)};
+  return ossia::value{fromQVariantImpl(val)};
 }
 
-QString prettyType(ValueType t)
+QString prettyType(ossia::val_type t)
 {
   return ValuePrettyTypes[static_cast<int>(t)];
 }
 
-const std::array<std::pair<QString, State::ValueType>, 10>&
+const std::array<std::pair<QString, ossia::val_type>, 10>&
 ValuePrettyTypesMap()
 {
   return ValuePrettyTypesPairArray;

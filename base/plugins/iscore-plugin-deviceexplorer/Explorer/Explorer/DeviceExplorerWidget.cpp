@@ -622,7 +622,7 @@ void DeviceExplorerWidget::refresh()
 void DeviceExplorerWidget::refreshValue()
 {
   // TODO deprecate this
-  QList<QPair<const Device::Node*, State::Value>> lst;
+  QList<QPair<const Device::Node*, ossia::value>> lst;
 
   auto expl = model();
 

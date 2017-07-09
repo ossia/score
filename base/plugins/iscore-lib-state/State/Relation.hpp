@@ -9,7 +9,7 @@
 namespace State
 {
 using RelationMember
-    = eggs::variant<State::Address, State::AddressAccessor, State::Value>;
+    = eggs::variant<State::Address, State::AddressAccessor, ossia::value>;
 
 ISCORE_LIB_STATE_EXPORT QString toString(const RelationMember&);
 

@@ -17,10 +17,7 @@ class QObject;
 namespace ossia
 {
 struct domain;
-}
-namespace State
-{
-struct Value;
+class value;
 }
 namespace Curve
 {
@@ -110,7 +107,7 @@ struct ISCORE_PLUGIN_CURVE_EXPORT CurveDomain
   CurveDomain& operator=(const CurveDomain&) = default;
   CurveDomain& operator=(CurveDomain&&) = default;
   CurveDomain(const ossia::domain& dom);
-  CurveDomain(const ossia::domain& dom, const State::Value&);
+  CurveDomain(const ossia::domain& dom, const ossia::value&);
   CurveDomain(const ossia::domain& dom, double start, double end);
   CurveDomain(double start, double end):
     min{std::min(start, end)},

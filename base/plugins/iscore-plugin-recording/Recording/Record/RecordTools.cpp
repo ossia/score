@@ -41,9 +41,7 @@ GetParametersRecursive(const std::vector<Device::Node*>& parents)
     if (ok)
     {
       auto& as = n->get<Device::AddressSettings>();
-      ok &= as.value.val.isValid()
-            && (std::size_t)as.value.val.which()
-                   < (std::size_t)State::ValueType::NoValue;
+      ok &= as.value.valid();
     }
 
     if (ok)

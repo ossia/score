@@ -133,7 +133,6 @@ BOOST_FUSION_ADAPT_STRUCT(
     State::AddressAccessor,
     (State::Address, address)(ossia::destination_qualifiers, qualifiers))
 
-BOOST_FUSION_ADAPT_STRUCT(State::Value, (State::Value::value_type, val))
 
 BOOST_FUSION_ADAPT_STRUCT(
     State::Relation,
@@ -235,7 +234,7 @@ struct BoolParse_map : qi::symbols<char, bool>
   }
 };
 template <typename Iterator>
-struct Value_parser : qi::grammar<Iterator, State::Value()>
+struct Value_parser : qi::grammar<Iterator, ossia::value()>
 {
   Value_parser() : Value_parser::base_type(start)
   {
@@ -249,12 +248,9 @@ struct Value_parser : qi::grammar<Iterator, State::Value()>
     str_parser %= '"' >> qi::lexeme[*(char_ - '"')] >> '"';
 
     tuple_parser
-        %= skip(boost::spirit::standard::space)["[" >> variant % "," >> "]"];
-    variant
-        %= real_parser<float, boost::spirit::qi::strict_real_policies<float>>()
+        %= skip(boost::spirit::standard::space)["[" >> start % "," >> "]"];
+    start %= real_parser<float, boost::spirit::qi::strict_real_policies<float>>()
            | int_ | bool_parser | char_parser | str_parser | tuple_parser;
-
-    start %= variant;
   }
 
   BoolParse_map bool_parser;
@@ -262,8 +258,7 @@ struct Value_parser : qi::grammar<Iterator, State::Value()>
   qi::rule<Iterator, State::tuple_t()> tuple_parser;
   qi::rule<Iterator, char()> char_parser;
   qi::rule<Iterator, std::string()> str_parser;
-  qi::rule<Iterator, State::Value::value_type()> variant;
-  qi::rule<Iterator, State::Value()> start;
+  qi::rule<Iterator, ossia::value()> start;
 };
 
 //// RelMember parsing
@@ -501,13 +496,13 @@ ossia::optional<State::Expression> State::parseExpression(const QString& str)
   return parseExpression(str.toStdString());
 }
 
-ossia::optional<State::Value> State::parseValue(const std::string& input)
+ossia::optional<ossia::value> State::parseValue(const std::string& input)
 {
   auto f(std::begin(input)), l(std::end(input));
   Value_parser<decltype(f)> p;
   try
   {
-    State::Value result;
+    ossia::value result;
     bool ok = qi::phrase_parse(f, l, p, qi::standard::space, result);
 
     if (!ok)

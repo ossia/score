@@ -38,7 +38,7 @@ struct ISCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
   AddressSettingsCommon& operator=(AddressSettingsCommon&&) noexcept;
   ~AddressSettingsCommon() noexcept;
 
-  State::Value value;
+  ossia::value value;
   Device::Domain domain;
 
   State::Unit unit;
@@ -167,7 +167,7 @@ struct ISCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
       const ossia::value& min,
       const ossia::value& max) noexcept;
 
-  State::Value value;
+  ossia::value value;
   Device::Domain domain;
 
   optional<ossia::access_mode> ioType;

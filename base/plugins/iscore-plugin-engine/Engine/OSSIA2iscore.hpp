@@ -42,7 +42,7 @@ struct MatchingType<float>
   using type = float;
   static auto convert(float f)
   {
-    return State::Value::fromValue(f);
+    return f;
   }
 };
 template <>
@@ -52,7 +52,7 @@ struct MatchingType<double>
   using type = float;
   static auto convert(double f)
   {
-    return State::Value::fromValue(f);
+    return f;
   }
 };
 template <>
@@ -62,7 +62,7 @@ struct MatchingType<int>
   using type = int32_t;
   static auto convert(int f)
   {
-    return State::Value::fromValue(f);
+    return f;
   }
 };
 template <>
@@ -72,7 +72,7 @@ struct MatchingType<bool>
   using type = bool;
   static auto convert(bool f)
   {
-    return State::Value::fromValue(f);
+    return f;
   }
 };
 template <>
@@ -82,7 +82,7 @@ struct MatchingType<State::impulse>
   using type = ossia::impulse;
   static auto convert(State::impulse)
   {
-    return State::Value::fromValue(State::impulse{});
+    return ossia::impulse{};
   }
 };
 template <>
@@ -92,11 +92,11 @@ struct MatchingType<std::string>
   using type = std::string;
   static auto convert(const std::string& f)
   {
-    return State::Value::fromValue(f);
+    return f;
   }
   static auto convert(std::string&& f)
   {
-    return State::Value::fromValue(std::move(f));
+    return std::move(f);
   }
 };
 template <>
@@ -106,11 +106,7 @@ struct MatchingType<QString>
   using type = std::string;
   static auto convert(const QString& f)
   {
-    return State::Value::fromValue(f.toStdString());
-  }
-  static auto convert(QString&& f)
-  {
-    return State::Value::fromValue(f.toStdString());
+    return f.toStdString();
   }
 };
 template <>
@@ -120,7 +116,7 @@ struct MatchingType<char>
   using type = char;
   static auto convert(char f)
   {
-    return State::Value::fromValue(f);
+    return f;
   }
 };
 template <>
@@ -130,7 +126,7 @@ struct MatchingType<QChar>
   using type = char;
   static auto convert(QChar f)
   {
-    return State::Value::fromValue(f.toLatin1());
+    return f.toLatin1();
   }
 };
 template <>
@@ -140,7 +136,7 @@ struct MatchingType<State::vec2f>
   using type = ossia::vec2f;
   static auto convert(const State::vec2f& t)
   {
-    return State::Value::fromValue(t);
+    return t;
   }
 };
 template <>
@@ -150,7 +146,7 @@ struct MatchingType<State::vec3f>
   using type = ossia::vec3f;
   static auto convert(const State::vec3f& t)
   {
-    return State::Value::fromValue(t);
+    return t;
   }
 };
 template <>
@@ -160,7 +156,7 @@ struct MatchingType<State::vec4f>
   using type = ossia::vec4f;
   static auto convert(const State::vec4f& t)
   {
-    return State::Value::fromValue(t);
+    return t;
   }
 };
 template <>
@@ -170,11 +166,11 @@ struct MatchingType<State::tuple_t>
   using type = std::vector<ossia::value>;
   static auto convert(const State::tuple_t& t)
   {
-    return State::Value::fromValue(t);
+    return t;
   }
   static auto convert(State::tuple_t&& t)
   {
-    return State::Value::fromValue(std::move(t));
+    return std::move(t);
   }
 };
 template <>
@@ -184,14 +180,12 @@ struct MatchingType<::TimeVal>
   using type = float;
   static auto convert(::TimeVal&& t)
   {
-    return State::Value::fromValue(t.msec());
+    return t.msec();
   }
 };
 
 ISCORE_PLUGIN_ENGINE_EXPORT ossia::bounding_mode
 ToClipMode(ossia::bounding_mode b);
-
-ISCORE_PLUGIN_ENGINE_EXPORT State::Value ToValue(ossia::val_type);
 
 ISCORE_PLUGIN_ENGINE_EXPORT State::Address
 ToAddress(const ossia::net::node_base& node);

@@ -211,7 +211,7 @@ void DeviceExplorerModel::updateAddress(
 }
 
 void DeviceExplorerModel::updateValue(
-    Device::Node* n, const State::AddressAccessor& addr, const State::Value& v)
+    Device::Node* n, const State::AddressAccessor& addr, const ossia::value& v)
 {
   if (!addr.qualifiers.get().accessors.empty())
   {
@@ -488,8 +488,8 @@ bool DeviceExplorerModel::setData(
       auto copy = State::convert::fromQVariant(value);
 
       // We may have to convert types.
-      const auto& orig = n.get<Device::AddressSettings>().value;
-      if (copy.val.which() != orig.val.which()
+      const ossia::value& orig = n.get<Device::AddressSettings>().value;
+      if (copy.v.which() != orig.v.which()
           && !State::convert::convert(orig, copy))
         return false;
 
@@ -619,7 +619,7 @@ bool DeviceExplorerModel::setHeaderData(
 void DeviceExplorerModel::editData(
     const Device::NodePath& path,
     Explorer::Column column,
-    const State::Value& value,
+    const ossia::value& value,
     int role)
 {
   Device::Node* node = path.toNode(&rootNode());
@@ -629,7 +629,7 @@ void DeviceExplorerModel::editData(
 void DeviceExplorerModel::editData(
     Device::Node& node,
     Column column,
-    const State::Value& value,
+    const ossia::value& value,
     int role)
 {
   ISCORE_ASSERT(node.parent());

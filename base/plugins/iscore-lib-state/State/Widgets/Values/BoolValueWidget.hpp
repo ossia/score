@@ -7,12 +7,12 @@ class QWidget;
 
 namespace State
 {
-class ISCORE_LIB_STATE_EXPORT BoolValueWidget final : public State::ValueWidget
+class ISCORE_LIB_STATE_EXPORT BoolValueWidget final : public ValueWidget
 {
 public:
   BoolValueWidget(bool value, QWidget* parent = nullptr);
 
-  State::Value value() const override;
+  ossia::value value() const override;
 
 private:
   QComboBox* m_value;

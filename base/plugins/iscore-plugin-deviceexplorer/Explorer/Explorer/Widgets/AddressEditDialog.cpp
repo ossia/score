@@ -39,10 +39,10 @@ static void populateTypeCb(QComboBox& cb)
   const int n = arr.size();
   for (int i = 0; i < n - 1; i++)
   {
-    auto t = static_cast<State::ValueType>(i);
+    auto t = static_cast<ossia::val_type>(i);
     cb.addItem(arr[i], QVariant::fromValue(t));
   }
-  cb.addItem(arr[n - 1], QVariant::fromValue(State::ValueType::NoValue));
+  cb.addItem(arr[n - 1], QVariant::fromValue(ossia::val_type::NONE));
 }
 
 AddressEditDialog::AddressEditDialog(
@@ -91,7 +91,7 @@ AddressEditDialog::~AddressEditDialog()
 void AddressEditDialog::updateType()
 {
   const auto valueType
-      = m_valueTypeCBox->currentData().value<State::ValueType>();
+      = m_valueTypeCBox->currentData().value<ossia::val_type>();
   auto widg = AddressSettingsFactory::instance().get_value_typeWidget(valueType);
 
   m_addressWidget->setWidget(widg);
@@ -122,7 +122,7 @@ Device::AddressSettings AddressEditDialog::getSettings() const
   else
   {
     // Int by default
-    settings.value.val = 0;
+    settings.value = 0;
   }
 
   settings.name = m_nameEdit->text();

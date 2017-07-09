@@ -236,6 +236,6 @@ void DeviceDocumentPlugin::on_valueUpdated(
     const State::Address& addr, const ossia::value& v)
 {
   updateProxy.updateLocalValue(
-      State::AddressAccessor{addr}, State::fromOSSIAValue(v));
+      State::AddressAccessor{addr}, v);
 }
 }

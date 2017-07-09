@@ -15,13 +15,13 @@ namespace State
  *
  * It is a line edit limited to one character
  */
-class ISCORE_LIB_STATE_EXPORT CharValueWidget final : public State::ValueWidget
+class ISCORE_LIB_STATE_EXPORT CharValueWidget final : public ValueWidget
 {
 public:
   CharValueWidget(QChar value, QWidget* parent);
 
-  State::Value value() const override;
-  void setValue(State::Value v) const;
+  ossia::value value() const override;
+  void setValue(ossia::value v) const;
 
 private:
   QLineEdit* m_value{};

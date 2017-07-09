@@ -87,14 +87,14 @@ public:
   void addLocalNode(Device::Node& parent, Device::Node&& node);
 
   void removeLocalNode(const State::Address&);
-  void updateLocalValue(const State::AddressAccessor&, const State::Value&);
+  void updateLocalValue(const State::AddressAccessor&, const ossia::value&);
   void
   updateLocalSettings(const State::Address&, const Device::AddressSettings&);
 
-  void updateRemoteValue(const State::AddressAccessor&, const State::Value&);
+  void updateRemoteValue(const State::AddressAccessor&, const ossia::value&);
 
-  State::Value refreshRemoteValue(const State::Address&) const;
-  optional<State::Value> try_refreshRemoteValue(const State::Address&) const;
+  ossia::value refreshRemoteValue(const State::Address&) const;
+  optional<ossia::value> try_refreshRemoteValue(const State::Address&) const;
   void refreshRemoteValues(const Device::NodeList&);
 
 private:

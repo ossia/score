@@ -84,7 +84,7 @@ void MessageRecorder::stop()
   movecmd->redo(context.context);
   context.dispatcher.submitCommand(movecmd);
 
-  for (int i = 1; i < m_records.size(); i++)
+  for (std::size_t i = 1; i < m_records.size(); i++)
   {
     RecordedMessage& val = m_records[i];
 
@@ -117,7 +117,7 @@ void MessageRecorder::on_valueUpdated(
 
     m_records.push_back(RecordedMessage{
         msecs, State::Message{State::AddressAccessor{addr},
-                              State::fromOSSIAValue(val)}});
+                              val}});
 
     m_createdProcess->setDuration(TimeVal::fromMsecs(msecs));
   }
@@ -128,7 +128,7 @@ void MessageRecorder::on_valueUpdated(
 
     m_records.push_back(RecordedMessage{
         0., State::Message{State::AddressAccessor{addr},
-                           State::fromOSSIAValue(val)}});
+                           val}});
   }
 }
 

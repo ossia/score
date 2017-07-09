@@ -62,11 +62,11 @@ struct GetPropertyWrapper final : public BaseProperty
           auto newVal = converter_t::convert(property.get());
           try
           {
-            auto res = ::State::fromOSSIAValue(addr.value());
+            auto res = addr.value();
 
             if (newVal != res)
             {
-              addr.push_value(Engine::iscore_to_ossia::toOSSIAValue(newVal));
+              addr.push_value(newVal);
             }
           }
           catch (...)
@@ -75,8 +75,8 @@ struct GetPropertyWrapper final : public BaseProperty
         },
         Qt::QueuedConnection);
 
-    addr.set_value(Engine::iscore_to_ossia::toOSSIAValue(
-        converter_t::convert(property.get())));
+    addr.set_value(
+        converter_t::convert(property.get()));
   }
 };
 

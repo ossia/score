@@ -22,36 +22,36 @@ namespace Device
 // the XML and JSON method, since they actually use almost the
 // same format.
 
-static State::Value stringToVal(const QString& str, const QString& type)
+static ossia::value stringToVal(const QString& str, const QString& type)
 {
-  State::Value val;
+  ossia::value val;
   bool ok = false;
   if (type == "integer")
   {
-    val.val = str.toInt(&ok);
+    val = str.toInt(&ok);
   }
   else if (type == "decimal")
   {
-    val.val = str.toFloat(&ok);
+    val = str.toFloat(&ok);
   }
   else if (type == "boolean")
   {
-    val.val = (str.toFloat(&ok) != 0);
+    val = (str.toFloat(&ok) != 0);
   }
   else if (type == "string")
   {
-    val.val = str.toStdString();
+    val = str.toStdString();
     ok = true;
   }
   else if (type == "array")
   {
-    val.val = State::tuple_t{};
+    val = State::tuple_t{};
     // TODO
     ok = true;
   }
   else if(type == "none")
   {
-    val.val = ossia::impulse{};
+    val = ossia::impulse{};
     ok = true;
   }
   else
@@ -60,7 +60,7 @@ static State::Value stringToVal(const QString& str, const QString& type)
   }
 
   if (!ok)
-    return State::Value{};
+    return ossia::value{};
 
   return val;
 }
@@ -109,7 +109,7 @@ static ossia::value stringToOssiaVal(const QString& str, const QString& type)
   return val;
 }
 
-static State::Value
+static ossia::value
 read_valueDefault(const QDomElement& dom_element, const QString& type)
 {
   if (dom_element.hasAttribute("valueDefault"))
@@ -217,7 +217,7 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
 
     if(!addr.ioType)
     {
-      if(addr.value.val.isValid())
+      if(addr.value.valid())
       {
         addr.ioType = ossia::access_mode::BI;
       }
@@ -296,15 +296,15 @@ const QJsonValue& val)
 >
 >;
 
-static State::Value fromJamomaTextualType(const QString& str)
+static ossia::value fromJamomaTextualType(const QString& str)
 {
-  static const iscore::hash_map<QString, State::Value> value_map{
-    {"boolean", State::Value::fromValue(false)},
-    {"integer", State::Value::fromValue(0)},
-    {"decimal", State::Value::fromValue(0.)},
-    {"filepath", State::Value::fromValue("")},
-    {"decimalArray", State::Value::fromValue(State::tuple_t{})},
-    {"string", State::Value::fromValue("")}
+  static const iscore::hash_map<QString, ossia::value> value_map{
+    {"boolean", ossia::value(false)},
+    {"integer", ossia::value(0)},
+    {"decimal", ossia::value(0.)},
+    {"filepath", ossia::value(std::string(""))},
+    {"decimalArray", ossia::value(State::tuple_t{})},
+    {"string", ossia::value(std::string(""))}
   };
   auto it = value_map.find(str);
   if(it != value_map.end())
@@ -329,7 +329,7 @@ static optional<ossia::net::instance_bounds> fromJamomaInstanceBounds(const QStr
 
 static ossia::domain fromJamomaJsonDomain(
     const QString& str,
-    State::ValueType t)
+    ossia::val_type t)
 {
   if(!str.isEmpty())
   {
@@ -337,14 +337,14 @@ static ossia::domain fromJamomaJsonDomain(
     if(dom.size() == 2)
     {
       switch(t) {
-        case State::ValueType::Int:
+        case ossia::val_type::INT:
           return ossia::make_domain(dom[0].toInt(), dom[1].toInt());
           break;
-        case State::ValueType::Float:
-        case State::ValueType::Tuple:
-        case State::ValueType::Vec2f:
-        case State::ValueType::Vec3f:
-        case State::ValueType::Vec4f:
+        case ossia::val_type::FLOAT:
+        case ossia::val_type::TUPLE:
+        case ossia::val_type::VEC2F:
+        case ossia::val_type::VEC3F:
+        case ossia::val_type::VEC4F:
           return ossia::make_domain(dom[0].toFloat(), dom[1].toFloat());
           break;
         default:
@@ -357,42 +357,42 @@ static ossia::domain fromJamomaJsonDomain(
 }
 
 
-static State::ValueImpl fromJamomaJsonValue(
+static ossia::value fromJamomaJsonValue(
     const QJsonValue& val,
-    State::ValueType type)
+    ossia::val_type type)
 {
   using namespace State;
   if (val.isNull())
   {
-    if (type == State::ValueType::Impulse)
-      return State::ValueImpl{State::impulse{}};
+    if (type == ossia::val_type::IMPULSE)
+      return ossia::value{State::impulse{}};
     else
-      return State::ValueImpl{};
+      return ossia::value{};
   }
 
   switch (type)
   {
-    case ValueType::NoValue:
-      return State::ValueImpl{};
-    case ValueType::Impulse:
-      return State::ValueImpl{State::impulse{}};
-    case ValueType::Int:
-      return State::ValueImpl{val.toVariant().toInt()};
-    case ValueType::Float:
-      return State::ValueImpl{val.toVariant().toDouble()};
-    case ValueType::Bool:
-      return State::ValueImpl{val.toVariant().toBool()};
-    case ValueType::String:
-      return State::ValueImpl{val.toString().toStdString()};
-    case ValueType::Char:
+    case ossia::val_type::NONE:
+      return ossia::value{};
+    case ossia::val_type::IMPULSE:
+      return ossia::value{State::impulse{}};
+    case ossia::val_type::INT:
+      return ossia::value{val.toVariant().toInt()};
+    case ossia::val_type::FLOAT:
+      return ossia::value{val.toVariant().toDouble()};
+    case ossia::val_type::BOOL:
+      return ossia::value{val.toVariant().toBool()};
+    case ossia::val_type::STRING:
+      return ossia::value{val.toString().toStdString()};
+    case ossia::val_type::CHAR:
     {
       auto str = val.toString();
       if (!str.isEmpty())
-        return State::ValueImpl{str[0].toLatin1()};
-      return State::ValueImpl{char{}};
+        return ossia::value{str[0].toLatin1()};
+      return ossia::value{char{}};
     }
 
-    case ValueType::Tuple:
+    case ossia::val_type::TUPLE:
     {
       // Tuples are always tuples of numbers in this case.
       auto arr = val.toString().split(' ');
@@ -404,13 +404,13 @@ static State::ValueImpl fromJamomaJsonValue(
         tuple.push_back(val.toDouble());
       }
 
-      return State::ValueImpl{std::move(tuple)};
+      return ossia::value{std::move(tuple)};
     }
-    case ValueType::Vec2f:
-    case ValueType::Vec3f:
-    case ValueType::Vec4f:
+    case ossia::val_type::VEC2F:
+    case ossia::val_type::VEC3F:
+    case ossia::val_type::VEC4F:
     default:
-      return State::ValueImpl{};
+      return ossia::value{};
   }
 }
 
@@ -432,7 +432,7 @@ static const json_actions_t& actions()
       a.emplace(json_actions_t::value_type{
                   QStringLiteral("valueDefault"),
                   [] (Device::AddressSettings& addr, const QJsonValue& val) {
-                    addr.value = fromJamomaJsonValue(val, addr.value.val.which());
+                    addr.value = fromJamomaJsonValue(val, (ossia::val_type)addr.value.v.which());
                   }});
       a.emplace(json_actions_t::value_type{
                   QStringLiteral("priority"),
@@ -442,7 +442,7 @@ static const json_actions_t& actions()
       a.emplace(json_actions_t::value_type{
                   QStringLiteral("rangeBounds"),
                   [] (Device::AddressSettings& addr, const QJsonValue& val) {
-                    addr.domain = fromJamomaJsonDomain(val.toString(), addr.value.val.which());
+                    addr.domain = fromJamomaJsonDomain(val.toString(), (ossia::val_type)addr.value.v.which());
                   }});
       a.emplace(json_actions_t::value_type{
                   QStringLiteral("valueStepSize"),

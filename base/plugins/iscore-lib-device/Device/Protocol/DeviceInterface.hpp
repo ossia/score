@@ -74,7 +74,7 @@ public:
   {
     return {};
   }
-  virtual optional<State::Value> refresh(const State::Address&)
+  virtual optional<ossia::value> refresh(const State::Address&)
   {
     return {};
   }

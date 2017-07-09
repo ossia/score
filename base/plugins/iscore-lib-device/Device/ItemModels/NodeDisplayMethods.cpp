@@ -159,8 +159,8 @@ QVariant valueColumnData(const Device::Node& node, int role)
 
   if (role == Qt::DisplayRole || role == Qt::EditRole)
   {
-    const State::Value& val = node.get<AddressSettings>().value;
-    if (val.val.isArray())
+    const ossia::value& val = node.get<AddressSettings>().value;
+    if (ossia::is_array(val))
     {
       // TODO a nice editor for tuples.
       return State::convert::toPrettyString(val);

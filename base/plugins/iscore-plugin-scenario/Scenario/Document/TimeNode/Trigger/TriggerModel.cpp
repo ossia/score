@@ -12,9 +12,9 @@ TriggerModel::TriggerModel(const Id<TriggerModel>& id, QObject* parent)
           id, Metadata<ObjectKey_k, TriggerModel>::get(), parent}
 {
   m_expression.push_back(State::Expression{
-      State::Relation{State::RelationMember{State::Value::fromValue(true)},
+      State::Relation{State::RelationMember{ossia::value(true)},
                       ossia::expressions::comparator::EQUAL,
-                      State::RelationMember{State::Value::fromValue(false)}},
+                      State::RelationMember{ossia::value(false)}},
       &m_expression});
 }
 

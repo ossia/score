@@ -21,10 +21,10 @@ private slots:
     QMetaType::registerComparators<State::Message>();
     qRegisterMetaTypeStreamOperators<State::Message>();
     qRegisterMetaTypeStreamOperators<State::MessageList>();
-    qRegisterMetaTypeStreamOperators<State::Value>();
+    qRegisterMetaTypeStreamOperators<ossia::value>();
     State::Message m;
     m.address = {"dada", {"bilou", "yadaa", "zoo"}};
-    m.value.val = 5.5f;
+    m.value = 5.5f;
 
     {
       auto json = marshall<JSONObject>(m);

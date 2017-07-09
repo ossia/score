@@ -67,11 +67,11 @@ struct MessagePairs
     for (auto& message : startMessages)
     {
       // First check if we can build a process from this
-      if (message.value.val.isNumeric())
+      if (ossia::is_numeric(message.value))
       {
         // Look for a corresponding message on the end state
         auto it = ossia::find_if(endMessages, [&](const State::Message& arg) {
-          return message.address == arg.address && arg.value.val.isNumeric()
+          return message.address == arg.address && ossia::is_numeric(arg.value)
                  && message.value != arg.value;
         });
 
@@ -92,11 +92,11 @@ struct MessagePairs
           numericMessages.emplace_back(message, *it);
         }
       }
-      else if (message.value.val.isArray())
+      else if (ossia::is_array(message.value))
       {
         auto it = ossia::find_if(endMessages, [&](const State::Message& arg) {
           return message.address == arg.address
-                 && arg.value.val.which() == message.value.val.which()
+                 && arg.value.v.which() == message.value.v.which()
                  && message.value != arg.value;
         });
 

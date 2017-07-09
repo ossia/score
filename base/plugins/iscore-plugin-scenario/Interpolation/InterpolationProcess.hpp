@@ -63,8 +63,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
   Q_OBJECT
   Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress
                  NOTIFY addressChanged)
-  Q_PROPERTY(State::Value start READ start WRITE setStart NOTIFY startChanged)
-  Q_PROPERTY(State::Value end READ end WRITE setEnd NOTIFY endChanged)
+  Q_PROPERTY(ossia::value start READ start WRITE setStart NOTIFY startChanged)
+  Q_PROPERTY(ossia::value end READ end WRITE setEnd NOTIFY endChanged)
   Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
 
 public:
@@ -87,13 +87,13 @@ public:
   State::AddressAccessor address() const;
   const State::Unit& sourceUnit() const;
 
-  State::Value start() const;
-  State::Value end() const;
+  ossia::value start() const;
+  ossia::value end() const;
 
   void setAddress(const ::State::AddressAccessor& arg);
   void setSourceUnit(const State::Unit&);
-  void setStart(State::Value arg);
-  void setEnd(State::Value arg);
+  void setStart(ossia::value arg);
+  void setEnd(ossia::value arg);
 
   QString prettyName() const override;
 
@@ -112,8 +112,8 @@ public:
 
 signals:
   void addressChanged(const ::State::AddressAccessor&);
-  void startChanged(const State::Value&);
-  void endChanged(const State::Value&);
+  void startChanged(const ossia::value&);
+  void endChanged(const ossia::value&);
   void tweenChanged(bool tween);
 
 private:
@@ -137,8 +137,8 @@ private:
   ::State::AddressAccessor m_address;
   State::Unit m_sourceUnit;
 
-  State::Value m_start{};
-  State::Value m_end{};
+  ossia::value m_start{};
+  ossia::value m_end{};
 
   ProcessState* m_startState{};
   ProcessState* m_endState{};

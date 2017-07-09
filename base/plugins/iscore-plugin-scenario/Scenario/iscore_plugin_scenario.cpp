@@ -66,7 +66,7 @@
 iscore_plugin_scenario::iscore_plugin_scenario()
 {
   using namespace Scenario;
-  // QMetaType::registerComparators<State::Value>();
+  // QMetaType::registerComparators<ossia::value>();
   QMetaType::registerComparators<State::Message>();
   QMetaType::registerComparators<State::MessageList>();
 
@@ -74,8 +74,7 @@ iscore_plugin_scenario::iscore_plugin_scenario()
   qRegisterMetaTypeStreamOperators<State::Message>();
   qRegisterMetaTypeStreamOperators<State::MessageList>();
   qRegisterMetaTypeStreamOperators<State::Address>();
-  qRegisterMetaTypeStreamOperators<State::Value>();
-  qRegisterMetaTypeStreamOperators<State::ValueList>();
+  qRegisterMetaTypeStreamOperators<ossia::value>();
   qRegisterMetaTypeStreamOperators<State::Expression>();
 
   qRegisterMetaTypeStreamOperators<TimeVal>();

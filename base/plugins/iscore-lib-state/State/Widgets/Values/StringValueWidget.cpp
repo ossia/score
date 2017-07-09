@@ -22,9 +22,9 @@ StringValueWidget::StringValueWidget(const std::string& value, QWidget* parent)
   m_value->setText(QString::fromStdString(value));
 }
 
-State::Value StringValueWidget::value() const
+ossia::value StringValueWidget::value() const
 {
-  return State::Value{m_value->text().toStdString()};
+  return ossia::value{m_value->text().toStdString()};
 }
 
 StringValueSetDialog::StringValueSetDialog(QWidget* parent) : QDialog{parent}
@@ -49,9 +49,9 @@ StringValueSetDialog::StringValueSetDialog(QWidget* parent) : QDialog{parent}
 StringValueSetDialog::set_type StringValueSetDialog::values()
 {
   set_type t;
-  for (auto widg : m_widgs)
+  for (StringValueWidget* widg : m_widgs)
   {
-    t.insert(widg->value().val.get<std::string>());
+    t.insert(widg->value().v.get<std::string>());
   }
   return t;
 }

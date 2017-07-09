@@ -19,6 +19,7 @@ class QtProperty
   PropChanged m_changed{};
 
 public:
+  using value_type = T;
   QtProperty(Object& obj, PropGet get, PropSet set, PropChanged chgd)
       : m_obj{obj}, m_get{get}, m_set{set}, m_changed{chgd}
   {
@@ -33,7 +34,7 @@ public:
   {
     return (m_obj.*m_set)(newval);
   }
-  auto set(const ::State::Value& newval) const
+  auto set(const ::ossia::value& newval) const
   {
     return (m_obj.*m_set)(::State::convert::value<T>(newval));
   }
@@ -53,11 +54,20 @@ public:
   }
 };
 
+template<typename T>
+using MatchingType_T =
+  Engine::ossia_to_iscore::MatchingType<
+    std::remove_const_t<
+      std::remove_reference_t<T>
+    >
+  >;
+
 template <typename Property>
 struct PropertyWrapper final : public BaseCallbackWrapper
 {
   Property property;
-
+  using converter_t = Engine::ossia_to_iscore::MatchingType<
+      typename Property::value_type>;
   PropertyWrapper(
       ossia::net::node_base& param_node,
       ossia::net::address_base& param_addr,
@@ -66,20 +76,20 @@ struct PropertyWrapper final : public BaseCallbackWrapper
       : BaseCallbackWrapper{param_node, param_addr}, property{prop}
   {
     callbackIt = addr.add_callback([=](const ossia::value& v) {
-      property.set(::State::fromOSSIAValue(v));
+      property.set(v);
     });
 
     QObject::connect(
         &property.object(), property.changed_property(), context,
         [=] {
-          auto newVal = ::State::Value::fromValue(property.get());
+          auto newVal = converter_t::convert(property.get());
           try
           {
-            auto res = ::State::fromOSSIAValue(addr.value());
+            auto res = addr.value();
 
             if (newVal != res)
             {
-              addr.push_value(Engine::iscore_to_ossia::toOSSIAValue(newVal));
+              addr.push_value(newVal);
             }
           }
           catch (...)
@@ -88,10 +98,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
         },
         Qt::QueuedConnection);
 
-    {
-      addr.set_value(Engine::iscore_to_ossia::toOSSIAValue(
-          ::State::Value::fromValue(property.get())));
-    }
+    addr.set_value(converter_t::convert(property.get()));
   }
 };
 

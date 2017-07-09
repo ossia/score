@@ -79,8 +79,7 @@ bool AutomationRecorder::setup(
     for (Device::Node* node : vec)
     {
       Device::AddressSettings& addr = node->get<Device::AddressSettings>();
-      State::toOSSIAValue(addr.value.val)
-          .apply(RecordAutomationCreationVisitor{*node, box, addr, addresses,
+      addr.value.apply(RecordAutomationCreationVisitor{*node, box, addr, addresses,
                                                  *this});
     }
   }

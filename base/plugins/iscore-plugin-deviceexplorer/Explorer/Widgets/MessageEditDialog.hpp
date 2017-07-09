@@ -36,7 +36,7 @@
 
 //  const State::AddressAccessor& address() const;
 
-//  State::Value value() const;
+//  ossia::value value() const;
 
 //private:
 //  void initTypeCombo();
@@ -48,6 +48,6 @@
 
 //  QFormLayout* m_lay{};
 //  QComboBox* m_typeCombo{};
-//  WidgetWrapper<State::ValueWidget>* m_val{};
+//  WidgetWrapper<ValueWidget>* m_val{};
 //};
 //}

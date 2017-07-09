@@ -119,7 +119,7 @@ void OSSIADevice::updateAddress(
       node->set_name(newName.toStdString());
     }
 
-    if (settings.value.val.which() == State::ValueType::NoValue)
+    if (!settings.value.valid())
     {
       node->remove_address();
     }
@@ -331,7 +331,7 @@ Device::Node OSSIADevice::refresh()
   return device_node;
 }
 
-optional<State::Value> OSSIADevice::refresh(const State::Address& address)
+optional<ossia::value> OSSIADevice::refresh(const State::Address& address)
 {
   if (auto dev = getDevice())
   {
@@ -340,8 +340,7 @@ optional<State::Value> OSSIADevice::refresh(const State::Address& address)
     {
       if (auto addr = node->get_address())
       {
-        addr->pull_value();
-        return State::fromOSSIAValue(addr->value());
+        return addr->fetch_value();
       }
     }
   }
@@ -491,7 +490,7 @@ void OSSIADevice::sendMessage(const State::Message& mess)
       auto addr = node->get_address();
       if (addr)
       {
-        addr->push_value(Engine::iscore_to_ossia::toOSSIAValue(mess.value));
+        addr->push_value(mess.value);
       }
     }
     else

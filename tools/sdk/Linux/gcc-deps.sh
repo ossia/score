@@ -1,11 +1,11 @@
 #!/bin/bash
 
 cd /image
-BINUTILS=binutils-2.27
+BINUTILS=binutils-2.28
 MPC=mpc-1.0.3
 MPFR=mpfr-3.1.5
 GMP=gmp-6.1.2
-GCC=gcc-6.3.0
+GCC=gcc-7.1.0
 ISL=isl-0.16.1
 CLOOG=cloog-0.18.4
 

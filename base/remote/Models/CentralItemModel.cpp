@@ -103,7 +103,7 @@ void CentralItemModel::on_addressCreated(QString data, qreal x, qreal y)
       if(as && as->value.val.isValid())
       {
         // We try to create a relevant component according to the type of the value.
-        auto comp_type = eggs::variants::apply(AddressItemFactory{}, as->value.val.impl());
+        auto comp_type = eggs::variants::apply(AddressItemFactory{}, as->value.v);
 
         if(auto obj = create(comp_type))
         {

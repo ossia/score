@@ -29,14 +29,14 @@ CharValueWidget::CharValueWidget(QChar value, QWidget* parent)
 void CharValueWidget::setValue(Value v) const
 {
   m_value->clear();
-  if (auto c_ptr = v.val.impl().target<char>()) // BERK
+  if (auto c_ptr = v.v.target<char>()) // BERK
     m_value->setText(QString(QChar(*c_ptr)));
 }
 
-State::Value CharValueWidget::value() const
+ossia::value CharValueWidget::value() const
 {
   auto txt = m_value->text();
-  return State::Value{txt.length() > 0 ? txt[0].toLatin1() : char{}};
+  return ossia::value{txt.length() > 0 ? txt[0].toLatin1() : char{}};
 }
 
 CharValueSetDialog::CharValueSetDialog(QWidget* parent) : QDialog{parent}
@@ -64,7 +64,7 @@ CharValueSetDialog::set_type CharValueSetDialog::values()
   for (auto widg : m_widgs)
   {
     auto val = widg->value();
-    char v = val.val.get<QChar>().toLatin1();
+    char v = val.v.get<char>();
     t.insert(v);
   }
   return t;

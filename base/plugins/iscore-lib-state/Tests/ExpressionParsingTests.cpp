@@ -39,6 +39,7 @@ bool validate(const State::Expression& expr)
 #include <boost/spirit/home/support/common_terminals.hpp>
 #include <boost/variant/detail/apply_visitor_unary.hpp>
 #include <eggs/variant/variant.hpp>
+#include <ossia-qt/js_utilities.hpp>
 using namespace iscore;
 #include <State/ExpressionParser.cpp>
 #include <State/ValueConversion.hpp>
@@ -383,7 +384,7 @@ private slots:
 
       Value_parser<iterator_type> parser;
       auto first = str.cbegin(), last = str.cend();
-      State::Value val;
+      ossia::value val;
       bool r = parse(first, last, parser, val);
 
       qDebug() << str.c_str() << r << val << "                    ";
@@ -427,7 +428,7 @@ private slots:
 
       qDebug() << str.c_str() << r << val.lhs.target<State::Address>()->path
                << State::convert::toPrettyString(
-                      *val.rhs.target<State::Value>());
+                      *val.rhs.target<ossia::value>());
     }
   }
 

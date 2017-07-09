@@ -21,7 +21,7 @@ template <typename T>
 using MatchingSpinbox = typename iscore::TemplatedSpinBox<T>::spinbox_type;
 
 template <typename T>
-class NumericValueWidget final : public State::ValueWidget
+class NumericValueWidget final : public ValueWidget
 {
 public:
   NumericValueWidget(T value, QWidget* parent = nullptr) : ValueWidget{parent}
@@ -32,9 +32,9 @@ public:
     m_valueSBox->setValue(value);
   }
 
-  State::Value value() const override
+  ossia::value value() const override
   {
-    return State::Value{m_valueSBox->value()};
+    return ossia::value{m_valueSBox->value()};
   }
 
 private:
@@ -70,7 +70,7 @@ public:
     set_type t;
     for (auto widg : m_widgs)
     {
-      t.insert(widg->value().val.template get<T>());
+      t.insert(widg->value().template get<T>());
     }
     return t;
   }

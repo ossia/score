@@ -49,7 +49,7 @@ public:
   Device::AddressSettings getSettings() const override
   {
     auto settings = getCommonSettings();
-    settings.value.val = T(m_valueSBox->value());
+    settings.value = T(m_valueSBox->value());
     settings.domain = m_domainEdit->domain();
     return settings;
   }
@@ -57,7 +57,7 @@ public:
   Device::AddressSettings getDefaultSettings() const override
   {
     Device::AddressSettings s;
-    s.value.val = T{0};
+    s.value = T{0};
     s.domain = ossia::make_domain(DefaultBounds<T>::min, DefaultBounds<T>::max);
     return s;
   }

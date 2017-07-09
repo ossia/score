@@ -11,12 +11,12 @@ class QWidget;
 namespace State
 {
 class ISCORE_LIB_STATE_EXPORT StringValueWidget final
-    : public State::ValueWidget
+    : public ValueWidget
 {
 public:
   StringValueWidget(const std::string& value, QWidget* parent = nullptr);
 
-  State::Value value() const override;
+  ossia::value value() const override;
 
 private:
   QLineEdit* m_value{};

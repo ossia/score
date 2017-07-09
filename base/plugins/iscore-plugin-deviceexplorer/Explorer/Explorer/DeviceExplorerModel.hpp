@@ -114,7 +114,7 @@ public:
   void updateValue(
       Device::Node* n,
       const State::AddressAccessor& addr,
-      const State::Value& v);
+      const ossia::value& v);
 
   // Checks if the settings can be added; if not,
   // trigger a dialog to edit them as wanted.
@@ -156,12 +156,12 @@ public:
   void editData(
       const Device::NodePath& path,
       Column column,
-      const State::Value& value,
+      const ossia::value& value,
       int role);
   void editData(
       Device::Node& n,
       Column column,
-      const State::Value& value,
+      const ossia::value& value,
       int role);
 
   Qt::DropActions supportedDropActions() const override;

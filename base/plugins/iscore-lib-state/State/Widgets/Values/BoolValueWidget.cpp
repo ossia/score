@@ -20,8 +20,8 @@ BoolValueWidget::BoolValueWidget(bool value, QWidget* parent)
   m_value->setCurrentIndex(value ? 1 : 0);
 }
 
-State::Value BoolValueWidget::value() const
+ossia::value BoolValueWidget::value() const
 {
-  return State::Value{bool(m_value->currentIndex())};
+  return ossia::value{bool(m_value->currentIndex())};
 }
 }

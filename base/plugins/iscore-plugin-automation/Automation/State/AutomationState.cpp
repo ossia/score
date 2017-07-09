@@ -48,7 +48,7 @@ ProcessState::ProcessState(
   // Look in the tree if there is a corresponding node,
   // so that we can get the type that we should convert to.
   // Default is float.
-  State::Value treeValue = State::Value::fromValue(0.);
+  ossia::value treeValue = ossia::value(0.f);
   auto& ctx = iscore::IDocument::documentContext(process());
   auto tree = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
   if (tree)
@@ -68,8 +68,8 @@ ProcessState::ProcessState(
     // to make this fast (just checking for the first and the last).
     if (seg.start().x() <= m_point && seg.end().x() >= m_point)
     {
-      m.value.val = seg.valueAt(m_point) * (process().max() - process().min())
-                    + process().min();
+      m.value = float(seg.valueAt(m_point) * (process().max() - process().min())
+                    + process().min());
 
       return m;
     }

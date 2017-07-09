@@ -240,7 +240,7 @@ struct SetLabelAddress
   void operator()(const State::tuple_t& c)
   {
     QQmlProperty(item.item(), "text.text")
-        .write("Tuple" + State::convert::value<QString>(State::Value::fromValue(c)));
+        .write("Tuple" + State::convert::value<QString>(ossia::value::fromValue(c)));
   }
 };
 

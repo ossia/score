@@ -15,7 +15,7 @@ AddressTupleSettingsWidget::AddressTupleSettingsWidget(QWidget* parent)
 Device::AddressSettings AddressTupleSettingsWidget::getSettings() const
 {
   auto settings = getCommonSettings();
-  settings.value.val = State::tuple_t{};
+  settings.value = State::tuple_t{};
   return settings;
 }
 

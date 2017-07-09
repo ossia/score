@@ -47,7 +47,13 @@ template <>
 ISCORE_LIB_STATE_EXPORT void
 JSONObjectWriter::write(ossia::value& n)
 {
-  writeTo((ossia::value_variant_type&)n.v);
+  // REMOVEME in i-score 2.0 temporary check for the old case.
+  auto it = obj.constFind(strings.Type);
+  if(it == obj.constEnd())
+    writeTo((ossia::value_variant_type&)n.v);
+  else
+    n = State::convert::fromQJsonValue(
+            obj[strings.Value], it->toString());
 }
 
 template <>

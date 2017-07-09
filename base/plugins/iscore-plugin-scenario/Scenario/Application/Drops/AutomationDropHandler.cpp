@@ -110,7 +110,7 @@ static void getAddressesRecursively(
   if (node.is<Device::AddressSettings>())
   {
     const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
-    if (addr.value.val.isNumeric())
+    if (ossia::is_numeric(addr.value))
     {
       Device::FullAddressSettings as;
       static_cast<Device::AddressSettingsCommon&>(as) = addr;

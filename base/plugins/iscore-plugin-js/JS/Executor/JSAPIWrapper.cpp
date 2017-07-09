@@ -65,109 +65,6 @@ QJSValue makeImpulse(QJSEngine& engine)
   return obj;
 }
 
-QJSValue value(QJSEngine& engine, const State::Value& val)
-{
-  const struct
-  {
-    QJSEngine& engine;
-
-  public:
-    using return_type = QJSValue;
-    return_type operator()() const
-    {
-      return makeImpulse(engine);
-    }
-    return_type operator()(const State::impulse&) const
-    {
-      return makeImpulse(engine);
-    }
-    return_type operator()(int i) const
-    {
-      return i;
-    }
-    return_type operator()(float f) const
-    {
-      return f;
-    }
-    return_type operator()(bool b) const
-    {
-      return b;
-    }
-    return_type operator()(const QString& s) const
-    {
-      return s;
-    }
-    return_type operator()(const std::string& s) const
-    {
-      return QString::fromStdString(s);
-    }
-
-    return_type operator()(QChar c) const
-    {
-      // Note : it is saved as a string but the actual type should be saved
-      // also
-      // so that the QChar can be recovered.
-      return QString(c);
-    }
-
-    return_type operator()(char c) const
-    {
-      return QString(QChar(c));
-    }
-
-    return_type operator()(const State::vec2f& t) const
-    {
-      auto arr = engine.newArray(t.size());
-
-      for (auto i = 0U; i < t.size(); i++)
-      {
-        arr.setProperty(i, t[i]);
-      }
-
-      return arr;
-    }
-
-    return_type operator()(const State::vec3f& t) const
-    {
-      auto arr = engine.newArray(t.size());
-
-      for (auto i = 0U; i < t.size(); i++)
-      {
-        arr.setProperty(i, t[i]);
-      }
-
-      return arr;
-    }
-
-    return_type operator()(const State::vec4f& t) const
-    {
-      auto arr = engine.newArray(t.size());
-
-      for (auto i = 0U; i < t.size(); i++)
-      {
-        arr.setProperty(i, t[i]);
-      }
-
-      return arr;
-    }
-
-    return_type operator()(const State::tuple_t& t) const
-    {
-      auto arr = engine.newArray(t.size());
-
-      int i = 0;
-      for (const auto& elt : t)
-      {
-        arr.setProperty(i++, eggs::variants::apply(*this, elt.impl()));
-      }
-
-      return arr;
-    }
-  } visitor{engine};
-
-  return ossia::apply(visitor, val.val.impl());
-}
-
 struct ossia_value_visitor
 {
   QJSEngine& engine;
@@ -251,7 +148,7 @@ QJSValue messages(QJSEngine& engine, const State::MessageList& messages)
   return obj;
 }
 
-State::ValueImpl value(const QJSValue& val)
+ossia::value value(const QJSValue& val)
 {
   if (val.isUndefined() || val.isNull() || val.isError())
     return {};
@@ -304,7 +201,7 @@ State::Message message(const QJSValue& val)
     auto iscore_addr = val.property(strings.address);
     auto res = State::AddressAccessor::fromString(iscore_addr.toString());
     if (res)
-      return State::Message{*res, State::Value::fromValue(State::impulse{})};
+      return State::Message{*res, State::impulse{}};
   }
 
   return {};
@@ -339,7 +236,7 @@ State::MessageList messages(const QJSValue& val)
   {
     auto res = State::AddressAccessor::fromString(val.toString());
     if (res)
-      ml.append({*res, State::Value::fromValue(State::impulse{})});
+      ml.append({*res, State::impulse{}});
   }
 
   return ml;
