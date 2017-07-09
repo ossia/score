@@ -41,7 +41,7 @@
 //    connect(m_typeCombo, SignalUtils::QComboBox_currentIndexChanged_int(),
 //            this, &MessageEditDialog::on_typeChanged);
 
-//    m_val = new WidgetWrapper<State::ValueWidget>{this};
+//    m_val = new WidgetWrapper<ValueWidget>{this};
 //    m_lay->addItem(new QSpacerItem(10, 10));
 //    m_lay->addRow(tr("Type"), m_typeCombo);
 //    m_lay->addRow(tr("Value"), m_val);
@@ -62,7 +62,7 @@
 //    return m_addr->address();
 //}
 
-// State::Value MessageEditDialog::value() const
+// ossia::value MessageEditDialog::value() const
 //{
 //    if(m_val && m_val->widget())
 //        return m_val->widget()->value();
@@ -74,51 +74,51 @@
 //{
 //    // TODO sync with ValueConversion
 //    m_typeCombo->insertItems(0, State::convert::ValuePrettyTypesList());
-//    m_typeCombo->setCurrentIndex(m_message.value.val.impl().which());
+//    m_typeCombo->setCurrentIndex(m_message.value.v.which());
 //}
 
 // void MessageEditDialog::on_typeChanged(int t)
 //{
 //    // TODO refactor these widgets with the various address settings widgets
-//    switch(State::ValueType(t))
+//    switch(ossia::val_type(t))
 //    {
-//        case State::ValueType::NoValue:
+//        case ossia::val_type::NoValue:
 //            m_val->setWidget(nullptr);
 //            break;
-//        case State::ValueType::Impulse:
+//        case ossia::val_type::Impulse:
 //            m_val->setWidget(nullptr);
 //            break;
-//        case State::ValueType::Int:
+//        case ossia::val_type::Int:
 //            m_val->setWidget(new
 //            NumericValueWidget<int>(State::convert::value<int>(m_message.value),
 //            this));
 //            break;
-//        case State::ValueType::Float:
+//        case ossia::val_type::Float:
 //            m_val->setWidget(new
 //            NumericValueWidget<float>(State::convert::value<float>(m_message.value),
 //            this));
 //            break;
-//        case State::ValueType::Bool:
+//        case ossia::val_type::Bool:
 //            m_val->setWidget(new
 //            BoolValueWidget(State::convert::value<bool>(m_message.value),
 //            this));
 //            break;
-//        case State::ValueType::String:
+//        case ossia::val_type::String:
 //            m_val->setWidget(new
 //            StringValueWidget(State::convert::value<QString>(m_message.value),
 //            this));
 //            break;
-//        case State::ValueType::Char:
+//        case ossia::val_type::Char:
 //            // TODO here a bug might be introduced : everywhere the char are
 //            utf8 while here it's latin1.
 //            m_val->setWidget(new
 //            CharValueWidget(State::convert::value<QChar>(m_message.value).toLatin1(),
 //            this));
 //            break;
-//        case State::ValueType::Vec2f:
-//        case State::ValueType::Vec3f:
-//        case State::ValueType::Vec4f:
-//        case State::ValueType::Tuple:
+//        case ossia::val_type::Vec2f:
+//        case ossia::val_type::Vec3f:
+//        case ossia::val_type::Vec4f:
+//        case ossia::val_type::Tuple:
 //            ISCORE_TODO; // TODO Tuples
 //            break;
 //        default:

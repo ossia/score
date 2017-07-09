@@ -37,7 +37,7 @@ public:
   Device::AddressSettings getSettings() const override
   {
     auto settings = getCommonSettings();
-    settings.value.val = m_valueEdit->value();
+    settings.value = m_valueEdit->value();
     if (m_domainSelector->currentIndex() == 0)
       settings.domain = m_domainFloatEdit->domain();
     else
@@ -65,7 +65,7 @@ public:
   Device::AddressSettings getDefaultSettings() const override
   {
     Device::AddressSettings s;
-    s.value.val = std::array<float, N>{};
+    s.value = std::array<float, N>{};
     s.domain = ossia::make_domain(float{0}, float{1});
     return {};
   }

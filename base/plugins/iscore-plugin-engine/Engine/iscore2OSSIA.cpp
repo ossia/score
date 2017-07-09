@@ -157,7 +157,7 @@ findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev)
 
   // Find the relevant node to add in the device
   ossia::net::node_base* node = &dev.get_root_node();
-  for (int i = 0; i < vec.size(); i++)
+  for (std::size_t i = 0; i < vec.size(); i++)
   {
     auto cld = node->find_child(vec[i]->displayName());
     if (cld)
@@ -222,9 +222,9 @@ void updateOSSIAAddress(
   addr.set_repetition_filter(
         ossia::repetition_filter(settings.repetitionFilter));
 
-  addr.set_value_type(ossia::apply(ossia_type_visitor{}, settings.value.val.impl()));
+  addr.set_value_type(ossia::apply(ossia_type_visitor{}, settings.value.v));
 
-  addr.set_value(Engine::iscore_to_ossia::toOSSIAValue(settings.value));
+  addr.set_value(settings.value);
 
   addr.set_domain(settings.domain);
 
@@ -236,20 +236,20 @@ void updateOSSIAAddress(
 void createOSSIAAddress(
     const Device::FullAddressSettings& settings, ossia::net::node_base& node)
 {
-  if (!settings.value.val.impl())
+  if (!settings.value.v)
     return;
 
   auto addr = node.create_address(
-        ossia::apply(ossia_type_visitor{}, settings.value.val.impl()));
+        ossia::apply(ossia_type_visitor{}, settings.value.v));
   if (addr)
     updateOSSIAAddress(settings, *addr);
 }
 
-void updateOSSIAValue(const State::ValueImpl& iscore_data, ossia::value& val)
+void updateOSSIAValue(const ossia::value& iscore_data, ossia::value& val)
 {
   struct
   {
-    const State::ValueImpl& data;
+    const ossia::value& data;
     void operator()(ossia::impulse) const
     {
     }
@@ -300,11 +300,6 @@ void updateOSSIAValue(const State::ValueImpl& iscore_data, ossia::value& val)
   return ossia::apply_nonnull(visitor, val.v);
 }
 
-ossia::value toOSSIAValue(const State::Value& value)
-{
-  return State::toOSSIAValue(value.val);
-}
-
 ossia::net::address_base* address(
     const State::Address& addr,
     const Device::DeviceList& deviceList)
@@ -343,12 +338,11 @@ message(const State::Message& mess, const Device::DeviceList& deviceList)
 {
   if(auto ossia_addr = address(mess.address.address, deviceList))
   {
-    auto val = Engine::iscore_to_ossia::toOSSIAValue(mess.value);
-    if (val.valid())
+    if (mess.value.valid())
       return ossia::message{
         {*ossia_addr, mess.address.qualifiers.get().accessors},
-        std::move(val),
-            mess.address.qualifiers.get().unit};
+        mess.value,
+        mess.address.qualifiers.get().unit};
   }
 
   return {};
@@ -458,9 +452,9 @@ static ossia::expressions::expression_atom::val_t expressionOperand(
       return expressionAddress(addr, devlist);
     }
 
-    return_type operator()(const State::Value& val) const
+    return_type operator()(const ossia::value& val) const
     {
-      return toOSSIAValue(val);
+      return val;
     }
 
     return_type operator()(const State::AddressAccessor& acc) const

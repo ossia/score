@@ -28,7 +28,7 @@ AddressBoolSettingsWidget::AddressBoolSettingsWidget(QWidget* parent)
 Device::AddressSettings AddressBoolSettingsWidget::getSettings() const
 {
   auto settings = getCommonSettings();
-  settings.value.val = m_cb->currentData().toBool();
+  settings.value = m_cb->currentData().toBool();
 
   return settings;
 }

@@ -25,7 +25,6 @@ namespace convert
 {
 QJSValue makeImpulse(QJSEngine& engine);
 
-QJSValue value(QJSEngine& engine, const State::Value& val);
 QJSValue value(QJSEngine& engine, const ossia::value& val);
 
 QJSValue address(const State::AddressAccessor& val);
@@ -37,7 +36,7 @@ QJSValue time(const TimeVal& val);
 // TODO vector instead of MessageList.
 QJSValue messages(QJSEngine& engine, const State::MessageList& messages);
 
-State::ValueImpl value(const QJSValue& val);
+ossia::value value(const QJSValue& val);
 State::Message message(const QJSValue& val);
 State::MessageList messages(const QJSValue& val);
 }

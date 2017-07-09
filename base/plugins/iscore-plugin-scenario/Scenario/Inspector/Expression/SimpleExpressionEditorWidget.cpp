@@ -147,8 +147,8 @@ optional<State::BinaryOperator> SimpleExpressionEditorWidget::binOperator()
 
 void SimpleExpressionEditorWidget::setRelation(State::Relation r)
 {
-  auto lptr = r.lhs.target<State::Value>();
-  auto rptr = r.rhs.target<State::Value>();
+  auto lptr = r.lhs.target<ossia::value>();
+  auto rptr = r.rhs.target<ossia::value>();
   if (lptr && rptr)
   {
     auto lv = *lptr;

@@ -79,26 +79,26 @@ class QStringList;
 struct DataStreamInput
 {
   QDataStream& stream;
-
-  template <typename T>
-  friend DataStreamInput& operator<<(DataStreamInput& s, T&& obj)
-  {
-    s.stream << std::forward<T>(obj);
-    return s;
-  }
 };
+
+template <typename T>
+DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
+{
+  s.stream << obj;
+  return s;
+}
 
 struct DataStreamOutput
 {
   QDataStream& stream;
-
-  template <typename T>
-  friend DataStreamOutput& operator>>(DataStreamOutput& s, T&& obj)
-  {
-    s.stream >> obj;
-    return s;
-  }
 };
+
+template <typename T>
+DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)
+{
+  s.stream >> obj;
+  return s;
+}
 
 class DataStreamReader;
 class DataStreamWriter;

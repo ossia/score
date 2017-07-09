@@ -66,7 +66,7 @@ void fromJsonValue(
   auto it = object.find(name);
   if (it != object.end())
   {
-    value = iscore::unmarshall<State::Value>((*it).toObject());
+    value = iscore::unmarshall<ossia::value>((*it).toObject());
   }
   else
   {

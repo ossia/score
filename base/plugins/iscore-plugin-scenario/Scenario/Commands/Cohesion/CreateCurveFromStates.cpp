@@ -86,7 +86,7 @@ CreateInterpolationFromStates::CreateInterpolationFromStates(
     const std::vector<SlotPath>&
         slotList,
     Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-    State::Value start, State::Value end)
+    ossia::value start, ossia::value end)
     : CreateProcessAndLayers<Interpolation::ProcessModel>{constraint, slotList,
                                                           std::move(curveId)}
     , m_address{std::move(address)}

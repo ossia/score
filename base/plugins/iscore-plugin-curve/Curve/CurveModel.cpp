@@ -382,7 +382,7 @@ CurveDomain::CurveDomain(const ossia::domain& dom):
   end = std::max(min, max);
 }
 
-CurveDomain::CurveDomain(const ossia::domain& dom, const State::Value& v):
+CurveDomain::CurveDomain(const ossia::domain& dom, const ossia::value& v):
   min{ossia::convert<double>(dom.get_min())}
 , max{ossia::convert<double>(dom.get_max())}
 {

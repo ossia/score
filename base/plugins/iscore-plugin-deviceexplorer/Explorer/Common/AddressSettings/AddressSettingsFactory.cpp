@@ -33,48 +33,48 @@ public:
 AddressSettingsFactory::AddressSettingsFactory()
 {
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      State::ValueType::NoValue,
+      ossia::val_type::NONE,
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressNoneSettingsWidget>>()));
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      State::ValueType::Int,
+      ossia::val_type::INT,
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressIntSettingsWidget>>()));
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      State::ValueType::Float,
+      ossia::val_type::FLOAT,
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressFloatSettingsWidget>>()));
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      State::ValueType::String,
+      ossia::val_type::STRING,
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressStringSettingsWidget>>()));
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      State::ValueType::Bool,
+      ossia::val_type::BOOL,
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressBoolSettingsWidget>>()));
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      State::ValueType::Tuple,
+      ossia::val_type::TUPLE,
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressTupleSettingsWidget>>()));
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      State::ValueType::Char,
+      ossia::val_type::CHAR,
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressCharSettingsWidget>>()));
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      State::ValueType::Impulse,
+      ossia::val_type::IMPULSE,
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressImpulseSettingsWidget>>()));
 
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      State::ValueType::Vec2f,
+      ossia::val_type::VEC2F,
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressVecSettingsWidget<2>>>()));
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      State::ValueType::Vec3f,
+      ossia::val_type::VEC3F,
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressVecSettingsWidget<3>>>()));
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      State::ValueType::Vec4f,
+      ossia::val_type::VEC4F,
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressVecSettingsWidget<4>>>()));
 }
@@ -86,7 +86,7 @@ AddressSettingsFactory& AddressSettingsFactory::instance()
 }
 
 AddressSettingsWidget*
-AddressSettingsFactory::get_value_typeWidget(State::ValueType valueType) const
+AddressSettingsFactory::get_value_typeWidget(ossia::val_type valueType) const
 {
   auto it = m_addressSettingsWidgetFactory.find(valueType);
 

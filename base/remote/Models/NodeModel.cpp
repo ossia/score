@@ -61,7 +61,7 @@ QVariant NodeModel::data(const QModelIndex &index, int role) const
     {
       if(auto addr = n.target<Device::AddressSettings>())
       {
-        const State::Value& val = addr->value;
+        const ossia::value& val = addr->value;
         if (val.val.isArray())
         {
           return State::convert::toPrettyString(val);

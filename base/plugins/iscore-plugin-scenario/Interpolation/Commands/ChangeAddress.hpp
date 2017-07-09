@@ -17,8 +17,8 @@ public:
   ChangeAddress(
       const ProcessModel& proc,
       const State::AddressAccessor& addr,
-      const State::Value& start,
-      const State::Value& end,
+      const ossia::value& start,
+      const ossia::value& end,
       const State::Unit& u);
 
 public:
@@ -33,8 +33,8 @@ private:
   Path<ProcessModel> m_path;
   State::AddressAccessor m_oldAddr, m_newAddr;
   State::Unit m_oldUnit, m_newUnit;
-  State::Value m_oldStart, m_newStart;
-  State::Value m_oldEnd, m_newEnd;
+  ossia::value m_oldStart, m_newStart;
+  ossia::value m_oldEnd, m_newEnd;
 };
 
 void ChangeInterpolationAddress(const Interpolation::ProcessModel& proc, const ::State::AddressAccessor& addr, CommandDispatcher<>& disp);

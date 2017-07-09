@@ -5,9 +5,9 @@
 namespace State
 {
 
-ValueType TypeComboBox::currentType() const
+ossia::val_type TypeComboBox::currentType() const
 {
-  return this->currentData().value<State::ValueType>();
+  return this->currentData().value<ossia::val_type>();
 }
 
 TypeComboBox::TypeComboBox(QWidget* parent) : QComboBox{parent}
@@ -18,7 +18,7 @@ TypeComboBox::TypeComboBox(QWidget* parent) : QComboBox{parent}
   connect(
       this, SignalUtils::QComboBox_currentIndexChanged_int(), this,
       [=](int i) {
-        emit typeChanged(this->itemData(i).value<State::ValueType>());
+        emit typeChanged(this->itemData(i).value<ossia::val_type>());
       });
 }
 

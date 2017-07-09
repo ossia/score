@@ -48,7 +48,7 @@ public:
 
   // throws std::runtime_error
   using Device::DeviceInterface::refresh;
-  optional<State::Value> refresh(const State::Address&) final override;
+  optional<ossia::value> refresh(const State::Address&) final override;
   void request(const Device::Node&) final override;
 
   Device::Node getNode(const State::Address&) final override;

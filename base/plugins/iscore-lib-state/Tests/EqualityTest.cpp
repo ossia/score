@@ -20,12 +20,12 @@ private slots:
     QMetaType::registerComparators<State::MessageList>();
     qRegisterMetaTypeStreamOperators<State::Message>();
     qRegisterMetaTypeStreamOperators<State::MessageList>();
-    qRegisterMetaTypeStreamOperators<State::Value>();
+    qRegisterMetaTypeStreamOperators<ossia::value>();
     Message m;
     m.address = {"dada", {"bilou", "yadaa", "zoo"}};
     ISCORE_ASSERT(m == m);
 
-    m.value.val = 5.5;
+    m.value = 5.5f;
     ISCORE_ASSERT(m == m);
 
     MessageList l1;

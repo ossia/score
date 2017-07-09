@@ -169,7 +169,7 @@ void NodeUpdateProxy::addLocalAddress(
 }
 
 void NodeUpdateProxy::updateLocalValue(
-    const State::AddressAccessor& addr, const State::Value& v)
+    const State::AddressAccessor& addr, const ossia::value& v)
 {
   auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr.address);
   if (!n)
@@ -201,7 +201,7 @@ void NodeUpdateProxy::updateLocalSettings(
 }
 
 void NodeUpdateProxy::updateRemoteValue(
-    const State::AddressAccessor& addr, const State::Value& val)
+    const State::AddressAccessor& addr, const ossia::value& val)
 {
   // TODO add these checks everywhere.
   if (auto dev = devModel.list().findDevice(addr.address.device))
@@ -214,7 +214,7 @@ void NodeUpdateProxy::updateRemoteValue(
   updateLocalValue(addr, val);
 }
 
-State::Value
+ossia::value
 NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) const
 {
   // TODO here and in the following function, we should still update
@@ -238,7 +238,7 @@ NodeUpdateProxy::refreshRemoteValue(const State::Address& addr) const
   return n.value;
 }
 
-optional<State::Value>
+optional<ossia::value>
 NodeUpdateProxy::try_refreshRemoteValue(const State::Address& addr) const
 {
   // TODO here and in the following function, we should still update

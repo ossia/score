@@ -11,8 +11,8 @@ namespace Interpolation
 ChangeAddress::ChangeAddress(
     const ProcessModel& proc,
     const State::AddressAccessor& addr,
-    const State::Value& start,
-    const State::Value& end,
+    const ossia::value& start,
+    const ossia::value& end,
     const State::Unit& u)
     : m_path{proc}
     , m_oldAddr{proc.address()}
@@ -87,7 +87,7 @@ void ChangeInterpolationAddress(const ProcessModel& proc, const State::AddressAc
     if (!parent_scenario)
       return;
 
-    State::Value sv, ev;
+    ossia::value sv, ev;
     ossia::unit_t source_u;
 
     auto& ss = Scenario::startState(*cst, *parent_scenario);

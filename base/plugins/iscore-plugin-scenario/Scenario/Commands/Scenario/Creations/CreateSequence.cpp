@@ -114,7 +114,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   // First we filter the messages
   for (auto& message : startMessages)
   {
-    if (message.value.val.isNumeric())
+    if (ossia::is_numeric(message.value))
     {
       auto addr_it = ossia::find_if(
           endAddresses, [&](const Device::FullAddressSettings& arg) {
@@ -127,7 +127,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
         matchingNumericMessages.emplace_back(message, *addr_it);
       }
     }
-    else if (message.value.val.isArray())
+    else if (ossia::is_array(message.value))
     {
       auto addr_it = ossia::find_if(
           endAddresses, [&](const Device::FullAddressSettings& arg) {

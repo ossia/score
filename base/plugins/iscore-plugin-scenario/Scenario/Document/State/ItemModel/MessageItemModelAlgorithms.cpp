@@ -81,7 +81,7 @@ static bool match(Process::MessageNode& node, const State::Message& mess)
 
 static void updateNode(
     QVector<Process::ProcessStateData>& vec,
-    const State::Value& val,
+    const ossia::value& val,
     const Id<Process::ProcessModel>& proc)
 {
   auto it

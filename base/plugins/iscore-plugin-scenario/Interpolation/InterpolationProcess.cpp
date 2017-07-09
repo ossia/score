@@ -136,12 +136,12 @@ const State::Unit& ProcessModel::sourceUnit() const
   return m_sourceUnit;
 }
 
-State::Value ProcessModel::start() const
+ossia::value ProcessModel::start() const
 {
   return m_start;
 }
 
-State::Value ProcessModel::end() const
+ossia::value ProcessModel::end() const
 {
   return m_end;
 }
@@ -163,7 +163,7 @@ void ProcessModel::setSourceUnit(const State::Unit& u)
   m_sourceUnit = u;
 }
 
-void ProcessModel::setStart(State::Value arg)
+void ProcessModel::setStart(ossia::value arg)
 {
   if (m_start == arg)
     return;
@@ -173,7 +173,7 @@ void ProcessModel::setStart(State::Value arg)
   emit m_curve->changed();
 }
 
-void ProcessModel::setEnd(State::Value arg)
+void ProcessModel::setEnd(ossia::value arg)
 {
   if (m_end == arg)
     return;
@@ -261,7 +261,7 @@ DataStreamWriter::write(Interpolation::ProcessModel& interp)
 
   State::AddressAccessor address;
   ossia::unit_t u;
-  State::Value start, end;
+  ossia::value start, end;
   bool tw;
 
   m_stream >> address >> u >> start >> end >> tw;
@@ -300,7 +300,7 @@ JSONObjectWriter::write(Interpolation::ProcessModel& interp)
       fromJsonObject<State::AddressAccessor>(obj[strings.Address]));
   interp.setSourceUnit(
       ossia::parse_pretty_unit(obj[strings.Unit].toString().toStdString()));
-  interp.setStart(fromJsonObject<State::Value>(obj[strings.Start]));
-  interp.setEnd(fromJsonObject<State::Value>(obj[strings.End]));
+  interp.setStart(fromJsonObject<ossia::value>(obj[strings.Start]));
+  interp.setEnd(fromJsonObject<ossia::value>(obj[strings.End]));
   interp.setTween(obj["Tween"].toBool());
 }

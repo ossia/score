@@ -135,6 +135,16 @@ struct TSerializer<JSONObject, ossia::value_variant_type>
 
 /////////:
 
+template <>
+void DataStreamReader::read(const ossia::impulse& value)
+{
+}
+
+
+template <>
+void DataStreamWriter::write(ossia::impulse& value)
+{
+}
 
 template <>
 ISCORE_LIB_STATE_EXPORT void
@@ -149,24 +159,6 @@ DataStreamWriter::write(ossia::value& n)
 {
   writeTo((ossia::value_variant_type&)n.v);
 }
-
-DataStreamInput& operator<<(DataStreamInput& stream, const ossia::value& obj)
-{
-  DataStreamReader reader{stream.stream.device()};
-  reader.readFrom(obj);
-  return stream;
-}
-
-DataStreamOutput& operator>>(DataStreamOutput& stream, ossia::value& obj)
-{
-  DataStreamWriter writer{stream.stream.device()};
-  writer.writeTo(obj);
-
-  return stream;
-}
-
-
-
 
 
 

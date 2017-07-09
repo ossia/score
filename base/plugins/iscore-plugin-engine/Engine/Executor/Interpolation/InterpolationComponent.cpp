@@ -141,8 +141,8 @@ ossia::behavior Component::on_curveChanged(
     ossia::val_type type,
     const optional<ossia::Destination>& d)
 {
-  auto start = Engine::iscore_to_ossia::toOSSIAValue(process().start());
-  auto end = Engine::iscore_to_ossia::toOSSIAValue(process().end());
+  auto start = process().start();
+  auto end = process().end();
 
   auto source_unit = process().sourceUnit();
   auto dest_unit = process().address().qualifiers.get().unit;

@@ -216,15 +216,15 @@ private slots:
     iscore::testing::MockApplication app;
     Device::AddressSettings s;
     for(auto val : {
-        State::Value::fromValue(State::impulse{}),
-        State::Value::fromValue(int{}),
-        State::Value::fromValue(float{}),
-        State::Value::fromValue(char{}),
-        State::Value::fromValue(std::string{}),
-        State::Value::fromValue(State::tuple_t{}),
-        State::Value::fromValue(std::array<float,2>{}),
-        State::Value::fromValue(std::array<float,3>{}),
-        State::Value::fromValue(std::array<float,4>{})
+        ossia::value(State::impulse{}),
+        ossia::value(int{}),
+        ossia::value(float{}),
+        ossia::value(char{}),
+        ossia::value(std::string{}),
+        ossia::value(State::tuple_t{}),
+        ossia::value(std::array<float,2>{}),
+        ossia::value(std::array<float,3>{}),
+        ossia::value(std::array<float,4>{})
   })
     {
       s.value = val;

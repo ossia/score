@@ -3,12 +3,8 @@
 #include <State/ValueConversion.hpp>
 
 #include "Relation.hpp"
-
 namespace State
 {
-struct Address;
-struct Value;
-
 QString toString(const Pulse& pulse)
 {
   return pulse.address.toString() + " impulse";
@@ -27,7 +23,7 @@ QString State::toString(const State::RelationMember& m)
       return addr.toString();
     }
 
-    return_type operator()(const State::Value& val) const
+    return_type operator()(const ossia::value& val) const
     {
       return State::convert::toPrettyString(val);
     }

@@ -127,7 +127,7 @@ public:
       const ConstraintModel& constraint,
       const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-      State::Value start, State::Value end);
+      ossia::value start, ossia::value end);
 
   void redo(const iscore::DocumentContext& ctx) const override;
 
@@ -137,7 +137,7 @@ protected:
 
 private:
   State::AddressAccessor m_address;
-  State::Value m_start, m_end;
+  ossia::value m_start, m_end;
 };
 }
 }

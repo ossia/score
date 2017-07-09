@@ -80,9 +80,7 @@ ISCORE_PLUGIN_ENGINE_EXPORT void updateOSSIAAddress(
     const Device::FullAddressSettings& settings,
     ossia::net::address_base& addr);
 ISCORE_PLUGIN_ENGINE_EXPORT void
-updateOSSIAValue(const State::ValueImpl& data, ossia::value& val);
-
-ISCORE_PLUGIN_ENGINE_EXPORT ossia::value toOSSIAValue(const State::Value&);
+updateOSSIAValue(const ossia::value& data, ossia::value& val);
 
 //// Other conversions
 ISCORE_PLUGIN_ENGINE_EXPORT inline ossia::time_value defaultTime(const TimeVal& t)

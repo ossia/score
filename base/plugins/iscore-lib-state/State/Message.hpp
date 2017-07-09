@@ -17,7 +17,7 @@ namespace State
 struct Message
 {
   Message() = default;
-  Message(State::AddressAccessor addr, State::Value val)
+  Message(State::AddressAccessor addr, ossia::value val)
       : address(std::move(addr)), value(std::move(val))
   {
   }

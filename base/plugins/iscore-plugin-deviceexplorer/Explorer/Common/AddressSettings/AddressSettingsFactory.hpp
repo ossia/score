@@ -23,13 +23,13 @@ class AddressSettingsFactory
 public:
   static AddressSettingsFactory& instance();
 
-  AddressSettingsWidget* get_value_typeWidget(State::ValueType valueType) const;
+  AddressSettingsWidget* get_value_typeWidget(ossia::val_type valueType) const;
 
 private:
   AddressSettingsFactory();
 
   std::
-      map<State::ValueType,
+      map<ossia::val_type,
           std::unique_ptr<AddressSettingsWidgetFactoryMethod>>
           m_addressSettingsWidgetFactory;
 };

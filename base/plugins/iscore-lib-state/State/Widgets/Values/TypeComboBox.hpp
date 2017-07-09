@@ -12,8 +12,8 @@ public:
   TypeComboBox(QWidget* parent);
   virtual ~TypeComboBox();
 
-  State::ValueType currentType() const;
+  ossia::val_type currentType() const;
 signals:
-  void typeChanged(State::ValueType);
+  void typeChanged(ossia::val_type);
 };
 }

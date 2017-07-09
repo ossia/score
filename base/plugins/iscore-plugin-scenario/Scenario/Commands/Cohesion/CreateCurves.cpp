@@ -39,7 +39,7 @@ getSelectedAddresses(const iscore::DocumentContext& doc)
     {
       const Device::AddressSettings& addr
           = node.get<Device::AddressSettings>();
-      if (addr.value.val.isNumeric() || addr.value.val.isArray())
+      if (ossia::is_numeric(addr.value) || ossia::is_array(addr.value))
       {
         Device::FullAddressSettings as;
         static_cast<Device::AddressSettingsCommon&>(as) = addr;

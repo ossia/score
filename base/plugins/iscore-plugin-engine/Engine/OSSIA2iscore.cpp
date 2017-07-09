@@ -40,11 +40,11 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node)
 
     try
     {
-      s.value = State::fromOSSIAValue(addr->value());
+      s.value = addr->value();
     }
     catch (...)
     {
-      s.value = ToValue(addr->get_value_type());
+      s.value = ossia::init_value(addr->get_value_type());
     }
   }
   else
@@ -127,35 +127,6 @@ State::Address ToAddress(const ossia::net::node_base& node)
   // has the same name than the device
   addr.device = QString::fromStdString(cur->get_name());
   return addr;
-}
-
-State::Value ToValue(ossia::val_type t)
-{
-  switch (t)
-  {
-    case ossia::val_type::FLOAT:
-      return State::Value::fromValue(float{});
-    case ossia::val_type::IMPULSE:
-      return State::Value::fromValue(State::impulse{});
-    case ossia::val_type::INT:
-      return State::Value::fromValue(int{});
-    case ossia::val_type::BOOL:
-      return State::Value::fromValue(bool{});
-    case ossia::val_type::CHAR:
-      return State::Value::fromValue(char{});
-    case ossia::val_type::STRING:
-      return State::Value::fromValue(std::string{});
-    case ossia::val_type::TUPLE:
-      return State::Value::fromValue(State::tuple_t{});
-    case ossia::val_type::VEC2F:
-      return State::Value::fromValue(State::vec2f{});
-    case ossia::val_type::VEC3F:
-      return State::Value::fromValue(State::vec3f{});
-    case ossia::val_type::VEC4F:
-      return State::Value::fromValue(State::vec4f{});
-    default:
-      return State::Value{};
-  }
 }
 
 Device::FullAddressSettings ToFullAddressSettings(
