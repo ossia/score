@@ -19,10 +19,6 @@ namespace Scenario
 {
 class ConstraintModel;
 }
-namespace ossia
-{
-class Device;
-}
 namespace Engine
 {
 namespace LocalTree { class DocumentPlugin; }
