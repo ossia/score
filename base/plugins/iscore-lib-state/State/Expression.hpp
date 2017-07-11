@@ -323,7 +323,6 @@ ISCORE_LIB_STATE_EXPORT bool isEmptyExpression(const QString&);
 
 JSON_METADATA(State::Address, "Address")
 JSON_METADATA(State::AddressAccessor, "AddressAccessor")
-JSON_METADATA(ossia::value, "Value")
 JSON_METADATA(State::Relation, "Relation")
 JSON_METADATA(State::Pulse, "Pulse")
 JSON_METADATA(State::UnaryOperator, "UnOp")

@@ -59,3 +59,5 @@ inline DataStreamOutput& operator>>(DataStreamOutput& s, ossia::value& obj)
   s.stream >> obj;
   return s;
 }
+
+JSON_METADATA(ossia::value, "Value")
