@@ -4,6 +4,8 @@
 #include <ossia/detail/optional.hpp>
 #include <iscore/model/IdentifiedObject.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
+#include <iscore_lib_process_export.h>
+
 namespace QtNodes {
 class Connection;
 }
@@ -12,12 +14,13 @@ namespace Process
 class DataflowProcess;
 enum class CableType { ImmediateGlutton, ImmediateStrict, DelayedGlutton, DelayedStrict };
 
-struct CableData
+struct ISCORE_LIB_PROCESS_EXPORT CableData
 {
   CableType type;
   Path<DataflowProcess> source, sink;
   ossia::optional<int> outlet, inlet;
 
+  ISCORE_LIB_PROCESS_EXPORT
   friend bool operator==(const CableData& lhs, const CableData& rhs);
 };
 
