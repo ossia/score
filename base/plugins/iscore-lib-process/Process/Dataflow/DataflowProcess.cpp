@@ -3,7 +3,6 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 namespace Process
 {
-ISCORE_LIB_PROCESS_EXPORT 
 bool operator==(const CableData& lhs, const CableData& rhs)
 {
   return lhs.type == rhs.type
