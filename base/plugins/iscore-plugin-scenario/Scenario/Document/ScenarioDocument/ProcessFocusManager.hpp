@@ -60,6 +60,6 @@ private:
   QPointer<const ProcessModel> m_currentModel{};
   QPointer<LayerPresenter> m_currentPresenter{};
 
-  QMetaObject::Connection m_deathConnectio{};
+  QMetaObject::Connection m_deathConnection{};
 };
 }
