@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/editor/state/state_element.hpp>
 #include <Engine/Executor/ContextMenu/PlayFromConstraintInScenario.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
@@ -72,6 +74,9 @@ bool PlayFromConstraintScenarioPruner::toRemove(const tsl::hopscotch_set<Scenari
 
 void PlayFromConstraintScenarioPruner::operator()(const Context& exec_ctx)
 {
+  auto process_ptr = dynamic_cast<const Process::ProcessModel*>(&scenar);
+  if(!process_ptr)
+    return;
   // We prune all the superfluous components of the scenario, ie the one that aren't either
   // the started constraint, or the ones following it.
 
@@ -79,7 +84,6 @@ void PlayFromConstraintScenarioPruner::operator()(const Context& exec_ctx)
   auto toKeep = constraintsToKeep();
 
   // Get the constraints in the scenario execution
-  auto process_ptr = dynamic_cast<const Process::ProcessModel*>(&scenar);
   auto& source_procs = exec_ctx.scenario.baseConstraint().processes();
   auto scenar_proc_it = source_procs.find(process_ptr->id());
 

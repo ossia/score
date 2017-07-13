@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QCheckBox>
 #include <QDateTime>
 #include <QGridLayout>
@@ -326,7 +328,7 @@ public:
     auto coeff = m_dur.isMaxInfinite() ? m_dur.defaultDuration().msec()
                                        : m_dur.maxDuration().msec();
     m_currentPosLab->setText(
-        QString::number((p * coeff / 1000)) + QString(" s"));
+        QString::number(p * coeff / 1000) + QString(" s"));
   }
 
   void on_modelRigidityChanged(bool b)

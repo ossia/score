@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioActions.hpp"
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -18,10 +20,13 @@ focusedScenarioInterface(const iscore::DocumentContext& ctx)
   {
     auto model = dynamic_cast<Scenario::ScenarioDocumentModel*>(
         &ctx.document.model().modelDelegate());
-    auto& bs = model->baseScenario();
-    if (model && bs.focused())
+    if(model)
     {
-      return &bs;
+      auto& bs = model->baseScenario();
+      if (bs.focused())
+      {
+        return &bs;
+      }
     }
   }
   return nullptr;

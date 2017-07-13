@@ -74,7 +74,7 @@ private:
 
   TimeVal m_oldVal;
   TimeVal m_newVal;
-  bool m_oldMinNull, m_newMinNull;
+  bool m_oldMinNull{}, m_newMinNull{};
 };
 }
 }

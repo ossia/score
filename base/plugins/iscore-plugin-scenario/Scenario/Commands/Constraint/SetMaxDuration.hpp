@@ -71,8 +71,8 @@ private:
 
   TimeVal m_oldVal;
   TimeVal m_newVal;
-  bool m_newInfinite;
-  bool m_oldInfinite;
+  bool m_newInfinite{};
+  bool m_oldInfinite{};
 };
 }
 }

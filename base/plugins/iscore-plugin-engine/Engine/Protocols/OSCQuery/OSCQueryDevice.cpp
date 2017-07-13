@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QString>
 #include <QVariant>
 #include <memory>
@@ -81,7 +83,7 @@ void OSCQueryDevice::slot_command()
 {
   if(m_dev)
   {
-    auto proto = dynamic_cast<ossia::oscquery::oscquery_mirror_protocol*>(&m_dev->get_protocol());
+    auto proto = static_cast<ossia::oscquery::oscquery_mirror_protocol*>(&m_dev->get_protocol());
     proto->run_commands();
   }
 }

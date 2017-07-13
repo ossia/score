@@ -71,7 +71,7 @@ class Presenter : public Process::LayerPresenter
   private:
     const Spline::ProcessModel& m_layer;
     View* m_view{};
-    ZoomRatio m_zoomRatio;
+    ZoomRatio m_zoomRatio{};
 };
 
 }

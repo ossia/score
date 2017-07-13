@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Interpolation/Commands/ChangeAddress.hpp>
 #include <iscore/model/path/PathSerialization.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>

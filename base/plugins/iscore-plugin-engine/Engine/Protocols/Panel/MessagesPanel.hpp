@@ -31,7 +31,7 @@ private:
   LogMessagesItemModel* m_itemModel{};
   QListView* m_widget{};
 
-  QMetaObject::Connection m_inbound, m_outbound, m_error, m_visible;
+  QMetaObject::Connection m_inbound{}, m_outbound{}, m_error{}, m_visible{};
 };
 
 class PanelDelegateFactory final : public iscore::PanelDelegateFactory

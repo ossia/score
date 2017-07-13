@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MessageNode.hpp"
 #include <State/Message.hpp>
 #include <State/ValueConversion.hpp>
@@ -256,12 +258,12 @@ Process::MessageNode* try_getNodeFromAddress(
   {
     const QString& node_name{addr.address.path[i]};
 
-    auto& n = *node;
-    auto child_it = ossia::find_if(n, [&](const Process::MessageNode& cld) {
+    auto& nd = *node;
+    auto child_it = ossia::find_if(nd, [&](const Process::MessageNode& cld) {
       return cld.name.name == node_name;
     });
 
-    if (child_it != n.end())
+    if (child_it != nd.end())
     {
       node = &*child_it;
     }
