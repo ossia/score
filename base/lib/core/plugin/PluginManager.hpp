@@ -143,7 +143,6 @@ void loadPlugins(
     if (auto iscore_plug = dynamic_cast<iscore::Plugin_QtInterface*>(plugin))
     {
       iscore::Addon addon;
-      addon.corePlugin = true;
       addon.plugin = iscore_plug;
       addon.key = iscore_plug->key();
       addon.corePlugin = true;

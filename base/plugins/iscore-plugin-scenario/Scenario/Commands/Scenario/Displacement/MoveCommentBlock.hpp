@@ -43,7 +43,7 @@ private:
   Path<ProcessModel> m_path;
   Id<CommentBlockModel> m_id;
   TimeVal m_oldDate, m_newDate;
-  double m_oldY, m_newY;
+  double m_oldY{}, m_newY{};
 };
 }
 }
