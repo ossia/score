@@ -38,7 +38,7 @@ protected:
 private:
   Path<ProcessModel> m_path;
   TimeVal m_date;
-  double m_y;
+  double m_y{};
 
   Id<CommentBlockModel> m_id;
 };

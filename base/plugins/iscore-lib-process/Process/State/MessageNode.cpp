@@ -205,12 +205,12 @@ std::vector<Process::MessageNode*> try_getNodesFromAddress(
   {
     const QString& node_name{addr.address.path[i]};
 
-    auto& n = *node;
-    auto child_it = ossia::find_if(n, [&](const Process::MessageNode& cld) {
+    auto& nd = *node;
+    auto child_it = ossia::find_if(nd, [&](const Process::MessageNode& cld) {
       return cld.name.name == node_name;
     });
 
-    if (child_it != n.end())
+    if (child_it != nd.end())
     {
       node = &*child_it;
     }
