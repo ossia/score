@@ -49,7 +49,5 @@ class View : public Process::LayerView
     ossia::spline_data m_spline;
     tinyspline::BSpline m_spl;
     optional<std::size_t> m_clicked;
-    bool m_block;
-
 };
 }

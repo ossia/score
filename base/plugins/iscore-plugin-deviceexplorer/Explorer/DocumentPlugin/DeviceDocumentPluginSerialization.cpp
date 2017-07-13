@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceDocumentPlugin.hpp"
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>

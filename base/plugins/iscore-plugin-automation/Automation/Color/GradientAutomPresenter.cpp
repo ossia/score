@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Automation/Color/GradientAutomPresenter.hpp>
 #include <Automation/Color/GradientAutomModel.hpp>
 #include <Automation/Color/GradientAutomView.hpp>

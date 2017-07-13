@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ActionManager.hpp"
 #include <core/document/Document.hpp>
 
@@ -34,11 +36,7 @@ void ActionManager::reset(iscore::Document* doc)
   if (doc)
   {
     mdoc = doc->context();
-  }
 
-  // Setup connections
-  if (doc)
-  {
     focusConnection
         = con(doc->focusManager(), &FocusManager::changed, this, [=] {
             focusChanged(mdoc);

@@ -49,8 +49,8 @@ protected:
 private:
   Path<ProcessModel> m_path;
   State::AddressAccessor m_addr;
-  double m_newMin;
-  double m_newMax;
+  double m_newMin{};
+  double m_newMax{};
   std::vector<Curve::SegmentData> m_segments;
 };
 }

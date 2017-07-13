@@ -248,6 +248,6 @@ protected:
   const ToolPalette_T& m_parentSM;
   MultiOngoingCommandDispatcher m_dispatcher;
 
-  Scenario::Point m_clickedPoint;
+  Scenario::Point m_clickedPoint{};
 };
 }

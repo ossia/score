@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/OSSIA2iscore.hpp>
 #include <Engine/iscore2OSSIA.hpp>

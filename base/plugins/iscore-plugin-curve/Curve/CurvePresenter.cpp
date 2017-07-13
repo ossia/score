@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Curve/Commands/UpdateCurve.hpp>
 
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
@@ -517,9 +519,7 @@ void Presenter::removeSelection()
     {
       if (point->previous() && point->following())
       {
-        if (point->previous())
           segmentsToDelete.insert(*point->previous());
-        if (point->following())
           segmentsToDelete.insert(*point->following());
       }
     }

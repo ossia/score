@@ -154,7 +154,7 @@ private:
   Id<EventModel> m_destinationEventId;
 
   QByteArray m_serializedEvent;
-  MergeTimeNodes* m_mergeTimeNodesCommand;
+  MergeTimeNodes* m_mergeTimeNodesCommand{};
 };
 }
 }

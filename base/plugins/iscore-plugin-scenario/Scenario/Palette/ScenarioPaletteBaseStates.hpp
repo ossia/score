@@ -51,7 +51,7 @@ public:
   OptionalId<TimeNodeModel> hoveredTimeNode;
   OptionalId<ConstraintModel> hoveredConstraint;
 
-  Scenario::Point currentPoint;
+  Scenario::Point currentPoint{};
 
 protected:
   Scenario_T& m_scenario;

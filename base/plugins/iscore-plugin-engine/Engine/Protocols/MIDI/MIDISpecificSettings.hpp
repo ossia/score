@@ -12,7 +12,7 @@ struct MIDISpecificSettings
   {
     In,
     Out
-  } io;
+  } io{};
   QString endpoint;
   int port{};
 };

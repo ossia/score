@@ -1,4 +1,6 @@
-﻿#include <Device/ItemModels/NodeDisplayMethods.hpp>
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Device/ItemModels/NodeDisplayMethods.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>

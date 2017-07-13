@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressSettingsWidget.hpp"
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/ClipMode.hpp>

@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Curve/Commands/UpdateCurve.hpp>
 
 #include <QPoint>
@@ -180,13 +182,10 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
         else if (m_state->clickedPointId.previous)
         {
           // We also set the following to the current segment if available.
-          if (m_state->clickedPointId.previous)
-          {
-            auto seg_it
-                = segments_by_id.find(*m_state->clickedPointId.previous);
-            segments_by_id.modify(
-                seg_it, [&](auto& seg) { seg.following = segment.id; });
-          }
+          auto seg_it
+              = segments_by_id.find(*m_state->clickedPointId.previous);
+          segments_by_id.modify(
+              seg_it, [&](auto& seg) { seg.following = segment.id; });
         }
       }
     }

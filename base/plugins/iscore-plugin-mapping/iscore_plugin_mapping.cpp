@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Mapping/MappingColors.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <Mapping/MappingPresenter.hpp>
