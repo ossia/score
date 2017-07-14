@@ -21,19 +21,19 @@ SetTrigger::SetTrigger(
     State::Expression trigger)
     : m_path{std::move(tn)}, m_trigger(std::move(trigger))
 {
-  m_previousTrigger = tn.trigger()->expression();
+  m_previousTrigger = tn.expression();
 }
 
 void SetTrigger::undo(const iscore::DocumentContext& ctx) const
 {
   auto& tn = m_path.find(ctx);
-  tn.trigger()->setExpression(m_previousTrigger);
+  tn.setExpression(m_previousTrigger);
 }
 
 void SetTrigger::redo(const iscore::DocumentContext& ctx) const
 {
   auto& tn = m_path.find(ctx);
-  tn.trigger()->setExpression(m_trigger);
+  tn.setExpression(m_trigger);
 }
 
 void SetTrigger::serializeImpl(DataStreamInput& s) const

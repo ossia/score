@@ -33,9 +33,8 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::TimeNodeModel& timenode)
 {
-  m_stream << timenode.m_date << timenode.m_events << timenode.m_extent;
-
-  m_stream << timenode.trigger()->active() << timenode.trigger()->expression();
+  m_stream << timenode.m_date << timenode.m_events << timenode.m_extent
+           << timenode.m_active << timenode.m_expression;
 
   insertDelimiter();
 }
@@ -45,15 +44,9 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::TimeNodeModel& timenode)
 {
-  bool a;
-  State::Expression t;
-  m_stream >> timenode.m_date >> timenode.m_events >> timenode.m_extent >> a
-      >> t;
+  m_stream >> timenode.m_date >> timenode.m_events >> timenode.m_extent
+      >> timenode.m_active >> timenode.m_expression;
 
-  timenode.m_trigger
-      = new Scenario::TriggerModel{Id<Scenario::TriggerModel>(0), &timenode};
-  timenode.trigger()->setExpression(t);
-  timenode.trigger()->setActive(a);
 
   checkDelimiter();
 }
@@ -68,8 +61,8 @@ JSONObjectReader::read(const Scenario::TimeNodeModel& timenode)
   obj[strings.Extent] = toJsonValue(timenode.m_extent);
 
   QJsonObject trig;
-  trig[strings.Active] = timenode.m_trigger->active();
-  trig[strings.Expression] = toJsonObject(timenode.m_trigger->expression());
+  trig[strings.Active] = timenode.m_active;
+  trig[strings.Expression] = toJsonObject(timenode.m_expression);
   obj[strings.Trigger] = trig;
 }
 
@@ -86,13 +79,9 @@ JSONObjectWriter::write(Scenario::TimeNodeModel& timenode)
 
   fromJsonValueArray(obj[strings.Events].toArray(), timenode.m_events);
 
-  timenode.m_trigger
-      = new Scenario::TriggerModel{Id<Scenario::TriggerModel>(0), &timenode};
-
   State::Expression t;
   const auto& trig_obj = obj[strings.Trigger].toObject();
   fromJsonObject(trig_obj[strings.Expression], t);
-  timenode.m_trigger->setExpression(t);
-  timenode.m_trigger->setActive(
-      trig_obj[strings.Active].toBool());
+  timenode.m_expression = std::move(t);
+  timenode.m_active = trig_obj[strings.Active].toBool();
 }

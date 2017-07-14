@@ -30,7 +30,7 @@ TriggerInspectorWidget::TriggerInspectorWidget(
     , m_triggerCommandFactory{fact}
     , m_model{object}
     , m_parent{parent}
-    , m_menu{[&] { return m_model.trigger()->expression(); }, this}
+    , m_menu{[&] { return m_model.expression(); }, this}
 {
   auto triglay = new iscore::MarginLess<QHBoxLayout>{this};
 
@@ -38,8 +38,7 @@ TriggerInspectorWidget::TriggerInspectorWidget(
   connect(
       m_exprEditor, &ExpressionEditorWidget::editingFinished, this,
       &TriggerInspectorWidget::on_triggerChanged);
-  connect(
-      m_model.trigger(), &TriggerModel::triggerChanged, m_exprEditor,
+  con(m_model, &TimeNodeModel::triggerChanged, m_exprEditor,
       &ExpressionEditorWidget::setExpression);
 
   m_addTrigBtn = new QPushButton{tr("Enable trigger")};
@@ -72,14 +71,13 @@ TriggerInspectorWidget::TriggerInspectorWidget(
       trig = State::defaultTrueExpression();
     }
 
-    if (*trig != m_model.trigger()->expression())
+    if (*trig != m_model.expression())
     {
       auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
       m_parent->commandDispatcher()->submitCommand(cmd);
     }
   });
-  connect(
-      m_model.trigger(), &TriggerModel::activeChanged, this,
+  con(m_model, &TimeNodeModel::activeChanged, this,
       &TriggerInspectorWidget::on_triggerActiveChanged);
 }
 
@@ -87,7 +85,7 @@ void TriggerInspectorWidget::on_triggerChanged()
 {
   auto trig = m_exprEditor->expression();
 
-  if (trig != m_model.trigger()->expression())
+  if (trig != m_model.expression())
   {
     auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(trig)};
     m_parent->commandDispatcher()->submitCommand(cmd);
@@ -122,7 +120,7 @@ void TriggerInspectorWidget::removeTrigger()
 
 void TriggerInspectorWidget::on_triggerActiveChanged()
 {
-  bool v = m_model.trigger()->active();
+  bool v = m_model.active();
   m_exprEditor->setVisible(v);
   m_menuButton->setVisible(v);
   m_addTrigBtn->setVisible(!v);

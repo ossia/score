@@ -21,7 +21,8 @@ public:
     Trigger,
     Event,
     State,
-    Comment
+    Comment,
+    Condition
   };
 };
 

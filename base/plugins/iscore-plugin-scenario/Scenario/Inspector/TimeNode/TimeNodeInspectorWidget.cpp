@@ -89,7 +89,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
       ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       m_model, this};
   trigSec->addContent(m_trigwidg);
-  trigSec->expand(!m_model.trigger()->expression().toString().isEmpty());
+  trigSec->expand(!m_model.expression().toString().isEmpty());
 
   // Events
   m_events = new QWidget{this};
@@ -223,7 +223,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
     addEvent(evModel);
   }
 
-  m_trigwidg->updateExpression(m_model.trigger()->expression());
+  m_trigwidg->updateExpression(m_model.expression());
 }
 
 void TimeNodeInspectorWidget::on_dateChanged(const TimeVal& t)

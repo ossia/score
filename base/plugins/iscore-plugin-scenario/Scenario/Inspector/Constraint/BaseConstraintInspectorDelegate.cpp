@@ -44,7 +44,7 @@ void BaseConstraintInspectorDelegate::updateElements()
 {
   auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
   auto& tn = endTimeNode(m_model, scenario);
-  m_triggerLine->updateExpression(tn.trigger()->expression());
+  m_triggerLine->updateExpression(tn.expression());
 }
 
 void BaseConstraintInspectorDelegate::addWidgets_pre(

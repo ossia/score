@@ -28,13 +28,13 @@ TimeNodeComponent::TimeNodeComponent(
   :  Execution::Component{ctx, id, "Executor::Event", nullptr}
   , m_iscore_node{element}
 {
-  connect(m_iscore_node.trigger(), &Scenario::TriggerModel::triggeredByGui,
-          this, &TimeNodeComponent::on_GUITrigger);
+  con(m_iscore_node, &Scenario::TimeNodeModel::triggeredByGui,
+      this, &TimeNodeComponent::on_GUITrigger);
 
-  connect(element.trigger(), &Scenario::TriggerModel::activeChanged,
-          this, &TimeNodeComponent::updateTrigger);
-  connect(element.trigger(), &Scenario::TriggerModel::triggerChanged,
-          this, [this] (const State::Expression& expr) { this->updateTrigger(); });
+  con(m_iscore_node, &Scenario::TimeNodeModel::activeChanged,
+      this, &TimeNodeComponent::updateTrigger);
+  con(m_iscore_node, &Scenario::TimeNodeModel::triggerChanged,
+      this, [this] (const State::Expression& expr) { this->updateTrigger(); });
 }
 
 void TimeNodeComponent::cleanup()
@@ -45,12 +45,12 @@ void TimeNodeComponent::cleanup()
 ossia::expression_ptr TimeNodeComponent::makeTrigger() const
 {
   auto& element = m_iscore_node;
-  if (element.trigger() && element.trigger()->active())
+  if (element.active())
   {
     try
     {
       return Engine::iscore_to_ossia::expression(
-            element.trigger()->expression(), system().devices.list());
+            element.expression(), system().devices.list());
     }
     catch (std::exception& e)
     {

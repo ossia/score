@@ -33,9 +33,9 @@ TimeNodeSummaryWidget::TimeNodeSummaryWidget(
   mainLay->addWidget(new TextLabel{object.date().toString()}, 0, 3, 1, 3);
   mainLay->addWidget(eventBtn, 0, 6, 1, 1);
 
-  if (!object.expression().isEmpty())
+  if (!object.expression().toString().isEmpty())
   {
-    auto cond = new TextLabel{object.expression()};
+    auto cond = new TextLabel{object.expression().toString()};
     cond->setWordWrap(true);
     mainLay->addWidget(cond, 1, 1, 1, 6);
   }
