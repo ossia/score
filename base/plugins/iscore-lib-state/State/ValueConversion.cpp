@@ -428,7 +428,7 @@ ossia::value fromQJsonValue(const QJsonValue& val, const QString& type)
 QString prettyType(const ossia::value& val)
 {
   const auto& impl = val.v;
-  if (impl.which() < ValuePrettyTypes.size())
+  if ((std::size_t)impl.which() < ValuePrettyTypes.size())
     return ValuePrettyTypes.at(impl.which());
   else
     return ValuePrettyTypes.back();

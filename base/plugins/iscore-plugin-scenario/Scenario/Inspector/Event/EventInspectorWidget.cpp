@@ -28,6 +28,7 @@
 #include <QWidget>
 #include <algorithm>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 
 #include "EventInspectorWidget.hpp"
 #include <Inspector/InspectorWidgetBase.hpp>
@@ -54,7 +55,7 @@ EventInspectorWidget::EventInspectorWidget(
     const EventModel& object,
     const iscore::DocumentContext& doc,
     QWidget* parent)
-    : QWidget{parent}
+    : Inspector::InspectorWidgetBase{object, doc, parent}
     , m_model{object}
     , m_context{doc}
     , m_commandDispatcher{doc.commandStack}
@@ -94,15 +95,15 @@ EventInspectorWidget::EventInspectorWidget(
   infoLay->addWidget(tnBtn);
 
   m_properties.push_back(infoWidg);
+  m_properties.push_back(new iscore::HSeparator{this});
 
+  m_properties.push_back(new TextLabel{tr("Condition")});
   // Condition
-  auto condSection
-      = new Inspector::InspectorSectionWidget{"Condition", false, this};
 
   {
-    auto expr_widg = new QWidget;
+    auto expr_widg = new QWidget{this};
     expr_widg->setContentsMargins(0, 0, 0, 0);
-    auto expr_lay = new iscore::MarginLess<QHBoxLayout>{expr_widg};
+    auto expr_lay = new QHBoxLayout{expr_widg};//new iscore::MarginLess<QHBoxLayout>{expr_widg};
 
     m_exprEditor = new ExpressionEditorWidget{m_context, expr_widg};
     connect(
@@ -126,7 +127,7 @@ EventInspectorWidget::EventInspectorWidget(
     delete m_menu.deleteAction; // Blergh
 
     con(m_menu, &ExpressionMenu::expressionChanged, this,
-        [=](const QString& str) {
+        [=] (const QString& str) {
           auto cond = State::parseExpression(str);
           if (!cond)
           {
@@ -143,7 +144,7 @@ EventInspectorWidget::EventInspectorWidget(
 
     expr_lay->addWidget(m_exprEditor);
     expr_lay->addWidget(condMenuButton);
-    condSection->addContent(expr_widg);
+    m_properties.push_back(expr_widg);
   }
 
   // Offset
@@ -181,91 +182,19 @@ EventInspectorWidget::EventInspectorWidget(
     m_offsetBehavior->setToolTip(m_offsetBehavior->whatsThis());
     l->addRow(tr("Offset behaviour"), m_offsetBehavior);
 
-    condSection->addContent(w);
+    m_properties.push_back(w);
   }
-
-  m_properties.push_back(new iscore::HSeparator{this});
-  m_properties.push_back(condSection);
-
-  condSection->expand(!m_model.condition().toString().isEmpty());
-
-  // State
-  m_statesWidget = new QWidget{this};
-  auto dispLayout = new iscore::MarginLess<QVBoxLayout>{m_statesWidget};
-  m_statesWidget->setLayout(dispLayout);
-  dispLayout->setSizeConstraint(QLayout::SetMinimumSize);
-
-  m_properties.push_back(new iscore::HSeparator{this});
-  m_properties.push_back(m_statesWidget);
 
   updateDisplayedValues();
 
-  auto lay = new iscore::MarginLess<QVBoxLayout>{this};
-  for (auto w : m_properties)
-    lay->addWidget(w);
-  this->setLayout(lay);
-}
-
-void EventInspectorWidget::addState(const StateModel& state)
-{
-  auto sw = new StateInspectorWidget{state, m_context, this};
-  sw->showMenu(true);
-  auto split = sw->menu()->addAction(tr("Put in new Event"));
-  connect(
-      split, &QAction::triggered, sw, &StateInspectorWidget::splitEvent,
-      Qt::QueuedConnection);
-
-  m_states.push_back(sw);
-  m_statesWidget->layout()->addWidget(sw);
-  m_statesSections[state.id()] = sw;
-
-  sw->expand(false);
-
-  con(state.selection, &Selectable::changed, this, [&](bool b) {
-    if (b)
-      for (auto sec : m_statesSections)
-      {
-        if (state.id() == sec.first)
-          sec.second->expand(b);
-        emit expandEventSection(b);
-      }
-  });
-}
-/*
-void EventInspectorWidget::removeState(const Id<StateModel>& state)
-{
-    // OPTIMIZEME
-    updateDisplayedValues();
-}
-*/
-
-void EventInspectorWidget::focusState(const StateModel* state)
-{
-  ISCORE_TODO;
+  updateAreaLayout(m_properties);
 }
 
 void EventInspectorWidget::updateDisplayedValues()
 {
   // Cleanup
-  for (auto& elt : m_states)
-  {
-    delete elt;
-  }
-
-  m_statesSections.clear();
-  m_states.clear();
-
   if (!m_model.parent())
     return;
-
-  auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
-  ISCORE_ASSERT(scenar);
-  for (const auto& state : m_model.states())
-  {
-    auto st = scenar->findState(state);
-    if (st)
-      addState(*st);
-  }
 
   m_exprEditor->setExpression(m_model.condition());
 }

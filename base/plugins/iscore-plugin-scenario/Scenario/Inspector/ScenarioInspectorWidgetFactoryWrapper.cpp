@@ -11,6 +11,8 @@
 #include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Scenario/Inspector/Summary/SummaryInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TimeNodeInspectorWidget.hpp>
+#include <Scenario/Inspector/Event/EventInspectorWidget.hpp>
+#include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 
 namespace Scenario
 {
@@ -64,6 +66,10 @@ ScenarioInspectorWidgetFactoryWrapper::makeWidget(
     }
   }
 
+  if (states.size() == 1 && constraints.empty())
+      return new StateInspectorWidget{**states.begin(), doc, parent};
+  if (events.size() == 1 && constraints.empty())
+      return new EventInspectorWidget{**events.begin(), doc, parent};
   if (timenodes.size() == 1 && constraints.empty())
     return new TimeNodeInspectorWidget{**timenodes.begin(), doc, parent};
 

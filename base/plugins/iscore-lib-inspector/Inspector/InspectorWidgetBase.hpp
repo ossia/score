@@ -53,6 +53,7 @@ public:
   void
   updateSectionsView(QVBoxLayout* layout, const std::vector<QWidget*>& contents);
   void updateAreaLayout(const std::vector<QWidget*>& contents);
+  void updateAreaLayout(std::initializer_list<QWidget*> contents);
 
   void addHeader(QWidget* header);
 

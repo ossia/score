@@ -39,9 +39,9 @@ TimeNodeModel::TimeNodeModel(
     : Entity{source, id, Metadata<ObjectKey_k, TimeNodeModel>::get(), parent}
     , m_extent{source.m_extent}
     , m_date{source.m_date}
-    , m_events(source.m_events)
     , m_expression{source.expression()}
     , m_active{source.active()}
+    , m_events(source.m_events)
 {
 
 }

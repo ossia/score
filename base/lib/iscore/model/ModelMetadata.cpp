@@ -8,6 +8,11 @@
 #include <ossia-qt/js_utilities.hpp>
 namespace iscore
 {
+ModelMetadata::ModelMetadata()
+{
+    m_color = &iscore::Skin::Base1;
+}
+
 ModelMetadata::ModelMetadata(const ModelMetadata& other) : QObject{}
 {
   setName(other.getName());

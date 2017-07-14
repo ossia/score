@@ -28,26 +28,16 @@ public:
       const iscore::DocumentContext& context,
       QWidget* parent);
 
-  void addEvent(const EventModel& event);
-  void removeEvent(const Id<EventModel>& event);
-
 private:
   QString tabName() override;
 
   void updateDisplayedValues();
   void on_dateChanged(const TimeVal&);
 
-  std::vector<QWidget*> m_properties;
-  QWidget* m_events{};
-
   const TimeNodeModel& m_model;
 
-  std::map<const Id<EventModel>, Inspector::InspectorSectionWidget*>
-      m_eventList{};
-  QLabel* m_date{};
-
   MetadataWidget* m_metadata{};
-
+  QLabel* m_date{};
   TriggerInspectorWidget* m_trigwidg{};
 };
 }

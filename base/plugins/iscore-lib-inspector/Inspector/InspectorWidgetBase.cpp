@@ -74,6 +74,23 @@ void InspectorWidgetBase::updateSectionsView(
   }
 }
 
+void InspectorWidgetBase::updateAreaLayout(std::initializer_list<QWidget*> contents)
+{
+  while (!m_scrollAreaLayout->isEmpty())
+  {
+    auto item = m_scrollAreaLayout->takeAt(m_scrollAreaLayout->count() - 1);
+
+    delete item->widget();
+    delete item;
+  }
+
+  for (auto section : contents)
+  {
+    m_scrollAreaLayout->addWidget(section);
+  }
+  m_scrollAreaLayout->addStretch(1);
+}
+
 void InspectorWidgetBase::updateAreaLayout(const std::vector<QWidget*>& contents)
 {
   while (!m_scrollAreaLayout->isEmpty())

@@ -41,32 +41,6 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/TextLabel.hpp>
 
-struct FunctionEvent : public QEvent
-{
-  const std::function<void()> fun;
-
-  template <typename Fun>
-  FunctionEvent(Fun&& f) : fun(std::move(f))
-  {
-  }
-};
-
-// TODO put me in app context
-class FunctionEventReceiver : public QObject
-{
-  bool event(QEvent* event) final override
-  {
-    if (auto e = dynamic_cast<FunctionEvent*>(event))
-    {
-      if (e->fun)
-      {
-        e->fun();
-      }
-    }
-    return true;
-  }
-};
-
 namespace Scenario
 {
 TimeNodeInspectorWidget::TimeNodeInspectorWidget(
@@ -78,35 +52,6 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
   setObjectName("TimeNodeInspectorWidget");
   setParent(parent);
 
-  // default date
-  m_date = new TextLabel{tr("Default date: ") + m_model.date().toString(), this};
-
-  // Trigger
-  auto trigSec
-      = new Inspector::InspectorSectionWidget{tr("Trigger"), false, this};
-  m_trigwidg = new TriggerInspectorWidget{
-      ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
-      m_model, this};
-  trigSec->addContent(m_trigwidg);
-  trigSec->expand(!m_model.expression().toString().isEmpty());
-
-  // Events
-  m_events = new QWidget{this};
-  auto evLay = new iscore::MarginLess<QVBoxLayout>{m_events};
-  evLay->setSizeConstraint(QLayout::SetMinimumSize);
-
-  m_properties.push_back(m_date);
-  m_properties.push_back(new iscore::HSeparator{this});
-  m_properties.push_back(trigSec);
-  m_properties.push_back(new iscore::HSeparator{this});
-  m_properties.push_back(new TextLabel{tr("Events"), this});
-  m_properties.push_back(m_events);
-
-  updateAreaLayout(m_properties);
-
-  // display data
-  updateDisplayedValues();
-
   // metadata
   m_metadata = new MetadataWidget{m_model.metadata(), ctx.commandStack,
                                   &m_model, this};
@@ -115,83 +60,20 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
   addHeader(m_metadata);
 
+  // default date
+  m_date = new TextLabel{tr("Default date: ") + m_model.date().toString(), this};
+
+  // Trigger
+  m_trigwidg = new TriggerInspectorWidget{
+      ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
+      m_model, this};
+  updateAreaLayout({m_date, new iscore::HSeparator{this}, new TextLabel{tr("Trigger")}, m_trigwidg});
+
+  // display data
+  updateDisplayedValues();
+
   con(m_model, &TimeNodeModel::dateChanged, this,
       &TimeNodeInspectorWidget::on_dateChanged);
-
-  con(m_model, &TimeNodeModel::newEvent, this,
-      [&](const Id<EventModel>&) { this->updateDisplayedValues(); });
-  con(m_model, &TimeNodeModel::eventRemoved, this,
-      [&](const Id<EventModel>& id) { this->removeEvent(id); });
-}
-
-void TimeNodeInspectorWidget::addEvent(const EventModel& event)
-{
-  auto evSection = new Inspector::InspectorSectionWidget{
-      event.metadata().getName(), false, this};
-  auto ew = new EventInspectorWidget{event, context(), evSection};
-  evSection->addContent(ew);
-  evSection->expand(false);
-  evSection->showMenu(true);
-  auto splitAct = evSection->menu()->addAction("Put in new Timenode");
-  connect(splitAct, &QAction::triggered, this, [&]() {
-    // TODO all this machinery is ugly but it crashes for some reason if
-    // we just send the command directly...
-    auto tn = &m_model;
-    auto id = event.id();
-    auto st = &commandDispatcher()->stack();
-    selectionDispatcher().setAndCommit({});
-
-    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
-    QTimer::singleShot(0, [=] {
-      // TODO we should instead not show the option in the menu
-      if(tn->events().size() >= 2)
-      {
-        auto cmd = new Command::SplitTimeNode{*tn, {id}};
-
-        CommandDispatcher<> s{*st};
-        s.submitCommand(cmd);
-      }
-    });
-  });
-
-  m_eventList[event.id()] = evSection;
-
-  m_properties.push_back(evSection);
-  m_events->layout()->addWidget(evSection);
-
-  con(event.selection, &Selectable::changed, this, [&](bool b) {
-    if (!b)
-      return;
-    for (auto sec : m_eventList)
-    {
-      if (event.id() == sec.first)
-        sec.second->expand(b);
-    }
-  });
-  connect(ew, &EventInspectorWidget::expandEventSection, this, [&](bool b) {
-    if (!b)
-      return;
-    for (auto sec : m_eventList)
-    {
-      if (event.id() == sec.first)
-        sec.second->expand(b);
-    }
-  });
-
-  con(event.metadata(), &iscore::ModelMetadata::NameChanged, this,
-      [&](const QString s) {
-        for (auto sec : m_eventList)
-        {
-          if (event.id() == sec.first)
-            sec.second->renameSection(s);
-        }
-      });
-}
-
-void TimeNodeInspectorWidget::removeEvent(const Id<EventModel>& event)
-{
-  // OPTIMIZEME
-  updateDisplayedValues();
 }
 
 QString TimeNodeInspectorWidget::tabName()
@@ -201,26 +83,7 @@ QString TimeNodeInspectorWidget::tabName()
 
 void TimeNodeInspectorWidget::updateDisplayedValues()
 {
-  // Cleanup
-  // OPTIMIZEME
-  for (auto& elt : m_eventList)
-  {
-    auto it = ossia::find(m_properties, elt.second);
-    if(it != m_properties.end())
-      m_properties.erase(it);
-    delete elt.second;
-  }
-  m_eventList.clear();
-
   on_dateChanged(m_model.date());
-
-  for (const auto& event : m_model.events())
-  {
-    auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
-    ISCORE_ASSERT(scenar);
-    auto& evModel = scenar->event(event);
-    addEvent(evModel);
-  }
 
   m_trigwidg->updateExpression(m_model.expression());
 }
