@@ -12,6 +12,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
+#include <Scenario/Document/Event/ConditionView.hpp>
 
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
@@ -20,6 +21,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
+#include <Scenario/Document/TimeNode/TriggerView.hpp>
 
 #include <Scenario/Document/Constraint/SlotHandle.hpp>
 #include <Scenario/Document/Constraint/Slot.hpp>
@@ -83,6 +85,14 @@ protected:
                ? event.id()
                : OptionalId<EventModel>{};
   }
+  OptionalId<EventModel> itemToConditionId(const QGraphicsItem* pressedItem) const
+  {
+      const auto& event
+              = static_cast<const EventView*>(pressedItem->parentItem())->presenter().model();
+      return event.parent() == &this->m_palette.model()
+              ? event.id()
+              : OptionalId<EventModel>{};
+  }
   OptionalId<TimeNodeModel>
   itemToTimeNodeId(const QGraphicsItem* pressedItem) const
   {
@@ -91,6 +101,15 @@ protected:
     return timenode.parent() == &this->m_palette.model()
                ? timenode.id()
                : OptionalId<TimeNodeModel>{};
+  }
+  OptionalId<TimeNodeModel>
+  itemToTriggerId(const QGraphicsItem* pressedItem) const
+  {
+      const auto& timenode
+              = static_cast<const TimeNodeView*>(pressedItem->parentItem())->presenter().model();
+      return timenode.parent() == &this->m_palette.model()
+              ? timenode.id()
+              : OptionalId<TimeNodeModel>{};
   }
   OptionalId<ConstraintModel>
   itemToConstraintId(const QGraphicsItem* pressedItem) const
@@ -165,6 +184,9 @@ protected:
     // The itemToXXXId methods check that we are in the correct scenario, too.
     switch (item->type())
     {
+      case ConditionView::static_type():
+        tryFun(ev_fun, itemToConditionId(item));
+        break;
       case EventView::static_type():
         tryFun(ev_fun, itemToEventId(item));
         break;
@@ -173,6 +195,9 @@ protected:
         tryFun(cst_fun, itemToConstraintId(item));
         break;
 
+      case TriggerView::static_type():
+        tryFun(tn_fun, itemToTriggerId(item));
+        break;
       case TimeNodeView::static_type():
         tryFun(tn_fun, itemToTimeNodeId(item));
         break;

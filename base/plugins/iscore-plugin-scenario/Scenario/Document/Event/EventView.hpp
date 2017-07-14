@@ -6,6 +6,7 @@
 #include <QtGlobal>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <iscore/model/ColorReference.hpp>
+#include <Scenario/Document/Event/ConditionView.hpp>
 
 #include "ExecutionStatus.hpp"
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
@@ -90,14 +91,13 @@ protected:
 
 private:
   EventPresenter& m_presenter;
+  ConditionView m_conditionItem;
   QString m_condition;
   iscore::ColorRef m_color;
 
   ExecutionStatusProperty m_status{};
   bool m_selected{};
-
   VerticalExtent m_extent;
 
-  ConditionView* m_conditionItem{};
 };
 }

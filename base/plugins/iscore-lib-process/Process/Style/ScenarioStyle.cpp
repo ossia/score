@@ -140,7 +140,6 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   ConstraintWaitingDashPen.setCosmetic(true);
 
   ConditionPen = QPen{Qt::black, 2};
-  ConditionPen.setCosmetic(true);
   ConditionTrianglePen = QPen{Qt::black, 2};
   ConditionTrianglePen.setCosmetic(true);
 
