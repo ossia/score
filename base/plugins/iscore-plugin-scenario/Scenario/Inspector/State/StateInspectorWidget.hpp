@@ -24,7 +24,7 @@ namespace Scenario
 class AddStateProcessDialog;
 class StateModel;
 class StateInspectorWidget final :
-    public Inspector::InspectorSectionWidget,
+    public Inspector::InspectorWidgetBase,
     public Nano::Observer
 {
 public:
@@ -50,5 +50,7 @@ private:
   iscore::SelectionDispatcher m_selectionDispatcher;
 
   AddStateProcessDialog* m_addProcess{};
+
+  std::vector<QWidget*> m_properties;
 };
 }

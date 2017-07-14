@@ -19,9 +19,11 @@
 #include <Scenario/DialogWidget/MessageTreeView.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/Separator.hpp>
 #include <iscore/widgets/TextLabel.hpp>
 
 #include <QMenu>
@@ -46,7 +48,7 @@ StateInspectorWidget::StateInspectorWidget(
     const StateModel& object,
     const iscore::DocumentContext& doc,
     QWidget* parent)
-    : Inspector::InspectorSectionWidget{"State", false, parent}
+    : Inspector::InspectorWidgetBase{object, doc, parent}
     , m_model{object}
     , m_context{doc}
     , m_commandDispatcher{m_context.commandStack}
@@ -68,42 +70,51 @@ void StateInspectorWidget::updateDisplayedValues()
 {
   // Cleanup
   // OPTIMIZEME
-  InspectorSectionWidget::removeAll();
+  m_properties.clear();
   auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
   ISCORE_ASSERT(scenar);
 
   // State setup
-  auto tv = new MessageTreeView{m_model, this};
+  auto metadata = new MetadataWidget{
+          m_model.metadata(), m_context.commandStack, &m_model, this};
+  metadata->setupConnections(m_model);
+  m_properties.push_back(metadata);
+  m_properties.push_back(new iscore::HSeparator{this});
 
-  addContent(tv);
-
-  auto linkWidget = new QWidget;
-  auto linkLay = new iscore::MarginLess<QHBoxLayout>{linkWidget};
-
-  // Constraints setup
-  if (m_model.previousConstraint())
   {
-    auto btn = SelectionButton::make(
-        tr("Prev. Constraint"),
-        &scenar->constraint(*m_model.previousConstraint()),
-        m_selectionDispatcher,
-        this);
+      auto linkWidget = new QWidget;
+      auto linkLay = new iscore::MarginLess<QHBoxLayout>{linkWidget};
 
-    linkLay->addWidget(btn);
+      // Constraints setup
+      if (m_model.previousConstraint())
+      {
+          auto btn = SelectionButton::make(
+                      tr("Prev. Constraint"),
+                      &scenar->constraint(*m_model.previousConstraint()),
+                      m_selectionDispatcher,
+                      this);
+
+          linkLay->addWidget(btn);
+      }
+      if (m_model.nextConstraint())
+      {
+          auto btn = SelectionButton::make(
+                      tr("Next Constraint"),
+                      &scenar->constraint(*m_model.nextConstraint()),
+                      m_selectionDispatcher,
+                      this);
+
+          linkLay->addWidget(btn);
+      }
+      linkLay->addStretch(1);
+
+      m_properties.push_back(linkWidget);
   }
-  if (m_model.nextConstraint())
+
   {
-    auto btn = SelectionButton::make(
-        tr("Next Constraint"),
-        &scenar->constraint(*m_model.nextConstraint()),
-        m_selectionDispatcher,
-        this);
-
-    linkLay->addWidget(btn);
+      auto tv = new MessageTreeView{m_model, this};
+      m_properties.push_back(tv);
   }
-  linkLay->addStretch(1);
-
-  addContent(linkWidget);
 
   // State processes
   auto procWidg = new QWidget;
@@ -135,7 +146,8 @@ void StateInspectorWidget::updateDisplayedValues()
     procWidg->setLayout(procLay);
   }
 
-  addContent(procWidg);
+  m_properties.push_back(procWidg);
+  updateAreaLayout(m_properties);
 }
 
 void StateInspectorWidget::splitEvent()

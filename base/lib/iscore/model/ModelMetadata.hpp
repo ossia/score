@@ -30,7 +30,7 @@ class ISCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
                  setExtendedMetadata NOTIFY ExtendedMetadataChanged)
 
 public:
-  ModelMetadata() = default;
+  ModelMetadata();
   ModelMetadata(const ModelMetadata& other);
 
   ModelMetadata& operator=(const ModelMetadata& other);

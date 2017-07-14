@@ -22,8 +22,6 @@ public:
   explicit ProcessTabWidget(
       const ConstraintInspectorWidget& parentCstr, QWidget* parent = nullptr);
 
-signals:
-
 public slots:
   void createProcess(const UuidKey<Process::ProcessModel>& processName);
   void displayProcess(const Process::ProcessModel&, bool expanded);
