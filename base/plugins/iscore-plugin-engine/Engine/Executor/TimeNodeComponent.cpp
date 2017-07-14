@@ -4,7 +4,6 @@
 #include <Engine/iscore2OSSIA.hpp>
 #include <QDebug>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <exception>

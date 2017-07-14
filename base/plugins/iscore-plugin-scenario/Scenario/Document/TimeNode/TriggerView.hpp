@@ -31,10 +31,7 @@ public:
 signals:
   void pressed();
 
-protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
-
 private:
-  QGraphicsSvgItem* m_item{};
+  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
 };
 }
