@@ -29,7 +29,7 @@ public:
   }
 
 signals:
-  void pressed();
+  void pressed(QPointF);
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;

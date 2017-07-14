@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <qnamespace.h>
 
-#include "ConditionView.hpp"
 #include "EventModel.hpp"
 #include "EventPresenter.hpp"
 #include "EventView.hpp"
@@ -24,17 +23,20 @@ class QWidget;
 namespace Scenario
 {
 EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_presenter{presenter}
+    : QGraphicsItem{parent}
+    , m_presenter{presenter}
+    , m_conditionItem{ScenarioStyle::instance().ConditionDefault, this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   setAcceptDrops(true);
 
   m_color = presenter.model().metadata().getColor();
 
-  m_conditionItem
-      = new ConditionView(ScenarioStyle::instance().ConditionDefault, this);
-  m_conditionItem->setVisible(false);
-  m_conditionItem->setPos(-13.5, -13.5);
+  m_conditionItem.setVisible(false);
+  m_conditionItem.setPos(-13.5, -13.5);
+
+  connect(&m_conditionItem, &ConditionView::pressed,
+          &m_presenter, &EventPresenter::pressed);
 
   this->setParentItem(parent);
   this->setCursor(Qt::SizeHorCursor);
@@ -48,8 +50,8 @@ void EventView::setCondition(const QString& cond)
   if (m_condition == cond)
     return;
   m_condition = cond;
-  m_conditionItem->setVisible(!State::isEmptyExpression(cond));
-  m_conditionItem->setToolTip(m_condition);
+  m_conditionItem.setVisible(!State::isEmptyExpression(cond));
+  m_conditionItem.setToolTip(m_condition);
 }
 
 bool EventView::hasCondition() const
@@ -90,14 +92,14 @@ void EventView::setExtent(const VerticalExtent& extent)
 {
   prepareGeometryChange();
   m_extent = extent;
-  m_conditionItem->changeHeight(extent.bottom() - extent.top());
+  m_conditionItem.changeHeight(extent.bottom() - extent.top());
   this->update();
 }
 
 void EventView::setExtent(VerticalExtent&& extent)
 {
   prepareGeometryChange();
-  m_conditionItem->changeHeight(extent.bottom() - extent.top());
+  m_conditionItem.changeHeight(extent.bottom() - extent.top());
   m_extent = std::move(extent);
   this->update();
 }
@@ -106,9 +108,9 @@ void EventView::setStatus(ExecutionStatus s)
 {
   m_status.set(s);
   if (s != ExecutionStatus::Editing)
-    m_conditionItem->setColor(m_status.eventStatusColor());
+    m_conditionItem.setColor(m_status.eventStatusColor());
   else
-    m_conditionItem->setColor(ScenarioStyle::instance().ConditionDefault);
+    m_conditionItem.setColor(ScenarioStyle::instance().ConditionDefault);
 
   update();
 }

@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TriggerView.hpp"
 #include <QPainter>
+#include <QGraphicsSceneMouseEvent>
 
 namespace Scenario
 {
@@ -13,8 +14,9 @@ TriggerView::TriggerView(QGraphicsItem* parent)
   setFlag(ItemStacksBehindParent, true);
 }
 
-void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
+void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit pressed();
+    if (event->button() == Qt::MouseButton::LeftButton)
+      emit pressed(event->scenePos());
 }
 }

@@ -17,7 +17,9 @@ class QObject;
 namespace Scenario
 {
 TimeNodePresenter::TimeNodePresenter(
-    const TimeNodeModel& model, QGraphicsItem* parentview, QObject* parent)
+    const TimeNodeModel& model,
+        QGraphicsItem* parentview,
+        QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new TimeNodeView{*this, parentview}}
@@ -53,7 +55,10 @@ TimeNodePresenter::TimeNodePresenter(
 
   connect(
       m_triggerView, &TriggerView::pressed,
-              &m_model, &TimeNodeModel::triggeredByGui);
+              &m_model, [=] (QPointF sp) {
+      m_model.triggeredByGui();
+      pressed(sp);
+  });
 }
 
 TimeNodePresenter::~TimeNodePresenter()

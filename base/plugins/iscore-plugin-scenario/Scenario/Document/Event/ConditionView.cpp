@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QColor>
+#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPen>
 #include <QPoint>
@@ -24,9 +25,6 @@ ConditionView::ConditionView(iscore::ColorRef color, QGraphicsItem* parent)
   setFlag(ItemStacksBehindParent, true);
 
   changeHeight(0);
-
-  m_trianglePath.addPolygon(
-      QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
 }
 
 QRectF ConditionView::boundingRect() const
@@ -50,7 +48,25 @@ void ConditionView::paint(
 #if !defined(ISCORE_IEEE_SKIN)
   painter->setPen(skin.ConditionTrianglePen);
   painter->setBrush(col);
-  painter->drawPath(m_trianglePath);
+
+  static const QPainterPath trianglePath{
+      [] {
+          QPainterPath p;
+          QPainterPathStroker s;
+          s.setCapStyle(Qt::RoundCap);
+          s.setJoinStyle(Qt::RoundJoin);
+          s.setWidth(2);
+
+          p.addPolygon(QVector<QPointF>{
+                           QPointF(25, 5),
+                           QPointF(25, 21),
+                           QPointF(32, 14)});
+          p.closeSubpath();
+
+          return p + s.createStroke(p);
+      }()
+  };
+  painter->fillPath(trianglePath, col);
 #endif
 }
 
@@ -73,5 +89,11 @@ void ConditionView::changeHeight(qreal newH)
   m_Cpath.lineTo(0, m_height + m_CHeight / 2);
   m_Cpath.arcTo(bottomRect, -180, 120);
   this->update();
+}
+
+void ConditionView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    if (event->button() == Qt::MouseButton::LeftButton)
+      emit pressed(event->scenePos());
 }
 }
