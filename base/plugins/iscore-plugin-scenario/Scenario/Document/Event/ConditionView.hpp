@@ -4,6 +4,8 @@
 #include <QPainterPath>
 #include <QRect>
 #include <iscore/model/ColorReference.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -12,7 +14,9 @@ class QWidget;
 namespace Scenario
 {
 
-class ConditionView final : public QGraphicsItem
+class ConditionView final
+        : public QObject
+        , public QGraphicsItem
 {
 public:
   ConditionView(iscore::ColorRef color, QGraphicsItem* parent);
@@ -30,6 +34,17 @@ public:
     m_color = c;
     update();
   }
+  static constexpr int static_type()
+  {
+    return QGraphicsItem::UserType + ItemType::Condition;
+  }
+  int type() const override
+  {
+    return static_type();
+  }
+
+signals:
+  void pressed();
 
 private:
   iscore::ColorRef m_color;

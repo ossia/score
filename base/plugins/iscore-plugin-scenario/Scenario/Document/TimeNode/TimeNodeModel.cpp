@@ -24,10 +24,15 @@ TimeNodeModel::TimeNodeModel(
     : Entity{id, Metadata<ObjectKey_k, TimeNodeModel>::get(), parent}
     , m_extent{extent}
     , m_date{date}
-    , m_trigger{new TriggerModel{Id<TriggerModel>(0), this}}
 {
   metadata().setInstanceName(*this);
   metadata().setColor(ScenarioStyle::instance().TimenodeDefault);
+
+  m_expression.push_back(State::Expression{
+      State::Relation{State::RelationMember{ossia::value(true)},
+                      ossia::expressions::comparator::EQUAL,
+                      State::RelationMember{ossia::value(false)}},
+      &m_expression});
 }
 
 TimeNodeModel::TimeNodeModel(
@@ -36,10 +41,10 @@ TimeNodeModel::TimeNodeModel(
     , m_extent{source.m_extent}
     , m_date{source.m_date}
     , m_events(source.m_events)
+    , m_expression{source.expression()}
+    , m_active{source.active()}
 {
-  m_trigger = new TriggerModel{Id<TriggerModel>(0), this};
-  m_trigger->setExpression(source.trigger()->expression());
-  m_trigger->setActive(source.trigger()->active());
+
 }
 
 void TimeNodeModel::addEvent(const Id<EventModel>& eventId)
@@ -91,16 +96,6 @@ void TimeNodeModel::setEvents(const QVector<Id<EventModel>>& events)
   m_events = events;
 }
 
-TriggerModel* TimeNodeModel::trigger() const
-{
-  return m_trigger;
-}
-
-QString TimeNodeModel::expression() const
-{
-  return m_trigger->expression().toString();
-}
-
 const VerticalExtent& TimeNodeModel::extent() const
 {
   return m_extent;
@@ -115,8 +110,24 @@ void TimeNodeModel::setExtent(const VerticalExtent& extent)
   }
 }
 
-bool TimeNodeModel::hasTrigger() const
+void TimeNodeModel::setExpression(const State::Expression& expression)
 {
-  return m_trigger->active();
+  if (m_expression == expression)
+    return;
+  m_expression = expression;
+  emit triggerChanged(m_expression);
+}
+
+bool TimeNodeModel::active() const
+{
+  return m_active;
+}
+
+void TimeNodeModel::setActive(bool active)
+{
+  if (active == m_active)
+    return;
+  m_active = active;
+  emit activeChanged();
 }
 }

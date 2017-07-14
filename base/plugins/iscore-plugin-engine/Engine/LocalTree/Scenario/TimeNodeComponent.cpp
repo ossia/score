@@ -20,7 +20,7 @@ TimeNode::TimeNode(
                       id,     "StateComponent",    parent_comp}
 {
   m_properties.push_back(add_setProperty<::State::impulse>(
-      node(), "trigger", [&](auto) { timeNode.trigger()->triggeredByGui(); }));
+      node(), "trigger", [&](auto) { timeNode.triggeredByGui(); }));
 }
 }
 }

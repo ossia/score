@@ -16,15 +16,13 @@
 #include <iscore/selection/Selection.hpp>
 #include <iscore/model/Identifier.hpp>
 
-class QObject;
-
 namespace Scenario
 {
 BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent)
     : IdentifiedObject<BaseScenario>{id, "Scenario::BaseScenario", parent}
     , BaseScenarioContainer{this}
 {
-  m_endNode->trigger()->setActive(true);
+  m_endNode->setActive(true);
 }
 
 BaseScenario::~BaseScenario()

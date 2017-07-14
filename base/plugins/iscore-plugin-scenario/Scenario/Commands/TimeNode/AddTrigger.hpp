@@ -55,7 +55,7 @@ public:
   void undo(const iscore::DocumentContext& ctx) const override
   {
     auto& tn = m_path.find(ctx);
-    tn.trigger()->setActive(false);
+    tn.setActive(false);
 
     for (const auto& cmd : m_cmds)
     {
@@ -66,7 +66,7 @@ public:
   void redo(const iscore::DocumentContext& ctx) const override
   {
     auto& tn = m_path.find(ctx);
-    tn.trigger()->setActive(true);
+    tn.setActive(true);
 
     for (const auto& cmd : m_cmds)
     {

@@ -2,6 +2,8 @@
 #include <Process/TimeValue.hpp>
 #include <QObject>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <State/Expression.hpp>
 #include <iscore/model/Entity.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/model/IdentifiedObject.hpp>
@@ -21,7 +23,6 @@ namespace Scenario
 {
 class EventModel;
 class ScenarioInterface;
-class TriggerModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodeModel final
     : public iscore::Entity<TimeNodeModel>
@@ -65,10 +66,15 @@ public:
   const QVector<Id<EventModel>>& events() const;
   void setEvents(const QVector<Id<EventModel>>& events);
 
-  Scenario::TriggerModel* trigger() const;
-  QString expression() const;
+  State::Expression expression() const { return m_expression; }
+  void setExpression(const State::Expression& expression);
 
-  bool hasTrigger() const;
+  bool active() const;
+  void setActive(bool active);
+
+  // Note : this is for API -> UI communication.
+  // To trigger by hand we have the triggered() signal.
+  ExecutionStatusProperty executionStatus; // TODO serialize me ?
 
 signals:
   void extentChanged(const VerticalExtent&);
@@ -77,11 +83,19 @@ signals:
   void newEvent(const Id<EventModel>& eventId);
   void eventRemoved(const Id<EventModel>& eventId);
 
+  void triggerChanged(const State::Expression&);
+  void activeChanged();
+
+  void triggeredByGui() const;
+
 private:
   VerticalExtent m_extent;
   TimeVal m_date{std::chrono::seconds{0}};
-  TriggerModel* m_trigger;
 
+  State::Expression m_expression;
+  bool m_active{false};
+
+  // TODO small_vector<1>...
   QVector<Id<EventModel>> m_events;
 };
 }

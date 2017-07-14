@@ -140,7 +140,7 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
       *constraint, eev.date() - sev.date());
   constraint->setStartDate(sev.date());
 
-  if (tn.trigger()->active())
+  if (tn.active())
   {
     constraint->duration.setRigid(false);
     const auto& dur = constraint->duration.defaultDuration();

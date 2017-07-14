@@ -14,7 +14,7 @@ namespace Scenario
 class EventModel;
 class TimeNodeModel;
 class TimeNodeView;
-class TriggerPresenter;
+class TriggerView;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT TimeNodePresenter final : public QObject
 {
@@ -46,6 +46,6 @@ signals:
 private:
   const TimeNodeModel& m_model;
   graphics_item_ptr<TimeNodeView> m_view;
-  TriggerPresenter* m_triggerPres;
+  TriggerView* m_triggerView{};
 };
 }

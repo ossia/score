@@ -52,8 +52,8 @@ public:
         scenario, tn.events().front(),
         destinantionTn.date(), ExpandMode::Scale};
 
-    m_targetTrigger = destinantionTn.trigger()->expression();
-    m_targetTriggerActive = destinantionTn.trigger()->active();
+    m_targetTrigger = destinantionTn.expression();
+    m_targetTriggerActive = destinantionTn.active();
   }
 
   void undo(const iscore::DocumentContext& ctx) const override
@@ -81,8 +81,8 @@ public:
 
     scenar.timeNodes.add(recreatedTn);
 
-    globalTn.trigger()->setExpression(m_targetTrigger);
-    globalTn.trigger()->setActive(m_targetTriggerActive);
+    globalTn.setExpression(m_targetTrigger);
+    globalTn.setActive(m_targetTriggerActive);
 
     //ScenarioValidityChecker::checkValidity(scenar);
     m_moveCommand->undo(ctx);
@@ -106,9 +106,9 @@ public:
       movingTn.removeEvent(evId);
       destinationTn.addEvent(evId);
     }
-    destinationTn.trigger()->setActive(
-        destinationTn.trigger()->active() || movingTn.trigger()->active());
-    destinationTn.trigger()->setExpression(movingTn.trigger()->expression());
+    destinationTn.setActive(
+        destinationTn.active() || movingTn.active());
+    destinationTn.setExpression(movingTn.expression());
 
     scenar.timeNodes.remove(m_movingTnId);
     updateTimeNodeExtent(m_destinationTnId, scenar);
