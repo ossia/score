@@ -4,7 +4,6 @@
 #include <QBoxLayout>
 #include <QPushButton>
 #include <Scenario/Commands/TimeNode/SetTrigger.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <algorithm>
 #include <iscore/widgets/MarginLess.hpp>
 

@@ -10,7 +10,6 @@
 #include <iscore/tools/std/Optional.hpp>
 
 #include "TimeNodeModel.hpp"
-#include "Trigger/TriggerModel.hpp"
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>

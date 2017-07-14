@@ -7,7 +7,6 @@
 #include <Scenario/Commands/Constraint/SetRigidity.hpp>
 
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
 #include <State/Expression.hpp>

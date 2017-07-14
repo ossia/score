@@ -2,7 +2,6 @@
 
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <iscore/command/Command.hpp>
 #include <iscore/model/path/Path.hpp>
 

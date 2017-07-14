@@ -5,7 +5,6 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <tuple>

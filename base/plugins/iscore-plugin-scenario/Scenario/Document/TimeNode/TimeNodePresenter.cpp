@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerView.hpp>
+#include <Scenario/Document/TimeNode/TriggerView.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 
 #include "TimeNodePresenter.hpp"
@@ -21,7 +21,7 @@ TimeNodePresenter::TimeNodePresenter(
     : QObject{parent}
     , m_model{model}
     , m_view{new TimeNodeView{*this, parentview}}
-    , m_triggerView{new TriggerView{parentview}}
+    , m_triggerView{new TriggerView{m_view}}
 {
   con(m_model.selection, &Selectable::changed, this,
       [=](bool b) { m_view->setSelected(b); });
@@ -35,6 +35,8 @@ TimeNodePresenter::TimeNodePresenter(
       [=](const auto& t) { m_view->setLabel(t); });
   con(m_model, &TimeNodeModel::activeChanged, this, [=] {
     m_view->setTriggerActive(m_model.active());
+    m_triggerView->setVisible(m_model.active());
+    m_triggerView->setToolTip(m_model.expression().toString());
   });
   m_view->changeColor(m_model.metadata().getColor());
   m_view->setLabel(m_model.metadata().getLabel());
@@ -42,13 +44,8 @@ TimeNodePresenter::TimeNodePresenter(
   // TODO find a correct way to handle validity of model elements.
   // extentChanged is updated in scenario.
 
-
   m_triggerView->setVisible(m_model.active());
   m_triggerView->setPos(-7.5, -25.);
-  con(m_model, &TimeNodeModel::activeChanged, this, [&]() {
-    m_triggerView->setVisible(m_model.active());
-    m_triggerView->setToolTip(m_model.expression().toString());
-  });
 
   m_triggerView->setToolTip(m_model.expression().toString());
   con(m_model, &TimeNodeModel::triggerChanged, this,

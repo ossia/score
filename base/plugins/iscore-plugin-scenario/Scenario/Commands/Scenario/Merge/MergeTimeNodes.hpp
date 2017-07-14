@@ -4,7 +4,6 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>

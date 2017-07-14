@@ -3,7 +3,6 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QtGlobal>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 
 #include "TimeNodeModel.hpp"
 #include <Process/TimeValue.hpp>
