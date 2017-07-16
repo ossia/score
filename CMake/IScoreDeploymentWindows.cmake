@@ -50,6 +50,7 @@ install(FILES
   "${QT_DLL_DIR}/Qt5Qml${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5OpenGL${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5WebSockets${DEBUG_CHAR}.dll"
+  "${QT_DLL_DIR}/Qt5SerialPort${DEBUG_CHAR}.dll"
 #  "${QT_DLL_DIR}/Qt5Test${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Quick${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5QuickWidgets${DEBUG_CHAR}.dll"
