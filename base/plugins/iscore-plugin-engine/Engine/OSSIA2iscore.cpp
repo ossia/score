@@ -87,35 +87,20 @@ Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
   return iscore_node;
 }
 
-ossia::bounding_mode ToClipMode(ossia::bounding_mode b)
-{
-  switch (b)
-  {
-    case ossia::bounding_mode::CLIP:
-      return ossia::bounding_mode::CLIP;
-    case ossia::bounding_mode::FOLD:
-      return ossia::bounding_mode::FOLD;
-    case ossia::bounding_mode::FREE:
-      return ossia::bounding_mode::FREE;
-    case ossia::bounding_mode::WRAP:
-      return ossia::bounding_mode::WRAP;
-    case ossia::bounding_mode::LOW:
-      return ossia::bounding_mode::LOW;
-    case ossia::bounding_mode::HIGH:
-      return ossia::bounding_mode::HIGH;
-    default:
-      ISCORE_ABORT;
-      return static_cast<ossia::bounding_mode>(-1);
-  }
-}
-
 void ToAddress_rec(State::Address& addr, const ossia::net::node_base* cur, int N)
 {
   if(auto padre = cur->get_parent())
+  {
     ToAddress_rec(addr, padre, N + 1);
+    addr.path.push_back(QString::fromStdString(cur->get_name()));
+  }
   else
+  {
+    // The last node is the root node "/", which by convention
+    // has the same name than the device
     addr.path.reserve(N);
-  addr.path.push_back(QString::fromStdString(cur->get_name()));
+    addr.device = QString::fromStdString(cur->get_name());
+  }
 }
 
 State::Address ToAddress(const ossia::net::node_base& node)
@@ -124,10 +109,6 @@ State::Address ToAddress(const ossia::net::node_base& node)
   const ossia::net::node_base* cur = &node;
 
   ToAddress_rec(addr, cur, 1);
-
-  // The last node is the root node "/", which by convention
-  // has the same name than the device
-  addr.device = QString::fromStdString(cur->get_name());
   return addr;
 }
 

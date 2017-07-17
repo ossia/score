@@ -184,9 +184,6 @@ struct MatchingType<::TimeVal>
   }
 };
 
-ISCORE_PLUGIN_ENGINE_EXPORT ossia::bounding_mode
-ToClipMode(ossia::bounding_mode b);
-
 ISCORE_PLUGIN_ENGINE_EXPORT State::Address
 ToAddress(const ossia::net::node_base& node);
 ISCORE_PLUGIN_ENGINE_EXPORT Device::AddressSettings
