@@ -232,7 +232,7 @@ void updateOSSIAAddress(
 
   addr.set_unit(settings.unit);
 
-  addr.getNode().set_extended_attributes(settings.extendedAttributes);
+  addr.get_node().set_extended_attributes(settings.extendedAttributes);
 }
 
 void createOSSIAAddress(

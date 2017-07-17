@@ -207,6 +207,8 @@ void DeviceExplorerModel::updateAddress(
 
   node->set(addressSettings);
 
+  emit nodeChanged(node);
+
   emit dataChanged(
       modelIndexFromNode(*node, 0),
       modelIndexFromNode(*node, (int)Column::Count - 1));

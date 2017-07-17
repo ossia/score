@@ -44,7 +44,11 @@ bool OSCQueryDevice::reconnect()
             stgs.host.toStdString());
 
     // run the commands in the Qt event loop
-    ossia_settings->set_command_callback([=] { sig_command(); });
+    // FIXME they should be disabled upon manual disconnection
+
+    ossia_settings->set_command_callback([=] {
+      emit sig_command();
+    });
     ossia_settings->set_disconnect_callback([=] {
       emit sig_disconnect();
     });

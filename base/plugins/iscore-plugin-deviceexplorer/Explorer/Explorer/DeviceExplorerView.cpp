@@ -229,6 +229,12 @@ void DeviceExplorerView::columnVisibilityChanged(bool shown)
   setColumnHidden(ind, !shown);
 }
 
+void DeviceExplorerView::rowsInserted(const QModelIndex& parent, int start, int end)
+{
+  QTreeView::rowsInserted(parent, start, end);
+  emit created(parent, start, end);
+}
+
 void DeviceExplorerView::headerMenuRequested(const QPoint& pos)
 {
   QMenu contextMenu(this);

@@ -186,6 +186,8 @@ public:
   SelectedNodes uniqueSelectedNodes(const QModelIndexList& indexes)
       const; // Note : filters so that only parents are given.
 
+signals:
+  void nodeChanged(Device::Node* n);
 protected:
   void debug_printPath(const Device::NodePath& path);
 
