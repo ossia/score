@@ -35,8 +35,9 @@ public:
 
 signals:
   void selectionChanged();
+  void created(QModelIndex parent, int start, int end);
 
-protected slots:
+private slots:
   void selectionChanged(
       const QItemSelection& selected,
       const QItemSelection& deselected) override;
@@ -44,14 +45,14 @@ protected slots:
   void headerMenuRequested(const QPoint& pos);
   void columnVisibilityChanged(bool shown);
 
-protected:
+private:
+  void rowsInserted(const QModelIndex &parent, int start, int end) override;
   void saveSettings();
   void restoreSettings();
   void setInitialColumnsSizes();
 
   void initActions();
 
-protected:
   QList<QAction*> m_actions;
 
   bool m_hasProxy;

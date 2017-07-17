@@ -71,6 +71,7 @@ public:
   void nodeRenamed(const ossia::net::node_base&, std::string);
   void addressCreated(const ossia::net::address_base&);
   void addressUpdated(const ossia::net::node_base&, ossia::string_view key);
+  void addressRemoved(const ossia::net::address_base& addr);
 
 protected:
   using DeviceInterface::DeviceInterface;
@@ -87,6 +88,7 @@ protected:
   Device::Node simple_refresh();
 
 private:
+
   bool m_logging = false;
   bool m_callbacksEnabled = false;
 };

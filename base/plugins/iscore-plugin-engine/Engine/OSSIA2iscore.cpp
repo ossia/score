@@ -119,7 +119,7 @@ Device::FullAddressSettings ToFullAddressSettings(
   auto dest = Engine::iscore_to_ossia::makeDestination(list, State::AddressAccessor{addr});
   if(dest)
   {
-    return ToFullAddressSettings((*dest).address().getNode());
+    return ToFullAddressSettings((*dest).address().get_node());
   }
 
   return {};

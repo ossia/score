@@ -37,7 +37,7 @@ bool MIDIDevice::reconnect()
   try
   {
     auto proto = std::make_unique<ossia::net::midi::midi_protocol>();
-    bool res = proto->setInfo(ossia::net::midi::midi_info(
+    bool res = proto->set_info(ossia::net::midi::midi_info(
         static_cast<ossia::net::midi::midi_info::Type>(set.io),
         set.endpoint.toStdString(),
         set.port));

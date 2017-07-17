@@ -113,5 +113,6 @@ private:
   QStackedLayout* m_lay{};
 
   std::unique_ptr<ListeningManager> m_listeningManager;
+  QMetaObject::Connection m_modelCon;
 };
 }

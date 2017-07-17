@@ -118,6 +118,27 @@ DeviceExplorerWidget::DeviceExplorerWidget(
   buildGUI();
 
   // Set the expansion signals
+  connect(m_ntView, &DeviceExplorerView::created,
+          this, [&] (const QModelIndex& parent, int start, int end) {
+
+    if (m_listeningManager)
+    {
+      for(int i = start; i <= end; i++)
+      {
+        Device::Node* node{};
+        if(m_ntView->hasProxy())
+        {
+          node = (Device::Node*)sourceIndex(((QTreeView*)m_ntView)->model()->index(i, 0, parent)).internalPointer();
+        }
+        else
+        {
+          node = ((Device::Node*)model()->index(i, 0, parent).internalPointer());
+        }
+
+        m_listeningManager->enableListening(*node);
+      }
+    }
+  });
   connect(m_ntView, &QTreeView::expanded, this, [&](const QModelIndex& idx) {
     if (m_listeningManager)
       m_listeningManager->setListening(idx, true);
@@ -396,6 +417,7 @@ void DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
   delete m_proxyModel; //? will also delete previous model ??
   m_proxyModel = nullptr;
   m_listeningManager.reset();
+  QObject::disconnect(m_modelCon);
 
   if (model)
   {
@@ -411,6 +433,17 @@ void DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
     populateColumnCBox();
 
     updateActions();
+
+    m_modelCon = connect(model, &DeviceExplorerModel::nodeChanged,
+                         this, [this] (Device::Node* n) {
+      bool parent_is_expanded = m_ntView->isExpanded(
+          proxyIndex(m_ntView->model()->modelIndexFromNode(*n->parent(), 0)));
+      if(parent_is_expanded)
+      {
+        if (m_listeningManager)
+          m_listeningManager->enableListening(*n);
+      }
+    });
   }
   else
   {
@@ -973,6 +1006,7 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
     if (!model()->checkAddressInstantiatable(*parent, stgs))
       return;
 
+    // TODO checking for expansion should not be necessary anymore
     bool parent_is_expanded = m_ntView->isExpanded(
         proxyIndex(m_ntView->model()->modelIndexFromNode(*parent, 0)));
 

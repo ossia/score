@@ -116,7 +116,7 @@ void OSSIADevice::updateAddress(
     ossia::net::node_base* node
         = Engine::iscore_to_ossia::getNodeFromPath(currentAddr.path, *dev);
     auto newName = settings.address.path.last();
-    if (!latinCompare(newName, node->get_name()))
+    if (!latin_compare(newName, node->get_name()))
     {
       node->set_name(newName.toStdString());
     }
@@ -228,6 +228,8 @@ void OSSIADevice::enableCallbacks()
       dev->on_node_renamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
       dev->on_address_created.connect<OSSIADevice, &OSSIADevice::addressCreated>(
             this);
+      dev->on_address_removing.connect<OSSIADevice, &OSSIADevice::addressRemoved>(
+            this);
       dev->on_attribute_modified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
             this);
     }
@@ -246,6 +248,8 @@ void OSSIADevice::disableCallbacks()
       dev->on_node_removing.disconnect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
       dev->on_node_renamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
       dev->on_address_created.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
+            this);
+      dev->on_address_removing.disconnect<OSSIADevice, &OSSIADevice::addressRemoved>(
             this);
       dev->on_attribute_modified.disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
             this);
@@ -311,6 +315,7 @@ Device::Node OSSIADevice::refresh()
     removeListening_impl(root, State::Address{m_settings.name, {}});
 
     disableCallbacks();
+    m_callbacks.clear();
     if (dev->get_protocol().update(root))
     {
       // Make a device explorer node from the current state of the device.
@@ -579,9 +584,9 @@ void OSSIADevice::nodeRenamed(
 void OSSIADevice::addressCreated(const ossia::net::address_base& addr)
 {
   State::Address currentAddress
-      = Engine::ossia_to_iscore::ToAddress(addr.getNode());
+      = Engine::ossia_to_iscore::ToAddress(addr.get_node());
   Device::AddressSettings as
-      = Engine::ossia_to_iscore::ToAddressSettings(addr.getNode());
+      = Engine::ossia_to_iscore::ToAddressSettings(addr.get_node());
   emit pathUpdated(currentAddress, as);
 }
 
@@ -593,5 +598,21 @@ void OSSIADevice::addressUpdated(const ossia::net::node_base& node, ossia::strin
       = Engine::ossia_to_iscore::ToAddressSettings(node);
   emit pathUpdated(currentAddress, as);
 }
+
+void OSSIADevice::addressRemoved(const ossia::net::address_base& addr)
+{
+  // so that we don't have to go through the tree.
+  auto cb_it = m_callbacks.find(ossia_to_iscore::ToAddress(addr.get_node()));
+  if(cb_it != m_callbacks.end())
+    m_callbacks.erase(cb_it);
+
+  auto& node = addr.get_node();
+  State::Address currentAddress
+      = Engine::ossia_to_iscore::ToAddress(node);
+  Device::AddressSettings as
+      = Engine::ossia_to_iscore::ToAddressSettings(node);
+  emit pathUpdated(currentAddress, as);
+}
+
 }
 }
