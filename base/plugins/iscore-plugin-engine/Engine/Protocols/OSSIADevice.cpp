@@ -601,16 +601,18 @@ void OSSIADevice::addressUpdated(const ossia::net::node_base& node, ossia::strin
 
 void OSSIADevice::addressRemoved(const ossia::net::address_base& addr)
 {
-  // so that we don't have to go through the tree.
-  auto cb_it = m_callbacks.find(ossia_to_iscore::ToAddress(addr.get_node()));
-  if(cb_it != m_callbacks.end())
-    m_callbacks.erase(cb_it);
+  auto address = ossia_to_iscore::ToAddress(addr.get_node());
 
+  auto cb_it = m_callbacks.find(address);
+  if(cb_it != m_callbacks.end())
+  {
+    m_callbacks.erase(cb_it);
+  }
   auto& node = addr.get_node();
   State::Address currentAddress
       = Engine::ossia_to_iscore::ToAddress(node);
-  Device::AddressSettings as
-      = Engine::ossia_to_iscore::ToAddressSettings(node);
+  Device::AddressSettings as;
+  as.name = QString::fromStdString(node.get_name());
   emit pathUpdated(currentAddress, as);
 }
 
