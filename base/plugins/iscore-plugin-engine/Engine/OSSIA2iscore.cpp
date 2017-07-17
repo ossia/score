@@ -76,7 +76,7 @@ Device::Node ToDeviceExplorer(const ossia::net::node_base& ossia_node)
     // 2. Recurse on the children
     for (const auto& ossia_child : cld)
     {
-      if(!ossia::net::get_hidden(*ossia_child))
+      if(!ossia::net::get_hidden(*ossia_child) && !ossia::net::get_zombie(*ossia_child))
       {
         auto child_n = ToDeviceExplorer(*ossia_child);
         child_n.setParent(&iscore_node);
