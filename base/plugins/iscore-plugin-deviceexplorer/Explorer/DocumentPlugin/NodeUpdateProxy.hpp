@@ -14,6 +14,7 @@ namespace Device
 {
 struct AddressSettings;
 struct DeviceSettings;
+class DeviceInterface;
 }
 
 namespace Explorer
@@ -89,7 +90,10 @@ public:
   void removeLocalNode(const State::Address&);
   void updateLocalValue(const State::AddressAccessor&, const ossia::value&);
   void
-  updateLocalSettings(const State::Address&, const Device::AddressSettings&);
+  updateLocalSettings(
+      const State::Address&,
+      const Device::AddressSettings&,
+      Device::DeviceInterface& newdev);
 
   void updateRemoteValue(const State::AddressAccessor&, const ossia::value&);
 

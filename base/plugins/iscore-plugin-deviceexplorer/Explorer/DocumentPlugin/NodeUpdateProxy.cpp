@@ -187,11 +187,35 @@ void NodeUpdateProxy::updateLocalValue(
 }
 
 void NodeUpdateProxy::updateLocalSettings(
-    const State::Address& addr, const Device::AddressSettings& set)
+    const State::Address& addr, const Device::AddressSettings& set, Device::DeviceInterface& newdev)
 {
   auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr);
   if (!n)
+  {
+    // FIXME A subtle bug is introduced if we want to add the root node...
+    if(addr.path.size() > 0)
+    {
+      auto parentAddr = addr;
+      parentAddr.path.removeLast();
+
+      Device::Node* parent = Device::try_getNodeFromAddress(devModel.rootNode(), parentAddr);
+      if (parent)
+      {
+        const auto& last = addr.path[addr.path.size() - 1];
+        auto it = ossia::find_if(*parent, [&] (const auto& n) { return n.displayName() == last; });
+        if(it == parent->cend())
+        {
+          addLocalNode(
+                *parent, newdev.getNode(addr));
+        }
+        else
+        {
+          // TODO update the node with the new information
+        }
+      }
+    }
     return;
+  }
 
   if (!n->template is<Device::AddressSettings>())
   {

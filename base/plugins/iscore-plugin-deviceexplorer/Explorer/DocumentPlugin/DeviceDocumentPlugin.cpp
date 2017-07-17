@@ -197,22 +197,22 @@ void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
           *this);
 
   con(newdev, &Device::DeviceInterface::pathAdded, this,
-      [&](const State::Address& newaddr) {
+      [&](const State::Address& addr) {
     // FIXME A subtle bug is introduced if we want to add the root node...
-    if(newaddr.path.size() > 0)
+    if(addr.path.size() > 0)
     {
-      auto parentAddr = newaddr;
+      auto parentAddr = addr;
       parentAddr.path.removeLast();
 
       Device::Node* parent = Device::try_getNodeFromAddress(m_rootNode, parentAddr);
       if (parent)
       {
-        const auto& last = newaddr.path[newaddr.path.size() - 1];
+        const auto& last = addr.path[addr.path.size() - 1];
         auto it = ossia::find_if(*parent, [&] (const auto& n) { return n.displayName() == last; });
         if(it == parent->cend())
         {
           updateProxy.addLocalNode(
-                *parent, newdev.getNodeWithoutChildren(newaddr));
+                *parent, newdev.getNodeWithoutChildren(addr));
         }
         else
         {
@@ -223,12 +223,14 @@ void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
   });
 
   con(newdev, &Device::DeviceInterface::pathRemoved, this,
-      [&](const State::Address& addr) { updateProxy.removeLocalNode(addr); });
+      [&](const State::Address& addr) {
+    updateProxy.removeLocalNode(addr);
+  });
 
   con(newdev, &Device::DeviceInterface::pathUpdated, this,
       [&](const State::Address& addr, const Device::AddressSettings& set) {
-        updateProxy.updateLocalSettings(addr, set);
-      });
+    updateProxy.updateLocalSettings(addr, set, newdev);
+  });
 
   m_list.addDevice(&newdev);
   newdev.setParent(this);

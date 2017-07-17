@@ -592,10 +592,19 @@ void OSSIADevice::addressCreated(const ossia::net::address_base& addr)
 
 void OSSIADevice::addressUpdated(const ossia::net::node_base& node, ossia::string_view key)
 {
+  const bool hidden = (ossia::net::get_zombie(node) || ossia::net::get_hidden(node));
+
   State::Address currentAddress
       = Engine::ossia_to_iscore::ToAddress(node);
+  if(hidden)
+  {
+    emit pathRemoved(currentAddress);
+    return;
+  }
+
   Device::AddressSettings as
       = Engine::ossia_to_iscore::ToAddressSettings(node);
+
   emit pathUpdated(currentAddress, as);
 }
 
