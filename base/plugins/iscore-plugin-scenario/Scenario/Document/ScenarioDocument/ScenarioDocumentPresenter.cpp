@@ -45,6 +45,7 @@
 #include <iscore/model/path/ObjectIdentifier.hpp>
 #include <iscore/model/path/ObjectPath.hpp>
 #include <iscore/tools/Todo.hpp>
+#include <ossia/detail/math.hpp>
 
 namespace Scenario
 {

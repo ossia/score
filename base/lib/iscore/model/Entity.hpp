@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/model/EntityBase.hpp>
 #include <iscore/model/ComponentSerialization.hpp>
-#include <ossia-qt/js_utilities.hpp>
+#include <ossia-qt/name_utils.hpp>
 
 namespace iscore
 {
