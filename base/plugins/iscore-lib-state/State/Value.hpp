@@ -9,7 +9,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/tools/std/Optional.hpp>
-#include <ossia-qt/metatypes.hpp>
+#include <ossia-qt/value_metatypes.hpp>
 #include <iscore_lib_state_export.h>
 #include <vector>
 
@@ -32,8 +32,6 @@ using OptionalValue = optional<ossia::value>;
 ISCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m);
 
 }
-
-Q_DECLARE_METATYPE(ossia::val_type)
 
 
 inline QDataStream& operator<<(QDataStream& stream, const ossia::value& obj)

@@ -36,14 +36,28 @@ iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer()
   qRegisterMetaTypeStreamOperators<Device::FullAddressAccessorSettings>();
 
   auto& anySer = iscore::anySerializers();
-  anySer.emplace(std::string("instanceBounds"), std::make_unique<iscore::any_serializer_t<ossia::net::instance_bounds>>());
-  anySer.emplace(std::string("description"), std::make_unique<iscore::any_serializer_t<ossia::net::description>>());
-  anySer.emplace(std::string("priority"), std::make_unique<iscore::any_serializer_t<ossia::net::priority>>());
-  anySer.emplace(std::string("tags"), std::make_unique<iscore::any_serializer_t<ossia::net::tags>>());
-  anySer.emplace(std::string("refreshRate"), std::make_unique<iscore::any_serializer_t<ossia::net::refresh_rate>>());
-  anySer.emplace(std::string("valueStepSize"), std::make_unique<iscore::any_serializer_t<ossia::net::value_step_size>>());
+  ossia::for_each_in_tuple(
+        std::tuple<
+          ossia::net::instance_bounds_attribute
+        , ossia::net::tags_attribute
+        , ossia::net::description_attribute
+        , ossia::net::refresh_rate_attribute
+        , ossia::net::priority_attribute
+        , ossia::net::value_step_size_attribute
+        , ossia::net::extended_type_attribute
+        , ossia::net::app_name_attribute
+        , ossia::net::app_creator_attribute
+        , ossia::net::app_version_attribute
+        , ossia::net::hidden_attribute
+        , ossia::net::default_value_attribute
 
-  // TODO continue
+        >(),
+        [&] (auto arg) {
+    using type = decltype(arg);
+    anySer.emplace(
+          std::string(type::text())
+        , std::make_unique<iscore::any_serializer_t<typename type::type>>());
+  });
 }
 
 iscore_plugin_deviceexplorer::~iscore_plugin_deviceexplorer()
