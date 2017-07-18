@@ -19,7 +19,7 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/network_logger.hpp>
-#include <boost/timer.hpp>
+#include <ossia-qt/name_utils.hpp>
 
 namespace Engine
 {

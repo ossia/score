@@ -24,11 +24,7 @@
 #include <iscore/model/path/Path.hpp>
 #include <iscore/model/tree/TreeNode.hpp>
 #include <iscore/model/tree/TreeNodeItemModel.hpp>
-
-namespace iscore
-{
-class CommandStackFacade;
-} // namespace iscore
+#include <ossia/editor/value/value_traits.hpp>
 
 namespace Scenario
 {

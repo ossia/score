@@ -12,7 +12,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/document/DocumentContext.hpp>
-
+#include <ossia/editor/value/value_traits.hpp>
 namespace Scenario
 {
 
