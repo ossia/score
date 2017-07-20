@@ -14,6 +14,189 @@
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/model/ComponentSerialization.hpp>
 
+
+template <
+    typename Component_T,
+    typename Scenario_T,
+    typename ConstraintComponent_T,
+    bool HasOwnership = true>
+class SimpleHierarchicalScenarioComponent : public Component_T, public Nano::Observer
+{
+public:
+  struct ConstraintPair
+  {
+    using element_t = Scenario::ConstraintModel;
+    Scenario::ConstraintModel& element;
+    ConstraintComponent_T& component;
+  };
+
+  //! The default constructor will also initialize the children
+  template <typename... Args>
+  SimpleHierarchicalScenarioComponent(Args&&... args)
+      : Component_T{std::forward<Args>(args)...}
+  {
+    init();
+  }
+
+
+  //! This constructor allows for initializing the children later. Useful for std::enable_shared_from_this.
+  template <typename... Args>
+  SimpleHierarchicalScenarioComponent(iscore::lazy_init_t, Args&&... args)
+      : Component_T{std::forward<Args>(args)...}
+  {
+  }
+
+  //! Do not forget to call this when using the lazy constructor.
+  void init()
+  {
+    setup<Scenario::ConstraintModel>();
+  }
+
+  const std::list<ConstraintPair>& constraints_pairs() const
+  {
+    return m_constraints;
+  }
+
+  void clear()
+  {
+    for (auto element : m_constraints)
+      do_cleanup(element);
+
+    m_constraints.clear();
+  }
+
+  ~SimpleHierarchicalScenarioComponent()
+  {
+    clear();
+  }
+
+  template <typename elt_t>
+  void remove(const elt_t& element)
+  {
+    using map_t = MatchingComponent<elt_t, true>;
+    auto& container = this->*map_t::local_container;
+
+    auto it = ossia::find_if(
+        container, [&](auto pair) { return &pair.element == &element; });
+
+    if (it != container.end())
+    {
+      do_cleanup(*it);
+      container.erase(it);
+    }
+  }
+
+private:
+  template <typename T, bool dummy = true>
+  struct MatchingComponent;
+
+  template <typename Pair_T>
+  void do_cleanup(const Pair_T& pair)
+  {
+    // TODO constexpr-if
+    if(HasOwnership)
+    {
+      Component_T::removing(pair.element, pair.component);
+      pair.element.components().remove(pair.component);
+    }
+    else
+    {
+      auto t = Component_T::removing(pair.element, pair.component);
+      pair.element.components().erase(pair.component);
+      Component_T::removed(pair.element, pair.component, std::move(t));
+    }
+  }
+
+  template <typename elt_t>
+  void setup()
+  {
+    using map_t = MatchingComponent<elt_t, true>;
+    auto&& member = map_t::scenario_container(Component_T::process());
+
+    for (auto& elt : member)
+    {
+      add(elt);
+    }
+
+    member.mutable_added
+        .template connect<SimpleHierarchicalScenarioComponent, &SimpleHierarchicalScenarioComponent::add>(
+            this);
+
+    member.removing
+        .template connect<SimpleHierarchicalScenarioComponent, &SimpleHierarchicalScenarioComponent::remove>(
+            this);
+  }
+
+  template <typename elt_t>
+  void add(elt_t& element)
+  {
+    add(element,
+        typename iscore::is_component_serializable<
+          typename MatchingComponent<elt_t, true>::type
+        >::type{});
+  }
+
+  template <typename elt_t>
+  void add(elt_t& element, iscore::serializable_tag)
+  {
+    using map_t = MatchingComponent<elt_t, true>;
+    using component_t = typename map_t::type;
+
+    // Since the component may be serializable, we first look if
+    // we can deserialize it.
+    auto comp = iscore::deserialize_component<component_t>(
+          element.components(),
+          [&] (auto&& deserializer) {
+      Component_T::template load<component_t>(deserializer, element);
+    });
+
+    // Maybe we could not deserialize it
+    if(!comp)
+    {
+      comp = Component_T::template make<component_t>(
+            getStrongId(element.components()), element);
+    }
+
+    // We try to add it
+    if (comp)
+    {
+      element.components().add(comp);
+      (this->*map_t::local_container)
+          .emplace_back(typename map_t::pair_type{element, *comp});
+    }
+  }
+
+  template <typename elt_t>
+  void add(elt_t& element, iscore::not_serializable_tag)
+  {
+    // We can just create a new component directly
+    using map_t = MatchingComponent<elt_t, true>;
+    auto comp = Component_T::template make<typename map_t::type>(
+        getStrongId(element.components()), element);
+    if (comp)
+    {
+      element.components().add(comp);
+      (this->*map_t::local_container)
+          .emplace_back(typename map_t::pair_type{element, *comp});
+    }
+  }
+
+  std::list<ConstraintPair> m_constraints;
+
+  template <bool dummy>
+  struct MatchingComponent<Scenario::ConstraintModel, dummy>
+  {
+    using type = ConstraintComponent_T;
+    using pair_type = ConstraintPair;
+    static const constexpr auto local_container
+        = &SimpleHierarchicalScenarioComponent::m_constraints;
+    static const constexpr auto scenario_container = Scenario::
+        ElementTraits<Scenario_T, Scenario::ConstraintModel>::accessor;
+  };
+};
+
+
+
 template <
     typename Component_T,
     typename Scenario_T,
@@ -271,6 +454,7 @@ private:
         ElementTraits<Scenario_T, Scenario::StateModel>::accessor;
   };
 };
+
 
 template <
     typename Component_T,
