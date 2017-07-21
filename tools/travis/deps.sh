@@ -20,8 +20,7 @@ case "$TRAVIS_OS_NAME" in
     sudo add-apt-repository --yes ppa:beineri/opt-qt591-trusty
 
     sudo apt-get update -qq
-    sudo apt-get install -qq --force-yes g++-7 binutils libasound-dev ninja-build gcovr lcov qt59-meta-minimal qt59svg 
-qt59quickcontrols2 qt59websockets qt59serialport clang-4.0 libgl1-mesa-dev
+    sudo apt-get install -qq --force-yes g++-7 binutils libasound-dev ninja-build gcovr lcov qt59-meta-minimal qt59svg qt59quickcontrols2 qt59websockets qt59serialport clang-4.0 libgl1-mesa-dev
     # lld-4.0 : too buggy yet
     
     wait wget || true
