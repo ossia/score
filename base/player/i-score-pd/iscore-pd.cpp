@@ -7,7 +7,7 @@
 extern "C" {
 #include <cicm_wrapper.h>
 }
-#include <ossia-pd/src/ossia-pd.hpp>
+#include <ossia-pd/src/utils.hpp>
 #include <ossia-pd/src/device.hpp>
 #include <iostream>
 namespace iscore {

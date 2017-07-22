@@ -52,8 +52,6 @@ ProcessExecutor::~ProcessExecutor()
 
 ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos)
 {
-  ossia::time_constraint& par_cst = *parent();
-
   if (date != m_lastDate)
   {
     m_lastState.clear();
@@ -63,7 +61,7 @@ ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos)
     timedState.currentAudioStart.clear();
     timedState.currentAudioStop.clear();
 
-    auto diff = (date - m_lastDate) / par_cst.get_nominal_duration();
+    auto diff = (date - m_lastDate) / (date / pos);
     m_lastDate = date;
     auto cur_pos = pos;
     auto max_pos = cur_pos + diff;

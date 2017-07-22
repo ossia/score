@@ -11,7 +11,7 @@ Engine::LocalTree::ProcessComponent::ProcessComponent(
     const Id<iscore::Component>& id,
     const QString& name,
     QObject* parent)
-    : Component<Scenario::GenericProcessComponent<DocumentPlugin>>{
+    : Component<Process::GenericProcessComponent<DocumentPlugin>>{
           parentNode, proc.metadata(), proc, doc, id, name, parent}
 {
 }

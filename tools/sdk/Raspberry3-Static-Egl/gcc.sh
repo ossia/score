@@ -4,11 +4,11 @@ cd /image
 
 ## GCC deps
 
-BINUTILS=binutils-2.27
+BINUTILS=binutils-2.28
 MPC=mpc-1.0.3
 MPFR=mpfr-3.1.5
 GMP=gmp-6.1.2
-GCC=gcc-6.3.0
+GCC=gcc-7.1.0
 ISL=isl-0.16.1
 CLOOG=cloog-0.18.4
 
@@ -43,13 +43,13 @@ mkdir combined
 ## GCC build
 NPROC=$(nproc)
 
-export PATH=/opt/gcc-6/bin:/opt/gcc-6-temp/bin:$PATH
+export PATH=/opt/gcc-7/bin:/opt/gcc-7-temp/bin:$PATH
 
 export LIBRARY_PATH=/usr/lib/arm-linux-gnueabihf
 export C_INCLUDE_PATH=/usr/include/arm-linux-gnueabihf
 export CPLUS_INCLUDE_PATH=/usr/include/arm-linux-gnueabihf
 
-mkdir -p /opt/gcc-6-temp
+mkdir -p /opt/gcc-7-temp
 mkdir -p gcc-build
 (
   cd gcc-build
@@ -63,7 +63,7 @@ mkdir -p gcc-build
                         --with-arch=armv8-a \
                         --with-tune=cortex-a53 \
                         --with-fpu=crypto-neon-fp-armv8 \
-                        --prefix=/opt/gcc-6-temp \
+                        --prefix=/opt/gcc-7-temp \
                         --build=arm-linux-gnueabihf \
                         --host=arm-linux-gnueabihf \
                         --target=arm-linux-gnueabihf
@@ -73,13 +73,13 @@ mkdir -p gcc-build
 rm -rf gcc-build
 
 # Now rebuild all the binutils with LTO
-mkdir -p /opt/gcc-6
+mkdir -p /opt/gcc-7
 mkdir gcc-build-2
 (
   cd gcc-build-2
-  export CC=/opt/gcc-6-temp/bin/gcc
-  export CXX=/opt/gcc-6-temp/bin/g++
-  export LD_LIBRARY_PATH=/opt/gcc-6-temp/lib
+  export CC=/opt/gcc-7-temp/bin/gcc
+  export CXX=/opt/gcc-7-temp/bin/g++
+  export LD_LIBRARY_PATH=/opt/gcc-7-temp/lib
 
   ../combined/configure --enable-languages=c,c++,lto \
                         --enable-gold \
@@ -92,8 +92,8 @@ mkdir gcc-build-2
                         --with-float=hard \
                         --with-arch=armv8-a \
                         --with-tune=cortex-a53 \
-                        --prefix=/opt/gcc-6 \
-                        --with-build-time-tools=/opt/gcc-6-temp/bin \
+                        --prefix=/opt/gcc-7 \
+                        --with-build-time-tools=/opt/gcc-7-temp/bin \
                         --build=arm-linux-gnueabihf \
                         --host=arm-linux-gnueabihf \
                         --target=arm-linux-gnueabihf
@@ -101,6 +101,6 @@ mkdir gcc-build-2
   make BOOT_CFLAGS="-O3 -g0" -j$NPROC && make install-strip
 )
 
-rm -rf /opt/gcc-6-temp
+rm -rf /opt/gcc-7-temp
 cd /
 rm -rf /image

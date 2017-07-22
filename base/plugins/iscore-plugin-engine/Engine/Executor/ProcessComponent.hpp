@@ -36,7 +36,7 @@ public:
 };
 
 class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponent
-    : public Scenario::GenericProcessComponent<const Context>,
+    : public Process::GenericProcessComponent<const Context>,
       public std::enable_shared_from_this<ProcessComponent>
 {
   ABSTRACT_COMPONENT_METADATA(
@@ -53,7 +53,7 @@ public:
       const Id<iscore::Component>& id,
       const QString& name,
       QObject* parent)
-      : Scenario::GenericProcessComponent<const Context>{proc, ctx, id, name,
+      : Process::GenericProcessComponent<const Context>{proc, ctx, id, name,
                                                          parent}
       , m_parent_constraint{cst}
   {
@@ -83,9 +83,9 @@ protected:
 
 template <typename Process_T, typename OSSIA_Process_T>
 struct ProcessComponent_T
-    : public Scenario::GenericProcessComponent_T<ProcessComponent, Process_T>
+    : public Process::GenericProcessComponent_T<ProcessComponent, Process_T>
 {
-  using Scenario::GenericProcessComponent_T<ProcessComponent, Process_T>::
+  using Process::GenericProcessComponent_T<ProcessComponent, Process_T>::
       GenericProcessComponent_T;
 
   OSSIA_Process_T& OSSIAProcess() const

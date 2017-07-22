@@ -152,8 +152,8 @@ template<>
 ISCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::CableData>(Process::CableData& p)
 {
   p.type = (Process::CableType) obj["Type"].toInt();
-  p.source = fromJsonObject<Path<Process::DataflowProcess>>(obj["Source"]);
-  p.sink = fromJsonObject<Path<Process::DataflowProcess>>(obj["Sink"]);
+  p.source = fromJsonObject<Path<Dataflow::ProcessComponent>>(obj["Source"]);
+  p.sink = fromJsonObject<Path<Dataflow::ProcessComponent>>(obj["Sink"]);
   p.outlet = fromJsonValue<optional<int>>(obj["Oulet"]);
   p.inlet = fromJsonValue<optional<int>>(obj["Inlet"]);
 }
