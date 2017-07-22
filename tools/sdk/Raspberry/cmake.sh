@@ -6,10 +6,10 @@ wget https://cmake.org/files/v3.7/cmake-3.7.1.tar.gz
 tar xaf cmake-3.7.1.tar.gz
 mkdir cmake-build
 cd cmake-build
-export CC=/opt/gcc-6/bin/gcc
-export CXX=/opt/gcc-6/bin/g++
-export LD_LIBRARY_PATH=/opt/gcc-6/lib
-export PATH=/opt/gcc-6/bin:$PATH
+export CC=/opt/gcc-7/bin/gcc
+export CXX=/opt/gcc-7/bin/g++
+export LD_LIBRARY_PATH=/opt/gcc-7/lib
+export PATH=/opt/gcc-7/bin:$PATH
 cmake ../cmake-3.7.1 -DCMAKE_INSTALL_PREFIX=/opt/cmake -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
 make -j$(nproc)
 make install

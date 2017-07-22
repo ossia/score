@@ -2,7 +2,7 @@
 
 cd /image
 
-export PATH=/opt/gcc-6/bin:$PATH
+export PATH=/opt/gcc-7/bin:$PATH
 NPROC=$(nproc)
 
 apt-get -y install "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev flex bison gperf libicu-dev libxslt-dev ruby perl python  libasound2-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libfontconfig1-dev libfreetype6-dev libx11-dev libxext-dev libxfixes-dev libxi-dev libxrender-dev libxcb1-dev libx11-xcb-dev libxcb-glx0-dev libdbus-1-dev libssl-dev openssl
@@ -11,13 +11,13 @@ git clone https://code.qt.io/qt/qt5.git
 
 (
   cd qt5
-  git checkout 5.7.1
+  git checkout 5.9.1
   perl init-repository --module-subset=qtbase,qtimageformats,qtsvg,qtwebsockets,qttranslations,qtrepotools,qtdeclarative,qttools,qtdoc
 )
 
-export CC=/opt/gcc-6/bin/gcc
-export CXX=/opt/gcc-6/bin/g++
-export LD_LIBRARY_PATH=/opt/gcc-6/lib
+export CC=/opt/gcc-7/bin/gcc
+export CXX=/opt/gcc-7/bin/g++
+export LD_LIBRARY_PATH=/opt/gcc-7/lib
 
 mkdir qt5-build
 (
@@ -55,7 +55,7 @@ mkdir qt5-build
                    -dbus-linked \
                    -no-gstreamer \
                    -no-system-proxies \
-                   -prefix /opt/qt-5.7.1
+                   -prefix /opt/qt-5.9.1
 
   make -j$NPROC
   make install -j$NPROC

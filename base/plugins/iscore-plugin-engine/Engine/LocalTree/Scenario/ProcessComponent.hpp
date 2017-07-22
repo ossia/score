@@ -12,7 +12,7 @@ namespace Engine
 namespace LocalTree
 {
 class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponent
-    : public Component<Scenario::GenericProcessComponent<DocumentPlugin>>
+    : public Component<Process::GenericProcessComponent<DocumentPlugin>>
 {
   ABSTRACT_COMPONENT_METADATA(
       Engine::LocalTree::ProcessComponent,
@@ -31,7 +31,7 @@ public:
 
 template <typename Process_T>
 using ProcessComponent_T
-    = Scenario::GenericProcessComponent_T<ProcessComponent, Process_T>;
+    = Process::GenericProcessComponent_T<ProcessComponent, Process_T>;
 
 class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory
     : public iscore::

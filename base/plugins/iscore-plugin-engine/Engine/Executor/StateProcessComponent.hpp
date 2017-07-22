@@ -16,7 +16,7 @@ namespace Engine
 namespace Execution
 {
 class ISCORE_PLUGIN_ENGINE_EXPORT StateProcessComponent
-    : public Scenario::GenericStateProcessComponent<const Context>
+    : public Process::GenericStateProcessComponent<const Context>
 {
   ABSTRACT_COMPONENT_METADATA(
       StateProcessComponent, "cef1b394-84b2-4241-b4eb-72b1fb504f92")
@@ -28,7 +28,7 @@ public:
       const Id<iscore::Component>& id,
       const QString& name,
       QObject* parent)
-      : Scenario::GenericStateProcessComponent<const Context>{proc, ctx, id,
+      : Process::GenericStateProcessComponent<const Context>{proc, ctx, id,
                                                               name, nullptr}
       , m_parent_state{state}
   {
@@ -48,7 +48,7 @@ protected:
 
 template <typename Process_T>
 using StateProcessComponent_T
-    = Scenario::GenericProcessComponent_T<StateProcessComponent, Process_T>;
+    = Process::GenericProcessComponent_T<StateProcessComponent, Process_T>;
 
 class ISCORE_PLUGIN_ENGINE_EXPORT StateProcessComponentFactory
     : public iscore::

@@ -1,10 +1,10 @@
 #!/bin/bash -eux
 
 export NPROC=$(nproc)
-export PATH=/opt/gcc-6/bin:$PATH
-export CC=/opt/gcc-6/bin/gcc
-export CXX=/opt/gcc-6/bin/g++
-export LD_LIBRARY_PATH=/opt/gcc-6/lib64
+export PATH=/opt/gcc-7/bin:$PATH
+export CC=/opt/gcc-7/bin/gcc
+export CXX=/opt/gcc-7/bin/g++
+export LD_LIBRARY_PATH=/opt/gcc-7/lib64
 
 apt-get -y --force-yes install libsdl2-dev libgstreamer1.0-dev libgstreamer-.*1.0-dev libssl-dev libglib2.0-dev libicu-dev libfontconfig-dev libxcb.*dev  libpng-dev libjpeg-dev zlib1g-dev libpulse-dev "^libxcb.*" libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev flex bison gperf libicu-dev libxslt-dev ruby perl python  libasound2-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libfontconfig1-dev libfreetype6-dev libx11-dev libxext-dev libxfixes-dev libxi-dev libxrender-dev libxcb1-dev libx11-xcb-dev libxcb-glx0-dev libdbus-1-dev openssl libdbus-1-dev libgstreamer1.0-dev libopenal-dev libbluetooth-dev libsdl2-dev libts-dev libmtdev-dev libfontconfig1-dev libsctp-dev libmysqlclient-dev libgstreamer-plugins-base1.0-dev libssl*-dev
 
@@ -12,7 +12,7 @@ git clone https://code.qt.io/qt/qt5.git
 
 (
   cd qt5
-  git checkout 5.8
+  git checkout 5.9.1
   git submodule update --init --recursive
 )
 

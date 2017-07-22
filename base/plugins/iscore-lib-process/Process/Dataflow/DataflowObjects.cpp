@@ -1,5 +1,13 @@
 #include "DataflowObjects.hpp"
 #include <Process/Dataflow/DataflowProcess.hpp>
+namespace Dataflow
+{
+ProcessComponent::~ProcessComponent()
+{
+  delete ui;
+}
+
+}
 namespace Process
 {
 
@@ -14,10 +22,35 @@ Cable::Cable(const iscore::DocumentContext& ctx, Id<Cable> c, const CableData& d
   IdentifiedObject{c, "Cable", nullptr}
 {
   m_type = data.type;
-  m_source = &data.source.find(ctx);
-  m_sink = &data.sink.find(ctx);
+  m_source = data.source.try_find(ctx);
+  m_sink = data.sink.try_find(ctx);
   m_outlet = data.outlet;
   m_inlet = data.inlet;
+}
+
+void Cable::update(const iscore::DocumentContext& ctx, const CableData& data)
+{
+  source_node.reset();
+  sink_node.reset();
+  exec.reset();
+
+  setType(data.type);
+  setSource(data.source.try_find(ctx));
+  setSink(data.sink.try_find(ctx));
+  setOutlet(data.outlet);
+  setInlet(data.inlet);
+}
+
+CableData Cable::toCableData() const
+{
+  CableData c;
+  c.type = m_type;
+  if(m_source) c.source = *m_source;
+  if(m_sink) c.sink = *m_sink;
+  c.outlet = m_outlet;
+  c.inlet = m_inlet;
+
+  return c;
 }
 
 CableType Cable::type() const
@@ -25,12 +58,12 @@ CableType Cable::type() const
   return m_type;
 }
 
-DataflowProcess*Cable::source() const
+Dataflow::ProcessComponent*Cable::source() const
 {
   return m_source;
 }
 
-DataflowProcess*Cable::sink() const
+Dataflow::ProcessComponent*Cable::sink() const
 {
   return m_sink;
 }
@@ -54,21 +87,35 @@ void Cable::setType(CableType type)
   emit typeChanged(m_type);
 }
 
-void Cable::setSource(DataflowProcess* source)
+void Cable::setSource(Dataflow::ProcessComponent* source)
 {
   if (m_source == source)
     return;
 
   m_source = source;
+
+  QObject::disconnect(m_srcDeath);
+  if(m_source)
+    m_srcDeath = connect(m_source, &QObject::destroyed, this, [=] {
+      setSource(nullptr);
+    });
+
   emit sourceChanged(m_source);
 }
 
-void Cable::setSink(DataflowProcess* sink)
+void Cable::setSink(Dataflow::ProcessComponent* sink)
 {
   if (m_sink == sink)
     return;
 
   m_sink = sink;
+
+  QObject::disconnect(m_sinkDeath);
+  if(m_source)
+    m_sinkDeath = connect(m_sink, &QObject::destroyed, this, [=] {
+      setSink(nullptr);
+    });
+
   emit sinkChanged(m_sink);
 }
 

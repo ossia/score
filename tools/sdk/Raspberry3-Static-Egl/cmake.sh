@@ -3,10 +3,10 @@
 export BOOST_VER=63
 export BOOST_ADDR=boost_1_63_0
 
-export CC=/opt/gcc-6/bin/gcc
-export CXX=/opt/gcc-6/bin/g++
-export LD_LIBRARY_PATH=/opt/gcc-6/lib
-export PATH=/opt/gcc-6/bin:$PATH
+export CC=/opt/gcc-7/bin/gcc
+export CXX=/opt/gcc-7/bin/g++
+export LD_LIBRARY_PATH=/opt/gcc-7/lib
+export PATH=/opt/gcc-7/bin:$PATH
 
 apt-get -y --force-yes install cmake
 

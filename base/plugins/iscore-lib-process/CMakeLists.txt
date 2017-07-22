@@ -16,6 +16,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/GenericProcessFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessComponent.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/DataflowProcess.hpp"
