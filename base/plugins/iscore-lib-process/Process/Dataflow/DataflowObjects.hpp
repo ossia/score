@@ -52,9 +52,9 @@ class ISCORE_LIB_PROCESS_EXPORT Cable
     void update(const iscore::DocumentContext& ctx, const CableData&);
 
     CableData toCableData() const;
-    std::shared_ptr<ossia::graph_node> source_node;
-    std::shared_ptr<ossia::graph_node> sink_node;
-    std::shared_ptr<ossia::graph_edge> exec;
+    ossia::node_ptr source_node;
+    ossia::node_ptr sink_node;
+    ossia::edge_ptr exec;
 
     CableType type() const;
     Dataflow::ProcessComponent* source() const;
