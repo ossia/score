@@ -111,6 +111,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessComponent :
   public:
     static const constexpr bool is_unique = true;
 
+    ossia::node_ptr exec{};
     QObject* ui{};
     ProcessComponent(
         Process::ProcessModel& process,
