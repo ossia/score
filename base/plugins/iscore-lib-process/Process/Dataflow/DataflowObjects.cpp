@@ -1,10 +1,10 @@
 #include "DataflowObjects.hpp"
 #include <Process/Dataflow/DataflowProcess.hpp>
+#include <ossia/dataflow/graph_node.hpp>
 namespace Dataflow
 {
 ProcessComponent::~ProcessComponent()
 {
-  delete ui;
 }
 
 }
@@ -58,12 +58,12 @@ CableType Cable::type() const
   return m_type;
 }
 
-Dataflow::ProcessComponent*Cable::source() const
+Process::Node* Cable::source() const
 {
   return m_source;
 }
 
-Dataflow::ProcessComponent*Cable::sink() const
+Process::Node* Cable::sink() const
 {
   return m_sink;
 }
@@ -87,7 +87,7 @@ void Cable::setType(CableType type)
   emit typeChanged(m_type);
 }
 
-void Cable::setSource(Dataflow::ProcessComponent* source)
+void Cable::setSource(Process::Node* source)
 {
   if (m_source == source)
     return;
@@ -103,7 +103,7 @@ void Cable::setSource(Dataflow::ProcessComponent* source)
   emit sourceChanged(m_source);
 }
 
-void Cable::setSink(Dataflow::ProcessComponent* sink)
+void Cable::setSink(Process::Node* sink)
 {
   if (m_sink == sink)
     return;
@@ -135,6 +135,19 @@ void Cable::setInlet(ossia::optional<int> inlet)
 
   m_inlet = inlet;
   emit inletChanged(m_inlet);
+}
+
+Node::Node(Id<Node> c, QObject* parent)
+  : Entity{std::move(c), QStringLiteral("Node"), parent}
+{
+
+}
+
+Node::~Node()
+{
+  if(exec)
+    exec->clear();
+  delete ui;
 }
 
 }
