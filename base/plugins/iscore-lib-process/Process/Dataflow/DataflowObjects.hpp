@@ -15,21 +15,78 @@ namespace Dataflow
 {
 class NodeItem;
 class DocumentPlugin;
-class ProcessComponent;
 }
 namespace Process
 {
 class DataflowProcess;
+class Node;
+class Port;
+class Cable;
 enum class CableType { ImmediateGlutton, ImmediateStrict, DelayedGlutton, DelayedStrict };
 
 struct ISCORE_LIB_PROCESS_EXPORT CableData
 {
     CableType type{};
-    Path<Dataflow::ProcessComponent> source, sink;
+    Path<Process::Node> source, sink;
     ossia::optional<int> outlet, inlet;
 
     ISCORE_LIB_PROCESS_EXPORT
     friend bool operator==(const CableData& lhs, const CableData& rhs);
+};
+
+class ISCORE_LIB_PROCESS_EXPORT Node
+    : public iscore::Entity<Node>
+{
+    Q_OBJECT
+    Q_PROPERTY(QPointF position READ position WRITE setPosition NOTIFY positionChanged)
+  public:
+    ossia::node_ptr exec{};
+    QObject* ui{};
+
+    Node(Id<Node> c, QObject* parent);
+
+    ~Node();
+
+    void cleanup();
+    virtual QString getText() const = 0;
+
+    virtual std::size_t audioInlets() const = 0;
+    virtual std::size_t messageInlets() const = 0;
+    virtual std::size_t midiInlets() const = 0;
+
+    virtual std::size_t audioOutlets() const = 0;
+    virtual std::size_t messageOutlets() const = 0;
+    virtual std::size_t midiOutlets() const = 0;
+
+    virtual std::vector<Process::Port> inlets() const = 0;
+    virtual std::vector<Process::Port> outlets() const = 0;
+
+    virtual std::vector<Id<Process::Cable>> cables() const = 0;
+    virtual void addCable(Id<Process::Cable> c) = 0;
+    virtual void removeCable(Id<Process::Cable> c) = 0;
+
+    QPointF position() const
+    {
+      return m_position;
+    }
+
+  public slots:
+    void setPosition(QPointF position)
+    {
+      if (m_position == position)
+        return;
+
+      m_position = position;
+      emit positionChanged(m_position);
+    }
+
+  signals:
+    void positionChanged(QPointF position);
+    void inletsChanged();
+    void outletsChanged();
+
+  private:
+    QPointF m_position;
 };
 
 class ISCORE_LIB_PROCESS_EXPORT Cable
@@ -37,8 +94,8 @@ class ISCORE_LIB_PROCESS_EXPORT Cable
 {
     Q_OBJECT
     Q_PROPERTY(CableType type READ type WRITE setType NOTIFY typeChanged)
-    Q_PROPERTY(Dataflow::ProcessComponent* source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(Dataflow::ProcessComponent* sink READ sink WRITE setSink NOTIFY sinkChanged)
+    Q_PROPERTY(Process::Node* source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(Process::Node* sink READ sink WRITE setSink NOTIFY sinkChanged)
     Q_PROPERTY(ossia::optional<int> outlet READ outlet WRITE setOutlet NOTIFY outletChanged)
     Q_PROPERTY(ossia::optional<int> inlet READ inlet WRITE setInlet NOTIFY inletChanged)
   public:
@@ -57,28 +114,28 @@ class ISCORE_LIB_PROCESS_EXPORT Cable
     ossia::edge_ptr exec;
 
     CableType type() const;
-    Dataflow::ProcessComponent* source() const;
-    Dataflow::ProcessComponent* sink() const;
+    Process::Node* source() const;
+    Process::Node* sink() const;
     ossia::optional<int> outlet() const;
     ossia::optional<int> inlet() const;
 
     void setType(CableType type);
-    void setSource(Dataflow::ProcessComponent* source);
-    void setSink(Dataflow::ProcessComponent* sink);
+    void setSource(Process::Node* source);
+    void setSink(Process::Node* sink);
     void setOutlet(ossia::optional<int> outlet);
     void setInlet(ossia::optional<int> inlet);
 
 signals:
     void typeChanged(CableType type);
-    void sourceChanged(Dataflow::ProcessComponent* source);
-    void sinkChanged(Dataflow::ProcessComponent* sink);
+    void sourceChanged(Process::Node* source);
+    void sinkChanged(Process::Node* sink);
     void outletChanged(ossia::optional<int> outlet);
     void inletChanged(ossia::optional<int> inlet);
 
 private:
     CableType m_type{};
-    Dataflow::ProcessComponent* m_source{};
-    Dataflow::ProcessComponent* m_sink{};
+    Process::Node* m_source{};
+    Process::Node* m_sink{};
     ossia::optional<int> m_outlet, m_inlet;
     QMetaObject::Connection m_srcDeath, m_sinkDeath;
 };
@@ -111,8 +168,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessComponent :
   public:
     static const constexpr bool is_unique = true;
 
-    ossia::node_ptr exec{};
-    QObject* ui{};
     ProcessComponent(
         Process::ProcessModel& process,
         DocumentPlugin& doc,
@@ -121,26 +176,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessComponent :
         QObject* parent);
 
     ~ProcessComponent();
-    void cleanup();
-
-    virtual std::size_t audioInlets() const = 0;
-    virtual std::size_t messageInlets() const = 0;
-    virtual std::size_t midiInlets() const = 0;
-
-    virtual std::size_t audioOutlets() const = 0;
-    virtual std::size_t messageOutlets() const = 0;
-    virtual std::size_t midiOutlets() const = 0;
-
-    virtual std::vector<Process::Port> inlets() const = 0;
-    virtual std::vector<Process::Port> outlets() const = 0;
-
-    virtual std::vector<Id<Process::Cable>> cables() const = 0;
-    virtual void addCable(Id<Process::Cable> c) = 0;
-    virtual void removeCable(Id<Process::Cable> c) = 0;
-
-  signals:
-    void inletsChanged();
-    void outletsChanged();
 
 };
 
