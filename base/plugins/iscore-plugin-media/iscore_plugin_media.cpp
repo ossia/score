@@ -6,6 +6,7 @@
 
 #include <Media/Sound/SoundFactory.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
+#include <Media/Inspector/Factory.hpp>
 
 #include <iscore/plugins/application/GUIApplicationPlugin.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
@@ -35,6 +36,9 @@ std::vector<std::unique_ptr<iscore::InterfaceBase>> iscore_plugin_media::factori
             iscore::ApplicationContext,
         FW<Process::ProcessModelFactory,
             Media::Sound::ProcessFactory
+            >,
+        FW<Process::InspectorWidgetDelegateFactory,
+            Media::Sound::InspectorFactory
             >,
         FW<Process::LayerFactory,
             Media::Sound::LayerFactory

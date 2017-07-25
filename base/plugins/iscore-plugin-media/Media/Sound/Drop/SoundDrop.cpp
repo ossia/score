@@ -13,8 +13,10 @@
 #include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
 
 #include <Loop/LoopProcessModel.hpp>
-
+#if !defined(_MSC_VER)
 #define HAS_MEDIAINFO (__has_include(<MediaInfo/MediaInfo.h>) && !defined(__ANDROID__))
+#endif
+
 #if HAS_MEDIAINFO
 #define UNICODE 1
 #include <MediaInfo/MediaInfo.h>

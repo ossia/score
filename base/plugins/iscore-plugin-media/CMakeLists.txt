@@ -71,7 +71,7 @@ endif()
 target_link_libraries(${PROJECT_NAME} PUBLIC
             iscore_plugin_midi
             ${SNDFILE_LIBRARIES}
-            mediainfo)
+            )
 endif()
 
 if(${SNDFILE_FOUND})

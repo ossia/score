@@ -19,6 +19,7 @@
 #include <ossia/editor/value/value.hpp>
 #include <ossia/network/base/address.hpp>
 #include <ossia/network/base/node.hpp>
+#include <ossia/network/base/device.hpp>
 #include <Engine/CurveConversion.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>

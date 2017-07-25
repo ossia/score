@@ -6,6 +6,7 @@
 #include <ossia/editor/state/state.hpp>
 #include <ossia/editor/value/value.hpp>
 #include <ossia/network/base/node.hpp>
+#include <ossia/network/base/device.hpp>
 
 #include <Engine/Executor/ConstraintComponent.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
