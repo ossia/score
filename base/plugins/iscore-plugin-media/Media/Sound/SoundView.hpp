@@ -31,7 +31,7 @@ class LayerView final : public Process::LayerView
         long compareDensity(const double);
 
         // Computes a data set for the given ZoomRatio
-        std::vector<std::vector<double> > computeDataSet(ZoomRatio, double* ptr, std::vector<std::vector<double>>& dataset);
+        void computeDataSet(ZoomRatio, double* ptr, std::vector<std::vector<float>>& dataset);
 
         void drawWaveForms(ZoomRatio);
         void scrollValueChanged(int);
@@ -47,9 +47,9 @@ class LayerView final : public Process::LayerView
 
         ZoomRatio m_zoom;
 
-        std::vector<std::vector<double> > m_prevdata;
-        std::vector<std::vector<double> > m_curdata;
-        std::vector<std::vector<double> > m_nextdata;
+        std::vector<std::vector<float> > m_prevdata;
+        std::vector<std::vector<float> > m_curdata;
+        std::vector<std::vector<float> > m_nextdata;
 
         enum {KEEP_CUR = 0, USE_PREV, USE_NEXT, RECOMPUTE_ALL};
         void printAction(long);
