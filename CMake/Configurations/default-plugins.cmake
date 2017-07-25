@@ -18,4 +18,5 @@ iscore-plugin-engine
 iscore-plugin-js
 iscore-plugin-midi
 iscore-plugin-recording
+iscore-plugin-media
 )

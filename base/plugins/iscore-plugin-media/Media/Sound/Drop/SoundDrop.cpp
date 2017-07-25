@@ -2,6 +2,7 @@
 #include <Media/Commands/ChangeAudioFile.hpp>
 #include <Media/Commands/CreateSoundBox.hpp>
 #include <Media/Sound/SoundModel.hpp>
+#include <Media/AudioDecoder.hpp>
 
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
@@ -55,7 +56,6 @@ static void createSoundProcesses(
 
 DroppedAudioFiles::DroppedAudioFiles(const QMimeData &mime)
 {
-#if HAS_MEDIAINFO
     for(auto url : mime.urls())
     {
         QString filename = url.toLocalFile();
@@ -64,6 +64,7 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData &mime)
 
         files.emplace_back(filename);
 
+#if HAS_MEDIAINFO
         MediaInfoLib::MediaInfo m;
         m.Open(filename.toStdWString());
         auto sr = m.Get(MediaInfoLib::stream_t::Stream_Audio, 0, L"SamplingRate");
@@ -88,8 +89,21 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData &mime)
             maxDuration = samples;
             maxSampleRate = sample_rate;
         }
-    }
+#else
+        AudioDecoder dec;
+        bool ok = false;
+        QObject::connect(&dec, &AudioDecoder::finished, [&] { ok = true; });
+        QObject::connect(&dec, &AudioDecoder::failed, [&] { ok = true; });
+        dec.decode(filename);
+        while(!ok)
+            qApp->processEvents();
+
+        int channels = dec.data.size();
+        if(channels == 0) continue;
+        maxDuration = dec.data[0].size();
+        maxSampleRate = 44100;
 #endif
+    }
 }
 
 TimeVal DroppedAudioFiles::dropMaxDuration() const
