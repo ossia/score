@@ -4,7 +4,9 @@
 #include <QScrollBar>
 #include <cmath>
 #include <QGraphicsSceneContextMenuEvent>
-
+#if defined(__SSE2__)
+#include <xmmintrin.h>
+#endif
 namespace Media
 {
 namespace Sound
@@ -51,11 +53,11 @@ void LayerView::printAction(long action) {
     }
 }
 
-std::vector<std::vector<double> > LayerView::computeDataSet(ZoomRatio ratio, double* densityptr, std::vector<std::vector<double>>& dataset)
+void LayerView::computeDataSet(ZoomRatio ratio, double* densityptr, std::vector<std::vector<float>>& dataset)
 {
     const int nchannels = m_data.size();
 
-    const double density = std::max((m_sampleRate * ratio) / 1000., 1.);
+    const int density = std::max((m_sampleRate * ratio) / 1000., 1.);
 
     if (densityptr != nullptr)
         *densityptr = density;
@@ -64,30 +66,33 @@ std::vector<std::vector<double> > LayerView::computeDataSet(ZoomRatio ratio, dou
     for (int c = 0; c < nchannels; ++c) {
 
         const auto& chan = m_data[c];
-        const int64_t chan_n = chan.size();
+        const int chan_n = chan.size();
 
         const double length = double(1000ll * chan_n) / m_sampleRate; // duration of the track
         const double size = ratio > 0 ? length / ratio : 0; // number of pixels the track will occupy in its entirety
 
-        const int64_t npoints = size;
-        std::vector<double>& rmsv = dataset[c];
-        rmsv.clear();
-        rmsv.reserve(npoints);
+        const int npoints = size;
+        std::vector<float>& rmsv = dataset[c];
+        rmsv.resize(npoints);
 
-        for (int64_t i = 0; i < npoints; ++i)
+        const float one_over_dens = 1. / density;
+        for (int i = 0; i < npoints; ++i)
         {
-            double rms = 0;
-            for (int64_t j = 0;
+            rmsv[i] = 0;
+            for (int j = 0;
                  (j < density) && ((i * density + j) < chan_n);
                  ++j)
             {
                 auto s = chan[i * density + j];
-                rms += s * s;
+                rmsv[i] += s * s;
             }
-            rmsv.push_back(std::sqrt(rms / density));
+        }
+
+        for(int i = 0; i < npoints; i++)
+        {
+            rmsv[i] = std::sqrt(rmsv[i] * one_over_dens);
         }
     }
-    return dataset;
 }
 
 void LayerView::setData(const MediaFileHandle& data)
@@ -132,7 +137,7 @@ void LayerView::drawWaveForms(ZoomRatio ratio) {
 
    for (int64_t c = 0; c < nchannels ; ++c) {
         const int64_t current_height = c * h;
-        std::vector<double> dataset = m_curdata[c];
+        const std::vector<float>& dataset = m_curdata[c];
 
         QPainterPath path{};
         path.setFillRule(Qt::WindingFill);
