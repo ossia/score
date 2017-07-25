@@ -51,39 +51,37 @@ void LayerView::printAction(long action) {
     }
 }
 
-std::vector<std::vector<double> > LayerView::computeDataSet(ZoomRatio ratio, double* densityptr)
+std::vector<std::vector<double> > LayerView::computeDataSet(ZoomRatio ratio, double* densityptr, std::vector<std::vector<double>>& dataset)
 {
     const int nchannels = m_data.size();
 
     const double density = std::max((m_sampleRate * ratio) / 1000., 1.);
-    const int density_i = (int) density;
 
     if (densityptr != nullptr)
         *densityptr = density;
 
-    std::vector<std::vector<double> > dataset;
     dataset.resize(nchannels);
     for (int c = 0; c < nchannels; ++c) {
 
         const auto& chan = m_data[c];
         const int64_t chan_n = chan.size();
 
-        const double length = (1000ll * chan_n) / m_sampleRate; // duration of the track
+        const double length = double(1000ll * chan_n) / m_sampleRate; // duration of the track
         const double size = ratio > 0 ? length / ratio : 0; // number of pixels the track will occupy in its entirety
 
         const int64_t npoints = size;
-
         std::vector<double>& rmsv = dataset[c];
+        rmsv.clear();
         rmsv.reserve(npoints);
 
         for (int64_t i = 0; i < npoints; ++i)
         {
             double rms = 0;
             for (int64_t j = 0;
-                 (j < density_i) && ((i * density_i + j) < chan_n);
+                 (j < density) && ((i * density + j) < chan_n);
                  ++j)
             {
-                auto s = chan[i * density_i + j];
+                auto s = chan[i * density + j];
                 rms += s * s;
             }
             rmsv.push_back(std::sqrt(rms / density));
@@ -171,24 +169,26 @@ void LayerView::recompute(const TimeVal& dur, ZoomRatio ratio)
     case KEEP_CUR:
         break;
     case USE_NEXT:
-        m_prevdata = std::vector<std::vector<double> > (m_curdata);
+        std::swap(m_prevdata, m_curdata);
+        std::swap(m_curdata, m_nextdata);
         m_prevdensity = m_density;
-        m_curdata = std::vector<std::vector<double> > (m_nextdata);
         m_density = m_nextdensity;
         if (density > 1)
-            m_nextdata = computeDataSet(ratio / 2., &m_nextdensity);
+            computeDataSet(ratio / 2., &m_nextdensity, m_nextdata);
+        else
+          m_nextdata = m_curdata;
         break;
     case USE_PREV:
-        m_nextdata = std::vector<std::vector<double> > (m_curdata);
+        std::swap(m_nextdata, m_curdata);
+        std::swap(m_curdata, m_prevdata);
         m_nextdensity = m_density;
-        m_curdata = std::vector<std::vector<double> > (m_prevdata);
         m_density = m_prevdensity;
-        m_prevdata = computeDataSet(2. * ratio, &m_prevdensity);
+        computeDataSet(2. * ratio, &m_prevdensity, m_prevdata);
         break;
     case RECOMPUTE_ALL:
-        m_curdata = computeDataSet(ratio, &m_density);
-        m_prevdata = computeDataSet(2. * ratio, &m_prevdensity);
-        m_nextdata = computeDataSet(ratio / 2., &m_nextdensity);
+        computeDataSet(ratio, &m_density, m_curdata);
+        computeDataSet(2. * ratio, &m_prevdensity, m_prevdata);
+        computeDataSet(ratio / 2., &m_nextdensity, m_nextdata);
         break;
     default:
         break;
