@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_node.hpp>
+#include <ossia/network/base/device.hpp>
 #include <Engine/iscore2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>

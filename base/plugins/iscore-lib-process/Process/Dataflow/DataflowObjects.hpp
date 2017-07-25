@@ -20,7 +20,7 @@ namespace Process
 {
 class DataflowProcess;
 class Node;
-class Port;
+struct Port;
 class Cable;
 enum class CableType { ImmediateGlutton, ImmediateStrict, DelayedGlutton, DelayedStrict };
 
