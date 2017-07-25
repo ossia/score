@@ -50,6 +50,8 @@ void MediaFileHandle::load(const QString &filename)
             this, [=] {
       m_array = std::move(decoder->data);
       m_sampleRate = decoder->decoder.audioFormat().sampleRate();
+      if(m_sampleRate < 100)
+          m_sampleRate = 44100;
 
       if(m_array.size() == 2)
         if(m_array[1].empty())

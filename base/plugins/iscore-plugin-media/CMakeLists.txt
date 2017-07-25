@@ -6,6 +6,9 @@ iscore_common_setup()
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Multimedia)
 
+if(APPLE)
+find_package(Sndfile)
+endif()
 
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libaudiotool/src/libwatermark/*.h")
 # Files & main target
