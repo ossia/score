@@ -20,13 +20,26 @@ LayerView::LayerView(QGraphicsItem* parent):
 
 long LayerView::compareDensity(const double density) {
 
-    if (m_density == -1 || m_density >= 4 * density || 4 * m_density <= density || (int)width() == 0 || m_curdata.empty()) {
+    int ratio;
+    if(density > m_density)
+    {
+        ratio = 2;
+    }
+    else
+    {
+        ratio = 8;
+    }
+    if (m_density == -1
+        || m_density >= 2 * ratio * density
+        || 2 * ratio * m_density <= density
+        || (int)width() == 0
+        || m_curdata.empty()) {
         return RECOMPUTE_ALL;
     }
-    if (m_density >= 2 * density) {
+    if (m_density >= ratio * density) {
         return USE_NEXT;
     }
-    if (2 * m_density <= density) {
+    if (ratio * m_density <= density) {
         return USE_PREV;
     }
     return KEEP_CUR;
@@ -142,13 +155,14 @@ void LayerView::drawWaveForms(ZoomRatio ratio) {
 
         // Draw path for current channel
 
-        auto height_adjustemnt = current_height + h / 2.;
+        const float half_h = h / 2.f;
+        const float height_adjustemnt = current_height + half_h;
         if (n > i0) {
-            path.moveTo(x0, dataset[i0] + height_adjustemnt);
+            path.moveTo(x0, double(dataset[i0] + height_adjustemnt));
             double x = x0;
             for (int64_t i = i0; (i < n) && (x <= xf); ++i) {
                 x = i * densityratio;
-                path.lineTo(x, dataset[i] * h / 2. + height_adjustemnt);
+                path.lineTo(x, double(dataset[i] * half_h + height_adjustemnt));
             }
             path.lineTo(x, height_adjustemnt);
         }
