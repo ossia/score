@@ -119,7 +119,7 @@ iscore_plugin_engine::factories(
             FW<Engine::Execution::ProcessComponentFactory,
                  Engine::Execution::ScenarioComponentFactory,
                  Interpolation::Executor::ComponentFactory,
-//                 Automation::RecreateOnPlay::ComponentFactory,
+                 Automation::RecreateOnPlay::ComponentFactory,
                  Mapping::RecreateOnPlay::ComponentFactory,
                  Loop::RecreateOnPlay::ComponentFactory,
                  Gradient::RecreateOnPlay::ComponentFactory,
