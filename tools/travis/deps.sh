@@ -16,11 +16,12 @@ case "$TRAVIS_OS_NAME" in
     echo 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main' | sudo tee /etc/apt/sources.list.d/llvm.list
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
 
+    sudo add-apt-repository --yes ppa:jonathonf/ffmpeg-3
     sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
     sudo add-apt-repository --yes ppa:beineri/opt-qt591-trusty
 
     sudo apt-get update -qq
-    sudo apt-get install -qq --force-yes g++-6 binutils libasound-dev ninja-build gcovr lcov qt59-meta-minimal qt59svg qt59quickcontrols2 qt59websockets qt59serialport qt59multimedia clang-4.0 libgl1-mesa-dev libavcodec-dev libavutil-dev libavfilter-dev libavformat-dev libavresample-dev
+    sudo apt-get install -qq --force-yes g++-6 binutils libasound-dev ninja-build gcovr lcov qt59-meta-minimal qt59svg qt59quickcontrols2 qt59websockets qt59serialport qt59multimedia clang-4.0 libgl1-mesa-dev libavcodec-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev 
     # lld-4.0 : too buggy yet
     
     wait wget || true
