@@ -71,7 +71,7 @@ float**MediaFileHandle::audioData() const
 
 bool MediaFileHandle::isAudioFile(const QFile& file)
 {
-    return file.exists() && file.fileName().contains(QRegExp(".(wav|aif|aiff|flac|ogg|mp3)"));
+    return file.exists() && file.fileName().contains(QRegExp(".(wav|aif|aiff|flac|ogg|mp3)", Qt::CaseInsensitive));
 }
 
 int64_t MediaFileHandle::samples() const
