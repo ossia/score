@@ -15,7 +15,7 @@
 
 #include <Loop/LoopProcessModel.hpp>
 #if !defined(_MSC_VER)
-#define HAS_MEDIAINFO (__has_include(<MediaInfo/MediaInfo.h>) && !defined(__ANDROID__))
+#define HAS_MEDIAINFO (false && (__has_include(<MediaInfo/MediaInfo.h>) && !defined(__ANDROID__)))
 #endif
 
 #if HAS_MEDIAINFO
@@ -64,6 +64,15 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData &mime)
 
         files.emplace_back(filename);
 
+        AudioDecoder dec;
+        auto info = dec.probe(filename);
+        qDebug() << info.ok << info.channels << info.length << info.rate;
+        if(info.ok && info.channels > 0 && info.length > 0)
+        {
+          maxDuration = std::max((int64_t) maxDuration, (int64_t) info.length);
+          maxSampleRate = std::max((int64_t) maxSampleRate, (int64_t) info.rate);
+        }
+/*
 #if HAS_MEDIAINFO
         MediaInfoLib::MediaInfo m;
         m.Open(filename.toStdWString());
@@ -103,6 +112,7 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData &mime)
         maxDuration = dec.data[0].size();
         maxSampleRate = 44100;
 #endif
+        */
     }
 }
 
