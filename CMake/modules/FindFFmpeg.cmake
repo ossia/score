@@ -42,10 +42,7 @@ endif ()
 #
 macro(set_component_found _component )
   if (${_component}_LIBRARIES AND ${_component}_INCLUDE_DIRS)
-    # message(STATUS "  - ${_component} found.")
     set(${_component}_FOUND TRUE)
-  else ()
-    # message(STATUS "  - ${_component} not found.")
   endif ()
 endmacro()
 
@@ -98,12 +95,13 @@ endmacro()
 if (NOT FFMPEG_LIBRARIES)
 
   # Check for all possible component.
-  find_component(AVCODEC  libavcodec  avcodec  libavcodec/avcodec.h)
-  find_component(AVFORMAT libavformat avformat libavformat/avformat.h)
-  find_component(AVDEVICE libavdevice avdevice libavdevice/avdevice.h)
-  find_component(AVUTIL   libavutil   avutil   libavutil/avutil.h)
-  find_component(SWSCALE  libswscale  swscale  libswscale/swscale.h)
-  find_component(POSTPROC libpostproc postproc libpostproc/postprocess.h)
+  find_component(AVCODEC     libavcodec     avcodec     libavcodec/avcodec.h)
+  find_component(AVFORMAT    libavformat    avformat    libavformat/avformat.h)
+  find_component(AVDEVICE    libavdevice    avdevice    libavdevice/avdevice.h)
+  find_component(AVUTIL      libavutil      avutil      libavutil/avutil.h)
+  find_component(SWSCALE     libswscale     swscale     libswscale/swscale.h)
+  find_component(SWRESAMPLE  libswresample  swresample  libswresample/swresample.h)
+  find_component(POSTPROC    libpostproc    postproc    libpostproc/postprocess.h)
 
   # Check if the required components were found and add their stuff to the FFMPEG_* vars.
   foreach (_component ${FFmpeg_FIND_COMPONENTS})
@@ -134,7 +132,7 @@ if (NOT FFMPEG_LIBRARIES)
 endif ()
 
 # Now set the noncached _FOUND vars for the components.
-foreach (_component AVCODEC AVDEVICE AVFORMAT AVUTIL POSTPROCESS SWSCALE)
+foreach (_component AVCODEC AVDEVICE AVFORMAT AVUTIL POSTPROCESS SWSCALE SWRESAMPLE)
   set_component_found(${_component})
 endforeach ()
 
