@@ -13,6 +13,8 @@
 #include <QVector>
 #include <QWidget>
 #include <QtAlgorithms>
+#include <QApplication>
+#include <QTimer>
 #include <Scenario/Commands/Event/SplitEvent.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
@@ -21,10 +23,12 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/Separator.hpp>
 #include <iscore/widgets/TextLabel.hpp>
+#include <Scenario/Commands/TimeNode/SplitTimeNode.hpp>
 
 #include <QMenu>
 #include <algorithm>
@@ -37,6 +41,7 @@
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/model/EntityMap.hpp>
@@ -112,6 +117,45 @@ void StateInspectorWidget::updateDisplayedValues()
   }
 
   {
+      auto splitEvent = new QPushButton{tr("Put in new Event"), this};
+      connect(splitEvent, &QPushButton::clicked,
+              this, &StateInspectorWidget::splitFromEvent);
+      m_properties.push_back(splitEvent);
+  }
+
+  {
+      auto splitNode = new QPushButton{tr("Put in new Timenode"), this};
+      connect(splitNode, &QPushButton::clicked,
+              this, &StateInspectorWidget::splitFromNode/*[&]() {
+
+          // TODO all this machinery is ugly but it crashes for some reason if
+          // we just send the command directly...
+          auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+          ISCORE_ASSERT(scenar);
+          QPointer<const TimeNodeModel> tn = &Scenario::parentTimeNode(m_model, *scenar);
+          auto id = m_model.eventId();
+          auto st = &commandDispatcher()->stack();
+          selectionDispatcher().setAndCommit({});
+
+          QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+          QTimer::singleShot(0, [=] {
+              // TODO we should instead not show the option in the menu
+              if(!tn)
+                  return;
+
+              if(tn->events().size() >= 2)
+              {
+                  auto cmd = new Command::SplitTimeNode{*tn, {id}};
+
+                  CommandDispatcher<> s{*st};
+                  s.submitCommand(cmd);
+              }
+          });
+      }
+                  */);
+      m_properties.push_back(splitNode);
+  }
+  {
       auto tv = new MessageTreeView{m_model, this};
       m_properties.push_back(tv);
   }
@@ -150,7 +194,7 @@ void StateInspectorWidget::updateDisplayedValues()
   updateAreaLayout(m_properties);
 }
 
-void StateInspectorWidget::splitEvent()
+void StateInspectorWidget::splitFromEvent()
 {
   auto scenar = dynamic_cast<const Scenario::ProcessModel*>(m_model.parent());
   if (scenar)
@@ -164,6 +208,40 @@ void StateInspectorWidget::splitEvent()
       m_commandDispatcher.submitCommand(cmd);
     }
   }
+}
+
+void StateInspectorWidget::splitFromNode()
+{
+    auto scenar = dynamic_cast<const Scenario::ProcessModel*>(m_model.parent());
+    if (scenar)
+    {
+        auto& ev = Scenario::parentEvent(m_model, *scenar);
+        auto& tn = Scenario::parentTimeNode(m_model, *scenar);
+        if (ev.states().size() > 1)
+        {
+            MacroCommandDispatcher<Command::SplitStateMacro> disp{m_commandDispatcher.stack()};
+
+            auto cmd = new Scenario::Command::SplitEvent{
+                    *scenar, m_model.eventId(), {m_model.id()}
+                };
+            disp.submitCommand(cmd);
+            auto cmd2 = new Scenario::Command::SplitTimeNode{
+                    tn, {cmd->newEvent()}
+                };
+            disp.submitCommand(cmd2);
+            disp.commit();
+        }
+        else if(ev.states().size() == 1)
+        {
+            if(tn.events().size() > 1)
+            {
+                auto cmd = new Scenario::Command::SplitTimeNode{
+                        tn, {m_model.eventId()}
+                };
+                m_commandDispatcher.submitCommand(cmd);
+            }
+        }
+    }
 }
 
 void StateInspectorWidget::on_stateProcessCreated(const Process::StateProcess&)

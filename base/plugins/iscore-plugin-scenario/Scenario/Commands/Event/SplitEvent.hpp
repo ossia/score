@@ -6,7 +6,7 @@
 #include <iscore/command/Command.hpp>
 #include <iscore/model/path/Path.hpp>
 #include <iscore/tools/std/Optional.hpp>
-
+#include <iscore/command/AggregateCommand.hpp>
 #include <iscore/model/Identifier.hpp>
 
 struct DataStreamInput;
@@ -36,6 +36,7 @@ public:
   void undo(const iscore::DocumentContext& ctx) const override;
   void redo(const iscore::DocumentContext& ctx) const override;
 
+  const Id<EventModel>& newEvent() const { return m_newEvent; }
 protected:
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;
@@ -47,6 +48,13 @@ private:
   Id<EventModel> m_newEvent;
   QString m_createdName;
   QVector<Id<StateModel>> m_movingStates;
+};
+
+class SplitStateMacro final : public iscore::AggregateCommand
+{
+    ISCORE_COMMAND_DECL(
+        ScenarioCommandFactoryName(), SplitStateMacro,
+        "Split state from node")
 };
 }
 }

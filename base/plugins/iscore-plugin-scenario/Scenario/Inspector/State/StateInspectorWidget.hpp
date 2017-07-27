@@ -34,7 +34,8 @@ public:
       QWidget* parent);
 
 public slots:
-  void splitEvent();
+  void splitFromEvent();
+  void splitFromNode();
 
 private:
   void on_stateProcessCreated(const Process::StateProcess&);
