@@ -3,6 +3,7 @@
 #include <memory>
 class QGraphicsObject;
 class QGraphicsItem;
+class QGraphicsView;
 /**
  * @brief deleteGraphicsItem Properly delete a QGraphicsObject
  * @param item item to delete
@@ -12,6 +13,9 @@ class QGraphicsItem;
  */
 ISCORE_LIB_BASE_EXPORT void deleteGraphicsObject(QGraphicsObject* item);
 ISCORE_LIB_BASE_EXPORT void deleteGraphicsItem(QGraphicsItem* item);
+
+ISCORE_LIB_BASE_EXPORT
+QGraphicsView* getView(QGraphicsItem& self);
 
 template <typename T>
 struct graphics_item_ptr

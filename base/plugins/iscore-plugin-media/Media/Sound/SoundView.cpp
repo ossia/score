@@ -5,17 +5,17 @@
 #include <cmath>
 #include <QGraphicsSceneContextMenuEvent>
 
+#include <iscore/widgets/GraphicsItem.hpp>
 namespace Media
 {
 namespace Sound
 {
-
 LayerView::LayerView(QGraphicsItem* parent):
     Process::LayerView{parent}
 {
     setFlag(ItemClipsToShape, true);
-    auto view = scene()->views().first();
-    connect(view->horizontalScrollBar(), &QScrollBar::valueChanged, this, &Media::Sound::LayerView::scrollValueChanged);
+    if(auto view = getView(*parent))
+        connect(view->horizontalScrollBar(), &QScrollBar::valueChanged, this, &Media::Sound::LayerView::scrollValueChanged);
 }
 
 long LayerView::compareDensity(const double density) {
@@ -135,8 +135,9 @@ void LayerView::drawWaveForms(ZoomRatio ratio) {
     }
 
     // Get horizontal offset
-
-    auto view = scene()->views().first();
+    auto view = getView(*this);
+    if(!view)
+        return;
     auto x0 = std::max(mapFromScene(view->mapToScene(0, 0)).x(), qreal(0));
 
     int64_t i0 = x0 / densityratio;

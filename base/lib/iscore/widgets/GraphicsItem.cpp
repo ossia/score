@@ -34,3 +34,13 @@ void deleteGraphicsItem(QGraphicsItem* item)
     delete item;
   }
 }
+
+QGraphicsView *getView(QGraphicsItem &self)
+{
+    if(!self.scene())
+        return nullptr;
+    auto v = self.scene()->views();
+    if(v.empty())
+        return nullptr;
+    return v.first();
+}

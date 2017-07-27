@@ -1,5 +1,4 @@
 #pragma once
-
 #include <QGraphicsItem>
 #include <QRect>
 #include <QtGlobal>

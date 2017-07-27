@@ -14,6 +14,7 @@
 #include <QPoint>
 #include <algorithm>
 #include <cmath>
+#include <iscore/widgets/GraphicsItem.hpp>
 
 #include "TemporalConstraintHeader.hpp"
 #include <Scenario/Document/Constraint/ConstraintHeader.hpp>
@@ -75,9 +76,7 @@ void TemporalConstraintHeader::paint(
   // view.
   // We have to compute the visible part of the header
   const auto textWidth = m_textRectCache.width();
-  static auto view = [&] {
-    return scene()->views().first();
-  }();
+  auto view = getView(*this);
   int text_left
       = view->mapFromScene(
                 mapToScene({m_width / 2. - textWidth / 2., 0.}))
