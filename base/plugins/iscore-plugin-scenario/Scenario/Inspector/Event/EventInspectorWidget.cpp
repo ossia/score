@@ -3,7 +3,6 @@
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Scenario/Commands/Event/SetCondition.hpp>
-#include <Scenario/Commands/Event/SplitEvent.hpp>
 #include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
