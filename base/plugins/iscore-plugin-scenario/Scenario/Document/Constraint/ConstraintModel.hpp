@@ -12,6 +12,7 @@
 #include <iscore/tools/std/Optional.hpp>
 #include <nano_signal_slot.hpp>
 
+#include <QPointer>
 #include <QString>
 #include <QVector>
 
@@ -192,4 +193,5 @@ DEFAULT_MODEL_METADATA(Scenario::ConstraintModel, "Constraint")
 
 Q_DECLARE_METATYPE(Id<Scenario::ConstraintModel>)
 Q_DECLARE_METATYPE(Path<Scenario::ConstraintModel>)
+Q_DECLARE_METATYPE(QPointer<const Scenario::ConstraintModel>)
 TR_TEXT_METADATA(, Scenario::ConstraintModel, PrettyName_k, "Constraint")
