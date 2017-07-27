@@ -85,7 +85,9 @@ void DefaultClockManager::play_impl(
   prepareExecution(t, bs);
   try
   {
-    bs.baseConstraint().OSSIAConstraint()->start();
+    ossia::state st;
+    bs.baseConstraint().OSSIAConstraint()->start(st);
+    ossia::launch(st);
     bs.baseConstraint().executionStarted();
   }
   catch (const std::exception& e)
@@ -144,7 +146,9 @@ void ControlClock::play_impl(
     m_default.prepareExecution(t, bs);
     try
     {
-      m_clock.start();
+      ossia::state st;
+      m_clock.start(st);
+      ossia::launch(st);
       bs.baseConstraint().executionStarted();
     }
     catch (const std::exception& e)

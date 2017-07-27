@@ -112,7 +112,8 @@ void TimeNodeComponent::on_GUITrigger()
     this->system().executionQueue.enqueue(
           [this,e = m_ossia_node]
     {
-        e->trigger(); //TODO refactor w/ loop
+        ossia::state st;
+        e->trigger(st); //TODO refactor w/ loop
     });
   }
 
