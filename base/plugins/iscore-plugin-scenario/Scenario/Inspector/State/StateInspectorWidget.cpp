@@ -126,33 +126,7 @@ void StateInspectorWidget::updateDisplayedValues()
   {
       auto splitNode = new QPushButton{tr("Put in new Timenode"), this};
       connect(splitNode, &QPushButton::clicked,
-              this, &StateInspectorWidget::splitFromNode/*[&]() {
-
-          // TODO all this machinery is ugly but it crashes for some reason if
-          // we just send the command directly...
-          auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
-          ISCORE_ASSERT(scenar);
-          QPointer<const TimeNodeModel> tn = &Scenario::parentTimeNode(m_model, *scenar);
-          auto id = m_model.eventId();
-          auto st = &commandDispatcher()->stack();
-          selectionDispatcher().setAndCommit({});
-
-          QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
-          QTimer::singleShot(0, [=] {
-              // TODO we should instead not show the option in the menu
-              if(!tn)
-                  return;
-
-              if(tn->events().size() >= 2)
-              {
-                  auto cmd = new Command::SplitTimeNode{*tn, {id}};
-
-                  CommandDispatcher<> s{*st};
-                  s.submitCommand(cmd);
-              }
-          });
-      }
-                  */);
+              this, &StateInspectorWidget::splitFromNode);
       m_properties.push_back(splitNode);
   }
   {

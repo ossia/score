@@ -172,8 +172,7 @@ private:
    * @brief m_initialDate
    * the delta will be calculated from the initial date
    */
-  TimeVal
-      m_initialDate; // used to compute the deltaTime and respect undo behavior
+  TimeVal m_initialDate; // used to compute the deltaTime and respect undo behavior
 };
 }
 }
