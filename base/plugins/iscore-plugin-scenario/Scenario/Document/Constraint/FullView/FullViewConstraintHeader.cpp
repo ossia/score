@@ -7,6 +7,8 @@
 #include <cmath>
 #include <Process/Style/ScenarioStyle.hpp>
 #include "FullViewConstraintHeader.hpp"
+#include <iscore/widgets/GraphicsItem.hpp>
+#include <iscore/widgets/WidgetWrapper.hpp>
 #include <Scenario/Document/Constraint/ConstraintHeader.hpp>
 
 class QGraphicsItem;
@@ -53,7 +55,9 @@ void FullViewConstraintHeader::paint(
   // If the centered text is hidden, we put it at the left so that it's on the
   // view.
   // We have to compute the visible part of the header
-  auto view = scene()->views().first();
+  auto view = getView(*this);
+  if(!view)
+      return;
 
   // Note: if the constraint always has its pos() in (0; 0), we can
   // safely remove the call to mapToScene.

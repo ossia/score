@@ -7,6 +7,7 @@
 #include <QPoint>
 #include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ConstraintView.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <qnamespace.h>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -71,7 +72,9 @@ void SlotHandle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     auto p = event->scenePos();
     m_presenter.moved(p);
 
-    this->scene()->views()[0]->ensureVisible(p.x(), p.y(), 1, 1);
+    auto view = getView(*this);
+    if(view)
+        view->ensureVisible(p.x(), p.y(), 1, 1);
     moving = false;
   }
 }
