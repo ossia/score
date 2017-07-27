@@ -5,9 +5,9 @@ iscore_common_setup()
 
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Multimedia)
-
-if(APPLE)
-find_package(Sndfile)
+find_package(FFmpeg COMPONENTS  AVCODEC AVFORMAT AVUTIL SWRESAMPLE)
+if(NOT FFmpeg_FOUND)
+    return()
 endif()
 
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libaudiotool/src/libwatermark/*.h")
@@ -63,20 +63,11 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
                      Qt5::Core Qt5::Widgets Qt5::Multimedia
                      iscore_lib_base
 )
-
+target_link_libraries(${PROJECT_NAME} PRIVATE ${FFMPEG_LIBRARIES})
 if(NOT ANDROID)
-if(APPLE)
-target_link_libraries(${PROJECT_NAME} PUBLIC -L/usr/local/lib)
-endif()
 target_link_libraries(${PROJECT_NAME} PUBLIC
             iscore_plugin_midi
             ${SNDFILE_LIBRARIES}
             )
 endif()
-
-if(${SNDFILE_FOUND})
-    target_include_directories(${PROJECT_NAME} PRIVATE
-                               ${SNDFILE_INCLUDE_DIR})
-endif()
-
 setup_iscore_plugin(${PROJECT_NAME})

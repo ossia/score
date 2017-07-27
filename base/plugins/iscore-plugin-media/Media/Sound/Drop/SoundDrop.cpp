@@ -14,14 +14,6 @@
 #include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
 
 #include <Loop/LoopProcessModel.hpp>
-#if !defined(_MSC_VER)
-#define HAS_MEDIAINFO (__has_include(<MediaInfo/MediaInfo.h>) && !defined(__ANDROID__))
-#endif
-
-#if HAS_MEDIAINFO
-#define UNICODE 1
-#include <MediaInfo/MediaInfo.h>
-#endif
 #include <QMimeData>
 #include <QUrl>
 #include <QApplication>
@@ -64,45 +56,17 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData &mime)
 
         files.emplace_back(filename);
 
-#if HAS_MEDIAINFO
-        MediaInfoLib::MediaInfo m;
-        m.Open(filename.toStdWString());
-        auto sr = m.Get(MediaInfoLib::stream_t::Stream_Audio, 0, L"SamplingRate");
-        auto cl = m.Get(MediaInfoLib::stream_t::Stream_Audio, 0, L"Channels");
-        auto sc = m.Get(MediaInfoLib::stream_t::Stream_Audio, 0, L"SamplingCount");
-        auto dur = m.Get(MediaInfoLib::stream_t::Stream_Audio, 0, L"Duration");
-
-        // Only for uncompressed
-        auto bd = m.Get(MediaInfoLib::stream_t::Stream_Audio, 0, L"BitDepth");
-        m.Close();
-
-        // TODO what if 0 channels
-
-        int sample_rate = sr.empty() ? 0 : std::stoi(sr);
-        int channels = cl.empty() ? 0 : std::stoi(cl);
-        int bitdepth = bd.empty() ? 16 : std::stoi(bd);
-        auto samples = sc.empty() ? 0LL : std::stoll(sc);
-        auto duration = dur.empty() ? 0LL : std::stoll(dur);
-
-        if(samples > maxDuration)
-        {
-            maxDuration = samples;
-            maxSampleRate = sample_rate;
-        }
-#else
         AudioDecoder dec;
-        bool ok = false;
-        QObject::connect(&dec, &AudioDecoder::finished, [&] { ok = true; });
-        QObject::connect(&dec, &AudioDecoder::failed, [&] { ok = true; });
-        dec.decode(filename);
-        while(!ok)
-            qApp->processEvents();
-
-        int channels = dec.data.size();
-        if(channels == 0) continue;
-        maxDuration = dec.data[0].size();
-        maxSampleRate = 44100;
-#endif
+        if(auto info_opt = dec.probe(filename))
+        {
+          auto info = *info_opt;
+          qDebug() << info.channels << info.length << info.rate;
+          if(info.channels > 0 && info.length > 0)
+          {
+            maxDuration = std::max((int64_t) maxDuration, (int64_t) info.length);
+            maxSampleRate = std::max((int64_t) maxSampleRate, (int64_t) info.rate);
+          }
+        }
     }
 }
 
@@ -111,7 +75,6 @@ TimeVal DroppedAudioFiles::dropMaxDuration() const
     // TODO what about resampling.
     return TimeVal::fromMsecs(maxDuration / (maxSampleRate / 1000.0));
 }
-
 
 bool DropHandler::drop(
         const Scenario::TemporalScenarioPresenter& pres,
