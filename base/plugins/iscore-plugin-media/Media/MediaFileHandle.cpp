@@ -44,33 +44,23 @@ void MediaFileHandle::load(const QString &filename)
   m_file = filename;
   if(isAudioFile(QFile(m_file)))
   {
-    auto decoder = new AudioDecoder;
+    AudioDecoder decoder;
+    decoder.decode(m_file);
 
-    connect(decoder, &AudioDecoder::finished,
-            this, [=] {
-      m_array = std::move(decoder->data);
-      m_sampleRate = decoder->decoder.audioFormat().sampleRate();
-      if(m_sampleRate < 100)
-          m_sampleRate = 44100;
+    m_array = std::move(decoder.data);
+    m_sampleRate = decoder.sampleRate;
+    if(m_sampleRate < 100)
+      m_sampleRate = 44100;
 
-      if(m_array.size() == 2)
-        if(m_array[1].empty())
-          m_array.resize(1);
+    if(m_array.size() == 2)
+      if(m_array[1].empty())
+        m_array.resize(1);
 
-      m_data[0] = m_array[0].data();
-      if(m_array.size() == 2)
-        m_data[1] = m_array[1].data();
-      decoder->deleteLater();
-      emit mediaChanged();
-    } );
-    connect(decoder, &AudioDecoder::failed,
-            this, [=] {
-      m_array.clear();
-      decoder->deleteLater();
-      emit mediaChanged();
-    });
+    m_data[0] = m_array[0].data();
+    if(m_array.size() == 2)
+      m_data[1] = m_array[1].data();
+    emit mediaChanged();
 
-    decoder->decode(m_file);
   }
 }
 
@@ -81,7 +71,7 @@ float**MediaFileHandle::audioData() const
 
 bool MediaFileHandle::isAudioFile(const QFile& file)
 {
-    return file.exists() && file.fileName().contains(QRegExp(".(wav|aif|aiff|flac|ogg|mp3)"));
+    return file.exists() && file.fileName().contains(QRegExp(".(wav|aif|aiff|flac|ogg|mp3)", Qt::CaseInsensitive));
 }
 
 int64_t MediaFileHandle::samples() const

@@ -2,307 +2,556 @@
 #include <QApplication>
 #include <QTimer>
 #include <eggs/variant.hpp>
-#if defined(__APPLE__)
-#include <sndfile.hh>
-#endif
-namespace Media
-{
-#if defined(__APPLE__)
-static AudioArray readAudioSndfile(const std::string& path)
-{
-    AudioArray deint;
 
-    SndfileHandle file{path.c_str()} ;
 
-    std::vector<float> data;
-    data.resize(file.channels() * file.frames());
 
-    file.read (data.data(), data.size()) ;
-    deint.resize(file.channels());
-    for(auto& v : deint)
-      v.resize(file.frames());
 
-    const int nchans = file.channels();
-    int i = 0;
-    int n = 0;
-    for(float val : data)
-    {
-      deint[i][n] = val;
-      i++;
-      if(i % nchans == 0)
-      {
-        i = 0;
-        n++;
-      }
-    }
-    return deint;
+
+#include <QFile>
+#include <QFileInfo>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+extern "C" {
+#include <libavutil/frame.h>
+#include <libavutil/mem.h>
+#include <libavcodec/avcodec.h>
+#include <libswresample/swresample.h>
+#include <libavformat/avformat.h>
 }
-#endif
+
 namespace
 {
-template<QAudioFormat::SampleType SampleFormat, int N>
-struct ConvertToFloat;
+static const constexpr std::size_t dynamic_channels = std::numeric_limits<std::size_t>::max();
+
+template<typename SampleFormat, int N>
+constexpr float convert_sample(SampleFormat i);
 
 template<>
-struct ConvertToFloat<QAudioFormat::SignedInt, 16>
+constexpr float convert_sample<int16_t, 16>(int16_t i)
 {
-        using base_type = int16_t;
-        static const constexpr int multiplier = 1;
-        constexpr float operator()(int16_t i) const
-        { return (i + .5) / (0x7FFF + .5); }
-};
+  return (i + .5) / (0x7FFF + .5);
+}
 
 template<>
-struct ConvertToFloat<QAudioFormat::SignedInt, 24>
+constexpr float convert_sample<int32_t, 24>(int32_t i)
 {
-        using base_type = const unsigned char;
-        static const constexpr int multiplier = 3;
-        constexpr float operator()(const unsigned char& src_r) const
-        {
-            return impl(&src_r);
-        }
-
-        constexpr static float impl(const unsigned char* src)
-        {
-            return int32_t(src[2] << 24 | src[1] << 16 | src[0] << 8) / (float)(std::numeric_limits<int32_t>::max() - 256);
-        }
-};
+  return ((int32_t)i >> 8) / ((float)std::numeric_limits<int32_t>::max() / 256.);
+}
 
 template<>
-struct ConvertToFloat<QAudioFormat::SignedInt, 32>
+constexpr float convert_sample<int32_t, 32>(int32_t i)
 {
-        using base_type = int32_t;
-        static const constexpr int multiplier = 1;
-        constexpr float operator()(int32_t i) const
-        { return i / (float)(std::numeric_limits<int32_t>::max()); }
-};
+  return i / (float)(std::numeric_limits<int32_t>::max());
+}
 
 template<>
-struct ConvertToFloat<QAudioFormat::Float, 32>
+constexpr float convert_sample<float, 32>(float i)
 {
-        using base_type = float;
-        static const constexpr int multiplier = 1;
-        constexpr float operator()(float i) const
-        { return i; }
-};
+  return i;
+}
 
-
-template<int Channels, QAudioFormat::SampleType SampleFormat, int SampleSize>
+template<typename SampleFormat, std::size_t Channels, std::size_t SampleSize, bool Planar>
 struct Decoder;
 
-template<QAudioFormat::SampleType SampleFormat, int SampleSize>
-struct Decoder<1, SampleFormat, SampleSize>
+template<typename SampleFormat, std::size_t SampleSize>
+struct Decoder<SampleFormat, 1, SampleSize, true>
 {
-        using converter_t = ConvertToFloat<SampleFormat, SampleSize>;
-        void operator()(AudioArray& data, const QAudioBuffer& buf)
-        {
-            int n = buf.frameCount();
-            auto dat = buf.data<typename converter_t::base_type>();
-            data[0].reserve(data[0].size() + buf.frameCount());
-            for(int j = 0; j < n; j++)
-            {
-                data[0].push_back(converter_t{}(dat[j * converter_t::multiplier]));
-            }
-        }
-};
-
-template<>
-struct Decoder<2, QAudioFormat::SignedInt, 24>
-{
-        using converter_t = ConvertToFloat<QAudioFormat::SignedInt, 24>;
-        void operator()(AudioArray& data, const QAudioBuffer& buf)
-        {
-            int n = buf.frameCount();
-            auto dat = buf.data<const unsigned char>();
-            data[0].reserve(data[0].size() + buf.frameCount());
-            data[1].reserve(data[1].size() + buf.frameCount());
-            for(int j = 0; j < 2 * n; )
-            {
-                data[0].push_back(converter_t{}(dat[j * 3]));
-                j++;
-                data[1].push_back(converter_t{}(dat[j * 3]));
-                j++;
-            }
-        }
-};
-
-template<QAudioFormat::SampleType SampleFormat, int SampleSize>
-struct Decoder<2, SampleFormat, SampleSize>
-{
-        using converter_t = ConvertToFloat<SampleFormat, SampleSize>;
-        void operator()(AudioArray& data, const QAudioBuffer& buf)
-        {
-            int n = buf.frameCount();
-            auto dat = buf.data<typename converter_t::base_type>();
-            data[0].reserve(data[0].size() + buf.frameCount());
-            data[1].reserve(data[1].size() + buf.frameCount());
-            for(int j = 0; j < 2 * n; )
-            {
-                data[0].push_back(converter_t{}(dat[j * converter_t::multiplier]));
-                j++;
-                data[1].push_back(converter_t{}(dat[j * converter_t::multiplier]));
-                j++;
-            }
-        }
-};
-struct decode_visitor
-{
-        AudioArray& data;
-        const QAudioBuffer& buf;
-
-        template<typename T>
-        void operator()(T decoder)
-        {
-            decoder(data, buf);
-        }
-};
-
- static eggs::variant<
- Decoder<1, QAudioFormat::SignedInt, 16>,
- Decoder<2, QAudioFormat::SignedInt, 16>,
- Decoder<1, QAudioFormat::SignedInt, 24>,
- Decoder<2, QAudioFormat::SignedInt, 24>,
- Decoder<1, QAudioFormat::SignedInt, 32>,
- Decoder<2, QAudioFormat::SignedInt, 32>,
- Decoder<1, QAudioFormat::Float, 32>,
- Decoder<2, QAudioFormat::Float, 32>> make_decoder(QAudioFormat format)
-{
-    int size = format.sampleSize();
-    int chan = format.channelCount();
-
-    switch(format.sampleType())
+    void operator()(AudioArray& data, uint8_t** buf, std::size_t n)
     {
-        case QAudioFormat::SignedInt:
-            switch(size)
-            {
-                case 16:
-                    switch(chan)
-                    {
-                        case 1: return Decoder<1, QAudioFormat::SignedInt, 16>{};
-                        case 2: return Decoder<2, QAudioFormat::SignedInt, 16>{};
-                        default: return {};
-                    }
-                case 24:
-                    switch(chan)
-                    {
-                        case 1: return Decoder<1, QAudioFormat::SignedInt, 24>{};
-                        case 2: return Decoder<2, QAudioFormat::SignedInt, 24>{};
-                        default: return {};
-                    }
-                case 32:
-                    switch(chan)
-                    {
-                        case 1: return Decoder<1, QAudioFormat::SignedInt, 32>{};
-                        case 2: return Decoder<2, QAudioFormat::SignedInt, 32>{};
-                        default: return {};
-                    }
-                default:
-                    return {};
-            }
+      auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
+      for(std::size_t j = 0; j < n; j++)
+      {
+        data[0].push_back(convert_sample<SampleFormat, SampleSize>(dat[j]));
+      }
+    }
+};
 
-        case QAudioFormat::Float:
-            if(size == 32)
-            {
-                switch(chan)
-                {
-                    case 1: return Decoder<1, QAudioFormat::Float, 32>{};
-                    case 2: return Decoder<2, QAudioFormat::Float, 32>{};
-                    default: return {};
-                }
-            }
-        default:
-            return {};
+template<typename SampleFormat, std::size_t Channels, std::size_t SampleSize>
+struct Decoder<SampleFormat, Channels, SampleSize, false>
+{
+    void operator()(AudioArray& data, uint8_t** buf, std::size_t n)
+    {
+      auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
+      for(std::size_t chan = 0; chan < Channels; chan++)
+      {
+        data[chan].reserve(data[chan].size() + n);
+      }
+
+      for(std::size_t j = 0; j < Channels * n; )
+      {
+        for(std::size_t chan = 0; chan < Channels; chan++)
+        {
+          data[chan].push_back(convert_sample<SampleFormat, SampleSize>(dat[j]));
+          j++;
+        }
+      }
+    }
+};
+
+template<typename SampleFormat, std::size_t Channels, std::size_t SampleSize>
+struct Decoder<SampleFormat, Channels, SampleSize, true>
+{
+    void operator()(AudioArray& data, uint8_t** buf, std::size_t n)
+    {
+      auto dat = reinterpret_cast<SampleFormat**>(buf);
+      for(std::size_t chan = 0; chan < Channels; chan++)
+      {
+        data[chan].reserve(data[chan].size() + n);
+        for(std::size_t j = 0; j < n; j++)
+        {
+          data[chan].push_back(convert_sample<SampleFormat, SampleSize>(dat[chan][j]));
+        }
+      }
+    }
+};
+
+template<typename SampleFormat, std::size_t SampleSize>
+struct Decoder<SampleFormat, dynamic_channels, SampleSize, false>
+{
+    std::size_t Channels{};
+    void operator()(AudioArray& data, uint8_t** buf, std::size_t n)
+    {
+      auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
+      for(std::size_t chan = 0; chan < Channels; chan++)
+      {
+        data[chan].reserve(data[chan].size() + n);
+      }
+
+      for(std::size_t j = 0; j < Channels * n; )
+      {
+        for(std::size_t chan = 0; chan < Channels; chan++)
+        {
+          data[chan].push_back(convert_sample<SampleFormat, SampleSize>(dat[j]));
+          j++;
+        }
+      }
+    }
+};
+
+template<typename SampleFormat, std::size_t SampleSize>
+struct Decoder<SampleFormat, dynamic_channels, SampleSize, true>
+{
+    std::size_t Channels{};
+    void operator()(AudioArray& data, uint8_t** buf, std::size_t n)
+    {
+      auto dat = reinterpret_cast<SampleFormat**>(buf);
+      for(std::size_t chan = 0; chan < Channels; chan++)
+      {
+        data[chan].reserve(data[chan].size() + n);
+        for(std::size_t j = 0; j < n; j++)
+        {
+          data[chan].push_back(convert_sample<SampleFormat, SampleSize>(dat[chan][j]));
+        }
+      }
+    }
+};
+
+
+using decoder_t = eggs::variant<
+Decoder<int16_t, 1, 16, true>,
+Decoder<int16_t, 2, 16, true>,
+Decoder<int16_t, 2, 16, false>,
+Decoder<int16_t, dynamic_channels, 16, true>,
+Decoder<int16_t, dynamic_channels, 16, false>,
+
+Decoder<int32_t, 1, 24, true>,
+Decoder<int32_t, 2, 24, true>,
+Decoder<int32_t, 2, 24, false>,
+Decoder<int32_t, dynamic_channels, 24, true>,
+Decoder<int32_t, dynamic_channels, 24, false>,
+
+Decoder<int32_t, 1, 32, true>,
+Decoder<int32_t, 2, 32, true>,
+Decoder<int32_t, 2, 32, false>,
+Decoder<int32_t, dynamic_channels, 32, true>,
+Decoder<int32_t, dynamic_channels, 32, false>,
+
+Decoder<float,   1, 32, true>,
+Decoder<float,   2, 32, true>,
+Decoder<float,   2, 32, false>,
+Decoder<float,   dynamic_channels, 32, true>,
+Decoder<float,   dynamic_channels, 32, false>
+>;
+
+
+template<std::size_t N>
+decoder_t make_N_decoder(AVStream& stream)
+{
+  const int size = stream.codecpar->bits_per_raw_sample;
+
+  if(size == 0 || size == 16 || size == 32)
+  {
+    switch((AVSampleFormat)stream.codecpar->format)
+    {
+      case AVSampleFormat::AV_SAMPLE_FMT_S16:
+        return Decoder<int16_t, N, 16, false>{};
+      case AVSampleFormat::AV_SAMPLE_FMT_S32:
+        return Decoder<int32_t, N, 32, false>{};
+      case AVSampleFormat::AV_SAMPLE_FMT_FLT:
+        return Decoder<float, N, 32, false>{};
+
+      case AVSampleFormat::AV_SAMPLE_FMT_S16P:
+        return Decoder<int16_t, N, 16, true>{};
+      case AVSampleFormat::AV_SAMPLE_FMT_S32P:
+        return Decoder<int32_t, N, 32, true>{};
+      case AVSampleFormat::AV_SAMPLE_FMT_FLTP:
+        return Decoder<float, N, 32, true>{};
+      default:
+        return {};
+    }
+  }
+  else if(size == 24)
+  {
+    switch((AVSampleFormat)stream.codecpar->format)
+    {
+      case AVSampleFormat::AV_SAMPLE_FMT_S32:
+        return Decoder<int32_t, N, 24, false>{};
+      case AVSampleFormat::AV_SAMPLE_FMT_S32P:
+        return Decoder<int32_t, N, 24, true>{};
+      default:
+        break;
+    }
+  }
+
+  return {};
+}
+
+decoder_t make_dynamic_decoder(AVStream& stream)
+{
+  const int size = stream.codecpar->bits_per_raw_sample;
+  const std::size_t channels = stream.codecpar->channels;
+
+  if(size == 0 || size == 16 || size == 32)
+  {
+    switch((AVSampleFormat)stream.codecpar->format)
+    {
+      case AVSampleFormat::AV_SAMPLE_FMT_S16:
+        return Decoder<int16_t, dynamic_channels, 16, false>{channels};
+      case AVSampleFormat::AV_SAMPLE_FMT_S32:
+        return Decoder<int32_t, dynamic_channels, 32, false>{channels};
+      case AVSampleFormat::AV_SAMPLE_FMT_FLT:
+        return Decoder<float, dynamic_channels, 32, false>{channels};
+
+      case AVSampleFormat::AV_SAMPLE_FMT_S16P:
+        return Decoder<int16_t, dynamic_channels, 16, true>{channels};
+      case AVSampleFormat::AV_SAMPLE_FMT_S32P:
+        return Decoder<int32_t, dynamic_channels, 32, true>{channels};
+      case AVSampleFormat::AV_SAMPLE_FMT_FLTP:
+        return Decoder<float, dynamic_channels, 32, true>{channels};
+      default:
+        return {};
+    }
+  }
+  else if(size == 24)
+  {
+    switch((AVSampleFormat)stream.codecpar->format)
+    {
+      case AVSampleFormat::AV_SAMPLE_FMT_S32:
+        return Decoder<int32_t, dynamic_channels, 24, false>{channels};
+      case AVSampleFormat::AV_SAMPLE_FMT_S32P:
+        return Decoder<int32_t, dynamic_channels, 24, true>{channels};
+      default:
+        break;
+    }
+  }
+
+  return {};
+}
+
+// Simple mono case: everything is planar
+template<>
+decoder_t make_N_decoder<1>(AVStream& stream)
+{
+  const int size = stream.codecpar->bits_per_raw_sample;
+
+  if(size == 0 || size == 16 || size == 32)
+  {
+    switch((AVSampleFormat)stream.codecpar->format)
+    {
+      case AVSampleFormat::AV_SAMPLE_FMT_S16:
+      case AVSampleFormat::AV_SAMPLE_FMT_S16P:
+        return Decoder<int16_t, 1, 16, true>{};
+      case AVSampleFormat::AV_SAMPLE_FMT_S32:
+      case AVSampleFormat::AV_SAMPLE_FMT_S32P:
+        return Decoder<int32_t, 1, 32, true>{};
+      case AVSampleFormat::AV_SAMPLE_FMT_FLT:
+      case AVSampleFormat::AV_SAMPLE_FMT_FLTP:
+        return Decoder<float, 1, 32, true>{};
+      default:
+        return {};
+    }
+  }
+  else if(size == 24)
+  {
+    return Decoder<int32_t, 1, 24, true>{};
+  }
+  else
+  {
+    return {};
+  }
+}
+
+ static decoder_t make_decoder(AVStream& stream)
+{
+    switch(stream.codecpar->channels)
+    {
+      case 1: return make_N_decoder<1>(stream);
+      case 2: return make_N_decoder<2>(stream);
+      case 0: return {};
+      default: return make_dynamic_decoder(stream);
     }
 }
 }
 
-
-
+namespace Media
+{
 AudioDecoder::AudioDecoder()
 {
 
 }
+struct AVCodecContext_Free {
+    void operator()(AVCodecContext* ctx)
+    { avcodec_free_context(&ctx); }
+};
+struct AVFormatContext_Free {
+    void operator()(AVFormatContext* ctx)
+    { avformat_free_context(ctx); }
+};
+struct AVFrame_Free {
+    void operator()(AVFrame* frame)
+    { av_frame_free(&frame); }
+};
+using AVFormatContext_ptr = std::unique_ptr<AVFormatContext, AVFormatContext_Free>;
+using AVCodecContext_ptr = std::unique_ptr<AVCodecContext, AVCodecContext_Free>;
+using AVFrame_ptr = std::unique_ptr<AVFrame, AVFrame_Free>;
 
-void AudioDecoder::decode(const QString& path)
+
+AVFormatContext_ptr open_audio(const QString& path)
 {
-#if defined(__APPLE__)
-    data = readAudioSndfile(path.toStdString());
-    emit finished();
-    return;
-#endif
-    QAudioFormat desiredFormat;
-    desiredFormat.setChannelCount(-1);
-    desiredFormat.setCodec("audio/x-raw");
-    desiredFormat.setSampleRate(44100);
-    desiredFormat.setSampleSize(16);
-    desiredFormat.setSampleType(QAudioFormat::SignedInt);
-    desiredFormat.setByteOrder(QAudioFormat::LittleEndian);
+  AVFormatContext* fmt_ctx_ptr{};
+  auto ret = avformat_open_input(&fmt_ctx_ptr, path.toLatin1().constData(), nullptr, nullptr);
+  if(ret != 0)
+    throw std::runtime_error("Couldn't open file");
 
-    data.resize(2);
-    decoder.setAudioFormat(desiredFormat);
-    decoder.setSourceFilename(path);
+  return AVFormatContext_ptr{fmt_ctx_ptr};
+}
 
-    if(decoder.error() != QAudioDecoder::NoError)
+ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
+{
+  av_register_all();
+  avcodec_register_all();
+
+  auto fmt_ctx = open_audio(path);
+
+  if(avformat_find_stream_info(fmt_ctx.get(), nullptr) < 0)
+    return {};
+
+  for(std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
+  {
+    if(fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
     {
-        qDebug() << decoder.errorString();
-        ready = true;
-        emit failed();
-        return;
-    }
+      auto stream = fmt_ctx->streams[i];
+      AudioInfo info;
+      info.channels = stream->codecpar->channels;
+      if(info.channels == 0)
+        return {};
+      info.rate = stream->codecpar->sample_rate;
+      info.length = read_length(path);
 
-    connect(&decoder, &QAudioDecoder::bufferReady, this,
-            [&] () {
-        const auto& buf = decoder.read();
-        if(!buf.isValid())
+      if(info.rate != 44100)
+        info.length = av_rescale_rnd(info.length, 44100, info.rate, AV_ROUND_UP);
+      return info;
+    }
+  }
+
+  return {};
+}
+std::size_t AudioDecoder::read_length(const QString& path)
+{
+  av_register_all();
+  avcodec_register_all();
+
+  auto fmt_ctx = open_audio(path);
+
+  auto ret = avformat_find_stream_info(fmt_ctx.get(), NULL);
+  if(ret != 0)
+    throw std::runtime_error("Couldn't find stream information");
+
+  for(std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
+  {
+    if(fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+    {
+      auto stream = fmt_ctx->streams[i];
+      auto codec = avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id);
+      if(!codec)
+        throw std::runtime_error("Couldn't find codec");
+
+      AVCodecContext_ptr codec_ctx{avcodec_alloc_context3(codec)};
+      if(!codec_ctx)
+        throw std::runtime_error("Couldn't allocate codec context");
+
+      ret = avcodec_parameters_to_context(codec_ctx.get(), fmt_ctx->streams[i]->codecpar);
+      if(ret != 0)
+        throw std::runtime_error("Couldn't copy codec data");
+
+      ret = avcodec_open2(codec_ctx.get(), codec, nullptr);
+      if (ret != 0)
+        throw std::runtime_error("Couldn't open codec");
+
+      data.resize(stream->codecpar->channels);
+      sampleRate = stream->codecpar->sample_rate;
+      AVPacket packet;
+      AVFrame_ptr frame{av_frame_alloc()};
+
+      int64_t pos = 0;
+      while(av_read_frame(fmt_ctx.get(), &packet)>=0)
+      {
+        ret = avcodec_send_packet(codec_ctx.get(), &packet);
+        if(ret != 0)
+          break;
+        ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
+
+        if(ret == 0)
         {
-            decoder.stop();
-            ready = true;
-            return;
+          pos += frame->nb_samples;
         }
-        auto dec = make_decoder(buf.format());
-        if(dec)
+        else if(ret == AVERROR(EAGAIN))
         {
-            eggs::variants::apply(decode_visitor{data, buf}, dec);
+          continue;
+        }
+        else if(ret == AVERROR_EOF)
+        {
+          pos += frame->nb_samples;
+          break;
         }
         else
         {
-            qDebug() << "Unsupported format :" << buf.format();
-            decoder.stop();
-            ready = true;
+          break;
         }
+      }
 
-    });
+      // Flush
+      avcodec_send_packet(codec_ctx.get(), NULL);
+      return pos;
 
-    connect(&decoder, &QAudioDecoder::stateChanged, this,
-            [=] (QAudioDecoder::State s) {
-        if(s == QAudioDecoder::StoppedState)
-        {
-          if(decoder.error() != QAudioDecoder::Error::NoError)
-          {
-            ready.store(true);
-            emit failed();
-          }
-          else
-          {
-            if(data.size() > 1)
-            {
-              if(data[1].empty())
-                  data.resize(1);
-            }
-
-            ready.store(true);
-            emit finished();
-          }
-        }
-    });
-
-    decoder.start();
-    if(decoder.error() != QAudioDecoder::NoError)
-    {
-        qDebug() << decoder.errorString();
-        ready = true;
-        return;
     }
+  }
+  return 0;
+}
+
+void AudioDecoder::decode(const QString& path)
+{
+  av_register_all();
+  avcodec_register_all();
+
+  auto fmt_ctx = open_audio(path);
+
+  auto ret = avformat_find_stream_info(fmt_ctx.get(), NULL);
+  if(ret != 0)
+    throw std::runtime_error("Couldn't find stream information");
+
+  for(std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
+  {
+    if(fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+    {
+      auto stream = fmt_ctx->streams[i];
+      auto codec = avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id);
+      if(!codec)
+        throw std::runtime_error("Couldn't find codec");
+
+      AVCodecContext_ptr codec_ctx{avcodec_alloc_context3(codec)};
+      if(!codec_ctx)
+        throw std::runtime_error("Couldn't allocate codec context");
+
+      ret = avcodec_parameters_to_context(codec_ctx.get(), fmt_ctx->streams[i]->codecpar);
+      if(ret != 0)
+        throw std::runtime_error("Couldn't copy codec data");
+
+      ret = avcodec_open2(codec_ctx.get(), codec, nullptr);
+      if (ret != 0)
+        throw std::runtime_error("Couldn't open codec");
+
+      data.resize(stream->codecpar->channels);
+      sampleRate = stream->codecpar->sample_rate;
+
+      if(auto decoder = make_decoder(*stream))
+      {
+        eggs::variants::apply([&] (auto& dec)
+        {
+          AVPacket packet;
+          AVFrame_ptr frame{av_frame_alloc()};
+
+          while(av_read_frame(fmt_ctx.get(), &packet) >= 0)
+          {
+              ret = avcodec_send_packet(codec_ctx.get(), &packet);
+              if(ret != 0)
+                break;
+              ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
+
+              if(ret == 0)
+              {
+                dec(data, frame->extended_data, frame->nb_samples);
+              }
+              else if(ret == AVERROR(EAGAIN))
+              {
+                continue;
+              }
+              else if(ret == AVERROR_EOF)
+              {
+                dec(data, frame->extended_data, frame->nb_samples);
+                break;
+              }
+              else
+              {
+                break;
+              }
+          }
+
+          // Flush
+          avcodec_send_packet(codec_ctx.get(), NULL);
+        }, decoder);
+      }
+
+      if(sampleRate != 44100)
+      {
+        AudioArray out;
+        out.resize(data.size());
+
+        auto new_len = av_rescale_rnd(data[0].size(), 44100, sampleRate, AV_ROUND_UP);
+        for(std::size_t i = 0; i < data.size(); i++)
+        {
+          auto& chan = out[i];
+          chan.resize(new_len);
+
+          SwrContext *swr = swr_alloc_set_opts(
+                              NULL,
+                              AV_CH_LAYOUT_MONO,
+                              AV_SAMPLE_FMT_FLTP,
+                              44100,
+                              AV_CH_LAYOUT_MONO,
+                              AV_SAMPLE_FMT_FLTP,
+                              sampleRate,
+                              0,
+                              NULL);
+
+          swr_init(swr);
+          float* out_ptr = out[i].data();
+          float* in_ptr = data[i].data();
+          swr_convert(swr, (uint8_t**)&out_ptr, chan.size(), (const uint8_t**)&in_ptr, data[i].size());
+          swr_free(&swr);
+        }
+
+        data = std::move(out);
+      }
+
+      break;
+    }
+  }
+
+  ready = true;
+  return;
 }
 
 }

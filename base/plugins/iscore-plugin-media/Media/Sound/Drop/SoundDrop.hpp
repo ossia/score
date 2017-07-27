@@ -14,8 +14,8 @@ struct DroppedAudioFiles
         { return !files.empty() && maxDuration != 0; }
 
         TimeVal dropMaxDuration() const;
-        double maxDuration = 0;
-        double maxSampleRate = 0;
+        int64_t  maxDuration = 0;
+        int64_t maxSampleRate = 0;
         std::vector<QString> files;
 };
 
