@@ -133,11 +133,11 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   ConstraintHeaderTextPen = QPen{ConstraintHeaderText.getColor().color()};
 
   // don't: ConstraintSolidPen.setCosmetic(true);
-  ConstraintDashPen.setCosmetic(true);
+  //ConstraintDashPen.setCosmetic(true);
   ConstraintRackPen.setCosmetic(true);
-  ConstraintPlayPen.setCosmetic(true);
-  ConstraintPlayDashPen.setCosmetic(true);
-  ConstraintWaitingDashPen.setCosmetic(true);
+  //ConstraintPlayPen.setCosmetic(true);
+  //ConstraintPlayDashPen.setCosmetic(true);
+  //ConstraintWaitingDashPen.setCosmetic(true);
 
   ConditionPen = QPen{Qt::black, 2};
   ConditionTrianglePen = QPen{Qt::black, 2};

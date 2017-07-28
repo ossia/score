@@ -269,6 +269,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/PanelDelegate.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/Accessors.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/ContainersAccessors.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/ConstrainedDisplacementPolicy.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/ProcessPolicy.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/StandardCreationPolicy.hpp"
@@ -495,6 +496,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/StandardCreationPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/GoodOldDisplacementPolicy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/ConstrainedDisplacementPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/StandardRemovalPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/VerticalMovePolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/ProcessPolicy.cpp"
