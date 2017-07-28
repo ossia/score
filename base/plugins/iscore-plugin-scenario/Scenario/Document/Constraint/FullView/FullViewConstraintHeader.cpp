@@ -24,8 +24,9 @@ FullViewConstraintHeader::FullViewConstraintHeader(
     : ConstraintHeader{parent}, m_bar{ctx, this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
-  this->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
+  this->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
   m_bar.setPos(10., 10.);
+
   con(m_bar, &AddressBarItem::needRedraw, this, [&]() { update(); });
 }
 
@@ -61,6 +62,7 @@ void FullViewConstraintHeader::paint(
 
   // Note: if the constraint always has its pos() in (0; 0), we can
   // safely remove the call to mapToScene.
+
   const double text_left
       = view->mapFromScene(mapToScene(QPointF{m_width / 2. - textWidth / 2., 0.})).x();
   const double text_right
@@ -79,6 +81,7 @@ void FullViewConstraintHeader::paint(
     // Compute the pixels needed to add to have top-right at max
     x = x - text_right + max_x;
   }
+  x = std::max(x, 5.);
 
   if (std::abs(m_bar.pos().x() - x) > 0.1)
     m_bar.setPos(x, 8.);
