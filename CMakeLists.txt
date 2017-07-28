@@ -89,7 +89,6 @@ add_subdirectory("${3RDPARTY_FOLDER}/quazip" EXCLUDE_FROM_ALL)
 set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
 set(ISCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
 
-add_subdirectory(3rdparty/nodeeditor EXCLUDE_FROM_ALL)
 add_subdirectory(base)
 set(ISCORE_TESTBED OFF)
 if(ISCORE_TESTBED)
