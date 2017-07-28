@@ -13,6 +13,7 @@ void ConstraintHeader::setWidth(double width)
   prepareGeometryChange();
   m_width = width;
   this->setCursor(QCursor(Qt::OpenHandCursor));
+  update();
 }
 
 void ConstraintHeader::setText(const QString& text)

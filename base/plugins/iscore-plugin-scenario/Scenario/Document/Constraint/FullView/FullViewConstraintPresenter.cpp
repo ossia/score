@@ -250,7 +250,6 @@ void FullViewConstraintPresenter::updateScaling()
 void FullViewConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);
-  m_header->setWidth(w);
   m_view->setDefaultWidth(w);
   m_view->updateLabelPos();
   m_view->updateCounterPos();
@@ -286,6 +285,7 @@ int FullViewConstraintPresenter::indexOfSlot(const Process::LayerPresenter& p)
 void FullViewConstraintPresenter::on_guiDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);
+  m_header->setWidth(w);
 
   static_cast<FullViewConstraintView*>(m_view)->setGuiWidth(w);
   for(const SlotPresenter& slot : m_slots)
