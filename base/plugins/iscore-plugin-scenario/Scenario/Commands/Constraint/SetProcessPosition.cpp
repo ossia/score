@@ -14,7 +14,7 @@ PutProcessBefore::PutProcessBefore(
         proc,
     Id<Process::ProcessModel>
         proc2)
-    : m_path{std::move(cst)}
+    : m_path{cst}
     , m_proc{std::move(proc)}
     , m_proc2{std::move(proc2)}
 {
