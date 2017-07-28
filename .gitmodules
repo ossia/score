@@ -22,6 +22,3 @@
 [submodule "3rdparty/desktopqqc2style"]
 	path = base/lib/resources/desktopqqc2style
 	url = https://anongit.kde.org/scratch/mart/desktopqqc2style.git
-[submodule "3rdparty/nodeeditor"]
-	path = 3rdparty/nodeeditor
-	url = https://github.com/paceholder/nodeeditor
