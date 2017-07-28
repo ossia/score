@@ -53,16 +53,36 @@ public:
       TimeVal max = TimeVal::infinite();
       for(auto& id : constraintsBefore)
       {
-          auto& c = scenario.constraints.at(id);
-          if(c.duration.defaultDuration() < min)
-              min = c.duration.defaultDuration();
+          auto it = elementsProperties.constraints.find(id);
+          if(it == elementsProperties.constraints.end())
+          {
+              auto& c = scenario.constraints.at(id);
+              if(c.duration.defaultDuration() < min)
+                  min = c.duration.defaultDuration();
+          }
+          else
+          {
+              const ConstraintProperties& c = it.value();
+              if(c.oldDefault < min)
+                  min = c.oldDefault;
+          }
       }
 
       for(auto& id : constraintsAfter)
       {
-          auto& c = scenario.constraints.at(id);
-          if(c.duration.defaultDuration() < max)
-              max = c.duration.defaultDuration();
+          auto it = elementsProperties.constraints.find(id);
+          if(it == elementsProperties.constraints.end())
+          {
+              auto& c = scenario.constraints.at(id);
+              if(c.duration.defaultDuration() < max)
+                  max = c.duration.defaultDuration();
+          }
+          else
+          {
+              const ConstraintProperties& c = it.value();
+              if(c.oldDefault < max)
+                  max = c.oldDefault;
+          }
       }
 
       // 2. Rescale deltaTime
@@ -76,6 +96,7 @@ public:
           dt = max;
       }
 
+      qDebug() << dt;
 
       for(auto& id : constraintsBefore)
       {
@@ -90,8 +111,12 @@ public:
           {
               auto& curConstraint = scenario.constraints.at(id);
               ConstraintProperties c{curConstraint};
+              c.oldDefault = curConstraint.duration.defaultDuration();
               c.oldMin = curConstraint.duration.minDuration();
               c.oldMax = curConstraint.duration.maxDuration();
+
+              c.newMin = c.oldMin;
+              c.newMax = c.oldMax;
               c.newMin = std::max(TimeVal::zero(), c.oldMin + dt);
               c.newMax = c.oldMax + dt;
               elementsProperties.constraints.insert({id, c});
@@ -104,17 +129,22 @@ public:
           if(it != elementsProperties.constraints.end())
           {
               auto& c = it.value();
-              c.newMin = std::max(TimeVal::zero(), c.oldMin + dt);
-              c.newMax = c.oldMax + dt;
+              c.newMin = std::max(TimeVal::zero(), c.oldMin - dt);
+              c.newMax = c.oldMax - dt;
           }
           else
           {
               auto& curConstraint = scenario.constraints.at(id);
               ConstraintProperties c{curConstraint};
+              c.oldDefault = curConstraint.duration.defaultDuration();
               c.oldMin = curConstraint.duration.minDuration();
               c.oldMax = curConstraint.duration.maxDuration();
-              c.newMin = std::max(TimeVal::zero(), c.oldMin + dt);
-              c.newMax = c.oldMax + dt;
+
+              c.newMin = c.oldMin;
+              c.newMax = c.oldMax;
+
+              c.newMin = std::max(TimeVal::zero(), c.oldMin - dt);
+              c.newMax = c.oldMax - dt;
               elementsProperties.constraints.insert({id, c});
           }
       }

@@ -121,7 +121,8 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::ConstraintProperties& constraintProperties)
 {
-  m_stream << constraintProperties.oldMin << constraintProperties.newMin
+  m_stream << constraintProperties.oldDefault
+           << constraintProperties.oldMin << constraintProperties.newMin
            << constraintProperties.oldMax << constraintProperties.newMax;
 
   readFrom(
@@ -134,7 +135,9 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::ConstraintProperties& constraintProperties)
 {
-  m_stream >> constraintProperties.oldMin >> constraintProperties.newMin
+  m_stream
+      >> constraintProperties.oldDefault
+      >> constraintProperties.oldMin >> constraintProperties.newMin
       >> constraintProperties.oldMax >> constraintProperties.newMax;
 
   writeTo(static_cast<Scenario::ConstraintSaveData&>(constraintProperties));

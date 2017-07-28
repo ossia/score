@@ -48,6 +48,7 @@ struct ConstraintProperties : public ConstraintSaveData
 {
   using ConstraintSaveData::ConstraintSaveData;
 
+  TimeVal oldDefault{};
   TimeVal oldMin{};
   TimeVal newMin{};
   TimeVal oldMax{};
