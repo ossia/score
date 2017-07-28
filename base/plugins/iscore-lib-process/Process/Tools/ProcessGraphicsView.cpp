@@ -37,7 +37,24 @@ ProcessGraphicsView::ProcessGraphicsView(
   setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif
 
-  this->setBackgroundBrush(ScenarioStyle::instance().Background.getColor());
+}
+
+void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
+{
+  /*
+  const constexpr int N = 16;
+  QImage img(QSize(N, N), QImage::Format_RGB32);
+  auto light = ScenarioStyle::instance().Background.getColor().color().lighter(120);
+  img.fill(ScenarioStyle::instance().Background.getColor().color());
+  for(int i = 0; i < N; i++)
+  {
+    img.setPixelColor(i, 0, light);
+    img.setPixelColor(0, i, light);
+  }
+  QPixmap par = QPixmap::fromImage(img);
+  */
+  painter->fillRect(rect, ScenarioStyle::instance().Background.getColor());
+
 }
 
 void ProcessGraphicsView::scrollHorizontal(double dx)

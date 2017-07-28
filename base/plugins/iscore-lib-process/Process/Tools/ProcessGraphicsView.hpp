@@ -35,6 +35,7 @@ private:
   void keyReleaseEvent(QKeyEvent* event) override;
   void focusOutEvent(QFocusEvent* event) override;
   void leaveEvent(QEvent* event) override;
+  void drawBackground(QPainter *painter, const QRectF &rect);
 
   bool m_hZoom{false};
   bool m_vZoom{false};

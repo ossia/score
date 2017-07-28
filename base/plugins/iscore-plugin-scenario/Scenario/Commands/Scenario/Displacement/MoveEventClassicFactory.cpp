@@ -31,13 +31,13 @@ std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make(
     TimeVal newDate,
     ExpandMode mode)
 {
-  return std::make_unique<MoveEvent<ConstrainedDisplacementPolicy>>(
+  return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>(
       std::move(scenarioPath), std::move(eventId), std::move(newDate), mode);
 }
 
 std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make()
 {
-  return std::make_unique<MoveEvent<ConstrainedDisplacementPolicy>>();
+  return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>();
 }
 }
 }
