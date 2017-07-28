@@ -850,7 +850,7 @@ vec2f value(const ossia::value& val)
     {
       const int n = t.size();
       const int n_2 = std::tuple_size<return_type>::value;
-      return_type v;
+      return_type v{};
       for (int i = 0; i < std::min(n, n_2); i++)
       {
         v[i] = value<float>(t[i]);
@@ -913,7 +913,7 @@ vec3f value(const ossia::value& val)
     {
       const int n = t.size();
       const int n_2 = std::tuple_size<return_type>::value;
-      return_type v;
+      return_type v{};
       for (int i = 0; i < std::min(n, n_2); i++)
       {
         v[i] = value<float>(t[i]);
@@ -975,7 +975,7 @@ vec4f value(const ossia::value& val)
     {
       const int n = t.size();
       const int n_2 = std::tuple_size<return_type>::value;
-      return_type v;
+      return_type v{};
       for (int i = 0; i < std::min(n, n_2); i++)
       {
         v[i] = value<float>(t[i]);
