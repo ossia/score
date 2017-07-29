@@ -173,5 +173,5 @@ iscore_write_file("${CMAKE_CURRENT_BINARY_DIR}/iscore_git_info.hpp"
 #define ISCORE_CODENAME \"${ISCORE_CODENAME}\"
 ")
 
-set(COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES "-j")
+set(COTIRE_UNITY_MAXIMUM_NUMBER_OF_INCLUDES "-j2")
 include(cotire)
