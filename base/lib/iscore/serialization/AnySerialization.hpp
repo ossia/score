@@ -6,9 +6,9 @@
 
 /**
  * \file AnySerialization.hpp
- * \brief Serialization mechanism for boost::any
+ * \brief Serialization mechanism for ossia::any
  *
- * This file provides a method to save data registered in a boost::any.
+ * This file provides a method to save data registered in a ossia::any.
  * By default some types will be serialized / deserialized without problems.
  *
  * For the others, one should register them in anySerializers()
@@ -23,26 +23,26 @@ using any_map = ossia::any_map;
 struct ISCORE_LIB_BASE_EXPORT any_serializer
 {
   virtual ~any_serializer();
-  virtual void apply(DataStream::Serializer&, const boost::any&) = 0;
-  virtual void apply(JSONValue::Serializer&, const boost::any&) = 0;
-  virtual void apply(DataStream::Deserializer&, boost::any&) = 0;
-  virtual void apply(JSONValue::Deserializer&, boost::any&) = 0;
+  virtual void apply(DataStream::Serializer&, const ossia::any&) = 0;
+  virtual void apply(JSONValue::Serializer&, const ossia::any&) = 0;
+  virtual void apply(DataStream::Deserializer&, ossia::any&) = 0;
+  virtual void apply(JSONValue::Deserializer&, ossia::any&) = 0;
 };
 
 template<typename T>
 struct any_serializer_t final : public any_serializer
 {
-  void apply(DataStream::Serializer& s, const boost::any& val) override
-  { s.stream() << boost::any_cast<T>(val); }
-  void apply(JSONValue::Serializer& s, const boost::any& val) override
-  { s.val = toJsonValue(boost::any_cast<T>(val)); }
-  void apply(DataStream::Deserializer& s, boost::any& val) override
+  void apply(DataStream::Serializer& s, const ossia::any& val) override
+  { s.stream() << ossia::any_cast<T>(val); }
+  void apply(JSONValue::Serializer& s, const ossia::any& val) override
+  { s.val = toJsonValue(ossia::any_cast<T>(val)); }
+  void apply(DataStream::Deserializer& s, ossia::any& val) override
   {
     T t;
     s.stream() >> t;
     val = std::move(t);
   }
-  void apply(JSONValue::Deserializer& s, boost::any& val) override
+  void apply(JSONValue::Deserializer& s, ossia::any& val) override
   {
     val = fromJsonValue<T>(s.val);
   }
@@ -51,7 +51,7 @@ struct any_serializer_t final : public any_serializer
 using any_serializer_map =
   iscore::hash_map<std::string, std::unique_ptr<any_serializer>>;
 
-//! The serializers for types that go in boost::any should fit in here.
+//! The serializers for types that go in ossia::any should fit in here.
 ISCORE_LIB_BASE_EXPORT any_serializer_map& anySerializers();
 }
 
@@ -97,7 +97,7 @@ struct ISCORE_LIB_BASE_EXPORT TSerializer<DataStream, iscore::any_map>
     for(int i = 0; i < n; i++)
     {
       std::string key;
-      boost::any value;
+      ossia::any value;
       st >> key;
       apply(s, key, value);
       obj.emplace(std::move(key), std::move(value));
@@ -131,7 +131,7 @@ struct ISCORE_LIB_BASE_EXPORT TSerializer<JSONObject, iscore::any_map>
     {
       JSONValue::Deserializer v{it.value()};
       auto key = it.key().toStdString();
-      boost::any val;
+      ossia::any val;
       apply(v, key, val);
       obj[std::move(key)] = std::move(val);
     }
