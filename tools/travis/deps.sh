@@ -37,7 +37,7 @@ case "$TRAVIS_OS_NAME" in
     ARCHIVE=homebrew-cache.tar.xz
     brew install gnu-tar xz
 
-    wget https://github.com/OSSIA/iscore-sdk/releases/download/sdk7/$ARCHIVE -O $ARCHIVE
+    wget https://github.com/OSSIA/iscore-sdk/releases/download/sdk8/$ARCHIVE -O $ARCHIVE
     gtar xhaf $ARCHIVE --directory /usr/local/Cellar
     brew unlink cmake
     brew link --force boost cmake ninja qt5
