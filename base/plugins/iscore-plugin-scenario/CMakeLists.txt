@@ -236,6 +236,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TimeNodeInspectorWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TimeNodeSummaryWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ObjectTree/ObjectItemModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/ScenarioPaletteBaseEvents.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/ScenarioPaletteBaseStates.hpp"
@@ -548,6 +549,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Expression/SimpleExpressionEditorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Summary/SummaryInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ObjectTree/ObjectItemModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 

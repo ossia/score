@@ -16,7 +16,7 @@
 
 namespace Scenario
 {
-Inspector::InspectorWidgetBase*
+QWidget*
 ScenarioInspectorWidgetFactoryWrapper::makeWidget(
     const QList<const QObject*>& sourceElements,
     const iscore::DocumentContext& doc,

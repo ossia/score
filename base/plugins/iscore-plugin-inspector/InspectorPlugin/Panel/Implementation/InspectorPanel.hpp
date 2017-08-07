@@ -57,7 +57,7 @@ private:
   QVBoxLayout* m_layout{};
   QWidget* m_curWidget{};
 
-  Inspector::InspectorWidgetBase* m_currentInspector{};
+  QWidget* m_currentInspector{};
 
   const Inspector::InspectorWidgetList& m_list;
   iscore::SelectionDispatcher m_selectionDispatcher;

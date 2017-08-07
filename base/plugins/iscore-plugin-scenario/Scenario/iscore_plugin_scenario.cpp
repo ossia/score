@@ -61,6 +61,7 @@
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
+#include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
 
 #include <iscore_plugin_scenario_commands_files.hpp>
 
@@ -146,6 +147,7 @@ iscore_plugin_scenario::factories(
       FW<DisplayedElementsProvider, ScenarioDisplayedElementsProvider, BaseScenarioDisplayedElementsProvider>,
       FW<iscore::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>,
       FW<iscore::SettingsDelegateFactory, Scenario::Settings::Factory>,
+      FW<iscore::PanelDelegateFactory, Scenario::ObjectPanelDelegateFactory>,
 //      FW<iscore::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
       FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario>,
       FW<Scenario::ConstraintDropHandler, Scenario::DropProcessInConstraint, Scenario::AutomationDropHandler>,

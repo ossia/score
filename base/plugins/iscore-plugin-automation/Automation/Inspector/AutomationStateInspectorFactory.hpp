@@ -10,7 +10,7 @@ class StateInspectorFactory final : public Inspector::InspectorWidgetFactory
 public:
   StateInspectorFactory();
 
-  Inspector::InspectorWidgetBase* makeWidget(
+  QWidget* makeWidget(
       const QList<const QObject*>& sourceElements,
       const iscore::DocumentContext& doc,
       QWidget* parent) const override;
