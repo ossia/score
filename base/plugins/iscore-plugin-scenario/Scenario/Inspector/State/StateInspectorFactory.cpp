@@ -8,7 +8,7 @@
 
 namespace Scenario
 {
-Inspector::InspectorWidgetBase* StateInspectorFactory::makeWidget(
+QWidget* StateInspectorFactory::makeWidget(
     const QList<const QObject*>& sourceElements,
     const iscore::DocumentContext& doc,
     QWidget* parentWidget) const

@@ -38,7 +38,7 @@ public:
   * @param sourceElement Element from which an inspector widget is to be made
   * @return An inspector widget corresponding to the object.
   */
-  virtual InspectorWidgetBase* makeWidget(
+  virtual QWidget* makeWidget(
       const QList<const QObject*>& sourceElement,
       const iscore::DocumentContext& doc,
       QWidget* parent) const = 0;

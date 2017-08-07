@@ -11,13 +11,13 @@ class QWidget;
 
 namespace Inspector
 {
-QList<InspectorWidgetBase*> InspectorWidgetList::make(
+QList<QWidget*> InspectorWidgetList::make(
     const iscore::DocumentContext& doc,
     QList<const IdentifiedObjectAbstract*>
         models,
     QWidget* parent) const
 {
-  QList<InspectorWidgetBase*> widgs;
+  QList<QWidget*> widgs;
   for (const InspectorWidgetFactory& factory : *this)
   {
     // TODO QVector or better, array_view

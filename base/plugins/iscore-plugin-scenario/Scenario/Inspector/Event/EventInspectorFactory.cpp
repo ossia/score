@@ -10,7 +10,7 @@ class QObject;
 class QWidget;
 namespace Scenario
 {
-Inspector::InspectorWidgetBase* EventInspectorFactory::makeWidget(
+QWidget* EventInspectorFactory::makeWidget(
     const QList<const QObject*>& sourceElements,
     const iscore::DocumentContext& doc,
     QWidget* parentWidget) const

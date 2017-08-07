@@ -6,5 +6,9 @@
         <file>images/forward.svg</file>
         <file>DefaultSkin.json</file>
         <file>IEEESkin.json</file>
+        <file>images/state.svg</file>
+        <file>images/cond.svg</file>
+        <file>images/constraint.svg</file>
+        <file>images/process.svg</file>
     </qresource>
 </RCC>

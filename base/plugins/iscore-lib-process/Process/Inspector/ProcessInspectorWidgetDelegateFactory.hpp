@@ -21,7 +21,7 @@ class ISCORE_LIB_PROCESS_EXPORT InspectorWidgetDelegateFactory
   ISCORE_INTERFACE("75a45c5e-24ab-4ebb-ba57-195254a6847f")
 public:
   virtual ~InspectorWidgetDelegateFactory();
-  virtual Process::InspectorWidgetDelegate* make(
+  virtual QWidget* make(
       const Process::ProcessModel&,
       const iscore::DocumentContext& doc,
       QWidget* parent) const = 0;
@@ -41,7 +41,7 @@ class InspectorWidgetDelegateFactory_T
     : public Process::InspectorWidgetDelegateFactory
 {
 private:
-  Process::InspectorWidgetDelegate* make(
+  QWidget* make(
       const Process::ProcessModel& process,
       const iscore::DocumentContext& doc,
       QWidget* parent) const override
@@ -62,7 +62,7 @@ class ISCORE_LIB_PROCESS_EXPORT StateProcessInspectorWidgetDelegateFactory
   ISCORE_INTERFACE("707f7d38-7897-4b8f-81eb-737976b05ea6")
 public:
   virtual ~StateProcessInspectorWidgetDelegateFactory();
-  virtual Process::StateProcessInspectorWidgetDelegate* make(
+  virtual QWidget* make(
       const Process::StateProcess&,
       const iscore::DocumentContext& doc,
       QWidget* parent) const = 0;
@@ -82,7 +82,7 @@ class StateProcessInspectorWidgetDelegateFactory_T
     : public Process::StateProcessInspectorWidgetDelegateFactory
 {
 private:
-  Process::StateProcessInspectorWidgetDelegate* make(
+  QWidget* make(
       const Process::StateProcess& process,
       const iscore::DocumentContext& doc,
       QWidget* parent) const override

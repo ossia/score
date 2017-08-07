@@ -13,7 +13,7 @@ public:
   {
   }
 
-  Inspector::InspectorWidgetBase* makeWidget(
+  QWidget* makeWidget(
       const QList<const QObject*>& sourceElements,
       const iscore::DocumentContext& doc,
       QWidget* parent) const override;

@@ -59,7 +59,7 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
 
   // setUnifiedTitleAndToolBarOnMac(true);
 
-  setDockOptions(QMainWindow::ForceTabbedDocks | QMainWindow::VerticalTabs);
+  setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::VerticalTabs);
   setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
@@ -151,25 +151,6 @@ void View::setupPanel(PanelDelegate* v)
   else if (dock == Qt::RightDockWidgetArea)
   {
     m_rightPanels.push_back({v, dial});
-
-    if (m_rightPanels.size() > 1)
-    {
-      // Find the one with the biggest priority
-      auto it = ossia::max_element(m_rightPanels, PanelComparator{});
-
-      it->second->raise();
-      if (dial != it->second)
-      {
-        tabifyDockWidget(dial, it->second);
-      }
-      else
-      {
-        auto it = ossia::find_if(
-            m_rightPanels, [=](auto elt) { return elt.second != dial; });
-        ISCORE_ASSERT(it != m_rightPanels.end());
-        tabifyDockWidget(it->second, dial);
-      }
-    }
   }
 
   if (!v->defaultPanelStatus().shown)

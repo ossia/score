@@ -7,7 +7,7 @@
 #include <Curve/Point/CurvePointModel.hpp>
 namespace Automation
 {
-Inspector::InspectorWidgetBase* PointInspectorFactory::makeWidget(
+QWidget* PointInspectorFactory::makeWidget(
     const QList<const QObject*>& sourceElements,
     const iscore::DocumentContext& doc,
     QWidget* parent) const

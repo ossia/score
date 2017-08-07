@@ -17,7 +17,7 @@ class ISCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final
     : public iscore::InterfaceList<InspectorWidgetFactory>
 {
 public:
-  QList<InspectorWidgetBase*> make(
+  QList<QWidget*> make(
       const iscore::DocumentContext& doc,
       QList<const IdentifiedObjectAbstract*>
           models,
