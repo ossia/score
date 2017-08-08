@@ -44,7 +44,10 @@ iscore_plugin_mapping::factories(
     const iscore::InterfaceKey& key) const
 {
   using namespace Mapping;
-  return instantiate_factories<iscore::ApplicationContext, FW<Process::ProcessModelFactory, Mapping::MappingFactory>, FW<Process::LayerFactory, Mapping::MappingLayerFactory>, FW<Process::InspectorWidgetDelegateFactory, MappingInspectorFactory>>(
+  return instantiate_factories<iscore::ApplicationContext
+      , FW<Process::ProcessModelFactory, Mapping::MappingFactory>
+      , FW<Process::LayerFactory, Mapping::MappingLayerFactory>
+      , FW<Inspector::InspectorWidgetFactory, MappingInspectorFactory>>(
       ctx, key);
 }
 

@@ -30,15 +30,13 @@ QList<QWidget*> InspectorWidgetList::make(
 
     if (factory.matches(objects))
     {
-      auto widg = factory.makeWidget(objects, doc, parent);
+      qDebug()  << "match";
+      auto widg = factory.make(objects, doc, parent);
       if (widg)
         widgs.push_back(widg);
     }
   }
 
-  // When no factory is found.
-  if (widgs.empty())
-    widgs.push_back(new InspectorWidgetBase{*models.first(), doc, nullptr});
   return widgs;
 }
 }

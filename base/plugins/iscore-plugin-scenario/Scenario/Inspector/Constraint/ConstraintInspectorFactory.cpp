@@ -19,7 +19,7 @@ class QWidget;
 
 namespace Scenario
 {
-QWidget* ConstraintInspectorFactory::makeWidget(
+QWidget* ConstraintInspectorFactory::make(
     const QList<const QObject*>& sourceElements,
     const iscore::DocumentContext& doc,
     QWidget* parent) const

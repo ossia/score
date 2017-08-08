@@ -113,7 +113,18 @@ iscore_plugin_scenario::factoryFamilies()
 {
   using namespace Scenario;
   using namespace Scenario::Command;
-  return make_ptr_vector<iscore::InterfaceListBase, Process::ProcessFactoryList, Process::StateProcessList, Process::LayerFactoryList, MoveEventList, CSPCoherencyCheckerList, ConstraintInspectorDelegateFactoryList, DisplayedElementsToolPaletteFactoryList, TriggerCommandFactoryList, DisplayedElementsProviderList, Process::InspectorWidgetDelegateFactoryList, Process::StateProcessInspectorWidgetDelegateFactoryList, DropHandlerList, ConstraintDropHandlerList>();
+  return make_ptr_vector<iscore::InterfaceListBase,
+      Process::ProcessFactoryList,
+      Process::StateProcessList,
+      Process::LayerFactoryList,
+      MoveEventList,
+      CSPCoherencyCheckerList,
+      ConstraintInspectorDelegateFactoryList,
+      DisplayedElementsToolPaletteFactoryList,
+      TriggerCommandFactoryList,
+      DisplayedElementsProviderList,
+      DropHandlerList,
+      ConstraintDropHandlerList>();
 }
 
 template <>
@@ -141,7 +152,6 @@ iscore_plugin_scenario::factories(
       FW<Process::ProcessModelFactory, ScenarioFactory, Interpolation::InterpolationFactory>,
       FW<Process::LayerFactory, Interpolation::InterpolationLayerFactory>,
       FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
-      FW<Process::InspectorWidgetDelegateFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>,
       FW<DisplayedElementsToolPaletteFactory, BaseScenarioDisplayedElementsToolPaletteFactory, ScenarioDisplayedElementsToolPaletteFactory>,
       FW<TriggerCommandFactory, ScenarioTriggerCommandFactory, BaseScenarioTriggerCommandFactory>,
       FW<DisplayedElementsProvider, ScenarioDisplayedElementsProvider, BaseScenarioDisplayedElementsProvider>,
@@ -151,7 +161,7 @@ iscore_plugin_scenario::factories(
 //      FW<iscore::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
       FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario>,
       FW<Scenario::ConstraintDropHandler, Scenario::DropProcessInConstraint, Scenario::AutomationDropHandler>,
-      FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory>,
+      FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>,
       FW<ConstraintInspectorDelegateFactory, ScenarioConstraintInspectorDelegateFactory, BaseConstraintInspectorDelegateFactory>,
       FW<iscore::ValidityChecker, ScenarioValidityChecker>>(
       ctx, key);

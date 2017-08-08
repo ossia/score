@@ -37,7 +37,7 @@ std::vector<std::unique_ptr<iscore::InterfaceBase>> iscore_plugin_media::factori
         FW<Process::ProcessModelFactory,
             Media::Sound::ProcessFactory
             >,
-        FW<Process::InspectorWidgetDelegateFactory,
+        FW<Inspector::InspectorWidgetFactory,
             Media::Sound::InspectorFactory
             >,
         FW<Process::LayerFactory,

@@ -16,7 +16,7 @@ public:
   {
   }
 
-  QWidget* makeWidget(
+  QWidget* make(
       const QList<const QObject*>& sourceElements,
       const iscore::DocumentContext& doc,
       QWidget* parent) const override;

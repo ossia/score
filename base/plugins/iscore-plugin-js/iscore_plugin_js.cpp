@@ -34,8 +34,7 @@ iscore_plugin_js::factories(
       FW<Process::ProcessModelFactory, JS::ProcessFactory>,
       FW<Process::LayerFactory, JS::LayerFactory>,
       FW<Process::StateProcessFactory, JS::StateProcessFactory>,
-      FW<Process::InspectorWidgetDelegateFactory, JS::InspectorFactory>,
-      FW<Process::StateProcessInspectorWidgetDelegateFactory, JS::StateInspectorFactory>,
+      FW<Inspector::InspectorWidgetFactory, JS::InspectorFactory, JS::StateInspectorFactory>,
       FW<Engine::Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>,
       FW<Engine::Execution::StateProcessComponentFactory, JS::Executor::StateProcessComponentFactory>>(
       ctx, key);

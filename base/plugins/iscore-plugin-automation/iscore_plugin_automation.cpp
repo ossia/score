@@ -62,8 +62,12 @@ iscore_plugin_automation::factories(
   return instantiate_factories<iscore::ApplicationContext,
       FW<Process::ProcessModelFactory, Automation::AutomationFactory, Gradient::GradientFactory, Spline::SplineFactory>,
       FW<Process::LayerFactory, Automation::AutomationLayerFactory, Gradient::GradientLayerFactory, Spline::SplineLayerFactory>,
-      FW<Inspector::InspectorWidgetFactory, Automation::StateInspectorFactory, Automation::PointInspectorFactory>,
-      FW<Process::InspectorWidgetDelegateFactory, Automation::InspectorFactory, Gradient::InspectorFactory, Spline::InspectorFactory>>(
+      FW<Inspector::InspectorWidgetFactory,
+        Automation::StateInspectorFactory
+      , Automation::PointInspectorFactory
+      , Automation::InspectorFactory
+      , Gradient::InspectorFactory
+      , Spline::InspectorFactory>>(
       ctx, key);
 }
 
