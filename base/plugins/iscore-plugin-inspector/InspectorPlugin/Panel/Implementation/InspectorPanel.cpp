@@ -1,5 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Inspector/InspectorWidgetBase.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
 #include <QPointer>
 #include <QTabWidget>
@@ -57,10 +58,16 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
     auto& doc = iscore::IDocument::documentContext(*selectedObj.first());
 
     auto widgets = m_list.make(doc, selectedObj, this);
+    qDebug() << widgets;
     if(!widgets.empty())
     {
       m_layout->addWidget(widgets.first());
       m_currentInspector = widgets.first();
+    }
+    else
+    {
+      m_currentInspector = new Inspector::InspectorWidgetBase{*selectedObj.first(), doc, this};
+      m_layout->addWidget(m_currentInspector);
     }
   }
 

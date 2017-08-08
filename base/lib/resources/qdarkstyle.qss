@@ -1050,6 +1050,7 @@ QDockWidget::float-button:hover {
 QTreeView {
     border: 1px solid #444;
     background-color: #12171A;
+    alternate-background-color: #333333;
 }
 
 QTreeView::item {

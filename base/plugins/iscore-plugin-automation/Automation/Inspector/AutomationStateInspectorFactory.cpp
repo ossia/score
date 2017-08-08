@@ -13,7 +13,7 @@ StateInspectorFactory::StateInspectorFactory() : InspectorWidgetFactory{}
 {
 }
 
-QWidget* StateInspectorFactory::makeWidget(
+QWidget* StateInspectorFactory::make(
     const QList<const QObject*>& sourceElements,
     const iscore::DocumentContext& doc,
     QWidget* parent) const

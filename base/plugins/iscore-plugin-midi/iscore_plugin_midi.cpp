@@ -22,7 +22,11 @@ iscore_plugin_midi::factories(
     const iscore::ApplicationContext& ctx,
     const iscore::InterfaceKey& key) const
 {
-  return instantiate_factories<iscore::ApplicationContext, FW<Process::ProcessModelFactory, Midi::ProcessFactory>, FW<Process::LayerFactory, Midi::LayerFactory>, FW<Engine::Execution::ProcessComponentFactory, Midi::Executor::ComponentFactory>, FW<Process::InspectorWidgetDelegateFactory, Midi::InspectorFactory>>(      ctx, key);
+  return instantiate_factories<iscore::ApplicationContext
+      , FW<Process::ProcessModelFactory, Midi::ProcessFactory>
+      , FW<Process::LayerFactory, Midi::LayerFactory>
+      , FW<Engine::Execution::ProcessComponentFactory, Midi::Executor::ComponentFactory>
+      , FW<Inspector::InspectorWidgetFactory, Midi::InspectorFactory>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

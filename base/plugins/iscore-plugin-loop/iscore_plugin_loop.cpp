@@ -39,7 +39,7 @@ iscore_plugin_loop::factories(
   return instantiate_factories<iscore::ApplicationContext,
       FW<Process::ProcessModelFactory, Loop::ProcessFactory>
       , FW<Process::LayerFactory, Loop::LayerFactory>
-      , FW<Process::InspectorWidgetDelegateFactory, Loop::InspectorFactory>
+      , FW<Inspector::InspectorWidgetFactory, Loop::InspectorFactory>
       , FW<ConstraintInspectorDelegateFactory, Loop::ConstraintInspectorDelegateFactory>
       , FW<TriggerCommandFactory, LoopTriggerCommandFactory>
       , FW<Scenario::DisplayedElementsToolPaletteFactory, Loop::DisplayedElementsToolPaletteFactory>

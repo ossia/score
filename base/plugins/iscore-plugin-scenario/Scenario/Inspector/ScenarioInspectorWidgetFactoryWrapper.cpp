@@ -17,7 +17,7 @@
 namespace Scenario
 {
 QWidget*
-ScenarioInspectorWidgetFactoryWrapper::makeWidget(
+ScenarioInspectorWidgetFactoryWrapper::make(
     const QList<const QObject*>& sourceElements,
     const iscore::DocumentContext& doc,
     QWidget* parent) const
@@ -75,7 +75,7 @@ ScenarioInspectorWidgetFactoryWrapper::makeWidget(
 
   if (constraints.size() == 1 && timenodes.empty())
   {
-    return ConstraintInspectorFactory{}.makeWidget(
+    return ConstraintInspectorFactory{}.make(
         {*constraints.begin()}, doc, parent);
   }
 

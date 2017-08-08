@@ -57,7 +57,7 @@ class StateInspectorFactory final : public Inspector::InspectorWidgetFactory
 public:
   StateInspectorFactory();
 
-  QWidget* makeWidget(
+  QWidget* make(
       const QList<const QObject*>& sourceElements,
       const iscore::DocumentContext& doc,
       QWidget* parent) const override;

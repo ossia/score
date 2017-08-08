@@ -246,13 +246,11 @@ StateInspectorWidget::displayStateProcess(const Process::StateProcess& process)
   sectionWidg->showMenu(true);
 
   const auto& fact
-      = m_context.app.interfaces<Process::
-                         StateProcessInspectorWidgetDelegateFactoryList>();
-  if (auto widg = fact.make(
-          &Process::StateProcessInspectorWidgetDelegateFactory::make, process,
-          m_context, sectionWidg))
+      = m_context.app.interfaces<Inspector::InspectorWidgetList>();
+  auto widgs = fact.make(m_context, {&process}, sectionWidg);
+  if (!widgs.empty())
   {
-    sectionWidg->addContent(widg);
+    sectionWidg->addContent(widgs[0]);
   }
 
   // delete process

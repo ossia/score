@@ -112,11 +112,11 @@ void ProcessTabWidget::displayProcess(
 
   const auto& fact
       = m_constraintWidget.context()
-            .app.interfaces<Process::InspectorWidgetDelegateFactoryList>();
-  if (auto widg = fact.make(
-          &Process::InspectorWidgetDelegateFactory::make, process,
-          m_constraintWidget.context(), newProc))
+            .app.interfaces<Inspector::InspectorWidgetList>();
+  auto widgs = fact.make(m_constraintWidget.context(), {&process}, newProc);
+  if (!widgs.empty())
   {
+    auto widg = widgs.first();
     newProc->addContent(widg);
 
     newProc->menu()->addAction(
@@ -147,20 +147,19 @@ void ProcessTabWidget::displayProcess(
   if (auto start = process.startStateData())
   {
     auto startWidg = m_constraintWidget.widgetList()
-                         .make(m_constraintWidget.context(), {start}, newProc)
-                         .first();
+                         .make(m_constraintWidget.context(), {start}, newProc);
 
-    if (startWidg)
-      stateLayout->addRow(tr("Start "), startWidg);
+    if (!startWidg.empty())
+      stateLayout->addRow(tr("Start "), startWidg.first());
   }
 
   if (auto end = process.endStateData())
   {
     auto endWidg = m_constraintWidget.widgetList()
-                       .make(m_constraintWidget.context(), {end}, newProc)
-                       .first();
-    if (endWidg)
-      stateLayout->addRow(tr("End   "), endWidg);
+                       .make(m_constraintWidget.context(), {end}, newProc);
+
+    if (!endWidg.empty())
+      stateLayout->addRow(tr("End   "), endWidg.first());
   }
 
   newProc->addContent(stateWidget);
