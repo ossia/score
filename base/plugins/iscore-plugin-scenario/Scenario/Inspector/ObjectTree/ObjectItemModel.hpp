@@ -22,7 +22,7 @@ class ObjectItemModel final
     Q_OBJECT
   public:
     ObjectItemModel(QObject* parent);
-    void setSelected(const QObject* sel);
+    void setSelected(QList<const IdentifiedObjectAbstract*> sel);
 
     QModelIndex index(int row, int column, const QModelIndex& parent) const override;
     QModelIndex parent(const QModelIndex& child) const override;
@@ -53,7 +53,7 @@ class ObjectItemModel final
       changed();
     }
 
-    const QObject* m_root{};
+    QList<const QObject*> m_root;
     QMetaObject::Connection m_con;
 
     std::vector<QMetaObject::Connection> m_itemCon;
@@ -159,14 +159,7 @@ private:
   {
     if (m_objects)
     {
-      if(sel.empty())
-      {
-        m_objects->model.setSelected(nullptr);
-      }
-      else
-      {
-        m_objects->model.setSelected(sel.begin()->data());
-      }
+      m_objects->model.setSelected(sel.toList());
       m_objects->expandAll();
     }
   }

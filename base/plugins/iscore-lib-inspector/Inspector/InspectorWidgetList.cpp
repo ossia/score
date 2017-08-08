@@ -30,7 +30,6 @@ QList<QWidget*> InspectorWidgetList::make(
 
     if (factory.matches(objects))
     {
-      qDebug()  << "match";
       auto widg = factory.make(objects, doc, parent);
       if (widg)
         widgs.push_back(widg);
