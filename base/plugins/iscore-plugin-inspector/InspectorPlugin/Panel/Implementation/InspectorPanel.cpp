@@ -58,7 +58,6 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
     auto& doc = iscore::IDocument::documentContext(*selectedObj.first());
 
     auto widgets = m_list.make(doc, selectedObj, this);
-    qDebug() << widgets;
     if(!widgets.empty())
     {
       m_layout->addWidget(widgets.first());

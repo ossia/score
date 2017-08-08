@@ -9,6 +9,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 namespace Scenario
 {
 
@@ -17,38 +18,42 @@ ObjectItemModel::ObjectItemModel(QObject* parent)
 {
 }
 
-void ObjectItemModel::setSelected(const QObject* sel)
+void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
 {
-  const QObject* root{};
-  if(auto cst = dynamic_cast<const Scenario::ConstraintModel*>(sel))
+  QList<const QObject*> root{};
+  for(const QObject* sel : objs)
   {
-    root = cst;
-  }
-  else if(auto ev = dynamic_cast<const Scenario::EventModel*>(sel))
-  {
-    Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
-    root = &Scenario::parentTimeNode(*ev, scenar);
-  }
-  else if(auto tn = dynamic_cast<const Scenario::TimeNodeModel*>(sel))
-  {
-    root = tn;
-  }
-  else if(auto st = dynamic_cast<const Scenario::StateModel*>(sel))
-  {
-    Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*st);
-    root = &Scenario::parentTimeNode(*st, scenar);
-  }
-  else if(auto stp = dynamic_cast<const Process::StateProcess*>(sel))
-  {
-    auto state = static_cast<Scenario::StateModel*>(stp->parent());
-    Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
-    root = &Scenario::parentTimeNode(*state, scenar);
-  }
-  else if(auto p = dynamic_cast<const Process::ProcessModel*>(sel))
-  {
-    root = p->parent();
+    if(auto cst = dynamic_cast<const Scenario::ConstraintModel*>(sel))
+    {
+      root.push_back(cst);
+    }
+    else if(auto ev = dynamic_cast<const Scenario::EventModel*>(sel))
+    {
+      Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
+      root.push_back(&Scenario::parentTimeNode(*ev, scenar));
+    }
+    else if(auto tn = dynamic_cast<const Scenario::TimeNodeModel*>(sel))
+    {
+      root.push_back(tn);
+    }
+    else if(auto st = dynamic_cast<const Scenario::StateModel*>(sel))
+    {
+      Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*st);
+      root.push_back(&Scenario::parentTimeNode(*st, scenar));
+    }
+    else if(auto stp = dynamic_cast<const Process::StateProcess*>(sel))
+    {
+      auto state = static_cast<Scenario::StateModel*>(stp->parent());
+      Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
+      root.push_back(&Scenario::parentTimeNode(*state, scenar));
+    }
+    else if(auto p = dynamic_cast<const Process::ProcessModel*>(sel))
+    {
+      root.push_back(p->parent());
+    }
   }
 
+  root = root.toSet().toList();
   if(root != m_root)
   {
     cleanConnections();
@@ -63,38 +68,42 @@ void ObjectItemModel::setSelected(const QObject* sel)
 
 void ObjectItemModel::setupConnections()
 {
-  if(!m_root)
+  if(m_root.empty())
     return;
 
-  bool is_cst = dynamic_cast<const Scenario::ConstraintModel*>(m_root);
-  if(is_cst)
+  for(auto obj : m_root)
   {
-    auto cst = static_cast<const Scenario::ConstraintModel*>(m_root);
-    cst->processes.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
-    cst->processes.removing.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
-  }
-  else
-  {
-    auto tn = static_cast<const Scenario::TimeNodeModel*>(m_root);
-    auto& scenar = Scenario::parentScenario(*tn);
-    m_itemCon.push_back(connect(tn, &TimeNodeModel::newEvent, this, [=] { recompute(); }));
-    m_itemCon.push_back(connect(tn, &TimeNodeModel::eventRemoved, this, [=] { recompute(); }));
-
-    for(const auto& ev : tn->events())
+    bool is_cst = dynamic_cast<const Scenario::ConstraintModel*>(obj);
+    if(is_cst)
     {
-      auto& e = scenar.event(ev);
-      m_itemCon.push_back(con(e, &EventModel::statesChanged, this, [=] { recompute(); }));
-      for(const auto& st : e.states())
+      auto cst = static_cast<const Scenario::ConstraintModel*>(obj);
+      cst->processes.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+      cst->processes.removing.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+    }
+    else
+    {
+      auto tn = static_cast<const Scenario::TimeNodeModel*>(obj);
+      auto& scenar = Scenario::parentScenario(*tn);
+      m_itemCon.push_back(connect(tn, &TimeNodeModel::newEvent, this, [=] { recompute(); }));
+      m_itemCon.push_back(connect(tn, &TimeNodeModel::eventRemoved, this, [=] { recompute(); }));
+
+      for(const auto& ev : tn->events())
       {
-        auto& s = scenar.state(st);
-        s.stateProcesses.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
-        s.stateProcesses.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+        auto& e = scenar.event(ev);
+        m_itemCon.push_back(con(e, &EventModel::statesChanged, this, [=] { recompute(); }));
+        for(const auto& st : e.states())
+        {
+          auto& s = scenar.state(st);
+          s.stateProcesses.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+          s.stateProcesses.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+        }
       }
     }
-  }
 
-  m_con = connect(m_root, &QObject::destroyed,
-          this, [=] { m_root = nullptr; cleanConnections(); });
+    m_itemCon.push_back(
+          connect(obj, &QObject::destroyed,
+                  this, [=] { m_root.removeOne(obj); cleanConnections(); }));
+  }
 }
 
 void ObjectItemModel::cleanConnections()
@@ -146,9 +155,13 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
       return QModelIndex{};
     }
   }
+  else if(!m_root.empty() && row >= 0)
+  {
+    return createIndex(row, column, (void*)m_root[row]);
+  }
   else
   {
-    return createIndex(row, column, (void*)m_root);
+    return QModelIndex{};
   }
 }
 
@@ -163,9 +176,12 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
   {
     return QModelIndex{};
   }
-  else if(dynamic_cast<Scenario::EventModel*>(sel))
+  else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
   {
-    return createIndex(0, 0, (void*)m_root);
+    Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
+    auto& tn = Scenario::parentTimeNode(*ev, scenar);
+    auto idx = m_root.indexOf(&tn);
+    return createIndex(0, 0, (void*)m_root[idx]);
   }
   else if(dynamic_cast<Scenario::TimeNodeModel*>(sel))
   {
@@ -192,9 +208,10 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
 
     return createIndex(idx, 0, state);
   }
-  else if(dynamic_cast<Process::ProcessModel*>(sel))
+  else if(auto proc = dynamic_cast<Process::ProcessModel*>(sel))
   {
-    return createIndex(0, 0, (void*)m_root);
+    auto idx = m_root.indexOf(proc->parent());
+    return createIndex(idx, 0, (void*)m_root[idx]);
   }
 
   return QModelIndex{};
@@ -221,12 +238,13 @@ int ObjectItemModel::rowCount(const QModelIndex& parent) const
     {
       return st->stateProcesses.size();
     }
+    else
+    {
+      return 0;
+    }
   }
-  else if(m_root)
-  {
-    return 1;
-  }
-  return 0;
+
+  return m_root.size();
 }
 
 int ObjectItemModel::columnCount(const QModelIndex& parent) const
@@ -295,10 +313,18 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       static const QIcon icon(":/images/trigger.svg");
       return icon;
     }
-    else if(dynamic_cast<Scenario::StateModel*>(sel))
+    else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
     {
-      static const QIcon icon(":/images/state.svg");
-      return icon;
+      if(st->messages().rootNode().hasChildren())
+      {
+        static const QIcon icon(":/images/state.svg");
+        return icon;
+      }
+      else
+      {
+        static const QIcon icon(":/images/state-empty.svg");
+        return icon;
+      }
     }
     else if(dynamic_cast<Process::StateProcess*>(sel))
     {

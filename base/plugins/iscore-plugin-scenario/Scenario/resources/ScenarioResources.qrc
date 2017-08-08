@@ -10,5 +10,6 @@
         <file>images/cond.svg</file>
         <file>images/constraint.svg</file>
         <file>images/process.svg</file>
+        <file>images/state-empty.svg</file>
     </qresource>
 </RCC>

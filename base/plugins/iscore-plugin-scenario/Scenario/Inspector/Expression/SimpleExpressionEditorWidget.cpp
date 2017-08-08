@@ -263,22 +263,31 @@ void SimpleExpressionEditorWidget::on_comparatorChanged(int i)
     case ExpressionEditorComparator::LowerEqual:
       m_address->setEnabled(true);
       m_value->setEnabled(true);
+      m_address->setVisible(true);
+      m_value->setVisible(true);
       break;
 
     case ExpressionEditorComparator::Pulse:
       m_address->setEnabled(true);
       m_value->setEnabled(false);
+      m_address->setVisible(true);
+      m_value->setVisible(false);
       break;
 
     case ExpressionEditorComparator::AlwaysTrue:
     case ExpressionEditorComparator::AlwaysFalse:
       m_address->setEnabled(false);
       m_value->setEnabled(false);
+      m_address->setVisible(false);
+      m_value->setVisible(false);
       break;
 
     default:
       m_address->setEnabled(false);
       m_value->setEnabled(false);
+      m_address->setVisible(false);
+      m_value->setVisible(false);
+      break;
   }
 }
 
