@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 set -o pipefail
-
+ 
 # Set-up paths
 export BOOST_ROOT=/boost
 export CMAKE_PATH=$(find /cmake-*/ -type d | head -n 1)bin
