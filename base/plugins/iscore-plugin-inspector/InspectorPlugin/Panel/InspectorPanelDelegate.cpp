@@ -17,7 +17,7 @@ PanelDelegate::PanelDelegate(const iscore::GUIApplicationContext& ctx)
 {
   new iscore::MarginLess<QVBoxLayout>{m_widget};
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
-  m_widget->setMinimumHeight(600);
+  m_widget->setMinimumHeight(400);
   m_widget->setMinimumWidth(250);
 }
 

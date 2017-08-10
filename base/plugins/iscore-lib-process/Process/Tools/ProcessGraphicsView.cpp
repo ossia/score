@@ -17,7 +17,7 @@ ProcessGraphicsView::ProcessGraphicsView(
     : QGraphicsView{scene, parent}
 {
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
-  setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
+  setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
   setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform
       | QPainter::TextAntialiasing);
@@ -33,8 +33,8 @@ ProcessGraphicsView::ProcessGraphicsView(
 #endif
 
 #if defined(__APPLE__)
-  setRenderHints(0);
-  setOptimizationFlag(QGraphicsView::IndirectPainting, true);
+  //setRenderHints(0);
+  //setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif
 
 }

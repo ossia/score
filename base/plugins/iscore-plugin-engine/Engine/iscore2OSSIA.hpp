@@ -105,6 +105,8 @@ ISCORE_PLUGIN_ENGINE_EXPORT optional<ossia::message>
 message(const State::Message& mess, const Device::DeviceList&);
 
 ISCORE_PLUGIN_ENGINE_EXPORT ossia::expression_ptr
-expression(const State::Expression& expr, const Device::DeviceList&);
+condition_expression(const State::Expression& expr, const Device::DeviceList&);
+ISCORE_PLUGIN_ENGINE_EXPORT ossia::expression_ptr
+trigger_expression(const State::Expression& expr, const Device::DeviceList&);
 }
 }

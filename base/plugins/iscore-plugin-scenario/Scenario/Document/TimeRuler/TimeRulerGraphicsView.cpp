@@ -38,7 +38,7 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
 MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene *s):
     TimeRulerGraphicsView{s}
 {
-    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     setSceneRect({0, 0, 2000, 100});
 
     setDragMode(DragMode::NoDrag);

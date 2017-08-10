@@ -92,6 +92,62 @@ QString TreeNode<State::ExprData>::toString() const
   return s;
 }
 
+
+QString TreeNode<State::ExprData>::toPrettyString() const
+{
+  if(*this == State::defaultTrueExpression())
+    return QObject::tr("True");
+  if(*this == State::defaultFalseExpression())
+    return QObject::tr("False");
+
+  QString s;
+
+  auto exprstr = static_cast<const State::ExprData&>(*this).toString();
+  if (m_children.empty()) // Relation
+  {
+    if (this->is<InvisibleRootNode>())
+    {
+      ;
+    }
+    else if(this->parent()->is<InvisibleRootNode>())
+    {
+      s = exprstr;
+    }
+    else
+    {
+      s = "(" % exprstr % ")";
+    }
+  }
+  else if (m_children.size() == 1) // unop
+  {
+    if (this->is<InvisibleRootNode>())
+    {
+      s = m_children.at(0).toPrettyString();
+    }
+    else
+    {
+      s = exprstr % m_children.at(0).toPrettyString();
+    }
+  }
+  else // binop
+  {
+    ISCORE_ASSERT(m_children.size() == 2);
+    int n = 0;
+    int max_n = m_children.size() - 1;
+    for (const auto& child : m_children)
+    {
+      s += child.toPrettyString() % " ";
+      if (n < max_n)
+      {
+        s += exprstr % " ";
+        n++;
+      }
+    }
+  }
+
+  return s;
+}
+
 State::Expression State::defaultTrueExpression()
 {
   using namespace std::literals;

@@ -18,13 +18,13 @@ namespace Scenario
 {
 SummaryInspectorWidget::SummaryInspectorWidget(
     const IdentifiedObjectAbstract* obj,
-    std::set<const ConstraintModel*>
+    const std::set<const ConstraintModel*>&
         constraints,
-    std::set<const TimeNodeModel*>
+    const std::set<const TimeNodeModel*>&
         timenodes,
-    std::set<const EventModel*>
+    const std::set<const EventModel*>&
         events,
-    std::set<const StateModel*>
+    const std::set<const StateModel*>&
         states,
     const iscore::DocumentContext& context,
     QWidget* parent)

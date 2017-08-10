@@ -14,7 +14,7 @@
    viewBox="0 0 6.7024331 7.4930825"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92+devel (7f3bd2b258, 2017-08-07, custom)"
+   inkscape:version="0.91 r13725"
    sodipodi:docname="cond.svg">
   <defs
      id="defs2" />
@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.8"
+     inkscape:zoom="7.9195959"
      inkscape:cx="-3.438299"
-     inkscape:cy="-14.341735"
+     inkscape:cy="17.695989"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -36,8 +36,8 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1606"
-     inkscape:window-height="923"
+     inkscape:window-width="1440"
+     inkscape:window-height="856"
      inkscape:window-x="156"
      inkscape:window-y="68"
      inkscape:window-maximized="0" />
@@ -49,7 +49,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -60,14 +60,16 @@
      transform="translate(-48.078359,-45.073886)">
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.58333302px;line-height:100%;font-family:'Fira Sans';-inkscape-font-specification:'Fira Sans, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#f0dc00;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="47.540924"
-       y="52.463615"
-       id="text817"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:9.83994102px;line-height:100%;font-family:'Fira Sans';-inkscape-font-specification:'Fira Sans, Bold';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#f0dc00;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="44.201569"
+       y="56.06271"
+       id="text817"
+       sodipodi:linespacing="100%"
+       transform="scale(1.0755484,0.92975829)"><tspan
          sodipodi:role="line"
          id="tspan815"
-         x="47.540924"
-         y="52.463615"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#f0dc00;fill-opacity:1;stroke-width:0.26458332px">C</tspan></text>
+         x="44.201569"
+         y="56.06271"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.83994102px;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#f0dc00;fill-opacity:1;stroke-width:0.26458332px">C</tspan></text>
   </g>
 </svg>

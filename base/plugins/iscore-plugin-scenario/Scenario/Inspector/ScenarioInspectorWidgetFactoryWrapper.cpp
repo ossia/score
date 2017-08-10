@@ -80,8 +80,7 @@ ScenarioInspectorWidgetFactoryWrapper::make(
   }
 
   return new SummaryInspectorWidget{
-      abstr, std::move(constraints), std::move(timenodes), std::move(events),
-      std::move(states), doc, parent}; // the default InspectorWidgetBase need
+      abstr, constraints, timenodes, events, states, doc, parent}; // the default InspectorWidgetBase need
                                        // an only IdentifiedObject : this will
                                        // be "abstr"
 }
