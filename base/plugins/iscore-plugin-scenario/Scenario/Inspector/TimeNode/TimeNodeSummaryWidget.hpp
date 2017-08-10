@@ -1,5 +1,8 @@
 #pragma once
 #include <QWidget>
+#include <iscore/widgets/MarginLess.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
+#include <QGridLayout>
 
 #include <memory>
 
@@ -21,6 +24,7 @@ public:
       QWidget* parent = nullptr);
 
 private:
-  std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
+  iscore::SelectionDispatcher m_selectionDispatcher;
+  iscore::MarginLess<QGridLayout> m_lay;
 };
 }

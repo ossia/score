@@ -71,8 +71,6 @@ TimeRuler::TimeRuler(QGraphicsView* v)
   m_height = -2 * m_graduationHeight;
   m_textPosition = 1.65 * m_graduationHeight;
   this->setX(10);
-
-  m_startPoint.addMSecs(0);
 }
 
 QRectF TimeRuler::boundingRect() const
@@ -115,26 +113,12 @@ void TimeRuler::setWidth(qreal newWidth)
   createRulerPath();
 }
 
-
-void TimeRuler::setFormat(Format format)
-{
-  if(format != m_timeFormat)
-  {
-    m_timeFormat = std::move(format);
-    m_stringCache.clear();
-
-    for (Mark& mark : m_marks)
-    {
-      mark.text = getGlyphs(mark.time);
-    }
-  }
-}
-
 void TimeRuler::setStartPoint(TimeVal dur)
 {
-  if (m_startPoint != dur)
+  ossia::time_value v{(int64_t)dur.msec()};
+  if (m_startPoint != v)
   {
-    m_startPoint = dur;
+    m_startPoint = v;
     computeGraduationSpacing();
   }
 }
@@ -154,7 +138,6 @@ void TimeRuler::computeGraduationSpacing()
   m_graduationsSpacing = pixPerSec;
 
   m_graduationDelta = 100.;
-  m_timeFormat = Format::Seconds;
   m_intervalsBetweenMark = 5;
 
   int i = 0;
@@ -170,11 +153,18 @@ void TimeRuler::computeGraduationSpacing()
     }
   }
 
+  auto oldFormat = m_timeFormat;
   if (i > 7)
   {
     m_timeFormat = Format::Milliseconds;
     m_intervalsBetweenMark = 10;
   }
+  else
+  {
+    m_timeFormat = Format::Seconds;
+  }
+  if(oldFormat != m_timeFormat)
+    m_stringCache.clear();
 
   createRulerPath();
 }
@@ -206,10 +196,10 @@ void TimeRuler::createRulerPath()
   // If we are between two graduations, we adjust our origin.
   double big_delta = m_graduationDelta * 5. * 2.;
   double prev_big_grad_msec
-      = std::floor(m_startPoint.msec() / big_delta) * big_delta;
+      = std::floor(m_startPoint.impl / big_delta) * big_delta;
 
-  double startTime = m_startPoint.msec() - prev_big_grad_msec;
-  std::chrono::microseconds time{(int64_t)(1000. * prev_big_grad_msec)};
+  double startTime = m_startPoint.impl - prev_big_grad_msec;
+  std::chrono::microseconds time{1000 * (int64_t)prev_big_grad_msec};
   double t = -startTime * m_pixelPerMillis;
 
   double i = 0;

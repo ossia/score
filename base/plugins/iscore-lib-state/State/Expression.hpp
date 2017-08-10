@@ -91,6 +91,7 @@ class ISCORE_LIB_STATE_EXPORT TreeNode<State::ExprData> final
 
 public:
   QString toString() const;
+  QString toPrettyString() const;
 
   using iterator = typename std::vector<TreeNode>::iterator;
   using const_iterator = typename std::vector<TreeNode>::const_iterator;

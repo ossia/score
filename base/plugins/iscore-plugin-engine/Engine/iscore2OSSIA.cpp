@@ -490,8 +490,10 @@ expressionPulse(const State::Pulse& rel, const Device::DeviceList& dev)
         expressionAddress(rel.address, dev));
 }
 
+
+template<typename T>
 ossia::expression_ptr
-expression(const State::Expression& e, const Device::DeviceList& list)
+expression(const State::Expression& e, const Device::DeviceList& list, const T&)
 {
   const struct
   {
@@ -501,7 +503,7 @@ expression(const State::Expression& e, const Device::DeviceList& list)
 
     return_type operator()() const
     {
-      return ossia::expressions::make_expression_true();
+      return T::default_expression();
     }
 
     return_type operator()(const State::Relation& rel) const
@@ -518,25 +520,25 @@ expression(const State::Expression& e, const Device::DeviceList& list)
       const auto& lhs = expr.childAt(0);
       const auto& rhs = expr.childAt(1);
       return ossia::expressions::make_expression_composition(
-            expression(lhs, devlist),
+            condition_expression(lhs, devlist),
             rel,
-            expression(rhs, devlist));
+            condition_expression(rhs, devlist));
     }
     return_type operator()(const State::UnaryOperator) const
     {
       return ossia::expressions::make_expression_not(
-            expression(expr.childAt(0), devlist));
+            condition_expression(expr.childAt(0), devlist));
     }
     return_type operator()(const InvisibleRootNode) const
     {
       if (expr.childCount() == 0)
       {
         // By default no expression == true
-        return ossia::expressions::make_expression_true();
+        return T::default_expression();
       }
       else if (expr.childCount() == 1)
       {
-        return expression(expr.childAt(0), devlist);
+        return condition_expression(expr.childAt(0), devlist);
       }
       else
       {
@@ -547,6 +549,29 @@ expression(const State::Expression& e, const Device::DeviceList& list)
   } visitor{e, list};
 
   return ossia::apply(visitor, e.impl());
+}
+
+
+ossia::expression_ptr
+condition_expression(const State::Expression& e, const Device::DeviceList& list)
+{
+  struct def_cond {
+    static ossia::expression_ptr default_expression() {
+      return ossia::expressions::make_expression_true();
+    }
+  };
+  return expression(e, list, def_cond{});
+}
+ossia::expression_ptr
+trigger_expression(const State::Expression& e, const Device::DeviceList& list)
+{
+  struct def_trig {
+    static ossia::expression_ptr default_expression() {
+      return ossia::expressions::make_expression_false();
+    }
+  };
+
+  return expression(e, list, def_trig{});
 }
 
 ossia::net::address_base*

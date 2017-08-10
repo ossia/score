@@ -48,7 +48,7 @@ ossia::expression_ptr TimeNodeComponent::makeTrigger() const
   {
     try
     {
-      return Engine::iscore_to_ossia::expression(
+      return Engine::iscore_to_ossia::trigger_expression(
             element.expression(), system().devices.list());
     }
     catch (std::exception& e)

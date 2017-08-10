@@ -45,7 +45,7 @@ QWidget
     font: 9pt "Ubuntu";
     color: silver;
     background-color: #1A2024;
-    selection-background-color: #3d8ec9;
+    selection-background-color: #416681;
     selection-color: black;
     background-clip: border;
     border-image: none;
@@ -61,7 +61,7 @@ QWidget:item:hover
 
 QWidget:item:selected
 {
-    background-color: #3d8ec9;
+    background-color: #416681;
 }
 
 QCheckBox
@@ -242,7 +242,7 @@ QMenuBar::item:selected
 QMenuBar::item:pressed
 {
     /*border: 1px solid #3A3939;*/
-    background-color: #3d8ec9;
+    background-color: #416681;
     color: black;
     margin-bottom:-1px;
     padding-bottom:1px;
@@ -695,13 +695,13 @@ QPushButton:disabled
 }
 
 QPushButton:focus {
-    background-color: #3d8ec9;
+    background-color: #416681;
     color: white;
 }
 
 QComboBox
 {
-    selection-background-color: #3d8ec9;
+    selection-background-color: #416681;
     background-color: #12171A;
     border-style: solid;
     border: 1px solid #666666 /*#3A3939*/;
@@ -759,7 +759,7 @@ QComboBox QAbstractItemView
     background-color: #12171A;
     border-radius: 2px;
     border: 1px solid #444;
-    selection-background-color: #3d8ec9;
+    selection-background-color: #416681;
 }
 
 QComboBox::drop-down
@@ -1119,7 +1119,7 @@ QListView::item:!selected:hover, QTreeView::item:!selected:hover  {
 }
 
 QListView::item:selected:hover, QTreeView::item:selected:hover  {
-/*    background: #3d8ec9;
+/*    background: #416681;
     color: #FFFFFF;*/
 }
 
@@ -1261,12 +1261,12 @@ QTableView {
 QTableView::item:pressed, QListView::item:pressed, QTreeView::item:pressed  {
 /*    background: #78879b;
     color: #FFFFFF;*/
-    background: #3D8EC9;
+    background: #416681;
     color: #FFFFFF
 }
 
 QTableView::item:selected:active, QTreeView::item:selected:active, QListView::item:selected:active  {
-    background: #3d8ec9;
+    background: #416681;
     color: #FFFFFF;
 }
 
@@ -1350,7 +1350,7 @@ QToolBox::tab {
  QToolBox::tab:selected { /* italicize selected tabs */
     font: italic;
     background-color: #1A2024;
-    border-color: #3d8ec9;
+    border-color: #416681;
  }
 
 QStatusBar::item {

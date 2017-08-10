@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <QSet>
+#include <boost/container/flat_set.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <limits>
 
@@ -60,10 +60,13 @@ void updateConstraintVerticalPos(
   auto& cst = s.constraints.at(id);
 
   // First make the list of all the constraints to update
-  QSet<ConstraintModel*> constraintsToUpdate;
+  static boost::container::flat_set<ConstraintModel*> constraintsToUpdate;
+  static boost::container::flat_set<StateModel*> statesToUpdate;
+
   constraintsToUpdate.insert(&cst);
-  QSet<StateModel*> statesToUpdate;
   StateModel* rec_state = &s.state(cst.startState());
+
+  statesToUpdate.insert(rec_state);
   while (rec_state->previousConstraint())
   {
     ConstraintModel* rec_cst
@@ -75,6 +78,7 @@ void updateConstraintVerticalPos(
   statesToUpdate.insert(rec_state); // Add the first state
 
   rec_state = &s.state(cst.endState());
+  statesToUpdate.insert(rec_state);
   while (rec_state->nextConstraint())
   {
     ConstraintModel* rec_cst = &s.constraints.at(*rec_state->nextConstraint());
@@ -88,6 +92,7 @@ void updateConstraintVerticalPos(
   for (auto& constraint : constraintsToUpdate)
   {
     constraint->setHeightPercentage(y);
+    s.constraintMoved(*constraint);
   }
 
   for (auto& state : statesToUpdate)
@@ -95,5 +100,9 @@ void updateConstraintVerticalPos(
     state->setHeightPercentage(y);
     updateEventExtent(state->eventId(), s);
   }
+
+  constraintsToUpdate.clear();
+  statesToUpdate.clear();
+
 }
 }

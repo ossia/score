@@ -496,6 +496,7 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
       if((m_miniLayer = fac->makeMiniLayer(proc, nullptr)))
       {
         m_miniLayer->setHeight(40);
+        m_miniLayer->setWidth(view().minimap().width());
         view().minimap().scene()->addItem(m_miniLayer);
         con(proc, &Process::ProcessModel::identified_object_destroying,
             this, [=] {
@@ -522,6 +523,7 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
       &ScenarioDocumentPresenter::setDisplayedConstraint);
 
   on_viewReady();
+  updateMinimap();
 }
 
 

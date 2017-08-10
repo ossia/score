@@ -13,17 +13,17 @@ namespace Scenario
 class StateMenuOverlay final :
     public QGraphicsItem
 {
-  static const constexpr auto radius = 4;
 public:
   StateMenuOverlay(StateView* parent):
     QGraphicsItem{parent}
   {
+    this->setAcceptHoverEvents(true);
 
   }
 
   QRectF boundingRect() const override
   {
-    return {-radius, -radius, 2 * radius, 2 * radius};
+    return {-m_radius, -m_radius, 2 * m_radius, 2 * m_radius};
   }
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
@@ -39,7 +39,7 @@ public:
     p.setWidth(2);
     painter->setPen(p);
 
-    const constexpr auto small_rad = 0.5 * radius;
+    const auto small_rad = 0.5 * m_radius;
     const QLineF l1{QPointF{0, -small_rad}, QPointF{0, small_rad}};
     const QLineF l2{QPointF{-small_rad, 0}, QPointF{small_rad, 0}};
     painter->drawLine(l1.translated(1,1));
@@ -50,13 +50,28 @@ public:
     painter->drawLine(l2);
   }
 
-protected:
+private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
     auto st = static_cast<StateView*>(parentItem());
     emit st->startCreateMode();
     event->ignore();
   }
+
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override
+  {
+    prepareGeometryChange();
+    m_radius = 6;
+    update();
+  }
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override
+  {
+    prepareGeometryChange();
+    m_radius = 4;
+    update();
+  }
+
+  double m_radius{4};
 };
 
 }

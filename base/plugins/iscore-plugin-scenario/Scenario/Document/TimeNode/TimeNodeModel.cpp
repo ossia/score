@@ -26,12 +26,6 @@ TimeNodeModel::TimeNodeModel(
 {
   metadata().setInstanceName(*this);
   metadata().setColor(ScenarioStyle::instance().TimenodeDefault);
-
-  m_expression.push_back(State::Expression{
-      State::Relation{State::RelationMember{ossia::value(true)},
-                      ossia::expressions::comparator::EQUAL,
-                      State::RelationMember{ossia::value(false)}},
-      &m_expression});
 }
 
 TimeNodeModel::TimeNodeModel(

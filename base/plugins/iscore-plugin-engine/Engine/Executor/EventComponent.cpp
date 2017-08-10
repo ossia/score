@@ -45,7 +45,7 @@ ossia::expression_ptr EventComponent::makeExpression() const
 {
   try
   {
-    return Engine::iscore_to_ossia::expression(
+    return Engine::iscore_to_ossia::condition_expression(
           m_iscore_event.condition(), system().devices.list());
   }
   catch (std::exception& e)

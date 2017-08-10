@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QTreeView>
 #include <QVBoxLayout>
+#include <QHeaderView>
 
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
@@ -26,6 +27,7 @@ class ObjectItemModel final
 
     QModelIndex index(int row, int column, const QModelIndex& parent) const override;
     QModelIndex parent(const QModelIndex& child) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
     int rowCount(const QModelIndex& parent) const override;
     int columnCount(const QModelIndex& parent) const override;
@@ -69,12 +71,12 @@ class ObjectWidget final: public QTreeView
       , m_ctx{ctx}
     {
       setModel(&model);
-      setHeaderHidden(true);
       setAnimated(true);
       setAlternatingRowColors(true);
       setMidLineWidth(40);
       setUniformRowHeights(true);
       setWordWrap(false);
+      setMouseTracking(true);
 
       con(model, &ObjectItemModel::changed,
           this, &QTreeView::expandAll);
@@ -82,15 +84,17 @@ class ObjectWidget final: public QTreeView
 
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override
     {
-      if(selected.size() > 0)
+      if(selected.size() > 0 && !updatingSelection)
       {
         iscore::SelectionDispatcher d{m_ctx.selectionStack};
         auto obj = (IdentifiedObjectAbstract*) selected.at(0).indexes().at(0).internalPointer();
         d.setAndCommit(Selection{obj});
       }
     }
+
     ObjectItemModel model;
 
+    bool updatingSelection{false};
   private:
     const iscore::DocumentContext& m_ctx;
 };
@@ -112,57 +116,15 @@ class SizePolicyWidget final : public QWidget
 class ObjectPanelDelegate final : public iscore::PanelDelegate
 {
 public:
-  ObjectPanelDelegate(const iscore::GUIApplicationContext& ctx)
-    : iscore::PanelDelegate{ctx}
-    , m_widget{new SizePolicyWidget}
-    , m_lay{new iscore::MarginLess<QVBoxLayout>{m_widget}}
-{
-    m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    m_widget->setMinimumHeight(100);
-    m_widget->setSizeHint({200, 100});
-}
+  ObjectPanelDelegate(const iscore::GUIApplicationContext& ctx);
 
 private:
-  QWidget* widget() override
-  {
-    return m_widget;
-  }
-
-  const iscore::PanelStatus& defaultPanelStatus() const override
-  {
-    static const iscore::PanelStatus status{true, Qt::RightDockWidgetArea, 8,
-                                            QObject::tr("Objects"),
-                                            QObject::tr("Ctrl+Shift+O")};
-
-    return status;
-  }
-
+  QWidget* widget() override;
+  const iscore::PanelStatus& defaultPanelStatus() const override;
 
   void on_modelChanged(
-      iscore::MaybeDocument oldm, iscore::MaybeDocument newm) override
-  {
-    using namespace iscore;
-    delete m_objects;
-    m_objects = nullptr;
-    if (newm)
-    {
-      m_objects = new ObjectWidget{*newm, m_widget};
-
-      m_objects->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
-      m_lay->addWidget(m_objects);
-
-      setNewSelection(newm->selectionStack.currentSelection());
-    }
-  }
-
-  void setNewSelection(const Selection& sel) override
-  {
-    if (m_objects)
-    {
-      m_objects->model.setSelected(sel.toList());
-      m_objects->expandAll();
-    }
-  }
+      iscore::MaybeDocument oldm, iscore::MaybeDocument newm) override;
+  void setNewSelection(const Selection& sel) override;
 
   SizePolicyWidget* m_widget{};
   QVBoxLayout* m_lay{};

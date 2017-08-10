@@ -15,6 +15,7 @@
 #include <chrono>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -60,7 +61,6 @@ signals:
 
 private:
   void computeGraduationSpacing();
-  void setFormat(Format);
 
   QRectF boundingRect() const final override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) final override;
@@ -76,7 +76,7 @@ private:
     QGlyphRun text;
   };
 
-  TimeVal m_startPoint{};
+  ossia::time_value m_startPoint{};
 
   double m_pixelPerMillis{0.01};
 

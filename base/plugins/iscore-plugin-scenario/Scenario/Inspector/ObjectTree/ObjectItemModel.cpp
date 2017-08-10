@@ -217,6 +217,22 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
   return QModelIndex{};
 }
 
+QVariant ObjectItemModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+  if(role == Qt::DisplayRole)
+  {
+    if(section == 0)
+    {
+      return tr("Object");
+    }
+    return tr("Info");
+  }
+  else
+  {
+    return QAbstractItemModel::headerData(section, orientation, role);
+  }
+}
+
 int ObjectItemModel::rowCount(const QModelIndex& parent) const
 {
   auto sel = (QObject*)parent.internalPointer();
@@ -249,92 +265,128 @@ int ObjectItemModel::rowCount(const QModelIndex& parent) const
 
 int ObjectItemModel::columnCount(const QModelIndex& parent) const
 {
-  return 1;
+  return 2;
 }
 
 QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
 {
   auto sel = (QObject*)index.internalPointer();
-  if(sel && role == Qt::DisplayRole)
-  {
-    if(auto cst = dynamic_cast<Scenario::ConstraintModel*>(sel))
-    {
-      return cst->metadata().getName();
-    }
-    else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
-    {
-      return ev->metadata().getName();
-    }
-    else if(auto tn = dynamic_cast<Scenario::TimeNodeModel*>(sel))
-    {
-      return tn->metadata().getName();
-    }
-    else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
-    {
-      return st->metadata().getName();
-    }
-    else if(auto stp = dynamic_cast<Process::StateProcess*>(sel))
-    {
-      auto name = stp->prettyName();
-      if(name.isEmpty())
-        name = stp->prettyShortName();
-      return name;
-    }
-    else if(auto p = dynamic_cast<Process::ProcessModel*>(sel))
-    {
-      auto name = p->prettyName();
-      if(name.isEmpty())
-        name = p->prettyShortName();
-      return name;
-    }
-  }
-  else if(role == Qt::SizeHintRole)
+  if(!sel)
+    return {};
+  if(role == Qt::SizeHintRole)
   {
     return QSize{200, 20};
   }
-  else if(role == Qt::FontRole)
+  if(role == Qt::FontRole)
   {
     return ScenarioStyle::instance().Bold10Pt;
   }
-  else if(role == Qt::DecorationRole)
+
+  if(index.column() == 0)
   {
-    if(dynamic_cast<Scenario::ConstraintModel*>(sel))
+    if(role == Qt::DisplayRole)
     {
-      static const QIcon icon(":/images/constraint.svg");
-      return icon;
-    }
-    else if(dynamic_cast<Scenario::EventModel*>(sel))
-    {
-      static const QIcon icon(":/images/cond.svg");
-      return icon;
-    }
-    else if(dynamic_cast<Scenario::TimeNodeModel*>(sel))
-    {
-      static const QIcon icon(":/images/trigger.svg");
-      return icon;
-    }
-    else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
-    {
-      if(st->messages().rootNode().hasChildren())
+      if(auto cst = dynamic_cast<Scenario::ConstraintModel*>(sel))
       {
-        static const QIcon icon(":/images/state.svg");
+        return cst->metadata().getName();
+      }
+      else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
+      {
+        return ev->metadata().getName();
+      }
+      else if(auto tn = dynamic_cast<Scenario::TimeNodeModel*>(sel))
+      {
+        return tn->metadata().getName();
+      }
+      else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
+      {
+        return st->metadata().getName();
+      }
+      else if(auto stp = dynamic_cast<Process::StateProcess*>(sel))
+      {
+        auto name = stp->prettyName();
+        if(name.isEmpty())
+          name = stp->prettyShortName();
+        return name;
+      }
+      else if(auto p = dynamic_cast<Process::ProcessModel*>(sel))
+      {
+        auto name = p->prettyName();
+        if(name.isEmpty())
+          name = p->prettyShortName();
+        return name;
+      }
+    }
+    else if(role == Qt::DecorationRole)
+    {
+      if(dynamic_cast<Scenario::ConstraintModel*>(sel))
+      {
+        static const QIcon icon(":/images/constraint.svg");
         return icon;
       }
-      else
+      else if(dynamic_cast<Scenario::EventModel*>(sel))
       {
-        static const QIcon icon(":/images/state-empty.svg");
+        static const QIcon icon(":/images/cond.svg");
+        return icon;
+      }
+      else if(dynamic_cast<Scenario::TimeNodeModel*>(sel))
+      {
+        static const QIcon icon(":/images/trigger.svg");
+        return icon;
+      }
+      else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
+      {
+        if(st->messages().rootNode().hasChildren())
+        {
+          static const QIcon icon(":/images/state.svg");
+          return icon;
+        }
+        else
+        {
+          static const QIcon icon(":/images/state-empty.svg");
+          return icon;
+        }
+      }
+      else if(dynamic_cast<Process::StateProcess*>(sel))
+      {
+        static const QIcon icon(":/images/process.svg");
+        return icon;
+      }
+      else if(dynamic_cast<Process::ProcessModel*>(sel))
+      {
+        static const QIcon icon(":/images/process.svg");
         return icon;
       }
     }
-    else if(dynamic_cast<Process::StateProcess*>(sel))
+  }
+  else if(index.column() == 1)
+  {
+    if(role == Qt::DisplayRole)
     {
-      static const QIcon icon(":/images/process.svg");
-      return icon;
-    }
-    else if(dynamic_cast<Process::ProcessModel*>(sel))
-    {
-      static const QIcon icon(":/images/process.svg");
-      return icon;
+      if(auto cst = dynamic_cast<Scenario::ConstraintModel*>(sel))
+      {
+        return tr("Start : ") + cst->startDate().toString();
+      }
+      else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
+      {
+        return ev->condition().toPrettyString();
+      }
+      else if(auto tn = dynamic_cast<Scenario::TimeNodeModel*>(sel))
+      {
+        return tn->expression().toPrettyString();
+      }
+      else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
+      {
+        return {};
+      }
+      else if(auto stp = dynamic_cast<Process::StateProcess*>(sel))
+      {
+        return {};
+      }
+      else if(auto p = dynamic_cast<Process::ProcessModel*>(sel))
+      {
+        return {};
+      }
     }
   }
   return {};
@@ -347,6 +399,83 @@ Qt::ItemFlags ObjectItemModel::flags(const QModelIndex& index) const
   f |= Qt::ItemIsSelectable;
   f |= Qt::ItemIsEnabled;
   return f;
+}
+
+
+
+ObjectPanelDelegate::ObjectPanelDelegate(const iscore::GUIApplicationContext &ctx)
+  : iscore::PanelDelegate{ctx}
+  , m_widget{new SizePolicyWidget}
+  , m_lay{new iscore::MarginLess<QVBoxLayout>{m_widget}}
+{
+  m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  m_widget->setMinimumHeight(100);
+  m_widget->setSizeHint({200, 100});
+}
+
+QWidget *ObjectPanelDelegate::widget()
+{
+  return m_widget;
+}
+
+const iscore::PanelStatus &ObjectPanelDelegate::defaultPanelStatus() const
+{
+  static const iscore::PanelStatus status{true, Qt::RightDockWidgetArea, 8,
+        QObject::tr("Objects"),
+        QObject::tr("Ctrl+Shift+O")};
+
+  return status;
+}
+
+void ObjectPanelDelegate::on_modelChanged(iscore::MaybeDocument oldm, iscore::MaybeDocument newm)
+{
+  using namespace iscore;
+  delete m_objects;
+  m_objects = nullptr;
+  if (newm)
+  {
+    m_objects = new ObjectWidget{*newm, m_widget};
+
+    m_objects->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+    m_lay->addWidget(m_objects);
+
+    setNewSelection(newm->selectionStack.currentSelection());
+  }
+}
+
+void ObjectPanelDelegate::setNewSelection(const Selection &sel)
+{
+  if (m_objects)
+  {
+    m_objects->model.setSelected(sel.toList());
+    m_objects->expandAll();
+
+    auto cur_sel = document()->selectionStack.currentSelection();
+    auto idx = m_objects->model.index(0, 0, {});
+
+    auto selection = m_objects->selectionModel();
+    m_objects->updatingSelection = true;
+    while(idx.isValid())
+    {
+      auto ptr = idx.internalPointer();
+      if(cur_sel.contains((IdentifiedObjectAbstract*)ptr))
+      {
+        selection->select(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+      }
+      else
+      {
+        selection->select(idx, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
+      }
+      idx = m_objects->indexBelow(idx);
+    }
+    m_objects->updatingSelection = false;
+
+    m_objects->header()->resizeSection(1, QHeaderView::Stretch);
+    m_objects->header()->resizeSection(0, QHeaderView::ResizeToContents);
+    if(m_objects->header()->sectionSize(0) < 140)
+      m_objects->header()->resizeSection(0, 140);
+
+  }
 }
 
 }
