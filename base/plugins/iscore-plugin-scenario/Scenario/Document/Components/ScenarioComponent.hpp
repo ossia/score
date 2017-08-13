@@ -171,7 +171,7 @@ private:
   {
     // We can just create a new component directly
     using map_t = MatchingComponent<elt_t, true>;
-    auto comp = Component_T::template make<typename map_t::type>(
+    auto comp = Component_T::make(
         getStrongId(element.components()), element);
     if (comp)
     {

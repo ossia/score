@@ -146,6 +146,7 @@ struct Port
     PortType type;
     QString customData;
     State::AddressAccessor address;
+    bool propagate{false};
 
     friend bool operator==(const Port& lhs, const Port& rhs)
     {
@@ -177,6 +178,7 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessComponent :
 
     ~ProcessComponent();
 
+    virtual Process::Node& mainNode() = 0;
 };
 
 template<typename Process_T>

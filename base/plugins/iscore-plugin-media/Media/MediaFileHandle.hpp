@@ -3,11 +3,12 @@
 #include <QAudioDecoder>
 #include <array>
 #include <Media/AudioArray.hpp>
+#include <iscore_plugin_media_export.h>
 namespace Media
 {
 // TODO store them in an application-wide cache to prevent loading / unloading
 // TODO memmap
-struct MediaFileHandle : public QObject
+struct ISCORE_PLUGIN_MEDIA_EXPORT MediaFileHandle : public QObject
 {
   Q_OBJECT
     public:
