@@ -102,7 +102,15 @@ void ObjectItemModel::setupConnections()
 
     m_itemCon.push_back(
           connect(obj, &QObject::destroyed,
-                  this, [=] { m_root.removeOne(obj); cleanConnections(); }));
+                  this, [=] {
+      m_root.removeOne(obj);
+      cleanConnections();
+
+      beginResetModel();
+      endResetModel();
+
+      setupConnections();
+    }));
   }
 }
 
