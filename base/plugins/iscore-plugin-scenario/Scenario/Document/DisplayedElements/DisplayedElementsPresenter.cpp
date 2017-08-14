@@ -229,12 +229,15 @@ void DisplayedElementsPresenter::on_constraintExecutionTimer()
 {
   auto& cst = *m_constraintPresenter;
   auto pp = cst.model().duration.playPercentage();
-  if(cst.on_playPercentageChanged(pp))
+  if(double w = cst.on_playPercentageChanged(pp))
   {
     auto& v = *cst.view();
     const auto r = v.boundingRect();
 
-    v.update(r.x() + v.playWidth() - 1., r.y(), 1., 5.);
+    if(pp != 0)
+      v.update(r.x() + v.playWidth() - w, r.y(), 2. * w, 5.);
+    else
+      v.update();
   }
 }
 }

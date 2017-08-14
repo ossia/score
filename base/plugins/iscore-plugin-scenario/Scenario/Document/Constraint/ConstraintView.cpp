@@ -109,15 +109,16 @@ void ConstraintView::setHeight(double height)
   }
 }
 
-bool ConstraintView::setPlayWidth(double width)
+double ConstraintView::setPlayWidth(double width)
 {
   if(width != m_playWidth)
   {
+    const auto v = std::abs(m_playWidth - width);
     m_playWidth = width;
     updatePlayPaths();
-    return true;
+    return v;
   }
-  return false;
+  return 0.;
 }
 
 void ConstraintView::setValid(bool val)

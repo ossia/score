@@ -109,7 +109,7 @@ void ConstraintPresenter::on_maxDurationChanged(const TimeVal& max)
   updateBraces();
 }
 
-bool ConstraintPresenter::on_playPercentageChanged(double t)
+double ConstraintPresenter::on_playPercentageChanged(double t)
 {
   if (!m_view->infinite())
     return m_view->setPlayWidth(m_view->maxWidth() * t);

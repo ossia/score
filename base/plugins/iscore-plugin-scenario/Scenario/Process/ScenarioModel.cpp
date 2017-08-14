@@ -174,6 +174,10 @@ void ProcessModel::stopExecution()
   {
     constraint.stopExecution();
   }
+  for (EventModel& ev : events)
+  {
+    ev.setStatus(ExecutionStatus::Editing, *this);
+  }
 }
 
 void ProcessModel::reset()
