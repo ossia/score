@@ -53,7 +53,7 @@ public:
   void setMaxWidth(bool infinite, double max);
   void setMinWidth(double min);
   void setHeight(double height);
-  bool setPlayWidth(double width);
+  double setPlayWidth(double width);
   void setValid(bool val);
 
   double height() const
