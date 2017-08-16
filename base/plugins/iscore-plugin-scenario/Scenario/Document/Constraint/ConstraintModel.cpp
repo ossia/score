@@ -6,6 +6,7 @@
 #include <Scenario/Document/Constraint/Slot.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/application/ApplicationContext.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -22,8 +23,91 @@
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/tools/Todo.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
+#include <Dataflow/UI/NodeItem.hpp>
+#include <Dataflow/UI/Slider.hpp>
+#include <Dataflow/DocumentPlugin.hpp>
+#include <Dataflow/DataflowWindow.hpp>
 namespace Scenario
 {
+
+ConstraintNode::ConstraintNode(QObject *parent)
+  : Process::Node{Id<Node>{}, parent}
+{
+  auto& ctx = iscore::IDocument::documentContext(*parent);
+  auto& doc = ctx.model<ScenarioDocumentModel>();
+  qDebug("constraint node created");
+  auto item = new Dataflow::NodeItem{ctx, *this};
+  ui = item;
+  item->setParentItem(doc.window.view.contentItem());
+  item->setPosition(QPointF(300, 300));
+}
+
+QString ConstraintNode::getText() const
+{
+    return tr("Constraint");
+}
+
+std::size_t ConstraintNode::audioInlets() const
+{
+    return 1;
+}
+
+std::size_t ConstraintNode::messageInlets() const
+{
+    return 1;
+}
+
+std::size_t ConstraintNode::midiInlets() const
+{
+    return 1;
+}
+
+std::size_t ConstraintNode::audioOutlets() const
+{
+    return 1;
+}
+
+std::size_t ConstraintNode::messageOutlets() const
+{
+    return 1;
+}
+
+std::size_t ConstraintNode::midiOutlets() const
+{
+    return 1;
+}
+
+std::vector<Process::Port> ConstraintNode::inlets() const
+{
+    std::vector<Process::Port> p(3);
+    p[0].type = Process::PortType::Audio;
+    p[1].type = Process::PortType::Message;
+    p[2].type = Process::PortType::Midi;
+    return p;
+}
+
+std::vector<Process::Port> ConstraintNode::outlets() const
+{
+  std::vector<Process::Port> p(3);
+  p[0].type = Process::PortType::Audio;
+  p[1].type = Process::PortType::Message;
+  p[2].type = Process::PortType::Midi;
+  for(auto& port : p)
+    port.propagate = true;
+  return p;
+}
+
+std::vector<Id<Process::Cable> > ConstraintNode::cables() const
+{ return m_cables; }
+
+void ConstraintNode::addCable(Id<Process::Cable> c)
+{ m_cables.push_back(c); }
+
+void ConstraintNode::removeCable(Id<Process::Cable> c)
+{ m_cables.erase(ossia::find(m_cables, c)); }
+
+
+
 class StateModel;
 class TimeNodeModel;
 ConstraintModel::ConstraintModel(

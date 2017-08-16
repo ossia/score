@@ -3,6 +3,7 @@
 #include <iscore/application/GUIApplicationContext.hpp>
 #include <iscore/command/CommandStackFacade.hpp>
 #include <iscore/selection/FocusManager.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 class IdentifiedObjectAbstract;
 namespace iscore
 {
@@ -25,6 +26,12 @@ struct ISCORE_LIB_BASE_EXPORT DocumentContext
   QTimer& updateTimer;
 
   const std::vector<DocumentPlugin*>& pluginModels() const;
+
+  template<typename T>
+  T& model() const
+  {
+    return IDocument::modelDelegate<T>(document);
+  }
 
   template <typename T>
   T& plugin() const

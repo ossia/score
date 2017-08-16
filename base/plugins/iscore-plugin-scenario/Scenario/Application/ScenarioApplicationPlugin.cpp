@@ -65,6 +65,7 @@
 #include <core/view/View.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
+ISCORE_DECLARE_ACTION(GraphView, "&Graph view", Dataflow, Qt::ALT + Qt::SHIFT + Qt::Key_G)
 namespace Scenario
 {
 void test_parse_expr_full();
@@ -107,6 +108,17 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   ctx.actions.onFocusChange(on_si);
 
   m_objectActions.setupContextMenu(m_layerCtxMenuManager);
+
+  // Dataflow
+  m_showScene = new QAction{this};
+  connect(m_showScene, &QAction::triggered, this, [this] {
+    auto doc = this->currentDocument();
+    if(doc)
+    {
+      auto& plug = doc->context().model<Scenario::ScenarioDocumentModel>();
+      plug.window.window.show();
+    }
+  });
 }
 
 auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
@@ -118,6 +130,13 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
   m_objectActions.makeGUIElements(e);
   m_toolActions.makeGUIElements(e);
   m_transportActions.makeGUIElements(e);
+
+  // Dataflow
+  auto& actions = e.actions;
+  actions.add<Actions::GraphView>(m_showScene);
+
+  iscore::Menu& menu = context.menus.get().at(iscore::Menus::View());
+  menu.menu()->addAction(m_showScene);
 
   return e;
 }
@@ -188,6 +207,15 @@ void ScenarioApplicationPlugin::on_documentChanged(
 
   m_editionSettings.setDefault();
   m_editionSettings.setExecution(false);
+
+
+  if (olddoc)
+  {
+    auto& doc_plugin = olddoc->context().model<Scenario::ScenarioDocumentModel>();
+
+    doc_plugin.window.window.hide();
+  }
+
   if (!newdoc)
   {
     return;
@@ -247,6 +275,21 @@ TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
         focusManager->focusedPresenter());
   }
   return nullptr;
+}
+
+void ScenarioApplicationPlugin::on_initDocument(iscore::Document& doc)
+{
+  doc.model().addPluginModel(new Dataflow::DocumentPlugin{
+                               doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
+}
+
+void ScenarioApplicationPlugin::on_createdDocument(iscore::Document& doc)
+{
+  auto plug = doc.context().findPlugin<Dataflow::DocumentPlugin>();
+  if (plug)
+  {
+    plug->init();
+  }
 }
 
 void ScenarioApplicationPlugin::prepareNewDocument()

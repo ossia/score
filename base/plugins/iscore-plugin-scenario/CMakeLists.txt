@@ -563,8 +563,40 @@ set(SRCS ${SRCS}
 
 )
 
-add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
-iscore_generate_command_list_file(iscore_plugin_scenario "${HDRS}")
+set(DATAFLOW_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/ApplicationPlugin.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DocumentPlugin.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DataflowWindow.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditPort.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.hpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ConstraintNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/AutomationNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/DataflowProcessNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/Slider.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/NodeItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ScenarioNode.hpp"
+)
+
+set(DATAFLOW_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditPort.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/ApplicationPlugin.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DocumentPlugin.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DataflowWindow.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.cpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ConstraintNode.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/AutomationNode.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/DataflowProcessNode.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/Slider.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/NodeItem.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ScenarioNode.cpp"
+
+)
+add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${DATAFLOW_SRCS} ${DATAFLOW_HDRS} ${QRCS})
+iscore_generate_command_list_file(iscore_plugin_scenario "${HDRS}" "${DATAFLOW_HDRS}")
 
 target_link_libraries(iscore_plugin_scenario
   PUBLIC

@@ -227,6 +227,16 @@ set(PHIDGETS_SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsProtocolFactory.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsSpecificSettingsSerialization.cpp"
 )
+
+set(AUDIO_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Audio/AudioDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Dataflow/DataflowClock.hpp"
+)
+set(AUDIO_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Audio/AudioDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Dataflow/DataflowClock.cpp"
+)
+
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 if(OSSIA_PROTOCOL_MIDI)
@@ -249,6 +259,9 @@ endif()
 
 if(OSSIA_PROTOCOL_PHIDGETS)
     target_sources(${PROJECT_NAME} PRIVATE ${PHIDGETS_HDRS} ${PHIDGETS_SRCS})
+endif()
+if(OSSIA_DATAFLOW)
+    target_sources(${PROJECT_NAME} PRIVATE ${AUDIO_HDRS} ${AUDIO_SRCS})
 endif()
 
 target_link_libraries(${PROJECT_NAME}

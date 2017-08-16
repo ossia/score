@@ -43,6 +43,7 @@ class ISCORE_LIB_PROCESS_EXPORT Node
     ossia::node_ptr exec{};
     QObject* ui{};
 
+    Node(Id<Node> c, QString name, QObject* parent);
     Node(Id<Node> c, QObject* parent);
 
     ~Node();

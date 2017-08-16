@@ -30,8 +30,92 @@
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/tools/Todo.hpp>
 
+#include <Dataflow/UI/NodeItem.hpp>
+#include <Dataflow/UI/Slider.hpp>
+#include <Dataflow/DocumentPlugin.hpp>
+#include <Dataflow/DataflowWindow.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
 namespace Scenario
 {
+ScenarioNode::ScenarioNode(
+        QObject *parent)
+  : Process::Node{Id<Node>{}, parent}
+{
+  auto& ctx = iscore::IDocument::documentContext(*parent);
+  auto& doc = ctx.model<Scenario::ScenarioDocumentModel>();
+  auto item = new Dataflow::NodeItem{ctx, *this};
+  ui = item;
+
+  item->setParentItem(doc.window.view.contentItem());
+  item->setPosition(QPointF(200, 200));
+}
+
+QString ScenarioNode::getText() const
+{
+  return tr("Scenario");
+}
+
+std::size_t ScenarioNode::audioInlets() const
+{
+  return 1;
+}
+
+std::size_t ScenarioNode::messageInlets() const
+{
+  return 1;
+}
+
+std::size_t ScenarioNode::midiInlets() const
+{
+  return 1;
+}
+
+std::size_t ScenarioNode::audioOutlets() const
+{
+  return 1;
+}
+
+std::size_t ScenarioNode::messageOutlets() const
+{
+  return 1;
+}
+
+std::size_t ScenarioNode::midiOutlets() const
+{
+  return 1;
+}
+
+std::vector<Process::Port> ScenarioNode::inlets() const
+{
+    std::vector<Process::Port> p(3);
+    p[0].type = Process::PortType::Audio;
+    p[1].type = Process::PortType::Message;
+    p[2].type = Process::PortType::Midi;
+    return p;
+}
+
+std::vector<Process::Port> ScenarioNode::outlets() const
+{
+  std::vector<Process::Port> p(3);
+  p[0].type = Process::PortType::Audio;
+  p[1].type = Process::PortType::Message;
+  p[2].type = Process::PortType::Midi;
+  for(auto& port : p)
+    port.propagate = true;
+  return p;
+}
+
+std::vector<Id<Process::Cable> > ScenarioNode::cables() const
+{ return m_cables; }
+
+void ScenarioNode::addCable(Id<Process::Cable> c)
+{ m_cables.push_back(c); }
+
+void ScenarioNode::removeCable(Id<Process::Cable> c)
+{ m_cables.erase(ossia::find(m_cables, c)); }
+
+
 // RENAMEME and my header too
 ProcessModel::ProcessModel(
     const TimeVal& duration,
