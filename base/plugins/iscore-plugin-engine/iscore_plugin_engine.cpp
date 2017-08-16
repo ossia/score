@@ -52,7 +52,10 @@
 #if defined(OSSIA_PROTOCOL_PHIDGETS)
 #include <Engine/Protocols/Phidgets/PhidgetsProtocolFactory.hpp>
 #endif
-
+#if defined(OSSIA_DATAFLOW)
+#include <Engine/Protocols/Audio/AudioDevice.hpp>
+#include <Engine/Executor/Dataflow/DataflowClock.hpp>
+#endif
 #include <Scenario/iscore_plugin_scenario.hpp>
 #include <iscore_plugin_deviceexplorer.hpp>
 
@@ -115,6 +118,9 @@ iscore_plugin_engine::factories(
 #if defined(OSSIA_PROTOCOL_PHIDGETS)
                  , Network::PhidgetProtocolFactory
 #endif
+#if defined(OSSIA_DATAFLOW)
+                 , Dataflow::AudioProtocolFactory
+#endif
             >,
             FW<Engine::Execution::ProcessComponentFactory,
                  Engine::Execution::ScenarioComponentFactory,
@@ -136,7 +142,10 @@ iscore_plugin_engine::factories(
             >,
             FW<iscore::PanelDelegateFactory,
                  Engine::PanelDelegateFactory>,
-            FW<Engine::Execution::ClockManagerFactory, Engine::Execution::ControlClockFactory>,
+            FW<Engine::Execution::ClockManagerFactory
+              , Engine::Execution::ControlClockFactory
+              , Dataflow::ClockFactory
+            >,
             FW<Curve::SegmentFactory,
                 Curve::SegmentFactory_T<Segment_backIn>,
                 Curve::SegmentFactory_T<Segment_backOut>,

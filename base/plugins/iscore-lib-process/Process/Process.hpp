@@ -27,6 +27,7 @@ class ProcessModelFactory;
 class LayerFactory;
 class ProcessModel;
 class LayerFactory;
+class Node;
 
 /**
  * @brief The Process class
@@ -34,8 +35,8 @@ class LayerFactory;
  * Interface to implement to make a process.
  */
 class ISCORE_LIB_PROCESS_EXPORT ProcessModel
-    : public iscore::Entity<ProcessModel>,
-    public iscore::SerializableInterface<ProcessModel>
+    : public iscore::Entity<ProcessModel>
+    , public iscore::SerializableInterface<ProcessModel>
 {
   Q_OBJECT
 
@@ -85,6 +86,8 @@ public:
   virtual Selection selectableChildren() const;
   virtual Selection selectedChildren() const;
   virtual void setSelection(const Selection& s) const;
+
+  virtual Process::Node* node() const;
 
   double getSlotHeight() const;
   void setSlotHeight(double);

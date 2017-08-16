@@ -31,6 +31,29 @@ class QEvent;
 
 namespace Scenario
 {
+class ScenarioNode : public Process::Node
+{
+public:
+    ScenarioNode(QObject *parent);
+
+    QString getText() const override;
+    std::size_t audioInlets() const override;
+    std::size_t messageInlets() const override;
+    std::size_t midiInlets() const override;
+    std::size_t audioOutlets() const override;
+    std::size_t messageOutlets() const override;
+    std::size_t midiOutlets() const override;
+    std::vector<Process::Port> inlets() const override;
+    std::vector<Process::Port> outlets() const override;
+
+    std::vector<Id<Process::Cable> > cables() const override;
+    void addCable(Id<Process::Cable> c) override;
+    void removeCable(Id<Process::Cable> c) override;
+
+    std::vector<Id<Process::Cable>> m_cables;
+};
+
+
 class ScenarioFactory;
 /**
  * @brief The core hierarchical and temporal process of i-score
@@ -47,6 +70,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
   friend class ScenarioTemporalLayerFactory;
 
 public:
+  ScenarioNode m_node{this};
   ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,

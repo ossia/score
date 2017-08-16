@@ -20,12 +20,39 @@
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/IdentifiedObject.hpp>
 #include <iscore/model/Identifier.hpp>
+#include <Dataflow/DocumentPlugin.hpp>
+#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Dataflow/UI/Slider.hpp>
 class DataStream;
 class JSONObject;
 
 namespace Scenario
 {
 class StateModel;
+
+
+class ConstraintNode : public Process::Node
+{
+public:
+    ConstraintNode(QObject *parent);
+
+    QString getText() const override;
+    std::size_t audioInlets() const override;
+    std::size_t messageInlets() const override;
+    std::size_t midiInlets() const override;
+    std::size_t audioOutlets() const override;
+    std::size_t messageOutlets() const override;
+    std::size_t midiOutlets() const override;
+    std::vector<Process::Port> inlets() const override;
+    std::vector<Process::Port> outlets() const override;
+
+    std::vector<Id<Process::Cable> > cables() const override;
+    void addCable(Id<Process::Cable> c) override;
+    void removeCable(Id<Process::Cable> c) override;
+
+    std::vector<Id<Process::Cable>> m_cables;
+};
+
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
     : public iscore::Entity<ConstraintModel>,
@@ -36,10 +63,12 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintModel final
   ISCORE_SERIALIZE_FRIENDS
   friend struct ConstraintSaveData;
   friend struct SlotPath;
-  Q_PROPERTY(double heightPercentage READ heightPercentage WRITE
-                 setHeightPercentage NOTIFY heightPercentageChanged)
+  Q_PROPERTY(double heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 
 public:
+  ConstraintNode node{this};
+  Dataflow::Slider slider{this};
+
   /** Properties of the class **/
   iscore::EntityMap<Process::ProcessModel> processes;
 
@@ -164,7 +193,6 @@ private:
 
   // Model for the full view.
   // Note : it is also present in m_constraintViewModels.
-
   Rack m_smallView;
   FullRack m_fullView;
 
@@ -178,6 +206,7 @@ private:
   TimeVal m_center{};
   ConstraintExecutionState m_executionState{};
   bool m_smallViewShown{};
+
 
 };
 

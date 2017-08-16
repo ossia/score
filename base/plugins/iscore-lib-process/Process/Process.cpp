@@ -159,6 +159,11 @@ void ProcessModel::setSelection(const Selection& s) const
 {
 }
 
+Node*ProcessModel::node() const
+{
+  return {};
+}
+
 double ProcessModel::getSlotHeight() const
 {
   return m_slotHeight;

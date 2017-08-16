@@ -75,15 +75,19 @@ signals:
   void keyPressed(int);
   void keyReleased(int);
 
-protected:
+private:
   void prepareNewDocument() override;
+  void on_initDocument(iscore::Document& doc) override;
+  void on_createdDocument(iscore::Document& doc) override;
 
   void on_documentChanged(
       iscore::Document* olddoc, iscore::Document* newdoc) override;
 
   void on_activeWindowChanged() override;
 
-private:
+  void on_presenterFocused(Process::LayerPresenter* lm);
+  void on_presenterDefocused(Process::LayerPresenter* lm);
+
   QMetaObject::Connection m_focusConnection, m_defocusConnection,
       m_contextMenuConnection;
   Scenario::EditionSettings m_editionSettings;
@@ -93,8 +97,6 @@ private:
   ObjectMenuActions m_objectActions{this};
   ToolMenuActions m_toolActions{this};
   TransportActions m_transportActions{context};
-
-  void on_presenterFocused(Process::LayerPresenter* lm);
-  void on_presenterDefocused(Process::LayerPresenter* lm);
+  QAction* m_showScene{};
 };
 }

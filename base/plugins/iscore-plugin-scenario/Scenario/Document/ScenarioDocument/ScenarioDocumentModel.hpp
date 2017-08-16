@@ -1,6 +1,9 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
 
+#include <Dataflow/DataflowWindow.hpp>
+#include <Dataflow/UI/NodeItem.hpp>
+#include <Process/Dataflow/DataflowObjects.hpp>
 #include <QPointer>
 #include <core/document/Document.hpp>
 #include <iscore/selection/Selection.hpp>
@@ -22,6 +25,7 @@ class ConstraintModel;
 class FullViewConstraintViewModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final
     : public iscore::DocumentDelegateModel
+    , public Nano::Observer
 {
   Q_OBJECT
   ISCORE_SERIALIZE_FRIENDS
@@ -50,10 +54,17 @@ public:
 
   void serialize(const VisitorVariant&) const override;
 
+  iscore::EntityMap<Process::Cable> cables;
+  Dataflow::DataflowWindow window;
 private:
   void init();
   void initializeNewDocument(const ConstraintModel& viewmodel);
 
+  void on_cableAdded(Process::Cable& c);
+  void on_cableRemoving(const Process::Cable& c);
+
   BaseScenario* m_baseScenario{};
+  IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
+
 };
 }

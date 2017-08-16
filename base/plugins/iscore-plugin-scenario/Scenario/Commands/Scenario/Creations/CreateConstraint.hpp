@@ -9,7 +9,7 @@
 #include <iscore_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
-
+namespace Process { class Cable; }
 namespace Scenario
 {
 class StateModel;
@@ -70,6 +70,8 @@ private:
   Id<StateModel> m_endStateId{};
   double m_startStatePos{-1};
   double m_endStatePos{-1};
+
+  std::vector<Id<Process::Cable>> m_cables;
 };
 }
 }

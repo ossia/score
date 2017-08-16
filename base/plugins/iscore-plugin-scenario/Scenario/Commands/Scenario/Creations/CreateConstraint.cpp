@@ -10,6 +10,7 @@
 #include <QList>
 #include <QVector>
 #include <QtGlobal>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <algorithm>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
@@ -26,6 +27,7 @@
 #include <iscore/model/path/PathSerialization.hpp>
 #include <iscore/model/path/ObjectPath.hpp>
 #include <iscore/model/Identifier.hpp>
+#include <Dataflow/DocumentPlugin.hpp>
 
 namespace Scenario
 {
@@ -48,6 +50,10 @@ CreateConstraint::CreateConstraint(
         m_endStatePos = es->heightPercentage();
 
   m_createdConstraintId = getStrongId(scenar.constraints);
+
+  auto& plug = iscore::IDocument::documentContext(scenar).model<ScenarioDocumentModel>();
+
+  m_cables = getStrongIdRange<Process::Cable>(4, plug.cables);
 }
 
 void CreateConstraint::undo(const iscore::DocumentContext& ctx) const
@@ -78,23 +84,60 @@ void CreateConstraint::redo(const iscore::DocumentContext& ctx) const
       sst.heightPercentage(),
       scenar);
 
-  scenar.constraints.at(m_createdConstraintId)
-      .metadata()
-      .setName(m_createdName);
+  auto& cst = scenar.constraints.at(m_createdConstraintId);
+  cst.metadata().setName(m_createdName);
 
   updateConstraintVerticalPos(est.heightPercentage(), m_createdConstraintId, scenar);
+
+  auto& plug = ctx.model<ScenarioDocumentModel>();
+
+  {
+    // Create a cable from the slider to the scenario
+    auto cable = new Process::Cable{m_cables[0]};
+    cable->setSource(&cst.slider);
+    cable->setSink(&scenar.m_node);
+    cable->setOutlet(0);
+    cable->setInlet(0);
+    plug.cables.add(cable);
+  }
+
+  // Connect constraint to slider and slider to this
+  {
+    auto cable = new Process::Cable{m_cables[1]};
+    cable->setSource(&cst.node);
+    cable->setSink(&cst.slider);
+    cable->setOutlet(0);
+    cable->setInlet(0);
+    plug.cables.add(cable);
+  }
+  { // Messages
+    auto cable = new Process::Cable{m_cables[2]};
+    cable->setSource(&cst.node);
+    cable->setSink(&scenar.m_node);
+    cable->setOutlet(1);
+    cable->setInlet(1);
+    plug.cables.add(cable);
+  }
+  { // MIDI
+    auto cable = new Process::Cable{m_cables[3]};
+    cable->setSource(&cst.node);
+    cable->setSink(&scenar.m_node);
+    cable->setOutlet(2);
+    cable->setInlet(2);
+    plug.cables.add(cable);
+  }
 }
 
 void CreateConstraint::serializeImpl(DataStreamInput& s) const
 {
   s << m_path << m_createdName << m_createdConstraintId << m_startStateId
-    << m_endStateId << m_startStatePos << m_endStatePos;
+    << m_endStateId << m_startStatePos << m_endStatePos << m_cables;
 }
 
 void CreateConstraint::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_createdName >> m_createdConstraintId >> m_startStateId
-      >> m_endStateId >> m_startStatePos >> m_endStatePos;
+    >> m_endStateId >> m_startStatePos >> m_endStatePos >> m_cables;
 }
 }
 }

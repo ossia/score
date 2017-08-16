@@ -151,6 +151,7 @@ auto getStrongIdRange(std::size_t s)
 
   return vec;
 }
+
 template <typename T, typename Vector>
 auto getStrongIdRange(std::size_t s, const Vector& existing)
 {

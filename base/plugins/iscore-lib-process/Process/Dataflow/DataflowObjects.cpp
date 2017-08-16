@@ -143,6 +143,12 @@ Node::Node(Id<Node> c, QObject* parent)
 
 }
 
+Node::Node(Id<Node> c, QString name, QObject* parent)
+  : Entity{std::move(c), std::move(name), parent}
+{
+
+}
+
 Node::~Node()
 {
   if(exec)

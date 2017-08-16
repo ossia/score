@@ -48,6 +48,7 @@
 #include <QApplication>
 #include <core/document/Document.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
+#include <Dataflow/UI/NodeItem.hpp>
 
 namespace Process
 {
@@ -108,10 +109,40 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
 void ScenarioDocumentModel::init()
 {
+  cables.mutable_added.connect<ScenarioDocumentModel, &ScenarioDocumentModel::on_cableAdded>(*this);
+  cables.removing.connect<ScenarioDocumentModel, &ScenarioDocumentModel::on_cableRemoving>(*this);
 }
 
 void ScenarioDocumentModel::initializeNewDocument(
     const ConstraintModel& constraint_model) {
+}
+
+void ScenarioDocumentModel::on_cableAdded(Process::Cable& c)
+{
+  auto source = dynamic_cast<Dataflow::NodeItem*>(c.source()->ui);
+  auto sink = dynamic_cast<Dataflow::NodeItem*>(c.sink()->ui);
+  if(!source || !sink)
+  {
+    qDebug("Unexpected source / sink missing");
+    return;
+  }
+
+  auto ci = new Dataflow::CableItem{c, source, sink};
+  ci->setParentItem(window.view.contentItem());
+  ci->updateRect();
+  ci->update();
+  cableItems.insert(ci);
+}
+
+void ScenarioDocumentModel::on_cableRemoving(const Process::Cable& c)
+{
+  auto& map = cableItems.get();
+  auto it = map.find(c.id());
+  if (it != map.end())
+  {
+    delete *it;
+    map.erase(it);
+  }
 }
 
 ConstraintModel& ScenarioDocumentModel::baseConstraint() const
