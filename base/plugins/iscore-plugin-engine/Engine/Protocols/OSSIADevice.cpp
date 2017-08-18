@@ -15,7 +15,7 @@
 
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/state/state_element.hpp>
-#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/network_logger.hpp>
@@ -407,7 +407,7 @@ void OSSIADevice::setListening(const State::Address& addr, bool b)
     // so that we don't have to go through the tree.
     auto cb_it = m_callbacks.find(addr);
 
-    ossia::net::address_base* ossia_addr{};
+    ossia::net::parameter_base* ossia_addr{};
     if (cb_it == m_callbacks.end())
     {
       auto n = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *dev);
@@ -581,7 +581,7 @@ void OSSIADevice::nodeRenamed(
   emit pathUpdated(currentAddress, as);
 }
 
-void OSSIADevice::addressCreated(const ossia::net::address_base& addr)
+void OSSIADevice::addressCreated(const ossia::net::parameter_base& addr)
 {
   State::Address currentAddress
       = Engine::ossia_to_iscore::ToAddress(addr.get_node());
@@ -608,7 +608,7 @@ void OSSIADevice::addressUpdated(const ossia::net::node_base& node, ossia::strin
   emit pathUpdated(currentAddress, as);
 }
 
-void OSSIADevice::addressRemoved(const ossia::net::address_base& addr)
+void OSSIADevice::addressRemoved(const ossia::net::parameter_base& addr)
 {
   auto address = ossia_to_iscore::ToAddress(addr.get_node());
 

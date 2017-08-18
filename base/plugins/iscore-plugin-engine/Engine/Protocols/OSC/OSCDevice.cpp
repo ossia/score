@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "OSCDevice.hpp"
-#include <ossia/network/generic/generic_address.hpp>
+#include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/osc/osc.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>

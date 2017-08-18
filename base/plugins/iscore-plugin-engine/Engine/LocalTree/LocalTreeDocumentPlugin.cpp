@@ -5,7 +5,7 @@
 #include <ossia/network/local/local.hpp>
 #include <ossia/editor/state/state_element.hpp>
 #include <ossia/editor/value/value.hpp>
-#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/device.hpp>
 
 #include <Automation/AutomationModel.hpp>

@@ -1,5 +1,5 @@
 #pragma once
-#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/node.hpp>
 #include <iscore_plugin_engine_export.h>
 
@@ -11,9 +11,9 @@ class ISCORE_PLUGIN_ENGINE_EXPORT BaseProperty
 {
 public:
   ossia::net::node_base& node;
-  ossia::net::address_base& addr;
+  ossia::net::parameter_base& addr;
 
-  BaseProperty(ossia::net::node_base& n, ossia::net::address_base& a)
+  BaseProperty(ossia::net::node_base& n, ossia::net::parameter_base& a)
       : node{n}, addr{a}
   {
   }

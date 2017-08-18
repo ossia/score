@@ -70,7 +70,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
       typename Property::value_type>;
   PropertyWrapper(
       ossia::net::node_base& param_node,
-      ossia::net::address_base& param_addr,
+      ossia::net::parameter_base& param_addr,
       Property prop,
       QObject* context)
       : BaseCallbackWrapper{param_node, param_addr}, property{prop}
@@ -105,7 +105,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
 template <typename Property>
 auto make_property(
     ossia::net::node_base& node,
-    ossia::net::address_base& addr,
+    ossia::net::parameter_base& addr,
     Property prop,
     QObject* context)
 {

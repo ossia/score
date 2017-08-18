@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "PhidgetsDevice.hpp"
-#include <ossia/network/generic/generic_address.hpp>
+#include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/phidgets/phidgets_protocol.hpp>
 #include <ossia/network/phidgets/phidgets_device.hpp>
