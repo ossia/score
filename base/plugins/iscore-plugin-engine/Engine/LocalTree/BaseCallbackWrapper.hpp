@@ -13,7 +13,7 @@ public:
   {
   }
 
-  ossia::net::address_base::callback_index callbackIt{};
+  ossia::net::parameter_base::callback_index callbackIt{};
 };
 }
 }

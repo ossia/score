@@ -50,7 +50,7 @@ struct GetPropertyWrapper final : public BaseProperty
 
   GetPropertyWrapper(
       ossia::net::node_base& param_node,
-      ossia::net::address_base& param_addr,
+      ossia::net::parameter_base& param_addr,
       GetProperty prop,
       QObject* context)
       : BaseProperty{param_node, param_addr}, property{prop}
@@ -83,7 +83,7 @@ struct GetPropertyWrapper final : public BaseProperty
 template <typename Property>
 auto make_getProperty(
     ossia::net::node_base& node,
-    ossia::net::address_base& addr,
+    ossia::net::parameter_base& addr,
     Property prop,
     QObject* context)
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include <ossia/network/common/address_properties.hpp>
+#include <ossia/network/common/parameter_properties.hpp>
 #include <ossia/network/domain/domain_fwd.hpp>
 #include <ossia/network/base/device.hpp>
 #include <Process/TimeValue.hpp>

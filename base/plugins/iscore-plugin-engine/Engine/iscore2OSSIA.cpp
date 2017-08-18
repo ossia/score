@@ -27,7 +27,7 @@
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <ossia/editor/value/value.hpp>
-#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/domain/domain.hpp>
@@ -214,7 +214,7 @@ public:
 
 void updateOSSIAAddress(
     const Device::FullAddressSettings& settings,
-    ossia::net::address_base& addr)
+    ossia::net::parameter_base& addr)
 {
   ISCORE_ASSERT(settings.ioType);
   addr.set_access(*settings.ioType);
@@ -302,7 +302,7 @@ void updateOSSIAValue(const ossia::value& iscore_data, ossia::value& val)
   return ossia::apply_nonnull(visitor, val.v);
 }
 
-ossia::net::address_base* address(
+ossia::net::parameter_base* address(
     const State::Address& addr,
     const Device::DeviceList& deviceList)
 {
@@ -574,7 +574,7 @@ trigger_expression(const State::Expression& e, const Device::DeviceList& list)
   return expression(e, list, def_trig{});
 }
 
-ossia::net::address_base*
+ossia::net::parameter_base*
 findAddress(const Device::DeviceList& devs, const State::Address& addr)
 {
   auto dev_p = dynamic_cast<Engine::Network::OSSIADevice*>(

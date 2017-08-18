@@ -9,7 +9,7 @@
 
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <ossia/editor/value/value.hpp>
-#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/base/node_attributes.hpp>
