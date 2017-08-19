@@ -9,6 +9,7 @@ With i-score you can sequence OSC, MIDI, etc. parameters between multiple softwa
 #### Download the [latest release here](https://github.com/OSSIA/i-score/releases/) and read the Releases section in this README.
 
 ![i-score screenshot](/Documentation/iscore.png?raw=true)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FOSSIA%2Fi-score.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FOSSIA%2Fi-score?ref=badge_shield)
 
 ## Releases
 
@@ -47,3 +48,7 @@ There are also many fixable areas in the code :
 
 Finally, one can write its own i-score plug-ins to add custom features to the software.
 An example plug-in with the most common classes reimplemented is provided [here](https://github.com/OSSIA/iscore-addon-tutorial).
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FOSSIA%2Fi-score.svg?type=large)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FOSSIA%2Fi-score?ref=badge_large)
