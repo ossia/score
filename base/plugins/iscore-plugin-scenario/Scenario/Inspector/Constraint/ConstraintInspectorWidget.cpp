@@ -1,68 +1,29 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Inspector/InspectorWidgetList.hpp>
-#include <Process/Process.hpp>
-#include <QBoxLayout>
-#include <QCheckBox>
-#include <QColor>
-#include <QFormLayout>
-#include <QLabel>
-#include <QObject>
-#include <QPointer>
-#include <QPushButton>
-#include <QSlider>
-#include <QTabWidget>
-#include <QToolButton>
-#include <QWidget>
-#include <QtGlobal>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/std/Optional.hpp>
-#include <iscore/widgets/Separator.hpp>
-#include <iscore/widgets/TextLabel.hpp>
-#include <utility>
 
 #include "ConstraintInspectorWidget.hpp"
-#include "Widgets/DurationSectionWidget.hpp"
-#include <Inspector/InspectorSectionWidget.hpp>
-#include <Inspector/InspectorWidgetBase.hpp>
-#include <Process/TimeValue.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Inspector/Constraint/Widgets/ProcessTabWidget.hpp>
-#include <iscore/application/ApplicationContext.hpp>
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Inspector/SelectionButton.hpp>
+#include <Scenario/Inspector/Constraint/Widgets/DurationSectionWidget.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <iscore/document/DocumentContext.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/model/EntityMap.hpp>
-#include <iscore/model/IdentifiedObject.hpp>
-#include <iscore/model/path/Path.hpp>
-#include <iscore/model/path/PathSerialization.hpp>
-#include <iscore/tools/Todo.hpp>
+#include <iscore/widgets/Separator.hpp>
+#include <iscore/widgets/TextLabel.hpp>
 #include <iscore/widgets/MarginLess.hpp>
-#include <iscore/widgets/SpinBoxes.hpp>
 
 namespace Scenario
 {
 ConstraintInspectorWidget::ConstraintInspectorWidget(
     const Inspector::InspectorWidgetList& widg,
-    const Process::ProcessFactoryList& pl,
     const ConstraintModel& object,
-    std::unique_ptr<ConstraintInspectorDelegate>
-        del,
+    std::unique_ptr<ConstraintInspectorDelegate> del,
     const iscore::DocumentContext& ctx,
     QWidget* parent)
     : InspectorWidgetBase{object, ctx, parent}
     , m_widgetList{widg}
-    , m_processList{pl}
     , m_model{object}
     , m_delegate{std::move(del)}
 {
@@ -188,27 +149,6 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
       = new DurationWidget{ctrl.editionSettings(), *m_delegate, this};
   m_properties.push_back(m_durationSection);
 
-  // Separator
-  m_properties.push_back(new iscore::HSeparator{this});
-
-  // Processes
-  m_processesTabPage = new ProcessTabWidget{*this, this};
-  m_properties.push_back(m_processesTabPage);
-
-  // Constraint interface
-  model()
-      .processes.added
-      .connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_processCreated>(
-          this);
-  model()
-      .processes.removed
-      .connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_processRemoved>(
-          this);
-  model()
-      .processes.orderChanged
-      .connect<ConstraintInspectorWidget, &ConstraintInspectorWidget::on_orderChanged>(
-          this);
-
   updateDisplayedValues();
 
   m_delegate->addWidgets_post(m_properties, this);
@@ -230,45 +170,7 @@ QString ConstraintInspectorWidget::tabName()
 }
 void ConstraintInspectorWidget::updateDisplayedValues()
 {
-  // Cleanup the widgets
-  m_processesTabPage->updateDisplayedValues();
-
   m_delegate->updateElements();
-}
-
-void ConstraintInspectorWidget::on_processCreated(const Process::ProcessModel&)
-{
-  // OPTIMIZEME
-  // Note: this is put in the event loop because when creating a process,
-  // this signal is emitted before the process could be put as the front layer.
-  // hence the incorrect process is expanded.
-  // TODO we should also update when a new process is displayed in a new slot...
-
-    QPointer<ConstraintInspectorWidget> w = this;
-    QTimer::singleShot(0, [w] {
-        if(w && w->m_processesTabPage)
-            w->m_processesTabPage->updateDisplayedValues();
-    });
-}
-
-void ConstraintInspectorWidget::on_processRemoved(const Process::ProcessModel&)
-{
-  // OPTIMIZEME
-    QPointer<ConstraintInspectorWidget> w = this;
-    QTimer::singleShot(0, [w] {
-        if(w && w->m_processesTabPage)
-            w->m_processesTabPage->updateDisplayedValues();
-    });
-}
-
-void ConstraintInspectorWidget::on_orderChanged()
-{
-  // OPTIMIZEME
-    QPointer<ConstraintInspectorWidget> w = this;
-    QTimer::singleShot(0, [w] {
-        if(w && w->m_processesTabPage)
-            w->m_processesTabPage->updateDisplayedValues();
-    });
 }
 
 }
