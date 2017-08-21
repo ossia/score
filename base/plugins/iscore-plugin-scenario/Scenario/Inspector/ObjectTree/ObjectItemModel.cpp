@@ -209,7 +209,7 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
   {
     auto state = static_cast<Scenario::StateModel*>(stp->parent());
     Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
-    auto& ev = Scenario::parentEvent(*st, scenar);
+    auto& ev = Scenario::parentEvent(*state, scenar);
     auto it = ossia::find(ev.states(), state->id());
     ISCORE_ASSERT(it != ev.states().end());
     auto idx = std::distance(ev.states().begin(), it);
