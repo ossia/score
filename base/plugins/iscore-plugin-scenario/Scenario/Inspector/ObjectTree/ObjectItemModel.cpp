@@ -273,7 +273,7 @@ int ObjectItemModel::rowCount(const QModelIndex& parent) const
 
 int ObjectItemModel::columnCount(const QModelIndex& parent) const
 {
-  return 2;
+  return 1;
 }
 
 QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
@@ -332,15 +332,31 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
         static const QIcon icon(":/images/constraint.svg");
         return icon;
       }
-      else if(dynamic_cast<Scenario::EventModel*>(sel))
+      else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
       {
-        static const QIcon icon(":/images/cond.svg");
-        return icon;
+        if(ev->condition() == State::Expression{})
+        {
+          static const QIcon icon(":/images/event.svg");
+          return icon;
+        }
+        else
+        {
+          static const QIcon icon(":/images/cond.svg");
+          return icon;
+        }
       }
-      else if(dynamic_cast<Scenario::TimeNodeModel*>(sel))
+      else if(auto tn = dynamic_cast<Scenario::TimeNodeModel*>(sel))
       {
-        static const QIcon icon(":/images/trigger.svg");
-        return icon;
+        if(!tn->active())
+        {
+          static const QIcon icon(":/images/timenode.svg");
+          return icon;
+        }
+        else
+        {
+          static const QIcon icon(":/images/trigger.svg");
+          return icon;
+        }
       }
       else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
       {
@@ -366,10 +382,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
         return icon;
       }
     }
-  }
-  else if(index.column() == 1)
-  {
-    if(role == Qt::DisplayRole)
+    else if(role == Qt::ToolTipRole)
     {
       if(auto cst = dynamic_cast<Scenario::ConstraintModel*>(sel))
       {
