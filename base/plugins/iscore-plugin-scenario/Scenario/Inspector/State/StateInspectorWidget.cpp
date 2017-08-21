@@ -124,7 +124,7 @@ void StateInspectorWidget::updateDisplayedValues()
   }
 
   {
-      auto splitNode = new QPushButton{tr("Put in new Timenode"), this};
+      auto splitNode = new QPushButton{tr("Desynchronize"), this};
       connect(splitNode, &QPushButton::clicked,
               this, &StateInspectorWidget::splitFromNode);
       m_properties.push_back(splitNode);

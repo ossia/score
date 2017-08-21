@@ -27,8 +27,6 @@ QWidget* ConstraintInspectorFactory::make(
   auto& appContext = doc.app;
   auto& widgetFact
       = appContext.interfaces<Inspector::InspectorWidgetList>();
-  auto& processFact
-      = appContext.interfaces<Process::ProcessFactoryList>();
   auto& constraintWidgetFactory
       = appContext
             .interfaces<ConstraintInspectorDelegateFactoryList>();
@@ -39,7 +37,7 @@ QWidget* ConstraintInspectorFactory::make(
       = static_cast<const ConstraintModel&>(*sourceElements.first());
 
   return new ConstraintInspectorWidget{
-      widgetFact, processFact, constraint,
+      widgetFact, constraint,
       constraintWidgetFactory.make(
           &ConstraintInspectorDelegateFactory::make, constraint),
       doc, parent};
