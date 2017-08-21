@@ -26,7 +26,7 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node)
 {
   Device::AddressSettings s;
 
-  const auto& addr = node.get_address();
+  const auto& addr = node.get_parameter();
 
   if (addr)
   {

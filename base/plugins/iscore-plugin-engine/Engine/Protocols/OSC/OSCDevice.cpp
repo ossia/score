@@ -74,7 +74,7 @@ void OSCDevice::setLearning(bool b)
         (OSSIADevice*)this);
     dev.on_node_renamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(
         (OSSIADevice*)this);
-    dev.on_address_created.connect<OSSIADevice, &OSSIADevice::addressCreated>(
+    dev.on_parameter_created.connect<OSSIADevice, &OSSIADevice::addressCreated>(
         (OSSIADevice*)this);
     dev.on_attribute_modified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
         (OSSIADevice*)this);
@@ -87,7 +87,7 @@ void OSCDevice::setLearning(bool b)
         (OSSIADevice*)this);
     dev.on_node_renamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(
         (OSSIADevice*)this);
-    dev.on_address_created.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
+    dev.on_parameter_created.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
         (OSSIADevice*)this);
     dev.on_attribute_modified
         .disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(

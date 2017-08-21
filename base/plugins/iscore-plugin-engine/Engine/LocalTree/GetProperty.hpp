@@ -104,7 +104,7 @@ auto add_getProperty(
   auto node = n.create_child(name);
   ISCORE_ASSERT(node);
 
-  auto addr = node->create_address(t);
+  auto addr = node->create_parameter(t);
   ISCORE_ASSERT(addr);
 
   addr->set_access(ossia::access_mode::GET);

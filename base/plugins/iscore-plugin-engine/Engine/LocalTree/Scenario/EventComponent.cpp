@@ -18,7 +18,7 @@ Event::Event(
                       id,     "EventComponent", parent_comp}
 {
   auto exp_n = node().create_child("expression");
-  auto exp_a = exp_n->create_address(ossia::val_type::STRING);
+  auto exp_a = exp_n->create_parameter(ossia::val_type::STRING);
   exp_a->set_access(ossia::access_mode::BI);
 
   exp_a->add_callback([&](const ossia::value& v) {
