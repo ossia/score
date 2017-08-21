@@ -102,7 +102,7 @@ void OSSIADevice::addAddress(const Device::FullAddressSettings& settings)
           settings.address.path, *dev);
     ISCORE_ASSERT(node);
 
-    // Populate the node with an address (if it isn't a no_value_t).
+    // Populate the node with a parameter (if it isn't a no_value_t).
     Engine::iscore_to_ossia::createOSSIAAddress(settings, *node);
   }
 }
@@ -123,11 +123,11 @@ void OSSIADevice::updateAddress(
 
     if (!settings.value.valid())
     {
-      node->remove_address();
+      node->remove_parameter();
     }
     else
     {
-      auto currentAddr = node->get_address();
+      auto currentAddr = node->get_parameter();
       if (currentAddr)
         Engine::iscore_to_ossia::updateOSSIAAddress(settings, *currentAddr);
       else
@@ -226,9 +226,9 @@ void OSSIADevice::enableCallbacks()
       dev->on_node_created.connect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
       dev->on_node_removing.connect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
       dev->on_node_renamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
-      dev->on_address_created.connect<OSSIADevice, &OSSIADevice::addressCreated>(
+      dev->on_parameter_created.connect<OSSIADevice, &OSSIADevice::addressCreated>(
             this);
-      dev->on_address_removing.connect<OSSIADevice, &OSSIADevice::addressRemoved>(
+      dev->on_parameter_removing.connect<OSSIADevice, &OSSIADevice::addressRemoved>(
             this);
       dev->on_attribute_modified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
             this);
@@ -247,9 +247,9 @@ void OSSIADevice::disableCallbacks()
       dev->on_node_created.disconnect<OSSIADevice, &OSSIADevice::nodeCreated>(this);
       dev->on_node_removing.disconnect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
       dev->on_node_renamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(this);
-      dev->on_address_created.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
+      dev->on_parameter_created.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
             this);
-      dev->on_address_removing.disconnect<OSSIADevice, &OSSIADevice::addressRemoved>(
+      dev->on_parameter_removing.disconnect<OSSIADevice, &OSSIADevice::addressRemoved>(
             this);
       dev->on_attribute_modified.disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
             this);
@@ -345,7 +345,7 @@ optional<ossia::value> OSSIADevice::refresh(const State::Address& address)
     auto node = Engine::iscore_to_ossia::findNodeFromPath(address.path, *dev);
     if (node)
     {
-      if (auto addr = node->get_address())
+      if (auto addr = node->get_parameter())
       {
         return addr->fetch_value();
       }
@@ -362,7 +362,7 @@ void OSSIADevice::request(const Device::Node& address)
     auto node = Engine::iscore_to_ossia::findNodeFromPath(address, *dev);
     if (node)
     {
-      if (auto addr = node->get_address())
+      if (auto addr = node->get_parameter())
       {
         addr->request_value();
       }
@@ -414,7 +414,7 @@ void OSSIADevice::setListening(const State::Address& addr, bool b)
       if (!n)
         return;
 
-      ossia_addr = n->get_address();
+      ossia_addr = n->get_parameter();
       if (!ossia_addr)
         return;
     }
@@ -494,7 +494,7 @@ void OSSIADevice::sendMessage(const State::Message& mess)
       auto node = Engine::iscore_to_ossia::getNodeFromPath(
             mess.address.address.path, *dev);
 
-      auto addr = node->get_address();
+      auto addr = node->get_parameter();
       if (addr)
       {
         addr->push_value(mess.value);

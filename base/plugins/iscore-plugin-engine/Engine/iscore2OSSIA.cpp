@@ -241,7 +241,7 @@ void createOSSIAAddress(
   if (!settings.value.v)
     return;
 
-  auto addr = node.create_address(
+  auto addr = node.create_parameter(
         ossia::apply(ossia_type_visitor{}, settings.value.v));
   if (addr)
     updateOSSIAAddress(settings, *addr);
@@ -326,7 +326,7 @@ ossia::net::parameter_base* address(
                 *ossia_dev);
 
           if (ossia_node)
-            return ossia_node->get_address();
+            return ossia_node->get_parameter();
         }
       }
     }
@@ -422,7 +422,7 @@ static ossia::Destination expressionAddress(
     auto n = findNodeFromPath(addr.path, *dev);
     if (n)
     {
-      auto ossia_addr = n->get_address();
+      auto ossia_addr = n->get_parameter();
       if (ossia_addr)
         return ossia::Destination(*ossia_addr);
       else
@@ -587,7 +587,7 @@ findAddress(const Device::DeviceList& devs, const State::Address& addr)
       auto node
           = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
       if (node)
-        return node->get_address();
+        return node->get_parameter();
     }
   }
   return {};

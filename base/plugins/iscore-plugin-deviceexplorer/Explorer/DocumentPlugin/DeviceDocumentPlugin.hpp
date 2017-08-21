@@ -58,7 +58,7 @@ public:
     return m_list;
   }
 
-  // TODO make functions that take an address and call
+  // TODO make functions that take a parameter and call
   // list().device(...).TheRelevantMethod
 
   Device::Node createDeviceFromNode(const Device::Node&);

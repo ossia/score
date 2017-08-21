@@ -334,7 +334,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
   {
     auto local_play_node = root.create_child("play");
     auto local_play_address
-        = local_play_node->create_address(ossia::val_type::BOOL);
+        = local_play_node->create_parameter(ossia::val_type::BOOL);
     local_play_address->set_value(bool{false});
     local_play_address->set_access(ossia::access_mode::SET);
     local_play_address->add_callback([&](const ossia::value& v) {
@@ -365,7 +365,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
   {
     auto local_stop_node = root.create_child("stop");
     auto local_stop_address
-        = local_stop_node->create_address(ossia::val_type::IMPULSE);
+        = local_stop_node->create_parameter(ossia::val_type::IMPULSE);
     local_stop_address->set_value(ossia::impulse{});
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {

@@ -36,17 +36,17 @@ class MockDevice : public DeviceInterface
 
         void addAddress(const iscore::FullAddressSettings& addr) override
         {
-            m_addresses.insert({addr.address, addr});
+            m_parameters.insert({addr.address, addr});
         }
 
         void updateAddress(const iscore::FullAddressSettings& addr) override
         {
-            m_addresses.insert({addr.address, addr});
+            m_parameters.insert({addr.address, addr});
         }
 
         void removeNode(const iscore::Address& addr) override
         {
-            m_addresses.erase(addr);
+            m_parameters.erase(addr);
         }
 
         void sendMessage(iscore::Message mess) override
@@ -58,7 +58,7 @@ class MockDevice : public DeviceInterface
             return false;
         }
 
-        std::unordered_map<iscore::Address, iscore::FullAddressSettings> m_addresses;
+        std::unordered_map<iscore::Address, iscore::FullAddressSettings> m_parameters;
 };
 
 class MockDeviceSettings : public ProtocolSettingsWidget
