@@ -25,15 +25,17 @@ namespace InspectorPanel
 InspectorPanelWidget::InspectorPanelWidget(
     const Inspector::InspectorWidgetList& list,
     iscore::SelectionStack& s,
-    QWidget* parent)
-    : QWidget{parent}
-    , m_layout{new iscore::MarginLess<QVBoxLayout>{this}}
+    QVBoxLayout* lay,
+    QWidget* parent,
+    QObject* parentObj)
+    : QObject{parentObj}
+    , m_parent{parent}
+    , m_layout{lay}
     , m_list{list}
     , m_selectionDispatcher{s}
 {
   m_layout->setContentsMargins(0, 0, 0, 0);
   m_layout->setSpacing(0);
-  setMinimumWidth(250);
 }
 
 void InspectorPanelWidget::newItemsInspected(const Selection& objects)
@@ -57,7 +59,7 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
   {
     auto& doc = iscore::IDocument::documentContext(*selectedObj.first());
 
-    auto widgets = m_list.make(doc, selectedObj, this);
+    auto widgets = m_list.make(doc, selectedObj, m_parent);
     if(!widgets.empty())
     {
       m_layout->addWidget(widgets.first());
@@ -65,7 +67,7 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
     }
     else
     {
-      m_currentInspector = new Inspector::InspectorWidgetBase{*selectedObj.first(), doc, this};
+      m_currentInspector = new Inspector::InspectorWidgetBase{*selectedObj.first(), doc, m_parent};
       m_layout->addWidget(m_currentInspector);
     }
   }

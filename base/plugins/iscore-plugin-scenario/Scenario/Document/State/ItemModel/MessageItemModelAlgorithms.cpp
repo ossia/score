@@ -31,6 +31,9 @@ static QStringList toStringList(const State::AddressAccessor& addr)
   return l;
 }
 }
+
+namespace Scenario
+{
 static bool removable(const Process::MessageNode& node)
 {
   return node.values.empty() && !node.hasChildren();
@@ -585,4 +588,33 @@ void removeAllUserMessages(Process::MessageNode& rootNode)
   }
 
   cleanupNode(rootNode);
+}
+
+int countNodes(Process::MessageNode& rootNode)
+{
+  int n = 0;
+  for(auto& child: rootNode)
+    n += 1 + countNodes(child);
+  return n;
+}
+
+static Process::MessageNode* rec_getNthChild(Process::MessageNode& rootNode, int& n)
+{
+
+  for(auto& child: rootNode)
+  {
+    if(--n == 0)
+      return &child;
+
+    if(auto ptr = rec_getNthChild(child, n))
+      return ptr;
+  }
+  return nullptr;
+}
+
+Process::MessageNode* getNthChild(Process::MessageNode& rootNode, int n)
+{
+  return rec_getNthChild(rootNode, n);
+}
+
 }

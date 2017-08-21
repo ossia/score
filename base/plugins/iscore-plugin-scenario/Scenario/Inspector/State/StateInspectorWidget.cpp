@@ -1,45 +1,30 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "StateInspectorWidget.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
+#include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/StateProcess.hpp>
 #include <Process/StateProcessFactoryList.hpp>
-#include <QFormLayout>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QObject>
-#include <QPushButton>
-#include <QString>
-#include <QVector>
-#include <QWidget>
-#include <QtAlgorithms>
-#include <QApplication>
-#include <QTimer>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <Scenario/Commands/Event/SplitEvent.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Scenario/DialogWidget/MessageTreeView.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Commands/TimeNode/SplitTimeNode.hpp>
+#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Scenario/Inspector/SelectionButton.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/widgets/Separator.hpp>
 #include <iscore/widgets/TextLabel.hpp>
-#include <Scenario/Commands/TimeNode/SplitTimeNode.hpp>
-
-#include <QMenu>
-#include <algorithm>
-
-#include "StateInspectorWidget.hpp"
-#include <Inspector/InspectorWidgetBase.hpp>
-#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
-#include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
-#include <QSizePolicy>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <iscore/document/DocumentContext.hpp>
@@ -47,8 +32,107 @@
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/path/Path.hpp>
 #include <iscore/model/Identifier.hpp>
+#include <QAbstractProxyModel>
+#include <QTableView>
+#include <QMenu>
+#include <QFormLayout>
+#include <QHeaderView>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QObject>
+#include <QSizePolicy>
+#include <QPushButton>
+#include <QString>
+#include <QVector>
+#include <QWidget>
+#include <QtAlgorithms>
+#include <QApplication>
+#include <QTimer>
+#include <algorithm>
 namespace Scenario
 {
+class MessageListProxy final : public QAbstractProxyModel
+{
+
+public:
+  MessageItemModel& source() const { return static_cast<MessageItemModel&>(*sourceModel()); }
+  QModelIndex index(int row, int column, const QModelIndex& parent) const override
+  {
+    if (row >= (int)rowCount({}) || row < 0)
+      return {};
+
+    if (column >= 2 || column < 0)
+      return {};
+
+    if(auto obj = getNthChild(source().rootNode(), row))
+      return createIndex(row, column, obj);
+
+    return {};
+  }
+
+  QModelIndex parent(const QModelIndex& child) const override
+  {
+    return {};
+  }
+
+  QVariant data(const QModelIndex &proxyIndex, int role = Qt::DisplayRole) const override
+  {
+    auto ptr = proxyIndex.internalPointer();
+    if(!ptr)
+      return {};
+    Process::MessageNode& msg = *static_cast<Process::MessageNode*>(ptr);
+
+    if(proxyIndex.column() == 0)
+    {
+      if(role == Qt::DisplayRole)
+      {
+        return Process::address(msg).toString();
+      }
+    }
+    else if(proxyIndex.column() == 1)
+    {
+      auto val = msg.value();
+      if(val)
+      {
+        return valueColumnData(msg, role);
+      }
+    }
+    return {};
+  }
+  int rowCount(const QModelIndex& parent) const override
+  {
+    if(parent == QModelIndex())
+    {
+      return countNodes(source().rootNode());
+    }
+    return 0;
+  }
+  int columnCount(const QModelIndex& parent) const override
+  {
+    return 2;
+  }
+  QModelIndex mapToSource(const QModelIndex& proxyIndex) const override
+  {
+    return {};
+  }
+  QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override
+  {
+    return {};
+  }
+
+  QVariant headerData(int section, Qt::Orientation orientation, int role) const override
+  {
+    if(orientation == Qt::Vertical)
+      return {};
+
+    if(role == Qt::DisplayRole)
+      return (section == 0) ? tr("Address") : tr("Value");
+    else
+      return QAbstractProxyModel::headerData(section, orientation, role);
+  }
+};
+
 StateInspectorWidget::StateInspectorWidget(
     const StateModel& object,
     const iscore::DocumentContext& doc,
@@ -130,8 +214,40 @@ void StateInspectorWidget::updateDisplayedValues()
       m_properties.push_back(splitNode);
   }
   {
+      auto tab = new QTabWidget;
+
+      // list view
+
+      auto lv = new QTableView{this};
+      lv->verticalHeader()->hide();
+      lv->horizontalHeader()->setCascadingSectionResizes(true);
+      lv->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+      lv->horizontalHeader()->setStretchLastSection(true);
+      lv->setAlternatingRowColors(true);
+      lv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+      lv->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+      lv->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+
+      auto proxy = new MessageListProxy{};
+      proxy->setSourceModel(&m_model.messages());
+      lv->setModel(proxy);
+
+      // tree view
       auto tv = new MessageTreeView{m_model, this};
-      m_properties.push_back(tv);
+      tv->header()->setCascadingSectionResizes(true);
+      tv->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+      tv->header()->setStretchLastSection(true);
+      tv->setAlternatingRowColors(true);
+      tv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+      tv->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+      tv->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+
+      tab->addTab(tv, tr("Tree"));
+      tab->addTab(lv, tr("List"));
+
+      tab->setDocumentMode(true);
+
+      m_properties.push_back(tab);
   }
 
   // State processes

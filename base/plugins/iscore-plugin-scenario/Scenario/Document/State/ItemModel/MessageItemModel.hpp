@@ -106,6 +106,10 @@ private:
 
   const iscore::CommandStackFacade& m_stack;
 };
+
+QVariant
+valueColumnData(const MessageItemModel::node_type& node, int role);
+
 }
 
 DEFAULT_MODEL_METADATA(Scenario::MessageItemModel, "Message item model")

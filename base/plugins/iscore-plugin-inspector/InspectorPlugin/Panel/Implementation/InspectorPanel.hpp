@@ -34,7 +34,7 @@ namespace InspectorPanel
  */
 
 // TODO rename file
-class InspectorPanelWidget final : public QWidget
+class InspectorPanelWidget final : public QObject
 {
   Q_OBJECT
 
@@ -42,7 +42,9 @@ public:
   explicit InspectorPanelWidget(
       const Inspector::InspectorWidgetList& list,
       iscore::SelectionStack& s,
-      QWidget* parent);
+      QVBoxLayout* lay,
+      QWidget* parent,
+      QObject* parentObj);
 
 public slots:
   /*!
@@ -54,6 +56,7 @@ public slots:
   void newItemsInspected(const Selection&);
 
 private:
+  QWidget* m_parent{};
   QVBoxLayout* m_layout{};
   QWidget* m_curWidget{};
 

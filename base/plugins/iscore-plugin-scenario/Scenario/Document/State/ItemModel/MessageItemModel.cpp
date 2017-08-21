@@ -81,7 +81,7 @@ nameColumnData(const MessageItemModel::node_type& node, int role)
   return {};
 }
 
-static QVariant
+QVariant
 valueColumnData(const MessageItemModel::node_type& node, int role)
 {
   if (role == Qt::DisplayRole || role == Qt::EditRole)
