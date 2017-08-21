@@ -9,6 +9,7 @@
 #include <QVBoxLayout>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/ClearLayout.hpp>
 
 namespace InspectorPanel
 {
@@ -39,26 +40,19 @@ void PanelDelegate::on_modelChanged(
     iscore::MaybeDocument oldm, iscore::MaybeDocument newm)
 {
   using namespace iscore;
-  delete m_stack;
-  m_stack = nullptr;
   delete m_inspectorPanel;
   m_inspectorPanel = nullptr;
+
+  auto lay = static_cast<iscore::MarginLess<QVBoxLayout>*>(m_widget->layout());
+  iscore::clearLayout(lay);
   if (newm)
   {
-    auto lay = static_cast<iscore::MarginLess<QVBoxLayout>*>(m_widget->layout());
+    SelectionStack& stack = newm->selectionStack;
 
     auto& fact
         = newm->app.interfaces<Inspector::InspectorWidgetList>();
-    SelectionStack& stack = newm->selectionStack;
-    m_stack = new SelectionStackWidget{stack, m_widget};
-    m_inspectorPanel = new InspectorPanelWidget{fact, stack, m_widget};
-
-
-    m_inspectorPanel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
-    lay->addWidget(m_stack);
-    lay->addWidget(m_inspectorPanel);
-
-    setNewSelection(stack.currentSelection());
+    m_inspectorPanel = new InspectorPanelWidget{fact, stack, lay, m_widget, m_widget};
+    m_widget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
   }
 }
 

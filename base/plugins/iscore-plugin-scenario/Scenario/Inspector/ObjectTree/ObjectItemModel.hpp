@@ -1,16 +1,18 @@
 #pragma once
-#include <QAbstractItemModel>
-#include <QFile>
-#include <QTreeView>
-#include <QVBoxLayout>
-#include <QHeaderView>
-
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/plugins/panel/PanelDelegate.hpp>
 #include <iscore/plugins/panel/PanelDelegateFactory.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/widgets/MarginLess.hpp>
+
+#include <QAbstractItemModel>
+#include <QFile>
+#include <QTreeView>
+#include <QVBoxLayout>
+#include <QHeaderView>
+
+class QToolButton;
 namespace Scenario
 {
 // Timenode / event / state / state processes
@@ -113,6 +115,17 @@ class SizePolicyWidget final : public QWidget
     QSize m_sizePolicy;
 };
 
+class SelectionStackWidget final : public QWidget
+{
+public:
+  SelectionStackWidget(iscore::SelectionStack& s, QWidget* parent);
+
+private:
+  QToolButton* m_prev{};
+  QToolButton* m_next{};
+  iscore::SelectionStack& m_stack;
+};
+
 class ObjectPanelDelegate final : public iscore::PanelDelegate
 {
 public:
@@ -128,6 +141,7 @@ private:
 
   SizePolicyWidget* m_widget{};
   QVBoxLayout* m_lay{};
+  SelectionStackWidget* m_stack{};
   ObjectWidget* m_objects{};
 };
 

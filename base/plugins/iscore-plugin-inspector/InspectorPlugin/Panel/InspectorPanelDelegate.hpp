@@ -21,7 +21,6 @@ private:
   void setNewSelection(const Selection& s) override;
 
   QWidget* m_widget{};
-  SelectionStackWidget* m_stack{};
   InspectorPanelWidget* m_inspectorPanel{};
 };
 }

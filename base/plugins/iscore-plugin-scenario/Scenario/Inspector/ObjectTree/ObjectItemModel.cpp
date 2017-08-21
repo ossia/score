@@ -10,6 +10,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <QToolButton>
 namespace Scenario
 {
 
@@ -422,7 +423,33 @@ Qt::ItemFlags ObjectItemModel::flags(const QModelIndex& index) const
   return f;
 }
 
+SelectionStackWidget::SelectionStackWidget(
+    iscore::SelectionStack& s, QWidget* parent)
+    : QWidget{parent}, m_stack{s}
+{
+  m_prev = new QToolButton{this};
+  m_prev->setArrowType(Qt::LeftArrow);
+  m_prev->setEnabled(m_stack.canUnselect());
 
+  m_next = new QToolButton{this};
+  m_next->setArrowType(Qt::RightArrow);
+  m_next->setEnabled(m_stack.canReselect());
+
+  auto lay = new iscore::MarginLess<QHBoxLayout>{this};
+  lay->setSizeConstraint(QLayout::SetMinimumSize);
+  lay->addWidget(m_prev);
+  lay->addWidget(m_next);
+  setLayout(lay);
+
+  connect(m_prev, &QToolButton::pressed, [&]() { m_stack.unselect(); });
+  connect(m_next, &QToolButton::pressed, [&]() { m_stack.reselect(); });
+
+  con(m_stack, &iscore::SelectionStack::currentSelectionChanged, this,
+      [=] {
+    m_prev->setEnabled(m_stack.canUnselect());
+    m_next->setEnabled(m_stack.canReselect());
+  });
+}
 
 ObjectPanelDelegate::ObjectPanelDelegate(const iscore::GUIApplicationContext &ctx)
   : iscore::PanelDelegate{ctx}
@@ -453,14 +480,22 @@ void ObjectPanelDelegate::on_modelChanged(iscore::MaybeDocument oldm, iscore::Ma
   using namespace iscore;
   delete m_objects;
   m_objects = nullptr;
+
+  delete m_stack;
+  m_stack = nullptr;
   if (newm)
   {
+    SelectionStack& stack = newm->selectionStack;
+    m_stack = new SelectionStackWidget{stack, m_widget};
+
     m_objects = new ObjectWidget{*newm, m_widget};
 
     m_objects->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+
+    m_lay->addWidget(m_stack);
     m_lay->addWidget(m_objects);
 
-    setNewSelection(newm->selectionStack.currentSelection());
+    setNewSelection(stack.currentSelection());
   }
 }
 
