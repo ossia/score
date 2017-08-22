@@ -46,4 +46,5 @@ void removeAllUserMessages(Process::MessageNode& rootNode);
 
 int countNodes(Process::MessageNode& rootNode);
 Process::MessageNode* getNthChild(Process::MessageNode& rootNode, int n);
+int getChildIndex(Process::MessageNode& rootNode, Process::MessageNode* n);
 }

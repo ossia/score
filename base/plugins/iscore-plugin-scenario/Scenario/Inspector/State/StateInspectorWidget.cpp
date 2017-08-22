@@ -114,11 +114,30 @@ public:
   }
   QModelIndex mapToSource(const QModelIndex& proxyIndex) const override
   {
-    return {};
+    auto idx = proxyIndex.internalPointer();
+    if(!idx)
+      return {};
+
+    auto ptr = static_cast<Process::MessageNode*>(idx);
+    auto parent = ptr->parent();
+    if(!parent)
+      return {};
+
+    return createIndex(parent->indexOfChild(ptr), proxyIndex.column(), ptr);
   }
   QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override
   {
-    return {};
+    auto idx = sourceIndex.internalPointer();
+    if(!idx)
+      return {};
+
+    auto ptr = static_cast<Process::MessageNode*>(idx);
+    auto parent = ptr->parent();
+    if(!parent)
+      return {};
+
+    auto row = getChildIndex(source().rootNode(), ptr);
+    return createIndex(row, sourceIndex.column(), idx);
   }
 
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override

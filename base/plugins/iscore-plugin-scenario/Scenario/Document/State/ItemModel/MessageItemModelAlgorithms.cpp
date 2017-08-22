@@ -617,4 +617,24 @@ Process::MessageNode* getNthChild(Process::MessageNode& rootNode, int n)
   return rec_getNthChild(rootNode, n);
 }
 
+static void rec_getChildIndex(
+    Process::MessageNode& rootNode,
+    Process::MessageNode* n,
+    int& idx)
+{
+  for(auto& child: rootNode)
+  {
+    idx++;
+    if(&child == n)
+      return;
+    rec_getChildIndex(child, n, idx);
+  }
+}
+
+int getChildIndex(Process::MessageNode& rootNode, Process::MessageNode* node)
+{
+  int n = 0;
+  rec_getChildIndex(rootNode, node, n);
+  return n;
+}
 }
