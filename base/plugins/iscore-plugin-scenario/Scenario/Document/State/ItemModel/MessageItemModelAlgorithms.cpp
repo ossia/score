@@ -594,16 +594,21 @@ int countNodes(Process::MessageNode& rootNode)
 {
   int n = 0;
   for(auto& child: rootNode)
+  {
+    if(child.hasValue())
+      n++;
     n += 1 + countNodes(child);
+  }
   return n;
 }
 
 static Process::MessageNode* rec_getNthChild(Process::MessageNode& rootNode, int& n)
 {
-
   for(auto& child: rootNode)
   {
-    if(--n == 0)
+    if(child.hasValue())
+      n--;
+    if(n == 0)
       return &child;
 
     if(auto ptr = rec_getNthChild(child, n))
@@ -624,7 +629,8 @@ static void rec_getChildIndex(
 {
   for(auto& child: rootNode)
   {
-    idx++;
+    if(child.hasValue())
+      idx++;
     if(&child == n)
       return;
     rec_getChildIndex(child, n, idx);

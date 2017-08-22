@@ -246,6 +246,7 @@ void StateInspectorWidget::updateDisplayedValues()
       lv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
       lv->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
       lv->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+      lv->verticalHeader()->setDefaultSectionSize(14);
 
       auto proxy = new MessageListProxy{};
       proxy->setSourceModel(&m_model.messages());
