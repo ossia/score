@@ -20,7 +20,6 @@
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/IdentifiedObject.hpp>
 #include <iscore/model/Identifier.hpp>
-#include <Dataflow/DocumentPlugin.hpp>
 #include <Process/Dataflow/DataflowObjects.hpp>
 #include <Dataflow/UI/Slider.hpp>
 class DataStream;

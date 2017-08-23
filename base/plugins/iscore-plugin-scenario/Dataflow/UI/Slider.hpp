@@ -3,8 +3,7 @@
 #include <QQuickPaintedItem>
 #include <QPainter>
 #include <ossia/dataflow/graph_node.hpp>
-#include <ossia/dataflow/audio_address.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <ossia/dataflow/audio_parameter.hpp>
 namespace Dataflow
 {
 class volume_node final : public ossia::graph_node
@@ -85,7 +84,6 @@ private:
 
     double m_volume{};
     std::vector<Id<Process::Cable>> m_cables;
-    SliderUI* m_ui{};
 };
 
 }

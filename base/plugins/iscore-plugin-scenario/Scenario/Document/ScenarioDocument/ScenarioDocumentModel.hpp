@@ -5,6 +5,7 @@
 #include <Dataflow/UI/NodeItem.hpp>
 #include <Process/Dataflow/DataflowObjects.hpp>
 #include <QPointer>
+#include <unordered_set>
 #include <core/document/Document.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -56,6 +57,8 @@ public:
 
   iscore::EntityMap<Process::Cable> cables;
   Dataflow::DataflowWindow window;
+
+  void registerNode(Dataflow::NodeItem* n);
 private:
   void init();
   void initializeNewDocument(const ConstraintModel& viewmodel);
@@ -65,6 +68,7 @@ private:
 
   BaseScenario* m_baseScenario{};
   IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
+  std::unordered_set<Dataflow::NodeItem*> nodeItems;
 
 };
 }

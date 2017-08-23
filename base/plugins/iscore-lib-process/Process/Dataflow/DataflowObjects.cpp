@@ -3,6 +3,16 @@
 #include <ossia/dataflow/graph_node.hpp>
 namespace Dataflow
 {
+ProcessComponent::ProcessComponent(
+    Process::ProcessModel& process,
+    DocumentPlugin& doc,
+    const Id<iscore::Component>& id,
+    const QString& name,
+    QObject* parent):
+  Process::GenericProcessComponent<DocumentPlugin>{process, doc, id, name, parent}
+{
+
+}
 ProcessComponent::~ProcessComponent()
 {
 }
@@ -91,14 +101,21 @@ void Cable::setSource(Process::Node* source)
 {
   if (m_source == source)
     return;
+  if(m_source)
+  {
+    QObject::disconnect(m_srcDeath);
+    m_source->removeCable(id());
+  }
 
   m_source = source;
 
-  QObject::disconnect(m_srcDeath);
   if(m_source)
+  {
     m_srcDeath = connect(m_source, &QObject::destroyed, this, [=] {
       setSource(nullptr);
     });
+    m_source->addCable(id());
+  }
 
   emit sourceChanged(m_source);
 }
@@ -107,14 +124,22 @@ void Cable::setSink(Process::Node* sink)
 {
   if (m_sink == sink)
     return;
+  if(m_sink)
+  {
+    QObject::disconnect(m_sinkDeath);
+    m_sink->removeCable(id());
+  }
 
   m_sink = sink;
 
-  QObject::disconnect(m_sinkDeath);
-  if(m_source)
+  if(m_sink)
+  {
     m_sinkDeath = connect(m_sink, &QObject::destroyed, this, [=] {
       setSink(nullptr);
     });
+
+    m_sink->addCable(id());
+  }
 
   emit sinkChanged(m_sink);
 }

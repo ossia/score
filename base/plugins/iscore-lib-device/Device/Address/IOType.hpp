@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore_lib_device_export.h>
-#include <ossia/network/common/address_properties.hpp>
+#include <ossia/network/common/parameter_properties.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 class QString;

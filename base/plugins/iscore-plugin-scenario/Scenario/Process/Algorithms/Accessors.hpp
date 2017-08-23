@@ -125,8 +125,8 @@ std::list<Id<ConstraintModel>> nextConstraints(const TimeNodeModel& tn, const Sc
   for (const Id<EventModel>& event_id : tn.events())
   {
     const EventModel& event = scenario.event(event_id);
-    auto prev = nextConstraints(event, scenario);
-    constraints.splice(constraints.end(), prev);
+    auto next = nextConstraints(event, scenario);
+    constraints.splice(constraints.end(), next);
   }
 
   return constraints;

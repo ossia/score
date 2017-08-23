@@ -27,7 +27,7 @@
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <ossia/editor/value/value.hpp>
-#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/domain/domain.hpp>
@@ -214,7 +214,7 @@ public:
 
 void updateOSSIAAddress(
     const Device::FullAddressSettings& settings,
-    ossia::net::address_base& addr)
+    ossia::net::parameter_base& addr)
 {
   ISCORE_ASSERT(settings.ioType);
   addr.set_access(*settings.ioType);
@@ -241,7 +241,7 @@ void createOSSIAAddress(
   if (!settings.value.v)
     return;
 
-  auto addr = node.create_address(
+  auto addr = node.create_parameter(
         ossia::apply(ossia_type_visitor{}, settings.value.v));
   if (addr)
     updateOSSIAAddress(settings, *addr);
@@ -302,7 +302,7 @@ void updateOSSIAValue(const ossia::value& iscore_data, ossia::value& val)
   return ossia::apply_nonnull(visitor, val.v);
 }
 
-ossia::net::address_base* address(
+ossia::net::parameter_base* address(
     const State::Address& addr,
     const Device::DeviceList& deviceList)
 {
@@ -326,7 +326,7 @@ ossia::net::address_base* address(
                 *ossia_dev);
 
           if (ossia_node)
-            return ossia_node->get_address();
+            return ossia_node->get_parameter();
         }
       }
     }
@@ -422,7 +422,7 @@ static ossia::Destination expressionAddress(
     auto n = findNodeFromPath(addr.path, *dev);
     if (n)
     {
-      auto ossia_addr = n->get_address();
+      auto ossia_addr = n->get_parameter();
       if (ossia_addr)
         return ossia::Destination(*ossia_addr);
       else
@@ -574,7 +574,7 @@ trigger_expression(const State::Expression& e, const Device::DeviceList& list)
   return expression(e, list, def_trig{});
 }
 
-ossia::net::address_base*
+ossia::net::parameter_base*
 findAddress(const Device::DeviceList& devs, const State::Address& addr)
 {
   auto dev_p = dynamic_cast<Engine::Network::OSSIADevice*>(
@@ -587,7 +587,7 @@ findAddress(const Device::DeviceList& devs, const State::Address& addr)
       auto node
           = Engine::iscore_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
       if (node)
-        return node->get_address();
+        return node->get_parameter();
     }
   }
   return {};

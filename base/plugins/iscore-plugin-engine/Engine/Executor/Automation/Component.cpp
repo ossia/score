@@ -17,7 +17,7 @@
 #include <ossia/editor/curve/curve.hpp>
 #include <ossia/editor/curve/curve_segment.hpp>
 #include <ossia/editor/value/value.hpp>
-#include <ossia/network/base/address.hpp>
+#include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/base/device.hpp>
 #include <Engine/CurveConversion.hpp>

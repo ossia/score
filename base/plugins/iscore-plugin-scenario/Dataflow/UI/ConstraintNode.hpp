@@ -44,7 +44,7 @@ public:
   }
 };
 
-/*
+
 class ConstraintBase :
         public Scenario::GenericConstraintComponent<Dataflow::DocumentPlugin>
 {
@@ -62,11 +62,6 @@ public:
             DocumentPlugin& doc,
             QObject* parent_comp);
 
-    struct ProcessData
-    {
-        Dataflow::ProcessComponent* component{};
-        Slider* mix{};
-    };
     ProcessComponent* make(
             const Id<iscore::Component> & id,
             ProcessComponentFactory& factory,
@@ -79,16 +74,10 @@ public:
     {
     }
 
-    ConstraintNode& mainNode() { return m_node; }
-    void preparePlay();
-
 private:
-    void setupProcess(Process::ProcessModel &c, ProcessComponent *comp);
-    void teardownProcess(const Process::ProcessModel &c, const ProcessComponent&);
-
-    std::unordered_map<const Process::ProcessModel*, ProcessData> m_processes;
-    QVector<Process::Node*> m_sliders;
-    ConstraintNode m_node;
+    NodeItem* ui{};
+    NodeItem* slider{};
+    SliderUI* sliderUI{};
 };
 
 class Constraint final :
@@ -97,5 +86,5 @@ class Constraint final :
 public:
     using iscore::PolymorphicComponentHierarchy<ConstraintBase>::PolymorphicComponentHierarchyManager;
 };
-*/
+
 }

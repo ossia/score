@@ -81,7 +81,7 @@ nameColumnData(const MessageItemModel::node_type& node, int role)
   return {};
 }
 
-static QVariant
+QVariant
 valueColumnData(const MessageItemModel::node_type& node, int role)
 {
   if (role == Qt::DisplayRole || role == Qt::EditRole)
@@ -135,18 +135,15 @@ QVariant MessageItemModel::data(const QModelIndex& index, int role) const
 QVariant MessageItemModel::headerData(
     int section, Qt::Orientation orientation, int role) const
 {
-  static const QMap<Column, QString> HEADERS{
-      {Column::Name, QObject::tr("Address")},
-      {Column::Value, QObject::tr("Value")}};
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
   {
-    if (section >= 0 && section < (int)Column::Count)
-    {
-      return HEADERS[(Column)section];
-    }
+    if(section == 0)
+      return tr("Address");
+    else if(section == 1)
+      return tr("Value");
   }
 
-  return QVariant();
+  return QAbstractItemModel::headerData(section, orientation, role);
 }
 
 bool MessageItemModel::setHeaderData(

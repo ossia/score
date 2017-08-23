@@ -244,7 +244,9 @@ void NodeItem::paint(QPainter* painter)
   painter->setBrush(QBrush(QColor::fromHsl(0, 0, 240)));
   auto rect = QRectF{xMv(), yMv(), objectW(), objectH()};
   painter->drawRoundedRect(rect, portSize, portSize);
-  painter->drawText(rect, node.getText(), QTextOption(Qt::AlignCenter));
+  auto txt = node.getText();
+
+  painter->drawText(rect, txt, QTextOption(Qt::AlignCenter));
 }
 
 QPointF NodeItem::depInlet() const

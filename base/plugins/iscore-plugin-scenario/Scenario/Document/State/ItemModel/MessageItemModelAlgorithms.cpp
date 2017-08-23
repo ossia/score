@@ -31,6 +31,9 @@ static QStringList toStringList(const State::AddressAccessor& addr)
   return l;
 }
 }
+
+namespace Scenario
+{
 static bool removable(const Process::MessageNode& node)
 {
   return node.values.empty() && !node.hasChildren();
@@ -585,4 +588,59 @@ void removeAllUserMessages(Process::MessageNode& rootNode)
   }
 
   cleanupNode(rootNode);
+}
+
+int countNodes(Process::MessageNode& rootNode)
+{
+  int n = 0;
+  for(auto& child: rootNode)
+  {
+    if(child.hasValue())
+      n++;
+    n += 1 + countNodes(child);
+  }
+  return n;
+}
+
+static Process::MessageNode* rec_getNthChild(Process::MessageNode& rootNode, int& n)
+{
+  for(auto& child: rootNode)
+  {
+    if(child.hasValue())
+      n--;
+    if(n == 0)
+      return &child;
+
+    if(auto ptr = rec_getNthChild(child, n))
+      return ptr;
+  }
+  return nullptr;
+}
+
+Process::MessageNode* getNthChild(Process::MessageNode& rootNode, int n)
+{
+  return rec_getNthChild(rootNode, n);
+}
+
+static void rec_getChildIndex(
+    Process::MessageNode& rootNode,
+    Process::MessageNode* n,
+    int& idx)
+{
+  for(auto& child: rootNode)
+  {
+    if(child.hasValue())
+      idx++;
+    if(&child == n)
+      return;
+    rec_getChildIndex(child, n, idx);
+  }
+}
+
+int getChildIndex(Process::MessageNode& rootNode, Process::MessageNode* node)
+{
+  int n = 0;
+  rec_getChildIndex(rootNode, node, n);
+  return n;
+}
 }

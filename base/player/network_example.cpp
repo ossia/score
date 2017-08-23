@@ -16,7 +16,7 @@ int main(int argc, char** argv)
   dev.set_name("OSCdevice");
 
   // Add a custom callback on the device
-  auto address = ossia::net::create_node(dev, "/foo/bar").create_address(ossia::val_type::FLOAT);
+  auto address = ossia::net::create_node(dev, "/foo/bar").create_parameter(ossia::val_type::FLOAT);
   address->add_callback([] (const ossia::value& val) {
     std::cerr << val << std::endl;
   });

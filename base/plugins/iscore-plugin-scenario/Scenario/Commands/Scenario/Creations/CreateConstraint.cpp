@@ -59,6 +59,10 @@ CreateConstraint::CreateConstraint(
 void CreateConstraint::undo(const iscore::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
+  auto& plug = ctx.model<ScenarioDocumentModel>();
+  for(auto& cable : m_cables)
+    plug.cables.remove(cable);
+
 
   ScenarioCreate<ConstraintModel>::undo(m_createdConstraintId, scenar);
   if(m_startStatePos != -1)

@@ -19,7 +19,7 @@ namespace ossia
 namespace net
 {
 class node_base;
-class address_base;
+class parameter_base;
 class device_base;
 }
 }
@@ -69,14 +69,14 @@ public:
   void nodeCreated(const ossia::net::node_base&);
   void nodeRemoving(const ossia::net::node_base&);
   void nodeRenamed(const ossia::net::node_base&, std::string);
-  void addressCreated(const ossia::net::address_base&);
+  void addressCreated(const ossia::net::parameter_base&);
   void addressUpdated(const ossia::net::node_base&, ossia::string_view key);
-  void addressRemoved(const ossia::net::address_base& addr);
+  void addressRemoved(const ossia::net::parameter_base& addr);
 
 protected:
   using DeviceInterface::DeviceInterface;
 
-  iscore::hash_map<State::Address, std::pair<ossia::net::address_base*, ossia::callback_container<ossia::value_callback>::iterator>>
+  iscore::hash_map<State::Address, std::pair<ossia::net::parameter_base*, ossia::callback_container<ossia::value_callback>::iterator>>
           m_callbacks;
 
   void removeListening_impl(ossia::net::node_base& node, State::Address addr);

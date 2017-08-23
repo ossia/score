@@ -62,7 +62,8 @@
 #include <iscore/command/Command.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
-
+#include <Dataflow/UI/ScenarioNode.hpp>
+#include <Dataflow/UI/ConstraintNode.hpp>
 #include <iscore_plugin_scenario_commands_files.hpp>
 
 #include <State/Unit.hpp>
@@ -163,7 +164,9 @@ iscore_plugin_scenario::factories(
       FW<Scenario::ConstraintDropHandler, Scenario::DropProcessInConstraint, Scenario::AutomationDropHandler>,
       FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>,
       FW<ConstraintInspectorDelegateFactory, ScenarioConstraintInspectorDelegateFactory, BaseConstraintInspectorDelegateFactory>,
-      FW<iscore::ValidityChecker, ScenarioValidityChecker>>(
+      FW<iscore::ValidityChecker, ScenarioValidityChecker>,
+      FW<Dataflow::ProcessComponentFactory, Dataflow::ScenarioComponentFactory>
+      >(
       ctx, key);
 }
 

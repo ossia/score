@@ -11,5 +11,7 @@
         <file>images/constraint.svg</file>
         <file>images/process.svg</file>
         <file>images/state-empty.svg</file>
+        <file>images/event.svg</file>
+        <file>images/timenode.svg</file>
     </qresource>
 </RCC>

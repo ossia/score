@@ -8,6 +8,8 @@ class ProcessModel;
 }
 #include <iscore/model/Identifier.hpp>
 
+namespace Scenario
+{
 // An enum that says if a process is before or after the state.
 enum class ProcessPosition
 {
@@ -41,3 +43,8 @@ void updateTreeWithRemovedNode(
     Process::MessageNode& rootNode, const State::Address& addr);
 
 void removeAllUserMessages(Process::MessageNode& rootNode);
+
+int countNodes(Process::MessageNode& rootNode);
+Process::MessageNode* getNthChild(Process::MessageNode& rootNode, int n);
+int getChildIndex(Process::MessageNode& rootNode, Process::MessageNode* n);
+}

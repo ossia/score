@@ -33,13 +33,6 @@ namespace Scenario
 ConstraintNode::ConstraintNode(QObject *parent)
   : Process::Node{Id<Node>{}, parent}
 {
-  auto& ctx = iscore::IDocument::documentContext(*parent);
-  auto& doc = ctx.model<ScenarioDocumentModel>();
-  qDebug("constraint node created");
-  auto item = new Dataflow::NodeItem{ctx, *this};
-  ui = item;
-  item->setParentItem(doc.window.view.contentItem());
-  item->setPosition(QPointF(300, 300));
 }
 
 QString ConstraintNode::getText() const

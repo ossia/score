@@ -12,6 +12,7 @@
 
 #include <set>
 #include <vector>
+#include <list>
 
 #include <iscore/model/Component.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
