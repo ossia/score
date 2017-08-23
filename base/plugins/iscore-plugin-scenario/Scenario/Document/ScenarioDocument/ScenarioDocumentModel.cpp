@@ -127,11 +127,37 @@ void ScenarioDocumentModel::on_cableAdded(Process::Cable& c)
     return;
   }
 
+  if(cableItems.find(c.id()) != cableItems.end())
+  {
+    qDebug("Cable already exists");
+    return;
+  }
+
   auto ci = new Dataflow::CableItem{c, source, sink};
   ci->setParentItem(window.view.contentItem());
   ci->updateRect();
   ci->update();
   cableItems.insert(ci);
+}
+
+void ScenarioDocumentModel::registerNode(Dataflow::NodeItem* n)
+{
+  qDebug() << "registering" << n;
+  nodeItems.insert(n);
+
+  for(auto& cable : n->node.cables())
+  {
+    auto it = cables.find(cable);
+    if(it != cables.end())
+    {
+      qDebug("adding cable UI");
+      on_cableAdded(*it);
+    }
+  }
+
+  connect(n, &Dataflow::NodeItem::aboutToDelete, this, [=] {
+    nodeItems.erase(n);
+  });
 }
 
 void ScenarioDocumentModel::on_cableRemoving(const Process::Cable& c)

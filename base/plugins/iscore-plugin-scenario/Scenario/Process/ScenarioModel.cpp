@@ -42,13 +42,6 @@ ScenarioNode::ScenarioNode(
         QObject *parent)
   : Process::Node{Id<Node>{}, parent}
 {
-  auto& ctx = iscore::IDocument::documentContext(*parent);
-  auto& doc = ctx.model<Scenario::ScenarioDocumentModel>();
-  auto item = new Dataflow::NodeItem{ctx, *this};
-  ui = item;
-
-  item->setParentItem(doc.window.view.contentItem());
-  item->setPosition(QPointF(200, 200));
 }
 
 QString ScenarioNode::getText() const

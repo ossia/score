@@ -2,7 +2,6 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
@@ -13,7 +12,7 @@
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <iscore/model/ComponentSerialization.hpp>
-
+#include <list>
 
 template <
     typename Component_T,

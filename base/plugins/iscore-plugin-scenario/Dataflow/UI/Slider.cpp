@@ -63,29 +63,12 @@ Slider::Slider(QObject *parent)
 Slider::Slider(const iscore::DocumentContext& doc, Id<Process::Node> c, QObject* parent)
     : Process::Node{c, "Slider", parent}
 {
-    auto& model = doc.model<Scenario::ScenarioDocumentModel>();
-    auto item = new NodeItem{doc, *this};
-    item->setParentItem(model.window.view.contentItem());
-    item->setPosition(QPointF(100, 100));
-    ui = item;
 
-    m_ui = new SliderUI{};
-    m_ui->setParentItem(item);
-    m_ui->setX(6);
-    m_ui->setY(6);
-    m_ui->setWidth(item->width() - 12);
-    m_ui->setHeight(item->height() - 12);
-    connect(m_ui, &SliderUI::valueChanged,
-            this, [=] (double v) {
-      m_volume = v;
-      emit volumeChanged(v);
-    });
 }
 
 void Slider::setVolume(double v)
 {
     m_volume = v;
-    m_ui->setValue(v);
     emit volumeChanged(v);
 }
 

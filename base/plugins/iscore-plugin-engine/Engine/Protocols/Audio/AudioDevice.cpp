@@ -1,5 +1,5 @@
 #include "AudioDevice.hpp"
-#include <ossia/network/generic/generic_address.hpp>
+#include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <QLineEdit>

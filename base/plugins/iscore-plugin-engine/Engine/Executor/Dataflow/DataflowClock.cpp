@@ -10,7 +10,7 @@
 #include <Dataflow/DocumentPlugin.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <portaudio.h>
-#include <ossia/dataflow/audio_address.hpp>
+#include <ossia/dataflow/audio_parameter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 namespace Dataflow
 {

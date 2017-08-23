@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "SerialDevice.hpp"
-#include <ossia/network/generic/generic_address.hpp>
+#include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia-qt/serial/serial_protocol.hpp>
 #include <ossia-qt/serial/serial_device.hpp>

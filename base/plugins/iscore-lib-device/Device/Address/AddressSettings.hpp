@@ -10,7 +10,7 @@
 #include <iscore/tools/Metadata.hpp>
 #include <ossia/detail/any_map.hpp>
 #include <ossia/network/base/node_attributes.hpp>
-#include <ossia/network/common/address_properties.hpp>
+#include <ossia/network/common/parameter_properties.hpp>
 #include <iscore_lib_device_export.h>
 
 template <typename T>

@@ -178,10 +178,6 @@ class ISCORE_LIB_PROCESS_EXPORT ProcessComponent :
         QObject* parent);
 
     ~ProcessComponent();
-
-    virtual Process::Node& mainNode() = 0;
-
-    virtual void preparePlay(){}
 };
 
 template<typename Process_T>

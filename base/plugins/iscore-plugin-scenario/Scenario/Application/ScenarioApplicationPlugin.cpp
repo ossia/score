@@ -58,6 +58,7 @@
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/IdentifiedObjectMap.hpp>
 #include <iscore/model/Identifier.hpp>
+#include <Dataflow/DocumentPlugin.hpp>
 
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <algorithm>

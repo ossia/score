@@ -71,6 +71,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
 
 public:
   ScenarioNode m_node{this};
+  Dataflow::Slider slider{this};
   ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,

@@ -33,7 +33,7 @@ namespace ossia
 {
 namespace net
 {
-class address_base;
+class parameter_base;
 class node_base;
 class device_base;
 }
@@ -62,7 +62,7 @@ findNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 ISCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base*
 findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev);
 
-ISCORE_PLUGIN_ENGINE_EXPORT ossia::net::address_base*
+ISCORE_PLUGIN_ENGINE_EXPORT ossia::net::parameter_base*
 findAddress(const Device::DeviceList& devices, const State::Address& addr);
 
 ISCORE_PLUGIN_ENGINE_EXPORT optional<ossia::Destination> makeDestination(
@@ -78,7 +78,7 @@ ISCORE_PLUGIN_ENGINE_EXPORT void createOSSIAAddress(
     const Device::FullAddressSettings& settings, ossia::net::node_base& node);
 ISCORE_PLUGIN_ENGINE_EXPORT void updateOSSIAAddress(
     const Device::FullAddressSettings& settings,
-    ossia::net::address_base& addr);
+    ossia::net::parameter_base& addr);
 ISCORE_PLUGIN_ENGINE_EXPORT void
 updateOSSIAValue(const ossia::value& data, ossia::value& val);
 
@@ -97,7 +97,7 @@ ISCORE_PLUGIN_ENGINE_EXPORT ossia::state state(
     const Engine::Execution::Context& ctx);
 
 ISCORE_PLUGIN_ENGINE_EXPORT
-ossia::net::address_base* address(
+ossia::net::parameter_base* address(
     const State::Address& addr,
     const Device::DeviceList& deviceList);
 

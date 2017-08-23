@@ -11,7 +11,8 @@
 #include <ossia/dataflow/audio_protocol.hpp>
 #include <ossia/dataflow/graph.hpp>
 #include <iscore_plugin_scenario_export.h>
-namespace ossia { class audio_address; class midi_generic_address; }
+namespace Scenario { class ScenarioDocumentModel; }
+namespace ossia { class audio_address; class midi_generic_parameter; }
 namespace Dataflow
 {
 class CableItem;
@@ -27,7 +28,9 @@ public:
       Id<iscore::DocumentPlugin> id,
       QObject* parent);
 
-    void init();
+  Scenario::ScenarioDocumentModel& scenario;
+  Dataflow::DataflowWindow& window;
+  void init();
 
   virtual ~DocumentPlugin();
 
@@ -46,7 +49,8 @@ public:
   mutable ossia::net::generic_device audio_dev;
   mutable ossia::net::generic_device midi_dev;
 
-  std::vector<ossia::midi_generic_address*> midi_ins;
-  std::vector<ossia::midi_generic_address*> midi_outs;
+  std::vector<ossia::midi_generic_parameter*> midi_ins;
+  std::vector<ossia::midi_generic_parameter*> midi_outs;
+  Constraint* rootPresenter{};
 };
 }

@@ -10,6 +10,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <QToolButton>
 namespace Scenario
 {
 
@@ -209,7 +210,7 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
   {
     auto state = static_cast<Scenario::StateModel*>(stp->parent());
     Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
-    auto& ev = Scenario::parentEvent(*st, scenar);
+    auto& ev = Scenario::parentEvent(*state, scenar);
     auto it = ossia::find(ev.states(), state->id());
     ISCORE_ASSERT(it != ev.states().end());
     auto idx = std::distance(ev.states().begin(), it);
@@ -273,7 +274,7 @@ int ObjectItemModel::rowCount(const QModelIndex& parent) const
 
 int ObjectItemModel::columnCount(const QModelIndex& parent) const
 {
-  return 2;
+  return 1;
 }
 
 QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
@@ -332,15 +333,31 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
         static const QIcon icon(":/images/constraint.svg");
         return icon;
       }
-      else if(dynamic_cast<Scenario::EventModel*>(sel))
+      else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
       {
-        static const QIcon icon(":/images/cond.svg");
-        return icon;
+        if(ev->condition() == State::Expression{})
+        {
+          static const QIcon icon(":/images/event.svg");
+          return icon;
+        }
+        else
+        {
+          static const QIcon icon(":/images/cond.svg");
+          return icon;
+        }
       }
-      else if(dynamic_cast<Scenario::TimeNodeModel*>(sel))
+      else if(auto tn = dynamic_cast<Scenario::TimeNodeModel*>(sel))
       {
-        static const QIcon icon(":/images/trigger.svg");
-        return icon;
+        if(!tn->active())
+        {
+          static const QIcon icon(":/images/timenode.svg");
+          return icon;
+        }
+        else
+        {
+          static const QIcon icon(":/images/trigger.svg");
+          return icon;
+        }
       }
       else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
       {
@@ -366,10 +383,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
         return icon;
       }
     }
-  }
-  else if(index.column() == 1)
-  {
-    if(role == Qt::DisplayRole)
+    else if(role == Qt::ToolTipRole)
     {
       if(auto cst = dynamic_cast<Scenario::ConstraintModel*>(sel))
       {
@@ -409,7 +423,33 @@ Qt::ItemFlags ObjectItemModel::flags(const QModelIndex& index) const
   return f;
 }
 
+SelectionStackWidget::SelectionStackWidget(
+    iscore::SelectionStack& s, QWidget* parent)
+    : QWidget{parent}, m_stack{s}
+{
+  m_prev = new QToolButton{this};
+  m_prev->setArrowType(Qt::LeftArrow);
+  m_prev->setEnabled(m_stack.canUnselect());
 
+  m_next = new QToolButton{this};
+  m_next->setArrowType(Qt::RightArrow);
+  m_next->setEnabled(m_stack.canReselect());
+
+  auto lay = new iscore::MarginLess<QHBoxLayout>{this};
+  lay->setSizeConstraint(QLayout::SetMinimumSize);
+  lay->addWidget(m_prev);
+  lay->addWidget(m_next);
+  setLayout(lay);
+
+  connect(m_prev, &QToolButton::pressed, [&]() { m_stack.unselect(); });
+  connect(m_next, &QToolButton::pressed, [&]() { m_stack.reselect(); });
+
+  con(m_stack, &iscore::SelectionStack::currentSelectionChanged, this,
+      [=] {
+    m_prev->setEnabled(m_stack.canUnselect());
+    m_next->setEnabled(m_stack.canReselect());
+  });
+}
 
 ObjectPanelDelegate::ObjectPanelDelegate(const iscore::GUIApplicationContext &ctx)
   : iscore::PanelDelegate{ctx}
@@ -440,14 +480,22 @@ void ObjectPanelDelegate::on_modelChanged(iscore::MaybeDocument oldm, iscore::Ma
   using namespace iscore;
   delete m_objects;
   m_objects = nullptr;
+
+  delete m_stack;
+  m_stack = nullptr;
   if (newm)
   {
+    SelectionStack& stack = newm->selectionStack;
+    m_stack = new SelectionStackWidget{stack, m_widget};
+
     m_objects = new ObjectWidget{*newm, m_widget};
 
     m_objects->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+
+    m_lay->addWidget(m_stack);
     m_lay->addWidget(m_objects);
 
-    setNewSelection(newm->selectionStack.currentSelection());
+    setNewSelection(stack.currentSelection());
   }
 }
 
