@@ -5,7 +5,7 @@
 #include <Process/StateProcess.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -31,22 +31,22 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
     else if(auto ev = dynamic_cast<const Scenario::EventModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
-      root.push_back(&Scenario::parentTimeNode(*ev, scenar));
+      root.push_back(&Scenario::parentTimeSync(*ev, scenar));
     }
-    else if(auto tn = dynamic_cast<const Scenario::TimeNodeModel*>(sel))
+    else if(auto tn = dynamic_cast<const Scenario::TimeSyncModel*>(sel))
     {
       root.push_back(tn);
     }
     else if(auto st = dynamic_cast<const Scenario::StateModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*st);
-      root.push_back(&Scenario::parentTimeNode(*st, scenar));
+      root.push_back(&Scenario::parentTimeSync(*st, scenar));
     }
     else if(auto stp = dynamic_cast<const Process::StateProcess*>(sel))
     {
       auto state = static_cast<Scenario::StateModel*>(stp->parent());
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
-      root.push_back(&Scenario::parentTimeNode(*state, scenar));
+      root.push_back(&Scenario::parentTimeSync(*state, scenar));
     }
     else if(auto p = dynamic_cast<const Process::ProcessModel*>(sel))
     {
@@ -83,10 +83,10 @@ void ObjectItemModel::setupConnections()
     }
     else
     {
-      auto tn = static_cast<const Scenario::TimeNodeModel*>(obj);
+      auto tn = static_cast<const Scenario::TimeSyncModel*>(obj);
       auto& scenar = Scenario::parentScenario(*tn);
-      m_itemCon.push_back(connect(tn, &TimeNodeModel::newEvent, this, [=] { recompute(); }));
-      m_itemCon.push_back(connect(tn, &TimeNodeModel::eventRemoved, this, [=] { recompute(); }));
+      m_itemCon.push_back(connect(tn, &TimeSyncModel::newEvent, this, [=] { recompute(); }));
+      m_itemCon.push_back(connect(tn, &TimeSyncModel::eventRemoved, this, [=] { recompute(); }));
 
       for(const auto& ev : tn->events())
       {
@@ -144,7 +144,7 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
 
       return createIndex(row, column, st);
     }
-    else if(auto tn = dynamic_cast<Scenario::TimeNodeModel*>(sel))
+    else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*tn);
       auto it = tn->events().begin();
@@ -188,18 +188,18 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
   else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
   {
     Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
-    auto& tn = Scenario::parentTimeNode(*ev, scenar);
+    auto& tn = Scenario::parentTimeSync(*ev, scenar);
     auto idx = m_root.indexOf(&tn);
     return createIndex(0, 0, (void*)m_root[idx]);
   }
-  else if(dynamic_cast<Scenario::TimeNodeModel*>(sel))
+  else if(dynamic_cast<Scenario::TimeSyncModel*>(sel))
   {
     return QModelIndex{};
   }
   else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
   {
     Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*st);
-    auto& tn = Scenario::parentTimeNode(*st, scenar);
+    auto& tn = Scenario::parentTimeSync(*st, scenar);
     auto it = ossia::find(tn.events(), st->eventId());
     ISCORE_ASSERT(it != tn.events().end());
     auto idx = std::distance(tn.events().begin(), it);
@@ -255,7 +255,7 @@ int ObjectItemModel::rowCount(const QModelIndex& parent) const
     {
       return ev->states().size();
     }
-    else if(auto tn = dynamic_cast<Scenario::TimeNodeModel*>(sel))
+    else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
     {
       return tn->events().size();
     }
@@ -303,7 +303,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       {
         return ev->metadata().getName();
       }
-      else if(auto tn = dynamic_cast<Scenario::TimeNodeModel*>(sel))
+      else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
       {
         return tn->metadata().getName();
       }
@@ -346,11 +346,11 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
           return icon;
         }
       }
-      else if(auto tn = dynamic_cast<Scenario::TimeNodeModel*>(sel))
+      else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
       {
         if(!tn->active())
         {
-          static const QIcon icon(":/images/timenode.svg");
+          static const QIcon icon(":/images/timesync.svg");
           return icon;
         }
         else
@@ -393,7 +393,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       {
         return ev->condition().toPrettyString();
       }
-      else if(auto tn = dynamic_cast<Scenario::TimeNodeModel*>(sel))
+      else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
       {
         return tn->expression().toPrettyString();
       }

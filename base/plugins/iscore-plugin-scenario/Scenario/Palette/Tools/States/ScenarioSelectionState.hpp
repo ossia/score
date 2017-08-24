@@ -92,7 +92,7 @@ public:
         sel.append(&elt.model());
       }
     }
-    for (const auto& elt : m_parentSM.presenter().getTimeNodes())
+    for (const auto& elt : m_parentSM.presenter().getTimeSyncs())
     {
       if (area.intersects(
               elt.view()->boundingRect().translated(elt.view()->pos())))

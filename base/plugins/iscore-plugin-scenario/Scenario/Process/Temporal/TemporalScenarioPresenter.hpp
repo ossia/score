@@ -18,8 +18,8 @@
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <iscore/model/Identifier.hpp>
@@ -90,9 +90,9 @@ public:
   {
     return m_events.at(id);
   }
-  const auto& timeNode(const Id<TimeNodeModel>& id) const
+  const auto& timeSync(const Id<TimeSyncModel>& id) const
   {
-    return m_timeNodes.at(id);
+    return m_timeSyncs.at(id);
   }
   const auto& constraint(const Id<ConstraintModel>& id) const
   {
@@ -110,9 +110,9 @@ public:
   {
     return m_events;
   }
-  const auto& getTimeNodes() const
+  const auto& getTimeSyncs() const
   {
-    return m_timeNodes;
+    return m_timeSyncs;
   }
   const auto& getConstraints() const
   {
@@ -172,8 +172,8 @@ public:
   void on_eventCreated(const EventModel&);
   void on_eventRemoved(const EventModel&);
 
-  void on_timeNodeCreated(const TimeNodeModel&);
-  void on_timeNodeRemoved(const TimeNodeModel&);
+  void on_timeSyncCreated(const TimeSyncModel&);
+  void on_timeSyncRemoved(const TimeSyncModel&);
 
   void on_constraintCreated(const ConstraintModel&);
   void on_constraintRemoved(const ConstraintModel&);
@@ -209,7 +209,7 @@ private:
 
   IdContainer<StatePresenter, StateModel> m_states;
   IdContainer<EventPresenter, EventModel> m_events;
-  IdContainer<TimeNodePresenter, TimeNodeModel> m_timeNodes;
+  IdContainer<TimeSyncPresenter, TimeSyncModel> m_timeSyncs;
   IdContainer<TemporalConstraintPresenter, ConstraintModel> m_constraints;
   IdContainer<CommentBlockPresenter, CommentBlockModel> m_comments;
 

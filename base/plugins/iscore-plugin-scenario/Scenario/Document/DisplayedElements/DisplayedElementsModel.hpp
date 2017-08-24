@@ -8,7 +8,7 @@ namespace Scenario
 class ConstraintModel;
 class EventModel;
 class StateModel;
-class TimeNodeModel;
+class TimeSyncModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsModel
 {
@@ -24,8 +24,8 @@ public:
   void setDisplayedElements(DisplayedElementsContainer&&);
   ConstraintModel& constraint() const;
 
-  const TimeNodeModel& startTimeNode() const;
-  const TimeNodeModel& endTimeNode() const;
+  const TimeSyncModel& startTimeSync() const;
+  const TimeSyncModel& endTimeSync() const;
 
   const EventModel& startEvent() const;
   const EventModel& endEvent() const;

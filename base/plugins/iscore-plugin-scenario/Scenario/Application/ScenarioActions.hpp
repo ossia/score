@@ -62,7 +62,7 @@ ISCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Scenario::ScenarioInterface)
 ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::ConstraintModel)
 ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::EventModel)
 ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::StateModel)
-ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::TimeNodeModel)
+ISCORE_DECLARE_SELECTED_OBJECT_CONDITION(Scenario::TimeSyncModel)
 
 /// Actions
 // View
@@ -134,7 +134,7 @@ ISCORE_DECLARE_ACTION(
     CreateCurves, "Create Curves", Scenario,
     QKeySequence(QObject::tr("Ctrl+J")))
 ISCORE_DECLARE_ACTION(
-    MergeTimeNodes, "&Merge TimeNodes", Scenario, Qt::SHIFT + Qt::Key_M)
+    MergeTimeSyncs, "&Merge TimeSyncs", Scenario, Qt::SHIFT + Qt::Key_M)
 ISCORE_DECLARE_ACTION(
     ShowRacks, "&Show racks", Scenario, QKeySequence::UnknownKey)
 ISCORE_DECLARE_ACTION(

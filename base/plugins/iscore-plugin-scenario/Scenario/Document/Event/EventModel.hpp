@@ -21,7 +21,7 @@ namespace Scenario
 {
 class StateModel;
 class ScenarioInterface;
-class TimeNodeModel;
+class TimeSyncModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT EventModel final
     : public iscore::Entity<EventModel>
@@ -40,7 +40,7 @@ public:
   /** The class **/
   EventModel(
       const Id<EventModel>&,
-      const Id<TimeNodeModel>& timenode,
+      const Id<TimeSyncModel>& timesync,
       const VerticalExtent& extent,
       const TimeVal& date,
       QObject* parent);
@@ -55,13 +55,13 @@ public:
   }
 
   // Timenode
-  void changeTimeNode(const Id<TimeNodeModel>& elt)
+  void changeTimeSync(const Id<TimeSyncModel>& elt)
   {
-    m_timeNode = elt;
+    m_timeSync = elt;
   }
-  const auto& timeNode() const
+  const auto& timeSync() const
   {
-    return m_timeNode;
+    return m_timeSync;
   }
 
   // States
@@ -101,7 +101,7 @@ signals:
   void offsetBehaviorChanged(OffsetBehavior);
 
 private:
-  Id<TimeNodeModel> m_timeNode;
+  Id<TimeSyncModel> m_timeSync;
 
   QVector<Id<StateModel>> m_states;
 

@@ -10,7 +10,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -45,14 +45,14 @@ public:
 
   QVector<Id<StateModel>> createdStates;
   QVector<Id<EventModel>> createdEvents;
-  QVector<Id<TimeNodeModel>> createdTimeNodes;
+  QVector<Id<TimeSyncModel>> createdTimeSyncs;
   QVector<Id<ConstraintModel>> createdConstraints;
 
   void clearCreatedIds()
   {
     createdEvents.clear();
     createdConstraints.clear();
-    createdTimeNodes.clear();
+    createdTimeSyncs.clear();
     createdStates.clear();
   }
 };
@@ -79,7 +79,7 @@ protected:
   {
     if (this->hoveredState)
     {
-      // make sure the hovered corresponding timenode dont have a date prior to
+      // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
       if (getDate(m_parentSM.model(), originalState)
           < getDate(m_parentSM.model(), *this->hoveredState))
@@ -99,7 +99,7 @@ protected:
   {
     if (this->hoveredEvent)
     {
-      // make sure the hovered corresponding timenode dont have a date prior to
+      // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
       if (getDate(m_parentSM.model(), originalState)
           < getDate(m_parentSM.model(), *this->hoveredEvent))
@@ -116,17 +116,17 @@ protected:
     }
   }
 
-  void createToTimeNode_base(const Id<StateModel>& originalState)
+  void createToTimeSync_base(const Id<StateModel>& originalState)
   {
-    if (this->hoveredTimeNode)
+    if (this->hoveredTimeSync)
     {
-      // make sure the hovered corresponding timenode dont have a date prior to
+      // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
       if (getDate(m_parentSM.model(), originalState)
-          < getDate(m_parentSM.model(), *this->hoveredTimeNode))
+          < getDate(m_parentSM.model(), *this->hoveredTimeSync))
       {
         auto cmd = new Scenario::Command::CreateConstraint_State_Event{
-            this->m_scenario, originalState, *this->hoveredTimeNode,
+            this->m_scenario, originalState, *this->hoveredTimeSync,
             this->currentPoint.y};
 
         m_dispatcher.submitCommand(cmd);
@@ -142,7 +142,7 @@ protected:
   {
     if (!m_parentSM.editionSettings().sequence())
     {
-      auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+      auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
           this->m_scenario,
           originalState, // Put there in createInitialState
           this->currentPoint.date, this->currentPoint.y};
@@ -151,7 +151,7 @@ protected:
 
       this->createdStates.append(cmd->createdState());
       this->createdEvents.append(cmd->createdEvent());
-      this->createdTimeNodes.append(cmd->createdTimeNode());
+      this->createdTimeSyncs.append(cmd->createdTimeSync());
       this->createdConstraints.append(cmd->createdConstraint());
     }
     else
@@ -169,7 +169,7 @@ protected:
 
       this->createdStates.append(cmd->createdState());
       this->createdEvents.append(cmd->createdEvent());
-      this->createdTimeNodes.append(cmd->createdTimeNode());
+      this->createdTimeSyncs.append(cmd->createdTimeSync());
       this->createdConstraints.append(cmd->createdConstraint());
     }
   }

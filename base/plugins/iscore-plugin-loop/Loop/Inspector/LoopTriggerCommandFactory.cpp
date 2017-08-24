@@ -2,9 +2,9 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Loop/LoopProcessModel.hpp>
 #include <QByteArray>
-#include <Scenario/Commands/TimeNode/AddTrigger.hpp>
-#include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Commands/TimeSync/AddTrigger.hpp>
+#include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include "LoopTriggerCommandFactory.hpp"
 #include <Scenario/Process/ScenarioInterface.hpp>
@@ -14,13 +14,13 @@
 #include <iscore/model/path/PathSerialization.hpp>
 
 bool LoopTriggerCommandFactory::matches(
-    const Scenario::TimeNodeModel& tn) const
+    const Scenario::TimeSyncModel& tn) const
 {
   return dynamic_cast<Loop::ProcessModel*>(tn.parent());
 }
 
 iscore::Command* LoopTriggerCommandFactory::make_addTriggerCommand(
-    const Scenario::TimeNodeModel& tn) const
+    const Scenario::TimeSyncModel& tn) const
 {
   if (dynamic_cast<Loop::ProcessModel*>(tn.parent()))
   {
@@ -31,7 +31,7 @@ iscore::Command* LoopTriggerCommandFactory::make_addTriggerCommand(
 
 iscore::Command*
 LoopTriggerCommandFactory::make_removeTriggerCommand(
-    const Scenario::TimeNodeModel& tn) const
+    const Scenario::TimeSyncModel& tn) const
 {
   if (dynamic_cast<Loop::ProcessModel*>(tn.parent()))
   {

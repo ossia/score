@@ -7,7 +7,7 @@
 #include "CreateConstraint.hpp"
 #include "CreateConstraint_State.hpp"
 #include "CreateConstraint_State_Event.hpp"
-#include "CreateConstraint_State_Event_TimeNode.hpp"
+#include "CreateConstraint_State_Event_TimeSync.hpp"
 #include "CreateSequence.hpp"
 #include <boost/range/adaptor/reversed.hpp>
 namespace Scenario
@@ -34,7 +34,7 @@ public:
           || cmd->key() == CreateEvent_State::static_key()
           || cmd->key() == CreateConstraint_State::static_key()
           || cmd->key() == CreateConstraint_State_Event::static_key()
-          || cmd->key() == CreateConstraint_State_Event_TimeNode::static_key()
+          || cmd->key() == CreateConstraint_State_Event_TimeSync::static_key()
           || cmd->key() == CreateSequence::static_key())
       {
         cmd->undo(ctx);

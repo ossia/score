@@ -3,8 +3,8 @@
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
-#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeView.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
@@ -39,8 +39,8 @@ public:
     return {m_startEventPresenter, m_endEventPresenter};
   }
 
-  iscore::IndirectContainer<std::vector, Scenario::TimeNodePresenter>
-  getTimeNodes() const
+  iscore::IndirectContainer<std::vector, Scenario::TimeSyncPresenter>
+  getTimeSyncs() const
   {
     return {m_startNodePresenter, m_endNodePresenter};
   }
@@ -54,12 +54,12 @@ public:
       return *m_endEventPresenter;
     ISCORE_ABORT;
   }
-  const Scenario::TimeNodePresenter&
-  timeNode(const Id<Scenario::TimeNodeModel>& id) const
+  const Scenario::TimeSyncPresenter&
+  timeSync(const Id<Scenario::TimeSyncModel>& id) const
   {
-    if (id == m_model.startTimeNode().id())
+    if (id == m_model.startTimeSync().id())
       return *m_startNodePresenter;
-    else if (id == m_model.endTimeNode().id())
+    else if (id == m_model.endTimeSync().id())
       return *m_endNodePresenter;
     ISCORE_ABORT;
   }
@@ -80,7 +80,7 @@ public:
     ISCORE_ABORT;
   }
 
-  const Scenario::TimeNodeModel& startTimeNode() const
+  const Scenario::TimeSyncModel& startTimeSync() const
   {
     return m_startNodePresenter->model();
   }
@@ -98,6 +98,6 @@ protected:
   Scenario::StatePresenter* m_endStatePresenter{};
   Scenario::EventPresenter* m_startEventPresenter{};
   Scenario::EventPresenter* m_endEventPresenter{};
-  Scenario::TimeNodePresenter* m_startNodePresenter{};
-  Scenario::TimeNodePresenter* m_endNodePresenter{};
+  Scenario::TimeSyncPresenter* m_startNodePresenter{};
+  Scenario::TimeSyncPresenter* m_endNodePresenter{};
 };

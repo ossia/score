@@ -14,7 +14,7 @@
 
 #include "ScenarioFactory.hpp"
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <iscore/document/DocumentContext.hpp>
 #include <iscore/model/ModelMetadata.hpp>
@@ -42,7 +42,7 @@ template <>
 void DataStreamReader::read(
     const Scenario::ProcessModel& scenario)
 {
-  m_stream << scenario.m_startTimeNodeId;
+  m_stream << scenario.m_startTimeSyncId;
   m_stream << scenario.m_startEventId;
   m_stream << scenario.m_startStateId;
 
@@ -56,12 +56,12 @@ void DataStreamReader::read(
   }
 
   // Timenodes
-  const auto& timenodes = scenario.timeNodes;
-  m_stream << (int32_t)timenodes.size();
+  const auto& timesyncs = scenario.timeSyncs;
+  m_stream << (int32_t)timesyncs.size();
 
-  for (const auto& timenode : timenodes)
+  for (const auto& timesync : timesyncs)
   {
-    readFrom(timenode);
+    readFrom(timesync);
   }
 
   // Events
@@ -98,7 +98,7 @@ void DataStreamReader::read(
 template <>
 void DataStreamWriter::write(Scenario::ProcessModel& scenario)
 {
-  m_stream >> scenario.m_startTimeNodeId;
+  m_stream >> scenario.m_startTimeSyncId;
   m_stream >> scenario.m_startEventId;
   m_stream >> scenario.m_startStateId;
 
@@ -113,13 +113,13 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
   }
 
   // Timenodes
-  int32_t timenode_count;
-  m_stream >> timenode_count;
+  int32_t timesync_count;
+  m_stream >> timesync_count;
 
-  for (; timenode_count-- > 0;)
+  for (; timesync_count-- > 0;)
   {
-    auto tnmodel = new Scenario::TimeNodeModel{*this, &scenario};
-    scenario.timeNodes.add(tnmodel);
+    auto tnmodel = new Scenario::TimeSyncModel{*this, &scenario};
+    scenario.timeSyncs.add(tnmodel);
   }
 
   // Events
@@ -170,11 +170,11 @@ template <>
 void JSONObjectReader::read(
     const Scenario::ProcessModel& scenario)
 {
-  obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);
+  obj["StartTimeSyncId"] = toJsonValue(scenario.m_startTimeSyncId);
   obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
   obj["StartStateId"] = toJsonValue(scenario.m_startStateId);
 
-  obj["TimeNodes"] = toJsonArray(scenario.timeNodes);
+  obj["TimeSyncs"] = toJsonArray(scenario.timeSyncs);
   obj["Events"] = toJsonArray(scenario.events);
   obj["States"] = toJsonArray(scenario.states);
   obj["Constraints"] = toJsonArray(scenario.constraints);
@@ -185,8 +185,8 @@ void JSONObjectReader::read(
 template <>
 void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
 {
-  scenario.m_startTimeNodeId
-      = fromJsonValue<Id<Scenario::TimeNodeModel>>(obj["StartTimeNodeId"]);
+  scenario.m_startTimeSyncId
+      = fromJsonValue<Id<Scenario::TimeSyncModel>>(obj["StartTimeSyncId"]);
   scenario.m_startEventId
       = fromJsonValue<Id<Scenario::EventModel>>(obj["StartEventId"]);
   scenario.m_startStateId
@@ -200,13 +200,13 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
     scenario.constraints.add(constraint);
   }
 
-  const auto& timenodes = obj["TimeNodes"].toArray();
-  for (const auto& json_vref : timenodes)
+  const auto& timesyncs = obj["TimeSyncs"].toArray();
+  for (const auto& json_vref : timesyncs)
   {
-    auto tnmodel = new Scenario::TimeNodeModel{
+    auto tnmodel = new Scenario::TimeSyncModel{
         JSONObject::Deserializer{json_vref.toObject()}, &scenario};
 
-    scenario.timeNodes.add(tnmodel);
+    scenario.timeSyncs.add(tnmodel);
   }
 
   const auto& events = obj["Events"].toArray();

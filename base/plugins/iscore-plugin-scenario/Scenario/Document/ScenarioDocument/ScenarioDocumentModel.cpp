@@ -25,7 +25,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
@@ -73,7 +73,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   m_baseScenario->constraint().duration.setMaxInfinite(true);
   m_baseScenario->endEvent().setDate(
       m_baseScenario->constraint().duration.defaultDuration());
-  m_baseScenario->endTimeNode().setDate(
+  m_baseScenario->endTimeSync().setDate(
       m_baseScenario->constraint().duration.defaultDuration());
 
   auto& doc_metadata

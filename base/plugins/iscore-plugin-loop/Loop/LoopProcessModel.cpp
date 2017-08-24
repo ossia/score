@@ -3,7 +3,7 @@
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <algorithm>
 #include <iscore/tools/std/Optional.hpp>
 #include <qnamespace.h>
@@ -37,7 +37,7 @@ ProcessModel::ProcessModel(
   Scenario::ConstraintDurations::Algorithms::changeAllDurations(
       constraint(), duration);
   endEvent().setDate(duration);
-  endTimeNode().setDate(duration);
+  endTimeSync().setDate(duration);
 
   const double height = 0.5;
   constraint().setHeightPercentage(height);
@@ -46,8 +46,8 @@ ProcessModel::ProcessModel(
   BaseScenarioContainer::endState().setHeightPercentage(height);
   BaseScenarioContainer::startEvent().setExtent({height, 0.2});
   BaseScenarioContainer::endEvent().setExtent({height, 0.2});
-  BaseScenarioContainer::startTimeNode().setExtent({height, 1});
-  BaseScenarioContainer::endTimeNode().setExtent({height, 1});
+  BaseScenarioContainer::startTimeSync().setExtent({height, 1});
+  BaseScenarioContainer::endTimeSync().setExtent({height, 1});
 
   metadata().setInstanceName(*this);
 }
@@ -112,10 +112,10 @@ void ProcessModel::setSelection(const Selection& s) const
   });
 }
 
-const QVector<Id<Scenario::ConstraintModel>> constraintsBeforeTimeNode(
-    const ProcessModel& scen, const Id<Scenario::TimeNodeModel>& timeNodeId)
+const QVector<Id<Scenario::ConstraintModel>> constraintsBeforeTimeSync(
+    const ProcessModel& scen, const Id<Scenario::TimeSyncModel>& timeSyncId)
 {
-  if (timeNodeId == scen.endTimeNode().id())
+  if (timeSyncId == scen.endTimeSync().id())
   {
     return {scen.constraint().id()};
   }

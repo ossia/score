@@ -1,7 +1,7 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
 
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
@@ -15,7 +15,7 @@
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
-#include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
+#include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <QApplication>
@@ -49,7 +49,7 @@ public:
       auto move_nothing = new StrongQState<MoveOnNothing>{mainState};
       auto move_state = new StrongQState<MoveOnState>{mainState};
       auto move_event = new StrongQState<MoveOnEvent>{mainState};
-      auto move_timenode = new StrongQState<MoveOnTimeNode>{mainState};
+      auto move_timesync = new StrongQState<MoveOnTimeSync>{mainState};
 
       // General setup
       mainState->setInitialState(pressed);
@@ -82,10 +82,10 @@ public:
         createToEvent();
       });
 
-      // MoveOnNothing -> MoveOnTimeNode
-      this->add_transition(move_nothing, move_timenode, [&]() {
+      // MoveOnNothing -> MoveOnTimeSync
+      this->add_transition(move_nothing, move_timesync, [&]() {
         this->rollback();
-        createToTimeNode();
+        createToTimeSync();
       });
 
       /// MoveOnState -> ...
@@ -104,10 +104,10 @@ public:
         createToEvent();
       });
 
-      // MoveOnState -> MoveOnTimeNode
-      this->add_transition(move_state, move_timenode, [&]() {
+      // MoveOnState -> MoveOnTimeSync
+      this->add_transition(move_state, move_timesync, [&]() {
         this->rollback();
-        createToTimeNode();
+        createToTimeSync();
       });
 
       /// MoveOnEvent -> ...
@@ -135,34 +135,34 @@ public:
       iscore::make_transition<MoveOnEvent_Transition<Scenario_T>>(
           move_event, move_event, *this);
 
-      // MoveOnEvent -> MoveOnTimeNode
-      this->add_transition(move_event, move_timenode, [&]() {
+      // MoveOnEvent -> MoveOnTimeSync
+      this->add_transition(move_event, move_timesync, [&]() {
         this->rollback();
-        createToTimeNode();
+        createToTimeSync();
       });
 
-      /// MoveOnTimeNode -> ...
-      // MoveOnTimeNode -> MoveOnNothing
-      this->add_transition(move_timenode, move_nothing, [&]() {
+      /// MoveOnTimeSync -> ...
+      // MoveOnTimeSync -> MoveOnNothing
+      this->add_transition(move_timesync, move_nothing, [&]() {
         this->rollback();
         createToNothing();
       });
 
-      // MoveOnTimeNode -> MoveOnState
-      this->add_transition(move_timenode, move_state, [&]() {
+      // MoveOnTimeSync -> MoveOnState
+      this->add_transition(move_timesync, move_state, [&]() {
         this->rollback();
         createToState();
       });
 
-      // MoveOnTimeNode -> MoveOnEvent
-      this->add_transition(move_timenode, move_event, [&]() {
+      // MoveOnTimeSync -> MoveOnEvent
+      this->add_transition(move_timesync, move_event, [&]() {
         this->rollback();
         createToEvent();
       });
 
-      // MoveOnTimeNode -> MoveOnTimeNode
-      iscore::make_transition<MoveOnTimeNode_Transition<Scenario_T>>(
-          move_timenode, move_timenode, *this);
+      // MoveOnTimeSync -> MoveOnTimeSync
+      iscore::make_transition<MoveOnTimeSync_Transition<Scenario_T>>(
+          move_timesync, move_timesync, *this);
 
       // What happens in each state.
       QObject::connect(pressed, &QState::entered, [&]() {
@@ -252,7 +252,7 @@ public:
             this->currentPoint.y);
       });
 
-      QObject::connect(move_timenode, &QState::entered, [&]() {
+      QObject::connect(move_timesync, &QState::entered, [&]() {
         if (this->createdStates.empty())
         {
           this->rollback();
@@ -296,8 +296,8 @@ private:
     auto& st = scenar.state(*this->clickedState);
     if(new_event && !sequence)
     {
-      // Create new event on the timenode
-      auto tn = Scenario::parentEvent(st, scenar).timeNode();
+      // Create new event on the timesync
+      auto tn = Scenario::parentEvent(st, scenar).timeSync();
       auto cmd = new Scenario::Command::CreateEvent_State{
           this->m_scenario, tn, this->currentPoint.y};
       this->m_dispatcher.submitCommand(cmd);
@@ -348,10 +348,10 @@ private:
         [&](const Id<StateModel>& id) { this->createToNothing_base(id); });
   }
 
-  void createToTimeNode()
+  void createToTimeSync()
   {
     creationCheck(
-        [&](const Id<StateModel>& id) { this->createToTimeNode_base(id); });
+        [&](const Id<StateModel>& id) { this->createToTimeSync_base(id); });
   }
 
   void createToEvent()

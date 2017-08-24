@@ -76,6 +76,6 @@ private:
 
 ISCORE_COMMAND_DECL_T(SetExtendedMetadata<ConstraintModel>)
 ISCORE_COMMAND_DECL_T(SetExtendedMetadata<EventModel>)
-ISCORE_COMMAND_DECL_T(SetExtendedMetadata<TimeNodeModel>)
+ISCORE_COMMAND_DECL_T(SetExtendedMetadata<TimeSyncModel>)
 ISCORE_COMMAND_DECL_T(SetExtendedMetadata<StateModel>)
 ISCORE_COMMAND_DECL_T(SetExtendedMetadata<Process::ProcessModel>)

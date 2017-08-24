@@ -9,7 +9,7 @@
 #include <QtGlobal>
 #include <Scenario/Document/Constraint/Temporal/TemporalConstraintView.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeView.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 
 #include "LoopViewUpdater.hpp"
 #include <Process/TimeValue.hpp>
@@ -22,8 +22,8 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/State/StateView.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 
 namespace Loop
@@ -86,12 +86,12 @@ void ViewUpdater::updateConstraint(
   m_presenter.m_view->update();
 }
 
-void ViewUpdater::updateTimeNode(const Scenario::TimeNodePresenter& timenode)
+void ViewUpdater::updateTimeSync(const Scenario::TimeSyncPresenter& timesync)
 {
-  timenode.view()->setExtent(2. * extent());
+  timesync.view()->setExtent(2. * extent());
 
-  timenode.view()->setPos(
-      {timenode.model().date().toPixels(m_presenter.m_zoomRatio),
+  timesync.view()->setPos(
+      {timesync.model().date().toPixels(m_presenter.m_zoomRatio),
        extent().top()});
 
   m_presenter.m_view->update();

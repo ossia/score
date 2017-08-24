@@ -15,7 +15,7 @@ namespace Scenario
 class ProcessModel;
 class EventModel;
 class StateModel;
-class TimeNodeModel;
+class TimeSyncModel;
 class ConstraintModel;
 namespace Command
 {
@@ -30,7 +30,7 @@ public:
   CreateConstraint_State_Event(
       const Scenario::ProcessModel& scenario,
       Id<StateModel> startState,
-      Id<TimeNodeModel> endTimeNode,
+      Id<TimeSyncModel> endTimeSync,
       double endStateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
@@ -76,7 +76,7 @@ private:
 
   CreateConstraint_State m_command;
 
-  Id<TimeNodeModel> m_endTimeNode;
+  Id<TimeSyncModel> m_endTimeSync;
 };
 }
 }

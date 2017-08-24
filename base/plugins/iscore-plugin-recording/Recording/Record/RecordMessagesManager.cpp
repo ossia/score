@@ -47,7 +47,7 @@
 #include <qnamespace.h>
 #include <type_traits>
 #include <utility>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 namespace Recording
 {
@@ -91,7 +91,7 @@ void MessageRecorder::stop()
     RecordedMessage& val = m_records[i];
 
     // Create a state
-    auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+    auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
                *m_createdProcess,
                startState,
                TimeVal::fromMsecs(val.percentage),

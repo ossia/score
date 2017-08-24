@@ -76,6 +76,6 @@ private:
 
 ISCORE_COMMAND_DECL_T(ChangeElementColor<ConstraintModel>)
 ISCORE_COMMAND_DECL_T(ChangeElementColor<EventModel>)
-ISCORE_COMMAND_DECL_T(ChangeElementColor<TimeNodeModel>)
+ISCORE_COMMAND_DECL_T(ChangeElementColor<TimeSyncModel>)
 ISCORE_COMMAND_DECL_T(ChangeElementColor<StateModel>)
 ISCORE_COMMAND_DECL_T(ChangeElementColor<Process::ProcessModel>)

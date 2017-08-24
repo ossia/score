@@ -5,12 +5,12 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
-#include <Scenario/Commands/TimeNode/AddTrigger.hpp>
-#include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Commands/TimeSync/AddTrigger.hpp>
+#include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include <core/document/Document.hpp>
 #include <iscore/actions/ActionManager.hpp>
@@ -38,7 +38,7 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   m_addTrigger = new QAction{tr("Enable trigger"), this};
   connect(
       m_addTrigger, &QAction::triggered, this,
-      &EventActions::addTriggerToTimeNode);
+      &EventActions::addTriggerToTimeSync);
   m_addTrigger->setEnabled(false);
 
   m_addTrigger->setToolTip(tr("Enable trigger"));
@@ -48,7 +48,7 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   m_removeTrigger = new QAction{tr("Disable trigger"), this};
   connect(
       m_removeTrigger, &QAction::triggered, this,
-      &EventActions::removeTriggerFromTimeNode);
+      &EventActions::removeTriggerFromTimeSync);
   m_removeTrigger->setEnabled(false);
 
   /// Add Condition ///
@@ -114,7 +114,7 @@ void EventActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 
         if (std::any_of(sel.cbegin(), sel.cend(), [](const QObject* obj) {
               return dynamic_cast<const EventModel*>(obj);
-            })) // TODO : event or timenode ?
+            })) // TODO : event or timesync ?
         {
           auto m = menu.addMenu(tr("Event"));
 
@@ -126,15 +126,15 @@ void EventActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
   ctxm.insert(std::move(cm));
 }
 
-void EventActions::addTriggerToTimeNode()
+void EventActions::addTriggerToTimeSync()
 {
   auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
   if(!si)
     return;
 
-  auto selectedTimeNodes = selectedElements(si->getTimeNodes());
+  auto selectedTimeSyncs = selectedElements(si->getTimeSyncs());
 
-  if (selectedTimeNodes.isEmpty())
+  if (selectedTimeSyncs.isEmpty())
   {
     // take tn from a selected event
     auto selectedEvents = selectedElements(si->getEvents());
@@ -143,8 +143,8 @@ void EventActions::addTriggerToTimeNode()
       auto selectedStates = selectedElements(si->getStates());
       if(!selectedStates.empty())
       {
-        auto& tn = Scenario::parentTimeNode(*selectedStates.first(), *si);
-        selectedTimeNodes.append(&tn);
+        auto& tn = Scenario::parentTimeSync(*selectedStates.first(), *si);
+        selectedTimeSyncs.append(&tn);
       }
       else
       {
@@ -154,16 +154,16 @@ void EventActions::addTriggerToTimeNode()
     else
     {
       auto ev = selectedEvents.first();
-      auto& tn = Scenario::parentTimeNode(*ev, *si);
-      selectedTimeNodes.append(&tn);
+      auto& tn = Scenario::parentTimeSync(*ev, *si);
+      selectedTimeSyncs.append(&tn);
     }
   }
 
-  selectedTimeNodes = selectedTimeNodes.toSet().toList();
+  selectedTimeSyncs = selectedTimeSyncs.toSet().toList();
 
   auto cmd = m_triggerCommandFactory.make(
       &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand,
-      **selectedTimeNodes.begin());
+      **selectedTimeSyncs.begin());
 
   if (cmd)
     emit dispatcher().submitCommand(cmd);
@@ -227,24 +227,24 @@ void EventActions::removeCondition()
   }
 }
 
-void EventActions::removeTriggerFromTimeNode()
+void EventActions::removeTriggerFromTimeSync()
 {
   auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
-  auto selectedTimeNodes = selectedElements(si->getTimeNodes());
-  if (selectedTimeNodes.isEmpty())
+  auto selectedTimeSyncs = selectedElements(si->getTimeSyncs());
+  if (selectedTimeSyncs.isEmpty())
   {
     auto selectedEvents = selectedElements(si->getEvents());
     ISCORE_ASSERT(!selectedEvents.empty());
     // TODO maybe states, etc... ?
 
     auto ev = selectedEvents.first();
-    auto& tn = Scenario::parentTimeNode(*ev, *si);
-    selectedTimeNodes.append(&tn);
+    auto& tn = Scenario::parentTimeSync(*ev, *si);
+    selectedTimeSyncs.append(&tn);
   }
 
   auto cmd = m_triggerCommandFactory.make(
       &Scenario::Command::TriggerCommandFactory::make_removeTriggerCommand,
-      **selectedTimeNodes.begin());
+      **selectedTimeSyncs.begin());
 
   if (cmd)
     emit dispatcher().submitCommand(cmd);

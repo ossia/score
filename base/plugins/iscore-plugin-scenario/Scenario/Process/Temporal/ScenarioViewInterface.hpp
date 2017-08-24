@@ -9,7 +9,7 @@ class EventPresenter;
 class StatePresenter;
 class TemporalConstraintPresenter;
 class TemporalScenarioPresenter;
-class TimeNodePresenter;
+class TimeSyncPresenter;
 class CommentBlockPresenter;
 class ScenarioViewInterface
 {
@@ -18,7 +18,7 @@ public:
 
   void on_eventMoved(const EventPresenter& event);
   void on_constraintMoved(const TemporalConstraintPresenter& constraint);
-  void on_timeNodeMoved(const TimeNodePresenter& timenode);
+  void on_timeSyncMoved(const TimeSyncPresenter& timesync);
   void on_stateMoved(const StatePresenter& state);
   void on_commentMoved(const CommentBlockPresenter& comment);
 

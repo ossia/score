@@ -8,7 +8,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -44,7 +44,7 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
 {
   auto selectedConstraints = selectedElements(getConstraints(sm));
   auto selectedEvents = selectedElements(getEvents(sm));
-  auto selectedTimeNodes = selectedElements(getTimeNodes(sm));
+  auto selectedTimeSyncs = selectedElements(getTimeSyncs(sm));
   auto selectedStates = selectedElements(getStates(sm));
 
   for (const ConstraintModel* constraint : selectedConstraints)
@@ -83,22 +83,22 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
   for (const EventModel* event : selectedEvents)
   {
     auto tn_it
-        = ossia::find_if(selectedTimeNodes, [&](const TimeNodeModel* tn) {
-            return tn->id() == event->timeNode();
+        = ossia::find_if(selectedTimeSyncs, [&](const TimeSyncModel* tn) {
+            return tn->id() == event->timeSync();
           });
-    if (tn_it == selectedTimeNodes.end())
+    if (tn_it == selectedTimeSyncs.end())
     {
-      selectedTimeNodes.push_back(&sm.timeNode(event->timeNode()));
+      selectedTimeSyncs.push_back(&sm.timeSync(event->timeSync()));
     }
 
     // If some events aren't there, we set them to null in a copy.
   }
 
-  std::vector<TimeNodeModel*> copiedTimeNodes;
-  copiedTimeNodes.reserve(selectedTimeNodes.size());
-  for (const auto& tn : selectedTimeNodes)
+  std::vector<TimeSyncModel*> copiedTimeSyncs;
+  copiedTimeSyncs.reserve(selectedTimeSyncs.size());
+  for (const auto& tn : selectedTimeSyncs)
   {
-    auto clone_tn = new TimeNodeModel(*tn, tn->id(), nullptr);
+    auto clone_tn = new TimeSyncModel(*tn, tn->id(), nullptr);
     auto events = clone_tn->events();
     for (const auto& event : events)
     {
@@ -109,7 +109,7 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
         clone_tn->removeEvent(event);
     }
 
-    copiedTimeNodes.push_back(clone_tn);
+    copiedTimeSyncs.push_back(clone_tn);
   }
 
   std::vector<EventModel*> copiedEvents;
@@ -152,10 +152,10 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
   QJsonObject base;
   base["Constraints"] = arrayToJson(selectedConstraints);
   base["Events"] = arrayToJson(copiedEvents);
-  base["TimeNodes"] = arrayToJson(copiedTimeNodes);
+  base["TimeSyncs"] = arrayToJson(copiedTimeSyncs);
   base["States"] = arrayToJson(copiedStates);
 
-  for (auto elt : copiedTimeNodes)
+  for (auto elt : copiedTimeSyncs)
     delete elt;
   for (auto elt : copiedEvents)
     delete elt;

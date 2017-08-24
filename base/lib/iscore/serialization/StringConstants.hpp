@@ -93,7 +93,7 @@ struct StringConstants
   const QString HeightPercentage;
   const QString Messages;
   const QString StateProcesses;
-  const QString TimeNode;
+  const QString TimeSync;
   const QString States;
   const QString Condition;
   const QString Offset;

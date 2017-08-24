@@ -25,7 +25,7 @@ namespace Execution
 {
 class EventComponent;
 class StateComponent;
-class TimeNodeComponent;
+class TimeSyncComponent;
 }
 }
 namespace Scenario
@@ -63,8 +63,8 @@ private:
 private:
   Engine::Execution::ConstraintComponent* m_ossia_constraint{};
 
-  Engine::Execution::TimeNodeComponent* m_ossia_startTimeNode{};
-  Engine::Execution::TimeNodeComponent* m_ossia_endTimeNode{};
+  Engine::Execution::TimeSyncComponent* m_ossia_startTimeSync{};
+  Engine::Execution::TimeSyncComponent* m_ossia_endTimeSync{};
 
   Engine::Execution::EventComponent* m_ossia_startEvent{};
   Engine::Execution::EventComponent* m_ossia_endEvent{};

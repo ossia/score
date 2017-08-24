@@ -3,7 +3,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
@@ -95,14 +95,14 @@ ScenarioPasteElements::ScenarioPasteElements(
   // be easily mapped.
   auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
 
-  std::vector<TimeNodeModel*> timenodes;
+  std::vector<TimeSyncModel*> timesyncs;
   std::vector<ConstraintModel*> constraints;
   std::vector<EventModel*> events;
   std::vector<StateModel*> states;
 
   // TODO this is really a bad idea... either they should be properly added, or
   // the json should be modified without including anything in the scenario.
-  // Especially their parents aren't coherent (TimeNode must not have a parent
+  // Especially their parents aren't coherent (TimeSync must not have a parent
   // because it tries to access the event in the scenario if it has one and
   // Constraint needs a parent for the RelativePath in LayerModel)
   // We deserialize everything
@@ -116,11 +116,11 @@ ScenarioPasteElements::ScenarioPasteElements(
     }
   }
   {
-    auto json_arr = obj["TimeNodes"].toArray();
-    timenodes.reserve(json_arr.size());
+    auto json_arr = obj["TimeSyncs"].toArray();
+    timesyncs.reserve(json_arr.size());
     for (const auto& element : json_arr)
     {
-      timenodes.emplace_back(new TimeNodeModel{
+      timesyncs.emplace_back(new TimeSyncModel{
           JSONObject::Deserializer{element.toObject()}, nullptr});
     }
   }
@@ -146,8 +146,8 @@ ScenarioPasteElements::ScenarioPasteElements(
   // We generate identifiers for the forthcoming elements
   auto constraint_ids = getStrongIdRange2<ConstraintModel>(
       constraints.size(), scenario.constraints, constraints);
-  auto timenode_ids = getStrongIdRange2<TimeNodeModel>(
-      timenodes.size(), scenario.timeNodes, timenodes);
+  auto timesync_ids = getStrongIdRange2<TimeSyncModel>(
+      timesyncs.size(), scenario.timeSyncs, timesyncs);
   auto event_ids
       = getStrongIdRange2<EventModel>(events.size(), scenario.events, events);
   auto state_ids
@@ -156,17 +156,17 @@ ScenarioPasteElements::ScenarioPasteElements(
   // We set the new ids everywhere
   {
     int i = 0;
-    for (TimeNodeModel* timenode : timenodes)
+    for (TimeSyncModel* timesync : timesyncs)
     {
       for (EventModel* event : events)
       {
-        if (event->timeNode() == timenode->id())
+        if (event->timeSync() == timesync->id())
         {
-          event->changeTimeNode(timenode_ids[i]);
+          event->changeTimeSync(timesync_ids[i]);
         }
       }
 
-      timenode->setId(timenode_ids[i]);
+      timesync->setId(timesync_ids[i]);
       i++;
     }
   }
@@ -177,13 +177,13 @@ ScenarioPasteElements::ScenarioPasteElements(
     {
       {
         auto it = std::find_if(
-            timenodes.begin(), timenodes.end(), [&](TimeNodeModel* tn) {
-              return tn->id() == event->timeNode();
+            timesyncs.begin(), timesyncs.end(), [&](TimeSyncModel* tn) {
+              return tn->id() == event->timeSync();
             });
-        ISCORE_ASSERT(it != timenodes.end());
-        auto timenode = *it;
-        timenode->removeEvent(event->id());
-        timenode->addEvent(event_ids[i]);
+        ISCORE_ASSERT(it != timesyncs.end());
+        auto timesync = *it;
+        timesync->removeEvent(event->id());
+        timesync->addEvent(event_ids[i]);
       }
 
       for (StateModel* state : states)
@@ -261,19 +261,19 @@ ScenarioPasteElements::ScenarioPasteElements(
   }
 
   // Set the correct positions / dates.
-  // Take the earliest constraint or timenode and compute the delta; apply the
+  // Take the earliest constraint or timesync and compute the delta; apply the
   // delta everywhere.
-  if (!constraints.empty() || !timenodes.empty()) // Should always be the case.
+  if (!constraints.empty() || !timesyncs.empty()) // Should always be the case.
   {
     auto earliestTime = !constraints.empty() ? constraints.front()->startDate()
-                                             : timenodes.front()->date();
+                                             : timesyncs.front()->date();
     for (const ConstraintModel* constraint : constraints)
     {
       const auto& t = constraint->startDate();
       if (t < earliestTime)
         earliestTime = t;
     }
-    for (const TimeNodeModel* tn : timenodes)
+    for (const TimeSyncModel* tn : timesyncs)
     {
       const auto& t = tn->date();
       if (t < earliestTime)
@@ -291,7 +291,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     {
       constraint->setStartDate(constraint->startDate() + delta_t);
     }
-    for (TimeNodeModel* tn : timenodes)
+    for (TimeSyncModel* tn : timesyncs)
     {
       tn->setDate(tn->date() + delta_t);
     }
@@ -338,12 +338,12 @@ ScenarioPasteElements::ScenarioPasteElements(
     delete elt;
   }
 
-  m_ids_timenodes.reserve(timenodes.size());
-  m_json_timenodes.reserve(timenodes.size());
-  for (auto elt : timenodes)
+  m_ids_timesyncs.reserve(timesyncs.size());
+  m_json_timesyncs.reserve(timesyncs.size());
+  for (auto elt : timesyncs)
   {
-    m_ids_timenodes.push_back(elt->id());
-    m_json_timenodes.push_back(iscore::marshall<JSONObject>(*elt));
+    m_ids_timesyncs.push_back(elt->id());
+    m_json_timesyncs.push_back(iscore::marshall<JSONObject>(*elt));
 
     delete elt;
   }
@@ -373,9 +373,9 @@ void ScenarioPasteElements::undo(const iscore::DocumentContext& ctx) const
 {
   auto& scenario = m_ts.find(ctx);
 
-  for (const auto& elt : m_ids_timenodes)
+  for (const auto& elt : m_ids_timesyncs)
   {
-    scenario.timeNodes.remove(elt);
+    scenario.timeSyncs.remove(elt);
   }
   for (const auto& elt : m_ids_events)
   {
@@ -395,15 +395,15 @@ void ScenarioPasteElements::redo(const iscore::DocumentContext& ctx) const
 {
   Scenario::ProcessModel& scenario = m_ts.find(ctx);
 
-  std::vector<TimeNodeModel*> addedTimeNodes;
-  addedTimeNodes.reserve(m_json_timenodes.size());
+  std::vector<TimeSyncModel*> addedTimeSyncs;
+  addedTimeSyncs.reserve(m_json_timesyncs.size());
   std::vector<EventModel*> addedEvents;
   addedEvents.reserve(m_json_events.size());
-  for (const auto& timenode : m_json_timenodes)
+  for (const auto& timesync : m_json_timesyncs)
   {
-    auto tn = new TimeNodeModel(JSONObject::Deserializer{timenode}, &scenario);
-    scenario.timeNodes.add(tn);
-    addedTimeNodes.push_back(tn);
+    auto tn = new TimeSyncModel(JSONObject::Deserializer{timesync}, &scenario);
+    scenario.timeSyncs.add(tn);
+    addedTimeSyncs.push_back(tn);
   }
 
   for (const auto& event : m_json_events)
@@ -431,24 +431,24 @@ void ScenarioPasteElements::redo(const iscore::DocumentContext& ctx) const
   {
     updateEventExtent(event->id(), scenario);
   }
-  for (const auto& timenode : addedTimeNodes)
+  for (const auto& timesync : addedTimeSyncs)
   {
-    updateTimeNodeExtent(timenode->id(), scenario);
+    updateTimeSyncExtent(timesync->id(), scenario);
   }
 }
 
 void ScenarioPasteElements::serializeImpl(DataStreamInput& s) const
 {
   s << m_ts
-    << m_ids_timenodes << m_ids_events << m_ids_states << m_ids_constraints
-    << m_json_timenodes << m_json_events << m_json_states << m_json_constraints ;
+    << m_ids_timesyncs << m_ids_events << m_ids_states << m_ids_constraints
+    << m_json_timesyncs << m_json_events << m_json_states << m_json_constraints ;
 }
 
 void ScenarioPasteElements::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_ts
-      >> m_ids_timenodes >> m_ids_events >> m_ids_states >> m_ids_constraints
-      >> m_json_timenodes >> m_json_events >> m_json_states
+      >> m_ids_timesyncs >> m_ids_events >> m_ids_states >> m_ids_constraints
+      >> m_json_timesyncs >> m_json_events >> m_json_states
       >> m_json_constraints;
 }
 }

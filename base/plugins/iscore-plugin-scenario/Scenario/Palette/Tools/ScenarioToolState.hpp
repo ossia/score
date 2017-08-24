@@ -18,10 +18,10 @@
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/State/StateView.hpp>
 
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeView.hpp>
-#include <Scenario/Document/TimeNode/TriggerView.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
+#include <Scenario/Document/TimeSync/TriggerView.hpp>
 
 #include <Scenario/Document/Constraint/SlotHandle.hpp>
 #include <Scenario/Document/Constraint/Slot.hpp>
@@ -93,23 +93,23 @@ protected:
               ? event.id()
               : OptionalId<EventModel>{};
   }
-  OptionalId<TimeNodeModel>
-  itemToTimeNodeId(const QGraphicsItem* pressedItem) const
+  OptionalId<TimeSyncModel>
+  itemToTimeSyncId(const QGraphicsItem* pressedItem) const
   {
-    const auto& timenode
-        = static_cast<const TimeNodeView*>(pressedItem)->presenter().model();
-    return timenode.parent() == &this->m_palette.model()
-               ? timenode.id()
-               : OptionalId<TimeNodeModel>{};
+    const auto& timesync
+        = static_cast<const TimeSyncView*>(pressedItem)->presenter().model();
+    return timesync.parent() == &this->m_palette.model()
+               ? timesync.id()
+               : OptionalId<TimeSyncModel>{};
   }
-  OptionalId<TimeNodeModel>
+  OptionalId<TimeSyncModel>
   itemToTriggerId(const QGraphicsItem* pressedItem) const
   {
-      const auto& timenode
-              = static_cast<const TimeNodeView*>(pressedItem->parentItem())->presenter().model();
-      return timenode.parent() == &this->m_palette.model()
-              ? timenode.id()
-              : OptionalId<TimeNodeModel>{};
+      const auto& timesync
+              = static_cast<const TimeSyncView*>(pressedItem->parentItem())->presenter().model();
+      return timesync.parent() == &this->m_palette.model()
+              ? timesync.id()
+              : OptionalId<TimeSyncModel>{};
   }
   OptionalId<ConstraintModel>
   itemToConstraintId(const QGraphicsItem* pressedItem) const
@@ -150,7 +150,7 @@ protected:
   template <
       typename EventFun,
       typename StateFun,
-      typename TimeNodeFun,
+      typename TimeSyncFun,
       typename ConstraintFun,
       typename LeftBraceFun,
       typename RightBraceFun,
@@ -160,7 +160,7 @@ protected:
       const QGraphicsItem* item,
       StateFun st_fun,
       EventFun ev_fun,
-      TimeNodeFun tn_fun,
+      TimeSyncFun tn_fun,
       ConstraintFun cst_fun,
       LeftBraceFun lbrace_fun,
       RightBraceFun rbrace_fun,
@@ -180,7 +180,7 @@ protected:
     };
 
     // Each time :
-    // Check if it is an event / timenode / constraint /state
+    // Check if it is an event / timesync / constraint /state
     // The itemToXXXId methods check that we are in the correct scenario, too.
     switch (item->type())
     {
@@ -198,8 +198,8 @@ protected:
       case TriggerView::static_type():
         tryFun(tn_fun, itemToTriggerId(item));
         break;
-      case TimeNodeView::static_type():
-        tryFun(tn_fun, itemToTimeNodeId(item));
+      case TimeSyncView::static_type():
+        tryFun(tn_fun, itemToTimeSyncId(item));
         break;
 
       case StateView::static_type():

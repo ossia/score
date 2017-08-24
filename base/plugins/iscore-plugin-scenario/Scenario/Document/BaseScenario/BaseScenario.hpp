@@ -14,7 +14,7 @@ class QObject;
 namespace Scenario
 {
 class ConstraintModel;
-class TimeNodeModel;
+class TimeSyncModel;
 class BaseScenario final : public IdentifiedObject<BaseScenario>,
                            public BaseScenarioContainer
 {
@@ -43,8 +43,8 @@ public:
   using QObject::event;
 };
 
-const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
-    const BaseScenario&, const Id<TimeNodeModel>& timeNodeId);
+const QVector<Id<ConstraintModel>> constraintsBeforeTimeSync(
+    const BaseScenario&, const Id<TimeSyncModel>& timeSyncId);
 }
 
 DEFAULT_MODEL_METADATA(Scenario::BaseScenario, "Base Scenario")

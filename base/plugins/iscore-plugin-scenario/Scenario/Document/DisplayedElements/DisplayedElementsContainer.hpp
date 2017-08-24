@@ -3,15 +3,15 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 class QGraphicsItem;
 namespace Scenario
 {
 class FullViewConstraintPresenter;
 class StatePresenter;
 class EventPresenter;
-class TimeNodePresenter;
-class TimeNodeModel;
+class TimeSyncPresenter;
+class TimeSyncModel;
 struct DisplayedElementsContainer
 {
 
@@ -23,8 +23,8 @@ struct DisplayedElementsContainer
       const StateModel& est,
       const EventModel& sev,
       const EventModel& eev,
-      const TimeNodeModel& stn,
-      const TimeNodeModel& etn)
+      const TimeSyncModel& stn,
+      const TimeSyncModel& etn)
       : constraint{&cst}
       , startState{&sst}
       , endState{&est}
@@ -40,8 +40,8 @@ struct DisplayedElementsContainer
   QPointer<const StateModel> endState{};
   QPointer<const EventModel> startEvent{};
   QPointer<const EventModel> endEvent{};
-  QPointer<const TimeNodeModel> startNode{};
-  QPointer<const TimeNodeModel> endNode{};
+  QPointer<const TimeSyncModel> startNode{};
+  QPointer<const TimeSyncModel> endNode{};
 };
 
 struct DisplayedElementsPresenterContainer
@@ -55,8 +55,8 @@ struct DisplayedElementsPresenterContainer
       StatePresenter* s2,
       EventPresenter* e1,
       EventPresenter* e2,
-      TimeNodePresenter* t1,
-      TimeNodePresenter* t2)
+      TimeSyncPresenter* t1,
+      TimeSyncPresenter* t2)
       : constraint{cp}
       , startState{s1}
       , endState{s2}
@@ -72,7 +72,7 @@ struct DisplayedElementsPresenterContainer
   StatePresenter* endState{};
   EventPresenter* startEvent{};
   EventPresenter* endEvent{};
-  TimeNodePresenter* startNode{};
-  TimeNodePresenter* endNode{};
+  TimeSyncPresenter* startNode{};
+  TimeSyncPresenter* endNode{};
 };
 }

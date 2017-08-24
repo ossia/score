@@ -6,11 +6,11 @@
 #include <Scenario/Commands/Scenario/Deletions/ClearConstraint.hpp>
 #include <Scenario/Commands/Scenario/Deletions/ClearState.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
-#include <Scenario/Commands/Scenario/Merge/MergeTimeNodes.hpp>
+#include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <algorithm>
@@ -83,7 +83,7 @@ void removeSelection(
   iscore::SelectionDispatcher s{ctx.selectionStack};
   s.setAndCommit({});
   ctx.selectionStack.clear();
-  // We have to remove the first / last timenodes / events from the selection.
+  // We have to remove the first / last timesyncs / events from the selection.
   erase_if(sel, [&](auto&& elt) { return elt->id_val() == startId_val(); });
 
   if (!sel.empty())
@@ -160,35 +160,35 @@ auto make_ordered(const Scenario::ProcessModel& scenario)
   return the_set;
 }
 
-void mergeTimeNodes(
+void mergeTimeSyncs(
     const Scenario::ProcessModel& scenario,
     const iscore::CommandStackFacade& f)
 {
-  // We merge all the furthest timenodes to the first one.
-  auto timenodes = make_ordered<TimeNodeModel>(scenario);
+  // We merge all the furthest timesyncs to the first one.
+  auto timesyncs = make_ordered<TimeSyncModel>(scenario);
   auto states = make_ordered<StateModel>(scenario);
   auto events = make_ordered<EventModel>(scenario);
 
-  if (timenodes.size() < 2)
+  if (timesyncs.size() < 2)
   {
     if (states.size() == 2)
     {
       auto it = states.begin();
-      auto& first = Scenario::parentTimeNode(**it, scenario);
-      auto& second = Scenario::parentTimeNode(**(++it), scenario);
+      auto& first = Scenario::parentTimeSync(**it, scenario);
+      auto& second = Scenario::parentTimeSync(**(++it), scenario);
 
-      auto cmd = new Command::MergeTimeNodes(
+      auto cmd = new Command::MergeTimeSyncs(
           scenario, second.id(), first.id());
       f.redoAndPush(cmd);
     }
   }
   else
   {
-    auto it = timenodes.begin();
+    auto it = timesyncs.begin();
     auto first_tn = (*it)->id();
-    for (++it; it != timenodes.end(); ++it)
+    for (++it; it != timesyncs.end(); ++it)
     {
-      auto cmd = new Command::MergeTimeNodes(
+      auto cmd = new Command::MergeTimeSyncs(
           scenario, first_tn, (*it)->id());
       f.redoAndPush(cmd);
     }

@@ -7,12 +7,12 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintSummaryWidget.hpp>
 #include <Scenario/Inspector/Event/EventSummaryWidget.hpp>
-#include <Scenario/Inspector/TimeNode/TimeNodeSummaryWidget.hpp>
+#include <Scenario/Inspector/TimeSync/TimeSyncSummaryWidget.hpp>
 
 namespace Scenario
 {
@@ -20,8 +20,8 @@ SummaryInspectorWidget::SummaryInspectorWidget(
     const IdentifiedObjectAbstract* obj,
     const std::set<const ConstraintModel*>&
         constraints,
-    const std::set<const TimeNodeModel*>&
-        timenodes,
+    const std::set<const TimeSyncModel*>&
+        timesyncs,
     const std::set<const EventModel*>&
         events,
     const std::set<const StateModel*>&
@@ -43,11 +43,11 @@ SummaryInspectorWidget::SummaryInspectorWidget(
   }
 
   auto tnSection
-      = new Inspector::InspectorSectionWidget{tr("TimeNodes"), false, this};
+      = new Inspector::InspectorSectionWidget{tr("TimeSyncs"), false, this};
   m_properties.push_back(tnSection);
-  for (auto t : timenodes)
+  for (auto t : timesyncs)
   {
-    tnSection->addContent(new TimeNodeSummaryWidget{*t, context, this});
+    tnSection->addContent(new TimeSyncSummaryWidget{*t, context, this});
   }
 
   auto evSection

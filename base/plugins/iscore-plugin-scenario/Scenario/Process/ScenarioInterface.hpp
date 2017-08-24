@@ -7,7 +7,7 @@ namespace Scenario
 class ConstraintModel;
 class EventModel;
 class StateModel;
-class TimeNodeModel;
+class TimeSyncModel;
 template <typename T>
 using ElementContainer = iscore::IndirectContainer<std::vector, T>;
 
@@ -18,23 +18,23 @@ public:
   virtual ConstraintModel*
   findConstraint(const Id<ConstraintModel>& constraintId) const = 0;
   virtual EventModel* findEvent(const Id<EventModel>& eventId) const = 0;
-  virtual TimeNodeModel*
-  findTimeNode(const Id<TimeNodeModel>& timeNodeId) const = 0;
+  virtual TimeSyncModel*
+  findTimeSync(const Id<TimeSyncModel>& timeSyncId) const = 0;
   virtual StateModel* findState(const Id<StateModel>& stId) const = 0;
 
   virtual ConstraintModel&
   constraint(const Id<ConstraintModel>& constraintId) const = 0;
   virtual EventModel& event(const Id<EventModel>& eventId) const = 0;
-  virtual TimeNodeModel&
-  timeNode(const Id<TimeNodeModel>& timeNodeId) const = 0;
+  virtual TimeSyncModel&
+  timeSync(const Id<TimeSyncModel>& timeSyncId) const = 0;
   virtual StateModel& state(const Id<StateModel>& stId) const = 0;
 
   virtual ElementContainer<ConstraintModel> getConstraints() const = 0;
   virtual ElementContainer<StateModel> getStates() const = 0;
   virtual ElementContainer<EventModel> getEvents() const = 0;
-  virtual ElementContainer<TimeNodeModel> getTimeNodes() const = 0;
+  virtual ElementContainer<TimeSyncModel> getTimeSyncs() const = 0;
 
-  virtual TimeNodeModel& startTimeNode() const = 0;
+  virtual TimeSyncModel& startTimeSync() const = 0;
 };
 
 static inline auto startId_val()
@@ -72,9 +72,9 @@ struct ElementTraits<Scenario::ScenarioInterface, EventModel>
   static const constexpr auto accessor = &ScenarioInterface::getEvents;
 };
 template <>
-struct ElementTraits<Scenario::ScenarioInterface, TimeNodeModel>
+struct ElementTraits<Scenario::ScenarioInterface, TimeSyncModel>
 {
-  static const constexpr auto accessor = &ScenarioInterface::getTimeNodes;
+  static const constexpr auto accessor = &ScenarioInterface::getTimeSyncs;
 };
 template <>
 struct ElementTraits<Scenario::ScenarioInterface, StateModel>

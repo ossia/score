@@ -25,7 +25,7 @@ class MoveConstraintInScenario_StateWrapper;
 class MoveLeftBraceInScenario_StateWrapper;
 class MoveRightBraceInScenario_StateWrapper;
 class MoveEventInScenario_StateWrapper;
-class MoveTimeNodeInScenario_StateWrapper;
+class MoveTimeSyncInScenario_StateWrapper;
 class ProcessModel;
 class ToolPalette final : public GraphicsSceneToolPalette
 {
@@ -64,7 +64,7 @@ private:
   Process::LayerContext& m_context;
 
   CreationTool<ProcessModel, Scenario::ToolPalette> m_createTool;
-  SmartTool<ProcessModel, Scenario::ToolPalette, TemporalScenarioView, Scenario::MoveConstraintInScenario_StateWrapper, Scenario::MoveLeftBraceInScenario_StateWrapper, Scenario::MoveRightBraceInScenario_StateWrapper, Scenario::MoveEventInScenario_StateWrapper, Scenario::MoveTimeNodeInScenario_StateWrapper>
+  SmartTool<ProcessModel, Scenario::ToolPalette, TemporalScenarioView, Scenario::MoveConstraintInScenario_StateWrapper, Scenario::MoveLeftBraceInScenario_StateWrapper, Scenario::MoveRightBraceInScenario_StateWrapper, Scenario::MoveEventInScenario_StateWrapper, Scenario::MoveTimeSyncInScenario_StateWrapper>
       m_selectTool;
 
   PlayToolState m_playTool;

@@ -5,7 +5,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/model/Component.hpp>
@@ -202,7 +202,7 @@ template <
     typename Scenario_T,
     typename ConstraintComponent_T,
     typename EventComponent_T,
-    typename TimeNodeComponent_T,
+    typename TimeSyncComponent_T,
     typename StateComponent_T,
     bool HasOwnership = true>
 class HierarchicalScenarioComponent : public Component_T, public Nano::Observer
@@ -220,11 +220,11 @@ public:
     Scenario::EventModel& element;
     EventComponent_T& component;
   };
-  struct TimeNodePair
+  struct TimeSyncPair
   {
-    using element_t = Scenario::TimeNodeModel;
-    Scenario::TimeNodeModel& element;
-    TimeNodeComponent_T& component;
+    using element_t = Scenario::TimeSyncModel;
+    Scenario::TimeSyncModel& element;
+    TimeSyncComponent_T& component;
   };
   struct StatePair
   {
@@ -252,7 +252,7 @@ public:
   //! Do not forget to call this when using the lazy constructor.
   void init()
   {
-    setup<Scenario::TimeNodeModel>();
+    setup<Scenario::TimeSyncModel>();
     setup<Scenario::EventModel>();
     setup<Scenario::StateModel>();
     setup<Scenario::ConstraintModel>();
@@ -270,9 +270,9 @@ public:
   {
     return m_states;
   }
-  const std::list<TimeNodePair>& timeNodes_pairs() const
+  const std::list<TimeSyncPair>& timeSyncs_pairs() const
   {
-    return m_timeNodes;
+    return m_timeSyncs;
   }
 
   void clear()
@@ -283,13 +283,13 @@ public:
       do_cleanup(element);
     for (auto element : m_events)
       do_cleanup(element);
-    for (auto element : m_timeNodes)
+    for (auto element : m_timeSyncs)
       do_cleanup(element);
 
     m_constraints.clear();
     m_states.clear();
     m_events.clear();
-    m_timeNodes.clear();
+    m_timeSyncs.clear();
   }
 
   ~HierarchicalScenarioComponent()
@@ -408,7 +408,7 @@ private:
     }
   }
 
-  std::list<TimeNodePair> m_timeNodes;
+  std::list<TimeSyncPair> m_timeSyncs;
   std::list<EventPair> m_events;
   std::list<StatePair> m_states;
   std::list<ConstraintPair> m_constraints;
@@ -434,14 +434,14 @@ private:
         ElementTraits<Scenario_T, Scenario::EventModel>::accessor;
   };
   template <bool dummy>
-  struct MatchingComponent<Scenario::TimeNodeModel, dummy>
+  struct MatchingComponent<Scenario::TimeSyncModel, dummy>
   {
-    using type = TimeNodeComponent_T;
-    using pair_type = TimeNodePair;
+    using type = TimeSyncComponent_T;
+    using pair_type = TimeSyncPair;
     static const constexpr auto local_container
-        = &HierarchicalScenarioComponent::m_timeNodes;
+        = &HierarchicalScenarioComponent::m_timeSyncs;
     static const constexpr auto scenario_container = Scenario::
-        ElementTraits<Scenario_T, Scenario::TimeNodeModel>::accessor;
+        ElementTraits<Scenario_T, Scenario::TimeSyncModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::StateModel, dummy>
@@ -461,7 +461,7 @@ template <
     typename BaseScenario_T,
     typename ConstraintComponent_T,
     typename EventComponent_T,
-    typename TimeNodeComponent_T,
+    typename TimeSyncComponent_T,
     typename StateComponent_T>
 class HierarchicalBaseScenario : public Component_T, public Nano::Observer
 {
@@ -478,11 +478,11 @@ public:
     Scenario::EventModel& element;
     EventComponent_T& component;
   };
-  struct TimeNodePair
+  struct TimeSyncPair
   {
-    using element_t = Scenario::TimeNodeModel;
-    Scenario::TimeNodeModel& element;
-    TimeNodeComponent_T& component;
+    using element_t = Scenario::TimeSyncModel;
+    Scenario::TimeSyncModel& element;
+    TimeSyncComponent_T& component;
   };
   struct StatePair
   {
@@ -494,8 +494,8 @@ public:
   template <typename... Args>
   HierarchicalBaseScenario(Args&&... args)
       : Component_T{std::forward<Args>(args)...}
-      , m_timeNodes{setup<Scenario::TimeNodeModel>(0),
-                    setup<Scenario::TimeNodeModel>(1)}
+      , m_timeSyncs{setup<Scenario::TimeSyncModel>(0),
+                    setup<Scenario::TimeSyncModel>(1)}
       , m_events{setup<Scenario::EventModel>(0),
                  setup<Scenario::EventModel>(1)}
       , m_states{setup<Scenario::StateModel>(0),
@@ -516,9 +516,9 @@ public:
   {
     return m_states;
   }
-  const auto& timeNodes() const
+  const auto& timeSyncs() const
   {
-    return m_timeNodes;
+    return m_timeSyncs;
   }
 
   void clear()
@@ -529,13 +529,13 @@ public:
       cleanup(element);
     for (auto element : m_events)
       cleanup(element);
-    for (auto element : m_timeNodes)
+    for (auto element : m_timeSyncs)
       cleanup(element);
 
     m_constraints.clear();
     m_states.clear();
     m_events.clear();
-    m_timeNodes.clear();
+    m_timeSyncs.clear();
   }
 
   ~HierarchicalBaseScenario()
@@ -591,7 +591,7 @@ private:
     }
   }
 
-  std::list<TimeNodePair> m_timeNodes;
+  std::list<TimeSyncPair> m_timeSyncs;
   std::list<EventPair> m_events;
   std::list<StatePair> m_states;
   std::list<ConstraintPair> m_constraints;
@@ -618,14 +618,14 @@ private:
         ElementTraits<BaseScenario_T, Scenario::EventModel>::accessor;
   };
   template <bool dummy>
-  struct MatchingComponent<Scenario::TimeNodeModel, dummy>
+  struct MatchingComponent<Scenario::TimeSyncModel, dummy>
   {
-    using type = TimeNodeComponent_T;
-    using pair_type = TimeNodePair;
+    using type = TimeSyncComponent_T;
+    using pair_type = TimeSyncPair;
     static const constexpr auto local_container
-        = &HierarchicalBaseScenario::m_timeNodes;
+        = &HierarchicalBaseScenario::m_timeSyncs;
     static const constexpr auto scenario_container = Scenario::
-        ElementTraits<BaseScenario_T, Scenario::TimeNodeModel>::
+        ElementTraits<BaseScenario_T, Scenario::TimeSyncModel>::
             accessor;
   };
   template <bool dummy>

@@ -15,7 +15,7 @@ namespace Scenario
 class ConstraintModel;
 class EventModel;
 class StateModel;
-class TimeNodeModel;
+class TimeSyncModel;
 class BaseScenario;
 class ScenarioInterface;
 }
@@ -27,7 +27,7 @@ namespace Execution
 class ConstraintComponent;
 class EventComponent;
 class StateComponent;
-class TimeNodeComponent;
+class TimeSyncComponent;
 }
 }
 
@@ -46,8 +46,8 @@ public:
       Scenario::StateModel& endState,
       Scenario::EventModel& startEvent,
       Scenario::EventModel& endEvent,
-      Scenario::TimeNodeModel& startNode,
-      Scenario::TimeNodeModel& endNode)
+      Scenario::TimeSyncModel& startNode,
+      Scenario::TimeSyncModel& endNode)
       : m_constraint{constraint}
       , m_startState{startState}
       , m_endState{endState}
@@ -63,11 +63,11 @@ public:
     return m_constraint;
   }
 
-  Scenario::TimeNodeModel& startTimeNode() const
+  Scenario::TimeSyncModel& startTimeSync() const
   {
     return m_startNode;
   }
-  Scenario::TimeNodeModel& endTimeNode() const
+  Scenario::TimeSyncModel& endTimeSync() const
   {
     return m_endNode;
   }
@@ -96,8 +96,8 @@ private:
   Scenario::StateModel& m_endState;
   Scenario::EventModel& m_startEvent;
   Scenario::EventModel& m_endEvent;
-  Scenario::TimeNodeModel& m_startNode;
-  Scenario::TimeNodeModel& m_endNode;
+  Scenario::TimeSyncModel& m_startNode;
+  Scenario::TimeSyncModel& m_endNode;
 };
 
 namespace Engine
@@ -118,8 +118,8 @@ public:
 
   ConstraintComponent& baseConstraint() const;
 
-  TimeNodeComponent& startTimeNode() const;
-  TimeNodeComponent& endTimeNode() const;
+  TimeSyncComponent& startTimeSync() const;
+  TimeSyncComponent& endTimeSync() const;
 
   EventComponent& startEvent() const;
   EventComponent& endEvent() const;
@@ -134,8 +134,8 @@ private:
   const Context& m_ctx;
   std::shared_ptr<ConstraintComponent> m_ossia_constraint;
 
-  std::shared_ptr<TimeNodeComponent> m_ossia_startTimeNode;
-  std::shared_ptr<TimeNodeComponent> m_ossia_endTimeNode;
+  std::shared_ptr<TimeSyncComponent> m_ossia_startTimeSync;
+  std::shared_ptr<TimeSyncComponent> m_ossia_endTimeSync;
 
   std::shared_ptr<EventComponent> m_ossia_startEvent;
   std::shared_ptr<EventComponent> m_ossia_endEvent;

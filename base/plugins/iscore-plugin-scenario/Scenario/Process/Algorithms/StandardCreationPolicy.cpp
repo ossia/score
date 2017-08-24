@@ -9,7 +9,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
@@ -37,42 +37,42 @@ CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
   return *comment;
 }
 
-void ScenarioCreate<TimeNodeModel>::undo(
-    const Id<TimeNodeModel>& id, Scenario::ProcessModel& s)
+void ScenarioCreate<TimeSyncModel>::undo(
+    const Id<TimeSyncModel>& id, Scenario::ProcessModel& s)
 {
-  s.timeNodes.remove(id);
+  s.timeSyncs.remove(id);
 }
 
-TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
-    const Id<TimeNodeModel>& id,
+TimeSyncModel& ScenarioCreate<TimeSyncModel>::redo(
+    const Id<TimeSyncModel>& id,
     const VerticalExtent& extent,
     const TimeVal& date,
     Scenario::ProcessModel& s)
 {
-  auto timeNode = new TimeNodeModel{id, extent, date, &s};
-  s.timeNodes.add(timeNode);
+  auto timeSync = new TimeSyncModel{id, extent, date, &s};
+  s.timeSyncs.add(timeSync);
 
-  return *timeNode;
+  return *timeSync;
 }
 
 void ScenarioCreate<EventModel>::undo(
     const Id<EventModel>& id, Scenario::ProcessModel& s)
 {
   auto& ev = s.event(id);
-  s.timeNode(ev.timeNode()).removeEvent(id);
+  s.timeSync(ev.timeSync()).removeEvent(id);
   s.events.remove(&ev);
 }
 
 EventModel& ScenarioCreate<EventModel>::redo(
     const Id<EventModel>& id,
-    TimeNodeModel& timenode,
+    TimeSyncModel& timesync,
     const VerticalExtent& extent,
     Scenario::ProcessModel& s)
 {
-  auto ev = new EventModel{id, timenode.id(), extent, timenode.date(), &s};
+  auto ev = new EventModel{id, timesync.id(), extent, timesync.date(), &s};
 
   s.events.add(ev);
-  timenode.addEvent(id);
+  timesync.addEvent(id);
 
   return *ev;
 }
@@ -133,7 +133,7 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
 
   const auto& sev = s.event(sst.eventId());
   const auto& eev = s.event(est.eventId());
-  const auto& tn = s.timeNode(eev.timeNode());
+  const auto& tn = s.timeSync(eev.timeSync());
 
   ConstraintDurations::Algorithms::changeAllDurations(
       *constraint, eev.date() - sev.date());

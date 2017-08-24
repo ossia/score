@@ -1,14 +1,14 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/editor/scenario/time_event.hpp>
-#include <ossia/editor/scenario/time_node.hpp>
+#include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/network/base/device.hpp>
 #include <Engine/iscore2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <algorithm>
 #include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -22,7 +22,7 @@
 #include <Engine/Executor/EventComponent.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/Executor/StateComponent.hpp>
-#include <Engine/Executor/TimeNodeComponent.hpp>
+#include <Engine/Executor/TimeSyncComponent.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
@@ -106,16 +106,16 @@ Component::Component(
 
   // TODO also states in BasEelement
   // TODO put graphical settings somewhere.
-  auto main_start_node = loop->get_start_timenode();
-  auto main_end_node = loop->get_end_timenode();
+  auto main_start_node = loop->get_start_timesync();
+  auto main_end_node = loop->get_end_timesync();
   auto main_start_event = *main_start_node->get_time_events().begin();
   auto main_end_event = *main_end_node->get_time_events().begin();
 
   using namespace Engine::Execution;
-  m_ossia_startTimeNode = new TimeNodeComponent(element.startTimeNode(),
-                                              system(), iscore::newId(element.startTimeNode()), this);
-  m_ossia_endTimeNode = new TimeNodeComponent(element.endTimeNode(),
-                                            system(), iscore::newId(element.endTimeNode()), this);
+  m_ossia_startTimeSync = new TimeSyncComponent(element.startTimeSync(),
+                                              system(), iscore::newId(element.startTimeSync()), this);
+  m_ossia_endTimeSync = new TimeSyncComponent(element.endTimeSync(),
+                                            system(), iscore::newId(element.endTimeSync()), this);
 
   m_ossia_startEvent = new EventComponent(element.startEvent(),
                                         system(), iscore::newId(element.startEvent()), this);
@@ -130,8 +130,8 @@ Component::Component(
 
   m_ossia_constraint = new ConstraintComponent(element.constraint(), system(), iscore::newId(element.constraint()), this);
 
-  m_ossia_startTimeNode->onSetup(main_start_node, m_ossia_startTimeNode->makeTrigger());
-  m_ossia_endTimeNode->onSetup(main_end_node, m_ossia_endTimeNode->makeTrigger());
+  m_ossia_startTimeSync->onSetup(main_start_node, m_ossia_startTimeSync->makeTrigger());
+  m_ossia_endTimeSync->onSetup(main_end_node, m_ossia_endTimeSync->makeTrigger());
   m_ossia_startEvent->onSetup(main_start_event, m_ossia_startEvent->makeExpression(), (ossia::time_event::offset_behavior)element.startEvent().offsetBehavior());
   m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
@@ -144,8 +144,8 @@ Component::Component(
   element.startEvent().components().add(m_ossia_startEvent);
   element.endEvent().components().add(m_ossia_endEvent);
 
-  element.startTimeNode().components().add(m_ossia_startTimeNode);
-  element.endTimeNode().components().add(m_ossia_endTimeNode);
+  element.startTimeSync().components().add(m_ossia_startTimeSync);
+  element.endTimeSync().components().add(m_ossia_endTimeSync);
 
   element.constraint().components().add(m_ossia_constraint);
 }
@@ -181,17 +181,17 @@ void Component::cleanup()
     m_ossia_endEvent->cleanup();
     process().endEvent().components().remove(m_ossia_endEvent);
   }
-  if(m_ossia_startTimeNode)
+  if(m_ossia_startTimeSync)
   {
-    m_ossia_startTimeNode->OSSIATimeNode()->cleanup();
-    m_ossia_startTimeNode->cleanup();
-    process().startTimeNode().components().remove(m_ossia_startTimeNode);
+    m_ossia_startTimeSync->OSSIATimeSync()->cleanup();
+    m_ossia_startTimeSync->cleanup();
+    process().startTimeSync().components().remove(m_ossia_startTimeSync);
   }
-  if(m_ossia_endTimeNode)
+  if(m_ossia_endTimeSync)
   {
-    m_ossia_endTimeNode->OSSIATimeNode()->cleanup();
-    m_ossia_endTimeNode->cleanup();
-    process().endTimeNode().components().remove(m_ossia_endTimeNode);
+    m_ossia_endTimeSync->OSSIATimeSync()->cleanup();
+    m_ossia_endTimeSync->cleanup();
+    process().endTimeSync().components().remove(m_ossia_endTimeSync);
   }
 
   m_ossia_constraint = nullptr;
@@ -199,8 +199,8 @@ void Component::cleanup()
   m_ossia_endState = nullptr;
   m_ossia_startEvent = nullptr;
   m_ossia_endEvent = nullptr;
-  m_ossia_startTimeNode = nullptr;
-  m_ossia_endTimeNode = nullptr;
+  m_ossia_startTimeSync = nullptr;
+  m_ossia_endTimeSync = nullptr;
 }
 
 void Component::stop()

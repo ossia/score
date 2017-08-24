@@ -16,10 +16,10 @@ class RemoveEventTest : public QObject
 {
   Q_OBJECT
 private slots:
-  void RemoveEventAndTimeNodeTest()
+  void RemoveEventAndTimeSyncTest()
   {
-    // only one event on a timeNode
-    // the timeNode will be deleted too
+    // only one event on a timeSync
+    // the timeSync will be deleted too
 
     Scenario::ProcessModel* scenar = new ScenarioModel(
         std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
@@ -27,7 +27,7 @@ private slots:
     EventData data{};
     data.dDate.setMSecs(10);
     data.relativeY = 0.4;
-    data.endTimeNodeId = Id<TimeNodeModel>(-1);
+    data.endTimeSyncId = Id<TimeSyncModel>(-1);
 
     CreateEvent eventCmd(
         {
@@ -38,10 +38,10 @@ private slots:
 
     auto eventCreated = scenar->event(eventCmd.createdEvent());
     auto event_id = eventCreated->id();
-    auto tn_id = eventCreated->timeNode();
+    auto tn_id = eventCreated->timeSync();
 
     int nbOfEvent = 3;
-    int nbOfTimeNodes = 3;
+    int nbOfTimeSyncs = 3;
 
     RemoveEvent removeCmd(
         {
@@ -51,7 +51,7 @@ private slots:
 
     removeCmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent - 1);
-    QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes - 1);
+    QCOMPARE((int)scenar->timeSyncs().size(), nbOfTimeSyncs - 1);
     try
     {
       scenar->event(event_id);
@@ -62,8 +62,8 @@ private slots:
     }
     try
     {
-      scenar->timeNode(tn_id);
-      QFAIL("TimeNode call did not throw!");
+      scenar->timeSync(tn_id);
+      QFAIL("TimeSync call did not throw!");
     }
     catch (...)
     {
@@ -71,12 +71,12 @@ private slots:
 
     removeCmd.undo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent);
-    QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes);
+    QCOMPARE((int)scenar->timeSyncs().size(), nbOfTimeSyncs);
     QCOMPARE(scenar->event(event_id)->heightPercentage(), 0.4);
 
     removeCmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent - 1);
-    QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes - 1);
+    QCOMPARE((int)scenar->timeSyncs().size(), nbOfTimeSyncs - 1);
 
     try
     {
@@ -88,8 +88,8 @@ private slots:
     }
     try
     {
-      scenar->timeNode(tn_id);
-      QFAIL("TimeNode call did not throw!");
+      scenar->timeSync(tn_id);
+      QFAIL("TimeSync call did not throw!");
     }
     catch (...)
     {
@@ -100,8 +100,8 @@ private slots:
 
   void RemoveOnlyEventTest()
   {
-    // two events on a same timeNode
-    // test removing just one of them : the timeNode stay
+    // two events on a same timeSync
+    // test removing just one of them : the timeSync stay
 
     Scenario::ProcessModel* scenar = new ScenarioModel(
         std::chrono::seconds(15), Id<ProcessModel>{0}, qApp);
@@ -109,7 +109,7 @@ private slots:
     EventData data{};
     data.dDate.setMSecs(10);
     data.relativeY = 0.8;
-    data.endTimeNodeId = Id<TimeNodeModel>(-1);
+    data.endTimeSyncId = Id<TimeSyncModel>(-1);
 
     CreateEvent eventCmd(
         {
@@ -118,7 +118,7 @@ private slots:
         data);
     eventCmd.redo(ctx);
 
-    data.endTimeNodeId = eventCmd.createdTimeNode();
+    data.endTimeSyncId = eventCmd.createdTimeSync();
     data.relativeY = 0.4;
 
     CreateEvent event2Cmd(
@@ -137,7 +137,7 @@ private slots:
     auto prevConstraints = eventCreated->previousConstraints();
 
     int nbOfEvent = 4;
-    int nbOfTimeNodes = 3;
+    int nbOfTimeSyncs = 3;
 
     RemoveEvent removeCmd(
         {
@@ -147,7 +147,7 @@ private slots:
 
     removeCmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent - 1);
-    QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes);
+    QCOMPARE((int)scenar->timeSyncs().size(), nbOfTimeSyncs);
     try
     {
       scenar->event(event_id);
@@ -159,7 +159,7 @@ private slots:
 
     removeCmd.undo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent);
-    QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes);
+    QCOMPARE((int)scenar->timeSyncs().size(), nbOfTimeSyncs);
     QCOMPARE(scenar->event(event_id)->heightPercentage(), 0.4);
     QCOMPARE(
         scenar->event(event_id)->previousConstraints().size(),
@@ -170,7 +170,7 @@ private slots:
 
     removeCmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent - 1);
-    QCOMPARE((int)scenar->timeNodes().size(), nbOfTimeNodes);
+    QCOMPARE((int)scenar->timeSyncs().size(), nbOfTimeSyncs);
 
     try
     {

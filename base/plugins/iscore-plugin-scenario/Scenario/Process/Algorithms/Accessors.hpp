@@ -2,7 +2,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 // Constraints
 namespace Scenario
@@ -34,25 +34,25 @@ endEvent(const ConstraintModel& cst, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-const TimeNodeModel&
-startTimeNode(const ConstraintModel& cst, const Scenario_T& scenario)
+const TimeSyncModel&
+startTimeSync(const ConstraintModel& cst, const Scenario_T& scenario)
 {
-  return scenario.timeNode(startEvent(cst, scenario).timeNode());
+  return scenario.timeSync(startEvent(cst, scenario).timeSync());
 }
 
 template <typename Scenario_T>
-const TimeNodeModel&
-endTimeNode(const ConstraintModel& cst, const Scenario_T& scenario)
+const TimeSyncModel&
+endTimeSync(const ConstraintModel& cst, const Scenario_T& scenario)
 {
-  return scenario.timeNode(endEvent(cst, scenario).timeNode());
+  return scenario.timeSync(endEvent(cst, scenario).timeSync());
 }
 
 // Events
 template <typename Scenario_T>
-const TimeNodeModel&
-parentTimeNode(const EventModel& ev, const Scenario_T& scenario)
+const TimeSyncModel&
+parentTimeSync(const EventModel& ev, const Scenario_T& scenario)
 {
-  return scenario.timeNode(ev.timeNode());
+  return scenario.timeSync(ev.timeSync());
 }
 
 // States
@@ -63,15 +63,15 @@ const EventModel& parentEvent(const StateModel& st, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-const TimeNodeModel&
-parentTimeNode(const StateModel& st, const Scenario_T& scenario)
+const TimeSyncModel&
+parentTimeSync(const StateModel& st, const Scenario_T& scenario)
 {
-  return parentTimeNode(parentEvent(st, scenario), scenario);
+  return parentTimeSync(parentEvent(st, scenario), scenario);
 }
 
 // This one is just here to allow generic facilities
 template <typename Scenario_T>
-const TimeNodeModel& parentTimeNode(const TimeNodeModel& st, const Scenario_T&)
+const TimeSyncModel& parentTimeSync(const TimeSyncModel& st, const Scenario_T&)
 {
   return st;
 }
@@ -117,9 +117,9 @@ std::list<Id<ConstraintModel>> previousConstraints(const EventModel& ev, const S
   return constraints;
 }
 
-// TimeNodes
+// TimeSyncs
 template <typename Scenario_T>
-std::list<Id<ConstraintModel>> nextConstraints(const TimeNodeModel& tn, const Scenario_T& scenario)
+std::list<Id<ConstraintModel>> nextConstraints(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<ConstraintModel>> constraints;
   for (const Id<EventModel>& event_id : tn.events())
@@ -133,7 +133,7 @@ std::list<Id<ConstraintModel>> nextConstraints(const TimeNodeModel& tn, const Sc
 }
 
 template <typename Scenario_T>
-std::list<Id<ConstraintModel>> previousConstraints(const TimeNodeModel& tn, const Scenario_T& scenario)
+std::list<Id<ConstraintModel>> previousConstraints(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<ConstraintModel>> constraints;
   for (const Id<EventModel>& event_id : tn.events())
@@ -147,7 +147,7 @@ std::list<Id<ConstraintModel>> previousConstraints(const TimeNodeModel& tn, cons
 }
 
 template <typename Scenario_T>
-std::list<Id<StateModel>> states(const TimeNodeModel& tn, const Scenario_T& scenario)
+std::list<Id<StateModel>> states(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<StateModel>> stateList;
   for (const Id<EventModel>& event_id : tn.events())
@@ -164,7 +164,7 @@ std::list<Id<StateModel>> states(const TimeNodeModel& tn, const Scenario_T& scen
 template <typename Element_T, typename Scenario_T>
 const auto& date(const Element_T& e, const Scenario_T& scenario)
 {
-  return parentTimeNode(e, scenario).date();
+  return parentTimeSync(e, scenario).date();
 }
 
 template <typename Element_T>

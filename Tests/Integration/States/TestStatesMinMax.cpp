@@ -36,7 +36,7 @@ class TestStatesMinMax: public IscoreTestBase
             auto newStateCmd = new CreateState(scenar, scenar.startEvent().id(), 0);
             redo(newStateCmd);
 
-            auto newConstraintCmd = new CreateConstraint_State_Event_TimeNode(scenar, newStateCmd->createdState(), TimeValue::fromMsecs(500), 0);
+            auto newConstraintCmd = new CreateConstraint_State_Event_TimeSync(scenar, newStateCmd->createdState(), TimeValue::fromMsecs(500), 0);
             redo(newConstraintCmd);
             auto& createdConstraint = *scenar.constraints.begin();
 
@@ -98,7 +98,7 @@ class TestStatesMinMax: public IscoreTestBase
             auto newStateCmd = new CreateState(scenar, scenar.startEvent().id(), 0);
             redo(newStateCmd);
 
-            auto newConstraintCmd = new CreateConstraint_State_Event_TimeNode(scenar, newStateCmd->createdState(), TimeValue::fromMsecs(500), 0);
+            auto newConstraintCmd = new CreateConstraint_State_Event_TimeSync(scenar, newStateCmd->createdState(), TimeValue::fromMsecs(500), 0);
             redo(newConstraintCmd);
             auto& createdConstraint = *scenar.constraints.begin();
 

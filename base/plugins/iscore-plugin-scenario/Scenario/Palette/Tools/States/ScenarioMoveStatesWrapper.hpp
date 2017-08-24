@@ -9,7 +9,7 @@
 #include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
-#include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
+#include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 namespace Scenario
 {
 class MoveConstraintInScenario_StateWrapper
@@ -88,22 +88,22 @@ public:
   }
 };
 
-class MoveTimeNodeInScenario_StateWrapper
+class MoveTimeSyncInScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
   static void
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
-    /// TimeNode
-    auto moveTimeNode
-        = new MoveTimeNodeState<Scenario::Command::MoveEventMeta, Scenario_T, ToolPalette_T>{
+    /// TimeSync
+    auto moveTimeSync
+        = new MoveTimeSyncState<Scenario::Command::MoveEventMeta, Scenario_T, ToolPalette_T>{
             palette, palette.model(), palette.context().context.commandStack,
             palette.context().context.objectLocker, &parent};
 
-    iscore::make_transition<ClickOnTimeNode_Transition<Scenario_T>>(
-        waitState, moveTimeNode, *moveTimeNode);
-    moveTimeNode->addTransition(moveTimeNode, finishedState(), waitState);
+    iscore::make_transition<ClickOnTimeSync_Transition<Scenario_T>>(
+        waitState, moveTimeSync, *moveTimeSync);
+    moveTimeSync->addTransition(moveTimeSync, finishedState(), waitState);
   }
 };
 
@@ -129,22 +129,22 @@ public:
   }
 };
 
-class MoveTimeNodeInTopScenario_StateWrapper
+class MoveTimeSyncInTopScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
   static void
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
-    /// TimeNode
-    auto moveTimeNode
-        = new MoveTimeNodeState<Scenario::Command::MoveTopEventMeta, Scenario_T, ToolPalette_T>{
+    /// TimeSync
+    auto moveTimeSync
+        = new MoveTimeSyncState<Scenario::Command::MoveTopEventMeta, Scenario_T, ToolPalette_T>{
             palette, palette.model(), palette.context().context.commandStack,
             palette.context().context.objectLocker, &parent};
 
-    iscore::make_transition<ClickOnTimeNode_Transition<Scenario_T>>(
-        waitState, moveTimeNode, *moveTimeNode);
-    moveTimeNode->addTransition(moveTimeNode, finishedState(), waitState);
+    iscore::make_transition<ClickOnTimeSync_Transition<Scenario_T>>(
+        waitState, moveTimeSync, *moveTimeSync);
+    moveTimeSync->addTransition(moveTimeSync, finishedState(), waitState);
   }
 };
 }

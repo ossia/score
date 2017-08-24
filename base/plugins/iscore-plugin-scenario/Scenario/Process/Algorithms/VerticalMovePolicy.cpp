@@ -10,7 +10,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/Identifier.hpp>
@@ -33,13 +33,13 @@ void updateEventExtent(const Id<EventModel>& id, Scenario::ProcessModel& s)
   }
 
   ev.setExtent({min, max});
-  updateTimeNodeExtent(ev.timeNode(), s);
+  updateTimeSyncExtent(ev.timeSync(), s);
 }
 
-void updateTimeNodeExtent(
-    const Id<TimeNodeModel>& id, Scenario::ProcessModel& s)
+void updateTimeSyncExtent(
+    const Id<TimeSyncModel>& id, Scenario::ProcessModel& s)
 {
-  auto& tn = s.timeNodes.at(id);
+  auto& tn = s.timeSyncs.at(id);
   double min = std::numeric_limits<double>::max();
   double max = std::numeric_limits<double>::lowest();
   for (const auto& ev_id : tn.events())

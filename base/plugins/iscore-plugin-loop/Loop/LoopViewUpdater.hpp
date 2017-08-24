@@ -4,7 +4,7 @@
 namespace Scenario
 {
 class EventPresenter;
-class TimeNodePresenter;
+class TimeSyncPresenter;
 class TemporalConstraintPresenter;
 class StatePresenter;
 }
@@ -20,7 +20,7 @@ public:
 
   void updateConstraint(const Scenario::TemporalConstraintPresenter& pres);
 
-  void updateTimeNode(const Scenario::TimeNodePresenter& timenode);
+  void updateTimeSync(const Scenario::TimeSyncPresenter& timesync);
 
   void updateState(const Scenario::StatePresenter& state);
 

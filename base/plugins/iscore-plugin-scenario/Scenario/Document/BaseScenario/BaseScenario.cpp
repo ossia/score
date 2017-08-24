@@ -4,7 +4,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <tuple>
@@ -51,10 +51,10 @@ bool BaseScenario::focused() const
   return res;
 }
 
-const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
-    const BaseScenario& scen, const Id<TimeNodeModel>& timeNodeId)
+const QVector<Id<ConstraintModel>> constraintsBeforeTimeSync(
+    const BaseScenario& scen, const Id<TimeSyncModel>& timeSyncId)
 {
-  if (timeNodeId == scen.endTimeNode().id())
+  if (timeSyncId == scen.endTimeSync().id())
   {
     return {scen.constraint().id()};
   }

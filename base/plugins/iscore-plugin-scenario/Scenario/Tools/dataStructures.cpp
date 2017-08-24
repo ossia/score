@@ -79,19 +79,19 @@ void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
-    const Scenario::TimenodeProperties& timenodeProperties)
+    const Scenario::TimenodeProperties& timesyncProperties)
 {
-  m_stream << timenodeProperties.oldDate << timenodeProperties.newDate;
+  m_stream << timesyncProperties.oldDate << timesyncProperties.newDate;
 
   insertDelimiter();
 }
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
-    Scenario::TimenodeProperties& timenodeProperties)
+    Scenario::TimenodeProperties& timesyncProperties)
 {
 
-  m_stream >> timenodeProperties.oldDate >> timenodeProperties.newDate;
+  m_stream >> timesyncProperties.oldDate >> timesyncProperties.newDate;
 
   checkDelimiter();
 }
@@ -149,7 +149,7 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::ElementsProperties& elementsProperties)
 {
-  m_stream << elementsProperties.timenodes << elementsProperties.constraints;
+  m_stream << elementsProperties.timesyncs << elementsProperties.constraints;
 
   insertDelimiter();
 }
@@ -159,7 +159,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::ElementsProperties& elementsProperties)
 {
 
-  m_stream >> elementsProperties.timenodes >> elementsProperties.constraints;
+  m_stream >> elementsProperties.timesyncs >> elementsProperties.constraints;
 
   checkDelimiter();
 }

@@ -3,15 +3,15 @@
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Scenario/Commands/Event/SetCondition.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
-#include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
+#include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
 #include <State/Expression.hpp>
 #include <iscore/widgets/Separator.hpp>
 
@@ -83,11 +83,11 @@ EventInspectorWidget::EventInspectorWidget(
   auto infoWidg = new QWidget;
   auto infoLay = new iscore::MarginLess<QFormLayout>{infoWidg};
 
-  // timeNode
-  auto timeNode = m_model.timeNode();
+  // timeSync
+  auto timeSync = m_model.timeSync();
   auto tnBtn = SelectionButton::make(
-      tr("Parent TimeNode"),
-      &scenar->timeNode(timeNode),
+      tr("Parent TimeSync"),
+      &scenar->timeSync(timeSync),
       m_selectionDispatcher,
       infoWidg);
 

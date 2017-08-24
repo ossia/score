@@ -22,7 +22,7 @@ template <
     typename MoveLeftBraceWrapper_T,
     typename MoveRightBraceWrapper_T,
     typename MoveEventWrapper_T,
-    typename MoveTimeNodeWrapper_T>
+    typename MoveTimeSyncWrapper_T>
 class SmartTool final : public ToolBase<ToolPalette_T>
 {
 public:
@@ -49,7 +49,7 @@ public:
             this->m_palette, waitState, *actionsState);
       MoveEventWrapper_T::template make<Scenario_T, ToolPalette_T>(
             this->m_palette, waitState, *actionsState);
-      MoveTimeNodeWrapper_T::template make<Scenario_T, ToolPalette_T>(
+      MoveTimeSyncWrapper_T::template make<Scenario_T, ToolPalette_T>(
             this->m_palette, waitState, *actionsState);
 
       /// Slot resize
@@ -99,16 +99,16 @@ public:
       this->localSM().postEvent(new ClickOnEvent_Event{id, sp});
       m_nothingPressed = false;
     },
-    [&](const Id<TimeNodeModel>& id) // TimeNode
+    [&](const Id<TimeSyncModel>& id) // TimeSync
     {
-      const auto& elt = this->m_palette.presenter().timeNode(id);
+      const auto& elt = this->m_palette.presenter().timeSync(id);
 
       m_state->dispatcher.setAndCommit(
             filterSelections(
               &elt.model(),
               this->m_palette.model().selectedChildren(),
               m_state->multiSelection()));
-      this->localSM().postEvent(new ClickOnTimeNode_Event{id, sp});
+      this->localSM().postEvent(new ClickOnTimeSync_Event{id, sp});
       m_nothingPressed = false;
     },
     [&](const Id<ConstraintModel>& id) // Constraint
@@ -187,9 +187,9 @@ public:
       [&](const Id<EventModel>& id) {
         this->localSM().postEvent(new MoveOnEvent_Event{id, sp});
       }, // event
-      [&](const Id<TimeNodeModel>& id) {
-        this->localSM().postEvent(new MoveOnTimeNode_Event{id, sp});
-      }, // timenode
+      [&](const Id<TimeSyncModel>& id) {
+        this->localSM().postEvent(new MoveOnTimeSync_Event{id, sp});
+      }, // timesync
       [&](const Id<ConstraintModel>& id) {
         this->localSM().postEvent(new MoveOnConstraint_Event{id, sp});
       }, // constraint
@@ -233,9 +233,9 @@ public:
     {
       this->localSM().postEvent(new ReleaseOnEvent_Event{id, sp});
     },
-    [&](const Id<TimeNodeModel>& id) // TimeNode
+    [&](const Id<TimeSyncModel>& id) // TimeSync
     {
-      this->localSM().postEvent(new ReleaseOnTimeNode_Event{id, sp});
+      this->localSM().postEvent(new ReleaseOnTimeSync_Event{id, sp});
     },
     [&](const Id<ConstraintModel>& id) // Constraint
     {

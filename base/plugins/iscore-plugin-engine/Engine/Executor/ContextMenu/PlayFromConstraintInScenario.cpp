@@ -7,7 +7,7 @@
 #include <ossia/editor/scenario/time_constraint.hpp>
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
-#include <ossia/editor/scenario/time_node.hpp>
+#include <ossia/editor/scenario/time_sync.hpp>
 #include <Process/Process.hpp>
 #include <Engine/Executor/ConstraintComponent.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
@@ -24,7 +24,7 @@ namespace Execution
 struct dfs_visitor_state
 {
   tsl::hopscotch_set<Scenario::ConstraintModel*> constraints;
-  tsl::hopscotch_set<Scenario::TimeNodeModel*> nodes;
+  tsl::hopscotch_set<Scenario::TimeSyncModel*> nodes;
 };
 
 struct dfs_visitor : public boost::default_dfs_visitor
@@ -48,8 +48,8 @@ PlayFromConstraintScenarioPruner::constraintsToKeep() const
 {
   Scenario::TimenodeGraph g{scenar};
 
-  // First find the vertex matching the time node after our constraint
-  auto vertex = g.vertices().at(&Scenario::endTimeNode(constraint, scenar));
+  // First find the vertex matching the time sync after our constraint
+  auto vertex = g.vertices().at(&Scenario::endTimeSync(constraint, scenar));
 
   // Do a depth-first search from where we're starting
   dfs_visitor vis;
@@ -109,14 +109,14 @@ void PlayFromConstraintScenarioPruner::operator()(const Context& exec_ctx)
 
   // Get the time_constraint element of the constraint we're starting from,
   // unless it is already linked to the beginning.
-  auto& start_e = *scenar_comp->OSSIAProcess().get_start_time_node()->get_time_events()[0];
+  auto& start_e = *scenar_comp->OSSIAProcess().get_start_time_sync()->get_time_events()[0];
   auto& new_end_e = other_cst->OSSIAConstraint()->get_start_event();
   if(&start_e != &new_end_e)
   {
-    auto end_date = new_end_e.get_time_node().get_date();
+    auto end_date = new_end_e.get_time_sync().get_date();
     auto new_cst = ossia::time_constraint::create(
           ossia::time_constraint::exec_callback{},
-          *scenar_comp->OSSIAProcess().get_start_time_node()->get_time_events()[0],
+          *scenar_comp->OSSIAProcess().get_start_time_sync()->get_time_events()[0],
         new_end_e, end_date, end_date, end_date);
 
     scenar_comp->OSSIAProcess().add_time_constraint(new_cst);
@@ -125,7 +125,7 @@ void PlayFromConstraintScenarioPruner::operator()(const Context& exec_ctx)
   // Then we add a constraint from the beginning of the scenario to this one,
   // and we do an offset.
 
-  // TODO how to remove also the states ? for instance if there is a state on the first timenode ?
+  // TODO how to remove also the states ? for instance if there is a state on the first timesync ?
 
 }
 

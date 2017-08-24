@@ -240,7 +240,7 @@ void TemporalConstraintView::paint(
     bgColor.setAlpha(m_hasFocus ? 86 : 70);
     painter.fillRect(rect, bgColor);
 
-    // Fake timenode continuation
+    // Fake timesync continuation
     skin.ConstraintRackPen.setBrush(skin.RackSideBorder.getColor());
     painter.setPen(skin.ConstraintRackPen);
     painter.drawLine(rect.topLeft(), rect.bottomLeft());
