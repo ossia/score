@@ -5,8 +5,6 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/StateProcess.hpp>
 #include <Process/StateProcessFactoryList.hpp>
-#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
-#include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <Scenario/Commands/Event/SplitEvent.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
@@ -19,7 +17,6 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <iscore/tools/std/Optional.hpp>
 #include <iscore/widgets/MarginLess.hpp>
@@ -166,12 +163,6 @@ StateInspectorWidget::StateInspectorWidget(
   setParent(parent);
 
   updateDisplayedValues();
-  m_model.stateProcesses.added
-      .connect<StateInspectorWidget, &StateInspectorWidget::on_stateProcessCreated>(
-          this);
-  m_model.stateProcesses.removed
-      .connect<StateInspectorWidget, &StateInspectorWidget::on_stateProcessRemoved>(
-          this);
 }
 
 void StateInspectorWidget::updateDisplayedValues()
@@ -270,37 +261,6 @@ void StateInspectorWidget::updateDisplayedValues()
       m_properties.push_back(tab);
   }
 
-  // State processes
-  auto procWidg = new QWidget;
-  auto procLay = new iscore::MarginLess<QVBoxLayout>;
-  {
-    auto addProcButton = new QPushButton;
-    addProcButton->setText(QStringLiteral("Add process"));
-    procLay->addWidget(addProcButton);
-
-    // add new process dialog
-    delete m_addProcess;
-    m_addProcess = new AddStateProcessDialog{
-        m_context.app.interfaces<Process::StateProcessList>(), this};
-
-    // CONNECTIONS
-    connect(
-        addProcButton, &QPushButton::pressed, m_addProcess,
-        &AddStateProcessDialog::launchWindow);
-
-    connect(
-        m_addProcess, &AddStateProcessDialog::okPressed, this,
-        &StateInspectorWidget::createStateProcess);
-
-    for (auto& proc : m_model.stateProcesses)
-    {
-      procLay->addWidget(displayStateProcess(proc));
-    }
-
-    procWidg->setLayout(procLay);
-  }
-
-  m_properties.push_back(procWidg);
   updateAreaLayout(m_properties);
 }
 
@@ -354,53 +314,4 @@ void StateInspectorWidget::splitFromNode()
     }
 }
 
-void StateInspectorWidget::on_stateProcessCreated(const Process::StateProcess&)
-{
-  updateDisplayedValues();
-}
-
-void StateInspectorWidget::on_stateProcessRemoved(const Process::StateProcess&)
-{
-  updateDisplayedValues();
-}
-
-void StateInspectorWidget::createStateProcess(
-    const UuidKey<Process::StateProcessFactory>& key)
-{
-  auto cmd = new Command::AddStateProcessToState(m_model, key);
-  m_commandDispatcher.submitCommand(cmd);
-}
-
-Inspector::InspectorSectionWidget*
-StateInspectorWidget::displayStateProcess(const Process::StateProcess& process)
-{
-  using namespace iscore;
-
-  // New Section
-  auto sectionWidg
-      = new Inspector::InspectorSectionWidget(process.prettyName(), true);
-  sectionWidg->showMenu(true);
-
-  const auto& fact
-      = m_context.app.interfaces<Inspector::InspectorWidgetList>();
-  auto widgs = fact.make(m_context, {&process}, sectionWidg);
-  if (!widgs.empty())
-  {
-    sectionWidg->addContent(widgs[0]);
-  }
-
-  // delete process
-  ISCORE_TODO_("Delete state process");
-
-  auto delAct = sectionWidg->menu()->addAction(tr("Remove State Process"));
-  connect(
-      delAct, &QAction::triggered, this, [ =, id = process.id() ]() {
-        auto cmd = new Command::RemoveStateProcess{
-            m_model, id};
-        emit m_commandDispatcher.submitCommand(cmd);
-      },
-      Qt::QueuedConnection);
-
-  return sectionWidg;
-}
 }

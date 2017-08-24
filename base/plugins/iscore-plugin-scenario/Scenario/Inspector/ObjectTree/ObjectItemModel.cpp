@@ -2,15 +2,25 @@
 
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Process/Process.hpp>
+#include <Process/ProcessList.hpp>
 #include <Process/StateProcess.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Commands/Constraint/CreateProcessInNewSlot.hpp>
+#include <Scenario/Commands/Constraint/RemoveProcessFromConstraint.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/StateProcessFactoryList.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <QToolButton>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <Scenario/Commands/State/AddStateProcess.hpp>
+#include <Scenario/Commands/State/RemoveStateProcess.hpp>
+#include <Scenario/DialogWidget/AddProcessDialog.hpp>
+
 namespace Scenario
 {
 
@@ -350,7 +360,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       {
         if(!tn->active())
         {
-          static const QIcon icon(":/images/timesync.svg");
+          static const QIcon icon(":/images/timenode.svg");
           return icon;
         }
         else
@@ -531,6 +541,119 @@ void ObjectPanelDelegate::setNewSelection(const Selection &sel)
     if(m_objects->header()->sectionSize(0) < 140)
       m_objects->header()->resizeSection(0, 140);
 
+  }
+}
+
+ObjectWidget::ObjectWidget(const iscore::DocumentContext& ctx, QWidget* par)
+  : QTreeView{par}
+  , model{this}
+  , m_ctx{ctx}
+{
+  setModel(&model);
+  setAnimated(true);
+  setAlternatingRowColors(true);
+  setMidLineWidth(40);
+  setUniformRowHeights(true);
+  setWordWrap(false);
+  setMouseTracking(true);
+
+  con(model, &ObjectItemModel::changed,
+      this, &QTreeView::expandAll);
+}
+
+void ObjectWidget::selectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
+{
+  if((selected.size() > 0 || deselected.size() > 0) && !updatingSelection)
+  {
+    iscore::SelectionDispatcher d{m_ctx.selectionStack};
+    auto sel = this->selectedIndexes();
+    if(!sel.empty())
+    {
+      auto obj = (IdentifiedObjectAbstract*) sel.at(0).internalPointer();
+      d.setAndCommit(Selection{obj});
+    }
+    else
+    {
+      d.setAndCommit({});
+    }
+  }
+}
+
+void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
+{
+  auto point = ev->pos();
+  auto index = indexAt(point);
+  if (index.isValid())
+  {
+    auto ptr = (QObject*)index.internalPointer();
+    if(!ptr)
+      return;
+
+    QMenu* m = new QMenu{this};
+
+    if(auto cst = dynamic_cast<Scenario::ConstraintModel*>(ptr))
+    {
+      auto addproc = new QAction{tr("Add process"), m};
+      m->addAction(addproc);
+      connect(addproc, &QAction::triggered, this, [=] {
+
+        auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
+        auto dialog = new AddProcessDialog{fact, this};
+
+        QObject::connect(
+            dialog, &AddProcessDialog::okPressed, this, [&] (const auto& proc) {
+              using cmd = Scenario::Command::CreateProcessInNewSlot;
+              QuietMacroCommandDispatcher<cmd> disp{m_ctx.commandStack};
+
+              cmd::create(disp, *cst, proc);
+
+              disp.commit();
+            });
+
+        dialog->launchWindow();
+        dialog->deleteLater();
+      });
+    }
+    else if(auto state = dynamic_cast<Scenario::StateModel*>(ptr))
+    {
+      auto addproc = new QAction{tr("Add process"), m};
+      m->addAction(addproc);
+      connect(addproc, &QAction::triggered, this, [=] {
+
+        auto& fact = m_ctx.app.interfaces<Process::StateProcessList>();
+        auto dialog = new AddStateProcessDialog{fact, this};
+
+        QObject::connect(
+            dialog, &AddStateProcessDialog::okPressed, this, [&] (const auto& proc) {
+              CommandDispatcher<> disp{m_ctx.commandStack};
+              disp.submitCommand<Scenario::Command::AddStateProcessToState>(*state, proc);
+            });
+
+        dialog->launchWindow();
+        dialog->deleteLater();
+      });
+    }
+    else if(auto proc = dynamic_cast<Process::ProcessModel*>(ptr))
+    {
+      auto deleteact = new QAction{tr("Remove"), m};
+      m->addAction(deleteact);
+      connect(deleteact, &QAction::triggered, this, [=] {
+        CommandDispatcher<> c{m_ctx.commandStack};
+        c.submitCommand<Scenario::Command::RemoveProcessFromConstraint>(*(ConstraintModel*)proc->parent(), proc->id());
+      });
+    }
+    else if(auto stp = dynamic_cast<Process::StateProcess*>(ptr))
+    {
+      auto deleteact = new QAction{tr("Remove"), m};
+      m->addAction(deleteact);
+      connect(deleteact, &QAction::triggered, this, [=] {
+        CommandDispatcher<> c{m_ctx.commandStack};
+        c.submitCommand<Scenario::Command::RemoveStateProcess>(*(StateModel*)stp->parent(), stp->id());
+      });
+    }
+
+    m->exec(mapToGlobal(point));
+    m->deleteLater();
   }
 }
 

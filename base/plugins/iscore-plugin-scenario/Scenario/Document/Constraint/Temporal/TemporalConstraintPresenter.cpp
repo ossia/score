@@ -202,7 +202,7 @@ void TemporalConstraintPresenter::on_requestOverlayMenu(QPointF)
         dialog, &AddProcessDialog::okPressed, this,
         [&] (const auto& key) {
     auto cmd
-        = Scenario::Command::make_AddProcessToConstraint(this->model(), key);
+        = new Scenario::Command::AddProcessToConstraint(this->model(), key);
 
     CommandDispatcher<> d{m_context.commandStack};
     emit d.submitCommand(cmd);
