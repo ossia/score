@@ -174,7 +174,7 @@ void JSONObjectReader::read(
   obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
   obj["StartStateId"] = toJsonValue(scenario.m_startStateId);
 
-  obj["TimeSyncs"] = toJsonArray(scenario.timeSyncs);
+  obj["TimeNodes"] = toJsonArray(scenario.timeSyncs);
   obj["Events"] = toJsonArray(scenario.events);
   obj["States"] = toJsonArray(scenario.states);
   obj["Constraints"] = toJsonArray(scenario.constraints);
@@ -200,7 +200,7 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
     scenario.constraints.add(constraint);
   }
 
-  const auto& timesyncs = obj["TimeSyncs"].toArray();
+  const auto& timesyncs = obj["TimeNodes"].toArray();
   for (const auto& json_vref : timesyncs)
   {
     auto tnmodel = new Scenario::TimeSyncModel{

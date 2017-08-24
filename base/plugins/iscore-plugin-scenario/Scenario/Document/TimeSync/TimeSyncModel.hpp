@@ -101,4 +101,4 @@ private:
 }
 
 DEFAULT_MODEL_METADATA(Scenario::TimeSyncModel, "Sync")
-TR_TEXT_METADATA(, Scenario::TimeSyncModel, PrettyName_k, "TimeSync")
+TR_TEXT_METADATA(, Scenario::TimeSyncModel, PrettyName_k, "Sync")

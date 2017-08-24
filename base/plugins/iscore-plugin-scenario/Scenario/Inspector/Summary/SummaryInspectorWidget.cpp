@@ -43,7 +43,7 @@ SummaryInspectorWidget::SummaryInspectorWidget(
   }
 
   auto tnSection
-      = new Inspector::InspectorSectionWidget{tr("TimeSyncs"), false, this};
+      = new Inspector::InspectorSectionWidget{tr("Syncs"), false, this};
   m_properties.push_back(tnSection);
   for (auto t : timesyncs)
   {

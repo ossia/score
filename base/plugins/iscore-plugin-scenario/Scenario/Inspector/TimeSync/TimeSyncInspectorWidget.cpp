@@ -78,7 +78,7 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
 
 QString TimeSyncInspectorWidget::tabName()
 {
-  return tr("TimeSync");
+  return tr("Sync");
 }
 
 void TimeSyncInspectorWidget::updateDisplayedValues()

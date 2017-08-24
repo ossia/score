@@ -261,7 +261,7 @@ QString debug_StateMachineIDs()
       txt += "nothing";
       break;
     case ScenarioElement::TimeSync:
-      txt += "TimeSync";
+      txt += "Sync";
       break;
     case ScenarioElement::Event:
       txt += "Event";
