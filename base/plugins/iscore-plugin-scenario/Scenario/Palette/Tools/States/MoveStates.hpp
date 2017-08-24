@@ -105,6 +105,7 @@ public:
                       date,
                       m_constraintInitialPoint.y + (this->currentPoint.y - m_initialClick.y),
                       stateMachine.editionSettings().expandMode(),
+                      stateMachine.editionSettings().lockMode(),
                       cst.startState());
       });
 
@@ -309,7 +310,8 @@ public:
             ev_id,
             date,
             this->currentPoint.y,
-            stateMachine.editionSettings().expandMode());
+            stateMachine.editionSettings().expandMode(),
+            stateMachine.editionSettings().lockMode());
       });
 
       QObject::connect(

@@ -10,7 +10,7 @@
 #include <QString>
 #include <QToolBar>
 #include <QVariant>
-
+#include <QMainWindow>
 #include <Process/ExpandMode.hpp>
 #include <iscore/actions/Menu.hpp>
 
@@ -122,6 +122,19 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
     m_parent->editionSettings().setSequence(val);
   });
 
+  // ALT
+  m_altAction
+      = makeToolbarAction(tr("Lock"), this, ExpandMode::CannotExpand, tr("Alt"));
+  setIcons(
+      m_altAction, QString(":/icons/clip_duration_on.png"),
+      QString(":/icons/clip_duration_off.png"));
+
+  connect(m_altAction, &QAction::toggled, this, [=](bool val) {
+    m_parent->editionSettings().setLockMode(val ? LockMode::Constrained : LockMode::Free);
+  });
+  parent->context.mainWindow.addAction(m_altAction);
+
+
   // SCALEMODE
   m_scenarioScaleModeActionGroup = new QActionGroup{this};
 
@@ -220,6 +233,20 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
         }
       });
 
+  con(parent->editionSettings(), &Scenario::EditionSettings::lockModeChanged,
+      this, [=](LockMode lm) {
+        if (lm)
+        {
+          if (!m_altAction->isChecked())
+            m_altAction->setChecked(true);
+        }
+        else
+        {
+          if (m_altAction->isChecked())
+            m_altAction->setChecked(false);
+        }
+      });
+
   con(parent->editionSettings(), &Scenario::EditionSettings::expandModeChanged,
       this, [=](ExpandMode mode) {
         switch (mode)
@@ -270,6 +297,7 @@ void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
     bar->addAction(m_selecttool);
     bar->addAction(m_createtool);
     bar->addAction(m_playtool);
+    bar->addAction(m_altAction);
 
     ref.toolbars.emplace_back(bar, StringKey<iscore::Toolbar>("Tools"), 0, 1);
 
@@ -282,11 +310,13 @@ void ToolMenuActions::makeGUIElements(iscore::GUIElements& ref)
     ref.actions.add<Actions::CreateTool>(m_createtool);
     ref.actions.add<Actions::PlayTool>(m_playtool);
     ref.actions.add<Actions::SequenceMode>(m_shiftAction);
+    ref.actions.add<Actions::LockMode>(m_altAction);
 
     scenario_iface_cond.add<Actions::SelectTool>();
     scenario_iface_cond.add<Actions::PlayTool>();
     scenario_proc_cond.add<Actions::CreateTool>();
     scenario_proc_cond.add<Actions::SequenceMode>();
+    scenario_proc_cond.add<Actions::LockMode>();
   }
 
   // Scale modes
@@ -314,6 +344,10 @@ void ToolMenuActions::keyPressed(int key)
   {
     m_shiftAction->setChecked(true);
   }
+  else if (key == Qt::Key_Alt)
+  {
+    m_altAction->setChecked(true);
+  }
 }
 
 void ToolMenuActions::keyReleased(int key)
@@ -321,6 +355,10 @@ void ToolMenuActions::keyReleased(int key)
   if (key == Qt::Key_Shift)
   {
     m_shiftAction->setChecked(false);
+  }
+  else if (key == Qt::Key_Alt)
+  {
+    m_altAction->setChecked(false);
   }
   m_selecttool->trigger();
 }

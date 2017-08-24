@@ -75,7 +75,7 @@ public:
       const Id<EventModel>& event,
       const TimeVal& date,
       double y,
-      ExpandMode mode)
+      ExpandMode mode, LockMode)
       : m_path{scenar}, m_newDate{date}, m_mode{mode}
   {
     const Scenario::ConstraintModel& constraint = scenar.constraint();
@@ -88,9 +88,9 @@ public:
       const Id<EventModel>& event,
       const TimeVal& date,
       double y,
-      ExpandMode mode,
+      ExpandMode mode, LockMode lm,
           Id<StateModel>)
-      : MoveBaseEvent{scenar, event, date, y, mode}
+      : MoveBaseEvent{scenar, event, date, y, mode, lm}
   {
   }
 
@@ -128,11 +128,11 @@ public:
         });
   }
 
-  void update(unused_t, unused_t, const TimeVal& date, double, ExpandMode)
+  void update(unused_t, unused_t, const TimeVal& date, double, ExpandMode, LockMode)
   {
     m_newDate = date;
   }
-  void update(unused_t, unused_t, const TimeVal& date, double, ExpandMode, unused_t)
+  void update(unused_t, unused_t, const TimeVal& date, double, ExpandMode, LockMode, unused_t)
   {
     m_newDate = date;
   }

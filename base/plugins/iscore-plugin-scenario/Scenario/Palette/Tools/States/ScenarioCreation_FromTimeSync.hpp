@@ -227,7 +227,8 @@ public:
             this->createdEvents.last(),
             TimeVal::zero(),
             0.,
-            stateMachine.editionSettings().expandMode());
+            stateMachine.editionSettings().expandMode(),
+            LockMode::Free);
       });
 
       QObject::connect(

@@ -150,6 +150,7 @@ public:
                     date,
                     this->currentPoint.y,
                     stateMachine.editionSettings().expandMode(),
+                    stateMachine.editionSettings().lockMode(),
                     *this->clickedState);
         else
             this->m_movingDispatcher.submitCommand(
@@ -157,7 +158,8 @@ public:
                     *evId,
                     date,
                     this->currentPoint.y,
-                    stateMachine.editionSettings().expandMode());
+                    stateMachine.editionSettings().expandMode(),
+                    stateMachine.editionSettings().lockMode());
 
       });
 

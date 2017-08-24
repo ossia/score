@@ -67,8 +67,11 @@ public:
       const Scenario::ProcessModel& scenario,
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
-      ExpandMode mode)
-      : SerializableMoveEvent{}, m_path{scenario}, m_mode{mode}
+      ExpandMode mode, LockMode lock)
+    : SerializableMoveEvent{}
+    , m_path{scenario}
+    , m_mode{mode}
+    , m_lock{lock}
   {
     auto& s = const_cast<Scenario::ProcessModel&>(scenario);
     DisplacementPolicy::init(s, {scenario.event(eventId).timeSync()});
@@ -81,7 +84,7 @@ public:
     m_eventId = eventId;
     m_initialDate = getDate(scenario, eventId);
 
-    update(s, eventId, newDate, 0, m_mode);
+    update(s, eventId, newDate, 0, m_mode, lock);
   }
 
   void update(
@@ -89,7 +92,7 @@ public:
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
       double,
-      ExpandMode) override
+      ExpandMode, LockMode) override
   {
     // we need to compute the new time delta
     // NOTE: in the future in would be better to give directly the delta value
@@ -166,6 +169,7 @@ private:
   Path<Scenario::ProcessModel> m_path;
 
   ExpandMode m_mode{ExpandMode::Scale};
+  LockMode m_lock{LockMode::Free};
 
   Id<EventModel> m_eventId;
   /**

@@ -188,7 +188,8 @@ bool ConstraintDropHandler::drop(
                             loop->endEvent().id(),
                             drop.dropMaxDuration(),
                             constraint.heightPercentage(),
-                            ExpandMode::GrowShrink};
+                            ExpandMode::GrowShrink,
+                            LockMode::Free};
             m.submitCommand(resize_cmd);
         }
         else if(auto scenar = dynamic_cast<Scenario::ProcessModel*>(constraint.parent()))
@@ -203,7 +204,8 @@ bool ConstraintDropHandler::drop(
                         ev,
                         constraint.startDate() + drop.dropMaxDuration(),
                         constraint.heightPercentage(),
-                        ExpandMode::GrowShrink};
+                        ExpandMode::GrowShrink,
+                        LockMode::Free};
                 m.submitCommand(resize_cmd);
 
             }

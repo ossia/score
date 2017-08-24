@@ -72,3 +72,17 @@ void Scenario::EditionSettings::restoreTool()
   if (m_tool != Scenario::Tool::Create)
     setSequence(false);
 }
+
+LockMode Scenario::EditionSettings::lockMode() const
+{
+  return m_lockMode;
+}
+
+void Scenario::EditionSettings::setLockMode(LockMode lockMode)
+{
+  if (m_lockMode == lockMode)
+    return;
+
+  m_lockMode = lockMode;
+  emit lockModeChanged(m_lockMode);
+}

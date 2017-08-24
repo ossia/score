@@ -49,7 +49,7 @@ public:
 
     m_moveCommand = new MoveEvent<GoodOldDisplacementPolicy>{
         scenario, tn.events().front(),
-        destinantionTn.date(), ExpandMode::Scale};
+        destinantionTn.date(), ExpandMode::Scale, LockMode::Free};
 
     m_targetTrigger = destinantionTn.expression();
     m_targetTriggerActive = destinantionTn.active();

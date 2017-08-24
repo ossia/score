@@ -32,7 +32,7 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
               .get(iscore::AppContext(), MoveEventFactoryInterface::Strategy::CREATION)
               .make(
                   scenarioPath, std::move(eventId),
-                  std::move(newDate), mode))
+                  std::move(newDate), mode, LockMode::Free))
 {
 }
 
@@ -69,7 +69,7 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
   m_moveEventImplementation
       = iscore::AppContext().interfaces<MoveEventList>()
             .get(iscore::AppContext(), MoveEventFactoryInterface::Strategy::CREATION)
-            .make();
+            .make(LockMode::Free);
 
   m_moveEventImplementation->deserialize(cmdData);
 }
@@ -77,9 +77,10 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
 void MoveEventOnCreationMeta::update(
     Scenario::ProcessModel& scenario,
     const Id<EventModel>& eventId, const TimeVal& newDate, double y,
-    ExpandMode mode)
+    ExpandMode mode,
+    LockMode lm)
 {
-  m_moveEventImplementation->update(scenario, eventId, newDate, y, mode);
+  m_moveEventImplementation->update(scenario, eventId, newDate, y, mode, LockMode::Free);
 }
 }
 }
