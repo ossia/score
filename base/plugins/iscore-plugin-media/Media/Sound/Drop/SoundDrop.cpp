@@ -60,11 +60,9 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData &mime)
         if(auto info_opt = dec.probe(filename))
         {
           auto info = *info_opt;
-          qDebug() << info.channels << info.length << info.rate;
           if(info.channels > 0 && info.length > 0)
           {
             maxDuration = std::max((int64_t) maxDuration, (int64_t) info.length);
-            maxSampleRate = std::max((int64_t) maxSampleRate, (int64_t) info.rate);
           }
         }
     }
@@ -72,8 +70,7 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData &mime)
 
 TimeVal DroppedAudioFiles::dropMaxDuration() const
 {
-    // TODO what about resampling.
-    return TimeVal::fromMsecs(maxDuration / (maxSampleRate / 1000.0));
+    return TimeVal::fromMsecs(maxDuration / 44.1);
 }
 
 bool DropHandler::drop(

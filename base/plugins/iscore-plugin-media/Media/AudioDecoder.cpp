@@ -523,6 +523,9 @@ void AudioDecoder::decode(const QString &path)
     return;
   }
 
+  if(data.size() == 0)
+    return;
+
   this->moveToThread(&m_decodeThread);
   m_decodeThread.start();
   emit startDecode(path);
@@ -591,9 +594,8 @@ void AudioDecoder::decodeRemaining()
 }
 void AudioDecoder::on_startDecode(QString path)
 {
+  try {
   const std::size_t channels = data.size();
-  if(channels == 0)
-    return;
 
   av_register_all();
   avcodec_register_all();
@@ -684,7 +686,7 @@ void AudioDecoder::on_startDecode(QString path)
             ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
 
             update++;
-            if((update % 1024) == 0)
+            if((update % 512) == 0)
             {
               emit newData();
             }
@@ -719,8 +721,6 @@ void AudioDecoder::on_startDecode(QString path)
       {
         break;
       }
-
-
     }
 
     // Flush
@@ -734,6 +734,10 @@ void AudioDecoder::on_startDecode(QString path)
   for(auto swr : resampler)
     swr_free(&swr);
   resampler.clear();
+
+  } catch(std::exception& e) {
+    qDebug() << "Decoder error: " << e.what();
+  }
 
   emit finishedDecoding();
   m_decodeThread.quit();

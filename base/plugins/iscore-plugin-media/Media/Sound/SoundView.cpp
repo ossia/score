@@ -4,7 +4,7 @@
 #include <QScrollBar>
 #include <cmath>
 #include <QGraphicsSceneContextMenuEvent>
-
+#include <QTimer>
 #include <iscore/widgets/GraphicsItem.hpp>
 namespace Media
 {
@@ -59,7 +59,9 @@ void LayerView::recompute(ZoomRatio ratio)
 {
   m_zoom = ratio;
   if(m_data)
+  {
     m_cpt->recompute(m_data.data(), ratio);
+  }
 }
 
 
@@ -81,11 +83,8 @@ void LayerView::paint_impl(QPainter* painter) const
 
     painter->save();
 
-    painter->scale(m_pathZoom / m_zoom, 1);
-
     for (const auto& path : m_paths)
         painter->drawPath(path);
-
 
     const auto h = -height() / nchannels;
     const auto dblh = 2. * h;
@@ -290,33 +289,41 @@ void WaveformComputer::on_recompute(const MediaFileHandle* pdata, ZoomRatio rati
   const int64_t density = std::max((int)(ratio * data.sampleRate() / 1000), 1);
   long action = compareDensity(density);
 
-  switch (action) {
-  case KEEP_CUR:
-    break;
-  case USE_NEXT:
-    std::swap(m_prevdata, m_curdata);
-    std::swap(m_curdata, m_nextdata);
-    m_prevdensity = m_density;
-    m_density = m_nextdensity;
-    if (density > 1)
-      computeDataSet(data, ratio / 2., &m_nextdensity, m_nextdata);
-    else
-      m_nextdata = m_curdata;
-    break;
-  case USE_PREV:
-    std::swap(m_nextdata, m_curdata);
-    std::swap(m_curdata, m_prevdata);
-    m_nextdensity = m_density;
-    m_density = m_prevdensity;
-    computeDataSet(data, 2. * ratio, &m_prevdensity, m_prevdata);
-    break;
-  case RECOMPUTE_ALL:
-    computeDataSet(data, ratio, &m_density, m_curdata);
-    computeDataSet(data, 2. * ratio, &m_prevdensity, m_prevdata);
-    computeDataSet(data, ratio / 2., &m_nextdensity, m_nextdata);
-    break;
-  default:
-    break;
+  switch (action)
+  {
+    case KEEP_CUR:
+      break;
+    case USE_NEXT:
+      std::swap(m_prevdata, m_curdata);
+      std::swap(m_curdata, m_nextdata);
+      m_prevdensity = m_density;
+      m_density = m_nextdensity;
+
+      QTimer::singleShot(0, [this,&data,ratio,density] {
+        if (density > 1)
+          computeDataSet(data, ratio / 2., &m_nextdensity, m_nextdata);
+        else
+          m_nextdata = m_curdata;
+      });
+      break;
+    case USE_PREV:
+      std::swap(m_nextdata, m_curdata);
+      std::swap(m_curdata, m_prevdata);
+      m_nextdensity = m_density;
+      m_density = m_prevdensity;
+      QTimer::singleShot(0, [this,&data,ratio,density] {
+        computeDataSet(data, 2. * ratio, &m_prevdensity, m_prevdata);
+      });
+      break;
+    case RECOMPUTE_ALL:
+      computeDataSet(data, ratio, &m_density, m_curdata);
+      QTimer::singleShot(0, [this,&data,ratio,density] {
+        computeDataSet(data, 2. * ratio, &m_prevdensity, m_prevdata);
+        computeDataSet(data, ratio / 2., &m_nextdensity, m_nextdata);
+      });
+      break;
+    default:
+      break;
   }
 
   drawWaveForms(data, ratio);

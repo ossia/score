@@ -54,12 +54,11 @@ struct WaveformComputer : public QObject
     double m_density = -1;
     double m_nextdensity = -1;
 
-    std::vector<std::vector<float> > m_prevdata;
-    std::vector<std::vector<float> > m_curdata;
-    std::vector<std::vector<float> > m_nextdata;
+    std::vector<std::vector<float>> m_prevdata;
+    std::vector<std::vector<float>> m_curdata;
+    std::vector<std::vector<float>> m_nextdata;
 
     QThread m_drawThread;
-
 };
 
 class LayerView final : public Process::LayerView

@@ -103,7 +103,6 @@ public:
   {
     if(parent == QModelIndex())
     {
-      qDebug() << countNodes(source().rootNode());
       return countNodes(source().rootNode());
     }
     return 0;
@@ -114,37 +113,30 @@ public:
   }
   QModelIndex mapToSource(const QModelIndex& proxyIndex) const override
   {
-    qDebug("trying to map to source");
     auto idx = proxyIndex.internalPointer();
     if(!idx)
       return {};
-    qDebug("1");
 
     auto ptr = static_cast<Process::MessageNode*>(idx);
     auto parent = ptr->parent();
     if(!parent)
       return {};
 
-    qDebug() << "index" << parent->indexOfChild(ptr);;
 
     return createIndex(parent->indexOfChild(ptr), proxyIndex.column(), ptr);
   }
   QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override
   {
-    qDebug("trying to map from source");
     auto idx = sourceIndex.internalPointer();
     if(!idx)
       return {};
 
-    qDebug("1");
     auto ptr = static_cast<Process::MessageNode*>(idx);
     auto parent = ptr->parent();
     if(!parent)
       return {};
 
-    qDebug("2");
     auto row = getChildIndex(source().rootNode(), ptr);
-    qDebug() << "row: " << row;
     return createIndex(row, sourceIndex.column(), idx);
   }
 
