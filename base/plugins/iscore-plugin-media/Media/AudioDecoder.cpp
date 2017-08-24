@@ -58,12 +58,12 @@ struct Decoder;
 template<typename SampleFormat, std::size_t SampleSize>
 struct Decoder<SampleFormat, 1, SampleSize, true>
 {
-    void operator()(AudioArray& data, uint8_t** buf, std::size_t n)
+    void operator()(AudioArray& data, std::size_t curpos, uint8_t** buf, std::size_t n)
     {
       auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
       for(std::size_t j = 0; j < n; j++)
       {
-        data[0].push_back(convert_sample<SampleFormat, SampleSize>(dat[j]));
+        data[0][curpos + j] = convert_sample<SampleFormat, SampleSize>(dat[j]);
       }
     }
 };
@@ -71,19 +71,16 @@ struct Decoder<SampleFormat, 1, SampleSize, true>
 template<typename SampleFormat, std::size_t Channels, std::size_t SampleSize>
 struct Decoder<SampleFormat, Channels, SampleSize, false>
 {
-    void operator()(AudioArray& data, uint8_t** buf, std::size_t n)
+    void operator()(AudioArray& data, std::size_t curpos, uint8_t** buf, std::size_t n)
     {
       auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
-      for(std::size_t chan = 0; chan < Channels; chan++)
-      {
-        data[chan].reserve(data[chan].size() + n);
-      }
 
       for(std::size_t j = 0; j < Channels * n; )
       {
+        std::size_t cur_j = curpos + j;
         for(std::size_t chan = 0; chan < Channels; chan++)
         {
-          data[chan].push_back(convert_sample<SampleFormat, SampleSize>(dat[j]));
+          data[chan][cur_j] = convert_sample<SampleFormat, SampleSize>(dat[j]);
           j++;
         }
       }
@@ -93,15 +90,14 @@ struct Decoder<SampleFormat, Channels, SampleSize, false>
 template<typename SampleFormat, std::size_t Channels, std::size_t SampleSize>
 struct Decoder<SampleFormat, Channels, SampleSize, true>
 {
-    void operator()(AudioArray& data, uint8_t** buf, std::size_t n)
+    void operator()(AudioArray& data, std::size_t curpos, uint8_t** buf, std::size_t n)
     {
       auto dat = reinterpret_cast<SampleFormat**>(buf);
       for(std::size_t chan = 0; chan < Channels; chan++)
       {
-        data[chan].reserve(data[chan].size() + n);
         for(std::size_t j = 0; j < n; j++)
         {
-          data[chan].push_back(convert_sample<SampleFormat, SampleSize>(dat[chan][j]));
+          data[chan][curpos + j] = convert_sample<SampleFormat, SampleSize>(dat[chan][j]);
         }
       }
     }
@@ -111,19 +107,16 @@ template<typename SampleFormat, std::size_t SampleSize>
 struct Decoder<SampleFormat, dynamic_channels, SampleSize, false>
 {
     std::size_t Channels{};
-    void operator()(AudioArray& data, uint8_t** buf, std::size_t n)
+    void operator()(AudioArray& data, std::size_t curpos, uint8_t** buf, std::size_t n)
     {
       auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
-      for(std::size_t chan = 0; chan < Channels; chan++)
-      {
-        data[chan].reserve(data[chan].size() + n);
-      }
 
       for(std::size_t j = 0; j < Channels * n; )
       {
+        std::size_t cur_j = curpos + j;
         for(std::size_t chan = 0; chan < Channels; chan++)
         {
-          data[chan].push_back(convert_sample<SampleFormat, SampleSize>(dat[j]));
+          data[chan][cur_j] = convert_sample<SampleFormat, SampleSize>(dat[j]);
           j++;
         }
       }
@@ -134,15 +127,14 @@ template<typename SampleFormat, std::size_t SampleSize>
 struct Decoder<SampleFormat, dynamic_channels, SampleSize, true>
 {
     std::size_t Channels{};
-    void operator()(AudioArray& data, uint8_t** buf, std::size_t n)
+    void operator()(AudioArray& data, std::size_t curpos, uint8_t** buf, std::size_t n)
     {
       auto dat = reinterpret_cast<SampleFormat**>(buf);
       for(std::size_t chan = 0; chan < Channels; chan++)
       {
-        data[chan].reserve(data[chan].size() + n);
         for(std::size_t j = 0; j < n; j++)
         {
-          data[chan].push_back(convert_sample<SampleFormat, SampleSize>(dat[chan][j]));
+          data[chan][curpos + j] = convert_sample<SampleFormat, SampleSize>(dat[chan][j]);
         }
       }
     }
@@ -309,8 +301,10 @@ namespace Media
 {
 AudioDecoder::AudioDecoder()
 {
-
+  connect(this, &AudioDecoder::startDecode,
+          this, &AudioDecoder::on_startDecode, Qt::QueuedConnection);
 }
+
 struct AVCodecContext_Free {
     void operator()(AVCodecContext* ctx)
     { avcodec_free_context(&ctx); }
@@ -331,43 +325,87 @@ using AVFrame_ptr = std::unique_ptr<AVFrame, AVFrame_Free>;
 AVFormatContext_ptr open_audio(const QString& path)
 {
   AVFormatContext* fmt_ctx_ptr{};
-  auto ret = avformat_open_input(&fmt_ctx_ptr, path.toLatin1().constData(), nullptr, nullptr);
+  auto l1 = path.toUtf8();
+  auto ret = avformat_open_input(&fmt_ctx_ptr, l1.constData(), nullptr, nullptr);
   if(ret != 0)
-    throw std::runtime_error("Couldn't open file");
+  {
+    char err[100]{0};
+    av_make_error_string(err, 100, ret);
+    throw std::runtime_error("Couldn't open file: "+ std::string(l1.constData()) + " => " + std::string(err));
+  }
 
   return AVFormatContext_ptr{fmt_ctx_ptr};
 }
 
 ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
 {
-  av_register_all();
-  avcodec_register_all();
-
-  auto fmt_ctx = open_audio(path);
-
-  if(avformat_find_stream_info(fmt_ctx.get(), nullptr) < 0)
-    return {};
-
-  for(std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
+  auto it = database().find(path);
+  if(it == database().end())
   {
-    if(fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+    av_register_all();
+    avcodec_register_all();
+
+    auto fmt_ctx = open_audio(path);
+
+    if(avformat_find_stream_info(fmt_ctx.get(), nullptr) < 0)
+      return {};
+
+    for(std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
     {
-      auto stream = fmt_ctx->streams[i];
-      AudioInfo info;
-      info.channels = stream->codecpar->channels;
-      if(info.channels == 0)
-        return {};
-      info.rate = stream->codecpar->sample_rate;
-      info.length = read_length(path);
+      if(fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+      {
+        auto stream = fmt_ctx->streams[i];
+        AudioInfo info;
+        info.channels = stream->codecpar->channels;
+        if(info.channels == 0)
+          return {};
+        info.rate = stream->codecpar->sample_rate;
+        info.length = read_length(path);
+        info.max_arr_length = info.length;
 
-      if(info.rate != 44100)
-        info.length = av_rescale_rnd(info.length, 44100, info.rate, AV_ROUND_UP);
-      return info;
+        if(info.rate != 44100)
+        {
+          info.length = av_rescale_rnd(info.length, 44100, info.rate, AV_ROUND_UP);
+
+          if(info.length > info.max_arr_length)
+            info.max_arr_length = info.length;
+        }
+
+        database().insert(path, info);
+        return info;
+      }
     }
-  }
 
-  return {};
+    return {};
+  }
+  else
+  {
+    return *it;
+  }
 }
+
+QHash<QString, AudioInfo>&AudioDecoder::database()
+{
+  static QHash<QString, AudioInfo> db;
+  return db;
+}
+
+auto debug_ffmpeg(int ret, QString ctx)
+{
+  if(ret < 0)
+  {
+    char err[100]{0};
+    av_make_error_string(err, 100, ret);
+    qDebug()<<"error when "<< ctx <<": " << ret << err;
+  }
+  else
+  {
+    //qDebug()<<"ok: "<< ctx ;
+
+  }
+}
+
+
 std::size_t AudioDecoder::read_length(const QString& path)
 {
   av_register_all();
@@ -400,40 +438,64 @@ std::size_t AudioDecoder::read_length(const QString& path)
       if (ret != 0)
         throw std::runtime_error("Couldn't open codec");
 
-      data.resize(stream->codecpar->channels);
       sampleRate = stream->codecpar->sample_rate;
       AVPacket packet;
       AVFrame_ptr frame{av_frame_alloc()};
 
       int64_t pos = 0;
-      while(av_read_frame(fmt_ctx.get(), &packet)>=0)
+
+      ret = av_read_frame(fmt_ctx.get(), &packet);
+
+      debug_ffmpeg(ret, "av_read_frame");
+      while(ret >= 0)
       {
         ret = avcodec_send_packet(codec_ctx.get(), &packet);
-        if(ret != 0)
-          break;
-        ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
-
+        debug_ffmpeg(ret, "avcodec_send_packet");
         if(ret == 0)
         {
-          pos += frame->nb_samples;
+          ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
+          debug_ffmpeg(ret, "avcodec_receive_frame");
+          if(ret == 0)
+          {
+            while(ret == 0)
+            {
+              pos += frame->nb_samples;
+              ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
+            }
+            ret = av_read_frame(fmt_ctx.get(), &packet);
+            debug_ffmpeg(ret, "av_read_frame");
+            continue;
+          }
+          else if(ret == AVERROR(EAGAIN))
+          {
+            ret = av_read_frame(fmt_ctx.get(), &packet);
+            debug_ffmpeg(ret, "av_read_frame");
+            continue;
+          }
+          else if(ret == AVERROR_EOF)
+          {
+            pos += frame->nb_samples;
+            break;
+          }
+          else
+          {
+            break;
+          }
         }
         else if(ret == AVERROR(EAGAIN))
         {
-          continue;
-        }
-        else if(ret == AVERROR_EOF)
-        {
-          pos += frame->nb_samples;
-          break;
+          ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
+          debug_ffmpeg(ret, "avcodec_receive_frame EAGAIN");
+
         }
         else
         {
           break;
         }
       }
-
       // Flush
       avcodec_send_packet(codec_ctx.get(), NULL);
+
       return pos;
 
     }
@@ -441,8 +503,98 @@ std::size_t AudioDecoder::read_length(const QString& path)
   return 0;
 }
 
-void AudioDecoder::decode(const QString& path)
+void AudioDecoder::decode(const QString &path)
 {
+  auto it = database().find(path);
+  if(it != database().end())
+  {
+    const AudioInfo& info = *it;
+    sampleRate = info.rate;
+    data.resize(info.channels);
+    for(auto& c : data)
+    {
+      c.resize(info.max_arr_length);
+    }
+  }
+  else
+  {
+    qDebug("Cannot decode without info");
+    emit finishedDecoding();
+    return;
+  }
+
+  this->moveToThread(&m_decodeThread);
+  m_decodeThread.start();
+  emit startDecode(path);
+}
+
+template<typename Decoder>
+void AudioDecoder::decodeFrame(Decoder dec, AVFrame& frame)
+{
+  const std::size_t channels = data.size();
+  const std::size_t max_samples = data[0].size();
+
+  if(sampleRate != 44100)
+  {
+    auto new_len = av_rescale_rnd(frame.nb_samples, 44100, sampleRate, AV_ROUND_UP);
+
+    if(decoded + new_len > max_samples)
+    {
+      qDebug() << "ERROR" << decoded + frame.nb_samples << ">" << max_samples;
+      return;
+    }
+
+    AudioArray tmp;
+    tmp.resize(channels);
+    for(auto& sub : tmp)
+      sub.resize(frame.nb_samples * 2);
+
+    dec(tmp, 0, frame.extended_data, frame.nb_samples);
+
+    int res = 0;
+    for(std::size_t i = 0; i < channels; ++i)
+    {
+      float* out_ptr = data[i].data() + decoded;
+      float* in_ptr = tmp[i].data();
+
+      res = swr_convert(resampler[i], (uint8_t**)&out_ptr, new_len, (const uint8_t**)&in_ptr, frame.nb_samples);
+    }
+    decoded += res;
+  }
+  else
+  {
+    if(decoded + frame.nb_samples > max_samples)
+    {
+      qDebug() << "ERROR" << decoded + frame.nb_samples << ">" << max_samples;
+      return;
+    }
+
+    dec(data, decoded, frame.extended_data, frame.nb_samples);
+    decoded += frame.nb_samples;
+  }
+}
+
+void AudioDecoder::decodeRemaining()
+{
+  const std::size_t channels = data.size();
+  if(sampleRate != 44100)
+  {
+    int res = 0;
+    for(std::size_t i = 0; i < channels; ++i)
+    {
+      float* out_ptr = data[i].data() + decoded;
+
+      res = swr_convert(resampler[i], (uint8_t**)&out_ptr, data[i].size() - decoded, NULL, 0);
+    }
+    decoded += res;
+  }
+}
+void AudioDecoder::on_startDecode(QString path)
+{
+  const std::size_t channels = data.size();
+  if(channels == 0)
+    return;
+
   av_register_all();
   avcodec_register_all();
 
@@ -452,105 +604,140 @@ void AudioDecoder::decode(const QString& path)
   if(ret != 0)
     throw std::runtime_error("Couldn't find stream information");
 
+  AVStream* stream{};
+
   for(std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
   {
     if(fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
     {
-      auto stream = fmt_ctx->streams[i];
-      auto codec = avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id);
-      if(!codec)
-        throw std::runtime_error("Couldn't find codec");
-
-      AVCodecContext_ptr codec_ctx{avcodec_alloc_context3(codec)};
-      if(!codec_ctx)
-        throw std::runtime_error("Couldn't allocate codec context");
-
-      ret = avcodec_parameters_to_context(codec_ctx.get(), fmt_ctx->streams[i]->codecpar);
-      if(ret != 0)
-        throw std::runtime_error("Couldn't copy codec data");
-
-      ret = avcodec_open2(codec_ctx.get(), codec, nullptr);
-      if (ret != 0)
-        throw std::runtime_error("Couldn't open codec");
-
-      data.resize(stream->codecpar->channels);
-      sampleRate = stream->codecpar->sample_rate;
-
-      if(auto decoder = make_decoder(*stream))
-      {
-        eggs::variants::apply([&] (auto& dec)
-        {
-          AVPacket packet;
-          AVFrame_ptr frame{av_frame_alloc()};
-
-          while(av_read_frame(fmt_ctx.get(), &packet) >= 0)
-          {
-              ret = avcodec_send_packet(codec_ctx.get(), &packet);
-              if(ret != 0)
-                break;
-              ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
-
-              if(ret == 0)
-              {
-                dec(data, frame->extended_data, frame->nb_samples);
-              }
-              else if(ret == AVERROR(EAGAIN))
-              {
-                continue;
-              }
-              else if(ret == AVERROR_EOF)
-              {
-                dec(data, frame->extended_data, frame->nb_samples);
-                break;
-              }
-              else
-              {
-                break;
-              }
-          }
-
-          // Flush
-          avcodec_send_packet(codec_ctx.get(), NULL);
-        }, decoder);
-      }
-
-      if(sampleRate != 44100)
-      {
-        AudioArray out;
-        out.resize(data.size());
-
-        auto new_len = av_rescale_rnd(data[0].size(), 44100, sampleRate, AV_ROUND_UP);
-        for(std::size_t i = 0; i < data.size(); i++)
-        {
-          auto& chan = out[i];
-          chan.resize(new_len);
-
-          SwrContext *swr = swr_alloc_set_opts(
-                              NULL,
-                              AV_CH_LAYOUT_MONO,
-                              AV_SAMPLE_FMT_FLTP,
-                              44100,
-                              AV_CH_LAYOUT_MONO,
-                              AV_SAMPLE_FMT_FLTP,
-                              sampleRate,
-                              0,
-                              NULL);
-
-          swr_init(swr);
-          float* out_ptr = out[i].data();
-          float* in_ptr = data[i].data();
-          swr_convert(swr, (uint8_t**)&out_ptr, chan.size(), (const uint8_t**)&in_ptr, data[i].size());
-          swr_free(&swr);
-        }
-
-        data = std::move(out);
-      }
-
+      stream = fmt_ctx->streams[i];
       break;
     }
   }
 
-  ready = true;
+  if(!stream)
+    throw std::runtime_error("Couldn't find any audio stream");
+
+  auto codec = avcodec_find_decoder(stream->codecpar->codec_id);
+  if(!codec)
+    throw std::runtime_error("Couldn't find codec");
+
+  AVCodecContext_ptr codec_ctx{avcodec_alloc_context3(codec)};
+  if(!codec_ctx)
+    throw std::runtime_error("Couldn't allocate codec context");
+
+  ret = avcodec_parameters_to_context(codec_ctx.get(), stream->codecpar);
+  if(ret != 0)
+    throw std::runtime_error("Couldn't copy codec data");
+
+  ret = avcodec_open2(codec_ctx.get(), codec, nullptr);
+  if (ret != 0)
+    throw std::runtime_error("Couldn't open codec");
+
+  auto decoder = make_decoder(*stream);
+  if(!decoder)
+    throw std::runtime_error("Couldn't create decoder");
+
+  // init resampling
+  if(sampleRate != 44100)
+  {
+    for(std::size_t i = 0; i < channels; ++i)
+    {
+      SwrContext *swr = swr_alloc_set_opts(
+            NULL,
+            AV_CH_LAYOUT_MONO,
+            AV_SAMPLE_FMT_FLT,
+            44100,
+            AV_CH_LAYOUT_MONO,
+            AV_SAMPLE_FMT_FLT,
+            sampleRate,
+            0,
+            NULL);
+      swr_init(swr);
+      resampler.push_back(swr);
+    }
+  }
+
+  // decoding
+  eggs::variants::apply([&] (auto& dec)
+  {
+    AVPacket packet;
+    AVFrame_ptr frame{av_frame_alloc()};
+
+    ret = av_read_frame(fmt_ctx.get(), &packet);
+
+    debug_ffmpeg(ret, "av_read_frame");
+    int update = 0;
+    while(ret >= 0)
+    {
+      ret = avcodec_send_packet(codec_ctx.get(), &packet);
+      debug_ffmpeg(ret, "avcodec_send_packet");
+      if(ret == 0)
+      {
+        ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
+        debug_ffmpeg(ret, "avcodec_receive_frame");
+        if(ret == 0)
+        {
+          while(ret == 0)
+          {
+            decodeFrame(dec, *frame);
+            ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
+
+            update++;
+            if((update % 1024) == 0)
+            {
+              emit newData();
+            }
+          }
+
+          ret = av_read_frame(fmt_ctx.get(), &packet);
+          debug_ffmpeg(ret, "av_read_frame");
+          continue;
+        }
+        else if(ret == AVERROR(EAGAIN))
+        {
+          ret = av_read_frame(fmt_ctx.get(), &packet);
+          debug_ffmpeg(ret, "av_read_frame");
+          continue;
+        }
+        else if(ret == AVERROR_EOF)
+        {
+          decodeFrame(dec, *frame);
+          break;
+        }
+        else
+        {
+          break;
+        }
+      }
+      else if(ret == AVERROR(EAGAIN))
+      {
+        ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
+        debug_ffmpeg(ret, "avcodec_receive_frame EAGAIN");
+      }
+      else
+      {
+        break;
+      }
+
+
+    }
+
+    // Flush
+    avcodec_send_packet(codec_ctx.get(), NULL);
+
+    decodeRemaining();
+
+  }, decoder);
+
+  // clear resampling
+  for(auto swr : resampler)
+    swr_free(&swr);
+  resampler.clear();
+
+  emit finishedDecoding();
+  m_decodeThread.quit();
+
   return;
 }
 

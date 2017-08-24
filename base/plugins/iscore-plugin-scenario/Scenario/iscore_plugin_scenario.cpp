@@ -66,6 +66,11 @@
 #include <iscore_plugin_scenario_commands_files.hpp>
 
 #include <State/Unit.hpp>
+#include <QPainterPath>
+#include <QList>
+Q_DECLARE_METATYPE(QPainterPath)
+Q_DECLARE_METATYPE(QList<QPainterPath>)
+
 iscore_plugin_scenario::iscore_plugin_scenario()
 {
   using namespace Scenario;
@@ -96,6 +101,9 @@ iscore_plugin_scenario::iscore_plugin_scenario()
   qRegisterMetaTypeStreamOperators<State::vec2f>();
   qRegisterMetaTypeStreamOperators<State::vec3f>();
   qRegisterMetaTypeStreamOperators<State::vec4f>();
+
+  qRegisterMetaType<QPainterPath>();
+  qRegisterMetaType<QList<QPainterPath>>();
 }
 
 iscore_plugin_scenario::~iscore_plugin_scenario() = default;

@@ -219,7 +219,9 @@ bool MessageItemModel::dropMimeData(
   auto cmd = new Command::AddMessagesToState{stateModel, ml};
 
   CommandDispatcher<> disp(m_stack);
+  beginResetModel();
   disp.submitCommand(cmd);
+  endResetModel();
 
   return true;
 }
@@ -282,7 +284,9 @@ bool MessageItemModel::setData(
           stateModel, State::MessageList{{address(n), value}}};
 
       CommandDispatcher<> disp(m_stack);
+      beginResetModel();
       disp.submitCommand(cmd);
+      endResetModel();
       return true;
     }
   }

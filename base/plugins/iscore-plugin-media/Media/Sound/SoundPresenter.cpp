@@ -22,11 +22,11 @@ LayerPresenter::LayerPresenter(
     con(layer, &ProcessModel::fileChanged,
         this, [&] () {
         m_view->setData(m_layer.file());
-        m_view->recompute(m_layer.duration(), m_ratio);
+        m_view->recompute(m_ratio);
     });
 
     m_view->setData(m_layer.file());
-    m_view->recompute(m_layer.duration(), m_ratio);
+    m_view->recompute(m_ratio);
 
     connect(
           m_view, &LayerView::askContextMenu, this,
@@ -36,18 +36,18 @@ LayerPresenter::LayerPresenter(
 void LayerPresenter::setWidth(qreal val)
 {
     m_view->setWidth(val);
-    m_view->recompute(m_layer.duration(), m_ratio);
+    m_view->recompute(m_ratio);
 }
 
 void LayerPresenter::setHeight(qreal val)
 {
     m_view->setHeight(val);
-    m_view->recompute(m_layer.duration(), m_ratio);
+    m_view->recompute(m_ratio);
 }
 
 void LayerPresenter::putToFront()
 {
-    m_view->recompute(m_layer.duration(), m_ratio);
+    m_view->recompute(m_ratio);
     m_view->show();
 }
 
@@ -59,12 +59,12 @@ void LayerPresenter::putBehind()
 void LayerPresenter::on_zoomRatioChanged(ZoomRatio r)
 {
     m_ratio = r;
-    m_view->recompute(m_layer.duration(), m_ratio);
+    m_view->recompute(m_ratio);
 }
 
 void LayerPresenter::parentGeometryChanged()
 {
-    m_view->recompute(m_layer.duration(), m_ratio);
+    m_view->recompute(m_ratio);
 }
 
 const ProcessModel& LayerPresenter::model() const
