@@ -70,9 +70,6 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectWriter::write(Scenario::TimeSyncModel& timesync)
 {
-  if (timesync.metadata().getLabel() == QStringLiteral("TimeSync"))
-    timesync.metadata().setLabel("");
-
   timesync.m_date = fromJsonValue<TimeVal>(obj[strings.Date]);
   timesync.m_extent = fromJsonValue<Scenario::VerticalExtent>(obj[strings.Extent]);
 

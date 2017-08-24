@@ -152,7 +152,7 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
   QJsonObject base;
   base["Constraints"] = arrayToJson(selectedConstraints);
   base["Events"] = arrayToJson(copiedEvents);
-  base["TimeSyncs"] = arrayToJson(copiedTimeSyncs);
+  base["TimeNodes"] = arrayToJson(copiedTimeSyncs);
   base["States"] = arrayToJson(copiedStates);
 
   for (auto elt : copiedTimeSyncs)

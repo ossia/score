@@ -116,7 +116,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     }
   }
   {
-    auto json_arr = obj["TimeSyncs"].toArray();
+    auto json_arr = obj["TimeNodes"].toArray();
     timesyncs.reserve(json_arr.size());
     for (const auto& element : json_arr)
     {
